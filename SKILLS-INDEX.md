@@ -1,6 +1,6 @@
 # Skills Index — Quick Reference
 > Search: `grep -i "keyword" ~/.claude/SKILLS-INDEX.md`
-> Last verified: 2026-03-23 (204 skills)
+> Last verified: 2026-03-23 (205 skills)
 
 ## 🔧 Core Workflow (Planning, Execution, Verification)
 | Skill | What it does |
@@ -75,7 +75,7 @@
 | `laravel-verification` | Linting, static analysis, security scans |
 | `mywifi-platform` | MyWiFi multi-tenant WiFi management patterns |
 | `wifi-captive-portal` | Splash pages, auth flows for guest WiFi |
-| ⚠️ No Vue.js skill | Gap — need `vue-patterns` for MyWiFi frontend |
+| `vue-nuxt` | Vue 3 Composition API, Nuxt 4, Pinia, TypeScript, VueUse, SSR/SSG |
 
 ## ☁️ DevOps & Cloud
 | Skill | What it does |
