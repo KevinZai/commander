@@ -1,0 +1,130 @@
+{
+  "env": {
+    "ANTHROPIC_MODEL": "claude-opus-4-6",
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "ANTHROPIC_MAX_THINKING_TOKENS": "131072"
+  },
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:*)",
+      "Read",
+      "Write",
+      "Edit",
+      "Bash",
+      "Glob",
+      "Grep",
+      "Task",
+      "TodoWrite",
+      "Skill(*)"
+    ],
+    "deny": [],
+    "defaultMode": "bypassPermissions"
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Blow.aiff"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "playground@claude-plugins-official": true,
+    "antigravity-awesome-skills@antigravity-awesome-skills": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "discord@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true,
+    "compound-engineering@compound-engineering-plugin": true,
+    "last30days@last30days-skill": true,
+    "polyclaude@polyclaude": true,
+    "socraticode@socraticode": true
+  },
+  "extraKnownMarketplaces": {
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      }
+    },
+    "antigravity-awesome-skills": {
+      "source": {
+        "source": "github",
+        "repo": "sickn33/antigravity-awesome-skills"
+      }
+    },
+    "ui-ux-pro-max-skill": {
+      "source": {
+        "source": "github",
+        "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+      }
+    },
+    "compound-engineering-plugin": {
+      "source": {
+        "source": "github",
+        "repo": "EveryInc/compound-engineering-plugin"
+      }
+    },
+    "last30days-skill": {
+      "source": {
+        "source": "github",
+        "repo": "mvanhorn/last30days-skill"
+      }
+    },
+    "polyclaude": {
+      "source": {
+        "source": "github",
+        "repo": "Riley-Coyote/polyclaude"
+      }
+    },
+    "socraticode": {
+      "source": {
+        "source": "github",
+        "repo": "giancarloerra/socraticode"
+      }
+    }
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "skipDangerousModePermissionPrompt": true,
+  "preferredApiProvider": "firstParty",
+  "mcpServers": {
+    "github": {
+      "command": "/Users/ai/bin/mcp-github"
+    },
+    "github-gn": {
+      "command": "/Users/ai/bin/mcp-github-gn"
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ]
+    },
+    "n8n-mcp": {
+      "command": "/Users/ai/bin/mcp-n8n"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp"
+      ]
+    },
+    "granola": {
+      "command": "granola-mcp"
+    },
+    "claude-peers": {
+      "command": "bun",
+      "args": [
+        "/Users/ai/clawd/tools/claude-peers/server.ts"
+      ]
+    }
+  }
+}

@@ -1,0 +1,64 @@
+# CLAUDE.md — [Your Name]'s Development Environment
+
+## Session Startup
+1. Read project-level `CLAUDE.md` and `tasks/lessons.md` if they exist
+2. Read `tasks/todo.md` — resume where you left off
+3. Greet briefly, mention active tasks if any
+
+## Environment
+- **Shell:** zsh | **Editor:** Claude Code
+- **Package manager:** npm/pnpm
+- **Task system:** Paperclip API at localhost:3110
+
+## Coding Standards
+- TypeScript strict mode. ESM only. Functional style preferred.
+- No unnecessary comments. Code is self-documenting.
+- Error handling: fail fast, throw early, catch at boundaries.
+- Tests: Vitest (unit), Playwright (E2E).
+
+## Workflow
+
+### Spec-Based Development (ALL features >1 day)
+1. **Spec first:** Ask 5-7 questions → write `tasks/spec-YYYYMMDD.md`
+2. **New session:** Execute from spec in fresh context
+3. **Plan mode** for any task with 3+ steps or architecture decisions
+
+### Subagent Strategy
+- Use subagents liberally — keep main context clean
+- One task per subagent. Parallel when independent.
+- Never switch models mid-session (use subagents for different model needs)
+
+### Verification (MANDATORY before marking done)
+- [ ] Feature works end-to-end (test output or screenshot)
+- [ ] No TypeScript errors (`npx tsc --noEmit`)
+- [ ] No console errors
+- [ ] Committed with conventional commit message
+- [ ] Lessons captured in `tasks/lessons.md` if corrections were made
+
+### Self-Improvement
+- After ANY correction: update `tasks/lessons.md` immediately
+- Review lessons at session start
+- Write rules that prevent the same mistake twice
+
+## Core Principles
+- **Simplicity First.** Minimal code, minimal impact.
+- **No Laziness.** Root causes only. Senior developer standards.
+- **Research Before Build.** Check npm, GitHub, existing libs first.
+- **Check Skills First.** Search `SKILLS-INDEX.md` before building from scratch.
+
+## CLI Tools
+`chub` (API docs) · `context7` MCP (library docs — add "use context7" to prompts)
+
+## MCP Servers
+`github` (GitHub API) · `context7` (library docs) · `playwright` (testing/screenshots)
+
+## Project CLAUDE.md Policy
+- Create for any project with >1 session of work
+- Global = universal rules. Project = stack-specific overrides + context.
+- Project-specific permissions go in `.claude/settings.json` (NOT global)
+
+## Rules
+1. Never delete files without asking — archive or rename
+2. Git commit frequently with conventional commits
+3. Secrets: never hardcode — use env vars
+4. Skills: check `SKILLS-INDEX.md` before building from scratch
