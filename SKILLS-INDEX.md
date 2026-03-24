@@ -1,6 +1,8 @@
 # Skills Index — Quick Reference
-> Search: `grep -i "keyword" ~/.claude/SKILLS-INDEX.md`
-> Last verified: 2026-03-23 (205 skills)
+> Search: `grep -i "keyword" SKILLS-INDEX.md`
+> Last verified: 2026-03-23 (212 skill directories, 207 with SKILL.md, 3 starter templates)
+
+---
 
 ## 🔧 Core Workflow (Planning, Execution, Verification)
 | Skill | What it does |
@@ -12,6 +14,7 @@
 | `dispatching-parallel-agents` | 2+ independent tasks without shared state |
 | `iterative-retrieval` | Progressive context retrieval for subagents |
 | `systematic-debugging` | 4-phase root cause analysis before fixing |
+| `investigate` | Systematic root cause investigation — never fix without cause |
 | `verification-before-completion` | Proof-of-work before marking done |
 | `verification-loop` | Comprehensive verification system |
 | `tdd-workflow` | Test-driven: red/green/refactor cycle |
@@ -20,15 +23,21 @@
 | `strategic-compact` | Manual context compaction at logical intervals |
 | `session-startup` | Session startup protocol |
 | `using-superpowers` | How to find and use skills (meta-skill) |
-| `brainstorming` | Pre-creative-work ideation (must use before creative work) |
+| `brainstorming` | Pre-creative-work ideation (use before creative work) |
 | `playground` | HTML playgrounds for visual/interactive problems |
+| `freeze` | Restrict file edits to a specific directory for the session |
+| `unfreeze` | Clear freeze boundary, allowing edits to all directories again |
+| `project-kickoff` | Initialize new project with CLAUDE.md, tasks/, .claude/settings.json, git worktree setup |
 
-## 🚀 Ship & Review (gstack)
+## 🚀 Ship & Review
 | Skill | What it does |
 |-------|-------------|
 | `gstack` | Full dev lifecycle: browser QA, workflow stages |
+| `gstack-upgrade` | Upgrade gstack to the latest version |
 | `ship` | Build → test → PR → deploy pipeline |
 | `review` | Code review with structured feedback |
+| `requesting-code-review` | Before merging — verify work |
+| `receiving-code-review` | Implementing review feedback |
 | `retro` | Post-ship retrospective + lessons |
 | `design-review` | Visual design audit |
 | `plan-eng-review` | Engineering plan review |
@@ -37,8 +46,9 @@
 | `office-hours` | Brainstorming and ideation |
 | `codex` | Adversarial second-opinion code review |
 | `guard` | Maximum safety mode |
-| `requesting-code-review` | Before merging — verify work |
-| `receiving-code-review` | Implementing review feedback |
+| `document-release` | Post-ship doc update: README, ARCH, CONTRIBUTING, CLAUDE.md |
+| `qa` | QA test a web app and fix bugs found, commit atomically |
+| `qa-only` | Report-only QA — structured report with health score + screenshots, never modifies code |
 
 ## 🤖 AI & Agent Tools
 | Skill | What it does |
@@ -51,6 +61,10 @@
 | `context-hub` | Fetch curated API docs via `chub` CLI |
 | `claude-api` | Build apps with Claude/Anthropic SDK |
 | `configure-ecc` | Interactive ECC installer |
+| `benchmark` | Performance regression detection — baselines for page load, Core Web Vitals, resource sizes |
+| `canary` | Post-deploy canary monitoring — watches live app for errors, regressions, failures |
+| `browse` | Fast headless browser for QA, dogfooding, page state verification, annotated screenshots |
+| `cache-monitor` | Analyze Claude Code session costs and cache efficiency from JSONL session files |
 
 ## 🏗️ Backend & Database
 | Skill | What it does |
@@ -66,6 +80,21 @@
 | `jpa-patterns` | JPA/Hibernate for Spring Boot |
 | `mcp-server-patterns` | Build MCP servers (Node/TypeScript SDK) |
 | `stripe-subscriptions` | Stripe lifecycle, webhooks, checkout |
+| `drizzle-neon` ⭐ | Drizzle ORM + Neon Postgres: schema, migrations, queries, relations, serverless |
+| `fastify-api` ⭐ | Fastify API patterns: routes, hooks, WebSocket, testing, MCP server |
+
+## ⚛️ Frontend — React / Next.js
+| Skill | What it does |
+|-------|-------------|
+| `frontend-patterns` | React, Next.js, state management, performance |
+| `nextjs-app-router` ⭐ | Next.js 15+ App Router: RSC, server actions, streaming, caching, middleware |
+| `shadcn-ui` ⭐ | shadcn/ui component patterns: forms, data tables, theming, composition, charts |
+| `tailwind-v4` ⭐ | Tailwind CSS v4: CSS-based config, container queries, new utilities, migration |
+| `landing-page-builder` | High-converting landing pages (Next.js) |
+| `blog-engine` | SEO-optimized blog systems (MDX, Next.js) |
+| `frontend-design` | Anti-slop design system (Anthropic official) |
+| `coding-standards` | Universal TS/JS/React coding standards |
+| `plankton-code-quality` | Write-time code quality enforcement |
 
 ## 🔷 Laravel & Vue.js (MyWiFi Stack)
 | Skill | What it does |
@@ -76,6 +105,22 @@
 | `mywifi-platform` | MyWiFi multi-tenant WiFi management patterns |
 | `wifi-captive-portal` | Splash pages, auth flows for guest WiFi |
 | `vue-nuxt` | Vue 3 Composition API, Nuxt 4, Pinia, TypeScript, VueUse, SSR/SSG |
+
+## 🔐 Auth & Security
+| Skill | What it does |
+|-------|-------------|
+| `better-auth` ⭐ | Better Auth authentication: setup, OAuth, sessions, multi-tenant, plugins |
+| `container-security` | Docker/container hardening |
+| `github-actions-security` | CI/CD security patterns |
+| `pci-compliance` | Payment security (PCI DSS) |
+| `pentest-checklist` | Penetration test planning + checklists |
+| `gdpr-data-handling` | GDPR-compliant data processing |
+| `accessibility-compliance` | WCAG, inclusive design, assistive tech |
+
+## 🏗 Monorepo & Infra Tooling
+| Skill | What it does |
+|-------|-------------|
+| `turborepo-monorepo` ⭐ | Turborepo monorepo: pipeline, caching, shared packages, deployment |
 
 ## ☁️ DevOps & Cloud
 | Skill | What it does |
@@ -91,7 +136,6 @@
 | `aws-s3-patterns` | S3: lifecycle, presigned URLs, encryption |
 | `aws-cloudfront-optimization` | CloudFront: cache policies, Lambda@Edge |
 | `aws-iam-security` | IAM: least privilege, OIDC, boundaries |
-| `container-security` | Image hardening, vulnerability scanning |
 | `network-engineer` | Cloud networking + security architectures |
 | `prometheus-configuration` | Prometheus setup + scrape config |
 | `promql-alerting` | PromQL queries, SLO-based alerting |
@@ -100,19 +144,15 @@
 | `land-and-deploy` | Deployment patterns |
 | `setup-deploy` | Deploy setup patterns |
 
-## 🎨 Design & Frontend
+## 🎨 Design & Frontend UI
 | Skill | What it does |
 |-------|-------------|
-| `frontend-design` | Anti-slop design system (Anthropic official) |
-| `frontend-patterns` | React, Next.js, state mgmt, performance |
 | `frontend-slides` | Animation-rich HTML presentations / PPT convert |
 | `web-artifacts-builder` | Multi-component Claude HTML artifacts |
-| `landing-page-builder` | High-converting landing pages (Next.js) |
 | `brand-guidelines` | Anthropic brand colors + typography |
 | `teach-impeccable` | One-time design context setup |
 | `theme-factory` | Themed slides, docs, reports, HTML |
-| `coding-standards` | Universal TS/JS/React coding standards |
-| `plankton-code-quality` | Write-time code quality enforcement |
+| `design-consultation` | Full design system proposal: aesthetic, typography, color, layout, motion |
 
 ## ✨ Design Polish (Impeccable Suite)
 | Skill | What it does |
@@ -166,6 +206,8 @@
 | `bulk-page-generator` | Programmatic SEO pages at scale |
 | `blog-engine` | SEO-optimized blog systems (MDX, Next.js) |
 | `social-integration` | OG previews, Twitter cards, sharing |
+| `search-console` | Google Search Console data — rankings, clicks, impressions, CTR, index coverage |
+| `guest-blogger` | Guest blog search strategy, source analysis, quality evaluation, pitch templates |
 
 ## 📧 Email & Messaging
 | Skill | What it does |
@@ -214,16 +256,6 @@
 | `engineering-pack` | Engineering leadership skills |
 | `finance-pack` | Financial analysis + planning |
 
-## 🔐 Security & Compliance
-| Skill | What it does |
-|-------|-------------|
-| `container-security` | Docker/container hardening |
-| `github-actions-security` | CI/CD security patterns |
-| `pci-compliance` | Payment security (PCI DSS) |
-| `pentest-checklist` | Penetration test planning + checklists |
-| `gdpr-data-handling` | GDPR-compliant data processing |
-| `accessibility-compliance` | WCAG, inclusive design, assistive tech |
-
 ## 🐍 Python
 | Skill | What it does |
 |-------|-------------|
@@ -271,6 +303,40 @@
 | `para-memory-files` | PARA method memory organization |
 | `setup-browser-cookies` | Browser cookie setup |
 | `business-analytics` | AI-powered business analysis |
+| `investigate` | Systematic debugging with root cause investigation |
+| `project-guidelines-example` | Example project-specific skill template (real production app) |
+
+## 🔬 Observability & QA
+| Skill | What it does |
+|-------|-------------|
+| `benchmark` | Performance regression detection — page load baselines, Core Web Vitals |
+| `canary` | Post-deploy canary monitoring — console errors, perf regressions, page failures |
+| `browse` | Headless browser for QA and site dogfooding — navigate, interact, screenshot, diff |
+| `cache-monitor` | Claude Code/OpenClaw session cost and cache efficiency analysis |
+| `qa` | Full QA loop: test web app, fix bugs, commit atomically |
+| `qa-only` | Report-only QA: structured report with health score, never modifies code |
+
+## 🏗 Project Starters
+> Ready-to-use project templates in `templates/` + skills that bootstrap full setups.
+
+### Starter Templates (`templates/`)
+| Template | Stack | What you get |
+|----------|-------|-------------|
+| `nextjs-shadcn-starter.md` | Next.js 15 + shadcn/ui + Better Auth + Drizzle + Neon | Full SaaS scaffold: auth, dashboard, DB schema, middleware |
+| `turborepo-fullstack-starter.md` | Turborepo + Next.js + Fastify + shared packages | Monorepo: web app, API, shared DB/types/validators |
+| `marketing-site-starter.md` | Next.js 15 + MDX + PostHog + Framer Motion | Marketing site: hero, pricing, blog, analytics, OG images |
+
+### Scaffolding Skills
+| Skill | What it starts |
+|-------|---------------|
+| `project-kickoff` | Any project — CLAUDE.md, tasks/, .claude/settings.json, git worktree |
+| `nextjs-app-router` ⭐ | Next.js 15+ App Router project with RSC, server actions, streaming |
+| `turborepo-monorepo` ⭐ | Turborepo monorepo with pipeline, caching, shared packages |
+| `landing-page-builder` | High-converting Next.js landing page |
+| `laravel-patterns` | Laravel project with routing, Eloquent, service layers |
+| `vue-nuxt` | Vue 3 / Nuxt 4 project with Pinia + TypeScript |
+
+---
 
 ## 📖 Reference MCPs (always available)
 | MCP | What it provides |
@@ -281,3 +347,7 @@
 | `github` / `github-gn` | GitHub API (personal + Guest Networks) |
 | `granola` | Meeting notes / transcripts |
 | `claude-peers` | Agent-to-agent communication |
+
+---
+
+*⭐ = new in v0.4*
