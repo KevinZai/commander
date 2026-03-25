@@ -1,6 +1,6 @@
 # Skills Index — Quick Reference
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-03-23 (212 skill directories, 207 with SKILL.md, 3 starter templates)
+> Last verified: 2026-03-25 (219 skill directories, 214 with SKILL.md, 3 starter templates)
 
 ---
 
@@ -8,21 +8,27 @@
 | Skill | What it does |
 |-------|-------------|
 | `spec-interviewer` | Interview → spec doc → execute in fresh session |
+| `evals-before-specs` | **NEW** Define success criteria BEFORE writing specs: evals → spec → plan → implement → verify |
 | `writing-plans` | Structured planning before implementation |
 | `executing-plans` | Execute written plans with review checkpoints |
+| `delegation-templates` | **NEW** 7 structured subagent types (Implementer, Researcher, Reviewer, Batch, Explorer, Creative, Session) with report formats |
+| `dialectic-review` | **NEW** Multi-agent FOR/AGAINST/Referee pattern for important decisions |
 | `subagent-driven-development` | Multi-agent parallel execution patterns |
 | `dispatching-parallel-agents` | 2+ independent tasks without shared state |
 | `iterative-retrieval` | Progressive context retrieval for subagents |
 | `systematic-debugging` | 4-phase root cause analysis before fixing |
 | `investigate` | Systematic root cause investigation — never fix without cause |
+| `operationalize-fixes` | **NEW** Post-bug-fix protocol: test → sweep → update instructions → root cause chain |
 | `verification-before-completion` | Proof-of-work before marking done |
 | `verification-loop` | Comprehensive verification system |
 | `tdd-workflow` | Test-driven: red/green/refactor cycle |
 | `using-git-worktrees` | Isolated branches for parallel work |
 | `finishing-a-development-branch` | Integration decisions after implementation |
+| `overnight-runner` | **NEW** Autonomous batch jobs: checkpoint files, usage limit retries, human gates, notifications |
 | `strategic-compact` | Manual context compaction at logical intervals |
 | `session-startup` | Session startup protocol |
 | `using-superpowers` | How to find and use skills (meta-skill) |
+| `corrective-framing` | **NEW** Prompt engineering: present possibly-wrong claims to trigger correction > "remember to X" |
 | `brainstorming` | Pre-creative-work ideation (use before creative work) |
 | `playground` | HTML playgrounds for visual/interactive problems |
 | `freeze` | Restrict file edits to a specific directory for the session |
@@ -196,6 +202,7 @@
 ## 📈 SEO & Content
 | Skill | What it does |
 |-------|-------------|
+| `aaio` | **NEW** Agentic AI Optimization — robots.txt AI policy, JSON-LD, markdown twins, agent-ready interfaces |
 | `ai-seo` | Optimize for AI search engines / LLM citations |
 | `seo-optimizer` | Technical SEO: meta, OG, JSON-LD, sitemaps |
 | `seo-content-brief` | SEO content briefs for writers |

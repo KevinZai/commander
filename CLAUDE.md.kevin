@@ -19,6 +19,10 @@
 
 ## Workflow
 
+### Evals Before Specs (ALL non-trivial work)
+Define success criteria BEFORE writing the spec: evals → spec → plan → implement → verify.
+Ask: "What does done look like? What does broken look like? What edge cases must work?"
+
 ### Spec-Based Development (ALL features >1 day)
 1. **Spec first:** Ask 5-7 questions using AskUserQuestion → write `tasks/spec-YYYYMMDD.md`
 2. **New session:** Execute from spec in fresh context (clean cache)
@@ -28,6 +32,12 @@
 - Use subagents liberally — keep main context clean
 - One task per subagent. Parallel when independent.
 - Never switch models mid-session (use subagents for different model needs)
+- Use `delegation-templates` skill for structured dispatch with report formats
+
+### Dialectic Review (Important Decisions)
+For architecture choices, vendor evaluations, or expensive-to-reverse decisions:
+spawn FOR agent + AGAINST agent + Referee. See `dialectic-review` skill.
+Triggers: "I'm not sure", choosing between approaches, high-reversibility-cost.
 
 ### Verification (MANDATORY before marking done)
 - [ ] Feature works end-to-end (Playwright screenshot or test output)
@@ -36,10 +46,14 @@
 - [ ] Committed with conventional commit message
 - [ ] Lessons captured in `tasks/lessons.md` if corrections were made
 
+### Operationalize Every Fix
+After fixing a bug: write class-level tests, sweep codebase for siblings, update CLAUDE.md if it reveals a gap. See `operationalize-fixes` skill. Every bug is a learning opportunity.
+
 ### Self-Improvement
 - After ANY correction: update `tasks/lessons.md` immediately
 - Review lessons at session start
 - Write rules that prevent the same mistake twice
+- Use corrective framing over reminders: "You should be doing X — are you still doing it?" > "Remember to X"
 
 ## Task System Routing
 - **Building software (personal projects)** → **Linear `linear` MCP (k3v80 workspace, CC- team)**
@@ -57,12 +71,14 @@
 - **Simplicity First.** Minimal code, minimal impact.
 - **No Laziness.** Root causes only. Senior developer standards.
 - **Research Before Build.** Check npm, GitHub, existing libs first.
+- **Evals Before Specs.** Define what "done" and "broken" look like before writing code.
+- **Corrective Framing.** Present expectations as verifiable claims, not reminders.
 
 ## CLI Tools
 `chub` (API docs) · `xfetch` (X/Twitter) · `x search` (X search) · `yf` (finance) · `qmd` (memory search) · `discrawl` (Discord search)
 
 ## MCP Servers
-`github` `github-gn` (GitHub) · `linear` (personal/CC- tasks) · `linear-gn` (GN staff workspace) · `context7` (library docs — add "use context7") · `n8n-mcp` (workflows) · `playwright` (testing/screenshots) · `granola` (meeting notes/transcripts)
+`github` `github-gn` (GitHub) · `linear` (personal/CC- tasks) · `linear-gn` (GN staff workspace) · `context7` (library docs — add "use context7") · `n8n-mcp` (workflows) · `playwright` (testing/screenshots) · `granola` (meeting notes/transcripts) · `vibe-annotations` (visual UI feedback — fetch/resolve annotations from browser extension) · `shadcn-ui` (live shadcn/ui v4 component source, blocks, demos via GitHub API)
 
 ## Plugins
 `/ce:plan` `/ce:work` `/ce:brainstorm` (Compound Engineering — plan-first dev workflow)
@@ -86,7 +102,7 @@ Check `~/clawd/shared/refs/shadcn-ecosystem.md` before building custom. Key: tre
 4. Static content first, dynamic last (this file is structured for caching)
 
 ## ECC (Everything Claude Code) System
-Installed: developer profile (v1.9.0) — 28 agents, 65+ rules, 68 commands, 248 skills, full hook lifecycle.
+Installed: developer profile (v1.9.0) — 28 agents, 65+ rules, 68 commands, 248+ skills, full hook lifecycle.
 
 ### Key Commands
 `/plan` → spec-first planning · `/learn` → extract reusable patterns · `/verify` → verification loop
@@ -108,8 +124,20 @@ Use `/save-session` before closing. Use `/resume-session` on next startup.
 
 ## Quick Reference
 - **ECC Agents:** `~/.claude/AGENTS.md` — 28 specialized agents (architect, reviewers, TDD, security, etc.)
-- **Skills index:** `~/.claude/skills/` — searchable skill reference
+- **Skills index:** `~/.claude/SKILLS-INDEX.md` — searchable skill reference (220+ skills)
+- **Cheatsheet:** `~/.claude/CHEATSHEET.md` — commands + workflows + best practices
 - **Hooks:** ECC lifecycle hooks (see above) + sound notification on completion
+
+## Situational Guides (On-Demand Skills)
+These load on-demand — keeps always-loaded context lean:
+- Delegating to subagents → `delegation-templates` skill
+- Important decision → `dialectic-review` skill (FOR/AGAINST/Referee)
+- Post-bug-fix → `operationalize-fixes` skill
+- Starting a feature → `evals-before-specs` skill
+- Writing agent instructions → `corrective-framing` skill
+- Running batch jobs overnight → `overnight-runner` skill
+- AI/SEO optimization → `aaio` skill (robots.txt, JSON-LD, markdown twins)
+- AI search visibility → `ai-seo` skill
 
 ## Rules
 1. Never delete files without asking — archive or rename
@@ -117,3 +145,5 @@ Use `/save-session` before closing. Use `/resume-session` on next startup.
 3. Secrets: never hardcode — use env vars or 1Password (`op://`)
 4. Ports: check `~/clawd/shared/PORT-REGISTRY.md` before binding
 5. Skills: check `~/.claude/SKILLS-INDEX.md` before building from scratch
+6. Bug fixes: write reproduction test FIRST, then fix, then operationalize
+7. Decisions: use dialectic review for anything expensive to reverse

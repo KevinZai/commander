@@ -1,7 +1,7 @@
 # Claude Code Setup — Kevin's Team Kit
 
 Production-tested Claude Code environment for Kevin + staff.
-204 skills, 7 MCP servers, 65+ commands, full hook lifecycle.
+219 skills, 7 MCP servers, 65+ commands, full hook lifecycle.
 
 ## Quick Setup (5 min)
 
@@ -10,10 +10,11 @@ Production-tested Claude Code environment for Kevin + staff.
 npm install -g @anthropic-ai/claude-code
 ```
 
-### 2. Copy the config
+### 2. Run the setup script
 ```bash
-# From this repo root:
-cp -r .claude/ ~/.claude/
+git clone https://github.com/k3v80/claude-code-kit.git /tmp/claude-code-kit
+cd /tmp/claude-code-kit
+chmod +x setup.sh && ./setup.sh
 ```
 
 ### 3. Set your API key
@@ -28,11 +29,23 @@ claude --version
 claude   # starts interactive session
 ```
 
+## Update (Overwrite Existing)
+
+**To update an existing install** (overwrites `~/.claude/` — backs up first):
+
+```bash
+cd /tmp/claude-code-kit && git pull origin main
+chmod +x setup-overwrite.sh && ./setup-overwrite.sh
+```
+
+This replaces skills, commands, SKILLS-INDEX, CHEATSHEET, and hooks.
+CLAUDE.md and settings.json are only replaced if you pass `--all`.
+
 ## What's Included
 
 | Component | Count | Location |
 |-----------|-------|----------|
-| Skills | 204 | `~/.claude/skills/` |
+| Skills | 219 | `~/.claude/skills/` |
 | Commands | 65+ | `~/.claude/commands/` |
 | MCP Servers | 7 | `~/.claude/settings.json` |
 | Hooks | 22 | `~/.claude/hooks/hooks.json` |
@@ -45,6 +58,18 @@ claude   # starts interactive session
 - **`SKILLS-INDEX.md`** — Searchable skill reference (categorized)
 - **`CHEATSHEET.md`** — Commands + best practices quick reference
 - **`hooks/hooks.json`** — Lifecycle hooks (auto-format, quality gates, etc.)
+
+## New in v0.5 (2026-03-25)
+
+| Skill | What it does |
+|-------|-------------|
+| `delegation-templates` | 7 structured subagent types with report formats and model selection |
+| `dialectic-review` | FOR/AGAINST/Referee pattern for important decisions |
+| `evals-before-specs` | Define success criteria before writing specs |
+| `corrective-framing` | Present claims to trigger correction > "remember to X" |
+| `operationalize-fixes` | Post-bug-fix: test → sweep → update instructions |
+| `overnight-runner` | Autonomous batch jobs with checkpoints and retry |
+| `aaio` | Agentic AI Optimization — robots.txt, JSON-LD, markdown twins |
 
 ## MCP Servers
 

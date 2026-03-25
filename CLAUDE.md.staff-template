@@ -18,6 +18,10 @@
 
 ## Workflow
 
+### Evals Before Specs (ALL non-trivial work)
+Define success criteria BEFORE writing the spec: evals → spec → plan → implement → verify.
+Ask: "What does done look like? What does broken look like? What edge cases must work?"
+
 ### Spec-Based Development (ALL features >1 day)
 1. **Spec first:** Ask 5-7 questions → write `tasks/spec-YYYYMMDD.md`
 2. **New session:** Execute from spec in fresh context
@@ -27,6 +31,11 @@
 - Use subagents liberally — keep main context clean
 - One task per subagent. Parallel when independent.
 - Never switch models mid-session (use subagents for different model needs)
+- Use `delegation-templates` skill for structured dispatch with report formats
+
+### Dialectic Review (Important Decisions)
+For architecture choices or expensive-to-reverse decisions:
+spawn FOR agent + AGAINST agent + Referee. See `dialectic-review` skill.
 
 ### Verification (MANDATORY before marking done)
 - [ ] Feature works end-to-end (test output or screenshot)
@@ -35,15 +44,20 @@
 - [ ] Committed with conventional commit message
 - [ ] Lessons captured in `tasks/lessons.md` if corrections were made
 
+### Operationalize Every Fix
+After fixing a bug: write class-level tests, sweep codebase for siblings, update CLAUDE.md if it reveals a gap. See `operationalize-fixes` skill.
+
 ### Self-Improvement
 - After ANY correction: update `tasks/lessons.md` immediately
 - Review lessons at session start
 - Write rules that prevent the same mistake twice
+- Use corrective framing over reminders (see `corrective-framing` skill)
 
 ## Core Principles
 - **Simplicity First.** Minimal code, minimal impact.
 - **No Laziness.** Root causes only. Senior developer standards.
 - **Research Before Build.** Check npm, GitHub, existing libs first.
+- **Evals Before Specs.** Define what "done" and "broken" look like before writing code.
 - **Check Skills First.** Search `SKILLS-INDEX.md` before building from scratch.
 
 ## CLI Tools
@@ -51,6 +65,17 @@
 
 ## MCP Servers
 `github` (GitHub API) · `context7` (library docs) · `playwright` (testing/screenshots)
+
+## Situational Guides (On-Demand Skills)
+These load on-demand — keeps always-loaded context lean:
+- Delegating to subagents → `delegation-templates` skill
+- Important decision → `dialectic-review` skill (FOR/AGAINST/Referee)
+- Post-bug-fix → `operationalize-fixes` skill
+- Starting a feature → `evals-before-specs` skill
+- Writing agent instructions → `corrective-framing` skill
+- Running batch jobs overnight → `overnight-runner` skill
+- AI/SEO optimization → `aaio` skill
+- AI search visibility → `ai-seo` skill
 
 ## Project CLAUDE.md Policy
 - Create for any project with >1 session of work
@@ -62,3 +87,5 @@
 2. Git commit frequently with conventional commits
 3. Secrets: never hardcode — use env vars
 4. Skills: check `SKILLS-INDEX.md` before building from scratch
+5. Bug fixes: write reproduction test FIRST, then fix, then operationalize
+6. Decisions: use dialectic review for anything expensive to reverse

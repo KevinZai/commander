@@ -1,6 +1,6 @@
 # Claude Code Cheatsheet
 > The complete reference for Claude Code CLI — commands, workflows, and power user tips
-> v0.4 — 2026-03-23
+> v0.5 — 2026-03-25
 
 ---
 
@@ -598,15 +598,18 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Performance | `optimize` + `harden` |
 | Design quality | `critique` → `bolder`/`quieter` → `polish` |
 | SEO | `seo-optimizer` + `ai-seo` + `site-architecture` |
+| AI discoverability | `aaio` (robots.txt, JSON-LD, markdown twins, agent-ready) |
 | Conversion | `signup-flow-cro` + `analytics-conversion` |
 | Animations | `animate` + `motion-design` |
 | Visual effects | `svg-animation` + `particle-systems` + `webgl-shader` |
+| Agent instructions | `corrective-framing` (present claims > "remember to X") |
 
 ### "I need to review..."
 
 | Scenario | Skills to Use |
 |----------|--------------|
 | Code review | `/code-review` command or `review` skill |
+| Important decision | `dialectic-review` (FOR/AGAINST/Referee agents) |
 | Security audit | `pentest-checklist` + `container-security` |
 | Design review | `design-review` + `audit` + `critique` |
 | Business plan | `plan-ceo-review` + `saas-metrics-coach` |
@@ -660,9 +663,12 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Goal | Combo |
 |------|-------|
 | New feature (full cycle) | `/plan` → approve spec → `/tdd` → implement → `/verify` → `/code-review` → `/pr` → `/deploy` |
-| Bug fix | `investigate` skill → root cause → `/tdd` → fix → `/verify` → `/pr` |
+| Bug fix | `investigate` skill → root cause → `/tdd` → fix → `operationalize-fixes` → `/verify` → `/pr` |
 | Design work | `/plan` → `brainstorming` → `frontend-design` → `/verify` → `design-review` → ship |
-| Content/SEO | `seo-content-brief` → `content-strategy` → write → `seo-optimizer` → `/verify` |
+| Content/SEO | `seo-content-brief` → `content-strategy` → write → `seo-optimizer` + `aaio` → `/verify` |
+| Feature kickoff | `evals-before-specs` → `/plan` → spec → implement → verify against evals |
+| Overnight batch | `overnight-runner` → checkpoint file → wrapper script → notification |
+| Subagent dispatch | `delegation-templates` → structured prompt → report validation → accept/reject |
 | Performance | `audit` → `optimize` → `harden` → benchmark → `canary` monitor |
 | QA cycle | `qa` skill → fix bugs → `document-release` → deploy |
 | New project | `project-kickoff` → CLAUDE.md + tasks → `/plan` → build |
