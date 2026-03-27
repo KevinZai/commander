@@ -95,6 +95,16 @@ Check `~/clawd/shared/refs/shadcn-ecosystem.md` before building custom. Key: tre
 - Global = universal rules. Project = stack-specific overrides + context.
 - Project-specific permissions go in `.claude/settings.json` (NOT global)
 
+## Auto-Skill Triggers (Load These When Relevant)
+- Building a landing page → Load `mega-design` skill
+- Working on SEO → Load `mega-seo` skill
+- Writing tests → Load `mega-testing` skill
+- Setting up CI/CD or deploy → Load `mega-devops` skill
+- Building a SaaS product → Load `mega-saas` skill
+- Marketing or content work → Load `mega-marketing` skill
+- Editing schema/migrations → Load `database-designer` + `drizzle-neon`
+- Working on auth → Load `better-auth`
+
 ## Cache Efficiency Rules
 1. Never add one-off permissions to global settings — use project-level
 2. Never change tools/models mid-session — use subagents instead
