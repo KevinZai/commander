@@ -33,12 +33,17 @@ my-app/
 │   │   └── utils.ts
 │   └── middleware.ts
 ├── drizzle/                 # migration files (generated)
+├── tests/                   # Vitest unit/integration tests
+├── e2e/                     # Playwright E2E tests
 ├── drizzle.config.ts
+├── vitest.config.ts
+├── playwright.config.ts
 ├── package.json
 ├── next.config.ts
 ├── tailwind.config.ts
 ├── tsconfig.json
 ├── components.json          # shadcn config
+├── .gitignore
 └── .env.local
 ```
 
@@ -57,6 +62,9 @@ my-app/
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -96,7 +104,13 @@ my-app/
     "drizzle-kit": "0.30.4",
     "tsx": "4.19.3",
     "eslint": "9.22.0",
-    "eslint-config-next": "15.2.4"
+    "eslint-config-next": "15.2.4",
+    "vitest": "3.0.8",
+    "@vitejs/plugin-react": "4.3.4",
+    "@testing-library/react": "16.2.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@playwright/test": "1.50.1",
+    "jsdom": "26.0.0"
   }
 }
 ```
@@ -690,3 +704,72 @@ RESEND_API_KEY=
 9. **Add middleware** — copy `src/middleware.ts`
 
 10. **Run dev** — `npm run dev` → navigate to `http://localhost:3000`
+
+---
+
+## `vitest.config.ts`
+
+```ts
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts'],
+    include: ['tests/**/*.test.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
+});
+```
+
+## `tests/setup.ts`
+
+```ts
+import '@testing-library/jest-dom/vitest';
+```
+
+## `playwright.config.ts`
+
+```ts
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  reporter: process.env.CI ? 'github' : 'html',
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+  ],
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+  },
+});
+```
+
+## `.gitignore`
+
+```
+node_modules/
+.next/
+dist/
+.env.local
+.env*.local
+*.tsbuildinfo
+test-results/
+playwright-report/
+```

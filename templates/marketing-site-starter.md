@@ -68,7 +68,10 @@ my-site/
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "next": "15.2.4",
@@ -98,7 +101,13 @@ my-site/
     "@types/react-dom": "19.0.4",
     "@types/node": "22.13.10",
     "eslint": "9.22.0",
-    "eslint-config-next": "15.2.4"
+    "eslint-config-next": "15.2.4",
+    "vitest": "3.0.8",
+    "@vitejs/plugin-react": "4.3.4",
+    "@testing-library/react": "16.2.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@playwright/test": "1.50.1",
+    "jsdom": "26.0.0"
   }
 }
 ```
@@ -812,3 +821,18 @@ CONTACT_EMAIL=team@yourdomain.com
 9. **MDX blog:** Create `src/content/blog/`, add `gray-matter` + `reading-time`
 
 10. **Deploy:** `vercel deploy` — set env vars in Vercel dashboard
+
+---
+
+## `.gitignore`
+
+```
+node_modules/
+.next/
+dist/
+.env.local
+.env*.local
+*.tsbuildinfo
+test-results/
+playwright-report/
+```

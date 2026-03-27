@@ -2,11 +2,13 @@
 > Version 2.0 | Updated: 2026-03-27 | Non-coder friendly. Practical examples throughout.
 > Sources: ykdojo 45 tips · claude-code-kit v0.5 · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · chddaniel Mobile Dev · Cloudflare Dynamic Workers · GitHub gitagent · LLM Routing Guide
 
+> **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
+
 ---
 
 ## Table of Contents
 
-- [Quick Reference Card](#quick-reference-card)
+- [Golden Rules](#golden-rules)
 - [Stage 1: Starting a New Project](#stage-1-starting-a-new-project)
 - [Stage 2: Daily Development Loop](#stage-2-daily-development-loop)
 - [Stage 3: Building Features](#stage-3-building-features)
@@ -18,53 +20,16 @@
 - [Commands Reference](#commands-reference)
 - [Tools Reference](#tools-reference)
 - [Prompt Templates](#prompt-templates)
-- [Troubleshooting](#troubleshooting)
 - [The 45 Tips — Quick Reference](#the-45-tips--quick-reference)
-- [Power Combos](#power-combos)
+- [Power Combos](#power-combos) *(advanced only — full table in CHEATSHEET)*
 - [Settings Reference](#settings-reference)
 - [Claude Certified Architect — Domain Summary](#claude-certified-architect--domain-summary)
 
 ---
 
-## Quick Reference Card
+## Golden Rules
 
-> Print this. Keep it open. 5-minute orientation for every session.
-
-### 🔥 Most-Used Commands
-
-| Command | What it does | When |
-|---------|-------------|------|
-| `/init` | Create `CLAUDE.md` for this project | First time in new repo |
-| `/plan` | Spec-first (5–7 Q → spec doc) | Before ANY multi-step task |
-| `/compact` | Compress context, keep key info | Every 40–50 turns |
-| `/clear` | Fresh start | New topic, stuck agent |
-| `/verify` | Full check before claiming done | Before saying "it's done" |
-| `/review` | Code review pass | After implementing a feature |
-| `/checkpoint` | Git safety save | Mid-work |
-| `/aside` | Side question, preserves context | Quick Q mid-task |
-| `/usage` | Rate limits check | Worried about limits |
-| `/think` | Extended reasoning mode | Hard decisions |
-
-### 💻 Launch CLI
-
-```bash
-claude                              # Interactive session
-claude "fix the TypeScript errors"  # One-shot
-claude -c                           # Continue last conversation
-claude --resume abc123              # Resume by ID
-```
-
-### 🧠 Model Selection at a Glance
-
-| Model | Use for | Cost |
-|-------|---------|------|
-| Claude Opus 4.6 | Architecture, judgment, audits | $$$ |
-| Claude Sonnet 4.6 | General dev, daily tasks | $$ |
-| Claude Haiku 4 | Fast/bulk/simple tasks | $ |
-| Codex 5.2 | Heartbeats, QA, monitoring | FREE |
-| Gemini 2.5 Flash | Web research, summarization | ¢ |
-
-### ⚡ Golden Rules (memorize these)
+> For commands, CLI flags, and model tables see **CHEATSHEET.md**.
 
 1. **Plan before coding** — `/plan` every multi-step task
 2. **Context is milk** — fresh + condensed = best output
@@ -1415,50 +1380,7 @@ Then we'll write the spec.
 
 ---
 
-## Troubleshooting
-
-### Common Issues
-
-| Issue | Fix |
-|-------|-----|
-| `claude: command not found` | `npm install -g @anthropic-ai/claude-code` |
-| Auth error / API key missing | `export ANTHROPIC_API_KEY=sk-ant-...` |
-| Tool permission denied | Add to `.claude/settings.json` → `permissions.allow` |
-| Context window full | `/compact` → continue, or `/clear` + new session |
-| Stale/wrong library docs | Add `"use context7"` to your prompt |
-| Agent stuck in loop | `Ctrl+C`, rephrase with more specifics |
-| Build keeps failing | `systematic-debugging` skill |
-| Wrong model for task | `--model <name>` flag or `/model` in session |
-| No verification before done | Always `/verify` |
-| Session context lost | `~/.claude/sessions/` for auto-saved state |
-| Rate limit hit | Switch to Haiku for bulk, or wait/retry |
-| `/doctor` shows issues | `claude update` then re-run `/doctor` |
-| MCP server not connecting | `claude mcp list`, check server logs |
-| Hooks not firing | Check `~/.claude/hooks/` permissions (must be executable) |
-| Dangerous command approved | `npx cc-safe .` to audit, then clean up settings |
-| Claude deleting wrong things | `/permissions` to audit approved commands |
-| CI job hangs | Missing `-p` flag — always use `-p` for non-interactive CI |
-| Skill not triggering | Use "Optimize my trigger description" in Claude |
-| Cowork quota exhausted | Switch to Chat mode; use Cowork only for execution |
-| Agent has too many permissions | Implement Agent Auth Protocol for production |
-
-### Common Mistakes
-
-| Mistake | Fix |
-|---------|-----|
-| Building from scratch | Check `SKILLS-INDEX.md` first |
-| No plan for multi-step work | Always `/plan` before complex tasks |
-| Verifying by asking, not running | Always `/verify` or run tests yourself |
-| Editing global settings for one project | Use `.claude/settings.json` per project |
-| Huge prompt, tiny output | Break into spec → subagents → verify |
-| Forgetting last session | Use `tasks/HANDOFF.md` protocol |
-| Context bloat from side questions | `/aside` for side questions |
-| One-shot for 3-day tasks | `/plan` → spec → fresh sessions |
-| Changing model mid-session | Spawn subagent with different model |
-| Skipping tests | Write tests first (TDD) |
-| Over-provisioning agent permissions | Use Agent Auth Protocol capabilities |
-| Not using path-specific rules | Use `.claude/rules/` with glob patterns |
-| CLAUDE.md has conflicting instructions | Review periodically, remove stale rules |
+> **Troubleshooting?** See CHEATSHEET.md for common issues, fixes, and mistakes.
 
 ---
 
@@ -1517,24 +1439,14 @@ Then we'll write the spec.
 
 ## Power Combos
 
+> Full table in CHEATSHEET.md. These are the advanced/unique combos:
+
 | Goal | Workflow |
 |------|---------|
-| **New feature** | `/plan` → approve spec → TDD → implement → `/verify` → `/review` → `/pr` → `/deploy` |
-| **Bug fix** | `investigate` skill → root cause → TDD → fix → `operationalize-fixes` → `/verify` → `/pr` |
-| **Design work** | `/plan` → `brainstorming` → `frontend-design` → `/verify` → ship |
-| **Content/SEO** | `seo-content-brief` → write → `seo-optimizer` + `aaio` → `/verify` |
-| **Feature kickoff** | `evals-before-specs` → `/plan` → spec → implement → verify against evals |
-| **Overnight batch** | `overnight-runner` → checkpoint file → wrapper script → notification |
-| **Subagent dispatch** | `delegation-templates` → structured prompt → validate report → accept/reject |
-| **Performance** | `audit` → `optimize` → `harden` → benchmark → monitor |
-| **CI failure** | `/dx:gha <url>` → root cause report → draft fix PR |
-| **Important decision** | `dialectic-review` → FOR/AGAINST/Referee → synthesize |
-| **Research** | web_search + Playwright MCP + `gh` CLI → `investigate` → verified report |
-| **B2B lead gen** | Connect APIs (Wiza/Prospeo/PredictLeads) → describe ICP → Claude builds list |
-| **Mobile app** | Shipper platform → "create a mobile app for [idea]" → $0.17 → publishable |
 | **AI agent sandbox** | CF Dynamic Workers → generate code → run in isolate → result (100x faster than containers) |
 | **Secure agent deploy** | Agent Auth Protocol → register agent → granular capabilities → CIBA approval |
 | **Portable agent def** | gitagent init → SOUL.md + agent.yaml → export to any framework |
+| **B2B lead gen** | Connect APIs (Wiza/Prospeo/PredictLeads) → describe ICP → Claude builds list |
 | **Weekly workflow** | Download bookmarks → Claude reads + categorizes → update CLAUDE.md with new patterns |
 
 ---

@@ -82,6 +82,12 @@ These load on-demand — keeps always-loaded context lean:
 - Global = universal rules. Project = stack-specific overrides + context.
 - Project-specific permissions go in `.claude/settings.json` (NOT global)
 
+## Cache Efficiency Rules
+1. Never add one-off permissions to global settings — use project-level
+2. Never change tools/models mid-session — use subagents instead
+3. Don't edit this file mid-session — put updates in messages
+4. Static content first, dynamic last (this file is structured for caching)
+
 ## Rules
 1. Never delete files without asking — archive or rename
 2. Git commit frequently with conventional commits

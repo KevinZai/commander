@@ -325,7 +325,9 @@ export const PLAN_LIMITS: Record<Plan, { users: number; storage: number }> = {
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "next": "15.2.4",
@@ -350,7 +352,13 @@ export const PLAN_LIMITS: Record<Plan, { users: number; storage: number }> = {
     "@types/react-dom": "19.0.4",
     "@types/node": "22.13.10",
     "eslint": "9.22.0",
-    "eslint-config-next": "15.2.4"
+    "eslint-config-next": "15.2.4",
+    "vitest": "3.0.8",
+    "@vitejs/plugin-react": "4.3.4",
+    "@testing-library/react": "16.2.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@playwright/test": "1.50.1",
+    "jsdom": "26.0.0"
   }
 }
 ```
@@ -562,3 +570,19 @@ export default health;
     ```bash
     pnpm build
     ```
+
+---
+
+## `.gitignore`
+
+```
+node_modules/
+.next/
+dist/
+.turbo/
+.env.local
+.env*.local
+*.tsbuildinfo
+test-results/
+playwright-report/
+```

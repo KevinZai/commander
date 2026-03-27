@@ -1,6 +1,69 @@
 # Claude Code Cheatsheet
 > The complete reference for Claude Code CLI — commands, workflows, and power user tips
-> v0.5 — 2026-03-25
+> v0.5 — 2026-03-27
+
+> **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
+
+---
+
+## 🎯 Skill Selection Guide
+
+### "I need to build..."
+
+| Scenario | Skills to Use |
+|----------|--------------|
+| REST API | `api-design` + `backend-patterns` + `tdd-workflow` |
+| Next.js app | `frontend-patterns` + `nextjs-app-router` + `shadcn-ui` |
+| Landing page | `landing-page-builder` + `frontend-design` + `signup-flow-cro` |
+| Laravel feature | `laravel-patterns` + `laravel-tdd` + `laravel-verification` |
+| Vue app | `vue-nuxt` |
+| AWS infra | `aws-solution-architect` + relevant AWS skill |
+| Docker setup | `docker-development` + `container-security` |
+| Database schema | `database-designer` + `postgres-patterns` |
+| Drizzle + Neon | `drizzle-neon` |
+| Auth system | `better-auth` |
+| Monorepo | `turborepo-monorepo` |
+| Tailwind v4 | `tailwind-v4` |
+| Fastify API | `fastify-api` |
+| MCP server | `mcp-server-patterns` |
+| Email | `email-systems` + `sendgrid-automation` |
+| Stripe billing | `stripe-subscriptions` + `billing-automation` |
+
+### "I need to improve..."
+
+| Scenario | Skills to Use |
+|----------|--------------|
+| Performance | `optimize` + `harden` |
+| Design quality | `critique` → `bolder`/`quieter` → `polish` |
+| SEO | `seo-optimizer` + `ai-seo` + `site-architecture` |
+| AI discoverability | `aaio` (robots.txt, JSON-LD, markdown twins, agent-ready) |
+| Conversion | `signup-flow-cro` + `analytics-conversion` |
+| Animations | `animate` + `motion-design` |
+| Visual effects | `svg-animation` + `particle-systems` + `webgl-shader` |
+| Agent instructions | `corrective-framing` (present claims > "remember to X") |
+
+### "I need to review..."
+
+| Scenario | Skills to Use |
+|----------|--------------|
+| Code review | `/code-review` command or `review` skill |
+| Important decision | `dialectic-review` (FOR/AGAINST/Referee agents) |
+| Security audit | `pentest-checklist` + `container-security` |
+| Design review | `design-review` + `audit` + `critique` |
+| Business plan | `plan-ceo-review` + `saas-metrics-coach` |
+| Engineering plan | `plan-eng-review` |
+
+### Command vs Skill Routing
+
+| Intent | Quick (command) | Deep (skill) |
+|--------|----------------|--------------|
+| Code review | `/code-review` | `review` or `codex` |
+| Test-driven dev | `/tdd` | `tdd-workflow` |
+| Verify before done | `/verify` | `verification-loop` |
+| End-to-end tests | `/e2e` | `e2e-testing` |
+| Audit quality | `/audit` | `audit` skill |
+
+> Commands = quick-fire (<5 min). Skills = deep-dive (10+ min with methodology).
 
 ---
 
@@ -565,55 +628,6 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 3. Don't edit CLAUDE.md mid-session (cache invalidation)
 4. Use subagents for parallel work (each has fresh context)
 5. Compact before context hits 75% — not after it's full
-
----
-
-## 🎯 Skill Selection Guide
-
-### "I need to build..."
-
-| Scenario | Skills to Use |
-|----------|--------------|
-| REST API | `api-design` + `backend-patterns` + `tdd-workflow` |
-| Next.js app | `frontend-patterns` + `nextjs-app-router` + `shadcn-ui` |
-| Landing page | `landing-page-builder` + `frontend-design` + `signup-flow-cro` |
-| Laravel feature | `laravel-patterns` + `laravel-tdd` + `laravel-verification` |
-| Vue app | `vue-nuxt` |
-| AWS infra | `aws-solution-architect` + relevant AWS skill |
-| Docker setup | `docker-development` + `container-security` |
-| Database schema | `database-designer` + `postgres-patterns` |
-| Drizzle + Neon | `drizzle-neon` |
-| Auth system | `better-auth` |
-| Monorepo | `turborepo-monorepo` |
-| Tailwind v4 | `tailwind-v4` |
-| Fastify API | `fastify-api` |
-| MCP server | `mcp-server-patterns` |
-| Email | `email-systems` + `sendgrid-automation` |
-| Stripe billing | `stripe-subscriptions` + `billing-automation` |
-
-### "I need to improve..."
-
-| Scenario | Skills to Use |
-|----------|--------------|
-| Performance | `optimize` + `harden` |
-| Design quality | `critique` → `bolder`/`quieter` → `polish` |
-| SEO | `seo-optimizer` + `ai-seo` + `site-architecture` |
-| AI discoverability | `aaio` (robots.txt, JSON-LD, markdown twins, agent-ready) |
-| Conversion | `signup-flow-cro` + `analytics-conversion` |
-| Animations | `animate` + `motion-design` |
-| Visual effects | `svg-animation` + `particle-systems` + `webgl-shader` |
-| Agent instructions | `corrective-framing` (present claims > "remember to X") |
-
-### "I need to review..."
-
-| Scenario | Skills to Use |
-|----------|--------------|
-| Code review | `/code-review` command or `review` skill |
-| Important decision | `dialectic-review` (FOR/AGAINST/Referee agents) |
-| Security audit | `pentest-checklist` + `container-security` |
-| Design review | `design-review` + `audit` + `critique` |
-| Business plan | `plan-ceo-review` + `saas-metrics-coach` |
-| Engineering plan | `plan-eng-review` |
 
 ---
 
