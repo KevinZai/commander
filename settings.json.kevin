@@ -6,44 +6,77 @@
   },
   "permissions": {
     "allow": [
-      "WebSearch",
+      "Read(//dev/**)",
+      "Read(//tmp/**)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm run:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm build:*)",
+      "Bash(npx:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx playwright:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(gh:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(ls:*)",
+      "Bash(stat:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(pm2 list:*)",
+      "Bash(pm2 show:*)",
+      "Bash(pm2 logs:*)",
+      "Bash(pm2 restart:*)",
+      "Bash(linear:*)",
+      "Bash(xfetch:*)",
+      "Bash(x search:*)",
+      "Bash(chub:*)",
+      "Bash(qmd:*)",
+      "Bash(discrawl:*)",
       "WebFetch(domain:*)",
-      "Read",
-      "Write",
-      "Edit",
-      "Bash",
-      "Glob",
-      "Grep",
-      "Task",
-      "TodoWrite",
+      "WebSearch",
       "Skill(*)"
     ],
-    "deny": [],
-    "defaultMode": "bypassPermissions"
-  },
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "afplay /System/Library/Sounds/Blow.aiff"
-          }
-        ]
-      }
-    ]
+    "defaultMode": "acceptEdits"
   },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
     "playground@claude-plugins-official": true,
-    "antigravity-awesome-skills@antigravity-awesome-skills": true,
-    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
-    "discord@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true,
-    "compound-engineering@compound-engineering-plugin": true,
-    "last30days@last30days-skill": true,
-    "polyclaude@polyclaude": true,
-    "socraticode@socraticode": true
+    "example-skills@anthropic-agent-skills": true,
+    "productivity@knowledge-work-plugins": true,
+    "sales@knowledge-work-plugins": true,
+    "customer-support@knowledge-work-plugins": true,
+    "product-management@knowledge-work-plugins": true,
+    "marketing@knowledge-work-plugins": true,
+    "legal@knowledge-work-plugins": true,
+    "finance@knowledge-work-plugins": true,
+    "data@knowledge-work-plugins": true,
+    "enterprise-search@knowledge-work-plugins": true,
+    "engineering@knowledge-work-plugins": true,
+    "design@knowledge-work-plugins": true,
+    "operations@knowledge-work-plugins": true,
+    "human-resources@knowledge-work-plugins": true,
+    "cowork-plugin-management@knowledge-work-plugins": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -52,44 +85,13 @@
         "repo": "anthropics/skills"
       }
     },
-    "antigravity-awesome-skills": {
+    "knowledge-work-plugins": {
       "source": {
         "source": "github",
-        "repo": "sickn33/antigravity-awesome-skills"
-      }
-    },
-    "ui-ux-pro-max-skill": {
-      "source": {
-        "source": "github",
-        "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
-      }
-    },
-    "compound-engineering-plugin": {
-      "source": {
-        "source": "github",
-        "repo": "EveryInc/compound-engineering-plugin"
-      }
-    },
-    "last30days-skill": {
-      "source": {
-        "source": "github",
-        "repo": "mvanhorn/last30days-skill"
-      }
-    },
-    "polyclaude": {
-      "source": {
-        "source": "github",
-        "repo": "Riley-Coyote/polyclaude"
-      }
-    },
-    "socraticode": {
-      "source": {
-        "source": "github",
-        "repo": "giancarloerra/socraticode"
+        "repo": "anthropics/knowledge-work-plugins"
       }
     }
   },
-  "alwaysThinkingEnabled": true,
   "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
   "preferredApiProvider": "firstParty",
@@ -100,31 +102,18 @@
     "github-gn": {
       "command": "/Users/ai/bin/mcp-github-gn"
     },
-    "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ]
+    "linear": {
+      "command": "/Users/ai/bin/mcp-linear"
     },
-    "n8n-mcp": {
-      "command": "/Users/ai/bin/mcp-n8n"
+    "linear-gn": {
+      "command": "/Users/ai/bin/mcp-linear-gn"
     },
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@playwright/mcp"
-      ]
+    "vibe-annotations": {
+      "type": "http",
+      "url": "http://127.0.0.1:3846/mcp"
     },
-    "granola": {
-      "command": "granola-mcp"
-    },
-    "claude-peers": {
-      "command": "bun",
-      "args": [
-        "/Users/ai/clawd/tools/claude-peers/server.ts"
-      ]
+    "shadcn-ui": {
+      "command": "/Users/ai/bin/mcp-shadcn"
     }
   }
 }
