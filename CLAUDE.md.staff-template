@@ -1,20 +1,20 @@
 # CLAUDE.md — [Your Name]'s Development Environment
 
 ## Session Startup
-1. Read project-level `CLAUDE.md` and `tasks/lessons.md` if they exist
-2. Read `tasks/todo.md` — resume where you left off
+1. Read project-level `CLAUDE.md` if it exists
+2. Read `tasks/todo.md` and `tasks/lessons.md` if they exist — resume where you left off
 3. Greet briefly, mention active tasks if any
 
 ## Environment
 - **Shell:** zsh | **Editor:** Claude Code
 - **Package manager:** npm/pnpm
-- **Task system:** Paperclip API at localhost:3110
+- **Task system:** tasks/ directory (todo.md, lessons.md, specs)
 
-## Coding Standards
-- TypeScript strict mode. ESM only. Functional style preferred.
+## Coding Standards [Customize for your stack]
+- Strict mode. Functional style preferred.
 - No unnecessary comments. Code is self-documenting.
 - Error handling: fail fast, throw early, catch at boundaries.
-- Tests: Vitest (unit), Playwright (E2E).
+- Tests: write them. Pick a framework and stick with it.
 
 ## Workflow
 
@@ -39,7 +39,7 @@ spawn FOR agent + AGAINST agent + Referee. See `dialectic-review` skill.
 
 ### Verification (MANDATORY before marking done)
 - [ ] Feature works end-to-end (test output or screenshot)
-- [ ] No TypeScript errors (`npx tsc --noEmit`)
+- [ ] No type/build errors (run your project's build command)
 - [ ] No console errors
 - [ ] Committed with conventional commit message
 - [ ] Lessons captured in `tasks/lessons.md` if corrections were made
@@ -60,11 +60,10 @@ After fixing a bug: write class-level tests, sweep codebase for siblings, update
 - **Evals Before Specs.** Define what "done" and "broken" look like before writing code.
 - **Check Skills First.** Search `SKILLS-INDEX.md` before building from scratch.
 
-## CLI Tools
-`chub` (API docs) · `context7` MCP (library docs — add "use context7" to prompts)
-
-## MCP Servers
-`github` (GitHub API) · `context7` (library docs) · `playwright` (testing/screenshots)
+## MCP Servers [Install separately — these are not included in the kit]
+- `context7` — library docs (add "use context7" to prompts) → npmjs.com/package/@anthropic-ai/claude-code-mcp-context7
+- `github` — GitHub API → requires `gh` CLI auth
+- `playwright` — browser testing/screenshots → npmjs.com/package/@anthropic-ai/claude-code-mcp-playwright
 
 ## Situational Guides (On-Demand Skills)
 These load on-demand — keeps always-loaded context lean:
@@ -74,8 +73,6 @@ These load on-demand — keeps always-loaded context lean:
 - Starting a feature → `evals-before-specs` skill
 - Writing agent instructions → `corrective-framing` skill
 - Running batch jobs overnight → `overnight-runner` skill
-- AI/SEO optimization → `aaio` skill
-- AI search visibility → `ai-seo` skill
 
 ## Project CLAUDE.md Policy
 - Create for any project with >1 session of work
@@ -87,10 +84,8 @@ These load on-demand — keeps always-loaded context lean:
 - Working on SEO → Load `mega-seo` skill
 - Writing tests → Load `mega-testing` skill
 - Setting up CI/CD or deploy → Load `mega-devops` skill
-- Building a SaaS product → Load `mega-saas` skill
+- Building a SaaS product, editing schema/migrations, or auth → Load `mega-saas` skill
 - Marketing or content work → Load `mega-marketing` skill
-- Editing schema/migrations → Load `database-designer` + `drizzle-neon`
-- Working on auth → Load `better-auth`
 
 ## Model Selection
 

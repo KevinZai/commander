@@ -43,9 +43,9 @@ The Claude Code Bible — by Kevin Z. A comprehensive Claude Code configuration 
 **Version:** 1.0
 
 **Live:**
-- GitHub repo: github.com/k3v80/claude-code-bible
-- Landing page: k3v80.github.io/claude-code-bible
-- One-line install: `curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-bible/main/install-remote.sh | bash`
+- GitHub repo: github.com/k3v80/claude-code-kit
+- Landing page: k3v80.github.io/claude-code-kit
+- One-line install: `curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-kit/main/install-remote.sh | bash`
 
 ## Key Commands
 
