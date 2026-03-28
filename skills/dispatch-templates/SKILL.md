@@ -1,667 +1,879 @@
 ---
 name: dispatch-templates
 description: |
-  Pre-built Dispatch task templates for common background workflows. Includes templates
-  for overnight builds, batch PR reviews, dependency updates, security scans, performance
-  benchmarks, content generation, data migrations, and monitoring setup. Each template
-  has description, duration estimate, cost estimate, required permissions, and YAML config.
+  Pre-built Dispatch task templates for common background workflows. 8 ready-to-use
+  templates: overnight-build, batch-review, dependency-update, security-scan,
+  performance-benchmark, content-generation, data-migration, monitoring-setup.
+  Each includes description, duration, cost estimate, permissions, and config.
 triggers:
-  - /dispatch-template
+  - /dispatch-templates
   - dispatch template
-  - dispatch templates
-  - overnight build template
-  - batch review template
-  - background job template
+  - background task template
+  - dispatch recipe
+disable-model-invocation: true
 ---
 
 # Dispatch Templates
 
-Pre-built templates for common Dispatch background tasks. Each template is copy-paste ready -- adjust the config values for your project and submit.
-
-## How to Use
-
-1. Pick a template below
-2. Copy the YAML config
-3. Adjust paths and project-specific values
-4. Save to `tasks/dispatch-{template-name}.yaml`
-5. Submit: `claude dispatch submit --config tasks/dispatch-{template-name}.yaml`
-
-## Template Index
-
-| Template | Duration | Est. Cost | Use Case |
-|---|---|---|---|
-| overnight-build | 1-4h | $3-8 | Full build + test + deploy pipeline |
-| batch-review | 30-90m | $2-6 | Review multiple PRs or files |
-| dependency-update | 15-45m | $1-3 | Check and update all dependencies |
-| security-scan | 15-30m | $1-3 | Full security audit |
-| performance-benchmark | 10-30m | $0.50-2 | Run perf tests and generate report |
-| content-generation | 30-60m | $2-5 | Batch content creation |
-| data-migration | 30-120m | $2-8 | Schema migration with rollback |
-| monitoring-setup | 15-30m | $1-2 | Configure monitoring and alerts |
-
----
-
-## 1. overnight-build
-
-Full build, test, and deploy pipeline. Designed for unattended overnight execution with retry logic and comprehensive reporting.
-
-**Description:** Builds the entire project, runs all test suites (unit, integration, E2E), generates coverage reports, and optionally creates a release tag. Retries on transient failures.
-
-**Estimated Duration:** 1-4 hours
-**Estimated Cost:** $3.00-$8.00
-**Required Permissions:** filesystem (full project), terminal (git, npm/pnpm, node)
-
-```yaml
-# tasks/dispatch-overnight-build.yaml
-name: overnight-build
-description: Full build + test + deploy pipeline
-schedule: "0 1 * * *"  # 1:00 AM daily
-
-task: |
-  Execute the full overnight build pipeline for this project.
-
-  Phase 1 — Preparation:
-  - Pull latest from main branch (git pull --rebase origin main)
-  - Install dependencies (npm ci or pnpm install --frozen-lockfile)
-  - Read tasks/build-config.json for project-specific settings
-
-  Phase 2 — Quality Gates:
-  - Run linter (npm run lint)
-  - Run TypeScript check (npx tsc --noEmit)
-  - Run unit tests (npm test -- --coverage)
-  - Run integration tests (npm run test:integration)
-  - Run E2E tests if configured (npm run test:e2e)
-
-  Phase 3 — Build:
-  - Run production build (npm run build)
-  - Verify build output exists and is non-empty
-  - Record build size metrics
-
-  Phase 4 — Report:
-  - Write results to output/builds/{date}.md
-  - Include: test counts, coverage %, build size, duration, errors
-  - Update tasks/checkpoint.json with final status
-
-  Phase 5 — Tag (if all gates pass):
-  - Create git tag: build-{date}-{short-sha}
-  - Do NOT push tag (human reviews first)
-
-  If any phase fails:
-  - Log the failure to output/builds/errors/{date}.log
-  - Continue to the report phase (always generate a report)
-  - Set checkpoint status to "failed" with phase name
-
-context:
-  skills:
-    - overnight-runner
-    - verification-loop
-    - tdd-workflow
-  mode: normal
-
-options:
-  maxTurns: 150
-  costLimit: 8.00
-  checkpoint: tasks/checkpoint.json
-  errorLog: output/builds/errors/{date}.log
-
-retry:
-  maxAttempts: 3
-  backoffSeconds: 1800
-  retryOn:
-    - timeout
-    - network-error
-
-notification:
-  onComplete: terminal-notifier
-  onFailure: telegram
-```
-
----
-
-## 2. batch-review
-
-Review multiple PRs, files, or modules in sequence. Generates individual review reports and a summary.
-
-**Description:** Iterates over a queue of review targets (PRs, files, or directories). For each target, runs coding standards checks, security review, and generates actionable feedback.
-
-**Estimated Duration:** 30-90 minutes
-**Estimated Cost:** $2.00-$6.00
-**Required Permissions:** filesystem (project), terminal (git, gh, npx)
-
-```yaml
-# tasks/dispatch-batch-review.yaml
-name: batch-review
-description: Review multiple PRs or code areas in sequence
-
-task: |
-  Review all items in tasks/review-queue.json.
-
-  For each item:
-  1. Read the target (PR diff, file, or directory)
-  2. Check against coding-standards skill rules:
-     - TypeScript strict mode compliance
-     - Immutability patterns (no mutation)
-     - Error handling at boundaries
-     - File size limits (<800 lines)
-     - Function size limits (<50 lines)
-  3. Check for security issues per pentest-checklist:
-     - Hardcoded secrets
-     - SQL injection vectors
-     - XSS vulnerabilities
-     - Missing input validation
-  4. Check for performance issues:
-     - N+1 queries
-     - Missing pagination
-     - Unbounded loops
-  5. Write individual review to output/reviews/{item-id}.md
-  6. Rate severity: CRITICAL / HIGH / MEDIUM / LOW / INFO
-  7. Mark item as reviewed in tasks/review-queue.json
-
-  After all items:
-  - Generate summary at output/reviews/summary-{date}.md
-  - Include: total items reviewed, issue counts by severity, top 3 critical findings
-
-  Review queue format:
-  [
-    {"id": "pr-42", "type": "pr", "target": "42"},
-    {"id": "auth-module", "type": "directory", "target": "src/auth/"},
-    {"id": "api-routes", "type": "file", "target": "src/routes/index.ts"}
-  ]
-
-context:
-  skills:
-    - review
-    - coding-standards
-    - pentest-checklist
-    - task-commander
-  mode: normal
-
-options:
-  maxTurns: 100
-  costLimit: 6.00
-  checkpoint: tasks/review-checkpoint.json
-  skipOnError: true
-```
-
----
-
-## 3. dependency-update
-
-Check all dependencies for updates, test each update, and create a PR with passing updates.
-
-**Description:** Runs outdated checks, filters by update type, tests each update individually, keeps passing updates, reverts failing ones, and creates a consolidated PR.
-
-**Estimated Duration:** 15-45 minutes
-**Estimated Cost:** $1.00-$3.00
-**Required Permissions:** filesystem (package files, lockfiles), terminal (npm/pnpm, git, gh, npx)
-
-```yaml
-# tasks/dispatch-dependency-update.yaml
-name: dependency-update
-description: Check and update all dependencies safely
-
-task: |
-  Update project dependencies with safety verification.
-
-  Phase 1 — Audit:
-  - Run npm audit (or pnpm audit)
-  - Run npm outdated --json (or pnpm outdated --format json)
-  - Categorize updates: patch, minor, major
-  - Write audit report to output/deps/audit-{date}.json
-
-  Phase 2 — Safe Updates (patch + minor):
-  - Create branch: deps/update-{date}
-  - For each patch/minor update:
-    a. Install the update
-    b. Run TypeScript check (npx tsc --noEmit)
-    c. Run tests (npm test)
-    d. If pass: keep update, record in output/deps/updated.json
-    e. If fail: revert update, record in output/deps/failed.json
-  - Commit all passing updates
-
-  Phase 3 — Major Updates (report only):
-  - Do NOT auto-update major versions
-  - List them in output/deps/major-available.json with:
-    - Current version
-    - Available version
-    - Changelog URL
-    - Breaking changes summary (if available)
-
-  Phase 4 — Report:
-  - Write full report to output/deps/update-{date}.md
-  - Include: updates applied, updates failed, majors available, security issues
-  - Create PR via gh pr create if any updates were applied
-
-context:
-  skills:
-    - verification-loop
-  mode: normal
-
-options:
-  maxTurns: 80
-  costLimit: 3.00
-  checkpoint: tasks/deps-checkpoint.json
-
-notification:
-  onComplete: terminal-notifier
-```
-
----
-
-## 4. security-scan
-
-Full security audit covering code, dependencies, configuration, and infrastructure.
-
-**Description:** Comprehensive security scan using multiple analysis approaches. Generates a prioritized findings report with remediation guidance.
-
-**Estimated Duration:** 15-30 minutes
-**Estimated Cost:** $1.00-$3.00
-**Required Permissions:** filesystem (full project), terminal (npm, git, grep)
-
-```yaml
-# tasks/dispatch-security-scan.yaml
-name: security-scan
-description: Full security audit of the codebase
-
-task: |
-  Run a comprehensive security audit of this project.
-
-  Scan 1 — Dependency Vulnerabilities:
-  - Run npm audit --json
-  - Check for known CVEs in dependencies
-  - Flag: critical and high severity findings
-
-  Scan 2 — Secret Detection:
-  - Scan all files for patterns: API keys, tokens, passwords, connection strings
-  - Patterns: /[A-Za-z0-9]{32,}/, /sk-[a-zA-Z0-9]+/, /password\s*[:=]/i
-  - Check .env files are in .gitignore
-  - Check for committed .env files in git history
-
-  Scan 3 — Code Vulnerabilities:
-  - SQL injection: look for string concatenation in queries
-  - XSS: look for dangerouslySetInnerHTML, unescaped user input
-  - CSRF: check for token validation on state-changing routes
-  - Auth: check for missing auth middleware on protected routes
-  - Input validation: check for unvalidated user input at boundaries
-
-  Scan 4 — Configuration:
-  - CORS: check for overly permissive origins
-  - HTTPS: check for HTTP-only endpoints
-  - Headers: check for security headers (CSP, HSTS, X-Frame-Options)
-  - Rate limiting: check for missing rate limits on auth endpoints
-
-  Scan 5 — Infrastructure:
-  - Dockerfile: check for running as root, unnecessary packages
-  - Environment: check for production debug flags
-  - Ports: check for unexpected exposed ports
-
-  Output:
-  - Write findings to output/security/scan-{date}.md
-  - Format: severity | category | location | finding | remediation
-  - Sort by severity (critical first)
-  - Include executive summary at top with risk score (0-100)
-
-context:
-  skills:
-    - pentest-checklist
-    - harden
-    - coding-standards
-  mode: normal
-
-options:
-  maxTurns: 60
-  costLimit: 3.00
-```
-
----
-
-## 5. performance-benchmark
-
-Run performance tests, capture metrics, compare against baselines, and generate a trend report.
-
-**Description:** Executes performance benchmarks, measures key metrics (response time, throughput, memory, bundle size), compares to historical baselines, and flags regressions.
-
-**Estimated Duration:** 10-30 minutes
-**Estimated Cost:** $0.50-$2.00
-**Required Permissions:** filesystem (project, output), terminal (node, npm, curl)
-
-```yaml
-# tasks/dispatch-performance-benchmark.yaml
-name: performance-benchmark
-description: Run performance tests and generate trend report
-
-task: |
-  Execute performance benchmarks and compare to baseline.
-
-  Benchmark 1 — Build Performance:
-  - Measure: npm run build time (3 runs, take median)
-  - Record: total time, peak memory, output size
-
-  Benchmark 2 — Test Suite Performance:
-  - Measure: npm test execution time
-  - Record: total time, slowest 10 tests
-
-  Benchmark 3 — Bundle Analysis (if applicable):
-  - Measure: production bundle size
-  - Record: total size, per-chunk sizes, tree-shaking effectiveness
-
-  Benchmark 4 — API Response Times (if server project):
-  - Start server in test mode
-  - Hit key endpoints with curl (10 requests each, measure avg/p95/p99)
-  - Record: response times, error rates
-
-  Benchmark 5 — Memory Profile:
-  - Run node --max-old-space-size=512 with production workload
-  - Record: heap used, heap total, RSS, external
-
-  Comparison:
-  - Read baseline from output/benchmarks/baseline.json
-  - Flag regressions: >10% slower, >20% larger, >15% more memory
-  - Update baseline if explicitly requested in config
-
-  Report:
-  - Write to output/benchmarks/bench-{date}.md
-  - Include charts (ASCII) for trends over last 10 runs
-  - Highlight regressions in red (markdown bold)
-  - Include actionable recommendations for regressions
-
-context:
-  skills:
-    - benchmark
-    - verification-loop
-  mode: normal
-
-options:
-  maxTurns: 50
-  costLimit: 2.00
-  checkpoint: tasks/bench-checkpoint.json
-```
-
----
-
-## 6. content-generation
-
-Batch content creation for SEO, documentation, marketing, or other written assets.
-
-**Description:** Processes a content queue, generates drafts following brand guidelines, and writes outputs to a review directory. Supports human-gate pattern for items that need approval before publishing.
-
-**Estimated Duration:** 30-60 minutes
-**Estimated Cost:** $2.00-$5.00
-**Required Permissions:** filesystem (templates, content, output), terminal (git)
-
-```yaml
-# tasks/dispatch-content-generation.yaml
-name: content-generation
-description: Batch content creation from a content queue
-
-task: |
-  Process all items in tasks/content-queue.json.
-
-  For each content item:
-  1. Read the brief (title, topic, target audience, word count, format)
-  2. If brief references a template, load from templates/content/{template}.md
-  3. Research context:
-     - Read related existing content in content/ directory
-     - Check brand-guidelines skill for tone and style rules
-     - Review SEO requirements if specified
-  4. Generate the draft following the brief
-  5. Verify:
-     - Word count within 10% of target
-     - Heading structure (H1 > H2 > H3, no skips)
-     - No placeholder text remaining
-     - Links are real (if referencing internal pages)
-  6. Write draft to output/content/drafts/{slug}.md
-  7. If item has "gate": true, set status to "review-needed" (human must approve)
-  8. Otherwise, set status to "done"
-  9. Update tasks/content-queue.json
-
-  Content queue format:
-  [
-    {
-      "slug": "getting-started-guide",
-      "title": "Getting Started with Our Platform",
-      "topic": "onboarding tutorial",
-      "audience": "new users",
-      "wordCount": 1500,
-      "format": "tutorial",
-      "template": "tutorial-template",
-      "seo": {"keyword": "getting started", "difficulty": "low"},
-      "gate": false
-    },
-    {
-      "slug": "enterprise-security",
-      "title": "Enterprise Security Features",
-      "topic": "security overview for enterprise buyers",
-      "audience": "CISOs and IT directors",
-      "wordCount": 2000,
-      "format": "whitepaper",
-      "gate": true
-    }
-  ]
-
-  After all items:
-  - Write summary to output/content/batch-{date}.md
-  - Include: items generated, items gated, total word count, topics covered
-
-context:
-  skills:
-    - brand-guidelines
-    - seo-content-brief
-    - task-commander
-  mode: writing
-
-options:
-  maxTurns: 120
-  costLimit: 5.00
-  checkpoint: tasks/content-checkpoint.json
-  skipOnError: true
-```
-
----
-
-## 7. data-migration
-
-Schema migration with validation, rollback support, and progress tracking.
-
-**Description:** Migrates data between schemas or formats. Processes records in batches with checkpoint support. Each batch is validated before proceeding. Includes rollback capability for the entire migration.
-
-**Estimated Duration:** 30-120 minutes
-**Estimated Cost:** $2.00-$8.00
-**Required Permissions:** filesystem (data, output, tasks), terminal (node, jq)
-
-```yaml
-# tasks/dispatch-data-migration.yaml
-name: data-migration
-description: Schema migration with rollback support
-
-task: |
-  Execute data migration defined in tasks/migration-config.json.
-
-  Pre-Flight:
-  - Read migration config (source, target schema, transform rules)
-  - Validate source data exists and is readable
-  - Create backup: cp data/source.json data/backup/source-{date}.json
-  - Initialize rollback log: output/migrations/rollback-{date}.json
-
-  Migration Loop:
-  For each record in source (batch size from config, default 50):
-  1. Read batch of records
-  2. Transform each record per transform rules:
-     - Field mapping (rename, restructure)
-     - Type coercion (string dates to ISO, etc.)
-     - Default values for new required fields
-     - Computed fields
-  3. Validate each transformed record against target schema
-  4. Write valid records to data/migrated/{batch-number}.json
-  5. Log invalid records to output/migrations/invalid-{date}.json with:
-     - Original record
-     - Validation errors
-     - Record ID for manual review
-  6. Update checkpoint: tasks/migration-checkpoint.json
-  7. Log rollback data (original -> transformed mapping)
-
-  Post-Migration:
-  - Merge all batches into data/target.json
-  - Run integrity check: count source vs target records
-  - Report:
-    - Total records: X
-    - Migrated successfully: Y
-    - Validation failures: Z
-    - Duration: Xm
-  - Write report to output/migrations/migration-{date}.md
-
-  Rollback (if requested or >20% failure rate):
-  - Read rollback log
-  - Restore from backup
-  - Report what was rolled back and why
-
-  Migration config format:
-  {
-    "source": "data/source.json",
-    "targetSchema": "config/target-schema.json",
-    "transformRules": "config/transform-rules.json",
-    "batchSize": 50,
-    "failureThreshold": 0.20,
-    "autoRollback": true
+Pre-built templates for common Dispatch (background task) workflows. Copy, customize, and run. Each template includes everything needed for reliable unattended execution.
+
+## Template Format
+
+Every template provides:
+- **Description** -- what the task does
+- **Estimated Duration** -- typical wall-clock time
+- **Estimated Cost** -- rough dollar estimate per run
+- **Max Turns** -- recommended `--max-turns` setting
+- **Permissions** -- required `.claude/settings.json` entries
+- **Config** -- customizable parameters
+- **Task Prompt** -- the exact prompt to pass to `claude --headless`
+- **Checkpoint Schema** -- structure for crash recovery
+- **Cron Schedule** -- suggested schedule (if recurring)
+
+## Template 1: Overnight Build
+
+Full CI pipeline executed overnight. Runs lint, typecheck, test, build, and optional E2E.
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Duration | 30 min -- 2 hours |
+| Cost | $1.00 -- $5.00 |
+| Max Turns | 80 |
+| Schedule | `0 1 * * *` (daily at 1:00 AM) |
+| Bible Skills | verification-loop, coding-standards |
+
+### Permissions
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(npm run *)",
+      "Bash(pnpm run *)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx vitest *)",
+      "Bash(npx playwright *)",
+      "Read(*)",
+      "Write(output/dispatch/builds/**)",
+      "Write(tasks/checkpoint.json)"
+    ]
   }
+}
+```
 
-context:
-  skills:
-    - database-migrations
-    - verification-loop
-  mode: normal
+### Config
 
-options:
-  maxTurns: 150
-  costLimit: 8.00
-  checkpoint: tasks/migration-checkpoint.json
-  errorLog: output/migrations/errors-{date}.log
+```json
+{
+  "template": "overnight-build",
+  "config": {
+    "steps": ["lint", "typecheck", "test", "build", "e2e"],
+    "skipOnFailure": false,
+    "e2eEnabled": true,
+    "notifyOnComplete": true,
+    "notifyMethod": "file",
+    "outputDir": "output/dispatch/builds"
+  }
+}
+```
 
-notification:
-  onComplete: telegram
-  onFailure: telegram
+### Task Prompt
+
+```
+Execute the overnight build pipeline. Read tasks/checkpoint.json for state.
+
+Steps to execute in order:
+1. LINT: Run npm run lint (or pnpm run lint). Capture warnings and errors.
+2. TYPECHECK: Run npx tsc --noEmit. Capture type errors.
+3. TEST: Run npm test (or pnpm test). Capture test results and coverage.
+4. BUILD: Run npm run build (or pnpm run build). Verify output exists.
+5. E2E (if enabled): Run npx playwright test. Capture results.
+
+For each step:
+- Update tasks/checkpoint.json with step name, status, start time
+- Write step output to output/dispatch/builds/steps/{step-name}.log
+- If step fails and skipOnFailure is false, log error and continue to next step
+- If step fails and skipOnFailure is true, stop pipeline
+
+After all steps:
+- Write summary to output/dispatch/builds/{date}.md with pass/fail per step
+- Set checkpoint status to "complete" or "partial"
+- Write tasks/dispatch-complete.json notification flag
+```
+
+### Checkpoint Schema
+
+```json
+{
+  "task": "overnight-build",
+  "status": "in-progress",
+  "startedAt": "2026-03-28T01:00:00Z",
+  "currentStep": "test",
+  "steps": {
+    "lint": { "status": "pass", "duration": "12s", "warnings": 3 },
+    "typecheck": { "status": "pass", "duration": "8s", "errors": 0 },
+    "test": { "status": "running", "startedAt": "2026-03-28T01:01:00Z" },
+    "build": { "status": "pending" },
+    "e2e": { "status": "pending" }
+  },
+  "errors": []
+}
 ```
 
 ---
 
-## 8. monitoring-setup
+## Template 2: Batch Review
 
-Configure monitoring, health checks, alerting rules, and dashboards for a project.
+Automated code review across multiple PRs or commits.
 
-**Description:** Sets up comprehensive monitoring infrastructure. Configures health endpoints, log aggregation rules, alert thresholds, and generates monitoring documentation.
+### Metadata
 
-**Estimated Duration:** 15-30 minutes
-**Estimated Cost:** $1.00-$2.00
-**Required Permissions:** filesystem (project config, output), terminal (node, curl)
+| Field | Value |
+|---|---|
+| Duration | 20 min -- 1 hour |
+| Cost | $0.50 -- $3.00 |
+| Max Turns | 60 |
+| Schedule | `0 16 * * 5` (Friday 4:00 PM) |
+| Bible Skills | coding-standards, review, pentest-checklist |
 
-```yaml
-# tasks/dispatch-monitoring-setup.yaml
-name: monitoring-setup
-description: Configure monitoring and alerting for the project
+### Permissions
 
-task: |
-  Set up monitoring infrastructure based on tasks/monitoring-config.json.
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git diff *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr review *)",
+      "Read(**)",
+      "Write(output/dispatch/reviews/**)",
+      "Write(tasks/checkpoint.json)"
+    ]
+  }
+}
+```
 
-  Step 1 — Health Endpoint:
-  - Create or verify /api/health endpoint exists
-  - Response should include: status, version, uptime, dependencies
-  - Verify it returns 200 when healthy, 503 when degraded
+### Config
 
-  Step 2 — Uptime Checks:
-  - Generate uptime check config for key endpoints
-  - Check interval: 60s for critical, 300s for standard
-  - Alert after 2 consecutive failures
-  - Write config to monitoring/uptime-checks.json
+```json
+{
+  "template": "batch-review",
+  "config": {
+    "scope": "week",
+    "minSeverity": "medium",
+    "autoPostReview": false,
+    "includeSecurityCheck": true,
+    "maxCommits": 50,
+    "outputDir": "output/dispatch/reviews"
+  }
+}
+```
 
-  Step 3 — Log Aggregation Rules:
-  - Define structured log format (JSON with timestamp, level, service, message)
-  - Create log rotation config (7 day retention, 100MB max per file)
-  - Define alert-worthy log patterns:
-    - ERROR level: immediate alert
-    - WARN level with rate >10/min: alert
-    - Specific patterns: "out of memory", "connection refused", "timeout"
-  - Write rules to monitoring/log-rules.json
+### Task Prompt
 
-  Step 4 — Alert Rules:
-  - CPU > 80% for 5 min: warning
-  - CPU > 95% for 2 min: critical
-  - Memory > 80% for 5 min: warning
-  - Memory > 95% for 1 min: critical
-  - Disk > 85%: warning
-  - Disk > 95%: critical
-  - Error rate > 1% of requests: warning
-  - Error rate > 5% of requests: critical
-  - Response time p95 > 2s: warning
-  - Response time p99 > 5s: critical
-  - Write rules to monitoring/alert-rules.json
+```
+Run batch code review for the past week.
 
-  Step 5 — Dashboard Config:
-  - Create dashboard layout with panels:
-    - Request rate (line chart, 5m intervals)
-    - Error rate (line chart, 5m intervals)
-    - Response time distribution (heatmap)
-    - Active connections (gauge)
-    - CPU/Memory usage (line chart)
-    - Disk usage (gauge)
-    - Recent errors (log table, last 50)
-  - Write dashboard to monitoring/dashboard.json
+1. Run git log --since="1 week ago" --oneline --no-merges to list recent commits.
+2. For each commit (up to 50):
+   a. Run git show {hash} to read the diff
+   b. Check against coding-standards rules:
+      - File size (<800 lines)
+      - Function size (<50 lines)
+      - No deep nesting (>4 levels)
+      - Proper error handling
+      - No hardcoded secrets
+   c. Check for security issues: SQL injection, XSS, CSRF, exposed secrets
+   d. Note missing or insufficient tests
+   e. Rate severity: critical, high, medium, low
+3. Write individual commit reviews to output/dispatch/reviews/commits/{hash}.md
+4. Write aggregated review to output/dispatch/reviews/week-{date}.md
+5. Format: ## Summary, ## Issues (grouped by severity), ## Recommendations
+6. Update tasks/checkpoint.json after each commit review
+```
 
-  Step 6 — Runbook:
-  - Generate runbook at monitoring/RUNBOOK.md covering:
-    - How to check system health
-    - Common alerts and their resolution steps
-    - Escalation path
-    - Restart procedures
-    - Rollback procedures
+### Checkpoint Schema
 
-  Step 7 — Validation:
-  - Verify all generated config files are valid JSON
-  - Verify health endpoint responds
-  - Verify alert rules cover all critical metrics
-  - Write validation report to output/monitoring/setup-{date}.md
-
-context:
-  skills:
-    - infra-runbook
-    - verification-loop
-  mode: normal
-
-options:
-  maxTurns: 60
-  costLimit: 2.00
-
-notification:
-  onComplete: terminal-notifier
+```json
+{
+  "task": "batch-review",
+  "status": "in-progress",
+  "scope": "2026-03-21..2026-03-28",
+  "totalCommits": 32,
+  "reviewedCommits": 15,
+  "lastReviewed": "abc1234",
+  "findings": {
+    "critical": 0,
+    "high": 2,
+    "medium": 5,
+    "low": 8
+  }
+}
 ```
 
 ---
 
-## Creating Custom Templates
+## Template 3: Dependency Update
 
-To create your own Dispatch template:
+Safe dependency updates with test verification and rollback.
 
-1. Copy the YAML structure from any template above
-2. Customize the `task` field with your specific workflow
-3. Set appropriate `skills` in context
-4. Estimate cost based on complexity (roughly $0.50 per 15 minutes of execution)
-5. Set `maxTurns` to 2x your estimated need (safety margin)
-6. Always include `checkpoint` for tasks over 30 minutes
-7. Always include `notification` so you know when it finishes
-8. Save to `tasks/dispatch-{your-template}.yaml`
-9. Test with a small subset before full execution
+### Metadata
 
-## Quick Reference
+| Field | Value |
+|---|---|
+| Duration | 15 min -- 45 min |
+| Cost | $0.50 -- $2.00 |
+| Max Turns | 50 |
+| Schedule | `0 6 * * 1` (Monday 6:00 AM) |
+| Bible Skills | verification-loop |
+
+### Permissions
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm outdated *)",
+      "Bash(npm audit *)",
+      "Bash(npm update *)",
+      "Bash(npm install *)",
+      "Bash(pnpm outdated *)",
+      "Bash(pnpm update *)",
+      "Bash(pnpm install *)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm test)",
+      "Bash(pnpm test)",
+      "Bash(git *)",
+      "Bash(gh pr create *)",
+      "Read(**)",
+      "Write(package*.json)",
+      "Write(pnpm-lock.yaml)",
+      "Write(output/dispatch/deps/**)",
+      "Write(tasks/checkpoint.json)"
+    ]
+  }
+}
+```
+
+### Config
+
+```json
+{
+  "template": "dependency-update",
+  "config": {
+    "updateLevel": "minor",
+    "createPR": true,
+    "branchName": "deps/auto-update-{date}",
+    "runTests": true,
+    "runTypecheck": true,
+    "rollbackOnFailure": true,
+    "outputDir": "output/dispatch/deps"
+  }
+}
+```
+
+### Task Prompt
+
+```
+Run safe dependency updates.
+
+1. Create branch deps/auto-update-{date} from main.
+2. Run npm outdated (or pnpm outdated) to list available updates.
+3. Filter updates by level: only patch and minor (no major unless explicitly listed).
+4. For each update:
+   a. Install the update
+   b. Run npx tsc --noEmit (typecheck)
+   c. Run npm test (or pnpm test)
+   d. If both pass: keep update, record in checkpoint
+   e. If either fails: revert update (git checkout package*.json pnpm-lock.yaml),
+      log failure reason in checkpoint
+5. Run npm audit to check for known vulnerabilities.
+6. Write report to output/dispatch/deps/{date}.md:
+   - Updated packages (name, old version, new version)
+   - Failed updates (name, reason)
+   - Remaining vulnerabilities from audit
+7. If any updates succeeded and createPR is true:
+   - Commit changes with message "chore(deps): auto-update dependencies"
+   - Create PR via gh pr create with the report as body
+8. Update tasks/checkpoint.json with final status.
+```
+
+### Checkpoint Schema
+
+```json
+{
+  "task": "dependency-update",
+  "status": "in-progress",
+  "branch": "deps/auto-update-2026-03-28",
+  "updates": {
+    "succeeded": [
+      { "name": "@types/node", "from": "20.11.0", "to": "20.12.0" }
+    ],
+    "failed": [
+      { "name": "vitest", "from": "1.6.0", "to": "1.7.0", "reason": "test failures" }
+    ],
+    "skipped": [
+      { "name": "next", "from": "14.0.0", "to": "15.0.0", "reason": "major version" }
+    ]
+  },
+  "auditFindings": 2,
+  "prUrl": null
+}
+```
+
+---
+
+## Template 4: Security Scan
+
+Comprehensive security audit combining dependency audit, secret scanning, and code analysis.
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Duration | 15 min -- 30 min |
+| Cost | $0.50 -- $2.00 |
+| Max Turns | 40 |
+| Schedule | `0 3 * * 0` (Sunday 3:00 AM) |
+| Bible Skills | pentest-checklist, harden |
+
+### Permissions
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm audit *)",
+      "Bash(pnpm audit *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Read(**)",
+      "Write(output/dispatch/security/**)",
+      "Write(tasks/checkpoint.json)"
+    ]
+  }
+}
+```
+
+### Config
+
+```json
+{
+  "template": "security-scan",
+  "config": {
+    "scanDependencies": true,
+    "scanSecrets": true,
+    "scanCode": true,
+    "scanPermissions": true,
+    "severityThreshold": "medium",
+    "outputDir": "output/dispatch/security"
+  }
+}
+```
+
+### Task Prompt
+
+```
+Run comprehensive security scan.
+
+Phase 1 -- Dependency Audit:
+- Run npm audit (or pnpm audit)
+- Catalog vulnerabilities by severity (critical, high, medium, low)
+- For critical/high: note available fix version
+
+Phase 2 -- Secret Scanning:
+- Search codebase for patterns: API keys, tokens, passwords, connection strings
+- Patterns: /[A-Za-z0-9]{32,}/, /sk-[a-zA-Z0-9]+/, /-----BEGIN.*KEY-----/
+- Check .env files are in .gitignore
+- Verify no secrets in git history (last 100 commits): git log -p --all -S 'password' --since="3 months ago"
+
+Phase 3 -- Code Analysis:
+- Check for SQL injection (raw query strings with interpolation)
+- Check for XSS (unescaped HTML output)
+- Check for insecure HTTP (non-HTTPS URLs in production code)
+- Check for eval() or Function() usage
+- Check for unsafe deserialization
+
+Phase 4 -- Permission Review:
+- Review .claude/settings.json for overly broad permissions
+- Check for any --dangerously-skip-permissions usage in scripts
+- Verify CORS configuration
+
+Write security report to output/dispatch/security/{date}.md:
+- Executive summary (pass/fail with severity counts)
+- Detailed findings grouped by phase
+- Remediation recommendations with priority
+Update tasks/checkpoint.json after each phase.
+```
+
+### Checkpoint Schema
+
+```json
+{
+  "task": "security-scan",
+  "status": "in-progress",
+  "currentPhase": "secret-scanning",
+  "phases": {
+    "dependency-audit": { "status": "complete", "findings": 3 },
+    "secret-scanning": { "status": "running" },
+    "code-analysis": { "status": "pending" },
+    "permission-review": { "status": "pending" }
+  },
+  "totalFindings": 3,
+  "criticalFindings": 0
+}
+```
+
+---
+
+## Template 5: Performance Benchmark
+
+Run performance benchmarks and track regressions over time.
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Duration | 20 min -- 1 hour |
+| Cost | $0.50 -- $2.00 |
+| Max Turns | 50 |
+| Schedule | `0 2 * * 3` (Wednesday 2:00 AM) |
+| Bible Skills | benchmark |
+
+### Permissions
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run bench*)",
+      "Bash(pnpm run bench*)",
+      "Bash(npx vitest bench *)",
+      "Bash(node --max-old-space-size=* *)",
+      "Bash(hyperfine *)",
+      "Bash(git log *)",
+      "Read(**)",
+      "Write(output/dispatch/benchmarks/**)",
+      "Write(tasks/checkpoint.json)"
+    ]
+  }
+}
+```
+
+### Config
+
+```json
+{
+  "template": "performance-benchmark",
+  "config": {
+    "suites": ["api", "rendering", "database", "startup"],
+    "iterations": 3,
+    "warmupIterations": 1,
+    "regressionThreshold": 10,
+    "compareWith": "main",
+    "outputDir": "output/dispatch/benchmarks"
+  }
+}
+```
+
+### Task Prompt
+
+```
+Run performance benchmarks and compare against baseline.
+
+1. Load previous benchmark results from output/dispatch/benchmarks/baseline.json
+   (if it doesn't exist, this run becomes the baseline).
+2. For each benchmark suite:
+   a. Run warmup iteration (discard results)
+   b. Run 3 measured iterations
+   c. Calculate: mean, median, p95, min, max
+   d. Compare against baseline
+   e. Flag regressions >10% as warnings, >25% as critical
+3. Write results to output/dispatch/benchmarks/{date}.json (structured)
+4. Write human-readable report to output/dispatch/benchmarks/{date}.md:
+   - Summary table: suite, current, baseline, change %
+   - Regressions highlighted
+   - Improvements noted
+5. If no regressions, update baseline.json with current results.
+6. Update tasks/checkpoint.json after each suite.
+```
+
+### Checkpoint Schema
+
+```json
+{
+  "task": "performance-benchmark",
+  "status": "in-progress",
+  "currentSuite": "rendering",
+  "suites": {
+    "api": {
+      "status": "complete",
+      "mean": 45.2,
+      "baseline": 42.1,
+      "changePercent": 7.4,
+      "regression": false
+    },
+    "rendering": { "status": "running", "iteration": 2 },
+    "database": { "status": "pending" },
+    "startup": { "status": "pending" }
+  }
+}
+```
+
+---
+
+## Template 6: Content Generation
+
+Batch content creation from briefs with quality gates.
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Duration | 30 min -- 1.5 hours |
+| Cost | $1.00 -- $5.00 |
+| Max Turns | 100 |
+| Schedule | `0 10 * * 2,4` (Tuesday/Thursday 10:00 AM) |
+| Bible Skills | brand-guidelines, seo-content-brief, content-strategy |
+
+### Permissions
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(wc *)",
+      "Read(**)",
+      "Write(output/dispatch/content/**)",
+      "Write(tasks/checkpoint.json)",
+      "Write(tasks/content-queue.json)"
+    ]
+  }
+}
+```
+
+### Config
+
+```json
+{
+  "template": "content-generation",
+  "config": {
+    "queueFile": "tasks/content-queue.json",
+    "outputDir": "output/dispatch/content/drafts",
+    "minWordCount": 800,
+    "maxWordCount": 2500,
+    "tone": "professional",
+    "includeMetadata": true,
+    "humanGateOnSensitive": true
+  }
+}
+```
+
+### Task Prompt
+
+```
+Process content generation queue.
+
+Read tasks/content-queue.json. For each item where status is "pending":
+1. Read the content brief (title, target audience, keywords, outline)
+2. If item.gate is true, skip it (needs human review first)
+3. Generate draft following brand-guidelines skill:
+   - Match specified tone
+   - Include target keywords naturally
+   - Follow outline structure
+   - Stay within word count (800-2500 words)
+4. Add frontmatter: title, date, author, keywords, word count, status: "draft"
+5. Write to output/dispatch/content/drafts/{slug}.md
+6. Update item status to "drafted" in tasks/content-queue.json
+7. Update tasks/checkpoint.json
+
+After all items:
+- Write batch summary to output/dispatch/content/batch-{date}.md
+- Include: items processed, items skipped (gated), total word count
+```
+
+### Checkpoint Schema
+
+```json
+{
+  "task": "content-generation",
+  "status": "in-progress",
+  "totalItems": 8,
+  "processed": 3,
+  "skipped": 1,
+  "lastProcessed": "seo-guide-2026",
+  "totalWords": 4200
+}
+```
+
+---
+
+## Template 7: Data Migration
+
+Migrate data between formats or systems with validation and rollback.
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Duration | 1 -- 4 hours |
+| Cost | $2.00 -- $8.00 |
+| Max Turns | 200 |
+| Schedule | Manual (one-time or as-needed) |
+| Bible Skills | overnight-runner, verification-loop |
+
+### Permissions
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(node *)",
+      "Bash(git *)",
+      "Read(**)",
+      "Write(output/dispatch/migration/**)",
+      "Write(data/migrated/**)",
+      "Write(tasks/checkpoint.json)"
+    ]
+  }
+}
+```
+
+### Config
+
+```json
+{
+  "template": "data-migration",
+  "config": {
+    "sourceDir": "data/source",
+    "targetDir": "data/migrated",
+    "transformRules": "data/transform-rules.json",
+    "validationSchema": "data/target-schema.json",
+    "batchSize": 50,
+    "dryRun": false,
+    "rollbackOnError": true,
+    "outputDir": "output/dispatch/migration"
+  }
+}
+```
+
+### Task Prompt
+
+```
+Execute data migration with validation.
+
+Read tasks/checkpoint.json for resume state. If starting fresh, initialize checkpoint.
+
+1. Load transform rules from data/transform-rules.json
+2. Load validation schema from data/target-schema.json
+3. List all source files in data/source/
+4. For each source file (resume from checkpoint.lastProcessed):
+   a. Read source data
+   b. Apply transform rules
+   c. Validate against target schema
+   d. If valid: write to data/migrated/{filename}
+   e. If invalid: log validation errors, skip file
+   f. Update checkpoint after every file (crash recovery)
+
+After all files:
+- Write migration report to output/dispatch/migration/{date}.md:
+  - Total files, migrated, failed, skipped
+  - Validation error summary
+  - Data integrity checks
+- Set checkpoint status to "complete"
+
+CRITICAL: Write checkpoint after EVERY file. This migration may take hours.
+If you hit context limits, save checkpoint and exit. The retry wrapper will resume.
+```
+
+### Checkpoint Schema
+
+```json
+{
+  "task": "data-migration",
+  "status": "in-progress",
+  "sourceDir": "data/source",
+  "totalFiles": 1200,
+  "migratedFiles": 487,
+  "failedFiles": 3,
+  "skippedFiles": 0,
+  "lastProcessed": "record-487.json",
+  "errors": [
+    { "file": "record-102.json", "error": "Missing required field: email" },
+    { "file": "record-256.json", "error": "Invalid date format in createdAt" },
+    { "file": "record-401.json", "error": "Duplicate ID detected" }
+  ],
+  "startedAt": "2026-03-28T01:00:00Z",
+  "lastUpdated": "2026-03-28T02:15:00Z"
+}
+```
+
+---
+
+## Template 8: Monitoring Setup
+
+Configure monitoring dashboards, alerts, and health checks.
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Duration | 15 min -- 30 min |
+| Cost | $0.50 -- $1.50 |
+| Max Turns | 40 |
+| Schedule | Manual (run after deploy or infra changes) |
+| Bible Skills | infra-runbook, metrics-dashboard |
+
+### Permissions
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl *)",
+      "Bash(node *)",
+      "Bash(git *)",
+      "Read(**)",
+      "Write(monitoring/**)",
+      "Write(output/dispatch/monitoring/**)",
+      "Write(tasks/checkpoint.json)"
+    ]
+  }
+}
+```
+
+### Config
+
+```json
+{
+  "template": "monitoring-setup",
+  "config": {
+    "services": [
+      { "name": "api", "url": "http://localhost:3000/health", "interval": 60 },
+      { "name": "gateway", "url": "http://localhost:18789/status", "interval": 30 },
+      { "name": "paperclip", "url": "http://localhost:3110/health", "interval": 60 }
+    ],
+    "alertThresholds": {
+      "responseTimeMs": 5000,
+      "errorRatePercent": 5,
+      "memoryUsagePercent": 85
+    },
+    "dashboardFormat": "markdown",
+    "outputDir": "output/dispatch/monitoring"
+  }
+}
+```
+
+### Task Prompt
+
+```
+Set up monitoring for configured services.
+
+1. For each service in config:
+   a. Verify health endpoint is reachable (curl with 10s timeout)
+   b. Record response time, status code, response body
+   c. If unhealthy: log error and continue to next service
+
+2. Generate monitoring configuration:
+   a. Create monitoring/health-checks.json with check definitions
+   b. Create monitoring/alerts.json with alert thresholds
+   c. Create monitoring/dashboard.md with current status table
+
+3. Run baseline health check (3 iterations per service):
+   a. Record response times
+   b. Calculate baseline averages
+   c. Write to monitoring/baseline.json
+
+4. Generate monitoring report:
+   - Service status table (name, url, status, avg response time)
+   - Alert configuration summary
+   - Recommendations for unhealthy services
+
+Write report to output/dispatch/monitoring/{date}.md
+Update tasks/checkpoint.json after each service check.
+```
+
+### Checkpoint Schema
+
+```json
+{
+  "task": "monitoring-setup",
+  "status": "in-progress",
+  "services": {
+    "api": { "status": "healthy", "avgResponseMs": 45, "checks": 3 },
+    "gateway": { "status": "checking", "checks": 1 },
+    "paperclip": { "status": "pending" }
+  },
+  "configGenerated": false,
+  "baselineComplete": false
+}
+```
+
+---
+
+## Quick Start
+
+### Using a Template
+
+1. Copy the template config to your project:
 
 ```bash
-# Run any template
-claude dispatch submit --config tasks/dispatch-{template}.yaml
+# Create dispatch config
+mkdir -p tasks output/dispatch
+```
 
-# Override cost limit
-claude dispatch submit --config tasks/dispatch-overnight-build.yaml --cost-limit 10.00
+2. Initialize the checkpoint:
 
-# Dry run (validate config without executing)
-claude dispatch submit --config tasks/dispatch-security-scan.yaml --dry-run
+```bash
+echo '{"task":"overnight-build","status":"ready","steps":[]}' > tasks/checkpoint.json
+```
 
-# Resume from checkpoint
-claude dispatch resume <dispatch-id>
+3. Run the Dispatch task:
+
+```bash
+claude --headless --max-turns 80 \
+  "$(cat tasks/dispatch-prompt.md)"
+```
+
+4. Check results:
+
+```bash
+cat tasks/checkpoint.json | jq .status
+ls output/dispatch/builds/
+```
+
+### Customizing Templates
+
+Templates are starting points. Customize by:
+- Adjusting `--max-turns` for your project size
+- Modifying permissions for your tool stack
+- Changing output paths to match your project structure
+- Adding project-specific steps to the task prompt
+- Tuning checkpoint frequency for your crash tolerance
+
+### Combining Templates
+
+Chain templates for comprehensive pipelines:
+
+```bash
+# Run security scan, then build, then benchmark
+claude --headless --max-turns 40 "Run security-scan template"
+claude --headless --max-turns 80 "Run overnight-build template"
+claude --headless --max-turns 50 "Run performance-benchmark template"
+```
+
+Or combine into a single mega-task:
+
+```bash
+claude --headless --max-turns 200 \
+  "Execute pipeline: security-scan -> overnight-build -> performance-benchmark.
+   Run each phase sequentially. If security-scan finds critical issues, stop.
+   Write combined report to output/dispatch/pipeline/{date}.md"
 ```

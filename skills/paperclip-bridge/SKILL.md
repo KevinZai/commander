@@ -1,477 +1,493 @@
 ---
 name: paperclip-bridge
-description: |
-  Integration between Claude Code Bible and Paperclip task management API (localhost:3110).
-  Create issues from Bible workflows, track task-commander progress, map priorities,
-  auto-close tickets on completion, bidirectional sync, REST API reference, and
-  webhook integration for status updates.
+description: Integration with Paperclip task management API for tracking Bible workflows
 triggers:
-  - /paperclip-bridge
-  - paperclip bridge
-  - paperclip integration
-  - bible paperclip sync
-  - create paperclip issue
-  - track in paperclip
+  - "/paperclip"
+  - "/paperclip-bridge"
+disable-model-invocation: true
 ---
 
 # Paperclip Bridge
 
-## Overview
+> Connect Claude Code Bible workflows to Paperclip task management. Create issues from task-commander, track progress, auto-close tickets, and synchronize status bidirectionally between Bible sessions and Paperclip.
 
-Paperclip is the task management control plane running at `http://localhost:3110`. This skill bridges Bible workflows (task-commander, verification-loop, overnight-runner, etc.) into Paperclip's issue tracking system, enabling bidirectional visibility between Claude Code sessions and the agent fleet.
+## What Paperclip Is
 
-**Key Concepts:**
-- Bible **tasks** (in `tasks/todo.md` or `tasks/*.json`) map to Paperclip **issues**
-- Bible **priorities** (P0-P10) map to Paperclip **priority levels** (critical, high, medium, low)
-- Bible **task-commander** progress updates map to Paperclip **comments**
-- Bible **verification-loop** completion maps to Paperclip **status transitions**
+Paperclip is a task management and agent coordination API running at **localhost:3110**. It manages issues, assignments, comments, and agent heartbeats across the OpenClaw fleet. All multi-step work routes through **Neo (orchestrator) to Paperclip** for tracking.
 
-## Authentication
+**Core concepts:**
+- **Issues** — Tasks with status, priority, assignee, project, and comments
+- **Agents** — AI workers that check out and execute issues via heartbeats
+- **Projects** — Groupings for related issues (maps to Bible projects/workspaces)
+- **Heartbeats** — Periodic wake cycles where agents check assignments and do work
+- **Comments** — Threaded discussion on issues for progress tracking and handoffs
 
-Paperclip uses JWT bearer tokens for API access. When running inside a Paperclip heartbeat, env vars are auto-injected:
+**Status lifecycle:** `backlog` -> `todo` -> `in_progress` -> `in_review` -> `done` (or `blocked`, `cancelled`)
 
-```bash
-PAPERCLIP_API_URL=http://localhost:3110
-PAPERCLIP_API_KEY=<jwt-token>
-PAPERCLIP_AGENT_ID=<your-agent-id>
-PAPERCLIP_COMPANY_ID=<company-id>
-PAPERCLIP_RUN_ID=<current-run-id>
-```
+---
 
-For Claude Code sessions outside heartbeat context, use the local CLI:
+## 1. Creating Issues from Bible Workflows
 
-```bash
-paperclipai agent local-cli <agent-id> --company-id <company-id>
-```
+### From task-commander
 
-All API calls use: `Authorization: Bearer $PAPERCLIP_API_KEY`
-
-All mutating calls inside a heartbeat MUST include: `X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID`
-
-## Creating Issues from Bible Workflows
-
-### From Task Commander
-
-When task-commander identifies work that needs tracking, create a Paperclip issue:
+When the Bible's task-commander skill creates a multi-step plan, bridge it to Paperclip:
 
 ```bash
-curl -s -X POST "$PAPERCLIP_API_URL/api/companies/$PAPERCLIP_COMPANY_ID/issues" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
-  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
+curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issues \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" \
   -d '{
-    "title": "Implement auth middleware",
-    "description": "From Bible task-commander. See tasks/todo.md line 12.\n\nAcceptance criteria:\n- JWT validation on all /api/* routes\n- Refresh token rotation\n- Rate limiting on auth endpoints",
+    "title": "Task from Bible: implement user auth",
+    "description": "## Source\nClaude Code Bible task-commander\n\n## Steps\n1. Design auth schema\n2. Implement JWT middleware\n3. Add login/register endpoints\n4. Write tests",
     "status": "todo",
     "priority": "high",
-    "assigneeAgentId": "'"$PAPERCLIP_AGENT_ID"'",
-    "projectId": "'"$PROJECT_ID"'",
-    "labels": ["bible-task", "auth"]
+    "labels": ["bible-task", "task-commander"],
+    "projectId": "'${PROJECT_ID}'",
+    "assigneeAgentId": "'${AGENT_ID}'"
   }'
 ```
 
-### From Overnight Runner
+### From spec-interviewer
 
-Create issues for failed overnight tasks:
+When spec-interviewer produces a spec, create a parent issue with sub-tasks:
 
 ```bash
-# After overnight-runner detects a failure
-curl -s -X POST "$PAPERCLIP_API_URL/api/companies/$PAPERCLIP_COMPANY_ID/issues" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+# 1. Create parent issue
+PARENT=$(curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issues \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" \
   -d '{
-    "title": "Overnight build failure: project-foo",
-    "description": "Build failed at phase 2 (test suite).\n\nError: `TypeError: Cannot read property of undefined at auth.test.ts:45`\n\nSee: output/builds/errors/2026-03-28.log",
+    "title": "Spec: new billing system",
+    "description": "From spec-interviewer. See tasks/spec-20260328.md",
     "status": "todo",
-    "priority": "critical",
-    "labels": ["bible-overnight", "build-failure"]
-  }'
-```
+    "priority": "high",
+    "labels": ["bible-spec", "spec-interviewer"]
+  }' | jq -r '.id')
 
-### From Security Scan
-
-Create issues for security findings:
-
-```bash
-# For each critical finding
-curl -s -X POST "$PAPERCLIP_API_URL/api/companies/$PAPERCLIP_COMPANY_ID/issues" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+# 2. Create sub-tasks for each phase
+curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issues \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" \
   -d '{
-    "title": "CRITICAL: Hardcoded API key in src/services/payment.ts",
-    "description": "Security scan found hardcoded Stripe key at line 23.\n\nRemediation: Move to environment variable `STRIPE_SECRET_KEY`.\n\nScan report: output/security/scan-2026-03-28.md",
+    "title": "Phase 1: Database schema migration",
+    "parentId": "'$PARENT'",
     "status": "todo",
-    "priority": "critical",
-    "labels": ["bible-security", "secret-leak"]
+    "priority": "high",
+    "labels": ["bible-spec"]
   }'
 ```
 
-## Priority Mapping
+### From mode-switcher
 
-Bible uses P0-P10 numeric priorities. Paperclip uses named levels.
-
-| Bible Priority | Paperclip Level | When to Use |
-|---|---|---|
-| P0 | `critical` | System down, security breach, data loss |
-| P1 | `critical` | Major feature broken, blocking release |
-| P2 | `high` | Important feature, significant bug |
-| P3 | `high` | Moderate feature, non-blocking bug |
-| P4 | `medium` | Nice-to-have feature, minor bug |
-| P5 | `medium` | Quality improvement, tech debt |
-| P6 | `low` | Cosmetic fix, docs update |
-| P7 | `low` | Nice-to-have, no deadline |
-| P8-P10 | `low` | Backlog, someday/maybe |
-
-### Mapping Function
-
-```javascript
-function biblePriorityToPaperclip(p) {
-  if (p <= 1) return 'critical';
-  if (p <= 3) return 'high';
-  if (p <= 5) return 'medium';
-  return 'low';
-}
-```
-
-## Tracking Task Commander Progress
-
-When task-commander updates a task status, post a comment to the corresponding Paperclip issue:
+When switching Bible modes (e.g., entering `saas` mode for a feature sprint), optionally create a tracking issue:
 
 ```bash
-# Task started
-curl -s -X POST "$PAPERCLIP_API_URL/api/issues/$ISSUE_ID/comments" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
-  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
+curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issues \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" \
   -d '{
-    "body": "## Started\n\nTask picked up by Claude Code session.\n\n- Branch: `feat/auth-middleware`\n- Estimated: 30 minutes\n- Skills: senior-backend, verification-loop"
-  }'
-
-# Progress update
-curl -s -X POST "$PAPERCLIP_API_URL/api/issues/$ISSUE_ID/comments" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
-  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "body": "## Progress\n\n- [x] Route handlers created\n- [x] JWT validation middleware\n- [ ] Refresh token rotation\n- [ ] Rate limiting\n- [ ] Tests\n\n60% complete, on track."
-  }'
-
-# Blocked
-curl -s -X PATCH "$PAPERCLIP_API_URL/api/issues/$ISSUE_ID" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
-  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "status": "blocked",
-    "comment": "## Blocked\n\nMissing `JWT_SECRET` in .env.example. Need Kevin to confirm the secret source (1Password vault or generated)."
+    "title": "Bible session: SaaS mode sprint",
+    "description": "Mode: saas\nStarted: '$(date -u +%Y-%m-%dT%H:%M:%SZ)'\nGoal: Build subscription billing flow",
+    "status": "in_progress",
+    "priority": "medium",
+    "labels": ["bible-session", "mode-saas"]
   }'
 ```
 
-## Auto-Close on Task Commander Completion
+---
 
-When task-commander marks a task `done` and verification-loop passes, close the Paperclip issue:
+## 2. Priority Mapping
+
+Bible workflows use informal priority language. Paperclip uses structured priority values.
+
+| Bible Concept | Paperclip Priority | When to Use |
+|---------------|-------------------|-------------|
+| P0 — System down, data loss | `critical` | Production outages, security breaches |
+| P1 — Blocking work | `critical` | Blockers for active sprints |
+| P2 — Important, needs attention | `high` | Features with deadlines, important bugs |
+| P3 — Normal work | `high` | Standard feature development |
+| P4 — Should do soon | `medium` | Improvements, non-urgent bugs |
+| P5 — Nice to have | `medium` | Polish, UX improvements |
+| P6 — Backlog | `low` | Future considerations |
+| P7-P10 — Wishlist/someday | `low` | Ideas, exploration, tech debt |
+
+### Mapping from Bible Skills
+
+| Bible Skill | Default Priority | Rationale |
+|-------------|-----------------|-----------|
+| `harden` / `pentest-checklist` | `critical` | Security work is always high priority |
+| `tdd-workflow` / `e2e-testing` | `high` | Testing blocks shipping |
+| `task-commander` | `high` | Active planned work |
+| `spec-interviewer` | `medium` | Planning phase, not yet executing |
+| `brainstorming` | `low` | Exploration, no commitment |
+| `retro` / `review` | `medium` | Process improvement |
+
+---
+
+## 3. Tracking Task Progress
+
+### Updating Issues from Bible Sessions
+
+As you work through a task-commander plan, update the Paperclip issue:
 
 ```bash
-# Verification passed -- close the issue
-curl -s -X PATCH "$PAPERCLIP_API_URL/api/issues/$ISSUE_ID" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
-  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
+# Mark as in-progress with a progress comment
+curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" \
+  -d '{
+    "status": "in_progress",
+    "comment": "Step 2/4 complete: JWT middleware implemented and tested."
+  }'
+```
+
+### Progress Comment Format
+
+When posting updates from Bible workflows, use this structure:
+
+```markdown
+## Bible Progress Update
+
+- **Skill:** task-commander
+- **Step:** 2/4
+- **Status:** In progress
+- **Done:** JWT middleware implemented, unit tests passing
+- **Next:** Login/register endpoints
+- **Blockers:** None
+```
+
+### Automated Progress via Hook
+
+The `openclaw-adapter.js` hook can forward tool events to Paperclip. When `KZ_PAPERCLIP_TRACKING` is set to an issue ID, each significant tool call (file writes, test runs, git commits) appends a lightweight progress entry:
+
+```bash
+export KZ_PAPERCLIP_TRACKING="issue-uuid-here"
+```
+
+---
+
+## 4. Auto-Closing Tickets
+
+### When Bible Tasks Complete
+
+After `task-commander` marks all steps done, or after `verification-loop` passes:
+
+```bash
+curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" \
   -d '{
     "status": "done",
-    "comment": "## Completed\n\nAll acceptance criteria met.\n\n- TypeScript compiles: pass\n- Tests pass: 12/12\n- Coverage: 84%\n- No console.log in production code\n- Committed: `feat: add auth middleware (CC-42)`\n\nBranch: `feat/auth-middleware` ready for review."
+    "comment": "## Completed\n\n- All steps executed\n- Tests passing (Vitest: 42/42)\n- No TypeScript errors\n- Committed: feat: add user auth (abc1234)"
   }'
 ```
 
-### Auto-Close Logic
+### Auto-Close Conditions
 
-Integrate into your Bible workflow:
+| Trigger | Action | Condition |
+|---------|--------|-----------|
+| All task-commander steps checked | Close issue | All sub-items marked done |
+| `verification-loop` passes | Close issue | All checks green |
+| Git commit with issue reference | Update issue | Comment with commit SHA |
+| `/save-session` with active tracking | Update issue | Add session summary comment |
+| Session ends (Stop hook) | Update or leave open | Close only if all steps done |
 
-```javascript
-async function closeOnCompletion(issueId, verificationResults) {
-  const allPassed = verificationResults.every(r => r.passed);
+### Guard: Never Auto-Close
 
-  if (!allPassed) {
-    const failures = verificationResults
-      .filter(r => !r.passed)
-      .map(r => `- ${r.name}: ${r.error}`)
-      .join('\n');
+- Issues with `blocked` status (requires human intervention)
+- Issues with open sub-tasks (parent stays open)
+- Issues assigned to a different agent (not yours to close)
+- Issues in `in_review` status (waiting for human review)
 
-    await updateIssue(issueId, {
-      status: 'blocked',
-      comment: `## Verification Failed\n\n${failures}\n\nManual review needed.`
-    });
-    return;
-  }
+---
 
-  await updateIssue(issueId, {
-    status: 'done',
-    comment: `## Completed\n\nAll ${verificationResults.length} verification checks passed.`
-  });
-}
-```
+## 5. Bidirectional Sync Patterns
 
-## Bidirectional Sync
-
-### Bible -> Paperclip (Push)
-
-Bible workflows push state changes to Paperclip:
+### Bible to Paperclip (Push)
 
 | Bible Event | Paperclip Action |
-|---|---|
-| Task created in todo.md | `POST /api/companies/{id}/issues` |
-| Task status changed | `PATCH /api/issues/{id}` with status |
-| Task completed + verified | `PATCH /api/issues/{id}` status=done |
-| Task blocked | `PATCH /api/issues/{id}` status=blocked |
-| Progress update | `POST /api/issues/{id}/comments` |
-| Error during execution | `POST /api/issues/{id}/comments` |
+|-------------|-----------------|
+| `/plan` starts | Create issue with `todo` status |
+| Task execution begins | `PATCH` status to `in_progress` |
+| Step completed | `POST` comment with progress |
+| Test failure / blocker | `PATCH` status to `blocked` |
+| All steps done | `PATCH` status to `done` |
+| `git commit` with reference | `POST` comment with commit details |
+| `/save-session` | `POST` comment with session summary |
+| Mode switch | `POST` comment noting mode change |
 
-### Paperclip -> Bible (Pull)
+### Paperclip to Bible (Pull)
 
-Bible sessions pull assignments from Paperclip:
+| Paperclip Event | Bible Action |
+|-----------------|-------------|
+| New assignment (via heartbeat) | Load issue context, resume work |
+| Comment from another agent | Read and incorporate context |
+| Status changed to `blocked` | Check blocker, attempt resolution |
+| Priority escalated to `critical` | Interrupt current work, address immediately |
+| Issue reassigned to Claude Code | Pick up via `/resume-session` |
 
-```bash
-# Get my current assignments
-curl -s "$PAPERCLIP_API_URL/api/agents/me/inbox-lite" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY" | jq '.issues[] | {id, title, status, priority}'
-```
+### Sync Cadence
 
-### Sync Workflow
+- **Real-time push:** Every significant Bible event fires immediately
+- **Periodic pull:** Check assignments at session start and every 30 tool calls
+- **On-demand:** User can run `/paperclip` to check status manually
 
-```
-Session Start:
-  1. Read tasks/todo.md (local state)
-  2. GET /api/agents/me/inbox-lite (Paperclip state)
-  3. Reconcile:
-     - New Paperclip issues not in todo.md -> add to todo.md
-     - Local tasks not in Paperclip -> create issues (if configured)
-     - Status mismatches -> Paperclip wins (source of truth)
+---
 
-During Session:
-  4. Task-commander updates -> POST comments to Paperclip
-  5. Completion -> PATCH status in Paperclip
+## 6. REST API Quick Reference
 
-Session End:
-  6. Write final state to tasks/todo.md
-  7. Post session summary as comment on active issues
-```
-
-### Sync Configuration
-
-Control sync behavior with `tasks/paperclip-sync.json`:
-
-```json
-{
-  "enabled": true,
-  "direction": "bidirectional",
-  "syncOnSessionStart": true,
-  "syncOnSessionEnd": true,
-  "autoCreateIssues": false,
-  "autoCloseOnVerification": true,
-  "commentOnProgress": true,
-  "commentFrequency": "on-status-change",
-  "projectId": "your-project-id",
-  "labels": ["bible-session"],
-  "priorityThreshold": "P5"
-}
-```
-
-- `autoCreateIssues: false` -- do not auto-create Paperclip issues for every local task (only explicit ones)
-- `priorityThreshold: "P5"` -- only sync tasks at P5 or higher priority
-- `commentFrequency: "on-status-change"` -- post comments on status changes only (not every progress tick)
-
-## REST API Reference
+All endpoints relative to `http://localhost:3110`. All requests use `Authorization: Bearer $PAPERCLIP_API_KEY`. All bodies are JSON.
 
 ### Issues
 
-| Action | Method | Endpoint |
-|---|---|---|
-| List issues | GET | `/api/companies/{companyId}/issues` |
-| Search issues | GET | `/api/companies/{companyId}/issues?q=search+term` |
-| Get issue | GET | `/api/issues/{issueId}` |
-| Create issue | POST | `/api/companies/{companyId}/issues` |
-| Update issue | PATCH | `/api/issues/{issueId}` |
-| Checkout issue | POST | `/api/issues/{issueId}/checkout` |
-| Release issue | POST | `/api/issues/{issueId}/release` |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/companies/:companyId/issues` | List issues. Query params: `status`, `assigneeAgentId`, `projectId`, `priority`, `labelId`, `q` (search), `limit`, `offset` |
+| `GET` | `/api/issues/:id` | Get single issue with full details |
+| `POST` | `/api/companies/:companyId/issues` | Create issue. Body: `title` (required), `description`, `status`, `priority`, `assigneeAgentId`, `projectId`, `parentId`, `goalId`, `labels[]`, `billingCode` |
+| `PATCH` | `/api/issues/:id` | Update issue. Body: any updatable field + optional `comment` |
+| `DELETE` | `/api/issues/:id` | Delete issue (prefer `cancelled` status instead) |
 
 ### Comments
 
-| Action | Method | Endpoint |
-|---|---|---|
-| List comments | GET | `/api/issues/{issueId}/comments` |
-| Get comment | GET | `/api/issues/{issueId}/comments/{commentId}` |
-| Add comment | POST | `/api/issues/{issueId}/comments` |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/issues/:id/comments` | List comments. Query params: `after` (cursor), `order` (`asc`/`desc`), `limit` |
+| `GET` | `/api/issues/:id/comments/:commentId` | Get single comment |
+| `POST` | `/api/issues/:id/comments` | Add comment. Body: `body` (markdown), `authorAgentId` |
 
 ### Agents
 
-| Action | Method | Endpoint |
-|---|---|---|
-| My identity | GET | `/api/agents/me` |
-| My inbox | GET | `/api/agents/me/inbox-lite` |
-| List agents | GET | `/api/companies/{companyId}/agents` |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/agents/me` | Current agent identity |
+| `GET` | `/api/agents/me/inbox-lite` | Compact assignment inbox |
+| `GET` | `/api/companies/:companyId/agents` | List all agents |
 
-### Documents
+### Projects
 
-| Action | Method | Endpoint |
-|---|---|---|
-| List documents | GET | `/api/issues/{issueId}/documents` |
-| Get document | GET | `/api/issues/{issueId}/documents/{key}` |
-| Create/update doc | PUT | `/api/issues/{issueId}/documents/{key}` |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/companies/:companyId/projects` | List projects |
+| `POST` | `/api/companies/:companyId/projects` | Create project. Body: `name`, `description`, `workspace` |
 
-### Common Query Parameters
+### Checkout / Release
 
-```
-# Filter by status
-?status=todo,in_progress,blocked
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/issues/:id/checkout` | Check out issue for work. Body: `agentId`, `expectedStatuses[]`. Returns 409 if already checked out by another agent. |
+| `POST` | `/api/issues/:id/release` | Release checkout without changing status |
 
-# Filter by assignee
-?assigneeAgentId={agentId}
+### Dashboard
 
-# Filter by project
-?projectId={projectId}
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/companies/:companyId/dashboard` | Aggregated dashboard data: issue counts by status, agent activity, recent changes |
 
-# Filter by label
-?labelId={labelId}
-
-# Search
-?q=search+term
-
-# Pagination
-?limit=50&offset=0
-```
-
-### Response Envelope
-
-All responses follow the standard envelope:
-
-```json
-{
-  "success": true,
-  "data": { ... },
-  "error": null,
-  "meta": {
-    "total": 42,
-    "limit": 50,
-    "offset": 0
-  }
-}
-```
-
-### Status Values
-
-`backlog` | `todo` | `in_progress` | `in_review` | `done` | `blocked` | `cancelled`
-
-### Priority Values
-
-`critical` | `high` | `medium` | `low`
-
-## Webhook Integration
-
-### Paperclip to Bible (Inbound Webhooks)
-
-Paperclip can notify Bible sessions of external changes:
-
-```json
-{
-  "event": "issue.updated",
-  "issue": {
-    "id": "abc-123",
-    "title": "Implement auth",
-    "status": "todo",
-    "priority": "high",
-    "assigneeAgentId": "claude-code"
-  },
-  "changes": {
-    "status": { "from": "blocked", "to": "todo" },
-    "comment": "Unblocked -- JWT_SECRET added to 1Password vault."
-  }
-}
-```
-
-Bible can listen for these via the session-startup skill:
+### Search
 
 ```bash
-# Check for recent Paperclip updates at session start
-RECENT=$(curl -s "$PAPERCLIP_API_URL/api/companies/$PAPERCLIP_COMPANY_ID/issues?assigneeAgentId=$PAPERCLIP_AGENT_ID&status=todo,in_progress&updatedSince=$(date -u -v-24H +%Y-%m-%dT%H:%M:%SZ)" \
-  -H "Authorization: Bearer $PAPERCLIP_API_KEY")
-
-echo "$RECENT" | jq -r '.data[] | "- [\(.status)] \(.title) (\(.identifier))"'
+# Full-text search across titles, descriptions, comments
+GET /api/companies/:companyId/issues?q=auth+middleware&status=todo,in_progress
 ```
 
-### Bible to Paperclip (Outbound Webhooks)
+---
 
-Bible PostToolUse hooks can notify Paperclip of session activity. Use the pattern from `openclaw-adapter.js` adapted for Paperclip:
+## 7. Webhook Integration
 
-```javascript
-function postToPaperclip(event) {
-  const apiUrl = process.env.PAPERCLIP_API_URL || 'http://localhost:3110';
-  const apiKey = process.env.PAPERCLIP_API_KEY;
-  if (!apiKey) return;
+### Paperclip to Bible Notifications
 
-  const payload = {
-    source: 'claude-code-bible',
-    event: event.type,
-    timestamp: new Date().toISOString(),
-    sessionId: process.env.CLAUDE_SESSION_ID || 'unknown',
-    data: event.data
-  };
+Paperclip can send webhooks when issues change. Configure in Paperclip settings:
 
-  // POST to Paperclip webhook endpoint
-  // (fire and forget -- do not block tool execution)
-  fetch(`${apiUrl}/api/webhooks/bible`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(payload)
-  }).catch(() => {});
+```json
+{
+  "webhooks": [{
+    "url": "http://localhost:18789/api/webhooks/paperclip",
+    "events": ["issue.status_changed", "issue.assigned", "issue.commented"],
+    "secret": "shared-secret-here"
+  }]
 }
 ```
 
-## Workflow Examples
+### Webhook Payload Format
 
-### Example 1: Feature Development
-
-```
-1. Claude Code starts session
-2. Read Paperclip inbox -> find assigned issue CC-42
-3. Checkout CC-42 (POST /api/issues/{id}/checkout)
-4. Task-commander picks up the task
-5. Progress comments posted to CC-42 as work proceeds
-6. Verification-loop runs on completion
-7. All checks pass -> PATCH CC-42 status=done
-8. Commit with message: "feat: implement feature (CC-42)"
-```
-
-### Example 2: Overnight Batch
-
-```
-1. Overnight-runner starts batch processing
-2. Create Paperclip issue: "Overnight batch 2026-03-28"
-3. For each batch item, post progress comment
-4. On completion, update issue with summary
-5. If failures, create child issues for each failure
-6. Close parent issue with final report
+```json
+{
+  "event": "issue.status_changed",
+  "timestamp": "2026-03-28T12:00:00.000Z",
+  "issue": {
+    "id": "uuid",
+    "identifier": "PAP-142",
+    "title": "Implement user auth",
+    "status": "in_progress",
+    "previousStatus": "todo",
+    "priority": "high",
+    "assigneeAgentId": "codex"
+  }
+}
 ```
 
-### Example 3: Security Scan -> Issue Creation
+### Consuming Webhooks in Bible Hooks
+
+The `openclaw-adapter.js` hook can optionally listen for Paperclip webhook events when forwarded through the OpenClaw gateway. Events with `source: "paperclip"` are logged but do not modify Claude Code behavior directly — they surface as informational stderr messages when `KZ_OPENCLAW_DEBUG=1`.
+
+---
+
+## 8. Labels and Categories
+
+### Bible Skill to Paperclip Label Mapping
+
+| Bible Skill Category | Paperclip Label | Color |
+|----------------------|----------------|-------|
+| `mega-*` skills | `bible-mega` | purple |
+| `task-commander` | `bible-task` | blue |
+| `spec-interviewer` | `bible-spec` | green |
+| `tdd-workflow` | `bible-tdd` | yellow |
+| `verification-loop` | `bible-verify` | teal |
+| `code-review` | `bible-review` | orange |
+| `harden` / security | `bible-security` | red |
+| `brainstorming` | `bible-ideation` | pink |
+| Mode sessions | `mode-{name}` | gray |
+
+### Auto-Labeling Rules
+
+When creating issues from Bible workflows, apply labels automatically:
+
+1. Always add `bible-task` to any Bible-originated issue
+2. Add the source skill label (e.g., `bible-spec` for spec-interviewer)
+3. Add mode label if a mode is active (e.g., `mode-saas`)
+4. Add `bible-security` for any security-related skill
+5. Never exceed 5 labels per issue — prioritize specificity
+
+---
+
+## 9. Dashboard Integration
+
+### Paperclip Dashboard to Bible Status
+
+The Paperclip dashboard at `http://localhost:3110` shows all issues, agent activity, and project health. Bible-originated issues are identifiable by their `bible-*` labels.
+
+### Bible Dashboard Widget Data
+
+Pull dashboard data for display in Bible status reports:
+
+```bash
+# Get dashboard summary
+DASHBOARD=$(curl -s http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/dashboard \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}")
+
+# Extract Bible-specific metrics
+echo "$DASHBOARD" | jq '{
+  total_bible_issues: [.issues[] | select(.labels[] | contains("bible"))] | length,
+  open: [.issues[] | select(.labels[] | contains("bible")) | select(.status == "todo" or .status == "in_progress")] | length,
+  done_today: [.issues[] | select(.labels[] | contains("bible")) | select(.status == "done")] | length,
+  blocked: [.issues[] | select(.labels[] | contains("bible")) | select(.status == "blocked")] | length
+}'
+```
+
+### Status Report Format
+
+```markdown
+## Paperclip Bible Status — YYYY-MM-DD
+
+| Metric | Count |
+|--------|-------|
+| Open Bible issues | X |
+| In progress | X |
+| Blocked | X |
+| Completed today | X |
+| Total tracked | X |
+
+### Active Issues
+| ID | Title | Status | Priority | Agent |
+|----|-------|--------|----------|-------|
+| PAP-142 | User auth | in_progress | high | codex |
+```
+
+---
+
+## 10. Setup
+
+### Prerequisites
+
+- Paperclip running at `localhost:3110`
+- `PAPERCLIP_API_KEY` and `PAPERCLIP_COMPANY_ID` environment variables set
+- `curl` and `jq` available
+
+### Configuration
+
+```bash
+# Add to shell profile
+export PAPERCLIP_API_URL="http://localhost:3110"
+export PAPERCLIP_COMPANY_ID="your-company-id"
+export PAPERCLIP_API_KEY="your-api-key"
+
+# Optional: auto-track Bible sessions
+export KZ_PAPERCLIP_TRACKING=""  # Set to issue ID to enable per-session tracking
+```
+
+### Verify Connection
+
+```bash
+# Health check
+curl -s http://localhost:3110/api/health
+
+# Test authentication
+curl -s http://localhost:3110/api/agents/me \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}"
+
+# List recent issues
+curl -s "http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issues?limit=5" \
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" | jq '.[] | {id, title, status}'
+```
+
+---
+
+## Troubleshooting
+
+### Connection Refused
 
 ```
-1. Security-scan dispatch runs
-2. Finds 3 critical, 5 high, 12 medium findings
-3. Creates Paperclip issue for each critical finding
-4. Creates one rollup issue for high findings
-5. Logs medium findings in the scan report (no issues)
-6. Posts summary comment linking all created issues
+Symptom: curl to localhost:3110 fails
+Fix: Check PM2 — `pm2 list | grep paperclip`
+     Restart if needed — `pm2 restart paperclip`
+     Check logs — `pm2 logs paperclip --lines 20 --nostream`
 ```
 
-## Gotchas
+### Authentication Failures (401)
 
-- Always checkout before working on an issue -- direct PATCH to `in_progress` is not allowed
-- Never retry a 409 Conflict -- the issue is owned by another agent
-- Include `X-Paperclip-Run-Id` on all mutating requests inside heartbeat runs
-- Paperclip is the source of truth for status -- if Bible and Paperclip disagree, Paperclip wins
-- Comment links must use the company prefix format: `[CC-42](/CC/issues/CC-42)`
-- Do not create issues for every trivial task -- use `priorityThreshold` in sync config
-- Rate limit awareness: do not post more than 1 comment per minute per issue
+```
+Symptom: API returns 401 Unauthorized
+Fix: Verify PAPERCLIP_API_KEY is set and valid
+     For heartbeat runs, check PAPERCLIP_RUN_ID header
+     Regenerate key if expired — see Paperclip admin
+```
+
+### Issue Creation Failures
+
+```
+Symptom: POST /api/issues returns 400
+Common causes:
+  - Missing required field (title)
+  - Invalid status value (must be: backlog, todo, in_progress, in_review, done, blocked, cancelled)
+  - Invalid priority value (must be: critical, high, medium, low)
+  - Non-existent projectId or parentId
+  - Non-existent assigneeAgentId
+```
+
+### Stale Tracking Issue
+
+```
+Symptom: KZ_PAPERCLIP_TRACKING points to a closed/cancelled issue
+Fix: Unset the variable — `unset KZ_PAPERCLIP_TRACKING`
+     Or set to a new issue ID for the current session
+```
+
+### Missing Labels
+
+```
+Symptom: Bible labels not appearing on issues
+Fix: Labels are created on first use in Paperclip
+     Ensure label names match exactly (case-sensitive)
+     Check that label array in POST body is formatted correctly
+```

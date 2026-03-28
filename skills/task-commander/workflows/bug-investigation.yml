@@ -1,324 +1,402 @@
 # Task Commander — Bug Investigation Workflow
-# DAG: reproduce → isolate → fix → verify → regression-test
+# DAG: reproduce -> isolate -> fix -> verify -> regression-test
 #
-# Usage: Used by Task Commander for bug hunting and fixing.
+# Scope: P2-P7 bug investigations
 # Follows the principle: reproduce first, understand second, fix third.
+# The reproduce step is critical — if you cannot reproduce reliably,
+# you cannot verify the fix. Never skip straight to fixing.
 
 name: bug-investigation
-description: Systematic bug investigation from reproduction through verified fix with regression testing
-scope: P2-P8
+description: Systematic bug investigation from reproduction through verified fix with regression tests
+scope: P2-P7
+cost_ceiling: 3.00
 
-tasks:
-  - id: reproduce
-    agent: claude-haiku
-    timeout_ms: 180000
-    retries: 2
+agents:
+  investigator:
+    model: sonnet
+    role: "Bug reproduction and root cause isolation — the detective who finds the truth"
+  fixer:
+    model: sonnet
+    role: "Minimal correct fix implementation — surgical precision, smallest possible change"
+  tester:
+    model: sonnet
+    role: "Verification and regression test writing — ensures the fix holds permanently"
+  verifier:
+    model: haiku
+    role: "Automated verification runner — executes tests and checks for regressions"
+
+dag:
+  - step: reproduce
+    agent: investigator
+    depends_on: []
+    timeout_minutes: 5
+    retries: 1
     prompt: |
-      You are a QA engineer tasked with reproducing a reported bug.
+      You are a bug investigator. Your ONLY job is to create a reliable reproduction
+      of a reported bug. You do NOT fix anything in this step.
 
-      Bug report:
+      **Bug report:**
       {{bug_description}}
 
-      Project: {{project_name}}
-      Stack: {{tech_stack}}
+      **Project:** {{project_name}} at {{project_path}}
+      **Stack:** {{tech_stack}}
+      **Reported by:** {{reporter}} on {{date}}
+      **Severity:** {{severity}}
+      **Environment:** {{environment_details}}
 
-      Your job:
-      1. **Understand the report** — What is the expected behavior? What actually happens?
-      2. **Create a minimal reproduction** — Write the simplest test case that triggers the bug
-      3. **Document the reproduction steps** — Exact commands or actions to trigger the bug
-      4. **Gather context** — Check error logs, stack traces, related code
+      Tasks:
 
-      Steps:
-      a. Read the code paths mentioned in the bug report
-      b. Write a failing test that demonstrates the bug
-      c. Run the test — confirm it fails with the reported error
-      d. Document the exact error message and stack trace
+      1. **Understand the bug** — Parse the bug report completely.
+         - What is the expected behavior?
+         - What is the actual behavior?
+         - What are the exact steps to reproduce?
+         - What is the frequency? (always, intermittent, specific conditions)
+
+      2. **Find the relevant code** — Search the codebase for files involved.
+         - Entry point (route handler, event listener, UI component)
+         - Business logic files in the code path
+         - Data layer (models, queries, schemas)
+         - Configuration files that might affect behavior
+         List every file that could be related.
+
+      3. **Write a reproduction test** — Create a failing test that demonstrates the bug.
+         Requirements for the test:
+         - MUST fail on the current codebase (proving the bug exists)
+         - MUST be deterministic (fails every time, not intermittently)
+         - MUST be minimal (tests only the buggy behavior, nothing else)
+         - Name format: "should {{expected_behavior}} when {{condition}}"
+         - Use the project's test framework ({{test_framework}})
+
+      4. **Document manual reproduction** — Write step-by-step instructions a human
+         could follow to see the bug in action.
 
       Output format:
       ```markdown
       # Bug Reproduction: {{bug_title}}
 
-      ## Expected Behavior
-      {{what_should_happen}}
+      ## Summary
+      - Expected: {{expected_behavior}}
+      - Actual: {{actual_behavior}}
+      - Frequency: {{always|intermittent|specific_conditions}}
+      - Reproducible: YES | NO | PARTIAL
 
-      ## Actual Behavior
-      {{what_actually_happens}}
+      ## Relevant Files
+      | File | Role in Bug | Lines of Interest |
+      |------|-------------|------------------|
+      | {{path}} | {{why_relevant}} | {{line_range}} |
 
-      ## Reproduction Steps
+      ## Reproduction Test
+      - File: {{test_file_path}}
+      - Status: FAILING (confirms bug)
+      ```typescript
+      {{failing_test_code}}
+      ```
+
+      ## Test Output
+      ```
+      {{actual_failing_test_output}}
+      ```
+
+      ## Manual Reproduction Steps
       1. {{step_1}}
       2. {{step_2}}
-      ...
-
-      ## Failing Test
-      ```typescript
-      // test file content that fails
+      3. Observe: {{what_you_see}}
+      4. Expected: {{what_should_happen}}
       ```
 
-      ## Error Output
-      ```
-      {{exact_error_message_and_stack_trace}}
-      ```
-
-      ## Affected Code Paths
-      - {{file_1}}:{{line}} — {{what_this_code_does}}
-      - {{file_2}}:{{line}} — {{what_this_code_does}}
-
-      ## Reproduction Confidence: HIGH / MEDIUM / LOW
-      {{explain_confidence_level}}
-      ```
-
-      Rules:
-      - The failing test MUST actually fail when run (verify it)
-      - Do NOT attempt to fix the bug — only reproduce it
-      - If you cannot reproduce, say so clearly and list what you tried
-      - Include exact error messages — do not paraphrase
+      Constraints:
+      - The reproduction test MUST fail. If it passes, the bug is not reproduced.
+      - If you CANNOT reproduce after thorough investigation, report status
+        CANNOT_REPRODUCE with detailed explanation of what you tried.
+      - Do NOT fix the bug. Do NOT modify source code. Only create test files.
+      - Do NOT guess at the cause. Only document observable behavior.
     verification: |
-      Reproduction must include:
-      - [ ] A failing test that demonstrates the bug
-      - [ ] The test actually fails when run (not just hypothetical)
-      - [ ] Exact error message captured
-      - [ ] Affected code paths identified
+      Reproduction must:
+      - [ ] Include a failing test that demonstrates the bug
+      - [ ] Test fails deterministically (run 3 times, fails 3 times)
+      - [ ] List all relevant source files with specific line ranges
+      - [ ] Document manual reproduction steps
+      - [ ] NOT modify any source code
 
-  - id: isolate
-    agent: claude-sonnet
+  - step: isolate
+    agent: investigator
     depends_on: [reproduce]
-    timeout_ms: 180000
-    retries: 2
+    timeout_minutes: 5
+    retries: 1
     prompt: |
-      You are a senior debugger isolating the root cause of a bug.
+      You are performing root cause analysis on a reproduced bug.
 
-      Reproduction report:
+      **Reproduction results:**
       {{reproduce.output}}
 
-      Your job:
-      1. **Trace the execution path** — Follow the code from trigger to error
-      2. **Identify the root cause** — What specifically causes the incorrect behavior?
-      3. **Distinguish root cause from symptoms** — The error message is a symptom. What causes it?
-      4. **Check for siblings** — Are there similar patterns elsewhere that have the same bug?
+      **Project:** {{project_name}} at {{project_path}}
 
-      Investigation approach:
-      a. Read all files in the affected code paths
-      b. Trace data flow from input to error
-      c. Identify the exact line(s) where behavior diverges from expected
-      d. Check if the bug is in the code, the data, or the dependencies
-      e. Search the codebase for similar patterns that might have the same issue
+      Tasks:
+
+      1. **Trace the code path** — Follow execution from the entry point through
+         to where the bug manifests. Document each function call in the chain
+         with file:line references.
+
+      2. **Identify the root cause** — Find the exact line(s) where the bug
+         originates. Trace UPSTREAM from where the symptom appears to where
+         the incorrect behavior is introduced.
+
+      3. **Classify the bug type:**
+         | Type | Description |
+         |------|-------------|
+         | Logic error | Wrong condition, off-by-one, missing case, wrong operator |
+         | Type error | Wrong type, missing null check, incorrect cast, schema mismatch |
+         | Race condition | Timing issue, async ordering, missing await, concurrent mutation |
+         | Data corruption | Mutation of shared state, stale cache, reference vs value copy |
+         | Integration error | Wrong API call, schema mismatch, encoding issue, version mismatch |
+         | Configuration error | Wrong env var, missing config, wrong default, environment-specific |
+         | Resource error | Connection pool, memory leak, file handle leak, rate limit |
+
+      4. **Assess blast radius** — Search the entire codebase for sibling code
+         that has the same pattern. Could this bug exist elsewhere?
+
+      5. **Propose the minimal fix** — Describe the smallest correct change.
+         Do NOT implement it.
 
       Output format:
       ```markdown
       # Root Cause Analysis: {{bug_title}}
 
+      ## Code Path Trace
+      1. {{entry_point}} ({{file}}:{{line}}) — {{description}}
+      2. -> {{function}} ({{file}}:{{line}}) — {{description}}
+      3. -> {{function}} ({{file}}:{{line}}) — {{description}}
+      4. -> ROOT CAUSE: {{description}} ({{file}}:{{line}})
+
       ## Root Cause
-      {{one_paragraph_explanation}}
+      - **Type:** {{bug_classification}}
+      - **Location:** {{file}}:{{line}}
+      - **Explanation:** {{detailed_explanation}}
+      - **Introduced by:** {{commit_or_date_if_identifiable}}
 
-      ## Evidence
-      - File: {{file}}:{{line}}
-      - The code does: {{what_it_does}}
-      - It should do: {{what_it_should_do}}
-      - Because: {{why_the_current_behavior_is_wrong}}
+      ## Blast Radius
+      | File:Line | Same Pattern? | Also Buggy? | Evidence |
+      |-----------|--------------|-------------|----------|
+      | {{path}}:{{line}} | Yes | {{Yes|No}} | {{why}} |
 
-      ## Execution Trace
-      1. Input enters at: {{entry_point}}
-      2. Passes through: {{intermediate_steps}}
-      3. Fails at: {{failure_point}}
-      4. Error propagates to: {{where_user_sees_error}}
-
-      ## Sibling Bugs
-      - {{file_with_similar_pattern}} — Same pattern, {{is/is_not}} affected
-      ...
-
-      ## Fix Strategy
-      {{how_to_fix — specific code changes needed}}
-
-      ## Fix Complexity: LOW / MEDIUM / HIGH
-      {{explain_complexity}}
+      ## Proposed Fix
+      - **Approach:** {{minimal_fix_description}}
+      - **Files to modify:** {{list_with_what_changes}}
+      - **Lines to change:** {{specific_lines}}
+      - **Risk of fix:** {{what_could_go_wrong}}
+      - **Alternative approaches:** {{if_any}}
       ```
 
-      Rules:
-      - Find the ROOT cause, not just the symptom
-      - Always check for sibling bugs (same pattern, different location)
-      - Be specific about the fix — exact file, line, and change
-      - If the root cause is in a dependency, say so and suggest alternatives
+      Constraints:
+      - Do NOT implement the fix. Only analyze and propose.
+      - Root cause must reference a SPECIFIC file and line number.
+      - Check for sibling bugs — same pattern elsewhere in the codebase.
+      - If the root cause is unclear, list the top 2-3 hypotheses with evidence.
     verification: |
       Root cause analysis must:
-      - [ ] Identify specific file(s) and line(s) where the bug originates
-      - [ ] Distinguish root cause from symptoms
-      - [ ] Include an execution trace
-      - [ ] Check for sibling bugs in the codebase
-      - [ ] Propose a specific fix strategy
+      - [ ] Trace the full code path with file:line references
+      - [ ] Identify the exact root cause location
+      - [ ] Classify the bug type
+      - [ ] Search for sibling occurrences of the same pattern
+      - [ ] Propose a minimal fix without implementing it
 
-  - id: fix
-    agent: codex
+  - step: fix
+    agent: fixer
     depends_on: [isolate]
-    timeout_ms: 300000
+    timeout_minutes: 5
     retries: 2
     prompt: |
-      You are a developer fixing a bug with a known root cause.
+      You are implementing a surgical bug fix.
 
-      Root cause analysis:
+      **Root cause analysis:**
       {{isolate.output}}
 
-      Failing test from reproduction:
+      **Reproduction test (must PASS after your fix):**
       {{reproduce.output}}
 
-      Your job:
-      1. **Fix the root cause** — Apply the minimal change that fixes the bug
-      2. **Fix sibling bugs** — If the analysis found similar patterns, fix those too
-      3. **Make the failing test pass** — The reproduction test must now pass
-      4. **Do not break anything else** — Existing tests must still pass
+      Tasks:
+
+      1. **Implement the proposed fix** from the root cause analysis.
+         Change the absolute minimum number of lines necessary.
+      2. **Fix sibling bugs** identified in the blast radius analysis.
+      3. **Run the reproduction test** — it must now PASS.
+      4. **Run the existing test suite** — verify no regressions.
 
       Rules:
-      - MINIMAL fix — change the least amount of code possible
-      - Fix the root cause, not the symptom (no workarounds)
-      - If sibling bugs were identified, fix them in the same change
-      - Preserve existing behavior for all non-buggy cases
-      - Add a code comment only if the fix is non-obvious
-      - Use immutable patterns (return new objects, don't mutate)
-      - No console.log in the fix
+      - Minimal change only. Do NOT refactor surrounding code.
+      - Do NOT change public API signatures unless the root cause requires it.
+      - Use immutable patterns (return new objects, never mutate parameters).
+      - Add a code comment only if the fix is non-obvious:
+        `// Fix: {{bug_id}} — {{one_line_reason}}`
+      - If the proposed fix from the analysis is wrong, explain why and implement
+        a better fix with documented reasoning.
+      - If existing tests break because of your fix, your fix is WRONG.
+        Fix your implementation, never modify existing passing tests.
 
       Output format:
       ```markdown
       # Bug Fix: {{bug_title}}
 
-      ## Changes Made
-      ### {{file_1}}
-      - Line {{N}}: Changed {{what}} because {{why}}
+      ## Changes Applied
+      | File | Line(s) | Change | Reason |
+      |------|---------|--------|--------|
+      | {{path}} | {{lines}} | {{description}} | {{why}} |
 
-      ### {{file_2}} (sibling fix)
-      - Line {{N}}: Changed {{what}} because {{why}}
+      ## Sibling Fixes
+      | File | Line(s) | Change | Same Pattern |
+      |------|---------|--------|-------------|
+      (or "None — no sibling bugs identified")
 
-      ## Files Modified
-      (full content of each modified file)
+      ## Test Results
+      - Reproduction test: PASS | FAIL
+      - Existing test suite: {{passing}}/{{total}} passing
+      - New failures: {{none|list}}
+
+      ## File Diffs
+      ### {{file_path}}
+      ```diff
+      {{diff_content}}
       ```
+      ```
+
+      Constraints:
+      - Reproduction test MUST pass after your fix.
+      - Existing test suite MUST have zero new failures.
+      - If you cannot fix the bug, explain what is blocking you and request BLOCKED status.
     verification: |
       Fix must:
-      - [ ] The previously-failing reproduction test now passes
-      - [ ] All existing tests still pass
-      - [ ] TypeScript compiles without errors
-      - [ ] Sibling bugs (if any) are also fixed
-      - [ ] Change is minimal (no unrelated refactoring)
+      - [ ] Make the reproduction test pass
+      - [ ] Introduce zero new test failures
+      - [ ] Apply minimal changes (diff should be small)
+      - [ ] Fix sibling bugs if identified in root cause analysis
+      - [ ] Not modify existing passing tests
 
-  - id: verify
-    agent: claude-haiku
+  - step: verify
+    agent: verifier
     depends_on: [fix]
-    timeout_ms: 180000
-    retries: 2
-    prompt: |
-      You are a QA engineer verifying a bug fix.
-
-      Original bug:
-      {{reproduce.output}}
-
-      Root cause:
-      {{isolate.output}}
-
-      Applied fix:
-      {{fix.output}}
-
-      Your job:
-      1. **Run the reproduction test** — Confirm it now passes
-      2. **Run the full test suite** — Confirm nothing is broken
-      3. **Run type checks** — Confirm TypeScript is clean
-      4. **Manual spot check** — Read the fixed code and verify the logic is correct
-      5. **Edge case check** — Test boundary conditions related to the bug
-
-      Output format:
-      ```markdown
-      # Fix Verification: {{bug_title}}
-
-      ## Reproduction Test
-      Status: PASS / FAIL
-      Output: {{test_output}}
-
-      ## Full Test Suite
-      Status: PASS / FAIL
-      Results: {{X}} passing, {{Y}} failing
-      {{details_of_any_failures}}
-
-      ## Type Check
-      Status: PASS / FAIL
-      {{any_type_errors}}
-
-      ## Manual Review
-      The fix correctly addresses the root cause: YES / NO
-      Reasoning: {{explain}}
-
-      ## Edge Cases Tested
-      - {{edge_case_1}}: PASS / FAIL
-      - {{edge_case_2}}: PASS / FAIL
-
-      ## Verdict: VERIFIED / NOT VERIFIED
-      {{reasoning}}
-      ```
-
-      Rules:
-      - Actually run the tests — do not assume they pass
-      - If any test fails, report the exact failure and output
-      - Check edge cases even if the main test passes
-      - VERIFIED only if ALL checks pass
-    verification: |
-      Verification must:
-      - [ ] Reproduction test actually run and passing
-      - [ ] Full test suite run results included
-      - [ ] Type check results included
-      - [ ] At least 2 edge cases tested
-      - [ ] Clear VERIFIED or NOT VERIFIED verdict
-
-  - id: regression-test
-    agent: claude-haiku
-    depends_on: [verify]
-    timeout_ms: 180000
+    timeout_minutes: 3
     retries: 1
     prompt: |
-      You are a QA engineer writing regression tests to prevent this bug from recurring.
+      You are running automated verification on a bug fix.
 
-      Original bug:
-      {{reproduce.output}}
-
-      Root cause:
-      {{isolate.output}}
-
-      Applied fix:
+      **Fix details:**
       {{fix.output}}
 
-      Your job:
-      1. **Write focused regression tests** that will catch this exact bug if it's ever reintroduced
-      2. **Write guard tests** for the sibling patterns identified in isolation
-      3. **Name tests descriptively** so future developers understand what they protect
+      **Project:** {{project_name}} at {{project_path}}
+      **Test command:** {{test_command}}
+      **Lint command:** {{lint_command}}
 
-      For each regression test:
-      - Name: `it('should <expected_behavior> when <condition>')`
-      - Test the specific input that triggered the bug
-      - Test the boundary conditions around the fix
-      - Include a brief comment explaining which bug this prevents
+      Run this verification sequence in order:
+
+      1. **TypeScript compilation:** `npx tsc --noEmit`
+         - Must: zero errors
+      2. **Full test suite:** `{{test_command}}`
+         - Must: zero failures, note any skipped tests
+      3. **Reproduction test only:** Run the specific reproduction test file
+         - Must: PASS (confirming the bug is fixed)
+      4. **Lint check:** `{{lint_command}}`
+         - Must: zero new violations
+      5. **Diff audit:** `git diff --stat`
+         - Must: only expected files changed
+         - Flag: any unexpected file modifications
+
+      Output format:
+      ```
+      VERIFICATION: {{bug_title}}
+      =============================
+      TypeScript:     PASS | FAIL ({{error_count}} errors)
+      Test suite:     PASS | FAIL ({{passing}}/{{total}}, {{skipped}} skipped)
+      Reproduction:   PASS | FAIL
+      Lint:           PASS | FAIL ({{violation_count}} violations)
+      Diff audit:     CLEAN | SUSPICIOUS ({{unexpected_files}})
+
+      Overall: VERIFIED | FAILED
+      {{failure_details_if_any}}
+
+      Files changed:
+      {{git_diff_stat_output}}
+      ```
+    verification: |
+      Verification must:
+      - [ ] Run all 5 checks in order
+      - [ ] Report PASS/FAIL for each with details
+      - [ ] Flag unexpected file changes
+      - [ ] Overall is VERIFIED only if ALL checks pass
+
+  - step: regression-test
+    agent: tester
+    depends_on: [verify]
+    timeout_minutes: 5
+    retries: 1
+    prompt: |
+      You are writing regression tests to ensure this bug never returns.
+
+      **Root cause analysis:**
+      {{isolate.output}}
+
+      **Fix applied:**
+      {{fix.output}}
+
+      **Verification results:**
+      {{verify.output}}
+
+      Tasks:
+
+      1. **Expand the reproduction test** into a comprehensive regression suite:
+         - The exact bug scenario (exists from reproduce step)
+         - Boundary conditions around the fix:
+           - Value just inside the boundary (should work)
+           - Value just outside the boundary (should be handled correctly)
+           - Value at the exact boundary (the original bug case)
+         - Related scenarios exercising the same code path with different inputs
+         - Sibling fix scenarios (if sibling bugs were fixed)
+
+      2. **Add negative tests** for the failure mode:
+         - Invalid inputs that should be rejected
+         - Error conditions that should be handled gracefully
+         - Combinations of inputs that stress the fixed code path
+
+      3. **Document each test's purpose** with a comment explaining
+         which aspect of the bug it guards against:
+         ```typescript
+         // Regression: {{bug_id}} — guards against {{specific_failure_mode}}
+         it('should {{expected}} when {{condition}}', () => { ... })
+         ```
 
       Output format:
       ```markdown
       # Regression Tests: {{bug_title}}
 
-      ## New Tests Added
-      ### {{test_file}}
+      ## Test File: {{file_path}}
+
+      ## Tests Added
+      | # | Test Name | Guards Against | Status |
+      |---|-----------|---------------|--------|
+      | 1 | {{name}} | {{failure_mode}} | PASS |
+      | 2 | {{name}} | {{failure_mode}} | PASS |
+
+      ## Test Code
       ```typescript
-      // full test content
+      {{full_test_file_content}}
       ```
 
-      ## Test Run Results
-      All new tests: PASS / FAIL
-      Full suite: {{X}} passing, {{Y}} failing
-
       ## Coverage Impact
-      Before: {{before}}%
-      After: {{after}}%
+      - Lines covered: +{{count}} (from {{before}}% to {{after}}%)
+      - Branches covered: +{{count}}
+      - Specific paths tested: {{list}}
       ```
 
       Rules:
-      - Every regression test must have a comment referencing the original bug
-      - Tests must be specific enough to catch the exact regression
-      - Tests must not be fragile or dependent on implementation details
-      - Run all tests (new + existing) and report results
+      - Every test must PASS on the current (fixed) codebase.
+      - Deterministic only — no random data, no timing dependencies.
+      - At least 3 boundary condition tests around the fix.
+      - At least 2 negative/invalid input tests.
+      - Do NOT duplicate existing tests.
+      - Use factory functions for test data, not inline literals.
     verification: |
       Regression tests must:
-      - [ ] At least 2 new tests specific to this bug
-      - [ ] Tests for sibling patterns (if any were found)
-      - [ ] All new tests pass
-      - [ ] All existing tests still pass
-      - [ ] Tests are named descriptively
+      - [ ] All pass on the fixed codebase
+      - [ ] Include at least 3 boundary condition tests
+      - [ ] Include at least 2 negative/invalid input tests
+      - [ ] Cover the exact bug scenario AND related paths
+      - [ ] Have comments explaining what each test guards against

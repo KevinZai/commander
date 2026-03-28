@@ -1,60 +1,78 @@
 # Task Commander — Migration Workflow
 # DAG: audit → plan → scaffold → migrate → verify → rollback-test
 #
-# Usage: Technology or codebase migrations (framework upgrades, language ports,
-# API rewrites, database migrations). Designed for safety with rollback testing
-# at every stage.
+# Usage: Database/code migration workflow for framework upgrades, language ports,
+# API rewrites, and database schema migrations. Designed for safety with rollback
+# testing at every stage and verification gates between phases.
 
 name: migration
-description: Safe codebase or technology migration with audit, planning, parallel execution, verification, and rollback testing
-scope: P6-P10
+description: Safe codebase or technology migration with audit, planning, execution, verification, and rollback testing
+version: "1.0"
+cost_ceiling: "$3.00"
 
-tasks:
-  - id: audit
-    agent: claude-sonnet
-    timeout_ms: 300000
-    retries: 1
-    prompt: |
-      You are a migration engineer auditing a codebase before a migration.
+agents:
+  auditor:
+    model: sonnet
+    role: Assess current state — file inventory, complexity ratings, dependency map, risk register
+  planner:
+    model: sonnet
+    role: Create migration plan — strategy selection, batch grouping, rollback procedures, test plan
+  scaffolder:
+    model: haiku
+    role: Generate migration files — new configs, adapters, bridges, test infrastructure, status tracking
+  migrator:
+    model: sonnet
+    role: Execute migration batch by batch — transform code, run tests, commit per batch, track progress
+  verifier:
+    model: opus
+    role: Run integration tests, verify completeness against audit, spot-check behavior, cleanup audit
+  rollback_tester:
+    model: sonnet
+    role: Validate rollback path — revert and re-apply migrations, measure rollback time, write runbook
+
+dag:
+  - step: audit
+    agent: auditor
+    input: |
+      Audit the codebase before migration. Produce a comprehensive inventory of everything
+      that needs to change.
 
       Migration: {{migration_description}}
       From: {{source_technology}}
       To: {{target_technology}}
       Project: {{project_name}}
 
-      Produce a comprehensive audit of what needs to migrate:
+      **1. Inventory — Catalog everything that needs to change:**
+      - Files to modify (count and full list with paths)
+      - Files to create (new patterns, configs, adapters)
+      - Files to delete (obsolete patterns)
+      - Dependencies to add/remove/update (packages, versions)
 
-      1. **Inventory** — Catalog everything that needs to change
-         - Files to modify (count, list)
-         - Files to create (new patterns needed)
-         - Files to delete (obsolete patterns)
-         - Dependencies to add/remove/update
+      **2. Complexity assessment — Rate each migration unit:**
+      - TRIVIAL: Mechanical find-and-replace (import paths, syntax sugar)
+      - STANDARD: Predictable transformation with known pattern
+      - COMPLEX: Requires logic changes, new patterns, edge case handling
+      - RISKY: Touches critical paths, has complex state, or lacks test coverage
 
-      2. **Complexity assessment** — Rate each migration unit
-         - TRIVIAL: Mechanical find-and-replace (import paths, syntax)
-         - STANDARD: Predictable transformation with known pattern
-         - COMPLEX: Requires logic changes, new patterns, edge case handling
-         - RISKY: Touches critical paths, complex state, or has no test coverage
+      **3. Dependency map — What depends on what?**
+      - Internal dependencies (file A imports from file B)
+      - External dependencies (packages that change between source and target)
+      - Migration order constraints (must migrate X before Y because Y imports X)
 
-      3. **Dependency map** — What depends on what?
-         - Internal dependencies (file A imports from file B)
-         - External dependencies (packages that change)
-         - Migration order constraints (must migrate X before Y)
+      **4. Risk register:**
+      - What could break? How badly? How would we detect it?
+      - Which migrations are irreversible (DB schema changes, API contracts)?
+      - Where is test coverage weakest?
 
-      4. **Risk register**
-         - What could break? How badly? How would we detect it?
-         - Which migrations are irreversible?
-         - Where is test coverage weakest?
-
-      5. **Test coverage gaps**
-         - Which migration units have no test coverage?
-         - What tests need to be written BEFORE migrating?
+      **5. Test coverage gaps:**
+      - Which migration units have no test coverage?
+      - What tests need to be written BEFORE migrating (not after)?
 
       Output format:
       ```markdown
       # Migration Audit: {{from}} → {{to}}
 
-      ## Inventory
+      ## Inventory Summary
       | Category | Count | Complexity Breakdown |
       |----------|-------|---------------------|
       | Files to modify | {{N}} | {{T}} trivial, {{S}} standard, {{C}} complex, {{R}} risky |
@@ -62,424 +80,556 @@ tasks:
       | Files to delete | {{N}} | |
       | Deps to change | {{N}} | {{add}} add, {{remove}} remove, {{update}} update |
 
-      ## File Inventory
-      | File | Action | Complexity | Tests? | Notes |
-      |------|--------|-----------|--------|-------|
-      | {{path}} | modify/create/delete | TRIVIAL/STANDARD/COMPLEX/RISKY | Yes/No | {{note}} |
-      ...
+      ## File Inventory (complete)
+      | File | Action | Complexity | Has Tests | Dependencies | Notes |
+      |------|--------|-----------|-----------|-------------|-------|
+      | {{path}} | modify/create/delete | TRIVIAL/STD/COMPLEX/RISKY | Yes/No | {{imports_from}} | {{note}} |
 
-      ## Migration Order
-      Phase 1: {{files_with_no_dependencies}} (can parallelize)
+      ## Migration Order (dependency-sorted)
+      Phase 1: {{files_with_no_dependencies}} — can parallelize
       Phase 2: {{files_depending_on_phase_1}}
       Phase 3: {{files_depending_on_phase_2}}
-      ...
 
       ## Risk Register
-      | Risk | Severity | Likelihood | Detection | Mitigation |
-      |------|----------|-----------|-----------|------------|
-      | {{risk}} | HIGH/MEDIUM/LOW | HIGH/MEDIUM/LOW | {{how_detected}} | {{mitigation}} |
-      ...
+      | Risk | Severity | Likelihood | Detection Method | Mitigation |
+      |------|----------|-----------|-----------------|------------|
+      | {{risk}} | CRITICAL/HIGH/MEDIUM/LOW | HIGH/MEDIUM/LOW | {{how_detected}} | {{mitigation}} |
 
       ## Test Coverage Gaps
-      - {{file_without_tests}} — Needs: {{what_tests}}
-      ...
+      - {{file_without_tests}} — Needs: {{what_tests_to_write}}
+        Priority: {{HIGH/MEDIUM/LOW}} ({{why}})
 
       ## Estimated Effort
-      - Trivial units: {{N}} x ~1 min = {{total}}
-      - Standard units: {{N}} x ~5 min = {{total}}
-      - Complex units: {{N}} x ~15 min = {{total}}
-      - Risky units: {{N}} x ~30 min = {{total}}
-      - **Total estimated: {{hours}} hours**
+      | Complexity | Count | Time Each | Subtotal |
+      |-----------|-------|-----------|----------|
+      | Trivial | {{N}} | ~1 min | {{total}} |
+      | Standard | {{N}} | ~5 min | {{total}} |
+      | Complex | {{N}} | ~15 min | {{total}} |
+      | Risky | {{N}} | ~30 min | {{total}} |
+      | **Total** | {{N}} | | **{{hours}} hours** |
       ```
 
       Rules:
-      - Be exhaustive — missing a file in the inventory means it gets skipped during migration
+      - Be exhaustive — a missing file in the inventory means it gets skipped
       - Include EVERY file that imports from or depends on the migrating code
-      - Rate complexity honestly — underestimating complexity causes failures
+      - Rate complexity honestly — underestimating causes failures at execution time
       - Identify test gaps before migration, not after
-    verification: |
-      Audit must:
-      - [ ] Complete file inventory with complexity ratings
-      - [ ] Dependency-based migration order
-      - [ ] Risk register with mitigations
-      - [ ] Test coverage gaps identified
-      - [ ] Effort estimate
+      - Flag irreversible changes (DB migrations, API contract changes) prominently
+    output: audit_report
 
-  - id: plan
-    agent: claude-sonnet
+  - step: plan
+    agent: planner
     depends_on: [audit]
-    timeout_ms: 180000
-    retries: 1
-    prompt: |
-      You are a migration architect creating the detailed migration plan.
+    input: |
+      Create a detailed migration plan based on the completed audit.
 
-      Migration audit:
-      {{audit.output}}
-
+      Migration audit: {{audit_report}}
       From: {{source_technology}}
       To: {{target_technology}}
 
-      Create a migration plan that:
-      1. **Defines the migration strategy** — Big bang vs incremental vs strangler fig
-      2. **Groups work into batches** — Based on dependency order and parallelism
-      3. **Defines verification at each stage** — How to know each batch is correct
-      4. **Plans rollback** — How to undo each batch if it fails
-      5. **Handles the risky units** — Special attention to COMPLEX and RISKY items
+      **Create a plan that covers:**
 
-      Strategy considerations:
-      - Can both old and new code coexist temporarily? (prefer incremental if yes)
-      - Are there adapter/bridge patterns that help?
-      - What's the testing strategy for each batch?
-      - What's the rollback cost at each stage?
+      1. **Migration strategy** — Choose one:
+         - BIG BANG: All at once (fast but risky, good for small codebases)
+         - INCREMENTAL: Batch by batch with coexistence (safe, preferred for large codebases)
+         - STRANGLER FIG: New code in target, old code gradually replaced (best for services)
+
+      2. **Batch grouping** — Group files based on:
+         - Dependency order (leaf nodes first)
+         - Complexity (trivial batches separate from risky ones)
+         - Parallelism (independent files in same batch)
+
+      3. **Verification per batch** — How to confirm each batch is correct
+
+      4. **Rollback per stage** — How to undo each batch if it fails
+
+      5. **Risky unit handling** — Special attention for COMPLEX and RISKY items
+
+      **Strategy considerations:**
+      - Can old and new code coexist? (strongly prefer incremental if yes)
+      - Are adapter/bridge patterns needed for coexistence?
+      - What is the rollback cost at each stage?
+      - What tests must pass before moving to the next batch?
 
       Output format:
       ```markdown
       # Migration Plan: {{from}} → {{to}}
 
       ## Strategy: {{BIG_BANG / INCREMENTAL / STRANGLER_FIG}}
-      Rationale: {{why_this_strategy}}
+      Rationale: {{why_this_strategy_for_this_migration}}
+
+      ## Pre-Migration Tasks
+      1. Write missing tests for {{files_without_coverage}}
+      2. Install target technology dependencies
+      3. Create adapters/bridges for coexistence
+      4. Create MIGRATION-STATUS.md tracking file
 
       ## Batch Plan
-      ### Batch 1: {{name}} ({{count}} files)
+
+      ### Batch 1: {{name}} ({{count}} files, {{complexity}})
       - Strategy: {{how_to_migrate_this_batch}}
-      - Files: {{file_list}}
+      - Files: {{file_list_with_paths}}
       - Parallel: YES / NO ({{reason}})
-      - Verification: {{how_to_verify}}
-      - Rollback: {{how_to_undo}}
-      - Estimated time: {{minutes}}
+      - Estimated time: {{minutes}} min
+      - Verification: {{specific_tests_and_checks}}
+      - Rollback: {{exact_rollback_commands}}
 
-      ### Batch 2: {{name}}
+      ### Batch 2: {{name}} ({{count}} files, {{complexity}})
       ...
 
-      ## Coexistence Plan (if incremental)
-      {{how_old_and_new_code_coexist_during_migration}}
-      - Adapters needed: {{list}}
-      - Bridge patterns: {{list}}
-      - Cleanup phase: {{when_to_remove_adapters}}
+      ## Coexistence Plan (if incremental/strangler)
+      How old and new code coexist during migration:
+      - Adapters needed: {{list_with_file_paths}}
+      - Bridge patterns: {{list_with_descriptions}}
+      - Import aliases: {{if_needed}}
+      - Cleanup phase: remove adapters after batch {{N}} when {{condition}}
 
-      ## Risky Units — Special Handling
-      | File | Risk | Special Approach |
-      |------|------|-----------------|
-      | {{file}} | {{risk}} | {{approach}} |
-      ...
+      ## Risky Units — Individual Handling
+      | File | Risk | Special Approach | Fallback |
+      |------|------|-----------------|----------|
+      | {{file}} | {{risk_description}} | {{step_by_step_approach}} | {{what_to_do_if_fails}} |
 
       ## Testing Plan
-      - Before each batch: run full test suite (baseline)
-      - After each batch: run full test suite + batch-specific tests
-      - Final: full regression test + E2E tests
-      - Coverage target: maintain or improve current coverage
+      - Before each batch: full test suite (record baseline)
+      - After each batch: full test suite + batch-specific validation
+      - After all batches: full regression + E2E + performance baseline comparison
+      - Coverage target: maintain or improve current {{coverage}}%
 
       ## Rollback Plan
-      | Stage | Rollback Method | Cost | Time |
-      |-------|----------------|------|------|
-      | After batch 1 | `git revert` | Low | 5 min |
-      | After batch 2 | {{method}} | {{cost}} | {{time}} |
-      ...
+      | Stage | Method | Data Impact | Time | Commands |
+      |-------|--------|-------------|------|----------|
+      | After batch 1 | git revert {{hash}} | None | 2 min | {{commands}} |
+      | After batch 2 | {{method}} | {{impact}} | {{time}} | {{commands}} |
+      | Full rollback | {{method}} | {{impact}} | {{time}} | {{commands}} |
 
       ## Success Criteria
-      - [ ] All {{file_count}} files migrated
-      - [ ] All {{test_count}} tests passing
-      - [ ] Zero TypeScript errors
+      - [ ] All {{file_count}} files migrated or explicitly skipped with reason
+      - [ ] All {{test_count}} tests passing (zero regressions)
+      - [ ] Zero TypeScript errors (tsc --noEmit)
+      - [ ] Zero linter errors
       - [ ] Performance within {{tolerance}}% of baseline
       - [ ] Rollback tested and verified
+      - [ ] MIGRATION-STATUS.md complete
       ```
 
       Rules:
       - Prefer incremental migration when coexistence is possible
-      - Every batch must have a rollback plan
-      - Risky units get individual attention (not batched with trivial ones)
+      - Every batch must have a defined rollback procedure
+      - Risky units get individual attention (never batched with trivial ones)
       - Testing at every stage, not just at the end
-    verification: |
-      Plan must:
-      - [ ] Clear strategy choice with rationale
-      - [ ] Batches in dependency order
-      - [ ] Verification criteria per batch
-      - [ ] Rollback plan per stage
-      - [ ] Special handling for risky units
+      - Pre-migration: write missing tests before touching code
+    output: migration_plan
 
-  - id: scaffold
-    agent: codex
+  - step: scaffold
+    agent: scaffolder
     depends_on: [plan]
-    timeout_ms: 180000
-    retries: 2
-    prompt: |
-      You are setting up the migration scaffolding.
+    input: |
+      Set up the migration scaffolding. Do NOT migrate any actual code yet.
 
-      Migration plan:
-      {{plan.output}}
+      Migration plan: {{migration_plan}}
 
-      Your job:
-      1. **Install new dependencies** — Add target technology packages
-      2. **Create adapter/bridge files** — If incremental migration with coexistence
-      3. **Create configuration** — New config files for target technology
-      4. **Set up test infrastructure** — Migration-specific test utilities
-      5. **Create migration checklist file** — `MIGRATION-STATUS.md` tracking progress
+      **Your job:**
+      1. Install new dependencies for the target technology
+      2. Create adapter/bridge files (if incremental migration with coexistence)
+      3. Create configuration files for the target technology
+      4. Set up migration-specific test utilities
+      5. Create MIGRATION-STATUS.md with a checkbox for every file in the audit inventory
+      6. Write any pre-migration tests identified in the plan
 
-      Steps:
-      a. Install new packages (npm install, etc.)
-      b. Create any adapter or bridge modules
-      c. Create or update config files for the target technology
-      d. Create migration test utilities (helpers for testing both old and new patterns)
-      e. Create MIGRATION-STATUS.md with a checkbox for every file in the inventory
+      **Steps to execute:**
+      a. `npm install` (or equivalent) for target technology packages
+      b. Create adapter modules that pass through to old implementation (no behavior change)
+      c. Create or update config files (tsconfig, package.json scripts, etc.)
+      d. Create test helper utilities for testing during migration
+      e. Create MIGRATION-STATUS.md:
+         ```markdown
+         # Migration Status: {{from}} → {{to}}
+         Started: {{date}}
 
-      Output: All created/modified files with their full content, plus the migration status file.
+         ## Batch 1: {{name}}
+         - [ ] {{file_1}}
+         - [ ] {{file_2}}
+
+         ## Batch 2: {{name}}
+         - [ ] {{file_3}}
+         ...
+         ```
+      f. Write any missing tests identified in the pre-migration tasks
+      g. Commit: `chore: migration scaffold — {{from}} → {{to}}`
+
+      Output format:
+      ```markdown
+      # Migration Scaffold
+
+      ## Files Created
+      | File | Purpose | Size |
+      |------|---------|------|
+      | {{path}} | {{purpose}} | {{lines}} lines |
+
+      ## Dependencies Added
+      | Package | Version | Purpose |
+      |---------|---------|---------|
+      | {{name}} | {{version}} | {{why}} |
+
+      ## Dependencies Removed
+      | Package | Reason |
+      |---------|--------|
+      | {{name}} | {{why}} |
+
+      ## Pre-Migration Tests Written
+      | Test File | Tests | Coverage |
+      |----------|-------|----------|
+      | {{path}} | {{count}} | {{what_it_covers}} |
+
+      ## Verification
+      - Existing tests: PASS / FAIL ({{count}} passing)
+      - New tests: PASS / FAIL ({{count}} passing)
+      - TypeScript: PASS / FAIL
+      - Adapters pass-through: verified / not verified
+
+      ## Commit: {{hash}}
+      ```
 
       Rules:
-      - Do NOT migrate any actual code yet — only scaffolding
-      - Adapters must pass through to old implementation initially (no behavior change)
-      - Config must be valid and tested (can the new tech start up?)
-      - Commit: `chore: migration scaffold — {{from}} → {{to}}`
-    verification: |
-      Scaffold must:
-      - [ ] New dependencies installed
-      - [ ] Adapters/bridges created (if incremental)
-      - [ ] Config files for target technology
-      - [ ] MIGRATION-STATUS.md created with full checklist
-      - [ ] Existing tests still pass (no behavior change)
+      - Do NOT migrate any actual code — only scaffolding and infrastructure
+      - Adapters must pass through to old implementation initially (zero behavior change)
+      - Config must be valid (target tech can start up with scaffolding in place)
+      - All existing tests must still pass after scaffolding
+      - Commit the scaffold as a single atomic commit
+    output: scaffold_result
 
-  - id: migrate
-    agent: codex
+  - step: migrate
+    agent: migrator
     depends_on: [scaffold]
-    timeout_ms: 36000000
-    retries: 1
-    prompt: |
-      You are executing the migration, batch by batch.
+    input: |
+      Execute the migration batch by batch following the plan.
 
-      Migration plan:
-      {{plan.output}}
+      Migration plan: {{migration_plan}}
+      Scaffold result: {{scaffold_result}}
 
-      Scaffolding:
-      {{scaffold.output}}
-
-      Execute each batch from the migration plan in order:
-
-      Per-batch process:
+      **Per-batch execution protocol:**
       ```
-      FOR each batch in plan:
-        1. Record test baseline: run full test suite
+      FOR each batch in migration plan:
+        1. Record test baseline: run full test suite, note pass/fail counts
         2. FOR each file in batch:
-           a. Read original file
-           b. Apply migration transformation
-           c. Run file-specific tests
-           d. If tests fail: attempt fix. If still failing: revert and log skip.
-        3. Run full test suite
+           a. Read the original file
+           b. Apply migration transformation following plan patterns
+           c. Run file-specific tests (if they exist)
+           d. If tests fail:
+              - Attempt ONE targeted fix (max 60 seconds)
+              - Re-run tests
+              - If still failing: revert file and log as SKIPPED
+        3. Run FULL test suite after all files in batch
         4. IF pass count < baseline:
-           - Identify which migration broke the test
-           - Revert the breaking change
-           - Log as skipped
-        5. Commit: "migrate(batch-N): {{batch_name}} — X/Y files"
+           - Use git diff to identify which file broke which test
+           - Revert the breaking file(s)
+           - Re-run tests to confirm baseline restored
+           - Log reverted files as SKIPPED
+        5. Commit: "migrate(batch-N): {{batch_name}} — X/Y files migrated"
         6. Update MIGRATION-STATUS.md checkboxes
+        7. IF 3 consecutive files skipped in same batch: STOP (pattern issue)
       ```
 
-      Migration transformation rules:
-      - Follow patterns established in the migration plan
-      - Preserve all existing behavior (same inputs → same outputs)
+      **Migration transformation rules:**
+      - Follow patterns established in the migration plan exactly
+      - Preserve all existing behavior (same inputs produce same outputs)
       - Use adapter patterns where old and new code must coexist
-      - Keep files under 400 lines (split if migration makes them larger)
-      - Maintain or improve type safety
+      - Keep files under 400 lines (extract into new files if migration makes them larger)
+      - Maintain or improve type safety (never add `any` types)
+      - Maintain or improve error handling
 
       Output format:
       ```markdown
       # Migration Execution Log
 
       ## Batch 1: {{name}}
-      - Files: {{done}}/{{total}}
-      - Skipped: {{list}}
-      - Tests: {{pass}}/{{total}} (baseline: {{baseline}})
-      - Commit: {{hash}}
+      - Files migrated: {{done}}/{{total}}
+      - Files skipped: {{list_with_reasons}}
+      - Tests: {{pass}}/{{total}} passing (baseline: {{baseline}})
+      - Commit: {{hash}} — {{message}}
+      - Duration: {{minutes}} min
 
       ## Batch 2: {{name}}
       ...
 
       ## Overall Progress
-      Total files: {{done}}/{{total}}
-      Skipped: {{count}}
-      Tests: {{pass}}/{{total}}
-      Status: COMPLETE / PARTIAL / BLOCKED
+      | Metric | Value |
+      |--------|-------|
+      | Total files | {{done}}/{{total}} migrated |
+      | Skipped | {{count}} ({{percentage}}%) |
+      | Tests | {{pass}}/{{total}} passing |
+      | Regressions | {{count}} |
+      | Duration | {{total_minutes}} min |
+      | Status | COMPLETE / PARTIAL / BLOCKED |
+
+      ## Skipped Files (need manual migration)
+      | File | Batch | Reason | Suggested Fix |
+      |------|-------|--------|--------------|
+      | {{path}} | {{N}} | {{reason}} | {{suggestion}} |
+
+      ## MIGRATION-STATUS.md
+      Updated: YES — {{completed_count}}/{{total_count}} checked off
       ```
 
       Rules:
       - NEVER commit code that breaks tests
       - Revert and skip if a migration unit breaks tests
-      - Commit after each batch (granular rollback)
-      - Update MIGRATION-STATUS.md after each batch
-      - If 3 consecutive skips → STOP and report (likely a pattern issue)
-    verification: |
-      Migration must:
-      - [ ] One commit per batch
-      - [ ] No test regressions committed
-      - [ ] Skipped units documented
-      - [ ] MIGRATION-STATUS.md updated
-      - [ ] All existing tests still pass
+      - Commit after each batch (enables granular rollback)
+      - Update MIGRATION-STATUS.md after each batch commit
+      - If 3 consecutive files skip in the same batch, STOP — likely a pattern issue
+      - Never modify files outside the migration scope
+    output: migration_log
 
-  - id: verify
-    agent: claude-sonnet
+  - step: verify
+    agent: verifier
     depends_on: [migrate]
-    timeout_ms: 300000
-    retries: 1
-    prompt: |
-      You are performing comprehensive verification of the completed migration.
+    input: |
+      Perform comprehensive verification of the completed migration.
 
-      Migration audit:
-      {{audit.output}}
+      Migration audit: {{audit_report}}
+      Migration plan: {{migration_plan}}
+      Migration execution log: {{migration_log}}
 
-      Migration plan:
-      {{plan.output}}
-
-      Migration execution log:
-      {{migrate.output}}
-
-      Verification checklist:
+      **Verification checklist — check every item:**
 
       1. **Completeness** — Every file in the audit inventory is migrated or explicitly skipped
-      2. **Test suite** — Full test suite passes with same or better results than baseline
-      3. **Type safety** — `tsc --noEmit` passes with zero errors
-      4. **Linting** — Linter passes with zero errors
-      5. **Behavior** — Spot-check 5 critical paths to verify behavior is preserved
-      6. **Performance** — No obvious performance regressions (check for N+1, missing indexes, etc.)
-      7. **Cleanup** — No leftover TODO comments, adapter code that should be removed, unused imports
-      8. **Documentation** — MIGRATION-STATUS.md is accurate
+         - Cross-reference audit file list with migration log
+         - Flag any files that are neither migrated nor skipped (missing)
+
+      2. **Test suite** — Full test suite passes
+         - Run `npm test` (or equivalent) — report actual results
+         - Compare pass/fail counts to pre-migration baseline
+         - List any new test failures (regressions)
+
+      3. **Type safety** — TypeScript compilation clean
+         - Run `npx tsc --noEmit` — report actual results
+         - Zero errors required for PASS
+
+      4. **Linting** — Linter passes
+         - Run `npx eslint .` — report actual results
+         - Zero errors required, warnings acceptable
+
+      5. **Behavior verification** — Spot-check 5+ critical paths
+         - Focus on RISKY items from the audit
+         - Verify same inputs produce same outputs
+         - Check error handling paths
+
+      6. **Performance check** — No obvious regressions
+         - Check for N+1 patterns introduced by migration
+         - Check for missing indexes or inefficient queries
+         - Check for unnecessary data copying
+
+      7. **Cleanup audit** — No migration artifacts left behind
+         - TODO comments remaining?
+         - Adapter code that should now be removed?
+         - Unused imports from old technology?
+         - Dead code from the source technology?
+
+      8. **Documentation** — MIGRATION-STATUS.md is accurate and complete
 
       Output format:
       ```markdown
-      # Migration Verification
+      # Migration Verification: {{from}} → {{to}}
 
       ## Completeness
-      - Audited files: {{total}}
-      - Migrated: {{done}}
-      - Skipped: {{skipped}}
-      - Missing: {{missing}} ({{list_if_any}})
+      - Audit inventory: {{total}} files
+      - Migrated: {{done}} files
+      - Skipped: {{skipped}} files (with reasons)
+      - Missing: {{missing}} files ({{list_if_any — these are bugs}})
 
-      ## Test Suite
-      - Baseline: {{baseline_pass}} passing
-      - Current: {{current_pass}} passing
-      - Regressions: {{list}}
-      - New tests: {{count}} added during migration
+      ## Test Suite (actual run)
+      - Baseline: {{baseline_pass}} passing, {{baseline_fail}} failing
+      - Current: {{current_pass}} passing, {{current_fail}} failing
+      - Regressions: {{count}} — {{list_test_names}}
+      - New tests added: {{count}}
 
-      ## Type Check
+      ## Type Check (actual run)
       - Status: PASS / FAIL
-      - Errors: {{list}}
+      - Errors: {{count}} — {{list_if_any}}
 
-      ## Linter
+      ## Linter (actual run)
       - Status: PASS / FAIL
-      - Issues: {{list}}
+      - Errors: {{count}}, Warnings: {{count}}
+      - {{details_if_any}}
 
       ## Behavior Spot Checks
-      | Path | Expected | Actual | Status |
-      |------|----------|--------|--------|
-      | {{path}} | {{expected}} | {{actual}} | PASS/FAIL |
-      ...
+      | # | Path / Feature | Input | Expected | Actual | Status |
+      |---|---------------|-------|----------|--------|--------|
+      | 1 | {{critical_path}} | {{input}} | {{expected}} | {{actual}} | PASS/FAIL |
+      | 2 | ... | | | | |
+
+      ## Performance Assessment
+      - N+1 patterns: {{found/none}}
+      - Inefficient queries: {{found/none}}
+      - Memory concerns: {{found/none}}
+      - Assessment: NO REGRESSION / MINOR CONCERNS / REGRESSION
 
       ## Cleanup Status
-      - TODO comments remaining: {{count}}
-      - Adapter code to remove: {{list}}
-      - Unused imports: {{count}}
+      | Item | Count | Details |
+      |------|-------|---------|
+      | TODO comments | {{N}} | {{locations}} |
+      | Removable adapters | {{N}} | {{list}} |
+      | Unused imports | {{N}} | {{files}} |
+      | Dead code | {{N}} | {{locations}} |
 
-      ## Verdict: PASS / FAIL
-      {{reasoning}}
+      ## Verdict: PASS / CONDITIONAL PASS / FAIL
+      {{detailed_reasoning}}
 
-      ## Remaining Work
-      1. {{skipped_unit}} — {{effort_estimate}}
-      ...
+      ## Remaining Work (priority order)
+      1. {{item}} — effort: {{LOW/MED/HIGH}} — priority: {{P1/P2/P3}}
+      2. {{item}} — effort: {{estimate}} — priority: {{level}}
       ```
 
       Rules:
-      - Actually run tsc and the test suite — do not assume
-      - Check for completeness against the original audit inventory
-      - Spot-check behavior on the RISKY items from the audit
-      - Report honestly — a PASS with caveats is better than a false PASS
-    verification: |
-      Verification must:
-      - [ ] Completeness check against audit inventory
-      - [ ] Actual test suite run results
-      - [ ] Actual tsc results
-      - [ ] At least 5 behavior spot checks
-      - [ ] Cleanup audit
-      - [ ] Clear PASS/FAIL verdict
+      - Actually run tsc, tests, and linter — do not assume results
+      - Check completeness against the original audit inventory (cross-reference)
+      - Spot-check behavior on the RISKY items specifically
+      - CONDITIONAL PASS: tests pass but cleanup needed or skipped items remain
+      - Report honestly — a CONDITIONAL PASS is better than a false PASS
+    output: verification_report
 
-  - id: rollback-test
-    agent: claude-sonnet
+  - step: rollback-test
+    agent: rollback_tester
     depends_on: [verify]
-    timeout_ms: 180000
-    retries: 1
-    prompt: |
-      You are testing the rollback capability of the migration.
+    input: |
+      Validate the rollback path for the migration. Verify that the migration can be
+      safely undone if problems are discovered post-deploy.
 
-      Migration plan:
-      {{plan.output}}
+      Migration plan: {{migration_plan}}
+      Verification report: {{verification_report}}
 
-      Verification results:
-      {{verify.output}}
+      **Rollback test protocol:**
 
-      Your job: Verify that the migration can be safely rolled back if needed post-deploy.
+      1. **Document rollback steps** — Exact commands to undo the entire migration
+      2. **Test batch-level rollback** — Revert last batch, verify system works
+      3. **Test full rollback** — Revert all migration commits, verify pre-migration state
+      4. **Test data compatibility** — If DB migrations exist, verify they are reversible
+      5. **Measure rollback time** — Time each rollback operation
+      6. **Write emergency runbook** — Step-by-step for production rollback
 
-      Rollback test protocol:
-      1. **Document rollback steps** — Exact commands to undo the migration
-      2. **Test batch-level rollback** — Can we revert the last batch and still have a working system?
-      3. **Test full rollback** — Can we revert all migration commits and return to pre-migration state?
-      4. **Test data compatibility** — If there are DB migrations, can they be reversed?
-      5. **Measure rollback time** — How long does rollback take?
+      **Batch rollback test:**
+      a. Record current state (test count, git log)
+      b. `git revert <last_batch_commit>` — revert last batch
+      c. Run full test suite — must pass
+      d. `git revert <revert_commit>` — re-apply (undo the revert)
+      e. Run full test suite — must pass (back to migrated state)
+      f. Record time for steps b-e
 
-      Steps to execute:
-      a. Record current state (test results, git log)
-      b. Revert last migration batch commit
-      c. Run full test suite — verify it passes
-      d. Re-apply the reverted commit
-      e. Record rollback time
+      **Full rollback test (if migration has 2+ batches):**
+      g. Revert ALL migration commits in reverse order
+      h. Run full test suite — must pass (original pre-migration state)
+      i. Fast-forward back to migrated state: `git cherry-pick <commits>`
+      j. Run full test suite — must pass (migrated state restored)
+      k. Record time for steps g-j
 
-      If full rollback test is requested:
-      f. Revert ALL migration commits (in reverse order)
-      g. Run full test suite — verify it passes (original pre-migration state)
-      h. Re-apply all migration commits (fast-forward)
-      i. Run full test suite again — verify final state is still correct
+      **Data rollback test (if DB migrations involved):**
+      l. Check if migration files have down/rollback methods
+      m. Run rollback: `npm run migrate:rollback` (or equivalent)
+      n. Verify schema matches pre-migration state
+      o. Re-run forward migration
+      p. Verify schema matches migrated state
 
       Output format:
       ```markdown
-      # Rollback Test Results
+      # Rollback Test Results: {{from}} → {{to}}
 
-      ## Rollback Steps
+      ## Rollback Commands
       To rollback the entire migration:
       ```bash
-      {{exact_commands}}
+      # Revert all migration commits (newest first)
+      git revert {{newest_commit}}
+      git revert {{next_commit}}
+      ...
+      # Or in one command:
+      git revert {{oldest_commit}}..{{newest_commit}}
+
+      # If DB migrations were involved:
+      {{db_rollback_command}}
       ```
 
       ## Batch Rollback Test
-      - Reverted: batch {{N}} ({{commit_hash}})
-      - Tests after revert: {{pass}}/{{total}} — PASS / FAIL
-      - Re-applied: PASS / FAIL
-      - Rollback time: {{seconds}}s
+      | Batch | Commit | Revert Status | Tests After Revert | Re-apply Status | Tests After Re-apply | Time |
+      |-------|--------|--------------|-------------------|----------------|---------------------|------|
+      | {{N}} | {{hash}} | OK/FAIL | {{pass}}/{{total}} | OK/FAIL | {{pass}}/{{total}} | {{s}}s |
 
-      ## Full Rollback Test (if performed)
-      - Reverted: {{N}} commits
-      - Pre-migration tests: {{pass}}/{{total}} — PASS / FAIL
-      - Re-applied: {{N}} commits
+      ## Full Rollback Test
+      - Commits reverted: {{N}}
+      - Pre-migration state tests: {{pass}}/{{total}} — PASS / FAIL
+      - Re-applied commits: {{N}}
       - Post-re-apply tests: {{pass}}/{{total}} — PASS / FAIL
-      - Full rollback time: {{seconds}}s
+      - Total rollback time: {{seconds}}s
+      - Total re-apply time: {{seconds}}s
 
-      ## Data Rollback
+      ## Data Rollback (if applicable)
       - DB migrations reversible: YES / NO / N/A
+      - Rollback method: {{method}}
+      - Schema after rollback: matches pre-migration: YES / NO
+      - Schema after re-apply: matches migrated: YES / NO
+      - Data loss risk: NONE / MINIMAL / SIGNIFICANT
       - {{details}}
 
-      ## Verdict: ROLLBACK SAFE / ROLLBACK RISKY / NO ROLLBACK
-      {{reasoning}}
+      ## Verdict: ROLLBACK SAFE / ROLLBACK RISKY / NO ROLLBACK PATH
+      {{detailed_reasoning}}
+
+      ## Risk Assessment
+      | Scenario | Rollback Possible | Time | Data Impact | Complexity |
+      |----------|------------------|------|-------------|------------|
+      | Revert last batch | {{yes/no}} | {{time}} | {{impact}} | {{LOW/MED/HIGH}} |
+      | Revert all batches | {{yes/no}} | {{time}} | {{impact}} | {{LOW/MED/HIGH}} |
+      | Rollback DB schema | {{yes/no/na}} | {{time}} | {{impact}} | {{LOW/MED/HIGH}} |
 
       ## Emergency Rollback Runbook
-      If something goes wrong in production:
-      1. {{step_1}}
-      2. {{step_2}}
-      ...
+      If something goes wrong in production after deploying the migration:
+
+      ### Step 1: Assess Impact
+      - Check error rates and monitoring dashboards
+      - Determine if rollback is necessary or if a hotfix is sufficient
+
+      ### Step 2: Code Rollback
+      ```bash
+      git revert {{commit_range}}
+      npm ci
+      npm run build
+      # Deploy reverted code
+      ```
+
+      ### Step 3: Data Rollback (if needed)
+      ```bash
+      {{db_rollback_commands_if_applicable}}
+      ```
+
+      ### Step 4: Verify
+      ```bash
+      npm test
+      # Check critical paths manually
+      # Monitor error rates for 30 minutes
+      ```
+
+      ### Step 5: Post-Mortem
+      - What failed?
+      - Why did verification miss it?
+      - What tests need to be added?
       ```
 
       Rules:
-      - Actually perform the revert and re-apply — do not just describe it
-      - After re-applying, verify we're back to the correct migrated state
-      - Include an emergency runbook with exact commands
-      - If rollback is risky or impossible, say so clearly and explain the risk
-    verification: |
-      Rollback test must:
-      - [ ] Exact rollback commands documented
-      - [ ] Batch rollback tested (revert + re-apply)
-      - [ ] Tests pass after revert
-      - [ ] Tests pass after re-apply
-      - [ ] Emergency rollback runbook included
-      - [ ] Clear verdict on rollback safety
+      - Actually perform the revert and re-apply — do not just describe hypothetically
+      - After re-applying, verify we are back to the exact migrated state
+      - Include an emergency runbook with exact commands (copy-paste ready)
+      - If rollback is risky or impossible, say so clearly with specific risks
+      - Measure actual times — the runbook should include realistic time estimates
+      - ROLLBACK SAFE: all tests pass after revert and re-apply, no data loss
+      - ROLLBACK RISKY: tests pass but data loss or manual steps required
+      - NO ROLLBACK PATH: irreversible changes present (flag prominently)
+    output: rollback_report
+
+verification:
+  - Audit produced complete file inventory with complexity ratings and dependency order
+  - Plan includes strategy rationale, batch grouping, and per-stage rollback procedures
+  - Scaffold creates infrastructure without changing any existing behavior
+  - Migration executes batch by batch with commits and no test regressions
+  - Verification cross-references audit inventory — no files missing or forgotten
+  - Test suite passes with same or better results than pre-migration baseline
+  - TypeScript compilation and linter pass with zero errors
+  - Rollback tested with actual revert/re-apply — not just documented
+  - Emergency rollback runbook included with copy-paste ready commands
+  - MIGRATION-STATUS.md accurately reflects final state
