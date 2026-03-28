@@ -1,7 +1,7 @@
 {
   "name": "claude-code-bible",
-  "version": "1.0.0",
-  "description": "The Claude Code Bible — 220+ skills, 6 mega-skills, 84+ commands, 32 hooks. The comprehensive guide and toolkit for Claude Code.",
+  "version": "1.1.0",
+  "description": "The Claude Code Bible — 260+ skills, 10 mega-skills, 84+ commands, 34 hooks, 35+ prompt templates, 9 workflow modes. The comprehensive guide and toolkit for Claude Code.",
   "author": "Kevin Z",
   "license": "MIT",
   "repository": "https://github.com/k3v80/claude-code-bible",

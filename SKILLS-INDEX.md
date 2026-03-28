@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
-> The Claude Code Bible v1.0 — by Kevin Z
+> The Claude Code Bible v1.2 — by Kevin Z
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-03-27 | 220+ skill directories | 6 Mega-Skills | 13 kit-native hooks (32 with ECC) | 3 starter templates
+> Last verified: 2026-03-28 | 280+ skill directories | 10 Mega-Skills | 16 kit-native hooks (35 with ECC) | 3 starter templates | 36+ prompt templates | 9 workflow modes | Real-time dashboard
 > Audit: `./generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
@@ -18,6 +18,10 @@
 | `mega-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales (renamed from marketing-pack) |
 | `mega-saas` | 20 | Auth, billing, database, API, frontend stack (Next.js+shadcn+Tailwind), metrics |
 | `mega-devops` | 20 | CI/CD, Docker, AWS, monitoring, zero-downtime deploy, Terraform |
+| `mega-research` | 8 | Deep research, literature review, competitive analysis, citation management, data synthesis |
+| `mega-mobile` | 7 | iOS, Android, React Native, Flutter, cross-platform patterns, app store optimization |
+| `mega-security` | 9 | Pen testing, OWASP top 10, supply chain security, secrets management, threat modeling |
+| `mega-data` | 8 | ETL pipelines, data warehousing, analytics engineering, visualization, ML ops |
 
 Each mega-skill has a router that dispatches to the right specialist. Individual skills inside mega-skills are still accessible by their original names via symlinks.
 
@@ -93,6 +97,44 @@ Each mega-skill has a router that dispatches to the right specialist. Individual
 | `canary` | Post-deploy canary monitoring — watches live app for errors, regressions, failures |
 | `browse` | Fast headless browser for QA, dogfooding, page state verification, annotated screenshots |
 | `cache-monitor` | Analyze Claude Code session costs and cache efficiency from JSONL session files |
+
+## 🔗 Multi-Agent & Peers (NEW in v1.2)
+| Skill | What it does |
+|-------|-------------|
+| `claude-peers-bible` | **NEW** Comprehensive Claude Peers guide — discovery, messaging, 5 coordination patterns (coordinator, swarm, expert, review, research) |
+| `spawn-manager` | **NEW** Spawn and manage multiple Claude Code peers — Quick/Team/Swarm/Expert spawn patterns, coordinator protocol, cost management |
+| `task-commander` | **NEW** Multi-agent orchestration brain — P0-P10 scoping, DAG workflows, circuit breaker, cost ceiling, COMP PROVE verification |
+| `contextual-assist` | **NEW** Proactive contextual suggestions — 5 levels (off/minimal/standard/guided/mentored), pattern matching, progressive disclosure |
+
+## 🏗️ Integrations (NEW in v1.2)
+| Skill | What it does |
+|-------|-------------|
+| `cowork-bible` | **NEW** Claude Desktop Cowork integration — autonomous sessions, plugin compatibility, scheduled tasks, handoff protocol |
+| `cowork-plugin-builder` | **NEW** Build custom Cowork plugins — 5 example plugins, packaging guide, testing, publishing |
+| `dispatch-bible` | **NEW** Dispatch background task system — overnight builds, batch processing, error handling, cost tracking |
+| `dispatch-templates` | **NEW** 8 pre-built Dispatch templates — overnight-build, batch-review, security-scan, perf-benchmark, and more |
+| `openclaw-bridge` | **NEW** Bridge Bible ↔ OpenClaw (38-agent platform) — skill mapping, hook translation, agent profiles, session handoff |
+| `paperclip-bridge` | **NEW** Paperclip task management integration — issue creation, priority mapping, bidirectional sync, REST API |
+
+## 📖 Beginner Experience (NEW in v1.2)
+| Skill | What it does |
+|-------|-------------|
+| `bible-guide` | **NEW** Interactive onboarding — "I'm new" → guided wizard, skill discovery, progressive disclosure |
+| `vscode-bible` | **NEW** VS Code integration guide — buttons, snippets, keyboard shortcuts, walkthrough, status bar customization |
+
+## 📘 Quick Start Guides (NEW in v1.2)
+| Guide | Who it's for |
+|-------|-------------|
+| `guides/quickstart-beginner.md` | Complete beginner — never used Claude Code |
+| `guides/quickstart-frontend.md` | Frontend developer — React, Next.js, Tailwind |
+| `guides/quickstart-backend.md` | Backend developer — APIs, databases, auth |
+| `guides/quickstart-fullstack.md` | Full-stack developer — combined workflow |
+| `guides/quickstart-mobile.md` | Mobile developer — React Native, Flutter, Swift, Kotlin |
+
+## 📊 Dashboard (NEW in v1.2)
+| Component | What it does |
+|-----------|-------------|
+| `dashboard/` | Real-time React dashboard — agent monitoring, spawn tree, cost tracker, live logs, KZ Matrix theme |
 
 ## 🏗️ Backend & Database
 | Skill | What it does |
@@ -345,6 +387,86 @@ Each mega-skill has a router that dispatches to the right specialist. Individual
 | `qa` | Full QA loop: test web app, fix bugs, commit atomically |
 | `qa-only` | Report-only QA: structured report with health score, never modifies code |
 
+## 🔬 Research & Analysis (mega-research)
+| Skill | What it does |
+|-------|-------------|
+| `deep-research` | Multi-source research with citation management and confidence scoring |
+| `literature-review` | Academic and technical literature synthesis |
+| `competitive-analysis` | Competitor feature matrices, pricing analysis, positioning |
+| `market-research` | TAM/SAM/SOM analysis, market sizing, trend identification |
+| `data-synthesis` | Cross-source data aggregation and insight extraction |
+| `citation-manager` | Track, format, and verify citations across research |
+| `source-validator` | Verify claims against original sources, flag hallucinations |
+| `research-brief` | Structured research output — executive summary, findings, recommendations |
+
+## 📱 Mobile Development (mega-mobile)
+| Skill | What it does |
+|-------|-------------|
+| `react-native-patterns` | React Native: navigation, state, native modules, performance |
+| `flutter-patterns` | Flutter: widgets, state management, platform channels |
+| `ios-swift` | Swift/SwiftUI patterns, App Store guidelines |
+| `android-kotlin` | Kotlin/Jetpack Compose, Play Store guidelines |
+| `mobile-testing` | Mobile E2E testing, device farms, screenshot testing |
+| `app-store-optimization` | ASO: keywords, screenshots, descriptions, A/B testing |
+| `cross-platform-patterns` | Shared code strategies, platform-specific adaptations |
+
+## 🛡️ Security & Compliance (mega-security)
+| Skill | What it does |
+|-------|-------------|
+| `owasp-top-10` | OWASP Top 10 vulnerability detection and remediation |
+| `supply-chain-security` | Dependency auditing, SBOM generation, lockfile verification |
+| `secrets-management` | Vault patterns, secret rotation, env var hygiene |
+| `threat-modeling` | STRIDE/DREAD threat models, attack surface analysis |
+| `security-headers` | HTTP security headers audit and configuration |
+| `auth-hardening` | Authentication hardening — MFA, session management, brute force protection |
+| `api-security` | API security — rate limiting, input validation, JWT best practices |
+| `incident-response-security` | Security incident response playbooks and forensics |
+| `compliance-frameworks` | SOC 2, ISO 27001, HIPAA compliance checklists |
+
+## 📊 Data & Analytics (mega-data)
+| Skill | What it does |
+|-------|-------------|
+| `etl-pipelines` | ETL/ELT pipeline design — extraction, transformation, loading patterns |
+| `data-warehousing` | Data warehouse design — star schema, slowly changing dimensions |
+| `analytics-engineering` | dbt patterns, data modeling, metrics layer |
+| `data-visualization` | Chart selection, dashboard design, storytelling with data |
+| `ml-ops` | ML pipeline management — training, deployment, monitoring, drift detection |
+| `data-quality` | Data quality checks, anomaly detection, validation rules |
+| `streaming-data` | Real-time data processing — Kafka, event sourcing, CDC |
+| `data-governance` | Data catalogs, lineage tracking, access policies |
+
+## 🔄 Workflow Modes (mode-switcher)
+| Mode | What it does |
+|------|-------------|
+| `mode-switcher` | Router skill — switch between 9 workflow modes via `/cc mode <name>` |
+| `mode-normal` | Balanced defaults — plan-first, verify-before-done |
+| `mode-design` | Visual-first — loads design/animation skills, critique loop |
+| `mode-saas` | Full SaaS lifecycle — auth, billing, DB, deploy pipeline |
+| `mode-marketing` | Content + CRO focus — SEO, copy, conversion optimization |
+| `mode-research` | Deep research — citations, confidence levels, source verification |
+| `mode-writing` | Long-form content — blog posts, docs, technical writing |
+| `mode-night` | Autonomous overnight — checkpoints, error recovery, notifications |
+| `mode-yolo` | Maximum speed — skip confirmations, auto-approve, ship fast |
+| `mode-unhinged` | No guardrails — experimental, creative, push boundaries |
+
+## 🤝 Integrations
+| Skill | What it does |
+|-------|-------------|
+| `agency-orchestrator` | Multi-agent orchestration patterns — coordinator, workers, reporting, error recovery |
+| `openclaw-patterns` | OpenClaw integration — agent configs, channel routing, session management, tool binding |
+
+## 📝 Prompt Library
+> 35+ prompt templates across 6 categories in `prompts/`
+
+| Category | Templates | What they cover |
+|----------|-----------|----------------|
+| Coding | 8 | Bug fix, code review, architecture review, TDD setup, refactor brief, performance audit, migration plan, API design |
+| Planning | 6 | Spec interview, evals-first, decomposition, handoff, sprint planning, project kickoff |
+| Design | 5 | Design critique, accessibility audit, animation brief, design system setup, responsive review |
+| Marketing | 6 | SEO content brief, cold email sequence, landing page copy, ad creative, social media calendar, competitor teardown |
+| DevOps | 5 | CI failure investigation, deploy checklist, incident response, infrastructure review, monitoring setup |
+| Meta | 5+ | Subagent dispatch, research, PR description, skill creation, CLAUDE.md generation |
+
 ## 🏗 Project Starters
 > Ready-to-use project templates in `templates/` + skills that bootstrap full setups.
 
@@ -392,4 +514,4 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = new in v0.4*
+*⭐ = new in v0.4 | New mega-skills, modes, integrations, and prompt library added in v1.1*

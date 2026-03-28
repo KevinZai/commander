@@ -1,0 +1,336 @@
+{
+  "Bible: Init Project": {
+    "prefix": "kz-init",
+    "body": [
+      "/init"
+    ],
+    "description": "Initialize project with the Bible decision tree — creates CLAUDE.md, detects stack, configures modes"
+  },
+  "Bible: Plan Feature": {
+    "prefix": "kz-plan",
+    "body": [
+      "/plan ${1:describe what you want to build}"
+    ],
+    "description": "Create an implementation plan before coding — breaks work into steps with dependencies"
+  },
+  "Bible: Verify": {
+    "prefix": "kz-verify",
+    "body": [
+      "/verify"
+    ],
+    "description": "Run verification loop — tests pass, no errors, feature works end-to-end"
+  },
+  "Bible: Command Center": {
+    "prefix": "kz-cc",
+    "body": [
+      "/cc"
+    ],
+    "description": "Open the Bible command center — interactive menu for all commands"
+  },
+  "Bible: Switch Mode": {
+    "prefix": "kz-mode",
+    "body": [
+      "/cc mode ${1|normal,design,saas,marketing,research,writing,night,yolo,unhinged|}"
+    ],
+    "description": "Switch workflow mode — changes behavior, verbosity, risk tolerance, and auto-loaded skills"
+  },
+  "Bible: Browse Prompts": {
+    "prefix": "kz-prompts",
+    "body": [
+      "/cc prompts ${1|coding,planning,design,marketing,devops,meta|}"
+    ],
+    "description": "Browse battle-tested prompt templates by category"
+  },
+  "Bible: TDD Workflow": {
+    "prefix": "kz-tdd",
+    "body": [
+      "/tdd ${1:describe the feature or function to test}"
+    ],
+    "description": "Start test-driven development — write test first (RED), implement (GREEN), refactor (IMPROVE)"
+  },
+  "Bible: Code Review": {
+    "prefix": "kz-review",
+    "body": [
+      "/code-review"
+    ],
+    "description": "Multi-perspective code review on current changes"
+  },
+  "Bible: Checkpoint": {
+    "prefix": "kz-checkpoint",
+    "body": [
+      "/checkpoint"
+    ],
+    "description": "Create a git safety checkpoint — conventional commit with current changes"
+  },
+  "Bible: Task Commander": {
+    "prefix": "kz-task",
+    "body": [
+      "/task-commander ${1:describe the large feature to break down and parallelize}"
+    ],
+    "description": "Break a large feature into subtasks, dispatch parallel subagents, track progress"
+  },
+  "Bible: Mega-Design": {
+    "prefix": "kz-mega-design",
+    "body": [
+      "use mega-design skill. ${1:describe what you want to design or animate}"
+    ],
+    "description": "Load mega-design (35+ skills) — animations, effects, design systems, landing pages, polish"
+  },
+  "Bible: Mega-SaaS": {
+    "prefix": "kz-mega-saas",
+    "body": [
+      "use mega-saas skill. ${1:describe your SaaS feature — auth, billing, API, frontend, etc.}"
+    ],
+    "description": "Load mega-saas (20 skills) — auth, billing, database, API, frontend, metrics, CRO"
+  },
+  "Bible: Mega-DevOps": {
+    "prefix": "kz-mega-devops",
+    "body": [
+      "use mega-devops skill. ${1:describe your infrastructure, CI/CD, or deployment need}"
+    ],
+    "description": "Load mega-devops (20 skills) — CI/CD, Docker, AWS, monitoring, Terraform, zero-downtime deploy"
+  },
+  "Bible: Mega-Testing": {
+    "prefix": "kz-mega-testing",
+    "body": [
+      "use mega-testing skill. ${1:describe what you need to test}"
+    ],
+    "description": "Load mega-testing (15 skills) — TDD, E2E, verification, QA, regression, visual, load testing"
+  },
+  "Bible: Mega-SEO": {
+    "prefix": "kz-mega-seo",
+    "body": [
+      "use mega-seo skill. ${1:describe your SEO optimization need}"
+    ],
+    "description": "Load mega-seo (19 skills) — technical SEO, AI search, content strategy, analytics, programmatic SEO"
+  },
+  "Bible: Mega-Mobile": {
+    "prefix": "kz-mega-mobile",
+    "body": [
+      "use mega-mobile skill. ${1:describe your mobile app feature or platform}"
+    ],
+    "description": "Load mega-mobile (7 skills) — React Native, Flutter, SwiftUI, Jetpack Compose, ASO"
+  },
+  "Bible: Mega-Security": {
+    "prefix": "kz-mega-security",
+    "body": [
+      "use mega-security skill. ${1:describe your security concern or audit need}"
+    ],
+    "description": "Load mega-security (9 skills) — pen testing, OWASP, supply chain, secrets, threat modeling"
+  },
+  "Bible: Mega-Marketing": {
+    "prefix": "kz-mega-marketing",
+    "body": [
+      "use mega-marketing skill. ${1:describe your marketing or growth need}"
+    ],
+    "description": "Load mega-marketing (46 skills) — content, CRO, channels, growth, intelligence, sales"
+  },
+  "Bible: Mega-Research": {
+    "prefix": "kz-mega-research",
+    "body": [
+      "use mega-research skill. ${1:describe your research topic or analysis need}"
+    ],
+    "description": "Load mega-research (8 skills) — deep research, literature review, competitive analysis, data synthesis"
+  },
+  "Bible: Mega-Data": {
+    "prefix": "kz-mega-data",
+    "body": [
+      "use mega-data skill. ${1:describe your data pipeline, analytics, or ML need}"
+    ],
+    "description": "Load mega-data (8 skills) — ETL, data warehousing, analytics engineering, visualization, ML ops"
+  },
+  "Bible: Overnight Mode": {
+    "prefix": "kz-overnight",
+    "body": [
+      "/cc mode night",
+      "",
+      "${1:describe the batch job, migration, or long-running task}"
+    ],
+    "description": "Switch to night mode for autonomous overnight work — checkpoints, error recovery, cost monitoring"
+  },
+  "Bible: Orchestrate": {
+    "prefix": "kz-orchestrate",
+    "body": [
+      "/orchestrate ${1:describe the multi-step task to parallelize across agents}"
+    ],
+    "description": "Multi-agent orchestration — break work into parallel subtasks dispatched to subagents"
+  },
+  "Bible: E2E Test": {
+    "prefix": "kz-e2e",
+    "body": [
+      "/e2e ${1:describe the user flow to test end-to-end with Playwright}"
+    ],
+    "description": "Write and run E2E tests with Playwright for critical user flows"
+  },
+  "Bible: Deploy": {
+    "prefix": "kz-deploy",
+    "body": [
+      "/deploy"
+    ],
+    "description": "Build, test, and deploy pipeline — pre-flight checks, build, push, verify"
+  },
+  "Bible: Build Fix": {
+    "prefix": "kz-build-fix",
+    "body": [
+      "/build-fix"
+    ],
+    "description": "Auto-resolve build errors — analyzes error output, fixes incrementally, verifies"
+  },
+  "Bible: Save Session": {
+    "prefix": "kz-save",
+    "body": [
+      "/save-session"
+    ],
+    "description": "Persist current session context to disk for later restoration"
+  },
+  "Bible: Resume Session": {
+    "prefix": "kz-resume",
+    "body": [
+      "/resume-session"
+    ],
+    "description": "Restore the last saved session context and continue where you left off"
+  },
+  "Bible: Harness Audit": {
+    "prefix": "kz-audit",
+    "body": [
+      "/harness-audit"
+    ],
+    "description": "Validate Bible installation — checks skills, hooks, commands, and configuration health"
+  },
+  "Bible: Grill Me": {
+    "prefix": "kz-grill",
+    "body": [
+      "/cc grill"
+    ],
+    "description": "Socratic planning probe — asks probing questions before you start building"
+  },
+  "Bible: Confidence Check": {
+    "prefix": "kz-confidence",
+    "body": [
+      "/cc confidence"
+    ],
+    "description": "Pre-execution confidence assessment — scores confidence across 4 dimensions before proceeding"
+  },
+  "Bible: Context Budget": {
+    "prefix": "kz-context",
+    "body": [
+      "/context-budget"
+    ],
+    "description": "Visual context window analyzer — shows usage gauge, zone indicators, and bloat sources"
+  },
+  "Bible: Learn": {
+    "prefix": "kz-learn",
+    "body": [
+      "/learn ${1:describe the pattern or lesson to extract and persist}"
+    ],
+    "description": "Extract a reusable pattern from current work and save to learned skills"
+  },
+  "Prompt: Code Review": {
+    "prefix": "kz-prompt-review",
+    "body": [
+      "Review the following code for:",
+      "1. Correctness — does it do what it claims?",
+      "2. Security — any vulnerabilities, injection risks, exposed secrets?",
+      "3. Performance — any N+1 queries, unnecessary re-renders, memory leaks?",
+      "4. Maintainability — clear names, small functions, no deep nesting?",
+      "5. Edge cases — what happens with empty input, null, concurrent access?",
+      "",
+      "Code to review:",
+      "${1:paste or reference the code}"
+    ],
+    "description": "Structured code review prompt — 5 dimensions with specific questions"
+  },
+  "Prompt: Debug": {
+    "prefix": "kz-prompt-debug",
+    "body": [
+      "I have a bug. Help me debug it systematically.",
+      "",
+      "**What should happen:** ${1:expected behavior}",
+      "**What actually happens:** ${2:actual behavior}",
+      "**Steps to reproduce:**",
+      "1. ${3:step 1}",
+      "",
+      "**What I have tried:** ${4:attempted fixes}",
+      "",
+      "Use the systematic-debugging approach:",
+      "1. Reproduce the issue",
+      "2. Isolate the component",
+      "3. Form a hypothesis",
+      "4. Write a failing test",
+      "5. Fix and verify"
+    ],
+    "description": "Structured debugging prompt — systematic approach with reproduction steps"
+  },
+  "Prompt: Plan Feature": {
+    "prefix": "kz-prompt-plan",
+    "body": [
+      "Plan the implementation of: ${1:feature name}",
+      "",
+      "**Context:** ${2:what exists today, relevant files, constraints}",
+      "",
+      "**Requirements:**",
+      "- ${3:requirement 1}",
+      "",
+      "Before writing any code:",
+      "1. List all files that need to change",
+      "2. Identify dependencies and risks",
+      "3. Break into ordered steps (each independently testable)",
+      "4. Estimate complexity per step",
+      "5. Flag any architectural decisions that need discussion"
+    ],
+    "description": "Structured planning prompt — requirements, dependencies, ordered steps, risks"
+  },
+  "Prompt: Landing Page": {
+    "prefix": "kz-prompt-landing",
+    "body": [
+      "Build a landing page for ${1:product name}.",
+      "",
+      "Sections: hero with gradient animation, features grid (3 columns),",
+      "testimonials carousel, pricing table (${2:3} tiers), and CTA section.",
+      "",
+      "Requirements:",
+      "- Responsive (mobile-first)",
+      "- Dark mode support",
+      "- Subtle scroll-triggered animations",
+      "- Accessible (WCAG 2.1 AA)",
+      "- Performance budget: <3s LCP"
+    ],
+    "description": "Landing page prompt — sections, responsive, accessible, animated"
+  },
+  "Prompt: API Endpoint": {
+    "prefix": "kz-prompt-api",
+    "body": [
+      "Build a REST API endpoint:",
+      "",
+      "**Route:** ${1:GET /api/v1/resource}",
+      "**Purpose:** ${2:describe what this endpoint does}",
+      "",
+      "Requirements:",
+      "- Input validation with Zod",
+      "- Consistent error response format",
+      "- Rate limiting",
+      "- Auth: ${3|public,authenticated,admin-only|}",
+      "- Tests with Vitest + supertest"
+    ],
+    "description": "API endpoint prompt — route, validation, auth, testing"
+  },
+  "Prompt: Database Schema": {
+    "prefix": "kz-prompt-schema",
+    "body": [
+      "use database-designer skill",
+      "",
+      "Design a database schema for: ${1:describe the domain}",
+      "",
+      "Entities:",
+      "- ${2:Entity1} (${3:fields})",
+      "",
+      "Requirements:",
+      "- PostgreSQL via Drizzle ORM",
+      "- Proper indexes for common queries",
+      "- Soft delete on all tables",
+      "- Created/updated timestamps",
+      "- Cascade rules for deletions"
+    ],
+    "description": "Database schema design prompt — entities, indexes, constraints, migrations"
+  }
+}

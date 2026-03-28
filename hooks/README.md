@@ -8,10 +8,10 @@ Hooks are lifecycle scripts that run automatically during Claude Code sessions. 
 
 | File | For | Hooks |
 |------|-----|-------|
-| `hooks.json` | Users with ECC installed | 32 hooks (13 kit-native + 19 ECC-inherited via `CLAUDE_PLUGIN_ROOT`) |
-| `hooks-standalone.json` | Users WITHOUT ECC | 13 kit-native hooks only |
+| `hooks.json` | Users with ECC installed | 34 hooks (15 kit-native + 19 ECC-inherited via `CLAUDE_PLUGIN_ROOT`) |
+| `hooks-standalone.json` | Users WITHOUT ECC | 15 kit-native hooks only |
 
-## Kit-Native Hooks (13)
+## Kit-Native Hooks (15)
 
 ### PreToolUse (3)
 
@@ -21,7 +21,7 @@ Hooks are lifecycle scripts that run automatically during Claude Code sessions. 
 | Pre-Commit Verify | `pre-commit-verify.js` | TypeScript check before git commit — blocks on tsc errors |
 | Confidence Gate | `confidence-gate.js` | Warn on multi-file bash operations (sed -i on globs, find -exec) |
 
-### PostToolUse (6)
+### PostToolUse (7)
 
 | Hook | File | Purpose |
 |------|------|---------|
@@ -32,6 +32,13 @@ Hooks are lifecycle scripts that run automatically during Claude Code sessions. 
 | Cost Alert | `cost-alert.js` | Cost proxy alerts at ~$0.50 and ~$2.00 thresholds |
 | Auto Lessons | `auto-lessons.js` | Capture errors and corrections to tasks/lessons.md |
 | Rate Predictor | `rate-predictor.js` | Predict session duration from tool call rate |
+| Self Verify | `self-verify.js` | Auto-verify file changes against stated intent, catch drift |
+
+### PreCompact (1)
+
+| Hook | File | Purpose |
+|------|------|---------|
+| Pre-Compact | `pre-compact.js` | Save session state and critical context before context compaction |
 
 ### Stop (3)
 

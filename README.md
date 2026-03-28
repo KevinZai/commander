@@ -2,13 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Compatible-00ff41?logo=anthropic&logoColor=white)](https://claude.ai/code)
-[![Skills](https://img.shields.io/badge/Skills-220+-00d4ff)](./SKILLS-INDEX.md)
-[![Hooks](https://img.shields.io/badge/Hooks-32-ff6b35)](./hooks/)
-[![Mega Skills](https://img.shields.io/badge/Mega_Skills-6-ff6b35)](./SKILLS-INDEX.md)
+[![Skills](https://img.shields.io/badge/Skills-260+-00d4ff)](./SKILLS-INDEX.md)
+[![Hooks](https://img.shields.io/badge/Hooks-34-ff6b35)](./hooks/)
+[![Mega Skills](https://img.shields.io/badge/Mega_Skills-10-ff6b35)](./SKILLS-INDEX.md)
 [![Version](https://img.shields.io/badge/Version-1.1-00ff41)](./CHANGELOG.md)
 [![Terminal](https://img.shields.io/badge/Terminal-CLI-00ff41?logo=gnometerminal&logoColor=white)](#install)
 
-> **220+ skills. 6 mega-skills. One install. The comprehensive guide and toolkit for Claude Code.**
+> **260+ skills. 10 mega-skills. 35+ prompt templates. 9 workflow modes. One install. The comprehensive guide and toolkit for Claude Code.**
 
 A non-technical CEO scanned every Claude Code article, plugin, and skill on the internet — top 200+ posts from X, Reddit, Medium, YouTube — tested every community pack, and distilled it all into one toolkit.
 
@@ -48,10 +48,13 @@ Removes kit components (skills, commands, hooks, lib, templates, reference docs)
 
 | Component | Count | Location |
 |-----------|-------|----------|
-| Skills | 220+ | `~/.claude/skills/` |
+| Skills | 260+ | `~/.claude/skills/` |
 | Commands | 84+ | `~/.claude/commands/` |
-| Hooks | 32 (13 kit-native + 19 ECC) | `~/.claude/hooks/hooks.json` |
-| Templates | 3 | `~/.claude/templates/` |
+| Hooks | 34 (15 kit-native + 19 ECC) | `~/.claude/hooks/hooks.json` |
+| Mega-Skills | 10 | `~/.claude/skills/mega-*/` |
+| Prompt Templates | 35+ | `~/.claude/prompts/` |
+| Workflow Modes | 9 | `~/.claude/skills/mode-switcher/` |
+| Starter Templates | 3 | `~/.claude/templates/` |
 | Reference Docs | 3 | `BIBLE.md`, `CHEATSHEET.md`, `SKILLS-INDEX.md` |
 
 ## /cc Command Center
@@ -60,18 +63,19 @@ Type `/cc` in any Claude Code session to access the interactive command center:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  CLAUDE CODE BIBLE  //  COMMAND CENTER       v1.0
+  CLAUDE CODE BIBLE  //  COMMAND CENTER       v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  [1] Skills Browser    — 220+ skills by category
-  [2] Mega-Skills       — 6 domain packs w/ sub-skills
+  [1] Skills Browser    — 260+ skills by category
+  [2] Mega-Skills       — 10 domain packs w/ sub-skills
   [3] Settings          — model, permissions, hooks, MCP
   [4] Grill Me          — Socratic planning probe
   [5] Confidence Check  — pre-execution confidence assessment
-  [6] Mode Toggle       — plan / yolo / normal
+  [6] Mode Switcher     — 9 workflow modes
   [7] Status            — kit health, tasks, version
   [8] Quick Reference   — cheatsheet highlights
   [9] /init             — project wizard
+  [10] Prompt Library   — 35+ templates across 6 categories
 ```
 
 | Sub-command | What it does |
@@ -80,7 +84,8 @@ Type `/cc` in any Claude Code session to access the interactive command center:
 | `/cc mega seo` | Drill into a mega-skill |
 | `/cc grill` | 7 Socratic questions — no plan mode |
 | `/cc confidence` | Pre-execution confidence 0-100% |
-| `/cc mode yolo` | Mode descriptions + settings guidance |
+| `/cc mode <name>` | Switch workflow mode (9 modes) |
+| `/cc prompts` | Browse 35+ prompt templates |
 | `/cc status` | Health dashboard |
 
 ## Mega-Skills
@@ -95,6 +100,43 @@ Load ONE skill, get the entire domain. Each mega-skill has a router that dispatc
 | `mega-marketing` | 46 | Content, CRO, channels, growth, sales |
 | `mega-saas` | 20 | Auth, billing, DB, API, frontend, metrics |
 | `mega-devops` | 20 | CI/CD, Docker, AWS, monitoring, Terraform |
+| `mega-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
+| `mega-mobile` | 7 | iOS, Android, React Native, Flutter, app store optimization |
+| `mega-security` | 9 | Pen testing, OWASP, supply chain, secrets management, threat modeling |
+| `mega-data` | 8 | ETL pipelines, data warehousing, analytics, visualization, ML ops |
+
+## Workflow Modes
+
+Switch your entire development persona with one command. Each mode adjusts Claude's behavior, verbosity, risk tolerance, and skill loading.
+
+| Mode | What it does |
+|------|-------------|
+| `normal` | Balanced defaults — plan-first, verify-before-done |
+| `design` | Visual-first — loads design/animation skills, critique loop |
+| `saas` | Full SaaS lifecycle — auth, billing, DB, deploy pipeline |
+| `marketing` | Content + CRO focus — SEO, copy, conversion optimization |
+| `research` | Deep research mode — citations, confidence levels, source verification |
+| `writing` | Long-form content — blog posts, docs, technical writing |
+| `night` | Autonomous overnight — checkpoints, error recovery, notifications |
+| `yolo` | Maximum speed — skip confirmations, auto-approve, ship fast |
+| `unhinged` | No guardrails — experimental, creative, push boundaries |
+
+Switch via `/cc mode <name>` or `"use mode-switcher skill, switch to <name> mode"`.
+
+## Prompt Library
+
+35+ battle-tested prompt templates across 6 categories, ready to paste or invoke:
+
+| Category | Templates | Examples |
+|----------|-----------|---------|
+| Coding | 8 | Bug fix, code review, architecture review, TDD setup |
+| Planning | 6 | Spec interview, evals-first, decomposition, handoff |
+| Design | 5 | Design critique, accessibility audit, animation brief |
+| Marketing | 6 | SEO content brief, cold email, landing page copy, ad creative |
+| DevOps | 5 | CI failure investigation, deploy checklist, incident response |
+| Meta | 5+ | Subagent dispatch, research, PR description, skill creation |
+
+Access via `/cc prompts` or browse `prompts/` directory.
 
 ## The Kevin Z Method
 
@@ -132,9 +174,9 @@ A persistent footer appears under every Claude Code response showing live sessio
 
 Shows context gauge (color-coded zones), model, cost, tokens, duration, lines changed, rate limits, and project name. Auto-configured on install via `settings.json`.
 
-## Proactive Automation (13 Hooks)
+## Proactive Automation (15 Hooks)
 
-The kit ships 13 lifecycle hooks that run automatically — no prompting required. They guard against mistakes, track costs, checkpoint work, and coach you toward better workflows.
+The kit ships 15 lifecycle hooks that run automatically — no prompting required. They guard against mistakes, track costs, checkpoint work, and coach you toward better workflows.
 
 | Lifecycle | Hook | What it does |
 |-----------|------|-------------|
@@ -151,8 +193,10 @@ The kit ships 13 lifecycle hooks that run automatically — no prompting require
 | Stop | `status-checkin` | Session end status summary |
 | Stop | `session-end-verify` | Verifies modified files, checks for console.log |
 | Stop | `session-coach` | Periodic coaching nudges — skill tips, workflow reminders (toggleable via `KZ_COACH_DISABLE=1`) |
+| PreCompact | `pre-compact` | Saves session state and critical context before context compaction |
+| PostToolUse | `self-verify` | Auto-verifies file changes against stated intent, catches drift |
 
-With ECC installed, 19 additional hooks bring the total to 32. Without ECC, the 13 kit-native hooks work standalone via `hooks-standalone.json`.
+With ECC installed, 19 additional hooks bring the total to 34. Without ECC, the 15 kit-native hooks work standalone via `hooks-standalone.json`.
 
 ## KZ Matrix Terminal Theme
 
@@ -184,7 +228,7 @@ Install once. Works everywhere.
 |------|---------|
 | `BIBLE.md` | The Kevin Z Method — 7 chapters + appendices |
 | `CHEATSHEET.md` | Daily reference — commands, shortcuts, power combos |
-| `SKILLS-INDEX.md` | Searchable skill directory (220+ skills by category) |
+| `SKILLS-INDEX.md` | Searchable skill directory (260+ skills by category) |
 | `CLAUDE.md` | Global behavior instructions (loaded every session) |
 | `settings.json` | MCP servers, permissions, model selection |
 
@@ -204,7 +248,7 @@ Install once. Works everywhere.
 node --test tests/hooks.test.js    # Run hook test harness (53 tests)
 ```
 
-Tests validate all 13 kit-native hooks, verify hook file existence, check JS syntax, and exercise the proactive automation suite (context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, etc.).
+Tests validate all 15 kit-native hooks, verify hook file existence, check JS syntax, and exercise the proactive automation suite (context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, pre-compact, self-verify, etc.).
 
 ## For Staff: Customize
 

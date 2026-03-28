@@ -1,0 +1,379 @@
+# Task Commander — Feature Build Workflow
+# DAG: plan -> scaffold -> implement -> test -> review -> merge-prep
+#
+# Scope: P3-P10 feature builds
+# Each task has a self-contained prompt — no context bleeding between agents.
+# Upstream outputs are injected into downstream prompts via {{step.output}} interpolation.
+
+name: feature-build
+description: Build a feature end-to-end from planning through merge-ready code
+scope: P3-P10
+cost_ceiling: 5.00
+
+agents:
+  planner:
+    model: opus
+    role: "Architecture and implementation planning — produces the blueprint all other agents follow"
+  builder:
+    model: sonnet
+    role: "Implementation — turns the plan into working code"
+  scaffolder:
+    model: codex
+    role: "File structure and type scaffolding — creates the skeleton before implementation"
+  tester:
+    model: sonnet
+    role: "Test writing and verification — ensures correctness and edge case coverage"
+  reviewer:
+    model: opus
+    role: "Code review and quality gate — final check before merge"
+
+dag:
+  - step: plan
+    agent: planner
+    depends_on: []
+    timeout_minutes: 3
+    retries: 1
+    prompt: |
+      You are a senior software architect planning a new feature.
+
+      **Feature:** {{feature_description}}
+      **Project:** {{project_name}} at {{project_path}}
+      **Stack:** {{tech_stack}}
+      **Existing patterns:** {{existing_patterns_summary}}
+
+      Produce a detailed implementation plan covering:
+
+      1. **Requirements analysis** — Break down the feature into specific, testable requirements.
+         Each requirement must be a single sentence starting with "The system shall..."
+      2. **Architecture decisions** — How does this fit into the existing codebase?
+         - Which files need to be created? (full paths)
+         - Which files need to be modified? (full paths + what changes)
+         - What patterns does the project already use? Follow them.
+      3. **Data model** — Schema changes, new models, migrations needed
+      4. **API design** — Endpoints, request/response shapes, error codes, status codes
+      5. **Test strategy** — What needs unit tests vs integration tests vs E2E tests?
+         Map each requirement to at least one test.
+      6. **Risk assessment** — What could go wrong? Edge cases? Performance concerns?
+      7. **Implementation steps** — Ordered list in dependency order. Each step is a
+         single atomic unit of work that can be verified independently.
+
+      Output format:
+      ```markdown
+      # Implementation Plan: {{feature_name}}
+
+      ## Requirements
+      - [ ] REQ-1: The system shall...
+      - [ ] REQ-2: The system shall...
+
+      ## Architecture
+      ### New Files
+      - path/to/file.ts — purpose
+
+      ### Modified Files
+      - path/to/existing.ts — what changes and why
+
+      ## Data Model
+      (schema changes with field types and constraints)
+
+      ## API Design
+      | Endpoint | Method | Request | Response | Errors |
+      |----------|--------|---------|----------|--------|
+
+      ## Test Strategy
+      | Requirement | Test Type | Test Description |
+      |-------------|-----------|------------------|
+
+      ## Risks
+      | Risk | Likelihood | Impact | Mitigation |
+      |------|-----------|--------|------------|
+
+      ## Implementation Steps
+      1. Step 1 (depends on: nothing)
+      2. Step 2 (depends on: step 1)
+      ```
+
+      Constraints:
+      - Follow existing project conventions visible in package.json, tsconfig.json, existing code
+      - Do NOT over-engineer — minimal viable implementation first
+      - Every requirement must have a corresponding test in the test strategy
+      - No more than 15 implementation steps. If the plan exceeds 15 steps, the scope is too large.
+    verification: |
+      Plan must include:
+      - [ ] At least 3 testable requirements with REQ-IDs
+      - [ ] File list with full paths (new and modified)
+      - [ ] Implementation steps in dependency order
+      - [ ] Test strategy mapping every requirement to at least one test
+      - [ ] Risk assessment with at least 2 identified risks
+
+  - step: scaffold
+    agent: scaffolder
+    depends_on: [plan]
+    timeout_minutes: 5
+    retries: 2
+    prompt: |
+      You are a developer scaffolding the file structure for a new feature.
+
+      **Implementation plan:**
+      {{plan.output}}
+
+      Your job:
+      1. Create all new files listed in the plan with proper directory structure
+      2. Define all type definitions, interfaces, Zod schemas, and constants
+      3. Create skeleton functions with correct signatures and return types
+         - Function bodies: `throw new Error('TODO: implement {{function_name}}')`
+      4. Set up test files with describe blocks and test names matching the test strategy
+         - Test bodies: `test.todo('{{test_description}}')`
+      5. Add all necessary imports, exports, and barrel files
+      6. Create or update any necessary config files (routes, middleware registration)
+
+      Rules:
+      - Create real, compilable TypeScript (not pseudocode)
+      - Every function must have JSDoc with @param and @returns
+      - Types must be complete — no `any` types
+      - Test files must mirror the source file structure
+      - Follow the project's existing patterns for file organization and naming
+      - Do NOT implement business logic — only structure, types, and skeletons
+
+      Output: List of all created/modified files with their full content.
+    verification: |
+      Scaffold must:
+      - [ ] Include all files from the plan
+      - [ ] Compile without TypeScript errors (types and interfaces are correct)
+      - [ ] Have test file stubs for each testable requirement
+      - [ ] Contain zero business logic (only TODOs in function bodies)
+      - [ ] Use no `any` types
+
+  - step: implement
+    agent: builder
+    depends_on: [scaffold]
+    timeout_minutes: 10
+    retries: 2
+    prompt: |
+      You are a senior developer implementing a feature from a scaffolded codebase.
+
+      **Implementation plan:**
+      {{plan.output}}
+
+      **Scaffolded files (with types and signatures):**
+      {{scaffold.output}}
+
+      Your job:
+      1. Replace every `throw new Error('TODO: implement ...')` with real implementation
+      2. Follow the architecture and patterns defined in the plan exactly
+      3. Handle all error cases explicitly — never silently swallow errors
+      4. Add input validation at every system boundary (API handlers, public functions)
+      5. Use immutable patterns — return new objects, never mutate parameters
+      6. Add logging at key decision points (use the project's existing logger)
+
+      Rules:
+      - Implement EVERY function — zero TODOs remaining when you are done
+      - Follow existing code style visible in surrounding files
+      - Handle every edge case identified in the plan's risk assessment
+      - Functions must be under 50 lines. Extract helpers if needed.
+      - Files must be under 400 lines. Extract modules if needed.
+      - No hardcoded values — use constants, config, or environment variables
+      - No console.log in production code — use the project's logger
+      - No `as any` type assertions — fix the types properly
+
+      Output: All implemented files with their full content.
+    verification: |
+      Implementation must:
+      - [ ] Have zero TODO comments remaining
+      - [ ] Compile without TypeScript errors
+      - [ ] Have error handling in every function that can fail
+      - [ ] Have input validation at system boundaries
+      - [ ] Contain no console.log statements
+      - [ ] Contain no `as any` type assertions
+
+  - step: test
+    agent: tester
+    depends_on: [implement]
+    timeout_minutes: 8
+    retries: 2
+    prompt: |
+      You are a QA engineer writing comprehensive tests for a newly implemented feature.
+
+      **Implementation plan (with test strategy):**
+      {{plan.output}}
+
+      **Implemented code:**
+      {{implement.output}}
+
+      **Test framework:** {{test_framework}}
+
+      Your job:
+      1. Implement every `test.todo()` stub from the scaffold phase with real assertions
+      2. Add additional tests for edge cases discovered in the implementation
+      3. Write integration tests for API endpoints if the feature includes them
+      4. Aim for >80% code coverage of the new code
+
+      For each test, follow this structure:
+      - Descriptive name explaining the expected behavior (not the function name)
+      - Arrange: set up test data using factory functions
+      - Act: call the function or endpoint
+      - Assert: verify the result with specific assertions
+
+      Test categories to cover:
+      - Happy path (normal successful operation)
+      - Invalid input (validation errors, type mismatches, missing fields)
+      - Edge cases (empty arrays, null values, boundary conditions, max lengths)
+      - Error handling (network failures, DB errors, timeouts, permission denied)
+      - Concurrent access (if relevant to the feature)
+
+      Rules:
+      - Tests must be deterministic — no random data, no timing dependencies
+      - Mock external dependencies (DB, APIs, file system) — never hit real services
+      - Each test is independent — no shared mutable state between tests
+      - Use factory functions for test data, not inline object literals
+      - Test names describe behavior: "returns 404 when user not found" not "test getUserById"
+      - Clean up after each test (use beforeEach/afterEach for setup/teardown)
+
+      Output: All test files with complete test implementations.
+    verification: |
+      Tests must:
+      - [ ] Cover every public function from the implementation
+      - [ ] Include at least 1 edge case test per public function
+      - [ ] Include error handling tests for every error path
+      - [ ] Pass when run (all assertions succeed)
+      - [ ] Contain no flaky or timing-dependent tests
+      - [ ] Achieve >80% coverage of new code
+
+  - step: review
+    agent: reviewer
+    depends_on: [implement, test]
+    timeout_minutes: 5
+    retries: 1
+    prompt: |
+      You are a senior engineer performing a thorough code review on a new feature.
+
+      **Implementation plan:**
+      {{plan.output}}
+
+      **Implemented code:**
+      {{implement.output}}
+
+      **Tests:**
+      {{test.output}}
+
+      Review across 5 dimensions:
+
+      1. **Correctness** — Does the code match the plan? Any logic errors?
+         Check: control flow, null handling, off-by-one errors, race conditions.
+      2. **Security** — OWASP Top 10 check. Input validation? Auth? Injection?
+         Check: SQL injection, XSS, CSRF, insecure deserialization, broken auth.
+      3. **Performance** — N+1 queries? Unbounded loops? Missing indexes? Large payloads?
+         Check: database queries, memory allocation, async handling, caching opportunities.
+      4. **Maintainability** — Clear naming? Small functions? Good error messages? DRY?
+         Check: function length, nesting depth, code duplication, naming clarity.
+      5. **Test coverage** — Are the tests sufficient? Any untested paths?
+         Check: missing edge cases, assertion quality, mock correctness.
+
+      For each finding, categorize:
+      - **CRITICAL:** Must fix before merge — security vulnerabilities, data loss risk, logic errors
+      - **HIGH:** Should fix before merge — performance issues, missing error handling, test gaps
+      - **MEDIUM:** Fix soon after merge — naming improvements, minor refactors, documentation
+      - **LOW:** Nice to have — style preferences, minor optimizations
+
+      Output format:
+      ```markdown
+      # Code Review: {{feature_name}}
+
+      ## Summary
+      Overall assessment: APPROVE | REQUEST CHANGES | BLOCK
+
+      ## Findings
+
+      ### CRITICAL
+      - [file:line] {{description}} — Fix: {{suggestion}}
+
+      ### HIGH
+      - [file:line] {{description}} — Fix: {{suggestion}}
+
+      ### MEDIUM
+      - [file:line] {{description}} — Fix: {{suggestion}}
+
+      ### LOW
+      - [file:line] {{description}} — Fix: {{suggestion}}
+
+      ## Metrics
+      - Files reviewed: {{count}}
+      - Lines of code: {{count}}
+      - Test files: {{count}}
+      - Test count: {{count}}
+
+      ## Verdict
+      {{APPROVE|REQUEST_CHANGES|BLOCK}}: {{reasoning}}
+      ```
+
+      Rules:
+      - Be specific — include file paths and line numbers for every finding
+      - Provide actionable fix suggestions, not just problem descriptions
+      - BLOCK only for CRITICAL issues
+      - REQUEST CHANGES for unresolved HIGH issues
+      - APPROVE if only MEDIUM/LOW remain
+    verification: |
+      Review must:
+      - [ ] Cover all 5 review dimensions
+      - [ ] Categorize every finding by severity
+      - [ ] Provide specific fix suggestions for CRITICAL and HIGH findings
+      - [ ] Include a clear verdict with reasoning
+      - [ ] Reference specific file paths and line numbers
+
+  - step: merge-prep
+    agent: builder
+    depends_on: [review]
+    timeout_minutes: 3
+    retries: 1
+    prompt: |
+      You are preparing a feature for merge after code review.
+
+      **Review results:**
+      {{review.output}}
+
+      Your job depends on the review verdict:
+
+      **If BLOCK:** STOP immediately. Output the blocking issues verbatim. Do not attempt fixes.
+
+      **If REQUEST CHANGES:**
+      1. Apply every HIGH-priority fix from the review
+      2. Re-run TypeScript compilation to verify fixes
+      3. Re-run tests to verify no regressions
+      4. Output the fixes applied and updated file content
+
+      **If APPROVE:**
+      1. Run final checks:
+         - TypeScript: `npx tsc --noEmit`
+         - Tests: `npx vitest run` (or project test command)
+         - Lint: `npx eslint .` (if configured)
+      2. Create a conventional commit message summarizing the feature
+      3. Output the final merge-readiness status
+
+      Output format:
+      ```
+      STATUS: READY_TO_MERGE | NEEDS_ATTENTION | BLOCKED
+
+      Commit message:
+        feat: {{description}}
+
+        {{body — list of changes by file}}
+
+      Final checks:
+        TypeScript: PASS | FAIL ({{error_count}} errors)
+        Tests: {{passing}}/{{total}} passing
+        Lint: PASS | FAIL ({{error_count}} errors)
+
+      {{remaining_issues_if_any}}
+      ```
+
+      Rules:
+      - Never force past CRITICAL issues — output BLOCKED status
+      - Commit message follows conventional commits: feat|fix|refactor|docs|test|chore
+      - Include all changed file paths in the commit body
+      - If any final check fails, status is NEEDS_ATTENTION, not READY_TO_MERGE
+    verification: |
+      Merge preparation must:
+      - [ ] Address all CRITICAL review findings (or report BLOCKED)
+      - [ ] Apply all HIGH review fixes (if REQUEST CHANGES)
+      - [ ] Pass TypeScript compilation
+      - [ ] Pass test suite with zero failures
+      - [ ] Produce a proper conventional commit message

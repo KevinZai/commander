@@ -1,0 +1,42 @@
+# Deploy verification workflow
+name: deploy-verify
+description: Build, test, and verify before deployment
+
+tasks:
+  - id: build
+    agent: developer
+    prompt: |
+      Build the project and verify no errors.
+      Run: npm run build (or equivalent)
+      Return: build status, output size, any warnings.
+
+  - id: unit-tests
+    agent: tester
+    depends_on: [build]
+    prompt: |
+      Run full unit test suite.
+      Return: pass/fail count, coverage percentage, any flaky tests.
+
+  - id: e2e-tests
+    agent: e2e-runner
+    depends_on: [build]
+    prompt: |
+      Run E2E test suite on critical user flows.
+      Return: pass/fail count, screenshots of failures, timing.
+
+  - id: security-scan
+    agent: security-reviewer
+    depends_on: [build]
+    prompt: |
+      Run security scan on built artifacts.
+      Check: dependency vulnerabilities, secrets in build output, CSP headers.
+      Return: vulnerability count by severity.
+
+  - id: deploy-gate
+    agent: analyst
+    depends_on: [unit-tests, e2e-tests, security-scan]
+    prompt: |
+      Evaluate all test and security results.
+      DEPLOY if: >95% tests pass, 0 critical vulns, 0 secrets exposed.
+      HOLD if: any failures. List required fixes.
+      Return: DEPLOY/HOLD with deployment checklist.

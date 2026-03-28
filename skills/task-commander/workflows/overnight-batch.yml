@@ -1,0 +1,353 @@
+# Task Commander — Overnight Batch Workflow
+# DAG: checkpoint → execute-queue → verify-each → summary → notify
+#
+# Usage: Autonomous long-running tasks that execute overnight without human input.
+# Built for safety: auto-checkpoints, verification after each unit, cost tracking,
+# and a morning summary. Designed to work with /cc mode night.
+
+name: overnight-batch
+description: Autonomous overnight batch execution with checkpoints, per-unit verification, and morning summary
+scope: P6-P10
+
+tasks:
+  - id: checkpoint
+    agent: claude-haiku
+    timeout_ms: 120000
+    retries: 1
+    prompt: |
+      You are preparing a safe checkpoint before an overnight autonomous run.
+
+      Task: {{task_description}}
+      Estimated duration: {{estimated_hours}} hours
+      Work units: {{unit_count}} units to process
+
+      Pre-flight safety checklist:
+      1. **Git state** — Verify working directory is clean (`git status`)
+      2. **Branch** — Create or verify a feature branch (never work on main)
+      3. **Dependencies** — Verify all required packages are installed
+      4. **Tests baseline** — Run full test suite and record baseline pass count
+      5. **Config snapshot** — Record current config state
+      6. **Cost estimate** — Calculate estimated cost based on work units and model pricing
+
+      Checkpoint steps:
+      a. Run `git status` — must be clean
+      b. Run `git checkout -b overnight/{{date}}-{{task_slug}}` if not already on a branch
+      c. Run test suite — record: {{X}} passing, {{Y}} failing
+      d. Create checkpoint commit: `chore: overnight checkpoint — {{task_slug}} — baseline`
+      e. Calculate cost: {{unit_count}} units x {{cost_per_unit}} = {{total_estimate}}
+
+      Output format:
+      ```markdown
+      # Overnight Checkpoint
+
+      ## Pre-flight
+      - Git status: CLEAN / DIRTY ({{details}})
+      - Branch: {{branch_name}}
+      - Test baseline: {{pass_count}} passing, {{fail_count}} failing
+      - Estimated cost: ${{estimate}} / ${{ceiling}} ceiling
+      - Estimated duration: {{hours}} hours
+
+      ## Abort Conditions
+      If any of these occur during execution, STOP immediately:
+      - Test pass count drops below baseline ({{pass_count}})
+      - Cost exceeds {{ceiling}}
+      - 3 consecutive units fail
+      - A file outside the scope is modified
+
+      ## Checkpoint Commit
+      {{commit_hash}} — chore: overnight checkpoint
+
+      ## Status: READY / NOT READY
+      {{reason_if_not_ready}}
+      ```
+
+      Rules:
+      - NEVER proceed if git state is dirty
+      - NEVER proceed if tests are failing at baseline
+      - NEVER proceed if estimated cost > 80% of ceiling
+      - If NOT READY, explain exactly what needs to be fixed
+    verification: |
+      Checkpoint must:
+      - [ ] Git state is clean
+      - [ ] On a feature branch (not main)
+      - [ ] Test baseline recorded
+      - [ ] Cost estimate within ceiling
+      - [ ] Checkpoint commit created
+      - [ ] READY status confirmed
+
+  - id: execute-queue
+    agent: codex
+    depends_on: [checkpoint]
+    timeout_ms: 36000000
+    retries: 0
+    prompt: |
+      You are executing a batch of work units overnight, autonomously.
+
+      Task: {{task_description}}
+      Work units: {{unit_list}}
+      Total units: {{unit_count}}
+
+      Checkpoint info:
+      {{checkpoint.output}}
+
+      Execution protocol:
+      1. Process ONE unit at a time, in order
+      2. After EACH unit:
+         a. Run relevant tests for that unit
+         b. If tests pass → commit: `chore(overnight): unit {{N}}/{{total}} — {{description}}`
+         c. If tests fail → attempt ONE fix. If fix succeeds → commit. If fix fails → log and skip.
+      3. After every 10 units: run FULL test suite as a health check
+      4. Track cumulative cost
+
+      Abort conditions (STOP IMMEDIATELY if any occur):
+      - Full test suite pass count drops below baseline ({{baseline_pass_count}})
+      - Cumulative cost exceeds {{cost_ceiling}}
+      - 3 consecutive units fail
+      - A file outside {{scope_directories}} is modified
+
+      Per-unit process:
+      ```
+      FOR each unit in work queue:
+        1. Read the target file(s)
+        2. Apply the transformation
+        3. Run unit-specific tests
+        4. IF tests PASS:
+           - git add <changed files>
+           - git commit -m "chore(overnight): unit N/total — description"
+           - Log: [DONE] unit N
+        5. IF tests FAIL:
+           - Attempt one fix
+           - Re-run tests
+           - IF still failing:
+             - git checkout -- <changed files>  (revert)
+             - Log: [SKIPPED] unit N — reason
+        6. Every 10 units:
+           - Run full test suite
+           - IF pass count < baseline: ABORT
+           - Log: [HEALTH] N/total done, X passing, $Y spent
+      ```
+
+      Output format:
+      ```markdown
+      # Overnight Execution Log
+
+      ## Progress
+      Total: {{total}} | Done: {{done}} | Skipped: {{skipped}} | Failed: {{failed}}
+      Cost: ${{spent}} / ${{ceiling}}
+      Duration: {{elapsed}}
+
+      ## Unit Log
+      | # | Unit | Status | Time | Note |
+      |---|------|--------|------|------|
+      | 1 | {{name}} | DONE/SKIPPED/FAILED | {{time}} | {{note}} |
+      ...
+
+      ## Health Checks
+      | After Unit | Tests Passing | Cost | Status |
+      |------------|--------------|------|--------|
+      | 10 | {{count}} | ${{cost}} | OK/ABORT |
+      ...
+
+      ## Skipped Units (need manual attention)
+      1. Unit {{N}}: {{reason_for_skip}}
+      ...
+
+      ## Final Status: COMPLETE / PARTIAL / ABORTED
+      ```
+
+      Rules:
+      - COMMIT after every successful unit (granular rollback capability)
+      - REVERT failed units (never leave broken code committed)
+      - STOP on abort conditions — do not try to continue
+      - Log everything — the morning review depends on this log
+      - Never modify files outside the declared scope
+    verification: |
+      Execution must:
+      - [ ] One commit per successful unit
+      - [ ] Failed units reverted (not committed broken)
+      - [ ] Health checks at every 10-unit interval
+      - [ ] Abort conditions respected
+      - [ ] Complete execution log
+
+  - id: verify-each
+    agent: claude-haiku
+    depends_on: [execute-queue]
+    timeout_ms: 300000
+    retries: 1
+    prompt: |
+      You are verifying the overnight batch execution results.
+
+      Execution log:
+      {{execute-queue.output}}
+
+      Checkpoint baseline:
+      {{checkpoint.output}}
+
+      Your job:
+      1. **Run full test suite** — Compare results to baseline
+      2. **Check git log** — Verify one commit per unit, correct messages
+      3. **Check for regressions** — Any tests that passed at baseline but fail now?
+      4. **Review skipped units** — Understand why each was skipped
+      5. **Spot-check quality** — Read 3-5 random completed units to verify quality
+
+      Output format:
+      ```markdown
+      # Overnight Verification
+
+      ## Test Suite
+      Baseline: {{baseline_pass}} passing, {{baseline_fail}} failing
+      Current:  {{current_pass}} passing, {{current_fail}} failing
+      Regressions: {{count}} ({{list_if_any}})
+
+      ## Git Log
+      Commits: {{count}}
+      Format correct: YES / NO
+      Orphaned changes (uncommitted): YES / NO
+
+      ## Skipped Units Review
+      | # | Unit | Reason | Fixable | Estimated Effort |
+      |---|------|--------|---------|-----------------|
+      | {{N}} | {{name}} | {{reason}} | Yes/No | {{estimate}} |
+      ...
+
+      ## Quality Spot Check
+      | Unit | Quality | Notes |
+      |------|---------|-------|
+      | {{name}} | GOOD/OK/POOR | {{notes}} |
+      ...
+
+      ## Verdict: CLEAN / REGRESSIONS / PROBLEMS
+      {{details}}
+      ```
+
+      Rules:
+      - Actually run the tests — do not trust the execution log alone
+      - Report exact regression list if any tests regressed
+      - Be honest about quality — flag poor work even if tests pass
+      - If regressions exist, identify which commit introduced them
+    verification: |
+      Verification must:
+      - [ ] Full test suite results (actual run, not assumed)
+      - [ ] Comparison to baseline
+      - [ ] Git log audit
+      - [ ] Quality spot checks on 3+ units
+      - [ ] Clear verdict
+
+  - id: summary
+    agent: claude-sonnet
+    depends_on: [verify-each]
+    timeout_ms: 120000
+    retries: 1
+    prompt: |
+      You are producing the morning summary report for an overnight batch run.
+
+      Checkpoint:
+      {{checkpoint.output}}
+
+      Execution log:
+      {{execute-queue.output}}
+
+      Verification:
+      {{verify-each.output}}
+
+      Produce a clear, scannable morning report that lets the human understand
+      overnight results in 60 seconds.
+
+      Output format:
+      ```markdown
+      # Overnight Run Summary
+      Date: {{date}}
+      Task: {{task_description}}
+      Duration: {{elapsed}}
+      Cost: ${{total_cost}}
+
+      ## Results at a Glance
+      | Metric | Value |
+      |--------|-------|
+      | Units completed | {{done}}/{{total}} |
+      | Units skipped | {{skipped}} |
+      | Tests passing | {{current}} (baseline: {{baseline}}) |
+      | Regressions | {{count}} |
+      | Cost | ${{spent}} / ${{ceiling}} |
+      | Status | CLEAN / PARTIAL / PROBLEMS |
+
+      ## What Got Done
+      {{1-3 sentence summary of completed work}}
+
+      ## What Needs Attention
+      1. {{item_needing_human_attention}}
+      ...
+
+      ## Skipped Units (manual queue)
+      {{list_with_reasons}}
+
+      ## Regressions (if any)
+      {{list_with_which_commit_introduced_them}}
+
+      ## Next Steps
+      1. {{recommended_action_1}}
+      2. {{recommended_action_2}}
+
+      ## Commands for Review
+      ```bash
+      git log --oneline overnight/{{date}}-{{slug}}
+      git diff main...HEAD --stat
+      npm test
+      ```
+      ```
+
+      Rules:
+      - Scannable in 60 seconds — most important info first
+      - Be honest about problems — do not sugar-coat
+      - Include git commands for the human to review work
+      - Prioritize next steps by importance
+    verification: |
+      Summary must:
+      - [ ] Results-at-a-glance table
+      - [ ] Honest status assessment
+      - [ ] Skipped units listed with reasons
+      - [ ] Next steps prioritized
+      - [ ] Git review commands included
+
+  - id: notify
+    agent: claude-haiku
+    depends_on: [summary]
+    timeout_ms: 60000
+    retries: 2
+    prompt: |
+      You are sending a notification about the overnight batch completion.
+
+      Summary report:
+      {{summary.output}}
+
+      Produce a concise notification message suitable for:
+      1. Terminal output (stderr with ANSI colors)
+      2. A short version for push notification (1-2 lines)
+
+      Terminal output format:
+      ```
+      ━━━━━━ OVERNIGHT RUN COMPLETE ━━━━━━
+      Task: {{task_name}}
+      Done: {{done}}/{{total}} | Skipped: {{skipped}} | Cost: ${{cost}}
+      Status: {{CLEAN / PARTIAL / PROBLEMS}}
+      Run `git log --oneline` to review.
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      ```
+
+      Push notification format:
+      ```
+      Overnight: {{done}}/{{total}} done, {{skipped}} skipped, ${{cost}}. {{STATUS}}.
+      ```
+
+      Output both formats.
+
+      Rules:
+      - Keep it short — this is a notification, not a report
+      - Include the 4 most important numbers: done, total, skipped, cost
+      - Include status (CLEAN/PARTIAL/PROBLEMS)
+      - Terminal version uses ANSI colors for status (green=clean, yellow=partial, red=problems)
+    verification: |
+      Notification must:
+      - [ ] Terminal format with key metrics
+      - [ ] Push notification format (under 100 chars)
+      - [ ] Status clearly indicated

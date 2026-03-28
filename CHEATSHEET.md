@@ -1,6 +1,6 @@
 # Claude Code Cheatsheet
-> The Claude Code Bible v1.0 — by Kevin Z — commands, workflows, and power user tips
-> v1.0 — 2026-03-27
+> The Claude Code Bible v1.1 — by Kevin Z — commands, workflows, and power user tips
+> v1.1 — 2026-03-28
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
@@ -18,6 +18,47 @@ Load ONE mega-skill to get an entire domain. Each has a router that dispatches t
 | Marketing | `mega-marketing` | 46 skills — content, CRO, channels, growth, sales |
 | SaaS Building | `mega-saas` | 20 skills — auth, billing, DB, API, frontend, metrics |
 | DevOps & Cloud | `mega-devops` | 20 skills — CI/CD, Docker, AWS, monitoring, Terraform |
+| Research & Analysis | `mega-research` | 8 skills — deep research, literature review, competitive analysis, data synthesis |
+| Mobile Development | `mega-mobile` | 7 skills — iOS, Android, React Native, Flutter, app store optimization |
+| Security & Compliance | `mega-security` | 9 skills — pen testing, OWASP, supply chain, secrets management, threat modeling |
+| Data & Analytics | `mega-data` | 8 skills — ETL pipelines, data warehousing, analytics, visualization, ML ops |
+
+---
+
+## Workflow Modes (NEW in v1.1)
+
+Switch your entire workflow persona with one command. Each mode adjusts behavior, verbosity, risk tolerance, and auto-loaded skills.
+
+| Mode | Behavior | Use when |
+|------|----------|---------|
+| `normal` | Balanced — plan-first, verify-before-done | Default for most work |
+| `design` | Visual-first — design/animation skills, critique loop | Building UIs, landing pages |
+| `saas` | Full SaaS lifecycle — auth, billing, DB, deploy | Building a SaaS product |
+| `marketing` | Content + CRO — SEO, copy, conversion | Marketing campaigns, content |
+| `research` | Deep research — citations, confidence, sources | Competitive analysis, learning |
+| `writing` | Long-form content — structured drafts, editing | Blog posts, docs, reports |
+| `night` | Autonomous overnight — checkpoints, recovery | Batch jobs, migrations |
+| `yolo` | Max speed — skip confirmations, auto-approve | Quick prototypes, demos |
+| `unhinged` | No guardrails — experimental, creative | Hackathons, experiments |
+
+**Switch:** `/cc mode <name>` or `"use mode-switcher skill, switch to <name> mode"`
+
+---
+
+## Prompt Library (NEW in v1.1)
+
+35+ battle-tested prompt templates across 6 categories:
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| Coding | 8 | Bug fix, code review, architecture review, TDD setup |
+| Planning | 6 | Spec interview, evals-first, decomposition, handoff |
+| Design | 5 | Design critique, accessibility audit, animation brief |
+| Marketing | 6 | SEO content brief, cold email, landing page copy, ad creative |
+| DevOps | 5 | CI failure investigation, deploy checklist, incident response |
+| Meta | 5+ | Subagent dispatch, research, PR description, skill creation |
+
+**Access:** `/cc prompts` or browse `prompts/` directory.
 
 ---
 
@@ -192,9 +233,9 @@ Load ONE mega-skill to get an entire domain. Each has a router that dispatches t
 | `Stop` | When agent stops | Cost tracking, session persistence, sound |
 | `PreCompact` | Before context compaction | Save state snapshot |
 
-### Proactive Hooks (13 Kit-Native)
+### Proactive Hooks (15 Kit-Native)
 
-The kit ships 13 hooks that fire automatically — no prompting required. Disable any hook with its env var.
+The kit ships 15 hooks that fire automatically — no prompting required. Disable any hook with its env var.
 
 **PreToolUse (3 hooks)**
 
@@ -224,9 +265,21 @@ The kit ships 13 hooks that fire automatically — no prompting required. Disabl
 | `session-end-verify` | Verifies modified files, checks for leftover console.log | `KZ_DISABLE_SESSION_END_VERIFY=1` |
 | `session-coach` | Periodic coaching nudges — skill tips, checkpoint reminders | `KZ_COACH_DISABLE=1` |
 
+**PreCompact (1 hook)**
+
+| Hook | What it does | Disable with |
+|------|-------------|-------------|
+| `pre-compact` | Saves session state and critical context before context compaction | `KZ_DISABLE_PRE_COMPACT=1` |
+
+**PostToolUse (1 additional hook)**
+
+| Hook | What it does | Disable with |
+|------|-------------|-------------|
+| `self-verify` | Auto-verifies file changes against stated intent, catches drift | `KZ_DISABLE_SELF_VERIFY=1` |
+
 **Session Coach** fires every N responses (default: 10). Customize interval with `KZ_COACH_INTERVAL=20` (number of responses between nudges). Disable entirely with `KZ_COACH_DISABLE=1`.
 
-With ECC installed, 19 additional hooks bring the total to 32. Without ECC, the 13 kit-native hooks work standalone via `hooks-standalone.json`.
+With ECC installed, 19 additional hooks bring the total to 34. Without ECC, the 15 kit-native hooks work standalone via `hooks-standalone.json`.
 
 ---
 
@@ -747,12 +800,13 @@ The Claude Code Bible includes an interactive command center accessible via `/cc
 | Command | What it does |
 |---------|-------------|
 | `/cc` | Main menu — all options |
-| `/cc skills` | Browse 220+ skills by category |
+| `/cc skills` | Browse 260+ skills by category |
 | `/cc mega [name]` | Drill into a mega-skill's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions (no plan mode) |
 | `/cc confidence` | Pre-execution confidence assessment (0-100%) |
-| `/cc mode <plan\|yolo\|normal>` | Mode descriptions + settings guidance |
+| `/cc mode <name>` | Switch workflow mode (9 modes available) |
+| `/cc prompts` | Browse 35+ prompt templates by category |
 | `/cc status` | Kit health dashboard |
 | `/cc help` | Compact reference |
 

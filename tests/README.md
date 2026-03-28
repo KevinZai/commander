@@ -13,9 +13,9 @@ node --test --test-name-pattern "careful-guard" tests/hooks.test.js
 ## What's Tested
 
 - **careful-guard.js** — Destructive command blocking (rm -rf, DROP TABLE, force push, DELETE FROM)
-- **Hook file existence** — All 13 kit-native hooks present
+- **Hook file existence** — All 15 kit-native hooks present
 - **Hook syntax** — All JS hooks parse without errors
-- **Proactive hooks** — context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, etc.
+- **Proactive hooks** — context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, pre-compact, self-verify, etc.
 
 ## Adding Tests
 

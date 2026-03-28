@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_description": "Standalone hooks for The Claude Code Bible. Use this if you do NOT have ECC installed. All 13 kit-native hooks organized by lifecycle.",
+  "_description": "Standalone hooks for The Claude Code Bible. Use this if you do NOT have ECC installed. All 15 kit-native hooks organized by lifecycle.",
   "hooks": {
     "PreToolUse": [
       {
@@ -107,6 +107,17 @@
         "description": "Predict session duration based on tool call rate"
       }
     ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/pre-compact.js"
+          }
+        ],
+        "description": "Auto-save session state (cwd, git branch, modified files, active tasks) before context compaction"
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -134,6 +145,15 @@
           }
         ],
         "description": "Periodic coaching nudges — skill suggestions, workflow tips, checkpoint reminders"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/self-verify.js"
+          }
+        ],
+        "description": "Check for incomplete tasks, uncommitted changes, and TODO/FIXME in modified files"
       },
       {
         "hooks": [

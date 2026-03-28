@@ -1,0 +1,274 @@
+# Task Commander — Deep Code Review Workflow
+# DAG: security-scan + type-check + logic-review + perf-review (parallel) → synthesize
+#
+# Usage: Thorough multi-perspective code review using specialized agents in parallel.
+# Each reviewer focuses on one dimension. A synthesis agent merges findings into
+# a single actionable report with merge/block recommendation.
+
+name: code-review-deep
+description: Thorough multi-perspective code review with security, performance, and correctness analysis
+version: "1.0"
+cost_ceiling: "$2.00"
+
+agents:
+  security_reviewer:
+    model: opus
+    role: Security vulnerability analysis — OWASP Top 10, injection, auth bypass, secrets exposure
+  perf_reviewer:
+    model: sonnet
+    role: Performance bottleneck detection — N+1 queries, memory leaks, O(n^2) patterns
+  logic_reviewer:
+    model: sonnet
+    role: Correctness and logic verification — edge cases, race conditions, error handling
+  type_checker:
+    model: haiku
+    role: TypeScript type safety audit — any types, unsafe casts, missing null checks
+  synthesizer:
+    model: opus
+    role: Combine all findings into prioritized actionable report with merge decision
+
+dag:
+  - step: security-scan
+    agent: security_reviewer
+    input: |
+      Review {{files}} for security vulnerabilities. Check every item:
+
+      **Input Handling**
+      - SQL injection (parameterized queries, not string concatenation)
+      - XSS (output encoding, CSP headers, no dangerouslySetInnerHTML without sanitization)
+      - Path traversal (no user input in file paths without sanitization)
+      - Command injection (no user input in shell commands)
+      - SSRF (no user-controlled URLs in server-side requests without allowlisting)
+
+      **Authentication & Authorization**
+      - Auth required on all non-public endpoints
+      - Authorization checks before data access (not just route-level)
+      - Session management (HTTP-only cookies, secure flag, SameSite)
+      - Rate limiting on authentication endpoints
+
+      **Data Protection**
+      - No secrets in source code (API keys, passwords, tokens)
+      - Sensitive data not logged (PII, tokens, passwords)
+      - Error messages don't leak internal details to users
+
+      **Dependencies**
+      - No known vulnerable dependencies (run npm audit mentally)
+      - Dependencies are pinned (not using latest/*)
+
+      Output format:
+      ```markdown
+      # Security Review
+
+      ## CRITICAL (must fix before merge)
+      - [SEC-001] {{finding}} — {{file}}:{{line}}
+        Risk: {{what_could_happen}}
+        Fix: {{specific_fix}}
+
+      ## HIGH (should fix before merge)
+      ## MEDIUM (fix soon)
+      ## LOW (hardening recommendations)
+
+      ## Verdict: SECURE / CONCERNS / BLOCK
+      ```
+    output: security_findings
+
+  - step: type-check
+    agent: type_checker
+    input: |
+      Run type analysis on {{files}}. Check for:
+
+      1. **Compiler check** — Run `npx tsc --noEmit` and report all errors
+      2. **Linter check** — Run `npx eslint .` and report warnings/errors
+      3. **Type correctness:**
+         - `any` types that should be narrowed
+         - Missing null/undefined checks
+         - Incorrect type assertions (`as` casts that might lie)
+         - Missing generic constraints
+         - Unused imports or variables
+      4. **Type safety patterns:**
+         - Zod schemas matching TypeScript types
+         - Proper discriminated unions
+         - Exhaustive switch statements
+
+      Output format:
+      ```markdown
+      # Type Safety Review
+
+      ## Compiler Results
+      Status: PASS / FAIL — Errors: {{count}}
+
+      ## Linter Results
+      Status: PASS / FAIL — Errors: {{count}}, Warnings: {{count}}
+
+      ## Type Issues Found
+      - [TYPE-001] {{issue}} — {{file}}:{{line}}
+        Problem: {{what_is_wrong}}
+        Fix: {{how_to_fix}}
+
+      ## Verdict: CLEAN / ISSUES / BLOCK
+      ```
+    output: type_findings
+    parallel_with: security-scan
+
+  - step: logic-review
+    agent: logic_reviewer
+    input: |
+      Review business logic in {{files}} across these dimensions:
+
+      **Correctness**
+      - Does the code do what it claims?
+      - Off-by-one errors, race conditions, logic inversions?
+      - All code paths handled (including error paths)?
+
+      **Architecture**
+      - Follows existing project patterns?
+      - Responsibility correctly assigned?
+      - Dependencies pointing in the right direction?
+
+      **Maintainability**
+      - Clear and consistent naming?
+      - Functions under 50 lines, files under 400 lines?
+      - Nesting under 4 levels?
+
+      **Error Handling**
+      - All error cases handled explicitly?
+      - Error messages helpful for debugging?
+      - Retry logic correct (backoff, max retries, idempotency)?
+
+      **Edge Cases**
+      - Empty inputs (null, undefined, empty string, empty array)
+      - Boundary values (0, -1, MAX_INT, very long strings)
+      - Concurrent access, network failures
+
+      Output format:
+      ```markdown
+      # Logic Review
+
+      ## CRITICAL (logic errors, data corruption risks)
+      - [LOGIC-001] {{finding}} — {{file}}:{{line}}
+
+      ## HIGH (incorrect behavior in edge cases)
+      ## MEDIUM (maintainability issues)
+      ## LOW (style and naming)
+
+      ## Strengths
+      - {{what_the_code_does_well}}
+
+      ## Verdict: SOLID / CONCERNS / BLOCK
+      ```
+    output: logic_findings
+    parallel_with: security-scan
+
+  - step: perf-review
+    agent: perf_reviewer
+    input: |
+      Analyze {{files}} for performance issues:
+
+      **Database Performance**
+      - N+1 query patterns (loading related data in a loop)
+      - Missing indexes (queries filtering on unindexed columns)
+      - Unbounded queries (SELECT * without LIMIT)
+      - Unnecessary data fetching
+
+      **Algorithm Complexity**
+      - O(n^2) or worse that could be O(n) or O(n log n)
+      - Nested loops over large datasets
+      - Missing early returns or short-circuits
+
+      **Memory**
+      - Unbounded collections that grow without limit
+      - Large objects held unnecessarily
+      - Missing cleanup (event listeners, intervals, file handles)
+
+      **Concurrency**
+      - Blocking operations on main thread
+      - Missing `Promise.all` for independent async operations
+      - Unnecessary sequential awaits
+      - Missing debounce/throttle on frequent operations
+
+      **Caching**
+      - Repeated expensive computations without caching
+      - Missing HTTP cache headers
+      - Cache invalidation correctness
+
+      Output format:
+      ```markdown
+      # Performance Review
+
+      ## CRITICAL (will cause outages at scale)
+      - [PERF-001] {{finding}} — {{file}}:{{line}}
+        Impact: {{what_happens_at_scale}}
+        Fix: {{specific_optimization}}
+
+      ## HIGH (noticeable slowness)
+      ## MEDIUM (suboptimal but functional)
+      ## Optimizations (nice to have)
+
+      ## Verdict: FAST / CONCERNS / BLOCK
+      ```
+    output: perf_findings
+    parallel_with: security-scan
+
+  - step: synthesize
+    agent: synthesizer
+    depends_on: [security-scan, type-check, logic-review, perf-review]
+    input: |
+      Combine findings from all 4 parallel reviews into a single actionable report.
+
+      Security review: {{security_findings}}
+      Type safety review: {{type_findings}}
+      Logic review: {{logic_findings}}
+      Performance review: {{perf_findings}}
+
+      Your job:
+      1. Merge all findings, deduplicate overlaps
+      2. Prioritize by severity across all dimensions (CRITICAL → HIGH → MEDIUM → LOW)
+      3. Make a decision: APPROVE, REQUEST CHANGES, or BLOCK
+      4. Create numbered action items in priority order
+
+      Decision criteria:
+      - BLOCK: Any CRITICAL finding in any dimension
+      - REQUEST CHANGES: Any HIGH finding in any dimension
+      - APPROVE: Only MEDIUM and LOW findings remain
+
+      Output format:
+      ```markdown
+      # Code Review Summary
+
+      ## Decision: APPROVE / REQUEST CHANGES / BLOCK
+
+      ## Top Findings (priority order)
+      1. [{{ID}}] {{severity}} — {{category}} — {{one_line_summary}}
+         Fix: {{what_to_do}}
+
+      ## Required Before Merge
+      - [ ] {{action_item}}
+
+      ## Recommended (not blocking)
+      - {{suggestion}}
+
+      ## Review Scores
+      | Dimension | Verdict | Critical | High | Medium | Low |
+      |-----------|---------|----------|------|--------|-----|
+      | Security | {{verdict}} | {{n}} | {{n}} | {{n}} | {{n}} |
+      | Type Safety | {{verdict}} | {{n}} | {{n}} | {{n}} | {{n}} |
+      | Logic | {{verdict}} | {{n}} | {{n}} | {{n}} | {{n}} |
+      | Performance | {{verdict}} | {{n}} | {{n}} | {{n}} | {{n}} |
+
+      ## Overall Assessment
+      {{2-3 sentences summarizing code quality and merge readiness}}
+      ```
+
+      Rules:
+      - Stricter verdict wins if reviewers disagree
+      - Deduplicate: same issue found by multiple reviewers = one entry
+      - Every CRITICAL and HIGH finding must appear in action items
+      - Keep action items short and actionable with specific file:line references
+    output: final_report
+
+verification:
+  - All CRITICAL findings have specific fix suggestions with file:line references
+  - No false positives (each finding verified against actual code)
+  - Report is actionable (developer can fix without asking follow-up questions)
+  - Deduplicated (no finding appears twice from different reviewers)
+  - Clear merge decision with reasoning

@@ -1,0 +1,34 @@
+# Multi-agent code review workflow
+name: parallel-review
+description: Comprehensive code review using 3 specialized agents
+
+tasks:
+  - id: security-review
+    agent: security-reviewer
+    prompt: |
+      Perform security audit on the current PR/changes.
+      Check: OWASP Top 10, secrets exposure, injection vectors, auth issues.
+      Return: severity-ranked findings with fix suggestions.
+
+  - id: quality-review
+    agent: code-reviewer
+    prompt: |
+      Review code quality of the current PR/changes.
+      Check: patterns, naming, complexity, test coverage, error handling.
+      Return: categorized findings (CRITICAL/HIGH/MEDIUM/LOW).
+
+  - id: type-check
+    agent: developer
+    prompt: |
+      Run full type check and lint on the current PR/changes.
+      Execute: tsc --noEmit, eslint, prettier --check
+      Return: all errors and warnings with file:line locations.
+
+  - id: merge-gate
+    agent: analyst
+    depends_on: [security-review, quality-review, type-check]
+    prompt: |
+      Evaluate all review results and make merge recommendation.
+      BLOCK if: any CRITICAL security issues, type errors, or >3 HIGH quality issues.
+      APPROVE if: all checks pass with only MEDIUM/LOW findings.
+      Return: APPROVE/BLOCK with summary and required actions.

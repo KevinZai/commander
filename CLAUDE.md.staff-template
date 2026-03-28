@@ -103,6 +103,12 @@ These load on-demand — keeps always-loaded context lean:
 - Compact within 5 min of last message (cache still warm)
 - Add `.claudeignore` to exclude node_modules, .git, build artifacts (30-40% context savings)
 
+## Compaction Survival
+- Before compaction, the `pre-compact` hook auto-saves critical session state (cwd, git branch, modified files, active tasks) to `~/.claude/sessions/pre-compact-*.md`
+- After compaction, check `~/.claude/sessions/pre-compact-*` for context recovery — the most recent file contains your pre-compaction state
+- Always re-read CLAUDE.md after compaction to reload project context
+- Check `tasks/todo.md` for progress state — unchecked items are your remaining work
+
 ## Cache Efficiency Rules
 1. Never add one-off permissions to global settings — use project-level
 2. Never change tools/models mid-session — use subagents instead

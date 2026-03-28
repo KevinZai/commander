@@ -1,0 +1,42 @@
+# Multi-agent research workflow
+# Usage: Feed this to Agency Orchestrator via MCP
+name: parallel-research
+description: Deep research on a topic using 4 parallel agents with synthesis
+
+tasks:
+  - id: academic
+    agent: researcher
+    prompt: |
+      Research {{topic}} from academic/technical sources.
+      Focus on peer-reviewed papers, technical docs, and RFCs.
+      Return: key findings, citations, relevance scores.
+
+  - id: community
+    agent: researcher
+    prompt: |
+      Research {{topic}} from community sources.
+      Check: GitHub issues/discussions, Stack Overflow, Reddit, HN.
+      Return: common problems, solutions, community sentiment.
+
+  - id: competitive
+    agent: researcher
+    prompt: |
+      Research {{topic}} competitive landscape.
+      Find: alternatives, comparisons, benchmarks, migration guides.
+      Return: feature matrix, pros/cons, recommendation.
+
+  - id: implementation
+    agent: researcher
+    prompt: |
+      Find existing implementations of {{topic}}.
+      Search: GitHub repos, npm packages, starter templates.
+      Return: top 5 implementations with stars, activity, quality assessment.
+
+  - id: synthesis
+    agent: analyst
+    depends_on: [academic, community, competitive, implementation]
+    prompt: |
+      Synthesize research from all 4 agents into a comprehensive report.
+      Structure: Executive Summary → Key Findings → Recommendations → Sources
+      Resolve any conflicting information between sources.
+      Highlight confidence levels for each finding.

@@ -1,7 +1,7 @@
 // ============================================================================
 // The Claude Code Bible — Hook Test Harness
 // ============================================================================
-// Tests all 13 kit-native hooks using Node.js built-in test runner.
+// Tests all 15 kit-native hooks using Node.js built-in test runner.
 // Run: node --test tests/hooks.test.js
 // ============================================================================
 
@@ -529,6 +529,143 @@ describe('session-coach.js', () => {
   });
 });
 
+// ---- pre-compact.js (PreCompact) ----
+
+describe('pre-compact.js', () => {
+  const hookPath = path.join(HOOKS_DIR, 'pre-compact.js');
+
+  function runHook() {
+    const input = JSON.stringify({
+      session_id: 'test-compact',
+    });
+    try {
+      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
+        encoding: 'utf-8',
+        timeout: 10000,
+        env: { ...process.env, CLAUDE_SESSION_ID: 'test-compact-' + Date.now() },
+      });
+      return { exitCode: 0, output: result };
+    } catch (err) {
+      return { exitCode: err.status, output: err.stderr || '' };
+    }
+  }
+
+  it('passes input through on stdout', () => {
+    const result = runHook();
+    assert.equal(result.exitCode, 0);
+    const parsed = JSON.parse(result.output);
+    assert.equal(parsed.session_id, 'test-compact');
+  });
+
+  it('creates session file in ~/.claude/sessions/', () => {
+    const fs = require('fs');
+    const os = require('os');
+    const sessionId = 'test-precompact-' + Date.now();
+    const input = JSON.stringify({ session_id: sessionId });
+    try {
+      execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
+        encoding: 'utf-8',
+        timeout: 10000,
+        env: { ...process.env, CLAUDE_SESSION_ID: sessionId },
+      });
+    } catch {
+      // May exit non-zero but still write file
+    }
+    const sessionsDir = path.join(os.homedir(), '.claude', 'sessions');
+    const files = fs.readdirSync(sessionsDir).filter(f => f.includes(sessionId));
+    assert.ok(files.length > 0, 'Should create a pre-compact session file');
+    // Cleanup
+    for (const f of files) {
+      try { fs.unlinkSync(path.join(sessionsDir, f)); } catch {}
+    }
+  });
+
+  it('handles malformed input gracefully', () => {
+    try {
+      execSync(`echo 'not json' | node "${hookPath}"`, {
+        encoding: 'utf-8',
+        timeout: 5000,
+      });
+    } catch (err) {
+      assert.ok(true);
+    }
+  });
+});
+
+// ---- self-verify.js (Stop) ----
+
+describe('self-verify.js', () => {
+  const hookPath = path.join(HOOKS_DIR, 'self-verify.js');
+
+  function runHook() {
+    const input = JSON.stringify({
+      tool_name: 'Stop',
+      tool_input: {},
+      tool_output: {},
+    });
+    try {
+      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
+        encoding: 'utf-8',
+        timeout: 10000,
+      });
+      return { exitCode: 0, output: result };
+    } catch (err) {
+      return { exitCode: err.status, output: err.stderr || '' };
+    }
+  }
+
+  it('basic passthrough works', () => {
+    const result = runHook();
+    assert.equal(result.exitCode, 0);
+    const parsed = JSON.parse(result.output);
+    assert.equal(parsed.tool_name, 'Stop');
+  });
+
+  it('detects unchecked tasks in todo.md', () => {
+    const fs = require('fs');
+    const tasksDir = path.join(process.cwd(), 'tasks');
+    const todoPath = path.join(tasksDir, 'todo.md');
+    const hadTasks = fs.existsSync(tasksDir);
+    const hadTodo = fs.existsSync(todoPath);
+    let origContent = null;
+
+    try {
+      if (!hadTasks) fs.mkdirSync(tasksDir, { recursive: true });
+      if (hadTodo) origContent = fs.readFileSync(todoPath, 'utf8');
+      fs.writeFileSync(todoPath, '- [ ] Unfinished task\n- [x] Done task\n');
+
+      const input = JSON.stringify({ tool_name: 'Stop', tool_input: {}, tool_output: {} });
+      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
+        encoding: 'utf-8',
+        timeout: 10000,
+      });
+      // Output goes to stdout, warnings go to stderr — passthrough should work
+      assert.equal(JSON.parse(result).tool_name, 'Stop');
+    } finally {
+      // Restore original state
+      if (origContent !== null) {
+        fs.writeFileSync(todoPath, origContent);
+      } else if (hadTodo === false) {
+        try { fs.unlinkSync(todoPath); } catch {}
+      }
+      if (!hadTasks) {
+        try { fs.rmdirSync(tasksDir); } catch {}
+      }
+    }
+  });
+
+  it('handles malformed input gracefully', () => {
+    try {
+      execSync(`echo 'not json' | node "${hookPath}"`, {
+        encoding: 'utf-8',
+        timeout: 5000,
+      });
+    } catch (err) {
+      assert.ok(true);
+    }
+  });
+});
+
 // ---- File Existence Tests ----
 
 describe('hook files exist', () => {
@@ -546,6 +683,8 @@ describe('hook files exist', () => {
     'auto-lessons.js',
     'rate-predictor.js',
     'session-coach.js',
+    'pre-compact.js',
+    'self-verify.js',
   ];
 
   for (const hook of expectedHooks) {

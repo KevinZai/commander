@@ -1,0 +1,444 @@
+# Task Commander — Deep Research Workflow
+# DAG: web-search + code-search + docs-search (parallel) → synthesize → verify → report
+#
+# Usage: Parallel multi-source research with synthesis, fact-checking, and final report.
+# Three search agents cover different source types simultaneously. A synthesizer merges
+# findings, a verifier fact-checks claims, and a reporter produces the final document.
+
+name: research-deep
+description: Parallel multi-source research with synthesis, fact-checking, and structured report generation
+version: "1.0"
+cost_ceiling: "$1.50"
+
+agents:
+  web_searcher:
+    model: sonnet
+    role: Web and community research — blogs, forums, Reddit, HN, Stack Overflow, X/Twitter
+  code_searcher:
+    model: haiku
+    role: Code and implementation research — GitHub repos, npm packages, open-source examples
+  docs_searcher:
+    model: haiku
+    role: Documentation and specification research — official docs, RFCs, technical papers, changelogs
+  synthesizer:
+    model: sonnet
+    role: Merge findings from all sources into unified knowledge base with confidence scoring
+  verifier:
+    model: opus
+    role: Fact-check claims, resolve contradictions, validate sources, assign confidence levels
+  reporter:
+    model: sonnet
+    role: Generate final structured research document with citations and recommendations
+
+dag:
+  - step: web-search
+    agent: web_searcher
+    input: |
+      Research {{topic}} from web and community sources.
+
+      **Sources to check:**
+      - Blog posts and articles (last 12 months preferred, note publication date)
+      - Reddit discussions (r/programming, r/webdev, r/typescript, topic-specific subs)
+      - Hacker News threads and Show HN posts
+      - Stack Overflow questions and accepted answers
+      - X/Twitter threads from recognized experts
+      - YouTube tutorials and conference talks (summarize, don't just link)
+
+      **For each finding:**
+      - Source URL and publication date
+      - Key claim or insight
+      - Author credibility (known expert? anonymous? company-backed?)
+      - Community sentiment (upvotes, replies, controversy level)
+      - Relevance to {{topic}} (HIGH / MEDIUM / LOW)
+
+      **Focus areas:**
+      - Current best practices and consensus opinions
+      - Common pitfalls and anti-patterns people report
+      - Recent changes or breaking updates
+      - Real-world experience reports (not just theoretical)
+
+      Output format:
+      ```markdown
+      # Web Research: {{topic}}
+
+      ## Key Findings (ranked by relevance)
+      1. {{finding}} — Source: {{url}} ({{date}})
+         Credibility: {{HIGH/MEDIUM/LOW}}
+         Community sentiment: {{positive/mixed/negative}}
+
+      ## Common Pain Points
+      - {{pain_point_1}} — reported by {{N}} sources
+      - {{pain_point_2}} — reported by {{N}} sources
+
+      ## Community Consensus
+      {{summary_of_what_most_people_agree_on}}
+
+      ## Controversial or Debated Points
+      - {{debate_topic}} — Side A: {{position}} | Side B: {{position}}
+
+      ## Source Count: {{N}} sources reviewed, {{M}} relevant
+      ```
+
+      Rules:
+      - Cite every claim with a source
+      - Distinguish expert opinions from anecdotal reports
+      - Weight recent posts (last 12 months) higher than older ones
+      - Do NOT fabricate URLs or attribute opinions to unnamed sources
+      - If community sentiment is mixed, say so — do not force a consensus
+    output: web_findings
+
+  - step: code-search
+    agent: code_searcher
+    input: |
+      Research {{topic}} from code and implementation sources.
+
+      **Sources to check:**
+      - GitHub repositories (sort by stars, recent activity, and quality)
+      - npm / PyPI / crates.io packages (download counts, maintenance status)
+      - GitHub code search for implementation patterns
+      - Starter templates and boilerplate projects
+      - Example applications and reference implementations
+
+      **For each implementation found:**
+      - Repository URL, stars, last commit date
+      - Language/framework and key dependencies
+      - Code quality assessment (tests? types? docs? CI?)
+      - License compatibility (MIT, Apache 2.0, GPL, proprietary)
+      - Maintenance status (active / stale / abandoned)
+      - Relevance to {{topic}} (HIGH / MEDIUM / LOW)
+
+      **Evaluation criteria:**
+      - Does it solve 80%+ of the problem?
+      - Is it well-tested and typed?
+      - Is the license permissive?
+      - Is it actively maintained (commits in last 6 months)?
+      - Does it have a healthy community (issues responded to, PRs merged)?
+
+      Output format:
+      ```markdown
+      # Code Research: {{topic}}
+
+      ## Top Implementations (ranked by quality and relevance)
+      1. {{repo_name}} — {{url}}
+         Stars: {{N}} | Last commit: {{date}} | License: {{license}}
+         Quality: tests={{Y/N}}, types={{Y/N}}, docs={{Y/N}}, CI={{Y/N}}
+         Relevance: {{HIGH/MEDIUM/LOW}}
+         Strengths: {{what_it_does_well}}
+         Weaknesses: {{limitations_or_concerns}}
+
+      ## Package Comparison
+      | Package | Downloads/wk | Size | Types | Tests | Maintained |
+      |---------|-------------|------|-------|-------|------------|
+      | {{pkg}} | {{N}} | {{size}} | {{Y/N}} | {{Y/N}} | {{Y/N}} |
+
+      ## Reusable Patterns Found
+      - {{pattern_1}} — seen in {{N}} repos, example: {{url}}
+      - {{pattern_2}} — seen in {{N}} repos, example: {{url}}
+
+      ## Recommendation
+      {{which_implementation_to_start_from_and_why}}
+      ```
+
+      Rules:
+      - Include at least 5 repos or packages
+      - Check actual commit history — do not guess maintenance status
+      - Include quantitative data (stars, downloads, test count)
+      - If no good implementations exist, say so and explain what is missing
+    output: code_findings
+    parallel_with: web-search
+
+  - step: docs-search
+    agent: docs_searcher
+    input: |
+      Research {{topic}} from official documentation and specification sources.
+
+      **Sources to check:**
+      - Official documentation (framework, library, platform docs)
+      - RFCs and technical specifications
+      - API references and changelogs
+      - Migration guides and upgrade paths
+      - Architecture Decision Records (ADRs) from notable projects
+      - Technical papers and whitepapers
+
+      **For each source:**
+      - Document title and URL
+      - Version or date of the specification
+      - Key requirements, constraints, or recommendations
+      - Breaking changes or deprecation notices
+      - Compatibility matrix (if applicable)
+
+      **Focus areas:**
+      - What does the official documentation recommend?
+      - Are there version-specific considerations?
+      - What are the documented limitations or known issues?
+      - What configuration is required vs optional?
+      - What are the security considerations mentioned in docs?
+
+      Output format:
+      ```markdown
+      # Documentation Research: {{topic}}
+
+      ## Official Recommendations
+      1. {{recommendation}} — Source: {{doc_url}} (v{{version}})
+         Context: {{when_this_applies}}
+
+      ## Version Compatibility
+      | Component | Min Version | Recommended | Notes |
+      |-----------|-------------|-------------|-------|
+      | {{component}} | {{min}} | {{rec}} | {{notes}} |
+
+      ## Known Limitations (from official sources)
+      - {{limitation_1}} — documented in {{source}}
+      - {{limitation_2}} — documented in {{source}}
+
+      ## Configuration Requirements
+      **Required:**
+      - {{required_config_1}} — {{what_happens_without_it}}
+
+      **Recommended:**
+      - {{optional_config_1}} — recommended for: {{use_case}}
+
+      ## Breaking Changes / Deprecations
+      - {{breaking_change}} — effective: {{version_or_date}}
+        Migration path: {{how_to_migrate}}
+
+      ## Security Considerations (from docs)
+      - {{security_note}} — {{source}}
+
+      ## Source Count: {{N}} documents reviewed
+      ```
+
+      Rules:
+      - Prefer official docs over third-party explanations
+      - Note the version/date of every document (docs go stale)
+      - If docs are incomplete or unclear, say so explicitly
+      - Include direct quotes for critical recommendations
+    output: docs_findings
+    parallel_with: web-search
+
+  - step: synthesize
+    agent: synthesizer
+    depends_on: [web-search, code-search, docs-search]
+    input: |
+      Synthesize research from all 3 parallel search agents into a unified knowledge base.
+
+      Web research: {{web_findings}}
+      Code research: {{code_findings}}
+      Documentation research: {{docs_findings}}
+
+      Your job:
+      1. **Merge findings** — Combine all sources into a single coherent picture
+      2. **Resolve contradictions** — Where sources disagree, note the disagreement and evidence
+      3. **Assign confidence levels** — For each key finding:
+         - HIGH: Multiple independent sources agree, official docs confirm
+         - MEDIUM: Some sources support, no contradictions, limited evidence
+         - LOW: Single source, conflicting information, or unverified
+      4. **Identify gaps** — What questions remain unanswered?
+      5. **Rank by actionability** — Most useful findings for decision-making first
+
+      Output format:
+      ```markdown
+      # Research Synthesis: {{topic}}
+
+      ## Executive Summary
+      {{3-5 sentences covering the most important findings and initial recommendation}}
+
+      ## Key Findings (ranked by confidence and actionability)
+      1. {{finding}} — Confidence: {{HIGH/MEDIUM/LOW}}
+         Sources: {{source_count}} ({{source_types}})
+         Evidence: {{brief_summary_of_supporting_evidence}}
+
+      ## Areas of Agreement (all 3 research threads)
+      - {{finding_all_agree_on}}
+
+      ## Contradictions Found
+      - {{claim_A}} vs {{claim_B}}
+        Web says: {{position}} — Docs say: {{position}} — Code shows: {{position}}
+        Assessment: {{which_seems_more_credible_and_why}}
+
+      ## Knowledge Gaps
+      - {{unanswered_question_1}} — why it matters: {{impact}}
+      - {{unanswered_question_2}} — why it matters: {{impact}}
+
+      ## Preliminary Recommendation
+      {{recommendation_with_reasoning}}
+      Confidence: {{HIGH/MEDIUM/LOW}}
+
+      ## Source Summary
+      - Web sources: {{N}} reviewed, {{M}} relevant
+      - Code sources: {{N}} repos reviewed, {{M}} relevant
+      - Doc sources: {{N}} documents reviewed, {{M}} relevant
+      ```
+
+      Rules:
+      - Weight official docs > code evidence > community opinion
+      - Weight recent data > old data
+      - Flag low-confidence claims explicitly
+      - Do not resolve contradictions by ignoring one side — present both
+      - Gaps are valuable — identifying what we do NOT know is important
+    output: synthesis
+
+  - step: verify
+    agent: verifier
+    depends_on: [synthesize]
+    input: |
+      Fact-check the synthesized research findings. Your role is adversarial — try to disprove claims.
+
+      Synthesis report: {{synthesis}}
+
+      For each key finding in the synthesis:
+      1. **Verify the claim** — Is it actually true? Check primary sources.
+      2. **Check for bias** — Is the source selling something? Is it outdated?
+      3. **Test logical consistency** — Do the findings contradict each other?
+      4. **Assess completeness** — Are important perspectives missing?
+      5. **Validate recommendations** — Do the recommended approaches actually work?
+
+      **Red flags to check:**
+      - Claims without citations
+      - Outdated information presented as current (check dates)
+      - Survivorship bias (only success stories, no failures)
+      - Vendor-sponsored content presented as neutral
+      - Circular references (sources citing each other, not independent confirmation)
+      - Anecdotal evidence generalized to universal claims
+      - Sample size too small for the conclusion drawn
+
+      Output format:
+      ```markdown
+      # Verification Report: {{topic}}
+
+      ## Claims Verified
+      | # | Claim | Status | Source Quality | Current | Bias |
+      |---|-------|--------|---------------|---------|------|
+      | 1 | {{claim}} | CONFIRMED/DISPUTED/UNVERIFIABLE | PRIMARY/SECONDARY/TERTIARY | Yes/No | Fair/Skewed |
+
+      ## Verification Details
+
+      ### Claim 1: {{claim}}
+      - Verification method: {{how_you_checked}}
+      - Result: {{what_you_found}}
+      - Confidence adjustment: {{raise/lower/maintain}} — {{reason}}
+
+      ### Claim 2: {{claim}}
+      ...
+
+      ## Disputed Findings
+      - {{finding}} — DISPUTED
+        Original claim: {{what_synthesis_said}}
+        Issue: {{why_it_might_be_wrong}}
+        Corrected claim: {{more_accurate_version_if_available}}
+
+      ## Bias Detection
+      - {{source}} shows {{type_of_bias}} — impact: {{how_it_affects_findings}}
+
+      ## Missing Perspectives
+      - {{perspective_not_covered}} — {{why_it_matters}}
+
+      ## Overall Reliability
+      Verified: {{X}}/{{Y}} claims
+      Confidence in synthesis: HIGH / MEDIUM / LOW
+      Bias assessment: BALANCED / SLIGHTLY SKEWED / BIASED
+      ```
+
+      Rules:
+      - Actually verify — do not rubber-stamp the synthesis
+      - If you cannot verify a claim, mark UNVERIFIABLE and explain why
+      - Disputed does not mean wrong — present evidence for both sides
+      - Check if cited sources actually say what the synthesis claims
+      - Be especially skeptical of "everyone agrees" claims
+    output: verified_findings
+
+  - step: report
+    agent: reporter
+    depends_on: [verify]
+    input: |
+      Generate the final research document incorporating verified findings.
+
+      Verified research: {{verified_findings}}
+      Original synthesis: {{synthesis}}
+
+      Produce a polished, actionable research report. This is the deliverable the human reads.
+
+      **Adjust based on verification:**
+      - CONFIRMED claims: present with full confidence
+      - DISPUTED claims: include with caveats and both sides
+      - UNVERIFIABLE claims: footnote only, not in main findings
+
+      Output format:
+      ```markdown
+      # Research Report: {{topic}}
+
+      **Date:** {{current_date}}
+      **Confidence:** {{overall_confidence}}
+      **Sources reviewed:** {{total_source_count}}
+
+      ## Executive Summary
+      {{5-7 sentences covering the most important findings and recommendation.
+      This section alone should give the reader enough to make a preliminary decision.}}
+
+      ## Background
+      {{Context: what is {{topic}}, why does it matter, what prompted this research}}
+
+      ## Key Findings
+
+      ### 1. {{finding_title}}
+      {{detailed_explanation — 2-3 paragraphs}}
+      - Confidence: {{level}} — verified by {{method}}
+      - Sources: {{citations}}
+      - Implication: {{what_this_means_for_decision_making}}
+
+      ### 2. {{finding_title}}
+      {{detailed_explanation}}
+      ...
+
+      ## Recommendation
+      {{clear_recommendation_with_reasoning — not "it depends"}}
+
+      ### If you choose {{option_A}}:
+      - Pros: {{list}}
+      - Cons: {{list}}
+      - Getting started: {{specific_first_3_steps}}
+      - Estimated effort: {{LOW/MEDIUM/HIGH}}
+
+      ### If you choose {{option_B}}:
+      - Pros: {{list}}
+      - Cons: {{list}}
+      - Getting started: {{specific_first_3_steps}}
+      - Estimated effort: {{LOW/MEDIUM/HIGH}}
+
+      ## Risks and Considerations
+      | Risk | Likelihood | Impact | Mitigation |
+      |------|-----------|--------|------------|
+      | {{risk}} | {{HIGH/MED/LOW}} | {{HIGH/MED/LOW}} | {{strategy}} |
+
+      ## Open Questions (for further research)
+      1. {{question}} — why it matters: {{impact_on_decision}}
+      2. {{question}} — why it matters: {{impact_on_decision}}
+
+      ## Next Steps
+      1. {{actionable_step_1}} — owner: {{who}} — by: {{when}}
+      2. {{actionable_step_2}} — owner: {{who}} — by: {{when}}
+
+      ## Appendix: Sources
+      | # | Source | Type | Date | Confidence | Notes |
+      |---|--------|------|------|------------|-------|
+      | 1 | {{url}} | {{web/code/docs}} | {{date}} | {{HIGH/MED/LOW}} | {{brief_note}} |
+      ```
+
+      Rules:
+      - Only include CONFIRMED findings without caveats
+      - DISPUTED findings must have explicit caveats
+      - UNVERIFIABLE findings go in appendix footnotes only
+      - Every recommendation must have a rationale and getting-started steps
+      - The report must be self-contained — no external context needed
+      - Recommendations must be specific and actionable, not "it depends"
+      - Include a risk table with likelihood, impact, and mitigation
+    output: final_report
+
+verification:
+  - All key findings have confidence levels and supporting source citations
+  - No unverified claims presented as fact in the main body
+  - Contradictions are explicitly called out with evidence for each side
+  - Recommendations are actionable with effort assessment and first steps
+  - Report is self-contained (reader needs no additional context to decide)
+  - Sources are cited with URLs, dates, and confidence ratings
+  - Risk table includes mitigation strategies

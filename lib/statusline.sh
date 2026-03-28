@@ -49,9 +49,10 @@ DURATION=$(echo "$INPUT" | jq -r '.cost.total_duration_ms // 0' 2>/dev/null)
 PROJECT=$(echo "$INPUT" | jq -r '.workspace.current_dir // "?"' 2>/dev/null)
 RATE_5H=$(echo "$INPUT" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
 RATE_7D=$(echo "$INPUT" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null)
-LINES_ADD=$(echo "$INPUT" | jq -r '.cost.total_lines_added // 0' 2>/dev/null)
-LINES_REM=$(echo "$INPUT" | jq -r '.cost.total_lines_removed // 0' 2>/dev/null)
 AGENT=$(echo "$INPUT" | jq -r '.agent.name // empty' 2>/dev/null)
+ACCOUNT=$(echo "$INPUT" | jq -r '.account.email // .account.name // empty' 2>/dev/null)
+RATE_5H_RESET=$(echo "$INPUT" | jq -r '.rate_limits.five_hour.resets_at // empty' 2>/dev/null)
+RATE_7D_RESET=$(echo "$INPUT" | jq -r '.rate_limits.seven_day.resets_at // empty' 2>/dev/null)
 
 # Round context percentage
 CTX_INT=${CTX_PCT%.*}
@@ -122,11 +123,33 @@ case "$MODEL_ID" in
   *) MODEL_SHORT="$MODEL" ;;
 esac
 
-# Rate limit section (only if available)
+# Rate limit section — show time remaining until reset (not raw %)
 RATE_STR=""
+calc_remaining() {
+  local reset_at="$1" label="$2"
+  if [ -n "$reset_at" ] && [ "$reset_at" != "null" ]; then
+    local now_epoch reset_epoch diff_sec
+    now_epoch=$(date +%s 2>/dev/null)
+    reset_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${reset_at%%.*}" +%s 2>/dev/null || date -d "$reset_at" +%s 2>/dev/null)
+    if [ -n "$reset_epoch" ] && [ -n "$now_epoch" ]; then
+      diff_sec=$((reset_epoch - now_epoch))
+      if [ "$diff_sec" -le 0 ]; then
+        printf " ${G}%s:ready${N}" "$label"
+      elif [ "$diff_sec" -lt 3600 ]; then
+        printf " ${A}%s:%dm${N}" "$label" "$((diff_sec / 60))"
+      elif [ "$diff_sec" -lt 86400 ]; then
+        printf " ${D}%s:%dh%dm${N}" "$label" "$((diff_sec / 3600))" "$(((diff_sec % 3600) / 60))"
+      else
+        printf " ${D}%s:%dd${N}" "$label" "$((diff_sec / 86400))"
+      fi
+    fi
+  fi
+}
 if [ -n "$RATE_5H" ]; then
   R5=${RATE_5H%.*}
-  if [ "$R5" -ge 80 ]; then
+  if [ -n "$RATE_5H_RESET" ] && [ "$RATE_5H_RESET" != "null" ]; then
+    RATE_STR+="$(calc_remaining "$RATE_5H_RESET" "5h")"
+  elif [ "$R5" -ge 80 ]; then
     RATE_STR+=" ${R}5h:${R5}%${N}"
   elif [ "$R5" -ge 50 ]; then
     RATE_STR+=" ${A}5h:${R5}%${N}"
@@ -136,7 +159,9 @@ if [ -n "$RATE_5H" ]; then
 fi
 if [ -n "$RATE_7D" ]; then
   R7=${RATE_7D%.*}
-  if [ "$R7" -ge 80 ]; then
+  if [ -n "$RATE_7D_RESET" ] && [ "$RATE_7D_RESET" != "null" ]; then
+    RATE_STR+="$(calc_remaining "$RATE_7D_RESET" "7d")"
+  elif [ "$R7" -ge 80 ]; then
     RATE_STR+=" ${R}7d:${R7}%${N}"
   elif [ "$R7" -ge 50 ]; then
     RATE_STR+=" ${A}7d:${R7}%${N}"
@@ -149,13 +174,14 @@ fi
 AGENT_STR=""
 [ -n "$AGENT" ] && AGENT_STR=" ${C}⚡${AGENT}${N}"
 
-# Lines changed
-LINES_STR=""
-if [ "$LINES_ADD" -gt 0 ] || [ "$LINES_REM" -gt 0 ]; then
-  LINES_STR=" ${G}+${LINES_ADD}${N}${R}-${LINES_REM}${N}"
+# Account indicator (truncated to 20 chars)
+ACCT_STR=""
+if [ -n "$ACCOUNT" ] && [ "$ACCOUNT" != "null" ]; then
+  ACCT_SHORT="${ACCOUNT:0:20}"
+  ACCT_STR=" ${GR}${ACCT_SHORT}${N}"
 fi
 
 # ── Output ──────────────────────────────────────────────────────────────────
 
 # Line 1: Context gauge + model + cost
-echo -e "${D}━━${N} ${M}KZ${N} ${BAR} ${ZC}${B}${CTX_INT}%${N} ${D}│${N} ${C}${MODEL_SHORT}${N} ${D}│${N} ${W}${COST_FMT}${N} ${D}│${N} ${D}in:${N}${W}${IN_FMT}${N} ${D}out:${N}${W}${OUT_FMT}${N} ${D}│${N} ${D}${DUR_FMT}${N}${LINES_STR}${RATE_STR}${AGENT_STR} ${D}│${N} ${GR}${PROJ_SHORT}${N}"
+echo -e "${D}━━${N} ${M}KZ${N} ${BAR} ${ZC}${B}${CTX_INT}%${N} ${D}│${N} ${C}${MODEL_SHORT}${N} ${D}│${N} ${W}${COST_FMT}${N} ${D}│${N} ${D}in:${N}${W}${IN_FMT}${N} ${D}out:${N}${W}${OUT_FMT}${N} ${D}│${N} ${D}${DUR_FMT}${N}${RATE_STR}${AGENT_STR}${ACCT_STR} ${D}│${N} ${GR}${PROJ_SHORT}${N}"

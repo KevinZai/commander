@@ -1,5 +1,5 @@
 # The Claude Code Bible — by Kevin Z
-> Version 1.0 | Updated: 2026-03-27 | Non-coder friendly. Practical examples throughout.
+> Version 1.1 | Updated: 2026-03-28 | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -28,7 +28,10 @@
 - [Prompt Templates](#prompt-templates)
 - [The 45 Tips — Quick Reference](#the-45-tips--quick-reference)
 - [Power Combos](#power-combos) *(advanced only — full table in CHEATSHEET)*
-- [Proactive Automation Suite](#proactive-automation-suite-v11) *(v1.1 — 13 kit-native hooks)*
+- [Workflow Modes](#workflow-modes) *(NEW in v1.1 — 9 modes)*
+- [Prompt Library](#prompt-library-1) *(NEW in v1.1 — 35+ templates)*
+- [Integrations](#integrations) *(NEW in v1.1 — Agency Orchestrator + OpenClaw)*
+- [Proactive Automation Suite](#proactive-automation-suite-v11) *(v1.1 — 15 kit-native hooks)*
 - [Settings Reference](#settings-reference)
 - [Appendix A: Model Selection](#model-selection)
 - [Appendix B: Contributor Credits](#contributor-credits)
@@ -75,6 +78,10 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 | `mega-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales |
 | `mega-saas` | 20 | Auth, billing, database, API, frontend stack, metrics, CRO |
 | `mega-devops` | 20 | CI/CD, containers, AWS, monitoring, zero-downtime deploy, Terraform |
+| `mega-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
+| `mega-mobile` | 7 | iOS, Android, React Native, Flutter, app store optimization |
+| `mega-security` | 9 | Pen testing, OWASP, supply chain, secrets management, threat modeling |
+| `mega-data` | 8 | ETL pipelines, data warehousing, analytics, visualization, ML ops |
 
 ### Automatic Checklists
 
@@ -890,6 +897,10 @@ Instead of loading 5-15 individual skills per session, load ONE mega-skill to ge
 "Use the mega-marketing skill" → All 46 marketing skills loaded
 "Use the mega-saas skill"      → All 20 SaaS building skills loaded
 "Use the mega-devops skill"    → All 20 DevOps skills loaded
+"Use the mega-research skill"  → All 8 research skills loaded
+"Use the mega-mobile skill"    → All 7 mobile dev skills loaded
+"Use the mega-security skill"  → All 9 security skills loaded
+"Use the mega-data skill"      → All 8 data/analytics skills loaded
 ```
 
 Each mega-skill has a **router** that matches your intent to the right specialist sub-skill. See the Absorbed Skills Manifest in each mega-skill's SKILL.md for exactly which skills it contains.
@@ -1541,13 +1552,87 @@ Then we'll write the spec.
 
 ---
 
+## Workflow Modes
+
+> NEW in v1.1 — Switch your entire workflow persona with one command.
+
+Modes adjust Claude's behavior, verbosity, risk tolerance, and auto-loaded skills. Think of them as presets for different types of work.
+
+| Mode | Behavior | When to use |
+|------|----------|------------|
+| `normal` | Balanced — plan-first, verify-before-done | Default for most work |
+| `design` | Visual-first — loads design/animation skills, critique loop | Building UIs, landing pages |
+| `saas` | Full SaaS lifecycle — auth, billing, DB, deploy pipeline | Building a SaaS product |
+| `marketing` | Content + CRO — SEO, copy, conversion optimization | Marketing campaigns, content |
+| `research` | Deep research — citations, confidence levels, source verification | Competitive analysis, learning |
+| `writing` | Long-form content — structured drafts, editing | Blog posts, docs, reports |
+| `night` | Autonomous overnight — checkpoints, error recovery, notifications | Batch jobs, migrations |
+| `yolo` | Max speed — skip confirmations, auto-approve, ship fast | Quick prototypes, demos |
+| `unhinged` | No guardrails — experimental, creative, push boundaries | Hackathons, experiments |
+
+**How to switch:**
+```
+/cc mode design        # Via command center
+"Switch to research mode"  # Natural language
+```
+
+Each mode auto-loads the relevant mega-skills and adjusts the session behavior. You can switch modes mid-session, though starting a fresh session with the new mode is recommended for best results.
+
+---
+
+## Prompt Library
+
+> NEW in v1.1 — 35+ battle-tested prompt templates across 6 categories.
+
+Instead of crafting prompts from scratch every time, use the pre-built templates in `prompts/`:
+
+| Category | Count | Key templates |
+|----------|-------|--------------|
+| **Coding** | 8 | Bug fix, code review, architecture review, TDD setup, refactor brief, performance audit |
+| **Planning** | 6 | Spec interview, evals-first, decomposition, handoff, sprint planning, project kickoff |
+| **Design** | 5 | Design critique, accessibility audit, animation brief, design system setup |
+| **Marketing** | 6 | SEO content brief, cold email sequence, landing page copy, ad creative |
+| **DevOps** | 5 | CI failure investigation, deploy checklist, incident response, monitoring setup |
+| **Meta** | 5+ | Subagent dispatch, research, PR description, skill creation, CLAUDE.md generation |
+
+**Access:** `/cc prompts` or browse the `prompts/` directory directly.
+
+Templates are designed to be copy-pasted with minimal modification. Each includes placeholders in `[BRACKETS]` for your specific context.
+
+---
+
+## Integrations
+
+> NEW in v1.1 — Patterns for multi-agent orchestration.
+
+### Agency Orchestrator
+
+For coordinating multiple Claude instances or AI agents working in parallel:
+
+- Coordinator/worker topology with structured dispatch
+- Progress tracking and aggregation
+- Error recovery and retry patterns
+- Report validation before accepting subagent output
+
+### OpenClaw Patterns
+
+Integration patterns for OpenClaw multi-agent platform:
+
+- Agent configuration templates
+- Channel routing patterns
+- Session management and handoff
+- Tool binding and capability mapping
+- Inter-agent communication protocols
+
+---
+
 ## Proactive Automation Suite (v1.1)
 
-The key innovation of v1.1: 13 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
+The key innovation of v1.1: 15 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
 
 ### The 9 New Hooks
 
-The original 4 hooks (careful-guard, auto-notify, preuse-logger, status-checkin) are joined by 9 new proactive hooks:
+The original 4 hooks (careful-guard, auto-notify, preuse-logger, status-checkin) are joined by 11 new proactive hooks:
 
 | Hook | Lifecycle | What it does |
 |------|-----------|-------------|
@@ -1560,6 +1645,8 @@ The original 4 hooks (careful-guard, auto-notify, preuse-logger, status-checkin)
 | `auto-lessons` | PostToolUse | Automatically captures errors and corrections to tasks/lessons.md |
 | `rate-predictor` | PostToolUse | Predicts remaining session duration based on tool call rate |
 | `session-coach` | Stop | Periodic coaching nudges — skill suggestions, workflow tips, checkpoint reminders |
+| `pre-compact` | PreCompact | Saves session state and critical context before context compaction |
+| `self-verify` | PostToolUse | Auto-verifies file changes against stated intent, catches drift |
 
 ### Session Coach
 
@@ -1574,8 +1661,8 @@ The session-coach hook fires every N responses (default: 10) with contextual sug
 
 | Configuration | Hooks | File |
 |---------------|-------|------|
-| Kit standalone | 13 | `hooks-standalone.json` |
-| Kit + ECC | 32 (13 kit + 19 ECC) | `hooks.json` |
+| Kit standalone | 15 | `hooks-standalone.json` |
+| Kit + ECC | 34 (15 kit + 19 ECC) | `hooks.json` |
 
 Every kit-native hook can be individually disabled via its `KZ_DISABLE_*` env var. See CHEATSHEET.md for the full list.
 
@@ -1849,7 +1936,7 @@ graph TD
 | Framework | Stars | What We Integrated |
 |-----------|-------|-------------------|
 | **SuperClaude Framework** | 22K | Confidence checking, Four-question validation, Parallel execution |
-| **Everything Claude Code (ECC)** | 100K | 19 lifecycle hooks (32 total with kit-native), developer profiles, agent definitions |
+| **Everything Claude Code (ECC)** | 100K | 19 lifecycle hooks (34 total with kit-native), developer profiles, agent definitions |
 | **anthropics/claude-plugins-official** | 15K | Plugin manifest format |
 
 ### Further Reading
@@ -1866,6 +1953,6 @@ graph TD
 
 ---
 
-*Last updated: 2026-03-27*
-*The Claude Code Bible — by Kevin Z — v1.0*
+*Last updated: 2026-03-28*
+*The Claude Code Bible — by Kevin Z — v1.1*
 *Update this file when you learn something new. That's the point.*

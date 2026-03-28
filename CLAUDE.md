@@ -2,20 +2,22 @@
 
 ## What This Is
 
-The Claude Code Bible — by Kevin Z. A comprehensive Claude Code configuration toolkit: 220+ skills, 6 mega-skills, 84+ commands, 32 hooks (13 kit-native + 19 ECC), 3 templates. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+The Claude Code Bible — by Kevin Z. A comprehensive Claude Code configuration toolkit: 280+ skills, 10 mega-skills, 86+ commands, 35 hooks (16 kit-native + 19 ECC), 36+ prompt templates, 9 workflow modes, 3 starter templates, real-time agent dashboard. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 ## Project Structure
 
 ```
-├── skills/              # 220+ skills organized by category
-│   ├── mega-*/          # 6 mega-skills (router + sub-skills)
-│   ├── init-decision-tree/  # /init project wizard
+├── skills/              # 260+ skills organized by category
+│   ├── mega-*/          # 10 mega-skills (router + sub-skills)
+│   ├── mode-switcher/   # 9 workflow modes
+��   ├── init-decision-tree/  # /init project wizard
 │   ├── confidence-check/    # Pre-execution confidence assessment
 │   ├── four-question-validation/  # Post-implementation verification
-│   └── */               # Individual skills (SKILL.md each)
+���   └── */               # Individual skills (SKILL.md each)
 ├── commands/            # 84+ slash commands (.md files)
 │   └── cc.md            # /cc command center (interactive menu)
-├── hooks/               # 13 kit-native hooks (JS) + hooks.json (32 total w/ ECC) + hooks-standalone.json
+├── prompts/             # 35+ prompt templates across 6 categories
+├── hooks/               # 15 kit-native hooks (JS) + hooks.json (34 total w/ ECC) + hooks-standalone.json
 ├── templates/           # 3 starter templates (nextjs, api, cli)
 ├── lib/                 # Terminal art (bash + JS) + statusline.sh
 ├── docs/                # GitHub Pages landing site
@@ -40,7 +42,7 @@ The Claude Code Bible — by Kevin Z. A comprehensive Claude Code configuration 
 
 ## Current Status
 
-**Version:** 1.0
+**Version:** 1.2
 
 **Live:**
 - GitHub repo: github.com/k3v80/claude-code-kit
@@ -65,9 +67,22 @@ The Claude Code Bible — by Kevin Z. A comprehensive Claude Code configuration 
 - OG image generated via `docs/assets/og-image.svg` → PNG conversion
 - Mega-skills use router pattern: one SKILL.md dispatches to sub-skill directories
 - Kevin's personal overlay lives in `kevin/` — not installed by the public installer
-- Tests run via `node --test tests/hooks.test.js` (Node.js built-in test runner, 53 tests)
-- 13 kit-native hooks form the "Proactive Automation Suite" — context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, etc.
+- Tests run via `node --test tests/hooks.test.js` (Node.js built-in test runner, 61 tests)
+- 16 kit-native hooks form the "Proactive Automation Suite" — context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, pre-compact, self-verify, openclaw-adapter, etc.
+- 9 workflow modes via mode-switcher skill — normal, design, saas, marketing, research, writing, night, yolo, unhinged
+- 36+ prompt templates across 6 categories (coding, planning, design, marketing, devops, meta)
+- Agency Orchestrator and OpenClaw patterns for multi-agent integration
+- Claude Peers integration — multi-instance collaboration with coordinator/swarm/expert/review/research patterns
+- Spawn Manager — `/spawn` command for launching and coordinating multiple Claude Code peers
+- Task Commander — multi-agent orchestration with P0-P10 scoping, 6 DAG workflows, circuit breaker, cost ceiling
+- Contextual Assist — proactive suggestion system with 5 configurable levels
+- Cowork + Dispatch integrations for Claude Desktop autonomous mode and background tasks
+- OpenClaw Bridge + Paperclip Bridge for platform integrations
+- 5 quickstart guides for beginner/frontend/backend/fullstack/mobile developers
+- Real-time React dashboard at `dashboard/` — agent monitoring, spawn tree, cost tracker, live logs (no DB)
+- `lib/config-reader.js` — shared config utility for bible-config.json with env var overrides
+- VS Code snippets at `compatibility/vscode-snippets.json` (20+ snippets)
 - session-coach.js fires periodic coaching nudges (toggleable via `KZ_COACH_DISABLE=1`, interval via `KZ_COACH_INTERVAL`)
-- Status line (`lib/statusline.sh`) shows live context gauge, model, cost, tokens under every response
+- Status line (`lib/statusline.sh`) shows live context gauge, model, cost, tokens, account, rate limit countdown
 - `/init` checks `~/.claude/sessions/` and offers to resume prior sessions before the wizard
 - KZ Matrix iTerm2 profile at `compatibility/kz-matrix.itermcolors`
