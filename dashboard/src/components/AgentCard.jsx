@@ -1,53 +1,74 @@
-import React from 'react'
+import React from 'react';
+import { formatCost, formatDuration, timeAgo } from '../hooks/usePolling.js';
 
-const statusColors = {
-  working: '#00ff00',
-  complete: '#00aa00',
-  failed: '#ff3333',
-  idle: '#ffaa00',
-}
+const STATUS_CONFIG = {
+  idle: { label: 'IDLE', badgeClass: '', cardClass: '' },
+  working: { label: 'WORKING', badgeClass: 'card__badge--active', cardClass: 'agent-card--working' },
+  complete: { label: 'COMPLETE', badgeClass: 'card__badge--active', cardClass: 'agent-card--complete' },
+  failed: { label: 'FAILED', badgeClass: 'card__badge--error', cardClass: 'agent-card--failed' },
+};
 
-const statusIcons = {
-  working: '⚡',
-  complete: '✓',
-  failed: '✗',
-  idle: '◯',
-}
+export function AgentCard({ agent }) {
+  const {
+    name = 'Unknown Agent',
+    model = 'unknown',
+    task = 'No active task',
+    status = 'idle',
+    cost = 0,
+    startedAt = null,
+    elapsed = 0,
+  } = agent;
 
-export default function AgentCard({ agent }) {
-  const statusClass = agent.status || 'idle'
-  const isMain = agent.isMain
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.idle;
 
   return (
-    <div className={`agent-item ${statusClass} ${isMain ? 'main-agent' : ''}`}>
-      <span className="status-dot" style={{
-        background: statusColors[statusClass],
-        boxShadow: statusClass === 'working' ? `0 0 8px ${statusColors[statusClass]}` : 'none'
-      }} />
-
-      <div>
-        <div className="agent-name">
-          {statusIcons[statusClass]} {agent.id}
-          {isMain && <span className="role" style={{ color: '#00ffff' }}> [MAIN]</span>}
-          {agent.spawnedBy && (
-            <span className="role"> ← {agent.spawnedBy}</span>
-          )}
+    <div className={`card agent-card ${config.cardClass}`}>
+      <div className="card__header">
+        <div>
+          <div className="agent-card__name">{name}</div>
+          <div className="agent-card__model">{model}</div>
         </div>
-        <div className="agent-task">{agent.summary}</div>
+        <span className={`card__badge ${config.badgeClass}`}>
+          {config.label}
+        </span>
       </div>
 
-      <div className="agent-meta">
-        <div style={{ color: '#555', fontSize: 10 }}>{agent.cwd}</div>
-        {agent.children && agent.children.length > 0 && (
-          <div style={{ color: '#00ffff', fontSize: 10 }}>
-            spawned: {agent.children.length}
-          </div>
-        )}
-      </div>
+      <div className="agent-card__task">{task}</div>
 
-      {agent.cost !== undefined && (
-        <span className="agent-cost">${agent.cost?.toFixed(2)}</span>
-      )}
+      <div className="agent-card__meta">
+        <span>
+          {startedAt ? timeAgo(startedAt) : 'not started'}
+        </span>
+        <span>{formatDuration(elapsed)}</span>
+        <span className="agent-card__cost">{formatCost(cost)}</span>
+      </div>
     </div>
-  )
+  );
+}
+
+export function AgentCardGrid({ agents }) {
+  if (!agents || agents.length === 0) {
+    return (
+      <div className="card">
+        <div className="card__header">
+          <span className="card__title">Agents</span>
+          <span className="card__badge">0</span>
+        </div>
+        <div className="empty-state">
+          <div className="empty-state__icon">~</div>
+          <div className="empty-state__text">No active agents</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="dashboard-grid">
+        {agents.map((agent, i) => (
+          <AgentCard key={agent.id || i} agent={agent} />
+        ))}
+      </div>
+    </div>
+  );
 }

@@ -1,68 +1,56 @@
-import React from 'react'
+import React from 'react';
+import { timeAgo } from '../hooks/usePolling.js';
 
-export default function ProjectList({ peers = [] }) {
-  // Group peers by their working directory to derive projects
-  const projects = {}
-  for (const peer of peers) {
-    const dir = peer.cwd || 'unknown'
-    if (!projects[dir]) {
-      projects[dir] = { cwd: dir, agents: [], lastActivity: null }
-    }
-    projects[dir].agents.push(peer)
-    if (peer.lastActivity) {
-      const ts = new Date(peer.lastActivity)
-      if (!projects[dir].lastActivity || ts > projects[dir].lastActivity) {
-        projects[dir].lastActivity = ts
-      }
-    }
+export function ProjectList({ projects }) {
+  if (!projects || projects.length === 0) {
+    return (
+      <div className="card">
+        <div className="card__header">
+          <span className="card__title">Projects</span>
+          <span className="card__badge">0</span>
+        </div>
+        <div className="empty-state">
+          <div className="empty-state__icon">~</div>
+          <div className="empty-state__text">No active projects</div>
+        </div>
+      </div>
+    );
   }
 
-  const projectList = Object.values(projects)
+  return (
+    <div className="card">
+      <div className="card__header">
+        <span className="card__title">Projects</span>
+        <span className="card__badge card__badge--active">{projects.length}</span>
+      </div>
+      <ul className="project-list">
+        {projects.map((project, i) => (
+          <ProjectItem key={project.id || i} project={project} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ProjectItem({ project }) {
+  const {
+    name = 'Unnamed Project',
+    agentCount = 0,
+    lastActivity = null,
+    status = 'active',
+  } = project;
 
   return (
-    <div>
-      {projectList.length === 0 ? (
-        <div style={{ color: '#555', fontSize: 11, padding: 12, textAlign: 'center' }}>
-          No active projects detected
+    <li className="project-item">
+      <div>
+        <div className="project-item__name">{name}</div>
+        <div className="project-item__agents">
+          {agentCount} agent{agentCount !== 1 ? 's' : ''} active
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {projectList.map(proj => {
-            const workingCount = proj.agents.filter(a => a.status === 'working').length
-            const name = proj.cwd.split('/').pop() || proj.cwd
-
-            return (
-              <div key={proj.cwd} style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '10px 12px', background: '#111',
-                border: '1px solid #1a3a1a', borderRadius: 6
-              }}>
-                <div style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: workingCount > 0 ? '#00ff00' : '#555',
-                  boxShadow: workingCount > 0 ? '0 0 8px #00ff00' : 'none'
-                }} />
-
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: '#00ffff', fontSize: 12, fontWeight: 600 }}>{name}</div>
-                  <div style={{ color: '#555', fontSize: 10 }}>{proj.cwd}</div>
-                </div>
-
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: '#00aa00' }}>
-                    {proj.agents.length} agent{proj.agents.length !== 1 ? 's' : ''}
-                  </div>
-                  {workingCount > 0 && (
-                    <div style={{ fontSize: 10, color: '#00ff00' }}>
-                      {workingCount} active
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
+      </div>
+      <div className="project-item__time">
+        {lastActivity ? timeAgo(lastActivity) : 'no activity'}
+      </div>
+    </li>
+  );
 }
