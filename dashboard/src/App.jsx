@@ -1,180 +1,154 @@
-import React, { useState } from 'react'
-import AgentCard from './components/AgentCard'
-import ProjectList from './components/ProjectList'
-import CostTracker from './components/CostTracker'
-import TaskProgress from './components/TaskProgress'
-import ContextGauge from './components/ContextGauge'
-import SpawnTree from './components/SpawnTree'
-import LogStream from './components/LogStream'
-import { usePeers, useLogs } from './hooks/usePolling'
+import React, { useState, useMemo } from 'react';
+import { usePolling, timeAgo } from './hooks/usePolling.js';
+import { AgentCardGrid } from './components/AgentCard.jsx';
+import { ProjectList } from './components/ProjectList.jsx';
+import { CostTracker } from './components/CostTracker.jsx';
+import { TaskProgress } from './components/TaskProgress.jsx';
+import { ContextGauge } from './components/ContextGauge.jsx';
 
-export default function App() {
-  const { data: peerData } = usePeers(3000)
-  const { data: logData } = useLogs(2000)
-  const [activeTab, setActiveTab] = useState('agents')
+/**
+ * Generate demo data for the dashboard.
+ * In production, replace this with actual file-based polling.
+ */
+function generateDemoData() {
+  const now = Date.now();
+  const statuses = ['idle', 'working', 'complete', 'failed'];
+  const models = ['sonnet', 'opus', 'haiku', 'flash'];
+  const agentNames = ['Alfred', 'Morpheus', 'Neo', 'Codex', 'Forge', 'Flare'];
+  const tasks = [
+    'Implementing auth middleware',
+    'Running E2E test suite',
+    'Reviewing PR #142 — schema migration',
+    'Optimizing database queries',
+    'Building landing page hero section',
+    'Idle — awaiting dispatch',
+  ];
 
-  const peers = peerData?.peers || []
-  const logs = logData?.entries || []
-  const totalCost = peerData?.totalCost || 0
-  const sessionDuration = peerData?.sessionDuration || '0m'
+  const agents = agentNames.map((name, i) => ({
+    id: `agent-${i}`,
+    name,
+    model: models[i % models.length],
+    task: tasks[i],
+    status: i === 5 ? 'idle' : i === 3 ? 'failed' : i === 2 ? 'complete' : 'working',
+    cost: Math.random() * 0.8 + 0.01,
+    startedAt: new Date(now - Math.random() * 3600000),
+    elapsed: Math.floor(Math.random() * 1200),
+  }));
 
-  const workingCount = peers.filter(p => p.status === 'working').length
-  const completeCount = peers.filter(p => p.status === 'complete').length
-  const failedCount = peers.filter(p => p.status === 'failed').length
+  const projects = [
+    { id: 'p1', name: 'mywifi-redesign', agentCount: 2, lastActivity: new Date(now - 120000) },
+    { id: 'p2', name: 'claude-code-kit', agentCount: 1, lastActivity: new Date(now - 300000) },
+    { id: 'p3', name: 'dmhub-platform', agentCount: 3, lastActivity: new Date(now - 600000) },
+    { id: 'p4', name: 'guestnetworks-mcp', agentCount: 0, lastActivity: new Date(now - 7200000) },
+  ];
+
+  const costs = {
+    totalSession: agents.reduce((sum, a) => sum + a.cost, 0),
+    perAgent: agents
+      .filter((a) => a.status !== 'idle')
+      .map((a) => ({ name: a.name, cost: a.cost })),
+    budgetLimit: 10,
+    budgetUsed: agents.reduce((sum, a) => sum + a.cost, 0),
+  };
+
+  const phases = [
+    { id: 1, name: 'Schema Design', status: 'complete', detail: 'Completed 2m ago' },
+    { id: 2, name: 'Auth Setup', status: 'complete', detail: 'Completed 5m ago' },
+    { id: 3, name: 'API Endpoints', status: 'active', detail: '3/8 routes complete' },
+    { id: 4, name: 'Frontend Layout', status: 'pending', detail: 'Waiting on API' },
+    { id: 5, name: 'Integration Tests', status: 'pending', detail: '' },
+    { id: 6, name: 'Deploy Pipeline', status: 'pending', detail: '' },
+  ];
+
+  const completedPhases = phases.filter((p) => p.status === 'complete').length;
+  const totalPhases = phases.length;
+
+  const taskData = {
+    phases,
+    completionPercent: Math.round((completedPhases / totalPhases) * 100),
+    currentPhase: 'API Endpoints',
+  };
+
+  const contextUsed = 45000 + Math.floor(Math.random() * 5000);
+  const contextMax = 200000;
+
+  const context = {
+    usedTokens: contextUsed,
+    maxTokens: contextMax,
+    usedPercent: (contextUsed / contextMax) * 100,
+    model: 'sonnet',
+    sessionCost: costs.totalSession,
+  };
+
+  return { agents, projects, costs, tasks: taskData, context };
+}
+
+export function App() {
+  const { data, loading, lastUpdated } = usePolling(
+    () => Promise.resolve(generateDemoData()),
+    { interval: 5000, initialData: generateDemoData() }
+  );
+
+  const { agents, projects, costs, tasks, context } = data || {};
 
   return (
-    <div>
-      {/* Header */}
-      <header className="header">
-        <div className="header-brand">
-          <h1>CLAUDE CODE BIBLE</h1>
-          <span className="version">v1.2</span>
-          <span style={{ color: '#555', fontSize: 11 }}>AGENT DASHBOARD</span>
+    <div className="app-container">
+      <header className="app-header">
+        <div className="app-header__brand">
+          <div>
+            <div className="app-header__title">KZ MATRIX</div>
+            <div className="app-header__subtitle">Claude Code Bible Dashboard v1.1</div>
+          </div>
         </div>
-        <div className="header-status">
-          <span>
-            <span className={`status-dot ${workingCount > 0 ? 'live' : 'idle'}`} />
-            {workingCount} active
-          </span>
-          <span style={{ color: '#00aa00' }}>{completeCount} done</span>
-          {failedCount > 0 && <span style={{ color: '#ff3333' }}>{failedCount} failed</span>}
-          <span style={{ color: '#555' }}>|</span>
-          <span style={{ color: '#ffaa00' }}>${totalCost.toFixed(2)}</span>
-          <span style={{ color: '#555' }}>|</span>
-          <span style={{ color: '#555' }}>{sessionDuration}</span>
+        <div className="app-header__status">
+          <div className="status-dot" />
+          <span>Live</span>
+          {lastUpdated && (
+            <span className="refresh-indicator">
+              <span className="refresh-indicator__spinner" />
+              {timeAgo(lastUpdated)}
+            </span>
+          )}
         </div>
       </header>
 
-      {/* Tab Nav */}
-      <nav style={{
-        display: 'flex', gap: 0, padding: '0 24px',
-        borderBottom: '1px solid #1a3a1a', background: '#0f0f0f'
-      }}>
-        {['agents', 'spawn-tree', 'logs'].map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              padding: '10px 20px', fontSize: 11, fontFamily: 'inherit',
-              textTransform: 'uppercase', letterSpacing: 1.5,
-              color: activeTab === tab ? '#00ff00' : '#555',
-              borderBottom: activeTab === tab ? '2px solid #00ff00' : '2px solid transparent',
-              transition: 'all 0.2s'
-            }}
-          >
-            {tab.replace('-', ' ')}
-          </button>
-        ))}
-      </nav>
-
-      {/* Dashboard Grid */}
-      <div className="dashboard-grid">
-        {/* Left Column: Main Content */}
-        {activeTab === 'agents' && (
-          <>
-            {/* Active Agents */}
-            <div className="card" style={{ gridRow: 'span 2' }}>
-              <div className="card-header">
-                <h2>Active Agents</h2>
-                <span className="count">{peers.length} total</span>
-              </div>
-              <div className="agent-list">
-                {/* Main agent first */}
-                {peers.filter(p => p.isMain).map(peer => (
-                  <AgentCard key={peer.id} agent={peer} />
-                ))}
-                {/* Then spawned agents */}
-                {peers.filter(p => !p.isMain).map(peer => (
-                  <AgentCard key={peer.id} agent={peer} />
-                ))}
-              </div>
-            </div>
-
-            {/* Right Column: Stats */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Cost */}
-              <div className="card">
-                <div className="card-header">
-                  <h2>Cost Tracker</h2>
-                </div>
-                <CostTracker totalCost={totalCost} ceiling={10} peers={peers} />
-              </div>
-
-              {/* Task Progress */}
-              <div className="card">
-                <div className="card-header">
-                  <h2>Build Progress</h2>
-                </div>
-                <TaskProgress />
-              </div>
-
-              {/* Projects */}
-              <div className="card">
-                <div className="card-header">
-                  <h2>Projects</h2>
-                </div>
-                <ProjectList peers={peers} />
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === 'spawn-tree' && (
-          <>
-            {/* Spawn Tree */}
-            <div className="card">
-              <div className="card-header">
-                <h2>Spawn Tree</h2>
-                <span className="count">who spawned whom</span>
-              </div>
-              <SpawnTree peers={peers} />
-            </div>
-
-            {/* Agent Details */}
-            <div className="card">
-              <div className="card-header">
-                <h2>Agent Summary</h2>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {peers.map(peer => (
-                  <div key={peer.id} style={{
-                    padding: '10px 12px', background: '#111',
-                    border: '1px solid #1a3a1a', borderRadius: 6
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: peer.isMain ? '#00ffff' : '#00ff00', fontWeight: 600, fontSize: 12 }}>
-                        {peer.id}
-                      </span>
-                      <span style={{
-                        fontSize: 10, padding: '1px 8px', borderRadius: 3,
-                        background: peer.status === 'working' ? '#0a1a0a' : '#1a1a1a',
-                        color: peer.status === 'working' ? '#00ff00' :
-                               peer.status === 'complete' ? '#00aa00' :
-                               peer.status === 'failed' ? '#ff3333' : '#ffaa00'
-                      }}>
-                        {peer.status}
-                      </span>
-                    </div>
-                    <div style={{ color: '#aaa', fontSize: 11 }}>{peer.summary}</div>
-                    <div style={{ color: '#555', fontSize: 10, marginTop: 4 }}>{peer.cwd}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === 'logs' && (
-          <div className="card full-width" style={{ maxHeight: 'calc(100vh - 120px)' }}>
-            <div className="card-header">
-              <h2>Live Log Stream</h2>
-              <span className="count">{logs.length} entries</span>
-            </div>
-            <LogStream entries={logs} />
-          </div>
-        )}
+      {/* Row 1: Context Gauge + Cost Tracker */}
+      <div className="dashboard-grid--wide dashboard-grid">
+        <ContextGauge context={context} />
+        <CostTracker costs={costs} />
       </div>
+
+      {/* Row 2: Active Agents */}
+      <div className="section-gap">
+        <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h2 style={{ fontSize: 'var(--font-size-lg)', color: 'var(--text-white)', fontWeight: 600 }}>
+            Active Agents
+          </h2>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-dim)' }}>
+            {agents ? agents.filter((a) => a.status === 'working').length : 0} working
+          </span>
+        </div>
+        <AgentCardGrid agents={agents} />
+      </div>
+
+      {/* Row 3: Projects + Task Progress */}
+      <div className="section-gap">
+        <div className="dashboard-grid--wide dashboard-grid">
+          <ProjectList projects={projects} />
+          <TaskProgress tasks={tasks} />
+        </div>
+      </div>
+
+      <footer style={{
+        marginTop: '40px',
+        paddingTop: '16px',
+        borderTop: '1px solid var(--border-color)',
+        textAlign: 'center',
+        fontSize: 'var(--font-size-xs)',
+        color: 'var(--text-dim)',
+      }}>
+        The Claude Code Bible v1.1 — by Kevin Z — Refreshes every 5s
+      </footer>
     </div>
-  )
+  );
 }
