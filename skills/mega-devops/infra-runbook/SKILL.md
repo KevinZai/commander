@@ -31,7 +31,7 @@ df -h /System/Volumes/Data | tail -1
 **Symptom:** Agents not responding, messages not flowing
 ```bash
 # Check status
-curl -s http://localhost:18789/api/health
+curl -s http://localhost:18789/health  # NOTE: /health not /api/health
 # Check logs
 openclaw gateway status
 # Restart (REQUIRES KEVIN'S APPROVAL)

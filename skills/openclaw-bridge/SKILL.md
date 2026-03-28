@@ -136,8 +136,8 @@ stdin → { tool_name, tool_input, tool_output } → hook.js → stdout (passthr
 
 ### OpenClaw Webhook Format
 ```
-POST http://localhost:18789/api/webhooks/bible
-Content-Type: application/json
+# NOTE: Gateway has NO HTTP webhook endpoints. Use CLI:
+# openclaw message send --channel discord --target <id> --message "text" --silent
 
 {
   "event": "bible_hook",
@@ -177,7 +177,8 @@ Set `KZ_OPENCLAW_ENABLED=1` in your environment. The `openclaw-adapter.js` hook 
 
 ### Gateway Endpoint Registration
 
-The OpenClaw gateway must register the `/api/webhooks/bible` endpoint. Add to `openclaw.json`:
+**NOTE:** The gateway has NO `/api/webhooks/*` endpoints. Use CLI or WebSocket RPC.
+For channel binding in `openclaw.json`:
 
 ```json
 {
@@ -336,9 +337,8 @@ cat > /tmp/handoff.json << 'EOF'
 EOF
 
 # 3. Send to OpenClaw via sessions_send
-curl -s -X POST http://localhost:18789/api/sessions/send \
-  -H "Content-Type: application/json" \
-  -d @/tmp/handoff.json
+# Gateway has no HTTP REST API - use CLI
+openclaw sessions send --agent "$targetAgent" --file /tmp/handoff.json
 ```
 
 ### OpenClaw to Claude Code
@@ -519,10 +519,10 @@ Add to `~/.openclaw/openclaw.json` (after backup):
 
 ```bash
 # Check gateway is running
-curl -s http://localhost:18789/api/health
+curl -s http://localhost:18789/health  # Only HTTP endpoint that works
 
-# Test webhook endpoint
-curl -s -X POST http://localhost:18789/api/webhooks/bible \
+# Test CLI communication
+openclaw message send --channel discord --target 1480676421457416306 \
   -H "Content-Type: application/json" \
   -d '{"event":"bible_hook","source":"test","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'"}'
 
@@ -601,7 +601,7 @@ Fix: Run /save-session in Claude Code, then verify memory file was written
 
 | Operation | Command / Endpoint |
 |-----------|-------------------|
-| Check gateway health | `curl -s http://localhost:18789/api/health` |
+| Check gateway health | `curl -s http://localhost:18789/health` |
 | Send webhook | `POST /api/webhooks/bible` |
 | Session handoff | `POST /api/sessions/send` |
 | List agents | `openclaw agents list` |

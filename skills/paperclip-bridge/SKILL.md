@@ -302,7 +302,7 @@ Paperclip can send webhooks when issues change. Configure in Paperclip settings:
 ```json
 {
   "webhooks": [{
-    "url": "http://localhost:18789/api/webhooks/paperclip",
+    "note": "Gateway has no HTTP webhook endpoints - use openclaw CLI instead",
     "events": ["issue.status_changed", "issue.assigned", "issue.commented"],
     "secret": "shared-secret-here"
   }]

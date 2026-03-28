@@ -23,7 +23,10 @@ allowed-tools:
 
 ### 1. Gateway Status
 ```bash
-curl -s http://localhost:18789/api/health 2>/dev/null || echo "GATEWAY DOWN"
+# Use OpenClaw CLI — HTTP REST endpoints don't exist on the gateway
+openclaw gateway status 2>/dev/null | grep -E "Runtime|RPC probe|Listening" || echo "GATEWAY DOWN"
+# Alternatively, the only HTTP endpoint that works:
+curl -s http://localhost:18789/health 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print('OK' if d.get('ok') else 'UNHEALTHY')" 2>/dev/null || echo "GATEWAY DOWN"
 ```
 
 ### 2. PM2 Services
