@@ -1936,7 +1936,7 @@ graph TD
 | Framework | Stars | What We Integrated |
 |-----------|-------|-------------------|
 | **SuperClaude Framework** | 22K | Confidence checking, Four-question validation, Parallel execution |
-| **Everything Claude Code (ECC)** | 100K | 19 lifecycle hooks (34 total with kit-native), developer profiles, agent definitions |
+| **Everything Claude Code (ECC)** | 100K | 19 lifecycle hooks (37 total with kit-native), developer profiles, agent definitions |
 | **anthropics/claude-plugins-official** | 15K | Plugin manifest format |
 
 ### Further Reading

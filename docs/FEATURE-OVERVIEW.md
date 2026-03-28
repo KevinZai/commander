@@ -1,6 +1,6 @@
 # Claude Code Kit v1.3 -- Complete Feature Overview
 
-> The most comprehensive Claude Code configuration toolkit. 280+ skills, 10 mega-skills, 87 commands, 35 hooks, 41 prompt templates, 9 workflow modes, 3 starter templates, real-time agent dashboard. One install.
+> The most comprehensive Claude Code configuration toolkit. 280+ skills, 10 mega-skills, 88+ commands, 37 hooks (18 kit-native + 19 ECC), 41 prompt templates, 9 workflow modes, 4 themes, 3 starter templates, real-time agent dashboard, modular installer. One install.
 
 ---
 
@@ -49,8 +49,8 @@ cd claude-code-kit
 ### What Gets Installed
 
 - `~/.claude/skills/` -- 280+ skill directories (each containing a SKILL.md)
-- `~/.claude/commands/` -- 87 slash command definitions (.md files)
-- `~/.claude/hooks/` -- 16 kit-native hook scripts (JS) + hooks.json configuration
+- `~/.claude/commands/` -- 88+ slash command definitions (.md files)
+- `~/.claude/hooks/` -- 18 kit-native hook scripts (JS) + hooks.json configuration
 - `~/.claude/CLAUDE.md` -- Global context file with methodology and rules
 - `~/.claude/SKILLS-INDEX.md` -- Searchable skill directory
 - `~/.claude/CHEATSHEET.md` -- Daily reference card
@@ -456,9 +456,9 @@ Commands are slash commands invoked directly in the Claude Code REPL. They live 
 
 ---
 
-### 3. Hooks (35)
+### 3. Hooks (37)
 
-Hooks are JavaScript scripts that fire automatically at specific points in the Claude Code lifecycle. The kit ships 16 kit-native hooks; with ECC (Everything Claude Code) installed, 19 additional hooks bring the total to 35. Without ECC, kit-native hooks work standalone via `hooks-standalone.json`.
+Hooks are JavaScript scripts that fire automatically at specific points in the Claude Code lifecycle. The kit ships 18 kit-native hooks; with ECC (Everything Claude Code) installed, 19 additional hooks bring the total to 37. Without ECC, kit-native hooks work standalone via `hooks-standalone.json`.
 
 #### PreToolUse Hooks (fire before tool execution)
 
@@ -723,9 +723,9 @@ claude-code-kit/
 │   ├── marketing/       # 5 marketing prompts
 │   ├── devops/          # 5 devops prompts
 │   └── meta/            # 6 meta prompts + PROMPTS.md index
-├── hooks/               # 16 kit-native hooks (JS) + configuration
-│   ├── hooks.json       # Full hook config (kit + ECC = 35 hooks)
-│   └── hooks-standalone.json  # Standalone config (kit-only = 16 hooks)
+├── hooks/               # 18 kit-native hooks (JS) + configuration
+│   ├── hooks.json       # Full hook config (kit + ECC = 37 hooks)
+│   └── hooks-standalone.json  # Standalone config (kit-only = 18 hooks)
 ├── templates/           # 3 project starter templates
 ├── guides/              # 5 quickstart guides by developer type
 ├── dashboard/           # Real-time React + Vite monitoring dashboard

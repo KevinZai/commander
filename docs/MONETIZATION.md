@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Claude Code Kit is the most comprehensive configuration toolkit for Claude Code, Anthropic's official AI development CLI. With 280+ skills, 10 mega-skills, 87 commands, 35 hooks, 41 prompt templates, 9 workflow modes, a real-time agent dashboard, and The Kevin Z Method methodology, it is the single largest "batteries-included" kit in the ecosystem.
+Claude Code Kit is the most comprehensive configuration toolkit for Claude Code, Anthropic's official AI development CLI. With 280+ skills, 10 mega-skills, 88+ commands, 37 hooks, 41 prompt templates, 9 workflow modes, 4 themes, a real-time agent dashboard, modular installer, and The Kevin Z Method methodology, it is the single largest "batteries-included" kit in the ecosystem.
 
 The Claude Code ecosystem is growing explosively. The official Claude Code repo has 83K+ stars, and the broader ecosystem includes 55+ repos with 1,000+ stars each. Developer willingness to pay for AI-augmented tooling is high -- Cursor charges $20/month, GitHub Copilot charges $10-39/month, and the pattern is clear: developers will pay for tools that make them measurably faster.
 
@@ -59,8 +59,8 @@ Based on developer spending patterns:
 | | Free | Pro ($19/mo) | Enterprise ($99/mo per seat) |
 |---|---|---|---|
 | All 280+ skills | Yes | Yes | Yes |
-| All 87 commands | Yes | Yes | Yes |
-| All 35 hooks | Yes | Yes | Yes |
+| All 88+ commands | Yes | Yes | Yes |
+| All 37 hooks | Yes | Yes | Yes |
 | Local dashboard | Yes | Yes | Yes |
 | The Kevin Z Method (BIBLE.md) | Yes | Yes | Yes |
 | Hosted dashboard with persistent history | -- | Yes | Yes |
@@ -286,7 +286,7 @@ Based on developer spending patterns:
 
 ### What competitors cannot easily replicate
 
-1. **Comprehensiveness.** 280+ skills, 10 mega-skills, 87 commands, 35 hooks, 41 prompt templates, 9 workflow modes, 3 templates, real-time dashboard. No single competitor comes close. Building this from scratch would take 6-12 months.
+1. **Comprehensiveness.** 280+ skills, 10 mega-skills, 88+ commands, 37 hooks, 41 prompt templates, 9 workflow modes, 4 themes, 3 templates, real-time dashboard. No single competitor comes close. Building this from scratch would take 6-12 months.
 
 2. **Methodology.** The Kevin Z Method (BIBLE.md) is not just a tool collection -- it is a codified development philosophy with 7 chapters, confidence checks, four-question validation, dialectic review, and verification loops. This is intellectual property that cannot be forked.
 

@@ -213,7 +213,7 @@
     ╚═══════════════╝
 
     + 1 platform hook: openclaw-adapter (event translation)
-    + 19 ECC hooks when installed (35 total)
+    + 19 ECC hooks when installed (37 total)
 
     Every hook individually toggleable: KZ_DISABLE_<HOOK_NAME>=1
 ```

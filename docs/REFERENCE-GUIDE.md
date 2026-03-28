@@ -401,4 +401,4 @@ curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-kit/main/install-
 ---
 
 *Claude Code Kit v1.3 -- k3v80.github.io/claude-code-kit*
-*280+ skills | 10 mega-skills | 86+ commands | 35 hooks | 36+ prompts | 9 modes | 3 templates*
+*280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 36+ prompts | 9 modes | 4 themes | 3 templates*
