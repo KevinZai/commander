@@ -1,5 +1,3 @@
-<div align="center">
-
 ```
  ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗
 ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝
@@ -21,21 +19,15 @@
  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
 ```
 
-<h3>280+ skills · one command · your AI work, managed by AI</h3>
+> **280+ skills · one command · your AI work, managed by AI**
 
-**Not a skill pack. An AI project manager.**<br>
-The most comprehensive Claude Code setup ever built.
+**Not a skill pack. An AI project manager.** The most comprehensive Claude Code setup ever built.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Skills](https://img.shields.io/badge/280+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md)
-[![Tests](https://img.shields.io/badge/103_Tests_Passing-4F46E5?style=for-the-badge)](./commander/tests/)
-[![v1.6.0](https://img.shields.io/badge/v1.6.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/280+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Tests](https://img.shields.io/badge/103_Tests_Passing-4F46E5?style=for-the-badge)](./commander/tests/) [![v1.6.0](https://img.shields.io/badge/v1.6.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources
 
 **[⬇ Install](#install)** · **[📖 Read the BIBLE](BIBLE.md)** · **[🔍 Browse Skills](SKILLS-INDEX.md)**
-
-</div>
 
 ---
 
