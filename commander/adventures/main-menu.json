@@ -1,6 +1,6 @@
 {
   "id": "main-menu",
-  "version": 2,
+  "version": 3,
   "screen": {
     "title": "CC Commander",
     "subtitle": "welcomeMessage",
@@ -15,6 +15,12 @@
       "description": "Resume your last session",
       "condition": "hasActiveSession",
       "next": "continue-work"
+    },
+    {
+      "key": "o",
+      "label": "Open a project",
+      "description": "Import local CLAUDE.md + .claude/ context",
+      "action": "open_project"
     },
     {
       "key": "b",
@@ -61,7 +67,6 @@
     {
       "key": "t",
       "label": "Change theme",
-      "description": "Switch visual style",
       "action": "change_theme"
     },
     {

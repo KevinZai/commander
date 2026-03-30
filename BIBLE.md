@@ -1,5 +1,5 @@
 # The Claude Code Bible — by Kevin Z
-> Version 1.5 | Updated: 2026-03-29 | Non-coder friendly. Practical examples throughout.
+> Version 1.5.2 | Updated: 2026-03-30 | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -21,6 +21,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
+- [CC Commander](#cc-commander) *(NEW in v1.5 — interactive CLI OS)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
 - [Commands Reference](#commands-reference)
@@ -1954,6 +1955,123 @@ graph TD
 200+ articles from X/Twitter, Reddit, Medium, YouTube, and GitHub were reviewed.
 
 ---
+## CC Commander
+
+> *NEW in v1.5* — The interactive CLI that manages your Claude Code sessions. Not a plugin — an OS layer.
+
+### What It Is
+
+CC Commander is a persistent Node.js process that sits ABOVE Claude Code sessions. It dispatches, tracks, and manages AI work through multiple-choice menus. No typing commands. No knowing flags. Just pick from a menu.
+
+```
+CC Commander (persistent process, arrow-key menus)
+  |
+  +-- dispatches to Claude Code (headless, via `claude -p`)
+  |     with: --bare --permission-mode plan --effort --max-budget-usd
+  |
+  +-- tracks sessions in ~/.claude/commander/
+  +-- imports local CLAUDE.md context (backwards compatible)
+  +-- 9 adventure flows (build, content, research, learn, stats, settings...)
+```
+
+### Quick Start
+
+```bash
+# From the kit repo
+node bin/kc.js
+
+# Or via npm
+npx kit-commander
+
+# Quick stats without TUI
+node bin/kc.js --stats
+
+# Self-test
+node bin/kc.js --test
+
+# Fix corrupt state
+node bin/kc.js --repair
+```
+
+### Key Features
+
+| Feature | Description |
+|---------|------------|
+| **Arrow-key menus** | Navigate with arrows or letter shortcuts |
+| **4 themes** | Cyberpunk, Fire, Graffiti, Futuristic (switch anytime) |
+| **Spec-driven build** | 3 clarification questions before dispatch |
+| **Plan-mode-first** | Every dispatch starts in plan mode for safety |
+| **Auto-compact** | 70% context threshold for compaction |
+| **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
+| **Project import** | Reads local CLAUDE.md without modifying .claude/ |
+| **Session tracking** | Persistent history across days/weeks |
+| **Skill browser** | Browse all 280+ skills from within Commander |
+| **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
+| **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
+
+### Adventure Flows
+
+| Flow | What It Does |
+|------|-------------|
+| **Build something** | Code: web apps, APIs, CLI tools |
+| **Create content** | Blog posts, social media, email campaigns, marketing copy, docs |
+| **Research & analyze** | Competitive analysis, market research, code audits, SEO |
+| **Review work** | Session history, resume, details |
+| **Learn a skill** | Browse skills, mega-skills, cheatsheet, recommendations |
+| **Check stats** | Dashboard with sparklines, achievements, cost tracking |
+| **Settings** | Name, level, cost ceiling, theme, animations, reset |
+
+### Backwards Compatibility
+
+CC Commander is an OVERLAY. It never modifies your `.claude/` directory:
+
+- **Reads** CLAUDE.md and `.claude/` for context (skills, settings, agents)
+- **Passes** that context to dispatched sessions via `--append-system-prompt`
+- **Stores** its own state in `~/.claude/commander/` (separate from `.claude/`)
+- **Your existing Claude Code setup works unchanged** — Commander is additive
+
+If you stop using Commander, nothing breaks. Your `.claude/`, `CLAUDE.md`, skills, hooks — all untouched.
+
+### Dispatcher Flags
+
+Every dispatch from Commander uses the full Claude Code CLI:
+
+```
+claude -p "task" \
+  --bare \                    # Clean scripted execution
+  --output-format json \      # Structured output
+  --permission-mode plan \    # Plan first, always
+  --effort medium \           # Auto-set per user level
+  --max-budget-usd 2 \       # Cost ceiling per level
+  --model sonnet \            # Model per level
+  --fallback-model sonnet \   # Resilience
+  --name kc-session-name \    # Named for easy resume
+  --max-turns 30              # Safety limit
+```
+
+Environment: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` for auto-compaction.
+
+### State Files
+
+```
+~/.claude/commander/
+├── state.json          # User prefs, active session, theme
+├── sessions/           # One JSON per session
+│   └── kc-*.json       # { id, task, cost, duration, outcome }
+└── history.json        # Append-only completed session log
+```
+
+### Without Commander
+
+Everything in Claude Code Kit works without Commander. The skills, hooks, commands, and prompt templates are all standalone. Commander is one way to access them — not the only way. You can always:
+
+- Use skills directly: `/@skill-name` in Claude Code
+- Use commands: `/command-name` in Claude Code
+- Use hooks: they run automatically via `.claude/settings.json`
+- Use the CHEATSHEET.md as a daily reference
+
+Commander adds session management, guided menus, and visual flair on top.
+
 
 ## About the Author
 

@@ -184,3 +184,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Contributors
 Built by Kevin Z. Incorporates patterns and best practices from 200+ community sources including ykdojo, hooeem, aiedge_, dr_cintas, SuperClaude Framework, MichLieben, coreyganim, GriffinHilly, bekacru, and many more. See BIBLE.md Appendix B for full credits.
+
+## [1.5.2] - 2026-03-30
+
+### Added
+- **CC Commander rebrand** — Kit Commander → CC Commander (Claude Code Commander)
+- **Tagline**: "280+ skills. One command. Your AI work, managed by AI."
+- **TUI Engine** (commander/tui.js) — figlet ASCII logos, true-color gradients, arrow-key menus
+- **4 themes**: Cyberpunk, Fire, Graffiti, Futuristic (switch anytime via settings or menu)
+- **Dispatcher upgrade**: 10 new CLI flags (--bare, --effort, --permission-mode plan, --max-budget-usd, --model, --fallback-model, --worktree, --name, --json-schema, --continue)
+- **Auto-compact**: CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 on all dispatches
+- **Plan-mode-first**: every dispatch starts in plan mode
+- **Spec-driven build flow**: 3 clarification questions for guided/assisted users
+- **Project import**: "Open a project" reads local CLAUDE.md + .claude/ context (backwards compatible — never writes to .claude/)
+- **2 new adventure flows**: create-content (blog/social/email/marketing/docs), research (competitive/market/code/SEO)
+- **Settings adventure**: change name, level, cost ceiling, theme, animations, reset
+- **Welcome mini-dashboard**: live stats, last session, top recommendation on main menu
+- **Rich stats dashboard**: sparklines, activity heatmap, streak fire, level progress
+- **Skill browser**: browse 280+ skills from within Commander (commander/skill-browser.js)
+- **State repair**: `--repair` flag backs up corrupt state and resets
+- **Animated transitions**: wipe effects between screens, responsive logo
+- **BIBLE.md**: new CC Commander chapter (works without Commander — skills/hooks standalone)
+- **Build diary**: docs/build-diary.md for X content
+
+### Changed
+- Main menu: 11 choices (build, content, research, learn, stats, settings, theme, open project, quit)
+- Self-test: 18 checks (up from 7)
+- 9 adventure files (up from 6)
+
+### Technical
+- 1 npm dependency added: figlet (287 ASCII fonts)
+- Zero-dependency arrow-key navigation via readline keypress
+- Session naming: auto-slugified from task description
+- Level-based dispatch defaults: guided=$2/sonnet, assisted=$3/opusplan, power=$5/opusplan

@@ -42,6 +42,7 @@ class KitCommander {
   async onboard() {
     await tui.wipeTransition();
     process.stdout.write(tui.renderLogoResponsive('CC CMD'));
+      process.stdout.write("  " + tui.dimText(BRAND.tagline) + "\n");
     process.stdout.write('\n  ' + tui.boldText(BRAND.tagline, tui.getTheme().primary) + '\n');
     process.stdout.write('  ' + tui.dimText(BRAND.scope) + '\n\n');
     process.stdout.write('  ' + BRAND.welcomeNew + '\n\n');
@@ -61,6 +62,7 @@ class KitCommander {
 
     await tui.wipeTransition();
     process.stdout.write(tui.renderLogoResponsive('CC CMD'));
+      process.stdout.write("  " + tui.dimText(BRAND.tagline) + "\n");
 
     // Name
     this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -102,6 +104,7 @@ class KitCommander {
 
       await tui.wipeTransition();
       process.stdout.write(tui.renderLogoResponsive());
+      process.stdout.write("  " + tui.dimText(BRAND.tagline) + "\n");
       // Welcome dashboard for main menu
       if (adventureId === 'main-menu') {
         var recMod; try { recMod = require('./recommendations'); } catch(_e) {}
@@ -224,6 +227,31 @@ class KitCommander {
       case 'recommend_skill': return await this.recommendSkill(currentState);
       case 'pick_session_to_resume': return await this.pickSessionToResume();
       case 'pick_session_details': return await this.pickSessionDetails();
+      case 'open_project': {
+        var pi = require('./project-importer');
+        var project = pi.scanProject(process.cwd());
+        if (!project.hasClaudeMd && !project.hasClaudeDir) {
+          process.stdout.write('n  No CLAUDE.md or .claude/ found in current directory.n');
+          process.stdout.write('  ' + tui.dimText('cd into a project directory and restart, or specify a path.') + 'n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          var projDir = await this.ask('n  Project path (or Enter to skip): ');
+          if (projDir.trim()) { project = pi.scanProject(projDir.trim()); }
+          else { return { next: 'main-menu' }; }
+        }
+        if (project.hasClaudeMd || project.hasClaudeDir) {
+          state.updateState({ activeProject: { dir: project.dir, name: project.name } });
+          process.stdout.write('n' + tui.divider('Project Imported') + 'n');
+          process.stdout.write('  ' + tui.boldText(project.name, tui.getTheme().primary) + 'n');
+          if (project.summary.length > 0) {
+            project.summary.forEach(function(s) { process.stdout.write('  ' + tui.dimText('  v ' + s) + 'n'); });
+          }
+          process.stdout.write('n  ' + tui.dimText('Dispatches will include this project CLAUDE.md context.') + 'n');
+          process.stdout.write('  ' + tui.dimText('CC Commander will NOT modify your .claude/ directory.') + 'n');
+          process.stdout.write(tui.celebrate('Project loaded!'));
+          await this.pause(1500);
+        }
+        return { next: 'main-menu' };
+      }
       case 'settings_name': {
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         var newName = await this.ask('  New name: ');
@@ -275,7 +303,7 @@ class KitCommander {
     var d = getDispatcher();
     var defaults = d.getDefaultsForLevel(userLevel);
     try {
-      var result = d.dispatch(fullTask, { sync: true, maxTurns: defaults.maxTurns, effort: defaults.effort, model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd, permissionMode: 'plan', fallbackModel: 'sonnet', bare: true, name: d.generateSessionName(fullTask), systemPrompt: 'Start with a plan. Present it before implementing.' });
+        systemPrompt: (function() { var prompt = 'Start with a plan. Present it before implementing.'; var cs = state.loadState(); if (cs.activeProject) { try { var pi = require('./project-importer'); var proj = pi.scanProject(cs.activeProject.dir); prompt += '\n\n' + pi.buildProjectPrompt(proj); } catch(_e) {} } return prompt; })(),
       sp.stop(true);
       state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
       state.completeSession(session.id, 'success');
