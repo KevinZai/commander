@@ -1,58 +1,47 @@
-# Claude Code Kit
+<div align="center">
+
+```
+ ██████╗ ██████╗     ██████╗ ██████╗ ███╗   ███╗███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗██████╗
+██╔════╝██╔════╝    ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝██╔══██╗
+██║     ██║         ██║     ██║   ██║██╔████╔██║██╔████╔██║███████║██╔██╗ ██║██║  ██║█████╗  ██████╔╝
+██║     ██║         ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══██║██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗
+╚██████╗╚██████╗    ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║██║  ██║██║ ╚████║██████╔╝███████╗██║  ██║
+ ╚═════╝ ╚═════╝     ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
+```
+
+### 280+ skills. One command. Your AI work, managed by AI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Compatible-D97706?logo=anthropic&logoColor=white)](https://claude.ai/code)
 [![Skills](https://img.shields.io/badge/Skills-280+-4F46E5)](./SKILLS-INDEX.md)
 [![Hooks](https://img.shields.io/badge/Hooks-37-D97706)](./hooks/)
 [![Mega Skills](https://img.shields.io/badge/Mega_Skills-10-4F46E5)](./SKILLS-INDEX.md)
-[![Version](https://img.shields.io/badge/Version-1.4-D97706)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.5.2-D97706)](./CHANGELOG.md)
 
-**The Complete Claude Code Command Center — by Kevin Z**
+**by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic))**
 
-> 280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 4 themes | 9 modes | Real-time dashboard
+[Install](#install) · [CC Commander](#cc-commander) · [Skills](#skills--mega-skills) · [The Method](#the-kevin-z-method) · [BIBLE.md](BIBLE.md)
+
+</div>
+
+---
+
+## Install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-kit/main/install-remote.sh | bash
 ```
 
----
-
-## The Story
-
-A non-technical CEO scanned every Claude Code article, plugin, and skill — 200+ sources. Tested everything. Kept what worked. Threw away what didn't. One install. Under 60 seconds.
-
-[Read the full story →](https://kevinz.ai)
-
----
-
-## What's Inside
-
-| Component | Count | Description |
-|-----------|-------|-------------|
-| **Skills** | 280+ | Structured instruction sets Claude loads on demand |
-| **Mega-Skills** | 10 | Domain routers that dispatch to 20-46 sub-skills each |
-| **Commands** | 88+ | Slash commands for planning, review, orchestration |
-| **Hooks** | 37 | Lifecycle automation (18 kit-native + 19 ECC) |
-| **Prompt Templates** | 41 | Battle-tested prompts across 6 categories |
-| **Workflow Modes** | 9 | Task-specific behavior presets |
-| **Themes** | 4 | Visual skins for terminal and dashboard |
-| **Starter Templates** | 3 | Next.js, API, CLI project scaffolds |
-| **Dashboard** | 1 | Real-time React monitoring UI |
-
-## Quick Start
+One command. Under 60 seconds. Works with any existing Claude Code setup.
 
 ```bash
-# 1. Install
-curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-kit/main/install-remote.sh | bash
-
-# 2. Open Command Center
-/cc
-
-# 3. Start building
-/plan "Build a REST API with auth"
+# Or clone and install manually
+git clone https://github.com/k3v80/claude-code-kit.git
+cd claude-code-kit && ./install.sh
 ```
 
-### Installation Modes
+<details>
+<summary>Installation modes</summary>
 
 ```bash
 ./install.sh                    # Interactive (choose mode)
@@ -63,119 +52,259 @@ curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-kit/main/install-
 ./install.sh --mode=config      # Just CLAUDE.md + settings.json
 ```
 
-## Mega-Skills
+</details>
 
-Each mega-skill is a domain router that dispatches to specialist sub-skills automatically.
+---
 
-| Mega-Skill | Sub-Skills | Domain |
-|-----------|-----------|--------|
-| `mega-seo` | 19 | Technical SEO, content, analytics, schema |
-| `mega-design` | 35+ | UI/UX, Impeccable polish suite, visual effects |
-| `mega-testing` | 15 | Unit, integration, E2E, load, security testing |
-| `mega-marketing` | 46 | Content, CRO, growth, email, ads, analytics |
-| `mega-saas` | 20 | Auth, billing, API, deploy, monitoring |
-| `mega-devops` | 20 | CI/CD, Docker, AWS, Terraform, monitoring |
-| `mega-research` | 8 | Deep analysis, multi-source research |
-| `mega-mobile` | 7 | React Native, Flutter, iOS, Android |
-| `mega-security` | 9 | OWASP, pentest, compliance, audit |
-| `mega-data` | 8 | SQL, ETL, visualization, ML pipelines |
+## CC Commander
 
-## Theme System
-
-4 switchable visual skins for terminal and dashboard:
-
-| Theme | Description |
-|-------|-------------|
-| **Claude Anthropic** (default) | Warm amber on deep navy — professional |
-| **OLED Black** | Pure black for OLED displays |
-| **Matrix** | Classic green-on-black with CRT scanline overlay |
-| **Surprise Me** | Random palette from 5 curated options |
+> The interactive CLI that manages your Claude Code sessions. Not a plugin — an OS layer.
 
 ```bash
-/theme set oled      # Switch skin
-/theme list          # See all options
-CC_THEME=matrix      # Set via env var
+node bin/kc.js          # Launch interactive mode
+npx kit-commander       # Or via npm
 ```
 
-## Dashboard
+```
+ ██████╗ ██████╗     ██████╗███╗   ███╗██████╗
+██╔════╝██╔════╝    ██╔════╝████╗ ████║██╔══██╗
+██║     ██║         ██║     ██╔████╔██║██║  ██║
+██║     ██║         ██║     ██║╚██╔╝██║██║  ██║
+╚██████╗╚██████╗    ╚██████╗██║ ╚═╝ ██║██████╔╝
+ ╚═════╝ ╚═════╝     ╚═════╝╚═╝     ╚═╝╚═════╝
+  280+ skills. One command. Your AI work, managed by AI.
 
-Real-time React monitoring UI with 3 views:
+  Welcome back, Kevin! You're on a 7-day streak.
+  main · 3 files modified · 42 sessions · 12 badges
 
-- **Live**: Agent cards, context gauge, cost tracker, task progress, metrics grid
-- **History**: GitHub-style activity heatmap, agent timeline, searchable session history
-- **Analytics**: Cost charts, token gauge, skill usage radar, period metrics
+  ━━━ CC Commander ━━━
+
+  What would you like to do?
+
+    ❯ Open a project          Import local CLAUDE.md + .claude/ context
+      Build something new     Code, websites, APIs, CLI tools
+      Create content          Marketing, social media, writing
+      Research & analyze      Deep dives, competitive analysis
+      Review what I built     Recent sessions and results
+      Learn a new skill       Browse 280+ skills and guides
+      Check my stats          Streaks, achievements, cost tracking
+      Settings                Name, level, cost ceiling, animations
+      Change theme            Switch visual style
+```
+
+### Not just coding
+
+Commander manages ALL your AI work — code, marketing, content, social media, research. Pick from a menu. Commander handles the rest.
+
+```
+┌──────────────────────────────────────────────────┐
+│                                                  │
+│   Build something ─── Web app, API, CLI tool     │
+│   Create content ──── Blog, social, email, docs  │
+│   Research ────────── Competitive, SEO, audit    │
+│                                                  │
+│   Every dispatch starts in plan mode.            │
+│   Auto-compact at 70% context.                   │
+│   Cost ceiling per user level.                   │
+│                                                  │
+└──────────────────────────────────────────────────┘
+```
+
+### 4 themes
+
+Switch anytime from the menu or settings.
+
+```
+CYBERPUNK    ████████████  (neon pink → cyan)
+FIRE         ████████████  (amber → deep orange)
+GRAFFITI     ████████████  (yellow → pink → blue)
+FUTURISTIC   ████████████  (soft blue → purple)
+```
+
+### Progressive disclosure
+
+| Level | Unlock | Experience |
+|-------|--------|------------|
+| **Guided** | Default | Everything is multiple choice. Never see a command. |
+| **Assisted** | 5 sessions | Multiple choice + freeform. See what Claude does. |
+| **Power** | 20 sessions | Full access. Direct skill invocation. Skip spec flow. |
+
+### Backwards compatible
+
+Commander is an overlay. It reads your CLAUDE.md and `.claude/` — never writes to them:
+
+```
+CC Commander reads ──→ CLAUDE.md, .claude/skills/, .claude/settings.json
+CC Commander writes ──→ ~/.claude/commander/ (separate)
+Your Claude Code ────→ Unchanged. Works exactly the same with or without Commander.
+```
+
+### Stats dashboard
+
+```
+╭──────────────────────────────────────────╮
+│  Sessions:  42          Streak:   7 days │
+│  Badges:    12          Cost:     $8.50  │
+╰──────────────────────────────────────────╯
+
+  Cost trend: ▁▄▂█▅ ▃
+  Activity:   ▒▒ ▓▓ ▒▒ ██ ██ ░░ ▓▓
+  🔥🔥🔥🔥🔥🔥🔥  7-day streak!
+
+  Level: POWER  Next: MAX
+  ▌████████████████████▐ 10/10
+```
+
+### CLI flags
 
 ```bash
-cd ~/.claude/dashboard && npm run dev
+node bin/kc.js --test       # 18-point self-test
+node bin/kc.js --stats      # Quick stats without TUI
+node bin/kc.js --repair     # Fix corrupt state
+node bin/kc.js --help       # Full usage
+node bin/kc.js --version    # CC Commander v1.5.2
 ```
 
-## Workflow Modes
+---
 
-| Mode | Behavior |
-|------|----------|
-| `normal` | Balanced — standard workflow |
-| `design` | Visual-first, critique loops, Impeccable suite |
-| `saas` | Full SaaS lifecycle — auth, billing, deploy |
-| `marketing` | Content, CRO, growth channel expertise |
-| `research` | Deep analysis, multi-source research |
-| `writing` | Technical writing, documentation |
-| `night` | Autonomous overnight with checkpoints |
-| `yolo` | Maximum speed, skip confirmations |
-| `unhinged` | No guardrails — experimental |
+## Skills & Mega-Skills
+
+280+ skills that Claude loads on demand. 10 mega-skills that route to specialist sub-skills.
+
+```
+/mega-design ───→ 35+ sub-skills (UI, UX, animations, polish)
+/mega-marketing ─→ 46 sub-skills (CRO, email, ads, content, SEO)
+/mega-saas ─────→ 20 sub-skills (auth, billing, API, deploy)
+/mega-testing ──→ 15 sub-skills (unit, integration, E2E, load)
+/mega-devops ───→ 20 sub-skills (CI/CD, Docker, AWS, monitoring)
+/mega-seo ──────→ 19 sub-skills (technical SEO, schema, analytics)
+/mega-security ─→ 9 sub-skills (OWASP, pentest, compliance)
+/mega-research ─→ 8 sub-skills (deep analysis, multi-source)
+/mega-mobile ───→ 7 sub-skills (React Native, Flutter, iOS)
+/mega-data ─────→ data pipelines, analysis, visualization
+```
+
+### Commands (88+)
 
 ```bash
-/cc mode design    # Switch to design mode
+# Planning
+/plan "Build a REST API"      # Spec-first planning
+/cc                            # Command center menu
+
+# Quality
+/verify                        # Verification loop
+/code-review                   # Multi-agent review
+/simplify                      # 3 parallel review agents
+
+# Development
+/tdd                           # Test-driven workflow
+/build-fix                     # Auto-resolve build errors
+/checkpoint                    # Git checkpoint
+
+# Orchestration
+/orchestrate                   # Multi-agent pipeline
+/batch "Update all tests"     # Parallel codebase changes
+/loop 5m "check deploy"       # Recurring tasks
 ```
+
+### Hooks (37)
+
+```
+SessionStart ──→ Load context, detect tools, OpenClaw sync
+PreToolUse ────→ Block rm -rf, confidence gate, verify commits
+PostToolUse ───→ Auto-checkpoint, context guard, cost alert
+PreCompact ────→ Save state before compaction
+Stop ──────────→ Console.log audit, session save, cost tracking
+```
+
+---
+
+## What's Inside
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│   280+ SKILLS          10 MEGA-SKILLS    88+ COMMANDS   │
+│   ─────────            ──────────────    ────────────   │
+│   Structured           Domain routers    Slash commands  │
+│   instruction sets     with 20-46 sub-   for planning,  │
+│   Claude loads         skills each       review, deploy  │
+│   on demand                                             │
+│                                                         │
+│   37 HOOKS             41 PROMPTS        9 MODES        │
+│   ────────             ──────────        ──────         │
+│   Lifecycle            Battle-tested     Task-specific   │
+│   automation           templates         behavior        │
+│   (18 kit + 19 ECC)   across 6 cats     presets         │
+│                                                         │
+│   4 THEMES             3 TEMPLATES       1 DASHBOARD    │
+│   ────────             ───────────       ───────────    │
+│   Cyberpunk, Fire      Next.js, API      Real-time      │
+│   Graffiti, Future     CLI scaffolds     React UI       │
+│                                                         │
+│   CC COMMANDER         PROJECT IMPORT    FULL DOCS      │
+│   ────────────         ──────────────    ─────────      │
+│   Interactive CLI      Reads CLAUDE.md   BIBLE.md +     │
+│   with arrow-key       Never modifies    CHEATSHEET +   │
+│   menus + themes       your .claude/     SKILLS-INDEX   │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Stock Claude Code vs Kit
+
+| Feature | Stock | Claude Code Kit |
+|---------|-------|----------------|
+| Skills | 0 | **280+** |
+| Commands | Built-in only | **88+ custom** |
+| Hooks | 0 | **37 automation hooks** |
+| Modes | 1 | **9 workflow modes** |
+| Dashboard | None | **Real-time React UI** |
+| Themes | Default | **4 switchable skins** |
+| Methodology | None | **The Kevin Z Method** |
+| Multi-agent | Basic | **Task Commander + Spawn Manager** |
+| Cost control | None | **Auto-alerts + budget tracking** |
+| Context safety | None | **Auto-checkpoint + context guard** |
+| Session management | None | **CC Commander — persistent tracking** |
+| Non-coder support | None | **Guided mode — multiple choice menus** |
+
+---
 
 ## The Kevin Z Method
 
 7 golden rules distilled from 200+ community articles and 14 months of production use:
 
-1. **Plan before coding** — `/plan` for every multi-step task
-2. **Context is milk** — Fresh context beats deep context
-3. **Verify, don't trust** — Always `/verify` before done
-4. **Subagents = fresh context** — Parallel peers for independent work
-5. **CLAUDE.md is an investment** — Rules compound like interest
-6. **Boring solutions win** — Push back on AI complexity bias
-7. **Operationalize every fix** — Every bug becomes infrastructure
+```
+┌─ THE 7 RULES ──────────────────────────────────────────┐
+│                                                        │
+│  1. Plan before coding        /plan every multi-step   │
+│  2. Context is milk           Fresh + condensed = best │
+│  3. Verify, don't trust       /verify before done      │
+│  4. Subagents = fresh ctx     Parallel, no bloat       │
+│  5. CLAUDE.md is investment   Rules compound over time  │
+│  6. Boring solutions win      Push back on complexity   │
+│  7. Operationalize every fix  Every bug → infra        │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+```
 
-Full methodology in [BIBLE.md](BIBLE.md).
+Full methodology: [BIBLE.md](BIBLE.md) (2000 lines, 7 chapters, appendices)
 
-## Hook Lifecycle
+---
 
-37 hooks fire automatically at 5 lifecycle stages:
+## The Story
 
-| Stage | Example Hooks |
-|-------|--------------|
-| **SessionStart** | Load session context, detect package manager, OpenClaw sync |
-| **PreToolUse** | Block destructive commands, confidence gate |
-| **PostToolUse** | Context guard, auto-checkpoint, cost alert, self-verify, status reporter |
-| **PreCompact** | Save state before context compaction |
-| **Stop** | Console.log audit, session persistence, cost tracking |
+A non-technical CEO scanned every Claude Code article, plugin, and skill — 200+ sources across X/Twitter, Reddit, Medium, YouTube, and GitHub. Tested everything. Kept what worked. Threw away what didn't.
 
-Every hook can be individually disabled via environment variable.
+The result: **Claude Code Kit** — the complete setup. And **CC Commander** — the first interactive CLI that manages your AI work through multiple-choice menus.
 
-## Stock Claude Code vs Claude Code Kit
+One install. Under 60 seconds. Works with your existing setup.
 
-| Feature | Stock | Kit |
-|---------|-------|-----|
-| Skills | 0 | 280+ |
-| Commands | Built-in only | 88+ custom |
-| Hooks | 0 | 37 automation hooks |
-| Modes | 1 | 9 workflow modes |
-| Dashboard | None | Real-time React UI |
-| Themes | Default | 4 switchable skins |
-| Methodology | None | The Kevin Z Method |
-| Multi-agent | Basic | Task Commander + Spawn Manager |
-| Cost control | None | Auto-alerts + budget tracking |
-| Context safety | None | Auto-checkpoint + context guard |
+[Read the full story →](https://kevinz.ai)
 
-## Integrations
-
-- **OpenClaw**: Native integration with 38-agent AI platform
-- **Claude Peers**: Multi-instance collaboration patterns
-- **Everything Claude Code (ECC)**: Compatible — adds 21 more hooks
-- **VS Code / Cursor**: Snippets and IDE guides included
+---
 
 ## Contributing
 
@@ -185,7 +314,10 @@ PRs welcome. The kit is designed to be extended:
 skills/your-skill/SKILL.md    # Add a new skill
 commands/your-command.md       # Add a slash command
 hooks/your-hook.js             # Add a lifecycle hook
+commander/adventures/X.json    # Add a Commander flow
 ```
+
+---
 
 ## License
 
@@ -193,16 +325,19 @@ MIT License. See [LICENSE](LICENSE).
 
 ---
 
-## Author
+<div align="center">
 
-**Kevin Zicherman** — CEO of [MyWiFi Networks](https://mywifi.io). Not a researcher. Not a pundit. An operator who ships.
+**CC Commander v1.5.2** — by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic))
 
-- Web: [kevinz.ai](https://kevinz.ai)
-- X: [@kzic](https://x.com/kzic)
-- GitHub: [k3v80](https://github.com/k3v80)
+*280+ skills. One command. Your AI work, managed by AI.*
 
----
+```
+╭─────────────────────────────────────────────────╮
+│                                                 │
+│   Not a researcher. Not a pundit.               │
+│   An operator who ships.                        │
+│                                                 │
+╰─────────────────────────────────────────────────╯
+```
 
-**Claude Code Kit v1.5** — Built by Kevin Z
-
-*Distilled from 200+ community sources. One install. Under 60 seconds.*
+</div>
