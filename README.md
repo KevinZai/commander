@@ -203,6 +203,6 @@ MIT License. See [LICENSE](LICENSE).
 
 ---
 
-**Claude Code Kit v1.4** — Built by Kevin Z
+**Claude Code Kit v1.5** — Built by Kevin Z
 
 *Distilled from 200+ community sources. One install. Under 60 seconds.*

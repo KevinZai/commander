@@ -1,0 +1,49 @@
+{
+  "id": "main-menu",
+  "version": 1,
+  "screen": {
+    "title": "Kit Commander",
+    "subtitle": "welcomeMessage",
+    "art": "mini_dashboard"
+  },
+  "prompt": "What would you like to do?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Continue where I left off",
+      "description": "Pick up your last session",
+      "condition": "hasActiveSession",
+      "next": "continue-work"
+    },
+    {
+      "key": "b",
+      "label": "Build something new",
+      "description": "Start a fresh project or feature",
+      "next": "build-something"
+    },
+    {
+      "key": "c",
+      "label": "Review what I built",
+      "description": "See recent sessions and their results",
+      "next": "review-work"
+    },
+    {
+      "key": "d",
+      "label": "Learn a new skill",
+      "description": "Browse skills, commands, and guides",
+      "next": "learn-skill"
+    },
+    {
+      "key": "e",
+      "label": "Check my stats",
+      "description": "Streaks, achievements, session history",
+      "next": "check-stats"
+    },
+    {
+      "key": "q",
+      "label": "Quit",
+      "description": "Exit Kit Commander",
+      "action": "quit"
+    }
+  ]
+}

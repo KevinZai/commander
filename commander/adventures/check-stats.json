@@ -1,0 +1,29 @@
+{
+  "id": "check-stats",
+  "version": 1,
+  "screen": {
+    "title": "Your Stats",
+    "subtitle": "See how you're doing."
+  },
+  "action": "show_stats",
+  "afterAction": {
+    "prompt": "What next?",
+    "choices": [
+      {
+        "key": "a",
+        "label": "View my achievements",
+        "action": "show_achievements"
+      },
+      {
+        "key": "b",
+        "label": "View session history",
+        "action": "show_history"
+      },
+      {
+        "key": "c",
+        "label": "Back to main menu",
+        "next": "main-menu"
+      }
+    ]
+  }
+}

@@ -20,6 +20,7 @@ triggers:
   - "/cc leaderboard"
   - "/cc celebrate"
   - "/cc beginner"
+  - "/cc commander"
 ---
 
 # /cc — Claude Code Command Center
@@ -51,6 +52,7 @@ You are the Claude Code Command Center. When the user invokes `/cc`, display the
 - `/cc leaderboard` → Session stats + achievements
 - `/cc celebrate` → ASCII celebration + quip
 - `/cc beginner` → Beginner PM mode
+- `/cc commander` → Launch Kit Commander (interactive CLI)
 
 ## Main Menu
 
@@ -58,7 +60,7 @@ When showing the main menu, display:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  CLAUDE CODE KIT  //  COMMAND CENTER         v1.4
+  CLAUDE CODE KIT  //  COMMAND CENTER         v1.5
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   🔧 BUILD                    📋 PLAN
@@ -73,11 +75,14 @@ When showing the main menu, display:
   [12] Health Check ✨         [16] Status Updates
 
   📚 LEARN                    🎮 FUN
-  [17] Docs Browser ✨         [20] Leaderboard ✨
-  [18] Quick Reference ✨      [21] Celebrate ✨
-  [19] Coach ✨                [22] Beginner Mode ✨
+  [17] Docs Browser            [20] Leaderboard
+  [18] Quick Reference         [21] Celebrate
+  [19] Coach                   [22] Beginner Mode
 
-  ✨ = New in v1.4
+  🚀 NEW IN v1.5
+  [23] Kit Commander ✨        Interactive CLI PM — runs above sessions
+
+  ✨ = New in v1.5
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   /cc <number> or /cc <name>  │  /cc help
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

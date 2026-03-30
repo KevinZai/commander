@@ -1,0 +1,29 @@
+{
+  "id": "review-work",
+  "version": 1,
+  "screen": {
+    "title": "Review Your Work",
+    "subtitle": "See what you've built recently."
+  },
+  "action": "show_recent_sessions",
+  "afterAction": {
+    "prompt": "What would you like to do?",
+    "choices": [
+      {
+        "key": "a",
+        "label": "Resume one of these sessions",
+        "action": "pick_session_to_resume"
+      },
+      {
+        "key": "b",
+        "label": "See details of a session",
+        "action": "pick_session_details"
+      },
+      {
+        "key": "c",
+        "label": "Back to main menu",
+        "next": "main-menu"
+      }
+    ]
+  }
+}

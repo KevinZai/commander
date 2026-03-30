@@ -1,0 +1,31 @@
+{
+  "id": "continue-work",
+  "version": 1,
+  "screen": {
+    "title": "Continue Your Work",
+    "subtitle": "Pick up where you left off."
+  },
+  "prompt": "How should we proceed?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Pick up exactly where I left off",
+      "action": "resume_session"
+    },
+    {
+      "key": "b",
+      "label": "Show me what was done so far",
+      "action": "show_session_summary"
+    },
+    {
+      "key": "c",
+      "label": "Start fresh with a summary of what I had",
+      "action": "resume_with_summary"
+    },
+    {
+      "key": "d",
+      "label": "Actually, let me do something else",
+      "next": "main-menu"
+    }
+  ]
+}

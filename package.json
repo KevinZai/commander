@@ -1,14 +1,17 @@
 {
   "name": "claude-code-kit",
-  "version": "1.4.0",
-  "description": "The Complete Claude Code Toolkit — 280+ skills, 88+ commands, 37 hooks, 4 themes, real-time dashboard",
+  "version": "1.5.0",
+  "description": "Kit Commander — Your AI-Powered Project Manager for Claude Code. 280+ skills, interactive CLI, session tracking, beginner-friendly.",
   "author": "Kevin Zicherman <kevin@kevinz.ai> (https://kevinz.ai)",
   "license": "MIT",
   "bin": {
-    "claude-code-kit": "./bin/cli.js"
+    "claude-code-kit": "./bin/cli.js",
+    "kit-commander": "./bin/kc.js",
+    "kc": "./bin/kc.js"
   },
   "files": [
     "bin/",
+    "commander/",
     "commands/",
     "hooks/",
     "lib/",

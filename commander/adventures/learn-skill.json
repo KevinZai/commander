@@ -1,0 +1,36 @@
+{
+  "id": "learn-skill",
+  "version": 1,
+  "screen": {
+    "title": "Learn Something New",
+    "subtitle": "Browse skills, commands, and guides."
+  },
+  "prompt": "What would you like to explore?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Browse skills by category",
+      "action": "browse_skills"
+    },
+    {
+      "key": "b",
+      "label": "See mega-skills (big workflows)",
+      "action": "browse_mega_skills"
+    },
+    {
+      "key": "c",
+      "label": "Quick reference card",
+      "action": "show_cheatsheet"
+    },
+    {
+      "key": "d",
+      "label": "Get a recommendation",
+      "action": "recommend_skill"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 # The Claude Code Bible — by Kevin Z
-> Version 1.4 | Updated: 2026-03-29 | Non-coder friendly. Practical examples throughout.
+> Version 1.5 | Updated: 2026-03-29 | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -1966,5 +1966,5 @@ graph TD
 ---
 
 *Last updated: 2026-03-29*
-*The Claude Code Bible — by Kevin Z — v1.4*
+*The Claude Code Bible — by Kevin Z — v1.5*
 *Update this file when you learn something new. That's the point.*

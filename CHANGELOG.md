@@ -2,6 +2,30 @@
 
 All notable changes to Claude Code Kit will be documented in this file.
 
+## [1.5.0] — 2026-03-29
+
+### Added
+- **Kit Commander**: Standalone interactive CLI that runs ABOVE Claude Code sessions — the first menu-driven project manager for AI coding tools
+- **Choose Your Own Adventure Engine**: JSON-driven decision trees with multiple-choice menus — users never need to type code or commands
+- **Session Orchestration**: Dispatches to Claude Code headlessly via `claude -p`, tracks sessions with full metadata (duration, cost, files, outcome)
+- **Session Resume Intelligence**: "Pick up where you left off" or "Start fresh with summary" — wraps Claude Code's `--resume` flag in friendly UX
+- **Progressive Disclosure**: 3-tier user levels (Guided → Assisted → Power User) that unlock automatically as experience grows
+- **Recommendations Engine**: Context-aware suggestions based on git status, streaks, session history, pending tasks, and cost
+- **Sync Interface (stub)**: Architecture-ready for future SaaS dashboard, cross-device sync, team features, and mobile app
+- **Branding Registry** (`docs/BRANDING-REGISTRY.md`): Complete catalog of 227 branding touchpoints across 65 files for easy pivoting
+- **Third-Party Licenses** (`THIRD-PARTY-LICENSES.md`): Attribution for 7 MIT/Elastic-licensed pattern inspirations + explicit "not used" section for license-incompatible projects
+- **4 Commander Achievements**: Commander, Assisted Mode, Power Commander, First Build — added to gamification system (now 16 total)
+- **6 Adventure Flows**: main-menu, build-something, continue-work, review-work, learn-skill, check-stats — each with multiple-choice branching
+- **`bin/kc.js` entry point**: `npx kit-commander` or `node bin/kc.js` — with `--version` and `--test` flags
+- **Open Core Architecture**: Free CLI (complete) + paid tier stubs (SaaS dashboard, cloud sync, team features, mobile app at $19/mo)
+
+### Changed
+- **Version bump**: 1.4 → 1.5 across all files (README, BIBLE, install.sh, commands/cc.md, package.json)
+- **Package.json**: Added `kit-commander` and `kc` binary entries alongside existing `claude-code-kit`
+- **Package description**: Updated to lead with "Kit Commander" product name
+- **/cc Command Center**: Expanded to 23 menu items with Kit Commander as [23]
+- **Gamification**: 12 → 16 achievement definitions (4 Commander achievements)
+
 ## [1.4.0] — 2026-03-29
 
 ### Added
