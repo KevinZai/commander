@@ -1,6 +1,6 @@
 {
   "id": "settings",
-  "version": 1,
+  "version": 2,
   "screen": {
     "title": "Settings",
     "subtitle": "Customize your CC Commander experience."
@@ -34,6 +34,12 @@
       "key": "e",
       "label": "Toggle animations",
       "action": "settings_animations"
+    },
+    {
+      "key": "l",
+      "label": "Linear sync status",
+      "description": "View project progress",
+      "action": "show_linear"
     },
     {
       "key": "r",

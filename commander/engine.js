@@ -292,11 +292,25 @@ class KitCommander {
         return { next: 'mega-skills' };
       }
       case 'show_mega_detail': {
-        process.stdout.write('n  ' + tui.boldText('Pick a mega-skill and describe your need.', tui.getTheme().text) + 'n');
+        process.stdout.write('\n  ' + tui.boldText('Pick a mega-skill and describe your need.', tui.getTheme().text) + '\n');
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         var megaTask = await this.ask('  > ');
         if (megaTask.trim()) await this.executeBuild(megaTask);
         return { next: 'mega-skills' };
+      }
+      case 'show_linear': {
+        try {
+          var linearMod = require('./integrations/linear');
+          var conn = await linearMod.checkConnection();
+          var prog = await linearMod.getProgress();
+          process.stdout.write('\n' + tui.divider('Linear Sync') + '\n');
+          process.stdout.write('  Connected: ' + (conn.connected ? 'Yes (' + (conn.user||'') + ')' : 'No') + '\n');
+          process.stdout.write('  ' + prog.total + ' issues: ' + prog.done + ' done, ' + prog.inProgress + ' active, ' + prog.backlog + ' backlog\n');
+          process.stdout.write('  ' + tui.progressBar(prog.done, prog.total) + '\n');
+        } catch(_e) { process.stdout.write('\n  Linear not connected. Set LINEAR_API_KEY_PERSONAL.\n'); }
+        if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        await this.ask('\n  Press Enter...');
+        return { next: 'settings' };
       }
       case 'settings_name': {
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -340,6 +354,9 @@ class KitCommander {
     var spec = await this.runSpecFlow(task, userLevel);
     var fullTask = spec.enrichedTask;
     var session = state.createSession({ task: fullTask, project: null });
+
+    // Sync to Linear (non-blocking)
+    try { var linearMod = require("./integrations/linear"); linearMod.syncSession(session, "started").catch(function(){}); } catch(_e) {}
 
     process.stdout.write('\n  ' + tui.dimText(fullTask.slice(0, 200)) + '\n');
 
@@ -523,6 +540,9 @@ class KitCommander {
       var sp = tui.spinner("Cycle " + cycle + "/" + maxCycles + ": " + (cycle === 1 ? "Building" : "Improving") + "...");
       sp.start();
       var session = state.createSession({ task: "YOLO cycle " + cycle + ": " + task, project: null });
+
+    // Sync to Linear (non-blocking)
+    try { var linearMod = require("./integrations/linear"); linearMod.syncSession(session, "started").catch(function(){}); } catch(_e) {}
       var prompt = cycle === 1 ? task : "Review and improve the previous work on: " + task + ". Fix any issues. Add missing tests. Improve quality.";
       var knowledgePrompt = knowledge.buildKnowledgePrompt(task);
       try {

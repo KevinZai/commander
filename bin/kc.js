@@ -52,6 +52,8 @@ if (args.includes('--test')) {
     ['mega-skills', function(){ require(path.join(__dirname,'..','commander','adventures','mega-skills.json')); }],
     ['knowledge', function(){ var k = require(path.join(__dirname,'..','commander','knowledge')); if(typeof k.extractAndStore !== 'function') throw new Error('missing'); }],
     ['plugins', function(){ var p = require(path.join(__dirname,'..','commander','plugins')); if(typeof p.detectPlugins !== 'function') throw new Error('missing'); }],
+    ['settings', function(){ require(path.join(__dirname,'..','commander','adventures','settings.json')); }],
+    ['linear', function(){ require(path.join(__dirname,'..','commander','integrations','linear')); }],
   ];
   var passed = 0;
   for (var c of checks) { try { c[1](); console.log('  v ' + c[0]); passed++; } catch(e) { console.log('  x ' + c[0] + ': ' + e.message); } }
