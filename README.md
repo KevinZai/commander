@@ -1,26 +1,23 @@
 <div align="center">
 
 ```
-  ██████╗ ██████╗
- ██╔════╝██╔════╝
- ██║     ██║
- ██║     ██║
- ╚██████╗╚██████╗
-  ╚═════╝ ╚═════╝
- COMMANDER
+ _____ _____    _____                           _
+|     |     |  |     |___ _____ _____ ___ ___ _| |___ ___
+|   --|   --|  |   --| . |     |     | .'|   | . | -_|  _|
+|_____|_____|  |_____|___|_|_|_|_|_|_|__,|_|_|___|___|_|
 ```
 
 ### 280+ skills. One command. Your AI work, managed by AI.
 
+The most comprehensive Claude Code setup in existence.
+<br>**Not a skill pack. An AI project manager.**
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Claude Code](https://img.shields.io/badge/Claude_Code-Compatible-D97706?logo=anthropic&logoColor=white)](https://claude.ai/code)
 [![Skills](https://img.shields.io/badge/Skills-280+-4F46E5)](./SKILLS-INDEX.md)
-[![Version](https://img.shields.io/badge/Version-1.6.0-D97706)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-103%20passing-4F46E5)](./commander/tests/)
+[![Tests](https://img.shields.io/badge/Tests-103_passing-4F46E5)](./commander/tests/)
+[![v1.6.0](https://img.shields.io/badge/v1.6.0-D97706)](./CHANGELOG.md)
 
-**by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic))**
-
-[Install](#install) · [Commander](#cc-commander) · [Intelligence](#the-intelligence-layer) · [Skills](#skills) · [BIBLE.md](BIBLE.md)
+**by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic))** · Built from 200+ community sources
 
 </div>
 
