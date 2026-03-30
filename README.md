@@ -16,29 +16,9 @@
 
 Every Claude Code tool is a skill pack that runs **inside** sessions.
 
-CCC runs **above** them.
+CCC runs **above** them — it dispatches, tracks, learns, and orchestrates.
 
-```
-╔═════════════════════════════════════════╗
-║                                         ║
-║   ┌───────────────────────────────┐     ║
-║   │  CLAUDE CODE COMMANDER (CCC)  │     ║
-║   │                               │     ║
-║   │  ▸ Detects your packages      │     ║
-║   │  ▸ Learns from every session  │     ║
-║   │  ▸ Compounds knowledge        │     ║
-║   │  ▸ Orchestrates the tools     │     ║
-║   │  ▸ Tracks cost & streaks      │     ║
-║   │  ▸ Guides non-coders          │     ║
-║   └───────────┬───────────────────┘     ║
-║               │                         ║
-║   ┌───────────▼───────────────────┐     ║
-║   │  YOUR CLAUDE CODE SESSIONS    │     ║
-║   │  280+ skills behind one menu  │     ║
-║   └───────────────────────────────┘     ║
-║                                         ║
-╚═════════════════════════════════════════╝
-```
+<img src="docs/assets/ccc-flow.svg" alt="How CCC Works" width="100%">
 
 ---
 
