@@ -59,6 +59,13 @@
       "next": "check-stats"
     },
     {
+      "key": "l",
+      "label": "Linear board",
+      "description": "View issues, pick tasks, track work",
+      "condition": "hasLinear",
+      "next": "linear-board"
+    },
+    {
       "key": "n",
       "label": "Night Mode",
       "description": "8-hour autonomous build",

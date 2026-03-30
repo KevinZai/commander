@@ -89,6 +89,8 @@ function createSession(metadata) {
     project: metadata.project || null,
     profile: metadata.profile || null,
     claudeSessionId: null,
+    linearIssueId: null,
+    linearIssueIdentifier: null,
     status: 'active',
     outcome: null,
     resumePoint: null,

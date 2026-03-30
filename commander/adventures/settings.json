@@ -37,8 +37,8 @@
     },
     {
       "key": "l",
-      "label": "Linear sync status",
-      "description": "View project progress",
+      "label": "Linear connection",
+      "description": "Check API key and connection status",
       "action": "show_linear"
     },
     {

@@ -307,7 +307,7 @@ class KitCommander {
           var linearMod = require('./integrations/linear');
           var conn = await linearMod.checkConnection();
           var prog = await linearMod.getProgress();
-          process.stdout.write('\n' + tui.divider('Linear Sync') + '\n');
+          process.stdout.write('\n' + tui.divider('Linear Connection') + '\n');
           process.stdout.write('  Connected: ' + (conn.connected ? 'Yes (' + (conn.user||'') + ')' : 'No') + '\n');
           process.stdout.write('  ' + prog.total + ' issues: ' + prog.done + ' done, ' + prog.inProgress + ' active, ' + prog.backlog + ' backlog\n');
           process.stdout.write('  ' + tui.progressBar(prog.done, prog.total) + '\n');
@@ -315,6 +315,67 @@ class KitCommander {
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         await this.ask('\n  Press Enter...');
         return { next: 'settings' };
+      }
+      case 'show_linear_board': {
+        try {
+          var boardLinear = require('./integrations/linear');
+          var boardConn = await boardLinear.checkConnection();
+          if (!boardConn.connected) { process.stdout.write('\n  Linear not connected. Set LINEAR_API_KEY_PERSONAL.\n'); break; }
+          var grouped = await boardLinear.getIssuesByStatus();
+          var prog2 = await boardLinear.getProgress();
+          process.stdout.write('\n' + tui.divider('Linear Board') + '\n');
+          process.stdout.write('  ' + tui.progressBar(prog2.done, prog2.total) + '  ' + prog2.done + '/' + prog2.total + ' done\n\n');
+          var sections = [
+            { label: 'In Progress', items: grouped.started, color: tui.getTheme().primary },
+            { label: 'Todo', items: grouped.unstarted, color: tui.getTheme().secondary },
+            { label: 'Backlog', items: grouped.backlog, color: tui.getTheme().dim },
+          ];
+          sections.forEach(function(s) {
+            if (s.items.length === 0) return;
+            process.stdout.write('  ' + tui.boldText(s.label + ' (' + s.items.length + ')', s.color) + '\n');
+            s.items.slice(0, 8).forEach(function(i) {
+              process.stdout.write('    ' + tui.dimText(i.identifier) + ' ' + i.title.slice(0, 60) + '\n');
+            });
+            process.stdout.write('\n');
+          });
+          if (grouped.completed.length > 0) {
+            process.stdout.write('  ' + tui.dimText('Done: ' + grouped.completed.length + ' issues') + '\n\n');
+          }
+        } catch(_e) { process.stdout.write('\n  Error loading board: ' + _e.message + '\n'); }
+        return null;
+      }
+      case 'linear_create_issue': {
+        try {
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          var issueTitle = await this.ask('  Issue title: ');
+          if (!issueTitle.trim()) return { next: 'linear-board' };
+          var issueDesc = await this.ask('  Description (optional): ');
+          var createLinear = require('./integrations/linear');
+          var created = await createLinear.quickCreateIssue(issueTitle.trim(), issueDesc.trim());
+          process.stdout.write(tui.celebrate(created.identifier + ' created!'));
+        } catch(_e) { process.stdout.write('\n  Error: ' + _e.message + '\n'); }
+        return { next: 'linear-board' };
+      }
+      case 'linear_pick_issue': {
+        try {
+          var pickLinear = require('./integrations/linear');
+          var pickGrouped = await pickLinear.getIssuesByStatus();
+          var pickable = pickGrouped.unstarted.concat(pickGrouped.backlog);
+          if (pickable.length === 0) { process.stdout.write('\n  No available issues to pick.\n'); return { next: 'linear-board' }; }
+          var pickItems = pickable.slice(0, 15).map(function(i) { return { label: i.identifier + ' ' + i.title.slice(0, 50) }; });
+          pickItems.push({ label: 'Back' });
+          var pickIdx = await tui.select(pickItems, 'Pick an issue:');
+          if (pickIdx < 0 || pickIdx >= pickable.length) return null;
+          var picked = pickable[pickIdx];
+          process.stdout.write('\n  Assigning ' + picked.identifier + '...\n');
+          await pickLinear.assignIssueToMe(picked.id);
+          var startedStateId = await pickLinear.findStateId('started');
+          if (startedStateId) await pickLinear.updateIssue(picked.id, { stateId: startedStateId });
+          await this.executeBuildFromIssue(picked);
+        } catch(_e) {
+          process.stdout.write('\n  Error: ' + _e.message + '\n');
+        }
+        return { next: 'main-menu' };
       }
       case 'settings_name': {
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -359,8 +420,14 @@ class KitCommander {
     var fullTask = spec.enrichedTask;
     var session = state.createSession({ task: fullTask, project: null });
 
-    // Sync to Linear (non-blocking)
-    try { var linearMod = require("./integrations/linear"); linearMod.syncSession(session, "started").catch(function(){}); } catch(_e) {}
+    // Sync to Linear — capture issue ID
+    try {
+      var linearStart = require("./integrations/linear");
+      var linearIssue = await linearStart.syncSession(session, "started");
+      if (linearIssue && linearIssue.id) {
+        state.updateSession(session.id, { linearIssueId: linearIssue.id, linearIssueIdentifier: linearIssue.identifier || null });
+      }
+    } catch(_e) {}
 
     process.stdout.write('\n  ' + tui.dimText(fullTask.slice(0, 200)) + '\n');
 
@@ -377,25 +444,101 @@ class KitCommander {
       process.stdout.write("  " + tui.dimText(plugins.getAttribution(detection.installed)) + "\n");
     }
 
-
     var sp = tui.spinner('Dispatching to Claude Code (plan mode)...');
     sp.start();
 
     var d = getDispatcher();
     var defaults = d.getDefaultsForLevel(userLevel);
+
+    // Build system prompt with plugins + knowledge + Linear MCP context
+    var sysPrompt = (function() {
+      var knowledge = require("./knowledge");
+      var knowledgePrompt = knowledge.buildKnowledgePrompt(fullTask);
+      var pluginsMod = require("./plugins");
+      var det = pluginsMod.detectPlugins();
+      var dispPlan = pluginsMod.buildDispatchPlan(det);
+      var pluginInstructions = dispPlan.filter(function(s){return s.hasPlugin;}).map(function(s){return s.name + ": use " + s.tool;}).join(". ");
+      var prompt = "Start with a plan. Present it before implementing." + (pluginInstructions ? " Use these tools in sequence: " + pluginInstructions + "." : "");
+      var cs = state.loadState();
+      if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} }
+      // Linear MCP context injection
+      var linearCtx = "";
+      try {
+        var lm = require("./integrations/linear");
+        if (!lm.validateAuth()) {
+          var sess = state.getSession(session.id);
+          if (sess && sess.linearIssueId) {
+            linearCtx = "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + sess.linearIssueIdentifier + " (ID: " + sess.linearIssueId + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
+          }
+        }
+      } catch(_e) {}
+      return prompt + knowledgePrompt + linearCtx;
+    })();
+
     try {
-        systemPrompt: (function() { var knowledge = require("./knowledge"); var knowledgePrompt = knowledge.buildKnowledgePrompt(fullTask); var pluginsMod = require("./plugins"); var det = pluginsMod.detectPlugins(); var dispPlan = pluginsMod.buildDispatchPlan(det); var pluginInstructions = dispPlan.filter(function(s){return s.hasPlugin;}).map(function(s){return s.name + ": use " + s.tool;}).join(". "); var prompt = "Start with a plan. Present it before implementing." + (pluginInstructions ? " Use these tools in sequence: " + pluginInstructions + "." : ""); var cs = state.loadState(); if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} } return prompt + knowledgePrompt; })(),
+      var result = d.dispatch(fullTask, {
+        sync: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
+        model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
+        permissionMode: "plan", fallbackModel: "sonnet", bare: true,
+        name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+      });
       sp.stop(true);
       state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
       state.completeSession(session.id, 'success');
       try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
+      // Sync completion to Linear
+      try { var linearDone = require("./integrations/linear"); var doneSession = state.getSession(session.id); if (doneSession) linearDone.syncSession(doneSession, "success").catch(function(){}); } catch(_e) {}
       process.stdout.write(tui.celebrate('BUILD COMPLETE'));
       if (result.result) { var summary = typeof result.result === 'string' ? result.result.slice(0, 500) : JSON.stringify(result.result).slice(0, 500); process.stdout.write('\n  ' + summary + '\n'); }
     } catch (err) {
       sp.stop(false);
+      // Sync error to Linear
+      try { var linearErr = require("./integrations/linear"); var errSession = state.getSession(session.id); if (errSession) linearErr.syncSession(errSession, "error").catch(function(){}); } catch(_e) {}
       state.completeSession(session.id, 'error');
       process.stdout.write('\n  Error: ' + err.message + '\n');
       process.stdout.write('  Tip: npm i -g @anthropic-ai/claude-code\n');
+    }
+    if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    await this.ask('\n  Press Enter...');
+  }
+
+  async executeBuildFromIssue(issue) {
+    var fullTask = issue.title;
+    var session = state.createSession({ task: fullTask, project: null });
+    state.updateSession(session.id, { linearIssueId: issue.id, linearIssueIdentifier: issue.identifier || null });
+    process.stdout.write('\n  ' + tui.boldText(issue.identifier + ': ' + fullTask, tui.getTheme().primary) + '\n');
+    var sp = tui.spinner('Dispatching to Claude Code...');
+    sp.start();
+    var d = getDispatcher();
+    var currentState = state.loadState();
+    var defaults = d.getDefaultsForLevel(state.getUserLevel(currentState));
+    var sysPrompt = (function() {
+      var knowledge = require("./knowledge");
+      var knowledgePrompt = knowledge.buildKnowledgePrompt(fullTask);
+      var prompt = "Start with a plan. Present it before implementing.";
+      var cs = state.loadState();
+      if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} }
+      prompt += "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + issue.identifier + " (ID: " + issue.id + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
+      return prompt + knowledgePrompt;
+    })();
+    try {
+      var result = d.dispatch(fullTask, {
+        sync: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
+        model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
+        permissionMode: "plan", fallbackModel: "sonnet", bare: true,
+        name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+      });
+      sp.stop(true);
+      state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
+      state.completeSession(session.id, 'success');
+      try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
+      try { var linearDone = require("./integrations/linear"); var doneSession = state.getSession(session.id); if (doneSession) linearDone.syncSession(doneSession, "success").catch(function(){}); } catch(_e) {}
+      process.stdout.write(tui.celebrate('BUILD COMPLETE'));
+    } catch (err) {
+      sp.stop(false);
+      try { var linearErr = require("./integrations/linear"); var errSession = state.getSession(session.id); if (errSession) linearErr.syncSession(errSession, "error").catch(function(){}); } catch(_e) {}
+      state.completeSession(session.id, 'error');
+      process.stdout.write('\n  Error: ' + err.message + '\n');
     }
     if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     await this.ask('\n  Press Enter...');
@@ -545,8 +688,13 @@ class KitCommander {
       sp.start();
       var session = state.createSession({ task: "YOLO cycle " + cycle + ": " + task, project: null });
 
-    // Sync to Linear (non-blocking)
-    try { var linearMod = require("./integrations/linear"); linearMod.syncSession(session, "started").catch(function(){}); } catch(_e) {}
+      // Sync to Linear — capture issue
+      try {
+        var yoloLinear = require("./integrations/linear");
+        var yoloIssue = await yoloLinear.syncSession(session, "started");
+        if (yoloIssue && yoloIssue.id) state.updateSession(session.id, { linearIssueId: yoloIssue.id, linearIssueIdentifier: yoloIssue.identifier || null });
+      } catch(_e) {}
+
       var prompt = cycle === 1 ? task : "Review and improve the previous work on: " + task + ". Fix any issues. Add missing tests. Improve quality.";
       var knowledgePrompt = knowledge.buildKnowledgePrompt(task);
       try {
@@ -556,9 +704,11 @@ class KitCommander {
         state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
         state.completeSession(session.id, "success");
         knowledge.extractAndStore(state.getSession(session.id) || session, result.result || "");
+        try { var yoloDone = require("./integrations/linear"); var yoloDoneSession = state.getSession(session.id); if (yoloDoneSession) yoloDone.syncSession(yoloDoneSession, "success").catch(function(){}); } catch(_e) {}
         process.stdout.write("  " + tui.colorText("Cycle " + cycle + " complete", tui.getTheme().success) + "\n");
       } catch (err) {
         sp.stop(false);
+        try { var yoloErr = require("./integrations/linear"); var yoloErrSession = state.getSession(session.id); if (yoloErrSession) yoloErr.syncSession(yoloErrSession, "error").catch(function(){}); } catch(_e) {}
         state.completeSession(session.id, "error");
         process.stdout.write("  Cycle " + cycle + " error: " + err.message + "\n");
       }

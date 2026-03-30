@@ -26,6 +26,7 @@ function evaluateCondition(condition, state) {
     case 'isGuided': return state.user && state.user.level === 'guided';
     case 'isAssisted': return state.user && state.user.level === 'assisted';
     case 'isPower': return state.user && state.user.level === 'power';
+    case 'hasLinear': return Boolean(process.env.LINEAR_API_KEY_PERSONAL || process.env.LINEAR_API_KEY);
     default: return true;
   }
 }

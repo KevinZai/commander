@@ -3,61 +3,30 @@
 var https = require('https');
 var API_HOST = 'api.linear.app';
 
-var _oauthCache = { token: null, expiry: 0 };
-
-function getOAuthToken() {
-  var id = process.env.LINEAR_CC_CLIENT_ID;
-  var secret = process.env.LINEAR_CC_CLIENT_SECRET;
-  if (!id || !secret) return Promise.resolve(null);
-  if (_oauthCache.token && Date.now() < _oauthCache.expiry) return Promise.resolve(_oauthCache.token);
-
-  return new Promise(function(resolve) {
-    var qs = 'grant_type=client_credentials&client_id=' + id + '&client_secret=' + secret + '&scope=read,write';
-    var req = https.request({ hostname: API_HOST, path: '/oauth/token', method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(qs) }
-    }, function(res) {
-      var d = ''; res.on('data', function(c) { d += c; }); res.on('end', function() {
-        try { var r = JSON.parse(d); if (r.access_token) { _oauthCache.token = r.access_token; _oauthCache.expiry = Date.now() + 3500000; resolve(r.access_token); } else resolve(null); }
-        catch (_e) { resolve(null); }
-      });
-    });
-    req.on('error', function() { resolve(null); });
-    req.write(qs); req.end();
-  });
-}
-
 function getAuth() {
-  return getOAuthToken().then(function(t) {
-    if (t) return 'Bearer ' + t;
-    var k = process.env.LINEAR_API_KEY_PERSONAL || process.env.LINEAR_API_KEY;
-    return k || null;
-  });
+  var k = process.env.LINEAR_API_KEY_PERSONAL || process.env.LINEAR_API_KEY;
+  return k || null;
 }
 
 function validateAuth() {
-  var hasOAuth = process.env.LINEAR_CC_CLIENT_ID && process.env.LINEAR_CC_CLIENT_SECRET;
-  var hasApiKey = process.env.LINEAR_API_KEY_PERSONAL || process.env.LINEAR_API_KEY;
-  if (!hasOAuth && !hasApiKey) {
-    return { error: 'LINEAR_API_KEY_PERSONAL (or LINEAR_CC_CLIENT_ID + LINEAR_CC_CLIENT_SECRET) not set' };
-  }
+  if (!getAuth()) return { error: 'LINEAR_API_KEY_PERSONAL not set. Get one at linear.app/settings/api.' };
   return null;
 }
 
 function graphql(query, variables) {
-  return getAuth().then(function(auth) {
-    if (!auth) throw new Error('No Linear auth. Set LINEAR_CC_CLIENT_ID+SECRET or LINEAR_API_KEY_PERSONAL.');
-    return new Promise(function(resolve, reject) {
-      var body = JSON.stringify({ query: query, variables: variables || {} });
-      var req = https.request({ hostname: API_HOST, path: '/graphql', method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': auth, 'Content-Length': Buffer.byteLength(body) }
-      }, function(res) {
-        var d = ''; res.on('data', function(c) { d += c; }); res.on('end', function() {
-          try { resolve(JSON.parse(d)); } catch (e) { reject(e); }
-        });
+  var auth = getAuth();
+  if (!auth) return Promise.reject(new Error('No Linear auth. Set LINEAR_API_KEY_PERSONAL.'));
+  return new Promise(function(resolve, reject) {
+    var body = JSON.stringify({ query: query, variables: variables || {} });
+    var req = https.request({ hostname: API_HOST, path: '/graphql', method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': auth, 'Content-Length': Buffer.byteLength(body) }
+    }, function(res) {
+      var d = ''; res.on('data', function(c) { d += c; }); res.on('end', function() {
+        try { resolve(JSON.parse(d)); } catch (e) { reject(e); }
       });
-      req.on('error', reject);
-      req.write(body); req.end();
     });
+    req.on('error', reject);
+    req.write(body); req.end();
   });
 }
 
@@ -65,8 +34,6 @@ async function checkConnection() {
   try {
     var authError = validateAuth();
     if (authError) return { connected: false, user: null, error: authError.error };
-    var auth = await getAuth();
-    if (!auth) return { connected: false, user: null };
     var r = await graphql('{ viewer { name email } }');
     if (r.data && r.data.viewer) return { connected: true, user: r.data.viewer.name };
     return { connected: false, user: null };
@@ -139,9 +106,70 @@ async function getProgress() {
   return { total: issues.length, done: done, inProgress: inProgress, backlog: backlog };
 }
 
-async function syncSession(session, outcome) {
-  try { if (outcome === 'started') return await createSessionIssue(session); return null; }
-  catch (_e) { return null; }
+async function getIssuesByStatus() {
+  var issues = await getProjectIssues();
+  var grouped = { started: [], unstarted: [], backlog: [], completed: [] };
+  issues.forEach(function(i) {
+    var bucket = grouped[i.state.type];
+    if (!bucket) { grouped.backlog.push(i); return; }
+    bucket.push(i);
+  });
+  return grouped;
 }
 
-module.exports = { listProjects: listProjects, checkConnection: checkConnection, findProject: findProject, createSessionIssue: createSessionIssue, updateIssue: updateIssue, addComment: addComment, getProjectIssues: getProjectIssues, getProgress: getProgress, syncSession: syncSession, graphql: graphql };
+async function quickCreateIssue(title, description) {
+  var project = await findProject();
+  if (!project) throw new Error('CC Commander project not found');
+  var r = await graphql('mutation($i: IssueCreateInput!) { issueCreate(input: $i) { success issue { id identifier url title } } }',
+    { i: { title: title.slice(0, 100), description: description || '', teamId: project.teamId, projectId: project.projectId, priority: 3 } });
+  if (r.data && r.data.issueCreate && r.data.issueCreate.issue) return r.data.issueCreate.issue;
+  throw new Error('Failed to create issue');
+}
+
+async function assignIssueToMe(issueId) {
+  var viewer = await graphql('{ viewer { id } }');
+  if (!viewer.data || !viewer.data.viewer) return false;
+  return await updateIssue(issueId, { assigneeId: viewer.data.viewer.id });
+}
+
+async function findStateId(stateType) {
+  var project = await findProject();
+  if (!project) return null;
+  var r = await graphql(
+    'query($teamId: String!) { team(id: $teamId) { states { nodes { id name type } } } }',
+    { teamId: project.teamId }
+  );
+  if (!r.data || !r.data.team) return null;
+  var match = r.data.team.states.nodes.find(function(s) { return s.type === stateType; });
+  return match ? match.id : null;
+}
+
+async function syncSession(session, outcome) {
+  try {
+    if (outcome === 'started') return await createSessionIssue(session);
+    if (outcome === 'success' || outcome === 'error') {
+      if (!session.linearIssueId) return null;
+      var duration = session.duration ? Math.round(session.duration / 60) + 'm' : 'unknown';
+      var cost = session.cost ? '$' + session.cost.toFixed(2) : '$0.00';
+      var body = '**Session ' + outcome + '**\nDuration: ' + duration + '\nCost: ' + cost;
+      if (session.filesChanged && session.filesChanged.length > 0) {
+        body += '\nFiles: ' + session.filesChanged.length;
+      }
+      await addComment(session.linearIssueId, body);
+      if (outcome === 'success') {
+        var doneStateId = await findStateId('completed');
+        if (doneStateId) await updateIssue(session.linearIssueId, { stateId: doneStateId });
+      }
+      return true;
+    }
+    return null;
+  } catch (_e) { return null; }
+}
+
+module.exports = {
+  checkConnection: checkConnection, validateAuth: validateAuth, findProject: findProject,
+  listProjects: listProjects, createSessionIssue: createSessionIssue, updateIssue: updateIssue,
+  addComment: addComment, getProjectIssues: getProjectIssues, getProgress: getProgress,
+  getIssuesByStatus: getIssuesByStatus, quickCreateIssue: quickCreateIssue,
+  assignIssueToMe: assignIssueToMe, findStateId: findStateId, syncSession: syncSession,
+};
