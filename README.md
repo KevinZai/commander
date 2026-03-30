@@ -1,12 +1,24 @@
 <div align="center">
 
 ```
- ██████╗ ██████╗     ██████╗ ██████╗ ███╗   ███╗███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗██████╗
-██╔════╝██╔════╝    ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝██╔══██╗
-██║     ██║         ██║     ██║   ██║██╔████╔██║██╔████╔██║███████║██╔██╗ ██║██║  ██║█████╗  ██████╔╝
-██║     ██║         ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══██║██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗
-╚██████╗╚██████╗    ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║██║  ██║██║ ╚████║██████╔╝███████╗██║  ██║
- ╚═════╝ ╚═════╝     ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
+ ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗
+██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝
+██║     ██║     ███████║██║   ██║██║  ██║█████╗  
+██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  
+╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗
+ ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+ ██████╗ ██████╗ ██████╗ ███████╗
+██╔════╝██╔═══██╗██╔══██╗██╔════╝
+██║     ██║   ██║██║  ██║█████╗  
+██║     ██║   ██║██║  ██║██╔══╝  
+╚██████╗╚██████╔╝██████╔╝███████╗
+ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
+ ██████╗ ██████╗ ███╗   ███╗███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗██████╗
+██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝██╔══██╗
+██║     ██║   ██║██╔████╔██║██╔████╔██║███████║██╔██╗ ██║██║  ██║█████╗  ██████╔╝
+██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══██║██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗
+╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║██║  ██║██║ ╚████║██████╔╝███████╗██║  ██║
+ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
 ```
 
 <h3>280+ skills · one command · your AI work, managed by AI</h3>
@@ -31,27 +43,28 @@ The most comprehensive Claude Code setup ever built.
 
 Every Claude Code tool is a skill pack that runs **inside** sessions.
 
-CC Commander runs **above** them.
+CCC runs **above** them.
 
 ```
-╔═══════════════════════════════════════════╗
-║                                           ║
-║    ┌─────────────────────────────────┐    ║
-║    │       CC COMMANDER              │    ║
-║    │  ▸ Detects your packages        │    ║
-║    │  ▸ Learns from every session    │    ║
-║    │  ▸ Compounds knowledge          │    ║
-║    │  ▸ Orchestrates the right tools │    ║
-║    │  ▸ Tracks cost & streaks        │    ║
-║    │  ▸ Guides non-coders            │    ║
-║    └─────────┬───────────────────────┘    ║
-║              │                            ║
-║    ┌─────────▼───────────────────────┐    ║
-║    │    YOUR CLAUDE CODE SESSIONS    │    ║
-║    │    280+ skills behind one menu  │    ║
-║    └─────────────────────────────────┘    ║
-║                                           ║
-╚═══════════════════════════════════════════╝
+╔═════════════════════════════════════════╗
+║                                         ║
+║   ┌───────────────────────────────┐     ║
+║   │  CLAUDE CODE COMMANDER (CCC)  │     ║
+║   │                               │     ║
+║   │  ▸ Detects your packages      │     ║
+║   │  ▸ Learns from every session  │     ║
+║   │  ▸ Compounds knowledge        │     ║
+║   │  ▸ Orchestrates the tools     │     ║
+║   │  ▸ Tracks cost & streaks      │     ║
+║   │  ▸ Guides non-coders          │     ║
+║   └───────────┬───────────────────┘     ║
+║               │                         ║
+║   ┌───────────▼───────────────────┐     ║
+║   │  YOUR CLAUDE CODE SESSIONS    │     ║
+║   │  280+ skills behind one menu  │     ║
+║   └───────────────────────────────┘     ║
+║                                         ║
+╚═════════════════════════════════════════╝
 ```
 
 ---
@@ -72,7 +85,7 @@ git clone https://github.com/KevinZai/cc-commander.git && cd cc-commander && ./i
 
 ## How to Use (Start Here)
 
-**You don't need to know how to code.** CC Commander guides you with menus.
+**You don't need to know how to code.** CCC guides you with menus.
 
 ### Step 1: Install (one command)
 
@@ -103,7 +116,7 @@ Use **arrow keys** to move up/down. Press **Enter** to select.
 
 ### Step 4: Answer a few questions
 
-Commander asks what you need (multiple choice — just pick one):
+CCC asks what you need (multiple choice — just pick one):
 
 ```
   What's the most important outcome?
@@ -113,7 +126,7 @@ Commander asks what you need (multiple choice — just pick one):
     A quick prototype to test the idea
 ```
 
-### Step 5: Commander does the rest
+### Step 5: CCC does the rest
 
 It dispatches to Claude Code with the right settings, tracks the session,
 and learns from the results so next time is faster.
@@ -121,16 +134,14 @@ and learns from the results so next time is faster.
 ### That's it.
 
 No commands to memorize. No flags to type. No config files to edit.
-Just answer questions and Commander handles everything.
+Just answer questions and CCC handles everything.
 
-### Other ways to use it
-
-| Method | Command | For |
-|--------|---------|-----|
-| **Quick stats** | `node bin/kc.js --stats` | See sessions, streaks, cost |
-| **Self-test** | `node bin/kc.js --test` | Verify everything works |
-| **Fix issues** | `node bin/kc.js --repair` | Reset corrupt state |
-| **Claude Desktop** | `/plugin marketplace add KevinZai/cc-commander` | Use in the Claude app |
+| Method             | Command                                             | For                   |
+|--------------------|-----------------------------------------------------|-----------------------|
+| **Quick stats**    | `node bin/kc.js --stats`                            | Sessions, streaks     |
+| **Self-test**      | `node bin/kc.js --test`                             | Verify install        |
+| **Fix issues**     | `node bin/kc.js --repair`                           | Reset corrupt state   |
+| **Claude Desktop** | `/plugin marketplace add KevinZai/cc-commander`     | Use in the Claude app |
 
 ---
 
@@ -141,101 +152,91 @@ node bin/kc.js
 ```
 
 ```
-┌──────────────────────────────────────────┐
-│                                          │
-│   ██████╗██████╗  ██████╗███╗   ███╗██╗  │
-│  ██╔════╝██╔════╝ ██╔════╝████╗ ████║██║  │
-│  ██║     ██║      ██║     ██╔████╔██║██║  │
-│  ╚██████╗╚██████╗ ╚██████╗██║╚██╔╝██║██║  │
-│   ╚═════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚═╝╚═╝ │
-│                                          │
-│   Welcome back, Kevin!                   │
-│   main · 3 files modified · 42 sessions  │
-│                                          │
-│   ❯ Build something new                  │
-│     Create content                       │
-│     Research & analyze                   │
-│     YOLO Mode (autonomous build)         │
-│     Learn a skill (280+)                 │
-│     Check my stats                       │
-│     Settings · Theme · Linear            │
-│                                          │
-└──────────────────────────────────────────┘
+╔══════════════════════════════════════════╗
+║                                          ║
+║   CCC v1.6.0                             ║
+║   Welcome back, Kevin!                   ║
+║   main · 3 files modified · 42 sessions  ║
+║                                          ║
+║   ❯ Build something new                  ║
+║     Create content                       ║
+║     Research & analyze                   ║
+║     YOLO Mode (autonomous build)         ║
+║     Learn a skill (280+)                 ║
+║     Check my stats                       ║
+║     Settings · Theme · Linear            ║
+║                                          ║
+╚══════════════════════════════════════════╝
 ```
 
-**Navigate with arrow keys** or letter shortcuts.
-Every session starts in **plan mode** for safety.
+Arrow keys or letter shortcuts. 4 themes. 11 flows.
 
 ---
 
 ## What You Get
 
 ```
-╔═══════════════╦════════╦═══════════════════════╗
-║  COMPONENT    ║ COUNT  ║  WHAT IT DOES         ║
-╠═══════════════╬════════╬═══════════════════════╣
-║  Skills       ║  280+  ║  On-demand expertise  ║
-║  Mega-Skills  ║   10   ║  Domain routers       ║
-║  Commands     ║   88+  ║  Slash commands       ║
-║  Hooks        ║   37   ║  Lifecycle automation ║
-║  Adventures   ║   11   ║  Guided flows         ║
-║  Themes       ║    4   ║  Visual styles        ║
-║  Prompts      ║   41   ║  Battle-tested        ║
-║  Modes        ║    9   ║  Workflow presets      ║
-╚═══════════════╩════════╩═══════════════════════╝
+╔═════════════════╦════════╦════════════════════════╗
+║  COMPONENT      ║ COUNT  ║  WHAT IT DOES          ║
+╠═════════════════╬════════╬════════════════════════╣
+║  Skills         ║  280+  ║  On-demand expertise   ║
+║  Mega-Skills    ║   10   ║  Domain routers        ║
+║  Commands       ║   88+  ║  Slash commands        ║
+║  Hooks          ║   37   ║  Lifecycle automation  ║
+║  Adventures     ║   11   ║  Guided flows          ║
+║  Themes         ║    4   ║  Visual styles         ║
+║  Prompts        ║   41   ║  Battle-tested         ║
+║  Modes          ║    9   ║  Workflow presets       ║
+╚═════════════════╩════════╩════════════════════════╝
 ```
 
 ---
 
 ## Spec-Driven Builds
 
-Before every build, Commander asks 3 questions:
-
 ```
-╭──────────────────────────────────────╮
-│                                      │
-│  1. Most important outcome?          │
-│     ❯ Working end-to-end             │
-│       Solid foundation               │
-│       Quick prototype                │
-│                                      │
-│  2. Tech preferences?                │
-│     ❯ Pick the best for me           │
-│       Popular tools                  │
-│       Keep it simple                 │
-│                                      │
-│  3. How thorough?                    │
-│     ❯ Just the basics                │
-│       With tests                     │
-│       Production-ready               │
-│                                      │
-╰──────────────────────────────────────╯
+╔══════════════════════════════════════════╗
+║                                          ║
+║  1. Most important outcome?              ║
+║     ❯ Working end-to-end                 ║
+║       Solid foundation                   ║
+║       Quick prototype                    ║
+║                                          ║
+║  2. Tech preferences?                    ║
+║     ❯ Pick the best for me               ║
+║       Popular tools                      ║
+║       Keep it simple                     ║
+║                                          ║
+║  3. How thorough?                        ║
+║     ❯ Just the basics                    ║
+║       With tests                         ║
+║       Production-ready                   ║
+║                                          ║
+╚══════════════════════════════════════════╝
 ```
-
-Then dispatches with the right model, effort, and budget.
 
 ---
 
 ## Intelligence Layer
 
-### It Detects Your Packages
+### CCC Detects Your Packages
 
 ```
-╔══════════════════════════╦═══════╦═══════════════╗
-║  PACKAGE                 ║ STARS ║  STRENGTH     ║
-╠══════════════════════════╬═══════╬═══════════════╣
-║  gstack (Garry Tan)      ║ 54.6K ║  Decisions+QA ║
-║  Compound Engineering    ║ 11.5K ║  Knowledge    ║
-║  Superpowers (obra)      ║  121K ║  Workflow     ║
-║  Everything Claude Code  ║  100K ║  Hooks        ║
-╚══════════════════════════╩═══════╩═══════════════╝
+╔══════════════════════════════╦═══════╦═══════════════╗
+║  PACKAGE                     ║ STARS ║  STRENGTH     ║
+╠══════════════════════════════╬═══════╬═══════════════╣
+║  gstack (Garry Tan)          ║ 54.6K ║  Decisions+QA ║
+║  Compound Engineering        ║ 11.5K ║  Knowledge    ║
+║  Superpowers (obra)          ║  121K ║  Workflow     ║
+║  Everything Claude Code      ║  100K ║  Hooks        ║
+╚══════════════════════════════╩═══════╩═══════════════╝
 ```
 
-### It Orchestrates Them
+### CCC Orchestrates Them
 
 ```
   PHASE          BEST TOOL              FALLBACK
-  ─────────────────────────────────────────────────
+  ──────────────────────────────────────────────
   ▸ Clarify      /office-hours          Spec flow
   ▸ Decide       /plan-ceo-review       Plan mode
   ▸ Plan         /ce:plan               Claude plan
@@ -246,7 +247,7 @@ Then dispatches with the right model, effort, and budget.
   ▸ Ship         /ship                  git commit
 ```
 
-### It Learns From Every Session
+### CCC Learns From Every Session
 
 ```
   Session 1 ───▸ Fix auth bug ───▸ 3 hours
@@ -280,7 +281,7 @@ Then dispatches with the right model, effort, and budget.
 ║                                          ║
 ║   YOLO Loop:                             ║
 ║     build ──▸ review ──▸ improve ──╮     ║
-║       ╰──────────────────────────╯     ║
+║       ╰────────────────────────────╯     ║
 ║       3-10 cycles until perfect          ║
 ║                                          ║
 ╚══════════════════════════════════════════╝
@@ -290,20 +291,20 @@ Then dispatches with the right model, effort, and budget.
 
 ## Linear Agent
 
-CC Commander is its own **agent** in Linear.
+CCC is its own **agent** in Linear.
 
 ```
-╭──────────────────────────────────────╮
-│  ┌─┐                                │
-│  │▸│  CC Commander                   │
-│  └─┘  Agent · OAuth App Identity     │
-│                                      │
-│  29 issues · 27 done · 82%          │
-│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░          │
-│                                      │
-│  Sessions auto-create issues.        │
-│  Costs tracked. Progress on phone.   │
-╰──────────────────────────────────────╯
+╔══════════════════════════════════════════╗
+║                                          ║
+║  CCC Agent · OAuth App Identity          ║
+║                                          ║
+║  29 issues · 27 done · 82%              ║
+║  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░             ║
+║                                          ║
+║  Sessions auto-create issues.            ║
+║  Costs tracked. Progress on phone.       ║
+║                                          ║
+╚══════════════════════════════════════════╝
 ```
 
 ---
@@ -311,22 +312,22 @@ CC Commander is its own **agent** in Linear.
 ## 280+ Skills · 10 Mega-Skills
 
 ```
-╔════════════════╦══════╦══════════════════════╗
-║  MEGA-SKILL    ║ SUBS ║  DOMAIN              ║
-╠════════════════╬══════╬══════════════════════╣
-║  mega-design   ║  39  ║  UI/UX, animation    ║
-║  mega-marketing║  45  ║  CRO, email, ads     ║
-║  mega-saas     ║  20  ║  Auth, billing, API  ║
-║  mega-testing  ║  15  ║  Unit, E2E, TDD      ║
-║  mega-devops   ║  20  ║  CI/CD, Docker, AWS  ║
-║  mega-seo      ║  19  ║  Schema, SERP        ║
-║  mega-security ║   8  ║  OWASP, pentest      ║
-║  mega-research ║   8  ║  Competitive, market ║
-║  mega-mobile   ║   8  ║  React Native        ║
-║  mega-data     ║   8  ║  SQL, ETL            ║
-╠════════════════╬══════╬══════════════════════╣
-║  TOTAL         ║ 190  ║  10 domain routers   ║
-╚════════════════╩══════╩══════════════════════╝
+╔══════════════════╦══════╦══════════════════════╗
+║  MEGA-SKILL      ║ SUBS ║  DOMAIN              ║
+╠══════════════════╬══════╬══════════════════════╣
+║  mega-design     ║  39  ║  UI/UX, animation    ║
+║  mega-marketing  ║  45  ║  CRO, email, ads     ║
+║  mega-saas       ║  20  ║  Auth, billing, API  ║
+║  mega-testing    ║  15  ║  Unit, E2E, TDD      ║
+║  mega-devops     ║  20  ║  CI/CD, Docker, AWS  ║
+║  mega-seo        ║  19  ║  Schema, SERP        ║
+║  mega-security   ║   8  ║  OWASP, pentest      ║
+║  mega-research   ║   8  ║  Competitive, market ║
+║  mega-mobile     ║   8  ║  React Native        ║
+║  mega-data       ║   8  ║  SQL, ETL            ║
+╠══════════════════╬══════╬══════════════════════╣
+║  TOTAL           ║ 190  ║  10 domain routers   ║
+╚══════════════════╩══════╩══════════════════════╝
 ```
 
 ---
@@ -345,14 +346,14 @@ CC Commander is its own **agent** in Linear.
 ## Stats Dashboard
 
 ```
-╔══════════════════════════════════════╗
-║  Sessions: 42       Streak: 7 days  ║
-║  Badges:   12       Cost:   $8.50   ║
-╠══════════════════════════════════════╣
-║  Cost:     ▁▄▂█▅ ▃                  ║
-║  Activity: ▒▒ ▓▓ ██ ░░ ▓▓          ║
-║  Level:    POWER █████████████████  ║
-╚══════════════════════════════════════╝
+╔══════════════════════════════════════════╗
+║  Sessions: 42        Streak: 7 days     ║
+║  Badges:   12        Cost:   $8.50      ║
+╠══════════════════════════════════════════╣
+║  Cost:     ▁▄▂█▅ ▃                      ║
+║  Activity: ▒▒ ▓▓ ██ ░░ ▓▓              ║
+║  Level:    POWER █████████████████      ║
+╚══════════════════════════════════════════╝
 ```
 
 ---
@@ -383,19 +384,21 @@ CC Commander is its own **agent** in Linear.
 ## Before & After
 
 ```
-                     STOCK    CC COMMANDER
-  ───────────────────────────────────────
-  Skills               0      280+
-  Commands          built-in   88+ custom
-  Hooks                0       37
-  Session tracking   none      Persistent
-  Knowledge          none      Compounds
-  Orchestration      none      8-step pipeline
-  Cost control       none      Auto-budget
-  Linear agent       none      OAuth identity
-  Non-coder support  none      Guided mode
-  YOLO Mode          none      10Q autonomous
-  Themes             none      4 with gradients
+╔══════════════════════╦════════╦══════════════╗
+║  FEATURE             ║ STOCK  ║  CCC         ║
+╠══════════════════════╬════════╬══════════════╣
+║  Skills              ║   0    ║  280+        ║
+║  Commands            ║ built  ║  88+ custom  ║
+║  Hooks               ║   0    ║  37          ║
+║  Session tracking    ║ none   ║  Persistent  ║
+║  Knowledge           ║ none   ║  Compounds   ║
+║  Orchestration       ║ none   ║  8-step      ║
+║  Cost control        ║ none   ║  Auto-budget ║
+║  Linear agent        ║ none   ║  OAuth       ║
+║  Non-coder support   ║ none   ║  Guided      ║
+║  YOLO Mode           ║ none   ║  10Q auto    ║
+║  Themes              ║ none   ║  4 gradient  ║
+╚══════════════════════╩════════╩══════════════╝
 ```
 
 ---
@@ -416,16 +419,16 @@ MIT License.
 <div align="center">
 
 ```
-  ╔══════════════════════════════════╗
-  ║                                  ║
-  ║   Not a researcher.              ║
-  ║   Not a pundit.                  ║
-  ║   An operator who ships.         ║
-  ║                                  ║
-  ╚══════════════════════════════════╝
+╔══════════════════════════════════════╗
+║                                      ║
+║   Not a researcher.                  ║
+║   Not a pundit.                      ║
+║   An operator who ships.             ║
+║                                      ║
+╚══════════════════════════════════════╝
 ```
 
-**CC Commander v1.6.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**Claude Code Commander v1.6.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 **[Install Now](#install)** · **[Read the BIBLE](BIBLE.md)** · **[Browse Skills](SKILLS-INDEX.md)**
 

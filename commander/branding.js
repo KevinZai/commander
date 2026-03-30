@@ -1,9 +1,9 @@
 'use strict';
 
 var BRAND = Object.freeze({
-  product: 'CC Commander',
+  product: 'Claude Code Commander',
   productFull: 'Claude Code Commander',
-  productShort: 'CC',
+  productShort: 'CCC',
   tagline: '280+ skills. One command. Your AI work, managed by AI.',
   taglineShort: 'The ultimate Claude Code setup.',
   version: '1.6.0',
