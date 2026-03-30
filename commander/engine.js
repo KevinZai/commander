@@ -227,6 +227,23 @@ class KitCommander {
       case 'recommend_skill': return await this.recommendSkill(currentState);
       case 'pick_session_to_resume': return await this.pickSessionToResume();
       case 'pick_session_details': return await this.pickSessionDetails();
+      case 'night_build': {
+        return await this.nightBuild();
+      }
+      case 'night_explain': {
+        process.stdout.write('n' + tui.divider('What is Night Mode?') + 'nn');
+        process.stdout.write('  Night Mode asks 10+ detailed questions to build a comprehensive spec.n');
+        process.stdout.write('  Then it dispatches an autonomous build with:n');
+        process.stdout.write('    - Max effort (Opus with deep reasoning)n');
+        process.stdout.write('    - High budget ($10 ceiling)n');
+        process.stdout.write('    - 100 max turnsn');
+        process.stdout.write('    - Full 10-step orchestration (planning, review, QA, knowledge)n');
+        process.stdout.write('    - Self-testing loopn');
+        process.stdout.write('n  Designed for overnight runs. Start it before bed. Wake up to shipped code.n');
+        if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        await this.ask('n  Press Enter...');
+        return { next: 'night-build' };
+      }
       case 'open_project': {
         var pi = require('./project-importer');
         var project = pi.scanProject(process.cwd());
@@ -303,10 +320,11 @@ class KitCommander {
     var d = getDispatcher();
     var defaults = d.getDefaultsForLevel(userLevel);
     try {
-        systemPrompt: (function() { var prompt = 'Start with a plan. Present it before implementing.'; var cs = state.loadState(); if (cs.activeProject) { try { var pi = require('./project-importer'); var proj = pi.scanProject(cs.activeProject.dir); prompt += '\n\n' + pi.buildProjectPrompt(proj); } catch(_e) {} } return prompt; })(),
+        systemPrompt: (function() { var knowledge = require("./knowledge"); var knowledgePrompt = knowledge.buildKnowledgePrompt(fullTask); var prompt = "Start with a plan. Present it before implementing."; var cs = state.loadState(); if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} } return prompt + knowledgePrompt; })(),
       sp.stop(true);
       state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
       state.completeSession(session.id, 'success');
+      try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
       process.stdout.write(tui.celebrate('BUILD COMPLETE'));
       if (result.result) { var summary = typeof result.result === 'string' ? result.result.slice(0, 500) : JSON.stringify(result.result).slice(0, 500); process.stdout.write('\n  ' + summary + '\n'); }
     } catch (err) {

@@ -1,6 +1,6 @@
 {
   "id": "main-menu",
-  "version": 3,
+  "version": 4,
   "screen": {
     "title": "CC Commander",
     "subtitle": "welcomeMessage",
@@ -37,7 +37,7 @@
     {
       "key": "d",
       "label": "Research & analyze",
-      "description": "Deep dives, competitive analysis, reports",
+      "description": "Competitive analysis, reports, audits",
       "next": "research"
     },
     {
@@ -55,13 +55,19 @@
     {
       "key": "g",
       "label": "Check my stats",
-      "description": "Streaks, achievements, cost tracking",
+      "description": "Dashboard, streaks, achievements",
       "next": "check-stats"
+    },
+    {
+      "key": "n",
+      "label": "Night Mode",
+      "description": "8-hour autonomous build",
+      "next": "night-build"
     },
     {
       "key": "s",
       "label": "Settings",
-      "description": "Name, level, cost ceiling, animations",
+      "description": "Name, level, cost, theme",
       "next": "settings"
     },
     {

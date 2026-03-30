@@ -48,6 +48,9 @@ if (args.includes('--test')) {
     ['check-stats', function(){ require(path.join(__dirname,'..','commander','adventures','check-stats.json')); }],
     ['create-content', function(){ require(path.join(__dirname,'..','commander','adventures','create-content.json')); }],
     ['research', function(){ require(path.join(__dirname,'..','commander','adventures','research.json')); }],
+    ['night-build', function(){ require(path.join(__dirname,'..','commander','adventures','night-build.json')); }],
+    ['knowledge', function(){ var k = require(path.join(__dirname,'..','commander','knowledge')); if(typeof k.extractAndStore !== 'function') throw new Error('missing'); }],
+    ['plugins', function(){ var p = require(path.join(__dirname,'..','commander','plugins')); if(typeof p.detectPlugins !== 'function') throw new Error('missing'); }],
   ];
   var passed = 0;
   for (var c of checks) { try { c[1](); console.log('  v ' + c[0]); passed++; } catch(e) { console.log('  x ' + c[0] + ': ' + e.message); } }

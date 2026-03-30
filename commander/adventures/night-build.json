@@ -1,0 +1,28 @@
+{
+  "id": "night-build",
+  "version": 1,
+  "screen": {
+    "title": "Night Mode",
+    "subtitle": "8-hour autonomous build. Fully self-managed.",
+    "detail": "Ask detailed questions → generate comprehensive spec → dispatch with max effort"
+  },
+  "prompt": "Night Mode will ask 10+ questions to build a complete spec, then run autonomously for hours. Ready?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Start Night Mode",
+      "description": "Full autonomous build (high budget, max effort)",
+      "action": "night_build"
+    },
+    {
+      "key": "b",
+      "label": "What is Night Mode?",
+      "action": "night_explain"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
+    }
+  ]
+}

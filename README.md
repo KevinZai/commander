@@ -167,6 +167,90 @@ node bin/kc.js --version    # CC Commander v1.5.2
 
 ---
 
+## The Intelligence Layer
+
+CC Commander auto-detects installed packages and orchestrates them:
+
+```
+┌── INSTALLED PACKAGES ──────────────────────────────────────────┐
+│                                                                │
+│  gstack (Garry Tan)              54.6K ★                       │
+│  ├── /office-hours               Requirements interview        │
+│  ├── /plan-ceo-review            Product gate                  │
+│  ├── /plan-eng-review            Architecture gate             │
+│  ├── /qa                         Real browser QA               │
+│  └── /ship                       Ship checklist                │
+│                                                                │
+│  Compound Engineering (Every)    11.5K ★                       │
+│  ├── /ce:brainstorm              Explore requirements          │
+│  ├── /ce:plan                    Research-driven planning       │
+│  ├── /ce:work                    Execute with tracking          │
+│  ├── /ce:review                  6+ reviewer ensemble           │
+│  └── /ce:compound                Extract lessons → knowledge    │
+│                                                                │
+│  Superpowers (Jesse Vincent)     121K ★                        │
+│  ├── /plan                       Structured planning            │
+│  ├── /tdd                        Test-driven development        │
+│  ├── /code-review                Code quality review            │
+│  └── /verify                     Verification loop              │
+│                                                                │
+│  + Everything Claude Code, Simone, and more                    │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
+
+### 8-Step Orchestrated Build
+
+Commander auto-selects the best tool for each phase:
+
+```
+Phase              Tool                         Fallback
+─────────────────────────────────────────────────────────
+1. Clarify         /office-hours (gstack)       CC Commander spec flow
+2. Decide          /plan-ceo-review (gstack)    Plan mode dispatch
+3. Plan            /ce:plan (CE)                Claude Code plan mode
+4. Execute         /ce:work (CE)                Headless dispatch
+5. Review          /ce:review (CE, 6+ agents)   /simplify
+6. Test            /qa (gstack, real browser)    /verify
+7. Learn           CC Commander knowledge        (always active)
+8. Ship            /ship (gstack)               git commit + push
+```
+
+### Knowledge Compounding
+
+Every session makes the next one smarter:
+
+```
+Session 1: Fix auth bug → 3 hours debugging
+           ↓ knowledge extracted automatically
+Session 47: Similar auth issue surfaces
+           ↓ knowledge injected into prompt
+           "We hit this before. Solution: ___"
+           ↓ fixed in 10 minutes
+```
+
+### Night Mode
+
+Start before bed. Wake up to shipped code.
+
+```
+Night Mode asks 10 detailed questions:
+  1. What are you building?
+  2. Who is it for?
+  3. Most critical feature?
+  4. Tech stack?
+  5. What does DONE look like?
+  6. What does BROKEN look like?
+  7. Edge cases?
+  8. Testing requirements?
+  9. Deployment target?
+  10. Anything else?
+
+Then dispatches: Opus | max effort | $10 budget | 100 turns | self-testing
+```
+
+---
+
 ## Skills & Mega-Skills
 
 280+ skills that Claude loads on demand. 10 mega-skills that route to specialist sub-skills.
