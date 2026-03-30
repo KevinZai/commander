@@ -135,7 +135,9 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 
 ## What You Get
 
-```
+<img src="docs/assets/ccc-components.svg" alt="Components" width="100%">
+
+<!--```
 ╔═════════════════╦════════╦════════════════════════╗
 ║  COMPONENT      ║ COUNT  ║  WHAT IT DOES          ║
 ╠═════════════════╬════════╬════════════════════════╣
@@ -148,7 +150,7 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 ║  Prompts        ║   41   ║  Battle-tested         ║
 ║  Modes          ║    9   ║  Workflow presets       ║
 ╚═════════════════╩════════╩════════════════════════╝
-```
+```-->
 
 ---
 
@@ -224,7 +226,9 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 
 **Start before bed. Wake up to shipped code.**
 
-```
+<img src="docs/assets/ccc-yolo.svg" alt="YOLO Mode" width="100%">
+
+<!--```
 ╔══════════════════════════════════════════╗
 ║                                          ║
 ║   Y O L O   M O D E                     ║
@@ -245,7 +249,7 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 ║       3-10 cycles until perfect          ║
 ║                                          ║
 ╚══════════════════════════════════════════╝
-```
+```-->
 
 ---
 
@@ -305,7 +309,9 @@ CCC is its own **agent** in Linear.
 
 ## Stats Dashboard
 
-```
+<img src="docs/assets/ccc-stats.svg" alt="Stats" width="100%">
+
+<!--```
 ╔══════════════════════════════════════════╗
 ║  Sessions: 42        Streak: 7 days     ║
 ║  Badges:   12        Cost:   $8.50      ║
@@ -314,7 +320,7 @@ CCC is its own **agent** in Linear.
 ║  Activity: ▒▒ ▓▓ ██ ░░ ▓▓              ║
 ║  Level:    POWER █████████████████      ║
 ╚══════════════════════════════════════════╝
-```
+```-->
 
 ---
 
@@ -343,7 +349,9 @@ CCC is its own **agent** in Linear.
 
 ## Before & After
 
-```
+<img src="docs/assets/ccc-comparison.svg" alt="Comparison" width="100%">
+
+<!--```
 ╔══════════════════════╦════════╦══════════════╗
 ║  FEATURE             ║ STOCK  ║  CCC         ║
 ╠══════════════════════╬════════╬══════════════╣
@@ -359,7 +367,7 @@ CCC is its own **agent** in Linear.
 ║  YOLO Mode           ║ none   ║  10Q auto    ║
 ║  Themes              ║ none   ║  4 gradient  ║
 ╚══════════════════════╩════════╩══════════════╝
-```
+```-->
 
 ---
 
