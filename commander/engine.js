@@ -42,6 +42,7 @@ class KitCommander {
   async onboard() {
     await tui.wipeTransition();
     process.stdout.write(tui.renderLogoResponsive('CC CMD'));
+      process.stdout.write("  " + tui.gradient("280+ skills. One command. Your AI work, managed by AI.", tui.getTheme().logo.gradient) + "\n");
       await tui.typewriter("  " + BRAND.tagline, 20);
       process.stdout.write(tui.RESET + "\n");
     process.stdout.write('\n  ' + tui.boldText(BRAND.tagline, tui.getTheme().primary) + '\n');
@@ -63,6 +64,7 @@ class KitCommander {
 
     await tui.wipeTransition();
     process.stdout.write(tui.renderLogoResponsive('CC CMD'));
+      process.stdout.write("  " + tui.gradient("280+ skills. One command. Your AI work, managed by AI.", tui.getTheme().logo.gradient) + "\n");
       await tui.typewriter("  " + BRAND.tagline, 20);
       process.stdout.write(tui.RESET + "\n");
 
@@ -105,7 +107,8 @@ class KitCommander {
       var activePrompt = prepared.afterAction ? prepared.afterAction.prompt : prepared.prompt;
 
       await tui.wipeTransition();
-      process.stdout.write(tui.renderBanner());
+      process.stdout.write(tui.renderLogoResponsive());
+      process.stdout.write("  " + tui.gradient("280+ skills. One command. Your AI work, managed by AI.", tui.getTheme().logo.gradient) + "\n");
       process.stdout.write(tui.renderStatusLine([{label:"Sessions",value:String((currentState.user&&currentState.user.sessionsCompleted)||0)},{label:"Level",value:String((currentState.user&&currentState.user.level)||"guided")}]) + "\n");
       await tui.typewriter("  " + BRAND.tagline, 20);
       process.stdout.write(tui.RESET + "\n");
