@@ -1,44 +1,41 @@
 {
-  "name": "claude-code-kit",
+  "name": "cc-commander",
   "version": "1.6.0",
-  "description": "CC Commander — 280+ skills. One command. Your AI work, managed by AI. Interactive CLI + Cowork plugin for Claude Code.",
-  "author": "Kevin Zicherman <kevin@kevinz.ai> (https://kevinz.ai)",
+  "description": "Claude Code Commander — 280+ skills. One command. Your AI work, managed by AI.",
+  "author": {
+    "name": "Kevin Z",
+    "url": "https://kevinz.ai"
+  },
   "license": "MIT",
   "bin": {
     "ccc": "./bin/kc.js",
-    "cc-commander": "./bin/kc.js",
-    "kit-commander": "./bin/kc.js"
+    "cc-commander": "./bin/kc.js"
   },
   "files": [
     "bin/",
     "commander/",
+    "skills/",
     "commands/",
     "hooks/",
     "lib/",
-    "skills/",
-    "templates/",
-    "prompts/",
-    "guides/",
-    "compatibility/",
-    "install.sh",
-    "uninstall.sh",
-    "LICENSE",
-    "README.md",
     "BIBLE.md",
     "CHEATSHEET.md",
-    "SKILLS-INDEX.md"
+    "SKILLS-INDEX.md",
+    "LICENSE",
+    "README.md",
+    "install.sh"
   ],
   "keywords": [
     "claude-code",
     "claude",
-    "anthropic",
     "ai",
-    "skills",
-    "hooks",
-    "commands",
-    "developer-tools",
     "cli",
-    "productivity"
+    "project-manager",
+    "skills",
+    "commander",
+    "anthropic",
+    "vibe-coding",
+    "automation"
   ],
   "homepage": "https://github.com/KevinZai/cc-commander",
   "repository": {
@@ -53,5 +50,6 @@
   },
   "dependencies": {
     "figlet": "^1.11.0"
-  }
+  },
+  "main": "./bin/kc.js"
 }
