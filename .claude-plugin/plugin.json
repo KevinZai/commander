@@ -6,8 +6,8 @@
     "name": "Kevin Z",
     "url": "https://kevinz.ai"
   },
-  "homepage": "https://github.com/k3v80/claude-code-kit",
-  "repository": "https://github.com/k3v80/claude-code-kit",
+  "homepage": "https://github.com/KevinZai/cc-commander",
+  "repository": "https://github.com/KevinZai/cc-commander",
   "license": "MIT",
   "keywords": ["commander", "project-manager", "skills", "knowledge", "orchestration", "yolo-mode", "linear"]
 }

@@ -194,7 +194,7 @@ Based on developer spending patterns:
 **Goal:** Maximize free distribution and community growth.
 
 - Ship v1.3 with all planned features (plugin format, memory compression, multi-model consensus)
-- Publish as official Claude Code plugin via `/plugin marketplace add k3v80/claude-code-kit`
+- Publish as official Claude Code plugin via `/plugin marketplace add KevinZai/cc-commander`
 - Track installs via anonymous analytics in install.sh (opt-in counter, no PII)
 - Target: 2,000 GitHub stars, 500 weekly installs
 - Launch X (Twitter) presence: daily tips, skill spotlights, Claude Code workflow videos

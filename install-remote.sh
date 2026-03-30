@@ -3,10 +3,10 @@
 # CC Commander — One-Line Remote Installer
 # ============================================================================
 # Paste this anywhere:
-#   curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-kit/main/install-remote.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
 #
 # Or with wget:
-#   wget -qO- https://raw.githubusercontent.com/k3v80/claude-code-kit/main/install-remote.sh | bash
+#   wget -qO- https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
 # ============================================================================
 
 set -euo pipefail
@@ -59,7 +59,7 @@ fi
 
 # ── Clone the kit ────────────────────────────────────────────────────────────
 
-INSTALL_DIR="${TMPDIR:-/tmp}/claude-code-kit-$$"
+INSTALL_DIR="${TMPDIR:-/tmp}/cc-commander-$$"
 echo -e "  ${CYAN}►${NC} Downloading kit..."
 
 if git clone --depth 1 https://github.com/k3v80/claude-code-kit.git "$INSTALL_DIR" 2>/dev/null; then

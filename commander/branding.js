@@ -12,9 +12,9 @@ var BRAND = Object.freeze({
   authorFull: 'Kevin Zicherman',
   website: 'https://kevinz.ai',
   twitter: '@kzic',
-  github: 'k3v80',
-  repo: 'claude-code-kit',
-  repoUrl: 'https://github.com/k3v80/claude-code-kit',
+  github: 'KevinZai',
+  repo: 'cc-commander',
+  repoUrl: 'https://github.com/KevinZai/cc-commander',
 
   envPrefix: 'KC_',
 

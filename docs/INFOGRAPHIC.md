@@ -343,7 +343,7 @@
   ┌────────────────────────────────────────────────────────────────────┐
   │                                                                    │
   │   curl -fsSL https://raw.githubusercontent.com/k3v80/             │
-  │        claude-code-kit/main/install-remote.sh | bash               │
+  │        cc-commander/main/install-remote.sh | bash               │
   │                                                                    │
   └────────────────────────────────────────────────────────────────────┘
 

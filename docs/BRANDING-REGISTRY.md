@@ -25,7 +25,7 @@ Use this to quickly pivot branding if product name, author, or URLs change.
 | `CHEATSHEET.md` | "by Kevin Z" header | Reference |
 | `SKILLS-INDEX.md` | "by Kevin Z" header | Reference |
 | `CHANGELOG.md` | Kevin Z attribution in release notes | History |
-| `CLAUDE.md` | k3v80/claude-code-kit references | Project config |
+| `CLAUDE.md` | KevinZai/cc-commander references | Project config |
 | `install.sh` | github.com/k3v80 clone URL | Installer |
 | `install-remote.sh` | raw.githubusercontent.com/k3v80 URL | Installer |
 | `lib/terminal-art.sh` | github.com/k3v80 in footer | Terminal UI |
@@ -39,13 +39,13 @@ Use this to quickly pivot branding if product name, author, or URLs change.
 | `docs/x-threads.md` | @kzic, kevinz.ai references | Social content |
 | `docs/x-articles.md` | @kzic, kevinz.ai references | Social content |
 | `marketing/x-article.md` | k3v80 references | Marketing |
-| `docs/awesome-submission.md` | k3v80/claude-code-kit | PR draft |
+| `docs/awesome-submission.md` | KevinZai/cc-commander | PR draft |
 | `docs/BRANDING-PLAN.md` | Full brand strategy | Strategy |
 | `docs/FEATURE-OVERVIEW.md` | k3v80 GitHub | Feature docs |
 | `docs/INFOGRAPHIC.md` | k3v80 GitHub | Visual marketing |
 | `docs/MONETIZATION.md` | kevinz.ai references | Revenue model |
 | `prompts/marketing/ad-copy.md` | Landing page URL | Marketing |
-| `guides/quickstart-beginner.md` | k3v80/claude-code-kit | User guide |
+| `guides/quickstart-beginner.md` | KevinZai/cc-commander | User guide |
 
 ## Tier 4: Internal (no customer impact)
 

@@ -38,7 +38,7 @@ The Claude Code ecosystem has exploded. The official Anthropic plugin system (`/
 - **What:** Official Claude Code CLI from Anthropic
 - **Key features:** Plugin system (`/plugin marketplace`), native statusline API, agent teams experimental feature
 - **Our coverage:** Partial — we use hooks/skills but haven't published as an official plugin
-- **Action:** **Add** — Publish claude-code-kit as an installable plugin via `/plugin marketplace add k3v80/claude-code-kit`
+- **Action:** **Add** — Publish claude-code-kit as an installable plugin via `/plugin marketplace add KevinZai/cc-commander`
 
 ### 4. ui-ux-pro-max-skill — 52,972 stars
 - **URL:** https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
@@ -417,7 +417,7 @@ The Claude Code ecosystem has exploded. The official Anthropic plugin system (`/
 
 ### P0 — Critical (v1.3 must-haves)
 
-1. **Official Plugin Format** — Publish as `.claude-plugin` compatible package for `/plugin marketplace add k3v80/claude-code-kit`. Create `plugin.json`, restructure commands/skills/agents for plugin compatibility. This is how the ecosystem distributes now.
+1. **Official Plugin Format** — Publish as `.claude-plugin` compatible package for `/plugin marketplace add KevinZai/cc-commander`. Create `plugin.json`, restructure commands/skills/agents for plugin compatibility. This is how the ecosystem distributes now.
    - *Source:* anthropics/claude-plugins-official (15K stars)
    - *Implementation:* New `.claude-plugin/plugin.json` manifest + restructure
 
