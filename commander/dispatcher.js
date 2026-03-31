@@ -49,13 +49,53 @@ function dispatch(task, options) {
   if (allowedTools && allowedTools.length > 0) args.push('--allowedTools', allowedTools.join(','));
   if (systemPrompt) args.push('--append-system-prompt', JSON.stringify(systemPrompt));
 
-  var command = 'claude ' + args.join(' ');
-  if (!sync) return { command: command, async: true };
+  var command = 'claude';
+  if (!sync) return { command: command + ' ' + args.join(' '), async: true };
 
   var env = Object.assign({}, process.env, { CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70' });
+  var stream = options.stream !== false; // default: stream live output
 
+  if (stream) {
+    // Stream mode: show live output like regular claude, collect result at end
+    return new Promise(function(resolve, reject) {
+      var proc = childProcess.spawn(command, args, {
+        cwd: cwd || process.cwd(),
+        env: env,
+        stdio: ['inherit', 'pipe', 'inherit'], // stdin+stderr inherit, stdout piped
+      });
+
+      var output = '';
+      proc.stdout.on('data', function(chunk) {
+        var text = chunk.toString();
+        output += text;
+        process.stdout.write(text); // stream live to terminal
+      });
+
+      proc.on('close', function(code) {
+        if (code !== 0) {
+          reject(new Error('Claude Code exited with code ' + code));
+          return;
+        }
+        // Try to parse the last JSON object from output
+        try {
+          // Find last complete JSON object (claude outputs JSON at end with --output-format json)
+          var jsonMatch = output.match(/\{[\s\S]*\}\s*$/);
+          if (jsonMatch) resolve(JSON.parse(jsonMatch[0]));
+          else resolve({ result: output.trim(), session_id: null, cost_usd: 0 });
+        } catch (_e) {
+          resolve({ result: output.trim(), session_id: null, cost_usd: 0 });
+        }
+      });
+
+      proc.on('error', function(err) {
+        reject(new Error('Claude Code dispatch failed: ' + err.message));
+      });
+    });
+  }
+
+  // Silent mode (stream=false): original behavior for background/batch jobs
   try {
-    var stdout = childProcess.execSync(command, {
+    var stdout = childProcess.execSync(command + ' ' + args.join(' '), {
       encoding: 'utf8', maxBuffer: 50 * 1024 * 1024, timeout: 10 * 60 * 1000,
       cwd: cwd || process.cwd(), stdio: ['pipe', 'pipe', 'pipe'], env: env,
     });

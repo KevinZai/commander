@@ -539,13 +539,13 @@ class KitCommander {
     })();
 
     try {
-      var result = d.dispatch(fullTask, {
-        sync: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
+      sp.stop(true); // stop spinner before streaming starts
+      var result = await d.dispatch(fullTask, {
+        stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
         model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
         permissionMode: "plan", fallbackModel: "sonnet", bare: true,
         name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
       });
-      sp.stop(true);
       state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
       state.completeSession(session.id, 'success');
       try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
@@ -587,13 +587,13 @@ class KitCommander {
       return prompt + knowledgePrompt;
     })();
     try {
-      var result = d.dispatch(fullTask, {
-        sync: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
+      sp.stop(true); // stop spinner before streaming starts
+      var result = await d.dispatch(fullTask, {
+        stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
         model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
         permissionMode: "plan", fallbackModel: "sonnet", bare: true,
         name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
       });
-      sp.stop(true);
       state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
       state.completeSession(session.id, 'success');
       try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
@@ -632,8 +632,8 @@ class KitCommander {
     var currentState = state.loadState();
     var defaults = d.getDefaultsForLevel(state.getUserLevel(currentState));
     try {
-      var result = d.dispatch('Continue: ' + session.task, { sync: true, maxTurns: defaults.maxTurns, effort: defaults.effort, permissionMode: 'plan', fallbackModel: 'sonnet', bare: true, resume: session.claudeSessionId || undefined });
       sp.stop(true);
+      var result = await d.dispatch('Continue: ' + session.task, { stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort, permissionMode: 'plan', fallbackModel: 'sonnet', bare: true, resume: session.claudeSessionId || undefined });
       state.updateSession(session.id, { cost: (session.cost || 0) + (result.cost_usd || 0) });
       process.stdout.write(tui.celebrate('Progress made!'));
     } catch (err) { sp.stop(false); process.stdout.write('\n  Could not resume: ' + err.message + '\n'); }
@@ -778,8 +778,8 @@ class KitCommander {
       var knowledgePrompt = knowledge.buildKnowledgePrompt(task);
       try {
         fs.writeFileSync(statusPath, "YOLO Loop: cycle " + cycle + "/" + maxCycles + " | " + new Date().toISOString() + " | Task: " + task);
-        var result = d.dispatch(prompt, { sync: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opusplan", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: true, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
         sp.stop(true);
+        var result = await d.dispatch(prompt, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opusplan", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: true, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
         state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
         state.completeSession(session.id, "success");
         knowledge.extractAndStore(state.getSession(session.id) || session, result.result || "");
