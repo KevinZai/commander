@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="720">
+<defs>
+<linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#ff0080"/>
+<stop offset="50%" style="stop-color:#7928ca"/>
+<stop offset="100%" style="stop-color:#00ffff"/>
+</linearGradient>
+<linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="0%">
+<stop offset="0%" style="stop-color:#ff0080"/>
+<stop offset="100%" style="stop-color:#00ffff"/>
+</linearGradient>
+<filter id="glow">
+<feGaussianBlur stdDeviation="2" result="b"/>
+<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+</defs>
+
+<!-- Background -->
+<rect width="100%" height="100%" fill="#0a0a0f"/>
+
+<!-- 3-LINE GRADIENT ASCII TITLE -->
+<text x="460" y="60" text-anchor="middle" fill="url(#g1)" font-family="'SF Mono','Fira Code','Courier New',monospace" font-size="38" font-weight="bold" filter="url(#glow)" letter-spacing="8">CLAUDE</text>
+<text x="460" y="110" text-anchor="middle" fill="url(#g2)" font-family="'SF Mono','Fira Code','Courier New',monospace" font-size="38" font-weight="bold" filter="url(#glow)" letter-spacing="8">CODE</text>
+<text x="460" y="160" text-anchor="middle" fill="url(#g1)" font-family="'SF Mono','Fira Code','Courier New',monospace" font-size="38" font-weight="bold" filter="url(#glow)" letter-spacing="8">COMMANDER</text>
+
+<!-- Tagline -->
+<text x="460" y="195" text-anchor="middle" fill="#888" font-family="'SF Mono','Fira Code',monospace" font-size="13">Every Claude Code tool. One install. Guided access. Auto-updated.</text>
+
+<!-- Badges row -->
+<text x="200" y="225" text-anchor="middle" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="11" font-weight="bold">432+ Skills</text>
+<text x="350" y="225" text-anchor="middle" fill="#ff0080" font-family="'SF Mono','Fira Code',monospace" font-size="11" font-weight="bold">11 Vendors</text>
+<text x="500" y="225" text-anchor="middle" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="11" font-weight="bold">10 Themes</text>
+<text x="650" y="225" text-anchor="middle" fill="#ff0080" font-family="'SF Mono','Fira Code',monospace" font-size="11" font-weight="bold">v2.0.0</text>
+<text x="780" y="225" text-anchor="middle" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="11" font-weight="bold">MIT</text>
+
+<!-- TERMINAL WINDOW -->
+<rect x="40" y="250" width="840" height="450" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="1.5"/>
+
+<!-- Window chrome -->
+<circle cx="65" cy="270" r="6" fill="#ff5f56"/>
+<circle cx="85" cy="270" r="6" fill="#ffbd2e"/>
+<circle cx="105" cy="270" r="6" fill="#27c93f"/>
+<text x="460" y="274" text-anchor="middle" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="11">ccc - Claude Code Commander v2.0.0</text>
+
+<!-- Fading top border -->
+<line x1="60" y1="290" x2="860" y2="290" stroke="url(#g2)" stroke-width="1" opacity="0.6"/>
+
+<!-- Header: CC COMMANDER + project name -->
+<text x="70" y="315" fill="url(#g2)" font-family="'SF Mono','Fira Code',monospace" font-size="14" font-weight="bold">CC COMMANDER</text>
+<text x="240" y="315" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="12">v2.0.0</text>
+
+<!-- Tagline in terminal -->
+<text x="70" y="335" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="11">Every Claude Code tool. One install. Guided access.</text>
+
+<!-- Fading divider -->
+<line x1="60" y1="348" x2="700" y2="348" stroke="#333" stroke-width="1" opacity="0.5"/>
+
+<!-- Cockpit Status Panel -->
+<text x="70" y="372" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="11" font-weight="bold">Opus 1M</text>
+<text x="170" y="372" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="11">|</text>
+<text x="190" y="372" fill="#fff" font-family="'SF Mono','Fira Code',monospace" font-size="11" font-weight="bold">$2.14</text>
+<text x="250" y="372" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="11">|</text>
+<text x="270" y="372" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="11">42K</text>
+<text x="310" y="372" fill="#ff0080" font-family="'SF Mono','Fira Code',monospace" font-size="11">8K</text>
+<text x="350" y="372" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="11">|</text>
+<text x="370" y="372" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="11">3m12s</text>
+
+<!-- Context meter -->
+<text x="70" y="395" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">CTX</text>
+<rect x="100" y="385" width="120" height="12" rx="2" fill="#1a1f26"/>
+<rect x="100" y="385" width="75" height="12" rx="2" fill="url(#g2)" opacity="0.8"/>
+<text x="230" y="395" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="10" font-weight="bold">62%</text>
+
+<!-- Rate meter -->
+<text x="280" y="395" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">RATE</text>
+<rect x="320" y="385" width="120" height="12" rx="2" fill="#1a1f26"/>
+<rect x="320" y="385" width="28" height="12" rx="2" fill="#ff0080" opacity="0.7"/>
+<text x="450" y="395" fill="#ff0080" font-family="'SF Mono','Fira Code',monospace" font-size="10" font-weight="bold">23%</text>
+
+<!-- Stats row -->
+<text x="70" y="418" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="10">CC-48</text>
+<text x="130" y="418" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">v2.0 Foundation</text>
+<text x="310" y="418" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">|</text>
+<text x="330" y="418" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="10">432 skills</text>
+<text x="430" y="418" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">|</text>
+<text x="450" y="418" fill="#ff0080" font-family="'SF Mono','Fira Code',monospace" font-size="10">11 vendors</text>
+
+<!-- Fading divider -->
+<line x1="60" y1="432" x2="600" y2="432" stroke="#333" stroke-width="1" opacity="0.4"/>
+
+<!-- Menu prompt -->
+<text x="70" y="455" fill="#fff" font-family="'SF Mono','Fira Code',monospace" font-size="12" font-weight="bold">What would you like to do?</text>
+
+<!-- Menu items - selected has gradient color -->
+<text x="70" y="482" fill="url(#g2)" font-family="'SF Mono','Fira Code',monospace" font-size="12" font-weight="bold">  &gt; Build something new</text>
+<text x="100" y="498" fill="#00ffff" font-family="'SF Mono','Fira Code',monospace" font-size="10">websites, APIs, CLI tools</text>
+
+<text x="100" y="522" fill="#bbb" font-family="'SF Mono','Fira Code',monospace" font-size="12">Import a project</text>
+<text x="100" y="538" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">/xray audit + /makeover</text>
+
+<text x="100" y="562" fill="#bbb" font-family="'SF Mono','Fira Code',monospace" font-size="12">Create content</text>
+<text x="100" y="578" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">blog, social, email</text>
+
+<text x="100" y="602" fill="#bbb" font-family="'SF Mono','Fira Code',monospace" font-size="12">YOLO Mode</text>
+<text x="100" y="618" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">autonomous overnight build</text>
+
+<text x="100" y="642" fill="#bbb" font-family="'SF Mono','Fira Code',monospace" font-size="12">Autonomous Mode</text>
+<text x="100" y="658" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">loops, dispatch, background agents</text>
+
+<text x="100" y="682" fill="#bbb" font-family="'SF Mono','Fira Code',monospace" font-size="12">Browse CCC Domains</text>
+<text x="100" y="698" fill="#666" font-family="'SF Mono','Fira Code',monospace" font-size="10">11 domains, 172+ sub-skills</text>
+
+<!-- Author footer -->
+<text x="460" y="715" text-anchor="middle" fill="#444" font-family="'SF Mono','Fira Code',monospace" font-size="10">by Kevin Z - kevinz.ai - @kzic</text>
+</svg>
