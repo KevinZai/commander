@@ -268,14 +268,9 @@ Full methodology: **[BIBLE.md](BIBLE.md)** — 2000+ lines, 7 chapters, appendic
 
 ---
 
-## 4 Themes
+<img src="docs/assets/ccc-themes.svg" alt="10 Themes" width="100%">
 
-```
-  CYBERPUNK     ░▒▓█████████▓▒░   neon pink → cyan
-  FIRE          ░▒▓█████████▓▒░   amber → deep orange
-  GRAFFITI      ░▒▓█████████▓▒░   yellow → pink → blue
-  FUTURISTIC    ░▒▓█████████▓▒░   soft blue → purple
-```
+Live preview as you navigate. Switch anytime in Settings.
 
 ---
 
