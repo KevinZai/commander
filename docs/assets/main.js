@@ -1,5 +1,5 @@
 /* ============================================================================
-   Kevin Z's Claude Code Kit — Landing Page Scripts
+   Kevin Z's CC Commander — Landing Page Scripts
    Terminal animations, copy-to-clipboard, scroll effects
    ============================================================================ */
 

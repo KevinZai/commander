@@ -1,6 +1,6 @@
 ---
 name: cc
-description: Claude Code Kit — Command Center. Interactive menu for skills, modes, prompts, confidence checks, and more.
+description: CC Commander — Command Center. Interactive menu for skills, modes, prompts, confidence checks, and more.
 triggers:
   - "/cc"
   - "/cc skills"

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// Kevin Z's Claude Code Kit — Status Check-in Hook (Stop)
+// Kevin Z's CC Commander — Status Check-in Hook (Stop)
 // ============================================================================
 // Displays a branded footer after every Claude response and a full task
 // status check-in every N responses (default: 10).

@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Session End Verify (Stop)
+// Kevin Z's CC Commander — Session End Verify (Stop)
 // ============================================================================
 // On session Stop, checks if files were modified via git diff --stat.
 // Reports modified file count and checks for console.log in JS/TS files.

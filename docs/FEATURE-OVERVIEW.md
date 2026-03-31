@@ -25,9 +25,9 @@
 ---
 
 
-## What Is Claude Code Kit?
+## What Is CC Commander?
 
-Claude Code Kit is a batteries-included configuration toolkit for [Claude Code](https://claude.ai/code), Anthropic's official CLI for AI-assisted development. It transforms a stock Claude Code installation into a structured, skill-aware, hook-driven development environment with over 280 curated skills, 87 slash commands, 35 lifecycle hooks, and a methodology (The Kevin Z Method) that codifies best practices from 200+ community sources.
+CC Commander is a batteries-included configuration toolkit for [Claude Code](https://claude.ai/code), Anthropic's official CLI for AI-assisted development. It transforms a stock Claude Code installation into a structured, skill-aware, hook-driven development environment with over 280 curated skills, 87 slash commands, 35 lifecycle hooks, and a methodology (The Kevin Z Method) that codifies best practices from 200+ community sources.
 
 The kit is designed for developers who want Claude Code to work like a senior engineering partner rather than an autocomplete engine. It provides opinionated workflows for planning, building, testing, shipping, and reviewing code -- along with specialized skill packs for frontend, backend, DevOps, security, data, mobile, marketing, SEO, and more. Whether you are building a quick prototype or a full SaaS product, the kit routes you to the right tools and enforces verification before marking work done.
 
@@ -819,7 +819,7 @@ Background task system for overnight builds, batch processing, and long-running 
 
 #### OpenClaw
 
-Bridge between Claude Code Kit and OpenClaw's 38-agent orchestration platform. Provides skill mapping, hook translation, agent profile generation, and session handoff. The `openclaw-adapter.js` hook translates Bible hook events to OpenClaw webhook format.
+Bridge between CC Commander and OpenClaw's 38-agent orchestration platform. Provides skill mapping, hook translation, agent profile generation, and session handoff. The `openclaw-adapter.js` hook translates CC Commander hook events to OpenClaw webhook format.
 
 #### Paperclip
 
@@ -1149,7 +1149,7 @@ Pre-configured skill combinations for common project types:
 
 ## Comparison
 
-| Feature | Claude Code Kit | Stock Claude Code | SuperClaude | Other Kits |
+| Feature | CC Commander | Stock Claude Code | SuperClaude | Other Kits |
 |---------|----------------|-------------------|-------------|------------|
 | Skills | 280+ | 0 | ~20 | 10-50 |
 | Commands | 87 | Built-in only | ~15 | 5-20 |

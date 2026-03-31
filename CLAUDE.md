@@ -1,4 +1,4 @@
-# CLAUDE.md — CC Commander (Claude Code Kit)
+# CLAUDE.md — CC Commander
 
 ## What This Is
 

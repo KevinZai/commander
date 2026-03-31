@@ -1,4 +1,4 @@
-# Claude Code Kit v1.3 -- Quick Reference Guide
+# CC Commander v1.6.0 -- Quick Reference Guide
 > Print this. Keep it next to your monitor.
 
 ---
@@ -400,5 +400,5 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-
 
 ---
 
-*Claude Code Kit v1.3 -- kevinzai.github.io/cc-commander*
+*CC Commander v1.6.0 -- kevinzai.github.io/cc-commander*
 *280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 36+ prompts | 9 modes | 4 themes | 3 templates*

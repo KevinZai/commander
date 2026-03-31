@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Auto Lessons (PostToolUse)
+// Kevin Z's CC Commander — Auto Lessons (PostToolUse)
 // ============================================================================
 // Detects error patterns in tool output (error, failed, TypeError, etc.)
 // and auto-appends entries to tasks/lessons.md in the current working directory.

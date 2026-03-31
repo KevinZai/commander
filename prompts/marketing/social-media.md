@@ -82,7 +82,7 @@ Define 4-5 content themes that rotate:
 ```
 Create a social media content strategy for the following product/brand.
 
-**Product/Brand:** Claude Code Kit — an open-source Claude Code configuration toolkit
+**Product/Brand:** CC Commander — an open-source Claude Code configuration toolkit
 **Target audience:** Developers who use Claude Code, AI-assisted coding enthusiasts
 **Primary platform:** Twitter/X
 **Secondary platforms:** Reddit (r/ClaudeAI, r/ChatGPTPro), LinkedIn

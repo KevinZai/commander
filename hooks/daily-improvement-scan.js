@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// Claude Code Kit -- Daily Improvement Scanner
+// CC Commander -- Daily Improvement Scanner
 // ============================================================================
 // Run daily via cron: 0 6 * * * node ~/.claude/hooks/daily-improvement-scan.js
 // Scans GitHub and npm for new Claude Code innovations.
@@ -12,7 +12,7 @@
 //   KZ_IMPROVE_SCAN_DAYS    — Days back to search (default: 7)
 //   GITHUB_TOKEN            — GitHub PAT for higher API rate limits (optional)
 //
-// By Kevin Z — Claude Code Kit v1.3
+// By Kevin Z — CC Commander v1.6.0
 // ============================================================================
 
 'use strict';

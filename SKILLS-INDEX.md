@@ -1,5 +1,5 @@
 # Skills Index — Quick Reference
-> The Claude Code Bible v1.3 — by Kevin Z
+> CC Commander v1.6.0 — by Kevin Z
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
 > Last verified: 2026-03-28 | 280+ skill directories | 10 Mega-Skills | 18 kit-native hooks (37 with ECC) | 3 starter templates | 36+ prompt templates | 9 workflow modes | Real-time dashboard | 4 themes
 > Audit: `./generate-index.sh --check` to find missing or broken skills
@@ -517,7 +517,7 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = new in v0.4 | New mega-skills, modes, integrations, and prompt library added in v1.1 | Themes, OpenClaw native, status updates, continuous improvement added in v1.3*
+*⭐ = new in v0.4 | New mega-skills, modes, integrations, and prompt library added in v1.1 | Themes, OpenClaw native, status updates, continuous improvement added in v1.3 | Linear MCP, board view, full rebrand in v1.6.0*
 
 ---
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# Claude Code Kit — Status Line
+# CC Commander — Status Line
 # ============================================================================
 # Persistent footer showing context gauge, model, tokens, cost, rate limits.
 # Receives JSON session data on stdin from Claude Code.
@@ -13,10 +13,10 @@
 #     "padding": 1
 #   }
 #
-# Colors use Claude Code Kit palette.
+# Colors use CC Commander palette.
 # ============================================================================
 
-# Colors — Claude Code Kit palette
+# Colors — CC Commander palette
 G='\033[38;5;172m'   # amber
 M='\033[38;5;145m'   # gray
 D='\033[38;5;240m'   # dim gray

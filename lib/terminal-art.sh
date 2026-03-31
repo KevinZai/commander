@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# Claude Code Kit — Terminal Art Library
+# CC Commander — Terminal Art Library
 # ============================================================================
 # Source this file in any shell script for consistent Kit branding.
 #   source "$(dirname "$0")/lib/terminal-art.sh"
@@ -170,7 +170,7 @@ cc_banner() {
   echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╠╩╗║╠╩╗║  ║╣${NC}                                   ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╚═╝╩╚═╝╩═╝╚═╝${NC}                                  ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_WHITE}Claude Code Kit${NC}  ${M_DIM}v1.4${NC}                              ${M_MID}┃${NC}"
+  echo -e "${M_MID}┃${NC}   ${M_WHITE}CC Commander${NC}  ${M_DIM}v1.6.0${NC}                              ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}   ${M_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}   ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}   ${M_CYAN}by Kevin Z${NC}  ${M_DIM}//${NC}  ${M_WHITE}280+ Skills. One Install.${NC}     ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
@@ -182,7 +182,7 @@ kz_banner() { cc_banner "$@"; }
 cc_mini_banner() {
   echo ""
   echo -e "${M_MID}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo -e "  ${M_BRIGHT}KIT${NC} ${M_DIM}v1.4${NC}  ${M_CYAN}Claude Code Kit — by Kevin Z${NC}"
+  echo -e "  CC Commander v1.6.0${NC}  ${M_CYAN}CC Commander — by Kevin Z${NC}"
   echo -e "${M_MID}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""
 }
@@ -328,7 +328,7 @@ cc_farewell() {
       "  ${M_MID}Your code awaits.${NC}"
       ""
       "  ${M_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-      "  ${M_DIM}Claude Code Kit — by Kevin Z  //  github.com/KevinZai/cc-commander${NC}"
+      "  ${M_DIM}CC Commander — by Kevin Z  //  github.com/KevinZai/cc-commander${NC}"
       "  ${M_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     )
     for line in "${lines[@]}"; do
@@ -336,7 +336,7 @@ cc_farewell() {
       sleep 0.15
     done
   else
-    echo -e "  ${M_DIM}Claude Code Kit — by Kevin Z  //  github.com/KevinZai/cc-commander${NC}"
+    echo -e "  ${M_DIM}CC Commander — by Kevin Z  //  github.com/KevinZai/cc-commander${NC}"
   fi
   echo ""
 }

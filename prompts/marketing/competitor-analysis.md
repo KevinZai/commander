@@ -84,6 +84,6 @@ Save as a structured markdown document with all tables and recommendations.
 Analyze the competitive landscape for the following product/feature.
 
 **Our product:** An open-source Claude Code configuration toolkit (skills, hooks, commands)
-**Our positioning:** "The Claude Code Bible" — comprehensive, opinionated, community-driven
+**Our positioning: CC Commander — comprehensive, opinionated, community-driven
 **Known competitors:** Cline, Continue.dev, Aider, Cursor rules repos
 ```

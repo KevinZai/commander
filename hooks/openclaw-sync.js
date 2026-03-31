@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// Claude Code Kit — OpenClaw Sync (SessionStart)
+// CC Commander — OpenClaw Sync (SessionStart)
 // ============================================================================
 // Auto-detects OpenClaw gateway and syncs Kit skills to the registry.
 // Exits immediately if OpenClaw is not found or not enabled.

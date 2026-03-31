@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Cost Alert (PostToolUse)
+// Kevin Z's CC Commander — Cost Alert (PostToolUse)
 // ============================================================================
 // Tracks cumulative tool calls as a rough cost proxy.
 // At 30 calls: warns ~$0.50 estimated.

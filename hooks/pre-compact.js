@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// Kevin Z's Claude Code Kit — Pre-Compact (PreCompact)
+// Kevin Z's CC Commander — Pre-Compact (PreCompact)
 // ============================================================================
 // Auto-saves session state before context compaction. Captures working
 // directory, git branch, git status, tool call count, and active tasks

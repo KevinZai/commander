@@ -1,6 +1,6 @@
 # Claude Code Cheatsheet
-> The Claude Code Bible v1.3 — by Kevin Z — commands, workflows, and power user tips
-> v1.3 — 2026-03-28
+> CC Commander v1.6.0 — by Kevin Z — commands, workflows, and power user tips
+> v1.6.0 — 2026-03-30
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
@@ -795,7 +795,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /cc Command Center
 
-The Claude Code Bible includes an interactive command center accessible via `/cc`:
+CC Commander includes an interactive command center accessible via `/cc`:
 
 | Command | What it does |
 |---------|-------------|
@@ -837,7 +837,7 @@ Configured via `statusLine` in `settings.json`. Script: `lib/statusline.sh`.
 
 ## 🖥️ Terminal Theme
 
-Import the Claude Code Kit iTerm2 profile for the intended visual experience:
+Import the CC Commander iTerm2 profile for the intended visual experience:
 
 ```bash
 open compatibility/kz-matrix.itermcolors

@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Pre-Commit Verify (PreToolUse, matcher: Bash)
+// Kevin Z's CC Commander — Pre-Commit Verify (PreToolUse, matcher: Bash)
 // ============================================================================
 // Detects git commit commands and runs `npx tsc --noEmit` if the project
 // has TypeScript. Blocks the commit (exit 2) if tsc fails.

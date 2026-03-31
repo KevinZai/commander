@@ -1,4 +1,4 @@
-# CC Commander v1.3 -- X/Twitter Threads
+# CC Commander v1.6.0 -- X/Twitter Threads
 ### by Kevin Z
 
 ---
@@ -178,7 +178,7 @@ Claude almost never makes the same mistake twice.
 Instructions compound like interest.
 
 ### Tweet 12 (CTA)
-All 10 tricks built into CC Commander v1.3.
+All 10 tricks built into CC Commander v1.6.0.
 
 280+ skills. 37 hooks. 88+ commands.
 
@@ -273,10 +273,10 @@ Lessons from 38 agents:
 4. Cost visibility prevents surprises
 5. Boring solutions win
 
-All in CC Commander v1.3.
+All in CC Commander v1.6.0.
 
 github.com/KevinZai/cc-commander
 
 ---
 
-*CC Commander v1.3 by Kevin Z -- 280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 4 themes | 9 modes*
+*CC Commander v1.6.0 by Kevin Z -- 280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 4 themes | 9 modes*

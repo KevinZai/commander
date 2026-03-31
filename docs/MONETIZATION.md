@@ -1,4 +1,4 @@
-# Claude Code Kit -- Monetization Strategy
+# CC Commander -- Monetization Strategy
 
 **Author:** Kevin Z
 **Version:** 1.3
@@ -9,11 +9,11 @@
 
 ## Executive Summary
 
-Claude Code Kit is the most comprehensive configuration toolkit for Claude Code, Anthropic's official AI development CLI. With 280+ skills, 10 mega-skills, 88+ commands, 37 hooks, 36+ prompt templates, 9 workflow modes, 4 themes, a real-time agent dashboard, modular installer, and The Kevin Z Method methodology, it is the single largest "batteries-included" kit in the ecosystem.
+CC Commander is the most comprehensive configuration toolkit for Claude Code, Anthropic's official AI development CLI. With 280+ skills, 10 mega-skills, 88+ commands, 37 hooks, 36+ prompt templates, 9 workflow modes, 4 themes, a real-time agent dashboard, modular installer, and The Kevin Z Method methodology, it is the single largest "batteries-included" kit in the ecosystem.
 
 The Claude Code ecosystem is growing explosively. The official Claude Code repo has 83K+ stars, and the broader ecosystem includes 55+ repos with 1,000+ stars each. Developer willingness to pay for AI-augmented tooling is high -- Cursor charges $20/month, GitHub Copilot charges $10-39/month, and the pattern is clear: developers will pay for tools that make them measurably faster.
 
-Claude Code Kit has a monetization window right now. The ecosystem is mature enough for developers to understand the value but early enough that no dominant paid kit exists. This document lays out five revenue models, recommends one, and provides a concrete implementation roadmap.
+CC Commander has a monetization window right now. The ecosystem is mature enough for developers to understand the value but early enough that no dominant paid kit exists. This document lays out five revenue models, recommends one, and provides a concrete implementation roadmap.
 
 ---
 
@@ -193,7 +193,7 @@ Based on developer spending patterns:
 
 **Goal:** Maximize free distribution and community growth.
 
-- Ship v1.3 with all planned features (plugin format, memory compression, multi-model consensus)
+- Ship v1.6.0 with all planned features (plugin format, memory compression, multi-model consensus)
 - Publish as official Claude Code plugin via `/plugin marketplace add KevinZai/cc-commander`
 - Track installs via anonymous analytics in install.sh (opt-in counter, no PII)
 - Target: 2,000 GitHub stars, 500 weekly installs
@@ -345,4 +345,4 @@ This assumes conservative growth. If the Claude Code ecosystem grows faster than
 
 ---
 
-*Claude Code Kit by Kevin Z -- turning Claude Code from an autocomplete engine into a senior engineering partner.*
+*CC Commander by Kevin Z -- turning Claude Code from an autocomplete engine into a senior engineering partner.*

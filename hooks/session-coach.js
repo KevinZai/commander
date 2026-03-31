@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// The Claude Code Bible — Session Coach (Stop)
+// CC Commander — Session Coach (Stop)
 // ============================================================================
 // A periodic coaching nudge that fires every N responses and gives
 // contextual recommendations based on what you're doing in the session.

@@ -1,4 +1,4 @@
-# Hooks — The Claude Code Bible
+# Hooks — CC Commander
 
 ## Overview
 

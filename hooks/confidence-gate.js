@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Confidence Gate (PreToolUse, matcher: Bash)
+// Kevin Z's CC Commander — Confidence Gate (PreToolUse, matcher: Bash)
 // ============================================================================
 // Detects bash commands that create or edit 3+ files in a single command
 // (e.g., sed -i on multiple files, scripts touching many files).

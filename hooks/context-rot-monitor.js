@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Context Rot Monitor (PostToolUse)
+// Kevin Z's CC Commander — Context Rot Monitor (PostToolUse)
 // ============================================================================
 // Monitors context window fill level and emits tiered warnings via stderr.
 // Reads context percentage from hook input or CC_CONTEXT_PCT env var.

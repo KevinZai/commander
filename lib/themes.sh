@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# Claude Code Kit — Theme System (Shell)
+# CC Commander — Theme System (Shell)
 # ============================================================================
 # Provides theme color definitions for shell scripts.
 # Source this file, then call cc_load_theme to set T_* color variables.

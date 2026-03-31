@@ -1,4 +1,4 @@
-# X/Twitter Marketing Content for Claude Code Bible
+# X/Twitter Marketing Content for CC Commander
 
 ---
 
@@ -50,7 +50,7 @@ I extracted the gold.
 
 ### Tweet 5 (The Numbers)
 
-The result: Kevin Z's Claude Code Bible
+The result: Kevin Z's CC Commander
 
 - 280+ production-tested skills
 - 88+ slash commands
@@ -93,7 +93,7 @@ No guessing. No manual setup.
 
 ### Tweet 8 (The Bible)
 
-I also wrote a 1,749-line guide called "The Claude Code Bible."
+I also wrote a 1,749-line guide called CC Commander.
 
 It distills 13 sources into 6 stages of development:
 
@@ -217,7 +217,7 @@ github.com/KevinZai/cc-commander
 
 ### Post 3: The /init Wizard Angle
 
-My favorite thing about Claude Code Bible: the /init wizard.
+My favorite thing about CC Commander: the /init wizard.
 
 Run it in any project. Pick your build type: QUICK, DEEP, SAAS, or OVERNIGHT.
 

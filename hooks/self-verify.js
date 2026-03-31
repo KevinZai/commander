@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// Kevin Z's Claude Code Kit — Self-Verify (Stop)
+// Kevin Z's CC Commander — Self-Verify (Stop)
 // ============================================================================
 // On session Stop, checks for signs of incomplete work:
 //   1. Unchecked items in tasks/todo.md

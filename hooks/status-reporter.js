@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// Claude Code Kit — Status Reporter (PostToolUse)
+// CC Commander — Status Reporter (PostToolUse)
 // ============================================================================
 // Tracks session activity and signals when a status update is due.
 // Works with the status-updates skill to send progress reports via

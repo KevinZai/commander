@@ -1583,7 +1583,7 @@ Each mode auto-loads the relevant mega-skills and adjusts the session behavior. 
 
 ## Prompt Library
 
-> NEW in v1.3 — 36+ battle-tested prompt templates across 6 categories.
+> 36+ battle-tested prompt templates across 6 categories.
 
 Instead of crafting prompts from scratch every time, use the pre-built templates in `prompts/`:
 
@@ -1604,7 +1604,7 @@ Templates are designed to be copy-pasted with minimal modification. Each include
 
 ## Integrations
 
-> NEW in v1.3 — Patterns for multi-agent orchestration.
+> Patterns for multi-agent orchestration.
 
 ### Agency Orchestrator
 
@@ -1627,9 +1627,9 @@ Integration patterns for OpenClaw multi-agent platform:
 
 ---
 
-## Proactive Automation Suite (v1.3)
+## Proactive Automation Suite
 
-The key innovation of v1.3: 15 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
+15 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
 
 ### The 9 New Hooks
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// Kevin Z's Claude Code Kit — OpenClaw Adapter (PostToolUse)
+// Kevin Z's CC Commander — OpenClaw Adapter (PostToolUse)
 // ============================================================================
 // Translates Bible hook events to OpenClaw webhook format and sends to the
 // OpenClaw gateway at localhost:18789. Designed to never block Claude Code —

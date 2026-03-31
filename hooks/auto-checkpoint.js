@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Auto Checkpoint (PostToolUse)
+// Kevin Z's CC Commander — Auto Checkpoint (PostToolUse)
 // ============================================================================
 // Counts file edits (Edit or Write tool). Every 10 edits, creates a git stash
 // with message "kz-checkpoint-{count}" if there are uncommitted changes.

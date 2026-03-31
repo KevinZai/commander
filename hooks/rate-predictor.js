@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Rate Predictor (PostToolUse)
+// Kevin Z's CC Commander — Rate Predictor (PostToolUse)
 // ============================================================================
 // Tracks timestamps of tool calls. After 10+ calls, calculates the call rate
 // (calls per minute). If rate > 5 calls/min sustained, warns about session

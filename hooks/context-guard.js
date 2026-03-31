@@ -1,5 +1,5 @@
 // ============================================================================
-// Kevin Z's Claude Code Kit — Context Guard (PostToolUse)
+// Kevin Z's CC Commander — Context Guard (PostToolUse)
 // ============================================================================
 // Tracks approximate context usage by counting tool calls in a session.
 // At call #50 (~70% context), warns and auto-saves a lightweight session
