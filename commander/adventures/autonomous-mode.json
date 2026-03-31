@@ -1,0 +1,190 @@
+{
+  "id": "autonomous-mode",
+  "version": 1,
+  "screen": {
+    "title": "Autonomous Mode",
+    "subtitle": "Set up Claude to work independently while you're away.",
+    "detail": "Loops, monitors, batch ops, and custom automation -- all with safety guards."
+  },
+  "prompt": "What should Claude do autonomously?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Monitor & Maintain",
+      "description": "Watch CI, fix builds, prune PRs, guard tests",
+      "next": "monitor-maintain"
+    },
+    {
+      "key": "b",
+      "label": "Background Coding",
+      "description": "Implement features, fix bugs, update docs unattended",
+      "next": "background-coding"
+    },
+    {
+      "key": "c",
+      "label": "Batch Operations",
+      "description": "Large-scale migrations, refactors, dependency updates",
+      "next": "batch-operations"
+    },
+    {
+      "key": "d",
+      "label": "Custom Loop",
+      "description": "Define your own recurring automation",
+      "next": "custom-loop"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
+    }
+  ],
+  "subAdventures": {
+    "monitor-maintain": {
+      "prompt": "What should Claude monitor?",
+      "choices": [
+        {
+          "key": "a",
+          "label": "PR Babysitter",
+          "description": "Review, rebase, and shepherd PRs to merge (every 5 min)",
+          "action": "dispatch",
+          "flags": "--loop 5m --task babysit --max-turns 50 --cost-ceiling 3.00"
+        },
+        {
+          "key": "b",
+          "label": "Build Shepherd",
+          "description": "Watch CI, auto-fix build failures (every 5 min)",
+          "action": "dispatch",
+          "flags": "--loop 5m --task build-shepherd --max-turns 30 --cost-ceiling 3.00"
+        },
+        {
+          "key": "c",
+          "label": "Test Guardian",
+          "description": "Run tests, auto-fix flaky tests (every 15 min)",
+          "action": "dispatch",
+          "flags": "--loop 15m --task test-guardian --max-turns 20 --cost-ceiling 3.00"
+        },
+        {
+          "key": "d",
+          "label": "PR Pruner",
+          "description": "Close stale PRs with no activity >7 days (every hour)",
+          "action": "dispatch",
+          "flags": "--loop 1h --task pr-pruner --max-turns 24 --cost-ceiling 1.00"
+        },
+        {
+          "key": "e",
+          "label": "Dependency Watcher",
+          "description": "Check for security advisories (every 10 min)",
+          "action": "dispatch",
+          "flags": "--loop 10m --task dependency-watcher --max-turns 30 --cost-ceiling 2.00"
+        },
+        {
+          "key": "f",
+          "label": "Cost Monitor",
+          "description": "Alert if API costs exceed thresholds (every 30 min)",
+          "action": "dispatch",
+          "flags": "--loop 30m --task cost-monitor --max-turns 48 --cost-ceiling 0.50"
+        },
+        {
+          "key": "q",
+          "label": "Back",
+          "next": "autonomous-mode"
+        }
+      ]
+    },
+    "background-coding": {
+      "prompt": "What background coding task?",
+      "choices": [
+        {
+          "key": "a",
+          "label": "Implement from spec",
+          "description": "Build a feature from a spec file autonomously",
+          "action": "freeform_dispatch",
+          "context": "Implement the feature described in the spec. Work autonomously: "
+        },
+        {
+          "key": "b",
+          "label": "Post-merge sweep",
+          "description": "Fix unresolved review comments after merge",
+          "action": "dispatch",
+          "flags": "--loop 10m --task post-merge-sweeper --max-turns 30 --cost-ceiling 4.00"
+        },
+        {
+          "key": "c",
+          "label": "Doc Updater",
+          "description": "Scan code changes, update documentation (every hour)",
+          "action": "dispatch",
+          "flags": "--loop 1h --task doc-updater --max-turns 12 --cost-ceiling 3.00"
+        },
+        {
+          "key": "d",
+          "label": "Knowledge Compounder",
+          "description": "Extract patterns from sessions into reusable knowledge (every 2h)",
+          "action": "dispatch",
+          "flags": "--loop 2h --task knowledge-compounder --max-turns 6 --cost-ceiling 2.00"
+        },
+        {
+          "key": "e",
+          "label": "Slack Feedback Collector",
+          "description": "Create PRs from Slack feedback messages (every 30 min)",
+          "action": "dispatch",
+          "flags": "--loop 30m --task slack-feedback --max-turns 20 --cost-ceiling 5.00"
+        },
+        {
+          "key": "q",
+          "label": "Back",
+          "next": "autonomous-mode"
+        }
+      ]
+    },
+    "batch-operations": {
+      "prompt": "What batch operation?",
+      "choices": [
+        {
+          "key": "a",
+          "label": "CJS to ESM migration",
+          "description": "Convert CommonJS to ES Modules across the codebase",
+          "action": "dispatch",
+          "flags": "--headless --task 'batch cjs-to-esm' --max-turns 100 --cost-ceiling 5.00"
+        },
+        {
+          "key": "b",
+          "label": "React class to hooks",
+          "description": "Convert class components to function components with hooks",
+          "action": "dispatch",
+          "flags": "--headless --task 'batch class-to-hooks' --max-turns 100 --cost-ceiling 5.00"
+        },
+        {
+          "key": "c",
+          "label": "Multi-file rename",
+          "description": "Rename a symbol across the entire codebase",
+          "action": "freeform_dispatch",
+          "context": "Batch rename across codebase: "
+        },
+        {
+          "key": "d",
+          "label": "Dependency upgrade",
+          "description": "Major version bump across all packages",
+          "action": "freeform_dispatch",
+          "context": "Batch dependency upgrade: "
+        },
+        {
+          "key": "e",
+          "label": "Linter rule enforcement",
+          "description": "Apply a new lint rule project-wide",
+          "action": "freeform_dispatch",
+          "context": "Enforce lint rule across codebase: "
+        },
+        {
+          "key": "q",
+          "label": "Back",
+          "next": "autonomous-mode"
+        }
+      ]
+    },
+    "custom-loop": {
+      "prompt": "Describe your custom loop (what + how often):",
+      "action": "freeform_dispatch",
+      "context": "Set up a custom autonomous loop: "
+    }
+  }
+}
