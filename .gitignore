@@ -32,3 +32,9 @@ kevin/
 
 # Local settings
 .claude/settings.local.json
+
+# Vendor submodule build artifacts
+vendor/*/node_modules/
+vendor/*/dist/
+vendor/*/.env
+vendor/*/coverage/

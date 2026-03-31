@@ -1,0 +1,33 @@
+[submodule "vendor/oh-my-claudecode"]
+	path = vendor/oh-my-claudecode
+	url = https://github.com/Yeachan-Heo/oh-my-claudecode.git
+[submodule "vendor/claude-code-best-practice"]
+	path = vendor/claude-code-best-practice
+	url = https://github.com/shanraisshan/claude-code-best-practice.git
+[submodule "vendor/everything-claude-code"]
+	path = vendor/everything-claude-code
+	url = https://github.com/affaan-m/everything-claude-code.git
+[submodule "vendor/superpowers"]
+	path = vendor/superpowers
+	url = https://github.com/obra/superpowers.git
+[submodule "vendor/claude-hud"]
+	path = vendor/claude-hud
+	url = https://github.com/jarrodwatts/claude-hud.git
+[submodule "vendor/caliber-ai-setup"]
+	path = vendor/caliber-ai-setup
+	url = https://github.com/caliber-ai-org/ai-setup.git
+[submodule "vendor/gstack"]
+	path = vendor/gstack
+	url = https://github.com/garrytan/gstack.git
+[submodule "vendor/compound-engineering"]
+	path = vendor/compound-engineering
+	url = https://github.com/EveryInc/compound-engineering-plugin.git
+[submodule "vendor/claude-reflect"]
+	path = vendor/claude-reflect
+	url = https://github.com/BayramAnnakov/claude-reflect.git
+[submodule "vendor/rtk"]
+	path = vendor/rtk
+	url = https://github.com/rtk-ai/rtk.git
+[submodule "vendor/acpx"]
+	path = vendor/acpx
+	url = https://github.com/openclaw/acpx.git

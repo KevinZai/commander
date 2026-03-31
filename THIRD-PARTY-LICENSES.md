@@ -1,5 +1,23 @@
 # Third-Party Licenses & Attribution
 
+## Included Vendor Packages (Git Submodules)
+
+The following packages are included as git submodules in `vendor/`. Each maintains its own LICENSE file. CC Commander does not modify their code.
+
+| Package | License | Path |
+|---------|---------|------|
+| oh-my-claudecode | MIT | vendor/oh-my-claudecode |
+| claude-code-best-practice | MIT | vendor/claude-code-best-practice |
+| everything-claude-code | MIT | vendor/everything-claude-code |
+| Superpowers | MIT | vendor/superpowers |
+| Claude HUD | MIT | vendor/claude-hud |
+| Caliber AI Setup | MIT | vendor/caliber-ai-setup |
+| gstack | MIT | vendor/gstack |
+| Compound Engineering | MIT | vendor/compound-engineering |
+| claude-reflect | MIT | vendor/claude-reflect |
+| RTK | MIT | vendor/rtk |
+| acpx | MIT | vendor/acpx |
+
 CC Commander is an original implementation. No code was copied from
 any third-party project. The following projects provided architectural inspiration and
 their patterns influenced our design:
@@ -53,6 +71,7 @@ license restrictions:
 | Product-Manager-Skills (deanpeters) | CC-BY-NC-SA 4.0 | Non-commercial clause |
 | Kiro CLI (AWS) | Proprietary | No open license |
 | CloudCLI (siteboon) | AGPL v3 | Source disclosure for SaaS |
+| oh-my-openagent | SUL-1.0 | SUL-1.0 license — not MIT compatible |
 
 ---
 
