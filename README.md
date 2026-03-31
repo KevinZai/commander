@@ -28,13 +28,6 @@ You get:  A guided AI project manager with 432+ skills,
 
 ---
 
-```
-  ___ _  _ ___ _____ _   _    _    
- |_ _| \| / __|_   _/_\ | |  | |   
-  | || .` \__ \ | |/ _ \| |__| |__ 
- |___|_|\_|___/ |_/_/ \_\____|____|
-```
-
 <img src="docs/assets/section-install.svg" alt="Install" width="100%">
 
 ```bash
@@ -137,13 +130,6 @@ It dispatches to the best available tool (from 11 vendor packages), tracks the s
 
 ---
 
-```
-  ___   ___  __  __   _   ___ _  _ ___ 
- |   \ / _ \|  \/  | /_\ |_ _| \| / __|
- | |) | (_) | |\/| |/ _ \ | || .` \__ \
- |___/ \___/|_|  |_/_/ \_\___|_|\_|___/
-```
-
 <img src="docs/assets/section-domains.svg" alt="Domains" width="100%">
 
 Each domain is a router that dispatches to specialized sub-skills on demand.
@@ -163,13 +149,6 @@ Each domain is a router that dispatches to specialized sub-skills on demand.
 | **ccc-mobile** | 8 | React Native, Expo, mobile UI, push notifications, deep linking, app store optimization, offline-first, gesture handling |
 
 ---
-
-```
- __   _____ _  _ ___   ___  ___  ___ 
- \ \ / / __| \| |   \ / _ \| _ \/ __|
-  \ V /| _|| .` | |) | (_) |   /\__ \
-   \_/ |___|_|\_|___/ \___/|_|_\|___/
-```
 
 <img src="docs/assets/section-vendors.svg" alt="Vendors" width="100%">
 
