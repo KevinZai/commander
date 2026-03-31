@@ -197,40 +197,47 @@ function select(items, prompt) {
     readline.emitKeypressEvents(stdin);
     stdout.write(ESC + '?25l'); // hide cursor
 
-    // Claude Code style: bold title, dim subtitle below, space between items
+    // GUI-style menu: bright selected with arrow + subtitle, dim unselected
     var totalLines = 2; // prompt + blank
-    items.forEach(function(item) {
-      totalLines++; // title line
-      var desc = typeof item === 'string' ? '' : (item.description || '');
-      if (desc) totalLines++; // subtitle line
-    });
+    items.forEach(function() { totalLines += 2; }); // title + subtitle/spacing per item
+    totalLines += 1; // bottom border
+
+    var cols = Math.min(stdout.columns || 80, 72);
+    var side = rgb(t.dim[0], t.dim[1], t.dim[2]) + '\u2551' + RESET;
+    var botBorder = '  ' + rgb(t.dim[0], t.dim[1], t.dim[2]) + '\u255a' + '\u2550'.repeat(cols - 6) + '\u255d' + RESET;
+
+    function padR(text, rawLen) {
+      var pad = cols - 8 - rawLen;
+      return text + ' '.repeat(Math.max(0, pad));
+    }
 
     function draw() {
       stdout.write(ESC + totalLines + 'A');
-      stdout.write(ESC + '2K  ' + boldText(prompt || 'Choose:', t.text) + '\n');
-      stdout.write(ESC + '2K\n');
+      stdout.write(ESC + '2K  ' + side + ' ' + boldText(prompt || 'What would you like to do?', t.text) + '\n');
+      stdout.write(ESC + '2K  ' + side + '\n');
       items.forEach(function(item, i) {
         var active = i === sel;
         var label = typeof item === 'string' ? item : item.label;
         var desc = typeof item === 'string' ? '' : (item.description || '');
 
-        stdout.write(ESC + '2K');
+        stdout.write(ESC + '2K  ' + side);
         if (active) {
-          stdout.write('  ' + colorText('\u276f ', t.primary) + BOLD + colorText(label, t.text) + RESET);
+          stdout.write(' ' + colorText('\u276f ', t.primary) + BOLD + '\x1b[38;5;255m' + label + RESET);
         } else {
-          stdout.write('    ' + dimText(label));
+          stdout.write('   ' + rgb(t.dim[0]+40, t.dim[1]+40, t.dim[2]+40) + label + RESET);
         }
         stdout.write('\n');
+        stdout.write(ESC + '2K  ' + side);
         if (desc) {
-          stdout.write(ESC + '2K');
           if (active) {
-            stdout.write('    ' + dimText(desc));
+            stdout.write('    ' + colorText(desc, t.primary));
           } else {
             stdout.write('    ' + rgb(t.dim[0], t.dim[1], t.dim[2]) + desc + RESET);
           }
-          stdout.write('\n');
         }
+        stdout.write('\n');
       });
+      stdout.write(ESC + '2K' + botBorder + '\n');
     }
 
     // Reserve space + initial draw
@@ -589,19 +596,44 @@ function renderStatusLine(items) {
   return '  ' + parts.join(dimText('  │  '));
 }
 
-function renderBanner() {
+function renderBanner(subtitle) {
   var t = getTheme();
+  var BRAND = require('./branding');
+  var cols = Math.min(process.stdout.columns || 80, 72);
   var lines = [];
-  lines.push('');
-  lines.push('  ' + gradient('Claude Code Commander', t.logo.gradient) + '  ' + dimText('v1.6.0'));
-  lines.push('  ' + dimText('280+ skills · your AI work, managed by AI'));
-  lines.push('');
-  return lines.join('\n');
+  var border = colorText('  ╔' + '═'.repeat(cols - 6) + '╗', t.dim);
+  var mid = colorText('  ╠' + '═'.repeat(cols - 6) + '╣', t.dim);
+  var bot = colorText('  ╚' + '═'.repeat(cols - 6) + '╝', t.dim);
+  var side = colorText('║', t.dim);
+  function padLine(content, rawLen) {
+    var pad = cols - 6 - rawLen;
+    return '  ' + side + ' ' + content + ' '.repeat(Math.max(0, pad)) + ' ' + side;
+  }
+
+  lines.push(border);
+  lines.push(padLine(gradient('CC COMMANDER', t.logo.gradient) + '  ' + dimText('v' + BRAND.version), 16 + BRAND.version.length));
+  lines.push(padLine(dimText(subtitle || BRAND.tagline), (subtitle || BRAND.tagline).length));
+  lines.push(mid);
+  return lines.join('\n') + '\n';
 }
 
-function renderCompactHeader() {
+function renderCompactHeader(subtitle) {
   var t = getTheme();
-  return colorText('  ▌', t.primary) + boldText(' CCC', t.primary) + dimText(' v1.6.0') + '\n';
+  var BRAND = require('./branding');
+  var cols = Math.min(process.stdout.columns || 80, 72);
+  var border = colorText('  ╔' + '═'.repeat(cols - 6) + '╗', t.dim);
+  var mid = colorText('  ╠' + '═'.repeat(cols - 6) + '╣', t.dim);
+  var side = colorText('║', t.dim);
+  function padLine(content, rawLen) {
+    var pad = cols - 6 - rawLen;
+    return '  ' + side + ' ' + content + ' '.repeat(Math.max(0, pad)) + ' ' + side;
+  }
+  var out = '';
+  out += border + '\n';
+  out += padLine(gradient('CC COMMANDER', t.logo.gradient) + '  ' + dimText('v' + BRAND.version), 16 + BRAND.version.length) + '\n';
+  out += padLine(dimText(subtitle || BRAND.tagline), (subtitle || BRAND.tagline).length) + '\n';
+  out += mid + '\n';
+  return out;
 }
 
 function renderSeparator() {

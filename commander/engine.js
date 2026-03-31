@@ -105,8 +105,14 @@ class KitCommander {
       var activePrompt = prepared.afterAction ? prepared.afterAction.prompt : prepared.prompt;
 
       process.stdout.write('\x1b[2J\x1b[H'); // fast clear
-      process.stdout.write(tui.renderCompactHeader(BRAND.tagline));
-      process.stdout.write(tui.renderStatusLine([{label:"Sessions",value:String((currentState.user&&currentState.user.sessionsCompleted)||0)},{label:"Streak",value:String((stats.streak&&stats.streak.current)||0)+"d"},{label:"Level",value:String((currentState.user&&currentState.user.level)||"guided")}]) + "\n\n");
+      // Main menu gets full ASCII logo, sub-menus get compact header
+      if (adventureId === 'main-menu') {
+        process.stdout.write(tui.renderLogoResponsive('CCC'));
+        process.stdout.write(tui.renderBanner());
+      } else {
+        process.stdout.write(tui.renderCompactHeader());
+      }
+      process.stdout.write(tui.renderStatusLine([{label:"Sessions",value:String((currentState.user&&currentState.user.sessionsCompleted)||0)},{label:"Streak",value:String((stats.streak&&stats.streak.current)||0)+"d"},{label:"Level",value:String((currentState.user&&currentState.user.level)||"guided")}]) + "\n");
       // Welcome dashboard for main menu
       if (adventureId === 'main-menu') {
         var recMod; try { recMod = require('./recommendations'); } catch(_e) {}
