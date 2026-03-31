@@ -47,8 +47,8 @@
 
   <!-- ==================== TOP BAR ==================== -->
   <rect class="bar-bg" x="0" y="0" width="1100" height="44"/>
-  <text class="bar-text" x="28" y="27">THE CLAUDE CODE BIBLE -- QUICK REFERENCE</text>
-  <text class="bar-text-dim" x="960" y="27">v1.0</text>
+  <text class="bar-text" x="28" y="27">CC COMMANDER -- QUICK REFERENCE</text>
+  <text class="bar-text-dim" x="960" y="27">v1.6</text>
   <text class="bar-text-sm" x="1000" y="27">2026</text>
 
   <!-- ==================== ROW 1 ==================== -->
@@ -59,13 +59,13 @@
   <!-- One-line install -->
   <text class="h3" x="28" y="96">One-Line Install</text>
   <rect class="code-bg" x="28" y="101" width="506" height="18" rx="3"/>
-  <text class="code-green" x="34" y="114">curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-kit/main/install-remote.sh | bash</text>
+  <text class="code-green" x="34" y="114">curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash</text>
 
   <!-- Manual install -->
   <text class="h3" x="28" y="138">Manual Install</text>
   <rect class="code-bg" x="28" y="143" width="506" height="42" rx="3"/>
-  <text class="code" x="34" y="156">git clone https://github.com/k3v80/claude-code-kit.git</text>
-  <text class="code" x="34" y="168">cd claude-code-kit</text>
+  <text class="code" x="34" y="156">git clone https://github.com/KevinZai/cc-commander.git</text>
+  <text class="code" x="34" y="168">cd cc-commander</text>
   <text class="code" x="34" y="180">./install.sh</text>
 
   <!-- Key Files -->
@@ -660,7 +660,7 @@
 
   <!-- ==================== BOTTOM BAR ==================== -->
   <rect class="bar-bg" x="0" y="1656" width="1100" height="44"/>
-  <text class="bar-text-sm" x="28" y="1682">github.com/k3v80/claude-code-kit</text>
+  <text class="bar-text-sm" x="28" y="1682">github.com/KevinZai/cc-commander</text>
   <text class="bar-text-dim" x="310" y="1682">|</text>
   <text class="bar-text-sm" x="330" y="1682">MIT License</text>
   <text class="bar-text-dim" x="420" y="1682">|</text>
@@ -672,6 +672,6 @@
   <text class="bar-text-dim" x="776" y="1682">|</text>
   <text class="bar-text-sm" x="796" y="1682">6 Mega-Skills</text>
   <text class="bar-text-dim" x="910" y="1682">|</text>
-  <text class="bar-text-sm" x="930" y="1682">v1.0 -- by Kevin Z</text>
+  <text class="bar-text-sm" x="930" y="1682">v1.6 -- by Kevin Z</text>
 
 </svg>

@@ -1,6 +1,32 @@
 # Changelog
 
-All notable changes to Claude Code Kit will be documented in this file.
+All notable changes to CC Commander will be documented in this file.
+
+## [1.6.0] — 2026-03-30
+
+### Added
+- **Linear MCP First-Class Integration** (CC-43): Removed OAuth complexity, replaced with native Linear MCP board view, pick-to-build issue selection, and auto-sync. Linear issues drive the entire CCC workflow now
+- **Security Hardening** (CC-42): 16-point hardening pass — kevin/ directory untracked from git, GraphQL injection fix in Linear queries, state file permission lockdown
+- **SVG Visual Overhaul**: 8 new SVG graphics across all README sections — screenshot, flow diagram, components table, YOLO mode, stats dashboard, before/after comparison
+- **PNG Conversion**: All 8 SVGs converted to PNG for GitHub mobile compatibility (SVG rendering blocked on mobile)
+- **Branding Cleanup**: OG image updated from "CC BIBLE" to "CC COMMANDER", Japanese katakana removed (ASCII binary rain), all stats updated (280+ skills, 10 mega-skills, 88+ commands, 37 hooks)
+- **Repo Migration Complete**: All references updated from k3v80/claude-code-bible to KevinZai/cc-commander
+- **Cowork Plugin**: Claude Desktop integration with 4 skills for autonomous mode
+- **18 E2E Path Tests**: Commander test suite with 101 total test assertions
+- **Plugin Orchestration**: Auto-detection and sequencing of gstack, CE, Superpowers plugins
+- **Mega-Skill Browser**: Dynamic scan of 10 mega-skills with 190+ sub-skills
+- **Knowledge Compounding Engine**: Learns from every session, injects lessons into future dispatches
+- **YOLO Mode**: 10-question overnight autonomous build with Opus, $10 budget, self-testing loop
+- **9 Workflow Modes**: normal, design, saas, marketing, research, writing, night, yolo, unhinged
+- **41 Prompt Templates**: Across 6 categories (coding, planning, design, marketing, devops, meta)
+- **VS Code Deep Integration**: Snippets, settings, launch configs
+- **4 iTerm2 Color Profiles**: Claude Anthropic, OLED Black, Matrix, plus theme switcher
+
+### Changed
+- **Version**: 1.5.0 → 1.6.0 across all files
+- **README**: Complete overhaul with inline graphics, updated stats, Linear integration docs
+- **Comparison table**: Linear column updated from "OAuth identity" to "First-class MCP"
+- **Install URLs**: All pointing to KevinZai/cc-commander
 
 ## [1.5.0] — 2026-03-29
 

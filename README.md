@@ -1,4 +1,4 @@
-<img src="docs/assets/ccc-screenshot.svg" alt="Claude Code Commander" width="100%">
+<img src="docs/assets/ccc-screenshot.png" alt="Claude Code Commander" width="100%">
 
 > **280+ skills · one command · your AI work, managed by AI**
 
@@ -18,7 +18,7 @@ Every Claude Code tool is a skill pack that runs **inside** sessions.
 
 CCC runs **above** them — it dispatches, tracks, learns, and orchestrates.
 
-<img src="docs/assets/ccc-flow.svg" alt="How CCC Works" width="100%">
+<img src="docs/assets/ccc-flow.png" alt="How CCC Works" width="100%">
 
 ---
 
@@ -135,7 +135,7 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 
 ## What You Get
 
-<img src="docs/assets/ccc-components.svg" alt="Components" width="100%">
+<img src="docs/assets/ccc-components.png" alt="Components" width="100%">
 
 <!--```
 ╔═════════════════╦════════╦════════════════════════╗
@@ -226,7 +226,7 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 
 **Start before bed. Wake up to shipped code.**
 
-<img src="docs/assets/ccc-yolo.svg" alt="YOLO Mode" width="100%">
+<img src="docs/assets/ccc-yolo.png" alt="YOLO Mode" width="100%">
 
 <!--```
 ╔══════════════════════════════════════════╗
@@ -309,7 +309,7 @@ CCC is its own **agent** in Linear.
 
 ## Stats Dashboard
 
-<img src="docs/assets/ccc-stats.svg" alt="Stats" width="100%">
+<img src="docs/assets/ccc-stats.png" alt="Stats" width="100%">
 
 <!--```
 ╔══════════════════════════════════════════╗
@@ -349,7 +349,7 @@ CCC is its own **agent** in Linear.
 
 ## Before & After
 
-<img src="docs/assets/ccc-comparison.svg" alt="Comparison" width="100%">
+<img src="docs/assets/ccc-comparison.png" alt="Comparison" width="100%">
 
 <!--```
 ╔══════════════════════╦════════╦══════════════╗

@@ -27,56 +27,56 @@
   <!-- Background -->
   <rect width="1280" height="640" fill="url(#bg)"/>
 
-  <!-- Matrix rain columns (subtle background) -->
+  <!-- Digital rain columns (subtle background, ASCII only) -->
   <g opacity="0.08" fill="#00ff41" font-family="monospace" font-size="14">
-    <text x="40" y="30">ア 7 ケ 2 マ</text>
-    <text x="40" y="50">9 タ 0 ヌ 3</text>
-    <text x="40" y="70">サ 1 ウ 8 ヨ</text>
-    <text x="40" y="90">4 ネ 6 カ 2</text>
-    <text x="40" y="110">ハ 3 ミ 0 テ</text>
-    <text x="40" y="130">7 ソ 5 レ 1</text>
-    <text x="40" y="150">ツ 8 エ 4 ワ</text>
-    <text x="140" y="20">3 ヒ 9 ム 1</text>
-    <text x="140" y="40">コ 0 フ 5 ナ</text>
-    <text x="140" y="60">6 ラ 2 セ 8</text>
-    <text x="140" y="80">ヤ 4 チ 7 ノ</text>
-    <text x="140" y="100">1 ホ 3 ル 0</text>
-    <text x="140" y="120">ク 9 ヘ 6 モ</text>
-    <text x="240" y="40">5 ト 1 オ 7</text>
-    <text x="240" y="60">イ 8 キ 3 ス</text>
-    <text x="240" y="80">0 ニ 6 ユ 2</text>
-    <text x="240" y="100">リ 4 ウ 9 シ</text>
-    <text x="1040" y="30">ア 2 ケ 7 マ</text>
-    <text x="1040" y="50">5 タ 1 ヌ 8</text>
-    <text x="1040" y="70">サ 3 ウ 0 ヨ</text>
-    <text x="1040" y="90">9 ネ 4 カ 6</text>
-    <text x="1040" y="110">ハ 1 ミ 7 テ</text>
-    <text x="1140" y="20">6 ヒ 2 ム 8</text>
-    <text x="1140" y="40">コ 3 フ 0 ナ</text>
-    <text x="1140" y="60">9 ラ 5 セ 1</text>
-    <text x="1140" y="80">ヤ 7 チ 4 ノ</text>
-    <text x="1140" y="100">2 ホ 8 ル 3</text>
-    <text x="40" y="480">ア 7 ケ 2 マ</text>
-    <text x="40" y="500">9 タ 0 ヌ 3</text>
-    <text x="40" y="520">サ 1 ウ 8 ヨ</text>
-    <text x="40" y="540">4 ネ 6 カ 2</text>
-    <text x="40" y="560">ハ 3 ミ 0 テ</text>
-    <text x="40" y="580">7 ソ 5 レ 1</text>
-    <text x="140" y="490">3 ヒ 9 ム 1</text>
-    <text x="140" y="510">コ 0 フ 5 ナ</text>
-    <text x="140" y="530">6 ラ 2 セ 8</text>
-    <text x="140" y="550">ヤ 4 チ 7 ノ</text>
-    <text x="140" y="570">1 ホ 3 ル 0</text>
-    <text x="1040" y="480">ア 2 ケ 7 マ</text>
-    <text x="1040" y="500">5 タ 1 ヌ 8</text>
-    <text x="1040" y="520">サ 3 ウ 0 ヨ</text>
-    <text x="1040" y="540">9 ネ 4 カ 6</text>
-    <text x="1040" y="560">ハ 1 ミ 7 テ</text>
-    <text x="1140" y="490">6 ヒ 2 ム 8</text>
-    <text x="1140" y="510">コ 3 フ 0 ナ</text>
-    <text x="1140" y="530">9 ラ 5 セ 1</text>
-    <text x="1140" y="550">ヤ 7 チ 4 ノ</text>
-    <text x="1140" y="570">2 ホ 8 ル 3</text>
+    <text x="40" y="30">0 1 0 1 1</text>
+    <text x="40" y="50">1 0 1 0 0</text>
+    <text x="40" y="70">0 0 1 1 0</text>
+    <text x="40" y="90">1 1 0 0 1</text>
+    <text x="40" y="110">0 1 1 0 1</text>
+    <text x="40" y="130">1 0 0 1 0</text>
+    <text x="40" y="150">0 1 0 1 1</text>
+    <text x="140" y="20">1 0 1 0 1</text>
+    <text x="140" y="40">0 1 0 1 0</text>
+    <text x="140" y="60">1 1 0 0 1</text>
+    <text x="140" y="80">0 0 1 1 0</text>
+    <text x="140" y="100">1 0 1 0 1</text>
+    <text x="140" y="120">0 1 0 1 0</text>
+    <text x="240" y="40">1 0 1 0 1</text>
+    <text x="240" y="60">0 1 0 1 0</text>
+    <text x="240" y="80">1 1 0 0 1</text>
+    <text x="240" y="100">0 0 1 1 0</text>
+    <text x="1040" y="30">1 0 1 0 1</text>
+    <text x="1040" y="50">0 1 0 1 0</text>
+    <text x="1040" y="70">1 0 0 1 1</text>
+    <text x="1040" y="90">0 1 1 0 0</text>
+    <text x="1040" y="110">1 0 1 1 0</text>
+    <text x="1140" y="20">0 1 0 1 0</text>
+    <text x="1140" y="40">1 0 1 0 1</text>
+    <text x="1140" y="60">0 0 1 1 0</text>
+    <text x="1140" y="80">1 1 0 0 1</text>
+    <text x="1140" y="100">0 1 0 1 0</text>
+    <text x="40" y="480">0 1 0 1 1</text>
+    <text x="40" y="500">1 0 1 0 0</text>
+    <text x="40" y="520">0 0 1 1 0</text>
+    <text x="40" y="540">1 1 0 0 1</text>
+    <text x="40" y="560">0 1 1 0 1</text>
+    <text x="40" y="580">1 0 0 1 0</text>
+    <text x="140" y="490">1 0 1 0 1</text>
+    <text x="140" y="510">0 1 0 1 0</text>
+    <text x="140" y="530">1 1 0 0 1</text>
+    <text x="140" y="550">0 0 1 1 0</text>
+    <text x="140" y="570">1 0 1 0 1</text>
+    <text x="1040" y="480">1 0 1 0 1</text>
+    <text x="1040" y="500">0 1 0 1 0</text>
+    <text x="1040" y="520">1 0 0 1 1</text>
+    <text x="1040" y="540">0 1 1 0 0</text>
+    <text x="1040" y="560">1 0 1 1 0</text>
+    <text x="1140" y="490">0 1 0 1 0</text>
+    <text x="1140" y="510">1 0 1 0 1</text>
+    <text x="1140" y="530">0 0 1 1 0</text>
+    <text x="1140" y="550">1 1 0 0 1</text>
+    <text x="1140" y="570">0 1 0 1 0</text>
   </g>
 
   <!-- Top glow effect -->
@@ -93,26 +93,26 @@
   <circle cx="234" cy="98" r="6" fill="#febc2e"/>
   <circle cx="254" cy="98" r="6" fill="#28c840"/>
   <!-- Title bar text -->
-  <text x="640" y="103" text-anchor="middle" fill="#666" font-family="SF Mono,Monaco,Menlo,monospace" font-size="12">kevin@mac — claude-code-bible</text>
+  <text x="640" y="103" text-anchor="middle" fill="#666" font-family="SF Mono,Monaco,Menlo,monospace" font-size="12">kevin@mac — cc-commander</text>
 
-  <!-- BIBLE large text banner -->
+  <!-- CC Commander large text banner -->
   <g filter="url(#glow)">
-    <text x="640" y="195" text-anchor="middle" fill="#00ff41" font-family="Monaco,Menlo,Consolas,monospace" font-size="68" font-weight="bold" letter-spacing="8">CC BIBLE</text>
+    <text x="640" y="195" text-anchor="middle" fill="#00ff41" font-family="Monaco,Menlo,Consolas,monospace" font-size="52" font-weight="bold" letter-spacing="6">CC COMMANDER</text>
   </g>
   <!-- Decorative bracket lines -->
-  <line x1="340" y1="148" x2="340" y2="208" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
-  <line x1="340" y1="148" x2="358" y2="148" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
-  <line x1="340" y1="208" x2="358" y2="208" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
-  <line x1="940" y1="148" x2="940" y2="208" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
-  <line x1="922" y1="148" x2="940" y2="148" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
-  <line x1="922" y1="208" x2="940" y2="208" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
+  <line x1="300" y1="148" x2="300" y2="208" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
+  <line x1="300" y1="148" x2="318" y2="148" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
+  <line x1="300" y1="208" x2="318" y2="208" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
+  <line x1="980" y1="148" x2="980" y2="208" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
+  <line x1="962" y1="148" x2="980" y2="148" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
+  <line x1="962" y1="208" x2="980" y2="208" stroke="#00ff41" stroke-width="3" opacity="0.5"/>
 
   <!-- Tagline -->
   <text x="640" y="295" text-anchor="middle" fill="#ffffff" font-family="SF Mono,Monaco,Menlo,Consolas,monospace" font-size="20" font-weight="bold" filter="url(#softGlow)">
-    The Claude Code Bible  v1.0
+    Claude Code Commander  v1.6.0
   </text>
   <text x="640" y="322" text-anchor="middle" fill="#00d4ff" font-family="SF Mono,Monaco,Menlo,Consolas,monospace" font-size="15" opacity="0.9">
-    by Kevin Z  //  220+ Skills. One Install.
+    by Kevin Z  //  280+ Skills. One Command.
   </text>
 
   <!-- Divider -->
@@ -121,19 +121,19 @@
   <!-- Stats row -->
   <g font-family="SF Mono,Monaco,Menlo,Consolas,monospace" text-anchor="middle">
     <!-- Skills -->
-    <text x="350" y="390" fill="#00ff41" font-size="28" font-weight="bold" filter="url(#softGlow)">220+</text>
+    <text x="350" y="390" fill="#00ff41" font-size="28" font-weight="bold" filter="url(#softGlow)">280+</text>
     <text x="350" y="412" fill="#888" font-size="13">SKILLS</text>
 
     <!-- Mega Skills -->
-    <text x="500" y="390" fill="#ff6b35" font-size="28" font-weight="bold" filter="url(#softGlow)">6</text>
+    <text x="500" y="390" fill="#ff6b35" font-size="28" font-weight="bold" filter="url(#softGlow)">10</text>
     <text x="500" y="412" fill="#888" font-size="13">MEGA-SKILLS</text>
 
     <!-- Commands -->
-    <text x="640" y="390" fill="#00d4ff" font-size="28" font-weight="bold" filter="url(#softGlow)">84+</text>
+    <text x="640" y="390" fill="#00d4ff" font-size="28" font-weight="bold" filter="url(#softGlow)">88+</text>
     <text x="640" y="412" fill="#888" font-size="13">COMMANDS</text>
 
     <!-- Hooks -->
-    <text x="780" y="390" fill="#00ff41" font-size="28" font-weight="bold" filter="url(#softGlow)">23</text>
+    <text x="780" y="390" fill="#00ff41" font-size="28" font-weight="bold" filter="url(#softGlow)">37</text>
     <text x="780" y="412" fill="#888" font-size="13">HOOKS</text>
 
     <!-- Articles -->
@@ -144,23 +144,23 @@
   <!-- Install command -->
   <rect x="290" y="440" width="700" height="42" rx="6" fill="#0a0a0a" stroke="#333" stroke-width="1"/>
   <text x="310" y="466" fill="#00ff41" font-family="SF Mono,Monaco,Menlo,Consolas,monospace" font-size="14">
-    $ curl -fsSL https://raw.githubusercontent.com/k3v80/claude-code-bible/main/install-remote.sh | bash
+    $ curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
   </text>
 
-  <!-- One install tagline -->
+  <!-- One command tagline -->
   <text x="640" y="516" text-anchor="middle" fill="#555" font-family="SF Mono,Monaco,Menlo,Consolas,monospace" font-size="13">
-    One install. Works everywhere. Terminal · VS Code · Cursor · JetBrains
+    One command. Works everywhere. Terminal . VS Code . Cursor . JetBrains
   </text>
 
   <!-- Bottom border glow -->
   <rect x="190" y="548" width="900" height="2" fill="#00ff41" opacity="0.3"/>
 
   <!-- GitHub badge bottom right -->
-  <text x="1050" y="620" text-anchor="end" fill="#444" font-family="SF Mono,Monaco,Menlo,Consolas,monospace" font-size="12">
-    github.com/k3v80/claude-code-bible
+  <text x="1050" y="620" text-anchor="end" fill="#444" font-family="SF Mono,Monaco,Menlo,monospace" font-size="12">
+    github.com/KevinZai/cc-commander
   </text>
 
   <!-- MIT badge -->
   <rect x="1060" y="607" width="42" height="18" rx="3" fill="#00ff41" opacity="0.15"/>
-  <text x="1081" y="620" text-anchor="middle" fill="#00ff41" font-family="SF Mono,Monaco,Menlo,Consolas,monospace" font-size="11">MIT</text>
+  <text x="1081" y="620" text-anchor="middle" fill="#00ff41" font-family="SF Mono,Monaco,Menlo,monospace" font-size="11">MIT</text>
 </svg>
