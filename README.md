@@ -1,22 +1,28 @@
-<img src="docs/assets/ccc-screenshot.png" alt="Claude Code Commander" width="100%">
+<img src="docs/assets/ccc-screenshot.png" alt="CC Commander" width="100%">
 
-> **280+ skills · one command · your AI work, managed by AI**
+> **Every Claude Code tool. One install. Guided access. Auto-updated.**
 
-**Not a skill pack. An AI project manager.** The most comprehensive Claude Code setup ever built.
+**Not a skill pack. An AI cockpit.** The most comprehensive Claude Code aggregator ever built. Newbie-friendly.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/280+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Tests](https://img.shields.io/badge/103_Tests_Passing-4F46E5?style=for-the-badge)](./commander/tests/) [![v1.6.0](https://img.shields.io/badge/v1.6.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/432+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/11_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/46_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.0.0](https://img.shields.io/badge/v2.0.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
-**[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources
+**[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 11 vendor packages
 
-**[⬇ Install](#install)** · **[📖 Read the BIBLE](BIBLE.md)** · **[🔍 Browse Skills](SKILLS-INDEX.md)**
+**[Install](#install)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ---
 
 ## Why This Exists
 
-Every Claude Code tool is a skill pack that runs **inside** sessions.
+Stock Claude Code is a blank terminal. No skills. No guidance. No memory.
 
-CCC runs **above** them — it dispatches, tracks, learns, and orchestrates.
+**CC Commander wraps every major Claude Code tool** into one install — with a smart orchestrator that picks the best tool for each job, guided menus for beginners, and a cockpit dashboard for power users.
+
+```
+You type: ccc
+You get:  A guided AI project manager with 432+ skills,
+          11 vendor packages, and zero setup.
+```
 
 <img src="docs/assets/ccc-flow.png" alt="How CCC Works" width="100%">
 
@@ -25,19 +31,23 @@ CCC runs **above** them — it dispatches, tracks, learns, and orchestrates.
 ## Install
 
 ```bash
-# One-line install
-curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
-
-# Or via npm (gives you the `ccc` command globally)
+# npm (recommended — gives you the `ccc` command)
 npm install -g cc-commander
 
-# Or clone
-git clone https://github.com/KevinZai/cc-commander.git && cd cc-commander && ./install.sh
+# One-line script install
+curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+
+# Clone with vendor packages
+git clone --recursive https://github.com/KevinZai/cc-commander.git && cd cc-commander && ./install.sh
+
+# Claude Desktop / Cowork plugin
+/plugin marketplace add KevinZai/cc-commander
+
+# VS Code extension
+cd extensions/vscode && code --install-extension .
 ```
 
-After install, just type **`ccc`** anywhere.
-
-**Claude Desktop:** `/plugin marketplace add KevinZai/cc-commander`
+After install: **`ccc`** — that's it. Three letters.
 
 ---
 
@@ -48,7 +58,7 @@ After install, just type **`ccc`** anywhere.
 ### Step 1: Install (one command)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+npm install -g cc-commander
 ```
 
 ### Step 2: Launch
@@ -57,22 +67,22 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-
 ccc
 ```
 
-That's it. Three letters.
-
 ### Step 3: Pick what you want to do
 
 ```
   What would you like to do?
 
   ❯ Build something new        ← websites, apps, tools
+    Import a project            ← /xray audit + /makeover
     Create content              ← blogs, social, emails
     Research & analyze          ← competitors, markets
     YOLO Mode                   ← overnight autonomous build
-    Learn a new skill           ← browse 280+ skills
-    Check my stats              ← streaks, achievements
+    Autonomous Mode             ← loops, dispatch, background agents
+    Browse CCC Domains          ← 11 domains, 172+ sub-skills
+    Check my stats              ← cockpit dashboard
 ```
 
-Use **arrow keys** to move up/down. Press **Enter** to select.
+Use **arrow keys** to navigate. Press **Enter** to select.
 
 ### Step 4: Answer a few questions
 
@@ -88,48 +98,17 @@ CCC asks what you need (multiple choice — just pick one):
 
 ### Step 5: CCC does the rest
 
-It dispatches to Claude Code with the right settings, tracks the session,
-and learns from the results so next time is faster.
+It dispatches to the best available tool (from 11 vendor packages), tracks the session, and learns from the results.
 
-### That's it.
+**No commands to memorize. No flags to type. No config files.** Just answer questions.
 
-No commands to memorize. No flags to type. No config files to edit.
-Just answer questions and CCC handles everything.
-
-| Method             | Command                                             | For                   |
-|--------------------|-----------------------------------------------------|-----------------------|
-| **Quick stats**    | `ccc --stats`                                | Sessions, streaks     |
-| **Self-test**      | `ccc --test`                             | Verify install        |
-| **Fix issues**     | `ccc --repair`                           | Reset corrupt state   |
-| **Claude Desktop** | `/plugin marketplace add KevinZai/cc-commander`     | Use in the Claude app |
-
----
-
-## The Interactive CLI
-
-```bash
-ccc
-```
-
-```
-╔══════════════════════════════════════════╗
-║                                          ║
-║   CCC v1.6.0                             ║
-║   Welcome back, Kevin!                   ║
-║   main · 3 files modified · 42 sessions  ║
-║                                          ║
-║   ❯ Build something new                  ║
-║     Create content                       ║
-║     Research & analyze                   ║
-║     YOLO Mode (autonomous build)         ║
-║     Learn a skill (280+)                 ║
-║     Check my stats                       ║
-║     Settings · Theme · Linear            ║
-║                                          ║
-╚══════════════════════════════════════════╝
-```
-
-Arrow keys or letter shortcuts. 4 themes. 11 flows.
+| Method | Command | For |
+|--------|---------|-----|
+| **Interactive** | `ccc` | Full guided experience |
+| **Quick stats** | `ccc --stats` | Sessions, streaks, level |
+| **Self-test** | `ccc --test` | Verify install |
+| **Check updates** | `ccc --update` | Vendor package updates |
+| **Fix issues** | `ccc --repair` | Reset corrupt state |
 
 ---
 
@@ -137,64 +116,63 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 
 <img src="docs/assets/ccc-components.png" alt="Components" width="100%">
 
-<!--```
-╔═════════════════╦════════╦════════════════════════╗
-║  COMPONENT      ║ COUNT  ║  WHAT IT DOES          ║
-╠═════════════════╬════════╬════════════════════════╣
-║  Skills         ║  280+  ║  On-demand expertise   ║
-║  CCC Domains    ║   10   ║  Domain routers        ║
-║  Commands       ║   88+  ║  Slash commands        ║
-║  Hooks          ║   37   ║  Lifecycle automation  ║
-║  Adventures     ║   11   ║  Guided flows          ║
-║  Themes         ║    4   ║  Visual styles         ║
-║  Prompts        ║   41   ║  Battle-tested         ║
-║  Modes          ║    9   ║  Workflow presets       ║
-╚═════════════════╩════════╩════════════════════════╝
-```-->
+| Component | Count | What It Does |
+|-----------|-------|-------------|
+| Skills | 432+ | On-demand expertise |
+| CCC Domains | 11 | Domain routers with sub-skills |
+| Commands | 80+ | Slash commands (/ccc: prefix) |
+| Hooks | 25 | Lifecycle automation |
+| Adventures | 13 | Guided interactive flows |
+| Vendor Packages | 11 | Best-in-class tools, auto-updated |
+| Themes | 4 | Cyberpunk, Fire, Graffiti, Futuristic |
+| Prompts | 36+ | Battle-tested templates |
+| Modes | 9 | Workflow presets |
 
 ---
 
-## Spec-Driven Builds
+## 11 CCC Domain Packs
 
-```
-╔══════════════════════════════════════════╗
-║                                          ║
-║  1. Most important outcome?              ║
-║     ❯ Working end-to-end                 ║
-║       Solid foundation                   ║
-║       Quick prototype                    ║
-║                                          ║
-║  2. Tech preferences?                    ║
-║     ❯ Pick the best for me               ║
-║       Popular tools                      ║
-║       Keep it simple                     ║
-║                                          ║
-║  3. How thorough?                        ║
-║     ❯ Just the basics                    ║
-║       With tests                         ║
-║       Production-ready                   ║
-║                                          ║
-╚══════════════════════════════════════════╝
-```
+Each domain is a router that dispatches to specialized sub-skills on demand.
+
+| Domain | Skills | What's Inside |
+|--------|--------|---------------|
+| **ccc-design** | 39 | landing pages, UI audit, animation, responsive layout, color systems, typography, canvas design, wireframes, component library, accessibility, dark mode, micro-interactions, illustration, icon sets, design tokens |
+| **ccc-marketing** | 45 | CRO, email campaigns, ad copy, social media, SEO content, blog posts, landing page copy, A/B testing, funnel optimization, lead magnets, newsletter, brand voice, press releases, case studies, video scripts |
+| **ccc-saas** | 20 | auth systems, billing/Stripe, API design, database schema, multi-tenancy, onboarding flows, admin dashboards, role-based access, webhooks, rate limiting, usage tracking, feature flags |
+| **ccc-devops** | 20 | GitHub Actions, Docker, AWS deploy, Terraform, monitoring, logging, CI/CD pipelines, Kubernetes, Nginx, SSL certs, environment management, health checks, rollback strategies |
+| **ccc-seo** | 19 | meta tags, JSON-LD schema, sitemap, robots.txt, Core Web Vitals, internal linking, keyword research, content optimization, image SEO, page speed, structured data, canonical URLs |
+| **ccc-testing** | 15 | Vitest, Playwright E2E, TDD workflow, snapshot testing, API testing, load testing, coverage reports, test fixtures, mock strategies, visual regression, accessibility testing |
+| **ccc-makeover** | 3 | /xray project audit (health score 0-100, maturity 1-5), /makeover agent swarm execution, before/after report card |
+| **ccc-data** | 8 | SQL optimization, data pipelines, analytics setup, data visualization, machine learning, reporting, data quality, vector search |
+| **ccc-security** | 8 | OWASP top 10, secrets scanning, dependency audit, container security, penetration testing, CSP headers, rate limiting, auth hardening |
+| **ccc-research** | 8 | competitive analysis, market research, user research, technology evaluation, trend analysis, SWOT, stakeholder interviews, data synthesis |
+| **ccc-mobile** | 8 | React Native, Expo, mobile UI, push notifications, deep linking, app store optimization, offline-first, gesture handling |
 
 ---
 
-## Intelligence Layer
+## Vendor Ecosystem (11 Packages)
 
-### CCC Detects Your Packages
+CC Commander aggregates the best Claude Code tools as git submodules. Auto-updated weekly.
 
-```
-╔══════════════════════════════╦═══════╦═══════════════╗
-║  PACKAGE                     ║ STARS ║  STRENGTH     ║
-╠══════════════════════════════╬═══════╬═══════════════╣
-║  gstack (Garry Tan)          ║ 54.6K ║  Decisions+QA ║
-║  Compound Engineering        ║ 11.5K ║  Knowledge    ║
-║  Superpowers (obra)          ║  121K ║  Workflow     ║
-║  Everything Claude Code      ║  100K ║  Hooks        ║
-╚══════════════════════════════╩═══════╩═══════════════╝
-```
+| Package | Stars | What CCC Orchestrates |
+|---------|-------|----------------------|
+| [Everything Claude Code](https://github.com/affaan-m/everything-claude-code) | 120K+ | Lifecycle hooks, agents, security |
+| [gstack](https://github.com/garrytan/gstack) | 58K+ | Decision layer, office hours, QA |
+| [Superpowers](https://github.com/obra/superpowers) | 29K+ | TDD, code review, verification |
+| [claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) | 26K+ | Reference architecture, patterns |
+| [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) | 17K+ | Team orchestration, multi-agent |
+| [Claude HUD](https://github.com/jarrodwatts/claude-hud) | 15K+ | Real-time status display |
+| [RTK](https://github.com/rtk-ai/rtk) | 14.6K+ | Token optimization (60-90% savings) |
+| [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) | 11.5K+ | Knowledge compounding |
+| [acpx](https://github.com/openclaw/acpx) | 1.8K+ | ACP protocol, structured agents |
+| [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) | 860+ | Self-improving skills |
+| [Caliber](https://github.com/caliber-ai-org/ai-setup) | 300+ | Config scoring, drift detection |
 
-### CCC Orchestrates Them
+The **smart orchestrator** scores each tool: capability match (50%) + popularity (15%) + recency (15%) + your preference (20%) — then picks the best one for each phase.
+
+---
+
+## Smart Orchestrator
 
 ```
   PHASE          BEST TOOL              FALLBACK
@@ -209,16 +187,27 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
   ▸ Ship         /ship                  git commit
 ```
 
-### CCC Learns From Every Session
+CCC learns from every session. Knowledge compounds over time.
 
+---
+
+## /xray + /makeover
+
+**Audit any project. Fix it automatically.**
+
+```bash
+/ccc:xray                    # Scan → health score 0-100
+/ccc:makeover                # Agent swarm applies top fixes
 ```
-  Session 1 ───▸ Fix auth bug ───▸ 3 hours
-                  │
-                  ▾ auto-extracted to knowledge
-                  
-  Session 47 ──▸ Similar issue ──▸ "We hit this"
-                                    ──▸ 10 minutes
-```
+
+| Dimension | Weight | What It Checks |
+|-----------|--------|---------------|
+| Security | 25% | CVEs, secrets, .env tracking |
+| Testing | 20% | Config, coverage, frameworks |
+| Maintainability | 20% | Complexity, linting, duplication |
+| Dependencies | 15% | Outdated, vulnerable |
+| DevOps | 10% | CI presence, quality gates |
+| Documentation | 10% | README, CLAUDE.md, inline docs |
 
 ---
 
@@ -228,71 +217,54 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 
 <img src="docs/assets/ccc-yolo.png" alt="YOLO Mode" width="100%">
 
-<!--```
-╔══════════════════════════════════════════╗
-║                                          ║
-║   Y O L O   M O D E                     ║
-║                                          ║
-║   10 questions:                          ║
-║     What? Who? Critical feature?         ║
-║     Stack? Done? Broken? Edges?          ║
-║     Tests? Deploy? Extras?               ║
-║                                          ║
-║   Then:                                  ║
-║     ▸ Opus · max effort · $10 budget     ║
-║     ▸ 100 turns · self-testing           ║
-║     ▸ Knowledge extraction               ║
-║                                          ║
-║   YOLO Loop:                             ║
-║     build ──▸ review ──▸ improve ──╮     ║
-║       ╰────────────────────────────╯     ║
-║       3-10 cycles until perfect          ║
-║                                          ║
-╚══════════════════════════════════════════╝
-```-->
+10 questions → Opus with max effort → $10 budget → 100 turns → self-testing loop.
 
 ---
 
-## Linear Agent
-
-CCC is its own **agent** in Linear.
+## Cockpit Dashboard
 
 ```
-╔══════════════════════════════════════════╗
-║                                          ║
-║  CCC Agent · OAuth App Identity          ║
-║                                          ║
-║  29 issues · 27 done · 82%              ║
-║  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░             ║
-║                                          ║
-║  Sessions auto-create issues.            ║
-║  Costs tracked. Progress on phone.       ║
-║                                          ║
-╚══════════════════════════════════════════╝
+  ══════════════════════════════════════════────────
+  CC COMMANDER  v2.0.0
+  Every Claude Code tool. One install. Guided access.
+  ─────────────────────────────────────────────
+  🧠 Opus 1M  │  $2.14  │  ↑42K↓8K  │  3m12s
+  CTX [████████████░░░░░░░░] 62%  RATE [████░░░░░░░░░░░░░░░░] 23%
+  📋 CC-48 v2.0 Foundation  │  🎯 432 skills  │  📦 11 vendors
+  ─────────────────────────────────────────
 ```
+
+ASCII meters for context usage + rate limits. Emoji status indicators. Active Linear ticket. Skill and vendor counts. All in your terminal.
 
 ---
 
-## 280+ Skills · 10 CCC Domains
+## Stats Dashboard
 
-```
-╔══════════════════╦══════╦══════════════════════╗
-║  MEGA-SKILL      ║ SUBS ║  DOMAIN              ║
-╠══════════════════╬══════╬══════════════════════╣
-║  ccc-design     ║  39  ║  UI/UX, animation    ║
-║  ccc-marketing  ║  45  ║  CRO, email, ads     ║
-║  ccc-saas       ║  20  ║  Auth, billing, API  ║
-║  ccc-testing    ║  15  ║  Unit, E2E, TDD      ║
-║  ccc-devops     ║  20  ║  CI/CD, Docker, AWS  ║
-║  ccc-seo        ║  19  ║  Schema, SERP        ║
-║  ccc-security   ║   8  ║  OWASP, pentest      ║
-║  ccc-research   ║   8  ║  Competitive, market ║
-║  ccc-mobile     ║   8  ║  React Native        ║
-║  ccc-data       ║   8  ║  SQL, ETL            ║
-╠══════════════════╬══════╬══════════════════════╣
-║  TOTAL           ║ 190  ║  10 domain routers   ║
-╚══════════════════╩══════╩══════════════════════╝
-```
+<img src="docs/assets/ccc-stats.png" alt="Stats" width="100%">
+
+Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
+
+---
+
+## Before & After
+
+<img src="docs/assets/ccc-comparison.png" alt="Comparison" width="100%">
+
+---
+
+## The Kevin Z Method
+
+> 7 rules from 200+ articles. 14 months of production.
+
+1. Plan before coding
+2. Context is milk — keep it fresh
+3. Verify, don't trust
+4. Subagents = fresh context
+5. CLAUDE.md is an investment
+6. Boring solutions win
+7. Operationalize every fix
+
+Full methodology: **[BIBLE.md](BIBLE.md)** — 2000+ lines, 7 chapters, appendices.
 
 ---
 
@@ -307,67 +279,11 @@ CCC is its own **agent** in Linear.
 
 ---
 
-## Stats Dashboard
+## Acknowledgments
 
-<img src="docs/assets/ccc-stats.png" alt="Stats" width="100%">
+CC Commander aggregates 11 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md)**
 
-<!--```
-╔══════════════════════════════════════════╗
-║  Sessions: 42        Streak: 7 days     ║
-║  Badges:   12        Cost:   $8.50      ║
-╠══════════════════════════════════════════╣
-║  Cost:     ▁▄▂█▅ ▃                      ║
-║  Activity: ▒▒ ▓▓ ██ ░░ ▓▓              ║
-║  Level:    POWER █████████████████      ║
-╚══════════════════════════════════════════╝
-```-->
-
----
-
-## The Kevin Z Method
-
-> 7 rules from 200+ articles. 14 months of production.
-
-```
-╔══════════════════════════════════════════╗
-║                                          ║
-║  1. Plan before coding                   ║
-║  2. Context is milk — keep it fresh      ║
-║  3. Verify, don't trust                  ║
-║  4. Subagents = fresh context            ║
-║  5. CLAUDE.md is an investment           ║
-║  6. Boring solutions win                 ║
-║  7. Operationalize every fix             ║
-║                                          ║
-║  Full methodology: BIBLE.md              ║
-║  2000+ lines · 7 chapters · appendices   ║
-║                                          ║
-╚══════════════════════════════════════════╝
-```
-
----
-
-## Before & After
-
-<img src="docs/assets/ccc-comparison.png" alt="Comparison" width="100%">
-
-<!--```
-╔══════════════════════╦════════╦══════════════╗
-║  FEATURE             ║ STOCK  ║  CCC         ║
-╠══════════════════════╬════════╬══════════════╣
-║  Skills              ║   0    ║  280+        ║
-║  Commands            ║ built  ║  88+ custom  ║
-║  Hooks               ║   0    ║  37          ║
-║  Session tracking    ║ none   ║  Persistent  ║
-║  Knowledge           ║ none   ║  Compounds   ║
-║  Orchestration       ║ none   ║  8-step      ║
-║  Cost control        ║ none   ║  Auto-budget ║
-║  Linear agent        ║ none   ║  OAuth       ║
-║  Non-coder support   ║ none   ║  Guided      ║
-║  YOLO Mode           ║ none   ║  10Q auto    ║
-║  Themes              ║ none   ║  4 gradient  ║
-╚══════════════════════╩════════╩══════════════╝
-```-->
+45+ ecosystem repos tracked: **[ECOSYSTEM.md](docs/ECOSYSTEM.md)**
 
 ---
 
@@ -386,18 +302,10 @@ MIT License.
 
 <div align="center">
 
-```
-╔══════════════════════════════════════╗
-║                                      ║
-║   Not a researcher.                  ║
-║   Not a pundit.                      ║
-║   An operator who ships.             ║
-║                                      ║
-╚══════════════════════════════════════╝
-```
+**CC Commander v2.0.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
-**Claude Code Commander v1.6.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+*Every Claude Code tool. One install. Guided access. Auto-updated.*
 
-**[Install Now](#install)** · **[Read the BIBLE](BIBLE.md)** · **[Browse Skills](SKILLS-INDEX.md)**
+**[Install Now](#install)** · **[Read the BIBLE](BIBLE.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
 
 </div>
