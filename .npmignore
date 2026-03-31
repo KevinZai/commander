@@ -1,14 +1,29 @@
+# Dev/personal
 kevin/
 .claude/
 .github/
+tasks/
+scripts/
+lab/
+marketing/
+
+# Large dirs not needed in npm
+vendor/
 docs/
-guides/
-tests/
 dashboard/
-compatibility/
-*.md
-!README.md
-!LICENSE
+guides/
+
+# Tests
+tests/
+commander/tests/
+
+# Build artifacts
+*.png
+*.tar.gz
+coverage/
+
+# Config
 .gitignore
+.gitmodules
 .eslintrc*
 .prettier*

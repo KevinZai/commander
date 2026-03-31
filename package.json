@@ -8,8 +8,7 @@
   },
   "license": "MIT",
   "bin": {
-    "ccc": "./bin/kc.js",
-    "cc-commander": "./bin/kc.js"
+    "ccc": "./bin/kc.js"
   },
   "files": [
     "bin/",
@@ -18,26 +17,38 @@
     "commands/",
     "hooks/",
     "lib/",
+    "templates/",
+    "prompts/",
+    "compatibility/",
+    "extensions/",
     "BIBLE.md",
     "CHEATSHEET.md",
     "SKILLS-INDEX.md",
+    "ACKNOWLEDGMENTS.md",
+    "CHANGELOG.md",
     "LICENSE",
     "README.md",
-    "install.sh"
+    "CLAUDE.md.staff-template",
+    "install.sh",
+    ".gitmodules"
   ],
   "keywords": [
     "claude-code",
     "claude",
     "ai",
     "cli",
-    "project-manager",
+    "aggregator",
     "skills",
     "commander",
     "anthropic",
     "vibe-coding",
-    "automation"
+    "automation",
+    "orchestrator",
+    "claude-code-plugin",
+    "ai-tools",
+    "developer-tools"
   ],
-  "homepage": "https://github.com/KevinZai/cc-commander",
+  "homepage": "https://KevinZai.github.io/cc-commander",
   "repository": {
     "type": "git",
     "url": "https://github.com/KevinZai/cc-commander.git"
@@ -46,12 +57,15 @@
     "url": "https://github.com/KevinZai/cc-commander/issues"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=18.0.0"
   },
-  "os": ["darwin", "linux"],
   "dependencies": {
-    "figlet": "^1.11.0"
+    "boxen": "^8.0.1",
+    "chalk-animation": "^2.0.3",
+    "cli-progress": "^3.12.0",
+    "figlet": "^1.11.0",
+    "listr2": "^10.0.0",
+    "ora": "^8.2.0"
   },
   "main": "./bin/kc.js"
 }
