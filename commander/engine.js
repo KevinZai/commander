@@ -308,58 +308,64 @@ class KitCommander {
         return await this.yoloLoop();
       }
       case 'night_explain': {
-        process.stdout.write('n' + tui.divider('What is Night Mode?') + 'nn');
-        process.stdout.write('  Night Mode asks 10+ detailed questions to build a comprehensive spec.n');
-        process.stdout.write('  Then it dispatches an autonomous build with:n');
-        process.stdout.write('    - Max effort (Opus with deep reasoning)n');
-        process.stdout.write('    - High budget ($10 ceiling)n');
-        process.stdout.write('    - 100 max turnsn');
-        process.stdout.write('    - Full 10-step orchestration (planning, review, QA, knowledge)n');
-        process.stdout.write('    - Self-testing loopn');
-        process.stdout.write('n  Designed for overnight runs. Start it before bed. Wake up to shipped code.n');
+        var nightMsg = [
+          '',
+          tui.divider('What is Night Mode?'),
+          '',
+          '  Night Mode asks 10+ detailed questions to build a comprehensive spec.',
+          '  Then it dispatches an autonomous build with:',
+          '    - Max effort (Opus with deep reasoning)',
+          '    - High budget ($10 ceiling)',
+          '    - 100 max turns',
+          '    - Full 10-step orchestration (planning, review, QA, knowledge)',
+          '    - Self-testing loop',
+          '',
+          '  Designed for overnight runs. Start it before bed. Wake up to shipped code.',
+        ].join('\x0a');
+        process.stdout.write(nightMsg + '\x0a');
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        await this.ask('n  Press Enter...');
+        await this.ask('\x0a  Press Enter...');
         return { next: 'night-build' };
       }
       case 'open_project': {
         var pi = require('./project-importer');
         var project = pi.scanProject(process.cwd());
         if (!project.hasClaudeMd && !project.hasClaudeDir) {
-          process.stdout.write('n  No CLAUDE.md or .claude/ found in current directory.n');
-          process.stdout.write('  ' + tui.dimText('cd into a project directory and restart, or specify a path.') + 'n');
+          process.stdout.write('\n  No CLAUDE.md or .claude/ found in current directory.\n');
+          process.stdout.write('  ' + tui.dimText('cd into a project directory and restart, or specify a path.') + '\n');
           if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-          var projDir = await this.ask('n  Project path (or Enter to skip): ');
+          var projDir = await this.ask('\n  Project path (or Enter to skip): ');
           if (projDir.trim()) { project = pi.scanProject(projDir.trim()); }
           else { return { next: 'main-menu' }; }
         }
         if (project.hasClaudeMd || project.hasClaudeDir) {
           state.updateState({ activeProject: { dir: project.dir, name: project.name } });
-          process.stdout.write('n' + tui.divider('Project Imported') + 'n');
-          process.stdout.write('  ' + tui.boldText(project.name, tui.getTheme().primary) + 'n');
+          process.stdout.write('\n' + tui.divider('Project Imported') + '\n');
+          process.stdout.write('  ' + tui.boldText(project.name, tui.getTheme().primary) + '\n');
           if (project.summary.length > 0) {
-            project.summary.forEach(function(s) { process.stdout.write('  ' + tui.dimText('  v ' + s) + 'n'); });
+            project.summary.forEach(function(s) { process.stdout.write('  ' + tui.dimText('  v ' + s) + '\n'); });
           }
-          process.stdout.write('n  ' + tui.dimText('Dispatches will include this project CLAUDE.md context.') + 'n');
-          process.stdout.write('  ' + tui.dimText('CC Commander will NOT modify your .claude/ directory.') + 'n');
+          process.stdout.write('\n  ' + tui.dimText('Dispatches will include this project CLAUDE.md context.') + '\n');
+          process.stdout.write('  ' + tui.dimText('CC Commander will NOT modify your .claude/ directory.') + '\n');
           process.stdout.write(tui.celebrate('Project loaded!'));
           await this.pause(1500);
         }
         return { next: 'main-menu' };
       }
       case 'show_all_mega': {
-        process.stdout.write('n' + tui.divider('All 10 CCC Domains') + 'nn');
+        process.stdout.write('\n' + tui.divider('All 11 CCC Domains') + '\n\n');
         var sb = getSkillBrowser();
         var allSkills = sb.listSkills();
         var megas = allSkills.filter(function(s) { return s.isMega; });
-        if (megas.length === 0) { process.stdout.write('  No CCC domains found. Install Claude Code Kit.n'); }
+        if (megas.length === 0) { process.stdout.write('  No CCC domains found.\n'); }
         megas.forEach(function(m) {
           var subCount = 0;
           try { var fs2 = require('fs'); var entries = fs2.readdirSync(require('path').dirname(m.path), {withFileTypes:true}); subCount = entries.filter(function(e){return e.isDirectory();}).length; } catch(_e) {}
-          process.stdout.write('  ' + tui.boldText(m.name, tui.getTheme().primary) + ' (' + (subCount || '?') + ' sub-skills)n');
-          process.stdout.write('  ' + tui.dimText(m.description || '') + 'nn');
+          process.stdout.write('  ' + tui.boldText(m.name, tui.getTheme().primary) + ' (' + (subCount || '?') + ' sub-skills)\n');
+          process.stdout.write('  ' + tui.dimText(m.description || '') + '\n\n');
         });
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        await this.ask('n  Press Enter...');
+        await this.ask('\n  Press Enter...');
         return { next: 'ccc-domains' };
       }
       case 'show_mega_detail': {
@@ -487,10 +493,10 @@ class KitCommander {
       }
       case 'settings_animations': {
         var current = process.env.KC_NO_ANIMATION === '1' ? 'OFF' : 'ON';
-        process.stdout.write('n  Animations are currently ' + current + 'n');
-        process.stdout.write('  Set KC_NO_ANIMATION=1 in your shell to disable.n');
+        process.stdout.write('\n  Animations are currently ' + current + '\n');
+        process.stdout.write('  Set KC_NO_ANIMATION=1 in your shell to disable.\n');
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        await this.ask('n  Press Enter...');
+        await this.ask('\n  Press Enter...');
         return { next: 'settings' };
       }
       case "settings_reset": {
