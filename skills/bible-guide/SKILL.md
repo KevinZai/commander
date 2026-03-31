@@ -64,7 +64,7 @@ If you learn nothing else, learn these four commands. They cover 80% of daily us
 /verify                  # Confirm everything works
 ```
 
-That is it. Four commands. You are now using the Bible effectively.
+That is it. Four commands. You are now using CC Commander effectively.
 
 ---
 
@@ -164,7 +164,7 @@ Create your own skills:
 /skill-create            # Interactive skill creator wizard
 ```
 
-Skills are just markdown files in `~/.claude/skills/your-skill/SKILL.md` with YAML frontmatter. The Bible includes templates for creating new skills.
+Skills are just markdown files in `~/.claude/skills/your-skill/SKILL.md` with YAML frontmatter. CC Commander includes templates for creating new skills.
 
 ---
 
@@ -310,7 +310,7 @@ Step 6: /checkpoint
 
 ---
 
-## Tips for Getting the Most Out of the Bible
+## Tips for Getting the Most Out of CC Commander
 
 1. **Start with `/init`** — it detects your stack and configures everything automatically
 2. **Use modes** — they change Claude's entire behavior to match your workflow

@@ -82,7 +82,7 @@ tags: [prompts, templates, library]
 
 ## Pairing with Skills
 
-Most templates reference skills from the Bible's skill library. Use `/skills` to browse available skills, or check `SKILLS-INDEX.md` for the full directory. Key pairings:
+Most templates reference skills from CC Commander's skill library. Use `/skills` to browse available skills, or check `SKILLS-INDEX.md` for the full directory. Key pairings:
 
 | Template Category | Recommended Skills |
 |---|---|

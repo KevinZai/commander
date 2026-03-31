@@ -12,7 +12,7 @@ triggers:
 
 Claude Peers is a built-in MCP server in Claude Code that allows multiple Claude Code instances running on the same machine to discover each other, communicate, and collaborate in real time. No extra configuration required — it ships with Claude Code.
 
-This is the foundation for all multi-instance parallel development in the Bible.
+This is the foundation for all multi-instance parallel development in CC Commander.
 
 ## What Claude Peers Provides
 
@@ -253,7 +253,7 @@ TASK_ID: optional task identifier
 
 ## Integration with Task Commander
 
-For complex tasks (P6+ in the Bible priority system), Task Commander can leverage peers:
+For complex tasks (P6+ in CC Commander priority system), Task Commander can leverage peers:
 
 1. Task Commander evaluates the task scope
 2. If parallelizable, it creates a work breakdown with independent units

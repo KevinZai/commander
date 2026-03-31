@@ -254,7 +254,7 @@ Claude Code works in your real filesystem. If something goes wrong, you need a w
 
 ### Mistake 5: Overloading Context
 
-Pasting your entire codebase into the chat window overwhelms context. Let Claude read files as needed. If the conversation gets long, start a new session — the Bible's session persistence saves your progress.
+Pasting your entire codebase into the chat window overwhelms context. Let Claude read files as needed. If the conversation gets long, start a new session — CC Commander's session persistence saves your progress.
 
 ### Mistake 6: Not Choosing a Mode
 
@@ -262,7 +262,7 @@ The default `normal` mode is fine for general work, but specialized modes (desig
 
 ### Mistake 7: Fighting the Tool
 
-Claude Code is opinionated about best practices. If it suggests tests, types, or error handling that you did not ask for, that is the Bible's verification standards working as designed. Lean into it rather than fighting it.
+Claude Code is opinionated about best practices. If it suggests tests, types, or error handling that you did not ask for, that is CC Commander's verification standards working as designed. Lean into it rather than fighting it.
 
 ---
 
@@ -361,7 +361,7 @@ New to AI-assisted development? Here are the key terms you will encounter:
 | **Hook** | An automatic behavior that runs before or after Claude Code actions. Examples: auto-checkpoint on file save, cost alert when spending exceeds budget. |
 | **Mode** | A workflow persona that changes Claude's behavior. Modes adjust verbosity, risk tolerance, auto-loaded skills, and review rigor. 9 modes available. |
 | **Prompt Template** | A pre-written starting prompt for common tasks. Browse with `/cc prompts`. |
-| **CLAUDE.md** | The project-level instruction file that Claude Code reads at session start. The Bible generates this via `/init`. |
+| **CLAUDE.md** | The project-level instruction file that Claude Code reads at session start. CC Commander generates this via `/init`. |
 
 ### Infrastructure Terms
 
@@ -370,8 +370,8 @@ New to AI-assisted development? Here are the key terms you will encounter:
 | **MCP (Model Context Protocol)** | A standard for connecting Claude Code to external tools and data sources. MCP servers provide capabilities like GitHub access, database queries, or browser automation. |
 | **MCP Server** | A service that implements MCP to give Claude Code a specific capability. Example: `github` MCP lets Claude read/write GitHub repos. |
 | **Subagent** | A separate Claude Code instance spawned to handle a specific subtask. Subagents run in parallel and report back. Used for large features. |
-| **Context Compaction** | When the context window fills up, Claude Code automatically summarizes older content to make room. The Bible's pre-compact hook saves state before this happens. |
-| **Conventional Commits** | A commit message format: `type: description` (e.g., `feat: add login page`, `fix: resolve null pointer`). The Bible enforces this standard. |
-| **TDD (Test-Driven Development)** | Writing tests before implementation. The Bible's `/tdd` command follows the red-green-refactor cycle. |
+| **Context Compaction** | When the context window fills up, Claude Code automatically summarizes older content to make room. CC Commander's pre-compact hook saves state before this happens. |
+| **Conventional Commits** | A commit message format: `type: description` (e.g., `feat: add login page`, `fix: resolve null pointer`). CC Commander enforces this standard. |
+| **TDD (Test-Driven Development)** | Writing tests before implementation. CC Commander's `/tdd` command follows the red-green-refactor cycle. |
 | **DAG (Directed Acyclic Graph)** | A workflow where tasks have dependencies but no circular references. Used by task-commander to parallelize work. |
 | **E2E (End-to-End) Testing** | Testing the full user flow from start to finish, typically with a browser automation tool like Playwright. |

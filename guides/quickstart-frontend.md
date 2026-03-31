@@ -1,6 +1,6 @@
 # Quickstart Guide: Frontend Developer
 
-> Build beautiful, interactive UIs with the Bible. Design mode, mega-design skills, and framework-specific tips.
+> Build beautiful, interactive UIs with CC Commander. Design mode, mega-design skills, and framework-specific tips.
 
 ---
 
@@ -26,7 +26,7 @@ For the best frontend experience, also run:
 /init
 ```
 
-When the decision tree asks about your build type, select your frontend framework. The Bible configures stack-specific rules in your project's `CLAUDE.md`.
+When the decision tree asks about your build type, select your frontend framework. CC Commander configures stack-specific rules in your project's `CLAUDE.md`.
 
 ---
 
@@ -127,7 +127,7 @@ Provide specific fixes with code examples.
 ### React / Next.js
 
 ```bash
-# Initialize a Next.js project with the Bible
+# Initialize a Next.js project with CC Commander
 mkdir my-app && cd my-app
 npx create-next-app@latest . --typescript --tailwind --app
 claude
@@ -175,7 +175,7 @@ claude
 /init   # Select Svelte when asked
 ```
 
-The Bible's general frontend skills work well with Svelte. Focus on:
+CC Commander's general frontend skills work well with Svelte. Focus on:
 - `frontend-design` — clean UI patterns applicable to any framework
 - `animate` — CSS animations that work natively in Svelte transitions
 - `tailwind-v4` — Tailwind works identically in Svelte

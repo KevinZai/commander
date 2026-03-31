@@ -25,7 +25,7 @@ Or search for "Claude Code" in the Extensions panel (`Cmd+Shift+X`).
 
 ### Step 2: Bible Auto-Loads
 
-Once installed, the Bible automatically loads from your `~/.claude/` directory. No additional configuration needed. The extension reads:
+Once installed, CC Commander automatically loads from your `~/.claude/` directory. No additional configuration needed. The extension reads:
 - `~/.claude/CLAUDE.md` — your global instructions
 - `~/.claude/settings.json` — your settings (hooks, MCP servers, permissions)
 - `~/.claude/commands/*.md` — your slash commands
@@ -191,7 +191,7 @@ Add right-click context menu actions for common Bible operations:
 
 ## Status Bar Integration
 
-The Claude Code extension shows status in the VS Code status bar. The Bible's `statusline.sh` provides additional context when using the terminal:
+The Claude Code extension shows status in the VS Code status bar. CC Commander's `statusline.sh` provides additional context when using the terminal:
 
 - **Context gauge** — percentage of context window used
 - **Model indicator** — current model (sonnet, opus, etc.)
@@ -218,7 +218,7 @@ code .
 
 Open the Claude Code panel from the sidebar or with `Cmd+Shift+P` → "Claude Code".
 
-### Step 2: Initialize with the Bible
+### Step 2: Initialize with CC Commander
 
 Type in the Claude Code panel:
 
@@ -256,7 +256,7 @@ Runs a full verification loop: tests pass, no TypeScript errors, no console erro
 
 ## Snippets Guide
 
-The Bible includes VS Code snippets for quick access to common commands and prompts. Install the snippet file:
+CC Commander includes VS Code snippets for quick access to common commands and prompts. Install the snippet file:
 
 ```bash
 # Copy snippets to VS Code user snippets directory
@@ -397,7 +397,7 @@ Debug Bible hooks during development. Add to `.vscode/launch.json`:
 
 3. **Workspace settings** — Put Bible-specific VS Code settings in `.vscode/settings.json` per project to avoid polluting your global settings.
 
-4. **Multi-root workspaces** — If you work in a monorepo, each root can have its own `CLAUDE.md`. The Bible respects the nearest `CLAUDE.md` to the file you are editing.
+4. **Multi-root workspaces** — If you work in a monorepo, each root can have its own `CLAUDE.md`. CC Commander respects the nearest `CLAUDE.md` to the file you are editing.
 
 5. **Custom quick actions** — Extend the `quickActions` array in settings.json with your most-used skills. The icons come from the VS Code icon set (codicon).
 
@@ -414,7 +414,7 @@ Debug Bible hooks during development. Add to `.vscode/launch.json`:
    - `claude-code.enableAutoThinking` — auto-enable extended thinking
    - `claude-code.defaultModel` — default model for new sessions
 
-8. **Git integration** — Use the Source Control panel alongside `/checkpoint`. The Bible's auto-checkpoint hook creates commits that appear in the Git timeline.
+8. **Git integration** — Use the Source Control panel alongside `/checkpoint`. CC Commander's auto-checkpoint hook creates commits that appear in the Git timeline.
 
 9. **Problem panel** — After `/verify`, check the VS Code Problems panel (`Cmd+Shift+M`) for any TypeScript errors or lint warnings that the verification caught.
 

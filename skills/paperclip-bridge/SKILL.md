@@ -30,7 +30,7 @@ Paperclip is a task management and agent coordination API running at **localhost
 
 ### From task-commander
 
-When the Bible's task-commander skill creates a multi-step plan, bridge it to Paperclip:
+When CC Commander's task-commander skill creates a multi-step plan, bridge it to Paperclip:
 
 ```bash
 curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issues \

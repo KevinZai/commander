@@ -1,6 +1,6 @@
 # Quickstart Guide: Mobile Developer
 
-> Build native and cross-platform mobile apps with the Bible. Mega-mobile skills, platform-specific setup, navigation patterns, state management, testing, ASO, push notifications, and deep linking.
+> Build native and cross-platform mobile apps with CC Commander. Mega-mobile skills, platform-specific setup, navigation patterns, state management, testing, ASO, push notifications, and deep linking.
 
 ---
 

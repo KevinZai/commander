@@ -1,6 +1,6 @@
 # Quickstart Guide: Full-Stack Developer
 
-> Build complete applications with the Bible. Mode switching, combined mega-skills, database patterns, auth flows, billing, testing, and deployment.
+> Build complete applications with CC Commander. Mode switching, combined mega-skills, database patterns, auth flows, billing, testing, and deployment.
 
 ---
 
@@ -78,7 +78,7 @@ use mega-testing skill    # All testing types
 /init
 ```
 
-The decision tree walks you through project type selection. For full-stack, select "SaaS" or "Full-Stack". The Bible configures your project's `CLAUDE.md` with stack-specific rules, file structure conventions, and recommended skills.
+The decision tree walks you through project type selection. For full-stack, select "SaaS" or "Full-Stack". CC Commander configures your project's `CLAUDE.md` with stack-specific rules, file structure conventions, and recommended skills.
 
 ### Step 2: Choose a Starter Template
 
@@ -86,7 +86,7 @@ The decision tree walks you through project type selection. For full-stack, sele
 /cc templates
 ```
 
-Three starter templates ship with the Bible:
+Three starter templates ship with CC Commander:
 
 | Template | Stack | What You Get |
 |----------|-------|-------------|
@@ -580,7 +580,7 @@ Write E2E tests for the complete [feature] user flow.
 
 3. **Frontend and backend in parallel** — use `/spawn team 2 frontend backend` to dispatch two peers working simultaneously when the frontend and backend can be built independently against an API contract.
 
-4. **Test at every boundary** — unit tests for business logic, integration tests for API endpoints, E2E tests for user flows. The Bible's `/tdd` and `/e2e` commands make this painless.
+4. **Test at every boundary** — unit tests for business logic, integration tests for API endpoints, E2E tests for user flows. CC Commander's `/tdd` and `/e2e` commands make this painless.
 
 5. **Database first, always** — the schema is the source of truth. Get the data model right before writing API or UI code. Use `database-designer` skill for the initial schema.
 

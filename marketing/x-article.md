@@ -91,7 +91,7 @@ Then it loads the right skills, generates your CLAUDE.md, sets up your tasks dir
 
 No guessing. No manual setup.
 
-### Tweet 8 (The Bible)
+### Tweet 8 (The Methodology)
 
 I also wrote a 1,749-line guide called CC Commander.
 

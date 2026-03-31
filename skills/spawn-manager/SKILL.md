@@ -395,7 +395,7 @@ Multiply per-peer cost by peer count. Add 20% for coordinator overhead. Set a ce
 
 ## Integration with Task Commander
 
-For complex tasks (P6+ in the Bible's priority system), Task Commander can leverage Spawn Manager:
+For complex tasks (P6+ in CC Commander's priority system), Task Commander can leverage Spawn Manager:
 
 1. Task Commander evaluates scope and determines parallelizability
 2. If parallelizable, it creates a work breakdown with independent units

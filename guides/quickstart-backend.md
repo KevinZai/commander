@@ -1,6 +1,6 @@
 # Quickstart Guide: Backend Developer
 
-> Build robust APIs, databases, and services with the Bible. SaaS mode, mega-skills, and production-grade patterns.
+> Build robust APIs, databases, and services with CC Commander. SaaS mode, mega-skills, and production-grade patterns.
 
 ---
 
@@ -27,7 +27,7 @@ For the best backend experience:
 /init
 ```
 
-When the decision tree asks about your build type, select "API" or "SaaS." The Bible configures stack-specific rules including database patterns, API conventions, and testing standards in your project's `CLAUDE.md`.
+When the decision tree asks about your build type, select "API" or "SaaS." CC Commander configures stack-specific rules including database patterns, API conventions, and testing standards in your project's `CLAUDE.md`.
 
 ---
 
@@ -166,7 +166,7 @@ claude
 /init   # Select API when asked
 ```
 
-Key patterns the Bible enforces:
+Key patterns CC Commander enforces:
 - **Repository pattern** — data access behind interfaces
 - **Service layer** — business logic separated from routes
 - **Validation middleware** — Zod schemas at the boundary
@@ -400,15 +400,15 @@ Set up monitoring for a production API:
 
 6. **Use `/cc mode saas` for the full lifecycle** — it combines API design, database patterns, auth, billing, and deployment into a single coherent workflow.
 
-7. **Rate limit everything** — every public endpoint should have rate limiting. The Bible's API patterns include this by default.
+7. **Rate limit everything** — every public endpoint should have rate limiting. CC Commander's API patterns include this by default.
 
-8. **Soft delete by default** — use `deleted_at` timestamps instead of `DELETE`. The Bible's database patterns enforce this.
+8. **Soft delete by default** — use `deleted_at` timestamps instead of `DELETE`. CC Commander's database patterns enforce this.
 
 ---
 
 ## Recommended First Backend Project
 
-New to the Bible's backend workflow? Build this:
+New to CC Commander's backend workflow? Build this:
 
 ```
 /cc mode saas

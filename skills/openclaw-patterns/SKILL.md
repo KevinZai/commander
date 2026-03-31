@@ -75,7 +75,7 @@ Each agent/mode has explicit boundaries:
 ## 7. Profile Injection
 
 Load context based on the task, not the session:
-- Workspace-specific instructions (like modes in the Bible)
+- Workspace-specific instructions (like modes in CC Commander)
 - Task-specific tool access
 - Time-bounded permissions (night mode = more autonomy)
 
@@ -86,7 +86,7 @@ When a session runs out of context or needs fresh start:
 2. Write handoff note: what's done, what's next, any blockers
 3. New session reads: CLAUDE.md → tasks/todo.md → session file → resume
 
-**This is exactly what the Bible's hooks automate:** context-guard warns at 70%, pre-compact saves before compaction, session-coach gives periodic guidance.
+**This is exactly what CC Commander's hooks automate:** context-guard warns at 70%, pre-compact saves before compaction, session-coach gives periodic guidance.
 
 ## Integration with Bible Components
 

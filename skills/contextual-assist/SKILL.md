@@ -180,7 +180,7 @@ Or try: "What's the simplest thing that could possibly work?"
 
 **Testing Pattern** (editing test files, running test commands)
 ```
-Working on tests? The Bible has you covered:
+Working on tests? CC Commander has you covered:
 
   /tdd                 — Full TDD red-green-refactor cycle
   /verify              — Run verification loop (tests + types + lint)
@@ -269,7 +269,7 @@ Introduce:
 
 Message style:
 ```
-[Mentored] Did you know? The Bible includes mega-skills — large skill bundles
+[Mentored] Did you know? CC Commander includes mega-skills — large skill bundles
 for common workflows. For your Next.js project, try:
 
   /cc mega saas — sets up auth, billing, database, and API patterns
