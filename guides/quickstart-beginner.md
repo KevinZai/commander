@@ -194,11 +194,11 @@ A: No. The installer backs up your existing files before making changes. You can
 **Q: Which model should I use?**
 A: Start with **Sonnet** (the default). It handles 90% of tasks well. Switch to **Opus** for complex architecture decisions. Use **Haiku** for simple, repetitive tasks to save cost.
 
-**Q: How do I update the Bible?**
+**Q: How do I update CC Commander?**
 A: Re-run the installer. It detects the existing installation and updates only changed files.
 
 **Q: Can I use this with VS Code?**
-A: Yes. Install the Claude Code VS Code extension (`anthropic.claude-code`). The Bible works in both terminal and VS Code. See the `vscode-bible` skill for VS Code-specific configuration.
+A: Yes. Install the Claude Code VS Code extension (`anthropic.claude-code`). CC Commander works in both terminal and VS Code. See the `vscode-bible` skill for VS Code-specific configuration.
 
 **Q: What if a command does not work?**
 A: Run `/harness-audit` to check your installation. If a specific command fails, check that the corresponding `.md` file exists in `~/.claude/commands/`.
