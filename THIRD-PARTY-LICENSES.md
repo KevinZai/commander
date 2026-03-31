@@ -1,6 +1,6 @@
 # Third-Party Licenses & Attribution
 
-Kit Commander and Claude Code Kit are original implementations. No code was copied from
+CC Commander is an original implementation. No code was copied from
 any third-party project. The following projects provided architectural inspiration and
 their patterns influenced our design:
 
@@ -58,5 +58,5 @@ license restrictions:
 
 ## Community Credits
 
-200+ community sources informed the broader Claude Code Kit. See BIBLE.md Appendix B
+200+ community sources informed the broader CC Commander. See BIBLE.md Appendix B
 (Contributor Credits) for the full list.
