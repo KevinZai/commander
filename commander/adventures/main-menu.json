@@ -83,6 +83,12 @@
       "action": "change_theme"
     },
     {
+      "key": "/",
+      "label": "Type a command",
+      "description": "Free-text prompt — describe anything or type /commands",
+      "action": "freeform_prompt"
+    },
+    {
       "key": "q",
       "label": "Quit",
       "action": "quit"

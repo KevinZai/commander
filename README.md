@@ -1,30 +1,25 @@
-<div align="center">
-<pre>
+```
  ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗
 ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝
 ██║     ██║     ███████║██║   ██║██║  ██║█████╗  
 ██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  
 ╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗
  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
-                                                 
- ██████╗ ██████╗ ██████╗ ███████╗
+                                                  ██████╗ ██████╗ ██████╗ ███████╗
 ██╔════╝██╔═══██╗██╔══██╗██╔════╝
 ██║     ██║   ██║██║  ██║█████╗  
 ██║     ██║   ██║██║  ██║██╔══╝  
 ╚██████╗╚██████╔╝██████╔╝███████╗
  ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
-                                 
- ██████╗ ██████╗ ███╗   ███╗███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗██████╗ 
+                                  ██████╗ ██████╗ ███╗   ███╗███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗██████╗ 
 ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝██╔══██╗
 ██║     ██║   ██║██╔████╔██║██╔████╔██║███████║██╔██╗ ██║██║  ██║█████╗  ██████╔╝
 ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══██║██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗
 ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║██║  ██║██║ ╚████║██████╔╝███████╗██║  ██║
  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
                                                                                  
-</pre>
-</div>
+```
 
-<img src="docs/assets/ccc-hero.svg" alt="CC Commander" width="100%">
 > **Every Claude Code tool. One install. Guided access. Auto-updated.**
 
 **Not a skill pack. An AI cockpit.** The most comprehensive Claude Code aggregator ever built. Newbie-friendly.
@@ -36,6 +31,13 @@
 **[Install](#install)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ---
+
+```
+ __      ___  ___   __
+ \ \    / / || \ \ / /
+  \ \/\/ /| __ |\ V / 
+   \_/\_/ |_||_| |_|
+```
 
 ## Why This Exists
 
@@ -52,6 +54,13 @@ You get:  A guided AI project manager with 432+ skills,
 <img src="docs/assets/ccc-flow.png" alt="How CCC Works" width="100%">
 
 ---
+
+```
+  ___ _  _ ___ _____ _   _    _    
+ |_ _| \| / __|_   _/_\ | |  | |   
+  | || .` \__ \ | |/ _ \| |__| |__ 
+ |___|_|\_|___/ |_/_/ \_\____|____|
+```
 
 ## Install
 
@@ -75,6 +84,13 @@ cd extensions/vscode && code --install-extension .
 After install: **`ccc`** — that's it. Three letters.
 
 ---
+
+```
+  _  _  _____      __  _____ ___    _   _ ___ ___ 
+ | || |/ _ \ \    / / |_   _/ _ \  | | | / __| __|
+ | __ | (_) \ \/\/ /    | || (_) | | |_| \__ \ _| 
+ |_||_|\___/ \_/\_/     |_| \___/   \___/|___/___|
+```
 
 ## How to Use (Start Here)
 
@@ -137,6 +153,13 @@ It dispatches to the best available tool (from 11 vendor packages), tracks the s
 
 ---
 
+```
+  ___ ___   _ _____ _   _ ___ ___ ___ 
+ | __| __| /_\_   _| | | | _ \ __/ __|
+ | _|| _| / _ \| | | |_| |   / _|\__ \
+ |_| |___/_/ \_\_|  \___/|_|_\___|___/
+```
+
 ## What You Get
 
 <img src="docs/assets/ccc-components.png" alt="Components" width="100%">
@@ -154,6 +177,13 @@ It dispatches to the best available tool (from 11 vendor packages), tracks the s
 | Modes | 9 | Workflow presets |
 
 ---
+
+```
+  ___   ___  __  __   _   ___ _  _ ___ 
+ |   \ / _ \|  \/  | /_\ |_ _| \| / __|
+ | |) | (_) | |\/| |/ _ \ | || .` \__ \
+ |___/ \___/|_|  |_/_/ \_\___|_|\_|___/
+```
 
 ## 11 CCC Domain Packs
 
@@ -174,6 +204,13 @@ Each domain is a router that dispatches to specialized sub-skills on demand.
 | **ccc-mobile** | 8 | React Native, Expo, mobile UI, push notifications, deep linking, app store optimization, offline-first, gesture handling |
 
 ---
+
+```
+ __   _____ _  _ ___   ___  ___  ___ 
+ \ \ / / __| \| |   \ / _ \| _ \/ __|
+  \ V /| _|| .` | |) | (_) |   /\__ \
+   \_/ |___|_|\_|___/ \___/|_|_\|___/
+```
 
 ## Vendor Ecosystem (11 Packages)
 
@@ -197,6 +234,13 @@ The **smart orchestrator** scores each tool: capability match (50%) + popularity
 
 ---
 
+```
+   ___  ___  ___ _  _ ___ ___ _____ ___    _ _____ ___  ___ 
+  / _ \| _ \/ __| || | __/ __|_   _| _ \  /_\_   _/ _ \| _ \
+ | (_) |   / (__| __ | _|\__ \ | | |   / / _ \| || (_) |   /
+  \___/|_|_\\___|_||_|___|___/ |_| |_|_\/_/ \_\_| \___/|_|_\
+```
+
 ## Smart Orchestrator
 
 ```
@@ -215,6 +259,13 @@ The **smart orchestrator** scores each tool: capability match (50%) + popularity
 CCC learns from every session. Knowledge compounds over time.
 
 ---
+
+```
+ __  _____    ___   __
+ \ \/ / _ \  /_\ \ / /
+  >  <|   / / _ \ V / 
+ /_/\_\_|_\/_/ \_\_|
+```
 
 ## /xray + /makeover
 
@@ -236,6 +287,13 @@ CCC learns from every session. Knowledge compounds over time.
 
 ---
 
+```
+ __   _____  _    ___  
+ \ \ / / _ \| |  / _ \ 
+  \ V / (_) | |_| (_) |
+   |_| \___/|____\___/
+```
+
 ## YOLO Mode
 
 **Start before bed. Wake up to shipped code.**
@@ -245,6 +303,13 @@ CCC learns from every session. Knowledge compounds over time.
 10 questions → Opus with max effort → $10 budget → 100 turns → self-testing loop.
 
 ---
+
+```
+   ___ ___   ___ _  _____ ___ _____ 
+  / __/ _ \ / __| |/ / _ \_ _|_   _|
+ | (_| (_) | (__| ' <|  _/| |  | |  
+  \___\___/ \___|_|\_\_| |___| |_|
+```
 
 ## Cockpit Dashboard
 

@@ -248,9 +248,17 @@ class KitCommander {
         return { next: 'main-menu' };
       }
       case 'dispatch': {
-        // Autonomous mode dispatch — build the command from choice context
         var dispatchTask = (choice && choice.description) || 'autonomous task';
         await this.executeBuild(dispatchTask);
+        return { next: 'main-menu' };
+      }
+      case 'freeform_prompt': {
+        process.stdout.write('\x0a  ' + tui.boldText('Type anything — a command, a question, or what you want to build:', tui.getTheme().text) + '\x0a');
+        process.stdout.write('  ' + tui.dimText('Examples: /ccc:xray  |  build a landing page  |  /plan  |  fix the auth bug') + '\x0a\x0a');
+        if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        var freeInput = await this.ask('  > ');
+        if (!freeInput.trim()) return { next: 'main-menu' };
+        await this.executeBuild(freeInput.trim());
         return { next: 'main-menu' };
       }
       case 'resume_session': {
