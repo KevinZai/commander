@@ -4,8 +4,8 @@ var BRAND = Object.freeze({
   product: 'Claude Code Commander',
   productFull: 'Claude Code Commander',
   productShort: 'CCC',
-  tagline: 'Every Claude Code tool. One install. Auto-updated.',
-  taglineShort: 'The ultimate Claude Code aggregator.',
+  tagline: 'Every Claude Code tool. One install. Guided access. Auto-updated.',
+  taglineShort: 'The Claude Code aggregator. Newbie-friendly.',
   version: '2.0.0',
 
   author: 'Kevin Z',
