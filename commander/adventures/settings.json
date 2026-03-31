@@ -37,9 +37,9 @@
     },
     {
       "key": "l",
-      "label": "Linear connection",
-      "description": "Check API key and connection status",
-      "action": "show_linear"
+      "label": "Linear setup",
+      "description": "Choose team + project, check connection",
+      "action": "linear_setup"
     },
     {
       "key": "r",

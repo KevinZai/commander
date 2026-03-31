@@ -346,11 +346,34 @@ class KitCommander {
         await this.ask('\n  Press Enter...');
         return { next: 'settings' };
       }
+      case 'linear_setup': {
+        try {
+          var setupLinear = require('./integrations/linear');
+          var setupConn = await setupLinear.checkConnection();
+          if (!setupConn.connected) { process.stdout.write('\n  Linear not connected. Set LINEAR_API_KEY_PERSONAL env var.\n  Get one at: linear.app/settings/api\n'); break; }
+          process.stdout.write('\n  Connected as: ' + tui.boldText(setupConn.user, tui.getTheme().primary) + '\n\n');
+          var teams = await setupLinear.listTeams();
+          if (teams.length === 0) { process.stdout.write('  No teams found.\n'); break; }
+          var teamItems = teams.map(function(team) { return { label: team.key + ' - ' + team.name }; });
+          var teamIdx = await tui.select(teamItems, 'Select your team:');
+          if (teamIdx < 0) break;
+          var selectedTeam = teams[teamIdx];
+          var projects = await setupLinear.getTeamProjects(selectedTeam.id);
+          if (projects.length === 0) { process.stdout.write('  No projects in team ' + selectedTeam.key + '.\n'); break; }
+          var projItems = projects.map(function(p) { return { label: p.name, description: p.state || '' }; });
+          var projIdx = await tui.select(projItems, 'Select your project:');
+          if (projIdx < 0) break;
+          setupLinear.saveConfig(selectedTeam.key, projects[projIdx].name);
+          process.stdout.write(tui.celebrate('Linear: ' + selectedTeam.key + ' / ' + projects[projIdx].name));
+          await this.pause(1000);
+        } catch(_e) { process.stdout.write('\n  Error: ' + _e.message + '\n'); }
+        return { next: 'settings' };
+      }
       case 'show_linear_board': {
         try {
           var boardLinear = require('./integrations/linear');
           var boardConn = await boardLinear.checkConnection();
-          if (!boardConn.connected) { process.stdout.write('\n  Linear not connected. Set LINEAR_API_KEY_PERSONAL.\n'); break; }
+          if (!boardConn.connected) { process.stdout.write('\n  Linear not connected. Run Settings > Linear Setup first.\n'); break; }
           var grouped = await boardLinear.getIssuesByStatus();
           var prog2 = await boardLinear.getProgress();
           process.stdout.write('\n' + tui.divider('Linear Board') + '\n');
@@ -518,6 +541,8 @@ class KitCommander {
       try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
       // Sync completion to Linear
       try { var linearDone = require("./integrations/linear"); var doneSession = state.getSession(session.id); if (doneSession) linearDone.syncSession(doneSession, "success").catch(function(){}); } catch(_e) {}
+      // Generate session replay
+      try { var replay = require("./session-replay"); var r = replay.generateReplay(state.getSession(session.id)); if (r) { replay.saveReplay(r); replay.postToLinear(r).catch(function(){}); process.stdout.write('\n  ' + tui.dimText('Session replay saved. Score: ' + r.score.total + '/100') + '\n'); } } catch(_e) {}
       process.stdout.write(tui.celebrate('BUILD COMPLETE'));
       if (result.result) { var summary = typeof result.result === 'string' ? result.result.slice(0, 500) : JSON.stringify(result.result).slice(0, 500); process.stdout.write('\n  ' + summary + '\n'); }
     } catch (err) {

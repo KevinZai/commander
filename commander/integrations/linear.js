@@ -166,10 +166,56 @@ async function syncSession(session, outcome) {
   } catch (_e) { return null; }
 }
 
+// ─── Setup Wizard ─────────────────────────────────────────────
+
+async function listTeams() {
+  var authError = validateAuth();
+  if (authError) return [];
+  var r = await graphql('{ teams { nodes { id key name } } }');
+  return (r.data && r.data.teams) ? r.data.teams.nodes : [];
+}
+
+async function setup() {
+  // Returns { teamId, teamKey, projectId, projectName } or null
+  var teams = await listTeams();
+  if (teams.length === 0) return null;
+  return { teams: teams, projects: null };
+}
+
+async function getTeamProjects(teamId) {
+  var r = await graphql('query($id: String!) { team(id: $id) { projects { nodes { id name state } } } }', { id: teamId });
+  return (r.data && r.data.team) ? r.data.team.projects.nodes : [];
+}
+
+async function saveConfig(teamKey, projectName) {
+  // Save to state so it persists
+  var state = require('../state');
+  state.updateState({ linear: { team: teamKey, project: projectName } });
+}
+
+function loadConfig() {
+  try {
+    var state = require('../state');
+    var s = state.loadState();
+    return (s && s.linear) ? s.linear : null;
+  } catch (_e) { return null; }
+}
+
+// Override findProject to use saved config
+var _origFindProject = findProject;
+findProject = async function(projectName, teamKey) {
+  var config = loadConfig();
+  if (!projectName && config) projectName = config.project;
+  if (!teamKey && config) teamKey = config.team;
+  return _origFindProject(projectName, teamKey);
+};
+
 module.exports = {
   checkConnection: checkConnection, validateAuth: validateAuth, findProject: findProject,
-  listProjects: listProjects, createSessionIssue: createSessionIssue, updateIssue: updateIssue,
+  listProjects: listProjects, listTeams: listTeams, getTeamProjects: getTeamProjects,
+  createSessionIssue: createSessionIssue, updateIssue: updateIssue,
   addComment: addComment, getProjectIssues: getProjectIssues, getProgress: getProgress,
   getIssuesByStatus: getIssuesByStatus, quickCreateIssue: quickCreateIssue,
   assignIssueToMe: assignIssueToMe, findStateId: findStateId, syncSession: syncSession,
+  setup: setup, saveConfig: saveConfig, loadConfig: loadConfig,
 };
