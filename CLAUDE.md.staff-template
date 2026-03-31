@@ -1,16 +1,19 @@
+<!-- CC Commander Staff Template v2.0.0 -->
 # CLAUDE.md — [Your Name]'s Development Environment
 
 ## Session Startup
 1. Read project-level `CLAUDE.md` if it exists
-2. Read `tasks/todo.md` and `tasks/lessons.md` if they exist — resume where you left off
-3. Greet briefly, mention active tasks if any
+2. Read `tasks/todo.md` and `tasks/lessons.md` — resume where you left off
+3. Check CLAUDE.md freshness (run `/ccc:refresh` if stale)
+4. Greet briefly, mention active tasks if any
 
 ## Environment
 - **Shell:** zsh | **Editor:** Claude Code
+- **CC Commander:** v2.0.0 (aggregator mode — 11 vendor packages)
 - **Package manager:** npm/pnpm
 - **Task system:** tasks/ directory (todo.md, lessons.md, specs)
 
-## Coding Standards [Customize for your stack]
+## Coding Standards
 - Strict mode. Functional style preferred.
 - No unnecessary comments. Code is self-documenting.
 - Error handling: fail fast, throw early, catch at boundaries.
@@ -18,102 +21,119 @@
 
 ## Workflow
 
+### Operating Model
+You think. I execute. When uncertain: surface options with tradeoffs.
+
+### Scope Discipline
+Push back on ambitious plans. Ship small wins. 100 lines > 1000 lines when both work.
+
+### Anti-Sycophancy
+If something looks wrong, say so. Propose alternatives. Don't agree just because I suggested it.
+
+### Corrective Framing
+"You should be doing X — are you still?" over "Remember to do X"
+
 ### Evals Before Specs (ALL non-trivial work)
-Define success criteria BEFORE writing the spec: evals → spec → plan → implement → verify.
-Ask: "What does done look like? What does broken look like? What edge cases must work?"
+Define success criteria BEFORE the spec: evals > spec > plan > implement > verify.
 
 ### Spec-Based Development (ALL features >1 day)
-1. **Spec first:** Ask 5-7 questions → write `tasks/spec-YYYYMMDD.md`
+1. **Spec first:** Ask 5-7 questions > write `tasks/spec-YYYYMMDD.md`
 2. **New session:** Execute from spec in fresh context
-3. **Plan mode** for any task with 3+ steps or architecture decisions
+3. **Plan mode** for any task with 3+ steps
 
 ### Subagent Strategy
 - Use subagents liberally — keep main context clean
 - One task per subagent. Parallel when independent.
-- Never switch models mid-session (use subagents for different model needs)
-- Use `delegation-templates` skill for structured dispatch with report formats
+- Never switch models mid-session — use subagents instead
 
 ### Dialectic Review (Important Decisions)
 For architecture choices or expensive-to-reverse decisions:
-spawn FOR agent + AGAINST agent + Referee. See `dialectic-review` skill.
+spawn FOR agent + AGAINST agent + Referee.
 
 ### Verification (MANDATORY before marking done)
-- [ ] Feature works end-to-end (test output or screenshot)
-- [ ] No type/build errors (run your project's build command)
+- [ ] Feature works end-to-end
+- [ ] No type/build errors
 - [ ] No console errors
 - [ ] Committed with conventional commit message
-- [ ] Lessons captured in `tasks/lessons.md` if corrections were made
+- [ ] Lessons captured in `tasks/lessons.md`
 
 ### Operationalize Every Fix
-After fixing a bug: write class-level tests, sweep codebase for siblings, update CLAUDE.md if it reveals a gap. See `operationalize-fixes` skill.
+After fixing a bug: write class-level tests, sweep codebase for siblings, update CLAUDE.md.
 
 ### Self-Improvement
 - After ANY correction: update `tasks/lessons.md` immediately
 - Review lessons at session start
 - Write rules that prevent the same mistake twice
-- Use corrective framing over reminders (see `corrective-framing` skill)
 
 ## Core Principles
 - **Simplicity First.** Minimal code, minimal impact.
 - **No Laziness.** Root causes only. Senior developer standards.
 - **Research Before Build.** Check npm, GitHub, existing libs first.
-- **Evals Before Specs.** Define what "done" and "broken" look like before writing code.
+- **Evals Before Specs.** Define "done" and "broken" before writing code.
 - **Check Skills First.** Search `SKILLS-INDEX.md` before building from scratch.
+- **Boring Solutions Win.** 100 lines when 100 suffice over 1000 lines with abstractions.
 
-## MCP Servers [Install separately — these are not included in the kit]
-- `context7` — library docs (add "use context7" to prompts) → npmjs.com/package/@anthropic-ai/claude-code-mcp-context7
-- `github` — GitHub API → requires `gh` CLI auth
-- `playwright` — browser testing/screenshots → npmjs.com/package/@anthropic-ai/claude-code-mcp-playwright
+## Aggregator Ecosystem
+CC Commander aggregates 11 vendor packages via git submodules in `vendor/`.
+Smart orchestrator picks the best tool: capability 50% + stars 15% + recency 15% + user pref 20%.
+Auto-updates weekly via GitHub Actions.
+
+Key vendors: ECC (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode (17K),
+claude-code-best-practice (26K), Compound Engineering (11.5K), Claude HUD (15K),
+RTK (14.6K), acpx (1.8K), caliber (300), claude-reflect (860).
+
+## CCC Domains (On-Demand)
+| Domain | Skills | What It Covers |
+|--------|--------|---------------|
+| ccc-design | 39 | UI/UX, animation, responsive |
+| ccc-marketing | 45 | CRO, email, ads, social |
+| ccc-saas | 20 | Auth, billing, API, multi-tenant |
+| ccc-devops | 20 | CI/CD, Docker, AWS, monitoring |
+| ccc-seo | 19 | Schema, SERP, Core Web Vitals |
+| ccc-testing | 15 | TDD, E2E, coverage |
+| ccc-data | 8 | SQL, ETL, analytics |
+| ccc-security | 8 | OWASP, secrets, hardening |
+| ccc-research | 8 | Competitive, market analysis |
+| ccc-mobile | 8 | React Native, Expo |
+| ccc-makeover | 3 | /xray audit + /makeover swarm |
+
+## Knowledge Compounding
+Sessions compound knowledge. Corrections feed back into CLAUDE.md and tasks/lessons.md.
+Run `/ccc:refresh` periodically to pull latest best practices.
+
+## MCP Servers [Install separately]
+- `context7` — library docs (add "use context7")
+- `github` — GitHub API (requires `gh` CLI auth)
+- `playwright` — browser testing/screenshots
 
 ## Situational Guides (On-Demand Skills)
-These load on-demand — keeps always-loaded context lean:
-- Delegating to subagents → `delegation-templates` skill
-- Important decision → `dialectic-review` skill (FOR/AGAINST/Referee)
-- Post-bug-fix → `operationalize-fixes` skill
-- Starting a feature → `evals-before-specs` skill
-- Writing agent instructions → `corrective-framing` skill
-- Running batch jobs overnight → `overnight-runner` skill
-
-## Project CLAUDE.md Policy
-- Create for any project with >1 session of work
-- Global = universal rules. Project = stack-specific overrides + context.
-- Project-specific permissions go in `.claude/settings.json` (NOT global)
-
-## Auto-Skill Triggers (Load These When Relevant)
-- Building a landing page → Load `mega-design` skill
-- Working on SEO → Load `mega-seo` skill
-- Writing tests → Load `mega-testing` skill
-- Setting up CI/CD or deploy → Load `mega-devops` skill
-- Building a SaaS product, editing schema/migrations, or auth → Load `mega-saas` skill
-- Marketing or content work → Load `mega-marketing` skill
+- Delegating to subagents > `delegation-templates` skill
+- Important decision > `dialectic-review` skill
+- Post-bug-fix > `operationalize-fixes` skill
+- Starting a feature > `evals-before-specs` skill
+- Background loops > `auto-loop-patterns` skill
+- Visual verification > `visual-verify` skill
 
 ## Model Selection
-
 | Model | Best For | Cost |
 |-------|---------|------|
-| **Haiku 4.5** | Fast iteration, bulk ops, simple tasks, lightweight subagents | $ |
-| **Sonnet 4.6** | General development, most coding tasks, orchestration | $$ |
-| **Opus 4.6** | Complex architecture, deep reasoning, audits, research | $$$ |
+| **Haiku 4.5** | Fast iteration, bulk ops, subagents | $ |
+| **Sonnet 4.6** | General dev, orchestration | $$ |
+| **Opus 4.6** | Complex architecture, deep reasoning | $$$ |
 
-**Rule:** Never change models mid-session — spawn a subagent with the desired model instead.
-
-**Cost tips:**
-- Use Haiku for 90% of subagent work (3x savings, 90% of Sonnet capability)
-- Set `MAX_THINKING_TOKENS=10000` for routine work (saves ~60% thinking budget)
-- Compact within 5 min of last message (cache still warm)
-- Add `.claudeignore` to exclude node_modules, .git, build artifacts (30-40% context savings)
+**Rule:** Never change models mid-session — spawn a subagent instead.
 
 ## Compaction Survival
-- Before compaction, the `pre-compact` hook auto-saves critical session state (cwd, git branch, modified files, active tasks) to `~/.claude/sessions/pre-compact-*.md`
-- After compaction, check `~/.claude/sessions/pre-compact-*` for context recovery — the most recent file contains your pre-compaction state
-- Always re-read CLAUDE.md after compaction to reload project context
-- Check `tasks/todo.md` for progress state — unchecked items are your remaining work
+- `pre-compact` hook auto-saves session state
+- After compaction, check `~/.claude/sessions/pre-compact-*`
+- Re-read CLAUDE.md after compaction
+- Check `tasks/todo.md` for progress state
 
 ## Cache Efficiency Rules
 1. Never add one-off permissions to global settings — use project-level
-2. Never change tools/models mid-session — use subagents instead
+2. Never change tools/models mid-session — use subagents
 3. Don't edit this file mid-session — put updates in messages
-4. Static content first, dynamic last (this file is structured for caching)
+4. Static content first, dynamic last
 
 ## Rules
 1. Never delete files without asking — archive or rename
