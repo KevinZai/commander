@@ -1,5 +1,5 @@
 /**
- * Claude Code Kit — Dashboard Theme Loader
+ * CC Commander — Dashboard Theme Loader
  * Switches between 4 skins: claude (default), oled, matrix, random
  * Persists choice in localStorage.
  */

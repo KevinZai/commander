@@ -1,5 +1,5 @@
 #!/bin/bash
-# Claude Code Kit — OVERWRITE Update
+# CC Commander — OVERWRITE Update
 # Replaces skills, commands, SKILLS-INDEX, CHEATSHEET, hooks.
 # Pass --all to also replace CLAUDE.md and settings.json (staff template).
 # Pass --kevin to use Kevin's versions instead of staff template.
@@ -59,7 +59,7 @@ if $DRY_RUN; then
     exit 0
 fi
 
-echo "🔧 Claude Code Kit — Overwrite Update"
+echo "🔧 CC Commander — Overwrite Update"
 echo "======================================"
 echo ""
 

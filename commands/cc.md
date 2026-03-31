@@ -60,7 +60,7 @@ When showing the main menu, display:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  CLAUDE CODE KIT  //  COMMAND CENTER         v1.5
+  CC COMMANDER  //  COMMAND CENTER         v1.6.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   🔧 BUILD                    📋 PLAN

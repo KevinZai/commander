@@ -1,12 +1,12 @@
 # OpenAI Codex CLI Compatibility Guide
 
-OpenAI's Codex CLI is an open-source terminal coding agent (similar to Claude Code but using OpenAI models). This guide maps Claude Code Kit concepts to Codex equivalents.
+OpenAI's Codex CLI is an open-source terminal coding agent (similar to Claude Code but using OpenAI models). This guide maps CC Commander concepts to Codex equivalents.
 
 ## How Codex Works
 
 Codex reads configuration from `~/.codex/` and project-level `AGENTS.md` or `codex.md` files. It supports instructions files and sandboxed execution but has a different configuration model than Claude Code.
 
-Claude Code Kit installs to `~/.claude/` and has no effect on Codex. The two systems are independent.
+CC Commander installs to `~/.claude/` and has no effect on Codex. The two systems are independent.
 
 ## Mapping Kit Concepts to Codex
 

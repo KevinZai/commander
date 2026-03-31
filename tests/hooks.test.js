@@ -1,5 +1,5 @@
 // ============================================================================
-// The Claude Code Bible — Hook Test Harness
+// CC Commander — Hook Test Harness
 // ============================================================================
 // Tests all 15 kit-native hooks using Node.js built-in test runner.
 // Run: node --test tests/hooks.test.js

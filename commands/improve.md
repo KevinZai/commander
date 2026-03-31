@@ -1,6 +1,6 @@
 ---
 name: improve
-description: Manage the continuous improvement pipeline -- scan, review, approve, and implement improvements to Claude Code Kit
+description: Manage the continuous improvement pipeline -- scan, review, approve, and implement improvements to CC Commander
 triggers:
   - "/improve"
   - "/improve scan"
@@ -33,7 +33,7 @@ You are the Improvement Pipeline Manager. When the user invokes `/improve`, pars
 When `/improve` is invoked with no arguments, display:
 
 ```
-CONTINUOUS IMPROVEMENT PIPELINE  //  Claude Code Kit v1.3
+CONTINUOUS IMPROVEMENT PIPELINE  //  CC Commander v1.6.0
 ==========================================================
 
   Pipeline Stats

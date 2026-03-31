@@ -1,21 +1,21 @@
 # Windsurf Compatibility Guide
 
-Windsurf (formerly Codeium) uses `.windsurfrules` files for AI behavior configuration. This guide maps Claude Code Kit skills to Windsurf equivalents so teams using both tools can maintain consistent workflows.
+Windsurf (formerly Codeium) uses `.windsurfrules` files for AI behavior configuration. This guide maps CC Commander skills to Windsurf equivalents so teams using both tools can maintain consistent workflows.
 
 ## How Windsurf Rules Work
 
 Windsurf reads `.windsurfrules` at the project root (similar to `.cursorrules`). These files define coding standards, workflow preferences, and AI behavior for Windsurf's Cascade AI.
 
-Claude Code Kit installs to `~/.claude/` and has no effect on Windsurf. The two systems are independent. This guide helps you translate Kit workflows into Windsurf rules if you use both.
+CC Commander installs to `~/.claude/` and has no effect on Windsurf. The two systems are independent. This guide helps you translate CC Commander workflows into Windsurf rules if you use both.
 
-## Mapping Kit Skills to Windsurf Rules
+## Mapping CC Commander Skills to Windsurf Rules
 
 ### Coding Standards
 
-Kit uses `CLAUDE.md` for coding standards. Windsurf uses `.windsurfrules`. To keep both aligned, extract the coding standards section of your `CLAUDE.md` into a `.windsurfrules` file:
+CC Commander uses `CLAUDE.md` for coding standards. Windsurf uses `.windsurfrules`. To keep both aligned, extract the coding standards section of your `CLAUDE.md` into a `.windsurfrules` file:
 
 ```
-# .windsurfrules (generated from Claude Code Kit CLAUDE.md)
+# .windsurfrules (generated from CC Commander CLAUDE.md)
 
 ## Code Style
 - TypeScript strict mode, ESM only

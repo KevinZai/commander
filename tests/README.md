@@ -1,4 +1,4 @@
-# Tests — The Claude Code Bible
+# Tests — CC Commander
 
 ## Running Tests
 

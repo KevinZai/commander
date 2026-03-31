@@ -1,4 +1,4 @@
-# Claude Code Kit v1.3 — Competitive Scan Report
+# CC Commander v1.3 — Competitive Scan Report
 
 **Date:** 2026-03-28
 **Methodology:** GitHub search across 10 query patterns, README analysis of top repos
