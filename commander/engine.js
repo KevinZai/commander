@@ -356,85 +356,122 @@ class KitCommander {
         }
         return { next: 'check-stats' };
       }
-      case 'browse_skills': return await this.browseSkills(false);
+      case 'browse_skills': {
+        try { return await this.browseSkills(false); }
+        catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'browse_skills'); } catch(_) {} return { next: 'main-menu' }; }
+      }
       case 'browse_ccc_domains': return { next: 'ccc-domains' };
-      case 'show_cheatsheet': return await this.showCheatsheet();
-      case 'recommend_skill': return await this.recommendSkill(currentState);
-      case 'pick_session_to_resume': return await this.pickSessionToResume();
-      case 'pick_session_details': return await this.pickSessionDetails();
+      case 'show_cheatsheet': {
+        try { return await this.showCheatsheet(); }
+        catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'show_cheatsheet'); } catch(_) {} return { next: 'main-menu' }; }
+      }
+      case 'recommend_skill': {
+        try { return await this.recommendSkill(currentState); }
+        catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'recommend_skill'); } catch(_) {} return { next: 'main-menu' }; }
+      }
+      case 'pick_session_to_resume': {
+        try { return await this.pickSessionToResume(); }
+        catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'pick_session_to_resume'); } catch(_) {} return { next: 'main-menu' }; }
+      }
+      case 'pick_session_details': {
+        try { return await this.pickSessionDetails(); }
+        catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'pick_session_details'); } catch(_) {} return { next: 'main-menu' }; }
+      }
       case 'night_build': {
-        return await this.nightBuild();
+        try { return await this.nightBuild(); }
+        catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'night_build'); } catch(_) {} return { next: 'main-menu' }; }
       }
       case 'yolo_loop': {
-        return await this.yoloLoop();
+        try { return await this.yoloLoop(); }
+        catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'yolo_loop'); } catch(_) {} return { next: 'main-menu' }; }
       }
       case 'night_explain': {
-        var nightMsg = [
-          '',
-          tui.divider('What is Night Mode?'),
-          '',
-          '  Night Mode asks 10+ detailed questions to build a comprehensive spec.',
-          '  Then it dispatches an autonomous build with:',
-          '    - Max effort (Opus with deep reasoning)',
-          '    - High budget ($10 ceiling)',
-          '    - 100 max turns',
-          '    - Full 10-step orchestration (planning, review, QA, knowledge)',
-          '    - Self-testing loop',
-          '',
-          '  Designed for overnight runs. Start it before bed. Wake up to shipped code.',
-        ].join('\x0a');
-        process.stdout.write(nightMsg + '\x0a');
-        if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        await this.ask('\x0a  Press Enter...');
+        try {
+          var nightMsg = [
+            '',
+            tui.divider('What is Night Mode?'),
+            '',
+            '  Night Mode asks 10+ detailed questions to build a comprehensive spec.',
+            '  Then it dispatches an autonomous build with:',
+            '    - Max effort (Opus with deep reasoning)',
+            '    - High budget ($10 ceiling)',
+            '    - 100 max turns',
+            '    - Full 10-step orchestration (planning, review, QA, knowledge)',
+            '    - Self-testing loop',
+            '',
+            '  Designed for overnight runs. Start it before bed. Wake up to shipped code.',
+          ].join('\x0a');
+          process.stdout.write(nightMsg + '\x0a');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\x0a  Press Enter...');
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'night_explain'); } catch(_) {}
+        }
         return { next: 'night-build' };
       }
       case 'open_project': {
-        var pi = require('./project-importer');
-        var project = pi.scanProject(process.cwd());
-        if (!project.hasClaudeMd && !project.hasClaudeDir) {
-          process.stdout.write('\n  No CLAUDE.md or .claude/ found in current directory.\n');
-          process.stdout.write('  ' + tui.dimText('cd into a project directory and restart, or specify a path.') + '\n');
-          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-          var projDir = await this.ask('\n  Project path (or Enter to skip): ');
-          if (projDir.trim()) { project = pi.scanProject(projDir.trim()); }
-          else { return { next: 'main-menu' }; }
-        }
-        if (project.hasClaudeMd || project.hasClaudeDir) {
-          state.updateState({ activeProject: { dir: project.dir, name: project.name } });
-          process.stdout.write('\n' + tui.divider('Project Imported') + '\n');
-          process.stdout.write('  ' + tui.boldText(project.name, tui.getTheme().primary) + '\n');
-          if (project.summary.length > 0) {
-            project.summary.forEach(function(s) { process.stdout.write('  ' + tui.dimText('  v ' + s) + '\n'); });
+        try {
+          var pi = require('./project-importer');
+          var project = pi.scanProject(process.cwd());
+          if (!project.hasClaudeMd && !project.hasClaudeDir) {
+            process.stdout.write('\n  No CLAUDE.md or .claude/ found in current directory.\n');
+            process.stdout.write('  ' + tui.dimText('cd into a project directory and restart, or specify a path.') + '\n');
+            if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+            var projDir = await this.ask('\n  Project path (or Enter to skip): ');
+            if (projDir.trim()) { project = pi.scanProject(projDir.trim()); }
+            else { return { next: 'main-menu' }; }
           }
-          process.stdout.write('\n  ' + tui.dimText('Dispatches will include this project CLAUDE.md context.') + '\n');
-          process.stdout.write('  ' + tui.dimText('CC Commander will NOT modify your .claude/ directory.') + '\n');
-          process.stdout.write(tui.celebrate('Project loaded!'));
-          try { require('./integrations/linear').pulse('claude_md_loaded', project.name).catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'linear-pulse-project'); } catch(_) {} }
-          await this.pause(1500);
+          if (project.hasClaudeMd || project.hasClaudeDir) {
+            state.updateState({ activeProject: { dir: project.dir, name: project.name } });
+            process.stdout.write('\n' + tui.divider('Project Imported') + '\n');
+            process.stdout.write('  ' + tui.boldText(project.name, tui.getTheme().primary) + '\n');
+            if (project.summary.length > 0) {
+              project.summary.forEach(function(s) { process.stdout.write('  ' + tui.dimText('  v ' + s) + '\n'); });
+            }
+            process.stdout.write('\n  ' + tui.dimText('Dispatches will include this project CLAUDE.md context.') + '\n');
+            process.stdout.write('  ' + tui.dimText('CC Commander will NOT modify your .claude/ directory.') + '\n');
+            process.stdout.write(tui.celebrate('Project loaded!'));
+            try { require('./integrations/linear').pulse('claude_md_loaded', project.name).catch(function(){}); } catch(_e2) {}
+            await this.pause(1500);
+          }
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'open_project'); } catch(_) {}
         }
         return { next: 'main-menu' };
       }
       case 'show_all_mega': {
-        process.stdout.write('\n' + tui.divider('All 11 CCC Domains') + '\n\n');
-        var sb = getSkillBrowser();
-        var allSkills = sb.listSkills();
-        var megas = allSkills.filter(function(s) { return s.isMega; });
-        if (megas.length === 0) { process.stdout.write('  No CCC domains found.\n'); }
-        megas.forEach(function(m) {
-          var subCount = 0;
-          try { var fs2 = require('fs'); var entries = fs2.readdirSync(require('path').dirname(m.path), {withFileTypes:true}); subCount = entries.filter(function(e){return e.isDirectory();}).length; } catch(_e) {}
-          process.stdout.write('  ' + tui.boldText(m.name, tui.getTheme().primary) + ' (' + (subCount || '?') + ' sub-skills)\n');
-          process.stdout.write('  ' + tui.dimText(m.description || '') + '\n\n');
-        });
-        if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        await this.ask('\n  Press Enter...');
+        try {
+          process.stdout.write('\n' + tui.divider('All 11 CCC Domains') + '\n\n');
+          var sb = getSkillBrowser();
+          var allSkills = sb.listSkills();
+          var megas = allSkills.filter(function(s) { return s.isMega; });
+          if (megas.length === 0) { process.stdout.write('  No CCC domains found.\n'); }
+          megas.forEach(function(m) {
+            var subCount = 0;
+            try { var fs2 = require('fs'); var entries = fs2.readdirSync(require('path').dirname(m.path), {withFileTypes:true}); subCount = entries.filter(function(e){return e.isDirectory();}).length; } catch(_e2) {}
+            process.stdout.write('  ' + tui.boldText(m.name, tui.getTheme().primary) + ' (' + (subCount || '?') + ' sub-skills)\n');
+            process.stdout.write('  ' + tui.dimText(m.description || '') + '\n\n');
+          });
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'show_all_mega'); } catch(_) {}
+        }
         return { next: 'ccc-domains' };
       }
       case 'show_mega_detail': {
-        process.stdout.write('\n  ' + tui.boldText('Pick a CCC domain and describe your need.', tui.getTheme().text) + '\n');
-        if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        var megaTask = await this.ask('  > ');
-        if (megaTask.trim()) await this.executeBuild(megaTask);
+        try {
+          process.stdout.write('\n  ' + tui.boldText('Pick a CCC domain and describe your need.', tui.getTheme().text) + '\n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          var megaTask = await this.ask('  > ');
+          if (megaTask.trim()) await this.executeBuild(megaTask);
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'show_mega_detail'); } catch(_) {}
+        }
         return { next: 'ccc-domains' };
       }
       case 'show_linear': {
