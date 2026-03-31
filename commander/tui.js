@@ -108,6 +108,10 @@ function gradient(text, stops) {
   return out + RESET;
 }
 
+// Full lolcat-style rainbow: red → yellow → green → cyan → blue → magenta
+var RAINBOW_STOPS = [[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]];
+function rainbow(text) { return BOLD + gradient(text, RAINBOW_STOPS) + RESET; }
+
 function gradientLines(lines, topColor, bottomColor) {
   return lines.map(function(line, i) {
     var t = lines.length <= 1 ? 0 : i / (lines.length - 1);
@@ -197,47 +201,41 @@ function select(items, prompt) {
     readline.emitKeypressEvents(stdin);
     stdout.write(ESC + '?25l'); // hide cursor
 
-    // GUI-style menu: bright selected with arrow + subtitle, dim unselected
+    // Taskade/Gemini style: rainbow selected, bright white unselected, clean spacing
     var totalLines = 2; // prompt + blank
-    items.forEach(function() { totalLines += 2; }); // title + subtitle/spacing per item
-    totalLines += 1; // bottom border
-
-    var cols = Math.min(stdout.columns || 80, 72);
-    var side = rgb(t.dim[0], t.dim[1], t.dim[2]) + '\u2551' + RESET;
-    var botBorder = '  ' + rgb(t.dim[0], t.dim[1], t.dim[2]) + '\u255a' + '\u2550'.repeat(cols - 6) + '\u255d' + RESET;
-
-    function padR(text, rawLen) {
-      var pad = cols - 8 - rawLen;
-      return text + ' '.repeat(Math.max(0, pad));
-    }
+    items.forEach(function(item) {
+      totalLines++; // label line
+      if (typeof item !== 'string' && item.description) totalLines++; // subtitle
+    });
 
     function draw() {
       stdout.write(ESC + totalLines + 'A');
-      stdout.write(ESC + '2K  ' + side + ' ' + boldText(prompt || 'What would you like to do?', t.text) + '\n');
-      stdout.write(ESC + '2K  ' + side + '\n');
+      stdout.write(ESC + '2K\n'); // blank top line
+      stdout.write(ESC + '2K  \x1b[38;5;255m\x1b[1m' + (prompt || 'What would you like to do?') + RESET + '\n');
       items.forEach(function(item, i) {
         var active = i === sel;
         var label = typeof item === 'string' ? item : item.label;
         var desc = typeof item === 'string' ? '' : (item.description || '');
 
-        stdout.write(ESC + '2K  ' + side);
+        stdout.write(ESC + '2K');
         if (active) {
-          stdout.write(' ' + colorText('\u276f ', t.primary) + BOLD + '\x1b[38;5;255m' + label + RESET);
+          // Rainbow gradient label (lolcat-style) + bold cyan arrow
+          stdout.write('  ' + colorText('\u276f ', t.primary) + rainbow(label));
         } else {
-          stdout.write('   ' + rgb(t.dim[0]+40, t.dim[1]+40, t.dim[2]+40) + label + RESET);
+          // Bright white — clearly readable on dark bg
+          stdout.write('    \x1b[38;5;253m' + label + RESET);
         }
         stdout.write('\n');
-        stdout.write(ESC + '2K  ' + side);
         if (desc) {
+          stdout.write(ESC + '2K');
           if (active) {
             stdout.write('    ' + colorText(desc, t.primary));
           } else {
-            stdout.write('    ' + rgb(t.dim[0], t.dim[1], t.dim[2]) + desc + RESET);
+            stdout.write('    \x1b[38;5;245m' + desc + RESET);
           }
+          stdout.write('\n');
         }
-        stdout.write('\n');
       });
-      stdout.write(ESC + '2K' + botBorder + '\n');
     }
 
     // Reserve space + initial draw
@@ -385,6 +383,8 @@ module.exports = {
   // Rendering
   renderLogo: renderLogo,
   gradient: gradient,
+  rainbow: rainbow,
+  RAINBOW_STOPS: RAINBOW_STOPS,
   gradientLines: gradientLines,
   box: box,
   statsCard: statsCard,
