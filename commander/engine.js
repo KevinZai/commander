@@ -57,7 +57,9 @@ class KitCommander {
       var t = tui.THEMES[n];
       return { label: t.name, description: tui.gradient('████████', [t.primary, t.secondary]) };
     });
-    var themeIdx = await tui.select(themeItems, 'Choose your vibe:');
+    var themeIdx = await tui.select(themeItems, 'Choose your vibe:', {
+      onChange: function(i) { if (i >= 0 && i < themeNames.length) tui.setTheme(themeNames[i]); }
+    });
     if (themeIdx >= 0) {
       tui.setTheme(themeNames[themeIdx]);
       state.updateState({ theme: themeNames[themeIdx] });
@@ -681,14 +683,28 @@ class KitCommander {
   }
 
   async changeTheme() {
+    var themeNames = tui.getThemeNames();
     var items = tui.themePickerItems();
+    var currentTheme = tui.getTheme().name;
     process.stdout.write("\n" + tui.divider("Theme Picker") + "\n\n");
-    var idx = await tui.select(items, "Pick a theme:");
-    if (idx >= 0 && idx < tui.getThemeNames().length) {
-      tui.setTheme(tui.getThemeNames()[idx]);
-      state.updateState({ theme: tui.getThemeNames()[idx] });
+    process.stdout.write("  " + tui.dimText("Navigate to preview live. Enter to confirm.") + "\n\n");
+    var idx = await tui.select(items, "Pick a theme:", {
+      onChange: function(i) {
+        // Live preview: switch theme as you navigate
+        if (i >= 0 && i < themeNames.length) {
+          tui.setTheme(themeNames[i]);
+        }
+      }
+    });
+    if (idx >= 0 && idx < themeNames.length) {
+      tui.setTheme(themeNames[idx]);
+      state.updateState({ theme: themeNames[idx] });
       process.stdout.write(tui.celebrate("Theme: " + tui.getTheme().name));
       await this.pause(800);
+    } else {
+      // Cancelled — restore previous theme
+      var prevName = themeNames.find(function(n) { return tui.THEMES[n].name === currentTheme; });
+      if (prevName) tui.setTheme(prevName);
     }
     return { next: "main-menu" };
   }

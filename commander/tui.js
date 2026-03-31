@@ -170,9 +170,10 @@ function box(content, width) {
 
 // ─── Arrow-Key Select Menu ────────────────────────────────────────
 
-function select(items, prompt) {
+function select(items, prompt, options) {
   return new Promise(function(resolve) {
     var sel = 0;
+    var onChange = options && options.onChange;
     var stdin = process.stdin;
     var stdout = process.stdout;
     var t = getTheme();
@@ -247,8 +248,8 @@ function select(items, prompt) {
 
     function handler(str, key) {
       if (!key) return;
-      if (key.name === 'up' && sel > 0) { sel--; draw(); }
-      else if (key.name === 'down' && sel < items.length - 1) { sel++; draw(); }
+      if (key.name === 'up' && sel > 0) { sel--; if (onChange) onChange(sel); t = getTheme(); draw(); }
+      else if (key.name === 'down' && sel < items.length - 1) { sel++; if (onChange) onChange(sel); t = getTheme(); draw(); }
       else if (key.name === 'return') { done(sel); }
       else if (key.ctrl && key.name === 'c') { done(-1); }
       else {
