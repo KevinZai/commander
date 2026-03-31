@@ -574,37 +574,65 @@ class KitCommander {
         return { next: 'main-menu' };
       }
       case 'settings_name': {
-        if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        var newName = await this.ask('  New name: ');
-        if (newName.trim()) { state.updateUser({ name: newName.trim() }); process.stdout.write(tui.celebrate('Name updated!')); }
+        try {
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          var newName = await this.ask('  New name: ');
+          if (newName.trim()) { state.updateUser({ name: newName.trim() }); process.stdout.write(tui.celebrate('Name updated!')); }
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'settings_name'); } catch(_) {}
+        }
         return { next: 'settings' };
       }
       case 'settings_level': {
-        var lvlIdx = await tui.select([{label:'Guided'},{label:'Assisted'},{label:'Power'}], 'Experience level:');
-        var lvls = ['guided','assisted','power'];
-        if (lvlIdx >= 0) { state.updateUser({ level: lvls[lvlIdx] }); process.stdout.write(tui.celebrate('Level: ' + lvls[lvlIdx].toUpperCase())); }
+        try {
+          var lvlIdx = await tui.select([{label:'Guided'},{label:'Assisted'},{label:'Power'}], 'Experience level:');
+          var lvls = ['guided','assisted','power'];
+          if (lvlIdx >= 0) { state.updateUser({ level: lvls[lvlIdx] }); process.stdout.write(tui.celebrate('Level: ' + lvls[lvlIdx].toUpperCase())); }
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'settings_level'); } catch(_) {}
+        }
         return { next: 'settings' };
       }
       case 'settings_cost': {
-        var costIdx = await tui.select([{label:'$2 (conservative)'},{label:'$5 (standard)'},{label:'$10 (aggressive)'},{label:'No limit'}], 'Max cost per dispatch:');
-        var costs = [2, 5, 10, 999];
-        if (costIdx >= 0) { state.updateState({ maxBudget: costs[costIdx] }); process.stdout.write(tui.celebrate('Budget: $' + costs[costIdx])); }
+        try {
+          var costIdx = await tui.select([{label:'$2 (conservative)'},{label:'$5 (standard)'},{label:'$10 (aggressive)'},{label:'No limit'}], 'Max cost per dispatch:');
+          var costs = [2, 5, 10, 999];
+          if (costIdx >= 0) { state.updateState({ maxBudget: costs[costIdx] }); process.stdout.write(tui.celebrate('Budget: $' + costs[costIdx])); }
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'settings_cost'); } catch(_) {}
+        }
         return { next: 'settings' };
       }
       case 'settings_animations': {
-        var current = process.env.KC_NO_ANIMATION === '1' ? 'OFF' : 'ON';
-        process.stdout.write('\n  Animations are currently ' + current + '\n');
-        process.stdout.write('  Set KC_NO_ANIMATION=1 in your shell to disable.\n');
-        if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        await this.ask('\n  Press Enter...');
+        try {
+          var current = process.env.KC_NO_ANIMATION === '1' ? 'OFF' : 'ON';
+          process.stdout.write('\n  Animations are currently ' + current + '\n');
+          process.stdout.write('  Set KC_NO_ANIMATION=1 in your shell to disable.\n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'settings_animations'); } catch(_) {}
+        }
         return { next: 'settings' };
       }
       case "settings_reset": {
-        var confirmIdx = await tui.select([{label:"Yes, reset everything"},{label:"No, keep my data"}], "Are you sure?");
-        if (confirmIdx === 0) { var defState = { version: 1, user: { name: null, level: "guided", sessionsCompleted: 0 }, activeSession: null, profiles: {}, firstRun: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; state.saveState(defState); process.stdout.write(tui.celebrate("State reset!")); return { next: "main-menu" }; }
+        try {
+          var confirmIdx = await tui.select([{label:"Yes, reset everything"},{label:"No, keep my data"}], "Are you sure?");
+          if (confirmIdx === 0) { var defState = { version: 1, user: { name: null, level: "guided", sessionsCompleted: 0 }, activeSession: null, profiles: {}, firstRun: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; state.saveState(defState); process.stdout.write(tui.celebrate("State reset!")); return { next: "main-menu" }; }
+        } catch(_e) {
+          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
+          try { require('./error-logger').log(_e, 'settings_reset'); } catch(_) {}
+        }
         return { next: "settings" };
       }
-      case 'change_theme': return await this.changeTheme();
+      case 'change_theme': {
+        try { return await this.changeTheme(); }
+        catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'change_theme'); } catch(_) {} return { next: 'main-menu' }; }
+      }
       default: process.stdout.write('\n  Unknown action: ' + actionName + '\n'); await this.pause(1000); return null;
     }
   }
