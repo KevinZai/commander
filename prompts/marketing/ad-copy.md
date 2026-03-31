@@ -87,7 +87,7 @@ Present all variants in a table for easy comparison and selection:
 ```
 Generate ad copy for the following product. Create multiple variants for A/B testing.
 
-**Product:** Claude Code Kit — 280+ skills, hooks, and commands for Claude Code
+**Product:** CC Commander — 280+ skills, hooks, and commands for Claude Code
 **Target audience:** Software developers who use AI coding tools (ages 25-45)
 **Platform:** Google Search
 **Campaign objective:** Traffic to GitHub repo (stars + installs)

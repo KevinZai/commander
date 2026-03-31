@@ -29,7 +29,7 @@ done
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  CLAUDE CODE KIT  //  UNINSTALLER"
+echo "  CC COMMANDER  //  UNINSTALLER"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
