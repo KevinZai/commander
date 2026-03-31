@@ -114,21 +114,23 @@ function renderCockpitFooter(data) {
 
 // ─── Fading Header/Banner ─────────────────────────────────────
 
-function renderBanner(subtitle) {
+function renderBanner(subtitle, projectName) {
   var t = getTui().getTheme();
   var BRAND = require('./branding');
-  var gradient = getTui().gradient;
+  var gr = getTui().gradient;
   var cols = Math.min(process.stdout.columns || 80, 72);
   var out = '';
   out += '  ' + fadeBorder('\u2550', cols - 4, t.primary) + '\n';
-  out += '  ' + gradient('CC COMMANDER', t.logo.gradient) + '  ' + dim('v' + BRAND.version) + '\n';
+  var titleLine = '  ' + gr('CC COMMANDER', t.logo.gradient) + '  ' + dim('v' + BRAND.version);
+  if (projectName) titleLine += '  ' + bold('\u{1F4C2} ' + projectName, t.secondary);
+  out += titleLine + '\n';
   out += '  ' + dim(subtitle || BRAND.tagline) + '\n';
   out += '  ' + fadeBorder('\u2500', cols - 4, t.dim) + '\n';
   return out;
 }
 
-function renderCompactHeader(subtitle) {
-  return renderBanner(subtitle);
+function renderCompactHeader(subtitle, projectName) {
+  return renderBanner(subtitle, projectName);
 }
 
 module.exports = {

@@ -137,8 +137,8 @@ class KitCommander {
         process.stdout.write(cockpit.renderBanner());
         process.stdout.write(cockpit.renderCockpitStatus(cockpitData));
       } else {
-        // Sub-menus: compact header + one-line footer
-        process.stdout.write(cockpit.renderCompactHeader());
+        // Sub-menus: compact header with project name + one-line footer
+        process.stdout.write(cockpit.renderCompactHeader(null, activeProjectName));
         process.stdout.write(cockpit.renderCockpitFooter(cockpitData) + '\n');
       }
 
