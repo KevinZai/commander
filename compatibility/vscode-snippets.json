@@ -70,74 +70,74 @@
     "description": "Break a large feature into subtasks, dispatch parallel subagents, track progress"
   },
   "CC Commander: Mega-Design": {
-    "prefix": "kz-mega-design",
+    "prefix": "kz-ccc-design",
     "body": [
-      "use mega-design skill. ${1:describe what you want to design or animate}"
+      "use ccc-design skill. ${1:describe what you want to design or animate}"
     ],
-    "description": "Load mega-design (35+ skills) — animations, effects, design systems, landing pages, polish"
+    "description": "Load ccc-design (35+ skills) — animations, effects, design systems, landing pages, polish"
   },
   "CC Commander: Mega-SaaS": {
-    "prefix": "kz-mega-saas",
+    "prefix": "kz-ccc-saas",
     "body": [
-      "use mega-saas skill. ${1:describe your SaaS feature — auth, billing, API, frontend, etc.}"
+      "use ccc-saas skill. ${1:describe your SaaS feature — auth, billing, API, frontend, etc.}"
     ],
-    "description": "Load mega-saas (20 skills) — auth, billing, database, API, frontend, metrics, CRO"
+    "description": "Load ccc-saas (20 skills) — auth, billing, database, API, frontend, metrics, CRO"
   },
   "CC Commander: Mega-DevOps": {
-    "prefix": "kz-mega-devops",
+    "prefix": "kz-ccc-devops",
     "body": [
-      "use mega-devops skill. ${1:describe your infrastructure, CI/CD, or deployment need}"
+      "use ccc-devops skill. ${1:describe your infrastructure, CI/CD, or deployment need}"
     ],
-    "description": "Load mega-devops (20 skills) — CI/CD, Docker, AWS, monitoring, Terraform, zero-downtime deploy"
+    "description": "Load ccc-devops (20 skills) — CI/CD, Docker, AWS, monitoring, Terraform, zero-downtime deploy"
   },
   "CC Commander: Mega-Testing": {
-    "prefix": "kz-mega-testing",
+    "prefix": "kz-ccc-testing",
     "body": [
-      "use mega-testing skill. ${1:describe what you need to test}"
+      "use ccc-testing skill. ${1:describe what you need to test}"
     ],
-    "description": "Load mega-testing (15 skills) — TDD, E2E, verification, QA, regression, visual, load testing"
+    "description": "Load ccc-testing (15 skills) — TDD, E2E, verification, QA, regression, visual, load testing"
   },
   "CC Commander: Mega-SEO": {
-    "prefix": "kz-mega-seo",
+    "prefix": "kz-ccc-seo",
     "body": [
-      "use mega-seo skill. ${1:describe your SEO optimization need}"
+      "use ccc-seo skill. ${1:describe your SEO optimization need}"
     ],
-    "description": "Load mega-seo (19 skills) — technical SEO, AI search, content strategy, analytics, programmatic SEO"
+    "description": "Load ccc-seo (19 skills) — technical SEO, AI search, content strategy, analytics, programmatic SEO"
   },
   "CC Commander: Mega-Mobile": {
-    "prefix": "kz-mega-mobile",
+    "prefix": "kz-ccc-mobile",
     "body": [
-      "use mega-mobile skill. ${1:describe your mobile app feature or platform}"
+      "use ccc-mobile skill. ${1:describe your mobile app feature or platform}"
     ],
-    "description": "Load mega-mobile (7 skills) — React Native, Flutter, SwiftUI, Jetpack Compose, ASO"
+    "description": "Load ccc-mobile (7 skills) — React Native, Flutter, SwiftUI, Jetpack Compose, ASO"
   },
   "CC Commander: Mega-Security": {
-    "prefix": "kz-mega-security",
+    "prefix": "kz-ccc-security",
     "body": [
-      "use mega-security skill. ${1:describe your security concern or audit need}"
+      "use ccc-security skill. ${1:describe your security concern or audit need}"
     ],
-    "description": "Load mega-security (9 skills) — pen testing, OWASP, supply chain, secrets, threat modeling"
+    "description": "Load ccc-security (9 skills) — pen testing, OWASP, supply chain, secrets, threat modeling"
   },
   "CC Commander: Mega-Marketing": {
-    "prefix": "kz-mega-marketing",
+    "prefix": "kz-ccc-marketing",
     "body": [
-      "use mega-marketing skill. ${1:describe your marketing or growth need}"
+      "use ccc-marketing skill. ${1:describe your marketing or growth need}"
     ],
-    "description": "Load mega-marketing (46 skills) — content, CRO, channels, growth, intelligence, sales"
+    "description": "Load ccc-marketing (46 skills) — content, CRO, channels, growth, intelligence, sales"
   },
   "CC Commander: Mega-Research": {
-    "prefix": "kz-mega-research",
+    "prefix": "kz-ccc-research",
     "body": [
-      "use mega-research skill. ${1:describe your research topic or analysis need}"
+      "use ccc-research skill. ${1:describe your research topic or analysis need}"
     ],
-    "description": "Load mega-research (8 skills) — deep research, literature review, competitive analysis, data synthesis"
+    "description": "Load ccc-research (8 skills) — deep research, literature review, competitive analysis, data synthesis"
   },
   "CC Commander: Mega-Data": {
-    "prefix": "kz-mega-data",
+    "prefix": "kz-ccc-data",
     "body": [
-      "use mega-data skill. ${1:describe your data pipeline, analytics, or ML need}"
+      "use ccc-data skill. ${1:describe your data pipeline, analytics, or ML need}"
     ],
-    "description": "Load mega-data (8 skills) — ETL, data warehousing, analytics engineering, visualization, ML ops"
+    "description": "Load ccc-data (8 skills) — ETL, data warehousing, analytics engineering, visualization, ML ops"
   },
   "CC Commander: Overnight Mode": {
     "prefix": "kz-overnight",

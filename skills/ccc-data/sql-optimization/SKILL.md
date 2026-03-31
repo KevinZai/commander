@@ -3,8 +3,8 @@ name: sql-optimization
 description: "Optimize SQL queries, indexes, and execution plans for PostgreSQL, MySQL, and cloud data warehouses."
 version: 1.0.0
 category: data
-parent: mega-data
-tags: [mega-data, sql, performance, optimization]
+parent: ccc-data
+tags: [ccc-data, sql, performance, optimization]
 disable-model-invocation: true
 ---
 

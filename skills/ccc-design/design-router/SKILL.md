@@ -3,7 +3,7 @@ name: Design Router
 description: "Routes design tasks to the correct specialist skill within Mega-Design."
 version: 1.0.0
 category: routing
-parent: mega-design
+parent: ccc-design
 ---
 
 # Design Router

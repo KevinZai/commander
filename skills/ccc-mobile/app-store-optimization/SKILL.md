@@ -3,8 +3,8 @@ name: app-store-optimization
 description: "App Store Optimization (ASO) for Apple App Store and Google Play Store — keywords, screenshots, descriptions, and conversion."
 version: 1.0.0
 category: mobile
-parent: mega-mobile
-tags: [mega-mobile, aso, app-store, marketing]
+parent: ccc-mobile
+tags: [ccc-mobile, aso, app-store, marketing]
 disable-model-invocation: true
 ---
 

@@ -3,7 +3,7 @@ name: DevOps Router
 description: "Routes DevOps tasks to the correct specialist skill within KZ Mega-DevOps."
 version: 1.0.0
 category: routing
-parent: mega-devops
+parent: ccc-devops
 ---
 
 # DevOps Router

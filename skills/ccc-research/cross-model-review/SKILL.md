@@ -3,8 +3,8 @@ name: cross-model-review
 description: "Review code, architecture, or decisions using multiple AI models for diverse perspectives and higher confidence."
 version: 1.0.0
 category: research
-parent: mega-research
-tags: [mega-research, review, multi-model]
+parent: ccc-research
+tags: [ccc-research, review, multi-model]
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,6 @@
 # KZ Mega-SaaS -- Architecture
 
-This mega-skill contains 20 SaaS specialist skills organized for full-stack SaaS development, from scaffold to scale.
+This CCC domain contains 20 SaaS specialist skills organized for full-stack SaaS development, from scaffold to scale.
 
 ## Skill Map
 

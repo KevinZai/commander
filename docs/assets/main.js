@@ -114,7 +114,7 @@
     requestAnimationFrame(step);
   }
 
-  // --- Expandable mega-skill cards ---
+  // --- Expandable CCC domain cards ---
   function initExpandableCards() {
     var cards = document.querySelectorAll('.mega-card');
 

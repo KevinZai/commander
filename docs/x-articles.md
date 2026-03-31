@@ -15,7 +15,7 @@ It is a race car with no steering wheel.
 
 Every session starts from scratch. Every developer reinvents the same patterns. Every team writes their own CLAUDE.md rules from zero. You lose context, repeat mistakes, burn through your budget, and wonder why the AI that was so impressive in the demo keeps producing inconsistent results in practice.
 
-I spent 14 months fixing this problem. The result is CC Commander -- an open-source toolkit that transforms stock Claude Code into a structured, skill-aware, hook-driven development environment. Version 1.3 ships with 280+ skills, 88+ slash commands, 37 lifecycle hooks, 36+ prompt templates, 10 mega-skills, 9 workflow modes, 3 starter templates, and a real-time monitoring dashboard.
+I spent 14 months fixing this problem. The result is CC Commander -- an open-source toolkit that transforms stock Claude Code into a structured, skill-aware, hook-driven development environment. Version 1.3 ships with 280+ skills, 88+ slash commands, 37 lifecycle hooks, 36+ prompt templates, 10 CCC domains, 9 workflow modes, 3 starter templates, and a real-time monitoring dashboard.
 
 One install. Under 60 seconds.
 
@@ -23,9 +23,9 @@ One install. Under 60 seconds.
 
 The kit is built on four pillars.
 
-**Skills** are structured instruction sets that Claude loads on demand. Each skill lives in its own directory and contains a SKILL.md file with triggers, methodology, and domain knowledge. Say "use the api-design skill" and Claude loads REST patterns, status codes, pagination rules, and error handling conventions. Say "use mega-saas" and 20 skills load simultaneously -- authentication, billing, database design, API patterns, frontend stack, deployment pipeline.
+**Skills** are structured instruction sets that Claude loads on demand. Each skill lives in its own directory and contains a SKILL.md file with triggers, methodology, and domain knowledge. Say "use the api-design skill" and Claude loads REST patterns, status codes, pagination rules, and error handling conventions. Say "use ccc-saas" and 20 skills load simultaneously -- authentication, billing, database design, API patterns, frontend stack, deployment pipeline.
 
-There are 280+ skills organized into 10 mega-skill domains: SEO (19 sub-skills), Design (35+), Testing (15), Marketing (46), SaaS (20), DevOps (20), Research (8), Mobile (7), Security (9), and Data (8). Each mega-skill acts as a router: load one and it dispatches to the right specialist based on your request.
+There are 280+ skills organized into 10 CCC domain domains: SEO (19 sub-skills), Design (35+), Testing (15), Marketing (46), SaaS (20), DevOps (20), Research (8), Mobile (7), Security (9), and Data (8). Each CCC domain acts as a router: load one and it dispatches to the right specialist based on your request.
 
 **Commands** are slash commands invoked directly in the REPL. Type `/plan` and Claude interviews you with 5-7 questions, produces a spec document, then executes in a fresh session with clean context. Type `/code-review` and three reviewers analyze your code in parallel. Type `/spawn` and parallel Claude Code instances launch for independent tasks. There are 88+ commands covering planning, code quality, session management, multi-agent orchestration, and project management.
 
@@ -53,17 +53,17 @@ When a session ends, `session-end-verify` checks all modified files for leftover
 
 This is not a reminder system. These are guardrails that execute whether you remember or not.
 
-### Mega-Skills: Domain Expertise on Demand
+### CCC Domains: Domain Expertise on Demand
 
-The most powerful feature in the kit is mega-skills. Each one covers an entire domain with a single load.
+The most powerful feature in the kit is CCC domains. Each one covers an entire domain with a single load.
 
-`mega-marketing` loads 46 sub-skills covering content strategy, conversion rate optimization, growth channels, sales enablement, ad creative, email sequences, analytics, and competitive intelligence. You get an entire marketing department's playbook in one command.
+`ccc-marketing` loads 46 sub-skills covering content strategy, conversion rate optimization, growth channels, sales enablement, ad creative, email sequences, analytics, and competitive intelligence. You get an entire marketing department's playbook in one command.
 
-`mega-design` loads 35+ sub-skills including the 18-skill Impeccable polish suite (audit, critique, animate, bolder, quieter, colorize, typeset, arrange, adapt, clarify, distill, delight, extract, harden, normalize, onboard, optimize, overdrive) plus 12 visual effects skills (SVG animation, motion design, interactive visuals, particle systems, generative backgrounds, WebGL shaders).
+`ccc-design` loads 35+ sub-skills including the 18-skill Impeccable polish suite (audit, critique, animate, bolder, quieter, colorize, typeset, arrange, adapt, clarify, distill, delight, extract, harden, normalize, onboard, optimize, overdrive) plus 12 visual effects skills (SVG animation, motion design, interactive visuals, particle systems, generative backgrounds, WebGL shaders).
 
-`mega-devops` loads 20 sub-skills spanning CI/CD pipelines, Docker optimization, AWS services (Lambda, S3, CloudFront, IAM), monitoring stacks (Prometheus, Grafana, AlertManager), Terraform patterns, and zero-downtime deployments.
+`ccc-devops` loads 20 sub-skills spanning CI/CD pipelines, Docker optimization, AWS services (Lambda, S3, CloudFront, IAM), monitoring stacks (Prometheus, Grafana, AlertManager), Terraform patterns, and zero-downtime deployments.
 
-Each mega-skill uses a router pattern: you load the mega-skill once, describe what you need, and it dispatches to the right specialist sub-skill automatically. No skill selection required.
+Each CCC domain uses a router pattern: you load the CCC domain once, describe what you need, and it dispatches to the right specialist sub-skill automatically. No skill selection required.
 
 ### The Methodology: BIBLE.md
 
@@ -101,7 +101,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-
 
 Then type `/cc` in Claude Code to open the Command Center.
 
-280+ skills. 88+ commands. 37 hooks. 10 mega-skills. 9 modes. 36+ prompt templates. 3 starter templates. Real-time dashboard.
+280+ skills. 88+ commands. 37 hooks. 10 CCC domains. 9 modes. 36+ prompt templates. 3 starter templates. Real-time dashboard.
 
 One install. Free. Open source. No vendor lock-in.
 
@@ -227,7 +227,7 @@ After running this system for over a year, these are the lessons that transfer t
 
 The Claude Code ecosystem is exploding. Official plugin directories, multi-model consensus, self-evolving skills, AI-powered memory compression -- the surface area of what is possible grows every week.
 
-CC Commander v1.6.0 is the most comprehensive single-install toolkit in this ecosystem: 280+ skills, 88+ commands, 37 hooks, 10 mega-skills, 9 modes, 36+ prompt templates, and a real-time dashboard. All open source. All free.
+CC Commander v1.6.0 is the most comprehensive single-install toolkit in this ecosystem: 280+ skills, 88+ commands, 37 hooks, 10 CCC domains, 9 modes, 36+ prompt templates, and a real-time dashboard. All open source. All free.
 
 But the real value is not the number of skills. It is the methodology that makes AI development predictable, verifiable, and compounding.
 
@@ -243,5 +243,5 @@ GitHub: [github.com/KevinZai/cc-commander](https://github.com/KevinZai/cc-comman
 
 ---
 
-*CC Commander v1.6.0 by Kevin Z -- 280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 4 themes | 9 modes*
+*CC Commander v1.6.0 by Kevin Z -- 280+ skills | 10 CCC domains | 88+ commands | 37 hooks | 4 themes | 9 modes*
 *Distilled from 200+ community sources. One install. Under 60 seconds.*

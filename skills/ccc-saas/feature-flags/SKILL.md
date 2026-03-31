@@ -2,7 +2,7 @@
 name: KZ Mega-SaaS
 description: "Feature flag implementation -- PostHog, LaunchDarkly, custom database/Redis flags, gradual rollouts, A/B testing integration, flag lifecycle management"
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
 ---
 

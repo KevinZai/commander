@@ -2,7 +2,7 @@
 name: KZ Mega-DevOps
 description: "Complete DevOps ecosystem — 20 skills in one. Deployments, CI/CD, containers, AWS, monitoring, security, IaC, networking, and runbooks."
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
 ---
 

@@ -10,7 +10,7 @@
 
 ### The Commandments
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
-- [The Kevin Z Method](#the-kevin-z-method) — Build types, mega-skills, checklists
+- [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -62,27 +62,27 @@
 
 Before touching ANY code, answer one question: **What kind of build is this?**
 
-| Build Type | Time | Approach | Model | Mega-Skills |
+| Build Type | Time | Approach | Model | CCC Domains |
 |------------|------|----------|-------|----------------|
 | **QUICK** | <4 hours | Direct execute, ship fast | Sonnet | Stack-specific only |
-| **DEEP** | 1-5 days | Spec-first, TDD, subagents | Opus | mega-{domain} + mega-testing |
-| **SAAS** | 1-4 weeks | Full lifecycle: scaffold→auth→billing→ship | Opus | mega-saas + mega-seo + mega-testing + mega-devops |
+| **DEEP** | 1-5 days | Spec-first, TDD, subagents | Opus | mega-{domain} + ccc-testing |
+| **SAAS** | 1-4 weeks | Full lifecycle: scaffold→auth→billing→ship | Opus | ccc-saas + ccc-seo + ccc-testing + ccc-devops |
 | **OVERNIGHT** | 6-12h autonomous | Checkpoints, error recovery | Opus | overnight-runner + domain skills |
 
-### Mega-Skills (Load ONE, Get Everything)
+### CCC Domains (Load ONE, Get Everything)
 
-| Mega-Skill | Skills Inside | What It Covers |
+| CCC Domain | Skills Inside | What It Covers |
 |------------|--------------|----------------|
-| `mega-seo` | 19 | Technical SEO, AI search, content strategy, analytics, programmatic SEO |
-| `mega-design` | 35+ | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
-| `mega-testing` | 15 | TDD, E2E, verification, QA, regression, visual testing, load testing |
-| `mega-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales |
-| `mega-saas` | 20 | Auth, billing, database, API, frontend stack, metrics, CRO |
-| `mega-devops` | 20 | CI/CD, containers, AWS, monitoring, zero-downtime deploy, Terraform |
-| `mega-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
-| `mega-mobile` | 7 | iOS, Android, React Native, Flutter, app store optimization |
-| `mega-security` | 9 | Pen testing, OWASP, supply chain, secrets management, threat modeling |
-| `mega-data` | 8 | ETL pipelines, data warehousing, analytics, visualization, ML ops |
+| `ccc-seo` | 19 | Technical SEO, AI search, content strategy, analytics, programmatic SEO |
+| `ccc-design` | 35+ | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
+| `ccc-testing` | 15 | TDD, E2E, verification, QA, regression, visual testing, load testing |
+| `ccc-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales |
+| `ccc-saas` | 20 | Auth, billing, database, API, frontend stack, metrics, CRO |
+| `ccc-devops` | 20 | CI/CD, containers, AWS, monitoring, zero-downtime deploy, Terraform |
+| `ccc-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
+| `ccc-mobile` | 7 | iOS, Android, React Native, Flutter, app store optimization |
+| `ccc-security` | 9 | Pen testing, OWASP, supply chain, secrets management, threat modeling |
+| `ccc-data` | 8 | ETL pipelines, data warehousing, analytics, visualization, ML ops |
 
 ### Automatic Checklists
 
@@ -111,9 +111,9 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 - [ ] Core features via spec-driven sessions
 - [ ] Billing (stripe-subscriptions)
 - [ ] Dashboard + analytics
-- [ ] SEO (mega-seo)
-- [ ] E2E tests (mega-testing)
-- [ ] Deploy (mega-devops)
+- [ ] SEO (ccc-seo)
+- [ ] E2E tests (ccc-testing)
+- [ ] Deploy (ccc-devops)
 
 #### Overnight Build
 - [ ] `/init` — overnight build configured
@@ -887,24 +887,24 @@ See `tasks/todo.md`
 
 ## Skills Catalog
 
-### Mega-Skills
+### CCC Domains
 
-Instead of loading 5-15 individual skills per session, load ONE mega-skill to get the entire domain:
+Instead of loading 5-15 individual skills per session, load ONE CCC domain to get the entire domain:
 
 ```
-"Use the mega-seo skill"       → All 19 SEO skills loaded via router
-"Use the mega-design skill"    → All 35+ design/animation skills loaded
-"Use the mega-testing skill"   → All 15 testing skills loaded
-"Use the mega-marketing skill" → All 46 marketing skills loaded
-"Use the mega-saas skill"      → All 20 SaaS building skills loaded
-"Use the mega-devops skill"    → All 20 DevOps skills loaded
-"Use the mega-research skill"  → All 8 research skills loaded
-"Use the mega-mobile skill"    → All 7 mobile dev skills loaded
-"Use the mega-security skill"  → All 9 security skills loaded
-"Use the mega-data skill"      → All 8 data/analytics skills loaded
+"Use the ccc-seo skill"       → All 19 SEO skills loaded via router
+"Use the ccc-design skill"    → All 35+ design/animation skills loaded
+"Use the ccc-testing skill"   → All 15 testing skills loaded
+"Use the ccc-marketing skill" → All 46 marketing skills loaded
+"Use the ccc-saas skill"      → All 20 SaaS building skills loaded
+"Use the ccc-devops skill"    → All 20 DevOps skills loaded
+"Use the ccc-research skill"  → All 8 research skills loaded
+"Use the ccc-mobile skill"    → All 7 mobile dev skills loaded
+"Use the ccc-security skill"  → All 9 security skills loaded
+"Use the ccc-data skill"      → All 8 data/analytics skills loaded
 ```
 
-Each mega-skill has a **router** that matches your intent to the right specialist sub-skill. See the Absorbed Skills Manifest in each mega-skill's SKILL.md for exactly which skills it contains.
+Each CCC domain has a **router** that matches your intent to the right specialist sub-skill. See the Absorbed Skills Manifest in each CCC domain's SKILL.md for exactly which skills it contains.
 
 ### How Skills Work
 
@@ -1577,7 +1577,7 @@ Modes adjust Claude's behavior, verbosity, risk tolerance, and auto-loaded skill
 "Switch to research mode"  # Natural language
 ```
 
-Each mode auto-loads the relevant mega-skills and adjusts the session behavior. You can switch modes mid-session, though starting a fresh session with the new mode is recommended for best results.
+Each mode auto-loads the relevant CCC domains and adjusts the session behavior. You can switch modes mid-session, though starting a fresh session with the new mode is recommended for best results.
 
 ---
 
@@ -1925,7 +1925,7 @@ graph TD
 |--------|-------------|
 | **ykdojo** | 45 Claude Code tips — the original viral thread |
 | **hooeem** | Claude Certified Architect Guide — domain-driven architecture |
-| **aiedge_** | Skills 2.0 Guide — skill creation, mega-skill patterns |
+| **aiedge_** | Skills 2.0 Guide — skill creation, CCC domain patterns |
 | **dr_cintas** | Cowork Complete Guide — session management, context optimization |
 | **MichLieben** | Vibe Marketing ($7M B2B) — marketing skill suite foundation |
 | **coreyganim** | Cowork Plugins Guide — plugin architecture, hook lifecycle |
@@ -2017,7 +2017,7 @@ node bin/kc.js --repair
 | **Create content** | Blog posts, social media, email campaigns, marketing copy, docs |
 | **Research & analyze** | Competitive analysis, market research, code audits, SEO |
 | **Review work** | Session history, resume, details |
-| **Learn a skill** | Browse skills, mega-skills, cheatsheet, recommendations |
+| **Learn a skill** | Browse skills, CCC domains, cheatsheet, recommendations |
 | **Check stats** | Dashboard with sparklines, achievements, cost tracking |
 | **Settings** | Name, level, cost ceiling, theme, animations, reset |
 
@@ -2072,41 +2072,41 @@ Everything in CC Commander works without the CLI. The skills, hooks, commands, a
 
 Commander adds session management, guided menus, and visual flair on top.
 
-### Mega-Skill Breakdown
+### CCC Domain Breakdown
 
-Each mega-skill is a domain router. One command, and it dispatches to the right specialist.
+Each CCC domain is a domain router. One command, and it dispatches to the right specialist.
 
-#### mega-design (39 sub-skills)
+#### ccc-design (39 sub-skills)
 UI/UX, responsive design, accessibility, animations, motion design, canvas, SVG animation, generative backgrounds, particle systems, WebGL shaders, interactive visuals, retro pixel art, design systems, Tailwind v4 patterns, shadcn/ui components, theme factory, colorize, typeset, frontend slides, brand guidelines, design consultation, design review, plan-design-review.
 
-#### mega-marketing (45 sub-skills)
+#### ccc-marketing (45 sub-skills)
 Content strategy, content creation, CRO (form, signup, paywall), email sequences (SendGrid), ad creative, analytics (conversion, product, business), landing page builder, bulk page generation, cold email, guest blogging, backlink audit, competitor alternatives, free tool strategy, social integration, video gallery, referral programs, churn prevention, monetization strategy, SEO content briefs, SERP analysis, marketing pack, c-level pack.
 
-#### mega-saas (20 sub-skills)
+#### ccc-saas (20 sub-skills)
 Better Auth, Stripe subscriptions, API design, database designer, database migrations, PostgreSQL patterns, Redis patterns, Drizzle+Neon, backend patterns, FastAPI, JPA patterns, billing automation, metrics dashboard, SaaS metrics coach, experiment designer.
 
-#### mega-testing (15 sub-skills)
+#### ccc-testing (15 sub-skills)
 TDD workflow, E2E testing (Playwright), webapp testing, Python testing, AI regression testing, verification loop, test coverage, eval harness, benchmark, quality gate.
 
-#### mega-devops (20 sub-skills)
+#### ccc-devops (20 sub-skills)
 Docker development, GitHub Actions (reusable workflows, security), AWS (Lambda, S3, IAM, CloudFront, solution architect), container security, Prometheus configuration, Grafana dashboards, PromQL alerting, infrastructure runbook, deploy, senior DevOps, setup-deploy.
 
-#### mega-seo (19 sub-skills)
+#### ccc-seo (19 sub-skills)
 SEO optimizer, AI SEO, AEO audit, SERP analyzer, search console, backlink audit, site architecture, bulk page generator, free tool strategy, SEO content brief, competitor alternatives.
 
-#### mega-security (8 sub-skills)
+#### ccc-security (8 sub-skills)
 Pentest checklist, container security, GitHub Actions security, PCI compliance, GDPR data handling, AWS IAM security, harden, guard.
 
-#### mega-research (8 sub-skills)
+#### ccc-research (8 sub-skills)
 Mega-research router, investigate, brainstorming, competitive intelligence, business analytics, trading analysis, iterative retrieval, dialectic review.
 
-#### mega-mobile (8 sub-skills)
+#### ccc-mobile (8 sub-skills)
 Vue/Nuxt, React patterns, multi-frontend, multi-backend, multi-plan, multi-execute, multi-workflow.
 
-#### mega-data (8 sub-skills)
+#### ccc-data (8 sub-skills)
 Data analysis, data visualization, SQL queries, statistical analysis, explore data, validate data, build dashboard, data context extractor.
 
-**Total: 190 verified sub-skills across 10 mega-skills.**
+**Total: 190 verified sub-skills across 10 CCC domains.**
 
 
 

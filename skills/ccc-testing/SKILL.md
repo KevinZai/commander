@@ -2,7 +2,7 @@
 name: KZ Mega-Testing
 description: "Complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testing, and load testing."
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
 ---
 

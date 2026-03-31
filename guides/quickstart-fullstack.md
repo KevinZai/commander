@@ -1,6 +1,6 @@
 # Quickstart Guide: Full-Stack Developer
 
-> Build complete applications with CC Commander. Mode switching, combined mega-skills, database patterns, auth flows, billing, testing, and deployment.
+> Build complete applications with CC Commander. Mode switching, combined CCC domains, database patterns, auth flows, billing, testing, and deployment.
 
 ---
 
@@ -34,16 +34,16 @@ Switching is instant and free. There is no cost or penalty. Switch 3-5 times per
 
 ---
 
-## Combined Mega-Skills
+## Combined CCC Domains
 
-Full-stack projects benefit from loading multiple mega-skills in the same session. The routers inside each mega-skill share context, so they work better loaded together.
+Full-stack projects benefit from loading multiple CCC domains in the same session. The routers inside each CCC domain share context, so they work better loaded together.
 
 ### The Full SaaS Stack
 
 ```
-use mega-saas skill      # Auth, billing, DB, API, frontend (20 skills)
-use mega-design skill    # Landing page, animations, polish (35+ skills)
-use mega-testing skill   # TDD, E2E, verification (testing domain)
+use ccc-saas skill      # Auth, billing, DB, API, frontend (20 skills)
+use ccc-design skill    # Landing page, animations, polish (35+ skills)
+use ccc-testing skill   # TDD, E2E, verification (testing domain)
 ```
 
 This gives you **70+ specialist skills** covering the complete SaaS lifecycle.
@@ -51,22 +51,22 @@ This gives you **70+ specialist skills** covering the complete SaaS lifecycle.
 ### The Marketing Stack
 
 ```
-use mega-saas skill       # Product backend
-use mega-design skill     # Frontend polish
-use mega-seo skill        # Search optimization, structured data
-use mega-marketing skill  # Content strategy, CRO, email sequences
+use ccc-saas skill       # Product backend
+use ccc-design skill     # Frontend polish
+use ccc-seo skill        # Search optimization, structured data
+use ccc-marketing skill  # Content strategy, CRO, email sequences
 ```
 
 ### The Infrastructure Stack
 
 ```
-use mega-saas skill       # Application code
-use mega-devops skill     # CI/CD, Docker, monitoring, Terraform
-use mega-security skill   # Security hardening, OWASP, dependency audit
-use mega-testing skill    # All testing types
+use ccc-saas skill       # Application code
+use ccc-devops skill     # CI/CD, Docker, monitoring, Terraform
+use ccc-security skill   # Security hardening, OWASP, dependency audit
+use ccc-testing skill    # All testing types
 ```
 
-**Tip:** Load mega-skills at the start of your session. You do not need to reload them for each request.
+**Tip:** Load CCC domains at the start of your session. You do not need to reload them for each request.
 
 ---
 
@@ -106,7 +106,7 @@ Better Auth, Stripe billing, and shadcn/ui v4.
 
 ```
 /cc mode saas
-use mega-saas skill
+use ccc-saas skill
 ```
 
 ### Step 4: Build the Backend
@@ -138,7 +138,7 @@ Switch to design mode for UI work:
 
 ```
 /cc mode design
-use mega-design skill
+use ccc-design skill
 Build the [feature] page with [components]
 ```
 
@@ -155,7 +155,7 @@ Connect the [feature] page to the API. Handle loading, error, and empty states.
 /cc mode saas
 use better-auth skill — set up email/password + OAuth + RBAC
 use stripe-subscriptions skill — add billing with webhooks
-use mega-devops skill — Docker, CI/CD, monitoring
+use ccc-devops skill — Docker, CI/CD, monitoring
 ```
 
 ### Step 7: Test Everything
@@ -180,7 +180,7 @@ use mega-devops skill — Docker, CI/CD, monitoring
 ### Supabase (Managed Postgres + Auth + Storage)
 
 ```
-use mega-saas skill
+use ccc-saas skill
 
 Set up Supabase with:
 - Postgres database with Row Level Security (RLS)
@@ -242,7 +242,7 @@ use database-designer skill
 For Next.js projects, tRPC eliminates the API boundary:
 
 ```
-use mega-saas skill
+use ccc-saas skill
 
 Set up tRPC v11 with:
 - Router definitions in src/server/routers/
@@ -358,7 +358,7 @@ Billing patterns:
 ## Webhooks
 
 ```
-use mega-saas skill
+use ccc-saas skill
 
 Webhook handler patterns:
 - Verify signatures (Stripe, GitHub, etc.) before processing
@@ -434,7 +434,7 @@ claude
 
 ```
 /cc mode saas
-use mega-saas skill
+use ccc-saas skill
 
 Set up the T3 stack with:
 - App Router with route groups: (marketing), (auth), (dashboard)
@@ -520,7 +520,7 @@ Review the plan. Verify it covers: database, API, auth/authorization, frontend, 
 
 ```
 /cc mode saas
-use mega-saas skill
+use ccc-saas skill
 
 Start with the database schema and API endpoints.
 ```
@@ -536,7 +536,7 @@ Write integration tests for the [feature] API endpoints.
 
 ```
 /cc mode design
-use mega-design skill
+use ccc-design skill
 
 Build the UI for [feature].
 ```
@@ -588,7 +588,7 @@ Write E2E tests for the complete [feature] user flow.
 
 7. **Use `/compact` between phases** — full-stack work generates long contexts. Compact between database/API and frontend phases to keep output quality high.
 
-8. **Infrastructure is not an afterthought** — set up Docker, CI/CD, and monitoring as part of the feature, not after it. Use `mega-devops` alongside `mega-saas`.
+8. **Infrastructure is not an afterthought** — set up Docker, CI/CD, and monitoring as part of the feature, not after it. Use `ccc-devops` alongside `ccc-saas`.
 
 9. **Auth before UI** — implement authentication and authorization before building protected pages. It is much harder to retrofit auth than to build on it from the start.
 

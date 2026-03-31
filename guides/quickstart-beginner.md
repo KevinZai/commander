@@ -314,9 +314,9 @@ Now that you have the basics, here is your progression path:
 - Try `/tdd` for test-driven development
 - Use `/checkpoint` for git commits
 
-### Week 2: Explore Modes and Mega-Skills
+### Week 2: Explore Modes and CCC Domains
 - Try `/cc mode design` for a frontend project
-- Load `mega-saas` for a backend project
+- Load `ccc-saas` for a backend project
 - Browse prompts with `/cc prompts`
 
 ### Week 3: Power User Features
@@ -356,7 +356,7 @@ New to AI-assisted development? Here are the key terms you will encounter:
 | Term | Definition |
 |------|-----------|
 | **Skill** | A markdown file that teaches Claude Code specialized knowledge. Skills load on-demand and provide domain expertise (e.g., `api-design`, `landing-page-builder`). |
-| **Mega-Skill** | A bundle of related skills behind a single router. Loading one mega-skill gives access to all its sub-skills (e.g., `mega-design` = 35+ design skills). |
+| **CCC Domain** | A bundle of related skills behind a single router. Loading one CCC domain gives access to all its sub-skills (e.g., `ccc-design` = 35+ design skills). |
 | **Command** | A slash command (e.g., `/plan`, `/verify`) that triggers a specific workflow. Commands are `.md` files in `~/.claude/commands/`. |
 | **Hook** | An automatic behavior that runs before or after Claude Code actions. Examples: auto-checkpoint on file save, cost alert when spending exceeds budget. |
 | **Mode** | A workflow persona that changes Claude's behavior. Modes adjust verbosity, risk tolerance, auto-loaded skills, and review rigor. 9 modes available. |

@@ -17,7 +17,7 @@ YOLO mode is for when you know exactly what you want and every second of discuss
 
 **User's choice.** YOLO mode doesn't prescribe which skills to load — you bring what you need. The mode only changes the execution style, not the domain.
 
-Suggested: load the relevant mega-skill for your domain before entering YOLO mode so Claude has the right specialist knowledge available.
+Suggested: load the relevant CCC domain for your domain before entering YOLO mode so Claude has the right specialist knowledge available.
 
 ## Behavioral Instructions
 

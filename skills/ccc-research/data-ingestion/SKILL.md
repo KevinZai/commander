@@ -3,8 +3,8 @@ name: data-ingestion
 description: "Ingest, process, and summarize large documents, codebases, or datasets into structured, actionable summaries."
 version: 1.0.0
 category: research
-parent: mega-research
-tags: [mega-research, ingestion, summarization]
+parent: ccc-research
+tags: [ccc-research, ingestion, summarization]
 disable-model-invocation: true
 ---
 

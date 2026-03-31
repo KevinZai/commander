@@ -1,6 +1,6 @@
 # KZ Mega-DevOps — Architecture
 
-This mega-skill contains 20 DevOps specialist skills organized across 7 domains.
+This CCC domain contains 20 DevOps specialist skills organized across 7 domains.
 
 ## Skill Map
 

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-CC Commander — by Kevin Z. 280+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 280+ skills, 10 mega-skills, 88+ commands, 37 hooks (18 kit-native + 19 ECC), 36+ prompt templates, 9 workflow modes, 4 themes, 3 starter templates, real-time agent dashboard, OpenClaw native integration, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Z. 280+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 280+ skills, 10 CCC domains, 88+ commands, 37 hooks (18 kit-native + 19 ECC), 36+ prompt templates, 9 workflow modes, 4 themes, 3 starter templates, real-time agent dashboard, OpenClaw native integration, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 ## CC Commander (v1.6.0)
 
@@ -31,7 +31,7 @@ Tests: `node --test commander/tests/paths.test.js`
 
 ```
 ├── skills/              # 280+ skills organized by category
-│   ├── mega-*/          # 10 mega-skills (router + sub-skills)
+│   ├── mega-*/          # 10 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 9 workflow modes
 ��   ├── init-decision-tree/  # /init project wizard
 │   ├── confidence-check/    # Pre-execution confidence assessment

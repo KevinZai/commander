@@ -71,7 +71,7 @@ Show a summary table:
 | Action | Section | Reason |
 |--------|---------|--------|
 | ADD    | Aggregator Ecosystem | New in v2.0.0 |
-| ADD    | Mega-Skills | New in v2.0.0 |
+| ADD    | CCC Domains | New in v2.0.0 |
 | ADD    | Linear Integration | New in v2.0.0 |
 | ADD    | Knowledge Compounding | New in v2.0.0 |
 | UPDATE | Workflow | 6 new subsections (Anti-Sycophancy, Scope Discipline, etc.) |
@@ -109,7 +109,7 @@ Claude:
 
 ## Proposed Changes
 + [ADD] ## Aggregator Ecosystem — CC Commander v2.0 vendor packages
-+ [ADD] ## Mega-Skills — 10 mega-skills, 172+ sub-skills
++ [ADD] ## CCC Domains — 10 CCC domains, 172+ sub-skills
 + [ADD] ## Knowledge Compounding — session learning system
 ~ [UPDATE] ## Workflow — add Anti-Sycophancy, Scope Discipline, Corrective Framing
 = [KEEP] ## My Custom Rules — unchanged

@@ -3,8 +3,8 @@ name: machine-learning
 description: "ML model development — data preparation, model selection, training, evaluation, and deployment with scikit-learn, PyTorch, and TensorFlow."
 version: 1.0.0
 category: data
-parent: mega-data
-tags: [mega-data, ml, machine-learning, ai]
+parent: ccc-data
+tags: [ccc-data, ml, machine-learning, ai]
 disable-model-invocation: true
 ---
 

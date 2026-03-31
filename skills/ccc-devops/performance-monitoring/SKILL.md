@@ -3,7 +3,7 @@ name: Performance Monitoring
 description: "Full-stack performance monitoring — APM, RUM, Core Web Vitals, error tracking, profiling, and performance budgets."
 version: 1.0.0
 category: monitoring
-parent: mega-devops
+parent: ccc-devops
 ---
 
 # Performance Monitoring

@@ -3,7 +3,7 @@ name: Interactive Landing
 description: "Interactive landing page system — animated heroes, scroll narratives, floating elements, product showcases, Core Web Vitals optimized."
 version: 1.0.0
 category: pages
-parent: mega-design
+parent: ccc-design
 ---
 
 # Interactive Landing

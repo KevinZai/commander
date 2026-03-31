@@ -1,6 +1,6 @@
 # KZ Mega-SEO — Architecture
 
-This mega-skill contains 19 SEO specialist skills organized for domain-complete coverage.
+This CCC domain contains 19 SEO specialist skills organized for domain-complete coverage.
 
 ## Skill Map
 

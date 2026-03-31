@@ -3,7 +3,7 @@ name: Testing Router
 description: "Routes your testing task to the right specialist skill within KZ Mega-Testing."
 version: 1.0.0
 category: testing
-parent: mega-testing
+parent: ccc-testing
 ---
 
 # Testing Router

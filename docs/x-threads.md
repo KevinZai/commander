@@ -8,7 +8,7 @@
 ### Tweet 1 (Hook)
 I open-sourced the most comprehensive Claude Code toolkit ever built.
 
-280+ skills. 88+ commands. 37 hooks. 10 mega-skills. 9 modes. Real-time dashboard.
+280+ skills. 88+ commands. 37 hooks. 10 CCC domains. 9 modes. Real-time dashboard.
 
 One install. Under 60 seconds.
 
@@ -22,7 +22,7 @@ Skills are instruction sets Claude loads on demand.
 
 "use the api-design skill" = REST patterns, status codes, pagination.
 
-"use mega-saas" = 20 skills at once: auth, billing, DB, deploy.
+"use ccc-saas" = 20 skills at once: auth, billing, DB, deploy.
 
 ### Tweet 4
 37 hooks fire automatically. You never have to remember.
@@ -255,7 +255,7 @@ The breakthrough: skills as composable blocks.
 
 Instead of one massive CLAUDE.md, 280+ skills. Each self-contained. Load on demand. Combine freely.
 
-mega-saas = 20 skills in one command.
+ccc-saas = 20 skills in one command.
 
 ### Tweet 9
 I distilled everything into CC Commander.
@@ -279,4 +279,4 @@ github.com/KevinZai/cc-commander
 
 ---
 
-*CC Commander v1.6.0 by Kevin Z -- 280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 4 themes | 9 modes*
+*CC Commander v1.6.0 by Kevin Z -- 280+ skills | 10 CCC domains | 88+ commands | 37 hooks | 4 themes | 9 modes*

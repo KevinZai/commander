@@ -1,45 +1,45 @@
 {
-  "id": "mega-skills",
+  "id": "ccc-domains",
   "version": 1,
   "screen": {
-    "title": "Mega-Skills",
+    "title": "CCC Domains",
     "subtitle": "10 domain routers, each dispatching to 7-46 specialist sub-skills."
   },
-  "prompt": "Pick a mega-skill to explore:",
+  "prompt": "Pick a CCC domain to explore:",
   "choices": [
     {
       "key": "a",
-      "label": "mega-design (35+ sub-skills)",
+      "label": "ccc-design (35+ sub-skills)",
       "description": "UI/UX, animations, polish, responsive, a11y",
-      "next": "mega-design-detail"
+      "next": "ccc-design-detail"
     },
     {
       "key": "b",
-      "label": "mega-marketing (46 sub-skills)",
+      "label": "ccc-marketing (46 sub-skills)",
       "description": "Content, CRO, email, ads, analytics, SEO",
-      "next": "mega-marketing-detail"
+      "next": "ccc-marketing-detail"
     },
     {
       "key": "c",
-      "label": "mega-saas (20 sub-skills)",
+      "label": "ccc-saas (20 sub-skills)",
       "description": "Auth, billing, API, database, deploy",
-      "next": "mega-saas-detail"
+      "next": "ccc-saas-detail"
     },
     {
       "key": "d",
-      "label": "mega-testing (15 sub-skills)",
+      "label": "ccc-testing (15 sub-skills)",
       "description": "Unit, integration, E2E, load, security",
-      "next": "mega-testing-detail"
+      "next": "ccc-testing-detail"
     },
     {
       "key": "e",
-      "label": "mega-devops (20 sub-skills)",
+      "label": "ccc-devops (20 sub-skills)",
       "description": "CI/CD, Docker, AWS, monitoring",
       "action": "show_mega_detail"
     },
     {
       "key": "f",
-      "label": "All 10 mega-skills",
+      "label": "All 10 CCC domains",
       "action": "show_all_mega"
     },
     {
@@ -49,25 +49,25 @@
     }
   ],
   "subAdventures": {
-    "mega-design-detail": {
+    "ccc-design-detail": {
       "prompt": "Describe what you want to design:",
       "action": "freeform_build",
-      "context": "Use /mega-design to: "
+      "context": "Use /ccc-design to: "
     },
-    "mega-marketing-detail": {
+    "ccc-marketing-detail": {
       "prompt": "Describe your marketing need:",
       "action": "freeform_build",
-      "context": "Use /mega-marketing to: "
+      "context": "Use /ccc-marketing to: "
     },
-    "mega-saas-detail": {
+    "ccc-saas-detail": {
       "prompt": "Describe your SaaS feature:",
       "action": "freeform_build",
-      "context": "Use /mega-saas to: "
+      "context": "Use /ccc-saas to: "
     },
-    "mega-testing-detail": {
+    "ccc-testing-detail": {
       "prompt": "What needs testing?",
       "action": "freeform_build",
-      "context": "Use /mega-testing to: "
+      "context": "Use /ccc-testing to: "
     }
   }
 }

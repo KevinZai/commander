@@ -3,8 +3,8 @@ name: flutter
 description: "Flutter/Dart development — widget architecture, state management, platform channels, and cross-platform best practices."
 version: 1.0.0
 category: mobile
-parent: mega-mobile
-tags: [mega-mobile, flutter, dart, cross-platform]
+parent: ccc-mobile
+tags: [ccc-mobile, flutter, dart, cross-platform]
 disable-model-invocation: true
 ---
 

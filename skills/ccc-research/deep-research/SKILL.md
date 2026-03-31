@@ -3,8 +3,8 @@ name: deep-research
 description: "Multi-source deep research with parallel agents, citation tracking, and synthesis into structured deliverables."
 version: 1.0.0
 category: research
-parent: mega-research
-tags: [mega-research, research, analysis]
+parent: ccc-research
+tags: [ccc-research, research, analysis]
 disable-model-invocation: true
 ---
 

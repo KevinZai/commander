@@ -8,7 +8,7 @@ CC Commander was built by **Kevin Z** by scanning, testing, and distilling 200+ 
 |--------|-------------|----------|
 | **ykdojo** | 45 Claude Code tips — the original viral thread that inspired dozens of guides | X/Twitter |
 | **hooeem** | Claude Certified Architect Guide — domain-driven architecture patterns | X/Twitter |
-| **aiedge_** | Skills 2.0 Guide — skill creation, mega-skill patterns, auto-triggers | X/Twitter |
+| **aiedge_** | Skills 2.0 Guide — skill creation, CCC domain patterns, auto-triggers | X/Twitter |
 | **dr_cintas** | Cowork Complete Guide — session management, context optimization | X/Twitter |
 | **MichLieben** | Vibe Marketing ($7M B2B) — marketing skill suite foundation | X/Twitter |
 | **coreyganim** | Cowork Plugins Guide — plugin architecture, hook lifecycle | X/Twitter |

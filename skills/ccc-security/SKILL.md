@@ -2,9 +2,9 @@
 name: KZ Mega-Security
 description: "Complete security ecosystem — 8 skills in one. Security audits, prompt injection defense, dependency audits, secrets scanning, OWASP Top 10, CodeQL, variant analysis, and incident response."
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
-tags: [mega-skill, security, appsec, devsecops]
+tags: [CCC domain, security, appsec, devsecops]
 ---
 
 # KZ Mega-Security
@@ -88,4 +88,4 @@ tags: [mega-skill, security, appsec, devsecops]
 
 ## Context Strategy
 
-This mega-skill uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.
+This CCC domain uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.

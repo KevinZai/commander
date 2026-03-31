@@ -3,8 +3,8 @@ name: gemini-fallback
 description: "Route tasks to Gemini's 1M+ token context window when content exceeds Claude's context limits."
 version: 1.0.0
 category: research
-parent: mega-research
-tags: [mega-research, gemini, large-context]
+parent: ccc-research
+tags: [ccc-research, gemini, large-context]
 disable-model-invocation: true
 ---
 

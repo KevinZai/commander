@@ -3,7 +3,7 @@ name: GSAP Patterns
 description: "GSAP mastery — ScrollTrigger, timeline sequencing, SVG morphing, text animation, MotionPath, performance optimization."
 version: 1.0.0
 category: animation
-parent: mega-design
+parent: ccc-design
 ---
 
 # GSAP Patterns

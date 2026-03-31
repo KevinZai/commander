@@ -14,8 +14,8 @@
     },
     {
       "key": "b",
-      "label": "See mega-skills (big workflows)",
-      "next": "mega-skills"
+      "label": "See CCC domains (big workflows)",
+      "next": "ccc-domains"
     },
     {
       "key": "c",

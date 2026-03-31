@@ -13,9 +13,9 @@ Optimizes Claude for marketing work: content creation, SEO, conversion rate opti
 
 ## Skills Loaded
 
-**Primary mega-skills:**
-- `mega-marketing` — Content strategy, email systems, ad creative, social integration, cold email, blog engine, referral programs
-- `mega-seo` — Technical SEO, content SEO, SERP analysis, backlink audit, search console, site architecture
+**Primary CCC domains:**
+- `ccc-marketing` — Content strategy, email systems, ad creative, social integration, cold email, blog engine, referral programs
+- `ccc-seo` — Technical SEO, content SEO, SERP analysis, backlink audit, search console, site architecture
 
 **Key sub-skills surfaced:**
 - `content-strategy` — Editorial calendar, content pillars, audience mapping
@@ -46,7 +46,7 @@ Optimizes Claude for marketing work: content creation, SEO, conversion rate opti
 
 | Hook | Priority | Reason |
 |------|----------|--------|
-| context-guard | Elevated | Marketing + SEO mega-skills are context-heavy |
+| context-guard | Elevated | Marketing + SEO CCC domains are context-heavy |
 | session-coach | Elevated | Marketing work benefits from periodic strategy check-ins |
 | auto-checkpoint | Standard | |
 | confidence-gate | Standard | |
@@ -54,7 +54,7 @@ Optimizes Claude for marketing work: content creation, SEO, conversion rate opti
 
 ## Context Strategy
 
-- **Pre-flight check:** Verify context is below 55% before entering — two mega-skills loaded
+- **Pre-flight check:** Verify context is below 55% before entering — two CCC domains loaded
 - **Compact threshold:** Compact at 70% to preserve room for content generation
 - **Priority in context:** Content briefs, keyword research, brand guidelines, audience personas, analytics data
 - **Deprioritize:** Backend code, database schemas, infrastructure config

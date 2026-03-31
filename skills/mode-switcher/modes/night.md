@@ -9,18 +9,18 @@ disable-model-invocation: true
 
 ## Overview
 
-The autonomous overnight workhorse. Designed for unattended execution of large task lists while you sleep. All relevant mega-skills are loaded, permissions are set to auto-accept, and Claude operates with maximum self-sufficiency: auto-checkpoints, self-verification, aggressive error recovery, and detailed execution logs.
+The autonomous overnight workhorse. Designed for unattended execution of large task lists while you sleep. All relevant CCC domains are loaded, permissions are set to auto-accept, and Claude operates with maximum self-sufficiency: auto-checkpoints, self-verification, aggressive error recovery, and detailed execution logs.
 
 The guiding principle: **do the work, don't lose the work, don't break the work.**
 
 ## Skills Loaded
 
-**All relevant mega-skills based on the task:**
-- `mega-saas` — If building/extending SaaS features
-- `mega-design` — If UI/visual work is involved
-- `mega-devops` — If infrastructure/deployment work is involved
-- `mega-marketing` + `mega-seo` — If content/SEO work is involved
-- `mega-testing` — Always loaded for self-verification
+**All relevant CCC domains based on the task:**
+- `ccc-saas` — If building/extending SaaS features
+- `ccc-design` — If UI/visual work is involved
+- `ccc-devops` — If infrastructure/deployment work is involved
+- `ccc-marketing` + `ccc-seo` — If content/SEO work is involved
+- `ccc-testing` — Always loaded for self-verification
 
 **Critical supporting skills (always active):**
 - `overnight-runner` — Overnight execution patterns and error recovery

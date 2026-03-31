@@ -1,6 +1,6 @@
 # Quickstart Guide: Frontend Developer
 
-> Build beautiful, interactive UIs with CC Commander. Design mode, mega-design skills, and framework-specific tips.
+> Build beautiful, interactive UIs with CC Commander. Design mode, ccc-design skills, and framework-specific tips.
 
 ---
 
@@ -35,7 +35,7 @@ When the decision tree asks about your build type, select your frontend framewor
 Load the entire design domain with one command:
 
 ```
-use mega-design skill
+use ccc-design skill
 ```
 
 This gives you access to **35+ design skills** through a single router. You never need to load individual skills — the router dispatches to the right specialist.
@@ -53,7 +53,7 @@ This gives you access to **35+ design skills** through a single router. You neve
 ### The Design Workflow
 
 ```
-Step 1: "use mega-design skill"
+Step 1: "use ccc-design skill"
 Step 2: Describe what you want to build
 Step 3: Review the output
 Step 4: "use critique skill" — get structured design feedback
@@ -141,7 +141,7 @@ Key skills for React/Next.js:
 - `framer-motion-patterns` — Layout animations, gestures, scroll-triggered
 
 ```
-use mega-saas skill. I need a Next.js 15 app with:
+use ccc-saas skill. I need a Next.js 15 app with:
 - App Router with route groups for (marketing) and (dashboard)
 - shadcn/ui v4 components with dark mode
 - Tailwind v4 with custom design tokens
@@ -198,9 +198,9 @@ claude
 ```
 
 Astro is ideal for content-heavy sites. Combine with:
-- `mega-seo` — SEO optimization, structured data, sitemap
+- `ccc-seo` — SEO optimization, structured data, sitemap
 - `landing-page-builder` — high-converting page structures
-- `mega-marketing` — content strategy, CRO
+- `ccc-marketing` — content strategy, CRO
 
 ```
 Build an Astro blog with:
@@ -226,7 +226,7 @@ Here is the complete workflow for building a frontend feature, from idea to ship
 ### 2. Load the Design Stack
 
 ```
-use mega-design skill
+use ccc-design skill
 ```
 
 ### 3. Describe Your Vision
@@ -274,7 +274,7 @@ Checks: no TypeScript errors, responsive on mobile/tablet/desktop, accessible, p
 
 1. **Use `critique` before `polish`** — critique identifies what to fix, polish executes the fixes. Running polish first skips the diagnosis step.
 
-2. **Load `mega-design` once per session** — the router remembers context. You do not need to reload it for each request.
+2. **Load `ccc-design` once per session** — the router remembers context. You do not need to reload it for each request.
 
 3. **Combine design + saas modes** — if you are building a SaaS frontend, switch between modes as needed: `design` for UI work, `saas` for data fetching and auth.
 

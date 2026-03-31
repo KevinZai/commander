@@ -142,7 +142,7 @@ Arrow keys or letter shortcuts. 4 themes. 11 flows.
 ║  COMPONENT      ║ COUNT  ║  WHAT IT DOES          ║
 ╠═════════════════╬════════╬════════════════════════╣
 ║  Skills         ║  280+  ║  On-demand expertise   ║
-║  Mega-Skills    ║   10   ║  Domain routers        ║
+║  CCC Domains    ║   10   ║  Domain routers        ║
 ║  Commands       ║   88+  ║  Slash commands        ║
 ║  Hooks          ║   37   ║  Lifecycle automation  ║
 ║  Adventures     ║   11   ║  Guided flows          ║
@@ -273,22 +273,22 @@ CCC is its own **agent** in Linear.
 
 ---
 
-## 280+ Skills · 10 Mega-Skills
+## 280+ Skills · 10 CCC Domains
 
 ```
 ╔══════════════════╦══════╦══════════════════════╗
 ║  MEGA-SKILL      ║ SUBS ║  DOMAIN              ║
 ╠══════════════════╬══════╬══════════════════════╣
-║  mega-design     ║  39  ║  UI/UX, animation    ║
-║  mega-marketing  ║  45  ║  CRO, email, ads     ║
-║  mega-saas       ║  20  ║  Auth, billing, API  ║
-║  mega-testing    ║  15  ║  Unit, E2E, TDD      ║
-║  mega-devops     ║  20  ║  CI/CD, Docker, AWS  ║
-║  mega-seo        ║  19  ║  Schema, SERP        ║
-║  mega-security   ║   8  ║  OWASP, pentest      ║
-║  mega-research   ║   8  ║  Competitive, market ║
-║  mega-mobile     ║   8  ║  React Native        ║
-║  mega-data       ║   8  ║  SQL, ETL            ║
+║  ccc-design     ║  39  ║  UI/UX, animation    ║
+║  ccc-marketing  ║  45  ║  CRO, email, ads     ║
+║  ccc-saas       ║  20  ║  Auth, billing, API  ║
+║  ccc-testing    ║  15  ║  Unit, E2E, TDD      ║
+║  ccc-devops     ║  20  ║  CI/CD, Docker, AWS  ║
+║  ccc-seo        ║  19  ║  Schema, SERP        ║
+║  ccc-security   ║   8  ║  OWASP, pentest      ║
+║  ccc-research   ║   8  ║  Competitive, market ║
+║  ccc-mobile     ║   8  ║  React Native        ║
+║  ccc-data       ║   8  ║  SQL, ETL            ║
 ╠══════════════════╬══════╬══════════════════════╣
 ║  TOTAL           ║ 190  ║  10 domain routers   ║
 ╚══════════════════╩══════╩══════════════════════╝

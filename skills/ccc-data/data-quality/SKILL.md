@@ -3,8 +3,8 @@ name: data-quality
 description: "Data validation, schema enforcement, quality monitoring, and anomaly detection for data pipelines and warehouses."
 version: 1.0.0
 category: data
-parent: mega-data
-tags: [mega-data, data-quality, validation, monitoring]
+parent: ccc-data
+tags: [ccc-data, data-quality, validation, monitoring]
 disable-model-invocation: true
 ---
 

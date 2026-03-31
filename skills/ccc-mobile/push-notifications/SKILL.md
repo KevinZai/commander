@@ -3,8 +3,8 @@ name: push-notifications
 description: "Push notification setup and best practices — FCM, APNs, OneSignal, rich notifications, and engagement optimization."
 version: 1.0.0
 category: mobile
-parent: mega-mobile
-tags: [mega-mobile, push-notifications, fcm, apns]
+parent: ccc-mobile
+tags: [ccc-mobile, push-notifications, fcm, apns]
 disable-model-invocation: true
 ---
 

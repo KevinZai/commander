@@ -1,0 +1,64 @@
+{
+  "name": "cc-commander-vscode",
+  "displayName": "CC Commander",
+  "description": "CC Commander status panel for VS Code — view session stats, active skills, and health score",
+  "version": "0.1.0",
+  "publisher": "kevinzai",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "icon": "icon.svg",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cc-commander",
+          "title": "CC Commander",
+          "icon": "icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "cc-commander": [
+        {
+          "id": "cccStats",
+          "name": "Session Stats"
+        },
+        {
+          "id": "cccSkills",
+          "name": "Active Skills"
+        },
+        {
+          "id": "cccHealth",
+          "name": "Health Score"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "cc-commander.refresh",
+        "title": "CC Commander: Refresh Stats"
+      },
+      {
+        "command": "cc-commander.openDashboard",
+        "title": "CC Commander: Open Dashboard"
+      },
+      {
+        "command": "cc-commander.runXray",
+        "title": "CC Commander: Run X-Ray"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KevinZai/cc-commander"
+  },
+  "license": "MIT"
+}

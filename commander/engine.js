@@ -229,7 +229,7 @@ class KitCommander {
         return { next: 'check-stats' };
       }
       case 'browse_skills': return await this.browseSkills(false);
-      case 'browse_mega_skills': return { next: 'mega-skills' };
+      case 'browse_ccc_domains': return { next: 'ccc-domains' };
       case 'show_cheatsheet': return await this.showCheatsheet();
       case 'recommend_skill': return await this.recommendSkill(currentState);
       case 'pick_session_to_resume': return await this.pickSessionToResume();
@@ -280,11 +280,11 @@ class KitCommander {
         return { next: 'main-menu' };
       }
       case 'show_all_mega': {
-        process.stdout.write('n' + tui.divider('All 10 Mega-Skills') + 'nn');
+        process.stdout.write('n' + tui.divider('All 10 CCC Domains') + 'nn');
         var sb = getSkillBrowser();
         var allSkills = sb.listSkills();
         var megas = allSkills.filter(function(s) { return s.isMega; });
-        if (megas.length === 0) { process.stdout.write('  No mega-skills found. Install Claude Code Kit.n'); }
+        if (megas.length === 0) { process.stdout.write('  No CCC domains found. Install Claude Code Kit.n'); }
         megas.forEach(function(m) {
           var subCount = 0;
           try { var fs2 = require('fs'); var entries = fs2.readdirSync(require('path').dirname(m.path), {withFileTypes:true}); subCount = entries.filter(function(e){return e.isDirectory();}).length; } catch(_e) {}
@@ -293,14 +293,14 @@ class KitCommander {
         });
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         await this.ask('n  Press Enter...');
-        return { next: 'mega-skills' };
+        return { next: 'ccc-domains' };
       }
       case 'show_mega_detail': {
-        process.stdout.write('\n  ' + tui.boldText('Pick a mega-skill and describe your need.', tui.getTheme().text) + '\n');
+        process.stdout.write('\n  ' + tui.boldText('Pick a CCC domain and describe your need.', tui.getTheme().text) + '\n');
         if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         var megaTask = await this.ask('  > ');
         if (megaTask.trim()) await this.executeBuild(megaTask);
-        return { next: 'mega-skills' };
+        return { next: 'ccc-domains' };
       }
       case 'show_linear': {
         try {

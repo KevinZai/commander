@@ -49,7 +49,7 @@ if (args.includes('--test')) {
     ['create-content', function(){ require(path.join(__dirname,'..','commander','adventures','create-content.json')); }],
     ['research', function(){ require(path.join(__dirname,'..','commander','adventures','research.json')); }],
     ['night-build', function(){ var n = require(path.join(__dirname,'..','commander','adventures','night-build.json')); if(n.version !== 2) throw new Error('not v2'); }],
-    ['mega-skills', function(){ require(path.join(__dirname,'..','commander','adventures','mega-skills.json')); }],
+    ['CCC domains', function(){ require(path.join(__dirname,'..','commander','adventures','CCC domains.json')); }],
     ['knowledge', function(){ var k = require(path.join(__dirname,'..','commander','knowledge')); if(typeof k.extractAndStore !== 'function') throw new Error('missing'); }],
     ['plugins', function(){ var p = require(path.join(__dirname,'..','commander','plugins')); if(typeof p.detectPlugins !== 'function') throw new Error('missing'); }],
     ['settings', function(){ require(path.join(__dirname,'..','commander','adventures','settings.json')); }],

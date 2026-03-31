@@ -301,10 +301,10 @@ Kevin's final words before bed: "DONT STOP! When I wake up I want to see GOLD!"
 - **YOLO Loop**: 3-10 cycles of build → review → improve → compound. Writes status to file so you can check progress.
 - Status checkpoint at ~/.claude/commander/yolo-status.txt
 
-**Mega-Skill Browser** — New adventure flow:
-- Browse all 10 mega-skills with sub-skill counts and descriptions
-- One-click dispatch to any mega-skill with custom task
-- Full breakdown: mega-design (35+), mega-marketing (46), mega-saas (20), mega-testing (15), mega-devops (20), mega-seo (19), mega-security (9), mega-research (8), mega-mobile (7), mega-data (10+)
+**CCC Domain Browser** — New adventure flow:
+- Browse all 10 CCC domains with sub-skill counts and descriptions
+- One-click dispatch to any CCC domain with custom task
+- Full breakdown: ccc-design (35+), ccc-marketing (46), ccc-saas (20), ccc-testing (15), ccc-devops (20), ccc-seo (19), ccc-security (9), ccc-research (8), ccc-mobile (7), ccc-data (10+)
 
 **Cowork Plugin Polish**:
 - Full references/ content: skill-catalog.md (all 280+ skills categorized), orchestration.md (package detection + phase mapping)
@@ -327,4 +327,4 @@ Kevin's final words before bed: "DONT STOP! When I wake up I want to see GOLD!"
 16. "YOLO Mode: 10 questions, then go to sleep" — the autonomous build story
 17. "My CLI has continuous improvement loops" — the Larry Loop angle
 18. "I built a Claude Desktop plugin in one session" — the Cowork plugin story
-19. "200+ sub-skills across 10 mega-skills, one menu" — the skill catalog story
+19. "200+ sub-skills across 10 CCC domains, one menu" — the skill catalog story

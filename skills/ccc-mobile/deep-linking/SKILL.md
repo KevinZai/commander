@@ -3,8 +3,8 @@ name: deep-linking
 description: "Universal links, Android App Links, deep linking configuration, and deferred deep linking for mobile apps."
 version: 1.0.0
 category: mobile
-parent: mega-mobile
-tags: [mega-mobile, deep-linking, universal-links, navigation]
+parent: ccc-mobile
+tags: [ccc-mobile, deep-linking, universal-links, navigation]
 disable-model-invocation: true
 ---
 

@@ -3,8 +3,8 @@ name: swiftui
 description: "SwiftUI development — MVVM architecture, iOS features, Combine/async-await, and Apple platform best practices."
 version: 1.0.0
 category: mobile
-parent: mega-mobile
-tags: [mega-mobile, swiftui, ios, apple]
+parent: ccc-mobile
+tags: [ccc-mobile, swiftui, ios, apple]
 disable-model-invocation: true
 ---
 

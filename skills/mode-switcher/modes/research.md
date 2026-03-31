@@ -13,8 +13,8 @@ Optimizes Claude for deep research and analysis work. Activates extended thinkin
 
 ## Skills Loaded
 
-**Primary mega-skill:**
-- `mega-research` — Deep analysis, competitive intelligence, technology evaluation, market research
+**Primary CCC domain:**
+- `ccc-research` — Deep analysis, competitive intelligence, technology evaluation, market research
 
 **Supporting skills suggested as needed:**
 - `dialectic-review` — FOR/AGAINST/Referee pattern for evaluating options

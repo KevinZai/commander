@@ -3,8 +3,8 @@ name: security-audit
 description: "Comprehensive security audit combining SAST, DAST, manual code review, and threat modeling for applications."
 version: 1.0.0
 category: security
-parent: mega-security
-tags: [mega-security, audit, sast, dast]
+parent: ccc-security
+tags: [ccc-security, audit, sast, dast]
 disable-model-invocation: true
 ---
 

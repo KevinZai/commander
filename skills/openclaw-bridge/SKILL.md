@@ -112,7 +112,7 @@ done
 
 | CC Commander Skill Path Pattern | OpenClaw Category |
 |---------------------------------|-------------------|
-| `mega-*` | `mega-skill` |
+| `mega-*` | `CCC domain` |
 | `mode-switcher` | `workflow` |
 | `*-patterns` | `engineering` |
 | `*-testing`, `tdd-*`, `e2e-*` | `testing` |
@@ -442,26 +442,26 @@ openclaw doctor
 
 ---
 
-## 8. Mega-Skill to Workspace Mapping
+## 8. CCC Domain to Workspace Mapping
 
-CC Commander mega-skills map to OpenClaw workspaces and agent specializations.
+CC Commander CCC domains map to OpenClaw workspaces and agent specializations.
 
-| CC Commander Mega-Skill | OpenClaw Workspace | Primary Agent | Model |
+| CC Commander CCC Domain | OpenClaw Workspace | Primary Agent | Model |
 |-------------------------|--------------------|---------------|-------|
-| `mega-devops` | `dev` | Codex | Sonnet |
-| `mega-security` | `architecture` | Morpheus | Opus |
-| `mega-testing` | `dev` | Codex | Sonnet |
-| `mega-design` | `dev` | Pixel (worker) | Sonnet |
-| `mega-marketing` | `main` | Alfred | Sonnet |
-| `mega-saas` | `dev` | Codex | Sonnet |
-| `mega-seo` | `main` | Alfred | Sonnet |
-| `mega-research` | `architecture` | Morpheus | Opus |
-| `mega-data` | `dev` | Codex | Sonnet |
-| `mega-mobile` | `dev` | Codex | Sonnet |
+| `ccc-devops` | `dev` | Codex | Sonnet |
+| `ccc-security` | `architecture` | Morpheus | Opus |
+| `ccc-testing` | `dev` | Codex | Sonnet |
+| `ccc-design` | `dev` | Pixel (worker) | Sonnet |
+| `ccc-marketing` | `main` | Alfred | Sonnet |
+| `ccc-saas` | `dev` | Codex | Sonnet |
+| `ccc-seo` | `main` | Alfred | Sonnet |
+| `ccc-research` | `architecture` | Morpheus | Opus |
+| `ccc-data` | `dev` | Codex | Sonnet |
+| `ccc-mobile` | `dev` | Codex | Sonnet |
 
-### Loading a Mega-Skill via OpenClaw
+### Loading a CCC Domain via OpenClaw
 
-When an OpenClaw agent needs a mega-skill's capabilities, it loads the skill by ID and gains access to all absorbed sub-skills. The routing logic in the mega-skill's SKILL.md handles dispatch to the correct sub-skill.
+When an OpenClaw agent needs a CCC domain's capabilities, it loads the skill by ID and gains access to all absorbed sub-skills. The routing logic in the CCC domain's SKILL.md handles dispatch to the correct sub-skill.
 
 ---
 

@@ -105,22 +105,22 @@ Switch via `/cc mode <name>` or `"use mode-switcher skill, switch to <name> mode
 
 ---
 
-## Mega-Skills Quick Reference
+## CCC Domains Quick Reference
 
-Load ONE mega-skill to get an entire domain. Each has a router that dispatches to the right specialist.
+Load ONE CCC domain to get an entire domain. Each has a router that dispatches to the right specialist.
 
-| Mega-Skill | Sub-Skills | What It Covers |
+| CCC Domain | Sub-Skills | What It Covers |
 |-----------|------------|----------------|
-| `mega-seo` | 19 | Technical SEO, AI search, analytics, programmatic SEO |
-| `mega-design` | 35+ | Animations, SVG, motion, effects, design systems, Impeccable suite |
-| `mega-testing` | 15 | TDD, E2E (Playwright), verification, QA, visual/load testing |
-| `mega-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales |
-| `mega-saas` | 20 | Auth, billing, database, API, frontend stack, metrics |
-| `mega-devops` | 20 | CI/CD, Docker, AWS, monitoring, zero-downtime, Terraform |
-| `mega-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
-| `mega-mobile` | 7 | iOS, Android, React Native, Flutter, app store optimization |
-| `mega-security` | 9 | Pen testing, OWASP, supply chain, secrets, threat modeling |
-| `mega-data` | 8 | ETL, data warehousing, analytics, visualization, ML ops |
+| `ccc-seo` | 19 | Technical SEO, AI search, analytics, programmatic SEO |
+| `ccc-design` | 35+ | Animations, SVG, motion, effects, design systems, Impeccable suite |
+| `ccc-testing` | 15 | TDD, E2E (Playwright), verification, QA, visual/load testing |
+| `ccc-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales |
+| `ccc-saas` | 20 | Auth, billing, database, API, frontend stack, metrics |
+| `ccc-devops` | 20 | CI/CD, Docker, AWS, monitoring, zero-downtime, Terraform |
+| `ccc-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
+| `ccc-mobile` | 7 | iOS, Android, React Native, Flutter, app store optimization |
+| `ccc-security` | 9 | Pen testing, OWASP, supply chain, secrets, threat modeling |
+| `ccc-data` | 8 | ETL, data warehousing, analytics, visualization, ML ops |
 
 ---
 
@@ -251,7 +251,7 @@ Access: `/cc prompts` or browse `prompts/` directory.
 | Build a REST API | `api-design` + `backend-patterns` + `tdd-workflow` |
 | Build a Next.js app | `nextjs-app-router` + `shadcn-ui` + `tailwind-v4` |
 | Build a landing page | `landing-page-builder` + `frontend-design` + `signup-flow-cro` |
-| Build a SaaS product | `mega-saas` (loads 20 skills) |
+| Build a SaaS product | `ccc-saas` (loads 20 skills) |
 | Set up auth | `better-auth` |
 | Design a database | `database-designer` + `postgres-patterns` |
 | Fix a bug | `investigate` + `systematic-debugging` |
@@ -260,7 +260,7 @@ Access: `/cc prompts` or browse `prompts/` directory.
 | Improve SEO | `seo-optimizer` + `ai-seo` + `aaio` |
 | Improve performance | `optimize` + `harden` + `benchmark` |
 | Polish design | `critique` -> `bolder`/`quieter` -> `polish` |
-| Set up CI/CD | `mega-devops` (loads 20 skills) |
+| Set up CI/CD | `ccc-devops` (loads 20 skills) |
 | Run overnight build | `overnight-runner` |
 
 ---
@@ -401,4 +401,4 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-
 ---
 
 *CC Commander v1.6.0 -- kevinzai.github.io/cc-commander*
-*280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 36+ prompts | 9 modes | 4 themes | 3 templates*
+*280+ skills | 10 CCC domains | 88+ commands | 37 hooks | 36+ prompts | 9 modes | 4 themes | 3 templates*

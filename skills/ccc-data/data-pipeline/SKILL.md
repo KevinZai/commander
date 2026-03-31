@@ -3,8 +3,8 @@ name: data-pipeline
 description: "Design and implement ETL/ELT data pipelines using Airflow, dbt, Dagster, and modern data stack patterns."
 version: 1.0.0
 category: data
-parent: mega-data
-tags: [mega-data, etl, pipeline, data-engineering]
+parent: ccc-data
+tags: [ccc-data, etl, pipeline, data-engineering]
 disable-model-invocation: true
 ---
 

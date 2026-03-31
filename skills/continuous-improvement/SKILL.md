@@ -77,7 +77,7 @@ Every finding generates a proposal JSON file in `~/.claude/improvement-queue/`:
 
 | Category | Description | Examples |
 |----------|-------------|---------|
-| `new-skill` | Entirely new capability to add to the kit | New mega-skill, domain pack |
+| `new-skill` | Entirely new capability to add to the kit | New CCC domain, domain pack |
 | `skill-upgrade` | Enhancement to an existing skill | Better context handling in dialectic-review |
 | `new-hook` | New lifecycle hook | Token compression hook |
 | `new-command` | New slash command | `/usage` analytics command |
@@ -92,7 +92,7 @@ Every finding generates a proposal JSON file in `~/.claude/improvement-queue/`:
 | 1 | Minor polish | Typo fix, formatting improvement |
 | 2 | Small improvement | New example in docs, minor skill tweak |
 | 3 | Meaningful feature | New individual skill, hook enhancement |
-| 4 | Significant capability | New mega-skill, major workflow improvement |
+| 4 | Significant capability | New CCC domain, major workflow improvement |
 | 5 | Game-changing | New category of functionality (e.g., AI memory compression) |
 
 ### Effort Scale (1-5)

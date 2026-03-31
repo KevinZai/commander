@@ -50,7 +50,7 @@ git submodule add --depth 1 https://github.com/owner/repo vendor/repo-name
 
 | Repo | Stars | License | Description | CCC Status |
 |------|-------|---------|-------------|------------|
-| [marketingskills](https://github.com/coreyhaines31/marketingskills) | 17K+ | MIT | CRO, copywriting, SEO, analytics, growth engineering | Covered by mega-marketing |
+| [marketingskills](https://github.com/coreyhaines31/marketingskills) | 17K+ | MIT | CRO, copywriting, SEO, analytics, growth engineering | Covered by ccc-marketing |
 | [awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents) | 15K+ | MIT | 100+ specialized subagents | Reference |
 | [awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) | 13K+ | MIT | 1000+ agent skills, cross-platform | Reference |
 | [claude-skills](https://github.com/alirezarezvani/claude-skills) | 8K+ | MIT | 192+ skills across engineering, marketing, product, compliance | Reference |

@@ -3,7 +3,7 @@ name: Framer Motion Patterns
 description: "Comprehensive Framer Motion patterns — layout animations, gestures, scroll-triggered, stagger, shared layout transitions."
 version: 1.0.0
 category: animation
-parent: mega-design
+parent: ccc-design
 ---
 
 # Framer Motion Patterns

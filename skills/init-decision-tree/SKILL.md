@@ -381,8 +381,8 @@ Build type: {QUICK|DEEP|SAAS|OVERNIGHT}
 {Available scripts from package.json}
 
 ## Recommended Skills
-{List of mega-skills and individual skills selected by the decision tree}
-- Use the `{mega-skill}` skill for {domain} work
+{List of CCC domains and individual skills selected by the decision tree}
+- Use the `{CCC domain}` skill for {domain} work
 - Use `{individual-skill}` for {specific task}
 
 ## Workflow ({build-type}-specific)
@@ -411,9 +411,9 @@ Build type: {QUICK|DEEP|SAAS|OVERNIGHT}
 4. Core features via spec-driven sessions
 5. Billing (stripe-subscriptions)
 6. Dashboard + analytics
-7. SEO + marketing (mega-seo)
-8. E2E tests (mega-testing)
-9. Deploy (mega-devops)
+7. SEO + marketing (ccc-seo)
+8. E2E tests (ccc-testing)
+9. Deploy (ccc-devops)
 
 ### Overnight Build Workflow
 1. Define batch tasks
@@ -539,7 +539,7 @@ Build type:    {QUICK|DEEP|SAAS|OVERNIGHT}
 Stack:         {stack description}
 Deploy:        {deployment target}
 Model:         {Sonnet|Opus} recommended
-Skills loaded: {list of mega-skills and key individual skills}
+Skills loaded: {list of CCC domains and key individual skills}
 
 Files created:
   ✓ CLAUDE.md (project instructions)
@@ -647,7 +647,7 @@ This diagram shows the complete questionnaire flow:
 ## Anti-Patterns (What NOT To Do)
 
 1. **Don't skip questions** — The questionnaire IS the value. Don't auto-fill everything.
-2. **Don't load every mega-skill** — Only load what the user actually needs based on their answers.
+2. **Don't load every CCC domain** — Only load what the user actually needs based on their answers.
 3. **Don't generate a 500-line CLAUDE.md** — Keep it focused. Only include what's relevant to this project.
 4. **Don't assume build type** — Always ask. A "landing page" might be a quick build OR a deep build depending on requirements.
 5. **Don't overwrite existing CLAUDE.md** — If one exists, ask whether to replace, merge, or skip.

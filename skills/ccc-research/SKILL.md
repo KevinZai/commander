@@ -2,9 +2,9 @@
 name: KZ Mega-Research
 description: "Complete research ecosystem — 8 skills in one. Deep research, spec interviews, cross-model review, literature review, competitive analysis, data ingestion, trend analysis, and Gemini fallback."
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
-tags: [mega-skill, research, analysis]
+tags: [CCC domain, research, analysis]
 ---
 
 # KZ Mega-Research
@@ -69,4 +69,4 @@ tags: [mega-skill, research, analysis]
 
 ## Context Strategy
 
-This mega-skill uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.
+This CCC domain uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.

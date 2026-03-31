@@ -12,7 +12,7 @@ This is the KZ Init Decision Tree — an interactive questionnaire that configur
 
 1. **Asks project identity** — name, stack (auto-detects from files), deployment target
 2. **Asks build type** — QUICK (<4h), DEEP (1-5 days), SAAS (1-4 weeks), or OVERNIGHT (autonomous)
-3. **Drills down by domain** — loads the right KZ Mega-Skills based on your answers
+3. **Drills down by domain** — loads the right KZ CCC Domains based on your answers
 4. **Generates project setup:**
    - `CLAUDE.md` — tailored project instructions with recommended skills and build-type workflow
    - `tasks/todo.md` — pre-populated with first steps

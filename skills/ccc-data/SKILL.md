@@ -2,9 +2,9 @@
 name: KZ Mega-Data
 description: "Complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search."
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
-tags: [mega-skill, data, analytics, ml]
+tags: [CCC domain, data, analytics, ml]
 ---
 
 # KZ Mega-Data
@@ -106,4 +106,4 @@ What's your data stack?
 
 ## Context Strategy
 
-This mega-skill uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.
+This CCC domain uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.

@@ -56,23 +56,23 @@ The result: Kevin Z's CC Commander
 - 88+ slash commands
 - 37 lifecycle hooks
 - 3 starter templates
-- 10 "mega-skills" (the real magic)
+- 10 "CCC domains" (the real magic)
 - 1 install command
 
 All MIT licensed. Completely free.
 
-### Tweet 6 (Mega-Skills Explained)
+### Tweet 6 (CCC Domains Explained)
 
-The mega-skills are the thing I'm most proud of.
+The CCC domains are the thing I'm most proud of.
 
 Load ONE skill, get an entire domain:
 
-mega-seo -- 19 SEO skills in one
-mega-design -- 35+ design & animation skills
-mega-testing -- 15 testing skills
-mega-marketing -- 46 marketing skills
-mega-saas -- 20 SaaS building skills
-mega-devops -- 20 DevOps skills
+ccc-seo -- 19 SEO skills in one
+ccc-design -- 35+ design & animation skills
+ccc-testing -- 15 testing skills
+ccc-marketing -- 46 marketing skills
+ccc-saas -- 20 SaaS building skills
+ccc-devops -- 20 DevOps skills
 
 Each one has a router that dispatches to the right specialist automatically.
 
@@ -197,7 +197,7 @@ Let's go.
 
 ### Post 1: The Numbers Angle
 
-280+ skills. 10 mega-skills. 88+ commands. 37 hooks. One install.
+280+ skills. 10 CCC domains. 88+ commands. 37 hooks. One install.
 
 I scanned every Claude Code resource on the internet and combined them into one kit.
 
@@ -225,18 +225,18 @@ It auto-loads the right skills, generates your CLAUDE.md, and sets up your entir
 
 github.com/KevinZai/cc-commander
 
-### Post 4: The Mega-Skills Angle
+### Post 4: The CCC Domains Angle
 
 Stop loading 15 skills one at a time.
 
-Load ONE mega-skill, get the whole domain:
+Load ONE CCC domain, get the whole domain:
 
-mega-marketing = 46 skills
-mega-design = 35+ skills
-mega-saas = 20 skills
-mega-seo = 19 skills
-mega-devops = 20 skills
-mega-testing = 15 skills
+ccc-marketing = 46 skills
+ccc-design = 35+ skills
+ccc-saas = 20 skills
+ccc-seo = 19 skills
+ccc-devops = 20 skills
+ccc-testing = 15 skills
 
 Each one auto-routes to the right specialist.
 
@@ -296,7 +296,7 @@ Claude Code adjacent / AI dev community:
 - @MichLieben -- vibe marketing, B2B SaaS
 - @coreyganim -- Claude Code plugins
 - @GriffinHilly -- Claude Code workflows
-- @bekacru -- Better Auth (used in mega-saas)
+- @bekacru -- Better Auth (used in ccc-saas)
 - @chddaniel -- mobile dev with Claude Code
 
 Tech media / amplification:

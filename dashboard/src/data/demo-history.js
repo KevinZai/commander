@@ -57,7 +57,7 @@ const TASKS = [
 const SKILLS = [
   'tdd-workflow', 'code-review', 'security-reviewer', 'planner',
   'architect', 'e2e-runner', 'build-fix', 'refactor-clean',
-  'deploy', 'checkpoint', 'mega-testing', 'mega-devops',
+  'deploy', 'checkpoint', 'ccc-testing', 'ccc-devops',
 ];
 
 function seededRandom(seed) {

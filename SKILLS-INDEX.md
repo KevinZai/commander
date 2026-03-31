@@ -1,29 +1,29 @@
 # Skills Index — Quick Reference
 > CC Commander v1.6.0 — by Kevin Z
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-03-28 | 280+ skill directories | 10 Mega-Skills | 18 kit-native hooks (37 with ECC) | 3 starter templates | 36+ prompt templates | 9 workflow modes | Real-time dashboard | 4 themes
+> Last verified: 2026-03-28 | 280+ skill directories | 10 CCC Domains | 18 kit-native hooks (37 with ECC) | 3 starter templates | 36+ prompt templates | 9 workflow modes | Real-time dashboard | 4 themes
 > Audit: `./generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
 
 ---
 
-## Mega-Skills (Load ONE, Get Everything)
+## CCC Domains (Load ONE, Get Everything)
 
-| Mega-Skill | Skills | What It Covers |
+| CCC Domain | Skills | What It Covers |
 |------------|--------|----------------|
-| `mega-seo` | 19 | Technical SEO, AI search optimization, content strategy, analytics, programmatic SEO |
-| `mega-design` | 35+ | Animations, SVG, motion, visual effects, design systems, landing pages, Impeccable polish suite |
-| `mega-testing` | 15 | TDD, E2E (Playwright), verification, QA, regression, visual testing, load testing |
-| `mega-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales (renamed from marketing-pack) |
-| `mega-saas` | 20 | Auth, billing, database, API, frontend stack (Next.js+shadcn+Tailwind), metrics |
-| `mega-devops` | 20 | CI/CD, Docker, AWS, monitoring, zero-downtime deploy, Terraform |
-| `mega-research` | 8 | Deep research, literature review, competitive analysis, citation management, data synthesis |
-| `mega-mobile` | 7 | iOS, Android, React Native, Flutter, cross-platform patterns, app store optimization |
-| `mega-security` | 9 | Pen testing, OWASP top 10, supply chain security, secrets management, threat modeling |
-| `mega-data` | 8 | ETL pipelines, data warehousing, analytics engineering, visualization, ML ops |
+| `ccc-seo` | 19 | Technical SEO, AI search optimization, content strategy, analytics, programmatic SEO |
+| `ccc-design` | 35+ | Animations, SVG, motion, visual effects, design systems, landing pages, Impeccable polish suite |
+| `ccc-testing` | 15 | TDD, E2E (Playwright), verification, QA, regression, visual testing, load testing |
+| `ccc-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales (renamed from marketing-pack) |
+| `ccc-saas` | 20 | Auth, billing, database, API, frontend stack (Next.js+shadcn+Tailwind), metrics |
+| `ccc-devops` | 20 | CI/CD, Docker, AWS, monitoring, zero-downtime deploy, Terraform |
+| `ccc-research` | 8 | Deep research, literature review, competitive analysis, citation management, data synthesis |
+| `ccc-mobile` | 7 | iOS, Android, React Native, Flutter, cross-platform patterns, app store optimization |
+| `ccc-security` | 9 | Pen testing, OWASP top 10, supply chain security, secrets management, threat modeling |
+| `ccc-data` | 8 | ETL pipelines, data warehousing, analytics engineering, visualization, ML ops |
 
-Each mega-skill has a router that dispatches to the right specialist. Individual skills inside mega-skills are still accessible by their original names via symlinks.
+Each CCC domain has a router that dispatches to the right specialist. Individual skills inside CCC domains are still accessible by their original names via symlinks.
 
 ---
 
@@ -390,7 +390,7 @@ Each mega-skill has a router that dispatches to the right specialist. Individual
 | `qa` | Full QA loop: test web app, fix bugs, commit atomically |
 | `qa-only` | Report-only QA: structured report with health score, never modifies code |
 
-## 🔬 Research & Analysis (mega-research)
+## 🔬 Research & Analysis (ccc-research)
 | Skill | What it does |
 |-------|-------------|
 | `deep-research` | Multi-source research with citation management and confidence scoring |
@@ -402,7 +402,7 @@ Each mega-skill has a router that dispatches to the right specialist. Individual
 | `source-validator` | Verify claims against original sources, flag hallucinations |
 | `research-brief` | Structured research output — executive summary, findings, recommendations |
 
-## 📱 Mobile Development (mega-mobile)
+## 📱 Mobile Development (ccc-mobile)
 | Skill | What it does |
 |-------|-------------|
 | `react-native-patterns` | React Native: navigation, state, native modules, performance |
@@ -413,7 +413,7 @@ Each mega-skill has a router that dispatches to the right specialist. Individual
 | `app-store-optimization` | ASO: keywords, screenshots, descriptions, A/B testing |
 | `cross-platform-patterns` | Shared code strategies, platform-specific adaptations |
 
-## 🛡️ Security & Compliance (mega-security)
+## 🛡️ Security & Compliance (ccc-security)
 | Skill | What it does |
 |-------|-------------|
 | `owasp-top-10` | OWASP Top 10 vulnerability detection and remediation |
@@ -426,7 +426,7 @@ Each mega-skill has a router that dispatches to the right specialist. Individual
 | `incident-response-security` | Security incident response playbooks and forensics |
 | `compliance-frameworks` | SOC 2, ISO 27001, HIPAA compliance checklists |
 
-## 📊 Data & Analytics (mega-data)
+## 📊 Data & Analytics (ccc-data)
 | Skill | What it does |
 |-------|-------------|
 | `etl-pipelines` | ETL/ELT pipeline design — extraction, transformation, loading patterns |
@@ -512,12 +512,12 @@ Pick a bundle to load the right skills for your project type:
 |--------|---------------|-----|
 | **Web Wizard** | `nextjs-app-router` + `shadcn-ui` + `tailwind-v4` + `drizzle-neon` | Full-stack web apps |
 | **Security Engineer** | `pci-compliance` + `container-security` + `github-actions-security` + `pentest-checklist` | Security audits & hardening |
-| **Content Creator** | `mega-marketing` + `mega-seo` + `blog-engine` | Content & SEO campaigns |
-| **Full Stack SaaS** | `mega-saas` + `mega-devops` + `mega-testing` | SaaS product from scratch |
+| **Content Creator** | `ccc-marketing` + `ccc-seo` + `blog-engine` | Content & SEO campaigns |
+| **Full Stack SaaS** | `ccc-saas` + `ccc-devops` + `ccc-testing` | SaaS product from scratch |
 
 ---
 
-*⭐ = new in v0.4 | New mega-skills, modes, integrations, and prompt library added in v1.1 | Themes, OpenClaw native, status updates, continuous improvement added in v1.3 | Linear MCP, board view, full rebrand in v1.6.0*
+*⭐ = new in v0.4 | New CCC domains, modes, integrations, and prompt library added in v1.1 | Themes, OpenClaw native, status updates, continuous improvement added in v1.3 | Linear MCP, board view, full rebrand in v1.6.0*
 
 ---
 
@@ -539,10 +539,10 @@ Interactive CLI project manager — sits above Claude Code sessions.
 | build-something | 5 | Code: web apps, APIs, CLI tools + 3 sub-adventures |
 | create-content | 7 | Marketing: blog, social, email, copy, docs + 5 sub-adventures |
 | research | 6 | Analysis: competitive, market, code audit, SEO + 4 sub-adventures |
-| mega-skills | 7 | Browse 10 mega-skills (200+ sub-skills) with dispatch |
+| CCC domains | 7 | Browse 10 CCC domains (200+ sub-skills) with dispatch |
 | night-build | 4 | YOLO Mode + YOLO Loop (3-10 cycles) |
 | continue-work | 4 | Resume sessions: exact, summary, fresh start |
 | review-work | 4 | Session history, resume, details |
-| learn-skill | 5 | Skill browser, mega-skills, cheatsheet, recommendations |
+| learn-skill | 5 | Skill browser, CCC domains, cheatsheet, recommendations |
 | check-stats | 4 | Dashboard with sparklines, achievements, history |
 | settings | 7 | Name, level, cost, theme, animations, reset |

@@ -8,7 +8,7 @@ The kit installs to `~/.claude/`, which is the configuration directory Claude Co
 
 - **CLAUDE.md** -- Behavior instructions, always loaded at session start. Defines coding standards, workflow rules, and agent configuration.
 - **settings.json** -- Permissions, allowed tools, MCP server connections, model selection, and hook registration.
-- **skills/** -- On-demand skill definitions (140+). Claude loads these when relevant to the current task. Mega-skills (mega-seo, mega-design, mega-testing, mega-marketing, mega-saas, mega-devops) bundle related sub-skills with a router.
+- **skills/** -- On-demand skill definitions (140+). Claude loads these when relevant to the current task. CCC domains (ccc-seo, ccc-design, ccc-testing, ccc-marketing, ccc-saas, ccc-devops) bundle related sub-skills with a router.
 - **commands/** -- Slash commands (55+) like `/init`, `/plan`, `/verify`, `/tdd`, `/code-review`, `/checkpoint`.
 - **hooks/** -- Lifecycle automation scripts (Node.js). PreToolUse, PostToolUse, Stop, and other lifecycle events. Registered in `hooks.json`.
 - **templates/** -- Project starter templates for common stacks (Next.js + shadcn, Turborepo fullstack, marketing site).

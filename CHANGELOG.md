@@ -9,12 +9,12 @@ All notable changes to CC Commander will be documented in this file.
 - **Security Hardening** (CC-42): 16-point hardening pass — kevin/ directory untracked from git, GraphQL injection fix in Linear queries, state file permission lockdown
 - **SVG Visual Overhaul**: 8 new SVG graphics across all README sections — screenshot, flow diagram, components table, YOLO mode, stats dashboard, before/after comparison
 - **PNG Conversion**: All 8 SVGs converted to PNG for GitHub mobile compatibility (SVG rendering blocked on mobile)
-- **Branding Cleanup**: OG image updated from "CC BIBLE" to "CC COMMANDER", Japanese katakana removed (ASCII binary rain), all stats updated (280+ skills, 10 mega-skills, 88+ commands, 37 hooks)
+- **Branding Cleanup**: OG image updated from "CC BIBLE" to "CC COMMANDER", Japanese katakana removed (ASCII binary rain), all stats updated (280+ skills, 10 CCC domains, 88+ commands, 37 hooks)
 - **Repo Migration Complete**: All references updated from k3v80/claude-code-bible to KevinZai/cc-commander
 - **Cowork Plugin**: Claude Desktop integration with 4 skills for autonomous mode
 - **18 E2E Path Tests**: Commander test suite with 101 total test assertions
 - **Plugin Orchestration**: Auto-detection and sequencing of gstack, CE, Superpowers plugins
-- **Mega-Skill Browser**: Dynamic scan of 10 mega-skills with 190+ sub-skills
+- **CCC Domain Browser**: Dynamic scan of 10 CCC domains with 190+ sub-skills
 - **Knowledge Compounding Engine**: Learns from every session, injects lessons into future dispatches
 - **YOLO Mode**: 10-question overnight autonomous build with Opus, $10 budget, self-testing loop
 - **9 Workflow Modes**: normal, design, saas, marketing, research, writing, night, yolo, unhinged
@@ -157,11 +157,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-03-28
 
 ### Added
-- **4 new mega-skills** with 32 sub-skills:
-  - `mega-research` (8 skills) — deep research, literature review, competitive analysis, citation management, data synthesis, source validation
-  - `mega-mobile` (7 skills) — iOS/Swift, Android/Kotlin, React Native, Flutter, cross-platform patterns, app store optimization
-  - `mega-security` (9 skills) — OWASP top 10, supply chain security, secrets management, threat modeling, security headers, auth hardening, API security, incident response, compliance frameworks
-  - `mega-data` (8 skills) — ETL pipelines, data warehousing, analytics engineering, visualization, ML ops, data quality, streaming, governance
+- **4 new CCC domains** with 32 sub-skills:
+  - `ccc-research` (8 skills) — deep research, literature review, competitive analysis, citation management, data synthesis, source validation
+  - `ccc-mobile` (7 skills) — iOS/Swift, Android/Kotlin, React Native, Flutter, cross-platform patterns, app store optimization
+  - `ccc-security` (9 skills) — OWASP top 10, supply chain security, secrets management, threat modeling, security headers, auth hardening, API security, incident response, compliance frameworks
+  - `ccc-data` (8 skills) — ETL pipelines, data warehousing, analytics engineering, visualization, ML ops, data quality, streaming, governance
 - **9 workflow modes** via `mode-switcher` skill — normal, design, saas, marketing, research, writing, night, yolo, unhinged. Switch entire development persona with `/cc mode <name>`
 - **35+ prompt templates** across 6 categories (coding, planning, design, marketing, devops, meta) in `prompts/` directory. Access via `/cc prompts`
 - **2 new kit-native hooks** (15 total):
@@ -183,7 +183,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-03-27
 
 ### Added
-- 220+ skills organized by category with 6 mega-skills (mega-seo, mega-design, mega-testing, mega-marketing, mega-saas, mega-devops)
+- 220+ skills organized by category with 6 CCC domains (ccc-seo, ccc-design, ccc-testing, ccc-marketing, ccc-saas, ccc-devops)
 - 84+ slash commands for common workflows
 - 23 lifecycle hooks (PreToolUse, PostToolUse, Stop)
 - 3 starter templates (Next.js + shadcn, Turborepo fullstack, marketing site)
@@ -249,7 +249,7 @@ Built by Kevin Z. Incorporates patterns and best practices from 200+ community s
 ### Added
 - **YOLO Mode** — 10-question spec interview → autonomous build (Opus, max effort, $10, 100 turns, self-testing)
 - **YOLO Loop** — 3-10 cycles of build → review → improve → compound. Status checkpoints to ~/.claude/commander/yolo-status.txt
-- **Mega-Skill Browser** — explore all 10 mega-skills (200+ sub-skills) with one-click dispatch
+- **CCC Domain Browser** — explore all 10 CCC domains (200+ sub-skills) with one-click dispatch
 - **Cowork Plugin v2** — 4 skills with full references (skill-catalog.md, orchestration.md), YOLO Mode skill, 12KB package
 - **Knowledge compounding** — auto-extracts lessons from every session, injects relevant past experience into future dispatches
 - **Plugin orchestration** — auto-detects gstack, CE, Superpowers, ECC, Simone; maps to 8-step build pipeline
@@ -258,9 +258,9 @@ Built by Kevin Z. Incorporates patterns and best practices from 200+ community s
 
 ### Changed
 - Self-test: 22 checks (up from 21)
-- Adventures: 11 files (mega-skills.json added)
+- Adventures: 11 files (CCC domains.json added)
 - Main menu: 12 choices (YOLO Mode added)
-- README: 484 lines with YOLO Mode, Cowork plugin, mega-skill catalog ASCII art
+- README: 484 lines with YOLO Mode, Cowork plugin, CCC domain catalog ASCII art
 - Cowork plugin: 12KB with references
 
 ### The Overnight Build

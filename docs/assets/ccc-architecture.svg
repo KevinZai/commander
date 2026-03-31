@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 680" width="920" height="680">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#0088cc"/>
+    </linearGradient>
+    <linearGradient id="magentaGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff00ff"/>
+      <stop offset="100%" stop-color="#cc00aa"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00ff88"/>
+      <stop offset="100%" stop-color="#00cc66"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="920" height="680" fill="url(#bgGrad)" rx="12"/>
+
+  <!-- Terminal chrome -->
+  <rect x="0" y="0" width="920" height="32" fill="#21262d" rx="12"/>
+  <rect x="0" y="12" width="920" height="20" fill="#21262d"/>
+  <circle cx="20" cy="16" r="6" fill="#ff5f56"/>
+  <circle cx="40" cy="16" r="6" fill="#ffbd2e"/>
+  <circle cx="60" cy="16" r="6" fill="#27c93f"/>
+  <text x="460" y="20" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="12">CCC Architecture</text>
+
+  <!-- Title -->
+  <text x="460" y="62" text-anchor="middle" fill="#00d4ff" font-family="monospace" font-size="16" font-weight="bold" filter="url(#glow)">CC Commander -- Pipeline Architecture</text>
+
+  <!-- User Input box -->
+  <rect x="360" y="80" width="200" height="40" rx="8" fill="none" stroke="#00d4ff" stroke-width="2"/>
+  <text x="460" y="105" text-anchor="middle" fill="#00d4ff" font-family="monospace" font-size="13">User Input</text>
+
+  <!-- Arrow down -->
+  <line x1="460" y1="120" x2="460" y2="148" stroke="#484f58" stroke-width="2" marker-end="url(#arrowDown)"/>
+  <defs><marker id="arrowDown" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#484f58"/></marker></defs>
+
+  <!-- CCC Engine -->
+  <rect x="330" y="148" width="260" height="44" rx="8" fill="#161b22" stroke="#ff00ff" stroke-width="2"/>
+  <text x="460" y="175" text-anchor="middle" fill="#ff00ff" font-family="monospace" font-size="14" font-weight="bold" filter="url(#glow)">CCC Engine</text>
+
+  <!-- Three router boxes -->
+  <line x1="380" y1="192" x2="200" y2="230" stroke="#484f58" stroke-width="1.5"/>
+  <line x1="460" y1="192" x2="460" y2="230" stroke="#484f58" stroke-width="1.5"/>
+  <line x1="540" y1="192" x2="720" y2="230" stroke="#484f58" stroke-width="1.5"/>
+
+  <!-- Adventure Router -->
+  <rect x="100" y="230" width="200" height="36" rx="6" fill="#161b22" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="200" y="253" text-anchor="middle" fill="#c9d1d9" font-family="monospace" font-size="11">Adventure Router</text>
+
+  <!-- Skill Router -->
+  <rect x="360" y="230" width="200" height="36" rx="6" fill="#161b22" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="460" y="253" text-anchor="middle" fill="#c9d1d9" font-family="monospace" font-size="11">Skill Router</text>
+
+  <!-- Dispatch Router -->
+  <rect x="620" y="230" width="200" height="36" rx="6" fill="#161b22" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="720" y="253" text-anchor="middle" fill="#c9d1d9" font-family="monospace" font-size="11">Dispatch Router</text>
+
+  <!-- Converge arrows -->
+  <line x1="200" y1="266" x2="380" y2="306" stroke="#484f58" stroke-width="1.5"/>
+  <line x1="460" y1="266" x2="460" y2="306" stroke="#484f58" stroke-width="1.5"/>
+  <line x1="720" y1="266" x2="540" y2="306" stroke="#484f58" stroke-width="1.5"/>
+
+  <!-- Orchestrator (scoring) -->
+  <rect x="330" y="306" width="260" height="44" rx="8" fill="#161b22" stroke="#00ff88" stroke-width="2"/>
+  <text x="460" y="333" text-anchor="middle" fill="#00ff88" font-family="monospace" font-size="13" font-weight="bold">Orchestrator (Scoring)</text>
+
+  <!-- Two source boxes -->
+  <line x1="390" y1="350" x2="260" y2="385" stroke="#484f58" stroke-width="1.5"/>
+  <line x1="530" y1="350" x2="660" y2="385" stroke="#484f58" stroke-width="1.5"/>
+
+  <!-- Vendor Scanner -->
+  <rect x="130" y="385" width="260" height="36" rx="6" fill="#161b22" stroke="#ff00ff" stroke-width="1.5"/>
+  <text x="260" y="408" text-anchor="middle" fill="#c9d1d9" font-family="monospace" font-size="11">Vendor Scanner (GitHub/Social)</text>
+
+  <!-- Built-in Skills -->
+  <rect x="530" y="385" width="260" height="36" rx="6" fill="#161b22" stroke="#ff00ff" stroke-width="1.5"/>
+  <text x="660" y="408" text-anchor="middle" fill="#c9d1d9" font-family="monospace" font-size="11">Built-in (280+ Skills)</text>
+
+  <!-- Converge -->
+  <line x1="260" y1="421" x2="400" y2="455" stroke="#484f58" stroke-width="1.5"/>
+  <line x1="660" y1="421" x2="520" y2="455" stroke="#484f58" stroke-width="1.5"/>
+
+  <!-- Dispatcher -->
+  <rect x="330" y="455" width="260" height="44" rx="8" fill="#161b22" stroke="#00d4ff" stroke-width="2"/>
+  <text x="460" y="482" text-anchor="middle" fill="#00d4ff" font-family="monospace" font-size="13" font-weight="bold">Dispatcher (acpx/claude)</text>
+
+  <!-- Arrow down -->
+  <line x1="460" y1="499" x2="460" y2="527" stroke="#484f58" stroke-width="2"/>
+
+  <!-- Verification -->
+  <rect x="330" y="527" width="260" height="44" rx="8" fill="#161b22" stroke="#00ff88" stroke-width="2"/>
+  <text x="460" y="554" text-anchor="middle" fill="#00ff88" font-family="monospace" font-size="13" font-weight="bold">Verification Loop</text>
+
+  <!-- Arrow down -->
+  <line x1="460" y1="571" x2="460" y2="595" stroke="#484f58" stroke-width="2"/>
+
+  <!-- 8-Phase Pipeline -->
+  <rect x="60" y="595" width="800" height="52" rx="8" fill="#161b22" stroke="#ff00ff" stroke-width="2"/>
+  <text x="460" y="615" text-anchor="middle" fill="#ff00ff" font-family="monospace" font-size="12" font-weight="bold">8-Phase Pipeline</text>
+  <text x="460" y="635" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="10">Scan - Plan - Execute - Test - Review - Deploy - Monitor - Learn</text>
+
+  <!-- Knowledge Loop arrow (right side feedback) -->
+  <path d="M860,620 Q890,620 890,400 Q890,180 590,170" fill="none" stroke="#00ff88" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="895" y="400" fill="#00ff88" font-family="monospace" font-size="9" transform="rotate(-90,895,400)">Knowledge Loop</text>
+
+  <!-- Legend -->
+  <rect x="20" y="80" width="12" height="12" rx="2" fill="none" stroke="#00d4ff" stroke-width="2"/>
+  <text x="38" y="91" fill="#8b949e" font-family="monospace" font-size="10">Input/Output</text>
+  <rect x="20" y="100" width="12" height="12" rx="2" fill="none" stroke="#ff00ff" stroke-width="2"/>
+  <text x="38" y="111" fill="#8b949e" font-family="monospace" font-size="10">Processing</text>
+  <rect x="20" y="120" width="12" height="12" rx="2" fill="none" stroke="#00ff88" stroke-width="2"/>
+  <text x="38" y="131" fill="#8b949e" font-family="monospace" font-size="10">Verification</text>
+</svg>

@@ -3,8 +3,8 @@ name: spec-interview
 description: "Structured 5-7 question interview to create detailed project specifications before writing any code."
 version: 1.0.0
 category: research
-parent: mega-research
-tags: [mega-research, planning, specifications]
+parent: ccc-research
+tags: [ccc-research, planning, specifications]
 disable-model-invocation: true
 ---
 

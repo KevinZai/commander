@@ -3,8 +3,8 @@ name: reporting
 description: "Automated report generation and scheduling — PDF reports, email digests, Slack summaries, and data exports."
 version: 1.0.0
 category: data
-parent: mega-data
-tags: [mega-data, reporting, automation, scheduling]
+parent: ccc-data
+tags: [ccc-data, reporting, automation, scheduling]
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,6 @@
 # KZ Mega-Testing — Architecture
 
-This mega-skill contains 15 testing specialist skills covering the full testing lifecycle.
+This CCC domain contains 15 testing specialist skills covering the full testing lifecycle.
 
 ## Skill Map
 

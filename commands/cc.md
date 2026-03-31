@@ -65,7 +65,7 @@ When showing the main menu, display:
 
   🔧 BUILD                    📋 PLAN
   [1]  Skills Browser          [6]  Grill (Socratic)
-  [2]  Mega-Skills             [7]  Confidence Check
+  [2]  CCC Domains             [7]  Confidence Check
   [3]  Prompts Library         [8]  Mode Switcher
 
   ⚙️  CONFIGURE                🤝 COLLABORATE
@@ -91,7 +91,7 @@ When showing the main menu, display:
 Ask the user which option they'd like. Wait for their response.
 
 **Mapping old numbers to new layout:**
-- Old [1-2] → New [1-2] (Skills, Mega-Skills)
+- Old [1-2] → New [1-2] (Skills, CCC Domains)
 - Old [3] Settings → New [9] Settings Editor
 - Old [4] Grill → New [6]
 - Old [5] Confidence → New [7]
@@ -113,24 +113,24 @@ Read `~/.claude/SKILLS-INDEX.md` and present skills organized by category. Show:
 - Each skill name + one-line description
 - Navigation: "Type a skill name to load it, or 'back' for menu"
 
-## [2] Mega-Skills (`/cc mega [name]`)
+## [2] CCC Domains (`/cc mega [name]`)
 
-If no name given, show all 10 mega-skills with their sub-skill counts:
+If no name given, show all 10 CCC domains with their sub-skill counts:
 
-| Mega-Skill | Skills | Domain |
+| CCC Domain | Skills | Domain |
 |------------|--------|--------|
-| `mega-seo` | 19 | SEO, AI search, content, analytics |
-| `mega-design` | 35+ | Animations, effects, design systems, polish |
-| `mega-testing` | 15 | TDD, E2E, verification, QA, regression |
-| `mega-marketing` | 46 | Content, CRO, channels, growth, sales |
-| `mega-saas` | 20 | Auth, billing, DB, API, frontend, metrics |
-| `mega-devops` | 20 | CI/CD, Docker, AWS, monitoring, Terraform |
-| `mega-research` | 8 | Deep research, spec interviews, competitive analysis |
-| `mega-mobile` | 8 | React Native, Flutter, SwiftUI, Jetpack Compose |
-| `mega-security` | 8 | Security audits, OWASP, dependency scanning |
-| `mega-data` | 8 | Data pipelines, SQL, ML, vector search |
+| `ccc-seo` | 19 | SEO, AI search, content, analytics |
+| `ccc-design` | 35+ | Animations, effects, design systems, polish |
+| `ccc-testing` | 15 | TDD, E2E, verification, QA, regression |
+| `ccc-marketing` | 46 | Content, CRO, channels, growth, sales |
+| `ccc-saas` | 20 | Auth, billing, DB, API, frontend, metrics |
+| `ccc-devops` | 20 | CI/CD, Docker, AWS, monitoring, Terraform |
+| `ccc-research` | 8 | Deep research, spec interviews, competitive analysis |
+| `ccc-mobile` | 8 | React Native, Flutter, SwiftUI, Jetpack Compose |
+| `ccc-security` | 8 | Security audits, OWASP, dependency scanning |
+| `ccc-data` | 8 | Data pipelines, SQL, ML, vector search |
 
-If name given (e.g., `/cc mega seo`), read the mega-skill's SKILL.md and list all sub-skills with descriptions.
+If name given (e.g., `/cc mega seo`), read the CCC domain's SKILL.md and list all sub-skills with descriptions.
 
 ## [3] Settings (`/cc settings`)
 
@@ -198,14 +198,14 @@ Switch between 9 optimized workflow modes. Each mode configures which skills to 
 | Mode | Permission | Loads | Key Behavior |
 |------|-----------|-------|-------------|
 | `normal` | acceptEdits | — | Default balanced workflow |
-| `design` | acceptEdits | mega-design | Visual-first, animations, Impeccable suite |
-| `saas` | acceptEdits | mega-saas + mega-devops | Full-stack: auth, billing, DB, CI/CD |
-| `marketing` | acceptEdits | mega-marketing + mega-seo | Content, SEO, CRO, copywriting |
-| `research` | acceptEdits | mega-research | Parallel agents, extended thinking, citations |
+| `design` | acceptEdits | ccc-design | Visual-first, animations, Impeccable suite |
+| `saas` | acceptEdits | ccc-saas + ccc-devops | Full-stack: auth, billing, DB, CI/CD |
+| `marketing` | acceptEdits | ccc-marketing + ccc-seo | Content, SEO, CRO, copywriting |
+| `research` | acceptEdits | ccc-research | Parallel agents, extended thinking, citations |
 | `writing` | acceptEdits | — | Prose-focused, minimal tech noise |
 | `night` | autoAccept | all relevant | Autonomous: auto-checkpoints, self-verify, /save-session before compact |
 | `yolo` | autoAccept | user's choice | Max speed, skip confirmations, hooks as safety net |
-| `unhinged` | autoAccept | all mega-skills | YOLO + max creativity, aggressive testing, bold moves |
+| `unhinged` | autoAccept | all CCC domains | YOLO + max creativity, aggressive testing, bold moves |
 
 If no mode specified, show all 9 and ask which they want.
 
@@ -275,7 +275,7 @@ Show a compact version of the most-used commands:
 | `/cc confidence` | Pre-execution confidence check |
 | `/cc mode <name>` | Switch workflow mode (9 modes) |
 | `/cc prompts [cat]` | Browse 36+ prompt templates |
-| `/cc mega [name]` | Explore 10 mega-skill packs |
+| `/cc mega [name]` | Explore 10 CCC domain packs |
 | `/spawn` | Spawn multiple Claude Code peers |
 | `/peers` | Discover and message other instances |
 
@@ -417,12 +417,12 @@ Compact one-screen reference card:
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   TOP COMMANDS          MEGA-SKILLS
-  /plan  — plan first   mega-seo (19)
-  /verify — check work  mega-design (35+)
-  /tdd   — TDD flow     mega-testing (15)
-  /cc    — this menu    mega-marketing (46)
-  /init  — project wiz  mega-saas (20)
-  /checkpoint — save    mega-devops (20)
+  /plan  — plan first   ccc-seo (19)
+  /verify — check work  ccc-design (35+)
+  /tdd   — TDD flow     ccc-testing (15)
+  /cc    — this menu    ccc-marketing (46)
+  /init  — project wiz  ccc-saas (20)
+  /checkpoint — save    ccc-devops (20)
 
   MODES                 PROMPT CATEGORIES
   normal design saas    coding (10)
@@ -464,7 +464,7 @@ Display session stats and gamification data from `~/.claude/kit-stats.json`:
 1. **Session stats**: tool calls, files modified, lines +/-, cost, duration
 2. **Daily streak**: read from kit-stats.json, display with `cc_streak_display()`
 3. **Achievements**: show unlocked badges with descriptions, locked ones as ???
-   - Possible badges: First Commit, First Verify, 10/50/100 Tool Calls, Mega Skill User, Night Mode Survivor, 3/7/30 Day Streak, Celebration King, Budget Master
+   - Possible badges: First Commit, First Verify, 10/50/100 Tool Calls, CCC Domain User, Night Mode Survivor, 3/7/30 Day Streak, Celebration King, Budget Master
 4. **Progress**: show progress toward next achievement
 5. **Fun rank title**: based on total sessions — "Terminal Apprentice" → "Code Wrangler" → "CLI Wizard" → "Context Sovereign"
 

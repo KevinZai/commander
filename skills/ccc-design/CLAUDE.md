@@ -1,6 +1,6 @@
 # KZ Mega-Design — Architecture
 
-This mega-skill contains 35+ design specialist skills organized into 5 tiers.
+This CCC domain contains 35+ design specialist skills organized into 5 tiers.
 
 ## Skill Map
 

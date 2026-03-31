@@ -3,7 +3,7 @@ name: Load Testing
 description: "Load testing with k6 and Artillery — scripts, scenarios, thresholds, CI integration, bottleneck analysis."
 version: 1.0.0
 category: testing
-parent: mega-testing
+parent: ccc-testing
 ---
 
 # Load Testing

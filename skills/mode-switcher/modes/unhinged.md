@@ -9,18 +9,18 @@ disable-model-invocation: true
 
 ## Overview
 
-Everything YOLO offers — plus maximum creative freedom and the full mega-skill arsenal. Claude makes bold architectural choices, aggressively refactors, rewrites modules that deserve it, and pushes boundaries. The counterbalance: comprehensive testing to catch every breakage.
+Everything YOLO offers — plus maximum creative freedom and the full CCC domain arsenal. Claude makes bold architectural choices, aggressively refactors, rewrites modules that deserve it, and pushes boundaries. The counterbalance: comprehensive testing to catch every breakage.
 
 The philosophy: **move fast, break nothing.** The "break nothing" part is non-negotiable and enforced through exhaustive test coverage.
 
 ## Skills Loaded
 
-**All mega-skills:**
-- `mega-saas` — Full SaaS stack
-- `mega-design` — Full design ecosystem
-- `mega-devops` — Full DevOps suite
-- `mega-marketing` + `mega-seo` — Marketing and SEO
-- `mega-testing` — Comprehensive testing (always active, non-negotiable)
+**All CCC domains:**
+- `ccc-saas` — Full SaaS stack
+- `ccc-design` — Full design ecosystem
+- `ccc-devops` — Full DevOps suite
+- `ccc-marketing` + `ccc-seo` — Marketing and SEO
+- `ccc-testing` — Comprehensive testing (always active, non-negotiable)
 
 **Critical supporting skills (always active):**
 - `verification-loop` — Self-verification after every major change
@@ -46,14 +46,14 @@ The philosophy: **move fast, break nothing.** The "break nothing" part is non-ne
 | Hook | Priority | Reason |
 |------|----------|--------|
 | auto-checkpoint | Critical | Bold changes need rollback points — checkpoint before every major refactor |
-| context-guard | Critical | All mega-skills loaded means massive context pressure |
+| context-guard | Critical | All CCC domains loaded means massive context pressure |
 | cost-alert | Critical | Aggressive execution with all skills loaded burns tokens fast |
 | confidence-gate | Suppressed | Unhinged mode — trust the tests, not the confidence score |
 | session-coach | Suppressed | Maximum autonomy — no coaching interruptions |
 
 ## Context Strategy
 
-- **Pre-flight check:** Verify context is below 35% before entering — ALL mega-skills loaded, need maximum headroom
+- **Pre-flight check:** Verify context is below 35% before entering — ALL CCC domains loaded, need maximum headroom
 - **Compact threshold:** Compact at 55% — aggressive compaction to sustain the session
 - **Before compacting:** Checkpoint git, save session, write progress notes
 - **Priority in context:** Active task files, test files, architectural patterns being modified
@@ -61,7 +61,7 @@ The philosophy: **move fast, break nothing.** The "break nothing" part is non-ne
 
 ## Pre-flight Checklist
 
-- [ ] Confirm context usage is below 35% (all mega-skills require maximum headroom)
+- [ ] Confirm context usage is below 35% (all CCC domains require maximum headroom)
 - [ ] Git working tree is clean
 - [ ] Full test suite passes before entering (baseline for "break nothing")
 - [ ] Auto-accept permissions are enabled

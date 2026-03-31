@@ -3,8 +3,8 @@ name: analytics-setup
 description: "Implement product analytics with PostHog, Mixpanel, or GA4 — event tracking, funnels, cohorts, and dashboards."
 version: 1.0.0
 category: data
-parent: mega-data
-tags: [mega-data, analytics, posthog, mixpanel, ga4]
+parent: ccc-data
+tags: [ccc-data, analytics, posthog, mixpanel, ga4]
 disable-model-invocation: true
 ---
 

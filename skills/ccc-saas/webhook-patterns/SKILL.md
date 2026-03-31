@@ -2,7 +2,7 @@
 name: KZ Mega-SaaS
 description: "Webhook implementation patterns -- receiving with signature verification, sending with retries, idempotency, event storage, dead letter queues, local testing"
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
 ---
 

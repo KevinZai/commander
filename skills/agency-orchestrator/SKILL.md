@@ -43,9 +43,9 @@ Once connected, you get 6 tools:
 
 ## Usage with CC Commander Skills
 
-Combine with mega-skills for powerful workflows:
+Combine with CCC domains for powerful workflows:
 
-1. **Research Pipeline**: mega-research skills as parallel tasks → synthesis task
+1. **Research Pipeline**: ccc-research skills as parallel tasks → synthesis task
 2. **Code Review Pipeline**: security-audit + code-review + type-check in parallel → merge gate
 3. **Deploy Pipeline**: build → test (parallel: unit + e2e + security) → deploy → verify
 

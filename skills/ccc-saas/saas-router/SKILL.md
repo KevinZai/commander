@@ -2,7 +2,7 @@
 name: KZ Mega-SaaS
 description: "Routes SaaS development requests to the right specialist skill within KZ Mega-SaaS"
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
 ---
 

@@ -13,9 +13,9 @@ Optimizes Claude for building and maintaining SaaS products end-to-end. Loads th
 
 ## Skills Loaded
 
-**Primary mega-skills:**
-- `mega-saas` — 20 SaaS specialist skills (scaffold, auth, billing, DB, API, frontend, growth, multi-tenant, feature flags)
-- `mega-devops` — CI/CD, infrastructure, monitoring, deployment, container security
+**Primary CCC domains:**
+- `ccc-saas` — 20 SaaS specialist skills (scaffold, auth, billing, DB, API, frontend, growth, multi-tenant, feature flags)
+- `ccc-devops` — CI/CD, infrastructure, monitoring, deployment, container security
 
 **Key sub-skills surfaced:**
 - `saas-scaffolder` — End-to-end project scaffolding
@@ -54,14 +54,14 @@ Optimizes Claude for building and maintaining SaaS products end-to-end. Loads th
 
 ## Context Strategy
 
-- **Pre-flight check:** Verify context is below 50% before entering — two mega-skills are loaded
-- **Compact threshold:** Compact at 65% to preserve room for both mega-skill instructions
+- **Pre-flight check:** Verify context is below 50% before entering — two CCC domains are loaded
+- **Compact threshold:** Compact at 65% to preserve room for both CCC domain instructions
 - **Priority in context:** Schema files, API routes, auth config, billing handlers, environment config
 - **Deprioritize:** Marketing copy, design polish, documentation (unless directly relevant)
 
 ## Pre-flight Checklist
 
-- [ ] Confirm context usage is below 50% (two mega-skills require headroom)
+- [ ] Confirm context usage is below 50% (two CCC domains require headroom)
 - [ ] Identify the existing stack (framework, DB, auth provider, billing provider)
 - [ ] Check for `.env` / environment configuration (never commit secrets)
 - [ ] Verify database connection and migration status

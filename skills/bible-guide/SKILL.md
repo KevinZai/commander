@@ -13,11 +13,11 @@ version: "1.2"
 
 ## Welcome
 
-CC Commander is a comprehensive toolkit: **280+ skills**, **10 mega-skills**, **88+ commands**, **37 hooks**, **9 workflow modes**, and **36+ prompt templates**. That is a lot. This guide helps you find exactly what you need without reading everything.
+CC Commander is a comprehensive toolkit: **280+ skills**, **10 CCC domains**, **88+ commands**, **37 hooks**, **9 workflow modes**, and **36+ prompt templates**. That is a lot. This guide helps you find exactly what you need without reading everything.
 
 **How this guide works:**
 1. Tell me what you are building (Skill Discovery Wizard below)
-2. I suggest the right mega-skills, modes, and commands
+2. I suggest the right CCC domains, modes, and commands
 3. You start building immediately
 
 ---
@@ -26,16 +26,16 @@ CC Commander is a comprehensive toolkit: **280+ skills**, **10 mega-skills**, **
 
 Answer one question: **What are you building?**
 
-| If you are building... | Start with this mode | Load this mega-skill | First command to run |
+| If you are building... | Start with this mode | Load this CCC domain | First command to run |
 |------------------------|---------------------|---------------------|---------------------|
-| A landing page or marketing site | `design` | `mega-design` | `/init` then `/cc mode design` |
-| A SaaS product | `saas` | `mega-saas` | `/init` then `/cc mode saas` |
-| A REST API or backend service | `normal` | `mega-saas` | `/init` then `/plan` |
-| A mobile app (iOS/Android) | `normal` | `mega-mobile` | `/init` then load `mega-mobile` |
+| A landing page or marketing site | `design` | `ccc-design` | `/init` then `/cc mode design` |
+| A SaaS product | `saas` | `ccc-saas` | `/init` then `/cc mode saas` |
+| A REST API or backend service | `normal` | `ccc-saas` | `/init` then `/plan` |
+| A mobile app (iOS/Android) | `normal` | `ccc-mobile` | `/init` then load `ccc-mobile` |
 | A CLI tool or library | `normal` | none needed | `/init` then `/plan` |
-| Marketing content or SEO | `marketing` | `mega-marketing` + `mega-seo` | `/cc mode marketing` |
-| DevOps / CI/CD / infrastructure | `normal` | `mega-devops` | load `mega-devops` |
-| Research or competitive analysis | `research` | `mega-research` | `/cc mode research` |
+| Marketing content or SEO | `marketing` | `ccc-marketing` + `ccc-seo` | `/cc mode marketing` |
+| DevOps / CI/CD / infrastructure | `normal` | `ccc-devops` | load `ccc-devops` |
+| Research or competitive analysis | `research` | `ccc-research` | `/cc mode research` |
 | An overnight batch job | `night` | `overnight-runner` | `/cc mode night` |
 | A quick prototype or demo | `yolo` | stack-specific only | `/cc mode yolo` |
 
@@ -68,7 +68,7 @@ That is it. Four commands. You are now using CC Commander effectively.
 
 ---
 
-### Intermediate: Modes, Mega-Skills, Prompts, Hooks
+### Intermediate: Modes, CCC Domains, Prompts, Hooks
 
 Once you are comfortable with the basics, unlock these capabilities:
 
@@ -85,18 +85,18 @@ Switch your entire workflow persona with one command:
 /cc mode yolo            # Max speed: skip confirmations, auto-approve
 ```
 
-#### Mega-Skills
+#### CCC Domains
 
-Load ONE mega-skill to get an entire domain. Each mega-skill bundles 8-46 specialist skills behind a single router:
+Load ONE CCC domain to get an entire domain. Each CCC domain bundles 8-46 specialist skills behind a single router:
 
 ```
-# Load a mega-skill by name
-"use mega-design skill"
-"use mega-saas skill"
-"use mega-devops skill"
+# Load a CCC domain by name
+"use ccc-design skill"
+"use ccc-saas skill"
+"use ccc-devops skill"
 ```
 
-The router inside each mega-skill dispatches your request to the right specialist automatically.
+The router inside each CCC domain dispatches your request to the right specialist automatically.
 
 #### Prompt Templates
 
@@ -172,16 +172,16 @@ Skills are just markdown files in `~/.claude/skills/your-skill/SKILL.md` with YA
 
 | Category | Skills/Commands | Example Use Case |
 |----------|----------------|-----------------|
-| **Project Setup** | `/init`, `mega-saas`, `saas-scaffolder` | Start a new Next.js SaaS from scratch |
-| **Frontend/UI** | `mega-design`, `frontend-design`, `shadcn-ui` | Build a landing page with animations |
-| **Backend/API** | `mega-saas`, `api-design`, `backend-patterns` | Design a REST API with auth and billing |
-| **Mobile** | `mega-mobile`, `react-native`, `flutter` | Build a cross-platform mobile app |
-| **Testing** | `mega-testing`, `/tdd`, `/e2e`, `/verify` | Set up TDD workflow with full coverage |
-| **DevOps** | `mega-devops`, `docker-development`, `aws-*` | Configure CI/CD pipeline with Docker |
-| **SEO/Marketing** | `mega-seo`, `mega-marketing`, `aaio` | Optimize site for search engines and AI |
-| **Security** | `mega-security`, `pentest-checklist`, `harden` | Run a security audit on your app |
-| **Data/Analytics** | `mega-data`, `database-designer`, `analytics-*` | Design a data pipeline with dashboards |
-| **Research** | `mega-research`, `/cc mode research` | Competitive analysis with citations |
+| **Project Setup** | `/init`, `ccc-saas`, `saas-scaffolder` | Start a new Next.js SaaS from scratch |
+| **Frontend/UI** | `ccc-design`, `frontend-design`, `shadcn-ui` | Build a landing page with animations |
+| **Backend/API** | `ccc-saas`, `api-design`, `backend-patterns` | Design a REST API with auth and billing |
+| **Mobile** | `ccc-mobile`, `react-native`, `flutter` | Build a cross-platform mobile app |
+| **Testing** | `ccc-testing`, `/tdd`, `/e2e`, `/verify` | Set up TDD workflow with full coverage |
+| **DevOps** | `ccc-devops`, `docker-development`, `aws-*` | Configure CI/CD pipeline with Docker |
+| **SEO/Marketing** | `ccc-seo`, `ccc-marketing`, `aaio` | Optimize site for search engines and AI |
+| **Security** | `ccc-security`, `pentest-checklist`, `harden` | Run a security audit on your app |
+| **Data/Analytics** | `ccc-data`, `database-designer`, `analytics-*` | Design a data pipeline with dashboards |
+| **Research** | `ccc-research`, `/cc mode research` | Competitive analysis with citations |
 | **Code Quality** | `/code-review`, `coding-standards`, `refactor-clean` | Review and clean up existing code |
 | **Debugging** | `systematic-debugging`, `/build-fix` | Track down and fix a complex bug |
 
@@ -218,13 +218,13 @@ Step 1: /init
 Step 2: /cc mode design
    → Activates design-first workflow
 
-Step 3: "use mega-design skill"
+Step 3: "use ccc-design skill"
    → Loads 35+ design skills behind the router
 
 Step 4: "Build a landing page for a SaaS product called Acme.
          Hero section with gradient animation, features grid,
          pricing table, and CTA with hover effects."
-   → mega-design routes to landing-page-builder + animate + colorize
+   → ccc-design routes to landing-page-builder + animate + colorize
 
 Step 5: /verify
    → Checks: responsive, accessible, fast, no console errors
@@ -270,7 +270,7 @@ Step 6: /checkpoint
 **Goal:** Configure GitHub Actions with Docker, tests, and deployment.
 
 ```
-Step 1: "use mega-devops skill"
+Step 1: "use ccc-devops skill"
    → Loads 20 DevOps skills behind the router
 
 Step 2: "Set up a CI/CD pipeline with GitHub Actions.
@@ -305,7 +305,7 @@ Step 6: /checkpoint
 | [guides/quickstart-beginner.md](../../guides/quickstart-beginner.md) | Complete beginner guide — installation to first project | If you have never used Claude Code before |
 | [guides/quickstart-frontend.md](../../guides/quickstart-frontend.md) | Frontend developer guide — design mode, React/Vue/Svelte/Next.js | If you primarily build frontends |
 | [guides/quickstart-backend.md](../../guides/quickstart-backend.md) | Backend developer guide — SaaS mode, APIs, databases | If you primarily build backends |
-| [guides/quickstart-fullstack.md](../../guides/quickstart-fullstack.md) | Full-stack guide — mode switching, combined mega-skills | If you build both frontend and backend |
+| [guides/quickstart-fullstack.md](../../guides/quickstart-fullstack.md) | Full-stack guide — mode switching, combined CCC domains | If you build both frontend and backend |
 | [guides/quickstart-mobile.md](../../guides/quickstart-mobile.md) | Mobile developer guide — React Native, Flutter, SwiftUI | If you build mobile apps |
 
 ---
@@ -314,7 +314,7 @@ Step 6: /checkpoint
 
 1. **Start with `/init`** — it detects your stack and configures everything automatically
 2. **Use modes** — they change Claude's entire behavior to match your workflow
-3. **Load mega-skills, not individual skills** — the router picks the right specialist
+3. **Load CCC domains, not individual skills** — the router picks the right specialist
 4. **Use `/plan` before building** — plans prevent wasted tokens and wrong-direction work
 5. **Always `/verify` before done** — catches errors before they reach production
 6. **Use `/compact` when context gets long** — keeps quality high by freeing context space

@@ -4,14 +4,14 @@
 
 ---
 
-## Relevant Mega-Skills
+## Relevant CCC Domains
 
 ### Mega-Mobile (Primary)
 
 Load the entire mobile development domain with one command:
 
 ```
-use mega-mobile skill
+use ccc-mobile skill
 ```
 
 This gives you access to **8 specialist skills** through a single router:
@@ -32,20 +32,20 @@ This gives you access to **8 specialist skills** through a single router:
 Tell Claude what you are building and which platform you target. The router dispatches to the right specialist automatically:
 
 ```
-use mega-mobile skill. I'm building a fitness tracking app
+use ccc-mobile skill. I'm building a fitness tracking app
 with React Native and Expo, targeting iOS and Android.
 ```
 
 The router selects `react-native` and configures for Expo + dual-platform.
 
-### Supporting Mega-Skills
+### Supporting CCC Domains
 
-For a complete mobile development experience, combine mega-mobile with:
+For a complete mobile development experience, combine ccc-mobile with:
 
 ```
-use mega-mobile skill     # Core mobile development
-use mega-design skill     # UI polish, animations, design systems
-use mega-testing skill    # Testing infrastructure
+use ccc-mobile skill     # Core mobile development
+use ccc-design skill     # UI polish, animations, design systems
+use ccc-testing skill    # Testing infrastructure
 ```
 
 ---
@@ -83,7 +83,7 @@ claude
 ```
 
 ```
-use mega-mobile skill, route to react-native
+use ccc-mobile skill, route to react-native
 
 Build a React Native app with Expo:
 - Expo Router for file-based navigation (tabs + stack + modal)
@@ -128,7 +128,7 @@ claude
 ```
 
 ```
-use mega-mobile skill, route to flutter
+use ccc-mobile skill, route to flutter
 
 Build a Flutter app with:
 - GoRouter for declarative navigation with deep linking
@@ -172,7 +172,7 @@ claude
 ```
 
 ```
-use mega-mobile skill, route to swiftui
+use ccc-mobile skill, route to swiftui
 
 Build a SwiftUI app with:
 - MVVM architecture with @Observable (iOS 17+)
@@ -220,7 +220,7 @@ claude
 ```
 
 ```
-use mega-mobile skill, route to jetpack-compose
+use ccc-mobile skill, route to jetpack-compose
 
 Build a Jetpack Compose app with:
 - Material Design 3 with dynamic color theming
@@ -371,7 +371,7 @@ Maestro works with React Native, Flutter, SwiftUI, and Compose — one test tool
 Load the ASO specialist:
 
 ```
-use mega-mobile skill, route to app-store-optimization
+use ccc-mobile skill, route to app-store-optimization
 ```
 
 ### App Store (iOS)
@@ -417,7 +417,7 @@ Optimize my Play Store listing for a [category] app:
 Load the push notification specialist:
 
 ```
-use mega-mobile skill, route to push-notifications
+use ccc-mobile skill, route to push-notifications
 ```
 
 ### Firebase Cloud Messaging (FCM) — Cross-Platform
@@ -461,7 +461,7 @@ Set up APNs for my SwiftUI app:
 Load the deep linking specialist:
 
 ```
-use mega-mobile skill, route to deep-linking
+use ccc-mobile skill, route to deep-linking
 ```
 
 ### Universal Links (iOS) + App Links (Android)
@@ -498,7 +498,7 @@ navigation structure, data requirements, offline needs.
 ### Phase 2: Scaffold
 
 ```
-use mega-mobile skill
+use ccc-mobile skill
 Scaffold the project with navigation, theming, and project structure.
 ```
 
@@ -513,7 +513,7 @@ Build the core feature with tests first.
 
 ```
 /cc mode design
-use mega-design skill
+use ccc-design skill
 Polish the UI: animations, transitions, loading states, empty states,
 error states, pull-to-refresh, haptic feedback.
 ```

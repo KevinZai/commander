@@ -3,7 +3,7 @@ name: CI/CD Pipeline Generator
 description: "CI/CD pipeline generation — GitHub Actions, GitLab CI, caching, parallel tests, environment-based deployments, and secret management."
 version: 1.0.0
 category: ci-cd
-parent: mega-devops
+parent: ccc-devops
 ---
 
 # CI/CD Pipeline Generator

@@ -3,8 +3,8 @@ name: variant-analysis
 description: "Find variants of known vulnerabilities across a codebase — when one bug is found, systematically find its siblings."
 version: 1.0.0
 category: security
-parent: mega-security
-tags: [mega-security, variant-analysis, vulnerability, patterns]
+parent: ccc-security
+tags: [ccc-security, variant-analysis, vulnerability, patterns]
 disable-model-invocation: true
 ---
 

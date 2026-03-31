@@ -2,9 +2,9 @@
 name: KZ Mega-Mobile
 description: "Complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Compose, testing, ASO, push notifications, and deep linking."
 version: 1.0.0
-category: mega-skill
+category: CCC domain
 brand: Kevin Z's CC Commander
-tags: [mega-skill, mobile, ios, android]
+tags: [CCC domain, mobile, ios, android]
 ---
 
 # KZ Mega-Mobile
@@ -91,4 +91,4 @@ Which platform should you target?
 
 ## Context Strategy
 
-This mega-skill uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.
+This CCC domain uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.

@@ -3,8 +3,8 @@ name: mobile-testing
 description: "Mobile testing strategies and frameworks — Detox, Maestro, XCTest, Espresso, unit testing, and CI integration."
 version: 1.0.0
 category: mobile
-parent: mega-mobile
-tags: [mega-mobile, testing, mobile, e2e]
+parent: ccc-mobile
+tags: [ccc-mobile, testing, mobile, e2e]
 disable-model-invocation: true
 ---
 

@@ -3,7 +3,7 @@ name: Visual Regression Testing
 description: "Visual regression testing patterns — screenshot comparison, Percy, Chromatic, baseline management, CI integration."
 version: 1.0.0
 category: testing
-parent: mega-testing
+parent: ccc-testing
 ---
 
 # Visual Regression Testing

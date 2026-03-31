@@ -242,7 +242,7 @@ Wave→Checkpoint→Wave pattern:
 - Token budgeting system (nice-to-have, not core)
 - PDCA cycle (our tasks/lessons.md already serves this)
 - Reflexion pattern (our KNOWLEDGE.md covers this)
-- Behavioral modes (our mega-skills are more granular)
+- Behavioral modes (our CCC domains are more granular)
 
 ---
 

@@ -3,8 +3,8 @@ name: literature-review
 description: "Academic and technical literature review with source evaluation, structured synthesis, and citation management."
 version: 1.0.0
 category: research
-parent: mega-research
-tags: [mega-research, academic, literature]
+parent: ccc-research
+tags: [ccc-research, academic, literature]
 disable-model-invocation: true
 ---
 

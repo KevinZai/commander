@@ -6,7 +6,7 @@ tags: [prompts, templates, library]
 
 # Prompt Library
 
-50+ battle-tested prompt templates for Claude Code. Each template is designed for Claude Code's tooling, subagent system, and mega-skill architecture — not generic chatbot prompts.
+50+ battle-tested prompt templates for Claude Code. Each template is designed for Claude Code's tooling, subagent system, and CCC domain architecture — not generic chatbot prompts.
 
 ## How to Use
 

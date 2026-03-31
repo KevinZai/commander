@@ -3,8 +3,8 @@ name: dependency-audit
 description: "Audit npm, pip, cargo, and other package dependencies for known vulnerabilities, license compliance, and supply chain risks."
 version: 1.0.0
 category: security
-parent: mega-security
-tags: [mega-security, dependencies, supply-chain, vulnerabilities]
+parent: ccc-security
+tags: [ccc-security, dependencies, supply-chain, vulnerabilities]
 disable-model-invocation: true
 ---
 

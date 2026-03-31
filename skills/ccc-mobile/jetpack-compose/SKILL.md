@@ -3,8 +3,8 @@ name: jetpack-compose
 description: "Jetpack Compose for Android — Material Design 3, composable architecture, state management, and Android-specific best practices."
 version: 1.0.0
 category: mobile
-parent: mega-mobile
-tags: [mega-mobile, jetpack-compose, android, kotlin]
+parent: ccc-mobile
+tags: [ccc-mobile, jetpack-compose, android, kotlin]
 disable-model-invocation: true
 ---
 

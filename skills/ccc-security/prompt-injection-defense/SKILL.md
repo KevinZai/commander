@@ -3,8 +3,8 @@ name: prompt-injection-defense
 description: "Defend AI-powered applications against prompt injection, jailbreaks, and LLM-specific attack vectors."
 version: 1.0.0
 category: security
-parent: mega-security
-tags: [mega-security, ai-security, prompt-injection, llm]
+parent: ccc-security
+tags: [ccc-security, ai-security, prompt-injection, llm]
 disable-model-invocation: true
 ---
 

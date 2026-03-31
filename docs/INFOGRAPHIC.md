@@ -148,7 +148,7 @@
           ┌───────────┬───────────┬────┴────┬───────────┬───────────┐
           │           │           │         │           │           │
     ┌─────┴─────┐┌────┴────┐┌────┴────┐┌───┴───┐┌─────┴─────┐┌───┴────┐
-    │mega-design││mega-seo ││mega-test││mega-  ││mega-market││mega-  │
+    │ccc-design││ccc-seo ││mega-test││mega-  ││mega-market││mega-  │
     │  35+ sub  ││ 19 sub  ││ 15 sub  ││saas   ││  46 sub   ││devops │
     │           ││         ││         ││20 sub ││           ││20 sub │
     │ Impeccable││ AAIO    ││ TDD     ││ Auth  ││ Content   ││ CI/CD │
@@ -360,5 +360,5 @@
 
 ---
 
-*CC Commander v1.6.0 by Kevin Z -- 280+ skills | 10 mega-skills | 88+ commands | 37 hooks | 4 themes | 9 modes*
+*CC Commander v1.6.0 by Kevin Z -- 280+ skills | 10 CCC domains | 88+ commands | 37 hooks | 4 themes | 9 modes*
 *Distilled from 200+ community sources. One install. Under 60 seconds.*

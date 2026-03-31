@@ -3,8 +3,8 @@ name: data-visualization
 description: "Create charts, dashboards, and data visualizations using D3.js, Chart.js, Tremor, Recharts, and other libraries."
 version: 1.0.0
 category: data
-parent: mega-data
-tags: [mega-data, visualization, charts, dashboards]
+parent: ccc-data
+tags: [ccc-data, visualization, charts, dashboards]
 disable-model-invocation: true
 ---
 

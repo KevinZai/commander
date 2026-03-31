@@ -3,8 +3,8 @@ name: codeql-integration
 description: "Set up CodeQL for automated security analysis in CI/CD pipelines with custom queries and alert management."
 version: 1.0.0
 category: security
-parent: mega-security
-tags: [mega-security, codeql, sast, ci-cd]
+parent: ccc-security
+tags: [ccc-security, codeql, sast, ci-cd]
 disable-model-invocation: true
 ---
 

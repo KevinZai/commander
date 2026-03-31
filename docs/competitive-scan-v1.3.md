@@ -212,7 +212,7 @@ The Claude Code ecosystem has exploded. The official Anthropic plugin system (`/
 - **URL:** https://github.com/coreyhaines31/marketingskills
 - **What:** Marketing skills for Claude Code — CRO, copywriting, SEO, analytics, growth engineering
 - **Key features:** Specialized marketing domain skills
-- **Our coverage:** Full — our mega-marketing skill with 10+ sub-skills, plus individual marketing skills (seo-optimizer, content-strategy, cold-email, etc.)
+- **Our coverage:** Full — our ccc-marketing skill with 10+ sub-skills, plus individual marketing skills (seo-optimizer, content-strategy, cold-email, etc.)
 - **Action:** Skip
 
 ### 29. n8n-mcp — 16,708 stars
@@ -380,7 +380,7 @@ The Claude Code ecosystem has exploded. The official Anthropic plugin system (`/
 - **URL:** https://github.com/trailofbits/claude-code-config
 - **What:** Opinionated defaults, documentation, and workflows from Trail of Bits security team
 - **Key features:** Security-focused config, enterprise-grade defaults
-- **Our coverage:** Full — we have security hooks, mega-security skill, and harden skill
+- **Our coverage:** Full — we have security hooks, ccc-security skill, and harden skill
 - **Action:** Skip — but note their security reputation adds credibility
 
 ### 53. tweakcc (Piebald AI) — 1,457 stars
@@ -485,9 +485,9 @@ The Claude Code ecosystem has exploded. The official Anthropic plugin system (`/
 
 5. **Agent Orchestration** — agency-orchestrator, delegation-templates, dispatching-parallel-agents, orchestrate, devfleet, task-commander, claude-peers integration.
 
-6. **Security** — mega-security skill, harden, guard, pentest-checklist, plus ECC integration with security hooks.
+6. **Security** — ccc-security skill, harden, guard, pentest-checklist, plus ECC integration with security hooks.
 
-7. **Marketing/Business Pack** — mega-marketing, c-level-pack, business-pack, finance-pack — no competitor matches this breadth.
+7. **Marketing/Business Pack** — ccc-marketing, c-level-pack, business-pack, finance-pack — no competitor matches this breadth.
 
 8. **Interactive Installer** — Matrix rain, ASCII art, progress bars, dry-run mode, verify mode. Most competitors use plain `cp` scripts.
 

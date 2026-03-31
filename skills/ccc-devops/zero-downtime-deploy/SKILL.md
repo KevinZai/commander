@@ -3,7 +3,7 @@ name: Zero-Downtime Deploy
 description: "Zero-downtime deployment strategies — blue-green, canary, rolling updates, database migrations, feature flags, and automated rollback."
 version: 1.0.0
 category: deployment
-parent: mega-devops
+parent: ccc-devops
 ---
 
 # Zero-Downtime Deploy

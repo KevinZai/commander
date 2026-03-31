@@ -6,22 +6,22 @@
 
 ---
 
-## Mega-Skills (Quick Reference)
+## CCC Domains (Quick Reference)
 
-Load ONE mega-skill to get an entire domain. Each has a router that dispatches to the right specialist.
+Load ONE CCC domain to get an entire domain. Each has a router that dispatches to the right specialist.
 
 | Domain | Load This | Skills Inside |
 |--------|-----------|---------------|
-| SEO & Content | `mega-seo` | 19 skills — technical SEO, AI search, analytics, programmatic SEO |
-| Design & Animation | `mega-design` | 35+ skills — animations, effects, design systems, Impeccable suite |
-| Testing & QA | `mega-testing` | 15 skills — TDD, E2E, verification, visual, load testing |
-| Marketing | `mega-marketing` | 46 skills — content, CRO, channels, growth, sales |
-| SaaS Building | `mega-saas` | 20 skills — auth, billing, DB, API, frontend, metrics |
-| DevOps & Cloud | `mega-devops` | 20 skills — CI/CD, Docker, AWS, monitoring, Terraform |
-| Research & Analysis | `mega-research` | 8 skills — deep research, literature review, competitive analysis, data synthesis |
-| Mobile Development | `mega-mobile` | 7 skills — iOS, Android, React Native, Flutter, app store optimization |
-| Security & Compliance | `mega-security` | 9 skills — pen testing, OWASP, supply chain, secrets management, threat modeling |
-| Data & Analytics | `mega-data` | 8 skills — ETL pipelines, data warehousing, analytics, visualization, ML ops |
+| SEO & Content | `ccc-seo` | 19 skills — technical SEO, AI search, analytics, programmatic SEO |
+| Design & Animation | `ccc-design` | 35+ skills — animations, effects, design systems, Impeccable suite |
+| Testing & QA | `ccc-testing` | 15 skills — TDD, E2E, verification, visual, load testing |
+| Marketing | `ccc-marketing` | 46 skills — content, CRO, channels, growth, sales |
+| SaaS Building | `ccc-saas` | 20 skills — auth, billing, DB, API, frontend, metrics |
+| DevOps & Cloud | `ccc-devops` | 20 skills — CI/CD, Docker, AWS, monitoring, Terraform |
+| Research & Analysis | `ccc-research` | 8 skills — deep research, literature review, competitive analysis, data synthesis |
+| Mobile Development | `ccc-mobile` | 7 skills — iOS, Android, React Native, Flutter, app store optimization |
+| Security & Compliance | `ccc-security` | 9 skills — pen testing, OWASP, supply chain, secrets management, threat modeling |
+| Data & Analytics | `ccc-data` | 8 skills — ETL pipelines, data warehousing, analytics, visualization, ML ops |
 
 ---
 
@@ -801,7 +801,7 @@ CC Commander includes an interactive command center accessible via `/cc`:
 |---------|-------------|
 | `/cc` | Main menu — all options |
 | `/cc skills` | Browse 280+ skills by category |
-| `/cc mega [name]` | Drill into a mega-skill's sub-skills |
+| `/cc mega [name]` | Drill into a CCC domain's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions (no plan mode) |
 | `/cc confidence` | Pre-execution confidence assessment (0-100%) |

@@ -3,8 +3,8 @@ name: owasp-top-10
 description: "Check applications against the OWASP Top 10 vulnerabilities with specific tests, examples, and remediation for each category."
 version: 1.0.0
 category: security
-parent: mega-security
-tags: [mega-security, owasp, web-security, vulnerabilities]
+parent: ccc-security
+tags: [ccc-security, owasp, web-security, vulnerabilities]
 disable-model-invocation: true
 ---
 

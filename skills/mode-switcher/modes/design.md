@@ -1,6 +1,6 @@
 ---
 name: design-mode
-description: Visual-first development — mega-design ecosystem with Impeccable suite, animations, and component-focused workflow
+description: Visual-first development — ccc-design ecosystem with Impeccable suite, animations, and component-focused workflow
 tags: [mode]
 disable-model-invocation: true
 ---
@@ -9,12 +9,12 @@ disable-model-invocation: true
 
 ## Overview
 
-Optimizes Claude for visual development work. Activates the full mega-design ecosystem: animations, visual effects, the Impeccable polish suite, landing page builder, and component design patterns. Claude thinks visually, suggests screenshots and previews, and prioritizes how things look and feel.
+Optimizes Claude for visual development work. Activates the full ccc-design ecosystem: animations, visual effects, the Impeccable polish suite, landing page builder, and component design patterns. Claude thinks visually, suggests screenshots and previews, and prioritizes how things look and feel.
 
 ## Skills Loaded
 
-**Primary mega-skill:**
-- `mega-design` — 35+ design skills including animations, visual effects, Impeccable suite, landing pages, design systems
+**Primary CCC domain:**
+- `ccc-design` — 35+ design skills including animations, visual effects, Impeccable suite, landing pages, design systems
 
 **Key sub-skills surfaced:**
 - `design-context` — Capture brand, palette, animation preferences, performance budget
@@ -49,7 +49,7 @@ Optimizes Claude for visual development work. Activates the full mega-design eco
 
 ## Context Strategy
 
-- **Pre-flight check:** Verify context is below 60% before entering — mega-design is context-heavy
+- **Pre-flight check:** Verify context is below 60% before entering — ccc-design is context-heavy
 - **Compact threshold:** Compact at 70% to preserve room for design skill instructions
 - **Priority in context:** Component files, CSS/style files, design tokens, brand config
 - **Deprioritize:** Backend logic, database schemas, API routes (unless directly relevant)

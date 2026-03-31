@@ -3,7 +3,7 @@ name: Terraform Patterns
 description: "Terraform patterns — reusable modules, remote state, workspaces, drift detection, cost estimation, and importing existing infrastructure."
 version: 1.0.0
 category: infrastructure-as-code
-parent: mega-devops
+parent: ccc-devops
 ---
 
 # Terraform Patterns

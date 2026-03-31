@@ -3,8 +3,8 @@ name: trend-analysis
 description: "Analyze trends in technology, markets, or usage patterns using data signals, community sentiment, and trajectory modeling."
 version: 1.0.0
 category: research
-parent: mega-research
-tags: [mega-research, trends, analysis]
+parent: ccc-research
+tags: [ccc-research, trends, analysis]
 disable-model-invocation: true
 ---
 

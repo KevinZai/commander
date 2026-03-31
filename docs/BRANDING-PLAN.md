@@ -91,7 +91,7 @@ Minimal — 3-4 links, one line.
 
 Current OG image says v1.0 with 220+ skills. Update to:
 - v1.3
-- 280+ skills, 10 mega-skills, 88+ commands, 37 hooks
+- 280+ skills, 10 CCC domains, 88+ commands, 37 hooks
 - Add kevinz.ai URL
 - Keep "by Kevin Z"
 

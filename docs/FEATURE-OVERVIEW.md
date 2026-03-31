@@ -1,6 +1,6 @@
 # CC Commander v1.6.0 — Complete Feature Overview
 
-> CC Commander — 280+ skills. One command. Your AI work, managed by AI. 280+ skills, 10 mega-skills, 88+ commands, 37 hooks (18 kit-native + 19 ECC), 36+ prompt templates, 9 workflow modes, 4 themes, 3 starter templates, real-time agent dashboard, modular installer. One install.
+> CC Commander — 280+ skills. One command. Your AI work, managed by AI. 280+ skills, 10 CCC domains, 88+ commands, 37 hooks (18 kit-native + 19 ECC), 36+ prompt templates, 9 workflow modes, 4 themes, 3 starter templates, real-time agent dashboard, modular installer. One install.
 
 ---
 
@@ -31,7 +31,7 @@ CC Commander is a batteries-included configuration toolkit for [Claude Code](htt
 
 The kit is designed for developers who want Claude Code to work like a senior engineering partner rather than an autocomplete engine. It provides opinionated workflows for planning, building, testing, shipping, and reviewing code -- along with specialized skill packs for frontend, backend, DevOps, security, data, mobile, marketing, SEO, and more. Whether you are building a quick prototype or a full SaaS product, the kit routes you to the right tools and enforces verification before marking work done.
 
-Installation takes under a minute. The interactive installer sets up skills, commands, hooks, and a CLAUDE.md configuration file in `~/.claude/`. Everything is modular: you can use the full kit, load individual mega-skills on demand, or cherry-pick specific commands and hooks. The kit works with Claude Code in the terminal, VS Code, Cursor, and JetBrains IDEs.
+Installation takes under a minute. The interactive installer sets up skills, commands, hooks, and a CLAUDE.md configuration file in `~/.claude/`. Everything is modular: you can use the full kit, load individual CCC domains on demand, or cherry-pick specific commands and hooks. The kit works with Claude Code in the terminal, VS Code, Cursor, and JetBrains IDEs.
 
 ---
 
@@ -128,22 +128,22 @@ cd cc-commander
 
 Skills are structured instruction sets that Claude Code loads on demand. Each skill lives in its own directory under `~/.claude/skills/` and contains a `SKILL.md` file with triggers, methodology, and domain knowledge. Load any skill by saying: _"use the `skill-name` skill"_.
 
-#### Mega-Skills (10)
+#### CCC Domains (10)
 
 Mega-skills are routers: load one and it dispatches to the right specialist sub-skill automatically. Each covers an entire domain.
 
-| Mega-Skill | Sub-Skills | What It Covers |
+| CCC Domain | Sub-Skills | What It Covers |
 |------------|-----------|----------------|
-| `mega-seo` | 19 | Technical SEO, AI search optimization (AAIO), content strategy, analytics, programmatic SEO, search console |
-| `mega-design` | 35+ | Animations, SVG, motion design, visual effects, design systems, landing pages, Impeccable polish suite (18 sub-skills) |
-| `mega-testing` | 15 | TDD workflow, E2E (Playwright), visual testing, load testing, QA, regression, verification loops |
-| `mega-marketing` | 46 | Content marketing, CRO, growth channels, sales enablement, ad creative, email, analytics, intelligence |
-| `mega-saas` | 20 | Auth (Better Auth), billing (Stripe), database (Drizzle+Neon), API design, frontend stack (Next.js+shadcn+Tailwind), metrics |
-| `mega-devops` | 20 | CI/CD (GitHub Actions), Docker, AWS (Lambda, S3, CloudFront, IAM), monitoring (Prometheus, Grafana), Terraform, zero-downtime deploy |
-| `mega-research` | 8 | Deep research, literature review, competitive analysis, citation management, data synthesis, source validation |
-| `mega-mobile` | 7 | iOS/Swift, Android/Kotlin, React Native, Flutter, cross-platform patterns, app store optimization |
-| `mega-security` | 9 | OWASP Top 10, supply chain security, secrets management, threat modeling, security headers, auth hardening, API security, incident response, compliance (SOC 2, ISO 27001, HIPAA) |
-| `mega-data` | 8 | ETL pipelines, data warehousing (star schema, SCD), analytics engineering (dbt), visualization, ML ops, data quality, streaming (Kafka), governance |
+| `ccc-seo` | 19 | Technical SEO, AI search optimization (AAIO), content strategy, analytics, programmatic SEO, search console |
+| `ccc-design` | 35+ | Animations, SVG, motion design, visual effects, design systems, landing pages, Impeccable polish suite (18 sub-skills) |
+| `ccc-testing` | 15 | TDD workflow, E2E (Playwright), visual testing, load testing, QA, regression, verification loops |
+| `ccc-marketing` | 46 | Content marketing, CRO, growth channels, sales enablement, ad creative, email, analytics, intelligence |
+| `ccc-saas` | 20 | Auth (Better Auth), billing (Stripe), database (Drizzle+Neon), API design, frontend stack (Next.js+shadcn+Tailwind), metrics |
+| `ccc-devops` | 20 | CI/CD (GitHub Actions), Docker, AWS (Lambda, S3, CloudFront, IAM), monitoring (Prometheus, Grafana), Terraform, zero-downtime deploy |
+| `ccc-research` | 8 | Deep research, literature review, competitive analysis, citation management, data synthesis, source validation |
+| `ccc-mobile` | 7 | iOS/Swift, Android/Kotlin, React Native, Flutter, cross-platform patterns, app store optimization |
+| `ccc-security` | 9 | OWASP Top 10, supply chain security, secrets management, threat modeling, security headers, auth hardening, API security, incident response, compliance (SOC 2, ISO 27001, HIPAA) |
+| `ccc-data` | 8 | ETL pipelines, data warehousing (star schema, SCD), analytics engineering (dbt), visualization, ML ops, data quality, streaming (Kafka), governance |
 
 #### Individual Skills by Category
 
@@ -405,7 +405,7 @@ Commands are slash commands invoked directly in the Claude Code REPL. They live 
 |---------|-------------|
 | `/cc` | Interactive command center -- main menu for all kit features |
 | `/cc skills` | Browse 280+ skills by category |
-| `/cc mega [name]` | Drill into a mega-skill's sub-skills |
+| `/cc mega [name]` | Drill into a CCC domain's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions to stress-test your plan |
 | `/cc confidence` | Pre-execution confidence assessment (0-100%) |
@@ -979,7 +979,7 @@ Build type checklists, CLAUDE.md templates, full skills catalog, commands refere
 ```
 cc-commander/
 ├── skills/              # 280+ skill directories, each with SKILL.md
-│   ├── mega-*/          # 10 mega-skill routers with sub-skill directories
+│   ├── mega-*/          # 10 CCC domain routers with sub-skill directories
 │   ├── mode-switcher/   # 9 workflow mode definitions
 │   └── */               # Individual skills
 ├── commands/            # 87 slash command definitions (.md files)
@@ -1121,8 +1121,8 @@ Pre-configured skill combinations for common project types:
 |--------|---------------|----------|
 | **Web Wizard** | `nextjs-app-router` + `shadcn-ui` + `tailwind-v4` + `drizzle-neon` | Full-stack web apps |
 | **Security Engineer** | `pci-compliance` + `container-security` + `github-actions-security` + `pentest-checklist` | Security audits and hardening |
-| **Content Creator** | `mega-marketing` + `mega-seo` + `blog-engine` | Content and SEO campaigns |
-| **Full Stack SaaS** | `mega-saas` + `mega-devops` + `mega-testing` | SaaS product from scratch |
+| **Content Creator** | `ccc-marketing` + `ccc-seo` + `blog-engine` | Content and SEO campaigns |
+| **Full Stack SaaS** | `ccc-saas` + `ccc-devops` + `ccc-testing` | SaaS product from scratch |
 
 ---
 
@@ -1156,7 +1156,7 @@ Pre-configured skill combinations for common project types:
 | Hooks | 35 | Manual only | 0 | 0-5 |
 | Prompt Templates | 41 | 0 | 0 | 0-10 |
 | Workflow Modes | 9 | 0 | 0 | 0 |
-| Mega-Skills (routers) | 10 | 0 | 0 | 0 |
+| CCC Domains (routers) | 10 | 0 | 0 | 0 |
 | Starter Templates | 3 | 0 | 0 | 0-2 |
 | Multi-Agent | Peers + Spawn + Task Commander | Subagents only | 0 | 0-1 |
 | Dashboard | Real-time React app | 0 | 0 | 0 |

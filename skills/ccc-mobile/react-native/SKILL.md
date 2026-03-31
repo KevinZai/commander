@@ -3,8 +3,8 @@ name: react-native
 description: "React Native development patterns — navigation, native modules, Expo, state management, and cross-platform best practices."
 version: 1.0.0
 category: mobile
-parent: mega-mobile
-tags: [mega-mobile, react-native, mobile, cross-platform]
+parent: ccc-mobile
+tags: [ccc-mobile, react-native, mobile, cross-platform]
 disable-model-invocation: true
 ---
 

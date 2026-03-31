@@ -1,6 +1,6 @@
 # Quickstart Guide: Backend Developer
 
-> Build robust APIs, databases, and services with CC Commander. SaaS mode, mega-skills, and production-grade patterns.
+> Build robust APIs, databases, and services with CC Commander. SaaS mode, CCC domains, and production-grade patterns.
 
 ---
 
@@ -31,14 +31,14 @@ When the decision tree asks about your build type, select "API" or "SaaS." CC Co
 
 ---
 
-## Key Mega-Skills for Backend
+## Key CCC Domains for Backend
 
-### mega-saas (Primary)
+### ccc-saas (Primary)
 
 Load the entire SaaS domain:
 
 ```
-use mega-saas skill
+use ccc-saas skill
 ```
 
 This gives you access to **20 SaaS skills** through a single router.
@@ -51,10 +51,10 @@ This gives you access to **20 SaaS skills** through a single router.
 | **API** | api-design, fastify-api, backend-patterns | REST/GraphQL design, validation, error handling, middleware |
 | **Metrics** | saas-metrics-coach, metrics-dashboard, analytics-product | MRR tracking, churn analysis, usage analytics |
 
-### mega-devops (Deployment + Infrastructure)
+### ccc-devops (Deployment + Infrastructure)
 
 ```
-use mega-devops skill
+use ccc-devops skill
 ```
 
 | Category | Skills | What They Do |
@@ -65,10 +65,10 @@ use mega-devops skill
 | **Monitoring** | grafana-dashboards, prometheus-configuration, promql-alerting, sentry-automation | Dashboards, alerts, error tracking, APM |
 | **Deploy** | setup-deploy, land-and-deploy, infra-runbook | Zero-downtime deploy, rollback strategies, runbooks |
 
-### mega-data (Data + Analytics)
+### ccc-data (Data + Analytics)
 
 ```
-use mega-data skill
+use ccc-data skill
 ```
 
 | Category | Skills | What They Do |
@@ -174,7 +174,7 @@ Key patterns CC Commander enforces:
 - **Structured logging** — pino with correlation IDs
 
 ```
-use mega-saas skill. Build a Fastify API with:
+use ccc-saas skill. Build a Fastify API with:
 - Route/service/repository layers
 - Drizzle ORM with PostgreSQL
 - Zod validation on all inputs
@@ -374,7 +374,7 @@ Create a GitHub Actions pipeline:
 ### Monitoring
 
 ```
-use mega-devops skill
+use ccc-devops skill
 
 Set up monitoring for a production API:
 - Prometheus metrics endpoint (/metrics)
@@ -390,7 +390,7 @@ Set up monitoring for a production API:
 
 1. **Always `/plan` before building an API** — route design, schema design, and auth decisions are expensive to change later. Plan mode catches design issues early.
 
-2. **Load `mega-saas` once per session** — the router remembers context. You do not need to reload it for each request within the same session.
+2. **Load `ccc-saas` once per session** — the router remembers context. You do not need to reload it for each request within the same session.
 
 3. **Use `database-designer` before writing any schema** — it checks for missing indexes, improper cascade rules, and normalization issues that cause pain later.
 

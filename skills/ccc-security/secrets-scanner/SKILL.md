@@ -3,8 +3,8 @@ name: secrets-scanner
 description: "Scan codebases for hardcoded secrets, API keys, tokens, passwords, and credentials with remediation guidance."
 version: 1.0.0
 category: security
-parent: mega-security
-tags: [mega-security, secrets, credentials, scanning]
+parent: ccc-security
+tags: [ccc-security, secrets, credentials, scanning]
 disable-model-invocation: true
 ---
 

@@ -3,8 +3,8 @@ name: competitive-analysis
 description: "Analyze competing products, tools, or libraries with feature comparison, SWOT analysis, and strategic recommendations."
 version: 1.0.0
 category: research
-parent: mega-research
-tags: [mega-research, competitive, comparison]
+parent: ccc-research
+tags: [ccc-research, competitive, comparison]
 disable-model-invocation: true
 ---
 

@@ -44,7 +44,7 @@ On session start, all Kit skills are registered with OpenClaw's skill registry:
 ```
 Syncing: 280+ skills → OpenClaw registry
   ├── Core workflow skills (confidence-check, four-question-validation, etc.)
-  ├── 10 mega-skills (mega-seo, mega-design, mega-testing, etc.)
+  ├── 10 CCC domains (ccc-seo, ccc-design, ccc-testing, etc.)
   ├── Integration skills (openclaw-native, status-updates, etc.)
   └── Mode switcher (9 workflow modes)
 ```

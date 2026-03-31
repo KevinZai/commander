@@ -22,7 +22,7 @@ Add CC Commander -- comprehensive skills, commands, and hooks toolkit
 A comprehensive, modular toolkit for Claude Code that installs to `~/.claude/`. Built by scanning 200+ articles from the Claude Code community and distilling the best patterns into one install.
 
 **Key features:**
-- 280+ skills organized by category (10 mega-skills with router pattern)
+- 280+ skills organized by category (10 CCC domains with router pattern)
 - 88+ slash commands (`/plan`, `/verify`, `/tdd`, `/code-review`, `/init`, etc.)
 - 37 hooks (18 kit-native lifecycle automations)
 - 9 workflow modes (normal, design, saas, marketing, research, writing, night, yolo, unhinged)

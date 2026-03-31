@@ -3,8 +3,8 @@ name: vector-search
 description: "Vector database setup and semantic search implementation with Pinecone, pgvector, Qdrant, and embedding pipelines."
 version: 1.0.0
 category: data
-parent: mega-data
-tags: [mega-data, vector-search, embeddings, semantic-search]
+parent: ccc-data
+tags: [ccc-data, vector-search, embeddings, semantic-search]
 disable-model-invocation: true
 ---
 

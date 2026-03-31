@@ -4,7 +4,7 @@ version: 1.0.0
 description: |
   Proactive contextual suggestion system with 5 configurable levels.
   Monitors user activity (file types, commands, errors) and suggests
-  relevant mega-skills, commands, and prompts at natural breakpoints.
+  relevant CCC domains, commands, and prompts at natural breakpoints.
   Respects assistance level from bible-config.json or KZ_ASSIST_LEVEL env var.
 triggers:
   - "contextual assist"
@@ -61,7 +61,7 @@ The contextual assist system monitors these signals to understand what you're do
 
 Suggestions are drawn from across the entire CC Commander kit:
 
-1. **Mega-Skills** — Route to the right mega-skill for the domain
+1. **CCC Domains** — Route to the right CCC domain for the domain
 2. **Individual Skills** — Specific skills for specific tasks
 3. **Slash Commands** — Quick actions via `/cc` commands
 4. **Prompt Templates** — Starting templates for common scenarios
@@ -80,10 +80,10 @@ When the contextual assist system detects a project type, it loads the relevant 
 ```
 Detected: Next.js project
 
-Relevant mega-skills:
-  mega-saas     — Auth, billing, database, API patterns
-  mega-design   — UI components, animations, landing pages
-  mega-testing  — E2E with Playwright, component testing
+Relevant CCC domains:
+  ccc-saas     — Auth, billing, database, API patterns
+  ccc-design   — UI components, animations, landing pages
+  ccc-testing  — E2E with Playwright, component testing
 
 Quick starts:
   /cc mega saas        — Full SaaS stack (auth + billing + DB)
@@ -103,10 +103,10 @@ Relevant skills:
 ```
 Detected: API / Backend project
 
-Relevant mega-skills:
-  mega-saas     — Database, API design, auth
-  mega-devops   — CI/CD, Docker, monitoring
-  mega-testing  — API testing, load testing
+Relevant CCC domains:
+  ccc-saas     — Database, API design, auth
+  ccc-devops   — CI/CD, Docker, monitoring
+  ccc-testing  — API testing, load testing
 
 Quick starts:
   /cc mega saas        — Full backend patterns
@@ -126,8 +126,8 @@ Relevant skills:
 ```
 Detected: DevOps / Infrastructure project
 
-Relevant mega-skills:
-  mega-devops   — Full DevOps suite (25+ skills)
+Relevant CCC domains:
+  ccc-devops   — Full DevOps suite (25+ skills)
 
 Quick starts:
   /cc mega devops      — CI/CD, Docker, monitoring, security
@@ -145,9 +145,9 @@ Relevant skills:
 ```
 Detected: Marketing / Content project
 
-Relevant mega-skills:
-  mega-marketing  — Content strategy, copywriting, CRO
-  mega-seo        — Technical SEO, content optimization
+Relevant CCC domains:
+  ccc-marketing  — Content strategy, copywriting, CRO
+  ccc-seo        — Technical SEO, content optimization
 
 Quick starts:
   /cc mega marketing   — Full marketing toolkit
@@ -186,7 +186,7 @@ Working on tests? CC Commander has you covered:
   /verify              — Run verification loop (tests + types + lint)
   /e2e                 — E2E testing with Playwright
   /test-coverage       — Check and improve test coverage
-  mega-testing         — 15+ testing skills
+  ccc-testing         — 15+ testing skills
 
 Tip: Write the test assertion first, then make it pass.
 ```
@@ -224,7 +224,7 @@ Deploying? Safety checks:
   /harden              — Security hardening check
   /deploy              — Deployment checklist
 
-  mega-devops          — Full CI/CD, monitoring, rollback patterns
+  ccc-devops          — Full CI/CD, monitoring, rollback patterns
 ```
 
 **Documentation Pattern** (editing .md files, README, docs/)
@@ -265,11 +265,11 @@ Introduce:
 - `/tdd` — test-driven development
 - `/code-review` — code review
 - Mode switching (`/cc mode`)
-- Relevant mega-skills for detected project type
+- Relevant CCC domains for detected project type
 
 Message style:
 ```
-[Mentored] Did you know? CC Commander includes mega-skills — large skill bundles
+[Mentored] Did you know? CC Commander includes CCC domains — large skill bundles
 for common workflows. For your Next.js project, try:
 
   /cc mega saas — sets up auth, billing, database, and API patterns
@@ -342,11 +342,11 @@ Environment override: `KZ_ASSIST_LEVEL=mentored` (takes precedence over config f
 
 | You're Doing | Assist Suggests | Command |
 |-------------|-----------------|---------|
-| React/Next.js work | mega-design, mega-saas | `/cc mega design` |
+| React/Next.js work | ccc-design, ccc-saas | `/cc mega design` |
 | Writing API endpoints | api-design, backend-patterns | `/cc mega saas` |
 | Database schema work | database-designer, migrations | `database-designer` skill |
-| CI/CD pipeline | mega-devops, github-actions | `/cc mega devops` |
-| Content/marketing | mega-marketing, mega-seo | `/cc mode marketing` |
+| CI/CD pipeline | ccc-devops, github-actions | `/cc mega devops` |
+| Content/marketing | ccc-marketing, ccc-seo | `/cc mode marketing` |
 | Stuck on errors | investigate, build-fix, tdd | `/build-fix` |
 | Starting new feature | plan, confidence-check | `/plan` |
 | About to deploy | verify, harden, checkpoint | `/verify` |

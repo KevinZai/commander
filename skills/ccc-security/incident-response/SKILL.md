@@ -3,8 +3,8 @@ name: incident-response
 description: "Security incident response playbook — containment, investigation, remediation, and post-incident review procedures."
 version: 1.0.0
 category: security
-parent: mega-security
-tags: [mega-security, incident-response, breach, remediation]
+parent: ccc-security
+tags: [ccc-security, incident-response, breach, remediation]
 disable-model-invocation: true
 ---
 

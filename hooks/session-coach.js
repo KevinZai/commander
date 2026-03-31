@@ -117,16 +117,16 @@ async function main() {
   // Skill suggestions based on file patterns
   const exts = state.files.map(f => path.extname(f).toLowerCase());
   if (exts.some(e => ['.tsx', '.jsx'].includes(e)) && state.files.length > 3) {
-    tips.push('Multiple React files touched — mega-design has 35+ skills for polish, animations, and effects');
+    tips.push('Multiple React files touched — ccc-design has 35+ skills for polish, animations, and effects');
   }
   if (exts.some(e => ['.sql', '.prisma'].includes(e))) {
-    tips.push('Database files detected — mega-saas has database-designer and migration skills');
+    tips.push('Database files detected — ccc-saas has database-designer and migration skills');
   }
   if (state.files.some(f => f.includes('test') || f.includes('spec'))) {
-    tips.push('Working on tests — mega-testing has TDD workflow, E2E, and verification skills');
+    tips.push('Working on tests — ccc-testing has TDD workflow, E2E, and verification skills');
   }
   if (state.files.some(f => f.includes('Dockerfile') || f.includes('.yml') || f.includes('deploy'))) {
-    tips.push('DevOps files detected — mega-devops has CI/CD, Docker, and deploy skills');
+    tips.push('DevOps files detected — ccc-devops has CI/CD, Docker, and deploy skills');
   }
 
   // Pick best tip (avoid repeating last one)

@@ -3,7 +3,7 @@ name: Design Context
 description: "Captures brand colors, fonts, animation preferences, and performance budget for consistent design output."
 version: 1.0.0
 category: foundation
-parent: mega-design
+parent: ccc-design
 ---
 
 # Design Context

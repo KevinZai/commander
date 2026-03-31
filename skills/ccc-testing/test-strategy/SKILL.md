@@ -3,7 +3,7 @@ name: Test Strategy
 description: "Generates a complete testing strategy for any project — analyzes codebase, recommends test types, sets coverage targets."
 version: 1.0.0
 category: testing
-parent: mega-testing
+parent: ccc-testing
 ---
 
 # Test Strategy
