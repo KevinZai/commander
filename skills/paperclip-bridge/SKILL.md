@@ -1,6 +1,6 @@
 ---
 name: paperclip-bridge
-description: Integration with Paperclip task management API for tracking Bible workflows
+description: Integration with Paperclip task management API for tracking CC Commander workflows
 triggers:
   - "/paperclip"
   - "/paperclip-bridge"
@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # Paperclip Bridge
 
-> Connect CC Commander workflows to Paperclip task management. Create issues from task-commander, track progress, auto-close tickets, and synchronize status bidirectionally between Bible sessions and Paperclip.
+> Connect CC Commander workflows to Paperclip task management. Create issues from task-commander, track progress, auto-close tickets, and synchronize status bidirectionally between CC Commander sessions and Paperclip.
 
 ## What Paperclip Is
 
@@ -18,7 +18,7 @@ Paperclip is a task management and agent coordination API running at **localhost
 **Core concepts:**
 - **Issues** — Tasks with status, priority, assignee, project, and comments
 - **Agents** — AI workers that check out and execute issues via heartbeats
-- **Projects** — Groupings for related issues (maps to Bible projects/workspaces)
+- **Projects** — Groupings for related issues (maps to CC Commander projects/workspaces)
 - **Heartbeats** — Periodic wake cycles where agents check assignments and do work
 - **Comments** — Threaded discussion on issues for progress tracking and handoffs
 
@@ -26,7 +26,7 @@ Paperclip is a task management and agent coordination API running at **localhost
 
 ---
 
-## 1. Creating Issues from Bible Workflows
+## 1. Creating Issues from CC Commander Workflows
 
 ### From task-commander
 
@@ -37,7 +37,7 @@ curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issu
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" \
   -d '{
-    "title": "Task from Bible: implement user auth",
+    "title": "Task from CC Commander: implement user auth",
     "description": "## Source\nCC Commander task-commander\n\n## Steps\n1. Design auth schema\n2. Implement JWT middleware\n3. Add login/register endpoints\n4. Write tests",
     "status": "todo",
     "priority": "high",
@@ -79,14 +79,14 @@ curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issu
 
 ### From mode-switcher
 
-When switching Bible modes (e.g., entering `saas` mode for a feature sprint), optionally create a tracking issue:
+When switching CC Commander modes (e.g., entering `saas` mode for a feature sprint), optionally create a tracking issue:
 
 ```bash
 curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issues \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ${PAPERCLIP_API_KEY}" \
   -d '{
-    "title": "Bible session: SaaS mode sprint",
+    "title": "CC Commander session: SaaS mode sprint",
     "description": "Mode: saas\nStarted: '$(date -u +%Y-%m-%dT%H:%M:%SZ)'\nGoal: Build subscription billing flow",
     "status": "in_progress",
     "priority": "medium",
@@ -98,9 +98,9 @@ curl -s -X POST http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/issu
 
 ## 2. Priority Mapping
 
-Bible workflows use informal priority language. Paperclip uses structured priority values.
+CC Commander workflows use informal priority language. Paperclip uses structured priority values.
 
-| Bible Concept | Paperclip Priority | When to Use |
+| CC Commander Concept | Paperclip Priority | When to Use |
 |---------------|-------------------|-------------|
 | P0 — System down, data loss | `critical` | Production outages, security breaches |
 | P1 — Blocking work | `critical` | Blockers for active sprints |
@@ -111,9 +111,9 @@ Bible workflows use informal priority language. Paperclip uses structured priori
 | P6 — Backlog | `low` | Future considerations |
 | P7-P10 — Wishlist/someday | `low` | Ideas, exploration, tech debt |
 
-### Mapping from Bible Skills
+### Mapping from CC Commander Skills
 
-| Bible Skill | Default Priority | Rationale |
+| CC Commander Skill | Default Priority | Rationale |
 |-------------|-----------------|-----------|
 | `harden` / `pentest-checklist` | `critical` | Security work is always high priority |
 | `tdd-workflow` / `e2e-testing` | `high` | Testing blocks shipping |
@@ -126,7 +126,7 @@ Bible workflows use informal priority language. Paperclip uses structured priori
 
 ## 3. Tracking Task Progress
 
-### Updating Issues from Bible Sessions
+### Updating Issues from CC Commander Sessions
 
 As you work through a task-commander plan, update the Paperclip issue:
 
@@ -143,10 +143,10 @@ curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
 
 ### Progress Comment Format
 
-When posting updates from Bible workflows, use this structure:
+When posting updates from CC Commander workflows, use this structure:
 
 ```markdown
-## Bible Progress Update
+## CC Commander Progress Update
 
 - **Skill:** task-commander
 - **Step:** 2/4
@@ -168,7 +168,7 @@ export KZ_PAPERCLIP_TRACKING="issue-uuid-here"
 
 ## 4. Auto-Closing Tickets
 
-### When Bible Tasks Complete
+### When CC Commander Tasks Complete
 
 After `task-commander` marks all steps done, or after `verification-loop` passes:
 
@@ -203,9 +203,9 @@ curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
 
 ## 5. Bidirectional Sync Patterns
 
-### Bible to Paperclip (Push)
+### CC Commander to Paperclip (Push)
 
-| Bible Event | Paperclip Action |
+| CC Commander Event | Paperclip Action |
 |-------------|-----------------|
 | `/plan` starts | Create issue with `todo` status |
 | Task execution begins | `PATCH` status to `in_progress` |
@@ -216,9 +216,9 @@ curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
 | `/save-session` | `POST` comment with session summary |
 | Mode switch | `POST` comment noting mode change |
 
-### Paperclip to Bible (Pull)
+### Paperclip to CC Commander (Pull)
 
-| Paperclip Event | Bible Action |
+| Paperclip Event | CC Commander Action |
 |-----------------|-------------|
 | New assignment (via heartbeat) | Load issue context, resume work |
 | Comment from another agent | Read and incorporate context |
@@ -228,7 +228,7 @@ curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
 
 ### Sync Cadence
 
-- **Real-time push:** Every significant Bible event fires immediately
+- **Real-time push:** Every significant CC Commander event fires immediately
 - **Periodic pull:** Check assignments at session start and every 30 tool calls
 - **On-demand:** User can run `/paperclip` to check status manually
 
@@ -295,7 +295,7 @@ GET /api/companies/:companyId/issues?q=auth+middleware&status=todo,in_progress
 
 ## 7. Webhook Integration
 
-### Paperclip to Bible Notifications
+### Paperclip to CC Commander Notifications
 
 Paperclip can send webhooks when issues change. Configure in Paperclip settings:
 
@@ -327,7 +327,7 @@ Paperclip can send webhooks when issues change. Configure in Paperclip settings:
 }
 ```
 
-### Consuming Webhooks in Bible Hooks
+### Consuming Webhooks in CC Commander Hooks
 
 The `openclaw-adapter.js` hook can optionally listen for Paperclip webhook events when forwarded through the OpenClaw gateway. Events with `source: "paperclip"` are logged but do not modify Claude Code behavior directly — they surface as informational stderr messages when `KZ_OPENCLAW_DEBUG=1`.
 
@@ -335,9 +335,9 @@ The `openclaw-adapter.js` hook can optionally listen for Paperclip webhook event
 
 ## 8. Labels and Categories
 
-### Bible Skill to Paperclip Label Mapping
+### CC Commander Skill to Paperclip Label Mapping
 
-| Bible Skill Category | Paperclip Label | Color |
+| CC Commander Skill Category | Paperclip Label | Color |
 |----------------------|----------------|-------|
 | `mega-*` skills | `bible-mega` | purple |
 | `task-commander` | `bible-task` | blue |
@@ -351,9 +351,9 @@ The `openclaw-adapter.js` hook can optionally listen for Paperclip webhook event
 
 ### Auto-Labeling Rules
 
-When creating issues from Bible workflows, apply labels automatically:
+When creating issues from CC Commander workflows, apply labels automatically:
 
-1. Always add `bible-task` to any Bible-originated issue
+1. Always add `cc-task` to any CC Commander-originated issue
 2. Add the source skill label (e.g., `bible-spec` for spec-interviewer)
 3. Add mode label if a mode is active (e.g., `mode-saas`)
 4. Add `bible-security` for any security-related skill
@@ -363,20 +363,20 @@ When creating issues from Bible workflows, apply labels automatically:
 
 ## 9. Dashboard Integration
 
-### Paperclip Dashboard to Bible Status
+### Paperclip Dashboard to CC Commander Status
 
-The Paperclip dashboard at `http://localhost:3110` shows all issues, agent activity, and project health. Bible-originated issues are identifiable by their `bible-*` labels.
+The Paperclip dashboard at `http://localhost:3110` shows all issues, agent activity, and project health. CC Commander-originated issues are identifiable by their `cc-*` labels.
 
-### Bible Dashboard Widget Data
+### CC Commander Dashboard Widget Data
 
-Pull dashboard data for display in Bible status reports:
+Pull dashboard data for display in CC Commander status reports:
 
 ```bash
 # Get dashboard summary
 DASHBOARD=$(curl -s http://localhost:3110/api/companies/${PAPERCLIP_COMPANY_ID}/dashboard \
   -H "Authorization: Bearer ${PAPERCLIP_API_KEY}")
 
-# Extract Bible-specific metrics
+# Extract CC Commander-specific metrics
 echo "$DASHBOARD" | jq '{
   total_bible_issues: [.issues[] | select(.labels[] | contains("bible"))] | length,
   open: [.issues[] | select(.labels[] | contains("bible")) | select(.status == "todo" or .status == "in_progress")] | length,
@@ -388,11 +388,11 @@ echo "$DASHBOARD" | jq '{
 ### Status Report Format
 
 ```markdown
-## Paperclip Bible Status — YYYY-MM-DD
+## Paperclip CC Commander Status — YYYY-MM-DD
 
 | Metric | Count |
 |--------|-------|
-| Open Bible issues | X |
+| Open CC Commander issues | X |
 | In progress | X |
 | Blocked | X |
 | Completed today | X |
@@ -422,7 +422,7 @@ export PAPERCLIP_API_URL="http://localhost:3110"
 export PAPERCLIP_COMPANY_ID="your-company-id"
 export PAPERCLIP_API_KEY="your-api-key"
 
-# Optional: auto-track Bible sessions
+# Optional: auto-track CC Commander sessions
 export KZ_PAPERCLIP_TRACKING=""  # Set to issue ID to enable per-session tracking
 ```
 
@@ -486,7 +486,7 @@ Fix: Unset the variable — `unset KZ_PAPERCLIP_TRACKING`
 ### Missing Labels
 
 ```
-Symptom: Bible labels not appearing on issues
+Symptom: CC Commander labels not appearing on issues
 Fix: Labels are created on first use in Paperclip
      Ensure label names match exactly (case-sensitive)
      Check that label array in POST body is formatted correctly

@@ -604,7 +604,7 @@ Hooks are JavaScript scripts that fire automatically at specific points in the C
 
 | Hook | Description | Disable |
 |------|-------------|---------|
-| `openclaw-adapter.js` | Translates Bible hook events to OpenClaw webhook format | `KZ_DISABLE_OPENCLAW_ADAPTER=1` |
+| `openclaw-adapter.js` | Translates CC Commander hook events to OpenClaw webhook format | `KZ_DISABLE_OPENCLAW_ADAPTER=1` |
 
 #### ECC Hooks (19 additional)
 

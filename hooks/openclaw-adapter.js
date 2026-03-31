@@ -2,7 +2,7 @@
 // ============================================================================
 // Kevin Z's CC Commander — OpenClaw Adapter (PostToolUse)
 // ============================================================================
-// Translates Bible hook events to OpenClaw webhook format and sends to the
+// Translates CC Commander hook events to OpenClaw webhook format and sends to the
 // OpenClaw gateway at localhost:18789. Designed to never block Claude Code —
 // all network failures are silently swallowed, always exits 0.
 //

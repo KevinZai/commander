@@ -448,7 +448,7 @@ For a visual dashboard, use claude-squad or build a simple watcher:
 watch -n 30 'claude --print "Call list_peers(scope=\"repo\") and format as a table showing: ID, Summary, CWD"'
 ```
 
-## Integration with Bible Skills
+## Integration with CC Commander Skills
 
 | Skill | How It Integrates |
 |-------|-------------------|

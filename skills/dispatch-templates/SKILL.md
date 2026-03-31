@@ -42,7 +42,7 @@ Full CI pipeline executed overnight. Runs lint, typecheck, test, build, and opti
 | Cost | $1.00 -- $5.00 |
 | Max Turns | 80 |
 | Schedule | `0 1 * * *` (daily at 1:00 AM) |
-| Bible Skills | verification-loop, coding-standards |
+| CC Commander Skills | verification-loop, coding-standards |
 
 ### Permissions
 
@@ -137,7 +137,7 @@ Automated code review across multiple PRs or commits.
 | Cost | $0.50 -- $3.00 |
 | Max Turns | 60 |
 | Schedule | `0 16 * * 5` (Friday 4:00 PM) |
-| Bible Skills | coding-standards, review, pentest-checklist |
+| CC Commander Skills | coding-standards, review, pentest-checklist |
 
 ### Permissions
 
@@ -231,7 +231,7 @@ Safe dependency updates with test verification and rollback.
 | Cost | $0.50 -- $2.00 |
 | Max Turns | 50 |
 | Schedule | `0 6 * * 1` (Monday 6:00 AM) |
-| Bible Skills | verification-loop |
+| CC Commander Skills | verification-loop |
 
 ### Permissions
 
@@ -341,7 +341,7 @@ Comprehensive security audit combining dependency audit, secret scanning, and co
 | Cost | $0.50 -- $2.00 |
 | Max Turns | 40 |
 | Schedule | `0 3 * * 0` (Sunday 3:00 AM) |
-| Bible Skills | pentest-checklist, harden |
+| CC Commander Skills | pentest-checklist, harden |
 
 ### Permissions
 
@@ -444,7 +444,7 @@ Run performance benchmarks and track regressions over time.
 | Cost | $0.50 -- $2.00 |
 | Max Turns | 50 |
 | Schedule | `0 2 * * 3` (Wednesday 2:00 AM) |
-| Bible Skills | benchmark |
+| CC Commander Skills | benchmark |
 
 ### Permissions
 
@@ -540,7 +540,7 @@ Batch content creation from briefs with quality gates.
 | Cost | $1.00 -- $5.00 |
 | Max Turns | 100 |
 | Schedule | `0 10 * * 2,4` (Tuesday/Thursday 10:00 AM) |
-| Bible Skills | brand-guidelines, seo-content-brief, content-strategy |
+| CC Commander Skills | brand-guidelines, seo-content-brief, content-strategy |
 
 ### Permissions
 
@@ -627,7 +627,7 @@ Migrate data between formats or systems with validation and rollback.
 | Cost | $2.00 -- $8.00 |
 | Max Turns | 200 |
 | Schedule | Manual (one-time or as-needed) |
-| Bible Skills | overnight-runner, verification-loop |
+| CC Commander Skills | overnight-runner, verification-loop |
 
 ### Permissions
 
@@ -729,7 +729,7 @@ Configure monitoring dashboards, alerts, and health checks.
 | Cost | $0.50 -- $1.50 |
 | Max Turns | 40 |
 | Schedule | Manual (run after deploy or infra changes) |
-| Bible Skills | infra-runbook, metrics-dashboard |
+| CC Commander Skills | infra-runbook, metrics-dashboard |
 
 ### Permissions
 

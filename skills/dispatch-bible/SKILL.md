@@ -128,7 +128,7 @@ claude --headless --max-turns 100 \
 
 ### 3. Skill Chaining
 
-Dispatch tasks can reference Bible skills for structured execution:
+Dispatch tasks can reference CC Commander skills for structured execution:
 
 ```bash
 claude --headless --max-turns 30 \
@@ -516,9 +516,9 @@ Before launching a Dispatch task:
 | Skipping permissions config | Headless fails on first tool use | Configure `.claude/settings.json` |
 | Editing same files as interactive session | Merge conflicts | Use separate output directories |
 
-## Integration with Other Bible Skills
+## Integration with Other CC Commander Skills
 
-| Bible Skill | Dispatch Integration |
+| CC Commander Skill | Dispatch Integration |
 |---|---|
 | overnight-runner | Dispatch IS the runner -- use overnight-runner patterns for retry/checkpoint |
 | task-commander | Tag items with `[dispatch]` for automatic pickup |

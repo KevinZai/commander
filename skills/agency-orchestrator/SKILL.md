@@ -41,7 +41,7 @@ Once connected, you get 6 tools:
 - `cancel_workflow` — Stop a running workflow
 - `get_task_output` — Get output from a specific task in a workflow
 
-## Usage with Bible Skills
+## Usage with CC Commander Skills
 
 Combine with mega-skills for powerful workflows:
 

@@ -208,7 +208,7 @@ A: Run the uninstaller from the cloned repo:
 ```bash
 ./uninstall.sh
 ```
-It removes Bible components and restores your backup.
+It removes CC Commander components and restores your backup.
 
 ---
 
@@ -217,7 +217,7 @@ It removes Bible components and restores your backup.
 | Resource | URL / Path |
 |----------|-----------|
 | GitHub Issues | [github.com/KevinZai/cc-commander/issues](https://github.com/KevinZai/cc-commander/issues) |
-| Bible Guide Skill | Type "use bible-guide skill" in Claude Code |
+| CC Commander Guide Skill | Type "use bible-guide skill" in Claude Code |
 | Cheatsheet | `~/.claude/CHEATSHEET.md` or type `/cc` |
 | Full Documentation | `~/.claude/BIBLE.md` |
 | VS Code Guide | "use vscode-bible skill" in Claude Code |
@@ -351,7 +351,7 @@ New to AI-assisted development? Here are the key terms you will encounter:
 | **Model** | The AI brain powering Claude Code. Options: Sonnet (fast, capable), Opus (deep reasoning), Haiku (cheap, simple tasks). |
 | **Extended Thinking** | A mode where Claude uses extra internal reasoning tokens before responding. Improves quality on complex tasks. |
 
-### Bible Terms
+### CC Commander Terms
 
 | Term | Definition |
 |------|-----------|

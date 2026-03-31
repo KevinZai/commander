@@ -325,10 +325,10 @@ Explain the real-time agent monitoring dashboard:
 Show OpenClaw native integration capabilities:
 
 1. **Auto-Detection**: Check if OpenClaw is running on the local machine (port 18789)
-2. **Skill Sync**: Synchronize Bible skills with OpenClaw agent skill registries
-3. **Event Forwarding**: Bidirectional event forwarding between Bible hooks and OpenClaw webhooks
-4. **Agent Profiles**: Generate OpenClaw agent profiles from Bible skill configurations
-5. **Memory Sync**: Synchronize learned patterns between Bible sessions and OpenClaw memory
+2. **Skill Sync**: Synchronize CC Commander skills with OpenClaw agent skill registries
+3. **Event Forwarding**: Bidirectional event forwarding between CC Commander hooks and OpenClaw webhooks
+4. **Agent Profiles**: Generate OpenClaw agent profiles from CC Commander skill configurations
+5. **Memory Sync**: Synchronize learned patterns between CC Commander sessions and OpenClaw memory
 
 Reference the `openclaw-native` skill for full documentation. Use `/openclaw` command for quick access.
 

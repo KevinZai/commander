@@ -115,7 +115,7 @@ Each mega-skill has a router that dispatches to the right specialist. Individual
 | `cowork-plugin-builder` | **NEW** Build custom Cowork plugins — 5 example plugins, packaging guide, testing, publishing |
 | `dispatch-bible` | **NEW** Dispatch background task system — overnight builds, batch processing, error handling, cost tracking |
 | `dispatch-templates` | **NEW** 8 pre-built Dispatch templates — overnight-build, batch-review, security-scan, perf-benchmark, and more |
-| `openclaw-bridge` | **NEW** Bridge Bible ↔ OpenClaw (38-agent platform) — skill mapping, hook translation, agent profiles, session handoff |
+| `openclaw-bridge` | **NEW** Bridge CC Commander ↔ OpenClaw (38-agent platform) — skill mapping, hook translation, agent profiles, session handoff |
 | `paperclip-bridge` | **NEW** Paperclip task management integration — issue creation, priority mapping, bidirectional sync, REST API |
 | `openclaw-native` | **NEW** OpenClaw native integration — auto-detection, skill sync, bidirectional event forwarding, agent profile generation, memory sync |
 

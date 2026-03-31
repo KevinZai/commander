@@ -1,8 +1,8 @@
 ---
 name: cowork-plugin-builder
 description: |
-  Guide for building custom Cowork plugins that leverage Bible skills. Covers plugin
-  anatomy (manifest, handler, permissions), 5 example plugins, packaging Bible skills
+  Guide for building custom Cowork plugins that leverage CC Commander skills. Covers plugin
+  anatomy (manifest, handler, permissions), 5 example plugins, packaging CC Commander skills
   as plugins, local testing, and publishing to the plugin directory.
 triggers:
   - /cowork-plugins
@@ -19,7 +19,7 @@ disable-model-invocation: true
 
 ## Overview
 
-Cowork plugins extend Claude Desktop's autonomous execution with custom capabilities. This skill teaches you how to package Bible skills, hooks, and workflows as installable Cowork plugins.
+Cowork plugins extend Claude Desktop's autonomous execution with custom capabilities. This skill teaches you how to package CC Commander skills, hooks, and workflows as installable Cowork plugins.
 
 ## Plugin Anatomy
 
@@ -398,7 +398,7 @@ Batch-generates reports from templates and data sources.
 4. Generate formatted report
 5. Write to `output/reports/{template-name}-{date}.md`
 
-## Packaging Bible Skills as Plugins
+## Packaging CC Commander Skills as Plugins
 
 ### Step-by-Step
 

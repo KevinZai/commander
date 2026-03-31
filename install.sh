@@ -470,7 +470,7 @@ if should_install "dashboard"; then
   fi
 fi
 
-# ── Bible Summary ────────────────────────────────────────────────────────────
+# ── CC Commander Summary ────────────────────────────────────────────────────────────
 
 cc_section_header "THE KEVIN Z METHOD"
 cc_bible_summary

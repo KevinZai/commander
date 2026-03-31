@@ -1,9 +1,9 @@
 ---
 name: cowork-bible
 description: |
-  Claude Desktop Cowork integration guide for Bible users. Cowork is Claude Desktop's
+  Claude Desktop Cowork integration guide for CC Commander users. Cowork is Claude Desktop's
   autonomous execution mode with 11 official Anthropic plugins. This skill teaches how
-  to configure Bible skills for Cowork mode, plugin compatibility, scheduled task patterns,
+  to configure CC Commander skills for Cowork mode, plugin compatibility, scheduled task patterns,
   custom plugin development, handoff protocols, and security considerations.
 triggers:
   - /cowork
@@ -15,7 +15,7 @@ triggers:
   - scheduled cowork
 ---
 
-# Cowork Bible Integration
+# Cowork CC Commander Integration
 
 ## What Is Cowork?
 
@@ -27,9 +27,9 @@ Key differences from Claude Code CLI:
 - **Session-scoped** -- each Cowork session is a bounded execution unit
 - **Scheduled** -- can be triggered on timers, webhooks, or file watchers
 
-## Bible Feature Compatibility Matrix
+## CC Commander Feature Compatibility Matrix
 
-| Bible Feature | Cowork Support | Notes |
+| CC Commander Feature | Cowork Support | Notes |
 |---|---|---|
 | Skills (SKILL.md) | Full | Load via project context or plugin manifest |
 | Slash commands | Partial | Commands that invoke tools work; interactive prompts do not |
@@ -44,7 +44,7 @@ Key differences from Claude Code CLI:
 | Task Commander | Full | Excellent fit -- task lists drive autonomous execution |
 | Confidence check | Partial | Runs but cannot prompt user for confirmation |
 
-## Configuring Bible Skills for Cowork
+## Configuring CC Commander Skills for Cowork
 
 ### Step 1: Project Setup
 
@@ -52,7 +52,7 @@ Cowork sessions bind to a project directory. Ensure your project has:
 
 ```
 your-project/
-  CLAUDE.md          # Bible-style project instructions
+  CLAUDE.md          # CC Commander-style project instructions
   .claude/
     settings.json    # Permissions and tool config
     commands/        # Slash commands (optional)
@@ -62,7 +62,7 @@ your-project/
 
 ### Step 2: Session Configuration
 
-Create a Cowork session config that references Bible skills:
+Create a Cowork session config that references CC Commander skills:
 
 ```json
 {
