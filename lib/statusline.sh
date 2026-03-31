@@ -202,6 +202,36 @@ fi
 # ── Project name ────────────────────────────────────────────────────────────
 PROJ_SHORT=$(basename "$PROJECT")
 
+# ── Skill count ────────────────────────────────────────────────────────────
+SKILL_COUNT=$(ls -d "$HOME/.claude/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
+SKILL_STR=""
+[ "$SKILL_COUNT" -gt 0 ] 2>/dev/null && SKILL_STR=" ${D}│${N} ${C}🎯${W}${SKILL_COUNT}${N}"
+
+# ── Vendor count (cc-commander projects) ───────────────────────────────────
+VENDOR_COUNT=0
+if [ -d "vendor" ]; then
+  VENDOR_COUNT=$(ls -d vendor/*/ 2>/dev/null | wc -l | tr -d ' ')
+fi
+VENDOR_STR=""
+[ "$VENDOR_COUNT" -gt 0 ] 2>/dev/null && VENDOR_STR=" ${D}│${N} ${MG}📦${W}${VENDOR_COUNT}${N}"
+
+# ── Active Linear ticket (from CCC state) ──────────────────────────────────
+LINEAR_TICKET=""
+STATE_FILE="$HOME/.claude/commander/state.json"
+if [ -f "$STATE_FILE" ]; then
+  LINEAR_TICKET=$(jq -r '.activeSession.linearIssueIdentifier // empty' "$STATE_FILE" 2>/dev/null)
+fi
+LINEAR_STR=""
+[ -n "$LINEAR_TICKET" ] && LINEAR_STR=" ${D}│${N} ${H2}📋${W}${LINEAR_TICKET}${N}"
+
+# ── CCC version ────────────────────────────────────────────────────────────
+CCC_VER=""
+if command -v ccc &>/dev/null; then
+  CCC_VER=$(ccc --version 2>/dev/null | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | head -1)
+fi
+CC_LABEL="CC"
+[ -n "$CCC_VER" ] && CC_LABEL="CCC${CCC_VER}"
+
 # ── Output ──────────────────────────────────────────────────────────────────
-# ━━ CC ▐██████░░░▌62% │ 🔥Opus1M │ $2.14 │ ↑42K↓8K │ 3m12s │ 5h:23m │ key:..a4F2x │ cc-commander
-echo -e "${D}━━${N} ${C}CC${N} ${BAR} ${ZC}${B}${CTX_INT}%${N} ${D}│${N} ${STATUS_EMOJI}${MG}${MODEL_SHORT}${N} ${D}│${N} ${W}${COST_FMT}${N} ${D}│${N} ${C}↑${N}${W}${IN_FMT}${N}${C}↓${N}${W}${OUT_FMT}${N} ${D}│${N} ${D}${DUR_FMT}${N}${RATE_STR}${AGENT_STR}${KEY_STR} ${D}│${N} ${GR}${PROJ_SHORT}${N}"
+# ━━ CCC2.0 ▐██████░░░▌62% │ 🔥Opus1M │ $2.14 │ ↑42K↓8K │ 3m12s │ 📋CC-48 │ 🎯432 │ 📦11 │ 5h:23m │ key:..a4F2x │ cc-commander
+echo -e "${D}━━${N} ${C}${CC_LABEL}${N} ${BAR} ${ZC}${B}${CTX_INT}%${N} ${D}│${N} ${STATUS_EMOJI}${MG}${MODEL_SHORT}${N} ${D}│${N} ${W}${COST_FMT}${N} ${D}│${N} ${C}↑${N}${W}${IN_FMT}${N}${C}↓${N}${W}${OUT_FMT}${N} ${D}│${N} ${D}${DUR_FMT}${N}${RATE_STR}${AGENT_STR}${LINEAR_STR}${SKILL_STR}${VENDOR_STR}${KEY_STR} ${D}│${N} ${GR}${PROJ_SHORT}${N}"
