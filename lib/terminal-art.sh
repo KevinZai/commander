@@ -13,7 +13,7 @@
 
 # ── Color Palette (256-color ANSI) ─────────────────────────────────────────
 
-if [[ "$CC_NO_COLOR" == "1" ]] || [[ "$KZ_NO_COLOR" == "1" ]] || [[ ! -t 1 ]] || [[ "$TERM" == "dumb" ]]; then
+if [[ "${CC_NO_COLOR:-}" == "1" ]] || [[ "${KZ_NO_COLOR:-}" == "1" ]] || [[ ! -t 1 ]] || [[ "${TERM:-}" == "dumb" ]]; then
   # No color mode
   M_BRIGHT="" M_MID="" M_DIM="" M_FADE=""
   M_WHITE="" M_CYAN="" M_AMBER="" M_RED="" M_GRAY=""
@@ -47,8 +47,8 @@ cc_term_width() {
 kz_term_width() { cc_term_width "$@"; }
 
 cc_can_animate() {
-  [[ "$CC_NO_ANIMATION" != "1" ]] && [[ "$KZ_NO_ANIMATION" != "1" ]] && [[ -t 1 ]] && [[ "$TERM" != "dumb" ]] && \
-  [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]] && [[ -z "$JENKINS_URL" ]]
+  [[ "${CC_NO_ANIMATION:-}" != "1" ]] && [[ "${KZ_NO_ANIMATION:-}" != "1" ]] && [[ -t 1 ]] && [[ "${TERM:-}" != "dumb" ]] && \
+  [[ -z "${CI:-}" ]] && [[ -z "${GITHUB_ACTIONS:-}" ]] && [[ -z "${JENKINS_URL:-}" ]]
 }
 kz_can_animate() { cc_can_animate "$@"; }
 
