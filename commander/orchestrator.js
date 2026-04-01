@@ -24,6 +24,11 @@ var PACKAGE_META = {
   'claude-reflect': { stars: 860, updated: '2026-03-30' },
   'rtk': { stars: 14600, updated: '2026-03-30' },
   'acpx': { stars: 1800, updated: '2026-03-31' },
+  'repomix': { stars: 22816, updated: '2026-04-01' },
+  'claude-skills': { stars: 8581, updated: '2026-04-01' },
+  'notebooklm-py': { stars: 8617, updated: '2026-04-01' },
+  'claude-code-ultimate-guide': { stars: 2690, updated: '2026-04-01' },
+  'claude-code-prompts': { stars: 142, updated: '2026-04-01' },
 };
 
 /**

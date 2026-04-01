@@ -4,9 +4,9 @@
 
 **Not a skill pack. An AI cockpit.** The most comprehensive Claude Code aggregator ever built. Newbie-friendly.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/432+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/11_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/46_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.0.0](https://img.shields.io/badge/v2.0.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/441+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/16_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.1.0](https://img.shields.io/badge/v2.1.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
-**[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 11 vendor packages
+**[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 16 vendor packages
 
 **[Install](#install)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
@@ -20,8 +20,8 @@ Stock Claude Code is a blank terminal. No skills. No guidance. No memory.
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 432+ skills,
-          11 vendor packages, and zero setup.
+You get:  A guided AI project manager with 441+ skills,
+          16 vendor packages, and zero setup.
 ```
 
 <img src="docs/assets/ccc-flow.png" alt="How CCC Works" width="100%">
@@ -152,7 +152,7 @@ Each domain is a router that dispatches to specialized sub-skills on demand.
 
 <img src="docs/assets/section-vendors.svg" alt="Vendors" width="100%">
 
-CC Commander aggregates the best Claude Code tools as git submodules. Auto-updated weekly.
+CC Commander aggregates the best Claude Code tools as git submodules. Auto-updated weekly. 16 packages, 1,500+ vendor skills.
 
 | Package | Stars | What CCC Orchestrates |
 |---------|-------|----------------------|
@@ -167,6 +167,11 @@ CC Commander aggregates the best Claude Code tools as git submodules. Auto-updat
 | [acpx](https://github.com/openclaw/acpx) | 1.8K+ | ACP protocol, structured agents |
 | [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) | 860+ | Self-improving skills |
 | [Caliber](https://github.com/caliber-ai-org/ai-setup) | 300+ | Config scoring, drift detection |
+| [repomix](https://github.com/yamadashy/repomix) | 22.8K+ | Context packing for AI-friendly codebase analysis |
+| [claude-skills](https://github.com/alirezarezvani/claude-skills) | 8.6K+ | 507 skills, Python CLI tools, finance and C-level |
+| [notebooklm-py](https://github.com/teng-lin/notebooklm-py) | 8.6K+ | NotebookLM integration, podcast generation |
+| [claude-code-ultimate-guide](https://github.com/FlorianBruniaux/claude-code-ultimate-guide) | 2.7K+ | 219 CC0 templates, threat database, MCP server |
+| [claude-code-prompts](https://github.com/repowise-dev/claude-code-prompts) | 142+ | Defensive prompt patterns, verification specialist |
 
 The **smart orchestrator** scores each tool: capability match (50%) + popularity (15%) + recency (15%) + your preference (20%) — then picks the best one for each phase.
 
@@ -225,12 +230,12 @@ CCC learns from every session. Knowledge compounds over time.
 
 ```
   ══════════════════════════════════════════────────
-  CC COMMANDER  v2.0.0
+  CC COMMANDER  v2.1.0
   Every Claude Code tool. One install. Guided access.
   ─────────────────────────────────────────────
   🧠 Opus 1M  │  $2.14  │  ↑42K↓8K  │  3m12s
   CTX [████████████░░░░░░░░] 62%  RATE [████░░░░░░░░░░░░░░░░] 23%
-  📋 CC-48 v2.0 Foundation  │  🎯 432 skills  │  📦 11 vendors
+  📋 CC-63 v2.1 Ingestion   │  🎯 441 skills  │  📦 16 vendors
   ─────────────────────────────────────────
 ```
 

@@ -290,6 +290,36 @@ Daily 12pm: Check Gmail for urgent messages, draft responses, save as text file.
 5. **`/aside` for side questions** — preserves main context budget
 6. **Subagents = fresh windows** — use them for parallel work
 
+### Tool & Context Awareness
+
+These failure modes come from reverse-engineering Claude Code's internal behavior (sources: iamfakeguru/claude-md, code.claude.com/docs/en/best-practices):
+
+1. **Tool Result Blindness** — Tool results may be truncated to ~2,000 bytes. Always re-read files after modification. Never assume a tool call succeeded based on the result preview alone.
+2. **Context Decay** — Re-read files if >10 messages have passed since last read. Your memory of file contents degrades as the conversation grows. Treat file state as volatile.
+3. **File Read Budget** — The Read tool has a 2,000-line cap per call. For large files, use `offset` and `limit` parameters. Never assume you've read the entire file.
+4. **One Source of Truth** — Never duplicate state across multiple files. Pick one canonical location and reference it. Duplicated state drifts and causes silent bugs.
+
+### Power Commands
+
+| Command | What It Does |
+|---------|-------------|
+| `/btw` | Ask a side question without polluting main context |
+| `Ctrl+G` | Open the current plan in your editor |
+| `/compact` | Compress context. Add "When compacting, always preserve: [items]" to your CLAUDE.md |
+| `@path/to/file` | Import file content into CLAUDE.md at load time (compose from multiple sources) |
+| `/aside` | Similar to `/btw` — preserves main context budget |
+
+### CLAUDE.md Include/Exclude Table
+
+| DO include | Do NOT include |
+|-----------|---------------|
+| Project architecture overview | Line-by-line implementation instructions |
+| Tech stack and dependencies | Entire API specs (link instead) |
+| Coding standards and conventions | Content that changes every session |
+| Common commands and workflows | Secrets or credentials |
+| Error handling patterns | Verbose examples (keep them short) |
+| Known gotchas and anti-patterns | Duplicated content from other files |
+
 ### Rate Limit Management (Cowork)
 
 - Track usage: `/usage` or check Settings → Usage

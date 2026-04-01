@@ -1,4 +1,4 @@
-<!-- CC Commander Staff Template v2.0.0 -->
+<!-- CC Commander Staff Template v2.1.0 -->
 # CLAUDE.md — [Your Name]'s Development Environment
 
 ## Session Startup
@@ -9,7 +9,7 @@
 
 ## Environment
 - **Shell:** zsh | **Editor:** Claude Code
-- **CC Commander:** v2.0.0 (aggregator mode — 11 vendor packages)
+- **CC Commander:** v2.1.0 (aggregator mode — 16 vendor packages)
 - **Package manager:** npm/pnpm
 - **Task system:** tasks/ directory (todo.md, lessons.md, specs)
 
@@ -46,6 +46,24 @@ Define success criteria BEFORE the spec: evals > spec > plan > implement > verif
 - One task per subagent. Parallel when independent.
 - Never switch models mid-session — use subagents instead
 
+### Tool Awareness (Critical)
+- **Re-read after edit:** Always re-read a file after editing it. Tool results may be truncated to ~2,000 bytes — never assume a tool call succeeded without verifying.
+- **Context decay:** Re-read files if >10 messages since last read. Your memory of file contents degrades as conversation grows. Treat file state as volatile, not cached.
+- **File read budget:** Read tool caps at 2,000 lines. Use `offset`/`limit` for large files. Never assume you have read the entire file if it exceeds 2,000 lines.
+- **One source of truth:** Never duplicate state across files. Pick one canonical location, reference it everywhere. Duplicated state drifts.
+
+### Anti-Patterns to Avoid
+- **Kitchen sink session:** Don't cram unrelated tasks into one session. Use `/clear` between topics or spawn subagents.
+- **Over-specified CLAUDE.md:** Include architecture and principles, NOT line-by-line instructions. Trust the model with discretion.
+- **Trust-then-verify gap:** Always verify after implementation. Never mark done without checking the actual output.
+- **Infinite exploration:** Set a scope. 3 searches max before committing to an approach. Don't spiral.
+
+### Context Optimization
+- Use `/btw` for side questions that don't need to pollute the main context.
+- Use `Ctrl+G` to open the current plan in your editor for review.
+- Add to CLAUDE.md: "When compacting, always preserve: [list your critical context here]"
+- Use `@path/to/import` in CLAUDE.md to compose from multiple source files at load time.
+
 ### Dialectic Review (Important Decisions)
 For architecture choices or expensive-to-reverse decisions:
 spawn FOR agent + AGAINST agent + Referee.
@@ -74,13 +92,15 @@ After fixing a bug: write class-level tests, sweep codebase for siblings, update
 - **Boring Solutions Win.** 100 lines when 100 suffice over 1000 lines with abstractions.
 
 ## Aggregator Ecosystem
-CC Commander aggregates 11 vendor packages via git submodules in `vendor/`.
+CC Commander aggregates 16 vendor packages via git submodules in `vendor/`.
 Smart orchestrator picks the best tool: capability 50% + stars 15% + recency 15% + user pref 20%.
 Auto-updates weekly via GitHub Actions.
 
 Key vendors: ECC (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode (17K),
-claude-code-best-practice (26K), Compound Engineering (11.5K), Claude HUD (15K),
-RTK (14.6K), acpx (1.8K), caliber (300), claude-reflect (860).
+claude-code-best-practice (26K), repomix (22.8K), Claude HUD (15K), RTK (14.6K),
+Compound Engineering (11.5K), claude-skills (8.6K), notebooklm-py (8.6K),
+claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
+claude-code-prompts (142).
 
 ## CCC Domains (On-Demand)
 | Domain | Skills | What It Covers |
@@ -124,10 +144,12 @@ Run `/ccc:refresh` periodically to pull latest best practices.
 **Rule:** Never change models mid-session — spawn a subagent instead.
 
 ## Compaction Survival
+<!-- Add critical items to preserve: "When compacting, always preserve: [your items]" -->
 - `pre-compact` hook auto-saves session state
 - After compaction, check `~/.claude/sessions/pre-compact-*`
-- Re-read CLAUDE.md after compaction
+- Re-read CLAUDE.md after compaction — context decay is real
 - Check `tasks/todo.md` for progress state
+- Re-read any files you were actively editing — don't trust cached memories
 
 ## Cache Efficiency Rules
 1. Never add one-off permissions to global settings — use project-level

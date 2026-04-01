@@ -31,3 +31,18 @@
 [submodule "vendor/acpx"]
 	path = vendor/acpx
 	url = https://github.com/openclaw/acpx.git
+[submodule "vendor/repomix"]
+	path = vendor/repomix
+	url = https://github.com/yamadashy/repomix.git
+[submodule "vendor/claude-skills"]
+	path = vendor/claude-skills
+	url = https://github.com/alirezarezvani/claude-skills.git
+[submodule "vendor/notebooklm-py"]
+	path = vendor/notebooklm-py
+	url = https://github.com/teng-lin/notebooklm-py.git
+[submodule "vendor/claude-code-ultimate-guide"]
+	path = vendor/claude-code-ultimate-guide
+	url = https://github.com/FlorianBruniaux/claude-code-ultimate-guide.git
+[submodule "vendor/claude-code-prompts"]
+	path = vendor/claude-code-prompts
+	url = https://github.com/repowise-dev/claude-code-prompts.git

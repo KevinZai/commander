@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-VERSION="2.0.1"
+VERSION="2.1.0"
 CLAUDE_DIR="$HOME/.claude"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 USER_NAME=""

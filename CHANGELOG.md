@@ -2,6 +2,32 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [2.1.0] — 2026-04-01
+
+### The Mass Ingestion Release — "5 new vendors. 1,500+ vendor skills. Optimization directives from source."
+
+### Added
+- **5 new vendor submodules:** repomix (22.8K stars, context packing), claude-skills (8.6K, 507 skills), notebooklm-py (8.6K, NotebookLM integration), claude-code-ultimate-guide (2.7K, 219 CC0 templates + threat DB), claude-code-prompts (142, defensive prompts, SHA-pinned)
+- **3 authored skills:** supabase-cli (DB migrations, Edge Functions), n8n-mcp-setup (400+ integrations), voicemode-setup (voice conversations via Whisper + Kokoro)
+- **CLAUDE.md.staff-template v2.1:** Tool Awareness (re-read after edit, context decay, file read budget, one source of truth), Anti-Patterns (kitchen sink session, over-specified CLAUDE.md, trust-then-verify gap, infinite exploration), Context Optimization (/btw, Ctrl+G, compaction directives, @path/to/import)
+- **BIBLE.md:** Tool & Context Awareness subsection, Power Commands table, CLAUDE.md Include/Exclude table (Stage 2)
+- **CHEATSHEET.md:** Keyboard Shortcuts & Power Commands section (/btw, Ctrl+G, /compact, @import, Option+T, Ctrl+O)
+
+### Changed
+- Vendor count: 11 → 16 (repomix, claude-skills, notebooklm-py, claude-code-ultimate-guide, claude-code-prompts)
+- Local skill count: 438 → 441 (3 new authored skills)
+- Vendor skill count: 574 → 1,123 (549 net new from 5 vendors)
+- Updated existing vendors: everything-claude-code, claude-code-best-practice (latest upstream)
+- Tests: 101 → 107 (vendor scanner discovers new vendors)
+
+### Sources Evaluated
+20+ repos and sources evaluated. 9 approved, 6 conditional, 3 reference-only, 5 rejected. Security scan performed on all new vendors. Full assessment documented in Linear CC-63.
+
+### Linear Issues
+- CC-63 (umbrella), CC-64 (vendors), CC-65 (reference extraction), CC-66 (docs + publish)
+
+---
+
 ## [2.0.0] — 2026-03-31
 
 ### The Aggregator Release — "Every Claude Code tool. One install. Auto-updated."
