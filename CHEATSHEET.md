@@ -62,6 +62,21 @@ Switch your entire workflow persona with one command. Each mode adjusts behavior
 
 ---
 
+## ⌨️ Keyboard Shortcuts & Power Commands
+
+| Command | Key | What It Does |
+|---------|-----|-------------|
+| `/btw` | — | Side question without polluting main context |
+| `/aside` | — | Same idea — preserves context budget |
+| Plan editor | `Ctrl+G` | Open current plan in your editor for review |
+| `/compact` | — | Compress context (add "preserve X" rules in CLAUDE.md) |
+| `@path/file` | — | Import file content into CLAUDE.md at load time |
+| `/clear` | — | Reset context completely — use between unrelated tasks |
+| `Option+T` | macOS | Toggle extended thinking on/off |
+| `Ctrl+O` | — | Show thinking output (verbose mode) |
+
+---
+
 ## 🎯 Skill Selection Guide
 
 ### "I need to build..."
