@@ -31,3 +31,6 @@
 [submodule "vendor/acpx"]
 	path = vendor/acpx
 	url = https://github.com/openclaw/acpx.git
+[submodule "vendor/repomix"]
+	path = vendor/repomix
+	url = https://github.com/yamadashy/repomix.git
