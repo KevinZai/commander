@@ -40,3 +40,6 @@
 [submodule "vendor/notebooklm-py"]
 	path = vendor/notebooklm-py
 	url = https://github.com/teng-lin/notebooklm-py.git
+[submodule "vendor/claude-code-ultimate-guide"]
+	path = vendor/claude-code-ultimate-guide
+	url = https://github.com/FlorianBruniaux/claude-code-ultimate-guide.git
