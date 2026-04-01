@@ -1,5 +1,5 @@
 # CC Commander — by Kevin Z
-> Version 1.5.2 | Updated: 2026-03-30 | Non-coder friendly. Practical examples throughout.
+> Version 2.1.0 | Updated: 2026-03-30 | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -2035,7 +2035,7 @@ node bin/kc.js --repair
 | **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 432+ skills from within Commander |
+| **Skill browser** | Browse all 441+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 
@@ -2151,5 +2151,5 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 ---
 
 *Last updated: 2026-03-29*
-*CC Commander — by Kevin Z — v2.0.1*
+*CC Commander — by Kevin Z — v2.1.0*
 *Update this file when you learn something new. That's the point.*

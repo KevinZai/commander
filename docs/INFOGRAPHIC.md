@@ -1,4 +1,4 @@
-# CC Commander v2.0.1 -- Visual Overview
+# CC Commander v2.1.0 -- Visual Overview
 ### by Kevin Z
 
 ```
@@ -35,7 +35,7 @@
 │   ███████    │  │   ██████     │  │   █████      │  │   ████       │
 │   ███████    │  │              │  │              │  │              │
 │              │  │              │  │              │  │              │
-│    280+      │  │     10       │  │     88+      │  │     37       │
+│    441+      │  │     10       │  │     88+      │  │     37       │
 │   SKILLS     │  │ MEGA-SKILLS  │  │  COMMANDS    │  │   HOOKS      │
 └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘
 
@@ -77,7 +77,7 @@
     │   ▼               ▼           ▼           ▼              ▼   │
     │ ┌─────┐     ┌──────────┐ ┌────────┐ ┌─────────┐  ┌───────┐ │
     │ │SKILLS│     │ COMMANDS │ │ HOOKS  │ │PROMPTS  │  │STARTER│ │
-    │ │ 280+ │     │   88+    │ │  37    │ │  36+    │  │TMPLS 3│ │
+    │ │ 441+ │     │   88+    │ │  37    │ │  36+    │  │TMPLS 3│ │
     │ └──┬──┘     └────┬─────┘ └───┬────┘ └────┬────┘  └───┬───┘ │
     │    │             │           │            │            │     │
     │    └─────────────┴─────┬─────┴────────────┴────────────┘     │
@@ -95,7 +95,7 @@
     │           │  agents | cost | context │                        │
     │           └─────────────────────────┘                        │
     │                                                               │
-    │                  CC COMMANDER v2.0.1                         │
+    │                  CC COMMANDER v2.1.0                         │
     └───────────────────────────────────────────────────────────────┘
                                     │
                     ┌───────────────┴───────────────────┐
@@ -226,7 +226,7 @@
 
 ```
     ┌──────────────────────────────────────────────────────────────┐
-    │                    CC COMMANDER v2.0.1                       │
+    │                    CC COMMANDER v2.1.0                       │
     │                                                              │
     │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
     │  │  Claude   │  │  Cowork  │  │ Dispatch │  │  Spawn   │    │
@@ -262,7 +262,7 @@
   ║      STOCK CLAUDE CODE      ║    ║      WITH CC COMMANDER       ║
   ╠══════════════════════════════╣    ╠══════════════════════════════╣
   ║                              ║    ║                              ║
-  ║  Skills ............... 0    ║    ║  Skills ............. 280+   ║
+  ║  Skills ............... 0    ║    ║  Skills ............. 441+   ║
   ║  Commands ............ ~12   ║    ║  Commands ........... 88+    ║
   ║  Hooks ............... 0     ║    ║  Hooks .............. 37     ║
   ║  Prompt templates .... 0     ║    ║  Prompt templates ... 36+    ║
@@ -351,7 +351,7 @@
 
   ┌──────────┐     ┌──────────────┐     ┌──────────────────┐
   │ Install  │────>│ Type /cc     │────>│ Start building   │
-  │ (< 60s)  │     │ in terminal  │     │ with 432+ skills │
+  │ (< 60s)  │     │ in terminal  │     │ with 441+ skills │
   └──────────┘     └──────────────┘     └──────────────────┘
 ```
 
@@ -360,5 +360,5 @@
 
 ---
 
-*CC Commander v2.0.1 by Kevin Z -- 432+ skills | 11 CCC domains | 78+ commands | 25 hooks | 10 themes | 9 modes*
+*CC Commander v2.1.0 by Kevin Z -- 441+ skills | 11 CCC domains | 78+ commands | 25 hooks | 10 themes | 9 modes*
 *Distilled from 200+ community sources. One install. Under 60 seconds.*

@@ -2,17 +2,17 @@
 
 ## What This Is
 
-CC Commander — by Kevin Z. 438 skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 438 skills, 11 CCC domains, 78 commands, 25 hooks, 36+ prompt templates, 10 themes, 11 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Z. 441 skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 441 skills, 11 CCC domains, 78 commands, 25 hooks, 36+ prompt templates, 10 themes, 16 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 **Version:** 2.0.0 — The Aggregator Release
 
-## CC Commander (v2.0.1)
+## CC Commander (v2.1.0)
 
 Interactive CLI that sits ABOVE Claude Code sessions. Manages, dispatches, and tracks AI work.
 
 ```bash
 ccc          # Launch interactive mode
-ccc --test   # 22-point self-test (101 tests total)
+ccc --test   # 22-point self-test (107 tests total)
 ccc --stats  # Quick stats
 ```
 
@@ -32,7 +32,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ## Project Structure
 
 ```
-├── skills/              # 432+ skills organized by category
+├── skills/              # 441+ skills organized by category
 │   ├── mega-*/          # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 9 workflow modes
 ��   ├── init-decision-tree/  # /init project wizard
@@ -66,7 +66,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ```
 
 ## Aggregator Ecosystem
-11 vendor submodules in `vendor/`. Smart orchestrator scores tools: capability 50% + stars 15% + recency 15% + user pref 20%.
+16 vendor submodules in `vendor/`. Smart orchestrator scores tools: capability 50% + stars 15% + recency 15% + user pref 20%.
 Vendor scanner builds capability index across 8-phase pipeline.
 Auto-updates weekly via GitHub Actions.
 
@@ -90,7 +90,7 @@ Auto-updates weekly via GitHub Actions.
 
 **Version:** 2.0.0
 
-**Stats:** 438 skills, 78 commands, 25 hooks, 11 vendors, 10 themes
+**Stats:** 441 skills, 78 commands, 25 hooks, 16 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/cc-commander

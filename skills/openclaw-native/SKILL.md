@@ -42,7 +42,7 @@ export CC_OPENCLAW_URL=http://localhost:18789
 On session start, all Kit skills are registered with OpenClaw's skill registry:
 
 ```
-Syncing: 432+ skills → OpenClaw registry
+Syncing: 441+ skills → OpenClaw registry
   ├── Core workflow skills (confidence-check, four-question-validation, etc.)
   ├── 11 CCC domains (ccc-seo, ccc-design, ccc-testing, etc.)
   ├── Integration skills (openclaw-native, status-updates, etc.)
@@ -131,7 +131,7 @@ See `/openclaw` command for:
 ```
 CC Commander                    OpenClaw Gateway
 ┌──────────────────┐              ┌──────────────────┐
-│  Skills (280+)   │──── sync ───→│  Skill Registry  │
+│  Skills (441+)   │──── sync ───→│  Skill Registry  │
 │  Hooks (18)      │←── events ──→│  Webhook System  │
 │  Modes (9)       │──── sync ───→│  Agent Profiles  │
 │  Sessions        │←── sync ───→│  Memory DBs      │

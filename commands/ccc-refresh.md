@@ -9,7 +9,7 @@ This command analyzes your existing CLAUDE.md and proposes updates based on the 
 ## What This Command Does
 
 1. **Reads** your current `~/.claude/CLAUDE.md` (or project-level CLAUDE.md)
-2. **Compares** H2 sections against the latest CC Commander v2.0.0 template
+2. **Compares** H2 sections against the latest CC Commander v2.1.0 template
 3. **Identifies**: missing sections, outdated sections, custom sections
 4. **Proposes** a merge plan showing what would be added/updated
 5. **Preserves** all custom sections you've written
@@ -17,7 +17,7 @@ This command analyzes your existing CLAUDE.md and proposes updates based on the 
 
 ## Merge Strategy
 
-- **Missing sections**: Added from template with `<!-- Added by CC Commander v2.0.0 -->` marker
+- **Missing sections**: Added from template with `<!-- Added by CC Commander v2.1.0 -->` marker
 - **Outdated sections**: Template version shown side-by-side for comparison
 - **Custom sections**: Left untouched (any H2 not in template is considered custom)
 - **User name**: Preserved from existing file (not overwritten with placeholder)
@@ -70,10 +70,10 @@ Show a summary table:
 ```
 | Action | Section | Reason |
 |--------|---------|--------|
-| ADD    | Aggregator Ecosystem | New in v2.0.0 |
-| ADD    | CCC Domains | New in v2.0.0 |
-| ADD    | Linear Integration | New in v2.0.0 |
-| ADD    | Knowledge Compounding | New in v2.0.0 |
+| ADD    | Aggregator Ecosystem | New in v2.1.0 |
+| ADD    | CCC Domains | New in v2.1.0 |
+| ADD    | Linear Integration | New in v2.1.0 |
+| ADD    | Knowledge Compounding | New in v2.1.0 |
 | UPDATE | Workflow | 6 new subsections (Anti-Sycophancy, Scope Discipline, etc.) |
 | UPDATE | Core Principles | 2 new principles added |
 | KEEP   | My Custom Section | Custom (not in template) |
@@ -89,7 +89,7 @@ Ask: "Apply these changes? (yes / no / show-diff)"
 
 After applying, update the version comment to:
 ```
-<!-- CC Commander Staff Template v2.0.0 | Generated: YYYY-MM-DD -->
+<!-- CC Commander Staff Template v2.1.0 | Generated: YYYY-MM-DD -->
 ```
 
 ## Example
@@ -103,7 +103,7 @@ Claude:
 ## Current State
 - File: ~/.claude/CLAUDE.md
 - Template version: v1.3.0
-- Latest template: v2.0.0
+- Latest template: v2.1.0
 - File age: 45 days
 - Custom sections: 3
 

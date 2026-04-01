@@ -1,4 +1,4 @@
-# CC Commander v2.0.1 -- X/Twitter Long-Form Articles
+# CC Commander v2.1.0 -- X/Twitter Long-Form Articles
 ### by Kevin Z
 
 ---
@@ -15,7 +15,7 @@ It is a race car with no steering wheel.
 
 Every session starts from scratch. Every developer reinvents the same patterns. Every team writes their own CLAUDE.md rules from zero. You lose context, repeat mistakes, burn through your budget, and wonder why the AI that was so impressive in the demo keeps producing inconsistent results in practice.
 
-I spent 14 months fixing this problem. The result is CC Commander -- an open-source toolkit that transforms stock Claude Code into a structured, skill-aware, hook-driven development environment. Version 1.3 ships with 432+ skills, 88+ slash commands, 37 lifecycle hooks, 36+ prompt templates, 11 CCC domains, 9 workflow modes, 3 starter templates, and a real-time monitoring dashboard.
+I spent 14 months fixing this problem. The result is CC Commander -- an open-source toolkit that transforms stock Claude Code into a structured, skill-aware, hook-driven development environment. Version 1.3 ships with 441+ skills, 88+ slash commands, 37 lifecycle hooks, 36+ prompt templates, 11 CCC domains, 9 workflow modes, 3 starter templates, and a real-time monitoring dashboard.
 
 One install. Under 60 seconds.
 
@@ -25,7 +25,7 @@ The kit is built on four pillars.
 
 **Skills** are structured instruction sets that Claude loads on demand. Each skill lives in its own directory and contains a SKILL.md file with triggers, methodology, and domain knowledge. Say "use the api-design skill" and Claude loads REST patterns, status codes, pagination rules, and error handling conventions. Say "use ccc-saas" and 20 skills load simultaneously -- authentication, billing, database design, API patterns, frontend stack, deployment pipeline.
 
-There are 432+ skills organized into 10 CCC domain domains: SEO (19 sub-skills), Design (35+), Testing (15), Marketing (46), SaaS (20), DevOps (20), Research (8), Mobile (7), Security (9), and Data (8). Each CCC domain acts as a router: load one and it dispatches to the right specialist based on your request.
+There are 441+ skills organized into 11 CCC domains: SEO (19 sub-skills), Design (35+), Testing (15), Marketing (46), SaaS (20), DevOps (20), Research (8), Mobile (7), Security (9), and Data (8). Each CCC domain acts as a router: load one and it dispatches to the right specialist based on your request.
 
 **Commands** are slash commands invoked directly in the REPL. Type `/plan` and Claude interviews you with 5-7 questions, produces a spec document, then executes in a fresh session with clean context. Type `/code-review` and three reviewers analyze your code in parallel. Type `/spawn` and parallel Claude Code instances launch for independent tasks. There are 78+ commands covering planning, code quality, session management, multi-agent orchestration, and project management.
 
@@ -101,7 +101,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-
 
 Then type `/cc` in Claude Code to open the Command Center.
 
-432+ skills. 78+ commands. 25 hooks. 11 CCC domains. 9 modes. 36+ prompt templates. 3 starter templates. Real-time dashboard.
+441+ skills. 78+ commands. 25 hooks. 11 CCC domains. 9 modes. 36+ prompt templates. 3 starter templates. Real-time dashboard.
 
 One install. Free. Open source. No vendor lock-in.
 
@@ -195,7 +195,7 @@ The kit is the distillation of everything I learned building and running this 38
 
 Not everyone needs 38 agents. Not everyone needs OpenClaw. But everyone running Claude Code benefits from:
 
-- **Skills that encode domain expertise.** The 432+ skills capture patterns from 200+ community sources and my own production experience. Each skill is a self-contained instruction set that loads on demand.
+- **Skills that encode domain expertise.** The 441+ skills capture patterns from 200+ community sources and my own production experience. Each skill is a self-contained instruction set that loads on demand.
 
 - **Hooks that enforce discipline automatically.** The 37 lifecycle hooks fire without any manual intervention. Context guard, auto-checkpoint, cost alerts, self-verification -- they run whether you remember or not.
 
@@ -227,7 +227,7 @@ After running this system for over a year, these are the lessons that transfer t
 
 The Claude Code ecosystem is exploding. Official plugin directories, multi-model consensus, self-evolving skills, AI-powered memory compression -- the surface area of what is possible grows every week.
 
-CC Commander v2.0.1 is the most comprehensive single-install toolkit in this ecosystem: 432+ skills, 78+ commands, 25 hooks, 11 CCC domains, 9 modes, 36+ prompt templates, and a real-time dashboard. All open source. All free.
+CC Commander v2.1.0 is the most comprehensive single-install toolkit in this ecosystem: 441+ skills, 78+ commands, 25 hooks, 11 CCC domains, 9 modes, 36+ prompt templates, and a real-time dashboard. All open source. All free.
 
 But the real value is not the number of skills. It is the methodology that makes AI development predictable, verifiable, and compounding.
 
@@ -243,5 +243,5 @@ GitHub: [github.com/KevinZai/cc-commander](https://github.com/KevinZai/cc-comman
 
 ---
 
-*CC Commander v2.0.1 by Kevin Z -- 432+ skills | 11 CCC domains | 78+ commands | 25 hooks | 10 themes | 9 modes*
+*CC Commander v2.1.0 by Kevin Z -- 441+ skills | 11 CCC domains | 78+ commands | 25 hooks | 10 themes | 9 modes*
 *Distilled from 200+ community sources. One install. Under 60 seconds.*

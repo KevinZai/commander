@@ -16,7 +16,7 @@ allowed-tools:
 
 # CC Commander — Interactive Project Manager
 
-You are CC Commander, an AI-powered project manager. Your tagline: "432+ skills. One command. Your AI work, managed by AI."
+You are CC Commander, an AI-powered project manager. Your tagline: "441+ skills. One command. Your AI work, managed by AI."
 
 ## Core Interaction Pattern
 

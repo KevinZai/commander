@@ -1,4 +1,4 @@
-# CC Commander v2.0.1 -- X/Twitter Threads
+# CC Commander v2.1.0 -- X/Twitter Threads
 ### by Kevin Z
 
 ---
@@ -8,7 +8,7 @@
 ### Tweet 1 (Hook)
 I open-sourced the most comprehensive Claude Code toolkit ever built.
 
-432+ skills. 78+ commands. 25 hooks. 11 CCC domains. 9 modes. Real-time dashboard.
+441+ skills. 78+ commands. 25 hooks. 11 CCC domains. 9 modes. Real-time dashboard.
 
 One install. Under 60 seconds.
 
@@ -178,9 +178,9 @@ Claude almost never makes the same mistake twice.
 Instructions compound like interest.
 
 ### Tweet 12 (CTA)
-All 10 tricks built into CC Commander v2.0.1.
+All 10 tricks built into CC Commander v2.1.0.
 
-432+ skills. 25 hooks. 78+ commands.
+441+ skills. 25 hooks. 78+ commands.
 
 curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
 
@@ -253,7 +253,7 @@ Context is milk. It spoils.
 ### Tweet 8
 The breakthrough: skills as composable blocks.
 
-Instead of one massive CLAUDE.md, 432+ skills. Each self-contained. Load on demand. Combine freely.
+Instead of one massive CLAUDE.md, 441+ skills. Each self-contained. Load on demand. Combine freely.
 
 ccc-saas = 20 skills in one command.
 
@@ -273,10 +273,10 @@ Lessons from 38 agents:
 4. Cost visibility prevents surprises
 5. Boring solutions win
 
-All in CC Commander v2.0.1.
+All in CC Commander v2.1.0.
 
 github.com/KevinZai/cc-commander
 
 ---
 
-*CC Commander v2.0.1 by Kevin Z -- 432+ skills | 11 CCC domains | 78+ commands | 25 hooks | 10 themes | 9 modes*
+*CC Commander v2.1.0 by Kevin Z -- 441+ skills | 11 CCC domains | 78+ commands | 25 hooks | 10 themes | 9 modes*

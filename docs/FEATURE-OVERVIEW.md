@@ -1,6 +1,6 @@
-# CC Commander v2.0.1 — Complete Feature Overview
+# CC Commander v2.1.0 — Complete Feature Overview
 
-> CC Commander — 432+ skills. One command. Your AI work, managed by AI. 432+ skills, 11 CCC domains, 78+ commands, 25 hooks (18 kit-native + 19 ECC), 36+ prompt templates, 9 workflow modes, 10 themes, 3 starter templates, real-time agent dashboard, modular installer. One install.
+> CC Commander — 441+ skills. One command. Your AI work, managed by AI. 441+ skills, 11 CCC domains, 78+ commands, 25 hooks (18 kit-native + 19 ECC), 36+ prompt templates, 9 workflow modes, 10 themes, 3 starter templates, real-time agent dashboard, modular installer. One install.
 
 ---
 
@@ -20,7 +20,7 @@
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -51,7 +51,7 @@ Installation takes under a minute. The interactive installer sets up skills, com
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -90,7 +90,7 @@ cd cc-commander
 
 ### What Gets Installed
 
-- `~/.claude/skills/` -- 280+ skill directories (each containing a SKILL.md)
+- `~/.claude/skills/` -- 441+ skill directories (each containing a SKILL.md)
 - `~/.claude/commands/` -- 88+ slash command definitions (.md files)
 - `~/.claude/hooks/` -- 18 kit-native hook scripts (JS) + hooks.json configuration
 - `~/.claude/CLAUDE.md` -- Global context file with methodology and rules
@@ -117,14 +117,14 @@ cd cc-commander
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
 
 ## Feature Categories
 
-### 1. Skills (280+)
+### 1. Skills (441+)
 
 Skills are structured instruction sets that Claude Code loads on demand. Each skill lives in its own directory under `~/.claude/skills/` and contains a `SKILL.md` file with triggers, methodology, and domain knowledge. Load any skill by saying: _"use the `skill-name` skill"_.
 
@@ -390,7 +390,7 @@ Mega-skills are routers: load one and it dispatches to the right specialist sub-
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -404,7 +404,7 @@ Commands are slash commands invoked directly in the Claude Code REPL. They live 
 | Command | Description |
 |---------|-------------|
 | `/cc` | Interactive command center -- main menu for all kit features |
-| `/cc skills` | Browse 432+ skills by category |
+| `/cc skills` | Browse 441+ skills by category |
 | `/cc mega [name]` | Drill into a CCC domain's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions to stress-test your plan |
@@ -556,7 +556,7 @@ Commands are slash commands invoked directly in the Claude Code REPL. They live 
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -628,7 +628,7 @@ When Everything Claude Code (ECC) is installed, 19 additional hooks activate acr
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -721,7 +721,7 @@ Battle-tested prompt templates for common development scenarios. Located in `pro
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -760,7 +760,7 @@ Switch your entire development persona with one command. Each mode adjusts behav
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -798,7 +798,7 @@ No database required -- reads from Claude Code session files and hook output dir
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -847,7 +847,7 @@ Integration guide with buttons, 20+ code snippets (`compatibility/vscode-snippet
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -880,7 +880,7 @@ Ready-to-use project scaffolds in `templates/`. Each template produces a complet
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -915,7 +915,7 @@ Developer-specific onboarding paths in `guides/`. Each guide provides a focused 
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -967,7 +967,7 @@ Build type checklists, CLAUDE.md templates, full skills catalog, commands refere
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -978,8 +978,8 @@ Build type checklists, CLAUDE.md templates, full skills catalog, commands refere
 
 ```
 cc-commander/
-├── skills/              # 280+ skill directories, each with SKILL.md
-│   ├── mega-*/          # 10 CCC domain routers with sub-skill directories
+├── skills/              # 441+ skill directories, each with SKILL.md
+│   ├── mega-*/          # 11 CCC domain routers with sub-skill directories
 │   ├── mode-switcher/   # 9 workflow mode definitions
 │   └── */               # Individual skills
 ├── commands/            # 87 slash command definitions (.md files)
@@ -1055,7 +1055,7 @@ Commands are markdown files in `~/.claude/commands/`. Invoking `/command-name` i
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -1108,7 +1108,7 @@ Elements: context gauge (color-coded zones), model, session cost, token counts, 
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -1142,7 +1142,7 @@ Pre-configured skill combinations for common project types:
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -1151,7 +1151,7 @@ Pre-configured skill combinations for common project types:
 
 | Feature | CC Commander | Stock Claude Code | SuperClaude | Other Kits |
 |---------|----------------|-------------------|-------------|------------|
-| Skills | 280+ | 0 | ~20 | 10-50 |
+| Skills | 441+ | 0 | ~20 | 10-50 |
 | Commands | 87 | Built-in only | ~15 | 5-20 |
 | Hooks | 35 | Manual only | 0 | 0-5 |
 | Prompt Templates | 41 | 0 | 0 | 0-10 |
@@ -1182,7 +1182,7 @@ Pre-configured skill combinations for common project types:
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 
@@ -1215,7 +1215,7 @@ Pre-configured skill combinations for common project types:
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Project import** | Reads CLAUDE.md without modifying .claude/ |
 | **Cowork plugin** | 4 skills for Claude Desktop |
-| **101 tests** | 22 self-test + 61 hooks + 18 path tests |
+| **107 tests** | 22 self-test + 61 hooks + 18 path tests |
 
 ---
 

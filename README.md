@@ -98,7 +98,7 @@ CCC asks what you need (multiple choice — just pick one):
 
 ### Step 5: CCC does the rest
 
-It dispatches to the best available tool (from 11 vendor packages), tracks the session, and learns from the results.
+It dispatches to the best available tool (from 16 vendor packages), tracks the session, and learns from the results.
 
 **No commands to memorize. No flags to type. No config files.** Just answer questions.
 
@@ -118,7 +118,7 @@ It dispatches to the best available tool (from 11 vendor packages), tracks the s
 
 | Component | Count | What It Does |
 |-----------|-------|-------------|
-| Skills | 432+ | On-demand expertise |
+| Skills | 441+ | On-demand expertise |
 | CCC Domains | 11 | Domain routers with sub-skills |
 | Commands | 80+ | Slash commands (/ccc: prefix) |
 | Hooks | 25 | Lifecycle automation |
@@ -302,7 +302,7 @@ MIT License.
 
 <div align="center">
 
-**CC Commander v2.0.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v2.1.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. Guided access. Auto-updated.*
 

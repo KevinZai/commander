@@ -1,6 +1,6 @@
 # CC Commander — Cowork Plugin
 
-**432+ skills. One command. Your AI work, managed by AI.**
+**441+ skills. One command. Your AI work, managed by AI.**
 
 CC Commander is an AI-powered project manager that orchestrates your Claude Code workflow. It manages sessions, compounds knowledge across tasks, detects and sequences installed packages (gstack, CE, Superpowers), and provides guided flows for coding, content, research, and more.
 

@@ -40,7 +40,7 @@ Show a clean summary table:
 ```
 | Action | Section | Reason |
 |--------|---------|--------|
-| ADD    | Aggregator Ecosystem | New in v2.0.0 |
+| ADD    | Aggregator Ecosystem | New in v2.1.0 |
 | UPDATE | Workflow | 3 new subsections added |
 | KEEP   | My Custom Rules | Custom section |
 ```

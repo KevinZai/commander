@@ -1,6 +1,6 @@
 # Claude Code Cheatsheet
-> CC Commander v2.0.1 — by Kevin Z — commands, workflows, and power user tips
-> v2.0.1 — 2026-03-30
+> CC Commander v2.1.0 — by Kevin Z — commands, workflows, and power user tips
+> v2.1.0 — 2026-03-30
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
@@ -815,7 +815,7 @@ CC Commander includes an interactive command center accessible via `/cc`:
 | Command | What it does |
 |---------|-------------|
 | `/cc` | Main menu — all options |
-| `/cc skills` | Browse 432+ skills by category |
+| `/cc skills` | Browse 441+ skills by category |
 | `/cc mega [name]` | Drill into a CCC domain's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions (no plan mode) |

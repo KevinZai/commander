@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
-> CC Commander v2.0.1 — by Kevin Z
+> CC Commander v2.1.0 — by Kevin Z
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-03-28 | 280+ skill directories | 10 CCC Domains | 18 kit-native hooks (37 with ECC) | 3 starter templates | 36+ prompt templates | 9 workflow modes | Real-time dashboard | 10 themes
+> Last verified: 2026-03-28 | 441+ skill directories | 11 CCC Domains | 18 kit-native hooks (37 with ECC) | 3 starter templates | 36+ prompt templates | 9 workflow modes | Real-time dashboard | 10 themes
 > Audit: `./generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
@@ -517,11 +517,11 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = new in v0.4 | New CCC domains, modes, integrations, and prompt library added in v1.1 | Themes, OpenClaw native, status updates, continuous improvement added in v1.3 | Linear MCP, board view, full rebrand in v2.0.1*
+*⭐ = new in v0.4 | New CCC domains, modes, integrations, and prompt library added in v1.1 | Themes, OpenClaw native, status updates, continuous improvement added in v1.3 | Linear MCP, board view, full rebrand in v2.1.0*
 
 ---
 
-## CC Commander Skills (v2.0.1)
+## CC Commander Skills (v2.1.0)
 
 Interactive CLI project manager — sits above Claude Code sessions.
 

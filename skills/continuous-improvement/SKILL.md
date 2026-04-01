@@ -215,4 +215,4 @@ Environment variables for customization:
 
 ## Credit
 
-Part of Kevin Z's CC Commander v2.0.1. Built to keep the kit ahead of the ecosystem automatically.
+Part of Kevin Z's CC Commander v2.1.0. Built to keep the kit ahead of the ecosystem automatically.

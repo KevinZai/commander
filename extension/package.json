@@ -1,8 +1,8 @@
 {
   "name": "cc-commander-vscode",
   "displayName": "CC Commander",
-  "description": "280+ skills. One command. Your AI work, managed by AI.",
-  "version": "2.0.1",
+  "description": "441+ skills. One command. Your AI work, managed by AI.",
+  "version": "2.1.0",
   "publisher": "kevinz",
   "license": "MIT",
   "repository": {

@@ -11,7 +11,7 @@ Add CC Commander -- comprehensive skills, commands, and hooks toolkit
 ### Entry
 
 ```markdown
-- [CC Commander](https://github.com/KevinZai/cc-commander) - The complete Claude Code configuration toolkit with 432+ skills, 78+ commands, 25 hooks, 9 workflow modes, 10 themes, prompt templates, starter project templates, real-time agent dashboard, and a one-line installer. Includes beginner-friendly PM mode, multi-agent orchestration, and cross-surface state sync.
+- [CC Commander](https://github.com/KevinZai/cc-commander) - The complete Claude Code configuration toolkit with 441+ skills, 78+ commands, 25 hooks, 9 workflow modes, 10 themes, prompt templates, starter project templates, real-time agent dashboard, and a one-line installer. Includes beginner-friendly PM mode, multi-agent orchestration, and cross-surface state sync.
 ```
 
 ### PR Description
@@ -22,7 +22,7 @@ Add CC Commander -- comprehensive skills, commands, and hooks toolkit
 A comprehensive, modular toolkit for Claude Code that installs to `~/.claude/`. Built by scanning 200+ articles from the Claude Code community and distilling the best patterns into one install.
 
 **Key features:**
-- 432+ skills organized by category (11 CCC domains with router pattern)
+- 441+ skills organized by category (11 CCC domains with router pattern)
 - 88+ slash commands (`/plan`, `/verify`, `/tdd`, `/code-review`, `/init`, etc.)
 - 25 hooks (18 kit-native lifecycle automations)
 - 9 workflow modes (normal, design, saas, marketing, research, writing, night, yolo, unhinged)

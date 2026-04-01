@@ -91,7 +91,7 @@ Minimal — 3-4 links, one line.
 
 Current OG image says v1.0 with 220+ skills. Update to:
 - v1.3
-- 432+ skills, 11 CCC domains, 78+ commands, 25 hooks
+- 441+ skills, 11 CCC domains, 78+ commands, 25 hooks
 - Add kevinz.ai URL
 - Keep "by Kevin Z"
 
@@ -140,7 +140,7 @@ Kevin Z (kevinz.ai)          ← Personal brand, the person, the story
 
 ```
 CEO @MyWiFiNetworks (20+ yrs). Built a 38-agent AI system on a Mac Mini.
-Creator of CC Commander (432+ skills, open source).
+Creator of CC Commander (441+ skills, open source).
 Non-coder building with AI. kevinz.ai
 ```
 
@@ -168,7 +168,7 @@ Non-coder building with AI. kevinz.ai
 - Photo/avatar (optional but recommended for personal brand)
 
 **Projects Section** (3-4 cards)
-- **CC Commander** — "432+ skills for Claude Code. Open source." → GitHub link
+- **CC Commander** — "441+ skills for Claude Code. Open source." → GitHub link
 - **OpenClaw** — "38-agent orchestration platform. Runs on a Mac Mini." → brief description (private repo, link to blog post)
 - **MyWiFi Networks** — "WiFi marketing platform. 15K+ resellers. 40+ countries." → mywifinetworks.com
 - **[Consulting]** — "AI consulting for businesses." → kevinz.ai/consulting (when ready)

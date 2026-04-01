@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-CC Commander is the most comprehensive configuration toolkit for Claude Code, Anthropic's official AI development CLI. With 432+ skills, 11 CCC domains, 78+ commands, 25 hooks, 36+ prompt templates, 9 workflow modes, 10 themes, a real-time agent dashboard, modular installer, and The Kevin Z Method methodology, it is the single largest "batteries-included" kit in the ecosystem.
+CC Commander is the most comprehensive configuration toolkit for Claude Code, Anthropic's official AI development CLI. With 441+ skills, 11 CCC domains, 78+ commands, 25 hooks, 36+ prompt templates, 9 workflow modes, 10 themes, a real-time agent dashboard, modular installer, and The Kevin Z Method methodology, it is the single largest "batteries-included" kit in the ecosystem.
 
 The Claude Code ecosystem is growing explosively. The official Claude Code repo has 83K+ stars, and the broader ecosystem includes 55+ repos with 1,000+ stars each. Developer willingness to pay for AI-augmented tooling is high -- Cursor charges $20/month, GitHub Copilot charges $10-39/month, and the pattern is clear: developers will pay for tools that make them measurably faster.
 
@@ -58,7 +58,7 @@ Based on developer spending patterns:
 
 | | Free | Pro ($19/mo) | Enterprise ($99/mo per seat) |
 |---|---|---|---|
-| All 432+ skills | Yes | Yes | Yes |
+| All 441+ skills | Yes | Yes | Yes |
 | All 78+ commands | Yes | Yes | Yes |
 | All 25 hooks | Yes | Yes | Yes |
 | Local dashboard | Yes | Yes | Yes |
@@ -193,7 +193,7 @@ Based on developer spending patterns:
 
 **Goal:** Maximize free distribution and community growth.
 
-- Ship v2.0.1 with all planned features (plugin format, memory compression, multi-model consensus)
+- Ship v2.1.0 with all planned features (plugin format, memory compression, multi-model consensus)
 - Publish as official Claude Code plugin via `/plugin marketplace add KevinZai/cc-commander`
 - Track installs via anonymous analytics in install.sh (opt-in counter, no PII)
 - Target: 2,000 GitHub stars, 500 weekly installs
@@ -286,7 +286,7 @@ Based on developer spending patterns:
 
 ### What competitors cannot easily replicate
 
-1. **Comprehensiveness.** 432+ skills, 11 CCC domains, 78+ commands, 25 hooks, 36+ prompt templates, 9 workflow modes, 10 themes, 3 templates, real-time dashboard. No single competitor comes close. Building this from scratch would take 6-12 months.
+1. **Comprehensiveness.** 441+ skills, 11 CCC domains, 78+ commands, 25 hooks, 36+ prompt templates, 9 workflow modes, 10 themes, 3 templates, real-time dashboard. No single competitor comes close. Building this from scratch would take 6-12 months.
 
 2. **Methodology.** The Kevin Z Method (BIBLE.md) is not just a tool collection -- it is a codified development philosophy with 7 chapters, confidence checks, four-question validation, dialectic review, and verification loops. This is intellectual property that cannot be forked.
 
