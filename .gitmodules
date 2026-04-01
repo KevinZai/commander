@@ -37,3 +37,6 @@
 [submodule "vendor/claude-skills"]
 	path = vendor/claude-skills
 	url = https://github.com/alirezarezvani/claude-skills.git
+[submodule "vendor/notebooklm-py"]
+	path = vendor/notebooklm-py
+	url = https://github.com/teng-lin/notebooklm-py.git
