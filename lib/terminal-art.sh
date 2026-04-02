@@ -282,6 +282,7 @@ cc_kit_summary() {
   echo ""
 }
 kz_bible_summary() { cc_kit_summary "$@"; }
+cc_bible_summary() { cc_kit_summary "$@"; }
 
 # ── Next Steps Panel ───────────────────────────────────────────────────────
 
