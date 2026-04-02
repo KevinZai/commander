@@ -33,8 +33,9 @@ tmux send-keys -t "$SESSION_NAME" "node $CCC_BIN" Enter
 # Split right pane: Claude Code prompt
 tmux split-window -h -t "$SESSION_NAME" -p 65
 
-# Right pane: Claude Code
-tmux send-keys -t "$SESSION_NAME" "claude --dangerously-skip-permissions" Enter
+# Right pane: empty shell (CCC sends commands here when user dispatches a build)
+tmux send-keys -t "$SESSION_NAME" "echo '  Waiting for CCC dispatch... Use the menu on the left.'" Enter
+tmux send-keys -t "$SESSION_NAME" "echo '  Or type: claude --dangerously-skip-permissions'" Enter
 
 # Set pane titles
 tmux select-pane -t "$SESSION_NAME:0.0" -T "CCC Menu"

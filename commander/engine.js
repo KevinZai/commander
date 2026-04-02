@@ -14,9 +14,30 @@ function tmuxStatus(msg) {
     var cp = require('child_process');
     var sessions = cp.execSync('tmux list-sessions -F "#{session_name}"', { encoding: 'utf8', stdio: ['pipe','pipe','pipe'] });
     if (sessions.indexOf('ccc-split') === -1) return;
-    // Send a visible status line to the Claude pane (pane 1)
     cp.execSync('tmux display-message -t ccc-split:0.1 -d 5000 "\u2588 CCC: ' + msg.replace(/"/g, '\\"') + '"', { stdio: 'pipe' });
   } catch(_e) {}
+}
+
+// Check if we're in ccc-split tmux session
+function inSplitMode() {
+  if (!process.env.TMUX) return false;
+  try {
+    var cp = require('child_process');
+    var sessions = cp.execSync('tmux list-sessions -F "#{session_name}"', { encoding: 'utf8', stdio: ['pipe','pipe','pipe'] });
+    return sessions.indexOf('ccc-split') !== -1;
+  } catch(_e) { return false; }
+}
+
+// Send a claude command to the right tmux pane instead of running headless
+function tmuxDispatch(claudeCmd) {
+  try {
+    var cp = require('child_process');
+    // Send the command to pane 1 (Claude side)
+    cp.execSync('tmux send-keys -t ccc-split:0.1 ' + JSON.stringify(claudeCmd) + ' Enter', { stdio: 'pipe' });
+    // Focus on the Claude pane so user can watch
+    cp.execSync('tmux select-pane -t ccc-split:0.1', { stdio: 'pipe' });
+    return true;
+  } catch(_e) { return false; }
 }
 
 var cockpit = require('./cockpit');
@@ -767,19 +788,32 @@ class KitCommander {
     })();
 
     try {
-      sp.stop(true); // stop spinner before streaming starts
+      sp.stop(true);
       tmuxStatus('Building: ' + fullTask.slice(0, 60));
-      process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
-      process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
-      var result = await d.dispatch(fullTask, {
-        stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
-        model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
-        permissionMode: "plan", fallbackModel: "sonnet", bare: false,
-        name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
-      });
-      state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
-      state.completeSession(session.id, 'success');
-      try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
+      try { var fs = require('fs'); var path = require('path'); fs.mkdirSync(path.join(require('os').homedir(), '.claude', 'commander'), { recursive: true }); fs.writeFileSync(path.join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'BUILD: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
+
+      if (inSplitMode()) {
+        // Split mode: send command to the visible Claude pane
+        var claudeArgs = 'claude -p ' + JSON.stringify(fullTask).replace(/'/g, "'\\'") + ' --dangerously-skip-permissions --max-turns ' + defaults.maxTurns;
+        if (defaults.model) claudeArgs += ' --model ' + defaults.model;
+        tmuxDispatch(claudeArgs);
+        process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+        process.stdout.write('  ' + tui.dimText('Watch the right pane. Click it or Ctrl+A then 2.') + '\x0a');
+        state.completeSession(session.id, 'dispatched');
+      } else {
+        // Simple mode: run headless with streaming output
+        process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
+        process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
+        var result = await d.dispatch(fullTask, {
+          stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
+          model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
+          fallbackModel: "sonnet", bare: false,
+          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+        });
+        state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
+        state.completeSession(session.id, 'success');
+        try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
+      }
       // Sync completion to Linear + post update + pulse
       try {
         var linearDone = require("./integrations/linear");
@@ -793,6 +827,7 @@ class KitCommander {
       // Generate session replay
       try { var replay = require("./session-replay"); var r = replay.generateReplay(state.getSession(session.id)); if (r) { replay.saveReplay(r); replay.postToLinear(r).catch(function(){}); process.stdout.write('\n  ' + tui.dimText('Session replay saved. Score: ' + r.score.total + '/100') + '\n'); } } catch(_e) {}
       tmuxStatus('BUILD COMPLETE');
+      try { require('fs').writeFileSync(require('path').join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'COMPLETE: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
       process.stdout.write(tui.celebrate('BUILD COMPLETE'));
       if (result.result) { var summary = typeof result.result === 'string' ? result.result.slice(0, 500) : JSON.stringify(result.result).slice(0, 500); process.stdout.write('\n  ' + summary + '\n'); }
     } catch (err) {
@@ -829,21 +864,35 @@ class KitCommander {
       return prompt + knowledgePrompt;
     })();
     try {
-      sp.stop(true); // stop spinner before streaming starts
+      sp.stop(true);
       tmuxStatus('Building: ' + fullTask.slice(0, 60));
-      process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
-      process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
-      var result = await d.dispatch(fullTask, {
-        stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
-        model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
-        permissionMode: "plan", fallbackModel: "sonnet", bare: false,
-        name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
-      });
-      state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
-      state.completeSession(session.id, 'success');
-      try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
+      try { var fs = require('fs'); var path = require('path'); fs.mkdirSync(path.join(require('os').homedir(), '.claude', 'commander'), { recursive: true }); fs.writeFileSync(path.join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'BUILD: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
+
+      if (inSplitMode()) {
+        // Split mode: send command to the visible Claude pane
+        var claudeArgs = 'claude -p ' + JSON.stringify(fullTask).replace(/'/g, "'\\'") + ' --dangerously-skip-permissions --max-turns ' + defaults.maxTurns;
+        if (defaults.model) claudeArgs += ' --model ' + defaults.model;
+        tmuxDispatch(claudeArgs);
+        process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+        process.stdout.write('  ' + tui.dimText('Watch the right pane. Click it or Ctrl+A then 2.') + '\x0a');
+        state.completeSession(session.id, 'dispatched');
+      } else {
+        // Simple mode: run headless with streaming output
+        process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
+        process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
+        var result = await d.dispatch(fullTask, {
+          stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
+          model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
+          fallbackModel: "sonnet", bare: false,
+          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+        });
+        state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
+        state.completeSession(session.id, 'success');
+        try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
+      }
       try { var linearDone = require("./integrations/linear"); var doneSession = state.getSession(session.id); if (doneSession) linearDone.syncSession(doneSession, "success").catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'linear-issue-done'); } catch(_) {} }
       tmuxStatus('BUILD COMPLETE');
+      try { require('fs').writeFileSync(require('path').join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'COMPLETE: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
       process.stdout.write(tui.celebrate('BUILD COMPLETE'));
     } catch (err) {
       sp.stop(false);

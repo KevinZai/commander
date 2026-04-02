@@ -83,7 +83,7 @@ function dispatch(task, options) {
         output += text;
 
         if (!bare) {
-          // stream-json: each line is a JSON event. Print assistant text live.
+          // stream-json: each line is a JSON event. Parse and display live.
           text.split('\n').forEach(function(line) {
             if (!line.trim()) return;
             try {
@@ -94,7 +94,25 @@ function dispatch(task, options) {
                     process.stdout.write(block.text);
                   }
                   if (block.type === 'tool_use') {
-                    process.stdout.write('\n  \x1b[38;5;245m[\u2699 ' + block.name + ']\x1b[0m\n');
+                    var toolLabel = block.name || 'unknown';
+                    var toolInput = '';
+                    if (block.input) {
+                      if (block.input.command) toolInput = block.input.command.slice(0, 120);
+                      else if (block.input.pattern) toolInput = block.input.pattern;
+                      else if (block.input.file_path) toolInput = block.input.file_path;
+                      else if (block.input.query) toolInput = block.input.query.slice(0, 80);
+                      else if (block.input.url) toolInput = block.input.url.slice(0, 80);
+                    }
+                    process.stdout.write('\n  \x1b[38;5;245m[\u2699 ' + toolLabel + (toolInput ? ': ' + toolInput : '') + ']\x1b[0m\n');
+                  }
+                });
+              }
+              if (evt.type === 'user' && evt.message && evt.message.content) {
+                // Tool results — show abbreviated
+                evt.message.content.forEach(function(block) {
+                  if (block.type === 'tool_result' && block.content) {
+                    var preview = typeof block.content === 'string' ? block.content.slice(0, 150) : '';
+                    if (preview) process.stdout.write('  \x1b[38;5;240m' + preview.replace(/\n/g, ' ') + '\x1b[0m\n');
                   }
                 });
               }
@@ -102,7 +120,7 @@ function dispatch(task, options) {
                 lastResult = evt;
               }
             } catch(_e) {
-              // partial JSON line or non-JSON — skip silently
+              // partial JSON line — buffer could split mid-event, skip
             }
           });
         } else {
