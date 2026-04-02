@@ -35,6 +35,7 @@ function dispatch(task, options) {
 
   var args = ['-p', JSON.stringify(task), '--output-format', 'json'];
   if (bare) args.push('--bare');
+  args.push('--dangerously-skip-permissions');
   if (maxTurns) args.push('--max-turns', String(maxTurns));
   if (resume) args.push('--resume', resume);
   if (continueSession) args.push('--continue');

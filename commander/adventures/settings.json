@@ -42,6 +42,12 @@
       "action": "linear_setup"
     },
     {
+      "key": "m",
+      "label": "Change launch mode",
+      "description": "Simple or Advanced (split)",
+      "action": "settings_launch_mode"
+    },
+    {
       "key": "r",
       "label": "Reset all state",
       "description": "Start fresh (keeps skills)",
