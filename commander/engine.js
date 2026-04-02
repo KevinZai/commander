@@ -782,12 +782,14 @@ class KitCommander {
       process.stdout.write(tui.celebrate('BUILD COMPLETE'));
       if (result.result) { var summary = typeof result.result === 'string' ? result.result.slice(0, 500) : JSON.stringify(result.result).slice(0, 500); process.stdout.write('\n  ' + summary + '\n'); }
     } catch (err) {
-      sp.stop(false);
+      try { sp.stop(false); } catch(_) {}
+      try { require('./error-logger').log(err, 'executeBuild'); } catch(_) {}
       // Sync error to Linear
       try { var linearErr = require("./integrations/linear"); var errSession = state.getSession(session.id); if (errSession) linearErr.syncSession(errSession, "error").catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'linear-sync-error'); } catch(_) {} }
       state.completeSession(session.id, 'error');
-      process.stdout.write('\n  Error: ' + err.message + '\n');
-      process.stdout.write('  Tip: npm i -g @anthropic-ai/claude-code\n');
+      process.stdout.write('\n  Build failed: ' + (err.message || 'Unknown error') + '\n');
+      process.stdout.write('  Check: ~/.claude/commander/error.log for details\n');
+      if (err.message && err.message.includes('not found')) process.stdout.write('  Tip: npm i -g @anthropic-ai/claude-code\n');
     }
     if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     await this.ask('\n  Press Enter...');
