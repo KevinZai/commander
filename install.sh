@@ -333,7 +333,7 @@ mkdir -p "$CLAUDE_DIR"
 
 # 1. Skills
 if should_install "skills"; then
-  ((install_step++))
+  ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Skills"
   rm -rf "$CLAUDE_DIR/skills"
   cp -r "$SCRIPT_DIR/skills/" "$CLAUDE_DIR/skills/"
@@ -344,7 +344,7 @@ fi
 
 # 2. Commands
 if should_install "commands"; then
-  ((install_step++))
+  ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Commands"
   rm -rf "$CLAUDE_DIR/commands"
   cp -r "$SCRIPT_DIR/commands/" "$CLAUDE_DIR/commands/"
@@ -354,7 +354,7 @@ fi
 
 # 3. Hooks
 if should_install "hooks"; then
-  ((install_step++))
+  ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Hooks"
   mkdir -p "$CLAUDE_DIR/hooks"
   cp -r "$SCRIPT_DIR/hooks/"* "$CLAUDE_DIR/hooks/" 2>/dev/null || true
@@ -363,7 +363,7 @@ fi
 
 # 4. Lib (terminal art)
 if should_install "lib"; then
-  ((install_step++))
+  ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Libraries"
   mkdir -p "$CLAUDE_DIR/lib"
   cp -r "$SCRIPT_DIR/lib/"* "$CLAUDE_DIR/lib/" 2>/dev/null || true
@@ -372,7 +372,7 @@ fi
 
 # 5. Templates
 if should_install "templates"; then
-  ((install_step++))
+  ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Templates"
   mkdir -p "$CLAUDE_DIR/templates"
   cp -r "$SCRIPT_DIR/templates/"* "$CLAUDE_DIR/templates/" 2>/dev/null || true
@@ -381,7 +381,7 @@ fi
 
 # 6. Reference docs
 if should_install "docs"; then
-  ((install_step++))
+  ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Reference docs"
   for doc in BIBLE.md CHEATSHEET.md SKILLS-INDEX.md; do
     if [ -f "$SCRIPT_DIR/$doc" ]; then
@@ -393,7 +393,7 @@ fi
 
 # 7. Config files
 if should_install "claude-md" || should_install "settings"; then
-  ((install_step++))
+  ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Configuration"
 
   if should_install "claude-md" && [ -f "$SCRIPT_DIR/CLAUDE.md.staff-template" ]; then
@@ -418,7 +418,7 @@ fi
 
 # 8. Symlinks
 if should_install "mega-symlinks"; then
-  ((install_step++))
+  ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Symlinks"
 
   symlink_count=0
