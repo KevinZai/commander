@@ -52,16 +52,22 @@ tmux set-option -t "$SESSION_NAME" status-left "#[fg=#ff6600,bold] CCC #[fg=#666
 tmux set-option -t "$SESSION_NAME" status-right "#[fg=#00ffff]#{pane_current_command} #[fg=#666666]│ #[fg=#ff6600]%H:%M"
 tmux set-option -t "$SESSION_NAME" status-left-length 20
 
-# Simple keybindings (no Ctrl+B prefix needed)
-tmux set-option -t "$SESSION_NAME" prefix None
-tmux bind-key -n F1 select-pane -t "$SESSION_NAME:0.0"    # F1 = CCC menu
-tmux bind-key -n F2 select-pane -t "$SESSION_NAME:0.1"    # F2 = Claude Code
-tmux bind-key -n F3 resize-pane -t "$SESSION_NAME:0.0" -x 25%  # F3 = shrink menu
-tmux bind-key -n F4 resize-pane -t "$SESSION_NAME:0.0" -x 45%  # F4 = expand menu
-tmux bind-key -n F10 kill-session -t "$SESSION_NAME"       # F10 = quit
+# Keybindings — Ctrl+A prefix (simpler than Ctrl+B, works on Mac)
+tmux set-option -t "$SESSION_NAME" prefix C-a
+tmux bind-key -t "$SESSION_NAME" C-a send-prefix
 
-# Add key legend to status bar
-tmux set-option -t "$SESSION_NAME" status-right "#[fg=#444444]F1:Menu F2:Claude F10:Quit #[fg=#666666]| #[fg=#ff6600]%H:%M"
+# Ctrl+A then: 1=Menu, 2=Claude, q=Quit, ←/→=resize
+tmux bind-key -t "$SESSION_NAME" 1 select-pane -t "$SESSION_NAME:0.0"
+tmux bind-key -t "$SESSION_NAME" 2 select-pane -t "$SESSION_NAME:0.1"
+tmux bind-key -t "$SESSION_NAME" Left resize-pane -L 5
+tmux bind-key -t "$SESSION_NAME" Right resize-pane -R 5
+tmux bind-key -t "$SESSION_NAME" q kill-session -t "$SESSION_NAME"
+
+# Also allow prefix-free mouse switching
+tmux set-option -t "$SESSION_NAME" mouse on
+
+# Key legend in status bar
+tmux set-option -t "$SESSION_NAME" status-right "#[fg=#444444]^A+1:Menu ^A+2:Claude ^A+q:Quit #[fg=#666666]| #[fg=#ff6600]%H:%M"
 
 # Focus on Claude Code pane (right)
 tmux select-pane -t "$SESSION_NAME:0.1"
