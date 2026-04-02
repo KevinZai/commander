@@ -9,37 +9,32 @@ var BRAND = require('./branding');
 
 // Send status to the tmux right pane (Claude side) if in split mode
 function tmuxStatus(msg) {
-  if (!process.env.TMUX) return;
+  if (!process.env.CCC_TMUX_SESSION) return;
   try {
     var cp = require('child_process');
-    var sessions = cp.execSync('tmux list-sessions -F "#{session_name}"', { encoding: 'utf8', stdio: ['pipe','pipe','pipe'] });
-    if (sessions.indexOf('ccc-split') === -1) return;
-    cp.execSync('tmux display-message -t ccc-split:0.1 -d 5000 "\u2588 CCC: ' + msg.replace(/"/g, '\\"') + '"', { stdio: 'pipe' });
+    var session = process.env.CCC_TMUX_SESSION;
+    cp.execSync('tmux display-message -t ' + session + ' -d 3000 " CCC: ' + msg.replace(/"/g, '\\"') + '"', { stdio: 'pipe' });
   } catch(_e) {}
 }
 
 // Check if we're in ccc-split tmux session
 function inSplitMode() {
-  if (!process.env.TMUX) return false;
-  try {
-    var cp = require('child_process');
-    var sessions = cp.execSync('tmux list-sessions -F "#{session_name}"', { encoding: 'utf8', stdio: ['pipe','pipe','pipe'] });
-    return sessions.indexOf('ccc-split') !== -1;
-  } catch(_e) { return false; }
+  return !!process.env.CCC_TMUX_SESSION;
 }
 
 // Send a claude command to the right tmux pane instead of running headless
+// Dispatch counter for naming tmux windows
+var dispatchCounter = 0;
+
 function tmuxDispatch(claudeCmd) {
   try {
     var cp = require('child_process');
-    // Write command to a temp file to avoid shell escaping hell
-    var fs = require('fs');
-    var tmpFile = require('path').join(require('os').tmpdir(), 'ccc-dispatch.sh');
-    fs.writeFileSync(tmpFile, claudeCmd + '\n');
-    // Send "bash /tmp/ccc-dispatch.sh" to the right pane
-    cp.execSync('tmux send-keys -t ccc-split:0.1 "bash ' + tmpFile + '" Enter', { stdio: 'pipe' });
-    // Focus on the Claude pane so user can watch
-    cp.execSync('tmux select-pane -t ccc-split:0.1', { stdio: 'pipe' });
+    var sessionName = process.env.CCC_TMUX_SESSION || 'ccc';
+    dispatchCounter++;
+    var windowName = 'claude-' + dispatchCounter;
+    // Create new empty window, then send the command via send-keys
+    cp.execSync('tmux new-window -t ' + sessionName + ' -n ' + windowName, { stdio: 'pipe' });
+    cp.execSync('tmux send-keys -t ' + sessionName + ':' + windowName + ' ' + JSON.stringify(claudeCmd) + ' Enter', { stdio: 'pipe' });
     return true;
   } catch(_e) { return false; }
 }
@@ -798,7 +793,7 @@ class KitCommander {
 
       if (inSplitMode()) {
         // Split mode: send command to the visible Claude pane
-        var claudeArgs = 'claude -p ' + JSON.stringify(fullTask) + ' --dangerously-skip-permissions --max-turns ' + defaults.maxTurns;
+        var claudeArgs = 'CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 claude -p ' + JSON.stringify(fullTask) + ' --dangerously-skip-permissions --max-turns ' + defaults.maxTurns + ' --output-format text';
         if (defaults.model) claudeArgs += ' --model ' + defaults.model;
         tmuxDispatch(claudeArgs);
         process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
@@ -875,7 +870,7 @@ class KitCommander {
 
       if (inSplitMode()) {
         // Split mode: send command to the visible Claude pane
-        var claudeArgs = 'claude -p ' + JSON.stringify(fullTask) + ' --dangerously-skip-permissions --max-turns ' + defaults.maxTurns;
+        var claudeArgs = 'CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 claude -p ' + JSON.stringify(fullTask) + ' --dangerously-skip-permissions --max-turns ' + defaults.maxTurns + ' --output-format text';
         if (defaults.model) claudeArgs += ' --model ' + defaults.model;
         tmuxDispatch(claudeArgs);
         process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
