@@ -42,7 +42,7 @@ function dispatch(task, options) {
   if (model) args.push('--model', model);
   if (fallbackModel && fallbackModel !== model) args.push('--fallback-model', fallbackModel);
   if (effort) args.push('--effort', effort);
-  if (permissionMode) args.push('--permission-mode', permissionMode);
+  // --dangerously-skip-permissions replaces --permission-mode (they conflict)
   if (maxBudgetUsd) args.push('--max-budget-usd', String(maxBudgetUsd));
   if (name) args.push('--name', name);
   if (worktree) args.push('--worktree', worktree);
@@ -62,19 +62,26 @@ function dispatch(task, options) {
       var proc = childProcess.spawn(command, args, {
         cwd: cwd || process.cwd(),
         env: env,
-        stdio: ['inherit', 'pipe', 'inherit'], // stdin+stderr inherit, stdout piped
+        stdio: ['inherit', 'pipe', 'pipe'], // stdin inherit, stdout+stderr piped
       });
 
       var output = '';
+      var stderrOutput = '';
       proc.stdout.on('data', function(chunk) {
         var text = chunk.toString();
         output += text;
-        if (bare) process.stdout.write(text); // only echo stdout in bare mode; non-bare streams via stderr
+        if (bare) process.stdout.write(text);
+      });
+      proc.stderr.on('data', function(chunk) {
+        var text = chunk.toString();
+        stderrOutput += text;
+        process.stderr.write(text); // always stream stderr to terminal
       });
 
       proc.on('close', function(code) {
         if (code !== 0) {
-          reject(new Error('Claude Code exited with code ' + code));
+          var detail = stderrOutput.trim().split('\n').slice(-3).join(' ').slice(0, 300);
+          reject(new Error('Claude Code exited with code ' + code + (detail ? ': ' + detail : '')));
           return;
         }
         // Try to parse the last JSON object from output
