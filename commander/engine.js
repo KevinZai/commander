@@ -7,6 +7,18 @@ var tui = require('./tui');
 var state = require('./state');
 var BRAND = require('./branding');
 
+// Send status to the tmux right pane (Claude side) if in split mode
+function tmuxStatus(msg) {
+  if (!process.env.TMUX) return;
+  try {
+    var cp = require('child_process');
+    var sessions = cp.execSync('tmux list-sessions -F "#{session_name}"', { encoding: 'utf8', stdio: ['pipe','pipe','pipe'] });
+    if (sessions.indexOf('ccc-split') === -1) return;
+    // Send a visible status line to the Claude pane (pane 1)
+    cp.execSync('tmux display-message -t ccc-split:0.1 -d 5000 "\u2588 CCC: ' + msg.replace(/"/g, '\\"') + '"', { stdio: 'pipe' });
+  } catch(_e) {}
+}
+
 var cockpit = require('./cockpit');
 
 var dispatcher = null;
@@ -779,6 +791,7 @@ class KitCommander {
       } catch(_e) { try { require('./error-logger').log(_e, 'linear-sync-done'); } catch(_) {} }
       // Generate session replay
       try { var replay = require("./session-replay"); var r = replay.generateReplay(state.getSession(session.id)); if (r) { replay.saveReplay(r); replay.postToLinear(r).catch(function(){}); process.stdout.write('\n  ' + tui.dimText('Session replay saved. Score: ' + r.score.total + '/100') + '\n'); } } catch(_e) {}
+      tmuxStatus('BUILD COMPLETE');
       process.stdout.write(tui.celebrate('BUILD COMPLETE'));
       if (result.result) { var summary = typeof result.result === 'string' ? result.result.slice(0, 500) : JSON.stringify(result.result).slice(0, 500); process.stdout.write('\n  ' + summary + '\n'); }
     } catch (err) {
@@ -828,6 +841,7 @@ class KitCommander {
       state.completeSession(session.id, 'success');
       try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
       try { var linearDone = require("./integrations/linear"); var doneSession = state.getSession(session.id); if (doneSession) linearDone.syncSession(doneSession, "success").catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'linear-issue-done'); } catch(_) {} }
+      tmuxStatus('BUILD COMPLETE');
       process.stdout.write(tui.celebrate('BUILD COMPLETE'));
     } catch (err) {
       sp.stop(false);
@@ -1009,6 +1023,7 @@ class KitCommander {
       var knowledgePrompt = knowledge.buildKnowledgePrompt(task);
       try {
         fs.writeFileSync(statusPath, "YOLO Loop: cycle " + cycle + "/" + maxCycles + " | " + new Date().toISOString() + " | Task: " + task);
+        tmuxStatus("YOLO Cycle " + cycle + "/" + maxCycles + " started");
         sp.stop(true);
         process.stdout.write("\x0a" + tui.divider("YOLO Cycle " + cycle + "/" + maxCycles + (cycle === 1 ? " \u2014 Building" : " \u2014 Improving")) + "\x0a\x0a");
         process.stdout.write("  " + tui.dimText("Live output below. Watch file: ~/.claude/commander/yolo-status.txt") + "\x0a\x0a");
@@ -1018,6 +1033,7 @@ class KitCommander {
         knowledge.extractAndStore(state.getSession(session.id) || session, result.result || "");
         try { var yoloDone = require("./integrations/linear"); var yoloDoneSession = state.getSession(session.id); if (yoloDoneSession) yoloDone.syncSession(yoloDoneSession, "success").catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'yolo-linear-done'); } catch(_) {} }
         process.stdout.write("  " + tui.colorText("Cycle " + cycle + " complete", tui.getTheme().success) + "\n");
+        tmuxStatus("Cycle " + cycle + "/" + maxCycles + " DONE \u2714");
       } catch (err) {
         sp.stop(false);
         try { var yoloErr = require("./integrations/linear"); var yoloErrSession = state.getSession(session.id); if (yoloErrSession) yoloErr.syncSession(yoloErrSession, "error").catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'yolo-linear-error'); } catch(_) {} }
@@ -1025,6 +1041,7 @@ class KitCommander {
         process.stdout.write("  Cycle " + cycle + " error: " + err.message + "\n");
       }
     }
+    tmuxStatus("YOLO LOOP COMPLETE \u2014 " + maxCycles + " cycles \u2714");
     try { fs.writeFileSync(statusPath, "YOLO Loop COMPLETE | " + new Date().toISOString() + " | " + maxCycles + " cycles | Task: " + task); } catch(_e) {}
     process.stdout.write(tui.celebrate("YOLO LOOP COMPLETE — " + maxCycles + " cycles"));
     if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
