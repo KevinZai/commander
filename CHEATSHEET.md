@@ -835,7 +835,7 @@ CC Commander includes an interactive command center accessible via `/cc`:
 | Command | What it does |
 |---------|-------------|
 | `/cc` | Main menu — all options |
-| `/cc skills` | Browse 441+ skills by category |
+| `/cc skills` | Browse 280+ skills by category |
 | `/cc mega [name]` | Drill into a CCC domain's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions (no plan mode) |

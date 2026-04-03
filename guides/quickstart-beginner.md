@@ -14,7 +14,7 @@ Think of it as a senior developer pair programming with you, except it never get
 
 CC Commander is a configuration toolkit that makes Claude Code dramatically more effective. It adds:
 
-- **441+ skills** — specialized knowledge modules (like plugins)
+- **280+ skills** — specialized knowledge modules (like plugins)
 - **78+ commands** — slash commands for common workflows (`/plan`, `/verify`, `/tdd`)
 - **9 workflow modes** — switch Claude's behavior to match your task (design, SaaS, marketing, etc.)
 - **36+ prompt templates** — battle-tested starting points for common tasks

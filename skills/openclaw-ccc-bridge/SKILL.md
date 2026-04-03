@@ -20,7 +20,7 @@ Bridge between OpenClaw agents and CC Commander. Any OpenClaw agent (Alfred, Neo
 OpenClaw Agent (Alfred, Neo, etc.)
     │
     ├─ ccc --dispatch "task" --json    → Claude Code builds it
-    ├─ ccc --list-skills --json        → Browse 441+ skills
+    ├─ ccc --list-skills --json        → Browse 280+ skills
     ├─ ccc --list-sessions --json      → Check session history
     ├─ ccc --status                    → Health check
     │
@@ -170,7 +170,7 @@ Add CCC as a tool in `~/.openclaw/openclaw.json`:
       "type": "cli",
       "command": "ccc",
       "capabilities": ["dispatch", "list-skills", "list-sessions", "status"],
-      "description": "CC Commander — AI project manager with 441+ skills"
+      "description": "CC Commander — AI project manager with 280+ skills"
     }
   }
 }

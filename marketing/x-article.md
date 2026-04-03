@@ -145,7 +145,7 @@ That's what this kit is. A system. My system. Now yours.
 
 Oh, and the installer has Matrix-themed terminal art.
 
-Because if you're going to install 441+ skills with one command, it should feel like something.
+Because if you're going to install 280+ skills with one command, it should feel like something.
 
 Green text. Animated dots. The whole aesthetic.
 
@@ -197,7 +197,7 @@ Let's go.
 
 ### Post 1: The Numbers Angle
 
-441+ skills. 11 CCC domains. 78+ commands. 25 hooks. One install.
+280+ skills. 11 CCC domains. 78+ commands. 25 hooks. One install.
 
 I scanned every Claude Code resource on the internet and combined them into one kit.
 
@@ -211,7 +211,7 @@ I'm a non-technical CEO who can't write code.
 
 I spent 3 months reading 200+ Claude Code articles from X, Reddit, Medium, and YouTube. Tested every community pack.
 
-Then I distilled it all into one kit: 441+ skills, one install command.
+Then I distilled it all into one kit: 280+ skills, one install command.
 
 github.com/KevinZai/cc-commander
 

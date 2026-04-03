@@ -173,7 +173,7 @@ cc_banner() {
   echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}   ${M_WHITE}CC Commander${NC}  ${M_DIM}v2.1.0${NC}                              ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}   ${M_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}   ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_CYAN}by Kevin Z${NC}  ${M_DIM}//${NC}  ${M_WHITE}441+ Skills. One Install.${NC}     ${M_MID}┃${NC}"
+  echo -e "${M_MID}┃${NC}   ${M_CYAN}by Kevin Z${NC}  ${M_DIM}//${NC}  ${M_WHITE}280+ Skills. One Install.${NC}     ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
   echo -e "${M_MID}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
   echo ""
@@ -312,7 +312,7 @@ cc_next_steps() {
     echo -e "${M_MID}│${NC}     Launch the CC Project Wizard                    ${M_MID}│${NC}"
   fi
   echo -e "${M_MID}│${NC}                                                     ${M_MID}│${NC}"
-  echo -e "${M_MID}│${NC}  ${M_DIM}441+ skills  │  80+ commands  │  11 CCC domains${NC}      ${M_MID}│${NC}"
+  echo -e "${M_MID}│${NC}  ${M_DIM}280+ skills  │  80+ commands  │  11 CCC domains${NC}      ${M_MID}│${NC}"
   echo -e "${M_MID}│${NC}  ${M_DIM}37 hooks     │  3 templates  │  CC Commander${NC}    ${M_MID}│${NC}"
   echo -e "${M_MID}└─────────────────────────────────────────────────────┘${NC}"
   echo ""

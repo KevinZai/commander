@@ -32,7 +32,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ## Project Structure
 
 ```
-├── skills/              # 441+ skills organized by category
+├── skills/              # 280+ skills organized by category
 │   ├── mega-*/          # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 9 workflow modes
 ��   ├── init-decision-tree/  # /init project wizard

@@ -43,7 +43,7 @@ Map which development phases have tool coverage:
 | Phase | Tools | Coverage |
 |-------|-------|----------|
 | Planning | /plan, spec-interviewer, brainstorming | Full |
-| Development | /tdd, /build-fix, 441+ skills | Full |
+| Development | /tdd, /build-fix, 280+ skills | Full |
 | Testing | /e2e, /test-coverage, /qa | Full |
 | Review | /code-review, /review | Full |
 | Deploy | /ship, /land-and-deploy | Full |

@@ -1,5 +1,5 @@
 ---
-description: "CC Commander Hub -- 441+ skills, 11 CCC domains, 78 commands, 9 modes, 13 CCC tools. Interactive menu."
+description: "CC Commander Hub -- 280+ skills, 11 CCC domains, 78 commands, 9 modes, 13 CCC tools. Interactive menu."
 ---
 
 # /ccc -- CC Commander Hub
@@ -19,7 +19,7 @@ Present this to the user and ask "What would you like to do?" with these options
 
 ### Browse & Explore
 6. **Browse CCC Domains** -- 11 domains, 193 sub-skills (see domain list below)
-7. **Browse All Skills** -- Full skills index (441+ skills across all categories)
+7. **Browse All Skills** -- Full skills index (280+ skills across all categories)
 8. **Browse Prompt Templates** -- 36+ battle-tested prompts across 6 categories
 9. **Browse Commands** -- 78 slash commands available
 

@@ -401,4 +401,4 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-
 ---
 
 *CC Commander v2.1.0 -- kevinzai.github.io/cc-commander*
-*441+ skills | 11 CCC domains | 78+ commands | 25 hooks | 36+ prompts | 9 modes | 10 themes | 3 templates*
+*280+ skills | 11 CCC domains | 78+ commands | 25 hooks | 36+ prompts | 9 modes | 10 themes | 3 templates*

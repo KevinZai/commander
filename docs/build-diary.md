@@ -212,7 +212,7 @@ The gloves came off. Kevin said "BUILD IT ALL" and meant it. In one continuous s
 
 **The Rebrand**
 - Kit Commander → CC Commander (Claude Code Commander)
-- Tagline: "441+ skills. One command. Your AI work, managed by AI."
+- Tagline: "280+ skills. One command. Your AI work, managed by AI."
 
 ### The Numbers
 - 18/18 self-test checks
@@ -307,7 +307,7 @@ Kevin's final words before bed: "DONT STOP! When I wake up I want to see GOLD!"
 - Full breakdown: ccc-design (35+), ccc-marketing (46), ccc-saas (20), ccc-testing (15), ccc-devops (20), ccc-seo (19), ccc-security (9), ccc-research (8), ccc-mobile (7), ccc-data (10+)
 
 **Cowork Plugin Polish**:
-- Full references/ content: skill-catalog.md (all 441+ skills categorized), orchestration.md (package detection + phase mapping)
+- Full references/ content: skill-catalog.md (all 280+ skills categorized), orchestration.md (package detection + phase mapping)
 - 4 skills in the plugin, ready for Claude Desktop
 
 **The Numbers at 4am:**
