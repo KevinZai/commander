@@ -98,37 +98,7 @@ class KitCommander {
       }
     }
 
-    // Mode selection: Simple (menu only) or Advanced (tmux split)
-    var launchMode = currentState.launchMode;
-    if (!launchMode) {
-      process.stdout.write('\x0a');
-      var modeIdx = await tui.select([
-        { label: 'Simple', description: 'CCC menu only (beginner-friendly)' },
-        { label: 'Advanced (Split)', description: 'CCC menu + Claude Code side by side (tmux)' },
-      ], 'How do you want to work?');
-      launchMode = modeIdx === 1 ? 'split' : 'simple';
-      state.updateState({ launchMode: launchMode });
-      process.stdout.write('  ' + tui.dimText('Saved. Change anytime in Settings.') + '\x0a');
-    }
-
-    if (launchMode === 'split') {
-      var cp = require('child_process');
-      var splitScript = require('path').join(__dirname, '..', 'bin', 'ccc-split.sh');
-      try {
-        // If already in tmux, just run the menu
-        if (process.env.TMUX) {
-          await this.runAdventure('main-menu');
-        } else {
-          cp.execSync('bash ' + splitScript, { stdio: 'inherit' });
-          process.exit(0);
-        }
-      } catch(_e) {
-        process.stdout.write('  ' + tui.dimText('Split mode failed. Falling back to simple mode.') + '\x0a');
-        await this.runAdventure('main-menu');
-      }
-    } else {
-      await this.runAdventure('main-menu');
-    }
+    await this.runAdventure('main-menu');
   }
 
   async onboard() {
@@ -664,21 +634,7 @@ class KitCommander {
         return { next: 'settings' };
       }
       case 'settings_launch_mode': {
-        try {
-          var mIdx = await tui.select([
-            {label:'Simple', description:'CCC menu only'},
-            {label:'Advanced (Split)', description:'CCC + Claude Code side by side (tmux)'},
-          ], 'Launch mode:');
-          var modes = ['simple', 'split'];
-          if (mIdx >= 0) {
-            state.updateState({ launchMode: modes[mIdx] });
-            process.stdout.write(tui.celebrate('Mode: ' + modes[mIdx].toUpperCase()));
-            if (modes[mIdx] === 'split') process.stdout.write('\x0a  ' + tui.dimText('Next launch: F1=Menu F2=Claude F10=Quit') + '\x0a');
-          }
-        } catch(_e) {
-          process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
-          try { require('./error-logger').log(_e, 'settings_launch_mode'); } catch(_) {}
-        }
+        process.stdout.write('\x0a  Use "ccc --split" to launch in tmux tab mode.\x0a');
         return { next: 'settings' };
       }
       case 'settings_cost': {
