@@ -8,9 +8,9 @@ function generateSessionName(task) {
 
 function getDefaultsForLevel(level) {
   switch (level) {
-    case 'power': return { effort: 'high', maxBudgetUsd: 5, model: 'opusplan', maxTurns: 50 };
-    case 'assisted': return { effort: 'medium', maxBudgetUsd: 3, model: 'opusplan', maxTurns: 40 };
-    case 'guided': default: return { effort: 'medium', maxBudgetUsd: 2, model: 'sonnet', maxTurns: 30 };
+    case 'power': return { effort: 'high', maxBudgetUsd: 10, model: 'opus', maxTurns: 50 };
+    case 'assisted': return { effort: 'medium', maxBudgetUsd: 5, model: 'opus', maxTurns: 40 };
+    case 'guided': default: return { effort: 'medium', maxBudgetUsd: 3, model: 'sonnet', maxTurns: 30 };
   }
 }
 

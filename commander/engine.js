@@ -778,7 +778,7 @@ class KitCommander {
       var det = pluginsMod.detectPlugins();
       var dispPlan = pluginsMod.buildDispatchPlan(det);
       var pluginInstructions = dispPlan.filter(function(s){return s.hasPlugin;}).map(function(s){return s.name + ": use " + s.tool;}).join(". ");
-      var prompt = "Start with a plan. Present it before implementing." + (pluginInstructions ? " Use these tools in sequence: " + pluginInstructions + "." : "");
+      var prompt = "Start with a plan. Present it before implementing. CONTEXT MANAGEMENT: Use subagents (Agent tool) for research, file exploration, and independent subtasks — keep the main context clean. Read files in small chunks (use offset/limit for files >500 lines). Never read the same large file twice — extract what you need on first read. If a task has 3+ independent parts, parallelize with subagents." + (pluginInstructions ? " Use these tools in sequence: " + pluginInstructions + "." : "");
       var cs = state.loadState();
       if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} }
       // Linear MCP context injection
