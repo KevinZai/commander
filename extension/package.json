@@ -18,11 +18,11 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "ccCommander.open", "title": "CC Commander: Open" },
-      { "command": "ccCommander.stats", "title": "CC Commander: Quick Stats" },
-      { "command": "ccCommander.yolo", "title": "CC Commander: YOLO Mode" },
-      { "command": "ccCommander.skills", "title": "CC Commander: Browse Skills" },
-      { "command": "ccCommander.linear", "title": "CC Commander: Linear Status" }
+      { "command": "ccCommander.open", "title": "CC Commander: Open", "terminal": "ccc" },
+      { "command": "ccCommander.stats", "title": "CC Commander: Stats", "terminal": "ccc --stats" },
+      { "command": "ccCommander.skills", "title": "CC Commander: Skills", "terminal": "ccc --list-skills" },
+      { "command": "ccCommander.dispatch", "title": "CC Commander: Dispatch Task", "terminal": "ccc --dispatch" },
+      { "command": "ccCommander.status", "title": "CC Commander: Health Check", "terminal": "ccc --status" }
     ],
     "viewsContainers": {
       "activitybar": [{
