@@ -8,7 +8,7 @@
 
 **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 16 vendor packages
 
-**[Install](#install)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
+**[Install](#install)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ---
 
@@ -78,7 +78,7 @@ ccc
     Research & analyze          ← competitors, markets
     YOLO Mode                   ← overnight autonomous build
     Autonomous Mode             ← loops, dispatch, background agents
-    Browse CCC Domains          ← 11 domains, 172+ sub-skills
+    Browse CCC Domains          ← 11 domains, 193 sub-skills
     Check my stats              ← cockpit dashboard
 ```
 
@@ -164,6 +164,7 @@ CCC is built to be controlled by AI agents — OpenClaw, Claude Code, or any orc
 | `ccc --list-skills --json` | JSON | All 280+ skills |
 | `ccc --list-sessions --json` | JSON | Session history |
 | `ccc --status` | JSON | Health check |
+| `ccc --template` | text | Latest CLAUDE.md template |
 
 **Override flags:** `--model opus` · `--max-turns 50` · `--budget 5` · `--cwd /path`
 
@@ -191,7 +192,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc grill        → 7-question Socratic planning probe
 ```
 
-Every standalone menu works inside Claude Code — same choices, same sub-menus, same actions. Menus are derived from the same source of truth (`commander/adventures/*.json`). Cancel anytime by typing "back" or "cancel".
+Every standalone menu works inside Claude Code — same choices, same sub-menus, same actions. Menus are derived from the same source of truth (`commander/adventures/*.json`). Cancel anytime by typing "back" or "cancel". Press `Escape` or `q` during builds to stop.
 
 Also works in **Claude Desktop Cowork** (via the cc-commander plugin) and **VS Code / Cursor** (via the extension).
 
@@ -359,17 +360,21 @@ Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 
 Full methodology: **[BIBLE.md](BIBLE.md)** — 2000+ lines, 7 chapters, appendices.
 
+For AI agents: **[BIBLE-AGENT.md](BIBLE-AGENT.md)** — 268-line machine-readable version.
+
 ---
+
+## 10 Themes
 
 <img src="docs/assets/ccc-themes.svg" alt="10 Themes" width="100%">
 
-Live preview as you navigate. Switch anytime in Settings.
+**Cyberpunk, Fire, Ocean, Aurora, Sunset, Monochrome, Rainbow, Dracula, Graffiti, Futuristic.** Live preview as you navigate. Switch anytime in Settings or type `/ccc theme`.
 
 ---
 
 ## Acknowledgments
 
-CC Commander aggregates 11 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md)**
+CC Commander aggregates 16 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md)**
 
 45+ ecosystem repos tracked: **[ECOSYSTEM.md](docs/ECOSYSTEM.md)**
 
@@ -394,6 +399,6 @@ MIT License.
 
 *Every Claude Code tool. One install. Guided access. Auto-updated.*
 
-**[Install Now](#install)** · **[Read the BIBLE](BIBLE.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
+**[Install Now](#install)** · **[Read the BIBLE](BIBLE.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
 
 </div>
