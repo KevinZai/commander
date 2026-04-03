@@ -14,6 +14,26 @@ function getDefaultsForLevel(level) {
   }
 }
 
+function scoreComplexity(task) {
+  if (!task) return null;
+  var words = task.split(/\s+/).length;
+  var text = task.toLowerCase();
+  // High complexity: multi-step, system-level, or broad-scope tasks
+  var highSignals = ['build entire', 'full stack', 'saas', 'refactor all', 'migrate', 'redesign',
+    'from scratch', 'complete system', 'production', 'multi-tenant', 'authentication system',
+    'billing system', 'platform', 'architecture', 'overhaul', 'entire codebase', 'end to end',
+    'full application', 'complete app'];
+  var isHigh = highSignals.some(function(s) { return text.indexOf(s) !== -1; });
+  // Low complexity: single-action, trivial tasks
+  var lowSignals = ['fix typo', 'rename', 'update text', 'change color', 'add comment',
+    'simple', 'small change', 'quick fix', 'tweak', 'minor', 'one line', 'single file'];
+  var isLow = lowSignals.some(function(s) { return text.indexOf(s) !== -1; });
+  if (isLow && words < 15) return { turns: 15, budget: 2, effort: 'low' };
+  if (isHigh || words > 50) return { turns: 50, budget: 10, effort: 'high' };
+  if (words < 8) return { turns: 15, budget: 2, effort: 'low' };
+  return null;
+}
+
 function dispatch(task, options) {
   if (!options) options = {};
   var sync = options.sync !== undefined ? options.sync : true;
@@ -187,4 +207,27 @@ function getClaudeVersion() {
   try { return childProcess.execSync('claude --version', { encoding: 'utf8', stdio: 'pipe' }).trim(); } catch (_e) { return null; }
 }
 
-module.exports = { dispatch: dispatch, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel };
+function dispatchWithRetry(task, options, retries) {
+  retries = retries || 0;
+  var maxRetries = 2;
+  var p = dispatch(task, options);
+  if (typeof p.then !== 'function') return p;
+  return p.catch(function(err) {
+    if (retries >= maxRetries) throw err;
+    var msg = (err.message || '').toLowerCase();
+    if (msg.includes('budget') || msg.includes('cost')) throw new Error('Budget exceeded. Use --budget to increase. ' + err.message);
+    if (msg.includes('rate') || msg.includes('429') || msg.includes('limit')) {
+      process.stderr.write('\n  Rate limited. Waiting 60s...\n');
+      return new Promise(function(r) { setTimeout(r, 60000); }).then(function() { return dispatchWithRetry(task, options, retries + 1); });
+    }
+    if (msg.includes('context') || msg.includes('compact') || msg.includes('thrash')) {
+      options.maxTurns = Math.round((options.maxTurns || 30) * 0.6);
+      process.stderr.write('\n  Context issue. Retrying with ' + options.maxTurns + ' turns...\n');
+      return dispatchWithRetry(task, options, retries + 1);
+    }
+    process.stderr.write('\n  Dispatch failed, retrying (' + (retries + 1) + '/' + maxRetries + ')...\n');
+    return dispatchWithRetry(task, options, retries + 1);
+  });
+}
+
+module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel };

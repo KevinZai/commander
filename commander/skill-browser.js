@@ -121,7 +121,36 @@ function getSkillPreview(skillPath, maxLines = 15) {
   }
 }
 
-module.exports = {
+function filterByProject(skills, techStack) {
+  if (!techStack || techStack.length === 0) return skills.slice();
+  var stackMap = {
+    'nextjs': ['nextjs-app-router', 'ccc-saas', 'ccc-design', 'shadcn-ui', 'tailwind-v4', 'frontend-patterns'],
+    'react': ['frontend-patterns', 'ccc-design', 'frontend-design', 'shadcn-ui'],
+    'vue': ['vue-nuxt', 'frontend-patterns'],
+    'node-api': ['backend-patterns', 'api-design', 'fastify-api', 'ccc-saas', 'api-first-workflow'],
+    'docker': ['ccc-devops', 'docker-development', 'container-security', 'senior-devops'],
+    'testing': ['ccc-testing', 'tdd-workflow', 'e2e-testing', 'ai-regression-testing'],
+    'billing': ['stripe-subscriptions', 'billing-automation', 'ccc-saas'],
+    'tailwind': ['tailwind-v4', 'ccc-design', 'frontend-design'],
+    'python': ['python-patterns', 'python-testing'],
+    'github-actions': ['github-actions-security', 'github-actions-reusable-workflows', 'ccc-devops'],
+    'orm': ['postgres-patterns', 'database-designer', 'database-migrations', 'drizzle-neon'],
+    'rust': ['coding-standards'],
+    'go': ['coding-standards'],
+    'ruby': ['coding-standards'],
+  };
+  var relevant = {};
+  techStack.forEach(function(tech) {
+    (stackMap[tech] || []).forEach(function(skill) { relevant[skill] = true; });
+  });
+  return skills.slice().sort(function(a, b) {
+    var ar = relevant[a.name] ? 0 : 1;
+    var br = relevant[b.name] ? 0 : 1;
+    return ar - br || a.name.localeCompare(b.name);
+  });
+}
+
+module.exports = { filterByProject: filterByProject,
   SKILL_DIRS,
   listSkills,
   getSkillSummary,

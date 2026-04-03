@@ -202,7 +202,34 @@ function extractSuccesses(text) {
   return patterns.slice(0, 5);
 }
 
-module.exports = {
+function loadAllLessons() {
+  var dir = KNOWLEDGE_DIR;
+  if (!fs.existsSync(dir)) return [];
+  var files = fs.readdirSync(dir).filter(function(f) { return f.endsWith('.json'); });
+  var lessons = [];
+  files.forEach(function(f) {
+    try { lessons.push(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))); } catch(_) {}
+  });
+  return lessons;
+}
+
+function getModelPreference(category) {
+  var lessons = loadAllLessons();
+  var relevant = lessons.filter(function(l) { return l.category === category; });
+  if (relevant.length < 3) return null;
+  var successes = relevant.filter(function(l) { return l.outcome === 'success'; });
+  var avgCost = successes.length > 0 ? successes.reduce(function(s, l) { return s + (l.cost || 0); }, 0) / successes.length : 0;
+  var successRate = relevant.length > 0 ? successes.length / relevant.length : 0;
+  return {
+    category: category,
+    sessions: relevant.length,
+    successRate: Math.round(successRate * 100),
+    avgCost: Math.round(avgCost * 100) / 100,
+    suggestion: successRate > 0.8 ? 'High success rate for ' + category + ' tasks' : 'Consider more thorough specs for ' + category + ' tasks',
+  };
+}
+
+module.exports = { getModelPreference: getModelPreference, loadAllLessons: loadAllLessons,
   KNOWLEDGE_DIR: KNOWLEDGE_DIR,
   extractAndStore: extractAndStore,
   searchRelevant: searchRelevant,

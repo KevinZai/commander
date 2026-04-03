@@ -85,6 +85,29 @@ function scanProject(dir) {
     }
   }
 
+  // Tech stack detection
+  result.techStack = [];
+  var pkgPath = path.join(dir, 'package.json');
+  if (fs.existsSync(pkgPath)) {
+    try {
+      var pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+      var allDeps = Object.keys(pkg.dependencies || {}).concat(Object.keys(pkg.devDependencies || {}));
+      if (allDeps.includes('next')) result.techStack.push('nextjs');
+      if (allDeps.includes('react') && !allDeps.includes('next')) result.techStack.push('react');
+      if (allDeps.includes('vue')) result.techStack.push('vue');
+      if (allDeps.includes('express') || allDeps.includes('fastify') || allDeps.includes('hono')) result.techStack.push('node-api');
+      if (allDeps.includes('stripe')) result.techStack.push('billing');
+      if (allDeps.includes('drizzle-orm') || allDeps.includes('prisma') || allDeps.includes('typeorm')) result.techStack.push('orm');
+      if (allDeps.includes('tailwindcss')) result.techStack.push('tailwind');
+      if (allDeps.includes('playwright') || allDeps.includes('vitest') || allDeps.includes('jest')) result.techStack.push('testing');
+    } catch(_e) {}
+  }
+  if (fs.existsSync(path.join(dir, 'Dockerfile')) || fs.existsSync(path.join(dir, 'docker-compose.yml'))) result.techStack.push('docker');
+  if (fs.existsSync(path.join(dir, '.github', 'workflows'))) result.techStack.push('github-actions');
+  if (fs.existsSync(path.join(dir, 'pyproject.toml')) || fs.existsSync(path.join(dir, 'requirements.txt'))) result.techStack.push('python');
+  if (fs.existsSync(path.join(dir, 'Cargo.toml'))) result.techStack.push('rust');
+  if (fs.existsSync(path.join(dir, 'go.mod'))) result.techStack.push('go');
+
   return result;
 }
 
@@ -116,6 +139,10 @@ function buildProjectPrompt(project) {
 
   if (project.agents.length > 0) {
     parts.push('Project agents available: ' + project.agents.join(', '));
+  }
+
+  if (project.techStack && project.techStack.length > 0) {
+    parts.push('Detected tech stack: ' + project.techStack.join(', '));
   }
 
   return parts.join('\n');

@@ -770,6 +770,14 @@ class KitCommander {
     var d = getDispatcher();
     var defaults = d.getDefaultsForLevel(userLevel);
 
+    // Intelligence Layer: task complexity scoring
+    var complexity = d.scoreComplexity(fullTask);
+    if (complexity) {
+      if (complexity.turns > defaults.maxTurns) defaults.maxTurns = complexity.turns;
+      if (complexity.budget > defaults.maxBudgetUsd) defaults.maxBudgetUsd = complexity.budget;
+      if (complexity.effort) defaults.effort = complexity.effort;
+    }
+
     // Build system prompt with plugins + knowledge + Linear MCP context
     var sysPrompt = (function() {
       var knowledge = require("./knowledge");
@@ -792,7 +800,19 @@ class KitCommander {
           }
         }
       } catch(_e) {}
-      return prompt + knowledgePrompt + linearCtx;
+      // Intelligence Layer: relevant skills for this project
+      var skillHint = '';
+      try {
+        var projectStack = [];
+        var cs2 = state.loadState();
+        if (cs2.activeProject) { try { projectStack = require('./project-importer').scanProject(cs2.activeProject.dir).techStack || []; } catch(_) {} }
+        if (projectStack.length > 0) {
+          var sbr = require('./skill-browser');
+          var topSkills = sbr.filterByProject(sbr.listSkills(), projectStack).slice(0, 8).map(function(s) { return s.name; });
+          skillHint = '\n\nProject stack detected: ' + projectStack.join(', ') + '. Most relevant skills: ' + topSkills.join(', ') + '.';
+        }
+      } catch(_) {}
+      return prompt + knowledgePrompt + linearCtx + skillHint;
     })();
 
     try {
@@ -812,7 +832,7 @@ class KitCommander {
         // Simple mode: run headless with streaming output
         process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
         process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
-        var dispatchP = d.dispatch(fullTask, {
+        var dispatchP = d.dispatchWithRetry(fullTask, {
           stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
           model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
           fallbackModel: "sonnet", bare: false,
@@ -891,7 +911,7 @@ class KitCommander {
         // Simple mode: run headless with streaming output
         process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
         process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
-        var dispatchP = d.dispatch(fullTask, {
+        var dispatchP = d.dispatchWithRetry(fullTask, {
           stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
           model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
           fallbackModel: "sonnet", bare: false,
