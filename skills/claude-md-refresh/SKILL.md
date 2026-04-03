@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 ## Purpose
 
-Intelligently merge updates from the CC Commander staff template into an existing CLAUDE.md file without destroying user customizations.
+Intelligently merge updates from the CC Commander template into an existing CLAUDE.md file without destroying user customizations.
 
 ## Algorithm
 
@@ -30,7 +30,7 @@ Known aliases: "Coding Standards" = "Code Style", "Workflow" = "Development Work
 
 Look for HTML comment at top of file:
 ```
-<!-- CC Commander Staff Template vX.Y.Z | Generated: YYYY-MM-DD -->
+<!-- CC Commander Template vX.Y.Z | Generated: YYYY-MM-DD -->
 ```
 If missing, assume v1.0.0.
 
@@ -68,4 +68,4 @@ Then show the full diff of proposed changes using ```diff blocks.
 
 - **Command**: `/claude-md:refresh` triggers this skill
 - **Hook**: `claude-md-staleness.js` detects when a refresh is needed and suggests running the command
-- **Installer**: `install.sh` uses `CLAUDE.md.staff-template` for initial creation; this skill handles subsequent updates
+- **Installer**: `install.sh` uses `CLAUDE.md.template` for initial creation; this skill handles subsequent updates

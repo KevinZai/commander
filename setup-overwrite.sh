@@ -1,12 +1,12 @@
 #!/bin/bash
 # CC Commander — OVERWRITE Update
 # Replaces skills, commands, SKILLS-INDEX, CHEATSHEET, hooks.
-# Pass --all to also replace CLAUDE.md and settings.json (staff template).
-# Pass --kevin to use Kevin's versions instead of staff template.
+# Pass --all to also replace CLAUDE.md and settings.json (template).
+# Pass --kevin to use Kevin's versions instead of template.
 #
 # Flags:
 #   --all       Also replace CLAUDE.md and settings.json
-#   --kevin     Use Kevin's versions for --all (default: staff-template)
+#   --kevin     Use Kevin's versions for --all (default: template)
 #   --dry-run   Preview what would change (no modifications)
 #   --verify    Validate existing installation
 
@@ -48,8 +48,8 @@ if $DRY_RUN; then
             echo "  WOULD REPLACE: CLAUDE.md (Kevin's version)"
             echo "  WOULD REPLACE: settings.json (Kevin's version)"
         else
-            echo "  WOULD REPLACE: CLAUDE.md (staff template)"
-            echo "  WOULD REPLACE: settings.json (staff template)"
+            echo "  WOULD REPLACE: CLAUDE.md (template)"
+            echo "  WOULD REPLACE: settings.json (template)"
         fi
     else
         echo "  SKIP:          CLAUDE.md (pass --all to replace)"
@@ -116,9 +116,9 @@ if $REPLACE_ALL; then
         CLAUDE_SRC="CLAUDE.md.kevin"
         SETTINGS_SRC="settings.json.kevin"
     else
-        echo "🔴 --all: replacing with staff template"
-        CLAUDE_SRC="CLAUDE.md.staff-template"
-        SETTINGS_SRC="settings.json.staff-template"
+        echo "🔴 --all: replacing with template"
+        CLAUDE_SRC="CLAUDE.md.template"
+        SETTINGS_SRC="settings.json.template"
     fi
 
     if [ -f "$CLAUDE_SRC" ]; then

@@ -62,7 +62,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ├── CHEATSHEET.md        # Daily reference
 ├── SKILLS-INDEX.md      # Searchable skill directory
 ├── CHANGELOG.md         # Version history
-└── CLAUDE.md.staff-template  # Staff CLAUDE.md template
+└── CLAUDE.md.template  # Staff CLAUDE.md template
 ```
 
 ## Aggregator Ecosystem

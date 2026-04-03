@@ -124,15 +124,15 @@ mkdir -p "$CLAUDE_DIR"
 
 # Copy CLAUDE.md
 if [ ! -f "$CLAUDE_DIR/CLAUDE.md" ]; then
-    cp CLAUDE.md.staff-template "$CLAUDE_DIR/CLAUDE.md"
+    cp CLAUDE.md.template "$CLAUDE_DIR/CLAUDE.md"
     echo "✅ Created ~/.claude/CLAUDE.md (edit to personalize)"
 else
-    echo "⏭️  ~/.claude/CLAUDE.md exists — skipping (compare with CLAUDE.md.staff-template)"
+    echo "⏭️  ~/.claude/CLAUDE.md exists — skipping (compare with CLAUDE.md.template)"
 fi
 
 # Copy settings.json
 if [ ! -f "$CLAUDE_DIR/settings.json" ]; then
-    cp settings.json.staff-template "$CLAUDE_DIR/settings.json"
+    cp settings.json.template "$CLAUDE_DIR/settings.json"
     echo "✅ Created ~/.claude/settings.json (add your GitHub token)"
     # Validate JSON
     if node -e "JSON.parse(require('fs').readFileSync('$CLAUDE_DIR/settings.json','utf8'))" 2>/dev/null; then
@@ -141,7 +141,7 @@ if [ ! -f "$CLAUDE_DIR/settings.json" ]; then
         echo "   ⚠️ JSON syntax error — check settings.json"
     fi
 else
-    echo "⏭️  ~/.claude/settings.json exists — skipping (compare with settings.json.staff-template)"
+    echo "⏭️  ~/.claude/settings.json exists — skipping (compare with settings.json.template)"
 fi
 
 # Copy skills

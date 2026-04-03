@@ -191,8 +191,8 @@ if $DRY_RUN; then
   local_skills=$((local_skills - 1))
   local_cmds=$(find "$SCRIPT_DIR/commands" -name '*.md' | wc -l | tr -d ' ')
 
-  cc_status_line "·" "CLAUDE.md        ← CLAUDE.md.staff-template"
-  cc_status_line "·" "settings.json    ← settings.json.staff-template"
+  cc_status_line "·" "CLAUDE.md        ← CLAUDE.md.template"
+  cc_status_line "·" "settings.json    ← settings.json.template"
   cc_status_line "·" "skills/          ← $local_skills skill directories"
   cc_status_line "·" "commands/        ← $local_cmds commands"
   cc_status_line "·" "hooks/           ← hooks.json + scripts"
@@ -396,13 +396,13 @@ if should_install "claude-md" || should_install "settings"; then
   ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Configuration"
 
-  if should_install "claude-md" && [ -f "$SCRIPT_DIR/CLAUDE.md.staff-template" ]; then
+  if should_install "claude-md" && [ -f "$SCRIPT_DIR/CLAUDE.md.template" ]; then
     # Sanitize user name for sed (escape sed special chars)
     SAFE_NAME=$(printf '%s\n' "$USER_NAME" | sed 's/[&/\]/\\&/g')
-    sed "s/\[Your Name\]/$SAFE_NAME/g" "$SCRIPT_DIR/CLAUDE.md.staff-template" > "$CLAUDE_DIR/CLAUDE.md"
+    sed "s/\[Your Name\]/$SAFE_NAME/g" "$SCRIPT_DIR/CLAUDE.md.template" > "$CLAUDE_DIR/CLAUDE.md"
   fi
   if should_install "settings"; then
-    [ -f "$SCRIPT_DIR/settings.json.staff-template" ] && cp "$SCRIPT_DIR/settings.json.staff-template" "$CLAUDE_DIR/settings.json"
+    [ -f "$SCRIPT_DIR/settings.json.template" ] && cp "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR/settings.json"
   fi
   cc_status_line "✓" "Config applied for $USER_NAME"
 

@@ -4,7 +4,7 @@ description: Analyze your CLAUDE.md and propose updates based on the latest CC C
 
 # CLAUDE.md Refresh
 
-This command analyzes your existing CLAUDE.md and proposes updates based on the latest CC Commander staff template.
+This command analyzes your existing CLAUDE.md and proposes updates based on the latest CC Commander template.
 
 ## What This Command Does
 
@@ -51,7 +51,7 @@ Read the user's CLAUDE.md. Extract:
 
 ### Step 2: Read Template
 
-Read the CC Commander staff template at the kit's `CLAUDE.md.staff-template`.
+Read the CC Commander template at the kit's `CLAUDE.md.template`.
 Parse it into the same H2 section structure.
 
 ### Step 3: Classify Sections
@@ -89,7 +89,7 @@ Ask: "Apply these changes? (yes / no / show-diff)"
 
 After applying, update the version comment to:
 ```
-<!-- CC Commander Staff Template v2.1.0 | Generated: YYYY-MM-DD -->
+<!-- CC Commander Template v2.1.0 | Generated: YYYY-MM-DD -->
 ```
 
 ## Example

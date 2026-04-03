@@ -16,7 +16,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --list-skills  List all skills (add --json for JSON)');
   console.log('  --list-sessions  Session history (add --json for JSON)');
   console.log('  --status     Health check (JSON: version, skills, vendors)');
-  console.log('  --template   Print the latest CLAUDE.md staff template (pipe to file)');
+  console.log('  --template   Print the latest CLAUDE.md template (pipe to file)');
   console.log('  --help       This help\n');
   process.exit(0);
 }
@@ -93,10 +93,10 @@ if (args.includes('--list-sessions')) {
   else sessions.forEach(function(s) { console.log((s.id||'?') + ' | ' + (s.task||'').slice(0,60) + ' | ' + (s.status||'?')); });
   process.exit(0);
 }
-// Agent API: --template (print staff template for other projects to use)
+// Agent API: --template (print template for other projects to use)
 if (args.includes('--template')) {
   var fs = require('fs');
-  var templatePath = path.join(__dirname, '..', 'CLAUDE.md.staff-template');
+  var templatePath = path.join(__dirname, '..', 'CLAUDE.md.template');
   try {
     process.stdout.write(fs.readFileSync(templatePath, 'utf8'));
   } catch(_e) {

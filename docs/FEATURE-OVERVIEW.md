@@ -1019,7 +1019,7 @@ cc-commander/
 ├── CHEATSHEET.md        # Daily reference card
 ├── SKILLS-INDEX.md      # Searchable skill directory
 ├── CHANGELOG.md         # Version history
-├── CLAUDE.md.staff-template  # Staff CLAUDE.md template
+├── CLAUDE.md.template  # Staff CLAUDE.md template
 ├── install.sh           # Interactive installer
 ├── install-remote.sh    # One-line remote installer
 └── uninstall.sh         # Clean removal

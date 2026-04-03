@@ -284,7 +284,7 @@ Kevin is torn between uniqueness and descriptiveness.
 1. **install.sh password** — Changed from plaintext comparison to SHA-256 hash. NOTE: Still security theater since hash of "kz123" is in public repo. Plan replaces with env var check.
 2. **install.sh sed injection** — User name input now sanitized for sed metacharacters.
 3. **careful-guard.js** — Improved regex to catch more `rm` variants, force push patterns, unqualified DELETE FROM.
-4. **settings.json.staff-template** — Added deny list for destructive commands, scoped WebFetch to 3 domains.
+4. **settings.json.template** — Added deny list for destructive commands, scoped WebFetch to 3 domains.
 
 ---
 
