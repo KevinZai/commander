@@ -144,15 +144,24 @@ cd cc-commander/extension && code --install-extension .
 
 ---
 
-## Level Defaults
+## Execution Model: Opus Plans, Sonnet Builds, Opus Audits
 
-| Level | Model | Max Turns | Budget | Best For |
-|-------|-------|-----------|--------|----------|
-| `guided` | sonnet | 30 | $3 | Everyday tasks, content, quick fixes |
-| `assisted` | opus (1M) | 40 | $5 | Features, refactoring, multi-file |
-| `power` | opus (1M) | 50 | $10 | Architecture, overnight, deep work |
+Every CCC dispatch runs as an **Opus orchestrator** that:
+1. **Plans** the work (Opus — high reasoning)
+2. **Delegates** implementation to Sonnet subagents (fast, cheap)
+3. **Audits** the results (Opus — verifies correctness)
 
-Override any default per-dispatch: `--model opus --max-turns 80 --budget 15`
+The dispatched Claude session runs as Opus 1M. It spawns Sonnet workers for actual code generation, file writes, and research. Opus reviews everything before marking done.
+
+### Level Defaults
+
+| Level | Orchestrator | Workers | Max Turns | Budget |
+|-------|-------------|---------|-----------|--------|
+| `guided` | opus (1M) | sonnet | 30 | $5 |
+| `assisted` | opus (1M) | sonnet | 40 | $5 |
+| `power` | opus (1M) | sonnet | 50 | $10 |
+
+Override per-dispatch: `--model opus --max-turns 80 --budget 15`
 
 ---
 
