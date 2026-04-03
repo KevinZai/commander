@@ -1,268 +1,300 @@
-# CC Commander — Agent Reference
+# CC Commander — Agent Reference (BIBLE-AGENT)
 
-## Quick Start for Agents
-
-CCC is an interactive CLI project manager that sits above Claude Code sessions. It dispatches tasks headlessly via `ccc --dispatch "task" --json`, exposes a full skill catalog via `--list-skills --json`, and provides structured JSON results. Use it to plan, build, debug, and ship — with model selection, budget caps, and session tracking built in.
+> **Read this file to control CC Commander from any AI agent platform.**
+> 280 skills. 16 vendors. Headless CLI API. Works with Claude Code, OpenClaw, Cursor, Codex, any LLM agent.
 
 ---
 
-## CLI API
+## Platform Setup (Step-by-Step)
+
+### Claude Code (native — recommended)
+
+CCC installs directly into `~/.claude/`. Every skill, command, and hook is available natively.
+
+```bash
+# 1. Install
+git clone --recursive https://github.com/KevinZai/cc-commander.git
+cd cc-commander && ./install.sh --force
+
+# 2. Verify
+ccc --test     # 24/24 checks
+ccc --status   # {"version":"2.1.0","skills":280,"vendors":16,"health":"ok"}
+
+# 3. Use inside Claude Code sessions
+/ccc           # Full interactive menu (14 options, sub-menus, cancel support)
+/ccc xray      # Project health scan
+/ccc skills    # Browse 280 skills
+/ccc refresh   # Update CLAUDE.md from latest template
+
+# 4. Headless dispatch (from within Claude Code)
+ccc --dispatch "Build auth with JWT" --json --model opus --budget 5
+
+# 5. Split mode (tmux tabs — default when you type `ccc` in terminal)
+ccc            # Each dispatch opens a new tmux tab
+ccc --simple   # Menu-only, no tmux
+```
+
+### OpenClaw Agents
+
+Any OpenClaw agent (Alfred, Neo, Codex, etc.) can use CCC as a project manager.
+
+```bash
+# 1. Ensure CCC is installed on the same machine as OpenClaw
+ccc --status   # Must return {"health":"ok"}
+
+# 2. Agent dispatches a task
+result=$(ccc --dispatch "Build a REST API with auth" --json --model opus --budget 5)
+echo "$result" | jq '.result'
+
+# 3. Agent browses skills
+ccc --list-skills --json | jq '.[] | select(.name | contains("auth"))'
+
+# 4. Agent checks session history
+ccc --list-sessions --json | jq '.[0]'
+
+# 5. Register CCC as an OpenClaw tool in ~/.openclaw/openclaw.json:
+# "tools": { "ccc": { "type": "cli", "command": "ccc", "capabilities": ["dispatch","list-skills","status"] } }
+
+# 6. OpenClaw skill for detailed integration:
+# Read: skills/openclaw-ccc-bridge/SKILL.md
+```
+
+### Cursor / Codex / Other Agents
+
+CCC works with any agent that can run shell commands.
+
+```bash
+# 1. Install CCC globally
+npm install -g cc-commander   # OR clone + ./install.sh
+
+# 2. From agent: dispatch tasks
+ccc --dispatch "Refactor the database layer" --json --cwd /path/to/project
+
+# 3. From agent: search skills
+ccc --list-skills --json | jq '.[] | select(.description | test("database"; "i"))'
+
+# 4. From agent: health check
+ccc --status
+```
+
+### Claude Desktop Cowork
+
+```bash
+# 1. Install the Cowork plugin
+/plugin marketplace add KevinZai/cc-commander
+
+# 2. Skills available in Cowork:
+#    /cc-commander  — full 14-item menu
+#    /cc-night-mode — 10-question spec → overnight build
+#    /cc-knowledge  — search past lessons
+#    /cc-plugins    — detect installed packages
+
+# 3. Scheduled tasks via Cowork settings
+```
+
+### VS Code / Cursor Extension
+
+```bash
+# 1. Install
+cd cc-commander/extension && code --install-extension .
+
+# 2. Commands available in Command Palette:
+#    CC Commander: Open      → launches ccc in terminal
+#    CC Commander: Stats     → ccc --stats
+#    CC Commander: Skills    → ccc --list-skills
+#    CC Commander: Dispatch  → ccc --dispatch
+#    CC Commander: Status    → ccc --status
+```
+
+---
+
+## CLI API — Complete Reference
 
 | Command | Output | Use When |
 |---------|--------|----------|
-| `ccc --dispatch "task" --json` | JSON object | Run any task headlessly |
-| `ccc --dispatch "task" --json --model opus` | JSON object | High-complexity tasks |
-| `ccc --dispatch "task" --json --budget 5` | JSON object | Cap spend at $5 |
-| `ccc --dispatch "task" --json --cwd /path` | JSON object | Scope to a specific project |
-| `ccc --list-skills --json` | JSON array | Find skills by name/category |
+| `ccc --dispatch "task" --json` | JSON | Run any task headlessly |
+| `ccc --list-skills --json` | JSON array | Find skills by name/description |
 | `ccc --list-sessions --json` | JSON array | Check session history |
-| `ccc --status` | JSON object | Health check before dispatch |
-| `ccc --split` | tmux session | Multi-task visual mode (human use) |
-| `ccc --stats` | text | Quick stats summary |
+| `ccc --status` | JSON | Health check (version, skills, vendors) |
+| `ccc --template` | text | Get latest CLAUDE.md template |
+| `ccc --test` | text | Validate installation (24 checks) |
+| `ccc --stats` | text | Sessions, streaks, cost, level |
 
-### Dispatch Override Flags
+### Dispatch Flags
 
 | Flag | Values | Default |
 |------|--------|---------|
-| `--model` | `sonnet`, `opus`, `haiku`, `opusplan` | level default |
-| `--max-turns` | integer | 30 (guided), 40 (assisted), 50 (power) |
-| `--budget` | dollar amount (e.g. `5`) | 3/5/10 by level |
-| `--cwd` | absolute path | current working directory |
+| `--model` | `sonnet`, `opus`, `haiku` | level-based (see below) |
+| `--max-turns` | integer | 30/40/50 by level |
+| `--budget` | dollars (e.g. `5`) | 3/5/10 by level |
+| `--cwd` | absolute path | current directory |
+| `--json` | — | Output as JSON (required for parsing) |
 
-### JSON Response Schema
+### Response Schema
 
+**Success:**
 ```json
-{
-  "session_id": "kc-build-jwt-auth-module",
-  "status": "success",
-  "cost": 1.23,
-  "model": "claude-opus-4-6",
-  "turns": 18,
-  "result": "Task complete. Files modified: ...",
-  "error": null
-}
+{"result": "Task complete. Files modified: ...", "session_id": "kc-build-auth", "cost_usd": 1.23}
 ```
 
-### Error Response Schema
-
+**Error:**
 ```json
-{
-  "session_id": "kc-task-name",
-  "status": "error",
-  "error": "Budget exceeded / Tool failed / ...",
-  "cost": 0.42,
-  "turns": 5
-}
+{"error": "Claude Code exited with code 1: ..."}
 ```
 
 ---
 
-## Dispatch Patterns
+## Level Defaults
 
-### Pattern 1: Simple task
+| Level | Model | Max Turns | Budget | Best For |
+|-------|-------|-----------|--------|----------|
+| `guided` | sonnet | 30 | $3 | Everyday tasks, content, quick fixes |
+| `assisted` | opus (1M) | 40 | $5 | Features, refactoring, multi-file |
+| `power` | opus (1M) | 50 | $10 | Architecture, overnight, deep work |
+
+Override any default per-dispatch: `--model opus --max-turns 80 --budget 15`
+
+---
+
+## Dispatch Patterns for Agents
+
+### Simple task
 ```bash
 ccc --dispatch "Build auth with JWT" --json --model opus
 ```
 
-### Pattern 2: Project-scoped
+### Scoped to a project
 ```bash
-ccc --dispatch "Fix the login bug" --json --cwd /Users/ai/clawd/projects/myapp
+ccc --dispatch "Fix the login bug" --json --cwd /path/to/project
 ```
 
-### Pattern 3: Parallel batch
+### Parallel batch (3 tasks simultaneously)
 ```bash
-ccc --dispatch "Write unit tests for auth module" --json &
-ccc --dispatch "Write unit tests for billing module" --json &
+ccc --dispatch "Write tests for auth" --json &
+ccc --dispatch "Write tests for billing" --json &
+ccc --dispatch "Write API docs" --json &
 wait
 ```
 
-### Pattern 4: Check result with jq
+### Find the right skill first
 ```bash
-result=$(ccc --dispatch "Build JWT auth" --json --model opus --budget 5)
-echo "$result" | jq '.session_id, .cost, .result'
+skill=$(ccc --list-skills --json | jq -r '.[] | select(.name | contains("auth")) | .name' | head -1)
+ccc --dispatch "Using the $skill skill, build JWT authentication" --json
 ```
 
-### Pattern 5: Find a skill before dispatching
+### Chain: health check → dispatch → verify
 ```bash
-ccc --list-skills --json | jq '.[] | select(.name | contains("auth"))'
+health=$(ccc --status | jq -r '.health')
+if [ "$health" = "ok" ]; then
+  ccc --dispatch "Build the feature" --json --budget 5
+fi
 ```
 
-### Pattern 6: Health check before CI dispatch
+### YOLO overnight build
 ```bash
-ccc --status | jq '.ok' && ccc --dispatch "Run E2E tests" --json
+ccc --dispatch "YOLO: Build complete SaaS with auth, billing, dashboard. 5 cycles." \
+  --json --model opus --max-turns 100 --budget 10
 ```
 
 ---
 
-## Levels and Model Defaults
-
-| Level | Model | Max Turns | Budget | Use For |
-|-------|-------|-----------|--------|---------|
-| `guided` (default) | sonnet | 30 | $3 | Everyday tasks |
-| `assisted` | opus | 40 | $5 | Complex features |
-| `power` | opus | 50 | $10 | Architecture, long sessions |
-
-Level is configured in `~/.claude/commander/config.json`. Override per-dispatch with `--model` and `--budget`.
-
----
-
-## Main Menu Structure (commander/adventures/main-menu.json)
-
-| Key | Label | Action / Next Adventure |
-|-----|-------|------------------------|
-| `a` | Continue where I left off | `continue-work` (shown if hasActiveSession) |
-| `o` | Open a project | `open_project` — imports local CLAUDE.md |
-| `b` | Build something new | `build-something` |
-| `c` | Create content | `create-content` |
-| `d` | Research & analyze | `research` |
-| `e` | Review what I built | `review-work` |
-| `f` | Learn a new skill | `learn-skill` |
-| `g` | Check my stats | `check-stats` |
-| `l` | Linear board | `linear-board` (shown if hasLinear) |
-| `n` | Night Mode | `night-build` — 8-hour autonomous build |
-| `s` | Settings | `settings` |
-| `t` | Change theme | `change_theme` |
-| `/` | Type a command | `freeform_prompt` |
-| `q` | Quit | `quit` |
-
-## Sub-Menu: build-something (commander/adventures/build-something.json)
+## Main Menu (Source of Truth: commander/adventures/main-menu.json)
 
 | Key | Label | Action |
 |-----|-------|--------|
-| `a` | A website or web app | freeform_build with context "Build a website: " |
-| `b` | An API or backend service | freeform_build with context "Build an API: " |
-| `c` | A CLI tool or script | freeform_build with context "Build a CLI tool: " |
-| `d` | Something else — I'll describe it | freeform_build |
-
-## Sub-Menu: ccc-domains (commander/adventures/ccc-domains.json)
-
-| Key | Domain | Sub-Skills | Covers |
-|-----|--------|-----------|--------|
-| `a` | ccc-design | 35+ | UI/UX, animations, polish, responsive, a11y |
-| `b` | ccc-marketing | 46 | Content, CRO, email, ads, analytics, SEO |
-| `c` | ccc-saas | 20 | Auth, billing, API, database, deploy |
-| `d` | ccc-testing | 15 | Unit, integration, E2E, load, security |
-| `e` | ccc-devops | 20 | CI/CD, Docker, AWS, monitoring |
-| `f` | All 11 CCC domains | — | show_all_mega |
+| `a` | Continue where I left off | Resume last session |
+| `o` | Open a project | Import local CLAUDE.md |
+| `b` | Build something new | → web / API / CLI / other |
+| `c` | Create content | → blog / social / email / marketing / docs |
+| `d` | Research & analyze | → competitive / market / code / SEO |
+| `e` | Review what I built | Show recent sessions |
+| `f` | Learn a new skill | Browse 280 skills |
+| `g` | Check my stats | Dashboard, streaks, cost |
+| `l` | Linear board | Pick/create issues (requires Linear MCP) |
+| `n` | Night Mode | 10-question spec → Opus overnight build |
+| `s` | Settings | Name, level, cost, theme |
+| `t` | Change theme | 10 themes (CLI only) |
+| `/` | Type a command | Free-text prompt |
+| `q` | Quit | Exit |
 
 ---
 
 ## Skill Catalog — 280 Skills in 11 Domains
 
-### CCC Domain Routers (load ONE to get the whole domain)
+### CCC Domain Routers (load ONE domain = all sub-skills)
 
-| Domain | Sub-Skills | Invoke | What It Covers |
-|--------|-----------|--------|----------------|
-| `ccc-seo` | 19 | "Use the ccc-seo skill" | Technical SEO, AI search, programmatic SEO |
-| `ccc-design` | 35+ | "Use the ccc-design skill" | Animations, design systems, landing pages, polish |
-| `ccc-testing` | 15 | "Use the ccc-testing skill" | TDD, E2E, QA, regression, visual, load |
-| `ccc-marketing` | 46 | "Use the ccc-marketing skill" | Content, CRO, email, ads, analytics, growth |
-| `ccc-saas` | 20 | "Use the ccc-saas skill" | Auth, billing, database, API, metrics |
-| `ccc-devops` | 20 | "Use the ccc-devops skill" | CI/CD, containers, AWS, monitoring, zero-downtime |
-| `ccc-research` | 8 | "Use the ccc-research skill" | Deep research, competitive analysis, synthesis |
-| `ccc-mobile` | 7 | "Use the ccc-mobile skill" | iOS, Android, React Native, Flutter |
-| `ccc-security` | 9 | "Use the ccc-security skill" | Pen testing, OWASP, supply chain, secrets |
-| `ccc-data` | 8 | "Use the ccc-data skill" | ETL, data warehouse, analytics, visualization |
+| Domain | Skills | Invoke | Covers |
+|--------|--------|--------|--------|
+| `ccc-design` | 39 | "Use ccc-design" | UI/UX, animation, responsive, a11y, design systems |
+| `ccc-marketing` | 45 | "Use ccc-marketing" | CRO, email, ads, social, SEO content, growth |
+| `ccc-saas` | 20 | "Use ccc-saas" | Auth, billing, API, database, multi-tenant |
+| `ccc-devops` | 20 | "Use ccc-devops" | CI/CD, Docker, AWS, monitoring, zero-downtime |
+| `ccc-seo` | 19 | "Use ccc-seo" | Technical SEO, AI search, structured data |
+| `ccc-testing` | 15 | "Use ccc-testing" | TDD, E2E, QA, regression, load testing |
+| `ccc-data` | 8 | "Use ccc-data" | SQL, ETL, analytics, visualization |
+| `ccc-security` | 8 | "Use ccc-security" | OWASP, pen testing, secrets, hardening |
+| `ccc-research` | 8 | "Use ccc-research" | Competitive analysis, market research, SWOT |
+| `ccc-mobile` | 8 | "Use ccc-mobile" | React Native, Expo, Flutter, app store |
+| `ccc-makeover` | 3 | "Use ccc-makeover" | /xray audit + auto-fix + report card |
 
-### Essential Individual Skills by Use Case
+### Top Individual Skills
 
 | Skill | Invoke | Use When |
 |-------|--------|----------|
-| `spec-interviewer` | "use spec-interviewer skill" | Starting any feature > 1 day |
-| `evals-before-specs` | "use evals-before-specs" | Define done BEFORE writing specs |
-| `tdd-workflow` | "use tdd-workflow" | Write failing tests first |
-| `review` | "use review skill" | Code review after implementing |
-| `systematic-debugging` | "use systematic-debugging" | Need root cause of a bug |
-| `operationalize-fixes` | "use operationalize-fixes" | After fixing: test → sweep → update rules |
-| `verification-before-completion` | "use verification-before-completion" | Proof before marking done |
-| `delegation-templates` | "use delegation-templates" | Dispatching to subagents |
-| `dialectic-review` | "use dialectic-review" | FOR/AGAINST/Referee for hard decisions |
-| `overnight-runner` | "use overnight-runner" | Unattended batch jobs |
-| `strategic-compact` | "use strategic-compact" | Manual context compaction |
-| `investigate` | "use investigate skill" | Never fix without root cause |
-| `frontend-design` | "use frontend-design" | Anti-slop UI |
-| `landing-page-builder` | "use landing-page-builder" | High-converting pages |
-| `senior-devops` | "use senior-devops" | CI/CD, cloud, infrastructure |
-| `gh-issues` | "use gh-issues" | Fetch issues → spawn subagents to fix |
+| `spec-interviewer` | "Use spec-interviewer" | Starting any feature > 1 day |
+| `tdd-workflow` | "Use tdd-workflow" | Write failing tests first |
+| `review` | "Use review" | Code review after implementing |
+| `systematic-debugging` | "Use systematic-debugging" | Root cause analysis |
+| `operationalize-fixes` | "Use operationalize-fixes" | After fix: test → sweep → update rules |
+| `verification-before-completion` | "Use verification-before-completion" | Proof before marking done |
+| `delegation-templates` | "Use delegation-templates" | Dispatching to subagents |
+| `dialectic-review` | "Use dialectic-review" | FOR/AGAINST/Referee for hard decisions |
+| `overnight-runner` | "Use overnight-runner" | Unattended batch jobs |
+| `frontend-design` | "Use frontend-design" | Anti-slop UI design |
+| `landing-page-builder` | "Use landing-page-builder" | High-converting pages |
+| `senior-devops` | "Use senior-devops" | CI/CD, cloud, infrastructure |
+| `gh-issues` | "Use gh-issues" | Fetch issues → spawn agents to fix |
+| `openclaw-ccc-bridge` | "Use openclaw-ccc-bridge" | OpenClaw ↔ CCC integration |
 
 ---
 
-## Build Type Selection
+## Cancel / Stop
 
-| Build Type | Time | Model | Key Skills |
-|------------|------|-------|-----------|
-| QUICK | <4h | sonnet | stack-specific only |
-| DEEP | 1-5d | opus | spec-interviewer + tdd-workflow + ccc-testing |
-| SAAS | 1-4wk | opus | ccc-saas + ccc-seo + ccc-testing + ccc-devops |
-| OVERNIGHT | 6-12h | opus | overnight-runner + domain skills |
+| Context | How to Cancel |
+|---------|--------------|
+| During any build (simple mode) | Press `Escape` or `q` |
+| During YOLO loop | `touch ~/.claude/commander/yolo-stop` |
+| In split mode (tmux) | Switch to Claude tab → `Ctrl+C` |
+| From another process | Kill the `claude` child process |
 
 ---
 
-## Configuration
-
-### Key State Files
-
-| File | Purpose |
-|------|---------|
-| `~/.claude/commander/config.json` | Level, theme, model defaults, username |
-| `~/.claude/commander/sessions/` | Session history (JSON per session) |
-| `~/.claude/commander/knowledge.db` | Learned patterns from past sessions |
-
-### Environment Variables
+## Environment Variables
 
 | Variable | Effect |
 |----------|--------|
 | `CC_NO_COLOR=1` | Disable colors |
 | `CC_NO_ANIMATION=1` | Disable animations |
-| `CC_COACH_DISABLE=1` | Disable session coaching nudges |
-| `CC_COACH_INTERVAL=<ms>` | Override coaching interval |
-| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` | Auto-compact at 70% context (dispatcher default) |
+| `CC_COACH_DISABLE=1` | Disable coaching nudges |
+| `CC_COACH_INTERVAL=N` | Responses between nudges (default: 5) |
+| `CC_OPENCLAW_ENABLED=1` | Enable OpenClaw event sync |
+| `CC_OPENCLAW_URL` | Gateway URL (default: localhost:18789) |
+| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` | Auto-compact at 70% context |
+| `CCC_TMUX_SESSION` | Set when inside tmux split |
+| `CCC_SIMPLE=1` | Force simple mode (no tmux) |
 
 ---
 
-## Integration Points
+## Key Files
 
-### OpenClaw Bridge
-
-- Auto-detected when OpenClaw gateway is running at `:18789`
-- Skills sync bidirectionally: CCC skills appear in OpenClaw skill registry
-- Events forward: OpenClaw tasks can trigger CCC dispatches
-- Config: `skills/openclaw-native/SKILL.md`
-
-### Linear MCP
-
-- `l` key in main menu opens Linear board (requires `hasLinear` condition)
-- Adventure file: `commander/adventures/linear-board.json`
-- Issues appear as pickable tasks; selecting one dispatches to Claude Code
-- Requires Linear MCP configured at `~/.claude/settings.json`
-
-### Cowork Plugin (`commander/cowork-plugin/`)
-
-- 4 skills for Claude Desktop autonomous mode
-- Enables scheduled tasks and background dispatch from Cowork
-
-### Claude Code `/ccc` Command
-
-- `commands/cc.md` — interactive command center from inside a CC session
-- Surfaces CCC menus and dispatch without leaving Claude Code
-
-### Paperclip Bridge
-
-- CCC can post task results to Paperclip at `localhost:3110`
-- Used by OpenClaw Neo for tracked multi-step work
-
----
-
-## Key File Paths
-
-| Path | Contents |
-|------|---------|
-| `commander/engine.js` | Main interactive loop |
-| `commander/dispatcher.js` | Claude Code dispatch (14 flags) |
-| `commander/adventures/*.json` | All menu decision trees |
-| `commander/tests/paths.test.js` | 18 E2E path tests |
-| `skills/mega-*/` | CCC domain router + sub-skills |
-| `commands/` | 88+ slash command definitions |
-| `hooks/hooks.json` | 25 kit-native hook definitions |
-| `SKILLS-INDEX.md` | Searchable skill index |
-| `CHEATSHEET.md` | Human daily reference |
+| Path | What |
+|------|------|
+| `commander/adventures/*.json` | Menu definitions (source of truth) |
+| `commander/dispatcher.js` | Claude Code dispatch logic |
+| `commander/engine.js` | Interactive menu engine |
+| `skills/` | 280 skill definitions (SKILL.md each) |
+| `commands/ccc.md` | /ccc command for Claude Code sessions |
+| `BIBLE.md` | Full methodology (2000+ lines, human-readable) |
+| `BIBLE-AGENT.md` | This file (agent-optimized) |
+| `CLAUDE.md.template` | CLAUDE.md template for new projects |
+| `SKILLS-INDEX.md` | Searchable skill directory |
