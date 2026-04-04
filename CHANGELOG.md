@@ -7,6 +7,7 @@ All notable changes to CC Commander will be documented in this file.
 ### The Mass Ingestion Release — "5 new vendors. 1,500+ vendor skills. Optimization directives from source."
 
 ### Added
+- **Intelligence Layer v1:** Task complexity scoring, project stack detection, session learning, skill relevance filtering, smart fallback/retry — auto-adjusts every dispatch
 - **5 new vendor submodules:** repomix (22.8K stars, context packing), claude-skills (8.6K, 507 skills), notebooklm-py (8.6K, NotebookLM integration), claude-code-ultimate-guide (2.7K, 219 CC0 templates + threat DB), claude-code-prompts (142, defensive prompts, SHA-pinned)
 - **3 authored skills:** supabase-cli (DB migrations, Edge Functions), n8n-mcp-setup (400+ integrations), voicemode-setup (voice conversations via Whisper + Kokoro)
 - **CLAUDE.md.staff-template v2.1:** Tool Awareness (re-read after edit, context decay, file read budget, one source of truth), Anti-Patterns (kitchen sink session, over-specified CLAUDE.md, trust-then-verify gap, infinite exploration), Context Optimization (/btw, Ctrl+G, compaction directives, @path/to/import)

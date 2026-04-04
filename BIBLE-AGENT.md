@@ -303,6 +303,22 @@ ccc --dispatch "Using tdd-workflow skill: [task]" --json
 
 ---
 
+## Intelligence Layer (Automatic)
+
+CCC auto-adjusts every dispatch based on context:
+
+| Feature | What It Does | Where |
+|---------|-------------|-------|
+| Complexity scoring | "fix typo"→15 turns/$2, "build SaaS"→50 turns/$10 | dispatcher.js |
+| Stack detection | Reads package.json→detects nextjs/react/vue/etc | project-importer.js |
+| Skill filtering | Sorts 280 skills by project relevance | skill-browser.js |
+| Session learning | Tracks success rate per task category | knowledge.js |
+| Smart retry | Context overflow→fewer turns, rate limit→wait 60s | dispatcher.js |
+
+No configuration needed. Override per-dispatch with --max-turns, --budget, --model.
+
+---
+
 ## Cancel / Stop
 
 | Context | How to Cancel |

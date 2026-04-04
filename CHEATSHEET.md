@@ -84,6 +84,17 @@ Switch your entire workflow persona with one command. Each mode adjusts behavior
 | `ccc --list-sessions --json` | Session history as JSON |
 | `ccc --status` | Health check JSON |
 
+### Intelligence Layer
+
+Automatic — no configuration needed:
+- Task complexity scoring adjusts turns/budget per task
+- Project stack detection (package.json, Dockerfile, etc.)
+- Skill relevance filtering based on detected stack
+- Smart retry on context overflow / rate limits
+- Session learning from past outcomes
+
+Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
+
 | Command | Key | What It Does |
 |---------|-----|-------------|
 | `/btw` | — | Side question without polluting main context |

@@ -178,6 +178,20 @@ ccc --list-skills --json | jq '.[] | select(.name | contains("auth"))'
 
 ---
 
+## Intelligence Layer
+
+CCC auto-adjusts every dispatch based on context. No configuration needed.
+
+| Feature | Example |
+|---------|---------|
+| **Complexity scoring** | "fix typo" → 15 turns, $2 · "build SaaS" → 50 turns, $10 |
+| **Stack detection** | Reads package.json → suggests relevant skills |
+| **Session learning** | Tracks what works → smarter future dispatches |
+| **Skill filtering** | Next.js project → nextjs-app-router, shadcn-ui ranked first |
+| **Smart retry** | Context overflow → retry with fewer turns automatically |
+
+---
+
 ## Use Inside Claude Code
 
 No CLI needed. Type `/ccc` in any Claude Code session for the full interactive menu.

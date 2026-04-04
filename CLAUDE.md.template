@@ -82,6 +82,14 @@ At key moments, suggest the most relevant CCC skill with justification. Use AskU
 Format: "I recommend using the **[skill]** skill here because [reason]. Want me to load it?"
 Search skills: `ccc --list-skills --json` or read `~/.claude/SKILLS-INDEX.md`
 
+### Intelligence Layer (Automatic)
+CCC auto-adjusts dispatch parameters based on:
+- **Task complexity:** "fix typo" → 15 turns/$2, "build SaaS" → 50 turns/$10
+- **Project stack:** Reads package.json, Dockerfile, etc. → suggests relevant skills
+- **Session history:** Learns success rates per task category
+- **Smart retry:** Context overflow → fewer turns, rate limit → wait 60s
+No configuration needed — works automatically on every dispatch.
+
 ### Dialectic Review (Important Decisions)
 For architecture choices or expensive-to-reverse decisions:
 spawn FOR agent + AGAINST agent + Referee.
