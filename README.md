@@ -1,5 +1,3 @@
-<https://github.com/KevinZai/cc-commander/raw/main/docs/assets/hero.mp4>
-
 <img src="docs/assets/ccc-hero.svg" alt="CC Commander" width="100%">
 
 > **Every Claude Code tool. One install. Guided access. Auto-updated.**
