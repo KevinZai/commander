@@ -1,0 +1,52 @@
+{
+  "id": "infrastructure",
+  "version": 2,
+  "screen": {
+    "title": "Infrastructure & Fleet",
+    "subtitle": "Manage your agent fleet, monitor costs, and track observability"
+  },
+  "prompt": "Infrastructure Tools",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Fleet Commander",
+      "description": "Launch and manage parallel agent teams",
+      "action": "fleet_commander"
+    },
+    {
+      "key": "b",
+      "label": "Cost Dashboard",
+      "description": "Real-time spending across all sessions",
+      "action": "cost_dashboard"
+    },
+    {
+      "key": "c",
+      "label": "Synapse Observability",
+      "description": "What are my agents doing right now?",
+      "action": "synapse_observe"
+    },
+    {
+      "key": "d",
+      "label": "Composio AO",
+      "description": "Spawn parallel agents with worktree isolation",
+      "action": "ao_spawn"
+    },
+    {
+      "key": "e",
+      "label": "CloudCLI",
+      "description": "Open web terminal for mobile access",
+      "action": "cloudcli_open"
+    },
+    {
+      "key": "f",
+      "label": "Paperclip Tasks",
+      "description": "Pick up next issue from task queue",
+      "action": "paperclip_pickup"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "action": "back"
+    }
+  ]
+}

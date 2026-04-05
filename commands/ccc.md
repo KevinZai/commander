@@ -38,7 +38,7 @@ All menus are derived from `commander/adventures/*.json` in the cc-commander rep
 
 Source: `commander/adventures/main-menu.json`
 
-Ask "What would you like to do?" with these 14 choices:
+Ask "What would you like to do?" with these 15 choices:
 
 | Key | Label | Description |
 |-----|-------|-------------|
@@ -54,6 +54,7 @@ Ask "What would you like to do?" with these 14 choices:
 | n | Night Mode | 8-hour autonomous build |
 | s | Settings | Name, level, cost, theme |
 | t | Change theme | Switch visual theme |
+| x | Infrastructure & Fleet | Fleet Commander, Synapse, Cost tracking, CloudCLI |
 | / | Type a command | Free-text prompt — describe anything or type /commands |
 | q | Quit | Exit CC Commander |
 
@@ -198,6 +199,21 @@ Sub-choices:
 7. **Change launch mode** — Choices: Simple / Advanced (split tmux). Write to state.
 8. **Reset all state** — Confirm first, then delete `~/.claude/commander/state.json` (skills are preserved).
 9. Cancel / Back to main menu.
+
+### x — Infrastructure & Fleet (`infrastructure`)
+
+Source: `commander/adventures/infrastructure.json`
+
+Sub-choices:
+1. **Fleet Commander** — Probe `http://localhost:4680/api/status` and `/api/teams`. Show active teams, agent counts. Instructions: use `/fleet` in session.
+2. **Cost Dashboard** — Probe `http://localhost:3005/api/costs`. Show today/yesterday/total spend and per-agent breakdown with progress bars. Instructions: use `/cost` in session.
+3. **Synapse Observability** — Probe `http://localhost:4682/api/health`. Show client/agent counts, event totals. Link: `https://syn.k3v80.com`. Instructions: use `/syn` in session.
+4. **Composio AO** — Check if `ao` CLI is installed (`which ao`). If found, confirm it's ready. Instructions: use `/ao` in session.
+5. **CloudCLI** — Probe `http://localhost:4681/`. If running, show URL `https://cc.k3v80.com`. Instructions: use `/cloudcli` in session.
+6. **Paperclip Tasks** — Probe `http://localhost:3110/`. If running, confirm it's ready. Instructions: use `/paperclip` in session.
+7. Back to main menu.
+
+All probes use a 2-3 second timeout. If a service is offline, say so and show the install hint where applicable. After each action, return to the Infrastructure sub-menu.
 
 ### t — Change theme (`change_theme`)
 

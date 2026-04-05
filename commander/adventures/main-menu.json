@@ -4,7 +4,7 @@
   "screen": {
     "title": "CC Commander",
     "subtitle": "welcomeMessage",
-    "detail": "{gitBranch} · {gitStatus} · {sessions} sessions · {achievementCount} badges",
+    "detail": "{gitBranch} \u00b7 {gitStatus} \u00b7 {sessions} sessions \u00b7 {achievementCount} badges",
     "art": "logo"
   },
   "prompt": "What would you like to do?",
@@ -83,9 +83,16 @@
       "action": "change_theme"
     },
     {
+      "key": "x",
+      "label": "Infrastructure & Fleet",
+      "description": "Fleet Commander, Synapse, Cost tracking, CloudCLI",
+      "action": null,
+      "next": "infrastructure"
+    },
+    {
       "key": "/",
       "label": "Type a command",
-      "description": "Free-text prompt — describe anything or type /commands",
+      "description": "Free-text prompt \u2014 describe anything or type /commands",
       "action": "freeform_prompt"
     },
     {
