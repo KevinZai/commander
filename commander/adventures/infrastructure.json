@@ -44,6 +44,12 @@
       "action": "paperclip_pickup"
     },
     {
+      "key": "g",
+      "label": "Detect services",
+      "description": "Scan ports and CLIs \u2014 see what\u2019s running",
+      "action": "detect_services"
+    },
+    {
       "key": "q",
       "label": "Back to main menu",
       "action": "back"

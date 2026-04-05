@@ -527,6 +527,23 @@ class KitCommander {
         }
         return { next: 'main-menu' };
       }
+      case 'detect_services': {
+        try {
+          process.stdout.write('\n' + tui.divider('Service Detection') + '\n\n');
+          var detector = require('./service-detector');
+          var sp = tui.spinner('Scanning ports and CLIs...');
+          sp.start();
+          var detection = await detector.detectServices();
+          sp.stop(true);
+          process.stdout.write(detector.renderDetectionSummary(detection) + '\n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) {
+          process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n');
+          try { require('./error-logger').log(_e, 'detect_services'); } catch(_) {}
+        }
+        return { next: 'main-menu' };
+      }
       case 'show_all_mega': {
         try {
           process.stdout.write('\n' + tui.divider('All 11 CCC Domains') + '\n\n');
