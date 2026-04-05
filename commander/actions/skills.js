@@ -19,7 +19,7 @@ module.exports = {
   },
 
   async recommend_skill(engine, tui, state, choice) {
-    try { return await engine.recommendSkill(state); }
+    try { return await engine.recommendSkill(state.loadState()); }
     catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('../error-logger').log(_e, 'recommend_skill'); } catch(_) {} return { next: 'main-menu' }; }
   },
 

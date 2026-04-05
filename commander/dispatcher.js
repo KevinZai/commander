@@ -14,24 +14,177 @@ function getDefaultsForLevel(level) {
   }
 }
 
-function scoreComplexity(task) {
+/**
+ * Keyword signals with point weights for scoring complexity.
+ * Negative = simpler, positive = more complex.
+ */
+var COMPLEXITY_SIGNALS = [
+  // Trivial reducers
+  { signal: 'fix typo', points: -30 },
+  { signal: 'rename', points: -20 },
+  { signal: 'update text', points: -25 },
+  { signal: 'change color', points: -20 },
+  { signal: 'add comment', points: -25 },
+  { signal: 'one line', points: -30 },
+  { signal: 'single file', points: -20 },
+  { signal: 'quick fix', points: -20 },
+  { signal: 'tweak', points: -15 },
+  { signal: 'minor', points: -15 },
+  { signal: 'small change', points: -20 },
+  { signal: 'simple', points: -10 },
+  // Moderate adders
+  { signal: 'add feature', points: 15 },
+  { signal: 'add page', points: 10 },
+  { signal: 'create component', points: 10 },
+  { signal: 'write test', points: 10 },
+  { signal: 'integrate', points: 15 },
+  { signal: 'refactor', points: 20 },
+  { signal: 'debug', points: 10 },
+  { signal: 'implement', points: 15 },
+  { signal: 'set up', points: 10 },
+  // High complexity adders
+  { signal: 'build entire', points: 40 },
+  { signal: 'full stack', points: 35 },
+  { signal: 'build saas', points: 40 },
+  { signal: 'saas', points: 30 },
+  { signal: 'refactor all', points: 35 },
+  { signal: 'migrate', points: 25 },
+  { signal: 'redesign', points: 25 },
+  { signal: 'from scratch', points: 30 },
+  { signal: 'complete system', points: 40 },
+  { signal: 'production', points: 20 },
+  { signal: 'multi-tenant', points: 35 },
+  { signal: 'authentication system', points: 30 },
+  { signal: 'billing system', points: 35 },
+  { signal: 'platform', points: 25 },
+  { signal: 'architecture', points: 30 },
+  { signal: 'overhaul', points: 35 },
+  { signal: 'entire codebase', points: 40 },
+  { signal: 'end to end', points: 25 },
+  { signal: 'full application', points: 35 },
+  { signal: 'complete app', points: 35 },
+];
+
+/**
+ * Map a file count to an estimated scope bonus (0-20 points).
+ * @param {number} fileCount
+ * @returns {number}
+ */
+function fileCountToScopePoints(fileCount) {
+  if (fileCount >= 20) return 20;
+  if (fileCount >= 10) return 15;
+  if (fileCount >= 5) return 10;
+  if (fileCount >= 2) return 5;
+  return 0;
+}
+
+/**
+ * Estimate how many project files might be affected by a task.
+ * Uses filename keyword matching — heuristic only.
+ * @param {string} task
+ * @param {string} projectDir
+ * @returns {number} Estimated affected file count
+ */
+function estimateScope(task, projectDir) {
+  if (!projectDir) return 0;
+  var taskWords = task.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(function(w) { return w.length > 3; });
+  if (taskWords.length === 0) return 0;
+
+  var fs = require('fs');
+  var files = [];
+  try {
+    var entries = fs.readdirSync(projectDir);
+    entries.forEach(function(entry) {
+      var lower = entry.toLowerCase();
+      // Skip hidden dirs and node_modules
+      if (lower.startsWith('.') || lower === 'node_modules') return;
+      files.push(lower);
+      // One level deep into non-hidden subdirs
+      try {
+        var sub = require('path').join(projectDir, entry);
+        if (fs.statSync(sub).isDirectory()) {
+          fs.readdirSync(sub).forEach(function(f) {
+            if (!f.startsWith('.')) files.push(f.toLowerCase());
+          });
+        }
+      } catch (_e) {}
+    });
+  } catch (_e) { return 0; }
+
+  var matched = files.filter(function(f) {
+    return taskWords.some(function(w) { return f.indexOf(w) >= 0; });
+  });
+
+  return matched.length;
+}
+
+/**
+ * Map a 0-100 score to turns/budget/effort.
+ * @param {number} score
+ * @returns {{ turns: number, budget: number, effort: string }}
+ */
+function scoreToParams(score) {
+  if (score <= 25) return { turns: 10, budget: 1, effort: 'low' };
+  if (score <= 50) return { turns: 20, budget: 3, effort: 'low' };
+  if (score <= 75) return { turns: 35, budget: 6, effort: 'medium' };
+  return { turns: 50, budget: 10, effort: 'high' };
+}
+
+/**
+ * Score task complexity on a 0-100 scale using multiple signals.
+ * Maps to turns/budget params via ranges:
+ *   0-25: trivial (10 turns, $1)
+ *   26-50: simple (20 turns, $3)
+ *   51-75: moderate (35 turns, $6)
+ *   76-100: complex (50 turns, $10)
+ *
+ * @param {string} task - Task description
+ * @param {string} [projectDir] - Optional project directory for file-count scope estimation
+ * @returns {{ turns: number, budget: number, effort: string, score: number }|null}
+ */
+function scoreComplexity(task, projectDir) {
   if (!task) return null;
-  var words = task.split(/\s+/).length;
   var text = task.toLowerCase();
-  // High complexity: multi-step, system-level, or broad-scope tasks
-  var highSignals = ['build entire', 'full stack', 'saas', 'refactor all', 'migrate', 'redesign',
-    'from scratch', 'complete system', 'production', 'multi-tenant', 'authentication system',
-    'billing system', 'platform', 'architecture', 'overhaul', 'entire codebase', 'end to end',
-    'full application', 'complete app'];
-  var isHigh = highSignals.some(function(s) { return text.indexOf(s) !== -1; });
-  // Low complexity: single-action, trivial tasks
-  var lowSignals = ['fix typo', 'rename', 'update text', 'change color', 'add comment',
-    'simple', 'small change', 'quick fix', 'tweak', 'minor', 'one line', 'single file'];
-  var isLow = lowSignals.some(function(s) { return text.indexOf(s) !== -1; });
-  if (isLow && words < 15) return { turns: 15, budget: 2, effort: 'low' };
-  if (isHigh || words > 50) return { turns: 50, budget: 10, effort: 'high' };
-  if (words < 8) return { turns: 15, budget: 2, effort: 'low' };
-  return null;
+  var words = task.split(/\s+/).length;
+
+  // Base score starts at 30 (simple baseline)
+  var score = 30;
+
+  // Word count contribution: long tasks signal more work
+  if (words > 50) score += 20;
+  else if (words > 25) score += 10;
+  else if (words < 5) score -= 15;
+
+  // Keyword signal contributions (summed)
+  // Use regex with optional words between signal terms for fuzzy matching
+  COMPLEXITY_SIGNALS.forEach(function(sig) {
+    if (text.indexOf(sig.signal) !== -1) {
+      score += sig.points;
+    } else {
+      // Fuzzy: allow 1-2 filler words between signal words
+      var sigWords = sig.signal.split(/\s+/);
+      if (sigWords.length >= 2) {
+        var pattern = sigWords.map(function(w) { return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('\\s+(?:\\w+\\s+){0,2}');
+        try {
+          if (new RegExp(pattern).test(text)) {
+            score += sig.points;
+          }
+        } catch (_e) {}
+      }
+    }
+  });
+
+  // File scope estimation (0-20 bonus points)
+  if (projectDir) {
+    var fileCount = estimateScope(task, projectDir);
+    score += fileCountToScopePoints(fileCount);
+  }
+
+  // Clamp to 0-100
+  score = Math.max(0, Math.min(100, score));
+
+  var params = scoreToParams(score);
+  return { turns: params.turns, budget: params.budget, effort: params.effort, score: score };
 }
 
 function dispatch(task, options) {
@@ -221,13 +374,13 @@ function dispatchWithRetry(task, options, retries) {
       return new Promise(function(r) { setTimeout(r, 60000); }).then(function() { return dispatchWithRetry(task, options, retries + 1); });
     }
     if (msg.includes('context') || msg.includes('compact') || msg.includes('thrash')) {
-      options.maxTurns = Math.round((options.maxTurns || 30) * 0.6);
-      process.stderr.write('\n  Context issue. Retrying with ' + options.maxTurns + ' turns...\n');
-      return dispatchWithRetry(task, options, retries + 1);
+      var reducedOptions = Object.assign({}, options, { maxTurns: Math.round((options.maxTurns || 30) * 0.6) });
+      process.stderr.write('\n  Context issue. Retrying with ' + reducedOptions.maxTurns + ' turns...\n');
+      return dispatchWithRetry(task, reducedOptions, retries + 1);
     }
     process.stderr.write('\n  Dispatch failed, retrying (' + (retries + 1) + '/' + maxRetries + ')...\n');
     return dispatchWithRetry(task, options, retries + 1);
   });
 }
 
-module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel };
+module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel };

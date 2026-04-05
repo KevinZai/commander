@@ -68,7 +68,7 @@ function scoreTool(capability, context, preferences) {
   var meta = PACKAGE_META[capability.vendor];
   var starScore = 0;
   if (meta && meta.stars) {
-    starScore = Math.min(100, meta.stars / 1200);
+    starScore = Math.min(100, (meta.stars / 1200) * 100);
   }
 
   // --- updateRecency (15%) ---
@@ -113,7 +113,7 @@ function rankToolsForPhase(phase, context) {
 
   var ranked = index[phase].map(function(cap) {
     var meta = PACKAGE_META[cap.vendor];
-    var starScore = meta ? Math.min(100, meta.stars / 1200) : 0;
+    var starScore = meta ? Math.min(100, (meta.stars / 1200) * 100) : 0;
     var recencyScore = 50;
     if (meta && meta.updated) {
       var now = new Date();

@@ -4,6 +4,87 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+const SKILL_USAGE_PATH = path.join(os.homedir(), '.claude', 'commander', 'skill-usage.json');
+
+/**
+ * Load skill usage stats from disk.
+ * @returns {Object} Map of skillName → { count, lastUsed, outcomes }
+ */
+function loadUsageStats() {
+  try {
+    if (fs.existsSync(SKILL_USAGE_PATH)) {
+      return JSON.parse(fs.readFileSync(SKILL_USAGE_PATH, 'utf8'));
+    }
+  } catch (_e) {}
+  return {};
+}
+
+/**
+ * Persist skill usage stats to disk.
+ * @param {Object} stats
+ */
+function saveUsageStats(stats) {
+  try {
+    const dir = path.dirname(SKILL_USAGE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(SKILL_USAGE_PATH, JSON.stringify(stats, null, 2));
+  } catch (_e) {}
+}
+
+/**
+ * Record that a skill was used, with an optional outcome.
+ * @param {string} skillName
+ * @param {string} [outcome] - 'success' | 'error' | 'unknown'
+ */
+function trackSkillUsage(skillName, outcome) {
+  if (!skillName) return;
+  const stats = loadUsageStats();
+  if (!stats[skillName]) {
+    stats[skillName] = { count: 0, lastUsed: null, outcomes: [] };
+  }
+  stats[skillName].count += 1;
+  stats[skillName].lastUsed = new Date().toISOString();
+  if (outcome) {
+    stats[skillName].outcomes = (stats[skillName].outcomes || []).concat(outcome).slice(-20);
+  }
+  saveUsageStats(stats);
+}
+
+/**
+ * Return all skill usage stats.
+ * @returns {Object}
+ */
+function getSkillUsageStats() {
+  return loadUsageStats();
+}
+
+/**
+ * Compute a usage-based ranking boost for a skill.
+ * Recent successful use → positive boost. Recent errors → slight penalty.
+ * @param {string} skillName
+ * @param {Object} usageStats
+ * @returns {number} Boost value (can be negative)
+ */
+function usageBoost(skillName, usageStats) {
+  const entry = usageStats[skillName];
+  if (!entry) return 0;
+
+  const outcomes = entry.outcomes || [];
+  const recentOutcomes = outcomes.slice(-5);
+  const successCount = recentOutcomes.filter(o => o === 'success').length;
+  const errorCount   = recentOutcomes.filter(o => o === 'error').length;
+
+  // Recency bonus: used in last 7 days
+  let recencyBonus = 0;
+  if (entry.lastUsed) {
+    const ageDays = (Date.now() - new Date(entry.lastUsed).getTime()) / (1000 * 60 * 60 * 24);
+    if (ageDays < 7) recencyBonus = 2;
+    else if (ageDays < 30) recencyBonus = 1;
+  }
+
+  return successCount * 1.5 - errorCount * 0.5 + recencyBonus;
+}
+
 const SKILL_DIRS = [
   path.join(__dirname, '..', 'skills'),
   path.join(os.homedir(), '.claude', 'skills'),
@@ -147,37 +228,161 @@ function getSkillPreview(skillPath, maxLines = 15) {
   }
 }
 
+const STACK_MAP = {
+  'nextjs': ['nextjs-app-router', 'ccc-saas', 'ccc-design', 'shadcn-ui', 'tailwind-v4', 'frontend-patterns'],
+  'react': ['frontend-patterns', 'ccc-design', 'frontend-design', 'shadcn-ui'],
+  'vue': ['vue-nuxt', 'frontend-patterns'],
+  'node-api': ['backend-patterns', 'api-design', 'fastify-api', 'ccc-saas', 'api-first-workflow'],
+  'docker': ['ccc-devops', 'docker-development', 'container-security', 'senior-devops'],
+  'testing': ['ccc-testing', 'tdd-workflow', 'e2e-testing', 'ai-regression-testing'],
+  'billing': ['stripe-subscriptions', 'billing-automation', 'ccc-saas'],
+  'tailwind': ['tailwind-v4', 'ccc-design', 'frontend-design'],
+  'python': ['python-patterns', 'python-testing'],
+  'github-actions': ['github-actions-security', 'github-actions-reusable-workflows', 'ccc-devops'],
+  'orm': ['postgres-patterns', 'database-designer', 'database-migrations', 'drizzle-neon'],
+  'rust': ['coding-standards'],
+  'go': ['coding-standards'],
+  'ruby': ['coding-standards'],
+};
+
+/**
+ * Filter and rank skills by tech stack relevance and usage history.
+ * @param {Array} skills - From listSkills()
+ * @param {string[]} techStack - Detected tech stack identifiers
+ * @returns {Array} Skills sorted by relevance (stack match + usage boost)
+ */
 function filterByProject(skills, techStack) {
   if (!techStack || techStack.length === 0) return skills.slice();
-  var stackMap = {
-    'nextjs': ['nextjs-app-router', 'ccc-saas', 'ccc-design', 'shadcn-ui', 'tailwind-v4', 'frontend-patterns'],
-    'react': ['frontend-patterns', 'ccc-design', 'frontend-design', 'shadcn-ui'],
-    'vue': ['vue-nuxt', 'frontend-patterns'],
-    'node-api': ['backend-patterns', 'api-design', 'fastify-api', 'ccc-saas', 'api-first-workflow'],
-    'docker': ['ccc-devops', 'docker-development', 'container-security', 'senior-devops'],
-    'testing': ['ccc-testing', 'tdd-workflow', 'e2e-testing', 'ai-regression-testing'],
-    'billing': ['stripe-subscriptions', 'billing-automation', 'ccc-saas'],
-    'tailwind': ['tailwind-v4', 'ccc-design', 'frontend-design'],
-    'python': ['python-patterns', 'python-testing'],
-    'github-actions': ['github-actions-security', 'github-actions-reusable-workflows', 'ccc-devops'],
-    'orm': ['postgres-patterns', 'database-designer', 'database-migrations', 'drizzle-neon'],
-    'rust': ['coding-standards'],
-    'go': ['coding-standards'],
-    'ruby': ['coding-standards'],
-  };
-  var relevant = {};
+  const relevant = {};
   techStack.forEach(function(tech) {
-    (stackMap[tech] || []).forEach(function(skill) { relevant[skill] = true; });
+    (STACK_MAP[tech] || []).forEach(function(skill) { relevant[skill] = true; });
   });
+
+  const usageStats = loadUsageStats();
+
   return skills.slice().sort(function(a, b) {
-    var ar = relevant[a.name] ? 0 : 1;
-    var br = relevant[b.name] ? 0 : 1;
-    return ar - br || a.name.localeCompare(b.name);
+    // Stack relevance: 0 = relevant, 1 = not relevant (lower = better)
+    const ar = relevant[a.name] ? 0 : 1;
+    const br = relevant[b.name] ? 0 : 1;
+    if (ar !== br) return ar - br;
+
+    // Within same relevance group, sort by usage boost descending
+    const boostA = usageBoost(a.name, usageStats);
+    const boostB = usageBoost(b.name, usageStats);
+    if (boostB !== boostA) return boostB - boostA;
+
+    return a.name.localeCompare(b.name);
   });
 }
 
-module.exports = { filterByProject: filterByProject,
+/**
+ * Extract keywords from a task string for skill matching.
+ * Simple whitespace split + lower-case, no stopwords needed here.
+ * @param {string} task
+ * @returns {string[]}
+ */
+function extractTaskKeywords(task) {
+  if (!task) return [];
+  return task.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(function(w) { return w.length > 2; });
+}
+
+/**
+ * Recommend the top N skills for a given task and tech stack.
+ * Combines stack matching + keyword matching against skill names/descriptions + usage history.
+ *
+ * @param {string} task - Task description
+ * @param {string[]} techStack - Detected tech stack identifiers (can be empty)
+ * @param {number} [limit=5] - Max skills to return
+ * @returns {Array<{ name: string, description: string, score: number, path: string, isMega: boolean }>}
+ */
+function recommendSkills(task, techStack, limit) {
+  if (!limit) limit = 5;
+  const skills = listSkills();
+  const usageStats = loadUsageStats();
+  const taskKeywords = extractTaskKeywords(task || '');
+
+  const relevant = {};
+  (techStack || []).forEach(function(tech) {
+    (STACK_MAP[tech] || []).forEach(function(skill) { relevant[skill] = true; });
+  });
+
+  const scored = skills.map(function(skill) {
+    let score = 0;
+
+    // Stack relevance
+    if (relevant[skill.name] || relevant[skill.dirName]) score += 10;
+
+    // Keyword match in skill name and description
+    const skillText = (skill.name + ' ' + skill.description + ' ' + skill.dirName).toLowerCase();
+    taskKeywords.forEach(function(kw) {
+      if (skillText.indexOf(kw) >= 0) score += 2;
+    });
+
+    // Usage boost
+    score += usageBoost(skill.name, usageStats);
+
+    return { skill: skill, score: score };
+  });
+
+  // Deduplicate by dirName (sub-skills may share the same display name)
+  const seenDirs = new Set();
+  return scored
+    .filter(function(s) { return s.score > 0; })
+    .sort(function(a, b) { return b.score - a.score; })
+    .filter(function(s) {
+      if (seenDirs.has(s.skill.dirName)) return false;
+      seenDirs.add(s.skill.dirName);
+      return true;
+    })
+    .slice(0, limit)
+    .map(function(s) {
+      return {
+        name: s.skill.name,
+        description: s.skill.description,
+        dirName: s.skill.dirName,
+        path: s.skill.path,
+        isMega: s.skill.isMega,
+        score: Math.round(s.score * 10) / 10,
+      };
+    });
+}
+
+/**
+ * Return skills with increasing usage in the last N days.
+ * A skill is "trending" if it has been used at least twice in the window.
+ *
+ * @param {number} [days=7] - Look-back window in days
+ * @returns {Array<{ name: string, count: number, lastUsed: string }>}
+ */
+function getTrendingSkills(days) {
+  if (!days) days = 7;
+  const stats = loadUsageStats();
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+
+  const trending = [];
+  Object.keys(stats).forEach(function(name) {
+    const entry = stats[name];
+    if (!entry.lastUsed) return;
+    if (new Date(entry.lastUsed).getTime() < cutoff) return;
+
+    // Count outcomes within the window (approximation: use total count if window not tracked per use)
+    const recentOutcomes = (entry.outcomes || []).slice(-days);
+    if (recentOutcomes.length >= 2) {
+      trending.push({ name: name, count: entry.count, lastUsed: entry.lastUsed });
+    }
+  });
+
+  return trending.sort(function(a, b) { return b.count - a.count; });
+}
+
+module.exports = {
+  filterByProject,
+  recommendSkills,
+  trackSkillUsage,
+  getSkillUsageStats,
+  getTrendingSkills,
   SKILL_DIRS,
+  STACK_MAP,
   listSkills,
   getSkillSummary,
   categorizeSkills,

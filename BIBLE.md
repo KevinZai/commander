@@ -22,6 +22,7 @@
 
 ### The Appendices
 - [CC Commander](#cc-commander) *(NEW in v1.5 — interactive CLI OS)*
+- [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.1 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
 - [Commands Reference](#commands-reference)
@@ -128,6 +129,18 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 
 ### Mindset
 You're briefing a brilliant contractor who knows nothing about your project yet. The more complete your brief, the less time you waste in corrections. Invest 20 minutes upfront to save 10 hours later.
+
+Stock Claude Code starts every session with amnesia. CC Commander doesn't. Before you type a single prompt, the Intelligence Layer has already read your `package.json`, scored the complexity of what you're about to build, and pre-ranked the skills most likely to help. See [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) in the appendices.
+
+### Quick Start (3 paths)
+
+| Path | You Use | Command |
+|------|---------|---------|
+| **CLI** | `claude` in terminal | `npm install -g cc-commander` → `ccc` |
+| **Slash commands only** | Claude Code sessions | `curl ... \| bash` → `/ccc` in any session |
+| **Desktop plugin** | Claude Desktop | `/plugin marketplace add KevinZai/cc-commander` |
+
+Arrow keys to navigate. No commands to memorize. The Intelligence Layer handles model selection, budget, and skill routing automatically.
 
 ### Key Commands
 
@@ -2264,6 +2277,138 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 **Total: 190 verified sub-skills across 11 CCC domains.**
 
 
+
+---
+
+## Intelligence Layer Deep Dive
+
+> *Appendix: v2.1 — How CCC thinks before it acts.*
+
+CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
+
+---
+
+### Module 1: Weighted Complexity Scoring
+
+**File:** `commander/dispatcher.js`
+
+Before dispatching any task, CCC scores it 0–100 using three inputs:
+
+1. **47 keyword signals** — words like "fix", "typo", "rename" pull the score down; "build", "architect", "integrate", "SaaS", "platform" push it up
+2. **Word count** — longer task descriptions imply more scope
+3. **Fuzzy regex matching** — partial matches catch related concepts ("refact" matches "refactor")
+
+File scope estimation adds 0–20 bonus points based on how many project files are likely to be touched.
+
+The final score maps to model + turns + budget:
+
+| Score | Label | Model | Turns | Budget |
+|-------|-------|-------|-------|--------|
+| 0–20 | Trivial | Haiku | 10 | $1 |
+| 21–40 | Simple | Sonnet | 20 | $3 |
+| 41–60 | Moderate | Sonnet | 35 | $6 |
+| 61–80 | Complex | Opus | 45 | $8 |
+| 81–100 | Epic | Opus | 50 | $10 |
+
+You can override with `--model`, `--max-turns`, `--budget` flags. But you usually won't need to.
+
+---
+
+### Module 2: Stack Detection
+
+**File:** `commander/project-importer.js`
+
+Runs once per project on first dispatch (cached after that). Scans:
+
+- `package.json` → detects nextjs, react, vue, testing frameworks, billing (Stripe), ORM (Prisma, Drizzle)
+- `Dockerfile`, `docker-compose.yml` → docker flag
+- `go.mod`, `requirements.txt`, `Cargo.toml` → language detection
+- `.github/workflows/` → github-actions flag
+- `package.json` workspaces, `lerna.json`, `turbo.json`, `nx.json` → monorepo detection
+
+Also reads:
+- Current git branch name
+- Last 5 commit messages → extracts recurring themes (what work is currently in flight)
+
+This context is passed to the skill recommender and the dispatcher, so relevant skills surface first and model selection accounts for project complexity.
+
+---
+
+### Module 3: Skill Recommendations
+
+**File:** `commander/skill-browser.js`
+
+`recommendSkills(task, techStack)` ranks all 357+ skills using three signals:
+
+```
+Stack match:    +10 pts per matching technology
+                (e.g., next.js project + "pages" task → nextjs-app-router +10)
+
+Keyword match:  +2 pts per keyword hit between task description and skill metadata
+                (e.g., "auth" task → auth, jwt, better-auth all get hits)
+
+Usage boost:    Skills you've used successfully in past sessions rank higher
+                (stored in ~/.claude/commander/state.json)
+```
+
+**Trending skills** (`getTrendingSkills(7)`) surface skills with increasing usage over the last 7 days — useful for discovering what's working in your current workflow.
+
+Usage tracking is automatic. Every time you run a skill, the outcome is recorded. Skills that led to successful sessions compound their ranking advantage over time.
+
+---
+
+### Module 4: Knowledge Compounding
+
+**File:** `commander/knowledge.js`
+
+Every completed session extracts a lesson and stores it in `~/.claude/commander/`. Before the next dispatch, relevant lessons are searched and surfaced.
+
+**What a lesson contains:**
+- Keywords from the task
+- Category (frontend, backend, testing, etc.)
+- Tech stack at the time
+- Error patterns encountered
+- Success patterns that worked
+
+**Relevance scoring with time decay:**
+
+```
+< 7 days old:   2.0x multiplier  (recent = highly relevant)
+< 30 days old:  1.5x multiplier
+older:          1.0x multiplier  (still useful, lower priority)
+```
+
+**Fuzzy matching:** Partial keyword matches score 0.5 (vs 1.0 for exact). This catches related concepts — "auth" catches "authentication", "authorize", "oauth".
+
+**Cross-domain boosts** — related categories get a relevance bump even without keyword overlap:
+
+| Category A | Category B | Boost |
+|-----------|-----------|-------|
+| web | react | +0.5 |
+| api | backend | +0.5 |
+| testing | bugfix | +0.3 |
+
+**Smart retry** handles the three most common dispatch failures:
+- Rate limit hit → wait 60s, retry with same parameters
+- Context overflow → reduce `max-turns` to 60%, retry
+- Budget exceeded → surface clear error with suggested next steps (don't silently fail)
+
+---
+
+### Putting It Together
+
+A typical dispatch goes through all four modules in sequence:
+
+```
+1. project-importer.js  reads package.json, git branch, recent commits
+2. dispatcher.js        scores task complexity (0–100) → selects model + budget
+3. knowledge.js         searches past lessons for relevant context
+4. skill-browser.js     ranks skills for this task + stack combination
+5. dispatcher.js        fires: claude -p "task" --model X --max-turns N --budget Y
+                        with top-ranked skill pre-loaded
+```
+
+Total overhead: ~50ms. Completely invisible. Just better results.
 
 ## About the Author
 

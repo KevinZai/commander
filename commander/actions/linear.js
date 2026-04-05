@@ -109,7 +109,7 @@ module.exports = {
       var pickItems = pickable.slice(0, 15).map(function(i) { return { label: i.identifier + ' ' + i.title.slice(0, 50) }; });
       pickItems.push({ label: 'Back' });
       var pickIdx = await tui.select(pickItems, 'Pick an issue:');
-      if (pickIdx < 0 || pickIdx >= pickable.length) return null;
+      if (pickIdx < 0 || pickIdx >= pickable.length) return { next: 'linear-board' };
       var picked = pickable[pickIdx];
       process.stdout.write('\n  Assigning ' + picked.identifier + '...\n');
       await pickLinear.assignIssueToMe(picked.id);

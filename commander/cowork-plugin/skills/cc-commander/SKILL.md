@@ -110,7 +110,10 @@ Present them and ask:
 - Cancel / Back to main menu
 
 ### 7. Learn a new skill
-Use Bash: `ccc --list-skills --json` to retrieve the skill catalog.
+Use Bash to retrieve the skill catalog (fall back to listing the skills directory if ccc is unavailable):
+```bash
+ccc --list-skills --json 2>/dev/null || ls ~/.claude/skills/ 2>/dev/null || echo "No skills found"
+```
 Present categories. Ask which domain:
 - mega-code (18 skills)
 - mega-testing (15 skills)
@@ -128,7 +131,10 @@ Present categories. Ask which domain:
 Once a domain is selected, list skills and ask which to activate. Use Agent to run the chosen skill.
 
 ### 8. Check my stats
-Use Bash: `ccc --stats` to retrieve stats JSON.
+Use Bash to retrieve stats (fall back to reading session files directly if ccc is unavailable):
+```bash
+ccc --stats --json 2>/dev/null || ls ~/.claude/commander/sessions/*.json 2>/dev/null | wc -l
+```
 Display: sessions this week, total sessions, streaks, achievements, cost to date.
 Ask:
 - View detailed breakdown
@@ -168,7 +174,7 @@ Present current settings and ask what to change:
 Use Write to persist changes to `~/.claude/commander/config.json`.
 
 ### 12. Change theme
-Use Bash: `ccc --list-skills --json | grep theme` to confirm available themes.
+Available themes are built-in — no CLI lookup needed.
 Present options:
 - Claude Anthropic (default)
 - OLED Black

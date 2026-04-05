@@ -2,6 +2,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var childProcess = require('child_process');
 
 /**
  * Scan a directory for Claude Code project context.
@@ -25,6 +26,11 @@ function scanProject(dir) {
     agents: [],
     hooks: null,
     summary: [],
+    // New fields
+    isMonorepo: false,
+    gitBranch: null,
+    recentCommitThemes: [],
+    readmePreview: null,
   };
 
   // Check CLAUDE.md
@@ -33,6 +39,19 @@ function scanProject(dir) {
     result.hasClaudeMd = true;
     result.claudeMd = fs.readFileSync(claudeMdPath, 'utf8');
     result.summary.push('CLAUDE.md (' + result.claudeMd.split('\n').length + ' lines)');
+  }
+
+  // README detection — first 5 lines as preview
+  var readmePaths = ['README.md', 'readme.md', 'Readme.md'];
+  for (var ri = 0; ri < readmePaths.length; ri++) {
+    var rp = path.join(dir, readmePaths[ri]);
+    if (fs.existsSync(rp)) {
+      try {
+        var readmeLines = fs.readFileSync(rp, 'utf8').split('\n').slice(0, 5).filter(function(l) { return l.trim(); });
+        result.readmePreview = readmeLines.join('\n').slice(0, 500);
+      } catch (_e) {}
+      break;
+    }
   }
 
   // Check .claude/ directory
@@ -78,7 +97,6 @@ function scanProject(dir) {
     }
 
     // Hooks
-    var hooksPath = path.join(claudeDir, 'settings.json');
     if (result.settings && result.settings.hooks) {
       var hookCount = Object.keys(result.settings.hooks).length;
       if (hookCount > 0) result.summary.push(hookCount + ' hook events');
@@ -100,6 +118,9 @@ function scanProject(dir) {
       if (allDeps.includes('drizzle-orm') || allDeps.includes('prisma') || allDeps.includes('typeorm')) result.techStack.push('orm');
       if (allDeps.includes('tailwindcss')) result.techStack.push('tailwind');
       if (allDeps.includes('playwright') || allDeps.includes('vitest') || allDeps.includes('jest')) result.techStack.push('testing');
+
+      // Monorepo detection from package.json workspaces field
+      if (pkg.workspaces) result.isMonorepo = true;
     } catch(_e) {}
   }
   if (fs.existsSync(path.join(dir, 'Dockerfile')) || fs.existsSync(path.join(dir, 'docker-compose.yml'))) result.techStack.push('docker');
@@ -107,6 +128,52 @@ function scanProject(dir) {
   if (fs.existsSync(path.join(dir, 'pyproject.toml')) || fs.existsSync(path.join(dir, 'requirements.txt'))) result.techStack.push('python');
   if (fs.existsSync(path.join(dir, 'Cargo.toml'))) result.techStack.push('rust');
   if (fs.existsSync(path.join(dir, 'go.mod'))) result.techStack.push('go');
+
+  // Monorepo detection from workspace config files
+  if (!result.isMonorepo) {
+    var monoFiles = ['pnpm-workspace.yaml', 'pnpm-workspace.yml', 'lerna.json', 'turbo.json', 'nx.json'];
+    for (var mi = 0; mi < monoFiles.length; mi++) {
+      if (fs.existsSync(path.join(dir, monoFiles[mi]))) {
+        result.isMonorepo = true;
+        break;
+      }
+    }
+  }
+  if (result.isMonorepo) result.summary.push('monorepo');
+
+  // Git branch awareness
+  try {
+    result.gitBranch = childProcess.execSync('git branch --show-current', {
+      cwd: dir, encoding: 'utf8', stdio: 'pipe', timeout: 3000,
+    }).trim() || null;
+  } catch (_e) { result.gitBranch = null; }
+
+  // Recent commit themes — extract keywords from last 5 commit messages
+  try {
+    var logOutput = childProcess.execSync('git log --oneline -5', {
+      cwd: dir, encoding: 'utf8', stdio: 'pipe', timeout: 3000,
+    }).trim();
+    if (logOutput) {
+      var stopWords = ['a','an','the','is','it','to','of','in','for','on','with','and','or','but','fix','add','update','feat','docs','test','chore','refactor'];
+      var commitWords = logOutput
+        .split('\n')
+        .map(function(line) { return line.replace(/^[a-f0-9]+\s+/, ''); }) // strip SHA
+        .join(' ')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(function(w) { return w.length > 3 && stopWords.indexOf(w) < 0; });
+      // Dedupe and take top 10 most representative words
+      var seen = {};
+      result.recentCommitThemes = commitWords.filter(function(w) {
+        if (seen[w]) return false;
+        seen[w] = true;
+        return true;
+      }).slice(0, 10);
+    }
+  } catch (_e) { result.recentCommitThemes = []; }
+
+  if (result.gitBranch) result.summary.push('branch:' + result.gitBranch);
 
   return result;
 }
@@ -122,6 +189,22 @@ function scanProject(dir) {
 function buildProjectPrompt(project) {
   var parts = [];
   parts.push('Project: ' + project.name + ' (' + project.dir + ')');
+
+  if (project.isMonorepo) {
+    parts.push('Note: This is a monorepo project.');
+  }
+
+  if (project.gitBranch) {
+    parts.push('Current git branch: ' + project.gitBranch);
+  }
+
+  if (project.recentCommitThemes && project.recentCommitThemes.length > 0) {
+    parts.push('Recent work themes (from git log): ' + project.recentCommitThemes.join(', '));
+  }
+
+  if (project.readmePreview) {
+    parts.push('\nProject README (first 5 lines):\n' + project.readmePreview);
+  }
 
   if (project.claudeMd) {
     // Include first 100 lines of CLAUDE.md as context

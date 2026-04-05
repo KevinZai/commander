@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 var path = require('path');
+var fs = require('fs');
 var args = process.argv.slice(2);
+var dispatching = false;
 
 if (args.includes('--help') || args.includes('-h')) {
   console.log('\n  CC Commander — 350+ skills. One command. Your AI work, managed by AI.\n');
@@ -79,7 +81,6 @@ if (args.includes('--test')) {
 // Agent API: --status
 if (args.includes('--status')) {
   var sb = require(path.join(__dirname,'..','commander','skill-browser'));
-  var fs = require('fs');
   var B = require(path.join(__dirname,'..','commander','branding'));
   var vc = 0; try { vc = fs.readdirSync(path.join(__dirname,'..','vendor')).length; } catch(_e) {}
   console.log(JSON.stringify({ version: B.version, skills: sb.listSkills().length, vendors: vc, health: 'ok' }));
@@ -103,7 +104,6 @@ if (args.includes('--list-sessions')) {
 }
 // Agent API: --template (print template for other projects to use)
 if (args.includes('--template')) {
-  var fs = require('fs');
   var templatePath = path.join(__dirname, '..', 'CLAUDE.md.template');
   try {
     process.stdout.write(fs.readFileSync(templatePath, 'utf8'));
@@ -166,7 +166,6 @@ if (args.includes('--ingest')) {
   process.exit(0);
 }
 // Agent API: --dispatch "task"
-var dispatching = false;
 if (args.includes('--dispatch')) {
   dispatching = true;
   var ti = args.indexOf('--dispatch') + 1;

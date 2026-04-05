@@ -502,9 +502,10 @@ class KitCommander {
           name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
         });
         var result = await cancellableDispatch(dispatchP, fullTask.slice(0, 60));
-        if (result.cancelled) { state.completeSession(session.id, 'cancelled'); }
+        if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
         state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
         state.completeSession(session.id, 'success');
+        }
         try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
       }
       if (!inSplitMode()) {
@@ -581,9 +582,10 @@ class KitCommander {
           name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
         });
         var result = await cancellableDispatch(dispatchP, fullTask.slice(0, 60));
-        if (result.cancelled) { state.completeSession(session.id, 'cancelled'); }
+        if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
         state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
         state.completeSession(session.id, 'success');
+        }
         try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
       }
       if (!inSplitMode()) {

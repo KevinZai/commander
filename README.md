@@ -1,27 +1,27 @@
 <img src="docs/assets/ccc-hero.png" alt="CC Commander" width="100%">
 
-> **Every Claude Code tool. One install. Guided access. Auto-updated.**
+> **Every Claude Code tool. One install. An AI brain that learns.**
 
-**Not a skill pack. An AI cockpit.** The most comprehensive Claude Code aggregator ever built. Newbie-friendly.
+**Not a skill pack. An AI project manager that thinks before it acts.** 357+ skills, 16 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/350+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/16_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.1.0](https://img.shields.io/badge/v2.1.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/357+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/16_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.1.0](https://img.shields.io/badge/v2.1.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 16 vendor packages
 
-**[Install](#install)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
+**[Install](#quick-start--pick-your-path)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ---
 
 <img src="docs/assets/section-why.png" alt="Why" width="100%">
 
-Stock Claude Code is a blank terminal. No skills. No guidance. No memory.
+Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No memory. Every session starts from zero.
 
-**CC Commander wraps every major Claude Code tool** into one install — with a smart orchestrator that picks the best tool for each job, guided menus for beginners, and a cockpit dashboard for power users.
+**CC Commander remembers everything, learns from every session, and gets smarter the more you use it.** It wraps every major Claude Code tool into one install — with a smart orchestrator, guided menus, and an Intelligence Layer that auto-adjusts every dispatch based on your project.
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 350+ skills,
-          16 vendor packages, and zero setup.
+You get:  A guided AI project manager with 357+ skills,
+          16 vendor packages, real learning, and zero setup.
 ```
 
 <img src="docs/assets/ccc-flow.png" alt="How CCC Works" width="100%">
@@ -30,87 +30,253 @@ You get:  A guided AI project manager with 350+ skills,
 
 <img src="docs/assets/section-install.png" alt="Install" width="100%">
 
-```bash
-# npm (recommended — gives you the `ccc` command)
-npm install -g cc-commander
+## Quick Start — Pick Your Path
 
-# One-line script install
-curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+One question: **How are you using Claude?**
 
-# Clone with vendor packages
-git clone --recursive https://github.com/KevinZai/cc-commander.git && cd cc-commander && ./install.sh
+### Path A: Claude Code CLI (Terminal)
 
-# Claude Desktop / Cowork plugin
-/plugin marketplace add KevinZai/cc-commander
-
-# VS Code extension
-cd extensions/vscode && code --install-extension .
-```
-
-After install: **`ccc`** — that's it. Three letters.
-
----
-
-<img src="docs/assets/section-how-to-use.png" alt="How to Use" width="100%">
-
-**You don't need to type anything. Multiple choice.** CCC guides you with menus.
-
-### Step 1: Install (one command)
+> You use `claude` in your terminal. This is the most common way.
 
 ```bash
 npm install -g cc-commander
 ```
 
-### Step 2: Launch
+Then:
 
 ```bash
 ccc
 ```
 
-### Step 3: Pick what you want to do
+Arrow keys to navigate. Enter to select. That's it.
+
+**What you get:** Full CLI with tmux split mode, daemon, theme switching, and the cockpit dashboard.
+
+---
+
+### Path B: Claude Code (Slash Commands Only)
+
+> You don't want the full CLI. Just want skills + commands inside Claude Code.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+```
+
+Then in any Claude Code session:
 
 ```
+/ccc
+```
+
+Full interactive menu appears. Same features, no separate CLI needed.
+
+**What you get:** All 357+ skills and commands, no extra CLI binary required.
+
+---
+
+### Path C: Claude Desktop (Cowork Plugin)
+
+> You use Claude Desktop and want CC Commander as a Cowork plugin.
+
+```
+/plugin marketplace add KevinZai/cc-commander
+```
+
+CC Commander appears as a skill you can invoke. Say "start commander" or "what should I work on" to begin.
+
+**What you get:** 7 Cowork skills — project management, infrastructure, knowledge base, and night mode.
+
+---
+
+## Your First 60 Seconds
+
+```
+1. ccc → Main menu (14 options)
+2. Pick "Build something new" → Choose project type
+3. Answer 3 multiple-choice questions → CCC generates a plan
+4. CCC dispatches Claude with the right model, budget, and skills
+5. Session ends → CCC extracts lessons → gets smarter next time
+```
+
+No configuration. No YAML. No API keys. The Intelligence Layer handles everything.
+
+---
+
+## See It In Action
+
+> These are actual terminal outputs. CC Commander uses rich ASCII rendering — no browser required.
+
+### Main Menu — Multiple Choice Navigation
+
+The first thing you see. Arrow keys only — no commands to memorize.
+
+```
+╔══════════════════════════════════════════╗
+║  CC COMMANDER v2.1.0                     ║
+║  Your AI Project Manager                 ║
+╚══════════════════════════════════════════╝
+
   What would you like to do?
 
-  ❯ Build something new        ← websites, apps, tools
-    Import a project            ← /xray audit + /makeover
-    Create content              ← blogs, social, emails
-    Research & analyze          ← competitors, markets
-    YOLO Mode                   ← overnight autonomous build
-    Autonomous Mode             ← loops, dispatch, background agents
-    Browse CCC Domains          ← 11 domains, 193 sub-skills
-    Check my stats              ← cockpit dashboard
+  ❯ Build something new          ← code, websites, APIs
+    Import a project             ← auto-detect & audit
+    Create content               ← blogs, social, email
+    Research & analyze           ← competitors, markets
+    Linear board                 ← pick issues to build
+    Browse 357 skills            ← search by keyword
+    Check my stats               ← sessions, streaks
+    Night Mode / YOLO            ← overnight autonomous
+    Infrastructure               ← Fleet, Synapse, Cost
+    Settings                     ← name, level, theme
+    ↓ more...
+
+  ↑↓ Navigate  ⏎ Select  q Quit
 ```
 
-Use **arrow keys** to navigate. Press **Enter** to select.
+### Intelligence Analysis — Smart Dispatch
 
-### Step 4: Answer a few questions
-
-CCC asks what you need (multiple choice — just pick one):
+Before dispatching a single token, CCC scores your task, reads your stack, and auto-configures the session.
 
 ```
-  What's the most important outcome?
+  Task: "Add authentication with JWT and OAuth"
 
-  ❯ Something that works end-to-end
-    A solid foundation to build on
-    A quick prototype to test the idea
+  Intelligence Analysis:
+  ├─ Complexity Score: 72/100 (complex)
+  ├─ Keyword signals:  +15 (auth) +15 (implement) +20 (production)
+  ├─ Word count:       +10 (detailed description)
+  ├─ Stack detected:   nextjs, react, tailwind
+  └─ Related lessons:  2 found (JWT auth succeeded, OAuth2 pattern)
+
+  Auto-configured dispatch:
+     Model: opus  |  Turns: 35  |  Budget: $6
+     Skills: nextjs-app-router, ccc-saas, auth-patterns
+     Knowledge: 2 past lessons injected
+
+  Dispatching... ████████████████████░░░░ 78%
 ```
 
-### Step 5: CCC does the rest
+### Skill Recommendations — Ranked by Relevance
 
-It dispatches to the best available tool (from 16 vendor packages), tracks the session, and learns from the results.
+CCC ranks skills using your stack + task keywords + past usage. The right tools surface automatically.
 
-**No commands to memorize. No flags to type. No config files.** Just answer questions.
+```
+  Recommended skills for your project:
 
-| Method | Command | For |
-|--------|---------|-----|
-| **Interactive** | `ccc` | Tmux tabbed mode (default) |
-| **Quick stats** | `ccc --stats` | Sessions, streaks, level |
-| **Self-test** | `ccc --test` | Verify install |
-| **Check updates** | `ccc --update` | Vendor package updates |
-| **Fix issues** | `ccc --repair` | Reset corrupt state |
-| **Simple mode** | `ccc --simple` | Menu-only, no tmux |
-| **Dispatch** | `ccc --dispatch "task"` | Headless (for agents) |
+  SCORE  SKILL                 WHY
+  ─────────────────────────────────────────────
+   20    nextjs-app-router     Stack match + keyword
+   16    frontend-design       Stack match
+   16    shadcn-ui             Stack match
+   14    saas-scaffolder       Keyword: auth, billing
+   12    tailwind-v4           Stack match
+    8    ccc-testing           Always recommended
+
+  ❯ Use top recommendation
+    Browse all 357 skills
+    Search by keyword
+    Back to main menu
+```
+
+### Cockpit Dashboard — Live Session Status
+
+Context, rate limits, and budget meters in your terminal. Color-codes green → yellow → red as limits approach.
+
+```
+  ══════════════════════════════════════════
+  CC COMMANDER  v2.1.0
+  ─────────────────────────────────────────
+  Opus 1M  |  $2.14  |  42K/8K  |  3m12s
+  CTX  [████████████░░░░░░░░] 62%  ← green
+  RATE [████░░░░░░░░░░░░░░░░] 23%  ← green
+  COST [$██░░░░░░░░░░░░░░░░░] $2/$10 ← green
+  ─────────────────────────────────────────
+  CC-63 Auth System  |  357 skills  |  16 vendors
+
+  Footer: ━━ CCC2.1|Opus|CTX▐██45%░▌|$2.14|42K|357|CC-63
+```
+
+### Night Mode / YOLO — Autonomous Overnight Build
+
+Configure once, run while you sleep. CCC checkpoints every 10 edits and self-tests after each phase.
+
+```
+  YOLO Mode — Autonomous Overnight Build
+
+  What are we building tonight?
+  > "Full e-commerce checkout with Stripe integration"
+
+  Configuration:
+  ├─ Model:       Opus (max reasoning)
+  ├─ Budget:      $10 (hard cap)
+  ├─ Max turns:   100
+  ├─ Self-test:   Enabled (tests after each phase)
+  ├─ Checkpoint:  Every 10 edits
+  └─ Stop file:   ~/.claude/commander/yolo-stop
+
+  Ready to run for up to 8 hours unattended.
+
+  ❯ Start YOLO build
+    Adjust settings
+    Cancel
+```
+
+### Knowledge Compounding — Learning After Every Session
+
+Every completed session extracts patterns and errors. The next dispatch is informed by everything that worked before.
+
+```
+  Session Complete — Knowledge Extracted
+
+  Task:     "Add JWT authentication"
+  Outcome:  Success
+  Cost:     $4.12  |  Duration: 12m
+  Category: api
+
+  Patterns learned:
+  ├─ bcrypt + JWT combo works well with Next.js
+  ├─ httpOnly cookies for token storage
+  ├─ middleware.ts matcher needs exact paths
+  └─ next-auth conflicts with custom Prisma adapter
+
+  Knowledge base: 47 lessons  |  12 categories
+  Next dispatch will be 23% more informed.
+```
+
+### Project Import — Stack Auto-Detection
+
+CCC reads your project before every dispatch. No setup needed.
+
+```
+  Importing: ~/projects/my-saas-app
+
+  Detected:
+  ├─ CLAUDE.md           142 lines
+  ├─ Tech stack:         nextjs, react, tailwind, prisma, stripe
+  ├─ Monorepo:           No
+  ├─ Git branch:         feature/checkout
+  └─ Recent commits:     "add cart", "fix price calc", "stripe webhook"
+
+  6 skills pre-selected for this stack
+  3 relevant lessons from knowledge base
+
+  ❯ Start building in this project
+    Run /xray health audit first
+    Back to main menu
+```
+
+---
+
+## CLI Reference
+
+| Command | What It Does |
+|---------|-------------|
+| `ccc` | Interactive mode (default — tmux tabbed) |
+| `ccc --stats` | Sessions, streaks, level, cost |
+| `ccc --test` | 22-point self-test (verify install) |
+| `ccc --update` | Pull latest vendor package updates |
+| `ccc --repair` | Reset corrupt state |
+| `ccc --simple` | Menu-only, no tmux |
+| `ccc --dispatch "task"` | Headless dispatch (for AI agents) |
 
 ---
 
@@ -163,7 +329,7 @@ CCC is built to be controlled by AI agents — OpenClaw, Claude Code, or any orc
 | Command | Output | Purpose |
 |---------|--------|---------|
 | `ccc --dispatch "task" --json` | JSON | Run task headlessly |
-| `ccc --list-skills --json` | JSON | All 350+ skills |
+| `ccc --list-skills --json` | JSON | All 357+ skills |
 | `ccc --list-sessions --json` | JSON | Session history |
 | `ccc --status` | JSON | Health check |
 | `ccc --template` | text | Latest CLAUDE.md template |
@@ -180,17 +346,58 @@ ccc --list-skills --json | jq '.[] | select(.name | contains("auth"))'
 
 ---
 
-## Intelligence Layer
+## 🧠 Intelligence Layer
 
-CCC auto-adjusts every dispatch based on context. No configuration needed.
+> Stock Claude Code is a blank terminal with amnesia. CC Commander remembers everything, learns from every session, and gets smarter the more you use it.
 
-| Feature | Example |
-|---------|---------|
-| **Complexity scoring** | "fix typo" → 15 turns, $2 · "build SaaS" → 50 turns, $10 |
-| **Stack detection** | Reads package.json → suggests relevant skills |
-| **Session learning** | Tracks what works → smarter future dispatches |
-| **Skill filtering** | Next.js project → nextjs-app-router, shadcn-ui ranked first |
-| **Smart retry** | Context overflow → retry with fewer turns automatically |
+**An AI project manager that thinks before it acts.** Before dispatching a single token, CCC scores your task, reads your stack, pulls relevant lessons from past sessions, and selects the right model and budget automatically. No configuration. No flags. It just works.
+
+### How It Works
+
+**Four modules. Always running.**
+
+#### 1. Weighted Complexity Scoring (`dispatcher.js`)
+
+Every task scored 0–100 using 47 keyword signals, word count, and fuzzy regex matching:
+
+```
+"fix typo"             → score  0  → 10 turns, $1 budget, Haiku
+"add dark mode"        → score 25  → 20 turns, $3 budget, Sonnet
+"refactor auth module" → score 60  → 35 turns, $6 budget, Sonnet
+"build SaaS platform"  → score 100 → 50 turns, $10 budget, Opus
+```
+
+File scope estimation adds 0–20 bonus points by scanning how many project files the task is likely to touch. Budget and turns auto-adjust — no manual flags needed.
+
+#### 2. Stack Detection (`project-importer.js`)
+
+CCC reads your project before every dispatch: `package.json`, `Dockerfile`, `go.mod`, `requirements.txt`. Detects nextjs, react, vue, docker, python, rust, go, github-actions, orm, billing, testing. Reads current git branch + last 5 commit themes. Adds monorepo detection (workspaces, lerna, turbo, nx).
+
+#### 3. Skill Recommendations (`skill-browser.js`)
+
+`recommendSkills(task, techStack)` combines three signals:
+
+| Signal | Weight | What It Does |
+|--------|--------|-------------|
+| Stack match | 10 pts | Next.js project → nextjs-app-router ranks first |
+| Keyword match | 2 pts/hit | "auth" task → auth, jwt, better-auth bubble up |
+| Usage history | boost | Skills that worked for you rank higher over time |
+
+Trending skills (7-day window) surface automatically. Skills that led to successful sessions compound their ranking advantage.
+
+#### 4. Knowledge Compounding (`knowledge.js`)
+
+Every completed session extracts a lesson (keywords, category, stack, error patterns, success patterns) stored in `~/.claude/commander/`. Searched before the next dispatch with time-decay relevance: < 7 days = 2x, < 30 days = 1.5x, older = 1x. Fuzzy keyword matching and cross-domain boosts (web↔react, api↔backend, testing↔bugfix) catch related concepts.
+
+**Smart retry** handles failures automatically: rate limit → wait 60s + retry; context overflow → reduce turns to 60% + retry; budget exceeded → clear error with next steps.
+
+### The Net Effect
+
+| Session | What Changed |
+|---------|-------------|
+| 1 | Dispatches based on complexity score alone |
+| 5 | Knows your stack, recommends proven skills |
+| 20 | Has learned your patterns — feels like a PM who knows your codebase |
 
 ---
 
@@ -210,9 +417,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc detect       → Probe all services and CLIs
 ```
 
-Every standalone menu works inside Claude Code — same choices, same sub-menus, same actions. Menus are derived from the same source of truth (`commander/adventures/*.json`). Cancel anytime by typing "back" or "cancel". Press `Escape` or `q` during builds to stop.
-
-Also works in **Claude Desktop Cowork** (via the cc-commander plugin) and **VS Code / Cursor** (via the extension).
+Same choices, same sub-menus, same actions as the full CLI. Cancel anytime with "back" or `Escape`. Also works in **Claude Desktop Cowork** and **VS Code / Cursor**.
 
 ---
 
@@ -360,7 +565,7 @@ CCC learns from every session. Knowledge compounds over time.
 ```
   ══════════════════════════════════════════────────
   CC COMMANDER  v2.1.0
-  Every Claude Code tool. One install. Guided access.
+  Every Claude Code tool. One install. An AI brain that learns.
   ─────────────────────────────────────────────
   🧠 Opus 1M  │  $2.14  │  ↑42K↓8K  │  3m12s
   CTX [████████████░░░░░░░░] 62%  RATE [████░░░░░░░░░░░░░░░░] 23%
@@ -380,15 +585,11 @@ Context/rate/budget meters color-code green → yellow → red as you approach l
 
 ---
 
-## Stats Dashboard
+## Stats Dashboard & Before/After
 
 <img src="docs/assets/ccc-stats.png" alt="Stats" width="100%">
 
 Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
-
----
-
-## Before & After
 
 <img src="docs/assets/ccc-comparison.png" alt="Comparison" width="100%">
 
@@ -445,8 +646,8 @@ MIT License.
 
 **CC Commander v2.1.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
-*Every Claude Code tool. One install. Guided access. Auto-updated.*
+*Every Claude Code tool. One install. An AI brain that learns.*
 
-**[Install Now](#install)** · **[Read the BIBLE](BIBLE.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
+**[Install Now](#quick-start--pick-your-path)** · **[Read the BIBLE](BIBLE.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
 
 </div>

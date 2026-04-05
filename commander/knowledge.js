@@ -49,8 +49,61 @@ function extractAndStore(session, result) {
 }
 
 /**
+ * Related category pairs with partial credit weights.
+ * Keys and values are both category names; credit is awarded when
+ * the lesson category and task category are in the same pair.
+ */
+var RELATED_CATEGORIES = {
+  'web':     { 'react': 0.5 },
+  'react':   { 'web': 0.5 },
+  'api':     { 'backend': 0.5 },
+  'backend': { 'api': 0.5 },
+  'testing': { 'bugfix': 0.3, 'devops': 0.2 },
+  'bugfix':  { 'testing': 0.3 },
+  'devops':  { 'testing': 0.2 },
+};
+
+/**
+ * Compute time decay multiplier for a lesson.
+ * < 7 days → 2x, < 30 days → 1.5x, older → 1x.
+ * @param {string} timestamp - ISO timestamp of the lesson
+ * @returns {number}
+ */
+function timeDecayMultiplier(timestamp) {
+  if (!timestamp) return 1;
+  var ageMs = Date.now() - new Date(timestamp).getTime();
+  var ageDays = ageMs / (1000 * 60 * 60 * 24);
+  if (ageDays < 7) return 2;
+  if (ageDays < 30) return 1.5;
+  return 1;
+}
+
+/**
+ * Score keyword relevance using fuzzy substring matching.
+ * Exact match = 1.0 point; substring containment = 0.5 point.
+ * @param {string[]} taskKeywords
+ * @param {string[]} lessonKeywords
+ * @returns {number}
+ */
+function fuzzyKeywordScore(taskKeywords, lessonKeywords) {
+  var score = 0;
+  taskKeywords.forEach(function(tk) {
+    lessonKeywords.forEach(function(lk) {
+      if (tk === lk) {
+        score += 1.0;
+      } else if (tk.indexOf(lk) >= 0 || lk.indexOf(tk) >= 0) {
+        score += 0.5;
+      }
+    });
+  });
+  return score;
+}
+
+/**
  * Search knowledge base for lessons relevant to a task.
- * Returns top N matches scored by keyword overlap.
+ * Uses time decay, fuzzy keyword matching, related-category credit,
+ * and success/failure outcome weighting.
+ *
  * @param {string} task - Task description to match against
  * @param {number} limit - Max results (default 3)
  * @returns {Array} Matching lessons sorted by relevance
@@ -61,15 +114,36 @@ function searchRelevant(task, limit) {
   var taskKeywords = extractKeywords(task);
   if (taskKeywords.length === 0) return [];
 
+  var taskCategory = categorizeTask(task);
   var lessons = listAll();
+
   var scored = lessons.map(function(lesson) {
-    var overlap = 0;
-    taskKeywords.forEach(function(kw) {
-      if (lesson.keywords.indexOf(kw) >= 0) overlap++;
-      // Also check category match
-      if (lesson.category === categorizeTask(task)) overlap += 2;
-    });
-    return { lesson: lesson, score: overlap };
+    var keywordScore = fuzzyKeywordScore(taskKeywords, lesson.keywords || []);
+
+    // Exact category match
+    var categoryScore = 0;
+    if (lesson.category === taskCategory) {
+      categoryScore = 2;
+    } else {
+      // Related category partial credit
+      var relations = RELATED_CATEGORIES[taskCategory] || {};
+      if (relations[lesson.category]) {
+        categoryScore = relations[lesson.category];
+      }
+    }
+
+    var rawScore = keywordScore + categoryScore;
+    if (rawScore === 0) return { lesson: lesson, score: 0 };
+
+    // Outcome weighting
+    var outcomeMult = 1;
+    if (lesson.outcome === 'success') outcomeMult = 1.5;
+    else if (lesson.outcome === 'error') outcomeMult = 1.2;
+
+    // Time decay
+    var decay = timeDecayMultiplier(lesson.timestamp);
+
+    return { lesson: lesson, score: rawScore * outcomeMult * decay };
   });
 
   return scored
@@ -214,6 +288,53 @@ function loadAllLessons() {
   return lessons;
 }
 
+/**
+ * Return aggregated insights for a specific category.
+ * Useful for displaying contextual tips before dispatching a task.
+ *
+ * @param {string} category - Task category (e.g. 'web', 'api', 'testing')
+ * @returns {{ topPatterns: string[], commonErrors: string[], avgCost: number, successRate: number }}
+ */
+function getInsights(category) {
+  var lessons = loadAllLessons();
+  var relevant = lessons.filter(function(l) { return l.category === category; });
+
+  if (relevant.length === 0) {
+    return { topPatterns: [], commonErrors: [], avgCost: 0, successRate: 0 };
+  }
+
+  var successes = relevant.filter(function(l) { return l.outcome === 'success'; });
+  var failures  = relevant.filter(function(l) { return l.outcome !== 'success'; });
+
+  var totalCost = relevant.reduce(function(s, l) { return s + (l.cost || 0); }, 0);
+  var avgCost = Math.round((totalCost / relevant.length) * 100) / 100;
+  var successRate = Math.round((successes.length / relevant.length) * 100);
+
+  // Gather top success patterns (from success sessions, deduplicated)
+  var patternCounts = {};
+  successes.forEach(function(l) {
+    (l.patterns && l.patterns.successPatterns || []).forEach(function(p) {
+      patternCounts[p] = (patternCounts[p] || 0) + 1;
+    });
+  });
+  var topPatterns = Object.keys(patternCounts)
+    .sort(function(a, b) { return patternCounts[b] - patternCounts[a]; })
+    .slice(0, 5);
+
+  // Gather common error patterns (from failed sessions, deduplicated)
+  var errorCounts = {};
+  failures.forEach(function(l) {
+    (l.patterns && l.patterns.errorPatterns || []).forEach(function(e) {
+      errorCounts[e] = (errorCounts[e] || 0) + 1;
+    });
+  });
+  var commonErrors = Object.keys(errorCounts)
+    .sort(function(a, b) { return errorCounts[b] - errorCounts[a]; })
+    .slice(0, 5);
+
+  return { topPatterns: topPatterns, commonErrors: commonErrors, avgCost: avgCost, successRate: successRate };
+}
+
 function getModelPreference(category) {
   var lessons = loadAllLessons();
   var relevant = lessons.filter(function(l) { return l.category === category; });
@@ -237,6 +358,10 @@ module.exports = { getModelPreference: getModelPreference, loadAllLessons: loadA
   buildKnowledgePrompt: buildKnowledgePrompt,
   listAll: listAll,
   getStats: getStats,
+  getInsights: getInsights,
   extractKeywords: extractKeywords,
   categorizeTask: categorizeTask,
+  timeDecayMultiplier: timeDecayMultiplier,
+  fuzzyKeywordScore: fuzzyKeywordScore,
+  RELATED_CATEGORIES: RELATED_CATEGORIES,
 };
