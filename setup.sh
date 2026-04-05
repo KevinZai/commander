@@ -1,5 +1,5 @@
 #!/bin/bash
-# Claude Code Setup Script — Kevin's Team Kit
+# CC Commander Setup Script
 # Run: chmod +x setup.sh && ./setup.sh
 #
 # Flags:

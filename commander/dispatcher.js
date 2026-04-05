@@ -329,7 +329,11 @@ function dispatch(task, options) {
       });
 
       proc.on('error', function(err) {
-        reject(new Error('Claude Code dispatch failed: ' + err.message));
+        if (err.code === 'ENOENT') {
+          reject(new Error('Claude Code CLI not found. Install it with: npm install -g @anthropic-ai/claude-code'));
+        } else {
+          reject(new Error('Claude Code dispatch failed: ' + err.message));
+        }
       });
     });
     // Attach child process to promise so caller can kill it

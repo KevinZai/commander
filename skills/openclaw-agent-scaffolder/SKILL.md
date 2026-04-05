@@ -63,7 +63,7 @@ Workspace paths, tool-specific commands, filesystem section
 Name, alt, workspace, model, channel, tone, emoji, role, scope
 
 ### 5. `{workspace}/USER.md` (~15 lines)
-Copy from `~/clawd/workspaces/architecture/USER.md` (Kevin's info)
+Create a USER.md with your personal context
 
 ### 6. Gateway config snippet
 ```json

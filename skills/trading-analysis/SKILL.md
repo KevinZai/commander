@@ -50,7 +50,7 @@ curl -s http://localhost:3005/api/positions 2>/dev/null
 2. Technical: support/resistance, trend, momentum
 3. Fundamental: P/E, revenue growth, margins
 4. Catalyst: upcoming earnings, events, macro
-5. Output: `~/clawd/workspaces/trading/reports/YYYY-MM-DD-{ticker}.md`
+5. Output: `~/reports/trading/YYYY-MM-DD-{ticker}.md`
 
 ### Portfolio Review
 1. Fetch all positions

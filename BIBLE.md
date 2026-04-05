@@ -1418,7 +1418,7 @@ All at: [anthropic.skilljar.com](https://anthropic.skilljar.com)
 | `context7` | "use context7" | Latest library docs |
 | `playwright` | "screenshot this" | Browser automation, E2E testing |
 | `github` | "check the repo" | Personal GitHub |
-| `github-gn` | "check Guest Networks repo" | GN org GitHub |
+| `github-gn` (example) | "check Guest Networks repo" | Secondary org GitHub |
 | `n8n-mcp` | "run the workflow" | n8n automation |
 | `granola` | "check my meeting notes" | Meeting transcripts |
 | `claude-peers` | "message the agent" | Agent-to-agent comms |

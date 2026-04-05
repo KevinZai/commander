@@ -498,7 +498,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `context7` | Up-to-date library docs ("use context7") |
 | `playwright` | Browser automation, screenshots, E2E |
 | `n8n-mcp` | n8n workflow automation |
-| `github` / `github-gn` | GitHub API (personal + Guest Networks) |
+| `github` / `github-gn` (example) | GitHub API (primary + optional secondary org) |
 | `granola` | Meeting notes / transcripts |
 | `claude-peers` | Agent-to-agent communication |
 

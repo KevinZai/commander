@@ -146,7 +146,7 @@ echo "$(date +%Y-%m-%dT%H:%M:%S) $STATUS $ISSUES $FIXES" >> /tmp/openclaw-health
 
 # Alert on failure
 [ "$STATUS" != "OK" ] && openclaw message send --channel discord \
-  --target 1480676421457416306 --message "[Doctor] $STATUS: $ISSUES $FIXES" --silent 2>/dev/null
+  --target {COMMS_LOG_CHANNEL_ID} --message "[Doctor] $STATUS: $ISSUES $FIXES" --silent 2>/dev/null
 SCRIPT
 chmod +x ~/clawd/tools/openclaw-doctor-quick.sh
 

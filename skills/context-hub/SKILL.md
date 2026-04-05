@@ -1,11 +1,11 @@
 ---
 name: context-hub
-description: Fetch curated API documentation using the chub CLI before writing code. Use when calling external APIs (OpenAI, Stripe, Anthropic, etc.) to get accurate docs instead of hallucinating. chub is already installed at /Users/ai/.nvm/versions/node/v24.13.0/bin/chub v0.1.3
+description: Fetch curated API documentation using the chub CLI before writing code. Use when calling external APIs (OpenAI, Stripe, Anthropic, etc.) to get accurate docs instead of hallucinating. Install chub via: npm install -g chub
 ---
 
 # Context Hub — API Documentation via chub
 
-chub is installed and ready: `which chub` → confirmed at /Users/ai/.nvm/versions/node/v24.13.0/bin/chub
+chub is installed and ready: `which chub` (install via npm install -g chub)
 
 ## When to Use
 - Before writing code that calls any external API

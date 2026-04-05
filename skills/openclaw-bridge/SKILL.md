@@ -522,7 +522,7 @@ Add to `~/.openclaw/openclaw.json` (after backup):
 curl -s http://localhost:18789/health  # Only HTTP endpoint that works
 
 # Test CLI communication
-openclaw message send --channel discord --target 1480676421457416306 \
+openclaw message send --channel discord --target {COMMS_LOG_CHANNEL_ID} \
   -H "Content-Type: application/json" \
   -d '{"event":"bible_hook","source":"test","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'"}'
 

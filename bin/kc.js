@@ -4,6 +4,18 @@ var path = require('path');
 var fs = require('fs');
 var args = process.argv.slice(2);
 var dispatching = false;
+function _fatalHandler(err) {
+  var msg = (err && err.message) ? err.message : String(err);
+  var errId = '';
+  try { errId = require(require('path').join(__dirname, '..', 'commander', 'error-logger')).logError(err, 'uncaught'); } catch (_e) {}
+  process.stdout.write('\n  \u274C CC Commander hit an unexpected error: ' + msg + '\n');
+  if (errId) process.stdout.write('  \uD83D\uDCCB Error ID: ' + errId + '\n');
+  process.stdout.write('  \uD83D\uDCCB Report this at: https://github.com/KevinZai/cc-commander/issues\n\n');
+  process.exit(1);
+}
+process.on('uncaughtException', _fatalHandler);
+process.on('unhandledRejection', function(reason) { _fatalHandler(reason instanceof Error ? reason : new Error(String(reason))); });
+
 
 if (args.includes('--help') || args.includes('-h')) {
   console.log('\n  CC Commander — 350+ skills. One command. Your AI work, managed by AI.\n');

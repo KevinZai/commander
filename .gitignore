@@ -44,3 +44,7 @@ vendor/*/coverage/
 hooks/memory-archive.js
 hooks/openclaw-notify.js
 hooks/paperclip-bridge.js
+
+# Personal overlay files
+openclaw-forward-*.md
+CCC-RECOMMENDATIONS-FROM-MAIN.md

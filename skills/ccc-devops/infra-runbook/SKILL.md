@@ -78,11 +78,11 @@ docker logs langfuse-web --tail 20
 **Symptom:** HTTPS not working, domains not resolving
 ```bash
 # Check config
-cat ~/clawd/tools/caddy/Caddyfile | grep -E "^[a-z].*\{" | head -20
+cat ~/your-infra/caddy/Caddyfile | grep -E "^[a-z].*\{" | head -20
 # Reload
-caddy reload --config ~/clawd/tools/caddy/Caddyfile
+caddy reload --config ~/your-infra/caddy/Caddyfile
 # Check TLS certs
-caddy validate --config ~/clawd/tools/caddy/Caddyfile
+caddy validate --config ~/your-infra/caddy/Caddyfile
 ```
 **Common causes:** Cloudflare DNS token expired, config syntax error
 
@@ -97,6 +97,6 @@ killall ollama; sleep 1; ollama serve &
 
 ## Escalation
 If you can't fix it:
-1. Write diagnostic output to `~/clawd/workspaces/architecture/reports/incident-YYYYMMDD.md`
+1. Write diagnostic output to `~/reports/architecture/incident-YYYYMMDD.md`
 2. Post to #morpheus with findings
 3. Tag Kevin if it's blocking work

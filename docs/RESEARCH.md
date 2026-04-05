@@ -145,41 +145,9 @@ Sources: Boris Cherny's tips, David Ondrej's thread, 4riel/cc-bible, michielhdot
 
 ---
 
-## 3. OpenClaw Integration Map (Kevin's Overlay)
+## Personal Overlay
 
-### Ports & Services
-| Service | Port | Purpose |
-|---------|------|---------|
-| OpenClaw Gateway | 18789 | Core orchestrator (WebSocket + HTTP) |
-| Paperclip | 3110 | Task/issue management |
-| Ollama | 11434 | Local LLM inference |
-| n8n | 5678 | Workflow automation |
-| AO Dashboard | 3005 | Agent orchestrator UI |
-
-### Session Keys
-- Agent session key: `agent:claude-dev:discord:channel:1477872497599840369`
-- Comms-log channel: `1480676421457416306`
-
-### Hook Integration Points
-- **Pre-Tool hook:** Validate against Paperclip status before major git operations
-- **Post-Tool hook:** Auto-update Paperclip issue status on successful code changes
-- **Stop hook:** Notify Kevin via Telegram (ID: 6418588155) on key milestones
-- **Inter-agent protocol:** All `sessions_send()` calls logged to `#comms-log`
-- **Mission Control:** Ensure hook stays enabled for real-time visibility
-
-### MCP Server Configs (Kevin's)
-- `github` (KevinZai account)
-- `github-gn` (mywifinetworks account)
-- Third public-facing account TBD
-- `linear` (personal/CC- tasks)
-- `linear-gn` (GN staff workspace)
-- `paperclip` (localhost:3110)
-- `vibe-annotations` (visual UI feedback)
-- `shadcn-ui` (component source)
-
-### Laptop vs Workstation Detection
-- MacBookPro hostname → isolated mode, different Ollama port
-- Mac-Mini hostname → full stack, Tailscale IP, all services available
+See the `kevin/` directory for an example of how to add personal infrastructure overlays to CC Commander.
 
 ---
 

@@ -31,8 +31,8 @@ allowed-tools:
 ### Step 2: Create Structure
 ```bash
 # If new project
-mkdir -p ~/clawd/projects/{name}
-cd ~/clawd/projects/{name}
+mkdir -p ~/projects/{name}
+cd ~/projects/{name}
 git init
 mkdir -p tasks .claude
 

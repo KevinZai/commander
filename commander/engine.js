@@ -325,8 +325,10 @@ class KitCommander {
           }
           adventureId = 'main-menu'; continue;
         } catch (actionError) {
-          process.stdout.write('\x0a  CC Commander error: ' + (actionError.message || 'Unknown error') + '\x0a');
-          try { require('./error-logger').log(actionError, 'runAdventure'); } catch(_) {}
+          var _errId = '';
+          try { _errId = require('./error-logger').logError(actionError, 'runAdventure'); } catch(_) {}
+          process.stdout.write('\x0a  \u274C CC Commander error: ' + (actionError.message || 'Unknown error') + '\x0a');
+          if (_errId) process.stdout.write('  Error ID: ' + _errId + ' \u2014 report at: https://github.com/KevinZai/cc-commander/issues\x0a');
           adventureId = 'main-menu';
           continue;
         }
@@ -357,8 +359,10 @@ class KitCommander {
       try {
         return await handler(this, tui, state, choice);
       } catch(_e) {
-        process.stdout.write('\n  Error: ' + (_e.message || 'Unknown error') + '\n');
-        try { require('./error-logger').log(_e, actionName); } catch(_) {}
+        var _eId = '';
+        try { _eId = require('./error-logger').logError(_e, 'action:' + actionName); } catch(_) {}
+        process.stdout.write('\n  \u274C ' + actionName + ' error: ' + (_e.message || 'Unknown error') + '\n');
+        if (_eId) process.stdout.write('  Error ID: ' + _eId + ' \u2014 report at: https://github.com/KevinZai/cc-commander/issues\n');
         return { next: 'main-menu' };
       }
     }

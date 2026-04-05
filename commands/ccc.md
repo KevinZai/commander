@@ -209,9 +209,9 @@ Source: `commander/adventures/infrastructure.json`
 Sub-choices:
 1. **Fleet Commander** — Probe `http://localhost:4680/api/status` and `/api/teams`. Show active teams, agent counts. Instructions: use `/fleet` in session.
 2. **Cost Dashboard** — Probe `http://localhost:3005/api/costs`. Show today/yesterday/total spend and per-agent breakdown with progress bars. Instructions: use `/cost` in session.
-3. **Synapse Observability** — Probe `http://localhost:4682/api/health`. Show client/agent counts, event totals. Link: `https://syn.k3v80.com`. Instructions: use `/syn` in session.
+3. **Synapse Observability** — Probe `http://localhost:4682/api/health`. Show client/agent counts, event totals. Link: `https://your-synapse.example.com`. Instructions: use `/syn` in session.
 4. **Composio AO** — Check if `ao` CLI is installed (`which ao`). If found, confirm it's ready. Instructions: use `/ao` in session.
-5. **CloudCLI** — Probe `http://localhost:4681/`. If running, show URL `https://cc.k3v80.com`. Instructions: use `/cloudcli` in session.
+5. **CloudCLI** — Probe `http://localhost:4681/`. If running, show URL `https://your-cloudcli.example.com`. Instructions: use `/cloudcli` in session.
 6. **Paperclip Tasks** — Probe `http://localhost:3110/`. If running, confirm it's ready. Instructions: use `/paperclip` in session.
 7. **TaskMaster** — Check if `task-master` CLI is installed. If found, run `task-master project-status` in cwd and show first 8 lines. If not, show install hint. Instructions: use `/tm` in session.
 8. Back to main menu.
@@ -349,7 +349,7 @@ What would you like to do?
   b) Cost Dashboard — $0.02 today, $0.15 total
   c) Synapse — 2 active clients
   d) Composio AO — ao CLI ready
-  e) CloudCLI — https://cc.k3v80.com
+  e) CloudCLI — https://your-cloudcli.example.com
   f) Paperclip — Pick up next task
   g) Detect services — Scan what's running
   h) Back to main menu
@@ -363,7 +363,7 @@ What would you like to do?
 The CCC footer bar renders at the bottom of every menu screen. It shows live session state:
 
 ```
-━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██45%░░▌5h│📅▐██45%░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/clawd
+━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██45%░░▌5h│📅▐██45%░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/project
 ```
 
 | Element | Emoji | What it shows |
