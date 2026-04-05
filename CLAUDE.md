@@ -70,6 +70,37 @@ Tests: `node --test commander/tests/paths.test.js`
 Vendor scanner builds capability index across 8-phase pipeline.
 Auto-updates weekly via GitHub Actions.
 
+Key vendors: ECC (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode (17K),
+claude-code-best-practice (26K), repomix (22.8K), Claude HUD (15K), RTK (14.6K),
+Compound Engineering (11.5K), claude-skills (8.6K), notebooklm-py (8.6K),
+claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
+claude-code-prompts (142).
+
+## Footer Bar
+CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
+
+```
+━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌5h│📅▐██░░░░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/project
+```
+
+Render this at session start and after major actions. Source: `commander/cockpit.js`.
+
+## Nested Command Menus
+All `/ccc` sub-commands open rich menus with recommendations:
+
+| Command | Menu | What it does |
+|---------|------|-------------|
+| `/ccc` | Main menu | 15 options — build, review, learn, infra, settings |
+| `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
+| `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
+| `/ccc linear` | Linear board | View issues, pick to build, create new |
+| `/ccc skills` | Skill browser | 357 skills by category, preview, try |
+| `/ccc domains` | CCC domains | 11 mega-skill domains |
+| `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
+| `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
+
+Every menu recommends the best next action based on context.
+
 ## CCC Domains
 
 | Domain | Sub-Skills | Focus |

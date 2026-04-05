@@ -74,22 +74,31 @@ function renderCockpitStatus(data) {
   // Line 1: Model + emoji + cost + tokens + duration
   var emoji = data.thinking ? '\u{1F525}' : data.toolActive ? '\u26A1' : '\u{1F9E0}';
   out += '  ' + emoji + ' ' + bold(data.model || 'Claude', t.primary);
-  out += dim('  \u2502  ') + bold('$' + (data.cost || 0).toFixed(2), t.text);
+  out += dim('  \u2502  ') + bold('$' + (data.cost || 0).toFixed(2), data.cost > 2 ? [255, 150, 50] : t.text);
   out += dim('  \u2502  ') + col('\u2191', t.primary) + bold(fmtK(data.inputTokens || 0), t.text) + col('\u2193', t.secondary) + bold(fmtK(data.outputTokens || 0), t.text);
   out += dim('  \u2502  ') + dim(data.duration || '0s');
   out += '\n';
 
-  // Line 2: Context meter + Rate meter
-  out += '  ' + asciiMeter(data.contextPct || 0, 100, 16, 'CTX', t.primary);
-  out += '  ' + asciiMeter(data.ratePct || 0, 100, 16, 'RATE', t.secondary);
+  // Line 2: Context meter + Rate meter + session timer + 7d budget
+  var sessionMinutes = data.sessionMinutes || 0;
+  var sessionPct5h = Math.min(100, Math.round((sessionMinutes / 300) * 100));
+  var weekPct = Math.min(100, Math.round(((data.weekCost || 0) / (data.weekBudget || 50)) * 100));
+  out += '  ' + asciiMeter(data.contextPct || 0, 100, 14, 'CTX', t.primary);
+  out += '  ' + asciiMeter(data.ratePct || 0, 100, 14, 'RATE', t.secondary);
+  out += '  \u23F1\uFE0F' + asciiMeter(sessionPct5h, 100, 10, '5h', sessionPct5h > 80 ? [255, 80, 80] : t.secondary);
+  out += '  \u{1F4C5}' + asciiMeter(weekPct, 100, 10, '7d', weekPct > 80 ? [255, 80, 80] : t.secondary);
   out += '\n';
 
-  // Line 3: Linear + skills + vendors + active skill
+  // Line 3: Linear + skills + vendors + active skill + cwd
   var parts = [];
   if (data.linearTicket) parts.push('\u{1F4CB} ' + bold(data.linearTicket, t.primary) + (data.linearTitle ? ' ' + dim(data.linearTitle) : ''));
   parts.push('\u{1F3AF} ' + bold(String(data.skillCount || 0), t.primary) + dim(' skills'));
   parts.push('\u{1F4E6} ' + bold(String(data.vendorCount || 0), t.secondary) + dim(' vendors'));
   if (data.activeSkill) parts.push('\u26A1 ' + col(data.activeSkill, t.accent || t.primary));
+  var dir = data.cwd || process.cwd();
+  var shortDir = dir.replace(require('os').homedir(), '~');
+  if (shortDir.length > 20) shortDir = '...' + shortDir.slice(-17);
+  parts.push('\u{1F4C2}' + dim(shortDir));
   out += '  ' + parts.join(dim('  \u2502  ')) + '\n';
 
   // Bottom fading border
@@ -103,15 +112,59 @@ function renderCockpitStatus(data) {
 function renderCockpitFooter(data) {
   if (!data) data = {};
   var t = getTui().getTheme();
-  var emoji = data.thinking ? '\u{1F525}' : data.toolActive ? '\u26A1' : '\u{1F9E0}';
+  var B = require('./branding');
   var parts = [];
-  parts.push(emoji + col(data.model || 'Claude', t.primary));
-  parts.push(bold('$' + (data.cost || 0).toFixed(2), t.text));
-  if (data.contextPct > 0) parts.push('CTX' + miniMeter(data.contextPct, t.primary));
-  if (data.linearTicket) parts.push('\u{1F4CB}' + col(data.linearTicket, t.primary));
+
+  // Version
+  parts.push(dim('\u2501\u2501 ') + bold('CCC' + B.version, t.primary));
+
+  // Model
+  parts.push('\u{1F525}' + col(data.model || 'Opus1M', t.primary));
+
+  // Auth key (last 3 chars of API key or 'n/a')
+  var authKey = 'n/a';
+  try { var k = process.env.ANTHROPIC_API_KEY || ''; if (k.length > 6) authKey = k.slice(-3); } catch(_) {}
+  parts.push('\u{1F511}' + col(authKey, t.text));
+
+  // Context meter
+  parts.push('\u{1F9E0}' + miniMeter(data.contextPct || 0, t.primary));
+
+  // 5h session meter (% of 5 hours used)
+  var sessionMinutes = data.sessionMinutes || 0;
+  var sessionPct5h = Math.min(100, Math.round((sessionMinutes / 300) * 100));
+  parts.push('\u23F1\uFE0F' + miniMeter(sessionPct5h, sessionPct5h > 80 ? [255, 80, 80] : t.secondary) + dim('5h'));
+
+  // 7d rolling meter (% of 7-day budget used)
+  var weekPct = Math.min(100, Math.round(((data.weekCost || 0) / (data.weekBudget || 50)) * 100));
+  parts.push('\u{1F4C5}' + miniMeter(weekPct, weekPct > 80 ? [255, 80, 80] : t.secondary) + dim('7d'));
+
+  // Cost
+  parts.push('\u{1F4B0}' + bold('$' + (data.cost || 0).toFixed(2), data.cost > 2 ? [255, 150, 50] : t.text));
+
+  // Tokens
+  parts.push('\u2B06\uFE0F' + col(fmtK(data.inputTokens || 0), t.primary) + '\u2B07\uFE0F' + col(fmtK(data.outputTokens || 0), t.secondary));
+
+  // Time spent
+  var totalMinutes = data.totalMinutes || 0;
+  var hours = Math.floor(totalMinutes / 60);
+  var mins = totalMinutes % 60;
+  parts.push('\u23F0' + col(hours + 'h' + mins + 'm', t.text));
+
+  // Skills count
   parts.push('\u{1F3AF}' + col(String(data.skillCount || 0), t.primary));
-  parts.push('\u{1F4E6}' + col(String(data.vendorCount || 0), t.secondary));
-  return '  ' + parts.join(dim(' \u2502 '));
+
+  // Linear ticket
+  if (data.linearTicket) {
+    parts.push('\u{1F4CB}' + bold(data.linearTicket, t.primary));
+  }
+
+  // Directory
+  var dir = data.cwd || process.cwd();
+  var shortDir = dir.replace(require('os').homedir(), '~');
+  if (shortDir.length > 20) shortDir = '...' + shortDir.slice(-17);
+  parts.push('\u{1F4C2}' + dim(shortDir));
+
+  return '  ' + parts.join(dim('\u2502'));
 }
 
 // ─── Fading Header/Banner ─────────────────────────────────────

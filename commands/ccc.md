@@ -38,6 +38,8 @@ All menus are derived from `commander/adventures/*.json` in the cc-commander rep
 
 Source: `commander/adventures/main-menu.json`
 
+**Every sub-menu recommends the next best action.** The recommendation changes based on context — what you just did, what project is loaded, time of day, and cost status. Always present options via AskUserQuestion.
+
 Ask "What would you like to do?" with these 15 choices:
 
 | Key | Label | Description |
@@ -300,3 +302,82 @@ When `/ccc` is called with arguments, skip the menu and route directly:
 | `/ccc review` | Go to Review what I built |
 | `/ccc continue` | Go to Continue where I left off |
 | `/ccc daemon` | Show daemon status and queue |
+| `/ccc infra` | Go to Infrastructure & Fleet |
+| `/ccc fleet` | Invoke /fleet skill directly |
+| `/ccc cost` | Invoke /cost skill directly |
+| `/ccc syn` | Invoke /syn skill directly |
+| `/ccc ao` | Invoke /ao skill directly |
+| `/ccc cloudcli` | Invoke /cloudcli skill directly |
+| `/ccc paperclip` | Invoke /paperclip skill directly |
+| `/ccc detect` | Run service detection scan |
+
+---
+
+## Nested Sub-Menu Pattern
+
+Every sub-menu MUST follow this pattern:
+
+1. **Show context header** — What section are we in? What's the current state?
+2. **Recommend the best option** — Mark one choice as "(Recommended)" with a reason
+3. **Show 3-5 options** via AskUserQuestion — always include "Something else" and "Back"
+4. **After action completes** — immediately show "What next?" with contextual suggestions
+5. **Never dead-end** — always return to the sub-menu or main menu
+
+### Recommendation Logic
+
+The recommendation should be contextual:
+- If the user just built something → recommend "Run tests" or "Review code"
+- If tests passed → recommend "Create PR" or "Deploy"
+- If on a Linear issue → recommend "Update status" or "Continue building"
+- If no project loaded → recommend "Open a project" or "Build something new"
+- If costs are high → recommend "/cost" to check spending
+- If it's late at night → recommend "Night Mode" for autonomous builds
+
+### Example Sub-Menu
+
+```
+Infrastructure & Fleet
+━━━━━━━━━━━━━━━━━━━━━
+
+Fleet Commander v0.0.16 — 0 teams | Synapse — 2 clients | Cost: $0.02 today
+
+What would you like to do?
+
+  a) Fleet Commander — Launch parallel agent teams (Recommended — you have 3 open issues)
+  b) Cost Dashboard — $0.02 today, $0.15 total
+  c) Synapse — 2 active clients
+  d) Composio AO — ao CLI ready
+  e) CloudCLI — https://cc.k3v80.com
+  f) Paperclip — Pick up next task
+  g) Detect services — Scan what's running
+  h) Back to main menu
+  i) Something else — I'll tell you what I need
+```
+
+---
+
+## Footer Bar
+
+The CCC footer bar renders at the bottom of every menu screen. It shows live session state:
+
+```
+━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██45%░░▌5h│📅▐██45%░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/clawd
+```
+
+| Element | Emoji | What it shows |
+|---------|-------|---------------|
+| Version | ━━ | CCC version |
+| Model | 🔥 | Active model (Opus/Sonnet/Haiku) |
+| Auth | 🔑 | Last 3 chars of API key |
+| Context | 🧠 | Context window usage % |
+| Session | ⏱️ | Time within 5-hour session limit |
+| Weekly | 📅 | Cost within 7-day rolling budget |
+| Cost | 💰 | Session cost in USD |
+| Tokens | ⬆️⬇️ | Input/output token counts |
+| Time | ⏰ | Total time in current session |
+| Skills | 🎯 | Number of loaded skills |
+| Linear | 📋 | Current Linear ticket (if any) |
+| Directory | 📂 | Current working directory |
+
+The footer is rendered by `commander/cockpit.js` — `renderCockpitFooter()` function.
+When running `/ccc` inside Claude Code, render this as a markdown code block at the start of each response.
