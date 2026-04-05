@@ -86,6 +86,7 @@ function searchRelevant(task, limit) {
  * @returns {string} System prompt addition (empty if no matches)
  */
 function buildKnowledgePrompt(task) {
+  if (!task) return '';
   var relevant = searchRelevant(task, 3);
   if (relevant.length === 0) return '';
 

@@ -14,6 +14,7 @@ const MATURITY_LEVELS = [
 ];
 
 function healthScore(signals, recs) {
+  if (!signals || !recs) return 0;
   const scores = {};
   const counts = {};
 

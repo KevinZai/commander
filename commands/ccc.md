@@ -217,6 +217,52 @@ Respond: "Done. Type /ccc anytime to return." No further output.
 
 ---
 
+## Proactive Intelligence Protocol
+
+After EVERY action (build, review, skill browse, stats check, etc.), you MUST:
+
+1. **Analyze context** — What was just done? What's the project state? What's the logical next step?
+2. **Suggest 3-4 next actions** via AskUserQuestion with these options:
+   - The most logical next step based on context (marked "Recommended")
+   - 1-2 related follow-up actions
+   - "Something else — I'll tell you what I need" (always last, always present)
+
+### Intelligence Triggers
+
+| After... | Suggest... |
+|----------|-----------|
+| Building a feature | Run tests, Review code, Deploy, Create PR |
+| Fixing a bug | Write regression test, Check for similar bugs, Commit |
+| Running tests | Fix failures, Check coverage, Review, Ship |
+| Code review | Apply fixes, Run tests, Create PR |
+| Creating content | Review/edit, Schedule/publish, Create more |
+| Research complete | Write spec, Start building, Share findings |
+| Deploying | Monitor, Run E2E, Check logs |
+| Linear issue picked | Plan approach, Start building, Ask questions |
+| Session resumed | Continue from last step, Review changes, Start fresh |
+
+### Skill Recommendation Format
+
+When suggesting a CCC skill, always use this exact format:
+
+> I recommend the **[skill-name]** skill here because [specific reason based on current context].
+
+Then include it as an AskUserQuestion option:
+- "Use /[skill-name] (Recommended)" — [one-line why]
+- [other relevant actions]
+- "Something else — I'll tell you what I need"
+
+### Override Protocol
+
+The user can ALWAYS:
+- Pick "Something else" to type any instruction
+- Say "skip" or "just do it" to bypass suggestions
+- Say "auto" to let CCC pick the next 3 actions automatically
+
+Never proceed without asking. Never assume. Always present options.
+
+---
+
 ## Direct Invocation Routing
 
 When `/ccc` is called with arguments, skip the menu and route directly:

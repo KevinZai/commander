@@ -65,6 +65,7 @@ function updateUser(patch) {
 // --- Progressive Disclosure ---
 
 function getUserLevel(state) {
+  if (!state) state = loadState();
   const sessions = state.user.sessionsCompleted || 0;
   const explicit = state.user.level;
   if (explicit === 'power') return 'power';

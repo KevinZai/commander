@@ -156,9 +156,15 @@ if (args.includes('--dispatch')) {
   var bg = args.includes('--budget') ? parseFloat(args[args.indexOf('--budget') + 1]) : undefined;
   var cw = args.includes('--cwd') ? args[args.indexOf('--cwd') + 1] : undefined;
   var d = require(path.join(__dirname,'..','commander','dispatcher'));
-  d.dispatch(task, { model: md, maxTurns: mt, maxBudgetUsd: bg, cwd: cw, bare: true, stream: false })
-    .then(function(r) { if (jm) console.log(JSON.stringify(r)); else console.log(r.result || 'Done'); process.exit(0); })
-    .catch(function(e) { if (jm) console.log(JSON.stringify({error:e.message})); else console.error('Error: '+e.message); process.exit(1); });
+  var result = d.dispatch(task, { model: md, maxTurns: mt, maxBudgetUsd: bg, cwd: cw, bare: true, stream: false });
+  if (result && typeof result.then === 'function') {
+    result
+      .then(function(r) { if (jm) console.log(JSON.stringify(r)); else console.log(r.result || 'Done'); process.exit(0); })
+      .catch(function(e) { if (jm) console.log(JSON.stringify({error:e.message})); else console.error('Error: '+e.message); process.exit(1); });
+  } else {
+    if (jm) console.log(JSON.stringify(result)); else console.log((result && result.result) || 'Done');
+    process.exit(0);
+  }
 }
 if (!dispatching) {
   if (args.includes('--simple') || process.env.CCC_TMUX_SESSION || process.env.CCC_SIMPLE) {

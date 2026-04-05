@@ -89,12 +89,14 @@ var DIM = ESC + '2m';
 var ITALIC = ESC + '3m';
 
 function colorText(text, color) { return rgb(color[0], color[1], color[2]) + text + RESET; }
-function boldText(text, color) { return BOLD + rgb(color[0], color[1], color[2]) + text + RESET; }
+function boldText(text, color) { if (!text) return ''; if (!color) color = getTheme().text; return BOLD + rgb(color[0], color[1], color[2]) + text + RESET; }
 function dimText(text) { var t = getTheme(); return rgb(t.dim[0], t.dim[1], t.dim[2]) + text + RESET; }
 
 // ─── Gradient Engine ──────────────────────────────────────────────
 
 function gradient(text, stops) {
+  if (!text) return '';
+  if (!stops || stops.length < 2) return text;
   var segs = stops.length - 1;
   var out = '';
   for (var i = 0; i < text.length; i++) {

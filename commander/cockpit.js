@@ -63,6 +63,7 @@ function fmtK(v) { if (v >= 1000000) return (v / 1000000).toFixed(1) + 'M'; if (
 // ─── Cockpit Status Panel ─────────────────────────────────────
 
 function renderCockpitStatus(data) {
+  if (!data) data = {};
   var t = getTui().getTheme();
   var cols = Math.min(process.stdout.columns || 80, 72);
   var out = '';
@@ -100,6 +101,7 @@ function renderCockpitStatus(data) {
 // ─── Cockpit Footer (one-line) ────────────────────────────────
 
 function renderCockpitFooter(data) {
+  if (!data) data = {};
   var t = getTui().getTheme();
   var emoji = data.thinking ? '\u{1F525}' : data.toolActive ? '\u26A1' : '\u{1F9E0}';
   var parts = [];

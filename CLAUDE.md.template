@@ -64,8 +64,17 @@ Define success criteria BEFORE the spec: evals > spec > plan > implement > verif
 - Add to CLAUDE.md: "When compacting, always preserve: [list your critical context here]"
 - Use `@path/to/import` in CLAUDE.md to compose from multiple source files at load time.
 
-### Proactive Skill Suggestions
-At key moments, suggest the most relevant CCC skill with justification. Use AskUserQuestion.
+### Proactive Intelligence Protocol (MANDATORY)
+
+After EVERY action, you MUST suggest what to do next. Never silently wait.
+
+1. **Analyze context** — What was just done? What's the logical next step?
+2. **Suggest 3-4 options** via AskUserQuestion:
+   - Most logical next step (marked "Recommended")
+   - 1-2 related follow-up actions
+   - "Something else — I'll tell you what I need" (always last)
+
+#### Skill Triggers
 
 | Trigger | Suggest | Why |
 |---------|---------|-----|
@@ -79,7 +88,18 @@ At key moments, suggest the most relevant CCC skill with justification. Use AskU
 | Security concern | `ccc-security` | OWASP, secrets, hardening |
 | Before shipping | `qa` or `e2e` | Real browser testing |
 
-Format: "I recommend using the **[skill]** skill here because [reason]. Want me to load it?"
+#### After-Action Triggers
+
+| After... | Suggest... |
+|----------|-----------|
+| Building a feature | Run tests, Review code, Deploy, Create PR |
+| Fixing a bug | Write regression test, Check for similar bugs, Commit |
+| Running tests | Fix failures, Check coverage, Ship |
+| Code review | Apply fixes, Run tests, Create PR |
+| Research complete | Write spec, Start building, Share findings |
+
+Format: "I recommend the **[skill]** skill here because [reason]."
+Override: user can say "skip", "just do it", or "auto" to bypass.
 Search skills: `ccc --list-skills --json` or read `~/.claude/SKILLS-INDEX.md`
 
 ### Intelligence Layer (Automatic)

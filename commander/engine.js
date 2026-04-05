@@ -601,7 +601,7 @@ class KitCommander {
         try {
           var boardLinear = require('./integrations/linear');
           var boardConn = await boardLinear.checkConnection();
-          if (!boardConn.connected) { process.stdout.write('\n  Linear not connected. Run Settings > Linear Setup first.\n'); break; }
+          if (!boardConn.connected) { process.stdout.write('\n  Linear not connected. Run Settings > Linear Setup first.\n'); return { next: 'main-menu' }; }
           var grouped = await boardLinear.getIssuesByStatus();
           var prog2 = await boardLinear.getProgress();
           process.stdout.write('\n' + tui.divider('Linear Board') + '\n');
@@ -814,7 +814,7 @@ class KitCommander {
       var linearCtx = "";
       try {
         var lm = require("./integrations/linear");
-        if (!lm.validateAuth()) {
+        if (lm.validateAuth()) {
           var sess = state.getSession(session.id);
           if (sess && sess.linearIssueId) {
             linearCtx = "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + sess.linearIssueIdentifier + " (ID: " + sess.linearIssueId + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
@@ -1097,6 +1097,17 @@ class KitCommander {
       var prevName = themeNames.find(function(n) { return tui.THEMES[n].name === currentTheme; });
       if (prevName) tui.setTheme(prevName);
     }
+    return { next: "main-menu" };
+  }
+
+  async nightBuild() {
+    process.stdout.write("\n" + tui.divider("Night Build") + "\n\n");
+    process.stdout.write("  " + tui.boldText("Autonomous build — spec, code, test, ship.", tui.getTheme().primary) + "\n");
+    process.stdout.write("  " + tui.dimText("Answer 3 questions, then Claude builds it overnight.") + "\n\n");
+    if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    var task = await this.ask("  What should Claude build? > ");
+    if (!task.trim()) return { next: "night-build" };
+    await this.executeBuild(task.trim());
     return { next: "main-menu" };
   }
 
