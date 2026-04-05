@@ -2410,6 +2410,50 @@ A typical dispatch goes through all four modules in sequence:
 
 Total overhead: ~50ms. Completely invisible. Just better results.
 
+## Community Insights (v2.1.0 Research Pass)
+
+Insights distilled from 40+ community repos and articles, April 2026.
+
+### Skill Design Patterns
+
+- **`disable-model-invocation: true`** — Add this to SKILL.md frontmatter for any skill with side effects (file writes, git commits, API calls). Prevents Claude from auto-invoking it — the user must explicitly trigger it. Audit all workflow skills for this flag.
+
+- **Path-based rule filtering** — Use `paths:` in SKILL.md frontmatter (e.g., `paths: ["src/app/api/**/*"]`) to load rules only when Claude is editing matching files. Prevents context bloat from irrelevant domain rules. Use for stack-specific skills like database patterns or API design.
+
+- **Progressive disclosure memory** — Don't load all memory at once. Retrieve in layers: (1) one-line summaries of relevant lessons, (2) expand to full detail only on demand, (3) show token cost at each layer. This is the correct model for session memory at scale.
+
+### Workflow Patterns
+
+- **`/btw` for overlay questions** — `/btw` questions never enter conversation history. Use for quick lookups, version checks, or side questions during deep implementation. The most underused context preservation technique.
+
+- **Writer/Reviewer parallel sessions** — Session A implements. Session B reviews code it didn't write. Self-review in a single session carries context bias — the model remembers its own reasoning and is less likely to catch its own mistakes. Use two separate Claude Code sessions for critical code review.
+
+- **RARV cycle for autonomous loops** — Reason → Act → Reflect → Verify. Named loop from loki-mode. Each iteration has an explicit reflection step before the next action. Better than ad-hoc "keep trying" loops. Apply to: YOLO mode, overnight runner, daemon tick loops.
+
+- **`cat error.log | claude` piping** — Pipe any text directly into Claude Code for analysis. Under-documented CI integration primitive. Combine with `--output-format stream-json` for real-time processing in pipelines.
+
+### Mental Models
+
+- **Agent Workspace Model** — A repository is a self-contained environment for ANY domain, not just coding. System admin, health tracking, competitive research, content creation — each gets its own workspace repo with CLAUDE.md, skills, and commands. CCC's `/init` wizard should offer non-coding workspace templates.
+
+- **Unix philosophy for LLM tools** — Simple composable commands outperform rich interfaces. Prefer piped single-purpose outputs over multi-modal dashboards. When building CCC tools, ask: "Can this be a pipe?" before "Can this be a menu?"
+
+- **The Compound phase** — After each feature, produce a structured agent-readable artifact documenting what failed, what worked, and why. Not prose — queryable JSON. Feeds back into future agent prompts automatically. This is what makes knowledge compounding real, not just aspirational.
+
+## Claude Code v2.191 — What CCC Leverages
+
+CC Commander is designed to take advantage of the latest Claude Code features automatically.
+
+| Feature (v2.189-2.191) | How CCC Uses It |
+|------------------------|----------------|
+| **Plugin kill switch** | `/ccc kill-plugin` stops runaway plugins. Dispatcher auto-kills on cost ceiling breach. |
+| **500K character output** | Knowledge pipeline ingests full session transcripts in one pass — no chunking needed. |
+| **Pause mid-agent** | Confidence-gate hook emits PAUSE (not ABORT) when confidence drops. User can redirect, then resume. Works in YOLO and overnight modes. |
+| **Auto-mode boundaries** | Dispatcher defaults to `--permission-mode auto` for unattended runs. The background safety classifier blocks scope escalation without needing `--dangerously-skip-permissions`. |
+| **Session crash recovery** | Pre-compact hook writes recovery manifest to `~/.claude/commander/recovery-{timestamp}.json`. Next `ccc` launch detects it and offers one-click resume. |
+
+> These features require Claude Code v2.189+. Run `claude --version` to check.
+
 ## About the Author
 
 **Kevin Zicherman** is the CEO of [MyWiFi Networks](https://mywifi.io), a WiFi marketing platform used by thousands of venues worldwide. He built this kit by scanning 200+ Claude Code articles, plugins, and community resources — testing everything and keeping what worked. Not a researcher. Not a pundit. An operator who ships.
