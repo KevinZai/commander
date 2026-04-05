@@ -728,6 +728,132 @@ class KitCommander {
         try { return await this.changeTheme(); }
         catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('./error-logger').log(_e, 'change_theme'); } catch(_) {} return { next: 'main-menu' }; }
       }
+      case 'fleet_commander': {
+        try {
+          process.stdout.write('\n' + tui.divider('Fleet Commander') + '\n');
+          var cp = require('child_process');
+          try {
+            var fleetStatus = JSON.parse(cp.execFileSync('curl', ['-s', '--max-time', '3', 'http://localhost:4680/api/status'], { encoding: 'utf8' }));
+            process.stdout.write('  ' + tui.boldText('Fleet Commander v' + (fleetStatus.version || '?'), tui.getTheme().primary) + '\n');
+            process.stdout.write('  Uptime: ' + (fleetStatus.uptime ? fleetStatus.uptime.formatted : '?') + '  |  Teams: ' + (fleetStatus.activeTeams || 0) + '  |  Connections: ' + (fleetStatus.sseConnections || 0) + '\n\n');
+            var teamsData = JSON.parse(cp.execFileSync('curl', ['-s', '--max-time', '3', 'http://localhost:4680/api/teams'], { encoding: 'utf8' }));
+            var teams = teamsData.data || [];
+            if (teams.length > 0) {
+              process.stdout.write('  ' + tui.boldText('Active Teams:', tui.getTheme().text) + '\n');
+              teams.forEach(function(t) { process.stdout.write('    ' + tui.colorText(t.name || t.id, tui.getTheme().primary) + ' — ' + (t.agents || '?') + ' agents\n'); });
+            } else {
+              process.stdout.write('  No active teams. Use /fleet to spawn one.\n');
+            }
+          } catch(_e) {
+            process.stdout.write('  Fleet Commander not responding on port 4680.\n');
+          }
+          process.stdout.write('\n  ' + tui.dimText('Use /fleet in your session for full fleet management.') + '\n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) { process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n'); }
+        return { next: 'infrastructure' };
+      }
+      case 'cost_dashboard': {
+        try {
+          process.stdout.write('\n' + tui.divider('Cost Dashboard') + '\n');
+          var cp = require('child_process');
+          try {
+            var costs = JSON.parse(cp.execFileSync('curl', ['-s', '--max-time', '3', 'http://localhost:3005/api/costs'], { encoding: 'utf8' }));
+            process.stdout.write('  Today:     ' + tui.boldText('$' + (costs.today || 0).toFixed(4), tui.getTheme().primary) + '  (' + (costs.todayTokens || 0).toLocaleString() + ' tokens)\n');
+            process.stdout.write('  Yesterday: ' + tui.boldText('$' + (costs.yesterday || 0).toFixed(4), tui.getTheme().text) + '  (' + (costs.yesterdayTokens || 0).toLocaleString() + ' tokens)\n');
+            process.stdout.write('  Total:     ' + tui.boldText('$' + (costs.total || 0).toFixed(4), tui.getTheme().secondary) + '  (' + (costs.totalTokens || 0).toLocaleString() + ' tokens)\n\n');
+            if (costs.byAgent && costs.byAgent.length > 0) {
+              process.stdout.write('  ' + tui.boldText('By Agent:', tui.getTheme().text) + '\n');
+              var maxCost = Math.max.apply(null, costs.byAgent.map(function(a) { return a.cost || 0; }));
+              costs.byAgent.slice(0, 8).forEach(function(a) {
+                var bar = tui.progressBar(Math.round((a.cost / (maxCost || 1)) * 100), 100);
+                process.stdout.write('    ' + (a.agent || '?').padEnd(12) + ' $' + (a.cost || 0).toFixed(4) + '  ' + bar + '  ' + (a.messages || 0) + ' msgs\n');
+              });
+            }
+          } catch(_e) {
+            process.stdout.write('  Agent HQ not responding on port 3005.\n');
+          }
+          process.stdout.write('\n  ' + tui.dimText('Use /cost in your session for detailed analysis.') + '\n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) { process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n'); }
+        return { next: 'infrastructure' };
+      }
+      case 'synapse_observe': {
+        try {
+          process.stdout.write('\n' + tui.divider('Synapse Observability') + '\n');
+          var cp = require('child_process');
+          try {
+            var health = JSON.parse(cp.execFileSync('curl', ['-s', '--max-time', '3', 'http://localhost:4682/api/health'], { encoding: 'utf8' }));
+            process.stdout.write('  ' + tui.boldText('Synapse', tui.getTheme().primary) + ' — ' + (health.ok ? tui.colorText('Online', tui.getTheme().success) : 'Offline') + '\n');
+            process.stdout.write('  Clients: ' + (health.clients || 0) + '  |  Agents: ' + (health.agents || 0) + '  |  Mode: ' + (health.mode || '?') + '\n');
+            if (health.db) {
+              process.stdout.write('  Events: ' + (health.db.totalEvents || 0) + '  |  Sessions: ' + (health.db.totalSessions || 0) + '\n');
+            }
+          } catch(_e) {
+            process.stdout.write('  Synapse not responding on port 4682.\n');
+          }
+          process.stdout.write('\n  ' + tui.dimText('Use /syn in your session for detailed monitoring.') + '\n');
+          process.stdout.write('  ' + tui.dimText('Web UI: https://syn.k3v80.com') + '\n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) { process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n'); }
+        return { next: 'infrastructure' };
+      }
+      case 'ao_spawn': {
+        try {
+          process.stdout.write('\n' + tui.divider('Composio AO') + '\n');
+          var cp = require('child_process');
+          try {
+            cp.execFileSync('which', ['ao'], { encoding: 'utf8' });
+            process.stdout.write('  ' + tui.colorText('ao CLI found', tui.getTheme().success) + '\n\n');
+            process.stdout.write('  ' + tui.dimText('Use /ao in your session to spawn parallel agents.') + '\n');
+            process.stdout.write('  ' + tui.dimText('Config: agent-orchestrator.yaml') + '\n');
+          } catch(_e) {
+            process.stdout.write('  ao CLI not found. Install: npm i -g @composio/ao\n');
+          }
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) { process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n'); }
+        return { next: 'infrastructure' };
+      }
+      case 'cloudcli_open': {
+        try {
+          process.stdout.write('\n' + tui.divider('CloudCLI') + '\n');
+          var cp = require('child_process');
+          try {
+            cp.execFileSync('curl', ['-s', '--max-time', '2', 'http://localhost:4681/'], { encoding: 'utf8' });
+            process.stdout.write('  ' + tui.colorText('CloudCLI running', tui.getTheme().success) + ' on port 4681\n');
+            process.stdout.write('  URL: ' + tui.boldText('https://cc.k3v80.com', tui.getTheme().primary) + '\n');
+            process.stdout.write('  ' + tui.dimText('Open on any device on your Tailnet for mobile access.') + '\n');
+          } catch(_e) {
+            process.stdout.write('  CloudCLI not responding on port 4681.\n');
+          }
+          process.stdout.write('\n  ' + tui.dimText('Use /cloudcli in your session for session management.') + '\n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) { process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n'); }
+        return { next: 'infrastructure' };
+      }
+      case 'paperclip_pickup': {
+        try {
+          process.stdout.write('\n' + tui.divider('Paperclip Tasks') + '\n');
+          var cp = require('child_process');
+          try {
+            cp.execFileSync('curl', ['-s', '--max-time', '2', 'http://localhost:3110/'], { encoding: 'utf8' });
+            process.stdout.write('  ' + tui.colorText('Paperclip running', tui.getTheme().success) + ' on port 3110\n\n');
+          } catch(_e) {
+            process.stdout.write('  Paperclip not responding on port 3110.\n');
+          }
+          process.stdout.write('  ' + tui.dimText('Use /paperclip in your session to pick up tasks.') + '\n');
+          if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+          await this.ask('\n  Press Enter...');
+        } catch(_e) { process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n'); }
+        return { next: 'infrastructure' };
+      }
+      case 'back': {
+        return { next: 'main-menu' };
+      }
       default: process.stdout.write('\n  Unknown action: ' + actionName + '\n'); await this.pause(1000); return null;
     }
   }

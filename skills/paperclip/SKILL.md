@@ -363,3 +363,36 @@ If you use direct `curl` during these tests, include `X-Paperclip-Run-Id` on all
 ## Full Reference
 
 For detailed API tables, JSON response schemas, worked examples (IC and Manager heartbeats), governance/approvals, cross-team delegation rules, error codes, issue lifecycle diagram, and the common mistakes table, read: `skills/paperclip/references/api-reference.md`
+
+## Pick Up Next Issue Flow
+
+When the user says "pick up next issue", "what should I work on", or "next task":
+
+1. Query Paperclip API: `curl -s http://localhost:3110/api/v1/issues?status=ready&sort=priority`
+2. Display available issues as AskUserQuestion options:
+   - Each issue: "[priority] [title] — [assignee or unassigned]"
+   - "Refresh list"
+   - "Something else"
+
+3. When user picks an issue:
+   a. Create git worktree: `git worktree add .claude/worktrees/[issue-slug] -b [branch-name]`
+   b. Update issue status to "In Progress" via API
+   c. Display: "Working on: [title] in branch [branch-name]"
+   d. Start building
+
+4. When work is complete:
+   a. Update issue status to "Done" via API
+   b. Show completion summary
+   c. Ask: Create PR? Continue to next issue? Back to menu?
+
+### Issue Display Format
+
+```
+Paperclip — Ready Issues
+═══════════════════════════════
+[P1] 🔴 Fix auth token refresh — unassigned
+[P2] 🟡 Add webhook retry logic — @morpheus
+[P3] 🟢 Update API docs — unassigned
+```
+
+### After every action, suggest next steps via AskUserQuestion.
