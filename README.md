@@ -645,7 +645,11 @@ CC Commander aggregates 16 open-source packages. Full credits: **[ACKNOWLEDGMENT
 
 ## License
 
-MIT License for the full project. The Intelligence Layer (4 files) has an additional [Commons Clause](LICENSE-INTELLIGENCE.md) — free to use, not to sell. See [LICENSE](LICENSE) and [LICENSE-INTELLIGENCE.md](LICENSE-INTELLIGENCE.md).
+MIT License for the full project. The Intelligence Layer (4 files) has an additional [Commons Clause](LICENSE-INTELLIGENCE.md) — free to use, not to sell.
+
+All 16 vendor packages are permissive open-source: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0. Full details: **[LICENSES-VENDORS.md](LICENSES-VENDORS.md)**
+
+> **Note:** GitHub may show "Unknown" in the sidebar because some vendor submodules don't ship a LICENSE file in their repo root. Every vendor's license has been verified — see the table above.
 
 ---
 

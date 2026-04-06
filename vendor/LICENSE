@@ -1,0 +1,5 @@
+Each package in this directory is a git submodule with its own license.
+See ../LICENSES-VENDORS.md for the complete license table.
+
+Summary: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0.
+All permissive open-source licenses.
