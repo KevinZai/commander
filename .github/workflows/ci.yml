@@ -94,3 +94,6 @@ jobs:
             echo "ERROR: Expected 100+ skills, found $count"
             exit 1
           fi
+
+      - name: Doc sync check
+        run: node bin/doc-sync.js

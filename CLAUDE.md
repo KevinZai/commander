@@ -121,7 +121,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** 2.1.0
 
-**Stats:** 358 skills, 87 commands, 25 hooks, 16 vendors, 10 themes
+**Stats:** 362 skills, 87 commands, 25 hooks, 17 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/cc-commander

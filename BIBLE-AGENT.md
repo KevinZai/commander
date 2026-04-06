@@ -1,7 +1,7 @@
 # CC Commander — Agent Reference (BIBLE-AGENT)
 
 > **Read this file to control CC Commander from any AI agent platform.**
-> 358 skills. 16 vendors. Headless CLI API. Works with Claude Code, OpenClaw, Cursor, Codex, any LLM agent.
+> 362 skills. 17 vendors. Headless CLI API. Works with Claude Code, OpenClaw, Cursor, Codex, any LLM agent.
 
 ---
 
@@ -18,12 +18,12 @@ cd cc-commander && ./install.sh --force
 
 # 2. Verify
 ccc --test     # 166 tests across 4 suites
-ccc --status   # {"version":"2.1.0","skills":358,"vendors":16,"health":"ok"}
+ccc --status   # {"version":"2.1.0","skills":362,"vendors":16,"health":"ok"}
 
 # 3. Use inside Claude Code sessions
 /ccc           # Full interactive menu (15 options, sub-menus, cancel support)
 /ccc xray      # Project health scan
-/ccc skills    # Browse 358 skills
+/ccc skills    # Browse 362 skills
 /ccc refresh   # Update CLAUDE.md from latest template
 
 # 4. Headless dispatch (from within Claude Code)
@@ -244,7 +244,7 @@ ccc --dispatch "YOLO: Build complete SaaS with auth, billing, dashboard. 5 cycle
 | `c` | Create content | → blog / social / email / marketing / docs |
 | `d` | Research & analyze | → competitive / market / code / SEO |
 | `e` | Review what I built | Show recent sessions |
-| `f` | Learn a new skill | Browse 358 skills |
+| `f` | Learn a new skill | Browse 362 skills |
 | `g` | Check my stats | Dashboard, streaks, cost |
 | `i` | Infrastructure | Fleet, Synapse, Cost, AO, CloudCLI, Paperclip, TaskMaster |
 | `l` | Linear board | Pick/create issues (requires Linear MCP) |
@@ -260,7 +260,7 @@ ccc --dispatch "YOLO: Build complete SaaS with auth, billing, dashboard. 5 cycle
 
 | Component | Count |
 |-----------|-------|
-| Skills | 358 |
+| Skills | 362 |
 | Commands | 87 |
 | Hooks | 25 |
 | Adventures | 14 |
@@ -271,7 +271,7 @@ ccc --dispatch "YOLO: Build complete SaaS with auth, billing, dashboard. 5 cycle
 
 ---
 
-## Skill Catalog — 358 Skills in 11 Domains
+## Skill Catalog — 362 Skills in 11 Domains
 
 ### CCC Domain Routers (load ONE domain = all sub-skills)
 
@@ -351,7 +351,7 @@ ccc --dispatch "Using tdd-workflow skill: [task]" --json
 Every CCC session displays a 12-segment status line:
 
 ```
-━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌│📅▐██░░░░░▌│💰$2.34│↑640K↓694K│⏰8h0m│🎯358│📋CC-150│📂~/project
+━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌│📅▐██░░░░░▌│💰$2.34│↑640K↓694K│⏰8h0m│🎯362│📋CC-150│📂~/project
 ```
 
 Segments: version · model · auth · context% · rate-limit% · daily-budget% · cost · tokens-in/out · duration · skills-count · Linear-ticket · cwd.
@@ -483,7 +483,7 @@ Queue: `~/.claude/commander/queue/` · Log: `~/.claude/commander/daemon-log.txt`
 | `commander/adventures/*.json` | Menu definitions (14 adventures, source of truth) |
 | `commander/dispatcher.js` | Claude Code dispatch logic + Intelligence Layer |
 | `commander/engine.js` | Interactive menu engine |
-| `skills/` | 358 skill definitions (SKILL.md each) |
+| `skills/` | 362 skill definitions (SKILL.md each) |
 | `commands/ccc.md` | /ccc command for Claude Code sessions |
 | `BIBLE.md` | Full methodology (2000+ lines, human-readable) |
 | `BIBLE-AGENT.md` | This file (agent-optimized) |

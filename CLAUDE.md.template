@@ -87,6 +87,11 @@ After EVERY action, you MUST suggest what to do next. Never silently wait.
 | SEO needed | `ccc-seo` | Technical SEO + AI search |
 | Security concern | `ccc-security` | OWASP, secrets, hardening |
 | Before shipping | `qa` or `e2e` | Real browser testing |
+| CLAUDE.md feels stale | `claudemd-auditor` | Finds stale refs, missing context, token waste |
+| Architecture questions | `architecture-auditor` | Cross-module boundary review, coupling score |
+| Skills not improving | `skill-evolution` | Learns from errors, proposes SKILL.md fixes |
+| High token usage | `context-budget` or `cache-monitor` | Token optimization, cache hit analysis |
+| New session on old project | `claudemd-auditor` | Verify instructions match current codebase |
 
 #### After-Action Triggers
 

@@ -2,11 +2,11 @@
 
 > **Every Claude Code tool. One install. An AI brain that learns.**
 
-**Not a skill pack. An AI project manager that thinks before it acts.** 357+ skills, 16 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
+**Not a skill pack. An AI project manager that thinks before it acts.** 362 skills, 17 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/357+_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/16_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.1.0](https://img.shields.io/badge/v2.1.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/362_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/17_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.1.0](https://img.shields.io/badge/v2.1.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
-**[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 16 vendor packages
+**[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 17 vendor packages
 
 **[Install](#quick-start--pick-your-path)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)** · **[Why CCC?](docs/WHY-CCC.md)** · **[Evaluation](docs/EVALUATION.md)**
 
@@ -20,8 +20,8 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 357+ skills,
-          16 vendor packages, real learning, and zero setup.
+You get:  A guided AI project manager with 362 skills,
+          17 vendor packages, real learning, and zero setup.
 ```
 
 <img src="docs/assets/ccc-flow.svg" alt="How CCC Works" width="100%">
@@ -70,7 +70,7 @@ Then in any Claude Code session:
 
 Full interactive menu appears. Same features, no separate CLI needed.
 
-**What you get:** All 357+ skills and commands, no extra CLI binary required.
+**What you get:** All 362 skills and commands, no extra CLI binary required.
 
 ---
 
@@ -331,7 +331,7 @@ CCC is built to be controlled by AI agents — OpenClaw, Claude Code, or any orc
 | Command | Output | Purpose |
 |---------|--------|---------|
 | `ccc --dispatch "task" --json` | JSON | Run task headlessly |
-| `ccc --list-skills --json` | JSON | All 357+ skills |
+| `ccc --list-skills --json` | JSON | All 362 skills |
 | `ccc --list-sessions --json` | JSON | Session history |
 | `ccc --status` | JSON | Health check |
 | `ccc --template` | text | Latest CLAUDE.md template |
@@ -425,7 +425,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc makeover     → Auto-apply top fixes
 /ccc refresh      → Update your CLAUDE.md from latest template
 /ccc domains      → Browse 11 CCC domains
-/ccc skills       → Browse 357+ skills
+/ccc skills       → Browse 362 skills
 /ccc grill        → 7-question Socratic planning probe
 /ccc infra        → Infrastructure sub-menu (Fleet, Synapse, Cost, AO, CloudCLI, Paperclip)
 /ccc detect       → Probe all services and CLIs
@@ -647,7 +647,7 @@ CC Commander aggregates 16 open-source packages. Full credits: **[ACKNOWLEDGMENT
 
 MIT License for the full project. The Intelligence Layer (4 files) has an additional [Commons Clause](LICENSE-INTELLIGENCE.md) — free to use, not to sell.
 
-All 16 vendor packages are permissive open-source: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0. Full details: **[LICENSES-VENDORS.md](LICENSES-VENDORS.md)**
+All 17 vendor packages are permissive open-source: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0. Full details: **[LICENSES-VENDORS.md](LICENSES-VENDORS.md)**
 
 > **Note:** GitHub may show "Unknown" in the sidebar because some vendor submodules don't ship a LICENSE file in their repo root. Every vendor's license has been verified — see the table above.
 
