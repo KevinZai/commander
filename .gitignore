@@ -48,3 +48,11 @@ hooks/paperclip-bridge.js
 # Personal overlay files
 openclaw-forward-*.md
 CCC-RECOMMENDATIONS-FROM-MAIN.md
+
+# Internal strategy docs — NOT for public GitHub
+docs/x-threads.md
+docs/product-hunt-listing.md
+docs/build-diary.md
+docs/awesome-submission.md
+docs/RESEARCH.md
+docs/competitive-scan-*.md
