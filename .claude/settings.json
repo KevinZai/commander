@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "PostToolUse": []
+  },
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
+  }
+}

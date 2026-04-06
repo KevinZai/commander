@@ -230,11 +230,26 @@ Run `/ccc:refresh` periodically to pull latest best practices.
 - Check `tasks/todo.md` for progress state
 - Re-read any files you were actively editing — don't trust cached memories
 
+## Performance — Deferred Tool Loading
+
+Add this to your `.claude/settings.json` to save ~14,000 tokens per turn:
+
+```json
+{
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
+  }
+}
+```
+
+This loads only 6 primary tools upfront and lazy-loads the rest on demand. Starting context drops from ~45K to ~20K tokens. The single highest-ROI config change you can make.
+
 ## Cache Efficiency Rules
 1. Never add one-off permissions to global settings — use project-level
 2. Never change tools/models mid-session — use subagents
 3. Don't edit this file mid-session — put updates in messages
 4. Static content first, dynamic last
+5. Enable `ENABLE_TOOL_SEARCH` for deferred tool loading (see above)
 
 ## Rules
 1. Never delete files without asking — archive or rename
