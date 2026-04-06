@@ -1,10 +1,15 @@
 {
-  "model": "claude-opus-4-6",
+  "model": "claude-opus-4-6[1m]",
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "echo '## Session Default: Plan Mode\nThis project uses Opus 4.6 (1M context) with Plan mode by default.\nEnter plan mode now unless the user has requested a specific quick action.\nRun: node commander/status-line.js for the session footer.'"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '## Session Default: Plan Mode\nThis project uses Opus 4.6 (1M context) with Plan mode by default.\nEnter plan mode now unless the user has requested a specific quick action.\nRun: node commander/status-line.js for the session footer.'"
+          }
+        ]
       }
     ],
     "PostToolUse": []

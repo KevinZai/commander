@@ -53,6 +53,17 @@ RATE_5H_RESET=$(echo "$INPUT" | jq -r '.rate_limits.five_hour.resets_at // empty
 RATE_7D_RESET=$(echo "$INPUT" | jq -r '.rate_limits.seven_day.resets_at // empty' 2>/dev/null)
 RATE_5H=$(echo "$INPUT" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
 RATE_7D=$(echo "$INPUT" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null)
+# ── ClaudeSwap failover for rate limits ─────────────────────────────────────
+if [ -z "$RATE_5H" ] || [ -z "$RATE_7D" ]; then
+  SWAP_STATE="$HOME/.config/claudeswap-state.json"
+  if [ -f "$SWAP_STATE" ]; then
+    ACTIVE_ACCT=$(jq -r '.accounts | to_entries | sort_by(.value.last_used) | last | .key' "$SWAP_STATE" 2>/dev/null)
+    if [ -n "$ACTIVE_ACCT" ] && [ "$ACTIVE_ACCT" != "null" ]; then
+      [ -z "$RATE_5H" ] && RATE_5H=$(jq -r ".accounts[\"$ACTIVE_ACCT\"].five_hour_utilization * 100" "$SWAP_STATE" 2>/dev/null)
+      [ -z "$RATE_7D" ] && RATE_7D=$(jq -r ".accounts[\"$ACTIVE_ACCT\"].seven_day_utilization * 100" "$SWAP_STATE" 2>/dev/null)
+    fi
+  fi
+fi
 TOOL_USE=$(echo "$INPUT" | jq -r '.tool_use.name // empty' 2>/dev/null)
 
 # ── Context percentage (integer) ────────────────────────────────────────────
@@ -80,7 +91,7 @@ BAR="${M}▐${ZC}"
 for ((i=0; i<FILLED; i++)); do BAR+="█"; done
 BAR+="${D}"
 for ((i=0; i<EMPTY; i++)); do BAR+="░"; done
-BAR+="${M}▌${N}"
+BAR+="${M}▌${ZC}${CTX_INT}%${N}"
 
 # ── Format tokens (compact arrows: ↑42K↓8K) ────────────────────────────────
 fmt_k() {
@@ -111,11 +122,14 @@ COST_FMT=$(printf "\$%.2f" "$COST" 2>/dev/null || echo "\$?")
 
 # ── Short model name + status emoji ─────────────────────────────────────────
 case "$MODEL_ID" in
-  *opus*1m*|*opus*1M*)    MODEL_SHORT="Opus1M" ;;
-  *opus*)                  MODEL_SHORT="Opus" ;;
-  *sonnet*)                MODEL_SHORT="Sonnet" ;;
-  *haiku*)                 MODEL_SHORT="Haiku" ;;
-  *)                       MODEL_SHORT="$MODEL" ;;
+  *opus*4*6*1m*|*opus*4*6*1M*) MODEL_SHORT="Opus4.6-1M" ;;
+  *opus*4*6*|*opus-4-6*)        MODEL_SHORT="Opus4.6" ;;
+  *opus*1m*|*opus*1M*)          MODEL_SHORT="Opus1M" ;;
+  *opus*)                        MODEL_SHORT="Opus" ;;
+  *sonnet*4*6*)                  MODEL_SHORT="Sonnet4.6" ;;
+  *sonnet*)                      MODEL_SHORT="Sonnet" ;;
+  *haiku*)                       MODEL_SHORT="Haiku" ;;
+  *)                             MODEL_SHORT="$MODEL" ;;
 esac
 
 # Status emoji: tool active → lightning, high output (thinking) → fire, else brain
@@ -194,6 +208,15 @@ CCC_VER=""
 if command -v ccc &>/dev/null; then
   CCC_VER=$(ccc --version 2>/dev/null | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | head -1)
 fi
+if [ -z "$CCC_VER" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  PKG_FILE="$(dirname "$SCRIPT_DIR")/package.json"
+  [ -f "$PKG_FILE" ] && CCC_VER=$(jq -r '.version // empty' "$PKG_FILE" 2>/dev/null)
+fi
+if [ -z "$CCC_VER" ]; then
+  PKG_FILE="$HOME/clawd/projects/cc-commander/package.json"
+  [ -f "$PKG_FILE" ] && CCC_VER=$(jq -r '.version // empty' "$PKG_FILE" 2>/dev/null)
+fi
 CC_LABEL="CC"
 [ -n "$CCC_VER" ] && CC_LABEL="CCC${CCC_VER}"
 
@@ -211,7 +234,7 @@ if [ -n "$RATE_5H" ]; then
   R5_BAR+="${D}"
   for ((i=0; i<R5_EMPTY; i++)); do R5_BAR+="░"; done
   R5_BAR+="${M}▌${N}"
-  RATE_5H_BAR=" ${D}│${N} ⏱️${R5_BAR}"
+  RATE_5H_BAR=" ${D}│${N} ⏱️${R5_BAR}${R5C}${R5}%${N}"
 fi
 RATE_7D_BAR=""
 if [ -n "$RATE_7D" ]; then
@@ -226,7 +249,7 @@ if [ -n "$RATE_7D" ]; then
   R7_BAR+="${D}"
   for ((i=0; i<R7_EMPTY; i++)); do R7_BAR+="░"; done
   R7_BAR+="${M}▌${N}"
-  RATE_7D_BAR=" ${D}│${N} 📅${R7_BAR}"
+  RATE_7D_BAR=" ${D}│${N} 📅${R7_BAR}${R7C}${R7}%${N}"
 fi
 
 # ── Cost color (green/yellow/red) ──────────────────────────────────────────
@@ -236,5 +259,5 @@ elif [ "$COST_NUM" -ge 2 ] 2>/dev/null; then COST_C="${H4}"
 else COST_C="${W}"; fi
 
 # ── Output ──────────────────────────────────────────────────────────────────
-# ━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░▌│📅▐██░░░░▌│💰$2.34│↑640K↓694K│⏰8h0m│🎯357│📋CC-150│📂project
+# ━━ CCC2.1.0│🔥Opus4.6-1M│🔑gAA│🧠▐██░░▌45%│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│↑640K↓694K│⏰8h0m│🎯357│📋CC-150│📂project
 echo -e "${D}━━${N} ${C}${CC_LABEL}${N} ${D}│${N} ${STATUS_EMOJI}${C}${MODEL_SHORT}${N}${KEY_STR} ${D}│${N} 🧠${BAR} ${D}│${N}${RATE_5H_BAR}${RATE_7D_BAR} ${D}│${N} 💰${COST_C}${COST_FMT}${N} ${D}│${N} ${C}↑${N}${W}${IN_FMT}${N}${C}↓${N}${W}${OUT_FMT}${N} ${D}│${N} ⏰${D}${DUR_FMT}${N}${LINEAR_STR}${SKILL_STR} ${D}│${N} 📂${GR}${PROJ_SHORT}${N}"
