@@ -153,7 +153,7 @@ stdin → { tool_name, tool_input, tool_output } → hook.js → stdout (passthr
   },
   "session": {
     "id": "abc123",
-    "cwd": "/Users/ai/project"
+    "cwd": "~/project"
   },
   "metadata": {}
 }
@@ -372,7 +372,7 @@ Synchronize session memory between CC Commander sessions (`~/.claude/sessions/`)
 ```markdown
 # Session — 2026-03-28T12:00:00.000Z
 - **Session ID:** abc123
-- **Working Directory:** /Users/ai/project
+- **Working Directory:** ~/project
 - **Key Decisions:** [list]
 - **Files Modified:** [list]
 - **Lessons Learned:** [list]

@@ -41,17 +41,17 @@ ACTIVE PEERS (scope: repo)
 
   ID: abc123def456
   Summary: "Backend peer: implementing JWT auth endpoints"
-  CWD: /Users/ai/project/src/api
+  CWD: ~/project/src/api
   ---
 
   ID: xyz789ghi012
   Summary: "Frontend peer: building login page components"
-  CWD: /Users/ai/project/src/components
+  CWD: ~/project/src/components
   ---
 
   ID: mno345pqr678
   Summary: "Test writer: writing auth integration tests"
-  CWD: /Users/ai/project/tests
+  CWD: ~/project/tests
   ---
 
 Total: 3 peers found
