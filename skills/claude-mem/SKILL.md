@@ -46,4 +46,4 @@ Together they provide two layers of learning — strategic (CCC) and tactical (c
 
 ## License
 
-AGPL-3.0. Included as a git submodule — no code derivation. See LICENSES-VENDORS.md.
+AGPL-3.0. Included as a git submodule — no code derivation. See docs/LICENSES-VENDORS.md.

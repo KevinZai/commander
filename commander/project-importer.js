@@ -1,6 +1,6 @@
 'use strict';
 // CC Commander Intelligence Layer — Licensed under MIT + Commons Clause.
-// See LICENSE-INTELLIGENCE.md for details. Free to use, not to sell.
+// See docs/LICENSE-INTELLIGENCE.md for details. Free to use, not to sell.
 
 var fs = require('fs');
 var path = require('path');

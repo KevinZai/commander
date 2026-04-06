@@ -9,7 +9,7 @@ CC Commander aggregates the best Claude Code tools into one install. This direct
 ```bash
 # As vendor submodule (if MIT/Apache/BSD, high quality):
 git submodule add --depth 1 https://github.com/owner/repo vendor/repo-name
-# Update this file + ACKNOWLEDGMENTS.md
+# Update this file + docs/ACKNOWLEDGMENTS.md
 # Run: node commander/vendor-scanner.js --rescan
 
 # As reference only:

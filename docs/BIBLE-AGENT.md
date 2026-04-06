@@ -501,4 +501,4 @@ Queue: `~/.claude/commander/queue/` · Log: `~/.claude/commander/daemon-log.txt`
 ## License
 
 MIT License. Intelligence Layer (4 files) has additional Commons Clause — free to use, not to sell.
-See LICENSE-INTELLIGENCE.md.
+See [LICENSE-INTELLIGENCE.md](LICENSE-INTELLIGENCE.md).

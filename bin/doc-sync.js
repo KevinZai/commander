@@ -34,7 +34,7 @@ var skillRegex = new RegExp(skillCount + '\\+?\\s*skills|skills.*' + skillCount)
 checkFile(path.join(__dirname, '..', 'README.md'), [
   { regex: skillRegex, msg: 'Skill count should be ' + skillCount },
 ]);
-checkFile(path.join(__dirname, '..', 'BIBLE-AGENT.md'), [
+checkFile(path.join(__dirname, '..', 'docs', 'BIBLE-AGENT.md'), [
   { regex: skillRegex, msg: 'Skill count should be ' + skillCount },
 ]);
 checkFile(path.join(__dirname, '..', 'CLAUDE.md'), [

@@ -4,11 +4,11 @@
 
 **Not a skill pack. An AI project manager that thinks before it acts.** 450+ skills, 17 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/450%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/17_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.1.0](https://img.shields.io/badge/v2.1.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/450%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/17_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.2.0](https://img.shields.io/badge/v2.2.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 17 vendor packages
 
-**[Install](#quick-start--pick-your-path)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)** · **[Why CCC?](docs/WHY-CCC.md)** · **[Evaluation](docs/EVALUATION.md)**
+**[Install](#quick-start--pick-your-path)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)** · **[Why CCC?](docs/WHY-CCC.md)** · **[Evaluation](docs/EVALUATION.md)**
 
 ---
 
@@ -438,11 +438,11 @@ Same choices, same sub-menus, same actions as the full CLI. Cancel anytime with 
 
 ## Agent Bible
 
-**[BIBLE-AGENT.md](BIBLE-AGENT.md)** — 268-line machine-readable reference. Any AI agent reads this and can manage CCC immediately.
+**[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-readable reference. Any AI agent reads this and can manage CCC immediately.
 
 ```bash
 # Tell any agent:
-"Read BIBLE-AGENT.md from the cc-commander repo, then use the CLI API to manage this project."
+"Read docs/BIBLE-AGENT.md from the cc-commander repo, then use the CLI API to manage this project."
 ```
 
 Covers: CLI API, dispatch patterns, JSON schemas, skill catalog, level/model defaults, integration points.
@@ -624,7 +624,7 @@ Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 
 Full methodology: **[BIBLE.md](BIBLE.md)** — 2000+ lines, 7 chapters, appendices.
 
-For AI agents: **[BIBLE-AGENT.md](BIBLE-AGENT.md)** — 268-line machine-readable version.
+For AI agents: **[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-readable version.
 
 ---
 
@@ -638,7 +638,7 @@ For AI agents: **[BIBLE-AGENT.md](BIBLE-AGENT.md)** — 268-line machine-readabl
 
 ## Acknowledgments
 
-CC Commander aggregates 16 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md)**
+CC Commander aggregates 17 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](docs/ACKNOWLEDGMENTS.md)**
 
 45+ ecosystem repos tracked: **[ECOSYSTEM.md](docs/ECOSYSTEM.md)**
 
@@ -646,9 +646,9 @@ CC Commander aggregates 16 open-source packages. Full credits: **[ACKNOWLEDGMENT
 
 ## License
 
-MIT License for the full project. The Intelligence Layer (4 files) has an additional [Commons Clause](LICENSE-INTELLIGENCE.md) — free to use, not to sell.
+MIT License for the full project. The Intelligence Layer (4 files) has an additional [Commons Clause](docs/LICENSE-INTELLIGENCE.md) — free to use, not to sell.
 
-All 17 vendor packages are permissive open-source: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0. Full details: **[LICENSES-VENDORS.md](LICENSES-VENDORS.md)**
+All 17 vendor packages are permissive open-source: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0. Full details: **[LICENSES-VENDORS.md](docs/LICENSES-VENDORS.md)**
 
 > **Note:** GitHub may show "Unknown" in the sidebar because some vendor submodules don't ship a LICENSE file in their repo root. Every vendor's license has been verified — see the table above.
 
@@ -671,6 +671,6 @@ commander/adventures/X.json        # Add a flow
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 
-**[Install Now](#quick-start--pick-your-path)** · **[Read the BIBLE](BIBLE.md)** · **[Agent Bible](BIBLE-AGENT.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
+**[Install Now](#quick-start--pick-your-path)** · **[Read the BIBLE](BIBLE.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
 
 </div>

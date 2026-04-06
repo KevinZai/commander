@@ -1,14 +1,15 @@
 #!/bin/bash
 # Generate SKILLS-INDEX.md from skill directories
 # Reads SKILL.md frontmatter (name, description) from each skill
-# Usage: ./generate-index.sh [--check]
+# Usage: ./bin/generate-index.sh [--check]
 #   --check   Compare generated index with existing, report drift (no overwrite)
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SKILLS_DIR="$SCRIPT_DIR/skills"
-INDEX_FILE="$SCRIPT_DIR/SKILLS-INDEX.md"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SKILLS_DIR="$ROOT_DIR/skills"
+INDEX_FILE="$ROOT_DIR/SKILLS-INDEX.md"
 CHECK_ONLY=false
 
 if [[ "$1" == "--check" ]]; then
