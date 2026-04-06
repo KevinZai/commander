@@ -1,5 +1,5 @@
 ---
-description: "CC Commander Hub — interactive menu derived from adventure JSON files. 350+ skills, 11 CCC domains, 78 commands, 9 modes."
+description: "CC Commander Hub — interactive menu derived from adventure JSON files. 450+ skills, 11 CCC domains, 80+ commands, 9 modes."
 ---
 
 # /ccc — CC Commander Hub
@@ -13,7 +13,7 @@ When activated, ALWAYS start by displaying this ASCII banner:
 ██║     ██║     ██║
 ╚██████╗╚██████╗╚██████╗
  ╚═════╝ ╚═════╝ ╚═════╝
-CC Commander v{version} — {skillCount} skills · 16 vendors · Opus plans, Sonnet builds
+CC Commander v{version} — {skillCount} skills · 17 vendors · Opus plans, Sonnet builds
 ```
 
 Before displaying the banner, run `node commander/status-line.js --json` to get the current version and skill count. Use those values in the banner. If the script fails, fall back to reading version from `package.json` in the project root.
@@ -52,7 +52,7 @@ Ask "What would you like to do?" with these 15 choices:
 | c | Create content | Marketing, social media, writing |
 | d | Research & analyze | Competitive analysis, reports, audits |
 | e | Review what I built | Recent sessions and results |
-| f | Learn a new skill | Browse 350+ skills and guides |
+| f | Learn a new skill | Browse 450+ skills and guides |
 | g | Check my stats | Dashboard, streaks, achievements |
 | l | Linear board | View issues, pick tasks, track work _(shown only if Linear is configured)_ |
 | n | Night Mode | 8-hour autonomous build |

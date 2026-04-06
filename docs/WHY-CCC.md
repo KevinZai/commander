@@ -129,7 +129,7 @@
 ### 18. 448 Skills (Verified by SKILL.md Count)
 **What:** 448 individual SKILL.md files across the `skills/` directory — deduplicated from 1,500+ vendor skills across 16 packages.
 **Proof:** `find skills/ -name "SKILL.md" | wc -l` → 448.
-**Share-friendly:** 448 skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
+**Share-friendly:** 454 skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
 
 ---
 
@@ -178,7 +178,7 @@
 ### 25. 87 Slash Commands
 **What:** 87 `.md` files in `commands/` — all available as `/command-name` inside Claude Code sessions without any extra tooling.
 **Proof:** `ls commands/ | wc -l` → 87.
-**Share-friendly:** 87 slash commands pre-installed. Open Claude Code and type `/ccc` to see all of them.
+**Share-friendly:** 83 slash commands pre-installed. Open Claude Code and type `/ccc` to see all of them.
 
 ---
 
@@ -327,12 +327,12 @@
 | Aspect | Stock Claude Code | CC Commander |
 |--------|------------------|--------------|
 | Getting started | Blank terminal, type commands | Arrow-key menus, guided setup |
-| Skills | 0 built-in | 448 (verified by SKILL.md count) |
-| Commands | 0 installed | 87 slash commands |
+| Skills | 0 built-in | 454 (verified by SKILL.md count) |
+| Commands | 0 installed | 83 slash commands |
 | Memory | None across sessions | AI knowledge compounding — every session builds on the last |
 | Project awareness | Reads CLAUDE.md | Reads CLAUDE.md + package.json + Dockerfile + docker-compose.yml + go.mod + Cargo.toml + pyproject.toml + git branch + last 5 commits + monorepo detection |
 | Task intelligence | Same config every time | 0-100 complexity scoring → auto-tuned model, turns, and budget |
-| Vendor ecosystem | Manual search | 16 vendor packages pre-installed, auto-updated weekly |
+| Vendor ecosystem | Manual search | 17 vendor packages pre-installed, auto-updated weekly |
 | Error handling | Raw stack traces | Friendly messages + unique error IDs (CCC-ERR-{ts}) + return to menu |
 | Autonomous mode | Manual | YOLO mode: multi-cycle, self-testing, $10 cap, stop file |
 | Monitoring | None | ASCII heat-map meters (context/rate/budget) + 12-segment footer |
@@ -460,7 +460,7 @@
 - [ ] **awesome-claude-code** — PR to the list with one-line description + install command
 - [ ] **X/Twitter thread** — 10-tweet thread covering: the problem, the 5 biggest differentiators, a demo GIF, and the install command. See `docs/x-threads.md`
 - [ ] **Product Hunt** — Full listing with gallery (hero image, footer screenshot, adventure flow GIF), tagline, and feature bullets. Schedule for Tuesday 12:01 AM PT
-- [ ] **Hacker News Show HN** — Title format: "Show HN: CC Commander — 448 skills, intelligence layer, and 16 vendor packages for Claude Code". Post Tuesday morning EST
+- [ ] **Hacker News Show HN** — Title format: "Show HN: CC Commander — 450+ skills, intelligence layer, and 17 vendor packages for Claude Code". Post Tuesday morning EST
 - [ ] **Reddit r/ClaudeAI** — Post with demo GIF. Lead with "what problem it solves" not "what it is"
 - [ ] **Reddit r/webdev / r/programming** — Broader audience. Focus on the BIBLE and methodology, not the CLI
 - [ ] **Dev.to article** — Long-form: "How I turned Claude Code into an AI project manager" — personal story format, ends with install link
@@ -472,7 +472,7 @@
 3. **(0:45-1:30)** — Navigate "Build Something" → show the spec questions → show complexity scoring in action ("build entire SaaS" vs "fix typo" — different params displayed).
 4. **(1:30-2:00)** — Show footer bar live during a dispatch: context meter climbing, cost ticking up.
 5. **(2:00-2:30)** — Show knowledge compounding: run two sessions on similar tasks, show the second one pulling in lessons from the first.
-6. **(2:30-3:00)** — Call to action: `npm install -g cc-commander`. Link to BIBLE.md. "This is free. MIT license. 16 vendor packages. Enjoy."
+6. **(2:30-3:00)** — Call to action: `npm install -g cc-commander`. Link to BIBLE.md. "This is free. MIT license. 17 vendor packages. Enjoy."
 
 ---
 

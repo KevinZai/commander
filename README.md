@@ -2,9 +2,9 @@
 
 > **Every Claude Code tool. One install. An AI brain that learns.**
 
-**Not a skill pack. An AI project manager that thinks before it acts.** 362 skills, 17 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
+**Not a skill pack. An AI project manager that thinks before it acts.** 450+ skills, 17 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/362_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/17_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.1.0](https://img.shields.io/badge/v2.1.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/450%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/17_Vendors-D946EF?style=for-the-badge)](./ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.1.0](https://img.shields.io/badge/v2.1.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 17 vendor packages
 
@@ -20,7 +20,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 362 skills,
+You get:  A guided AI project manager with 450+ skills,
           17 vendor packages, real learning, and zero setup.
 ```
 
@@ -70,7 +70,7 @@ Then in any Claude Code session:
 
 Full interactive menu appears. Same features, no separate CLI needed.
 
-**What you get:** All 362 skills and commands, no extra CLI binary required.
+**What you get:** All 450+ skills and commands, no extra CLI binary required.
 
 ---
 
@@ -126,7 +126,7 @@ The first thing you see. Arrow keys only — no commands to memorize.
     Create content               ← blogs, social, email
     Research & analyze           ← competitors, markets
     Linear board                 ← pick issues to build
-    Browse 357 skills            ← search by keyword
+    Browse 450+ skills           ← search by keyword
     Check my stats               ← sessions, streaks
     Night Mode / YOLO            ← overnight autonomous
     Infrastructure               ← Fleet, Synapse, Cost
@@ -175,7 +175,7 @@ CCC ranks skills using your stack + task keywords + past usage. The right tools 
     8    ccc-testing           Always recommended
 
   ❯ Use top recommendation
-    Browse all 357 skills
+    Browse all 450+ skills
     Search by keyword
     Back to main menu
 ```
@@ -193,9 +193,9 @@ Context, rate limits, and budget meters in your terminal. Color-codes green → 
   RATE [████░░░░░░░░░░░░░░░░] 23%  ← green
   COST [$██░░░░░░░░░░░░░░░░░] $2/$10 ← green
   ─────────────────────────────────────────
-  CC-63 Auth System  |  357 skills  |  16 vendors
+  CC-63 Auth System  |  450+ skills  |  17 vendors
 
-  Footer: ━━ CCC2.1|Opus|CTX▐██45%░▌|$2.14|42K|357|CC-63
+  Footer: ━━ CCC2.1|Opus|CTX▐██45%░▌|$2.14|42K|454|CC-63
 ```
 
 ### Night Mode / YOLO — Autonomous Overnight Build
@@ -289,7 +289,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 | Component | Count | What It Does |
 |-----------|-------|-------------|
-| Skills | 357+ | On-demand expertise (deduplicated) |
+| Skills | 450+ | On-demand expertise (deduplicated) |
 | CCC Domains | 11 | Domain routers with sub-skills |
 | Commands | 80+ | Slash commands (/ccc: prefix) |
 | Hooks | 25 | Lifecycle automation |
@@ -332,7 +332,7 @@ CCC is built to be controlled by AI agents — OpenClaw, Claude Code, or any orc
 | Command | Output | Purpose |
 |---------|--------|---------|
 | `ccc --dispatch "task" --json` | JSON | Run task headlessly |
-| `ccc --list-skills --json` | JSON | All 362 skills |
+| `ccc --list-skills --json` | JSON | All 450+ skills |
 | `ccc --list-sessions --json` | JSON | Session history |
 | `ccc --status` | JSON | Health check |
 | `ccc --template` | text | Latest CLAUDE.md template |
@@ -426,7 +426,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc makeover     → Auto-apply top fixes
 /ccc refresh      → Update your CLAUDE.md from latest template
 /ccc domains      → Browse 11 CCC domains
-/ccc skills       → Browse 362 skills
+/ccc skills       → Browse 450+ skills
 /ccc grill        → 7-question Socratic planning probe
 /ccc infra        → Infrastructure sub-menu (Fleet, Synapse, Cost, AO, CloudCLI, Paperclip)
 /ccc detect       → Probe all services and CLIs
@@ -584,7 +584,7 @@ CCC learns from every session. Knowledge compounds over time.
   ─────────────────────────────────────────────
   🧠 Opus 1M  │  $2.14  │  ↑42K↓8K  │  3m12s
   CTX [████████████░░░░░░░░] 62%  RATE [████░░░░░░░░░░░░░░░░] 23%
-  📋 CC-63 v2.1 Ingestion   │  🎯 357 skills  │  📦 16 vendors
+  📋 CC-63 v2.1 Ingestion   │  🎯 450+ skills  │  📦 17 vendors
   ─────────────────────────────────────────
 ```
 

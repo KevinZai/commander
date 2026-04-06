@@ -351,7 +351,7 @@
 
   ┌──────────┐     ┌──────────────┐     ┌──────────────────┐
   │ Install  │────>│ Type /cc     │────>│ Start building   │
-  │ (< 60s)  │     │ in terminal  │     │ with 350+ skills │
+  │ (< 60s)  │     │ in terminal  │     │ with 450+ skills │
   └──────────┘     └──────────────┘     └──────────────────┘
 ```
 
@@ -360,5 +360,5 @@
 
 ---
 
-*CC Commander v2.1.0 by Kevin Z -- 350+ skills | 11 CCC domains | 78+ commands | 25 hooks | 10 themes | 9 modes*
+*CC Commander v2.1.0 by Kevin Z -- 450+ skills | 11 CCC domains | 80+ commands | 28 hooks | 10 themes | 9 modes*
 *Distilled from 200+ community sources. One install. Under 60 seconds.*

@@ -39,7 +39,7 @@ Use this after leaving CCC untouched for a week or more:
 ### Manual (verify these by hand)
 - [ ] `ccc` launches interactive menu without crash
 - [ ] Pick "Build something new" → answer 3 questions → plan appears
-- [ ] Pick "Browse skills" → skills list renders with 358+ entries
+- [ ] Pick "Browse skills" → skills list renders with 450+ entries
 - [ ] Press Escape during a build → returns to menu gracefully (no stack trace)
 - [ ] `ccc --dispatch "fix a typo" --json` returns JSON result
 - [ ] Error case: `ccc --dispatch` (no task) shows usage message, doesn't crash

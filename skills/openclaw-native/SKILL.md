@@ -42,7 +42,7 @@ export CC_OPENCLAW_URL=http://localhost:18789
 On session start, all Kit skills are registered with OpenClaw's skill registry:
 
 ```
-Syncing: 350+ skills → OpenClaw registry
+Syncing: 450+ skills → OpenClaw registry
   ├── Core workflow skills (confidence-check, four-question-validation, etc.)
   ├── 11 CCC domains (ccc-seo, ccc-design, ccc-testing, etc.)
   ├── Integration skills (openclaw-native, status-updates, etc.)

@@ -54,7 +54,7 @@ Kit is purpose-built for Claude models and does not support other providers.
 
 | Kit Feature | Codex Status |
 |-------------|-------------|
-| 350+ skills | Codex has no skill system -- use instructions files |
+| 450+ skills | Codex has no skill system -- use instructions files |
 | Hooks (lifecycle automation) | No equivalent |
 | Slash commands | No equivalent -- use natural language |
 | Dashboard | No equivalent |

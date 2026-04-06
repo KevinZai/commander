@@ -312,7 +312,7 @@ cc_next_steps() {
     echo -e "${M_MID}│${NC}     Launch the CC Project Wizard                    ${M_MID}│${NC}"
   fi
   echo -e "${M_MID}│${NC}                                                     ${M_MID}│${NC}"
-  echo -e "${M_MID}│${NC}  ${M_DIM}350+ skills  │  80+ commands  │  11 CCC domains${NC}      ${M_MID}│${NC}"
+  echo -e "${M_MID}│${NC}  ${M_DIM}450+ skills  │  80+ commands  │  11 CCC domains${NC}      ${M_MID}│${NC}"
   echo -e "${M_MID}│${NC}  ${M_DIM}37 hooks     │  3 templates  │  CC Commander${NC}    ${M_MID}│${NC}"
   echo -e "${M_MID}└─────────────────────────────────────────────────────┘${NC}"
   echo ""

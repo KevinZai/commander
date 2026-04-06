@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
 > CC Commander — by Kevin Z
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-04-05 | 358 skill directories | 11 CCC Domains | 18 kit-native hooks (37 with ECC) | 3 starter templates | 36+ prompt templates | 9 workflow modes | Real-time dashboard | 10 themes
+> Last verified: 2026-04-06 | 454 skill directories | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 9 workflow modes | Real-time dashboard | 10 themes
 > Audit: `./generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**

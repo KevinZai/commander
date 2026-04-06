@@ -40,7 +40,7 @@ Superpowers         ✗ NOT FOUND
 ECC                 ✓ INSTALLED   28 agents, hooks.json present
 Simone              ✗ NOT FOUND
 
-CC Commander        ✓ ACTIVE      280 skills, 76 commands, 25 hooks
+CC Commander        ✓ ACTIVE      450+ skills, 83 commands, 28 hooks
 ```
 
 ## Step 3 — Show Orchestration Plan
