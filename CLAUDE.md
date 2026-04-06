@@ -4,9 +4,16 @@
 
 CC Commander — by Kevin Z. 358 skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 358 skills, 11 CCC domains, 87 commands, 25 hooks, 36+ prompt templates, 10 themes, 16 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Version:** 2.1.0 — The Aggregator Release
+**Current Release:** The Aggregator Release (version tracked in `package.json`)
 
-## CC Commander (v2.1.0)
+## Session Defaults
+
+- **Model:** Opus 4.6 (1M context) — enforced via `.claude/settings.json`
+- **Mode:** Plan mode by default — SessionStart hook reminds to enter plan mode
+- **Footer:** Run `node commander/status-line.js` for live session status bar
+- **Version:** Single source of truth is `package.json` — `branding.js` reads it at runtime
+
+## CC Commander
 
 Interactive CLI that sits ABOVE Claude Code sessions. Manages, dispatches, and tracks AI work.
 
@@ -119,7 +126,7 @@ Every menu recommends the best next action based on context.
 
 ## Current Status
 
-**Version:** 2.1.0
+**Version:** See `package.json`
 
 **Stats:** 362 skills, 87 commands, 25 hooks, 17 vendors, 10 themes
 

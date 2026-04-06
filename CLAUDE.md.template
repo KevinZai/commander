@@ -1,4 +1,4 @@
-<!-- CC Commander Template v2.1.0 -->
+<!-- CC Commander Template — version: see package.json -->
 # CLAUDE.md — [Your Name]'s Development Environment
 
 ## Session Startup
@@ -9,7 +9,7 @@
 
 ## Environment
 - **Shell:** zsh | **Editor:** Claude Code
-- **CC Commander:** v2.1.0 (aggregator mode — 16 vendor packages)
+- **CC Commander:** aggregator mode — 16 vendor packages (version: see `package.json`)
 - **Package manager:** npm/pnpm
 - **Task system:** tasks/ directory (todo.md, lessons.md, specs)
 

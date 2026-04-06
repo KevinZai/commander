@@ -1,6 +1,6 @@
 # Claude Code Cheatsheet
-> CC Commander v2.1.0 — by Kevin Z — commands, workflows, and power user tips
-> v2.1.0 — 2026-03-30
+> CC Commander — by Kevin Z — commands, workflows, and power user tips
+> See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 

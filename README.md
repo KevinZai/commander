@@ -112,6 +112,7 @@ No configuration. No YAML. No API keys. The Intelligence Layer handles everythin
 
 The first thing you see. Arrow keys only — no commands to memorize.
 
+<!-- Version is tracked in package.json — update all references when bumping -->
 ```
 ╔══════════════════════════════════════════╗
 ║  CC COMMANDER v2.1.0                     ║

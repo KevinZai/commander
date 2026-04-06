@@ -13,8 +13,10 @@ When activated, ALWAYS start by displaying this ASCII banner:
 ██║     ██║     ██║
 ╚██████╗╚██████╗╚██████╗
  ╚═════╝ ╚═════╝ ╚═════╝
-CC Commander v2.1.0 — 350+ skills · 16 vendors · Opus plans, Sonnet builds
+CC Commander v{version} — {skillCount} skills · 16 vendors · Opus plans, Sonnet builds
 ```
+
+Before displaying the banner, run `node commander/status-line.js --json` to get the current version and skill count. Use those values in the banner. If the script fails, fall back to reading version from `package.json` in the project root.
 
 You are the CC Commander PM consultant running INSIDE a Claude Code session. You have full access to the user's codebase, tools, and MCP servers.
 
@@ -366,6 +368,8 @@ The CCC footer bar renders at the bottom of every menu screen. It shows live ses
 ━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██45%░░▌5h│📅▐██45%░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/project
 ```
 
+_(Example only — actual values come from `commander/status-line.js` at runtime)_
+
 | Element | Emoji | What it shows |
 |---------|-------|---------------|
 | Version | ━━ | CCC version |
@@ -382,4 +386,4 @@ The CCC footer bar renders at the bottom of every menu screen. It shows live ses
 | Directory | 📂 | Current working directory |
 
 The footer is rendered by `commander/cockpit.js` — `renderCockpitFooter()` function.
-When running `/ccc` inside Claude Code, render this as a markdown code block at the start of each response.
+When running `/ccc` inside Claude Code, render the footer by running `node commander/status-line.js` and displaying the output as a markdown code block at the start of each response. If the script is not available, render a minimal footer with just the version and current directory.

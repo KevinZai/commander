@@ -8,6 +8,7 @@
 
 var tui = null;
 function getTui() { if (!tui) tui = require('./tui'); return tui; }
+var B = require('./branding');
 
 /**
  * Generate a shareable ASCII art card for a session
@@ -56,7 +57,7 @@ function generateCard(session, score) {
 
   lines.push('');
   lines.push(DIM + '  ' + '~'.repeat(50) + RESET);
-  lines.push(g('  CC Commander v2.1.0', theme.logo.gradient) + DIM + '  kevinz.ai  @kzic' + RESET);
+  lines.push(g('  CC Commander v' + B.version, theme.logo.gradient) + DIM + '  kevinz.ai  @kzic' + RESET);
   lines.push(DIM + '  Every Claude Code tool. One install. Guided access.' + RESET);
   lines.push('');
 

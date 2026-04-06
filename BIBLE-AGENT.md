@@ -18,7 +18,7 @@ cd cc-commander && ./install.sh --force
 
 # 2. Verify
 ccc --test     # 166 tests across 4 suites
-ccc --status   # {"version":"2.1.0","skills":362,"vendors":16,"health":"ok"}
+ccc --status   # {"version":"<from package.json>","skills":362,"vendors":16,"health":"ok"}
 
 # 3. Use inside Claude Code sessions
 /ccc           # Full interactive menu (15 options, sub-menus, cancel support)
@@ -351,8 +351,10 @@ ccc --dispatch "Using tdd-workflow skill: [task]" --json
 Every CCC session displays a 12-segment status line:
 
 ```
-━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌│📅▐██░░░░░▌│💰$2.34│↑640K↓694K│⏰8h0m│🎯362│📋CC-150│📂~/project
+━━ CCC{ver}│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌│📅▐██░░░░░▌│💰$2.34│↑640K↓694K│⏰8h0m│🎯362│📋CC-150│📂~/project
 ```
+
+_(Example — actual version comes from `status-line.js`)_
 
 Segments: version · model · auth · context% · rate-limit% · daily-budget% · cost · tokens-in/out · duration · skills-count · Linear-ticket · cwd.
 

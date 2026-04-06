@@ -12,7 +12,7 @@
 //   KZ_IMPROVE_SCAN_DAYS    — Days back to search (default: 7)
 //   GITHUB_TOKEN            — GitHub PAT for higher API rate limits (optional)
 //
-// By Kevin Z — CC Commander v2.1.0
+// By Kevin Z — CC Commander
 // ============================================================================
 
 'use strict';

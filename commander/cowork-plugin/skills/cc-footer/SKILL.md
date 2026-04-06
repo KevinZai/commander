@@ -58,6 +58,8 @@ git branch --show-current 2>/dev/null | grep -oE 'CC-[0-9]+' || echo "none"
 
 If a data point is unavailable, show `?` for that segment — never omit the segment entirely.
 
+> Version and stats in examples below are illustrative. Live values come from `commander/status-line.js`.
+
 ## Example Outputs
 
 Healthy mid-session (45% context, 5h in, 7-day streak):

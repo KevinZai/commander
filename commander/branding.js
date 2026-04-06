@@ -1,12 +1,14 @@
 'use strict';
 
+var _pkg = require('../package.json');
+
 var BRAND = Object.freeze({
   product: 'Claude Code Commander',
   productFull: 'Claude Code Commander',
   productShort: 'CCC',
   tagline: 'Every Claude Code tool. One install. Guided access. Auto-updated.',
   taglineShort: 'The Claude Code aggregator. Newbie-friendly.',
-  version: '2.1.0',
+  version: _pkg.version,
 
   author: 'Kevin Z',
   authorFull: 'Kevin Zicherman',

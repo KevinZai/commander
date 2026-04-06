@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-VERSION="2.1.0"
+VERSION="$(grep '"version"' package.json | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')"
 CLAUDE_DIR="$HOME/.claude"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 USER_NAME=""

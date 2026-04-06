@@ -1,5 +1,5 @@
 # CC Commander — by Kevin Z
-> Version 2.1.0 | Updated: 2026-03-30 | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-03-30 | Version: see package.json | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -2496,5 +2496,5 @@ One hour of active use can exhaust a Pro daily allocation.
 ---
 
 *Last updated: 2026-03-29*
-*CC Commander — by Kevin Z — v2.1.0*
+*CC Commander — by Kevin Z*
 *Update this file when you learn something new. That's the point.*

@@ -5,6 +5,7 @@ var assert = require('node:assert');
 var fs = require('fs');
 var path = require('path');
 
+var pkg = require('../../package.json');
 var adventure = require('../adventure');
 var state = require('../state');
 var tui = require('../tui');
@@ -190,7 +191,7 @@ test('all 4 themes are available', function() {
 test('branding has correct product name and tagline', function() {
   assert.ok(branding.product === 'Claude Code Commander');
   assert.ok(branding.tagline.includes('One install'));
-  assert.ok(branding.version === '2.1.0');
+  assert.ok(branding.version === pkg.version);
 });
 
 // ─── State ────────────────────────────────────────────────────
