@@ -117,6 +117,69 @@ function gradient(text, stops) {
 var RAINBOW_STOPS = [[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]];
 function rainbow(text) { return BOLD + gradient(text, RAINBOW_STOPS) + RESET; }
 
+// Animated cycling rainbow — colors shift through text over time
+// Returns { start(), stop() } controller. Renders in-place using cursor movement.
+function animatedRainbow(text, opts) {
+  opts = opts || {};
+  var speed = opts.speed || 80;
+  var duration = opts.duration || 2000;
+  var lines = text.split('\n');
+  var totalChars = text.replace(/\n/g, '').replace(/ /g, '').length;
+  var phase = 0;
+  var timer = null;
+  var lineCount = lines.length;
+
+  function renderFrame() {
+    // Move cursor up to overwrite previous frame
+    if (phase > 0) process.stdout.write('\x1b[' + lineCount + 'A');
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li];
+      var out = BOLD;
+      var charIdx = 0;
+      for (var ci = 0; ci < line.length; ci++) {
+        if (line[ci] === ' ') { out += ' '; continue; }
+        var hue = ((charIdx + li * 3 + phase) % 360);
+        var c = hslToRgb(hue / 360, 1.0, 0.55);
+        out += rgb(c[0], c[1], c[2]) + line[ci];
+        charIdx++;
+      }
+      process.stdout.write(out + RESET + '\n');
+    }
+    phase += 4;
+  }
+
+  return {
+    start: function() {
+      renderFrame();
+      timer = setInterval(renderFrame, speed);
+      if (duration > 0) {
+        setTimeout(function() { if (timer) { clearInterval(timer); timer = null; } }, duration);
+      }
+    },
+    stop: function() { if (timer) { clearInterval(timer); timer = null; } }
+  };
+}
+
+// HSL to RGB helper for smooth animated hue cycling
+function hslToRgb(h, s, l) {
+  var r, g, b;
+  if (s === 0) { r = g = b = l; } else {
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    var p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+function hue2rgb(p, q, t) {
+  if (t < 0) t += 1; if (t > 1) t -= 1;
+  if (t < 1/6) return p + (q - p) * 6 * t;
+  if (t < 1/2) return q;
+  if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+  return p;
+}
+
 function gradientLines(lines, topColor, bottomColor) {
   return lines.map(function(line, i) {
     var t = lines.length <= 1 ? 0 : i / (lines.length - 1);
@@ -390,6 +453,7 @@ module.exports = {
   renderLogo: renderLogo,
   gradient: gradient,
   rainbow: rainbow,
+  animatedRainbow: animatedRainbow,
   RAINBOW_STOPS: RAINBOW_STOPS,
   gradientLines: gradientLines,
   box: box,

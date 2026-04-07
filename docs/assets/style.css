@@ -173,9 +173,15 @@ section {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--primary);
-  border: 1px solid var(--primary-dim);
-  border-radius: 100px;
+  background: linear-gradient(90deg, #ff0080, #ff8c00, #ffff00, #00ff80, #00c8ff, #8000ff, #ff0080);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rainbowShift 3s linear infinite;
+  border: 1px solid;
+  border-image: linear-gradient(90deg, #ff0080, #00c8ff, #8000ff) 1;
+  border-radius: 0;
   padding: 0.35rem 1rem;
   margin-bottom: 2rem;
   letter-spacing: 0.05em;
@@ -187,10 +193,17 @@ section {
   font-weight: 800;
   line-height: 1.2;
   margin-bottom: 1.25rem;
-  background: linear-gradient(135deg, var(--primary) 30%, var(--accent) 100%);
+  background: linear-gradient(90deg, #ff0080, #ff8c00, #ffff00, #00ff80, #00c8ff, #8000ff, #ff0080);
+  background-size: 300% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: rainbowShift 3s linear infinite;
+}
+
+@keyframes rainbowShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
 }
 
 .hero-sub {
