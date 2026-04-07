@@ -14,6 +14,13 @@
 
 ---
 
+### 46. Automatic Tool Output Sandboxing (context-mode)
+**What:** Stock Claude Code dumps every `git log`, `grep`, file read, and web fetch directly into context. 315KB of raw output when you needed 5KB. context-mode intercepts 6 tool types (Bash, Read, Grep, Glob, WebFetch, WebSearch) via PreToolUse hooks, stores results in SQLite with FTS5 full-text search, and returns only BM25-ranked relevant snippets. 98% context reduction, measured. No other Claude Code toolkit has this.
+**Proof:** `skills/context-mode/SKILL.md` — PreToolUse hook intercepts tool calls, indexes output to SQLite FTS5, returns BM25-ranked snippets. Measured: 315KB grep result → 3KB relevant snippet.
+**Share-friendly:** Every grep, file read, and shell command used to dump its full output into your context window. context-mode stores it in SQLite and gives Claude only the relevant 2%. 98% context reduction. No configuration needed.
+
+---
+
 ### 2. Choose-Your-Own-Adventure Flows
 **What:** 14 JSON-defined interactive narratives that guide you through decisions like build type, mode selection, and night builds — complete with branching logic and back navigation.
 **Proof:** See `commander/adventures/*.json` — 14 files including `main-menu.json`, `build-something.json`, `night-build.json`, `linear-board.json`.
@@ -322,10 +329,27 @@
 
 ---
 
+## Token Optimization Stack — 5 Layers of Savings
+
+CC Commander stacks five independent token-reduction mechanisms. Each works at a different layer so they compound rather than overlap.
+
+| Layer | Tool | Savings |
+|-------|------|---------|
+| Tool output sandboxing | context-mode | **98%** — SQLite + FTS5, BM25 snippets only |
+| CLI output filtering | RTK | 99.5% — strips verbose shell output |
+| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 454 full |
+| Rate limit rotation | ClaudeSwap | 2 MAX accounts, drain-first strategy |
+| Prompt caching | Extended TTL | 90% discount, 1hr cache window |
+
+The biggest lever by far is context-mode (differentiator #46 above). The rest are cumulative bonuses.
+
+---
+
 ## Part 2: Stock Claude Code vs CC Commander
 
 | Aspect | Stock Claude Code | CC Commander |
 |--------|------------------|--------------|
+| Tool Output | Full dump into context (wastes 98% of window) | **98% reduction** — context-mode sandboxes into SQLite, returns BM25 snippets |
 | Getting started | Blank terminal, type commands | Arrow-key menus, guided setup |
 | Skills | 0 built-in | 454 (verified by SKILL.md count) |
 | Commands | 0 installed | 83 slash commands |

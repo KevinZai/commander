@@ -925,6 +925,31 @@ OLED black background + bright green text + cyan accents. Color values for other
 
 ---
 
+## Token Optimization (context-mode)
+
+context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
+
+| Command | What it does |
+|---------|-------------|
+| `ctx_execute <lang> <code>` | Run in sandbox — only summary enters context |
+| `ctx_search <query>` | BM25 search over all sandboxed results |
+| `ctx_batch_execute` | Run multiple commands, all indexed |
+| `ctx_stats` | Session token savings breakdown |
+| `ctx_doctor` | Verify context-mode health (runtimes, FTS5, hooks) |
+| `ctx_purge` | Delete all indexed content |
+
+### Full Optimization Stack
+
+| Layer | Tool | Savings |
+|-------|------|---------|
+| Tool output | context-mode | 98% (SQLite + FTS5) |
+| CLI filtering | RTK | 99.5% |
+| Skill loading | _tiers.json | ~10k tokens |
+| Rate rotation | ClaudeSwap | 2 accounts |
+| Prompt cache | Extended TTL | 90% discount |
+
+---
+
 ## CC Commander Quick Reference
 
 ```bash

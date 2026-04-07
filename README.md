@@ -16,6 +16,8 @@
 
 Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No memory. Every session starts from zero.
 
+And it wastes 98% of your context window on tool output you'll never re-read. CC Commander sandboxes it automatically.
+
 **CC Commander remembers everything, learns from every session, and gets smarter the more you use it.** It wraps every major Claude Code tool into one install — with a smart orchestrator, guided menus, and an Intelligence Layer that auto-adjusts every dispatch based on your project.
 
 ```
@@ -401,6 +403,18 @@ Every completed session extracts a lesson (keywords, category, stack, error patt
 | 1 | Dispatches based on complexity score alone |
 | 5 | Knows your stack, recommends proven skills |
 | 20 | Has learned your patterns — feels like a PM who knows your codebase |
+
+---
+
+### 🔋 Token Optimization Stack — 5 Layers of Savings
+
+| Layer | Tool | Savings |
+|-------|------|---------|
+| Tool output sandboxing | context-mode | **98%** — SQLite + FTS5, BM25 snippets only |
+| CLI output filtering | RTK | 99.5% — strips verbose shell output |
+| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 454 full |
+| Rate limit rotation | ClaudeSwap | 2 MAX accounts, drain-first strategy |
+| Prompt caching | Extended TTL | 90% discount, 1hr cache window |
 
 ---
 
