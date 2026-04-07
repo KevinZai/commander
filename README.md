@@ -2,7 +2,9 @@
 
 > **Every Claude Code tool. One install. An AI brain that learns.**
 
-**Not a skill pack. An AI project manager that thinks before it acts.** 450+ skills, 17 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
+**Not a skill pack. An AI project manager that thinks before it acts.** 455 skills, 98% context savings, 17 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
+
+<img src="docs/assets/screenshots/hero-dashboard.gif" alt="CC Commander Dashboard" width="100%">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/450%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/17_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.2.0](https://img.shields.io/badge/v2.2.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
@@ -110,33 +112,38 @@ No configuration. No YAML. No API keys. The Intelligence Layer handles everythin
 
 <!-- Real terminal recordings via vhs (Catppuccin Mocha theme) -->
 <!-- Re-generate: vhs /tmp/ccc-*.tape from project root -->
-<!-- When bumping version: re-run tape scripts to capture new output -->
 
-### Skills Management — `ccc --skills`
+### The Dashboard — Your Mission Control
 
-<img src="docs/assets/screenshots/skills-overview.gif" alt="CCC Skills Overview" width="100%">
+Everything at a glance: model, cost, token usage, context meters, rate limits, active skill, Linear ticket.
 
-### Installed Skills — 37 Essential
+<img src="docs/assets/screenshots/hero-dashboard.gif" alt="CC Commander Dashboard" width="100%">
 
-<img src="docs/assets/screenshots/skills-list.gif" alt="CCC Installed Skills" width="100%">
+### Live ASCII Meters — Context, Rate Limits, Budget
 
-### Available Skills — 455 Total
+Real-time meters powered by ClaudeSwap. Green → yellow → red as you approach limits.
 
-<img src="docs/assets/screenshots/skills-available.gif" alt="CCC Available Skills" width="100%">
+<img src="docs/assets/screenshots/live-meters.gif" alt="Live ASCII Meters" width="100%">
 
-### Rainbow Status Line — Live Session Meters
+### Rainbow Footer — Always Visible
 
-<img src="docs/assets/screenshots/statusline.gif" alt="CCC Status Line with ClaudeSwap" width="100%">
+Every session shows your status. Rainbow CCC branding, model, key, meters, cost, tokens, time.
 
-### CLI Reference
+<img src="docs/assets/screenshots/footer-rainbow.gif" alt="Rainbow Footer" width="100%">
 
-<img src="docs/assets/screenshots/help.gif" alt="CCC Help" width="100%">
+### 455 Skills — Install Only What You Need
 
-### Full Demo — Version + Skills + Status
+Default: 37 essential skills. Add more with `ccc --skills install <name>`. Switch tiers anytime.
+
+<img src="docs/assets/screenshots/skills-overview.gif" alt="Skill Tiers" width="100%">
+
+<img src="docs/assets/screenshots/skills-install.gif" alt="Install and Remove Skills" width="100%">
+
+### One Install — Everything Working
 
 <img src="docs/assets/screenshots/install-demo.gif" alt="CCC Demo" width="100%">
 
-> These are actual terminal outputs. CC Commander uses rich ASCII rendering — no browser required.
+> All recordings are real terminal output captured with [vhs](https://github.com/charmbracelet/vhs). No mockups.
 
 ### Main Menu — Multiple Choice Navigation
 
@@ -635,9 +642,7 @@ ASCII meters for context usage + rate limits. Emoji status indicators. Active Li
 
 **Rich footer bar** — rainbow status line with live ClaudeSwap meters:
 
-<img src="docs/assets/screenshots/statusline.gif" alt="CCC Status Line" width="100%">
-
-<img src="docs/assets/screenshots/status-line-js.gif" alt="CCC JS Status Line" width="100%">
+<img src="docs/assets/screenshots/footer-rainbow.gif" alt="Rainbow Footer with Meters" width="100%">
 
 Context/rate/budget meters color-code green → yellow → red as you approach limits.
 
