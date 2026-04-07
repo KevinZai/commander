@@ -186,6 +186,22 @@ test('all 4 themes are available', function() {
   assert.ok(names.includes('futuristic'));
 });
 
+test('renderSession handles malformed session fields safely', function() {
+  var Engine = require('../engine');
+  var engine = new Engine();
+  var rendered = engine.renderSession({
+    task: 42,
+    cost: 'not-a-number',
+    duration: 'bad',
+    startTime: 'not-a-date',
+    status: null,
+  });
+  assert.ok(typeof rendered === 'string');
+  assert.ok(rendered.includes('Untitled'));
+  assert.ok(rendered.includes('$0.00'));
+  assert.ok(rendered.includes('Unknown date'));
+});
+
 // ─── Branding ─────────────────────────────────────────────────
 
 test('branding has correct product name and tagline', function() {

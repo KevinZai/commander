@@ -40,7 +40,7 @@ module.exports = {
       process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
       try { require('../error-logger').log(_e, 'show_stats'); } catch(_) {}
     }
-    return null;
+    return { next: 'check-stats' };
   },
 
   async show_achievements(engine, tui, state, choice) {

@@ -69,7 +69,8 @@
   },
   "main": "./bin/kc.js",
   "scripts": {
-    "test": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js",
+    "test": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js commander/tests/tmux-menu-audit.test.js",
+    "test:tmux-menu": "node --test commander/tests/tmux-menu-audit.test.js",
     "test:coverage": "./node_modules/.bin/c8 node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js",
     "prepublishOnly": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js && npx eslint . --max-warnings 120"
   }

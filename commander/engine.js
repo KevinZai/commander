@@ -743,10 +743,17 @@ class KitCommander {
 
   renderSession(s) {
     var t = tui.getTheme();
-    var duration = s.duration ? Math.round(s.duration / 60) + 'm' : 'ongoing';
-    var cost = s.cost ? '$' + s.cost.toFixed(2) : '$0.00';
-    var icon = s.status === 'completed' ? tui.colorText('v', t.success) : tui.colorText('o', t.primary);
-    return '  ' + icon + ' ' + tui.boldText(s.task || 'Untitled', t.text) + '\n  ' + tui.dimText('Duration: ' + duration + '  |  Cost: ' + cost + '  |  ' + new Date(s.startTime).toLocaleDateString());
+    var safe = (s && typeof s === 'object') ? s : {};
+    var durationSec = Number(safe.duration);
+    var duration = Number.isFinite(durationSec) && durationSec > 0 ? Math.round(durationSec / 60) + 'm' : 'ongoing';
+    var costNum = Number(safe.cost);
+    var cost = Number.isFinite(costNum) ? '$' + costNum.toFixed(2) : '$0.00';
+    var status = typeof safe.status === 'string' ? safe.status : 'active';
+    var task = typeof safe.task === 'string' && safe.task.trim() ? safe.task : 'Untitled';
+    var startDate = new Date(safe.startTime);
+    var dateLabel = Number.isFinite(startDate.getTime()) ? startDate.toLocaleDateString() : 'Unknown date';
+    var icon = status === 'completed' ? tui.colorText('v', t.success) : tui.colorText('o', t.primary);
+    return '  ' + icon + ' ' + tui.boldText(task, t.text) + '\n  ' + tui.dimText('Duration: ' + duration + '  |  Cost: ' + cost + '  |  ' + dateLabel);
   }
 
   async changeTheme() {

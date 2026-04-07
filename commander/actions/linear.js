@@ -81,7 +81,7 @@ module.exports = {
       try { require('../error-logger').log(_e, 'show_linear_board'); } catch(_) {}
       process.stdout.write('\n  Error loading board: ' + (_e.message || _e) + '\n');
     }
-    return null;
+    return { next: 'linear-board' };
   },
 
   async linear_create_issue(engine, tui, state, choice) {

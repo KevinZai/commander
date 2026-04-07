@@ -27,7 +27,7 @@ module.exports = {
       process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a');
       try { require('../error-logger').log(_e, 'show_session_summary'); } catch(_) {}
     }
-    return null;
+    return { next: 'continue-work' };
   },
 
   async resume_with_summary(engine, tui, state, choice) {
@@ -57,7 +57,7 @@ module.exports = {
         process.stdout.write('\n' + tui.divider('Recent Sessions') + '\n\n');
         sessions.forEach(function(s) { process.stdout.write(engine.renderSession(s) + '\n\n'); });
       }
-      if (actionName === 'show_recent_sessions') return null;
+      if (actionName === 'show_recent_sessions') return { next: 'review-work' };
       if (!engine.rl) { var readline = require('readline'); engine.rl = readline.createInterface({ input: process.stdin, output: process.stdout }); }
       await engine.ask('\n  Press Enter...');
     } catch(_e) {

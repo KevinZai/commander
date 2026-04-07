@@ -66,6 +66,9 @@ jobs:
       - name: Run path tests
         run: node --test commander/tests/paths.test.js
 
+      - name: Run tmux menu crash audit
+        run: node --test commander/tests/tmux-menu-audit.test.js
+
       - name: Run vendor + orchestrator tests
         run: node --test commander/tests/vendor-scanner.test.js commander/tests/orchestrator.test.js
 

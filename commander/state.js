@@ -176,12 +176,20 @@ function listSessions(limit = 10) {
   try {
     const files = fs.readdirSync(SESSIONS_DIR)
       .filter(f => f.endsWith('.json'))
-      .sort()
-      .reverse()
+      .sort((a, b) => {
+        try {
+          const aMtime = fs.statSync(path.join(SESSIONS_DIR, a)).mtimeMs;
+          const bMtime = fs.statSync(path.join(SESSIONS_DIR, b)).mtimeMs;
+          return bMtime - aMtime;
+        } catch {
+          return b.localeCompare(a);
+        }
+      })
       .slice(0, limit);
     return files.map(f => {
       try {
-        return JSON.parse(fs.readFileSync(path.join(SESSIONS_DIR, f), 'utf8'));
+        const parsed = JSON.parse(fs.readFileSync(path.join(SESSIONS_DIR, f), 'utf8'));
+        return (parsed && typeof parsed === 'object') ? parsed : null;
       } catch {
         return null;
       }
