@@ -3,14 +3,21 @@
   "description": "CC Commander skill tiers — controls which skills are installed via install.sh --skills=TIER",
   "tiers": {
     "essential": {
-      "description": "Core workflow skills for planning, execution, and verification (~30 skills)",
+      "description": "Core workflow skills + all 11 CCC domain routers (~37 skills)",
       "skills": [
         "acpx-patterns",
         "cache-monitor",
         "caveman",
+        "ccc-data",
         "ccc-design",
         "ccc-devops",
+        "ccc-makeover",
+        "ccc-marketing",
+        "ccc-mobile",
+        "ccc-research",
+        "ccc-saas",
         "ccc-security",
+        "ccc-seo",
         "ccc-testing",
         "configure-ecc",
         "context-budget",
