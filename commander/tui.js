@@ -306,6 +306,7 @@ function select(items, prompt, options) {
     stdin.resume();
     readline.emitKeypressEvents(stdin);
     stdout.write(ESC + '?25l'); // hide cursor
+    stdout.write('\x1b[?1000h\x1b[?1006h'); // enable mouse click reporting (SGR mode)
 
     // Pipe-rail style: BAR prefix every line, RADIO symbols, hint bar at bottom
     var totalLines = 1; // blank pipe-rail line before prompt
@@ -371,7 +372,7 @@ function select(items, prompt, options) {
 
       // Blank pipe-rail line + hint bar
       stdout.write(ESC + '2K' + bar + '\n');
-      stdout.write(ESC + '2K' + bar + '  ' + colorText('[↑↓] navigate  [enter] select  [q] quit', t.dim) + '\n');
+      stdout.write(ESC + '2K' + bar + '  ' + colorText('[↑↓] navigate  [enter] select  [q] quit  [?] help', t.dim) + '\n');
     }
 
     // Save cursor position, reserve space + initial draw
@@ -383,6 +384,111 @@ function select(items, prompt, options) {
       var item = items[idx];
       return typeof item !== 'string' && item && item.separator === true;
     }
+
+    // Track the row offset where menu items begin (for mouse click mapping)
+    // Layout: saved-cursor-pos + 1 blank + 1 prompt = items start at row offset 2
+    var menuItemStartOffset = 2;
+
+    function showHelp() {
+      // Save current menu output, overlay help box, wait for any key, redraw
+      var helpLines = [
+        '  CC Commander \u2014 Quick Help          ',
+        '                                     ',
+        '  \u2191/\u2193     Navigate menu              ',
+        '  Enter   Select item                ',
+        '  a-z     Jump to item by letter     ',
+        '  q       Quit / Go back             ',
+        '  ?       This help                  ',
+        '                                     ',
+        '  In tmux split mode:                ',
+        '  Ctrl+A \u2190\u2192  Switch panes            ',
+        '  Ctrl+A z   Zoom pane (fullscreen)  ',
+        '  Ctrl+A 0   Jump to menu            ',
+        '  Click      Select pane (mouse on)  ',
+        '                                     ',
+        '  Press any key to close...          ',
+      ];
+      stdout.write('\x1b[u'); // restore saved cursor position
+      stdout.write('\x1b[J'); // clear from cursor to end
+      stdout.write('\n');     // blank line (pipe-rail)
+      stdout.write(box(helpLines.join('\n')) + '\n');
+
+      // Wait for one keypress then redraw menu
+      function helpKeyHandler() {
+        stdin.removeListener('keypress', helpKeyHandler);
+        // Remove raw data listener for mouse during help
+        stdin.removeListener('data', mouseDataHandler);
+        draw();
+        // Re-attach mouse data listener
+        stdin.on('data', mouseDataHandler);
+      }
+      stdin.once('keypress', helpKeyHandler);
+    }
+
+    // Mouse click handler — parses SGR mouse sequences from raw stdin data
+    // SGR format: ESC [ < btn ; col ; row M (press) or m (release)
+    function mouseDataHandler(data) {
+      var str = typeof data === 'string' ? data : data.toString('binary');
+      // Match SGR mouse press event: \x1b[<0;col;rowM  (button 0 = left click press)
+      var sgrMatch = str.match(/^\x1b\[<(\d+);(\d+);(\d+)M$/);
+      if (!sgrMatch) return;
+      var btn = parseInt(sgrMatch[1], 10);
+      if (btn !== 0) return; // only left-click press
+
+      var clickRow = parseInt(sgrMatch[3], 10); // 1-based terminal row
+
+      // We need to know the absolute row where the menu starts.
+      // We saved cursor position with \x1b[s before drawing. Unfortunately we
+      // don't have the absolute row stored. We work around this by tracking the
+      // cursor row at the time we saved it.
+      if (typeof savedCursorRow !== 'number') return;
+
+      // Calculate which item was clicked
+      // menuItemStartOffset lines after savedCursorRow is where items begin
+      var itemsStartRow = savedCursorRow + menuItemStartOffset;
+      var relRow = clickRow - itemsStartRow; // 0-based line within items area
+      if (relRow < 0) return;
+
+      // Walk items to find which one the row maps to
+      var lineIdx = 0;
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (typeof item !== 'string' && item && item.separator === true) {
+          lineIdx++; // separator takes 1 line
+          continue;
+        }
+        var itemLines = 1 + ((typeof item !== 'string' && item.description) ? 1 : 0);
+        if (relRow >= lineIdx && relRow < lineIdx + itemLines) {
+          if (!isSeparatorItem(i)) {
+            sel = i;
+            if (onChange) onChange(sel);
+            t = getTheme();
+            draw();
+            done(sel);
+          }
+          return;
+        }
+        lineIdx += itemLines;
+      }
+    }
+
+    // Track absolute cursor row when we save position (best-effort via cursor query)
+    var savedCursorRow = null;
+    (function queryCursorRow() {
+      // Request cursor position report: ESC [ 6 n → response: ESC [ row ; col R
+      var cprHandler = function(data) {
+        var s = typeof data === 'string' ? data : data.toString('binary');
+        var m = s.match(/\x1b\[(\d+);(\d+)R/);
+        if (m) {
+          stdin.removeListener('data', cprHandler);
+          savedCursorRow = parseInt(m[1], 10); // 1-based row where cursor currently is
+        }
+      };
+      stdin.on('data', cprHandler);
+      stdout.write('\x1b[6n'); // query cursor position
+    })();
+
+    stdin.on('data', mouseDataHandler);
 
     function handler(str, key) {
       if (!key) return;
@@ -397,6 +503,8 @@ function select(items, prompt, options) {
       } else if (key.name === 'return') { done(sel); }
       else if (key.ctrl && key.name === 'c') { done(-1); }
       else {
+        // '?' shows help overlay
+        if (str === '?') { showHelp(); return; }
         // 'q' quits unless a menu item key starts with 'q'
         if (str === 'q') {
           var hasQItem = items.some(function(it) { return typeof it === 'string' ? it.toLowerCase().charAt(0) === 'q' : (it && it.key && it.key.toLowerCase() === 'q'); });
@@ -410,8 +518,10 @@ function select(items, prompt, options) {
 
     function done(i) {
       stdin.removeListener('keypress', handler);
+      stdin.removeListener('data', mouseDataHandler);
       stdin.setRawMode(false);
       stdin.pause();
+      stdout.write('\x1b[?1000l\x1b[?1006l'); // disable mouse reporting
       stdout.write(ESC + '?25h'); // show cursor
       resolve(i);
     }
