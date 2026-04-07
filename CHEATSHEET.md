@@ -533,14 +533,14 @@ Install only the skills you need — smaller tiers save ~10k tokens per session:
 ```bash
 ./install.sh --skills=essential   # ~30 core skills (default, saves ~10k tokens)
 ./install.sh --skills=recommended # ~100 skills for most developers
-./install.sh --skills=full        # All 454 skills (legacy behavior)
+./install.sh --skills=full        # All 451 skills (legacy behavior)
 ```
 
 | Tier | Count | When to use |
 |------|-------|------------|
 | `essential` | ~30 | Default — covers 90% of use cases |
 | `recommended` | ~100 | Active builders across multiple domains |
-| `full` | 454 | Legacy behavior, maximum coverage |
+| `full` | 451 | Legacy behavior, maximum coverage |
 
 You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 

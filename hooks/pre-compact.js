@@ -123,7 +123,7 @@ process.stdin.on('end', () => {
     lines.push('');
 
     // Write session state
-    const sessionsDir = path.join(os.homedir(), '.claude', 'sessions');
+    const sessionsDir = process.env.KC_SESSIONS_DIR || path.join(os.homedir(), '.claude', 'sessions');
     try {
       if (!fs.existsSync(sessionsDir)) {
         fs.mkdirSync(sessionsDir, { recursive: true });

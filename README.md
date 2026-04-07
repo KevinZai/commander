@@ -2,11 +2,11 @@
 
 > **Every Claude Code tool. One install. An AI brain that learns.**
 
-**Not a skill pack. An AI project manager that thinks before it acts.** 455 skills, 98% context savings, 17 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
+**Not a skill pack. An AI project manager that thinks before it acts.** 450+ skills, 98% context savings, 17 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
 
 <img src="docs/assets/screenshots/hero-dashboard.gif" alt="CC Commander Dashboard" width="100%">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/450%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/17_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/107_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.2.0](https://img.shields.io/badge/v2.2.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/450%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/17_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/166_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.2.1](https://img.shields.io/badge/v2.2.1-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 17 vendor packages
 
@@ -137,7 +137,7 @@ No configuration. No YAML. No API keys. The Intelligence Layer handles everythin
 
 <img src="docs/assets/screenshots/live-meters.gif" alt="Live ASCII Meters" width="100%">
 
-### 455 Skills — Install Only What You Need
+### 450+ Skills — Install Only What You Need
 
 <img src="docs/assets/screenshots/skills-install.gif" alt="Skill Management" width="100%">
 
@@ -161,7 +161,7 @@ The first thing you see. Arrow keys only — no commands to memorize.
     Create content               ← blogs, social, email
     Research & analyze           ← competitors, markets
     Linear board                 ← pick issues to build
-    Browse 455+ skills           ← search by keyword
+    Browse 450+ skills           ← search by keyword
     Check my stats               ← sessions, streaks
     Night Mode / YOLO            ← overnight autonomous
     Infrastructure               ← Fleet, Synapse, Cost
@@ -210,7 +210,7 @@ CCC ranks skills using your stack + task keywords + past usage. The right tools 
     8    ccc-testing           Always recommended
 
   ❯ Use top recommendation
-    Browse all 455+ skills
+    Browse all 450+ skills
     Search by keyword
     Back to main menu
 ```
@@ -228,7 +228,7 @@ Context, rate limits, and budget meters in your terminal. Color-codes green → 
   5h   [████░░░░░░░░░░░░░░░░] 23%   ← green (ClaudeSwap)
   7d   [██████░░░░░░░░░░░░░░] 34%   ← green (ClaudeSwap)
   ─────────────────────────────────────────
-  📋 CC-150  |  🎯 455+ skills  |  📦 17 vendors
+  📋 CC-150  |  🎯 450+ skills  |  📦 17 vendors
 
   Footer: ━━ 🌈CCC2.2│🔥Opus4.6-1M│🔑gAA│🧠▐██45%▌│⏱️▐██6%▌│📅▐██34%▌│💰$2.34│🎯37│📂~/project
 ```
@@ -325,7 +325,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 | Component | Count | What It Does |
 |-----------|-------|-------------|
-| Skills | 455+ | On-demand expertise (deduplicated) |
+| Skills | 450+ | On-demand expertise (deduplicated) |
 | CCC Domains | 11 | Domain routers with sub-skills |
 | Commands | 80+ | Slash commands (/ccc: prefix) |
 | Hooks | 28 | Lifecycle automation |
@@ -446,7 +446,7 @@ Every completed session extracts a lesson (keywords, category, stack, error patt
 |-------|------|---------|
 | Tool output sandboxing | context-mode | **98%** — SQLite + FTS5, BM25 snippets only |
 | CLI output filtering | RTK | 99.5% — strips verbose shell output |
-| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 454 full |
+| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 451 full |
 | Rate limit rotation | ClaudeSwap | 2 MAX accounts, drain-first strategy |
 | Prompt caching | Extended TTL | 90% discount, 1hr cache window |
 
@@ -549,7 +549,7 @@ Each domain is a router that dispatches to specialized sub-skills on demand.
 
 <img src="docs/assets/section-vendors.svg" alt="Vendors" width="100%">
 
-CC Commander aggregates the best Claude Code tools as git submodules. Auto-updated weekly. 16 packages, 1,500+ vendor skills.
+CC Commander aggregates the best Claude Code tools as git submodules. Auto-updated weekly. 17 packages, 1,500+ vendor skills.
 
 | Package | Stars | What You Get |
 |---------|-------|-------------|
@@ -632,7 +632,7 @@ CCC learns from every session. Knowledge compounds over time.
   ─────────────────────────────────────────────
   🔥 Opus4.6-1M  │  $2.14  │  ↑42K↓8K  │  3m12s
   CTX [████████████░░░░░░░░] 62%  5h [████░░░░░░░░░░░░] 23%  7d [██████░░░░░░░░] 34%
-  📋 CC-150   │  🎯 455+ skills  │  📦 17 vendors  │  🔋 98% ctx savings
+  📋 CC-150   │  🎯 450+ skills  │  📦 17 vendors  │  🔋 98% ctx savings
   ─────────────────────────────────────────
 ```
 
@@ -713,7 +713,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v2.2.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v2.2.1** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

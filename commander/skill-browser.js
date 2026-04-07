@@ -157,8 +157,8 @@ function listSkills(dirs = SKILL_DIRS) {
           }
         }
 
-        // Recurse into mega-skill dirs (ccc-*) to count sub-skills
-        if (entry.name.startsWith('ccc-') || entry.name.startsWith('mega-')) {
+        // Recurse one level into all skill dirs to find sub-skills
+        {
           const subDir = path.join(dir, entry.name);
           try {
             const subEntries = fs.readdirSync(subDir, { withFileTypes: true });
@@ -167,8 +167,8 @@ function listSkills(dirs = SKILL_DIRS) {
               const subSkillMd = path.join(subDir, sub.name, 'SKILL.md');
               if (!fs.existsSync(subSkillMd)) continue;
               const subName = entry.name + '-' + sub.name;
-              if (seen.has(sub.name) || seen.has(subName)) continue;
-              seen.add(sub.name);
+              if (seen.has(subName)) continue;
+              seen.add(subName);
               const subSummary = getSkillSummary(subSkillMd);
               if (subSummary) {
                 skills.push({

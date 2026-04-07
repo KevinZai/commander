@@ -1079,12 +1079,12 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 | Essential | `--skills=essential` (default) | ~30 | Most developers — core workflows |
 | Recommended | `--skills=recommended` | ~100 | Active builders who use many domains |
 | Domain | `--skills=domain` | 11 routers | Load one mega-skill per domain as needed |
-| Full | `--skills=full` | 454 | Legacy behavior — everything installed |
+| Full | `--skills=full` | 451 | Legacy behavior — everything installed |
 
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 454 skills (original behavior)
+./install.sh --skills=full        # All 451 skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.

@@ -8,11 +8,11 @@
     "render": "npx remotion render src/Root.tsx Hero --output=out/hero.mp4"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.0",
-    "@remotion/player": "4.0.0",
+    "@remotion/cli": "4.0.446",
+    "@remotion/player": "4.0.446",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "remotion": "4.0.0"
+    "remotion": "4.0.446"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",

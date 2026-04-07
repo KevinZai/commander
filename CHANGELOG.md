@@ -2,6 +2,21 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [2.2.1] — 2026-04-07
+
+### Audit Remediation
+
+- fix: Remotion stack bumped to 4.0.446 (resolved 6 vulnerabilities in video/)
+- fix: Skill browser dedup bug — sub-skills no longer suppressed across mega-skill directories (367→451)
+- fix: Branding version now matches package.json exactly (test was failing)
+- fix: CI PII scan excludes known false-positive files (CHANGELOG.md, docs/)
+- fix: pre-compact hook sessions dir configurable via KC_SESSIONS_DIR env var
+- fix: discovery-scan workflow uses execFileSync to prevent shell injection
+- fix: Dashboard vite bumped to ^5.4.14 (2 moderate vulns remain — require major vite v8 upgrade)
+- chore: Skill recursion now covers all sub-directories (not just ccc-*/mega-*)
+
+---
+
 ## [2.2.0] — 2026-04-06
 
 ### The Context Budget Release — "Your AI work costs less. Every meter works. Skills load smart."

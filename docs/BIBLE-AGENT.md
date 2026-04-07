@@ -260,18 +260,18 @@ ccc --dispatch "YOLO: Build complete SaaS with auth, billing, dashboard. 5 cycle
 
 | Component | Count |
 |-----------|-------|
-| Skills | 454 |
-| Commands | 87 |
-| Hooks | 25 |
+| Skills | 451 (CLI-visible) |
+| Commands | 83 |
+| Hooks | 28 |
 | Adventures | 14 |
-| Vendors | 16 |
+| Vendors | 17 |
 | Themes | 10 |
 | Tests | 166 |
 | Modes | 9 |
 
 ---
 
-## Skill Catalog — 454 Skills in 11 Domains
+## Skill Catalog — 450+ Skills in 11 Domains
 
 ### CCC Domain Routers (load ONE domain = all sub-skills)
 
@@ -489,7 +489,7 @@ Queue: `~/.claude/commander/queue/` · Log: `~/.claude/commander/daemon-log.txt`
 | `commander/adventures/*.json` | Menu definitions (14 adventures, source of truth) |
 | `commander/dispatcher.js` | Claude Code dispatch logic + Intelligence Layer |
 | `commander/engine.js` | Interactive menu engine |
-| `skills/` | 454 skill definitions (SKILL.md each) |
+| `skills/` | 450+ skill definitions (SKILL.md each) |
 | `commands/ccc.md` | /ccc command for Claude Code sessions |
 | `BIBLE.md` | Full methodology (2000+ lines, human-readable) |
 | `BIBLE-AGENT.md` | This file (agent-optimized) |

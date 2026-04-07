@@ -133,10 +133,10 @@
 
 ---
 
-### 18. 448 Skills (Verified by SKILL.md Count)
-**What:** 448 individual SKILL.md files across the `skills/` directory — deduplicated from 1,500+ vendor skills across 16 packages.
-**Proof:** `find skills/ -name "SKILL.md" | wc -l` → 448.
-**Share-friendly:** 454 skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
+### 18. 450+ Skills (Verified by SKILL.md Count)
+**What:** 456 individual SKILL.md files across the `skills/` directory — deduplicated from 1,500+ vendor skills across 17 packages.
+**Proof:** `find skills/ -name "SKILL.md" | wc -l` → 456.
+**Share-friendly:** 450+ skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
 
 ---
 
@@ -337,7 +337,7 @@ CC Commander stacks five independent token-reduction mechanisms. Each works at a
 |-------|------|---------|
 | Tool output sandboxing | context-mode | **98%** — SQLite + FTS5, BM25 snippets only |
 | CLI output filtering | RTK | 99.5% — strips verbose shell output |
-| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 454 full |
+| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 451 full |
 | Rate limit rotation | ClaudeSwap | 2 MAX accounts, drain-first strategy |
 | Prompt caching | Extended TTL | 90% discount, 1hr cache window |
 
@@ -351,7 +351,7 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 |--------|------------------|--------------|
 | Tool Output | Full dump into context (wastes 98% of window) | **98% reduction** — context-mode sandboxes into SQLite, returns BM25 snippets |
 | Getting started | Blank terminal, type commands | Arrow-key menus, guided setup |
-| Skills | 0 built-in | 454 (verified by SKILL.md count) |
+| Skills | 0 built-in | 450+ (451 CLI-visible, 456 on disk) |
 | Commands | 0 installed | 83 slash commands |
 | Memory | None across sessions | AI knowledge compounding — every session builds on the last |
 | Project awareness | Reads CLAUDE.md | Reads CLAUDE.md + package.json + Dockerfile + docker-compose.yml + go.mod + Cargo.toml + pyproject.toml + git branch + last 5 commits + monorepo detection |

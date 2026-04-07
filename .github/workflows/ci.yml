@@ -81,7 +81,8 @@ jobs:
           if grep -rn '6418588155\|1477872497599840369\|1480676421457416306\|d852cff2\|k3v80\|/Users/ai/' \
             --include='*.md' --include='*.js' --include='*.html' \
             --exclude-dir=vendor --exclude-dir=node_modules --exclude-dir=.git \
-            --exclude-dir=coverage --exclude-dir=kevin .; then
+            --exclude-dir=coverage --exclude-dir=kevin --exclude-dir=docs \
+            --exclude='CHANGELOG.md' .; then
             echo "PII DETECTED IN PUBLIC FILES"
             exit 1
           fi

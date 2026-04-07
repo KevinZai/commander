@@ -88,7 +88,7 @@ claude-code-prompts (142).
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
 
 ```
-━━ CCC2.2.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/project
+━━ CCC2.2.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/project
 ```
 
 Render this at session start and after major actions. Source: `commander/cockpit.js`.
@@ -129,7 +129,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** See `package.json`
 
-**Stats:** 454 skills, 83 commands, 28 hooks, 17 vendors, 10 themes
+**Stats:** 451 skills (CLI-visible), 83 commands, 28 hooks, 17 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/cc-commander
@@ -184,7 +184,7 @@ ccc --status                  # Health check
 - Modular installer with 5 installation modes (full, essentials, scripts, dashboard, config-only)
 - Daemon Mode: commander/daemon.js (tick loop), commander/queue.js (task queue), commander/dream.js (knowledge consolidation)
 - Intelligence Layer v1: complexity scoring (dispatcher.js), stack detection (project-importer.js), session learning (knowledge.js), skill filtering (skill-browser.js), smart retry (dispatchWithRetry)
-- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 454)
+- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 451)
 - Update checker at `commander/update-check.js` — 4h cache, silent on failure, fires on session start
 - Caveman mode (`caveman` skill) — strips markdown/emojis/prose for ~75% output token savings during iteration
 

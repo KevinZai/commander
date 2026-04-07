@@ -8,7 +8,7 @@ var BRAND = Object.freeze({
   productShort: 'CCC',
   tagline: 'Every Claude Code tool. One install. Guided access. Auto-updated.',
   taglineShort: 'The Claude Code aggregator. Newbie-friendly.',
-  version: _pkg.version.replace(/\.0$/, ''),
+  version: _pkg.version,
 
   author: 'Kevin Z',
   authorFull: 'Kevin Zicherman',

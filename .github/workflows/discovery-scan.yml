@@ -60,7 +60,7 @@ jobs:
             // License check via gh api
             var license = 'unknown';
             try {
-              license = cp.execSync('gh api repos/' + repo.name + ' --jq .license.spdx_id 2>/dev/null', {encoding:'utf8'}).trim();
+              license = cp.execFileSync('gh', ['api', 'repos/' + repo.name, '--jq', '.license.spdx_id'], {encoding:'utf8', stdio: ['pipe', 'pipe', 'pipe']}).trim();
             } catch(e) {}
 
             if (license === 'MIT' || license === 'Apache-2.0' || license === 'BSD-2-Clause' || license === 'BSD-3-Clause') {
