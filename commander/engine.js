@@ -328,6 +328,7 @@ class KitCommander {
 
       // Arrow-key menu
       var menuItems = (activeChoices || []).map(function(ch) {
+        if (ch.separator) return { separator: true };
         return { label: ch.label, description: ch.description || '', key: ch.key, action: ch.action, next: ch.next };
       });
       var idx = await tui.select(menuItems, activePrompt || 'Choose:');
@@ -516,9 +517,8 @@ class KitCommander {
       try { var fs = require('fs'); var path = require('path'); fs.mkdirSync(path.join(require('os').homedir(), '.claude', 'commander'), { recursive: true }); fs.writeFileSync(path.join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'BUILD: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
 
       if (inSplitMode()) {
-        // Split mode: send command to the visible Claude pane
-        var claudeArgs = 'CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 claude -p ' + JSON.stringify(fullTask) + ' --permission-mode auto --max-turns ' + defaults.maxTurns + ' --output-format text';
-        if (defaults.model) claudeArgs += ' --model ' + defaults.model;
+        // Split mode: launch interactive Claude Code session the user can take over
+        var claudeArgs = 'claude -p ' + JSON.stringify(fullTask);
         tmuxDispatch(claudeArgs);
         process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
         process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
@@ -596,9 +596,8 @@ class KitCommander {
       try { var fs = require('fs'); var path = require('path'); fs.mkdirSync(path.join(require('os').homedir(), '.claude', 'commander'), { recursive: true }); fs.writeFileSync(path.join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'BUILD: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
 
       if (inSplitMode()) {
-        // Split mode: send command to the visible Claude pane
-        var claudeArgs = 'CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 claude -p ' + JSON.stringify(fullTask) + ' --permission-mode auto --max-turns ' + defaults.maxTurns + ' --output-format text';
-        if (defaults.model) claudeArgs += ' --model ' + defaults.model;
+        // Split mode: launch interactive Claude Code session the user can take over
+        var claudeArgs = 'claude -p ' + JSON.stringify(fullTask);
         tmuxDispatch(claudeArgs);
         process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
         process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');

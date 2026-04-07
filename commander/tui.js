@@ -263,7 +263,9 @@ function box(content, width) {
 
 function select(items, prompt, options) {
   return new Promise(function(resolve) {
+    // Start selection on first non-separator item
     var sel = 0;
+    while (sel < items.length && typeof items[sel] !== 'string' && items[sel] && items[sel].separator === true) sel++;
     var onChange = options && options.onChange;
     var stdin = process.stdin;
     var stdout = process.stdout;
@@ -299,15 +301,22 @@ function select(items, prompt, options) {
     // Taskade/Gemini style: rainbow selected, bright white unselected, clean spacing
     var totalLines = 2; // prompt + blank
     items.forEach(function(item) {
+      if (typeof item !== 'string' && item.separator === true) { totalLines++; return; } // separator line
       totalLines++; // label line
       if (typeof item !== 'string' && item.description) totalLines++; // subtitle
     });
 
     function draw() {
-      stdout.write(ESC + totalLines + 'A');
+      stdout.write('\x1b[u'); // restore saved cursor position
+      stdout.write('\x1b[J'); // clear from cursor to end of screen
       stdout.write(ESC + '2K\n'); // blank top line
       stdout.write(ESC + '2K  \x1b[38;5;255m\x1b[1m' + (prompt || 'What would you like to do?') + RESET + '\n');
       items.forEach(function(item, i) {
+        var isSeparator = typeof item !== 'string' && item.separator === true;
+        if (isSeparator) {
+          stdout.write(ESC + '2K\n'); // blank separator line
+          return;
+        }
         var active = i === sel;
         var label = typeof item === 'string' ? item : item.label;
         var desc = typeof item === 'string' ? '' : (item.description || '');
@@ -342,15 +351,27 @@ function select(items, prompt, options) {
       });
     }
 
-    // Reserve space + initial draw
+    // Save cursor position, reserve space + initial draw
+    stdout.write('\x1b[s'); // save cursor position
     stdout.write('\n'.repeat(totalLines));
     draw();
 
+    function isSeparatorItem(idx) {
+      var item = items[idx];
+      return typeof item !== 'string' && item && item.separator === true;
+    }
+
     function handler(str, key) {
       if (!key) return;
-      if (key.name === 'up' && sel > 0) { sel--; if (onChange) onChange(sel); t = getTheme(); draw(); }
-      else if (key.name === 'down' && sel < items.length - 1) { sel++; if (onChange) onChange(sel); t = getTheme(); draw(); }
-      else if (key.name === 'return') { done(sel); }
+      if (key.name === 'up' && sel > 0) {
+        var next = sel - 1;
+        while (next > 0 && isSeparatorItem(next)) next--;
+        if (!isSeparatorItem(next)) { sel = next; if (onChange) onChange(sel); t = getTheme(); draw(); }
+      } else if (key.name === 'down' && sel < items.length - 1) {
+        var next = sel + 1;
+        while (next < items.length - 1 && isSeparatorItem(next)) next++;
+        if (!isSeparatorItem(next)) { sel = next; if (onChange) onChange(sel); t = getTheme(); draw(); }
+      } else if (key.name === 'return') { done(sel); }
       else if (key.ctrl && key.name === 'c') { done(-1); }
       else {
         // Letter shortcut: a=0, b=1, c=2, etc.

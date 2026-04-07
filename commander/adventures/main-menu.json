@@ -23,6 +23,9 @@
       "action": "open_project"
     },
     {
+      "separator": true
+    },
+    {
       "key": "b",
       "label": "Build something new",
       "description": "Code, websites, APIs, CLI tools",
@@ -33,6 +36,9 @@
       "label": "Create content",
       "description": "Marketing, social media, writing",
       "next": "create-content"
+    },
+    {
+      "separator": true
     },
     {
       "key": "d",
@@ -72,6 +78,9 @@
       "next": "night-build"
     },
     {
+      "separator": true
+    },
+    {
       "key": "s",
       "label": "Settings",
       "description": "Name, level, cost, theme",
@@ -94,6 +103,9 @@
       "label": "Type a command",
       "description": "Free-text prompt \u2014 describe anything or type /commands",
       "action": "freeform_prompt"
+    },
+    {
+      "separator": true
     },
     {
       "key": "q",
