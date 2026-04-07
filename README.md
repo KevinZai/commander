@@ -113,35 +113,33 @@ No configuration. No YAML. No API keys. The Intelligence Layer handles everythin
 <!-- Real terminal recordings via vhs (Catppuccin Mocha theme) -->
 <!-- Re-generate: vhs /tmp/ccc-*.tape from project root -->
 
-### The Dashboard — Your Mission Control
+### The Main Menu — Arrow Keys, No Commands to Memorize
 
-Everything at a glance: model, cost, token usage, context meters, rate limits, active skill, Linear ticket.
+<img src="docs/assets/screenshots/mainmenu.gif" alt="CC Commander Main Menu" width="100%">
+
+### The Dashboard — Mission Control for Every Session
 
 <img src="docs/assets/screenshots/hero-dashboard.gif" alt="CC Commander Dashboard" width="100%">
 
-### Live ASCII Meters — Context, Rate Limits, Budget
+### 11 CCC Domains — One Skill Loads an Entire Specialty
 
-Real-time meters powered by ClaudeSwap. Green → yellow → red as you approach limits.
+<img src="docs/assets/screenshots/domains.gif" alt="CCC Domains" width="100%">
+
+### Intelligence Layer — CCC Thinks Before It Acts
+
+<img src="docs/assets/screenshots/intelligence.gif" alt="Intelligence Layer" width="100%">
+
+### 5-Layer Token Optimization — 98% Context Savings
+
+<img src="docs/assets/screenshots/optimization.gif" alt="Token Optimization Stack" width="100%">
+
+### Live ASCII Meters — Green → Yellow → Red
 
 <img src="docs/assets/screenshots/live-meters.gif" alt="Live ASCII Meters" width="100%">
 
-### Rainbow Footer — Always Visible
-
-Every session shows your status. Rainbow CCC branding, model, key, meters, cost, tokens, time.
-
-<img src="docs/assets/screenshots/footer-rainbow.gif" alt="Rainbow Footer" width="100%">
-
 ### 455 Skills — Install Only What You Need
 
-Default: 37 essential skills. Add more with `ccc --skills install <name>`. Switch tiers anytime.
-
-<img src="docs/assets/screenshots/skills-overview.gif" alt="Skill Tiers" width="100%">
-
-<img src="docs/assets/screenshots/skills-install.gif" alt="Install and Remove Skills" width="100%">
-
-### One Install — Everything Working
-
-<img src="docs/assets/screenshots/install-demo.gif" alt="CCC Demo" width="100%">
+<img src="docs/assets/screenshots/skills-install.gif" alt="Skill Management" width="100%">
 
 > All recordings are real terminal output captured with [vhs](https://github.com/charmbracelet/vhs). No mockups.
 
