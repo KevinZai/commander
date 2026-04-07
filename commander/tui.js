@@ -77,6 +77,15 @@ function getThemeNames() {
   return Object.keys(THEMES);
 }
 
+// ─── Clack-inspired symbol vocabulary ────────────────────────────
+
+var S = {
+  BAR: '\u2502', BAR_START: '\u250c', BAR_END: '\u2514',
+  STEP_ACTIVE: '\u25c6', STEP_DONE: '\u25c7', STEP_CANCEL: '\u25a0', STEP_ERROR: '\u25b2',
+  RADIO_ON: '\u25cf', RADIO_OFF: '\u25cb',
+  CONNECTOR: '\u251c', CORNER: '\u2570',
+};
+
 // ─── ANSI Primitives ──────────────────────────────────────────────
 
 var ESC = '\x1b[';
@@ -298,32 +307,42 @@ function select(items, prompt, options) {
     readline.emitKeypressEvents(stdin);
     stdout.write(ESC + '?25l'); // hide cursor
 
-    // Taskade/Gemini style: rainbow selected, bright white unselected, clean spacing
-    var totalLines = 2; // prompt + blank
+    // Pipe-rail style: BAR prefix every line, RADIO symbols, hint bar at bottom
+    var totalLines = 1; // blank pipe-rail line before prompt
+    totalLines += 1;    // prompt line (◆  prompt text)
     items.forEach(function(item) {
-      if (typeof item !== 'string' && item.separator === true) { totalLines++; return; } // separator line
+      if (typeof item !== 'string' && item.separator === true) { totalLines++; return; } // separator → blank pipe-rail line
       totalLines++; // label line
       if (typeof item !== 'string' && item.description) totalLines++; // subtitle
     });
+    totalLines += 1; // blank pipe-rail line after items
+    totalLines += 1; // hint bar
+
+    var bar = colorText(S.BAR, t.dim);
 
     function draw() {
       stdout.write('\x1b[u'); // restore saved cursor position
       stdout.write('\x1b[J'); // clear from cursor to end of screen
-      stdout.write(ESC + '2K\n'); // blank top line
-      stdout.write(ESC + '2K  \x1b[38;5;255m\x1b[1m' + (prompt || 'What would you like to do?') + RESET + '\n');
+
+      // Blank pipe-rail line above prompt
+      stdout.write(ESC + '2K' + bar + '\n');
+
+      // Prompt line: ◆  prompt text
+      stdout.write(ESC + '2K' + colorText(S.STEP_ACTIVE + '  ', t.primary) + '\x1b[38;5;255m\x1b[1m' + (prompt || 'What would you like to do?') + RESET + '\n');
+
       items.forEach(function(item, i) {
         var isSeparator = typeof item !== 'string' && item.separator === true;
         if (isSeparator) {
-          stdout.write(ESC + '2K\n'); // blank separator line
+          stdout.write(ESC + '2K' + bar + '\n'); // blank pipe-rail separator
           return;
         }
         var active = i === sel;
         var label = typeof item === 'string' ? item : item.label;
         var desc = typeof item === 'string' ? '' : (item.description || '');
 
-        stdout.write(ESC + '2K');
+        stdout.write(ESC + '2K' + bar + '  ');
         if (active) {
-          // Rainbow-colored selected item — HSL cycling per character
+          // ● selected — rainbow HSL cycling per character
           var rainbowLabel = '';
           var ci = 0;
           for (var rc = 0; rc < label.length; rc++) {
@@ -333,22 +352,26 @@ function select(items, prompt, options) {
             rainbowLabel += rgb(c[0], c[1], c[2]) + label[rc];
             ci++;
           }
-          stdout.write('  ' + colorText('\u276f ', t.primary) + BOLD + rainbowLabel + RESET);
+          stdout.write(colorText(S.RADIO_ON + ' ', t.primary) + BOLD + rainbowLabel + RESET);
         } else {
-          // Bright white — clearly readable on dark bg
-          stdout.write('    \x1b[38;5;253m' + label + RESET);
+          // ○ unselected — bright white, readable on dark bg
+          stdout.write(colorText(S.RADIO_OFF + ' ', t.dim) + '\x1b[38;5;253m' + label + RESET);
         }
         stdout.write('\n');
         if (desc) {
-          stdout.write(ESC + '2K');
+          stdout.write(ESC + '2K' + bar + '     ');
           if (active) {
-            stdout.write('    ' + colorText(desc, t.primary));
+            stdout.write(colorText(desc, t.primary));
           } else {
-            stdout.write('    \x1b[38;5;245m' + desc + RESET);
+            stdout.write('\x1b[38;5;245m' + desc + RESET);
           }
           stdout.write('\n');
         }
       });
+
+      // Blank pipe-rail line + hint bar
+      stdout.write(ESC + '2K' + bar + '\n');
+      stdout.write(ESC + '2K' + bar + '  ' + colorText('[↑↓] navigate  [enter] select  [q] quit', t.dim) + '\n');
     }
 
     // Save cursor position, reserve space + initial draw
@@ -374,6 +397,11 @@ function select(items, prompt, options) {
       } else if (key.name === 'return') { done(sel); }
       else if (key.ctrl && key.name === 'c') { done(-1); }
       else {
+        // 'q' quits unless a menu item key starts with 'q'
+        if (str === 'q') {
+          var hasQItem = items.some(function(it) { return typeof it === 'string' ? it.toLowerCase().charAt(0) === 'q' : (it && it.key && it.key.toLowerCase() === 'q'); });
+          if (!hasQItem) { done(-1); return; }
+        }
         // Letter shortcut: a=0, b=1, c=2, etc.
         var code = (str || '').charCodeAt(0) - 97;
         if (code >= 0 && code < items.length) { sel = code; draw(); done(sel); }
@@ -500,6 +528,8 @@ function divider(title) {
 }
 
 module.exports = {
+  // Symbols
+  S: S,
   // Theme
   THEMES: THEMES,
   setTheme: setTheme,

@@ -101,3 +101,6 @@ jobs:
 
       - name: Doc sync check
         run: node bin/doc-sync.js
+
+      - name: Verify doc counts
+        run: node scripts/audit-counts.js --check

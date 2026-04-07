@@ -27,47 +27,62 @@ function inSplitMode() {
 // Dispatch counter for naming panes
 var dispatchCounter = 0;
 
-function tmuxDispatch(claudeCmd) {
+function tmuxDispatch(task, resumeSessionId) {
   try {
     var cp = require('child_process');
+    var crypto = require('crypto');
+    var claudeBin = require('./claude-finder').resolve();
     var sessionName = process.env.CCC_TMUX_SESSION || 'ccc';
+    var sessionId = resumeSessionId || crypto.randomUUID();
     dispatchCounter++;
     var paneTitle = 'claude-' + dispatchCounter;
 
     // Count current panes
-    var paneCount = 0;
+    var paneCount = 1;
     try {
       paneCount = parseInt(cp.execFileSync('tmux', ['display-message', '-p', '-t', sessionName, '#{window_panes}'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim(), 10) || 1;
-    } catch(_e) { paneCount = 1; }
+    } catch(_e) {}
 
+    // Create pane
     if (paneCount === 1) {
-      // First dispatch: split horizontally from menu pane, give Claude 75%
       cp.execFileSync('tmux', ['split-window', '-h', '-t', sessionName, '-l', '75%'], { stdio: 'pipe' });
     } else {
-      // Subsequent dispatches: split the rightmost pane horizontally to add another column
       var lastPane = paneCount - 1;
       cp.execFileSync('tmux', ['select-pane', '-t', sessionName + ':.' + lastPane], { stdio: 'pipe' });
       cp.execFileSync('tmux', ['split-window', '-h', '-t', sessionName], { stdio: 'pipe' });
     }
 
-    // Set the new pane's title and send the command
+    // Set pane title
     cp.execFileSync('tmux', ['select-pane', '-T', paneTitle], { stdio: 'pipe' });
-    cp.execFileSync('tmux', ['send-keys', claudeCmd, 'Enter'], { stdio: 'pipe' });
 
-    // Re-select the menu pane so the user stays in control
+    // Launch Claude with session persistence
+    if (resumeSessionId) {
+      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, claudeBin + ' --resume ' + sessionId + ' --continue', 'Enter'], { stdio: 'pipe' });
+    } else {
+      // Start interactive Claude, then send task as user input after a brief pause
+      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, claudeBin + ' --session-id ' + sessionId, 'Enter'], { stdio: 'pipe' });
+      cp.execSync('sleep 0.3', { stdio: 'pipe' });
+      // Sanitize task: strip control chars, limit length
+      var safeTask = String(task || '').replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 4000);
+      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', safeTask], { stdio: 'pipe' });
+      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
+    }
+
+    // Return focus to menu pane
     cp.execFileSync('tmux', ['select-pane', '-t', sessionName + ':.0'], { stdio: 'pipe' });
 
-    // Apply main-vertical layout: menu gets fixed width, rest split evenly
+    // Rebalance layout
     try {
       cp.execFileSync('tmux', ['select-layout', '-t', sessionName, 'main-vertical'], { stdio: 'pipe' });
       cp.execFileSync('tmux', ['resize-pane', '-t', sessionName + ':.0', '-x', '35'], { stdio: 'pipe' });
-    } catch(_e) { /* layout adjustment failed, that's ok */ }
+    } catch(_e) {}
 
-    return true;
-  } catch(_e) { return false; }
+    return sessionId;
+  } catch(_e) { return null; }
 }
 
 var cockpit = require('./cockpit');
+var S = tui.S;
 
 // Wrap a dispatch promise with cancel-on-keypress (Escape or 'q')
 function cancellableDispatch(dispatchPromise, label) {
@@ -274,6 +289,7 @@ class KitCommander {
 
       // Build cockpit data from state
       var skillCount = 0; try { skillCount = getSkillBrowser().listSkills().length; } catch(_e) {}
+
       var vendorCount = 0; try { var fs = require('fs'); vendorCount = fs.readdirSync(require('path').join(__dirname, '..', 'vendor')).length; } catch(_e) {}
       var activeLinear = currentState.activeSession ? (currentState.activeSession.linearIssueIdentifier || null) : null;
       var cockpitData = {
@@ -301,6 +317,7 @@ class KitCommander {
         process.stdout.write(tui.renderLogoResponsive('CCC'));
         process.stdout.write(cockpit.renderBanner(null, projName));
         process.stdout.write(cockpit.renderCockpitStatus(cockpitData));
+        process.stdout.write('  ' + tui.colorText(S.BAR_START + '  CC Commander v' + BRAND.version, tui.getTheme().dim) + '\n');
       } else {
         // Sub-menus: compact header with project name + one-line footer
         process.stdout.write(cockpit.renderCompactHeader(null, projName));
@@ -518,8 +535,10 @@ class KitCommander {
 
       if (inSplitMode()) {
         // Split mode: launch interactive Claude Code session the user can take over
-        var claudeArgs = 'claude -p ' + JSON.stringify(fullTask);
-        tmuxDispatch(claudeArgs);
+        var claudeSessionId = tmuxDispatch(fullTask);
+        if (claudeSessionId) {
+          state.updateSession(session.id, { claudeSessionId: claudeSessionId });
+        }
         process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
         process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
         state.completeSession(session.id, 'dispatched');
@@ -597,8 +616,10 @@ class KitCommander {
 
       if (inSplitMode()) {
         // Split mode: launch interactive Claude Code session the user can take over
-        var claudeArgs = 'claude -p ' + JSON.stringify(fullTask);
-        tmuxDispatch(claudeArgs);
+        var claudeSessionId = tmuxDispatch(fullTask);
+        if (claudeSessionId) {
+          state.updateSession(session.id, { claudeSessionId: claudeSessionId });
+        }
         process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
         process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
         state.completeSession(session.id, 'dispatched');
@@ -662,11 +683,17 @@ class KitCommander {
       tmuxStatus('Resuming: ' + (session.task || 'previous session').slice(0, 60));
       process.stdout.write('\x0a' + tui.divider('Resuming Session') + '\x0a\x0a');
       process.stdout.write('  ' + tui.dimText('Task: ' + (session.task || 'unknown').slice(0, 120)) + '\x0a');
-      process.stdout.write('  ' + tui.dimText('Claude is working \u2014 live output below.') + '\x0a\x0a');
-      var result = await d.dispatch('Continue: ' + session.task, { stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort, fallbackModel: 'sonnet', bare: false, resume: session.claudeSessionId || undefined });
-      state.updateSession(session.id, { cost: (session.cost || 0) + (result.cost_usd || 0) });
-      tmuxStatus('RESUME COMPLETE \u2714');
-      process.stdout.write(tui.celebrate('Progress made!'));
+      if (inSplitMode() && session.claudeSessionId) {
+        tmuxDispatch(null, session.claudeSessionId);
+        process.stdout.write('  ' + tui.boldText('Resumed in Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+        process.stdout.write('  ' + tui.dimText('Session resumed in pane. Ctrl+A \u2192 to switch.') + '\x0a');
+      } else {
+        process.stdout.write('  ' + tui.dimText('Claude is working \u2014 live output below.') + '\x0a\x0a');
+        var result = await d.dispatch('Continue: ' + session.task, { stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort, fallbackModel: 'sonnet', bare: false, resume: session.claudeSessionId || undefined });
+        state.updateSession(session.id, { cost: (session.cost || 0) + (result.cost_usd || 0) });
+        tmuxStatus('RESUME COMPLETE \u2714');
+        process.stdout.write(tui.celebrate('Progress made!'));
+      }
     } catch (err) { try { sp.stop(false); } catch(_) {} tmuxStatus('RESUME FAILED'); process.stdout.write('\n  Could not resume: ' + err.message + '\n'); }
     if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     await this.ask('\n  Press Enter...');
@@ -798,7 +825,23 @@ class KitCommander {
     process.stdout.write("  " + tui.boldText("YOLO Loop = continuous improvement until perfect.", tui.getTheme().primary) + "\n");
     process.stdout.write("  " + tui.dimText("After each build step, Commander reviews, tests, and iterates.") + "\n");
     process.stdout.write("  " + tui.dimText("Writes status to ~/.claude/commander/yolo-status.txt every cycle.") + "\n\n");
+
+    if (process.env.CCC_DISABLE_SKIP_PERMISSIONS === '1') {
+      process.stdout.write('  \x1b[38;5;208mYOLO mode is disabled (CCC_DISABLE_SKIP_PERMISSIONS=1).\x1b[0m\n');
+      process.stdout.write('  Unset that env var to enable YOLO mode.\n\n');
+      return { next: 'main-menu' };
+    }
+
+    process.stdout.write('  \x1b[38;5;208m\u26a0\ufe0f  YOLO mode uses --dangerously-skip-permissions\x1b[0m\n');
+    process.stdout.write('  This gives Claude full filesystem and shell access.\n\n');
     if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    var yoloConfirm = await this.ask('  Type "yes" to proceed: ');
+    if (yoloConfirm.trim().toLowerCase() !== 'yes') {
+      process.stdout.write('\n  Cancelled.\n');
+      return { next: 'main-menu' };
+    }
+    process.stdout.write('\n');
+
     var task = await this.ask("  What should the loop work on? > ");
     if (!task.trim()) return { next: "night-build" };
     var maxCycles = 5;
@@ -857,8 +900,7 @@ class KitCommander {
   }
 
   async quit() {
-    process.stdout.write('\n  See you next time!\n');
-    process.stdout.write('  ' + tui.dimText(BRAND.footer) + '\n\n');
+    process.stdout.write('\n  ' + tui.colorText(S.BAR_END + '  Session complete. See you next time!', tui.getTheme().dim) + '\n\n');
     this.running = false;
     if (this.rl) this.rl.close();
   }

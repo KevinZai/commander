@@ -68,8 +68,8 @@ function renderCockpitStatus(data) {
   var cols = Math.min(process.stdout.columns || 80, 72);
   var out = '';
 
-  // Top fading border
-  out += '  ' + fadeBorder('\u2500', cols - 4, t.primary) + '\n';
+  // Top rounded border
+  out += '  ' + rgb(t.primary[0], t.primary[1], t.primary[2]) + '\u256d' + '\u2500'.repeat(cols - 5) + '\u256e' + RESET + '\n';
 
   // Line 1: Model + emoji + cost + tokens + duration
   var emoji = data.thinking ? '\u{1F525}' : data.toolActive ? '\u26A1' : '\u{1F9E0}';
@@ -101,8 +101,8 @@ function renderCockpitStatus(data) {
   parts.push('\u{1F4C2}' + dim(shortDir));
   out += '  ' + parts.join(dim('  \u2502  ')) + '\n';
 
-  // Bottom fading border
-  out += '  ' + fadeBorder('\u2500', cols - 4, t.dim) + '\n';
+  // Bottom rounded border
+  out += '  ' + rgb(t.dim[0], t.dim[1], t.dim[2]) + '\u2570' + '\u2500'.repeat(cols - 5) + '\u256f' + RESET + '\n';
 
   return out;
 }
