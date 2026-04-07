@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <rect width="100%" height="100%" fill="#0d1117"/>
+  <text x="600" y="200" text-anchor="middle" fill="#ff0080" font-family="'SF Mono',monospace" font-size="120" font-weight="bold">98%</text>
+  <text x="600" y="290" text-anchor="middle" fill="#00ffff" font-family="'SF Mono',monospace" font-size="40">context savings</text>
+  <text x="600" y="380" text-anchor="middle" fill="#666" font-family="'SF Mono',monospace" font-size="24">Your Claude Code dumps 315KB of tool output into context.</text>
+  <text x="600" y="420" text-anchor="middle" fill="#666" font-family="'SF Mono',monospace" font-size="24">CC Commander sandboxes it to 5.4KB. Automatically.</text>
+  <text x="600" y="540" text-anchor="middle" fill="#ff0080" font-family="'SF Mono',monospace" font-size="28" font-weight="bold">CC COMMANDER</text>
+  <text x="600" y="580" text-anchor="middle" fill="#555" font-family="'SF Mono',monospace" font-size="18">github.com/KevinZai/cc-commander</text>
+  <line x1="200" y1="480" x2="1000" y2="480" stroke="#333" stroke-width="1"/>
+</svg>

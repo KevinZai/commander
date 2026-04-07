@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <rect width="100%" height="100%" fill="#0d1117"/>
+  <text x="600" y="80" text-anchor="middle" fill="#00ffff" font-family="'SF Mono',monospace" font-size="36" font-weight="bold">Intelligence Layer</text>
+  <text x="600" y="120" text-anchor="middle" fill="#666" font-family="'SF Mono',monospace" font-size="20">CCC thinks before it acts</text>
+  <line x1="200" y1="145" x2="1000" y2="145" stroke="#333" stroke-width="1"/>
+  <text x="120" y="210" fill="#00ffff" font-family="'SF Mono',monospace" font-size="22" font-weight="bold">Complexity Scoring</text>
+  <text x="120" y="245" fill="#00ff80" font-family="'SF Mono',monospace" font-size="18">"fix typo" → 15/100 → Haiku, $2</text>
+  <text x="120" y="275" fill="#ffcc00" font-family="'SF Mono',monospace" font-size="18">"build auth" → 72/100 → Sonnet, $8</text>
+  <text x="120" y="305" fill="#ff0080" font-family="'SF Mono',monospace" font-size="18">"redesign platform" → 95/100 → Opus, $10</text>
+  <text x="650" y="210" fill="#00ffff" font-family="'SF Mono',monospace" font-size="22" font-weight="bold">Stack Detection</text>
+  <text x="650" y="250" fill="#888" font-family="'SF Mono',monospace" font-size="18">Reads package.json, Dockerfile, go.mod</text>
+  <text x="650" y="280" fill="#888" font-family="'SF Mono',monospace" font-size="18">Auto-loads matching domain skills</text>
+  <text x="120" y="380" fill="#00ffff" font-family="'SF Mono',monospace" font-size="22" font-weight="bold">Knowledge Compounding</text>
+  <text x="120" y="415" fill="#888" font-family="'SF Mono',monospace" font-size="18">Learns from every session. Fuzzy search with time decay.</text>
+  <text x="650" y="380" fill="#00ffff" font-family="'SF Mono',monospace" font-size="22" font-weight="bold">Skill Recommendations</text>
+  <text x="650" y="415" fill="#888" font-family="'SF Mono',monospace" font-size="18">Ranked by stack match + usage history</text>
+  <line x1="200" y1="470" x2="1000" y2="470" stroke="#333" stroke-width="1"/>
+  <text x="600" y="540" text-anchor="middle" fill="#ff0080" font-family="'SF Mono',monospace" font-size="28" font-weight="bold">CC COMMANDER</text>
+  <text x="600" y="580" text-anchor="middle" fill="#888" font-family="'SF Mono',monospace" font-size="18">455 skills. 11 domains. An AI brain that learns.</text>
+  <text x="600" y="620" text-anchor="middle" fill="#555" font-family="'SF Mono',monospace" font-size="16">github.com/KevinZai/cc-commander</text>
+</svg>
