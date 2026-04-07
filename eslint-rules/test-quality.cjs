@@ -48,9 +48,9 @@ function collectStringLiterals(node) {
   return strs;
 }
 
-/** Get the raw source text of a node via context.getSourceCode(). */
+/** Get the raw source text of a node (ESLint 8+ and 10 compatible). */
 function src(context, node) {
-  return context.getSourceCode().getText(node);
+  return context.sourceCode.getText(node);
 }
 
 // ─── Rule: no-unscoped-service-test ───────────────────────────────────────────

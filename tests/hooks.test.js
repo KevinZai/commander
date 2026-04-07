@@ -557,26 +557,32 @@ describe('pre-compact.js', () => {
     assert.equal(parsed.session_id, 'test-compact');
   });
 
-  it('creates session file in ~/.claude/sessions/', () => {
+  it('creates session file in sessions dir', () => {
     const fs = require('fs');
     const os = require('os');
     const sessionId = 'test-precompact-' + Date.now();
+    const tmpSessions = path.join(os.tmpdir(), 'ccc-test-sessions-' + Date.now());
+    fs.mkdirSync(tmpSessions, { recursive: true });
+    const prevSessionsDir = process.env.KC_SESSIONS_DIR;
+    process.env.KC_SESSIONS_DIR = tmpSessions;
     const input = JSON.stringify({ session_id: sessionId });
     try {
       execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
         encoding: 'utf-8',
         timeout: 10000,
-        env: { ...process.env, CLAUDE_SESSION_ID: sessionId },
+        env: { ...process.env, CLAUDE_SESSION_ID: sessionId, KC_SESSIONS_DIR: tmpSessions },
       });
     } catch {
       // May exit non-zero but still write file
     }
-    const sessionsDir = path.join(os.homedir(), '.claude', 'sessions');
-    const files = fs.readdirSync(sessionsDir).filter(f => f.includes(sessionId));
+    const files = fs.readdirSync(tmpSessions).filter(f => f.includes(sessionId));
     assert.ok(files.length > 0, 'Should create a pre-compact session file');
     // Cleanup
-    for (const f of files) {
-      try { fs.unlinkSync(path.join(sessionsDir, f)); } catch {}
+    try { fs.rmSync(tmpSessions, { recursive: true, force: true }); } catch {}
+    if (prevSessionsDir === undefined) {
+      delete process.env.KC_SESSIONS_DIR;
+    } else {
+      process.env.KC_SESSIONS_DIR = prevSessionsDir;
     }
   });
 
