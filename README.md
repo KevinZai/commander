@@ -718,7 +718,7 @@ CC Commander aggregates 19 open-source packages. Full credits: **[ACKNOWLEDGMENT
 
 ## Who Built This
 
-CC Commander is built by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic)) — an engineer who got tired of configuring Claude Code from scratch every time. What started as a personal dotfiles collection grew into a 450+ skill aggregator used by developers worldwide. Every feature was built with Claude Code itself. The best way to build AI tools is with AI tools.
+CC Commander is built by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic)) — a non-technical entrepreneur and CEO of [MyWiFi Networks](https://mywifinetworks.com) (20+ years in tech, never wrote production code). He wanted to leverage Claude Code to its max capabilities without chasing plugins, reading changelogs, or memorizing commands. So he scanned every Claude Code article, plugin, and skill on the internet — 200+ sources — and distilled it into one self-learning AI project manager. Every feature was built with Claude Code itself. If a non-coder can build a 450+ skill toolkit with AI, imagine what you can build.
 
 ---
 
