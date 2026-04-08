@@ -95,8 +95,14 @@ echo "📄 Replacing CHEATSHEET.md..."
 cp CHEATSHEET.md "$CLAUDE_DIR/CHEATSHEET.md"
 echo "✅ CHEATSHEET.md updated"
 
+echo "📄 Replacing BIBLE.md..."
+cp BIBLE.md "$CLAUDE_DIR/BIBLE.md"
+echo "✅ BIBLE.md updated"
+
 if [ -d "hooks" ]; then
     echo "📂 Replacing hooks..."
+    rm -rf "$CLAUDE_DIR/hooks"
+    mkdir -p "$CLAUDE_DIR/hooks"
     cp -r hooks/ "$CLAUDE_DIR/hooks/"
     echo "✅ Hooks updated"
 fi

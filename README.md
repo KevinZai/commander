@@ -53,17 +53,34 @@ One question: **How are you using Claude?**
 
 > You use `claude` in your terminal. This is the most common way.
 
+**Option 1 — One-liner install:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+```
+
+**Option 2 — npm:**
 ```bash
 npm install -g cc-commander
 ```
 
 Then:
-
 ```bash
 ccc
 ```
 
 Arrow keys to navigate. Enter to select. That's it.
+
+**Update anytime:**
+```bash
+ccc --update
+```
+
+**Where files live:**
+- Source: `~/.cc-commander/` (auto-created by installer)
+- Config: `~/.claude/` (skills, commands, hooks, CLAUDE.md)
+- Binary: `ccc` → symlinked to source
+
+> ⚠️ Don't delete `~/.cc-commander/` — the `ccc` command needs it.
 
 **What you get:** Full CLI with tmux split mode, daemon, theme switching, and the cockpit dashboard.
 
@@ -322,7 +339,7 @@ CCC reads your project before every dispatch. No setup needed.
 | `ccc` | Interactive mode (default — tmux tabbed) |
 | `ccc --stats` | Sessions, streaks, level, cost |
 | `ccc --test` | 22-point self-test (verify install) |
-| `ccc --update` | Pull latest vendor package updates |
+| `ccc --update` | Pull latest + reinstall |
 | `ccc --repair` | Reset corrupt state |
 | `ccc --simple` | Menu-only, no tmux |
 | `ccc --dispatch "task"` | Headless dispatch (for AI agents) |

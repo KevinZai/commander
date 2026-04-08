@@ -25,7 +25,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --stats      Quick stats');
   console.log('  --repair     Fix corrupt state');
   console.log('  --simple     Menu-only mode (no tmux split)');
-  console.log('  --update     Check vendor package updates');
+  console.log('  --update     Pull latest + reinstall');
   console.log('  --dispatch   Headless: ccc --dispatch "task" [--json --model X --max-turns N --budget N --cwd PATH]');
   console.log('  --list-skills  List all skills (add --json for JSON)');
   console.log('  --skills       Manage installed skills (list, available, install, remove, tier)');
@@ -42,6 +42,35 @@ if (args.includes('--help') || args.includes('-h')) {
 }
 if (args.includes('--version')) { var B = require(path.join(__dirname,'..','commander','branding')); console.log(B.product + ' v' + B.version); process.exit(0); }
 if (args.includes('--simple')) { /* handled below — skip split, go to engine */ }
+if (args.includes('--update')) {
+  var { execSync } = require('child_process');
+  var repoDir = path.resolve(__dirname, '..');
+  var gitDir = path.join(repoDir, '.git');
+  console.log('\n  CC Commander — Update\n');
+  if (!fs.existsSync(gitDir)) {
+    console.log('  Updating via npm...');
+    try {
+      execSync('npm update -g cc-commander', { stdio: 'inherit' });
+      console.log('\n  Updated via npm.\n');
+    } catch (e) {
+      console.error('  npm update failed: ' + e.message);
+      console.log('  Try: npm install -g cc-commander@latest\n');
+    }
+    process.exit(0);
+  }
+  console.log('  Source: ' + repoDir);
+  try {
+    console.log('  Pulling latest...');
+    execSync('git -C ' + JSON.stringify(repoDir) + ' pull --recurse-submodules', { stdio: 'inherit' });
+    console.log('  Reinstalling...');
+    execSync('bash ' + JSON.stringify(path.join(repoDir, 'install.sh')) + ' --force', { stdio: 'inherit' });
+    console.log('\n  CC Commander updated.\n');
+  } catch (e) {
+    console.error('  Update failed: ' + e.message + '\n');
+    process.exit(1);
+  }
+  process.exit(0);
+}
 if (args.includes('--repair')) { var st = require(path.join(__dirname,'..','commander','state')); console.log('CC Commander — State Repair\n'); var r = st.repairState(); console.log(r.repaired ? '  Repaired: ' + r.details.join(', ') : '  State healthy.'); process.exit(0); }
 if (args.includes('--stats')) {
   var st2 = require(path.join(__dirname,'..','commander','state')); var cs = st2.loadState();

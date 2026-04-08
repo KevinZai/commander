@@ -96,6 +96,13 @@ echo ""
 [ -f "$CLAUDE_DIR/CHEATSHEET.md" ] && rm "$CLAUDE_DIR/CHEATSHEET.md" && echo "  ✓ Removed CHEATSHEET.md"
 [ -f "$CLAUDE_DIR/SKILLS-INDEX.md" ] && rm "$CLAUDE_DIR/SKILLS-INDEX.md" && echo "  ✓ Removed SKILLS-INDEX.md"
 
+# ── Remove ccc symlink ──────────────────────────────────────────────────
+for ccc_path in /usr/local/bin/ccc "$HOME/.local/bin/ccc"; do
+  if [ -L "$ccc_path" ]; then
+    rm "$ccc_path" && echo "  ✓ Removed $ccc_path symlink"
+  fi
+done
+
 # ── Offer restore ────────────────────────────────────────────────────────
 if [ -n "$backups" ]; then
   echo ""

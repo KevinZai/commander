@@ -108,7 +108,7 @@ if $VERIFY_ONLY; then
   fi
 
   # Check mega-skills
-  for mega in mega-seo mega-design mega-testing mega-marketing mega-saas mega-devops; do
+  for mega in ccc-seo ccc-design ccc-testing ccc-marketing ccc-saas ccc-devops; do
     if [ -d "$CLAUDE_DIR/skills/$mega" ]; then
       sub_count=$(find "$CLAUDE_DIR/skills/$mega" -maxdepth 1 -type d | wc -l | tr -d ' ')
       sub_count=$((sub_count - 1))
@@ -144,7 +144,11 @@ if $VERIFY_ONLY; then
   # Check reference docs
   for doc in BIBLE.md CHEATSHEET.md SKILLS-INDEX.md; do
     if [ -f "$CLAUDE_DIR/$doc" ]; then
-      cc_status_line "✓" "$doc exists"
+      if grep -q "CC Commander v${VERSION}" "$CLAUDE_DIR/$doc" 2>/dev/null; then
+        cc_status_line "✓" "$doc exists (v${VERSION})"
+      else
+        cc_status_line "!" "$doc exists but may be outdated (no v${VERSION} stamp)"
+      fi
     else
       cc_status_line "!" "$doc not found"
     fi
@@ -267,7 +271,7 @@ should_install() {
   local component="$1"
   case "$INSTALL_MODE" in
     full) return 0 ;;
-    essentials) [[ "$component" =~ ^(skills|commands|hooks|claude-md|settings|mega-symlinks)$ ]] ;;
+    essentials) [[ "$component" =~ ^(skills|commands|hooks|claude-md|settings|mega-symlinks|docs)$ ]] ;;
     scripts) [[ "$component" == "lib" ]] ;;
     dashboard) [[ "$component" == "dashboard" ]] ;;
     config) [[ "$component" =~ ^(claude-md|settings)$ ]] ;;
@@ -443,6 +447,7 @@ fi
 if should_install "hooks"; then
   ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Hooks"
+  rm -rf "$CLAUDE_DIR/hooks"
   mkdir -p "$CLAUDE_DIR/hooks"
   cp -r "$SCRIPT_DIR/hooks/"* "$CLAUDE_DIR/hooks/" 2>/dev/null || true
   cc_status_line "✓" "Hooks installed"
@@ -475,6 +480,10 @@ if should_install "docs"; then
       cp "$SCRIPT_DIR/$doc" "$CLAUDE_DIR/$doc"
     fi
   done
+  # Stamp version into installed BIBLE
+  if [ -f "$CLAUDE_DIR/BIBLE.md" ]; then
+    sed -i '' "1s|^|<!-- CC Commander v${VERSION} | Installed $(date +%Y-%m-%d) -->\n|" "$CLAUDE_DIR/BIBLE.md"
+  fi
   cc_status_line "✓" "BIBLE.md + CHEATSHEET.md + SKILLS-INDEX.md"
 fi
 

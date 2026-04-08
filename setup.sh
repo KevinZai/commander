@@ -6,6 +6,20 @@
 #   --dry-run   Preview what would be installed (no changes)
 #   --verify    Validate an existing installation
 
+echo ""
+echo "  ⚠️  setup.sh is DEPRECATED. Use install.sh instead:"
+echo ""
+echo "    ./install.sh              Interactive install"
+echo "    ./install.sh --force      Skip prompts"
+echo "    ./install.sh --verify     Validate install"
+echo ""
+read -p "  Continue anyway? (y/N) " confirm
+if [[ "${confirm,,}" != "y" ]]; then
+  echo "  Use: ./install.sh"
+  exit 0
+fi
+echo ""
+
 set -e
 
 CLAUDE_DIR="$HOME/.claude"

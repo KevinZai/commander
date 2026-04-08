@@ -57,16 +57,26 @@ else
   echo -e "  ${GREEN}✓${NC} Claude Code CLI found"
 fi
 
-# ── Clone the kit ────────────────────────────────────────────────────────────
+# ── Clone or update the kit ──────────────────────────────────────────────────
 
-INSTALL_DIR="${TMPDIR:-/tmp}/cc-commander-$$"
-echo -e "  ${CYAN}►${NC} Downloading kit..."
+INSTALL_DIR="$HOME/.cc-commander"
 
-if git clone --depth 1 https://github.com/KevinZai/cc-commander.git "$INSTALL_DIR" 2>/dev/null; then
-  echo -e "  ${GREEN}✓${NC} Kit downloaded"
+if [ -d "$INSTALL_DIR/.git" ]; then
+  echo -e "  ${CYAN}►${NC} CC Commander already installed — pulling latest..."
+  if git -C "$INSTALL_DIR" pull --recurse-submodules 2>/dev/null; then
+    echo -e "  ${GREEN}✓${NC} Updated to latest"
+  else
+    echo -e "  ${RED}✗${NC} git pull failed. Check your internet connection."
+    exit 1
+  fi
 else
-  echo -e "  ${RED}✗${NC} Failed to clone. Check your internet connection."
-  exit 1
+  echo -e "  ${CYAN}►${NC} Downloading kit to ~/.cc-commander..."
+  if git clone --depth 1 --recursive https://github.com/KevinZai/cc-commander.git "$INSTALL_DIR" 2>/dev/null; then
+    echo -e "  ${GREEN}✓${NC} Kit downloaded"
+  else
+    echo -e "  ${RED}✗${NC} Failed to clone. Check your internet connection."
+    exit 1
+  fi
 fi
 
 # ── Run the installer ────────────────────────────────────────────────────────
@@ -77,8 +87,12 @@ echo ""
 
 cd "$INSTALL_DIR"
 chmod +x install.sh
-./install.sh
+./install.sh --force
 
-# ── Cleanup ──────────────────────────────────────────────────────────────────
+# ── Done ─────────────────────────────────────────────────────────────────────
 
-rm -rf "$INSTALL_DIR" 2>/dev/null || true
+echo ""
+echo -e "  ${GREEN}✓${NC} CC Commander installed to ${WHITE}~/.cc-commander${NC}"
+echo -e "  ${DIM}To update: curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash${NC}"
+echo -e "  ${DIM}       or: cd ~/.cc-commander && git pull && ./install.sh --force${NC}"
+echo ""

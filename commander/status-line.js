@@ -6,6 +6,7 @@ var os = require('os');
 var path = require('path');
 
 var pkg = require('../package.json');
+var themes = require('../lib/themes');
 
 function parseArgs(argv) {
   var args = { json: false, context: '?', cost: '?' };
@@ -20,6 +21,12 @@ function parseArgs(argv) {
       args.cost = argv[++i];
     } else if (argv[i].startsWith('--cost=')) {
       args.cost = argv[i].slice('--cost='.length);
+    } else if ((argv[i] === '--time' || argv[i] === '--session-minutes') && argv[i + 1]) {
+      args.sessionMinutes = parseInt(argv[++i], 10) || 0;
+    } else if (argv[i].startsWith('--time=')) {
+      args.sessionMinutes = parseInt(argv[i].slice('--time='.length), 10) || 0;
+    } else if (argv[i].startsWith('--session-minutes=')) {
+      args.sessionMinutes = parseInt(argv[i].slice('--session-minutes='.length), 10) || 0;
     }
   }
   return args;
@@ -76,21 +83,12 @@ function getApiKeyLast3() {
   return key.length >= 3 ? key.slice(-3) : (key.length > 0 ? key : 'n/a');
 }
 
-function miniRainbow(text) {
-  var colors = [
-    '\x1b[38;2;255;0;128m',   // magenta-red
-    '\x1b[38;2;255;165;0m',   // orange
-    '\x1b[38;2;255;255;0m',   // yellow
-    '\x1b[38;2;0;255;128m',   // green
-    '\x1b[38;2;0;200;255m',   // cyan
-    '\x1b[38;2;128;0;255m',   // purple
-  ];
-  var out = '\x1b[1m';
-  for (var i = 0; i < text.length; i++) {
-    if (text[i] === ' ') { out += ' '; continue; }
-    out += colors[i % colors.length] + text[i];
-  }
-  return out + '\x1b[0m';
+function fmtSessionTime(minutes) {
+  if (!minutes || minutes <= 0) return '0m';
+  if (minutes < 60) return Math.round(minutes) + 'm';
+  var h = Math.floor(minutes / 60);
+  var m = Math.round(minutes % 60);
+  return h + 'h' + (m > 0 ? m + 'm' : '');
 }
 
 function main() {
@@ -103,6 +101,7 @@ function main() {
   var cwd = shortenPath(process.cwd());
   var contextPct = args.context;
   var cost = args.cost;
+  var sessionMinutes = args.sessionMinutes || 0;
 
   if (args.json) {
     process.stdout.write(JSON.stringify({
@@ -113,6 +112,7 @@ function main() {
       cost: cost,
       skillCount: skillCount,
       cwd: cwd,
+      sessionMinutes: sessionMinutes,
     }) + '\n');
     return;
   }
@@ -120,7 +120,7 @@ function main() {
   // Detect auth source (ClaudeSwap vs OAuth vs API key)
   var authSrc = 'key';
   try {
-    var swapPath = require('path').join(require('os').homedir(), '.claude', 'claudeswap-state.json');
+    var swapPath = require('path').join(require('os').homedir(), '.config', 'claudeswap-state.json');
     if (require('fs').existsSync(swapPath)) {
       var st = JSON.parse(require('fs').readFileSync(swapPath, 'utf8'));
       if (st.active) authSrc = 'swap';
@@ -132,14 +132,17 @@ function main() {
   } catch(_e) {}
   var authLabel = authSrc === 'swap' ? 'SW:' + apiKeyLast3 : authSrc === 'oauth' ? 'OA' : apiKeyLast3;
 
+  var t = themes.getTheme();
+
   var line = [
-    '\u2501\u2501 \x1b[1m\x1b[38;2;255;102;0mCCC' + version + '\x1b[0m',
-    '\uD83D\uDD25' + model,
-    '\uD83D\uDD11' + authLabel,
-    '\uD83E\uDDE0' + contextPct + '%',
-    '\uD83D\uDCB0$' + cost,
-    '\uD83C\uDFAF' + skillCount,
-    '\uD83D\uDCC2' + cwd,
+    '\u2501\u2501 ' + t.bold + t.primary + 'CCC' + version + t.reset,
+    '\uD83D\uDD25' + t.primary + model + t.reset,
+    '\uD83D\uDD11' + t.dim + authLabel + t.reset,
+    '\uD83E\uDDE0' + t.primary + contextPct + '%' + t.reset,
+    '\uD83D\uDCB0' + t.primary + '$' + cost + t.reset,
+    '\u23F1\uFE0F' + t.primary + fmtSessionTime(sessionMinutes) + t.reset,
+    '\uD83C\uDFAF' + t.primary + skillCount + t.reset,
+    '\uD83D\uDCC2' + t.dim + cwd + t.reset,
   ].join('\u2502');
 
   process.stdout.write(line + '\n');

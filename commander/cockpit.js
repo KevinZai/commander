@@ -63,7 +63,7 @@ function detectAuthSource() {
     var os = require('os');
     var path = require('path');
     var fs = require('fs');
-    var swapState = path.join(os.homedir(), '.claude', 'claudeswap-state.json');
+    var swapState = path.join(os.homedir(), '.config', 'claudeswap-state.json');
     if (fs.existsSync(swapState)) {
       var state = JSON.parse(fs.readFileSync(swapState, 'utf8'));
       if (state.active) return 'swap';
@@ -118,11 +118,16 @@ function renderCockpitStatus(data) {
 
   // Line 2: Context meter + Rate meter + session timer + 7d budget
   var sessionMinutes = data.sessionMinutes || 0;
-  var sessionPct5h = Math.min(100, Math.round((sessionMinutes / 300) * 100));
+  var sessionLimit = data.sessionLimitMinutes || 0;
   var weekPct = Math.min(100, Math.round(((data.weekCost || 0) / (data.weekBudget || 50)) * 100));
   out += '  ' + asciiMeter(data.contextPct || 0, 100, 14, 'CTX', t.primary);
   out += '  ' + asciiMeter(data.ratePct || 0, 100, 14, 'RATE', t.secondary);
-  out += '  \u23F1\uFE0F' + asciiMeter(sessionPct5h, 100, 10, '5h', sessionPct5h > 80 ? [255, 80, 80] : t.secondary);
+  if (sessionLimit > 0) {
+    var sessionPct = Math.min(100, Math.round((sessionMinutes / sessionLimit) * 100));
+    out += '  \u23F1\uFE0F' + asciiMeter(sessionPct, 100, 10, 'SES', sessionPct > 80 ? [255, 80, 80] : t.secondary);
+  } else {
+    out += '  \u23F1\uFE0F' + dim('SES [') + bold(fmtTimeRemaining(sessionMinutes), t.secondary) + dim('] ');
+  }
   out += '  \u{1F4C5}' + asciiMeter(weekPct, 100, 10, '7d', weekPct > 80 ? [255, 80, 80] : t.secondary);
   out += '\n';
 
@@ -168,12 +173,17 @@ function renderCockpitFooter(data) {
   // Context meter
   parts.push('\u{1F9E0}' + miniMeter(data.contextPct || 0, t.primary));
 
-  // 5h session meter with time remaining
+  // Session meter with time elapsed (or percent if limit provided)
   var sessionMinutes = data.sessionMinutes || 0;
-  var sessionPct5h = Math.min(100, Math.round((sessionMinutes / 300) * 100));
-  var sessionColor = sessionPct5h > 80 ? [255, 60, 60] : sessionPct5h > 50 ? [255, 200, 50] : [80, 220, 80];
-  var sessionRemaining = fmtTimeRemaining(Math.max(0, 300 - sessionMinutes));
-  parts.push('\u23F1\uFE0F' + miniMeter(sessionPct5h, sessionColor, sessionRemaining));
+  var sessionLimit = data.sessionLimitMinutes || 0;
+  if (sessionLimit > 0) {
+    var sessionPctF = Math.min(100, Math.round((sessionMinutes / sessionLimit) * 100));
+    var sessionColorF = sessionPctF > 80 ? [255, 60, 60] : sessionPctF > 50 ? [255, 200, 50] : [80, 220, 80];
+    var sessionRemainingF = fmtTimeRemaining(Math.max(0, sessionLimit - sessionMinutes));
+    parts.push('\u23F1\uFE0F' + miniMeter(sessionPctF, sessionColorF, sessionRemainingF));
+  } else {
+    parts.push('\u23F1\uFE0F' + col(fmtTimeRemaining(sessionMinutes), t.text));
+  }
 
   // 7d rolling meter with time remaining
   var weekPct = Math.min(100, Math.round(((data.weekCost || 0) / (data.weekBudget || 50)) * 100));
