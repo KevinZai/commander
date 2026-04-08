@@ -249,31 +249,22 @@ else
   STATUS_EMOJI=""
 fi
 
-# ── API key hint (last 3 chars of active token) ──────────────────────────
+# ── API key hint (active account or key tail) ────────────────────────────
 KEY_HINT=""
-SWAP_CONFIG="$HOME/.config/claudeswap.json"
 SWAP_STATE_FILE="$HOME/.config/claudeswap-state.json"
-if [ -f "$SWAP_STATE_FILE" ] && [ -f "$SWAP_CONFIG" ]; then
-  # Get active account name, then look up its token's last 3 chars
+if [ -f "$SWAP_STATE_FILE" ]; then
+  # Show active ClaudeSwap account name (short form)
   SWAP_ACTIVE=$(jq -r '.accounts | to_entries | sort_by(.value.last_used) | last | .key // empty' "$SWAP_STATE_FILE" 2>/dev/null)
   if [ -n "$SWAP_ACTIVE" ]; then
-    SWAP_TOK_RAW=$(jq -r --arg n "$SWAP_ACTIVE" '.accounts[] | select(.name == $n) | .token // empty' "$SWAP_CONFIG" 2>/dev/null)
-    # Resolve env var references like $ANTHROPIC_API_KEY
-    if [[ "$SWAP_TOK_RAW" == \$* ]]; then
-      VARNAME="${SWAP_TOK_RAW#\$}"
-      VARNAME="${VARNAME#\{}"
-      VARNAME="${VARNAME%\}}"
-      SWAP_TOK=$(eval echo "\$$VARNAME" 2>/dev/null)
-    else
-      SWAP_TOK="$SWAP_TOK_RAW"
-    fi
-    if [ -n "$SWAP_TOK" ] && [ ${#SWAP_TOK} -ge 3 ]; then
-      KEY_HINT="${SWAP_TOK: -3}"
-    else
-      KEY_HINT="SW"
-    fi
+    # Shorten: "max-primary" → "pri", "max-secondary" → "sec"
+    case "$SWAP_ACTIVE" in
+      *primary*)   KEY_HINT="pri" ;;
+      *secondary*) KEY_HINT="sec" ;;
+      *)           KEY_HINT="${SWAP_ACTIVE:0:3}" ;;
+    esac
   fi
-elif [ -n "$ANTHROPIC_API_KEY" ]; then
+fi
+if [ -z "$KEY_HINT" ] && [ -n "$ANTHROPIC_API_KEY" ]; then
   KEY_HINT="${ANTHROPIC_API_KEY: -3}"
 fi
 [ -z "$KEY_HINT" ] && KEY_HINT="n/a"
