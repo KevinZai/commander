@@ -155,6 +155,33 @@ cc_matrix_rain() { cc_intro_animation "$@"; }
 
 # ── ASCII Banners ──────────────────────────────────────────────────────────
 
+# Rainbow gradient for ASCII art lines
+_cc_rainbow_line() {
+  local text="$1"
+  local len=${#text}
+  local out=""
+  local -a R=(255 255 200  0   0  140)
+  local -a G=(50  180 255 220 180  60)
+  local -a BI=(80   0   0 100 255 255)
+  local stops=$(( ${#R[@]} - 1 ))
+  for ((i=0; i<len; i++)); do
+    local ch="${text:$i:1}"
+    if [[ "$ch" == " " ]]; then
+      out+=" "
+      continue
+    fi
+    local pos=$(( i * stops * 100 / (len > 1 ? len - 1 : 1) ))
+    local seg=$(( pos / 100 ))
+    [[ $seg -ge $stops ]] && seg=$(( stops - 1 ))
+    local frac=$(( pos - seg * 100 ))
+    local r=$(( R[seg] + (R[seg+1] - R[seg]) * frac / 100 ))
+    local g=$(( G[seg] + (G[seg+1] - G[seg]) * frac / 100 ))
+    local b=$(( BI[seg] + (BI[seg+1] - BI[seg]) * frac / 100 ))
+    out+="\033[1;38;2;${r};${g};${b}m${ch}"
+  done
+  printf '%b%b' "$out" "${NC}"
+}
+
 cc_banner() {
   local w
   w=$(cc_term_width)
@@ -165,17 +192,15 @@ cc_banner() {
   fi
 
   echo ""
-  echo -e "${M_MID}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╔═╗╔═╗╔═╗${NC}                                      ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}║  ║  ║  ${NC}                                      ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╚═╝╚═╝╚═╝${NC}                                      ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_WHITE}CC Commander${NC}  ${M_DIM}v2.3.0${NC}                              ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}   ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_CYAN}by Kevin Z${NC}  ${M_DIM}//${NC}  ${M_WHITE}450+ Skills. One Install.${NC}     ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
-  echo -e "${M_MID}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -ne "   "; _cc_rainbow_line " ██████╗ ██████╗ ██████╗"; echo ""
+  echo -ne "   "; _cc_rainbow_line "██╔════╝██╔════╝██╔════╝"; echo ""
+  echo -ne "   "; _cc_rainbow_line "██║     ██║     ██║     "; echo ""
+  echo -ne "   "; _cc_rainbow_line "██║     ██║     ██║     "; echo ""
+  echo -ne "   "; _cc_rainbow_line "╚██████╗╚██████╗╚██████╗"; echo ""
+  echo -ne "   "; _cc_rainbow_line " ╚═════╝ ╚═════╝ ╚═════╝"; echo ""
+  echo ""
+  echo -ne "   "; _cc_rainbow_line "CC Commander"; echo -e "  ${M_DIM}v${VERSION:-2.3.0}${NC}"
+  echo -e "   ${M_CYAN}by Kevin Z${NC}  ${M_DIM}//${NC}  ${M_WHITE}450+ Skills. One Install.${NC}"
   echo ""
 }
 kz_banner() { cc_banner "$@"; }
@@ -183,7 +208,7 @@ kz_banner() { cc_banner "$@"; }
 cc_mini_banner() {
   echo ""
   echo -e "${M_MID}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo -e "  CC Commander v2.3.0${NC}  ${M_CYAN}CC Commander — by Kevin Z${NC}"
+  echo -ne "  "; _cc_rainbow_line "CC Commander"; echo -e " ${M_DIM}v${VERSION:-2.3.0}${NC}  ${M_DIM}by Kevin Z${NC}"
   echo -e "${M_MID}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""
 }
