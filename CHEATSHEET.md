@@ -25,7 +25,7 @@ Load ONE CCC domain to get an entire domain. Each has a router that dispatches t
 
 ---
 
-## Workflow Modes (NEW in v1.1)
+## Workflow Modes (NEW in v2.3.0)
 
 Switch your entire workflow persona with one command. Each mode adjusts behavior, verbosity, risk tolerance, and auto-loaded skills.
 
@@ -45,7 +45,7 @@ Switch your entire workflow persona with one command. Each mode adjusts behavior
 
 ---
 
-## Prompt Library (NEW in v1.1)
+## Prompt Library (NEW in v2.3.0)
 
 36+ battle-tested prompt templates across 6 categories:
 
@@ -334,7 +334,7 @@ The kit ships 25 hooks that fire automatically — no prompting required. Disabl
 
 **Session Coach** fires every N responses (default: 10). Customize interval with `CC_COACH_INTERVAL=20` (number of responses between nudges). Disable entirely with `CC_COACH_DISABLE=1`.
 
-With ECC installed, additional hooks bring the total above 37. Without ECC, the 25 kit-native hooks work standalone via `hooks-standalone.json`.
+CC Commander ships with 25 kit-native hooks that work standalone via `hooks-standalone.json`.
 
 ---
 
@@ -533,14 +533,14 @@ Install only the skills you need — smaller tiers save ~10k tokens per session:
 ```bash
 ./install.sh --skills=essential   # ~30 core skills (default, saves ~10k tokens)
 ./install.sh --skills=recommended # ~100 skills for most developers
-./install.sh --skills=full        # All 451 skills (legacy behavior)
+./install.sh --skills=full        # All 458 skills (legacy behavior)
 ```
 
 | Tier | Count | When to use |
 |------|-------|------------|
 | `essential` | ~30 | Default — covers 90% of use cases |
 | `recommended` | ~100 | Active builders across multiple domains |
-| `full` | 451 | Legacy behavior, maximum coverage |
+| `full` | 458 | Legacy behavior, maximum coverage |
 
 You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 
@@ -956,7 +956,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 # Launch
 ccc              # Interactive mode (arrow-key menus)
 npx kit-commander           # Via npm
-kc                          # Global alias
+ccc                         # Global binary
 
 # Flags
 ccc --test       # 22-point self-test

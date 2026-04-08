@@ -85,7 +85,7 @@ git submodule add --depth 1 https://github.com/owner/repo vendor/repo-name
 |------|-------|---------|-------------|------------|
 | [claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | 15K+ | — | Official Anthropic plugin directory | Publish CCC here |
 | [humanizer](https://github.com/blader/humanizer) | 11K+ | MIT | Remove AI writing markers from text | Reference |
-| [claude-code-plugins-plus-skills](https://github.com/jeremylongshore/claude-code-plugins-plus-skills) | 1.7K+ | Other | 340 plugins + 1,367 skills, CCPI package manager | Reference |
+| [claude-code-plugins-plus-skills](https://github.com/jeremylongshore/claude-code-plugins-plus-skills) | 1.7K+ | Other | 340 plugins + 1.3K+ skills, CCPI package manager | Reference |
 | [superpowers-marketplace](https://github.com/obra/superpowers-marketplace) | 767 | MIT | Curated plugin marketplace | Reference |
 | [awesome-claude-code-plugins](https://github.com/ccplugins/awesome-claude-code-plugins) | 657 | Apache 2.0 | Curated plugin/command list | Reference |
 

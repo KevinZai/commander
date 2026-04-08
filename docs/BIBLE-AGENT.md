@@ -17,8 +17,8 @@ git clone --recursive https://github.com/KevinZai/cc-commander.git
 cd cc-commander && ./install.sh --force
 
 # 2. Verify
-ccc --test     # 166 tests across 4 suites
-ccc --status   # {"version":"<from package.json>","skills":362,"vendors":16,"health":"ok"}
+ccc --test     # 187 tests across 14 suites
+ccc --status   # {"version":"<from package.json>","skills":453,"vendors":19,"health":"ok"}
 
 # 3. Use inside Claude Code sessions
 /ccc           # Full interactive menu (15 options, sub-menus, cancel support)
@@ -117,7 +117,7 @@ cd cc-commander/extension && code --install-extension .
 | `ccc --list-sessions --json` | JSON array | Check session history |
 | `ccc --status` | JSON | Health check (version, skills, vendors) |
 | `ccc --template` | text | Get latest CLAUDE.md template |
-| `ccc --test` | text | Validate installation (166 tests across 4 suites) |
+| `ccc --test` | text | Validate installation (187 tests across 14 suites) |
 | `ccc --stats` | text | Sessions, streaks, cost, level |
 
 ### Infrastructure CLI Commands
@@ -161,7 +161,7 @@ CLIs checked: `gh`, `openclaw`, `pm2`, `docker`.
 
 **Success:**
 ```json
-{"result": "Task complete. Files modified: ...", "session_id": "kc-build-auth", "cost_usd": 1.23}
+{"result": "Task complete. Files modified: ...", "session_id": "ccc-build-auth", "cost_usd": 1.23}
 ```
 
 **Error:**
@@ -260,13 +260,13 @@ ccc --dispatch "YOLO: Build complete SaaS with auth, billing, dashboard. 5 cycle
 
 | Component | Count |
 |-----------|-------|
-| Skills | 451 (CLI-visible) |
+| Skills | 453 (CLI-visible) |
 | Commands | 83 |
-| Hooks | 28 |
+| Hooks | 25 |
 | Adventures | 14 |
-| Vendors | 17 |
+| Vendors | 19 |
 | Themes | 10 |
-| Tests | 166 |
+| Tests | 187 |
 | Modes | 9 |
 
 ---
@@ -355,7 +355,7 @@ ccc --dispatch "Using tdd-workflow skill: [task]" --json
 Every CCC session displays a 12-segment status line:
 
 ```
-━━ CCC{ver}│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌│📅▐██░░░░░▌│💰$2.34│↑640K↓694K│⏰8h0m│🎯362│📋CC-150│📂~/project
+━━ CCC{ver}│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌│📅▐██░░░░░▌│💰$2.34│↑640K↓694K│⏰8h0m│🎯453│📋CC-150│📂~/project
 ```
 
 _(Example — actual version comes from `status-line.js`)_
@@ -413,11 +413,10 @@ Override per-dispatch with --max-turns, --budget, --model.
 
 ## Testing
 
-166 tests across 4 suites:
-- paths.test.js (18) — adventure files, navigation, module exports
-- hooks.test.js (61) — lifecycle hooks
-- intelligence.test.js (57) — scoring, knowledge, skills, project import
-- error-handling.test.js (30) — error logger, action module structure
+187 tests across 14 suites:
+- paths.test.js, hooks.test.js, intelligence.test.js, error-handling.test.js
+- tmux-menu-audit.test.js, claude-finder.test.js, tui-visual.test.js
+- dispatch-security.test.js, audit-counts.test.js, plus supporting suites
 
 Plus: smoke.sh (6 CLI flag tests), prepublishOnly gate. Run: `node --test tests/*.test.js`
 

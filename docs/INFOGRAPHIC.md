@@ -213,7 +213,7 @@
     ╚═══════════════╝
 
     + 1 platform hook: openclaw-adapter (event translation)
-    + 19 ECC hooks when installed (37 total)
+    + 25 kit-native hooks included in CC Commander
 
     Every hook individually toggleable: KZ_DISABLE_<HOOK_NAME>=1
 ```
@@ -360,5 +360,5 @@
 
 ---
 
-*CC Commander v2.3.0 by Kevin Z -- 450+ skills | 11 CCC domains | 80+ commands | 28 hooks | 10 themes | 9 modes*
+*CC Commander v2.3.0 by Kevin Z -- 450+ skills | 11 CCC domains | 80+ commands | 25 hooks | 10 themes | 9 modes*
 *Distilled from 200+ community sources. One install. Under 60 seconds.*

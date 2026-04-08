@@ -2,7 +2,7 @@
 
 ## What This Is
 
-CC Commander — by Kevin Z. 450+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 450+ skills, 11 CCC domains, 80+ commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Z. 450+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 450+ skills, 11 CCC domains, 80+ commands, 25 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 **Current Release:** The Aggregator Release (version tracked in `package.json`)
 
@@ -25,7 +25,7 @@ Interactive CLI that sits ABOVE Claude Code sessions. Manages, dispatches, and t
 
 ```bash
 ccc          # Launch interactive mode
-ccc --test   # 166 tests across 4 suites
+ccc --test   # 187 tests across 14 suites
 ccc --stats  # Quick stats
 ```
 
@@ -53,10 +53,10 @@ Tests: `node --test commander/tests/paths.test.js`
 │   ├── confidence-check/    # Pre-execution confidence assessment
 │   ├── four-question-validation/  # Post-implementation verification
 ���   └── */               # Individual skills (SKILL.md each)
-├── commands/            # 76 slash commands (.md files)
+├── commands/            # 83 slash commands (.md files)
 │   └── cc.md            # /cc command center (interactive menu)
 ├── prompts/             # 36+ prompt templates across 6 categories
-├── hooks/               # 18 kit-native hooks (JS) + hooks.json (37 total w/ ECC) + hooks-standalone.json
+├── hooks/               # 25 kit-native hooks (JS) + hooks.json + hooks-standalone.json
 ├── templates/           # 3 starter templates (nextjs, api, cli)
 ├── lib/                 # Terminal art (bash + JS) + statusline.sh
 ├── docs/                # GitHub Pages landing site
@@ -94,7 +94,7 @@ claude-code-prompts (142).
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
 
 ```
-━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/project
+━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
 ```
 
 Render this at session start and after major actions. Source: `commander/cockpit.js`.
@@ -183,14 +183,14 @@ ccc --status                  # Health check
 - Status line (`lib/statusline.sh`) shows live context gauge, model, cost, tokens, account, rate limit countdown
 - `/init` checks `~/.claude/sessions/` and offers to resume prior sessions before the wizard
 - 4 iTerm2 color profiles at `compatibility/` (Claude Anthropic, OLED Black, Matrix); legacy `kz-matrix.itermcolors` preserved
-- Theme system with 4 switchable skins (Claude Anthropic, OLED Black, Matrix, Surprise Me)
+- Theme system with 10 switchable themes
 - OpenClaw native integration with auto-detection, skill sync, bidirectional event forwarding
 - Status update requests for sending progress reports during long sessions
 - Continuous improvement pipeline with daily cron scan and proposal queue
 - Modular installer with 5 installation modes (full, essentials, scripts, dashboard, config-only)
 - Daemon Mode: commander/daemon.js (tick loop), commander/queue.js (task queue), commander/dream.js (knowledge consolidation)
 - Intelligence Layer v1: complexity scoring (dispatcher.js), stack detection (project-importer.js), session learning (knowledge.js), skill filtering (skill-browser.js), smart retry (dispatchWithRetry)
-- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 451)
+- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 458)
 - Update checker at `commander/update-check.js` — 4h cache, silent on failure, fires on session start
 - Caveman mode (`caveman` skill) — strips markdown/emojis/prose for ~75% output token savings during iteration
 

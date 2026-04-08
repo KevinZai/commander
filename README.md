@@ -161,7 +161,7 @@ The first thing you see. Arrow keys only — no commands to memorize.
 <!-- Version is tracked in package.json — update all references when bumping -->
 ```
 ╔══════════════════════════════════════════╗
-║  CC COMMANDER v2.3                       ║
+║  CC COMMANDER v2.3.0                     ║
 ║  Your AI Project Manager                 ║
 ╚══════════════════════════════════════════╝
 
@@ -232,7 +232,7 @@ Context, rate limits, and budget meters in your terminal. Color-codes green → 
 
 ```
   ══════════════════════════════════════════
-  CC COMMANDER  v2.3                    <!-- update version on bump -->
+  CC COMMANDER  v2.3.0                  <!-- update version on bump -->
   ─────────────────────────────────────────
   🔥 Opus4.6-1M  |  $2.14  |  ↑42K↓8K  |  3m12s
   CTX  [████████████░░░░░░░░] 62%   ← green
@@ -241,7 +241,7 @@ Context, rate limits, and budget meters in your terminal. Color-codes green → 
   ─────────────────────────────────────────
   📋 CC-150  |  🎯 450+ skills  |  📦 19 vendors
 
-  Footer: ━━ 🌈CCC2.2│🔥Opus4.6-1M│🔑gAA│🧠▐██45%▌│⏱️▐██6%▌│📅▐██34%▌│💰$2.34│🎯37│📂~/project
+  Footer: ━━ 🌈CCC2.3.0│🔥Opus4.6-1M│🔑gAA│🧠▐██45%▌│⏱️▐██6%▌│📅▐██34%▌│💰$2.34│🎯453│📂~/project
 ```
 
 ### Night Mode / YOLO — Autonomous Overnight Build
@@ -348,9 +348,9 @@ CCC reads your project before every dispatch. No setup needed.
 | Skills | 450+ | On-demand expertise (deduplicated) |
 | CCC Domains | 11 | Domain routers with sub-skills |
 | Commands | 80+ | Slash commands (/ccc: prefix) |
-| Hooks | 28 | Lifecycle automation |
+| Hooks | 25 | Lifecycle automation |
 | Adventures | 13 | Guided interactive flows |
-| Vendor Packages | 16 | Best-in-class tools, auto-updated |
+| Vendor Packages | 19 | Best-in-class tools, auto-updated |
 | Themes | 10 | Cyberpunk, Fire, Ocean, Aurora, Sunset, Monochrome, Rainbow, Dracula + more |
 | Prompts | 36+ | Battle-tested templates |
 | Modes | 9 | Workflow presets |
@@ -466,7 +466,7 @@ Every completed session extracts a lesson (keywords, category, stack, error patt
 |-------|------|---------|
 | Tool output sandboxing | context-mode | **98%** — SQLite + FTS5, BM25 snippets only |
 | CLI output filtering | RTK | 99.5% — strips verbose shell output |
-| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 451 full |
+| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 458 full |
 | Rate limit rotation | ClaudeSwap | 2 MAX accounts, drain-first strategy |
 | Prompt caching | Extended TTL | 90% discount, 1hr cache window |
 
@@ -647,7 +647,7 @@ CCC learns from every session. Knowledge compounds over time.
 
 ```
   ══════════════════════════════════════════────────
-  🌈 CC COMMANDER  v2.3               <!-- update version on bump -->
+  🌈 CC COMMANDER  v2.3.0             <!-- update version on bump -->
   Every Claude Code tool. One install. An AI brain that learns.
   ─────────────────────────────────────────────
   🔥 Opus4.6-1M  │  $2.14  │  ↑42K↓8K  │  3m12s
@@ -704,7 +704,7 @@ For AI agents: **[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-re
 
 ## Acknowledgments
 
-CC Commander aggregates 17 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](docs/ACKNOWLEDGMENTS.md)**
+CC Commander aggregates 19 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](docs/ACKNOWLEDGMENTS.md)**
 
 45+ ecosystem repos tracked: **[ECOSYSTEM.md](docs/ECOSYSTEM.md)**
 
@@ -739,7 +739,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v2.3.1** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v2.3.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

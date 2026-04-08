@@ -21,8 +21,8 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(NEW in v1.5 — interactive CLI OS)*
-- [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.1 — 4 modules that make CCC smart)*
+- [CC Commander](#cc-commander) *(NEW in v2.3.0 — interactive CLI OS)*
+- [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.3.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
 - [Commands Reference](#commands-reference)
@@ -33,7 +33,7 @@
 - [Workflow Modes](#workflow-modes) *(9 modes)*
 - [Prompt Library](#prompt-library-1) *(36+ templates)*
 - [Integrations](#integrations) *(Agency Orchestrator + OpenClaw)*
-- [Proactive Automation Suite](#proactive-automation-suite-v11) *(15 kit-native hooks)*
+- [Proactive Automation Suite](#proactive-automation-suite-v11) *(25 kit-native hooks)*
 - [Settings Reference](#settings-reference)
 - [Appendix A: Model Selection](#model-selection)
 - [Appendix B: Contributor Credits](#contributor-credits)
@@ -1079,12 +1079,12 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 | Essential | `--skills=essential` (default) | ~30 | Most developers — core workflows |
 | Recommended | `--skills=recommended` | ~100 | Active builders who use many domains |
 | Domain | `--skills=domain` | 11 routers | Load one mega-skill per domain as needed |
-| Full | `--skills=full` | 451 | Legacy behavior — everything installed |
+| Full | `--skills=full` | 458 | Legacy behavior — everything installed |
 
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 451 skills (original behavior)
+./install.sh --skills=full        # All 458 skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.
@@ -1236,7 +1236,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Infrastructure Commands (v2.1.0)
+### 🛠️ Infrastructure Commands (v2.3.0)
 
 Six new `/ccc` sub-commands for managing local services from within Claude Code:
 
@@ -1775,7 +1775,7 @@ Integration patterns for OpenClaw multi-agent platform:
 
 ## Proactive Automation Suite
 
-15 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
+25 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
 
 ### The 9 New Hooks
 
@@ -1808,8 +1808,8 @@ The session-coach hook fires every N responses (default: 10) with contextual sug
 
 | Configuration | Hooks | File |
 |---------------|-------|------|
-| Kit standalone | 15 | `hooks-standalone.json` |
-| Kit + ECC | 34 (15 kit + 19 ECC) | `hooks.json` |
+| Kit standalone | 25 | `hooks-standalone.json` |
+| Kit + ECC | 25 | `hooks.json` |
 
 Every kit-native hook can be individually disabled via its `KZ_DISABLE_*` env var. See CHEATSHEET.md for the full list.
 
@@ -2085,7 +2085,7 @@ graph TD
 | **[gstack](https://github.com/garrytan/gstack)** (Garry Tan) | 40K | `/office-hours` product validation, `/retro` productivity stats, `/qa` diff-aware QA |
 | **[Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin)** (Every.to) | 10K | `/compound` post-task learning capture, compounding productivity methodology |
 | **SuperClaude Framework** | 22K | Confidence checking, Four-question validation, Parallel execution |
-| **Everything Claude Code (ECC)** | 100K | 19 lifecycle hooks (37 total with kit-native), developer profiles, agent definitions |
+| **Everything Claude Code (ECC)** | 100K | Lifecycle hooks, developer profiles, agent definitions |
 | **anthropics/claude-plugins-official** | 15K | Plugin manifest format |
 
 ### Further Reading
@@ -2103,7 +2103,7 @@ graph TD
 ---
 ## CC Commander
 
-> *NEW in v1.5* — The interactive CLI that manages your Claude Code sessions. Not a plugin — an OS layer.
+> *NEW in v2.3.0* — The interactive CLI that manages your Claude Code sessions. Not a plugin — an OS layer.
 
 ### What It Is
 
@@ -2124,19 +2124,19 @@ CC Commander (persistent process, arrow-key menus)
 
 ```bash
 # From the kit repo
-node bin/kc.js
+ccc
 
 # Or via npm
 npx kit-commander
 
 # Quick stats without TUI
-node bin/kc.js --stats
+ccc --stats
 
 # Self-test
-node bin/kc.js --test
+ccc --test
 
 # Fix corrupt state
-node bin/kc.js --repair
+ccc --repair
 ```
 
 ### Key Features
@@ -2151,7 +2151,7 @@ node bin/kc.js --repair
 | **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 357+ skills from within Commander |
+| **Skill browser** | Browse all 450+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
@@ -2176,7 +2176,7 @@ node bin/kc.js --repair
 The rich footer bar displays 12 live segments at the bottom of every session:
 
 ```
-━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│↑640K↓694K│⏰8h0m│🎯357│📋CC-150│📂~/project
+━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│↑640K↓694K│⏰8h0m│🎯453│📋CC-150│📂~/project
 ```
 
 | Segment | What It Shows |
@@ -2190,7 +2190,7 @@ The rich footer bar displays 12 live segments at the bottom of every session:
 | `💰$2.34` | Session cost |
 | `↑640K↓694K` | Token counts (in/out) |
 | `⏰8h0m` | Session duration |
-| `🎯357` | Total skills installed |
+| `🎯453` | Total CLI-visible skills installed |
 | `📋CC-150` | Active Linear ticket |
 | `📂~/project` | Current working directory |
 
@@ -2251,7 +2251,7 @@ claude -p "task" \
   --max-budget-usd 2 \       # Cost ceiling per level
   --model sonnet \            # Model per level
   --fallback-model sonnet \   # Resilience
-  --name kc-session-name \    # Named for easy resume
+  --name ccc-session-name \    # Named for easy resume
   --max-turns 30              # Safety limit
 ```
 
@@ -2263,7 +2263,7 @@ Environment: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` for auto-compaction.
 ~/.claude/commander/
 ├── state.json          # User prefs, active session, theme
 ├── sessions/           # One JSON per session
-│   └── kc-*.json       # { id, task, cost, duration, outcome }
+│   └── ccc-*.json      # { id, task, cost, duration, outcome }
 └── history.json        # Append-only completed session log
 ```
 
@@ -2320,7 +2320,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v2.1 — How CCC thinks before it acts.*
+> *Appendix: v2.3.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 
@@ -2376,7 +2376,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 357+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 450+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology
@@ -2448,7 +2448,7 @@ A typical dispatch goes through all four modules in sequence:
 
 Total overhead: ~50ms. Completely invisible. Just better results.
 
-## Community Insights (v2.1.0 Research Pass)
+## Community Insights (v2.3.0 Research Pass)
 
 Insights distilled from 40+ community repos and articles, April 2026.
 

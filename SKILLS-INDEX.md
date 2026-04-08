@@ -111,7 +111,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `browse` | Fast headless browser for QA, dogfooding, page state verification, annotated screenshots |
 | `cache-monitor` | Analyze Claude Code session costs and cache efficiency from JSONL session files |
 
-## 🔗 Multi-Agent & Peers (NEW in v1.2)
+## 🔗 Multi-Agent & Peers (NEW in v2.3.0)
 | Skill | What it does |
 |-------|-------------|
 | `claude-peers-bible` | **NEW** Comprehensive Claude Peers guide — discovery, messaging, 5 coordination patterns (coordinator, swarm, expert, review, research) |
@@ -119,7 +119,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `task-commander` | **NEW** Multi-agent orchestration brain — P0-P10 scoping, DAG workflows, circuit breaker, cost ceiling, COMP PROVE verification |
 | `contextual-assist` | **NEW** Proactive contextual suggestions — 5 levels (off/minimal/standard/guided/mentored), pattern matching, progressive disclosure |
 
-## 🏗️ Integrations (NEW in v1.2)
+## 🏗️ Integrations (NEW in v2.3.0)
 | Skill | What it does |
 |-------|-------------|
 | `cowork-bible` | **NEW** Claude Desktop Cowork integration — autonomous sessions, plugin compatibility, scheduled tasks, handoff protocol |
@@ -130,13 +130,13 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `paperclip-bridge` | **NEW** Paperclip task management integration — issue creation, priority mapping, bidirectional sync, REST API |
 | `openclaw-native` | **NEW** OpenClaw native integration — auto-detection, skill sync, bidirectional event forwarding, agent profile generation, memory sync |
 
-## 📖 Beginner Experience (NEW in v1.2)
+## 📖 Beginner Experience (NEW in v2.3.0)
 | Skill | What it does |
 |-------|-------------|
 | `bible-guide` | **NEW** Interactive onboarding — "I'm new" → guided wizard, skill discovery, progressive disclosure |
 | `vscode-bible` | **NEW** VS Code integration guide — buttons, snippets, keyboard shortcuts, walkthrough, status bar customization |
 
-## 📘 Quick Start Guides (NEW in v1.2)
+## 📘 Quick Start Guides (NEW in v2.3.0)
 | Guide | Who it's for |
 |-------|-------------|
 | `guides/quickstart-beginner.md` | Complete beginner — never used Claude Code |
@@ -145,7 +145,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `guides/quickstart-fullstack.md` | Full-stack developer — combined workflow |
 | `guides/quickstart-mobile.md` | Mobile developer — React Native, Flutter, Swift, Kotlin |
 
-## 📊 Dashboard (NEW in v1.2)
+## 📊 Dashboard (NEW in v2.3.0)
 | Component | What it does |
 |-----------|-------------|
 | `dashboard/` | Real-time React dashboard — agent monitoring, spawn tree, cost tracker, live logs, 10 themes |
@@ -528,7 +528,7 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = new in v0.4 | New CCC domains, modes, integrations, and prompt library added in v1.1 | Themes, OpenClaw native, status updates, continuous improvement added in v1.3 | Linear MCP, board view, full rebrand in v2.1*
+*⭐ = added in CC Commander v2.3.0 and kept current with each release*
 
 ---
 

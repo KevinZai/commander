@@ -552,7 +552,7 @@ fi
 
 cc_section_header "CCC COMMAND"
 
-CCC_BIN="${SCRIPT_DIR}/bin/kc.js"
+CCC_BIN="${SCRIPT_DIR}/bin/ccc.js"
 chmod +x "$CCC_BIN"
 CCC_INSTALLED=""
 

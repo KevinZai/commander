@@ -8,7 +8,7 @@
 | Hook tests | `node --test tests/hooks.test.js` | 61 | All 25 lifecycle hooks |
 | Intelligence tests | `node --test commander/tests/intelligence.test.js` | 57 | Scoring, knowledge, skills, project import |
 | Error handling tests | `node --test commander/tests/error-handling.test.js` | 30 | Error logger, action module structure |
-| **All tests** | `npm test` | **166** | Everything above |
+| **All tests** | `npm test` | **187** | Everything above |
 
 ## Smoke Tests (CLI)
 
@@ -31,7 +31,7 @@ Target: 75%+ statements. Current: ~60% (improving with new tests).
 Use this after leaving CCC untouched for a week or more:
 
 ### Automated (run these first)
-- [ ] `npm test` — all 166+ tests pass
+- [ ] `npm test` — all 187 tests pass
 - [ ] `npm run lint` — 0 errors
 - [ ] `bash tests/smoke.sh` — all CLI flags work
 - [ ] `npm audit` — 0 vulnerabilities

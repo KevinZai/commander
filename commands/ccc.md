@@ -366,7 +366,7 @@ What would you like to do?
 The CCC footer bar renders at the bottom of every menu screen. It shows live session state:
 
 ```
-━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██45%░░▌5h│📅▐██45%░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/project
+━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██45%░░▌5h│📅▐██45%░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
 ```
 
 _(Example only — actual values come from `commander/status-line.js` at runtime)_

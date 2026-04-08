@@ -9,7 +9,7 @@
 
 ## Environment
 - **Shell:** zsh | **Editor:** Claude Code
-- **CC Commander:** aggregator mode — 16 vendor packages (version: see `package.json`)
+- **CC Commander:** aggregator mode — 19 vendor packages (version: see `package.json`)
 - **Package manager:** npm/pnpm
 - **Task system:** tasks/ directory (todo.md, lessons.md, specs)
 
@@ -155,7 +155,7 @@ After fixing a bug: write class-level tests, sweep codebase for siblings, update
 - **Boring Solutions Win.** 100 lines when 100 suffice over 1000 lines with abstractions.
 
 ## Aggregator Ecosystem
-CC Commander aggregates 16 vendor packages via git submodules in `vendor/`.
+CC Commander aggregates 19 vendor packages via git submodules in `vendor/`.
 Smart orchestrator picks the best tool: capability 50% + stars 15% + recency 15% + user pref 20%.
 Auto-updates weekly via GitHub Actions.
 
@@ -169,7 +169,7 @@ claude-code-prompts (142).
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
 
 ```
-━━ CCC2.1.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌5h│📅▐██░░░░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯357│📋CC-150│📂~/project
+━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌5h│📅▐██░░░░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
 ```
 
 Render this at session start and after major actions. Source: `commander/cockpit.js`.
@@ -183,7 +183,7 @@ All `/ccc` sub-commands open rich menus with recommendations:
 | `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
 | `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
 | `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 357 skills by category, preview, try |
+| `/ccc skills` | Skill browser | 453 skills by category, preview, try |
 | `/ccc domains` | CCC domains | 11 mega-skill domains |
 | `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
 | `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
@@ -244,7 +244,7 @@ Run `/ccc:refresh` periodically to pull latest best practices.
 |-------|------|---------|
 | CLI filtering | RTK | 99.5% of shell output |
 | Tool sandboxing | context-mode | 98% of tool results |
-| Skill tiering | _tiers.json | ~10k tokens (30 vs 454 skills) |
+| Skill tiering | _tiers.json | ~10k tokens (30 vs 453 skills) |
 | API proxy | ClaudeSwap | Rate limit rotation |
 | Server cache | Prompt caching | 90% discount, 1hr TTL |
 

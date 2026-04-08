@@ -1,7 +1,7 @@
 # Why CC Commander?
 ## The Definitive "What Makes This Different" Reference
 
-> Version 2.1.0 — Every claim below is provable. Run the commands. Read the source. No vague promises.
+> Version 2.3.0 — Every claim below is provable. Run the commands. Read the source. No vague promises.
 
 ---
 
@@ -140,10 +140,10 @@
 
 ---
 
-### 19. 16 Vendor Packages, Auto-Updated Weekly
-**What:** 16 git submodules in `vendor/` — spanning everything-claude-code (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode (17K), claude-code-best-practice (26K), repomix (22.8K), Claude HUD (15K), RTK (14.6K), Compound Engineering (11.5K), claude-skills (8.6K), notebooklm-py (8.6K), acpx (1.8K), claude-reflect (860), caliber (302), claude-code-ultimate-guide (2.7K), claude-code-prompts (142).
-**Proof:** `ls vendor/` → 16 directories. GitHub Actions weekly cron in `.github/workflows/` auto-pulls upstream.
-**Share-friendly:** 16 of the best Claude Code repos in one install. Updated weekly. You never fall behind the ecosystem.
+### 19. 19 Vendor Packages, Auto-Updated Weekly
+**What:** 19 git submodules in `vendor/` — spanning major ecosystem projects across orchestration, context management, UI, token optimization, and workflow automation.
+**Proof:** `ls vendor/` → 19 directories. GitHub Actions weekly cron in `.github/workflows/` auto-pulls upstream.
+**Share-friendly:** 19 of the best Claude Code repos in one install. Updated weekly. You never fall behind the ecosystem.
 
 ---
 
@@ -170,7 +170,7 @@
 
 ### 23. /makeover — Agent Swarm That Fixes Audit Findings
 **What:** After /xray reports issues, /makeover dispatches an agent swarm with git worktree isolation, circuit breaker, cost ceiling, and a before/after report card.
-**Proof:** `skills/ccc-makeover/SKILL.md` + `commands/ccc-makeover.md`. Referenced in CHANGELOG.md v2.0.0.
+**Proof:** `skills/ccc-makeover/SKILL.md` + `commands/ccc-makeover.md`. Referenced in CHANGELOG.md v2.3.0.
 **Share-friendly:** /xray finds the problems. /makeover fixes them. One command away from a better codebase.
 
 ---
@@ -182,9 +182,9 @@
 
 ---
 
-### 25. 87 Slash Commands
-**What:** 87 `.md` files in `commands/` — all available as `/command-name` inside Claude Code sessions without any extra tooling.
-**Proof:** `ls commands/ | wc -l` → 87.
+### 25. 83 Slash Commands
+**What:** 83 `.md` files in `commands/` — all available as `/command-name` inside Claude Code sessions without any extra tooling.
+**Proof:** `ls commands/ | wc -l` → 83.
 **Share-friendly:** 83 slash commands pre-installed. Open Claude Code and type `/ccc` to see all of them.
 
 ---
@@ -205,7 +205,7 @@
 
 ### 28. Global Exception Handlers — Never Crashes to Terminal
 **What:** `process.on('uncaughtException')` and `process.on('unhandledRejection')` catch all unhandled errors, log them with a unique error ID (format: `CCC-ERR-{timestamp}`), show a friendly message, and return to menu.
-**Proof:** `bin/kc.js` lines 16-17 — both handlers registered. `commander/error-logger.js` → `logError()` generates and returns `CCC-ERR-{ts}` IDs.
+**Proof:** `commander/error-logger.js` → `logError()` generates and returns `CCC-ERR-{ts}` IDs, and the CLI entrypoint registers both global handlers.
 **Share-friendly:** CCC never crashes to a raw stack trace. Every error gets a unique ID and a path back to the menu. Bug reports are one ID, not a wall of text.
 
 ---
@@ -226,7 +226,7 @@
 
 ### 31. Headless Agent API
 **What:** `ccc --dispatch "task" --json` runs any task programmatically and returns structured JSON — no terminal UI, no interaction required. Designed for AI agents, CI pipelines, and automation.
-**Proof:** `bin/kc.js` — `--dispatch` flag check + `--json` flag → `console.log(JSON.stringify(r))` output. `--model`, `--max-turns`, `--budget`, `--cwd` flags all supported.
+**Proof:** CLI entrypoint — `--dispatch` flag check + `--json` flag → `console.log(JSON.stringify(r))` output. `--model`, `--max-turns`, `--budget`, `--cwd` flags all supported.
 **Share-friendly:** CCC has a headless API. `ccc --dispatch "fix the tests" --json`. Other AI agents can call CCC. It's turtles all the way down.
 
 ---
@@ -240,7 +240,7 @@
 
 ### 33. Daemon Mode — Background Processing
 **What:** `ccc --daemon` starts a persistent background loop with a task queue, tick-based processing (15s budget cap per tick), and dream consolidation for knowledge compounding.
-**Proof:** `commander/daemon.js`, `commander/queue.js`, `commander/dream.js` — all present. `bin/kc.js` → `--daemon` flag routes to `daemon.js`.
+**Proof:** `commander/daemon.js`, `commander/queue.js`, `commander/dream.js` — all present. CLI `--daemon` flag routes to `daemon.js`.
 **Share-friendly:** `ccc --daemon` and CCC works in the background while you do other things. Task queue. Knowledge consolidation. Persistent.
 
 ---
@@ -259,10 +259,10 @@
 
 ---
 
-### 36. 37 Lifecycle Hooks
-**What:** 37 total hooks across the full Claude Code lifecycle: PreToolUse, PostToolUse, Stop, PreCompact. Kit-native hooks include context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, pre-compact, self-verify, openclaw-adapter, status-reporter, Linear auto-track, PR link, phase-gate, and more.
-**Proof:** `ls hooks/` → 31 files. `hooks/hooks.json` documents 37 total registered hooks. Kit-native = shipped in this repo.
-**Share-friendly:** 37 lifecycle hooks run automatically around your Claude Code sessions. Auto-checkpoint, cost alerts, confidence gates — built in.
+### 36. 25 Lifecycle Hooks
+**What:** 25 kit-native hooks across the full Claude Code lifecycle: PreToolUse, PostToolUse, Stop, and PreCompact. They include context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, pre-compact, self-verify, openclaw-adapter, status-reporter, Linear auto-track, PR link, phase-gate, and more.
+**Proof:** `find hooks -name "*.js" | wc -l` → 25 JavaScript hook files.
+**Share-friendly:** 25 lifecycle hooks run automatically around your Claude Code sessions. Auto-checkpoint, cost alerts, confidence gates — built in.
 
 ---
 
@@ -280,16 +280,16 @@
 
 ---
 
-### 39. CLAUDE.md Staff Template — Production-Grade v2.1
+### 39. CLAUDE.md Staff Template — Production-Grade v2.3.0
 **What:** `CLAUDE.md.template` is a complete 200+ line Claude Code system prompt template covering Tool Awareness, Anti-Patterns, Context Optimization, Evals Before Specs, and Subagent Strategy — ready to drop into any project.
-**Proof:** `cat CLAUDE.md.template | wc -l` → 200+ lines. Referenced in CHANGELOG.md v2.1.0 as "v2.1" with explicit additions.
+**Proof:** `cat CLAUDE.md.template | wc -l` → 200+ lines. Referenced in CHANGELOG.md v2.3.0 with explicit additions.
 **Share-friendly:** CCC ships with a production-grade CLAUDE.md template. Stop writing your AI instructions from scratch.
 
 ---
 
 ### 40. Multi-Platform Adapter — Claude, Gemini CLI, Codex
 **What:** `commander/adapters/` auto-detects which AI CLI is present and adapts dispatch syntax accordingly — supporting Claude Code, Gemini CLI, and Codex CLI.
-**Proof:** `ls commander/adapters/` — adapter files present. Referenced in CHANGELOG.md v2.0.0: "supports Claude, Gemini CLI, Codex CLI with auto-detection."
+**Proof:** `ls commander/adapters/` — adapter files present. Referenced in CHANGELOG.md v2.3.0: "supports Claude, Gemini CLI, Codex CLI with auto-detection."
 **Share-friendly:** Not locked to Claude. CCC auto-detects Claude, Gemini CLI, and Codex. Switch providers without touching your workflow.
 
 ---
@@ -324,7 +324,7 @@
 
 ### 45. CLAUDE.md Staleness Detection
 **What:** A hook (`hooks/claude-md-staleness.js`) detects when your CLAUDE.md is stale (>30 days without update) and prompts you to refresh it with `/ccc:refresh`.
-**Proof:** `hooks/claude-md-staleness.js` present. Referenced in CHANGELOG.md v2.0.0: "staleness hook (auto-prompts when stale >30 days)."
+**Proof:** `hooks/claude-md-staleness.js` present. Referenced in CHANGELOG.md v2.3.0: "staleness hook (auto-prompts when stale >30 days)."
 **Share-friendly:** Your most important AI config file, kept fresh automatically. CCC tells you when it's time to update your CLAUDE.md.
 
 ---
@@ -337,7 +337,7 @@ CC Commander stacks five independent token-reduction mechanisms. Each works at a
 |-------|------|---------|
 | Tool output sandboxing | context-mode | **98%** — SQLite + FTS5, BM25 snippets only |
 | CLI output filtering | RTK | 99.5% — strips verbose shell output |
-| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 451 full |
+| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 458 full |
 | Rate limit rotation | ClaudeSwap | 2 MAX accounts, drain-first strategy |
 | Prompt caching | Extended TTL | 90% discount, 1hr cache window |
 
@@ -364,7 +364,7 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 | Learning | Starts fresh | Fuzzy keyword matching, time decay (7d: 2x, 30d: 1.5x), outcome weighting |
 | Crash behavior | Terminal error | Global exception handler → error ID → back to menu |
 | Themes | None | 10 visual themes, live-switchable |
-| Lifecycle hooks | None | 37 hooks (PreToolUse, PostToolUse, Stop, PreCompact) |
+| Lifecycle hooks | None | 25 hooks (PreToolUse, PostToolUse, Stop, PreCompact) |
 | Methodology guide | None | 2,469-line BIBLE distilled from 200+ sources |
 | Prompt templates | None | 37 templates across 6 categories |
 | Project health | None | /xray audit: 21 rules, 6 dimensions, 0-100 score, 5-level maturity |
