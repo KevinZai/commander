@@ -332,6 +332,12 @@ CCC reads your project before every dispatch. No setup needed.
 
 <img src="docs/assets/section-features.svg" alt="Features" width="100%">
 
+### Every Path, Visualized
+
+<img src="docs/assets/ccc-flowchart.svg" alt="CC Commander Complete Flow Map" width="100%">
+
+> Every menu option, every sub-flow, every path to Claude Code — one diagram. [View full size](docs/assets/ccc-flowchart.svg)
+
 ### New in v2.3.0 — Professional TUI
 
 - **Pipe-rail visual language** — `┌│└` guides, `●○` radio buttons, `◆` prompts
