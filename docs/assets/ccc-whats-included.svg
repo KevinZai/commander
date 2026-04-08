@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glowStrong">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="url(#bgGrad)"/>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="1200" height="3" fill="#ff6600"/>
+
+  <!-- Corner decorations -->
+  <text x="32" y="38" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3d444d">┌──┐</text>
+  <text x="1120" y="38" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3d444d">┌──┐</text>
+
+  <!-- Header -->
+  <text x="600" y="50" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600" letter-spacing="4">CC COMMANDER — WHAT'S INSIDE</text>
+  <text x="600" y="90" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="36" font-weight="bold" fill="#e6edf3" filter="url(#glow)">Everything You Need</text>
+  <text x="600" y="120" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="14" fill="#8b949e">The complete Claude Code configuration toolkit — batteries included</text>
+
+  <!-- Divider -->
+  <line x1="60" y1="138" x2="1140" y2="138" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- GRID — Row 1 (y=155) -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- Cell 1,1 — 450+ Skills -->
+  <rect x="60" y="155" width="350" height="155" rx="8" fill="#0f1419" stroke="#ff6600" stroke-width="1.5"/>
+  <rect x="60" y="155" width="350" height="4" rx="2" fill="#ff6600"/>
+  <text x="240" y="225" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#ff6600" filter="url(#glowStrong)">450+</text>
+  <text x="240" y="260" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">Skills</text>
+  <text x="240" y="282" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Tiered loading · 11 CCC domains</text>
+  <!-- Corner label -->
+  <text x="76" y="175" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#ff6600" fill-opacity="0.6">SKILLS</text>
+
+  <!-- Cell 1,2 — 11 CCC Domains -->
+  <rect x="425" y="155" width="350" height="155" rx="8" fill="#0f1419" stroke="#58a6ff" stroke-width="1.5"/>
+  <rect x="425" y="155" width="350" height="4" rx="2" fill="#58a6ff"/>
+  <text x="600" y="225" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#58a6ff" filter="url(#glowStrong)">11</text>
+  <text x="600" y="260" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">CCC Domains</text>
+  <text x="600" y="282" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">code · devops · saas · design · seo…</text>
+  <text x="441" y="175" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#58a6ff" fill-opacity="0.6">DOMAINS</text>
+
+  <!-- Cell 1,3 — 19 Vendor Packages -->
+  <rect x="790" y="155" width="350" height="155" rx="8" fill="#0f1419" stroke="#3fb950" stroke-width="1.5"/>
+  <rect x="790" y="155" width="350" height="4" rx="2" fill="#3fb950"/>
+  <text x="965" y="225" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#3fb950" filter="url(#glowStrong)">19</text>
+  <text x="965" y="260" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">Vendor Packages</text>
+  <text x="965" y="282" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">ECC · gstack · Superpowers · RTK…</text>
+  <text x="806" y="175" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#3fb950" fill-opacity="0.6">VENDORS</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- GRID — Row 2 (y=325) -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- Cell 2,1 — 83 Commands -->
+  <rect x="60" y="325" width="350" height="155" rx="8" fill="#0f1419" stroke="#3fb950" stroke-width="1.5"/>
+  <rect x="60" y="325" width="350" height="4" rx="2" fill="#3fb950"/>
+  <text x="240" y="395" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#3fb950" filter="url(#glowStrong)">83</text>
+  <text x="240" y="430" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">Commands</text>
+  <text x="240" y="452" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Slash commands for every workflow</text>
+  <text x="76" y="345" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#3fb950" fill-opacity="0.6">COMMANDS</text>
+
+  <!-- Cell 2,2 — 25 Hooks -->
+  <rect x="425" y="325" width="350" height="155" rx="8" fill="#0f1419" stroke="#ff6600" stroke-width="1.5"/>
+  <rect x="425" y="325" width="350" height="4" rx="2" fill="#ff6600"/>
+  <text x="600" y="395" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#ff6600" filter="url(#glowStrong)">25</text>
+  <text x="600" y="430" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">Hooks</text>
+  <text x="600" y="452" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Pre/PostToolUse · Stop · SessionStart</text>
+  <text x="441" y="345" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#ff6600" fill-opacity="0.6">HOOKS</text>
+
+  <!-- Cell 2,3 — 10 Themes -->
+  <rect x="790" y="325" width="350" height="155" rx="8" fill="#0f1419" stroke="#58a6ff" stroke-width="1.5"/>
+  <rect x="790" y="325" width="350" height="4" rx="2" fill="#58a6ff"/>
+  <text x="965" y="395" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#58a6ff" filter="url(#glowStrong)">10</text>
+  <text x="965" y="430" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">Themes</text>
+  <text x="965" y="452" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Claude · OLED · Matrix · and more</text>
+  <text x="806" y="345" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#58a6ff" fill-opacity="0.6">THEMES</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- GRID — Row 3 (y=495) -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- Cell 3,1 — 37 Prompts -->
+  <rect x="60" y="495" width="350" height="155" rx="8" fill="#0f1419" stroke="#ff6600" stroke-width="1.5"/>
+  <rect x="60" y="495" width="350" height="4" rx="2" fill="#ff6600"/>
+  <text x="240" y="565" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#ff6600" filter="url(#glowStrong)">37</text>
+  <text x="240" y="600" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">Prompt Templates</text>
+  <text x="240" y="622" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">6 categories: code, plan, design…</text>
+  <text x="76" y="515" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#ff6600" fill-opacity="0.6">PROMPTS</text>
+
+  <!-- Cell 3,2 — 3 Templates -->
+  <rect x="425" y="495" width="350" height="155" rx="8" fill="#0f1419" stroke="#3fb950" stroke-width="1.5"/>
+  <rect x="425" y="495" width="350" height="4" rx="2" fill="#3fb950"/>
+  <text x="600" y="565" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#3fb950" filter="url(#glowStrong)">3</text>
+  <text x="600" y="600" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">Starter Templates</text>
+  <text x="600" y="622" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Next.js · API · CLI — ready to fork</text>
+  <text x="441" y="515" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#3fb950" fill-opacity="0.6">TEMPLATES</text>
+
+  <!-- Cell 3,3 — 187 Tests -->
+  <rect x="790" y="495" width="350" height="155" rx="8" fill="#0f1419" stroke="#58a6ff" stroke-width="1.5"/>
+  <rect x="790" y="495" width="350" height="4" rx="2" fill="#58a6ff"/>
+  <text x="965" y="565" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="56" font-weight="bold" fill="#58a6ff" filter="url(#glowStrong)">187</text>
+  <text x="965" y="600" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#e6edf3">Tests</text>
+  <text x="965" y="622" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Unit · path · integration · hooks</text>
+  <text x="806" y="515" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#58a6ff" fill-opacity="0.6">TESTS</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- GRID — Row 4 (y=665) — Feature strips -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- Cell 4,1 — Session Memory -->
+  <rect x="60" y="665" width="350" height="95" rx="8" fill="#0f1419" stroke="#3fb950" stroke-width="1.5"/>
+  <rect x="60" y="665" width="350" height="4" rx="2" fill="#3fb950"/>
+  <text x="240" y="700" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="28" fill="#3fb950">⟳</text>
+  <text x="240" y="726" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="15" font-weight="bold" fill="#e6edf3">Session Memory</text>
+  <text x="240" y="745" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Knowledge compounds every session</text>
+  <text x="76" y="685" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#3fb950" fill-opacity="0.6">MEMORY</text>
+
+  <!-- Cell 4,2 — Token Optimization -->
+  <rect x="425" y="665" width="350" height="95" rx="8" fill="#0f1419" stroke="#ff6600" stroke-width="1.5"/>
+  <rect x="425" y="665" width="350" height="4" rx="2" fill="#ff6600"/>
+  <text x="600" y="700" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="28" fill="#ff6600">◈</text>
+  <text x="600" y="726" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="15" font-weight="bold" fill="#e6edf3">Token Optimization</text>
+  <text x="600" y="745" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Caveman mode · 75% output savings</text>
+  <text x="441" y="685" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#ff6600" fill-opacity="0.6">OPTIMIZE</text>
+
+  <!-- Cell 4,3 — Security Hardening -->
+  <rect x="790" y="665" width="350" height="95" rx="8" fill="#0f1419" stroke="#58a6ff" stroke-width="1.5"/>
+  <rect x="790" y="665" width="350" height="4" rx="2" fill="#58a6ff"/>
+  <text x="965" y="700" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="28" fill="#58a6ff">⬡</text>
+  <text x="965" y="726" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="15" font-weight="bold" fill="#e6edf3">Security Hardening</text>
+  <text x="965" y="745" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">Blocks --no-verify · secrets guard</text>
+  <text x="806" y="685" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#58a6ff" fill-opacity="0.6">SECURITY</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- BOTTOM FOOTER -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <rect x="0" y="778" width="1200" height="122" fill="#0a0d12"/>
+  <line x1="0" y1="778" x2="1200" y2="778" stroke="#21262d" stroke-width="1"/>
+  <rect x="0" y="897" width="1200" height="3" fill="#ff6600"/>
+
+  <!-- Footer main text -->
+  <text x="600" y="826" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="20" font-weight="bold" fill="#e6edf3">One install. Everything included. Auto-updated weekly.</text>
+
+  <!-- Install command pill -->
+  <rect x="220" y="842" width="760" height="36" rx="18" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="260" y="865" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">$</text>
+  <text x="276" y="865" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3fb950">curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash</text>
+
+  <!-- Stars count -->
+  <text x="600" y="893" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">github.com/KevinZai/cc-commander</text>
+</svg>

@@ -1,0 +1,268 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="col1Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2332;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1117;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="col2Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1117;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="col3Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1117;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="800" fill="url(#bgGrad)"/>
+
+  <!-- Top border line -->
+  <rect x="0" y="0" width="1200" height="3" fill="#ff6600"/>
+
+  <!-- Header -->
+  <text x="600" y="52" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#ff6600" letter-spacing="4">CC COMMANDER</text>
+  <text x="600" y="88" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="32" font-weight="bold" fill="#e6edf3" filter="url(#glow)">Your AI Project Manager</text>
+  <text x="600" y="116" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="14" fill="#8b949e">Guided workflow from idea to shipped feature — no commands required</text>
+
+  <!-- Divider -->
+  <line x1="60" y1="134" x2="1140" y2="134" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- COLUMN 1 — YOU DECIDE -->
+  <!-- ══════════════════════════════════ -->
+  <rect x="60" y="150" width="330" height="480" rx="8" fill="url(#col1Grad)" stroke="#58a6ff" stroke-width="1.5"/>
+
+  <!-- Col 1 header bar -->
+  <rect x="60" y="150" width="330" height="44" rx="8" fill="#58a6ff" fill-opacity="0.15"/>
+  <rect x="60" y="174" width="330" height="20" fill="#58a6ff" fill-opacity="0.15"/>
+  <text x="225" y="178" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" font-weight="bold" fill="#58a6ff" letter-spacing="2">YOU DECIDE</text>
+
+  <!-- Step badge -->
+  <rect x="80" y="206" width="36" height="20" rx="3" fill="#58a6ff" fill-opacity="0.2" stroke="#58a6ff" stroke-width="1"/>
+  <text x="98" y="220" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#58a6ff">01</text>
+
+  <!-- Arrow-key menu mockup -->
+  <text x="90" y="258" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3d444d">┌─────────────────────────┐</text>
+  <text x="90" y="274" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3d444d">│</text><text x="106" y="274" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#8b949e"> What to build?          </text><text x="344" y="274" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3d444d">│</text>
+  <text x="90" y="290" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3d444d">├─────────────────────────┤</text>
+  <rect x="93" y="295" width="284" height="18" rx="2" fill="#58a6ff" fill-opacity="0.2"/>
+  <text x="106" y="308" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#58a6ff">▸ New Feature</text>
+  <text x="106" y="326" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#8b949e">  Fix a Bug</text>
+  <text x="106" y="342" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#8b949e">  Code Review</text>
+  <text x="106" y="358" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#8b949e">  Deploy &amp; Ship</text>
+  <text x="106" y="374" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#8b949e">  Settings</text>
+  <text x="90" y="390" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3d444d">└─────────────────────────┘</text>
+
+  <text x="106" y="414" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">↑↓ navigate  Enter select</text>
+
+  <!-- Divider line -->
+  <line x1="80" y1="430" x2="370" y2="430" stroke="#21262d" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Col 1 bullet points -->
+  <text x="90" y="456" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#58a6ff">◆</text>
+  <text x="110" y="456" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Arrow-key menus</text>
+  <text x="110" y="472" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  No commands to remember</text>
+
+  <text x="90" y="494" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#58a6ff">◆</text>
+  <text x="110" y="494" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Plain English input</text>
+  <text x="110" y="510" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Describe what you want</text>
+
+  <text x="90" y="532" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#58a6ff">◆</text>
+  <text x="110" y="532" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Pick and build</text>
+  <text x="110" y="548" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  CCC handles the rest</text>
+
+  <text x="90" y="570" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#58a6ff">◆</text>
+  <text x="110" y="570" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Mouse click support</text>
+  <text x="110" y="586" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Point and click to select</text>
+
+  <text x="90" y="608" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#58a6ff">◆</text>
+  <text x="110" y="608" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">? help on any screen</text>
+  <text x="110" y="624" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Context-aware guidance</text>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- ARROW 1→2 -->
+  <!-- ══════════════════════════════════ -->
+  <text x="408" y="400" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="28" fill="#ff6600" filter="url(#glow)">→</text>
+  <text x="408" y="420" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#6e7681">hands off</text>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- COLUMN 2 — CCC ORCHESTRATES -->
+  <!-- ══════════════════════════════════ -->
+  <rect x="430" y="150" width="340" height="480" rx="8" fill="url(#col2Grad)" stroke="#3fb950" stroke-width="1.5"/>
+
+  <!-- Col 2 header bar -->
+  <rect x="430" y="150" width="340" height="44" rx="8" fill="#3fb950" fill-opacity="0.15"/>
+  <rect x="430" y="174" width="340" height="20" fill="#3fb950" fill-opacity="0.15"/>
+  <text x="600" y="178" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" font-weight="bold" fill="#3fb950" letter-spacing="2">CCC ORCHESTRATES</text>
+
+  <!-- Step badge -->
+  <rect x="450" y="206" width="36" height="20" rx="3" fill="#3fb950" fill-opacity="0.2" stroke="#3fb950" stroke-width="1"/>
+  <text x="468" y="220" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3fb950">02</text>
+
+  <!-- Intelligence Layer box -->
+  <rect x="450" y="232" width="300" height="180" rx="6" fill="#0d1117" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="600" y="252" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950" letter-spacing="2">INTELLIGENCE LAYER v1</text>
+
+  <!-- Steps inside box -->
+  <rect x="462" y="260" width="276" height="22" rx="3" fill="#3fb950" fill-opacity="0.08"/>
+  <text x="475" y="275" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3fb950">①</text>
+  <text x="494" y="275" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#e6edf3">Complexity scoring</text>
+  <text x="660" y="275" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">P1–P10</text>
+
+  <rect x="462" y="288" width="276" height="22" rx="3" fill="#3fb950" fill-opacity="0.05"/>
+  <text x="475" y="303" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3fb950">②</text>
+  <text x="494" y="303" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#e6edf3">Model selection</text>
+  <text x="638" y="303" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">Haiku/Sonnet/Opus</text>
+
+  <rect x="462" y="316" width="276" height="22" rx="3" fill="#3fb950" fill-opacity="0.08"/>
+  <text x="475" y="331" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3fb950">③</text>
+  <text x="494" y="331" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#e6edf3">Stack detection</text>
+  <text x="638" y="331" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">pkg.json, Docker…</text>
+
+  <rect x="462" y="344" width="276" height="22" rx="3" fill="#3fb950" fill-opacity="0.05"/>
+  <text x="475" y="359" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3fb950">④</text>
+  <text x="494" y="359" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#e6edf3">Skill filtering</text>
+  <text x="648" y="359" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">450+ → relevant</text>
+
+  <rect x="462" y="372" width="276" height="22" rx="3" fill="#3fb950" fill-opacity="0.08"/>
+  <text x="475" y="387" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3fb950">⑤</text>
+  <text x="494" y="387" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#e6edf3">Builds system prompt</text>
+  <text x="660" y="387" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">auto</text>
+
+  <!-- Budget calc row -->
+  <text x="600" y="418" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">budget: $2 simple → $10 complex</text>
+
+  <!-- Divider line -->
+  <line x1="450" y1="432" x2="760" y2="432" stroke="#21262d" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Col 2 bullet points -->
+  <text x="460" y="458" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#3fb950">◆</text>
+  <text x="480" y="458" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Auto-selects best model</text>
+  <text x="480" y="474" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Saves cost automatically</text>
+
+  <text x="460" y="496" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#3fb950">◆</text>
+  <text x="480" y="496" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Loads relevant skills only</text>
+  <text x="480" y="512" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Tiered skill loading</text>
+
+  <text x="460" y="534" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#3fb950">◆</text>
+  <text x="480" y="534" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Plan-mode-first dispatch</text>
+  <text x="480" y="550" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Think before acting</text>
+
+  <text x="460" y="572" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#3fb950">◆</text>
+  <text x="480" y="572" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">14-flag dispatch flags</text>
+  <text x="480" y="588" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  All options pre-configured</text>
+
+  <text x="460" y="610" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#3fb950">◆</text>
+  <text x="480" y="610" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Smart retry on failure</text>
+  <text x="480" y="626" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Context overflow handled</text>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- ARROW 2→3 -->
+  <!-- ══════════════════════════════════ -->
+  <text x="788" y="400" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="28" fill="#ff6600" filter="url(#glow)">→</text>
+  <text x="788" y="420" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#6e7681">launches</text>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- COLUMN 3 — CLAUDE EXECUTES -->
+  <!-- ══════════════════════════════════ -->
+  <rect x="810" y="150" width="330" height="480" rx="8" fill="url(#col3Grad)" stroke="#ff6600" stroke-width="1.5"/>
+
+  <!-- Col 3 header bar -->
+  <rect x="810" y="150" width="330" height="44" rx="8" fill="#ff6600" fill-opacity="0.15"/>
+  <rect x="810" y="174" width="330" height="20" fill="#ff6600" fill-opacity="0.15"/>
+  <text x="975" y="178" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" font-weight="bold" fill="#ff6600" letter-spacing="2">CLAUDE EXECUTES</text>
+
+  <!-- Step badge -->
+  <rect x="830" y="206" width="36" height="20" rx="3" fill="#ff6600" fill-opacity="0.2" stroke="#ff6600" stroke-width="1"/>
+  <text x="848" y="220" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#ff6600">03</text>
+
+  <!-- Terminal mockup -->
+  <rect x="828" y="232" width="294" height="180" rx="4" fill="#0a0d12" stroke="#30363d" stroke-width="1"/>
+  <!-- Terminal titlebar -->
+  <rect x="828" y="232" width="294" height="24" rx="4" fill="#21262d"/>
+  <rect x="828" y="244" width="294" height="12" fill="#21262d"/>
+  <circle cx="846" cy="244" r="5" fill="#ff5f57"/>
+  <circle cx="862" cy="244" r="5" fill="#ffbd2e"/>
+  <circle cx="878" cy="244" r="5" fill="#28c841"/>
+  <text x="975" y="249" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#8b949e">claude code — ccc session</text>
+
+  <text x="840" y="278" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">✓ Skills loaded: 12 relevant</text>
+  <text x="840" y="294" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">✓ Model: claude-sonnet-4-6</text>
+  <text x="840" y="310" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">✓ Budget: $5 ceiling set</text>
+  <text x="840" y="326" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">✓ Plan mode: enabled</text>
+  <text x="840" y="342" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#8b949e">────────────────────────────</text>
+  <text x="840" y="358" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#e6edf3">Claude&gt; Analyzing codebase...</text>
+  <text x="840" y="374" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#e6edf3">Claude&gt; Creating plan (7 steps)</text>
+  <text x="840" y="390" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#ff6600">▊</text>
+
+  <!-- Status bar -->
+  <rect x="828" y="402" width="294" height="14" rx="2" fill="#161b22"/>
+  <text x="835" y="412" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#6e7681">⏱ 2m34s  💰$1.24  🎯 tokens 45%  📋CC-42</text>
+
+  <!-- Divider line -->
+  <line x1="830" y1="432" x2="1130" y2="432" stroke="#21262d" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Col 3 bullet points -->
+  <text x="840" y="458" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600">◆</text>
+  <text x="860" y="458" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Native Claude Code session</text>
+  <text x="860" y="474" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Full power, no wrappers</text>
+
+  <text x="840" y="496" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600">◆</text>
+  <text x="860" y="496" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Interactive — take over</text>
+  <text x="860" y="512" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  You're always in control</text>
+
+  <text x="840" y="534" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600">◆</text>
+  <text x="860" y="534" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Session resume later</text>
+  <text x="860" y="550" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  --session-id flag</text>
+
+  <text x="840" y="572" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600">◆</text>
+  <text x="860" y="572" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Knowledge compounds</text>
+  <text x="860" y="588" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Learns from every session</text>
+
+  <text x="840" y="610" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600">◆</text>
+  <text x="860" y="610" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#e6edf3">Return to menu after</text>
+  <text x="860" y="626" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">  Clean exit, pick next task</text>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- BOTTOM FOOTER BAR -->
+  <!-- ══════════════════════════════════ -->
+  <rect x="0" y="660" width="1200" height="140" fill="#0a0d12"/>
+  <line x1="0" y1="660" x2="1200" y2="660" stroke="#21262d" stroke-width="1"/>
+
+  <!-- Footer accent line -->
+  <rect x="0" y="797" width="1200" height="3" fill="#ff6600"/>
+
+  <!-- Footer text -->
+  <text x="600" y="710" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="22" font-weight="bold" fill="#e6edf3">Zero commands. Zero config. Just pick and build.</text>
+
+  <!-- Stat pills -->
+  <rect x="160" y="730" width="140" height="30" rx="15" fill="#ff6600" fill-opacity="0.1" stroke="#ff6600" stroke-width="1"/>
+  <text x="230" y="750" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600">450+ Skills</text>
+
+  <rect x="320" y="730" width="140" height="30" rx="15" fill="#58a6ff" fill-opacity="0.1" stroke="#58a6ff" stroke-width="1"/>
+  <text x="390" y="750" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#58a6ff">19 Vendors</text>
+
+  <rect x="480" y="730" width="140" height="30" rx="15" fill="#3fb950" fill-opacity="0.1" stroke="#3fb950" stroke-width="1"/>
+  <text x="550" y="750" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#3fb950">83 Commands</text>
+
+  <rect x="640" y="730" width="140" height="30" rx="15" fill="#ff6600" fill-opacity="0.1" stroke="#ff6600" stroke-width="1"/>
+  <text x="710" y="750" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600">25 Hooks</text>
+
+  <rect x="800" y="730" width="140" height="30" rx="15" fill="#58a6ff" fill-opacity="0.1" stroke="#58a6ff" stroke-width="1"/>
+  <text x="870" y="750" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#58a6ff">10 Themes</text>
+
+  <!-- Install line -->
+  <text x="600" y="785" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash</text>
+</svg>

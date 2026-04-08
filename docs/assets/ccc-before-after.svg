@@ -1,0 +1,257 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="leftGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a0a0a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#130d0d;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="rightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0d1a0d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1a14;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6600;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#ff6600;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#ff6600;stop-opacity:0.3" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="redGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="greenGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="700" fill="url(#bgGrad)"/>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="1200" height="3" fill="#ff6600"/>
+
+  <!-- Header -->
+  <text x="600" y="46" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#ff6600" letter-spacing="4">CC COMMANDER</text>
+  <text x="600" y="82" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="28" font-weight="bold" fill="#e6edf3" filter="url(#glow)">Stock Claude Code vs CC Commander</text>
+  <text x="600" y="108" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#8b949e">One install. Everything changes.</text>
+
+  <!-- Divider -->
+  <line x1="60" y1="124" x2="1140" y2="124" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- LEFT PANEL — Stock Claude Code -->
+  <!-- ═══════════════════════════════════ -->
+  <rect x="40" y="138" width="478" height="460" rx="8" fill="url(#leftGrad)" stroke="#da3633" stroke-width="1.5"/>
+
+  <!-- Left panel top tint overlay -->
+  <rect x="40" y="138" width="478" height="460" rx="8" fill="#ff0000" fill-opacity="0.04"/>
+
+  <!-- Left panel header -->
+  <rect x="40" y="138" width="478" height="48" rx="8" fill="#da3633" fill-opacity="0.2"/>
+  <rect x="40" y="166" width="478" height="20" fill="#da3633" fill-opacity="0.2"/>
+
+  <!-- Traffic lights -->
+  <circle cx="68" cy="162" r="7" fill="#ff5f57"/>
+  <circle cx="90" cy="162" r="7" fill="#ffbd2e"/>
+  <circle cx="112" cy="162" r="7" fill="#28c841" fill-opacity="0.4"/>
+
+  <text x="279" y="168" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" font-weight="bold" fill="#da3633">Stock Claude Code</text>
+
+  <!-- Version tag -->
+  <rect x="68" y="196" width="100" height="18" rx="3" fill="#da3633" fill-opacity="0.2" stroke="#da3633" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="118" y="208" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#da3633">vanilla install</text>
+
+  <!-- Left panel terminal mockup -->
+  <rect x="60" y="224" width="440" height="70" rx="4" fill="#0a0d12" stroke="#30363d" stroke-width="1"/>
+  <text x="76" y="248" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">$ claude</text>
+  <text x="76" y="265" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#8b949e">Welcome to Claude Code!</text>
+  <text x="76" y="282" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#e6edf3">&gt; <text font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" fill="#da3633">▊</text></text>
+  <text x="210" y="282" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">  ← blank. no guidance.</text>
+
+  <!-- Left panel items -->
+  <!-- Item 1 -->
+  <rect x="60" y="306" width="440" height="36" rx="4" fill="#da3633" fill-opacity="0.06"/>
+  <text x="78" y="329" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#da3633">○</text>
+  <text x="102" y="329" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#c9d1d9">Blank terminal</text>
+  <text x="102" y="335" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="0" fill="none"/>
+  <text x="350" y="326" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">zero UX</text>
+
+  <!-- Item 2 -->
+  <rect x="60" y="348" width="440" height="36" rx="4" fill="#da3633" fill-opacity="0.03"/>
+  <text x="78" y="371" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#da3633">○</text>
+  <text x="102" y="371" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#c9d1d9">No skills installed</text>
+  <text x="350" y="368" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">start from scratch</text>
+
+  <!-- Item 3 -->
+  <rect x="60" y="390" width="440" height="36" rx="4" fill="#da3633" fill-opacity="0.06"/>
+  <text x="78" y="413" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#da3633">○</text>
+  <text x="102" y="413" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#c9d1d9">No memory</text>
+  <text x="350" y="410" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">amnesia on exit</text>
+
+  <!-- Item 4 -->
+  <rect x="60" y="432" width="440" height="36" rx="4" fill="#da3633" fill-opacity="0.03"/>
+  <text x="78" y="455" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#da3633">○</text>
+  <text x="102" y="455" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#c9d1d9">Starts fresh every time</text>
+  <text x="350" y="452" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">no resume</text>
+
+  <!-- Item 5 -->
+  <rect x="60" y="474" width="440" height="36" rx="4" fill="#da3633" fill-opacity="0.06"/>
+  <text x="78" y="497" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#da3633">○</text>
+  <text x="102" y="497" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#c9d1d9">Raw output (wastes context)</text>
+  <text x="350" y="494" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#da3633">98% waste</text>
+
+  <!-- Item 6 -->
+  <rect x="60" y="516" width="440" height="36" rx="4" fill="#da3633" fill-opacity="0.03"/>
+  <text x="78" y="539" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#da3633">○</text>
+  <text x="102" y="539" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#c9d1d9">No project awareness</text>
+  <text x="350" y="536" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">no stack detect</text>
+
+  <!-- Item 7 -->
+  <rect x="60" y="558" width="440" height="36" rx="4" fill="#da3633" fill-opacity="0.06"/>
+  <text x="78" y="581" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#da3633">○</text>
+  <text x="102" y="581" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#c9d1d9">No error handling</text>
+  <text x="350" y="578" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">crash = lost work</text>
+
+  <!-- Left score badge -->
+  <rect x="60" y="606" width="440" height="1" fill="#da3633" fill-opacity="0.3"/>
+  <rect x="60" y="614" width="440" height="30" rx="4" fill="#da3633" fill-opacity="0.1"/>
+  <text x="280" y="634" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#da3633">Experience score: ●●○○○○○○○○  2/10</text>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- CENTER DIVIDER — Arrow -->
+  <!-- ═══════════════════════════════════ -->
+  <rect x="535" y="160" width="130" height="420" rx="8" fill="#0d1117"/>
+
+  <!-- Vertical dashed line top -->
+  <line x1="600" y1="160" x2="600" y2="290" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Center arrow container -->
+  <rect x="548" y="296" width="104" height="120" rx="8" fill="#1a1000" stroke="#ff6600" stroke-width="2"/>
+
+  <!-- Big arrow -->
+  <text x="600" y="352" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="48" fill="#ff6600" filter="url(#glow)">→</text>
+
+  <!-- "One install" label -->
+  <text x="600" y="380" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" font-weight="bold" fill="#ff6600">One install</text>
+  <text x="600" y="395" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="9" fill="#8b949e">curl | bash</text>
+
+  <!-- Vertical dashed line bottom -->
+  <line x1="600" y1="416" x2="600" y2="580" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- VS badge -->
+  <text x="600" y="240" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" font-weight="bold" fill="#8b949e">vs</text>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- RIGHT PANEL — With CC Commander -->
+  <!-- ═══════════════════════════════════ -->
+  <rect x="682" y="138" width="478" height="460" rx="8" fill="url(#rightGrad)" stroke="#3fb950" stroke-width="1.5"/>
+
+  <!-- Right panel top tint overlay -->
+  <rect x="682" y="138" width="478" height="460" rx="8" fill="#00ff00" fill-opacity="0.03"/>
+
+  <!-- Right panel header -->
+  <rect x="682" y="138" width="478" height="48" rx="8" fill="#3fb950" fill-opacity="0.2"/>
+  <rect x="682" y="166" width="478" height="20" fill="#3fb950" fill-opacity="0.2"/>
+
+  <!-- Traffic lights -->
+  <circle cx="710" cy="162" r="7" fill="#ff5f57"/>
+  <circle cx="732" cy="162" r="7" fill="#ffbd2e"/>
+  <circle cx="754" cy="162" r="7" fill="#28c841"/>
+
+  <text x="921" y="168" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" font-weight="bold" fill="#3fb950">With CC Commander</text>
+
+  <!-- Version tag -->
+  <rect x="1042" y="149" width="100" height="18" rx="3" fill="#3fb950" fill-opacity="0.2" stroke="#3fb950" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="1092" y="161" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">v2.3.0+</text>
+
+  <!-- Right panel menu mockup -->
+  <rect x="702" y="224" width="440" height="70" rx="4" fill="#0a0d12" stroke="#30363d" stroke-width="1"/>
+  <text x="718" y="248" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#6e7681">$ ccc</text>
+  <rect x="706" y="253" width="432" height="18" rx="2" fill="#58a6ff" fill-opacity="0.15"/>
+  <text x="718" y="266" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#58a6ff">▸ New Feature</text>
+  <text x="856" y="266" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">Fix Bug  Review  Deploy  Settings</text>
+  <text x="718" y="282" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#6e7681">↑↓ arrow keys  Enter select  ? help</text>
+
+  <!-- Right panel items -->
+  <!-- Item 1 -->
+  <rect x="702" y="306" width="440" height="36" rx="4" fill="#3fb950" fill-opacity="0.06"/>
+  <text x="720" y="329" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#3fb950">●</text>
+  <text x="744" y="329" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#e6edf3">Guided menu (arrow keys)</text>
+  <text x="1000" y="326" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">no commands</text>
+
+  <!-- Item 2 -->
+  <rect x="702" y="348" width="440" height="36" rx="4" fill="#3fb950" fill-opacity="0.03"/>
+  <text x="720" y="371" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#3fb950">●</text>
+  <text x="744" y="371" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#e6edf3">450+ skills loaded</text>
+  <text x="1000" y="368" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">tiered</text>
+
+  <!-- Item 3 -->
+  <rect x="702" y="390" width="440" height="36" rx="4" fill="#3fb950" fill-opacity="0.06"/>
+  <text x="720" y="413" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#3fb950">●</text>
+  <text x="744" y="413" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#e6edf3">Knowledge compounds</text>
+  <text x="1000" y="410" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">gets smarter</text>
+
+  <!-- Item 4 -->
+  <rect x="702" y="432" width="440" height="36" rx="4" fill="#3fb950" fill-opacity="0.03"/>
+  <text x="720" y="455" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#3fb950">●</text>
+  <text x="744" y="455" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#e6edf3">Session resume (--session-id)</text>
+  <text x="1000" y="452" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">no loss</text>
+
+  <!-- Item 5 -->
+  <rect x="702" y="474" width="440" height="36" rx="4" fill="#3fb950" fill-opacity="0.06"/>
+  <text x="720" y="497" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#3fb950">●</text>
+  <text x="744" y="497" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#e6edf3">98% context savings</text>
+  <text x="1000" y="494" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#ff6600">caveman mode</text>
+
+  <!-- Item 6 -->
+  <rect x="702" y="516" width="440" height="36" rx="4" fill="#3fb950" fill-opacity="0.03"/>
+  <text x="720" y="539" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#3fb950">●</text>
+  <text x="744" y="539" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#e6edf3">Auto-detects stack</text>
+  <text x="1000" y="536" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">pkg.json etc</text>
+
+  <!-- Item 7 -->
+  <rect x="702" y="558" width="440" height="36" rx="4" fill="#3fb950" fill-opacity="0.06"/>
+  <text x="720" y="581" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="16" fill="#3fb950">●</text>
+  <text x="744" y="581" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="13" fill="#e6edf3">Friendly errors + return to menu</text>
+  <text x="1000" y="578" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="10" fill="#3fb950">never lost</text>
+
+  <!-- Right score badge -->
+  <rect x="702" y="606" width="440" height="1" fill="#3fb950" fill-opacity="0.3"/>
+  <rect x="702" y="614" width="440" height="30" rx="4" fill="#3fb950" fill-opacity="0.1"/>
+  <text x="921" y="634" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="12" fill="#3fb950">Experience score: ●●●●●●●●●●  10/10</text>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- BOTTOM FOOTER -->
+  <!-- ═══════════════════════════════════ -->
+  <rect x="0" y="616" width="1200" height="84" fill="#0a0d12"/>
+  <line x1="0" y1="616" x2="1200" y2="616" stroke="#21262d" stroke-width="1"/>
+  <rect x="0" y="697" width="1200" height="3" fill="#ff6600"/>
+
+  <text x="600" y="648" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="18" font-weight="bold" fill="#e6edf3">The same Claude Code. Infinitely better configured.</text>
+
+  <!-- Three highlights -->
+  <rect x="160" y="660" width="180" height="26" rx="13" fill="#da3633" fill-opacity="0.1" stroke="#da3633" stroke-width="1"/>
+  <text x="250" y="677" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#da3633">Before: blank slate</text>
+
+  <rect x="510" y="660" width="180" height="26" rx="13" fill="#ff6600" fill-opacity="0.1" stroke="#ff6600" stroke-width="1"/>
+  <text x="600" y="677" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#ff6600">→ curl | bash →</text>
+
+  <rect x="860" y="660" width="180" height="26" rx="13" fill="#3fb950" fill-opacity="0.1" stroke="#3fb950" stroke-width="1"/>
+  <text x="950" y="677" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Fira Code',monospace" font-size="11" fill="#3fb950">After: fully equipped</text>
+</svg>
