@@ -96,7 +96,7 @@ function miniRainbow(text) {
 function main() {
   var args = parseArgs(process.argv);
 
-  var version = pkg.version.replace(/\.0$/, '');
+  var version = pkg.version;
   var model = formatModel(process.env.ANTHROPIC_MODEL);
   var apiKeyLast3 = getApiKeyLast3();
   var skillCount = countSkills();

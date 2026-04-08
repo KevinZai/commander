@@ -13,6 +13,7 @@ export default [
       'docs/**',
       '.taskmaster/**',
       'coverage/**',
+      'skills/browse/test/**',
     ],
   },
   {

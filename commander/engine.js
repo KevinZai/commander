@@ -56,11 +56,17 @@ function tmuxDispatch(task, resumeSessionId) {
     cp.execFileSync('tmux', ['select-pane', '-T', paneTitle], { stdio: 'pipe' });
 
     // Launch Claude with session persistence
+    // Validate sessionId: strict allowlist to prevent shell injection
+    if (!/^[a-zA-Z0-9._:-]+$/.test(sessionId)) {
+      sessionId = crypto.randomUUID(); // replace tainted ID with safe one
+    }
     if (resumeSessionId) {
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, claudeBin + ' --resume ' + sessionId + ' --continue', 'Enter'], { stdio: 'pipe' });
+      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', claudeBin + ' --resume ' + sessionId + ' --continue'], { stdio: 'pipe' });
+      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
     } else {
       // Start interactive Claude, then send task as user input after a brief pause
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, claudeBin + ' --session-id ' + sessionId, 'Enter'], { stdio: 'pipe' });
+      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', claudeBin + ' --session-id ' + sessionId], { stdio: 'pipe' });
+      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
       cp.execSync('sleep 0.3', { stdio: 'pipe' });
       // Sanitize task: strip control chars, limit length
       var safeTask = String(task || '').replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 4000);

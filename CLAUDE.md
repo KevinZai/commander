@@ -135,7 +135,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** See `package.json`
 
-**Stats:** 454 skills (CLI-visible), 83 commands, 25 hooks (JS), 19 vendors, 10 themes
+**Stats:** 453 skills (CLI-visible), 83 commands, 25 hooks (JS), 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/cc-commander
