@@ -7,7 +7,7 @@
 
 **Not a skill pack. An AI project manager that thinks before it acts.** 450+ skills, 98% context savings, 19 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
 
-<img src="docs/assets/screenshots/hero-dashboard.gif" alt="CC Commander Dashboard" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v2.3.0" width="100%">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/450%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/19_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.3.0](https://img.shields.io/badge/v2.3.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
@@ -130,7 +130,7 @@ No configuration. No YAML. No API keys. The Intelligence Layer handles everythin
 
 ### The Dashboard — Mission Control for Every Session
 
-<img src="docs/assets/screenshots/hero-dashboard.gif" alt="CC Commander Dashboard" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v2.3.0" width="100%">
 
 ### 11 CCC Domains — One Skill Loads an Entire Specialty
 
