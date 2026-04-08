@@ -413,13 +413,13 @@ function select(items, prompt, options) {
       stdout.write('\n');     // blank line (pipe-rail)
       stdout.write(box(helpLines.join('\n')) + '\n');
 
-      // Wait for one keypress then redraw menu
+      // Pause main handler during help, restore on any keypress
+      stdin.removeListener('keypress', handler);
+      stdin.removeListener('data', mouseDataHandler);
       function helpKeyHandler() {
         stdin.removeListener('keypress', helpKeyHandler);
-        // Remove raw data listener for mouse during help
-        stdin.removeListener('data', mouseDataHandler);
         draw();
-        // Re-attach mouse data listener
+        stdin.on('keypress', handler);
         stdin.on('data', mouseDataHandler);
       }
       stdin.once('keypress', helpKeyHandler);

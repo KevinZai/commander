@@ -25,6 +25,7 @@ function defaultState() {
     activeSession: null,
     profiles: {},
     firstRun: true,
+    theme: 'cyberpunk',
     orchestrator: {
       pinnedTools: {},
       stackPreferences: [],
