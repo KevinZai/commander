@@ -167,9 +167,9 @@ cc_banner() {
   echo ""
   echo -e "${M_MID}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
   echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╔╗ ╦╔╗ ╦  ╔═╗${NC}                                  ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╠╩╗║╠╩╗║  ║╣${NC}                                   ${M_MID}┃${NC}"
-  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╚═╝╩╚═╝╩═╝╚═╝${NC}                                  ${M_MID}┃${NC}"
+  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╔═╗╔═╗╔═╗${NC}                                      ${M_MID}┃${NC}"
+  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}║  ║  ║  ${NC}                                      ${M_MID}┃${NC}"
+  echo -e "${M_MID}┃${NC}   ${M_BRIGHT}╚═╝╚═╝╚═╝${NC}                                      ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}                                                     ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}   ${M_WHITE}CC Commander${NC}  ${M_DIM}v2.3.0${NC}                              ${M_MID}┃${NC}"
   echo -e "${M_MID}┃${NC}   ${M_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}   ${M_MID}┃${NC}"
@@ -313,7 +313,7 @@ cc_next_steps() {
   fi
   echo -e "${M_MID}│${NC}                                                     ${M_MID}│${NC}"
   echo -e "${M_MID}│${NC}  ${M_DIM}450+ skills  │  80+ commands  │  11 CCC domains${NC}      ${M_MID}│${NC}"
-  echo -e "${M_MID}│${NC}  ${M_DIM}37 hooks     │  3 templates  │  CC Commander${NC}    ${M_MID}│${NC}"
+  echo -e "${M_MID}│${NC}  ${M_DIM}28 hooks     │  3 templates  │  CC Commander${NC}    ${M_MID}│${NC}"
   echo -e "${M_MID}└─────────────────────────────────────────────────────┘${NC}"
   echo ""
 }

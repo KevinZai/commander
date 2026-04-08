@@ -346,8 +346,12 @@ if should_install "skills"; then
   ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Skills"
 
-  # Determine skill tier
-  tier="${SKILLS_TIER:-essential}"
+  # Determine skill tier (--force defaults to full for reliability)
+  if $FORCE && [ -z "$SKILLS_TIER" ]; then
+    tier="full"
+  else
+    tier="${SKILLS_TIER:-essential}"
+  fi
   tiers_file="$SCRIPT_DIR/skills/_tiers.json"
 
   rm -rf "$CLAUDE_DIR/skills"
@@ -362,7 +366,7 @@ if should_install "skills"; then
     tier="essential"
   fi
 
-  if [[ "$tier" != "full" ]] && [[ -f "$tiers_file" ]]; then
+  if [[ "$tier" != "full" ]] && [[ -f "$tiers_file" ]] && command -v jq &>/dev/null; then
     # Collect skills from the selected tier and all included tiers
     all_skills=""
 
@@ -485,7 +489,7 @@ if should_install "docs"; then
   done
   # Stamp version into installed BIBLE
   if [ -f "$CLAUDE_DIR/BIBLE.md" ]; then
-    sed -i '' "1s|^|<!-- CC Commander v${VERSION} | Installed $(date +%Y-%m-%d) -->\n|" "$CLAUDE_DIR/BIBLE.md"
+    printf '%s\n' "<!-- CC Commander v${VERSION} | Installed $(date +%Y-%m-%d) -->" | cat - "$CLAUDE_DIR/BIBLE.md" > "$CLAUDE_DIR/BIBLE.md.tmp" && mv "$CLAUDE_DIR/BIBLE.md.tmp" "$CLAUDE_DIR/BIBLE.md"
   fi
   cc_status_line "✓" "BIBLE.md + CHEATSHEET.md + SKILLS-INDEX.md"
 fi
