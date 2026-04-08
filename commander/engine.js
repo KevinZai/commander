@@ -323,7 +323,6 @@ class KitCommander {
         process.stdout.write(tui.renderLogoResponsive('CCC'));
         process.stdout.write(cockpit.renderBanner(null, projName));
         process.stdout.write(cockpit.renderCockpitStatus(cockpitData));
-        process.stdout.write('  ' + tui.colorText(S.BAR_START + '  CC Commander v' + BRAND.version, tui.getTheme().dim) + '\n');
       } else {
         // Sub-menus: compact header with project name + one-line footer
         process.stdout.write(cockpit.renderCompactHeader(null, projName));
@@ -347,6 +346,10 @@ class KitCommander {
       }
       if (prepared.subtitle) process.stdout.write('  ' + tui.dimText(prepared.subtitle) + '\n');
       if (prepared.detail) process.stdout.write('  ' + tui.dimText(prepared.detail) + '\n');
+      // Session bookend — always visible just above menu
+      if (adventureId === 'main-menu') {
+        process.stdout.write('  ' + tui.colorText(S.BAR_START + '  CC Commander v' + BRAND.version, tui.getTheme().dim) + '\n');
+      }
       process.stdout.write(tui.divider(prepared.title) + '\n\n');
 
       // Arrow-key menu

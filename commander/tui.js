@@ -505,10 +505,17 @@ function select(items, prompt, options) {
       else {
         // '?' shows help overlay
         if (str === '?') { showHelp(); return; }
-        // 'q' quits unless a menu item key starts with 'q'
+        // 'q' quits — find Quit item or cancel
         if (str === 'q') {
-          var hasQItem = items.some(function(it) { return typeof it === 'string' ? it.toLowerCase().charAt(0) === 'q' : (it && it.key && it.key.toLowerCase() === 'q'); });
-          if (!hasQItem) { done(-1); return; }
+          var quitIdx = -1;
+          items.forEach(function(it, idx) {
+            if (it && !it.separator) {
+              var label = typeof it === 'string' ? it : (it.label || '');
+              if (label.toLowerCase() === 'quit' || (it.action === 'quit')) quitIdx = idx;
+            }
+          });
+          if (quitIdx >= 0) { done(quitIdx); return; }
+          done(-1); return;
         }
         // Letter shortcut: a=0, b=1, c=2, etc.
         var code = (str || '').charCodeAt(0) - 97;
