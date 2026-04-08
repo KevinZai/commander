@@ -259,8 +259,11 @@ if [ -f "$SWAP_STATE_FILE" ] && [ -f "$SWAP_CONFIG" ]; then
   if [ -n "$SWAP_ACTIVE" ]; then
     SWAP_TOK_RAW=$(jq -r --arg n "$SWAP_ACTIVE" '.accounts[] | select(.name == $n) | .token // empty' "$SWAP_CONFIG" 2>/dev/null)
     # Resolve env var references like $ANTHROPIC_API_KEY
-    if [[ "$SWAP_TOK_RAW" =~ ^\$\{?([A-Z_][A-Z0-9_]*)\}?$ ]]; then
-      SWAP_TOK="${!BASH_REMATCH[1]}"
+    if [[ "$SWAP_TOK_RAW" == \$* ]]; then
+      VARNAME="${SWAP_TOK_RAW#\$}"
+      VARNAME="${VARNAME#\{}"
+      VARNAME="${VARNAME%\}}"
+      SWAP_TOK=$(eval echo "\$$VARNAME" 2>/dev/null)
     else
       SWAP_TOK="$SWAP_TOK_RAW"
     fi

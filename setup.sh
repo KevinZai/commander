@@ -14,7 +14,7 @@ echo "    ./install.sh --force      Skip prompts"
 echo "    ./install.sh --verify     Validate install"
 echo ""
 read -p "  Continue anyway? (y/N) " confirm
-if [[ "${confirm,,}" != "y" ]]; then
+if [[ "$(echo "$confirm" | tr '[:upper:]' '[:lower:]')" != "y" ]]; then
   echo "  Use: ./install.sh"
   exit 0
 fi

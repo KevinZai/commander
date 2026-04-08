@@ -33,7 +33,7 @@
 - [Workflow Modes](#workflow-modes) *(9 modes)*
 - [Prompt Library](#prompt-library-1) *(36+ templates)*
 - [Integrations](#integrations) *(Agency Orchestrator + OpenClaw)*
-- [Proactive Automation Suite](#proactive-automation-suite-v11) *(25 kit-native hooks)*
+- [Proactive Automation Suite](#proactive-automation-suite-v11) *(28 kit-native hooks)*
 - [Settings Reference](#settings-reference)
 - [Appendix A: Model Selection](#model-selection)
 - [Appendix B: Contributor Credits](#contributor-credits)
@@ -1775,7 +1775,7 @@ Integration patterns for OpenClaw multi-agent platform:
 
 ## Proactive Automation Suite
 
-25 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
+28 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
 
 ### The 9 New Hooks
 
@@ -1808,8 +1808,8 @@ The session-coach hook fires every N responses (default: 10) with contextual sug
 
 | Configuration | Hooks | File |
 |---------------|-------|------|
-| Kit standalone | 25 | `hooks-standalone.json` |
-| Kit + ECC | 25 | `hooks.json` |
+| Kit standalone | 28 | `hooks-standalone.json` |
+| Kit + ECC | 28 | `hooks.json` |
 
 Every kit-native hook can be individually disabled via its `KZ_DISABLE_*` env var. See CHEATSHEET.md for the full list.
 

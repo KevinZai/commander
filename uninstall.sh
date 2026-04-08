@@ -77,7 +77,7 @@ fi
 # ── Confirmation ─────────────────────────────────────────────────────────
 if ! $FORCE; then
   read -p "  Remove $components kit components? (y/N) " confirm
-  if [[ "${confirm,,}" != "y" ]]; then
+  if [[ "$(echo "$confirm" | tr '[:upper:]' '[:lower:]')" != "y" ]]; then
     echo ""
     echo "  Aborted. No changes made."
     echo ""

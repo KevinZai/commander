@@ -174,11 +174,14 @@ fi
 cc_section_header "IDENTITY"
 echo -e "  ${M_WHITE}Who is this?${NC}"
 echo ""
-read -p "  Enter your name: " USER_NAME
-
-if [ -z "$USER_NAME" ]; then
-  cc_status_line "✗" "Name required."
-  exit 1
+if $FORCE; then
+  USER_NAME="${USER_NAME:-User}"
+else
+  read -p "  Enter your name: " USER_NAME
+  if [ -z "$USER_NAME" ]; then
+    cc_status_line "✗" "Name required."
+    exit 1
+  fi
 fi
 
 echo ""
@@ -232,7 +235,7 @@ if ! $FORCE; then
   fi
   echo ""
   read -p "  Continue? (y/N) " confirm
-  if [[ "${confirm,,}" != "y" ]]; then
+  if [[ "$(echo "$confirm" | tr '[:upper:]' '[:lower:]')" != "y" ]]; then
     echo ""
     cc_status_line "·" "Aborted. No changes made."
     echo ""
@@ -344,8 +347,8 @@ if should_install "skills"; then
   cc_progress_bar "$install_step" "$install_total" "Skills"
 
   # Determine skill tier
-  local tier="${SKILLS_TIER:-essential}"
-  local tiers_file="$SCRIPT_DIR/skills/_tiers.json"
+  tier="${SKILLS_TIER:-essential}"
+  tiers_file="$SCRIPT_DIR/skills/_tiers.json"
 
   rm -rf "$CLAUDE_DIR/skills"
   mkdir -p "$CLAUDE_DIR/skills"
@@ -361,27 +364,27 @@ if should_install "skills"; then
 
   if [[ "$tier" != "full" ]] && [[ -f "$tiers_file" ]]; then
     # Collect skills from the selected tier and all included tiers
-    local all_skills=""
+    all_skills=""
 
     # Get skills for the selected tier
-    local tier_skills=$(jq -r ".tiers[\"$tier\"].skills[]?" "$tiers_file" 2>/dev/null)
+    tier_skills=$(jq -r ".tiers[\"$tier\"].skills[]?" "$tiers_file" 2>/dev/null)
     all_skills="$tier_skills"
 
     # Get included tiers and their skills
-    local includes=$(jq -r ".tiers[\"$tier\"].includes[]?" "$tiers_file" 2>/dev/null)
+    includes=$(jq -r ".tiers[\"$tier\"].includes[]?" "$tiers_file" 2>/dev/null)
     for inc in $includes; do
-      local inc_skills=$(jq -r ".tiers[\"$inc\"].skills[]?" "$tiers_file" 2>/dev/null)
+      inc_skills=$(jq -r ".tiers[\"$inc\"].skills[]?" "$tiers_file" 2>/dev/null)
       all_skills="$all_skills"$'\n'"$inc_skills"
     done
 
     # Also add domain skills if tier is recommended or higher
     if [[ "$tier" == "recommended" ]]; then
-      local domain_skills=$(jq -r '.tiers["domain"].skills[]?' "$tiers_file" 2>/dev/null)
+      domain_skills=$(jq -r '.tiers["domain"].skills[]?' "$tiers_file" 2>/dev/null)
       all_skills="$all_skills"$'\n'"$domain_skills"
     fi
 
     # Deduplicate and create symlinks
-    local unique_skills=$(echo "$all_skills" | sort -u | grep -v '^$')
+    unique_skills=$(echo "$all_skills" | sort -u | grep -v '^$')
     while IFS= read -r skill; do
       if [[ -d "$SCRIPT_DIR/skills/$skill" ]]; then
         ln -sf "$SCRIPT_DIR/skills/$skill" "$CLAUDE_DIR/skills/$skill"
@@ -393,7 +396,7 @@ if should_install "skills"; then
     [[ -f "$tiers_file" ]] && cp "$tiers_file" "$CLAUDE_DIR/skills/"
   fi
 
-  local skill_count=$(find "$CLAUDE_DIR/skills" -maxdepth 1 -type d | wc -l | tr -d ' ')
+  skill_count=$(find "$CLAUDE_DIR/skills" -maxdepth 1 -type d | wc -l | tr -d ' ')
   skill_count=$((skill_count - 1))
   cc_status_line "✓" "$skill_count skills installed (tier: $tier)"
 fi
@@ -414,12 +417,12 @@ if should_install "skills"; then
   fi
 
   # Add MCP server to .claude.json if not present
-  local claude_json="$HOME/.claude.json"
+  claude_json="$HOME/.claude.json"
   if [[ -f "$claude_json" ]]; then
     if ! grep -q '"context-mode"' "$claude_json" 2>/dev/null; then
       node -e "
         var fs = require('fs');
-        var p = '$claude_json';
+        var p = process.argv[1];
         try {
           var d = JSON.parse(fs.readFileSync(p, 'utf8'));
           if (!d.mcpServers) d.mcpServers = {};
@@ -428,7 +431,7 @@ if should_install "skills"; then
             fs.writeFileSync(p, JSON.stringify(d, null, 2));
           }
         } catch(e) {}
-      " 2>/dev/null && cc_status_line "✓" "context-mode MCP server configured" || true
+      " -- "$claude_json" 2>/dev/null && cc_status_line "✓" "context-mode MCP server configured" || true
     fi
   fi
 fi
