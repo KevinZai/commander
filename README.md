@@ -175,29 +175,7 @@ No configuration. No YAML. No API keys. The Intelligence Layer handles everythin
 
 The first thing you see. Arrow keys only — no commands to memorize.
 
-<!-- Version is tracked in package.json — update all references when bumping -->
-```
-╔══════════════════════════════════════════╗
-║  CC COMMANDER v2.3.0                     ║
-║  Your AI Project Manager                 ║
-╚══════════════════════════════════════════╝
-
-  What would you like to do?
-
-  ❯ Build something new          ← code, websites, APIs
-    Import a project             ← auto-detect & audit
-    Create content               ← blogs, social, email
-    Research & analyze           ← competitors, markets
-    Linear board                 ← pick issues to build
-    Browse 450+ skills           ← search by keyword
-    Check my stats               ← sessions, streaks
-    Night Mode / YOLO            ← overnight autonomous
-    Infrastructure               ← Fleet, Synapse, Cost
-    Settings                     ← name, level, theme
-    ↓ more...
-
-  ↑↓ Navigate  ⏎ Select  q Quit
-```
+<img src="screenshots/png/main-menu.png" alt="CC Commander Main Menu" width="100%">
 
 ### Intelligence Analysis — Smart Dispatch
 
@@ -247,19 +225,9 @@ CCC ranks skills using your stack + task keywords + past usage. The right tools 
 
 Context, rate limits, and budget meters in your terminal. Color-codes green → yellow → red as limits approach.
 
-```
-  ══════════════════════════════════════════
-  CC COMMANDER  v2.3.0                  <!-- update version on bump -->
-  ─────────────────────────────────────────
-  🔥 Opus4.6-1M  |  $2.14  |  ↑42K↓8K  |  3m12s
-  CTX  [████████████░░░░░░░░] 62%   ← green
-  5h   [████░░░░░░░░░░░░░░░░] 23%   ← green (ClaudeSwap)
-  7d   [██████░░░░░░░░░░░░░░] 34%   ← green (ClaudeSwap)
-  ─────────────────────────────────────────
-  📋 CC-150  |  🎯 450+ skills  |  📦 19 vendors
+<img src="screenshots/png/cockpit-status.png" alt="Cockpit Status Panel" width="100%">
 
-  Footer: ━━ 🌈CCC2.3.0│🔥Opus4.6-1M│🔑gAA│🧠▐██45%▌│⏱️▐██6%▌│📅▐██34%▌│💰$2.34│🎯453│📂~/project
-```
+<img src="screenshots/png/cockpit-footer.png" alt="Cockpit Footer" width="100%">
 
 ### Night Mode / YOLO — Autonomous Overnight Build
 
@@ -671,22 +639,11 @@ CCC learns from every session. Knowledge compounds over time.
 
 <img src="docs/assets/section-cockpit.svg" alt="Cockpit" width="100%">
 
-```
-  ══════════════════════════════════════════────────
-  🌈 CC COMMANDER  v2.3.0             <!-- update version on bump -->
-  Every Claude Code tool. One install. An AI brain that learns.
-  ─────────────────────────────────────────────
-  🔥 Opus4.6-1M  │  $2.14  │  ↑42K↓8K  │  3m12s
-  CTX [████████████░░░░░░░░] 62%  5h [████░░░░░░░░░░░░] 23%  7d [██████░░░░░░░░] 34%
-  📋 CC-150   │  🎯 450+ skills  │  📦 19 vendors  │  🔋 98% ctx savings
-  ─────────────────────────────────────────
-```
+<img src="screenshots/png/cockpit-status.png" alt="Cockpit Status Panel" width="100%">
 
 ASCII meters for context usage + rate limits. Emoji status indicators. Active Linear ticket. Skill and vendor counts. All in your terminal.
 
-**Rich footer bar** — rainbow status line with live ClaudeSwap meters:
-
-<img src="docs/assets/screenshots/footer-rainbow.gif" alt="Rainbow Footer with Meters" width="100%">
+<img src="screenshots/png/cockpit-footer.png" alt="Cockpit Footer Bar" width="100%">
 
 Context/rate/budget meters color-code green → yellow → red as you approach limits.
 
@@ -694,7 +651,7 @@ Context/rate/budget meters color-code green → yellow → red as you approach l
 
 ## Stats Dashboard & Before/After
 
-<img src="docs/assets/ccc-stats.svg" alt="Stats" width="100%">
+<img src="screenshots/png/dashboard.png" alt="Stats Dashboard" width="100%">
 
 Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 

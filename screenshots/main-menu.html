@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>main-menu — CC Commander</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0f;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 16px;
+    margin: 0;
+  }
+  .terminal {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 28px 32px;
+    max-width: 100%;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #21262d;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+  .title-text {
+    color: #8b949e;
+    font-size: 12px;
+    margin-left: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .content {
+    font-size: 14px;
+    line-height: 1.0;
+    color: #c9d1d9;
+    white-space: pre;
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="title-bar">
+    <div class="dot dot-red"></div>
+    <div class="dot dot-yellow"></div>
+    <div class="dot dot-green"></div>
+    <span class="title-text">main-menu</span>
+  </div>
+  <div class="content">
+<span style="color:rgb(80,80,120)">│</span>
+<span style="color:rgb(0,255,255)">◆  </span><span style="font-weight:bold"></span><span style="color:rgb(200,200,230);font-weight:bold">What would you like to do?</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(0,255,255)">● </span><span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">Build something new</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(0,255,255)">Code, websites, APIs, CLI tools</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">○ </span><span style="color:rgb(200,200,230)">Create content</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(80,80,120)">Marketing, social media, writing</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">○ </span><span style="color:rgb(200,200,230)">Research &amp; analyze</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(80,80,120)">Competitive analysis, reports, audits</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">○ </span><span style="color:rgb(200,200,230)">Review what I built</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(80,80,120)">Recent sessions and results</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">○ </span><span style="color:rgb(200,200,230)">Learn a new skill</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(80,80,120)">Browse 450+ skills and guides</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">○ </span><span style="color:rgb(200,200,230)">Check my stats</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(80,80,120)">Dashboard, streaks, achievements</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">○ </span><span style="color:rgb(200,200,230)">Night Mode</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(80,80,120)">8-hour autonomous build</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">○ </span><span style="color:rgb(200,200,230)">Settings</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(80,80,120)">Name, level, cost, theme</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">○ </span><span style="color:rgb(200,200,230)">Infrastructure &amp; Fleet</span>
+<span style="color:rgb(80,80,120)">│</span>     <span style="color:rgb(80,80,120)">Fleet Commander, Synapse, Cost tracking</span>
+<span style="color:rgb(80,80,120)">│</span>
+<span style="color:rgb(80,80,120)">│</span>  <span style="color:rgb(80,80,120)">[↑↓] navigate  [enter] select  [q] quit  [?] help</span>
+</div>
+</div>
+</body>
+</html>

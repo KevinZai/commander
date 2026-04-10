@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cockpit-status — CC Commander</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0f;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 16px;
+    margin: 0;
+  }
+  .terminal {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 28px 32px;
+    max-width: 100%;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #21262d;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+  .title-text {
+    color: #8b949e;
+    font-size: 12px;
+    margin-left: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .content {
+    font-size: 14px;
+    line-height: 1.0;
+    color: #c9d1d9;
+    white-space: pre;
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="title-bar">
+    <div class="dot dot-red"></div>
+    <div class="dot dot-yellow"></div>
+    <div class="dot dot-green"></div>
+    <span class="title-text">cockpit-status</span>
+  </div>
+  <div class="content">  <span style="color:rgb(0,255,255)">╭───────────────────────────────────────────────────────────────────╮</span>
+  🔥 <span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">claude-opus-4-6</span><span style="color:rgb(80,80,120)">  │  </span><span style="font-weight:bold"></span><span style="color:rgb(255,150,50);font-weight:bold">$2.47</span><span style="color:rgb(80,80,120)">  │  </span><span style="color:rgb(0,255,255)">↑</span><span style="font-weight:bold"></span><span style="color:rgb(200,200,230);font-weight:bold">145K</span><span style="color:rgb(255,0,128)">↓</span><span style="font-weight:bold"></span><span style="color:rgb(200,200,230);font-weight:bold">13K</span><span style="color:rgb(80,80,120)">  │  </span><span style="color:rgb(80,80,120)">1h 23m</span>
+  <span style="color:rgb(80,80,120)">CTX [</span><span style="color:rgb(0,255,255)">█</span><span style="color:rgb(18,237,246)">█</span><span style="color:rgb(36,219,237)">█</span><span style="color:rgb(55,200,228)">█</span><span style="color:rgb(73,182,219)">█</span><span style="color:rgb(91,164,210)">█</span><span style="color:rgb(109,146,201)">█</span><span style="color:rgb(128,128,192)">█</span><span style="color:rgb(146,109,182)">█</span><span style="color:rgb(80,80,120)">░░░░░</span><span style="color:rgb(80,80,120)">] </span><span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">67%</span>  <span style="color:rgb(80,80,120)">RATE [</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(80,80,120)">░░░░░░░░</span><span style="color:rgb(80,80,120)">] </span><span style="font-weight:bold"></span><span style="color:rgb(255,0,128);font-weight:bold">42%</span>  ⏱️<span style="color:rgb(80,80,120)">SES [</span><span style="font-weight:bold"></span><span style="color:rgb(255,0,128);font-weight:bold">3h</span><span style="color:rgb(80,80,120)">] </span>  📅<span style="color:rgb(80,80,120)">7d [</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(80,80,120)">░░░░░░</span><span style="color:rgb(80,80,120)">] </span><span style="font-weight:bold"></span><span style="color:rgb(255,0,128);font-weight:bold">35%</span>
+  📋 <span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">CC-229</span><span style="color:rgb(80,80,120)">  │  </span>🎯 <span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">37</span><span style="color:rgb(80,80,120)"> skills</span><span style="color:rgb(80,80,120)">  │  </span>📦 <span style="font-weight:bold"></span><span style="color:rgb(255,0,128);font-weight:bold">19</span><span style="color:rgb(80,80,120)"> vendors</span><span style="color:rgb(80,80,120)">  │  </span>⚡ <span style="color:rgb(128,0,255)">tdd-guide</span><span style="color:rgb(80,80,120)">  │  </span>📂<span style="color:rgb(80,80,120)">...ects/cc-commander</span>
+  <span style="color:rgb(80,80,120)">╰───────────────────────────────────────────────────────────────────╯</span>
+</div>
+</div>
+</body>
+</html>

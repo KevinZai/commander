@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>stats-card — CC Commander</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0f;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 16px;
+    margin: 0;
+  }
+  .terminal {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 28px 32px;
+    max-width: 100%;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #21262d;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+  .title-text {
+    color: #8b949e;
+    font-size: 12px;
+    margin-left: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .content {
+    font-size: 14px;
+    line-height: 1.0;
+    color: #c9d1d9;
+    white-space: pre;
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="title-bar">
+    <div class="dot dot-red"></div>
+    <div class="dot dot-yellow"></div>
+    <div class="dot dot-green"></div>
+    <span class="title-text">stats-card</span>
+  </div>
+  <div class="content">
+<span style="color:rgb(0,255,255)">╭──────────────────────────────────────────╮</span>
+<span style="color:rgb(0,255,255)">│</span>   <span style="color:rgb(80,80,120)">Sessions:   </span><span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">142</span>                        <span style="color:rgb(0,255,255)">│</span>
+<span style="color:rgb(0,255,255)">│</span>   <span style="color:rgb(80,80,120)">Streak:     </span><span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">🔥 7 days</span>                  <span style="color:rgb(0,255,255)">│</span>
+<span style="color:rgb(0,255,255)">│</span>   <span style="color:rgb(80,80,120)">Level:      </span><span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">Power User</span>                 <span style="color:rgb(0,255,255)">│</span>
+<span style="color:rgb(0,255,255)">│</span>   <span style="color:rgb(80,80,120)">Total Cost: </span><span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">$23.50</span>                     <span style="color:rgb(0,255,255)">│</span>
+<span style="color:rgb(0,255,255)">│</span>   <span style="color:rgb(80,80,120)">Skills:     </span><span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">37 installed</span>               <span style="color:rgb(0,255,255)">│</span>
+<span style="color:rgb(0,255,255)">╰──────────────────────────────────────────╯</span>
+</div>
+</div>
+</body>
+</html>

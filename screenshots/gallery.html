@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC Commander — Screenshot Gallery</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #020209;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #c9d1d9;
+    padding: 40px 32px;
+  }
+  header { text-align: center; margin-bottom: 48px; }
+  header h1 {
+    font-size: 28px;
+    background: linear-gradient(90deg, #00ffff, #ff0080, #8000ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  header p { color: #6e7681; font-size: 13px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #388bfd; }
+  .card-title {
+    padding: 10px 16px;
+    font-size: 11px;
+    color: #8b949e;
+    border-bottom: 1px solid #21262d;
+    background: #161b22;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-family: monospace;
+  }
+  .card img {
+    width: 100%;
+    display: block;
+    background: #0d1117;
+  }
+  footer {
+    text-align: center;
+    margin-top: 48px;
+    color: #484f58;
+    font-size: 12px;
+  }
+  footer a { color: #388bfd; text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>CC Commander — Screenshot Gallery</h1>
+  <p>7 screenshots • Generated 2026-04-10</p>
+</header>
+<div class="grid">
+    <div class="card">
+      <div class="card-title">cockpit-footer</div>
+      <img src="png/cockpit-footer.png" alt="cockpit-footer" loading="lazy">
+    </div>
+    <div class="card">
+      <div class="card-title">cockpit-status</div>
+      <img src="png/cockpit-status.png" alt="cockpit-status" loading="lazy">
+    </div>
+    <div class="card">
+      <div class="card-title">dashboard</div>
+      <img src="png/dashboard.png" alt="dashboard" loading="lazy">
+    </div>
+    <div class="card">
+      <div class="card-title">main-menu</div>
+      <img src="png/main-menu.png" alt="main-menu" loading="lazy">
+    </div>
+    <div class="card">
+      <div class="card-title">meters</div>
+      <img src="png/meters.png" alt="meters" loading="lazy">
+    </div>
+    <div class="card">
+      <div class="card-title">progress-bars</div>
+      <img src="png/progress-bars.png" alt="progress-bars" loading="lazy">
+    </div>
+    <div class="card">
+      <div class="card-title">stats-card</div>
+      <img src="png/stats-card.png" alt="stats-card" loading="lazy">
+    </div>
+</div>
+<footer>
+  <p>CC Commander v2.3.0</p>
+</footer>
+</body>
+</html>

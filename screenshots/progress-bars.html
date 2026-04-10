@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>progress-bars — CC Commander</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0f;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 16px;
+    margin: 0;
+  }
+  .terminal {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 28px 32px;
+    max-width: 100%;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #21262d;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+  .title-text {
+    color: #8b949e;
+    font-size: 12px;
+    margin-left: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .content {
+    font-size: 14px;
+    line-height: 1.0;
+    color: #c9d1d9;
+    white-space: pre;
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="title-bar">
+    <div class="dot dot-red"></div>
+    <div class="dot dot-yellow"></div>
+    <div class="dot dot-green"></div>
+    <span class="title-text">progress-bars</span>
+  </div>
+  <div class="content">
+<span style="color:rgb(80,80,120)">  ─── </span><span style="font-weight:bold"></span><span style="color:rgb(0,255,255);font-weight:bold">Progress Bars</span><span style="color:rgb(80,80,120)"> ──────────────────────────────</span>
+
+  <span style="color:rgb(80,80,120)">  0% </span><span style="color:rgb(0,255,255)">▌</span><span style="color:rgb(255,0,128)">░</span><span style="color:rgb(248,7,131)">░</span><span style="color:rgb(242,13,135)">░</span><span style="color:rgb(235,20,138)">░</span><span style="color:rgb(229,26,141)">░</span><span style="color:rgb(222,33,144)">░</span><span style="color:rgb(216,39,148)">░</span><span style="color:rgb(209,46,151)">░</span><span style="color:rgb(203,52,154)">░</span><span style="color:rgb(196,59,157)">░</span><span style="color:rgb(190,65,161)">░</span><span style="color:rgb(183,72,164)">░</span><span style="color:rgb(177,78,167)">░</span><span style="color:rgb(170,85,170)">░</span><span style="color:rgb(163,92,174)">░</span><span style="color:rgb(157,98,177)">░</span><span style="color:rgb(150,105,180)">░</span><span style="color:rgb(144,111,183)">░</span><span style="color:rgb(137,118,187)">░</span><span style="color:rgb(131,124,190)">░</span><span style="color:rgb(124,131,193)">░</span><span style="color:rgb(118,137,196)">░</span><span style="color:rgb(111,144,200)">░</span><span style="color:rgb(105,150,203)">░</span><span style="color:rgb(98,157,206)">░</span><span style="color:rgb(92,163,209)">░</span><span style="color:rgb(85,170,213)">░</span><span style="color:rgb(78,177,216)">░</span><span style="color:rgb(72,183,219)">░</span><span style="color:rgb(65,190,222)">░</span><span style="color:rgb(59,196,226)">░</span><span style="color:rgb(52,203,229)">░</span><span style="color:rgb(46,209,232)">░</span><span style="color:rgb(39,216,235)">░</span><span style="color:rgb(33,222,239)">░</span><span style="color:rgb(26,229,242)">░</span><span style="color:rgb(20,235,245)">░</span><span style="color:rgb(13,242,248)">░</span><span style="color:rgb(7,248,252)">░</span><span style="color:rgb(0,255,255)">░</span><span style="color:rgb(0,255,255)">▐</span> <span style="color:rgb(200,200,230)">0/100</span>
+  <span style="color:rgb(80,80,120)"> 25% </span><span style="color:rgb(0,255,255)">▌</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(248,7,131)">█</span><span style="color:rgb(242,13,135)">█</span><span style="color:rgb(235,20,138)">█</span><span style="color:rgb(229,26,141)">█</span><span style="color:rgb(222,33,144)">█</span><span style="color:rgb(216,39,148)">█</span><span style="color:rgb(209,46,151)">█</span><span style="color:rgb(203,52,154)">█</span><span style="color:rgb(196,59,157)">█</span><span style="color:rgb(190,65,161)">░</span><span style="color:rgb(183,72,164)">░</span><span style="color:rgb(177,78,167)">░</span><span style="color:rgb(170,85,170)">░</span><span style="color:rgb(163,92,174)">░</span><span style="color:rgb(157,98,177)">░</span><span style="color:rgb(150,105,180)">░</span><span style="color:rgb(144,111,183)">░</span><span style="color:rgb(137,118,187)">░</span><span style="color:rgb(131,124,190)">░</span><span style="color:rgb(124,131,193)">░</span><span style="color:rgb(118,137,196)">░</span><span style="color:rgb(111,144,200)">░</span><span style="color:rgb(105,150,203)">░</span><span style="color:rgb(98,157,206)">░</span><span style="color:rgb(92,163,209)">░</span><span style="color:rgb(85,170,213)">░</span><span style="color:rgb(78,177,216)">░</span><span style="color:rgb(72,183,219)">░</span><span style="color:rgb(65,190,222)">░</span><span style="color:rgb(59,196,226)">░</span><span style="color:rgb(52,203,229)">░</span><span style="color:rgb(46,209,232)">░</span><span style="color:rgb(39,216,235)">░</span><span style="color:rgb(33,222,239)">░</span><span style="color:rgb(26,229,242)">░</span><span style="color:rgb(20,235,245)">░</span><span style="color:rgb(13,242,248)">░</span><span style="color:rgb(7,248,252)">░</span><span style="color:rgb(0,255,255)">░</span><span style="color:rgb(0,255,255)">▐</span> <span style="color:rgb(200,200,230)">25/100</span>
+  <span style="color:rgb(80,80,120)"> 50% </span><span style="color:rgb(0,255,255)">▌</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(248,7,131)">█</span><span style="color:rgb(242,13,135)">█</span><span style="color:rgb(235,20,138)">█</span><span style="color:rgb(229,26,141)">█</span><span style="color:rgb(222,33,144)">█</span><span style="color:rgb(216,39,148)">█</span><span style="color:rgb(209,46,151)">█</span><span style="color:rgb(203,52,154)">█</span><span style="color:rgb(196,59,157)">█</span><span style="color:rgb(190,65,161)">█</span><span style="color:rgb(183,72,164)">█</span><span style="color:rgb(177,78,167)">█</span><span style="color:rgb(170,85,170)">█</span><span style="color:rgb(163,92,174)">█</span><span style="color:rgb(157,98,177)">█</span><span style="color:rgb(150,105,180)">█</span><span style="color:rgb(144,111,183)">█</span><span style="color:rgb(137,118,187)">█</span><span style="color:rgb(131,124,190)">█</span><span style="color:rgb(124,131,193)">░</span><span style="color:rgb(118,137,196)">░</span><span style="color:rgb(111,144,200)">░</span><span style="color:rgb(105,150,203)">░</span><span style="color:rgb(98,157,206)">░</span><span style="color:rgb(92,163,209)">░</span><span style="color:rgb(85,170,213)">░</span><span style="color:rgb(78,177,216)">░</span><span style="color:rgb(72,183,219)">░</span><span style="color:rgb(65,190,222)">░</span><span style="color:rgb(59,196,226)">░</span><span style="color:rgb(52,203,229)">░</span><span style="color:rgb(46,209,232)">░</span><span style="color:rgb(39,216,235)">░</span><span style="color:rgb(33,222,239)">░</span><span style="color:rgb(26,229,242)">░</span><span style="color:rgb(20,235,245)">░</span><span style="color:rgb(13,242,248)">░</span><span style="color:rgb(7,248,252)">░</span><span style="color:rgb(0,255,255)">░</span><span style="color:rgb(0,255,255)">▐</span> <span style="color:rgb(200,200,230)">50/100</span>
+  <span style="color:rgb(80,80,120)"> 75% </span><span style="color:rgb(0,255,255)">▌</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(248,7,131)">█</span><span style="color:rgb(242,13,135)">█</span><span style="color:rgb(235,20,138)">█</span><span style="color:rgb(229,26,141)">█</span><span style="color:rgb(222,33,144)">█</span><span style="color:rgb(216,39,148)">█</span><span style="color:rgb(209,46,151)">█</span><span style="color:rgb(203,52,154)">█</span><span style="color:rgb(196,59,157)">█</span><span style="color:rgb(190,65,161)">█</span><span style="color:rgb(183,72,164)">█</span><span style="color:rgb(177,78,167)">█</span><span style="color:rgb(170,85,170)">█</span><span style="color:rgb(163,92,174)">█</span><span style="color:rgb(157,98,177)">█</span><span style="color:rgb(150,105,180)">█</span><span style="color:rgb(144,111,183)">█</span><span style="color:rgb(137,118,187)">█</span><span style="color:rgb(131,124,190)">█</span><span style="color:rgb(124,131,193)">█</span><span style="color:rgb(118,137,196)">█</span><span style="color:rgb(111,144,200)">█</span><span style="color:rgb(105,150,203)">█</span><span style="color:rgb(98,157,206)">█</span><span style="color:rgb(92,163,209)">█</span><span style="color:rgb(85,170,213)">█</span><span style="color:rgb(78,177,216)">█</span><span style="color:rgb(72,183,219)">█</span><span style="color:rgb(65,190,222)">█</span><span style="color:rgb(59,196,226)">░</span><span style="color:rgb(52,203,229)">░</span><span style="color:rgb(46,209,232)">░</span><span style="color:rgb(39,216,235)">░</span><span style="color:rgb(33,222,239)">░</span><span style="color:rgb(26,229,242)">░</span><span style="color:rgb(20,235,245)">░</span><span style="color:rgb(13,242,248)">░</span><span style="color:rgb(7,248,252)">░</span><span style="color:rgb(0,255,255)">░</span><span style="color:rgb(0,255,255)">▐</span> <span style="color:rgb(200,200,230)">75/100</span>
+  <span style="color:rgb(80,80,120)">100% </span><span style="color:rgb(0,255,255)">▌</span><span style="color:rgb(255,0,128)">█</span><span style="color:rgb(248,7,131)">█</span><span style="color:rgb(242,13,135)">█</span><span style="color:rgb(235,20,138)">█</span><span style="color:rgb(229,26,141)">█</span><span style="color:rgb(222,33,144)">█</span><span style="color:rgb(216,39,148)">█</span><span style="color:rgb(209,46,151)">█</span><span style="color:rgb(203,52,154)">█</span><span style="color:rgb(196,59,157)">█</span><span style="color:rgb(190,65,161)">█</span><span style="color:rgb(183,72,164)">█</span><span style="color:rgb(177,78,167)">█</span><span style="color:rgb(170,85,170)">█</span><span style="color:rgb(163,92,174)">█</span><span style="color:rgb(157,98,177)">█</span><span style="color:rgb(150,105,180)">█</span><span style="color:rgb(144,111,183)">█</span><span style="color:rgb(137,118,187)">█</span><span style="color:rgb(131,124,190)">█</span><span style="color:rgb(124,131,193)">█</span><span style="color:rgb(118,137,196)">█</span><span style="color:rgb(111,144,200)">█</span><span style="color:rgb(105,150,203)">█</span><span style="color:rgb(98,157,206)">█</span><span style="color:rgb(92,163,209)">█</span><span style="color:rgb(85,170,213)">█</span><span style="color:rgb(78,177,216)">█</span><span style="color:rgb(72,183,219)">█</span><span style="color:rgb(65,190,222)">█</span><span style="color:rgb(59,196,226)">█</span><span style="color:rgb(52,203,229)">█</span><span style="color:rgb(46,209,232)">█</span><span style="color:rgb(39,216,235)">█</span><span style="color:rgb(33,222,239)">█</span><span style="color:rgb(26,229,242)">█</span><span style="color:rgb(20,235,245)">█</span><span style="color:rgb(13,242,248)">█</span><span style="color:rgb(7,248,252)">█</span><span style="color:rgb(0,255,255)">█</span><span style="color:rgb(0,255,255)">▐</span> <span style="color:rgb(200,200,230)">100/100</span>
+</div>
+</div>
+</body>
+</html>
