@@ -32,6 +32,21 @@ function tmuxDispatch(task, resumeSessionId) {
     var cp = require('child_process');
     var crypto = require('crypto');
     var claudeBin = require('./claude-finder').resolve();
+
+    // Pre-dispatch auth check: verify Claude Code can authenticate
+    try {
+      var authCheck = cp.execFileSync(claudeBin, ['-p', 'reply with OK', '--max-turns', '1', '--output-format', 'text'], {
+        encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 15000
+      });
+    } catch(authErr) {
+      var errMsg = String(authErr.stderr || authErr.message || '');
+      if (errMsg.indexOf('authentication') !== -1 || errMsg.indexOf('401') !== -1 || errMsg.indexOf('login') !== -1) {
+        process.stdout.write('\n  \x1b[31mAuth error: Claude Code credentials are invalid or expired.\x1b[0m\n');
+        process.stdout.write('  Run \x1b[1mclaude /login\x1b[0m to re-authenticate, then try again.\n\n');
+        return null;
+      }
+    }
+
     var sessionName = process.env.CCC_TMUX_SESSION || 'ccc';
     var sessionId = resumeSessionId || crypto.randomUUID();
     dispatchCounter++;
