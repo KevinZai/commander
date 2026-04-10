@@ -1,24 +1,24 @@
 import React from "react";
 import { Series, AbsoluteFill } from "remotion";
-import { Intro } from "./scenes/Intro";
-import { Problem } from "./scenes/Problem";
-import { Menu } from "./scenes/Menu";
-import { Skills } from "./scenes/Skills";
-import { Install } from "./scenes/Install";
-import { CTA } from "./scenes/CTA";
+import { TitleReveal } from "./scenes/TitleReveal";
+import { BeforeAfter } from "./scenes/BeforeAfter";
+import { MenuShowcase } from "./scenes/MenuShowcase";
+import { CockpitShowcase } from "./scenes/CockpitShowcase";
+import { StatsReveal } from "./scenes/StatsReveal";
+import { FinalCTA } from "./scenes/FinalCTA";
 
-// 6-scene premium product launch video
-// Total: 1320 frames = 44 seconds at 30fps
+// 6-scene cinematic hero video
+// Total: 900 frames = 30 seconds at 30fps
 const SCENES = [
-  { component: Intro, frames: 180 },    // Scene 1: Title Card          6s
-  { component: Problem, frames: 180 },  // Scene 2: Problem → Solution  6s
-  { component: Menu, frames: 300 },     // Scene 3: Terminal Demo       10s
-  { component: Skills, frames: 240 },   // Scene 4: Stats Grid          8s
-  { component: Install, frames: 240 },  // Scene 5: Install CTA         8s
-  { component: CTA, frames: 180 },      // Scene 6: End Card            6s
+  { component: TitleReveal, frames: 90 },     // Scene 1: Title Reveal        3s
+  { component: BeforeAfter, frames: 150 },    // Scene 2: Before/After        5s
+  { component: MenuShowcase, frames: 150 },   // Scene 3: Menu Showcase       5s
+  { component: CockpitShowcase, frames: 150 }, // Scene 4: Cockpit Dashboard   5s
+  { component: StatsReveal, frames: 120 },    // Scene 5: Stats Grid          4s
+  { component: FinalCTA, frames: 120 },       // Scene 6: Install + CTA       4s
 ] as const;
 
-export const TOTAL_FRAMES = SCENES.reduce((sum, s) => sum + s.frames, 0); // 1320
+export const TOTAL_FRAMES = SCENES.reduce((sum, s) => sum + s.frames, 0); // 900
 
 export const Hero: React.FC = () => {
   return (

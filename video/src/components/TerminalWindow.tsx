@@ -42,7 +42,7 @@ export const TerminalWindow: React.FC<TerminalWindowProps> = ({
             marginRight: "auto",
             color: "#555577",
             fontSize: 13,
-            fontFamily: '"SF Mono", "Fira Code", monospace',
+            fontFamily: "Inter, system-ui, sans-serif",
           }}
         >
           {title}
