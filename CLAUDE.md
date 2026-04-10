@@ -2,7 +2,7 @@
 
 ## What This Is
 
-CC Commander — by Kevin Z. 450+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 450+ skills, 11 CCC domains, 80+ commands, 25 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Z. 460+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 460+ skills, 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 **Current Release:** The Aggregator Release (version tracked in `package.json`)
 
@@ -86,7 +86,7 @@ Auto-updates weekly via GitHub Actions.
 
 Key vendors: ECC (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode (17K),
 claude-code-best-practice (26K), repomix (22.8K), Claude HUD (15K), RTK (14.6K),
-Compound Engineering (11.5K), claude-skills (8.6K), notebooklm-py (8.6K),
+Compound Engineering (11.5K), claude-skills (8.6K), notebooklm-py (8.6K), claude-mem,
 claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
 claude-code-prompts (142).
 
@@ -135,7 +135,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** See `package.json`
 
-**Stats:** 453 skills (CLI-visible), 83 commands, 25 hooks (JS), 19 vendors, 10 themes
+**Stats:** 460+ skills (CLI-visible), 83 commands, 28 hooks (JS), 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/cc-commander
@@ -190,7 +190,7 @@ ccc --status                  # Health check
 - Modular installer with 5 installation modes (full, essentials, scripts, dashboard, config-only)
 - Daemon Mode: commander/daemon.js (tick loop), commander/queue.js (task queue), commander/dream.js (knowledge consolidation)
 - Intelligence Layer v1: complexity scoring (dispatcher.js), stack detection (project-importer.js), session learning (knowledge.js), skill filtering (skill-browser.js), smart retry (dispatchWithRetry)
-- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 458)
+- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 454+)
 - Update checker at `commander/update-check.js` — 4h cache, silent on failure, fires on session start
 - Caveman mode (`caveman` skill) — strips markdown/emojis/prose for ~75% output token savings during iteration
 

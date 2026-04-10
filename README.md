@@ -596,22 +596,25 @@ CC Commander aggregates the best Claude Code tools as git submodules. Auto-updat
 
 | Package | Stars | What You Get |
 |---------|-------|-------------|
-| [Everything Claude Code](https://github.com/affaan-m/everything-claude-code) | 120K+ | 161 skills, AgentShield security, 38 agents, lifecycle hooks |
-| [gstack](https://github.com/garrytan/gstack) | 58K+ | CEO/eng plan review, office hours, QA — decision layer |
+| [Everything Claude Code](https://github.com/affaan-m/everything-claude-code) | 120K+ | 156 skills, 72 commands, 38 agents, lifecycle hooks |
+| [gstack](https://github.com/garrytan/gstack) | 58K+ | CEO/eng plan review, office hours, QA — OpenClaw integration v2 |
 | [Superpowers](https://github.com/obra/superpowers) | 29K+ | Forces structured thinking — /plan, /tdd, /verify |
-| [claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) | 32K+ | Reference architecture, Channels, Auto Mode |
+| [claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) | 26K+ | Reference architecture, Channels, Auto Mode |
 | [repomix](https://github.com/yamadashy/repomix) | 22.8K+ | Pack codebases for AI (tree-sitter compression = 60% smaller) |
-| [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) | 17K+ | Team orchestration, multi-agent patterns |
-| [Claude HUD](https://github.com/jarrodwatts/claude-hud) | 15K+ | Real-time status display |
-| [RTK](https://github.com/rtk-ai/rtk) | 14.6K+ | Token optimization (60-90% savings) |
-| [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) | 11.5K+ | Knowledge compounding — every session makes the next smarter |
-| [claude-skills](https://github.com/alirezarezvani/claude-skills) | 9.6K+ | 248 skills, prompt A/B testing, CI/CD builder |
-| [notebooklm-py](https://github.com/teng-lin/notebooklm-py) | 9.2K+ | Podcast generation, PPTX export, quiz/flashcards |
+| [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) | 17K+ | HUD with worktree support, quota tracking, hyperlinks |
+| [Claude HUD](https://github.com/jarrodwatts/claude-hud) | 15K+ | Real-time status display, offline cost tracking, git diffs |
+| [RTK](https://github.com/rtk-ai/rtk) | 14.6K+ | Token optimization (60-90% savings), 25 AWS subcommands |
+| [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) | 11.5K+ | Knowledge compounding, mandatory code review enforcement |
+| [claude-skills](https://github.com/alirezarezvani/claude-skills) | 8.6K+ | 223+ skills, 23 agents, prompt A/B testing |
+| [notebooklm-py](https://github.com/teng-lin/notebooklm-py) | 8.6K+ | Podcast generation, PPTX export, quiz/flashcards |
+| [claude-mem](https://github.com/thedotmack/claude-mem) | 46.7K+ | Knowledge Agents, persistent cross-session memory |
 | [claude-code-ultimate-guide](https://github.com/FlorianBruniaux/claude-code-ultimate-guide) | 2.7K+ | 219 templates, 271 quizzes, threat database |
-| [acpx](https://github.com/openclaw/acpx) | 1.8K+ | ACP protocol, structured agent communication |
+| [acpx](https://github.com/openclaw/acpx) | 1.8K+ | ACP protocol, Flows system, structured agent communication |
 | [claude-reflect](https://github.com/BayramAnnakov/claude-reflect) | 860+ | Self-improving skills with reflection loops |
-| [claude-code-prompts](https://github.com/repowise-dev/claude-code-prompts) | 142+ | Defensive prompt patterns, verification specialist |
 | [Caliber](https://github.com/caliber-ai-org/ai-setup) | 300+ | Config scoring, drift detection |
+| [graphify](https://github.com/safishamsi/graphify) | 17.5K+ | Any input → knowledge graph, clustered communities, HTML + JSON |
+| [UI/UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | 62K+ | Design intelligence for professional UI/UX across platforms |
+| [claude-code-prompts](https://github.com/repowise-dev/claude-code-prompts) | 142+ | Defensive prompt patterns, verification specialist |
 
 The **smart orchestrator** scores each tool: capability match (50%) + popularity (15%) + recency (15%) + your preference (20%) — then picks the best one for each phase.
 

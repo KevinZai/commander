@@ -6,6 +6,7 @@
       "description": "Core workflow skills + all 11 CCC domain routers (~37 skills)",
       "skills": [
         "acpx-patterns",
+        "advisor",
         "cache-monitor",
         "caveman",
         "ccc-data",

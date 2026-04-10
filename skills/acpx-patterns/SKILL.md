@@ -1,7 +1,7 @@
 ---
 name: acpx-patterns
 description: Pre-built acpx usage patterns for background, parallel, and crash-resilient sessions
-version: 1.0.0
+version: 1.1.0
 category: devops
 ---
 
@@ -86,6 +86,178 @@ acpx queue run --sequential --checkpoint-between
 acpx queue status
 ```
 
+## Flows System (v0.5.3)
+
+Flows are user-authored workflow modules with file-backed run state. Each step binds to a working directory, and runs produce trace bundles for replay and audit.
+
+### BREAKING CHANGE: defineFlow() is now required
+
+Flows that do not use `defineFlow()` will **fail on startup** as of v0.5.3. Update all existing flow files before upgrading.
+
+```ts
+// WRONG (pre-v0.5.3) — will fail on startup
+export default {
+  steps: [...]
+}
+
+// CORRECT (v0.5.3+) — required
+import { defineFlow } from "acpx/flows";
+
+export default defineFlow({
+  name: "my-workflow",
+  steps: [...]
+})
+```
+
+### Defining a Flow
+
+```ts
+import { defineFlow } from "acpx/flows";
+
+export default defineFlow({
+  name: "deploy-pipeline",
+  permissions: ["read", "write", "bash"],   // explicit permission mode declarations
+  steps: [
+    {
+      name: "lint",
+      cwd: "./packages/app",                // per-step cwd binding
+      timeout: 300,                          // seconds (default: 900 = 15 min)
+      run: "Check for TypeScript errors and lint violations. Output a JSON summary.",
+    },
+    {
+      name: "test",
+      cwd: "./packages/app",
+      run: "Run the full test suite. Fail fast on any error.",
+    },
+    {
+      name: "build",
+      cwd: "./packages/app",
+      run: "Build production bundle. Output build stats.",
+    },
+  ],
+});
+```
+
+### Running Flows
+
+```bash
+# Run a flow module
+acpx flow run ./flows/deploy-pipeline.ts
+
+# Run with prompt retry on transient failures (exponential backoff)
+acpx flow run ./flows/deploy-pipeline.ts --prompt-retries 3
+
+# Suppress raw file-read bodies from text/JSON output
+acpx flow run ./flows/deploy-pipeline.ts --suppress-reads
+
+# Run in background
+acpx flow run ./flows/deploy-pipeline.ts --background --name "deploy-run-1"
+
+# Check status
+acpx flow status deploy-run-1
+```
+
+### Trace Bundles
+
+Every flow run produces a trace bundle:
+
+```
+.acpx/traces/deploy-run-1/
+├── manifest.json      # run metadata (steps, timings, exit codes)
+├── trace.ndjson       # step-by-step event log (newline-delimited JSON)
+└── receipts/          # ACP receipts per step
+    ├── lint.json
+    ├── test.json
+    └── build.json
+```
+
+Inspect a trace bundle:
+
+```bash
+# View manifest
+cat .acpx/traces/deploy-run-1/manifest.json
+
+# Stream trace events
+acpx flow trace deploy-run-1
+
+# Open the visual replay viewer (React Flow-based)
+acpx flow replay deploy-run-1
+```
+
+### Live WebSocket Updates
+
+Subscribe to in-progress flow run events:
+
+```bash
+# Watch live output (WebSocket stream to stdout)
+acpx flow watch deploy-run-1
+```
+
+Or connect programmatically:
+
+```ts
+import { connectFlow } from "acpx/runtime";
+
+const session = await connectFlow("deploy-run-1");
+session.on("step:complete", (event) => console.log(event));
+session.on("flow:done", () => session.close());
+```
+
+### Runtime Embedding API
+
+Embed ACPX session lifecycle directly into your application:
+
+```ts
+import { createRuntime } from "acpx/runtime";
+
+const runtime = createRuntime({
+  flow: "./flows/deploy-pipeline.ts",
+  permissions: ["read", "bash"],
+  onStepComplete: (step, result) => {
+    db.save({ step: step.name, output: result.text });
+  },
+});
+
+await runtime.start();
+await runtime.waitForCompletion();
+```
+
+### Built-in Adapters
+
+ACPX v0.5.3 ships adapters for three external CLI tools:
+
+```ts
+import { defineFlow } from "acpx/flows";
+import { factoryDroid, qoderCli, kiroCli } from "acpx/adapters";
+
+export default defineFlow({
+  name: "multi-tool",
+  steps: [
+    { name: "scaffold", adapter: factoryDroid({ template: "nextjs" }) },
+    { name: "code-review", adapter: qoderCli({ strict: true }) },
+    { name: "requirements", adapter: kiroCli({ spec: "./spec.md" }) },
+  ],
+});
+```
+
+| Adapter | Tool | Purpose |
+|---------|------|---------|
+| `factoryDroid` | Factory Droid CLI | Project scaffolding |
+| `qoderCli` | Qoder CLI | AI-assisted code review |
+| `kiroCli` | Kiro CLI | Requirements/spec generation |
+
+### Migrating Existing Flows
+
+Run the built-in codemod to wrap bare flow exports with `defineFlow()`:
+
+```bash
+acpx flow migrate ./flows/
+```
+
+Review the diff before committing — the codemod is mechanical but always check the inferred `name` and `permissions` fields.
+
+---
+
 ## Best Practices
 
 1. **Always name sessions** -- makes monitoring and log review easier
@@ -94,3 +266,7 @@ acpx queue status
 4. **Checkpoint for long runs** -- enables resume after crashes
 5. **Monitor costs** -- set `--cost-ceiling` for budget control
 6. **Log output** -- pipe to file for post-session review: `acpx run ... 2>&1 | tee session.log`
+7. **Use defineFlow()** -- required as of v0.5.3; run `acpx flow migrate` on any bare exports
+8. **Declare permissions explicitly** -- `permissions` field in `defineFlow()` is the authoritative list for the run
+9. **Pin per-step timeouts** -- default is 15 min; set lower for fast steps to surface hangs early
+10. **Archive trace bundles** -- `.acpx/traces/` grows unbounded; prune or archive after each run
