@@ -26,6 +26,11 @@
       "key": "d",
       "label": "Actually, let me do something else",
       "next": "main-menu"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
     }
   ]
 }

@@ -505,16 +505,20 @@ function select(items, prompt, options) {
       else {
         // '?' shows help overlay
         if (str === '?') { showHelp(); return; }
-        // 'q' quits — find Quit item or cancel
+        // 'q' quits or goes back — find Quit/Back item or cancel
         if (str === 'q') {
           var quitIdx = -1;
+          var backIdx = -1;
           items.forEach(function(it, idx) {
             if (it && !it.separator) {
               var label = typeof it === 'string' ? it : (it.label || '');
-              if (label.toLowerCase() === 'quit' || (it.action === 'quit')) quitIdx = idx;
+              var lbl = label.toLowerCase();
+              if (lbl === 'quit' || (it.action === 'quit')) quitIdx = idx;
+              if (lbl.indexOf('back') === 0 || lbl === 'back to main menu') backIdx = idx;
             }
           });
           if (quitIdx >= 0) { done(quitIdx); return; }
+          if (backIdx >= 0) { done(backIdx); return; }
           done(-1); return;
         }
         // Letter shortcut: a=0, b=1, c=2, etc.
@@ -603,7 +607,7 @@ function sparkline(values) {
 
 // ─── Screen Control ───────────────────────────────────────────────
 
-function clearScreen() { process.stdout.write(ESC + '2J' + ESC + 'H'); }
+function clearScreen() { process.stdout.write(ESC + '3J' + ESC + '2J' + ESC + 'H'); }
 
 function altScreen() { process.stdout.write(ESC + '?1049h'); }
 function mainScreen() { process.stdout.write(ESC + '?1049l'); }

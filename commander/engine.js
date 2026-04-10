@@ -303,7 +303,7 @@ class KitCommander {
       var activeChoices = prepared.afterAction ? prepared.afterAction.choices : prepared.choices;
       var activePrompt = prepared.afterAction ? prepared.afterAction.prompt : prepared.prompt;
 
-      process.stdout.write('\x1b[2J\x1b[H'); // fast clear
+      process.stdout.write('\x1b[3J\x1b[2J\x1b[H'); // clear scrollback + screen + cursor home
 
       // Build cockpit data from state
       var skillCount = 0; try { skillCount = getSkillBrowser().listSkills().length; } catch(_e) {}

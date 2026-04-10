@@ -29,7 +29,7 @@
     },
     {
       "key": "q",
-      "label": "Go back",
+      "label": "Back to main menu",
       "next": "main-menu"
     }
   ],
