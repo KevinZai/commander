@@ -39,19 +39,19 @@ You get:  A guided AI project manager with 450+ skills,
 
 ### Main Menu — Arrow Keys, No Commands to Memorize
 
-<img src="screenshots/png/main-menu.png" alt="CC Commander Main Menu" width="100%">
+<img src="docs/assets/screenshots/main-menu.png" alt="CC Commander Main Menu" width="100%">
 
 ### Cockpit Dashboard — Live Session Status
 
 Context, rate limits, and budget meters in your terminal. Color-codes green → yellow → red as limits approach.
 
-<img src="screenshots/png/cockpit-status.png" alt="Cockpit Status Panel" width="100%">
+<img src="docs/assets/screenshots/cockpit-status.png" alt="Cockpit Status Panel" width="100%">
 
-<img src="screenshots/png/cockpit-footer.png" alt="Cockpit Footer" width="100%">
+<img src="docs/assets/screenshots/cockpit-footer.png" alt="Cockpit Footer" width="100%">
 
 ### Stats Dashboard
 
-<img src="screenshots/png/dashboard.png" alt="Stats Dashboard" width="100%">
+<img src="docs/assets/screenshots/dashboard.png" alt="Stats Dashboard" width="100%">
 
 Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 
