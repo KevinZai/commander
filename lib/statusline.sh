@@ -35,17 +35,18 @@ case "${CC_THEME:-${KZ_THEME:-}}" in
   matrix) TC='\033[38;5;46m'  ;;
 esac
 
-# ── Smooth rainbow gradient for CCC label ─────────────────────────────────
-# Modern style: smooth hue sweep across text, not per-char cycling
+# ── HSL rainbow gradient for CCC label (matches TUI menu selected item) ──
+# Uses same HSL(hue, 0.9, 0.65) formula as commander/tui.js line 351-352.
+# Vivid full-spectrum stops: red → yellow → green → cyan → blue → magenta.
 rainbow_gradient() {
   local text="$1"
   local len=${#text}
   local ESC=$'\033'
   local out=""
-  # 6 stops: red→orange→yellow→green→cyan→violet spread across text
-  local -a R=(255 255 200  0   0  140)
-  local -a G=(50  180 255 220 180  60)
-  local -a BI=(80   0   0 100 255 255)
+  # HSL(h, 0.9, 0.65) → RGB at h=0,60,120,180,240,300 (full spectrum, no wrap)
+  local -a R=(246 246  85  85  85 246)
+  local -a G=( 85 246 246 246  85  85)
+  local -a BI=(85  85  85 246 246 246)
   local stops=$(( ${#R[@]} - 1 ))
   for ((i=0; i<len; i++)); do
     local pos=$(( i * stops * 100 / (len > 1 ? len - 1 : 1) ))
@@ -55,9 +56,9 @@ rainbow_gradient() {
     local r=$(( R[seg] + (R[seg+1] - R[seg]) * frac / 100 ))
     local g=$(( G[seg] + (G[seg+1] - G[seg]) * frac / 100 ))
     local b=$(( BI[seg] + (BI[seg+1] - BI[seg]) * frac / 100 ))
-    out+="${ESC}[38;2;${r};${g};${b}m${text:$i:1}"
+    out+="${ESC}[1;38;2;${r};${g};${b}m${text:$i:1}"
   done
-  printf '%b%s%b' "${B}" "$out" "${N}"
+  printf '%b%b' "$out" "${N}"
 }
 
 # ── Read JSON from stdin ──────────────────────────────────────────────────

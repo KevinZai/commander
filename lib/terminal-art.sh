@@ -155,14 +155,15 @@ cc_matrix_rain() { cc_intro_animation "$@"; }
 
 # ── ASCII Banners ──────────────────────────────────────────────────────────
 
-# Rainbow gradient for ASCII art lines
+# HSL rainbow gradient for ASCII art (matches TUI menu selected item style)
+# HSL(h, 0.9, 0.65) → RGB at h=0,60,120,180,240,300 (full spectrum)
 _cc_rainbow_line() {
   local text="$1"
   local len=${#text}
   local out=""
-  local -a R=(255 255 200  0   0  140)
-  local -a G=(50  180 255 220 180  60)
-  local -a BI=(80   0   0 100 255 255)
+  local -a R=(246 246  85  85  85 246)
+  local -a G=( 85 246 246 246  85  85)
+  local -a BI=(85  85  85 246 246 246)
   local stops=$(( ${#R[@]} - 1 ))
   for ((i=0; i<len; i++)); do
     local ch="${text:$i:1}"
