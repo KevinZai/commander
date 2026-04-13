@@ -2,6 +2,31 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [2.3.1] — 2026-04-13
+
+### Production Hardening + Advisor Tool
+
+#### Added
+- **Advisor Tool skill** (`skills/advisor/`) — Sonnet+Opus pairing docs, full API code samples, OpenClaw/ClaudeSwap integration guide. Trigger: "advisor tool", "model pairing", "Sonnet+Opus", "how to make Sonnet smarter"
+- **HSL-matched rainbow gradient** for CCC statusline branding (consistent hue ring, no color clash)
+- **ANSI Shadow block letter CCC banner** with rainbow gradient on session start
+- **Hero video rebuilt** (30s cinematic with real product screenshots) + docs/assets/ migration for GitHub rendering
+
+#### Fixed
+- **Statusline staleness check** — ClaudeSwap fallback state now validates freshness before display
+- **Stale rate limit display** — utilization cleared when reset timestamp is already past (no phantom "X% used" after reset)
+- **Account key hint** — shows pri/sec label instead of unresolvable API key hash in statusline footer
+- **TUI theme persistence** — selected theme now survives menu re-entry; help menu listener leak plugged
+- **Auto-install npm deps** — running from git clone triggers automatic `npm install` instead of crashing
+- **Laptop install crashes** — BSD `sed` compat fix, `BIBLE→CCC` banner rename, 0-skills edge case, `jq` fallback for missing binary
+- **Bash 3.2 compatibility** — removed `${var,,}` lowercasing and top-level `local` declarations (macOS default shell)
+- **`--force` non-interactive install** — full skill tier selected by default when stdin is not a TTY
+
+#### Changed (docs)
+- **README consolidated** — eliminated all duplicate sections, reordered as a sales page with clear value prop
+
+---
+
 ## [2.3.0] — 2026-04-07
 
 ### Pre-Launch Polish Release

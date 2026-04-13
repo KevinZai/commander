@@ -10,11 +10,11 @@
 #
 # Requirements: tmux, node
 #
-# Navigation model:
-#   - Letter shortcuts (a-z) jump directly to the menu item at that key binding
-#   - `q` finds the "Quit" or "Back to main menu" item and selects it
-#   - Arrow keys + Enter also work for cursor-style navigation
-#   - After any navigation we poll until the main menu re-appears before continuing
+# Navigation note:
+#   The TUI uses positional letter shortcuts (a=item[0], b=item[1], ...) NOT
+#   the adventure JSON key fields. To avoid separator collisions we navigate
+#   with arrow keys: reset cursor to top, press Down N times, then Enter.
+#   This is deterministic regardless of separator placement.
 # =============================================================================
 set -euo pipefail
 
@@ -50,14 +50,13 @@ log()  { echo "$*"; }
 ok()   { echo "  PASS  $*"; PASS=$((PASS + 1)); }
 fail() { echo "  FAIL  $*"; FAIL=$((FAIL + 1)); }
 
-# Capture current tmux pane (ANSI + plain-text).
+# Capture current visible tmux pane rows (not scrollback).
 # Files: $OUTDIR/<NN>-<name>.{ansi,txt}
 capture() {
   local name="$1"
   local num
   num=$(printf "%02d" "$SCREENSHOT_NUM")
   SCREENSHOT_NUM=$((SCREENSHOT_NUM + 1))
-  # -S 0 -E - : capture only the currently visible rows (not scrollback)
   tmux capture-pane -t "$SESSION" -e -p -S 0 -E - > "$OUTDIR/${num}-${name}.ansi"
   tmux capture-pane -t "$SESSION"    -p -S 0 -E - > "$OUTDIR/${num}-${name}.txt"
   log "  captured  ${num}-${name}"
@@ -84,20 +83,18 @@ capture_cmd() {
   local num
   num=$(printf "%02d" "$SCREENSHOT_NUM")
   SCREENSHOT_NUM=$((SCREENSHOT_NUM + 1))
-  # macOS script(1) preserves ANSI colour codes; ignore non-zero exits.
   script -q /dev/null "$@" > "$OUTDIR/${num}-${name}.ansi" 2>/dev/null || true
-  # Strip basic CSI/SGR escapes for validation copy.
   sed $'s/\033\\[[0-9;]*[A-Za-z]//g' \
     "$OUTDIR/${num}-${name}.ansi" > "$OUTDIR/${num}-${name}.txt" 2>/dev/null || true
   log "  captured  ${num}-${name}"
 }
 
 # ---------------------------------------------------------------------------
-# tmux navigation helpers
+# tmux helpers
 # ---------------------------------------------------------------------------
 send() { tmux send-keys -t "$SESSION" "$@"; }
 
-# Poll until pane content stabilises (two identical consecutive snapshots).
+# Poll until pane content stabilises.
 wait_stable() {
   local timeout="${1:-3}"
   local interval="0.2"
@@ -114,7 +111,7 @@ wait_stable() {
   return 0
 }
 
-# Poll until pane contains an ERE pattern, with timeout.
+# Poll until pane (visible rows) contains an ERE pattern.
 wait_for() {
   local pattern="$1"
   local timeout="${2:-5}"
@@ -134,39 +131,46 @@ wait_for() {
   return 0
 }
 
-# Check if the CCC TUI is still running (pane shows its prompt, not a shell).
+# Check if TUI is still active (nav footer visible).
 tui_alive() {
   local cur
   cur=$(tmux capture-pane -t "$SESSION" -p -S 0 -E - 2>/dev/null || true)
-  # TUI is alive if pane has the nav footer or the menu prompt
-  echo "$cur" | grep -Eqi "navigate.*select|What would you like to do|↑↓" 2>/dev/null
+  echo "$cur" | grep -Eqi "navigate.*select|↑↓.*navigate" 2>/dev/null
 }
 
-wait_render() { wait_stable 2; }
-
-# Press a letter key and wait for the screen to re-render.
-nav_key() {
-  local k="$1"
+# Navigate from top of main menu: press Up many times to reset position,
+# then press Down N times, then Enter to select.
+# This works because Up is clamped at the first selectable item.
+nav_to() {
+  local downs="$1"
   if ! tui_alive; then
-    log "  WARNING: TUI not alive before nav_key '${k}' — skipping"
+    log "  WARNING: TUI not alive — skipping nav_to $downs"
     return 0
   fi
-  send "$k"
-  # Give the engine time to process the key and paint the new screen.
-  # Rendering is synchronous; 0.6s is generous for any startup overhead.
-  sleep 0.6
+  # Reset to first item (Up clamped, each press ignored at top)
+  local i
+  for i in $(seq 1 20); do send Up; sleep 0.04; done
+  sleep 0.3
+  # Navigate down to target
+  for i in $(seq 1 "$downs"); do
+    send Down; sleep 0.12
+  done
+  sleep 0.2
+  # Select
+  send Enter
+  # Wait for new screen to render and stabilise
+  sleep 0.5
   wait_stable 2
 }
 
-# Press q (TUI scans items for Back/Quit by label) and wait for main menu.
-# Only called from INSIDE a sub-menu — NOT from the main menu (which quits).
+# Press q: TUI finds Back/Quit item by label scan and selects it.
+# Wait until main menu re-appears.
 nav_back() {
   if ! tui_alive; then
-    log "  WARNING: TUI not alive before nav_back — skipping"
+    log "  WARNING: TUI not alive — skipping nav_back"
     return 0
   fi
   send "q"
-  # Wait until main menu re-appears, then let animation settle
   wait_for "What would you like to do" 5
   wait_stable 2
 }
@@ -195,7 +199,6 @@ phase1_cli_flags() {
   capture_cmd "status"    node bin/kc.js --status
   capture_cmd "stats"     node bin/kc.js --stats
 
-  # list-skills piped through head — capture_cmd can't handle pipelines.
   {
     node bin/kc.js --list-skills 2>/dev/null | head -40
   } > "$OUTDIR/$(printf "%02d" "$SCREENSHOT_NUM")-list-skills.ansi" || true
@@ -206,7 +209,6 @@ phase1_cli_flags() {
 
   capture_cmd "self-test" node bin/kc.js --test
 
-  # Content validation
   local v_file h_file
   v_file=$(ls "$OUTDIR"/??-version.ansi  2>/dev/null | head -1 || true)
   h_file=$(ls "$OUTDIR"/??-help.ansi     2>/dev/null | head -1 || true)
@@ -217,193 +219,213 @@ phase1_cli_flags() {
 }
 
 # ---------------------------------------------------------------------------
-# Phase 2 — Interactive TUI navigation via tmux
+# Phase 2 — Interactive TUI navigation
+#
+# Main menu selectable item positions (Down-presses from top, separators skipped):
+#   0 = Open a project          6 = Check my stats
+#   1 = Build something new     7 = Linear board (if LINEAR_API_KEY set)
+#   2 = Create content          8 = Night Mode
+#   3 = Research & analyze      9 = Settings
+#   4 = Review what I built    10 = Change theme
+#   5 = Learn a new skill      11 = Infrastructure & Fleet
+#                              12 = Type a command
+#
+# Note: Linear board shows if LINEAR_API_KEY is in the env.
+# If Linear is absent, all positions ≥7 shift down by 1.
+# The script detects this and adjusts automatically.
 # ---------------------------------------------------------------------------
 phase2_interactive() {
   log ""
   log "Phase 2: Interactive TUI navigation"
   log "-------------------------------------"
 
-  # Kill any leftover session completely
   tmux kill-session -t "$SESSION" 2>/dev/null || true
   sleep 0.3
 
-  # Deterministic terminal size; blank slate
   tmux new-session -d -s "$SESSION" -x "$TERM_WIDTH" -y "$TERM_HEIGHT"
-
-  # Suppress status bar to keep pane captures clean
   tmux set-option -t "$SESSION" status off
 
-  # Launch CCC in simple (single-pane, no tmux split) mode.
-  # CCC_SIMPLE=1 is the env equivalent of --simple.
   tmux send-keys -t "$SESSION" \
-    "cd '$PROJECT_DIR' && CCC_SIMPLE=1 node bin/kc.js --simple 2>/dev/null" \
+    "cd '$PROJECT_DIR' && node bin/kc.js --simple 2>/dev/null" \
     Enter
 
-  # Wait until the main menu prompt appears in the visible pane
   wait_for "What would you like to do" 12
-  sleep 0.8   # let logo animation settle fully
+  sleep 1.0   # let logo animation + welcome dashboard fully render
+
+  # Detect if Linear board is present (adds one item, shifts later positions).
+  # Positions are Down-press counts from top (arrow-key skips separators).
+  # Computed at runtime via the same logic as tui.select().
+  local lin_offset=0
+  if tmux capture-pane -t "$SESSION" -p -S 0 -E - 2>/dev/null | grep -qi "Linear board"; then
+    lin_offset=1
+    log "  Linear board detected"
+  else
+    log "  No linear board"
+  fi
+  # Base positions WITHOUT linear board (DOWN×N from top):
+  #   0=OpenProject  4=ReviewWork  7=NightMode    10=ChangeTheme
+  #   1=BuildNew     5=LearnSkill  8=Settings     11=Infrastructure
+  #   2=CreateContent 6=CheckStats 9=(reserved)   12=TypeCommand
+  #   3=Research
+  # With linear board present, add lin_offset to positions >=7.
+  local p_night=$((7 + lin_offset))
+  local p_settings=$((8 + lin_offset))
+  local p_theme=$((9 + lin_offset))
+  local p_infra=$((10 + lin_offset))
 
   # ------------------------------------------------------------------
   # 1. Main menu — initial state
   # ------------------------------------------------------------------
   capture "main-menu"
-  validate "main-menu" "What would you like to do|CC COMMANDER"
+  validate "main-menu" "What would you like to do"
 
   # ------------------------------------------------------------------
-  # 2. Build something new  (key: b → adventure: build-something)
-  #    Sub-choices all lead to freeform text prompts; stop at the list.
+  # 2. Build something new (Down×1 from top)
   # ------------------------------------------------------------------
-  log "  nav: Build something new (b)"
-  nav_key "b"
+  log "  nav: Build something new (down 1)"
+  nav_to 1
   capture "build-something"
-  validate "build-something" "Build|project|website|API|CLI"
+  validate "build-something" "Build Something|What kind of project"
   nav_back
 
   # ------------------------------------------------------------------
-  # 3. Create content  (key: c → adventure: create-content)
+  # 3. Create content (Down×2)
   # ------------------------------------------------------------------
-  log "  nav: Create content (c)"
-  nav_key "c"
+  log "  nav: Create content (down 2)"
+  nav_to 2
   capture "create-content"
-  validate "create-content" "Content|content|Blog|Social|Email"
+  validate "create-content" "Create Content|Pick a content"
   nav_back
 
   # ------------------------------------------------------------------
-  # 4. Research & analyze  (key: d → adventure: research)
+  # 4. Research & analyze (Down×3)
   # ------------------------------------------------------------------
-  log "  nav: Research & analyze (d)"
-  nav_key "d"
+  log "  nav: Research & analyze (down 3)"
+  nav_to 3
   capture "research-analyze"
   validate "research-analyze" "Research|Analyze|competitive"
   nav_back
 
   # ------------------------------------------------------------------
-  # 5. Learn a new skill  (key: f → adventure: learn-skill)
+  # 5. Learn a new skill (Down×5)
   # ------------------------------------------------------------------
-  log "  nav: Learn a new skill (f)"
-  nav_key "f"
+  log "  nav: Learn a new skill (down 5)"
+  nav_to 5
   capture "learn-skill"
-  validate "learn-skill" "Learn|Skill|Browse|explore|skill"
+  validate "learn-skill" "Learn|Skill|Browse|explore"
   nav_back
 
   # ------------------------------------------------------------------
-  # 6. Check my stats  (key: g → adventure: check-stats)
-  #    Triggers action show_stats which displays local data, then
-  #    shows afterAction menu. afterAction has q → "Back to main menu".
+  # 6. Check my stats (Down×6)
+  #    adventure runs show_stats action then afterAction menu.
   # ------------------------------------------------------------------
-  log "  nav: Check my stats (g)"
-  nav_key "g"
+  log "  nav: Check my stats (down 6)"
+  nav_to 6
+  wait_for "achievement|sessions|Stats|streak|What next" 6
+  sleep 0.3
   capture "check-stats"
-  validate "check-stats" "Stats|streak|achievement|session|Session"
+  validate "check-stats" "achievement|sessions|Stats|streak|What next"
   nav_back
 
   # ------------------------------------------------------------------
-  # 7. Review what I built  (key: e → adventure: review-work)
-  #    Triggers show_recent_sessions then afterAction menu.
+  # 7. Review what I built (Down×4)
+  #    adventure runs show_recent_sessions then afterAction menu.
   # ------------------------------------------------------------------
-  log "  nav: Review what I built (e)"
-  nav_key "e"
+  log "  nav: Review what I built (down 4)"
+  nav_to 4
+  wait_for "Resume a session|View session|history|What would you like to do" 6
+  sleep 0.3
   capture "review-work"
-  validate "review-work" "Review|session|history|Resume|recent"
+  validate "review-work" "Resume|session|history|View"
   nav_back
 
   # ------------------------------------------------------------------
-  # 8. Night Mode / YOLO Mode  (key: n → adventure: night-build)
+  # 8. Night Mode / YOLO Mode (Down×8 with lin_offset)
   # ------------------------------------------------------------------
-  log "  nav: Night Mode (n)"
-  nav_key "n"
+  log "  nav: Night Mode (down $p_night)"
+  nav_to "$p_night"
   capture "night-mode"
-  validate "night-mode" "Night|YOLO|autonomous"
+  validate "night-mode" "Night|YOLO|autonomous|Launch"
   nav_back
 
   # ------------------------------------------------------------------
-  # 9. Settings  (key: s → adventure: settings)
-  #    All sub-items are actions; we capture the menu screen then go back.
-  #    Settings back: key q → "Back to main menu" (next: main-menu).
+  # 9. Settings (Down×9 with lin_offset)
   # ------------------------------------------------------------------
-  log "  nav: Settings (s)"
-  nav_key "s"
+  log "  nav: Settings (down $p_settings)"
+  nav_to "$p_settings"
   capture "settings"
-  validate "settings" "Settings|Change|theme|level"
+  validate "settings" "Settings|Change my name|Change experience|theme"
   nav_back
 
   # ------------------------------------------------------------------
-  # 10. Infrastructure & Fleet  (key: x → adventure: infrastructure)
-  #     All sub-items are actions; capture the menu then go back.
-  #     Back item: key j, label "Back to main menu", action "back".
+  # 10. Infrastructure & Fleet (Down×11 with lin_offset)
   # ------------------------------------------------------------------
-  log "  nav: Infrastructure & Fleet (x)"
-  nav_key "x"
+  log "  nav: Infrastructure & Fleet (down $p_infra)"
+  nav_to "$p_infra"
   capture "infrastructure"
-  validate "infrastructure" "Infrastructure|Fleet|Commander|Synapse"
+  validate "infrastructure" "Infrastructure|Fleet Commander|Synapse|CloudCLI"
   nav_back
 
   # ------------------------------------------------------------------
-  # 11. Help overlay  (key: ?)
-  #     Renders over the current screen; any key dismisses it.
-  #     The overlay does NOT change TUI state — it's purely cosmetic.
+  # 11. Help overlay (? key — works from main menu at any cursor pos)
   # ------------------------------------------------------------------
   log "  nav: Help overlay (?)"
-  # Send literal ?
-  tmux send-keys -t "$SESSION" "?" ""
-  sleep 0.8
-  capture "help-overlay"
-  # Dismiss with Escape first, Space as fallback
-  send Escape
-  sleep 0.5
-  send " "
-  sleep 0.3
-  wait_render
+  wait_for "What would you like to do" 4
+  if tui_alive; then
+    tmux send-keys -t "$SESSION" "?" ""
+    sleep 0.8
+    capture "help-overlay"
+    send Escape
+    sleep 0.5
+    send " "
+    sleep 0.3
+    wait_stable 2
+  fi
 
   # ------------------------------------------------------------------
-  # 12. Theme picker  (key: t → action: change_theme)
-  #     change_theme calls tui.select() with the theme list.
-  #     Navigate with arrow keys; cancel with q — since theme picker
-  #     has no "Quit" or "Back" labelled item, q calls done(-1) which
-  #     cancels without applying and returns to the engine loop.
+  # 12. Theme picker (Down×10 with lin_offset → "Change theme")
   # ------------------------------------------------------------------
-  log "  nav: Theme picker (t)"
-  nav_key "t"
-  sleep 1.5   # theme picker may have an intro animation
-  capture "theme-picker"
-  validate "theme-picker" "theme|Theme|orange|neon|dark|light|colour|color"
+  log "  nav: Theme picker (down $p_theme)"
+  wait_for "What would you like to do" 4
+  if tui_alive; then
+    nav_to "$p_theme"
+    sleep 1.2
+    capture "theme-picker"
+    validate "theme-picker" "theme|Theme|orange|neon|dark|light|colour|color"
 
-  # Cycle through a couple options
-  arrow_down
-  sleep 0.4
-  capture "theme-preview-1"
+    arrow_down
+    sleep 0.4
+    capture "theme-preview-1"
 
-  arrow_down
-  sleep 0.4
-  capture "theme-preview-2"
+    arrow_down
+    sleep 0.4
+    capture "theme-preview-2"
 
-  # Cancel theme picker (q → done(-1), no state change)
-  send "q"
-  sleep 0.6
-  # Belt-and-suspenders
-  send Escape
-  sleep 0.4
+    # Cancel theme picker: q → done(-1) since no Quit/Back label
+    send "q"
+    sleep 0.6
+    send Escape
+    sleep 0.4
+  fi
 
   # ------------------------------------------------------------------
-  # 13. Final main menu — confirm clean return from all navigations
+  # 13. Final main menu — confirm clean return
   # ------------------------------------------------------------------
-  wait_for "What would you like to do" 6
+  wait_for "What would you like to do" 5
   capture "main-menu-final"
-  validate "main-menu-final" "What would you like to do|CC COMMANDER"
+  validate "main-menu-final" "What would you like to do"
 
-  # ------------------------------------------------------------------
-  # Quit the TUI cleanly (q on main menu → action: quit)
-  # ------------------------------------------------------------------
+  # Quit the TUI cleanly
   log "  nav: Quit (q)"
   if tui_alive; then
+    # Navigate to Quit item using q shortcut (special label scan)
     send "q"
     sleep 0.8
   fi
 }
 
 # ---------------------------------------------------------------------------
-# Phase 3 — Self-contained HTML gallery from all .ansi files
+# Phase 3 — Self-contained HTML gallery
 # ---------------------------------------------------------------------------
 phase3_gallery() {
   [[ "$GENERATE_GALLERY" -eq 0 ]] && return 0
@@ -422,10 +444,6 @@ var path = require('path');
 var srcDir  = process.argv[2];
 var outFile = process.argv[3];
 
-// ---------------------------------------------------------------------------
-// ANSI SGR -> inline-CSS HTML
-// Handles: reset, bold, italic, underline, 3-bit, 8-bit, 24-bit fg/bg.
-// ---------------------------------------------------------------------------
 function ansiToHtml(raw) {
   var FG16 = {
     30:'#555',    31:'#d54e53', 32:'#98c379', 33:'#e5c07b',
@@ -499,12 +517,10 @@ function ansiToHtml(raw) {
         i++;
       }
     }
-    // cursor-movement and other CSI sequences are dropped
   }
   return out;
 }
 
-// Collect .ansi files sorted numerically by NN- prefix
 var ansiFiles = fs.readdirSync(srcDir)
   .filter(function(f) { return f.endsWith('.ansi'); })
   .sort(function(a, b) {
@@ -516,8 +532,7 @@ var ansiFiles = fs.readdirSync(srcDir)
 var cards = ansiFiles.map(function(filename) {
   var label = filename.replace(/\.ansi$/, '').replace(/^\d+-/, '');
   var raw   = fs.readFileSync(path.join(srcDir, filename), 'utf8');
-  var body  = ansiToHtml(raw);
-  return { filename: filename, label: label, body: body };
+  return { label: label, body: ansiToHtml(raw) };
 });
 
 var toc = cards.map(function(c) {
@@ -525,11 +540,10 @@ var toc = cards.map(function(c) {
 }).join('\n');
 
 var cardHtml = cards.map(function(c) {
-  var escaped_body = c.body || '<span class="dim">(empty capture)</span>';
   return (
     '\n  <section class="card" id="' + c.label + '">\n' +
     '    <h2>' + c.label.replace(/-/g, ' ') + '</h2>\n' +
-    '    <pre class="terminal">' + escaped_body + '</pre>\n  </section>'
+    '    <pre class="terminal">' + (c.body || '<span class="dim">(empty capture)</span>') + '</pre>\n  </section>'
   );
 }).join('\n');
 
@@ -581,7 +595,7 @@ NODESCRIPT
 }
 
 # ---------------------------------------------------------------------------
-# Validate that Phase 1 output files exist
+# Validate Phase 1 output files exist
 # ---------------------------------------------------------------------------
 validate_phase1_files() {
   for label in "version" "help" "status" "stats" "list-skills" "self-test"; do

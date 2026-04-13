@@ -99,6 +99,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | Skill | What it does |
 |-------|-------------|
 | `acpx` | Headless ACP CLI for agent-to-agent comms |
+| `advisor` | **NEW** Anthropic Advisor Tool — pair Sonnet/Haiku executor with Opus advisor; full API docs, code samples, OpenClaw/ClaudeSwap integration guide |
 | `dmux-workflows` | Multi-agent orchestration via tmux |
 | `eval-harness` | Formal eval-driven development (EDD) |
 | `ai-regression-testing` | AI-assisted dev regression testing |
@@ -129,6 +130,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `openclaw-bridge` | **NEW** Bridge CC Commander ↔ OpenClaw (38-agent platform) — skill mapping, hook translation, agent profiles, session handoff |
 | `paperclip-bridge` | **NEW** Paperclip task management integration — issue creation, priority mapping, bidirectional sync, REST API |
 | `openclaw-native` | **NEW** OpenClaw native integration — auto-detection, skill sync, bidirectional event forwarding, agent profile generation, memory sync |
+| `openclaw-post-install` | Post-upgrade protocol — backup, version-split check (both npm paths), changelog delta, doctor pre-start, launchctl bootstrap, proposals, rollback, Slack contract-api.js crash detection |
 
 ## 📖 Beginner Experience (NEW in v2.3.0)
 | Skill | What it does |

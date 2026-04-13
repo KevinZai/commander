@@ -94,7 +94,7 @@ claude-code-prompts (142).
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
 
 ```
-━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
+━━ CCC2.3.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
 ```
 
 Render this at session start and after major actions. Source: `commander/cockpit.js`.
