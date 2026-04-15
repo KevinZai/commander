@@ -4,11 +4,14 @@ var https = require('https');
 var API_HOST = 'api.linear.app';
 
 function getAuth() {
+  // Priority: OAuth app token (assignable identity) > dev token > personal API key
+  if (process.env.CC_LINEAR_TOKEN) return process.env.CC_LINEAR_TOKEN;
+  if (process.env.LINEAR_DEV_TOKEN_PERSONAL) return process.env.LINEAR_DEV_TOKEN_PERSONAL;
   return process.env.LINEAR_API_KEY_PERSONAL || process.env.LINEAR_API_KEY || null;
 }
 
 function validateAuth() {
-  if (!getAuth()) return { error: 'LINEAR_API_KEY_PERSONAL not set. Get one at linear.app/settings/api.' };
+  if (!getAuth()) return { error: 'No Linear token. Set CC_LINEAR_TOKEN (OAuth), LINEAR_DEV_TOKEN_PERSONAL, or LINEAR_API_KEY.' };
   return null;
 }
 
