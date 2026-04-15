@@ -23,7 +23,11 @@ function loadLastCheck() {
   if (!fs.existsSync(STATE_FILE)) {
     return { lastCheck: null, submodules: {} };
   }
-  return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+  } catch (_e) {
+    return { lastCheck: null, submodules: {} };
+  }
 }
 
 function saveLastCheck(state) {

@@ -8,7 +8,7 @@ var https = require('https');
 var pkg = require('../package.json');
 var LOCAL_VERSION = pkg.version;
 
-var REPO_RAW_URL = 'https://raw.githubusercontent.com/KevinZai/cc-commander/main/package.json';
+var REPO_RAW_URL = 'https://raw.githubusercontent.com/KevinZai/commander/main/package.json';
 var CACHE_FILE = path.join(require('os').homedir(), '.claude', 'commander', 'update-cache.json');
 var CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
@@ -48,6 +48,9 @@ function fetchRemoteVersion(callback) {
     res.on('end', function() {
       try {
         var remote = JSON.parse(body);
+        if (typeof remote.version !== 'string' || !/^\d+\.\d+\.\d+/.test(remote.version)) {
+          return callback(new Error('Invalid remote version format'));
+        }
         writeCache(remote.version);
         callback(null, remote.version);
       } catch (e) { callback(e); }

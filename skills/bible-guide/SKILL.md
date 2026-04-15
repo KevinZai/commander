@@ -13,7 +13,7 @@ version: "1.2"
 
 ## Welcome
 
-CC Commander is a comprehensive toolkit: **450+ skills**, **11 CCC domains**, **80+ commands**, **28 hooks**, **9 workflow modes**, and **37 prompt templates**. That is a lot. This guide helps you find exactly what you need without reading everything.
+CC Commander is a comprehensive toolkit: **456+ skills**, **11 CCC domains**, **83 commands**, **28 hooks**, **10 workflow modes**, and **37 prompt templates**. That is a lot. This guide helps you find exactly what you need without reading everything.
 
 **How this guide works:**
 1. Tell me what you are building (Skill Discovery Wizard below)

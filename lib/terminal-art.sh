@@ -356,7 +356,7 @@ cc_farewell() {
       "  ${M_MID}Your code awaits.${NC}"
       ""
       "  ${M_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-      "  ${M_DIM}CC Commander — by Kevin Z  //  github.com/KevinZai/cc-commander${NC}"
+      "  ${M_DIM}CC Commander — by Kevin Z  //  github.com/KevinZai/commander${NC}"
       "  ${M_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     )
     for line in "${lines[@]}"; do
@@ -364,7 +364,7 @@ cc_farewell() {
       sleep 0.15
     done
   else
-    echo -e "  ${M_DIM}CC Commander — by Kevin Z  //  github.com/KevinZai/cc-commander${NC}"
+    echo -e "  ${M_DIM}CC Commander — by Kevin Z  //  github.com/KevinZai/commander${NC}"
   fi
   echo ""
 }

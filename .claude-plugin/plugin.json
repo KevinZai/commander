@@ -1,13 +1,13 @@
 {
   "name": "cc-commander",
-  "version": "2.1.0",
+  "version": "2.3.1",
   "description": "CC Commander \u2014 450+ skills. One command. Your AI work, managed by AI. Interactive project manager with split mode, agent API, knowledge compounding, YOLO Mode, and Linear integration.",
   "author": {
     "name": "Kevin Z",
     "url": "https://kevinz.ai"
   },
-  "homepage": "https://github.com/KevinZai/cc-commander",
-  "repository": "https://github.com/KevinZai/cc-commander",
+  "homepage": "https://github.com/KevinZai/commander",
+  "repository": "https://github.com/KevinZai/commander",
   "license": "MIT",
   "keywords": [
     "commander",

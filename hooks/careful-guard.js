@@ -1,3 +1,5 @@
+// Defense-in-depth: add deny rules in .claude/settings.json for critical patterns
+// that this hook tries to catch. See: https://docs.anthropic.com/claude-code/settings
 // ============================================================================
 // DISCLAIMER: This hook is a BEST-EFFORT safety net, NOT a security boundary.
 // It uses regex pattern matching which can be bypassed via:

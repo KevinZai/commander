@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/KevinZai/cc-commander.git",
+    "url": "https://github.com/KevinZai/commander.git",
     "directory": "extension"
   },
   "keywords": ["claude-code", "ai", "commander", "skills", "anthropic"],

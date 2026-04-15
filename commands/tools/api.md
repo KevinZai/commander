@@ -871,7 +871,7 @@ const users = await apiClient.getUsers({ page: 1, limit: 10 });
 const newUser = await apiClient.createUser({
   email: 'john@example.com',
   name: 'John Doe',
-  password: 'SecurePass123'
+  password: 'YOUR_PASSWORD_HERE'
 });
 ```
 
@@ -894,7 +894,7 @@ describe('Users API', () => {
       const userData = {
         email: 'test@example.com',
         name: 'Test User',
-        password: 'SecurePass123'
+        password: 'YOUR_PASSWORD_HERE'
       };
       
       const response = await request(app)
@@ -912,7 +912,7 @@ describe('Users API', () => {
       const userData = {
         email: 'invalid-email',
         name: 'Test User',
-        password: 'SecurePass123'
+        password: 'YOUR_PASSWORD_HERE'
       };
       
       const response = await request(app)
@@ -928,7 +928,7 @@ describe('Users API', () => {
       const userData = {
         email: 'test@example.com',
         name: 'Test User',
-        password: 'SecurePass123'
+        password: 'YOUR_PASSWORD_HERE'
       };
       
       // Create first user

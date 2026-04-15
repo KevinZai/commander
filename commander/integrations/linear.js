@@ -4,20 +4,7 @@ var https = require('https');
 var API_HOST = 'api.linear.app';
 
 function getAuth() {
-  var k = process.env.LINEAR_API_KEY_PERSONAL || process.env.LINEAR_API_KEY;
-  if (k) return k;
-  // File-based fallback: check state.json for saved linear.apiKey
-  try {
-    var fs2 = require('fs');
-    var path2 = require('path');
-    var os2 = require('os');
-    var statePath = path2.join(os2.homedir(), '.claude', 'commander', 'state.json');
-    if (fs2.existsSync(statePath)) {
-      var s = JSON.parse(fs2.readFileSync(statePath, 'utf8'));
-      if (s && s.linear && s.linear.apiKey) return s.linear.apiKey;
-    }
-  } catch (_e) {}
-  return null;
+  return process.env.LINEAR_API_KEY_PERSONAL || process.env.LINEAR_API_KEY || null;
 }
 
 function validateAuth() {

@@ -7,7 +7,7 @@
 
 'use strict';
 
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 
 let data = '';
 process.stdin.on('data', chunk => data += chunk);
@@ -55,7 +55,7 @@ process.stdin.on('end', () => {
 
       for (const file of jstsFiles) {
         try {
-          const diff = execSync(`git diff -- "${file}"`, {
+          const diff = execFileSync('git', ['diff', '--', file], {
             cwd: process.cwd(),
             timeout: 5000,
             encoding: 'utf-8',

@@ -602,7 +602,7 @@ function buildGallery() {
 ${cards}
 </div>
 <footer>
-  <p>CC Commander v2.3.0 — <a href="https://github.com/KevinZai/cc-commander">github.com/KevinZai/cc-commander</a></p>
+  <p>CC Commander v2.3.0 — <a href="https://github.com/KevinZai/commander">github.com/KevinZai/commander</a></p>
 </footer>
 </body>
 </html>`;

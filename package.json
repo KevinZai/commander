@@ -51,21 +51,16 @@
   "homepage": "https://KevinZai.github.io/cc-commander",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/KevinZai/cc-commander.git"
+    "url": "git+https://github.com/KevinZai/commander.git"
   },
   "bugs": {
-    "url": "https://github.com/KevinZai/cc-commander/issues"
+    "url": "https://github.com/KevinZai/commander/issues"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "boxen": "^8.0.1",
-    "chalk-animation": "^2.0.3",
-    "cli-progress": "^3.12.0",
-    "figlet": "^1.11.0",
-    "listr2": "^10.0.0",
-    "ora": "^8.2.0"
+    "figlet": "^1.11.0"
   },
   "main": "./bin/kc.js",
   "scripts": {
@@ -78,6 +73,13 @@
     "test:showcase": "bash tests/visual-showcase.sh"
   },
   "devDependencies": {
+    "boxen": "^8.0.1",
+    "c8": "^10.0.0",
+    "chalk-animation": "^2.0.3",
+    "cli-progress": "^3.12.0",
+    "eslint": "^9.0.0",
+    "listr2": "^10.0.0",
+    "ora": "^8.2.0",
     "playwright": "^1.59.1"
   }
 }

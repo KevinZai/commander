@@ -73,7 +73,7 @@ Remaining notable issues are mostly UX/consistency and one known dependency risk
   - sanitizer implementation `commander/dispatcher.js:7-9`
 
 ### New feature validations
-- `claude-finder` resolution chain works → **PASS** (`resolved: /Users/ai/.local/bin/claude`)
+- `claude-finder` resolution chain works → **PASS** (`resolved: ~/.local/bin/claude`)
 - `tui.js` pipe-rail / radios / help / mouse features exercised in live tmux flow
   - diamond/radios/hotkeys/help popup all rendered
 - `cockpit` compact footer:

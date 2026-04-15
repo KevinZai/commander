@@ -18,12 +18,12 @@
   "topbarLinks": [
     {
       "name": "GitHub",
-      "url": "https://github.com/KevinZai/cc-commander"
+      "url": "https://github.com/KevinZai/commander"
     }
   ],
   "topbarCtaButton": {
     "name": "Install",
-    "url": "https://github.com/KevinZai/cc-commander#quick-start"
+    "url": "https://github.com/KevinZai/commander#quick-start"
   },
   "tabs": [
     {
@@ -39,7 +39,7 @@
     {
       "name": "GitHub",
       "icon": "github",
-      "url": "https://github.com/KevinZai/cc-commander"
+      "url": "https://github.com/KevinZai/commander"
     },
     {
       "name": "Kevin Z",
@@ -94,7 +94,7 @@
   ],
   "footerSocials": {
     "x": "https://x.com/kzic",
-    "github": "https://github.com/KevinZai/cc-commander"
+    "github": "https://github.com/KevinZai/commander"
   },
   "analytics": {
     "plausible": {

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-CC Commander — by Kevin Z. 460+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 460+ skills, 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Z. 456+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 456+ skills, 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 **Current Release:** The Aggregator Release (version tracked in `package.json`)
 
@@ -46,9 +46,9 @@ Tests: `node --test commander/tests/paths.test.js`
 ## Project Structure
 
 ```
-├── skills/              # 450+ skills organized by category
-│   ├── mega-*/          # 11 CCC domains (router + sub-skills)
-│   ├── mode-switcher/   # 9 workflow modes
+├── skills/              # 456+ skills organized by category
+│   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
+│   ├── mode-switcher/   # 10 workflow modes
 ��   ├── init-decision-tree/  # /init project wizard
 │   ├── confidence-check/    # Pre-execution confidence assessment
 │   ├── four-question-validation/  # Post-implementation verification
@@ -94,7 +94,7 @@ claude-code-prompts (142).
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
 
 ```
-━━ CCC2.3.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
+━━ CCC2.3.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯456│📋CC-150│📂~/project
 ```
 
 Render this at session start and after major actions. Source: `commander/cockpit.js`.
@@ -108,8 +108,8 @@ All `/ccc` sub-commands open rich menus with recommendations:
 | `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
 | `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
 | `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 450+ skills by category, preview, try |
-| `/ccc domains` | CCC domains | 11 mega-skill domains |
+| `/ccc skills` | Skill browser | 456+ skills by category, preview, try |
+| `/ccc domains` | CCC domains | 11 ccc-* domains |
 | `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
 | `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
 
@@ -119,28 +119,28 @@ Every menu recommends the best next action based on context.
 
 | Domain | Sub-Skills | Focus |
 |--------|-----------|-------|
-| `mega-code` | 18 | Code generation, refactoring, review |
-| `mega-testing` | 15 | TDD, E2E, coverage, regression |
-| `mega-devops` | 14 | CI/CD, Docker, deploy, monitoring |
-| `mega-saas` | 16 | Auth, billing, multi-tenant, schema |
-| `mega-design` | 12 | UI/UX, components, accessibility |
-| `mega-seo` | 10 | Technical SEO, content, analytics |
-| `mega-marketing` | 8 | Content, email, social, ads |
-| `mega-security` | 9 | Audit, pen-test, compliance |
-| `mega-data` | 7 | ETL, analytics, visualization |
-| `mega-api` | 6 | REST, GraphQL, SDK design |
-| `mega-docs` | 5 | Technical writing, API docs, guides |
+| `ccc-design` | 40 | UI/UX, animation, responsive, accessibility |
+| `ccc-marketing` | 55 | CRO, email, ads, social, content |
+| `ccc-saas` | 21 | Auth, billing, multi-tenant, schema |
+| `ccc-devops` | 21 | CI/CD, Docker, AWS, monitoring |
+| `ccc-seo` | 20 | Technical SEO, content, Core Web Vitals |
+| `ccc-testing` | 16 | TDD, E2E, coverage, regression |
+| `ccc-security` | 8 | OWASP, pen-test, secrets, hardening |
+| `ccc-data` | 8 | SQL, ETL, analytics, visualization |
+| `ccc-research` | 8 | Competitive, market analysis |
+| `ccc-mobile` | 8 | React Native, Expo, mobile patterns |
+| `ccc-makeover` | 3 | /xray audit + /makeover swarm |
 
 ## Current Status
 
 **Version:** See `package.json`
 
-**Stats:** 460+ skills (CLI-visible), 83 commands, 28 hooks (JS), 19 vendors, 10 themes
+**Stats:** 456 skills (CLI-visible), 83 commands, 28 hooks (JS), 19 vendors, 10 themes
 
 **Live:**
-- GitHub repo: github.com/KevinZai/cc-commander
+- GitHub repo: github.com/KevinZai/commander
 - Landing page: KevinZai.github.io/cc-commander
-- One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash`
+- One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash`
 
 ## Key Commands
 
@@ -162,11 +162,11 @@ ccc --status                  # Health check
 - Hooks use `lib/terminal-art.js` for consistent branding
 - All animations respect `CC_NO_COLOR=1`, `CC_NO_ANIMATION=1`, CI detection
 - OG image generated via `docs/assets/og-image.svg` → PNG conversion
-- Mega-skills use router pattern: one SKILL.md dispatches to sub-skill directories
+- CCC domains use router pattern: one SKILL.md dispatches to sub-skill directories
 - Kevin's personal overlay lives in `kevin/` — not installed by the public installer
 - Tests run via `node --test tests/hooks.test.js` (Node.js built-in test runner, 61 tests)
 - 18 kit-native hooks form the "Proactive Automation Suite" — context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, pre-compact, self-verify, openclaw-adapter, status-reporter, openclaw-sync, etc.
-- 9 workflow modes via mode-switcher skill — normal, design, saas, marketing, research, writing, night, yolo, unhinged
+- 10 workflow modes via mode-switcher skill — normal, design, saas, marketing, research, writing, night, yolo, unhinged, caveman
 - 36+ prompt templates across 6 categories (coding, planning, design, marketing, devops, meta)
 - Agency Orchestrator and OpenClaw patterns for multi-agent integration
 - Claude Peers integration — multi-instance collaboration with coordinator/swarm/expert/review/research patterns
@@ -190,7 +190,7 @@ ccc --status                  # Health check
 - Modular installer with 5 installation modes (full, essentials, scripts, dashboard, config-only)
 - Daemon Mode: commander/daemon.js (tick loop), commander/queue.js (task queue), commander/dream.js (knowledge consolidation)
 - Intelligence Layer v1: complexity scoring (dispatcher.js), stack detection (project-importer.js), session learning (knowledge.js), skill filtering (skill-browser.js), smart retry (dispatchWithRetry)
-- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 454+)
+- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 456+)
 - Update checker at `commander/update-check.js` — 4h cache, silent on failure, fires on session start
 - Caveman mode (`caveman` skill) — strips markdown/emojis/prose for ~75% output token savings during iteration
 

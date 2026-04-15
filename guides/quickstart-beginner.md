@@ -37,7 +37,7 @@ Without CC Commander, Claude Code is a general-purpose assistant. With CC Comman
 Open your terminal and run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
 ```
 
 The installer:
@@ -49,7 +49,7 @@ The installer:
 **Alternative: Clone and install manually**
 
 ```bash
-git clone https://github.com/KevinZai/cc-commander.git
+git clone https://github.com/KevinZai/commander.git
 cd cc-commander
 ./install.sh
 ```
@@ -216,7 +216,7 @@ It removes CC Commander components and restores your backup.
 
 | Resource | URL / Path |
 |----------|-----------|
-| GitHub Issues | [github.com/KevinZai/cc-commander/issues](https://github.com/KevinZai/cc-commander/issues) |
+| GitHub Issues | [github.com/KevinZai/commander/issues](https://github.com/KevinZai/commander/issues) |
 | CC Commander Guide Skill | Type "use bible-guide skill" in Claude Code |
 | Cheatsheet | `~/.claude/CHEATSHEET.md` or type `/cc` |
 | Full Documentation | `~/.claude/BIBLE.md` |

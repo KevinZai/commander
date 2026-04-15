@@ -92,5 +92,5 @@ Use AskUserQuestion:
 curl -fsSL https://raw.githubusercontent.com/anthropics/everything-claude-code/main/install.sh | bash
 
 # CC Commander (this package)
-curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
 ```

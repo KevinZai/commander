@@ -9,7 +9,7 @@
 
 'use strict';
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -46,7 +46,7 @@ process.stdin.on('end', () => {
 
     if (count % 10 === 0) {
       try {
-        execSync(`git stash push -m "kz-checkpoint-${count}"`, {
+        execFileSync('git', ['stash', 'push', '-m', 'kz-checkpoint-' + count], {
           cwd: process.cwd(),
           timeout: 5000,
           encoding: 'utf-8',

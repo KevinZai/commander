@@ -117,4 +117,4 @@ git submodule add --depth 1 https://github.com/owner/repo vendor/repo-name
 
 ---
 
-*To request additions: open an issue or PR on [KevinZai/cc-commander](https://github.com/KevinZai/cc-commander)*
+*To request additions: open an issue or PR on [KevinZai/commander](https://github.com/KevinZai/commander)*

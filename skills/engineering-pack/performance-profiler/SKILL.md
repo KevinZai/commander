@@ -464,7 +464,7 @@ export function setup() {
   // Get auth token once
   const loginRes = http.post(`${BASE_URL}/api/auth/login`, JSON.stringify({
     email: 'loadtest@example.com',
-    password: 'loadtest123',
+    password: 'YOUR_PASSWORD_HERE',
   }), { headers: { 'Content-Type': 'application/json' } })
   
   return { token: loginRes.json('token') }

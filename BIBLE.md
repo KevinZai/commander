@@ -30,7 +30,7 @@
 - [Prompt Templates](#prompt-templates)
 - [The 45 Tips — Quick Reference](#the-45-tips--quick-reference)
 - [Power Combos](#power-combos) *(advanced only — full table in CHEATSHEET)*
-- [Workflow Modes](#workflow-modes) *(9 modes)*
+- [Workflow Modes](#workflow-modes) *(10 modes)*
 - [Prompt Library](#prompt-library-1) *(36+ templates)*
 - [Integrations](#integrations) *(Agency Orchestrator + OpenClaw)*
 - [Proactive Automation Suite](#proactive-automation-suite-v11) *(28 kit-native hooks)*
@@ -138,7 +138,7 @@ Stock Claude Code starts every session with amnesia. CC Commander doesn't. Befor
 |------|---------|---------|
 | **CLI** | `claude` in terminal | `npm install -g cc-commander` → `ccc` |
 | **Slash commands only** | Claude Code sessions | `curl ... \| bash` → `/ccc` in any session |
-| **Desktop plugin** | Claude Desktop | `/plugin marketplace add KevinZai/cc-commander` |
+| **Desktop plugin** | Claude Desktop | `/plugin marketplace add KevinZai/commander` |
 
 Arrow keys to navigate. No commands to memorize. The Intelligence Layer handles model selection, budget, and skill routing automatically.
 
@@ -1078,13 +1078,13 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 |------|------|-------|---------|
 | Essential | `--skills=essential` (default) | ~30 | Most developers — core workflows |
 | Recommended | `--skills=recommended` | ~100 | Active builders who use many domains |
-| Domain | `--skills=domain` | 11 routers | Load one mega-skill per domain as needed |
-| Full | `--skills=full` | 458 | Legacy behavior — everything installed |
+| Domain | `--skills=domain` | 11 routers | Load one ccc-domain per domain as needed |
+| Full | `--skills=full` | 459 | Legacy behavior — everything installed |
 
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 458 skills (original behavior)
+./install.sh --skills=full        # All 459 skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.
@@ -1243,7 +1243,7 @@ Six new `/ccc` sub-commands for managing local services from within Claude Code:
 | Command | Port | What it does |
 |---------|------|-------------|
 | `/ccc fleet` | 4680 | Fleet Commander — multi-agent dispatch manager |
-| `/ccc syn` | 4682 | Synapse observability — trace, memory, event timeline |
+| `/ccc syn` | — | Synapse observability (removed 2026-04-11) |
 | `/ccc cost` | 3005 | Real-time cost tracking via AO Dashboard |
 | `/ccc ao` | — | Composio AO parallel agents — spawn/manage background workers |
 | `/ccc cloudcli` | 4681 | Web session bridge — run Claude in browser, sync results back |
@@ -1716,6 +1716,7 @@ Modes adjust Claude's behavior, verbosity, risk tolerance, and auto-loaded skill
 | `night` | Autonomous overnight — checkpoints, error recovery, notifications | Batch jobs, migrations |
 | `yolo` | Max speed — skip confirmations, auto-approve, ship fast | Quick prototypes, demos |
 | `unhinged` | No guardrails — experimental, creative, push boundaries | Hackathons, experiments |
+| `caveman` | Ultra-compressed output — strips markdown/emojis/prose (~75% token savings) | Iteration, high-frequency loops |
 
 **How to switch:**
 ```
@@ -2176,12 +2177,12 @@ ccc --repair
 The rich footer bar displays 12 live segments at the bottom of every session:
 
 ```
-━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│↑640K↓694K│⏰8h0m│🎯453│📋CC-150│📂~/project
+━━ CCC2.3.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│↑640K↓694K│⏰8h0m│🎯456│📋CC-150│📂~/project
 ```
 
 | Segment | What It Shows |
 |---------|--------------|
-| `CCC2.3.0` | Version |
+| `CCC2.3.1` | Version |
 | `🔥Opus1M` | Active model |
 | `🔑gAA` | Auth status |
 | `🧠▐██45%░░▌` | Context usage — green <60%, yellow <80%, red ≥80% |
@@ -2190,7 +2191,7 @@ The rich footer bar displays 12 live segments at the bottom of every session:
 | `💰$2.34` | Session cost |
 | `↑640K↓694K` | Token counts (in/out) |
 | `⏰8h0m` | Session duration |
-| `🎯453` | Total CLI-visible skills installed |
+| `🎯456` | Total CLI-visible skills installed |
 | `📋CC-150` | Active Linear ticket |
 | `📂~/project` | Current working directory |
 
@@ -2201,7 +2202,7 @@ The rich footer bar displays 12 live segments at the bottom of every session:
 | Sub-command | Action |
 |------------|--------|
 | `/ccc fleet` | Fleet Commander (port 4680) |
-| `/ccc syn` | Synapse observability (port 4682) |
+| `/ccc syn` | Synapse observability (removed 2026-04-11) |
 | `/ccc cost` | Real-time cost dashboard (port 3005) |
 | `/ccc ao` | Composio AO parallel agents |
 | `/ccc cloudcli` | Web session bridge (port 4681) |
@@ -2222,7 +2223,7 @@ After every action, CCC suggests 3-4 contextual next steps via `AskUserQuestion`
 
 `commander/service-detector.js` runs at startup and probes:
 
-- **8 services:** Fleet (4680), CloudCLI (4681), Synapse (4682), AO Dashboard (3005), Paperclip (3110), n8n (5678), Ollama (11434), OpenClaw (18789)
+- **7 services:** Fleet (4680), CloudCLI (4681), AO Dashboard (3005), Paperclip (3110), n8n (5678), Ollama (11434), OpenClaw (18789)
 - **4 CLIs:** `gh`, `openclaw`, `pm2`, `docker`
 
 Results feed into `/ccc detect` output and smart `/init` auto-detection.

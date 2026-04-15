@@ -189,46 +189,6 @@ function scoreComplexity(task, projectDir) {
   return { turns: params.turns, budget: params.budget, effort: params.effort, score: score };
 }
 
-/**
- * Generate --include patterns from task description to reduce token scope.
- * @param {string} task - Task description
- * @param {string} projectDir - Project directory
- * @returns {string[]} Include patterns (e.g., ['src/auth/**', 'tests/auth/**'])
- */
-function inferIncludePatterns(task, projectDir) {
-  if (!task || !projectDir) return [];
-  var text = task.toLowerCase();
-  var patterns = [];
-
-  // File-specific: "fix auth.js" → include auth files
-  var fileMatch = text.match(/(?:fix|edit|update|modify|review|check)\s+(\S+\.\w+)/);
-  if (fileMatch) {
-    patterns.push('**/' + fileMatch[1]);
-    return patterns;
-  }
-
-  // Directory-specific keywords
-  var dirMap = {
-    'auth': ['**/auth/**', '**/middleware/**'],
-    'api': ['**/api/**', '**/routes/**'],
-    'test': ['**/test*/**', '**/*.test.*', '**/*.spec.*'],
-    'component': ['**/component*/**', '**/ui/**'],
-    'database': ['**/db/**', '**/models/**', '**/migrations/**', '**/schema/**'],
-    'style': ['**/*.css', '**/*.scss', '**/styles/**'],
-    'config': ['**/config/**', '*.config.*', '.env*'],
-    'hook': ['**/hooks/**'],
-    'deploy': ['**/deploy/**', '.github/**', 'Dockerfile*', 'docker-compose*'],
-  };
-
-  Object.keys(dirMap).forEach(function(keyword) {
-    if (text.indexOf(keyword) >= 0) {
-      patterns = patterns.concat(dirMap[keyword]);
-    }
-  });
-
-  return patterns.slice(0, 5); // Max 5 patterns
-}
-
 function dispatch(task, options) {
   if (!options) options = {};
   var sync = options.sync !== undefined ? options.sync : true;
@@ -264,6 +224,8 @@ function dispatch(task, options) {
   if (bare) args.push('--bare');
   if (options.skipPermissions) {
     args.push('--dangerously-skip-permissions');
+  } else if (options.permissionMode) {
+    args.push('--permission-mode', options.permissionMode);
   } else {
     args.push('--permission-mode', 'auto');
   }
@@ -278,17 +240,6 @@ function dispatch(task, options) {
   if (jsonSchema) args.push('--json-schema', JSON.stringify(jsonSchema));
   if (allowedTools && allowedTools.length > 0) args.push('--allowedTools', allowedTools.join(','));
   if (systemPrompt) args.push('--append-system-prompt', JSON.stringify(systemPrompt));
-
-  // Auto-scope with --include if task implies specific files/dirs
-  if (!options.include) {
-    var autoInclude = inferIncludePatterns(task, options.cwd || process.cwd());
-    if (autoInclude.length > 0) {
-      autoInclude.forEach(function(p) { args.push('--include', p); });
-    }
-  }
-  if (options.include) {
-    options.include.forEach(function(p) { args.push('--include', p); });
-  }
 
   var command = 'claude';
   if (!sync) return { command: command + ' ' + args.join(' '), async: true };
@@ -444,4 +395,4 @@ function dispatchWithRetry(task, options, retries) {
   });
 }
 
-module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, estimateScope: estimateScope, inferIncludePatterns: inferIncludePatterns, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel };
+module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel };

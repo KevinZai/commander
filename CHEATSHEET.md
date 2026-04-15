@@ -288,9 +288,9 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | `Stop` | When agent stops | Cost tracking, session persistence, sound |
 | `PreCompact` | Before context compaction | Save state snapshot |
 
-### Proactive Hooks (25 Kit-Native)
+### Proactive Hooks (28 Kit-Native)
 
-The kit ships 25 hooks that fire automatically — no prompting required. Disable any hook with its env var.
+The kit ships 28 hooks that fire automatically — no prompting required. Disable any hook with its env var.
 
 **PreToolUse (3 hooks)**
 
@@ -334,7 +334,7 @@ The kit ships 25 hooks that fire automatically — no prompting required. Disabl
 
 **Session Coach** fires every N responses (default: 10). Customize interval with `CC_COACH_INTERVAL=20` (number of responses between nudges). Disable entirely with `CC_COACH_DISABLE=1`.
 
-CC Commander ships with 25 kit-native hooks that work standalone via `hooks-standalone.json`.
+CC Commander ships with 28 kit-native hooks that work standalone via `hooks-standalone.json`.
 
 ---
 
@@ -533,14 +533,14 @@ Install only the skills you need — smaller tiers save ~10k tokens per session:
 ```bash
 ./install.sh --skills=essential   # ~30 core skills (default, saves ~10k tokens)
 ./install.sh --skills=recommended # ~100 skills for most developers
-./install.sh --skills=full        # All 458 skills (legacy behavior)
+./install.sh --skills=full        # All 459 skills (legacy behavior)
 ```
 
 | Tier | Count | When to use |
 |------|-------|------------|
 | `essential` | ~30 | Default — covers 90% of use cases |
 | `recommended` | ~100 | Active builders across multiple domains |
-| `full` | 458 | Legacy behavior, maximum coverage |
+| `full` | 459 | Legacy behavior, maximum coverage |
 
 You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 
@@ -873,12 +873,12 @@ CC Commander includes an interactive command center accessible via `/cc`:
 | Command | What it does |
 |---------|-------------|
 | `/cc` | Main menu — all options |
-| `/cc skills` | Browse 450+ skills by category |
+| `/cc skills` | Browse 456+ skills by category |
 | `/cc mega [name]` | Drill into a CCC domain's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions (no plan mode) |
 | `/cc confidence` | Pre-execution confidence assessment (0-100%) |
-| `/cc mode <name>` | Switch workflow mode (9 modes available) |
+| `/cc mode <name>` | Switch workflow mode (10 modes available) |
 | `/cc prompts` | Browse 36+ prompt templates by category |
 | `/cc status` | Kit health dashboard |
 | `/cc help` | Compact reference |

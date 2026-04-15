@@ -10,7 +10,7 @@ function _fatalHandler(err) {
   try { errId = require(require('path').join(__dirname, '..', 'commander', 'error-logger')).logError(err, 'uncaught'); } catch (_e) {}
   process.stdout.write('\n  \u274C CC Commander hit an unexpected error: ' + msg + '\n');
   if (errId) process.stdout.write('  \uD83D\uDCCB Error ID: ' + errId + '\n');
-  process.stdout.write('  \uD83D\uDCCB Report this at: https://github.com/KevinZai/cc-commander/issues\n\n');
+  process.stdout.write('  \uD83D\uDCCB Report this at: https://github.com/KevinZai/commander/issues\n\n');
   process.exit(1);
 }
 process.on('uncaughtException', _fatalHandler);

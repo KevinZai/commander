@@ -16,7 +16,7 @@ var BRAND = Object.freeze({
   twitter: '@kzic',
   github: 'KevinZai',
   repo: 'cc-commander',
-  repoUrl: 'https://github.com/KevinZai/cc-commander',
+  repoUrl: 'https://github.com/KevinZai/commander',
 
   envPrefix: 'KC_',
 

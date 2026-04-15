@@ -355,10 +355,10 @@
   └──────────┘     └──────────────┘     └──────────────────┘
 ```
 
-**GitHub:** [github.com/KevinZai/cc-commander](https://github.com/KevinZai/cc-commander)
+**GitHub:** [github.com/KevinZai/commander](https://github.com/KevinZai/commander)
 **Landing Page:** [kevinzai.github.io/cc-commander](https://kevinzai.github.io/cc-commander)
 
 ---
 
-*CC Commander v2.3.0 by Kevin Z -- 450+ skills | 11 CCC domains | 80+ commands | 25 hooks | 10 themes | 9 modes*
+*CC Commander v2.3.1 by Kevin Z -- 456+ skills | 11 CCC domains | 83 commands | 28 hooks | 10 themes | 10 modes*
 *Distilled from 200+ community sources. One install. Under 60 seconds.*

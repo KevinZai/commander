@@ -1,7 +1,7 @@
 # Why CC Commander?
 ## The Definitive "What Makes This Different" Reference
 
-> Version 2.3.0 — Every claim below is provable. Run the commands. Read the source. No vague promises.
+> Version 2.3.1 — Every claim below is provable. Run the commands. Read the source. No vague promises.
 
 ---
 
@@ -133,10 +133,10 @@
 
 ---
 
-### 18. 450+ Skills (Verified by SKILL.md Count)
-**What:** 458 individual SKILL.md files across the `skills/` directory — deduplicated from 1,500+ vendor skills across 19 packages.
-**Proof:** `find skills/ -name "SKILL.md" | wc -l` → 458.
-**Share-friendly:** 450+ skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
+### 18. 456+ Skills (Verified by SKILL.md Count)
+**What:** 459 individual SKILL.md files across the `skills/` directory — deduplicated from 1,500+ vendor skills across 19 packages.
+**Proof:** `find skills/ -name "SKILL.md" | wc -l` → 459.
+**Share-friendly:** 456+ skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
 
 ---
 
@@ -337,7 +337,7 @@ CC Commander stacks five independent token-reduction mechanisms. Each works at a
 |-------|------|---------|
 | Tool output sandboxing | context-mode | **98%** — SQLite + FTS5, BM25 snippets only |
 | CLI output filtering | RTK | 99.5% — strips verbose shell output |
-| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 458 full |
+| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 459 full |
 | Rate limit rotation | ClaudeSwap | 2 MAX accounts, drain-first strategy |
 | Prompt caching | Extended TTL | 90% discount, 1hr cache window |
 
@@ -351,7 +351,7 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 |--------|------------------|--------------|
 | Tool Output | Full dump into context (wastes 98% of window) | **98% reduction** — context-mode sandboxes into SQLite, returns BM25 snippets |
 | Getting started | Blank terminal, type commands | Arrow-key menus, guided setup |
-| Skills | 0 built-in | 450+ (453 CLI-visible, 458 on disk) |
+| Skills | 0 built-in | 456+ (456 CLI-visible, 459 on disk) |
 | Commands | 0 installed | 83 slash commands |
 | Memory | None across sessions | AI knowledge compounding — every session builds on the last |
 | Project awareness | Reads CLAUDE.md | Reads CLAUDE.md + package.json + Dockerfile + docker-compose.yml + go.mod + Cargo.toml + pyproject.toml + git branch + last 5 commits + monorepo detection |
@@ -500,4 +500,4 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 
 ---
 
-*Built with CC Commander v2.3.0. Every claim in this document is verifiable from the source code at `github.com/KevinZai/cc-commander`.*
+*Built with CC Commander v2.3.0. Every claim in this document is verifiable from the source code at `github.com/KevinZai/commander`.*

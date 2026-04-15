@@ -3,10 +3,10 @@
 # CC Commander — One-Line Remote Installer
 # ============================================================================
 # Paste this anywhere:
-#   curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
 #
 # Or with wget:
-#   wget -qO- https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+#   wget -qO- https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
 # ============================================================================
 
 set -euo pipefail
@@ -71,13 +71,30 @@ if [ -d "$INSTALL_DIR/.git" ]; then
   fi
 else
   echo -e "  ${CYAN}►${NC} Downloading kit to ~/.cc-commander..."
-  if git clone --depth 1 --recursive https://github.com/KevinZai/cc-commander.git "$INSTALL_DIR" 2>/dev/null; then
+  if git clone --depth 1 --recursive https://github.com/KevinZai/commander.git "$INSTALL_DIR" 2>/dev/null; then
     echo -e "  ${GREEN}✓${NC} Kit downloaded"
   else
     echo -e "  ${RED}✗${NC} Failed to clone. Check your internet connection."
     exit 1
   fi
 fi
+
+# ── Verify clone integrity ───────────────────────────────────────────────────
+
+# Verify clone integrity
+if [ ! -f "$INSTALL_DIR/package.json" ]; then
+  echo "ERROR: Clone appears corrupted — package.json missing"
+  exit 1
+fi
+
+# Verify expected files exist
+for f in install.sh bin/kc.js commander/engine.js; do
+  if [ ! -f "$INSTALL_DIR/$f" ]; then
+    echo "ERROR: Expected file missing: $f"
+    exit 1
+  fi
+done
+echo "✓ Clone integrity verified"
 
 # ── Run the installer ────────────────────────────────────────────────────────
 
@@ -93,6 +110,6 @@ chmod +x install.sh
 
 echo ""
 echo -e "  ${GREEN}✓${NC} CC Commander installed to ${WHITE}~/.cc-commander${NC}"
-echo -e "  ${DIM}To update: curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash${NC}"
+echo -e "  ${DIM}To update: curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash${NC}"
 echo -e "  ${DIM}       or: cd ~/.cc-commander && git pull && git submodule update --init && ./install.sh --force${NC}"
 echo ""

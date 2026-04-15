@@ -269,10 +269,12 @@ async function main() {
   let written = 0;
   for (const finding of newFindings) {
     const proposal = createProposal(finding);
-    const filename = `${proposal.id}.json`;
+    const safeFilename = proposal.id.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200) + '.json';
+    if (proposal.description) proposal.description = String(proposal.description).slice(0, 2000);
+    if (proposal.url) proposal.url = String(proposal.url).slice(0, 2000);
     try {
       fs.writeFileSync(
-        path.join(QUEUE_DIR, filename),
+        path.join(QUEUE_DIR, safeFilename),
         JSON.stringify(proposal, null, 2)
       );
       written++;

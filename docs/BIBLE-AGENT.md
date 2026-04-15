@@ -13,7 +13,7 @@ CCC installs directly into `~/.claude/`. Every skill, command, and hook is avail
 
 ```bash
 # 1. Install
-git clone --recursive https://github.com/KevinZai/cc-commander.git
+git clone --recursive https://github.com/KevinZai/commander.git
 cd cc-commander && ./install.sh --force
 
 # 2. Verify
@@ -81,7 +81,7 @@ ccc --status
 
 ```bash
 # 1. Install the Cowork plugin
-/plugin marketplace add KevinZai/cc-commander
+/plugin marketplace add KevinZai/commander
 
 # 2. Skills available in Cowork:
 #    /cc-commander  — full 15-item menu

@@ -13,6 +13,7 @@ function tmuxStatus(msg) {
   try {
     var cp = require('child_process');
     var session = process.env.CCC_TMUX_SESSION;
+    if (session && !/^[a-zA-Z0-9_-]+$/.test(session)) { session = 'ccc-' + Date.now(); }
     var safeMsg = String(msg).replace(/[`$\\]/g, '').slice(0, 120);
     cp.execFileSync('tmux', ['display-message', '-t', session, '-d', '3000', ' CCC: ' + safeMsg], { stdio: 'pipe' });
   } catch(_e) {}
@@ -85,7 +86,7 @@ function tmuxDispatch(task, resumeSessionId) {
       // Wait for Claude Code to be ready (poll for prompt, up to 8s)
       var ready = false;
       for (var attempt = 0; attempt < 16; attempt++) {
-        cp.execSync('sleep 0.5', { stdio: 'pipe' });
+        try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500); } catch(e) { /* noop */ }
         try {
           var paneContent = cp.execFileSync('tmux', ['capture-pane', '-t', sessionName, '-p'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
           if (paneContent.indexOf('>') !== -1 || paneContent.indexOf('╭') !== -1) {
@@ -94,7 +95,7 @@ function tmuxDispatch(task, resumeSessionId) {
           }
         } catch(_e) {}
       }
-      if (!ready) { cp.execSync('sleep 2', { stdio: 'pipe' }); }
+      if (!ready) { try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000); } catch(e) { /* noop */ } }
       // Sanitize task: strip control chars, limit length
       var safeTask = String(task || '').replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 4000);
       cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', safeTask], { stdio: 'pipe' });
@@ -410,7 +411,7 @@ class KitCommander {
           var _errId = '';
           try { _errId = require('./error-logger').logError(actionError, 'runAdventure'); } catch(_) {}
           process.stdout.write('\x0a  \u274C CC Commander error: ' + (actionError.message || 'Unknown error') + '\x0a');
-          if (_errId) process.stdout.write('  Error ID: ' + _errId + ' \u2014 report at: https://github.com/KevinZai/cc-commander/issues\x0a');
+          if (_errId) process.stdout.write('  Error ID: ' + _errId + ' \u2014 report at: https://github.com/KevinZai/commander/issues\x0a');
           adventureId = 'main-menu';
           continue;
         }
@@ -444,7 +445,7 @@ class KitCommander {
         var _eId = '';
         try { _eId = require('./error-logger').logError(_e, 'action:' + actionName); } catch(_) {}
         process.stdout.write('\n  \u274C ' + actionName + ' error: ' + (_e.message || 'Unknown error') + '\n');
-        if (_eId) process.stdout.write('  Error ID: ' + _eId + ' \u2014 report at: https://github.com/KevinZai/cc-commander/issues\n');
+        if (_eId) process.stdout.write('  Error ID: ' + _eId + ' \u2014 report at: https://github.com/KevinZai/commander/issues\n');
         return { next: 'main-menu' };
       }
     }
@@ -913,7 +914,7 @@ class KitCommander {
         sp.stop(true);
         process.stdout.write("\x0a" + tui.divider("YOLO Cycle " + cycle + "/" + maxCycles + (cycle === 1 ? " \u2014 Building" : " \u2014 Improving")) + "\x0a\x0a");
         process.stdout.write("  " + tui.dimText("Live output below. Watch file: ~/.claude/commander/yolo-status.txt") + "\x0a\x0a");
-        var result = await d.dispatch(prompt, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opus", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: false, skipPermissions: true, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
+        var result = await d.dispatch(prompt, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opus", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: false, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
         state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
         state.completeSession(session.id, "success");
         knowledge.extractAndStore(state.getSession(session.id) || session, result.result || "");

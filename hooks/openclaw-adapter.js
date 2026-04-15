@@ -16,7 +16,6 @@
 'use strict';
 
 const http = require('http');
-const url = require('url');
 
 const ENABLED = (process.env.CC_OPENCLAW_ENABLED || process.env.KZ_OPENCLAW_ENABLED) === '1';
 const DEBUG = (process.env.CC_OPENCLAW_DEBUG || process.env.KZ_OPENCLAW_DEBUG) === '1';
@@ -68,13 +67,20 @@ function buildPayload(input) {
 
 function sendToGateway(payload) {
   return new Promise((resolve) => {
-    const parsed = url.parse(GATEWAY_URL + WEBHOOK_PATH);
+    const parsed = new URL(GATEWAY_URL + WEBHOOK_PATH);
+
+    if (!['localhost', '127.0.0.1', '::1'].includes(parsed.hostname)) {
+      debug(`Blocked: hostname ${parsed.hostname} is not a local address`);
+      resolve();
+      return;
+    }
+
     const body = JSON.stringify(payload);
 
     const options = {
       hostname: parsed.hostname,
       port: parsed.port || 80,
-      path: parsed.path,
+      path: parsed.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

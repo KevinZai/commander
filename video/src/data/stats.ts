@@ -11,7 +11,7 @@ export const STATS = {
   auditScore: 91,
   author: "Kevin Z",
   site: "kevinz.ai",
-  github: "github.com/KevinZai/cc-commander",
+  github: "github.com/KevinZai/commander",
   installCmd: "npm install -g cc-commander",
 };
 

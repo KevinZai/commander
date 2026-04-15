@@ -78,7 +78,7 @@ function generateShareText(session, score) {
   text += 'Score: ' + scoreVal + '/100 [' + grade + ']\n';
   text += 'Cost: ' + cost + '\n\n';
   text += 'Every Claude Code tool. One install.\n';
-  text += 'github.com/KevinZai/cc-commander';
+  text += 'github.com/KevinZai/commander';
 
   return text;
 }

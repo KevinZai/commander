@@ -63,7 +63,7 @@
       "anchors": [
         {
           "anchor": "GitHub",
-          "href": "https://github.com/KevinZai/cc-commander",
+          "href": "https://github.com/KevinZai/commander",
           "icon": "github"
         },
         {
@@ -82,19 +82,19 @@
     "links": [
       {
         "label": "GitHub",
-        "href": "https://github.com/KevinZai/cc-commander"
+        "href": "https://github.com/KevinZai/commander"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Install",
-      "href": "https://github.com/KevinZai/cc-commander#quick-start"
+      "href": "https://github.com/KevinZai/commander#quick-start"
     }
   },
   "footer": {
     "socials": {
       "x": "https://x.com/kzic",
-      "github": "https://github.com/KevinZai/cc-commander"
+      "github": "https://github.com/KevinZai/commander"
     }
   },
   "integrations": {
