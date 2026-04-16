@@ -143,6 +143,17 @@ export function Hero() {
             </div>
           ))}
         </motion.div>
+
+        {/* Ecosystem footnote */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.6 }}
+          className="mt-8 text-center text-xs text-zinc-600"
+        >
+          Works alongside the 66K+ community skill ecosystem.{" "}
+          <span className="text-zinc-500">We curated the best.</span>
+        </motion.p>
       </div>
     </section>
   );

@@ -1,0 +1,69 @@
+---
+title: "Specialized Agents"
+description: "5 agents with specific models, colors, tool scopes, and turn limits."
+---
+
+CCC ships **5 specialized agents** (Pro tier). Each agent has a tightly scoped role, a model appropriate to its task, and tool restrictions that match its responsibilities.
+
+## The Fleet
+
+<CardGroup cols={2}>
+  <Card title="reviewer" icon="eye" color="#3b82f6">
+    **Model:** Sonnet · **Turns:** 20 · **Tools:** Read, Bash, Glob, Grep (read-only)
+
+    Reviews code changes across 4 dimensions: security, performance, correctness, maintainability. Read-only by design — it can't modify your code, only analyze it.
+  </Card>
+  <Card title="builder" icon="hammer" color="#22c55e">
+    **Model:** Sonnet · **Turns:** 50 · **Tools:** Read, Write, Edit, Bash, Glob, Grep, WebSearch
+
+    Implements features, fixes bugs, creates projects. Follows TDD when applicable. Highest turn budget (50) for multi-phase builds.
+  </Card>
+  <Card title="researcher" icon="magnifying-glass" color="#a855f7">
+    **Model:** Sonnet · **Turns:** 30 · **Tools:** Read, Bash, Glob, Grep, WebSearch, WebFetch
+
+    Deep research — competitive analysis, market research, code audits, literature review. Read + web access, no write scope.
+  </Card>
+  <Card title="debugger" icon="bug" color="#ef4444">
+    **Model:** Opus · **Turns:** 40 · **Tools:** Read, Write, Edit, Bash, Glob, Grep
+
+    Systematic root-cause debugging. Uses Opus for superior reasoning chains. Iron Law: **no fixes without root cause**.
+  </Card>
+  <Card title="fleet-worker" icon="users" color="#06b6d4">
+    **Model:** Sonnet · **Turns:** 30 · **Tools:** Read, Write, Edit, Bash, Glob, Grep
+
+    Parallel worker for fleet operations. Spawned by `/ccc:fleet` for batch tasks, migrations, multi-file sweeps.
+  </Card>
+</CardGroup>
+
+## How delegation works
+
+Skills delegate to agents automatically when the task exceeds their scope:
+
+| Skill | Delegates to | When |
+|-------|-------------|------|
+| `/ccc:code-review` | `reviewer` | Diff > 500 lines or 4-dimension scored review requested |
+| `/ccc:build` | `builder` | After Spec Flow approval |
+| `/ccc:research` | `researcher` | Multi-source synthesis tasks |
+| `/ccc:night-mode` | `builder` | Autonomous overnight build loop |
+| `/ccc:fleet` | `fleet-worker` | Each parallel task spawn |
+
+<Tip>
+  Agents inherit the current CCC tier. Pro users get all 5 agents; Free users can use hub skills but agents are Pro-gated.
+</Tip>
+
+## Customizing agents
+
+You can tune agent behavior via `~/.claude/commander/config.json`:
+
+```json
+{
+  "agents": {
+    "debugger": {
+      "maxTurns": 60,
+      "fallbackModel": "sonnet"
+    }
+  }
+}
+```
+
+See the [free vs pro](/plugin/free-vs-pro) page for tier details.

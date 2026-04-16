@@ -1,84 +1,117 @@
 ---
-title: "CC Commander"
-description: "455 skills, 98% context savings, 11 domains, 17 vendor packages. One install. An AI project manager that thinks before it acts."
+title: "CCC — Claude Code Commander"
+description: "456+ skills, 15 plugin skills, 5 agents, 8 MCP integrations, 11 domains. One install. Desktop plugin + CLI."
 ---
 
-<img src="/assets/ccc-hero.svg" alt="CC Commander" />
+<img src="/assets/ccc-hero.svg" alt="CCC — Claude Code Commander" />
+
+<Warning>
+  **v3.0.0 is live — Desktop plugin is now the primary product.**
+  Install in one command: `/plugin marketplace add KevinZai/commander` then `/plugin install ccc`.
+  [Free tier](#free-vs-pro) includes 15 skills. [Pro tier](https://cc-commander.com/pricing) ($19/mo) unlocks agents, hooks, and MCP integrations.
+  Learn more at [cc-commander.com](https://cc-commander.com).
+</Warning>
 
 > **Every Claude Code tool. One install. An AI brain that learns.**
 
-CC Commander is not a skill pack. It's an AI project manager that scores complexity, reads your stack, and gets smarter every session. Built by distilling 200+ community sources into one install.
+CCC (Claude Code Commander) is not a skill pack. It's an AI project manager that scores complexity, reads your stack, and gets smarter every session. Built by distilling 200+ community sources into one install.
 
-```bash
-npm install -g cc-commander
-```
+## v3.0.0 — Desktop Plugin
 
-```bash
-ccc
-```
+<CardGroup cols={2}>
+  <Card title="15 Plugin Skills" icon="wand-magic-sparkles" href="/plugin/skills">
+    commander, session, build, research, content, linear-board, standup, code-review, deploy-check, fleet, night-mode, infra, settings, domains, knowledge
+  </Card>
+  <Card title="5 Specialized Agents" icon="robot" href="/plugin/agents">
+    reviewer, builder, researcher, debugger, fleet-worker — each tuned for a specific task type with the right model and tool access.
+  </Card>
+  <Card title="6 Lifecycle Hooks" icon="bolt" href="/plugin/hooks">
+    SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification — with Free/Pro gating.
+  </Card>
+  <Card title="8 MCP Integrations" icon="plug" href="/plugin/mcp-integrations">
+    Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Context7, Google Drive — pre-configured and ready to connect.
+  </Card>
+</CardGroup>
 
-Arrow keys to navigate. Enter to select. That's it.
+<Steps>
+  <Step title="Install the plugin">
+    ```
+    /plugin marketplace add KevinZai/commander
+    /plugin install ccc
+    ```
+  </Step>
+  <Step title="Open the command center">
+    ```
+    /ccc
+    ```
+  </Step>
+  <Step title="Pick a skill or let CCC recommend one">
+    Arrow keys to navigate. Enter to select.
+  </Step>
+</Steps>
 
 ## What You Get
 
 <CardGroup cols={2}>
-  <Card title="455+ Skills" icon="wand-magic-sparkles">
-    Deduplicated from 1,500+ vendor skills across 17 packages. Install only what you need — essential tier loads in seconds.
+  <Card title="456+ Skills" icon="wand-magic-sparkles">
+    Deduplicated from 1,500+ vendor skills across 19 packages. Install only what you need — essential tier loads in seconds.
   </Card>
   <Card title="98% Context Savings" icon="bolt">
     context-mode sandboxes tool output to SQLite + FTS5. 315KB grep result becomes a 3KB relevant snippet. Measured, not estimated.
   </Card>
   <Card title="11 CCC Domains" icon="grid">
-    Load one skill, get an entire specialty. ccc-marketing loads 46 skills. ccc-design loads 39. ccc-saas loads 20.
+    Load one skill, get an entire specialty. ccc-marketing loads 46 skills. ccc-design loads 39. ccc-saas loads 21.
   </Card>
   <Card title="Intelligence Layer" icon="brain">
     Complexity scoring (0-100), stack detection, knowledge compounding. Every session informs the next one.
   </Card>
 </CardGroup>
 
+## Free vs Pro
+
+| Tier | Price | What's Included |
+|------|-------|----------------|
+| **Free** | $0 | 15 plugin skills, SessionStart + Stop hooks, CLI access |
+| **Pro** | $19/mo | 5 agents, 8 MCP integrations, 4 advanced hooks, Pro skills |
+| **Team** | $99/mo | Everything in Pro + team fleet management, shared knowledge base |
+
+[See full comparison →](/plugin/free-vs-pro)
+
 ## Key Stats
 
 | Metric | Value |
 |--------|-------|
-| Skills | 455+ (deduplicated) |
+| Plugin skills | 15 (v3.0.0) |
+| Total skills | 456+ (deduplicated) |
+| Agents | 5 specialized |
+| Hooks | 6 lifecycle |
+| MCP integrations | 8 pre-configured |
 | CCC Domains | 11 specialty routers |
-| Vendor packages | 17 (auto-updated weekly) |
-| Commands | 80+ slash commands |
-| Hooks | 28 lifecycle hooks |
+| Vendor packages | 19 (auto-updated weekly) |
+| Commands | 83 slash commands |
 | Themes | 10 (Cyberpunk, Matrix, Ocean, Aurora, and more) |
 | Context savings | 98% (context-mode) |
-| Tests | 107 passing |
-
-## How It Works
-
-```
-You type:  ccc
-You get:   A guided AI project manager with 455+ skills,
-           17 vendor packages, real learning, and zero setup.
-```
-
-CCC wraps every major Claude Code tool into one install — with a smart orchestrator, guided menus, and an Intelligence Layer that auto-adjusts every dispatch based on your project.
-
-<img src="/assets/ccc-flow.svg" alt="How CCC Works" />
 
 ## Install Options
 
 <CodeGroup>
+```bash Desktop Plugin (Recommended)
+/plugin marketplace add KevinZai/commander
+/plugin install ccc
+```
+
 ```bash npm (Full CLI)
 npm install -g cc-commander
 ```
 
 ```bash curl (Slash Commands Only)
-curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
-```
-
-```bash Claude Desktop (Cowork Plugin)
-/plugin marketplace add KevinZai/cc-commander
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
 ```
 </CodeGroup>
 
 ## Community
 
-- **GitHub:** [KevinZai/cc-commander](https://github.com/KevinZai/cc-commander)
+- **Website:** [cc-commander.com](https://cc-commander.com)
+- **GitHub:** [KevinZai/commander](https://github.com/KevinZai/commander)
 - **Author:** [Kevin Z](https://kevinz.ai) · [@kzic](https://x.com/kzic)
 - **Sources:** Built from 200+ articles, guides, and community contributions

@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "CC Commander",
+  "name": "CCC",
   "colors": {
     "primary": "#ff0080",
     "light": "#00ffff",
@@ -19,6 +19,17 @@
               "introduction",
               "quickstart",
               "why-ccc"
+            ]
+          },
+          {
+            "group": "Desktop Plugin (v3.0)",
+            "pages": [
+              "plugin/install",
+              "plugin/skills",
+              "plugin/agents",
+              "plugin/hooks",
+              "plugin/mcp-integrations",
+              "plugin/free-vs-pro"
             ]
           },
           {
@@ -62,6 +73,11 @@
     "global": {
       "anchors": [
         {
+          "anchor": "Marketing Site",
+          "href": "https://cc-commander.com",
+          "icon": "globe"
+        },
+        {
           "anchor": "GitHub",
           "href": "https://github.com/KevinZai/commander",
           "icon": "github"
@@ -81,6 +97,10 @@
   "navbar": {
     "links": [
       {
+        "label": "Home",
+        "href": "https://cc-commander.com"
+      },
+      {
         "label": "GitHub",
         "href": "https://github.com/KevinZai/commander"
       }
@@ -88,7 +108,7 @@
     "primary": {
       "type": "button",
       "label": "Install",
-      "href": "https://github.com/KevinZai/commander#quick-start"
+      "href": "https://cc-commander.com/#install"
     }
   },
   "footer": {
@@ -99,7 +119,7 @@
   },
   "integrations": {
     "plausible": {
-      "domain": "docs.cc-commander.dev"
+      "domain": "docs.cc-commander.com"
     }
   }
 }

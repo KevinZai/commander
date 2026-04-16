@@ -6,16 +6,38 @@ CCC is an AI project manager plugin for Claude Desktop that orchestrates your en
 
 ## Installation
 
-From the marketplace:
+### Installation Paths
+
+Three ways to install CCC, depending on how you want to use it:
+
+**1. Desktop plugin marketplace (recommended)**
+
+The full plugin experience — 15 skills, 5 agents, 6 hooks, 8 pre-wired MCPs, free/pro tier gating.
 
 ```bash
 claude plugins add ccc
+# or from GitHub directly:
+claude plugins add KevinZai/commander
 ```
 
-From GitHub:
+**2. Cherry-pick individual skills (skills CLI compatible)**
+
+Install individual CCC skills using the `npx skills@latest` CLI — compatible with Matt Pocock's skills ecosystem (15K stars) and the skillsmp.com community marketplace.
 
 ```bash
-claude plugins add KevinZai/commander
+npx skills@latest add KevinZai/commander/skills/ccc-design
+npx skills@latest add KevinZai/commander/skills/ccc-marketing
+npx skills@latest add KevinZai/commander/skills/night-mode
+```
+
+Use this when you want one specific skill without the full plugin, or when mixing CCC skills with skills from `anthropics/skills`, `mattpocock/skills`, or `skillsmp.com`.
+
+**3. Full CLI install**
+
+Installs the CCC CLI (`ccc` command), all 456+ skills, hooks, commands, and templates into `~/.claude/`.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
 ```
 
 ## Skills

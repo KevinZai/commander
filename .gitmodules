@@ -55,3 +55,6 @@
 [submodule "vendor/ui-ux-pro-max-skill"]
 	path = vendor/ui-ux-pro-max-skill
 	url = https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git
+[submodule "vendor/mattpocock-skills"]
+	path = vendor/mattpocock-skills
+	url = https://github.com/mattpocock/skills

@@ -1,0 +1,67 @@
+---
+title: "Lifecycle Hooks"
+description: "6 hooks that load context, capture knowledge, track cost, and save sessions."
+---
+
+CCC registers **6 lifecycle hooks** that fire automatically around your Claude Code sessions. Two are **Free tier**, four are **Pro tier** (no-op on Free).
+
+All hooks use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and fail gracefully — if a hook errors, the session continues.
+
+## Hook Registry
+
+| Event | Script | Tier | Purpose |
+|-------|--------|------|---------|
+| `SessionStart` | `session-start.js` | **Free** | Load active session, count knowledge entries, check license, output status line |
+| `UserPromptSubmit` | `intent-classifier.js` | Pro | Match prompt against 9 skill trigger patterns → suggest the right `/ccc:*` skill |
+| `PreToolUse` | `cost-tracker.js` | Pro | Increment tool call counter, emit warning at ~$7, alert at ~$10 |
+| `PostToolUse` | `knowledge-capture.js` | Pro | On `Write\|Edit`, append file path to `auto-captures.jsonl` (silent) |
+| `Stop` | `session-save.js` | **Free** | Write dated session summary to `~/.claude/commander/sessions/YYYY-MM-DD-{hash}.json` |
+| `Notification` | `fleet-notify.js` | Pro | Log fleet agent completion to `notifications.jsonl` |
+
+## State layout
+
+All hook state lives in `~/.claude/commander/` (CCC's own namespace — never touches other `.claude/` contents):
+
+```
+~/.claude/commander/
+├── sessions/
+│   ├── active-session.json   # current session metadata (created on SessionStart)
+│   ├── active-cost.json      # incremented on each PreToolUse (Pro)
+│   └── YYYY-MM-DD-{hash}.json  # archived on Stop
+├── knowledge/
+│   ├── auto-captures.jsonl   # tail of Write/Edit events (Pro)
+│   └── {timestamp}.json      # manual lessons via /ccc:knowledge
+├── fleet/
+│   └── notifications.jsonl   # Pro notifications log
+├── license.json              # {key, tier, expires} — offline-verified
+└── config.json               # user settings (theme, name, etc.)
+```
+
+<Note>
+  **Privacy:** Hooks never send data off your machine. License verification is **offline-only** — HMAC signature checked against `LICENSE_SIGNING_SECRET` embedded in the plugin.
+</Note>
+
+## Free vs Pro hook behavior
+
+On Free tier, Pro hooks short-circuit immediately with `{"continue": true, "suppressOutput": true}` — so they add zero overhead. Upgrade unlocks:
+
+- Intent suggestions on every prompt
+- Approximate cost tracking per session
+- Automatic knowledge capture of file touches
+- Fleet agent completion notifications
+
+See [free vs pro](/plugin/free-vs-pro) for the full tier comparison.
+
+## Disabling individual hooks
+
+To disable a single hook without uninstalling the plugin, add to `~/.claude/commander/config.json`:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": false
+  }
+}
+```
+
+The wrapper checks this flag before running each hook's logic.

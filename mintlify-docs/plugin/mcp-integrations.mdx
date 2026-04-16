@@ -1,0 +1,107 @@
+---
+title: "MCP Integrations"
+description: "8 pre-configured MCP servers. Less than 5% of Claude users have ONE. CCC ships with 8."
+---
+
+CCC ships `.mcp.json` with **8 pre-configured MCP servers** so Claude can reach out of the chat window and into the tools where your work actually lives.
+
+## Pre-configured servers
+
+<CardGroup cols={2}>
+  <Card title="Linear" icon="list-check">
+    `~~project tracker` — HTTP
+
+    `https://mcp.linear.app/mcp`
+
+    Read issues, create tickets, update status, comment.
+  </Card>
+  <Card title="GitHub" icon="github">
+    `~~source control` — HTTP
+
+    `https://api.github.com/mcp`
+
+    Browse repos, read PRs, search issues, post comments.
+  </Card>
+  <Card title="Slack" icon="slack">
+    `~~chat` — HTTP
+
+    `https://mcp.slack.com/mcp`
+
+    Search messages, post updates, draft channel posts.
+  </Card>
+  <Card title="Gmail" icon="envelope">
+    `~~email` — HTTP
+
+    `https://gmail.mcp.claude.com/mcp`
+
+    Read threads, draft replies, search inbox.
+  </Card>
+  <Card title="Google Calendar" icon="calendar">
+    `~~calendar` — HTTP
+
+    `https://gcal.mcp.claude.com/mcp`
+
+    List events, suggest times, create meetings.
+  </Card>
+  <Card title="Google Drive" icon="folder-open">
+    `~~files` — HTTP
+
+    `https://gdrive.mcp.claude.com/mcp`
+
+    Search docs, read sheets, save outputs.
+  </Card>
+  <Card title="Tavily" icon="magnifying-glass">
+    `~~web search` — stdio
+
+    `npx -y tavily-mcp` (needs `TAVILY_API_KEY`)
+
+    Real-time web search. Not blue links — AI-ready structured data.
+  </Card>
+  <Card title="Context7" icon="book">
+    `~~library docs` — stdio
+
+    `npx -y @upstash/context7-mcp`
+
+    Live, current docs for Next.js, React, Supabase, and thousands more. No hallucinated APIs.
+  </Card>
+</CardGroup>
+
+## The `~~category` placeholder pattern
+
+CCC skills reference tools **generically** using `~~category` placeholders. Each skill is tool-agnostic — "post to ~~chat" resolves to Slack if you have Slack connected, Teams if you have Teams, or falls back to manual instructions if nothing is connected.
+
+See [CONNECTORS.md](https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/CONNECTORS.md) for the full category map.
+
+## Tavily setup
+
+Tavily is the only pre-configured server that needs an API key:
+
+<Steps>
+  <Step title="Get a key">
+    Sign up free at [tavily.com](https://tavily.com). Free tier: 1,000 searches/month.
+  </Step>
+  <Step title="Set the env var">
+    ```bash
+    export TAVILY_API_KEY=tvly-xxx
+    ```
+    Add to `~/.zshrc` or your shell config so it persists.
+  </Step>
+  <Step title="Verify">
+    Start a new Claude Code session and try `/ccc:research tell me about the latest Claude Code release`. Tavily will fetch live results.
+  </Step>
+</Steps>
+
+## Standalone + supercharged
+
+Every CCC skill works **standalone** (no MCPs required) and gets **supercharged** when connectors are present. Example: `/ccc:standup` works with just git history, but becomes dramatically better with Linear + Slack connected.
+
+## Adding your own MCP servers
+
+You can add more MCP servers at the user level (`~/.claude/settings.json`) without modifying the plugin. CCC automatically detects and uses any connected server matching its `~~category` placeholders.
+
+Popular additions:
+- **Notion** — `~~knowledge base`
+- **Typefully** — `~~social media`
+- **Raindrop** — `~~bookmarks`
+- **PagerDuty** — `~~incident management`
+- **Datadog** — `~~monitoring`

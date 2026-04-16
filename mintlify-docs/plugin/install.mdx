@@ -1,0 +1,100 @@
+---
+title: "Plugin Installation"
+description: "Install CCC as a Claude Code Desktop plugin in two commands."
+---
+
+CCC v3.0.0 ships as a first-class Claude Code plugin. No npm install required — the plugin marketplace handles everything.
+
+## Install
+
+<Steps>
+  <Step title="Add the CCC marketplace">
+    Run this inside any Claude Code session:
+    ```
+    /plugin marketplace add KevinZai/commander
+    ```
+    This registers the CCC marketplace so Claude Code can find the plugin.
+  </Step>
+  <Step title="Install the plugin">
+    ```
+    /plugin install ccc
+    ```
+    Claude Code downloads and activates the plugin. This takes a few seconds.
+  </Step>
+  <Step title="Verify the install">
+    ```
+    /ccc
+    ```
+    The CCC command center opens with the full skill menu. If you see the menu, you're ready.
+  </Step>
+</Steps>
+
+## Verify
+
+After install, run:
+
+```
+/ccc --status
+```
+
+Expected output:
+```
+CCC v3.0.0 — Plugin active
+Skills: 15 loaded (Free tier)
+Hooks: 2 active (SessionStart, Stop)
+MCP: not connected (Pro feature)
+→ Upgrade at cc-commander.com/pricing
+```
+
+## First Commands
+
+<CardGroup cols={2}>
+  <Card title="/ccc" icon="terminal">
+    Open the main command center. Arrow keys + Enter to navigate.
+  </Card>
+  <Card title="/ccc build" icon="hammer">
+    Start a guided build wizard — website, API, CLI, or custom.
+  </Card>
+  <Card title="/ccc research" icon="magnifying-glass">
+    Launch the research agent (Pro) or skill (Free) for codebase + web analysis.
+  </Card>
+  <Card title="/ccc settings" icon="gear">
+    Configure your name, skill tier, cost limits, theme, and Linear integration.
+  </Card>
+</CardGroup>
+
+## Upgrade to Pro
+
+Pro unlocks 5 agents, 8 MCP integrations, and 4 advanced hooks.
+
+```
+/ccc settings → Subscription → Upgrade to Pro
+```
+
+Or visit [cc-commander.com/pricing](https://cc-commander.com/pricing) directly.
+
+## Uninstall
+
+```
+/plugin uninstall ccc
+```
+
+This removes the plugin. Your Claude Code settings and CLAUDE.md files are not affected.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Plugin not found in marketplace">
+    Make sure you ran `/plugin marketplace add KevinZai/commander` first. The marketplace must be registered before `/plugin install ccc` will work.
+  </Accordion>
+  <Accordion title="/ccc command not recognized">
+    Try restarting your Claude Code session after install. The plugin registers commands at session start.
+  </Accordion>
+  <Accordion title="Skills not loading">
+    Run `/ccc --status` to check the plugin state. If skills show 0, run `/plugin reinstall ccc`.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+More info at [cc-commander.com](https://cc-commander.com).

@@ -2524,6 +2524,58 @@ One hour of active use can exhaust a Pro daily allocation.
 
 ---
 
+## Chapter: The Wider Claude Skill Ecosystem
+
+CCC is the curated, guided layer over a 67-skill (and growing) Claude Code landscape.
+
+The polydao "Top 67 Claude Skills" thread mapped the public skill ecosystem as of early 2026. It surfaced four key repositories every power user should know. CCC knows about all of them — and deliberately positions above them.
+
+### The Four Repositories
+
+| Repo | Stars | What It Is |
+|------|-------|-----------|
+| `anthropics/skills` | Official | Anthropic-maintained skills. Theme Factory, Frontend Design, Spec Writer. Production-grade. |
+| `mattpocock/skills` | 15K | Matt Pocock's collection. TypeScript-first, developer-focused. Grill Me and Ubiquitous Language are breakout hits. |
+| `skillsmp.com` | 66K+ community | The community marketplace. Breadth over depth. Great for discovering niche workflows. |
+| `ComposioHQ/awesome-claude-skills` | — | Curated awesome-list of skills across all repos. |
+
+### Alternate Install Format
+
+The skills CLI (`npx skills@latest`) is a popular alternative install path:
+
+```bash
+npx skills@latest add anthropics/skills/skills/frontend-design
+npx skills@latest add mattpocock/skills/skills/grill-me
+npx skills@latest add KevinZai/commander/skills/ccc-design
+```
+
+CCC skills are fully compatible with this format. Cherry-pick individual skills or install the full set.
+
+### Notable Skills Worth Knowing (Outside CCC)
+
+| Skill | Repo | What It Does |
+|-------|------|-------------|
+| **Grill Me** | mattpocock/skills | Relentless clarifying questions before any task. Forces spec clarity. |
+| **Ubiquitous Language** | mattpocock/skills | DDD glossary extractor — pulls domain terms and definitions from your codebase. |
+| **GitHub Triage** | community | Issue backlog processing — categorize, prioritize, close stale, create epics. |
+| **PRD to Plan to Issues** | community | 3-step pipeline: Product Requirements Doc → implementation plan → Linear/GitHub issues. |
+| **Theme Factory** | anthropics/skills | Design system token generator — produces cohesive color/type/spacing themes. |
+| **Frontend Design** | anthropics/skills | Opinionated UI scaffolding with accessibility and responsive patterns baked in. |
+
+### Why CCC on Top of This Ecosystem
+
+CCC does not replace these skills. It organizes and orchestrates them.
+
+- **Curation:** 456+ skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
+- **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
+- **Pre-wired MCPs:** 8 MCP servers are configured out of the box. Skills that need web search, GitHub, Linear, or docs get them without manual setup.
+- **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (39 skills) behaves like a single expert, not 39 separate prompts.
+- **Session memory:** The knowledge-capture hook learns from every session. Community skills are stateless. CCC accumulates.
+
+The community ecosystem provides the raw material. CCC provides the operating system.
+
+---
+
 ## About the Author
 
 **Kevin Zicherman** is the CEO of [MyWiFi Networks](https://mywifi.io), a WiFi marketing platform used by thousands of venues worldwide. He built this kit by scanning 200+ Claude Code articles, plugins, and community resources — testing everything and keeping what worked. Not a researcher. Not a pundit. An operator who ships.

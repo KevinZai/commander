@@ -1,15 +1,48 @@
 ---
 title: "Quickstart"
-description: "Three install paths. Pick the one that matches how you use Claude."
+description: "Install CCC in under 60 seconds. Desktop plugin is the recommended path for v3.0.0."
 ---
 
-## Pick Your Path
+## Desktop Plugin (Recommended)
 
-One question: **How are you using Claude?**
+The fastest path to CCC v3.0.0. Two commands inside any Claude Code session:
+
+<Steps>
+  <Step title="Add to marketplace">
+    ```
+    /plugin marketplace add KevinZai/commander
+    ```
+  </Step>
+  <Step title="Install the plugin">
+    ```
+    /plugin install ccc
+    ```
+  </Step>
+  <Step title="Open the command center">
+    ```
+    /ccc
+    ```
+    Arrow keys to navigate. Enter to select. The full menu appears with skill recommendations based on your current project.
+  </Step>
+</Steps>
+
+**What you get (Free tier):** 15 plugin skills, SessionStart + Stop hooks, full CLI access.
+
+**Upgrade to Pro ($19/mo):** 5 agents, 8 MCP integrations, 4 advanced hooks. [See cc-commander.com/pricing](https://cc-commander.com/pricing)
+
+<Card title="Plugin docs" icon="puzzle-piece" href="/plugin/install">
+  Full plugin installation guide — verification, first commands, and troubleshooting.
+</Card>
+
+---
+
+## Advanced / Legacy Install Paths
+
+These paths are for developers who want full CLI control or prefer staying inside the terminal.
 
 <Tabs>
-  <Tab title="Path A: CLI (Recommended)">
-    You use `claude` in your terminal. This is the most common way.
+  <Tab title="CLI (npm)">
+    You use `claude` in your terminal and want the full interactive CLI binary.
 
     ```bash
     npm install -g cc-commander
@@ -21,16 +54,16 @@ One question: **How are you using Claude?**
     ccc
     ```
 
-    **What you get:** Full CLI with tmux split mode, daemon, theme switching, cockpit dashboard, and all 455+ skills.
+    **What you get:** Full CLI with tmux split mode, daemon, theme switching, cockpit dashboard, and all 456+ skills.
 
     **Best for:** Developers who live in the terminal.
   </Tab>
 
-  <Tab title="Path B: Slash Commands Only">
+  <Tab title="Slash Commands (curl)">
     You don't want a separate CLI binary. Just skills + commands inside Claude Code sessions.
 
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/KevinZai/cc-commander/main/install-remote.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
     ```
 
     Then in any Claude Code session:
@@ -41,59 +74,23 @@ One question: **How are you using Claude?**
 
     Full interactive menu appears. Same features, no extra binary.
 
-    **What you get:** All 455+ skills and commands accessible via `/ccc` prefix.
+    **What you get:** All 456+ skills and commands accessible via `/ccc` prefix.
 
     **Best for:** Developers who prefer staying inside Claude Code.
-  </Tab>
-
-  <Tab title="Path C: Claude Desktop">
-    You use Claude Desktop and want CC Commander as a Cowork plugin.
-
-    ```
-    /plugin marketplace add KevinZai/cc-commander
-    ```
-
-    Say "start commander" or "what should I work on" to begin.
-
-    **What you get:** 7 Cowork skills — project management, infrastructure, knowledge base, and night mode.
-
-    **Best for:** Claude Desktop users who want guided AI workflows.
   </Tab>
 </Tabs>
 
 ## Your First 60 Seconds
 
 ```
-1. ccc → Main menu (14 options)
-2. Pick "Build something new" → Choose project type
-3. Answer 3 multiple-choice questions → CCC generates a plan
-4. CCC dispatches Claude with the right model, budget, and skills
-5. Session ends → CCC extracts lessons → gets smarter next time
+1. /plugin install ccc   → Plugin installs
+2. /ccc                  → Main menu (15 skills)
+3. Pick a skill          → CCC loads the right context
+4. Session ends          → CCC auto-saves lessons
+5. Next session          → CCC is smarter about your project
 ```
 
 No YAML. No API keys. No configuration.
-
-## Skill Management
-
-After install, manage your skill tiers with the built-in browser:
-
-```bash
-ccc --skills
-```
-
-```
-  Skill Management
-  ─────────────────────────────────
-  Installed: 37 essential skills
-  Available: 455 total
-
-  ❯ list         → show installed skills
-    install      → add a skill by name
-    remove       → remove a skill
-    tier         → switch tier (essential/recommended/full)
-    search       → find skills by keyword
-    browse       → browse all 455+ skills
-```
 
 ## Verify Your Install
 
@@ -112,16 +109,16 @@ Health check JSON — shows gateway, skill count, session state.
 ## What's Next
 
 <CardGroup cols={2}>
-  <Card title="Why CCC?" href="/why-ccc" icon="question">
-    The top 10 differentiators vs. stock Claude Code.
+  <Card title="Plugin Skills" href="/plugin/skills" icon="wand-magic-sparkles">
+    All 15 plugin skills with Free/Pro tier breakdown.
   </Card>
-  <Card title="Token Optimization" href="/features/token-optimization" icon="bolt">
-    How the 5-layer stack achieves 98% context savings.
+  <Card title="Agents" href="/plugin/agents" icon="robot">
+    5 specialized agents for review, build, research, debug, and fleet.
   </Card>
-  <Card title="CCC Domains" href="/domains/overview" icon="grid">
-    Load one skill, get an entire specialty domain.
+  <Card title="MCP Integrations" href="/plugin/mcp-integrations" icon="plug">
+    8 pre-configured MCP servers — Linear, GitHub, Slack, and more.
   </Card>
-  <Card title="Intelligence Layer" href="/features/intelligence-layer" icon="brain">
-    How CCC scores complexity and adapts to your project.
+  <Card title="Free vs Pro" href="/plugin/free-vs-pro" icon="tag">
+    Full feature comparison. Upgrade when you need it.
   </Card>
 </CardGroup>

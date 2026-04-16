@@ -1,0 +1,76 @@
+---
+title: "Free vs Pro"
+description: "What's in each tier and how to upgrade."
+---
+
+CCC has a generous **Free tier** and unlocks specialized agents, autonomous mode, and auto-capture in **Pro**.
+
+## At a glance
+
+|  | **Free** | **Pro** ★ | **Team** |
+|---|---|---|---|
+| **Price** | $0 | $19/mo or $190/yr | $99/mo · 5 seats |
+| **Skills** | 5 | 15 (all) | 15 + custom |
+| **Agents** | — | 5 specialized | 5 + fleet scaling |
+| **Lifecycle hooks** | 2 (SessionStart, Stop) | 6 (all) | 6 + telemetry |
+| **MCP servers** | 8 pre-configured | 8 pre-configured | 8 + private MCPs |
+| **Knowledge auto-capture** | Manual only | Automatic | Shared across team |
+| **Night mode** | — | ✓ | ✓ |
+| **Fleet orchestration** | — | ✓ | ✓ with scale caps |
+| **Priority support** | Community | Email | Slack Connect |
+| **Enterprise SSO** | — | — | ✓ |
+
+## Skills by tier
+
+**Free (5):** `/ccc:commander` · `/ccc:session` · `/ccc:settings` · `/ccc:knowledge` · `/ccc:domains`
+
+**Pro adds 10:** `/ccc:build` · `/ccc:linear-board` · `/ccc:research` · `/ccc:content` · `/ccc:standup` · `/ccc:code-review` · `/ccc:deploy-check` · `/ccc:fleet` · `/ccc:night-mode` · `/ccc:infra`
+
+## How tier gating works
+
+The `SessionStart` hook reads `~/.claude/commander/license.json` and sets `CCC_TIER` for the session. Pro-only features check this flag and degrade gracefully on Free:
+
+- Pro hooks no-op instantly with `{ continue: true, suppressOutput: true }`
+- Pro skills show an upgrade nudge instead of executing the gated flow
+- Agent delegation falls back to in-skill execution
+
+No network calls. License verification is **100% offline** via HMAC signature.
+
+## Upgrading
+
+<Steps>
+  <Step title="Subscribe">
+    Visit [cc-commander.com/pricing](https://cc-commander.com/pricing) and pick Pro or Team.
+  </Step>
+  <Step title="Check your email">
+    Your license key arrives at the email you used for checkout. Format: `ccc_live_<token>.<signature>`.
+  </Step>
+  <Step title="Activate">
+    ```bash
+    cat > ~/.claude/commander/license.json <<'EOF'
+    {
+      "key": "ccc_live_xxx.yyy",
+      "tier": "pro",
+      "email": "you@example.com",
+      "expires": "2027-04-16T00:00:00Z"
+    }
+    EOF
+    ```
+  </Step>
+  <Step title="Verify">
+    Start a new Claude Code session. The `SessionStart` hook prints:
+    ```
+    CCC 3.0 | Sessions: X | Knowledge: Y entries | Tier: pro
+    ```
+  </Step>
+</Steps>
+
+## Cancellation
+
+- Cancel anytime via the Stripe customer portal (link in your first receipt)
+- License remains active until end of billing period
+- After expiry, Pro features degrade to Free — no data loss
+
+## Refunds
+
+14-day money-back guarantee, no questions asked. Email [hello@cc-commander.com](mailto:hello@cc-commander.com).

@@ -1,0 +1,117 @@
+---
+title: "Plugin Skills"
+description: "15 skills shipped with the CCC plugin. Free tier includes 5 core skills. Pro unlocks 10 more."
+---
+
+CCC v3.0.0 ships 15 plugin skills. Each skill is a focused capability triggered by a `/ccc` command or a natural language phrase.
+
+## Free Tier Skills
+
+Available on all accounts at no cost.
+
+<CardGroup cols={2}>
+  <Card title="commander" icon="terminal">
+    **Trigger:** `/ccc` or "open commander"
+
+    The main command center. Guided menus, skill browser, project context loader. Entry point to everything else.
+  </Card>
+  <Card title="session" icon="clock">
+    **Trigger:** `/ccc session` or "save my session"
+
+    Session management — save context, resume prior sessions, view session history. Powered by `~/.claude/sessions/`.
+  </Card>
+  <Card title="settings" icon="gear">
+    **Trigger:** `/ccc settings` or "configure ccc"
+
+    Configure name, cost limits, theme (10 options), skill tier, Linear project, and Pro subscription.
+  </Card>
+  <Card title="knowledge" icon="book">
+    **Trigger:** `/ccc knowledge` or "what did I learn"
+
+    Knowledge compounding dashboard — view lessons extracted from past sessions, search by topic, export.
+  </Card>
+  <Card title="domains" icon="grid">
+    **Trigger:** `/ccc domains` or "load a domain"
+
+    Browse and load CCC's 11 specialty domains (ccc-marketing, ccc-design, ccc-devops, etc.). Each domain loads a full skill set.
+  </Card>
+</CardGroup>
+
+## Pro Tier Skills
+
+Requires Pro ($19/mo) or Team ($99/mo). [Upgrade at cc-commander.com/pricing](https://cc-commander.com/pricing)
+
+<CardGroup cols={2}>
+  <Card title="build" icon="hammer">
+    **Trigger:** `/ccc build` or "build something"
+
+    Guided build wizard — website, API, CLI, mobile, or custom. Generates spec, dispatches the builder agent, tracks progress.
+  </Card>
+  <Card title="linear-board" icon="layout-list">
+    **Trigger:** `/ccc linear` or "show my Linear board"
+
+    View open issues, pick one to build, create new issues. Connects to your Linear workspace via MCP.
+  </Card>
+  <Card title="research" icon="magnifying-glass">
+    **Trigger:** `/ccc research` or "research this codebase"
+
+    Dispatches the researcher agent — web search + codebase analysis. Returns structured findings.
+  </Card>
+  <Card title="content" icon="pen">
+    **Trigger:** `/ccc content` or "write content"
+
+    Content generation — blog posts, docs, changelogs, release notes. Uses ccc-marketing domain under the hood.
+  </Card>
+  <Card title="standup" icon="clipboard">
+    **Trigger:** `/ccc standup` or "generate my standup"
+
+    Reads git log + Linear activity + session history → generates a formatted standup update.
+  </Card>
+  <Card title="code-review" icon="code">
+    **Trigger:** `/ccc review` or "review my code"
+
+    Dispatches the reviewer agent on the current diff. Returns CRITICAL / HIGH / MEDIUM findings with fix suggestions.
+  </Card>
+  <Card title="deploy-check" icon="rocket">
+    **Trigger:** `/ccc deploy` or "pre-deploy check"
+
+    22-point pre-deployment gate — TypeScript errors, console.logs, secrets exposure, missing tests, missing env vars.
+  </Card>
+  <Card title="fleet" icon="server">
+    **Trigger:** `/ccc fleet` or "manage my fleet"
+
+    Parallel fleet management — launch multiple Claude instances, route tasks, monitor cost and progress.
+  </Card>
+  <Card title="night-mode" icon="moon">
+    **Trigger:** `/ccc night` or "start overnight build"
+
+    Autonomous overnight build mode — dispatches fleet-worker agents with YOLO permissions to run tasks while you sleep.
+  </Card>
+  <Card title="infra" icon="database">
+    **Trigger:** `/ccc infra` or "check my infra"
+
+    Infrastructure dashboard — PM2 services, Docker containers, port registry, cost report, health checks.
+  </Card>
+</CardGroup>
+
+## Skill Tiers at a Glance
+
+| Skill | Free | Pro |
+|-------|------|-----|
+| commander | Yes | Yes |
+| session | Yes | Yes |
+| settings | Yes | Yes |
+| knowledge | Yes | Yes |
+| domains | Yes | Yes |
+| build | — | Yes |
+| linear-board | — | Yes |
+| research | — | Yes |
+| content | — | Yes |
+| standup | — | Yes |
+| code-review | — | Yes |
+| deploy-check | — | Yes |
+| fleet | — | Yes |
+| night-mode | — | Yes |
+| infra | — | Yes |
+
+[See full Free vs Pro comparison →](/plugin/free-vs-pro)

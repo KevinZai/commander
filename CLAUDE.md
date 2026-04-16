@@ -219,6 +219,30 @@ ccc --status                  # Health check
 - Update checker at `commander/update-check.js` — 4h cache, silent on failure, fires on session start
 - Caveman mode (`caveman` skill) — strips markdown/emojis/prose for ~75% output token savings during iteration
 
+## Ecosystem Context
+
+CCC ships 15 focused `/ccc:*` skills as the curated front door, then routes into 450+ CCC ecosystem skills across 11 domains. It is a meta-layer over the broader Claude skill ecosystem — not a replacement for it.
+
+**External ecosystems CCC plays well with:**
+- `anthropics/skills` — official Anthropic skills (Frontend Design, Theme Factory, Spec Writer)
+- `mattpocock/skills` — 15K stars, TypeScript-first (Grill Me, Ubiquitous Language)
+- `skillsmp.com` — 66K+ community marketplace
+
+**Install format alternatives:**
+
+| Method | Command | When to Use |
+|--------|---------|------------|
+| Marketplace (recommended) | `/plugin install ccc` | Full plugin with all 15 skills + MCPs + hooks |
+| Full CLI | `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh \| bash` | CLI mode, non-plugin installs |
+| Cherry-pick | `npx skills@latest add KevinZai/commander/skills/<name>` | Individual skills via the skills CLI |
+
+**When Claude agents load this CLAUDE.md, they should know:**
+- CCC is a meta-layer over the Claude skill ecosystem — curation + guidance + memory, not raw skills
+- 15 `/ccc:*` skills are the curated front door; they route into 450+ deeper skills
+- `CONNECTORS.md` defines 13 tool-agnostic connector categories via `~~category` placeholders — skills are tool-agnostic
+- Free tier: 15 skills + SessionStart/Stop hooks. Pro tier: 5 agents + 5 MCP servers + 4 additional lifecycle hooks
+- Tier gating is enforced via `license.json` — free hooks are no-ops on capability checks, not absent
+
 ## UI Components
 Check `~/clawd/shared/refs/shadcn-ecosystem.md` before building custom. Key: tremor (charts), auto-form (Zod→forms), magicui (animations).
 - **Tech icons:** `developer-icons` (npm) — standard for all projects. Never custom SVGs for tech logos.
