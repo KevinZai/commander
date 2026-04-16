@@ -1,15 +1,15 @@
 {
-  "name": "cc-commander-marketplace",
+  "name": "ccc-marketplace",
   "owner": {
     "name": "Kevin Z",
     "url": "https://kevinz.ai"
   },
   "plugins": [
     {
-      "name": "cc-commander",
+      "name": "ccc",
       "source": "./commander/cowork-plugin",
-      "description": "CC Commander — 450+ skills. One command. Your AI work, managed by AI.",
-      "version": "2.0.1",
+      "description": "CC Commander — AI project manager with 450+ skills, interactive menus, deep integrations, specialized agents, and knowledge compounding.",
+      "version": "3.0.0",
       "author": {
         "name": "Kevin Z",
         "url": "https://kevinz.ai"

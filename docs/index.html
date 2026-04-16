@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CC Commander — 450+ Skills. One Command. Your AI Work, Managed by AI.</title>
-  <meta name="description" content="CC Commander — 456+ skills, 11 CCC domains, 83 commands, 28 hooks. The comprehensive guide and toolkit for Claude Code. By Kevin Z.">
+  <title>CCC — Claude Code Commander v3.0.0 · 456+ Skills. Now a Desktop Plugin.</title>
+  <meta name="description" content="CCC — Claude Code Commander v3.0.0. 456+ skills, 15 plugin skills, 5 agents, 6 hooks, 11 CCC domains. Desktop-first. Free &amp; Pro. By Kevin Z.">
   <meta name="author" content="Kevin Z">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="CC Commander — Your AI Work, Managed by AI">
-  <meta property="og:description" content="450+ skills. 11 CCC domains. One install. The comprehensive guide and toolkit for Claude Code.">
+  <meta property="og:title" content="CCC — Claude Code Commander v3.0.0 · Desktop Plugin">
+  <meta property="og:description" content="456+ skills. 15 plugin skills. 5 agents. Now a Desktop Plugin. Free &amp; Pro.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://kevinzai.github.io/cc-commander/">
   <meta property="og:image" content="https://kevinzai.github.io/cc-commander/assets/og-image.png">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="CC Commander — by Kevin Z">
-  <meta name="twitter:description" content="450+ skills. 11 CCC domains. One install. The comprehensive guide and toolkit for Claude Code.">
+  <meta name="twitter:title" content="CCC — Claude Code Commander v3.0.0">
+  <meta name="twitter:description" content="456+ skills. 15 plugin skills. 5 agents. Now a Desktop Plugin. Free &amp; Pro. By Kevin Z.">
   <meta name="twitter:image" content="https://kevinzai.github.io/cc-commander/assets/og-image.png">
 
   <link rel="canonical" href="https://kevinzai.github.io/cc-commander/">
@@ -28,14 +28,14 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "CC Commander",
+    "name": "CCC — Claude Code Commander",
     "alternateName": "CCC",
-    "description": "The comprehensive Claude Code configuration toolkit. 456 skills, 98% context savings, 5-layer token optimization. One install.",
+    "description": "Desktop-first Claude Code Commander. 456+ skills, 15 plugin skills, 5 agents, 6 hooks, 11 CCC domains. Free &amp; Pro. One plugin install.",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "macOS, Linux, Windows",
     "url": "https://KevinZai.github.io/cc-commander",
     "downloadUrl": "https://github.com/KevinZai/cc-commander",
-    "softwareVersion": "2.3.1",
+    "softwareVersion": "3.0.0",
     "license": "https://opensource.org/licenses/MIT",
     "author": {
       "@type": "Person",
@@ -63,13 +63,13 @@
   <!-- ================================================================== -->
   <nav class="nav" aria-label="Main navigation">
     <div class="container">
-      <a href="#" class="nav-logo">cc-commander <span>by Kevin Z</span></a>
+      <a href="#" class="nav-logo">CCC <span>by Kevin Z</span></a>
       <ul class="nav-links">
+        <li><a href="#plugin">Plugin</a></li>
         <li><a href="#method">Method</a></li>
         <li><a href="#init">Init</a></li>
         <li><a href="#CCC domains">CCC Domains</a></li>
         <li><a href="#bible">Methodology</a></li>
-        <li><a href="#architecture">Architecture</a></li>
         <li><a href="#install">Install</a></li>
       </ul>
     </div>
@@ -81,28 +81,32 @@
   <section class="hero" id="top">
     <div class="container">
       <div class="hero-content">
-        <span class="hero-badge">v2.3.1 &mdash; Open Source</span>
+        <span class="hero-badge">v3.0.0 &mdash; Desktop Plugin &mdash; Free &amp; Pro</span>
 
         <h1>
-          <span id="hero-typed" data-text="450+ Skills. 11 CCC Domains. One ./install.sh.">450+ Skills. 11 CCC Domains. One ./install.sh.</span><span id="hero-cursor" class="cursor-blink" style="display:none;">_</span>
+          <span id="hero-typed" data-text="456+ Skills. One Command. Now a Desktop Plugin.">456+ Skills. One Command. Now a Desktop Plugin.</span><span id="hero-cursor" class="cursor-blink" style="display:none;">_</span>
         </h1>
 
         <p class="hero-sub">
-          A non-technical CEO scanned every Claude Code article, plugin, and skill on the internet &mdash; and combined them into one kit.
+          A non-technical CEO scanned every Claude Code article, plugin, and skill on the internet &mdash; and combined them into one plugin. Desktop-first. Free &amp; Pro.
         </p>
 
         <div class="hero-cta">
-          <div class="terminal" data-copy="git clone https://github.com/KevinZai/cc-commander.git && cd cc-commander && ./install.sh" aria-label="Click to copy install commands">
+          <div class="terminal" data-copy="/plugin marketplace add KevinZai/commander&#10;/plugin install ccc" aria-label="Click to copy install commands">
             <div class="terminal-header">
               <span class="terminal-dot red"></span>
               <span class="terminal-dot yellow"></span>
               <span class="terminal-dot green"></span>
-              <span class="terminal-title">Terminal &mdash; click to copy</span>
+              <span class="terminal-title">Claude Desktop &mdash; click to copy</span>
             </div>
             <div class="terminal-body">
-              <div><span class="prompt">$ </span><span class="cmd">git clone https://github.com/KevinZai/cc-commander.git</span></div>
-              <div><span class="prompt">$ </span><span class="cmd">cd cc-commander</span></div>
-              <div><span class="prompt">$ </span><span class="cmd">./install.sh</span></div>
+              <div><span class="comment"># Install from the marketplace</span></div>
+              <div><span class="prompt">$ </span><span class="cmd">/plugin marketplace add KevinZai/commander</span></div>
+              <div><span class="prompt">$ </span><span class="cmd">/plugin install ccc</span></div>
+              <div>&nbsp;</div>
+              <div><span style="color: var(--primary);">&#10003; 15 plugin skills activated (/ccc:*)</span></div>
+              <div><span style="color: var(--primary);">&#10003; 5 agents ready</span></div>
+              <div><span style="color: var(--primary);">&#10003; 6 hooks wired</span></div>
               <span class="copy-toast">Copied!</span>
             </div>
           </div>
@@ -114,21 +118,76 @@
             <span class="stat-label">Skills</span>
           </div>
           <div class="stat">
-            <span class="stat-number" data-count="83">0</span>
-            <span class="stat-label">Commands</span>
+            <span class="stat-number" data-count="15">0</span>
+            <span class="stat-label">Plugin Skills</span>
           </div>
           <div class="stat">
-            <span class="stat-number" data-count="28">0</span>
+            <span class="stat-number" data-count="5">0</span>
+            <span class="stat-label">Agents</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" data-count="6">0</span>
             <span class="stat-label">Hooks</span>
           </div>
           <div class="stat">
-            <span class="stat-number" data-count="3">0</span>
-            <span class="stat-label">Templates</span>
+            <span class="stat-number" data-count="11">0</span>
+            <span class="stat-label">CCC Domains</span>
           </div>
-          <div class="stat">
-            <span class="stat-number" data-count="98" data-suffix="%">0</span>
-            <span class="stat-label">Context Savings</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- ================================================================== -->
+  <!-- Desktop Plugin                                                      -->
+  <!-- ================================================================== -->
+  <section id="plugin">
+    <div class="container">
+      <h2 class="section-title fade-in">Desktop Plugin</h2>
+      <p class="section-subtitle fade-in">CCC v3.0.0 is Desktop-first. Install once from the marketplace &mdash; 15 <code style="color: var(--primary); background: var(--bg-card); padding: 0.1em 0.4em; border-radius: 4px; font-family: var(--font-mono);">/ccc:*</code> skills appear instantly.</p>
+
+      <div class="build-cards fade-in">
+        <div class="build-card">
+          <div class="build-card-header">
+            <span class="build-card-type">15 Plugin Skills</span>
           </div>
+          <p>All CCC capabilities exposed as native Desktop skills with <code>/ccc:*</code> prefix. Build, review, debug, research &mdash; one command away.</p>
+        </div>
+
+        <div class="build-card">
+          <div class="build-card-header">
+            <span class="build-card-type">5 Specialized Agents</span>
+          </div>
+          <p>Dedicated agents for every job: reviewer, builder, researcher, debugger, and fleet-worker. Spawned automatically by the right skill.</p>
+        </div>
+
+        <div class="build-card">
+          <div class="build-card-header">
+            <span class="build-card-type">6 Lifecycle Hooks</span>
+          </div>
+          <p>Pre/post session hooks with free/pro gating. Auto-checkpoint, cost-alert, context-guard, confidence-gate, and more. Free tier gets 3; Pro gets all 6.</p>
+        </div>
+
+        <div class="build-card">
+          <div class="build-card-header">
+            <span class="build-card-type">5 MCP Servers</span>
+          </div>
+          <p>Linear, GitHub, Slack, Gmail, and Google Calendar wired in. Deep integrations across 10 connector categories &mdash; project tracker, source control, comms, and more.</p>
+        </div>
+      </div>
+
+      <div class="features-grid fade-in" style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        <div class="feature-card fade-in">
+          <span class="feature-icon">&#9889;</span>
+          <h3>Quick Mode vs Power Mode</h3>
+          <p>Quick Mode: type <code>/ccc:build</code> and ship. Power Mode: full spec-first pipeline with evals, TDD, agents, and verification gates. Choose per task.</p>
+        </div>
+        <div class="feature-card fade-in">
+          <span class="feature-icon">&#128274;</span>
+          <h3>Free &amp; Pro Tiers</h3>
+          <p>Free tier includes 15 plugin skills, 3 hooks, and core MCP integrations. Pro unlocks all 6 hooks, priority agents, advanced connectors, and the full fleet.</p>
         </div>
       </div>
     </div>
@@ -163,7 +222,7 @@
           <span class="beat-number">03</span>
           <span class="beat-icon" aria-hidden="true">&#9889;</span>
           <h3>Distilled Into One Install</h3>
-          <p>Merged the best into a single, opinionated kit. One command installs 450+ skills, configures hooks, sets up commands, and writes your CLAUDE.md.</p>
+          <p>Merged the best into a single, opinionated plugin. One install activates 456+ skills, 15 plugin skills, 5 agents, 6 hooks, and writes your CLAUDE.md.</p>
         </div>
       </div>
 
@@ -185,7 +244,7 @@
 
       <div class="quote-block fade-in">
         <p>"Context is like milk &mdash; fresh + condensed = best output."</p>
-        <cite>&mdash; Golden Rule #2, CC Commander</cite>
+        <cite>&mdash; Golden Rule #2, CCC</cite>
       </div>
     </div>
   </section>
@@ -450,7 +509,7 @@
   <!-- ================================================================== -->
   <section id="bible">
     <div class="container">
-      <h2 class="section-title fade-in">CC Commander</h2>
+      <h2 class="section-title fade-in">CCC Methodology</h2>
       <p class="section-subtitle fade-in">1,749 lines of distilled wisdom from 13 sources. Read once, reference forever.</p>
 
       <div class="bible-visual fade-in">
@@ -492,32 +551,42 @@
   <section id="architecture">
     <div class="container">
       <h2 class="section-title fade-in">How It All Connects</h2>
-      <p class="section-subtitle fade-in">One install script populates your entire <code style="color: var(--primary); background: var(--bg-card); padding: 0.1em 0.4em; border-radius: 4px; font-family: var(--font-mono);">~/.claude/</code> directory.</p>
+      <p class="section-subtitle fade-in">Install the plugin once &mdash; skills, agents, hooks, and MCP servers wire up automatically.</p>
 
       <div class="arch-diagram fade-in">
         <div class="arch-flow">
-          <div class="arch-node">./install.sh</div>
+          <div class="arch-node">/plugin install ccc</div>
           <span class="arch-arrow" aria-hidden="true">&#8594;</span>
-          <div class="arch-node">~/.claude/</div>
+          <div class="arch-node">Desktop + ~/.claude/</div>
           <span class="arch-arrow" aria-hidden="true">&#8594;</span>
           <div class="arch-node">Every Session</div>
         </div>
 
         <div class="arch-tree">
           <div class="arch-leaf">
-            <span class="arch-leaf-icon" aria-hidden="true">&#128220;</span>
-            <span class="arch-leaf-name">CLAUDE.md</span>
-            <span class="arch-leaf-desc">Global instructions loaded every session</span>
+            <span class="arch-leaf-icon" aria-hidden="true">&#128268;</span>
+            <span class="arch-leaf-name">Plugin Skills</span>
+            <span class="arch-leaf-desc">15 /ccc:* skills (build, review, debug, research, fleet...)</span>
           </div>
           <div class="arch-leaf">
-            <span class="arch-leaf-icon" aria-hidden="true">&#9881;</span>
-            <span class="arch-leaf-name">settings.json</span>
-            <span class="arch-leaf-desc">MCP servers, permissions, plugins</span>
+            <span class="arch-leaf-icon" aria-hidden="true">&#129302;</span>
+            <span class="arch-leaf-name">Agents</span>
+            <span class="arch-leaf-desc">5 specialized agents spawned automatically per task</span>
+          </div>
+          <div class="arch-leaf">
+            <span class="arch-leaf-icon" aria-hidden="true">&#128279;</span>
+            <span class="arch-leaf-name">Hooks</span>
+            <span class="arch-leaf-desc">6 lifecycle hooks — 3 free, 3 pro</span>
+          </div>
+          <div class="arch-leaf">
+            <span class="arch-leaf-icon" aria-hidden="true">&#128101;</span>
+            <span class="arch-leaf-name">MCP Servers</span>
+            <span class="arch-leaf-desc">Linear, GitHub, Slack, Gmail, Google Calendar</span>
           </div>
           <div class="arch-leaf">
             <span class="arch-leaf-icon" aria-hidden="true">&#9889;</span>
             <span class="arch-leaf-name">skills/</span>
-            <span class="arch-leaf-desc">456+ on-demand skill definitions</span>
+            <span class="arch-leaf-desc">456+ on-demand skill definitions across 11 CCC Domains</span>
           </div>
           <div class="arch-leaf">
             <span class="arch-leaf-icon" aria-hidden="true">&#128736;</span>
@@ -525,24 +594,14 @@
             <span class="arch-leaf-desc">83 slash commands (/plan, /tdd, /verify...)</span>
           </div>
           <div class="arch-leaf">
-            <span class="arch-leaf-icon" aria-hidden="true">&#128279;</span>
-            <span class="arch-leaf-name">hooks/</span>
-            <span class="arch-leaf-desc">28 lifecycle hooks (pre/post tool use)</span>
+            <span class="arch-leaf-icon" aria-hidden="true">&#128220;</span>
+            <span class="arch-leaf-name">CLAUDE.md</span>
+            <span class="arch-leaf-desc">Global instructions loaded every session</span>
           </div>
           <div class="arch-leaf">
             <span class="arch-leaf-icon" aria-hidden="true">&#128214;</span>
             <span class="arch-leaf-name">BIBLE.md</span>
             <span class="arch-leaf-desc">1,749-line guide &mdash; read once</span>
-          </div>
-          <div class="arch-leaf">
-            <span class="arch-leaf-icon" aria-hidden="true">&#128209;</span>
-            <span class="arch-leaf-name">CHEATSHEET.md</span>
-            <span class="arch-leaf-desc">Quick reference for daily use</span>
-          </div>
-          <div class="arch-leaf">
-            <span class="arch-leaf-icon" aria-hidden="true">&#128269;</span>
-            <span class="arch-leaf-name">SKILLS-INDEX.md</span>
-            <span class="arch-leaf-desc">Searchable skill discovery</span>
           </div>
         </div>
       </div>
@@ -556,44 +615,49 @@
   <!-- ================================================================== -->
   <section id="features">
     <div class="container">
-      <h2 class="section-title fade-in">What's New in v2.3.1</h2>
-      <p class="section-subtitle fade-in">The latest release brings Linear MCP integration and full rebrand.</p>
+      <h2 class="section-title fade-in">What's New in v3.0.0</h2>
+      <p class="section-subtitle fade-in">The Desktop Plugin transformation &mdash; CCC goes from CLI kit to first-class plugin with Free &amp; Pro tiers.</p>
 
       <div class="build-cards fade-in">
         <div class="build-card">
           <div class="build-card-header">
-            <span class="build-card-type">OpenClaw Native</span>
+            <span class="build-card-type">Desktop Plugin</span>
           </div>
-          <p>First-class OpenClaw integration. Bridge hooks, agent scaffolder, health checks, and self-healing workflows built in.</p>
+          <p>Install via <code>/plugin marketplace add KevinZai/commander</code>. 15 <code>/ccc:*</code> skills available instantly. No cloning, no shell scripts.</p>
         </div>
 
         <div class="build-card">
           <div class="build-card-header">
-            <span class="build-card-type">Theme System</span>
+            <span class="build-card-type">5 Specialized Agents</span>
           </div>
-          <p>Customizable color themes for terminal output. Swap between matrix-green, amber, indigo, or create your own via bible-config.json.</p>
+          <p>Reviewer, builder, researcher, debugger, and fleet-worker agents. Each optimized for its role and spawned automatically by CCC skills.</p>
         </div>
 
         <div class="build-card">
           <div class="build-card-header">
-            <span class="build-card-type">11 CCC Domains</span>
+            <span class="build-card-type">Deep Integrations</span>
           </div>
-          <p>Four new CCC domains added: ccc-research, ccc-data, ccc-mobile, and ccc-security. Each bundles 10-20 specialist sub-skills.</p>
+          <p>Linear, GitHub, Slack, Gmail, and Google Calendar via MCP. 10 connector categories covering project tracking, source control, comms, and calendar.</p>
         </div>
 
         <div class="build-card">
           <div class="build-card-header">
-            <span class="build-card-type">28 Hooks</span>
+            <span class="build-card-type">Free &amp; Pro Tiers</span>
           </div>
-          <p>Expanded hook suite with context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, and OpenClaw adapter.</p>
+          <p>Free forever: 15 plugin skills, 3 hooks, core integrations. Pro: all 6 hooks, priority agents, advanced connectors, and the full 456+ skill fleet.</p>
         </div>
       </div>
 
       <div class="features-grid fade-in" style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
         <div class="feature-card fade-in">
-          <span class="feature-icon">🔋</span>
-          <h3>98% Context Savings</h3>
-          <p>context-mode sandboxes all tool output into SQLite with FTS5 search. Your context window stays clean — only BM25-ranked relevant snippets enter the conversation. 315KB → 5.4KB, automatically.</p>
+          <span class="feature-icon">&#128267;</span>
+          <h3>456+ Skills Still Available</h3>
+          <p>CLI mode is still supported. All 456+ skills, 83 commands, and 11 CCC domains remain accessible via <code>./install.sh</code> for power users who prefer the terminal.</p>
+        </div>
+        <div class="feature-card fade-in">
+          <span class="feature-icon">&#128274;</span>
+          <h3>Free/Pro Hook Gating</h3>
+          <p>6 lifecycle hooks with tier gating. Free: context-guard, auto-checkpoint, cost-alert. Pro: confidence-gate, session-coach, OpenClaw adapter.</p>
         </div>
       </div>
     </div>
@@ -607,49 +671,62 @@
   <section id="install" class="install-section">
     <div class="container">
       <h2 class="section-title fade-in" style="text-align:center;">Get Started in 60 Seconds</h2>
-      <p class="section-subtitle fade-in" style="text-align:center; margin-left:auto; margin-right:auto;">Clone, install, launch. Works with any project.</p>
+      <p class="section-subtitle fade-in" style="text-align:center; margin-left:auto; margin-right:auto;">Two paths: Desktop Plugin (recommended) or CLI install. Both work.</p>
 
       <div class="install-terminal fade-in">
-        <div class="terminal" data-copy="git clone https://github.com/KevinZai/cc-commander.git&#10;cd cc-commander&#10;./install.sh" aria-label="Click to copy install commands">
+        <div class="terminal" data-copy="/plugin marketplace add KevinZai/commander&#10;/plugin install ccc" aria-label="Click to copy plugin install commands">
           <div class="terminal-header">
             <span class="terminal-dot red"></span>
             <span class="terminal-dot yellow"></span>
             <span class="terminal-dot green"></span>
-            <span class="terminal-title">Terminal &mdash; click to copy</span>
+            <span class="terminal-title">Claude Desktop &mdash; recommended &mdash; click to copy</span>
           </div>
           <div class="terminal-body">
-            <div><span class="comment"># Step 1: Clone the kit</span></div>
+            <div><span class="comment"># Step 1: Add to marketplace</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">/plugin marketplace add KevinZai/commander</span></div>
+            <div>&nbsp;</div>
+            <div><span class="comment"># Step 2: Install the plugin</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">/plugin install ccc</span></div>
+            <div>&nbsp;</div>
+            <div><span style="color: var(--primary);">&#10003; 15 plugin skills activated (/ccc:*)</span></div>
+            <div><span style="color: var(--primary);">&#10003; 5 agents wired</span></div>
+            <div><span style="color: var(--primary);">&#10003; 6 hooks active (3 free / 3 pro)</span></div>
+            <div><span style="color: var(--primary);">&#10003; Linear, GitHub, Slack, Gmail, Calendar connected</span></div>
+            <span class="copy-toast">Copied!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-terminal fade-in" style="margin-top: 1.5rem;">
+        <div class="terminal" data-copy="git clone https://github.com/KevinZai/cc-commander.git&#10;cd cc-commander&#10;./install.sh" aria-label="Click to copy CLI install commands">
+          <div class="terminal-header">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">Terminal &mdash; CLI / legacy install &mdash; click to copy</span>
+          </div>
+          <div class="terminal-body">
             <div><span class="prompt">$ </span><span class="cmd">git clone https://github.com/KevinZai/cc-commander.git</span></div>
-            <div>&nbsp;</div>
-            <div><span class="comment"># Step 2: Enter the directory</span></div>
-            <div><span class="prompt">$ </span><span class="cmd">cd cc-commander</span></div>
-            <div>&nbsp;</div>
-            <div><span class="comment"># Step 3: Run the installer</span></div>
-            <div><span class="prompt">$ </span><span class="cmd">./install.sh</span></div>
-            <div>&nbsp;</div>
-            <div><span style="color: var(--primary);">&#10003; 456+ skills installed</span></div>
-            <div><span style="color: var(--primary);">&#10003; 83 commands configured</span></div>
-            <div><span style="color: var(--primary);">&#10003; 28 hooks activated</span></div>
-            <div><span style="color: var(--primary);">&#10003; CLAUDE.md written</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">cd cc-commander &amp;&amp; ./install.sh</span></div>
             <span class="copy-toast">Copied!</span>
           </div>
         </div>
       </div>
 
       <div class="install-summary fade-in">
-        <h3>What You Get</h3>
+        <h3>What You Get (Plugin)</h3>
         <div class="install-grid">
-          <span class="install-item">456+ production-tested skills</span>
-          <span class="install-item">11 CCC Domains (bundled routers)</span>
+          <span class="install-item">15 /ccc:* plugin skills</span>
+          <span class="install-item">5 specialized agents</span>
+          <span class="install-item">6 lifecycle hooks (free/pro gated)</span>
+          <span class="install-item">5 MCP servers (Linear, GitHub, Slack, Gmail, Calendar)</span>
+          <span class="install-item">10 connector categories</span>
+          <span class="install-item">456+ skills across 11 CCC Domains</span>
           <span class="install-item">83 slash commands</span>
-          <span class="install-item">28 lifecycle hooks</span>
           <span class="install-item">3 starter templates (SaaS, API, Landing)</span>
-          <span class="install-item">7 MCP server configs</span>
           <span class="install-item">Global CLAUDE.md with best practices</span>
           <span class="install-item">BIBLE.md (1,749-line guide)</span>
-          <span class="install-item">CHEATSHEET.md (daily reference)</span>
           <span class="install-item">SKILLS-INDEX.md (searchable catalog)</span>
-          <span class="install-item">Backup before overwrite (safe updates)</span>
           <span class="install-item">Works with any existing project</span>
         </div>
       </div>
@@ -664,9 +741,15 @@
   <section id="ide">
     <div class="container">
       <div class="fade-in" style="text-align: center;">
-        <h2 class="section-title" style="text-align:center;">Works Everywhere Claude Code Runs</h2>
+        <h2 class="section-title" style="text-align:center;">Works Everywhere Claude Runs</h2>
 
         <div class="ide-bar">
+          <div class="ide-badge">
+            <div class="ide-icon" aria-label="Claude Desktop">
+              <span aria-hidden="true">&#128268;</span>
+            </div>
+            <span class="ide-label">Claude Desktop</span>
+          </div>
           <div class="ide-badge">
             <div class="ide-icon" aria-label="Terminal">
               <span aria-hidden="true">&#9000;</span>
@@ -693,7 +776,7 @@
           </div>
         </div>
 
-        <p class="ide-tagline">Install once. Works everywhere Claude Code runs.</p>
+        <p class="ide-tagline">Install once. Works everywhere Claude runs — Desktop plugin or CLI.</p>
       </div>
     </div>
   </section>

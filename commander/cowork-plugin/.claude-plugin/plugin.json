@@ -1,7 +1,7 @@
 {
-  "name": "cc-commander",
-  "version": "2.3.1",
-  "description": "CC Commander — 450+ skills. One command. Your AI work, managed by AI. Interactive project manager with split mode, agent API, knowledge compounding, 10 themes, infrastructure tools, and YOLO Mode.",
+  "name": "ccc",
+  "version": "3.0.0",
+  "description": "CC Commander \u2014 AI project manager with 450+ skills, interactive menus, deep integrations, specialized agents, and knowledge compounding. Works standalone or supercharged with connected tools.",
   "author": {
     "name": "Kevin Z",
     "url": "https://kevinz.ai"
@@ -10,11 +10,17 @@
   "repository": "https://github.com/KevinZai/commander",
   "license": "MIT",
   "keywords": [
-    "commander",
     "project-manager",
     "skills",
-    "knowledge",
     "orchestration",
-    "night-mode"
+    "linear",
+    "fleet",
+    "knowledge",
+    "night-mode",
+    "desktop",
+    "web-search",
+    "tavily",
+    "context7",
+    "mcp"
   ]
 }

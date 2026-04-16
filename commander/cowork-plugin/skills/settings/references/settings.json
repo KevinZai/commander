@@ -1,0 +1,62 @@
+{
+  "id": "settings",
+  "version": 2,
+  "screen": {
+    "title": "Settings",
+    "subtitle": "Customize your CC Commander experience."
+  },
+  "prompt": "What would you like to change?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Change my name",
+      "description": "Currently: {name}",
+      "action": "settings_name"
+    },
+    {
+      "key": "b",
+      "label": "Change experience level",
+      "description": "Currently: {level}",
+      "action": "settings_level"
+    },
+    {
+      "key": "c",
+      "label": "Set cost ceiling",
+      "description": "Max budget per dispatch",
+      "action": "settings_cost"
+    },
+    {
+      "key": "d",
+      "label": "Change theme",
+      "action": "change_theme"
+    },
+    {
+      "key": "e",
+      "label": "Toggle animations",
+      "action": "settings_animations"
+    },
+    {
+      "key": "l",
+      "label": "Linear setup",
+      "description": "Choose team + project, check connection",
+      "action": "linear_setup"
+    },
+    {
+      "key": "m",
+      "label": "Change launch mode",
+      "description": "Simple or Advanced (split)",
+      "action": "settings_launch_mode"
+    },
+    {
+      "key": "r",
+      "label": "Reset all state",
+      "description": "Start fresh (keeps skills)",
+      "action": "settings_reset"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
+    }
+  ]
+}

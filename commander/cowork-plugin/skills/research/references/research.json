@@ -1,0 +1,63 @@
+{
+  "id": "research",
+  "version": 1,
+  "screen": {
+    "title": "Research & Analyze",
+    "subtitle": "Deep dives powered by AI."
+  },
+  "prompt": "What kind of research?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Competitive analysis",
+      "next": "research-competitive"
+    },
+    {
+      "key": "b",
+      "label": "Market research",
+      "next": "research-market"
+    },
+    {
+      "key": "c",
+      "label": "Code audit / review",
+      "next": "research-code"
+    },
+    {
+      "key": "d",
+      "label": "SEO / analytics analysis",
+      "next": "research-seo"
+    },
+    {
+      "key": "e",
+      "label": "Something else — I'll describe it",
+      "action": "freeform_build"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
+    }
+  ],
+  "subAdventures": {
+    "research-competitive": {
+      "prompt": "What competitor or market to analyze? (one sentence)",
+      "action": "freeform_build",
+      "context": "Perform a competitive analysis: "
+    },
+    "research-market": {
+      "prompt": "What market or industry to research? (one sentence)",
+      "action": "freeform_build",
+      "context": "Perform market research: "
+    },
+    "research-code": {
+      "prompt": "What codebase or repo to audit? (one sentence)",
+      "action": "freeform_build",
+      "context": "Perform a code audit and review: "
+    },
+    "research-seo": {
+      "prompt": "What site or topic to analyze for SEO? (one sentence)",
+      "action": "freeform_build",
+      "context": "Perform SEO and analytics analysis: "
+    }
+  }
+}

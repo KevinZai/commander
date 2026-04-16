@@ -1,0 +1,73 @@
+{
+  "id": "create-content",
+  "version": 1,
+  "screen": {
+    "title": "Create Content",
+    "subtitle": "What kind of content do you need?"
+  },
+  "prompt": "Pick a content type:",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Blog post or article",
+      "next": "content-blog"
+    },
+    {
+      "key": "b",
+      "label": "Social media posts",
+      "next": "content-social"
+    },
+    {
+      "key": "c",
+      "label": "Email campaign",
+      "next": "content-email"
+    },
+    {
+      "key": "d",
+      "label": "Marketing copy",
+      "next": "content-marketing"
+    },
+    {
+      "key": "e",
+      "label": "Documentation",
+      "next": "content-docs"
+    },
+    {
+      "key": "f",
+      "label": "Something else — I'll describe it",
+      "action": "freeform_build"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
+    }
+  ],
+  "subAdventures": {
+    "content-blog": {
+      "prompt": "What should the blog post be about? (one sentence)",
+      "action": "freeform_build",
+      "context": "Write a blog post: "
+    },
+    "content-social": {
+      "prompt": "What's the topic for social posts? (one sentence)",
+      "action": "freeform_build",
+      "context": "Create social media posts (Twitter/X threads, LinkedIn, Instagram captions): "
+    },
+    "content-email": {
+      "prompt": "What's the email campaign about? (one sentence)",
+      "action": "freeform_build",
+      "context": "Write an email campaign sequence: "
+    },
+    "content-marketing": {
+      "prompt": "What marketing copy do you need? (one sentence)",
+      "action": "freeform_build",
+      "context": "Write marketing copy: "
+    },
+    "content-docs": {
+      "prompt": "What needs to be documented? (one sentence)",
+      "action": "freeform_build",
+      "context": "Write technical documentation: "
+    }
+  }
+}

@@ -1,15 +1,15 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ccc-hero.svg">
-  <img src="docs/assets/ccc-hero.svg" alt="CC Commander" width="100%">
+  <img src="docs/assets/ccc-hero.svg" alt="CCC — Claude Code Commander" width="100%">
 </picture>
 
 > **Every Claude Code tool. One install. An AI brain that learns.**
 
 **Not a skill pack. An AI project manager that thinks before it acts.** 456+ skills, 98% context savings, 19 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
 
-<img src="docs/assets/hero.gif" alt="CC Commander v2.3.1" width="100%">
+<img src="docs/assets/hero.gif" alt="CCC v3.0.0" width="100%">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/19_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v2.3.1](https://img.shields.io/badge/v2.3.1-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/19_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v3.0.0](https://img.shields.io/badge/v3.0.0-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 19 vendor packages
 
@@ -19,16 +19,17 @@
 
 <img src="docs/assets/section-why.svg" alt="Why" width="100%">
 
-## Why CC Commander
+## Why CCC
 
 Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No memory. Every session starts from zero. And it wastes 98% of your context window on tool output you'll never re-read.
 
-**CC Commander remembers everything, learns from every session, and gets smarter the more you use it.** It wraps every major Claude Code tool into one install — with a smart orchestrator, guided menus, and an Intelligence Layer that auto-adjusts every dispatch based on your project.
+**CCC remembers everything, learns from every session, and gets smarter the more you use it.** It wraps every major Claude Code tool into one install — with a smart orchestrator, guided menus, and an Intelligence Layer that auto-adjusts every dispatch based on your project.
 
 ```
 You type: ccc
 You get:  A guided AI project manager with 456+ skills,
-          19 vendor packages, real learning, and zero setup.
+          15 plugin skills, 5 agents, 19 vendor packages,
+          real learning, and zero setup.
 ```
 
 <img src="docs/assets/ccc-flow.svg" alt="How CCC Works" width="100%">
@@ -39,7 +40,7 @@ You get:  A guided AI project manager with 456+ skills,
 
 ### Main Menu — Arrow Keys, No Commands to Memorize
 
-<img src="docs/assets/screenshots/main-menu.png" alt="CC Commander Main Menu" width="100%">
+<img src="docs/assets/screenshots/main-menu.png" alt="CCC Main Menu" width="100%">
 
 ### Cockpit Dashboard — Live Session Status
 
@@ -69,7 +70,7 @@ Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 
 ## Intelligence Layer
 
-> Stock Claude Code is a blank terminal with amnesia. CC Commander remembers everything, learns from every session, and gets smarter the more you use it.
+> Stock Claude Code is a blank terminal with amnesia. CCC remembers everything, learns from every session, and gets smarter the more you use it.
 
 **An AI project manager that thinks before it acts.** Before dispatching a single token, CCC scores your task, reads your stack, pulls relevant lessons from past sessions, and selects the right model and budget automatically. No configuration. No flags. It just works.
 
@@ -224,6 +225,17 @@ CCC reads your project before every dispatch. No setup needed.
 
 <img src="docs/assets/section-features.svg" alt="Features" width="100%">
 
+### What's New in v3.0.0 — Desktop-First Plugin
+
+- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install ccc`
+- **15 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
+- **5 specialized agents** — reviewer, builder, researcher, debugger, fleet-worker
+- **6 lifecycle hooks** — automated session, build, review, deploy, and fleet hooks
+- **5 MCP servers** — native MCP integration out of the box
+- **10 connector categories** — CONNECTORS.md documents all integration points
+- **Free/Pro tier split** — core skills free, advanced agents and MCP servers in Pro
+- **`ccc-marketplace`** — skill/agent marketplace at KevinZai/commander
+
 ### New in v2.3.1 — Professional TUI
 
 - **Pipe-rail visual language** — `┌│└` guides, `●○` radio buttons, `◆` prompts
@@ -238,9 +250,13 @@ CCC reads your project before every dispatch. No setup needed.
 | Component | Count | What It Does |
 |-----------|-------|-------------|
 | Skills | 456+ | On-demand expertise (deduplicated) |
+| Plugin Skills | 15 | Desktop-first skills (commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet) |
+| Agents | 5 | reviewer, builder, researcher, debugger, fleet-worker |
+| Lifecycle Hooks | 6 | Automated session, build, review, deploy, and fleet hooks |
+| MCP Servers | 5 | Native MCP integration |
 | CCC Domains | 11 | Domain routers with sub-skills |
 | Commands | 83 | Slash commands (/ccc: prefix) |
-| Hooks | 25 | Lifecycle automation |
+| Hooks (JS) | 25 | Lifecycle automation (kit-native) |
 | Adventures | 13 | Guided interactive flows |
 | Vendor Packages | 19 | Best-in-class tools, auto-updated |
 | Themes | 10 | Cyberpunk, Fire, Ocean, Aurora, Sunset, Monochrome, Rainbow, Dracula + more |
@@ -253,7 +269,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 ### Every Path, Visualized
 
-<img src="docs/assets/ccc-flowchart.svg" alt="CC Commander Complete Flow Map" width="100%">
+<img src="docs/assets/ccc-flowchart.svg" alt="CCC Complete Flow Map" width="100%">
 
 > Every menu option, every sub-flow, every path to Claude Code — one diagram. [View full size](docs/assets/ccc-flowchart.svg)
 
@@ -316,7 +332,7 @@ Each domain is a router that dispatches to specialized sub-skills on demand.
 
 ## 19 Vendor Packages
 
-CC Commander aggregates the best Claude Code tools as git submodules. Auto-updated weekly. 19 packages, 1,500+ vendor skills.
+CCC aggregates the best Claude Code tools as git submodules. Auto-updated weekly. 19 packages, 1,500+ vendor skills.
 
 | Package | Stars | What You Get |
 |---------|-------|-------------|
@@ -393,11 +409,44 @@ CCC learns from every session. Knowledge compounds over time.
 
 ## Quick Start — Pick Your Path
 
+One question: **How are you using Claude?**
+
+### Path A: Desktop Plugin (Recommended)
+
+> The primary way to use CCC. Works in Claude Desktop and any Claude Code session.
+
 ```
-1. Install    curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
-2. Launch     ccc
-3. Build      Pick from the menu. Claude Code does the rest.
+/plugin marketplace add KevinZai/commander
+/plugin install ccc
 ```
+
+CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what should I build" to begin.
+
+**What you get:** 15 plugin skills, 5 specialized agents, 6 lifecycle hooks, 5 MCP servers — all with free/pro tier support.
+
+**Marketplace:** `ccc-marketplace` at [KevinZai/commander](https://github.com/KevinZai/commander)
+
+---
+
+### Path B: Claude Code (Slash Commands)
+
+> You want skills + commands inside Claude Code sessions.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+```
+
+Then in any Claude Code session:
+
+```
+/ccc
+```
+
+Full interactive menu appears. Same features, no separate CLI needed.
+
+**What you get:** All 456+ skills and commands, no extra CLI binary required.
+
+---
 
 ### Your First 60 Seconds
 
@@ -411,11 +460,11 @@ CCC learns from every session. Knowledge compounds over time.
 
 No configuration. No YAML. No API keys. The Intelligence Layer handles everything.
 
-One question: **How are you using Claude?**
+---
 
-### Path A: Claude Code CLI (Terminal)
+### CLI Installation (Legacy)
 
-> You use `claude` in your terminal. This is the most common way.
+> You use `claude` in your terminal and prefer a standalone CLI.
 
 **Option 1 — One-liner install:**
 ```bash
@@ -447,40 +496,6 @@ ccc --update
 > Don't delete `~/.cc-commander/` — the `ccc` command needs it.
 
 **What you get:** Full CLI with tmux split mode, daemon, theme switching, and the cockpit dashboard.
-
----
-
-### Path B: Claude Code (Slash Commands Only)
-
-> You don't want the full CLI. Just want skills + commands inside Claude Code.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
-```
-
-Then in any Claude Code session:
-
-```
-/ccc
-```
-
-Full interactive menu appears. Same features, no separate CLI needed.
-
-**What you get:** All 456+ skills and commands, no extra CLI binary required.
-
----
-
-### Path C: Claude Desktop (Cowork Plugin)
-
-> You use Claude Desktop and want CC Commander as a Cowork plugin.
-
-```
-/plugin marketplace add KevinZai/commander
-```
-
-CC Commander appears as a skill you can invoke. Say "start commander" or "what should I work on" to begin.
-
-**What you get:** 7 Cowork skills — project management, infrastructure, knowledge base, and night mode.
 
 ---
 
@@ -636,13 +651,13 @@ For AI agents: **[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-re
 
 ## Who Built This
 
-CC Commander is built by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic)) — a non-technical entrepreneur and CEO of [MyWiFi Networks](https://mywifinetworks.com) (20+ years in tech, never wrote production code). He wanted to leverage Claude Code to its max capabilities without chasing plugins, reading changelogs, or memorizing commands. So he scanned every Claude Code article, plugin, and skill on the internet — 200+ sources — and distilled it into one self-learning AI project manager. Every feature was built with Claude Code itself. If a non-coder can build a 450+ skill toolkit with AI, imagine what you can build.
+CCC is built by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic)) — a non-technical entrepreneur and CEO of [MyWiFi Networks](https://mywifinetworks.com) (20+ years in tech, never wrote production code). He wanted to leverage Claude Code to its max capabilities without chasing plugins, reading changelogs, or memorizing commands. So he scanned every Claude Code article, plugin, and skill on the internet — 200+ sources — and distilled it into one self-learning AI project manager. Every feature was built with Claude Code itself. If a non-coder can build a 450+ skill toolkit with AI, imagine what you can build.
 
 ---
 
 ## Acknowledgments
 
-CC Commander aggregates 19 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](docs/ACKNOWLEDGMENTS.md)**
+CCC aggregates 19 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](docs/ACKNOWLEDGMENTS.md)**
 
 45+ ecosystem repos tracked: **[ECOSYSTEM.md](docs/ECOSYSTEM.md)**
 
@@ -671,7 +686,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v2.3.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CCC v3.0.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

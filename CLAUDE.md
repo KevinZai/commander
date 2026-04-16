@@ -1,10 +1,10 @@
-# CLAUDE.md — CC Commander
+# CLAUDE.md — CCC (Claude Code Commander)
 
 ## What This Is
 
-CC Commander — by Kevin Z. 456+ skills. One command. Your AI work, managed by AI. A comprehensive Claude Code configuration toolkit + interactive CLI project manager: 456+ skills, 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CCC (Claude Code Commander) — by Kevin Z. 456+ skills. One command. Your AI work, managed by AI. The Desktop plugin is the primary product: 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 456+ total skills, 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** The Aggregator Release (version tracked in `package.json`)
+**Current Release:** v3.0.0 — Desktop-first plugin transformation (version tracked in `package.json`)
 
 ## Session Defaults
 
@@ -19,7 +19,23 @@ CC Commander — by Kevin Z. 456+ skills. One command. Your AI work, managed by 
 
 **Research the codebase before editing. Never change code you haven't read.** Read files before modifying them. Understand the surrounding context. If you're about to edit a function, read the whole file first.
 
-## CC Commander
+## Desktop Plugin
+
+CCC's primary product as of v3.0.0. Install via the Claude Code plugin marketplace:
+
+```
+/plugin marketplace add KevinZai/commander
+/plugin install ccc
+```
+
+**Plugin name:** `ccc` · **Marketplace:** `ccc-marketplace` at KevinZai/commander
+
+**Free tier:** commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet (15 skills)
+**Pro tier:** 5 specialized agents (reviewer, builder, researcher, debugger, fleet-worker) + 5 MCP servers + advanced lifecycle hooks
+
+Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
+
+## CCC CLI
 
 Interactive CLI that sits ABOVE Claude Code sessions. Manages, dispatches, and tracks AI work.
 
@@ -36,7 +52,7 @@ Key components:
 - `commander/knowledge.js` — Knowledge compounding (learns from every session)
 - `commander/plugins.js` — Auto-detects gstack, CE, Superpowers, sequences them
 - `commander/adventures/*.json` — 14 JSON decision tree flows
-- `commander/cowork-plugin/` — Claude Desktop Cowork plugin (4 skills)
+- `commander/cowork-plugin/` — Desktop plugin (15 skills, 5 agents, 6 hooks, 5 MCP servers)
 - `commander/update-check.js` — Update checker (4h cache, silent on failure, runs at session start)
 - `commander/tests/paths.test.js` — 18 E2E path tests
 
@@ -46,6 +62,13 @@ Tests: `node --test commander/tests/paths.test.js`
 ## Project Structure
 
 ```
+├── commander/cowork-plugin/     # Desktop plugin (primary product)
+│   ├── SKILL.md                 # Plugin entry point (name: ccc)
+│   ├── skills/                  # 15 plugin skills
+│   ├── agents/                  # 5 agents (reviewer, builder, researcher, debugger, fleet-worker)
+│   ├── hooks/                   # 6 lifecycle hooks
+│   ├── mcp/                     # 5 MCP server configs
+│   └── CONNECTORS.md            # 10 connector categories
 ├── skills/              # 456+ skills organized by category
 │   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 10 workflow modes
@@ -94,7 +117,7 @@ claude-code-prompts (142).
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
 
 ```
-━━ CCC2.3.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯456│📋CC-150│📂~/project
+━━ CCC3.0.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯456│📋CC-150│📂~/project
 ```
 
 Render this at session start and after major actions. Source: `commander/cockpit.js`.
@@ -119,12 +142,12 @@ Every menu recommends the best next action based on context.
 
 | Domain | Sub-Skills | Focus |
 |--------|-----------|-------|
-| `ccc-design` | 40 | UI/UX, animation, responsive, accessibility |
-| `ccc-marketing` | 55 | CRO, email, ads, social, content |
+| `ccc-design` | 39 | UI/UX, animation, responsive, accessibility |
+| `ccc-marketing` | 45 | CRO, email, ads, social, content |
 | `ccc-saas` | 21 | Auth, billing, multi-tenant, schema |
 | `ccc-devops` | 21 | CI/CD, Docker, AWS, monitoring |
 | `ccc-seo` | 20 | Technical SEO, content, Core Web Vitals |
-| `ccc-testing` | 16 | TDD, E2E, coverage, regression |
+| `ccc-testing` | 15 | TDD, E2E, coverage, regression |
 | `ccc-security` | 8 | OWASP, pen-test, secrets, hardening |
 | `ccc-data` | 8 | SQL, ETL, analytics, visualization |
 | `ccc-research` | 8 | Competitive, market analysis |
@@ -133,14 +156,16 @@ Every menu recommends the best next action based on context.
 
 ## Current Status
 
-**Version:** See `package.json`
+**Version:** 3.0.0 (Desktop-first plugin transformation — see `package.json`)
 
-**Stats:** 456 skills (CLI-visible), 83 commands, 28 hooks (JS), 19 vendors, 10 themes
+**Stats:** 456+ total skills, 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
+- Marketplace: `ccc-marketplace` — `/plugin marketplace add KevinZai/commander`
 - Landing page: KevinZai.github.io/cc-commander
 - One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash`
+- Free/Pro tiers: core skills free, agents + MCP servers in Pro
 
 ## Key Commands
 

@@ -1,0 +1,53 @@
+{
+  "id": "build-something",
+  "version": 1,
+  "screen": {
+    "title": "Build Something New",
+    "subtitle": "Let's figure out what you want to create."
+  },
+  "prompt": "What kind of project?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "A website or web app",
+      "next": "build-web"
+    },
+    {
+      "key": "b",
+      "label": "An API or backend service",
+      "next": "build-api"
+    },
+    {
+      "key": "c",
+      "label": "A CLI tool or script",
+      "next": "build-cli"
+    },
+    {
+      "key": "d",
+      "label": "Something else — I'll describe it",
+      "action": "freeform_build"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
+    }
+  ],
+  "subAdventures": {
+    "build-web": {
+      "prompt": "What should the website do? (one sentence)",
+      "action": "freeform_build",
+      "context": "Build a website: "
+    },
+    "build-api": {
+      "prompt": "What should the API do? (one sentence)",
+      "action": "freeform_build",
+      "context": "Build an API: "
+    },
+    "build-cli": {
+      "prompt": "What should the tool do? (one sentence)",
+      "action": "freeform_build",
+      "context": "Build a CLI tool: "
+    }
+  }
+}

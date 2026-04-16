@@ -1,8 +1,75 @@
 # Claude Code Cheatsheet
-> CC Commander — by Kevin Z — commands, workflows, and power user tips
+> CCC (Claude Code Commander) v3.0.0 — by Kevin Z — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
+
+---
+
+## Desktop Plugin Commands (v3.0.0)
+
+CCC ships a Claude Desktop plugin at `commander/cowork-plugin/`. Install once, use everywhere — `/ccc:*` prefix in any Desktop conversation.
+
+### Plugin Installation
+
+```bash
+# Add the CCC marketplace entry
+claude marketplace add ccc-commander
+
+# Install the plugin into Claude Desktop
+claude plugin install commander/cowork-plugin/
+```
+
+### /ccc:* Skills (15 total)
+
+| Skill | Description | Tier |
+|-------|-------------|------|
+| `/ccc:commander` | Main CCC hub — interactive menu, session overview | Free |
+| `/ccc:build` | Build wizard — web, API, CLI with spec questions | Free |
+| `/ccc:linear-board` | Linear issue browser — view, pick, create tasks | Free |
+| `/ccc:research` | Deep research with citations and confidence scoring | Free |
+| `/ccc:content` | Content creation — blog, social, email, copy | Free |
+| `/ccc:session` | Session management — save, resume, context budget | Free |
+| `/ccc:settings` | CCC settings — model, cost, theme, MCP, hooks | Free |
+| `/ccc:domains` | Browse 11 CCC domains (200+ sub-skills) | Free |
+| `/ccc:infra` | Infrastructure — fleet, cost, Synapse, Paperclip | Pro |
+| `/ccc:knowledge` | Search knowledge base for past lessons | Pro |
+| `/ccc:night-mode` | Autonomous overnight build — checkpoints, recovery | Pro |
+| `/ccc:standup` | Generate standup update from recent git activity | Pro |
+| `/ccc:code-review` | Multi-agent code review (3 reviewers, structured) | Pro |
+| `/ccc:deploy-check` | Pre-deployment readiness gate | Pro |
+| `/ccc:fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro |
+
+### Specialized Agents (5)
+
+| Agent | Model | Badge | Purpose |
+|-------|-------|-------|---------|
+| `reviewer` | Sonnet | blue | Code review, audit, critique |
+| `builder` | Sonnet | green | Implementation, scaffolding |
+| `researcher` | Sonnet | purple | Research, analysis, synthesis |
+| `debugger` | Opus | red | Deep debugging, root cause |
+| `fleet-worker` | Sonnet | cyan | Parallel task execution |
+
+### Plugin Hooks (6)
+
+| Hook | When it fires |
+|------|-------------|
+| `SessionStart` | Load CCC context, detect project stack |
+| `UserPromptSubmit` | Route /ccc:* commands to plugin |
+| `PreToolUse` | Guard dangerous patterns |
+| `PostToolUse` | Auto-checkpoint, cost alert |
+| `Stop` | Session summary, cost tracking |
+| `Notification` | Progress updates for long-running tasks |
+
+### Plugin MCP Servers (5)
+
+| MCP | Purpose |
+|-----|---------|
+| Linear | Issue tracking, sprint board |
+| GitHub | PRs, CI status, code review |
+| Slack | Progress notifications |
+| Gmail | Email digest, standup context |
+| Google Calendar | Schedule awareness, standup |
 
 ---
 
@@ -25,7 +92,7 @@ Load ONE CCC domain to get an entire domain. Each has a router that dispatches t
 
 ---
 
-## Workflow Modes (NEW in v2.3.0)
+## Workflow Modes
 
 Switch your entire workflow persona with one command. Each mode adjusts behavior, verbosity, risk tolerance, and auto-loaded skills.
 
@@ -45,7 +112,7 @@ Switch your entire workflow persona with one command. Each mode adjusts behavior
 
 ---
 
-## Prompt Library (NEW in v2.3.0)
+## Prompt Library
 
 36+ battle-tested prompt templates across 6 categories:
 
@@ -334,7 +401,7 @@ The kit ships 28 hooks that fire automatically — no prompting required. Disabl
 
 **Session Coach** fires every N responses (default: 10). Customize interval with `CC_COACH_INTERVAL=20` (number of responses between nudges). Disable entirely with `CC_COACH_DISABLE=1`.
 
-CC Commander ships with 28 kit-native hooks that work standalone via `hooks-standalone.json`.
+CCC ships with 28 kit-native hooks that work standalone via `hooks-standalone.json`.
 
 ---
 
@@ -868,7 +935,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /cc Command Center
 
-CC Commander includes an interactive command center accessible via `/cc`:
+CCC (Claude Code Commander) v3.0.0 includes an interactive command center accessible via `/cc` in the CLI and `/ccc:commander` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -882,6 +949,8 @@ CC Commander includes an interactive command center accessible via `/cc`:
 | `/cc prompts` | Browse 36+ prompt templates by category |
 | `/cc status` | Kit health dashboard |
 | `/cc help` | Compact reference |
+
+> **Desktop:** Use `/ccc:commander` in Claude Desktop for the same hub via the CCC plugin. See "Desktop Plugin Commands" section above.
 
 ---
 
@@ -910,7 +979,7 @@ Configured via `statusLine` in `settings.json`. Script: `lib/statusline.sh`.
 
 ## 🖥️ Terminal Theme
 
-Import the CC Commander iTerm2 profile for the intended visual experience:
+Import the CCC iTerm2 profile for the intended visual experience:
 
 ```bash
 open compatibility/kz-matrix.itermcolors
@@ -950,7 +1019,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander Quick Reference
+## CCC (Claude Code Commander) v3.0.0 Quick Reference
 
 ```bash
 # Launch
