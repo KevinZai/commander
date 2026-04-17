@@ -1,4 +1,13 @@
 #!/usr/bin/env node
+/**
+ * session-start.js
+ * Hook: SessionStart
+ * Initializes CCC session state: creates dirs, counts sessions/knowledge, detects tier.
+ *
+ * Prompt caching tip: Large CLAUDE.md loads benefit from `ENABLE_PROMPT_CACHING_1H=1` env var
+ * — write 2x base, read 0.1x base, ~12x ROI across a workday of multiple sessions.
+ * Set it in your shell profile or .env before launching Claude Code for significant cost savings.
+ */
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
