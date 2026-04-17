@@ -2,9 +2,9 @@
 
 ## What This Is
 
-CCC (Claude Code Commander) — by Kevin Z. 456+ skills. One command. Your AI work, managed by AI. The Desktop plugin is the primary product: 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 456+ total skills, 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CCC (Claude Code Commander) — by Kevin Z. 456+ skills. One command. Your AI work, managed by AI. The Desktop plugin is the primary product: 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 456+ total skills, 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 20 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** v3.0.0 — Desktop-first plugin transformation (version tracked in `package.json`)
+**Current Release:** v3.0.0 Desktop-first plugin transformation · npm package `cc-commander@2.3.1` (version tracked in `package.json`)
 
 ## Session Defaults
 
