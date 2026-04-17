@@ -33,7 +33,7 @@ function parseArgs(argv) {
 }
 
 function formatModel(raw) {
-  if (!raw) return 'Opus4.6-1M';
+  if (!raw) return 'Opus4.7-1M';
   return raw
     .replace(/^claude-/, '')
     .replace(/-(\d+)-(\d+)$/, '$1.$2')
