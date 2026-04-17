@@ -41,6 +41,7 @@ process.stdin.on('end', () => {
       process.stderr.write('[cost-alert] ~$0.50 estimated — consider checkpointing.\n');
     } else if (count === 60) {
       process.stderr.write('[cost-alert] ~$2.00 estimated — heavy session, consider wrapping up or switching to Sonnet.\n');
+      process.stderr.write('[cost-alert] Tip: run /session-compress to compress context and recover budget.\n');
     }
 
     console.log(data);
