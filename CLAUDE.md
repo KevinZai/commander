@@ -25,10 +25,10 @@ CCC's primary product as of v3.0.0. Install via the Claude Code plugin marketpla
 
 ```
 /plugin marketplace add KevinZai/commander
-/plugin install ccc
+/plugin install commander
 ```
 
-**Plugin name:** `ccc` · **Marketplace:** `ccc-marketplace` at KevinZai/commander
+**Plugin name:** `commander` · **Marketplace:** `commander-marketplace` at KevinZai/commander
 
 **Free tier:** commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet (15 skills)
 **Pro tier:** 5 specialized agents (reviewer, builder, researcher, debugger, fleet-worker) + 5 MCP servers + advanced lifecycle hooks
@@ -63,7 +63,7 @@ Tests: `node --test commander/tests/paths.test.js`
 
 ```
 ├── commander/cowork-plugin/     # Desktop plugin (primary product)
-│   ├── SKILL.md                 # Plugin entry point (name: ccc)
+│   ├── SKILL.md                 # Plugin entry point (name: commander)
 │   ├── skills/                  # 15 plugin skills
 │   ├── agents/                  # 5 agents (reviewer, builder, researcher, debugger, fleet-worker)
 │   ├── hooks/                   # 6 lifecycle hooks
@@ -162,7 +162,7 @@ Every menu recommends the best next action based on context.
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
-- Marketplace: `ccc-marketplace` — `/plugin marketplace add KevinZai/commander`
+- Marketplace: `commander-marketplace` — `/plugin marketplace add KevinZai/commander`
 - Landing page: KevinZai.github.io/cc-commander
 - One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash`
 - Free/Pro tiers: core skills free, agents + MCP servers in Pro
@@ -232,7 +232,7 @@ CCC ships 15 focused `/ccc:*` skills as the curated front door, then routes into
 
 | Method | Command | When to Use |
 |--------|---------|------------|
-| Marketplace (recommended) | `/plugin install ccc` | Full plugin with all 15 skills + MCPs + hooks |
+| Marketplace (recommended) | `/plugin install commander` | Full plugin with all 15 skills + MCPs + hooks |
 | Full CLI | `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh \| bash` | CLI mode, non-plugin installs |
 | Cherry-pick | `npx skills@latest add KevinZai/commander/skills/<name>` | Individual skills via the skills CLI |
 

@@ -6,7 +6,7 @@ type Tab = "desktop" | "cli";
 
 const DESKTOP_CMDS = [
   "/plugin marketplace add KevinZai/commander",
-  "/plugin install ccc",
+  "/plugin install commander",
 ];
 
 const CLI_CMD =
