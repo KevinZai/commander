@@ -44,6 +44,7 @@ Major version — MCP-first cross-IDE beta with 15 specialist personas, hosted b
 - Mintlify full v4 content refresh (pages beyond introduction/install/quickstart)
 - Lint tech debt — fix 135 eslint warnings (temporarily bumped `--max-warnings` 120 → 140 in CI + prepublishOnly; restore to 120 in beta.2 after cleanup)
 - Plugin "MCP passthrough" mode — upgrade slash commands to optionally route through hosted MCP for lazy-loading + cross-IDE usage counter sync
+- Use `skills/engineering-pack/mcp-server-builder/SKILL.md` when implementing the real hosted MCP server (not the current scaffold) — covers production-ready MCP design from API contracts with schema validation + safe evolution
 
 ## [2.3.1] — 2026-04-13
 
