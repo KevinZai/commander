@@ -1,4 +1,5 @@
 'use strict';
+/* global AbortController, fetch */
 // CC Commander — MCP Passthrough Library
 // Opt-in MCP calls with guaranteed local fallback.
 // NEVER throws to caller. NEVER required for plugin to function.
