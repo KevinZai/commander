@@ -1,10 +1,10 @@
 # Spec: cc-commander.com Marketing Site
 
 **Date:** 2026-04-16
-**Owner:** Kevin Z
+**Owner:** Kevin Zicherman
 **Status:** Draft — pending approval to build
 **Domain:** cc-commander.com (owned by Kevin)
-**Repo location:** `/Users/ai/clawd/projects/cc-commander/marketing/`
+**Repo location:** `<repo-root>/marketing/`
 
 ---
 
@@ -112,8 +112,8 @@ marketing/
 $ claude
 > /plugin marketplace add KevinZai/commander
 ✓ Marketplace added
-> /plugin install ccc
-✓ Installed: ccc v3.0.0
+> /plugin install commander
+✓ Installed: commander v3.0.0
   15 skills · 5 agents · 6 hooks · 8 MCPs
 ✓ Ready. Try /ccc:build to ship something.
 ```
@@ -256,7 +256,7 @@ Two-column layout:
 **Desktop Plugin (recommended):**
 ```
 /plugin marketplace add KevinZai/commander
-/plugin install ccc
+/plugin install commander
 ```
 
 **CLI (legacy/power users):**

@@ -1,23 +1,23 @@
-# Claude Code Cheatsheet
-> CCC (Claude Code Commander) v3.0.0 — by Kevin Z — commands, workflows, and power user tips
+# CC Commander Cheatsheet
+> CC Commander v4.0.0-beta.1 — by Kevin Zicherman — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v3.0.0)
+## Desktop Plugin Commands (v4.0.0-beta.1)
 
-CCC ships a Claude Desktop plugin at `commander/cowork-plugin/`. Install once, use everywhere — `/ccc:*` prefix in any Desktop conversation.
+CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/`. Install once, use everywhere — `/ccc:*` prefix in any Desktop conversation.
 
 ### Plugin Installation
 
 ```bash
-# Add the CCC marketplace entry
-claude marketplace add ccc-commander
+# Add from the marketplace
+/plugin marketplace add KevinZai/commander
 
-# Install the plugin into Claude Desktop
-claude plugin install commander/cowork-plugin/
+# Install the plugin
+/plugin install commander
 ```
 
 ### /ccc:* Skills (15 total)
@@ -935,12 +935,12 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /cc Command Center
 
-CCC (Claude Code Commander) v3.0.0 includes an interactive command center accessible via `/cc` in the CLI and `/ccc:commander` in Claude Desktop:
+CC Commander v4.0.0-beta.1 includes an interactive command center accessible via `/cc` in the CLI and `/ccc:commander` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
 | `/cc` | Main menu — all options |
-| `/cc skills` | Browse 456+ skills by category |
+| `/cc skills` | Browse 453+ skills by category |
 | `/cc mega [name]` | Drill into a CCC domain's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions (no plan mode) |
@@ -1019,7 +1019,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CCC (Claude Code Commander) v3.0.0 Quick Reference
+## CC Commander v4.0.0-beta.1 Quick Reference
 
 ```bash
 # Launch

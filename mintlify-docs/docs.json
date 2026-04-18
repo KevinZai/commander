@@ -22,9 +22,10 @@
             ]
           },
           {
-            "group": "Desktop Plugin (v3.0)",
+            "group": "Desktop Plugin (v4.0 Beta)",
             "pages": [
               "plugin/install",
+              "plugin/upgrade",
               "plugin/skills",
               "plugin/agents",
               "plugin/hooks",
@@ -35,6 +36,7 @@
           {
             "group": "Core Features",
             "pages": [
+              "features/browse-modes",
               "features/token-optimization",
               "features/intelligence-layer",
               "features/skill-tiers",

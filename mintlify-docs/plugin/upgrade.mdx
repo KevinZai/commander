@@ -1,0 +1,103 @@
+---
+title: "Upgrade to v4.0.0 Beta"
+description: "Upgrade an existing CC Commander plugin install to v4.0.0-beta.1 in Claude Code Desktop, Claude Code CLI, or npm."
+---
+
+# ⬆️ Upgrade to v4.0.0 Beta
+
+You already have CC Commander installed? Here's how to pick up v4.0.0-beta.1 with zero drama.
+
+## Claude Code Desktop / CLI (plugin)
+
+```
+/plugin update commander
+```
+
+That's the whole thing. The marketplace serves the latest version from `main` — once the v4.0.0-beta.1 release lands, your next `/plugin update` pulls it.
+
+### Verify the upgrade
+
+```
+/plugin list | grep commander
+# should show: commander  v4.0.0-beta.1  Kevin Zicherman
+```
+
+Or in a fresh Claude Code session:
+
+```
+/ccc:settings
+```
+
+The settings menu header reports the installed version.
+
+### What changes for you
+
+| Surface | Before (v3.1.0) | After (v4.0.0-beta.1) |
+|---------|-----------------|----------------------|
+| Plugin skills | 15 free + 2 pro | 24 free + 2 pro (11 CCC domain routers now free) |
+| Agents | 10 domain specialists | 15 with persona voice system (added content-strategist, data-analyst, performance-engineer, product-manager, technical-writer) |
+| Hooks | 6 lifecycle events | 9 lifecycle events |
+| Rules shipped with plugin | none | 10 voice files + 15 personas at `rules/common/` + `rules/personas/` |
+| Commands | `/ccc-refresh` (canonical) | `/ccc:init` (canonical); `/ccc-refresh` kept as deprecated alias |
+| Publisher | "Kevin Z" | "Kevin Zicherman" (canonical) |
+| Status bar | Opus 4.6 default | Opus 4.7 default + session time remaining + cost gauge + cache hit % |
+
+Your `~/.claude/commander/` state files, knowledge base, and learned-skills directory are preserved. No data migration needed.
+
+## npm CLI
+
+```bash
+npm i -g cc-commander@4.0.0-beta.1
+# or: npm i -g cc-commander@next (if we tag the dist-tag)
+ccc --version   # should show 4.0.0-beta.1
+```
+
+Re-run the post-install verify:
+
+```bash
+ccc --test      # should print 208/208 tests passing
+ccc --status    # shows plugin + cli + vendor + tests + integrations
+```
+
+## If you built from source
+
+If you cloned the repo or use the curl installer:
+
+```bash
+cd ~/path/to/commander   # or wherever you cloned
+git pull origin main
+git submodule update --init --recursive   # pick up vendor updates
+npm install
+npm test                 # 208/208
+```
+
+Or the one-liner reinstall:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+```
+
+## Rollback
+
+If something breaks (please file an issue first):
+
+```
+/plugin update commander --version 3.1.0
+# or
+npm i -g cc-commander@3.1.0
+```
+
+## After the upgrade
+
+Optional but recommended: run `/ccc:init` to refresh your project `CLAUDE.md` against the new v4 template (22-emoji palette, 10 Core Principles, 4 HARD RULES). Custom sections are preserved.
+
+## Known issues in v4.0.0-beta.1
+
+- Hosted MCP endpoint at `mcp.cc-commander.com` is not live yet — deploy pending Kevin's infrastructure provisioning. Plugin-side UX is unaffected.
+- 135 eslint warnings exist in the codebase (tech-debt, not new regressions). `--max-warnings 140` is temporarily enforced. Will be fixed in beta.2.
+- Full marketing site pivot is deferred — homepage + pricing are shipping; other pages (/beta, /dashboard, /compatibility, /faq) are stubs.
+
+## Questions
+
+- File an issue: https://github.com/KevinZai/commander/issues
+- Discord (beta): https://cc-commander.com/discord

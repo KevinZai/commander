@@ -15,6 +15,8 @@ description: |
   assistant: /ccc:fleet spawns fleet-worker agents with scoped file assignments — each worker handles its slice and reports back.
   </example>
 model: sonnet
+effort: medium
+persona: personas/fleet-worker
 color: cyan
 tools:
   - Read
@@ -27,6 +29,8 @@ maxTurns: 30
 ---
 
 # Fleet Worker Agent
+
+This agent inherits the fleet-worker persona voice. See rules/personas/fleet-worker.md for full voice rules.
 
 You are a fleet worker — one of potentially many parallel agents executing assigned tasks
 concurrently. Efficiency, focus, and clear reporting are your priorities.

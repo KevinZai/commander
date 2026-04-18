@@ -1,0 +1,121 @@
+---
+title: "How users browse skills — Plugin vs MCP"
+description: "Two ways to access 453+ CC Commander skills — native plugin slash commands in Claude Code vs. MCP tool calls in Cursor, Windsurf, Cline, Continue, Codex, and Claude mobile."
+---
+
+# 🎭 How users browse skills
+
+CC Commander ships **two parallel discovery surfaces**. They serve the same skill catalog but are shaped by what each client supports.
+
+<Warning>
+  **Beta v4.0.0-beta.1 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.cc-commander.com` goes live post-deploy.
+</Warning>
+
+## The split in one sentence
+
+| Client | How to browse | Mechanism |
+|--------|---------------|-----------|
+| **Claude Code (plugin)** | `/ccc:<name>` slash commands with autocomplete | Plugin manifest `skills: "./skills/"` |
+| **Everything else (MCP)** | Agent calls `list_skills` / `search_skills` / `suggest_skill` on the user's behalf | Hosted MCP server at `mcp.cc-commander.com` |
+
+Same 453+ skills. Different UX glue.
+
+## Native plugin (Claude Code)
+
+When you `/plugin install commander` in Claude Code, the plugin manifest registers:
+- **24 free plugin skills** as slash commands (e.g. `/ccc:build`, `/ccc:code-review`, `/ccc:design`)
+- **2 Pro plugin skills** gated by license (`/ccc:infra`, `/ccc:knowledge`)
+- **15 specialist agents** available via the Agent tool (architect, security-auditor, builder, reviewer, etc.)
+- **9 lifecycle hooks** (SessionStart, PreToolUse, PostCompact, etc.)
+- **5 MCP server configs** pre-wired for external integrations (Linear, Tavily, Context7, etc.)
+
+**Pros:** tab-completion, instant discovery, deep Claude Code integration, offline-capable, lifecycle hooks.
+**Cons:** Claude Code only — can't use in Cursor, Windsurf, etc.
+
+```bash
+/plugin marketplace add KevinZai/commander
+/plugin install commander
+# Type /ccc:  to see the full slash menu
+```
+
+## Hosted MCP server (every other AI IDE)
+
+Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.cc-commander.com`. The same 453+ skill catalog becomes available through **13 MCP tools**:
+
+| Tool | What the agent does with it |
+|------|----------------------------|
+| `list_skills` | Paginated catalog, filter by domain |
+| `search_skills(query)` | Fuzzy match by description/keywords |
+| `get_skill(id)` | Fetch full SKILL.md content |
+| `suggest_skill(context)` | Auto-suggest based on current task |
+| `list_agents` | Browse 15 specialist personas |
+| `get_agent(id)` | Fetch persona + system prompt |
+| `list_modes` | 10 workflow modes (Race / Production / Learning / Silent / Deep / Vibe / etc.) |
+| `enter_mode(id)` | Activate a workflow mode |
+| `get_status` | Session status, usage, tier |
+| `send_feedback` | Submit mandatory beta feedback |
+| `get_session_time` | Anthropic session time remaining |
+| `list_hooks` | Inspect lifecycle hook configuration |
+| `get_connector` | Fetch MCP integration details |
+
+**Pros:** works in any MCP-capable client, zero install on user's machine, lazy-loads skills (only the ones invoked hit the wire), cross-IDE identity (same license key, same usage counter, same feedback history).
+**Cons:** requires network round-trip, no slash-command autocomplete (agent-mediated only), no lifecycle hooks (MCP is request/response).
+
+```json
+// ~/.cursor/mcp.json (example — Cursor users)
+{
+  "mcpServers": {
+    "cc-commander": {
+      "url": "https://mcp.cc-commander.com/sse",
+      "headers": { "Authorization": "Bearer YOUR_LICENSE_KEY" }
+    }
+  }
+}
+```
+
+## Hybrid: plugin + MCP together (recommended for Claude Code power users)
+
+Claude Code users can install the plugin **and** point at the hosted MCP. Benefits:
+
+1. **Lazy-load 450+ deeper skills** without bloating the plugin manifest — e.g. `ccc-marketing` plugin skill routes to one of 45 marketing sub-skills via MCP, loaded on demand.
+2. **Cross-session usage counter** — your 1000 beta calls/mo travel with you if you switch IDEs.
+3. **Unified feedback history** — surveys you've filled out in Claude Code count in Cursor.
+4. **Preserve muscle memory** — `/ccc:design` still works. Under the hood it queries the MCP. From your perspective nothing changes.
+
+To enable hybrid on Claude Code:
+```bash
+/plugin install commander   # already done? you're ready
+# then add the MCP endpoint to .claude/mcp.json once mcp.cc-commander.com is live
+```
+
+## What does NOT work in MCP that works in plugin
+
+- **Autocomplete UI** — MCP has no way to inject `/slash` commands into a non-plugin client's command palette. The agent has to surface skills in prose when asked.
+- **Lifecycle hooks** — plugin has 9 hook events (SessionStart, PreToolUse, PostCompact, etc.). MCP is request/response — no "run when session starts" primitive in most clients yet. When [Anthropic ships PostCompact and Elicitation events on MCP](https://modelcontextprotocol.io/specification), we'll bridge them.
+
+## What does NOT work in plugin that works in MCP
+
+- **Cross-IDE identity** — plugin runs per-editor; MCP is centralized.
+- **Zero-install** — plugin requires file download + Claude Code version compat; MCP is a URL.
+- **Live skill updates** — plugin updates need `/plugin update commander`; MCP skill catalog is always current.
+
+## Recommendation matrix
+
+| You mostly use... | Install |
+|-------------------|---------|
+| Claude Code, one machine | Plugin only |
+| Claude Code, multiple machines OR also Cursor/Windsurf | Plugin + MCP (hybrid) |
+| Cursor / Windsurf / Cline / Continue / Codex | MCP only |
+| Claude mobile / Claude Desktop | MCP only |
+| Agents in CI (GitHub Actions, etc.) | MCP only |
+
+## What's coming next
+
+v4.1 will introduce **Commander Hub** — a marketplace of user-built skill packs discoverable through both surfaces. Creators get an 80/20 rev-share. Browsable via `/ccc:hub` (plugin) or `list_packs` (MCP).
+
+## See also
+
+- [Install the plugin](/plugin/install)
+- [Install MCP (hosted)](/mcp/install)
+- [Free vs Pro](/plugin/free-vs-pro)
+- [Compatibility matrix (14 IDEs)](/features/compatibility)

@@ -17,7 +17,7 @@ CCC v3.0.0 ships as a first-class Claude Code plugin. No npm install required â€
   </Step>
   <Step title="Install the plugin">
     ```
-    /plugin install ccc
+    /plugin install commander
     ```
     Claude Code downloads and activates the plugin. This takes a few seconds.
   </Step>
@@ -76,7 +76,7 @@ Or visit [cc-commander.com/pricing](https://cc-commander.com/pricing) directly.
 ## Uninstall
 
 ```
-/plugin uninstall ccc
+/plugin uninstall commander
 ```
 
 This removes the plugin. Your Claude Code settings and CLAUDE.md files are not affected.
@@ -85,13 +85,13 @@ This removes the plugin. Your Claude Code settings and CLAUDE.md files are not a
 
 <AccordionGroup>
   <Accordion title="Plugin not found in marketplace">
-    Make sure you ran `/plugin marketplace add KevinZai/commander` first. The marketplace must be registered before `/plugin install ccc` will work.
+    Make sure you ran `/plugin marketplace add KevinZai/commander` first. The marketplace must be registered before `/plugin install commander` will work.
   </Accordion>
   <Accordion title="/ccc command not recognized">
     Try restarting your Claude Code session after install. The plugin registers commands at session start.
   </Accordion>
   <Accordion title="Skills not loading">
-    Run `/ccc --status` to check the plugin state. If skills show 0, run `/plugin reinstall ccc`.
+    Run `/ccc --status` to check the plugin state. If skills show 0, run `/plugin reinstall commander`.
   </Accordion>
 </AccordionGroup>
 

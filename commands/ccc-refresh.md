@@ -1,8 +1,14 @@
 ---
-description: Analyze your CLAUDE.md and propose updates based on the latest CC Commander template. Preserves custom sections.
+description: "[DEPRECATED] Use /ccc:init instead — unified init + refresh command as of v4.0.0-beta.1."
 ---
 
-# CLAUDE.md Refresh
+# `/ccc-refresh` — Deprecated Alias
+
+> ⚠️ **Deprecated in v4.0.0-beta.1.** Use [`/ccc:init`](./init.md) — unified init + refresh that auto-detects whether to scaffold or merge-refresh.
+
+This alias is preserved for backward compatibility and will be removed in v5.0. The execution behavior below is identical to the refresh path in `/ccc:init`.
+
+---
 
 This command analyzes your existing CLAUDE.md and proposes updates based on the latest CC Commander template.
 

@@ -133,10 +133,10 @@
 
 ---
 
-### 18. 456+ Skills (Verified by SKILL.md Count)
+### 18. 453+ Skills (Verified by SKILL.md Count)
 **What:** 459 individual SKILL.md files across the `skills/` directory — deduplicated from 1,500+ vendor skills across 19 packages.
 **Proof:** `find skills/ -name "SKILL.md" | wc -l` → 459.
-**Share-friendly:** 456+ skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
+**Share-friendly:** 453+ skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
 
 ---
 
@@ -351,7 +351,7 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 |--------|------------------|--------------|
 | Tool Output | Full dump into context (wastes 98% of window) | **98% reduction** — context-mode sandboxes into SQLite, returns BM25 snippets |
 | Getting started | Blank terminal, type commands | Arrow-key menus, guided setup |
-| Skills | 0 built-in | 456+ (456 CLI-visible, 459 on disk) |
+| Skills | 0 built-in | 453+ (456 CLI-visible, 459 on disk) |
 | Commands | 0 installed | 83 slash commands |
 | Memory | None across sessions | AI knowledge compounding — every session builds on the last |
 | Project awareness | Reads CLAUDE.md | Reads CLAUDE.md + package.json + Dockerfile + docker-compose.yml + go.mod + Cargo.toml + pyproject.toml + git branch + last 5 commits + monorepo detection |

@@ -1,7 +1,7 @@
 # CC Commander — Agent Reference (BIBLE-AGENT)
 
 > **Read this file to control CC Commander from any AI agent platform.**
-> 450+ skills. 19 vendors. Headless CLI API. Works with Claude Code, OpenClaw, Cursor, Codex, any LLM agent.
+> 453+ skills. 19 vendors. Headless CLI API. Works with Claude Code, OpenClaw, Cursor, Codex, any LLM agent.
 
 ---
 
@@ -23,7 +23,7 @@ ccc --status   # {"version":"<from package.json>","skills":453,"vendors":19,"hea
 # 3. Use inside Claude Code sessions
 /ccc           # Full interactive menu (15 options, sub-menus, cancel support)
 /ccc xray      # Project health scan
-/ccc skills    # Browse 450+ skills
+/ccc skills    # Browse 453+ skills
 /ccc refresh   # Update CLAUDE.md from latest template
 
 # 4. Headless dispatch (from within Claude Code)
@@ -244,7 +244,7 @@ ccc --dispatch "YOLO: Build complete SaaS with auth, billing, dashboard. 5 cycle
 | `c` | Create content | → blog / social / email / marketing / docs |
 | `d` | Research & analyze | → competitive / market / code / SEO |
 | `e` | Review what I built | Show recent sessions |
-| `f` | Learn a new skill | Browse 450+ skills |
+| `f` | Learn a new skill | Browse 453+ skills |
 | `g` | Check my stats | Dashboard, streaks, cost |
 | `i` | Infrastructure | Fleet, Synapse, Cost, AO, CloudCLI, Paperclip, TaskMaster |
 | `l` | Linear board | Pick/create issues (requires Linear MCP) |

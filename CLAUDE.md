@@ -1,10 +1,10 @@
-# CLAUDE.md — CCC (Claude Code Commander)
+# CLAUDE.md — CC Commander
 
 ## What This Is
 
-CCC (Claude Code Commander) — by Kevin Z. 456+ skills. One command. Your AI work, managed by AI. The Desktop plugin is the primary product: 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 456+ total skills, 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. 1 MCP server. 453+ skills. Every AI IDE. Free in beta. The Desktop plugin is the primary product: 15 plugin skills, 15 specialist agents (with persona voice system), 9 lifecycle hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 453+ total skills (453 skills), 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 20 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** v3.0.0 — Desktop-first plugin transformation (version tracked in `package.json`)
+**Current Release:** v4.0.0-beta.1 — MCP server + hosted beta + 15 specialist personas · npm package `cc-commander@4.0.0-beta.1` (version tracked in `package.json`)
 
 ## Session Defaults
 
@@ -25,10 +25,10 @@ CCC's primary product as of v3.0.0. Install via the Claude Code plugin marketpla
 
 ```
 /plugin marketplace add KevinZai/commander
-/plugin install ccc
+/plugin install commander
 ```
 
-**Plugin name:** `ccc` · **Marketplace:** `ccc-marketplace` at KevinZai/commander
+**Plugin name:** `commander` · **Marketplace:** `commander-marketplace` at KevinZai/commander
 
 **Free tier:** commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet (15 skills)
 **Pro tier:** 5 specialized agents (reviewer, builder, researcher, debugger, fleet-worker) + 5 MCP servers + advanced lifecycle hooks
@@ -63,13 +63,13 @@ Tests: `node --test commander/tests/paths.test.js`
 
 ```
 ├── commander/cowork-plugin/     # Desktop plugin (primary product)
-│   ├── SKILL.md                 # Plugin entry point (name: ccc)
+│   ├── SKILL.md                 # Plugin entry point (name: commander)
 │   ├── skills/                  # 15 plugin skills
 │   ├── agents/                  # 5 agents (reviewer, builder, researcher, debugger, fleet-worker)
 │   ├── hooks/                   # 6 lifecycle hooks
 │   ├── mcp/                     # 5 MCP server configs
 │   └── CONNECTORS.md            # 10 connector categories
-├── skills/              # 456+ skills organized by category
+├── skills/              # 453+ skills organized by category
 │   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 10 workflow modes
 ��   ├── init-decision-tree/  # /init project wizard
@@ -131,7 +131,7 @@ All `/ccc` sub-commands open rich menus with recommendations:
 | `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
 | `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
 | `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 456+ skills by category, preview, try |
+| `/ccc skills` | Skill browser | 453+ skills by category, preview, try |
 | `/ccc domains` | CCC domains | 11 ccc-* domains |
 | `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
 | `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
@@ -158,11 +158,11 @@ Every menu recommends the best next action based on context.
 
 **Version:** 3.0.0 (Desktop-first plugin transformation — see `package.json`)
 
-**Stats:** 456+ total skills, 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
+**Stats:** 453+ total skills (453 skills), 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
-- Marketplace: `ccc-marketplace` — `/plugin marketplace add KevinZai/commander`
+- Marketplace: `commander-marketplace` — `/plugin marketplace add KevinZai/commander`
 - Landing page: KevinZai.github.io/cc-commander
 - One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash`
 - Free/Pro tiers: core skills free, agents + MCP servers in Pro
@@ -215,7 +215,7 @@ ccc --status                  # Health check
 - Modular installer with 5 installation modes (full, essentials, scripts, dashboard, config-only)
 - Daemon Mode: commander/daemon.js (tick loop), commander/queue.js (task queue), commander/dream.js (knowledge consolidation)
 - Intelligence Layer v1: complexity scoring (dispatcher.js), stack detection (project-importer.js), session learning (knowledge.js), skill filtering (skill-browser.js), smart retry (dispatchWithRetry)
-- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 456+)
+- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 453+)
 - Update checker at `commander/update-check.js` — 4h cache, silent on failure, fires on session start
 - Caveman mode (`caveman` skill) — strips markdown/emojis/prose for ~75% output token savings during iteration
 
@@ -232,7 +232,7 @@ CCC ships 15 focused `/ccc:*` skills as the curated front door, then routes into
 
 | Method | Command | When to Use |
 |--------|---------|------------|
-| Marketplace (recommended) | `/plugin install ccc` | Full plugin with all 15 skills + MCPs + hooks |
+| Marketplace (recommended) | `/plugin install commander` | Full plugin with all 15 skills + MCPs + hooks |
 | Full CLI | `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh \| bash` | CLI mode, non-plugin installs |
 | Cherry-pick | `npx skills@latest add KevinZai/commander/skills/<name>` | Individual skills via the skills CLI |
 

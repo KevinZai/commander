@@ -1,0 +1,61 @@
+# Fly.io configuration for CC Commander MCP server
+# Kevin: run `fly apps create cc-commander-mcp --org personal` before first deploy
+# Then: fly secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... etc.
+
+app = "cc-commander-mcp"
+primary_region = "sjc"
+kill_signal = "SIGINT"
+kill_timeout = "5s"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 100
+    soft_limit = 80
+
+[[services.ports]]
+  port = 80
+  handlers = ["http"]
+  force_https = true
+
+[[services.ports]]
+  port = 443
+  handlers = ["tls", "http"]
+
+[services.concurrency]
+  type = "requests"
+  hard_limit = 100
+  soft_limit = 80
+
+[[services.http_checks]]
+  interval = "10s"
+  timeout = "2s"
+  grace_period = "5s"
+  method = "get"
+  path = "/health"
+  protocol = "http"
+  tls_skip_verify = false
+
+[vm]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "production"
+  # All other secrets set via: fly secrets set KEY=value
+  # Reference: op://Alfred/cc-commander-supabase/url
+  # Reference: op://Alfred/cc-commander-supabase/service-role-key
+  # Reference: op://Alfred/cc-commander-upstash/url
+  # Reference: op://Alfred/cc-commander-upstash/token
+  # Reference: op://Alfred/cc-commander-jwt/secret
+  # Reference: op://Alfred/cc-commander-posthog/api-key

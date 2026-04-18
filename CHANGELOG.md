@@ -2,6 +2,50 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.1] — 2026-04-17 — v4 Beta: MCP Server + Hosted + 15 Personas
+
+Major version — MCP-first cross-IDE beta with 15 specialist personas, hosted beta infra (Supabase + Fly), and marketing site pivot. **Product:** CC Commander · **Tagline:** *"Guided AI PM to Master Claude Code Instantly"* · **Beta model:** free 1000 calls/mo + mandatory feedback, no Stripe yet.
+
+### Added — Architecture
+- `commander/mcp-server/` — local MCP server scaffold with 13 tools (list_skills / search_skills / get_skill / suggest_skill / list_agents / get_agent / list_modes / enter_mode / get_status / send_feedback / get_session_time / list_hooks / get_connector) + IDE translation layer
+- `commander/core/registry.yaml` — single source of truth for skills/agents/commands/modes/hooks
+- `scripts/build-from-registry.js` — drift check wired into `npm test`
+- `commander/doctor.js --auth` — diagnostic for env conflicts (ANTHROPIC_*, OPENAI_API_KEY, MANAGED_BY_HOST)
+- `commander/dispatcher.js` — cost-intelligence ceiling ($0.50 warn / $2.00 block) + `--cost-ceiling` flag
+
+### Added — Voice + Personas
+- `commander/cowork-plugin/rules/common/` — 10 shared voice files (response-style, coding-style, git-workflow, testing, security, patterns, agents, hooks, performance, development-workflow)
+- `commander/cowork-plugin/rules/personas/` — 15 specialist personas + README (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker)
+- Every plugin agent wired via frontmatter `persona: personas/<name>` reference
+
+### Added — Docs + Template
+- `CLAUDE.md.template` 2026-04-17 refresh — 22-emoji semantic palette + 10 Core Principles + 4 HARD RULES
+- Publisher canon sweep: all doc references `Kevin Zicherman` (was mixed `Kevin Z`)
+- Skill count canon: **453+** (was inconsistent 450+/453+)
+
+### Added — Beta Infrastructure
+- `supabase/migrations/20260417000000_beta_v4.sql` — users, surveys, usage_counters, feedback, agent_messages tables + RLS
+- `supabase/seed.sql` — 20-question survey bank
+- `apps/mcp-server-cloud/` — hosted MCP server scaffold with Dockerfile + fly.toml + HTTP/SSE transport
+- Email templates (welcome / magic-link / feedback-reminder) under `apps/mcp-server-cloud/emails/`
+
+### Changed
+- `package.json` — bump to `4.0.0-beta.1`, publisher `Kevin Z` → `Kevin Zicherman`, new tagline description
+- `commander/cowork-plugin/.claude-plugin/plugin.json` — `4.0.0-beta.1`, self-describing (`skills:` / `agents:` paths), Kevin Zicherman, v4 keywords
+- `.claude-plugin/marketplace.json` — synced with plugin.json
+- `commander/branding.js` — canonical publisher Kevin Zicherman in UI strings
+- `commander/status-line.js` — Opus 4.7 default + cost gauge + cache hit% + session time remaining
+- `README.md` / `CHEATSHEET.md` / `SKILLS-INDEX.md` / `BIBLE.md` — v4 naming + skill count sync
+
+### Follow-ups (tracked for v4.0.0-beta.2)
+- 8 P0 hook handlers (Elicitation / ElicitationResult / PostCompact / SubagentStart + 4 from audit)
+- Full marketing site pivot (`site/app/page.tsx` hero + pricing + compatibility matrix + FAQ + /beta signup + /dashboard)
+- BIBLE.md chapter split into `mintlify-docs/bible/*.mdx`
+- Mintlify full v4 content refresh (pages beyond introduction/install/quickstart)
+- Lint tech debt — fix 135 eslint warnings (temporarily bumped `--max-warnings` 120 → 140 in CI + prepublishOnly; restore to 120 in beta.2 after cleanup)
+- Plugin "MCP passthrough" mode — upgrade slash commands to optionally route through hosted MCP for lazy-loading + cross-IDE usage counter sync
+- Use `skills/engineering-pack/mcp-server-builder/SKILL.md` when implementing the real hosted MCP server (not the current scaffold) — covers production-ready MCP design from API contracts with schema validation + safe evolution
+
 ## [2.3.1] — 2026-04-13
 
 ### Production Hardening + Advisor Tool

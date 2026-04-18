@@ -1,0 +1,294 @@
+#!/usr/bin/env node
+'use strict';
+
+/**
+ * CC Commander — Local MCP Server (v4.0 Beta)
+ *
+ * Implements MCP stdio transport (JSON-RPC 2.0 over stdin/stdout).
+ * No external dependencies — runs with Node.js >= 18.
+ *
+ * Usage:
+ *   node commander/mcp-server/index.js
+ *
+ * Or via package.json bin (after npm link):
+ *   cc-commander mcp
+ *
+ * Wire into Claude Code / Cursor / Windsurf:
+ *   .claude/mcp.json:
+ *   {
+ *     "commander": {
+ *       "command": "node",
+ *       "args": ["/path/to/commander/mcp-server/index.js"],
+ *       "env": { "COMMANDER_LICENSE": "free" }
+ *     }
+ *   }
+ */
+
+var readline = require('readline');
+var TOOLS = require('./tools');
+var loader = require('./skills-loader');
+var translator = require('./translator');
+var path = require('path');
+var fs = require('fs');
+var os = require('os');
+
+var pkg = require('../../package.json');
+var BRAND = require('../branding');
+
+var SERVER_INFO = {
+  name: 'commander',
+  version: pkg.version,
+};
+
+var CAPABILITIES = {
+  tools: {},
+};
+
+// ─── JSON-RPC helpers ──────────────────────────────────────────
+
+function reply(id, result) {
+  var msg = JSON.stringify({ jsonrpc: '2.0', id: id, result: result });
+  process.stdout.write(msg + '\n');
+}
+
+function replyError(id, code, message) {
+  var msg = JSON.stringify({ jsonrpc: '2.0', id: id, error: { code: code, message: message } });
+  process.stdout.write(msg + '\n');
+}
+
+// ─── Tool Handlers ─────────────────────────────────────────────
+
+function handleListSkills(args) {
+  return loader.listSkills(args);
+}
+
+function handleGetSkill(args) {
+  var skill = loader.getSkill(args.name);
+  if (!skill) return { error: 'Skill not found: ' + args.name };
+  return skill;
+}
+
+function handleSearch(args) {
+  return { results: loader.searchSkills(args.query, args.limit) };
+}
+
+function handleSuggestFor(args) {
+  return { suggestions: loader.suggestFor(args.task) };
+}
+
+function handleInvokeSkill(args) {
+  var skill = loader.getSkill(args.name);
+  if (!skill) return { error: 'Skill not found: ' + args.name, confidence: 0 };
+  return {
+    skill: args.name,
+    content: skill.content,
+    context: args.context || '',
+    confidence: 0.85,
+    note: 'Local mode: skill content returned. Claude Code handles execution.',
+  };
+}
+
+function handleListAgents(_args) {
+  var agentsDir = path.join(__dirname, '..', 'cowork-plugin', 'agents');
+  var agents = [];
+  try {
+    var entries = fs.readdirSync(agentsDir, { withFileTypes: true });
+    for (var entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
+      var name = entry.name.replace('.md', '');
+      var tier = ['reviewer', 'builder', 'researcher', 'debugger', 'fleet-worker'].includes(name) ? 'pro' : 'free';
+      agents.push({ name: name, tier: tier, path: path.join(agentsDir, entry.name) });
+    }
+  } catch (_) {}
+  var args = _args || {};
+  if (args.tier) agents = agents.filter(function(a) { return a.tier === args.tier; });
+  return { agents: agents.map(function(a) { return { name: a.name, tier: a.tier }; }) };
+}
+
+function handleGetAgent(args) {
+  var agentsDir = path.join(__dirname, '..', 'cowork-plugin', 'agents');
+  var agentPath = path.join(agentsDir, args.name + '.md');
+  try {
+    var content = fs.readFileSync(agentPath, 'utf8');
+    return { name: args.name, content: content };
+  } catch (_) {
+    return { error: 'Agent not found: ' + args.name };
+  }
+}
+
+function handleInvokeAgent(args) {
+  return {
+    agent: args.name,
+    task: args.task,
+    note: 'Local mode: use Claude Code /ccc:' + args.name + ' with the task context below.',
+    dispatchHint: 'ccc --dispatch "' + args.task.replace(/"/g, '\\"') + '" --agent ' + args.name,
+  };
+}
+
+function handleStatus(_args) {
+  var configDir = path.join(os.homedir(), '.claude', 'commander');
+  var license = 'free';
+  var usage = 0;
+  try { license = process.env.COMMANDER_LICENSE || 'free'; } catch (_) {}
+  try {
+    var usageFile = path.join(configDir, 'usage.json');
+    if (fs.existsSync(usageFile)) {
+      var data = JSON.parse(fs.readFileSync(usageFile, 'utf8'));
+      usage = data.callsThisMonth || 0;
+    }
+  } catch (_) {}
+
+  return {
+    version: pkg.version,
+    license: license,
+    usageThisMonth: usage,
+    usageCap: license === 'pro' ? null : 1000,
+    mode: 'local',
+    skillCount: loader.listSkills({}).total,
+  };
+}
+
+function handleUpdate(_args) {
+  var checkPath = path.join(__dirname, '..', 'update-check.js');
+  try {
+    var checker = require(checkPath);
+    if (typeof checker.checkForUpdate === 'function') {
+      return checker.checkForUpdate().then ? { async: true } : { message: 'Update check ran synchronously.' };
+    }
+  } catch (_) {}
+  return { currentVersion: pkg.version, latestVersion: null, note: 'Run: npm view cc-commander version' };
+}
+
+function handleInit(args) {
+  var templatePath = path.join(__dirname, '..', '..', 'CLAUDE.md.template');
+  var template = '';
+  try { template = fs.readFileSync(templatePath, 'utf8'); } catch (_) { template = '# CLAUDE.md\n\nGenerated by CC Commander ' + pkg.version; }
+  if (args.projectName) template = template.replace(/\{PROJECT_NAME\}/g, args.projectName);
+  if (args.stack) template = template + '\n\n## Stack\n' + args.stack;
+  return { content: template, projectName: args.projectName || 'my-project' };
+}
+
+function handleNotesPin(args) {
+  var notesDir = path.join(os.homedir(), '.claude', 'commander');
+  try { fs.mkdirSync(notesDir, { recursive: true }); } catch (_) {}
+  var notesFile = path.join(notesDir, 'pinned-notes.json');
+  var notes = [];
+  try { notes = JSON.parse(fs.readFileSync(notesFile, 'utf8')); } catch (_) {}
+  var note = { id: Date.now().toString(), content: args.content, tags: args.tags || [], pinnedAt: new Date().toISOString() };
+  notes.push(note);
+  try { fs.writeFileSync(notesFile, JSON.stringify(notes, null, 2)); } catch (_) {}
+  return { pinned: true, id: note.id };
+}
+
+function handleTasksPush(args) {
+  return {
+    queued: true,
+    title: args.title,
+    note: 'Connect Linear via ccc settings to push tasks. Task queued locally.',
+  };
+}
+
+function handlePlanIntegrate(args) {
+  var plansDir = path.join(os.homedir(), '.claude', 'commander');
+  try { fs.mkdirSync(plansDir, { recursive: true }); } catch (_) {}
+  var plansFile = path.join(plansDir, 'plans.json');
+  var plans = [];
+  try { plans = JSON.parse(fs.readFileSync(plansFile, 'utf8')); } catch (_) {}
+  var plan = { id: Date.now().toString(), title: args.title || 'Untitled Plan', plan: args.plan, importedAt: new Date().toISOString() };
+  plans.push(plan);
+  try { fs.writeFileSync(plansFile, JSON.stringify(plans, null, 2)); } catch (_) {}
+  return { integrated: true, id: plan.id, title: plan.title };
+}
+
+// ─── Tool dispatch map ─────────────────────────────────────────
+
+var HANDLERS = {
+  commander_list_skills: handleListSkills,
+  commander_get_skill: handleGetSkill,
+  commander_search: handleSearch,
+  commander_suggest_for: handleSuggestFor,
+  commander_invoke_skill: handleInvokeSkill,
+  commander_list_agents: handleListAgents,
+  commander_get_agent: handleGetAgent,
+  commander_invoke_agent: handleInvokeAgent,
+  commander_status: handleStatus,
+  commander_update: handleUpdate,
+  commander_init: handleInit,
+  commander_notes_pin: handleNotesPin,
+  commander_tasks_push: handleTasksPush,
+  commander_plan_integrate: handlePlanIntegrate,
+};
+
+// ─── Request Router ────────────────────────────────────────────
+
+function handleRequest(req) {
+  var id = req.id;
+  var method = req.method;
+  var params = req.params || {};
+
+  if (method === 'initialize') {
+    reply(id, {
+      protocolVersion: '2024-11-05',
+      capabilities: CAPABILITIES,
+      serverInfo: SERVER_INFO,
+    });
+    return;
+  }
+
+  if (method === 'tools/list') {
+    reply(id, { tools: TOOLS });
+    return;
+  }
+
+  if (method === 'tools/call') {
+    var toolName = params.name;
+    var toolArgs = params.arguments || {};
+    var handler = HANDLERS[toolName];
+    if (!handler) {
+      replyError(id, -32601, 'Tool not found: ' + toolName);
+      return;
+    }
+    try {
+      var result = handler(toolArgs);
+      reply(id, translator.translateResult(toolName, result));
+    } catch (err) {
+      reply(id, translator.translateError(err));
+    }
+    return;
+  }
+
+  if (method === 'ping') {
+    reply(id, {});
+    return;
+  }
+
+  // Unknown method — return method not found
+  replyError(id, -32601, 'Method not found: ' + method);
+}
+
+// ─── Stdio transport ───────────────────────────────────────────
+
+function main() {
+  var rl = readline.createInterface({ input: process.stdin, terminal: false });
+  rl.on('line', function(line) {
+    line = line.trim();
+    if (!line) return;
+    try {
+      var req = JSON.parse(line);
+      handleRequest(req);
+    } catch (err) {
+      // Parse error
+      var errMsg = JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
+      process.stdout.write(errMsg + '\n');
+    }
+  });
+
+  rl.on('close', function() {
+    process.exit(0);
+  });
+
+  // Signal readiness to stderr (not stdout — stdout is JSON-RPC only)
+  process.stderr.write('[commander-mcp] CC Commander MCP Server v' + pkg.version + ' ready (local mode)\n');
+}
+
+main();

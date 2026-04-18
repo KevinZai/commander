@@ -6,8 +6,8 @@ const TERMINAL_LINES = [
   { prompt: "$", text: "claude" },
   { prompt: ">", text: "/plugin marketplace add KevinZai/commander" },
   { prompt: "✓", text: "Marketplace added", color: "text-green-400" },
-  { prompt: ">", text: "/plugin install ccc" },
-  { prompt: "✓", text: "Installed: ccc v3.0.0", color: "text-green-400" },
+  { prompt: ">", text: "/plugin install commander" },
+  { prompt: "✓", text: "Installed: commander v3.0.0", color: "text-green-400" },
   { prompt: " ", text: "15 skills · 5 agents · 6 hooks · 8 MCPs", color: "text-zinc-500" },
   { prompt: "✓", text: "Ready. Try /ccc:build to ship something.", color: "text-green-400" },
 ];

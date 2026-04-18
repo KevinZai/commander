@@ -360,5 +360,5 @@
 
 ---
 
-*CC Commander v2.3.1 by Kevin Z -- 456+ skills | 11 CCC domains | 83 commands | 28 hooks | 10 themes | 10 modes*
+*CC Commander v2.3.1 by Kevin Z -- 453+ skills | 11 CCC domains | 83 commands | 28 hooks | 10 themes | 10 modes*
 *Distilled from 200+ community sources. One install. Under 60 seconds.*
