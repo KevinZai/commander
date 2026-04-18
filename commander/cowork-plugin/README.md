@@ -1,8 +1,8 @@
 # CC Commander
 
-> 15 plugin skills + 456+ CC Commander ecosystem skills. One plugin. Your AI work, managed by AI.
+> 15 plugin skills + 453+ CC Commander ecosystem skills. One plugin. Your AI work, managed by AI.
 
-CC Commander is a guided AI PM plugin for Claude Desktop that orchestrates your entire development workflow — from planning to shipping. The plugin ships 15 native skills (`/ccc:*`) that route into the broader CC Commander ecosystem of 456+ skills across 11 domains. It compounds knowledge across sessions, detects and sequences your installed tools, and provides guided flows for building, researching, reviewing, and deploying. Works standalone out of the box, gets supercharged when you connect your tools.
+CC Commander is a guided AI PM plugin for Claude Desktop that orchestrates your entire development workflow — from planning to shipping. The plugin ships 15 native skills (`/ccc:*`) that route into the broader CC Commander ecosystem of 453+ skills across 11 domains. It compounds knowledge across sessions, detects and sequences your installed tools, and provides guided flows for building, researching, reviewing, and deploying. Works standalone out of the box, gets supercharged when you connect your tools.
 
 ## Installation
 
@@ -33,7 +33,7 @@ Use this when you want one specific skill without the full plugin, or when mixin
 
 **3. Full CLI install**
 
-Installs the CCC CLI (`ccc` command), all 456+ skills, hooks, commands, and templates into `~/.claude/`.
+Installs the CCC CLI (`ccc` command), all 453+ skills, hooks, commands, and templates into `~/.claude/`.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash

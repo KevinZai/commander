@@ -21,7 +21,7 @@ Major version — MCP-first cross-IDE beta with 15 specialist personas, hosted b
 ### Added — Docs + Template
 - `CLAUDE.md.template` 2026-04-17 refresh — 22-emoji semantic palette + 10 Core Principles + 4 HARD RULES
 - Publisher canon sweep: all doc references `Kevin Zicherman` (was mixed `Kevin Z`)
-- Skill count canon: **456+** (was inconsistent 450+/456+)
+- Skill count canon: **453+** (was inconsistent 450+/453+)
 
 ### Added — Beta Infrastructure
 - `supabase/migrations/20260417000000_beta_v4.sql` — users, surveys, usage_counters, feedback, agent_messages tables + RLS

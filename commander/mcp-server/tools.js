@@ -32,7 +32,7 @@ var TOOLS = [
   },
   {
     name: 'commander_search',
-    description: 'Semantic search across 456+ skills. Returns ranked matches with relevance scores.',
+    description: 'Semantic search across 453+ skills. Returns ranked matches with relevance scores.',
     inputSchema: {
       type: 'object',
       required: ['query'],
