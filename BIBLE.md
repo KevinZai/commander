@@ -1,5 +1,5 @@
-# CC Commander — by Kevin Z
-> Updated: 2026-03-30 | Version: see package.json | Non-coder friendly. Practical examples throughout.
+# CC Commander — by Kevin Zicherman
+> Updated: 2026-04-17 | Version: see package.json | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -2152,7 +2152,7 @@ ccc --repair
 | **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 450+ skills from within Commander |
+| **Skill browser** | Browse all 456+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
@@ -2377,7 +2377,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 450+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 456+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology
@@ -2587,5 +2587,5 @@ The community ecosystem provides the raw material. CCC provides the operating sy
 ---
 
 *Last updated: 2026-03-29*
-*CC Commander — by Kevin Z*
+*CC Commander — by Kevin Zicherman*
 *Update this file when you learn something new. That's the point.*

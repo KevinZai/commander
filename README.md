@@ -1,19 +1,64 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ccc-hero.svg">
-  <img src="docs/assets/ccc-hero.svg" alt="CCC — Claude Code Commander" width="100%">
+  <img src="docs/assets/ccc-hero.svg" alt="CC Commander" width="100%">
 </picture>
 
-> **Every Claude Code tool. One install. An AI brain that learns.**
+# CC Commander
 
-**Not a skill pack. An AI project manager that thinks before it acts.** 456+ skills, 98% context savings, 19 vendor packages, and an Intelligence Layer that scores complexity, reads your stack, and gets smarter every session.
+> **Guided AI PM to Master Claude Code Instantly**
 
-<img src="docs/assets/hero.gif" alt="CCC v3.0.0" width="100%">
+**1 MCP server. 456+ skills. Every AI IDE. Free in beta.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/19_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v3.0.0](https://img.shields.io/badge/v3.0.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.1" width="100%">
 
-**[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 19 vendor packages
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/19_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v4.0.0-beta.1](https://img.shields.io/badge/v4.0.0--beta.1-D97706?style=for-the-badge)](./CHANGELOG.md)
 
-**[Install](#quick-start--pick-your-path)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)** · **[Why CCC?](docs/WHY-CCC.md)** · **[Evaluation](docs/EVALUATION.md)**
+**[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 19 vendor packages
+
+**[Install](#quick-start--pick-your-path)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)** · **[Beta Signup](https://cc-commander.com/beta)**
+
+---
+
+## 30-Second Install
+
+```
+/plugin marketplace add KevinZai/commander
+/plugin install commander
+```
+
+Done. 15 skills activate immediately. No config. No API keys.
+
+## 2-Minute First Win
+
+```
+# 1. Open the command center
+/ccc
+
+# 2. Say: "build me a REST API with TypeScript"
+# → Commander asks 3 clarifying questions
+# → Selects the right model + skills automatically
+# → Ships working code with tests
+
+# 3. Say: "review my last PR"
+# → reviewer agent runs severity-rated code review
+# → Flags Critical/High/Medium/Low findings with file:line citations
+
+# 4. Say: "night mode — build a landing page while I sleep"
+# → 8-hour autonomous build with checkpoints every 10 edits
+# → Wakes you up to shipped code
+```
+
+## Works In 8 IDEs
+
+Claude Code · Cursor · Windsurf · Cline · Continue · Codex · Claude mobile · Claude Desktop
+
+## Free Beta
+
+- 1,000 MCP calls/month — no credit card required
+- [Sign up at cc-commander.com/beta](https://cc-commander.com/beta)
+- One survey question per session (skippable — your feedback shapes the roadmap)
+
+---
 
 ---
 
@@ -227,7 +272,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 ### What's New in v3.0.0 — Desktop-First Plugin
 
-- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander`
+- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.1)
 - **15 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
 - **5 specialized agents** — reviewer, builder, researcher, debugger, fleet-worker
 - **6 lifecycle hooks** — automated session, build, review, deploy, and fleet hooks
@@ -424,7 +469,7 @@ CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what sho
 
 **What you get:** 15 plugin skills, 5 specialized agents, 6 lifecycle hooks, 5 MCP servers — all with free/pro tier support.
 
-**Marketplace:** `ccc-marketplace` at [KevinZai/commander](https://github.com/KevinZai/commander)
+**Marketplace:** `commander-marketplace` at [KevinZai/commander](https://github.com/KevinZai/commander)
 
 ---
 
@@ -686,7 +731,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CCC v3.0.0** · **[Kevin Z](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v4.0.0-beta.1** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

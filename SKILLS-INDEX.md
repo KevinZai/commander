@@ -1,16 +1,16 @@
 # Skills Index — Quick Reference
-> CCC (Claude Code Commander) v3.0.0 — by Kevin Z
+> CC Commander v4.0.0-beta.1 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-04-15 | 456 skills (CLI-visible; 459 on disk) + 15 Desktop plugin skills | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes
+> Last verified: 2026-04-17 | 456+ skills (CLI-visible) + 15 Desktop plugin skills | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
 
 ---
 
-## Desktop Plugin Skills (v3.0.0)
+## Desktop Plugin Skills (v4.0.0-beta.1)
 
-> Installed at `commander/cowork-plugin/`. Prefix: `/ccc:*`. Use in Claude Desktop after `claude plugin install commander/cowork-plugin/`.
+> Installed at `commander/cowork-plugin/`. Prefix: `/ccc:*`. Install: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`.
 
 | Skill | Description | Tier | Trigger Phrases |
 |-------|-------------|------|----------------|
@@ -574,7 +574,7 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = added in CCC v2.3.0 and kept current with each release. Desktop plugin skills (/ccc:*) added in v3.0.0.*
+*⭐ = added in CC Commander v2.3.0 and kept current with each release. Desktop plugin skills (/ccc:*) added in v3.0.0, updated in v4.0.0-beta.1.*
 
 ---
 

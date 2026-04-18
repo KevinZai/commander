@@ -1,18 +1,18 @@
 {
   "name": "commander-marketplace",
   "owner": {
-    "name": "Kevin Z",
+    "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
   },
   "plugins": [
     {
       "name": "commander",
       "source": "./commander/cowork-plugin",
-      "description": "CC Commander — AI project manager with 450+ skills, interactive menus, deep integrations, specialized agents, and knowledge compounding.",
-      "version": "3.1.0",
+      "description": "CC Commander — Guided AI PM to Master Claude Code Instantly. 1 MCP server. 456+ skills. Every AI IDE. Free in beta.",
+      "version": "4.0.0-beta.1",
       "category": "development",
       "author": {
-        "name": "Kevin Z",
+        "name": "Kevin Zicherman",
         "url": "https://kevinz.ai"
       }
     }

@@ -1,12 +1,12 @@
 {
   "name": "commander",
-  "version": "3.1.0",
-  "description": "CC Commander \u2014 AI project manager with 450+ skills, interactive menus, deep integrations, specialized agents, and knowledge compounding. Works standalone or supercharged with connected tools.",
+  "version": "4.0.0-beta.1",
+  "description": "CC Commander — Guided AI PM to Master Claude Code Instantly. 1 MCP server. 456+ skills. Every AI IDE. Free in beta. Works in Claude Code, Cursor, Windsurf, Cline, Continue, Codex, and more.",
   "author": {
-    "name": "Kevin Z",
+    "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
   },
-  "homepage": "https://github.com/KevinZai/commander",
+  "homepage": "https://cc-commander.com",
   "repository": "https://github.com/KevinZai/commander",
   "license": "MIT",
   "keywords": [
@@ -21,8 +21,36 @@
     "web-search",
     "tavily",
     "context7",
-    "mcp"
+    "mcp",
+    "mcp-server",
+    "hosted",
+    "beta",
+    "cursor",
+    "windsurf"
   ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "tiers": {
+    "free": [
+      "commander",
+      "build",
+      "linear-board",
+      "research",
+      "content",
+      "session",
+      "settings",
+      "domains",
+      "night-mode",
+      "standup",
+      "code-review",
+      "deploy-check",
+      "fleet"
+    ],
+    "pro": [
+      "infra",
+      "knowledge"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
