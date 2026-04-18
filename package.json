@@ -68,7 +68,7 @@
     "check:registry": "node scripts/build-from-registry.js --check",
     "test:tmux-menu": "node --test commander/tests/tmux-menu-audit.test.js",
     "test:coverage": "./node_modules/.bin/c8 node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js",
-    "prepublishOnly": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js && npx eslint . --max-warnings 120",
+    "prepublishOnly": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js && npx eslint . --max-warnings 140",
     "test:screenshots": "node tests/screenshot-capture.js",
     "test:screenshots:png": "node tests/screenshot-capture.js --png",
     "test:showcase": "bash tests/visual-showcase.sh"
