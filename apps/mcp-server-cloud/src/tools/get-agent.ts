@@ -1,54 +1,24 @@
+import { getAgents, getAgentContent } from "../lib/registry.js";
+
 export type GetAgentArgs = { name: string };
 
-const AGENT_DEFINITIONS: Record<string, object> = {
-  reviewer: {
-    name: "reviewer",
-    model: "sonnet",
-    effort: "high",
-    persona: "personas/reviewer",
-    description: "Severity-rated change analyzer. Finds P0 blockers before they ship.",
-    githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/reviewer.md",
-  },
-  builder: {
-    name: "builder",
-    model: "sonnet",
-    effort: "high",
-    persona: "personas/builder",
-    description: "MVP-first implementer. Boring solutions win. 100 lines > 1000 lines when both work.",
-    githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/builder.md",
-  },
-  researcher: {
-    name: "researcher",
-    model: "sonnet",
-    effort: "high",
-    persona: "personas/researcher",
-    description: "Structured findings synthesizer. Every claim cites a source.",
-    githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/researcher.md",
-  },
-  debugger: {
-    name: "debugger",
-    model: "sonnet",
-    effort: "high",
-    persona: "personas/debugger",
-    description: "Root-cause detective. Reproduce → hypothesize → verify → fix.",
-    githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/debugger.md",
-  },
-  "fleet-worker": {
-    name: "fleet-worker",
-    model: "sonnet",
-    effort: "medium",
-    persona: "personas/fleet-worker",
-    description: "Strict-report executor. Non-overlapping file domains. Structured output the parent can parse.",
-    githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/fleet-worker.md",
-  },
-};
+export async function getAgent(args: GetAgentArgs): Promise<Record<string, unknown>> {
+  const agents = getAgents();
+  const agent = agents.find((a) => a.name === args.name);
 
-export function getAgent(args: GetAgentArgs) {
-  const agent = AGENT_DEFINITIONS[args.name];
   if (!agent) {
     return {
       error: `Agent '${args.name}' not found. Use commander_list_agents to see available agents.`,
     };
   }
-  return agent;
+
+  const content = await getAgentContent(agent.name);
+
+  return {
+    name: agent.name,
+    tier: agent.tier,
+    description: agent.description,
+    githubUrl: agent.githubUrl,
+    content: content ?? `# ${agent.name}\n\nAgent definition available at: ${agent.githubUrl}`,
+  };
 }

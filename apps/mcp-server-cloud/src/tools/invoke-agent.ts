@@ -2,21 +2,19 @@ import { getAgent } from "./get-agent.js";
 
 export type InvokeAgentArgs = { name: string; task: string };
 
-export function invokeAgent(args: InvokeAgentArgs) {
-  const agent = getAgent({ name: args.name });
+export async function invokeAgent(args: InvokeAgentArgs) {
+  const agent = await getAgent({ name: args.name });
   if ("error" in agent) return agent;
 
-  const def = agent as { name: string; description: string; githubUrl: string; persona: string };
-
   return {
-    agent: def.name,
+    agent: agent.name,
     task: args.task,
     invocationGuide: [
-      `You are now the ${def.name} agent.`,
-      def.description,
+      `You are now the ${agent.name as string} agent.`,
+      agent.description as string,
       `Task: ${args.task}`,
-      `For full persona instructions, see: ${def.githubUrl}`,
+      `For full persona instructions, see: ${agent.githubUrl as string}`,
     ].join("\n\n"),
-    persona: def.persona,
+    githubUrl: agent.githubUrl,
   };
 }

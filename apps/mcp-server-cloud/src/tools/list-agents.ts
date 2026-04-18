@@ -1,17 +1,19 @@
-export type ListAgentsArgs = Record<string, never>;
+import { getAgents } from "../lib/registry.js";
 
-const FREE_AGENTS = [
-  { name: "reviewer", tier: "free", description: "Severity-rated code reviewer. Files P0-P3 findings with fix suggestions." },
-  { name: "builder", tier: "free", description: "MVP-first implementer. Ships the simplest thing that works." },
-  { name: "researcher", tier: "free", description: "Source-cited analyst. Facts, inferences, and opinions are always separated." },
-  { name: "debugger", tier: "free", description: "Root-cause detective. Iron Law: no fix without confirmed root cause." },
-  { name: "fleet-worker", tier: "free", description: "Strict-report executor. Non-overlapping file domains, structured output." },
-];
+export type ListAgentsArgs = { tier?: string };
 
-export function listAgents(_args: ListAgentsArgs) {
+export function listAgents(args: ListAgentsArgs) {
+  let agents = getAgents();
+  if (args.tier) agents = agents.filter((a) => a.tier === args.tier);
+
   return {
-    agents: FREE_AGENTS,
-    total: FREE_AGENTS.length,
-    note: "All 15 agents available in Pro tier — specialized personas with role-specific voice layers.",
+    agents: agents.map((a) => ({
+      name: a.name,
+      tier: a.tier,
+      description: a.description,
+      githubUrl: a.githubUrl,
+    })),
+    total: agents.length,
+    note: "Pro tier includes specialized personas with role-specific voice layers.",
   };
 }

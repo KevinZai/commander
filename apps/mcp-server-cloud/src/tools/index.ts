@@ -37,87 +37,93 @@ export type ToolName = (typeof TOOL_NAMES)[number];
 
 export const TOOL_SCHEMAS: Record<ToolName, object> = {
   commander_list_skills: {
-    description: "Returns paginated skill catalog with metadata (name, domain, tier, description).",
+    description: "Returns paginated skill catalog with metadata (name, domain, tier, description). Use this to browse available Commander skills.",
     inputSchema: {
       type: "object",
       properties: {
         page: { type: "number", default: 1 },
         pageSize: { type: "number", default: 50, maximum: 100 },
-        domain: { type: "string", description: "Filter by domain (e.g. ccc-design)" },
+        domain: { type: "string", description: "Filter by domain (e.g. ccc-design, ccc-devops)" },
+        tier: { type: "string", enum: ["free", "pro"], description: "Filter by access tier" },
       },
     },
   },
   commander_get_skill: {
-    description: "Fetch full SKILL.md content for a specific skill by name.",
+    description: "Fetch full SKILL.md content for a specific skill by name. Lazy loads skill on demand (~85% token savings vs loading all at session start).",
     inputSchema: {
       type: "object",
       required: ["name"],
-      properties: { name: { type: "string" } },
+      properties: { name: { type: "string", description: "Skill name (e.g. ccc-design, tdd-workflow)" } },
     },
   },
   commander_search: {
-    description: "Search across 456+ skills — returns ranked matches.",
+    description: "Search across 456+ skills — returns ranked matches with relevance scores.",
     inputSchema: {
       type: "object",
       required: ["query"],
       properties: {
-        query: { type: "string" },
+        query: { type: "string", description: "Natural language query (e.g. 'write tests', 'deploy to fly.io')" },
         limit: { type: "number", default: 10, maximum: 20 },
       },
     },
   },
   commander_suggest_for: {
-    description: "Given a task description, returns top 3-5 relevant skills.",
+    description: "Given a task description, returns top 3-5 most relevant Commander skills.",
     inputSchema: {
       type: "object",
       required: ["task"],
-      properties: { task: { type: "string" } },
+      properties: { task: { type: "string", description: "Task description (e.g. 'build a Stripe checkout page')" } },
     },
   },
   commander_invoke_skill: {
-    description: "Trigger a skill by name, passing context.",
+    description: "Trigger a skill by name, passing context. Returns the full skill instructions for execution.",
     inputSchema: {
       type: "object",
       required: ["name"],
       properties: {
-        name: { type: "string" },
-        context: { type: "string" },
+        name: { type: "string", description: "Skill name to invoke" },
+        context: { type: "string", description: "Task context to pass to the skill" },
       },
     },
   },
   commander_list_agents: {
-    description: "Returns available agents (free vs Pro gated).",
-    inputSchema: { type: "object", properties: {} },
+    description: "Returns available Commander agents with tier information (free vs Pro gated).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tier: { type: "string", enum: ["free", "pro"], description: "Filter by tier" },
+      },
+    },
   },
   commander_get_agent: {
-    description: "Fetch full agent definition.",
+    description: "Fetch full agent definition (frontmatter + instructions) by agent name.",
     inputSchema: {
       type: "object",
       required: ["name"],
-      properties: { name: { type: "string" } },
+      properties: { name: { type: "string", description: "Agent name (e.g. reviewer, builder, researcher)" } },
     },
   },
   commander_invoke_agent: {
-    description: "Trigger an agent by name with task context.",
+    description: "Trigger a Commander agent by name with a task context.",
     inputSchema: {
       type: "object",
       required: ["name", "task"],
       properties: {
-        name: { type: "string" },
-        task: { type: "string" },
+        name: { type: "string", description: "Agent name to invoke" },
+        task: { type: "string", description: "Task context for the agent" },
       },
     },
   },
   commander_status: {
-    description: "Health check — version, license tier, usage this month.",
+    description: "Health check — version, license tier, usage this month, call cap remaining.",
     inputSchema: { type: "object", properties: {} },
   },
   commander_update: {
-    description: "Check for Commander updates, return changelog delta.",
+    description: "Check for Commander updates, return changelog delta if available.",
     inputSchema: { type: "object", properties: {} },
   },
   commander_init: {
-    description: "Generate a project CLAUDE.md from CCC template.",
+    description: "Generate a project CLAUDE.md from CCC template. Cross-IDE equivalent of /ccc:init.",
     inputSchema: {
       type: "object",
       properties: {
@@ -125,7 +131,7 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
           type: "string",
           enum: ["web-app", "api", "cli", "mobile", "saas", "mcp-server"],
         },
-        ide: { type: "string" },
+        ide: { type: "string", description: "Target IDE (claude-code, cursor, windsurf, zed)" },
       },
     },
   },
@@ -134,11 +140,11 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     inputSchema: {
       type: "object",
       required: ["note"],
-      properties: { note: { type: "string" } },
+      properties: { note: { type: "string", description: "Note content to pin (max 2000 chars)" } },
     },
   },
   commander_tasks_push: {
-    description: "Push a task to Linear (if connected).",
+    description: "Push a task to Linear (if connected via Commander settings).",
     inputSchema: {
       type: "object",
       required: ["title"],
@@ -150,11 +156,14 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_plan_integrate: {
-    description: "Import an existing plan into Commander's session context.",
+    description: "Import an existing plan into Commander's session context for tracking.",
     inputSchema: {
       type: "object",
       required: ["plan"],
-      properties: { plan: { type: "string" } },
+      properties: {
+        plan: { type: "string", description: "Plan content (markdown or plain text)" },
+        title: { type: "string", description: "Optional plan title" },
+      },
     },
   },
 };

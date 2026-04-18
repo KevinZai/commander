@@ -1,6 +1,6 @@
 {
   "name": "commander",
-  "version": "4.0.0-beta.2",
+  "version": "4.0.0-beta.3",
   "description": "CC Commander — Guided AI PM to Master Claude Code Instantly. 1 MCP server. 453+ skills. Every AI IDE. Free in beta. Works in Claude Code, Cursor, Windsurf, Cline, Continue, Codex, and more.",
   "author": {
     "name": "Kevin Zicherman",
@@ -67,6 +67,11 @@
         "type": "command",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.js",
         "timeout": 10000
+      },
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js",
+        "timeout": 5000
       }
     ],
     "UserPromptSubmit": [
@@ -79,6 +84,11 @@
         "type": "command",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.js",
         "timeout": 5000
+      },
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/context-warning.js",
+        "timeout": 3000
       }
     ],
     "SubagentStop": [
@@ -88,11 +98,28 @@
         "timeout": 5000
       }
     ],
+    "SubagentStart": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start-tracker.js",
+        "timeout": 5000
+      }
+    ],
     "PreToolUse": [
       {
         "type": "command",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js",
         "timeout": 3000
+      },
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js",
+        "timeout": 3000
+      },
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/secret-leak-guard.js",
+        "timeout": 5000
       }
     ],
     "PostToolUse": [
@@ -106,6 +133,27 @@
       {
         "type": "command",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.js",
+        "timeout": 5000
+      }
+    ],
+    "PostCompact": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post-compact-recovery.js",
+        "timeout": 5000
+      }
+    ],
+    "Elicitation": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-logger.js",
+        "timeout": 5000
+      }
+    ],
+    "ElicitationResult": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-result-handler.js",
         "timeout": 5000
       }
     ],

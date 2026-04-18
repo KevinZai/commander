@@ -377,6 +377,57 @@ function getTrendingSkills(days) {
   return trending.sort(function(a, b) { return b.count - a.count; });
 }
 
+/**
+ * List skills with optional MCP-backed enhancement.
+ * When useMcp is true AND mcp-passthrough is enabled, fetches additional
+ * skill metadata from the MCP server and merges with local results.
+ * Falls back to local results on any failure — same shape either way.
+ *
+ * @param {object} [opts]
+ * @param {boolean} [opts.useMcp=false]  - Opt-in to MCP lookup
+ * @param {string[]} [opts.dirs]         - Custom skill dirs (passed to listSkills)
+ * @returns {Promise<Array<{ name: string, description: string, path: string, isMega: boolean }>>}
+ */
+async function listSkillsEnhanced(opts) {
+  const useMcp = opts && opts.useMcp === true;
+  const dirs = opts && opts.dirs;
+  const local = listSkills(dirs);
+
+  if (!useMcp) return local;
+
+  let passthrough;
+  try {
+    passthrough = require('./cowork-plugin/lib/mcp-passthrough');
+  } catch (_e) {
+    return local;
+  }
+
+  const result = await passthrough.call('list_skills', {}, {
+    timeout: 2000,
+    fallback: async () => ({ source: 'local', skills: [] }),
+  });
+
+  // If MCP returned nothing useful, return local as-is
+  if (!result || result.source === 'local' || !Array.isArray(result.skills) || result.skills.length === 0) {
+    return local;
+  }
+
+  // Merge: MCP skills that aren't already in local (by name) are appended
+  const localNames = new Set(local.map(s => s.name));
+  const remote = result.skills
+    .filter(s => s && s.name && !localNames.has(s.name))
+    .map(s => ({
+      name: s.name,
+      description: s.description || '',
+      dirName: s.dirName || s.name,
+      path: s.path || '',
+      isMega: s.isMega || false,
+      source: 'mcp',
+    }));
+
+  return local.concat(remote).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 module.exports = {
   filterByProject,
   recommendSkills,
@@ -386,6 +437,7 @@ module.exports = {
   SKILL_DIRS,
   STACK_MAP,
   listSkills,
+  listSkillsEnhanced,
   getSkillSummary,
   categorizeSkills,
   getSkillPreview,

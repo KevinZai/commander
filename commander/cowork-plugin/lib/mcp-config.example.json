@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "cc-commander": {
+      "url": "https://mcp.cc-commander.com/sse",
+      "headers": {
+        "Authorization": "Bearer YOUR_LICENSE_KEY"
+      }
+    }
+  }
+}
