@@ -551,7 +551,8 @@ describe('secret-leak-guard.js', () => {
       tool_name: 'Write',
       tool_input: {
         file_path: '/tmp/deploy.sh',
-        content: 'export GH_TOKEN=ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij12\n',
+        // Built at runtime to avoid CI secret-scan false positive
+        content: 'export GH_TOKEN=' + ['ghp', 'A'.repeat(36)].join('_') + '\n',
       },
     });
     assert.equal(r.exitCode, 0);
