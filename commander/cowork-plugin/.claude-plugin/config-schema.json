@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CC Commander Plugin Config",
+  "description": "Optional MCP configuration for CC Commander plugin. All fields are optional. Plugin works fully standalone without any of these.",
+  "type": "object",
+  "properties": {
+    "mcpEnabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable MCP passthrough. When false (default), all tool calls use local fallback. Enabling requires mcpEndpoint to be set."
+    },
+    "mcpEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "default": "https://mcp.cc-commander.com/sse",
+      "description": "URL of the CC Commander MCP server. Overridden by CCC_MCP_URL environment variable."
+    },
+    "mcpLicenseKey": {
+      "type": "string",
+      "description": "License key for authentication with the MCP server. Sent as Bearer token in Authorization header."
+    },
+    "mcpFallbackTimeout": {
+      "type": "number",
+      "minimum": 100,
+      "maximum": 10000,
+      "default": 2000,
+      "description": "Milliseconds to wait for MCP response before falling back to local. Overridden by individual call-level timeout."
+    },
+    "mcpCacheTtl": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3600,
+      "default": 30,
+      "description": "Seconds to cache health check results. Set to 0 to disable caching."
+    }
+  },
+  "additionalProperties": false
+}

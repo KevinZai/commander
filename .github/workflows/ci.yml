@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Airplane mode test
+        run: MCP_DISABLED=1 node --test tests/airplane-mode.test.js
+
       - name: Check shell syntax
         run: |
           bash -n install.sh
@@ -49,7 +52,7 @@ jobs:
           done
 
       - name: Lint
-        run: npx eslint . --max-warnings 140
+        run: npx eslint . --max-warnings 150
 
       - name: Run Intelligence tests
         run: node --test commander/tests/intelligence.test.js

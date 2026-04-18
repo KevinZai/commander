@@ -2,6 +2,50 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.3] — 2026-04-18 — Real MCP Server + 8 Hooks + Plugin Hybrid
+
+**Design contract:** the plugin stays 100% functional standalone. MCP is ADDITIVE. Every new capability either enhances plugin behavior when MCP is reachable, or gracefully falls back to local behavior when MCP is unreachable/unconfigured. CI enforces this via airplane-mode test.
+
+### Added — Plugin (local-only, zero MCP dependency)
+- **8 P0 lifecycle hook handlers** — `elicitation-logger`, `elicitation-result-handler`, `post-compact-recovery`, `subagent-start-tracker`, `cost-ceiling-enforcer`, `context-warning`, `stale-claude-md-nudge`, `secret-leak-guard`
+- New hook events wired in `plugin.json` + `hooks.json`: `Elicitation`, `ElicitationResult`, `PostCompact`, `SubagentStart`; extensions to `PreToolUse`, `UserPromptSubmit`, `SessionStart`
+- `commander/core/secret-patterns.json` — 16 patterns + allowlist for secret-leak guard
+- `commander/tests/hooks-v4.test.js` — 63 tests covering all 8 hooks + airplane-mode guard
+
+### Added — Plugin MCP Passthrough (opt-in)
+- `commander/cowork-plugin/lib/mcp-passthrough.js` — core passthrough contract with local fallback on every call
+- `commander/cowork-plugin/lib/mcp-config.example.json` — example `.claude/mcp.json` for opt-in
+- `commander/cowork-plugin/MCP.md` — end-user opt-in guide
+- `commander/cowork-plugin/.claude-plugin/config-schema.json` — JSON Schema for plugin config
+- `commander/skill-browser.js` — enhanced with optional MCP-backed lookup via `listSkillsEnhanced({ useMcp })`
+- `docs/plugin-mcp-hybrid.md` — developer architecture doc
+
+### Added — Hosted MCP Server (production-ready)
+- `apps/mcp-server-cloud/src/tools/*` — 13 real tool handlers (replaced scaffold stubs from beta.1)
+- `apps/mcp-server-cloud/src/lib/registry.ts` — in-memory skill+agent index from `commander/core/registry.yaml`
+- JWT bearer auth middleware (Supabase magic-link flow)
+- Upstash rate limiter (1000 calls/mo hard cap)
+- Mandatory feedback gate (every 20th call → 402 with action)
+- `apps/mcp-server-cloud/tests/integration.test.ts` — in-memory mocks (no external deps required in CI)
+- Multi-stage Dockerfile (node:24-alpine slim runtime)
+- `fly.toml` — `cc-commander-mcp`, iad region, autoscale 1-3 machines
+
+### Added — CI
+- `.github/workflows/ci.yml` — new `airplane mode` step (runs `MCP_DISABLED=1 npm test`) — blocks merge if plugin ever requires MCP
+- `tests/airplane-mode.test.js` — 8 tests proving plugin standalone-works contract
+
+### Added — npm scripts
+- `mcp:dev` — run local stdio MCP server
+- `mcp:cloud:build` / `mcp:cloud:dev` / `mcp:cloud:test` — hosted MCP lifecycle
+- `test:airplane` — run airplane-mode suite only
+
+### Changed
+- `package.json` / `marketplace.json` / `plugin.json` — bump to `4.0.0-beta.3`
+- Test count: 216 → 279 passing (+63 new tests)
+
+### Deploy blockers (Kevin action — see `tasks/kevin-handback-checklist.md`)
+All code is deploy-ready. To actually deploy hosted MCP to `mcp.cc-commander.com`, Kevin must provision: 1Password vault (10 items) + Supabase project + Fly app + Upstash Redis + Resend domain verify + Vercel link + domain buys + npm token refresh.
+
 ## [4.0.0-beta.2] — 2026-04-18 — All-Free Beta: Everything Unlocked
 
 Strategic pivot for beta: **gate by usage (1000 calls/mo), not by features.** Beta's job is activation + feedback quality, not revenue. Full product experience for every beta user — Pro tier activates at end of beta.

@@ -14,6 +14,11 @@ export default [
       '.taskmaster/**',
       'coverage/**',
       'skills/browse/test/**',
+      'apps/**',                       // mcp-server-cloud has its own eslint + TS config
+      'commander/mcp-server/dist/**',
+      '.claude/worktrees/**',          // embedded worktrees (fallback safety)
+      'site/**',                       // next.js site has its own config
+      'dashboard/**',                  // vite dashboard has its own config
     ],
   },
   {
