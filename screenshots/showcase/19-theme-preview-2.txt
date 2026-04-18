@@ -1,0 +1,40 @@
+│     ████████████
+│  ○ Ocean
+│     ████████████
+│  ○ Aurora
+│     ████████████
+│  ○ Sunset
+│     ████████████
+│  ○ Monochrome
+│     ████████████
+│  ○ Rainbow
+│     ████████████
+│  ○ Dracula
+│     ████████████
+│
+│  [↑↓] navigate  [enter] select  [q] quit  [?] help
+│
+◆  Pick a theme:
+│  ○ Cyberpunk
+│     ████████████
+│  ○ Fire
+│     ████████████
+│  ● Graffiti
+│     ████████████
+│  ○ Futuristic
+│     ████████████
+│  ○ Ocean
+│     ████████████
+│  ○ Aurora
+│     ████████████
+│  ○ Sunset
+│     ████████████
+│  ○ Monochrome
+│     ████████████
+│  ○ Rainbow
+│     ████████████
+│  ○ Dracula
+│     ████████████
+│
+│  [↑↓] navigate  [enter] select  [q] quit  [?] help
+

@@ -2,6 +2,21 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.2] — 2026-04-18 — All-Free Beta: Everything Unlocked
+
+Strategic pivot for beta: **gate by usage (1000 calls/mo), not by features.** Beta's job is activation + feedback quality, not revenue. Full product experience for every beta user — Pro tier activates at end of beta.
+
+### Changed
+- `commander/cowork-plugin/.claude-plugin/plugin.json` — `tiers.free` now includes all 26 plugin skills (added `infra`, `knowledge` from pro); `tiers.pro` empty until post-beta
+- `package.json` / `marketplace.json` / `plugin.json` — bump to `4.0.0-beta.2`
+
+### Why
+- Feature gating during beta pollutes conversion signal (can't tell if churn = feature lock or product fit)
+- "You used all 1000 calls — Pro is $15 for unlimited" is a clean conversion moment
+- "This feature is locked behind Pro" drives users to churn, not upgrade
+- Plugin gets 24 → 26 free skills (infra, knowledge unlocked)
+- Pro tier resumes post-beta with usage quota + Commander Hub marketplace access
+
 ## [4.0.0-beta.1] — 2026-04-17 — v4 Beta: MCP Server + Hosted + 15 Personas
 
 Major version — MCP-first cross-IDE beta with 15 specialist personas, hosted beta infra (Supabase + Fly), and marketing site pivot. **Product:** CC Commander · **Tagline:** *"Guided AI PM to Master Claude Code Instantly"* · **Beta model:** free 1000 calls/mo + mandatory feedback, no Stripe yet.

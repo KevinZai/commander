@@ -1,0 +1,40 @@
+
+
+
+
+
+[38;2;80;80;120m│[39m
+[38;2;0;255;255m◆  [1m[38;5;255mWhat would you like to do?[0m
+[38;2;80;80;120m│[39m  [38;2;0;255;255m● [1m[38;2;85;246;111mO[38;2;85;246;178mp[38;2;85;246;245me[38;2;85;180;246mn [38;2;85;113;246ma [38;2;124;85;246mp[38;2;191;85;246mr[38;2;246;85;234mo[38;2;246;85;167mj[38;2;246;85;100me[38;2;246;138;85mc[38;2;246;205;85mt[0m
+[38;2;80;80;120m│[39m     [38;2;0;255;255mOptional: import local CLAUDE.md + .claude/ context[39m
+[38;2;80;80;120m│[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mBuild something new[39m
+[38;2;80;80;120m│[39m     [38;5;245mCode, websites, APIs, CLI tools[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mCreate content[39m
+[38;2;80;80;120m│[39m     [38;5;245mMarketing, social media, writing[39m
+[38;2;80;80;120m│[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mResearch & analyze[39m
+[38;2;80;80;120m│[39m     [38;5;245mCompetitive analysis, reports, audits[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mReview what I built[39m
+[38;2;80;80;120m│[39m     [38;5;245mRecent sessions and results[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mLearn a new skill[39m
+[38;2;80;80;120m│[39m     [38;5;245mBrowse 450+ skills and guides[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mCheck my stats[39m
+[38;2;80;80;120m│[39m     [38;5;245mDashboard, streaks, achievements[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mLinear board[39m
+[38;2;80;80;120m│[39m     [38;5;245mView issues, pick tasks, track work[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mNight Mode[39m
+[38;2;80;80;120m│[39m     [38;5;245m8-hour autonomous build[39m
+[38;2;80;80;120m│[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mSettings[39m
+[38;2;80;80;120m│[39m     [38;5;245mName, level, cost, theme
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mChange theme[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mInfrastructure & Fleet[39m
+[38;2;80;80;120m│[39m     [38;5;245mFleet Commander, Synapse, Cost tracking, CloudCLI[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mType a command[39m
+[38;2;80;80;120m│[39m     [38;5;245mFree-text prompt — describe anything or type /commands[39m
+[38;2;80;80;120m│[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m○ [38;5;253mQuit[39m
+[38;2;80;80;120m│[39m
+[38;2;80;80;120m│[39m  [38;2;80;80;120m[↑↓] navigate  [enter] select  [q] quit  [?] help[39m
+

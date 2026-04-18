@@ -1,0 +1,40 @@
+
+│
+◆  What would you like to do?
+│  ● Open a project
+│     Optional: import local CLAUDE.md + .claude/ context
+│
+│  ○ Build something new
+│     Code, websites, APIs, CLI tools
+│  ○ Create content
+│     Marketing, social media, writing
+│
+│  ○ Research & analyze
+│     Competitive analysis, reports, audits
+│  ○ Review what I built
+│     Recent sessions and results
+│  ○ Learn a new skill
+│     Browse 450+ skills and guides
+│  ○ Check my stats
+│     Dashboard, streaks, achievements
+│  ○ Linear board
+│     View issues, pick tasks, track work
+
+╭───────────────────────────────────────╮
+│   CC Commander — Quick Help           │
+│                                       │
+│   ↑/↓     Navigate menu               │
+│   Enter   Select item                 │
+│   a-z     Jump to item by letter      │
+│   q       Quit / Go back              │
+│   ?       This help                   │
+│                                       │
+│   In tmux split mode:                 │
+│   Ctrl+A ←→  Switch panes             │
+│   Ctrl+A z   Zoom pane (fullscreen)   │
+│   Ctrl+A 0   Jump to menu             │
+│   Click      Select pane (mouse on)   │
+│                                       │
+│   Press any key to close...           │
+╰───────────────────────────────────────╯
+

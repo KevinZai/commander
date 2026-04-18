@@ -7,11 +7,11 @@
 
 > **Guided AI PM to Master Claude Code Instantly**
 
-**1 MCP server. 453+ skills. Every AI IDE. Free in beta.**
+**1 MCP server. 456+ skills. Every AI IDE. Free in beta.**
 
-<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.1" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.2" width="100%">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/20_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v4.0.0-beta.1](https://img.shields.io/badge/v4.0.0--beta.1-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/20_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v4.0.0-beta.2](https://img.shields.io/badge/v4.0.0--beta.2-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
@@ -72,7 +72,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 453+ skills,
+You get:  A guided AI project manager with 456+ skills,
           15 plugin skills, 5 agents, 20 vendor packages,
           real learning, and zero setup.
 ```
@@ -105,7 +105,7 @@ Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 
 <img src="docs/assets/screenshots/domains.gif" alt="CCC Domains" width="100%">
 
-### 453+ Skills — Install Only What You Need
+### 456+ Skills — Install Only What You Need
 
 <img src="docs/assets/screenshots/skills-install.gif" alt="Skill Management" width="100%">
 
@@ -197,7 +197,7 @@ CCC ranks skills using your stack + task keywords + past usage. The right tools 
     8    ccc-testing           Always recommended
 
   ❯ Use top recommendation
-    Browse all 453+ skills
+    Browse all 456+ skills
     Search by keyword
     Back to main menu
 ```
@@ -272,7 +272,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 ### What's New in v3.0.0 — Desktop-First Plugin
 
-- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.1)
+- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.2)
 - **15 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
 - **5 specialized agents** — reviewer, builder, researcher, debugger, fleet-worker
 - **6 lifecycle hooks** — automated session, build, review, deploy, and fleet hooks
@@ -294,7 +294,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 | Component | Count | What It Does |
 |-----------|-------|-------------|
-| Skills | 453+ | On-demand expertise (deduplicated) |
+| Skills | 456+ | On-demand expertise (deduplicated) |
 | Plugin Skills | 15 | Desktop-first skills (commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet) |
 | Agents | 5 | reviewer, builder, researcher, debugger, fleet-worker |
 | Lifecycle Hooks | 6 | Automated session, build, review, deploy, and fleet hooks |
@@ -489,7 +489,7 @@ Then in any Claude Code session:
 
 Full interactive menu appears. Same features, no separate CLI needed.
 
-**What you get:** All 453+ skills and commands, no extra CLI binary required.
+**What you get:** All 456+ skills and commands, no extra CLI binary required.
 
 ---
 
@@ -609,7 +609,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc makeover     → Auto-apply top fixes
 /ccc refresh      → Update your CLAUDE.md from latest template
 /ccc domains      → Browse 11 CCC domains
-/ccc skills       → Browse 453+ skills
+/ccc skills       → Browse 456+ skills
 /ccc grill        → 7-question Socratic planning probe
 /ccc infra        → Infrastructure sub-menu (Fleet, Synapse, Cost, AO, CloudCLI, Paperclip)
 /ccc detect       → Probe all services and CLIs
@@ -626,7 +626,7 @@ CCC is built to be controlled by AI agents — OpenClaw, Claude Code, or any orc
 | Command | Output | Purpose |
 |---------|--------|---------|
 | `ccc --dispatch "task" --json` | JSON | Run task headlessly |
-| `ccc --list-skills --json` | JSON | All 453+ skills |
+| `ccc --list-skills --json` | JSON | All 456+ skills |
 | `ccc --list-sessions --json` | JSON | Session history |
 | `ccc --status` | JSON | Health check |
 | `ccc --template` | text | Latest CLAUDE.md template |
@@ -731,7 +731,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v4.0.0-beta.1** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v4.0.0-beta.2** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

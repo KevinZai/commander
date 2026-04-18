@@ -1,0 +1,40 @@
+  ════════════════════════════════════════════════════════════════════
+  CC COMMANDER  v2.3.0  📂 cc-commander
+  Every Claude Code tool. One install. Guided access. Auto-updated.
+  ────────────────────────────────────────────────────────────────────
+  ━━ CCC2.3.0│🔥Opus 1M│🔑QAA│🧠▌░░░░▐0%│⏱️0m│📅▌░░░░▐0%[2d]│💰$0.00│↑0↓0│⏰0h0m│🎯455│📂...ects/cc-commander
+  Browse and manage your sessions.
+  ─── Review Your Work ──────────────────────────────
+
+│
+◆  What would you like to do?
+│  ● Resume a session
+│  ○ View session details
+│  ○ View full history
+│  ○ Back to main menu
+│
+│  [↑↓] navigate  [enter] select  [q] quit  [?] help
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

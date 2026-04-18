@@ -1,0 +1,40 @@
+aaio — Agentic AI Optimization — make websites crawlable, citable, and usable by AI age
+ab-test-setup — Structured guide for setting up A/B tests with mandatory gates for hypothesis, m
+ab-test-setup — When the user wants to plan, design, or implement an A/B test or experiment. Als
+accessibility-compliance-accessibility-audit — You are an accessibility expert specializing in WCAG compliance, inclusive desig
+acpx — Use acpx as a headless ACP CLI for agent-to-agent communication, including promp
+acpx-patterns — Pre-built acpx usage patterns for background, parallel, and crash-resilient sess
+ad-creative — When the user wants to generate, iterate, or scale ad creative — headlines, desc
+ad-creative — When the user needs to generate, iterate, or scale ad creative for paid advertis
+adapt — Adapt designs to work across different screen sizes, devices, contexts, or platf
+advisor — Anthropic Advisor Tool — pair a cheaper executor model with Opus for guidance. T
+agency-orchestrator — Integrate with Agency Orchestrator for multi-agent DAG workflows — parallel rese
+agent-designer
+agent-protocol — Inter-agent communication protocol for C-suite agent teams. Defines invocation s
+agent-workflow-designer
+agile-product-owner — Agile product ownership for backlog management and sprint execution. Covers user
+ai-regression-testing — Regression testing strategies for AI-assisted development. Sandbox-mode API test
+ai-seo — Optimize content to get cited by AI search engines — ChatGPT, Perplexity, Google
+ai-seo — When the user wants to optimize content for AI search engines, get cited by LLMs
+analytics-conversion — Set up analytics and conversion tracking for Next.js + shadcn/ui projects. GA4, 
+analytics-product — Analytics de produto — PostHog, Mixpanel, eventos, funnels, cohorts, retencao, n
+analytics-setup — Implement product analytics with PostHog, Mixpanel, or GA4 — event tracking, fun
+analytics-tracking — Set up, audit, and debug analytics tracking implementation — GA4, Google Tag Man
+animate — Review a feature and enhance it with purposeful animations, micro-interactions, 
+ao — Composio AO — spawn parallel agents with worktree isolation
+api-design — REST API design patterns including resource naming, status codes, pagination, fi
+api-design-reviewer
+api-first-workflow — API-first development — OpenAPI spec authoring, contract-first dev, SDK generati
+api-test-suite-builder
+app-store-optimization — App Store Optimization toolkit for researching keywords, optimizing metadata, an
+app-store-optimization — App Store Optimization (ASO) for Apple App Store and Google Play Store — keyword
+architecture-auditor — Review cross-module boundaries, dependency direction, and architectural patterns
+arrange — Improve layout, spacing, and visual rhythm. Fixes monotonous grids, inconsistent
+audit — Perform comprehensive audit of interface quality across accessibility, performan
+auto-loop-patterns — |
+aws-cloudfront-optimization — AWS CloudFront — distribution configuration, cache policies, origin access, Lamb
+aws-iam-security — AWS IAM security — least privilege policies, roles, OIDC, permission boundaries,
+aws-lambda-best-practices — AWS Lambda — function design, cold starts, layers, VPC, error handling, monitori
+aws-s3-patterns — AWS S3 — bucket design, lifecycle policies, presigned URLs, cross-region replica
+aws-solution-architect — Design AWS architectures for startups using serverless patterns and IaC template
+backend-patterns — Backend architecture patterns, API design, database optimization, and server-sid

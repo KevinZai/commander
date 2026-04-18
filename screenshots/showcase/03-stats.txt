@@ -1,0 +1,9 @@
+^D
+  CC Commander Stats
+
+  Sessions:     16
+  Streak:       0 days (longest: 0)
+  Achievements: 0
+  Cost:         $0.00
+  Level:        power
+

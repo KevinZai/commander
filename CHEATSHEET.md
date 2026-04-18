@@ -940,7 +940,7 @@ CC Commander v4.0.0-beta.1 includes an interactive command center accessible via
 | Command | What it does |
 |---------|-------------|
 | `/cc` | Main menu — all options |
-| `/cc skills` | Browse 453+ skills by category |
+| `/cc skills` | Browse 456+ skills by category |
 | `/cc mega [name]` | Drill into a CCC domain's sub-skills |
 | `/cc settings` | View current model, permissions, MCP, hooks |
 | `/cc grill` | 7 Socratic questions (no plan mode) |

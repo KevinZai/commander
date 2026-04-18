@@ -1,0 +1,40 @@
+
+
+
+
+
+│
+◆  What would you like to do?
+│  ● Open a project
+│     Optional: import local CLAUDE.md + .claude/ context
+│
+│  ○ Build something new
+│     Code, websites, APIs, CLI tools
+│  ○ Create content
+│     Marketing, social media, writing
+│
+│  ○ Research & analyze
+│     Competitive analysis, reports, audits
+│  ○ Review what I built
+│     Recent sessions and results
+│  ○ Learn a new skill
+│     Browse 450+ skills and guides
+│  ○ Check my stats
+│     Dashboard, streaks, achievements
+│  ○ Linear board
+│     View issues, pick tasks, track work
+│  ○ Night Mode
+│     8-hour autonomous build
+│
+│  ○ Settings
+│     Name, level, cost, theme
+│  ○ Change theme
+│  ○ Infrastructure & Fleet
+│     Fleet Commander, Synapse, Cost tracking, CloudCLI
+│  ○ Type a command
+│     Free-text prompt — describe anything or type /commands
+│
+│  ○ Quit
+│
+│  [↑↓] navigate  [enter] select  [q] quit  [?] help
+

@@ -1,0 +1,40 @@
+  ════════════════════════════════════════════════════════════════════
+  CC COMMANDER  v2.3.0  📂 cc-commander
+  Every Claude Code tool. One install. Guided access. Auto-updated.
+  ────────────────────────────────────────────────────────────────────
+  ━━ CCC2.3.0│🔥Opus 1M│🔑QAA│🧠▌░░░░▐0%│⏱️0m│📅▌░░░░▐0%[2d]│💰$0.00│↑0↓0│⏰0h0m│🎯455│📂...ects/cc-commander
+  Customize your CC Commander experience.
+  ─── Settings ──────────────────────────────
+
+│
+◆  What would you like to change?
+│  ● Change my name
+│     Currently: Kevin
+│  ○ Change experience level
+│     Currently: power
+│  ○ Set cost ceiling
+│     Max budget per dispatch
+│  ○ Change theme
+│  ○ Toggle animations
+│  ○ Linear setup
+│     Choose team + project, check connection
+│  ○ Change launch mode
+│     Simple or Advanced (split)
+│  ○ Reset all state
+│     Start fresh (keeps skills)
+│  ○ Back to main menu
+│
+│  [↑↓] navigate  [enter] select  [q] quit  [?] help
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,40 @@
+  ════════════════════════════════════════════════════════════════════
+  CC COMMANDER  v2.3.0  📂 cc-commander
+  Every Claude Code tool. One install. Guided access. Auto-updated.
+  ────────────────────────────────────────────────────────────────────
+  ━━ CCC2.3.0│🔥Opus 1M│🔑QAA│🧠▌░░░░▐0%│⏱️0m│📅▌░░░░▐0%[2d]│💰$0.00│↑0↓0│⏰0h0m│🎯455│📂...ects/cc-commander
+  What kind of content do you need?
+  ─── Create Content ──────────────────────────────
+
+│
+◆  Pick a content type:
+│  ● Blog post or article
+│  ○ Social media posts
+│  ○ Email campaign
+│  ○ Marketing copy
+│  ○ Documentation
+│  ○ Something else — I'll describe it
+│  ○ Back to main menu
+│
+│  [↑↓] navigate  [enter] select  [q] quit  [?] help
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

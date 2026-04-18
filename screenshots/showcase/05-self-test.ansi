@@ -1,0 +1,31 @@
+^DCC Commander self-test:
+
+  v branding
+  v state
+  v adventure
+  v renderer
+  v dispatcher
+  v tui
+  v skill-browser
+  v recommendations
+  v sync
+  v engine
+  v main-menu
+  v build-something
+  v continue-work
+  v review-work
+  v learn-skill
+  v check-stats
+  v create-content
+  v research
+  v night-build
+  v ccc-domains
+  v knowledge
+  v plugins
+  v settings
+  v linear
+  v infrastructure
+  v service-detector
+  v evaluator
+
+  27/27 passed

@@ -1,0 +1,24 @@
+^D
+  CC Commander — 450+ skills. One command. Your AI work, managed by AI.
+
+  Usage:  ccc                (or: npx cc-commander)
+
+  --version    Show version
+  --test       Validate all modules
+  --stats      Quick stats
+  --repair     Fix corrupt state
+  --simple     Menu-only mode (no tmux split)
+  --update     Pull latest + reinstall
+  --dispatch   Headless: ccc --dispatch "task" [--json --model X --max-turns N --budget N --cwd PATH]
+  --list-skills  List all skills (add --json for JSON)
+  --skills       Manage installed skills (list, available, install, remove, tier)
+  --list-sessions  Session history (add --json for JSON)
+  --status     Health check (JSON: version, skills, vendors)
+  --template   Print the latest CLAUDE.md template (pipe to file)
+  --daemon     Start persistent background daemon
+  --queue "task"  Add task to daemon queue
+  --queue-list Show pending daemon tasks
+  --daemon-stop  Stop running daemon
+  --ingest <url> Evaluate a GitHub repo for inclusion as vendor package
+  --help       This help
+
