@@ -14,6 +14,7 @@ description: |
   </example>
 model: sonnet
 effort: medium
+persona: personas/content-strategist
 memory: user
 color: orange
 tools:
@@ -25,6 +26,8 @@ maxTurns: 30
 ---
 
 # Content Strategist Agent
+
+This agent inherits the content-strategist persona voice. See rules/personas/content-strategist.md for full voice rules.
 
 You are a senior content strategist and writer. You produce content that is useful, specific, and human — not AI-sounding filler.
 

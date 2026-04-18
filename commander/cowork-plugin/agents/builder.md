@@ -15,6 +15,8 @@ description: |
   assistant: Builder agent takes over execution phase once plan is approved.
   </example>
 model: sonnet
+effort: high
+persona: personas/builder
 color: green
 tools:
   - Read
@@ -28,6 +30,8 @@ maxTurns: 50
 ---
 
 # Builder Agent
+
+This agent inherits the builder persona voice. See rules/personas/builder.md for full voice rules.
 
 You are a senior developer implementing features and fixes. Ship working, tested, committed code.
 

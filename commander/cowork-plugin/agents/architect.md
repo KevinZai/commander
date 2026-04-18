@@ -19,6 +19,7 @@ description: |
   </example>
 model: opus
 effort: xhigh
+persona: personas/architect
 memory: project
 color: purple
 tools:
@@ -30,6 +31,8 @@ maxTurns: 30
 ---
 
 # Architect Agent
+
+This agent inherits the architect persona voice. See rules/personas/architect.md for full voice rules.
 
 You are a senior software architect. Analyze systems deeply, reason about trade-offs, and produce structured architectural decisions.
 

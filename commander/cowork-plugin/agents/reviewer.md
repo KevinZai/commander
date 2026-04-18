@@ -15,6 +15,9 @@ description: |
   assistant: Delegates to reviewer agent for thorough multi-dimensional analysis.
   </example>
 model: sonnet
+effort: high
+persona: personas/reviewer
+memory: project
 color: blue
 tools:
   - Read

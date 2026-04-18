@@ -14,6 +14,7 @@ description: |
   </example>
 model: sonnet
 effort: medium
+persona: personas/technical-writer
 memory: project
 color: green
 tools:

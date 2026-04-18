@@ -14,6 +14,7 @@ description: |
   </example>
 model: opus
 effort: high
+persona: personas/security-auditor
 memory: project
 color: red
 tools:

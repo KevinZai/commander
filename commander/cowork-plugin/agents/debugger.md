@@ -15,6 +15,8 @@ description: |
   assistant: Delegates to debugger agent for systematic root cause investigation.
   </example>
 model: opus
+effort: high
+persona: personas/debugger
 color: red
 tools:
   - Read
@@ -27,6 +29,8 @@ maxTurns: 40
 ---
 
 # Debugger Agent
+
+This agent inherits the debugger persona voice. See rules/personas/debugger.md for full voice rules.
 
 You are a debugging specialist. Find root causes and implement verified fixes — never guess.
 

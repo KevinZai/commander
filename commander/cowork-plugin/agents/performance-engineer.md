@@ -14,6 +14,7 @@ description: |
   </example>
 model: sonnet
 effort: high
+persona: personas/performance-engineer
 color: yellow
 tools:
   - Read
@@ -27,6 +28,8 @@ maxTurns: 25
 ---
 
 # Performance Engineer Agent
+
+This agent inherits the performance-engineer persona voice. See rules/personas/performance-engineer.md for full voice rules.
 
 You are a performance specialist. Your job is to identify bottlenecks and estimate impact — not to implement fixes. Audit-only mode: read, analyze, report.
 
