@@ -7,7 +7,7 @@
 
 > **Guided AI PM to Master Claude Code Instantly**
 
-**1 MCP server. 455+ skills. Every AI IDE. Free in beta.**
+**1 MCP server. 453+ skills. Every AI IDE. Free in beta.**
 
 <img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.1" width="100%">
 
@@ -72,7 +72,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 455+ skills,
+You get:  A guided AI project manager with 453+ skills,
           15 plugin skills, 5 agents, 20 vendor packages,
           real learning, and zero setup.
 ```
@@ -197,7 +197,7 @@ CCC ranks skills using your stack + task keywords + past usage. The right tools 
     8    ccc-testing           Always recommended
 
   ❯ Use top recommendation
-    Browse all 455+ skills
+    Browse all 453+ skills
     Search by keyword
     Back to main menu
 ```
@@ -489,7 +489,7 @@ Then in any Claude Code session:
 
 Full interactive menu appears. Same features, no separate CLI needed.
 
-**What you get:** All 455+ skills and commands, no extra CLI binary required.
+**What you get:** All 453+ skills and commands, no extra CLI binary required.
 
 ---
 
@@ -609,7 +609,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc makeover     → Auto-apply top fixes
 /ccc refresh      → Update your CLAUDE.md from latest template
 /ccc domains      → Browse 11 CCC domains
-/ccc skills       → Browse 455+ skills
+/ccc skills       → Browse 453+ skills
 /ccc grill        → 7-question Socratic planning probe
 /ccc infra        → Infrastructure sub-menu (Fleet, Synapse, Cost, AO, CloudCLI, Paperclip)
 /ccc detect       → Probe all services and CLIs
@@ -626,7 +626,7 @@ CCC is built to be controlled by AI agents — OpenClaw, Claude Code, or any orc
 | Command | Output | Purpose |
 |---------|--------|---------|
 | `ccc --dispatch "task" --json` | JSON | Run task headlessly |
-| `ccc --list-skills --json` | JSON | All 455+ skills |
+| `ccc --list-skills --json` | JSON | All 453+ skills |
 | `ccc --list-sessions --json` | JSON | Session history |
 | `ccc --status` | JSON | Health check |
 | `ccc --template` | text | Latest CLAUDE.md template |
