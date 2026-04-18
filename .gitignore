@@ -50,3 +50,4 @@ hooks/paperclip-bridge.js
 
 # Internal marketing/strategy docs — NEVER push to GitHub
 marketing/
+.claude/worktrees/
