@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick question from CC Commander</title>
+</head>
+<body style="margin:0;padding:0;background:#09090b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fafafa;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#09090b;">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#18181b;border:1px solid #27272a;border-radius:12px;overflow:hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#4c1d95,#6d28d9);padding:32px 40px;">
+              <table>
+                <tr>
+                  <td style="width:32px;height:32px;background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:6px;"></td>
+                  <td style="padding-left:12px;font-size:18px;font-weight:700;color:#fff;">CC Commander</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <p style="margin:0 0 8px;font-size:12px;color:#71717a;text-transform:uppercase;letter-spacing:0.1em;">Beta feedback</p>
+              <h1 style="margin:0 0 16px;font-size:24px;font-weight:700;color:#fafafa;">One question. 30 seconds.</h1>
+              <p style="margin:0 0 24px;color:#a1a1aa;font-size:16px;line-height:1.6;">
+                You've been using Commander — your call cap is getting low and your next survey answers
+                unlock 2,000 calls for the rest of the month (up from 1,000).
+              </p>
+
+              <table style="background:#27272a;border-radius:8px;width:100%;margin-bottom:32px;">
+                <tr>
+                  <td style="padding:24px;">
+                    <p style="margin:0 0 16px;font-size:16px;font-weight:600;color:#fafafa;">
+                      {{SURVEY_QUESTION}}
+                    </p>
+                    <table>
+                      <tr>
+                        <td style="padding-right:8px;">
+                          <a href="{{SURVEY_URL}}" style="display:inline-block;padding:8px 16px;background:#7c3aed;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;">
+                            Answer now →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <table style="background:#1c1c22;border:1px solid #27272a;border-radius:8px;width:100%;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0 0 4px;font-size:12px;color:#71717a;">Your usage this month</p>
+                    <p style="margin:0;font-size:15px;color:#fafafa;font-weight:600;">
+                      {{CALLS_USED}} / {{CALLS_CAP}} calls used
+                    </p>
+                    <p style="margin:4px 0 0;font-size:12px;color:#a78bfa;">
+                      Answer 2 surveys this month to unlock 2,000 calls
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 40px;border-top:1px solid #27272a;">
+              <p style="margin:0;font-size:12px;color:#52525b;">
+                CC Commander Beta · Survey answers drive every pricing decision — publicly.<br/>
+                <a href="{{UNSUBSCRIBE_URL}}" style="color:#52525b;">Unsubscribe from reminders</a> ·
+                <a href="https://cc-commander.com/legal/privacy" style="color:#52525b;">Privacy</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
