@@ -1,10 +1,10 @@
 # Spec: cc-commander.com Marketing Site
 
 **Date:** 2026-04-16
-**Owner:** Kevin Z
+**Owner:** Kevin Zicherman
 **Status:** Draft — pending approval to build
 **Domain:** cc-commander.com (owned by Kevin)
-**Repo location:** `/Users/ai/clawd/projects/cc-commander/marketing/`
+**Repo location:** `<repo-root>/marketing/`
 
 ---
 

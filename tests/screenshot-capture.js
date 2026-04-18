@@ -375,7 +375,7 @@ const COCKPIT_DATA = {
   skillCount: 37,
   vendorCount: 19,
   activeSkill: 'tdd-guide',
-  cwd: '/Users/ai/clawd/projects/cc-commander',
+  cwd: '~/projects/cc-commander',
   thinking: true,
   weekCost: 17.50,
   weekBudget: 50,
