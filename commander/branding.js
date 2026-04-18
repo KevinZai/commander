@@ -10,7 +10,7 @@ var BRAND = Object.freeze({
   taglineShort: 'The Claude Code aggregator. Newbie-friendly.',
   version: _pkg.version,
 
-  author: 'Kevin Z',
+  author: 'Kevin Zicherman',
   authorFull: 'Kevin Zicherman',
   website: 'https://kevinz.ai',
   twitter: '@kzic',
@@ -32,7 +32,7 @@ var BRAND = Object.freeze({
   planModeNote: 'All sessions start in plan mode for safety.',
   scope: 'Not just coding — marketing, content, social media, research, and more.',
 
-  footer: 'CC Commander by Kevin Z — kevinz.ai',
+  footer: 'CC Commander by Kevin Zicherman — kevinz.ai',
 });
 
 module.exports = BRAND;

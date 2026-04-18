@@ -1,9 +1,9 @@
 {
   "name": "cc-commander",
-  "version": "2.3.1",
-  "description": "CC Commander — Every Claude Code tool. One install. Auto-updated.",
+  "version": "4.0.0-beta.1",
+  "description": "CC Commander — Guided AI PM to Master Claude Code Instantly. 1 MCP server. 456+ skills. Every AI IDE. Free in beta.",
   "author": {
-    "name": "Kevin Z",
+    "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
   },
   "license": "MIT",
@@ -64,7 +64,8 @@
   },
   "main": "./bin/kc.js",
   "scripts": {
-    "test": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js commander/tests/tmux-menu-audit.test.js commander/tests/claude-finder.test.js commander/tests/tui-visual.test.js commander/tests/dispatch-security.test.js commander/tests/audit-counts.test.js",
+    "test": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js commander/tests/tmux-menu-audit.test.js commander/tests/claude-finder.test.js commander/tests/tui-visual.test.js commander/tests/dispatch-security.test.js commander/tests/audit-counts.test.js commander/tests/registry-drift.test.js commander/tests/mcp-server.test.js commander/tests/doctor.test.js",
+    "check:registry": "node scripts/build-from-registry.js --check",
     "test:tmux-menu": "node --test commander/tests/tmux-menu-audit.test.js",
     "test:coverage": "./node_modules/.bin/c8 node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js",
     "prepublishOnly": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js && npx eslint . --max-warnings 120",

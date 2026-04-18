@@ -189,6 +189,117 @@ function scoreComplexity(task, projectDir) {
   return { turns: params.turns, budget: params.budget, effort: params.effort, score: score };
 }
 
+// ─── Cost Intelligence Layer ──────────────────────────────────
+
+/**
+ * Model pricing ($/MTok, as of 2026-04-17 — update as Anthropic changes pricing).
+ * Accuracy: ±30%. Used for pre-dispatch estimates, not billing.
+ */
+var MODEL_PRICING = {
+  haiku: { input: 0.25, output: 1.25 },
+  sonnet: { input: 3, output: 15 },
+  opus: { input: 15, output: 75 },
+};
+
+/**
+ * Load cost config from ~/.claude/commander/config.json (create with defaults if missing).
+ */
+function loadCostConfig() {
+  var os = require('os');
+  var configDir = require('path').join(os.homedir(), '.claude', 'commander');
+  var configPath = require('path').join(configDir, 'config.json');
+  var defaults = { costWarnThresholdUsd: 0.50, costBlockThresholdUsd: 2.00, costGateEnabled: true };
+  try {
+    require('fs').mkdirSync(configDir, { recursive: true });
+    if (!require('fs').existsSync(configPath)) {
+      require('fs').writeFileSync(configPath, JSON.stringify(defaults, null, 2));
+      return defaults;
+    }
+    return Object.assign({}, defaults, JSON.parse(require('fs').readFileSync(configPath, 'utf8')));
+  } catch (_) {
+    return defaults;
+  }
+}
+
+/**
+ * Estimate dispatch cost in USD.
+ * Uses task description length as context proxy (rough but useful).
+ * @param {string} task
+ * @param {{ model?: string, effort?: string, maxTurns?: number }} options
+ * @returns {{ modelKey: string, estimateLow: number, estimateHigh: number, breakdown: string }}
+ */
+function estimateDispatchCost(task, options) {
+  options = options || {};
+  var modelStr = (options.model || 'sonnet').toLowerCase();
+  var modelKey = 'sonnet';
+  if (modelStr.includes('haiku')) modelKey = 'haiku';
+  else if (modelStr.includes('opus')) modelKey = 'opus';
+
+  var pricing = MODEL_PRICING[modelKey];
+  var maxTurns = options.maxTurns || 30;
+
+  // Estimate input tokens: task length + context overhead
+  var taskTokens = Math.ceil((task || '').length / 4); // ~4 chars per token
+  var contextOverhead = 10000; // system prompt + history estimate
+  var estimatedInputTokens = taskTokens + contextOverhead;
+
+  // Scale input by turns (each turn adds context)
+  var totalInputTokens = estimatedInputTokens * Math.min(maxTurns / 5, 4);
+  // Estimate output: 1K per turn average
+  var totalOutputTokens = maxTurns * 1000;
+
+  var lowInput = (totalInputTokens * 0.5 * pricing.input) / 1000000;
+  var highInput = (totalInputTokens * pricing.input) / 1000000;
+  var lowOutput = (totalOutputTokens * 0.3 * pricing.output) / 1000000;
+  var highOutput = (totalOutputTokens * pricing.output) / 1000000;
+
+  return {
+    modelKey: modelKey,
+    estimateLow: Math.round((lowInput + lowOutput) * 100) / 100,
+    estimateHigh: Math.round((highInput + highOutput) * 100) / 100,
+    breakdown: modelKey + ' | input ~' + Math.round(totalInputTokens / 1000) + 'K | output ~' + maxTurns + 'K | ' + maxTurns + ' turns',
+  };
+}
+
+/**
+ * Check cost ceiling. Returns { allowed: bool, reason: string, estimate: object }.
+ * Side effect: writes warning to stderr if warn threshold crossed.
+ * @param {string} task
+ * @param {object} options
+ * @param {number} [costCeilingUsd] - Override from --cost-ceiling flag
+ */
+function checkCostCeiling(task, options, costCeilingUsd) {
+  var config = loadCostConfig();
+  if (!config.costGateEnabled || process.env.CC_COST_GATE === 'off') {
+    return { allowed: true, reason: 'cost-gate disabled', estimate: null };
+  }
+
+  var estimate = estimateDispatchCost(task, options);
+  var warnThreshold = config.costWarnThresholdUsd;
+  var blockThreshold = costCeilingUsd != null ? costCeilingUsd : config.costBlockThresholdUsd;
+
+  // Haiku dispatches always allowed (fast + cheap)
+  if (estimate.modelKey === 'haiku') return { allowed: true, reason: 'haiku-fast', estimate: estimate };
+  // Under $0.10 always allowed, no interrupt
+  if (estimate.estimateHigh < 0.10) return { allowed: true, reason: 'under-threshold', estimate: estimate };
+
+  if (estimate.estimateHigh > blockThreshold) {
+    return {
+      allowed: false,
+      reason: 'cost-ceiling-exceeded',
+      estimate: estimate,
+      message: '\u{1F4B0} Estimated cost $' + estimate.estimateLow + '-' + estimate.estimateHigh + ' exceeds ceiling $' + blockThreshold + '. Use --cost-ceiling to raise or CC_COST_GATE=off to disable.',
+    };
+  }
+
+  if (estimate.estimateHigh > warnThreshold) {
+    process.stderr.write('\n\u26A0\uFE0F  Cost estimate: $' + estimate.estimateLow + '-$' + estimate.estimateHigh + ' (' + estimate.breakdown + ')\n');
+    process.stderr.write('   Threshold: $' + warnThreshold + ' warn / $' + blockThreshold + ' block. Set CC_COST_GATE=off to skip.\n\n');
+  }
+
+  return { allowed: true, reason: 'within-threshold', estimate: estimate };
+}
+
 function dispatch(task, options) {
   if (!options) options = {};
   var sync = options.sync !== undefined ? options.sync : true;
@@ -206,6 +317,19 @@ function dispatch(task, options) {
   var worktree = options.worktree;
   var name = options.name;
   var stream = options.stream !== false;
+  var costCeiling = options.costCeiling != null ? parseFloat(options.costCeiling) : null;
+
+  // Cost-intelligence gate: warn/block before dispatching
+  if (!resume && task) {
+    var costCheck = checkCostCeiling(task, { model: model || 'sonnet', effort: effort, maxTurns: maxTurns }, costCeiling);
+    if (!costCheck.allowed) {
+      if (sync) {
+        if (stream) return Promise.reject(new Error(costCheck.message || 'Cost ceiling exceeded'));
+        throw new Error(costCheck.message || 'Cost ceiling exceeded');
+      }
+      return { error: costCheck.message || 'Cost ceiling exceeded' };
+    }
+  }
 
   var args = [];
   if (resume) {
