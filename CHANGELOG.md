@@ -2,6 +2,26 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.5] — 2026-04-18 — Plugin Install Fix + Cowork-First Positioning
+
+### Fixed
+- **Plugin install error** (`Failed to install plugin`) — removed non-standard `tiers` field from `commander/cowork-plugin/.claude-plugin/plugin.json`. Claude Code's plugin schema was rejecting the manifest because of the unknown key. Tier metadata was informational only (all-free during beta); move to CHANGELOG + docs for when Pro returns.
+
+### Changed
+- **Marketing positioning sweep — Cowork-first messaging across all user-facing docs:**
+  - `README.md` — hero table now leads with "New to AI coding agents? → Claude Cowork Desktop" — targets the novice audience. Four-client compatibility grid.
+  - `mintlify-docs/introduction.mdx` — new "Works everywhere Claude works" section, 4-card client matrix (Cowork / Code Desktop / CLI / MCP).
+  - `mintlify-docs/features/browse-modes.mdx` — 4-client table instead of 2-client, Cowork listed FIRST with ⭐ marker.
+  - `commander/cowork-plugin/README.md` — "Who's it for?" section leads with Cowork novice audience.
+
+### Added
+- `mintlify-docs/features/compatibility.mdx` — new dedicated compatibility page with:
+  - Primary clients section (Cowork Desktop ⭐, Code Desktop, CLI)
+  - MCP clients section with config snippets for Cursor / Windsurf / Cline / Continue / Codex / Claude mobile
+  - Feature matrix by client
+  - "Mix and match" scenario for power users running plugin + MCP
+- `docs.json` nav updated — `features/compatibility` listed first in Core Features group
+
 ## [4.0.0-beta.4] — 2026-04-18 — Marketplace Rename + Broken-Symlink Fix + PLAN.md
 
 ### Changed

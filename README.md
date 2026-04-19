@@ -7,11 +7,20 @@
 
 > **Guided AI PM to Master Claude Code Instantly**
 
-**1 MCP server. 500+ skills. Every AI IDE. Free in beta.**
+**1 install. 500+ skills. Works in Claude Cowork, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free in beta.**
 
-<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.4" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.5" width="100%">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/20_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v4.0.0-beta.4](https://img.shields.io/badge/v4.0.0--beta.4-D97706?style=for-the-badge)](./CHANGELOG.md)
+### 🎯 Who it's for
+
+| If you are... | CC Commander is... |
+|--------------|-------------------|
+| 👋 **New to AI coding agents** → using **Claude Cowork** | The easiest way to feel like a senior dev — 26 guided workflows, zero config, works out of the box |
+| 💻 **A developer** → using **Claude Code Desktop** or **Claude Code CLI** | Your project manager — routes complexity, compounds knowledge across sessions, Kevin Z Method built in |
+| 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 500+ skills in your IDE of choice |
+| 📱 **On Claude mobile or iPad** | Same skills, same license, synced across devices (hosted MCP) |
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/500%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.5](https://img.shields.io/badge/v4.0.0--beta.5-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
@@ -21,12 +30,21 @@
 
 ## 30-Second Install
 
+**Works identically in Claude Cowork Desktop AND Claude Code Desktop.** In either app, run:
+
 ```
 /plugin marketplace add KevinZai/commander
 /plugin install commander
 ```
 
-Done. 15 skills activate immediately. No config. No API keys.
+Done. 26 skills activate immediately. No config. No API keys.
+
+**Using Cursor, Windsurf, Cline, Continue, or Codex?** See the [hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL + license key unlocks all 500+ skills in your editor.
+
+**Prefer the CLI (terminal lovers)?**
+```bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+```
 
 ## 2-Minute First Win
 
@@ -272,7 +290,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 ### What's New in v3.0.0 — Desktop-First Plugin
 
-- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.4)
+- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.5)
 - **15 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
 - **5 specialized agents** — reviewer, builder, researcher, debugger, fleet-worker
 - **6 lifecycle hooks** — automated session, build, review, deploy, and fleet hooks
@@ -731,7 +749,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v4.0.0-beta.4** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v4.0.0-beta.5** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

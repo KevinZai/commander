@@ -1,0 +1,132 @@
+---
+title: "Compatibility — Works everywhere Claude works"
+description: "CC Commander runs in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, and more. One install, every client."
+---
+
+# 🌐 Compatibility
+
+CC Commander is built to meet you where you already work. Whether you're a novice learning AI agents in Claude Cowork, a developer on Claude Code Desktop, or a power user jumping between Cursor and Windsurf — one install, one license, every client.
+
+## 🎯 Primary clients (full plugin support)
+
+### Claude Cowork Desktop ⭐ (Best for novices)
+
+**Why Cowork first?** It's Anthropic's newest app designed for users who want AI agents to *do* things, not just chat. CC Commander's 26 guided workflows are a perfect match — beginners can type `/ccc:build` and get a complete app scaffold without touching config.
+
+```
+/plugin marketplace add KevinZai/commander
+/plugin install commander
+```
+
+**What you get:**
+- 26 `/ccc:*` slash commands with autocomplete
+- 15 specialist agents (architect, designer, builder, reviewer, etc.) with persona voices
+- 9 lifecycle hooks (cost warnings, context alerts, auto-save, secret guards)
+- 5 pre-wired MCP integrations (Linear, Tavily, Context7, GitHub, Slack)
+- Full offline support — works without internet after install
+
+### Claude Code Desktop (Best for developers)
+
+Same plugin, same skills, same install path. Claude Code is the developer-focused Desktop app; Cowork shares the plugin system so everything works identically.
+
+```
+/plugin marketplace add KevinZai/commander
+/plugin install commander
+```
+
+### Claude Code CLI (Best for terminal workflows)
+
+For developers who live in the terminal. Installs the `ccc` interactive TUI command plus the plugin (Claude Code CLI uses the same plugin system as Desktop).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+```
+
+**What you get beyond the plugin:**
+- `ccc` interactive TUI with 10 themes
+- 83 slash commands at the shell level
+- Tabbed tmux mode for parallel agent work
+- Headless dispatch for CI/cron automation
+
+## 🔌 MCP clients (hosted server)
+
+For any AI IDE that supports Model Context Protocol. Point at `mcp.cc-commander.com` with your license key:
+
+```json
+// Example: ~/.cursor/mcp.json
+{
+  "mcpServers": {
+    "cc-commander": {
+      "url": "https://mcp.cc-commander.com/sse",
+      "headers": { "Authorization": "Bearer YOUR_LICENSE_KEY" }
+    }
+  }
+}
+```
+
+Equivalent config for:
+
+### Cursor
+`~/.cursor/mcp.json` — same shape as above
+
+### Windsurf
+`~/.codeium/windsurf/mcp_config.json`
+
+### Cline
+VS Code command palette → `Cline: Open MCP Servers Config`
+
+### Continue
+`~/.continue/config.json` → add to `mcpServers` key
+
+### Codex
+`~/.config/codex/mcp.json`
+
+### Claude mobile / Claude Desktop
+Coming soon — MCP support rolling out in Anthropic's mobile + desktop apps during beta.
+
+**All MCP clients get:**
+- 13 tools: `list_skills`, `search_skills`, `get_skill`, `suggest_skill`, `list_agents`, `get_agent`, `list_modes`, `enter_mode`, `get_status`, `send_feedback`, `get_session_time`, `list_hooks`, `get_connector`
+- Cross-IDE usage counter (same 1000 calls/mo counts across all your editors)
+- Unified feedback history (surveys you complete in one client count everywhere)
+- Live skill updates — no reinstall needed when we ship improvements
+
+## 🔄 Mix and match
+
+Power users can install the plugin in Cowork/Claude Code Desktop AND point Cursor at the hosted MCP. Your license key travels:
+
+```
+Monday:     /ccc:build in Claude Code Desktop   (uses 5 calls)
+Tuesday:    search_skills in Cursor              (uses 3 calls)
+Wednesday:  /ccc:review on mobile                 (uses 2 calls)
+Total month usage: 10/1000 calls — all synced
+```
+
+## 📊 Feature matrix by client
+
+| Feature | Cowork Desktop | Code Desktop | Code CLI | Cursor/Windsurf/etc. |
+|---------|:-:|:-:|:-:|:-:|
+| 26 `/ccc:*` slash commands | ✅ | ✅ | ✅ | via agent prompt |
+| 15 specialist agents | ✅ | ✅ | ✅ | via `invoke_agent` tool |
+| Lifecycle hooks (9 events) | ✅ | ✅ | ✅ | ⚠️ MCP-only equivalents |
+| MCP integrations | ✅ | ✅ | ✅ | host's own MCP support |
+| Airplane-mode (offline) | ✅ | ✅ | ✅ | ❌ requires MCP reachable |
+| Cross-IDE usage counter | via hybrid mode | via hybrid mode | via hybrid mode | ✅ native |
+| Mandatory-feedback gate | via hybrid mode | via hybrid mode | via hybrid mode | ✅ native |
+| Interactive TUI | — | — | ✅ | — |
+
+## 🆕 Coming in v4.1
+
+- **Commander Hub marketplace** — user-published skill packs with 80/20 rev-share, discoverable in all clients
+- **Team plans** — shared knowledge base, pooled usage quota, admin dashboard
+- **Claude iPad** — once Anthropic's iPad MCP support lands
+
+## 🆘 Doesn't work in your client?
+
+File an issue: https://github.com/KevinZai/commander/issues — tell us the client name + version + what you tried. We add compatibility as it's requested.
+
+## See also
+
+- [Install the plugin](/plugin/install)
+- [How users browse skills (Plugin vs MCP vs Hybrid)](/features/browse-modes)
+- [Free vs Pro](/plugin/free-vs-pro)
+- [Upgrade guide](/plugin/upgrade)

@@ -36,6 +36,7 @@
           {
             "group": "Core Features",
             "pages": [
+              "features/compatibility",
               "features/browse-modes",
               "features/token-optimization",
               "features/intelligence-layer",

@@ -1,8 +1,15 @@
 # CC Commander
 
-> 15 plugin skills + 453+ CC Commander ecosystem skills. One plugin. Your AI work, managed by AI.
+> **Works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE.** 26 plugin skills + 500+ CC Commander ecosystem skills. One plugin. Your AI work, managed by AI.
 
-CC Commander is a guided AI PM plugin for Claude Desktop that orchestrates your entire development workflow — from planning to shipping. The plugin ships 15 native skills (`/ccc:*`) that route into the broader CC Commander ecosystem of 453+ skills across 11 domains. It compounds knowledge across sessions, detects and sequences your installed tools, and provides guided flows for building, researching, reviewing, and deploying. Works standalone out of the box, gets supercharged when you connect your tools.
+CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships 26 native skills (`/ccc:*`) that route into the broader CC Commander ecosystem of 500+ skills across 11 domains.
+
+**Who's it for?**
+- 👋 **New to AI coding agents?** Claude Cowork Desktop + CC Commander = the easiest on-ramp.
+- 💻 **A developer?** Claude Code Desktop or CLI — same install, same skills, deeper hooks.
+- 🔧 **In Cursor / Windsurf / Cline / Continue / Codex?** Hosted MCP endpoint — one URL, all skills.
+
+It compounds knowledge across sessions, detects and sequences your installed tools, and provides guided flows for building, researching, reviewing, and deploying. Works standalone out of the box, gets supercharged when you connect your tools.
 
 ## Installation
 

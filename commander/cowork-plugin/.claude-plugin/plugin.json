@@ -1,6 +1,6 @@
 {
   "name": "commander",
-  "version": "4.0.0-beta.4",
+  "version": "4.0.0-beta.5",
   "description": "CC Commander — Guided AI PM to Master Claude Code Instantly. 1 MCP server. 453+ skills. Every AI IDE. Free in beta. Works in Claude Code, Cursor, Windsurf, Cline, Continue, Codex, and more.",
   "author": {
     "name": "Kevin Zicherman",
@@ -30,37 +30,6 @@
   ],
   "skills": "./skills/",
   "agents": "./agents/",
-  "tiers": {
-    "free": [
-      "commander",
-      "build",
-      "linear-board",
-      "research",
-      "content",
-      "session",
-      "settings",
-      "domains",
-      "night-mode",
-      "standup",
-      "code-review",
-      "deploy-check",
-      "fleet",
-      "ccc-data",
-      "ccc-design",
-      "ccc-devops",
-      "ccc-makeover",
-      "ccc-marketing",
-      "ccc-mobile",
-      "ccc-research",
-      "ccc-saas",
-      "ccc-security",
-      "ccc-seo",
-      "ccc-testing",
-      "infra",
-      "knowledge"
-    ],
-    "pro": []
-  },
   "hooks": {
     "SessionStart": [
       {

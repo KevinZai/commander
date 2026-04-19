@@ -8,17 +8,23 @@ description: "Two ways to access 453+ CC Commander skills — native plugin slas
 CC Commander ships **two parallel discovery surfaces**. They serve the same skill catalog but are shaped by what each client supports.
 
 <Warning>
-  **Beta v4.0.0-beta.4 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.cc-commander.com` goes live post-deploy.
+  **Beta v4.0.0-beta.5 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.cc-commander.com` goes live post-deploy.
 </Warning>
 
 ## The split in one sentence
 
 | Client | How to browse | Mechanism |
 |--------|---------------|-----------|
-| **Claude Code (plugin)** | `/ccc:<name>` slash commands with autocomplete | Plugin manifest `skills: "./skills/"` |
-| **Everything else (MCP)** | Agent calls `list_skills` / `search_skills` / `suggest_skill` on the user's behalf | Hosted MCP server at `mcp.cc-commander.com` |
+| **Claude Cowork Desktop (plugin)** ⭐ | `/ccc:<name>` slash commands — ideal for novices, zero config | Plugin manifest `skills: "./skills/"` |
+| **Claude Code Desktop (plugin)** | Same as above — identical install path | Plugin manifest `skills: "./skills/"` |
+| **Claude Code CLI (terminal)** | `ccc` interactive TUI + slash commands in CC sessions | CLI binary + plugin |
+| **Cursor / Windsurf / Cline / Continue / Codex / Claude mobile** | Agent calls `list_skills` / `search_skills` / `suggest_skill` on the user's behalf | Hosted MCP server at `mcp.cc-commander.com` |
 
-Same 453+ skills. Different UX glue.
+Same 500+ skills. Different UX glue.
+
+<Info>
+  **New to AI coding agents?** Start with **Claude Cowork Desktop** — it's designed for novice users and CC Commander's guided workflows are perfect for learning by doing. The plugin install is identical to Claude Code Desktop; Cowork just surfaces agent coordination more prominently in its UI.
+</Info>
 
 ## Native plugin (Claude Code)
 
