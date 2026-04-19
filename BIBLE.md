@@ -2152,7 +2152,7 @@ ccc --repair
 | **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 454+ skills from within Commander |
+| **Skill browser** | Browse all 500+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
@@ -2377,7 +2377,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 454+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 500+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology
@@ -2566,7 +2566,7 @@ CCC skills are fully compatible with this format. Cherry-pick individual skills 
 
 CCC does not replace these skills. It organizes and orchestrates them.
 
-- **Curation:** 454+ skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
+- **Curation:** 500+ skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
 - **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
 - **Pre-wired MCPs:** 8 MCP servers are configured out of the box. Skills that need web search, GitHub, Linear, or docs get them without manual setup.
 - **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (39 skills) behaves like a single expert, not 39 separate prompts.

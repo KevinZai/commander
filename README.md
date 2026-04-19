@@ -7,7 +7,7 @@
 
 > **Guided AI PM to Master Claude Code Instantly**
 
-**1 MCP server. 454+ skills. Every AI IDE. Free in beta.**
+**1 MCP server. 500+ skills. Every AI IDE. Free in beta.**
 
 <img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.4" width="100%">
 
@@ -72,7 +72,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 454+ skills,
+You get:  A guided AI project manager with 500+ skills,
           15 plugin skills, 5 agents, 20 vendor packages,
           real learning, and zero setup.
 ```
@@ -105,7 +105,7 @@ Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 
 <img src="docs/assets/screenshots/domains.gif" alt="CCC Domains" width="100%">
 
-### 454+ Skills — Install Only What You Need
+### 500+ Skills — Install Only What You Need
 
 <img src="docs/assets/screenshots/skills-install.gif" alt="Skill Management" width="100%">
 
@@ -197,7 +197,7 @@ CCC ranks skills using your stack + task keywords + past usage. The right tools 
     8    ccc-testing           Always recommended
 
   ❯ Use top recommendation
-    Browse all 454+ skills
+    Browse all 500+ skills
     Search by keyword
     Back to main menu
 ```
@@ -294,7 +294,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 | Component | Count | What It Does |
 |-----------|-------|-------------|
-| Skills | 454+ | On-demand expertise (deduplicated) |
+| Skills | 500+ | On-demand expertise (deduplicated) |
 | Plugin Skills | 15 | Desktop-first skills (commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet) |
 | Agents | 5 | reviewer, builder, researcher, debugger, fleet-worker |
 | Lifecycle Hooks | 6 | Automated session, build, review, deploy, and fleet hooks |
@@ -489,7 +489,7 @@ Then in any Claude Code session:
 
 Full interactive menu appears. Same features, no separate CLI needed.
 
-**What you get:** All 454+ skills and commands, no extra CLI binary required.
+**What you get:** All 500+ skills and commands, no extra CLI binary required.
 
 ---
 
@@ -609,7 +609,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc makeover     → Auto-apply top fixes
 /ccc refresh      → Update your CLAUDE.md from latest template
 /ccc domains      → Browse 11 CCC domains
-/ccc skills       → Browse 454+ skills
+/ccc skills       → Browse 500+ skills
 /ccc grill        → 7-question Socratic planning probe
 /ccc infra        → Infrastructure sub-menu (Fleet, Synapse, Cost, AO, CloudCLI, Paperclip)
 /ccc detect       → Probe all services and CLIs
@@ -626,7 +626,7 @@ CCC is built to be controlled by AI agents — OpenClaw, Claude Code, or any orc
 | Command | Output | Purpose |
 |---------|--------|---------|
 | `ccc --dispatch "task" --json` | JSON | Run task headlessly |
-| `ccc --list-skills --json` | JSON | All 454+ skills |
+| `ccc --list-skills --json` | JSON | All 500+ skills |
 | `ccc --list-sessions --json` | JSON | Session history |
 | `ccc --status` | JSON | Health check |
 | `ccc --template` | text | Latest CLAUDE.md template |

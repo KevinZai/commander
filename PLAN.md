@@ -10,7 +10,7 @@
 ## 🎯 North Star
 
 **Product:** CC Commander — Guided AI PM to Master Claude Code Instantly.
-**One-liner:** 1 MCP server. 453+ skills. Every AI IDE. Free in beta.
+**One-liner:** 1 MCP server. 500+ skills. Every AI IDE. Free in beta.
 **Business model:** Free 1000 calls/mo + mandatory feedback during beta. Pro $15/mo + Commander Hub marketplace (80/20 creator rev-share) post-beta.
 **Publisher:** Kevin Zicherman. Personal publisher for beta → Commander Labs LLC at $50K ARR.
 

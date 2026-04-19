@@ -2,7 +2,7 @@
 
 ## What This Is
 
-CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. 1 MCP server. 454+ skills. Every AI IDE. Free in beta. The Desktop plugin is the primary product: 15 plugin skills, 15 specialist agents (with persona voice system), 9 lifecycle hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 454+ total skills (454 skills), 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 20 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. 1 MCP server. 500+ skills. Every AI IDE. Free in beta. The Desktop plugin is the primary product: 15 plugin skills, 15 specialist agents (with persona voice system), 9 lifecycle hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 500+ total skills (500 skills), 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 20 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 **Current Release:** v4.0.0-beta.4 — MCP server + hosted beta + 15 specialist personas · npm package `cc-commander@4.0.0-beta.4` (version tracked in `package.json`)
 
@@ -69,7 +69,7 @@ Tests: `node --test commander/tests/paths.test.js`
 │   ├── hooks/                   # 6 lifecycle hooks
 │   ├── mcp/                     # 5 MCP server configs
 │   └── CONNECTORS.md            # 10 connector categories
-├── skills/              # 454+ skills organized by category
+├── skills/              # 500+ skills organized by category
 │   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 10 workflow modes
 ��   ├── init-decision-tree/  # /init project wizard
@@ -131,7 +131,7 @@ All `/ccc` sub-commands open rich menus with recommendations:
 | `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
 | `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
 | `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 454+ skills by category, preview, try |
+| `/ccc skills` | Skill browser | 500+ skills by category, preview, try |
 | `/ccc domains` | CCC domains | 11 ccc-* domains |
 | `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
 | `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
@@ -158,7 +158,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** 3.0.0 (Desktop-first plugin transformation — see `package.json`)
 
-**Stats:** 454+ total skills (454 skills), 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
+**Stats:** 500+ total skills (500 skills), 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
@@ -215,7 +215,7 @@ ccc --status                  # Health check
 - Modular installer with 5 installation modes (full, essentials, scripts, dashboard, config-only)
 - Daemon Mode: commander/daemon.js (tick loop), commander/queue.js (task queue), commander/dream.js (knowledge consolidation)
 - Intelligence Layer v1: complexity scoring (dispatcher.js), stack detection (project-importer.js), session learning (knowledge.js), skill filtering (skill-browser.js), smart retry (dispatchWithRetry)
-- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 454+)
+- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 500+)
 - Update checker at `commander/update-check.js` — 4h cache, silent on failure, fires on session start
 - Caveman mode (`caveman` skill) — strips markdown/emojis/prose for ~75% output token savings during iteration
 
