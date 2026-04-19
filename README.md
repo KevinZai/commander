@@ -9,9 +9,9 @@
 
 **1 MCP server. 454+ skills. Every AI IDE. Free in beta.**
 
-<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.3" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.4" width="100%">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/20_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v4.0.0-beta.3](https://img.shields.io/badge/v4.0.0--beta.3-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/456%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Vendors](https://img.shields.io/badge/20_Vendors-D946EF?style=for-the-badge)](./docs/ACKNOWLEDGMENTS.md) [![Tests](https://img.shields.io/badge/187_Tests_Passing-059669?style=for-the-badge)](./commander/tests/) [![v4.0.0-beta.4](https://img.shields.io/badge/v4.0.0--beta.4-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
@@ -272,14 +272,14 @@ CCC reads your project before every dispatch. No setup needed.
 
 ### What's New in v3.0.0 — Desktop-First Plugin
 
-- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.3)
+- **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.4)
 - **15 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
 - **5 specialized agents** — reviewer, builder, researcher, debugger, fleet-worker
 - **6 lifecycle hooks** — automated session, build, review, deploy, and fleet hooks
 - **5 MCP servers** — native MCP integration out of the box
 - **10 connector categories** — CONNECTORS.md documents all integration points
 - **Free/Pro tier split** — core skills free, advanced agents and MCP servers in Pro
-- **`commander-marketplace`** — skill/agent marketplace at KevinZai/commander
+- **`commander-hub`** — skill/agent marketplace at KevinZai/commander
 
 ### New in v2.3.1 — Professional TUI
 
@@ -469,7 +469,7 @@ CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what sho
 
 **What you get:** 15 plugin skills, 5 specialized agents, 6 lifecycle hooks, 5 MCP servers — all with free/pro tier support.
 
-**Marketplace:** `commander-marketplace` at [KevinZai/commander](https://github.com/KevinZai/commander)
+**Marketplace:** `commander-hub` at [KevinZai/commander](https://github.com/KevinZai/commander)
 
 ---
 
@@ -731,7 +731,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v4.0.0-beta.3** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v4.0.0-beta.4** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

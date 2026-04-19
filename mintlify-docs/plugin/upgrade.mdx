@@ -1,11 +1,11 @@
 ---
 title: "Upgrade to v4.0.0 Beta"
-description: "Upgrade an existing CC Commander plugin install to v4.0.0-beta.3 in Claude Code Desktop, Claude Code CLI, or npm."
+description: "Upgrade an existing CC Commander plugin install to v4.0.0-beta.4 in Claude Code Desktop, Claude Code CLI, or npm."
 ---
 
 # ⬆️ Upgrade to v4.0.0 Beta
 
-You already have CC Commander installed? Here's how to pick up v4.0.0-beta.3 with zero drama.
+You already have CC Commander installed? Here's how to pick up v4.0.0-beta.4 with zero drama.
 
 ## Claude Code Desktop / CLI (plugin)
 
@@ -13,13 +13,13 @@ You already have CC Commander installed? Here's how to pick up v4.0.0-beta.3 wit
 /plugin update commander
 ```
 
-That's the whole thing. The marketplace serves the latest version from `main` — once the v4.0.0-beta.3 release lands, your next `/plugin update` pulls it.
+That's the whole thing. The marketplace serves the latest version from `main` — once the v4.0.0-beta.4 release lands, your next `/plugin update` pulls it.
 
 ### Verify the upgrade
 
 ```
 /plugin list | grep commander
-# should show: commander  v4.0.0-beta.3  Kevin Zicherman
+# should show: commander  v4.0.0-beta.4  Kevin Zicherman
 ```
 
 Or in a fresh Claude Code session:
@@ -32,7 +32,7 @@ The settings menu header reports the installed version.
 
 ### What changes for you
 
-| Surface | Before (v3.1.0) | After (v4.0.0-beta.3) |
+| Surface | Before (v3.1.0) | After (v4.0.0-beta.4) |
 |---------|-----------------|----------------------|
 | Plugin skills | 15 free + 2 pro | 24 free + 2 pro (11 CCC domain routers now free) |
 | Agents | 10 domain specialists | 15 with persona voice system (added content-strategist, data-analyst, performance-engineer, product-manager, technical-writer) |
@@ -47,9 +47,9 @@ Your `~/.claude/commander/` state files, knowledge base, and learned-skills dire
 ## npm CLI
 
 ```bash
-npm i -g cc-commander@4.0.0-beta.3
+npm i -g cc-commander@4.0.0-beta.4
 # or: npm i -g cc-commander@next (if we tag the dist-tag)
-ccc --version   # should show 4.0.0-beta.3
+ccc --version   # should show 4.0.0-beta.4
 ```
 
 Re-run the post-install verify:
@@ -91,7 +91,7 @@ npm i -g cc-commander@3.1.0
 
 Optional but recommended: run `/ccc:init` to refresh your project `CLAUDE.md` against the new v4 template (22-emoji palette, 10 Core Principles, 4 HARD RULES). Custom sections are preserved.
 
-## Known issues in v4.0.0-beta.3
+## Known issues in v4.0.0-beta.4
 
 - Hosted MCP endpoint at `mcp.cc-commander.com` is not live yet — deploy pending Kevin's infrastructure provisioning. Plugin-side UX is unaffected.
 - 135 eslint warnings exist in the codebase (tech-debt, not new regressions). `--max-warnings 140` is temporarily enforced. Will be fixed in beta.2.

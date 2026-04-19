@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# CC Commander — one-time migration from legacy "ccc-marketplace" to "commander-marketplace"
+# CC Commander — one-time migration from legacy "ccc-marketplace" to "commander-hub"
 # Safe to re-run. Creates timestamped backup before touching anything.
 #
-# Why this script: v3.0.0 used marketplace slug "ccc-marketplace" + plugin slug "ccc".
-# v3.0.1+ renamed both to "commander-marketplace" + "commander". Users who installed v3.0.0
-# have the old registration stuck in ~/.claude/plugins/ state and can't `/plugin update`
-# the old one because Claude Code looks up plugins by slug.
+# Why this script: v3.0.0 used "ccc-marketplace" + plugin "ccc". v3.0.1+ renamed plugin
+# to "commander", then v4.0.0-beta.4 renamed marketplace to "commander-hub". Users on
+# older versions have stale registrations stuck in ~/.claude/plugins/ state that can't
+# be cleanly updated because Claude Code looks up plugins by slug.
+#
+# This script handles BOTH legacy marketplace names (ccc-marketplace AND
+# commander-marketplace) — removes either if present.
 #
 # This script removes the old registration + cached artifacts in 5 places:
 #   1. ~/.claude/plugins/known_marketplaces.json       — marketplace registry
@@ -45,7 +48,9 @@ changes = []
 
 for fname, key_path in [
     ('known_marketplaces.json', ['ccc-marketplace']),
+    ('known_marketplaces.json', ['commander-marketplace']),
     ('installed_plugins.json',  ['plugins', 'ccc@ccc-marketplace']),
+    ('installed_plugins.json',  ['plugins', 'commander@commander-marketplace']),
 ]:
     p = os.path.join(plugins_dir, fname)
     if not os.path.exists(p):
@@ -71,7 +76,10 @@ REMOVED=0
 for path in \
   "$PLUGINS_DIR/marketplaces/ccc-marketplace" \
   "$PLUGINS_DIR/cache/ccc-marketplace" \
-  "$PLUGINS_DIR/.install-manifests/ccc@ccc-marketplace.json"; do
+  "$PLUGINS_DIR/.install-manifests/ccc@ccc-marketplace.json" \
+  "$PLUGINS_DIR/marketplaces/commander-marketplace" \
+  "$PLUGINS_DIR/cache/commander-marketplace" \
+  "$PLUGINS_DIR/.install-manifests/commander@commander-marketplace.json"; do
   if [[ -e "$path" ]]; then
     rm -rf "$path"
     REMOVED=$((REMOVED + 1))

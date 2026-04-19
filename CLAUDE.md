@@ -4,7 +4,7 @@
 
 CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. 1 MCP server. 454+ skills. Every AI IDE. Free in beta. The Desktop plugin is the primary product: 15 plugin skills, 15 specialist agents (with persona voice system), 9 lifecycle hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 454+ total skills (454 skills), 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 20 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** v4.0.0-beta.3 — MCP server + hosted beta + 15 specialist personas · npm package `cc-commander@4.0.0-beta.3` (version tracked in `package.json`)
+**Current Release:** v4.0.0-beta.4 — MCP server + hosted beta + 15 specialist personas · npm package `cc-commander@4.0.0-beta.4` (version tracked in `package.json`)
 
 ## Session Defaults
 
@@ -28,9 +28,9 @@ CCC's primary product as of v3.0.0. Install via the Claude Code plugin marketpla
 /plugin install commander
 ```
 
-**Plugin name:** `commander` · **Marketplace:** `commander-marketplace` at KevinZai/commander
+**Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
 
-**Beta (v4.0.0-beta.3):** ALL 26 plugin skills + 15 specialist agents + 9 lifecycle hooks + 5 MCP servers — free, gated only by 1000 calls/mo hosted MCP quota (with mandatory feedback survey).
+**Beta (v4.0.0-beta.4):** ALL 26 plugin skills + 15 specialist agents + 9 lifecycle hooks + 5 MCP servers — free, gated only by 1000 calls/mo hosted MCP quota (with mandatory feedback survey).
 **Pro (post-beta):** unlimited calls + Commander Hub marketplace (v4.1).
 
 Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
@@ -162,7 +162,7 @@ Every menu recommends the best next action based on context.
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
-- Marketplace: `commander-marketplace` — `/plugin marketplace add KevinZai/commander`
+- Marketplace: `commander-hub` — `/plugin marketplace add KevinZai/commander`
 - Landing page: KevinZai.github.io/cc-commander
 - One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash`
 - Free/Pro tiers: core skills free, agents + MCP servers in Pro

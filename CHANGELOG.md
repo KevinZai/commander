@@ -2,6 +2,18 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.4] — 2026-04-18 — Marketplace Rename + Broken-Symlink Fix + PLAN.md
+
+### Changed
+- **Marketplace slug renamed:** `commander-marketplace` → **`commander-hub`** (shorter, aligns with v4.1 Commander Hub marketplace feature). Users must re-add: `/plugin marketplace remove commander-marketplace` + `/plugin marketplace add KevinZai/commander`
+- `scripts/migrate-ccc-to-commander.sh` — now purges BOTH legacy marketplace names (`ccc-marketplace` AND `commander-marketplace`) in one pass
+
+### Fixed
+- **Broken symlink `skills/marketing-pack`** was pointing to non-existent `mega-marketing` — caused plugin install failure on fresh machines with error: `cp: .../marketplaces/commander-marketplace/skills/marketing-pack: No such file or directory`. Retargeted to `ccc-marketing` (current canonical).
+
+### Added
+- `PLAN.md` at repo root — **single source of truth** for v4 roadmap + Linear ticket refs (CC-292 → CC-327). Forward-looking content lives here; CHANGELOG stays release-notes; CLAUDE.md stays codebase-working-instructions.
+
 ## [4.0.0-beta.3] — 2026-04-18 — Real MCP Server + 8 Hooks + Plugin Hybrid
 
 **Design contract:** the plugin stays 100% functional standalone. MCP is ADDITIVE. Every new capability either enhances plugin behavior when MCP is reachable, or gracefully falls back to local behavior when MCP is unreachable/unconfigured. CI enforces this via airplane-mode test.
