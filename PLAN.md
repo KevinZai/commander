@@ -1,7 +1,7 @@
 # CC Commander — Single Source of Truth
 
 **Last updated:** 2026-04-18 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.4
-**Linear project:** https://linear.app/k3v80/project/cc-commander-efd0258dcd62
+**Linear project:** https://linear.app/<team>/project/cc-commander-efd0258dcd62
 
 > This file is the canonical roadmap. When things change, update THIS file (not CLAUDE.md, not CHANGELOG beyond release notes, not scattered task files). Cross-references the CC-* tickets in Linear.
 
@@ -199,7 +199,7 @@ Execution window: **after Stage 3 deploy + 48h soak period.**
 | 7 | Recruit 20 beta testers (Linear CC-299 pattern) | CC-299 | — |
 | 8 | 2-min demo video | — | 📋 Script in `marketing-master/06-cc-commander-marketing-plan.md` |
 
-**Marketing-master copy library** (~280K words of pre-written assets at `/Users/ai/clawd/output/dev/cc-commander-strategy-2026-04-17/marketing-master/`):
+**Marketing-master copy library** (~280K words of pre-written assets at `<clawd-output>/cc-commander-strategy-2026-04-17/marketing-master/`):
 - `00-index.md` — navigator
 - `01-agent-personas-unified.md`
 - `02-marketing-skills-catalog.md`
@@ -215,7 +215,7 @@ Execution window: **after Stage 3 deploy + 48h soak period.**
 
 ## 🎫 Open Linear Tickets (CC-292 → CC-327)
 
-Active tracker: https://linear.app/k3v80/project/cc-commander-efd0258dcd62
+Active tracker: https://linear.app/<team>/project/cc-commander-efd0258dcd62
 
 ### Kevin-gated (external auth/accounts)
 - **CC-311** — 1Password vault populate (10 items) · umbrella for all Stage 2 work
