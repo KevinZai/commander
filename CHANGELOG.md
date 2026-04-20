@@ -18,6 +18,12 @@ All notable changes to CC Commander will be documented in this file.
 - `.claude-plugin/marketplace.json` entry `version` synced `4.0.0-beta.5` → `4.0.0-beta.6` to match `plugin.json` (fixes validator drift warning).
 - **Plugin manifest is now minimal + schema-compliant**: only `name`, `version`, `description`, `author`, `homepage`, `repository`, `license`, `keywords`. Everything else (skills, agents, hooks) auto-discovered — same pattern as the reference `claude-mem` plugin.
 
+### Also added in beta.6 (same-day post-ship follow-up)
+- **`commander/cowork-plugin/commands/ccc.md`** — plugin now ships a `/ccc` slash command. Previously `/ccc` only existed as a user-level file from the pre-plugin-era `install-remote.sh`, which is why laptops with legacy installs were seeing stale v1.0.0 output when they typed `/ccc` even after the plugin was installed. The plugin command reads version directly from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`, so it always shows the installed plugin version.
+- **`scripts/diagnose-ccc-sources.sh`** — NEW read-only diagnostic. Scans 6 locations (plugin install, user commands, user skills, CLI state dir, PATH binary, other install trails) and prints version stamps from each. Shows exactly which legacy source is serving stale /ccc output. Never modifies anything.
+- **`scripts/reset-commander-install.sh --full`** — new flag. In addition to plugin state, removes legacy CLI install: `~/.claude/commands/ccc*.md`, `~/.claude/skills/ccc/`, `~/.claude/skills/commander/`, `~/.claude/commander/` state dir, `~/.cc-commander`, `~/.ccc`, and the npm-global `cc-commander` package (via realpath-based detection that works under any npm prefix — nvm, homebrew, system). Domain skills (`ccc-design`, `ccc-marketing`, etc.) are NEVER touched — only exact-match `ccc` and `commander` top-level dirs.
+- **`scripts/reset-commander-install.sh --dry-run`** — new flag. Preview every change the script would make without touching anything. Pairs with `--full` for a full preview.
+
 ### Notes
 - `user-prompt-submit.js` and `permission-denied.js` remain on disk but are no longer wired to a hook event. Both are Pro-tier analytics stubs (no-ops in free beta) and will be re-wired once Claude Code's schema accepts the corresponding events. No functional change for beta users.
 
