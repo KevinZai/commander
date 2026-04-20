@@ -31,11 +31,13 @@ Every click maps to a native AskUserQuestion chip picker. No typing numbers, no 
 
 ---
 
-## The 12 workflow commands
+## The 15 workflow commands
 
 | Command | Primary action | When to use |
 |---|---|---|
 | `/ccc` | Main hub — 6 intent tiles | Starting a session, unsure where to begin |
+| `/ccc-suggest` 🌟 | **Intelligence layer — recommends ONE starred next step** | Always safe to run. Opus-class reasoning picks the best move for your current state. |
+| `/ccc-cheatsheet` | Live Mermaid map of the plugin | Want to see everything at a glance, filesystem-backed |
 | `/ccc-start` | First-run onboarding + plan file | Brand new to the plugin, want a tour |
 | `/ccc-browse` | Searchable catalog | Exploring what's available |
 | `/ccc-plan` | Spec interview → plan file | Starting a new feature with unknowns |
@@ -46,8 +48,29 @@ Every click maps to a native AskUserQuestion chip picker. No typing numbers, no 
 | `/ccc-learn` | Skill discovery | Looking for a specific skill across 11 domains |
 | `/ccc-xray` | Project health scorecard | Onboarding to an existing repo; periodic health |
 | `/ccc-linear` | Linear board integration | Managing issues without leaving Claude |
-| `/ccc-fleet` | Multi-agent orchestration | Parallel work, FOR/AGAINST review, fan-out |
+| `/ccc-fleet` | Multi-agent orchestration (git worktrees) | Parallel work, FOR/AGAINST review, fan-out |
 | `/ccc-connect` | Opt-in MCP connector | Adding Notion/Zapier/Supabase/Slack/GDrive/Figma |
+
+---
+
+## What makes this different from other plugins
+
+Every other Claude Code plugin solves one slice — memory, structured thinking, token savings, UI polish. CC Commander is the **guided PM layer that orchestrates all of them.** When another plugin is the right tool, `/ccc-suggest` names it.
+
+- 🖱️ **Click-first UX, everywhere.** Every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII prompts. Works identically in Cowork Desktop, Code Desktop, and the CLI.
+- 🧠 **`/ccc-suggest` kills info-paralysis.** Opus-class real-time recommendation. 3 reasoning tiers: strong signals → stack signals → user intent. Returns ONE starred move with plain-English reasoning + named 3rd-party plugins.
+- 🧩 **15 plain `/ccc-*` workflows.** No `commander:` prefix. Skill-based architecture, 100% `claude plugin validate` pass.
+- 🎭 **15 specialist agents with persona voices.** Each agent loads a role-specific voice layer — architect speaks in mermaid + tradeoffs, designer leads with screenshots + contrast ratios, debugger follows the four-phase Iron Law.
+- 🔌 **8 core MCP servers pre-wired + 5 more opt-in.** Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem ship hot. `/ccc-connect` adds Notion / Zapier / Supabase / Slack / GDrive in one click.
+- 🗺️ **`/ccc-cheatsheet` is filesystem-backed.** Live Mermaid diagram that reads the plugin on every invocation. Never drifts.
+- 🔄 **Weekly vendor auto-sync.** 20 vendor submodules refresh via GitHub Actions — your ecosystem stays current without touching a config.
+- 🌐 **One license, every client.** Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile (hosted MCP).
+- 🚁 **`/ccc-fleet` runs parallel git worktrees.** True isolation for fan-out, pipeline, FOR/AGAINST, and background modes.
+- 🆓 **Free in beta.** No credit card. 1,000 hosted-MCP calls/month + one skippable survey per session.
+- 🧬 **Plugin + CLI share a brain.** Same intelligence layer, same 502-skill catalog, same personas. Install either, get both.
+- 🎯 **Plugins-name-plugins.** `/ccc-suggest` calls out `claude-mem`, `superpowers`, `caveman`, `impeccable`, `graphify`, `claude-reflect`, `repomix`, `claude-hud`, and others by name when they're the right tool. You learn the whole ecosystem through one install.
+- 📖 **The Kevin Z Method ships with the plugin.** `BIBLE.md` — 7 rules, 200+ sources, 14 months of production methodology.
+- 📚 **502+ skills across 11 CCC domains** — design (39), marketing (45), saas (21), devops (21), seo (20), testing (15), security (8), data (8), research (8), mobile (8), makeover (3).
 
 ---
 
@@ -105,6 +128,9 @@ Legacy `ccc-marketplace` or `commander-marketplace` registration. The reset scri
 ---
 
 ## FAQ
+
+**Q: How does CC Commander know what tool to recommend?**
+A: `/ccc-suggest` runs three reasoning tiers in order. **Tier 1 — strong signals** reads hard state: open PRs, failing tests, dirty worktrees, mid-plan sessions, new Linear tickets, secrets in git. **Tier 2 — stack signals** detects your project shape from `package.json`, `Dockerfile`, `go.mod`, `.github/workflows/` and maps to the right CCC domain. **Tier 3 — user intent** pattern-matches your last 5 prompts against the 502-skill catalog and the 7-day trending window. The highest-priority hit wins — one starred move, with reasoning + named 3rd-party plugins as alternatives. When `claude-mem`, `superpowers`, `caveman`, `impeccable`, or `graphify` is the right tool, it says so by name. CC Commander doesn't hoard workflows — it's a guided PM that delegates.
 
 **Q: Do I need to install the CLI (`npm install -g cc-commander`)?**
 A: No. The plugin is self-contained. The CLI is a separate, power-user tool for terminal workflows. See [docs/cli.md](./cli.md) if you want it.

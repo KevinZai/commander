@@ -21,11 +21,13 @@ Together with the click-first chip-picker overhaul, this ships a **skill-based a
 
 ### Added
 
-#### 12 click-first specialist skills (all plain `/ccc-*` commands)
+#### 15 click-first specialist skills (all plain `/ccc-*` commands)
 
 | Command | Purpose |
 |---|---|
 | `/ccc` | Main hub — 6-intent visual picker with recommended-tile logic based on detected context |
+| `/ccc-suggest` 🌟 | **Intelligence layer** — scans project state, returns ONE starred next step with reasoning + named 3rd-party plugins |
+| `/ccc-cheatsheet` 🌟 | Live Mermaid flow diagram of the whole plugin — filesystem-backed, never drifts |
 | `/ccc-start` | First-run onboarding: detects setup, introduces the 15 agent personas, writes initial plan file |
 | `/ccc-browse` | Cascading catalog: Domains (11) · Workflows (9) · Agents (15) · Full grid |
 | `/ccc-plan` | Spec interview → plan file in `~/.claude/plans/ccc-<date>-<slug>.md` via `planner` subagent |
@@ -36,8 +38,23 @@ Together with the click-first chip-picker overhaul, this ships a **skill-based a
 | `/ccc-learn` | Skill discovery cascade across 11 CCC domains |
 | `/ccc-xray` | Project health scorecard with per-finding "fork to fix" spawn_task chips |
 | `/ccc-linear` | Linear integration: view / pick / create / board overview |
-| `/ccc-fleet` | Multi-agent orchestration: fan-out / pipeline / FOR-AGAINST / background |
+| `/ccc-fleet` | Multi-agent orchestration in parallel git worktrees: fan-out / pipeline / FOR-AGAINST / background |
 | `/ccc-connect` | Opt-in MCP connector: Notion / Zapier / Supabase / Slack / Google Drive / Figma / GitHub / Firecrawl / Exa |
+
+#### Competitive differentiators now shipping
+
+- 🖱️ **Click-first UX** — every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII.
+- 🧠 **`/ccc-suggest` intelligence layer** — 3 reasoning tiers (strong signals → stack signals → user intent), Opus-class recommendation, plugin-aware.
+- 🎭 **15 specialist agents with persona voices** — each agent has a voice layer in `commander/cowork-plugin/rules/personas/` (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker).
+- 🔌 **8 core MCP servers pre-wired** — Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem. Plus opt-in via `/ccc-connect`: Notion, Zapier, Supabase, Slack, Google Drive.
+- 🪝 **6 lifecycle hooks** — SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification. 100% schema-compliant.
+- 🔄 **Weekly vendor auto-sync** — 20 vendor submodules update via GitHub Actions; ecosystem stays current automatically.
+- 🌐 **Cross-client, one license** — Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile (hosted MCP).
+- 🚁 **Fleet orchestration** — `/ccc-fleet` runs multiple Sonnet agents in parallel **git worktrees**.
+- 🆓 **Free in beta** — no credit card, 1,000 hosted-MCP calls/mo + one skippable survey per session.
+- 🧬 **Shared brain: plugin + CLI** — same intelligence layer, same skill catalog, same personas. Install either, get both.
+- 🎯 **Plugins-name-plugins** — `/ccc-suggest` calls out `claude-mem`, `superpowers`, `caveman`, `impeccable`, `graphify`, `claude-reflect`, `repomix`, `claude-hud`, and more by name when they're the right tool.
+- 📖 **The Kevin Z Method** ships with the plugin (`BIBLE.md`) — 7 rules, 200+ sources, 14 months of production methodology.
 
 #### Shared scaffold
 
