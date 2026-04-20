@@ -1,14 +1,14 @@
 # CC Commander Cheatsheet
-> CC Commander v4.0.0-beta.1 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v4.0.0-beta.7 — by Kevin Zicherman — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v4.0.0-beta.1)
+## Desktop Plugin Commands (v4.0.0-beta.7)
 
-CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/`. Install once, use everywhere — `/ccc:*` prefix in any Desktop conversation.
+CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — this is the primary product. Install once, use everywhere — plain `/ccc-*` namespace (e.g. `/ccc-build`) in any Desktop conversation. 28 plugin skills total (23 ccc-* + 5 other).
 
 ### Plugin Installation
 
@@ -20,25 +20,25 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/`. Instal
 /plugin install commander
 ```
 
-### /ccc:* Skills (15 total)
+### /ccc-* Skills (28 total — 23 ccc-* + 5 other; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
-| `/ccc:commander` | Main CCC hub — interactive menu, session overview | Free |
-| `/ccc:build` | Build wizard — web, API, CLI with spec questions | Free |
-| `/ccc:linear-board` | Linear issue browser — view, pick, create tasks | Free |
-| `/ccc:research` | Deep research with citations and confidence scoring | Free |
-| `/ccc:content` | Content creation — blog, social, email, copy | Free |
-| `/ccc:session` | Session management — save, resume, context budget | Free |
-| `/ccc:settings` | CCC settings — model, cost, theme, MCP, hooks | Free |
-| `/ccc:domains` | Browse 11 CCC domains (200+ sub-skills) | Free |
-| `/ccc:infra` | Infrastructure — fleet, cost, Synapse, Paperclip | Pro |
-| `/ccc:knowledge` | Search knowledge base for past lessons | Pro |
-| `/ccc:night-mode` | Autonomous overnight build — checkpoints, recovery | Pro |
-| `/ccc:standup` | Generate standup update from recent git activity | Pro |
-| `/ccc:code-review` | Multi-agent code review (3 reviewers, structured) | Pro |
-| `/ccc:deploy-check` | Pre-deployment readiness gate | Pro |
-| `/ccc:fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro |
+| `/ccc` | Main CCC hub — interactive menu, session overview | Free |
+| `/ccc-build` | Build wizard — web, API, CLI with spec questions | Free |
+| `/ccc-linear-board` | Linear issue browser — view, pick, create tasks | Free |
+| `/ccc-research` | Deep research with citations and confidence scoring | Free |
+| `/ccc-content` | Content creation — blog, social, email, copy | Free |
+| `/ccc-session` | Session management — save, resume, context budget | Free |
+| `/ccc-settings` | CCC settings — model, cost, theme, MCP, hooks | Free |
+| `/ccc-domains` | Browse 11 CCC domains (200+ sub-skills) | Free |
+| `/ccc-infra` | Infrastructure — fleet, cost, Synapse, Paperclip | Pro |
+| `/ccc-knowledge` | Search knowledge base for past lessons | Pro |
+| `/ccc-night-mode` | Autonomous overnight build — checkpoints, recovery | Pro |
+| `/ccc-standup` | Generate standup update from recent git activity | Pro |
+| `/ccc-code-review` | Multi-agent code review (3 reviewers, structured) | Pro |
+| `/ccc-deploy-check` | Pre-deployment readiness gate | Pro |
+| `/ccc-fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro |
 
 ### Specialized Agents (5)
 
@@ -55,7 +55,7 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/`. Instal
 | Hook | When it fires |
 |------|-------------|
 | `SessionStart` | Load CCC context, detect project stack |
-| `UserPromptSubmit` | Route /ccc:* commands to plugin |
+| `UserPromptSubmit` | Route `/ccc` / `/ccc-*` commands to plugin |
 | `PreToolUse` | Guard dangerous patterns |
 | `PostToolUse` | Auto-checkpoint, cost alert |
 | `Stop` | Session summary, cost tracking |
@@ -933,24 +933,24 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ---
 
-## 📖 /cc Command Center
+## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v4.0.0-beta.1 includes an interactive command center accessible via `/cc` in the CLI and `/ccc:commander` in Claude Desktop:
+CC Commander v4.0.0-beta.7 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
-| `/cc` | Main menu — all options |
-| `/cc skills` | Browse 500+ skills by category |
-| `/cc mega [name]` | Drill into a CCC domain's sub-skills |
-| `/cc settings` | View current model, permissions, MCP, hooks |
-| `/cc grill` | 7 Socratic questions (no plan mode) |
-| `/cc confidence` | Pre-execution confidence assessment (0-100%) |
-| `/cc mode <name>` | Switch workflow mode (10 modes available) |
-| `/cc prompts` | Browse 36+ prompt templates by category |
-| `/cc status` | Kit health dashboard |
-| `/cc help` | Compact reference |
+| `/ccc` | Main menu — interactive hub, session overview |
+| `/ccc-build` | Build wizard — web, API, CLI with spec questions |
+| `/ccc-domains` | Browse 11 CCC domains (200+ sub-skills) |
+| `/ccc-settings` | View model, cost, theme, MCP, hooks |
+| `/ccc-session` | Save, resume, context budget |
+| `/ccc-research` | Deep research with citations and confidence scoring |
+| `/ccc-content` | Blog, social, email, copy |
+| `/ccc-knowledge` | Search past lessons (Pro) |
+| `/ccc-code-review` | Multi-agent code review (Pro) |
+| `/ccc-deploy-check` | Pre-deploy readiness gate (Pro) |
 
-> **Desktop:** Use `/ccc:commander` in Claude Desktop for the same hub via the CCC plugin. See "Desktop Plugin Commands" section above.
+> **CLI-only users:** Some `/cc *` commands (grill, confidence, mode, prompts) remain in the CLI build. See `docs/cli.md` for the CLI-only command set.
 
 ---
 
@@ -1019,7 +1019,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v4.0.0-beta.1 Quick Reference
+## CC Commander v4.0.0-beta.7 Quick Reference (CLI)
 
 ```bash
 # Launch

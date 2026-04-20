@@ -10,7 +10,7 @@
       "icon": "📊",
       "label": "Review current branch",
       "description": "Diff vs main — PR-quality summary before you open a PR.",
-      "command": "/ccc-review-diff",
+      "command": "/ccc-review diff",
       "recommended": true
     },
     {
@@ -18,14 +18,14 @@
       "icon": "🔐",
       "label": "Security audit",
       "description": "OWASP Top 10 + secrets + dependency audit. Severity-rated report.",
-      "command": "/ccc-review-security"
+      "command": "/ccc-review security"
     },
     {
       "id": "perf",
       "icon": "⚡",
       "label": "Performance",
       "description": "Hot-path scan, bundle size, N+1 queries, flame-graph pointers.",
-      "command": "/ccc-review-perf"
+      "command": "/ccc-review perf"
     },
     {
       "id": "xray",

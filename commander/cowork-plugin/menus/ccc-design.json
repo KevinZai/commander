@@ -10,28 +10,28 @@
       "icon": "🚀",
       "label": "Landing page",
       "description": "High-converting marketing page — hero, social proof, CTA stack.",
-      "command": "/ccc-design-landing"
+      "command": "/ccc-design landing"
     },
     {
       "id": "components",
       "icon": "🧩",
       "label": "Component system",
       "description": "Build a shadcn-style component library with tokens + variants.",
-      "command": "/ccc-design-components"
+      "command": "/ccc-design components"
     },
     {
       "id": "polish",
       "icon": "✨",
       "label": "Polish pass",
       "description": "Audit spacing, contrast, motion, a11y — the Impeccable suite.",
-      "command": "/ccc-design-polish"
+      "command": "/ccc-design polish"
     },
     {
       "id": "figma",
       "icon": "🎨",
       "label": "Figma → code",
       "description": "Paste a Figma file URL, get production-ready React + Tailwind.",
-      "command": "/ccc-design-figma"
+      "command": "/ccc-design figma"
     },
     {
       "id": "back",

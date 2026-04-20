@@ -1,20 +1,28 @@
 #!/usr/bin/env node
-// CC Commander — menu renderer
+// CC Commander — menu renderer (DORMANT / future use)
+//
+// STATUS (beta.7): The active `/ccc-*` UX uses `AskUserQuestion` native chip
+// pickers in Claude Cowork Desktop, NOT fenced HTML artifacts. Cowork Desktop
+// renders ```html blocks as LITERAL CODE, not as interactive artifacts. This
+// renderer is preserved for two future use cases:
+//   1. Claude.ai web app + Claude Desktop app — which DO render fenced HTML
+//      as sandboxed interactive artifacts. Useful for exporting CC Commander
+//      menus to web-shareable HTML for marketing / docs site.
+//   2. When/if Anthropic adds interactive-artifact support to Cowork Desktop.
 //
 // Reads a menu JSON tree + the shared HTML template, emits a fully-formed
-// artifact that command .md files can reference (via an instruction to Claude:
-// "run `node ${CLAUDE_PLUGIN_ROOT}/lib/menu-render.js <menu-id>` and print the
-// output verbatim inside a fenced ```html block").
+// HTML block. Call sites should output it inside a fenced ```html block IF
+// the target client is known to render them.
 //
 // Usage:
-//   node menu-render.js <menu-id> [--context <json>] [--version <ver>]
+//   node menu-render.js <menu-id> [--context <json>]
 //
 // Menu ID maps to ../menus/<menu-id>.json.
-// Context (optional) is a JSON blob with { branch, session, cost, ... } rendered
-// in the context strip at the top of the artifact.
+// Context (optional) is a JSON blob with { branch, session, cost, ... }
+// rendered in the context strip at the top of the artifact.
 //
-// TODO(beta.8+): when native `claude --usage-json` ships (per @ClaudeDevs tweet
-// ref in docs/ECOSYSTEM.md), shell out and include usage numbers in the context
+// TODO(beta.8+): when native `claude --usage-json` ships (per @ClaudeDevs
+// tweet ref in docs/ECOSYSTEM.md), include usage numbers in the context
 // strip. For now, caller passes context in.
 
 'use strict';

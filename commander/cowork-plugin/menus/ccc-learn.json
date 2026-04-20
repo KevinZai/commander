@@ -17,21 +17,21 @@
       "icon": "📣",
       "label": "Marketing (45 skills)",
       "description": "CRO, email, ads, social, content — 7 specialist pods.",
-      "command": "/ccc-learn-marketing"
+      "command": "/ccc-learn marketing"
     },
     {
       "id": "saas",
       "icon": "💼",
       "label": "SaaS (21 skills)",
       "description": "Auth, billing, multi-tenant, schema, zero-to-revenue.",
-      "command": "/ccc-learn-saas"
+      "command": "/ccc-learn saas"
     },
     {
       "id": "devops",
       "icon": "🛠️",
       "label": "DevOps (21 skills)",
       "description": "CI/CD, Docker, AWS, monitoring, runbooks.",
-      "command": "/ccc-learn-devops"
+      "command": "/ccc-learn devops"
     },
     {
       "id": "browse-all",

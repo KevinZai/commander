@@ -78,7 +78,7 @@ Key components:
 - `commander/knowledge.js` — Knowledge compounding (learns from every session)
 - `commander/plugins.js` — Auto-detects gstack, CE, Superpowers, sequences them
 - `commander/adventures/*.json` — 14 JSON decision tree flows
-- `commander/cowork-plugin/` — Desktop plugin (15 skills, 5 agents, 6 hooks, 5 MCP servers)
+- `commander/cowork-plugin/` — Desktop plugin (28 skills, 15 agents, 6 hooks, 8 MCP servers per `.mcp.json`)
 - `commander/update-check.js` — Update checker (4h cache, silent on failure, runs at session start)
 - `commander/tests/paths.test.js` — 18 E2E path tests
 
@@ -89,12 +89,15 @@ Tests: `node --test commander/tests/paths.test.js`
 
 ```
 ├── commander/cowork-plugin/     # Desktop plugin (primary product)
-│   ├── SKILL.md                 # Plugin entry point (name: commander)
-│   ├── skills/                  # 15 plugin skills
-│   ├── agents/                  # 5 agents (reviewer, builder, researcher, debugger, fleet-worker)
-│   ├── hooks/                   # 6 lifecycle hooks
-│   ├── mcp/                     # 5 MCP server configs
-│   └── CONNECTORS.md            # 10 connector categories
+│   ├── .claude-plugin/plugin.json   # Plugin manifest (schema-compliant)
+│   ├── skills/                  # 28 plugin skills (23 ccc-* workflows + 5 other)
+│   ├── agents/                  # 15 specialist agents (architect, reviewer, builder, designer, security-auditor, etc.)
+│   ├── hooks/                   # 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification)
+│   ├── menus/                   # 7 menu JSON trees (root + 6 sub-menus)
+│   ├── lib/                     # Shared artifact scaffold (menu-render.js + template)
+│   ├── .mcp.json                # 8 MCP server configs (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem)
+│   ├── CONNECTORS.md            # 10 connector categories
+│   └── rules/                   # 15 persona voice files + common response-style
 ├── skills/              # 502+ skills organized by category
 │   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 10 workflow modes

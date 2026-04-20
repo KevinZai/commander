@@ -10,28 +10,28 @@
       "icon": "🌐",
       "label": "Web app",
       "description": "Next.js + Tailwind + shadcn/ui — SSR, auth, Stripe-ready.",
-      "command": "/ccc-build-web"
+      "command": "/ccc-build web-app"
     },
     {
       "id": "api",
       "icon": "🔌",
       "label": "API / backend",
       "description": "TypeScript Fastify or Hono, Postgres via Supabase, zero-boilerplate.",
-      "command": "/ccc-build-api"
+      "command": "/ccc-build api"
     },
     {
       "id": "cli",
       "icon": "⌨️",
       "label": "CLI tool",
       "description": "Node + commander, figlet banner, test scaffold, publish-ready.",
-      "command": "/ccc-build-cli"
+      "command": "/ccc-build cli"
     },
     {
       "id": "mobile",
       "icon": "📱",
       "label": "Mobile app",
       "description": "React Native (Expo) or SwiftUI — routes into ccc-mobile.",
-      "command": "/ccc-build-mobile"
+      "command": "/ccc-build mobile"
     },
     {
       "id": "spec",

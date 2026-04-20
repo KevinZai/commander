@@ -1,34 +1,34 @@
 # Skills Index — Quick Reference
-> CC Commander v4.0.0-beta.1 — by Kevin Zicherman
+> CC Commander v4.0.0-beta.7 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-04-17 | 500+ skills (CLI-visible) + 15 Desktop plugin skills | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes
+> Last verified: 2026-04-20 | Desktop plugin first: 28 plugin skills (23 ccc-* + 5 other) + 5 agents + 6 hooks + 5 MCP servers | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
 
 ---
 
-## Desktop Plugin Skills (v4.0.0-beta.1)
+## Desktop Plugin Skills (v4.0.0-beta.7)
 
-> Installed at `commander/cowork-plugin/`. Prefix: `/ccc:*`. Install: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`.
+> Installed at `commander/cowork-plugin/`. Prefix: plain `/ccc-*` (e.g. `/ccc-build`). Install: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 28 plugin skills total (23 ccc-* + 5 other).
 
 | Skill | Description | Tier | Trigger Phrases |
 |-------|-------------|------|----------------|
-| `/ccc:commander` | Main CCC hub — interactive menu, session overview | Free | "open ccc", "ccc menu", "show commander" |
-| `/ccc:build` | Build wizard — web, API, CLI with spec questions | Free | "ccc build", "start a build", "new project wizard" |
-| `/ccc:linear-board` | Linear issue browser — view, pick, create tasks | Free | "ccc linear", "show my issues", "linear board" |
-| `/ccc:research` | Deep research with citations and confidence scoring | Free | "ccc research", "research this", "find sources on" |
-| `/ccc:content` | Content creation — blog, social, email, copy | Free | "ccc content", "write a blog post", "create content" |
-| `/ccc:session` | Session management — save, resume, context budget | Free | "ccc session", "save my session", "check context" |
-| `/ccc:settings` | CCC settings — model, cost, theme, MCP, hooks | Free | "ccc settings", "change my model", "update config" |
-| `/ccc:domains` | Browse 11 CCC domains (200+ sub-skills) | Free | "ccc domains", "show domains", "browse skills" |
-| `/ccc:infra` | Infrastructure — fleet, cost, Synapse, Paperclip | Pro | "ccc infra", "check fleet", "infrastructure status" |
-| `/ccc:knowledge` | Search knowledge base for past lessons | Pro | "ccc knowledge", "what did I learn about", "past lessons" |
-| `/ccc:night-mode` | Autonomous overnight build — checkpoints, recovery | Pro | "ccc night", "run overnight", "start yolo build" |
-| `/ccc:standup` | Generate standup update from recent git activity | Pro | "ccc standup", "write my standup", "daily update" |
-| `/ccc:code-review` | Multi-agent code review (3 reviewers, structured) | Pro | "ccc review", "review my code", "code review" |
-| `/ccc:deploy-check` | Pre-deployment readiness gate | Pro | "ccc deploy", "ready to deploy?", "pre-deploy check" |
-| `/ccc:fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro | "ccc fleet", "launch agents", "fleet status" |
+| `/ccc` | Main CCC hub — interactive menu, session overview | Free | "open ccc", "ccc menu", "show commander" |
+| `/ccc-build` | Build wizard — web, API, CLI with spec questions | Free | "ccc build", "start a build", "new project wizard" |
+| `/ccc-linear-board` | Linear issue browser — view, pick, create tasks | Free | "ccc linear", "show my issues", "linear board" |
+| `/ccc-research` | Deep research with citations and confidence scoring | Free | "ccc research", "research this", "find sources on" |
+| `/ccc-content` | Content creation — blog, social, email, copy | Free | "ccc content", "write a blog post", "create content" |
+| `/ccc-session` | Session management — save, resume, context budget | Free | "ccc session", "save my session", "check context" |
+| `/ccc-settings` | CCC settings — model, cost, theme, MCP, hooks | Free | "ccc settings", "change my model", "update config" |
+| `/ccc-domains` | Browse 11 CCC domains (200+ sub-skills) | Free | "ccc domains", "show domains", "browse skills" |
+| `/ccc-infra` | Infrastructure — fleet, cost, Synapse, Paperclip | Pro | "ccc infra", "check fleet", "infrastructure status" |
+| `/ccc-knowledge` | Search knowledge base for past lessons | Pro | "ccc knowledge", "what did I learn about", "past lessons" |
+| `/ccc-night-mode` | Autonomous overnight build — checkpoints, recovery | Pro | "ccc night", "run overnight", "start yolo build" |
+| `/ccc-standup` | Generate standup update from recent git activity | Pro | "ccc standup", "write my standup", "daily update" |
+| `/ccc-code-review` | Multi-agent code review (3 reviewers, structured) | Pro | "ccc review", "review my code", "code review" |
+| `/ccc-deploy-check` | Pre-deployment readiness gate | Pro | "ccc deploy", "ready to deploy?", "pre-deploy check" |
+| `/ccc-fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro | "ccc fleet", "launch agents", "fleet status" |
 
 ### Plugin Agents
 
@@ -44,11 +44,11 @@
 
 | MCP | Skills That Use It |
 |-----|--------------------|
-| Linear | `/ccc:linear-board`, `/ccc:standup` |
-| GitHub | `/ccc:code-review`, `/ccc:deploy-check` |
-| Slack | `/ccc:infra`, `/ccc:fleet` |
-| Gmail | `/ccc:standup` |
-| Google Calendar | `/ccc:standup` |
+| Linear | `/ccc-linear-board`, `/ccc-standup` |
+| GitHub | `/ccc-code-review`, `/ccc-deploy-check` |
+| Slack | `/ccc-infra`, `/ccc-fleet` |
+| Gmail | `/ccc-standup` |
+| Google Calendar | `/ccc-standup` |
 
 ---
 
@@ -574,13 +574,13 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = added in CC Commander v2.3.0 and kept current with each release. Desktop plugin skills (/ccc:*) added in v3.0.0, updated in v4.0.0-beta.1.*
+*⭐ = added in CC Commander v2.3.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v3.0.0, updated in v4.0.0-beta.7.*
 
 ---
 
 ## CCC (Claude Code Commander) Skills
 
-Interactive CLI project manager — sits above Claude Code sessions. Desktop plugin adds `/ccc:*` skills (see top of file).
+Desktop plugin is the primary surface — adds plain `/ccc-*` skills (see top of file). Interactive CLI project manager is a secondary CLI-only surface that sits above Claude Code sessions.
 
 | Skill | Category | Description |
 |-------|----------|-------------|

@@ -10,7 +10,7 @@
       "icon": "✈️",
       "label": "Pre-flight check",
       "description": "Tests, lint, typecheck, secrets, airplane-mode. One click, full matrix.",
-      "command": "/ccc-ship-preflight",
+      "command": "/ccc-ship preflight",
       "recommended": true
     },
     {
@@ -18,21 +18,21 @@
       "icon": "📦",
       "label": "Cut a release",
       "description": "Bump version, write changelog, tag, push, create GitHub release.",
-      "command": "/ccc-ship-release"
+      "command": "/ccc-ship release"
     },
     {
       "id": "deploy",
       "icon": "🚀",
       "label": "Deploy",
       "description": "Vercel / Fly.io / Cloudflare — pick target, run deploy script.",
-      "command": "/ccc-ship-deploy"
+      "command": "/ccc-ship deploy"
     },
     {
       "id": "rollback",
       "icon": "↩️",
       "label": "Rollback",
       "description": "Revert latest deploy + restore previous version. Idempotent.",
-      "command": "/ccc-ship-rollback"
+      "command": "/ccc-ship rollback"
     },
     {
       "id": "back",

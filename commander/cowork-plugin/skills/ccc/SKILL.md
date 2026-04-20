@@ -16,11 +16,11 @@ argument-hint: "[intent keyword: build | review | ship | design | learn | more]"
 
 # /ccc — CC Commander Hub
 
-Click-first entry point to the whole CC Commander surface (14 ccc-* skills, 15 specialist agents, 5 MCP servers). The user types `/ccc` and gets a native visual picker — no typing, no menus, no ASCII banners.
+Click-first entry point to the whole CC Commander surface (23 ccc-* skills, 15 specialist agents, 8 MCP servers). The user types `/ccc` and gets a native visual picker — no typing, no menus, no ASCII banners.
 
 ## Response shape (EVERY time)
 
-Output exactly these three sections in order:
+Output exactly four sections in order: **1) brand header, 2) context strip, 3) picker (AskUserQuestion), 4) dispatch on selection**. Sections 1-3 are rendered up front; section 4 fires after the user clicks.
 
 ### 1. Brand header (one line, markdown)
 
