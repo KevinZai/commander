@@ -1,25 +1,7 @@
 ---
 name: ccc-research
 context: fork
-description: |
-  CCC domain — complete research ecosystem — 8 skills in one. Deep multi-source research, spec interviews, cross-model review, competitive analysis, trend analysis, and large document ingestion.
-
-  <example>
-  user: research the best auth libraries for Next.js before I start building
-  assistant: Loads ccc-research and routes to deep-research + competitive-analysis for multi-source comparison with citation tracking.
-  </example>
-
-  <example>
-  user: help me define the spec for this feature before coding
-  assistant: Loads ccc-research and routes to spec-interview — 5-7 structured questions to generate a complete spec before implementation.
-  </example>
-
-  <example>
-  user: analyze this 500-page PDF of technical documentation
-  assistant: Loads ccc-research and routes to data-ingestion for large document summarization and key insight extraction.
-  </example>
-version: 1.0.0
-category: CCC domain
+description: CCC domain — complete research ecosystem — 8 skills in one. Deep multi-source research, spec interviews, cross-model review, competitive analysis, trend analysis, and large document ingestion.
 ---
 
 # ccc-research
@@ -66,3 +48,17 @@ The recommended sequence for any non-trivial feature:
 2. `competitive-analysis` → evaluate options
 3. `spec-interview` → define requirements before writing code
 4. Hand off to implementation skills with research context
+
+## When to invoke this skill
+
+**Example 1**
+- user: research the best auth libraries for Next.js before I start building
+- assistant: Loads ccc-research and routes to deep-research + competitive-analysis for multi-source comparison with citation tracking.
+
+**Example 2**
+- user: help me define the spec for this feature before coding
+- assistant: Loads ccc-research and routes to spec-interview — 5-7 structured questions to generate a complete spec before implementation.
+
+**Example 3**
+- user: analyze this 500-page PDF of technical documentation
+- assistant: Loads ccc-research and routes to data-ingestion for large document summarization and key insight extraction.

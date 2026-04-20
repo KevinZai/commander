@@ -1,6 +1,6 @@
 ---
 name: content
-description: "Create content — blog posts, social media, emails, marketing copy, or docs. Use when: 'create content', 'write post', 'blog', 'social media', 'email campaign', 'write a tweet', 'LinkedIn post', 'newsletter', 'marketing copy'."
+description: "\"Create content — blog posts, social media, emails, marketing copy, or docs. Use when: 'create content', 'write post', 'blog', 'social media', 'email campaign', 'write a tweet', 'LinkedIn post', 'newsletter', 'marketing copy'.\""
 allowed-tools:
   - Read
   - Write

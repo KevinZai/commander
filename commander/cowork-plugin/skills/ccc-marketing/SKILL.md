@@ -1,25 +1,7 @@
 ---
 name: ccc-marketing
 context: fork
-description: |
-  CCC domain — 45-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channels, growth, intelligence, and sales. Works standalone or with connected web search tools.
-
-  <example>
-  user: write a blog post about our new feature
-  assistant: Loads ccc-marketing and routes to content-production pod — content-strategy → content-production → content-humanizer pipeline.
-  </example>
-
-  <example>
-  user: improve our landing page conversion rate
-  assistant: Loads ccc-marketing and routes to CRO pod — page-cro + signup-flow-cro + form-cro with A/B test recommendations.
-  </example>
-
-  <example>
-  user: set up email sequences for our SaaS trial
-  assistant: Loads ccc-marketing and routes to Channels pod — email sequences skill with onboarding, nurture, and churn prevention flows.
-  </example>
-version: 1.0.0
-category: CCC domain
+description: CCC domain — 45-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channels, growth, intelligence, and sales. Works standalone or with connected web search tools.
 ---
 
 # ccc-marketing
@@ -68,3 +50,17 @@ category: CCC domain
 ## First-Time Setup
 
 Run the `marketing-context` sub-skill first to capture brand voice, audience personas, and competitive landscape. Every other skill reads this for consistent output.
+
+## When to invoke this skill
+
+**Example 1**
+- user: write a blog post about our new feature
+- assistant: Loads ccc-marketing and routes to content-production pod — content-strategy → content-production → content-humanizer pipeline.
+
+**Example 2**
+- user: improve our landing page conversion rate
+- assistant: Loads ccc-marketing and routes to CRO pod — page-cro + signup-flow-cro + form-cro with A/B test recommendations.
+
+**Example 3**
+- user: set up email sequences for our SaaS trial
+- assistant: Loads ccc-marketing and routes to Channels pod — email sequences skill with onboarding, nurture, and churn prevention flows.

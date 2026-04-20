@@ -1,6 +1,6 @@
 ---
 name: research
-description: "Research, analyze, audit, or investigate any topic. Use when: 'research', 'analyze', 'competitive analysis', 'audit', 'investigate', 'market research', 'code audit', 'SEO analysis', 'deep dive'."
+description: "\"Research, analyze, audit, or investigate any topic. Use when: 'research', 'analyze', 'competitive analysis', 'audit', 'investigate', 'market research', 'code audit', 'SEO analysis', 'deep dive'.\""
 allowed-tools:
   - Read
   - Write

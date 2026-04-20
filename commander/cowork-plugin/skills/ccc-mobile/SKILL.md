@@ -1,25 +1,7 @@
 ---
 name: ccc-mobile
 context: fork
-description: |
-  CCC domain — complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Compose, mobile testing, ASO, push notifications, and deep linking.
-
-  <example>
-  user: build a React Native app with navigation and native modules
-  assistant: Loads ccc-mobile and routes to react-native skill for Expo/bare workflow, React Navigation, and native module integration patterns.
-  </example>
-
-  <example>
-  user: optimize our App Store listing to increase downloads
-  assistant: Loads ccc-mobile and routes to app-store-optimization for keyword research, screenshot optimization, and rating prompts.
-  </example>
-
-  <example>
-  user: add push notifications to our iOS and Android app
-  assistant: Loads ccc-mobile and routes to push-notifications for FCM + APNs setup with OneSignal or Expo Notifications.
-  </example>
-version: 1.0.0
-category: CCC domain
+description: CCC domain — complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Compose, mobile testing, ASO, push notifications, and deep linking.
 ---
 
 # ccc-mobile
@@ -61,3 +43,17 @@ category: CCC domain
 | Android-only, native feel | Jetpack Compose |
 | Performance-critical | Flutter (Impeller) or native |
 | Existing web team (React) | React Native |
+
+## When to invoke this skill
+
+**Example 1**
+- user: build a React Native app with navigation and native modules
+- assistant: Loads ccc-mobile and routes to react-native skill for Expo/bare workflow, React Navigation, and native module integration patterns.
+
+**Example 2**
+- user: optimize our App Store listing to increase downloads
+- assistant: Loads ccc-mobile and routes to app-store-optimization for keyword research, screenshot optimization, and rating prompts.
+
+**Example 3**
+- user: add push notifications to our iOS and Android app
+- assistant: Loads ccc-mobile and routes to push-notifications for FCM + APNs setup with OneSignal or Expo Notifications.

@@ -1,25 +1,7 @@
 ---
 name: ccc-makeover
 context: fork
-description: |
-  CCC domain — design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm, and report card scoring. Wraps /ultrareview (v2.1.111 native) for deep analysis.
-
-  <example>
-  user: audit this project and tell me what's wrong
-  assistant: Loads ccc-makeover and runs xray — 6-dimension health scan with 0-100 score, maturity level 1-5, and prioritized skill recommendations.
-  </example>
-
-  <example>
-  user: automatically fix the top issues in this codebase
-  assistant: Loads ccc-makeover and runs makeover — xray first, then auto-applies highest-impact recommendations in order with before/after score delta.
-  </example>
-
-  <example>
-  user: show me a health score report card for this project
-  assistant: Loads ccc-makeover and runs report-card — formatted score card with per-dimension bars, maturity level, and improvement history.
-  </example>
-version: 1.0.0
-category: CCC domain
+description: CCC domain — design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm, and report card scoring. Wraps /ultrareview (v2.1.111 native) for deep analysis.
 ---
 
 # ccc-makeover
@@ -67,3 +49,17 @@ category: CCC domain
 - Before a production release — catch gaps before they ship
 - After a sprint — measure improvement over time
 - When the team asks "how healthy is our codebase?"
+
+## When to invoke this skill
+
+**Example 1**
+- user: audit this project and tell me what's wrong
+- assistant: Loads ccc-makeover and runs xray — 6-dimension health scan with 0-100 score, maturity level 1-5, and prioritized skill recommendations.
+
+**Example 2**
+- user: automatically fix the top issues in this codebase
+- assistant: Loads ccc-makeover and runs makeover — xray first, then auto-applies highest-impact recommendations in order with before/after score delta.
+
+**Example 3**
+- user: show me a health score report card for this project
+- assistant: Loads ccc-makeover and runs report-card — formatted score card with per-dimension bars, maturity level, and improvement history.

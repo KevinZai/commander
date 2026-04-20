@@ -1,25 +1,7 @@
 ---
 name: ccc-design
 context: fork
-description: |
-  CCC domain — complete design & animation ecosystem — 39 skills in one. Animations, visual effects, design systems, landing pages, and the Impeccable polish suite. Aligns with Anthropic's `frontend-design` plugin patterns for anti-slop UI.
-
-  <example>
-  user: add smooth entrance animations to my landing page hero
-  assistant: Loads ccc-design and routes to animate + framer-motion-patterns for entrance animation patterns with stagger and easing.
-  </example>
-
-  <example>
-  user: audit my UI and make it look more professional
-  assistant: Loads ccc-design, runs the Impeccable Suite pipeline: critique → clarify → bolder or distill → polish.
-  </example>
-
-  <example>
-  user: build a design system with dark mode support
-  assistant: Loads ccc-design and routes to frontend-design + design-consultation + colorize + typeset for a complete design system with tokens and dark mode.
-  </example>
-version: 1.0.0
-category: CCC domain
+description: CCC domain — complete design & animation ecosystem — 39 skills in one. Animations, visual effects, design systems, landing pages, and the Impeccable polish suite. Aligns with Anthropic's `frontend-design` plugin patterns for anti-slop UI.
 ---
 
 # ccc-design
@@ -88,3 +70,17 @@ category: CCC domain
 5. `typeset` → typography refinement
 6. `adapt` → responsive check
 7. `polish` → final pass
+
+## When to invoke this skill
+
+**Example 1**
+- user: add smooth entrance animations to my landing page hero
+- assistant: Loads ccc-design and routes to animate + framer-motion-patterns for entrance animation patterns with stagger and easing.
+
+**Example 2**
+- user: audit my UI and make it look more professional
+- assistant: Loads ccc-design, runs the Impeccable Suite pipeline: critique → clarify → bolder or distill → polish.
+
+**Example 3**
+- user: build a design system with dark mode support
+- assistant: Loads ccc-design and routes to frontend-design + design-consultation + colorize + typeset for a complete design system with tokens and dark mode.

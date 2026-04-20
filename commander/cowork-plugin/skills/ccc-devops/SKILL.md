@@ -1,27 +1,7 @@
 ---
 name: ccc-devops
 context: fork
-description: |
-  CCC domain — complete DevOps ecosystem — 21 skills in one. Deployments, CI/CD, containers, AWS, monitoring, security, IaC, networking, and runbooks.
-
-  <example>
-  user: set up a CI/CD pipeline with GitHub Actions
-  assistant: Loads ccc-devops and routes to cicd-pipeline-generator + github-actions-security for a hardened pipeline with OIDC and pinned action versions.
-  </example>
-
-  <example>
-  user: deploy with zero downtime using blue-green strategy
-  assistant: Loads ccc-devops and routes to zero-downtime-deploy + senior-devops with automated rollback configuration.
-  </example>
-
-  <example>
-  user: set up Prometheus and Grafana monitoring
-  assistant: Loads ccc-devops and routes to prometheus-configuration → grafana-dashboards → promql-alerting → infra-runbook pipeline.
-  </example>
-version: 1.0.0
-category: CCC domain
-# NOTE: ccc-devops is a candidate for the `monitors` key in a future plugin.json schema update
-# (for automated infra health checks). Not added pending GA confirmation of the monitors schema.
+description: CCC domain — complete DevOps ecosystem — 21 skills in one. Deployments, CI/CD, containers, AWS, monitoring, security, IaC, networking, and runbooks.
 ---
 
 # ccc-devops
@@ -90,3 +70,17 @@ For **scheduled deployments** and automated infra tasks, see: https://code.claud
 5. `aws-s3-patterns` → storage + lifecycle
 6. `aws-cloudfront-optimization` → CDN cache behaviors
 7. `network-engineer` → VPCs, subnets, security groups
+
+## When to invoke this skill
+
+**Example 1**
+- user: set up a CI/CD pipeline with GitHub Actions
+- assistant: Loads ccc-devops and routes to cicd-pipeline-generator + github-actions-security for a hardened pipeline with OIDC and pinned action versions.
+
+**Example 2**
+- user: deploy with zero downtime using blue-green strategy
+- assistant: Loads ccc-devops and routes to zero-downtime-deploy + senior-devops with automated rollback configuration.
+
+**Example 3**
+- user: set up Prometheus and Grafana monitoring
+- assistant: Loads ccc-devops and routes to prometheus-configuration → grafana-dashboards → promql-alerting → infra-runbook pipeline.

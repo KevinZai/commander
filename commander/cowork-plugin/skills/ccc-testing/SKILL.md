@@ -1,26 +1,7 @@
 ---
 name: ccc-testing
 context: fork
-description: |
-  CCC domain — complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testing, and load testing. Default isolation mode for test dispatches: worktree.
-
-  <example>
-  user: write tests for this auth module using TDD
-  assistant: Loads ccc-testing and routes to tdd-workflow — writes failing tests first, then implements to pass them.
-  </example>
-
-  <example>
-  user: run a full QA pass before the release
-  assistant: Loads ccc-testing and runs pre-release pipeline: qa → e2e-testing → visual-regression → load-testing → verification-loop.
-  </example>
-
-  <example>
-  user: set up Playwright E2E tests for our checkout flow
-  assistant: Loads ccc-testing and routes to e2e-testing + webapp-testing with page objects and CI integration.
-  </example>
-version: 1.0.0
-category: CCC domain
-isolation: worktree
+description: "CCC domain — complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testing, and load testing. Default isolation mode for test dispatches: worktree."
 ---
 
 # ccc-testing
@@ -79,3 +60,17 @@ isolation: worktree
 3. `visual-regression` → compare against baselines
 4. `load-testing` → stress test under load
 5. `verification-loop` → final sign-off
+
+## When to invoke this skill
+
+**Example 1**
+- user: write tests for this auth module using TDD
+- assistant: Loads ccc-testing and routes to tdd-workflow — writes failing tests first, then implements to pass them.
+
+**Example 2**
+- user: run a full QA pass before the release
+- assistant: Loads ccc-testing and runs pre-release pipeline: qa → e2e-testing → visual-regression → load-testing → verification-loop.
+
+**Example 3**
+- user: set up Playwright E2E tests for our checkout flow
+- assistant: Loads ccc-testing and routes to e2e-testing + webapp-testing with page objects and CI integration.

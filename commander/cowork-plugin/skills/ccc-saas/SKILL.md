@@ -1,25 +1,7 @@
 ---
 name: ccc-saas
 context: fork
-description: |
-  CCC domain — complete SaaS development ecosystem — 21 skills in one. Scaffold, authenticate, bill, ship, and grow a production SaaS from zero to revenue.
-
-  <example>
-  user: start a new SaaS project with auth and Stripe billing
-  assistant: Loads ccc-saas and runs saas-scaffolder → better-auth → stripe-subscriptions pipeline.
-  </example>
-
-  <example>
-  user: add multi-tenant support to my existing app
-  assistant: Loads ccc-saas and routes to multi-tenant skill for schema-per-tenant or RLS pattern selection.
-  </example>
-
-  <example>
-  user: improve my trial-to-paid conversion rate
-  assistant: Loads ccc-saas and routes to paywall-upgrade-cro + feature-flags for plan-gated feature exposure and pricing page optimization.
-  </example>
-version: 1.0.0
-category: CCC domain
+description: CCC domain — complete SaaS development ecosystem — 21 skills in one. Scaffold, authenticate, bill, ship, and grow a production SaaS from zero to revenue.
 ---
 
 # ccc-saas
@@ -74,3 +56,17 @@ category: CCC domain
 3. `paywall-upgrade-cro` → pricing page + trial-to-paid
 4. `feature-flags` → gradual rollouts + A/B tests
 5. `multi-tenant` → B2B/team plan expansion
+
+## When to invoke this skill
+
+**Example 1**
+- user: start a new SaaS project with auth and Stripe billing
+- assistant: Loads ccc-saas and runs saas-scaffolder → better-auth → stripe-subscriptions pipeline.
+
+**Example 2**
+- user: add multi-tenant support to my existing app
+- assistant: Loads ccc-saas and routes to multi-tenant skill for schema-per-tenant or RLS pattern selection.
+
+**Example 3**
+- user: improve my trial-to-paid conversion rate
+- assistant: Loads ccc-saas and routes to paywall-upgrade-cro + feature-flags for plan-gated feature exposure and pricing page optimization.

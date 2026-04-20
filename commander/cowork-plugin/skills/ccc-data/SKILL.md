@@ -1,27 +1,7 @@
 ---
 name: ccc-data
 context: fork
-description: |
-  CCC domain — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search.
-
-  <example>
-  user: design an ETL pipeline to sync our Postgres data to a data warehouse
-  assistant: Loads ccc-data and routes to data-pipeline for Airflow/dbt/Dagster pipeline design with incremental loads.
-  </example>
-
-  <example>
-  user: my SQL queries are slow — optimize them
-  assistant: Loads ccc-data and routes to sql-optimization for query analysis, index recommendations, and execution plan review.
-  </example>
-
-  <example>
-  user: add semantic search to our product catalog
-  assistant: Loads ccc-data and routes to vector-search for pgvector/Pinecone/Qdrant setup with embedding pipeline.
-  </example>
-version: 1.0.0
-category: CCC domain
-# NOTE: ccc-data is a candidate for the `monitors` key in a future plugin.json schema update
-# (for scheduled pipeline health checks and data quality monitoring). Not added pending GA confirmation.
+description: CCC domain — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search.
 ---
 
 # ccc-data
@@ -72,3 +52,17 @@ For large datasets and data files, the Files API can ingest CSVs, JSON, Parquet,
 3. `machine-learning` → model development + evaluation
 4. `data-visualization` → model performance charts
 5. `vector-search` → if feature requires semantic similarity
+
+## When to invoke this skill
+
+**Example 1**
+- user: design an ETL pipeline to sync our Postgres data to a data warehouse
+- assistant: Loads ccc-data and routes to data-pipeline for Airflow/dbt/Dagster pipeline design with incremental loads.
+
+**Example 2**
+- user: my SQL queries are slow — optimize them
+- assistant: Loads ccc-data and routes to sql-optimization for query analysis, index recommendations, and execution plan review.
+
+**Example 3**
+- user: add semantic search to our product catalog
+- assistant: Loads ccc-data and routes to vector-search for pgvector/Pinecone/Qdrant setup with embedding pipeline.

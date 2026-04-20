@@ -1,6 +1,6 @@
 ---
 name: build
-description: "Build something new — a web app, API, CLI tool, or any project. Use when: 'build something', 'new project', 'create app', 'help me build', 'start a project', 'I want to make'."
+description: "\"Build something new — a web app, API, CLI tool, or any project. Use when: 'build something', 'new project', 'create app', 'help me build', 'start a project', 'I want to make'.\""
 allowed-tools:
   - Read
   - Write

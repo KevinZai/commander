@@ -1,25 +1,7 @@
 ---
 name: ccc-seo
 context: fork
-description: |
-  CCC domain — complete SEO ecosystem — 20 skills in one. Technical SEO, AI search optimization, content strategy, analytics, and programmatic SEO at scale.
-
-  <example>
-  user: audit my site's SEO and fix the technical issues
-  assistant: Loads ccc-seo and runs seo-optimizer for meta tags, sitemaps, Core Web Vitals, and canonical URLs.
-  </example>
-
-  <example>
-  user: optimize my site to appear in ChatGPT and Perplexity answers
-  assistant: Loads ccc-seo and routes to ai-seo + aaio for LLM citation optimization, structured data, and agentic AI optimization.
-  </example>
-
-  <example>
-  user: generate 500 city landing pages for programmatic SEO
-  assistant: Loads ccc-seo and routes to bulk-page-generator with template-driven page generation and schema markup.
-  </example>
-version: 1.0.0
-category: CCC domain
+description: CCC domain — complete SEO ecosystem — 20 skills in one. Technical SEO, AI search optimization, content strategy, analytics, and programmatic SEO at scale.
 ---
 
 # ccc-seo
@@ -85,3 +67,17 @@ This domain specializes in optimization for AI-powered search surfaces:
 2. `seo-content-brief` → per-page keyword targeting
 3. `blog-engine` → Next.js/Astro blog with MDX + sitemap
 4. `analytics-conversion` → track content conversions
+
+## When to invoke this skill
+
+**Example 1**
+- user: audit my site's SEO and fix the technical issues
+- assistant: Loads ccc-seo and runs seo-optimizer for meta tags, sitemaps, Core Web Vitals, and canonical URLs.
+
+**Example 2**
+- user: optimize my site to appear in ChatGPT and Perplexity answers
+- assistant: Loads ccc-seo and routes to ai-seo + aaio for LLM citation optimization, structured data, and agentic AI optimization.
+
+**Example 3**
+- user: generate 500 city landing pages for programmatic SEO
+- assistant: Loads ccc-seo and routes to bulk-page-generator with template-driven page generation and schema markup.

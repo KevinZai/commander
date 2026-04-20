@@ -1,27 +1,7 @@
 ---
 name: ccc-security
 context: fork
-description: |
-  CCC domain — complete application security ecosystem — 8 skills in one. OWASP Top 10, secrets scanning, dependency audits, prompt injection defense, CodeQL, and incident response. Invokes Claude Code's built-in /security-review rather than reimplementing from scratch.
-
-  <example>
-  user: run a security audit on this codebase
-  assistant: Loads ccc-security and invokes /security-review built-in, then routes to owasp-top-10 + secrets-scanner for comprehensive coverage.
-  </example>
-
-  <example>
-  user: our app uses AI — protect it from prompt injection
-  assistant: Loads ccc-security and routes to prompt-injection-defense for AI-specific attack surface hardening.
-  </example>
-
-  <example>
-  user: scan our dependencies for vulnerabilities
-  assistant: Loads ccc-security and routes to dependency-audit for npm/pip/cargo vulnerability scanning.
-  </example>
-version: 1.0.0
-category: CCC domain
-# NOTE: ccc-security is a candidate for the `monitors` key in a future plugin.json schema update
-# (for automated security scans on schedule). Not added pending GA confirmation of the monitors schema.
+description: CCC domain — complete application security ecosystem — 8 skills in one. OWASP Top 10, secrets scanning, dependency audits, prompt injection defense, CodeQL, and incident response. Invokes Claude Code's built-in /security-review rather than reimplementing from scratch.
 ---
 
 # ccc-security
@@ -83,3 +63,17 @@ category: CCC domain
 1. `prompt-injection-defense` → input validation, sandboxing, output filtering
 2. `security-audit` → standard audit extended for AI surfaces
 3. `owasp-top-10` → plus AI-specific additions (OWASP LLM Top 10)
+
+## When to invoke this skill
+
+**Example 1**
+- user: run a security audit on this codebase
+- assistant: Loads ccc-security and invokes /security-review built-in, then routes to owasp-top-10 + secrets-scanner for comprehensive coverage.
+
+**Example 2**
+- user: our app uses AI — protect it from prompt injection
+- assistant: Loads ccc-security and routes to prompt-injection-defense for AI-specific attack surface hardening.
+
+**Example 3**
+- user: scan our dependencies for vulnerabilities
+- assistant: Loads ccc-security and routes to dependency-audit for npm/pip/cargo vulnerability scanning.
