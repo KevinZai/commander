@@ -1,0 +1,45 @@
+{
+  "id": "ccc-review",
+  "title": "Review",
+  "subtitle": "Pick an audit — progress card + summary artifact",
+  "footer": "Findings come back as a scorecard. Each finding has a one-click 'fork to fix' chip.",
+  "shortcuts": ["/ccc", "/ccc-ship"],
+  "choices": [
+    {
+      "id": "diff",
+      "icon": "📊",
+      "label": "Review current branch",
+      "description": "Diff vs main — PR-quality summary before you open a PR.",
+      "command": "/ccc-review-diff",
+      "recommended": true
+    },
+    {
+      "id": "security",
+      "icon": "🔐",
+      "label": "Security audit",
+      "description": "OWASP Top 10 + secrets + dependency audit. Severity-rated report.",
+      "command": "/ccc-review-security"
+    },
+    {
+      "id": "perf",
+      "icon": "⚡",
+      "label": "Performance",
+      "description": "Hot-path scan, bundle size, N+1 queries, flame-graph pointers.",
+      "command": "/ccc-review-perf"
+    },
+    {
+      "id": "xray",
+      "icon": "🩻",
+      "label": "Full project x-ray",
+      "description": "Health scorecard across code, docs, tests, deps, CI.",
+      "command": "/ccc-xray"
+    },
+    {
+      "id": "back",
+      "icon": "↩️",
+      "label": "Back to main menu",
+      "description": "Return to /ccc.",
+      "command": "/ccc"
+    }
+  ]
+}

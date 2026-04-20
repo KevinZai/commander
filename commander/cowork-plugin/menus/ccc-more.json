@@ -1,0 +1,58 @@
+{
+  "id": "ccc-more",
+  "title": "More tools",
+  "subtitle": "The rest of the CC Commander surface",
+  "footer": "Connect apps (/ccc-connect) to unlock Notion, Zapier, Supabase, Slack, Google Drive integrations.",
+  "shortcuts": ["/ccc", "/ccc-browse"],
+  "choices": [
+    {
+      "id": "plan",
+      "icon": "📋",
+      "label": "Plan a feature",
+      "description": "Spec interview → implementation plan file → review checkpoint.",
+      "command": "/ccc-plan"
+    },
+    {
+      "id": "xray",
+      "icon": "🩻",
+      "label": "Project x-ray",
+      "description": "Scorecard across code, docs, tests, deps, CI — actionable findings.",
+      "command": "/ccc-xray"
+    },
+    {
+      "id": "linear",
+      "icon": "📊",
+      "label": "Linear board",
+      "description": "View, pick, or create issues without leaving Claude.",
+      "command": "/ccc-linear"
+    },
+    {
+      "id": "fleet",
+      "icon": "🚁",
+      "label": "Fleet (parallel agents)",
+      "description": "Run multiple Sonnet agents in parallel worktrees — watch the progress cards.",
+      "command": "/ccc-fleet"
+    },
+    {
+      "id": "connect",
+      "icon": "🔌",
+      "label": "Connect apps",
+      "description": "Enable Notion, Zapier, Supabase, Slack, Google Drive, and more MCPs.",
+      "command": "/ccc-connect"
+    },
+    {
+      "id": "browse",
+      "icon": "🔎",
+      "label": "Browse all commands + skills",
+      "description": "Searchable grid of every /ccc-* command and every installed skill.",
+      "command": "/ccc-browse"
+    },
+    {
+      "id": "back",
+      "icon": "🏠",
+      "label": "Back to main menu",
+      "description": "Return to /ccc.",
+      "command": "/ccc"
+    }
+  ]
+}

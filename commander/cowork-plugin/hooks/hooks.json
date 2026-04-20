@@ -5,6 +5,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/install-delegates.js",
+            "timeout": 3000
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.js",
             "timeout": 10000
           },

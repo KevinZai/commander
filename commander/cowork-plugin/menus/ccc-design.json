@@ -1,0 +1,44 @@
+{
+  "id": "ccc-design",
+  "title": "Design",
+  "subtitle": "UI/UX workflow — routes into the ccc-design skill domain",
+  "footer": "The ccc-design skill loads 35+ sub-skills on demand — animation, responsive, accessibility, polish.",
+  "shortcuts": ["/ccc", "/ccc-build"],
+  "choices": [
+    {
+      "id": "landing",
+      "icon": "🚀",
+      "label": "Landing page",
+      "description": "High-converting marketing page — hero, social proof, CTA stack.",
+      "command": "/ccc-design-landing"
+    },
+    {
+      "id": "components",
+      "icon": "🧩",
+      "label": "Component system",
+      "description": "Build a shadcn-style component library with tokens + variants.",
+      "command": "/ccc-design-components"
+    },
+    {
+      "id": "polish",
+      "icon": "✨",
+      "label": "Polish pass",
+      "description": "Audit spacing, contrast, motion, a11y — the Impeccable suite.",
+      "command": "/ccc-design-polish"
+    },
+    {
+      "id": "figma",
+      "icon": "🎨",
+      "label": "Figma → code",
+      "description": "Paste a Figma file URL, get production-ready React + Tailwind.",
+      "command": "/ccc-design-figma"
+    },
+    {
+      "id": "back",
+      "icon": "↩️",
+      "label": "Back to main menu",
+      "description": "Return to /ccc.",
+      "command": "/ccc"
+    }
+  ]
+}
