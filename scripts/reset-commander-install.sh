@@ -52,19 +52,41 @@ done
 [[ -d "$PLUGINS_DIR/.install-manifests" ]] && cp -r "$PLUGINS_DIR/.install-manifests" "$BACKUP/" || true
 info "Backup: $BACKUP"
 
-# Export lists as space-separated env vars for Python
-export LEGACY_MARKETPLACES="ccc-marketplace commander-marketplace commander-hub"
-export LEGACY_PLUGINS="ccc@ccc-marketplace ccc@commander-marketplace ccc@commander-hub commander@ccc-marketplace commander@commander-marketplace commander@commander-hub"
+# Bash arrays (safer than space-split strings under `set -u`)
+LEGACY_MARKETPLACES=("ccc-marketplace" "commander-marketplace" "commander-hub")
+LEGACY_PLUGINS=(
+  "ccc@ccc-marketplace" "ccc@commander-marketplace" "ccc@commander-hub"
+  "commander@ccc-marketplace" "commander@commander-marketplace" "commander@commander-hub"
+)
+# Exported for the Python heredoc (space-joined is fine — values have no whitespace)
+export LEGACY_MARKETPLACES_STR="${LEGACY_MARKETPLACES[*]}"
+export LEGACY_PLUGINS_STR="${LEGACY_PLUGINS[*]}"
 
 # ----- Purge JSON registries -----
 step "Purging registry files…"
-python3 - <<'PY'
-import json, os
+python3 - <<'PY' || warn "Registry cleanup encountered an error — filesystem purge will still run."
+import json, os, sys, tempfile
 
 plugins_dir = os.path.expanduser('~/.claude/plugins')
-legacy_markets = os.environ.get('LEGACY_MARKETPLACES', '').split()
-legacy_plugins = os.environ.get('LEGACY_PLUGINS', '').split()
+legacy_markets = os.environ.get('LEGACY_MARKETPLACES_STR', '').split()
+legacy_plugins = os.environ.get('LEGACY_PLUGINS_STR', '').split()
+# Narrow sweep — only exact matches on our known slugs. Substring matching is
+# too wide: a third-party plugin named "foo@commander-x" would be wiped.
+sweep_tokens = set(legacy_plugins)
 removed = []
+
+def atomic_write(path, data):
+    """Write JSON atomically so a crash mid-write can't corrupt the registry."""
+    d = os.path.dirname(path) or '.'
+    fd, tmp = tempfile.mkstemp(prefix='.reset-', suffix='.json.tmp', dir=d)
+    try:
+        with os.fdopen(fd, 'w') as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, path)
+    except Exception:
+        try: os.unlink(tmp)
+        except OSError: pass
+        raise
 
 def strip_keys(obj, keys):
     hit = []
@@ -75,45 +97,55 @@ def strip_keys(obj, keys):
                 hit.append(k)
     return hit
 
-# known_marketplaces.json — keys at top level are marketplace names
+def safe_load(path):
+    """Return parsed JSON or None if file is missing/malformed."""
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path) as f: return json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"  warn: could not parse {os.path.basename(path)}: {e}", file=sys.stderr)
+        return None
+
+# known_marketplaces.json — top-level keys are marketplace names
 p = os.path.join(plugins_dir, 'known_marketplaces.json')
-if os.path.exists(p):
-    with open(p) as f: d = json.load(f)
+d = safe_load(p)
+if d is not None:
     hit = strip_keys(d, legacy_markets)
     if hit:
-        with open(p, 'w') as f: json.dump(d, f, indent=2)
+        atomic_write(p, d)
         removed += [f"known_marketplaces: {k}" for k in hit]
 
 # installed_plugins.json — handle both { "plugins": {...} } and flat { slug: ... }
 p = os.path.join(plugins_dir, 'installed_plugins.json')
-if os.path.exists(p):
-    with open(p) as f: d = json.load(f)
+d = safe_load(p)
+if d is not None:
     plugins_obj = d.get('plugins') if (isinstance(d, dict) and 'plugins' in d) else d
     hit = []
     if isinstance(plugins_obj, dict):
         hit += strip_keys(plugins_obj, legacy_plugins)
-        # Substring sweep catches any format drift
+        # Exact-match fallback sweep catches slug-format drift but ignores
+        # unrelated third-party plugins whose names happen to contain 'ccc' or 'commander'.
         for k in list(plugins_obj.keys()):
-            if any(s in k for s in ['ccc@', 'commander@', '@ccc-', '@commander-']):
+            if k in sweep_tokens and k not in hit:
                 del plugins_obj[k]
                 hit.append(k)
     if hit:
-        with open(p, 'w') as f: json.dump(d, f, indent=2)
+        atomic_write(p, d)
         removed += [f"installed_plugins: {k}" for k in hit]
 
-# install-counts-cache.json — substring sweep
+# install-counts-cache.json — narrow sweep on exact plugin@marketplace slugs only
 p = os.path.join(plugins_dir, 'install-counts-cache.json')
-if os.path.exists(p):
-    with open(p) as f: d = json.load(f)
-    if isinstance(d, dict):
-        changed = False
-        for k in list(d.keys()):
-            if 'ccc' in k.lower() or 'commander' in k.lower():
-                del d[k]
-                removed.append(f"install-counts: {k}")
-                changed = True
-        if changed:
-            with open(p, 'w') as f: json.dump(d, f, indent=2)
+d = safe_load(p)
+if isinstance(d, dict):
+    changed = False
+    for k in list(d.keys()):
+        if k in sweep_tokens:
+            del d[k]
+            removed.append(f"install-counts: {k}")
+            changed = True
+    if changed:
+        atomic_write(p, d)
 
 if removed:
     for r in removed: print(f"  removed: {r}")
@@ -124,7 +156,7 @@ PY
 # ----- Purge filesystem artifacts -----
 step "Purging filesystem artifacts…"
 REMOVED=0
-for name in $LEGACY_MARKETPLACES; do
+for name in "${LEGACY_MARKETPLACES[@]}"; do
   for base in "$PLUGINS_DIR/marketplaces" "$PLUGINS_DIR/cache"; do
     if [[ -e "$base/$name" ]]; then
       rm -rf "$base/$name"
@@ -135,7 +167,7 @@ for name in $LEGACY_MARKETPLACES; do
 done
 
 # Remove install manifests for known legacy plugin@marketplace slugs
-for name in $LEGACY_PLUGINS; do
+for name in "${LEGACY_PLUGINS[@]}"; do
   f="$PLUGINS_DIR/.install-manifests/${name}.json"
   if [[ -f "$f" ]]; then
     rm -f "$f"

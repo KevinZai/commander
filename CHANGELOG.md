@@ -18,9 +18,19 @@ All notable changes to CC Commander will be documented in this file.
 - `.claude-plugin/marketplace.json` entry `version` synced `4.0.0-beta.5` → `4.0.0-beta.6` to match `plugin.json` (fixes validator drift warning).
 - **Plugin manifest is now minimal + schema-compliant**: only `name`, `version`, `description`, `author`, `homepage`, `repository`, `license`, `keywords`. Everything else (skills, agents, hooks) auto-discovered — same pattern as the reference `claude-mem` plugin.
 
+### Notes
+- `user-prompt-submit.js` and `permission-denied.js` remain on disk but are no longer wired to a hook event. Both are Pro-tier analytics stubs (no-ops in free beta) and will be re-wired once Claude Code's schema accepts the corresponding events. No functional change for beta users.
+
+### Security + safety hardening (reset script)
+- Bash arrays replace space-split env vars — no word-splitting surprises under `set -u`.
+- Python registry writes are now atomic (`tempfile.mkstemp` → `os.replace`) so a crash mid-write can't corrupt `known_marketplaces.json` / `installed_plugins.json`.
+- Exact-match sweep instead of substring sweep in `install-counts-cache.json` — a third-party plugin whose name happens to contain `ccc` or `commander` is no longer silently wiped.
+- Python heredoc runs under `|| warn` so a malformed registry file doesn't abort the filesystem purge.
+
 ### Verification
 - `claude plugin validate commander/cowork-plugin` → ✔ Validation passed
 - `claude plugin validate .` (marketplace) → ✔ Validation passed (1 warning resolved in beta.6 itself)
+- `bash -n scripts/reset-commander-install.sh` → syntax OK
 
 ### Upgrade path
 On any machine where earlier betas were installed:
