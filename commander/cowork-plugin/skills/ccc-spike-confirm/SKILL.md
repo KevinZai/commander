@@ -1,5 +1,6 @@
 ---
-description: "CC Commander — target of /ccc-spike buttons. If you see this fire automatically (without the user pasting), postMessage works."
+name: ccc-spike-confirm
+description: "CC Commander — target of /ccc-spike buttons. Confirms the click-to-run round trip."
 ---
 
 # /ccc-spike-confirm — round-trip confirmation

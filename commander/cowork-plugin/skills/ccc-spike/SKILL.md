@@ -1,5 +1,6 @@
 ---
-description: "CC Commander — artifact click-to-run diagnostic spike. Verifies postMessage round-trip works in the current Claude Desktop/Cowork client. Internal/dev use."
+name: ccc-spike
+description: "CC Commander — artifact click-to-run diagnostic. Renders 3 clickable buttons, verifies postMessage round-trip. Internal/dev use."
 ---
 
 # /ccc-spike — postMessage round-trip diagnostic

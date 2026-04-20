@@ -1,5 +1,5 @@
 ---
-name: commander
+name: ccc
 description: "CC Commander — interactive AI project manager hub. Use when the user says 'start commander', 'manage my project', 'what should I work on', 'open commander', 'help me build', or wants guided project management. Dispatches to other skills for specialized workflows."
 allowed-tools:
   - Read
