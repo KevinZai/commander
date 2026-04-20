@@ -14,7 +14,7 @@
 #   scripts/weekly-vendor-sync.sh --discord    # post to DISCORD_WEBHOOK
 #   scripts/weekly-vendor-sync.sh --dry-run    # show what would change
 
-set -uo pipefail
+set -euo pipefail
 
 NO_TESTS=0
 DRY_RUN=0
@@ -86,7 +86,8 @@ NEW_SKILLS=()
 NEW_HOOKS=()
 NEW_AGENTS=()
 
-for vendor in $VENDORS_UPDATED; do
+while IFS= read -r vendor; do
+  [[ -z "$vendor" ]] && continue
   [[ -d "$vendor" ]] || continue
   # Skills
   while IFS= read -r skill; do NEW_SKILLS+=("$skill"); done < <(find "$vendor" -maxdepth 3 -name 'SKILL.md' -newer "$REPORT" 2>/dev/null | head -20)
@@ -94,7 +95,7 @@ for vendor in $VENDORS_UPDATED; do
   while IFS= read -r hook; do NEW_HOOKS+=("$hook"); done < <(find "$vendor" -maxdepth 3 -name 'hooks.json' -newer "$REPORT" 2>/dev/null | head -10)
   # Agents
   while IFS= read -r agent; do NEW_AGENTS+=("$agent"); done < <(find "$vendor" -maxdepth 3 -path '*/agents/*.md' -newer "$REPORT" 2>/dev/null | head -20)
-done
+done <<< "$VENDORS_UPDATED"
 
 [[ ${#NEW_SKILLS[@]} -gt 0 ]] && ok "${#NEW_SKILLS[@]} new/updated skill(s) detected across vendors"
 [[ ${#NEW_HOOKS[@]} -gt 0 ]] && ok "${#NEW_HOOKS[@]} new/updated hook(s) file(s)"
@@ -158,7 +159,14 @@ ok "Report: $REPORT"
 if [[ $DISCORD -eq 1 && -n "${DISCORD_WEBHOOK:-}" ]]; then
   hdr "6. Posting to Discord"
   MESSAGE="CC Commander weekly vendor sync complete — $UPDATED_COUNT vendors updated, tests $TEST_STATUS. Report: $REPORT"
-  curl -s -H 'Content-Type: application/json' -d "{\"content\":\"$MESSAGE\"}" "$DISCORD_WEBHOOK" > /dev/null && ok "posted"
+  # Use jq or node to produce JSON-safe payload — $TEST_STATUS may contain
+  # vendor-commit characters that break raw string interpolation.
+  if command -v jq >/dev/null 2>&1; then
+    PAYLOAD=$(jq -n --arg content "$MESSAGE" '{"content": $content}')
+  else
+    PAYLOAD=$(node -e 'console.log(JSON.stringify({content: process.argv[1]}))' "$MESSAGE")
+  fi
+  curl -s -H 'Content-Type: application/json' -d "$PAYLOAD" "$DISCORD_WEBHOOK" > /dev/null && ok "posted"
 fi
 
 echo ""

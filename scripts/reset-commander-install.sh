@@ -375,7 +375,7 @@ echo "🎯 ${BOLD}Next steps${RESET} — ${BOLD}fully quit${RESET} Claude Code/C
 echo ""
 echo "  ${BOLD}/plugin marketplace add KevinZai/commander${RESET}"
 echo "  ${BOLD}/plugin install commander${RESET}"
-echo "  ${BOLD}/plugin list${RESET}   # expect: commander  4.0.0-beta.6  Kevin Zicherman"
+echo "  ${BOLD}/plugin list${RESET}   # expect: commander  4.0.0-beta.7  Kevin Zicherman"
 echo ""
 echo "If /ccc still shows the wrong version:"
 echo "  1. Run diagnostic: ${BOLD}bash scripts/diagnose-ccc-sources.sh${RESET}"

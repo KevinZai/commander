@@ -74,11 +74,17 @@ function computeState() {
   const securityAlerts = 0;
   const lintErrors = 0;
 
-  // Recent session
+  // Recent session (fs-based, no shell-out for path safety)
   let lastSession = null;
   try {
-    const sessions = sh(`ls -t ${os.homedir()}/.claude/sessions/*.tmp 2>/dev/null | head -1`);
-    if (sessions) lastSession = sessions;
+    const sessDir = path.join(os.homedir(), '.claude', 'sessions');
+    if (fs.existsSync(sessDir)) {
+      const files = fs.readdirSync(sessDir)
+        .filter(f => f.endsWith('.tmp'))
+        .map(f => ({ name: f, mtime: fs.statSync(path.join(sessDir, f)).mtimeMs }))
+        .sort((a, b) => b.mtime - a.mtime);
+      if (files.length > 0) lastSession = path.join(sessDir, files[0].name);
+    }
   } catch {}
 
   // Level decision heuristic
@@ -149,14 +155,25 @@ function main() {
     fs.renameSync(tmp, STATE_FILE);
   } catch {}
 
-  // Log for telemetry
+  // Log for telemetry — with size-based rotation (keep last ~500 lines)
   try {
-    fs.appendFileSync(LOG_FILE, JSON.stringify({
+    const line = JSON.stringify({
       ts: state.timestamp,
       level: state.recommendedLevel,
       branch: state.branch,
       stack: state.stack,
-    }) + '\n');
+    }) + '\n';
+    fs.appendFileSync(LOG_FILE, line);
+    // Rotate if file exceeds 100KB (~500 lines at avg size)
+    try {
+      const stat = fs.statSync(LOG_FILE);
+      if (stat.size > 100 * 1024) {
+        const content = fs.readFileSync(LOG_FILE, 'utf8');
+        const lines = content.split('\n').filter(Boolean);
+        const kept = lines.slice(-500).join('\n') + '\n';
+        fs.writeFileSync(LOG_FILE, kept);
+      }
+    } catch {}
   } catch {}
 
   if (process.env.CCC_SUGGEST_VERBOSE === '1') {

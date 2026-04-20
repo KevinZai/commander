@@ -7,6 +7,8 @@ allowed-tools:
   - Glob
   - Grep
   - AskUserQuestion
+# Bash retained: cheatsheet scans filesystem live for counts (ls/wc) + parallel JSON reads
+# via single bash call — it's documented in the "Tips for execution" section.
 argument-hint: "[workflow name to drill into: plan | build | review | ship | design | learn | xray | linear | fleet | connect | start | browse]"
 ---
 

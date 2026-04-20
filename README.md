@@ -198,7 +198,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 ```
 You type: ccc
 You get:  A guided AI project manager with 502+ skills,
-          15 plugin skills, 5 agents, 20 vendor packages,
+          28 plugin skills, 15 agents, 20 vendor packages,
           real learning, and zero setup.
 ```
 
@@ -398,7 +398,7 @@ CCC reads your project before every dispatch. No setup needed.
 ### What's New in v3.0.0 — Desktop-First Plugin
 
 - **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.5)
-- **15 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
+- **28 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
 - **5 specialized agents** — reviewer, builder, researcher, debugger, fleet-worker
 - **6 lifecycle hooks** — automated session, build, review, deploy, and fleet hooks
 - **5 MCP servers** — native MCP integration out of the box
@@ -592,7 +592,7 @@ One question: **How are you using Claude?**
 
 CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what should I build" to begin.
 
-**What you get:** 15 plugin skills, 5 specialized agents, 6 lifecycle hooks, 5 MCP servers — all with free/pro tier support.
+**What you get:** 28 plugin skills, 15 specialist agents, 6 lifecycle hooks, 8 MCP servers — all with free/pro tier support.
 
 **Marketplace:** `commander-hub` at [KevinZai/commander](https://github.com/KevinZai/commander)
 
