@@ -1,6 +1,6 @@
 ---
 name: ccc
-description: "CC Commander — interactive AI project manager hub. Use when the user says 'start commander', 'manage my project', 'what should I work on', 'open commander', 'help me build', or wants guided project management. Dispatches to other skills for specialized workflows."
+description: "CC Commander main hub — click-first menu that detects your project context and routes to 12 specialist workflows (plan, build, review, ship, design, learn, xray, linear, fleet, connect). Use when the user types /ccc, says 'open commander', 'what should I work on', 'start commander', or wants a guided entry point."
 allowed-tools:
   - Read
   - Write
@@ -10,88 +10,123 @@ allowed-tools:
   - Grep
   - Agent
   - AskUserQuestion
-argument-hint: "[menu | build | research | linear | night | standup]"
+  - TodoWrite
+argument-hint: "[intent keyword: build | review | ship | design | learn | more]"
 ---
 
-# /ccc:commander
+# /ccc — CC Commander Hub
 
-> Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
+Click-first entry point to the whole CC Commander surface (14 ccc-* skills, 15 specialist agents, 5 MCP servers). The user types `/ccc` and gets a native visual picker — no typing, no menus, no ASCII banners.
 
-CC Commander — "450+ skills. One command. Your AI work, managed by AI." This is the main hub. It presents a guided menu, detects installed plugins, and dispatches to specialist skills for builds, reviews, sessions, settings, and night-mode runs.
+## Response shape (EVERY time)
 
-Footer status format (render at session start and after major actions):
+Output exactly these three sections in order:
+
+### 1. Brand header (one line, markdown)
+
 ```
-━━ CCC3.0│🔥Model│🔑Account│🧠Context│💰Cost│📋Task│📂Project
+**CC Commander** · v{VERSION} · Guided AI PM · [Desktop plugin](https://cc-commander.com)
 ```
 
-## Quick Mode (default)
+Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` via a single Read call.
 
-Present the 5 most common actions via AskUserQuestion:
+### 2. Context strip (one paragraph, markdown)
 
-1. **Continue where I left off** — resume last session (→ use `session` skill)
-2. **Build something new** — code, websites, APIs, CLI tools
-3. **Night Mode** — autonomous overnight build (→ use `night-mode` skill)
-4. **Linear board** — pick a task and build it (requires `~~project tracker`)
-5. **More options...** — open the full menu
+Detect project context with **four quick reads** (cheap, silent on failure):
+- `git rev-parse --abbrev-ref HEAD` → current branch
+- Presence of `CLAUDE.md` in CWD → project recognition
+- Presence of `tasks/todo.md` → active work
+- `ls -t ~/.claude/sessions/*.tmp 2>/dev/null | head -1` → recent session
 
-Read `references/main-menu.json` before presenting the menu to get accurate labels and flow IDs.
+Render a one-line summary:
+> 🧭 Context: `<branch>` · project: `<name from CLAUDE.md first line or CWD basename>` · <N> open tasks · last session: <age>
 
-ALWAYS use AskUserQuestion for decisions. Every sub-menu must include "Back to main menu" as the last option.
+If no context detected (not in a project): "🧭 No project detected — pick an intent below, I'll set one up."
 
-## Power Mode
+### 3. The picker — `AskUserQuestion` with 4 intents
 
-Full 15-item menu sourced from `references/main-menu.json`. Activate by passing `--power` or `detailed` as argument, or when user selects "More options...".
+**Never render a numbered list, never tell the user to "type a number".** Always call `AskUserQuestion` with these 4 options. The `preview` field gets rich context per option.
 
-Menu items (from main-menu.json):
-- Continue where I left off (→ `session` skill)
-- Open a project (read CLAUDE.md + .claude/ context)
-- Build something new (→ build sub-flow, see references/build-something.json)
-- Create content (blog, social, email, marketing copy)
-- Research & analyze (competitive analysis, code audit, SEO)
-- Review what I built (→ `session` skill, review-work flow)
-- Learn a new skill (→ `domains` skill or browse ~/.claude/skills/)
-- Check my stats (sessions, streaks, cost, achievements)
-- Linear board (→ `~~project tracker`)
-- Night Mode (→ `night-mode` skill)
-- Settings (→ `settings` skill)
-- Change theme
-- Infrastructure & Fleet (→ `infra` skill)
-- Type a command (free-text or /slash)
-- Quit (offer to save session)
+```
+question: "What's the move?"
+header: "CC Commander"
+multiSelect: false
+options:
+  - label: "🔨 Build something"
+    description: "Scaffold a project or feature — web, API, CLI, mobile."
+    preview: "(per-context note — see rules below)"
+  - label: "🔍 Review my work"
+    description: "Audit current branch, security, perf, or run full x-ray."
+    preview: "(per-context note)"
+  - label: "🚀 Ship it"
+    description: "Pre-flight checks + deploy. Tests, tag, push, release."
+    preview: "(per-context note)"
+  - label: "⋯ More tools"
+    description: "Plan, design, learn, x-ray, Linear, fleet, connect apps."
+    preview: "27 more skills — click to expand"
+```
 
-### Build Sub-Flow (from references/build-something.json)
+**Recommendation logic** (prepend ⭐ to the label of ONE option based on context):
+- Branch has uncommitted changes + recent diff → ⭐ "Review my work"
+- Tests green + branch ahead of main → ⭐ "Ship it"
+- Empty repo OR no CLAUDE.md → ⭐ "Build something"
+- Session recent and file changes in `tasks/` → context-specific preview text
 
-Ask project type: web app / API / backend / CLI tool / other. Then run the Spec Flow (3 questions):
+### 4. Handle the selection
 
-**Q1 — Goal:** Something working end-to-end / Solid foundation / Quick prototype to test idea
+Based on user pick, invoke the matching skill. Do NOT prompt again; dispatch immediately:
 
-**Q2 — Tech preferences:** Best option for me / Popular/mainstream tools / Keep it simple
+- **Build** → invoke `ccc-build` skill
+- **Review** → invoke `ccc-review` skill
+- **Ship** → invoke `ccc-ship` skill
+- **More** → invoke `ccc-more` skill (which presents the second-page picker)
 
-**Q3 — Thoroughness:** Basics only / Include tests and error handling / Production-ready with docs
+Each target skill handles its own sub-picker. Never unroll all 27+ options in one `/ccc` call — that's anti-pattern (burns context, overwhelming UX).
 
-Present plan and confirm before executing.
+## Anti-patterns — DO NOT do these
 
-### Plugin Detection
+- ❌ Render a numbered list "1. Build, 2. Review, ..." and tell the user to type a number
+- ❌ Output raw HTML in fenced code blocks expecting it to render as an interactive artifact — Cowork Desktop shows HTML as literal code
+- ❌ Render ASCII banners with box-drawing characters — waste of tokens, ugly in Desktop
+- ❌ Render more than 4 options in a single `AskUserQuestion` — not supported (max 4)
+- ❌ Load `references/main-menu.json` and dump 18 options — nested flow is required
+- ❌ Reference legacy `/commander:ccc` namespace — the plugin now ships `/ccc` as a plain skill
 
-Scan `~/.claude/skills/` and `~/.claude/commands/` for installed packages. See `references/orchestration.md` for the full 8-phase pipeline. Show which tools are active and which phase each covers.
+## Dispatching after selection
 
-### Session Tracking
+When the user picks an option, use the `SendMessage` pattern by invoking the target skill inline. Example for "Build":
 
-Write session state to `~/.claude/commander/sessions/{timestamp}.json`. CCC writes session and knowledge state to `~/.claude/commander/` (its own namespace). Never modify other parts of `.claude/`. See `references/plugin-import.md` for import rules.
+> Loading the build workflow — `ccc-build` routes you to web / API / CLI / mobile / from-spec with one more click.
 
-## If Connectors Available
+Then proceed as if the user had invoked `/ccc-build` directly. Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for its options and call `AskUserQuestion` with them.
 
-If **~~project tracker** is connected:
-- Show Linear board in Quick Mode top 5
-- Load open issues assigned to user and present as build options
-- Create tracking issues when starting builds
+## When user passes an argument
 
-If **~~source control** is connected:
-- Show current branch and PR status in footer
-- Offer to create a branch when starting a build
+If `/ccc build` → skip the root picker, invoke `ccc-build` directly.
+If `/ccc review` / `ship` / `design` / `more` → same.
+If `/ccc <anything else>` → show the root picker with the argument echoed in the context strip: "🧭 You said: `<arg>` — picking an intent below to route you."
 
-## Tips
+## Plugin detection (for context strip)
 
-1. Pass `--power` or `detailed` to skip Quick Mode and open the full 15-item menu immediately.
-2. The footer renders live data — use `Bash` to gather cost, context %, and active Linear task from git branch.
-3. Plugin detection is non-blocking — if `~/.claude/skills/` is empty, proceed with CC Commander built-ins only.
+Scan quickly (parallel Bash calls with timeouts):
+- `ls ~/.claude/skills/ | wc -l` — skill count
+- `claude mcp list 2>/dev/null | grep -c '^  '` — connected MCPs
+
+If either >0, include in context strip: "🧰 X skills · Y MCPs connected".
+
+## Brand rules
+
+- **Always read `VERSION` from plugin.json** — never hardcode.
+- **Emoji-forward, concise** (PM Consultant voice): decision up front, reasoning terse.
+- **Never mention the CLI (`ccc` npm binary)** in `/ccc` flow — this is the Desktop-plugin audience.
+- **Recommended option** gets ⭐ and a one-line "Recommended because …" in its preview field.
+
+## Tips for the agent executing this skill
+
+1. The whole flow is ≤4 Claude turns: banner+picker → user clicks → dispatch → target skill runs. Don't overthink.
+2. If Cowork Desktop caches the marketplace and the version strip shows an old version, that's a client cache issue — not our problem. Note it in the context strip: "⚠️ Plugin v<X> detected; latest on GitHub is <Y> — click Update in marketplace".
+3. For `ls` / `git` / file-check operations, run in parallel in a single Bash call (`cmd1 && cmd2 && cmd3`) to save turns.
+
+---
+
+**Bottom line:** three elements — header, context, picker — in that order. User clicks. We route. No typing, no text menus, ever.

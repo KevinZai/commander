@@ -2,6 +2,82 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.7] — 2026-04-20 — Click-First UX Overhaul (Desktop-native, skill-based /ccc)
+
+### The headline
+
+Every `/ccc-*` command is now a **plain slash command** (no `commander:` namespace prefix) and renders with a **native visual chip picker** in Claude Cowork Desktop / Claude Code Desktop. Twelve new click-first specialist workflows ship with this release.
+
+### Fixed
+
+- **`/ccc` now registers as plain slash, not `/commander:ccc`.** Root cause: plugin *commands* are auto-namespaced by Claude Code as `/<plugin>:<cmd>`, but plugin *skills* appear as plain `/<skill-name>`. Migration: moved all `/ccc-*` entries from `commander/cowork-plugin/commands/` into `commander/cowork-plugin/skills/ccc-*/SKILL.md`, removed the commands/ directory, dropped the `install-delegates.js` SessionStart hook (no longer needed).
+- **XML leakage in autocomplete tooltips.** 11 ccc-* domain skills had `<example>` routing blocks embedded in their YAML frontmatter `description:` fields, which Cowork Desktop rendered verbatim in the autocomplete hover. Cleaned descriptions to single-line quoted strings; moved routing examples into a `## When to invoke this skill` body section. Bonus: re-quoted 9 additional skills whose descriptions contained colons that would have broken YAML parsing on a future edit.
+- **Artifact auto-render assumption was wrong for Cowork Desktop.** Fenced `html` blocks display as literal code, not as interactive artifacts. All Wave 2 `/ccc-*` skills pivot to `AskUserQuestion`-native pickers (4 options max per question, nested pagination: intent → domain → action). HTML artifact scaffold at `commander/cowork-plugin/lib/menu-artifact.html.tpl` is preserved for future use if Anthropic adds Desktop artifact support, but not on the active UX path.
+
+### Added
+
+#### 12 click-first specialist skills (all plain `/ccc-*` commands)
+
+| Command | Purpose |
+|---|---|
+| `/ccc` | Main hub — 6-intent visual picker with recommended-tile logic based on detected context |
+| `/ccc-start` | First-run onboarding: detects setup, introduces the 15 agent personas, writes initial plan file |
+| `/ccc-browse` | Cascading catalog: Domains (11) · Workflows (9) · Agents (15) · Full grid |
+| `/ccc-plan` | Spec interview → plan file in `~/.claude/plans/ccc-<date>-<slug>.md` via `planner` subagent |
+| `/ccc-build` | Scaffold: web / API / CLI / mobile / from-spec — cascades into 3-question spec interview |
+| `/ccc-review` | Audit: diff vs main / security (OWASP) / perf (hot-path) / full x-ray — writes findings to `tasks/reviews/` |
+| `/ccc-ship` | Pre-flight → release → deploy → rollback. Parallel test matrix, platform-agnostic deploy |
+| `/ccc-design` | UI/UX: landing / components / polish / figma→code (+ preserves existing domain routing body) |
+| `/ccc-learn` | Skill discovery cascade across 11 CCC domains |
+| `/ccc-xray` | Project health scorecard with per-finding "fork to fix" spawn_task chips |
+| `/ccc-linear` | Linear integration: view / pick / create / board overview |
+| `/ccc-fleet` | Multi-agent orchestration: fan-out / pipeline / FOR-AGAINST / background |
+| `/ccc-connect` | Opt-in MCP connector: Notion / Zapier / Supabase / Slack / Google Drive / Figma / GitHub / Firecrawl / Exa |
+
+#### Shared scaffold
+
+- `commander/cowork-plugin/lib/menu-artifact.html.tpl` — HTML/Tailwind template (preserved for future interactive-artifact support)
+- `commander/cowork-plugin/lib/menu-render.js` — Node renderer (template → artifact HTML given a menu ID + optional context)
+- `commander/cowork-plugin/menus/*.json` — 7 menu trees (`ccc-root`, `ccc-build`, `ccc-review`, `ccc-design`, `ccc-ship`, `ccc-more`, `ccc-learn`) — used by skill markdown as source-of-truth for option labels
+
+#### Ecosystem
+
+- **Six-step external-source contribution protocol** documented in `docs/ECOSYSTEM.md` (coming in beta.7 final push). Metadata → scope → integration path → security audit → integration test → docs.
+- **15-MCP evaluation matrix** applied from the DamiDefi article: Firecrawl / Exa / GitHub / Figma / Playwright promoted to plugin core, Notion / Zapier / Supabase / Slack / GDrive available via `/ccc-connect`, Bright Data / Bannerbear / Apify docs-linked, Memory MCP skipped (we use claude-mem).
+
+### Changed
+
+- `4.0.0-beta.6` → `4.0.0-beta.7` across `package.json`, `commander/cowork-plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`. Clean bump (no alpha suffix) so Cowork Desktop's GUI "Update" button activates unambiguously.
+- README pivot: plugin-first hero with dual-path callout. "⭐ Start here" block for Cowork/Desktop users, "⌨️ Power-user install" section for CLI/npm users. All `/plugin` slash command references scoped to "Claude Code CLI only" to match reality (Desktop clients manage plugins via GUI).
+- CLAUDE.md updated with v4.0.0-beta.7 version stamp, current 28-skill count, explicit GUI install path, and architecture note on skill-based `/ccc` design.
+
+### Removed
+
+- `commander/cowork-plugin/commands/` directory — 2 files (ccc.md migrated to skill; spike commands promoted to `ccc-spike`/`ccc-spike-confirm` skills). No longer needed now that the command vs skill primitive question is resolved.
+- `commander/cowork-plugin/hooks/install-delegates.js` + its SessionStart wiring — obsolete now that skills natively appear as plain `/<name>`.
+
+### Verification
+
+```
+claude plugin validate commander/cowork-plugin   # ✔ passed
+claude plugin validate .                         # ✔ passed
+npm test                                         # 279/279
+MCP_DISABLED=1 npm test                          # 279/279
+node bin/doc-sync.js                             # OK
+node scripts/audit-counts.js --check             # PASS
+```
+
+### Upgrade path
+
+v4.0.0-beta.6 → beta.7 is update-compatible — no reset needed. In Cowork Desktop:
+1. Settings → Plugin Marketplace → commander-hub → **Refresh / Check for updates**
+2. Click **Update** on the commander plugin card
+3. Cmd+Q + reopen for autocomplete cache to refresh
+
+If the Update button stays greyed out: remove the `commander-hub` marketplace via GUI, Cmd+Q, reopen, re-add `KevinZai/commander`, install.
+
+The v1.x → v4 legacy reset script (`scripts/reset-commander-install.sh --full`) remains available for machines still running pre-plugin-era CLI installs, but is **not needed** for v4.0.x → v4.0.x updates.
+
 ## [4.0.0-beta.6] — 2026-04-19 — Plugin Manifest Schema Compliance (Install Fix, Round 2)
 
 ### Fixed

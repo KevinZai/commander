@@ -5,46 +5,91 @@
 
 # CC Commander
 
-> **Guided AI PM to Master Claude Code Instantly**
+> **Guided AI PM to Master Claude Code Instantly** — click-first, not text-menu'd
 
-**1 install. 502+ skills. Works in Claude Cowork, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free in beta.**
+**1 install. 502+ skills. 12 `/ccc-*` click-first workflows. Works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free in beta.**
 
-<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.5" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.7" width="100%">
 
 ### 🎯 Who it's for
 
 | If you are... | CC Commander is... |
 |--------------|-------------------|
-| 👋 **New to AI coding agents** → using **Claude Cowork** | The easiest way to feel like a senior dev — 26 guided workflows, zero config, works out of the box |
-| 💻 **A developer** → using **Claude Code Desktop** or **Claude Code CLI** | Your project manager — routes complexity, compounds knowledge across sessions, Kevin Z Method built in |
+| 👋 **New to AI coding agents** → using **Claude Cowork Desktop** | Your onboarding buddy — `/ccc` pops up a native chip picker: **Build · Review · Ship · Design · Learn · More**. Click. No typing. 28 guided workflows, zero config. |
+| 💻 **A developer** → using **Claude Code Desktop** or **Claude Code CLI** | Your project manager — routes complexity, compounds knowledge across sessions, Kevin Z Method built in. `/ccc-plan` → spec interview → plan file. |
 | 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 502+ skills in your IDE of choice |
 | 📱 **On Claude mobile or iPad** | Same skills, same license, synced across devices (hosted MCP) |
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/500%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.5](https://img.shields.io/badge/v4.0.0--beta.5-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.7](https://img.shields.io/badge/v4.0.0--beta.7-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
-**[Install](#quick-start--pick-your-path)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)** · **[Beta Signup](https://cc-commander.com/beta)**
+**[Install](#30-second-install)** · **[The 12 workflows](#the-12-click-first-workflows)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ---
 
-## 30-Second Install
+## ⭐ Start here — Desktop plugin install (the recommended path)
 
-**Works identically in Claude Cowork Desktop AND Claude Code Desktop.** In either app, run:
+> **For Cowork Desktop or Claude Code Desktop users (99% of people).** No terminal needed. Click-first UX throughout.
 
-```
+1. Open **Settings → Plugin Marketplace**
+2. Click **Add from GitHub** → enter **`KevinZai/commander`** → **Add**
+3. Find **`commander`** in the marketplace → click **Install**
+4. Cmd+Q, reopen the app, type **`/ccc`** — you're live
+
+✅ 28 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
+
+## ⌨️ Power-user install (Claude Code CLI only)
+
+```bash
+# In the Claude Code terminal:
 /plugin marketplace add KevinZai/commander
 /plugin install commander
 ```
 
-Done. 26 skills activate immediately. No config. No API keys.
-
-**Using Cursor, Windsurf, Cline, Continue, or Codex?** See the [hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL + license key unlocks all 502+ skills in your editor.
-
-**Prefer the CLI (terminal lovers)?**
+Or for a full dev environment + npm-global `ccc` binary:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
 ```
+
+**Note:** `/plugin` slash commands work in Claude Code terminal only — Desktop clients use the Settings GUI (above). See [docs/plugin.md](docs/plugin.md) for full Desktop walkthrough, [docs/cli.md](docs/cli.md) for CLI.
+
+## Using Cursor, Windsurf, Cline, Continue, or Codex?
+
+[Hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL + license key unlocks all 502+ skills in your editor.
+
+---
+
+## 🌟 What's new in v4.0.0-beta.7
+
+- **12 click-first `/ccc-*` workflows** — every specialist flow ships as a plain slash command (not `commander:ccc-*`). See the [full list below](#the-12-click-first-workflows).
+- **Skill-based architecture** — plugin commands migrated to plugin skills so they show as plain `/ccc`, `/ccc-plan`, `/ccc-build` in the autocomplete (no namespace prefix).
+- **AskUserQuestion-native UI** — every menu uses the Desktop chip picker. Three-layer pagination (intent → domain → action). No numbered text menus anywhere.
+- **Schema-compliant plugin manifest** — 100% pass on `claude plugin validate`. See [beta.6 → beta.7 compare](https://github.com/KevinZai/commander/compare/v4.0.0-beta.6...v4.0.0-beta.7).
+- **6-step external-source contribution protocol** — see [docs/ECOSYSTEM.md](docs/ECOSYSTEM.md) for the repeatable gate.
+- **XML leakage fix** — autocomplete tooltips no longer show raw `<example>` tags.
+
+## The 12 click-first workflows
+
+Each one works via native Desktop chip picker — no typing, just click:
+
+| Command | What it does | First click |
+|---|---|---|
+| **`/ccc`** | Main hub — 6 intent tiles | Build · Review · Ship · Design · Learn · More |
+| **`/ccc-start`** | First-run onboarding + plan file | New project · Existing · Tour · Skip |
+| **`/ccc-browse`** | Searchable catalog of every skill + agent | Domains · Workflows · Agents · All |
+| **`/ccc-plan`** | Spec interview → implementation plan file | New feature · Bug fix · Refactor · From Linear |
+| **`/ccc-build`** | Scaffold a project | Web app · API · CLI · Mobile · From spec |
+| **`/ccc-review`** | Audit current branch | Diff · Security · Performance · Full x-ray |
+| **`/ccc-ship`** | Pre-flight + deploy | Pre-flight · Release · Deploy · Rollback |
+| **`/ccc-design`** | UI/UX workflow | Landing · Components · Polish · Figma→code |
+| **`/ccc-learn`** | Skill discovery | Design · Marketing · SaaS · More domains |
+| **`/ccc-xray`** | Project health scorecard | Quick · Full · Deps-focused · Security-focused |
+| **`/ccc-linear`** | Linear board integration | View · Pick · Create · Overview |
+| **`/ccc-fleet`** | Multi-agent orchestration | Fan-out · Pipeline · FOR/AGAINST · Background |
+| **`/ccc-connect`** | Opt-in MCP connector | Research · Productivity · Dev · Design/Automation |
+
+Click a cell → pick a sub-option → CC Commander handles it. No config files, no YAML editing, no syntax to memorize.
 
 ## 2-Minute First Win
 
