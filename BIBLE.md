@@ -21,7 +21,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(NEW in v2.3.0 — interactive CLI OS)*
+- [CC Commander](#cc-commander) *(v4.0.0-beta.7 — Desktop plugin + CLI, plugin-first)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.3.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
@@ -1236,20 +1236,26 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Infrastructure Commands (v2.3.0)
+### 🛠️ Plugin Workflows (v4.0.0-beta.7)
 
-Six new `/ccc` sub-commands for managing local services from within Claude Code:
+CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
-| Command | Port | What it does |
-|---------|------|-------------|
-| `/ccc fleet` | 4680 | Fleet Commander — multi-agent dispatch manager |
-| `/ccc syn` | — | Synapse observability (removed 2026-04-11) |
-| `/ccc cost` | 3005 | Real-time cost tracking via AO Dashboard |
-| `/ccc ao` | — | Composio AO parallel agents — spawn/manage background workers |
-| `/ccc cloudcli` | 4681 | Web session bridge — run Claude in browser, sync results back |
-| `/ccc paperclip` | 3110 | Enhanced Paperclip — pick-up-next-issue flow |
+| Workflow | What it does |
+|----------|-------------|
+| `/ccc-build` | Spec-first feature build with clarification questions |
+| `/ccc-review` | Pre-landing code review with severity ratings |
+| `/ccc-ship` | Tests → changelog → commit → PR pipeline |
+| `/ccc-verify` | Four-question verification before marking done |
+| `/ccc-plan` | Multi-step plan with risk + rollback |
+| `/ccc-debug` | Root-cause investigation (Iron Law workflow) |
+| `/ccc-learn` | Extract reusable patterns from the session |
+| `/ccc-spike` | Timeboxed exploration with AskUserQuestion confirm |
+| `/ccc-spike-confirm` | Close-the-loop on a spike result |
+| `/ccc-research` | Structured competitive / market research |
+| `/ccc-design` | Route into the 39-skill design domain |
+| `/ccc-deploy` | Pre-deploy GO/CAUTION/NO-GO gate |
 
-All commands auto-detect whether the service is running and show status indicators. Access the full sub-menu via `/ccc infra`.
+Pick one and the plugin handles it — no service ports, no persistent process. For CLI-only power-user commands (fleet dispatch, AO worker pool, cost dashboard), see the [CLI-Only Commands appendix](#cli-only-commands-cli-power-user) below.
 
 ### 💻 CLI Entry Points
 
@@ -2104,22 +2110,25 @@ graph TD
 ---
 ## CC Commander
 
-> *NEW in v2.3.0* — The interactive CLI that manages your Claude Code sessions. Not a plugin — an OS layer.
+> *v4.0.0-beta.7* — A Claude Code plugin. 28 plugin skills, 15 specialist agents, 8 MCPs, 6 lifecycle hooks. Click-first via AskUserQuestion. A CLI also exists for power users.
 
 ### What It Is
 
-CC Commander is a persistent Node.js process that sits ABOVE Claude Code sessions. It dispatches, tracks, and manages AI work through multiple-choice menus. No typing commands. No knowing flags. Just pick from a menu.
+CC Commander is a Claude Code plugin installed via the marketplace. It ships as plugin skills (plain `/ccc-*` slash commands) driven by the native AskUserQuestion chip picker — click, don't type. No persistent Node process. No separate UI layer. It lives inside your Claude Code session.
 
 ```
-CC Commander (persistent process, arrow-key menus)
+Claude Code session
   |
-  +-- dispatches to Claude Code (headless, via `claude -p`)
-  |     with: --bare --permission-mode plan --effort --max-budget-usd
+  +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- tracks sessions in ~/.claude/commander/
-  +-- imports local CLAUDE.md context (backwards compatible)
-  +-- 9 adventure flows (build, content, research, learn, stats, settings...)
+  +-- /ccc-build, /ccc-review, ...    (28 plugin skills)
+  +-- 15 specialist agents            (architect, reviewer, debugger, ...)
+  +-- 8 MCP servers                   (pre-wired: GitHub, Linear, docs, ...)
+  +-- 6 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
+  +-- AskUserQuestion chip picker     (click-first — no menu traversal)
 ```
+
+A `ccc` CLI binary also ships for power users who prefer a terminal dispatcher outside the Claude Code session — but the plugin is the primary product.
 
 ### Quick Start
 
@@ -2156,8 +2165,8 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Infrastructure menu** | `/ccc infra` → 8 service management actions |
-| **Service detector** | `commander/service-detector.js` — probes 8 services + 4 CLIs at startup |
+| **Plugin-first** | 28 plugin skills, 15 agents, 8 MCPs, 6 lifecycle hooks — installed via `/plugin install commander` |
+| **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
 ### Adventure Flows
@@ -2195,20 +2204,19 @@ The rich footer bar displays 12 live segments at the bottom of every session:
 | `📋CC-150` | Active Linear ticket |
 | `📂~/project` | Current working directory |
 
-### Infrastructure Sub-Menu
+<a id="cli-only-commands-cli-power-user"></a>
+### CLI-Only Commands (CLI power user)
 
-`/ccc infra` opens an 8-action sub-menu for managing local services:
+The `ccc` binary ships a handful of commands that only make sense outside a Claude Code session — local-service dispatch, parallel agent pools, and cost dashboards. These are optional power-user tools and are NOT required for the plugin experience.
 
-| Sub-command | Action |
-|------------|--------|
-| `/ccc fleet` | Fleet Commander (port 4680) |
-| `/ccc syn` | Synapse observability (removed 2026-04-11) |
-| `/ccc cost` | Real-time cost dashboard (port 3005) |
-| `/ccc ao` | Composio AO parallel agents |
-| `/ccc cloudcli` | Web session bridge (port 4681) |
-| `/ccc paperclip` | Pick up next Paperclip issue (port 3110) |
-| `/ccc detect` | Probe all 8 services + 4 CLIs |
-| `/ccc infra` | Show this sub-menu |
+| CLI command | Action |
+|-------------|--------|
+| `ccc fleet` | Fleet Commander — parallel agent dispatch (CLI-only) |
+| `ccc cost` | Real-time cost dashboard (CLI-only) |
+| `ccc ao` | Composio AO parallel agents (CLI-only) |
+| `ccc detect` | Probe local services + CLIs available on this machine |
+
+If you only use the plugin, you never need any of the above.
 
 ### Proactive Intelligence Protocol
 
@@ -2218,15 +2226,6 @@ After every action, CCC suggests 3-4 contextual next steps via `AskUserQuestion`
 - Say `"skip"` — skip all proactive suggestions this session
 - Say `"just do it"` — execute the top suggestion without confirming
 - Say `"auto"` — auto-execute top suggestion for all subsequent actions
-
-### Service Detector
-
-`commander/service-detector.js` runs at startup and probes:
-
-- **7 services:** Fleet (4680), CloudCLI (4681), AO Dashboard (3005), Paperclip (3110), n8n (5678), Ollama (11434), OpenClaw (18789)
-- **4 CLIs:** `gh`, `openclaw`, `pm2`, `docker`
-
-Results feed into `/ccc detect` output and smart `/init` auto-detection.
 
 ### Backwards Compatibility
 
@@ -2485,11 +2484,10 @@ CC Commander is designed to take advantage of the latest Claude Code features au
 
 | Feature (v2.189-2.191) | How CCC Uses It |
 |------------------------|----------------|
-| **Plugin kill switch** | `/ccc kill-plugin` stops runaway plugins. Dispatcher auto-kills on cost ceiling breach. |
 | **500K character output** | Knowledge pipeline ingests full session transcripts in one pass — no chunking needed. |
 | **Pause mid-agent** | Confidence-gate hook emits PAUSE (not ABORT) when confidence drops. User can redirect, then resume. Works in YOLO and overnight modes. |
 | **Auto-mode boundaries** | Dispatcher defaults to `--permission-mode auto` for unattended runs. The background safety classifier blocks scope escalation without needing `--dangerously-skip-permissions`. |
-| **Session crash recovery** | Pre-compact hook writes recovery manifest to `~/.claude/commander/recovery-{timestamp}.json`. Next `ccc` launch detects it and offers one-click resume. |
+| **Plugin lifecycle hooks** | 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) — loaded automatically when the plugin is installed. |
 
 > These features require Claude Code v2.189+. Run `claude --version` to check.
 
