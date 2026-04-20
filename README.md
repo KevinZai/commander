@@ -20,11 +20,45 @@
 | 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 502+ skills in your IDE of choice |
 | 📱 **On Claude mobile or iPad** | Same skills, same license, synced across devices (hosted MCP) |
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.7](https://img.shields.io/badge/v4.0.0--beta.7-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/28_Plugin_Skills-10B981?style=for-the-badge)](./docs/plugin.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.7](https://img.shields.io/badge/v4.0.0--beta.7-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
-**[Install](#30-second-install)** · **[The 12 workflows](#the-12-click-first-workflows)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
+**[Install](#30-second-install)** · **[Why CC Commander](#-why-cc-commander)** · **[The 15 workflows](#the-15-click-first-workflows)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
+
+---
+
+## 🎯 Why CC Commander
+
+Stock Claude Code is a blank terminal with amnesia. Every other plugin solves one slice. CC Commander is the first **guided AI PM** — click-first UX, an intelligence layer that thinks before you do, and the whole ecosystem pre-wired. One install, everything active.
+
+- 🖱️ **Click-first UX** — every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII prompts. Works identically in Cowork Desktop, Claude Code Desktop, and the CLI.
+- 🧠 **`/ccc-suggest` intelligence layer** — Opus-class real-time recommendation. Scans your project state, recommends **one starred next step** with reasoning + named 3rd-party plugins. Kills info-paralysis.
+- 🧩 **15 click-first `/ccc-*` workflows** — plain slash commands (no `commander:` prefix), skill-based architecture: `ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, `ccc-build`, `ccc-review`, `ccc-ship`, `ccc-design`, `ccc-learn`, `ccc-xray`, `ccc-linear`, `ccc-fleet`, `ccc-connect`, `ccc-cheatsheet`, `ccc-suggest`.
+- 🎭 **15 specialist agents with persona voices** — architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker. Each with a distinct voice layer in `commander/cowork-plugin/rules/personas/`.
+- 🔌 **8 core MCP servers pre-wired** — Tavily · Context7 · Firecrawl · Exa · GitHub · Figma · Playwright · claude-mem. Opt-in via `/ccc-connect`: Notion, Zapier, Supabase, Slack, Google Drive.
+- 🪝 **6 lifecycle hooks** — SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification. Schema-compliant, 100% pass on `claude plugin validate`.
+- 🗺️ **`/ccc-cheatsheet` live Mermaid map** — reads the filesystem as single source of truth, renders the whole plugin as a flow diagram. Never drifts.
+- 🔄 **Weekly vendor auto-sync** — 20 vendor submodules auto-update via GitHub Actions. The ecosystem stays current without you touching a thing.
+- 🌐 **Cross-client, one license** — Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile (hosted MCP).
+- 🚁 **Fleet orchestration** — `/ccc-fleet` runs multiple Sonnet agents in parallel **git worktrees**. Fan-out, pipeline, FOR/AGAINST, background modes.
+- 🆓 **Free in beta** — no credit card, no signup. 1,000 hosted-MCP calls/mo + one skippable feedback survey per session.
+- 🧬 **Shared brain: plugin + CLI** — same intelligence layer, same skill catalog, same personas. Install either, get both.
+- 📖 **The Kevin Z Method** — `BIBLE.md` ships with the plugin. 7 rules, 200+ sources, 14 months of production methodology.
+- 📚 **502+ skills across 11 CCC domains** — design, marketing, SaaS, DevOps, SEO, testing, security, data, research, mobile, makeover. Plus the vendor ecosystem.
+- 🎯 **Plugins-name-plugins** — `/ccc-suggest` calls out specific 3rd-party plugins by name (`claude-mem`, `superpowers`, `caveman`, `impeccable`, `graphify`, and more) at the right moment. You learn the whole ecosystem through CC Commander.
+
+### 💡 How the intelligence works (the beginner headline)
+
+**New to Claude Code? Start here:** `/ccc-suggest`.
+
+Every time you run it, CC Commander reads your project state — detected stack, current branch, last 5 commits, open todos, recent errors — and returns **one starred recommendation** with plain-English reasoning. If another plugin would serve you better right now (e.g. `claude-mem` for persistent memory, `superpowers` for structured thinking, `caveman` for token-heavy iteration), it names it. Three reasoning tiers fire in order:
+
+1. **Strong signals** — an open PR, a failing test, a dirty worktree, a mid-plan session
+2. **Stack signals** — nextjs + Stripe detected → suggest `ccc-saas`; mobile repo → suggest `ccc-mobile`
+3. **User intent** — pattern-match your recent prompts against the 502-skill catalog
+
+One click → one next step. No info paralysis.
 
 ---
 
@@ -62,20 +96,23 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## 🌟 What's new in v4.0.0-beta.7
 
-- **12 click-first `/ccc-*` workflows** — every specialist flow ships as a plain slash command (not `commander:ccc-*`). See the [full list below](#the-12-click-first-workflows).
+- 🌟 **Headline: `/ccc-suggest` intelligence layer** — Opus-class recommender that reads your project and picks ONE next step (with reasoning + named 3rd-party plugins). Kills info-paralysis for beginners.
+- 🗺️ **`/ccc-cheatsheet`** — live Mermaid flow diagram of the whole plugin, filesystem-backed. Never drifts from reality.
+- **15 click-first `/ccc-*` workflows** — every specialist flow ships as a plain slash command (not `commander:ccc-*`). See the [full list below](#the-15-click-first-workflows).
 - **Skill-based architecture** — plugin commands migrated to plugin skills so they show as plain `/ccc`, `/ccc-plan`, `/ccc-build` in the autocomplete (no namespace prefix).
 - **AskUserQuestion-native UI** — every menu uses the Desktop chip picker. Three-layer pagination (intent → domain → action). No numbered text menus anywhere.
 - **Schema-compliant plugin manifest** — 100% pass on `claude plugin validate`. See [beta.6 → beta.7 compare](https://github.com/KevinZai/commander/compare/v4.0.0-beta.6...v4.0.0-beta.7).
 - **6-step external-source contribution protocol** — see [docs/ECOSYSTEM.md](docs/ECOSYSTEM.md) for the repeatable gate.
 - **XML leakage fix** — autocomplete tooltips no longer show raw `<example>` tags.
 
-## The 12 click-first workflows
+## The 15 click-first workflows
 
 Each one works via native Desktop chip picker — no typing, just click:
 
 | Command | What it does | First click |
 |---|---|---|
 | **`/ccc`** | Main hub — 6 intent tiles | Build · Review · Ship · Design · Learn · More |
+| **`/ccc-suggest`** 🌟 | **Intelligence layer — recommends ONE starred next step** | Scans state → 1 move + reasoning + named plugins |
 | **`/ccc-start`** | First-run onboarding + plan file | New project · Existing · Tour · Skip |
 | **`/ccc-browse`** | Searchable catalog of every skill + agent | Domains · Workflows · Agents · All |
 | **`/ccc-plan`** | Spec interview → implementation plan file | New feature · Bug fix · Refactor · From Linear |
@@ -86,10 +123,35 @@ Each one works via native Desktop chip picker — no typing, just click:
 | **`/ccc-learn`** | Skill discovery | Design · Marketing · SaaS · More domains |
 | **`/ccc-xray`** | Project health scorecard | Quick · Full · Deps-focused · Security-focused |
 | **`/ccc-linear`** | Linear board integration | View · Pick · Create · Overview |
-| **`/ccc-fleet`** | Multi-agent orchestration | Fan-out · Pipeline · FOR/AGAINST · Background |
-| **`/ccc-connect`** | Opt-in MCP connector | Research · Productivity · Dev · Design/Automation |
+| **`/ccc-fleet`** | Multi-agent orchestration (git worktrees) | Fan-out · Pipeline · FOR/AGAINST · Background |
+| **`/ccc-connect`** | Opt-in MCP connector | Notion · Zapier · Supabase · Slack · GDrive |
+| **`/ccc-cheatsheet`** | Live Mermaid map of the whole plugin | Filesystem is single source of truth |
 
 Click a cell → pick a sub-option → CC Commander handles it. No config files, no YAML editing, no syntax to memorize.
+
+## 🤝 Works with these amazing OSS plugins
+
+`/ccc-suggest` doesn't hoard — when another plugin is the right tool, it names it. Here's what CC Commander recommends at the right moment:
+
+| Plugin | When `/ccc-suggest` calls it out |
+|---|---|
+| **claude-mem** | Persistent cross-session memory — you're 10+ sessions into a project and want recall |
+| **superpowers** | Forces structured thinking — you're drifting on a multi-step task |
+| **caveman** | Token-heavy iteration — cuts ~75% output tokens during rapid loops |
+| **impeccable** | Final polish pass on UI — pixel-perfect micro-interactions |
+| **graphify** | Any input (code, docs, papers) → clustered knowledge graph + HTML report |
+| **claude-reflect** | Self-improving skills with reflection loops — you keep repeating a mistake |
+| **Everything Claude Code (ECC)** | Full harness — 156 skills, 72 commands, 38 agents, lifecycle hooks |
+| **gstack** | CEO/eng plan review, office hours, QA gates |
+| **Compound Engineering** | Knowledge compounding + mandatory code review enforcement |
+| **repomix** | Pack a codebase for AI (60% smaller via tree-sitter compression) |
+| **claude-hud** | Real-time status display + offline cost tracking + git diffs |
+| **RTK** | Token optimization (60–90% savings) + 25 AWS subcommands |
+| **oh-my-claudecode** | HUD with worktree support, quota tracking, hyperlinks |
+| **acpx** | ACP protocol, Flows system, structured agent-to-agent comms |
+| **Caliber** | Config scoring, drift detection |
+
+Install any of these separately — CC Commander detects what's available and routes to it. If you've got `claude-mem` installed, `/ccc-suggest` will reach for it when memory recall is the right move.
 
 ## 2-Minute First Win
 

@@ -4,9 +4,14 @@ All notable changes to CC Commander will be documented in this file.
 
 ## [4.0.0-beta.7] — 2026-04-20 — Click-First UX Overhaul (Desktop-native, skill-based /ccc)
 
-### The headline
+### 🎯 Headline feature: `/ccc-suggest` + `/ccc-cheatsheet`
 
-Every `/ccc-*` command is now a **plain slash command** (no `commander:` namespace prefix) and renders with a **native visual chip picker** in Claude Cowork Desktop / Claude Code Desktop. Twelve new click-first specialist workflows ship with this release.
+Beginners hit the same wall at session 3: **info paralysis.** 500+ skills, 50+ plugins, nowhere to start. Two new skills collapse that wall:
+
+- **`/ccc-suggest`** — Opus-class real-time recommender. Scans your project state (strong signals → stack signals → user intent), returns **ONE starred next step** with reasoning + named 3rd-party plugins. When `claude-mem`, `superpowers`, `caveman`, `impeccable`, or `graphify` is the right tool, it says so by name. CC Commander doesn't hoard workflows — it's a guided PM that delegates.
+- **`/ccc-cheatsheet`** — live Mermaid flow diagram of the whole plugin. Reads the filesystem as single source of truth. Never drifts from reality because there's no static copy.
+
+Together with the click-first chip-picker overhaul, this ships a **skill-based architecture**: every `/ccc-*` command is now a plain slash command (no `commander:` namespace prefix) and renders with a native `AskUserQuestion` chip picker in Claude Cowork Desktop / Claude Code Desktop. Fifteen specialist workflows total.
 
 ### Fixed
 

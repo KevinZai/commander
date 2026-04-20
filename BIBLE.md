@@ -1,8 +1,10 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-04-17 | Version: see package.json | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-04-19 | Version: see package.json | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
+
+> **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
 
 ---
 
@@ -11,6 +13,8 @@
 ### The Commandments
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
+- [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
+- [The 28 Plugin Skills](#the-28-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -122,6 +126,123 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 - [ ] Set checkpoint frequency
 - [ ] Launch with `overnight-runner`
 - [ ] Review checkpoints in morning
+
+---
+
+## The Intelligence Layer
+
+> *The meta-methodology. This is how CC Commander answers the hardest question in AI coding: **"what should I do next?"***
+
+Every beginner hits the same wall at session 3: **info paralysis.** 500+ skills. 50+ plugins. 15 slash commands. Where do you click? CC Commander's `/ccc-suggest` collapses that wall. It reads your project, scores three reasoning tiers, and returns **one starred recommendation** with plain-English reasoning and named third-party plugins.
+
+### The three reasoning tiers
+
+`/ccc-suggest` fires these signals in order. The highest-priority hit wins — no round-robin, no hedging.
+
+#### Tier 1: Strong signals (hard state)
+
+Direct, unambiguous facts about your project. These override everything.
+
+| Signal | Recommendation |
+|---|---|
+| Open PR with unresolved review comments | `/ccc-review` with the reviewer agent |
+| Failing test in `tests/` | `systematic-debugging` skill + the `debugger` agent |
+| Dirty worktree with >20 uncommitted files | `/ccc-ship` pre-flight or `/ccc-review diff` |
+| Mid-plan session (`tasks/plan-*.md` modified in last hour) | `/ccc-build` — resume execution from plan |
+| New Linear ticket assigned to you | `/ccc-linear pick` → `/ccc-plan` |
+| `.env` tracked in git | `ccc-security` domain — secrets remediation |
+
+#### Tier 2: Stack signals (project shape)
+
+Detected from `package.json`, `Dockerfile`, `go.mod`, `.github/workflows/`, framework manifests. Matches stack → domain.
+
+| Stack detected | Recommendation |
+|---|---|
+| nextjs + Stripe + Prisma | `ccc-saas` domain (auth + billing + schema) |
+| React Native / Expo | `ccc-mobile` domain |
+| `docker-compose.yml` + Terraform | `ccc-devops` domain |
+| `.github/workflows/` present, no tests | `ccc-testing` domain — TDD scaffold |
+| Marketing site + blog dir | `ccc-seo` + `ccc-marketing` domains |
+| No `CLAUDE.md` | `/ccc-start` onboarding flow |
+
+#### Tier 3: User intent (pattern match)
+
+Pattern-matches your last 5 prompts against the 502-skill catalog, cross-references the trending skills window (last 7 days), and boosts skills that succeeded in your past sessions. If a **third-party plugin** serves the intent better than CC Commander's own tools, it is named:
+
+- Recall-heavy intent ("what did I decide about X?") → **`claude-mem`**
+- Structured planning drift ("keep losing the thread") → **`superpowers`**
+- Heavy iteration burning tokens → **`caveman`** mode
+- Visual-polish intent ("make it pixel-perfect") → **`impeccable`**
+- "Map this codebase / paper / doc" → **`graphify`**
+- "I keep making the same mistake" → **`claude-reflect`**
+- "Pack the repo for another AI" → **`repomix`**
+- "Real-time cost + status" → **`claude-hud`** or **`oh-my-claudecode`**
+
+**Why this matters:** CC Commander doesn't try to own every workflow. When another plugin is the best tool, `/ccc-suggest` names it. That's why we call it a **guided PM** — a PM delegates, they don't hoard.
+
+### The output contract
+
+Every `/ccc-suggest` response ships the same shape:
+
+```
+🌟 Recommended next step:
+   /ccc-review security
+
+💡 Why:
+   • Last commit touched src/auth/* (12 files)
+   • OWASP A03 keyword triggered ("injection")
+   • No security review in your 30-day history
+   • ccc-security domain is trending +40% this week
+
+🎯 Confidence: 87%
+🔀 Alternatives (in order):
+   1. /ccc-xray security-focused   (full scorecard)
+   2. Install `superpowers` plugin (forces structured review)
+   3. /ccc-fleet FOR/AGAINST        (dialectic review)
+```
+
+One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
+
+---
+
+## The 28 Plugin Skills
+
+> *Every skill that ships with `/plugin install commander`. Not the 502-skill ecosystem — just the curated plugin surface.*
+
+| Skill | What it does |
+|---|---|
+| `ccc` | Main hub — 6-intent chip picker |
+| `ccc-suggest` 🌟 | Intelligence layer — ONE starred next step + reasoning |
+| `ccc-start` | First-run onboarding + plan file + persona intro |
+| `ccc-browse` | Cascading catalog: Domains · Workflows · Agents · All |
+| `ccc-plan` | Spec interview → plan file in `~/.claude/plans/` |
+| `ccc-build` | Scaffold: web / API / CLI / mobile / from-spec |
+| `ccc-review` | Audit: diff / security / perf / full x-ray |
+| `ccc-ship` | Pre-flight → release → deploy → rollback |
+| `ccc-design` | UI/UX: landing / components / polish / Figma→code |
+| `ccc-learn` | Skill discovery across 11 CCC domains |
+| `ccc-xray` | Project health scorecard with per-finding spawn chips |
+| `ccc-linear` | Linear integration: view / pick / create / overview |
+| `ccc-fleet` | Multi-agent orchestration: fan-out / pipeline / FOR-AGAINST / background |
+| `ccc-connect` | Opt-in MCP connector: Notion / Zapier / Supabase / Slack / GDrive |
+| `ccc-cheatsheet` | Live Mermaid map of the whole plugin — filesystem-backed |
+| `ccc-design` (domain router) | Routes into 39 ccc-design sub-skills |
+| `ccc-marketing` (domain router) | Routes into 45 ccc-marketing sub-skills |
+| `ccc-saas` (domain router) | Routes into 21 ccc-saas sub-skills |
+| `ccc-devops` (domain router) | Routes into 21 ccc-devops sub-skills |
+| `ccc-seo` (domain router) | Routes into 20 ccc-seo sub-skills |
+| `ccc-testing` (domain router) | Routes into 15 ccc-testing sub-skills |
+| `ccc-security` (domain router) | Routes into 8 ccc-security sub-skills |
+| `ccc-data` (domain router) | Routes into 8 ccc-data sub-skills |
+| `ccc-research` (domain router) | Routes into 8 ccc-research sub-skills |
+| `ccc-mobile` (domain router) | Routes into 8 ccc-mobile sub-skills |
+| `ccc-makeover` (domain router) | `/xray` audit + `/makeover` swarm + report card |
+| `ccc-more` | Long-tail menu (settings, infra, night mode, standup) |
+| `ccc-spike` / `ccc-spike-confirm` | Experimental spike + confirm-to-land flow |
+
+**Plus 15 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
+
+**Plus 8 pre-wired MCPs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem) + 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification).
 
 ---
 
