@@ -2,9 +2,9 @@
 
 ## What This Is
 
-CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. 1 MCP server. 500+ skills. Every AI IDE. Free in beta. The Desktop plugin is the primary product: 15 plugin skills, 15 specialist agents (with persona voice system), 9 lifecycle hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 500+ total skills (500 skills), 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 20 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. 1 MCP server. 502+ skills. Every AI IDE. Free in beta. The Desktop plugin is the primary product: 15 plugin skills, 15 specialist agents (with persona voice system), 9 lifecycle hooks, 5 MCP servers, 10 connector categories, and free/pro tier support. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 500+ total skills (500 skills), 11 CCC domains, 83 commands, 28 hooks, 37 prompt templates, 10 themes, 20 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** v4.0.0-beta.5 — MCP server + hosted beta + 15 specialist personas · npm package `cc-commander@4.0.0-beta.5` (version tracked in `package.json`)
+**Current Release:** v4.0.0-beta.6 — MCP server + hosted beta + 15 specialist personas · npm package `cc-commander@4.0.0-beta.6` (version tracked in `package.json`)
 
 ## Session Defaults
 
@@ -30,7 +30,7 @@ CCC's primary product as of v3.0.0. Install via the Claude Code plugin marketpla
 
 **Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
 
-**Beta (v4.0.0-beta.5):** ALL 26 plugin skills + 15 specialist agents + 9 lifecycle hooks + 5 MCP servers — free, gated only by 1000 calls/mo hosted MCP quota (with mandatory feedback survey).
+**Beta (v4.0.0-beta.6):** ALL 27 plugin skills + 15 specialist agents + 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) + 5 MCP servers — free, gated only by 1000 calls/mo hosted MCP quota (with mandatory feedback survey).
 **Pro (post-beta):** unlimited calls + Commander Hub marketplace (v4.1).
 
 Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
@@ -69,7 +69,7 @@ Tests: `node --test commander/tests/paths.test.js`
 │   ├── hooks/                   # 6 lifecycle hooks
 │   ├── mcp/                     # 5 MCP server configs
 │   └── CONNECTORS.md            # 10 connector categories
-├── skills/              # 500+ skills organized by category
+├── skills/              # 502+ skills organized by category
 │   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 10 workflow modes
 ��   ├── init-decision-tree/  # /init project wizard
@@ -131,7 +131,7 @@ All `/ccc` sub-commands open rich menus with recommendations:
 | `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
 | `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
 | `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 500+ skills by category, preview, try |
+| `/ccc skills` | Skill browser | 502+ skills by category, preview, try |
 | `/ccc domains` | CCC domains | 11 ccc-* domains |
 | `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
 | `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
@@ -158,7 +158,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** 3.0.0 (Desktop-first plugin transformation — see `package.json`)
 
-**Stats:** 500+ total skills (500 skills), 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
+**Stats:** 502+ total skills (502 skills), 15 plugin skills, 5 agents, 6 hooks, 5 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander

@@ -2,6 +2,35 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.6] — 2026-04-19 — Plugin Manifest Schema Compliance (Install Fix, Round 2)
+
+### Fixed
+- **Plugin install still failing after beta.5** — root cause identified via `claude plugin validate` (Claude Code ≥ 2.1.98 ships a first-class validator). Two schema violations:
+  1. `commander/cowork-plugin/.claude-plugin/plugin.json` declared `hooks`, `skills`, and `agents` as top-level fields. Claude Code rejects `hooks` when the entries are not wrapped in matcher groups, and does not accept `skills`/`agents` as string path fields (directories auto-discovered from `./skills/` and `./agents/`).
+  2. `commander/cowork-plugin/hooks/hooks.json` had hook entries placed directly in the event array. Correct schema nests them inside matcher groups: `{ "EventName": [ { "matcher": "*", "hooks": [ {type, command, timeout} ] } ] }`.
+- **Non-standard hook events removed** — `Elicitation`, `ElicitationResult`, `PostCompact`, `SubagentStart` were not accepted by the plugin validator. Kept only verified-stable events: `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop`, `Notification`. Scripts for the removed events remain on disk; they just no longer wire into plugin lifecycle until Claude Code's schema officially supports them.
+
+### Added
+- **`scripts/reset-commander-install.sh`** — bulletproof one-shot purge script that handles ALL install surfaces: Claude Code Desktop, Claude Cowork Desktop, Claude Code CLI (they share `~/.claude/plugins/`). Removes legacy (`ccc-marketplace`, `commander-marketplace`), current (`commander-hub`), cache dirs, install manifests, and `installed_plugins.json` entries. Creates timestamped backup at `~/.claude/backups/commander-reset-*/` before any change. Idempotent + safe to re-run.
+- `.claude-plugin/marketplace.json` — now ships a `description` field (fixes validator warning about missing marketplace description).
+
+### Changed
+- `.claude-plugin/marketplace.json` entry `version` synced `4.0.0-beta.5` → `4.0.0-beta.6` to match `plugin.json` (fixes validator drift warning).
+- **Plugin manifest is now minimal + schema-compliant**: only `name`, `version`, `description`, `author`, `homepage`, `repository`, `license`, `keywords`. Everything else (skills, agents, hooks) auto-discovered — same pattern as the reference `claude-mem` plugin.
+
+### Verification
+- `claude plugin validate commander/cowork-plugin` → ✔ Validation passed
+- `claude plugin validate .` (marketplace) → ✔ Validation passed (1 warning resolved in beta.6 itself)
+
+### Upgrade path
+On any machine where earlier betas were installed:
+```
+bash <(curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/scripts/reset-commander-install.sh)
+# Fully quit Claude Code / Cowork Desktop (Cmd+Q), reopen, then:
+/plugin marketplace add KevinZai/commander
+/plugin install commander
+```
+
 ## [4.0.0-beta.5] — 2026-04-18 — Plugin Install Fix + Cowork-First Positioning
 
 ### Fixed

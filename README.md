@@ -7,7 +7,7 @@
 
 > **Guided AI PM to Master Claude Code Instantly**
 
-**1 install. 500+ skills. Works in Claude Cowork, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free in beta.**
+**1 install. 502+ skills. Works in Claude Cowork, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free in beta.**
 
 <img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.5" width="100%">
 
@@ -17,7 +17,7 @@
 |--------------|-------------------|
 | 👋 **New to AI coding agents** → using **Claude Cowork** | The easiest way to feel like a senior dev — 26 guided workflows, zero config, works out of the box |
 | 💻 **A developer** → using **Claude Code Desktop** or **Claude Code CLI** | Your project manager — routes complexity, compounds knowledge across sessions, Kevin Z Method built in |
-| 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 500+ skills in your IDE of choice |
+| 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 502+ skills in your IDE of choice |
 | 📱 **On Claude mobile or iPad** | Same skills, same license, synced across devices (hosted MCP) |
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/500%2B_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.5](https://img.shields.io/badge/v4.0.0--beta.5-D97706?style=for-the-badge)](./CHANGELOG.md)
@@ -39,7 +39,7 @@
 
 Done. 26 skills activate immediately. No config. No API keys.
 
-**Using Cursor, Windsurf, Cline, Continue, or Codex?** See the [hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL + license key unlocks all 500+ skills in your editor.
+**Using Cursor, Windsurf, Cline, Continue, or Codex?** See the [hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL + license key unlocks all 502+ skills in your editor.
 
 **Prefer the CLI (terminal lovers)?**
 ```bash
@@ -90,7 +90,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 500+ skills,
+You get:  A guided AI project manager with 502+ skills,
           15 plugin skills, 5 agents, 20 vendor packages,
           real learning, and zero setup.
 ```
@@ -215,7 +215,7 @@ CCC ranks skills using your stack + task keywords + past usage. The right tools 
     8    ccc-testing           Always recommended
 
   ❯ Use top recommendation
-    Browse all 500+ skills
+    Browse all 502+ skills
     Search by keyword
     Back to main menu
 ```
@@ -507,7 +507,7 @@ Then in any Claude Code session:
 
 Full interactive menu appears. Same features, no separate CLI needed.
 
-**What you get:** All 500+ skills and commands, no extra CLI binary required.
+**What you get:** All 502+ skills and commands, no extra CLI binary required.
 
 ---
 
@@ -627,7 +627,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc makeover     → Auto-apply top fixes
 /ccc refresh      → Update your CLAUDE.md from latest template
 /ccc domains      → Browse 11 CCC domains
-/ccc skills       → Browse 500+ skills
+/ccc skills       → Browse 502+ skills
 /ccc grill        → 7-question Socratic planning probe
 /ccc infra        → Infrastructure sub-menu (Fleet, Synapse, Cost, AO, CloudCLI, Paperclip)
 /ccc detect       → Probe all services and CLIs
@@ -644,7 +644,7 @@ CCC is built to be controlled by AI agents — OpenClaw, Claude Code, or any orc
 | Command | Output | Purpose |
 |---------|--------|---------|
 | `ccc --dispatch "task" --json` | JSON | Run task headlessly |
-| `ccc --list-skills --json` | JSON | All 500+ skills |
+| `ccc --list-skills --json` | JSON | All 502+ skills |
 | `ccc --list-sessions --json` | JSON | Session history |
 | `ccc --status` | JSON | Health check |
 | `ccc --template` | text | Latest CLAUDE.md template |

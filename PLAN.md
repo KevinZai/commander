@@ -1,6 +1,6 @@
 # CC Commander — Single Source of Truth
 
-**Last updated:** 2026-04-18 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.4
+**Last updated:** 2026-04-19 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.6
 **Linear project:** https://linear.app/<team>/project/cc-commander-efd0258dcd62
 
 > This file is the canonical roadmap. When things change, update THIS file (not CLAUDE.md, not CHANGELOG beyond release notes, not scattered task files). Cross-references the CC-* tickets in Linear.
@@ -31,7 +31,9 @@
 | v4.0.0-beta.1 | 2026-04-17 | MCP scaffold + 15 personas + hosted beta infra scaffold | ✅ Released |
 | v4.0.0-beta.2 | 2026-04-18 | All-free beta (26 skills unlocked, 0 pro) | ✅ Released |
 | v4.0.0-beta.3 | 2026-04-18 | Real MCP server + 8 P0 hooks + plugin hybrid passthrough + airplane-mode CI | ✅ Released |
-| v4.0.0-beta.4 | 2026-04-18 | `commander-hub` marketplace rename + broken-symlink fix + PLAN.md | 🔄 Current |
+| v4.0.0-beta.4 | 2026-04-18 | `commander-hub` marketplace rename + broken-symlink fix + PLAN.md | ✅ Released |
+| v4.0.0-beta.5 | 2026-04-18 | Removed non-standard `tiers` key + Cowork-first marketing sweep | ✅ Released |
+| v4.0.0-beta.6 | 2026-04-19 | Plugin manifest schema compliance (hooks structure + removed skills/agents string fields) + reset-commander-install.sh | 🔄 Current |
 | v4.0.0 | TBD | Stable — after beta feedback cycle + deploy of hosted MCP | 📋 Pending |
 | v4.1.0 | TBD | Commander Hub marketplace (80/20 rev-share) | 📋 Pending |
 

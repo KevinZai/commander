@@ -2,97 +2,95 @@
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.js",
-        "timeout": 10000
-      },
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js",
-        "timeout": 5000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.js",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js",
-        "timeout": 5000
-      },
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/context-warning.js",
-        "timeout": 3000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/context-warning.js",
+            "timeout": 3000
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js",
-        "timeout": 3000
-      },
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js",
-        "timeout": 3000
-      },
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/secret-leak-guard.js",
-        "timeout": 5000
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js",
+            "timeout": 3000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js",
+            "timeout": 3000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/secret-leak-guard.js",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-capture.js",
-        "timeout": 5000
-      }
-    ],
-    "Elicitation": [
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-logger.js",
-        "timeout": 5000
-      }
-    ],
-    "ElicitationResult": [
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-result-handler.js",
-        "timeout": 5000
-      }
-    ],
-    "PostCompact": [
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post-compact-recovery.js",
-        "timeout": 5000
-      }
-    ],
-    "SubagentStart": [
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start-tracker.js",
-        "timeout": 5000
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-capture.js",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-save.js",
-        "timeout": 10000
-      },
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-end.js",
-        "timeout": 10000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-save.js",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-end.js",
+            "timeout": 10000
+          }
+        ]
       }
     ],
     "Notification": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/fleet-notify.js",
-        "timeout": 5000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/fleet-notify.js",
+            "timeout": 5000
+          }
+        ]
       }
     ]
   }
