@@ -21,6 +21,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/suggest-ticker.js",
+            "timeout": 2000
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js",
             "timeout": 5000
           },

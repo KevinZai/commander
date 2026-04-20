@@ -155,13 +155,102 @@ When relevant to the current task, NAME SPECIFIC 3RD-PARTY PLUGINS from the vend
 
 When recommending one, include: name, purpose, install path (`install via /ccc-connect OR vendor submodule OR npm`). Make it one-click from the recommendation to install.
 
-## Always-on mode (background recommendation ticker)
+## Always-on mode — ambient intelligence with 4 involvement levels
 
-CC Commander ships a `UserPromptSubmit` hook that runs this skill's reasoning lightly on every turn (cheap Haiku/Sonnet pass, NOT full Opus) and surfaces a one-line nudge at the bottom of responses when confidence is HIGH:
+`/ccc-suggest` is **auto-triggered on every user turn** via the `suggest-ticker.js` UserPromptSubmit hook. It runs a lightweight reasoning pass (Sonnet, not full Opus) and surfaces recommendations based on the current **involvement level**.
 
-> 💡 **Suggested next:** `/ccc-ship preflight` — tests green, branch ahead, CHANGELOG staged. Ready to release?
+The level auto-adjusts based on real-time project analysis. Users can also override via `CCC_SUGGEST_LEVEL=<1|2|3|4>` env var.
 
-User can disable via `CCC_SUGGEST_DISABLE=1` or `--no-suggest` flag on any `/ccc-*` command.
+### Level 1 — **Passive** (silent analytics)
+- Reasoning runs but never displays
+- Logs to `~/.claude/commander/suggest-log.jsonl` for telemetry + session learning
+- Default when: project is green (tests pass, branch clean, no todos, recent session completed successfully)
+- Use case: power users who know what they're doing; data collection for future improvements
+
+### Level 2 — **Gentle nudge** (default)
+- Shows a one-line suggestion at the BOTTOM of the response ONLY when confidence ≥ HIGH
+- Format: `💡 **Suggested next:** /ccc-ship preflight — tests green, branch ahead, CHANGELOG staged. Ready to release?`
+- Dismissible by user (any response that doesn't use the suggestion is fine — no nag)
+- Default when: project has signals but no blockers (e.g. branch ahead of main, recent plan file)
+- Use case: most users; low intrusion, high value
+
+### Level 3 — **Assertive** (inline recommendation)
+- Shows a boxed recommendation card at the TOP of the response
+- Always includes confidence + reasoning + runner-up picks
+- Format:
+  ```
+  ┌─ 🎯 CC Commander Suggests ─────────────────────┐
+  │ ⭐ /ccc-review diff (HIGH confidence)          │
+  │ Why: 18 files changed, 0 test files touched,   │
+  │ and you're ahead of main by 3 commits.         │
+  │ Alternatives: /ccc-ship preflight · /ccc-plan  │
+  └────────────────────────────────────────────────┘
+  ```
+- Default when: project has BLOCKERS (failed CI, security alerts, lint errors, stale CLAUDE.md drift)
+- Use case: beginners or pressure situations; the AI is actively guiding
+
+### Level 4 — **Autopilot** (execute unless objected)
+- Skips AskUserQuestion for the top recommendation and just **runs it** after a 5-second countdown (user can say "stop" / "wait" / "no" to cancel)
+- Level 4 only kicks in automatically when:
+  1. Confidence is HIGH
+  2. The recommendation is a READ-ONLY action (analysis, review, preview) — NEVER an action that writes to disk or network
+  3. User has explicitly set `CCC_SUGGEST_LEVEL=4` (never auto-activates; opt-in only)
+- Use case: heavy solo dev, night mode, autonomous overnight runs
+
+### Auto-adjustment rules (the "brain" decides the level)
+
+The ambient ticker re-evaluates the level at the start of every turn using these signals:
+
+| Signal | Level shift |
+|---|---|
+| CI failing OR security alert OR open PR with red checks | → Level 3 (assertive) |
+| Branch clean + tests green + no todos + recent success | → Level 1 (passive) |
+| User said "what next" / "help" / "stuck" | → Level 3 one-turn override |
+| User said "autopilot" / "yolo" / "go" | → Level 4 one-turn override |
+| `CCC_SUGGEST_LEVEL` env var set | → hard-override to that level for whole session |
+| `CCC_SUGGEST_DISABLE=1` | → disables ambient mode entirely (Level 0) |
+| Night mode / overnight autonomous session detected | → Level 4 (with the read-only safety constraint) |
+
+### Real-time project analysis signals (refreshed every 5 turns)
+
+The ticker maintains a cached project state in `~/.claude/commander/project-state.json` refreshed at most every 5 turns (or on SessionStart). Fields:
+
+```json
+{
+  "timestamp": "2026-04-20T01:15:00Z",
+  "branch": "feature/xyz",
+  "behindMain": 0,
+  "aheadMain": 3,
+  "testsStatus": "green",
+  "ciStatus": "passing",
+  "openTodos": 2,
+  "lastSession": "2026-04-19T23:00:00Z",
+  "stack": ["nextjs", "tailwind", "supabase"],
+  "connectedMCPs": ["tavily", "claude-mem", "github"],
+  "securityAlerts": 0,
+  "lintErrors": 0,
+  "recommendedLevel": 2,
+  "lastRecommendation": {
+    "skill": "/ccc-review diff",
+    "confidence": "HIGH",
+    "reasoning": "branch ahead by 3 commits, tests green, ready for PR review"
+  }
+}
+```
+
+### Marketing positioning (the headline feature)
+
+> **"An Opus-class AI watches your project in real time and always tells you the next best move. You never have to know which of 502+ tools to use — the plugin knows for you."**
+
+This is the headline differentiator. Other plugins ship tools. CC Commander ships **the decision** about which tool to use.
+
+### User overrides
+
+- `CCC_SUGGEST_LEVEL=1..4` — hard-lock the level
+- `CCC_SUGGEST_DISABLE=1` — disable ambient mode entirely
+- `/ccc-suggest --level=3 --force` — one-turn override
+- `/ccc-suggest --history` — show last 10 recommendations + what user actually picked
+- `/ccc-suggest --tune` — enter a quick AUQ flow to calibrate what level of involvement the user wants
 
 ## Anti-patterns
 
