@@ -21,11 +21,13 @@
 
 ## First 60 seconds — what to try
 
-1. **Type `/ccc`** — the main hub. Click **Build** or **Review** based on what your context strip suggests.
-2. **Type `/ccc-start`** — first-run onboarding. Detects your project, introduces the 15 agent personas, writes a starter plan file.
-3. **Type `/ccc-browse`** — visual catalog of everything the plugin ships. Great for discovery.
-4. **Type `/ccc-plan "build a REST API with Stripe billing"`** — spec interview cascades, produces a plan file.
-5. **Type `/ccc-review`** — audit your current branch in the background.
+1. 🌟 **Type `/ccc-suggest`** — the **beginner headline**. Scans your project and recommends ONE starred next step with reasoning. Always safe. Always smart.
+2. **Type `/ccc`** — the main hub. Click **Build** or **Review** based on what your context strip suggests.
+3. **Type `/ccc-start`** — first-run onboarding. Detects your project, introduces the 15 agent personas, writes a starter plan file.
+4. **Type `/ccc-cheatsheet`** — live Mermaid map of the whole plugin. Great orientation in one screen.
+5. **Type `/ccc-browse`** — visual catalog of everything the plugin ships. Great for discovery.
+6. **Type `/ccc-plan "build a REST API with Stripe billing"`** — spec interview cascades, produces a plan file.
+7. **Type `/ccc-review`** — audit your current branch in the background.
 
 Every click maps to a native AskUserQuestion chip picker. No typing numbers, no memorizing syntax.
 
