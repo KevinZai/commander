@@ -8,8 +8,8 @@
     {
       "name": "commander",
       "source": "./commander/cowork-plugin",
-      "description": "CC Commander — Guided AI PM. 12 click-first /ccc-* workflows · 15 specialist agents · 502+ skills across 11 CCC domains · 8 MCP servers · works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE. Free in beta.",
-      "version": "4.0.0-beta.7",
+      "description": "CC Commander \u2014 Guided AI PM. 12 click-first /ccc-* workflows \u00b7 15 specialist agents \u00b7 502+ skills across 11 CCC domains \u00b7 8 MCP servers \u00b7 works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE. Free in beta.",
+      "version": "4.0.0-beta.8",
       "category": "development",
       "license": "MIT",
       "author": {

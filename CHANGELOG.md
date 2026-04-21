@@ -2,6 +2,73 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.8] — 2026-04-21 — Launch Readiness (security + docs + native UI sweep)
+
+### 🎯 Headline: plugin lands v4.0 stable next
+
+Full pre-launch sweep across security, consistency, docs, and UX primitives. 8 commits since beta.7. Ship-worthy per final audit (A−, 92/100). Next release is v4.0.0 stable after 48h dogfood with zero P0 regressions.
+
+### ✨ Added — Claude Code Desktop native UI primitive integration
+
+- **`/ccc` first-run onboarding gate.** Reads `~/.claude/commander/state.json`; if the user hasn't completed `/ccc-start`, routes them there automatically before showing the main picker. `session-start.js` hook seeds the state file on first run (idempotent). `/ccc-start` writes `onboardingCompleted: true` at the end of the tour.
+- **ASCII CCC hero banner** shared between `/ccc` and `/ccc-start` — single source of truth at `commander/cowork-plugin/lib/banner.txt` with `{{VERSION}}` templating from plugin.json.
+- **`/ccc-plan` uses native plan mode.** Reads the Desktop session-bound plan path from the SessionStart hint OR calls `EnterPlanMode` to obtain one. Writes the plan to that exact path, then calls `ExitPlanMode` — plans now render in Claude Code Desktop's native **Plan pane**. Previous flow wrote to a fixed `~/.claude/plans/ccc-<date>-<slug>.md` path that Desktop didn't know about (pane said "no plan yet" even after skill ran). `ccc-start` plan writes use the same flow.
+- **`spawn_task` sidebar chips in `/ccc-review` + `/ccc-ship`.** Each 🔴 Critical / 🟠 High blocker becomes a clickable sidebar action chip via `mcp__ccd_session__spawn_task`. Medium + nits continue to render as markdown / TodoWrite.
+- **`mark_chapter` session navigation markers** across `ccc-plan`, `ccc-review`, `ccc-ship`, `ccc-build` at phase transitions. Users can jump between "Feature planning" / "Plan drafted" / "Tests: X/Y" / "Release tagged" checkpoints in long flows.
+- **2 new lifecycle hooks registered** — `PreCompact` (pre-compact.js now blocks compaction during active subagents via JSON `continue:false` protocol) and `SubagentStop` (subagent-stop.js tracks dispatch results). Hook event registry grew 6 → 8 events, 12 → 16 total handlers.
+
+### 🔐 Security — launch-blocker sweep
+
+- **BLOCK-2: `secret-leak-guard.js` now actually works for users.** The patterns file was at `commander/core/secret-patterns.json` — OUTSIDE the plugin tree, never shipped in `./commander/cowork-plugin` marketplace source, so the security guard was silently disabled for every user install. Relocated to `commander/cowork-plugin/lib/secret-patterns.json` with legacy-path fallback.
+- **H1: Path-traversal guard** in local MCP `handleGetAgent` (`commander/mcp-server/index.js:110`). Unsanitized `args.name` could escape the agents directory via `path.join` normalization. Added `path.resolve` containment check.
+- **H3: Same guard** in cloud MCP `getAgentContent` (`apps/mcp-server-cloud/src/lib/registry.ts:221`).
+- **H2: `deploy.sh --env-file` renamed** from `.env.example` → `.op.env`. The `--env-file` flag resolves `op://` references; using `.env.example` (typically committed) could silently inject production secrets into child processes.
+
+### 🧹 Consistency
+
+- **`pre-compact.js` aligned to JSON-output hook protocol** (was using `process.exit` codes; now emits `{continue: false, stopReason}` like every other blocking hook).
+- **`fleet-notify.js` empty-stdin guard** — was throwing `SyntaxError` on empty input and silently dropping all Notification events. Added `.trim()` + early-return.
+- **11 domain router skills** (`ccc-data`, `ccc-devops`, `ccc-saas`, `ccc-mobile`, `ccc-research`, `ccc-seo`, `ccc-testing`, `ccc-marketing`, `ccc-security`, `ccc-makeover`) had no `allowed-tools` frontmatter at all. Added minimal `[Read]`.
+- **`ccc-start` stopped hardcoding `v4.0.0-beta.6`** as a stale-cache example.
+
+### 📚 Docs
+
+- **Canonical count sync** across 8 user-facing docs — README, PLAN, CHEATSHEET, BIBLE, plugin README, install.sh, Mintlify introduction, Mintlify skills. Every doc now shows the same numbers: 28 plugin skills · 15 specialist agents · 8 lifecycle hooks · 8 bundled MCP servers · 502+ ecosystem skills · 11 CCC domains · marketplace `commander-hub` · version `4.0.0-beta.8`.
+- **Mintlify `plugin/skills.mdx` fully rewritten** from a 15-skill list → 28-skill catalog grouped by tier.
+- **Mintlify `introduction.mdx` self-contradiction fixed** (card grid said 15, stats table said 28 — now both 28).
+- **Plugin README version drift** — was still at `v3.0.0` + `26 plugin skills` from the v3→v4 restructure. Bumped to current canonical values.
+- **PLAN.md new section: "CLI / Plugin Parity — SSoT Map"** documenting 3 dual-source drift points flagged for v4.1 consolidation.
+
+### 🧭 Repo hygiene
+
+- **Orphan `.claude-plugin/plugin.json` removed** (stale v3.0.0 artifact). Root `.claude-plugin/marketplace.json` (the actual discovery manifest) preserved.
+- **4 previously-dead hooks registered properly** — `post-compact-recovery.js`, `user-prompt-submit.js`, `pre-compact.js`, `subagent-stop.js`.
+- **4 hooks kept on disk but intentionally unregistered** — `elicitation-logger`, `elicitation-result-handler`, `permission-denied`, `subagent-start-tracker` target events that don't exist in current Claude Code plugin runtime catalog. Files preserved for test coverage + future runtime enablement (13 tests in `hooks-v4.test.js`).
+
+### 🛡️ Security posture — post-sweep
+
+Final audit: **0 critical, 3 high fixed, 4 medium deferred to v4.1** (ReDoS anchor on AWS-secret regex, `/metrics` endpoint auth, `kc.js --skills install` argv guard, `suggest-ticker.js` `execFileSync` migration).
+
+### 💚 Business model locked: FREE FOREVER
+
+CCC will stay free for users, always. Sustained by:
+- Transparent affiliate links in `/ccc-connect` + domain routers (Supabase, Vercel, Stripe Atlas, Neon, Resend, Fly, Linear)
+- Kevin's consulting practice (plugin = trust-engine → consulting-engine)
+- Featured Partner slots in v4.2+ (clearly marked, distinct from core recs)
+
+No Pro tier, no Stripe, no paywalls. The plugin is a gift to the Claude Code community.
+
+### Commits in this release
+
+- `486960c` — orphan `.claude-plugin/` cleanup + Mintlify docs beta.5 → beta.7
+- `b74c611` — restore root `.claude-plugin/marketplace.json` (undo over-deletion)
+- `149248b` — `/ccc` onboarding gate + ASCII hero banner
+- `dedc804` — native UI primitives sweep (spawn_task + mark_chapter)
+- `9e1f60d` — `/ccc-plan` uses EnterPlanMode + ExitPlanMode + session-bound path
+- `e586f53` — register 4 previously-dead hooks
+- `4bf7779` — pre-launch security + consistency sweep
+- `aa10939` — comprehensive docs refresh + CLI parity audit
+
 ## [4.0.0-beta.7] — 2026-04-20 — Click-First UX Overhaul (Desktop-native, skill-based /ccc)
 
 ### 🎯 Headline feature: `/ccc-suggest` + `/ccc-cheatsheet`
