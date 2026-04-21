@@ -11,12 +11,35 @@ allowed-tools:
   - Agent
   - AskUserQuestion
   - TodoWrite
+  - mcp__ccd_session__spawn_task
+  - mcp__ccd_session__mark_chapter
 argument-hint: "[action: preflight | release | deploy | rollback]"
 ---
 
 # /ccc-ship — Pre-flight + deploy
 
 Click-first ship flow. Four actions, one test matrix, one release pipeline, one deploy path. User picks the action, the matrix (or agent) runs, results surface as a checkbox scorecard.
+
+## Session markers
+
+Call `mcp__ccd_session__mark_chapter` at these phase transitions:
+
+| Trigger | title | summary |
+|---------|-------|---------|
+| User picks "Pre-flight check" (before matrix runs) | `"Ship preflight: <branch>"` | `"Running preflight matrix on <branch>"` |
+| After test matrix completes | `"Tests: <pass>/<total>"` | `"<pass>/<total> tests passing; <N> gates remaining"` |
+| All gates evaluated, before presenting verdict | `"Preflight complete"` | `"Verdict: <GO|CAUTION|NO-GO> — <blocker-count> blockers"` |
+| After release tag is pushed | `"Release tagged <version>"` | `"v<version> tagged and pushed to GitHub"` |
+
+## Sidebar chips (spawn_task)
+
+After the preflight verdict, IF any gate fails (tests red, security findings, build fail, unclean diff), spawn ONE `mcp__ccd_session__spawn_task` chip per failure:
+
+- `title`: actionable imperative under 60 chars (e.g., `"Fix 3 failing tests before ship"` or `"Resolve doc-sync: README still references v3.2.0"`)
+- `prompt`: self-contained — include the exact gate that failed, the error output or file:line if available, and the fix direction. The spawned session has no memory of this conversation.
+- `tldr`: 1-2 sentences plain English explaining what broke and what to do.
+
+Chips fire after the preflight scorecard is rendered — never before.
 
 ## Response shape (EVERY time)
 

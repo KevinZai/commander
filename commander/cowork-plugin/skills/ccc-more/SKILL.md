@@ -49,7 +49,7 @@ multiSelect: false
 options:
   - label: "📋 Plan a feature"
     description: "Spec interview → implementation plan file → review checkpoint."
-    preview: "Invokes ccc-plan. Asks 5-7 targeted questions, writes tasks/spec-<date>.md."
+    preview: "Invokes ccc-plan. Asks 5-7 targeted questions — writes to the session plan file (shows in Desktop Plan pane)."
   - label: "🩻 Project x-ray"
     description: "Scorecard across code, docs, tests, deps, CI — actionable findings."
     preview: "Invokes ccc-xray. Reads repo, returns report card + remediation steps."

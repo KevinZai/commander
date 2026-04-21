@@ -11,6 +11,7 @@ allowed-tools:
   - Agent
   - AskUserQuestion
   - TodoWrite
+  - mcp__ccd_session__mark_chapter
 argument-hint: "[template: web-app | api | cli | mobile | spec]"
 ---
 
@@ -90,6 +91,18 @@ Reuse the pattern from `skills/build/SKILL.md` — **3 questions, one at a time*
 After Q3, print a one-paragraph spec back to the user for confirmation:
 
 > 🧭 **Spec:** `<template>` using `<stack from Q2>`, thoroughness `<Q3>`. Target outcome: `<Q1>`. **Reply 'go' to scaffold, or edit the spec first.**
+
+## Session markers
+
+Call `mcp__ccd_session__mark_chapter` at these phase transitions:
+
+| Trigger | title | summary |
+|---------|-------|---------|
+| After user confirms spec (before dispatching agent) | `"Spec drafted"` | `"<template> spec confirmed — scaffolding queued"` |
+| Immediately after `Agent` tool call fires (background dispatch) | `"Scaffold generating"` | `"Sonnet agent scaffolding <template> in background"` |
+| When agent reports completion (or user returns with status) | `"Scaffold ready"` | `"<slug>/ scaffold complete — <file-count> files created"` |
+
+No `spawn_task` chips for build — scaffold blockers are reported in the agent's structured return and surfaced inline.
 
 ## Step 3 — Dispatch background agent
 

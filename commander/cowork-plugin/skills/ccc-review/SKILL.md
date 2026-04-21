@@ -11,12 +11,29 @@ allowed-tools:
   - Agent
   - AskUserQuestion
   - TodoWrite
+  - mcp__ccd_session__spawn_task
+  - mcp__ccd_session__mark_chapter
 argument-hint: "[audit type: diff | security | perf | xray]"
 ---
 
 # /ccc-review — Audit your work
 
 Click-first review flow. Four audit types, one specialist agent per pick, one scorecard artifact. User picks the lens, the agent works in the background, the markdown report lands in `tasks/reviews/`.
+
+## Session markers
+
+- At the START of review (after user picks an audit type): call `mcp__ccd_session__mark_chapter` with `title: "Code review: <branch>"` and `summary: "<audit-type> audit on <branch>"`.
+- At COMPLETION (when the agent reports back or findings are surfaced): call `mcp__ccd_session__mark_chapter` with `title: "Review complete"` and `summary: "<N> findings — <blocker-count> blocking"`.
+
+## Sidebar chips (spawn_task)
+
+After the review agent completes and findings are known, spawn ONE `mcp__ccd_session__spawn_task` chip per **🔴 Critical** or **🟠 High** blocker — each chip is a self-contained action for a fresh session:
+
+- `title`: imperative phrase under 60 chars (e.g., `"Fix SQL injection in src/auth.ts:42"`)
+- `prompt`: self-contained — include file path, line number, issue summary, CWE/OWASP reference if applicable, and suggested fix direction. The spawned session has no memory of this conversation.
+- `tldr`: 1-2 sentences plain English, no code blocks.
+
+**For 🟡 Medium and ℹ️ Nit findings:** surface via markdown bullets + `TodoWrite` only — NOT spawn_task chips. Chips are for blockers that warrant a dedicated fix session.
 
 ## Response shape (EVERY time)
 

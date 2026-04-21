@@ -8,6 +8,7 @@ allowed-tools:
   - Glob
   - Grep
   - AskUserQuestion
+  - mcp__ccd_session__spawn_task
 argument-hint: "[quick | full | security | deps | perf]"
 ---
 
