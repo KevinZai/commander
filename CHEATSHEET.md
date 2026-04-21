@@ -8,7 +8,7 @@
 
 ## Desktop Plugin Commands (v4.0.0-beta.7)
 
-CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — this is the primary product. Install once, use everywhere — plain `/ccc-*` namespace (e.g. `/ccc-build`) in any Desktop conversation. 28 plugin skills total (23 ccc-* + 5 other).
+CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — this is the primary product. Install once, use everywhere — plain `/ccc-*` namespace (e.g. `/ccc-build`) in any Desktop conversation. 28 plugin skills total (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta).
 
 ### Plugin Installation
 
@@ -20,7 +20,7 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — thi
 /plugin install commander
 ```
 
-### /ccc-* Skills (28 total — 23 ccc-* + 5 other; core surface shown)
+### /ccc-* Skills (28 total — 12 specialist workflows + 14 domain routers + 2 meta; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -40,7 +40,7 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — thi
 | `/ccc-deploy-check` | Pre-deployment readiness gate | Pro |
 | `/ccc-fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro |
 
-### Specialized Agents (5)
+### Specialized Agents (15)
 
 | Agent | Model | Badge | Purpose |
 |-------|-------|-------|---------|
@@ -50,7 +50,7 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — thi
 | `debugger` | Opus | red | Deep debugging, root cause |
 | `fleet-worker` | Sonnet | cyan | Parallel task execution |
 
-### Plugin Hooks (6)
+### Plugin Hooks (8)
 
 | Hook | When it fires |
 |------|-------------|
@@ -60,6 +60,8 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — thi
 | `PostToolUse` | Auto-checkpoint, cost alert |
 | `Stop` | Session summary, cost tracking |
 | `Notification` | Progress updates for long-running tasks |
+| `PreCompact` | Save critical session state before context compaction |
+| `SubagentStop` | Report subagent results back to orchestrator |
 
 ### Plugin MCP Servers (5)
 
@@ -89,6 +91,7 @@ Load ONE CCC domain to get an entire domain. Each has a router that dispatches t
 | Mobile Development | `ccc-mobile` | 7 skills — iOS, Android, React Native, Flutter, app store optimization |
 | Security & Compliance | `ccc-security` | 9 skills — pen testing, OWASP, supply chain, secrets management, threat modeling |
 | Data & Analytics | `ccc-data` | 8 skills — ETL pipelines, data warehousing, analytics, visualization, ML ops |
+| Design Makeover | `ccc-makeover` | 3 skills — `/xray` project audit + `/makeover` design swarm + report generation |
 
 ---
 

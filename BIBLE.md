@@ -1,5 +1,5 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-04-19 | Version: see package.json | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-04-21 | Version: see package.json | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -79,15 +79,16 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 | CCC Domain | Skills Inside | What It Covers |
 |------------|--------------|----------------|
 | `ccc-seo` | 19 | Technical SEO, AI search, content strategy, analytics, programmatic SEO |
-| `ccc-design` | 35+ | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
+| `ccc-design` | 39 | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
 | `ccc-testing` | 15 | TDD, E2E, verification, QA, regression, visual testing, load testing |
-| `ccc-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales |
-| `ccc-saas` | 20 | Auth, billing, database, API, frontend stack, metrics, CRO |
-| `ccc-devops` | 20 | CI/CD, containers, AWS, monitoring, zero-downtime deploy, Terraform |
+| `ccc-marketing` | 45 | Content, CRO, channels, growth, intelligence, sales |
+| `ccc-saas` | 21 | Auth, billing, database, API, frontend stack, metrics, CRO |
+| `ccc-devops` | 21 | CI/CD, containers, AWS, monitoring, zero-downtime deploy, Terraform |
 | `ccc-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
-| `ccc-mobile` | 7 | iOS, Android, React Native, Flutter, app store optimization |
-| `ccc-security` | 9 | Pen testing, OWASP, supply chain, secrets management, threat modeling |
+| `ccc-mobile` | 8 | iOS, Android, React Native, Flutter, Expo, app store optimization |
+| `ccc-security` | 8 | Pen testing, OWASP, supply chain, secrets management, threat modeling |
 | `ccc-data` | 8 | ETL pipelines, data warehousing, analytics, visualization, ML ops |
+| `ccc-makeover` | 3 | `/xray` project audit + `/makeover` design swarm + report generation |
 
 ### Automatic Checklists
 
@@ -1107,15 +1108,16 @@ Instead of loading 5-15 individual skills per session, load ONE CCC domain to ge
 
 ```
 "Use the ccc-seo skill"       → All 19 SEO skills loaded via router
-"Use the ccc-design skill"    → All 35+ design/animation skills loaded
+"Use the ccc-design skill"    → All 39 design/animation skills loaded
 "Use the ccc-testing skill"   → All 15 testing skills loaded
-"Use the ccc-marketing skill" → All 46 marketing skills loaded
-"Use the ccc-saas skill"      → All 20 SaaS building skills loaded
-"Use the ccc-devops skill"    → All 20 DevOps skills loaded
+"Use the ccc-marketing skill" → All 45 marketing skills loaded
+"Use the ccc-saas skill"      → All 21 SaaS building skills loaded
+"Use the ccc-devops skill"    → All 21 DevOps skills loaded
 "Use the ccc-research skill"  → All 8 research skills loaded
-"Use the ccc-mobile skill"    → All 7 mobile dev skills loaded
-"Use the ccc-security skill"  → All 9 security skills loaded
+"Use the ccc-mobile skill"    → All 8 mobile dev skills loaded
+"Use the ccc-security skill"  → All 8 security skills loaded
 "Use the ccc-data skill"      → All 8 data/analytics skills loaded
+"Use the ccc-makeover skill"  → /xray audit + /makeover swarm (3 skills)
 ```
 
 Each CCC domain has a **router** that matches your intent to the right specialist sub-skill. See the Absorbed Skills Manifest in each CCC domain's SKILL.md for exactly which skills it contains.

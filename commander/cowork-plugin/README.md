@@ -1,8 +1,8 @@
 # CC Commander
 
-> **Works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE.** 26 plugin skills + 500+ CC Commander ecosystem skills. One plugin. Your AI work, managed by AI.
+> **Works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE.** 28 plugin skills (v4.0.0-beta.7) + 502+ CC Commander ecosystem skills. One plugin. Your AI work, managed by AI.
 
-CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships 26 native skills (`/ccc:*`) that route into the broader CC Commander ecosystem of 500+ skills across 11 domains.
+CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **28 native skills** (`/ccc-*`) organized as 12 click-first specialist workflows, 14 domain routers, and 2 diagnostic/meta skills. They route into the broader CC Commander ecosystem of 502+ skills across 11 domains.
 
 **Who's it for?**
 - 👋 **New to AI coding agents?** Claude Cowork Desktop + CC Commander = the easiest on-ramp.
@@ -19,7 +19,7 @@ Three ways to install CC Commander, depending on how you want to use it:
 
 **1. Desktop plugin marketplace (recommended)**
 
-The full plugin experience — 15 skills, 5 agents, 6 hooks, 8 pre-wired MCPs, free/pro tier gating.
+The full plugin experience — 28 skills, 15 agents, 8 hooks, 8 pre-wired MCPs, free/pro tier gating. Plugin marketplace: `commander-hub` → slug `commander`.
 
 ```bash
 /plugin marketplace add KevinZai/commander
@@ -40,7 +40,7 @@ Use this when you want one specific skill without the full plugin, or when mixin
 
 **3. Full CLI install**
 
-Installs the CCC CLI (`ccc` command), all 453+ skills, hooks, commands, and templates into `~/.claude/`.
+Installs the CCC CLI (`ccc` command), all 502+ skills, hooks, commands, and templates into `~/.claude/`.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
@@ -48,7 +48,8 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Skills
 
-15 skills covering every phase of the development lifecycle:
+28 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog. Core surface:
+
 
 | Skill | Trigger | Description |
 |-------|---------|-------------|
@@ -70,7 +71,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Specialized Agents
 
-5 purpose-built agents that skills delegate to automatically:
+15 purpose-built agents that skills delegate to automatically (core 5 shown — full list in `agents/`):
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
@@ -82,7 +83,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Lifecycle Hooks
 
-6 hooks run automatically throughout every session:
+8 hooks run automatically throughout every session:
 
 | Event | Hook | Behavior | Tier |
 |-------|------|---------|------|
@@ -92,8 +93,10 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 | `PostToolUse` | `knowledge-capture` | Captures Write/Edit file touches to `auto-captures.jsonl` | Pro |
 | `Stop` | `session-save` | Saves session state for seamless resume | Free |
 | `Notification` | `fleet-notify` | Posts fleet agent status updates as they complete | Pro |
+| `PreCompact` | `pre-compact-save` | Saves critical session state before context compaction | Free |
+| `SubagentStop` | `subagent-reporter` | Reports subagent results back to orchestrator on completion | Pro |
 
-> **Note:** UserPromptSubmit, PreToolUse, PostToolUse, and Notification hooks are Pro-tier — they are no-ops on the free tier. Only SessionStart and Stop run on all tiers.
+> **Note:** UserPromptSubmit, PreToolUse, PostToolUse, Notification, and SubagentStop hooks are Pro-tier — they are no-ops on the free tier. SessionStart, Stop, and PreCompact run on all tiers.
 
 ## Quick Start
 

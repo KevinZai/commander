@@ -1,6 +1,6 @@
 # CC Commander — Single Source of Truth
 
-**Last updated:** 2026-04-19 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.6
+**Last updated:** 2026-04-21 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.7
 **Linear project:** https://linear.app/<team>/project/cc-commander-efd0258dcd62
 
 > This file is the canonical roadmap. When things change, update THIS file (not CLAUDE.md, not CHANGELOG beyond release notes, not scattered task files). Cross-references the CC-* tickets in Linear.
@@ -33,18 +33,19 @@
 | v4.0.0-beta.3 | 2026-04-18 | Real MCP server + 8 P0 hooks + plugin hybrid passthrough + airplane-mode CI | ✅ Released |
 | v4.0.0-beta.4 | 2026-04-18 | `commander-hub` marketplace rename + broken-symlink fix + PLAN.md | ✅ Released |
 | v4.0.0-beta.5 | 2026-04-18 | Removed non-standard `tiers` key + Cowork-first marketing sweep | ✅ Released |
-| v4.0.0-beta.6 | 2026-04-19 | Plugin manifest schema compliance (hooks structure + removed skills/agents string fields) + reset-commander-install.sh | 🔄 Current |
+| v4.0.0-beta.6 | 2026-04-19 | Plugin manifest schema compliance (hooks structure + removed skills/agents string fields) + reset-commander-install.sh | ✅ Released |
+| v4.0.0-beta.7 | 2026-04-21 | Docs refresh: 28-skill catalog, 8 hooks, 15 agents, 502+ ecosystem skills, Desktop-first positioning, CLI parity audit | 🔄 Current |
 | v4.0.0 | TBD | Stable — after beta feedback cycle + deploy of hosted MCP | 📋 Pending |
 | v4.1.0 | TBD | Commander Hub marketplace (80/20 rev-share) | 📋 Pending |
 
 ---
 
-## 📦 Current Shipped Surface (v4.0.0-beta.4)
+## 📦 Current Shipped Surface (v4.0.0-beta.7)
 
 ### Plugin (works fully standalone)
-- **26 plugin skills** (all free during beta, tier-gated by usage not features)
+- **28 plugin skills** (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta — all free during beta)
 - **15 specialist agents** with persona voice system (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker)
-- **9 lifecycle hooks** including 8 new P0 handlers from beta.3
+- **8 lifecycle hooks** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
 - **5 pre-configured MCP integrations** (Linear, Tavily, Context7, GitHub, Slack)
 - **10 workflow modes** via mode-switcher skill
 - **`commander/cowork-plugin/rules/`** — 10 shared voice files + 15 personas shipped with plugin
@@ -288,6 +289,32 @@ Tracked here instead of scattered TODOs:
 - `.github/workflows/ci.yml` — airplane-mode + PII + doc-sync + lint gates
 - `.github/workflows/deploy.yml` — Stage 3 deploy CI
 - `tasks/kevin-handback-checklist.md` — detailed 7-step deploy playbook (legacy doc; superseded by this PLAN.md)
+
+---
+
+---
+
+## 🔀 CLI / Plugin Parity — SSoT Map
+
+Audited 2026-04-21. Documents where each data type actually comes from in CLI vs plugin flows.
+
+| Data | CLI reads from | Plugin reads from | SSoT match? |
+|------|---------------|-------------------|-------------|
+| **Version** | `package.json` → `branding.js` → `bin/kc.js` | `commander/cowork-plugin/.claude-plugin/plugin.json` | ⚠️ **Dual source** — package.json is authoritative; plugin.json must be manually kept in sync |
+| **Skills list** | `skills/` dir + `skills/_tiers.json` via `commander/skill-browser.js` | `commander/cowork-plugin/skills/` dir (separate subtree) | ⚠️ **Separate dirs** — CLI reads from repo-root `skills/`, plugin reads from `cowork-plugin/skills/`. The 28 plugin skills ≠ the 502+ CLI skills |
+| **Agents list** | Not used — CLI dispatches via `dispatcher.js` | `commander/cowork-plugin/agents/` dir | ⚠️ **Plugin-only** — CLI has no agent concept; agents are a plugin primitive |
+| **Commands list** | `commands/` dir (83 slash command .md files) | Plugin skills serve as commands (no separate commands dir in plugin) | ⚠️ **Different primitives** — CLI uses slash command .md files; plugin uses skills |
+| **Hooks** | `hooks/` dir + `hooks.json` (25 kit-native hooks) | `commander/cowork-plugin/hooks/` dir + `.claude-plugin/plugin.json` hooks block | ⚠️ **Separate registries** — kit hooks run in CLI context; plugin hooks run in Desktop context |
+| **Marketplace slug** | N/A | `commander/cowork-plugin/.claude-plugin/marketplace.json` | ✅ Single source |
+| **MCP config** | `commander/mcp-server/` (local stdio) | `commander/cowork-plugin/.mcp.json` (8 bundled servers) | ⚠️ **Separate configs** — local MCP for CLI dev; `.mcp.json` bundled with plugin |
+
+### Top 3 Findings
+
+1. **Version dual-source (P1):** `package.json` version (CLI) and `plugin.json` version (plugin) are manually kept in sync. Current state: both say `4.0.0-beta.7`. Risk: they drift on npm publish if someone bumps `package.json` without updating `plugin.json`. Fix: add a pre-commit hook or CI check that asserts `package.json.version === plugin.json.version`.
+
+2. **Skills in separate dirs (P2):** The 28 plugin skills live in `commander/cowork-plugin/skills/` and are NOT the same files as the 502+ skills in the repo-root `skills/` dir. Plugin skills are standalone SKILL.md files; ecosystem skills are organized into domain subdirs. This is intentional architecture but creates a maintenance burden — updates to a shared concept require edits in two places. Fix: consider symlinking the ccc-* domain routers from `skills/ccc-*/` into `cowork-plugin/skills/` so plugin and CLI share one copy.
+
+3. **Hook registries diverged (P3):** CLI hooks (`hooks/` + `hooks.json`) and plugin hooks (`cowork-plugin/hooks/` + `plugin.json`) are separate. A fix to a shared hook behavior (e.g. cost-tracker) must be applied twice. Fix: evaluate whether plugin hooks can import from the kit's `hooks/` dir or share a common `lib/hooks/` module.
 
 ---
 

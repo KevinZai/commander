@@ -10,7 +10,7 @@
 #   ./install.sh --mode=essentials   Install essentials only
 #
 # For remote install:
-#   git clone https://github.com/KevinZai/commander.git && cd cc-commander && ./install.sh
+#   git clone https://github.com/KevinZai/commander.git && cd commander && ./install.sh
 # ============================================================================
 
 set -euo pipefail

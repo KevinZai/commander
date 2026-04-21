@@ -1,117 +1,87 @@
 ---
 title: "Plugin Skills"
-description: "15 skills shipped with the CCC plugin. Free tier includes 5 core skills. Pro unlocks 10 more."
+description: "28 skills shipped with the CC Commander plugin (v4.0.0-beta.7). 12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta."
 ---
 
-CCC v3.0.0 ships 15 plugin skills. Each skill is a focused capability triggered by a `/ccc` command or a natural language phrase.
+CC Commander v4.0.0-beta.7 ships **28 plugin skills** in three groups. Every skill is available free during beta (gated by 1000 calls/mo + mandatory feedback). All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required.
 
-## Free Tier Skills
+## Group 1 — 12 /ccc-* Specialist Workflows
 
-Available on all accounts at no cost.
+Click-first workflows. Each opens an interactive picker (AskUserQuestion native chips) — no flags or arguments needed.
 
-<CardGroup cols={2}>
-  <Card title="commander" icon="terminal">
-    **Trigger:** `/ccc` or "open commander"
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc` | `/ccc` or "open commander" | Main hub — detects project context, routes to the right specialist workflow via nested picker |
+| `/ccc-start` | `/ccc-start` or "get started with ccc" | First-run onboarding — creates plan file, explains the plugin, surfaces your first win |
+| `/ccc-browse` | `/ccc-browse` or "browse skills" | Searchable catalog of all 502+ skills and 15 agents — filter by domain, keyword, or tier |
+| `/ccc-plan` | `/ccc-plan` or "plan a feature" | Spec-first planning — 5-question interview → `tasks/spec-YYYYMMDD.md` → ready to build |
+| `/ccc-build` | `/ccc-build` or "build something" | Guided build wizard — web app, API, CLI, or mobile. Dispatches the builder agent with spec |
+| `/ccc-review` | `/ccc-review` or "review my code" | Branch audit — diff review, security pass, performance check, or full x-ray. Uses reviewer agent |
+| `/ccc-ship` | `/ccc-ship` or "ship this" | Pre-flight checks + release + deploy. 22-point gate: TypeScript, tests, secrets, env vars |
+| `/ccc-design` | `/ccc-design` or "design this" | UI/UX workflow — routes to ccc-design domain (39 skills: animations, systems, accessibility) |
+| `/ccc-learn` | `/ccc-learn` or "teach me" | Skill discovery across all 11 CCC domains — explains what's available and when to use each |
+| `/ccc-xray` | `/ccc-xray` or "audit my project" | Project health scorecard — surfaces issues as fix chips you can click to resolve |
+| `/ccc-linear` | `/ccc-linear` or "show my board" | Linear board integration — view issues, pick one to build, create new issues, sync status |
+| `/ccc-fleet` | `/ccc-fleet` or "run in parallel" | Multi-agent orchestration — launch, route, monitor, and kill parallel agent workers |
+| `/ccc-connect` | `/ccc-connect` or "connect my tools" | Opt-in MCP connector — Notion, Zapier, Supabase, Slack, Google Drive, Figma, and more |
 
-    The main command center. Guided menus, skill browser, project context loader. Entry point to everything else.
-  </Card>
-  <Card title="session" icon="clock">
-    **Trigger:** `/ccc session` or "save my session"
+## Group 2 — 14 ccc-* Domain Routers
 
-    Session management — save context, resume prior sessions, view session history. Powered by `~/.claude/sessions/`.
-  </Card>
-  <Card title="settings" icon="gear">
-    **Trigger:** `/ccc settings` or "configure ccc"
+Load ONE domain skill to get an entire specialty. Each router matches your intent and dispatches to the right sub-skill.
 
-    Configure name, cost limits, theme (10 options), skill tier, Linear project, and Pro subscription.
-  </Card>
-  <Card title="knowledge" icon="book">
-    **Trigger:** `/ccc knowledge` or "what did I learn"
+| Skill | Skills Inside | What it covers |
+|-------|--------------|----------------|
+| `ccc-design` | 39 | UI/UX, animations, visual effects, design systems, accessibility, landing pages |
+| `ccc-marketing` | 45 | CRO, email campaigns, ads, social content, growth, sales copy |
+| `ccc-saas` | 21 | Auth, billing, multi-tenant DB, API patterns, frontend stack, SaaS metrics |
+| `ccc-devops` | 21 | CI/CD, Docker, AWS, Terraform, monitoring, zero-downtime deploys |
+| `ccc-seo` | 20 | Technical SEO, Core Web Vitals, schema markup, AI search, programmatic SEO |
+| `ccc-testing` | 15 | TDD, E2E (Playwright), visual testing, load testing, coverage audits |
+| `ccc-data` | 8 | SQL, ETL pipelines, data warehousing, analytics, visualization, ML ops |
+| `ccc-security` | 8 | OWASP audits, pen testing, secrets management, supply chain, threat modeling |
+| `ccc-research` | 8 | Deep research, competitive analysis, literature review, data synthesis |
+| `ccc-mobile` | 8 | React Native, Expo, iOS, Android, Flutter, app store optimization |
+| `ccc-makeover` | 3 | `/xray` project audit + `/makeover` design swarm + report generation |
 
-    Knowledge compounding dashboard — view lessons extracted from past sessions, search by topic, export.
-  </Card>
-  <Card title="domains" icon="grid">
-    **Trigger:** `/ccc domains` or "load a domain"
+> **Note:** The domain routers for `ccc-design`, `ccc-fleet`, and `ccc-linear` are also exposed as `/ccc-design`, `/ccc-fleet`, and `/ccc-linear` specialist workflows (Group 1). They appear in both groups because they serve double duty — as click-first entry points and as loadable domain packs.
 
-    Browse and load CCC's 11 specialty domains (ccc-marketing, ccc-design, ccc-devops, etc.). Each domain loads a full skill set.
-  </Card>
-</CardGroup>
+## Group 3 — 2 Diagnostic / Meta Skills
 
-## Pro Tier Skills
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-suggest` | Auto-triggered at session start (configurable) | Ambient intelligence — suggests the best next skill based on project context, recent activity, and active tasks. 4 involvement levels: silent, suggest, prompt, auto |
+| `/ccc-cheatsheet` | `/ccc-cheatsheet` or "show cheatsheet" | Inline cheatsheet — canonical counts, all /ccc-* commands, domain list, hook events. Quick reference without leaving the session |
 
-Requires Pro ($19/mo) or Team ($99/mo). [Upgrade at cc-commander.com/pricing](https://cc-commander.com/pricing)
+## All 28 at a Glance
 
-<CardGroup cols={2}>
-  <Card title="build" icon="hammer">
-    **Trigger:** `/ccc build` or "build something"
+| # | Skill | Group |
+|---|-------|-------|
+| 1 | `/ccc` | Specialist workflow |
+| 2 | `/ccc-start` | Specialist workflow |
+| 3 | `/ccc-browse` | Specialist workflow |
+| 4 | `/ccc-plan` | Specialist workflow |
+| 5 | `/ccc-build` | Specialist workflow |
+| 6 | `/ccc-review` | Specialist workflow |
+| 7 | `/ccc-ship` | Specialist workflow |
+| 8 | `/ccc-design` | Specialist workflow + domain router |
+| 9 | `/ccc-learn` | Specialist workflow |
+| 10 | `/ccc-xray` | Specialist workflow |
+| 11 | `/ccc-linear` | Specialist workflow + domain router |
+| 12 | `/ccc-fleet` | Specialist workflow + domain router |
+| 13 | `/ccc-connect` | Specialist workflow |
+| 14 | `ccc-marketing` | Domain router |
+| 15 | `ccc-saas` | Domain router |
+| 16 | `ccc-devops` | Domain router |
+| 17 | `ccc-seo` | Domain router |
+| 18 | `ccc-testing` | Domain router |
+| 19 | `ccc-data` | Domain router |
+| 20 | `ccc-security` | Domain router |
+| 21 | `ccc-research` | Domain router |
+| 22 | `ccc-mobile` | Domain router |
+| 23 | `ccc-makeover` | Domain router |
+| 24 | `/ccc-suggest` | Diagnostic/meta |
+| 25 | `/ccc-cheatsheet` | Diagnostic/meta |
 
-    Guided build wizard — website, API, CLI, mobile, or custom. Generates spec, dispatches the builder agent, tracks progress.
-  </Card>
-  <Card title="linear-board" icon="layout-list">
-    **Trigger:** `/ccc linear` or "show my Linear board"
-
-    View open issues, pick one to build, create new issues. Connects to your Linear workspace via MCP.
-  </Card>
-  <Card title="research" icon="magnifying-glass">
-    **Trigger:** `/ccc research` or "research this codebase"
-
-    Dispatches the researcher agent — web search + codebase analysis. Returns structured findings.
-  </Card>
-  <Card title="content" icon="pen">
-    **Trigger:** `/ccc content` or "write content"
-
-    Content generation — blog posts, docs, changelogs, release notes. Uses ccc-marketing domain under the hood.
-  </Card>
-  <Card title="standup" icon="clipboard">
-    **Trigger:** `/ccc standup` or "generate my standup"
-
-    Reads git log + Linear activity + session history → generates a formatted standup update.
-  </Card>
-  <Card title="code-review" icon="code">
-    **Trigger:** `/ccc review` or "review my code"
-
-    Dispatches the reviewer agent on the current diff. Returns CRITICAL / HIGH / MEDIUM findings with fix suggestions.
-  </Card>
-  <Card title="deploy-check" icon="rocket">
-    **Trigger:** `/ccc deploy` or "pre-deploy check"
-
-    22-point pre-deployment gate — TypeScript errors, console.logs, secrets exposure, missing tests, missing env vars.
-  </Card>
-  <Card title="fleet" icon="server">
-    **Trigger:** `/ccc fleet` or "manage my fleet"
-
-    Parallel fleet management — launch multiple Claude instances, route tasks, monitor cost and progress.
-  </Card>
-  <Card title="night-mode" icon="moon">
-    **Trigger:** `/ccc night` or "start overnight build"
-
-    Autonomous overnight build mode — dispatches fleet-worker agents with YOLO permissions to run tasks while you sleep.
-  </Card>
-  <Card title="infra" icon="database">
-    **Trigger:** `/ccc infra` or "check my infra"
-
-    Infrastructure dashboard — PM2 services, Docker containers, port registry, cost report, health checks.
-  </Card>
-</CardGroup>
-
-## Skill Tiers at a Glance
-
-| Skill | Free | Pro |
-|-------|------|-----|
-| commander | Yes | Yes |
-| session | Yes | Yes |
-| settings | Yes | Yes |
-| knowledge | Yes | Yes |
-| domains | Yes | Yes |
-| build | — | Yes |
-| linear-board | — | Yes |
-| research | — | Yes |
-| content | — | Yes |
-| standup | — | Yes |
-| code-review | — | Yes |
-| deploy-check | — | Yes |
-| fleet | — | Yes |
-| night-mode | — | Yes |
-| infra | — | Yes |
+> **Actual skill count:** The `skills/` directory ships 39 directories including legacy CLI skills (`code-review`, `content`, `deploy-check`, `domains`, `fleet`, `infra`, `knowledge`, `linear-board`, `night-mode`, `research`, `session`, `settings`, `standup`) that pre-date the v4 plugin architecture. The **28 canonical plugin skills** are the `/ccc-*` and `ccc-*` prefixed ones listed above. Legacy CLI skills remain available for backward compatibility with CLI workflows.
 
 [See full Free vs Pro comparison →](/plugin/free-vs-pro)
