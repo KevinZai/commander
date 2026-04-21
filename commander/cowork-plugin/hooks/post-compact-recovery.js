@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
  * post-compact-recovery.js
- * Hook: PostCompact
+ * Hook: SessionStart (remapped from PostCompact — no PostCompact plugin event exists)
  * Restores critical session state after context compaction.
+ * Runs on every SessionStart; emits orientation message only when session state
+ * files indicate a prior compact occurred. Harmless no-op when state files are absent.
  * Reads ~/.claude/commander/sessions/active-session.json and emits
  * a concise orientation message (stdout → injected as system message).
  * Keep output ≤3 lines to avoid wasting tokens.
