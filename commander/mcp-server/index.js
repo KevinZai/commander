@@ -107,7 +107,12 @@ function handleListAgents(_args) {
 
 function handleGetAgent(args) {
   var agentsDir = path.join(__dirname, '..', 'cowork-plugin', 'agents');
-  var agentPath = path.join(agentsDir, args.name + '.md');
+  var agentsDirResolved = path.resolve(agentsDir);
+  var resolved = path.resolve(agentsDir, args.name + '.md');
+  if (!resolved.startsWith(agentsDirResolved + path.sep)) {
+    return { error: 'Agent not found: ' + args.name };
+  }
+  var agentPath = resolved;
   try {
     var content = fs.readFileSync(agentPath, 'utf8');
     return { name: args.name, content: content };

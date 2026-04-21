@@ -2,6 +2,8 @@
 name: ccc-testing
 context: fork
 description: "CCC domain — complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testing, and load testing. Default isolation mode for test dispatches: worktree."
+allowed-tools:
+  - Read
 ---
 
 # ccc-testing

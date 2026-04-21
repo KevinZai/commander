@@ -2,7 +2,7 @@
 /**
  * pre-compact.js
  * Hook: PreCompact
- * Free tier: no-op stub (returns 0 = allow compaction)
+ * Free tier: no-op stub (returns { continue: true })
  * Pro tier: decides whether to block compaction based on session state
  *   - blocks if: active task in progress, unsaved work detected, cost < $0.50 (compaction not yet needed)
  *   - allows if: session idle, explicit user request, cost > threshold
@@ -28,7 +28,7 @@ async function main() {
 
     if (!pro) {
       // Free tier: always allow compaction
-      process.exit(0);
+      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
       return;
     }
 
@@ -39,27 +39,25 @@ async function main() {
       sessionState = JSON.parse(await readFile(activeSessionFile, 'utf8'));
     } catch {
       // No active session file — allow compaction
-      process.exit(0);
+      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
       return;
     }
 
     // Allow compaction if session is not in a critical state
     const blockedStates = ['executing', 'writing', 'committing'];
     if (blockedStates.includes(sessionState.status)) {
-      // Block compaction — output message to inform user
-      console.log(JSON.stringify({
-        decision: 'block',
-        reason: `Session is in state "${sessionState.status}" — compaction blocked to preserve context. Wait for task completion or manually trigger compaction.`,
-      }));
-      process.exit(1);
+      process.stdout.write(JSON.stringify({
+        continue: false,
+        stopReason: `Session is in state "${sessionState.status}" — compaction blocked to preserve context. Wait for task completion or manually trigger compaction.`,
+      }) + '\n');
       return;
     }
 
     // Allow compaction
-    process.exit(0);
+    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
   } catch {
     // On any error, allow compaction (fail open)
-    process.exit(0);
+    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
   }
 }
 

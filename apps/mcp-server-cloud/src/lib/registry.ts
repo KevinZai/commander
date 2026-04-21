@@ -219,9 +219,12 @@ export async function getSkillContent(skillId: string): Promise<string | null> {
 }
 
 export async function getAgentContent(agentName: string): Promise<string | null> {
-  const agentPath = path.join(AGENTS_DIR, `${agentName}.md`);
+  const resolved = path.resolve(AGENTS_DIR, `${agentName}.md`);
+  if (!resolved.startsWith(path.resolve(AGENTS_DIR) + path.sep)) {
+    return null;
+  }
   try {
-    return await readFile(agentPath, "utf8");
+    return await readFile(resolved, "utf8");
   } catch {
     return null;
   }

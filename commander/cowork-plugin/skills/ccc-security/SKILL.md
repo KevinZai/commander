@@ -2,6 +2,8 @@
 name: ccc-security
 context: fork
 description: CCC domain — complete application security ecosystem — 8 skills in one. OWASP Top 10, secrets scanning, dependency audits, prompt injection defense, CodeQL, and incident response. Invokes Claude Code's built-in /security-review rather than reimplementing from scratch.
+allowed-tools:
+  - Read
 ---
 
 # ccc-security

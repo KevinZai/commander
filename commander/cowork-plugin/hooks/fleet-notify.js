@@ -23,7 +23,12 @@ async function main() {
 
     let input = '';
     for await (const chunk of process.stdin) input += chunk;
-    const data = JSON.parse(input);
+    const trimmed = input.trim();
+    if (!trimmed) {
+      console.log(JSON.stringify({ continue: true }));
+      return;
+    }
+    const data = JSON.parse(trimmed);
 
     if (!existsSync(FLEET_DIR)) await mkdir(FLEET_DIR, { recursive: true });
 

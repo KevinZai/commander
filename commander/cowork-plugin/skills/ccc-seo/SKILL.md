@@ -2,6 +2,8 @@
 name: ccc-seo
 context: fork
 description: CCC domain — complete SEO ecosystem — 20 skills in one. Technical SEO, AI search optimization, content strategy, analytics, and programmatic SEO at scale.
+allowed-tools:
+  - Read
 ---
 
 # ccc-seo

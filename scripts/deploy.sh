@@ -43,7 +43,7 @@ bash tests/smoke.sh >/dev/null || err "smoke tests failed"
 # ─── Deploy hosted MCP server to Fly.io ────────────────────
 info "Deploying hosted MCP server → Fly.io (cc-commander-mcp)"
 cd apps/mcp-server-cloud
-op run --env-file=.env.example -- fly deploy --strategy canary --app cc-commander-mcp
+op run --env-file=.op.env -- fly deploy --strategy canary --app cc-commander-mcp
 cd "$WORKTREE_ROOT"
 
 # Healthcheck

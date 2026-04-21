@@ -10,6 +10,8 @@ allowed-tools:
   - Grep
   - Agent
   - AskUserQuestion
+  - EnterPlanMode
+  - ExitPlanMode
 argument-hint: "[new | existing | tour | skip]"
 ---
 
@@ -80,11 +82,15 @@ Cascade via `AskUserQuestion` (3 quick questions, ≤4 options each):
 2. "Who's the audience?" → Solo/team / SMB / Enterprise / Public
 3. "What's the first milestone?" → MVP demo / First paying user / Open-source launch / Internal tool
 
-Then write `~/.claude/plans/ccc-start-$(date +%Y-%m-%d).md` containing:
-- Project type, audience, milestone
-- 3 recommended agents from the 15 available (see matrix below)
-- Next 3 concrete steps
-- The `/ccc-build-<type>` command to run next
+Then write the plan file:
+1. Check the system-reminder for a "Plan File Info" block — if present, use that path.
+2. If no plan mode is active: call `EnterPlanMode` and use the path it returns.
+3. Write the plan to the resolved path containing:
+   - Project type, audience, milestone
+   - 3 recommended agents from the 15 available (see matrix below)
+   - Next 3 concrete steps
+   - The `/ccc-build-<type>` command to run next
+4. Call `ExitPlanMode` to surface the plan in the Desktop Plan pane.
 
 Finally: invoke `ccc-build` skill to scaffold.
 
@@ -95,7 +101,7 @@ Parallel Bash scan:
 - `git log --oneline | head -5` → activity signal
 - `grep -l "CLAUDE.md" . 2>/dev/null` → already configured?
 
-Then invoke the `architect` agent via Agent tool with brief: "Scan this repo, detect the stack, recommend 3 CC Commander agents, write a CLAUDE.md if missing. Output a plan to `~/.claude/plans/ccc-start-$(date +%Y-%m-%d).md`."
+Then invoke the `architect` agent via Agent tool with brief: "Scan this repo, detect the stack, recommend 3 CC Commander agents, write a CLAUDE.md if missing. Output a plan using EnterPlanMode → write → ExitPlanMode."
 
 Return: one-line summary + path to the plan.
 
@@ -141,14 +147,14 @@ Pick **3** based on context signal (e.g. Next.js repo → designer + builder + q
 
 ## Brand rules
 
-- **Always read `VERSION` from plugin.json** — the marketplace sometimes caches; if plugin.json has `v4.0.0-beta.6` and GitHub has newer, surface that in the context strip.
+- **Always read `VERSION` from plugin.json** — the marketplace sometimes caches; if plugin.json has `<installed-version>` and GitHub has newer, surface that in the context strip.
 - **Emoji-forward, concise** — PM Consultant voice, decision up front.
 - **The plan file is the artifact** — every onboarding flow ends with a real file the user can open.
 - **Never mention legacy CLI modes** — `ccc --interactive`, `ccc --split`, etc. are out of scope here.
 
 ## Plan file template
 
-When writing `~/.claude/plans/ccc-start-<date>.md`:
+When writing the plan file (path from `EnterPlanMode` or existing session plan path):
 
 ```markdown
 # CC Commander Start Plan — <date>

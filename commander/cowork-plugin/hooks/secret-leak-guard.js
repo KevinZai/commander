@@ -8,11 +8,14 @@
  * Never crashes the session — fail open on any error.
  */
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PATTERNS_FILE = join(__dirname, '..', '..', 'core', 'secret-patterns.json');
+const PATTERNS_FILE_NEW = join(__dirname, '..', 'lib', 'secret-patterns.json');
+const PATTERNS_FILE_LEGACY = join(__dirname, '..', '..', 'core', 'secret-patterns.json');
+const PATTERNS_FILE = existsSync(PATTERNS_FILE_NEW) ? PATTERNS_FILE_NEW : PATTERNS_FILE_LEGACY;
 
 // Tools whose inputs are worth scanning
 const SCANNED_TOOLS = new Set([

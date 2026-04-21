@@ -2,6 +2,8 @@
 name: ccc-makeover
 context: fork
 description: CCC domain — design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm, and report card scoring. Wraps /ultrareview (v2.1.111 native) for deep analysis.
+allowed-tools:
+  - Read
 ---
 
 # ccc-makeover

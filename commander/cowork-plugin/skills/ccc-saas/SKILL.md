@@ -2,6 +2,8 @@
 name: ccc-saas
 context: fork
 description: CCC domain — complete SaaS development ecosystem — 21 skills in one. Scaffold, authenticate, bill, ship, and grow a production SaaS from zero to revenue.
+allowed-tools:
+  - Read
 ---
 
 # ccc-saas
