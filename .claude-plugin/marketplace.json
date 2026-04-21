@@ -1,0 +1,21 @@
+{
+  "name": "commander-hub",
+  "owner": {
+    "name": "Kevin Zicherman",
+    "url": "https://kevinz.ai"
+  },
+  "plugins": [
+    {
+      "name": "commander",
+      "source": "./commander/cowork-plugin",
+      "description": "CC Commander — Guided AI PM. 12 click-first /ccc-* workflows · 15 specialist agents · 502+ skills across 11 CCC domains · 8 MCP servers · works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE. Free in beta.",
+      "version": "4.0.0-beta.7",
+      "category": "development",
+      "license": "MIT",
+      "author": {
+        "name": "Kevin Zicherman",
+        "url": "https://kevinz.ai"
+      }
+    }
+  ]
+}
