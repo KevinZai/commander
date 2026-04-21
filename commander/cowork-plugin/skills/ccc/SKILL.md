@@ -16,19 +16,38 @@ argument-hint: "[intent keyword: build | review | ship | design | learn | more]"
 
 # /ccc — CC Commander Hub
 
-Click-first entry point to the whole CC Commander surface (23 ccc-* skills, 15 specialist agents, 8 MCP servers). The user types `/ccc` and gets a native visual picker — no typing, no menus, no ASCII banners.
+Click-first entry point to the whole CC Commander surface (23 ccc-* skills, 15 specialist agents, 8 MCP servers). The user types `/ccc` and gets a native visual picker — no typing, no menus.
 
 ## Response shape (EVERY time)
 
-Output exactly four sections in order: **1) brand header, 2) context strip, 3) picker (AskUserQuestion), 4) dispatch on selection**. Sections 1-3 are rendered up front; section 4 fires after the user clicks.
+Output exactly four sections in order: **0) onboarding gate, 1) ASCII hero banner, 2) context strip, 3) picker (AskUserQuestion), 4) dispatch on selection**. Sections 1-3 are rendered up front; section 4 fires after the user clicks.
 
-### 1. Brand header (one line, markdown)
+### 0. Onboarding gate (MANDATORY first check)
 
+Run this bash check at the very top of the skill execution:
+
+```bash
+STATE=~/.claude/commander/state.json
+if [ ! -f "$STATE" ] || ! grep -q '"onboardingCompleted": *true' "$STATE" 2>/dev/null; then
+  echo "ONBOARDING_NEEDED"
+fi
 ```
-**CC Commander** · v{VERSION} · Guided AI PM · [Desktop plugin](https://cc-commander.com)
-```
 
-Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` via a single Read call.
+If output contains `ONBOARDING_NEEDED`, respond with ONLY this (no picker, no context strip):
+
+> 👋 Welcome to CC Commander — first time? Let me walk you through the basics.
+>
+> *Dispatching `/ccc-start`…*
+
+Then dispatch the `ccc-start` skill immediately. Do NOT show the main `/ccc` picker on first run.
+
+If state.json shows `onboardingCompleted: true`, skip this step and proceed to step 1.
+
+### 1. ASCII hero (read banner.txt + interpolate version)
+
+Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block (` ```text ... ``` `), NO trailing prose on the same block.
+
+This replaces the markdown one-liner header.
 
 ### 2. Context strip (one paragraph, markdown)
 
@@ -87,7 +106,6 @@ Each target skill handles its own sub-picker. Never unroll all 27+ options in on
 
 - ❌ Render a numbered list "1. Build, 2. Review, ..." and tell the user to type a number
 - ❌ Output raw HTML in fenced code blocks expecting it to render as an interactive artifact — Cowork Desktop shows HTML as literal code
-- ❌ Render ASCII banners with box-drawing characters — waste of tokens, ugly in Desktop
 - ❌ Render more than 4 options in a single `AskUserQuestion` — not supported (max 4)
 - ❌ Load `references/main-menu.json` and dump 18 options — nested flow is required
 - ❌ Reference legacy `/commander:ccc` namespace — the plugin now ships `/ccc` as a plain skill

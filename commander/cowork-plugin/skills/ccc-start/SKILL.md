@@ -21,13 +21,12 @@ This is the welcome mat. User installed CC Commander, and the Desktop app routed
 
 Output exactly these three sections in order:
 
-### 1. Brand header (one line, markdown)
+### 1. ASCII hero (read banner.txt + interpolate version)
 
-```
-**CC Commander** · v{VERSION} · Welcome aboard · 15 agents · 27 skills · 5 MCPs
-```
+Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block.
 
-Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` in a single Read call.
+After the banner, add a single welcome line:
+> **Welcome to CC Commander** — let's get you oriented in under 90 seconds.
 
 ### 2. Context strip (one paragraph, markdown)
 
@@ -136,7 +135,6 @@ Pick **3** based on context signal (e.g. Next.js repo → designer + builder + q
 
 - ❌ Render a numbered list "1. New project, 2. Existing, ..." — always use AskUserQuestion
 - ❌ Dump HTML fenced blocks expecting artifact rendering — Cowork Desktop shows them as code
-- ❌ Run ASCII banners or box-drawing welcome art
 - ❌ Tell the user to "type the number" — pickers only
 - ❌ Reference the legacy CLI (`ccc` npm binary) — this is the Desktop plugin audience
 - ❌ Hardcode VERSION — always read from plugin.json
@@ -178,6 +176,26 @@ When writing `~/.claude/plans/ccc-start-<date>.md`:
 Written by `/ccc-start` on <timestamp>.
 ```
 
+## N. Mark onboarding complete (MANDATORY last step)
+
+After the tour concludes (user has answered all questions, plan file written), run this bash command to flip the onboarding flag. This ensures the user is never shown `/ccc-start` again unless they reset state.
+
+```bash
+node -e "
+  const fs=require('fs'); const os=require('os');
+  const p=os.homedir()+'/.claude/commander/state.json';
+  let s={}; try{s=JSON.parse(fs.readFileSync(p,'utf8'));}catch(e){}
+  s.onboardingCompleted=true;
+  s.completedAt=new Date().toISOString();
+  fs.mkdirSync(os.homedir()+'/.claude/commander',{recursive:true});
+  fs.writeFileSync(p,JSON.stringify(s,null,2));
+  console.log('onboarding marked complete');
+"
+```
+
+Reply to the user with a one-line confirmation:
+> ✅ Onboarding complete. Next time you run `/ccc`, you go straight to the main menu.
+
 ## Tips for the agent executing this skill
 
 1. Whole flow is ≤6 turns: header+context+picker → user clicks → cascade questions → write plan → dispatch. Don't overthink.
@@ -185,7 +203,8 @@ Written by `/ccc-start` on <timestamp>.
 3. If the user passes `new` / `existing` / `tour`, skip the picker and route to the matching branch.
 4. Parallelize all Bash context detection into a single call — saves ~3 turns.
 5. If `~/.claude/plans/` doesn't exist, create it with `mkdir -p` before Write.
+6. Always run step N (mark onboarding complete) as the final action — even if the user picks "Skip". The gate in `/ccc` checks this flag.
 
 ---
 
-**Bottom line:** header → context → 4-option picker → cascade → plan file. The plan file is proof the onboarding landed. User never types a number.
+**Bottom line:** header → context → 4-option picker → cascade → plan file → mark complete. The plan file is proof the onboarding landed. User never types a number.

@@ -1,0 +1,10 @@
+   ██████╗  ██████╗  ██████╗
+  ██╔════╝ ██╔════╝ ██╔════╝
+  ██║      ██║      ██║
+  ██║      ██║      ██║
+  ╚██████╗ ╚██████╗ ╚██████╗
+   ╚═════╝  ╚═════╝  ╚═════╝
+
+   CC COMMANDER · v{{VERSION}}
+   Guided AI PM · 502+ skills · 15 agents · 8 MCPs
+   ⚡ Free in beta · cc-commander.com
