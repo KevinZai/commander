@@ -36,7 +36,7 @@ CC Commander's primary product as of v3.0.0. Claude Cowork Desktop / Claude Code
 
 **Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
 
-**Beta (v4.0.0-beta.7):** 28 plugin skills (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta) + 15 specialist agents + 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) + 5 MCP servers — free, gated only by 1000 calls/mo hosted MCP quota (with mandatory feedback survey).
+**Beta (v4.0.0-beta.8):** 28 plugin skills (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta) + 15 specialist agents + 8 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop) + 8 bundled MCP servers — **free forever**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; no paid upgrade path planned.
 
 **The 12 /ccc-* specialist workflows (all click-first via AskUserQuestion native picker):**
 - `/ccc` — main hub (6 intents via nested AUQ)
@@ -194,7 +194,7 @@ Every menu recommends the best next action based on context.
 - Marketplace: `commander-hub` — `/plugin marketplace add KevinZai/commander`
 - Landing page: KevinZai.github.io/cc-commander
 - One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash`
-- Free/Pro tiers: core skills free, agents + MCP servers in Pro
+- Free forever: all skills, all agents, all hooks, all MCP servers — sustained by affiliate links + Kevin's consulting
 
 ## Key Commands
 
@@ -269,8 +269,8 @@ CCC ships 15 focused `/ccc:*` skills as the curated front door, then routes into
 - CCC is a meta-layer over the Claude skill ecosystem — curation + guidance + memory, not raw skills
 - 15 `/ccc:*` skills are the curated front door; they route into 450+ deeper skills
 - `CONNECTORS.md` defines 13 tool-agnostic connector categories via `~~category` placeholders — skills are tool-agnostic
-- Free tier: 15 skills + SessionStart/Stop hooks. Pro tier: 5 agents + 5 MCP servers + 4 additional lifecycle hooks
-- Tier gating is enforced via `license.json` — free hooks are no-ops on capability checks, not absent
+- Everything free forever: 28 plugin skills, 15 agents, 8 bundled MCP servers, 8 lifecycle hooks. No feature gating, no paywalls, no license checks.
+- Revenue model: transparent affiliate links in /ccc-connect (Supabase, Vercel, Neon, etc.) + Kevin's consulting pipeline (plugin = trust engine → consulting funnel)
 
 ## UI Components
 Check `~/clawd/shared/refs/shadcn-ecosystem.md` before building custom. Key: tremor (charts), auto-form (Zod→forms), magicui (animations).
