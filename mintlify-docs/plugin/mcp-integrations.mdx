@@ -1,9 +1,9 @@
 ---
 title: "MCP Integrations"
-description: "8 pre-configured MCP servers. Less than 5% of Claude users have ONE. CCC ships with 8."
+description: "9 pre-configured MCP servers. Less than 5% of Claude users have ONE. CCC ships with 9."
 ---
 
-CCC ships `.mcp.json` with **8 pre-configured MCP servers** so Claude can reach out of the chat window and into the tools where your work actually lives.
+CCC ships `.mcp.json` with **9 pre-configured MCP servers** so Claude can reach out of the chat window and into the tools where your work actually lives.
 
 ## Pre-configured servers
 
@@ -63,6 +63,13 @@ CCC ships `.mcp.json` with **8 pre-configured MCP servers** so Claude can reach 
     `npx -y @upstash/context7-mcp`
 
     Live, current docs for Next.js, React, Supabase, and thousands more. No hallucinated APIs.
+  </Card>
+  <Card title="Sequential Thinking" icon="brain">
+    `~~reasoning` — stdio
+
+    `npx -y @modelcontextprotocol/server-sequential-thinking`
+
+    Extra reasoning primitive for complex multi-step problems. Helps Claude break down and track long chains of thought.
   </Card>
 </CardGroup>
 

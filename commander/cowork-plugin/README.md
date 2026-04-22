@@ -1,8 +1,8 @@
 # CC Commander
 
-> CC Commander — Guided AI PM for Claude Code. Brain/hands architecture with **15 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker). **28 plugin skills** incl **12 click-first `/ccc-*` workflows**. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **8 bundled MCP servers**. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**
+> CC Commander — Guided AI PM for Claude Code. Brain/hands architecture with **17 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer). **30 plugin skills** incl **12 click-first `/ccc-*` workflows**. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **9 bundled MCP servers**. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**
 
-CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **28 native skills** (`/ccc-*`) organized as 12 click-first specialist workflows, 14 domain routers, and 2 diagnostic/meta skills. They route into the broader CC Commander ecosystem of 502+ skills across 11 domains.
+CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **30 native skills** (`/ccc-*`) organized as 12 click-first specialist workflows, 14 domain routers, 2 diagnostic/meta skills, and 2 vendor-sourced skills. They route into the broader CC Commander ecosystem of 502+ skills across 11 domains.
 
 **Who's it for?**
 - 👋 **New to AI coding agents?** Claude Cowork Desktop + CC Commander = the easiest on-ramp.
@@ -19,7 +19,7 @@ Three ways to install CC Commander, depending on how you want to use it:
 
 **1. Desktop plugin marketplace (recommended)**
 
-The full plugin experience — 28 skills, 15 agents, 8 hooks, 8 pre-wired MCPs, free/pro tier gating. Plugin marketplace: `commander-hub` → slug `commander`.
+The full plugin experience — 30 skills, 17 agents, 8 hooks, 9 pre-wired MCPs, free/pro tier gating. Plugin marketplace: `commander-hub` → slug `commander`.
 
 ```bash
 /plugin marketplace add KevinZai/commander

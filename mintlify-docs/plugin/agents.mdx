@@ -1,15 +1,15 @@
 ---
 title: "Specialist Sub-Agents"
-description: "15 specialist personas built on the Claude Agent SDK pattern. Each has a fixed model tier, scoped tool allowlist, turn budget, and voice system."
+description: "17 specialist personas built on the Claude Agent SDK pattern. Each has a fixed model tier, scoped tool allowlist, turn budget, and voice system."
 ---
 
-CC Commander ships **15 specialist sub-agents** — all free, no tier gating. Each persona is a scoped execution context: fixed model, specific tools, turn budget, and a voice layer that shapes how it communicates.
+CC Commander ships **17 specialist sub-agents** — all free, no tier gating. Each persona is a scoped execution context: fixed model, specific tools, turn budget, and a voice layer that shapes how it communicates.
 
 This is the **brain/hands** pattern: Claude (your main session) is the brain. Sub-agents are the hands — each specialized for one domain, disposable after the task. Context stays clean because each sub-agent starts fresh.
 
 See [Architecture](/architecture) for how delegation works end-to-end.
 
-## The 15 Personas
+## The 17 Personas
 
 <CardGroup cols={2}>
   <Card title="architect" icon="building" color="#8b5cf6">
@@ -87,6 +87,16 @@ See [Architecture](/architecture) for how delegation works end-to-end.
 
     Strict-report executor. Stays in scope. Returns structured output the parent can parse. No scope creep.
   </Card>
+  <Card title="typescript-reviewer" icon="code" color="#3b82f6">
+    **Model:** Sonnet · **Role:** TypeScript-specific code review
+
+    Strict mode compliance, async correctness, ESM/CJS module hygiene, ReDoS detection, prototype pollution, idiomatic type patterns. Severity-rated.
+  </Card>
+  <Card title="python-reviewer" icon="snake" color="#22c55e">
+    **Model:** Sonnet · **Role:** Python-specific code review
+
+    PEP 8, type hints (PEP 484/604), async/await patterns, pytest fixtures/parametrize, security (SQL/shell injection, path traversal, pickle), idiomatic Python. Severity-rated.
+  </Card>
 </CardGroup>
 
 ## Persona Roster at a Glance
@@ -108,6 +118,8 @@ See [Architecture](/architecture) for how delegation works end-to-end.
 | 13 | `researcher` | Sonnet | Deep research tasks |
 | 14 | `technical-writer` | Sonnet | Documentation generation |
 | 15 | `fleet-worker` | Sonnet | `/ccc-fleet` — each parallel task spawn |
+| 16 | `typescript-reviewer` | Sonnet | TypeScript PR review, strict mode audit |
+| 17 | `python-reviewer` | Sonnet | Python PR review, PEP 8 + security audit |
 
 ## How Delegation Works
 
@@ -118,6 +130,8 @@ Skills delegate to sub-agents automatically when the task matches their domain:
 | `/ccc-plan` | `product-manager` | Spec interview flow |
 | `/ccc-build` | `builder` | After spec approval |
 | `/ccc-review` | `reviewer` + `security-auditor` + `qa-engineer` | Diff > 500 lines or multi-dimension review |
+| `/ccc-review` (TypeScript) | `typescript-reviewer` | TypeScript files detected in diff |
+| `/ccc-review` (Python) | `python-reviewer` | Python files detected in diff |
 | `/ccc-design` | `designer` | UI/UX critique or mockup review |
 | `/ccc-ship` | `devops-engineer` + `security-auditor` | Pre-flight gate |
 | `/ccc-fleet` | `fleet-worker` | Each parallel task spawn |
@@ -140,4 +154,4 @@ Tune behavior via `~/.claude/commander/config.json`:
 }
 ```
 
-All 15 sub-agents are free — no license key, no tier check, no network call required.
+All 17 sub-agents are free — no license key, no tier check, no network call required.

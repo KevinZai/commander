@@ -25,8 +25,8 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v4.0.0-beta.8 — Desktop plugin + CLI, plugin-first)*
-- [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 15 sub-agent personas)*
+- [CC Commander](#cc-commander) *(v4.0.0-beta.9 — Desktop plugin + CLI, plugin-first)*
+- [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 17 sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.3.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
@@ -242,7 +242,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 | `ccc-more` | Long-tail menu (settings, infra, night mode, standup) |
 | `ccc-spike` / `ccc-spike-confirm` | Experimental spike + confirm-to-land flow |
 
-**Plus 15 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
+**Plus 17 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
 **Plus 8 pre-wired MCPs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem) + 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification).
 
@@ -2234,14 +2234,14 @@ graph TD
 ---
 ## Built on Claude Agent SDK
 
-> *v4.0.0-beta.8* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v4.0.0-beta.9* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
 CC Commander follows a **brain/hands** separation:
 
 - **Brain (Claude):** Your main Claude Code session reads project context, routes intent, and makes decisions.
-- **Hands (CC Commander):** 15 specialist sub-agent personas execute the work — scoped, specialized, and disposable.
+- **Hands (CC Commander):** 17 specialist sub-agent personas execute the work — scoped, specialized, and disposable.
 
 When you run `/ccc-review`, Claude doesn't guess how to do a code review. It loads the `reviewer` persona (Sonnet, read-only tools, structured severity format) and delegates. When the reviewer finishes, the persona is gone. The next task starts fresh. Context stays clean because each sub-agent operates at full capacity instead of a generalist stretched thin.
 
@@ -2278,7 +2278,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v4.0.0-beta.8* — A Claude Code plugin. 28 plugin skills, 15 specialist sub-agents, 8 MCPs, 8 lifecycle hooks (16 handlers). Click-first via AskUserQuestion. A CLI also exists for power users.
+> *v4.0.0-beta.9* — A Claude Code plugin. 30 plugin skills, 17 specialist sub-agents, 9 MCPs, 8 lifecycle hooks (16 handlers). Click-first via AskUserQuestion. A CLI also exists for power users.
 
 ### What It Is
 
@@ -2289,8 +2289,8 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (28 plugin skills)
-  +-- 15 specialist sub-agents        (architect, reviewer, debugger, ...)
+  +-- /ccc-build, /ccc-review, ...    (30 plugin skills)
+  +-- 17 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, ...)
   +-- 8 bundled MCP servers           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 8 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
   +-- AskUserQuestion chip picker     (click-first — no menu traversal)
@@ -2333,7 +2333,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Plugin-first** | 28 plugin skills, 15 agents, 8 MCPs, 6 lifecycle hooks — installed via `/plugin install commander` |
+| **Plugin-first** | 30 plugin skills, 17 agents, 9 MCPs, 8 lifecycle hooks — installed via `/plugin install commander` |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 

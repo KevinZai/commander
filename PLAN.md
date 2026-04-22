@@ -1,6 +1,6 @@
 # CC Commander — Single Source of Truth
 
-**Last updated:** 2026-04-22 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.8
+**Last updated:** 2026-04-22 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.9
 **Linear project:** https://linear.app/<team>/project/cc-commander-efd0258dcd62
 
 > This file is the canonical roadmap. When things change, update THIS file (not CLAUDE.md, not CHANGELOG beyond release notes, not scattered task files). Cross-references the CC-* tickets in Linear.
@@ -35,21 +35,22 @@
 | v4.0.0-beta.5 | 2026-04-18 | Removed non-standard `tiers` key + Cowork-first marketing sweep | ✅ Released |
 | v4.0.0-beta.6 | 2026-04-19 | Plugin manifest schema compliance (hooks structure + removed skills/agents string fields) + reset-commander-install.sh | ✅ Released |
 | v4.0.0-beta.7 | 2026-04-21 | Docs refresh: 28-skill catalog, 8 hooks, 15 agents, 502+ ecosystem skills, Desktop-first positioning, CLI parity audit | ✅ Released |
-| v4.0.0-beta.8 | 2026-04-22 | Content-layer mega-refresh: sub-agent architecture docs, aider positioning, free-forever monetization lock, 8 hooks/16 handlers catalog, architecture.mdx + vs-aider.mdx | 🔄 Current |
+| v4.0.0-beta.8 | 2026-04-22 | Content-layer mega-refresh: sub-agent architecture docs, aider positioning, free-forever monetization lock, 8 hooks/16 handlers catalog, architecture.mdx + vs-aider.mdx | ✅ Released |
+| v4.0.0-beta.9 | 2026-04-22 | Vendor sweep fold-in: /ccc-agent-writing + /ccc-systematic-debugging skills, typescript-reviewer + python-reviewer agents, sequential-thinking MCP (9th server). Plugin skills 28→30, personas 15→17, MCP servers 8→9 | 🔄 Current |
 | v4.0.0 | TBD | Stable — after beta feedback cycle + deploy of hosted MCP | 📋 Pending |
 | v4.1.0 | TBD | Commander Hub marketplace (80/20 rev-share) | 📋 Pending |
 
 ---
 
-## 📦 Current Shipped Surface (v4.0.0-beta.8)
+## 📦 Current Shipped Surface (v4.0.0-beta.9)
 
 ### Plugin (works fully standalone)
-- **28 plugin skills** (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta — all free forever)
-- **15 specialist sub-agents** with persona voice system (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker)
+- **30 plugin skills** (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced — all free forever)
+- **17 specialist sub-agents** with persona voice system (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer)
 - **8 lifecycle hooks / 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
-- **8 bundled MCP server configs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem)
+- **9 bundled MCP server configs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem, sequential-thinking)
 - **10 workflow modes** via mode-switcher skill
-- **`commander/cowork-plugin/rules/`** — 10 shared voice files + 15 personas shipped with plugin
+- **`commander/cowork-plugin/rules/`** — 10 shared voice files + 17 personas shipped with plugin
 
 ### CLI (`ccc` command)
 - Interactive TUI with 10 themes
@@ -307,11 +308,11 @@ Audited 2026-04-21. Documents where each data type actually comes from in CLI vs
 | **Commands list** | `commands/` dir (83 slash command .md files) | Plugin skills serve as commands (no separate commands dir in plugin) | ⚠️ **Different primitives** — CLI uses slash command .md files; plugin uses skills |
 | **Hooks** | `hooks/` dir + `hooks.json` (25 kit-native hooks) | `commander/cowork-plugin/hooks/` dir + `.claude-plugin/plugin.json` hooks block | ⚠️ **Separate registries** — kit hooks run in CLI context; plugin hooks run in Desktop context |
 | **Marketplace slug** | N/A | `commander/cowork-plugin/.claude-plugin/marketplace.json` | ✅ Single source |
-| **MCP config** | `commander/mcp-server/` (local stdio) | `commander/cowork-plugin/.mcp.json` (8 bundled servers) | ⚠️ **Separate configs** — local MCP for CLI dev; `.mcp.json` bundled with plugin |
+| **MCP config** | `commander/mcp-server/` (local stdio) | `commander/cowork-plugin/.mcp.json` (9 bundled servers) | ⚠️ **Separate configs** — local MCP for CLI dev; `.mcp.json` bundled with plugin |
 
 ### Top 3 Findings
 
-1. **Version dual-source (P1):** `package.json` version (CLI) and `plugin.json` version (plugin) are manually kept in sync. Current state: both say `4.0.0-beta.7`. Risk: they drift on npm publish if someone bumps `package.json` without updating `plugin.json`. Fix: add a pre-commit hook or CI check that asserts `package.json.version === plugin.json.version`.
+1. **Version dual-source (P1):** `package.json` version (CLI) and `plugin.json` version (plugin) are manually kept in sync. Current state: both say `4.0.0-beta.9`. Risk: they drift on npm publish if someone bumps `package.json` without updating `plugin.json`. Fix: add a pre-commit hook or CI check that asserts `package.json.version === plugin.json.version`.
 
 2. **Skills in separate dirs (P2):** The 28 plugin skills live in `commander/cowork-plugin/skills/` and are NOT the same files as the 502+ skills in the repo-root `skills/` dir. Plugin skills are standalone SKILL.md files; ecosystem skills are organized into domain subdirs. This is intentional architecture but creates a maintenance burden — updates to a shared concept require edits in two places. Fix: consider symlinking the ccc-* domain routers from `skills/ccc-*/` into `cowork-plugin/skills/` so plugin and CLI share one copy.
 

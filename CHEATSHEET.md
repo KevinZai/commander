@@ -1,14 +1,14 @@
 # CC Commander Cheatsheet
-> CC Commander v4.0.0-beta.8 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v4.0.0-beta.9 — by Kevin Zicherman — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v4.0.0-beta.8)
+## Desktop Plugin Commands (v4.0.0-beta.9)
 
-CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — this is the primary product. Install once, use everywhere — plain `/ccc-*` namespace (e.g. `/ccc-build`) in any Desktop conversation. 28 plugin skills total (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta).
+CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — this is the primary product. Install once, use everywhere — plain `/ccc-*` namespace (e.g. `/ccc-build`) in any Desktop conversation. 30 plugin skills total (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced).
 
 ### Plugin Installation
 
@@ -20,7 +20,7 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — thi
 /plugin install commander
 ```
 
-### /ccc-* Skills (28 total — 12 specialist workflows + 14 domain routers + 2 meta; core surface shown)
+### /ccc-* Skills (30 total — 12 specialist workflows + 14 domain routers + 2 meta + 2 vendor-sourced; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -40,7 +40,7 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — thi
 | `/ccc-deploy-check` | Pre-deployment readiness gate | Pro |
 | `/ccc-fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro |
 
-### Sub-agent personas (15)
+### Sub-agent personas (17)
 
 Brain/hands architecture — each persona has a distinct role, model, and voice. Skills delegate to these automatically.
 
@@ -61,6 +61,8 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | 13 | researcher | Sonnet | Competitive + market analysis |
 | 14 | technical-writer | Sonnet | Docs, API refs, tutorials |
 | 15 | fleet-worker | Sonnet | Parallel scoped batch work |
+| 16 | typescript-reviewer | Sonnet | TypeScript review: strict mode, async, ESM/CJS |
+| 17 | python-reviewer | Sonnet | Python review: PEP 8, type hints, pytest, security |
 
 ### Lifecycle hook events (8)
 
@@ -78,7 +80,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | `SubagentStop` | Subagent finishes | 1 (dispatch results tracker) |
 | **TOTAL** | **8 events** | **16 handlers** |
 
-### Plugin MCP Servers (8)
+### Plugin MCP Servers (9)
 
 | MCP | Purpose |
 |-----|---------|
@@ -90,10 +92,11 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | Tavily | Real-time web search + research |
 | Context7 | Current library/API docs (no hallucinated methods) |
 | Google Drive | Brand docs, style guides, draft storage |
+| Sequential Thinking | Complex multi-step reasoning primitive |
 
 ### vs aider
 
-Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 15 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aider-positioning)
+Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 17 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aider-positioning)
 
 ---
 
@@ -1044,7 +1047,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v4.0.0-beta.8 Quick Reference (CLI)
+## CC Commander v4.0.0-beta.9 Quick Reference (CLI)
 
 ```bash
 # Launch

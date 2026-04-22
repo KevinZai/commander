@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "How CC Commander works: brain/hands separation, 15 specialist sub-agents, 8 lifecycle hooks, and the Claude Agent SDK pattern underneath."
+description: "How CC Commander works: brain/hands separation, 17 specialist sub-agents, 8 lifecycle hooks, and the Claude Agent SDK pattern underneath."
 ---
 
 ## Brain / Hands
@@ -25,7 +25,7 @@ CC Commander's sub-agent architecture follows the same pattern Anthropic describ
 
 The plugin itself requires no external server, no API key, and no network call. It runs fully offline via the plugin manifest — the Claude Agent SDK pattern is implemented as skill files and hook scripts that Claude Code executes natively.
 
-## 15 Specialist Sub-Agent Personas
+## 17 Specialist Sub-Agent Personas
 
 Each persona has a fixed model tier, tool allowlist, turn budget, and voice system (see `rules/personas/` in the plugin). They're invoked automatically by skills or on demand via `/ccc-browse`.
 
@@ -46,6 +46,8 @@ Each persona has a fixed model tier, tool allowlist, turn budget, and voice syst
 | 13 | `researcher` | Sonnet | Deep research, competitive analysis, citation management |
 | 14 | `technical-writer` | Sonnet | Documentation, API reference, clarity audits |
 | 15 | `fleet-worker` | Sonnet | Parallel batch work, scoped execution in fleet mode |
+| 16 | `typescript-reviewer` | Sonnet | TypeScript-specific review: strict mode, async correctness, ESM/CJS, ReDoS, idiomatic patterns |
+| 17 | `python-reviewer` | Sonnet | Python-specific review: PEP 8, type hints, async/await, pytest, security, idiomatic patterns |
 
 Opus personas are used for tasks that require deep reasoning chains (architecture, security, debugging). Sonnet handles everything else at lower cost and higher speed.
 
@@ -92,6 +94,6 @@ Stop hook (session saved)
 
 ## Offline-First
 
-The entire plugin works without any network connection. Skills, personas, and hooks are plain markdown + JavaScript files executed natively by Claude Code. The optional `.mcp.json` adds 8 external integrations (Linear, GitHub, Slack, etc.) but they are additive — the plugin is fully functional without them.
+The entire plugin works without any network connection. Skills, personas, and hooks are plain markdown + JavaScript files executed natively by Claude Code. The optional `.mcp.json` adds 9 external integrations (Linear, GitHub, Slack, sequential-thinking, etc.) but they are additive — the plugin is fully functional without them.
 
 See [vs aider.chat](/compare/vs-aider) for a direct positioning comparison.

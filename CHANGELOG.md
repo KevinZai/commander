@@ -2,6 +2,32 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.9] — 2026-04-22 — Vendor sweep fold-in
+
+### 🎯 Headline
+
+Added 5 quick-win items from a pre-launch vendor audit across 20 submodules. Ships 2 new plugin skills, 2 new language-specialist reviewer agents, and 1 new bundled MCP server. Quality over quantity — deferred 4 bigger integrations (brainstorming gate, QA skill, full hooks ecosystem, 5 more language reviewers) to v4.1.
+
+### ✨ Added
+
+- **`/ccc-agent-writing` skill** (adapted from [superpowers/writing-skills](https://github.com/nicholasgasior/superpowers)) — teaches agents to write specs, PRDs, PR descriptions, and docs with clarity, persuasion, and testability. Delegates long-form to the `content-strategist` persona.
+- **`/ccc-systematic-debugging` skill** (adapted from [superpowers/systematic-debugging](https://github.com/nicholasgasior/superpowers)) — enforces the Iron Law (no fix without confirmed root cause). Reproduce → hypothesize → verify → fix. Delegates deep dives to the `debugger` persona.
+- **`typescript-reviewer` agent** — TypeScript-specific code review: strict mode, async correctness, ESM/CJS module hygiene, security (ReDoS, prototype pollution), idiomatic type patterns. Inherits `reviewer` persona voice.
+- **`python-reviewer` agent** — Python-specific code review: PEP 8, type hints, async/await, pytest patterns, security (SQL/shell injection, path traversal, pickle), idiomatic Python. Inherits `reviewer` persona voice.
+- **`sequential-thinking` MCP server** bundled in `.mcp.json` — extra reasoning primitive for complex multi-step problems.
+
+### 📊 Counts
+
+Plugin skills: 28 → **30** · Specialist sub-agent personas: 15 → **17** · Bundled MCP servers: 8 → **9**
+
+### 🟡 Deferred to v4.1
+
+4 bigger integrations identified in the vendor sweep but held for v4.1 quality/scope discipline:
+- Brainstorming design-first skill (superpowers) — overlaps `ccc-plan` + `ccc-design`; dedicated v4.1 reconciliation
+- `/ccc-qa` skill (gstack) — deeper test-runner integration needed
+- ECC's 14-hook governance ecosystem — wider blast radius, deserves its own release
+- 5 more language reviewers (go, rust, java, kotlin, c#, flutter, c++) — quality > quantity; tune 2 at a time
+
 ## [4.0.0-beta.8] — 2026-04-21 — Launch Readiness (security + docs + native UI sweep)
 
 ### 🎯 Headline: plugin lands v4.0 stable next

@@ -1,9 +1,9 @@
 ---
 title: "Plugin Skills"
-description: "28 skills shipped with the CC Commander plugin (v4.0.0-beta.8). 12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta."
+description: "30 skills shipped with the CC Commander plugin (v4.0.0-beta.9). 12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced writing/debugging."
 ---
 
-CC Commander v4.0.0-beta.8 ships **28 plugin skills** in three groups. All skills are **free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required.
+CC Commander v4.0.0-beta.9 ships **30 plugin skills** in four groups. All skills are **free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required.
 
 ## Group 1 — 12 /ccc-* Specialist Workflows
 
@@ -13,7 +13,7 @@ Click-first workflows. Each opens an interactive picker (AskUserQuestion native 
 |-------|---------|--------------|
 | `/ccc` | `/ccc` or "open commander" | Main hub — detects project context, routes to the right specialist workflow via nested picker |
 | `/ccc-start` | `/ccc-start` or "get started with ccc" | First-run onboarding — creates plan file, explains the plugin, surfaces your first win |
-| `/ccc-browse` | `/ccc-browse` or "browse skills" | Searchable catalog of all 502+ skills and 15 agents — filter by domain, keyword, or tier |
+| `/ccc-browse` | `/ccc-browse` or "browse skills" | Searchable catalog of all 502+ skills and 17 agents — filter by domain, keyword, or tier |
 | `/ccc-plan` | `/ccc-plan` or "plan a feature" | Spec-first planning — 5-question interview → `tasks/spec-YYYYMMDD.md` → ready to build |
 | `/ccc-build` | `/ccc-build` or "build something" | Guided build wizard — web app, API, CLI, or mobile. Dispatches the builder agent with spec |
 | `/ccc-review` | `/ccc-review` or "review my code" | Branch audit — diff review, security pass, performance check, or full x-ray. Uses reviewer agent |
@@ -52,7 +52,16 @@ Load ONE domain skill to get an entire specialty. Each router matches your inten
 | `/ccc-suggest` | Auto-triggered at session start (configurable) | Ambient intelligence — suggests the best next skill based on project context, recent activity, and active tasks. 4 involvement levels: silent, suggest, prompt, auto |
 | `/ccc-cheatsheet` | `/ccc-cheatsheet` or "show cheatsheet" | Inline cheatsheet — canonical counts, all /ccc-* commands, domain list, hook events. Quick reference without leaving the session |
 
-## All 28 at a Glance
+## Group 4 — 2 Vendor-Sourced Skills (beta.9)
+
+Adapted from the superpowers vendor with attribution. Both are free forever.
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-agent-writing` | `/ccc-agent-writing` or "write a spec", "improve this doc" | Teaches agents to write specs, PRDs, PR descriptions, and docs with clarity, persuasion, and testability. Delegates long-form content to `content-strategist` persona. |
+| `/ccc-systematic-debugging` | `/ccc-systematic-debugging` or "debug this", "root cause", "investigate" | Enforces the Iron Law: no fix without confirmed root cause. Reproduce → hypothesize → verify → fix. Delegates deep investigations to `debugger` persona. |
+
+## All 30 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -81,7 +90,9 @@ Load ONE domain skill to get an entire specialty. Each router matches your inten
 | 23 | `ccc-makeover` | Domain router |
 | 24 | `/ccc-suggest` | Diagnostic/meta |
 | 25 | `/ccc-cheatsheet` | Diagnostic/meta |
+| 26 | `/ccc-agent-writing` | Vendor-sourced (superpowers) |
+| 27 | `/ccc-systematic-debugging` | Vendor-sourced (superpowers) |
 
-> **Actual skill count:** The `skills/` directory ships 39 directories including legacy CLI skills (`code-review`, `content`, `deploy-check`, `domains`, `fleet`, `infra`, `knowledge`, `linear-board`, `night-mode`, `research`, `session`, `settings`, `standup`) that pre-date the v4 plugin architecture. The **28 canonical plugin skills** are the `/ccc-*` and `ccc-*` prefixed ones listed above. Legacy CLI skills remain available for backward compatibility with CLI workflows.
+> **Note on count:** Items 28–30 in the "30 plugin skills" count include 3 legacy CLI skills (`code-review`, `content`, `standup`) that pre-date the v4 plugin architecture but remain installed for backward compatibility. The 27 canonical `/ccc-*` and `ccc-*` prefixed skills above are the active plugin surface. Legacy CLI skills remain available for backward compatibility with CLI workflows.
 
 [Pricing — Free Forever →](/plugin/free-vs-pro)

@@ -1,16 +1,16 @@
 # Skills Index — Quick Reference
-> CC Commander v4.0.0-beta.8 — by Kevin Zicherman
+> CC Commander v4.0.0-beta.9 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-04-22 | Desktop plugin first: 28 plugin skills (12 /ccc-* workflows + 14 ccc-* domain routers + 2 meta) + 15 specialist sub-agents + 8 lifecycle hooks (16 handlers) + 8 bundled MCP servers | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
+> Last verified: 2026-04-22 | Desktop plugin first: 30 plugin skills (12 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced) + 17 specialist sub-agents + 8 lifecycle hooks (16 handlers) + 9 bundled MCP servers | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
 
 ---
 
-## Specialist Sub-Agents (15)
+## Specialist Sub-Agents (17)
 
-All 15 sub-agents are free. They fire automatically from skills — no manual invocation needed. Routed by `/ccc-build`, `/ccc-review`, `/ccc-plan`, `/ccc-design`, `/ccc-ship`, and `/ccc-fleet`.
+All 17 sub-agents are free. They fire automatically from skills — no manual invocation needed. Routed by `/ccc-build`, `/ccc-review`, `/ccc-plan`, `/ccc-design`, `/ccc-ship`, and `/ccc-fleet`.
 
 | # | Sub-Agent | Model | Best For |
 |---|-----------|-------|---------|
@@ -29,18 +29,20 @@ All 15 sub-agents are free. They fire automatically from skills — no manual in
 | 13 | `researcher` | Sonnet | Deep research, competitive analysis, citation management |
 | 14 | `technical-writer` | Sonnet | Documentation, API reference, clarity audits |
 | 15 | `fleet-worker` | Sonnet | Parallel batch work, scoped execution in fleet mode |
+| 16 | `typescript-reviewer` | Sonnet | TypeScript-specific review: strict mode, async correctness, ESM/CJS, ReDoS, idiomatic patterns |
+| 17 | `python-reviewer` | Sonnet | Python-specific review: PEP 8, type hints, async/await, pytest, security, idiomatic patterns |
 
 ---
 
 ## Desktop Plugin Skills (v4.0.0-beta.8)
 
-> Installed at `commander/cowork-plugin/`. Prefix: plain `/ccc-*` (e.g. `/ccc-build`). Install: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 28 plugin skills total (12 /ccc-* workflows + 14 ccc-* domain routers + 2 meta). **All free forever.**
+> Installed at `commander/cowork-plugin/`. Prefix: plain `/ccc-*` (e.g. `/ccc-build`). Install: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 30 plugin skills total (12 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced). **All free forever.**
 
 | Skill | Description | Trigger Phrases |
 |-------|-------------|----------------|
 | `/ccc` | Main CCC hub — interactive menu, session overview | "open ccc", "ccc menu", "show commander" |
 | `/ccc-start` | First-run onboarding — plan file, first win | "get started with ccc", "ccc start" |
-| `/ccc-browse` | Searchable catalog of 502+ skills and 15 sub-agents | "browse skills", "ccc browse" |
+| `/ccc-browse` | Searchable catalog of 502+ skills and 17 sub-agents | "browse skills", "ccc browse" |
 | `/ccc-plan` | Spec-first planning — 5-question interview → spec file | "plan a feature", "ccc plan" |
 | `/ccc-build` | Build wizard — web, API, CLI or mobile with spec | "ccc build", "start a build", "new project wizard" |
 | `/ccc-review` | Branch audit — diff, security, perf, x-ray | "ccc review", "review my code", "code review" |
@@ -53,10 +55,12 @@ All 15 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-connect` | Opt-in MCP connector — Supabase, Vercel, Figma, etc. | "connect my tools", "ccc connect" |
 | `/ccc-suggest` | Ambient intelligence — suggests best next skill (auto) | Auto-triggered at session start |
 | `/ccc-cheatsheet` | Inline cheatsheet — all counts, commands, hook events | "show cheatsheet", "ccc cheatsheet" |
+| `/ccc-agent-writing` | Write specs, PRDs, PR descriptions with clarity + persuasion | "write a spec", "PR description", "improve this doc" |
+| `/ccc-systematic-debugging` | Iron Law root-cause debugging: reproduce → hypothesize → verify → fix | "debug this", "root cause", "why is X failing" |
 
-### Bundled MCP Servers (8)
+### Bundled MCP Servers (9)
 
-All 8 are pre-configured in `.mcp.json`. Activate the ones you need — the plugin works fully offline without any of them.
+All 9 are pre-configured in `.mcp.json`. Activate the ones you need — the plugin works fully offline without any of them.
 
 | MCP | Transport | Skills That Use It |
 |-----|-----------|--------------------|
@@ -68,6 +72,7 @@ All 8 are pre-configured in `.mcp.json`. Activate the ones you need — the plug
 | Figma | HTTP | `/ccc-design` |
 | Playwright | stdio | `/ccc-ship` E2E gate |
 | claude-mem | stdio | Knowledge compounding across sessions |
+| sequential-thinking | stdio | Complex multi-step reasoning primitive |
 
 ---
 

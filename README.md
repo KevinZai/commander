@@ -20,7 +20,7 @@
 | 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 502+ skills in your IDE of choice |
 | 📱 **On Claude mobile or iPad** | Same skills, same license, synced across devices (hosted MCP) |
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/28_Plugin_Skills-10B981?style=for-the-badge)](./docs/plugin.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.8](https://img.shields.io/badge/v4.0.0--beta.8-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/30_Plugin_Skills-10B981?style=for-the-badge)](./docs/plugin.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.9](https://img.shields.io/badge/v4.0.0--beta.9-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
@@ -35,8 +35,8 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 - 🖱️ **Click-first UX** — every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII prompts. Works identically in Cowork Desktop, Claude Code Desktop, and the CLI.
 - 🧠 **`/ccc-suggest` intelligence layer** — Opus-class real-time recommendation. Scans your project state, recommends **one starred next step** with reasoning + named 3rd-party plugins. Kills info-paralysis.
 - 🧩 **15 click-first `/ccc-*` workflows** — plain slash commands (no `commander:` prefix), skill-based architecture: `ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, `ccc-build`, `ccc-review`, `ccc-ship`, `ccc-design`, `ccc-learn`, `ccc-xray`, `ccc-linear`, `ccc-fleet`, `ccc-connect`, `ccc-cheatsheet`, `ccc-suggest`.
-- 🎭 **15 specialist agents with persona voices** — architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker. Each with a distinct voice layer in `commander/cowork-plugin/rules/personas/`.
-- 🔌 **8 core MCP servers pre-wired** — Tavily · Context7 · Firecrawl · Exa · GitHub · Figma · Playwright · claude-mem. Opt-in via `/ccc-connect`: Notion, Zapier, Supabase, Slack, Google Drive.
+- 🎭 **17 specialist agents with persona voices** — architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer. Each with a distinct voice layer in `commander/cowork-plugin/rules/personas/`.
+- 🔌 **9 core MCP servers pre-wired** — Tavily · Context7 · Firecrawl · Exa · GitHub · Figma · Playwright · claude-mem. Opt-in via `/ccc-connect`: Notion, Zapier, Supabase, Slack, Google Drive.
 - 🪝 **6 lifecycle hooks** — SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification. Schema-compliant, 100% pass on `claude plugin validate`.
 - 🗺️ **`/ccc-cheatsheet` live Mermaid map** — reads the filesystem as single source of truth, renders the whole plugin as a flow diagram. Never drifts.
 - 🔄 **Weekly vendor auto-sync** — 20 vendor submodules auto-update via GitHub Actions. The ecosystem stays current without you touching a thing.
@@ -77,7 +77,7 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 3. Find **`commander`** in the marketplace → click **Install**
 4. Cmd+Q, reopen the app, type **`/ccc`** — you're live
 
-✅ 28 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
+✅ 30 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
 
 ## ⌨️ Power-user install (Claude Code CLI only)
 
@@ -100,7 +100,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ---
 
-## 🌟 What's new in v4.0.0-beta.8
+## 🌟 What's new in v4.0.0-beta.9
 
 - 🌟 **Headline: `/ccc-suggest` intelligence layer** — Opus-class recommender that reads your project and picks ONE next step (with reasoning + named 3rd-party plugins). Kills info-paralysis for beginners.
 - 🗺️ **`/ccc-cheatsheet`** — live Mermaid flow diagram of the whole plugin, filesystem-backed. Never drifts from reality.
@@ -204,7 +204,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 ```
 You type: ccc
 You get:  A guided AI project manager with 502+ skills,
-          28 plugin skills, 15 agents, 20 vendor packages,
+          30 plugin skills, 17 agents, 20 vendor packages,
           real learning, and zero setup.
 ```
 
@@ -598,7 +598,7 @@ One question: **How are you using Claude?**
 
 CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what should I build" to begin.
 
-**What you get:** 28 plugin skills, 15 specialist agents, 6 lifecycle hooks, 8 MCP servers — all with free/pro tier support.
+**What you get:** 30 plugin skills, 17 specialist agents, 8 lifecycle hooks, 9 MCP servers — all with free/pro tier support.
 
 **Marketplace:** `commander-hub` at [KevinZai/commander](https://github.com/KevinZai/commander)
 
@@ -835,7 +835,7 @@ Both tools make you faster. They solve different problems.
 | **LLM** | Any (OpenAI, Anthropic, local) | Claude-native (Sonnet / Opus / Haiku) |
 | **Core pattern** | Pair programmer — you drive, aider edits | Guided PM — CCC plans, routes, dispatches |
 | **Primitives** | Diff-based file editing + Git | Claude Agent SDK: skills, agents, hooks, MCP |
-| **Agent model** | Single model, single context | 15 specialist sub-agent personas (brain/hands) |
+| **Agent model** | Single model, single context | 17 specialist sub-agent personas (brain/hands) |
 | **Git** | Deep — commit messages, repo mapping | Lifecycle hooks + `/ccc-ship` pre-flight |
 | **Context** | Repo map (tree-sitter, 15k tokens) | Session compounding + knowledge base |
 | **Cost** | API pay-per-token | Free forever (affiliate + consulting model) |
