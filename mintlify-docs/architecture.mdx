@@ -1,0 +1,97 @@
+---
+title: "Architecture"
+description: "How CC Commander works: brain/hands separation, 15 specialist sub-agents, 8 lifecycle hooks, and the Claude Agent SDK pattern underneath."
+---
+
+## Brain / Hands
+
+CC Commander follows a **brain/hands** separation pattern built on Anthropic's Claude Agent SDK:
+
+- **Brain (Claude):** The main Claude Code session reads project context, routes intent, and makes decisions
+- **Hands (CC Commander):** Skills, hooks, and sub-agent personas execute the work — scoped, specialized, and disposable
+
+When you invoke `/ccc-review`, Claude isn't guessing how to do a code review. It loads the `reviewer` persona (Sonnet, read-only tools, structured severity format) and delegates. When it finishes, the persona is gone. The next task starts fresh.
+
+This keeps context clean, prevents drift, and means each specialist operates at full capacity instead of a generalist stretched thin.
+
+## Built on the Claude Agent SDK
+
+CC Commander's sub-agent architecture follows the same pattern Anthropic describes in their [Claude Agent SDK](https://docs.anthropic.com/en/docs/about-claude/models). Each plugin skill is a lightweight orchestration layer that:
+
+1. Reads project state (git diff, file structure, active tasks)
+2. Selects the right specialist persona
+3. Delegates with a scoped tool allowlist and turn budget
+4. Returns structured output to the main session
+
+The plugin itself requires no external server, no API key, and no network call. It runs fully offline via the plugin manifest — the Claude Agent SDK pattern is implemented as skill files and hook scripts that Claude Code executes natively.
+
+## 15 Specialist Sub-Agent Personas
+
+Each persona has a fixed model tier, tool allowlist, turn budget, and voice system (see `rules/personas/` in the plugin). They're invoked automatically by skills or on demand via `/ccc-browse`.
+
+| # | Persona | Model | Core responsibility |
+|---|---------|-------|-------------------|
+| 1 | `architect` | Opus | System design, tradeoff analysis, irreversibility assessment |
+| 2 | `reviewer` | Sonnet | Code review across security / perf / correctness / maintainability |
+| 3 | `builder` | Sonnet | Feature implementation, TDD, scaffolding |
+| 4 | `security-auditor` | Opus | OWASP audits, threat modeling, adversarial review |
+| 5 | `debugger` | Opus | Root-cause investigation (Iron Law: no fix without confirmed root cause) |
+| 6 | `designer` | Sonnet | UI/UX critique, accessibility, visual hierarchy |
+| 7 | `qa-engineer` | Sonnet | Edge-case hunting, test coverage audit, breaking-case enumeration |
+| 8 | `devops-engineer` | Sonnet | Deploy planning, rollback specs, monitoring setup |
+| 9 | `data-analyst` | Sonnet | Signal extraction, visualization, statistical honesty |
+| 10 | `content-strategist` | Sonnet | Brand voice, messaging, copy variants |
+| 11 | `product-manager` | Opus | User stories, acceptance criteria, priority sequencing |
+| 12 | `performance-engineer` | Sonnet | Hotpath identification, p99 benchmarking, optimization |
+| 13 | `researcher` | Sonnet | Deep research, competitive analysis, citation management |
+| 14 | `technical-writer` | Sonnet | Documentation, API reference, clarity audits |
+| 15 | `fleet-worker` | Sonnet | Parallel batch work, scoped execution in fleet mode |
+
+Opus personas are used for tasks that require deep reasoning chains (architecture, security, debugging). Sonnet handles everything else at lower cost and higher speed.
+
+## 8 Lifecycle Hooks / 16 Handlers
+
+Hooks fire automatically around Claude Code sessions. Each hook event can have multiple handlers.
+
+| Event | Handlers | What fires |
+|-------|----------|-----------|
+| `SessionStart` | 2 | Load context + onboarding gate |
+| `UserPromptSubmit` | 2 | Intent classifier + context budget check |
+| `PreToolUse` | 3 | Cost tracker + config guard + tmux reminder |
+| `PostToolUse` | 4 | Knowledge capture + PR logger + build analysis + auto-format |
+| `Stop` | 2 | Session save + pattern evaluation |
+| `Notification` | 1 | Fleet agent completion log |
+| `PreCompact` | 1 | State save before context compaction |
+| `SubagentStop` | 1 | Sub-agent result routing |
+
+All hooks fail gracefully — if a hook errors, the session continues. Hook state lives in `~/.claude/commander/` and never touches other `.claude/` contents.
+
+## Data Flow
+
+```
+User prompt
+    ↓
+SessionStart hook (context loaded)
+    ↓
+UserPromptSubmit hook (intent classified → skill suggested)
+    ↓
+Skill invoked (e.g. /ccc-review)
+    ↓
+Skill reads project state + selects persona
+    ↓
+Sub-agent spawned with scoped tools + turn budget
+    ↓
+Sub-agent executes → structured output returned
+    ↓
+PostToolUse hook (knowledge captured)
+    ↓
+Main session resumes with result
+    ↓
+Stop hook (session saved)
+```
+
+## Offline-First
+
+The entire plugin works without any network connection. Skills, personas, and hooks are plain markdown + JavaScript files executed natively by Claude Code. The optional `.mcp.json` adds 8 external integrations (Linear, GitHub, Slack, etc.) but they are additive — the plugin is fully functional without them.
+
+See [vs aider.chat](/compare/vs-aider) for a direct positioning comparison.

@@ -1,5 +1,5 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-04-21 | Version: see package.json | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-04-22 | Version: see package.json | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -25,7 +25,8 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v4.0.0-beta.7 — Desktop plugin + CLI, plugin-first)*
+- [CC Commander](#cc-commander) *(v4.0.0-beta.8 — Desktop plugin + CLI, plugin-first)*
+- [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 15 sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.3.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
@@ -2231,9 +2232,53 @@ graph TD
 200+ articles from X/Twitter, Reddit, Medium, YouTube, and GitHub were reviewed.
 
 ---
+## Built on Claude Agent SDK
+
+> *v4.0.0-beta.8* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+
+### Brain / Hands
+
+CC Commander follows a **brain/hands** separation:
+
+- **Brain (Claude):** Your main Claude Code session reads project context, routes intent, and makes decisions.
+- **Hands (CC Commander):** 15 specialist sub-agent personas execute the work — scoped, specialized, and disposable.
+
+When you run `/ccc-review`, Claude doesn't guess how to do a code review. It loads the `reviewer` persona (Sonnet, read-only tools, structured severity format) and delegates. When the reviewer finishes, the persona is gone. The next task starts fresh. Context stays clean because each sub-agent operates at full capacity instead of a generalist stretched thin.
+
+This is the same pattern Anthropic describes in their Claude Agent SDK documentation: a parent session orchestrates specialist children, each with a narrow tool allowlist and a fixed turn budget.
+
+### The 15 Sub-Agent Personas
+
+Each persona has a fixed model tier, voice system, and tool allowlist:
+
+| # | Persona | Model | Core responsibility |
+|---|---------|-------|-------------------|
+| 1 | `architect` | Opus | System design, tradeoff analysis |
+| 2 | `reviewer` | Sonnet | Code review (security / perf / correctness / maintainability) |
+| 3 | `builder` | Sonnet | Feature implementation, TDD |
+| 4 | `security-auditor` | Opus | OWASP audits, threat modeling |
+| 5 | `debugger` | Opus | Root-cause investigation (Iron Law) |
+| 6 | `designer` | Sonnet | UI/UX critique, accessibility |
+| 7 | `qa-engineer` | Sonnet | Edge-case hunting, coverage audit |
+| 8 | `devops-engineer` | Sonnet | Deploy planning, rollback specs |
+| 9 | `data-analyst` | Sonnet | Signal extraction, statistical honesty |
+| 10 | `content-strategist` | Sonnet | Brand voice, messaging, copy |
+| 11 | `product-manager` | Opus | User stories, acceptance criteria |
+| 12 | `performance-engineer` | Sonnet | p99 benchmarking, hotpath analysis |
+| 13 | `researcher` | Sonnet | Deep research, citation management |
+| 14 | `technical-writer` | Sonnet | Documentation, clarity audits |
+| 15 | `fleet-worker` | Sonnet | Parallel batch execution |
+
+Opus personas handle tasks requiring deep reasoning chains. Sonnet handles the rest at lower cost.
+
+### What This Means for Users
+
+You don't configure sub-agents. You don't pick them. The skills route automatically based on task type. `/ccc-review` spawns a reviewer + security-auditor. `/ccc-build` spawns a builder. `/ccc-plan` spawns a product-manager for the spec interview. You interact with the result — not the machinery.
+
+---
 ## CC Commander
 
-> *v4.0.0-beta.7* — A Claude Code plugin. 28 plugin skills, 15 specialist agents, 8 MCPs, 6 lifecycle hooks. Click-first via AskUserQuestion. A CLI also exists for power users.
+> *v4.0.0-beta.8* — A Claude Code plugin. 28 plugin skills, 15 specialist sub-agents, 8 MCPs, 8 lifecycle hooks (16 handlers). Click-first via AskUserQuestion. A CLI also exists for power users.
 
 ### What It Is
 
@@ -2245,9 +2290,9 @@ Claude Code session
   +-- /plugin install commander       (one-time, from marketplace)
   |
   +-- /ccc-build, /ccc-review, ...    (28 plugin skills)
-  +-- 15 specialist agents            (architect, reviewer, debugger, ...)
-  +-- 8 MCP servers                   (pre-wired: GitHub, Linear, docs, ...)
-  +-- 6 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
+  +-- 15 specialist sub-agents        (architect, reviewer, debugger, ...)
+  +-- 8 bundled MCP servers           (pre-wired: GitHub, Linear, Tavily, ...)
+  +-- 8 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
   +-- AskUserQuestion chip picker     (click-first — no menu traversal)
 ```
 

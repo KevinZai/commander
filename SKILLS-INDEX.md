@@ -1,54 +1,73 @@
 # Skills Index — Quick Reference
-> CC Commander v4.0.0-beta.7 — by Kevin Zicherman
+> CC Commander v4.0.0-beta.8 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-04-20 | Desktop plugin first: 28 plugin skills (23 ccc-* + 5 other) + 5 agents + 6 hooks + 5 MCP servers | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes
+> Last verified: 2026-04-22 | Desktop plugin first: 28 plugin skills (12 /ccc-* workflows + 14 ccc-* domain routers + 2 meta) + 15 specialist sub-agents + 8 lifecycle hooks (16 handlers) + 8 bundled MCP servers | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
 
 ---
 
-## Desktop Plugin Skills (v4.0.0-beta.7)
+## Specialist Sub-Agents (15)
 
-> Installed at `commander/cowork-plugin/`. Prefix: plain `/ccc-*` (e.g. `/ccc-build`). Install: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 28 plugin skills total (23 ccc-* + 5 other).
+All 15 sub-agents are free. They fire automatically from skills — no manual invocation needed. Routed by `/ccc-build`, `/ccc-review`, `/ccc-plan`, `/ccc-design`, `/ccc-ship`, and `/ccc-fleet`.
 
-| Skill | Description | Tier | Trigger Phrases |
-|-------|-------------|------|----------------|
-| `/ccc` | Main CCC hub — interactive menu, session overview | Free | "open ccc", "ccc menu", "show commander" |
-| `/ccc-build` | Build wizard — web, API, CLI with spec questions | Free | "ccc build", "start a build", "new project wizard" |
-| `/ccc-linear-board` | Linear issue browser — view, pick, create tasks | Free | "ccc linear", "show my issues", "linear board" |
-| `/ccc-research` | Deep research with citations and confidence scoring | Free | "ccc research", "research this", "find sources on" |
-| `/ccc-content` | Content creation — blog, social, email, copy | Free | "ccc content", "write a blog post", "create content" |
-| `/ccc-session` | Session management — save, resume, context budget | Free | "ccc session", "save my session", "check context" |
-| `/ccc-settings` | CCC settings — model, cost, theme, MCP, hooks | Free | "ccc settings", "change my model", "update config" |
-| `/ccc-domains` | Browse 11 CCC domains (200+ sub-skills) | Free | "ccc domains", "show domains", "browse skills" |
-| `/ccc-infra` | Infrastructure — fleet, cost, Synapse, Paperclip | Pro | "ccc infra", "check fleet", "infrastructure status" |
-| `/ccc-knowledge` | Search knowledge base for past lessons | Pro | "ccc knowledge", "what did I learn about", "past lessons" |
-| `/ccc-night-mode` | Autonomous overnight build — checkpoints, recovery | Pro | "ccc night", "run overnight", "start yolo build" |
-| `/ccc-standup` | Generate standup update from recent git activity | Pro | "ccc standup", "write my standup", "daily update" |
-| `/ccc-code-review` | Multi-agent code review (3 reviewers, structured) | Pro | "ccc review", "review my code", "code review" |
-| `/ccc-deploy-check` | Pre-deployment readiness gate | Pro | "ccc deploy", "ready to deploy?", "pre-deploy check" |
-| `/ccc-fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro | "ccc fleet", "launch agents", "fleet status" |
+| # | Sub-Agent | Model | Best For |
+|---|-----------|-------|---------|
+| 1 | `architect` | Opus | System design, tradeoff analysis, irreversibility assessment |
+| 2 | `reviewer` | Sonnet | Code review across security / perf / correctness / maintainability |
+| 3 | `builder` | Sonnet | Feature implementation, TDD, scaffolding |
+| 4 | `security-auditor` | Opus | OWASP audits, threat modeling, adversarial review |
+| 5 | `debugger` | Opus | Root-cause investigation (Iron Law: no fix without confirmed root cause) |
+| 6 | `designer` | Sonnet | UI/UX critique, accessibility, visual hierarchy |
+| 7 | `qa-engineer` | Sonnet | Edge-case hunting, test coverage audit |
+| 8 | `devops-engineer` | Sonnet | Deploy planning, rollback specs, monitoring setup |
+| 9 | `data-analyst` | Sonnet | Signal extraction, statistical honesty, visualization |
+| 10 | `content-strategist` | Sonnet | Brand voice, messaging, copy variants |
+| 11 | `product-manager` | Opus | User stories, acceptance criteria, priority sequencing |
+| 12 | `performance-engineer` | Sonnet | Hotpath identification, p99 benchmarking |
+| 13 | `researcher` | Sonnet | Deep research, competitive analysis, citation management |
+| 14 | `technical-writer` | Sonnet | Documentation, API reference, clarity audits |
+| 15 | `fleet-worker` | Sonnet | Parallel batch work, scoped execution in fleet mode |
 
-### Plugin Agents
+---
 
-| Agent | Model | Badge | Best For |
-|-------|-------|-------|---------|
-| `reviewer` | Sonnet | blue | Code review, audit, critique |
-| `builder` | Sonnet | green | Implementation, scaffolding, builds |
-| `researcher` | Sonnet | purple | Research, analysis, synthesis |
-| `debugger` | Opus | red | Deep debugging, root cause investigation |
-| `fleet-worker` | Sonnet | cyan | Parallel task execution in fleet mode |
+## Desktop Plugin Skills (v4.0.0-beta.8)
 
-### Plugin MCP Servers
+> Installed at `commander/cowork-plugin/`. Prefix: plain `/ccc-*` (e.g. `/ccc-build`). Install: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 28 plugin skills total (12 /ccc-* workflows + 14 ccc-* domain routers + 2 meta). **All free forever.**
 
-| MCP | Skills That Use It |
-|-----|--------------------|
-| Linear | `/ccc-linear-board`, `/ccc-standup` |
-| GitHub | `/ccc-code-review`, `/ccc-deploy-check` |
-| Slack | `/ccc-infra`, `/ccc-fleet` |
-| Gmail | `/ccc-standup` |
-| Google Calendar | `/ccc-standup` |
+| Skill | Description | Trigger Phrases |
+|-------|-------------|----------------|
+| `/ccc` | Main CCC hub — interactive menu, session overview | "open ccc", "ccc menu", "show commander" |
+| `/ccc-start` | First-run onboarding — plan file, first win | "get started with ccc", "ccc start" |
+| `/ccc-browse` | Searchable catalog of 502+ skills and 15 sub-agents | "browse skills", "ccc browse" |
+| `/ccc-plan` | Spec-first planning — 5-question interview → spec file | "plan a feature", "ccc plan" |
+| `/ccc-build` | Build wizard — web, API, CLI or mobile with spec | "ccc build", "start a build", "new project wizard" |
+| `/ccc-review` | Branch audit — diff, security, perf, x-ray | "ccc review", "review my code", "code review" |
+| `/ccc-ship` | Pre-flight checks + release + deploy (22-point gate) | "ccc ship", "ship this", "ready to deploy?" |
+| `/ccc-design` | UI/UX workflow — routes to ccc-design domain (39 skills) | "ccc design", "design this" |
+| `/ccc-learn` | Skill discovery across 11 CCC domains | "teach me", "ccc learn", "show domains" |
+| `/ccc-xray` | Project health scorecard with fix chips | "audit my project", "ccc xray" |
+| `/ccc-linear` | Linear board — view issues, pick, create, sync | "ccc linear", "show my issues", "linear board" |
+| `/ccc-fleet` | Multi-agent orchestration — launch, route, monitor | "ccc fleet", "launch agents", "fleet status" |
+| `/ccc-connect` | Opt-in MCP connector — Supabase, Vercel, Figma, etc. | "connect my tools", "ccc connect" |
+| `/ccc-suggest` | Ambient intelligence — suggests best next skill (auto) | Auto-triggered at session start |
+| `/ccc-cheatsheet` | Inline cheatsheet — all counts, commands, hook events | "show cheatsheet", "ccc cheatsheet" |
+
+### Bundled MCP Servers (8)
+
+All 8 are pre-configured in `.mcp.json`. Activate the ones you need — the plugin works fully offline without any of them.
+
+| MCP | Transport | Skills That Use It |
+|-----|-----------|--------------------|
+| Tavily | stdio | `/ccc-browse`, research tasks |
+| Context7 | stdio | Any skill needing live library docs |
+| Firecrawl | HTTP | Web scraping in research workflows |
+| Exa | stdio | Semantic web search |
+| GitHub | HTTP | `/ccc-review`, `/ccc-ship` |
+| Figma | HTTP | `/ccc-design` |
+| Playwright | stdio | `/ccc-ship` E2E gate |
+| claude-mem | stdio | Knowledge compounding across sessions |
 
 ---
 

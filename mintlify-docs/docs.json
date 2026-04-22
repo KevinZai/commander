@@ -18,7 +18,8 @@
             "pages": [
               "introduction",
               "quickstart",
-              "why-ccc"
+              "why-ccc",
+              "architecture"
             ]
           },
           {
@@ -68,6 +69,12 @@
             "pages": [
               "methodology/the-kevin-z-method",
               "methodology/cheatsheet"
+            ]
+          },
+          {
+            "group": "Compare",
+            "pages": [
+              "compare/vs-aider"
             ]
           }
         ]

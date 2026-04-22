@@ -1,59 +1,130 @@
 ---
-title: "Specialized Agents"
-description: "5 agents with specific models, colors, tool scopes, and turn limits."
+title: "Specialist Sub-Agents"
+description: "15 specialist personas built on the Claude Agent SDK pattern. Each has a fixed model tier, scoped tool allowlist, turn budget, and voice system."
 ---
 
-CCC ships **5 specialized agents** (Pro tier). Each agent has a tightly scoped role, a model appropriate to its task, and tool restrictions that match its responsibilities.
+CC Commander ships **15 specialist sub-agents** — all free, no tier gating. Each persona is a scoped execution context: fixed model, specific tools, turn budget, and a voice layer that shapes how it communicates.
 
-## The Fleet
+This is the **brain/hands** pattern: Claude (your main session) is the brain. Sub-agents are the hands — each specialized for one domain, disposable after the task. Context stays clean because each sub-agent starts fresh.
+
+See [Architecture](/architecture) for how delegation works end-to-end.
+
+## The 15 Personas
 
 <CardGroup cols={2}>
-  <Card title="reviewer" icon="eye" color="#3b82f6">
-    **Model:** Sonnet · **Turns:** 20 · **Tools:** Read, Bash, Glob, Grep (read-only)
+  <Card title="architect" icon="building" color="#8b5cf6">
+    **Model:** Opus · **Role:** System design, tradeoff analysis, irreversibility assessment
 
-    Reviews code changes across 4 dimensions: security, performance, correctness, maintainability. Read-only by design — it can't modify your code, only analyze it.
+    Leads with the decision, then the reasoning. Always names 2-3 alternatives. Calls out when a choice locks you in.
+  </Card>
+  <Card title="reviewer" icon="eye" color="#3b82f6">
+    **Model:** Sonnet · **Role:** Code review across 4 dimensions: security, performance, correctness, maintainability
+
+    Severity-rated findings (🔴/🟠/🟡/🟢). Read-only by design — analyzes, never modifies.
   </Card>
   <Card title="builder" icon="hammer" color="#22c55e">
-    **Model:** Sonnet · **Turns:** 50 · **Tools:** Read, Write, Edit, Bash, Glob, Grep, WebSearch
+    **Model:** Sonnet · **Role:** Feature implementation, TDD, scaffolding
 
-    Implements features, fixes bugs, creates projects. Follows TDD when applicable. Highest turn budget (50) for multi-phase builds.
+    Ships the simplest thing that works. Extracts abstractions when seen twice, not once. Highest turn budget for multi-phase builds.
   </Card>
-  <Card title="researcher" icon="magnifying-glass" color="#a855f7">
-    **Model:** Sonnet · **Turns:** 30 · **Tools:** Read, Bash, Glob, Grep, WebSearch, WebFetch
+  <Card title="security-auditor" icon="shield" color="#ef4444">
+    **Model:** Opus · **Role:** OWASP audits, threat modeling, adversarial review
 
-    Deep research — competitive analysis, market research, code audits, literature review. Read + web access, no write scope.
+    Assumes every input is hostile. CWE IDs, exploit concepts, and verified fixes — never hand-waves "probably fine."
   </Card>
-  <Card title="debugger" icon="bug" color="#ef4444">
-    **Model:** Opus · **Turns:** 40 · **Tools:** Read, Write, Edit, Bash, Glob, Grep
+  <Card title="debugger" icon="bug" color="#f97316">
+    **Model:** Opus · **Role:** Root-cause investigation
 
-    Systematic root-cause debugging. Uses Opus for superior reasoning chains. Iron Law: **no fixes without root cause**.
+    Iron Law: **no fix without confirmed root cause.** Four-phase process: reproduce → hypothesize → verify → fix.
+  </Card>
+  <Card title="designer" icon="palette" color="#ec4899">
+    **Model:** Sonnet · **Role:** UI/UX critique, accessibility, visual hierarchy
+
+    Visual-first. References design principles by name. Never gives vague feedback — specific values, contrast ratios, spacing tokens.
+  </Card>
+  <Card title="qa-engineer" icon="flask" color="#14b8a6">
+    **Model:** Sonnet · **Role:** Edge-case hunting, test coverage audit
+
+    Leads with the breaking case. Enumerates: empty, null, max, overflow, unicode, concurrent. Coverage delta per change.
+  </Card>
+  <Card title="devops-engineer" icon="server" color="#64748b">
+    **Model:** Sonnet · **Role:** Deploy planning, rollback specs, monitoring setup
+
+    Every deployment idea paired with a rollback plan. Talks in SLIs/SLOs/error budgets. Rollback in &lt;5 min or it's incomplete.
+  </Card>
+  <Card title="data-analyst" icon="chart-bar" color="#0ea5e9">
+    **Model:** Sonnet · **Role:** Signal extraction, visualization, statistical honesty
+
+    Shows the data, then the chart, then the insight — in that order. Correlation ≠ causation, always stated.
+  </Card>
+  <Card title="content-strategist" icon="pen" color="#a855f7">
+    **Model:** Sonnet · **Role:** Brand voice, messaging, copy variants
+
+    First question: "Who's the reader?" Offers 3 headline variants. Says "delete this paragraph" when warranted.
+  </Card>
+  <Card title="product-manager" icon="target" color="#f59e0b">
+    **Model:** Opus · **Role:** User stories, acceptance criteria, priority sequencing
+
+    Every feature is a bet. Every bet has a measurable outcome. Scope discipline is a moral act.
+  </Card>
+  <Card title="performance-engineer" icon="bolt" color="#22d3ee">
+    **Model:** Sonnet · **Role:** Hotpath identification, p99 benchmarking
+
+    Measure, don't guess. Every claim backed by a benchmark or labeled "estimated." Never says "faster" without a baseline.
+  </Card>
+  <Card title="researcher" icon="magnifying-glass" color="#6366f1">
+    **Model:** Sonnet · **Role:** Deep research, competitive analysis, citation management
+
+    Facts, inferences, and opinions separated. Every claim cites a source. Recency matters.
+  </Card>
+  <Card title="technical-writer" icon="file-text" color="#84cc16">
+    **Model:** Sonnet · **Role:** Documentation, API reference, clarity audits
+
+    Clarity over cleverness. Active voice. Short sentences. If a beginner can't follow it, it's broken.
   </Card>
   <Card title="fleet-worker" icon="users" color="#06b6d4">
-    **Model:** Sonnet · **Turns:** 30 · **Tools:** Read, Write, Edit, Bash, Glob, Grep
+    **Model:** Sonnet · **Role:** Parallel batch work, scoped execution in fleet mode
 
-    Parallel worker for fleet operations. Spawned by `/ccc:fleet` for batch tasks, migrations, multi-file sweeps.
+    Strict-report executor. Stays in scope. Returns structured output the parent can parse. No scope creep.
   </Card>
 </CardGroup>
 
-## How delegation works
+## Persona Roster at a Glance
 
-Skills delegate to agents automatically when the task exceeds their scope:
+| # | Persona | Model | When it fires |
+|---|---------|-------|--------------|
+| 1 | `architect` | Opus | Architecture decisions, system design |
+| 2 | `reviewer` | Sonnet | `/ccc-review` — diff + 4-dimension audit |
+| 3 | `builder` | Sonnet | `/ccc-build` — after spec approval |
+| 4 | `security-auditor` | Opus | `/ccc-review` security pass, `/ccc-ship` gate |
+| 5 | `debugger` | Opus | Root-cause investigation tasks |
+| 6 | `designer` | Sonnet | `/ccc-design` — UI/UX workflows |
+| 7 | `qa-engineer` | Sonnet | `/ccc-review` QA pass, test coverage audit |
+| 8 | `devops-engineer` | Sonnet | `/ccc-ship` — deploy planning |
+| 9 | `data-analyst` | Sonnet | Analytics and data synthesis tasks |
+| 10 | `content-strategist` | Sonnet | Copy, messaging, content tasks |
+| 11 | `product-manager` | Opus | `/ccc-plan` — spec interview + user stories |
+| 12 | `performance-engineer` | Sonnet | Performance review in `/ccc-review` |
+| 13 | `researcher` | Sonnet | Deep research tasks |
+| 14 | `technical-writer` | Sonnet | Documentation generation |
+| 15 | `fleet-worker` | Sonnet | `/ccc-fleet` — each parallel task spawn |
+
+## How Delegation Works
+
+Skills delegate to sub-agents automatically when the task matches their domain:
 
 | Skill | Delegates to | When |
 |-------|-------------|------|
-| `/ccc:code-review` | `reviewer` | Diff > 500 lines or 4-dimension scored review requested |
-| `/ccc:build` | `builder` | After Spec Flow approval |
-| `/ccc:research` | `researcher` | Multi-source synthesis tasks |
-| `/ccc:night-mode` | `builder` | Autonomous overnight build loop |
-| `/ccc:fleet` | `fleet-worker` | Each parallel task spawn |
+| `/ccc-plan` | `product-manager` | Spec interview flow |
+| `/ccc-build` | `builder` | After spec approval |
+| `/ccc-review` | `reviewer` + `security-auditor` + `qa-engineer` | Diff > 500 lines or multi-dimension review |
+| `/ccc-design` | `designer` | UI/UX critique or mockup review |
+| `/ccc-ship` | `devops-engineer` + `security-auditor` | Pre-flight gate |
+| `/ccc-fleet` | `fleet-worker` | Each parallel task spawn |
 
-<Tip>
-  Agents inherit the current CCC tier. Pro users get all 5 agents; Free users can use hub skills but agents are Pro-gated.
-</Tip>
+## Customizing Sub-Agents
 
-## Customizing agents
-
-You can tune agent behavior via `~/.claude/commander/config.json`:
+Tune behavior via `~/.claude/commander/config.json`:
 
 ```json
 {
@@ -61,9 +132,12 @@ You can tune agent behavior via `~/.claude/commander/config.json`:
     "debugger": {
       "maxTurns": 60,
       "fallbackModel": "sonnet"
+    },
+    "builder": {
+      "maxTurns": 80
     }
   }
 }
 ```
 
-See the [free vs pro](/plugin/free-vs-pro) page for tier details.
+All 15 sub-agents are free — no license key, no tier check, no network call required.

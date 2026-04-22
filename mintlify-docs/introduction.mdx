@@ -1,20 +1,13 @@
 ---
 title: "CC Commander — Guided AI PM to Master Claude Code Instantly"
-description: "Works in Claude Cowork, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE. 500+ skills, 15 specialist agents, 11 domains. Free in beta."
+description: "Works in Claude Cowork, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE. 502+ skills, 15 specialist sub-agents, 11 domains. Free forever."
 ---
 
 <img src="/assets/ccc-hero.svg" alt="CC Commander — Guided AI PM to Master Claude Code Instantly" />
 
-<Warning>
-  **v4.0.0 Beta is live — free 1000 calls/mo with mandatory feedback.**
-  Install identically in **Claude Cowork Desktop** OR **Claude Code Desktop**: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`.
-  Or use the **hosted MCP** in Cursor, Windsurf, Cline, Continue, Codex, Claude mobile — one URL unlocks all 500+ skills.
-  [Sign up at cc-commander.com/beta](https://cc-commander.com/beta).
-</Warning>
+> **1 install. 502+ skills. Works everywhere Claude works. Free forever.**
 
-> **1 install. 500+ skills. Works everywhere Claude works. Free in beta.**
-
-CC Commander is a guided AI PM that helps you master Claude Code — or any Claude-compatible agent IDE — instantly. It's not a skill pack. It scores complexity, reads your stack, and gets smarter every session. Built by distilling 200+ community sources into one install, plus 15 specialist agent personas and a hosted MCP beta with mandatory feedback.
+CC Commander is a guided AI PM that helps you master Claude Code — or any Claude-compatible agent IDE — instantly. It's not a skill pack. It reads your project state, scores complexity, routes to the right specialist sub-agent, and gets smarter every session. Built by distilling 200+ community sources into one install, with 15 specialist agent personas, a sub-agent architecture built on Anthropic's Claude Agent SDK pattern, and 8 lifecycle hooks that fire automatically around every session.
 
 ## 🎯 Works everywhere Claude works
 
@@ -33,20 +26,20 @@ CC Commander is a guided AI PM that helps you master Claude Code — or any Clau
   </Card>
 </CardGroup>
 
-## v4.0.0 Beta — MCP + Hosted + Personas
+## v4.0.0-beta.8 — Sub-Agent Architecture + Native UX
 
 <CardGroup cols={2}>
   <Card title="28 Plugin Skills" icon="wand-magic-sparkles" href="/plugin/skills">
     12 /ccc-* specialist workflows (ccc, start, browse, plan, build, review, ship, design, learn, xray, linear, fleet, connect) + 14 ccc-* domain routers + 2 diagnostic/meta
   </Card>
-  <Card title="15 Specialist Agents" icon="robot" href="/plugin/agents">
-    architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker — each tuned with a persona voice, model tier, and tool allowlist.
+  <Card title="15 Specialist Sub-Agents" icon="robot" href="/plugin/agents">
+    architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker — each with a persona voice, model tier, and scoped tool allowlist.
   </Card>
-  <Card title="8 Lifecycle Hooks" icon="bolt" href="/plugin/hooks">
-    SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop — with Free/Pro gating.
+  <Card title="8 Lifecycle Hooks / 16 Handlers" icon="bolt" href="/plugin/hooks">
+    SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop — all free, all automatic.
   </Card>
-  <Card title="8 MCP Integrations" icon="plug" href="/plugin/mcp-integrations">
-    Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Context7, Google Drive — pre-configured and ready to connect.
+  <Card title="8 Bundled MCP Servers" icon="plug" href="/plugin/mcp-integrations">
+    Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem — pre-configured and ready to activate.
   </Card>
 </CardGroup>
 
@@ -73,41 +66,47 @@ CC Commander is a guided AI PM that helps you master Claude Code — or any Clau
   <Card title="502+ Skills" icon="wand-magic-sparkles">
     Deduplicated from 1,500+ vendor skills across 19 packages. Install only what you need — essential tier loads in seconds.
   </Card>
-  <Card title="98% Context Savings" icon="bolt">
-    context-mode sandboxes tool output to SQLite + FTS5. 315KB grep result becomes a 3KB relevant snippet. Measured, not estimated.
+  <Card title="Sub-Agent Architecture" icon="brain">
+    15 specialist personas (architect, reviewer, builder, debugger, and 11 more) route automatically based on task type. Brain/hands separation keeps context clean.
   </Card>
   <Card title="11 CCC Domains" icon="grid">
-    Load one skill, get an entire specialty. ccc-marketing loads 46 skills. ccc-design loads 39. ccc-saas loads 21.
+    Load one skill, get an entire specialty. ccc-marketing loads 45 skills. ccc-design loads 39. ccc-saas loads 21.
   </Card>
-  <Card title="Intelligence Layer" icon="brain">
-    Complexity scoring (0-100), stack detection, knowledge compounding. Every session informs the next one.
+  <Card title="Knowledge Compounding" icon="bolt">
+    Every session informs the next. Complexity scoring, stack detection, and session memory make CCC smarter over time.
   </Card>
 </CardGroup>
 
-## Free vs Pro
+## Why Free Forever?
 
-| Tier | Price | What's Included |
-|------|-------|----------------|
-| **Beta** | $0 + feedback | 1000 calls/mo hosted MCP, 28 plugin skills, SessionStart + Stop hooks, CLI access |
-| **Pro** (planned) | $15/mo | 15 specialist agents, 8 MCP integrations, 4 advanced hooks, Pro skills, unlimited calls |
-| **Team** (planned) | $99/mo | Everything in Pro + team fleet management, shared knowledge base |
+<Note>
+  **CC Commander is free forever.** No paid tier is planned. No caps. No Stripe.
 
-[See full comparison →](/plugin/free-vs-pro)
+  Revenue comes from four sources — none of which require you to pay:
+  1. **Consulting** (primary) — Kevin's consulting pipeline. The plugin is a trust engine.
+  2. **Affiliate links** (passive) — transparent disclosures in `/ccc-connect` (Supabase, Vercel, Neon, etc.)
+  3. **Pro Community** (optional) — a paid Discord/community tier may launch post-beta. The plugin stays free.
+  4. **GitHub Sponsors** (optional) — for those who want to contribute directly.
+
+  All 28 plugin skills, 15 sub-agents, 8 hooks, and 8 bundled MCP servers are available to everyone, always.
+</Note>
 
 ## Key Stats
 
 | Metric | Value |
 |--------|-------|
-| Plugin skills | 28 (v4.0.0-beta.7) |
-| Total skills | 502+ (deduplicated) |
-| Specialist agents | 15 (architect, security-auditor, reviewer, builder, designer, +10 more) |
-| Hooks | 8 lifecycle events |
-| MCP integrations | 8 pre-configured |
+| Version | v4.0.0-beta.8 |
+| Plugin skills | 28 (12 workflows + 14 domain routers + 2 meta) |
+| Ecosystem skills | 502+ (deduplicated) |
+| Specialist sub-agents | 15 |
+| Hook events | 8 |
+| Hook handlers | 16 |
+| Bundled MCP servers | 8 |
 | CCC Domains | 11 specialty routers |
 | Vendor packages | 19 (auto-updated weekly) |
 | Commands | 83 slash commands |
 | Themes | 10 (Cyberpunk, Matrix, Ocean, Aurora, and more) |
-| Context savings | 98% (context-mode) |
+| Price | Free forever |
 
 ## Install Options
 

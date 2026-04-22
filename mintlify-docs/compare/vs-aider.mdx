@@ -1,0 +1,57 @@
+---
+title: "vs aider.chat"
+description: "CC Commander is the PM layer that complements aider's pair-programmer model."
+---
+
+## Positioning
+
+**Aider is your pair programmer. CC Commander is your PM. They're complementary — use aider for solo rapid edits, CCC for multi-phase features that need structure.**
+
+Aider excels at fast, terminal-native edits with multi-LLM flexibility and auto-committed diffs. CC Commander excels at orchestrating the *surrounding process*: planning, specialist review, deploy gates, and memory that compounds across sessions. They solve different problems. Many developers use both.
+
+## 10-Dimension Comparison
+
+| Dimension | aider.chat | CC Commander |
+|-----------|-----------|--------------|
+| **Surface** | CLI only | Claude Code Desktop plugin + CLI + any MCP-capable IDE |
+| **LLM** | Multi (Claude, GPT, DeepSeek, local BYOK) | Claude (user's own subscription) |
+| **Core pattern** | Direct pair programmer — edit + commit | PM orchestration — plan → build → review → ship |
+| **Primitives** | File diffs, auto-commits, repo map, lint/test | 15 sub-agent personas, 28 skills, 8 hooks, spawn_task chips, native Plan pane |
+| **Agent model** | Single generalist LLM | Brain/hands + specialist sub-agent routing |
+| **Git** | Auto-commits with AI-authored messages | Surfaces git state; user authors commits |
+| **Context** | Repo map + selected files | CLAUDE.md + session memory + knowledge compounding |
+| **Cost** | User pays per-token (BYOK) | Free forever (user's existing Claude plan) |
+| **Install** | `pip install aider-chat` | `/plugin install commander` in Claude Desktop |
+| **Best at** | Fast solo terminal edits, multi-LLM flexibility, auto-committed diffs | Multi-step workflows, review gates, specialist perspectives, structured specs |
+
+## When to Use Each
+
+<CardGroup cols={2}>
+  <Card title="Reach for aider when…" icon="terminal">
+    - You want fast, targeted file edits without leaving the terminal
+    - You need multi-LLM flexibility (GPT, DeepSeek, local models)
+    - You're doing solo rapid iteration and want auto-committed history
+    - You don't use Claude Code Desktop
+  </Card>
+  <Card title="Reach for CC Commander when…" icon="wand-magic-sparkles">
+    - You want a structured plan before touching code
+    - You need specialist perspectives (security audit, performance review, QA)
+    - You're managing a multi-phase feature with review gates
+    - You want memory that compounds across sessions
+  </Card>
+</CardGroup>
+
+## Using Both Together
+
+A common pattern:
+
+1. **`/ccc-plan`** — CC Commander runs the spec interview, writes `tasks/spec-YYYYMMDD.md`
+2. **aider** — implements the spec with fast diffs and auto-commits
+3. **`/ccc-review`** — CC Commander's reviewer agent audits the diff (security + perf + correctness)
+4. **`/ccc-ship`** — CC Commander runs the 22-point pre-flight gate before deploy
+
+Neither tool is "better." They operate at different levels of abstraction.
+
+<Note>
+  CC Commander is **free forever** — no BYOK required, no paid tier, no caps. It runs on the Claude subscription you already have.
+</Note>

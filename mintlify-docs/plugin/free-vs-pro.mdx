@@ -1,76 +1,55 @@
 ---
-title: "Free vs Pro"
-description: "What's in each tier and how to upgrade."
+title: "Pricing — Free Forever"
+description: "CC Commander is free forever. All 28 skills, 15 sub-agents, 8 hooks, and 8 bundled MCP servers. No paid tier planned."
 ---
 
-CCC has a generous **Free tier** and unlocks specialized agents, autonomous mode, and auto-capture in **Pro**.
+CC Commander has **no paid tier**. No Stripe, no license key, no tier check, no feature gating. Everything is free.
 
-## At a glance
+## Everything Is Free
 
-|  | **Free** | **Pro** ★ | **Team** |
-|---|---|---|---|
-| **Price** | $0 | $19/mo or $190/yr | $99/mo · 5 seats |
-| **Skills** | 5 | 15 (all) | 15 + custom |
-| **Agents** | — | 5 specialized | 5 + fleet scaling |
-| **Lifecycle hooks** | 2 (SessionStart, Stop) | 6 (all) | 6 + telemetry |
-| **MCP servers** | 8 pre-configured | 8 pre-configured | 8 + private MCPs |
-| **Knowledge auto-capture** | Manual only | Automatic | Shared across team |
-| **Night mode** | — | ✓ | ✓ |
-| **Fleet orchestration** | — | ✓ | ✓ with scale caps |
-| **Priority support** | Community | Email | Slack Connect |
-| **Enterprise SSO** | — | — | ✓ |
+All of the following are free, for everyone, always:
 
-## Skills by tier
+- ✅ 28 plugin skills (all specialist workflows + domain routers + meta)
+- ✅ 15 specialist sub-agent personas
+- ✅ 8 lifecycle hook events / 16 handlers
+- ✅ 8 bundled MCP server configurations
+- ✅ 502+ ecosystem skills across 11 CCC domains
+- ✅ CLI with 83 slash commands and 10 themes
+- ✅ Knowledge compounding + session memory
+- ✅ Intelligence layer (complexity scoring, stack detection)
 
-**Free (5):** `/ccc:commander` · `/ccc:session` · `/ccc:settings` · `/ccc:knowledge` · `/ccc:domains`
+No caps. No call limits. No mandatory feedback. No upgrade nudges.
 
-**Pro adds 10:** `/ccc:build` · `/ccc:linear-board` · `/ccc:research` · `/ccc:content` · `/ccc:standup` · `/ccc:code-review` · `/ccc:deploy-check` · `/ccc:fleet` · `/ccc:night-mode` · `/ccc:infra`
+## How It Stays Free
 
-## How tier gating works
+CC Commander is a **trust engine, not a SaaS**. Revenue comes from four sources — none require you to pay:
 
-The `SessionStart` hook reads `~/.claude/commander/license.json` and sets `CCC_TIER` for the session. Pro-only features check this flag and degrade gracefully on Free:
+| Source | Type | How it works |
+|--------|------|-------------|
+| **Consulting** | Primary | Kevin's consulting pipeline. Companies that use CC Commander hire Kevin. |
+| **Affiliate links** | Passive | Transparent disclosures in `/ccc-connect` (Supabase, Vercel, Neon, etc.). You only see them if you opt in to the connector skill. |
+| **Pro Community** | Optional | A paid Discord/community may launch post-beta — for deeper access to Kevin and the network, not gated features. |
+| **GitHub Sponsors** | Optional | For those who want to contribute directly. |
 
-- Pro hooks no-op instantly with `{ continue: true, suppressOutput: true }`
-- Pro skills show an upgrade nudge instead of executing the gated flow
-- Agent delegation falls back to in-skill execution
+The plugin itself will never be paywalled.
 
-No network calls. License verification is **100% offline** via HMAC signature.
+## A Note on "Pro" in Old Docs
 
-## Upgrading
+If you've seen references to a "Pro tier" at $15/mo or $19/mo, or "1000 calls/mo beta limit" — those were placeholders from an earlier monetization model that was abandoned before launch. The business model is now locked as **free forever**.
 
-<Steps>
-  <Step title="Subscribe">
-    Visit [cc-commander.com/pricing](https://cc-commander.com/pricing) and pick Pro or Team.
-  </Step>
-  <Step title="Check your email">
-    Your license key arrives at the email you used for checkout. Format: `ccc_live_<token>.<signature>`.
-  </Step>
-  <Step title="Activate">
-    ```bash
-    cat > ~/.claude/commander/license.json <<'EOF'
-    {
-      "key": "ccc_live_xxx.yyy",
-      "tier": "pro",
-      "email": "you@example.com",
-      "expires": "2027-04-16T00:00:00Z"
-    }
-    EOF
-    ```
-  </Step>
-  <Step title="Verify">
-    Start a new Claude Code session. The `SessionStart` hook prints:
-    ```
-    CCC 3.0 | Sessions: X | Knowledge: Y entries | Tier: pro
-    ```
-  </Step>
-</Steps>
+There is no upgrade path because there is nothing to upgrade to.
 
-## Cancellation
+## Commander Hub (v4.1 — Future)
 
-- Cancel anytime via the Stripe customer portal (link in your first receipt)
-- License remains active until end of billing period
-- After expiry, Pro features degrade to Free — no data loss
+A **Commander Hub marketplace** (80/20 creator rev-share) is planned for v4.1 — think Gumroad for skills. If you build a skill and publish it, you keep 80% of any revenue. CC Commander itself remains free; the Hub is an optional creator layer on top.
 
-## Refunds
+This is not a paywall — it's a distribution mechanism for third-party skill creators.
 
-14-day money-back guarantee, no questions asked. Email [hello@cc-commander.com](mailto:hello@cc-commander.com).
+## Install
+
+```bash
+/plugin marketplace add KevinZai/commander
+/plugin install commander
+```
+
+That's it. No email, no account, no license key. You run on your existing Claude subscription.

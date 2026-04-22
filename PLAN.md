@@ -1,6 +1,6 @@
 # CC Commander — Single Source of Truth
 
-**Last updated:** 2026-04-21 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.7
+**Last updated:** 2026-04-22 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.8
 **Linear project:** https://linear.app/<team>/project/cc-commander-efd0258dcd62
 
 > This file is the canonical roadmap. When things change, update THIS file (not CLAUDE.md, not CHANGELOG beyond release notes, not scattered task files). Cross-references the CC-* tickets in Linear.
@@ -10,8 +10,8 @@
 ## 🎯 North Star
 
 **Product:** CC Commander — Guided AI PM to Master Claude Code Instantly.
-**One-liner:** 1 MCP server. 500+ skills. Every AI IDE. Free in beta.
-**Business model:** Free 1000 calls/mo + mandatory feedback during beta. Pro $15/mo + Commander Hub marketplace (80/20 creator rev-share) post-beta.
+**One-liner:** 1 install. 502+ skills. Every AI IDE. Free forever.
+**Business model (locked):** Free forever. 4-lever revenue stack: consulting (primary) + affiliate links (passive) + optional Pro Community (post-beta) + GitHub Sponsors (optional). No paid plugin tier planned.
 **Publisher:** Kevin Zicherman. Personal publisher for beta → Commander Labs LLC at $50K ARR.
 
 **Brand canon (locked):**
@@ -34,19 +34,20 @@
 | v4.0.0-beta.4 | 2026-04-18 | `commander-hub` marketplace rename + broken-symlink fix + PLAN.md | ✅ Released |
 | v4.0.0-beta.5 | 2026-04-18 | Removed non-standard `tiers` key + Cowork-first marketing sweep | ✅ Released |
 | v4.0.0-beta.6 | 2026-04-19 | Plugin manifest schema compliance (hooks structure + removed skills/agents string fields) + reset-commander-install.sh | ✅ Released |
-| v4.0.0-beta.7 | 2026-04-21 | Docs refresh: 28-skill catalog, 8 hooks, 15 agents, 502+ ecosystem skills, Desktop-first positioning, CLI parity audit | 🔄 Current |
+| v4.0.0-beta.7 | 2026-04-21 | Docs refresh: 28-skill catalog, 8 hooks, 15 agents, 502+ ecosystem skills, Desktop-first positioning, CLI parity audit | ✅ Released |
+| v4.0.0-beta.8 | 2026-04-22 | Content-layer mega-refresh: sub-agent architecture docs, aider positioning, free-forever monetization lock, 8 hooks/16 handlers catalog, architecture.mdx + vs-aider.mdx | 🔄 Current |
 | v4.0.0 | TBD | Stable — after beta feedback cycle + deploy of hosted MCP | 📋 Pending |
 | v4.1.0 | TBD | Commander Hub marketplace (80/20 rev-share) | 📋 Pending |
 
 ---
 
-## 📦 Current Shipped Surface (v4.0.0-beta.7)
+## 📦 Current Shipped Surface (v4.0.0-beta.8)
 
 ### Plugin (works fully standalone)
-- **28 plugin skills** (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta — all free during beta)
-- **15 specialist agents** with persona voice system (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker)
-- **8 lifecycle hooks** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
-- **5 pre-configured MCP integrations** (Linear, Tavily, Context7, GitHub, Slack)
+- **28 plugin skills** (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta — all free forever)
+- **15 specialist sub-agents** with persona voice system (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker)
+- **8 lifecycle hooks / 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
+- **8 bundled MCP server configs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem)
 - **10 workflow modes** via mode-switcher skill
 - **`commander/cowork-plugin/rules/`** — 10 shared voice files + 15 personas shipped with plugin
 
@@ -70,7 +71,7 @@
 ✅ Stage 0 — Code/docs/tests/releases (DONE — v4.0.0-beta.3 + beta.4)
 🔒 Stage 1 — Plugin + CLI functional + upgradable (DONE)
 ⏸  Stage 2 — Infra provisioning (Kevin auth-gated; BLOCKS Stage 3+)
-📋 Stage 3 — Hosted MCP deploy (after Stage 2 done)
+📋 Stage 3 — Hosted MCP Connector + Affiliate Wiring (after Stage 2 done)
 📋 Stage 4 — Real MCP server iteration using mcp-server-builder skill
 📋 Stage 5 — Plugin hybrid mode activation (after Stage 3)
 📋 Stage 6 — Launch sequence (marketplace submit + posts + community)
@@ -133,7 +134,7 @@ commanderhub.ai               → holding page / future Commander Hub
 
 ---
 
-## 📋 Stage 3 — Hosted MCP Deploy
+## 📋 Stage 3 — Hosted MCP Connector + Affiliate Wiring
 
 **Prerequisites:** Stage 2 complete.
 
