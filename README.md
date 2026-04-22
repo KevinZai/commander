@@ -20,7 +20,7 @@
 | 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 502+ skills in your IDE of choice |
 | 📱 **On Claude mobile or iPad** | Same skills, same license, synced across devices (hosted MCP) |
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/28_Plugin_Skills-10B981?style=for-the-badge)](./docs/plugin.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.7](https://img.shields.io/badge/v4.0.0--beta.7-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/28_Plugin_Skills-10B981?style=for-the-badge)](./docs/plugin.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.8](https://img.shields.io/badge/v4.0.0--beta.8-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
@@ -62,6 +62,12 @@ One click → one next step. No info paralysis.
 
 ---
 
+## Built on Claude Agent SDK primitives
+
+CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architecture — the same primitives that power agentic workflows across Claude Code Desktop, Cowork Desktop, and the CLI. The **brain/hands** pattern separates orchestration (the PM layer: planning, routing, decision-making) from execution (15 specialist sub-agent personas that each embody a distinct role, model, and voice). Eight lifecycle hook events with 16 handlers fire automatically throughout every session — from `SessionStart` initialization through `SubagentStop` result aggregation — so the right agent is always running at the right moment without you lifting a finger.
+
+---
+
 ## ⭐ Start here — Desktop plugin install (the recommended path)
 
 > **For Cowork Desktop or Claude Code Desktop users (99% of people).** No terminal needed. Click-first UX throughout.
@@ -94,7 +100,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ---
 
-## 🌟 What's new in v4.0.0-beta.7
+## 🌟 What's new in v4.0.0-beta.8
 
 - 🌟 **Headline: `/ccc-suggest` intelligence layer** — Opus-class recommender that reads your project and picks ONE next step (with reasoning + named 3rd-party plugins). Kills info-paralysis for beginners.
 - 🗺️ **`/ccc-cheatsheet`** — live Mermaid flow diagram of the whole plugin, filesystem-backed. Never drifts from reality.
@@ -819,6 +825,27 @@ For AI agents: **[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-re
 
 ---
 
+## vs aider.chat — positioning
+
+Both tools make you faster. They solve different problems.
+
+| Dimension | aider | CC Commander |
+|-----------|-------|-------------|
+| **Surface** | Terminal / Git | Claude Code Desktop + CLI + IDE |
+| **LLM** | Any (OpenAI, Anthropic, local) | Claude-native (Sonnet / Opus / Haiku) |
+| **Core pattern** | Pair programmer — you drive, aider edits | Guided PM — CCC plans, routes, dispatches |
+| **Primitives** | Diff-based file editing + Git | Claude Agent SDK: skills, agents, hooks, MCP |
+| **Agent model** | Single model, single context | 15 specialist sub-agent personas (brain/hands) |
+| **Git** | Deep — commit messages, repo mapping | Lifecycle hooks + `/ccc-ship` pre-flight |
+| **Context** | Repo map (tree-sitter, 15k tokens) | Session compounding + knowledge base |
+| **Cost** | API pay-per-token | Free forever (affiliate + consulting model) |
+| **Install** | `pip install aider-chat` | Desktop plugin marketplace or `curl \| bash` |
+| **Best at** | Solo rapid edits, refactors, small files | Multi-phase features, reviews, fleet orchestration |
+
+Aider is your pair programmer. CC Commander is your PM. They're complementary — use aider for solo rapid edits, CCC for multi-phase features that need structure.
+
+---
+
 ## Who Built This
 
 CCC is built by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic)) — a non-technical entrepreneur and CEO of [MyWiFi Networks](https://mywifinetworks.com) (20+ years in tech, never wrote production code). He wanted to leverage Claude Code to its max capabilities without chasing plugins, reading changelogs, or memorizing commands. So he scanned every Claude Code article, plugin, and skill on the internet — 200+ sources — and distilled it into one self-learning AI project manager. Every feature was built with Claude Code itself. If a non-coder can build a 450+ skill toolkit with AI, imagine what you can build.
@@ -856,7 +883,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v4.0.0-beta.7** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v4.0.0-beta.8** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

@@ -1,6 +1,6 @@
 # CC Commander
 
-> **Works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE.** 28 plugin skills (v4.0.0-beta.7) + 502+ CC Commander ecosystem skills. One plugin. Your AI work, managed by AI.
+> CC Commander — Guided AI PM for Claude Code. Brain/hands architecture with **15 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker). **28 plugin skills** incl **12 click-first `/ccc-*` workflows**. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **8 bundled MCP servers**. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**
 
 CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **28 native skills** (`/ccc-*`) organized as 12 click-first specialist workflows, 14 domain routers, and 2 diagnostic/meta skills. They route into the broader CC Commander ecosystem of 502+ skills across 11 domains.
 
@@ -174,6 +174,48 @@ Lessons compound across projects and teammates.
 | `infra` | "infrastructure", "service status", "check ports", "what services are running" |
 | `domains` | "ccc domains", "design skills", "marketing skills", "show categories" |
 | `settings` | "settings", "change theme", "configure", "set up linear", "cost ceiling" |
+
+## Sub-agent roster
+
+15 specialist personas — each with a distinct role, model, and voice layer in `rules/personas/`:
+
+| # | Persona | Model | When |
+|---|---------|-------|------|
+| 1 | architect | Opus | System design, tradeoffs, tech selection |
+| 2 | reviewer | Sonnet | Multi-dim PR review with severity ratings |
+| 3 | builder | Sonnet | MVP-first feature implementation |
+| 4 | security-auditor | Opus | OWASP audits, threat modeling |
+| 5 | debugger | Opus | Root-cause investigation (Iron Law) |
+| 6 | designer | Sonnet | UI/UX critique, a11y, polish |
+| 7 | qa-engineer | Sonnet | Edge-case hunt, coverage, breaking cases |
+| 8 | devops-engineer | Sonnet | CI/CD, infra, deploys, runbooks |
+| 9 | data-analyst | Sonnet | Insights, stats, visualization |
+| 10 | content-strategist | Sonnet | Marketing copy, brand voice |
+| 11 | product-manager | Opus | PRDs, scoping, user stories |
+| 12 | performance-engineer | Sonnet | Hotpath hunting, benchmarking |
+| 13 | researcher | Sonnet | Competitive + market analysis |
+| 14 | technical-writer | Sonnet | Docs, API refs, tutorials |
+| 15 | fleet-worker | Sonnet | Parallel scoped batch work |
+
+## Hook catalog
+
+8 lifecycle events, 16 handlers — fire automatically every session:
+
+| Event | When fires | Handlers |
+|-------|-----------|----------|
+| SessionStart | New session opens | 3 (init state, claude-md nudge, post-compact recovery) |
+| UserPromptSubmit | User hits Enter | 4 (suggest ticker, intent classifier, context warning, submit logger) |
+| PreToolUse | Before any tool call | 3 (cost tracker, cost ceiling, secret leak guard) |
+| PostToolUse | After tool completes | 1 (knowledge capture) |
+| Stop | Session ends | 2 (session save, session end) |
+| Notification | System-level notification | 1 (fleet notify) |
+| PreCompact | Before context compaction | 1 (block if active subagents) |
+| SubagentStop | Subagent finishes | 1 (dispatch results tracker) |
+| **TOTAL** | **8 events** | **16 handlers** |
+
+## vs aider
+
+Aider is your pair programmer — diff-based file editing, any LLM, deep Git integration, terminal-native. CC Commander is your PM — brain/hands sub-agent architecture, 15 specialist personas, click-first workflows, lifecycle hooks that fire automatically. They're complementary: use aider for solo rapid file edits, CCC for multi-phase features that need planning, review, and fleet orchestration. See the [full comparison in the root README](../../README.md#vs-aider-positioning).
 
 ## Attribution
 

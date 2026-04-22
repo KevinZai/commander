@@ -1,7 +1,7 @@
 {
   "name": "commander",
   "version": "4.0.0-beta.8",
-  "description": "CC Commander \u2014 Guided AI PM. 12 click-first /ccc-* workflows, 15 specialist agents, 8 MCP servers, 502+ skills across 11 CCC domains. Works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free in beta.",
+  "description": "CC Commander \u2014 Guided AI PM for Claude Code. Brain/hands architecture with **15 specialist sub-agent personas** (architect \u00b7 reviewer \u00b7 builder \u00b7 security-auditor \u00b7 debugger \u00b7 designer \u00b7 qa-engineer \u00b7 devops \u00b7 data-analyst \u00b7 content-strategist \u00b7 product-manager \u00b7 performance-engineer \u00b7 researcher \u00b7 technical-writer \u00b7 fleet-worker). **28 plugin skills** incl **12 click-first `/ccc-*` workflows**. **8 lifecycle hooks \u00d7 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **8 bundled MCP servers**. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"

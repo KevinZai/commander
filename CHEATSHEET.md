@@ -1,12 +1,12 @@
 # CC Commander Cheatsheet
-> CC Commander v4.0.0-beta.7 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v4.0.0-beta.8 — by Kevin Zicherman — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v4.0.0-beta.7)
+## Desktop Plugin Commands (v4.0.0-beta.8)
 
 CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — this is the primary product. Install once, use everywhere — plain `/ccc-*` namespace (e.g. `/ccc-build`) in any Desktop conversation. 28 plugin skills total (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta).
 
@@ -40,30 +40,45 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — thi
 | `/ccc-deploy-check` | Pre-deployment readiness gate | Pro |
 | `/ccc-fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro |
 
-### Specialized Agents (15)
+### Sub-agent personas (15)
 
-| Agent | Model | Badge | Purpose |
-|-------|-------|-------|---------|
-| `reviewer` | Sonnet | blue | Code review, audit, critique |
-| `builder` | Sonnet | green | Implementation, scaffolding |
-| `researcher` | Sonnet | purple | Research, analysis, synthesis |
-| `debugger` | Opus | red | Deep debugging, root cause |
-| `fleet-worker` | Sonnet | cyan | Parallel task execution |
+Brain/hands architecture — each persona has a distinct role, model, and voice. Skills delegate to these automatically.
 
-### Plugin Hooks (8)
+| # | Persona | Model | When to invoke |
+|---|---------|-------|----------------|
+| 1 | architect | Opus | System design, tradeoffs, tech selection |
+| 2 | reviewer | Sonnet | Multi-dim PR review with severity ratings |
+| 3 | builder | Sonnet | MVP-first feature implementation |
+| 4 | security-auditor | Opus | OWASP audits, threat modeling |
+| 5 | debugger | Opus | Root-cause investigation (Iron Law) |
+| 6 | designer | Sonnet | UI/UX critique, a11y, polish |
+| 7 | qa-engineer | Sonnet | Edge-case hunt, coverage, breaking cases |
+| 8 | devops-engineer | Sonnet | CI/CD, infra, deploys, runbooks |
+| 9 | data-analyst | Sonnet | Insights, stats, visualization |
+| 10 | content-strategist | Sonnet | Marketing copy, brand voice |
+| 11 | product-manager | Opus | PRDs, scoping, user stories |
+| 12 | performance-engineer | Sonnet | Hotpath hunting, benchmarking |
+| 13 | researcher | Sonnet | Competitive + market analysis |
+| 14 | technical-writer | Sonnet | Docs, API refs, tutorials |
+| 15 | fleet-worker | Sonnet | Parallel scoped batch work |
 
-| Hook | When it fires |
-|------|-------------|
-| `SessionStart` | Load CCC context, detect project stack |
-| `UserPromptSubmit` | Route `/ccc` / `/ccc-*` commands to plugin |
-| `PreToolUse` | Guard dangerous patterns |
-| `PostToolUse` | Auto-checkpoint, cost alert |
-| `Stop` | Session summary, cost tracking |
-| `Notification` | Progress updates for long-running tasks |
-| `PreCompact` | Save critical session state before context compaction |
-| `SubagentStop` | Report subagent results back to orchestrator |
+### Lifecycle hook events (8)
 
-### Plugin MCP Servers (5)
+8 events, 16 handlers — fire automatically every session (no configuration needed):
+
+| Event | When fires | Handlers |
+|-------|-----------|----------|
+| `SessionStart` | New session opens | 3 (init state, claude-md nudge, post-compact recovery) |
+| `UserPromptSubmit` | User hits Enter | 4 (suggest ticker, intent classifier, context warning, submit logger) |
+| `PreToolUse` | Before any tool call | 3 (cost tracker, cost ceiling, secret leak guard) |
+| `PostToolUse` | After tool completes | 1 (knowledge capture) |
+| `Stop` | Session ends | 2 (session save, session end) |
+| `Notification` | System-level notification | 1 (fleet notify) |
+| `PreCompact` | Before context compaction | 1 (block if active subagents) |
+| `SubagentStop` | Subagent finishes | 1 (dispatch results tracker) |
+| **TOTAL** | **8 events** | **16 handlers** |
+
+### Plugin MCP Servers (8)
 
 | MCP | Purpose |
 |-----|---------|
@@ -72,6 +87,13 @@ CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — thi
 | Slack | Progress notifications |
 | Gmail | Email digest, standup context |
 | Google Calendar | Schedule awareness, standup |
+| Tavily | Real-time web search + research |
+| Context7 | Current library/API docs (no hallucinated methods) |
+| Google Drive | Brand docs, style guides, draft storage |
+
+### vs aider
+
+Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 15 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aider-positioning)
 
 ---
 
@@ -938,7 +960,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v4.0.0-beta.7 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v4.0.0-beta.8 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1022,7 +1044,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v4.0.0-beta.7 Quick Reference (CLI)
+## CC Commander v4.0.0-beta.8 Quick Reference (CLI)
 
 ```bash
 # Launch
