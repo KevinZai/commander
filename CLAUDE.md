@@ -8,7 +8,7 @@ CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantl
 
 ## Session Defaults
 
-- **Model:** Opus 4.6 (1M context) — enforced via `.claude/settings.json`
+- **Model:** Opus 4.7 (1M context) — enforced via `.claude/settings.json`
 - **Mode:** Plan mode by default — SessionStart hook reminds to enter plan mode
 - **Effort:** High (`effortLevel: "high"` in settings.json)
 - **Thinking:** Summaries visible (`showThinkingSummaries: true`)
