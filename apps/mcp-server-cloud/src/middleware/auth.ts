@@ -63,9 +63,16 @@ export async function authMiddleware(c: Context, next: Next): Promise<Response |
     return c.json({ error: "User not found" }, 401);
   }
 
+  // Runtime-validate tier instead of casting — DB could return any string and
+  // silently break downstream entitlement logic (rate-limits, feature gates).
+  const tier: "free" | "pro" = user.tier === "pro" ? "pro" : "free";
+  if (user.tier !== "free" && user.tier !== "pro") {
+    logger.warn({ userId, tier: user.tier }, "Unknown tier value from DB — defaulting to free");
+  }
+
   c.set("auth", {
     userId: user.user_id,
-    tier: user.tier as "free" | "pro",
+    tier,
     licenseKey: user.license_key ?? token,
   });
 

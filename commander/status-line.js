@@ -101,10 +101,16 @@ function getSessionTimeRemaining() {
           if (stat.mtimeMs < cutoff) continue; // skip old files
           // Read first line only for timestamp
           var fd = fs.openSync(filePath, 'r');
+          var bytesRead;
           var buf = Buffer.alloc(256);
-          var bytesRead = fs.readSync(fd, buf, 0, 256, 0);
-          fs.closeSync(fd);
-          var line = buf.slice(0, bytesRead).toString('utf8').split('\n')[0];
+          try {
+            bytesRead = fs.readSync(fd, buf, 0, 256, 0);
+          } finally {
+            // Always release the fd, even if readSync or downstream parsing throws.
+            if (fd >= 0) fs.closeSync(fd);
+          }
+          var line = buf.slice(0, bytesRead).toString('utf8').split('\n')[0] || '';
+          if (!line) continue;
           var parsed = JSON.parse(line);
           if (parsed.timestamp) {
             var ts = new Date(parsed.timestamp).getTime();
