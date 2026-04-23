@@ -10,7 +10,13 @@ Plugins are **tool-agnostic** — they describe workflows in terms of categories
 
 ## Connectors for this plugin
 
-| Category | Placeholder | Included servers | Other options |
+**Bundled (2)** — work immediately, zero configuration, no API keys:
+- `context7` — library documentation lookup
+- `sequential-thinking` — structured multi-step reasoning
+
+All other connectors below are **opt-in** via `/ccc-connect` — enable with your own credentials. This prevents silent MCP failures on install day (flagged by R1/R5/R8 reviews).
+
+| Category | Placeholder | Opt-in servers | Other options |
 |----------|-------------|-----------------|---------------|
 | Project tracker | `~~project tracker` | Linear | Jira, Asana, Shortcut, ClickUp |
 | Source control | `~~source control` | GitHub | GitLab, Bitbucket |
@@ -22,13 +28,13 @@ Plugins are **tool-agnostic** — they describe workflows in terms of categories
 | Bookmarks | `~~bookmarks` | — | Raindrop, Pocket |
 | CI/CD | `~~CI/CD` | — | GitHub Actions, CircleCI, Jenkins |
 | Monitoring | `~~monitoring` | — | Datadog, New Relic, Grafana |
-| Web search | `~~web search` | Tavily (pre-configured) | Brave Search, SerpAPI |
-| Library docs | `~~library docs` | Context7 (pre-configured) | — |
-| Files | `~~files` | Google Drive (pre-configured) | Dropbox, OneDrive |
+| Web search | `~~web search` | Tavily | Brave Search, SerpAPI |
+| Library docs | `~~library docs` | Context7 (bundled) | — |
+| Files | `~~files` | Google Drive | Dropbox, OneDrive |
 
 ## 🔌 Recommended MCP Servers
 
-> CC Commander bundles 9 MCP servers in the plugin itself: Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem, sequential-thinking. The list below is **opt-in** via `/ccc-connect` — users enable per-MCP with their own credentials. No shared keys, no telemetry, no lock-in.
+> CC Commander bundles **2 credential-free MCP servers** (`context7` + `sequential-thinking`) so the plugin works immediately on install with zero API keys. Everything below is **opt-in** via `/ccc-connect` — users enable per-MCP with their own credentials. No shared keys, no telemetry, no lock-in, no silent failures on install day.
 
 | MCP | Category | Why it matters | Affiliate? | Install |
 |-----|----------|----------------|------------|---------|
