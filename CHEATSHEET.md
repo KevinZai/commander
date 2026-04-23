@@ -1,14 +1,14 @@
 # CC Commander Cheatsheet
-> CC Commander v4.0.0-beta.10 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v4.0.0-beta.11 — by Kevin Zicherman — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v4.0.0-beta.10)
+## Desktop Plugin Commands (v4.0.0-beta.11)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 33 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 48 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -1052,7 +1052,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v4.0.0-beta.10 Quick Reference (CLI)
+## CC Commander v4.0.0-beta.11 Quick Reference (CLI)
 
 ```bash
 # Launch

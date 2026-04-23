@@ -1,6 +1,6 @@
 # CC Commander — Single Source of Truth
 
-**Last updated:** 2026-04-23 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.10
+**Last updated:** 2026-04-23 · **Owner:** Kevin Zicherman · **Current version:** v4.0.0-beta.11
 **Linear project:** https://linear.app/<team>/project/cc-commander-efd0258dcd62
 
 > This file is the canonical roadmap. When things change, update THIS file (not CLAUDE.md, not CHANGELOG beyond release notes, not scattered task files). Cross-references the CC-* tickets in Linear.
@@ -37,13 +37,13 @@
 | v4.0.0-beta.7 | 2026-04-21 | Docs refresh: 28-skill catalog, 8 hooks, 15 agents, 502+ ecosystem skills, Desktop-first positioning, CLI parity audit | ✅ Released |
 | v4.0.0-beta.8 | 2026-04-22 | Content-layer mega-refresh: sub-agent architecture docs, aider positioning, free-forever monetization lock, 8 hooks/16 handlers catalog, architecture.mdx + vs-aider.mdx | ✅ Released |
 | v4.0.0-beta.9 | 2026-04-22 | Vendor sweep fold-in: /ccc-agent-writing + /ccc-systematic-debugging skills, typescript-reviewer + python-reviewer agents, sequential-thinking MCP (9th server). Plugin skills 28→30, personas 15→17, MCP servers 8→9 | ✅ Released |
-| v4.0.0-beta.10 | 2026-04-23 | Hardening + Desktop-first positioning: 5 security fixes, XML strip (17 agents/skills), /ccc-e2e + /save-session + /resume-session skills (30→33), OG image, screenshot scaffold, comprehensive doc sync | 🔄 Current |
+| v4.0.0-beta.11 | 2026-04-23 | Hardening + Desktop-first positioning: 5 security fixes, XML strip (17 agents/skills), /ccc-e2e + /save-session + /resume-session skills (30→33), OG image, screenshot scaffold, comprehensive doc sync | 🔄 Current |
 | v4.0.0 | TBD | Stable — after beta feedback cycle + deploy of hosted MCP | 📋 Pending |
 | v4.1.0 | TBD | Commander Hub marketplace (80/20 rev-share) | 📋 Pending |
 
 ---
 
-## 📦 Current Shipped Surface (v4.0.0-beta.10)
+## 📦 Current Shipped Surface (v4.0.0-beta.11)
 
 ### Plugin (works fully standalone)
 - **33 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e — all free forever)

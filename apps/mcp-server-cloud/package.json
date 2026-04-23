@@ -1,6 +1,6 @@
 {
   "name": "cc-commander-mcp-cloud",
-  "version": "4.0.0-beta.10",
+  "version": "4.0.0-beta.11",
   "description": "CC Commander hosted MCP server — 14 tools, auth, rate limiting, feedback gate",
   "private": true,
   "type": "module",

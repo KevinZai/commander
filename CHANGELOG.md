@@ -2,6 +2,86 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.11] — 2026-04-23 — Production hardening + 10-agent BLITZ review
+
+### 🎯 Headline
+
+Massive post-beta.10 hardening driven by 10 parallel Opus high-thinking agent reviews (Architect, Security, QA, TypeScript, Performance, Docs, DevOps, PM + BLITZ-B local plugin scan + BLITZ-C MCP cloud audit). 8 fix-waves committed. Test suite grows **284 → 500** (glob-discovery unorphaned 4 test files + added 16 new behavioral tests). Bundled MCP count cut **9 → 2** (silent install-day failures eliminated). Ported 3 MIT/Apache-2.0 skills. New release automation + RUNBOOK + rollback script.
+
+**Why it matters:** beta.10 shipped ship-ready code with shape-only tests and auto-bundled credentialed MCPs — inflated confidence. beta.11 closes both gaps so the v4.0.0 stable tag is defensible.
+
+### 🔴 Security (R1 + R2 + Wave 1 extensions)
+
+- `bin/kc.js`: defense-in-depth path-traversal guard — catches URL-encoded, double-encoded, null-byte, absolute-path, Windows-style, unicode bypasses before any `path.join()` (7 new regression tests)
+- `commander/status-line.js`: `fs.readSync` file-descriptor leak fixed with try/finally
+- `apps/mcp-server-cloud/src/middleware/auth.ts`: replaced unsafe `as "free" | "pro"` cast with runtime validation
+
+### 🧪 Tests (R3 — False-confidence gap closed)
+
+- `package.json` `test` script: hardcoded 14-suite list → `commander/tests/*.test.js tests/*.test.js` glob
+- Unorphaned: `session-skills.test.js`, `ccc-e2e-skill.test.js`, `orchestrator.test.js`, `vendor-scanner.test.js` — these never ran in CI before
+- NEW: `test-discovery.test.js` (prevents future orphan regressions)
+- NEW: `agent-manifest.test.js` (17 agents + persona path validation)
+- NEW: `manifest-schema.test.js` (plugin.json + marketplace.json + .mcp.json shape)
+- NEW: `version-parity.test.js` (asserts all 4 manifests agree)
+- NEW: `mcp-bundled-safe.test.js` (credential-free allowlist gate)
+- NEW: `ported-skills.test.js` (license attribution + dynamic count match)
+- `session-skills.test.js`: round-trip + corrupt-JSON + missing-file behavioral tests
+- `dispatch-security.test.js`: 7-variant path-traversal matrix + spawn-layer rejection handling
+
+### 🎨 UX (R6 + R8)
+
+- `.mcp.json` trimmed **9 → 2** — only `context7` + `sequential-thinking` bundled (zero credentials required)
+- Removed from bundle (moved to opt-in via `/ccc-connect`): linear, github, slack, gmail, google-calendar, google-drive, tavily
+- `hooks/session-start.js`: auto-emits welcome `status` pointing at `/ccc-start` on first session — fixes R8 🔴 F1 (90% of launch-day users never discovered the tour)
+- `README.md`: hid 7 broken screenshot refs, killed stale v3.0.0/v2.3.1 narrative blocks, moved 30-second install to top
+- `docs/plugin.md`: refreshed counts (8→2 bundled MCP, 6→8 hooks)
+- `CHEATSHEET.md` + `SKILLS-INDEX.md` + `CLAUDE.md` + `BIBLE.md` + `PLAN.md`: full count reconciliation (33→48 plugin skills, 9→2 bundled MCP)
+
+### 💰 Free-forever in code (R1)
+
+- Stripped license-tier gates from 4 hooks (`cost-tracker.js`, `knowledge-capture.js`, `user-prompt-submit.js`, `intent-classifier.js`) — features now work for all users, no silent no-ops
+
+### 🚀 DevOps (R7)
+
+- NEW: `.github/workflows/release.yml` — tag-triggered full-suite gate + `npm publish --provenance` with `latest`/`beta` dist-tags
+- NEW: `RUNBOOK.md` — npm + plugin + mcp-cloud rollback scenarios
+- NEW: `scripts/rollback.sh` — dry-run by default, `--yes` opt-in, requires gh + op auth
+- NEW: `.github/FUNDING.yml` — GitHub Sponsors + consulting CTA
+- NEW: `.github/ISSUE_TEMPLATE/` — bug/feature/question templates
+- NEW: `scripts/bump-version.js` — atomic 4-manifest version bumper
+- NEW: `scripts/check-version-parity.js --check` — CI gate
+- Fixed drift: `apps/mcp-server-cloud/package.json` was 8 versions behind (beta.2 → beta.11)
+
+### ✨ New skills — 45→48 (BLITZ-B port pass)
+
+- **`/ccc-memory`** (Apache-2.0 from `knowledge-work-plugins/productivity/memory-management`) — two-tier persistent memory: CLAUDE.md (always-loaded) + `memory/` (on-demand dated notes)
+- **`/ccc-tasks`** (Apache-2.0 from `knowledge-work-plugins/productivity/task-management`) — lightweight `tasks/todo.md` tracking with P0-P3 priority
+- **`/ccc-recall`** (MIT from `thedotmack/claude-mem/mem-search`) — three-layer cross-session search: transcripts + `memory/` + claude-mem MCP
+
+### 🔌 MCP cloud (BLITZ-C — code-complete for v4.1 deploy)
+
+- Hono middleware `c.status(); c.json()` bug fixed → correct `c.json(..., 401)` return
+- `/v1/call` request-body validation (rejects null/array/non-object/missing-tool/long-tool/bad-args)
+- SIGTERM 5s drain + SIGINT + uncaughtException + unhandledRejection handlers
+- `app.onError` + `notFound` → JSON not HTML
+- Redis outage fail-open (was fail-closed DoS)
+- CORS `exposeHeaders: X-Commander-*`
+- 31 new tests in `tests/http.test.ts` — 55/55 passing overall
+
+### 📊 Numbers
+
+| Metric | beta.10 | beta.11 | Δ |
+|--------|---------|---------|---|
+| Plugin skills | 33 | **48** | +15 |
+| Bundled MCPs | 9 | **2** | -7 (opt-in) |
+| Tests passing | 284 | **500** | +216 |
+| Manifest version parity | drifted (beta.2 on mcp-cloud) | **locked** | CI-gated |
+| Security regression tests | 5 | **12** | +7 variants |
+| Release automation | manual | **gh-action on tag** | new |
+
+---
+
 ## [4.0.0-beta.10] — 2026-04-23 — Hardening + Desktop-first positioning
 
 ### 🎯 Headline

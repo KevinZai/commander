@@ -1,5 +1,5 @@
 # Skills Index — Quick Reference
-> CC Commander v4.0.0-beta.10 — by Kevin Zicherman
+> CC Commander v4.0.0-beta.11 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
 > Last verified: 2026-04-23 | Desktop plugin first: 33 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e) + 17 specialist sub-agents + 8 lifecycle hooks (16 handlers) + 9 bundled MCP servers | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
