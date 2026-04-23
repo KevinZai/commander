@@ -1,0 +1,54 @@
+name: Feature Request
+description: Propose a new skill, agent, hook, or capability
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Great ideas welcome. The more concrete the use case, the faster this moves.
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: Describe the problem you are trying to solve. Who encounters it, and how often?
+      placeholder: "As a backend developer, I often need to ... but currently I have to ..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: persona
+    attributes:
+      label: Primary persona
+      description: Which type of developer benefits most?
+      options:
+        - Solo dev / indie hacker
+        - Frontend developer
+        - Backend developer
+        - Full-stack developer
+        - DevOps / platform engineer
+        - Mobile developer
+        - Data / ML engineer
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would you like CC Commander to do? Which skill/agent/hook would implement this?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds exist today? Why are they insufficient?
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Links, examples from other tools, screenshots, or prior art

@@ -1,0 +1,33 @@
+name: Question
+description: Ask a question about installation, usage, or behaviour
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening an issue, please check:
+        - [Discord community](https://discord.gg/cc-commander) — fastest response, live discussion
+        - [BIBLE.md](https://github.com/KevinZai/commander/blob/main/BIBLE.md) — the Kevin Z Method (7 chapters)
+        - [CHEATSHEET.md](https://github.com/KevinZai/commander/blob/main/CHEATSHEET.md) — quick reference
+
+        If you still need help, fill in the form below.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Be as specific as you can — include the command you ran and what you saw
+    validations:
+      required: true
+
+  - type: input
+    id: ccc_version
+    attributes:
+      label: CC Commander version
+      description: "`node bin/kc.js --status` or `ccc --version`"
+      placeholder: "e.g. 4.0.0-beta.10"
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you already tried?
