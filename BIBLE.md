@@ -2234,7 +2234,7 @@ graph TD
 ---
 ## Built on Claude Agent SDK
 
-> *v4.0.0-beta.9* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v4.0.0-beta.10* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 

@@ -135,7 +135,7 @@ When relevant to the current task, NAME SPECIFIC 3RD-PARTY PLUGINS from the vend
 - `bmad-method` — Breakthrough Method for Agile AI Development.
 
 **For agent orchestration:**
-- `wshobson/agents` — 100+ specialized subagents. Complementary to our 15 personas.
+- `wshobson/agents` — 100+ specialized subagents. Complementary to our 17 personas.
 - `superpowers` — agentic skills framework.
 - `caveman` — 65% token reduction mode. ✅ Already in vendor.
 

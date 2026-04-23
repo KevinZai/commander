@@ -16,7 +16,7 @@ argument-hint: "[intent keyword: build | review | ship | design | learn | more]"
 
 # /ccc — CC Commander Hub
 
-Click-first entry point to the whole CC Commander surface (23 ccc-* skills, 15 specialist agents, 8 MCP servers). The user types `/ccc` and gets a native visual picker — no typing, no menus.
+Click-first entry point to the whole CC Commander surface (33 ccc-* skills, 17 specialist agents, 8 MCP servers). The user types `/ccc` and gets a native visual picker — no typing, no menus.
 
 ## Response shape (EVERY time)
 

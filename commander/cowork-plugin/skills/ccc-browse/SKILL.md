@@ -11,7 +11,7 @@ argument-hint: "[domains | workflows | agents | all]"
 
 # /ccc-browse — Skill + Agent Catalog
 
-A click-first browser for the entire CC Commander surface: 11 CCC domains, 9 workflow skills, 15 specialist agents, plus meta skills. User never scrolls a wall of markdown — we cascade through `AskUserQuestion` 4-at-a-time.
+A click-first browser for the entire CC Commander surface: 11 CCC domains, 9 workflow skills, 17 specialist agents, plus meta skills. User never scrolls a wall of markdown — we cascade through `AskUserQuestion` 4-at-a-time.
 
 ## Response shape (EVERY time)
 
@@ -20,7 +20,7 @@ Output exactly these three sections in order:
 ### 1. Brand header (one line, markdown)
 
 ```
-**CC Commander** · v{VERSION} · Browser · 27 skills · 15 agents · 11 domains
+**CC Commander** · v{VERSION} · Browser · 33 skills · 17 agents · 11 domains
 ```
 
 Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.

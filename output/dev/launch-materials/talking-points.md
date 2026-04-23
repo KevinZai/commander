@@ -18,7 +18,7 @@
 4. **"One install, 502+ skills, every AI IDE."**
    Cowork Desktop, Claude Code Desktop, Claude Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile — all served by the same plugin + hosted MCP endpoint. Move between tools, keep your skills.
 
-5. **"15 specialist agents with persona voices."**
+5. **"17 specialist agents with persona voices."**
    Architect, security-auditor, performance-engineer, designer, product-manager, content-strategist, data-analyst, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker. Each a real voice layer, not a generic "helpful assistant."
 
 6. **"Weekly auto-refresh of the whole ecosystem."**

@@ -431,7 +431,7 @@ CCC reads your project before every dispatch. No setup needed.
 ### What's New in v3.0.0 — Desktop-First Plugin
 
 - **Desktop plugin as primary product** — Install via `/plugin marketplace add KevinZai/commander` then `/plugin install commander` (v4.0.0-beta.5)
-- **28 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
+- **33 plugin skills** — commander, build, linear-board, research, content, session, settings, domains, infra, knowledge, night-mode, standup, code-review, deploy-check, fleet
 - **5 specialized agents** — reviewer, builder, researcher, debugger, fleet-worker
 - **6 lifecycle hooks** — automated session, build, review, deploy, and fleet hooks
 - **5 MCP servers** — native MCP integration out of the box
@@ -625,7 +625,7 @@ One question: **How are you using Claude?**
 
 CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what should I build" to begin.
 
-**What you get:** 30 plugin skills, 17 specialist agents, 8 lifecycle hooks, 9 MCP servers — all with free/pro tier support.
+**What you get:** 33 plugin skills, 17 specialist agents, 8 lifecycle hooks, 9 MCP servers — all with free/pro tier support.
 
 **Marketplace:** `commander-hub` at [KevinZai/commander](https://github.com/KevinZai/commander)
 

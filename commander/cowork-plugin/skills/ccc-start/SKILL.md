@@ -1,6 +1,6 @@
 ---
 name: ccc-start
-description: "First-run onboarding for CC Commander. Detects setup, introduces the 15 specialist agent personas, and drafts a personalized start plan. Use when the user types /ccc-start, just installed the plugin, says 'welcome me', 'onboard me', 'I just installed', 'first time', or wants a guided tour."
+description: "First-run onboarding for CC Commander. Detects setup, introduces the 17 specialist agent personas, and drafts a personalized start plan. Use when the user types /ccc-start, just installed the plugin, says 'welcome me', 'onboard me', 'I just installed', 'first time', or wants a guided tour."
 allowed-tools:
   - Read
   - Write
@@ -113,7 +113,7 @@ Invoke `ccc-browse` skill inline. User picks a category, we cascade.
 
 Invoke `ccc` skill inline. No wrapping text — the next picker does the work.
 
-## The 15 agents (for reference when recommending)
+## The 17 agents (for reference when recommending)
 
 Read `${CLAUDE_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline matrix:
 

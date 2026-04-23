@@ -15,7 +15,7 @@
 5. **Cmd+Q** fully quit the app, then reopen (the autocomplete cache needs a fresh session to pick up the skills)
 6. Type **`/ccc`** — you should see a visual chip picker with 6 options
 
-**That's it.** 28 plugin skills, 15 specialist agents, 8 MCP servers, and 6 lifecycle hooks are now active. Zero config. Zero API keys. Free in beta.
+**That's it.** 33 plugin skills, 17 specialist agents, 8 MCP servers, and 6 lifecycle hooks are now active. Zero config. Zero API keys. Free in beta.
 
 ---
 
@@ -62,7 +62,7 @@ Every other Claude Code plugin solves one slice — memory, structured thinking,
 - 🖱️ **Click-first UX, everywhere.** Every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII prompts. Works identically in Cowork Desktop, Code Desktop, and the CLI.
 - 🧠 **`/ccc-suggest` kills info-paralysis.** Opus-class real-time recommendation. 3 reasoning tiers: strong signals → stack signals → user intent. Returns ONE starred move with plain-English reasoning + named 3rd-party plugins.
 - 🧩 **15 plain `/ccc-*` workflows.** No `commander:` prefix. Skill-based architecture, 100% `claude plugin validate` pass.
-- 🎭 **15 specialist agents with persona voices.** Each agent loads a role-specific voice layer — architect speaks in mermaid + tradeoffs, designer leads with screenshots + contrast ratios, debugger follows the four-phase Iron Law.
+- 🎭 **17 specialist agents with persona voices.** Each agent loads a role-specific voice layer — architect speaks in mermaid + tradeoffs, designer leads with screenshots + contrast ratios, debugger follows the four-phase Iron Law.
 - 🔌 **8 core MCP servers pre-wired + 5 more opt-in.** Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem ship hot. `/ccc-connect` adds Notion / Zapier / Supabase / Slack / GDrive in one click.
 - 🗺️ **`/ccc-cheatsheet` is filesystem-backed.** Live Mermaid diagram that reads the plugin on every invocation. Never drifts.
 - 🔄 **Weekly vendor auto-sync.** 20 vendor submodules refresh via GitHub Actions — your ecosystem stays current without touching a config.
@@ -140,7 +140,7 @@ A: No. The plugin is self-contained. The CLI is a separate, power-user tool for 
 **Q: Does this work in Claude.ai web / iPad / mobile?**
 A: Partial. The plugin's skills work in any Claude Code or Cowork session. The hosted MCP server makes most skills available in Claude.ai via a URL + license key (see [mintlify-docs/features/browse-modes.mdx](../mintlify-docs/features/browse-modes.mdx)).
 
-**Q: What do the 15 specialist agents do?**
+**Q: What do the 17 specialist agents do?**
 A: Each is a persona-driven Sonnet/Opus subagent — `architect`, `security-auditor`, `performance-engineer`, `designer`, `product-manager`, `content-strategist`, `data-analyst`, `technical-writer`, `devops-engineer`, `qa-engineer`, `reviewer`, `builder`, `researcher`, `debugger`, `fleet-worker`. CC Commander auto-routes to the right one based on your task. See `commander/cowork-plugin/rules/personas/` for voice details.
 
 **Q: What's the business model?**

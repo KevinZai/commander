@@ -1052,7 +1052,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v4.0.0-beta.9 Quick Reference (CLI)
+## CC Commander v4.0.0-beta.10 Quick Reference (CLI)
 
 ```bash
 # Launch

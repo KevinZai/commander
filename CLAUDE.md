@@ -90,7 +90,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ```
 ├── commander/cowork-plugin/     # Desktop plugin (primary product)
 │   ├── .claude-plugin/plugin.json   # Plugin manifest (schema-compliant)
-│   ├── skills/                  # 30 plugin skills (23 ccc-* workflows + 5 other + 2 vendor-sourced)
+│   ├── skills/                  # 33 plugin skills (23 ccc-* workflows + 5 other + 2 vendor-sourced)
 │   ├── agents/                  # 17 specialist agents (architect, reviewer, builder, designer, security-auditor, typescript-reviewer, python-reviewer, etc.)
 │   ├── hooks/                   # 8 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
 │   ├── menus/                   # 7 menu JSON trees (root + 6 sub-menus)
@@ -187,7 +187,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** 4.0.0-beta.8 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
 
-**Stats:** 502 skills total, 28 plugin skills, 15 sub-agent personas, 8 lifecycle hooks (16 handlers), 8 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
+**Stats:** 502 skills total, 33 plugin skills, 17 sub-agent personas, 8 lifecycle hooks (16 handlers), 8 MCP servers, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
@@ -269,7 +269,7 @@ CCC ships 15 focused `/ccc:*` skills as the curated front door, then routes into
 - CCC is a meta-layer over the Claude skill ecosystem — curation + guidance + memory, not raw skills
 - 15 `/ccc:*` skills are the curated front door; they route into 450+ deeper skills
 - `CONNECTORS.md` defines 13 tool-agnostic connector categories via `~~category` placeholders — skills are tool-agnostic
-- Everything free forever: 28 plugin skills, 15 agents, 8 bundled MCP servers, 8 lifecycle hooks. No feature gating, no paywalls, no license checks.
+- Everything free forever: 33 plugin skills, 17 agents, 8 bundled MCP servers, 8 lifecycle hooks. No feature gating, no paywalls, no license checks.
 - Revenue model: free forever — 4 levers: (1) transparent affiliate links in /ccc-connect (Supabase, Vercel, Neon, etc.) + (2) Kevin's consulting pipeline (plugin = trust engine → consulting funnel) + (3) optional Pro community ($49/mo Discord) + (4) GitHub Sponsors
 
 ## UI Components

@@ -185,7 +185,7 @@ Lessons compound across projects and teammates.
 
 ## Sub-agent roster
 
-15 specialist personas — each with a distinct role, model, and voice layer in `rules/personas/`:
+17 specialist personas — each with a distinct role, model, and voice layer in `rules/personas/`:
 
 | # | Persona | Model | When |
 |---|---------|-------|------|
@@ -223,7 +223,7 @@ Lessons compound across projects and teammates.
 
 ## vs aider
 
-Aider is your pair programmer — diff-based file editing, any LLM, deep Git integration, terminal-native. CC Commander is your PM — brain/hands sub-agent architecture, 15 specialist personas, click-first workflows, lifecycle hooks that fire automatically. They're complementary: use aider for solo rapid file edits, CCC for multi-phase features that need planning, review, and fleet orchestration. See the [full comparison in the root README](../../README.md#vs-aider-positioning).
+Aider is your pair programmer — diff-based file editing, any LLM, deep Git integration, terminal-native. CC Commander is your PM — brain/hands sub-agent architecture, 17 specialist personas, click-first workflows, lifecycle hooks that fire automatically. They're complementary: use aider for solo rapid file edits, CCC for multi-phase features that need planning, review, and fleet orchestration. See the [full comparison in the root README](../../README.md#vs-aider-positioning).
 
 ## Attribution
 
