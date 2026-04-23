@@ -242,6 +242,21 @@ if (args.includes('--skills')) {
       console.error('Usage: ccc --skills install <name>');
       process.exit(1);
     }
+    // Defense-in-depth: reject obviously-malicious input shapes before any path join.
+    // Catches URL-encoded, double-encoded, null-byte, absolute, Windows-traversal bypasses
+    // that may not trip the post-resolve escape check on POSIX.
+    if (
+      installName.includes('\0') ||
+      installName.includes('\\') ||
+      installName.includes('%2e') || installName.includes('%2E') ||
+      installName.includes('%2f') || installName.includes('%2F') ||
+      installName.includes('%25') ||
+      path.isAbsolute(installName) ||
+      installName.includes('..')
+    ) {
+      console.error('install name would escape skills directory: ' + installName);
+      process.exit(1);
+    }
     var installSrc = path.join(skillsSourceDir, installName);
     var installDst = path.join(skillsInstallDir, installName);
     var resolvedInstallSrc = path.resolve(installSrc);

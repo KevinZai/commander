@@ -98,3 +98,119 @@ test('ccc-start SKILL.md contains session persistence tip', function() {
   assert.ok(content.includes('/save-session'), 'ccc-start should mention /save-session');
   assert.ok(content.includes('/resume-session'), 'ccc-start should mention /resume-session');
 });
+
+// ─── Behavioral: save-session body ────────────────────────────────────────────
+
+test('save-session body specifies session file path pattern', function() {
+  var p = path.join(PLUGIN_SKILLS, 'save-session', 'SKILL.md');
+  var content = fs.readFileSync(p, 'utf8');
+  // Must document where files land so the round-trip contract is clear
+  assert.ok(
+    content.includes('~/.claude/sessions/'),
+    'save-session must specify the ~/.claude/sessions/ directory'
+  );
+  assert.ok(
+    content.includes('-session.tmp'),
+    'save-session must specify the -session.tmp filename suffix'
+  );
+});
+
+test('save-session body defines the required session file sections', function() {
+  var p = path.join(PLUGIN_SKILLS, 'save-session', 'SKILL.md');
+  var content = fs.readFileSync(p, 'utf8');
+  var requiredSections = [
+    'What We Are Building',
+    'What WORKED',
+    'What Did NOT Work',
+    'Exact Next Step'
+  ];
+  requiredSections.forEach(function(section) {
+    assert.ok(
+      content.includes(section),
+      'save-session must document required section: "' + section + '"'
+    );
+  });
+});
+
+test('save-session body handles corrupt/empty case — instructs honest empty sections', function() {
+  var p = path.join(PLUGIN_SKILLS, 'save-session', 'SKILL.md');
+  var content = fs.readFileSync(p, 'utf8');
+  // Skill must instruct writer to document "Nothing" rather than silently skip
+  assert.ok(
+    content.includes('Nothing') || content.includes('nothing'),
+    'save-session should instruct agent to write "Nothing yet" for empty sections, not skip them'
+  );
+  // Must not instruct omitting incomplete sections (would create corrupt read)
+  assert.ok(
+    !content.includes('skip sections'),
+    'save-session must not tell agent to skip sections silently'
+  );
+});
+
+test('save-session body specifies short-id filename rules', function() {
+  var p = path.join(PLUGIN_SKILLS, 'save-session', 'SKILL.md');
+  var content = fs.readFileSync(p, 'utf8');
+  // Short-id rules prevent same-day filename collisions
+  assert.ok(
+    content.includes('Minimum length') || content.includes('minimum length') || content.includes('8 char'),
+    'save-session must specify minimum short-id length to prevent collisions'
+  );
+});
+
+// ─── Behavioral: resume-session body ──────────────────────────────────────────
+
+test('resume-session body specifies the missing-file error message', function() {
+  var p = path.join(PLUGIN_SKILLS, 'resume-session', 'SKILL.md');
+  var content = fs.readFileSync(p, 'utf8');
+  // Must define exact "no session found" user-facing message
+  assert.ok(
+    content.includes('No session files found'),
+    'resume-session must specify "No session files found" message for missing-file path'
+  );
+  // Must instruct stopping, not crashing silently
+  assert.ok(
+    content.includes('Then stop') || content.includes('then stop') || content.includes('stop.'),
+    'resume-session must instruct agent to stop gracefully when no file exists'
+  );
+});
+
+test('resume-session body handles malformed/empty file gracefully', function() {
+  var p = path.join(PLUGIN_SKILLS, 'resume-session', 'SKILL.md');
+  var content = fs.readFileSync(p, 'utf8');
+  assert.ok(
+    content.includes('empty or malformed') || content.includes('empty or unreadable'),
+    'resume-session must define graceful handling for empty or malformed session files'
+  );
+});
+
+test('resume-session body defines round-trip contract with save-session', function() {
+  var p = path.join(PLUGIN_SKILLS, 'resume-session', 'SKILL.md');
+  var content = fs.readFileSync(p, 'utf8');
+  // Must reference its counterpart skill
+  assert.ok(
+    content.includes('/save-session'),
+    'resume-session must reference /save-session as its counterpart (round-trip contract)'
+  );
+  // Must read, not modify
+  assert.ok(
+    content.includes('read-only') || content.includes('Never modify'),
+    'resume-session must specify the session file is read-only'
+  );
+});
+
+test('resume-session body specifies SESSION LOADED briefing format', function() {
+  var p = path.join(PLUGIN_SKILLS, 'resume-session', 'SKILL.md');
+  var content = fs.readFileSync(p, 'utf8');
+  assert.ok(
+    content.includes('SESSION LOADED'),
+    'resume-session must specify the "SESSION LOADED:" briefing header format'
+  );
+  assert.ok(
+    content.includes('WHAT NOT TO RETRY') || content.includes('What Not To Retry'),
+    'resume-session briefing must include WHAT NOT TO RETRY section (critical for avoiding repeated failures)'
+  );
+  assert.ok(
+    content.includes('NEXT STEP'),
+    'resume-session briefing must include NEXT STEP section'
+  );
+});

@@ -64,11 +64,51 @@ test('ccc-e2e SKILL.md body references /ccc-fleet and /ccc-testing', function() 
   );
 });
 
-test('plugin.json lists ccc-e2e skill count (31)', function() {
+test('plugin.json skill count matches actual skills directory (dynamic)', function() {
+  // Read the actual count from the skills directory rather than hardcoding
+  var skillsDir = path.join(ROOT, 'commander', 'cowork-plugin', 'skills');
+  var actualCount = fs.readdirSync(skillsDir, { withFileTypes: true })
+    .filter(function(e) { return e.isDirectory(); })
+    .length;
+
   var raw = fs.readFileSync(PLUGIN_JSON_PATH, 'utf8');
   var json = JSON.parse(raw);
+
+  // Extract the skill count from description (e.g. "33 plugin skills")
+  var match = json.description.match(/(\d+)\s+plugin skills/);
   assert.ok(
-    json.description.includes('31 plugin skills'),
-    'plugin.json description must reference "31 plugin skills" after adding ccc-e2e'
+    match,
+    'plugin.json description must contain a "N plugin skills" count, got: ' + json.description.slice(0, 120)
+  );
+  var claimedCount = parseInt(match[1], 10);
+
+  assert.strictEqual(
+    claimedCount,
+    actualCount,
+    'plugin.json claims ' + claimedCount + ' plugin skills but directory has ' + actualCount +
+    ' — update plugin.json description to match'
+  );
+});
+
+test('ccc-e2e SKILL.md allowed-tools includes required orchestration tools', function() {
+  var content = fs.readFileSync(SKILL_PATH, 'utf8');
+  var requiredTools = ['Agent', 'AskUserQuestion', 'Bash', 'Read', 'Grep'];
+  requiredTools.forEach(function(tool) {
+    assert.ok(
+      content.includes(tool),
+      'ccc-e2e SKILL.md must list "' + tool + '" in allowed-tools or body'
+    );
+  });
+});
+
+test('ccc-e2e SKILL.md depends on /ccc-fleet and /ccc-testing', function() {
+  var content = fs.readFileSync(SKILL_PATH, 'utf8');
+  assert.ok(
+    content.includes('/ccc-fleet'),
+    'ccc-e2e must reference /ccc-fleet (parallel orchestration dependency)'
+  );
+  assert.ok(
+    content.includes('/ccc-testing'),
+    'ccc-e2e must reference /ccc-testing (testing dependency)'
   );
 });
