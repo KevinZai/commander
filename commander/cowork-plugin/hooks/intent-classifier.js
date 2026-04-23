@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFile } from 'node:fs/promises';
+// License-tier gate removed 2026-04-23 — CC Commander is free forever.
 import { join } from 'node:path';
 
 const SKILL_PATTERNS = [
@@ -16,23 +16,9 @@ const SKILL_PATTERNS = [
 
 async function main() {
   try {
-    const licenseFile = join(process.env.HOME, '.claude', 'commander', 'license.json');
-    let tier = 'free';
-    try {
-      const license = JSON.parse(await readFile(licenseFile, 'utf8'));
-      if (license.key && license.expires && new Date(license.expires) > new Date()) {
-        tier = license.tier || 'pro';
-      }
-    } catch {}
-
     // Read stdin first to avoid broken pipe on early exit
     let input = '';
     for await (const chunk of process.stdin) input += chunk;
-
-    if (tier === 'free') {
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-      return;
-    }
 
     const data = JSON.parse(input);
     const prompt = (data.prompt || data.message || '').toLowerCase();

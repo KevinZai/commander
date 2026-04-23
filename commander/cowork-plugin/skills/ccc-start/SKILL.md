@@ -39,7 +39,7 @@ Detect setup with **three parallel checks** (one Bash call, chained with `&&`, s
 
 Render a one-line summary:
 
-> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: 15 · MCPs: 5
+> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: 17 · MCPs: 3 bundled (9+ opt-in via /ccc-connect)
 
 If first-time (no plugins, no plans, no repo): "🧭 Fresh install — let's set you up in under 2 minutes."
 
@@ -59,7 +59,7 @@ options:
     description: "Point us at your repo — we scan, write CLAUDE.md, and recommend the right agents for your stack."
     preview: "Runs stack detection + writes a personalized plan to ~/.claude/plans/."
   - label: "🗺️ Just show me around"
-    description: "Quick tour of the 15 agent personas, 27 skills, and 5 MCP servers. No commitment."
+    description: "Quick tour of the 17 agent personas, 33 skills, and 3 bundled MCP servers. No commitment."
     preview: "Routes to /ccc-browse — browse agents and skills by category."
   - label: "⏭️ Skip — I know what I'm doing"
     description: "Drop me at the main /ccc hub. No onboarding."
@@ -87,7 +87,7 @@ Then write the plan file:
 2. If no plan mode is active: call `EnterPlanMode` and use the path it returns.
 3. Write the plan to the resolved path containing:
    - Project type, audience, milestone
-   - 3 recommended agents from the 15 available (see matrix below)
+   - 3 recommended agents from the 17 available (see matrix below)
    - Next 3 concrete steps
    - The `/ccc-build-<type>` command to run next
 4. Call `ExitPlanMode` to surface the plan in the Desktop Plan pane.
@@ -134,6 +134,8 @@ Read `${CLAUDE_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline 
 | 📊 data-analyst | Cohort analysis, insights, viz specs |
 | ✍️ content-strategist | Editorial calendars, content pillars |
 | ⚙️ fleet-worker | Parallel batch work (migrations, sweeps) |
+| 🔷 typescript-reviewer | TypeScript-specific code review, type safety |
+| 🐍 python-reviewer | Python-specific code review, idioms, packaging |
 
 Pick **3** based on context signal (e.g. Next.js repo → designer + builder + qa-engineer).
 

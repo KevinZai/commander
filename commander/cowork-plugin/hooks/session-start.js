@@ -17,8 +17,8 @@ const PLUGIN_JSON = join(import.meta.dirname, '..', '.claude-plugin', 'plugin.js
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
 const SESSIONS_DIR = join(CCC_DIR, 'sessions');
 const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
-const LICENSE_FILE = join(CCC_DIR, 'license.json');
 const STATE_FILE = join(CCC_DIR, 'state.json');
+const CLAUDE_SESSIONS_DIR = join(process.env.HOME, '.claude', 'sessions');
 
 async function main() {
   try {
@@ -50,31 +50,42 @@ async function main() {
     const knowledge = await readdir(KNOWLEDGE_DIR).catch(() => []);
     const knowledgeCount = knowledge.length;
 
-    let tier = 'free';
-    try {
-      const license = JSON.parse(await readFile(LICENSE_FILE, 'utf8'));
-      if (license.key && license.expires && new Date(license.expires) > new Date()) {
-        tier = license.tier || 'pro';
-      }
-    } catch {}
-
     // Determine onboarding status
-    let onboardingStatus = 'pending';
+    let onboardingCompleted = false;
     try {
       const state = JSON.parse(await readFile(STATE_FILE, 'utf8'));
-      onboardingStatus = state.onboardingCompleted ? 'complete' : 'pending';
+      onboardingCompleted = !!state.onboardingCompleted;
     } catch {}
+
+    // Detect if this is the user's first-ever Claude session (no prior session history)
+    let isFirstSession = false;
+    try {
+      const claudeSessions = await readdir(CLAUDE_SESSIONS_DIR).catch(() => []);
+      isFirstSession = claudeSessions.length === 0;
+    } catch {
+      isFirstSession = true;
+    }
 
     const activeFile = join(SESSIONS_DIR, 'active-session.json');
     try {
       await writeFile(activeFile, JSON.stringify({
         startedAt: new Date().toISOString(),
         status: 'active',
-        tier,
       }, null, 2));
     } catch {}
 
-    const status = `CCC ${pluginVersion} | Sessions: ${sessionCount} | Knowledge: ${knowledgeCount} entries | Tier: ${tier} | Onboarding: ${onboardingStatus}`;
+    // Auto-prompt /ccc-start on first session when onboarding not yet completed
+    if (!onboardingCompleted && isFirstSession) {
+      console.log(JSON.stringify({
+        continue: true,
+        suppressOutput: true,
+        status: '👋 Welcome to CC Commander! Run /ccc-start for a 60-second tour.',
+      }));
+      return;
+    }
+
+    const onboardingStatus = onboardingCompleted ? 'complete' : 'pending';
+    const status = `CCC ${pluginVersion} | Sessions: ${sessionCount} | Knowledge: ${knowledgeCount} entries | Onboarding: ${onboardingStatus}`;
 
     console.log(JSON.stringify({
       continue: true,

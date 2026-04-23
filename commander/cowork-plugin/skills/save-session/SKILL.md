@@ -48,7 +48,7 @@ Full valid filename example: `2024-01-15-abc123de-session.tmp`
 
 ### Step 4: Populate all sections
 
-Write every section honestly. Do not skip sections — write "Nothing yet" or "N/A" if a section genuinely has no content. An incomplete file is worse than an honest empty section.
+Write every section honestly. Do not omit any section — write "Nothing yet" or "N/A" if a section genuinely has no content. An incomplete file is worse than an honest empty section.
 
 ### Step 5: Show the file to the user
 

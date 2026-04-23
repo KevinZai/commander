@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// License-tier gate removed 2026-04-23 — CC Commander is free forever.
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -8,20 +9,6 @@ const COST_FILE = join(SESSIONS_DIR, 'active-cost.json');
 
 async function main() {
   try {
-    const licenseFile = join(process.env.HOME, '.claude', 'commander', 'license.json');
-    let tier = 'free';
-    try {
-      const license = JSON.parse(await readFile(licenseFile, 'utf8'));
-      if (license.key && license.expires && new Date(license.expires) > new Date()) {
-        tier = license.tier || 'pro';
-      }
-    } catch {}
-
-    if (tier === 'free') {
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-      return;
-    }
-
     let costData = { toolCalls: 0, estimatedCost: 0, startedAt: new Date().toISOString() };
     try {
       costData = JSON.parse(await readFile(COST_FILE, 'utf8'));
