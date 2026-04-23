@@ -1,6 +1,6 @@
 ---
 name: ccc-review
-description: "CC Commander — audit current branch, security posture, performance hotpaths, or run full project x-ray. Spawns the matching specialist agent in the background; findings land at tasks/reviews/ccc-review-<date>-<type>.md as a severity-rated scorecard. Use when the user types /ccc-review, /ccc review, picks 'Review' from the /ccc hub, or says 'audit this', 'check my diff', 'security review', 'perf review', 'x-ray the project'."
+description: "CC Commander — audit current branch, security posture, performance hotpaths, or run full project x-ray. Spawns the matching specialist agent in the background; findings land at tasks/reviews/ as a severity-rated scorecard. Use when the user types /ccc-review, picks 'Review' from the /ccc hub, or says 'audit this', 'security review', 'perf review', 'x-ray the project'."
 allowed-tools:
   - Read
   - Write

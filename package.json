@@ -71,9 +71,10 @@
     "mcp:cloud:build": "cd apps/mcp-server-cloud && npm run build",
     "test:airplane": "MCP_DISABLED=1 node --test tests/airplane-mode.test.js",
     "check:registry": "node scripts/build-from-registry.js --check",
+    "check:frontmatter": "node scripts/audit-frontmatter.js --check",
     "test:tmux-menu": "node --test commander/tests/tmux-menu-audit.test.js",
     "test:coverage": "./node_modules/.bin/c8 node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js",
-    "prepublishOnly": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js && npx eslint . --max-warnings 150",
+    "prepublishOnly": "node --test commander/tests/paths.test.js tests/hooks.test.js commander/tests/intelligence.test.js commander/tests/error-handling.test.js && node scripts/audit-frontmatter.js && npx eslint . --max-warnings 150",
     "test:screenshots": "node tests/screenshot-capture.js",
     "test:screenshots:png": "node tests/screenshot-capture.js --png",
     "test:showcase": "bash tests/visual-showcase.sh"
