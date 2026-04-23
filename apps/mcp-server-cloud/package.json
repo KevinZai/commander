@@ -1,6 +1,6 @@
 {
   "name": "cc-commander-mcp-cloud",
-  "version": "4.0.0-beta.2",
+  "version": "4.0.0-beta.10",
   "description": "CC Commander hosted MCP server — 14 tools, auth, rate limiting, feedback gate",
   "private": true,
   "type": "module",
@@ -10,8 +10,9 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-vm-modules --test tests/integration.test.ts",
-    "test:node": "node --test tests/integration.test.js",
+    "test": "node --import tsx --test tests/integration.test.ts tests/http.test.ts",
+    "test:node": "node --test tests/integration.test.js tests/http.test.js",
+    "smoke": "./scripts/smoke.sh",
     "lint": "eslint src/"
   },
   "dependencies": {

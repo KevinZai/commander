@@ -1,5 +1,6 @@
 import type { AuthContext } from "../middleware/auth.js";
 import { getCallsUsed, getEffectiveCap } from "../db/usage.js";
+import { SERVER_VERSION } from "../lib/version.js";
 
 export type GetStatusArgs = Record<string, never>;
 
@@ -14,7 +15,7 @@ export async function getStatus(_args: GetStatusArgs, auth: AuthContext) {
   const resetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
   return {
-    version: "4.0.0-beta.1",
+    version: SERVER_VERSION,
     tier: auth.tier,
     userId: auth.userId,
     usage: {

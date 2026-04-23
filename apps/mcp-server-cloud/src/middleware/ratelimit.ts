@@ -18,24 +18,38 @@ const burstLimiter = new Ratelimit({
   analytics: true,
 });
 
-export async function rateLimitMiddleware(c: Context, next: Next): Promise<void> {
+export async function rateLimitMiddleware(c: Context, next: Next): Promise<Response | void> {
   const auth = c.get("auth");
+  if (!auth?.userId) {
+    logger.error("rateLimitMiddleware invoked without auth context");
+    return c.json({ error: "Auth context missing" }, 500);
+  }
   const userId = auth.userId;
 
   // 1. Burst protection
-  const { success: burstOk, remaining: burstRemaining } =
-    await burstLimiter.limit(userId);
-
-  if (!burstOk) {
-    c.status(429);
-    c.json({
-      error: "Rate limit exceeded — slow down",
-      retryAfterSeconds: 60,
-    });
-    return;
+  let burstOk = true;
+  let burstRemaining = 0;
+  try {
+    const result = await burstLimiter.limit(userId);
+    burstOk = result.success;
+    burstRemaining = result.remaining;
+  } catch (err) {
+    // Fail-open on Redis unavailability (anti-DoS should not DoS legit users)
+    logger.warn({ err: (err as Error).message }, "Burst limiter failed — failing open");
   }
 
-  // 2. Monthly usage cap (fail-closed)
+  if (!burstOk) {
+    return c.json(
+      {
+        error: "Rate limit exceeded — slow down",
+        retryAfterSeconds: 60,
+      },
+      429,
+      { "Retry-After": "60" }
+    );
+  }
+
+  // 2. Monthly usage cap (fail-closed via DB errors returning 0 means cap never exceeded — see usage.ts)
   const [callsUsed, cap] = await Promise.all([
     getCallsUsed(userId),
     getEffectiveCap(userId),
@@ -43,73 +57,75 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<void>
 
   if (callsUsed >= cap) {
     logger.info({ userId, callsUsed, cap }, "Monthly cap exceeded");
-    c.status(429);
-    c.json({
-      error: "Monthly call limit reached",
-      callsUsed,
-      cap,
-      message:
-        cap < 1000
-          ? "Answer a survey to restore your cap to 1,000 calls/month."
-          : "Upgrade to Pro for unlimited calls, or answer 2 surveys to unlock 2,000 calls this month.",
-      upgradeUrl: "https://cc-commander.com/pricing",
-      surveyUrl: "https://cc-commander.com/beta/survey/pending",
-    });
-    return;
+    return c.json(
+      {
+        error: "Monthly call limit reached",
+        callsUsed,
+        cap,
+        message:
+          cap < 1000
+            ? "Answer a survey to restore your cap to 1,000 calls/month."
+            : "Upgrade to Pro for unlimited calls, or answer 2 surveys to unlock 2,000 calls this month.",
+        upgradeUrl: "https://cc-commander.com/pricing",
+        surveyUrl: "https://cc-commander.com/beta/survey/pending",
+      },
+      429
+    );
   }
 
   // 3. Every 20th call — feedback gate
   const callNumber = callsUsed + 1;
   if (callNumber % 20 === 0) {
-    const pendingFeedback = await checkFeedbackPending(userId, callNumber);
+    const pendingFeedback = await checkFeedbackPending(userId);
     if (pendingFeedback) {
-      c.status(402);
-      c.json({
-        error: "Survey required",
-        message: "Complete a quick survey to continue. It takes 30 seconds.",
-        surveyUrl: "https://cc-commander.com/beta/survey/pending",
-        callNumber,
-      });
-      return;
+      return c.json(
+        {
+          error: "Survey required",
+          message: "Complete a quick survey to continue. It takes 30 seconds.",
+          surveyUrl: "https://cc-commander.com/beta/survey/pending",
+          callNumber,
+        },
+        402
+      );
     }
   }
 
-  // Proceed — increment counter and touch last_seen in background
-  await next();
-
-  // Post-response side effects
-  incrementCallCount(userId).catch((err) =>
-    logger.warn({ err, userId }, "incrementCallCount post-response failed")
-  );
-  touchLastSeen(userId).catch(() => {});
-
-  // Expose usage headers
+  // Expose usage headers BEFORE handler runs (Hono buffers)
   c.header("X-Commander-Calls-Used", String(callsUsed + 1));
   c.header("X-Commander-Calls-Cap", String(cap));
   c.header("X-Commander-Burst-Remaining", String(burstRemaining));
+
+  await next();
+
+  // Post-response side effects — never block the response
+  incrementCallCount(userId).catch((err) =>
+    logger.warn({ err: (err as Error).message, userId }, "incrementCallCount post-response failed")
+  );
+  touchLastSeen(userId).catch((err) =>
+    logger.warn({ err: (err as Error).message, userId }, "touchLastSeen post-response failed")
+  );
 }
 
-async function checkFeedbackPending(
-  userId: string,
-  _callNumber: number
-): Promise<boolean> {
-  // Check if user has answered any survey this month
-  // If yes, feedback gate is satisfied for this call
-  const { createClient } = await import("@supabase/supabase-js");
-  const { env: e } = await import("../lib/env.js");
-  const db = createClient(e.supabaseUrl, e.supabaseServiceRoleKey, {
-    auth: { persistSession: false },
-  });
+async function checkFeedbackPending(userId: string): Promise<boolean> {
+  try {
+    const { db: supabase } = await import("../db/client.js");
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
 
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
+    const { count, error } = await supabase
+      .from("surveys")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("answered_at", startOfMonth.toISOString());
 
-  const { count } = await db
-    .from("surveys")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .gte("answered_at", startOfMonth.toISOString());
-
-  return (count ?? 0) === 0;
+    if (error) {
+      logger.warn({ err: error, userId }, "checkFeedbackPending query failed — skipping gate");
+      return false; // fail-open on DB error (don't block a paying user)
+    }
+    return (count ?? 0) === 0;
+  } catch (err) {
+    logger.warn({ err: (err as Error).message, userId }, "checkFeedbackPending threw — skipping gate");
+    return false;
+  }
 }

@@ -25,6 +25,13 @@ import {
   integratePlan,
 } from "./tools/index.js";
 import type { AuthContext } from "./middleware/auth.js";
+import { SERVER_VERSION } from "./lib/version.js";
+
+declare module "hono" {
+  interface ContextVariableMap {
+    reqId: string;
+  }
+}
 
 // ─── Boot sequence ─────────────────────────────────────────────────────────
 const bootStart = Date.now();
@@ -35,12 +42,27 @@ const app = new Hono();
 
 // ─── Global middleware ─────────────────────────────────────────────────────
 app.use("*", honoLogger());
+
+// Request ID for traceability
+app.use("*", async (c, next) => {
+  const reqId = c.req.header("x-request-id") ?? crypto.randomUUID();
+  c.set("reqId", reqId);
+  c.header("X-Request-Id", reqId);
+  await next();
+});
+
 app.use(
   "*",
   cors({
     origin: ["https://cc-commander.com", "http://localhost:3000"],
-    allowHeaders: ["Authorization", "Content-Type"],
+    allowHeaders: ["Authorization", "Content-Type", "X-Request-Id"],
     allowMethods: ["GET", "POST", "OPTIONS"],
+    exposeHeaders: [
+      "X-Commander-Calls-Used",
+      "X-Commander-Calls-Cap",
+      "X-Commander-Burst-Remaining",
+      "X-Request-Id",
+    ],
   })
 );
 
@@ -49,7 +71,7 @@ app.get("/health", (c) => {
   const reg = getRegistryState();
   return c.json({
     status: "ok",
-    version: "4.0.0-beta.2",
+    version: SERVER_VERSION,
     skills_loaded: reg.skillsLoaded,
     agents_loaded: reg.agentsLoaded,
     uptime_seconds: reg.uptimeSeconds,
@@ -64,7 +86,7 @@ const latencyBuckets: Record<string, number[]> = {};
 let totalCalls = 0;
 let totalErrors = 0;
 
-function recordCall(tool: string, latencyMs: number, isError: boolean) {
+export function recordCall(tool: string, latencyMs: number, isError: boolean): void {
   totalCalls++;
   callCounters[tool] = (callCounters[tool] ?? 0) + 1;
   if (isError) {
@@ -77,7 +99,7 @@ function recordCall(tool: string, latencyMs: number, isError: boolean) {
   if (latencyBuckets[tool].length > 1000) latencyBuckets[tool].shift();
 }
 
-function percentile(arr: number[], p: number): number {
+export function percentile(arr: number[], p: number): number {
   if (arr.length === 0) return 0;
   const sorted = [...arr].sort((a, b) => a - b);
   const idx = Math.floor((p / 100) * sorted.length);
@@ -123,7 +145,7 @@ app.get("/metrics", (c) => {
 app.get("/v1", (c) => {
   return c.json({
     name: "CC Commander",
-    version: "4.0.0-beta.2",
+    version: SERVER_VERSION,
     description: "456+ skills. 14 tools. Every AI IDE.",
     tools: TOOL_NAMES.map((name) => ({
       name,
@@ -142,101 +164,177 @@ mcp.get("/sse", (c) => {
   const auth = c.get("auth") as AuthContext;
   logger.info({ userId: auth.userId }, "SSE connection established");
 
-  c.header("Content-Type", "text/event-stream");
-  c.header("Cache-Control", "no-cache");
-  c.header("Connection", "keep-alive");
-
   const capabilities = JSON.stringify({
     protocolVersion: "2024-11-05",
     capabilities: { tools: {}, resources: {} },
-    serverInfo: { name: "cc-commander", version: "4.0.0-beta.2" },
+    serverInfo: { name: "cc-commander", version: SERVER_VERSION },
   });
 
-  return c.body(`data: ${capabilities}\n\n`);
+  return new Response(`data: ${capabilities}\n\n`, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
 });
+
+// ─── Request body validation ──────────────────────────────────────────────
+// Lightweight runtime check — we avoid adding zod as a runtime dep. Matches the
+// known TOOL_SCHEMAS shape and rejects malformed input fast.
+function validateCallBody(body: unknown):
+  | { ok: true; tool: string; args: Record<string, unknown> }
+  | { ok: false; error: string } {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { ok: false, error: "Body must be a JSON object" };
+  }
+  const b = body as Record<string, unknown>;
+  if (typeof b.tool !== "string" || b.tool.length === 0) {
+    return { ok: false, error: "Missing or invalid 'tool' field" };
+  }
+  if (b.tool.length > 128) {
+    return { ok: false, error: "'tool' field too long" };
+  }
+  let args: Record<string, unknown> = {};
+  if (b.args !== undefined) {
+    if (typeof b.args !== "object" || b.args === null || Array.isArray(b.args)) {
+      return { ok: false, error: "'args' must be an object" };
+    }
+    args = b.args as Record<string, unknown>;
+  }
+  return { ok: true, tool: b.tool, args };
+}
 
 // ─── Tool call endpoint ────────────────────────────────────────────────────
 mcp.post("/call", async (c) => {
   const auth = c.get("auth") as AuthContext;
-  const body = await c.req.json<{ tool: string; args?: Record<string, unknown> }>();
-  const { tool, args = {} } = body;
+
+  let rawBody: unknown;
+  try {
+    rawBody = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid JSON body" }, 400);
+  }
+
+  const parsed = validateCallBody(rawBody);
+  if (!parsed.ok) {
+    return c.json({ error: parsed.error }, 400);
+  }
+  const { tool, args } = parsed;
 
   if (!TOOL_NAMES.includes(tool as (typeof TOOL_NAMES)[number])) {
     return c.json({ error: `Unknown tool: ${tool}` }, 400);
   }
 
-  logger.info({ userId: auth.userId, tool }, "Tool call");
+  const reqId = c.get("reqId");
+  logger.info({ userId: auth.userId, tool, reqId }, "Tool call");
   const t0 = Date.now();
 
   try {
-    let result: unknown;
-
-    switch (tool) {
-      case "commander_list_skills":
-        result = listSkills(args as Parameters<typeof listSkills>[0]);
-        break;
-      case "commander_get_skill":
-        result = await getSkill(args as Parameters<typeof getSkill>[0]);
-        break;
-      case "commander_search":
-        result = searchSkills(args as Parameters<typeof searchSkills>[0]);
-        break;
-      case "commander_suggest_for":
-        result = suggestFor(args as Parameters<typeof suggestFor>[0]);
-        break;
-      case "commander_invoke_skill":
-        result = await invokeSkill(args as Parameters<typeof invokeSkill>[0]);
-        break;
-      case "commander_list_agents":
-        result = listAgents(args as Parameters<typeof listAgents>[0]);
-        break;
-      case "commander_get_agent":
-        result = await getAgent(args as Parameters<typeof getAgent>[0]);
-        break;
-      case "commander_invoke_agent":
-        result = await invokeAgent(args as Parameters<typeof invokeAgent>[0]);
-        break;
-      case "commander_status":
-        result = await getStatus({}, auth);
-        break;
-      case "commander_update":
-        result = checkUpdate({});
-        break;
-      case "commander_init":
-        result = initProject(args as Parameters<typeof initProject>[0]);
-        break;
-      case "commander_notes_pin":
-        result = await pinNote(args as Parameters<typeof pinNote>[0], auth);
-        break;
-      case "commander_tasks_push":
-        result = pushTask(args as Parameters<typeof pushTask>[0]);
-        break;
-      case "commander_plan_integrate":
-        result = integratePlan(args as Parameters<typeof integratePlan>[0]);
-        break;
-    }
-
+    const result = await dispatchTool(tool, args, auth);
     recordCall(tool, Date.now() - t0, false);
     return c.json({ result });
   } catch (err) {
     recordCall(tool, Date.now() - t0, true);
-    logger.error({ err, tool, userId: auth.userId }, "Tool call error");
-    return c.json({ error: "Internal server error" }, 500);
+    logger.error(
+      { err: (err as Error).message, tool, userId: auth.userId, reqId },
+      "Tool call error"
+    );
+    return c.json({ error: "Internal server error", reqId }, 500);
   }
 });
 
+// Extracted for testability
+export async function dispatchTool(
+  tool: string,
+  args: Record<string, unknown>,
+  auth: AuthContext
+): Promise<unknown> {
+  switch (tool) {
+    case "commander_list_skills":
+      return listSkills(args as Parameters<typeof listSkills>[0]);
+    case "commander_get_skill":
+      return await getSkill(args as Parameters<typeof getSkill>[0]);
+    case "commander_search":
+      return searchSkills(args as Parameters<typeof searchSkills>[0]);
+    case "commander_suggest_for":
+      return suggestFor(args as Parameters<typeof suggestFor>[0]);
+    case "commander_invoke_skill":
+      return await invokeSkill(args as Parameters<typeof invokeSkill>[0]);
+    case "commander_list_agents":
+      return listAgents(args as Parameters<typeof listAgents>[0]);
+    case "commander_get_agent":
+      return await getAgent(args as Parameters<typeof getAgent>[0]);
+    case "commander_invoke_agent":
+      return await invokeAgent(args as Parameters<typeof invokeAgent>[0]);
+    case "commander_status":
+      return await getStatus({}, auth);
+    case "commander_update":
+      return checkUpdate({});
+    case "commander_init":
+      return initProject(args as Parameters<typeof initProject>[0]);
+    case "commander_notes_pin":
+      return await pinNote(args as Parameters<typeof pinNote>[0], auth);
+    case "commander_tasks_push":
+      return pushTask(args as Parameters<typeof pushTask>[0]);
+    case "commander_plan_integrate":
+      return integratePlan(args as Parameters<typeof integratePlan>[0]);
+    default:
+      throw new Error(`Unhandled tool: ${tool}`);
+  }
+}
+
 app.route("/v1", mcp);
 
+// ─── 404 handler ──────────────────────────────────────────────────────────
+app.notFound((c) => c.json({ error: "Not found" }, 404));
+
+// Global error handler — ensures uncaught handler errors return JSON, not HTML
+app.onError((err, c) => {
+  const reqId = c.get("reqId");
+  logger.error({ err: (err as Error).message, reqId }, "Unhandled error");
+  return c.json({ error: "Internal server error", reqId }, 500);
+});
+
 // ─── Graceful shutdown ─────────────────────────────────────────────────────
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM received — shutting down gracefully");
-  process.exit(0);
+let shuttingDown = false;
+
+function registerShutdown(signal: NodeJS.Signals): void {
+  process.on(signal, () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    logger.info({ signal }, "Shutdown signal received — draining (5s)");
+    // 5s drain window for in-flight requests + Fly kill_timeout = 10s total
+    setTimeout(() => {
+      logger.info("Exit.");
+      process.exit(0);
+    }, 5000).unref();
+  });
+}
+registerShutdown("SIGTERM");
+registerShutdown("SIGINT");
+
+process.on("uncaughtException", (err) => {
+  logger.fatal({ err: err.message, stack: err.stack }, "Uncaught exception");
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.fatal({ reason: String(reason) }, "Unhandled rejection");
+  process.exit(1);
 });
 
 // ─── Start server ──────────────────────────────────────────────────────────
-logger.info({ port: env.port }, "CC Commander MCP server starting");
+logger.info({ port: env.port, version: SERVER_VERSION }, "CC Commander MCP server starting");
 
+export { app };
 export default {
   port: env.port,
   fetch: app.fetch,
 };
+
+// Validate request body shape — exported for tests
+export { validateCallBody };
+{ validateCallBody };
+{ validateCallBody };

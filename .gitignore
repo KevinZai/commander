@@ -8,6 +8,7 @@ dashboard/dist/
 # Environment & secrets
 .env*
 *.env
+!.env.example
 
 # Editor & IDE
 .vscode/settings.json
