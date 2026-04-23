@@ -76,6 +76,10 @@ brand: Kevin Z's CC Commander
 4. `load-testing` → stress test under load
 5. `verification-loop` → final sign-off
 
+## Scope note
+
+This is the **CLI catalog entry** for the CCC testing domain. For the Desktop plugin entry, see `commander/cowork-plugin/skills/ccc-testing/`. Both dispatch to the same sub-skills.
+
 ### TDD Feature Build
 1. `test-strategy` → what to test for this feature
 2. `tdd-workflow` → red/green/refactor loop

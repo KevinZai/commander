@@ -17,6 +17,12 @@ disable-model-invocation: true
 
 Automated screenshot-driven UI verification loop. Write code, see it rendered, fix issues, verify the fix -- all without leaving Claude Code.
 
+## Distinction
+
+**Interactive loop** — write UI, screenshot, compare to design, iterate. Live browser. Use during feature development. This skill is for active iteration, not CI gating.
+
+For baseline comparison and CI regressions, see `skills/ccc-testing/visual-regression/` instead.
+
 ## How It Works
 
 ```

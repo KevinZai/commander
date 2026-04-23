@@ -202,6 +202,10 @@ node -e "
 Reply to the user with a one-line confirmation:
 > ✅ Onboarding complete. Next time you run `/ccc`, you go straight to the main menu.
 
+## Session Persistence
+
+**Tip:** Run `/save-session` before closing a working session to capture state. Then `/resume-session` at the start of your next one to pick up instantly. Both are built into CC Commander — no extra install needed.
+
 ## Tips for the agent executing this skill
 
 1. Whole flow is ≤6 turns: header+context+picker → user clicks → cascade questions → write plan → dispatch. Don't overthink.

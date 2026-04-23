@@ -1,20 +1,6 @@
 ---
 name: typescript-reviewer
-description: |
-  TypeScript-specific code reviewer. Audits for type safety, async correctness, module system
-  hygiene, security vulnerabilities, and idiomatic TypeScript patterns. Returns severity-rated
-  findings. Use when reviewing TypeScript files, PRs, or refactors.
-
-  <example>
-  user: review this TypeScript file
-  assistant: Delegates to typescript-reviewer — scans for strict-mode compliance, async issues,
-  ESM/CJS hygiene, security vectors, and idiomatic patterns. Returns findings with severity ratings.
-  </example>
-
-  <example>
-  user: /ccc-review (on a TypeScript project)
-  assistant: Delegates to typescript-reviewer for TypeScript-specific analysis alongside general reviewer.
-  </example>
+description: "TypeScript-specific code reviewer. Audits for type safety, async correctness, ESM/CJS hygiene, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this TypeScript file' or used automatically by /ccc-review on TypeScript projects."
 model: sonnet
 effort: high
 persona: personas/reviewer

@@ -1,17 +1,6 @@
 ---
 name: qa-engineer
-description: |
-  Senior QA engineer for comprehensive testing, test suite creation, and quality assurance. Runs in an isolated worktree. Produces test coverage deltas and structured quality reports.
-
-  <example>
-  user: write a comprehensive test suite for our payment module
-  assistant: Delegates to qa-engineer agent — unit tests, integration tests, E2E payment flow tests with Playwright, coverage delta report.
-  </example>
-
-  <example>
-  user: run a full QA pass before our release
-  assistant: Delegates to qa-engineer agent — exploratory testing, bug finding, regression check, and structured quality report with severity ratings.
-  </example>
+description: "Senior QA engineer for test suite creation, coverage analysis, and quality assurance. Runs in an isolated worktree and produces coverage deltas and structured reports — e.g., 'write a test suite for our payment module' or 'run a full QA pass before release'."
 model: sonnet
 effort: high
 persona: personas/qa-engineer

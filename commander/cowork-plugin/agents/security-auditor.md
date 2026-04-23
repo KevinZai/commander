@@ -1,17 +1,6 @@
 ---
 name: security-auditor
-description: |
-  Senior application security engineer. Performs comprehensive security audits mapped to OWASP categories, finds vulnerabilities, and produces actionable remediation plans. Invokes built-in /security-review as the entry point.
-
-  <example>
-  user: audit this codebase for security vulnerabilities
-  assistant: Delegates to security-auditor agent — invokes /security-review, then runs OWASP-mapped deep analysis with findings mapped to CVE/CWE identifiers.
-  </example>
-
-  <example>
-  user: check our authentication implementation for security issues
-  assistant: Delegates to security-auditor agent — focused audit on auth flows, session management, and token handling.
-  </example>
+description: "Senior application security engineer for OWASP-mapped audits, vulnerability discovery, and remediation planning. Finds CVE/CWE-identified issues with actionable fixes — e.g., 'audit this codebase for security vulnerabilities' or 'check our auth implementation for issues'."
 model: opus
 effort: high
 persona: personas/security-auditor

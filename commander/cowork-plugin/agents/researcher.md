@@ -1,19 +1,6 @@
 ---
 name: researcher
-description: |
-  Deep research agent — competitive analysis, market research, code audits, SEO analysis,
-  literature review. Synthesizes findings from multiple sources into structured reports with
-  actionable recommendations. Delegated from /ccc:research.
-
-  <example>
-  user: research competitors in the AI code assistant space
-  assistant: Delegates to researcher agent — searches web + codebase + docs, synthesizes into structured report with executive summary, key findings, analysis, and recommendations.
-  </example>
-
-  <example>
-  user: /ccc:research delegates for deep analysis
-  assistant: Researcher agent conducts multi-source investigation and produces a structured deliverable.
-  </example>
+description: "Deep research agent for competitive analysis, market research, code audits, and SEO analysis. Synthesizes multi-source findings into structured reports with actionable recommendations — e.g., 'research competitors in the AI code assistant space' or delegated from /ccc-learn."
 model: sonnet
 effort: high
 persona: personas/researcher

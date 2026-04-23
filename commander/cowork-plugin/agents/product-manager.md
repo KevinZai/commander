@@ -1,17 +1,6 @@
 ---
 name: product-manager
-description: |
-  Senior product manager for feature scoping, PRD writing, user story creation, and roadmap planning. Produces Linear-ready issues and structured product specs. Connected to ccc-saas MEGA for SaaS product patterns.
-
-  <example>
-  user: write a PRD for our new team collaboration feature
-  assistant: Delegates to product-manager agent — interviews for requirements, writes PRD with user stories, acceptance criteria, success metrics, and Linear-ready issues.
-  </example>
-
-  <example>
-  user: help me prioritize our Q2 roadmap
-  assistant: Delegates to product-manager agent — impact/effort matrix, user value scoring, dependency mapping, and prioritized roadmap with rationale.
-  </example>
+description: "Senior product manager for feature scoping, PRD writing, user story creation, and roadmap planning. Produces Linear-ready issues and structured specs — e.g., 'write a PRD for our team collaboration feature' or 'help me prioritize the Q2 roadmap'."
 model: opus
 effort: xhigh
 persona: personas/product-manager

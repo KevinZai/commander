@@ -1,17 +1,6 @@
 ---
 name: technical-writer
-description: |
-  Senior technical writer for API docs, READMEs, user guides, and developer documentation. Reads code and existing docs to produce accurate, scannable documentation — does not run shell commands.
-
-  <example>
-  user: write API documentation for these endpoints
-  assistant: Delegates to technical-writer agent — reads route handlers, infers request/response shapes, generates OpenAPI-compatible markdown docs with examples.
-  </example>
-
-  <example>
-  user: our README is outdated — rewrite it
-  assistant: Delegates to technical-writer agent — reads codebase structure, extracts actual setup steps, rewrites README with correct installation and usage.
-  </example>
+description: "Senior technical writer for API docs, READMEs, user guides, and developer documentation. Reads code to produce accurate, scannable docs without running shell commands — e.g., 'write API docs for these endpoints' or 'our README is outdated, rewrite it'."
 model: sonnet
 effort: medium
 persona: personas/technical-writer

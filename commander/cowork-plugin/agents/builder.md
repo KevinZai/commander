@@ -1,19 +1,6 @@
 ---
 name: builder
-description: |
-  Implements features, fixes bugs, and creates projects from specs. Follows TDD when
-  applicable, uses conventional commits, and prefers boring solutions. Delegated from
-  /ccc:build or /ccc:night-mode after spec approval.
-
-  <example>
-  user: build a REST API for user authentication
-  assistant: Delegates to builder agent — reads spec, writes tests first, implements minimal passing code, verifies build, commits with conventional message.
-  </example>
-
-  <example>
-  user: /ccc:build delegates after spec approval
-  assistant: Builder agent takes over execution phase once plan is approved.
-  </example>
+description: Implements features, fixes bugs, and creates projects from specs. Follows TDD, uses conventional commits, and prefers boring solutions. Delegated from /ccc-build after spec approval — e.g., building a REST API for user authentication or scaffolding a new project.
 model: sonnet
 effort: high
 persona: personas/builder

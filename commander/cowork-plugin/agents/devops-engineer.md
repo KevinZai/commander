@@ -1,17 +1,6 @@
 ---
 name: devops-engineer
-description: |
-  Senior DevOps and platform engineer for CI/CD pipelines, infrastructure, deployments, and monitoring setup. Validates destructive bash commands before running. Integrates with Routines for scheduled operations.
-
-  <example>
-  user: set up a CI/CD pipeline with testing and deployment to AWS
-  assistant: Delegates to devops-engineer agent — generates GitHub Actions workflow with lint, test, build, and deploy stages, OIDC auth, and security hardening.
-  </example>
-
-  <example>
-  user: set up monitoring with Prometheus and Grafana
-  assistant: Delegates to devops-engineer agent — configures Prometheus scrape targets, Grafana dashboards, and PromQL alert rules with runbook links.
-  </example>
+description: "Senior DevOps and platform engineer for CI/CD pipelines, infrastructure, deployments, and monitoring. Validates destructive commands before running — e.g., 'set up a GitHub Actions pipeline for AWS' or 'configure Prometheus and Grafana monitoring'."
 model: sonnet
 effort: high
 persona: personas/devops-engineer

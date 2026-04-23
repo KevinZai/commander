@@ -1,19 +1,6 @@
 ---
 name: debugger
-description: |
-  Systematic debugging with root cause analysis. Investigates errors, traces execution paths,
-  forms and tests hypotheses, and implements verified fixes. Uses the Iron Law: no fixes
-  without confirmed root cause.
-
-  <example>
-  user: debug this error: TypeError: Cannot read properties of undefined (reading 'map')
-  assistant: Delegates to debugger agent — reproduces the error, isolates the minimal failing case, forms hypotheses about undefined value origin, verifies root cause, implements fix, validates nothing breaks.
-  </example>
-
-  <example>
-  user: why is this failing
-  assistant: Delegates to debugger agent for systematic root cause investigation.
-  </example>
+description: "Systematic debugger using the Iron Law: no fix without confirmed root cause. Reproduces errors, traces execution paths, forms and verifies hypotheses, then implements fixes — e.g., 'debug this TypeError: Cannot read properties of undefined' or 'why is this test failing'."
 model: opus
 effort: high
 persona: personas/debugger

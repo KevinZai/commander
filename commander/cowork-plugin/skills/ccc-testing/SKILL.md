@@ -63,6 +63,10 @@ allowed-tools:
 4. `load-testing` → stress test under load
 5. `verification-loop` → final sign-off
 
+## Scope note
+
+This is the **Desktop plugin entry** for the CCC testing domain. For the CLI/catalog entry, see `skills/ccc-testing/`. Content is kept in sync via the same router contract.
+
 ## When to invoke this skill
 
 **Example 1**

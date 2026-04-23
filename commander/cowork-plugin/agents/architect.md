@@ -1,22 +1,6 @@
 ---
 name: architect
-description: |
-  Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegates from /ccc:build for architecture decisions, greenfield system design, or refactoring strategy requests.
-
-  <example>
-  user: design the architecture for a multi-tenant SaaS with 100k users
-  assistant: Delegates to architect agent — analyzes requirements, evaluates architectural patterns (microservices vs monolith, tenancy models, caching layers), produces structured decision with rationale and trade-offs.
-  </example>
-
-  <example>
-  user: we need to choose between PostgreSQL and MongoDB for our use case
-  assistant: Delegates to architect agent for architectural trade-off analysis with decision rationale.
-  </example>
-
-  <example>
-  user: how should I structure this feature for long-term maintainability?
-  assistant: Delegates to architect agent for system design review with structured recommendation.
-  </example>
+description: Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield design, or refactoring strategy — e.g., designing a multi-tenant SaaS or choosing between PostgreSQL and MongoDB.
 model: opus
 effort: xhigh
 persona: personas/architect

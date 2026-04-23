@@ -1,20 +1,6 @@
 ---
 name: python-reviewer
-description: |
-  Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns,
-  pytest quality, security vulnerabilities, and idiomatic Python. Returns severity-rated findings.
-  Use when reviewing Python files, PRs, or refactors.
-
-  <example>
-  user: review this Python file
-  assistant: Delegates to python-reviewer — checks PEP 8, type hints, async patterns, pytest
-  quality, security vectors, and idiomatic Python. Returns severity-rated findings.
-  </example>
-
-  <example>
-  user: /ccc-review (on a Python project)
-  assistant: Delegates to python-reviewer for Python-specific analysis.
-  </example>
+description: "Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Python file' or used automatically by /ccc-review on Python projects."
 model: sonnet
 effort: high
 persona: personas/reviewer

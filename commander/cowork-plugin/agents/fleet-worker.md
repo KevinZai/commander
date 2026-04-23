@@ -1,19 +1,6 @@
 ---
 name: fleet-worker
-description: |
-  General-purpose parallel worker for fleet operations. Executes a single assigned task
-  independently and reports results. Spawned by /ccc:fleet for batch operations —
-  migrations, refactoring sweeps, multi-file updates, automated maintenance.
-
-  <example>
-  user: /ccc:fleet spawns fleet-worker for parallel task execution
-  assistant: Fleet-worker instances execute their assigned task scopes independently, each reporting files changed, test status, and any blockers found.
-  </example>
-
-  <example>
-  user: run a refactoring sweep to rename all instances of `userId` to `user_id` across the API layer
-  assistant: /ccc:fleet spawns fleet-worker agents with scoped file assignments — each worker handles its slice and reports back.
-  </example>
+description: "General-purpose parallel worker for fleet operations. Executes a single scoped task independently and reports structured results. Spawned by /ccc-fleet for batch operations — e.g., refactoring sweeps, migrations, or multi-file updates across the API layer."
 model: sonnet
 effort: medium
 persona: personas/fleet-worker

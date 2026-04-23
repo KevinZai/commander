@@ -1,19 +1,6 @@
 ---
 name: reviewer
-description: |
-  Reviews code changes for security vulnerabilities, performance issues, correctness, and
-  maintainability. Returns a structured review with severity ratings. Delegated from
-  /ccc:code-review for large PRs, multi-file diffs, or detailed analysis requests.
-
-  <example>
-  user: review this PR
-  assistant: Delegates to reviewer agent — pulls diff context, analyzes for security/perf/correctness/maintainability, returns structured findings with severity ratings.
-  </example>
-
-  <example>
-  user: /ccc:code-review
-  assistant: Delegates to reviewer agent for thorough multi-dimensional analysis.
-  </example>
+description: "Reviews code changes for security vulnerabilities, performance issues, correctness, and maintainability. Returns severity-rated structured findings — e.g., 'review this PR' or delegated from /ccc-review for large diffs and multi-file analysis."
 model: sonnet
 effort: high
 persona: personas/reviewer

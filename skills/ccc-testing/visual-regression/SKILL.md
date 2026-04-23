@@ -10,6 +10,12 @@ parent: ccc-testing
 
 > Catch unintended visual changes before they ship. Compare screenshots pixel-by-pixel against approved baselines.
 
+## Distinction
+
+**Baseline comparison** — CI step. Compare new screenshots against committed baseline. Fail build on visual diff. Use for catching regressions in shipped features.
+
+For interactive live-browser iteration during development, see `skills/visual-verify/` instead.
+
 ## When to Use
 
 - UI-heavy applications where visual consistency matters

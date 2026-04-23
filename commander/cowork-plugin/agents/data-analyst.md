@@ -1,17 +1,6 @@
 ---
 name: data-analyst
-description: |
-  Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and actionable recommendations.
-
-  <example>
-  user: analyze our user retention data and find patterns
-  assistant: Delegates to data-analyst agent — cohort analysis, retention curves, churn signals, visualization spec, and actionable recommendations.
-  </example>
-
-  <example>
-  user: our database queries are slow — profile the slow ones
-  assistant: Delegates to data-analyst agent — identifies slow queries, analyzes execution plans, recommends index strategy with estimated improvement.
-  </example>
+description: "Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and actionable recommendations — e.g., 'analyze our user retention data' or 'profile our slow database queries'."
 model: sonnet
 effort: high
 persona: personas/data-analyst
