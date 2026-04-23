@@ -2,7 +2,7 @@
 
 > **The recommended path.** Click-first, GUI-only, zero terminal required. For everyone using Claude Cowork Desktop or Claude Code Desktop.
 
-**Version:** v4.0.0-beta.7 · **Target audience:** novices + developers using Anthropic's desktop clients.
+**Version:** v4.0.0-beta.10 · **Target audience:** novices + developers using Anthropic's desktop clients.
 
 ---
 
