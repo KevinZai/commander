@@ -40,14 +40,24 @@ function filterChoices(choices, state) {
 
 function resolveGitData() {
   var defaults = { gitBranch: '', gitStatus: '', gitLastCommit: '' };
-  var opts = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 };
+  var opts = { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 3000 };
+  var BRANCH_RE = /^[A-Za-z0-9._\/\-]+$/;
+  var PORCELAIN_LINE_RE = /^[ MADRCU?!][ MADRCU?!] .+$/;
   try {
-    var branch = childProcess.execSync('git rev-parse --abbrev-ref HEAD', opts).trim();
-    var porcelain = childProcess.execSync('git status --porcelain', opts).trim();
-    var fileCount = porcelain ? porcelain.split('\n').length : 0;
+    var branch = '';
+    try {
+      var rawBranch = childProcess.execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], opts).trim();
+      if (BRANCH_RE.test(rawBranch)) branch = rawBranch;
+    } catch (_e) {}
+    var porcelain = '';
+    try {
+      porcelain = childProcess.execFileSync('git', ['status', '--porcelain'], opts).trim();
+    } catch (_e) {}
+    var lines = porcelain ? porcelain.split('\n').filter(function(l) { return PORCELAIN_LINE_RE.test(l); }) : [];
+    var fileCount = lines.length;
     var status = fileCount > 0 ? fileCount + ' file' + (fileCount > 1 ? 's' : '') + ' modified' : 'clean';
     var lastCommit = '';
-    try { lastCommit = childProcess.execSync('git log -1 --format=%s', opts).trim(); } catch (_e) {}
+    try { lastCommit = childProcess.execFileSync('git', ['log', '-1', '--format=%s'], opts).trim(); } catch (_e) {}
     return { gitBranch: branch, gitStatus: status, gitLastCommit: lastCommit };
   } catch (_e) { return defaults; }
 }

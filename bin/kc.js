@@ -244,6 +244,12 @@ if (args.includes('--skills')) {
     }
     var installSrc = path.join(skillsSourceDir, installName);
     var installDst = path.join(skillsInstallDir, installName);
+    var resolvedInstallSrc = path.resolve(installSrc);
+    var resolvedSkillsSourceDir = path.resolve(skillsSourceDir);
+    if (!resolvedInstallSrc.startsWith(resolvedSkillsSourceDir + path.sep) && resolvedInstallSrc !== resolvedSkillsSourceDir) {
+      console.error('install name would escape skills directory: ' + installName);
+      process.exit(1);
+    }
     if (!fs.existsSync(installSrc)) {
       console.error('Skill not found: ' + installName);
       process.exit(1);
@@ -448,7 +454,7 @@ if (!dispatching) {
         var KitCommander2 = require(path.join(__dirname,'..','commander','engine'));
         new KitCommander2().start().catch(function(err) { console.error('CC Commander error:', err.message); process.exit(1); });
       } else {
-        cp2.execSync('bash ' + splitScript, { stdio: 'inherit' });
+        cp2.execFileSync('bash', [splitScript], { stdio: 'inherit' });
       }
     } catch(_e) {
       // tmux not available — fall back to simple

@@ -13,6 +13,7 @@
 set -euo pipefail
 
 CLAUDE_DIR="$HOME/.claude"
+[[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
 FORCE=false
 
 while [[ $# -gt 0 ]]; do

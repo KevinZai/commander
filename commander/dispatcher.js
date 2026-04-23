@@ -3,6 +3,16 @@
 // See docs/LICENSE-INTELLIGENCE.md for details. Free to use, not to sell.
 
 var childProcess = require('child_process');
+var path = require('path');
+var fs = require('fs');
+
+function validateCwd(cwd) {
+  if (cwd == null) return;
+  var resolvedCwd = path.resolve(cwd);
+  if (!fs.existsSync(resolvedCwd) || !fs.statSync(resolvedCwd).isDirectory()) {
+    throw new Error('--cwd must be an existing directory: ' + cwd);
+  }
+}
 
 function generateSessionName(task) {
   return 'kc-' + task.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').slice(0, 40).replace(/-+$/, '');
@@ -371,6 +381,7 @@ function dispatch(task, options) {
   var env = Object.assign({}, process.env, { CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70' });
 
   if (stream) {
+    validateCwd(cwd);
     var childProc = null;
     var promise = new Promise(function(resolve, reject) {
       childProc = childProcess.spawn(command, args, {
@@ -474,6 +485,7 @@ function dispatch(task, options) {
   }
 
   // Silent mode (stream=false): batch JSON for background jobs
+  validateCwd(cwd);
   try {
     var stdout = childProcess.execFileSync(command, args, {
       encoding: 'utf8', maxBuffer: 50 * 1024 * 1024, timeout: 10 * 60 * 1000,
