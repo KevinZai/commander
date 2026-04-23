@@ -1,11 +1,13 @@
 # CC Commander
 
-> CC Commander — Guided AI PM for Claude Code. Brain/hands architecture with **17 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer). **30 plugin skills** incl **12 click-first `/ccc-*` workflows**. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **9 bundled MCP servers**. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**
+> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **17 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer). **33 plugin skills** incl **13 click-first `/ccc-*` workflows** + `/save-session` + `/resume-session` + `/ccc-e2e`. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **9 bundled MCP servers**. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**
 
-CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **30 native skills** (`/ccc-*`) organized as 12 click-first specialist workflows, 14 domain routers, 2 diagnostic/meta skills, and 2 vendor-sourced skills. They route into the broader CC Commander ecosystem of 502+ skills across 11 domains.
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 33 skills, 17 agents, 8 lifecycle hooks, and 9 bundled MCP servers appear inside every session automatically.
+
+CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **33 native skills** (`/ccc-*`) organized as 13 click-first specialist workflows, 14 domain routers, 2 diagnostic/meta skills, 2 vendor-sourced skills, and 3 session-management skills. They route into the broader CC Commander ecosystem of 502+ skills across 11 domains.
 
 **Who's it for?**
-- 👋 **New to AI coding agents?** Claude Cowork Desktop + CC Commander = the easiest on-ramp.
+- 👋 **New to AI coding agents?** Claude Code Desktop + CC Commander = the easiest on-ramp. Install via Settings → Plugin Marketplace.
 - 💻 **A developer?** Claude Code Desktop or CLI — same install, same skills, deeper hooks.
 - 🔧 **In Cursor / Windsurf / Cline / Continue / Codex?** Hosted MCP endpoint — one URL, all skills.
 
@@ -19,8 +21,14 @@ Three ways to install CC Commander, depending on how you want to use it:
 
 **1. Desktop plugin marketplace (recommended)**
 
-The full plugin experience — 30 skills, 17 agents, 8 hooks, 9 pre-wired MCPs, free/pro tier gating. Plugin marketplace: `commander-hub` → slug `commander`.
+The full plugin experience — 33 skills, 17 agents, 8 hooks, 9 pre-wired MCPs. All free forever.
 
+**Via GUI (Claude Code Desktop / Cowork Desktop):**
+1. Open **Settings → Plugin Marketplace**
+2. Click **Add from GitHub** → enter `KevinZai/commander`
+3. Find `commander` → click **Install**
+
+**Via CLI (Claude Code terminal only):**
 ```bash
 /plugin marketplace add KevinZai/commander
 /plugin install commander
@@ -48,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Skills
 
-28 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog. Core surface:
+33 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog. Core surface:
 
 
 | Skill | Trigger | Description |
@@ -71,7 +79,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Specialized Agents
 
-15 purpose-built agents that skills delegate to automatically (core 5 shown — full list in `agents/`):
+17 purpose-built agents that skills delegate to automatically (core 5 shown — full list in `agents/`):
 
 | Agent | Model | Purpose |
 |-------|-------|---------|

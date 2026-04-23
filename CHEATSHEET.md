@@ -1,26 +1,31 @@
 # CC Commander Cheatsheet
-> CC Commander v4.0.0-beta.9 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v4.0.0-beta.10 — by Kevin Zicherman — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v4.0.0-beta.9)
+## Desktop Plugin Commands (v4.0.0-beta.10)
 
-CC Commander ships a Claude Desktop plugin at `commander/cowork-plugin/` — this is the primary product. Install once, use everywhere — plain `/ccc-*` namespace (e.g. `/ccc-build`) in any Desktop conversation. 30 plugin skills total (12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 33 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e).
+
+> **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
 ### Plugin Installation
 
-```bash
-# Add from the marketplace
-/plugin marketplace add KevinZai/commander
+**Via Desktop GUI (recommended):**
+1. Open **Settings → Plugin Marketplace**
+2. Click **Add from GitHub** → enter `KevinZai/commander`
+3. Find `commander` → click **Install**
 
-# Install the plugin
+**Via CLI (Claude Code terminal only):**
+```bash
+/plugin marketplace add KevinZai/commander
 /plugin install commander
 ```
 
-### /ccc-* Skills (30 total — 12 specialist workflows + 14 domain routers + 2 meta + 2 vendor-sourced; core surface shown)
+### /ccc-* Skills (33 total — 13 specialist workflows + 14 domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|

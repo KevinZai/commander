@@ -13,7 +13,7 @@ audience: Wave 7 technical writer, README maintainer
 
 **Primary surface: Claude Code Desktop (aka Cowork Desktop)**
 
-CC Commander ships as a native Claude Code Desktop plugin. Install once — all 32 skills, 17 agents, 8 lifecycle hooks, and 9 bundled MCP servers appear inside every session automatically.
+CC Commander ships as a native Claude Code Desktop plugin. Install once — all 33 skills, 17 agents, 8 lifecycle hooks, and 9 bundled MCP servers appear inside every session automatically.
 
 > **Note:** Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
@@ -45,7 +45,7 @@ That's it. Type `/ccc` to open the hub.
 
 | Surface | Count | What it does |
 |---------|-------|-------------|
-| Skills (`/ccc-*`) | 32 | Click-first workflows: Plan, Build, Review, Ship, Learn, Fleet, Design, Connect + 24 more |
+| Skills | 33 | Click-first workflows: Plan, Build, Review, Ship, Learn, Fleet, Design, Connect, E2E, Save/Resume Session + 25 more |
 | Sub-agent personas | 17 | Architect, Builder, Reviewer, Security Auditor, Designer, QA Engineer, DevOps Engineer, Data Analyst, Content Strategist, Product Manager, Performance Engineer, Researcher, Technical Writer, Fleet Worker, Debugger, TypeScript Reviewer, Python Reviewer |
 | Lifecycle hooks | 8 | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop |
 | Bundled MCP servers | 9 | Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem, sequential-thinking |
@@ -69,13 +69,13 @@ See the Desktop screenshot at `docs/screenshots/03-ccc-hub-menu.png` for what th
 ## One-liner descriptions (A/B variants for README headline)
 
 **[A] Outcome-led:**
-> One plugin. 32 skills. Free forever. Your guided AI PM for Claude Code.
+> One plugin. 33 skills. Free forever. Your guided AI PM for Claude Code.
 
 **[B] Pain-led:**
 > Stop context-switching between docs, tools, and prompts. CC Commander runs everything from `/ccc`.
 
 **[C] Feature-led:**
-> 32 skills · 17 sub-agents · 8 hooks · 9 MCP servers — all inside Claude Code Desktop. Free forever.
+> 33 skills · 17 sub-agents · 8 hooks · 9 MCP servers — all inside Claude Code Desktop. Free forever.
 
 Recommended: run [A] as the hero H1, [C] as the subtitle/tagline underneath.
 
@@ -102,6 +102,6 @@ This is the technical differentiator from plain Claude Code + prompts.
 
 ## SEO title / meta description
 
-**Title:** CC Commander — Free Claude Code Desktop Plugin | 32 Skills + 17 Agents
+**Title:** CC Commander — Free Claude Code Desktop Plugin | 33 Skills + 17 Agents
 
-**Meta description:** Install CC Commander in Claude Code Desktop. 32 click-first skills, 17 specialist sub-agents, 8 lifecycle hooks, and 9 MCP servers — all free forever. Type `/ccc` to start.
+**Meta description:** Install CC Commander in Claude Code Desktop. 33 click-first skills, 17 specialist sub-agents, 8 lifecycle hooks, and 9 MCP servers — all free forever. Type `/ccc` to start.

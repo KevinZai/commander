@@ -14,7 +14,7 @@
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
-- [The 28 Plugin Skills](#the-28-plugin-skills) — The curated plugin surface
+- [The 33 Plugin Skills](#the-33-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -25,7 +25,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v4.0.0-beta.9 — Desktop plugin + CLI, plugin-first)*
+- [CC Commander](#cc-commander) *(v4.0.0-beta.10 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 17 sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.3.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -207,7 +207,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
 ---
 
-## The 28 Plugin Skills
+## The 33 Plugin Skills
 
 > *Every skill that ships with `/plugin install commander`. Not the 502-skill ecosystem — just the curated plugin surface.*
 
@@ -2278,7 +2278,9 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v4.0.0-beta.9* — A Claude Code plugin. 30 plugin skills, 17 specialist sub-agents, 9 MCPs, 8 lifecycle hooks (16 handlers). Click-first via AskUserQuestion. A CLI also exists for power users.
+> *v4.0.0-beta.10* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 33 plugin skills, 17 specialist sub-agents, 9 MCPs, 8 lifecycle hooks (16 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+>
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
 ### What It Is
 
@@ -2289,7 +2291,7 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (30 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (33 plugin skills)
   +-- 17 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, ...)
   +-- 8 bundled MCP servers           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 8 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
@@ -2333,7 +2335,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Plugin-first** | 30 plugin skills, 17 agents, 9 MCPs, 8 lifecycle hooks — installed via `/plugin install commander` |
+| **Desktop-first** | 33 plugin skills, 17 agents, 9 MCPs, 8 lifecycle hooks — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 

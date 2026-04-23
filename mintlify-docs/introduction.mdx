@@ -1,11 +1,15 @@
 ---
 title: "CC Commander — Guided AI PM to Master Claude Code Instantly"
-description: "Works in Claude Cowork, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE. 502+ skills, 17 specialist sub-agents, 11 domains. Free forever."
+description: "Primary surface: Claude Code Desktop. 33 plugin skills, 17 specialist sub-agents, 9 MCP servers, 8 lifecycle hooks. Free forever."
 ---
 
 <img src="/assets/ccc-hero.svg" alt="CC Commander — Guided AI PM to Master Claude Code Instantly" />
 
-> **1 install. 502+ skills. Works everywhere Claude works. Free forever.**
+> **One plugin. 33 skills. Free forever. Your guided AI PM for Claude Code.**
+
+**🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace — 33 skills, 17 agents, 8 lifecycle hooks, and 9 bundled MCP servers appear in every session automatically.
+
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. Type `/ccc` to open the hub.
 
 CC Commander is a guided AI PM that helps you master Claude Code — or any Claude-compatible agent IDE — instantly. It's not a skill pack. It reads your project state, scores complexity, routes to the right specialist sub-agent, and gets smarter every session. Built by distilling 200+ community sources into one install, with 17 specialist agent personas, a sub-agent architecture built on Anthropic's Claude Agent SDK pattern, and 8 lifecycle hooks that fire automatically around every session.
 
@@ -26,11 +30,11 @@ CC Commander is a guided AI PM that helps you master Claude Code — or any Clau
   </Card>
 </CardGroup>
 
-## v4.0.0-beta.9 — Vendor Sweep Fold-in
+## v4.0.0-beta.10 — Hardening + Desktop-First
 
 <CardGroup cols={2}>
-  <Card title="30 Plugin Skills" icon="wand-magic-sparkles" href="/plugin/skills">
-    12 /ccc-* specialist workflows (ccc, start, browse, plan, build, review, ship, design, learn, xray, linear, fleet, connect) + 14 ccc-* domain routers + 2 diagnostic/meta + 2 new: /ccc-agent-writing, /ccc-systematic-debugging
+  <Card title="33 Plugin Skills" icon="wand-magic-sparkles" href="/plugin/skills">
+    13 /ccc-* specialist workflows + /ccc-e2e + /save-session + /resume-session + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced (/ccc-agent-writing, /ccc-systematic-debugging). All free forever.
   </Card>
   <Card title="17 Specialist Sub-Agents" icon="robot" href="/plugin/agents">
     architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer — each with a persona voice, model tier, and scoped tool allowlist.
@@ -44,19 +48,22 @@ CC Commander is a guided AI PM that helps you master Claude Code — or any Clau
 </CardGroup>
 
 <Steps>
-  <Step title="Install the plugin">
+  <Step title="Install via Desktop GUI (recommended)">
+    Open **Settings → Plugin Marketplace** → **Add from GitHub** → enter `KevinZai/commander` → find `commander` → click **Install**.
+
+    CLI fallback (terminal only):
     ```
     /plugin marketplace add KevinZai/commander
     /plugin install commander
     ```
   </Step>
-  <Step title="Open the command center">
+  <Step title="Open the hub">
     ```
     /ccc
     ```
   </Step>
   <Step title="Pick a skill or let CCC recommend one">
-    Arrow keys to navigate. Enter to select.
+    Click a chip from the picker — no typing required.
   </Step>
 </Steps>
 

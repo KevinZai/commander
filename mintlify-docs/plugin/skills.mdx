@@ -1,9 +1,9 @@
 ---
 title: "Plugin Skills"
-description: "30 skills shipped with the CC Commander plugin (v4.0.0-beta.9). 12 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced writing/debugging."
+description: "33 skills shipped with the CC Commander plugin (v4.0.0-beta.10). 13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /ccc-e2e + /save-session + /resume-session."
 ---
 
-CC Commander v4.0.0-beta.9 ships **30 plugin skills** in four groups. All skills are **free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required.
+CC Commander v4.0.0-beta.10 ships **33 plugin skills** in five groups. All skills are **free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required.
 
 ## Group 1 — 12 /ccc-* Specialist Workflows
 
@@ -61,7 +61,17 @@ Adapted from the superpowers vendor with attribution. Both are free forever.
 | `/ccc-agent-writing` | `/ccc-agent-writing` or "write a spec", "improve this doc" | Teaches agents to write specs, PRDs, PR descriptions, and docs with clarity, persuasion, and testability. Delegates long-form content to `content-strategist` persona. |
 | `/ccc-systematic-debugging` | `/ccc-systematic-debugging` or "debug this", "root cause", "investigate" | Enforces the Iron Law: no fix without confirmed root cause. Reproduce → hypothesize → verify → fix. Delegates deep investigations to `debugger` persona. |
 
-## All 30 at a Glance
+## Group 5 — /ccc-e2e, /save-session, /resume-session (beta.10)
+
+New skills added in v4.0.0-beta.10.
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-e2e` | `/ccc-e2e` or "e2e test", "add playwright tests" | E2E test scaffolding and Playwright automation — new test suite, existing project, or visual regression |
+| `/save-session` | `/save-session` or "save session", "save my progress" | Save current session state to `~/.claude/commander/sessions/` — context, todos, and plan preserved |
+| `/resume-session` | `/resume-session` or "resume session", "pick up where I left off" | Resume a previously saved session — lists recent saves, pick one to restore context |
+
+## All 33 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -92,7 +102,9 @@ Adapted from the superpowers vendor with attribution. Both are free forever.
 | 25 | `/ccc-cheatsheet` | Diagnostic/meta |
 | 26 | `/ccc-agent-writing` | Vendor-sourced (superpowers) |
 | 27 | `/ccc-systematic-debugging` | Vendor-sourced (superpowers) |
-
-> **Note on count:** Items 28–30 in the "30 plugin skills" count include 3 legacy CLI skills (`code-review`, `content`, `standup`) that pre-date the v4 plugin architecture but remain installed for backward compatibility. The 27 canonical `/ccc-*` and `ccc-*` prefixed skills above are the active plugin surface. Legacy CLI skills remain available for backward compatibility with CLI workflows.
+| 28 | `/ccc-e2e` | E2E + Playwright (beta.10) |
+| 29 | `/save-session` | Session management (beta.10) |
+| 30 | `/resume-session` | Session management (beta.10) |
+| 31–33 | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2; total unique skills = 33) |
 
 [Pricing — Free Forever →](/plugin/free-vs-pro)

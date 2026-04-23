@@ -7,7 +7,11 @@
 
 > **Guided AI PM to Master Claude Code Instantly** — click-first, not text-menu'd
 
-**1 install. 502+ skills. 12 `/ccc-*` click-first workflows. Works in Claude Cowork Desktop, Claude Code Desktop, Claude Code CLI, and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free in beta.**
+**1 install. 502+ skills. 13 `/ccc-*` click-first workflows. Primary surface: Claude Code Desktop (aka Cowork Desktop). Also works in Claude Code CLI and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free forever.**
+
+> **🖥️ Primary surface: Claude Code Desktop.** Install once via Settings → Plugin Marketplace. All 33 skills, 17 agents, 8 lifecycle hooks, and 9 bundled MCP servers appear inside every session automatically — no terminal needed.
+>
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
 <img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.7" width="100%">
 
@@ -20,7 +24,7 @@
 | 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 502+ skills in your IDE of choice |
 | 📱 **On Claude mobile or iPad** | Same skills, same license, synced across devices (hosted MCP) |
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/30_Plugin_Skills-10B981?style=for-the-badge)](./docs/plugin.md) [![Clients](https://img.shields.io/badge/Cowork%20%2B%20Code%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.9](https://img.shields.io/badge/v4.0.0--beta.9-D97706?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/33_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.10](https://img.shields.io/badge/v4.0.0--beta.10-D97706?style=for-the-badge)](./CHANGELOG.md)
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
@@ -77,7 +81,7 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 3. Find **`commander`** in the marketplace → click **Install**
 4. Cmd+Q, reopen the app, type **`/ccc`** — you're live
 
-✅ 30 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
+✅ 33 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
 
 ## ⌨️ Power-user install (Claude Code CLI only)
 
@@ -100,20 +104,18 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ---
 
-## 🌟 What's new in v4.0.0-beta.9
+## 🌟 What's new in v4.0.0-beta.10
 
-- 🌟 **Headline: `/ccc-suggest` intelligence layer** — Opus-class recommender that reads your project and picks ONE next step (with reasoning + named 3rd-party plugins). Kills info-paralysis for beginners.
-- 🗺️ **`/ccc-cheatsheet`** — live Mermaid flow diagram of the whole plugin, filesystem-backed. Never drifts from reality.
-- **15 click-first `/ccc-*` workflows** — every specialist flow ships as a plain slash command (not `commander:ccc-*`). See the [full list below](#the-15-click-first-workflows).
-- **Skill-based architecture** — plugin commands migrated to plugin skills so they show as plain `/ccc`, `/ccc-plan`, `/ccc-build` in the autocomplete (no namespace prefix).
-- **AskUserQuestion-native UI** — every menu uses the Desktop chip picker. Three-layer pagination (intent → domain → action). No numbered text menus anywhere.
-- **Schema-compliant plugin manifest** — 100% pass on `claude plugin validate`. See [beta.6 → beta.7 compare](https://github.com/KevinZai/commander/compare/v4.0.0-beta.6...v4.0.0-beta.7).
-- **6-step external-source contribution protocol** — see [docs/ECOSYSTEM.md](docs/ECOSYSTEM.md) for the repeatable gate.
-- **XML leakage fix** — autocomplete tooltips no longer show raw `<example>` tags.
+- 🔴 **5 security vulnerabilities resolved** — cwd validation, execFile migration, path-traversal guards, CLAUDE_DIR sandbox enforcement.
+- 🎨 **XML strip across 17 agents + skills** — autocomplete tooltips no longer show raw angle-bracket tags. CI gate (`audit-frontmatter.js`) enforces this going forward.
+- ✨ **3 new skills: `/ccc-e2e`, `/save-session`, `/resume-session`** — plugin grows 30 → 33 skills.
+- 🧪 **284 tests passing** — +5 security regression tests added.
+- 📸 **Screenshot scaffold** — `docs/screenshots/` with 7 placeholder briefs ready for Kevin to drop real Desktop captures.
+- 🖥️ **Desktop-first positioning throughout** — all docs now lead with "Claude Code Desktop is the primary surface."
 
-## The 15 click-first workflows
+## The 33 plugin skills
 
-Each one works via native Desktop chip picker — no typing, just click:
+Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just click:
 
 | Command | What it does | First click |
 |---|---|---|
@@ -132,6 +134,11 @@ Each one works via native Desktop chip picker — no typing, just click:
 | **`/ccc-fleet`** | Multi-agent orchestration (git worktrees) | Fan-out · Pipeline · FOR/AGAINST · Background |
 | **`/ccc-connect`** | Opt-in MCP connector | Notion · Zapier · Supabase · Slack · GDrive |
 | **`/ccc-cheatsheet`** | Live Mermaid map of the whole plugin | Filesystem is single source of truth |
+| **`/ccc-e2e`** | E2E test scaffolding + Playwright automation | New suite · Existing project · Visual regression |
+| **`/save-session`** | Save session state for later resume | Saves context, todos, plan to `~/.claude/commander/` |
+| **`/resume-session`** | Resume a previously saved session | Lists recent sessions → pick one to restore |
+
+Plus 14 domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devops`, `ccc-seo`, `ccc-testing`, `ccc-security`, `ccc-data`, `ccc-research`, `ccc-mobile`, `ccc-makeover`) + 2 vendor-sourced skills (`/ccc-agent-writing`, `/ccc-systematic-debugging`). See [SKILLS-INDEX.md](SKILLS-INDEX.md) for the full catalog.
 
 Click a cell → pick a sub-option → CC Commander handles it. No config files, no YAML editing, no syntax to memorize.
 
@@ -204,7 +211,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 ```
 You type: ccc
 You get:  A guided AI project manager with 502+ skills,
-          30 plugin skills, 17 agents, 20 vendor packages,
+          33 plugin skills, 17 agents, 20 vendor packages,
           real learning, and zero setup.
 ```
 
@@ -241,6 +248,26 @@ Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 <img src="docs/assets/screenshots/skills-install.gif" alt="Skill Management" width="100%">
 
 > All recordings are real terminal output captured with [vhs](https://github.com/charmbracelet/vhs). No mockups.
+
+---
+
+## 📸 Screenshots
+
+_Screenshot 1 of 7 — full set arriving with v4.0.0 stable tag._
+
+![Install via Plugin Marketplace — Add from GitHub dialog](docs/screenshots/01-install-marketplace.png)
+
+![Plugin installed — commander entry in Settings → Plugins tab](docs/screenshots/02-plugin-installed.png)
+
+![CC Commander /ccc hub in Claude Code Desktop](docs/screenshots/03-ccc-hub-menu.png)
+
+![/ccc-browse skill catalog — filterable grid](docs/screenshots/04-ccc-browse-catalog.png)
+
+![/ccc-plan in action — spec interview + native Plan pane](docs/screenshots/05-ccc-plan-in-action.png)
+
+![/ccc-fleet parallel agents — 3 sub-agents dispatched](docs/screenshots/06-ccc-fleet-parallel.png)
+
+![/ccc-start onboarding — ASCII CCC logo + first prompt](docs/screenshots/07-ccc-start-onboarding.png)
 
 ---
 

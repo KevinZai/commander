@@ -2,6 +2,51 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0-beta.10] — 2026-04-23 — Hardening + Desktop-first positioning
+
+### 🎯 Headline
+
+Cumulative hardening across Waves 1/2/3/4/10: security sweep, XML creep elimination, three new skills (30→33), and a full doc sync that establishes Claude Code Desktop as the primary product surface across all 15 user-facing docs. Test suite grows to 284 passing.
+
+### 🔴 Security (Wave 1 — commit 0e362da)
+
+5 pre-stable vulnerabilities resolved:
+- **cwd validation** — `kc.js` no longer trusts `process.cwd()` without confirming the path exists and is a directory
+- **execFile migration** — shell-injectable `exec()` calls replaced with `execFile()` across dispatcher and hook scripts
+- **path-traversal guard** — local MCP `handleGetAgent` and cloud MCP `getAgentContent` now use `path.resolve` containment checks to prevent `../` escapes
+- **CLAUDE_DIR guard** — all file writes to `~/.claude/` assert the resolved path stays inside the intended subdirectory
+- **5 security regression tests** added — `commander/tests/dispatch-security.test.js`
+
+### 🎨 UX (Wave 2)
+
+- **XML strip across 17 agents + 15 skills** — angle-bracket tags (`<example>`, `<context>`, etc.) eliminated from all frontmatter `description` fields
+- **`audit-frontmatter.js` CI gate** — `node scripts/audit-frontmatter.js --check` now runs in CI; any reintroduced angle brackets fail the build
+
+### ✨ New Skills (Wave 3 — 30→33)
+
+- **`/ccc-e2e`** — E2E test scaffolding and Playwright automation. Chips: New suite · Existing project · Visual regression
+- **`/save-session`** — Save current session state (context, todos, plan) to `~/.claude/commander/sessions/`
+- **`/resume-session`** — Resume a previously saved session; lists recent saves with timestamps
+
+### 📚 Docs (Wave 10 + Wave 7)
+
+- **Desktop-first positioning** woven into README, BIBLE, CHEATSHEET, SKILLS-INDEX, CLAUDE.md, PLAN, plugin README, Mintlify intro, install.mdx, skills.mdx
+- **Screenshot scaffold** — `docs/screenshots/` with 7 placeholder briefs; README now includes `## 📸 Screenshots` section referencing all 7 slots
+- **OG image** — `docs/assets/og-image-v4.svg` ships for social sharing
+- **Canonical claim throughout:** "Cowork Desktop and Claude Code Desktop are the same app, two UI modes."
+
+### 🧪 Tests
+
+- 279 → **284 passing** across 14 suites
+- 5 new security regression tests
+- `audit-frontmatter.js --check` and `audit-counts.js --check` both pass
+
+### 📊 Counts
+
+Plugin skills: 30 → **33** · Sub-agents: **17** (unchanged) · MCP servers: **9** (unchanged) · Lifecycle hooks: **8 × 16 handlers** (unchanged)
+
+---
+
 ## [4.0.0-beta.9] — 2026-04-22 — Vendor sweep fold-in
 
 ### 🎯 Headline

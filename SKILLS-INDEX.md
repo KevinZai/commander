@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
-> CC Commander v4.0.0-beta.9 — by Kevin Zicherman
+> CC Commander v4.0.0-beta.10 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-04-22 | Desktop plugin first: 30 plugin skills (12 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced) + 17 specialist sub-agents + 8 lifecycle hooks (16 handlers) + 9 bundled MCP servers | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
+> Last verified: 2026-04-23 | Desktop plugin first: 33 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e) + 17 specialist sub-agents + 8 lifecycle hooks (16 handlers) + 9 bundled MCP servers | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
@@ -36,7 +36,7 @@ All 17 sub-agents are free. They fire automatically from skills — no manual in
 
 ## Desktop Plugin Skills (v4.0.0-beta.8)
 
-> Installed at `commander/cowork-plugin/`. Prefix: plain `/ccc-*` (e.g. `/ccc-build`). Install: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 30 plugin skills total (12 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced). **All free forever.**
+> Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 33 plugin skills total (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e). **All free forever.**
 
 | Skill | Description | Trigger Phrases |
 |-------|-------------|----------------|
@@ -57,6 +57,9 @@ All 17 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-cheatsheet` | Inline cheatsheet — all counts, commands, hook events | "show cheatsheet", "ccc cheatsheet" |
 | `/ccc-agent-writing` | Write specs, PRDs, PR descriptions with clarity + persuasion | "write a spec", "PR description", "improve this doc" |
 | `/ccc-systematic-debugging` | Iron Law root-cause debugging: reproduce → hypothesize → verify → fix | "debug this", "root cause", "why is X failing" |
+| `/ccc-e2e` | End-to-end test scaffolding and Playwright automation | "e2e test", "add playwright tests", "ccc e2e" |
+| `/save-session` | Save current session state to `~/.claude/commander/sessions/` for later resume | "save session", "save my progress" |
+| `/resume-session` | Resume a previously saved session — restores context, todos, and plan | "resume session", "pick up where I left off" |
 
 ### Bundled MCP Servers (9)
 
