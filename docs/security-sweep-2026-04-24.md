@@ -7,6 +7,22 @@
 
 ---
 
+## Triage outcomes (2026-04-24)
+
+All Critical and High findings triaged. 0 Critical found in original sweep. 3 High — all fixed in this turn.
+
+| Finding ID | Original severity | Status | Fix commit / reason |
+|-----------|-------------------|--------|---------------------|
+| H1 | 🟠 High | ✅ Fixed | `commander/cowork-plugin/hooks/fleet-notify.js:34` — added `safeSource` sanitization (strip CR/LF, slice ≤64 chars) before status interpolation |
+| H2 | 🟠 High | ✅ Fixed | `commander/cowork-plugin/hooks/elicitation-logger.js:30-37` — removed `prompt` field from log entry; replaced with `promptLength` (no content) |
+| H3 | 🟠 High | ✅ Fixed | `package-lock.json` regenerated via `npm install --package-lock-only`; top-level `version` now `4.0.0-beta.11` (matches `package.json`) |
+| M1–M4 | 🟡 Medium | ⏳ Deferred | Out of scope for High-severity triage turn |
+| L1–L2 | 🟢 Low | ⏳ Deferred | Out of scope for High-severity triage turn |
+
+**Tests after fixes:** `npm test` — see Step-4 commit log.
+
+---
+
 ## Executive Summary
 
 - **Total findings: 9**

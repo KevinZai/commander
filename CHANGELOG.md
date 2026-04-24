@@ -2,83 +2,126 @@
 
 All notable changes to CC Commander will be documented in this file.
 
-## [4.0.0-beta.11] — 2026-04-23 — Production hardening + 10-agent BLITZ review
+## [4.0.0-beta.11] — 2026-04-24 — Production hardening, 6 new skills, model pins, 560+ tests
 
-### 🎯 Headline
+### Headline
 
-Massive post-beta.10 hardening driven by 10 parallel Opus high-thinking agent reviews (Architect, Security, QA, TypeScript, Performance, Docs, DevOps, PM + BLITZ-B local plugin scan + BLITZ-C MCP cloud audit). 8 fix-waves committed. Test suite grows **284 → 500** (glob-discovery unorphaned 4 test files + added 16 new behavioral tests). Bundled MCP count cut **9 → 2** (silent install-day failures eliminated). Ported 3 MIT/Apache-2.0 skills. New release automation + RUNBOOK + rollback script.
+Two hardening sessions on top of beta.10. First, a 10-parallel-agent BLITZ review (Architect, Security, QA, TypeScript, Performance, Docs, DevOps, PM + local plugin scan + MCP cloud audit) produced 8 fix-waves. Then a second session added 6 new skills (51 total), locked model pins across all 17 agents, expanded the test suite to 560+ passing, shipped an atomic version bumper, tightened security further with a dedicated fleet-worker sweep, and added a weekly vendor-update cron. No breaking changes.
 
-**Why it matters:** beta.10 shipped ship-ready code with shape-only tests and auto-bundled credentialed MCPs — inflated confidence. beta.11 closes both gaps so the v4.0.0 stable tag is defensible.
+**Why it matters:** beta.10 shipped with shape-only tests, auto-bundled credentialed MCPs, and undocumented model selection. beta.11 closes all three gaps so the v4.0.0 stable tag is defensible.
 
-### 🔴 Security (R1 + R2 + Wave 1 extensions)
+### Breaking changes
 
-- `bin/kc.js`: defense-in-depth path-traversal guard — catches URL-encoded, double-encoded, null-byte, absolute-path, Windows-style, unicode bypasses before any `path.join()` (7 new regression tests)
-- `commander/status-line.js`: `fs.readSync` file-descriptor leak fixed with try/finally
-- `apps/mcp-server-cloud/src/middleware/auth.ts`: replaced unsafe `as "free" | "pro"` cast with runtime validation
+None. All updates are backward-compatible. Upgrade by refreshing the plugin in Desktop or running `npm update -g cc-commander`.
 
-### 🧪 Tests (R3 — False-confidence gap closed)
+### Security
 
-- `package.json` `test` script: hardcoded 14-suite list → `commander/tests/*.test.js tests/*.test.js` glob
-- Unorphaned: `session-skills.test.js`, `ccc-e2e-skill.test.js`, `orchestrator.test.js`, `vendor-scanner.test.js` — these never ran in CI before
-- NEW: `test-discovery.test.js` (prevents future orphan regressions)
-- NEW: `agent-manifest.test.js` (17 agents + persona path validation)
-- NEW: `manifest-schema.test.js` (plugin.json + marketplace.json + .mcp.json shape)
-- NEW: `version-parity.test.js` (asserts all 4 manifests agree)
-- NEW: `mcp-bundled-safe.test.js` (credential-free allowlist gate)
-- NEW: `ported-skills.test.js` (license attribution + dynamic count match)
-- `session-skills.test.js`: round-trip + corrupt-JSON + missing-file behavioral tests
-- `dispatch-security.test.js`: 7-variant path-traversal matrix + spawn-layer rejection handling
+**From BLITZ session (R1 + R2):**
 
-### 🎨 UX (R6 + R8)
+- `bin/kc.js` defense-in-depth path-traversal guard catches URL-encoded, double-encoded, null-byte, absolute-path, Windows-style, and unicode bypass variants before any `path.join()` call. Seven new regression tests cover each variant.
+- `commander/status-line.js` file-descriptor leak fixed — `fs.readSync` fd now closed in `try/finally` so a parse error no longer leaks the handle.
+- `apps/mcp-server-cloud/src/middleware/auth.ts` replaced an unsafe `as "free" | "pro"` cast with runtime validation that throws on unexpected tier strings.
+- License-tier gates stripped from 4 hooks (`cost-tracker.js`, `knowledge-capture.js`, `user-prompt-submit.js`, `intent-classifier.js`). Features were silently no-ops for users outside a non-existent paid tier. They now work unconditionally, as intended.
 
-- `.mcp.json` trimmed **9 → 2** — only `context7` + `sequential-thinking` bundled (zero credentials required)
-- Removed from bundle (moved to opt-in via `/ccc-connect`): linear, github, slack, gmail, google-calendar, google-drive, tavily
-- `hooks/session-start.js`: auto-emits welcome `status` pointing at `/ccc-start` on first session — fixes R8 🔴 F1 (90% of launch-day users never discovered the tour)
-- `README.md`: hid 7 broken screenshot refs, killed stale v3.0.0/v2.3.1 narrative blocks, moved 30-second install to top
-- `docs/plugin.md`: refreshed counts (8→2 bundled MCP, 6→8 hooks)
-- `CHEATSHEET.md` + `SKILLS-INDEX.md` + `CLAUDE.md` + `BIBLE.md` + `PLAN.md`: full count reconciliation (33→48 plugin skills, 9→2 bundled MCP)
+**From security sweep session (2026-04-24):**
 
-### 💰 Free-forever in code (R1)
+- `commander/cowork-plugin/hooks/fleet-notify.js` — added `safeSource` sanitization (strip CR/LF, slice ≤64 chars) before interpolating `data.source` into a status string. Previously a malicious Notification payload could inject newlines into the session status line.
+- `commander/cowork-plugin/hooks/elicitation-logger.js` — removed `prompt` field from log entry; replaced with `promptLength`. Prevents user prompt content from appearing in hook logs.
+- `package-lock.json` regenerated to match `package.json` at `4.0.0-beta.11`; top-level `version` was stale at beta.10.
 
-- Stripped license-tier gates from 4 hooks (`cost-tracker.js`, `knowledge-capture.js`, `user-prompt-submit.js`, `intent-classifier.js`) — features now work for all users, no silent no-ops
+Post-sweep posture: 0 Critical · 0 High open · 4 Medium deferred to v4.1 (ReDoS anchor on AWS-secret regex, `/metrics` endpoint auth, `kc.js --skills install` argv guard, XDG_CONFIG_HOME support in installer).
 
-### 🚀 DevOps (R7)
+### New skills (48 → 51)
 
-- NEW: `.github/workflows/release.yml` — tag-triggered full-suite gate + `npm publish --provenance` with `latest`/`beta` dist-tags
-- NEW: `RUNBOOK.md` — npm + plugin + mcp-cloud rollback scenarios
-- NEW: `scripts/rollback.sh` — dry-run by default, `--yes` opt-in, requires gh + op auth
-- NEW: `.github/FUNDING.yml` — GitHub Sponsors + consulting CTA
-- NEW: `.github/ISSUE_TEMPLATE/` — bug/feature/question templates
-- NEW: `scripts/bump-version.js` — atomic 4-manifest version bumper
-- NEW: `scripts/check-version-parity.js --check` — CI gate
-- Fixed drift: `apps/mcp-server-cloud/package.json` was 8 versions behind (beta.2 → beta.11)
+Three skills added in the BLITZ-B port pass (all MIT/Apache-2.0, attribution in SKILL.md):
 
-### ✨ New skills — 45→48 (BLITZ-B port pass)
+- **`/ccc-memory`** (Apache-2.0) — two-tier persistent memory: always-loaded context in `CLAUDE.md` plus on-demand dated notes in `memory/YYYY-MM-DD.md`. Teaches the workflow from Kevin Z Method Chapter 4.
+- **`/ccc-tasks`** (Apache-2.0) — lightweight `tasks/todo.md` task tracking with P0-P3 priority lanes. Works without Linear or any external service.
+- **`/ccc-recall`** (MIT) — three-layer cross-session search across local transcripts, `memory/` files, and the `claude-mem` MCP when available.
 
-- **`/ccc-memory`** (Apache-2.0 from `knowledge-work-plugins/productivity/memory-management`) — two-tier persistent memory: CLAUDE.md (always-loaded) + `memory/` (on-demand dated notes)
-- **`/ccc-tasks`** (Apache-2.0 from `knowledge-work-plugins/productivity/task-management`) — lightweight `tasks/todo.md` tracking with P0-P3 priority
-- **`/ccc-recall`** (MIT from `thedotmack/claude-mem/mem-search`) — three-layer cross-session search: transcripts + `memory/` + claude-mem MCP
+Three skills added in the follow-on session:
 
-### 🔌 MCP cloud (BLITZ-C — code-complete for v4.1 deploy)
+- **`/ccc-changelog`** — reads `CHANGELOG.md` and surfaces the most-recent version section as a scan-friendly summary. Triggered automatically by the SessionStart hook when the installed version differs from the last-seen version, so users always know what changed without hunting for docs.
+- **`/ccc-doctor`** — 8-category plugin diagnostic that checks plugin version, Node runtime, marketplace clone state, bundled MCP servers, `settings.json` validity, active sessions, and 5 drift categories (license cleanup, hook-chain wiring, agent model pins, displayName presence, version parity). Outputs a paste-ready report for GitHub issues or Discord support threads. Backed by `diagnostics.js` with 25 unit tests.
+- **`/ccc-upgrade`** — interactive vendor submodule updater. Lists all 19+ submodules under `vendor/`, fetches upstream, reports per-submodule commit delta and changed-file count, prompts the user via a chip picker to select which to update, runs `git submodule update --remote --rebase`, verifies tests pass, and commits one `chore(vendor)` commit per submodule.
 
-- Hono middleware `c.status(); c.json()` bug fixed → correct `c.json(..., 401)` return
-- `/v1/call` request-body validation (rejects null/array/non-object/missing-tool/long-tool/bad-args)
-- SIGTERM 5s drain + SIGINT + uncaughtException + unhandledRejection handlers
-- `app.onError` + `notFound` → JSON not HTML
-- Redis outage fail-open (was fail-closed DoS)
-- CORS `exposeHeaders: X-Commander-*`
-- 31 new tests in `tests/http.test.ts` — 55/55 passing overall
+### Agent model pins
 
-### 📊 Numbers
+All 17 specialist agents now carry explicit `model:` fields. No more implicit fallback to whatever model the calling session uses.
 
-| Metric | beta.10 | beta.11 | Δ |
-|--------|---------|---------|---|
-| Plugin skills | 33 | **48** | +15 |
-| Bundled MCPs | 9 | **2** | -7 (opt-in) |
-| Tests passing | 284 | **500** | +216 |
-| Manifest version parity | drifted (beta.2 on mcp-cloud) | **locked** | CI-gated |
-| Security regression tests | 5 | **12** | +7 variants |
-| Release automation | manual | **gh-action on tag** | new |
+| Model | Agents |
+|-------|--------|
+| `claude-opus-4-7` | architect · security-auditor · debugger · product-manager |
+| `claude-sonnet-4-6` | designer · researcher · reviewer · builder · content-strategist · data-analyst · devops-engineer · fleet-worker · performance-engineer · qa-engineer · technical-writer · typescript-reviewer · python-reviewer |
+
+Opus 4.7 is reserved for roles that require deep reasoning over ambiguous trade-offs. Sonnet 4.6 handles everything that benefits from faster iteration. This makes cost predictable and eliminates the silent model-mismatch bugs that surfaced in the BLITZ review.
+
+### Infrastructure
+
+- **Atomic version bumper** (`scripts/bump-version.js`) — two-phase update: Phase 1 reads and parses all 4 manifests (`package.json`, `plugin.json`, `marketplace.json`, `mcp-server-cloud/package.json`) into a plan and aborts before any write if parsing fails; Phase 2 writes each to a temp file and calls `rename()` (atomic on same filesystem), with best-effort rollback if any rename fails mid-phase.
+- **CI version parity gate** (`scripts/check-version-parity.js --check`) — fails the build if any manifest disagrees on version. Integrated into `ci.yml`.
+- **Weekly vendor-update cron** (`.github/workflows/vendor-update.yml`) — runs every Monday, updates vendor submodules, opens a PR if any changed. Keeps the ecosystem current automatically.
+- **Release workflow** (`.github/workflows/release.yml`) — tag-triggered: runs full test suite, then `npm publish --provenance` with `latest` or `beta` dist-tag based on whether the version contains a pre-release identifier.
+- **ESM migration** — `commander/core/suggest-ticker.js` converted from CommonJS `require` to ES module `import`. Unblocks tree-shaking for downstream bundlers.
+- **`RUNBOOK.md`** — documents npm rollback, plugin rollback, and MCP cloud rollback scenarios with exact commands.
+- **`scripts/rollback.sh`** — dry-run by default; pass `--yes` to execute. Requires `gh` and `op` auth.
+
+### MCP
+
+- **Bundled count: 9 → 2.** Only `context7` and `sequential-thinking` ship in `.mcp.json`. Both are credential-free. The 7 removed servers (Tavily, GitHub, Slack, Gmail, Google Calendar, Google Drive, Firecrawl) moved to opt-in via `/ccc-connect`. Eliminates the most common install-day failure: "MCP server failed to start" when a credential was absent.
+- **Hosted MCP cloud** (`apps/mcp-server-cloud`) hardened for v4.1 deploy: Hono middleware `c.status(); c.json()` bug fixed, `/v1/call` body validation, SIGTERM 5-second drain, `app.onError` + `notFound` return JSON not HTML, Redis outage fail-open, CORS `exposeHeaders: X-Commander-*`. 31 new HTTP tests bring cloud total to 55/55.
+
+### Branding and docs
+
+- **`displayName: "Commander"`** added to both `plugin.json` and `marketplace.json`. The Plugin Marketplace UI and `/ccc-doctor` both surface this field — without it, the plugin appeared as the raw slug `cc-commander` in the UI.
+- **README "One plugin, every agent" section** — unified cross-platform positioning that names Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, and Codex in one scannable table.
+- **Count reconciliation** across ~15 surfaces — all docs now agree: 51 plugin skills · 17 specialist agents · 8 lifecycle hooks · 2 bundled MCPs · 502+ ecosystem skills.
+- **4 broken links fixed** in Mintlify docs.
+- **FAQ page** (18 questions) and **Troubleshooting guide** (8 sections) added to Mintlify.
+- **Hooks README** added at `commander/cowork-plugin/hooks/README.md` — documents the 4 dormant hook files kept on disk for test coverage and future runtime enablement.
+- **Security sweep audit report** saved to `docs/security-sweep-2026-04-24.md`.
+
+### Tests
+
+New test files added across both sessions:
+
+| File | What it covers |
+|------|---------------|
+| `commander/tests/test-discovery.test.js` | Prevents orphaned test files — fails if a `*.test.js` exists but is not picked up by the glob in `package.json` |
+| `commander/tests/agent-manifest.test.js` | All 17 agents present + persona path resolves |
+| `commander/tests/manifest-schema.test.js` | `plugin.json`, `marketplace.json`, `.mcp.json` shape validation |
+| `commander/tests/version-parity.test.js` | All 4 manifests agree on version |
+| `commander/tests/mcp-bundled-safe.test.js` | Credential-free allowlist gate — fails if a credentialed server re-enters `.mcp.json` |
+| `commander/tests/ported-skills.test.js` | License attribution present + dynamic count matches directory |
+| `commander/tests/ccc-doctor-diagnostics.test.js` | 25 unit tests for all 8 `diagnostics.js` check categories |
+| `commander/tests/ccc-changelog.test.js` | `/ccc-changelog` skill behavior |
+| `commander/tests/ccc-doctor.test.js` | `/ccc-doctor` skill end-to-end |
+| `commander/tests/cost-parser.test.js` | Cost-parser utility (8 cases) |
+| `commander/tests/bump-version-nested.test.js` | Atomic bumper nested-field handling |
+| `commander/tests/agent-personas.test.js` | Agent persona voice files present and well-formed |
+| `tests/precompact-roundtrip.test.js` | PreCompact hook round-trip (7 cases) |
+| `tests/install-uninstall-integration.test.js` | Install/uninstall integration (7 cases) |
+| `commander/tests/session-skills.test.js` | Round-trip, corrupt-JSON, missing-file behavioral tests (previously unrun) |
+| `commander/tests/ccc-e2e-skill.test.js` | `/ccc-e2e` skill behavior (previously unrun) |
+| `commander/tests/orchestrator.test.js` | Orchestrator (previously unrun) |
+| `commander/tests/vendor-scanner.test.js` | Vendor scanner (previously unrun) |
+| `commander/tests/dispatch-security.test.js` | 7-variant path-traversal matrix + spawn-layer rejection |
+| `apps/mcp-server-cloud/tests/http.test.ts` | 31 new HTTP tests for MCP cloud (55 total) |
+
+**Verified passing: 560+** across all suites (`commander/tests/*.test.js tests/*.test.js` glob).
+
+### Numbers
+
+| Metric | beta.10 | beta.11 | Delta |
+|--------|---------|---------|-------|
+| Plugin skills | 33 | **51** | +18 |
+| Bundled MCPs | 9 | **2** | -7 moved to opt-in |
+| Tests passing | 284 | **560+** | +276+ |
+| Agent model pins | implicit | **explicit (all 17)** | 0 unspecified |
+| Manifest version parity | drifted | **CI-gated** | locked |
+| Security open High | 3 | **0** | all fixed |
+| Release automation | manual | **tag-triggered gh-action** | new |
+| Vendor sync | manual | **weekly cron PR** | automated |
 
 ---
 

@@ -12,6 +12,12 @@ const SKILL_PATTERNS = [
   { skill: '/ccc:linear-board', patterns: ['linear', 'issues', 'tickets', 'backlog'], label: 'Linear board' },
   { skill: '/ccc:content', patterns: ['blog', 'post', 'content', 'social media', 'email'], label: 'Content creation' },
   { skill: '/ccc:night-mode', patterns: ['night', 'yolo', 'overnight', 'autonomous'], label: 'Night mode' },
+  { skill: '/ccc-changelog', patterns: ['what changed', 'what is new', "what's new", 'changelog', 'release notes'], label: 'Changelog' },
+  { skill: '/ccc-doctor', patterns: ['diagnose', 'doctor', 'health check', 'plugin status', 'plugin health', 'is my plugin ok'], label: 'Plugin doctor' },
+  { skill: '/ccc-upgrade', patterns: ['update vendors', 'submodule update', 'upgrade vendors', 'weekly vendor sync'], label: 'Vendor upgrade' },
+  { skill: '/ccc-memory', patterns: ['remember this', 'save to memory', 'what do we know', 'memory lookup', 'remember what'], label: 'Memory' },
+  { skill: '/ccc-tasks', patterns: ['my tasks', 'todo list', "what's on my list", 'task tracker'], label: 'Tasks' },
+  { skill: '/ccc-recall', patterns: ['what did we do last time', 'did i solve', 'prior session', 'recall from session'], label: 'Recall' },
 ];
 
 async function main() {

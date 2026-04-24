@@ -27,11 +27,14 @@ async function main() {
 
   try {
     await mkdir(LOGS_DIR, { recursive: true });
+    // SECURITY: never log raw prompt content — may contain secrets/keys.
+    // Log only length for telemetry. See security-sweep-2026-04-24.md H2.
+    const promptText = input.prompt || input.message || '';
     const entry = {
       timestamp: new Date().toISOString(),
       sessionId: process.env.CLAUDE_SESSION_ID || 'unknown',
       requestId: input.request_id || input.requestId || null,
-      prompt: input.prompt || input.message || null,
+      promptLength: typeof promptText === 'string' ? promptText.length : 0,
       type: input.type || null,
     };
     await appendFile(ELICITATIONS_FILE, JSON.stringify(entry) + '\n');

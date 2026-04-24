@@ -28,10 +28,11 @@ async function main() {
 
     await appendFile(join(FLEET_DIR, 'notifications.jsonl'), JSON.stringify(entry) + '\n');
 
+    const safeSource = String(data.source || 'agent').replace(/[\r\n]/g, ' ').slice(0, 64);
     console.log(JSON.stringify({
       continue: true,
       suppressOutput: false,
-      status: `CCC Fleet: ${data.source || 'agent'} completed`,
+      status: `CCC Fleet: ${safeSource} completed`,
     }));
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
