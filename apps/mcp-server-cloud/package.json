@@ -1,7 +1,7 @@
 {
   "name": "cc-commander-mcp-cloud",
   "version": "4.0.0-beta.11",
-  "description": "CC Commander hosted MCP server — 14 tools, auth, rate limiting, feedback gate",
+  "description": "CC Commander hosted MCP server — 50+ plugin skills, 17 agents, 8 lifecycle hooks (16 handlers), 2 credential-free bundled MCPs + 16 opt-in, 502+ ecosystem skills",
   "private": true,
   "type": "module",
   "main": "dist/index.js",

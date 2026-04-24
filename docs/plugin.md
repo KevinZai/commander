@@ -15,7 +15,7 @@
 5. **Cmd+Q** fully quit the app, then reopen (the autocomplete cache needs a fresh session to pick up the skills)
 6. Type **`/ccc`** — you should see a visual chip picker with 6 options
 
-**That's it.** 50 plugin skills, 17 specialist agents, 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`), and 8 lifecycle hooks (16 handlers) are now active. Zero config. Zero API keys. Free forever.
+**That's it.** 51 plugin skills, 17 specialist agents, 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`), and 8 lifecycle hooks (16 handlers) are now active. Zero config. Zero API keys. Free forever.
 
 ---
 

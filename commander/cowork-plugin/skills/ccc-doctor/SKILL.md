@@ -1,6 +1,6 @@
 ---
 name: ccc-doctor
-description: "Diagnostic tool for CC Commander. Generates a paste-ready markdown report covering plugin version, Node version, marketplace clone state, MCP server list, settings.json sanity, recent sessions, and common issues with nuclear fix commands. Use when the user types /ccc-doctor, reports a bug, says 'something is broken', 'plugin not loading', 'MCP not working', 'how do I debug', or needs a support snapshot."
+description: "Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions — plus 8 drift checks (license cleanup, hook-chain, MCP, agent model pins, audit scripts, displayName, version parity, critical files). Use when user types /ccc-doctor, reports a bug, says 'something is broken', 'plugin not loading', 'MCP not working', or needs a support snapshot."
 model: sonnet
 effort: medium
 allowed-tools:
@@ -201,3 +201,48 @@ If MCP servers not responding:
 2. The report is self-contained: user pastes it into a GitHub issue as-is.
 3. If PLUGIN_VERSION is n/a and CLONE_PRESENT is NO, the fix is always: re-add the marketplace.
 4. temp_* dirs are the #1 cause of "plugin not loading" — always flag them prominently.
+
+## Deeper drift checks (full mode)
+
+When the user passes `full` or asks for a thorough audit, run the source-tree drift checks via the bundled helper module. These run against the cloned plugin source — not the user's `~/.claude/` state.
+
+```bash
+PLUGIN_DIR="$HOME/.claude/plugins/marketplaces/commander-hub"
+node -e "
+const diag = require('$PLUGIN_DIR/commander/cowork-plugin/skills/ccc-doctor/lib/diagnostics');
+const results = diag.runDiagnostics('$PLUGIN_DIR');
+for (const r of results) {
+  const icon = r.status === 'ok' ? 'OK' : r.status === 'warn' ? 'WARN' : 'FAIL';
+  console.log('[' + icon + '] ' + r.category + ' — ' + r.message);
+  if (r.remediation) console.log('       fix: ' + r.remediation);
+}
+"
+```
+
+The helper runs 8 categories. Append the table below after the main report when the user requested `full`.
+
+| # | Category | What it verifies |
+|---|----------|------------------|
+| 1 | `license-cleanup` | No `license.json`, `licenseFile`, `tier === 'free'`, or `isPro()` references in plugin hooks. CC Commander is free forever — any residue is a red flag. |
+| 2 | `hook-chain` | Every `.js` referenced from `hooks.json` exists on disk and uses ESM `import` (not legacy `require`). Flags unregistered orphan hook files. |
+| 3 | `mcp-availability` | `.mcp.json` lists exactly the 2 bundled servers (context7 + sequential-thinking) and `CONNECTORS.md` advertises 16 opt-in connectors. Drift either way is flagged. |
+| 4 | `agent-models` | All 17 sub-agent `.md` frontmatter has the expected `model:` pin. `architect`, `security-auditor`, `debugger`, `product-manager` must be on `claude-opus-4-7`; `designer`, `researcher`, `reviewer` must be on `claude-sonnet-4-6`. Other agents on legacy aliases (`opus`, `sonnet`, `haiku`) are flagged as upgrade candidates. |
+| 5 | `test-suite` | Required audit scripts (`audit-frontmatter.js`, `audit-counts.js`, `check-version-parity.js`) exist. Doctor doesn't shell out to them — it only verifies presence so the user can run `--check` manually. |
+| 6 | `display-name` | `plugin.json.displayName === "Commander"` AND `marketplace.json.plugins[0].displayName === "Commander"` (per brand commit `0954a3a`). |
+| 7 | `version-parity` | Spot-check that `package.json` and `plugin.json` versions match. Full parity check covered by `scripts/check-version-parity.js`. |
+| 8 | `critical-files` | `CHANGELOG.md`, `README.md`, `LICENSE`, `package.json`, `commander/core/registry.yaml` all present. |
+
+### Result shape
+
+`runDiagnostics(root)` returns an array of:
+
+```
+{
+  category: string,    // e.g. 'hook-chain'
+  status: 'ok' | 'warn' | 'fail',
+  message: string,     // one-line human summary
+  remediation?: string // present when status !== 'ok'
+}
+```
+
+Quick mode (default) skips this section. Pass `full` to run it. Doctor never blocks — even a `fail` row is just diagnostic output.

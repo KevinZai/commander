@@ -26,6 +26,7 @@ import {
 } from "./tools/index.js";
 import type { AuthContext } from "./middleware/auth.js";
 import { SERVER_VERSION } from "./lib/version.js";
+import { getServerTagline } from "./lib/registry-stats.js";
 
 declare module "hono" {
   interface ContextVariableMap {
@@ -146,7 +147,7 @@ app.get("/v1", (c) => {
   return c.json({
     name: "CC Commander",
     version: SERVER_VERSION,
-    description: "456+ skills. 14 tools. Every AI IDE.",
+    description: getServerTagline(),
     tools: TOOL_NAMES.map((name) => ({
       name,
       ...(TOOL_SCHEMAS[name] as object),

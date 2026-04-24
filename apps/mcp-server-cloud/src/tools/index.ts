@@ -1,5 +1,6 @@
-// 14 Commander MCP tools
+// Commander MCP tool catalog.
 // Each tool handler receives parsed args and returns a result object.
+// Tool count is derived at runtime from TOOL_NAMES.length — never hardcode.
 
 export { listSkills } from "./list-skills.js";
 export { getSkill } from "./get-skill.js";
@@ -35,6 +36,15 @@ export const TOOL_NAMES = [
 
 export type ToolName = (typeof TOOL_NAMES)[number];
 
+// Lazy import to avoid circular dep (registry-stats imports TOOL_NAMES from here).
+import { getRegistryState } from "../lib/registry.js";
+
+function searchSkillsBlurb(): string {
+  const loaded = getRegistryState().skillsLoaded;
+  const count = loaded > 0 ? `${loaded}+` : "all";
+  return `Search across ${count} skills — returns ranked matches with relevance scores.`;
+}
+
 export const TOOL_SCHEMAS: Record<ToolName, object> = {
   commander_list_skills: {
     description: "Returns paginated skill catalog with metadata (name, domain, tier, description). Use this to browse available Commander skills.",
@@ -57,7 +67,11 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_search: {
-    description: "Search across 456+ skills — returns ranked matches with relevance scores.",
+    // Description is registry-derived; resolved on access so the live skill
+    // count is reflected in the discovery payload.
+    get description() {
+      return searchSkillsBlurb();
+    },
     inputSchema: {
       type: "object",
       required: ["query"],

@@ -12,7 +12,7 @@
 
 | Surface | Install | What you get |
 |---|---|---|
-| **Plugin** (recommended) | GUI marketplace | 50 plugin skills, click-first menus via AskUserQuestion, auto-route to specialists. [Install guide](./plugin.md) |
+| **Plugin** (recommended) | GUI marketplace | 51 plugin skills, click-first menus via AskUserQuestion, auto-route to specialists. [Install guide](./plugin.md) |
 | **CLI** (this doc) | `npm install -g cc-commander` | Everything in the plugin PLUS: `ccc` terminal binary, interactive TUI, tabbed tmux split mode, `ccc --dispatch` headless, parallel agent fleet runner, cockpit status bar, adventure JSON menus, CI-friendly flags |
 
 The plugin works everywhere Claude Code runs — Desktop, CLI, Cursor/Windsurf/Cline via hosted MCP. The npm CLI runs standalone in your terminal, independent of Claude sessions.
