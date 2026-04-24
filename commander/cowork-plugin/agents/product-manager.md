@@ -1,7 +1,7 @@
 ---
 name: product-manager
 description: "Senior product manager for feature scoping, PRD writing, user story creation, and roadmap planning. Produces Linear-ready issues and structured specs — e.g., 'write a PRD for our team collaboration feature' or 'help me prioritize the Q2 roadmap'."
-model: opus
+model: claude-opus-4-7
 effort: xhigh
 persona: personas/product-manager
 memory: project

@@ -12,6 +12,8 @@ import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 
+const PKG_JSON = join(import.meta.dirname, '..', '..', '..', 'package.json');
+
 const PLUGIN_JSON = join(import.meta.dirname, '..', '.claude-plugin', 'plugin.json');
 
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
@@ -33,13 +35,22 @@ async function main() {
       pluginVersion = pluginJson.version || pluginVersion;
     } catch {}
 
+    // Read current package version (authoritative source for version transitions)
+    let packageVersion = pluginVersion;
+    try {
+      const pkgJson = JSON.parse(await readFile(PKG_JSON, 'utf8'));
+      packageVersion = pkgJson.version || packageVersion;
+    } catch {}
+
     // Seed state.json on first run (idempotent — never clobber existing state)
-    if (!existsSync(STATE_FILE)) {
+    let isFirstRun = !existsSync(STATE_FILE);
+    if (isFirstRun) {
       try {
         await writeFile(STATE_FILE, JSON.stringify({
           onboardingCompleted: false,
           firstRunAt: new Date().toISOString(),
           installedVersion: pluginVersion,
+          last_seen_version: packageVersion,
         }, null, 2));
       } catch {}
     }
@@ -50,11 +61,23 @@ async function main() {
     const knowledge = await readdir(KNOWLEDGE_DIR).catch(() => []);
     const knowledgeCount = knowledge.length;
 
-    // Determine onboarding status
+    // Determine onboarding status and version-transition
     let onboardingCompleted = false;
+    let versionTransition = false;
     try {
       const state = JSON.parse(await readFile(STATE_FILE, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
+      const lastSeen = state.last_seen_version;
+      if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {
+        versionTransition = true;
+        // Update last_seen_version so nudge only fires once per upgrade
+        const updated = { ...state, last_seen_version: packageVersion };
+        await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
+      } else if (!isFirstRun && !lastSeen) {
+        // Backfill field for existing installs — treat as no transition
+        const updated = { ...state, last_seen_version: packageVersion };
+        await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
+      }
     } catch {}
 
     // Detect if this is the user's first-ever Claude session (no prior session history)
@@ -80,6 +103,16 @@ async function main() {
         continue: true,
         suppressOutput: true,
         status: '👋 Welcome to CC Commander! Run /ccc-start for a 60-second tour.',
+      }));
+      return;
+    }
+
+    // Version-transition nudge — fires once per upgrade, never on first run
+    if (versionTransition) {
+      console.log(JSON.stringify({
+        continue: true,
+        suppressOutput: false,
+        status: `CC Commander updated to ${packageVersion}. Run /ccc-changelog to see what's new.`,
       }));
       return;
     }
