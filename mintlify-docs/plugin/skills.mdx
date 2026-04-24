@@ -1,9 +1,9 @@
 ---
 title: "Plugin Skills"
-description: "33 skills shipped with the CC Commander plugin (v4.0.0-beta.10). 13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /ccc-e2e + /save-session + /resume-session."
+description: "50 skills shipped with the CC Commander plugin (v4.0.0-beta.11). 13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + lifecycle skills (/ccc-e2e + /save-session + /resume-session + /ccc-changelog + /ccc-doctor) + /ccc-memory + /ccc-tasks + /ccc-recall + more."
 ---
 
-CC Commander v4.0.0-beta.10 ships **33 plugin skills** in five groups. All skills are **free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required.
+CC Commander v4.0.0-beta.11 ships **50 plugin skills** across six groups. All skills are **free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
 
 ## Group 1 — 12 /ccc-* Specialist Workflows
 
@@ -61,17 +61,29 @@ Adapted from the superpowers vendor with attribution. Both are free forever.
 | `/ccc-agent-writing` | `/ccc-agent-writing` or "write a spec", "improve this doc" | Teaches agents to write specs, PRDs, PR descriptions, and docs with clarity, persuasion, and testability. Delegates long-form content to `content-strategist` persona. |
 | `/ccc-systematic-debugging` | `/ccc-systematic-debugging` or "debug this", "root cause", "investigate" | Enforces the Iron Law: no fix without confirmed root cause. Reproduce → hypothesize → verify → fix. Delegates deep investigations to `debugger` persona. |
 
-## Group 5 — /ccc-e2e, /save-session, /resume-session (beta.10)
+## Group 5 — Session + Lifecycle Skills (beta.10 + beta.11)
 
-New skills added in v4.0.0-beta.10.
+Added in v4.0.0-beta.10 and v4.0.0-beta.11.
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
 | `/ccc-e2e` | `/ccc-e2e` or "e2e test", "add playwright tests" | E2E test scaffolding and Playwright automation — new test suite, existing project, or visual regression |
 | `/save-session` | `/save-session` or "save session", "save my progress" | Save current session state to `~/.claude/commander/sessions/` — context, todos, and plan preserved |
 | `/resume-session` | `/resume-session` or "resume session", "pick up where I left off" | Resume a previously saved session — lists recent saves, pick one to restore context |
+| `/ccc-changelog` | `/ccc-changelog` or "what changed", "what is new" | Renders the latest CHANGELOG.md section. Fires automatically on version-transition via SessionStart nudge (beta.11) |
+| `/ccc-doctor` | `/ccc-doctor` or "diagnose plugin" | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component (beta.11) |
 
-## All 33 at a Glance
+## Group 6 — Memory / Task / Recall (MIT-ported from community)
+
+Added in beta.10. MIT-licensed ports with attribution.
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-memory` | `/ccc-memory` or "remember this" | Two-tier persistent memory: CLAUDE.md (always-loaded) + `memory/` dir (dated notes, decisions, corrections) |
+| `/ccc-tasks` | `/ccc-tasks` or "what's on my list" | Lightweight markdown task tracking via `tasks/todo.md`. No database, no service — just checkboxes + priorities |
+| `/ccc-recall` | `/ccc-recall` or "what did we do last time" | Search across past Claude Code sessions — find when you solved a similar problem or made a decision |
+
+## All 50 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -105,6 +117,11 @@ New skills added in v4.0.0-beta.10.
 | 28 | `/ccc-e2e` | E2E + Playwright (beta.10) |
 | 29 | `/save-session` | Session management (beta.10) |
 | 30 | `/resume-session` | Session management (beta.10) |
-| 31–33 | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2; total unique skills = 33) |
+| 31 | `/ccc-changelog` | Version-transition nudge + CHANGELOG renderer (beta.11) |
+| 32 | `/ccc-doctor` | Plugin diagnostic (beta.11) |
+| 33 | `/ccc-memory` | Two-tier persistent memory (beta.10, MIT port) |
+| 34 | `/ccc-tasks` | tasks/todo.md tracker (beta.10, MIT port) |
+| 35 | `/ccc-recall` | Cross-session search (beta.10, MIT port) |
+| 36–50 | `ccc-design`, `ccc-fleet`, `ccc-linear` double-counted + 12 supporting skills (build, code-review, content, deploy-check, domains, fleet, infra, knowledge, linear-board, night-mode, research, session, settings, standup) | Includes specialist/domain double-purposes and aux skills. See `/ccc-browse` in Desktop for the live, filterable catalog — total unique dirs = **50**. |
 
 [Pricing — Free Forever →](/plugin/free-vs-pro)

@@ -1,6 +1,6 @@
 ---
 title: "How users browse skills — Plugin vs MCP"
-description: "Two ways to access 453+ CC Commander skills — native plugin slash commands in Claude Code vs. MCP tool calls in Cursor, Windsurf, Cline, Continue, Codex, and Claude mobile."
+description: "Two ways to access 502+ CC Commander skills — native plugin slash commands in Claude Code vs. MCP tool calls in Cursor, Windsurf, Cline, Continue, Codex, and Claude mobile."
 ---
 
 # 🎭 How users browse skills
@@ -8,7 +8,7 @@ description: "Two ways to access 453+ CC Commander skills — native plugin slas
 CC Commander ships **two parallel discovery surfaces**. They serve the same skill catalog but are shaped by what each client supports.
 
 <Warning>
-  **Beta v4.0.0-beta.7 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.cc-commander.com` goes live post-deploy.
+  **Beta v4.0.0-beta.11 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.cc-commander.com` goes live post-deploy.
 </Warning>
 
 ## The split in one sentence
@@ -29,11 +29,10 @@ Same 500+ skills. Different UX glue.
 ## Native plugin (Claude Code)
 
 When you `/plugin install commander` in Claude Code, the plugin manifest registers:
-- **24 free plugin skills** as slash commands (e.g. `/ccc:build`, `/ccc:code-review`, `/ccc:design`)
-- **2 Pro plugin skills** gated by license (`/ccc:infra`, `/ccc:knowledge`)
+- **50 plugin skills** as plain `/ccc-*` slash commands (no namespace prefix) — all free forever
 - **17 specialist agents** available via the Agent tool (architect, security-auditor, builder, reviewer, etc.)
-- **9 lifecycle hooks** (SessionStart, PreToolUse, PostCompact, etc.)
-- **5 MCP server configs** pre-wired for external integrations (Linear, Tavily, Context7, etc.)
+- **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
+- **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Tavily, GitHub, Supabase, Figma, Linear, etc.)
 
 **Pros:** tab-completion, instant discovery, deep Claude Code integration, offline-capable, lifecycle hooks.
 **Cons:** Claude Code only — can't use in Cursor, Windsurf, etc.
@@ -46,7 +45,7 @@ When you `/plugin install commander` in Claude Code, the plugin manifest registe
 
 ## Hosted MCP server (every other AI IDE)
 
-Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.cc-commander.com`. The same 453+ skill catalog becomes available through **13 MCP tools**:
+Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.cc-commander.com`. The same 502+ skill catalog becomes available through **13 MCP tools**:
 
 | Tool | What the agent does with it |
 |------|----------------------------|
@@ -122,6 +121,6 @@ v4.1 will introduce **Commander Hub** — a marketplace of user-built skill pack
 ## See also
 
 - [Install the plugin](/plugin/install)
-- [Install MCP (hosted)](/mcp/install)
+- [MCP integrations](/plugin/mcp-integrations)
 - [Free vs Pro](/plugin/free-vs-pro)
 - [Compatibility matrix (14 IDEs)](/features/compatibility)

@@ -62,7 +62,7 @@ That's it. Type `/ccc` to open the hub.
 
 Opens the hub — a chip picker with 6 main intents. No typing past `/ccc` required.
 
-See the Desktop screenshot at `docs/screenshots/03-ccc-hub-menu.png` for what this looks like in practice.
+A Desktop screenshot of this flow is pending capture at `docs/screenshots/03-ccc-hub-menu.png` (see [STATUS.md](screenshots/STATUS.md) for the capture queue). In the meantime, see `04-ccc-browse-catalog.png` for a similar chip-picker pattern.
 
 ---
 

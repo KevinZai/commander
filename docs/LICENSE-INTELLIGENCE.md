@@ -9,7 +9,7 @@ The following files constitute the CC Commander Intelligence Layer and are licen
 - `commander/skill-browser.js` — Skill recommendations, usage tracking, trending detection
 - `commander/project-importer.js` — Stack detection, monorepo awareness, git context
 
-All other files in this repository are licensed under the standard MIT License (see [LICENSE](./LICENSE)).
+All other files in this repository are licensed under the standard MIT License (see [LICENSE](../LICENSE)).
 
 ---
 

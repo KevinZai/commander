@@ -101,7 +101,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ### vs aider
 
-Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 17 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aider-positioning)
+Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 17 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aiderchat--positioning)
 
 ---
 
