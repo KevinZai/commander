@@ -38,8 +38,30 @@ for (var manifestPath of MANIFESTS) {
     var obj = JSON.parse(raw);
     var prev = obj.version;
     obj.version = version;
+
+    // marketplace.json carries TWO version fields:
+    //   - top-level `version` (the marketplace's version)
+    //   - `plugins[i].version` (the published version for each plugin entry)
+    // Desktop's Plugin UI reads plugins[i].version, NOT the top-level.
+    // Must bump both or the Update button shows stale versions.
+    var extraUpdated = [];
+    if (Array.isArray(obj.plugins)) {
+      for (var i = 0; i < obj.plugins.length; i++) {
+        var plugin = obj.plugins[i];
+        if (plugin && typeof plugin.version === 'string') {
+          var pluginPrev = plugin.version;
+          plugin.version = version;
+          extraUpdated.push('plugins[' + i + '](' + (plugin.name || '?') + '): ' + pluginPrev + ' -> ' + version);
+        }
+      }
+    }
+
     fs.writeFileSync(manifestPath, JSON.stringify(obj, null, 2) + '\n', 'utf8');
-    updated.push(manifestPath.replace(ROOT + '/', '') + ' (' + prev + ' -> ' + version + ')');
+    var relPath = manifestPath.replace(ROOT + '/', '');
+    updated.push(relPath + ' (' + prev + ' -> ' + version + ')');
+    extraUpdated.forEach(function (e) {
+      updated.push('  ' + relPath + ' ' + e);
+    });
   } catch (err) {
     errors.push(manifestPath.replace(ROOT + '/', '') + ': ' + err.message);
   }
