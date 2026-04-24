@@ -7,7 +7,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { execSync } = require('node:child_process');
+const { execSync, spawnSync } = require('node:child_process');
 const path = require('node:path');
 
 const HOOKS_DIR = path.join(__dirname, '..', 'hooks');
@@ -22,15 +22,12 @@ describe('careful-guard.js', () => {
       tool_name: 'Bash',
       tool_input: { command },
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('blocks rm -rf /', () => {
@@ -79,15 +76,13 @@ describe('careful-guard.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      // Should not crash — graceful handling
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    // Should not crash — graceful handling
+    assert.ok(true);
   });
 });
 
@@ -101,15 +96,12 @@ describe('pre-commit-verify.js', () => {
       tool_name: 'Bash',
       tool_input: { command },
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 15000,
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 15000,
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('allows non-commit git commands through', () => {
@@ -133,14 +125,12 @@ describe('pre-commit-verify.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -154,15 +144,12 @@ describe('confidence-gate.js', () => {
       tool_name: 'Bash',
       tool_input: { command },
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('allows normal single-file commands', () => {
@@ -188,14 +175,12 @@ describe('confidence-gate.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -206,16 +191,13 @@ describe('context-guard.js', () => {
 
   function runHook(input) {
     const json = JSON.stringify(input);
-    try {
-      const result = execSync(`echo '${json.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-        env: { ...process.env, CLAUDE_SESSION_ID: 'test-context-' + Date.now() },
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: json,
+      encoding: 'utf-8',
+      timeout: 5000,
+      env: { ...process.env, CLAUDE_SESSION_ID: 'test-context-' + Date.now() },
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('processes input and passes through', () => {
@@ -227,14 +209,12 @@ describe('context-guard.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -249,16 +229,13 @@ describe('auto-checkpoint.js', () => {
       tool_input: { file_path: '/tmp/test.js' },
       tool_output: {},
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-        env: { ...process.env, CLAUDE_SESSION_ID: 'test-checkpoint-' + Date.now() },
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 5000,
+      env: { ...process.env, CLAUDE_SESSION_ID: 'test-checkpoint-' + Date.now() },
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('handles Edit tool input correctly', () => {
@@ -283,14 +260,12 @@ describe('auto-checkpoint.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -305,16 +280,13 @@ describe('cost-alert.js', () => {
       tool_input: { command: 'ls' },
       tool_output: {},
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-        env: { ...process.env, CLAUDE_SESSION_ID: 'test-cost-' + Date.now() },
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 5000,
+      env: { ...process.env, CLAUDE_SESSION_ID: 'test-cost-' + Date.now() },
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('basic passthrough works', () => {
@@ -325,14 +297,12 @@ describe('cost-alert.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -347,15 +317,12 @@ describe('auto-lessons.js', () => {
       tool_input: { command: 'npm test' },
       tool_output: toolOutput,
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('basic passthrough works for clean output', () => {
@@ -373,14 +340,12 @@ describe('auto-lessons.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -395,16 +360,13 @@ describe('rate-predictor.js', () => {
       tool_input: { command: 'ls' },
       tool_output: {},
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-        env: { ...process.env, CLAUDE_SESSION_ID: 'test-rate-' + Date.now() },
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 5000,
+      env: { ...process.env, CLAUDE_SESSION_ID: 'test-rate-' + Date.now() },
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('basic passthrough works', () => {
@@ -415,14 +377,12 @@ describe('rate-predictor.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -437,15 +397,12 @@ describe('session-end-verify.js', () => {
       tool_input: {},
       tool_output: {},
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 10000,
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 10000,
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('basic passthrough works', () => {
@@ -456,14 +413,12 @@ describe('session-end-verify.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -478,16 +433,13 @@ describe('session-coach.js', () => {
       tool_input: { command: 'ls' },
       tool_output: {},
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-        env: { ...process.env, CLAUDE_SESSION_ID: 'test-coach-' + Date.now(), KZ_COACH_INTERVAL: '999' },
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 5000,
+      env: { ...process.env, CLAUDE_SESSION_ID: 'test-coach-' + Date.now(), KZ_COACH_INTERVAL: '999' },
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('basic passthrough works', () => {
@@ -506,26 +458,22 @@ describe('session-coach.js', () => {
 
   it('respects KZ_COACH_DISABLE', () => {
     const input = JSON.stringify({ tool_name: 'Bash', tool_input: {}, tool_output: {} });
-    try {
-      execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-        env: { ...process.env, KZ_COACH_DISABLE: '1' },
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 5000,
+      env: { ...process.env, KZ_COACH_DISABLE: '1' },
+    });
+    assert.ok(true);
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -538,16 +486,13 @@ describe('pre-compact.js', () => {
     const input = JSON.stringify({
       session_id: 'test-compact',
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 10000,
-        env: { ...process.env, CLAUDE_SESSION_ID: 'test-compact-' + Date.now() },
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 10000,
+      env: { ...process.env, CLAUDE_SESSION_ID: 'test-compact-' + Date.now() },
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('passes input through on stdout', () => {
@@ -563,38 +508,26 @@ describe('pre-compact.js', () => {
     const sessionId = 'test-precompact-' + Date.now();
     const tmpSessions = path.join(os.tmpdir(), 'ccc-test-sessions-' + Date.now());
     fs.mkdirSync(tmpSessions, { recursive: true });
-    const prevSessionsDir = process.env.KC_SESSIONS_DIR;
-    process.env.KC_SESSIONS_DIR = tmpSessions;
     const input = JSON.stringify({ session_id: sessionId });
-    try {
-      execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 10000,
-        env: { ...process.env, CLAUDE_SESSION_ID: sessionId, KC_SESSIONS_DIR: tmpSessions },
-      });
-    } catch {
-      // May exit non-zero but still write file
-    }
+    spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 10000,
+      env: { ...process.env, CLAUDE_SESSION_ID: sessionId, KC_SESSIONS_DIR: tmpSessions },
+    });
     const files = fs.readdirSync(tmpSessions).filter(f => f.includes(sessionId));
     assert.ok(files.length > 0, 'Should create a pre-compact session file');
     // Cleanup
     try { fs.rmSync(tmpSessions, { recursive: true, force: true }); } catch {}
-    if (prevSessionsDir === undefined) {
-      delete process.env.KC_SESSIONS_DIR;
-    } else {
-      process.env.KC_SESSIONS_DIR = prevSessionsDir;
-    }
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
@@ -609,15 +542,12 @@ describe('self-verify.js', () => {
       tool_input: {},
       tool_output: {},
     });
-    try {
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 10000,
-      });
-      return { exitCode: 0, output: result };
-    } catch (err) {
-      return { exitCode: err.status, output: err.stderr || '' };
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input,
+      encoding: 'utf-8',
+      timeout: 10000,
+    });
+    return { exitCode: result.status ?? 0, output: result.stdout || '' };
   }
 
   it('basic passthrough works', () => {
@@ -641,12 +571,13 @@ describe('self-verify.js', () => {
       fs.writeFileSync(todoPath, '- [ ] Unfinished task\n- [x] Done task\n');
 
       const input = JSON.stringify({ tool_name: 'Stop', tool_input: {}, tool_output: {} });
-      const result = execSync(`echo '${input.replace(/'/g, "'\\''")}' | node "${hookPath}"`, {
+      const result = spawnSync(process.execPath, [hookPath], {
+        input,
         encoding: 'utf-8',
         timeout: 10000,
       });
       // Output goes to stdout, warnings go to stderr — passthrough should work
-      assert.equal(JSON.parse(result).tool_name, 'Stop');
+      assert.equal(JSON.parse(result.stdout).tool_name, 'Stop');
     } finally {
       // Restore original state
       if (origContent !== null) {
@@ -661,14 +592,12 @@ describe('self-verify.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    try {
-      execSync(`echo 'not json' | node "${hookPath}"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-      });
-    } catch (err) {
-      assert.ok(true);
-    }
+    const result = spawnSync(process.execPath, [hookPath], {
+      input: 'not json',
+      encoding: 'utf-8',
+      timeout: 5000,
+    });
+    assert.ok(true);
   });
 });
 
