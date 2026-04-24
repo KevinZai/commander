@@ -56,6 +56,21 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ---
 
+## 🌐 One plugin, every agent
+
+> **Commander is a PM layer for whichever AI coding tool you use.** Same 50 skills, same 17 specialist agents, same lifecycle hooks — different install path per platform. The package name stays `commander` everywhere; the surrounding UI (Claude Code, Codex, Cursor, etc.) provides the platform context.
+
+| Platform | Status | Install |
+|---------|--------|---------|
+| **Claude Code Desktop / Cowork Desktop** ⭐ | Shipping (primary) | Settings → Plugin Marketplace → Add from GitHub: `KevinZai/commander` |
+| **Claude Code CLI** | Shipping | `/plugin marketplace add KevinZai/commander` then `/plugin install commander` |
+| **Cursor / Windsurf / Cline / Continue / Codex** | Shipping (hosted MCP) | Point MCP client at `mcp.cc-commander.com` |
+| **Codex / Gemini native plugin runtimes** | Roadmap | Same repo, platform-specific adapter (planned v4.2+) |
+
+One brand: **Commander**. One tagline: **The guided AI PM for every AI coding agent.** One repo: `KevinZai/commander`. Everywhere.
+
+---
+
 ## 🎯 Why CC Commander
 
 Stock Claude Code is a blank terminal with amnesia. Every other plugin solves one slice. CC Commander is the first **guided AI PM** — click-first UX, an intelligence layer that thinks before you do, and the whole ecosystem pre-wired. One install, everything active.
