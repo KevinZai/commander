@@ -1,0 +1,300 @@
+---
+title: "Troubleshooting"
+description: "Diagnostic guide for CC Commander v4.0.0-beta.11 — install, update, slash command, agent, hook, MCP, and performance issues with fixes and escalation paths."
+---
+
+# Troubleshooting
+
+Symptom → cause → fix → escalation. Every section follows the same shape so you can scan to your problem.
+
+<Tip>
+  Before going deep, run the built-in doctor:
+
+  ```
+  /ccc-doctor
+  ```
+
+  It validates the plugin manifest, checks hook wiring, probes MCP servers, and reports drift between expected counts (50 skills / 17 agents / 8 hooks × 16 handlers / 2 bundled MCPs) and what's actually loaded.
+</Tip>
+
+## Install issues
+
+### Marketplace add fails
+
+**Symptom:** `/plugin marketplace add KevinZai/commander` errors with "repository not found" or "manifest invalid."
+
+**Cause:** Network reachability to GitHub raw, or you're on an outdated Claude Code build that predates plugin marketplace support.
+
+**Fix:**
+
+1. Confirm GitHub is reachable: `curl -I https://raw.githubusercontent.com/KevinZai/commander/main/.claude-plugin/marketplace.json` should return `200`.
+2. Update Claude Code Desktop to the latest version. Plugin marketplace requires a recent build.
+3. Retry `/plugin marketplace add KevinZai/commander`.
+
+**If still broken:** clone the repo locally and add via path: `/plugin marketplace add /path/to/commander`. Open an issue with the exact error string.
+
+### Plugin not appearing after install
+
+**Symptom:** `/plugin install commander` returns success, but `/plugin list` doesn't show it.
+
+**Cause:** Stale plugin cache. The Desktop app caches plugin metadata between sessions.
+
+**Fix:**
+
+1. **Cmd+Q the app fully** (not just close the window — the menu-bar process must exit).
+2. Reopen Claude Code Desktop.
+3. Run `/plugin list`. The `commander` row should appear with version `v4.0.0-beta.11`.
+
+<Note>
+  **Cmd+Q + reopen** is the canonical fix for ~80% of plugin visibility issues. The autocomplete index, slash command registry, and MCP server list are all populated at startup.
+</Note>
+
+**If still broken:** check `~/.claude/plugins/commander/` exists on disk. If present but not listed, the manifest failed validation — run `/ccc-doctor`.
+
+### Autocomplete cache shows old skills
+
+**Symptom:** `/ccc` autocomplete shows skills from a previous version (e.g. only 33 entries instead of 50).
+
+**Cause:** Slash command index cached at session start.
+
+**Fix:** Cmd+Q, reopen, start a new session.
+
+## Update issues
+
+### Update button greyed out
+
+**Symptom:** Settings → Plugins shows `commander` but the **Update** button is disabled even though a new release is out.
+
+**Cause:** The local marketplace clone is pinned to a cached commit and isn't being refreshed.
+
+**Fix — force-pull the marketplace:**
+
+```
+/plugin marketplace remove commander-hub
+/plugin marketplace add KevinZai/commander
+/plugin update commander
+```
+
+**Permanent fix:** enable auto-update in your plugin settings file.
+
+```json
+{
+  "plugins": {
+    "commander": { "autoUpdate": true }
+  }
+}
+```
+
+### displayName not updating
+
+**Symptom:** After update, the plugin still shows the old display name or version in the marketplace card.
+
+**Cause:** Marketplace UI cache, separate from the plugin install cache.
+
+**Fix:** Cmd+Q + reopen. If the card still shows stale metadata, remove and re-add the marketplace as shown above.
+
+## Slash command issues
+
+### `/ccc` not recognized
+
+**Symptom:** Typing `/ccc` returns "command not found."
+
+**Cause:** Plugin not installed, plugin install partially failed, or autocomplete cache stale.
+
+**Fix:**
+
+1. `/plugin list` — confirm `commander` is present and at `v4.0.0-beta.11`.
+2. If missing: `/plugin install commander`.
+3. If present: Cmd+Q + reopen.
+
+### `/ccc:ccc` namespace shows up
+
+**Symptom:** Autocomplete suggests `/ccc:ccc` or `/commander:ccc` instead of plain `/ccc`.
+
+**Cause:** Stale install from before v4.0.0-beta.7. The plugin migrated from plugin commands (namespaced) to skills (plain `/ccc-*`).
+
+**Fix:**
+
+```
+/plugin uninstall commander
+/plugin marketplace remove commander-hub
+```
+
+Then Cmd+Q, reopen, and reinstall:
+
+```
+/plugin marketplace add KevinZai/commander
+/plugin install commander
+```
+
+### Tooltip shows raw `example` XML
+
+**Symptom:** Hovering a skill in autocomplete shows literal XML tags in the tooltip.
+
+**Cause:** Stale install from before the v4.0.0-beta.11 XML strip pass across all 17 agents and skills.
+
+**Fix:** Update to v4.0.0-beta.11 or later: `/plugin update commander`. Cmd+Q + reopen to clear the tooltip cache.
+
+## Agent issues
+
+### Agents not spawning
+
+**Symptom:** You expect a specialist (e.g. `architect`) to take a task but the main thread answers directly.
+
+**Cause:** The dispatcher decided the task didn't meet the complexity threshold for sub-agent delegation, or the agent's tool allowlist excludes the operation.
+
+**Fix:**
+
+1. Invoke the agent explicitly via `/ccc-browse` → pick the persona.
+2. For architecture work, use `/ccc-plan` first — planning automatically routes to `architect`.
+3. Run `/ccc-doctor` to confirm all 17 agents are loaded.
+
+### Model unavailable
+
+**Symptom:** Agent fails with "model not available" or "401."
+
+**Cause:** Account tier doesn't include the model, OAuth token expired, or rate limit hit.
+
+**Fix:**
+
+1. Check Claude Code's account status (Settings → Account).
+2. Re-authenticate if the token expired.
+3. Switch the agent's model tier — Opus agents (architect, debugger, security-auditor, product-manager) are the most demanding; Sonnet fallback is acceptable.
+
+### Context overflow mid-task
+
+**Symptom:** Agent stops with "context window exceeded" before finishing.
+
+**Cause:** Long session, large file reads, or accumulated tool output.
+
+**Fix:**
+
+1. `/save-session` to checkpoint state.
+2. Start a fresh session — the SessionStart hook restores active tasks from `tasks/todo.md`.
+3. For very large repos, use `/ccc-recall` instead of re-reading files; it queries the local memory store.
+
+## Hook issues
+
+### Hook not firing
+
+**Symptom:** Expected lifecycle behavior (e.g. plan-mode reminder at session start) doesn't happen.
+
+**Cause:** Hook not registered, hook errored silently, or hook disabled by env var.
+
+**Fix:**
+
+1. `/ccc-doctor` reports hook registration status for all 8 events × 16 handlers.
+2. Check `~/.claude/commander/state.json` exists. If missing, the SessionStart hook can't persist context.
+3. Confirm hooks aren't disabled: `echo $CC_COACH_DISABLE` should be empty for the session-coach to fire.
+
+### state.json missing
+
+**Symptom:** Errors like `ENOENT: no such file or directory, open '~/.claude/commander/state.json'`.
+
+**Cause:** First-run state file wasn't created — usually because `~/.claude/commander/` is missing.
+
+**Fix:**
+
+```bash
+mkdir -p ~/.claude/commander
+echo '{}' > ~/.claude/commander/state.json
+```
+
+Restart the session. The SessionStart hook will populate the file on next launch.
+
+### Version-transition nudge stuck
+
+**Symptom:** Every session opens with "you upgraded to v4.0.0-beta.11" even after you've acknowledged it.
+
+**Cause:** The acknowledgment flag in `state.json` isn't persisting.
+
+**Fix:** Edit `~/.claude/commander/state.json` and set `"versionAcked": "4.0.0-beta.11"`. Restart.
+
+## MCP issues
+
+### Bundled MCP servers not connecting
+
+**Symptom:** `context7` or `sequential-thinking` show as failed in `/plugin list` or in MCP status.
+
+**Cause:** Node.js version mismatch, npx network issue, or the MCP server crashed during startup.
+
+**Fix:**
+
+1. Confirm Node.js 20+: `node --version`.
+2. Manually test the server: `npx -y @upstash/context7-mcp` should print a JSON-RPC handshake then idle.
+3. Restart the Claude Code session — MCP servers respawn at session start.
+
+<Warning>
+  The 2 bundled MCPs (`context7`, `sequential-thinking`) are credential-free. If they ask you for a key, you have an outdated install or a forked server config. Update with `/plugin update commander`.
+</Warning>
+
+### Opt-in connector not appearing
+
+**Symptom:** You ran `/ccc-connect` and picked Supabase, but the Supabase MCP isn't loaded.
+
+**Cause:** Connectors require credentials and an explicit accept step. The connect flow writes the MCP entry to your local `.mcp.json` only after you confirm.
+
+**Fix:**
+
+1. Re-run `/ccc-connect` and pick the connector again.
+2. Confirm credentials when prompted.
+3. Cmd+Q + reopen to load the new MCP entry.
+
+The full set of 16 opt-in connectors lives in the plugin's `CONNECTORS.md`.
+
+## Performance issues
+
+### Startup slow
+
+**Symptom:** Session start takes >10 seconds.
+
+**Cause:** Loading too many MCP servers, slow disk, or a hook doing heavy work in SessionStart.
+
+**Fix:**
+
+1. Trim MCP servers — remove opt-in connectors you don't use via `/ccc-connect`.
+2. Check `/ccc-doctor` startup timing report.
+3. Disable the session coach if it's the culprit: `export CC_COACH_DISABLE=1`.
+
+### Hooks adding latency
+
+**Symptom:** Each prompt has a noticeable delay before the model responds.
+
+**Cause:** A PreToolUse or UserPromptSubmit hook is running expensive work synchronously.
+
+**Fix:**
+
+1. `/ccc-doctor` reports per-hook execution time over the last session.
+2. Disable noisy hooks via env var (see each hook's doc).
+3. Report a regression — hooks should never exceed 200ms.
+
+## Debug commands
+
+When you escalate an issue, include the output of these commands. They're the canonical diagnostic surface:
+
+```bash
+node scripts/audit-counts.js --check          # Verify 50/17/8x16/2+16 counts match
+node scripts/check-version-parity.js --check  # Confirm version is consistent across files
+npm test                                      # Run the full test suite
+```
+
+In a Claude Code session:
+
+```
+/ccc-doctor
+```
+
+`/ccc-doctor` produces a structured report covering plugin manifest validity, hook registration, MCP probe results, agent allowlists, and skill counts.
+
+## Escalation
+
+If a section above didn't fix it:
+
+1. Re-run `/ccc-doctor` and copy the full output.
+2. Capture the failing command and exact error text.
+3. Open an issue: [github.com/KevinZai/commander/issues](https://github.com/KevinZai/commander/issues).
+4. Tag [@kzic on X](https://x.com/kzic) for time-sensitive blockers.
+
+<Note>
+  Include your Claude Code Desktop version, OS, and `/ccc-doctor` output. Most issues are resolved within one round-trip when those three items are present.
+</Note>

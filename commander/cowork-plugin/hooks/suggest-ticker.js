@@ -15,12 +15,11 @@
 //   CCC_SUGGEST_LEVEL=1..4  — hard-lock involvement level
 //   CCC_SUGGEST_VERBOSE=1   — log to stderr (debug)
 
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { execFileSync } = require('child_process');
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const STATE_DIR = path.join(os.homedir(), '.claude', 'commander');
 const STATE_FILE = path.join(STATE_DIR, 'project-state.json');
@@ -36,7 +35,7 @@ function runCmd(file, args, opts = {}) {
   }
 }
 
-function detectProjectStack() {
+export function detectProjectStack() {
   const signals = [];
   try {
     if (fs.existsSync('package.json')) {
@@ -60,7 +59,7 @@ function detectProjectStack() {
   return signals;
 }
 
-function computeState() {
+export function computeState() {
   const branch = runCmd('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
   const aheadBehind = runCmd('git', ['rev-list', '--left-right', '--count', 'HEAD...origin/main']).split('\t');
   const aheadMain = parseInt(aheadBehind[0] || '0', 10);
@@ -184,7 +183,16 @@ function main() {
   return { continue: true, suppressOutput: true };
 }
 
-if (require.main === module) {
+// ESM equivalent of `require.main === module` — only run when executed directly.
+const isMain = (() => {
+  try {
+    return process.argv[1] && fileURLToPath(import.meta.url) === fs.realpathSync(process.argv[1]);
+  } catch {
+    return false;
+  }
+})();
+
+if (isMain) {
   try {
     const result = main();
     process.stdout.write(JSON.stringify(result) + '\n');
@@ -198,5 +206,3 @@ if (require.main === module) {
     process.exit(0);
   }
 }
-
-module.exports = { computeState, detectProjectStack };

@@ -1,0 +1,130 @@
+---
+title: "FAQ"
+description: "Frequently asked questions about CC Commander v4.0.0-beta.11 — install, plugin usage, privacy, cost, and troubleshooting basics."
+---
+
+# Frequently Asked Questions
+
+Quick answers to the questions we hear most. For deeper diagnostics, see [Troubleshooting](/troubleshooting).
+
+## Install & Setup
+
+<AccordionGroup>
+  <Accordion title="Where do I install CC Commander?">
+    The primary surface is **Claude Code Desktop** (aka **Cowork Desktop** — same app, two UI modes). Install via the GUI:
+
+    Settings → Plugin Marketplace → **Add from GitHub** → enter `KevinZai/commander` → click **Install** on the `commander` entry.
+
+    CLI fallback (terminal sessions only):
+
+    ```
+    /plugin marketplace add KevinZai/commander
+    /plugin install commander
+    ```
+
+    A non-plugin npm install is also available: `npm install -g cc-commander`.
+  </Accordion>
+
+  <Accordion title="Is it really free forever?">
+    Yes. All **50 plugin skills**, **17 specialist sub-agents**, **8 lifecycle hooks (16 handlers)**, and **2 credential-free bundled MCP servers** are free with no caps, no license check, and no Stripe.
+
+    Revenue comes from four optional sources: Kevin's consulting practice, transparent affiliate links surfaced through `/ccc-connect`, an optional paid Discord community, and GitHub Sponsors. None of those gate functionality.
+  </Accordion>
+
+  <Accordion title="Does it work cross-platform?">
+    Yes — macOS, Linux, and Windows. The plugin runs anywhere Claude Code Desktop or Claude Code CLI runs. The `ccc` interactive TUI (npm install) works on any POSIX shell. Hooks are written in Node.js and shell-portable.
+  </Accordion>
+
+  <Accordion title="What's the difference between Cowork Desktop and Code Desktop?">
+    **They are the same app, two UI modes.** Cowork Desktop is the friendlier, novice-oriented mode; Claude Code Desktop is the developer mode. The plugin behaves identically in both. Type `/ccc` in either mode to open the hub.
+  </Accordion>
+
+  <Accordion title="Do I need API keys to use it?">
+    **No.** The 2 bundled MCP servers — `context7` (library docs) and `sequential-thinking` — are credential-free and work the moment you install.
+
+    Optional integrations (Tavily, GitHub, Figma, Supabase, Slack, Notion, Playwright, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash) require keys, but they are **opt-in only** via `/ccc-connect`. The plugin never asks for credentials at install time.
+  </Accordion>
+</AccordionGroup>
+
+## Using the plugin
+
+<AccordionGroup>
+  <Accordion title="What does /ccc do?">
+    `/ccc` opens the main hub — a click-first picker with six common intents: plan a feature, build a project, review a branch, ship a release, learn a domain, or browse the catalog. It uses Claude Code's native `AskUserQuestion` picker — no typing required.
+  </Accordion>
+
+  <Accordion title="When should I use /ccc-plan vs /ccc-build?">
+    Use `/ccc-plan` **before** writing code — it produces a spec file (`tasks/spec-YYYYMMDD.md`) by interviewing you with 5-7 targeted questions. Use `/ccc-build` to scaffold a new project (web, API, CLI, mobile) from a template once the plan is locked. Plan first, build second is the canonical Kevin Z Method order.
+  </Accordion>
+
+  <Accordion title="How do agents get spawned?">
+    Specialist sub-agents spawn automatically based on task type. Architecture decisions route to `architect` (Opus, high effort). Code changes route to `builder` then `reviewer`. UI work routes to `designer`. You can also invoke an agent directly through `/ccc-browse` or by naming it in a prompt. All 17 personas live in the plugin and are scoped to specific tools and models.
+  </Accordion>
+
+  <Accordion title="Can I use it in a CI pipeline?">
+    The plugin itself is interactive and Desktop-first, so it isn't designed for unattended CI runs. For headless automation use the `ccc` CLI: `ccc --dispatch "task" --json` produces machine-readable output suitable for GitHub Actions or any CI runner. Hooks that depend on a TTY (like the session coach) auto-disable in CI.
+  </Accordion>
+
+  <Accordion title="Does it work offline?">
+    Partially. Skills, agents, and hooks are local files — they work offline. Claude Code itself needs a network connection to reach Anthropic's API. The bundled `context7` MCP fetches docs over the network; `sequential-thinking` runs locally. Opt-in connectors all require network access.
+  </Accordion>
+</AccordionGroup>
+
+## Privacy & Cost
+
+<AccordionGroup>
+  <Accordion title="Does the plugin phone home?">
+    **No.** There is no telemetry endpoint, no analytics SDK, and no license server. The plugin runs entirely inside your Claude Code session. The only network calls it makes are the ones you trigger — slash commands, MCP tool invocations, and update checks against the public GitHub repo.
+  </Accordion>
+
+  <Accordion title="Is there anonymous telemetry?">
+    No. The docs site uses Plausible (cookieless, no personal data) for page-view counts only. The plugin itself ships zero telemetry. Knowledge compounding is **local** — `~/.claude/commander/` stores session learnings on your machine and never transmits them.
+  </Accordion>
+
+  <Accordion title="What does \"free forever\" actually guarantee?">
+    All 50 plugin skills, 17 sub-agents, 8 lifecycle hooks (16 handlers), and 2 credential-free bundled MCP servers are free with no caps, no rate limit, and no feature gating — now and after the v4.0 release. There is no paid upgrade path planned for the plugin itself. A future hosted MCP service (v4.1) will be free with a 100-call/month anti-abuse cap; no paid tier is planned.
+  </Accordion>
+
+  <Accordion title="How do affiliate links work?">
+    `/ccc-connect` surfaces opt-in integrations (Supabase, Vercel, Neon, Fly.io, Upstash, etc.). Some of those signup links are affiliate links — clearly disclosed in the connector card before you click. Clicking through gives Kevin a referral credit if you sign up. Skipping the links costs you nothing — every connector also lists the direct, non-affiliate URL.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting basics
+
+<AccordionGroup>
+  <Accordion title="I type /ccc and nothing shows up.">
+    The autocomplete cache is stale. Quit Claude Code Desktop fully (**Cmd+Q** on macOS, not just close the window) and reopen it. If `/ccc` still doesn't appear, run `/plugin list` and confirm `commander` is installed; if missing, reinstall via the marketplace. Full diagnosis: [Troubleshooting → Slash command issues](/troubleshooting#slash-command-issues).
+  </Accordion>
+
+  <Accordion title="The Update button is greyed out.">
+    The marketplace clone is stuck on a cached commit. Force-pull by removing and re-adding the marketplace:
+
+    ```
+    /plugin marketplace remove commander-hub
+    /plugin marketplace add KevinZai/commander
+    /plugin update commander
+    ```
+
+    Set `"autoUpdate": true` in your plugin settings to avoid this in the future. See [Troubleshooting → Update issues](/troubleshooting#update-issues).
+  </Accordion>
+
+  <Accordion title="The plugin doesn't appear in /plugin list after install.">
+    Three causes, in order of likelihood: (1) the marketplace add succeeded but the install step was skipped — re-run `/plugin install commander`; (2) you have a name collision with a stale local copy — check `~/.claude/plugins/` for duplicates; (3) the manifest failed schema validation — run `/ccc-doctor` for a structured report.
+  </Accordion>
+
+  <Accordion title="How do I remove the plugin?">
+    ```
+    /plugin uninstall commander
+    /plugin marketplace remove commander-hub
+    ```
+
+    Optional: delete `~/.claude/commander/` to remove cached knowledge and learned skills. Your `CLAUDE.md` and `settings.json` are preserved.
+  </Accordion>
+</AccordionGroup>
+
+## Still stuck?
+
+- **Deeper diagnostics:** [Troubleshooting](/troubleshooting)
+- **Issue tracker:** [github.com/KevinZai/commander/issues](https://github.com/KevinZai/commander/issues)
+- **Community:** [@kzic on X](https://x.com/kzic)

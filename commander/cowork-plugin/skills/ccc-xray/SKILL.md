@@ -148,6 +148,23 @@ Output: `**🎯 My call: fix <area> first — <one-line rationale>.**`
 - One recommendation line at the end, always
 - ⭐ marks the recommended option in every picker
 
+## Cost analysis (NEW in beta.11+)
+
+When the user asks for `/ccc-xray cost` or `/ccc-xray full` and a `/cost` transcript is available, parse it via the bundled utility at `lib/cost-parser.js` (ESM, side-effect-free):
+
+```js
+import { parseCostOutput } from './lib/cost-parser.js';
+const report = parseCostOutput(rawCostText);
+// → { totalUsd, models, cacheHitRate, turns, avgUsdPerTurn, skipped, raw }
+```
+
+Use the result to render a "💰 Cost" row in the scorecard:
+- `🟢` if `cacheHitRate ≥ 0.5` and `avgUsdPerTurn < $0.10`
+- `🟡` if `cacheHitRate ∈ [0.2, 0.5)` or `avgUsdPerTurn ∈ [$0.10, $0.50)`
+- `🟠` if `cacheHitRate < 0.2` or `avgUsdPerTurn ≥ $0.50`
+
+The parser is liberal: malformed lines land in `skipped[]` (not thrown), empty input returns a zero-state object. Safe to call on any text the user pastes.
+
 ## Tips for the agent executing this skill
 
 1. Whole flow is ≤3 turns: context+picker → user clicks → parallel scan → scorecard + chips.

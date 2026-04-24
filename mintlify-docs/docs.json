@@ -17,6 +17,7 @@
             "group": "Getting Started",
             "pages": [
               "introduction",
+              "faq",
               "quickstart",
               "why-ccc",
               "architecture"
@@ -75,6 +76,12 @@
             "group": "Compare",
             "pages": [
               "compare/vs-aider"
+            ]
+          },
+          {
+            "group": "Help",
+            "pages": [
+              "troubleshooting"
             ]
           }
         ]

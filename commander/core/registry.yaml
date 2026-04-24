@@ -1149,6 +1149,11 @@ skills:
     domain: ccc-testing
     tier: free
     description: "name: ccc-testing"
+  - id: ccc-upgrade
+    path: skills/ccc-upgrade/SKILL.md
+    domain: ccc-upgrade
+    tier: free
+    description: "name: ccc-upgrade"
   - id: ccc-xray
     path: skills/ccc-xray/SKILL.md
     domain: ccc-xray
