@@ -29,11 +29,20 @@ var MANIFESTS = [
 // Also update the lockfile version field (top-level + packages[""] entry)
 var LOCKFILE = path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json');
 
-var errors = [];
-var updated = [];
+// ATOMIC TWO-PHASE UPDATE:
+// Phase 1 — read + parse + mutate all files into an in-memory plan.
+//           Abort before ANY write if any parse/transform fails.
+// Phase 2 — write each target to a temp file + rename(). rename() is
+//           atomic on the same filesystem, so each manifest either
+//           flips to the new version or stays at the old one.
+// Best-effort rollback: if a rename fails mid-phase-2, restore files
+// that were already renamed from their saved pre-image.
 
-for (var manifestPath of MANIFESTS) {
-  try {
+var plan = [];      // { path, beforeBytes, afterBytes, tempPath, summary[] }
+var errors = [];
+
+function buildPlan() {
+  for (var manifestPath of MANIFESTS) {
     var raw = fs.readFileSync(manifestPath, 'utf8');
     var obj = JSON.parse(raw);
     var prev = obj.version;
@@ -44,31 +53,28 @@ for (var manifestPath of MANIFESTS) {
     //   - `plugins[i].version` (the published version for each plugin entry)
     // Desktop's Plugin UI reads plugins[i].version, NOT the top-level.
     // Must bump both or the Update button shows stale versions.
-    var extraUpdated = [];
+    var summary = [manifestPath.replace(ROOT + '/', '') + ' (' + prev + ' -> ' + version + ')'];
     if (Array.isArray(obj.plugins)) {
       for (var i = 0; i < obj.plugins.length; i++) {
-        var plugin = obj.plugins[i];
-        if (plugin && typeof plugin.version === 'string') {
-          var pluginPrev = plugin.version;
-          plugin.version = version;
-          extraUpdated.push('plugins[' + i + '](' + (plugin.name || '?') + '): ' + pluginPrev + ' -> ' + version);
+        var p = obj.plugins[i];
+        if (p && typeof p.version === 'string') {
+          var pluginPrev = p.version;
+          p.version = version;
+          summary.push('  plugins[' + i + '](' + (p.name || '?') + '): ' + pluginPrev + ' -> ' + version);
         }
       }
     }
 
-    fs.writeFileSync(manifestPath, JSON.stringify(obj, null, 2) + '\n', 'utf8');
-    var relPath = manifestPath.replace(ROOT + '/', '');
-    updated.push(relPath + ' (' + prev + ' -> ' + version + ')');
-    extraUpdated.forEach(function (e) {
-      updated.push('  ' + relPath + ' ' + e);
+    plan.push({
+      path: manifestPath,
+      beforeBytes: raw,
+      afterBytes: JSON.stringify(obj, null, 2) + '\n',
+      tempPath: manifestPath + '.bump-tmp',
+      summary: summary,
     });
-  } catch (err) {
-    errors.push(manifestPath.replace(ROOT + '/', '') + ': ' + err.message);
   }
-}
 
-// Update package-lock.json (has version in two places)
-try {
+  // Lockfile has version in two places: top-level + packages[""].version
   var lockRaw = fs.readFileSync(LOCKFILE, 'utf8');
   var lock = JSON.parse(lockRaw);
   var lockPrev = lock.version;
@@ -76,18 +82,59 @@ try {
   if (lock.packages && lock.packages['']) {
     lock.packages[''].version = version;
   }
-  fs.writeFileSync(LOCKFILE, JSON.stringify(lock, null, 2) + '\n', 'utf8');
-  updated.push('apps/mcp-server-cloud/package-lock.json (' + lockPrev + ' -> ' + version + ')');
-} catch (err) {
-  errors.push('apps/mcp-server-cloud/package-lock.json: ' + err.message);
+  plan.push({
+    path: LOCKFILE,
+    beforeBytes: lockRaw,
+    afterBytes: JSON.stringify(lock, null, 2) + '\n',
+    tempPath: LOCKFILE + '.bump-tmp',
+    summary: ['apps/mcp-server-cloud/package-lock.json (' + lockPrev + ' -> ' + version + ')'],
+  });
 }
 
-if (errors.length > 0) {
-  process.stderr.write('ERRORS:\n');
-  errors.forEach(function(e) { process.stderr.write('  ' + e + '\n'); });
+try {
+  buildPlan();
+} catch (err) {
+  process.stderr.write('ABORT (phase 1 — parse/transform failed before any write):\n');
+  process.stderr.write('  ' + err.message + '\n');
+  process.exit(1);
+}
+
+// Phase 2 — write temp files first, then rename atomically.
+// Track renamed files so we can roll back on any subsequent failure.
+var renamed = [];
+try {
+  // First, write ALL temp files. If any write fails, nothing has moved yet.
+  for (var item of plan) {
+    fs.writeFileSync(item.tempPath, item.afterBytes, 'utf8');
+  }
+  // Then rename each into place. Each rename is atomic on the same fs.
+  for (var item2 of plan) {
+    fs.renameSync(item2.tempPath, item2.path);
+    renamed.push(item2);
+  }
+} catch (err) {
+  errors.push(err.message);
+  // Rollback: restore every already-renamed file from the saved pre-image.
+  for (var r of renamed) {
+    try {
+      fs.writeFileSync(r.path, r.beforeBytes, 'utf8');
+    } catch (rErr) {
+      errors.push('rollback failed for ' + r.path + ': ' + rErr.message);
+    }
+  }
+  // Clean up any stray temp files from items not yet renamed.
+  for (var p of plan) {
+    if (fs.existsSync(p.tempPath)) {
+      try { fs.unlinkSync(p.tempPath); } catch {}
+    }
+  }
+  process.stderr.write('ABORT (phase 2 — write/rename failed; rolled back):\n');
+  errors.forEach(function (e) { process.stderr.write('  ' + e + '\n'); });
   process.exit(1);
 }
 
 process.stdout.write('Bumped to ' + version + ':\n');
-updated.forEach(function(u) { process.stdout.write('  ' + u + '\n'); });
+plan.forEach(function (item) {
+  item.summary.forEach(function (s) { process.stdout.write('  ' + s + '\n'); });
+});
 process.exit(0);
