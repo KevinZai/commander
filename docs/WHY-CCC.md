@@ -133,10 +133,10 @@
 
 ---
 
-### 18. 453+ Skills (Verified by SKILL.md Count)
+### 18. 502+ Skills (Verified by SKILL.md Count)
 **What:** 459 individual SKILL.md files across the `skills/` directory — deduplicated from 1,500+ vendor skills across 19 packages.
 **Proof:** `find skills/ -name "SKILL.md" | wc -l` → 459.
-**Share-friendly:** 453+ skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
+**Share-friendly:** 502+ skills. Not a number someone estimated. Run `find skills/ -name "SKILL.md" | wc -l` and count yourself.
 
 ---
 
@@ -245,10 +245,10 @@
 
 ---
 
-### 34. Claude Desktop Cowork Plugin (7 Skills)
-**What:** `commander/cowork-plugin/` ships 7 skills that install directly as a Claude Desktop Cowork plugin. Works without the terminal CLI — pure point-and-click.
-**Proof:** `ls commander/cowork-plugin/skills/` → 7 skill directories + plugin manifest files.
-**Share-friendly:** Don't like terminals? CCC has a Claude Desktop plugin. 7 skills. Install, click, done.
+### 34. Claude Desktop Cowork Plugin (50 Skills)
+**What:** `commander/cowork-plugin/` ships 50 skills that install directly as a Claude Desktop plugin. Works without the terminal CLI — pure point-and-click.
+**Proof:** `ls commander/cowork-plugin/skills/ | wc -l` → 50 skill directories + plugin manifest files.
+**Share-friendly:** Don't like terminals? Commander has a Claude Desktop plugin. 50 skills. Install, click, done.
 
 ---
 
@@ -351,7 +351,7 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 |--------|------------------|--------------|
 | Tool Output | Full dump into context (wastes 98% of window) | **98% reduction** — context-mode sandboxes into SQLite, returns BM25 snippets |
 | Getting started | Blank terminal, type commands | Arrow-key menus, guided setup |
-| Skills | 0 built-in | 453+ (456 CLI-visible, 459 on disk) |
+| Skills | 0 built-in | 502+ (across 11 CCC domains + vendor ecosystem) |
 | Commands | 0 installed | 83 slash commands |
 | Memory | None across sessions | AI knowledge compounding — every session builds on the last |
 | Project awareness | Reads CLAUDE.md | Reads CLAUDE.md + package.json + Dockerfile + docker-compose.yml + go.mod + Cargo.toml + pyproject.toml + git branch + last 5 commits + monorepo detection |
@@ -364,13 +364,13 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 | Learning | Starts fresh | Fuzzy keyword matching, time decay (7d: 2x, 30d: 1.5x), outcome weighting |
 | Crash behavior | Terminal error | Global exception handler → error ID → back to menu |
 | Themes | None | 10 visual themes, live-switchable |
-| Lifecycle hooks | None | 25 hooks (PreToolUse, PostToolUse, Stop, PreCompact) |
+| Lifecycle hooks | None | 8 events × 16 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop) |
 | Methodology guide | None | 2,469-line BIBLE distilled from 200+ sources |
 | Prompt templates | None | 37 templates across 6 categories |
 | Project health | None | /xray audit: 21 rules, 6 dimensions, 0-100 score, 5-level maturity |
 | Auto-improvement | None | /makeover swarm auto-fixes /xray findings |
 | Repo evaluation | Manual | `ccc --ingest <url>` → ADOPT / REFERENCE / SKIP |
-| Claude Desktop support | None | Cowork plugin (7 skills) |
+| Claude Desktop support | None | Cowork plugin (50 skills, 17 agents, 16 hook handlers, 2 bundled + 16 opt-in MCPs) |
 | VS Code integration | None | Extension scaffold with skill browser and stats sidebar |
 | Multi-CLI support | Claude only | Auto-detects Claude, Gemini CLI, Codex CLI |
 | Task complexity scoring | None | 41-signal keyword analysis + file scope estimation → turns/budget/model |
