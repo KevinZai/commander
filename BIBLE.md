@@ -548,7 +548,7 @@ Build a table with company, contact, email, phone, and top 3 outreach angles."
 
 ### Mobile Development with Claude Code (from @chddaniel)
 
-**Shipper platform** — Claude Opus 4.6 builds complete iOS/Android apps:
+**Shipper platform** — Claude Opus 4.7 builds complete iOS/Android apps:
 - Complete mobile apps from one prompt
 - iOS + Android compatibility handled automatically
 - App store listing autofill (icon, screenshots, descriptions, keywords, privacy policy)
@@ -2280,7 +2280,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v4.0.0-beta.11* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 48 plugin skills, 17 specialist sub-agents, 2 bundled MCPs (16 opt-in), 8 lifecycle hooks (16 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v4.0.0-beta.11* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 50 plugin skills, 17 specialist sub-agents, 2 bundled MCPs (16 opt-in), 8 lifecycle hooks (16 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2293,7 +2293,7 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (48 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (50 plugin skills)
   +-- 17 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 8 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
@@ -2337,7 +2337,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 48 plugin skills, 17 agents, 2 bundled MCPs (16 opt-in), 8 lifecycle hooks — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 50 plugin skills, 17 agents, 2 bundled MCPs (16 opt-in), 8 lifecycle hooks — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -2738,7 +2738,7 @@ CCC does not replace these skills. It organizes and orchestrates them.
 
 - **Curation:** 500+ skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
 - **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
-- **Pre-wired MCPs:** 8 MCP servers are configured out of the box. Skills that need web search, GitHub, Linear, or docs get them without manual setup.
+- **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 16 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
 - **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (39 skills) behaves like a single expert, not 39 separate prompts.
 - **Session memory:** The knowledge-capture hook learns from every session. Community skills are stateless. CCC accumulates.
 
