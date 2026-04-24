@@ -2,35 +2,19 @@
 /**
  * subagent-stop.js
  * Hook: SubagentStop
- * Free tier: no-op stub (exits 0)
- * Pro tier: tracks subagent cost aggregation per session
+ *
+ * Tracks subagent cost aggregation per session to
+ * ~/.claude/commander/analytics/subagent-costs.jsonl
+ *
+ * Free forever — no license check, no tier gating.
  */
-import { readFile, appendFile, mkdir } from 'node:fs/promises';
+import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
-const LICENSE_FILE = join(CCC_DIR, 'license.json');
-
-async function isPro() {
-  try {
-    const license = JSON.parse(await readFile(LICENSE_FILE, 'utf8'));
-    return license.key && license.expires && new Date(license.expires) > new Date() && license.tier === 'pro';
-  } catch {
-    return false;
-  }
-}
 
 async function main() {
   try {
-    const pro = await isPro();
-
-    if (!pro) {
-      // Free tier: no-op stub
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-      return;
-    }
-
-    // Pro tier: aggregate subagent cost tracking
     const sessionId = process.env.CLAUDE_SESSION_ID || 'unknown';
     const agentName = process.env.CLAUDE_AGENT_NAME || 'unknown';
     const inputTokens = parseInt(process.env.CLAUDE_INPUT_TOKENS || '0', 10);

@@ -16,7 +16,7 @@ Ideal resolution: **2560x1600** (Retina MBP) or **1920x1200** (external display)
 
 ## 02-plugin-installed.png
 
-**What to capture:** Settings → Plugins tab. The `commander` entry showing version `4.0.0-beta.10` (or current), with the enable toggle ON (purple/blue = enabled).
+**What to capture:** Settings → Plugins tab. The `commander` entry showing version `4.0.0-beta.11` (or current), with the enable toggle ON (purple/blue = enabled).
 
 **Why it matters:** Confirms what "installed" looks like. Reduces support questions about whether it worked.
 

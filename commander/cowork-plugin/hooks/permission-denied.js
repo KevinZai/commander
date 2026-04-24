@@ -2,35 +2,19 @@
 /**
  * permission-denied.js
  * Hook: PermissionDenied
- * Free tier: no-op stub (exits 0)
- * Pro tier: logs denied permissions for retrospective analysis and settings optimization
+ *
+ * Logs denied permissions for retrospective analysis + settings optimization.
+ * Records tool name, session id, and input-length summary (never full content).
+ *
+ * Free forever — no license check, no tier gating.
  */
-import { readFile, appendFile, mkdir } from 'node:fs/promises';
+import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
-const LICENSE_FILE = join(CCC_DIR, 'license.json');
-
-async function isPro() {
-  try {
-    const license = JSON.parse(await readFile(LICENSE_FILE, 'utf8'));
-    return license.key && license.expires && new Date(license.expires) > new Date() && license.tier === 'pro';
-  } catch {
-    return false;
-  }
-}
 
 async function main() {
   try {
-    const pro = await isPro();
-
-    if (!pro) {
-      // Free tier: no-op stub
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-      return;
-    }
-
-    // Pro tier: log denied permission for retrospective analysis
     const toolName = process.env.CLAUDE_TOOL_NAME || 'unknown';
     const toolInput = process.env.CLAUDE_TOOL_INPUT || '{}';
     const sessionId = process.env.CLAUDE_SESSION_ID || 'unknown';

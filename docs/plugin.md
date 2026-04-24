@@ -2,7 +2,7 @@
 
 > **The recommended path.** Click-first, GUI-only, zero terminal required. For everyone using Claude Cowork Desktop or Claude Code Desktop.
 
-**Version:** v4.0.0-beta.10 · **Target audience:** novices + developers using Anthropic's desktop clients.
+**Version:** v4.0.0-beta.11 · **Target audience:** novices + developers using Anthropic's desktop clients.
 
 ---
 
@@ -15,7 +15,7 @@
 5. **Cmd+Q** fully quit the app, then reopen (the autocomplete cache needs a fresh session to pick up the skills)
 6. Type **`/ccc`** — you should see a visual chip picker with 6 options
 
-**That's it.** 33 plugin skills, 17 specialist agents, 8 MCP servers, and 6 lifecycle hooks are now active. Zero config. Zero API keys. Free in beta.
+**That's it.** 50 plugin skills, 17 specialist agents, 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`), and 8 lifecycle hooks (16 handlers) are now active. Zero config. Zero API keys. Free forever.
 
 ---
 
@@ -78,7 +78,7 @@ Every other Claude Code plugin solves one slice — memory, structured thinking,
 
 ## Updating (no uninstall needed)
 
-When beta.8+ ships:
+When a new version ships:
 
 1. **Settings → Plugin Marketplace → commander-hub** (the marketplace, not the plugin)
 2. Click **Refresh** / **Check for updates**

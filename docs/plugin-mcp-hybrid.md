@@ -88,7 +88,7 @@ The plugin reads this file on startup. No restart required — config is read pe
 |------|-------------|
 | `list_skills` | Paginated skill catalog with metadata |
 | `get_skill` | Full SKILL.md content by name |
-| `search` | Semantic search across 456+ skills |
+| `search` | Semantic search across 502+ skills |
 | `suggest_for` | Top 3-5 skills for a task description |
 | `status` | Health check — version, license tier, usage |
 

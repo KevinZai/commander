@@ -20,16 +20,17 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
 const STATE_DIR = path.join(os.homedir(), '.claude', 'commander');
 const STATE_FILE = path.join(STATE_DIR, 'project-state.json');
 const LOG_FILE = path.join(STATE_DIR, 'suggest-log.jsonl');
 
-// Fast, failure-tolerant shell read (timeout 1s, returns '' on error)
-function sh(cmd, opts = {}) {
+// Fast, failure-tolerant exec (timeout 1s, returns '' on error).
+// Uses execFileSync + argv array (no shell interpolation) for safety.
+function runCmd(file, args, opts = {}) {
   try {
-    return execSync(cmd, { encoding: 'utf8', timeout: 1000, stdio: ['ignore', 'pipe', 'ignore'], ...opts }).trim();
+    return execFileSync(file, args, { encoding: 'utf8', timeout: 1000, stdio: ['ignore', 'pipe', 'ignore'], ...opts }).trim();
   } catch {
     return '';
   }
@@ -60,8 +61,8 @@ function detectProjectStack() {
 }
 
 function computeState() {
-  const branch = sh('git rev-parse --abbrev-ref HEAD');
-  const aheadBehind = sh('git rev-list --left-right --count HEAD...origin/main 2>/dev/null').split('\t');
+  const branch = runCmd('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
+  const aheadBehind = runCmd('git', ['rev-list', '--left-right', '--count', 'HEAD...origin/main']).split('\t');
   const aheadMain = parseInt(aheadBehind[0] || '0', 10);
   const behindMain = parseInt(aheadBehind[1] || '0', 10);
   const hasClaudeMd = fs.existsSync('CLAUDE.md');

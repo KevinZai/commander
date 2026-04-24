@@ -7,20 +7,7 @@ const FLEET_DIR = join(process.env.HOME, '.claude', 'commander', 'fleet');
 
 async function main() {
   try {
-    const licenseFile = join(process.env.HOME, '.claude', 'commander', 'license.json');
-    let tier = 'free';
-    try {
-      const license = JSON.parse(await readFile(licenseFile, 'utf8'));
-      if (license.key && license.expires && new Date(license.expires) > new Date()) {
-        tier = license.tier || 'pro';
-      }
-    } catch {}
-
-    if (tier === 'free') {
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-      return;
-    }
-
+    // Free forever — no license check. Hook always runs.
     let input = '';
     for await (const chunk of process.stdin) input += chunk;
     const trimmed = input.trim();

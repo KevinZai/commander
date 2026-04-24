@@ -16,7 +16,7 @@ Use when a published version is broken and users are actively hitting it.
 
 ```bash
 # Deprecate: package stays installable but users see a warning
-npm deprecate cc-commander@4.0.0 "Rolled back due to [ISSUE]. Pin to 4.0.0-beta.10 or wait for 4.0.1."
+npm deprecate cc-commander@4.0.0 "Rolled back due to [ISSUE]. Pin to <previous-known-good> or wait for 4.0.1."
 
 # Verify the deprecation notice appears
 npm info cc-commander@4.0.0 deprecated
@@ -63,10 +63,10 @@ The plugin is pulled directly from the GitHub repo tag. There is no separate plu
 /plugin uninstall commander
 
 # Install a specific tag (if the marketplace supports versioned installs)
-/plugin install commander@4.0.0-beta.10
+/plugin install commander@<previous-known-good>   # e.g. 4.0.0-beta.11
 
 # If versioned install is not supported, install from a branch/tag URL:
-# Settings → Plugin Marketplace → Add from GitHub → KevinZai/commander@v4.0.0-beta.10
+# Settings → Plugin Marketplace → Add from GitHub → KevinZai/commander@v<previous-known-good>
 ```
 
 **Limitation:** the `/plugin install` CLI does not currently support version pinning. Users who cannot pin should wait for the hotfix `4.0.1` tag.
@@ -78,7 +78,7 @@ The plugin is pulled directly from the GitHub repo tag. There is no separate plu
 3. Users re-install — they will get the new tag
 
 ```bash
-bash scripts/rollback.sh --target plugin --version 4.0.0-beta.10
+bash scripts/rollback.sh --target plugin --version <previous-known-good>   # e.g. 4.0.0-beta.11
 ```
 
 ---
