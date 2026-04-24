@@ -26,12 +26,47 @@ Tracks which of the 7 scaffold slots are filled and which bonus shots landed bey
 | `12-personal-marketplace.png` | Marketplace → Personal tab with commander | Install alternate-path docs |
 | `13-plugin-options-menu.png` | Plugin gear menu (Sync / Check for updates / Remove) | Update workflow docs |
 
-## 🚦 Next steps
+## 🚦 Capture Recipe for the 4 remaining shots (Kevin at keyboard)
 
-Capture the 4 missing scaffold shots:
-- **03-ccc-hub-menu.png** — type `/ccc` in input bar, let chip picker appear, screenshot
-- **05-ccc-plan-in-action.png** — run `/ccc-plan` with a dummy feature, let plan file render in Plan pane, screenshot both panes
-- **06-ccc-fleet-parallel.png** — run `/ccc-fleet` with 3 agents, screenshot the sidebar with task chips visible
-- **07-ccc-start-onboarding.png** — run `/ccc-start` on a fresh state, screenshot the ASCII banner
+> Note: computer-use attempt on 2026-04-24 could not drive Desktop reliably — screenshot filter hid the app's windows despite access grant. These 4 need a human at the keyboard. Each takes ~60 seconds.
+
+All shots: Desktop window full-frame, dark mode preferred, Cmd+Shift+4 then Space to capture just the window (macOS auto-crops to window bounds).
+
+### 03-ccc-hub-menu.png (30 sec)
+1. Open any Desktop chat session with CC Commander plugin active
+2. Click in the input bar, type `/ccc` (don't press Enter)
+3. Wait for AskUserQuestion chip picker to render with 6 intent chips (Plan/Build/Review/Ship/Learn/Fleet)
+4. Cmd+Shift+4 → Space → click window → save as `03-ccc-hub-menu.png`
+5. Press Escape in Desktop to dismiss the picker without firing
+
+### 07-ccc-start-onboarding.png (30 sec, lowest-cost)
+1. Open any Desktop chat session
+2. Type `/ccc-start` and press Enter
+3. Wait for ASCII CCC banner + onboarding prompt to render (~5 sec)
+4. Cmd+Shift+4 → Space → click window → save as `07-ccc-start-onboarding.png`
+
+### 05-ccc-plan-in-action.png (90 sec)
+1. Open any Desktop chat session
+2. Type `/ccc-plan add dark-mode toggle to marketing site` and press Enter
+3. Answer the 3-5 spec interview questions with quick one-word answers
+4. Wait until the right-side Plan pane populates with the generated plan file
+5. Cmd+Shift+4 → Space → click window → save as `05-ccc-plan-in-action.png` (make sure both chat and plan pane are visible)
+
+### 06-ccc-fleet-parallel.png (90 sec, highest-cost)
+1. Open any Desktop chat session
+2. Type `/ccc-fleet audit this repo for dead code, unused deps, and stale docs` and press Enter
+3. Wait for 3 background sub-agent chips to appear in the sidebar
+4. Cmd+Shift+4 → Space → click window → save as `06-ccc-fleet-parallel.png`
+5. Press Esc or cancel the agents if you don't want them to run to completion
+
+## 📥 Save location
+
+Drop the 4 PNGs into `docs/screenshots/` in the `festive-montalcini-794ab0` worktree, then:
+```bash
+cd /Users/ai/clawd/projects/cc-commander/.claude/worktrees/festive-montalcini-794ab0
+git add docs/screenshots/0{3,5,6,7}-*.png docs/screenshots/STATUS.md
+git commit -m "docs(screenshots): CC-413 complete — add remaining 4 scaffold shots"
+git push origin claude/festive-montalcini-794ab0 && git push origin claude/festive-montalcini-794ab0:main
+```
 
 After all 7 land → README.md + BIBLE.md + mintlify docs can weave them in as Wave 7 of the Codex docs-sweep.
