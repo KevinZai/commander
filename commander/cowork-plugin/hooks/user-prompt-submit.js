@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 // License-tier gate removed 2026-04-23 — CC Commander is free forever.
+// SECURITY: NEVER log raw prompt content. Prompts may contain user secrets,
+// API keys pasted by accident, or other sensitive material. Log promptLength,
+// timestamp, and routing decision only. If you're tempted to add `body: prompt`
+// to a log line, STOP and use `bodyLength: prompt.length` instead.
+// See docs/security-sweep-2026-04-24.md (R3-2 lessons).
 /**
  * user-prompt-submit.js
  * Hook: UserPromptSubmit

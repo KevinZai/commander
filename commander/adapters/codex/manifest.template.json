@@ -1,0 +1,42 @@
+{
+  "name": "commander",
+  "displayName": "CC Commander",
+  "version": "{{VERSION}}",
+  "description": "{{DESCRIPTION}}",
+  "author": {
+    "name": "Kevin Zicherman",
+    "url": "https://kevinz.ai"
+  },
+  "homepage": "https://cc-commander.com",
+  "repository": "https://github.com/KevinZai/commander",
+  "license": "MIT",
+  "keywords": [
+    "project-manager",
+    "skills",
+    "orchestration",
+    "linear",
+    "fleet",
+    "codex",
+    "cross-platform"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks.json",
+  "interface": {
+    "displayName": "CC Commander",
+    "shortDescription": "Guided AI PM. 51 skills, 17 specialist agents, 8 hooks. Free forever.",
+    "longDescription": "CC Commander is a PM/orchestration layer over Codex's sub-agent primitive. Brain/hands architecture: opinionated workflows for plan→build→review→ship. Works equally well in Claude Code and Codex CLI.",
+    "developerName": "Kevin Zicherman",
+    "category": "productivity",
+    "capabilities": [
+      "skills",
+      "agents",
+      "hooks",
+      "mcp"
+    ],
+    "websiteURL": "https://cc-commander.com",
+    "defaultPrompt": "/ccc",
+    "brandColor": "#7c3aed"
+  }
+}

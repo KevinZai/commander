@@ -33,7 +33,7 @@ Every piece of content has a reader. Name them. Write to them. If you don't know
 > ✍️ **Reader: solo dev on Claude Code, 2 mins of attention. Goal: click "Install".**
 >
 > Current draft buries the wow at line 12. Restructure:
-> 1. **Hook (line 1):** "One plugin. 456 skills. Works on mobile." (17 words)
+> 1. **Hook (line 1):** "One plugin. 502+ skills. Works on mobile." (17 words)
 > 2. **Proof (line 2-3):** 2 screenshots + 1 GIF
 > 3. **CTA (line 4):** `/plugin install commander` — big button
 >

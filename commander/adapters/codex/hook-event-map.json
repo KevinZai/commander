@@ -1,0 +1,22 @@
+{
+  "_comment": "Maps Claude Code hook events → Codex hook events. Used by translate.js when porting hooks.json. Last verified against Codex docs 2026-04-24.",
+  "events": {
+    "SessionStart":     { "codex": "SessionStart",      "status": "identical" },
+    "UserPromptSubmit": { "codex": "UserPromptSubmit",  "status": "identical" },
+    "PreToolUse":       { "codex": "PreToolUse",        "status": "compatible", "note": "Codex fires for Bash, apply_patch, MCP tool calls. ApplyPatchHandler bug exists per openai/codex#16732." },
+    "PostToolUse":      { "codex": "PostToolUse",       "status": "compatible", "note": "Same matcher field semantics." },
+    "Stop":             { "codex": "Stop",              "status": "identical" },
+    "SubagentStop":     { "codex": null,                "status": "drop",       "note": "Codex returns subagent results to parent context — no separate stop event. Fold logic into Stop or drop." },
+    "Notification":     { "codex": null,                "status": "drop",       "note": "No Codex equivalent. macOS notification handlers must move to launchd or a separate daemon." },
+    "PreCompact":       { "codex": "SessionEnd",        "status": "remap",      "note": "Closest analog. Compaction events may not fire — verify before relying on it." }
+  },
+  "codex_only_events": {
+    "SessionEnd":        "Fires when session terminates. Receive PreCompact handlers here.",
+    "PermissionRequest": "Fires when Codex asks user to approve a tool. No Claude analog — use as opt-in for security policy."
+  },
+  "schema_compat": {
+    "command_format": "Both use { type: 'command', command: '<path>' } — JSON identical.",
+    "matcher_field":  "Both support regex matcher. Use '*' or omit for all events.",
+    "stdin_payload":  "Both pipe JSON to stdin. Field names mostly match. Verify per-event schema in Codex hooks reference."
+  }
+}

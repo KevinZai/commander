@@ -128,6 +128,16 @@ function shouldRun(lastState) {
   }
 }
 
+/**
+ * Pure-function entry for orchestrator (CC-414).
+ * Async wrapper around main() — returns the same JSON object.
+ * Note: suggest-ticker is currently UserPromptSubmit, not SessionStart, but
+ * exposing run() lets a future orchestrator wave merge it too.
+ */
+export async function run({ input = {}, env = process.env, cwd = process.cwd() } = {}) {
+  return main();
+}
+
 function main() {
   if (process.env.CCC_SUGGEST_DISABLE === '1') {
     return { continue: true, suppressOutput: true };

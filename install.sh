@@ -16,7 +16,9 @@
 set -euo pipefail
 
 VERSION="$(grep '"version"' package.json | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')"
-CLAUDE_DIR="$HOME/.claude"
+CLAUDE_DIR="${XDG_CONFIG_HOME:-$HOME/.claude}"
+# Normalize: if XDG_CONFIG_HOME is set, cc-commander lives at $XDG_CONFIG_HOME/claude
+# When XDG_CONFIG_HOME is unset the expression above evaluates to $HOME/.claude (default).
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 USER_NAME=""
@@ -363,6 +365,11 @@ if should_install "skills"; then
   fi
   tiers_file="$SCRIPT_DIR/skills/_tiers.json"
 
+  # Defensive: never rm -rf if the path doesn't include /.claude/ or an XDG-rooted dir
+  if [[ "$CLAUDE_DIR/skills" != *"/.claude"* && "$CLAUDE_DIR/skills" != "${XDG_CONFIG_HOME:-}/"* ]]; then
+    echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/skills"
+    exit 1
+  fi
   rm -rf "$CLAUDE_DIR/skills"
   mkdir -p "$CLAUDE_DIR/skills"
 
@@ -453,6 +460,11 @@ fi
 if should_install "commands"; then
   ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Commands"
+  # Defensive: never rm -rf if the path doesn't include /.claude/ or an XDG-rooted dir
+  if [[ "$CLAUDE_DIR/commands" != *"/.claude"* && "$CLAUDE_DIR/commands" != "${XDG_CONFIG_HOME:-}/"* ]]; then
+    echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/commands"
+    exit 1
+  fi
   rm -rf "$CLAUDE_DIR/commands"
   cp -r "$SCRIPT_DIR/commands/" "$CLAUDE_DIR/commands/"
   cmd_count=$(find "$CLAUDE_DIR/commands" -name '*.md' | wc -l | tr -d ' ')
@@ -463,6 +475,11 @@ fi
 if should_install "hooks"; then
   ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Hooks"
+  # Defensive: never rm -rf if the path doesn't include /.claude/ or an XDG-rooted dir
+  if [[ "$CLAUDE_DIR/hooks" != *"/.claude"* && "$CLAUDE_DIR/hooks" != "${XDG_CONFIG_HOME:-}/"* ]]; then
+    echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/hooks"
+    exit 1
+  fi
   rm -rf "$CLAUDE_DIR/hooks"
   mkdir -p "$CLAUDE_DIR/hooks"
   # Copy hook scripts

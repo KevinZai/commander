@@ -11,10 +11,50 @@
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
 const SESSION_FILE = join(CCC_DIR, 'sessions', 'active-session.json');
 const STATE_FILE = join(CCC_DIR, 'session-state.json');
+
+/**
+ * Pure-function entry for orchestrator (CC-414).
+ * Returns the JSON output object instead of writing to stdout.
+ */
+export async function run({ input = {}, home } = {}) {
+  const HOME = home || process.env.HOME;
+  const cccDir = join(HOME, '.claude', 'commander');
+  const sessionFile = join(cccDir, 'sessions', 'active-session.json');
+  const stateFile = join(cccDir, 'session-state.json');
+  try {
+    let sessionInfo = '';
+    try {
+      const session = JSON.parse(await readFile(sessionFile, 'utf8'));
+      const cost = session.estimatedCost ? ` | cost so far: $${session.estimatedCost.toFixed(2)}` : '';
+      const mode = session.activeMode ? ` | mode: ${session.activeMode}` : '';
+      const skill = session.activeSkill ? ` | skill: ${session.activeSkill}` : '';
+      sessionInfo = `tier: ${session.tier || 'free'}${cost}${mode}${skill}`;
+    } catch {
+      sessionInfo = 'session state unavailable';
+    }
+    let stateInfo = '';
+    try {
+      const state = JSON.parse(await readFile(stateFile, 'utf8'));
+      const parts = [];
+      if (state.activeMode) parts.push(`mode=${state.activeMode}`);
+      if (state.lastAgent) parts.push(`lastAgent=${state.lastAgent}`);
+      if (state.activeSkill) parts.push(`skill=${state.activeSkill}`);
+      if (parts.length) stateInfo = ` [${parts.join(', ')}]`;
+    } catch {}
+    return {
+      continue: true,
+      suppressOutput: false,
+      status: `CCC: Context compacted — re-orienting. ${sessionInfo}${stateInfo}`,
+    };
+  } catch {
+    return { continue: true };
+  }
+}
 
 async function main() {
   let input = {};
@@ -68,4 +108,11 @@ async function main() {
   }
 }
 
-main();
+const __isMain = (() => {
+  try {
+    return process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+  } catch {
+    return false;
+  }
+})();
+if (__isMain) main();

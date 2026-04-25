@@ -13,6 +13,8 @@ argument-hint: "[--all | --check]"
 
 # /ccc-upgrade — Vendor Submodule Updater
 
+> ⚠️ **Run only from the CC Commander repo root.** Verify `pwd` ends in `/cc-commander` (or your fork's name) and `ls .claude-plugin/marketplace.json` succeeds. Running this skill in the wrong cwd would touch unrelated submodules.
+
 Interactive workflow that audits the 19+ vendor submodules under `vendor/`, surfaces what changed upstream, lets the user pick which to update via AskUserQuestion, then runs the update + test + commit cycle one submodule at a time.
 
 Similar in spirit to `/ccc-doctor` (read-only diagnostic) — this one writes (commits per submodule) but only after explicit user approval.
@@ -36,6 +38,16 @@ Args:
 ### 1. Locate the repo root + sanity check
 
 Resolve repo root via `git rev-parse --show-toplevel`. If that fails, output: "Not in a git repo — /ccc-upgrade only works inside the cc-commander checkout." and exit.
+
+Before proceeding, verify you are at the cc-commander repo root:
+```bash
+# Guard: must be at the cc-commander repo root
+if [ ! -f ".claude-plugin/marketplace.json" ]; then
+  echo "❌ Not at cc-commander repo root. Refusing to update vendor submodules."
+  exit 1
+fi
+```
+If the guard fails, output the error message and exit.
 
 Verify `vendor/` exists:
 ```bash

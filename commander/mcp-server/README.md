@@ -25,7 +25,7 @@ Wire into your IDE's MCP config:
 |------|-------------|
 | `commander_list_skills` | Paginated skill catalog with metadata |
 | `commander_get_skill` | Full SKILL.md content on demand |
-| `commander_search` | Semantic search across 453+ skills |
+| `commander_search` | Semantic search across 502+ skills |
 | `commander_suggest_for` | Top skill suggestions for a task |
 | `commander_invoke_skill` | Invoke skill with context |
 | `commander_list_agents` | Available agents (free vs Pro) |

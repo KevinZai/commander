@@ -12,7 +12,8 @@
 
 set -euo pipefail
 
-CLAUDE_DIR="$HOME/.claude"
+CLAUDE_DIR="${XDG_CONFIG_HOME:-$HOME/.claude}"
+# Normalize: when XDG_CONFIG_HOME is unset this evaluates to $HOME/.claude (default).
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
 FORCE=false
 
@@ -87,12 +88,24 @@ if ! $FORCE; then
 fi
 
 # ── Remove kit components ────────────────────────────────────────────────
+
+# Defensive rm -rf: only remove paths that live inside the expected config dir.
+safe_rm_rf() {
+  local target="$1"
+  local label="$2"
+  if [[ "$target" != *"/.claude"* && "$target" != "${XDG_CONFIG_HOME:-}/"* ]]; then
+    echo "❌ Refusing to rm -rf outside a .claude config dir — got: $target"
+    exit 1
+  fi
+  rm -rf "$target" && echo "  ✓ Removed $label"
+}
+
 echo ""
-[ -d "$CLAUDE_DIR/skills" ] && rm -rf "$CLAUDE_DIR/skills" && echo "  ✓ Removed skills/"
-[ -d "$CLAUDE_DIR/commands" ] && rm -rf "$CLAUDE_DIR/commands" && echo "  ✓ Removed commands/"
-[ -d "$CLAUDE_DIR/hooks" ] && rm -rf "$CLAUDE_DIR/hooks" && echo "  ✓ Removed hooks/"
-[ -d "$CLAUDE_DIR/lib" ] && rm -rf "$CLAUDE_DIR/lib" && echo "  ✓ Removed lib/"
-[ -d "$CLAUDE_DIR/templates" ] && rm -rf "$CLAUDE_DIR/templates" && echo "  ✓ Removed templates/"
+[ -d "$CLAUDE_DIR/skills" ]    && safe_rm_rf "$CLAUDE_DIR/skills"    "skills/"
+[ -d "$CLAUDE_DIR/commands" ]  && safe_rm_rf "$CLAUDE_DIR/commands"  "commands/"
+[ -d "$CLAUDE_DIR/hooks" ]     && safe_rm_rf "$CLAUDE_DIR/hooks"     "hooks/"
+[ -d "$CLAUDE_DIR/lib" ]       && safe_rm_rf "$CLAUDE_DIR/lib"       "lib/"
+[ -d "$CLAUDE_DIR/templates" ] && safe_rm_rf "$CLAUDE_DIR/templates" "templates/"
 [ -f "$CLAUDE_DIR/BIBLE.md" ] && rm "$CLAUDE_DIR/BIBLE.md" && echo "  ✓ Removed BIBLE.md"
 [ -f "$CLAUDE_DIR/CHEATSHEET.md" ] && rm "$CLAUDE_DIR/CHEATSHEET.md" && echo "  ✓ Removed CHEATSHEET.md"
 [ -f "$CLAUDE_DIR/SKILLS-INDEX.md" ] && rm "$CLAUDE_DIR/SKILLS-INDEX.md" && echo "  ✓ Removed SKILLS-INDEX.md"
