@@ -1,6 +1,6 @@
 # CC Commander MCP Server (Cloud)
 
-Hosted MCP server for CC Commander v4.0 Beta. Serves 14 tools with auth, rate limiting, and feedback gate.
+Hosted MCP server for CC Commander v4.0 Beta. Serves 18 tools with auth, rate limiting, and feedback gate.
 
 ## Endpoints
 
@@ -28,6 +28,18 @@ cp .env.example .env.local
 npm install
 npm run dev
 ```
+
+## Testing
+
+```bash
+npm test
+npm run test:e2e
+bash scripts/test-against-prod.sh --target=https://commander-mcp.fly.dev
+```
+
+- `npm test` runs the unit and integration suite.
+- `npm run test:e2e` starts a local HTTP server, waits for `/health`, and runs the 18-tool smoke battery from `tests/fixtures/sample-inputs.json`. Tool calls are skipped unless `MCP_E2E_AUTH_TOKEN` or `COMMANDER_TOKEN` plus the required auth backend env vars are present.
+- `bash scripts/test-against-prod.sh --target=https://commander-mcp.fly.dev --auth-token=$TOKEN` runs the same 18-tool battery against an explicit target. Use `--skip-auth-required` for unauthenticated health and discovery probing only.
 
 ## Deploy
 

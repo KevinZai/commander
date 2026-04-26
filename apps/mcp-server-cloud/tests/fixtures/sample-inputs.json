@@ -1,0 +1,108 @@
+{
+  "tools": [
+    {
+      "name": "commander_list_skills",
+      "args": { "page": 1, "pageSize": 2 },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_get_skill",
+      "args": { "name": "browse" },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_search",
+      "args": { "query": "browser testing", "limit": 3 },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_suggest_for",
+      "args": { "task": "test a browser-based deployment before release" },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_invoke_skill",
+      "args": { "name": "browse", "context": "Verify a deployed page loads successfully." },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_list_agents",
+      "args": { "tier": "free" },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_get_agent",
+      "args": { "name": "reviewer" },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_invoke_agent",
+      "args": { "name": "reviewer", "task": "Review a small TypeScript smoke-test change." },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_status",
+      "args": {},
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_update",
+      "args": {},
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_init",
+      "args": { "projectType": "mcp-server", "ide": "codex-cli" },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_notes_pin",
+      "args": { "note": "E2E smoke test note. Safe to delete." },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_tasks_push",
+      "args": {
+        "title": "E2E smoke test task",
+        "description": "Created by the hosted MCP smoke suite.",
+        "priority": "low"
+      },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_plan_integrate",
+      "args": {
+        "title": "E2E smoke plan",
+        "plan": "- Confirm health endpoint\n- Call every MCP tool\n- Report failures"
+      },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_install_skill",
+      "args": { "skill_name": "build", "target_env": "codex-cli", "dry_run": true },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_compatibility_check",
+      "args": { "skill_name": "build", "target_env": "claude-desktop" },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_session_diagnose",
+      "args": { "categories": ["critical-files"] },
+      "requiresAuth": true
+    },
+    {
+      "name": "commander_compose_plan",
+      "args": {
+        "feature_description": "Build a hosted MCP smoke test suite that calls every tool over HTTP.",
+        "project_context": {
+          "stack": "TypeScript, Hono, node:test",
+          "repo_root": "apps/mcp-server-cloud",
+          "recent_commits": ["feat: add deploy smoke infrastructure"]
+        }
+      },
+      "requiresAuth": true
+    }
+  ]
+}
