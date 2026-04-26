@@ -1,0 +1,45 @@
+{
+  "id": "ccc-ship",
+  "title": "Ship",
+  "subtitle": "Pre-flight checks → tag → push → deploy",
+  "footer": "Every check is a clickable card. Green = go, yellow = caution, red = blocker. Fix reds before shipping.",
+  "shortcuts": ["/ccc", "/ccc-review"],
+  "choices": [
+    {
+      "id": "preflight",
+      "icon": "✈️",
+      "label": "Pre-flight check",
+      "description": "Tests, lint, typecheck, secrets, airplane-mode. One click, full matrix.",
+      "command": "/ccc-ship preflight",
+      "recommended": true
+    },
+    {
+      "id": "release",
+      "icon": "📦",
+      "label": "Cut a release",
+      "description": "Bump version, write changelog, tag, push, create GitHub release.",
+      "command": "/ccc-ship release"
+    },
+    {
+      "id": "deploy",
+      "icon": "🚀",
+      "label": "Deploy",
+      "description": "Vercel / Fly.io / Cloudflare — pick target, run deploy script.",
+      "command": "/ccc-ship deploy"
+    },
+    {
+      "id": "rollback",
+      "icon": "↩️",
+      "label": "Rollback",
+      "description": "Revert latest deploy + restore previous version. Idempotent.",
+      "command": "/ccc-ship rollback"
+    },
+    {
+      "id": "back",
+      "icon": "🏠",
+      "label": "Back to main menu",
+      "description": "Return to /ccc.",
+      "command": "/ccc"
+    }
+  ]
+}

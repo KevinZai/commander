@@ -1,0 +1,35 @@
+{
+  "id": "linear-board",
+  "version": 1,
+  "screen": {
+    "title": "Linear Board",
+    "subtitle": "Project issues from Linear."
+  },
+  "action": "show_linear_board",
+  "afterAction": {
+    "prompt": "What would you like to do?",
+    "choices": [
+      {
+        "key": "p",
+        "label": "Pick an issue to work on",
+        "description": "Assign, start build, track automatically",
+        "action": "linear_pick_issue"
+      },
+      {
+        "key": "c",
+        "label": "Create a new issue",
+        "action": "linear_create_issue"
+      },
+      {
+        "key": "r",
+        "label": "Refresh board",
+        "next": "linear-board"
+      },
+      {
+        "key": "q",
+        "label": "Back to main menu",
+        "next": "main-menu"
+      }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "commander",
+  "displayName": "CC Commander",
+  "version": "4.0.0-beta.11",
+  "description": "CC Commander — Guided AI PM for Claude Code. Brain/hands architecture with **17 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer). **51 plugin skills** incl **13 click-first `/ccc-*` workflows** + `/save-session` + `/resume-session` + `/ccc-changelog` + `/ccc-doctor` + `/ccc-upgrade`. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**",
+  "author": {
+    "name": "Kevin Zicherman",
+    "url": "https://kevinz.ai"
+  },
+  "homepage": "https://cc-commander.com",
+  "repository": "https://github.com/KevinZai/commander",
+  "license": "MIT",
+  "keywords": [
+    "project-manager",
+    "skills",
+    "orchestration",
+    "linear",
+    "fleet",
+    "codex",
+    "cross-platform"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks.json",
+  "interface": {
+    "displayName": "CC Commander",
+    "shortDescription": "Guided AI PM. 51 skills, 17 specialist agents, 8 hooks. Free forever.",
+    "longDescription": "CC Commander is a PM/orchestration layer over Codex's sub-agent primitive. Brain/hands architecture: opinionated workflows for plan→build→review→ship. Works equally well in Claude Code and Codex CLI.",
+    "developerName": "Kevin Zicherman",
+    "category": "productivity",
+    "capabilities": [
+      "skills",
+      "agents",
+      "hooks",
+      "mcp"
+    ],
+    "websiteURL": "https://cc-commander.com",
+    "defaultPrompt": "/ccc",
+    "brandColor": "#7c3aed"
+  }
+}

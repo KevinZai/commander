@@ -1,0 +1,34 @@
+{
+  "id": "review-work",
+  "version": 2,
+  "screen": {
+    "title": "Review Your Work",
+    "subtitle": "Browse and manage your sessions."
+  },
+  "action": "show_recent_sessions",
+  "afterAction": {
+    "prompt": "What would you like to do?",
+    "choices": [
+      {
+        "key": "a",
+        "label": "Resume a session",
+        "action": "pick_session_to_resume"
+      },
+      {
+        "key": "b",
+        "label": "View session details",
+        "action": "pick_session_details"
+      },
+      {
+        "key": "c",
+        "label": "View full history",
+        "action": "show_history"
+      },
+      {
+        "key": "q",
+        "label": "Back to main menu",
+        "next": "main-menu"
+      }
+    ]
+  }
+}
