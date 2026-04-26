@@ -161,6 +161,7 @@ Agents CANNOT push — return files + diffs only. User merges to main via the co
 3. Parallel calls go in a SINGLE tool-call batch (one message, multiple function_calls) — not sequential.
 4. If RAM detection fails, default to 3 parallel (safest for Mac Mini M4 baseline).
 5. Always echo the synthesis plan BEFORE dispatching — user needs to see the full arc.
+6. After all workers report, automatically invoke `/ccc-fleet-viz` to render the final fleet tree.
 
 ---
 
