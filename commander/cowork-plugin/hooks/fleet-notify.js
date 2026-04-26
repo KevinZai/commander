@@ -19,16 +19,20 @@ async function main() {
 
     if (!existsSync(FLEET_DIR)) await mkdir(FLEET_DIR, { recursive: true });
 
+    // Sanitize untrusted fields once: strip CR/LF, length-cap.
+    // Applies to both the persistent JSONL log AND the stdout status echo.
+    const safeSource = String(data.source || 'unknown').replace(/[\r\n]/g, ' ').slice(0, 64);
+    const safeMessage = String(data.message || '').replace(/[\r\n]/g, ' ').slice(0, 256);
+    const safeType = String(data.type || 'notification').replace(/[\r\n]/g, ' ').slice(0, 32);
+
     const entry = {
       timestamp: new Date().toISOString(),
-      type: data.type || 'notification',
-      source: data.source || 'unknown',
-      message: data.message || '',
+      type: safeType,
+      source: safeSource,
+      message: safeMessage,
     };
 
     await appendFile(join(FLEET_DIR, 'notifications.jsonl'), JSON.stringify(entry) + '\n');
-
-    const safeSource = String(data.source || 'agent').replace(/[\r\n]/g, ' ').slice(0, 64);
     console.log(JSON.stringify({
       continue: true,
       suppressOutput: false,
