@@ -1,34 +1,37 @@
-# Multi-stage build — node:22-alpine (LTS)
-# Secrets are NEVER baked into this image.
-# Fly.io secrets are injected at runtime via fly secrets set.
-# OP vault refs: op://Alfred/cc-commander-*/
+# Multi-stage production image for Fly.io.
+# Secrets are injected at runtime with `fly secrets set`; never bake them here.
+
+FROM node:22-alpine AS deps
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci --prefer-offline --no-audit
 
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
-RUN npm ci --prefer-offline
-
 COPY tsconfig.json ./
 COPY src/ ./src/
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
 
 RUN npm run build
 
-# ─── Production image ──────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=8080
 
-# Install production deps only
 COPY package.json package-lock.json* ./
-RUN npm ci --prefer-offline --omit=dev && npm cache clean --force
+RUN npm ci --prefer-offline --omit=dev --no-audit \
+  && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
 
-# Non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S commander -u 1001
 USER commander
 

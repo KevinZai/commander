@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/integration.test.ts tests/http.test.ts",
     "test:node": "node --test tests/integration.test.js tests/http.test.js",
-    "smoke": "./scripts/smoke.sh",
+    "smoke": "./scripts/smoke-test.sh",
     "lint": "eslint src/"
   },
   "dependencies": {

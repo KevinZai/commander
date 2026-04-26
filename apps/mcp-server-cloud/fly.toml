@@ -1,15 +1,14 @@
-# Fly.io configuration for CC Commander MCP server
-# Kevin: run `fly apps create cc-commander-mcp --org personal` before first deploy
-# Secrets set via: fly secrets set KEY=value
-# OP vault refs:
-#   op://Alfred/cc-commander-supabase/url
-#   op://Alfred/cc-commander-supabase/service-role-key
-#   op://Alfred/cc-commander-upstash/url
-#   op://Alfred/cc-commander-upstash/token
-#   op://Alfred/cc-commander-jwt/secret
-#   op://Alfred/cc-commander-posthog/api-key
+# Fly.io configuration for CC Commander hosted MCP.
+#
+# First-time setup:
+#   fly launch --no-deploy --name commander-mcp --region iad
+#
+# Runtime secrets are intentionally not stored in this file:
+#   fly secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+#     UPSTASH_REDIS_REST_URL=... UPSTASH_REDIS_REST_TOKEN=... \
+#     JWT_SECRET=... POSTHOG_API_KEY=... --app commander-mcp
 
-app = "cc-commander-mcp"
+app = "commander-mcp"
 primary_region = "iad"
 kill_signal = "SIGTERM"
 kill_timeout = "10s"
@@ -23,11 +22,19 @@ kill_timeout = "10s"
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 1
+  processes = ["app"]
 
   [http_service.concurrency]
     type = "requests"
     hard_limit = 100
     soft_limit = 80
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "15s"
+    method = "GET"
+    path = "/health"
 
 [[vm]]
   count = 1
@@ -37,20 +44,10 @@ kill_timeout = "10s"
 [processes]
   app = "node dist/index.js"
 
-[checks]
-  [checks.health]
-    port = 8080
-    type = "http"
-    interval = "10s"
-    timeout = "5s"
-    grace_period = "10s"
-    method = "GET"
-    path = "/health"
-
 [env]
   PORT = "8080"
   NODE_ENV = "production"
 
 [deploy]
   release_command = "node -e 'console.log(\"deploy check: ok\")'"
-  strategy = "canary"
+  strategy = "rolling"
