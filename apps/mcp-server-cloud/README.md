@@ -1,6 +1,6 @@
 # CC Commander MCP Server (Cloud)
 
-Hosted MCP server for CC Commander v4.0 Beta. Serves 14 tools with auth, rate limiting, and feedback gate.
+Hosted MCP server for CC Commander v4.0 Beta. Serves 18 tools (14 -> 18) with auth, rate limiting, and feedback gate.
 
 ## Endpoints
 
@@ -8,6 +8,83 @@ Hosted MCP server for CC Commander v4.0 Beta. Serves 14 tools with auth, rate li
 - `GET /v1` — MCP server capabilities
 - `GET /v1/sse` — SSE transport (requires Bearer token)
 - `POST /v1/call` — Tool call (requires Bearer token)
+
+## Tools
+
+| Tool | Description |
+|------|-------------|
+| `commander_list_skills` | Browse the Commander skill catalog with pagination and filters. |
+| `commander_get_skill` | Fetch full `SKILL.md` content for one skill. |
+| `commander_search` | Search Commander skills by natural language query. |
+| `commander_suggest_for` | Suggest the best skills for a task description. |
+| `commander_invoke_skill` | Return skill instructions with caller-provided context. |
+| `commander_list_agents` | List available Commander agents. |
+| `commander_get_agent` | Fetch one agent definition. |
+| `commander_invoke_agent` | Return agent instructions with a task context. |
+| `commander_status` | Report server health, license tier, and usage. |
+| `commander_update` | Check for Commander updates. |
+| `commander_init` | Generate a project `CLAUDE.md` template. |
+| `commander_notes_pin` | Pin a note to Commander's session knowledge store. |
+| `commander_tasks_push` | Push a task to Linear when configured. |
+| `commander_plan_integrate` | Import an existing plan into session context. |
+| `commander_install_skill` | Generate an idempotent shell command to install a skill into Claude, Codex, or Cursor. |
+| `commander_compatibility_check` | Check a skill's tools, hooks, and MCP requirements against a target environment. |
+| `commander_session_diagnose` | Run `/ccc-doctor`'s eight diagnostics and return structured findings. |
+| `commander_compose_plan` | Generate a structured `/ccc-plan`-style implementation plan from a feature description. |
+
+## New Tool Examples
+
+Install a skill into Codex CLI:
+
+```json
+{
+  "tool": "commander_install_skill",
+  "args": {
+    "skill_name": "ccc-plan",
+    "target_env": "codex-cli",
+    "dry_run": true
+  }
+}
+```
+
+Check compatibility for a skill:
+
+```json
+{
+  "tool": "commander_compatibility_check",
+  "args": {
+    "skill_name": "guard",
+    "target_env": "codex-cli"
+  }
+}
+```
+
+Run selected diagnostics:
+
+```json
+{
+  "tool": "commander_session_diagnose",
+  "args": {
+    "categories": ["hook-chain", "critical-files"]
+  }
+}
+```
+
+Compose a plan:
+
+```json
+{
+  "tool": "commander_compose_plan",
+  "args": {
+    "feature_description": "Build a billing dashboard with Stripe subscription status and regression tests.",
+    "project_context": {
+      "stack": "Next.js, Postgres, Stripe",
+      "repo_root": "/workspace/app",
+      "recent_commits": ["feat: add account settings"]
+    }
+  }
+}
+```
 
 ## Auth
 

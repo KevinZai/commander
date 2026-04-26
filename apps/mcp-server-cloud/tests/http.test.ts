@@ -147,14 +147,14 @@ describe("GET /metrics", () => {
 
 // ─── GET /v1 (discovery) ─────────────────────────────────────────────────
 describe("GET /v1", () => {
-  it("returns tool catalog with 14 tools", async () => {
+  it("returns tool catalog with 18 tools", async () => {
     const res = await fetchApp("/v1");
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.equal(body.name, "CC Commander");
     assert.equal(body.version, SERVER_VERSION);
     assert.ok(Array.isArray(body.tools));
-    assert.equal(body.tools.length, 14);
+    assert.equal(body.tools.length, 18);
     assert.ok(body.tools.every((t: { name: string }) => t.name.startsWith("commander_")));
   });
 });
