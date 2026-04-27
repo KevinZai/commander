@@ -1,25 +1,14 @@
 {
   "name": "claude-code-command-center",
   "version": "1.3.0",
-  "description": "Claude Code Command Center — Agent monitoring, task progress, and cost tracking",
+  "description": "CC Commander Dashboard — vanilla Node.js server, no dependencies, port 4690",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "date-fns": "^4.1.0",
-    "lucide-react": "^0.475.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "recharts": "^2.15.3"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^5.4.14"
+    "start": "node server.js",
+    "dev": "node server.js"
   }
 }

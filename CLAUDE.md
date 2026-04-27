@@ -230,7 +230,7 @@ ccc --status                  # Health check
 - Cowork + Dispatch integrations for Claude Desktop autonomous mode and background tasks
 - OpenClaw Bridge + Paperclip Bridge for platform integrations
 - 5 quickstart guides for beginner/frontend/backend/fullstack/mobile developers
-- Real-time React dashboard at `dashboard/` — agent monitoring, spawn tree, cost tracker, live logs (no DB)
+- Vanilla dashboard at `dashboard/` — localhost session inspector (port 4690), reads real `~/.claude/sessions/` data, zero deps, no build step. React app archived to `dashboard/_archive/` (was demo-data only).
 - `lib/config-reader.js` — shared config utility for bible-config.json with env var overrides
 - VS Code snippets at `compatibility/vscode-snippets.json` (20+ snippets)
 - session-coach.js fires periodic coaching nudges (toggleable via `CC_COACH_DISABLE=1`, interval via `CC_COACH_INTERVAL`)

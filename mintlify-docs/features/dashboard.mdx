@@ -34,7 +34,7 @@ The v0.1 dashboard is intentionally minimal:
 - **Auth:** localhost-only, no auth needed
 - **Dependencies:** zero (ships with Node.js)
 
-The v1 roadmap adds React/Vite once there's enough interactive state to justify a build step. See the [full scope document](https://github.com/KevinZai/commander/blob/main/docs/dashboard-scope.md) for planned v1 views: Linear tickets, git activity, cost analytics, and gateway logs.
+The vanilla MVP is the canonical dashboard — zero dependencies, no build step, reads real session data. A React/Vite prototype exists in `dashboard/_archive/` as a UI reference; it was retired because it only rendered demo data. The v0.2 roadmap adds real data sources (cost, agents, skills) to the vanilla server before any framework is introduced. See the [scope document](https://github.com/KevinZai/commander/blob/main/docs/dashboard-scope.md) for planned views.
 
 ## Fleet view
 
