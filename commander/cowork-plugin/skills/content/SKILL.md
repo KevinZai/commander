@@ -1,6 +1,6 @@
 ---
 name: content
-description: "\"Create content — blog posts, social media, emails, marketing copy, or docs. Use when: 'create content', 'write post', 'blog', 'social media', 'email campaign', 'write a tweet', 'LinkedIn post', 'newsletter', 'marketing copy'.\""
+description: "\"Create content — blog posts, social media, emails, marketing copy, or docs. Use when: 'create content', 'write post', 'blog', 'social media', 'email campaign', 'write a tweet', 'LinkedIn post', 'newsletter', 'marketing copy'.\" [Commander]"
 allowed-tools:
   - Read
   - Write
@@ -21,21 +21,44 @@ Create any type of content — from a single tweet to a full email sequence. Qui
 
 ## Quick Mode (default)
 
-Ask three questions:
+Ask three questions — use `AskUserQuestion` for Questions 1 and 3 (chip pickers). Question 2 is free-text (topic is inherently open-ended).
 
 **Question 1 — Content type:**
-- A: Blog post or article
-- B: Social media posts (Twitter/X thread, LinkedIn, Instagram)
-- C: Email campaign or newsletter
-- D: Marketing copy (landing page, ads, product descriptions)
-- E: Documentation (technical, user-facing, API)
-- F: Something else — I'll describe it
 
-**Question 2 — Topic:**
-"What's this about? One sentence."
+Use `AskUserQuestion` with these chips (max 4; "Something else" covers remaining types):
+```
+question: "What kind of content are we creating?"
+options:
+  - label: "📝 Blog post or article"
+    description: "Long-form — tutorial, opinion, how-to, case study."
+  - label: "📱 Social media posts"
+    description: "Twitter/X thread, LinkedIn post, Instagram caption."
+  - label: "📧 Email campaign or newsletter"
+    description: "Drip sequence, announcement, nurture, transactional."
+  - label: "💼 Something else"
+    description: "Marketing copy, landing page, docs, ads — describe in chat."
+```
+
+If user picks "Something else", ask one follow-up in chat: "Describe what you need — I'll produce it."
+
+**Question 2 — Topic (free-text — open-ended by nature):**
+Ask in chat: "What's this about? One sentence is enough."
 
 **Question 3 — Audience:**
-"Who is this for? (developers, founders, consumers, internal team)"
+
+Use `AskUserQuestion` with these chips:
+```
+question: "Who is this for?"
+options:
+  - label: "👩‍💻 Developers"
+    description: "Engineers, technical founders, devtools users."
+  - label: "🚀 Founders / executives"
+    description: "Decision-makers, C-suite, startup founders."
+  - label: "🛒 Consumers"
+    description: "End users, general public, non-technical audience."
+  - label: "🏢 Internal team"
+    description: "Colleagues, employees, internal stakeholders."
+```
 
 Draft the content immediately. For social posts, generate platform-specific variations.
 

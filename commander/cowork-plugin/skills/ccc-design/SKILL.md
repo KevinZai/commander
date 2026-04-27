@@ -1,7 +1,7 @@
 ---
 name: ccc-design
 context: fork
-description: "CCC design domain — click-first picker over 39 design skills. Landing pages, component systems, polish suite, Figma→code. Use when the user types /ccc-design, asks to 'design a landing page', 'add animations', 'polish my UI', 'make it pretty', 'build a component system', or picks Design from the /ccc root menu. Aligns with Anthropic's frontend-design plugin for anti-slop UI."
+description: "CCC design domain — click-first picker over 39 design skills. Landing pages, component systems, polish suite, Figma→code. Use when the user types /ccc-design, asks to 'design a landing page', 'add animations', 'polish my UI', 'make it pretty', 'build a component system', or picks Design from the /ccc root menu. Aligns with Anthropic's frontend-design plugin for anti-slop UI. [Commander]"
 allowed-tools:
   - Read
   - Write

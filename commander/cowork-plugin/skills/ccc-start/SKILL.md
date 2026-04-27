@@ -1,6 +1,6 @@
 ---
 name: ccc-start
-description: "First-run onboarding for CC Commander. Detects setup, introduces the 17 specialist agent personas, and drafts a personalized start plan. Use when the user types /ccc-start, just installed the plugin, says 'welcome me', 'onboard me', 'I just installed', 'first time', or wants a guided tour."
+description: "First-run onboarding for CC Commander. Detects setup, introduces the 17 specialist agent personas, and drafts a personalized start plan. Use when the user types /ccc-start, just installed the plugin, says 'welcome me', 'onboard me', 'I just installed', 'first time', or wants a guided tour. [Commander]"
 allowed-tools:
   - Read
   - Write

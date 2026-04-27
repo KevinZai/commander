@@ -1,6 +1,6 @@
 ---
 name: night-mode
-description: "Autonomous overnight build — set it, forget it, wake up to shipped code. Use when the user says 'night mode', 'yolo mode', 'overnight build', 'build while I sleep', 'autonomous build', 'continuous improvement loop', or 'build unattended'."
+description: "Autonomous overnight build — set it, forget it, wake up to shipped code. Use when the user says 'night mode', 'yolo mode', 'overnight build', 'build while I sleep', 'autonomous build', 'continuous improvement loop', or 'build unattended'. [Commander]"
 allowed-tools:
   - Read
   - Write

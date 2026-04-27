@@ -1,7 +1,7 @@
 ---
 name: ccc-marketing
 context: fork
-description: CCC domain — 45-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channels, growth, intelligence, and sales. Works standalone or with connected web search tools.
+description: CCC domain — 45-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channels, growth, intelligence, and sales. Works standalone or with connected web search tools. [Commander]
 allowed-tools:
   - Read
 ---

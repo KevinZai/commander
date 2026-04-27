@@ -1,6 +1,6 @@
 ---
 name: ccc
-description: "CC Commander main hub — click-first menu that detects your project context and routes to 12 specialist workflows (plan, build, review, ship, design, learn, xray, linear, fleet, connect). Use when the user types /ccc, says 'open commander', 'what should I work on', 'start commander', or wants a guided entry point."
+description: "CC Commander main hub — click-first menu that detects your project context and routes to 12 specialist workflows (plan, build, review, ship, design, learn, xray, linear, fleet, connect). Use when the user types /ccc, says 'open commander', 'what should I work on', 'start commander', or wants a guided entry point. [Commander]"
 allowed-tools:
   - Read
   - Write

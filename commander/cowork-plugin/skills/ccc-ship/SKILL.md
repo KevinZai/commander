@@ -1,6 +1,6 @@
 ---
 name: ccc-ship
-description: "CC Commander — pre-flight checks, cut a release, deploy to a platform, or rollback safely. Runs the test matrix in parallel and reports a checkbox scorecard; orchestrates version bump + CHANGELOG + tag + GitHub release; dispatches to platform-specific deploy scripts. Use when the user types /ccc-ship, /ccc ship, picks 'Ship' from the /ccc hub, or says 'ship it', 'deploy', 'cut a release', 'preflight', 'rollback'."
+description: "CC Commander — pre-flight checks, cut a release, deploy to a platform, or rollback safely. Runs the test matrix in parallel and reports a checkbox scorecard; orchestrates version bump + CHANGELOG + tag + GitHub release; dispatches to platform-specific deploy scripts. Use when the user types /ccc-ship, /ccc ship, picks 'Ship' from the /ccc hub, or says 'ship it', 'deploy', 'cut a release', 'preflight', 'rollback'. [Commander]"
 allowed-tools:
   - Read
   - Write

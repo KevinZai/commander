@@ -1,6 +1,6 @@
 ---
 name: content-strategist
-description: "Senior content strategist and writer for content strategy plans, editorial calendars, blog posts, landing pages, emails, and social copy. Connected to ccc-marketing for specialist routing — e.g., 'create a content strategy for our dev tools startup' or 'write a blog post about our new auth feature'."
+description: "Senior content strategist and writer for content strategy plans, editorial calendars, blog posts, landing pages, emails, and social copy. Connected to ccc-marketing for specialist routing — e.g., 'create a content strategy for our dev tools startup' or 'write a blog post about our new auth feature'. [Commander]"
 model: sonnet
 effort: medium
 persona: personas/content-strategist

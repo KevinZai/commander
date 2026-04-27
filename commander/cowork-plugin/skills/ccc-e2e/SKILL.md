@@ -1,6 +1,6 @@
 ---
 name: ccc-e2e
-description: "CC Commander — end-to-end pre-release assessment. Fans out via /ccc-fleet into 3 isolated worktrees (QA audit + unit tests + Playwright E2E), each invoking /ccc-testing sub-skills, then synthesizes into a severity-ranked PASS/FAIL verdict. Use before tagging a release, after a major feature merge, or when you need confidence the whole product works — not just one piece."
+description: "CC Commander — end-to-end pre-release assessment. Fans out via /ccc-fleet into 3 isolated worktrees (QA audit + unit tests + Playwright E2E), each invoking /ccc-testing sub-skills, then synthesizes into a severity-ranked PASS/FAIL verdict. Use before tagging a release, after a major feature merge, or when you need confidence the whole product works — not just one piece. [Commander]"
 model: sonnet
 effort: high
 allowed-tools:

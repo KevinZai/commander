@@ -1,6 +1,6 @@
 ---
 name: fleet-worker
-description: "General-purpose parallel worker for fleet operations. Executes a single scoped task independently and reports structured results. Spawned by /ccc-fleet for batch operations — e.g., refactoring sweeps, migrations, or multi-file updates across the API layer."
+description: "General-purpose parallel worker for fleet operations. Executes a single scoped task independently and reports structured results. Spawned by /ccc-fleet for batch operations — e.g., refactoring sweeps, migrations, or multi-file updates across the API layer. [Commander]"
 model: sonnet
 effort: medium
 persona: personas/fleet-worker

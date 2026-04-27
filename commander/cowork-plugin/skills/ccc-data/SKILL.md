@@ -1,7 +1,7 @@
 ---
 name: ccc-data
 context: fork
-description: CCC domain — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search.
+description: CCC domain — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search. [Commander]
 allowed-tools:
   - Read
 ---

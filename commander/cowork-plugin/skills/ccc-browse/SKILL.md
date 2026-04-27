@@ -1,6 +1,6 @@
 ---
 name: ccc-browse
-description: "Visual, filterable catalog of every CC Commander skill, agent, and command. Cascades from broad category picker into 4-at-a-time detail cards. Use when the user types /ccc-browse, says 'show me all the skills', 'what can CC do', 'list agents', 'skill catalog', or wants to browse before committing."
+description: "Visual, filterable catalog of every CC Commander skill, agent, and command. Cascades from broad category picker into 4-at-a-time detail cards. Use when the user types /ccc-browse, says 'show me all the skills', 'what can CC do', 'list agents', 'skill catalog', or wants to browse before committing. [Commander]"
 allowed-tools:
   - Read
   - Glob

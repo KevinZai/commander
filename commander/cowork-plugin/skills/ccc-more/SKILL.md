@@ -1,6 +1,6 @@
 ---
 name: ccc-more
-description: "CC Commander second-page menu — click-first access to plan, x-ray, Linear, fleet, connect, and catalog browse. Use when the user types /ccc-more, picks 'More tools' from /ccc, or says 'show me the rest', 'more options', 'what else can this do', 'plan a feature', 'run x-ray', 'open Linear', 'fleet', 'connect apps'."
+description: "CC Commander second-page menu — click-first access to plan, x-ray, Linear, fleet, connect, and catalog browse. Use when the user types /ccc-more, picks 'More tools' from /ccc, or says 'show me the rest', 'more options', 'what else can this do', 'plan a feature', 'run x-ray', 'open Linear', 'fleet', 'connect apps'. [Commander]"
 allowed-tools:
   - Read
   - Write

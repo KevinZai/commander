@@ -1,7 +1,7 @@
 ---
 name: ccc-devops
 context: fork
-description: CCC domain — complete DevOps ecosystem — 21 skills in one. Deployments, CI/CD, containers, AWS, monitoring, security, IaC, networking, and runbooks.
+description: CCC domain — complete DevOps ecosystem — 21 skills in one. Deployments, CI/CD, containers, AWS, monitoring, security, IaC, networking, and runbooks. [Commander]
 allowed-tools:
   - Read
 ---

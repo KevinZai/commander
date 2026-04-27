@@ -1,6 +1,6 @@
 ---
 name: build
-description: "\"Build something new — a web app, API, CLI tool, or any project. Use when: 'build something', 'new project', 'create app', 'help me build', 'start a project', 'I want to make'.\""
+description: "\"Build something new — a web app, API, CLI tool, or any project. Use when: 'build something', 'new project', 'create app', 'help me build', 'start a project', 'I want to make'.\" [Commander]"
 allowed-tools:
   - Read
   - Write
@@ -21,25 +21,49 @@ Run a guided Spec Flow to clarify what you're building, then delegate execution 
 
 ## Quick Mode (default)
 
-Ask these 3 questions, one at a time:
+Ask these 3 questions one at a time via `AskUserQuestion` — never as a numbered text list, never ask the user to type a letter.
 
 **Question 1 — Outcome goal:**
-"What does success look like when this is done?"
-- A: Works end-to-end — I can click through the whole thing
-- B: Solid foundation — architecture is right, I'll build features later
-- C: Quick prototype — just needs to prove the concept
+
+Use `AskUserQuestion` with these chips:
+```
+question: "What does success look like when this is done?"
+options:
+  - label: "✅ Works end-to-end"
+    description: "I can click through the whole thing."
+  - label: "🏗️ Solid foundation"
+    description: "Architecture is right, I'll build features later."
+  - label: "⚡ Quick prototype"
+    description: "Just needs to prove the concept."
+```
 
 **Question 2 — Tech preferences:**
-"Any tech preferences, or should I pick what's best?"
-- A: Pick what's best for the job
-- B: Popular/mainstream stack (React, Node, Postgres)
-- C: Keep it simple — minimal dependencies
+
+Use `AskUserQuestion` with these chips:
+```
+question: "Any tech preferences, or should I pick what's best?"
+options:
+  - label: "🤖 Pick what's best for the job"
+    description: "I'll choose the optimal stack for your use case."
+  - label: "🌐 Popular/mainstream stack"
+    description: "React, Node, Postgres — battle-tested, widely documented."
+  - label: "🪶 Keep it simple"
+    description: "Minimal dependencies, easy to understand."
+```
 
 **Question 3 — Thoroughness:**
-"How thorough should the implementation be?"
-- A: Just the basics — get it working
-- B: Include tests — unit + integration coverage
-- C: Production-ready — error handling, logging, CI/CD, docs
+
+Use `AskUserQuestion` with these chips:
+```
+question: "How thorough should the implementation be?"
+options:
+  - label: "⚡ Just the basics"
+    description: "Get it working — fastest path to running code."
+  - label: "🧪 Include tests"
+    description: "Unit + integration coverage alongside implementation."
+  - label: "🚀 Production-ready"
+    description: "Error handling, logging, CI/CD, docs — ship-quality."
+```
 
 After 3 answers, generate a one-paragraph spec, confirm with user, then delegate:
 

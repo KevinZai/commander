@@ -1,6 +1,6 @@
 ---
 name: performance-engineer
-description: "Performance specialist for identifying bottlenecks, profiling hot paths, and estimating improvement impact. Audit-only — reads and analyzes without modifying files — e.g., 'why is our API slow?' or 'audit our frontend bundle size and Core Web Vitals'."
+description: "Performance specialist for identifying bottlenecks, profiling hot paths, and estimating improvement impact. Audit-only — reads and analyzes without modifying files — e.g., 'why is our API slow?' or 'audit our frontend bundle size and Core Web Vitals'. [Commander]"
 model: sonnet
 effort: high
 persona: personas/performance-engineer

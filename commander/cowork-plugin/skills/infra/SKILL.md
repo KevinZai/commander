@@ -1,6 +1,6 @@
 ---
 name: infra
-description: "Infrastructure probe — manage Fleet Commander, Synapse, Cost tracking, CloudCLI, AO, Paperclip, TaskMaster. Use when the user says 'infrastructure', 'fleet', 'cost', 'synapse', 'agents', 'what services are running', 'check ports', or 'service status'."
+description: "Infrastructure probe — manage Fleet Commander, Synapse, Cost tracking, CloudCLI, AO, Paperclip, TaskMaster. Use when the user says 'infrastructure', 'fleet', 'cost', 'synapse', 'agents', 'what services are running', 'check ports', or 'service status'. [Commander]"
 allowed-tools:
   - Bash
   - Read

@@ -1,6 +1,6 @@
 ---
 name: ccc-plan
-description: "Feature planning flow for CC Commander. Runs a structured 3-5 question spec interview, then delegates to the planner agent in the background to write an implementation plan to the session-bound plan path (from EnterPlanMode) so it renders in Claude Code Desktop's native Plan pane. Use when the user types /ccc-plan, says 'plan this feature', 'write a spec', 'help me plan', 'break this down', or before starting any multi-day work."
+description: "Feature planning flow for CC Commander. Runs a structured 3-5 question spec interview, then delegates to the planner agent in the background to write an implementation plan to the session-bound plan path (from EnterPlanMode) so it renders in Claude Code Desktop's native Plan pane. Use when the user types /ccc-plan, says 'plan this feature', 'write a spec', 'help me plan', 'break this down', or before starting any multi-day work. [Commander]"
 allowed-tools:
   - Read
   - Write

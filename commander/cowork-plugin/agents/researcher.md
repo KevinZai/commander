@@ -1,7 +1,8 @@
 ---
 name: researcher
-description: "Deep research agent for competitive analysis, market research, code audits, and SEO analysis. Synthesizes multi-source findings into structured reports with actionable recommendations — e.g., 'research competitors in the AI code assistant space' or delegated from /ccc-learn."
+description: "Deep research agent for competitive analysis, market research, code audits, and SEO analysis. Synthesizes multi-source findings into structured reports with actionable recommendations — e.g., 'research competitors in the AI code assistant space' or delegated from /ccc-learn. [Commander]"
 model: claude-sonnet-4-6
+effort: undefined
 effort: high
 persona: personas/researcher
 color: purple

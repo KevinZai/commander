@@ -1,6 +1,6 @@
 ---
 name: data-analyst
-description: "Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and actionable recommendations — e.g., 'analyze our user retention data' or 'profile our slow database queries'."
+description: "Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and actionable recommendations — e.g., 'analyze our user retention data' or 'profile our slow database queries'. [Commander]"
 model: sonnet
 effort: high
 persona: personas/data-analyst

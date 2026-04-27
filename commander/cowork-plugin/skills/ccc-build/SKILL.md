@@ -1,6 +1,6 @@
 ---
 name: ccc-build
-description: "CC Commander — scaffold a project or feature with a guided spec interview. Routes into web app, API, CLI, or mobile templates; cascades into a 3-question spec flow; spawns a background Sonnet agent to scaffold. Use when the user types /ccc-build, /ccc build, picks 'Build' from the /ccc hub, or says 'scaffold', 'start a project', 'new app', 'create a CLI'."
+description: "CC Commander — scaffold a project or feature with a guided spec interview. Routes into web app, API, CLI, or mobile templates; cascades into a 3-question spec flow; spawns a background Sonnet agent to scaffold. Use when the user types /ccc-build, /ccc build, picks 'Build' from the /ccc hub, or says 'scaffold', 'start a project', 'new app', 'create a CLI'. [Commander]"
 allowed-tools:
   - Read
   - Write

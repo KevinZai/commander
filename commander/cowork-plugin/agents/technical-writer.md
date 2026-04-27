@@ -1,6 +1,6 @@
 ---
 name: technical-writer
-description: "Senior technical writer for API docs, READMEs, user guides, and developer documentation. Reads code to produce accurate, scannable docs without running shell commands — e.g., 'write API docs for these endpoints' or 'our README is outdated, rewrite it'."
+description: "Senior technical writer for API docs, READMEs, user guides, and developer documentation. Reads code to produce accurate, scannable docs without running shell commands — e.g., 'write API docs for these endpoints' or 'our README is outdated, rewrite it'. [Commander]"
 model: sonnet
 effort: medium
 persona: personas/technical-writer

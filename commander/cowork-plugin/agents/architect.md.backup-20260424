@@ -1,6 +1,6 @@
 ---
 name: architect
-description: Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield design, or refactoring strategy — e.g., designing a multi-tenant SaaS or choosing between PostgreSQL and MongoDB. [Commander]
+description: Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield design, or refactoring strategy — e.g., designing a multi-tenant SaaS or choosing between PostgreSQL and MongoDB.
 model: claude-opus-4-7
 effort: xhigh
 persona: personas/architect

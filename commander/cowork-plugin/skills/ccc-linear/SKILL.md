@@ -1,6 +1,6 @@
 ---
 name: ccc-linear
-description: "Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types /ccc-linear, /ccc linear, says 'open Linear', 'show my tickets', 'what's in my queue', 'create an issue', or wants to go from idea → branch → work in one click."
+description: "Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types /ccc-linear, /ccc linear, says 'open Linear', 'show my tickets', 'what's in my queue', 'create an issue', or wants to go from idea → branch → work in one click. [Commander]"
 allowed-tools:
   - Read
   - Write

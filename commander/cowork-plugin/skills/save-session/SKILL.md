@@ -1,6 +1,6 @@
 ---
 name: save-session
-description: "Compress the current Claude Code session into a dense reloadable summary — key decisions, files modified, what worked, what did NOT work, open questions, and the exact next step. Saves to ~/.claude/sessions/YYYY-MM-DD-{slug}-session.tmp so future sessions can resume with full context in one read. Use at the end of a working session before closing."
+description: "Compress the current Claude Code session into a dense reloadable summary — key decisions, files modified, what worked, what did NOT work, open questions, and the exact next step. Saves to ~/.claude/sessions/YYYY-MM-DD-{slug}-session.tmp so future sessions can resume with full context in one read. Use at the end of a working session before closing. [Commander]"
 model: sonnet
 effort: medium
 ---

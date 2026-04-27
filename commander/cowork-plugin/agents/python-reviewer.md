@@ -1,6 +1,6 @@
 ---
 name: python-reviewer
-description: "Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Python file' or used automatically by /ccc-review on Python projects."
+description: "Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Python file' or used automatically by /ccc-review on Python projects. [Commander]"
 model: sonnet
 effort: high
 persona: personas/reviewer
