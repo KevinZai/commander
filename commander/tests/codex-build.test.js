@@ -87,7 +87,7 @@ test('codex plugin build artifact', async (t) => {
 
     assert.equal(manifest.name, 'commander');
     assert.equal(manifest.displayName, 'CC Commander');
-    assert.equal(manifest.version, '4.0.0-beta.11');
+    assert.equal(manifest.version, '4.0.0');
     assert.equal(manifest.skills, './skills/');
     assert.equal(manifest.agents, './agents/');
     assert.equal(manifest.hooks, './hooks.json');
