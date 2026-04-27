@@ -170,7 +170,7 @@ test('--patch fixes simple count and version mismatches', function() {
   assert.match(readme, new RegExp('v' + contract.version.replace(/\./g, '\\.')));
   assert.match(readme, /55 plugin skills/);
   assert.match(readme, /17 specialist agents/);
-  assert.match(readme, /8 lifecycle hooks \(14 handlers\)/);
+  assert.match(readme, /9 lifecycle hooks \(15 handlers\)/);
   assert.match(readme, /2 pre-configured MCP servers \+16 opt-in/);
   assert.match(readme, /459\+ skills across 11 CCC domains/);
 

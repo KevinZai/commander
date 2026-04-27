@@ -86,6 +86,17 @@
           }
         ]
       }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/permission-gate.js",
+            "timeout": 5000
+          }
+        ]
+      }
     ]
   }
 }

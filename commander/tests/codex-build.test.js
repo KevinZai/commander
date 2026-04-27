@@ -139,18 +139,19 @@ test('codex plugin build artifact', async (t) => {
     assert.match(architect, /^developer_instructions = /m);
   });
 
-  await t.test('drops unsupported hook events and emits 5 events', async () => {
+  await t.test('emits expected hook events including PermissionRequest', async () => {
     const hooks = await readJson(path.join(OUTPUT_DIR, 'hooks.json'));
     const eventNames = Object.keys(hooks.hooks).sort();
 
     assert.deepEqual(eventNames, [
+      'PermissionRequest',  // Codex Desktop only — gates /ccc-review autofix writes
       'PostToolUse',
       'PreToolUse',
       'SessionStart',
       'Stop',
       'UserPromptSubmit',
     ]);
-    assert.equal(eventNames.length, 5);
+    assert.equal(eventNames.length, 6);
   });
 
   await t.test('passes through 2 MCP servers', async () => {

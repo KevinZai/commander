@@ -163,7 +163,12 @@ test('hooks.json: every command path exists on disk', () => {
 });
 
 test('hooks.json: every event name is a valid Claude Code lifecycle', () => {
-  const valid = new Set(['SessionStart', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse', 'Stop', 'Notification', 'PreCompact', 'SubagentStop']);
+  // Claude Code core events + PermissionRequest (Codex Desktop only; harmless on Claude Code — won't fire)
+  const valid = new Set([
+    'SessionStart', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse',
+    'Stop', 'Notification', 'PreCompact', 'SubagentStop',
+    'PermissionRequest',  // Codex-only; registered for Codex Desktop UX; ignored by Claude Code
+  ]);
   const events = Object.keys(hooksJson.hooks || {});
   const invalid = events.filter(e => !valid.has(e));
   assert.deepEqual(invalid, [], `Unknown lifecycle events: ${invalid.join(', ')}`);
