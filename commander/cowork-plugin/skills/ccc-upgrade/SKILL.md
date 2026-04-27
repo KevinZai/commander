@@ -1,6 +1,6 @@
 ---
 name: ccc-upgrade
-description: "Audit and update vendor submodules. Lists every submodule under vendor/, fetches latest, reports per-submodule current/latest commits and changed file counts, prompts the user to pick which to update via a chip picker, runs git submodule update --remote --rebase on selections, verifies tests pass, and commits one chore(vendor) commit per submodule. Use when the user types /ccc-upgrade, asks to update vendors, refresh submodules, pull vendor changes, sync the ecosystem, or check for vendor drift."
+description: "Audit and update vendor submodules. Lists every submodule under vendor/, fetches latest, reports per-submodule current/latest commits and changed file counts, prompts the user to pick which to update via a chip picker, runs git submodule update --remote --rebase on selections, verifies tests pass, and commits one chore(vendor) commit per submodule. Use when the user types /ccc-upgrade, asks to update vendors, refresh submodules, pull vendor changes, sync the ecosystem, or check for vendor drift. [Commander]"
 model: sonnet
 effort: medium
 allowed-tools:

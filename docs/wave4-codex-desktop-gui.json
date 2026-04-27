@@ -1,0 +1,230 @@
+{
+  "_meta": {
+    "wave": "4-A",
+    "title": "Codex Desktop GUI Compatibility",
+    "date": "2026-04-26",
+    "status": "research-complete",
+    "confidence_note": "HIGH = confirmed in official docs; MED = inferred from multiple sources; LOW = no evidence found"
+  },
+  "primitives_found": [
+    {
+      "name": "tool/requestUserInput",
+      "type": "forced_choice_picker",
+      "surface": "Desktop + CLI TUI",
+      "claude_analog": "AskUserQuestion",
+      "description": "App Server experimental method. Prompts user with 1-3 short questions. Each question supports multiple-choice options and an isOther free-form field. Rendered as tab-navigable overlay in the Desktop TUI input area.",
+      "access_from_plugin": "indirect — skill/hook script must connect to running App Server stdio and call JSON-RPC method tool/requestUserInput",
+      "requires_experimental_api": true,
+      "confidence": "HIGH",
+      "source": "https://developers.openai.com/codex/app-server"
+    },
+    {
+      "name": "slash_command_popup",
+      "type": "command_picker",
+      "surface": "Desktop + CLI",
+      "claude_analog": "skill autocomplete overlay",
+      "description": "Typing / in the Desktop input opens a filtered popup listing all available slash commands including installed plugin skills. Plugin skills appear under their skill name as defined in SKILL.md frontmatter.",
+      "access_from_plugin": "automatic — skills installed via plugin appear in popup",
+      "confidence": "HIGH",
+      "source": "https://developers.openai.com/codex/cli/slash-commands"
+    },
+    {
+      "name": "model_picker",
+      "type": "dropdown_picker",
+      "surface": "Desktop + CLI",
+      "claude_analog": "model selector in settings",
+      "description": "/model command opens a model popup backed by the model/list App Server API. The hidden field on model entries controls visibility in the picker.",
+      "access_from_plugin": "no plugin hook; read-only via App Server model/list",
+      "confidence": "HIGH",
+      "source": "https://developers.openai.com/codex/app-server"
+    },
+    {
+      "name": "personality_picker",
+      "type": "dropdown_picker",
+      "surface": "Desktop + CLI",
+      "claude_analog": "N/A",
+      "description": "/personality command opens a style picker (friendly, pragmatic, none). Plugin cannot hook into this.",
+      "access_from_plugin": "none",
+      "confidence": "HIGH",
+      "source": "https://developers.openai.com/codex/cli/slash-commands"
+    },
+    {
+      "name": "permission_request_dialog",
+      "type": "approval_modal",
+      "surface": "Desktop (native dialog) + CLI (TUI prompt)",
+      "claude_analog": "PermissionRequest hook (Claude Code)",
+      "description": "PermissionRequest lifecycle hook fires before Codex executes a potentially risky tool call. Desktop renders a native approval dialog. Plugins can intercept via PermissionRequest hook in hooks.json.",
+      "access_from_plugin": "YES — via PermissionRequest hook event in hooks.json",
+      "confidence": "HIGH",
+      "source": "https://developers.openai.com/codex/agent-approvals-security"
+    },
+    {
+      "name": "plugin_browser_sidebar",
+      "type": "tabbed_browser",
+      "surface": "Desktop",
+      "claude_analog": "plugin marketplace in Claude settings",
+      "description": "Desktop /plugins command opens a tabbed browser with installed plugins, marketplace sources, enable/disable toggles, and remote/local/git source options. Plugins cannot inject UI into this sidebar.",
+      "access_from_plugin": "none (read-only discovery; install/uninstall via App Server plugin/install and plugin/uninstall)",
+      "confidence": "HIGH",
+      "source": "https://developers.openai.com/codex/changelog"
+    },
+    {
+      "name": "summary_pane",
+      "type": "read_only_panel",
+      "surface": "Desktop",
+      "claude_analog": "plan mode plan file",
+      "description": "Desktop shows a task sidebar with plans, sources, generated artifacts, and summaries while Codex works. No plugin write API exists to push content into this pane.",
+      "access_from_plugin": "none",
+      "confidence": "MED",
+      "source": "https://developers.openai.com/codex/app/features"
+    },
+    {
+      "name": "featured_plugin_ids",
+      "type": "marketplace_placement",
+      "surface": "Desktop plugin browser",
+      "claude_analog": "N/A",
+      "description": "The plugin/list App Server method returns featured_plugin_ids, which populate the Featured section in the Desktop plugin browser. No self-serve nomination process documented as of 2026-04.",
+      "access_from_plugin": "none (editorial placement by OpenAI or community marketplace curator)",
+      "confidence": "MED",
+      "source": "https://developers.openai.com/codex/app-server"
+    },
+    {
+      "name": "in_app_browser",
+      "type": "browser_panel",
+      "surface": "Desktop",
+      "claude_analog": "N/A",
+      "description": "Atlas-backed in-app browser for local dev server previews. No plugin API to open URLs inside it.",
+      "access_from_plugin": "none",
+      "confidence": "HIGH",
+      "source": "https://openai.com/index/codex-for-almost-everything/"
+    },
+    {
+      "name": "status_bar",
+      "type": "status_display",
+      "surface": "CLI TUI only",
+      "claude_analog": "commander/status-line.js text output",
+      "description": "No plugin status bar API. TUI shows session progress only. Plugins can print status text to stdout during skill execution.",
+      "access_from_plugin": "text output only",
+      "confidence": "HIGH — no plugin API found",
+      "source": "research synthesis"
+    }
+  ],
+  "adapter_changes_needed": [
+    {
+      "id": "AC-1",
+      "file": "commander/adapters/codex/manifest.template.json",
+      "change": "Add composerIcon, logo, screenshots, privacyPolicyURL, termsOfServiceURL fields to interface object",
+      "priority": "HIGH",
+      "effort_days": 0.5,
+      "rationale": "Required for full marketplace listing and Featured eligibility"
+    },
+    {
+      "id": "AC-2",
+      "file": "commander/cowork-plugin-codex/assets/ (new)",
+      "change": "Create icon.png (128x128), logo.png (1024x1024), screenshot-{1..3}.png (1200x800)",
+      "priority": "HIGH",
+      "effort_days": 1.0,
+      "rationale": "marketplace listing requires visual assets"
+    },
+    {
+      "id": "AC-3",
+      "file": "commander/adapters/codex/translate.js",
+      "change": "Add --remap-precompact flag: when set, translate PreCompact -> SessionEnd with a verbose warning about semantic difference",
+      "priority": "MED",
+      "effort_days": 0.25,
+      "rationale": "SessionEnd is the closest Desktop analog to PreCompact; opt-in reduces silent drops"
+    },
+    {
+      "id": "AC-4",
+      "file": "commander/cowork-plugin-codex/hooks/permission-gate.js (new)",
+      "change": "Add PermissionRequest hook handler that logs requests and auto-approves read-only tool calls",
+      "priority": "MED",
+      "effort_days": 1.0,
+      "rationale": "Desktop exposes PermissionRequest natively; using it for /ccc-review scope gating improves security UX"
+    },
+    {
+      "id": "AC-5",
+      "file": "commander/adapters/codex/manifest.template.json",
+      "change": "Change defaultPrompt from /ccc to /ccc-start for first-run onboarding UX",
+      "priority": "LOW",
+      "effort_days": 0.1,
+      "rationale": "Better first-run discovery on Codex Desktop where users may not know /ccc"
+    },
+    {
+      "id": "AC-6",
+      "file": "commander/cowork-plugin-codex/scripts/ask-bridge.js (new)",
+      "change": "Bridge script: connects to App Server stdio, calls tool/requestUserInput, returns answers as JSON. Enables chip-picker UX from skill hook scripts.",
+      "priority": "LOW",
+      "effort_days": 2.0,
+      "rationale": "Provides AskUserQuestion parity on Codex Desktop. Skip for v4.2 — SKILL.md text prompt achieves same UX at zero cost.",
+      "recommendation": "SKIP for v4.2"
+    }
+  ],
+  "marketplace_requirements": {
+    "official_openai_marketplace": {
+      "self_serve": false,
+      "process": "No public submission process as of 2026-04. Editorial curation by OpenAI. Contact OpenAI developer relations.",
+      "confidence": "MED"
+    },
+    "community_marketplace_codex_marketplace_com": {
+      "self_serve": true,
+      "install_command": "npx codex-marketplace add KevinZai/commander --plugins",
+      "submission_url": "https://www.codex-marketplace.com/submit",
+      "required_assets": [
+        "composerIcon (./assets/icon.png, 128x128)",
+        "logo (./assets/logo.png, 1024x1024)",
+        "screenshots array (up to 5, 1200x800 recommended)"
+      ],
+      "required_manifest_fields": [
+        "name", "version", "description", "author", "homepage", "repository",
+        "interface.displayName", "interface.shortDescription", "interface.longDescription",
+        "interface.developerName", "interface.category", "interface.capabilities",
+        "interface.websiteURL", "interface.composerIcon", "interface.logo", "interface.screenshots"
+      ],
+      "featured_criteria": "Editorial selection based on install count, plugin quality, asset completeness, and privacyPolicyURL presence",
+      "confidence": "MED"
+    },
+    "github_based_install": {
+      "self_serve": true,
+      "install_command": "codex plugin marketplace add KevinZai/commander",
+      "description": "Any GitHub repo with .codex-plugin/plugin.json is installable directly. No approval needed.",
+      "confidence": "HIGH"
+    }
+  },
+  "effort_days": 4.75,
+  "effort_breakdown": {
+    "manifest_fields_and_template": 0.5,
+    "visual_assets": 1.0,
+    "precompact_remap_flag": 0.25,
+    "permission_request_hook": 1.0,
+    "smoke_testing_on_codex_desktop": 1.0,
+    "community_marketplace_submission": 0.5,
+    "docs_update": 0.5,
+    "total_without_ask_bridge": 4.75,
+    "ask_bridge_optional": 2.0,
+    "total_with_ask_bridge": 6.75
+  },
+  "illustrative_skills_with_gui_bindings": [
+    {
+      "skill": "/ccc-build",
+      "binding": "defaultPrompt in manifest interface pre-fills composer with /ccc-build; skill text presents project-type choices as numbered list (AskUserQuestion parity via text)",
+      "adapter_change": "AC-5 (defaultPrompt update)"
+    },
+    {
+      "skill": "/ccc-review",
+      "binding": "PermissionRequest hook fires before git diff / file reads; permission-gate.js auto-approves read-only, prompts user for destructive operations",
+      "adapter_change": "AC-4 (permission-gate.js)"
+    },
+    {
+      "skill": "/ccc-fleet",
+      "binding": "SessionStart hook detects CODEX_WORKTREE env var; if in worktree, auto-scopes fleet dispatch to worktree root and logs worktree name in output",
+      "adapter_change": "SessionStart hook extension in cowork-plugin-codex/hooks/"
+    }
+  ],
+  "research_gaps": [
+    "No official Featured placement process documented — may require direct OpenAI developer relations contact",
+    "ask-bridge.js pattern not validated against actual App Server — needs smoke test before implementation",
+    "PermissionRequest hook payload schema not confirmed — needs test against real Codex Desktop v26.415+",
+    "Desktop worktree env var name (CODEX_WORKTREE) inferred, not confirmed in docs"
+  ]
+}

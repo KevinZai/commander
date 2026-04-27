@@ -1,6 +1,6 @@
 ---
 name: ccc-changelog
-description: "Show what changed in the latest CC Commander update. Reads CHANGELOG.md and renders the most-recent version section in a digestible summary. Use when the user types /ccc-changelog, asks 'what changed', 'what is new', 'what was updated', or sees the version-transition nudge."
+description: "Show what changed in the latest CC Commander update. Reads CHANGELOG.md and renders the most-recent version section in a digestible summary. Use when the user types /ccc-changelog, asks 'what changed', 'what is new', 'what was updated', or sees the version-transition nudge. [Commander]"
 model: sonnet
 effort: medium
 allowed-tools:

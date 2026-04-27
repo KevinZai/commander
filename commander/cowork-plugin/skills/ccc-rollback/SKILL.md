@@ -1,6 +1,6 @@
 ---
 name: ccc-rollback
-description: "CC Commander rollback workflow. Selects a rollback target, creates atomic git revert commits, pushes the revert, redeploys through ccc-deploy, verifies health, and emits incident comms."
+description: "CC Commander rollback workflow. Selects a rollback target, creates atomic git revert commits, pushes the revert, redeploys through ccc-deploy, verifies health, and emits incident comms. [Commander]"
 model: sonnet
 effort: high
 allowed-tools:
