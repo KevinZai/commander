@@ -1,6 +1,6 @@
 # CC Commander MCP Server (Cloud)
 
-Hosted MCP server for CC Commander v4.0 Beta. Serves 18 tools with auth, rate limiting, and feedback gate.
+Hosted MCP server for CC Commander v4.0 Beta. Serves MCP tools with auth, rate limiting, and feedback gate.
 
 ## Endpoints
 
@@ -120,19 +120,64 @@ bash scripts/test-against-prod.sh --target=https://commander-mcp.fly.dev
 
 ## Deploy
 
+Production deploys run on Fly.io app `commander-mcp` in `iad` from `.github/workflows/deploy-mcp.yml`.
+
+Prereqs:
+
+- Fly CLI: `brew install flyctl`
+- Access to the `commander-mcp` Fly app
+- `FLY_API_TOKEN` configured as a GitHub Actions secret
+- Runtime secrets set with `fly secrets set`
+
+First-time app setup:
+
 ```bash
-# First time only:
-fly apps create cc-commander-mcp --org personal
+fly auth login
+fly launch --no-deploy --name commander-mcp --region iad
+```
 
-# Set secrets (from 1Password):
-fly secrets set SUPABASE_URL=$(op read op://Alfred/cc-commander-supabase/url)
-fly secrets set SUPABASE_SERVICE_ROLE_KEY=$(op read op://Alfred/cc-commander-supabase/service-role-key)
-fly secrets set UPSTASH_REDIS_REST_URL=$(op read op://Alfred/cc-commander-upstash/url)
-fly secrets set UPSTASH_REDIS_REST_TOKEN=$(op read op://Alfred/cc-commander-upstash/token)
-fly secrets set JWT_SECRET=$(op read op://Alfred/cc-commander-jwt/secret)
+Set or update runtime secrets:
 
-# Deploy:
-fly deploy --app cc-commander-mcp --strategy canary
+```bash
+fly secrets set \
+  SUPABASE_URL="$(op read op://Alfred/cc-commander-supabase/url)" \
+  SUPABASE_SERVICE_ROLE_KEY="$(op read op://Alfred/cc-commander-supabase/service-role-key)" \
+  UPSTASH_REDIS_REST_URL="$(op read op://Alfred/cc-commander-upstash/url)" \
+  UPSTASH_REDIS_REST_TOKEN="$(op read op://Alfred/cc-commander-upstash/token)" \
+  JWT_SECRET="$(op read op://Alfred/cc-commander-jwt/secret)" \
+  POSTHOG_API_KEY="$(op read op://Alfred/cc-commander-posthog/api-key)" \
+  --app commander-mcp
+```
+
+Check deployed secret names without printing values:
+
+```bash
+fly secrets list --app commander-mcp
+```
+
+Deploy:
+
+```bash
+fly deploy --app commander-mcp --vm-size shared-cpu-1x
+```
+
+Smoke test locally or against production:
+
+```bash
+SMOKE_TARGET=http://localhost:8080 \
+SMOKE_AUTH_TOKEN="$COMMANDER_TOKEN" \
+  bash apps/mcp-server-cloud/scripts/smoke-test.sh
+
+SMOKE_TARGET=https://commander-mcp.fly.dev \
+SMOKE_AUTH_TOKEN="$COMMANDER_TOKEN" \
+  bash apps/mcp-server-cloud/scripts/smoke-test.sh
+```
+
+Rollback:
+
+```bash
+fly releases --app commander-mcp
+fly releases rollback <version> --app commander-mcp
 ```
 
 ## 1Password Vault Items (Kevin: populate these in Alfred vault — CC-311)
