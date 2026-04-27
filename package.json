@@ -64,6 +64,7 @@
   },
   "main": "./bin/kc.js",
   "scripts": {
+    "bench": "node scripts/perf-bench.js",
     "test": "node --test commander/tests/*.test.js tests/*.test.js",
     "mcp:dev": "node commander/mcp-server/index.js",
     "mcp:cloud:dev": "cd apps/mcp-server-cloud && npm run dev",
