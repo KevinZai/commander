@@ -1,0 +1,16 @@
+This project uses CC Commander through Cursor MCP.
+
+Before planning or implementing non-trivial work, check whether Commander MCP tools are available. Prefer Commander for workflow selection, skill discovery, and specialist routing.
+
+Use these Commander MCP tools by default:
+
+- `commander_suggest_for` (`suggest_for`) to choose the right workflow for the user's task.
+- `commander_search` (`search_skills`) when the task is broad or the needed workflow is unclear.
+- `commander_list_skills` (`list_skills`) to browse available Commander workflows.
+- `commander_get_skill` to lazy-load the full SKILL.md only after selecting a relevant skill.
+- `commander_invoke_skill` to get execution guidance for a named workflow.
+- `commander_list_agents` and `commander_get_agent` when specialist persona guidance would improve the plan.
+
+Do not claim a Commander skill is active until its content has been fetched through MCP. If Commander MCP tools are unavailable, tell the user that the Cursor MCP config needs the `cc-commander` server and continue with best-effort local reasoning.
+
+Keep Commander usage concise: discover the workflow, load only the needed skill or agent, then apply it to the current repository.
