@@ -1,0 +1,42 @@
+---
+title: "/ccc-onboard"
+description: "Contributor onboarding wizard. Detects project conventions, builds a tailored first-hour checklist. Added in v4.0.0-beta.11."
+---
+
+`/ccc-onboard` is a contributor onboarding wizard. It reads the project, infers the stack and conventions, asks for your role, and produces a tailored first-hour checklist with clone-time tool validation.
+
+## Trigger
+
+```
+/ccc-onboard
+```
+
+Also activates on: "onboard", "new contributor setup", "help me get started on this project", "first-time setup"
+
+## What it does
+
+<Steps>
+  <Step title="Read the project">
+    Scans `README.md`, `package.json`, `CLAUDE.md`, `.github/`, `Dockerfile`, and other signals to understand the project stack, conventions, and existing documentation.
+  </Step>
+  <Step title="Ask for role">
+    AskUserQuestion picker: frontend / backend / fullstack / DevOps / reviewer / other. Tailors the checklist to what you'll actually be touching.
+  </Step>
+  <Step title="Generate onboarding checklist">
+    Produces a role-specific first-hour checklist covering: clone, install, local run, test, first PR, code style, and team communication channels.
+  </Step>
+  <Step title="Validate tools">
+    Runs version checks for required CLI tools (node, bun, docker, gh, etc.) and flags anything missing with install instructions.
+  </Step>
+  <Step title="Generate CLAUDE.md if missing">
+    If no `CLAUDE.md` exists, offers to generate one from detected project signals (stack, test runner, package manager, team conventions).
+  </Step>
+</Steps>
+
+## Output
+
+The skill writes a `ONBOARDING.md` to the project root (or a `docs/` subdirectory if one exists) with the full checklist — shareable with future contributors.
+
+## Agent
+
+Dispatches to the **technical-writer** persona (Sonnet, high effort).

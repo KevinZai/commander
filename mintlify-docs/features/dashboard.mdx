@@ -1,0 +1,41 @@
+---
+title: "Local Dashboard"
+description: "CC Commander's localhost browser dashboard — session inspector, fleet activity, and skill usage at a glance. Added in v4.0.0-beta.11 (MVP)."
+---
+
+CC Commander ships a local browser dashboard that answers one question: **what is the system doing right now, and what has it been doing recently?**
+
+<Note>
+  **v4.0.0-beta.11 status:** Dashboard MVP is shipped — a vanilla HTML/JS localhost server that lists Claude session temp files and lets you inspect their contents in the browser. No build step, no dependencies, read-only.
+</Note>
+
+## What it shows (v0.1 MVP)
+
+- Active session metadata (model, cost, context %, start time)
+- Recent session history from `~/.claude/commander/sessions/`
+- Fleet agent completion log from `notifications.jsonl`
+- Skill usage frequency from knowledge captures
+
+## Start the dashboard
+
+```bash
+ccc --dashboard
+```
+
+Opens `http://localhost:4200` in your default browser. The server is local-only — no external network connections.
+
+## Architecture
+
+The v0.1 dashboard is intentionally minimal:
+
+- **Server:** tiny Node.js `http` server, no framework
+- **Frontend:** vanilla HTML + CSS + JS, no build step
+- **Data:** reads `~/.claude/commander/` directory on request
+- **Auth:** localhost-only, no auth needed
+- **Dependencies:** zero (ships with Node.js)
+
+The v1 roadmap adds React/Vite once there's enough interactive state to justify a build step. See the [full scope document](https://github.com/KevinZai/commander/blob/main/docs/dashboard-scope.md) for planned v1 views: Linear tickets, git activity, cost analytics, and gateway logs.
+
+## Fleet view
+
+The dashboard's fleet view is complementary to [`/ccc-fleet-viz`](/plugin/skills/ccc-fleet-viz) — the skill renders in-session ASCII/Mermaid, the dashboard shows historical activity in the browser.

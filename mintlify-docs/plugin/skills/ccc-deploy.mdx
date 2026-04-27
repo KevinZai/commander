@@ -1,0 +1,57 @@
+---
+title: "/ccc-deploy"
+description: "End-to-end deploy workflow. Detects Vercel, Fly.io, Cloudflare, GitHub Pages, or npm targets. Added in v4.0.0-beta.11."
+---
+
+`/ccc-deploy` runs a full, verified deployment end-to-end. It detects your deploy target automatically, asks for confirmation, executes the platform deploy, watches status, verifies health, and emits post-deploy comms.
+
+## Trigger
+
+```
+/ccc-deploy
+```
+
+Also activates on: "deploy", "push to production", "ship to staging", "release to prod"
+
+## What it does
+
+<Steps>
+  <Step title="Detect deploy target">
+    Reads `package.json`, `fly.toml`, `vercel.json`, `wrangler.toml`, `.github/workflows/` to identify the deploy platform. Presents detected target for confirmation.
+  </Step>
+  <Step title="Pre-flight checks">
+    Runs TypeScript type-check, test suite (if present), secrets scan, and environment variable validation. Blocks on failures.
+  </Step>
+  <Step title="Execute deploy">
+    Runs the platform-appropriate deploy command:
+    - **Fly.io:** `fly deploy`
+    - **Vercel:** `vercel --prod`
+    - **Cloudflare:** `wrangler deploy`
+    - **GitHub Pages:** `gh workflow run`
+    - **npm:** `npm publish`
+  </Step>
+  <Step title="Watch and verify">
+    Polls health endpoint or deploy status until confirmed healthy. Times out at 5 minutes with a rollback prompt.
+  </Step>
+  <Step title="Post-deploy comms">
+    Emits deploy summary (version, environment, duration) to `~~chat` if connected, and appends to session knowledge.
+  </Step>
+</Steps>
+
+## Supported platforms
+
+| Platform | Detection signal | Deploy command |
+|----------|----------------|---------------|
+| Fly.io | `fly.toml` | `fly deploy` |
+| Vercel | `vercel.json` or `VERCEL_TOKEN` env | `vercel --prod` |
+| Cloudflare Workers | `wrangler.toml` | `wrangler deploy` |
+| GitHub Pages | `.github/workflows/*.yml` with `pages` | `gh workflow run` |
+| npm | `package.json` with `publishConfig` | `npm publish` |
+
+## Rollback
+
+If the deploy health check fails or you want to revert, use [`/ccc-rollback`](/plugin/skills/ccc-rollback).
+
+## Agent
+
+Dispatches to the **devops-engineer** persona (Sonnet, high effort) for deploy execution.

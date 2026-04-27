@@ -1,11 +1,11 @@
 ---
 title: "Quickstart"
-description: "Install CCC in under 60 seconds. Desktop plugin is the recommended path for v3.0.0."
+description: "Install CCC in under 60 seconds. Desktop plugin is the recommended path for v4.0.0-beta.11."
 ---
 
 ## Desktop Plugin (Recommended)
 
-The fastest path to CCC v3.0.0. Two commands inside any Claude Code session:
+The fastest path to CCC v4.0.0-beta.11. Two commands inside any Claude Code session:
 
 <Steps>
   <Step title="Add to marketplace">
@@ -26,9 +26,7 @@ The fastest path to CCC v3.0.0. Two commands inside any Claude Code session:
   </Step>
 </Steps>
 
-**What you get (Free tier):** 15 plugin skills, SessionStart + Stop hooks, full CLI access.
-
-**Upgrade to Pro ($19/mo):** 5 agents, 8 MCP integrations, 4 advanced hooks. [See cc-commander.com/pricing](https://cc-commander.com/pricing)
+**What you get:** 55 plugin skills, 17 specialist sub-agents, 8 lifecycle hooks × 16 handlers, 2 bundled MCP servers. All free forever — no paid tier, no caps.
 
 <Card title="Plugin docs" icon="puzzle-piece" href="/plugin/install">
   Full plugin installation guide — verification, first commands, and troubleshooting.
@@ -54,7 +52,7 @@ These paths are for developers who want full CLI control or prefer staying insid
     ccc
     ```
 
-    **What you get:** Full CLI with tmux split mode, daemon, theme switching, cockpit dashboard, and all 453+ skills.
+    **What you get:** Full CLI with tmux split mode, daemon, theme switching, cockpit dashboard, and all 502+ skills.
 
     **Best for:** Developers who live in the terminal.
   </Tab>
@@ -74,7 +72,7 @@ These paths are for developers who want full CLI control or prefer staying insid
 
     Full interactive menu appears. Same features, no extra binary.
 
-    **What you get:** All 453+ skills and commands accessible via `/ccc` prefix.
+    **What you get:** All 502+ skills and commands accessible via `/ccc` prefix.
 
     **Best for:** Developers who prefer staying inside Claude Code.
   </Tab>
@@ -84,7 +82,7 @@ These paths are for developers who want full CLI control or prefer staying insid
 
 ```
 1. /plugin install commander   → Plugin installs
-2. /ccc                  → Main menu (15 skills)
+2. /ccc                  → Main menu (55 skills)
 3. Pick a skill          → CCC loads the right context
 4. Session ends          → CCC auto-saves lessons
 5. Next session          → CCC is smarter about your project
@@ -110,15 +108,15 @@ Health check JSON — shows gateway, skill count, session state.
 
 <CardGroup cols={2}>
   <Card title="Plugin Skills" href="/plugin/skills" icon="wand-magic-sparkles">
-    All 15 plugin skills with Free/Pro tier breakdown.
+    All 55 plugin skills — workflows, domain routers, deploy, fleet, and more.
   </Card>
   <Card title="Agents" href="/plugin/agents" icon="robot">
-    5 specialized agents for review, build, research, debug, and fleet.
+    17 specialist sub-agents for review, build, research, debug, fleet, and more.
   </Card>
   <Card title="MCP Integrations" href="/plugin/mcp-integrations" icon="plug">
-    8 pre-configured MCP servers — Linear, GitHub, Slack, and more.
+    2 bundled + 16 opt-in MCP servers via /ccc-connect.
   </Card>
-  <Card title="Free vs Pro" href="/plugin/free-vs-pro" icon="tag">
-    Full feature comparison. Upgrade when you need it.
+  <Card title="Codex Compatibility" href="/features/codex-compatibility" icon="code">
+    Use CC Commander skills in OpenAI Codex CLI and Codex Desktop.
   </Card>
 </CardGroup>

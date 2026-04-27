@@ -1,0 +1,41 @@
+---
+title: "/ccc-rollback"
+description: "Safe deploy rollback. Creates atomic git revert commits, redeploys, and verifies health. Added in v4.0.0-beta.11."
+---
+
+`/ccc-rollback` identifies the last stable release, creates atomic git revert commits, pushes the revert, redeploys through `/ccc-deploy`, and verifies platform health.
+
+## Trigger
+
+```
+/ccc-rollback
+```
+
+Also activates on: "rollback", "revert deploy", "undo release", "go back to last version"
+
+## What it does
+
+<Steps>
+  <Step title="Select rollback target">
+    Shows recent deploys from git tags and platform history. AskUserQuestion picker to select the stable version.
+  </Step>
+  <Step title="Create revert commit">
+    Runs `git revert` atomically (not `git reset --hard`) to preserve history. Commits with a conventional commit message referencing the incident.
+  </Step>
+  <Step title="Push and redeploy">
+    Pushes the revert commit, then hands off to `/ccc-deploy` for the rollback deploy.
+  </Step>
+  <Step title="Verify health">
+    Polls health endpoint until confirmed stable. Emits incident summary with root-cause placeholder.
+  </Step>
+</Steps>
+
+## Safety guarantees
+
+- Uses `git revert` (not `git reset --hard`) — history is preserved
+- Requires explicit confirmation before pushing
+- Never force-pushes to main/master
+
+## Agent
+
+Dispatches to the **devops-engineer** persona (Sonnet, high effort).

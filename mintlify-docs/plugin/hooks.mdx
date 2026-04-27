@@ -7,18 +7,22 @@ CC Commander registers **8 lifecycle hook events** with **16 total handlers** th
 
 All hooks use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and fail gracefully — if a hook errors, the session continues uninterrupted.
 
+<Note>
+  **v4.0.0-beta.11:** `SessionStart` now uses a single-process orchestrator (`session-start-orchestrator.js`) that runs all 4 session-start handlers in one Node.js process, saving ~300ms of cold-start overhead per session. The 16-handler count is unchanged — the orchestrator is a performance optimization, not a feature reduction.
+</Note>
+
 ## Hook Registry
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
-| `SessionStart` | 2 | `session-start.js`, `onboarding-gate.js` | Load active session context, run first-use onboarding gate |
-| `UserPromptSubmit` | 2 | `intent-classifier.js`, `context-budget.js` | Match prompt against skill trigger patterns → suggest right skill; check context budget |
-| `PreToolUse` | 3 | `cost-tracker.js`, `config-guard.js`, `tmux-reminder.js` | Increment tool call counter + cost estimate; block dangerous config changes; tmux session reminder |
-| `PostToolUse` | 4 | `knowledge-capture.js`, `pr-logger.js`, `build-analysis.js`, `auto-format.js` | Capture file touches to knowledge base; log PR activity; analyze build output; trigger formatter |
-| `Stop` | 2 | `session-save.js`, `pattern-evaluation.js` | Write dated session summary; evaluate learned patterns from session |
-| `Notification` | 1 | `fleet-notify.js` | Log fleet agent completion to `notifications.jsonl` |
-| `PreCompact` | 1 | `pre-compact-save.js` | Save session state before context compaction |
-| `SubagentStop` | 1 | `subagent-result.js` | Route sub-agent structured output back to main session |
+| `SessionStart` | 4 (via orchestrator) | `session-start-orchestrator.js` → `session-start.js`, `stale-claude-md-nudge.js`, `post-compact-recovery.js`, `suggest-ticker.js` | Seed state, warn on stale CLAUDE.md, restore post-compact context, surface ambient next-step suggestion |
+| `UserPromptSubmit` | 4 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `user-prompt-submit.js` | Ambient suggestion tick; match prompt against skill catalog; warn at 80%/95% context; generic prompt dispatcher |
+| `PreToolUse` | 3 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js` | Accumulate session cost; block calls over ceiling; scan args for leaked secrets |
+| `PostToolUse` | 1 | `knowledge-capture.js` | Capture file-touch observations to knowledge directory |
+| `Stop` | 2 | `session-save.js`, `session-end.js` | Auto-save active session JSON; persist session summary to knowledge |
+| `Notification` | 1 | `fleet-notify.js` | Append fleet agent completion events to `notifications.jsonl` |
+| `PreCompact` | 1 | `pre-compact.js` | Block compaction if session is mid-critical-task |
+| `SubagentStop` | 1 | `subagent-stop.js` | Track subagent cost aggregation per session |
 
 ## State Layout
 

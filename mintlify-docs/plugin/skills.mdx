@@ -1,11 +1,11 @@
 ---
 title: "Plugin Skills"
-description: "51 skills shipped with the CC Commander plugin (v4.0.0-beta.11). 13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + lifecycle skills (/ccc-e2e + /save-session + /resume-session + /ccc-changelog + /ccc-doctor + /ccc-upgrade) + /ccc-memory + /ccc-tasks + /ccc-recall + more."
+description: "55 skills shipped with the CC Commander plugin (v4.0.0-beta.11). 17 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + new deploy/fleet/onboard skills."
 ---
 
-CC Commander v4.0.0-beta.11 ships **51 plugin skills** across six groups. All skills are **free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+CC Commander v4.0.0-beta.11 ships **55 plugin skills** across six groups. All skills are **free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
 
-## Group 1 — 12 /ccc-* Specialist Workflows
+## Group 1 — 13 /ccc-* Specialist Workflows
 
 Click-first workflows. Each opens an interactive picker (AskUserQuestion native chips) — no flags or arguments needed.
 
@@ -83,7 +83,19 @@ Added in beta.10. MIT-licensed ports with attribution.
 | `/ccc-tasks` | `/ccc-tasks` or "what's on my list" | Lightweight markdown task tracking via `tasks/todo.md`. No database, no service — just checkboxes + priorities |
 | `/ccc-recall` | `/ccc-recall` or "what did we do last time" | Search across past Claude Code sessions — find when you solved a similar problem or made a decision |
 
-## All 51 at a Glance
+## Group 7 — New Skills (beta.11 Codex Fleet)
+
+New skills added in v4.0.0-beta.11. These skills extend the deploy, fleet, onboard, and observability surfaces.
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-deploy` | `/ccc-deploy` or "deploy", "push to production" | End-to-end deploy workflow — pre-flight checks, Fly.io / Vercel / Docker targets, rollback gate |
+| `/ccc-rollback` | `/ccc-rollback` or "rollback", "revert deploy" | Safe deploy rollback — identifies last stable release, executes rollback, verifies health |
+| `/ccc-onboard` | `/ccc-onboard` or "onboard", "new project setup" | Project onboarding wizard — reads README, infers stack, generates CLAUDE.md, wires MCP servers |
+| `/ccc-fleet-viz` | `/ccc-fleet-viz` or "fleet status", "show agent tree" | Live fleet visualizer — renders running agents, spawn tree, cost per agent, and completion % |
+| `/ccc-upgrade` | `/ccc-upgrade` or "upgrade ccc", "update commander" | Guided upgrade flow — checks current version, shows changelog diff, runs upgrade safely |
+
+## All 55 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -122,6 +134,12 @@ Added in beta.10. MIT-licensed ports with attribution.
 | 33 | `/ccc-memory` | Two-tier persistent memory (beta.10, MIT port) |
 | 34 | `/ccc-tasks` | tasks/todo.md tracker (beta.10, MIT port) |
 | 35 | `/ccc-recall` | Cross-session search (beta.10, MIT port) |
-| 36–50 | `ccc-design`, `ccc-fleet`, `ccc-linear` double-counted + 12 supporting skills (build, code-review, content, deploy-check, domains, fleet, infra, knowledge, linear-board, night-mode, research, session, settings, standup) | Includes specialist/domain double-purposes and aux skills. See `/ccc-browse` in Desktop for the live, filterable catalog — total unique dirs = **50**. |
+| 36 | `/ccc-deploy` | Deploy workflow (beta.11) |
+| 37 | `/ccc-rollback` | Rollback workflow (beta.11) |
+| 38 | `/ccc-onboard` | Onboarding wizard (beta.11) |
+| 39 | `/ccc-fleet-viz` | Fleet visualizer (beta.11) |
+| 40 | `/ccc-upgrade` | Upgrade flow (beta.11) |
+| 41–55 | `ccc-design`, `ccc-fleet`, `ccc-linear` double-counted + 12 supporting skills (build, code-review, content, deploy-check, domains, fleet, infra, knowledge, linear-board, night-mode, research, session, settings, standup) | Includes specialist/domain double-purposes and aux skills. See `/ccc-browse` in Desktop for the live, filterable catalog. |
+| — | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2) |
 
 [Pricing — Free Forever →](/plugin/free-vs-pro)

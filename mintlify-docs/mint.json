@@ -64,7 +64,9 @@
         "features/skill-tiers",
         "features/context-mode",
         "features/claudeswap-meters",
-        "features/rainbow-branding"
+        "features/rainbow-branding",
+        "features/codex-compatibility",
+        "features/dashboard"
       ]
     },
     {
@@ -82,6 +84,15 @@
         "domains/research",
         "domains/mobile",
         "domains/makeover"
+      ]
+    },
+    {
+      "group": "New Skills (beta.11)",
+      "pages": [
+        "plugin/skills/ccc-deploy",
+        "plugin/skills/ccc-rollback",
+        "plugin/skills/ccc-onboard",
+        "plugin/skills/ccc-fleet-viz"
       ]
     },
     {
