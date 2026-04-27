@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!--
+    CC Commander composer icon — 64×64 single-color glyph
+    Color: #7c3aed (brand violet, matches interface.brandColor in plugin.json)
+    Usage: composerIcon field in Codex Desktop plugin manifest
+    Designed to be legible at 16px–64px render sizes
+  -->
+  <rect width="64" height="64" rx="12" fill="#7c3aed"/>
+  <!-- "C" letterform — bold, slightly open arc for legibility at small sizes -->
+  <path
+    d="M38 16
+       C28 16 20 23 20 32
+       C20 41 28 48 38 48
+       L38 42
+       C31.4 42 26 37.5 26 32
+       C26 26.5 31.4 22 38 22
+       Z"
+    fill="#ffffff"
+    fill-rule="nonzero"
+  />
+  <!-- Small "C" superscript mark — distinguishes CC from single-C competitors -->
+  <path
+    d="M43 14
+       C39 14 36 16.7 36 20
+       C36 23.3 39 26 43 26
+       L43 23.2
+       C40.5 23.2 38.8 21.8 38.8 20
+       C38.8 18.2 40.5 16.8 43 16.8
+       Z"
+    fill="#c4b5fd"
+    fill-rule="nonzero"
+  />
+</svg>

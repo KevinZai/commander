@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!--
+    CC Commander full logo — 256×256
+    Color palette sourced from docs/assets/og-image.svg:
+      Background dark:  #0a0a0a / #0d1a0d
+      Primary green:    #00ff41  (matrix green, glow effects)
+      Accent cyan:      #00d4ff
+      Accent orange:    #ff6b35
+      Brand violet:     #7c3aed  (composerIcon brandColor)
+    Usage: logo field in Codex Desktop plugin manifest (marketplace card)
+  -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="100%" style="stop-color:#0d1a0d"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff41;stop-opacity:0.25"/>
+      <stop offset="100%" style="stop-color:#00ff41;stop-opacity:0"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="256" height="256" rx="32" fill="url(#bgGrad)"/>
+  <!-- Top glow wash -->
+  <rect width="256" height="128" rx="32" fill="url(#glowGrad)"/>
+
+  <!-- Terminal window chrome (scaled from og-image) -->
+  <rect x="20" y="28" width="216" height="200" rx="10" fill="#111111" stroke="#00ff41" stroke-width="1" opacity="0.9"/>
+  <!-- Title bar -->
+  <rect x="20" y="28" width="216" height="24" rx="10" fill="#1a1a1a"/>
+  <rect x="20" y="42" width="216" height="10" fill="#1a1a1a"/>
+  <!-- Window dots -->
+  <circle cx="36" cy="40" r="4" fill="#ff5f57"/>
+  <circle cx="50" cy="40" r="4" fill="#febc2e"/>
+  <circle cx="64" cy="40" r="4" fill="#28c840"/>
+
+  <!-- "CC" large glyph — glowing green, monospace style -->
+  <g filter="url(#glow)">
+    <!-- Left C -->
+    <path
+      d="M72 82 C56 82 44 93 44 107 C44 121 56 132 72 132
+         L72 124 C60.9 124 53 116.6 53 107 C53 97.4 60.9 90 72 90 Z"
+      fill="#00ff41"
+    />
+    <!-- Right C -->
+    <path
+      d="M138 82 C122 82 110 93 110 107 C110 121 122 132 138 132
+         L138 124 C126.9 124 119 116.6 119 107 C119 97.4 126.9 90 138 90 Z"
+      fill="#00ff41"
+    />
+  </g>
+
+  <!-- "COMMANDER" label -->
+  <text
+    x="128" y="158"
+    text-anchor="middle"
+    fill="#ffffff"
+    font-family="Monaco,Menlo,Consolas,monospace"
+    font-size="15"
+    font-weight="bold"
+    letter-spacing="3"
+  >COMMANDER</text>
+
+  <!-- Divider line -->
+  <line x1="44" y1="172" x2="212" y2="172" stroke="#00ff41" stroke-width="0.75" opacity="0.4"/>
+
+  <!-- Tagline row -->
+  <text
+    x="128" y="188"
+    text-anchor="middle"
+    fill="#00d4ff"
+    font-family="Monaco,Menlo,Consolas,monospace"
+    font-size="9"
+    opacity="0.9"
+  >502+ Skills · 17 Agents · Free Forever</text>
+
+  <!-- Brand violet accent bar at bottom -->
+  <rect x="20" y="218" width="216" height="3" rx="1.5" fill="#7c3aed" opacity="0.7"/>
+
+  <!-- Version badge -->
+  <rect x="88" y="226" width="80" height="14" rx="4" fill="#7c3aed" opacity="0.2"/>
+  <text
+    x="128" y="236"
+    text-anchor="middle"
+    fill="#c4b5fd"
+    font-family="Monaco,Menlo,Consolas,monospace"
+    font-size="8"
+  >v4.2 · kevinz.ai</text>
+</svg>
