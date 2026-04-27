@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Verify product contract
+        run: node scripts/check-product-contract.js --check
+
       - name: Airplane mode test
         run: MCP_DISABLED=1 node --test tests/airplane-mode.test.js
 
