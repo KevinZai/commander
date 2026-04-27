@@ -1,0 +1,116 @@
+{
+  "id": "main-menu",
+  "version": 4,
+  "screen": {
+    "title": "CC Commander",
+    "subtitle": "welcomeMessage",
+    "detail": "{gitBranch} \u00b7 {gitStatus} \u00b7 {sessions} sessions \u00b7 {achievementCount} badges",
+    "art": "logo"
+  },
+  "prompt": "What would you like to do?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Continue where I left off",
+      "description": "Resume your last session",
+      "condition": "hasActiveSession",
+      "next": "continue-work"
+    },
+    {
+      "key": "o",
+      "label": "Open a project",
+      "description": "Optional: import local CLAUDE.md + .claude/ context",
+      "action": "open_project"
+    },
+    {
+      "separator": true
+    },
+    {
+      "key": "b",
+      "label": "Build something new",
+      "description": "Code, websites, APIs, CLI tools",
+      "next": "build-something"
+    },
+    {
+      "key": "c",
+      "label": "Create content",
+      "description": "Marketing, social media, writing",
+      "next": "create-content"
+    },
+    {
+      "separator": true
+    },
+    {
+      "key": "d",
+      "label": "Research & analyze",
+      "description": "Competitive analysis, reports, audits",
+      "next": "research"
+    },
+    {
+      "key": "e",
+      "label": "Review what I built",
+      "description": "Recent sessions and results",
+      "next": "review-work"
+    },
+    {
+      "key": "f",
+      "label": "Learn a new skill",
+      "description": "Browse 450+ skills and guides",
+      "next": "domains"
+    },
+    {
+      "key": "g",
+      "label": "Check my stats",
+      "description": "Dashboard, streaks, achievements",
+      "next": "session"
+    },
+    {
+      "key": "l",
+      "label": "Linear board",
+      "description": "View issues, pick tasks, track work",
+      "condition": "hasLinear",
+      "next": "linear-board"
+    },
+    {
+      "key": "n",
+      "label": "Night Mode",
+      "description": "8-hour autonomous build",
+      "next": "autonomous-mode"
+    },
+    {
+      "separator": true
+    },
+    {
+      "key": "s",
+      "label": "Settings",
+      "description": "Name, level, cost, theme",
+      "next": "settings"
+    },
+    {
+      "key": "t",
+      "label": "Change theme",
+      "action": "change_theme"
+    },
+    {
+      "key": "x",
+      "label": "Infrastructure & Fleet",
+      "description": "Fleet Commander, Synapse, Cost tracking, CloudCLI",
+      "action": null,
+      "next": "infrastructure"
+    },
+    {
+      "key": "/",
+      "label": "Type a command",
+      "description": "Free-text prompt \u2014 describe anything or type /commands",
+      "action": "freeform_prompt"
+    },
+    {
+      "separator": true
+    },
+    {
+      "key": "q",
+      "label": "Quit",
+      "action": "quit"
+    }
+  ]
+}

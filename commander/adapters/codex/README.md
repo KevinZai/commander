@@ -16,7 +16,29 @@ What does NOT port for free:
 - Marketplace metadata (`commander-hub` → Codex marketplace JSON catalog)
 - Some niche hook events (Codex has `PermissionRequest`, lacks `Notification` and `PreCompact` — see translate.js)
 
-This adapter contains the translator + the Codex-flavored manifest. **It does not yet generate output** — Phase 2 will wire it into the build pipeline once Kevin approves the strategy.
+This adapter contains the translator + the Codex-flavored manifest. The repo build pipeline now emits `commander/cowork-plugin-codex/` from the canonical Claude plugin tree.
+
+## Build
+
+Run the Codex plugin build from the repo root:
+
+```bash
+npm run build:codex
+```
+
+The build reads `commander/cowork-plugin/`, regenerates `commander/cowork-plugin-codex/`, and writes:
+
+- `.codex-plugin/plugin.json`
+- `skills/` with `SKILL.md` files passed through unchanged
+- `agents/*.toml`
+- `hooks.json` with unsupported lifecycle events dropped
+- `.mcp.json` with the bundled MCP servers passed through
+
+Smoke-test the artifact with:
+
+```bash
+node --test commander/tests/codex-build.test.js
+```
 
 ---
 
@@ -71,8 +93,7 @@ my-plugin/
 | `translate.js` | Pure-Node translator: Claude plugin tree → Codex plugin tree |
 | `hook-event-map.json` | Event name + payload mapping table |
 
-**Not yet implemented (Phase 2):**
-- Build script that runs translate.js across all 51 skills + 17 agents + 8 hooks
+**Still pending:**
 - CI job that publishes `commander-codex` marketplace entry
 - Smoke test against `~/.codex/plugins/`
 - Codex marketplace submission (per OpenAI's third-party plugin process — currently community marketplaces only via GitHub URL)
@@ -84,7 +105,7 @@ my-plugin/
 **GO** — but staged:
 
 1. **v4.1 (now):** ship this scaffold. Document Codex compat in README. No actual Codex marketplace presence yet.
-2. **v4.2:** wire translate.js into a `npm run build:codex` pipeline. Publish `commander-codex` as parallel marketplace.
+2. **v4.2:** publish `commander-codex` as a parallel marketplace artifact from the `npm run build:codex` output.
 3. **v4.3:** unify under one CI build that publishes BOTH Claude + Codex artifacts from a single source tree (`commander/cowork-plugin/`).
 
 Effort estimate for v4.2: **~3 days** (1 day translator polish + 1 day testing in actual Codex CLI + 1 day docs + marketplace setup).

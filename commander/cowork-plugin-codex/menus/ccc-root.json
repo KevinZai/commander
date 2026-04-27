@@ -1,0 +1,51 @@
+{
+  "id": "ccc-root",
+  "title": "CC Commander",
+  "subtitle": "Guided AI PM · 502+ skills · Click anything",
+  "footer": "Click a tile to drill in. Each path ends in a concrete action — a plan, a scaffold, a review, or a deploy.",
+  "shortcuts": ["/ccc-start", "/ccc-browse", "/ccc-plan", "/ccc-build", "/ccc-review"],
+  "choices": [
+    {
+      "id": "build",
+      "icon": "🔨",
+      "label": "Build",
+      "description": "Scaffold a new project or feature. Web apps, APIs, CLI tools, mobile.",
+      "command": "/ccc-build"
+    },
+    {
+      "id": "review",
+      "icon": "🔍",
+      "label": "Review",
+      "description": "Audit code on the current branch. Security, perf, diff vs main.",
+      "command": "/ccc-review"
+    },
+    {
+      "id": "design",
+      "icon": "🎨",
+      "label": "Design",
+      "description": "UI/UX workflow — components, animation, polish pass.",
+      "command": "/ccc-design"
+    },
+    {
+      "id": "ship",
+      "icon": "🚀",
+      "label": "Ship",
+      "description": "Pre-flight checks, tag, push, deploy. Run gates before release.",
+      "command": "/ccc-ship"
+    },
+    {
+      "id": "learn",
+      "icon": "📚",
+      "label": "Learn",
+      "description": "Browse 502+ skills across 11 domains. Searchable catalog.",
+      "command": "/ccc-learn"
+    },
+    {
+      "id": "more",
+      "icon": "⋯",
+      "label": "More…",
+      "description": "Plan, x-ray, Linear, fleet orchestration, connect apps.",
+      "command": "/ccc-more"
+    }
+  ]
+}

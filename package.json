@@ -66,6 +66,7 @@
   "scripts": {
     "bench": "node scripts/perf-bench.js",
     "test": "node --test commander/tests/*.test.js tests/*.test.js",
+    "build:codex": "node scripts/build-codex.js",
     "mcp:dev": "node commander/mcp-server/index.js",
     "mcp:cloud:dev": "cd apps/mcp-server-cloud && npm run dev",
     "mcp:cloud:test": "cd apps/mcp-server-cloud && ./node_modules/.bin/tsx --test tests/integration.test.ts",
