@@ -2,6 +2,49 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.0.0] — 2026-04-26 — STABLE: Codex fleet, cross-platform launch, 862+ tests, [Commander] brand stamp
+
+### Headline
+
+v4.0.0 stable ships after a 36-branch parallel orchestration finale: 18-worker codex fleet across 3 waves (Codex CLI compat scaffold + Fly.io deploy + 18-tool MCP cloud + perf bench + dashboard MVP + Cursor/Windsurf adapters) → 4-agent Wave 4 (Codex Desktop GUI research + AskUserQuestion forced-picker enforcement + [Commander] brand suffix sweep + Mintlify docs polish) → 7-agent Wave 5 (flaky test isolation + 3 mintlify pages + dashboard strategy + vendor-scanner fix + permission-gate.js Codex Desktop hook + marketplace assets + ask-bridge.js EXPERIMENTAL prototype) → 2-agent Wave 6 (dashboard React→vanilla migration + 10-image OpenAI image_gen creative spree).
+
+**Why it matters:** beta.11 was production-hardened. v4.0.0 stable adds the cross-platform reach: Codex CLI build pipeline, Codex Desktop UX hooks, Cursor/Windsurf adapters, marketplace listing assets, and unified [Commander] brand stamp on every plugin command.
+
+### Plugin surface
+
+- **55 plugin skills** (up from 51 in beta.11): added `/ccc-deploy`, `/ccc-rollback`, `/ccc-onboard` (W15), `/ccc-fleet-viz` (W17)
+- **17 specialist agent personas** (unchanged)
+- **9 lifecycle hooks × 15 handlers** (added `PermissionRequest` hook for Codex Desktop autofix gate)
+- **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via `/ccc-connect`
+- **17 click-first `/ccc-*` workflows**, all with `[Commander]` suffix in autocomplete
+
+### Cross-platform compatibility
+
+- **Codex CLI**: full build pipeline at `commander/cowork-plugin-codex/` via `npm run build:codex`
+- **Codex Desktop**: `permission-gate.js` hook + EXPERIMENTAL `ask-bridge.js` for `tool/requestUserInput` + marketplace assets (composerIcon, logo, PRIVACY, screenshot script)
+- **Cursor + Windsurf**: scaffold adapters with MCP-immediate config templates
+- **Fly.io**: hosted MCP deploy infrastructure ready (Dockerfile, fly.toml, smoke-test script, CI workflow)
+
+### Quality gates
+
+- **862 tests pass**, 0 fail, 2 skip
+- **Product contract gate** (`scripts/check-product-contract.js`) blocks PRs with count drift
+- **Auto-CHANGELOG** generation from conventional commits
+- **Perf benchmark harness** with baseline (SessionStart p95 = 91ms after orchestrator activation, ~57ms win)
+- **18-tool MCP cloud smoke suite** (local + prod variants)
+
+### Dashboard
+
+React app retired and archived to `dashboard/_archive/`. Vanilla Node HTTP server at port 4690 is now canonical (zero deps, reads real `~/.claude/sessions/` data).
+
+### Breaking changes
+
+None. All updates are backward-compatible from beta.11.
+
+### Marketing assets
+
+10 launch images generated via OpenAI image_gen 2.0: install flow mockup, /ccc hub mockup, 18-worker fleet topology, /ccc-fleet-viz screenshot, cross-platform badge, 3 brand mark variations (light/dark/holographic), architecture overview infographic, v4.0.0 announcement hero banner.
+
 ## [4.0.0-beta.11] — 2026-04-24 — Production hardening, 6 new skills, model pins, 560+ tests
 
 ### Headline

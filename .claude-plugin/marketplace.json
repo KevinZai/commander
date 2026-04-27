@@ -10,7 +10,7 @@
       "displayName": "Commander",
       "source": "./commander/cowork-plugin",
       "description": "CC Commander — Guided AI PM for Claude Code. Brain/hands architecture with **17 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer). **55 plugin skills** incl **17 click-first `/ccc-*` workflows** + `/save-session` + `/resume-session` + `/ccc-e2e` + `/ccc-memory` + `/ccc-tasks` + `/ccc-recall` + `/ccc-fleet-viz` + `/ccc-changelog` + `/ccc-doctor` + `/ccc-upgrade` + `/ccc-deploy` + `/ccc-rollback` + `/ccc-onboard`. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**",
-      "version": "4.0.0-beta.11",
+      "version": "4.0.0",
       "category": "development",
       "license": "MIT",
       "author": {
@@ -19,5 +19,5 @@
       }
     }
   ],
-  "version": "4.0.0-beta.11"
+  "version": "4.0.0"
 }
