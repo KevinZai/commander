@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CC Commander Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Dashboard navigation">
+        <div class="brand-mark">CCC</div>
+        <nav class="nav-list">
+          <button class="nav-item" type="button" disabled>Overview</button>
+          <button class="nav-item active" type="button" aria-current="page">Sessions</button>
+          <button class="nav-item" type="button" disabled>Agents</button>
+          <button class="nav-item" type="button" disabled>Skills</button>
+          <button class="nav-item" type="button" disabled>Cost</button>
+          <button class="nav-item" type="button" disabled>Health</button>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Local activity</p>
+            <h1>CC Commander Dashboard</h1>
+          </div>
+          <div class="status-pill" id="status-pill" aria-live="polite">Starting</div>
+        </header>
+
+        <section class="session-layout" aria-label="Session browser">
+          <div class="session-panel">
+            <div class="panel-head">
+              <div>
+                <h2>Sessions</h2>
+                <p id="session-count">Loading</p>
+              </div>
+              <button class="refresh-button" id="refresh-button" type="button">Refresh</button>
+            </div>
+            <div class="session-list" id="session-list" aria-live="polite"></div>
+          </div>
+
+          <article class="detail-panel">
+            <div class="panel-head detail-head">
+              <div>
+                <h2 id="detail-title">Select a session</h2>
+                <p id="detail-meta">Raw session content appears here.</p>
+              </div>
+            </div>
+            <pre id="session-content" class="session-content">No session selected.</pre>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const state = {
+        sessions: [],
+        selectedName: '',
+        loadingContent: false,
+      };
+
+      const listEl = document.getElementById('session-list');
+      const countEl = document.getElementById('session-count');
+      const contentEl = document.getElementById('session-content');
+      const titleEl = document.getElementById('detail-title');
+      const metaEl = document.getElementById('detail-meta');
+      const statusEl = document.getElementById('status-pill');
+      const refreshButton = document.getElementById('refresh-button');
+
+      function formatBytes(bytes) {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      function formatDate(value) {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Unknown time';
+        return date.toLocaleString([], {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+
+      function setStatus(text, tone) {
+        statusEl.textContent = text;
+        statusEl.dataset.tone = tone || 'neutral';
+      }
+
+      function renderSessions() {
+        countEl.textContent = `${state.sessions.length} session${state.sessions.length === 1 ? '' : 's'}`;
+        listEl.innerHTML = '';
+
+        if (state.sessions.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-state';
+          empty.textContent = 'No .tmp session files found.';
+          listEl.append(empty);
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        state.sessions.forEach((session) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `session-row${session.name === state.selectedName ? ' selected' : ''}`;
+          button.addEventListener('click', () => loadSession(session));
+
+          const name = document.createElement('span');
+          name.className = 'session-name';
+          name.textContent = session.name;
+
+          const meta = document.createElement('span');
+          meta.className = 'session-row-meta';
+          meta.textContent = `${formatDate(session.mtime)} / ${formatBytes(session.size)}`;
+
+          button.append(name, meta);
+          fragment.append(button);
+        });
+
+        listEl.append(fragment);
+      }
+
+      async function refreshSessions() {
+        try {
+          setStatus('Refreshing', 'pending');
+          const response = await fetch('/api/sessions', { cache: 'no-store' });
+
+          if (!response.ok) {
+            throw new Error(`Session list failed with ${response.status}`);
+          }
+
+          state.sessions = await response.json();
+          renderSessions();
+          setStatus(`Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`, 'ok');
+        } catch (error) {
+          setStatus('Read error', 'error');
+          countEl.textContent = 'Unable to load sessions';
+          listEl.innerHTML = '';
+          const message = document.createElement('div');
+          message.className = 'empty-state error';
+          message.textContent = error.message;
+          listEl.append(message);
+        }
+      }
+
+      async function loadSession(session) {
+        state.selectedName = session.name;
+        state.loadingContent = true;
+        renderSessions();
+        titleEl.textContent = session.name;
+        metaEl.textContent = `${formatDate(session.mtime)} / ${formatBytes(session.size)}`;
+        contentEl.textContent = 'Loading...';
+
+        try {
+          const response = await fetch(`/api/sessions/${encodeURIComponent(session.name)}`, { cache: 'no-store' });
+
+          if (!response.ok) {
+            throw new Error(`Session read failed with ${response.status}`);
+          }
+
+          contentEl.textContent = await response.text();
+        } catch (error) {
+          contentEl.textContent = error.message;
+        } finally {
+          state.loadingContent = false;
+        }
+      }
+
+      refreshButton.addEventListener('click', refreshSessions);
+      refreshSessions();
+      window.setInterval(refreshSessions, 5000);
+    </script>
+  </body>
+</html>
+
