@@ -1054,6 +1054,11 @@ skills:
     domain: ccc-fleet
     tier: free
     description: "name: ccc-fleet"
+  - id: ccc-fleet-viz
+    path: skills/ccc-fleet-viz/SKILL.md
+    domain: ccc-fleet-viz
+    tier: free
+    description: "name: ccc-fleet-viz"
   - id: ccc-learn
     path: skills/ccc-learn/SKILL.md
     domain: ccc-learn
