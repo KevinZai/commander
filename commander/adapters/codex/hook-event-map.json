@@ -8,7 +8,7 @@
     "Stop":             { "codex": "Stop",              "status": "identical" },
     "SubagentStop":     { "codex": null,                "status": "drop",       "note": "Codex returns subagent results to parent context — no separate stop event. Fold logic into Stop or drop." },
     "Notification":     { "codex": null,                "status": "drop",       "note": "No Codex equivalent. macOS notification handlers must move to launchd or a separate daemon." },
-    "PreCompact":       { "codex": "SessionEnd",        "status": "remap",      "note": "Closest analog. Compaction events may not fire — verify before relying on it." }
+    "PreCompact":       { "codex": null,                "status": "drop",       "note": "Codex has SessionEnd, but no compaction lifecycle event. Drop instead of pretending SessionEnd has equivalent semantics." }
   },
   "codex_only_events": {
     "SessionEnd":        "Fires when session terminates. Receive PreCompact handlers here.",
