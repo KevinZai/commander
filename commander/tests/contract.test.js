@@ -153,7 +153,7 @@ test('check-product-contract.js exits 1 when a fixture has drift', function() {
   var result = spawnCheck(['--root', root, '--check']);
   assert.strictEqual(result.status, 1, result.stdout + result.stderr);
   assert.match(result.stdout, /field: plugin_skills/);
-  assert.match(result.stdout, /expected: 51/);
+  assert.match(result.stdout, /expected: 55/);
   assert.match(result.stdout, /actual: 50/);
 });
 
@@ -168,9 +168,9 @@ test('--patch fixes simple count and version mismatches', function() {
 
   var readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   assert.match(readme, new RegExp('v' + contract.version.replace(/\./g, '\\.')));
-  assert.match(readme, /51 plugin skills/);
+  assert.match(readme, /55 plugin skills/);
   assert.match(readme, /17 specialist agents/);
-  assert.match(readme, /8 lifecycle hooks \(16 handlers\)/);
+  assert.match(readme, /8 lifecycle hooks \(14 handlers\)/);
   assert.match(readme, /2 pre-configured MCP servers \+16 opt-in/);
   assert.match(readme, /459\+ skills across 11 CCC domains/);
 

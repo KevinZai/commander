@@ -247,10 +247,12 @@ test('Hook event mapping correctness', () => {
     assert.ok(!eventNames.includes(eventName), `Claude-only hook event should be dropped: ${eventName}`);
   }
 
-  assert.ok(eventNames.includes('SessionEnd'), 'PreCompact handlers must be remapped to SessionEnd');
+  // PreCompact is intentionally DROPPED on translate (W18 decision):
+  // Codex has SessionEnd but it does not carry the same compaction semantics,
+  // so silently remapping would mislead handlers about run-end vs compaction.
   assert.ok(
-    collectHookCommands(translatedHooks.hooks.SessionEnd).some((command) => command.includes('pre-compact.js')),
-    'SessionEnd must include the former PreCompact handler'
+    !eventNames.includes('PreCompact'),
+    'PreCompact must be dropped (Codex has no compaction-aware lifecycle event)'
   );
 });
 

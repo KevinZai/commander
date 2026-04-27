@@ -94,7 +94,7 @@ test('codex plugin build artifact', async (t) => {
     ]);
   });
 
-  await t.test('passes through all 51 skills unchanged', async () => {
+  await t.test('passes through all 55 skills unchanged', async () => {
     const sourceSkillFiles = (await listFiles(path.join(SOURCE_DIR, 'skills')))
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
@@ -102,7 +102,7 @@ test('codex plugin build artifact', async (t) => {
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
 
-    assert.equal(sourceSkillFiles.length, 51);
+    assert.equal(sourceSkillFiles.length, 55);
     assert.deepEqual(outputSkillFiles, sourceSkillFiles);
 
     for (const skillFile of sourceSkillFiles) {

@@ -1,10 +1,12 @@
-'use strict';
+import fs from 'node:fs';
+import fsp from 'node:fs/promises';
+import http from 'node:http';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const fs = require('node:fs');
-const fsp = require('node:fs/promises');
-const http = require('node:http');
-const os = require('node:os');
-const path = require('node:path');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = 4690;
@@ -226,7 +228,7 @@ function startServer(options = {}) {
   });
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   startServer()
     .then((server) => {
       const address = server.address();
@@ -240,7 +242,7 @@ if (require.main === module) {
     });
 }
 
-module.exports = {
+export {
   DEFAULT_PORT,
   DEFAULT_SESSIONS_DIR,
   HOST,

@@ -1,9 +1,10 @@
 name = "python-reviewer"
-description = "\"Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Python file' or used automatically by /ccc-review on Python projects.\""
+description = "Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Python file' or used automatically by /ccc-review on Python projects."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep
 
-developer_instructions = '''
+developer_instructions = """
 # Python Reviewer Agent
 
 You are a Python specialist code reviewer. Your reviews extend the general `reviewer` agent with
@@ -30,7 +31,7 @@ def calculateResult(x,y):  # camelCase, no spaces after comma
 # ✅
 import os
 def calculate_result(x: int, y: int) -> int:
-    """Return the sum of x and y."""
+    \"\"\"Return the sum of x and y.\"\"\"
     return x + y
 ```
 
@@ -235,4 +236,4 @@ class Cache:
 4. For async code, check whether the project uses `asyncio`, `trio`, or `anyio` — patterns differ slightly
 5. Flag `Any` usage but distinguish intentional (comment present) vs. accidental
 6. Mutable default arguments are the #1 Python gotcha — always check function signatures
-'''
+"""

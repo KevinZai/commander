@@ -62,6 +62,62 @@ Prepend ⭐ to the best-fit option based on context:
 - Single architecture question → ⭐ Opposing review
 - "scan" / "overnight" keywords in recent history → ⭐ Background
 
+## Pre-flight (required before dispatch)
+
+Before any `Agent` call, run a single Bash pre-flight and fail closed if a hard check fails:
+
+1. Git clean: `git status --porcelain` must be empty. Do not dispatch workers over uncommitted coordinator edits.
+2. Branch relation: compare `HEAD` with `main` or `origin/main`. Being ahead of main is OK; being behind or diverged requires a user decision before dispatch.
+3. Secret hygiene: inspect only environment variable names for secret-like keys (`TOKEN`, `SECRET`, `KEY`, `PASSWORD`, `CREDENTIAL`). Never print values. If any are present, ask the user to clear them or explicitly approve passing a redacted environment to workers.
+4. Session state writable: ensure `~/.claude/sessions/` exists and is writable (`mkdir -p "$HOME/.claude/sessions" && test -w "$HOME/.claude/sessions"`).
+
+If pre-flight fails, report the failing check and do not spawn workers.
+
+## Fleet runtime contracts
+
+Use `commander/cowork-plugin/skills/ccc-fleet/lib/fleet-status.js` for progress and completion artifacts.
+
+### Worker progress sidebar
+
+Emit one JSON line to stdout and append it to `/tmp/ccc-fleet/worker-progress.jsonl` whenever a worker is dispatched, starts, changes status, finishes tests, fails, or completes:
+
+```json
+{"event_kind":"fleet_worker_progress","worker_id":"fleet-1","status":"running","files_changed":["commander/foo.js"],"tests_passing":null,"eta_remaining_ms":120000}
+```
+
+Required schema:
+- `event_kind`: always `"fleet_worker_progress"`
+- `worker_id`: stable worker id
+- `status`: short machine-readable state (`queued`, `running`, `testing`, `passed`, `failed`, `complete`)
+- `files_changed`: array of repo-relative paths
+- `tests_passing`: `true`, `false`, or `null` when unknown
+- `eta_remaining_ms`: non-negative number or `null`
+
+### Atomic worker completion
+
+When a worker exits, write `/tmp/ccc-fleet/<id>-complete.json` atomically with:
+
+```json
+{
+  "worker_id": "fleet-1",
+  "exit_code": 0,
+  "files_written": ["commander/foo.js"],
+  "commit_hash": "abc1234",
+  "branch_pushed": false,
+  "completed_at": "2026-04-26T00:00:00.000Z"
+}
+```
+
+The marker is the handoff contract for synthesis. It must exist for successful and failed workers; failed workers use their actual non-zero `exit_code` and preserve any written files.
+
+### Failure isolation
+
+One worker failure must not cancel or roll back other workers. Preserve every worker worktree, branch, diff, status event, and completion marker. The coordinator reports the failed worker separately and continues synthesizing successful workers.
+
+### Cleanup on success
+
+After all dispatched workers complete successfully and the synthesis report is written, prune entries in `/tmp/codex-fleet/` older than 24 hours via `pruneCodexFleetTmp()`. Do not prune on partial failure; preserve artifacts for diagnosis.
+
 ## Dispatch — Fan-out
 
 After user picks Fan-out, ask for ONE task description (via a follow-up plain question, NOT AUQ — free text needed).
@@ -161,6 +217,7 @@ Agents CANNOT push — return files + diffs only. User merges to main via the co
 3. Parallel calls go in a SINGLE tool-call batch (one message, multiple function_calls) — not sequential.
 4. If RAM detection fails, default to 3 parallel (safest for Mac Mini M4 baseline).
 5. Always echo the synthesis plan BEFORE dispatching — user needs to see the full arc.
+6. After all workers report, automatically invoke `/ccc-fleet-viz` to render the final fleet tree.
 
 ---
 

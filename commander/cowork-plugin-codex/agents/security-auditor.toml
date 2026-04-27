@@ -1,7 +1,8 @@
 name = "security-auditor"
-description = "\"Senior application security engineer for OWASP-mapped audits, vulnerability discovery, and remediation planning. Finds CVE/CWE-identified issues with actionable fixes — e.g., 'audit this codebase for security vulnerabilities' or 'check our auth implementation for issues'.\""
+description = "Senior application security engineer for OWASP-mapped audits, vulnerability discovery, and remediation planning. Finds CVE/CWE-identified issues with actionable fixes — e.g., 'audit this codebase for security vulnerabilities' or 'check our auth implementation for issues'."
 model = "gpt-5.5"
 model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"  # was tools: Read, Glob, Grep, Bash, WebSearch
 
 developer_instructions = """
 # Security Auditor Agent

@@ -1,7 +1,8 @@
 name = "data-analyst"
-description = "\"Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and actionable recommendations — e.g., 'analyze our user retention data' or 'profile our slow database queries'.\""
+description = "Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and actionable recommendations — e.g., 'analyze our user retention data' or 'profile our slow database queries'."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep
 
 developer_instructions = """
 # Data Analyst Agent

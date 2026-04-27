@@ -1,19 +1,17 @@
-'use strict';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import http from 'node:http';
+import os from 'node:os';
+import path from 'node:path';
+import { Readable, Writable } from 'node:stream';
+import test from 'node:test';
 
-const assert = require('node:assert/strict');
-const fs = require('node:fs/promises');
-const http = require('node:http');
-const os = require('node:os');
-const path = require('node:path');
-const { Readable, Writable } = require('node:stream');
-const test = require('node:test');
-
-const {
+import {
   createServer,
   DEFAULT_PORT,
   HOST,
   startServer,
-} = require('../../dashboard/server.js');
+} from '../../dashboard/server.js';
 
 let tmpRoot;
 let sessionsDir;
@@ -141,7 +139,7 @@ test('real HTTP health smoke on localhost when sockets are available', async (t)
 
     const body = await response.json();
     assert.equal(body.status, 'ok');
-    assert.equal(body.version, '0.1.0');
+    assert.equal(body.version, '1.3.0');
   } finally {
     await closeServer(liveServer);
   }
@@ -154,7 +152,7 @@ test('health endpoint returns ok', async () => {
 
   const body = JSON.parse(response.body);
   assert.equal(body.status, 'ok');
-  assert.equal(body.version, '0.1.0');
+  assert.equal(body.version, '1.3.0');
   assert.equal(typeof body.uptime, 'number');
 });
 

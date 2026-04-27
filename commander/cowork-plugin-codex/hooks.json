@@ -5,18 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.js",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js",
-            "timeout": 5000
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post-compact-recovery.js",
-            "timeout": 5000
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js",
+            "timeout": 15000
           }
         ]
       }
@@ -26,22 +16,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/suggest-ticker.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/suggest-ticker.js",
             "timeout": 2000
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/intent-classifier.js",
             "timeout": 5000
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/context-warning.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/context-warning.js",
             "timeout": 3000
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/user-prompt-submit.js",
             "timeout": 5000
           }
         ]
@@ -53,17 +43,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/cost-tracker.js",
             "timeout": 3000
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js",
             "timeout": 3000
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/secret-leak-guard.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/secret-leak-guard.js",
             "timeout": 5000
           }
         ]
@@ -75,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-capture.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/knowledge-capture.js",
             "timeout": 5000
           }
         ]
@@ -86,12 +76,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-save.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/session-save.js",
             "timeout": 10000
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-end.js",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/session-end.js",
             "timeout": 10000
           }
         ]

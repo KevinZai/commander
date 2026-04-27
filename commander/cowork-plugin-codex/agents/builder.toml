@@ -2,6 +2,7 @@ name = "builder"
 description = "Implements features, fixes bugs, and creates projects from specs. Follows TDD, uses conventional commits, and prefers boring solutions. Delegated from /ccc-build after spec approval — e.g., building a REST API for user authentication or scaffolding a new project."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"  # was tools: Read, Write, Edit, Bash, Glob, Grep, WebSearch
 
 developer_instructions = """
 # Builder Agent
