@@ -1,6 +1,6 @@
 ---
 name: ccc-recall
-description: "Search across all past Claude Code sessions — find when you solved a similar problem, what decision you made last quarter, which file you were editing the day before a bug shipped. Three-layer lookup: session transcripts, memory/ notes, claude-mem observations. Use when you think 'I feel like we already handled this before' — before re-solving from scratch. Pairs with /resume-session (loads a specific past session) and /ccc-memory (curates recall-worthy content)."
+description: "Search across all past Claude Code sessions — find when you solved a similar problem, what decision you made last quarter, which file you were editing the day before a bug shipped. Three-layer lookup: session transcripts, memory/ notes, claude-mem observations. Use when you think 'I feel like we already handled this before' — before re-solving from scratch. Pairs with /resume-session (loads a specific past session) and /ccc-memory (curates recall-worthy content). [Commander]"
 model: sonnet
 effort: medium
 ---

@@ -1,6 +1,6 @@
 ---
 name: ccc-doctor
-description: "Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions — plus 8 drift checks (license cleanup, hook-chain, MCP, agent model pins, audit scripts, displayName, version parity, critical files). Use when user types /ccc-doctor, reports a bug, says 'something is broken', 'plugin not loading', 'MCP not working', or needs a support snapshot."
+description: "Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions — plus 8 drift checks (license cleanup, hook-chain, MCP, agent model pins, audit scripts, displayName, version parity, critical files). Use when user types /ccc-doctor, reports a bug, says 'something is broken', 'plugin not loading', 'MCP not working', or needs a support snapshot. [Commander]"
 model: sonnet
 effort: medium
 allowed-tools:

@@ -1,6 +1,6 @@
 ---
 name: domains
-description: "CCC domain router — browse and activate any of the 11 CCC skill domains. Use when the user says 'ccc domains', 'domain skills', 'show categories', 'what skills are available', 'design skills', 'marketing skills', or names any CCC domain."
+description: "CCC domain router — browse and activate any of the 11 CCC skill domains. Use when the user says 'ccc domains', 'domain skills', 'show categories', 'what skills are available', 'design skills', 'marketing skills', or names any CCC domain. [Commander]"
 allowed-tools:
   - Read
   - Bash

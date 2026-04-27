@@ -1,6 +1,6 @@
 ---
 name: resume-session
-description: "Load the last saved session file from ~/.claude/sessions/ and orient fully before doing any work. Reads the complete file, formats a structured briefing (project, current state, what NOT to retry, next step), and waits for your direction. Pairs with /save-session — run this at the start of a fresh context window to pick up where you left off."
+description: "Load the last saved session file from ~/.claude/sessions/ and orient fully before doing any work. Reads the complete file, formats a structured briefing (project, current state, what NOT to retry, next step), and waits for your direction. Pairs with /save-session — run this at the start of a fresh context window to pick up where you left off. [Commander]"
 model: sonnet
 effort: medium
 ---

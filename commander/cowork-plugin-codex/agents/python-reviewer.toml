@@ -1,5 +1,5 @@
 name = "python-reviewer"
-description = "Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Python file' or used automatically by /ccc-review on Python projects."
+description = "Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Python file' or used automatically by /ccc-review on Python projects. [Commander]"
 model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep

@@ -1,6 +1,6 @@
 ---
 name: ccc-fleet-viz
-description: "Live CC Commander fleet visualization. Use when the user types /ccc-fleet-viz, asks to see agent fleet progress, or after any /ccc-fleet run finishes so the final worker tree renders as ASCII plus Mermaid."
+description: "Live CC Commander fleet visualization. Use when the user types /ccc-fleet-viz, asks to see agent fleet progress, or after any /ccc-fleet run finishes so the final worker tree renders as ASCII plus Mermaid. [Commander]"
 model: sonnet
 effort: medium
 allowed-tools:

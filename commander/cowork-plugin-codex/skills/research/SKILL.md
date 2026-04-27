@@ -1,6 +1,6 @@
 ---
 name: research
-description: "\"Research, analyze, audit, or investigate any topic. Use when: 'research', 'analyze', 'competitive analysis', 'audit', 'investigate', 'market research', 'code audit', 'SEO analysis', 'deep dive'.\""
+description: "\"Research, analyze, audit, or investigate any topic. Use when: 'research', 'analyze', 'competitive analysis', 'audit', 'investigate', 'market research', 'code audit', 'SEO analysis', 'deep dive'.\" [Commander]"
 allowed-tools:
   - Read
   - Write
@@ -21,17 +21,28 @@ Run a focused research session on any topic — competitive analysis, market res
 
 ## Quick Mode (default)
 
-Ask two questions:
+Ask two questions — Question 1 is free-text (topic is open-ended), Question 2 uses `AskUserQuestion` for a chip picker.
 
-**Question 1 — What to research:**
-"What do you want to research or analyze?" (free text)
+**Question 1 — What to research (free-text — open-ended by nature):**
+Ask in chat: "What do you want to research or analyze?"
 
 **Question 2 — Research type:**
-- A: Competitive analysis — compare against rivals
-- B: Market research — size, trends, opportunities
-- C: Code audit — quality, security, architecture review
-- D: SEO / analytics — rankings, content gaps, technical health
-- E: Custom — I'll describe what I need
+
+Use `AskUserQuestion` with these chips:
+```
+question: "What type of research?"
+options:
+  - label: "🔍 Competitive analysis"
+    description: "Compare product, pricing, positioning against rivals."
+  - label: "📊 Market research"
+    description: "Market size, trends, opportunities, customer pain points."
+  - label: "🔎 Code audit"
+    description: "Quality, security, architecture, dependency health."
+  - label: "🌐 SEO / analytics"
+    description: "Rankings, content gaps, Core Web Vitals, technical health."
+```
+
+If none fit, user can type "custom" — ask one follow-up: "Describe what you need."
 
 Then delegate immediately to the `researcher` agent with context and research type.
 

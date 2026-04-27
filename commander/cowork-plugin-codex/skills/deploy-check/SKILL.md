@@ -1,6 +1,6 @@
 ---
 name: deploy-check
-description: "\"Pre-deployment readiness gate. Use when: 'deploy check', 'ready to ship?', 'pre-deploy', 'deployment gate', 'should I deploy?', 'is it safe to ship?', 'checklist before deploy'.\""
+description: "\"Pre-deployment readiness gate. Use when: 'deploy check', 'ready to ship?', 'pre-deploy', 'deployment gate', 'should I deploy?', 'is it safe to ship?', 'checklist before deploy'.\" [Commander]"
 allowed-tools:
   - Read
   - Write

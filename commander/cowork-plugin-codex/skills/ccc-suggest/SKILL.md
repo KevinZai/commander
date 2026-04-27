@@ -1,6 +1,6 @@
 ---
 name: ccc-suggest
-description: "AI-powered 'what should I do next' advisor. Always running in the background (via UserPromptSubmit hook) — observes project state, user intent, and session history, then recommends the exact next /ccc-* workflow, CCC skill, or third-party plugin to use, with reasoning. Use when the user asks 'what next', 'what should I do', 'which tool', 'recommend', 'help me decide', or is stuck. Eliminates information paralysis for beginners."
+description: "AI-powered 'what should I do next' advisor. Always running in the background (via UserPromptSubmit hook) — observes project state, user intent, and session history, then recommends the exact next /ccc-* workflow, CCC skill, or third-party plugin to use, with reasoning. Use when the user asks 'what next', 'what should I do', 'which tool', 'recommend', 'help me decide', or is stuck. Eliminates information paralysis for beginners. [Commander]"
 allowed-tools:
   - Read
   - Bash

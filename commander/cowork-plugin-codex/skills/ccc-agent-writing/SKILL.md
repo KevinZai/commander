@@ -1,6 +1,6 @@
 ---
 name: ccc-agent-writing
-description: Teach agents to write with clarity, persuasion, and testability. Use when drafting specs, PRDs, PR descriptions, or documentation. Triggers: 'write a spec', 'PR description', 'improve this doc', 'make this scannable'.
+description: Teach agents to write with clarity, persuasion, and testability. Use when drafting specs, PRDs, PR descriptions, or documentation. Triggers: 'write a spec', 'PR description', 'improve this doc', 'make this scannable'. [Commander]
 allowed-tools:
   - Read
   - Write

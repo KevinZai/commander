@@ -1,6 +1,6 @@
 ---
 name: ccc-cheatsheet
-description: "CC Commander interactive discovery tool. Renders a live flow diagram of every /ccc-* workflow by reading the plugin directly as single source of truth. Use when the user asks 'what can /ccc do', 'show me the commands', 'cheatsheet', 'help', 'overview', or is new to the plugin. Pairs a Mermaid tree diagram with an AskUserQuestion navigator to drill into any workflow."
+description: "CC Commander interactive discovery tool. Renders a live flow diagram of every /ccc-* workflow by reading the plugin directly as single source of truth. Use when the user asks 'what can /ccc do', 'show me the commands', 'cheatsheet', 'help', 'overview', or is new to the plugin. Pairs a Mermaid tree diagram with an AskUserQuestion navigator to drill into any workflow. [Commander]"
 allowed-tools:
   - Read
   - Bash

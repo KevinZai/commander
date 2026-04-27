@@ -1,6 +1,6 @@
 ---
 name: ccc-tasks
-description: "Lightweight markdown task tracking via tasks/todo.md. Simple format — checkboxes, priorities, status. No database, no service, no sync. Every session start reads the list, every session end updates it. Use when you want minimal-friction task tracking that survives sessions without pulling in a full PM tool. Pairs with /ccc-linear for external tracker integration."
+description: "Lightweight markdown task tracking via tasks/todo.md. Simple format — checkboxes, priorities, status. No database, no service, no sync. Every session start reads the list, every session end updates it. Use when you want minimal-friction task tracking that survives sessions without pulling in a full PM tool. Pairs with /ccc-linear for external tracker integration. [Commander]"
 model: sonnet
 effort: medium
 ---

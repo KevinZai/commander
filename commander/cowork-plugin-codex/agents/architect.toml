@@ -1,5 +1,5 @@
 name = "architect"
-description = "Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield design, or refactoring strategy — e.g., designing a multi-tenant SaaS or choosing between PostgreSQL and MongoDB."
+description = "Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield design, or refactoring strategy — e.g., designing a multi-tenant SaaS or choosing between PostgreSQL and MongoDB. [Commander]"
 model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"  # was tools: Read, Glob, Grep, Bash

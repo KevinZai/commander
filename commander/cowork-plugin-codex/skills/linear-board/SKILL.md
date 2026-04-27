@@ -1,6 +1,6 @@
 ---
 name: linear-board
-description: "\"View your Linear board, pick a task to work on, and sync issue status. Use when: 'linear board', 'show issues', 'pick a task', 'what should I work on', 'my Linear', 'open issues', 'sprint board'.\""
+description: "\"View your Linear board, pick a task to work on, and sync issue status. Use when: 'linear board', 'show issues', 'pick a task', 'what should I work on', 'my Linear', 'open issues', 'sprint board'.\" [Commander]"
 allowed-tools:
   - Read
   - Write
@@ -26,10 +26,17 @@ List open issues assigned to the current user, grouped by priority. Show:
 - Estimated effort (points) if set
 - Due date if set
 
-Then offer:
-- **[P]** Pick an issue to work on — start a build session for it
-- **[C]** Create a new issue
-- **[R]** Refresh the board
+Then offer actions via `AskUserQuestion` — never as a text `[P] [C] [R]` menu:
+```
+question: "What would you like to do?"
+options:
+  - label: "🎯 Pick an issue to work on"
+    description: "Start a build session for the selected issue."
+  - label: "➕ Create a new issue"
+    description: "Add a ticket to your Linear board."
+  - label: "🔄 Refresh the board"
+    description: "Re-fetch latest issue status."
+```
 
 When user picks an issue, fetch its full description and delegate to the `builder` agent with the issue as context.
 

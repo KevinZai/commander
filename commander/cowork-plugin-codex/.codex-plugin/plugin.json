@@ -37,6 +37,17 @@
     ],
     "websiteURL": "https://cc-commander.com",
     "defaultPrompt": "/ccc",
-    "brandColor": "#7c3aed"
+    "brandColor": "#7c3aed",
+    "composerIcon": "./assets/marketplace/composer-icon.png",
+    "logo": "./assets/marketplace/logo.png",
+    "screenshots": [
+      "./assets/marketplace/screenshot-1.png",
+      "./assets/marketplace/screenshot-2.png",
+      "./assets/marketplace/screenshot-3.png",
+      "./assets/marketplace/screenshot-4.png",
+      "./assets/marketplace/screenshot-5.png"
+    ],
+    "privacyPolicyURL": "https://cc-commander.com/privacy",
+    "termsOfServiceURL": "https://cc-commander.com/terms"
   }
 }

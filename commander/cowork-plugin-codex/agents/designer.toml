@@ -1,5 +1,5 @@
 name = "designer"
-description = "Senior UI/UX designer and frontend implementer using anti-slop methodology and ccc-design patterns. Builds accessible, polished interfaces — e.g., 'design a pricing page for our SaaS' or 'our dashboard looks cluttered, redesign it'."
+description = "Senior UI/UX designer and frontend implementer using anti-slop methodology and ccc-design patterns. Builds accessible, polished interfaces — e.g., 'design a pricing page for our SaaS' or 'our dashboard looks cluttered, redesign it'. [Commander]"
 model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Write, Edit, Bash, WebSearch

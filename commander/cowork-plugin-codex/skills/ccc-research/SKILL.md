@@ -1,7 +1,7 @@
 ---
 name: ccc-research
 context: fork
-description: CCC domain — complete research ecosystem — 8 skills in one. Deep multi-source research, spec interviews, cross-model review, competitive analysis, trend analysis, and large document ingestion.
+description: CCC domain — complete research ecosystem — 8 skills in one. Deep multi-source research, spec interviews, cross-model review, competitive analysis, trend analysis, and large document ingestion. [Commander]
 allowed-tools:
   - Read
 ---

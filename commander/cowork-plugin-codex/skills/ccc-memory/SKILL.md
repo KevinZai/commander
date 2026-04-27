@@ -1,6 +1,6 @@
 ---
 name: ccc-memory
-description: "Two-tier persistent memory for Claude Code sessions. Layer 1 is CLAUDE.md (always-loaded context). Layer 2 is a memory/ directory with dated notes, decisions, and corrections that load on demand. Use when you need knowledge that survives across sessions — preferences, architectural decisions, gotchas, learnings. Pairs with /save-session (session snapshots) and /resume-session (session resume)."
+description: "Two-tier persistent memory for Claude Code sessions. Layer 1 is CLAUDE.md (always-loaded context). Layer 2 is a memory/ directory with dated notes, decisions, and corrections that load on demand. Use when you need knowledge that survives across sessions — preferences, architectural decisions, gotchas, learnings. Pairs with /save-session (session snapshots) and /resume-session (session resume). [Commander]"
 model: sonnet
 effort: medium
 ---

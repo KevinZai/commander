@@ -1,6 +1,6 @@
 ---
 name: ccc-xray
-description: "Project health scorecard — scans current repo across 7 dimensions (quality, docs, tests, deps, security, perf, CI) and returns a markdown table with 0-100 scores + click-to-fix chips. Use when the user types /ccc-xray, /ccc xray, says 'scan this project', 'audit my repo', 'project health', 'what should I fix first', or wants a one-glance scorecard."
+description: "Project health scorecard — scans current repo across 7 dimensions (quality, docs, tests, deps, security, perf, CI) and returns a markdown table with 0-100 scores + click-to-fix chips. Use when the user types /ccc-xray, /ccc xray, says 'scan this project', 'audit my repo', 'project health', 'what should I fix first', or wants a one-glance scorecard. [Commander]"
 allowed-tools:
   - Read
   - Write

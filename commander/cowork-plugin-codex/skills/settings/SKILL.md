@@ -1,6 +1,6 @@
 ---
 name: settings
-description: "Configuration hub — change theme, set cost ceiling, configure Linear, toggle animations, reset state. Use when the user says 'settings', 'change theme', 'configure', 'set up linear', 'cost ceiling', 'toggle animations', or 'preferences'."
+description: "Configuration hub — change theme, set cost ceiling, configure Linear, toggle animations, reset state. Use when the user says 'settings', 'change theme', 'configure', 'set up linear', 'cost ceiling', 'toggle animations', or 'preferences'. [Commander]"
 allowed-tools:
   - Read
   - Write

@@ -1,6 +1,6 @@
 ---
 name: ccc-connect
-description: "Opt-in MCP connector setup — click-connect Notion, Slack, GitHub, Supabase, Figma, Linear, Vercel, Neon, Fly.io, Upstash, Sentry, Stripe, Browserbase, Postgres, Cloudflare, Resend, AgentMail, Zapier, Google Drive, Firecrawl, Exa, Tavily, and more. Use when the user types /ccc-connect, says connect an MCP, add Notion, wire up Slack, set up GitHub MCP, or wants to expand what Claude can reach."
+description: "Opt-in MCP connector setup — click-connect Notion, Slack, GitHub, Supabase, Figma, Linear, Vercel, Neon, Fly.io, Upstash, Sentry, Stripe, Browserbase, Postgres, Cloudflare, Resend, AgentMail, Zapier, Google Drive, Firecrawl, Exa, Tavily, and more. Use when the user types /ccc-connect, says connect an MCP, add Notion, wire up Slack, set up GitHub MCP, or wants to expand what Claude can reach. [Commander]"
 allowed-tools:
   - Read
   - Write

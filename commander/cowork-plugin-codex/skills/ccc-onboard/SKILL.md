@@ -1,6 +1,6 @@
 ---
 name: ccc-onboard
-description: "CC Commander contributor onboarding workflow. Detects project conventions, asks for contributor role, builds a tailored first-hour checklist, starter links, and clone-time tool validator."
+description: "CC Commander contributor onboarding workflow. Detects project conventions, asks for contributor role, builds a tailored first-hour checklist, starter links, and clone-time tool validator. [Commander]"
 model: sonnet
 effort: high
 allowed-tools:

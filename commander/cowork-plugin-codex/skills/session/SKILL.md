@@ -1,6 +1,6 @@
 ---
 name: session
-description: "Session management — resume work, review what was built, browse session history. Use when the user says 'resume session', 'review work', 'continue where I left off', 'what did I do last time', 'show my sessions', or 'pick up where I left off'."
+description: "Session management — resume work, review what was built, browse session history. Use when the user says 'resume session', 'review work', 'continue where I left off', 'what did I do last time', 'show my sessions', or 'pick up where I left off'. [Commander]"
 allowed-tools:
   - Read
   - Write

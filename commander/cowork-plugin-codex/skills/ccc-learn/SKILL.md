@@ -1,6 +1,6 @@
 ---
 name: ccc-learn
-description: "CC Commander learning hub — click-first picker across 11 CCC domains (502+ skills). Routes to ccc-design, ccc-marketing, ccc-saas and 8 more domain routers. Use when the user types /ccc-learn, says 'browse skills', 'what can this do', 'show me the catalog', 'explore domains', 'learn about marketing', or picks Learn from the /ccc root menu."
+description: "CC Commander learning hub — click-first picker across 11 CCC domains (502+ skills). Routes to ccc-design, ccc-marketing, ccc-saas and 8 more domain routers. Use when the user types /ccc-learn, says 'browse skills', 'what can this do', 'show me the catalog', 'explore domains', 'learn about marketing', or picks Learn from the /ccc root menu. [Commander]"
 allowed-tools:
   - Read
   - Write

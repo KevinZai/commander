@@ -1,6 +1,6 @@
 ---
 name: ccc-deploy
-description: "CC Commander actual deployment workflow. Detects Vercel, Fly.io, Cloudflare, GitHub Pages, or npm deploy targets, asks for the deploy destination, runs the platform deploy, watches status, verifies health, and emits post-deploy comms."
+description: "CC Commander actual deployment workflow. Detects Vercel, Fly.io, Cloudflare, GitHub Pages, or npm deploy targets, asks for the deploy destination, runs the platform deploy, watches status, verifies health, and emits post-deploy comms. [Commander]"
 model: sonnet
 effort: high
 allowed-tools:

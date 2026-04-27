@@ -1,6 +1,6 @@
 ---
 name: ccc-systematic-debugging
-description: Root-cause debugging via the Iron Law: no fix without confirmed root cause. Reproduce → hypothesize → verify → fix. Use when investigating bugs, test failures, or unexpected behavior. Triggers: 'debug this', 'why is X failing', 'root cause', 'investigate'.
+description: Root-cause debugging via the Iron Law: no fix without confirmed root cause. Reproduce → hypothesize → verify → fix. Use when investigating bugs, test failures, or unexpected behavior. Triggers: 'debug this', 'why is X failing', 'root cause', 'investigate'. [Commander]
 allowed-tools:
   - Read
   - Write
