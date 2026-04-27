@@ -16,6 +16,10 @@ export { initProject } from "./init.js";
 export { pinNote } from "./notes-pin.js";
 export { pushTask } from "./tasks-push.js";
 export { integratePlan } from "./plan-integrate.js";
+export { installSkill } from "./install-skill.js";
+export { compatibilityCheck } from "./compatibility-check.js";
+export { sessionDiagnose } from "./session-diagnose.js";
+export { composePlan } from "./compose-plan.js";
 
 export const TOOL_NAMES = [
   "commander_list_skills",
@@ -32,6 +36,10 @@ export const TOOL_NAMES = [
   "commander_notes_pin",
   "commander_tasks_push",
   "commander_plan_integrate",
+  "commander_install_skill",
+  "commander_compatibility_check",
+  "commander_session_diagnose",
+  "commander_compose_plan",
 ] as const;
 
 export type ToolName = (typeof TOOL_NAMES)[number];
@@ -177,6 +185,60 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
       properties: {
         plan: { type: "string", description: "Plan content (markdown or plain text)" },
         title: { type: "string", description: "Optional plan title" },
+      },
+    },
+  },
+  commander_install_skill: {
+    description: "Generate an idempotent shell command to install a Commander skill into Claude CLI, Claude Desktop, Codex CLI, or Cursor.",
+    inputSchema: {
+      type: "object",
+      required: ["skill_name", "target_env"],
+      properties: {
+        skill_name: { type: "string", description: "Skill name (e.g. build, ccc-plan, tdd-workflow)" },
+        target_env: { type: "string", enum: ["claude-cli", "claude-desktop", "codex-cli", "cursor"] },
+        dry_run: { type: "boolean", default: false },
+      },
+    },
+  },
+  commander_compatibility_check: {
+    description: "Check whether a Commander skill's tools, hooks, and MCP requirements fit a target AI environment.",
+    inputSchema: {
+      type: "object",
+      required: ["skill_name", "target_env"],
+      properties: {
+        skill_name: { type: "string", description: "Skill name to inspect" },
+        target_env: { type: "string", enum: ["claude-cli", "claude-desktop", "codex-cli", "cursor"] },
+      },
+    },
+  },
+  commander_session_diagnose: {
+    description: "Run /ccc-doctor's eight source-tree diagnostic categories and return a structured report.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        categories: {
+          type: "array",
+          items: { type: "string" },
+          description: "Optional category filter (e.g. critical-files, hook-chain). Defaults to all categories.",
+        },
+      },
+    },
+  },
+  commander_compose_plan: {
+    description: "Create a structured /ccc-plan-style implementation plan from a feature description.",
+    inputSchema: {
+      type: "object",
+      required: ["feature_description"],
+      properties: {
+        feature_description: { type: "string", description: "Feature or bug-fix idea to plan" },
+        project_context: {
+          type: "object",
+          properties: {
+            stack: { type: "string" },
+            repo_root: { type: "string" },
+            recent_commits: { type: "array", items: { type: "string" } },
+          },
+        },
       },
     },
   },

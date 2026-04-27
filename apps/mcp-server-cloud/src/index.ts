@@ -23,6 +23,10 @@ import {
   pinNote,
   pushTask,
   integratePlan,
+  installSkill,
+  compatibilityCheck,
+  sessionDiagnose,
+  composePlan,
 } from "./tools/index.js";
 import type { AuthContext } from "./middleware/auth.js";
 import { SERVER_VERSION } from "./lib/version.js";
@@ -281,6 +285,14 @@ export async function dispatchTool(
       return pushTask(args as Parameters<typeof pushTask>[0]);
     case "commander_plan_integrate":
       return integratePlan(args as Parameters<typeof integratePlan>[0]);
+    case "commander_install_skill":
+      return installSkill(args as Parameters<typeof installSkill>[0]);
+    case "commander_compatibility_check":
+      return await compatibilityCheck(args as Parameters<typeof compatibilityCheck>[0]);
+    case "commander_session_diagnose":
+      return sessionDiagnose(args as Parameters<typeof sessionDiagnose>[0]);
+    case "commander_compose_plan":
+      return composePlan(args as Parameters<typeof composePlan>[0]);
     default:
       throw new Error(`Unhandled tool: ${tool}`);
   }
