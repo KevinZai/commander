@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
+  mkdtemp,
   readdir,
   readFile,
+  rm,
   stat,
 } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { test } from 'node:test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,10 +18,9 @@ const execFileAsync = promisify(execFile);
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(TEST_DIR, '..', '..');
 const SOURCE_DIR = path.join(ROOT_DIR, 'commander', 'cowork-plugin');
-const OUTPUT_DIR = path.join(ROOT_DIR, 'commander', 'cowork-plugin-codex');
 
-async function runBuild() {
-  await execFileAsync(process.execPath, ['scripts/build-codex.js'], {
+async function runBuild(outputDir) {
+  await execFileAsync(process.execPath, ['scripts/build-codex.js', '--out', outputDir], {
     cwd: ROOT_DIR,
     maxBuffer: 1024 * 1024 * 10,
   });
@@ -63,7 +65,11 @@ async function hashTree(baseDir) {
 }
 
 test('codex plugin build artifact', async (t) => {
-  await runBuild();
+  // Use an isolated tmp dir so parallel test suite runs can't interfere.
+  const OUTPUT_DIR = await mkdtemp(path.join(tmpdir(), 'ccc-codex-build-'));
+  t.after(() => rm(OUTPUT_DIR, { recursive: true, force: true }));
+
+  await runBuild(OUTPUT_DIR);
 
   await t.test('creates the expected output structure', async () => {
     await stat(OUTPUT_DIR);
@@ -157,7 +163,7 @@ test('codex plugin build artifact', async (t) => {
 
   await t.test('is idempotent across repeated builds', async () => {
     const firstHash = await hashTree(OUTPUT_DIR);
-    await runBuild();
+    await runBuild(OUTPUT_DIR);
     const secondHash = await hashTree(OUTPUT_DIR);
 
     assert.equal(secondHash, firstHash);

@@ -7,8 +7,22 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(SCRIPT_DIR, '..');
 const SOURCE_DIR = path.join(ROOT_DIR, 'commander', 'cowork-plugin');
-const OUTPUT_DIR = path.join(ROOT_DIR, 'commander', 'cowork-plugin-codex');
 const ADAPTER_DIR = path.join(ROOT_DIR, 'commander', 'adapters', 'codex');
+
+// Allow callers to override the output directory via env var or --out CLI arg.
+// Default: commander/cowork-plugin-codex/ (existing behaviour, backwards-compatible).
+function resolveOutputDir() {
+  const outArgIndex = process.argv.indexOf('--out');
+  if (outArgIndex !== -1 && process.argv[outArgIndex + 1]) {
+    return path.resolve(process.argv[outArgIndex + 1]);
+  }
+  if (process.env.BUILD_CODEX_OUT_DIR) {
+    return path.resolve(process.env.BUILD_CODEX_OUT_DIR);
+  }
+  return path.join(ROOT_DIR, 'commander', 'cowork-plugin-codex');
+}
+
+const OUTPUT_DIR = resolveOutputDir();
 
 const HOOK_EVENTS_DROPPED_BY_BUILD = new Set([
   'Notification',
