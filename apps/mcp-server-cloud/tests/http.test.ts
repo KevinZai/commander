@@ -103,6 +103,24 @@ describe("validateCallBody", () => {
     assert.equal(r.ok, true);
     if (r.ok) assert.deepEqual(r.args, {});
   });
+
+  it("accepts JSON-RPC tools/call bodies", () => {
+    const r = validateCallBody({
+      jsonrpc: "2.0",
+      id: "rpc-1",
+      method: "tools/call",
+      params: {
+        name: "commander_status",
+        arguments: {},
+      },
+    });
+    assert.equal(r.ok, true);
+    if (r.ok) {
+      assert.equal(r.tool, "commander_status");
+      assert.deepEqual(r.args, {});
+      assert.equal(r.jsonrpcId, "rpc-1");
+    }
+  });
 });
 
 // ─── GET /health ─────────────────────────────────────────────────────────

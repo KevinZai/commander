@@ -189,12 +189,35 @@ mcp.get("/sse", (c) => {
 // Lightweight runtime check — we avoid adding zod as a runtime dep. Matches the
 // known TOOL_SCHEMAS shape and rejects malformed input fast.
 function validateCallBody(body: unknown):
-  | { ok: true; tool: string; args: Record<string, unknown> }
+  | { ok: true; tool: string; args: Record<string, unknown>; jsonrpcId?: unknown }
   | { ok: false; error: string } {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return { ok: false, error: "Body must be a JSON object" };
   }
   const b = body as Record<string, unknown>;
+  if (b.jsonrpc === "2.0" && typeof b.method === "string") {
+    const params = b.params === undefined ? {} : b.params;
+    if (typeof params !== "object" || params === null || Array.isArray(params)) {
+      return { ok: false, error: "'params' must be an object" };
+    }
+
+    if (b.method === "tools/call") {
+      const p = params as Record<string, unknown>;
+      if (typeof p.name !== "string" || p.name.length === 0) {
+        return { ok: false, error: "Missing or invalid JSON-RPC 'params.name' field" };
+      }
+      const rawArgs = p.arguments ?? p.args ?? {};
+      if (typeof rawArgs !== "object" || rawArgs === null || Array.isArray(rawArgs)) {
+        return { ok: false, error: "JSON-RPC 'params.arguments' must be an object" };
+      }
+      return { ok: true, tool: p.name, args: rawArgs as Record<string, unknown>, jsonrpcId: b.id };
+    }
+
+    if (b.method.startsWith("commander_")) {
+      return { ok: true, tool: b.method, args: params as Record<string, unknown>, jsonrpcId: b.id };
+    }
+  }
+
   if (typeof b.tool !== "string" || b.tool.length === 0) {
     return { ok: false, error: "Missing or invalid 'tool' field" };
   }
@@ -239,6 +262,9 @@ mcp.post("/call", async (c) => {
   try {
     const result = await dispatchTool(tool, args, auth);
     recordCall(tool, Date.now() - t0, false);
+    if ("jsonrpcId" in parsed) {
+      return c.json({ jsonrpc: "2.0", id: parsed.jsonrpcId ?? null, result });
+    }
     return c.json({ result });
   } catch (err) {
     recordCall(tool, Date.now() - t0, true);

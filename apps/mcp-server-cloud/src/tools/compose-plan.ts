@@ -121,7 +121,7 @@ function buildPlanMarkdown(args: ComposePlanArgs, skills: string[], effort: Comp
     "## Risks",
     ...risks.map((risk) => `- ${risk}`),
     "",
-    `## Estimated Effort`,
+    "## Estimated Effort",
     effort,
   ].join("\n");
 }

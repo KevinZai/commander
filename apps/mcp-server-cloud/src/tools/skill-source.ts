@@ -61,8 +61,8 @@ function loadRegistryRefs(): RegistrySkillRef[] {
     }
     if (current?.id && current.path) refs.push(current as RegistrySkillRef);
   } catch {
-    // The hosted image may not include the full source tree. Static catalog and
-    // direct path candidates still allow command generation for known skills.
+    // Hosted images may omit the full source tree. Static catalog and direct
+    // path candidates still allow command generation for known skills.
   }
 
   cachedRegistryRefs = refs;

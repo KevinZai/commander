@@ -10,7 +10,8 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/*.test.ts",
+    "test": "node --import tsx --test tests/integration.test.ts tests/http.test.ts tests/install-skill.test.ts tests/compatibility-check.test.ts tests/session-diagnose.test.ts tests/compose-plan.test.ts",
+    "test:e2e": "node --import tsx --test tests/e2e-smoke.test.ts",
     "test:node": "node --test tests/integration.test.js tests/http.test.js",
     "smoke": "./scripts/smoke.sh",
     "lint": "eslint src/"
