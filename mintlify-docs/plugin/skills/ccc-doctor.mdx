@@ -1,0 +1,72 @@
+---
+title: "/ccc-doctor"
+description: "Diagnostic snapshot for CC Commander. Paste-ready report covering plugin version, MCP servers, settings, and 8 drift checks."
+---
+
+`/ccc-doctor` generates a paste-ready diagnostic report of your CC Commander installation. Use it when something feels broken, before filing a GitHub issue, or when a support thread asks for your setup.
+
+## Trigger
+
+```
+/ccc-doctor
+/ccc-doctor full
+```
+
+Also activates on: "something is broken", "plugin not loading", "MCP not working", "run a diagnostic"
+
+## What it does
+
+<Steps>
+  <Step title="Collect system info">
+    Reads plugin version from `plugin.json`, Node.js version, OS, and the git SHA of the marketplace clone — all in a single Bash call.
+  </Step>
+  <Step title="Check installation state">
+    Verifies the marketplace clone directory exists, flags any `temp_*` drift directories, and checks `installed_plugins.json` for the commander entry.
+  </Step>
+  <Step title="Check settings.json">
+    Confirms `extraKnownMarketplaces` includes `commander-hub` and that `enabledPlugins` lists commander.
+  </Step>
+  <Step title="List MCP servers">
+    Lists bundled MCP server names from `.mcp.json` (does not test connectivity — listing only).
+  </Step>
+  <Step title="Render report">
+    Outputs a single formatted markdown table with pass/fail for every check, plus copy-paste nuclear-fix commands for each failure.
+  </Step>
+</Steps>
+
+## Quick vs full mode
+
+| Mode | What runs |
+|------|-----------|
+| `/ccc-doctor` (default) | Installation checks + settings + MCP listing |
+| `/ccc-doctor full` | All of the above + 8 source-tree drift checks via `lib/diagnostics` |
+
+### Full-mode drift checks
+
+| # | Category | What it verifies |
+|---|----------|-----------------|
+| 1 | `license-cleanup` | No license/tier gating references (CC Commander is free forever) |
+| 2 | `hook-chain` | All hooks in `hooks.json` exist on disk and use ESM imports |
+| 3 | `mcp-availability` | `.mcp.json` lists exactly the 2 bundled servers; `CONNECTORS.md` has 16 opt-in connectors |
+| 4 | `agent-models` | All 17 sub-agent frontmatter uses expected model pins |
+| 5 | `test-suite` | Required audit scripts are present |
+| 6 | `display-name` | `plugin.json` and `marketplace.json` both have `displayName === "Commander"` |
+| 7 | `version-parity` | `package.json` and `plugin.json` versions match |
+| 8 | `critical-files` | `CHANGELOG.md`, `README.md`, `LICENSE`, `package.json` all present |
+
+## Common fixes
+
+```bash
+# Missing or corrupted clone — re-add marketplace
+rm -rf ~/.claude/plugins/marketplaces/commander-hub
+# Then: Settings → Plugins → Add Marketplace → KevinZai/commander
+
+# Remove mid-clone drift dirs
+rm -rf ~/.claude/plugins/marketplaces/temp_*
+```
+
+## Tips
+
+- The report is self-contained — paste it directly into a GitHub issue.
+- `temp_*` directories are the #1 cause of "plugin not loading".
+- If `PLUGIN_VERSION` is `n/a` and the clone is missing, re-adding the marketplace always fixes it.

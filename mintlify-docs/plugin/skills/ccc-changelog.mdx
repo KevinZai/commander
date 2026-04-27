@@ -1,0 +1,57 @@
+---
+title: "/ccc-changelog"
+description: "Show what changed in the latest CC Commander update. Reads CHANGELOG.md and renders a scan-friendly summary of the most recent version."
+---
+
+`/ccc-changelog` reads `CHANGELOG.md` and surfaces the most recent release in a condensed, scan-friendly format. Works whether invoked directly or triggered by the SessionStart version-transition nudge after an update.
+
+## Trigger
+
+```
+/ccc-changelog
+/ccc-changelog 4.0.0-beta.10
+```
+
+Also activates on: "what changed", "what is new", "what was updated", "show release notes"
+
+## What it does
+
+<Steps>
+  <Step title="Locate CHANGELOG.md">
+    Reads `CHANGELOG.md` from the plugin root. Falls back to a `find` search if the path fails. If no file is found, links to the release notes page instead.
+  </Step>
+  <Step title="Extract the release section">
+    Parses to find the first `## [` header (most recent release) and extracts everything up to the next version header. Pass a version string as an argument to jump to a specific release.
+  </Step>
+  <Step title="Render a summary">
+    Groups changes by emoji category (Security, Tests, UX, New Skills, etc.), max 5 bullets per section at ≤15 words each. Appends "…and N more — see CHANGELOG.md" when a section is trimmed. Maximum total output: 30 lines.
+  </Step>
+  <Step title="Footer nudge">
+    Always ends with a prompt to run `/ccc` or `/ccc-browse` to explore all 48 skills.
+  </Step>
+</Steps>
+
+## Output format
+
+```
+## CC Commander [VERSION] — [DATE]
+
+**[Headline from changelog section]**
+
+### Security
+- Fixed 5 path-traversal and cwd-validation issues
+
+### New Skills
+- Added /ccc-e2e, /save-session, /resume-session
+
+…and 2 more — see CHANGELOG.md
+
+---
+Full notes: CHANGELOG.md
+```
+
+## Notes
+
+- Raw `CHANGELOG.md` is never dumped — always summarized.
+- Passing a version argument (e.g. `/ccc-changelog 4.0.0-beta.9`) targets that specific release section.
+- Output is intentionally brief — use `CHANGELOG.md` directly for the full history.

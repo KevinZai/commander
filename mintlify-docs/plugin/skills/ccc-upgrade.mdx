@@ -1,0 +1,70 @@
+---
+title: "/ccc-upgrade"
+description: "Audit and update vendor submodules. Fetches latest, shows a per-submodule diff table, lets you pick what to update, runs tests, and commits one chore(vendor) commit per submodule."
+---
+
+`/ccc-upgrade` is a human-in-the-loop vendor update workflow for the CC Commander repo. It audits all 19+ submodules under `vendor/`, surfaces what changed upstream, lets you pick what to update via a chip picker, and commits atomically — one submodule per commit.
+
+<Note>
+  Run only from the CC Commander repo root. The skill guards against wrong directories and will refuse to proceed if `marketplace.json` is not found.
+</Note>
+
+## Trigger
+
+```
+/ccc-upgrade
+/ccc-upgrade --check
+/ccc-upgrade --all
+```
+
+Also activates on: "update vendors", "refresh submodules", "sync the ecosystem", "check vendor drift"
+
+## Modes
+
+| Flag | Behavior |
+|------|----------|
+| _(none)_ | Audit + interactive chip picker for updates |
+| `--check` | Read-only audit table — no updates, no commits |
+| `--all` | Skip the picker and update every available submodule |
+
+## What it does
+
+<Steps>
+  <Step title="Sanity check">
+    Verifies `pwd` is the cc-commander repo root (checks for `.claude-plugin/marketplace.json`) and that `vendor/` exists. Exits with a clear error if either check fails.
+  </Step>
+  <Step title="List and scan submodules">
+    Runs `git submodule status` and, per submodule, fetches origin and computes current SHA, latest SHA, commits behind, and changed file count. Marks uninitialized submodules separately.
+  </Step>
+  <Step title="Render audit table">
+    Displays every submodule with columns: current SHA, latest SHA, Δ commits, Δ files, and status (✅ up to date / 🔄 update available).
+  </Step>
+  <Step title="Pick what to update">
+    Presents a multi-select chip picker with one chip per submodule that has available updates. Options include individual submodules, "🌐 All available", and "❌ Cancel". Skipped on `--all`.
+  </Step>
+  <Step title="Update + verify + commit">
+    For each chosen submodule (sequentially — NOT parallel): runs `git submodule update --remote --rebase`, then `audit-frontmatter.js --check` + `audit-counts.js --check`. If audits pass, commits as `chore(vendor): update <name> <old>..<new>`. Rolls back on failure.
+  </Step>
+  <Step title="Final summary">
+    Reports updated, skipped, and rolled-back submodules. Reminds you to `git push` when ready.
+  </Step>
+</Steps>
+
+## Commit format
+
+```
+chore(vendor): update acpx abc1234..def5678
+```
+
+One commit per submodule — atomic, revertable, bisectable.
+
+## Safety rules
+
+- Never auto-pushes — the user pushes when ready.
+- Never force-rebases — rebase conflicts skip the submodule and log the failure.
+- Never touches `.gitmodules`.
+- Uncommitted local changes in a submodule (`+` prefix) are preserved and skipped.
+
+## Relationship to the weekly cron
+
+`.github/workflows/vendor-update.yml` runs the same audit unattended each week. `/ccc-upgrade` is the manual, human-approved variant of the same workflow.

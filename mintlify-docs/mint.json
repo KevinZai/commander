@@ -92,7 +92,10 @@
         "plugin/skills/ccc-deploy",
         "plugin/skills/ccc-rollback",
         "plugin/skills/ccc-onboard",
-        "plugin/skills/ccc-fleet-viz"
+        "plugin/skills/ccc-fleet-viz",
+        "plugin/skills/ccc-doctor",
+        "plugin/skills/ccc-changelog",
+        "plugin/skills/ccc-upgrade"
       ]
     },
     {
