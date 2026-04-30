@@ -81,7 +81,8 @@
           {
             "group": "Help",
             "pages": [
-              "troubleshooting"
+              "troubleshooting",
+              "install-recovery"
             ]
           }
         ]

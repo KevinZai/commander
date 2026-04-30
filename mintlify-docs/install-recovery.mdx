@@ -1,0 +1,115 @@
+---
+title: "Install Recovery"
+description: "Force a stuck plugin install or marketplace sync"
+---
+
+# Install Recovery
+
+## When you need this
+
+- Plugin shows old version after clicking Update
+- `/plugin install commander` says installed but no `/ccc` commands appear
+- Marketplace UI doesn't reflect the latest release
+- Plugin appears installed in `/plugin list` but autocomplete is empty
+
+<Note>
+  Before following this guide, run `/ccc-doctor` — it catches ~60% of issues automatically and tells you exactly what's wrong.
+</Note>
+
+## The reset sequence
+
+This is the "nuclear cache-fix" sequence. It clears every layer of the plugin cache and forces a clean reinstall.
+
+**Step 1 — Fully quit Desktop (not just close the window)**
+
+```bash
+# macOS: Cmd+Q in the app, or via terminal:
+osascript -e 'quit app "Claude"'
+```
+
+The menu-bar process must exit. A closed window is not enough.
+
+**Step 2 — Clear the plugin cache**
+
+```bash
+# Remove the installed plugin directory
+rm -rf ~/.claude/plugins/commander
+
+# Clear the marketplace clone cache
+rm -rf ~/.claude/marketplace/KevinZai-commander
+```
+
+**Step 3 — Re-add from marketplace and reinstall**
+
+Reopen Claude Code Desktop, then in a new session:
+
+```
+/plugin marketplace add KevinZai/commander
+/plugin install commander
+```
+
+**Step 4 — Enable autoSync (prevents future stale-cache issues)**
+
+If you had an orphan `.claude-plugin` directory from a previous manual clone, autoSync may be disabled. Force it on:
+
+```bash
+# In your project directory or home dir, open .claude/settings.json
+# and add/set:
+#   "plugins": { "autoSync": true }
+
+# Or via CLI:
+node -e "
+const fs = require('fs');
+const p = require('os').homedir() + '/.claude/settings.json';
+const s = JSON.parse(fs.readFileSync(p,'utf8'));
+s.plugins = { ...(s.plugins||{}), autoSync: true };
+fs.writeFileSync(p, JSON.stringify(s, null, 2));
+console.log('autoSync enabled');
+"
+```
+
+**Step 5 — Full quit and reopen again**
+
+```bash
+osascript -e 'quit app "Claude"'
+```
+
+Reopen. The plugin marketplace will sync on startup with autoSync enabled.
+
+## Verify recovery
+
+Run these in a new session after the full reinstall:
+
+```
+/ccc
+```
+
+You should see the main CC Commander menu with chip pickers for Plan / Build / Review / Ship / Learn / Fleet.
+
+```
+/ccc-doctor
+```
+
+Should report green on all checks: manifest valid, hooks wired, MCP servers reachable, skill count matches expected (55 skills / 17 agents / 9 hooks × 15 handlers / 2 bundled MCPs).
+
+## Orphan `.claude-plugin` bug
+
+**Symptom:** You cloned the repo manually and have a `.claude-plugin/` folder in your project directory. The marketplace installer detects this as a "local plugin" and stops syncing updates from GitHub.
+
+**Fix:** Delete the orphan directory and reinstall from the marketplace:
+
+```bash
+# From within the manually cloned directory:
+rm -rf .claude-plugin
+
+# Then follow the reset sequence above (Steps 1–5)
+```
+
+After this, updates will flow automatically via the marketplace — no manual git pulls needed.
+
+## Still stuck?
+
+Open an issue at [github.com/KevinZai/commander/issues](https://github.com/KevinZai/commander/issues) with:
+- Output of `/ccc-doctor`
+- Your Claude Code Desktop version (`/version` or About menu)
+- The exact error message or symptom
