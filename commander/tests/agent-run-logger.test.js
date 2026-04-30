@@ -1,0 +1,252 @@
+'use strict';
+
+const { describe, it, before, after, beforeEach } = require('node:test');
+const assert = require('node:assert/strict');
+const { spawnSync } = require('node:child_process');
+const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
+
+const HOOK_PATH = path.join(
+  __dirname,
+  '..',
+  'cowork-plugin',
+  'hooks',
+  'agent-run-logger.js'
+);
+
+const AGENTS_DIR = path.join(
+  __dirname,
+  '..',
+  'cowork-plugin',
+  'agents'
+);
+
+const TMP_HOME = path.join(os.tmpdir(), 'ccc-agent-logger-test-' + process.pid);
+const LOG_FILE = path.join(TMP_HOME, '.claude', 'commander', 'agent-runs.jsonl');
+
+function runHook(envOverrides = {}) {
+  const env = {
+    ...process.env,
+    HOME: TMP_HOME,
+    USERPROFILE: TMP_HOME,
+    ...envOverrides,
+  };
+
+  const result = spawnSync('node', [HOOK_PATH], {
+    input: JSON.stringify({}),
+    encoding: 'utf-8',
+    timeout: 6000,
+    env,
+  });
+
+  let parsed = null;
+  try {
+    parsed = JSON.parse((result.stdout || '').trim());
+  } catch {
+    // non-JSON
+  }
+
+  return {
+    exitCode: result.status ?? 0,
+    stdout: result.stdout || '',
+    stderr: result.stderr || '',
+    parsed,
+  };
+}
+
+function readLogLines() {
+  if (!fs.existsSync(LOG_FILE)) return [];
+  return fs
+    .readFileSync(LOG_FILE, 'utf8')
+    .split('\n')
+    .filter(l => l.trim())
+    .map(l => JSON.parse(l));
+}
+
+before(() => {
+  fs.mkdirSync(path.join(TMP_HOME, '.claude', 'commander'), { recursive: true });
+});
+
+after(() => {
+  fs.rmSync(TMP_HOME, { recursive: true, force: true });
+});
+
+beforeEach(() => {
+  if (fs.existsSync(LOG_FILE)) {
+    fs.unlinkSync(LOG_FILE);
+  }
+});
+
+describe('agent-run-logger.js — basic logging', () => {
+  it('exits 0 and returns continue:true suppressOutput:true', () => {
+    const r = runHook({ CLAUDE_AGENT_NAME: 'architect', CLAUDE_SESSION_ID: 'test-123' });
+    assert.equal(r.exitCode, 0);
+    assert.ok(r.parsed);
+    assert.equal(r.parsed.continue, true);
+    assert.equal(r.parsed.suppressOutput, true);
+  });
+
+  it('writes a JSONL line to agent-runs.jsonl', () => {
+    runHook({
+      CLAUDE_AGENT_NAME: 'builder',
+      CLAUDE_SESSION_ID: 'sess-abc',
+      CLAUDE_INPUT_TOKENS: '5000',
+      CLAUDE_OUTPUT_TOKENS: '1200',
+      CLAUDE_DURATION_MS: '8500',
+      CLAUDE_STOP_REASON: 'end_turn',
+    });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 1, 'should write exactly one JSONL line');
+    const entry = lines[0];
+    assert.equal(entry.agent, 'builder');
+    assert.equal(entry.sessionId, 'sess-abc');
+    assert.equal(entry.inputTokens, 5000);
+    assert.equal(entry.outputTokens, 1200);
+    assert.equal(entry.durationMs, 8500);
+    assert.equal(entry.status, 'end_turn');
+    assert.ok(entry.ts, 'should have timestamp');
+  });
+
+  it('uses fallback env vars (CLAUDE_TOKENS_INPUT etc.)', () => {
+    runHook({
+      CLAUDE_SUBAGENT_NAME: 'debugger',
+      CLAUDE_SESSION_ID: 'sess-xyz',
+      CLAUDE_TOKENS_INPUT: '3000',
+      CLAUDE_TOKENS_OUTPUT: '900',
+      CLAUDE_ELAPSED_MS: '5000',
+      CLAUDE_SUBAGENT_STATUS: 'max_turns',
+    });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 1);
+    const entry = lines[0];
+    assert.equal(entry.agent, 'debugger');
+    assert.equal(entry.inputTokens, 3000);
+    assert.equal(entry.outputTokens, 900);
+    assert.equal(entry.durationMs, 5000);
+    assert.equal(entry.status, 'max_turns');
+  });
+
+  it('handles missing env vars with defaults', () => {
+    runHook({});
+    const lines = readLogLines();
+    assert.equal(lines.length, 1);
+    const entry = lines[0];
+    assert.equal(entry.agent, 'unknown');
+    assert.equal(entry.sessionId, 'unknown');
+    assert.equal(entry.inputTokens, 0);
+    assert.equal(entry.outputTokens, 0);
+    assert.equal(entry.durationMs, 0);
+    assert.equal(entry.status, 'completed');
+  });
+
+  it('appends multiple runs to the same file', () => {
+    runHook({ CLAUDE_AGENT_NAME: 'reviewer' });
+    runHook({ CLAUDE_AGENT_NAME: 'qa-engineer' });
+    runHook({ CLAUDE_AGENT_NAME: 'designer' });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 3);
+    assert.equal(lines[0].agent, 'reviewer');
+    assert.equal(lines[1].agent, 'qa-engineer');
+    assert.equal(lines[2].agent, 'designer');
+  });
+
+  it('always returns continue:true even when log write fails', () => {
+    // Force failure with bad HOME
+    const r = runHook({
+      HOME: '/dev/null/no-such-path',
+      USERPROFILE: '/dev/null/no-such-path',
+    });
+    assert.equal(r.exitCode, 0);
+    assert.ok(r.parsed);
+    assert.equal(r.parsed.continue, true);
+  });
+});
+
+describe('agent-run-logger.js — log rotation', () => {
+  it('renames existing file if over 10MB and starts fresh', () => {
+    const cccDir = path.join(TMP_HOME, '.claude', 'commander');
+
+    // Create a fake log file that's "over 10MB"
+    const bigContent = 'x'.repeat(10 * 1024 * 1024 + 1);
+    fs.writeFileSync(LOG_FILE, bigContent);
+
+    runHook({ CLAUDE_AGENT_NAME: 'architect' });
+
+    // The original should be renamed
+    const files = fs.readdirSync(cccDir);
+    const rotated = files.filter(f => f.startsWith('agent-runs.') && f.endsWith('.jsonl') && f !== 'agent-runs.jsonl');
+    assert.ok(rotated.length > 0, 'should have created a rotated file');
+
+    // The fresh file should have only the new entry
+    const lines = readLogLines();
+    assert.equal(lines.length, 1, 'fresh log should have only the new entry');
+    assert.equal(lines[0].agent, 'architect');
+  });
+});
+
+describe('agent-run-logger.js — agent coverage', () => {
+  it('all 17 agent files have a hooks: field in frontmatter', () => {
+    const agentFiles = fs
+      .readdirSync(AGENTS_DIR)
+      .filter(f => f.endsWith('.md') && !f.endsWith('.backup-20260424'));
+
+    assert.ok(agentFiles.length >= 15, `Expected at least 15 agents, got ${agentFiles.length}`);
+
+    const missing = [];
+    for (const file of agentFiles) {
+      const content = fs.readFileSync(path.join(AGENTS_DIR, file), 'utf8');
+      const fmEnd = content.indexOf('---', 3);
+      const fm = fmEnd > 3 ? content.slice(3, fmEnd) : '';
+      if (!fm.includes('hooks:')) {
+        missing.push(file);
+      }
+    }
+
+    assert.deepEqual(
+      missing,
+      [],
+      `The following agents are missing hooks: field: ${missing.join(', ')}`
+    );
+  });
+
+  it('all agent files with hooks: include SubagentStop', () => {
+    const agentFiles = fs
+      .readdirSync(AGENTS_DIR)
+      .filter(f => f.endsWith('.md') && !f.endsWith('.backup-20260424'));
+
+    const missingSubagentStop = [];
+    for (const file of agentFiles) {
+      const content = fs.readFileSync(path.join(AGENTS_DIR, file), 'utf8');
+      const fmEnd = content.indexOf('---', 3);
+      const fm = fmEnd > 3 ? content.slice(3, fmEnd) : '';
+      if (fm.includes('hooks:') && !fm.includes('SubagentStop:')) {
+        missingSubagentStop.push(file);
+      }
+    }
+
+    assert.deepEqual(
+      missingSubagentStop,
+      [],
+      `These agents have hooks: but no SubagentStop: ${missingSubagentStop.join(', ')}`
+    );
+  });
+
+  it('hooks.json SubagentStop section includes agent-run-logger.js', () => {
+    const hooksJsonPath = path.join(
+      __dirname,
+      '..',
+      'cowork-plugin',
+      'hooks',
+      'hooks.json'
+    );
+    const hooksJson = JSON.parse(fs.readFileSync(hooksJsonPath, 'utf8'));
+    const subagentHooks = hooksJson.hooks.SubagentStop || [];
+    const allCommands = subagentHooks.flatMap(h => (h.hooks || []).map(hh => hh.command || ''));
+    const hasLogger = allCommands.some(c => c.includes('agent-run-logger.js'));
+    assert.ok(hasLogger, 'hooks.json SubagentStop should include agent-run-logger.js');
+  });
+});

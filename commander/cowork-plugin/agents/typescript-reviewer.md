@@ -12,6 +12,8 @@ tools:
   - Glob
   - Grep
 maxTurns: 25
+hooks:
+  SubagentStop: log completion metadata to ~/.claude/commander/agent-runs.jsonl via agent-run-logger.js
 ---
 
 # TypeScript Reviewer Agent

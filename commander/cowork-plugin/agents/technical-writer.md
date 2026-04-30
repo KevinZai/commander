@@ -15,6 +15,8 @@ tools:
 disallowedTools:
   - Bash
 maxTurns: 50
+hooks:
+  SubagentStop: log completion metadata to ~/.claude/commander/agent-runs.jsonl via agent-run-logger.js
 ---
 
 # Technical Writer Agent

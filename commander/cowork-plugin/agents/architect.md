@@ -12,6 +12,8 @@ tools:
   - Grep
   - Bash
 maxTurns: 30
+hooks:
+  SubagentStop: log completion metadata to ~/.claude/commander/agent-runs.jsonl via agent-run-logger.js
 ---
 
 # Architect Agent

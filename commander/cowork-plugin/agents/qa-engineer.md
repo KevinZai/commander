@@ -15,6 +15,8 @@ tools:
   - Grep
 maxTurns: 60
 isolation: worktree
+hooks:
+  SubagentStop: log completion metadata to ~/.claude/commander/agent-runs.jsonl via agent-run-logger.js
 ---
 
 # QA Engineer Agent

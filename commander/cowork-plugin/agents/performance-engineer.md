@@ -14,6 +14,8 @@ disallowedTools:
   - Write
   - Edit
 maxTurns: 25
+hooks:
+  SubagentStop: log completion metadata to ~/.claude/commander/agent-runs.jsonl via agent-run-logger.js
 ---
 
 # Performance Engineer Agent

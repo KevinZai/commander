@@ -15,6 +15,7 @@ tools:
 maxTurns: 30
 hooks:
   Stop: "verify findings match OWASP categories before finishing — each finding must include OWASP category, CWE ID where applicable, and a concrete remediation step"
+  SubagentStop: log completion metadata to ~/.claude/commander/agent-runs.jsonl via agent-run-logger.js
 ---
 
 # Security Auditor Agent

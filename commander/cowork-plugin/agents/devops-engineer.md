@@ -16,6 +16,7 @@ tools:
 maxTurns: 40
 hooks:
   PreToolUse: "validate destructive bash commands before executing — flag rm -rf, DROP TABLE, kubectl delete, terraform destroy, aws s3 rm with --recursive; require explicit confirmation step in output"
+  SubagentStop: log completion metadata to ~/.claude/commander/agent-runs.jsonl via agent-run-logger.js
 ---
 
 # DevOps Engineer Agent

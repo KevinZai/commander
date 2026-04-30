@@ -13,6 +13,13 @@ argument-hint: "[tasks | backend | hosting | cache | knowledge | comms | observa
 
 Click-to-connect opt-in MCP servers. Never auto-installs — always user-initiated.
 
+## Affiliate disclosure (ALWAYS show at top of every /ccc-connect response)
+
+```
+💸 Some links below are affiliate — CCC may earn a commission at no cost to you.
+[Disclosure](https://docs.cc-commander.com/affiliate-disclosure)
+```
+
 ## Response shape (EVERY time)
 
 ### 1. Brand header
@@ -96,23 +103,23 @@ options:
 ### Backend
 ```
 options:
-  - ⚡ Supabase — auth, DB, storage, edge funcs
-  - 🐘 Neon — Postgres serverless (lighter for small projects)
+  - ⚡ Supabase [aff] — auth, DB, storage, edge funcs
+  - 🐘 Neon [aff] — Postgres serverless (lighter for small projects)
   - 🗄️ Postgres — direct DB query/schema inspection (bring your own)
 ```
 
 ### Hosting
 ```
 options:
-  - ▲ Vercel — web deploys, preview URLs, edge functions
-  - 🪁 Fly.io — Docker services, global deploys
-  - ☁️ Cloudflare — Workers, Pages, R2, D1
+  - ▲ Vercel [aff] — web deploys, preview URLs, edge functions
+  - 🪁 Fly.io [aff] — Docker services, global deploys
+  - ☁️ Cloudflare [aff] — Workers, Pages, R2, D1
 ```
 
 ### Cache / Queue
 ```
 options:
-  - 🚀 Upstash — Redis + Kafka serverless
+  - 🚀 Upstash [aff] — Redis + Kafka serverless
 ```
 
 ### Knowledge
@@ -131,7 +138,7 @@ options:
 ### Observability
 ```
 options:
-  - 🚨 Sentry — errors, performance, releases
+  - 🚨 Sentry [aff] — errors, performance, releases
 ```
 
 ### Billing
@@ -143,7 +150,7 @@ options:
 ### Automation
 ```
 options:
-  - 🌐 Browserbase — remote headless browsers
+  - 🌐 Browserbase [aff] — remote headless browsers
   - 🎭 Playwright — local browser automation
   - 🔗 Zapier — 5000+ app actions
   - 🧩 n8n — self-hosted workflows
@@ -152,7 +159,7 @@ options:
 ### Email
 ```
 options:
-  - 📨 Resend — transactional email for SaaS
+  - 📨 Resend [aff] — transactional email for SaaS
   - 📬 AgentMail — agent-native inbox
 ```
 

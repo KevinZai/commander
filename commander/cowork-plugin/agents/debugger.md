@@ -13,6 +13,8 @@ tools:
   - Glob
   - Grep
 maxTurns: 40
+hooks:
+  SubagentStop: log completion metadata to ~/.claude/commander/agent-runs.jsonl via agent-run-logger.js
 ---
 
 # Debugger Agent
