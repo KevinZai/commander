@@ -1,19 +1,33 @@
+<!-- Keywords: Claude Code plugin, Claude Desktop, Cowork Desktop, AI PM, AI agents, MCP server, Anthropic, Claude SDK, prompt engineering, AI workflow, Claude Code Desktop, AI coding agent, Claude plugin, skill catalog -->
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ccc-hero.svg">
-  <img src="docs/assets/ccc-hero.svg" alt="CC Commander" width="100%">
+  <img src="docs/assets/ccc-hero.svg" alt="CC Commander — AI PM plugin for Claude Code Desktop and Claude Code CLI" width="100%">
 </picture>
 
-# CC Commander
+# CC Commander — AI PM for Claude Code · 55 Skills · 17 Agents · Free Forever
 
-> **Guided AI PM to Master Claude Code Instantly** — click-first, not text-menu'd
+> **Ship faster with Claude Code and Cowork Desktop.** One plugin install activates 55 skills, 17 specialist AI agents, and 8 lifecycle hooks across Claude Code Desktop, Claude Code CLI, Cursor, Windsurf, and every MCP-capable IDE.
 
-**1 install. 502+ skills. 13 `/ccc-*` click-first workflows. Primary surface: Claude Code Desktop (aka Cowork Desktop). Also works in Claude Code CLI and every MCP-capable IDE (Cursor, Windsurf, Cline, Continue, Codex). Free forever.**
+**Install in 30 seconds:**
 
-> **🖥️ Primary surface: Claude Code Desktop.** Install once via Settings → Plugin Marketplace. All 51 plugin skills, 17 agents, 8 lifecycle hooks (16 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
+```
+Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Install
+```
+
+**What you get:** 55 click-first `/ccc-*` plugin skills · 17 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 8 lifecycle hooks · 2 bundled MCP servers · 502+ ecosystem skills · Free forever.
+
+<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0 — Claude Code Desktop plugin demo" width="100%">
+
+> **🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace. All 55 plugin skills, 17 agents, 8 lifecycle hooks (16 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
-<img src="docs/assets/hero.gif" alt="CC Commander v4.0.0-beta.7" width="100%">
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/55_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0](https://img.shields.io/badge/v4.0.0-D97706?style=for-the-badge)](./CHANGELOG.md)
+
+**[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
+
+**[Why CC Commander](#-why-cc-commander)** · **[The 55 skills](#the-51-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ### 🎯 Who it's for
 
@@ -23,12 +37,6 @@
 | 💻 **A developer** → using **Claude Code Desktop** or **Claude Code CLI** | Your project manager — routes complexity, compounds knowledge across sessions, Kevin Z Method built in. `/ccc-plan` → spec interview → plan file. |
 | 🔧 **In Cursor / Windsurf / Cline / Continue / Codex** | One hosted MCP endpoint unlocks all 502+ skills in your IDE of choice |
 | 📱 **On Claude mobile or iPad** | Same skills, same license, synced across devices (hosted MCP) |
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/51_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.0.0-beta.11](https://img.shields.io/badge/v4.0.0--beta.11-D97706?style=for-the-badge)](./CHANGELOG.md)
-
-**[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
-
-**[Why CC Commander](#-why-cc-commander)** · **[The 51 skills](#the-51-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ---
 
@@ -178,6 +186,23 @@ Click a cell → pick a sub-option → CC Commander handles it. No config files,
 | **Caliber** | Config scoring, drift detection |
 
 Install any of these separately — CC Commander detects what's available and routes to it. If you've got `claude-mem` installed, `/ccc-suggest` will reach for it when memory recall is the right move.
+
+## 🆚 Compare to other Claude Code plugins
+
+CC Commander is a **meta-layer** — it routes to other plugins, not away from them. Here's how it differs from the top alternatives:
+
+| | CC Commander | ECC | Superpowers | gstack |
+|---|---|---|---|---|
+| **Primary surface** | Claude Code Desktop plugin + CLI | CLI harness | Claude Code CLI | Claude Code CLI |
+| **Click-first UX** | ✅ Native chip pickers, no typing | ❌ Text menus | ❌ Slash commands | ❌ Slash commands |
+| **Sub-agent personas** | 17 (architect, reviewer, debugger…) | 38 agents | 0 | 3 |
+| **Skill count** | 502+ (55 plugin + 450+ ecosystem) | 156 | ~20 | ~15 |
+| **Hosted MCP server** | ✅ (100 calls/mo free) | ❌ | ❌ | ❌ |
+| **Cross-IDE** | ✅ (Cursor, Windsurf, Cline, Codex) | ❌ Claude only | ❌ Claude only | ❌ Claude only |
+| **Free** | ✅ Forever | ✅ | ✅ | ✅ |
+| **Recommends rivals** | ✅ `/ccc-suggest` names other plugins | ❌ | ❌ | ❌ |
+
+**Bottom line:** if you want the full Claude Code harness (156 skills, 72 commands), install ECC. If you want the click-first PM layer that works across Cowork Desktop, CLI, and Cursor, install CC Commander. Many users run both.
 
 ## 2-Minute First Win
 

@@ -1,17 +1,20 @@
 import { getSkills, getSkillContent } from "../lib/registry.js";
+import { skillNotFound, invalidParam } from "../lib/errors.js";
 
 export type GetSkillArgs = { name: string };
 
 export async function getSkill(args: GetSkillArgs): Promise<Record<string, unknown>> {
+  if (!args.name || typeof args.name !== "string" || args.name.trim().length === 0) {
+    return invalidParam("name", "must be a non-empty string (e.g. 'ccc-design', 'tdd-workflow')");
+  }
+
   const skills = getSkills();
   const skill = skills.find(
     (s) => s.id === args.name || s.name === args.name || s.path.includes(`/${args.name}/`)
   );
 
   if (!skill) {
-    return {
-      error: `Skill '${args.name}' not found. Use commander_list_skills to browse the catalog.`,
-    };
+    return skillNotFound(args.name);
   }
 
   const content = await getSkillContent(skill.id);

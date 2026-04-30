@@ -4,6 +4,7 @@ export type InvokeSkillArgs = { name: string; context?: string };
 
 export async function invokeSkill(args: InvokeSkillArgs) {
   const skill = await getSkill({ name: args.name });
+  if ("ok" in skill && !skill.ok) return skill;
   if ("error" in skill) return skill;
 
   return {

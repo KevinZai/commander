@@ -4,6 +4,7 @@ export type InvokeAgentArgs = { name: string; task: string };
 
 export async function invokeAgent(args: InvokeAgentArgs) {
   const agent = await getAgent({ name: args.name });
+  if ("ok" in agent && !agent.ok) return agent;
   if ("error" in agent) return agent;
 
   return {

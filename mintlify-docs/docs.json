@@ -1,13 +1,20 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "CCC",
+  "name": "CC Commander",
   "colors": {
     "primary": "#ff0080",
     "light": "#00ffff",
     "dark": "#ff0080"
   },
   "favicon": "/favicon.svg",
+  "seo": {
+    "indexHiddenPages": false,
+    "metatags": {
+      "og:site_name": "CC Commander Docs",
+      "twitter:site": "@kzic"
+    }
+  },
   "navigation": {
     "tabs": [
       {
