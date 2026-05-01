@@ -38,7 +38,7 @@ dispatching-parallel-agents, subagent-driven-development, continuous-learning-v2
 twilio-communications, whatsapp-automation, whatsapp-cloud-api, chat-widget, sendgrid-automation, intercom-automation, posthog-automation, sentry-automation, slack-gif-creator, internal-comms
 
 ## Writing & Content
-humanizer, doc-coauthoring, pptx, pdf-official, typeset, writing-plans, brainstorming
+humanizer, doc-coauthoring, typeset, writing-plans, brainstorming
 
 ## Workflow (gstack — 24 symlinks)
 benchmark, browse, canary, codex, design-consultation, design-review, document-release, freeze, gstack-upgrade, investigate, land-and-deploy, office-hours, plan-ceo-review, plan-design-review, plan-eng-review, qa, qa-only, retro, review, setup-browser-cookies, setup-deploy, ship, unfreeze

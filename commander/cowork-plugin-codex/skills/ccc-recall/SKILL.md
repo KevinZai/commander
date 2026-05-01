@@ -42,20 +42,20 @@ grep -rn "${keyword}" memory/
 ```
 Higher signal than transcripts — you curated these specifically because they mattered.
 
-### Layer 3 — claude-mem observations (if installed)
+### Layer 3 — Full-text search across all sessions
 
-If the claude-mem MCP is available, query it:
+If you need deeper semantic matches beyond Layer 1-2, search the full session corpus with glob:
+```bash
+grep -rn "${keyword}" ~/.claude/sessions/ --include="*.tmp" --include="*.md"
 ```
-Use mcp__plugin_claude-mem_mcp-search__smart_search with query="${question}"
-```
-Vector search across every session claude-mem has indexed. Best for semantic matches ("the time we debated SSE vs WebSocket") vs literal keyword.
+This indexes all session transcripts and archived notes. Best for semantic matches ("the time we debated SSE vs WebSocket") vs literal keyword, using native grep with context flags.
 
 ## Process
 
 1. **Parse the question** — extract 2-3 keywords + time window ("last month", "Q4", "since shipping v4")
 2. **Run Layer 1 grep** — if 1-5 hits, read the most recent, answer
 3. **If no hits, Layer 2** — curated notes
-4. **If still no hits, Layer 3** — claude-mem semantic search
+4. **If still no hits, Layer 3** — full-text grep across all sessions
 5. **Summarize findings** — always cite the source file + date so Kevin can verify
 6. **Offer to save the recall** — if this turned out to be a common question, suggest `/ccc-memory` entry for next time
 
@@ -72,8 +72,4 @@ User: "What did we decide about the MCP bundling split?"
 
 - `~/.claude/sessions/` directory (created by `/save-session`)
 - Optional: `memory/` in project root (created by `/ccc-memory`)
-- Optional: claude-mem MCP if installed
-
----
-
-Adapted from `thedotmack/claude-mem/mem-search` under MIT license. Fitted to CC Commander's save-session / resume-session / ccc-memory pattern.
+- Native bash grep (no external dependencies)
