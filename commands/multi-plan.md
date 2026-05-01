@@ -1,3 +1,7 @@
+---
+description: "[C:devops] — Multi-model collaborative planning: dual-model analysis generates step-by-step implementation plan."
+---
+
 # Plan - Multi-Model Collaborative Planning
 
 Multi-model collaborative planning - Context retrieval + Dual-model analysis → Generate step-by-step implementation plan.

@@ -1,5 +1,5 @@
 ---
-description: Sequential and tmux/worktree orchestration guidance for multi-agent workflows.
+description: "[C:meta] — Sequential and tmux/worktree orchestration guidance for multi-agent workflows."
 ---
 
 # Orchestrate Command

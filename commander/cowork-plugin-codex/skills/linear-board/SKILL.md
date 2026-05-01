@@ -1,6 +1,6 @@
 ---
 name: linear-board
-description: "\"View your Linear board, pick a task to work on, and sync issue status. Use when: 'linear board', 'show issues', 'pick a task', 'what should I work on', 'my Linear', 'open issues', 'sprint board'.\" [Commander]"
+description: "[C:plugin] — \"View your Linear board, pick a task to work on, and sync issue status. Use when: 'linear board', 'show issues', 'pick a task', 'what should I work on', 'my Linear',…"
 allowed-tools:
   - Read
   - Write

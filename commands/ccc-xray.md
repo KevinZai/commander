@@ -1,6 +1,6 @@
 ---
 name: ccc-xray
-description: Run a full project health scan across 6 dimensions and get actionable skill recommendations
+description: "[C:plugin] — Run a full project health scan across 6 dimensions and get actionable skill recommendations"
 ---
 
 # /ccc-xray

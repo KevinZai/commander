@@ -1,6 +1,6 @@
 ---
 name: improve-commands
-description: Audit and improve the slash command library — prune stale commands, identify gaps, enhance existing ones
+description: "[C:meta] — Audit and improve the slash command library — prune stale commands, identify gaps, enhance existing ones"
 usage: /improve-commands
 version: 1.3.0
 ---

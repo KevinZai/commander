@@ -1,3 +1,7 @@
+---
+description: "[C:meta] — Manage eval-driven development workflow — create, run, and track evals before writing implementation code."
+---
+
 # Eval Command
 
 Manage eval-driven development workflow.

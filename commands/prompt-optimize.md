@@ -1,5 +1,5 @@
 ---
-description: Analyze a draft prompt and output an optimized, ECC-enriched version ready to paste and run. Does NOT execute the task — outputs advisory analysis only.
+description: "[C:meta] — Analyze a draft prompt and output an optimized, ECC-enriched version ready to paste and run. Does NOT execute the task — outputs advisory analysis only."
 ---
 
 # /prompt-optimize

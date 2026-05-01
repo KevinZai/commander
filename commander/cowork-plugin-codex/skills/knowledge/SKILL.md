@@ -1,6 +1,6 @@
 ---
 name: knowledge
-description: "Knowledge compounding — search past lessons, view learning history, browse by category. Use when the user says 'what did we learn', 'past lessons', 'knowledge base', 'what went wrong before', 'search knowledge', or 'show recent lessons'. [Commander]"
+description: "[C:meta] — Knowledge compounding — search past lessons, view learning history, browse by category. Use when the user says 'what did we learn', 'past lessons', 'knowledge base',…"
 allowed-tools:
   - Read
   - Glob

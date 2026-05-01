@@ -1,3 +1,7 @@
+---
+description: "[C:meta] — Sync documentation with the codebase by generating from source-of-truth files."
+---
+
 # Update Documentation
 
 Sync documentation with the codebase, generating from source-of-truth files.

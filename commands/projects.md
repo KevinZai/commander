@@ -1,6 +1,6 @@
 ---
 name: projects
-description: List known projects and their instinct statistics
+description: "[C:meta] — List known projects and their instinct statistics"
 command: true
 ---
 

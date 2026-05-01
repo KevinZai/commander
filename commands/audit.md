@@ -1,3 +1,7 @@
+---
+description: "[C:security] — Run npm audit + bundle size check + lint scan. Returns vulnerabilities, oversized bundles, and lint errors."
+---
+
 Run a comprehensive audit of the current project.
 
 Steps:

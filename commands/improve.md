@@ -1,6 +1,6 @@
 ---
 name: improve
-description: Manage the continuous improvement pipeline -- scan, review, approve, and implement improvements to CC Commander
+description: "[C:meta] — Manage the continuous improvement pipeline -- scan, review, approve, and implement improvements to CC Commander"
 triggers:
   - "/improve"
   - "/improve scan"

@@ -1,6 +1,6 @@
 ---
 name: skill-health
-description: Show skill portfolio health dashboard with charts and analytics
+description: "[C:plugin] — Show skill portfolio health dashboard with charts and analytics"
 command: true
 ---
 

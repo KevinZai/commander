@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: "\"Review code changes for security, performance, correctness, and maintainability. Use when: 'review code', 'PR review', 'check changes', 'review my diff', 'is this safe?', 'before I merge', 'audit this code'.\" [Commander]"
+description: "[C:plugin] — \"Review code changes for security, performance, correctness, and maintainability. Use when: 'review code', 'PR review', 'check changes', 'review my diff', 'is this…"
 allowed-tools:
   - Read
   - Write

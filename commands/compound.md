@@ -1,6 +1,6 @@
 ---
 name: compound
-description: Post-task learning capture — extract patterns, corrections, and decisions to compound productivity
+description: "[C:meta] — Post-task learning capture — extract patterns, corrections, and decisions to compound productivity"
 usage: /compound [review|prune]
 version: 1.3.0
 ---

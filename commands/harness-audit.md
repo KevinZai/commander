@@ -1,3 +1,7 @@
+---
+description: "[C:meta] — Run deterministic harness audit and return a prioritized scorecard of ECC setup health."
+---
+
 # Harness Audit Command
 
 Run a deterministic repository harness audit and return a prioritized scorecard.

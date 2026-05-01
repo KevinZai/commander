@@ -1,3 +1,7 @@
+---
+description: "[C:plugin] — Create a pull request for the current branch — commit, push, and open PR via gh CLI."
+---
+
 Create a pull request for the current branch.
 
 Steps:

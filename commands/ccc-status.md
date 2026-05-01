@@ -1,6 +1,6 @@
 ---
 name: status-updates
-description: Configure and manage periodic status update notifications via MCP channels
+description: "[C:plugin] — Configure and manage periodic status update notifications via MCP channels"
 usage: /status-updates [on|off|configure|now|status]
 version: 1.3.0
 ---

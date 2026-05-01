@@ -1,5 +1,5 @@
 ---
-description: "Fleet Commander — launch, monitor, and manage parallel CC agent teams from inside your session"
+description: "[C:devops] — Fleet Commander — launch, monitor, and manage parallel CC agent teams from inside your session"
 ---
 
 # /fleet — Fleet Commander

@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: "Reviews code changes for security vulnerabilities, performance issues, correctness, and maintainability. Returns severity-rated structured findings — e.g., 'review this PR' or delegated from /ccc-review for large diffs and multi-file analysis. [Commander]"
+description: "[C:agent] — Reviews code changes for security vulnerabilities, performance issues, correctness, and maintainability. Returns severity-rated structured findings — e.g., 'review…"
 model: claude-sonnet-4-6
 effort: undefined
 effort: high

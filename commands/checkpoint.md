@@ -1,3 +1,7 @@
+---
+description: "[C:lifecycle] — Create or verify a workflow checkpoint — git commit, state snapshot, and safety gate before proceeding."
+---
+
 # Checkpoint Command
 
 Create or verify a checkpoint in your workflow.

@@ -1,3 +1,7 @@
+---
+description: "[C:devops] — Auto-analyze project and generate PM2 service configuration and lifecycle commands."
+---
+
 # PM2 Init
 
 Auto-analyze project and generate PM2 service commands.

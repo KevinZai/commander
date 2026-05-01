@@ -1,5 +1,5 @@
 ---
-description: Visual context window budget analyzer — shows usage gauge, identifies bloat sources, recommends when to save session and compact.
+description: "[C:meta] — Visual context window budget analyzer — shows usage gauge, identifies bloat sources, recommends when to save session and compact."
 ---
 
 # Context Budget Analyzer

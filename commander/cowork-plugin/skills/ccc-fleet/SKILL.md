@@ -1,6 +1,6 @@
 ---
 name: ccc-fleet
-description: "Multi-agent orchestration — launch parallel Sonnet agents in git worktrees to fan out, pipeline, or compete on a task. Use when the user types /ccc-fleet, /ccc fleet, says 'run parallel agents', 'fan out', 'dispatch a swarm', 'FOR/AGAINST review', 'background task', or needs to split a big job across multiple agents. [Commander]"
+description: "[C:plugin] — Multi-agent orchestration — launch parallel Sonnet agents in git worktrees to fan out, pipeline, or compete on a task. Use when the user types /ccc-fleet, /ccc fleet,…"
 allowed-tools:
   - Read
   - Write

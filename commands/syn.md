@@ -1,5 +1,5 @@
 ---
-description: "Synapse — real-time agent observability dashboard inside your session"
+description: "[C:devops] — Synapse — real-time agent observability dashboard inside your session"
 ---
 
 # /syn — Synapse Observability

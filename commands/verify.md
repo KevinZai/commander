@@ -1,3 +1,7 @@
+---
+description: "[C:meta] — Run comprehensive verification on current codebase state — types, tests, lint, and build."
+---
+
 # Verification Command
 
 Run comprehensive verification on current codebase state.

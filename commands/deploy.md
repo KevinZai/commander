@@ -1,3 +1,7 @@
+---
+description: "[C:devops] — Deploy current project to staging or production. Runs tests, builds, and pushes to detected platform."
+---
+
 Deploy the current project to staging or production.
 
 Steps:

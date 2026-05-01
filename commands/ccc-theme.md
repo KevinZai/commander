@@ -1,6 +1,6 @@
 ---
 name: theme
-description: Switch between visual theme skins — OLED Black, Matrix, Claude Anthropic, Surprise Me
+description: "[C:plugin] — Switch between visual theme skins — OLED Black, Matrix, Claude Anthropic, Surprise Me"
 usage: /theme [list|set|preview|random]
 version: 1.3.0
 ---

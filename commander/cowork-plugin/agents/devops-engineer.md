@@ -1,6 +1,6 @@
 ---
 name: devops-engineer
-description: "Senior DevOps and platform engineer for CI/CD pipelines, infrastructure, deployments, and monitoring. Validates destructive commands before running — e.g., 'set up a GitHub Actions pipeline for AWS' or 'configure Prometheus and Grafana monitoring'. [Commander]"
+description: "[C:agent] — Senior DevOps and platform engineer for CI/CD pipelines, infrastructure, deployments, and monitoring. Validates destructive commands before running — e.g., 'set up a…"
 model: sonnet
 effort: high
 persona: personas/devops-engineer

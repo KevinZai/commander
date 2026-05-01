@@ -1,3 +1,7 @@
+---
+description: "[C:plugin] — Incrementally fix build and type errors with minimal, safe changes. Detects build system, fixes errors one at a time."
+---
+
 # Build and Fix
 
 Incrementally fix build and type errors with minimal, safe changes.

@@ -1,12 +1,7 @@
 ---
 name: benchmark
 version: 1.0.0
-description: |
-  Performance regression detection using the browse daemon. Establishes
-  baselines for page load times, Core Web Vitals, and resource sizes.
-  Compares before/after on every PR. Tracks performance trends over time.
-  Use when: "performance", "benchmark", "page speed", "lighthouse", "web vitals",
-  "bundle size", "load time".
+description: "[C:devops] — Detect performance regressions with browse daemon. Baselines page load, Core Web Vitals, and bundle sizes; compares before/after on every PR."
 allowed-tools:
   - Bash
   - Read

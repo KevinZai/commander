@@ -1,5 +1,5 @@
 ---
-description: "[DEPRECATED] Use /ccc:init instead — unified init + refresh command as of v4.0.0-beta.1."
+description: "[C:plugin] — [DEPRECATED] Use /ccc:init instead — unified init + refresh command as of v4.0.0-beta.1."
 ---
 
 # `/ccc-refresh` — Deprecated Alias

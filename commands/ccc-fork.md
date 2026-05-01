@@ -1,5 +1,5 @@
 ---
-description: Fork the current session for parallel exploration -- try multiple approaches, merge the best.
+description: "[C:plugin] — Fork the current session for parallel exploration -- try multiple approaches, merge the best."
 ---
 
 # Explore Fork

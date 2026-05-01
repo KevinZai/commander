@@ -1,5 +1,5 @@
 ---
-description: Restate requirements, assess risks, and create step-by-step implementation plan. WAIT for user CONFIRM before touching any code.
+description: "[C:meta] — Restate requirements, assess risks, and create step-by-step implementation plan. WAIT for user CONFIRM before touching any code."
 ---
 
 # Plan Command

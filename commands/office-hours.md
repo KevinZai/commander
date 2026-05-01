@@ -1,6 +1,6 @@
 ---
 name: office-hours
-description: Product validation session — stress-test an idea before writing code. Returns BUILD IT / SIMPLIFY FIRST / RESEARCH MORE / KILL IT.
+description: "[C:meta] — Product validation session — stress-test an idea before writing code. Returns BUILD IT / SIMPLIFY FIRST / RESEARCH MORE / KILL IT."
 usage: /office-hours [idea or feature description]
 version: 1.3.0
 ---

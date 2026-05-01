@@ -1,6 +1,6 @@
 ---
 name: fleet
-description: "\"Launch parallel agents for multi-step or parallelizable tasks. Use when: 'fleet', 'parallel agents', 'launch workers', 'multi-agent', 'swarm', 'run in parallel', 'multiple agents', 'fan out'.\" [Commander]"
+description: "[C:plugin] — \"Launch parallel agents for multi-step or parallelizable tasks. Use when: 'fleet', 'parallel agents', 'launch workers', 'multi-agent', 'swarm', 'run in parallel',…"
 allowed-tools:
   - Read
   - Write

@@ -1,5 +1,5 @@
 ---
-description: Open the Linear board, pick issues, create tasks, and manage your project directly from CCC.
+description: "[C:plugin] — Open the Linear board, pick issues, create tasks, and manage your project directly from CCC."
 ---
 
 # /ccc:linear — Linear Board

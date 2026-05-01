@@ -1,3 +1,7 @@
+---
+description: "[C:devops] — Full multi-model development workflow with intelligent routing: Frontend → Gemini, Backend → Codex."
+---
+
 # Workflow - Multi-Model Collaborative Development
 
 Multi-model collaborative development workflow (Research → Ideation → Plan → Execute → Optimize → Review), with intelligent routing: Frontend → Gemini, Backend → Codex.

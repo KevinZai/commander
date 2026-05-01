@@ -1,6 +1,6 @@
 ---
 name: debug-session
-description: Start a structured debug session with hypothesis tracking and resolution documentation
+description: "[C:meta] — Start a structured debug session with hypothesis tracking and resolution documentation"
 usage: /debug-session [issue description]
 version: 1.3.0
 ---

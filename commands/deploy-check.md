@@ -1,6 +1,6 @@
 ---
 name: deploy-check
-description: Pre-deployment readiness gate — returns GO / CAUTION / NO-GO with reasoning
+description: "[C:devops] — Pre-deployment readiness gate — returns GO / CAUTION / NO-GO with reasoning"
 usage: /deploy-check [environment]
 version: 1.3.0
 ---
