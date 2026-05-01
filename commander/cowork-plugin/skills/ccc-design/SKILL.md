@@ -150,7 +150,7 @@ Below is the full routing matrix for agents that drill deeper after an initial p
 
 **Design polish pipeline**
 1. `critique` → identify issues
-2. Choose: `bolder`/`overdrive` (more impact) OR `quieter`/`distill` (less noise)
+2. Use AskUserQuestion with header "Direction", options: **Bolder Impact** (`bolder`/`overdrive`) / **Quieter Distill** (`quieter`/`distill`). Never write "Reply A/B" — always present as clickable chips.
 3. `clarify` → improve readability
 4. `arrange` → fix layout issues
 5. `typeset` → typography refinement

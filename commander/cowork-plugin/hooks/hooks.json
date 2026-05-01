@@ -93,6 +93,11 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/suggest-lightweight.js",
             "timeout": 2000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/clickability-watch.js",
+            "timeout": 1500
           }
         ]
       }

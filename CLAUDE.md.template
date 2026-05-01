@@ -262,6 +262,17 @@ Add this to your `.claude/settings.json` to save ~14,000 tokens per turn:
 
 This loads only 6 primary tools upfront and lazy-loads the rest on demand. Starting context drops from ~45K to ~20K tokens. The single highest-ROI config change you can make.
 
+## Clickability Rule (mandatory)
+
+**HARD RULE:** When offering 2+ choices, you MUST use the AskUserQuestion tool. NEVER write "Reply A/B/C", "Type 1/2/3", or markdown lettered/numbered options as a substitute.
+
+Exceptions (only):
+- Non-interactive terminal (no Cowork Desktop)
+- AskUserQuestion tool unavailable in the current session
+- Choice is rhetorical or illustrative (not asking for an answer)
+
+A clickability hook (`commander/cowork-plugin/hooks/clickability-watch.js`) observes the last assistant message and logs violations to `~/.claude/commander/clickability-violations.jsonl`. Violations don't block — they're observed for telemetry.
+
 ## Cache Efficiency Rules
 1. Never add one-off permissions to global settings — use project-level
 2. Never change tools/models mid-session — use subagents

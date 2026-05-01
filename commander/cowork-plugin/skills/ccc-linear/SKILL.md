@@ -99,7 +99,7 @@ First `AskUserQuestion`: "What kind?"
 - 🧹 Chore — pre-fills type="Chore"
 - 📝 Spike / investigation — pre-fills type="Spike"
 
-Then ask for title via a SECOND AUQ (since we can't take free-text in AUQ, prompt the user to reply with the title in chat). After title received, create via `mcp__linear__save_issue` and echo the issue URL.
+Then ask for title: AskUserQuestion does not support free-text input. Use a chat prompt as fallback for free-text fields (e.g. "Reply with the issue title"). After title received, create via `mcp__linear__save_issue` and echo the issue URL. For all multi-choice fields elsewhere in this skill, use AskUserQuestion.
 
 ### Board overview
 
