@@ -160,6 +160,39 @@ function generateRegistry() {
     { id: 'vibe', trigger: '/mode vibe', costProfile: 'sonnet' },
   ];
 
+  // ── Vendor mappings (Phase 3c) ────────────────────────────────
+  // TOP 3 MAP candidates — routed into /ccc-learn or domain routers.
+  // Skills load on demand from vendor submodule; we register paths only (no code copy).
+  // REFERENCE-ONLY vendors are listed as comments in registry.yaml footer.
+  var vendors = [
+    // [C:vendor:gstack] — MIT — PDF generation + browser REPL (v1.25.0.0+)
+    // Skills load on demand from vendor submodule; no code copy.
+    { id: 'vendor:gstack', name: 'gstack', license: 'MIT', path: 'vendor/gstack', status: 'map', router: '/ccc-learn', note: '[C:vendor:gstack] PDF generation (make-pdf/SKILL.md) + browser sidebar REPL (open-gstack-browser/SKILL.md) + cookie mgmt (setup-browser-cookies/SKILL.md). Route via /ccc-learn > Browser & PDF tools.' },
+    // [C:vendor:ecc] — MIT — Multi-agent observability dashboard (ecc2 Rust board + Python dashboard + hook collection)
+    { id: 'vendor:ecc', name: 'everything-claude-code', license: 'MIT', path: 'vendor/everything-claude-code', status: 'map', router: '/ccc-learn', note: '[C:vendor:ecc] Observability: ecc_dashboard.py (Python), ecc2/ (Rust board), hooks/ (PreToolUse/PostToolUse/Stop collection). Route via /ccc-learn > Observability & hooks.' },
+    // [C:vendor:ohmy] — MIT — Team-aware git worktree orchestration (v4.13.5, team/omc-teams/autoresearch skills)
+    { id: 'vendor:ohmy', name: 'oh-my-claudecode', license: 'MIT', path: 'vendor/oh-my-claudecode', status: 'map', router: '/ccc-fleet', note: '[C:vendor:ohmy] Team worktrees: skills/team + skills/omc-teams (register/list/status) + skills/autoresearch. Bridge at bridge/team.js. Route via /ccc-fleet > Team worktree management.' },
+    // REFERENCE-ONLY — vendor present but no user-facing skill mapping (consider drop in v4.2)
+    { id: 'vendor:acpx', name: 'acpx', license: 'MIT', path: 'vendor/acpx', status: 'reference-only', note: 'ACP protocol patterns; 2 skills already mapped (acpx, acpx-patterns). Consider drop in v4.2.' },
+    { id: 'vendor:caliber-ai-setup', name: 'caliber-ai-setup', license: 'MIT', path: 'vendor/caliber-ai-setup', status: 'reference-only', note: 'AI setup wizard; no user-facing skill mapping. Consider drop in v4.2.' },
+    { id: 'vendor:claude-code-best-practice', name: 'claude-code-best-practice', license: 'MIT', path: 'vendor/claude-code-best-practice', status: 'reference-only', note: 'Best practice docs; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:claude-code-prompts', name: 'claude-code-prompts', license: 'MIT', path: 'vendor/claude-code-prompts', status: 'reference-only', note: 'Prompt templates; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:claude-hud', name: 'claude-hud', license: 'MIT', path: 'vendor/claude-hud', status: 'reference-only', note: 'HUD overlay; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:claude-skills', name: 'claude-skills', license: 'MIT', path: 'vendor/claude-skills', status: 'reference-only', note: 'Community skills collection; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:compound-engineering', name: 'compound-engineering', license: 'MIT', path: 'vendor/compound-engineering', status: 'reference-only', note: 'CE CLI workflows; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:graphify', name: 'graphify', license: 'MIT', path: 'vendor/graphify', status: 'reference-only', note: 'Knowledge graph CLI; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:mattpocock-skills', name: 'mattpocock-skills', license: 'MIT', path: 'vendor/mattpocock-skills', status: 'reference-only', note: 'TypeScript-first skills (grill-me, to-prd); no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:notebooklm-py', name: 'notebooklm-py', license: 'MIT', path: 'vendor/notebooklm-py', status: 'reference-only', note: 'NotebookLM Python CLI; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:repomix', name: 'repomix', license: 'MIT', path: 'vendor/repomix', status: 'reference-only', note: 'Repo packing for LLM context; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:superpowers', name: 'superpowers', license: 'MIT', path: 'vendor/superpowers', status: 'reference-only', note: 'Codex integration + writing skills; 2 skills adapted (ccc-agent-writing, ccc-systematic-debugging). Consider drop in v4.2.' },
+    { id: 'vendor:ui-ux-pro-max-skill', name: 'ui-ux-pro-max-skill', license: 'MIT', path: 'vendor/ui-ux-pro-max-skill', status: 'reference-only', note: 'UI/UX Three.js skills; no user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:claude-reflect', name: 'claude-reflect', license: 'MIT', path: 'vendor/claude-reflect', status: 'reference-only', note: 'Reflection/migration patterns; at upstream HEAD. No user-facing mapping. Consider drop in v4.2.' },
+    { id: 'vendor:rtk', name: 'rtk', license: 'Apache-2.0', path: 'vendor/rtk', status: 'reference-only', note: 'RTK token-kill CLI; Apache-2.0 with NOTICE.md. No user-facing mapping. Consider drop in v4.2.' },
+    // PINNED — do not bump (license constraints)
+    { id: 'vendor:claude-mem', name: 'claude-mem', license: 'AGPL-3.0', path: 'vendor/claude-mem', status: 'pinned', note: 'AGPL-3.0 — submodule reference only, no code copy. DO NOT bump without re-audit.' },
+    { id: 'vendor:claude-code-ultimate-guide', name: 'claude-code-ultimate-guide', license: 'CC-BY-SA-4.0', path: 'vendor/claude-code-ultimate-guide', status: 'pinned', note: 'CC-BY-SA-4.0 — content license, derivatives must share-alike. Stay pinned.' },
+  ];
+
   var registry = {
     generated: new Date().toISOString().split('T')[0],
     version: require(path.join(ROOT, 'package.json')).version,
@@ -168,6 +201,7 @@ function generateRegistry() {
     modes: modes,
     commands: commands,
     hooks: hooks,
+    vendors: vendors,
   };
 
   return registry;
