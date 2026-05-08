@@ -75,7 +75,27 @@ All notable changes to CC Commander will be documented in this file.
 - [CC-659](https://linear.app/k3v80/issue/CC-659) — Audit /ccc-connect affiliate links: enable Vercel + Supabase + Neon
 - [CC-660](https://linear.app/k3v80/issue/CC-660) — Pro Discord: defer launch until 200 stars; price $19/mo (was $49)
 - [CC-661](https://linear.app/k3v80/issue/CC-661) — Test debt: clear remaining 64 audit-test failures (post-rename + count drift)
-- [CC-662](https://linear.app/k3v80/issue/CC-662) — Pro tier launch: Stripe checkout + license validation + premium skill packs (urgent)
+- [CC-662](https://linear.app/k3v80/issue/CC-662) — Pro tier launch: Stripe checkout + license validation + premium skill packs (urgent) — *amended by CC-663 to use Lemon Squeezy*
+- [CC-663](https://linear.app/k3v80/issue/CC-663) — **Migrate Pro tier checkout to Lemon Squeezy** (urgent — replaces Stripe path) — MOR + native affiliate + license keys
+- [CC-664](https://linear.app/k3v80/issue/CC-664) — Affiliate program: LS native + /affiliate signup page (30% × 12mo) — high
+- [CC-665](https://linear.app/k3v80/issue/CC-665) — Creator program: GitHub OAuth + auto-generated /r/{slug} landing pages + dashboard (35% × 24mo) — high
+- [CC-666](https://linear.app/k3v80/issue/CC-666) — Influencer outreach playbook + top-20 target list (50% lifetime, hand-picked) — medium
+- [CC-667](https://linear.app/k3v80/issue/CC-667) — Press kit + Vercel OG image generation + creator marketing assets — medium
+
+### Monetization plan finalized (2026-05-08, late evening — see `marketing/monetization-plan-2026-05-08.md`)
+
+**Payment processor:** **Lemon Squeezy** (Merchant of Record + native affiliate + license keys + customer portal). Picked over Stripe for: 1-day setup vs 1-2 weeks, global VAT/sales-tax compliance built-in, native affiliate program saves $129/mo Rewardful subscription. Switch to Stripe at $50K MRR.
+
+**Three-tier creator partner program:**
+- **Affiliate** (self-signup, instant) — 30% recurring × 12mo, custom referral URL, LS dashboard
+- **Creator** (1K+ followers OR proven content) — 35% recurring × 24mo, custom landing page at `cc-commander.com/r/{username}`, co-branded OG image, press kit
+- **Influencer** (top 20 hand-picked) — 50% recurring lifetime, custom co-branded site, direct Slack with Kevin, custom 20% off discount codes for their audience
+
+**1-click signup:** GitHub OAuth → fetch profile → POST to LS `/v1/affiliates` → generate slug → auto-create custom landing page → email creator.
+
+**Custom landing pages:** auto-generated at `/r/{username}` with creator avatar, embedded pitch (tweet/YouTube/quote), pricing CTA with affiliate code baked in, Vercel OG image with their face + name. ISR cache 60s for fast edits.
+
+**90-day target:** $10-15K MRR + $30K Lifetime sales (first 100 sold).
 
 ### Pricing pivot (2026-05-08, late evening)
 
