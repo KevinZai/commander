@@ -15,6 +15,10 @@ const CONFIG_FILE = join(CCC_DIR, 'config.json');
 const COST_FILE = join(CCC_DIR, 'sessions', 'active-cost.json');
 
 const DEFAULT_CEILING = 10.00;
+// /loop note: cost-tracker.js accumulates $0.01/tool-call (synthetic estimate).
+// Under rapid /loop iterations this may trigger the ceiling earlier than expected.
+// Raise costCeiling in ~/.claude/commander/config.json when using /loop long-running patterns,
+// or set CLAUDE_LOOP_ACTIVE=1 to signal loop context (future: skip ceiling check in loop mode).
 
 async function main() {
   let input = {};

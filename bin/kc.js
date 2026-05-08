@@ -242,6 +242,12 @@ if (args.includes('--skills')) {
       console.error('Usage: ccc --skills install <name>');
       process.exit(1);
     }
+    // CWE-22 path traversal + CWE-73 argv injection hardening:
+    // Skill name must be lowercase alphanumeric with hyphens, max 64 chars.
+    if (!/^[a-z0-9-]{1,64}$/.test(installName)) {
+      console.error('Invalid skill name: must match /^[a-z0-9-]{1,64}$/');
+      process.exit(1);
+    }
     // Defense-in-depth: reject obviously-malicious input shapes before any path join.
     // Catches URL-encoded, double-encoded, null-byte, absolute, Windows-traversal bypasses
     // that may not trip the post-resolve escape check on POSIX.

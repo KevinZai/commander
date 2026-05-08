@@ -111,7 +111,15 @@ export function percentile(arr: number[], p: number): number {
   return sorted[Math.min(idx, sorted.length - 1)];
 }
 
+// CWE-306 auth hardening: bearer-token gate for /metrics endpoint
 app.get("/metrics", (c) => {
+  const token = process.env.METRICS_AUTH_TOKEN;
+  if (token) {
+    const auth = c.req.header("Authorization") ?? "";
+    if (auth !== `Bearer ${token}`) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+  }
   const reg = getRegistryState();
   const lines: string[] = [
     "# HELP commander_skills_loaded Number of skills in registry",

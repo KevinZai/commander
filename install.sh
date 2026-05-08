@@ -16,9 +16,10 @@
 set -euo pipefail
 
 VERSION="$(grep '"version"' package.json | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')"
+# XDG Base Directory spec (CWE-732 / defense-in-depth):
+# If XDG_CONFIG_HOME is set, cc-commander uses it directly as the config root.
+# When unset, falls back to ~/.claude (traditional default).
 CLAUDE_DIR="${XDG_CONFIG_HOME:-$HOME/.claude}"
-# Normalize: if XDG_CONFIG_HOME is set, cc-commander lives at $XDG_CONFIG_HOME/claude
-# When XDG_CONFIG_HOME is unset the expression above evaluates to $HOME/.claude (default).
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 USER_NAME=""

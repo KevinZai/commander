@@ -172,6 +172,21 @@ function main() {
   var sessionRemaining = getSessionTimeRemaining(); // minutes remaining in 5h window
   var cacheHit = args.cacheHit !== undefined ? args.cacheHit : '--'; // best-effort
 
+  // /loop awareness: Claude Code 2.1.123+ renders its own loop tag in the UI.
+  // CCC status-line shows 🔁 when CLAUDE_LOOP_ACTIVE env is set by the runtime.
+  var loopActive = false;
+  try {
+    loopActive = !!process.env.CLAUDE_LOOP_ACTIVE;
+    if (!loopActive) {
+      // Fallback: check session loop-state file written by Claude Code
+      var sessionId = process.env.CLAUDE_SESSION_ID || '';
+      if (sessionId) {
+        var loopStatePath = path.join(os.homedir(), '.claude', 'sessions', sessionId, 'loop-state.json');
+        loopActive = fs.existsSync(loopStatePath);
+      }
+    }
+  } catch (_) {}
+
   if (args.json) {
     process.stdout.write(JSON.stringify({
       version: version,
@@ -184,6 +199,7 @@ function main() {
       sessionMinutes: sessionMinutes,
       sessionRemaining: sessionRemaining,
       cacheHit: cacheHit,
+      loopActive: loopActive,
     }) + '\n');
     return;
   }
@@ -216,8 +232,9 @@ function main() {
     '\u23F3' + t.dim + sessionRemainingFmt + t.reset,
     '\uD83D\uDCBE' + t.dim + cacheHit + '%' + t.reset,
     '\uD83C\uDFAF' + t.primary + skillCount + t.reset,
+    loopActive ? '\uD83D\uDD01' + t.primary + 'loop' + t.reset : null,
     '\uD83D\uDCC2' + t.dim + cwd + t.reset,
-  ].join('\u2502');
+  ].filter(Boolean).join('\u2502');
 
   process.stdout.write(line + '\n');
 }
