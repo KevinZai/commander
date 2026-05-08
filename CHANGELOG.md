@@ -37,9 +37,44 @@ All notable changes to CC Commander will be documented in this file.
 
 | Metric | Before | After |
 |--------|--------|-------|
-| plugin_skills | 55 | 61 |
+| plugin_skills | 55 | 62 |
 | specialist_agents | 17 | 22 |
 | hook_handlers | 19 | 24 |
+
+### Evening session adds (2026-05-08, post-tag)
+
+- **ccc-doc-sync** (skill #62) — declarative doc synchronization: reads `contract.json` + `package.json`, applies regex patterns from `patterns.json` to keep counts/version refs current across 21 docs. `--check` for CI drift, `--apply` to write. Prevents future "55 vs 61 vs 62" inconsistencies.
+- **Video showcase pack** — 5 looping motion spots (hero / install / agents / compare / hooks) wired into landing page between WorkflowDemo and SkillsShowcase, all counts synced to v4.1 reality. Replaced fabricated GH star climb with "★ free forever" (no fake numbers).
+- **Hosted MCP Phase 0 unblocked** — `apps/mcp-server-cloud/src/db/schema.sql` (users + usage_counters tables, `get_effective_cap` + `increment_usage` RPCs, RLS-enabled service-role-only); `METRICS_AUTH_TOKEN` wired into `src/lib/env.ts` + `.env.example` + `/metrics` gate.
+- **Community files** — `CONTRIBUTING.md` (free-forever guardrails baked in), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `.github/PULL_REQUEST_TEMPLATE.md` (counts-impact checklist), `.claude/launch.json` (5 dev server configs for Claude Preview).
+- **Consulting funnel** — `kevinz.ai/consulting` CTA in landing footer (orange accent) + `/ccc-start` tour close. GitHub Sponsors row added to footer.
+- **Async hooks** (Anthropic features audit Patch 1) — `cost-tracker`, `pr-link-notify`, `fleet-notify`, `agent-run-logger` flagged `async: true` per Jan-2026 hook spec; reclaims 3-5s/session of dead latency.
+
+### Evening session fixes (post-tag)
+
+- **5 stale count refs in `docs/index.html`** outside ccc-doc-sync coverage: meta description, og:description, twitter:description, JSON-LD, install-demo terminal — all now 62 plugin skills · 22 specialist agents.
+- **Patterns.json template cascade bugs** — 7× `$19 events. ${hook_handlers}$2` (where `$19` was being interpreted as `$1` + literal `9 events.`) caused growing duplication on each run; fixed to `$1${hook_handlers}$2`.
+- **24 description-length audit violations** — language reviewers and skills shortened to ≤200 chars while keeping `[C:domain]` semantic prefix.
+- **Version manifest parity** — bumped 4.0.0 → 4.1.0-beta.2 across 5 files (root `package.json`, `apps/mcp-server-cloud/package.json` + lockfile, `commander/cowork-plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`).
+- **Codex-mirror regen** — old skills (`build/`, `code-review/`, `content/`, `domains/`, `infra/`, `knowledge/`, `linear-board/`, `night-mode/`, `session/`, `settings/`, `standup/`, `deploy-check/`) deleted from `cowork-plugin-codex/`; replaced with their `ccc-*`-prefixed canonical versions plus the new `ccc-doc-sync`.
+
+### Evening session deps + vendors
+
+- **mcp-server-cloud:** `hono` 4.12.14→4.12.18, `@supabase/supabase-js` 2.103.3→2.105.4, `@upstash/redis` 1.37.0→1.38.0, `@types/node` 22.19.17→22.19.18.
+- **site:** `next` 16.2.4→16.2.6, `react`/`react-dom` 19.2.5→19.2.6, `tailwindcss` 4.2.2→4.2.4, `stripe` 22.0.1→22.1.1, `@stripe/stripe-js` 9.2.0→9.4.0, `lucide-react` 1.8.0→1.14.0, `typescript` 6.0.2→6.0.3, `postcss` 8.5.10→8.5.14.
+- **vendor submodules (10):** oh-my-claudecode v4.13.5→v4.13.6, caliber-ai-setup v1.49.3→v1.49.6, plus +1/+10/+13/+16/+37/+38/+51/+10 commits across superpowers, gstack, mattpocock-skills, notebooklm-py, acpx, compound-engineering, claude-code-best-practice, claude-code-ultimate-guide.
+
+### Evening session tickets opened (Linear CC-)
+
+- [CC-653](https://linear.app/k3v80/issue/CC-653) — MCP Phase 1: Provision Supabase + Upstash + Fly + vault + GH secret (urgent, blocker)
+- [CC-654](https://linear.app/k3v80/issue/CC-654) — Verify + apply Anthropic Patch 2: permissionDecision: "defer" for force-push
+- [CC-655](https://linear.app/k3v80/issue/CC-655) — Verify + apply Anthropic Patch 3: MCP tool annotations on cloud server
+- [CC-656](https://linear.app/k3v80/issue/CC-656) — Vendor majors: review + bump 6 deferred packages (claude-mem v13, rtk, claude-hud, repomix, graphify, claude-skills)
+- [CC-657](https://linear.app/k3v80/issue/CC-657) — Publish first 3 blog posts to kevinz.ai + cc-commander.com/blog
+- [CC-658](https://linear.app/k3v80/issue/CC-658) — Set up GitHub Sponsors with 3 tiers ($5 / $19 / $99)
+- [CC-659](https://linear.app/k3v80/issue/CC-659) — Audit /ccc-connect affiliate links: enable Vercel + Supabase + Neon
+- [CC-660](https://linear.app/k3v80/issue/CC-660) — Pro Discord: defer launch until 200 stars; price $19/mo (was $49)
+- [CC-661](https://linear.app/k3v80/issue/CC-661) — Test debt: clear remaining 64 audit-test failures (post-rename + count drift)
 
 ---
 
