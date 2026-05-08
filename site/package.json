@@ -10,25 +10,25 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^9.2.0",
+    "@stripe/stripe-js": "^9.4.0",
     "@vercel/postgres": "^0.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
-    "lucide-react": "^1.8.0",
-    "next": "^16.2.4",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "stripe": "^22.0.1",
+    "lucide-react": "^1.14.0",
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "stripe": "^22.1.1",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
-    "@types/node": "^25.6.0",
+    "@tailwindcss/postcss": "^4.2.4",
+    "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "postcss": "^8.5.10",
-    "tailwindcss": "^4.2.2",
-    "typescript": "^6.0.2"
+    "postcss": "^8.5.14",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3"
   }
 }
