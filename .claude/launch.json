@@ -1,0 +1,35 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "site (Next.js landing page)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "site"],
+      "port": 3000
+    },
+    {
+      "name": "mcp-server-cloud (Hono dev server)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/mcp-server-cloud"],
+      "port": 8080
+    },
+    {
+      "name": "dashboard (vanilla session inspector)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["dashboard/server.js"],
+      "port": 4690
+    },
+    {
+      "name": "mintlify-docs (docs.cc-commander.com preview)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["mintlify", "dev"],
+      "port": 3001
+    },
+    {
+      "name": "video (Remotion studio)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "video"],
+      "port": 3002
+    }
+  ]
+}
