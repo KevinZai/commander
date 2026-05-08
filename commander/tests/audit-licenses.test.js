@@ -185,26 +185,28 @@ test('every license in copied-content.json is in CLASSIFICATION map', function (
   }
 });
 
-// ─── 4. audit-licenses.js --check exits 1 when FAIL copies present ───────────
+// ─── 4. audit-licenses.js --check exits 0 when no FAIL copies present ────────
 
-test('audit-licenses.js --check exits 1 (FAIL copies detected)', function () {
-  const { execFileSync, spawnSync } = require('node:child_process');
+test('audit-licenses.js --check exits 0 (no FAIL copies in tree)', function () {
+  const { spawnSync } = require('node:child_process');
   const script = path.join(__dirname, '..', 'scripts', 'audit-licenses.js');
   // Run the real audit against the actual repo state
+  // skills/pptx and skills/pdf-official were git rm'd in commit 9e5e0db — no FAIL entries remain
   const result = spawnSync(process.execPath, [script, '--check'], { encoding: 'utf8' });
-  // We expect exit code 1 because pptx + pdf-official are Anthropic-Proprietary FAIL
   assert.strictEqual(
     result.status,
-    1,
-    'audit --check must exit 1 when Anthropic-Proprietary copies are in tree'
+    0,
+    'audit --check must exit 0 when no Anthropic-Proprietary FAIL copies are in tree'
   );
-  assert.ok(result.stdout.includes('HARD FAIL'), 'stdout must include HARD FAIL');
+  assert.ok(!result.stdout.includes('HARD FAIL'), 'stdout must NOT include HARD FAIL');
 });
 
-test('audit-licenses.js --check output lists both failing files', function () {
+test('audit-licenses.js --check output shows 0 FAIL entries', function () {
   const { spawnSync } = require('node:child_process');
   const script = path.join(__dirname, '..', 'scripts', 'audit-licenses.js');
   const result = spawnSync(process.execPath, [script, '--check'], { encoding: 'utf8' });
-  assert.ok(result.stdout.includes('skills/pptx/SKILL.md'), 'pptx must be in FAIL list');
-  assert.ok(result.stdout.includes('skills/pdf-official/SKILL.md'), 'pdf-official must be in FAIL list');
+  // pptx and pdf-official were removed — they must not appear in output
+  assert.ok(!result.stdout.includes('skills/pptx/SKILL.md'), 'pptx must NOT be in output (skill removed)');
+  assert.ok(!result.stdout.includes('skills/pdf-official/SKILL.md'), 'pdf-official must NOT be in output (skill removed)');
+  assert.ok(result.stdout.includes('0 ❌ FAIL'), 'Totals line must show 0 FAIL');
 });
