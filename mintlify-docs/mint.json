@@ -109,10 +109,5 @@
   "footerSocials": {
     "x": "https://x.com/kzic",
     "github": "https://github.com/KevinZai/commander"
-  },
-  "analytics": {
-    "plausible": {
-      "domain": "docs.cc-commander.dev"
-    }
   }
 }
