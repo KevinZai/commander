@@ -49,7 +49,8 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js",
-            "timeout": 3000
+            "timeout": 3000,
+            "async": true
           },
           {
             "type": "command",
@@ -121,7 +122,8 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pr-link-notify.js",
-            "timeout": 3000
+            "timeout": 3000,
+            "async": true
           }
         ]
       }
@@ -158,7 +160,8 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/fleet-notify.js",
-            "timeout": 5000
+            "timeout": 5000,
+            "async": true
           }
         ]
       }
@@ -185,7 +188,8 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/agent-run-logger.js",
-            "timeout": 5000
+            "timeout": 5000,
+            "async": true
           }
         ]
       }
