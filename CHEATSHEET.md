@@ -1,5 +1,5 @@
 # CC Commander Cheatsheet
-> CC Commander v4.0.0 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v4.1.0-beta.2 — by Kevin Zicherman — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -8,7 +8,7 @@
 
 ## Desktop Plugin Commands (v4.0.0)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 55 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /save-session + /resume-session).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 61 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 new channel/CI/ECC skills + diagnostic/meta + vendor-sourced + lifecycle + deploy + session management).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -25,7 +25,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (33 total — 13 specialist workflows + 14 domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e; core surface shown)
+### /ccc-* Skills (61 total — 13 specialist workflows + 14 domain routers + 6 channel/CI/ECC skills + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -44,8 +44,14 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | `/ccc-code-review` | Multi-agent code review (3 reviewers, structured) | Pro |
 | `/ccc-deploy-check` | Pre-deployment readiness gate | Pro |
 | `/ccc-fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro |
+| `/ccc-brainstorm` | Guided ideation: problem framing → divergent ideas → shortlist | Free |
+| `/ccc-qa` | QA workflow: test planning, coverage audit, edge-case generation | Free |
+| `/ccc-loop` | Run any /ccc-* skill on a recurring interval | Free |
+| `/ccc-hermes` | Hermes Gateway status, OAuth bridge health, token refresh | Free |
+| `/ccc-nightwatch` | Remote YOLO permission relay — approve tool calls from mobile | Free |
+| `/ccc-ci` | CI/CD gate: lint, test, build, branch checks, pre-push hooks | Free |
 
-### Sub-agent personas (17)
+### Sub-agent personas (22)
 
 Brain/hands architecture — each persona has a distinct role, model, and voice. Skills delegate to these automatically.
 
@@ -68,10 +74,15 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | 15 | fleet-worker | Sonnet | Parallel scoped batch work |
 | 16 | typescript-reviewer | Sonnet | TypeScript review: strict mode, async, ESM/CJS |
 | 17 | python-reviewer | Sonnet | Python review: PEP 8, type hints, pytest, security |
+| 18 | go-reviewer | Sonnet | Go review: idiomatic patterns, goroutine safety, error wrapping |
+| 19 | rust-reviewer | Sonnet | Rust review: ownership/borrowing, lifetimes, unsafe blocks |
+| 20 | java-reviewer | Sonnet | Java review: Spring patterns, null safety, checked exceptions |
+| 21 | kotlin-reviewer | Sonnet | Kotlin review: coroutines, null safety, sealed classes |
+| 22 | csharp-reviewer | Sonnet | C# review: async/await, nullable references, LINQ, DI |
 
 ### Lifecycle hook events (9)
 
-9 events, 19 handlers — fire automatically every session (no configuration needed):
+9 events, 24 handlers — fire automatically every session (no configuration needed):
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
@@ -84,7 +95,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | `PreCompact` | Before context compaction | 1 (block if active subagents) |
 | `SubagentStop` | Subagent finishes | 1 (dispatch results tracker) |
 | `PermissionRequest` | Tool permission prompt | 1 (permission gate) |
-| **TOTAL** | **9 events** | **19 handlers** |
+| **TOTAL** | **9 events** | **24 handlers** |
 
 ### Plugin MCP Servers (9)
 

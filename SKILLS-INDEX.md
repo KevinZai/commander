@@ -1,16 +1,16 @@
 # Skills Index — Quick Reference
-> CC Commander v4.0.0 — by Kevin Zicherman
+> CC Commander v4.1.0-beta.2 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-05-08 | Desktop plugin first: 58 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop) + 17 specialist sub-agents + 9 lifecycle hooks (19 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
+> Last verified: 2026-05-08 | Desktop plugin first: 61 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop) + 22 specialist sub-agents + 9 lifecycle hooks (24 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
 
 ---
 
-## Specialist Sub-Agents (17)
+## Specialist Sub-Agents (22)
 
-All 17 sub-agents are free. They fire automatically from skills — no manual invocation needed. Routed by `/ccc-build`, `/ccc-review`, `/ccc-plan`, `/ccc-design`, `/ccc-ship`, and `/ccc-fleet`.
+All 22 sub-agents are free. They fire automatically from skills — no manual invocation needed. Routed by `/ccc-build`, `/ccc-review`, `/ccc-plan`, `/ccc-design`, `/ccc-ship`, and `/ccc-fleet`.
 
 | # | Sub-Agent | Model | Best For |
 |---|-----------|-------|---------|
@@ -31,12 +31,17 @@ All 17 sub-agents are free. They fire automatically from skills — no manual in
 | 15 | `fleet-worker` | Sonnet | Parallel batch work, scoped execution in fleet mode |
 | 16 | `typescript-reviewer` | Sonnet | TypeScript-specific review: strict mode, async correctness, ESM/CJS, ReDoS, idiomatic patterns |
 | 17 | `python-reviewer` | Sonnet | Python-specific review: PEP 8, type hints, async/await, pytest, security, idiomatic patterns |
+| 18 | `go-reviewer` | Sonnet | Go-specific review: idiomatic patterns, goroutine safety, error wrapping, interface hygiene |
+| 19 | `rust-reviewer` | Sonnet | Rust-specific review: ownership/borrowing, lifetimes, unsafe blocks, trait coherence |
+| 20 | `java-reviewer` | Sonnet | Java-specific review: Spring patterns, null safety, checked exceptions, record classes |
+| 21 | `kotlin-reviewer` | Sonnet | Kotlin-specific review: coroutines, null safety, sealed classes, idiomatic stdlib |
+| 22 | `csharp-reviewer` | Sonnet | C#-specific review: async/await, nullable reference types, LINQ, DI patterns |
 
 ---
 
-## Desktop Plugin Skills (v4.0.0)
+## Desktop Plugin Skills (v4.1.0-beta.2)
 
-> Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 55 plugin skills total (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade). **All free forever.**
+> Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 61 plugin skills total (13 /ccc-* workflows + 14 ccc-* domain routers + 6 new channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop). **All free forever.**
 
 | Skill | Description | Trigger Phrases |
 |-------|-------------|----------------|
@@ -61,6 +66,11 @@ All 17 sub-agents are free. They fire automatically from skills — no manual in
 | `/save-session` | Save current session state to `~/.claude/commander/sessions/` for later resume | "save session", "save my progress" |
 | `/resume-session` | Resume a previously saved session — restores context, todos, and plan | "resume session", "pick up where I left off" |
 | `/ccc-loop` | Run any /ccc-* skill on a recurring interval via Claude Code's native /loop (2.1.123+) — includes 5+ patterns and self-pacing guidance | "loop a skill", "run ccc-doctor every 5 minutes", "continuous review" |
+| `/ccc-brainstorm` | Guided ideation: problem framing → divergent ideas → convergent shortlist | "brainstorm", "ccc brainstorm", "ideate on this" |
+| `/ccc-qa` | QA workflow router: test planning, coverage audit, edge-case generation, regression sweep | "ccc qa", "qa this", "find edge cases" |
+| `/ccc-hermes` | Hermes Gateway integration: OAuth bridge status, token refresh, provider health | "hermes status", "ccc hermes", "check oauth bridge" |
+| `/ccc-nightwatch` | Remote YOLO permission relay: approve/reject tool calls from mobile while agent runs overnight | "ccc nightwatch", "overnight mode", "remote approve" |
+| `/ccc-ci` | CI/CD workflow: lint, test, build gate, branch checks, pre-push hooks | "ccc ci", "run ci checks", "pre-push gate" |
 
 ### Bundled MCP Servers (9)
 

@@ -2280,7 +2280,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v4.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 55 plugin skills, 17 specialist sub-agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (19 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v4.1.0-beta.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 61 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (24 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2293,8 +2293,8 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (55 plugin skills)
-  +-- 17 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, ...)
+  +-- /ccc-build, /ccc-review, ...    (61 plugin skills)
+  +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 9 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
   +-- AskUserQuestion chip picker     (click-first — no menu traversal)
@@ -2337,7 +2337,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 55 plugin skills, 17 agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (19 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 61 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (24 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 

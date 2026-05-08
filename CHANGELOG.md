@@ -2,6 +2,47 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.1.0-beta.2] — 2026-05-08
+
+### Added
+
+- **ccc-brainstorm** — guided ideation skill: problem framing → divergent ideas → convergent shortlist (PreToolUse)
+- **ccc-qa** — QA workflow router: test planning, coverage audit, edge-case generation, regression sweep (PostToolUse)
+- **ccc-loop** — run any `/ccc-*` skill on a recurring interval via Claude Code's native /loop (Stop)
+- **ccc-hermes** — Hermes Gateway integration: OAuth bridge status, token refresh, provider health (SessionStart)
+- **ccc-nightwatch** — remote YOLO permission relay: approve/reject tool calls from mobile while agent runs overnight (PermissionRequest)
+- **ccc-ci** — CI/CD workflow skill: lint, test, build gate, branch checks, pre-push hooks (PreToolUse)
+- **go-reviewer** agent — Go-specific review: idiomatic patterns, goroutine safety, error wrapping, interface hygiene
+- **rust-reviewer** agent — Rust-specific review: ownership/borrowing, lifetimes, unsafe blocks, trait coherence
+- **java-reviewer** agent — Java-specific review: Spring patterns, null safety, checked exceptions, record classes
+- **kotlin-reviewer** agent — Kotlin-specific review: coroutines, null safety, sealed classes, idiomatic stdlib
+- **csharp-reviewer** agent — C#-specific review: async/await, nullable reference types, LINQ, DI patterns
+- **5 ECC hooks ported** — config-protection (PreToolUse), console-log-warn (PostToolUse), doc-file-warning (PreToolUse), git-push-reminder (Stop), pr-link-notify (PostToolUse)
+
+### Fixed
+
+- **CWE-1333 ReDoS** — unbounded quantifier in hook pattern matcher replaced with possessive equivalent
+- **CWE-306 /metrics auth** — `/metrics` endpoint now requires `Authorization: Bearer` header; unauthenticated requests return 401
+- **CWE-22/73 argv path traversal** — `kc.js` argv parsing sanitized; user-supplied paths validated against allowlist before fs ops
+- **XDG comment drift** — XDG Base Dir paths in config loader corrected to match actual runtime behaviour
+- **Lighthouse 5 quick wins** — CLS reduced via explicit image dimensions, LCP image preloaded, render-blocking CSS inlined, unused JS deferred, `font-display: swap` added
+- **Test fixtures synced** — count assertions updated to match post-bump totals (101/101 pass)
+
+### Changed
+
+- **11 skills renamed for ccc- prefix compliance** — all plugin skills now consistently prefixed `/ccc-*` for autocomplete grouping
+- **SKILLS-INDEX.md** updated with 5 new plugin skills and refreshed agent count
+
+### Counts
+
+| Metric | Before | After |
+|--------|--------|-------|
+| plugin_skills | 55 | 61 |
+| specialist_agents | 17 | 22 |
+| hook_handlers | 19 | 24 |
+
+---
+
 ## [4.1.0-beta.1] — 2026-05-08
 
 ### Added
