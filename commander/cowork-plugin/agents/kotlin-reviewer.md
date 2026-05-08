@@ -1,6 +1,6 @@
 ---
 name: kotlin-reviewer
-description: "[C:agent] — Kotlin-specific code reviewer. Audits for idiomatic Kotlin, coroutine correctness, Android patterns, null safety, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Kotlin file' or used automatically by /ccc-review on Kotlin projects."
+description: "[C:agent] — Kotlin-specific code reviewer. Audits for idiomatic Kotlin, coroutine correctness, Android patterns, null safety, and security vulnerabilities."
 model: sonnet
 effort: high
 persona: personas/reviewer

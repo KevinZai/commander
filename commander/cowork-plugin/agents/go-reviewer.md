@@ -1,6 +1,6 @@
 ---
 name: go-reviewer
-description: "[C:agent] — Go-specific code reviewer. Audits for Effective Go idioms, gofmt compliance, race conditions, channel patterns, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this Go file' or used automatically by /ccc-review on Go projects."
+description: "[C:agent] — Go-specific code reviewer. Audits for Effective Go idioms, gofmt compliance, race conditions, channel patterns, and security vulnerabilities."
 model: sonnet
 effort: high
 persona: personas/reviewer

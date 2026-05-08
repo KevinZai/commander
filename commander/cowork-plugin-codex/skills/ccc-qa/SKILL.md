@@ -1,6 +1,6 @@
 ---
 name: ccc-qa
-description: Comprehensive QA workflow. Runs unit + integration + E2E tests, generates coverage delta report, enumerates missing edge cases, quarantines flaky tests. Delegates to qa-engineer agent.
+description: "[C:testing] — QA workflow. Runs unit + integration + E2E tests, coverage delta, edge case enumeration, flaky test quarantine. Delegates to qa-engineer agent."
 allowed-tools:
   - Bash
   - Read

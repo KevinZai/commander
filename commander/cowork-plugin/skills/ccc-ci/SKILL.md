@@ -1,6 +1,6 @@
 ---
 name: ccc-ci
-description: CI/CD webhook channel. Receive GitHub Actions, Vercel, Railway, Fly.io deploy events directly in your Claude Code session. Auto-triggers /ccc-doctor on failed deploys, surfaces success stats. Setup webhook receiver via /ccc-ci init — exposes localhost:7891 (or pick port).
+description: "[C:channel] — CI/CD webhook channel. Receive GitHub Actions, Vercel, Railway deploy events in your session. Auto-triggers /ccc-doctor on failures."
 model: sonnet
 effort: medium
 allowed-tools:

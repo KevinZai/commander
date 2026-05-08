@@ -1,6 +1,6 @@
 ---
 name: ccc-doc-sync
-description: Sync all count references and version strings across project docs from a single source of truth (contract.json + package.json). Run --check in CI to catch drift before publish.
+description: "[C:meta] — Sync count references and version strings across docs from contract.json + package.json. Run --check in CI to catch drift."
 allowed-tools:
   - Read
   - Edit

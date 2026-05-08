@@ -73,3 +73,7 @@ User: "What did we decide about the MCP bundling split?"
 - `~/.claude/sessions/` directory (created by `/save-session`)
 - Optional: `memory/` in project root (created by `/ccc-memory`)
 - Native bash grep (no external dependencies)
+
+---
+
+*Adapted from [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) (MIT license). Attribution required per MIT terms.*

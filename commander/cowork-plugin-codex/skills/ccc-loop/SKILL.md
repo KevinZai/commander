@@ -1,6 +1,6 @@
 ---
 name: ccc-loop
-description: Run any /ccc-* skill on a recurring interval using Claude Code's native /loop command. Examples — /loop 5m /ccc-doctor (health monitor), /loop /ccc-review (continuous branch audit). Returns common loop patterns and self-pacing guidance.
+description: "[C:meta] — Run any /ccc-* skill on a recurring interval via Claude Code's native /loop. Returns loop patterns and self-pacing guidance."
 ---
 
 # /ccc-loop — Loop Integration Guide

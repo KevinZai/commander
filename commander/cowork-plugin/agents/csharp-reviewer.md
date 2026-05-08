@@ -1,6 +1,6 @@
 ---
 name: csharp-reviewer
-description: "[C:agent] — C#-specific code reviewer. Audits for .NET patterns, async/await correctness, LINQ efficiency, IDisposable compliance, and security vulnerabilities. Returns severity-rated findings — e.g., 'review this C# file' or used automatically by /ccc-review on C# projects."
+description: "[C:agent] — C#-specific code reviewer. Audits for .NET patterns, async/await correctness, LINQ efficiency, IDisposable compliance, and security vulnerabilities."
 model: sonnet
 effort: high
 persona: personas/reviewer

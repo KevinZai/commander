@@ -1,6 +1,6 @@
 ---
 name: ccc-hermes
-description: Bridge Claude Code to OpenClaw Hermes Gateway (port 18789). Routes messages bidirectionally — Hermes channels (Discord/Slack/Telegram/WhatsApp) become Claude Code triggers, and Claude Code skills become Hermes-callable actions. Auto-escalates complex tasks from Hermes (cheap models) to Claude Code (Opus). Optional — only loads if Hermes Gateway is detected at localhost:18789.
+description: "[C:channel] — Bridge Claude Code to OpenClaw Hermes Gateway (port 18789). Hermes channels become CC triggers; CC skills become Hermes-callable. Optional."
 allowed-tools:
   - Bash
   - Read
