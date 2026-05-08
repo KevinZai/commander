@@ -24,6 +24,7 @@ export const env = {
   upstashRedisToken: process.env.UPSTASH_REDIS_REST_TOKEN!,
   jwtSecret: process.env.JWT_SECRET!,
   posthogKey: process.env.POSTHOG_API_KEY ?? "",
+  metricsAuthToken: process.env.METRICS_AUTH_TOKEN ?? "",
   port: parseInt(process.env.PORT ?? "8080", 10),
   nodeEnv: process.env.NODE_ENV ?? "production",
 } as const;

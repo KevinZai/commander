@@ -113,7 +113,7 @@ export function percentile(arr: number[], p: number): number {
 
 // CWE-306 auth hardening: bearer-token gate for /metrics endpoint
 app.get("/metrics", (c) => {
-  const token = process.env.METRICS_AUTH_TOKEN;
+  const token = env.metricsAuthToken;
   if (token) {
     const auth = c.req.header("Authorization") ?? "";
     if (auth !== `Bearer ${token}`) {
