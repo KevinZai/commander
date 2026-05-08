@@ -9,6 +9,7 @@
       ]
     },
     "sequential-thinking": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",

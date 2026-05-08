@@ -172,7 +172,7 @@ test('--patch fixes simple count and version mismatches', function() {
   assert.match(readme, /17 specialist agents/);
   assert.match(readme, /9 lifecycle hooks \(19 handlers\)/);
   assert.match(readme, /2 pre-configured MCP servers \+16 opt-in/);
-  assert.match(readme, /459\+ skills across 11 CCC domains/);
+  assert.match(readme, /457\+ skills across 11 CCC domains/);
 
   var check = spawnCheck(['--root', root, '--check']);
   assert.strictEqual(check.status, 0, check.stdout + check.stderr);

@@ -5,6 +5,15 @@ skills/gstack/node_modules/
 tasks/
 dashboard/dist/
 
+# Coverage reports
+coverage/
+
+# Build output
+output/
+
+# Video assets
+video/out/
+
 # Environment & secrets
 .env*
 *.env

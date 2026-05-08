@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
-> CC Commander v4.0.0-beta.11 — by Kevin Zicherman
+> CC Commander v4.0.0 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-04-24 | Desktop plugin first: 51 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade) + 17 specialist sub-agents + 8 lifecycle hooks (16 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
+> Last verified: 2026-04-24 | Desktop plugin first: 55 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade) + 17 specialist sub-agents + 9 lifecycle hooks (19 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
@@ -34,9 +34,9 @@ All 17 sub-agents are free. They fire automatically from skills — no manual in
 
 ---
 
-## Desktop Plugin Skills (v4.0.0-beta.11)
+## Desktop Plugin Skills (v4.0.0)
 
-> Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 51 plugin skills total (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade). **All free forever.**
+> Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 55 plugin skills total (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade). **All free forever.**
 
 | Skill | Description | Trigger Phrases |
 |-------|-------------|----------------|
@@ -601,7 +601,7 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = added in CC Commander v2.3.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v3.0.0, updated in v4.0.0-beta.7.*
+*⭐ = added in CC Commander v2.3.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v3.0.0, updated in v4.0.0.*
 
 ---
 
