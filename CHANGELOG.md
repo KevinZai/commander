@@ -75,6 +75,20 @@ All notable changes to CC Commander will be documented in this file.
 - [CC-659](https://linear.app/k3v80/issue/CC-659) — Audit /ccc-connect affiliate links: enable Vercel + Supabase + Neon
 - [CC-660](https://linear.app/k3v80/issue/CC-660) — Pro Discord: defer launch until 200 stars; price $19/mo (was $49)
 - [CC-661](https://linear.app/k3v80/issue/CC-661) — Test debt: clear remaining 64 audit-test failures (post-rename + count drift)
+- [CC-662](https://linear.app/k3v80/issue/CC-662) — Pro tier launch: Stripe checkout + license validation + premium skill packs (urgent)
+
+### Pricing pivot (2026-05-08, late evening)
+
+**Brand reset:** "free forever" replaced with **MIT-licensed Starter (free) + paid Pro tier** ($19/mo · $190/yr · $299 lifetime).
+
+- Bulk sweep: "free forever" → "free for now" / "MIT licensed core" across 30+ files (README, BIBLE, CHEATSHEET, SKILLS-INDEX, CLAUDE.md, mintlify-docs, hook comments, test fixtures, plugin description). Codex mirror auto-regenerated.
+- `commander/contract.json`: `free_forever: true` → `pricing_model: "free-for-now-with-paid-pro-coming"` + `pro_tier_planned: true`.
+- `site/components/pricing-table.tsx`: 3 tiers (Starter / Pro / Lifetime), monthly+yearly toggle, /api/stripe/checkout?tier= hrefs.
+- `mintlify-docs/plugin/free-vs-pro.mdx`: full rewrite — describes each tier, premium skill packs, why we charge, what we will never do.
+- `commander/cowork-plugin/skills/ccc-start/SKILL.md`: tour-close section reframed with 5 paths (Pro monthly, Pro lifetime, consulting, sponsors, star+share).
+- `CONTRIBUTING.md` + `.github/PULL_REQUEST_TEMPLATE.md`: governance now allows license gating on **NEW Pro features only**, blocks paywalls on existing Starter.
+- `site/components/footer.tsx`: tagline "MIT licensed core · Pro tier coming · no telemetry".
+- `site/public/videos/scene-hero.jsx`: "★ open source" (was "★ free forever").
 
 ---
 
