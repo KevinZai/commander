@@ -14,7 +14,7 @@ For the developer (or Claude Code agent) picking this up. Read top to bottom; ev
 
 ## What this is
 
-`cc-commander.com` — single-page static marketing site for the open-source Claude Code plugin **CC Commander** ("commander"). Brief was strict: dark-only, editorial typography, terminal/dev energy, MIT, free forever. Built to drop into any static host without a build step.
+`cc-commander.com` — single-page static marketing site for the open-source Claude Code plugin **CC Commander** ("commander"). Brief was strict: dark-only, editorial typography, terminal/dev energy, MIT, free for now. Built to drop into any static host without a build step.
 
 ## What's already done
 
@@ -106,7 +106,7 @@ HANDOFF.md       this file
 | 1810–1900 | install demo · code vs commander · compare bars |
 | 1900–2380 | 17 agents · 11 domains |
 | 2380–2570 | skill explorer · hooks lifecycle · architecture · Kevin Z method · testimonials · github |
-| 2570–2700 | free forever · quick start · FAQ · footer |
+| 2570–2700 | free for now · quick start · FAQ · footer |
 | 2700–2710 | sticky-bottom CTA |
 | 2710–3032 | `<script>` |
 
@@ -133,7 +133,7 @@ Lighthouse target was 95+. If you regress this, audit the offending change rathe
 - ❌ Don't add a build step. No PostCSS, no Tailwind, no Sass. The CSS is intentionally hand-written.
 - ❌ Don't split into multiple files. Inline `<style>` and inline `<script>` are by design — keep the single-file constraint.
 - ❌ Don't add light mode. Brief is dark-only.
-- ❌ Don't add a pricing page. It's free forever; it's stated once and we move on.
+- ❌ Don't add a pricing page. It's free for now; it's stated once and we move on.
 - ❌ Don't add carousels, sliders, or auto-rotating heroes.
 - ❌ Don't add cartoon illustrations or stock photography. The 17 agent portraits are programmatically composed SVGs and should stay that way.
 - ❌ Don't add new sections without the user's signoff. The page is intentionally complete.

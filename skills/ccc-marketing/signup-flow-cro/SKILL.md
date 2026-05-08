@@ -152,7 +152,7 @@ Every field reduces conversion. For each field, ask:
 
 ### At the Form Level
 - "No credit card required" (if true)
-- "Free forever" or "14-day free trial"
+- "Free for now" or "14-day free trial"
 - Privacy note: "We'll never share your email"
 - Security badges if relevant
 - Testimonial near signup form

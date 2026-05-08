@@ -1,55 +1,89 @@
 ---
-title: "Pricing — Free Forever"
-description: "CC Commander is free forever. All 62 skills, 22 sub-agents, 9 lifecycle hooks (24 handlers), and 2 credential-free bundled MCP servers (+16 opt-in). No paid tier planned."
+title: "Pricing — Starter, Pro, Lifetime"
+description: "CC Commander has an MIT-licensed plugin core (free for individuals) and a paid Pro tier ($19/mo · $190/yr · $299 lifetime) for unlimited hosted MCP, premium skill packs, and priority support."
 ---
 
-CC Commander has **no paid tier**. No Stripe, no license key, no tier check, no feature gating. Everything is free.
+CC Commander is **free to start** — every skill, every agent, every hook is open-source under MIT. **Pro** unlocks unlimited cloud, premium skill packs, priority support, and early access. **Lifetime** is the launch deal: pay once, own it.
 
-## Everything Is Free
+## Plans at a glance
 
-All of the following are free, for everyone, always:
+| Plan | Price | Best for |
+|------|-------|----------|
+| **Starter** | $0 | Solo devs, OSS contributors, anyone evaluating |
+| **Pro** | $19/mo · $190/yr | Daily users who want unlimited cloud + premium |
+| **Lifetime** | $299 one-time *(launch — first 100)* | Commitment makers who'd rather not subscribe |
 
-- ✅ 62 plugin skills (all specialist workflows + domain routers + channel/CI/ECC skills + meta + writing/debugging + session/lifecycle + MIT ports + /ccc-upgrade)
-- ✅ 22 specialist sub-agent personas
-- ✅ 9 lifecycle hook events / 24 handlers
-- ✅ 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via `/ccc-connect`
-- ✅ 502+ ecosystem skills across 11 CCC domains
-- ✅ CLI with 83 slash commands and 10 themes
-- ✅ Knowledge compounding + session memory
-- ✅ Intelligence layer (complexity scoring, stack detection)
+## What's in Starter (free, all of it)
 
-No caps. No call limits. No mandatory feedback. No upgrade nudges.
+The MIT-licensed plugin core. **Everything below is free for individuals** and will not be paywalled — fork it, extend it, ship it.
 
-## How It Stays Free
+- ✅ All **62 plugin skills** — every `/ccc-*` workflow, domain router, channel/CI skill
+- ✅ All **22 specialist sub-agent personas** (architect, reviewer, builder, debugger, security-auditor, designer, qa-engineer, devops, data-analyst, product-manager, content-strategist, technical-writer, fleet-worker, performance-engineer, researcher, plus 7 language-specific reviewers)
+- ✅ All **9 lifecycle hooks** with **24 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest)
+- ✅ **2 credential-free bundled MCP servers** (context7 + sequential-thinking)
+- ✅ **16 opt-in MCP connectors** via `/ccc-connect` (Notion, Slack, GitHub, Supabase, Figma, Linear, Vercel, Neon, Fly.io, Upstash, Sentry, Stripe, Browserbase, Postgres, Cloudflare, Redis)
+- ✅ **502+ ecosystem skills** across 11 CCC domains
+- ✅ Community support via [GitHub Discussions](https://github.com/KevinZai/commander/discussions)
+- ✅ **100 hosted MCP calls/month** (when CC Cloud ships) — anti-abuse cap, not a paywall
 
-CC Commander is a **trust engine, not a SaaS**. Revenue comes from four sources — none require you to pay:
+## What's in Pro
 
-| Source | Type | How it works |
-|--------|------|-------------|
-| **Consulting** | Primary | Kevin's consulting pipeline. Companies that use CC Commander hire Kevin. |
-| **Affiliate links** | Passive | Transparent disclosures in `/ccc-connect` (Supabase, Vercel, Neon, etc.). You only see them if you opt in to the connector skill. |
-| **Pro Community** | Optional | A paid Discord/community may launch post-beta — for deeper access to Kevin and the network, not gated features. |
-| **GitHub Sponsors** | Optional | For those who want to contribute directly. |
+Pro is **paid hosted services + curation**. The plugin code itself is the same — Pro adds:
 
-The plugin itself will never be paywalled.
+- 🚀 **Unlimited hosted MCP calls** — no monthly cap, batch-friendly latency
+- 📦 **Premium skill packs** — 8-10 advanced workflow templates curated and maintained:
+  - Enterprise SSO patterns (SAML, OIDC, Okta/Auth0/Azure AD)
+  - Multi-tenant SaaS templates (row-level security, billing, invitations)
+  - Complex DB migration patterns (zero-downtime, schema versioning, backfills)
+  - Advanced observability (OTel, Honeycomb, distributed tracing)
+  - Chaos-engineering playbooks
+  - Plus more shipping monthly
+- 📧 **Priority email support** — 24-hour response SLA on bugs and questions
+- ⚡ **Early access** — 1-week head start on new skills, hooks, agents before they ship to Starter
+- 🔄 **Cross-machine state sync** (when CC Cloud ships) — `~/.claude/commander/` synced across your laptops
+- 💬 **Pro Discord** — private channel with Kevin + other Pro users (launches at 200 GitHub stars)
 
-## A Note on "Pro" in Old Docs
+## What's in Lifetime
 
-If you've seen references to a "Pro tier" at $15/mo or $19/mo, or "1000 calls/mo beta limit" — those were placeholders from an earlier monetization model that was abandoned before launch. The business model is now locked as **free forever**.
+Everything in Pro, **forever**, for a single one-time payment.
 
-There is no upgrade path because there is nothing to upgrade to.
+- 🏆 **Founding member** — early supporters get a permanent badge in Pro Discord
+- 🔒 **Locked-in pricing** — your $299 is the only thing you ever pay; future Pro price hikes don't apply
+- 📅 **All future Pro features included** — premium skill packs as they launch, sync, support, all of it
+- ⏳ **Limited launch pricing** — first 100 lifetime sales at $299. After that, Lifetime moves to $499.
 
-## Commander Hub (v4.1 — Future)
+## Why we charge for Pro (transparency)
 
-A **Commander Hub marketplace** (80/20 creator rev-share) is planned for v4.1 — think Gumroad for skills. If you build a skill and publish it, you keep 80% of any revenue. CC Commander itself remains free; the Hub is an optional creator layer on top.
+Hosted MCP costs real money to run — Fly.io machines, Upstash Redis, Supabase database, bandwidth. Premium skill packs take real time to research and curate (10-20 hours per pack). Priority support is real engineering time.
 
-This is not a paywall — it's a distribution mechanism for third-party skill creators.
+Pro pricing pays for these things directly. Starter stays MIT-licensed because the plugin code is git-clonable — paywalling it would be both impossible and wrong.
 
-## Install
+## What we will never do
 
-```bash
-/plugin marketplace add KevinZai/commander
-/plugin install commander
-```
+- ❌ Paywall existing skills, agents, or hooks that ship in Starter today
+- ❌ Add license-key gating to the plugin core (impossible — it's open-source)
+- ❌ Telemetry-driven nag popups
+- ❌ Time-limited trials that degrade to a worse state
+- ❌ Retroactive feature removal from Starter
+- ❌ Sell your data — there is no telemetry, period
 
-That's it. No email, no account, no license key. You run on your existing Claude subscription.
+## How to upgrade
+
+1. Visit [cc-commander.com/pricing](https://cc-commander.com/#pricing)
+2. Pick monthly, yearly, or lifetime
+3. Stripe checkout
+4. Receive license key via email
+5. Set `CCC_PRO_LICENSE_KEY` env var or save to `~/.claude/commander/license.json`
+6. Pro features activate on next session
+
+## Refunds
+
+14-day money-back guarantee on monthly and yearly. Lifetime: 30-day refund window (since you're committing for the long haul).
+
+## Affiliate income (separate)
+
+CC Commander also earns affiliate revenue from `/ccc-connect` connectors (Vercel, Supabase, Neon partner programs). These are transparently disclosed in `commander/cowork-plugin/CONNECTORS.md`. They don't affect what you pay — Vercel pays *us* a referral fee for sending qualified leads. You always see the full URL before clicking.
+
+## Sponsor independently of pricing
+
+If you don't need Pro features but want to support the project: [GitHub Sponsors](https://github.com/sponsors/KevinZai) has Coffee ($5/mo), Server ($19/mo), and Patron ($99/mo) tiers. These are gratitude tiers, not feature unlocks — Sponsors get name credit + Pro Discord access without buying Pro.

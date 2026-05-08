@@ -151,7 +151,7 @@ export function Footer() {
             </span>
           </div>
           <p className="text-zinc-600">
-            100% local · no telemetry · MIT licensed core
+            MIT licensed core · Pro tier coming · no telemetry
           </p>
         </div>
       </div>

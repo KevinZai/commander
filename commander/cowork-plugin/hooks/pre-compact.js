@@ -7,7 +7,7 @@
  *   - blocks if: active task in progress (status: executing / writing / committing)
  *   - allows otherwise: session idle, no active-session.json, or any error (fail open)
  *
- * Free forever — no license check, no tier gating.
+ * Free for now — no license check, no tier gating.
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';

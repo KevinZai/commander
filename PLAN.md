@@ -10,8 +10,8 @@
 ## 🎯 North Star
 
 **Product:** CC Commander — Guided AI PM to Master Claude Code Instantly.
-**One-liner:** 1 install. 502+ skills. Every AI IDE. Free forever.
-**Business model (locked):** Free forever. 4-lever revenue stack: consulting (primary) + affiliate links (passive) + optional Pro Community (post-beta) + GitHub Sponsors (optional). No paid plugin tier planned.
+**One-liner:** 1 install. 502+ skills. Every AI IDE. Free for now.
+**Business model (locked):** Free for now. 4-lever revenue stack: consulting (primary) + affiliate links (passive) + optional Pro Community (post-beta) + GitHub Sponsors (optional). No paid plugin tier planned.
 **Publisher:** Kevin Zicherman. Personal publisher for beta → Commander Labs LLC at $50K ARR.
 
 **Brand canon (locked):**
@@ -46,7 +46,7 @@
 ## 📦 Current Shipped Surface (v4.0.0-beta.11)
 
 ### Plugin (works fully standalone)
-- **33 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e — all free forever)
+- **33 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e — all free for now)
 - **17 specialist sub-agents** with persona voice system (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer)
 - **8 lifecycle hooks / 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
 - **9 bundled MCP server configs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem, sequential-thinking)

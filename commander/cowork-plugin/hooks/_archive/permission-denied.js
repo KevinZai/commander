@@ -6,7 +6,7 @@
  * Logs denied permissions for retrospective analysis + settings optimization.
  * Records tool name, session id, and input-length summary (never full content).
  *
- * Free forever — no license check, no tier gating.
+ * Free for now — no license check, no tier gating.
  */
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';

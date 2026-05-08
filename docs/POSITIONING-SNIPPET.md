@@ -50,7 +50,7 @@ That's it. Type `/ccc` to open the hub.
 | Lifecycle hooks | 8 events / 16 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop |
 | Bundled MCP servers | 2 credential-free + 16 opt-in | Ship-day: `context7` + `sequential-thinking`. Opt-in via `/ccc-connect`: Tavily, GitHub, Figma, Supabase, Playwright, Slack, Notion, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash |
 
-**Free forever.** No feature gating. No paywalls. No license checks.
+**Free for now.** No feature gating. No paywalls. No license checks.
 
 ---
 
@@ -69,13 +69,13 @@ A Desktop screenshot of this flow is pending capture at `docs/screenshots/03-ccc
 ## One-liner descriptions (A/B variants for README headline)
 
 **[A] Outcome-led:**
-> One plugin. 50 skills. Free forever. Your guided AI PM for every AI coding agent.
+> One plugin. 50 skills. Free for now. Your guided AI PM for every AI coding agent.
 
 **[B] Pain-led:**
 > Stop context-switching between docs, tools, and prompts. Commander runs everything from `/ccc`.
 
 **[C] Feature-led:**
-> 50 skills · 17 sub-agents · 8 lifecycle hooks (16 handlers) · 2 bundled + 16 opt-in MCPs — Desktop, CLI, Cursor, Windsurf. Free forever.
+> 50 skills · 17 sub-agents · 8 lifecycle hooks (16 handlers) · 2 bundled + 16 opt-in MCPs — Desktop, CLI, Cursor, Windsurf. Free for now.
 
 Recommended: run [A] as the hero H1, [C] as the subtitle/tagline underneath.
 
@@ -104,4 +104,4 @@ This is the technical differentiator from plain Claude Code + prompts.
 
 **Title:** Commander — Free Claude Code Desktop Plugin | 50 Skills + 17 Agents
 
-**Meta description:** Install Commander in Claude Code Desktop. 50 click-first skills, 17 specialist sub-agents, 8 lifecycle hooks (16 handlers), and 2 credential-free bundled MCP servers (+16 opt-in) — all free forever. Type `/ccc` to start.
+**Meta description:** Install Commander in Claude Code Desktop. 50 click-first skills, 17 specialist sub-agents, 8 lifecycle hooks (16 handlers), and 2 credential-free bundled MCP servers (+16 opt-in) — all free for now. Type `/ccc` to start.

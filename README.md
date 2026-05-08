@@ -5,7 +5,7 @@
   <img src="docs/assets/ccc-hero.svg" alt="CC Commander — AI PM plugin for Claude Code Desktop and Claude Code CLI" width="100%">
 </picture>
 
-# CC Commander — AI PM for Claude Code · 62 Skills · 22 Agents · Free Forever
+# CC Commander — AI PM for Claude Code · 62 Skills · 22 Agents · Free for Now
 
 > **Ship faster with Claude Code and Cowork Desktop.** One plugin install activates 62 skills, 22 specialist AI agents, and 9 lifecycle hooks across Claude Code Desktop, Claude Code CLI, Cursor, Windsurf, and every MCP-capable IDE.
 
@@ -15,7 +15,7 @@
 Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Install
 ```
 
-**What you get:** 62 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 9 lifecycle hooks · 2 bundled MCP servers · 502+ ecosystem skills · Free forever.
+**What you get:** 62 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 9 lifecycle hooks · 2 bundled MCP servers · 502+ ecosystem skills · Free for now.
 
 <img src="docs/assets/hero.gif" alt="CC Commander v4.0.0 — Claude Code Desktop plugin demo" width="100%">
 
@@ -93,7 +93,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 - 🔄 **Weekly vendor auto-sync** — 20 vendor submodules auto-update via GitHub Actions. The ecosystem stays current without you touching a thing.
 - 🌐 **Cross-client, one license** — Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile (hosted MCP).
 - 🚁 **Fleet orchestration** — `/ccc-fleet` runs multiple Sonnet agents in parallel **git worktrees**. Fan-out, pipeline, FOR/AGAINST, background modes.
-- 🆓 **Free forever** — no credit card, no signup. No feature gating, no paywalls.
+- 🆓 **Free for now** — no credit card, no signup. No feature gating, no paywalls.
 - 🧬 **Shared brain: plugin + CLI** — same intelligence layer, same skill catalog, same personas. Install either, get both.
 - 📖 **The Kevin Z Method** — `BIBLE.md` ships with the plugin. 7 rules, 200+ sources, 14 months of production methodology.
 - 📚 **502+ skills across 11 CCC domains** — design, marketing, SaaS, DevOps, SEO, testing, security, data, research, mobile, makeover. Plus the vendor ecosystem.
@@ -228,7 +228,7 @@ CC Commander is a **meta-layer** — it routes to other plugins, not away from t
 
 Claude Code · Cursor · Windsurf · Cline · Continue · Codex · Claude mobile · Claude Desktop
 
-## Free Forever
+## Free for Now
 
 All 62 plugin skills, 22 specialist agents, 9 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors — free, no credit card, no feature gating.
 
@@ -627,7 +627,7 @@ One question: **How are you using Claude?**
 
 CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what should I build" to begin.
 
-**What you get:** 55 plugin skills, 17 specialist agents, 9 lifecycle hooks (19 handlers), 2 credential-free bundled MCP servers + 16 opt-in via `/ccc-connect`. Free forever.
+**What you get:** 55 plugin skills, 17 specialist agents, 9 lifecycle hooks (19 handlers), 2 credential-free bundled MCP servers + 16 opt-in via `/ccc-connect`. Free for now.
 
 **Marketplace:** `commander-hub` at [KevinZai/commander](https://github.com/KevinZai/commander)
 
@@ -867,7 +867,7 @@ Both tools make you faster. They solve different problems.
 | **Agent model** | Single model, single context | 22 specialist sub-agent personas (brain/hands) |
 | **Git** | Deep — commit messages, repo mapping | Lifecycle hooks + `/ccc-ship` pre-flight |
 | **Context** | Repo map (tree-sitter, 15k tokens) | Session compounding + knowledge base |
-| **Cost** | API pay-per-token | Free forever (affiliate + consulting model) |
+| **Cost** | API pay-per-token | Free for now (affiliate + consulting model) |
 | **Install** | `pip install aider-chat` | Desktop plugin marketplace or `curl \| bash` |
 | **Best at** | Solo rapid edits, refactors, small files | Multi-phase features, reviews, fleet orchestration |
 

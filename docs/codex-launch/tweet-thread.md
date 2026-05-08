@@ -17,4 +17,4 @@
 
 Repo: https://github.com/KevinZai/commander
 
-Free forever. Feedback welcome.
+Free for now. Feedback welcome.

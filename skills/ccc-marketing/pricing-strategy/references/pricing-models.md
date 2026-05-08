@@ -130,7 +130,7 @@ Comprehensive reference for SaaS pricing models with real-world examples and whe
 
 | Model | Description | Best For |
 |-------|-------------|---------|
-| Free forever tier | Permanently limited free plan | PLG, viral loops |
+| Free for now tier | Permanently limited free plan | PLG, viral loops |
 | Time-limited trial | Full access for 14-30 days | Sales-assisted, complex products |
 | Usage-limited trial | Full access until limit hit | Developer tools, AI |
 | Freemium | Permanently limited, upsell to paid | Bottoms-up enterprise |

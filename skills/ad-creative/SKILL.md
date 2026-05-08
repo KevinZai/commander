@@ -238,7 +238,7 @@ Track what was learned and what's being tested:
 
 Descriptions should complement headlines, not repeat them. Use descriptions to:
 - Add proof points (numbers, testimonials, awards)
-- Handle objections ("No credit card required," "Free forever for small teams")
+- Handle objections ("No credit card required," "Free for now for small teams")
 - Reinforce CTAs ("Start your free trial today")
 - Add urgency when genuine ("Limited to first 500 signups")
 

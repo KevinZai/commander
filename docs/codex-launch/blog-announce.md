@@ -25,7 +25,7 @@ The Codex launch carries the same Commander core:
 - 16 opt-in MCP connectors through `/ccc-connect`
 - 502+ ecosystem skills across the broader Commander catalog
 
-The local plugin is free forever. The bundled MCP baseline avoids the install-day failure mode where a plugin tries to start credentialed services before the user has configured anything.
+The local plugin is free for now. The bundled MCP baseline avoids the install-day failure mode where a plugin tries to start credentialed services before the user has configured anything.
 
 ## The 85% Mechanical Port
 

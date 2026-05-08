@@ -6,59 +6,58 @@ type Interval = "monthly" | "yearly";
 
 const TIERS = [
   {
-    name: "Free",
-    description: "The core AI project manager. Forever free.",
+    name: "Starter",
+    description: "Open-source plugin. The full toolkit — yours to use, fork, extend.",
     price: { monthly: "$0", yearly: "$0" },
     interval: { monthly: "", yearly: "" },
     features: [
-      "5 core skills (commander, session, settings, knowledge, domains)",
-      "2 lifecycle hooks (SessionStart, Stop)",
-      "8 pre-configured MCP integrations",
-      "Access to 450+ CCC ecosystem skills",
-      "CLI + Desktop plugin",
-      "Community support",
+      "All 62 plugin skills (every /ccc-* workflow)",
+      "All 22 specialist sub-agent personas",
+      "All 9 lifecycle hooks (24 handlers)",
+      "2 credential-free bundled MCP servers + 16 opt-in",
+      "100 hosted MCP calls/month (when Cloud ships)",
+      "Community support via GitHub Discussions",
     ],
-    cta: "Install CCC Free",
+    cta: "Install Starter",
     href: "#install",
     highlighted: false,
   },
   {
     name: "Pro",
-    description: "Unlock specialized agents, advanced workflows, and auto-capture.",
+    description: "Unlimited cloud. Premium skill packs. Priority eyes on your bugs.",
     price: { monthly: "$19", yearly: "$190" },
     interval: { monthly: "/month", yearly: "/year" },
-    yearlySave: "2 months free",
+    yearlySave: "Save $38 — 2 months free",
     features: [
-      "Everything in Free, plus:",
-      "10 advanced skills (build, research, code-review, deploy-check, fleet, night-mode, standup, content, linear-board, infra)",
-      "5 specialized agents (reviewer, builder, researcher, debugger, fleet-worker)",
-      "4 advanced hooks (auto-capture, cost tracking, intent classification, notifications)",
-      "Knowledge compounding across sessions",
-      "Night mode — autonomous overnight builds",
-      "Email support",
+      "Everything in Starter, plus:",
+      "Unlimited hosted MCP calls (no monthly cap)",
+      "Premium skill packs — 8-10 advanced workflow templates",
+      "Priority email support (24h response)",
+      "Early access — 1-week head start on new skills",
+      "Cross-machine state sync (when Cloud ships)",
+      "Pro Discord access (when launched at 200 stars)",
     ],
     cta: "Start Pro",
     href: "/api/stripe/checkout?tier=pro",
     highlighted: true,
   },
   {
-    name: "Team",
-    description: "For teams shipping together with shared knowledge and governance.",
-    price: { monthly: "$99", yearly: "$990" },
-    interval: { monthly: "/month · 5 seats", yearly: "/year · 5 seats" },
-    yearlySave: "2 months free",
+    name: "Lifetime",
+    description: "Pay once, own it. Limited-time launch pricing — first 100 only.",
+    price: { monthly: "$299", yearly: "$299" },
+    interval: { monthly: "one-time", yearly: "one-time" },
+    yearlySave: "Save $200+ vs annual after year 2",
     features: [
-      "Everything in Pro, plus:",
-      "Shared team knowledge base",
-      "Team standup aggregation",
-      "Org-wide deploy gates",
-      "Fleet Commander orchestration at scale",
-      "Private MCP server support",
-      "Slack Connect support",
-      "Enterprise SSO available",
+      "Everything in Pro — forever",
+      "Single one-time payment, no recurring billing",
+      "All future Pro features included",
+      "Lifetime access to premium skill packs as they launch",
+      "Lifetime priority support",
+      "Founding-member badge in Pro Discord",
+      "Locked-in pricing — never goes up for you",
     ],
-    cta: "Contact Sales",
-    href: "mailto:hello@cc-commander.com?subject=CCC%20Team%20inquiry",
+    cta: "Buy Lifetime",
+    href: "/api/stripe/checkout?tier=lifetime",
     highlighted: false,
   },
 ];
@@ -71,12 +70,12 @@ export function PricingTable() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            Free forever core.
+            Free to start.
             <br />
-            <span className="text-zinc-500">Pro when you're ready.</span>
+            <span className="text-zinc-500">Pro when you're ready to ship.</span>
           </h2>
           <p className="text-zinc-400 max-w-2xl mx-auto">
-            Start free. No credit card. Upgrade when you need agents, night mode, or knowledge compounding.
+            MIT-licensed plugin core, free for individuals. Pro unlocks unlimited hosted MCP, premium skill packs, and priority support — pick monthly, yearly, or pay once for lifetime access.
           </p>
         </div>
 

@@ -6,7 +6,7 @@
  * Persists session learning to ~/.claude/commander/knowledge/ for
  * compounding intelligence across sessions.
  *
- * Free forever — no license check, no tier gating.
+ * Free for now — no license check, no tier gating.
  */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';

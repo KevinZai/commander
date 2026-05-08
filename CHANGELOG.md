@@ -44,7 +44,7 @@ All notable changes to CC Commander will be documented in this file.
 ### Evening session adds (2026-05-08, post-tag)
 
 - **ccc-doc-sync** (skill #62) — declarative doc synchronization: reads `contract.json` + `package.json`, applies regex patterns from `patterns.json` to keep counts/version refs current across 21 docs. `--check` for CI drift, `--apply` to write. Prevents future "55 vs 61 vs 62" inconsistencies.
-- **Video showcase pack** — 5 looping motion spots (hero / install / agents / compare / hooks) wired into landing page between WorkflowDemo and SkillsShowcase, all counts synced to v4.1 reality. Replaced fabricated GH star climb with "★ free forever" (no fake numbers).
+- **Video showcase pack** — 5 looping motion spots (hero / install / agents / compare / hooks) wired into landing page between WorkflowDemo and SkillsShowcase, all counts synced to v4.1 reality. Replaced fabricated GH star climb with "★ free for now" (no fake numbers).
 - **Hosted MCP Phase 0 unblocked** — `apps/mcp-server-cloud/src/db/schema.sql` (users + usage_counters tables, `get_effective_cap` + `increment_usage` RPCs, RLS-enabled service-role-only); `METRICS_AUTH_TOKEN` wired into `src/lib/env.ts` + `.env.example` + `/metrics` gate.
 - **Community files** — `CONTRIBUTING.md` (free-forever guardrails baked in), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `.github/PULL_REQUEST_TEMPLATE.md` (counts-impact checklist), `.claude/launch.json` (5 dev server configs for Claude Preview).
 - **Consulting funnel** — `kevinz.ai/consulting` CTA in landing footer (orange accent) + `/ccc-start` tour close. GitHub Sponsors row added to footer.
@@ -398,7 +398,7 @@ Full pre-launch sweep across security, consistency, docs, and UX primitives. 8 c
 
 Final audit: **0 critical, 3 high fixed, 4 medium deferred to v4.1** (ReDoS anchor on AWS-secret regex, `/metrics` endpoint auth, `kc.js --skills install` argv guard, `suggest-ticker.js` `execFileSync` migration).
 
-### 💚 Business model locked: FREE FOREVER
+### 💚 Business model locked: FREE FOR NOW
 
 CCC will stay free for users, always. Sustained by:
 - Transparent affiliate links in `/ccc-connect` + domain routers (Supabase, Vercel, Stripe Atlas, Neon, Resend, Fly, Linear)

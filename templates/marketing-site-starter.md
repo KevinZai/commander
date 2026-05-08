@@ -305,7 +305,7 @@ export function Hero() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          No credit card required · Free forever plan
+          No credit card required · Free for now plan
         </motion.p>
       </div>
     </section>

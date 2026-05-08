@@ -94,7 +94,7 @@ function makeFixture(extraFiles) {
     '# CC Commander',
     '',
     'CC Commander v' + contract.version + ' ships ' + contract.plugin_skills + ' plugin skills, ' + contract.specialist_agents + ' specialist agents, ' + contract.lifecycle_hooks + ' lifecycle hooks (' + contract.hook_handlers + ' handlers), ' + contract.bundled_mcp_servers + ' bundled MCPs +' + contract.opt_in_mcp_servers + ' opt-in via /ccc-connect, and ' + contract.ecosystem_skills + '+ skills across ' + contract.ccc_domains + ' CCC domains.',
-    'All local plugin functionality is free forever.',
+    'All local plugin functionality is free for now.',
     'Hosted MCP is scaffolded-not-deployed.',
     '',
   ].join('\n'));
@@ -149,7 +149,7 @@ test('check-product-contract.js exits 0 on a clean fixture', function() {
 test('check-product-contract.js exits 1 when a fixture has drift', function() {
   var contract = readJson(CONTRACT_PATH);
   var root = makeFixture({
-    'README.md': 'CC Commander v4.0.0-beta.11 ships 50 plugin skills and stays free forever.\n',
+    'README.md': 'CC Commander v4.0.0-beta.11 ships 50 plugin skills and stays free for now.\n',
   });
   var result = spawnCheck(['--root', root, '--check']);
   assert.strictEqual(result.status, 1, result.stdout + result.stderr);
@@ -161,7 +161,7 @@ test('check-product-contract.js exits 1 when a fixture has drift', function() {
 test('--patch fixes simple count and version mismatches', function() {
   var contract = readJson(CONTRACT_PATH);
   var root = makeFixture({
-    'README.md': 'CC Commander v1.2.3 ships 50 plugin skills, 15 specialist agents, 6 lifecycle hooks (12 handlers), 9 pre-configured MCP servers +5 opt-in, and 450+ skills across 10 CCC domains. Free forever.\n',
+    'README.md': 'CC Commander v1.2.3 ships 50 plugin skills, 15 specialist agents, 6 lifecycle hooks (12 handlers), 9 pre-configured MCP servers +5 opt-in, and 450+ skills across 10 CCC domains. Free for now.\n',
   });
 
   var patch = spawnCheck(['--root', root, '--patch']);

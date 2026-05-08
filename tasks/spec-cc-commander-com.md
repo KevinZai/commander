@@ -216,7 +216,7 @@ Skills list (grouped by tier):
 
 ### 4.6 Pricing Section
 
-**H2:** "Free forever core. Pro when you're ready."
+**H2:** "Free for now core. Pro when you're ready."
 
 Three-tier pricing table (shadcn/ui Card components):
 

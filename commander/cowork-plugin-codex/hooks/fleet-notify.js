@@ -7,7 +7,7 @@ const FLEET_DIR = join(process.env.HOME, '.claude', 'commander', 'fleet');
 
 async function main() {
   try {
-    // Free forever — no license check. Hook always runs.
+    // Free for now — no license check. Hook always runs.
     let input = '';
     for await (const chunk of process.stdin) input += chunk;
     const trimmed = input.trim();

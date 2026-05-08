@@ -45,7 +45,7 @@ Drop `index.html` and `og.png` at the root of any static host (Vercel, Netlify, 
 15. Kevin Z method (editorial quote)
 16. Loved by builders (testimonial wall)
 17. Live GitHub activity (commits/issues/contributors)
-18. Free forever manifesto
+18. Free for now manifesto
 19. Quick start (3 steps)
 20. FAQ (8 expanding items)
 21. Footer + sticky-bottom install CTA

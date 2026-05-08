@@ -43,11 +43,14 @@ npm test
 
 <!-- If UI/UX or terminal output changed, drop a screenshot or paste. Otherwise: N/A -->
 
-## Free-forever check
+## Pricing-model check
 
-- [ ] No paywall or license-key gate added
-- [ ] No telemetry-driven nag added
-- [ ] No new dependency that gates behavior behind a paid service
+CC Commander has an MIT-licensed Starter (plugin core, all skills/agents/hooks free) and a paid Pro tier (hosted services + premium curation). PRs must respect both:
+
+- [ ] No paywall on existing Starter features (skills/agents/hooks shipped today stay free in Starter)
+- [ ] License-key gating, if any, is for **NEW Pro features only** — not existing plugin core
+- [ ] No telemetry-driven nags
+- [ ] No new dependency that gates basic plugin behavior behind a paid third-party service
 
 ## Related
 

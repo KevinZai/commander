@@ -92,7 +92,7 @@ function checkLicenseCleanup(root) {
   return fail(
     'license-cleanup',
     'Found ' + hits.length + ' hook(s) with license-tier residue: ' + hits.join('; '),
-    'Remove license.json/isPro/tier gates — CC Commander is free forever (commit c3007dc).'
+    'Remove license.json/isPro/tier gates — CC Commander is free for now (commit c3007dc).'
   );
 }
 

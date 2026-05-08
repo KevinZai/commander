@@ -1,6 +1,6 @@
 # CC Commander
 
-> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **17 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer). **50 plugin skills** incl **13 click-first `/ccc-*` workflows** + `/save-session` + `/resume-session` + `/ccc-e2e` + `/ccc-memory` + `/ccc-tasks` + `/ccc-recall` + `/ccc-changelog` + `/ccc-doctor`. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free forever.**
+> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **17 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer). **50 plugin skills** incl **13 click-first `/ccc-*` workflows** + `/save-session` + `/resume-session` + `/ccc-e2e` + `/ccc-memory` + `/ccc-tasks` + `/ccc-recall` + `/ccc-changelog` + `/ccc-doctor`. **8 lifecycle hooks × 16 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free for now.**
 
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 50 skills, 17 agents, 8 lifecycle hooks (16 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
 
@@ -21,7 +21,7 @@ Three ways to install CC Commander, depending on how you want to use it:
 
 **1. Desktop plugin marketplace (recommended)**
 
-The full plugin experience — 50 skills, 17 agents, 8 lifecycle hooks (16 handlers), 2 credential-free bundled MCPs + 16 opt-in. All free forever.
+The full plugin experience — 50 skills, 17 agents, 8 lifecycle hooks (16 handlers), 2 credential-free bundled MCPs + 16 opt-in. All free for now.
 
 **Via GUI (Claude Code Desktop / Cowork Desktop):**
 1. Open **Settings → Plugin Marketplace**

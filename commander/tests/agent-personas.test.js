@@ -15,7 +15,7 @@ var ROOT = path.join(__dirname, '..', '..');
 var AGENTS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'agents');
 var PERSONAS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'rules', 'personas');
 
-var EXPECTED_AGENT_COUNT = 17;
+var EXPECTED_AGENT_COUNT = 22;
 
 var ALLOWED_MODELS = [
   'opus',

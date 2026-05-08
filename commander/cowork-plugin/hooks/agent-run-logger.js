@@ -12,7 +12,7 @@
  * Rotation: if agent-runs.jsonl exceeds 10MB, renames it to
  *   agent-runs.YYYY-MM-DD.jsonl and starts a fresh file.
  *
- * Free forever — no license check, no tier gating.
+ * Free for now — no license check, no tier gating.
  */
 import { appendFile, mkdir, stat, rename } from 'node:fs/promises';
 import { join } from 'node:path';

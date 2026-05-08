@@ -112,7 +112,7 @@ The one thing to fix tomorrow morning: freeze stable until the first-run/public 
 
 ### 7. Make connector setup safe and verified instead of a token-paste wizard — Severity 🟡
 
-**Problem:** `/ccc-connect` asks users to paste OAuth callback tokens or API keys into the chat and then says it will save them to `~/.claude/commander/connections/<name>.json` (`commander/cowork-plugin/skills/ccc-connect/SKILL.md:181`, `commander/cowork-plugin/skills/ccc-connect/SKILL.md:195`). The example secret file includes a `tier` field even though the product is free forever (`commander/cowork-plugin/skills/ccc-connect/SKILL.md:203`, `commander/cowork-plugin/skills/ccc-connect/SKILL.md:211`). Several connector command templates are still "TBD" or "verify before Pro launch" (`commander/cowork-plugin/skills/ccc-connect/SKILL.md:229`, `commander/cowork-plugin/skills/ccc-connect/SKILL.md:243`), and CONNECTORS.md has the same unfinished rows (`commander/cowork-plugin/CONNECTORS.md:45`, `commander/cowork-plugin/CONNECTORS.md:55`).
+**Problem:** `/ccc-connect` asks users to paste OAuth callback tokens or API keys into the chat and then says it will save them to `~/.claude/commander/connections/<name>.json` (`commander/cowork-plugin/skills/ccc-connect/SKILL.md:181`, `commander/cowork-plugin/skills/ccc-connect/SKILL.md:195`). The example secret file includes a `tier` field even though the product is free for now (`commander/cowork-plugin/skills/ccc-connect/SKILL.md:203`, `commander/cowork-plugin/skills/ccc-connect/SKILL.md:211`). Several connector command templates are still "TBD" or "verify before Pro launch" (`commander/cowork-plugin/skills/ccc-connect/SKILL.md:229`, `commander/cowork-plugin/skills/ccc-connect/SKILL.md:243`), and CONNECTORS.md has the same unfinished rows (`commander/cowork-plugin/CONNECTORS.md:45`, `commander/cowork-plugin/CONNECTORS.md:55`).
 
 **Impact:** Users can accidentally put long-lived secrets into model context. The wizard also risks suggesting commands that the skill itself says not to use when marked TBD (`commander/cowork-plugin/skills/ccc-connect/SKILL.md:282`, `commander/cowork-plugin/skills/ccc-connect/SKILL.md:283`).
 
@@ -194,7 +194,7 @@ The one thing to fix tomorrow morning: freeze stable until the first-run/public 
 
 1. Is v4.0.0 stable meant to be a public launch, or a stable code tag for existing beta users while docs keep catching up?
 
-2. Does "free forever" apply only to the local Claude plugin, or also to hosted MCP access across Cursor/Windsurf/Cline/Continue/Codex?
+2. Does "free for now" apply only to the local Claude plugin, or also to hosted MCP access across Cursor/Windsurf/Cline/Continue/Codex?
 
 3. Should the root `/ccc` picker be 4 options or 6 options? The current skill says 4, while docs and screenshot recipes still expect 6.
 

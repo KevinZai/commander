@@ -18,7 +18,7 @@ What is useful here:
 - `/ccc-plan`, `/ccc-build`, `/ccc-review`, `/ccc-ship`, `/ccc-fleet` cover the normal software loop
 - 17 agents include architect, builder, reviewer, debugger, security-auditor, QA, devops, designer, technical-writer, and more
 - 2 credential-free MCP servers ship bundled, with 16 more opt-in through `/ccc-connect`
-- Free forever, no hosted account required for the local plugin
+- Free for now, no hosted account required for the local plugin
 
 Install on launch day:
 

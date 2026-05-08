@@ -23,9 +23,9 @@
 ## 2. Content Extraction
 
 ### Hero
-- **Badge:** `v4.0.0 — Claude Code Desktop Plugin — Free Forever`
-- **H1:** `AI PM for Claude Code — 55 Skills, 17 Agents, Free Forever`
-- **Subhead:** Ship faster with Claude Code Desktop and Cowork Desktop. One plugin gives you 55 click-first AI workflows, 17 specialist agent personas, and a guided AI PM that thinks before you do — free forever.
+- **Badge:** `v4.0.0 — Claude Code Desktop Plugin — Free for Now`
+- **H1:** `AI PM for Claude Code — 55 Skills, 17 Agents, Free for Now`
+- **Subhead:** Ship faster with Claude Code Desktop and Cowork Desktop. One plugin gives you 55 click-first AI workflows, 17 specialist agent personas, and a guided AI PM that thinks before you do — free for now.
 - **Primary CTA:** Terminal block (click-to-copy) showing the two install commands
 - **Secondary CTA:** None (GitHub link is in footer only)
 
@@ -39,7 +39,7 @@
 | CCC Domains | 11 |
 
 ### Section Inventory
-1. **Desktop Plugin** — 55 plugin skills, 17 specialized agents, 9 lifecycle hooks (19 handlers), 5 MCP servers (Linear, GitHub, Slack, Gmail, Calendar). Quick Mode vs Power Mode callout. Free Forever callout.
+1. **Desktop Plugin** — 55 plugin skills, 17 specialized agents, 9 lifecycle hooks (19 handlers), 5 MCP servers (Linear, GitHub, Slack, Gmail, Calendar). Quick Mode vs Power Mode callout. Free for Now callout.
 2. **The Kevin Z Method** — Origin story: researched 100+ articles, tested every plugin, distilled into one install. 10 community sources listed (ykdojo, hooeem, aiedge_, dr_cintas, MichLieben, coreyganim, GriffinHilly, bekacru, chddaniel, gitagent). Quote: *"Context is like milk — fresh + condensed = best output."*
 3. **/init Decision Tree** — Interactive terminal showing 4 build modes: QUICK (<4h), DEEP (1–5 days), SAAS (1–4 weeks), OVERNIGHT (6–12h autonomous).
 4. **CCC Domains** — 6 domains shown with expandable skill lists:
@@ -74,7 +74,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
 - 83 slash commands
 - 3 starter templates (SaaS, API, Landing)
 - 1,749-line BIBLE.md | 13 sources distilled
-- Free forever — 0 paywalls
+- Free for now — 0 paywalls
 
 ### Quotes / Testimonials
 - *"Context is like milk — fresh + condensed = best output."* — Golden Rule #2, CCC
@@ -159,7 +159,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
   "@type": "SoftwareApplication",
   "name": "CC Commander",
   "alternateName": ["CCC", "Claude Code Commander"],
-  "description": "Guided AI PM plugin for Claude Code Desktop and Claude Code CLI. 55 plugin skills, 17 specialist AI agents, 9 lifecycle hooks, hosted MCP server. Free forever. Works in Cursor, Windsurf, Cline, Continue, Codex, and every MCP-capable IDE.",
+  "description": "Guided AI PM plugin for Claude Code Desktop and Claude Code CLI. 55 plugin skills, 17 specialist AI agents, 9 lifecycle hooks, hosted MCP server. Free for now. Works in Cursor, Windsurf, Cline, Continue, Codex, and every MCP-capable IDE.",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "macOS, Linux, Windows",
   "url": "https://kevinzai.github.io/commander",
@@ -179,7 +179,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "USD",
-    "description": "Free forever — 1,000 hosted MCP calls/month included"
+    "description": "Free for now — 1,000 hosted MCP calls/month included"
   },
   "keywords": "Claude Code plugin, Claude Desktop, Cowork Desktop, AI PM, AI agents, MCP server, Anthropic, Claude SDK, prompt engineering, AI workflow, AI coding agent",
   "featureList": [
@@ -196,7 +196,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
 ### Open Graph Meta Tags
 ```html
 <meta property="og:title" content="CC Commander — AI PM Plugin for Claude Code · 55 Skills · Free">
-<meta property="og:description" content="Guided AI PM for Claude Code Desktop. 55 plugin skills, 17 specialist AI agents, 9 lifecycle hooks, hosted MCP server. Free forever.">
+<meta property="og:description" content="Guided AI PM for Claude Code Desktop. 55 plugin skills, 17 specialist AI agents, 9 lifecycle hooks, hosted MCP server. Free for now.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://cc-commander.com/">
 <meta property="og:image" content="https://kevinzai.github.io/commander/assets/og-image.png">
@@ -209,7 +209,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
 <meta name="twitter:site" content="@kzic">
 <meta name="twitter:creator" content="@kzic">
 <meta name="twitter:title" content="CC Commander — AI PM Plugin for Claude Code · 55 Skills · Free">
-<meta name="twitter:description" content="Guided AI PM for Claude Code Desktop. 55 plugin skills, 17 AI agents, MCP server. Free forever.">
+<meta name="twitter:description" content="Guided AI PM for Claude Code Desktop. 55 plugin skills, 17 AI agents, MCP server. Free for now.">
 <meta name="twitter:image" content="https://kevinzai.github.io/commander/assets/og-image.png">
 ```
 
@@ -226,7 +226,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
 ```html
 <link rel="canonical" href="https://cc-commander.com/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>></text></svg>">
-<meta name="description" content="CC Commander: the guided AI PM plugin for Claude Code Desktop and Claude Code CLI. 55 plugin skills, 17 specialist AI agents, 9 lifecycle hooks, hosted MCP server. Free forever. Works in Cursor, Windsurf, and every MCP-capable IDE.">
+<meta name="description" content="CC Commander: the guided AI PM plugin for Claude Code Desktop and Claude Code CLI. 55 plugin skills, 17 specialist AI agents, 9 lifecycle hooks, hosted MCP server. Free for now. Works in Cursor, Windsurf, and every MCP-capable IDE.">
 ```
 
 ---
@@ -276,7 +276,7 @@ The Mintlify documentation site at `https://docs.cc-commander.com/` is **not tou
 - [ ] Favicon `data:` URI preserved (or replaced with equivalent `>` terminal icon)
 - [ ] Primary CTA is the 2-command install block (click-to-copy behavior retained)
 - [ ] Stats are accurate: 502+, 55, 17, 9, 11, 457+, 83
-- [ ] "Free forever" messaging visible above the fold
+- [ ] "Free for now" messaging visible above the fold
 - [ ] Desktop plugin install path is primary; CLI is secondary
 - [ ] Real product screenshots (`docs/screenshots/`) used — not only SVG diagrams
 - [ ] No reference to Mintlify docs in the redesign (separate site)

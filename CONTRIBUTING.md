@@ -1,6 +1,6 @@
 # Contributing to CC Commander
 
-Thanks for your interest. CC Commander is **free forever** — that includes contribution. Issues, PRs, and ideas all welcome.
+Thanks for your interest. CC Commander has an **MIT-licensed plugin core** (free for individuals) and a paid **Pro tier** for hosted services + premium curation. Either way, contribution is open — issues, PRs, and ideas all welcome.
 
 ## Quick start
 
@@ -75,7 +75,9 @@ node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --check  # doc drift ch
 
 ## What we don't merge
 
-- PRs that break free-forever brand promise (paywalls, license-key gates, telemetry-driven nags)
+- PRs that paywall existing Starter features (skills/agents/hooks shipped today stay free in Starter forever)
+- PRs that add license-key gating to plugin **core** (Pro features can gate; the plugin is MIT and stays open)
+- PRs that add telemetry — there is no telemetry, period
 - PRs without tests for new behavior
 - Drive-by formatting churn unrelated to the change
 - Vendored dependencies as full source copies (use git submodules under `vendor/`)

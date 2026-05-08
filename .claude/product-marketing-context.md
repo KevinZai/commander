@@ -12,7 +12,7 @@ This file is the canonical reference for all ccc-marketing skills. Read this bef
 **Social:** @kzic on X | kevinz.ai
 **Repo:** github.com/KevinZai/commander
 **Landing page:** KevinZai.github.io/cc-commander
-**License:** MIT (free forever)
+**License:** MIT (free for now)
 **Install:**
 ```
 curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
@@ -122,7 +122,7 @@ Use these as the foundation for any headline, tweet, ad, or email:
 2. **Skills replace amnesia** — "Stock Claude Code starts from zero every session. CCC remembers everything."
 3. **Intelligence, not just tools** — "CCC doesn't just give you tools. It scores complexity, detects your stack, and recommends the right skill."
 4. **One install, everything** — "455 skills, 17 vendors, 11 domains. One command."
-5. **Open source, community-built** — "Built from 200+ community articles. MIT licensed. Free forever."
+5. **Open source, community-built** — "Built from 200+ community articles. MIT licensed. Free for now."
 
 ---
 

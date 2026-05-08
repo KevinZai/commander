@@ -165,7 +165,7 @@ const HeroScene = () => {
                   opacity: animate({from:0,to:1,start:0.5,end:0.75})(t),
                 }}>
                   62 plugin skills. 22 specialist agents. 9 lifecycle hooks. <br/>
-                  One install. Zero config. <span style={{color:'#D4A574'}}>Free forever.</span>
+                  One install. Zero config. <span style={{color:'#D4A574'}}>Free for now.</span>
                 </div>
               </div>
             </>
@@ -246,7 +246,7 @@ const HeroScene = () => {
                   fontFamily:'"JetBrains Mono",monospace', fontSize:14, color:'#6E6E68',
                   letterSpacing:'.04em',
                 }}>
-                  <span><span style={{color:'#FF6B47'}}>★</span> free forever</span>
+                  <span><span style={{color:'#FF6B47'}}>★</span> open source</span>
                   <span style={{opacity:.4}}>·</span>
                   <span>cc-commander.com</span>
                   <span style={{opacity:.4}}>·</span>
