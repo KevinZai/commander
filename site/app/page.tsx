@@ -3,6 +3,7 @@ import { ProblemSection } from "@/components/problem-section";
 import { SolutionGrid } from "@/components/solution-grid";
 import { SocialProof } from "@/components/social-proof";
 import { WorkflowDemo } from "@/components/workflow-demo";
+import { VideoShowcase } from "@/components/video-showcase";
 import { SkillsShowcase } from "@/components/skills-showcase";
 import { PricingTable } from "@/components/pricing-table";
 import { InstallSection } from "@/components/install-section";
@@ -19,6 +20,7 @@ export default function HomePage() {
         <SolutionGrid />
         <SocialProof />
         <WorkflowDemo />
+        <VideoShowcase />
         <SkillsShowcase />
         <PricingTable />
         <InstallSection />
