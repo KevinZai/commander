@@ -1,5 +1,5 @@
 ---
-name: night-mode
+name: ccc-night-mode
 description: "[C:plugin] — Autonomous overnight build — set it, forget it, wake up to shipped code. Use when the user says 'night mode', 'yolo mode', 'overnight build', 'build while I sleep',…"
 allowed-tools:
   - Read
@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[night | yolo | status | cancel]"
 ---
 
-# /ccc:night-mode
+# /ccc-night-mode
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

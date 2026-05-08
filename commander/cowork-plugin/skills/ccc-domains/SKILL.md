@@ -1,5 +1,5 @@
 ---
-name: domains
+name: ccc-domains
 description: "[C:meta] — CCC domain router — browse and activate any of the 11 CCC skill domains. Use when the user says 'ccc domains', 'domain skills', 'show categories', 'what skills are…"
 allowed-tools:
   - Read
@@ -10,7 +10,7 @@ allowed-tools:
 argument-hint: "[design | marketing | saas | testing | devops | seo | security | research | mobile | data | makeover]"
 ---
 
-# /ccc:domains
+# /ccc-domains
 
 > Placeholders like ~~knowledge base refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -25,36 +25,36 @@ Browse, preview, and activate any of the 11 CCC domain MEGA routers. Each domain
 Then invoke any domain directly:
 
 ```
-/ccc:domains design          # route to design domain
-/ccc:domains marketing       # route to marketing domain
-/ccc:domains saas            # route to SaaS domain
-/ccc:domains testing         # route to testing domain
-/ccc:domains devops          # route to DevOps domain
-/ccc:domains seo             # route to SEO domain
-/ccc:domains security        # route to security domain
-/ccc:domains research        # route to research domain
-/ccc:domains mobile          # route to mobile domain
-/ccc:domains data            # route to data domain
-/ccc:domains makeover        # route to makeover domain
+/ccc-domains design          # route to design domain
+/ccc-domains marketing       # route to marketing domain
+/ccc-domains saas            # route to SaaS domain
+/ccc-domains testing         # route to testing domain
+/ccc-domains devops          # route to DevOps domain
+/ccc-domains seo             # route to SEO domain
+/ccc-domains security        # route to security domain
+/ccc-domains research        # route to research domain
+/ccc-domains mobile          # route to mobile domain
+/ccc-domains data            # route to data domain
+/ccc-domains makeover        # route to makeover domain
 ```
 
 ## Browse — 11 MEGA Routers
 
 | Domain | Skills | Focus |
 |--------|--------|-------|
-| `/ccc:domains design` | **39** | UI/UX, animation, responsive, a11y, Impeccable suite |
-| `/ccc:domains marketing` | **45** | CRO, email, ads, social, content, AI SEO |
-| `/ccc:domains saas` | **21** | Auth, billing, API, multi-tenant, scaffolding |
-| `/ccc:domains testing` | **15** | TDD, E2E, verification, QA, load testing |
-| `/ccc:domains devops` | **21** | CI/CD, Docker, AWS, monitoring, IaC |
-| `/ccc:domains seo` | **20** | Technical SEO, AI search, content, programmatic |
-| `/ccc:domains security` | **8** | OWASP, secrets, dependency audits, prompt injection |
-| `/ccc:domains research` | **8** | Deep research, specs, competitive analysis |
-| `/ccc:domains mobile` | **8** | React Native, Flutter, SwiftUI, ASO |
-| `/ccc:domains data` | **8** | Pipelines, SQL, ML, vector search |
-| `/ccc:domains makeover` | **3** | xray audit + makeover swarm + report card |
+| `/ccc-domains design` | **39** | UI/UX, animation, responsive, a11y, Impeccable suite |
+| `/ccc-domains marketing` | **45** | CRO, email, ads, social, content, AI SEO |
+| `/ccc-domains saas` | **21** | Auth, billing, API, multi-tenant, scaffolding |
+| `/ccc-domains testing` | **15** | TDD, E2E, verification, QA, load testing |
+| `/ccc-domains devops` | **21** | CI/CD, Docker, AWS, monitoring, IaC |
+| `/ccc-domains seo` | **20** | Technical SEO, AI search, content, programmatic |
+| `/ccc-domains security` | **8** | OWASP, secrets, dependency audits, prompt injection |
+| `/ccc-domains research` | **8** | Deep research, specs, competitive analysis |
+| `/ccc-domains mobile` | **8** | React Native, Flutter, SwiftUI, ASO |
+| `/ccc-domains data` | **8** | Pipelines, SQL, ML, vector search |
+| `/ccc-domains makeover` | **3** | xray audit + makeover swarm + report card |
 
-**Total reachable via /ccc:domains: 196 sub-skills**
+**Total reachable via /ccc-domains: 196 sub-skills**
 
 ## Quick Mode (default)
 
@@ -75,7 +75,7 @@ When a domain is selected:
    ls ~/.claude/skills/ccc-{domain}/ 2>/dev/null || echo "not installed"
    ```
 
-2. If installed: use Agent to invoke `/ccc:{domain}` with the user's task description as context.
+2. If installed: use Agent to invoke `/ccc-{domain}` with the user's task description as context.
 
 3. If not installed — the domain MEGA skills are bundled with the Commander plugin. Ensure the plugin is installed:
    ```

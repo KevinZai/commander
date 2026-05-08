@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "<task description or --power for dashboard>"
 ---
 
-# /ccc:fleet
+# /ccc-fleet
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -35,7 +35,7 @@ Then:
 - Tasks with independent file targets → one agent per file/module
 - Research tasks → one agent per source/domain
 - Review tasks → one agent per dimension (security, perf, correctness, maintainability)
-- Build tasks → serialize (use `/ccc:build` instead unless clearly parallel)
+- Build tasks → serialize (use `/ccc-build` instead unless clearly parallel)
 
 **Max agents (Quick Mode):** 5 — prevents runaway cost on ambiguous tasks.
 

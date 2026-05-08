@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "<topic, URL, repo, or competitor to research>"
 ---
 
-# /ccc:research
+# /ccc-research
 
 > Placeholders like ~~knowledge base refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

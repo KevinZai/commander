@@ -1,5 +1,5 @@
 ---
-name: knowledge
+name: ccc-knowledge
 description: "[C:meta] — Knowledge compounding — search past lessons, view learning history, browse by category. Use when the user says 'what did we learn', 'past lessons', 'knowledge base',…"
 allowed-tools:
   - Read
@@ -11,7 +11,7 @@ allowed-tools:
 argument-hint: "[search <topic> | recent | stats | category <name>]"
 ---
 
-# /ccc:knowledge
+# /ccc-knowledge
 
 > Placeholders like ~~knowledge base refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

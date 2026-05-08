@@ -1,5 +1,5 @@
 ---
-name: content
+name: ccc-content
 description: "[C:marketing] — \"Create content — blog posts, social media, emails, marketing copy, or docs. Use when: 'create content', 'write post', 'blog', 'social media', 'email campaign',…"
 allowed-tools:
   - Read
@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "<content type and topic>"
 ---
 
-# /ccc:content
+# /ccc-content
 
 > Placeholders like ~~social media and ~~email refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

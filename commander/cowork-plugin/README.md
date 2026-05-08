@@ -41,7 +41,7 @@ Install individual CCC skills using the `npx skills@latest` CLI — compatible w
 ```bash
 npx skills@latest add KevinZai/commander/skills/ccc-design
 npx skills@latest add KevinZai/commander/skills/ccc-marketing
-npx skills@latest add KevinZai/commander/skills/night-mode
+npx skills@latest add KevinZai/commander/skills/ccc-night-mode
 ```
 
 Use this when you want one specific skill without the full plugin, or when mixing CCC skills with skills from `anthropics/skills`, `mattpocock/skills`, or `skillsmp.com`.
@@ -61,21 +61,21 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 | Skill | Trigger | Description |
 |-------|---------|-------------|
-| `commander` | "manage my project", "help me build" | Interactive hub — dispatches to all other skills |
-| `build` | "build something", "new project", "create app" | Guided build wizard — web, API, CLI, or anything |
-| `research` | "research", "analyze", "competitive analysis", "audit" | Deep research with structured reports |
-| `standup` | "standup", "daily update", "what did I do" | Auto-generate standup from recent activity |
-| `code-review` | "review code", "PR review", "before I merge" | Security, performance, correctness, and style |
-| `deploy-check` | "ready to ship?", "pre-deploy", "deployment gate" | Pre-deployment readiness gate |
-| `night-mode` | "night mode", "build while I sleep", "autonomous build" | Overnight autonomous build — set and forget |
-| `fleet` | "parallel agents", "swarm", "run in parallel" | Launch parallel agents for fan-out tasks |
-| `linear-board` | "linear board", "show issues", "what should I work on" | View sprint board, pick a task, sync status |
-| `knowledge` | "what did we learn", "past lessons", "search knowledge" | Search the compounding knowledge base |
-| `session` | "resume session", "continue where I left off" | Resume work, review history, pick up mid-task |
-| `content` | "write post", "blog", "social media", "marketing copy" | Create blog posts, emails, social, and docs |
-| `infra` | "infrastructure", "service status", "check ports" | Probe local services — fleet, cost, Paperclip |
-| `domains` | "design skills", "marketing skills", "ccc domains" | Browse all 11 CCC domain skill sets |
-| `settings` | "settings", "change theme", "configure Linear" | Theme, cost ceiling, Linear setup, preferences |
+| `ccc` | "manage my project", "help me build" | Interactive hub — dispatches to all other skills |
+| `ccc-build` | "build something", "new project", "create app" | Guided build wizard — web, API, CLI, or anything |
+| `ccc-research` | "research", "analyze", "competitive analysis", "audit" | Deep research with structured reports |
+| `ccc-standup` | "standup", "daily update", "what did I do" | Auto-generate standup from recent activity |
+| `ccc-code-review` | "review code", "PR review", "before I merge" | Security, performance, correctness, and style |
+| `ccc-deploy-check` | "ready to ship?", "pre-deploy", "deployment gate" | Pre-deployment readiness gate |
+| `ccc-night-mode` | "night mode", "build while I sleep", "autonomous build" | Overnight autonomous build — set and forget |
+| `ccc-fleet` | "parallel agents", "swarm", "run in parallel" | Launch parallel agents for fan-out tasks |
+| `ccc-linear-board` | "linear board", "show issues", "what should I work on" | View sprint board, pick a task, sync status |
+| `ccc-knowledge` | "what did we learn", "past lessons", "search knowledge" | Search the compounding knowledge base |
+| `ccc-session` | "resume session", "continue where I left off" | Resume work, review history, pick up mid-task |
+| `ccc-content` | "write post", "blog", "social media", "marketing copy" | Create blog posts, emails, social, and docs |
+| `ccc-infra` | "infrastructure", "service status", "check ports" | Probe local services — fleet, cost, Paperclip |
+| `ccc-domains` | "design skills", "marketing skills", "ccc domains" | Browse all 11 CCC domain skill sets |
+| `ccc-settings` | "settings", "change theme", "configure Linear" | Theme, cost ceiling, Linear setup, preferences |
 
 ## Specialized Agents
 
@@ -122,9 +122,9 @@ No configuration required to start. The intent classifier (Pro-tier) prints skil
 **Power Mode** — Full control with expert features, detailed options, and structured output. Pass `--power` to any skill:
 
 ```
-/ccc:build my-saas-app --power
-/ccc:research competitor.com --power
-/ccc:fleet "run security audit on all services" --power
+/ccc-build my-saas-app --power
+/ccc-research competitor.com --power
+/ccc-fleet "run security audit on all services" --power
 ```
 
 ## Connected Tools
@@ -156,9 +156,9 @@ Every skill works standalone. Connected tools make it faster and more complete.
 CCC learns from every session. The `knowledge-capture` hook captures Write/Edit file touches to `auto-captures.jsonl` after each action. The `knowledge` skill lets you search, browse by category, and see what patterns have emerged over time.
 
 ```
-/ccc:knowledge search "rate limiting"
-/ccc:knowledge recent
-/ccc:knowledge category performance
+/ccc-knowledge search "rate limiting"
+/ccc-knowledge recent
+/ccc-knowledge category performance
 ```
 
 Lessons compound across projects and teammates.
@@ -167,21 +167,21 @@ Lessons compound across projects and teammates.
 
 | Skill | Key Trigger Phrases |
 |-------|-------------------|
-| `commander` | "help me build", "manage my project", "open commander", "what should I work on" |
-| `build` | "build something", "new project", "create app", "I want to make", "start a project" |
-| `research` | "research", "analyze", "audit", "investigate", "competitive analysis", "deep dive" |
-| `standup` | "standup", "daily update", "what did I do", "yesterday today blockers", "team update" |
-| `code-review` | "review code", "PR review", "check changes", "is this safe?", "before I merge" |
-| `deploy-check` | "deploy check", "ready to ship?", "pre-deploy", "should I deploy?" |
-| `night-mode` | "night mode", "overnight build", "build while I sleep", "autonomous build" |
-| `fleet` | "parallel agents", "swarm", "launch workers", "fan out", "multi-agent" |
-| `linear-board` | "linear board", "show issues", "pick a task", "sprint board", "open issues" |
-| `knowledge` | "what did we learn", "past lessons", "search knowledge", "knowledge base" |
-| `session` | "resume session", "continue where I left off", "review work", "show sessions" |
-| `content` | "write post", "blog", "social media", "email campaign", "marketing copy" |
-| `infra` | "infrastructure", "service status", "check ports", "what services are running" |
-| `domains` | "ccc domains", "design skills", "marketing skills", "show categories" |
-| `settings` | "settings", "change theme", "configure", "set up linear", "cost ceiling" |
+| `ccc` | "help me build", "manage my project", "open commander", "what should I work on" |
+| `ccc-build` | "build something", "new project", "create app", "I want to make", "start a project" |
+| `ccc-research` | "research", "analyze", "audit", "investigate", "competitive analysis", "deep dive" |
+| `ccc-standup` | "standup", "daily update", "what did I do", "yesterday today blockers", "team update" |
+| `ccc-code-review` | "review code", "PR review", "check changes", "is this safe?", "before I merge" |
+| `ccc-deploy-check` | "deploy check", "ready to ship?", "pre-deploy", "should I deploy?" |
+| `ccc-night-mode` | "night mode", "overnight build", "build while I sleep", "autonomous build" |
+| `ccc-fleet` | "parallel agents", "swarm", "launch workers", "fan out", "multi-agent" |
+| `ccc-linear-board` | "linear board", "show issues", "pick a task", "sprint board", "open issues" |
+| `ccc-knowledge` | "what did we learn", "past lessons", "search knowledge", "knowledge base" |
+| `ccc-session` | "resume session", "continue where I left off", "review work", "show sessions" |
+| `ccc-content` | "write post", "blog", "social media", "email campaign", "marketing copy" |
+| `ccc-infra` | "infrastructure", "service status", "check ports", "what services are running" |
+| `ccc-domains` | "ccc domains", "design skills", "marketing skills", "show categories" |
+| `ccc-settings` | "settings", "change theme", "configure", "set up linear", "cost ceiling" |
 
 ## Sub-agent roster
 

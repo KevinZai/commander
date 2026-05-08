@@ -1,5 +1,5 @@
 ---
-name: infra
+name: ccc-infra
 description: "[C:devops] — Infrastructure probe — manage Fleet Commander, Synapse, Cost tracking, CloudCLI, AO, Paperclip, TaskMaster. Use when the user says 'infrastructure', 'fleet', 'cost',…"
 allowed-tools:
   - Bash
@@ -8,7 +8,7 @@ allowed-tools:
 argument-hint: "[probe | fleet | paperclip | cost | taskmaster]"
 ---
 
-# /ccc:infra
+# /ccc-infra
 
 > Placeholders like ~~monitoring refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

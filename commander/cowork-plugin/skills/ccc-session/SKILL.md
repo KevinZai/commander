@@ -1,5 +1,5 @@
 ---
-name: session
+name: ccc-session
 description: "[C:lifecycle] — Session management — resume work, review what was built, browse session history. Use when the user says 'resume session', 'review work', 'continue where I left…"
 allowed-tools:
   - Read
@@ -10,7 +10,7 @@ allowed-tools:
 argument-hint: "[resume | review | history | export]"
 ---
 
-# /ccc:session
+# /ccc-session
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

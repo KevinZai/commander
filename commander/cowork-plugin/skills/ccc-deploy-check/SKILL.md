@@ -1,5 +1,5 @@
 ---
-name: deploy-check
+name: ccc-deploy-check
 description: "[C:devops] — \"Pre-deployment readiness gate. Use when: 'deploy check', 'ready to ship?', 'pre-deploy', 'deployment gate', 'should I deploy?', 'is it safe to ship?', 'checklist…"
 allowed-tools:
   - Read
@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[environment: staging | production]"
 ---
 
-# /ccc:deploy-check
+# /ccc-deploy-check
 
 > Placeholders like ~~CI/CD and ~~monitoring refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

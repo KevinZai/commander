@@ -1,5 +1,5 @@
 ---
-name: standup
+name: ccc-standup
 description: "[C:meta] — \"Generate a standup update from recent activity. Use when: 'standup', 'daily update', 'what did I do', 'morning check-in', 'yesterday today blockers', 'team update',…"
 allowed-tools:
   - Read
@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[yesterday | today | blockers]"
 ---
 
-# /ccc:standup
+# /ccc-standup
 
 > Placeholders like ~~source control refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

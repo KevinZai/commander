@@ -1,5 +1,5 @@
 ---
-name: settings
+name: ccc-settings
 description: "[C:meta] — Configuration hub — change theme, set cost ceiling, configure Linear, toggle animations, reset state. Use when the user says 'settings', 'change theme', 'configure',…"
 allowed-tools:
   - Read
@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[name | level | cost | theme | linear | reset]"
 ---
 
-# /ccc:settings
+# /ccc-settings
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

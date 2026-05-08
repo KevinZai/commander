@@ -1,5 +1,5 @@
 ---
-name: linear-board
+name: ccc-linear-board
 description: "[C:plugin] — \"View your Linear board, pick a task to work on, and sync issue status. Use when: 'linear board', 'show issues', 'pick a task', 'what should I work on', 'my Linear',…"
 allowed-tools:
   - Read
@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[team | filter | issue-id]"
 ---
 
-# /ccc:linear-board
+# /ccc-linear-board
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
