@@ -1,14 +1,14 @@
 # CC Commander Cheatsheet
-> CC Commander v4.0.0-beta.11 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v4.0.0 — by Kevin Zicherman — commands, workflows, and power user tips
 > See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v4.0.0-beta.11)
+## Desktop Plugin Commands (v4.0.0)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 51 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 55 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /save-session + /resume-session).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -69,21 +69,22 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | 16 | typescript-reviewer | Sonnet | TypeScript review: strict mode, async, ESM/CJS |
 | 17 | python-reviewer | Sonnet | Python review: PEP 8, type hints, pytest, security |
 
-### Lifecycle hook events (8)
+### Lifecycle hook events (9)
 
-8 events, 16 handlers — fire automatically every session (no configuration needed):
+9 events, 19 handlers — fire automatically every session (no configuration needed):
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
 | `SessionStart` | New session opens | 3 (init state, claude-md nudge, post-compact recovery) |
 | `UserPromptSubmit` | User hits Enter | 4 (suggest ticker, intent classifier, context warning, submit logger) |
 | `PreToolUse` | Before any tool call | 3 (cost tracker, cost ceiling, secret leak guard) |
-| `PostToolUse` | After tool completes | 1 (knowledge capture) |
+| `PostToolUse` | After tool completes | 3 (knowledge capture, quality gate, auto-format) |
 | `Stop` | Session ends | 2 (session save, session end) |
 | `Notification` | System-level notification | 1 (fleet notify) |
 | `PreCompact` | Before context compaction | 1 (block if active subagents) |
 | `SubagentStop` | Subagent finishes | 1 (dispatch results tracker) |
-| **TOTAL** | **8 events** | **16 handlers** |
+| `PermissionRequest` | Tool permission prompt | 1 (permission gate) |
+| **TOTAL** | **9 events** | **19 handlers** |
 
 ### Plugin MCP Servers (9)
 
@@ -357,6 +358,26 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | `/strategic-compact` | Compact at logical breakpoints (skill) | use `strategic-compact` skill |
 | `claude -c` | Continue last conversation from CLI | `claude -c` |
 | `claude --resume <id>` | Resume specific session ID | `claude --resume abc123` |
+
+### 🔁 /loop integration (Claude Code 2.1.123+)
+
+Pair `/loop` with any `/ccc-*` skill for recurring execution. Claude Code Desktop renders a "loop" tag in the UI automatically.
+
+```
+/loop [interval] <skill-or-prompt>
+```
+
+| Loop command | What it does |
+|---|---|
+| `/loop 5m /ccc-doctor` | Plugin health every 5 min |
+| `/loop /ccc-review` | Self-paced branch audit |
+| `/loop 30m /ccc-tasks` | Task list refresh |
+| `/loop 1h /ccc-xray` | Periodic project health scan |
+| `/loop /ccc-changelog` | Poll for new releases |
+
+Stop: `Ctrl+C` or the stop button in Cowork Desktop. Avoid looping destructive skills (`/ccc-deploy`, `/ccc-rollback`). CCC status-line shows `🔁 loop` when `CLAUDE_LOOP_ACTIVE` is detected.
+
+---
 
 ### `.claude/` Directory Structure
 
@@ -968,7 +989,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v4.0.0-beta.11 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v4.0.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1052,7 +1073,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v4.0.0-beta.11 Quick Reference (CLI)
+## CC Commander v4.0.0 Quick Reference (CLI)
 
 ```bash
 # Launch

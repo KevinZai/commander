@@ -57,7 +57,7 @@ CC Commander's primary product as of v3.0.0. Claude Cowork Desktop / Claude Code
 
 Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
 
-### Architecture note (v4.0.0-beta.7+)
+### Architecture note (v4.0.0+)
 
 Plugin commands are provided as **SKILLS** (not plugin commands) so they appear as plain `/ccc-*` in the autocomplete (no `commander:` namespace prefix). This is the correct primitive for click-first UX in Cowork Desktop. Menus live in `commander/cowork-plugin/menus/*.json` (root + 6 sub-menus); the template at `commander/cowork-plugin/lib/menu-artifact.html.tpl` and renderer at `commander/cowork-plugin/lib/menu-render.js` are kept for future use if/when Claude Desktop adds interactive-artifact support, but the active UX uses AskUserQuestion-native chip pickers (confirmed working in Cowork Desktop).
 
@@ -146,7 +146,7 @@ claude-code-prompts (142).
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
 
 ```
-━━ CCC3.0.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯456│📋CC-150│📂~/project
+━━ CCC4.0.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯457│📋CC-150│📂~/project
 ```
 
 Render this at session start and after major actions. Source: `commander/cockpit.js`.

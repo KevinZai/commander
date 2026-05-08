@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
 > CC Commander v4.0.0 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-04-24 | Desktop plugin first: 55 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade) + 17 specialist sub-agents + 9 lifecycle hooks (19 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
+> Last verified: 2026-05-08 | Desktop plugin first: 58 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 2 meta + 2 vendor-sourced + /save-session + /resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop) + 17 specialist sub-agents + 9 lifecycle hooks (19 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free forever
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
@@ -60,6 +60,7 @@ All 17 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-e2e` | End-to-end test scaffolding and Playwright automation | "e2e test", "add playwright tests", "ccc e2e" |
 | `/save-session` | Save current session state to `~/.claude/commander/sessions/` for later resume | "save session", "save my progress" |
 | `/resume-session` | Resume a previously saved session — restores context, todos, and plan | "resume session", "pick up where I left off" |
+| `/ccc-loop` | Run any /ccc-* skill on a recurring interval via Claude Code's native /loop (2.1.123+) — includes 5+ patterns and self-pacing guidance | "loop a skill", "run ccc-doctor every 5 minutes", "continuous review" |
 
 ### Bundled MCP Servers (9)
 

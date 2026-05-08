@@ -147,5 +147,10 @@
       "x": "https://x.com/kzic",
       "github": "https://github.com/KevinZai/commander"
     }
+  },
+  "integrations": {
+    "plausible": {
+      "domain": "docs.cc-commander.com"
+    }
   }
 }

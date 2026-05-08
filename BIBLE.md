@@ -25,7 +25,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v4.0.0-beta.11 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v4.0.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 17 sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.3.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -1360,7 +1360,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v4.0.0-beta.7)
+### 🛠️ Plugin Workflows (v4.0.0)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
@@ -2236,7 +2236,7 @@ graph TD
 ---
 ## Built on Claude Agent SDK
 
-> *v4.0.0-beta.11* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v4.0.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2280,7 +2280,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v4.0.0-beta.11* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 51 plugin skills, 17 specialist sub-agents, 2 bundled MCPs (16 opt-in), 8 lifecycle hooks (16 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v4.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 55 plugin skills, 17 specialist sub-agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (19 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2293,10 +2293,10 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (51 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (55 plugin skills)
   +-- 17 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
-  +-- 8 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
+  +-- 9 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
   +-- AskUserQuestion chip picker     (click-first — no menu traversal)
 ```
 
@@ -2337,7 +2337,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 51 plugin skills, 17 agents, 2 bundled MCPs (16 opt-in), 8 lifecycle hooks — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 55 plugin skills, 17 agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (19 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -2358,12 +2358,12 @@ ccc --repair
 The rich footer bar displays 12 live segments at the bottom of every session:
 
 ```
-━━ CCC2.3.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│↑640K↓694K│⏰8h0m│🎯456│📋CC-150│📂~/project
+━━ CCC4.0.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│↑640K↓694K│⏰8h0m│🎯457│📋CC-150│📂~/project
 ```
 
 | Segment | What It Shows |
 |---------|--------------|
-| `CCC2.3.1` | Version |
+| `CCC4.0.0` | Version |
 | `🔥Opus1M` | Active model |
 | `🔑gAA` | Auth status |
 | `🧠▐██45%░░▌` | Context usage — green <60%, yellow <80%, red ≥80% |
@@ -2372,7 +2372,7 @@ The rich footer bar displays 12 live segments at the bottom of every session:
 | `💰$2.34` | Session cost |
 | `↑640K↓694K` | Token counts (in/out) |
 | `⏰8h0m` | Session duration |
-| `🎯456` | Total CLI-visible skills installed |
+| `🎯457` | Total CLI-visible skills installed |
 | `📋CC-150` | Active Linear ticket |
 | `📂~/project` | Current working directory |
 

@@ -2,6 +2,42 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [4.1.0-beta.1] — 2026-05-08
+
+### Added
+
+- **ccc-suggest hook** — lightweight Stop hook that nudges the user toward relevant skills based on session context (zero-config, ships in `commander/cowork-plugin/hooks/`)
+- **Clickability violation watch hook** — observes last assistant message and logs AskUserQuestion violations to `~/.claude/commander/clickability-violations.jsonl` (telemetry-only, non-blocking)
+- **NOTICE.md** — MIT compliance file crediting upstream OSS dependencies; added after full license sweep
+- **Plausible analytics wired into Mintlify** — `docs.json` now uses native `integrations.plausible` field; `plausible.js` manual shim retained for non-Mintlify pages
+- **New marketing site** at cc-commander.com — 3072-line single-file dark mode redesign (Anthropic dark + Codex aesthetic, shipped as `docs/index.html`)
+
+### Changed
+
+- **Universal `[C:domain]` naming refactor** — 55 plugin skills, 17 agents, and 83 commands updated with `[C:domain]` prefix for consistent autocomplete grouping
+- **MCP tool descriptions rewritten** for Anthropic Connectors directory submission (clarity + discoverability pass)
+- **Plausible analytics migrated** from GA4 to Plausible across `docs/index.html` and Mintlify (`integrations.plausible` native config)
+- **Vendor refresh** — 14 submodules bumped to latest pins via `/ccc-upgrade` workflow
+
+### Fixed
+
+- **Full audit sweep** — `contract.json` reconciled, counts re-synced, `.gitignore` hardened (node_modules, .DS_Store, build artifacts)
+- **7 dead hooks archived** — moved unused/stale hooks out of active `hooks/` directory to reduce confusion
+- **5 unused devDeps removed** — cleaned `package.json` of dead dependencies flagged by audit
+- **101/101 tests pass** after audit fixes (up from broken state post-contract drift)
+
+### Removed
+
+- **Anthropic-proprietary skills removed** from bundled set following MIT license sweep — replaced by tool-agnostic equivalents where applicable
+
+### Security / Compliance
+
+- **MIT license sweep completed** — all bundled skills audited for license compatibility; proprietary content extracted
+- **Affiliate disclosure hook** added to Stop lifecycle for transparent disclosure on sessions that reference `/ccc-connect` integrations
+- **Context guard + agent run logger hooks** added for session observability (non-blocking, opt-out via env var)
+
+---
+
 ## [4.0.0] — 2026-04-26 — STABLE: Codex fleet, cross-platform launch, 862+ tests, [Commander] brand stamp
 
 ### Headline

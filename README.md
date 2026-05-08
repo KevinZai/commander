@@ -93,7 +93,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 - 🔄 **Weekly vendor auto-sync** — 20 vendor submodules auto-update via GitHub Actions. The ecosystem stays current without you touching a thing.
 - 🌐 **Cross-client, one license** — Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile (hosted MCP).
 - 🚁 **Fleet orchestration** — `/ccc-fleet` runs multiple Sonnet agents in parallel **git worktrees**. Fan-out, pipeline, FOR/AGAINST, background modes.
-- 🆓 **Free in beta** — no credit card, no signup. 1,000 hosted-MCP calls/mo + one skippable feedback survey per session.
+- 🆓 **Free forever** — no credit card, no signup. No feature gating, no paywalls.
 - 🧬 **Shared brain: plugin + CLI** — same intelligence layer, same skill catalog, same personas. Install either, get both.
 - 📖 **The Kevin Z Method** — `BIBLE.md` ships with the plugin. 7 rules, 200+ sources, 14 months of production methodology.
 - 📚 **502+ skills across 11 CCC domains** — design, marketing, SaaS, DevOps, SEO, testing, security, data, research, mobile, makeover. Plus the vendor ecosystem.
@@ -115,7 +115,7 @@ One click → one next step. No info paralysis.
 
 ## Built on Claude Agent SDK primitives
 
-CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architecture — the same primitives that power agentic workflows across Claude Code Desktop, Cowork Desktop, and the CLI. The **brain/hands** pattern separates orchestration (the PM layer: planning, routing, decision-making) from execution (15 specialist sub-agent personas that each embody a distinct role, model, and voice). Nine lifecycle hook events with 19 handlers fire automatically throughout every session — from `SessionStart` initialization through `SubagentStop` result aggregation — so the right agent is always running at the right moment without you lifting a finger.
+CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architecture — the same primitives that power agentic workflows across Claude Code Desktop, Cowork Desktop, and the CLI. The **brain/hands** pattern separates orchestration (the PM layer: planning, routing, decision-making) from execution (17 specialist sub-agent personas that each embody a distinct role, model, and voice). Nine lifecycle hook events with 19 handlers fire automatically throughout every session — from `SessionStart` initialization through `SubagentStop` result aggregation — so the right agent is always running at the right moment without you lifting a finger.
 
 ---
 
@@ -228,11 +228,9 @@ CC Commander is a **meta-layer** — it routes to other plugins, not away from t
 
 Claude Code · Cursor · Windsurf · Cline · Continue · Codex · Claude mobile · Claude Desktop
 
-## Free Beta
+## Free Forever
 
-- 1,000 MCP calls/month — no credit card required
-- [Sign up at cc-commander.com/beta](https://cc-commander.com/beta)
-- One survey question per session (skippable — your feedback shapes the roadmap)
+All 55 plugin skills, 17 specialist agents, 9 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors — free, no credit card, no feature gating.
 
 ---
 
