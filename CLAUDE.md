@@ -78,7 +78,7 @@ Key components:
 - `commander/knowledge.js` — Knowledge compounding (learns from every session)
 - `commander/plugins.js` — Auto-detects gstack, CE, Superpowers, sequences them
 - `commander/adventures/*.json` — 14 JSON decision tree flows
-- `commander/cowork-plugin/` — Desktop plugin (55 skills, 17 sub-agent personas, 9 hooks × 15 handlers, 2 credential-free bundled MCP servers per `.mcp.json` + 16 opt-in via `/ccc-connect`)
+- `commander/cowork-plugin/` — Desktop plugin (62 skills, 22 sub-agent personas, 9 hooks × 15 handlers, 2 credential-free bundled MCP servers per `.mcp.json` + 16 opt-in via `/ccc-connect`)
 - `commander/update-check.js` — Update checker (4h cache, silent on failure, runs at session start)
 - `commander/tests/paths.test.js` — 18 E2E path tests
 
@@ -90,7 +90,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ```
 ├── commander/cowork-plugin/     # Desktop plugin (primary product)
 │   ├── .claude-plugin/plugin.json   # Plugin manifest (schema-compliant)
-│   ├── skills/                  # 61 plugin skills (23 ccc-* workflows + 6 channel/CI/ECC + remaining lifecycle + 2 vendor-sourced + 25 other)
+│   ├── skills/                  # 62 plugin skills (23 ccc-* workflows + 6 channel/CI/ECC + remaining lifecycle + 2 vendor-sourced + 25 other)
 │   ├── agents/                  # 22 specialist agents (architect, reviewer, builder, designer, security-auditor, typescript-reviewer, python-reviewer, etc.)
 │   ├── hooks/                   # 9 lifecycle hooks (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest)
 │   ├── menus/                   # 7 menu JSON trees (root + 6 sub-menus)
@@ -250,7 +250,7 @@ ccc --status                  # Health check
 
 ## Ecosystem Context
 
-CCC ships 55 focused `/ccc-*` plugin skills as the curated front door, then routes into 450+ CCC ecosystem skills across 11 domains. It is a meta-layer over the broader Claude skill ecosystem — not a replacement for it.
+CCC ships 62 focused `/ccc-*` plugin skills as the curated front door, then routes into 450+ CCC ecosystem skills across 11 domains. It is a meta-layer over the broader Claude skill ecosystem — not a replacement for it.
 
 **External ecosystems CCC plays well with:**
 - `anthropics/skills` — official Anthropic skills (Frontend Design, Theme Factory, Spec Writer)
@@ -267,7 +267,7 @@ CCC ships 55 focused `/ccc-*` plugin skills as the curated front door, then rout
 
 **When Claude agents load this CLAUDE.md, they should know:**
 - CCC is a meta-layer over the Claude skill ecosystem — curation + guidance + memory, not raw skills
-- 61 `/ccc-*` plugin skills are the curated front door; they route into 450+ deeper skills
+- 62 `/ccc-*` plugin skills are the curated front door; they route into 450+ deeper skills
 - `CONNECTORS.md` defines 13 tool-agnostic connector categories via `~~category` placeholders — skills are tool-agnostic
 - Everything free forever: 61 plugin skills, 22 agents, 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect, 9 lifecycle hooks × 24 handlers. No feature gating, no paywalls, no license checks.
 - Revenue model: free forever — 4 levers: (1) transparent affiliate links in /ccc-connect (Supabase, Vercel, Neon, etc.) + (2) Kevin's consulting pipeline (plugin = trust engine → consulting funnel) + (3) optional Pro community ($49/mo Discord) + (4) GitHub Sponsors

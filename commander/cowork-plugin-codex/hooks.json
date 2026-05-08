@@ -49,7 +49,8 @@
           {
             "type": "command",
             "command": "node ${CODEX_PLUGIN_ROOT}/hooks/cost-tracker.js",
-            "timeout": 3000
+            "timeout": 3000,
+            "async": true
           },
           {
             "type": "command",
@@ -62,6 +63,36 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/config-protection.js",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/doc-file-warning.js",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/git-push-reminder.js",
+            "timeout": 3000
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -72,6 +103,27 @@
             "type": "command",
             "command": "node ${CODEX_PLUGIN_ROOT}/hooks/knowledge-capture.js",
             "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/console-log-warn.js",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/pr-link-notify.js",
+            "timeout": 3000,
+            "async": true
           }
         ]
       }

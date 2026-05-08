@@ -93,7 +93,7 @@ const AgentsScene = () => {
               fontFamily:'"Inter",sans-serif', fontSize:88, fontWeight:600,
               color:'#F5F5F0', letterSpacing:'-.025em', lineHeight:1.0,
             }}>
-              <span style={{color:'#FF6B47'}}>17</span> specialists.
+              <span style={{color:'#FF6B47'}}>22</span> specialists.
             </div>
             <div style={{
               fontFamily:'"Inter",sans-serif', fontSize:30, fontWeight:500,
@@ -109,7 +109,7 @@ const AgentsScene = () => {
       <Sprite start={2.2} end={9.6} keepMounted>
         {({ progress, localTime }) => {
           const op = animate({from:0,to:1,start:0,end:0.08})(progress);
-          // 6 cols × 3 rows (17 cells, 1 placeholder for council badge in last)
+          // 6 cols × 3 rows (22 cells, 1 placeholder for council badge in last)
           const cellsPerRow = 6;
           const cellW = 168, cellH = 116, gap = 14;
           const totalW = cellsPerRow*cellW + (cellsPerRow-1)*gap;
@@ -169,7 +169,7 @@ const AgentsScene = () => {
                     </div>
                     <div style={{ fontSize:12, color:'#A8A8A0', marginTop:2 }}>{role}</div>
                     <div style={{ position:'absolute', right:10, top:10, fontFamily:'"JetBrains Mono",monospace', fontSize:10, color:'#6E6E68', letterSpacing:'.06em' }}>
-                      {String(i+1).padStart(2,'0')}/17
+                      {String(i+1).padStart(2,'0')}/22
                     </div>
                   </div>
                 );

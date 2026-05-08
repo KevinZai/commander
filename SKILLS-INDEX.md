@@ -47,7 +47,7 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 |-------|-------------|----------------|
 | `/ccc` | Main CCC hub — interactive menu, session overview | "open ccc", "ccc menu", "show commander" |
 | `/ccc-start` | First-run onboarding — plan file, first win | "get started with ccc", "ccc start" |
-| `/ccc-browse` | Searchable catalog of 502+ skills and 17 sub-agents | "browse skills", "ccc browse" |
+| `/ccc-browse` | Searchable catalog of 502+ skills and 22 sub-agents | "browse skills", "ccc browse" |
 | `/ccc-plan` | Spec-first planning — 5-question interview → spec file | "plan a feature", "ccc plan" |
 | `/ccc-build` | Build wizard — web, API, CLI or mobile with spec | "ccc build", "start a build", "new project wizard" |
 | `/ccc-review` | Branch audit — diff, security, perf, x-ray | "ccc review", "review my code", "code review" |

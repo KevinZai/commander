@@ -96,6 +96,16 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-zinc-400">
               <li>
                 <a
+                  href="https://kevinz.ai/consulting"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-orange-400 hover:text-orange-300 transition-colors"
+                >
+                  Hire Kevin → AI consulting
+                </a>
+              </li>
+              <li>
+                <a
                   href="mailto:hello@cc-commander.com"
                   className="hover:text-white transition-colors"
                 >
@@ -108,6 +118,16 @@ export function Footer() {
                   className="hover:text-white transition-colors"
                 >
                   Team inquiries
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/sponsors/KevinZai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  Sponsor on GitHub
                 </a>
               </li>
             </ul>

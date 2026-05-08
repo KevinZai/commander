@@ -1,0 +1,674 @@
+{
+  "_comment": "Declarative replacement patterns for ccc-doc-sync. Each entry maps a file to its count/version patterns. replacement_template uses ${plugin_skills}, ${specialist_agents}, ${hook_handlers}, ${version}. regex must be a valid JS RegExp string (no /flags/ delimiters). Add a 'flags' field for regex flags (default: 'g').",
+  "patterns": [
+    {
+      "file": "README.md",
+      "replacements": [
+        {
+          "regex": "(CC Commander[^\\n]*·\\s*)\\d+( Skills)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(activates\\s*)\\d+( skills,\\s*\\d+ specialist AI agents)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(activates\\s*\\d+ skills,\\s*)\\d+( specialist AI agents)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "\\*\\*What you get:\\*\\* \\d+( click-first `/ccc-\\*` plugin skills)",
+          "flags": "g",
+          "template": "**What you get:** ${plugin_skills}$1"
+        },
+        {
+          "regex": "(Same\\s*)\\d+( skills, same\\s*)\\d+( specialist agents)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(One plugin install activates\\s*)\\d+( skills,\\s*)\\d+( specialist AI agents)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(All\\s*)\\d+( plugin skills,\\s*)\\d+( agents,\\s*9 lifecycle hooks \\(\\d+ handlers\\))",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(All\\s*)\\d+( plugin skills,\\s*)\\d+( agents,\\s*9 lifecycle hooks \\()\\d+(\\) handlers)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3${hook_handlers}$4"
+        },
+        {
+          "regex": "(All\\s*)\\d+( plugin skills,\\s*)\\d+( specialist agents,\\s*9 lifecycle hooks)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(✅\\s*)\\d+( plugin skills activate)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(🎭 \\*\\*\\d+)( specialist agents with persona voices\\*\\*)",
+          "flags": "g",
+          "template": "🎭 **${specialist_agents}$2"
+        },
+        {
+          "regex": "(🪝 \\*\\*9 lifecycle hooks ×\\s*)\\d+( handlers\\*\\*)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "## The \\d+( plugin skills)",
+          "flags": "g",
+          "template": "## The ${plugin_skills}$1"
+        },
+        {
+          "regex": "(\\| \\*\\*Sub-agent personas\\*\\* \\|\\s*)\\d+( \\(architect)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(\\| \\*\\*Skill count\\*\\* \\| 502\\+ \\()\\d+( plugin \\+)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(All\\s*)\\d+( plugin skills,\\s*)\\d+( specialist agents,\\s*9 lifecycle hooks,\\s*2 bundled)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(\\s+)\\d+( plugin skills,\\s*)\\d+( agents,\\s*20 vendor packages)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(\\| Plugin Skills \\|\\s*)\\d+(\\s*\\|)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(\\| Agents \\|\\s*)\\d+(\\s*\\|)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(\\| Lifecycle Hooks \\| 9 ×\\s*)\\d+( handlers)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(\\[Plugin Skills\\]\\(.*?\\).*?badge/)\\d+(_Plugin_Skills)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(\\[v)([\\d.]+)(\\].*?v)[\\d.]+(\\?style=for-the-badge\\)\\(.*?CHANGELOG)",
+          "flags": "g",
+          "template": "$1${version}$3${version}$4"
+        },
+        {
+          "regex": "(9 lifecycle hooks \\(\\d+ handlers\\).*brain/hands.*?\\d+)( specialist sub-agent personas)",
+          "flags": "g",
+          "template": "$1$2"
+        },
+        {
+          "regex": "(\\[Plugin Skills\\].*?badge/)\\d+(_Plugin_Skills-)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        }
+      ]
+    },
+    {
+      "file": "BIBLE.md",
+      "replacements": [
+        {
+          "regex": "(brain/hands \\+\\s*)\\d+( specialist sub-agent personas)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(\\*\\*Plus\\s*)\\d+( specialist agents\\*\\*)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(\\+-- /ccc-build.*?\\()\\d+( plugin skills\\))",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(CC Commander ships as.*?plugin.*?\\.)\\s*(\\d+)( plugin skills total)",
+          "flags": "g",
+          "template": "$1 ${plugin_skills}$3"
+        },
+        {
+          "regex": "(/ccc-\\* Skills \\()\\d+( total)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(### Sub-agent personas \\()\\d+(\\))",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(9 events,\\s*)\\d+( handlers)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(\\| \\*\\*TOTAL\\*\\* \\| \\*\\*9 events\\*\\* \\| \\*\\*)\\d+( handlers\\*\\*)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(17 personas, lifecycle hooks,.*?\\d+)( personas,)",
+          "flags": "g",
+          "template": "$1$2"
+        }
+      ]
+    },
+    {
+      "file": "CHEATSHEET.md",
+      "replacements": [
+        {
+          "regex": "(\\.)\\s*(\\d+)( plugin skills total)",
+          "flags": "g",
+          "template": "$1 ${plugin_skills}$3"
+        },
+        {
+          "regex": "(/ccc-\\* Skills \\()\\d+( total)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(### Sub-agent personas \\()\\d+(\\))",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(9 events,\\s*)\\d+( handlers)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(\\| \\*\\*TOTAL\\*\\* \\| \\*\\*9 events\\*\\* \\| \\*\\*)\\d+( handlers\\*\\*)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(CC Commander ships as.*?plugin.*?\\.)\\s*(\\d+)( plugin skills total)",
+          "flags": "g",
+          "template": "$1 ${plugin_skills}$3"
+        }
+      ]
+    },
+    {
+      "file": "SKILLS-INDEX.md",
+      "replacements": [
+        {
+          "regex": "(## Specialist Sub-Agents \\()\\d+(\\))",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(All\\s*)\\d+( sub-agents are free)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(catalog of 502\\+ skills and\\s*)\\d+( sub-agents)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(Pre-flight checks \\+.*?\\.)\\s*(\\d+)(-point gate)",
+          "flags": "g",
+          "template": "$1 ${plugin_skills}$3"
+        }
+      ]
+    },
+    {
+      "file": "CLAUDE.md",
+      "replacements": [
+        {
+          "regex": "(Desktop plugin \\(\\s*)\\d+( skills,\\s*)\\d+( sub-agent personas)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(skills/\\s+# \\s*)\\d+( plugin skills)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(agents/\\s+# \\s*)\\d+( specialist agents)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(CCC ships\\s*)\\d+( focused `/ccc-\\*` plugin skills)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(61 `/ccc-\\*` plugin skills are the curated front door)",
+          "flags": "g",
+          "template": "${plugin_skills} `/ccc-*` plugin skills are the curated front door"
+        }
+      ]
+    },
+    {
+      "file": "commander/cowork-plugin/.claude-plugin/plugin.json",
+      "replacements": [
+        {
+          "regex": "(\\*\\*\\d+)( specialist sub-agent personas\\*\\*)",
+          "flags": "g",
+          "template": "**${specialist_agents}$2"
+        },
+        {
+          "regex": "(\\*\\*\\d+)( plugin skills\\*\\* incl)",
+          "flags": "g",
+          "template": "**${plugin_skills}$2"
+        },
+        {
+          "regex": "(\\*\\*\\d+)( lifecycle hooks ×\\s*)\\d+( handlers\\*\\*)",
+          "flags": "g",
+          "template": "**9$2${hook_handlers}$3"
+        }
+      ]
+    },
+    {
+      "file": "commander/cowork-plugin/CONNECTORS.md",
+      "replacements": []
+    },
+    {
+      "file": "mintlify-docs/introduction.mdx",
+      "replacements": [
+        {
+          "regex": "(One plugin\\.\\s*)\\d+( skills\\.)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(<Card title=\")\\d+( Plugin Skills\")",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(<Card title=\")\\d+( Specialist Sub-Agents\")",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(<Card title=\"9 Lifecycle Hooks / )\\d+( Handlers\")",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(\\d+)( specialist personas \\(architect)",
+          "flags": "g",
+          "template": "${specialist_agents}$2"
+        },
+        {
+          "regex": "(All\\s*)\\d+( plugin skills,\\s*)\\d+( sub-agents,\\s*8 lifecycle hooks \\(\\d+ handlers\\))",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(\\| Plugin skills \\|\\s*)\\d+( \\(\\d+)",
+          "flags": "g",
+          "template": "$1${plugin_skills} ($2"
+        },
+        {
+          "regex": "(\\| Specialist sub-agents \\|\\s*)\\d+(\\s*\\|)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        }
+      ]
+    },
+    {
+      "file": "mintlify-docs/plugin/install.mdx",
+      "replacements": [
+        {
+          "regex": "(All\\s*)\\d+( plugin skills,\\s*)\\d+( specialist agents,\\s*9 lifecycle hooks,\\s*2 bundled)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(Expected:.*All\\s*)\\d+( skills active)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        }
+      ]
+    },
+    {
+      "file": "mintlify-docs/plugin/agents.mdx",
+      "replacements": [
+        {
+          "regex": "(## The\\s*)\\d+( Personas)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(All\\s*)\\d+( sub-agents are free)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(\"\\s*)\\d+( specialist personas built on)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        }
+      ]
+    },
+    {
+      "file": "mintlify-docs/plugin/skills.mdx",
+      "replacements": [
+        {
+          "regex": "(description:.*\")\\d+( skills shipped)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(CC Commander.*ships\\s*\\*\\*\\s*)\\d+( plugin skills\\*\\*)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(catalog of.*\\+\\s*skills and\\s*)\\d+( agents)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(## All\\s*)\\d+( at a Glance)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        }
+      ]
+    },
+    {
+      "file": "mintlify-docs/plugin/free-vs-pro.mdx",
+      "replacements": [
+        {
+          "regex": "(- ✅\\s*)\\d+( plugin skills)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(- ✅\\s*)\\d+( specialist sub-agent personas)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(9 lifecycle hook events /\\s*)\\d+( handlers)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(\"CC Commander is free.*?All\\s*)\\d+( skills,\\s*)\\d+( sub-agents)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        }
+      ]
+    },
+    {
+      "file": "mintlify-docs/install-recovery.mdx",
+      "replacements": [
+        {
+          "regex": "(skill count matches expected \\()\\d+( skills /\\s*)\\d+( agents /\\s*9 hooks ×\\s*)\\d+( handlers)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3${hook_handlers}$4"
+        }
+      ]
+    },
+    {
+      "file": "docs/index.html",
+      "replacements": [
+        {
+          "regex": "(<meta name=\"description\" content=\"[^\"]*?)\\d+( plugin skills[^\"]*?\\d+)( specialist agents[^\"]*?\\d+)( lifecycle[^\"]*?\\d+)( handlers)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2$3$4$5"
+        },
+        {
+          "regex": "(content=\"[^\"]*?)\\d+( plugin skills · )\\d+( specialist agents · 9 lifecycle)([^\"]*?)\\d+( handlers[^\"]*?\")",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3$4${hook_handlers}$5"
+        },
+        {
+          "regex": "(· )\\d+( plugin skills, )\\d+( agents)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "(<strong>)\\d+( plugin skills\\.<\\/strong>)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(<span class=\"ok\">✓<\\/span>\\s*)\\d+( skills active)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(<span class=\"ok\">✓<\\/span>\\s*)\\d+( agents wired)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(9 hooks ×\\s*)\\d+( handlers)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(9 lifecycle events ×\\s*)\\d+( handlers)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(eyebrow\">all\\s*)\\d+( skills<\\/span>)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(eyebrow\">9 hooks · )\\d+( handlers<\\/span>)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(↓ &nbsp; )\\d+( skills<\\/div>)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(One command activates\\s*)\\d+( skills,\\s*)\\d+( agents)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        },
+        {
+          "regex": "('\\/)\\d+( skills, click-first picker')",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "('9 events ×\\s*)\\d+( handlers, on by default')",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(loaded', 'b':'\\d+)( skills')",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(<span class=\"tk-item\"><b>[^<]*<\\/b> · )\\d+( plugin skills,\\s*)\\d+( agents)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        }
+      ]
+    },
+    {
+      "file": "site/components/hero.tsx",
+      "replacements": [
+        {
+          "regex": "(\\s+)\\d+( skills · )\\d+( agents · )\\d+( hooks · )\\d+( MCPs)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3$4$5"
+        },
+        {
+          "regex": "(<span[^>]*>)\\d+( skills\\. )\\d+( agents\\.)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        }
+      ]
+    },
+    {
+      "file": "site/components/skills-showcase.tsx",
+      "replacements": [
+        {
+          "regex": "(\\d+)( skills\\. Tab through them\\.)",
+          "flags": "g",
+          "template": "${plugin_skills}$2"
+        }
+      ]
+    },
+    {
+      "file": "site/public/videos/scene-hero.jsx",
+      "replacements": [
+        {
+          "regex": "(\\s*)\\d+( plugin skills\\.\\s*)\\d+( specialist agents\\.\\s*9 lifecycle hooks\\.)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${specialist_agents}$3"
+        }
+      ]
+    },
+    {
+      "file": "site/public/videos/scene-agents.jsx",
+      "replacements": [
+        {
+          "regex": "(\\/\\/ scene-agents\\.jsx[^\\n]*\")\\d+( specialist agents\")",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(cols × \\d+ rows \\()\\d+( cells)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(String\\(i\\+1\\)\\.padStart\\(2,'0'\\)\\+'/)\\d+(\")",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "({String\\(i\\+1\\)\\.padStart\\(2,'0'\\)}\\/\\d+)",
+          "flags": "g",
+          "template": "{String(i+1).padStart(2,'0')}/${specialist_agents}"
+        },
+        {
+          "regex": "('●</span> )\\d+( agents</span>)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(<span style=\\{\\{color:'#FF6B47'\\}\\}>)\\d+(</span> specialists\\.)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        }
+      ]
+    },
+    {
+      "file": "site/public/videos/scene-compare.jsx",
+      "replacements": [
+        {
+          "regex": "('Specialist coverage',\\s*'1 agent','\\s*)\\d+( agents',)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "('Lifecycle hooks',\\s*'0','\\s*9 ×\\s*)\\d+( handlers',)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "('Skill library',\\s*'ad-hoc',\\s*'\\s*)\\d+( curated',)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        }
+      ]
+    },
+    {
+      "file": "site/public/videos/scene-hooks.jsx",
+      "replacements": [
+        {
+          "regex": "(9 events\\.\\s*)\\d+( handlers\\.)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(<span[^>]*>)\\d+<\\/span> skills<\\/span>",
+          "flags": "g",
+          "template": "$1${plugin_skills}</span> skills</span>"
+        },
+        {
+          "regex": "(<span[^>]*>)\\d+<\\/span> agents<\\/span>",
+          "flags": "g",
+          "template": "$1${specialist_agents}</span> agents</span>"
+        },
+        {
+          "regex": "('b':'\\s*)\\d+( skills')",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "('b':'\\s*)\\d+( specialist agents')",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "('×\\s*)\\d+( handlers wired')",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        },
+        {
+          "regex": "(\\/skills[^']*\\s*)\\d+( skills across)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        }
+      ]
+    },
+    {
+      "file": "site/public/videos/scene-install.jsx",
+      "replacements": [
+        {
+          "regex": "(\\d+)( skills · )\\d+( agents · )\\d+( hooks · )\\d+( MCPs)",
+          "flags": "g",
+          "template": "${plugin_skills}$2${specialist_agents}$3$4$5"
+        },
+        {
+          "regex": "('loaded.*?')\\d+(' skills')",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "('loaded.*?')\\d+(' specialist agents')",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "('loaded.*?'×)\\d+(' handlers)",
+          "flags": "g",
+          "template": "$1${hook_handlers}$2"
+        }
+      ]
+    }
+  ]
+}

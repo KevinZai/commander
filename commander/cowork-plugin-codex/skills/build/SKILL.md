@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "<what you want to build>"
 ---
 
-# /ccc:build
+# /ccc-build
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

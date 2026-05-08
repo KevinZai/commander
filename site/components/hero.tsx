@@ -60,7 +60,7 @@ export function Hero() {
             CCC is the curated,{" "}
             <span className="text-white font-semibold">AI-guided</span> package
             that turns Claude from a brain-in-a-jar into an operator.{" "}
-            <span className="text-white">15 skills. 5 agents. 8 pre-wired MCPs.</span>{" "}
+            <span className="text-white">62 skills. 22 agents. 8 pre-wired MCPs.</span>{" "}
             One install.
           </motion.p>
 

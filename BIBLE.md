@@ -242,7 +242,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 | `ccc-more` | Long-tail menu (settings, infra, night mode, standup) |
 | `ccc-spike` / `ccc-spike-confirm` | Experimental spike + confirm-to-land flow |
 
-**Plus 17 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
+**Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
 **Plus 8 pre-wired MCPs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem) + 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification).
 
@@ -2293,7 +2293,7 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (61 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (62 plugin skills)
   +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 9 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
