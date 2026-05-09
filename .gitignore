@@ -62,3 +62,4 @@ hooks/paperclip-bridge.js
 marketing/
 .claude/worktrees/
 .claude/scheduled_tasks.lock
+.claude/agent-memory/
