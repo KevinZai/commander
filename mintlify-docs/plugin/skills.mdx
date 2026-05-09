@@ -1,9 +1,9 @@
 ---
 title: "Plugin Skills"
-description: "62 skills shipped with the CC Commander plugin (v4.1.0-beta.2). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
+description: "60 skills shipped with the CC Commander plugin (v4.1.0-beta.2). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
 ---
 
-CC Commander v4.1.0-beta.2 ships **62 plugin skills** across six groups. All skills are **free for now** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+CC Commander v4.1.0-beta.2 ships **60 plugin skills** across six groups. All skills are **free for now** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
 
 ## Group 1 — 13 /ccc-* Specialist Workflows
 
@@ -68,8 +68,8 @@ Added in v4.0.0-beta.10 and v4.0.0-beta.11.
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
 | `/ccc-e2e` | `/ccc-e2e` or "e2e test", "add playwright tests" | E2E test scaffolding and Playwright automation — new test suite, existing project, or visual regression |
-| `/save-session` | `/save-session` or "save session", "save my progress" | Save current session state to `~/.claude/commander/sessions/` — context, todos, and plan preserved |
-| `/resume-session` | `/resume-session` or "resume session", "pick up where I left off" | Resume a previously saved session — lists recent saves, pick one to restore context |
+| `/ccc-save-session` | `/ccc-save-session` or "save session", "save my progress" | Save current session state to `~/.claude/commander/sessions/` — context, todos, and plan preserved |
+| `/ccc-resume-session` | `/ccc-resume-session` or "resume session", "pick up where I left off" | Resume a previously saved session — lists recent saves, pick one to restore context |
 | `/ccc-changelog` | `/ccc-changelog` or "what changed", "what is new" | Renders the latest CHANGELOG.md section. Fires automatically on version-transition via SessionStart nudge (beta.11) |
 | `/ccc-doctor` | `/ccc-doctor` or "diagnose plugin" | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component (beta.11) |
 
@@ -95,7 +95,7 @@ New skills added in v4.0.0-beta.11. These skills extend the deploy, fleet, onboa
 | `/ccc-fleet-viz` | `/ccc-fleet-viz` or "fleet status", "show agent tree" | Live fleet visualizer — renders running agents, spawn tree, cost per agent, and completion % |
 | `/ccc-upgrade` | `/ccc-upgrade` or "upgrade ccc", "update commander" | Guided upgrade flow — checks current version, shows changelog diff, runs upgrade safely |
 
-## All 62 at a Glance
+## All 60 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -127,8 +127,8 @@ New skills added in v4.0.0-beta.11. These skills extend the deploy, fleet, onboa
 | 26 | `/ccc-agent-writing` | Vendor-sourced (superpowers) |
 | 27 | `/ccc-systematic-debugging` | Vendor-sourced (superpowers) |
 | 28 | `/ccc-e2e` | E2E + Playwright (beta.10) |
-| 29 | `/save-session` | Session management (beta.10) |
-| 30 | `/resume-session` | Session management (beta.10) |
+| 29 | `/ccc-save-session` | Session management (beta.10) |
+| 30 | `/ccc-resume-session` | Session management (beta.10) |
 | 31 | `/ccc-changelog` | Version-transition nudge + CHANGELOG renderer (beta.11) |
 | 32 | `/ccc-doctor` | Plugin diagnostic (beta.11) |
 | 33 | `/ccc-memory` | Two-tier persistent memory (beta.10, MIT port) |

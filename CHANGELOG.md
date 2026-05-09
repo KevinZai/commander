@@ -337,8 +337,8 @@ Cumulative hardening across Waves 1/2/3/4/10: security sweep, XML creep eliminat
 ### ✨ New Skills (Wave 3 — 30→33)
 
 - **`/ccc-e2e`** — E2E test scaffolding and Playwright automation. Chips: New suite · Existing project · Visual regression
-- **`/save-session`** — Save current session state (context, todos, plan) to `~/.claude/commander/sessions/`
-- **`/resume-session`** — Resume a previously saved session; lists recent saves with timestamps
+- **`/ccc-save-session`** — Save current session state (context, todos, plan) to `~/.claude/commander/sessions/`
+- **`/ccc-resume-session`** — Resume a previously saved session; lists recent saves with timestamps
 
 ### 📚 Docs (Wave 10 + Wave 7)
 

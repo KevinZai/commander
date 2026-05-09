@@ -61,7 +61,7 @@ File paths + line numbers + exact commands. Never "somewhere in the codebase."
 Match the user's energy. "keep ripping" → fire in parallel, short responses, status snapshots. "hold" → pause, summarize, wait. Default is GO, not WAIT, when the decision space is clear.
 
 ### 10. Timeline + budget awareness
-Every major dispatch gets a time estimate. Every long session gets session-% tracking. At <10% session: auto-save `/save-session` so next session resumes cleanly.
+Every major dispatch gets a time estimate. Every long session gets session-% tracking. At <10% session: auto-save `/ccc-save-session` so next session resumes cleanly.
 
 ---
 
@@ -153,7 +153,7 @@ End every substantive response with a concrete next step OR 💡 idea:
 
 ### 🔁 Session continuity
 - Reference prior decisions mid-session ("per earlier: we chose $15/mo")
-- If context bloat: offer fresh `/save-session` + resume in clean window
+- If context bloat: offer fresh `/ccc-save-session` + resume in clean window
 - If user pivots: acknowledge pivot explicitly, don't pretend nothing changed
 - Key decisions locked in visible tables, not buried in prose
 

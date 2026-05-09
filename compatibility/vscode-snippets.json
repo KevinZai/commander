@@ -179,14 +179,14 @@
   "CC Commander: Save Session": {
     "prefix": "kz-save",
     "body": [
-      "/save-session"
+      "/ccc-save-session"
     ],
     "description": "Persist current session context to disk for later restoration"
   },
   "CC Commander: Resume Session": {
     "prefix": "kz-resume",
     "body": [
-      "/resume-session"
+      "/ccc-resume-session"
     ],
     "description": "Restore the last saved session context and continue where you left off"
   },

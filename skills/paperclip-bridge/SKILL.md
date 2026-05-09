@@ -189,7 +189,7 @@ curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
 | All task-commander steps checked | Close issue | All sub-items marked done |
 | `verification-loop` passes | Close issue | All checks green |
 | Git commit with issue reference | Update issue | Comment with commit SHA |
-| `/save-session` with active tracking | Update issue | Add session summary comment |
+| `/ccc-save-session` with active tracking | Update issue | Add session summary comment |
 | Session ends (Stop hook) | Update or leave open | Close only if all steps done |
 
 ### Guard: Never Auto-Close
@@ -213,7 +213,7 @@ curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
 | Test failure / blocker | `PATCH` status to `blocked` |
 | All steps done | `PATCH` status to `done` |
 | `git commit` with reference | `POST` comment with commit details |
-| `/save-session` | `POST` comment with session summary |
+| `/ccc-save-session` | `POST` comment with session summary |
 | Mode switch | `POST` comment noting mode change |
 
 ### Paperclip to CC Commander (Pull)
@@ -224,7 +224,7 @@ curl -s -X PATCH http://localhost:3110/api/issues/${ISSUE_ID} \
 | Comment from another agent | Read and incorporate context |
 | Status changed to `blocked` | Check blocker, attempt resolution |
 | Priority escalated to `critical` | Interrupt current work, address immediately |
-| Issue reassigned to Claude Code | Pick up via `/resume-session` |
+| Issue reassigned to Claude Code | Pick up via `/ccc-resume-session` |
 
 ### Sync Cadence
 

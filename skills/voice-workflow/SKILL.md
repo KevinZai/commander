@@ -93,7 +93,7 @@ Short phrases that map to full commands. Designed to be easy to pronounce and un
 | "verify" | `/verify` | Run verification |
 | "review code" | `/code-review` | Code review |
 | "check point" | `/checkpoint` | Save checkpoint |
-| "save session" | `/save-session` | Persist session |
+| "save session" | `/ccc-save-session` | Persist session |
 
 ## Dictation Patterns for Code
 

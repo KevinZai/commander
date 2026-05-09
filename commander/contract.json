@@ -1,6 +1,6 @@
 {
-  "version": "4.0.0",
-  "plugin_skills": 62,
+  "version": "4.1.0-beta.2",
+  "plugin_skills": 60,
   "specialist_agents": 22,
   "lifecycle_hooks": 9,
   "hook_handlers": 24,
@@ -22,5 +22,6 @@
   "claude_code_compat": "shipping",
   "codex_cli_compat": "v4.2-target",
   "codex_desktop_compat": "v4.2-target",
-  "cursor_windsurf_compat": "blocked-on-hosted-mcp"
+  "cursor_windsurf_compat": "blocked-on-hosted-mcp",
+  "pro_skill_packs": 5
 }

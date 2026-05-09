@@ -18,7 +18,7 @@ Claude Code sessions forget everything at the end. Memory makes the important bi
 
 ## Not for
 
-- Session-scoped state that ends with this session — use /save-session for that
+- Session-scoped state that ends with this session — use /ccc-save-session for that
 - Searchable cross-project knowledge — use /ccc-recall for that
 - Per-skill notes — put those inline in the skill's body
 

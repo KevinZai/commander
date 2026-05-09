@@ -82,7 +82,7 @@ Load context based on the task, not the session:
 ## 8. Session Handoff Protocol
 
 When a session runs out of context or needs fresh start:
-1. Save state: `/save-session` or auto via pre-compact hook
+1. Save state: `/ccc-save-session` or auto via pre-compact hook
 2. Write handoff note: what's done, what's next, any blockers
 3. New session reads: CLAUDE.md → tasks/todo.md → session file → resume
 
@@ -96,5 +96,5 @@ When a session runs out of context or needs fresh start:
 | Micro-commits | auto-checkpoint hook |
 | Cost routing | Mode system (normal/yolo/night) |
 | Escalation | confidence-gate hook |
-| Session handoff | pre-compact hook + /save-session |
+| Session handoff | pre-compact hook + /ccc-save-session |
 | Role permissions | Mode-based permission configs |

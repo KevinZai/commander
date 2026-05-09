@@ -7,6 +7,11 @@
             "type": "command",
             "command": "node ${CODEX_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js",
             "timeout": 15000
+          },
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/license-check.js",
+            "timeout": 10000
           }
         ]
       }

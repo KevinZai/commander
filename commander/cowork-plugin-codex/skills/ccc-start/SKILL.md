@@ -206,7 +206,7 @@ Reply to the user with a one-line confirmation:
 
 ## Session Persistence
 
-**Tip:** Run `/save-session` before closing a working session to capture state. Then `/resume-session` at the start of your next one to pick up instantly. Both are built into CC Commander — no extra install needed.
+**Tip:** Run `/ccc-save-session` before closing a working session to capture state. Then `/ccc-resume-session` at the start of your next one to pick up instantly. Both are built into CC Commander — no extra install needed.
 
 ## Pricing & how to support (mention near the end of the tour)
 

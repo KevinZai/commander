@@ -290,8 +290,8 @@ Claude Code is opinionated about best practices. If it suggests tests, types, or
 | `/cc grill` | Planning probe | Before a big feature |
 | `/cc confidence` | Confidence check | Unsure about an approach |
 | `/orchestrate` | Multi-agent | Large features needing parallel work |
-| `/save-session` | Save context | Before closing a session |
-| `/resume-session` | Restore context | Continuing previous work |
+| `/ccc-save-session` | Save context | Before closing a session |
+| `/ccc-resume-session` | Restore context | Continuing previous work |
 
 ### Advanced Commands
 

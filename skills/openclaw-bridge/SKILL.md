@@ -317,7 +317,7 @@ Hand off an active Claude Code session to an OpenClaw agent for continuation.
 
 ```bash
 # 1. Save current session state
-/save-session
+/ccc-save-session
 
 # 2. Build handoff payload
 cat > /tmp/handoff.json << 'EOF'
@@ -347,7 +347,7 @@ When an OpenClaw agent needs Claude Code to take over:
 
 1. Agent posts handoff context to `#comms-log` channel
 2. Agent writes session summary to `~/clawd/workspaces/{workspace}/memory/handoff-{date}.md`
-3. Claude Code user runs `/resume-session` or reads the handoff file directly
+3. Claude Code user runs `/ccc-resume-session` or reads the handoff file directly
 
 ### Handoff Protocol
 
@@ -389,8 +389,8 @@ Synchronize session memory between CC Commander sessions (`~/.claude/sessions/`)
 
 ### Sync Rules
 
-1. **CC Commander to OpenClaw:** On `/save-session`, extract tagged entries and append to `~/clawd/workspaces/{workspace}/memory/{date}.md`
-2. **OpenClaw to CC Commander:** On `/resume-session`, scan recent OpenClaw memory files for `[HANDOFF]` and `[DECISION]` tags relevant to current project
+1. **CC Commander to OpenClaw:** On `/ccc-save-session`, extract tagged entries and append to `~/clawd/workspaces/{workspace}/memory/{date}.md`
+2. **OpenClaw to CC Commander:** On `/ccc-resume-session`, scan recent OpenClaw memory files for `[HANDOFF]` and `[DECISION]` tags relevant to current project
 3. **Conflict resolution:** OpenClaw memory is append-only. CC Commander sessions are snapshots. No destructive merges. Both sources are additive.
 4. **Tag mapping:**
 
@@ -591,7 +591,7 @@ Fix: Regenerate manifest, ensure no trailing commas in JSON
 Symptom: Decisions made in Claude Code not visible to OpenClaw agents
 Debug: Check ~/.claude/sessions/ for recent session files
   Check ~/clawd/workspaces/{workspace}/memory/ for today's file
-Fix: Run /save-session in Claude Code, then verify memory file was written
+Fix: Run /ccc-save-session in Claude Code, then verify memory file was written
   Manual fallback: copy relevant entries to memory file
 ```
 

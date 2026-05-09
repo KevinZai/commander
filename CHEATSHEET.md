@@ -8,7 +8,7 @@
 
 ## Desktop Plugin Commands (v4.0.0)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 62 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 new channel/CI/ECC skills + diagnostic/meta + vendor-sourced + lifecycle + deploy + session management).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 60 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 new channel/CI/ECC skills + diagnostic/meta + vendor-sourced + lifecycle + deploy + session management).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -25,7 +25,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (62 total — 13 specialist workflows + 14 domain routers + 6 channel/CI/ECC skills + meta + vendor-sourced + lifecycle + session; core surface shown)
+### /ccc-* Skills (60 total — 13 specialist workflows + 14 domain routers + 6 channel/CI/ECC skills + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -359,8 +359,8 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 |----------------|-------------|---------|
 | `/new` | Start a fresh conversation in same session | `/new` |
 | `/resume` | Resume a previous session by picking from list | `/resume` |
-| `/save-session` | Persist context to `~/.claude/sessions/` | `/save-session` |
-| `/resume-session` | Reload last saved session on startup | `/resume-session` |
+| `/ccc-save-session` | Persist context to `~/.claude/sessions/` | `/ccc-save-session` |
+| `/ccc-resume-session` | Reload last saved session on startup | `/ccc-resume-session` |
 | `/context-budget` | Check how much context you're using | `/context-budget` |
 | `/aside` | Quick side-task without losing main context | `/aside what does this regex do?` |
 | `/context` | Show current context summary | `/context` |
@@ -919,7 +919,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Manual compact | `/compact` at logical breakpoints |
 | Strategic compact | Use `strategic-compact` skill at key moments |
 | Subagents for isolation | Each subagent gets full context window |
-| Fresh sessions for big tasks | `/save-session` → new session → `/resume-session` |
+| Fresh sessions for big tasks | `/ccc-save-session` → new session → `/ccc-resume-session` |
 | Haiku for simple tasks | `--model claude-haiku-4` for bulk/fast ops |
 | `/aside` for side questions | Preserves main context budget |
 
@@ -947,7 +947,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | `claude: command not found` | `npm install -g @anthropic-ai/claude-code` |
 | Auth error / API key not found | `export ANTHROPIC_API_KEY=sk-ant-...` |
 | Tool permission denied | Add to `.claude/settings.json` → `permissions.allow` |
-| Context window full | `/compact` or `/clear` or start new session with `/save-session` first |
+| Context window full | `/compact` or `/clear` or start new session with `/ccc-save-session` first |
 | Stale library docs | Add `"use context7"` to your prompt |
 | Forgot what was in context | `/context` to see summary |
 | Build keeps failing | `/build-fix` or `systematic-debugging` skill |
@@ -956,7 +956,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Global permissions bloat | Use project-level `.claude/settings.json` instead |
 | Changing models mid-session | Spawn subagent with different model instead |
 | No verification before done | Always `/verify` or `verification-before-completion` skill |
-| Huge context window | `/save-session` → start fresh → `/resume-session` |
+| Huge context window | `/ccc-save-session` → start fresh → `/ccc-resume-session` |
 | Missing skill for task | Check `SKILLS-INDEX.md` — there's probably one |
 | Session context lost | Check `~/.claude/sessions/` for auto-saved state |
 | `/doctor` shows issues | Run `claude update` then re-run `/doctor` |

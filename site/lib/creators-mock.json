@@ -1,0 +1,53 @@
+[
+  {
+    "id": "1",
+    "slug": "kzic",
+    "github_username": "KevinZai",
+    "display_name": "Kevin Z",
+    "avatar_url": "https://avatars.githubusercontent.com/u/KevinZai",
+    "github_url": "https://github.com/KevinZai",
+    "follower_count": 1200,
+    "tier": "creator",
+    "ls_referral_code": "kzic",
+    "custom_pitch": "I built CC Commander to stop context-switching between 12 different Claude plugins. One install, 62 skills, 22 agents — it's the operating system layer I always wanted on top of Claude Code.",
+    "embedded_tweet_url": "https://twitter.com/kzic/status/1234567890",
+    "embedded_youtube_url": null,
+    "total_clicks": 0,
+    "total_conversions": 0,
+    "created_at": "2026-05-08T00:00:00Z"
+  },
+  {
+    "id": "2",
+    "slug": "theo",
+    "github_username": "t3dotgg",
+    "display_name": "Theo",
+    "avatar_url": "https://avatars.githubusercontent.com/u/t3dotgg",
+    "github_url": "https://github.com/t3dotgg",
+    "follower_count": 75000,
+    "tier": "influencer",
+    "ls_referral_code": "theo",
+    "custom_pitch": "If you're shipping production apps with Claude Code, CC Commander is the missing layer. The skill routing alone saves me 30 minutes a day.",
+    "embedded_tweet_url": null,
+    "embedded_youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "total_clicks": 0,
+    "total_conversions": 0,
+    "created_at": "2026-05-08T00:00:00Z"
+  },
+  {
+    "id": "3",
+    "slug": "karpathy",
+    "github_username": "karpathy",
+    "display_name": "Andrej Karpathy",
+    "avatar_url": "https://avatars.githubusercontent.com/u/karpathy",
+    "github_url": "https://github.com/karpathy",
+    "follower_count": 250000,
+    "tier": "influencer",
+    "ls_referral_code": "karpathy",
+    "custom_pitch": "CC Commander turns Claude Code into a true engineering assistant. The way skills chain together makes it feel like you're working with a senior developer who already knows your codebase.",
+    "embedded_tweet_url": null,
+    "embedded_youtube_url": null,
+    "total_clicks": 0,
+    "total_conversions": 0,
+    "created_at": "2026-05-08T00:00:00Z"
+  }
+]

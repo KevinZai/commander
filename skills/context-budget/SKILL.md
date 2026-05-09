@@ -23,7 +23,7 @@ triggers:
 
 ## How This Works
 
-You are a context window analyst. When invoked, you estimate the current context usage, display a visual gauge, identify the biggest consumers, and recommend actions — including when to `/save-session` and start fresh.
+You are a context window analyst. When invoked, you estimate the current context usage, display a visual gauge, identify the biggest consumers, and recommend actions — including when to `/ccc-save-session` and start fresh.
 
 ---
 
@@ -111,9 +111,9 @@ Add a status line based on usage percentage:
 |-------|--------|--------|
 | 0-50% | `🟢 GREEN — Plenty of room` | Continue normally |
 | 50-70% | `🟡 YELLOW — Monitor usage` | Consider compacting soon |
-| 70-80% | `🟠 ORANGE — Getting tight` | `/save-session` now, compact, or start fresh |
-| 80-90% | `🔴 RED — Critical` | `/save-session` immediately, then `/compact` or new session |
-| 90%+ | `⚫ DANGER — Context exhaustion imminent` | STOP. `/save-session` NOW. Start new session. |
+| 70-80% | `🟠 ORANGE — Getting tight` | `/ccc-save-session` now, compact, or start fresh |
+| 80-90% | `🔴 RED — Critical` | `/ccc-save-session` immediately, then `/compact` or new session |
+| 90%+ | `⚫ DANGER — Context exhaustion imminent` | STOP. `/ccc-save-session` NOW. Start new session. |
 
 Display the appropriate zone:
 
@@ -137,7 +137,7 @@ Based on the analysis, provide specific recommendations:
 
   [1] Conversation history is your biggest consumer (62K).
       → Run /compact to reclaim ~30-40K tokens.
-      → Or /save-session + start fresh for full 200K.
+      → Or /ccc-save-session + start fresh for full 200K.
 ```
 
 ### Show If Applicable
@@ -152,7 +152,7 @@ Based on the analysis, provide specific recommendations:
 
   [4] You've been in this session for ~90 minutes.
       → Sessions over 60 min typically benefit from a save + fresh start.
-      → Run: /save-session → then start a new claude session.
+      → Run: /ccc-save-session → then start a new claude session.
 ```
 
 ### Session Save Nudge (70%+ usage)
@@ -161,12 +161,12 @@ Based on the analysis, provide specific recommendations:
   ─────────────────────────────
   Your context is at {X}%. Quality degrades above 80%.
 
-  Run /save-session now to capture:
+  Run /ccc-save-session now to capture:
   • What worked and what didn't
   • Current file states
   • Exact next step
 
-  Then start a fresh session with /resume-session.
+  Then start a fresh session with /ccc-resume-session.
   You'll get full 200K context with zero lost knowledge.
 ```
 
@@ -180,8 +180,8 @@ End with actionable one-liners:
   QUICK ACTIONS
   ─────────────
   /compact          — Reclaim ~40-60% of conversation tokens
-  /save-session     — Save state, start fresh with full context
-  /resume-session   — Load last saved session in new context
+  /ccc-save-session     — Save state, start fresh with full context
+  /ccc-resume-session   — Load last saved session in new context
   /context-budget   — Run this analysis again
 ```
 
@@ -203,5 +203,5 @@ When `--verbose` flag is passed, additionally show:
 - This skill is invoked by the `/context-budget` command
 - The `suggest-compact` hook (ECC) provides automatic interval-based nudges
 - The `PreCompact` hook auto-saves state before compaction
-- Session files are stored in `~/.claude/sessions/` (managed by `/save-session`)
+- Session files are stored in `~/.claude/sessions/` (managed by `/ccc-save-session`)
 - Token counts are estimates (chars ÷ 4) — actual tokenization varies by content

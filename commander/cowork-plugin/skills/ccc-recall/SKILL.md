@@ -18,7 +18,7 @@ Your past sessions are a goldmine. This skill indexes it.
 
 ## Not for
 
-- Current session state — that's `/ccc-memory` (curated) or `/save-session` (snapshot)
+- Current session state — that's `/ccc-memory` (curated) or `/ccc-save-session` (snapshot)
 - Code search across the repo — use `Grep` tool directly
 - Documentation lookup — use `context7` MCP or `/ccc-docs`
 
@@ -32,7 +32,7 @@ File-based. Fast grep:
 ```bash
 grep -l "${keyword}" ~/.claude/sessions/*.tmp | head -5
 ```
-Returns session files whose summary mentions the keyword. Each is a structured save from `/save-session` with sections for What Worked / Didn't Work / Decisions.
+Returns session files whose summary mentions the keyword. Each is a structured save from `/ccc-save-session` with sections for What Worked / Didn't Work / Decisions.
 
 ### Layer 2 — `memory/` curated notes
 
@@ -70,7 +70,7 @@ User: "What did we decide about the MCP bundling split?"
 
 ## Depends on
 
-- `~/.claude/sessions/` directory (created by `/save-session`)
+- `~/.claude/sessions/` directory (created by `/ccc-save-session`)
 - Optional: `memory/` in project root (created by `/ccc-memory`)
 - Native bash grep (no external dependencies)
 

@@ -317,7 +317,7 @@ The contextual assist system works alongside these hooks:
 |------|-------------|
 | `session-coach.js` | Session coach handles periodic nudges; contextual assist handles context-aware suggestions. They complement each other. When both are enabled, session-coach defers to contextual assist at `guided` or `mentored` levels. |
 | `confidence-gate.js` | At `guided`+ levels, contextual assist reminds users to run confidence checks before major implementations. |
-| `context-guard.js` | Contextual assist suggests `/compact` or `/save-session` when context guard detects high usage. |
+| `context-guard.js` | Contextual assist suggests `/compact` or `/ccc-save-session` when context guard detects high usage. |
 | `cost-alert.js` | At `guided`+ levels, contextual assist suggests cheaper alternatives (Haiku agents, model routing) when cost alerts fire. |
 
 ---

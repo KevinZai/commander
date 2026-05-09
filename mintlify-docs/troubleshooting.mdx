@@ -169,7 +169,7 @@ Then Cmd+Q, reopen, and reinstall:
 
 **Fix:**
 
-1. `/save-session` to checkpoint state.
+1. `/ccc-save-session` to checkpoint state.
 2. Start a fresh session — the SessionStart hook restores active tasks from `tasks/todo.md`.
 3. For very large repos, use `/ccc-recall` instead of re-reading files; it queries the local memory store.
 

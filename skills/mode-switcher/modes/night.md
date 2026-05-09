@@ -33,7 +33,7 @@ The guiding principle: **do the work, don't lose the work, don't break the work.
 - **Permission level:** autoAccept — no confirmation prompts. Claude operates fully autonomously.
 - **Auto-checkpoint:** Create a git checkpoint every 5 file edits. Use conventional commit messages. Never go more than 10 edits without a checkpoint.
 - **Self-verification:** Before marking any task done, run the verification loop: tests pass, no TypeScript errors, no console errors, functionality works end-to-end.
-- **Session persistence:** Run `/save-session` before every context compaction. Never lose progress to compaction.
+- **Session persistence:** Run `/ccc-save-session` before every context compaction. Never lose progress to compaction.
 - **Aggressive error recovery:** If a build breaks or test fails, spend up to 3 attempts fixing it. If still broken after 3 attempts, checkpoint the current state, log the issue, and move to the next task.
 - **Detailed logging:** Write execution logs to `tasks/night-log-{date}.md` with timestamps, task status, errors encountered, and decisions made.
 - **Task list discipline:** Work through tasks in order. Don't skip ahead. Mark each task with status: DONE, FAILED (with reason), or SKIPPED (with reason).

@@ -56,7 +56,7 @@ If sessions are found, display:
 3. Show relative time (e.g., "2h ago", "1d ago", "3d ago")
 4. If a session is >7 days old, mark it with `⚠️ stale`
 
-**If user picks a session number:** Run `/resume-session` with that file path. Do NOT continue to the questionnaire.
+**If user picks a session number:** Run `/ccc-resume-session` with that file path. Do NOT continue to the questionnaire.
 
 **If user picks N or no sessions exist:** Continue to the Matrix Intro below.
 

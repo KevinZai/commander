@@ -5,7 +5,7 @@ description: "[C:lifecycle] — Load the most recent session file from ~/.claude
 # Resume Session Command
 
 Load the last saved session state and orient fully before doing any work.
-This command is the counterpart to `/save-session`.
+This command is the counterpart to `/ccc-save-session`.
 
 ## When to Use
 
@@ -17,10 +17,10 @@ This command is the counterpart to `/save-session`.
 ## Usage
 
 ```
-/resume-session                                                      # loads most recent file in ~/.claude/sessions/
-/resume-session 2024-01-15                                           # loads most recent session for that date
-/resume-session ~/.claude/sessions/2024-01-15-session.tmp           # loads a specific legacy-format file
-/resume-session ~/.claude/sessions/2024-01-15-abc123de-session.tmp  # loads a current short-id session file
+/ccc-resume-session                                                      # loads most recent file in ~/.claude/sessions/
+/ccc-resume-session 2024-01-15                                           # loads most recent session for that date
+/ccc-resume-session ~/.claude/sessions/2024-01-15-session.tmp           # loads a specific legacy-format file
+/ccc-resume-session ~/.claude/sessions/2024-01-15-abc123de-session.tmp  # loads a current short-id session file
 ```
 
 ## Process
@@ -34,7 +34,7 @@ If no argument provided:
 3. If the folder does not exist or has no matching files, tell the user:
    ```
    No session files found in ~/.claude/sessions/
-   Run /save-session at the end of a session to create one.
+   Run /ccc-save-session at the end of a session to create one.
    ```
    Then stop.
 
@@ -107,7 +107,7 @@ Note the gap — "⚠️ This session is from N days ago (threshold: 7 days). Th
 Read it and follow the same briefing process — the format is the same regardless of source.
 
 **Session file is empty or malformed:**
-Report: "Session file found but appears empty or unreadable. You may need to create a new one with /save-session."
+Report: "Session file found but appears empty or unreadable. You may need to create a new one with /ccc-save-session."
 
 ---
 
@@ -152,4 +152,4 @@ Ready to continue. What would you like to do?
 - Never modify the session file when loading it — it's a read-only historical record
 - The briefing format is fixed — do not skip sections even if they are empty
 - "What Not To Retry" must always be shown, even if it just says "None" — it's too important to miss
-- After resuming, the user may want to run `/save-session` again at the end of the new session to create a new dated file
+- After resuming, the user may want to run `/ccc-save-session` again at the end of the new session to create a new dated file

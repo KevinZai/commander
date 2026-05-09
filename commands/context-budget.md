@@ -31,12 +31,12 @@ Run the **context-budget** skill (`skills/context-budget/SKILL.md`) with the fol
 |-------|------|--------|
 | 0-50% | GREEN | Continue normally |
 | 50-70% | YELLOW | Monitor, consider compacting soon |
-| 70-80% | ORANGE | `/save-session` now, then compact or start fresh |
-| 80-90% | RED | `/save-session` immediately |
+| 70-80% | ORANGE | `/ccc-save-session` now, then compact or start fresh |
+| 80-90% | RED | `/ccc-save-session` immediately |
 | 90%+ | DANGER | STOP. Save and start new session. |
 
 ## Related Commands
 
-- `/save-session` — Save current state for resumption
-- `/resume-session` — Load saved state in fresh context
+- `/ccc-save-session` — Save current state for resumption
+- `/ccc-resume-session` — Load saved state in fresh context
 - `/compact` — Built-in Claude Code command to compress conversation history
