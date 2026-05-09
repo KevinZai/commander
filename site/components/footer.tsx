@@ -2,7 +2,7 @@ export function Footer() {
   return (
     <footer className="border-t border-zinc-900 py-16 px-4 bg-zinc-950/40">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           <div>
             <h3 className="text-sm font-semibold text-white mb-4">Product</h3>
             <ul className="space-y-2 text-sm text-zinc-400">
@@ -54,12 +54,41 @@ export function Footer() {
               </li>
               <li>
                 <a
+                  href="/affiliate"
+                  className="hover:text-white transition-colors"
+                >
+                  Affiliate program
+                </a>
+              </li>
+              <li>
+                <a
                   href="https://kevinz.ai"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
                   kevinz.ai
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-white mb-4">Resources</h3>
+            <ul className="space-y-2 text-sm text-zinc-400">
+              <li>
+                <a href="/pricing" className="hover:text-white transition-colors">
+                  Pricing
+                </a>
+              </li>
+              <li>
+                <a href="/press" className="hover:text-white transition-colors">
+                  Press kit
+                </a>
+              </li>
+              <li>
+                <a href="/changelog" className="hover:text-white transition-colors">
+                  Changelog
                 </a>
               </li>
             </ul>

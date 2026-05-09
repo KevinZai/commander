@@ -14,7 +14,7 @@ export function Nav() {
             Features
           </a>
           <a
-            href="/#pricing"
+            href="/pricing"
             className="hover:text-white transition-colors"
           >
             Pricing

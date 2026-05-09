@@ -49,7 +49,8 @@ export function OnboardingForm({
       }
 
       const data = (await res.json()) as { slug: string; redirect?: string };
-      router.push(data.redirect ?? `/r/${data.slug}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      router.push((data.redirect ?? `/r/${data.slug}`) as any);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);

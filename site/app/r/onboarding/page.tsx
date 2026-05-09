@@ -14,7 +14,8 @@ export default async function OnboardingPage() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/r/signup");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redirect("/r/signup" as any);
   }
 
   const user = session.user as Record<string, unknown>;

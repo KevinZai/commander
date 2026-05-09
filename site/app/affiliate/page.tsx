@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 const LS_AFFILIATE_URL = process.env.LEMONSQUEEZY_AFFILIATE_SIGNUP_URL ?? null;
 
 // TODO: CC-664 — replace with live count from Supabase/LS when account is active
-const AFFILIATE_COUNT = 0;
+const AFFILIATE_COUNT: number = 0;
 
 const COMMISSION_TABLE = [
   {
@@ -234,7 +234,7 @@ export default function AffiliatePage() {
                 {
                   step: "1",
                   title: "Sign up",
-                  body: "Click "Apply now" and connect with GitHub OAuth. Instant approval — no waiting, no interview.",
+                  body: 'Click “Apply now” and connect with GitHub OAuth. Instant approval — no waiting, no interview.',
                 },
                 {
                   step: "2",

@@ -38,10 +38,12 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     session({ session, token }) {
       if (token.login) {
-        (session.user as Record<string, unknown>).login = token.login;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).login = token.login;
       }
       if (typeof token.followers === "number") {
-        (session.user as Record<string, unknown>).followers = token.followers;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).followers = token.followers;
       }
       return session;
     },
