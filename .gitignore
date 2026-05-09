@@ -63,3 +63,4 @@ marketing/
 .claude/worktrees/
 .claude/scheduled_tasks.lock
 .claude/agent-memory/
+OPERATING-MANUAL.md
