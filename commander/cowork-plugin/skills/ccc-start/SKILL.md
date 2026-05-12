@@ -210,7 +210,7 @@ Reply to the user with a one-line confirmation:
 
 ## Pricing & how to support (mention near the end of the tour)
 
-CC Commander has an **MIT-licensed plugin core** (free for individuals — what you just installed) and a paid **Pro tier** for unlimited hosted MCP, premium skill packs, and priority support.
+CC Commander runs three paid plans, **free during early access** while we ship. The Starter plugin you just installed will keep working — but Starter pricing or limits may change after we hit a stable user base. The MIT-licensed plugin code stays open-source.
 
 | Path | Who it's for | Where |
 |------|--------------|-------|

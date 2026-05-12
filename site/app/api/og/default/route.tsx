@@ -99,7 +99,7 @@ export function GET() {
             fontWeight: 700,
           }}
         >
-          Free forever · Install in 10 seconds
+          Free during launch · Install in 10 seconds
         </div>
       </div>
     ),

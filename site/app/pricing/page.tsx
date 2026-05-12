@@ -6,10 +6,10 @@ import { Footer } from "@/components/footer";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Free to start. Pro when you're ready to ship. $0 Starter · $19/mo Pro · $299 Lifetime (first 100 only).",
+    "Three paid plans. Free during launch. $0 Starter · $19/mo Pro · $299 Lifetime (first 100 only — then $499).",
   openGraph: {
     title: "CC Commander Pricing",
-    description: "Starter free forever. Pro $19/mo. Lifetime $299 (first 100).",
+    description: "Three paid plans. Starter free during launch. Pro $19/mo · $190/yr. Lifetime $299 (first 100, then $499).",
     images: [{ url: "/api/og/pricing", width: 1200, height: 630 }],
   },
   twitter: {
@@ -20,8 +20,12 @@ export const metadata: Metadata = {
 
 const FAQ = [
   {
-    q: "Is the free tier really free forever?",
-    a: "Yes. Every skill, every agent, every hook that ships today stays in Starter forever. We will never move existing features behind a paywall. Only new Pro-exclusive features (unlimited hosted MCP, premium skill packs, priority support) are gated.",
+    q: "Is Starter really free?",
+    a: "Yes — free during early access. Starter pricing or caps may change after launch as we scale hosted infrastructure. The plugin code itself stays MIT-licensed (fork-able). Lifetime ($299, first 100 only) locks in unlimited Pro access permanently if you want certainty.",
+  },
+  {
+    q: "What does 'free during launch' mean?",
+    a: "While we're rolling out paid plans, Starter is free for early adopters. After we hit a stable user base (target: 1,000 active installs), Starter may move to capped free (e.g., reduced hosted MCP calls) while Pro remains unlimited. Anyone who installs Starter today keeps current access while we figure out the steady-state tier — but no guarantees beyond early access.",
   },
   {
     q: "What is the 14-day money-back guarantee?",
@@ -57,15 +61,16 @@ export default function PricingPage() {
               Simple, transparent pricing
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-[1.1]">
-              Free to start.
+              Three paid plans.
               <br />
               <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-                Pro when you&apos;re ready to ship.
+                Free during launch.
               </span>
             </h1>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-              MIT-licensed core free for individuals. Pro unlocks unlimited
-              hosted MCP, premium skill packs, and priority support.
+              Free for early adopters while we ship. Pro unlocks unlimited
+              hosted MCP, premium skill packs, and priority support. Starter
+              pricing may change after launch.
             </p>
           </div>
         </section>

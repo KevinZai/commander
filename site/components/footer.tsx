@@ -180,7 +180,7 @@ export function Footer() {
             </span>
           </div>
           <p className="text-zinc-600">
-            MIT licensed core · Pro tier coming · no telemetry
+            Paid plans · Free during launch · no telemetry
           </p>
         </div>
       </div>

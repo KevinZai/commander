@@ -1,30 +1,28 @@
 ---
-title: "Pricing — Starter, Pro, Lifetime"
-description: "CC Commander has an MIT-licensed plugin core (free for individuals) and a paid Pro tier ($19/mo · $190/yr · $299 lifetime) for unlimited hosted MCP, premium skill packs, and priority support."
+title: "Pricing — Three Plans, Free During Launch"
+description: "CC Commander runs three paid plans (Starter, Pro, Lifetime). Free for early adopters during launch. Pro $19/mo · $190/yr · $299 lifetime (first 100 only)."
 ---
 
-CC Commander is **free to start** — every skill, every agent, every hook is open-source under MIT. **Pro** unlocks unlimited cloud, premium skill packs, priority support, and early access. **Lifetime** is the launch deal: pay once, own it.
-
-## Plans at a glance
+CC Commander is a paid product with three plans. **Free during launch** for early adopters while we ship the hosted infrastructure. After we hit a stable user base, Starter pricing or caps may change.
 
 | Plan | Price | Best for |
 |------|-------|----------|
-| **Starter** | $0 | Solo devs, OSS contributors, anyone evaluating |
+| **Starter** | $0 *(early access — limited time)* | Anyone evaluating, OSS contributors |
 | **Pro** | $19/mo · $190/yr | Daily users who want unlimited cloud + premium |
-| **Lifetime** | $299 one-time *(launch — first 100)* | Commitment makers who'd rather not subscribe |
+| **Lifetime** | $299 one-time *(first 100 — then $499)* | Commitment makers who'd rather not subscribe |
 
-## What's in Starter (free, all of it)
+## What's in Starter (free during launch)
 
-The MIT-licensed plugin core. **Everything below is free for individuals** and will not be paywalled — fork it, extend it, ship it.
+The MIT-licensed plugin core. Everything below is free **during early access** — once we stabilize the paid tier infrastructure, Starter pricing or caps may change for new users. **Anyone who installs Starter today keeps current access while we sort out the steady-state.** The plugin code itself stays MIT-licensed and fork-able regardless.
 
-- ✅ All **62 plugin skills** — every `/ccc-*` workflow, domain router, channel/CI skill
+- ✅ All **60 plugin skills** — every `/ccc-*` workflow, domain router, channel/CI skill
 - ✅ All **22 specialist sub-agent personas** (architect, reviewer, builder, debugger, security-auditor, designer, qa-engineer, devops, data-analyst, product-manager, content-strategist, technical-writer, fleet-worker, performance-engineer, researcher, plus 7 language-specific reviewers)
 - ✅ All **9 lifecycle hooks** with **24 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest)
 - ✅ **2 credential-free bundled MCP servers** (context7 + sequential-thinking)
 - ✅ **16 opt-in MCP connectors** via `/ccc-connect` (Notion, Slack, GitHub, Supabase, Figma, Linear, Vercel, Neon, Fly.io, Upstash, Sentry, Stripe, Browserbase, Postgres, Cloudflare, Redis)
 - ✅ **502+ ecosystem skills** across 11 CCC domains
 - ✅ Community support via [GitHub Discussions](https://github.com/KevinZai/commander/discussions)
-- ✅ **100 hosted MCP calls/month** (when CC Cloud ships) — anti-abuse cap, not a paywall
+- ✅ **100 hosted MCP calls/month** (when CC Cloud ships) — anti-abuse cap
 
 ## What's in Pro
 
@@ -56,22 +54,21 @@ Everything in Pro, **forever**, for a single one-time payment.
 
 Hosted MCP costs real money to run — Fly.io machines, Upstash Redis, Supabase database, bandwidth. Premium skill packs take real time to research and curate (10-20 hours per pack). Priority support is real engineering time.
 
-Pro pricing pays for these things directly. Starter stays MIT-licensed because the plugin code is git-clonable — paywalling it would be both impossible and wrong.
+Pro pricing pays for these things directly. Starter is **free during launch** because the plugin code is git-clonable — paywalling it would be both impossible and counter-productive while we're building the community. As we scale, Starter may move to capped free (e.g., reduced hosted MCP calls) while Pro remains unlimited.
 
 ## What we will never do
 
-- ❌ Paywall existing skills, agents, or hooks that ship in Starter today
-- ❌ Add license-key gating to the plugin core (impossible — it's open-source)
+- ❌ Retroactively paywall **existing** Starter features that shipped today (skills/agents/hooks)
+- ❌ License-key gating on the plugin core (impossible — it's open-source)
 - ❌ Telemetry-driven nag popups
 - ❌ Time-limited trials that degrade to a worse state
-- ❌ Retroactive feature removal from Starter
 - ❌ Sell your data — there is no telemetry, period
 
 ## How to upgrade
 
-1. Visit [cc-commander.com/pricing](https://cc-commander.com/#pricing)
+1. Visit [cc-commander.com/pricing](https://cc-commander.com/pricing)
 2. Pick monthly, yearly, or lifetime
-3. Stripe checkout
+3. Lemon Squeezy checkout (handles VAT/sales-tax globally as Merchant of Record)
 4. Receive license key via email
 5. Set `CCC_PRO_LICENSE_KEY` env var or save to `~/.claude/commander/license.json`
 6. Pro features activate on next session

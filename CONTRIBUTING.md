@@ -1,6 +1,6 @@
 # Contributing to CC Commander
 
-Thanks for your interest. CC Commander has an **MIT-licensed plugin core** (free for individuals) and a paid **Pro tier** for hosted services + premium curation. Either way, contribution is open — issues, PRs, and ideas all welcome.
+Thanks for your interest. CC Commander runs **three paid plans** (Starter, Pro, Lifetime) with Starter **free during early access** while we ship. Plugin code is MIT-licensed and contribution is open regardless of tier — issues, PRs, and ideas all welcome.
 
 ## Quick start
 

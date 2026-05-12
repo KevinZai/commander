@@ -39,7 +39,7 @@ export function GET() {
           }}
         >
           {[
-            { name: "Starter", price: "$0", sub: "free forever", highlight: false },
+            { name: "Starter", price: "$0", sub: "free during launch", highlight: false },
             { name: "Pro", price: "$19", sub: "per month", highlight: true },
             { name: "Lifetime", price: "$299", sub: "one-time", highlight: false },
           ].map((tier) => (

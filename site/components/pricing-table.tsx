@@ -7,11 +7,11 @@ type Interval = "monthly" | "yearly";
 const TIERS = [
   {
     name: "Starter",
-    description: "Open-source plugin. The full toolkit — yours to use, fork, extend.",
+    description: "Free during early access. Full plugin core — Starter pricing may change after launch.",
     price: { monthly: "$0", yearly: "$0" },
-    interval: { monthly: "", yearly: "" },
+    interval: { monthly: "early-access pricing", yearly: "early-access pricing" },
     features: [
-      "All 62 plugin skills (every /ccc-* workflow)",
+      "All 60 plugin skills (every /ccc-* workflow)",
       "All 22 specialist sub-agent personas",
       "All 9 lifecycle hooks (24 handlers)",
       "2 credential-free bundled MCP servers + 16 opt-in",
@@ -70,12 +70,12 @@ export function PricingTable() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            Free to start.
+            Three paid plans.
             <br />
-            <span className="text-zinc-500">Pro when you're ready to ship.</span>
+            <span className="text-zinc-500">Free during launch.</span>
           </h2>
           <p className="text-zinc-400 max-w-2xl mx-auto">
-            MIT-licensed plugin core, free for individuals. Pro unlocks unlimited hosted MCP, premium skill packs, and priority support — pick monthly, yearly, or pay once for lifetime access.
+            Free for early adopters while we ship. Pro <span className="text-zinc-300">$19/mo · $190/yr · $299 lifetime</span> (first 100 only) unlocks unlimited hosted MCP, premium skill packs, and priority support. Starter pricing may change after launch.
           </p>
         </div>
 
