@@ -64,3 +64,4 @@ marketing/
 .claude/scheduled_tasks.lock
 .claude/agent-memory/
 OPERATING-MANUAL.md
+.vercel
