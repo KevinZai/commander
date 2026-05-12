@@ -7,16 +7,16 @@ const TERMINAL_LINES = [
   { prompt: ">", text: "/plugin marketplace add KevinZai/commander" },
   { prompt: "✓", text: "Marketplace added", color: "text-green-400" },
   { prompt: ">", text: "/plugin install commander" },
-  { prompt: "✓", text: "Installed: commander v3.0.0", color: "text-green-400" },
-  { prompt: " ", text: "15 skills · 5 agents · 6 hooks · 8 MCPs", color: "text-zinc-500" },
-  { prompt: "✓", text: "Ready. Try /ccc:build to ship something.", color: "text-green-400" },
+  { prompt: "✓", text: "Installed: commander v4.1", color: "text-green-400" },
+  { prompt: " ", text: "60 skills · 22 agents · 9 hooks · 2 bundled MCP + 16 opt-in", color: "text-zinc-500" },
+  { prompt: "✓", text: "Ready. Try /ccc-build to ship something.", color: "text-green-400" },
 ];
 
 const STATS = [
-  { value: "450+", label: "Skills across 11 domains" },
-  { value: "8", label: "MCP integrations pre-wired" },
-  { value: "5", label: "Specialized agents" },
-  { value: "Free", label: "Tier available" },
+  { value: "60", label: "Plugin skills curated" },
+  { value: "22", label: "Specialist agents" },
+  { value: "9", label: "Lifecycle hooks · 24 handlers" },
+  { value: "18", label: "MCP integrations (2 bundled + 16 opt-in)" },
 ];
 
 export function Hero() {
@@ -60,7 +60,7 @@ export function Hero() {
             CCC is the curated,{" "}
             <span className="text-white font-semibold">AI-guided</span> package
             that turns Claude from a brain-in-a-jar into an operator.{" "}
-            <span className="text-white">60 skills. 22 agents. 8 pre-wired MCPs.</span>{" "}
+            <span className="text-white">60 skills. 22 agents. 18 MCP integrations.</span>{" "}
             One install.
           </motion.p>
 

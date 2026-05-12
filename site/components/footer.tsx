@@ -1,3 +1,5 @@
+import { BrandMarkBoxed } from "@/components/brand";
+
 export function Footer() {
   return (
     <footer className="border-t border-zinc-900 py-16 px-4 bg-zinc-950/40">
@@ -44,12 +46,12 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://twitter.com/kzic"
+                  href="https://twitter.com/commanderplugin"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
-                  Twitter / X
+                  @commanderplugin
                 </a>
               </li>
               <li>
@@ -165,9 +167,9 @@ export function Footer() {
 
         <div className="pt-8 border-t border-zinc-900 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
           <div className="flex items-center gap-2">
-            <span className="w-5 h-5 rounded bg-gradient-to-br from-violet-500 to-fuchsia-500 inline-block" />
+            <BrandMarkBoxed size={20} />
             <span>
-              © {new Date().getFullYear()} CCC — built by{" "}
+              © {new Date().getFullYear()} CC Commander — built by{" "}
               <a
                 href="https://kevinz.ai"
                 target="_blank"

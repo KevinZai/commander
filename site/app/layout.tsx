@@ -3,27 +3,36 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "CCC — Claude Code Commander · The curated AI-guided Claude plugin",
-    template: "%s · CCC",
+    default: "CC Commander — Master Claude Code instantly",
+    template: "%s · CC Commander",
   },
   description:
-    "We found every great Claude plugin and made them talk to each other. 15 skills, 5 agents, 8 pre-wired MCPs. AI-guided. Free tier.",
+    "The guided AI PM for Claude Code. 60 plugin skills, 22 specialist agents, 9 lifecycle hooks, 2 bundled MCP + 16 opt-in connectors. One install, zero config.",
   metadataBase: new URL("https://cc-commander.com"),
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   openGraph: {
-    title: "CCC — Claude Code Commander",
+    title: "CC Commander — Master Claude Code instantly",
     description:
-      "The curated, AI-guided Claude Code plugin. 15 skills, 5 agents, 8 pre-wired MCP integrations.",
+      "60 plugin skills · 22 specialist agents · 9 lifecycle hooks · 2 bundled MCP + 16 opt-in. One install, zero config.",
     url: "https://cc-commander.com",
-    siteName: "CCC",
+    siteName: "CC Commander",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CCC — Claude Code Commander",
+    title: "CC Commander — Master Claude Code instantly",
     description:
-      "The curated, AI-guided Claude Code plugin. 15 skills, 5 agents, 8 pre-wired MCP integrations.",
-    creator: "@kzic",
+      "60 plugin skills · 22 specialist agents · 9 lifecycle hooks · 2 bundled MCP + 16 opt-in.",
+    site: "@commanderplugin",
+    creator: "@commanderplugin",
+    images: ["/og-image.png"],
   },
 };
 
