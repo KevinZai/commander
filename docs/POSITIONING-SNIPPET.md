@@ -13,7 +13,7 @@ audience: Wave 7 technical writer, README maintainer
 
 **Primary surface: Claude Code Desktop (aka Cowork Desktop)**
 
-CC Commander ships as a native Claude Code Desktop plugin. Install once — all 50 skills, 17 agents, 8 lifecycle hooks (16 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
+CC Commander ships as a native Claude Code Desktop plugin. Install once — all 50 skills, 17 agents, 9 lifecycle hooks (25 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
 
 > **Note:** Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
@@ -47,7 +47,7 @@ That's it. Type `/ccc` to open the hub.
 |---------|-------|-------------|
 | Skills | 50 | Click-first workflows: Plan, Build, Review, Ship, Learn, Fleet, Design, Connect, E2E, Save/Resume Session, Changelog, Doctor + 38 more |
 | Sub-agent personas | 17 | Architect, Builder, Reviewer, Security Auditor, Designer, QA Engineer, DevOps Engineer, Data Analyst, Content Strategist, Product Manager, Performance Engineer, Researcher, Technical Writer, Fleet Worker, Debugger, TypeScript Reviewer, Python Reviewer |
-| Lifecycle hooks | 8 events / 16 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop |
+| Lifecycle hooks | 8 events / 25 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop |
 | Bundled MCP servers | 2 credential-free + 16 opt-in | Ship-day: `context7` + `sequential-thinking`. Opt-in via `/ccc-connect`: Tavily, GitHub, Figma, Supabase, Playwright, Slack, Notion, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash |
 
 **Free for now.** No feature gating. No paywalls. No license checks.
@@ -75,7 +75,7 @@ A Desktop screenshot of this flow is pending capture at `docs/screenshots/03-ccc
 > Stop context-switching between docs, tools, and prompts. Commander runs everything from `/ccc`.
 
 **[C] Feature-led:**
-> 50 skills · 17 sub-agents · 8 lifecycle hooks (16 handlers) · 2 bundled + 16 opt-in MCPs — Desktop, CLI, Cursor, Windsurf. Free for now.
+> 50 skills · 17 sub-agents · 9 lifecycle hooks (25 handlers) · 2 bundled + 16 opt-in MCPs — Desktop, CLI, Cursor, Windsurf. Free for now.
 
 Recommended: run [A] as the hero H1, [C] as the subtitle/tagline underneath.
 
@@ -83,7 +83,7 @@ Recommended: run [A] as the hero H1, [C] as the subtitle/tagline underneath.
 
 ## Sub-agent architecture note
 
-CC Commander is built on Anthropic's Claude Agent SDK sub-agent primitive. The 17 specialist personas are not prompt personas — they are genuine sub-agents with their own context windows, tools, and scoped file domains. When you invoke `/ccc-fleet`, you are dispatching real parallel agents, not a single model with a persona.
+CC Commander is built on Anthropic's Claude Agent SDK sub-agent primitive. The 22 specialist personas are not prompt personas — they are genuine sub-agents with their own context windows, tools, and scoped file domains. When you invoke `/ccc-fleet`, you are dispatching real parallel agents, not a single model with a persona.
 
 This is the technical differentiator from plain Claude Code + prompts.
 
@@ -104,4 +104,4 @@ This is the technical differentiator from plain Claude Code + prompts.
 
 **Title:** Commander — Free Claude Code Desktop Plugin | 50 Skills + 17 Agents
 
-**Meta description:** Install Commander in Claude Code Desktop. 50 click-first skills, 17 specialist sub-agents, 8 lifecycle hooks (16 handlers), and 2 credential-free bundled MCP servers (+16 opt-in) — all free for now. Type `/ccc` to start.
+**Meta description:** Install Commander in Claude Code Desktop. 50 click-first skills, 22 specialist sub-agents, 9 lifecycle hooks (25 handlers), and 2 credential-free bundled MCP servers (+16 opt-in) — all free for now. Type `/ccc` to start.

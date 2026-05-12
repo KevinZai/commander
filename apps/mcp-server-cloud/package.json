@@ -1,7 +1,7 @@
 {
   "name": "cc-commander-mcp-cloud",
   "version": "4.1.0-beta.2",
-  "description": "CC Commander hosted MCP server — 50+ plugin skills, 17 agents, 8 lifecycle hooks (16 handlers), 2 credential-free bundled MCPs + 16 opt-in, 502+ ecosystem skills",
+  "description": "CC Commander hosted MCP server — 60+ plugin skills, 17 agents, 9 lifecycle hooks (25 handlers), 2 credential-free bundled MCPs + 16 opt-in, 502+ ecosystem skills",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
@@ -17,21 +17,21 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.105.4",
-    "@upstash/ratelimit": "^2.0.5",
-    "@upstash/redis": "^1.38.0",
-    "hono": "^4.12.18",
-    "jsonwebtoken": "^9.0.2",
-    "pino": "^9.6.0",
-    "pino-pretty": "^13.0.0"
+    "@supabase/supabase-js": "^4.1.0-beta.2",
+    "@upstash/ratelimit": "^4.1.0-beta.2",
+    "@upstash/redis": "^4.1.0-beta.2",
+    "hono": "^4.1.0-beta.2",
+    "jsonwebtoken": "^4.1.0-beta.2",
+    "pino": "^4.1.0-beta.2",
+    "pino-pretty": "^4.1.0-beta.2"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^22.19.18",
-    "tsx": "^4.19.3",
-    "typescript": "^5.8.3"
+    "@types/jsonwebtoken": "^4.1.0-beta.2",
+    "@types/node": "^4.1.0-beta.2",
+    "tsx": "^4.1.0-beta.2",
+    "typescript": "^4.1.0-beta.2"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=4.1.0-beta.2"
   }
 }

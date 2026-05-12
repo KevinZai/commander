@@ -2,7 +2,7 @@
 
 > **Power-user path.** Full terminal experience + tabbed tmux TUI + headless agent dispatch + npm-global `ccc` binary. If you live in the terminal, this is for you.
 
-**Version:** v4.0.0-beta.11 · **Target audience:** developers who prefer CLI, CI pipelines, multi-agent workflows.
+**Version:** v4.1.0-beta.2 · **Target audience:** developers who prefer CLI, CI pipelines, multi-agent workflows.
 
 **⚠️ Not the recommended entry point for most users.** If you're on Claude Cowork Desktop or Claude Code Desktop, install the [plugin](./plugin.md) instead — same skills, click-first UX, no terminal.
 
@@ -12,7 +12,7 @@
 
 | Surface | Install | What you get |
 |---|---|---|
-| **Plugin** (recommended) | GUI marketplace | 51 plugin skills, click-first menus via AskUserQuestion, auto-route to specialists. [Install guide](./plugin.md) |
+| **Plugin** (recommended) | GUI marketplace | 60 plugin skills, click-first menus via AskUserQuestion, auto-route to specialists. [Install guide](./plugin.md) |
 | **CLI** (this doc) | `npm install -g cc-commander` | Everything in the plugin PLUS: `ccc` terminal binary, interactive TUI, tabbed tmux split mode, `ccc --dispatch` headless, parallel agent fleet runner, cockpit status bar, adventure JSON menus, CI-friendly flags |
 
 The plugin works everywhere Claude Code runs — Desktop, CLI, Cursor/Windsurf/Cline via hosted MCP. The npm CLI runs standalone in your terminal, independent of Claude sessions.
@@ -25,7 +25,7 @@ You can have **both installed**. They don't conflict — the plugin lives in `~/
 
 ```bash
 npm install -g cc-commander
-ccc --version   # expect: 4.0.0-beta.11
+ccc --version   # expect: 4.1.0-beta.2
 ccc             # launches the interactive TUI
 ```
 
@@ -55,7 +55,7 @@ ccc --split
 # Run the test suite (187 tests)
 ccc --test
 
-# List all 502+ skills as JSON (for agent consumption)
+# List all 457+ skills as JSON (for agent consumption)
 ccc --list-skills --json
 ```
 
@@ -68,7 +68,7 @@ Inside a **Claude Code terminal session** (the `claude` command's REPL), you can
 ```
 /plugin marketplace add KevinZai/commander
 /plugin install commander
-/plugin list                  # expect: commander  4.0.0-beta.11  Kevin Zicherman
+/plugin list                  # expect: commander  4.1.0-beta.2  Kevin Zicherman
 /plugin update commander      # pulls latest from GitHub
 /plugin disable commander     # temporarily turn off
 /plugin enable commander

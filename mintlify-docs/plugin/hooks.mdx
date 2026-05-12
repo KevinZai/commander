@@ -1,14 +1,14 @@
 ---
 title: "Lifecycle Hooks"
-description: "8 hook events with 16 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
+description: "9 hook events with 25 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
 ---
 
-CC Commander registers **8 lifecycle hook events** with **16 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
+CC Commander registers **9 lifecycle hook events** with **16 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
 
 All hooks use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and fail gracefully — if a hook errors, the session continues uninterrupted.
 
 <Note>
-  **v4.0.0-beta.11:** `SessionStart` now uses a single-process orchestrator (`session-start-orchestrator.js`) that runs all 4 session-start handlers in one Node.js process, saving ~300ms of cold-start overhead per session. The 16-handler count is unchanged — the orchestrator is a performance optimization, not a feature reduction.
+  **v4.1.0-beta.2:** `SessionStart` now uses a single-process orchestrator (`session-start-orchestrator.js`) that runs all 4 session-start handlers in one Node.js process, saving ~300ms of cold-start overhead per session. The 16-handler count is unchanged — the orchestrator is a performance optimization, not a feature reduction.
 </Note>
 
 ## Hook Registry

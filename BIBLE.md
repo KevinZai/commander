@@ -14,7 +14,7 @@
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
-- [The 33 Plugin Skills](#the-33-plugin-skills) — The curated plugin surface
+- [The 60 Plugin Skills](#the-33-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -25,9 +25,9 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v4.0.0 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v4.1.0-beta.2 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 17 sub-agent personas)*
-- [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v2.3.0 — 4 modules that make CCC smart)*
+- [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v4.1.0-beta.2 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
 - [Commands Reference](#commands-reference)
@@ -207,7 +207,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
 ---
 
-## The 33 Plugin Skills
+## The 60 Plugin Skills
 
 > *Every skill that ships with `/plugin install commander`. Not the 502-skill ecosystem — just the curated plugin surface.*
 
@@ -244,7 +244,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
 **Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
-**Plus 8 pre-wired MCPs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem) + 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification).
+**Plus 2 pre-wired MCPs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem) + 9 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification).
 
 ---
 
@@ -1208,7 +1208,7 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 459 skills (original behavior)
+./install.sh --skills=full        # All 457 skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.
@@ -1360,7 +1360,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v4.0.0)
+### 🛠️ Plugin Workflows (v4.1.0-beta.2)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
@@ -1804,7 +1804,7 @@ Then we'll write the spec.
 | 44 | Install dx plugin | `/dx:gha`, `/dx:handoff`, `/dx:clone`, `/dx:reddit-fetch` |
 | 45 | Quick setup script | `bash <(curl -s .../setup.sh)` — sets up all tips |
 
-### CCC-Specific Tips (v2.3.0)
+### CCC-Specific Tips (v4.1.0-beta.2)
 
 | # | Tip | Key Action |
 |---|-----|-----------|
@@ -2236,14 +2236,14 @@ graph TD
 ---
 ## Built on Claude Agent SDK
 
-> *v4.0.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v4.1.0-beta.2* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
 CC Commander follows a **brain/hands** separation:
 
 - **Brain (Claude):** Your main Claude Code session reads project context, routes intent, and makes decisions.
-- **Hands (CC Commander):** 17 specialist sub-agent personas execute the work — scoped, specialized, and disposable.
+- **Hands (CC Commander):** 22 specialist sub-agent personas execute the work — scoped, specialized, and disposable.
 
 When you run `/ccc-review`, Claude doesn't guess how to do a code review. It loads the `reviewer` persona (Sonnet, read-only tools, structured severity format) and delegates. When the reviewer finishes, the persona is gone. The next task starts fresh. Context stays clean because each sub-agent operates at full capacity instead of a generalist stretched thin.
 
@@ -2280,7 +2280,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v4.1.0-beta.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 61 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (24 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v4.1.0-beta.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 60 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (25 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2333,11 +2333,11 @@ ccc --repair
 | **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 500+ skills from within Commander |
+| **Skill browser** | Browse all 457+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 61 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (24 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 60 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (25 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -2492,7 +2492,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v2.3.0 — How CCC thinks before it acts.*
+> *Appendix: v4.1.0-beta.2 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 
@@ -2548,7 +2548,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 500+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 457+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology
@@ -2620,7 +2620,7 @@ A typical dispatch goes through all four modules in sequence:
 
 Total overhead: ~50ms. Completely invisible. Just better results.
 
-## Community Insights (v2.3.0 Research Pass)
+## Community Insights (v4.1.0-beta.2 Research Pass)
 
 Insights distilled from 40+ community repos and articles, April 2026.
 
@@ -2659,7 +2659,7 @@ CC Commander is designed to take advantage of the latest Claude Code features au
 | **500K character output** | Knowledge pipeline ingests full session transcripts in one pass — no chunking needed. |
 | **Pause mid-agent** | Confidence-gate hook emits PAUSE (not ABORT) when confidence drops. User can redirect, then resume. Works in YOLO and overnight modes. |
 | **Auto-mode boundaries** | Dispatcher defaults to `--permission-mode auto` for unattended runs. The background safety classifier blocks scope escalation without needing `--dangerously-skip-permissions`. |
-| **Plugin lifecycle hooks** | 6 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) — loaded automatically when the plugin is installed. |
+| **Plugin lifecycle hooks** | 9 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) — loaded automatically when the plugin is installed. |
 
 > These features require Claude Code v2.189+. Run `claude --version` to check.
 

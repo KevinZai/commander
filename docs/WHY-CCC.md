@@ -1,7 +1,7 @@
 # Why CC Commander?
 ## The Definitive "What Makes This Different" Reference
 
-> Version 2.3.1 — Every claim below is provable. Run the commands. Read the source. No vague promises.
+> Version 4.1.0-beta.2 — Every claim below is provable. Run the commands. Read the source. No vague promises.
 
 ---
 
@@ -170,7 +170,7 @@
 
 ### 23. /makeover — Agent Swarm That Fixes Audit Findings
 **What:** After /xray reports issues, /makeover dispatches an agent swarm with git worktree isolation, circuit breaker, cost ceiling, and a before/after report card.
-**Proof:** `skills/ccc-makeover/SKILL.md` + `commands/ccc-makeover.md`. Referenced in CHANGELOG.md v2.3.0.
+**Proof:** `skills/ccc-makeover/SKILL.md` + `commands/ccc-makeover.md`. Referenced in CHANGELOG.md v4.1.0-beta.2.
 **Share-friendly:** /xray finds the problems. /makeover fixes them. One command away from a better codebase.
 
 ---
@@ -259,10 +259,10 @@
 
 ---
 
-### 36. 25 Lifecycle Hooks
+### 36. 9 Lifecycle Hooks
 **What:** 25 kit-native hooks across the full Claude Code lifecycle: PreToolUse, PostToolUse, Stop, and PreCompact. They include context-guard, auto-checkpoint, cost-alert, confidence-gate, session-coach, pre-compact, self-verify, openclaw-adapter, status-reporter, Linear auto-track, PR link, phase-gate, and more.
 **Proof:** `find hooks -name "*.js" | wc -l` → 25 JavaScript hook files.
-**Share-friendly:** 25 lifecycle hooks run automatically around your Claude Code sessions. Auto-checkpoint, cost alerts, confidence gates — built in.
+**Share-friendly:** 9 lifecycle hooks run automatically around your Claude Code sessions. Auto-checkpoint, cost alerts, confidence gates — built in.
 
 ---
 
@@ -280,16 +280,16 @@
 
 ---
 
-### 39. CLAUDE.md Staff Template — Production-Grade v2.3.0
+### 39. CLAUDE.md Staff Template — Production-Grade v4.1.0-beta.2
 **What:** `CLAUDE.md.template` is a complete 200+ line Claude Code system prompt template covering Tool Awareness, Anti-Patterns, Context Optimization, Evals Before Specs, and Subagent Strategy — ready to drop into any project.
-**Proof:** `cat CLAUDE.md.template | wc -l` → 200+ lines. Referenced in CHANGELOG.md v2.3.0 with explicit additions.
+**Proof:** `cat CLAUDE.md.template | wc -l` → 200+ lines. Referenced in CHANGELOG.md v4.1.0-beta.2 with explicit additions.
 **Share-friendly:** CCC ships with a production-grade CLAUDE.md template. Stop writing your AI instructions from scratch.
 
 ---
 
 ### 40. Multi-Platform Adapter — Claude, Gemini CLI, Codex
 **What:** `commander/adapters/` auto-detects which AI CLI is present and adapts dispatch syntax accordingly — supporting Claude Code, Gemini CLI, and Codex CLI.
-**Proof:** `ls commander/adapters/` — adapter files present. Referenced in CHANGELOG.md v2.3.0: "supports Claude, Gemini CLI, Codex CLI with auto-detection."
+**Proof:** `ls commander/adapters/` — adapter files present. Referenced in CHANGELOG.md v4.1.0-beta.2: "supports Claude, Gemini CLI, Codex CLI with auto-detection."
 **Share-friendly:** Not locked to Claude. CCC auto-detects Claude, Gemini CLI, and Codex. Switch providers without touching your workflow.
 
 ---
@@ -324,7 +324,7 @@
 
 ### 45. CLAUDE.md Staleness Detection
 **What:** A hook (`hooks/claude-md-staleness.js`) detects when your CLAUDE.md is stale (>30 days without update) and prompts you to refresh it with `/ccc:refresh`.
-**Proof:** `hooks/claude-md-staleness.js` present. Referenced in CHANGELOG.md v2.3.0: "staleness hook (auto-prompts when stale >30 days)."
+**Proof:** `hooks/claude-md-staleness.js` present. Referenced in CHANGELOG.md v4.1.0-beta.2: "staleness hook (auto-prompts when stale >30 days)."
 **Share-friendly:** Your most important AI config file, kept fresh automatically. CCC tells you when it's time to update your CLAUDE.md.
 
 ---
@@ -364,7 +364,7 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 | Learning | Starts fresh | Fuzzy keyword matching, time decay (7d: 2x, 30d: 1.5x), outcome weighting |
 | Crash behavior | Terminal error | Global exception handler → error ID → back to menu |
 | Themes | None | 10 visual themes, live-switchable |
-| Lifecycle hooks | None | 8 events × 16 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop) |
+| Lifecycle hooks | None | 8 events × 25 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop) |
 | Methodology guide | None | 2,469-line BIBLE distilled from 200+ sources |
 | Prompt templates | None | 37 templates across 6 categories |
 | Project health | None | /xray audit: 21 rules, 6 dimensions, 0-100 score, 5-level maturity |
@@ -500,4 +500,4 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 
 ---
 
-*Built with CC Commander v2.3.0. Every claim in this document is verifiable from the source code at `github.com/KevinZai/commander`.*
+*Built with CC Commander v4.1.0-beta.2. Every claim in this document is verifiable from the source code at `github.com/KevinZai/commander`.*

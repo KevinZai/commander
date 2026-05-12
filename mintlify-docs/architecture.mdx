@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "How CC Commander works: brain/hands separation, 17 specialist sub-agents, 8 lifecycle hooks, and the Claude Agent SDK pattern underneath."
+description: "How CC Commander works: brain/hands separation, 22 specialist sub-agents, 9 lifecycle hooks, and the Claude Agent SDK pattern underneath."
 ---
 
 ## Brain / Hands
@@ -25,7 +25,7 @@ CC Commander's sub-agent architecture follows the same pattern Anthropic describ
 
 The plugin itself requires no external server, no API key, and no network call. It runs fully offline via the plugin manifest — the Claude Agent SDK pattern is implemented as skill files and hook scripts that Claude Code executes natively.
 
-## 17 Specialist Sub-Agent Personas
+## 22 Specialist Sub-Agent Personas
 
 Each persona has a fixed model tier, tool allowlist, turn budget, and voice system (see `rules/personas/` in the plugin). They're invoked automatically by skills or on demand via `/ccc-browse`.
 
@@ -51,7 +51,7 @@ Each persona has a fixed model tier, tool allowlist, turn budget, and voice syst
 
 Opus personas are used for tasks that require deep reasoning chains (architecture, security, debugging). Sonnet handles everything else at lower cost and higher speed.
 
-## 8 Lifecycle Hooks / 16 Handlers
+## 9 Lifecycle Hooks / 25 Handlers
 
 Hooks fire automatically around Claude Code sessions. Each hook event can have multiple handlers.
 

@@ -6,7 +6,7 @@
 
 ---
 
-## Desktop Plugin Commands (v4.0.0)
+## Desktop Plugin Commands (v4.1.0-beta.2)
 
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 60 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 new channel/CI/ECC skills + diagnostic/meta + vendor-sourced + lifecycle + deploy + session management).
 
@@ -25,7 +25,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (60 total — 13 specialist workflows + 14 domain routers + 6 channel/CI/ECC skills + meta + vendor-sourced + lifecycle + session; core surface shown)
+### /ccc-* Skills (60 total — 13 specialist workflows + 11 domain routers + 6 channel/CI/ECC skills + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -82,7 +82,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ### Lifecycle hook events (9)
 
-9 events, 24 handlers — fire automatically every session (no configuration needed):
+9 events, 25 handlers — fire automatically every session (no configuration needed):
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
@@ -95,7 +95,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | `PreCompact` | Before context compaction | 1 (block if active subagents) |
 | `SubagentStop` | Subagent finishes | 1 (dispatch results tracker) |
 | `PermissionRequest` | Tool permission prompt | 1 (permission gate) |
-| **TOTAL** | **9 events** | **24 handlers** |
+| **TOTAL** | **9 events** | **25 handlers** |
 
 ### Plugin MCP Servers (9)
 
@@ -370,7 +370,7 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | `claude -c` | Continue last conversation from CLI | `claude -c` |
 | `claude --resume <id>` | Resume specific session ID | `claude --resume abc123` |
 
-### 🔁 /loop integration (Claude Code 2.1.123+)
+### 🔁 /loop integration (Claude Code 4.1.0-beta.2+)
 
 Pair `/loop` with any `/ccc-*` skill for recurring execution. Claude Code Desktop renders a "loop" tag in the UI automatically.
 
@@ -641,7 +641,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 1.0.0
+version: 4.1.0-beta.2
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -665,7 +665,7 @@ Install only the skills you need — smaller tiers save ~10k tokens per session:
 ```bash
 ./install.sh --skills=essential   # ~30 core skills (default, saves ~10k tokens)
 ./install.sh --skills=recommended # ~100 skills for most developers
-./install.sh --skills=full        # All 459 skills (legacy behavior)
+./install.sh --skills=full        # All 457 skills (legacy behavior)
 ```
 
 | Tier | Count | When to use |
@@ -1000,7 +1000,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v4.0.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v4.1.0-beta.2 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1084,7 +1084,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v4.0.0 Quick Reference (CLI)
+## CC Commander v4.1.0-beta.2 Quick Reference (CLI)
 
 ```bash
 # Launch
