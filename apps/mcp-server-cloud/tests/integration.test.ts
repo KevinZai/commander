@@ -312,7 +312,7 @@ describe("initProject tool", () => {
 
   it("includes mcp config block", () => {
     const result = initProjectForTest({ projectType: "saas" });
-    assert.ok(result.mcpConfig?.commander?.url?.includes("mcp.cc-commander.com"));
+    assert.ok(result.mcpConfig?.commander?.url?.includes("mcp.commanderplugin.com"));
   });
 });
 
@@ -441,7 +441,7 @@ function makeStatusForTest(opts: { callsUsed: number; cap: number; tier: string;
         : opts.cap > 1000
           ? "Gamification bonus active — 2,000 calls this month for answering 2+ surveys."
           : undefined,
-    links: { dashboard: "https://cc-commander.com/dashboard" },
+    links: { dashboard: "https://commanderplugin.com/dashboard" },
   };
 }
 
@@ -467,7 +467,7 @@ function initProjectForTest(args: { projectType?: string; ide?: string }) {
     installCommand: `/plugin marketplace add KevinZai/commander && /plugin install commander`,
     mcpConfig: {
       commander: {
-        url: "https://mcp.cc-commander.com/sse",
+        url: "https://mcp.commanderplugin.com/sse",
         headers: { Authorization: "Bearer ${COMMANDER_TOKEN}" },
       },
     },

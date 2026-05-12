@@ -21,8 +21,8 @@ node commander/engine.js     # launch the CLI
 │   ├── agents/                ← 22 specialist agent personas
 │   └── hooks/                 ← 9 lifecycle hooks (24 handlers)
 ├── apps/mcp-server-cloud/     ← hosted MCP backend (v4.1)
-├── site/                      ← cc-commander.com (Next.js)
-├── mintlify-docs/             ← docs.cc-commander.com
+├── site/                      ← commanderplugin.com (Next.js)
+├── mintlify-docs/             ← docs.commanderplugin.com
 └── commander/                 ← CLI engine + adventures + tests
 ```
 

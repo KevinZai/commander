@@ -160,8 +160,8 @@ The following changes are needed to maximize Codex Desktop UX. These are **speci
   "./assets/screenshot-2.png",
   "./assets/screenshot-3.png"
 ],
-"privacyPolicyURL": "https://cc-commander.com/privacy",
-"termsOfServiceURL": "https://cc-commander.com/terms"
+"privacyPolicyURL": "https://commanderplugin.com/privacy",
+"termsOfServiceURL": "https://commanderplugin.com/terms"
 ```
 
 ### 6.2 Inject `SessionEnd` as a PreCompact substitute

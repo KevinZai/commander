@@ -1,6 +1,6 @@
-# cc-commander.com
+# commanderplugin.com
 
-Marketing site for **CCC** (Claude Code Commander). Deployed to `cc-commander.com`.
+Marketing site for **CCC** (Claude Code Commander). Deployed to `commanderplugin.com`.
 
 ## Stack
 
@@ -13,7 +13,7 @@ Marketing site for **CCC** (Claude Code Commander). Deployed to `cc-commander.co
 - **Email:** Resend (transactional) + Cloudflare Email Routing (inbound)
 - **Analytics:** Plausible
 - **Hosting:** Vercel Hobby tier
-- **DNS:** Cloudflare (`cc-commander.com`)
+- **DNS:** Cloudflare (`commanderplugin.com`)
 
 ## Local dev
 
@@ -39,7 +39,7 @@ STRIPE_PRICE_TEAM_MONTHLY=price_...
 STRIPE_PRICE_TEAM_YEARLY=price_...
 
 # Public
-NEXT_PUBLIC_SITE_URL=https://cc-commander.com
+NEXT_PUBLIC_SITE_URL=https://commanderplugin.com
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 # Database
@@ -47,10 +47,10 @@ POSTGRES_URL=postgres://...
 
 # Email
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=hello@cc-commander.com
+RESEND_FROM_EMAIL=hello@commanderplugin.com
 
 # Analytics
-NEXT_PUBLIC_PLAUSIBLE_DOMAIN=cc-commander.com
+NEXT_PUBLIC_PLAUSIBLE_DOMAIN=commanderplugin.com
 ```
 
 ## Directory structure

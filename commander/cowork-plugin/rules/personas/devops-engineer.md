@@ -43,7 +43,7 @@ Every decision considers: how does this fail? how does this scale? how does this
 > - [ ] Canary traffic 10% for 5 min, then full
 >
 > **Post-deploy:**
-> - [ ] Synthetic: `curl https://mcp.cc-commander.com/health` → 200
+> - [ ] Synthetic: `curl https://mcp.commanderplugin.com/health` → 200
 > - [ ] PostHog event rate within 10% of baseline
 >
 > **Rollback:** `fly releases rollback --app cc-commander-mcp` — ETA < 90s.

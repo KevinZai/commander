@@ -41,7 +41,7 @@ export default function PressPage() {
             Everything you need to write about, demo, or talk about CC
             Commander. Questions not answered here?{" "}
             <a
-              href="mailto:hello@cc-commander.com"
+              href="mailto:hello@commanderplugin.com"
               className="text-orange-400 hover:text-orange-300 transition-colors"
             >
               Email us
@@ -101,8 +101,8 @@ export default function PressPage() {
           <p className="text-xs text-zinc-600 mt-3">
             {/* TODO: CC-667 — upload assets to /public/press/logos/ */}
             Logo files coming when CC-667 ships. Contact{" "}
-            <a href="mailto:hello@cc-commander.com" className="text-zinc-500 hover:text-white transition-colors">
-              hello@cc-commander.com
+            <a href="mailto:hello@commanderplugin.com" className="text-zinc-500 hover:text-white transition-colors">
+              hello@commanderplugin.com
             </a>{" "}
             for assets in the meantime.
           </p>
@@ -176,8 +176,8 @@ export default function PressPage() {
           </div>
           <p className="text-xs text-zinc-600 mt-3">
             Screenshots available upon request:{" "}
-            <a href="mailto:hello@cc-commander.com" className="text-zinc-500 hover:text-white transition-colors">
-              hello@cc-commander.com
+            <a href="mailto:hello@commanderplugin.com" className="text-zinc-500 hover:text-white transition-colors">
+              hello@commanderplugin.com
             </a>
           </p>
         </section>
@@ -247,10 +247,10 @@ export default function PressPage() {
             For interview requests, review access, or additional assets:
           </p>
           <a
-            href="mailto:hello@cc-commander.com?subject=Press%20inquiry"
+            href="mailto:hello@commanderplugin.com?subject=Press%20inquiry"
             className="text-orange-400 hover:text-orange-300 transition-colors font-semibold"
           >
-            hello@cc-commander.com
+            hello@commanderplugin.com
           </a>
           <p className="text-zinc-600 text-xs mt-2">
             Typical response time: 24 hours on business days.

@@ -51,7 +51,7 @@ export default async function CreatorDashboardPage() {
                 href={`/r/${stats.slug}`}
                 className="text-orange-400 hover:text-orange-300 transition-colors"
               >
-                cc-commander.com/r/{stats.slug}
+                commanderplugin.com/r/{stats.slug}
               </a>
             </p>
           </div>

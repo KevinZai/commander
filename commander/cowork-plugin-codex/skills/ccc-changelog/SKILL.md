@@ -21,7 +21,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/../../CHANGELOG.md` via the Read tool.
 
 If that fails, try `Bash`: `find ~ -name CHANGELOG.md -path "*/cc-commander/*" 2>/dev/null | head -1` and read the result.
 
-If no CHANGELOG.md is found: output a friendly message — "CHANGELOG.md not found. Visit https://cc-commander.com for release notes." and exit.
+If no CHANGELOG.md is found: output a friendly message — "CHANGELOG.md not found. Visit https://commanderplugin.com for release notes." and exit.
 
 ### 2. Extract the most-recent version section
 

@@ -1,6 +1,6 @@
 # CC Commander Privacy Policy
 
-**Canonical URL:** `https://cc-commander.com/privacy`  
+**Canonical URL:** `https://commanderplugin.com/privacy`  
 **Effective date:** 2026-04-26  
 **Plugin version:** v4.0.0-beta.11+
 

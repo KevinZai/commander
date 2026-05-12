@@ -8,7 +8,7 @@ description: "Two ways to access 502+ CC Commander skills — native plugin slas
 CC Commander ships **two parallel discovery surfaces**. They serve the same skill catalog but are shaped by what each client supports.
 
 <Warning>
-  **Beta v4.1.0-beta.2 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.cc-commander.com` goes live post-deploy.
+  **Beta v4.1.0-beta.2 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.commanderplugin.com` goes live post-deploy.
 </Warning>
 
 ## The split in one sentence
@@ -18,7 +18,7 @@ CC Commander ships **two parallel discovery surfaces**. They serve the same skil
 | **Claude Cowork Desktop (plugin)** ⭐ | `/ccc:<name>` slash commands — ideal for novices, zero config | Plugin manifest `skills: "./skills/"` |
 | **Claude Code Desktop (plugin)** | Same as above — identical install path | Plugin manifest `skills: "./skills/"` |
 | **Claude Code CLI (terminal)** | `ccc` interactive TUI + slash commands in CC sessions | CLI binary + plugin |
-| **Cursor / Windsurf / Cline / Continue / Codex / Claude mobile** | Agent calls `list_skills` / `search_skills` / `suggest_skill` on the user's behalf | Hosted MCP server at `mcp.cc-commander.com` |
+| **Cursor / Windsurf / Cline / Continue / Codex / Claude mobile** | Agent calls `list_skills` / `search_skills` / `suggest_skill` on the user's behalf | Hosted MCP server at `mcp.commanderplugin.com` |
 
 Same 500+ skills. Different UX glue.
 
@@ -45,7 +45,7 @@ When you `/plugin install commander` in Claude Code, the plugin manifest registe
 
 ## Hosted MCP server (every other AI IDE)
 
-Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.cc-commander.com`. The same 457+ skill catalog becomes available through **13 MCP tools**:
+Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.commanderplugin.com`. The same 457+ skill catalog becomes available through **13 MCP tools**:
 
 | Tool | What the agent does with it |
 |------|----------------------------|
@@ -71,7 +71,7 @@ Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.cc-commander.com/sse",
+      "url": "https://mcp.commanderplugin.com/sse",
       "headers": { "Authorization": "Bearer YOUR_LICENSE_KEY" }
     }
   }
@@ -90,7 +90,7 @@ Claude Code users can install the plugin **and** point at the hosted MCP. Benefi
 To enable hybrid on Claude Code:
 ```bash
 /plugin install commander   # already done? you're ready
-# then add the MCP endpoint to .claude/mcp.json once mcp.cc-commander.com is live
+# then add the MCP endpoint to .claude/mcp.json once mcp.commanderplugin.com is live
 ```
 
 ## What does NOT work in MCP that works in plugin

@@ -22,7 +22,7 @@ Click-first picker for the CC Commander surface area that's NOT build/review/shi
 ### 1. Brand header (one line)
 
 ```
-**CC Commander · More** · 7 tools · [all commands](https://cc-commander.com/commands)
+**CC Commander · More** · 7 tools · [all commands](https://commanderplugin.com/commands)
 ```
 
 ### 2. Context strip (one line)

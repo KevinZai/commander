@@ -21,7 +21,7 @@ The plugin is 100% functional without any network connection. MCP is opt-in icin
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.cc-commander.com/sse",
+      "url": "https://mcp.commanderplugin.com/sse",
       "headers": {
         "Authorization": "Bearer YOUR_LICENSE_KEY"
       }

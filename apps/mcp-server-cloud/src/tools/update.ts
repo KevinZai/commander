@@ -7,7 +7,7 @@ export function checkUpdate(_args: CheckUpdateArgs) {
     currentVersion: SERVER_VERSION,
     latestVersion: SERVER_VERSION,
     upToDate: true,
-    changelogUrl: "https://cc-commander.com/changelog",
+    changelogUrl: "https://commanderplugin.com/changelog",
     releaseNotes: "Beta launch. 14 MCP tools, auth, rate limiting, feedback gate.",
   };
 }

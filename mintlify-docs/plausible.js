@@ -1,4 +1,4 @@
-// Privacy-friendly analytics by Plausible (docs.cc-commander.com)
+// Privacy-friendly analytics by Plausible (docs.commanderplugin.com)
 (function () {
   var s = document.createElement('script');
   s.async = true;

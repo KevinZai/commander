@@ -57,7 +57,7 @@ function generateCard(session, score) {
 
   lines.push('');
   lines.push(DIM + '  ' + '~'.repeat(50) + RESET);
-  lines.push(g('  CC Commander v' + B.version, theme.logo.gradient) + DIM + '  cc-commander.com  @commanderplugin' + RESET);
+  lines.push(g('  CC Commander v' + B.version, theme.logo.gradient) + DIM + '  commanderplugin.com  @commanderplugin' + RESET);
   lines.push(DIM + '  Every Claude Code tool. One install. Guided access.' + RESET);
   lines.push('');
 

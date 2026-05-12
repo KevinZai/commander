@@ -1,9 +1,9 @@
-# Spec: cc-commander.com Marketing Site
+# Spec: commanderplugin.com Marketing Site
 
 **Date:** 2026-04-16
 **Owner:** Kevin Zicherman
 **Status:** Draft — pending approval to build
-**Domain:** cc-commander.com (owned by Kevin)
+**Domain:** commanderplugin.com (owned by Kevin)
 **Repo location:** `<repo-root>/marketing/`
 
 ---
@@ -261,7 +261,7 @@ Two-column layout:
 
 **CLI (legacy/power users):**
 ```
-curl -fsSL https://cc-commander.com/install.sh | bash
+curl -fsSL https://commanderplugin.com/install.sh | bash
 ```
 
 Copy buttons on both. Short note: "Works with Claude Code Desktop and Claude Code CLI."
@@ -350,7 +350,7 @@ Verification: Sign with HMAC-SHA256, plugin verifies signature offline (no serve
 - Next.js 15 App Router init in `marketing/`
 - Tailwind v4 + shadcn/ui setup
 - Plausible snippet
-- Deploy to Vercel, wire cc-commander.com DNS
+- Deploy to Vercel, wire commanderplugin.com DNS
 
 ### Phase 2 — Home Page (Day 1-2, 6-8 hours)
 - Hero with animated terminal
@@ -380,7 +380,7 @@ Verification: Sign with HMAC-SHA256, plugin verifies signature offline (no serve
 - Mobile responsiveness pass
 
 ### Phase 6 — Launch (Day 4)
-- DNS cutover to cc-commander.com
+- DNS cutover to commanderplugin.com
 - Announce on Twitter, Hacker News, Reddit r/ClaudeAI
 - Email TheAgentReport subscribers
 
@@ -417,10 +417,10 @@ Verification: Sign with HMAC-SHA256, plugin verifies signature offline (no serve
 ## 10. Open Questions
 
 1. **Stripe entity:** Use Kevin Z personal Stripe or open a new LLC for CCC?
-2. **Domain DNS:** cc-commander.com currently parked — what registrar/DNS provider?
-3. **Email:** Keep kzic@ or use hello@cc-commander.com?
+2. **Domain DNS:** commanderplugin.com currently parked — what registrar/DNS provider?
+3. **Email:** Keep kzic@ or use hello@commanderplugin.com?
 4. **License key storage:** Supabase, Postgres on Vercel, or KV (Upstash)?
-5. **Support email inbox:** Kevin's personal or new cc-commander.com?
+5. **Support email inbox:** Kevin's personal or new commanderplugin.com?
 
 ---
 
@@ -428,7 +428,7 @@ Verification: Sign with HMAC-SHA256, plugin verifies signature offline (no serve
 
 - [ ] Kevin approves this spec
 - [ ] Stripe account + products configured
-- [ ] cc-commander.com DNS pointed to Vercel
+- [ ] commanderplugin.com DNS pointed to Vercel
 - [ ] Plausible analytics account created
 - [ ] Resend/Loops account for email
 - [ ] Database (Supabase/KV) for license keys

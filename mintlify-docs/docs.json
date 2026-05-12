@@ -105,7 +105,7 @@
       "anchors": [
         {
           "anchor": "Marketing Site",
-          "href": "https://cc-commander.com",
+          "href": "https://commanderplugin.com",
           "icon": "globe"
         },
         {
@@ -129,7 +129,7 @@
     "links": [
       {
         "label": "Home",
-        "href": "https://cc-commander.com"
+        "href": "https://commanderplugin.com"
       },
       {
         "label": "GitHub",
@@ -139,7 +139,7 @@
     "primary": {
       "type": "button",
       "label": "Install",
-      "href": "https://cc-commander.com/#install"
+      "href": "https://commanderplugin.com/#install"
     }
   },
   "footer": {
@@ -150,7 +150,7 @@
   },
   "integrations": {
     "plausible": {
-      "domain": "docs.cc-commander.com"
+      "domain": "docs.commanderplugin.com"
     }
   }
 }

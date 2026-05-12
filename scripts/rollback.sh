@@ -130,7 +130,7 @@ case "$TARGET" in
       echo ""
       echo "Verifying health endpoint..."
       sleep 10
-      HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://mcp.cc-commander.com/health || echo "000")
+      HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://mcp.commanderplugin.com/health || echo "000")
       if [[ "$HTTP_STATUS" == "200" ]]; then
         echo "Health check: 200 OK"
       else

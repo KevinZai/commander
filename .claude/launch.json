@@ -8,7 +8,7 @@
       "port": 3000
     },
     {
-      "name": "docs (canonical cc-commander.com static)",
+      "name": "docs (canonical commanderplugin.com static)",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4000", "--directory", "docs"],
       "port": 4000
@@ -26,7 +26,7 @@
       "port": 4690
     },
     {
-      "name": "mintlify-docs (docs.cc-commander.com preview)",
+      "name": "mintlify-docs (docs.commanderplugin.com preview)",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["mintlify", "dev"],
       "port": 3001

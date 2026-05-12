@@ -25,7 +25,7 @@ Output these three sections in order.
 ### 1. Brand header
 
 ```
-**CC Commander** · X-Ray Scanner · [Docs](https://cc-commander.com)
+**CC Commander** · X-Ray Scanner · [Docs](https://commanderplugin.com)
 ```
 
 ### 2. Context strip (one line)

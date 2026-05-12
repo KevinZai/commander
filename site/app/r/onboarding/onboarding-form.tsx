@@ -146,7 +146,7 @@ export function OnboardingForm({
           {loading ? "Creating your page…" : "Create my page →"}
         </button>
         <p className="text-xs text-zinc-600">
-          Your page goes live at cc-commander.com/r/{login || "you"}
+          Your page goes live at commanderplugin.com/r/{login || "you"}
         </p>
       </div>
     </form>

@@ -98,7 +98,7 @@ fly releases rollback --app cc-commander-mcp
 
 # Confirm the rollback completed
 fly status --app cc-commander-mcp
-curl https://mcp.cc-commander.com/health
+curl https://mcp.commanderplugin.com/health
 ```
 
 ### Via rollback script

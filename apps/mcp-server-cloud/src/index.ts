@@ -59,7 +59,7 @@ app.use("*", async (c, next) => {
 app.use(
   "*",
   cors({
-    origin: ["https://cc-commander.com", "http://localhost:3000"],
+    origin: ["https://commanderplugin.com", "http://localhost:3000"],
     allowHeaders: ["Authorization", "Content-Type", "X-Request-Id"],
     allowMethods: ["GET", "POST", "OPTIONS"],
     exposeHeaders: [

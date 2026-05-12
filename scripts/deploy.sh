@@ -49,7 +49,7 @@ cd "$WORKTREE_ROOT"
 # Healthcheck
 info "Waiting for MCP healthcheck…"
 for i in {1..30}; do
-  if curl -fsS --max-time 2 https://mcp.cc-commander.com/health >/dev/null 2>&1; then
+  if curl -fsS --max-time 2 https://mcp.commanderplugin.com/health >/dev/null 2>&1; then
     info "MCP healthy"
     break
   fi
@@ -69,7 +69,7 @@ fi
 
 # ─── Post-deploy smoke ────────────────────────────────────
 info "Running post-deploy smoke"
-curl -fsS --max-time 5 https://cc-commander.com > /dev/null && info "cc-commander.com 200 OK" || warn "cc-commander.com probe failed"
-curl -fsS --max-time 5 https://mcp.cc-commander.com/health > /dev/null && info "mcp.cc-commander.com/health 200 OK" || warn "mcp probe failed"
+curl -fsS --max-time 5 https://commanderplugin.com > /dev/null && info "commanderplugin.com 200 OK" || warn "commanderplugin.com probe failed"
+curl -fsS --max-time 5 https://mcp.commanderplugin.com/health > /dev/null && info "mcp.commanderplugin.com/health 200 OK" || warn "mcp probe failed"
 
 info "🚀 Deploy complete. CC Commander v4.0.0 Beta is live."

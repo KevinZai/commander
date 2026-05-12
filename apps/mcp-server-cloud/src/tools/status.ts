@@ -32,9 +32,9 @@ export async function getStatus(_args: GetStatusArgs, auth: AuthContext) {
           ? "Gamification bonus active — 2,000 calls this month for answering 2+ surveys."
           : undefined,
     links: {
-      dashboard: "https://cc-commander.com/dashboard",
-      pricing: "https://cc-commander.com/pricing",
-      survey: "https://cc-commander.com/beta/survey/pending",
+      dashboard: "https://commanderplugin.com/dashboard",
+      pricing: "https://commanderplugin.com/pricing",
+      survey: "https://commanderplugin.com/beta/survey/pending",
     },
   };
 }

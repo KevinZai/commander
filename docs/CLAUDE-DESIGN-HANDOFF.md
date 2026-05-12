@@ -7,7 +7,7 @@
 
 ## 1. Site Overview
 
-**URL:** https://cc-commander.com/
+**URL:** https://commanderplugin.com/
 **What it is:** Marketing landing page for CC Commander — a free Claude Code Desktop plugin that gives developers 55 click-first AI workflows, 17 specialist agent personas, and lifecycle automation.
 **Audience:** Developers actively using Claude Code Desktop or Claude Code CLI. They are technical, skeptical of hype, and will read the install command before they read the headline.
 **Primary action:** Install the plugin. Two commands:
@@ -85,7 +85,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
 - BIBLE.md → GitHub blob
 - CHEATSHEET.md → GitHub blob
 - SKILLS-INDEX.md → GitHub blob
-- Affiliate Disclosure → `https://docs.cc-commander.com/affiliate-disclosure`
+- Affiliate Disclosure → `https://docs.commanderplugin.com/affiliate-disclosure`
 - Author: Kevin Z → `https://kevinz.ai` | @kzic → `https://x.com/kzic`
 
 ---
@@ -198,7 +198,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
 <meta property="og:title" content="CC Commander — AI PM Plugin for Claude Code · 55 Skills · Free">
 <meta property="og:description" content="Guided AI PM for Claude Code Desktop. 55 plugin skills, 17 specialist AI agents, 9 lifecycle hooks, hosted MCP server. Free for now.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://cc-commander.com/">
+<meta property="og:url" content="https://commanderplugin.com/">
 <meta property="og:image" content="https://kevinzai.github.io/commander/assets/og-image.png">
 <meta property="og:site_name" content="CC Commander">
 ```
@@ -224,7 +224,7 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
 
 ### Other Head Requirements
 ```html
-<link rel="canonical" href="https://cc-commander.com/">
+<link rel="canonical" href="https://commanderplugin.com/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>></text></svg>">
 <meta name="description" content="CC Commander: the guided AI PM plugin for Claude Code Desktop and Claude Code CLI. 55 plugin skills, 17 specialist AI agents, 9 lifecycle hooks, hosted MCP server. Free for now. Works in Cursor, Windsurf, and every MCP-capable IDE.">
 ```
@@ -257,12 +257,12 @@ CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./insta
 
 ## 6. Out of Scope
 
-The Mintlify documentation site at `https://docs.cc-commander.com/` is **not touched**. That includes:
+The Mintlify documentation site at `https://docs.commanderplugin.com/` is **not touched**. That includes:
 - `mintlify-docs/` directory in the repo
-- All content under `docs.cc-commander.com`
+- All content under `docs.commanderplugin.com`
 - The `mintlify-docs/docs.json` and `mintlify-docs/mint.json` config files
 
-**This redesign is strictly:** the single-page marketing site at `cc-commander.com/` — source file `docs/index.html` + `docs/assets/style.css` + `docs/assets/main.js`.
+**This redesign is strictly:** the single-page marketing site at `commanderplugin.com/` — source file `docs/index.html` + `docs/assets/style.css` + `docs/assets/main.js`.
 
 ---
 
@@ -272,7 +272,7 @@ The Mintlify documentation site at `https://docs.cc-commander.com/` is **not tou
 - [ ] All 5 Twitter Card tags preserved
 - [ ] JSON-LD block copied verbatim (update `softwareVersion` if needed)
 - [ ] Plausible snippet in `<head>` — exact script URL, not replaced with generic Plausible
-- [ ] `<link rel="canonical" href="https://cc-commander.com/">` present
+- [ ] `<link rel="canonical" href="https://commanderplugin.com/">` present
 - [ ] Favicon `data:` URI preserved (or replaced with equivalent `>` terminal icon)
 - [ ] Primary CTA is the 2-command install block (click-to-copy behavior retained)
 - [ ] Stats are accurate: 502+, 55, 17, 9, 11, 457+, 83

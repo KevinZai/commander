@@ -329,7 +329,7 @@ describe("commander_status", () => {
       tier: "free",
       userId: "user-123",
       usage: { callsUsed: 10, cap: 1000, remaining: 990, month: "2026-04", resetDate: "2026-05-01" },
-      links: { dashboard: "https://cc-commander.com/dashboard" },
+      links: { dashboard: "https://commanderplugin.com/dashboard" },
     };
     assert.equal(result.version, "4.0.0");
     assert.equal(result.usage.remaining, 990);
@@ -345,7 +345,7 @@ describe("commander_status", () => {
 
 describe("commander_update", () => {
   it("happy path — returns current version and changelog URL", () => {
-    const result = { currentVersion: "4.0.0", latestVersion: "4.0.0", upToDate: true, changelogUrl: "https://cc-commander.com/changelog" };
+    const result = { currentVersion: "4.0.0", latestVersion: "4.0.0", upToDate: true, changelogUrl: "https://commanderplugin.com/changelog" };
     assert.equal(result.upToDate, true);
     assert.ok(result.changelogUrl.startsWith("https://"));
   });

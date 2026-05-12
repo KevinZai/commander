@@ -2,7 +2,7 @@
  * Regenerate the canonical CC Commander OG card at docs/og.png.
  *
  * Live deploy source: docs/index.html (referenced by <meta og:image
- * content="https://cc-commander.com/og.png">). This script overwrites
+ * content="https://commanderplugin.com/og.png">). This script overwrites
  * docs/og.png in place, preserving the URL contract.
  *
  * Brand mark used: full canonical ASCII stack from docs/assets/ccc-hero.svg —
@@ -128,7 +128,7 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
   <!-- Top meta strip -->
   <g font-family="'JetBrains Mono','SF Mono',Menlo,Consolas,monospace" font-size="18" letter-spacing="0.08em">
     <text x="72" y="60" fill="${C.fgDim}" font-weight="700">CC-COMMANDER</text>
-    <text x="290" y="60" fill="${C.fgFaint}">·  v${VERSION}  ·  MIT  ·  cc-commander.com</text>
+    <text x="290" y="60" fill="${C.fgFaint}">·  v${VERSION}  ·  MIT  ·  commanderplugin.com</text>
   </g>
   <line x1="72" y1="78" x2="1128" y2="78" stroke="${C.line}" stroke-width="1"/>
 
@@ -229,7 +229,7 @@ const X_BANNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 
   <!-- Tagline + handle below -->
   <text x="80" y="365" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="600" letter-spacing="-0.02em" fill="${C.fg}">The guided AI PM for Claude Code.</text>
   <text x="80" y="402" font-family="'JetBrains Mono','SF Mono',Menlo,Consolas,monospace" font-size="16" letter-spacing="0.04em" fill="${C.fgDim}">${STATS}</text>
-  <text x="80" y="428" font-family="'JetBrains Mono','SF Mono',Menlo,Consolas,monospace" font-size="16" letter-spacing="0.04em" fill="${C.accent}">@commanderplugin  ·  cc-commander.com</text>
+  <text x="80" y="428" font-family="'JetBrains Mono','SF Mono',Menlo,Consolas,monospace" font-size="16" letter-spacing="0.04em" fill="${C.accent}">@commanderplugin  ·  commanderplugin.com</text>
 </svg>`;
 
 async function rasterize(name, svg, w, h, outDir) {

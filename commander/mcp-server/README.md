@@ -54,7 +54,7 @@ index.js                → translator.js → MCP content blocks
 
 This is the **local beta** build. No network required. Skills served from `skills/` directory.
 
-**Hosted GA** (planned): `https://mcp.cc-commander.com/v1` with API key auth, server-side license validation, and PostHog analytics.
+**Hosted GA** (planned): `https://mcp.commanderplugin.com/v1` with API key auth, server-side license validation, and PostHog analytics.
 
 ## Environment Variables
 

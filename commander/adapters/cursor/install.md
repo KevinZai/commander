@@ -6,7 +6,7 @@ This installs Commander through the hosted MCP endpoint. The endpoint below is t
 
 - Cursor editor or Cursor CLI.
 - `COMMANDER_LICENSE_KEY` from the Commander beta signup.
-- Network access to `https://mcp.cc-commander.com/v1/sse`.
+- Network access to `https://mcp.commanderplugin.com/v1/sse`.
 
 ## Option A - One-Line Install
 
@@ -19,7 +19,7 @@ export COMMANDER_LICENSE_KEY="your-commander-license-key"
 Then merge the Commander MCP server into your global Cursor MCP config:
 
 ```bash
-mkdir -p "$HOME/.cursor" && node -e 'const fs=require("fs");const p=process.env.HOME+"/.cursor/mcp.json";let cfg={mcpServers:{}};try{cfg=JSON.parse(fs.readFileSync(p,"utf8"))}catch{}cfg.mcpServers=cfg.mcpServers||{};cfg.mcpServers["cc-commander"]={url:"https://mcp.cc-commander.com/v1/sse",headers:{Authorization:"Bearer ${env:COMMANDER_LICENSE_KEY}"}};fs.writeFileSync(p,JSON.stringify(cfg,null,2)+"\n");console.log("Installed cc-commander MCP in "+p);'
+mkdir -p "$HOME/.cursor" && node -e 'const fs=require("fs");const p=process.env.HOME+"/.cursor/mcp.json";let cfg={mcpServers:{}};try{cfg=JSON.parse(fs.readFileSync(p,"utf8"))}catch{}cfg.mcpServers=cfg.mcpServers||{};cfg.mcpServers["cc-commander"]={url:"https://mcp.commanderplugin.com/v1/sse",headers:{Authorization:"Bearer ${env:COMMANDER_LICENSE_KEY}"}};fs.writeFileSync(p,JSON.stringify(cfg,null,2)+"\n");console.log("Installed cc-commander MCP in "+p);'
 ```
 
 Restart Cursor after writing the config.

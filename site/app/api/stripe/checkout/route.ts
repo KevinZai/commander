@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? "https://cc-commander.com";
+      process.env.NEXT_PUBLIC_SITE_URL ?? "https://commanderplugin.com";
 
     const session = await getStripe().checkout.sessions.create({
       mode: "subscription",

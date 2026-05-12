@@ -42,8 +42,8 @@ Add these fields to `commander/cowork-plugin-codex/manifest.template.json` under
   "./assets/marketplace/screenshot-4.png",
   "./assets/marketplace/screenshot-5.png"
 ],
-"privacyPolicyURL":   "https://cc-commander.com/privacy",
-"termsOfServiceURL":  "https://cc-commander.com/terms"
+"privacyPolicyURL":   "https://commanderplugin.com/privacy",
+"termsOfServiceURL":  "https://commanderplugin.com/terms"
 ```
 
 Note: Codex Desktop marketplace resolves paths relative to the plugin root. The build script
@@ -71,14 +71,14 @@ node -e "const sharp=require('sharp'); sharp('assets/marketplace/composer-icon.s
 ## Privacy policy hosting
 
 `PRIVACY.md` is the canonical source. Before marketplace submission, publish it at
-`https://cc-commander.com/privacy` (static HTML or markdown render). The `privacyPolicyURL`
+`https://commanderplugin.com/privacy` (static HTML or markdown render). The `privacyPolicyURL`
 field in the manifest points there.
 
 ## What still needs Kevin
 
 - [ ] SVG → PNG export (any method above)
 - [ ] Run `node scripts/marketplace-screenshot-capture.js` to verify + resize screenshots
-- [ ] Publish `PRIVACY.md` content at `https://cc-commander.com/privacy`
+- [ ] Publish `PRIVACY.md` content at `https://commanderplugin.com/privacy`
 - [ ] Update `manifest.template.json` with fields above (or merge Wave 5 CDX-3 PR)
 - [ ] Community marketplace submission: `npx codex-marketplace add KevinZai/commander --plugins`
 - [ ] OpenAI dev-rel contact for official Featured consideration

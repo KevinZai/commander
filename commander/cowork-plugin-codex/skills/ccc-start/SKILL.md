@@ -177,7 +177,7 @@ When writing the plan file (path from `EnterPlanMode` or existing session plan p
 - `/ccc` — main hub
 - `/ccc-browse` — browse all skills + agents
 - `/ccc-plan` — write a feature plan
-- [CC Commander docs](https://cc-commander.com)
+- [CC Commander docs](https://commanderplugin.com)
 
 ---
 
@@ -214,8 +214,8 @@ CC Commander runs three paid plans, **free during early access** while we ship. 
 
 | Path | Who it's for | Where |
 |------|--------------|-------|
-| **Pro — $19/mo · $190/yr** | Daily users wanting unlimited cloud + premium skill packs | cc-commander.com/#pricing |
-| **Pro — Lifetime $299** | One-time payers, locked-in price, founding-member badge (first 100) | cc-commander.com/#pricing |
+| **Pro — $19/mo · $190/yr** | Daily users wanting unlimited cloud + premium skill packs | commanderplugin.com/#pricing |
+| **Pro — Lifetime $299** | One-time payers, locked-in price, founding-member badge (first 100) | commanderplugin.com/#pricing |
 | **Hire Kevin** | Teams shipping AI features who need senior help | kevinz.ai/consulting |
 | **GitHub Sponsors** | Fans who want to fund the project independently of Pro features | github.com/sponsors/KevinZai |
 | **Star + share** | Anyone who finds CC Commander useful | github.com/KevinZai/commander |

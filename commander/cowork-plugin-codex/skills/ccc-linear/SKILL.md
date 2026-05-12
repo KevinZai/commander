@@ -21,7 +21,7 @@ Promoted from `commands/ccc-linear.md` (legacy slash command).
 ### 1. Brand header
 
 ```
-**CC Commander** · Linear Integration · [Docs](https://cc-commander.com)
+**CC Commander** · Linear Integration · [Docs](https://commanderplugin.com)
 ```
 
 ### 2. Context strip

@@ -21,7 +21,7 @@ Promoted from `commands/ccc-parallel.md` (legacy slash command).
 ### 1. Brand header
 
 ```
-**CC Commander** · Fleet Orchestrator · [Docs](https://cc-commander.com)
+**CC Commander** · Fleet Orchestrator · [Docs](https://commanderplugin.com)
 ```
 
 ### 2. Context strip

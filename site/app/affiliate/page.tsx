@@ -306,7 +306,7 @@ function ComingSoonCapture({ label }: { label: string }) {
       </div>
       {/* TODO: CC-664 — wire this form to an email list (ConvertKit / LS) */}
       <form
-        action="mailto:hello@cc-commander.com"
+        action="mailto:hello@commanderplugin.com"
         method="get"
         className="flex gap-2"
       >

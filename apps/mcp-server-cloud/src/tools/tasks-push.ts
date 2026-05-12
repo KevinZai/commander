@@ -12,7 +12,7 @@ export function pushTask(args: PushTaskArgs) {
     status: "not_configured",
     title: args.title,
     message:
-      "Linear integration requires your API key. Add COMMANDER_LINEAR_KEY to your environment. Full setup guide: https://cc-commander.com/docs/integrations/linear",
+      "Linear integration requires your API key. Add COMMANDER_LINEAR_KEY to your environment. Full setup guide: https://commanderplugin.com/docs/integrations/linear",
     fallback: `Created task locally: "${args.title}" (${args.priority ?? "medium"} priority)`,
   };
 }

@@ -17,7 +17,7 @@ Click-to-connect opt-in MCP servers. Never auto-installs — always user-initiat
 
 ```
 💸 Some links below are affiliate — CCC may earn a commission at no cost to you.
-[Disclosure](https://docs.cc-commander.com/affiliate-disclosure)
+[Disclosure](https://docs.commanderplugin.com/affiliate-disclosure)
 ```
 
 ## Response shape (EVERY time)
@@ -25,7 +25,7 @@ Click-to-connect opt-in MCP servers. Never auto-installs — always user-initiat
 ### 1. Brand header
 
 ```
-**CC Commander** · Connector Wizard · [Docs](https://cc-commander.com)
+**CC Commander** · Connector Wizard · [Docs](https://commanderplugin.com)
 ```
 
 ### 2. Context strip

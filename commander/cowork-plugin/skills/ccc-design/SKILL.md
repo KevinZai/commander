@@ -24,7 +24,7 @@ Click-first picker over the design domain (39 sub-skills). User picks an intent 
 ### 1. Brand header (one line)
 
 ```
-**CC Commander · Design** · 39 skills · [frontend-design](https://cc-commander.com/design)
+**CC Commander · Design** · 39 skills · [frontend-design](https://commanderplugin.com/design)
 ```
 
 ### 2. Context strip (one line)

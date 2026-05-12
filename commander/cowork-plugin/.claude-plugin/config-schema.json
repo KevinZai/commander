@@ -12,7 +12,7 @@
     "mcpEndpoint": {
       "type": "string",
       "format": "uri",
-      "default": "https://mcp.cc-commander.com/sse",
+      "default": "https://mcp.commanderplugin.com/sse",
       "description": "URL of the CC Commander MCP server. Overridden by CCC_MCP_URL environment variable."
     },
     "mcpLicenseKey": {

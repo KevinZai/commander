@@ -137,15 +137,15 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:hello@cc-commander.com"
+                  href="mailto:hello@commanderplugin.com"
                   className="hover:text-white transition-colors"
                 >
-                  hello@cc-commander.com
+                  hello@commanderplugin.com
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:hello@cc-commander.com?subject=CCC%20Team%20inquiry"
+                  href="mailto:hello@commanderplugin.com?subject=CCC%20Team%20inquiry"
                   className="hover:text-white transition-colors"
                 >
                   Team inquiries

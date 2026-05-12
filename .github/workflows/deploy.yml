@@ -47,7 +47,7 @@ jobs:
       - name: Wait for healthcheck
         run: |
           for i in {1..30}; do
-            if curl -fsS --max-time 2 https://mcp.cc-commander.com/health; then exit 0; fi
+            if curl -fsS --max-time 2 https://mcp.commanderplugin.com/health; then exit 0; fi
             sleep 2
           done
           exit 1
@@ -80,6 +80,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Site probe
-        run: curl -fsS --max-time 5 https://cc-commander.com > /dev/null
+        run: curl -fsS --max-time 5 https://commanderplugin.com > /dev/null
       - name: MCP health probe
-        run: curl -fsS --max-time 5 https://mcp.cc-commander.com/health > /dev/null
+        run: curl -fsS --max-time 5 https://mcp.commanderplugin.com/health > /dev/null

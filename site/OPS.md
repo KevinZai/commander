@@ -1,4 +1,4 @@
-# cc-commander.com — Ops Checklist
+# commanderplugin.com — Ops Checklist
 
 Everything that needs to be set up outside the codebase before / after launch.
 Entity: **Axiom Marketing Inc.**
@@ -14,7 +14,7 @@ Entity: **Axiom Marketing Inc.**
 - [ ] Enable Stripe Tax (auto-calc sales tax)
 - [ ] Enable Stripe Billing (for subscriptions)
 - [ ] Enable Stripe Radar (fraud prevention)
-- [ ] Brand the customer portal: logo, brand color (violet `#8B5CF6`), support email `hello@cc-commander.com`
+- [ ] Brand the customer portal: logo, brand color (violet `#8B5CF6`), support email `hello@commanderplugin.com`
 
 ### 1b. Products and prices
 
@@ -31,7 +31,7 @@ Record each `price_id` in the Vercel project env vars.
 
 ### 1c. Webhook
 
-- [ ] Endpoint: `https://cc-commander.com/api/stripe/webhook`
+- [ ] Endpoint: `https://commanderplugin.com/api/stripe/webhook`
 - [ ] Events to send:
   - `checkout.session.completed`
   - `customer.subscription.created`
@@ -55,7 +55,7 @@ Global API key: stored in 1Password vault `Alfred` → `Cloudflare Global API Ke
 
 ### 2a. Create zone
 
-- [ ] Add `cc-commander.com` to Cloudflare
+- [ ] Add `commanderplugin.com` to Cloudflare
 - [ ] Update nameservers at registrar
 - [ ] Wait for "Active" status
 
@@ -63,17 +63,17 @@ Global API key: stored in 1Password vault `Alfred` → `Cloudflare Global API Ke
 
 | Type  | Name                          | Value                   | Proxy |
 | ----- | ----------------------------- | ----------------------- | ----- |
-| A     | `@` (cc-commander.com)        | Vercel's IP             | ✓     |
+| A     | `@` (commanderplugin.com)        | Vercel's IP             | ✓     |
 | CNAME | `www`                         | `cname.vercel-dns.com`  | ✓     |
 | MX    | `@`                           | `route.mx.cloudflare.net` (priority 10) | — |
 | TXT   | `@`                           | `v=spf1 include:_spf.mx.cloudflare.net include:resend.com ~all` | — |
-| TXT   | `_dmarc`                      | `v=DMARC1; p=quarantine; rua=mailto:hello@cc-commander.com` | — |
+| TXT   | `_dmarc`                      | `v=DMARC1; p=quarantine; rua=mailto:hello@commanderplugin.com` | — |
 
 ### 2c. Email Routing
 
 - [ ] Enable Cloudflare Email Routing on the zone
 - [ ] Add destination address (Kevin's personal inbox)
-- [ ] Create route: `hello@cc-commander.com` → destination
+- [ ] Create route: `hello@commanderplugin.com` → destination
 - [ ] Optional: catch-all → destination
 - [ ] Verify destination email
 
@@ -90,8 +90,8 @@ Global API key: stored in 1Password vault `Alfred` → `Cloudflare Global API Ke
 
 ### 3a. Account + domain
 
-- [ ] Sign up for Resend with `hello@cc-commander.com`
-- [ ] Add domain `cc-commander.com`
+- [ ] Sign up for Resend with `hello@commanderplugin.com`
+- [ ] Add domain `commanderplugin.com`
 - [ ] Copy DKIM records → add to Cloudflare DNS
 - [ ] Verify domain (must show green checkmark)
 - [ ] Create API key with `send-only` scope → `RESEND_API_KEY` in Vercel
@@ -134,19 +134,19 @@ STRIPE_PRICE_PRO_MONTHLY=price_...
 STRIPE_PRICE_PRO_YEARLY=price_...
 STRIPE_PRICE_TEAM_MONTHLY=price_...
 STRIPE_PRICE_TEAM_YEARLY=price_...
-NEXT_PUBLIC_SITE_URL=https://cc-commander.com
+NEXT_PUBLIC_SITE_URL=https://commanderplugin.com
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 POSTGRES_URL=postgres://...
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=hello@cc-commander.com
-NEXT_PUBLIC_PLAUSIBLE_DOMAIN=cc-commander.com
+RESEND_FROM_EMAIL=hello@commanderplugin.com
+NEXT_PUBLIC_PLAUSIBLE_DOMAIN=commanderplugin.com
 LICENSE_SIGNING_SECRET=<generate 32-byte hex with: openssl rand -hex 32>
 ```
 
 ### 4c. Custom domain
 
-- [ ] Add `cc-commander.com` in Vercel project → Domains
-- [ ] Add `www.cc-commander.com` (redirect to apex)
+- [ ] Add `commanderplugin.com` in Vercel project → Domains
+- [ ] Add `www.commanderplugin.com` (redirect to apex)
 - [ ] Verify DNS propagation
 - [ ] Force HTTPS
 
@@ -197,7 +197,7 @@ CREATE INDEX idx_licenses_status ON licenses(status);
 ## 6. Plausible Analytics
 
 - [ ] Sign up at plausible.io
-- [ ] Add site `cc-commander.com`
+- [ ] Add site `commanderplugin.com`
 - [ ] Add `<Script>` tag in `app/layout.tsx` (or via `@plausible/nextjs`)
 - [ ] Set goals: `install_command_copied`, `checkout_started`, `checkout_completed`
 
@@ -235,4 +235,4 @@ CREATE INDEX idx_licenses_status ON licenses(status);
 - [ ] Monitor Vercel function logs for errors
 - [ ] Monitor Plausible for conversion rates
 - [ ] Monitor GitHub issues for install problems
-- [ ] Respond to `hello@cc-commander.com` within 24h during week 1
+- [ ] Respond to `hello@commanderplugin.com` within 24h during week 1

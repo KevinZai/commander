@@ -21,7 +21,7 @@ Users install Commander as one remote MCP server:
 {
   "mcpServers": {
     "cc-commander": {
-      "serverUrl": "https://mcp.cc-commander.com/v1/sse",
+      "serverUrl": "https://mcp.commanderplugin.com/v1/sse",
       "headers": {
         "Authorization": "Bearer ${env:COMMANDER_LICENSE_KEY}"
       }

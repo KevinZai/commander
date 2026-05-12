@@ -75,7 +75,7 @@ export function GET() {
         </div>
 
         <div style={{ color: "#52525B", fontSize: "24px" }}>
-          cc-commander.com/pricing
+          commanderplugin.com/pricing
         </div>
       </div>
     ),

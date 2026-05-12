@@ -22,7 +22,7 @@ Click-first browser over CCC's 11 domain routers. User picks a domain in one cli
 ### 1. Brand header (one line)
 
 ```
-**CC Commander · Learn** · 502+ skills · 11 domains · [catalog](https://cc-commander.com/skills)
+**CC Commander · Learn** · 502+ skills · 11 domains · [catalog](https://commanderplugin.com/skills)
 ```
 
 ### 2. Context strip (one line)

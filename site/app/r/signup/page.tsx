@@ -35,7 +35,7 @@ export default function CreatorSignupPage() {
             <p className="text-lg text-zinc-400 mb-8">
               Get your own branded landing page at{" "}
               <span className="text-white font-mono">
-                cc-commander.com/r/you
+                commanderplugin.com/r/you
               </span>
               . Earn 30–50% recurring commission. Sign up with GitHub — takes
               30 seconds.
@@ -84,7 +84,7 @@ export default function CreatorSignupPage() {
               {[
                 {
                   title: "Your own landing page",
-                  body: "cc-commander.com/r/yourname with your avatar, pitch, and embedded content. We handle hosting.",
+                  body: "commanderplugin.com/r/yourname with your avatar, pitch, and embedded content. We handle hosting.",
                 },
                 {
                   title: "Custom OG image",
@@ -150,7 +150,7 @@ function ComingSoonBlock() {
         </p>
       </div>
       {/* TODO: CC-665 — wire to email capture list */}
-      <form action="mailto:hello@cc-commander.com" method="get" className="flex gap-2">
+      <form action="mailto:hello@commanderplugin.com" method="get" className="flex gap-2">
         <input
           type="email"
           name="subject"

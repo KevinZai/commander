@@ -72,7 +72,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 |---------|--------|---------|
 | **Claude Code Desktop / Cowork Desktop** ⭐ | Shipping (primary) | Settings → Plugin Marketplace → Add from GitHub: `KevinZai/commander` |
 | **Claude Code CLI** | Shipping | `/plugin marketplace add KevinZai/commander` then `/plugin install commander` |
-| **Cursor / Windsurf / Cline / Continue / Codex** | Shipping (hosted MCP) | Point MCP client at `mcp.cc-commander.com` |
+| **Cursor / Windsurf / Cline / Continue / Codex** | Shipping (hosted MCP) | Point MCP client at `mcp.commanderplugin.com` |
 | **Codex / Gemini native plugin runtimes** | Roadmap | Same repo, platform-specific adapter (planned v4.2+) |
 
 One brand: **Commander**. One tagline: **The guided AI PM for every AI coding agent.** One repo: `KevinZai/commander`. Everywhere.

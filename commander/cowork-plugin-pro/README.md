@@ -25,9 +25,9 @@ Early access for lifetime license holders will open 2 weeks before the public re
 ## License requirement
 
 Each skill calls `isPro()` from `commander/cowork-plugin/lib/license.js` on invocation.
-Non-Pro sessions receive a prompt directing to [cc-commander.com/pricing](https://cc-commander.com/pricing).
+Non-Pro sessions receive a prompt directing to [commanderplugin.com/pricing](https://commanderplugin.com/pricing).
 
-To activate your license, see the [activation guide](https://cc-commander.com/docs/plugin/license-activation).
+To activate your license, see the [activation guide](https://commanderplugin.com/docs/plugin/license-activation).
 
 ## Not included in Starter
 

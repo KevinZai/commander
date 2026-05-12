@@ -119,7 +119,7 @@ export function GET(
         </div>
 
         <div style={{ color: "#52525B", fontSize: "22px" }}>
-          cc-commander.com/r/{resolvedParams.slug}
+          commanderplugin.com/r/{resolvedParams.slug}
         </div>
       </div>
     ),

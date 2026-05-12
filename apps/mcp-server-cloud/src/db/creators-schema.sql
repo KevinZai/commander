@@ -29,7 +29,7 @@ create table if not exists public.creators (
   ls_affiliate_id         text not null,
   ls_referral_code        text not null,
 
-  -- Public URL slug: cc-commander.com/r/{slug}
+  -- Public URL slug: commanderplugin.com/r/{slug}
   slug                    text unique not null,
 
   -- Tier: affiliate (self-signup) | creator (1K+ followers) | influencer (hand-picked)

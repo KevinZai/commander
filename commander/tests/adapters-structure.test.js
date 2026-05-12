@@ -67,7 +67,7 @@ test('MCP adapter config templates point at hosted Commander MCP without hardcod
 
     var server = parsed.mcpServers['cc-commander'];
     var endpoint = server.url || server.serverUrl;
-    assert.strictEqual(endpoint, 'https://mcp.cc-commander.com/v1/sse');
+    assert.strictEqual(endpoint, 'https://mcp.commanderplugin.com/v1/sse');
     assert.strictEqual(server.headers.Authorization, 'Bearer ${env:COMMANDER_LICENSE_KEY}');
   }
 });

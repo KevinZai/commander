@@ -29,7 +29,7 @@ const FAQ = [
   },
   {
     q: "What is the 14-day money-back guarantee?",
-    a: "If Pro doesn't work out for any reason within the first 14 days, email hello@cc-commander.com and we'll refund you in full — no questions asked.",
+    a: "If Pro doesn't work out for any reason within the first 14 days, email hello@commanderplugin.com and we'll refund you in full — no questions asked.",
   },
   {
     q: "How does Lifetime pricing work?",
@@ -41,7 +41,7 @@ const FAQ = [
   },
   {
     q: "Do you offer team or enterprise plans?",
-    a: "Not yet. If you need multi-seat licensing or custom invoicing, email hello@cc-commander.com and we'll figure something out.",
+    a: "Not yet. If you need multi-seat licensing or custom invoicing, email hello@commanderplugin.com and we'll figure something out.",
   },
   {
     q: "What happens to my data if I cancel?",

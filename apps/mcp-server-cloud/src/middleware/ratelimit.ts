@@ -66,8 +66,8 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
           cap < 1000
             ? "Answer a survey to restore your cap to 1,000 calls/month."
             : "Upgrade to Pro for unlimited calls, or answer 2 surveys to unlock 2,000 calls this month.",
-        upgradeUrl: "https://cc-commander.com/pricing",
-        surveyUrl: "https://cc-commander.com/beta/survey/pending",
+        upgradeUrl: "https://commanderplugin.com/pricing",
+        surveyUrl: "https://commanderplugin.com/beta/survey/pending",
       },
       429
     );
@@ -82,7 +82,7 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
         {
           error: "Survey required",
           message: "Complete a quick survey to continue. It takes 30 seconds.",
-          surveyUrl: "https://cc-commander.com/beta/survey/pending",
+          surveyUrl: "https://commanderplugin.com/beta/survey/pending",
           callNumber,
         },
         402

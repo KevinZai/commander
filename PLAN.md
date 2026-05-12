@@ -93,7 +93,7 @@ This is the ONLY blocker between current state and hosted MCP going live.
 | 4 | Run `supabase link --project-ref X` + `supabase db push` | Terminal | CC-311 | 2 min |
 | 5 | `fly auth login` + `fly apps create cc-commander-mcp --org personal` | Terminal | CC-311 | 2 min |
 | 6 | Create Upstash Redis DB at console.upstash.com | Browser | CC-311 | 3 min |
-| 7 | Resend: verify `cc-commander.com` (SPF/DKIM/DMARC in Cloudflare) | Resend + Cloudflare | CC-311 | 10 min (DNS wait) |
+| 7 | Resend: verify `commanderplugin.com` (SPF/DKIM/DMARC in Cloudflare) | Resend + Cloudflare | CC-311 | 10 min (DNS wait) |
 | 8 | `vercel link` site/ to Vercel project + `vercel env add` for secrets | Terminal | CC-311 | 3 min |
 | 9 | Populate 10 OP vault items (see below) | 1Password | **CC-311** | 15 min |
 | 10 | Buy defensive domains | Cloudflare Registrar | — | 5 min |
@@ -122,15 +122,15 @@ Path pattern: `op://Alfred/cc-commander-<service>/<field>`
 - `commanderhub.ai` (primary — marketplace feature brand)
 - `ccommander.ai` (typosquat guard)
 - `cc-commander.ai` (alternate)
-- Already owned: `cc-commander.com`
+- Already owned: `commanderplugin.com`
 
 ### DNS records after purchases (Cloudflare)
 
 ```
-cc-commander.com              A/CNAME → Vercel
-mcp.cc-commander.com          CNAME  → Fly (cc-commander-mcp.fly.dev)
-docs.cc-commander.com         CNAME  → Mintlify (optional)
-bible.cc-commander.com        CNAME  → Mintlify (optional subdomain for Bible)
+commanderplugin.com              A/CNAME → Vercel
+mcp.commanderplugin.com          CNAME  → Fly (cc-commander-mcp.fly.dev)
+docs.commanderplugin.com         CNAME  → Mintlify (optional)
+bible.commanderplugin.com        CNAME  → Mintlify (optional subdomain for Bible)
 commanderhub.ai               → holding page / future Commander Hub
 ```
 
@@ -149,9 +149,9 @@ The script handles:
 1. Preflight check (op + fly + vercel CLIs available; 10 vault items exist)
 2. Tests: `npm test` (279/279) + kc.js (27/27) + smoke (6/6)
 3. Fly canary deploy: `op run -- fly deploy --strategy canary --app cc-commander-mcp`
-4. Healthcheck loop: polls `https://mcp.cc-commander.com/health` for 200 (60s max)
+4. Healthcheck loop: polls `https://mcp.commanderplugin.com/health` for 200 (60s max)
 5. Vercel deploy: `vercel --prod --cwd site`
-6. Post-deploy smoke: `curl https://cc-commander.com` + `curl https://mcp.cc-commander.com/health`
+6. Post-deploy smoke: `curl https://commanderplugin.com` + `curl https://mcp.commanderplugin.com/health`
 
 **Rollback:**
 - MCP: `fly releases rollback --app cc-commander-mcp` (<90s)
@@ -184,7 +184,7 @@ The current `apps/mcp-server-cloud/` is production-ready scaffold. Stage 4 itera
 Current status: code scaffolded in beta.3 (`commander/cowork-plugin/lib/mcp-passthrough.js`). Activates automatically once user adds `.claude/mcp.json` entry for `cc-commander`.
 
 **After Stage 3 deploy:**
-1. Update `commander/cowork-plugin/MCP.md` with live endpoint URL (`mcp.cc-commander.com/sse`)
+1. Update `commander/cowork-plugin/MCP.md` with live endpoint URL (`mcp.commanderplugin.com/sse`)
 2. Add beta tester instructions: copy the example mcp config + paste license key from `/beta` signup
 3. Monitor passthrough logs (`~/.claude/commander/logs/passthrough.jsonl`) to confirm fallback never fires for good reasons
 

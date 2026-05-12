@@ -34,7 +34,7 @@ Observability wiring is fiddly — every combination of exporter, framework, and
 
 ## Coming in v4.2
 
-This skill is scaffolded. Full implementation ships in v4.2. Sign up at [cc-commander.com/pro](https://cc-commander.com/pro) to get notified and receive early access.
+This skill is scaffolded. Full implementation ships in v4.2. Sign up at [commanderplugin.com/pro](https://commanderplugin.com/pro) to get notified and receive early access.
 
 ## Tier check
 
@@ -42,6 +42,6 @@ This skill checks `isPro()` from `commander/cowork-plugin/lib/license.js` before
 
 ## Reference
 
-- [Pricing and tiers](https://cc-commander.com/pricing)
-- [Free vs Pro comparison](https://cc-commander.com/free-vs-pro)
+- [Pricing and tiers](https://commanderplugin.com/pricing)
+- [Free vs Pro comparison](https://commanderplugin.com/free-vs-pro)
 - [License activation](/plugin/license-activation)

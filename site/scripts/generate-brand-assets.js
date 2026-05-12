@@ -66,7 +66,7 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
   <!-- Header line: meta -->
   <g font-family="JetBrains Mono, ui-monospace, Menlo, monospace" font-size="20" letter-spacing="0.04em">
     <text x="72" y="84" fill="${COLORS.fgDim}">CC-COMMANDER</text>
-    <text x="312" y="84" fill="${COLORS.fgFaint}">·  v4.1  ·  MIT  ·  cc-commander.com</text>
+    <text x="312" y="84" fill="${COLORS.fgFaint}">·  v4.1  ·  MIT  ·  commanderplugin.com</text>
   </g>
 
   <!-- Big boxed mark -->
@@ -170,7 +170,7 @@ const X_BANNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 
   </g>
   <g transform="translate(760, 320)" font-family="JetBrains Mono, ui-monospace, Menlo, monospace" font-size="18" letter-spacing="0.04em" fill="${COLORS.fgDim}">
     <text>60 skills · 22 agents · 9 hooks · 18 MCPs</text>
-    <text y="32" fill="${COLORS.accent}">@commanderplugin  ·  cc-commander.com</text>
+    <text y="32" fill="${COLORS.accent}">@commanderplugin  ·  commanderplugin.com</text>
   </g>
 </svg>`;
 

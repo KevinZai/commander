@@ -44,7 +44,7 @@ export default async function OnboardingPage() {
           <p className="text-zinc-400">
             This info appears on your landing page at{" "}
             <span className="text-white font-mono">
-              cc-commander.com/r/{login || "you"}
+              commanderplugin.com/r/{login || "you"}
             </span>
             .
           </p>

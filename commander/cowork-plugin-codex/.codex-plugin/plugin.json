@@ -7,7 +7,7 @@
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
   },
-  "homepage": "https://cc-commander.com",
+  "homepage": "https://commanderplugin.com",
   "repository": "https://github.com/KevinZai/commander",
   "license": "MIT",
   "keywords": [
@@ -35,7 +35,7 @@
       "hooks",
       "mcp"
     ],
-    "websiteURL": "https://cc-commander.com",
+    "websiteURL": "https://commanderplugin.com",
     "defaultPrompt": "/ccc",
     "brandColor": "#7c3aed",
     "composerIcon": "./assets/marketplace/composer-icon.png",
@@ -47,7 +47,7 @@
       "./assets/marketplace/screenshot-4.png",
       "./assets/marketplace/screenshot-5.png"
     ],
-    "privacyPolicyURL": "https://cc-commander.com/privacy",
-    "termsOfServiceURL": "https://cc-commander.com/terms"
+    "privacyPolicyURL": "https://commanderplugin.com/privacy",
+    "termsOfServiceURL": "https://commanderplugin.com/terms"
   }
 }

@@ -248,7 +248,7 @@ const HeroScene = () => {
                 }}>
                   <span><span style={{color:'#FF6B47'}}>★</span> open source</span>
                   <span style={{opacity:.4}}>·</span>
-                  <span>cc-commander.com</span>
+                  <span>commanderplugin.com</span>
                   <span style={{opacity:.4}}>·</span>
                   <span style={{color:'#A8A8A0'}}>by Kevin Z</span>
                 </div>

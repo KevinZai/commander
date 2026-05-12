@@ -35,7 +35,7 @@ CC Commander is designed so the plugin **always works standalone**. MCP is opt-i
 
               ┌───────────────────────────┐
               │  MCP Server               │
-              │  mcp.cc-commander.com     │
+              │  mcp.commanderplugin.com     │
               │                           │
               │  - Hosted skill catalog   │
               │  - License validation     │
@@ -71,7 +71,7 @@ Copy `commander/cowork-plugin/lib/mcp-config.example.json` to `.claude/mcp.json`
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.cc-commander.com/sse",
+      "url": "https://mcp.commanderplugin.com/sse",
       "headers": {
         "Authorization": "Bearer YOUR_LICENSE_KEY"
       }

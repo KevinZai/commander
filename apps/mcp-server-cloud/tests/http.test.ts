@@ -271,7 +271,7 @@ describe("CORS", () => {
     const res = await fetchApp("/v1/call", {
       method: "OPTIONS",
       headers: {
-        origin: "https://cc-commander.com",
+        origin: "https://commanderplugin.com",
         "access-control-request-method": "POST",
         "access-control-request-headers": "authorization,content-type",
       },
@@ -279,7 +279,7 @@ describe("CORS", () => {
     // Hono CORS returns 204 on preflight
     assert.ok(res.status === 204 || res.status === 200, `expected 200/204, got ${res.status}`);
     const allowOrigin = res.headers.get("access-control-allow-origin");
-    assert.equal(allowOrigin, "https://cc-commander.com");
+    assert.equal(allowOrigin, "https://commanderplugin.com");
   });
 });
 
