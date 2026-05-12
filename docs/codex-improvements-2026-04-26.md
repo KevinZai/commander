@@ -44,7 +44,7 @@ The one thing to fix tomorrow morning: freeze stable until the first-run/public 
 
 **Problem:** The README says Cursor, Windsurf, Cline, Continue, and Codex are "Shipping (hosted MCP)" and tells users to point clients at `mcp.cc-commander.com` (`README.md:63`, `README.md:67`). The Mintlify browse-modes page says the hosted MCP server is scaffolded but not deployed (`mintlify-docs/features/browse-modes.mdx:10`). The cloud README still describes bearer license keys and beta signup (`apps/mcp-server-cloud/README.md:14`, `apps/mcp-server-cloud/README.md:16`), while the FAQ says the plugin has no paid tier and a future hosted MCP will be free with an anti-abuse cap (`mintlify-docs/faq.mdx:85`).
 
-**Impact:** Cross-client users will follow a URL that is not a ready product path, then infer the whole "every AI coding agent" claim is marketing. It also muddies the business model: free-forever plugin, license-key MCP, beta surveys, and no paid tier all coexist in different files.
+**Impact:** Cross-client users will follow a URL that is not a ready product path, then infer the whole "every AI coding agent" claim is marketing. It also muddies the business model: free-for-now Starter, planned paid Pro tier, license-key MCP, and beta surveys all coexist in different files.
 
 **Proposed fix:** Split platform status into three explicit labels: "Shipping: Claude Code Desktop/CLI", "Preview: hosted MCP", and "Planned: Codex native". Gate README and Mintlify claims on that status. Add a public `/health` smoke test for `mcp.cc-commander.com` before any docs call hosted MCP "shipping." Derive cloud `SERVER_VERSION` from package metadata instead of a manually synced constant because it is currently stale at beta.10 while the cloud package is beta.11 (`apps/mcp-server-cloud/src/lib/version.ts:1`, `apps/mcp-server-cloud/package.json:3`).
 
@@ -122,7 +122,7 @@ The one thing to fix tomorrow morning: freeze stable until the first-run/public 
 
 **Validation:** Connector tests should prove each displayed connector has a non-TBD command, restart reminder, verification step, and no stale tier/pro copy. A security test should grep connector docs and skill bodies for raw-token echo patterns.
 
-**Why this rank:** `/ccc-connect` is where free-forever trust, affiliate disclosure, and secret handling all meet. It needs to be boring and exact.
+**Why this rank:** `/ccc-connect` is where pricing-model trust, affiliate disclosure, and secret handling all meet. It needs to be boring and exact.
 
 ### 8. Add a hermetic real install/update/uninstall lifecycle test — Severity 🟡
 

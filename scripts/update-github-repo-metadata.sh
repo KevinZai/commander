@@ -3,7 +3,7 @@ set -euo pipefail
 REPO="KevinZai/commander"
 
 # Description
-gh repo edit "$REPO" --description "Claude Code Desktop plugin · 32 skills + 17 sub-agents + 8 hooks + 9 MCP · Guided AI PM for devs. Free forever."
+gh repo edit "$REPO" --description "Claude Code Desktop plugin · 60 skills + 22 sub-agents + 9 hooks + 2 bundled MCP · Guided AI PM for devs. Free for now."
 
 # Homepage
 gh repo edit "$REPO" --homepage "https://kevinzai.github.io/cc-commander"
@@ -19,7 +19,7 @@ gh repo edit "$REPO" \
   --add-topic ai-agents \
   --add-topic developer-tools \
   --add-topic plugin-marketplace \
-  --add-topic free-forever
+  --add-topic ai-pair-programming
 
 echo "✅ Repo metadata updated. Upload social preview image manually:"
 echo "   https://github.com/$REPO/settings → Social preview → Upload docs/assets/og-image-v4.png"

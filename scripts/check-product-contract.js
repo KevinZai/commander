@@ -22,7 +22,7 @@ var REQUIRED_FIELDS = {
   homepage: 'string',
   command_prefix: 'string',
   license: 'string',
-  free_forever: 'boolean',
+  pricing_model: 'string',
   hosted_mcp_status: 'string',
   claude_code_compat: 'string',
   codex_cli_compat: 'string',
@@ -512,12 +512,12 @@ function scanCommandPrefix(content, surface, contract) {
 
 function scanPricing(content, surface, contract) {
   var findings = [];
-  if (!contract.free_forever) return findings;
+  if (!contract.pricing_model) return findings;
 
-  var regex = /\b(?:Upgrade to Pro|Post-beta:\s*Pro|Pro\s+\$\d+\/mo|\$\d+\/mo|Free in beta|Free during beta|Free tier)\b/gi;
+  var regex = /\b(?:free forever|free-forever|always free|100% free|free for life|permanently free)\b/gi;
   var match;
   while ((match = regex.exec(content)) !== null) {
-    findings.push(makeFinding(surface, 'free_forever', true, match[0], match[0], false));
+    findings.push(makeFinding(surface, 'pricing_model', contract.pricing_model, match[0], 'free during launch / Starter tier', false));
   }
   return findings;
 }

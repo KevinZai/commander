@@ -29,7 +29,7 @@ var REQUIRED_FIELDS = {
   homepage: 'string',
   command_prefix: 'string',
   license: 'string',
-  free_forever: 'boolean',
+  pricing_model: 'string',
   hosted_mcp_status: 'string',
   claude_code_compat: 'string',
   codex_cli_compat: 'string',
@@ -181,13 +181,13 @@ test('--patch fixes simple count and version mismatches', function() {
 
 test('--patch leaves non-trivial mismatches alone', function() {
   var root = makeFixture({
-    'README.md': 'Upgrade to Pro ($19/mo) for 5 specialized agents.\n',
+    'README.md': 'CC Commander is free forever. No paid tier ever.\n',
   });
   var result = spawnCheck(['--root', root, '--patch']);
   assert.strictEqual(result.status, 1, result.stdout + result.stderr);
   var readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
-  assert.match(readme, /Upgrade to Pro \(\$19\/mo\)/);
-  assert.match(result.stdout, /field: free_forever/);
+  assert.match(readme, /free forever/);
+  assert.match(result.stdout, /field: pricing_model/);
 });
 
 test('contract.json values match the actual filesystem', function() {

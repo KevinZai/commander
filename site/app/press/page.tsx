@@ -14,12 +14,12 @@ const TALKING_POINTS = [
   "The plugin ships 22 specialist agents (architect, security-auditor, debugger, designer, QA engineer, etc.) that activate contextually based on what the developer is doing.",
   "CC Commander is built on Anthropic's Claude Agent SDK sub-agent architecture, making it compatible with Claude Cowork Desktop and Claude Code CLI out of the box.",
   "Version 4.1.0 ships with 9 lifecycle hooks and 24 handlers — including auto-quality-gates, session persistence, pre-compact state saving, and permission orchestration.",
-  "The project is MIT-licensed. Pro tier ($19/mo) funds development; the core free tier will never be paywalled.",
+  "The project is MIT-licensed. Pro tier ($19/mo) funds development; the Starter tier stays free and MIT-licensed.",
 ];
 
 const TWEETS = [
   `Just installed @cc_commander — 62 Claude skills + 22 agents in 10 seconds. This is insane. /plugin install commander`,
-  `The missing layer for @ClaudeAI Code is here. CC Commander turns Claude into a full dev workflow with one install. Free forever. github.com/KevinZai/commander`,
+  `The missing layer for @ClaudeAI Code is here. CC Commander turns Claude into a full dev workflow with one install. Free for now. github.com/KevinZai/commander`,
   `I stopped juggling 12 different Claude plugins. @cc_commander aggregated the best ones and made them talk to each other. One install, done.`,
   `62 skills · 22 agents · 9 hooks · 2 bundled MCPs. @cc_commander is the OS layer I always wanted on top of Claude Code.`,
 ];

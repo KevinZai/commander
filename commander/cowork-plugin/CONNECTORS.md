@@ -1,6 +1,6 @@
 # Connectors
 
-> **Affiliate links** — rows marked ✅ in the MCP catalog below may earn CC Commander a commission if you sign up via `/ccc-connect`. Revenue funds free-forever maintenance. No impact on pricing or product recommendations; non-affiliate alternatives always surfaced. Full list: [Affiliate disclosure](https://kevinzai.github.io/cc-commander/affiliates)
+> **Affiliate links** — rows marked ✅ in the MCP catalog below may earn CC Commander a commission if you sign up via `/ccc-connect`. Revenue funds ongoing maintenance of the MIT-licensed Starter tier. No impact on pricing or product recommendations; non-affiliate alternatives always surfaced. Full list: [Affiliate disclosure](https://kevinzai.github.io/cc-commander/affiliates)
 
 ## How tool references work
 

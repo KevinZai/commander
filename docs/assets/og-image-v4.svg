@@ -45,7 +45,7 @@
   <rect x="72" y="278" width="500" height="2" fill="url(#accent)" rx="1" opacity="0.6" />
 
   <!-- Subhead -->
-  <text x="72" y="322" font-family="Helvetica Neue, Helvetica, SF Pro Display, Arial, sans-serif" font-size="22" font-weight="400" fill="#e9d5ff" opacity="0.9">Guided AI PM. Click-first workflows. Free forever.</text>
+  <text x="72" y="322" font-family="Helvetica Neue, Helvetica, SF Pro Display, Arial, sans-serif" font-size="22" font-weight="400" fill="#e9d5ff" opacity="0.9">Guided AI PM. Click-first workflows. Free during launch.</text>
 
   <!-- Stats row -->
   <rect x="72" y="368" width="1056" height="76" rx="12" fill="url(#statbar)" />
