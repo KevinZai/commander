@@ -220,7 +220,7 @@ CC Commander runs three paid plans, **free during early access** while we ship. 
 | **GitHub Sponsors** | Fans who want to fund the project independently of Pro features | github.com/sponsors/KevinZai |
 | **Star + share** | Anyone who finds CC Commander useful | github.com/KevinZai/commander |
 
-Mention this **once** during the tour close — never as a paywall on Starter features, never blocking flow. Starter (free) users keep all 62 plugin skills, all 22 agents, all 9 hooks. Pro is for cloud unlimited + premium curation.
+Mention this **once** during the tour close — never as a paywall on Starter features, never blocking flow. Starter (free) users keep all 60 plugin skills, all 22 agents, all 9 hooks. Pro is for cloud unlimited + premium curation.
 
 ## Tips for the agent executing this skill
 

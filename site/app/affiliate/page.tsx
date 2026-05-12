@@ -63,7 +63,7 @@ const FAQ = [
   },
   {
     q: "How do I move from Affiliate to Creator tier?",
-    a: "Build an audience of 1K+ followers and DM @kzic on Twitter with a link to your content. We review weekly.",
+    a: "Build an audience of 1K+ followers and DM @commanderplugin on X with a link to your content. We review weekly.",
   },
 ];
 

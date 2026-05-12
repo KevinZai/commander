@@ -31,5 +31,5 @@ To activate your license, see the [activation guide](https://cc-commander.com/do
 
 ## Not included in Starter
 
-These packs are the primary Pro differentiator. Starter tier includes all 62 plugin skills
+These packs are the primary Pro differentiator. Starter tier includes all 60 plugin skills
 in `commander/cowork-plugin/skills/` — those will never be paywalled.

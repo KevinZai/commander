@@ -222,7 +222,7 @@ CREATE INDEX idx_licenses_status ON licenses(status);
 - [ ] Smoke test full checkout flow in production with real card
 - [ ] Verify email delivery (license key arrives)
 - [ ] Verify plugin install from marketplace still works
-- [ ] Announce on Twitter / X (@kzic)
+- [ ] Announce on X from @commanderplugin (and personal @kzic)
 - [ ] Post to Hacker News (`Show HN: CCC — Claude Code Commander`)
 - [ ] Post to Reddit `r/ClaudeAI`, `r/LocalLLaMA`
 - [ ] Email TheAgentReport subscribers

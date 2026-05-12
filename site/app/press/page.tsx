@@ -21,7 +21,7 @@ const TWEETS = [
   `Just installed @cc_commander — 62 Claude skills + 22 agents in 10 seconds. This is insane. /plugin install commander`,
   `The missing layer for @ClaudeAI Code is here. CC Commander turns Claude into a full dev workflow with one install. Free for now. github.com/KevinZai/commander`,
   `I stopped juggling 12 different Claude plugins. @cc_commander aggregated the best ones and made them talk to each other. One install, done.`,
-  `62 skills · 22 agents · 9 hooks · 2 bundled MCPs. @cc_commander is the OS layer I always wanted on top of Claude Code.`,
+  `60 skills · 22 agents · 9 hooks · 2 bundled MCPs. @commanderplugin is the OS layer I always wanted on top of Claude Code.`,
 ];
 
 export default function PressPage() {
@@ -225,7 +225,7 @@ export default function PressPage() {
                   rel="noopener noreferrer"
                   className="text-zinc-400 hover:text-white transition-colors"
                 >
-                  @kzic
+                  @commanderplugin
                 </a>
                 <a
                   href="https://github.com/KevinZai"
