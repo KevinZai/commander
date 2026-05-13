@@ -1,0 +1,12 @@
+{
+  "name": "cc-commander-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Marketing landing + static legal pages + Vercel serverless functions for commanderplugin.com. Static HTML deploy with framework:null. The api/ directory is auto-detected by Vercel as Node serverless functions.",
+  "scripts": {
+    "build": "echo 'static deploy — no build step'"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
