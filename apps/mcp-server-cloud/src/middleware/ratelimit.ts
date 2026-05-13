@@ -38,22 +38,34 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
     logger.warn({ err: (err as Error).message }, "Burst limiter failed — failing open");
   }
 
+  // 2. Monthly usage cap (fetched up-front so quota headers are accurate on
+  //    EVERY response from this middleware — success, burst-429, cap-429, or
+  //    feedback-402). Previously these fields were only set on the success
+  //    path, leaving clients blind to "how much of my cap is left?" on every
+  //    rejection. Worth one extra Supabase round-trip even on burst-fail
+  //    because that's the cheap path (auth + 2 reads, no write).
+  const [callsUsed, cap] = await Promise.all([
+    getCallsUsed(userId),
+    getEffectiveCap(userId),
+  ]);
+
+  // Expose usage headers up-front so they appear on every response below.
+  c.header("X-Commander-Calls-Used", String(Math.min(callsUsed + 1, cap)));
+  c.header("X-Commander-Calls-Cap", String(cap));
+  c.header("X-Commander-Burst-Remaining", String(burstRemaining));
+
   if (!burstOk) {
     return c.json(
       {
         error: "Rate limit exceeded — slow down",
         retryAfterSeconds: 60,
+        callsUsed,
+        cap,
       },
       429,
       { "Retry-After": "60" }
     );
   }
-
-  // 2. Monthly usage cap (fail-closed via DB errors returning 0 means cap never exceeded — see usage.ts)
-  const [callsUsed, cap] = await Promise.all([
-    getCallsUsed(userId),
-    getEffectiveCap(userId),
-  ]);
 
   if (callsUsed >= cap) {
     logger.info({ userId, callsUsed, cap }, "Monthly cap exceeded");
@@ -89,11 +101,6 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
       );
     }
   }
-
-  // Expose usage headers BEFORE handler runs (Hono buffers)
-  c.header("X-Commander-Calls-Used", String(callsUsed + 1));
-  c.header("X-Commander-Calls-Cap", String(cap));
-  c.header("X-Commander-Burst-Remaining", String(burstRemaining));
 
   await next();
 
