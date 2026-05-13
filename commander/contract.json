@@ -23,6 +23,6 @@
   "claude_code_compat": "shipping",
   "codex_cli_compat": "v4.2-target",
   "codex_desktop_compat": "v4.2-target",
-  "cursor_windsurf_compat": "blocked-on-hosted-mcp",
+  "cursor_windsurf_compat": "ready",
   "pro_skill_packs": 5
 }
