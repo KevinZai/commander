@@ -6,6 +6,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
+    "prebuild": "node scripts/bundle-catalog.mjs",
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",

@@ -14,6 +14,10 @@ const REGISTRY_PATH = path.join(ROOT, "commander/core/registry.yaml");
 const SKILLS_DIR = path.join(ROOT, "skills");
 const AGENTS_DIR = path.join(ROOT, "commander/cowork-plugin/agents");
 
+// Fallback for containerized deployment: bundled data/ dir
+const BUNDLED_DATA_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "../../data");
+const BUNDLED_REGISTRY_PATH = path.join(BUNDLED_DATA_DIR, "registry.yaml");
+
 export type SkillEntry = {
   id: string;
   name: string;
@@ -148,13 +152,38 @@ async function loadAgentsFromFs(): Promise<AgentEntry[]> {
 async function buildIndex(): Promise<void> {
   try {
     let skills: SkillEntry[] = [];
+    let registryToLoad = "";
+
+    // Try repo-local registry first (dev), then bundled (production container)
     if (existsSync(REGISTRY_PATH)) {
-      const raw = await readFile(REGISTRY_PATH, "utf8");
+      registryToLoad = REGISTRY_PATH;
+    } else if (existsSync(BUNDLED_REGISTRY_PATH)) {
+      registryToLoad = BUNDLED_REGISTRY_PATH;
+    } else {
+      // Fallback: fetch from GitHub (production containers don't have local files)
+      try {
+        logger.info("Fetching registry.yaml from GitHub...");
+        const response = await fetch(
+          "https://raw.githubusercontent.com/KevinZai/commander/main/commander/core/registry.yaml"
+        );
+        if (response.ok) {
+          const raw = await response.text();
+          skills = parseYamlRegistry(raw);
+          skills = await loadSkillDescriptions(skills);
+          logger.info({ count: skills.length, source: "github" }, "Registry loaded from GitHub");
+        } else {
+          logger.warn({ status: response.status }, "GitHub fetch failed");
+        }
+      } catch (fetchErr) {
+        logger.warn({ err: (fetchErr as Error).message }, "GitHub fetch error");
+      }
+    }
+
+    if (registryToLoad && !skills.length) {
+      const raw = await readFile(registryToLoad, "utf8");
       skills = parseYamlRegistry(raw);
       skills = await loadSkillDescriptions(skills);
-      logger.info({ count: skills.length }, "Registry loaded");
-    } else {
-      logger.warn({ path: REGISTRY_PATH }, "registry.yaml not found — using empty catalog");
+      logger.info({ count: skills.length, path: registryToLoad }, "Registry loaded");
     }
 
     const agents = await loadAgentsFromFs();

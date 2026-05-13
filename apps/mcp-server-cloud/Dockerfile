@@ -14,9 +14,12 @@ WORKDIR /app
 
 COPY tsconfig.json ./
 COPY src/ ./src/
+COPY scripts/ ./scripts/
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
 
+# The data/ directory with registry.yaml should already exist from the local prebuild step.
+# If it doesn't, npm run build will fail gracefully and skip bundling.
 RUN npm run build
 
 FROM node:22-alpine AS runner
@@ -31,6 +34,7 @@ RUN npm ci --prefer-offline --omit=dev --no-audit \
   && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/data ./data
 
 RUN addgroup -g 1001 -S nodejs && adduser -S commander -u 1001
 USER commander
