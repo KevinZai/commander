@@ -25,6 +25,18 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/60_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.1.0-beta.2](https://img.shields.io/badge/v4.1.0-beta.2?style=for-the-badge)](./CHANGELOG.md)
 
+<p>
+  <strong>Powered by:</strong>
+  <a href="https://anthropic.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Anthropic-D97757?style=flat&logo=anthropic&logoColor=white" alt="Anthropic"></a>
+  <a href="https://supabase.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white" alt="Supabase"></a>
+  <a href="https://vercel.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Vercel-000?style=flat&logo=vercel&logoColor=white" alt="Vercel"></a>
+  <a href="https://fly.io/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Fly.io-7B3FE4?style=flat&logo=fly.io&logoColor=white" alt="Fly.io"></a>
+  <a href="https://upstash.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Upstash-00C98D?style=flat&logo=upstash&logoColor=white" alt="Upstash"></a>
+  <a href="https://cloudflare.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Cloudflare-F38020?style=flat&logo=cloudflare&logoColor=white" alt="Cloudflare"></a>
+  <a href="https://posthog.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/PostHog-1D4AFF?style=flat&logo=posthog&logoColor=white" alt="PostHog"></a>
+  <em>· <a href="https://docs.commanderplugin.com/affiliate-disclosure">affiliate disclosure</a></em>
+</p>
+
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Plugin: **[@commanderplugin](https://x.com/commanderplugin)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
 **[Why CC Commander](#-why-cc-commander)** · **[The 55 skills](#the-55-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**

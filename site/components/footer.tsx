@@ -182,7 +182,7 @@ export function Footer() {
             </span>
           </div>
           <p className="text-zinc-600">
-            Paid plans · Free during launch · no telemetry
+            Free forever · plugin runs locally · hosted MCP usage logged (see <a href="/privacy" className="hover:text-zinc-300 underline underline-offset-4">privacy</a>)
           </p>
         </div>
       </div>
