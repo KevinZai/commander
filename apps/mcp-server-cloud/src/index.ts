@@ -32,6 +32,7 @@ import {
 import type { AuthContext } from "./middleware/auth.js";
 import { SERVER_VERSION } from "./lib/version.js";
 import { getServerTagline } from "./lib/registry-stats.js";
+import { captureEvent } from "./lib/posthog.js";
 
 declare module "hono" {
   interface ContextVariableMap {
@@ -270,13 +271,28 @@ mcp.post("/call", async (c) => {
 
   try {
     const result = await dispatchTool(tool, args, auth);
-    recordCall(tool, Date.now() - t0, false);
+    const latency = Date.now() - t0;
+    recordCall(tool, latency, false);
+    captureEvent(auth.userId, "mcp_tool_called", {
+      tool,
+      tier: auth.tier,
+      latency_ms: latency,
+      success: true,
+    });
     if ("jsonrpcId" in parsed) {
       return c.json({ jsonrpc: "2.0", id: parsed.jsonrpcId ?? null, result });
     }
     return c.json({ result });
   } catch (err) {
-    recordCall(tool, Date.now() - t0, true);
+    const latency = Date.now() - t0;
+    recordCall(tool, latency, true);
+    captureEvent(auth.userId, "mcp_tool_called", {
+      tool,
+      tier: auth.tier,
+      latency_ms: latency,
+      success: false,
+      error_message: (err as Error).message,
+    });
     logger.error(
       { err: (err as Error).message, tool, userId: auth.userId, reqId },
       "Tool call error"

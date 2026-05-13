@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { track } from "./posthog-provider";
 
 type Tier = "pro" | "lifetime";
 
@@ -76,13 +77,16 @@ export function WaitlistModal({
       if (!res.ok || !data.ok) {
         setState("error");
         setMessage(data.error ?? `Request failed (${res.status})`);
+        track("waitlist_signup_failed", { tier, error: data.error ?? res.status });
         return;
       }
       setState("success");
       setMessage(data.deduped ? "You're already on the list 👍" : "You're in. We'll only email you when it's real.");
+      track("waitlist_signup", { tier, deduped: !!data.deduped });
     } catch (err) {
       setState("error");
       setMessage("Network error — try again?");
+      track("waitlist_signup_failed", { tier, error: "network" });
     }
   }
 

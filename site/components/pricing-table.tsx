@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { WaitlistModal } from "./waitlist-modal";
+import { track } from "./posthog-provider";
 
 type Interval = "monthly" | "yearly";
 type CtaAction = { kind: "link"; href: string } | { kind: "waitlist"; tier: "pro" | "lifetime" };
@@ -189,6 +190,7 @@ export function PricingTable() {
               {tier.action.kind === "link" ? (
                 <a
                   href={tier.action.href}
+                  onClick={() => track("pricing_cta_clicked", { tier: tier.name, action: "install" })}
                   className={`block text-center py-3 rounded-lg font-semibold transition-colors ${
                     tier.highlighted
                       ? "bg-white text-black hover:bg-zinc-200"
@@ -200,7 +202,11 @@ export function PricingTable() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setWaitlistTier(tier.action.kind === "waitlist" ? tier.action.tier : null)}
+                  onClick={() => {
+                    const t = tier.action.kind === "waitlist" ? tier.action.tier : null;
+                    track("waitlist_modal_opened", { tier: t });
+                    setWaitlistTier(t);
+                  }}
                   className={`block w-full text-center py-3 rounded-lg font-semibold transition-colors ${
                     tier.highlighted
                       ? "bg-white text-black hover:bg-zinc-200"
@@ -221,6 +227,7 @@ export function PricingTable() {
               href="https://github.com/sponsors/KevinZai"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => track("sponsor_clicked", { surface: "pricing-table" })}
               className="text-violet-400 hover:text-violet-300 underline underline-offset-4"
             >
               Sponsor on GitHub →
