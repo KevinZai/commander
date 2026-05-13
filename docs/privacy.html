@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F0F0F">
+<meta name="color-scheme" content="dark">
+<title>Privacy — CC Commander</title>
+<meta name="description" content="What CC Commander collects, why, and how to opt out. Plain language, no dark patterns.">
+<link rel="canonical" href="https://commanderplugin.com/privacy">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://commanderplugin.com/privacy">
+<meta property="og:title" content="Privacy — CC Commander">
+<meta property="og:description" content="What CC Commander collects, why, and how to opt out.">
+<meta property="og:image" content="https://commanderplugin.com/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F0F0F'/%3E%3Cpath d='M9 11l5 5-5 5M16 22h8' stroke='%23FF6B47' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script defer data-domain="commanderplugin.com" src="https://plausible.io/js/script.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F0F0F; --bg-1:#141414; --bg-2:#181818; --bg-3:#1F1F1F;
+  --line:rgba(255,255,255,0.06); --line-2:rgba(255,255,255,0.10); --line-3:rgba(255,255,255,0.16);
+  --fg:#F5F5F0; --fg-dim:#A8A8A0; --fg-faint:#6E6E68;
+  --accent:#FF6B47; --accent-h:#ff7a59; --accent-2:#D4A574;
+  --max:1100px; --gutter:24px;
+  --sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg); color:var(--fg); font-family:var(--sans); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none}
+a:hover{color:var(--accent-h); text-decoration:underline; text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
+.wrap{width:100%; max-width:var(--max); margin:0 auto; padding:0 var(--gutter)}
+.nav{position:fixed; top:0; left:0; right:0; z-index:50; backdrop-filter:saturate(160%) blur(14px); -webkit-backdrop-filter:saturate(160%) blur(14px); background:rgba(15,15,15,.82); border-bottom:1px solid var(--line)}
+.nav-inner{display:flex; align-items:center; justify-content:space-between; height:60px}
+.brand{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:13px; font-weight:500; color:inherit}
+.brand:hover{text-decoration:none}
+.brand-mark{width:22px; height:22px; border-radius:5px; background:var(--bg-2); border:1px solid var(--line-2); display:grid; place-items:center; color:var(--accent)}
+.brand-mark svg{width:13px; height:13px}
+.brand-name{color:var(--fg)}
+.brand-sep{color:var(--fg-faint)}
+.brand-tag{color:var(--fg-dim)}
+.nav-links{display:flex; align-items:center; gap:4px}
+.nav-link{padding:7px 12px; border-radius:7px; font-family:var(--mono); font-size:12px; color:var(--fg-dim)}
+.nav-link:hover{color:var(--fg); background:rgba(255,255,255,.03); text-decoration:none}
+.btn{display:inline-flex; align-items:center; gap:8px; padding:0 14px; height:36px; border-radius:7px; font-family:var(--mono); font-size:12.5px; font-weight:500; border:1px solid transparent; transition:all .15s ease; cursor:pointer}
+.btn-primary{background:var(--accent); color:#0F0F0F; border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-h); transform:translateY(-1px); text-decoration:none}
+.btn-sm{height:32px; padding:0 12px; font-size:12px; border-radius:6px}
+main{padding:140px 0 80px; min-height:60vh}
+.eyebrow{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-dim); margin-bottom:18px}
+.eyebrow::before{content:""; width:18px; height:1px; background:var(--accent)}
+h1{font-size:clamp(34px,4.5vw,52px); font-weight:700; letter-spacing:-0.02em; line-height:1.08; margin:0 0 18px}
+.lede{font-size:clamp(16px,1.4vw,19px); color:var(--fg-dim); max-width:62ch; margin:0 0 8px}
+article{max-width:740px; margin:0 auto}
+article > .hdr{padding-bottom:36px; border-bottom:1px solid var(--line); margin-bottom:40px}
+.intro{color:var(--fg-dim); font-size:15.5px; margin-bottom:42px}
+.intro code{font-family:var(--mono); font-size:13px; background:var(--bg-2); padding:2px 6px; border-radius:4px; color:var(--accent-2)}
+section.s{margin-bottom:48px}
+section.s > h2{font-size:22px; font-weight:600; letter-spacing:-0.01em; margin:0 0 16px; color:var(--fg)}
+section.s p, section.s li{color:var(--fg-dim); font-size:15px; line-height:1.65}
+section.s ul{margin:0 0 0 0; padding-left:22px}
+section.s li{margin-bottom:8px}
+section.s strong{color:var(--fg); font-weight:600}
+section.s code{font-family:var(--mono); font-size:13px; background:var(--bg-2); padding:2px 6px; border-radius:4px; color:var(--accent-2)}
+.note{padding:14px 18px; background:var(--bg-2); border-left:2px solid var(--accent); border-radius:0 8px 8px 0; margin:14px 0; font-size:14.5px}
+.contact{margin-top:60px; padding-top:32px; border-top:1px solid var(--line)}
+.contact h2{margin-bottom:8px}
+footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
+.foot-grid{display:flex; flex-direction:column; gap:16px; align-items:center; text-align:center}
+.foot-links{display:flex; flex-wrap:wrap; gap:18px; justify-content:center}
+.foot-links a{font-family:var(--mono); font-size:12px; color:var(--fg-dim)}
+.foot-links a:hover{color:var(--fg); text-decoration:none}
+.foot-meta{font-family:var(--mono); font-size:11.5px; color:var(--fg-faint); display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.foot-meta .sep{color:var(--fg-faint)}
+@media (max-width:640px){
+  .nav-links{display:none}
+  main{padding:110px 0 60px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a href="/" class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l4 4-4 4M8 12h5"/></svg>
+      </span>
+      <span class="brand-name">commander</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-tag">privacy</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="/">home</a>
+      <a class="nav-link" href="/compare">compare</a>
+      <a class="nav-link" href="https://docs.commanderplugin.com" rel="noopener">docs</a>
+      <a class="nav-link" href="https://github.com/KevinZai/commander" rel="noopener">github</a>
+      <a class="btn btn-primary btn-sm nav-cta" href="/#install">Install</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap">
+    <article>
+      <div class="hdr">
+        <p class="eyebrow">Effective 2026-05-13</p>
+        <h1>Privacy</h1>
+        <p class="lede">What CC Commander collects, why, and how to opt out. Plain language. No dark patterns. No retargeting.</p>
+      </div>
+
+      <p class="intro">
+        CC Commander is built by <a href="https://kevinz.ai" rel="noopener">Kevin Zicherman</a> (Axiom Marketing Inc., a Delaware corporation). This policy covers <code>commanderplugin.com</code>, <code>docs.commanderplugin.com</code>, and the hosted MCP server at <code>commander-mcp.fly.dev</code>. The plugin itself is MIT-licensed and runs locally on your machine — none of your prompts, responses, or code touches our servers unless you explicitly call the hosted MCP.
+      </p>
+
+      <section class="s">
+        <h2>What we DO NOT collect</h2>
+        <ul>
+          <li>Your prompts to Claude Code</li>
+          <li>Claude's responses to you</li>
+          <li>Your code, files, or repository contents</li>
+          <li>Your raw IP address (we hash it for rate-limit dedup only)</li>
+          <li>Any data from local-only plugin skills (the plugin runs in your Claude Code session — that traffic never reaches us)</li>
+        </ul>
+      </section>
+
+      <section class="s">
+        <h2>What we collect when you visit commanderplugin.com</h2>
+        <ul>
+          <li><strong>Page views via Plausible (EU cloud) and PostHog (US cloud).</strong> URL, referrer, user-agent, browser/device basics. Used to understand traffic and improve the site. Plausible is cookieless. PostHog uses a first-party cookie and <code>localStorage</code> to deduplicate visitors; we do not enable session replay.</li>
+          <li><strong>Click events.</strong> When you click pricing CTAs, the sponsor link, or open the waitlist modal, we record the event name plus which tier was clicked. Used to learn what people want.</li>
+          <li><strong>Waitlist signups.</strong> If you submit your email to a waitlist form, we store: email, tier (Pro or Lifetime), source surface, UTM tags from the referring URL, referrer URL, user-agent, and a SHA-256 hash of your IP (for duplicate-signup detection — we never store the raw IP). Stored in our Supabase project. We use it to email you when (and only when) a paid tier ships.</li>
+        </ul>
+      </section>
+
+      <section class="s">
+        <h2>What we collect when you use the hosted MCP server</h2>
+        <ul>
+          <li><strong>GitHub user identifier</strong> after OAuth login. We use this to identify your account, enforce per-user rate limits, and link usage to your tier.</li>
+          <li><strong>Tool name + latency + success/failure</strong> on every call you make to the hosted MCP. We log <em>that</em> a tool ran, not <em>what</em> the tool produced. The tool inputs (your prompts) and outputs (Claude's responses) never leave Anthropic's infrastructure — they don't touch our server.</li>
+          <li><strong>Monthly call count + rate-limit window.</strong> Stored in Supabase + Upstash Redis. Used for the 100-calls/mo free tier cap and the burst protection (60 calls/min).</li>
+          <li><strong>Hashed IP</strong> (SHA-256) — used for anonymous rate-limit dedup on unauthenticated requests. We never store the raw IP.</li>
+        </ul>
+      </section>
+
+      <section class="s">
+        <h2>Third parties we share data with</h2>
+        <ul>
+          <li><strong>Plausible (EU)</strong> — site analytics, cookieless. <a href="https://plausible.io/privacy" rel="noopener">Plausible's privacy policy</a></li>
+          <li><strong>PostHog (US)</strong> — server-side event capture. SOC 2 Type II. <a href="https://posthog.com/privacy" rel="noopener">PostHog's privacy policy</a></li>
+          <li><strong>Supabase (US)</strong> — Postgres database for users, waitlist, usage counters. SOC 2 Type II. <a href="https://supabase.com/privacy" rel="noopener">Supabase's privacy policy</a></li>
+          <li><strong>Upstash (Global)</strong> — Redis for rate limiting. SOC 2. <a href="https://upstash.com/static/trust/privacy.pdf" rel="noopener">Upstash's privacy policy</a></li>
+          <li><strong>Fly.io (US)</strong> — hosts <code>commander-mcp.fly.dev</code>. <a href="https://fly.io/legal/privacy-policy/" rel="noopener">Fly.io's privacy policy</a></li>
+          <li><strong>Vercel (US)</strong> — hosts <code>commanderplugin.com</code>. <a href="https://vercel.com/legal/privacy-policy" rel="noopener">Vercel's privacy policy</a></li>
+          <li><strong>Cloudflare (Global)</strong> — DNS for our domains. No payload data passes through. <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">Cloudflare's privacy policy</a></li>
+          <li><strong>GitHub (US, Microsoft)</strong> — OAuth provider for hosted-MCP authentication. <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub's privacy statement</a></li>
+        </ul>
+      </section>
+
+      <section class="s">
+        <h2>Cookies and tracking</h2>
+        <p>We use exactly two categories of cookies / local storage:</p>
+        <div class="note">
+          <strong>1. PostHog analytics cookie</strong> — a random ID stored in <code>localStorage</code> plus a first-party cookie to deduplicate page views. We do not enable PostHog session replay.
+        </div>
+        <div class="note">
+          <strong>2. Auth.js session cookie</strong> — set when you sign in via GitHub OAuth to use the hosted MCP. Standard secure <code>httpOnly</code> cookie. Lasts the duration of your session.
+        </div>
+        <p>No advertising trackers. No retargeting pixels. No third-party identity graphs.</p>
+      </section>
+
+      <section class="s">
+        <h2>Your rights</h2>
+        <ul>
+          <li><strong>Access / export.</strong> Email <a href="mailto:hello@commanderplugin.com">hello@commanderplugin.com</a> and we'll send you everything we have on you within 30 days.</li>
+          <li><strong>Deletion.</strong> Same address. We'll delete your waitlist row plus user record on request, no questions asked. (We can't un-hash your IP because we never had it in the first place.)</li>
+          <li><strong>Correction.</strong> Tell us what's wrong; we'll fix it.</li>
+          <li><strong>Opt out of analytics.</strong> Use a browser DNT signal, an ad blocker, or just decline cookies — we honor all three. The site still works without analytics.</li>
+        </ul>
+      </section>
+
+      <section class="s">
+        <h2>Children</h2>
+        <p>CC Commander is a developer tool. We don't knowingly collect data from anyone under 13. If you believe a minor signed up, email us and we'll delete the record.</p>
+      </section>
+
+      <section class="s">
+        <h2>Changes</h2>
+        <p>We'll update this page when our data practices change and revise the date at the top. Material changes get a heads-up via the waitlist email or a banner on commanderplugin.com.</p>
+      </section>
+
+      <div class="contact">
+        <h2>Contact</h2>
+        <p>Privacy questions or requests: <a href="mailto:hello@commanderplugin.com">hello@commanderplugin.com</a>.</p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l4 4-4 4M8 12h5"/></svg>
+      </span>
+      <span class="brand-name">commander</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-tag">commanderplugin.com</span>
+    </div>
+    <div class="foot-links">
+      <a href="/">home</a>
+      <a href="/compare">compare</a>
+      <a href="/privacy">privacy</a>
+      <a href="/terms">terms</a>
+      <a href="https://github.com/KevinZai/commander" rel="noopener noreferrer">github</a>
+      <a href="https://docs.commanderplugin.com" rel="noopener noreferrer">docs</a>
+      <a href="https://x.com/commanderplugin" rel="noopener noreferrer">@commanderplugin</a>
+    </div>
+    <div class="foot-meta">
+      <span>MIT</span><span class="sep">·</span>
+      <span>v4.1.0-beta.2</span><span class="sep">·</span>
+      <span>© 2026 Kevin Zicherman</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F0F0F">
+<meta name="color-scheme" content="dark">
+<title>Terms — CC Commander</title>
+<meta name="description" content="Terms of service for CC Commander, the plugin, and the hosted MCP server. Plain language. MIT-licensed plugin; AS-IS hosted services.">
+<link rel="canonical" href="https://commanderplugin.com/terms">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://commanderplugin.com/terms">
+<meta property="og:title" content="Terms — CC Commander">
+<meta property="og:description" content="MIT plugin, AS-IS hosted services. Plain language.">
+<meta property="og:image" content="https://commanderplugin.com/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F0F0F'/%3E%3Cpath d='M9 11l5 5-5 5M16 22h8' stroke='%23FF6B47' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script defer data-domain="commanderplugin.com" src="https://plausible.io/js/script.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F0F0F; --bg-1:#141414; --bg-2:#181818; --bg-3:#1F1F1F;
+  --line:rgba(255,255,255,0.06); --line-2:rgba(255,255,255,0.10); --line-3:rgba(255,255,255,0.16);
+  --fg:#F5F5F0; --fg-dim:#A8A8A0; --fg-faint:#6E6E68;
+  --accent:#FF6B47; --accent-h:#ff7a59; --accent-2:#D4A574;
+  --max:1100px; --gutter:24px;
+  --sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg); color:var(--fg); font-family:var(--sans); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none}
+a:hover{color:var(--accent-h); text-decoration:underline; text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
+.wrap{width:100%; max-width:var(--max); margin:0 auto; padding:0 var(--gutter)}
+.nav{position:fixed; top:0; left:0; right:0; z-index:50; backdrop-filter:saturate(160%) blur(14px); -webkit-backdrop-filter:saturate(160%) blur(14px); background:rgba(15,15,15,.82); border-bottom:1px solid var(--line)}
+.nav-inner{display:flex; align-items:center; justify-content:space-between; height:60px}
+.brand{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:13px; font-weight:500; color:inherit}
+.brand:hover{text-decoration:none}
+.brand-mark{width:22px; height:22px; border-radius:5px; background:var(--bg-2); border:1px solid var(--line-2); display:grid; place-items:center; color:var(--accent)}
+.brand-mark svg{width:13px; height:13px}
+.brand-name{color:var(--fg)}
+.brand-sep{color:var(--fg-faint)}
+.brand-tag{color:var(--fg-dim)}
+.nav-links{display:flex; align-items:center; gap:4px}
+.nav-link{padding:7px 12px; border-radius:7px; font-family:var(--mono); font-size:12px; color:var(--fg-dim)}
+.nav-link:hover{color:var(--fg); background:rgba(255,255,255,.03); text-decoration:none}
+.btn{display:inline-flex; align-items:center; gap:8px; padding:0 14px; height:36px; border-radius:7px; font-family:var(--mono); font-size:12.5px; font-weight:500; border:1px solid transparent; transition:all .15s ease; cursor:pointer}
+.btn-primary{background:var(--accent); color:#0F0F0F; border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-h); transform:translateY(-1px); text-decoration:none}
+.btn-sm{height:32px; padding:0 12px; font-size:12px; border-radius:6px}
+main{padding:140px 0 80px; min-height:60vh}
+.eyebrow{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-dim); margin-bottom:18px}
+.eyebrow::before{content:""; width:18px; height:1px; background:var(--accent)}
+h1{font-size:clamp(34px,4.5vw,52px); font-weight:700; letter-spacing:-0.02em; line-height:1.08; margin:0 0 18px}
+.lede{font-size:clamp(16px,1.4vw,19px); color:var(--fg-dim); max-width:62ch; margin:0 0 8px}
+article{max-width:740px; margin:0 auto}
+article > .hdr{padding-bottom:36px; border-bottom:1px solid var(--line); margin-bottom:40px}
+.intro{color:var(--fg-dim); font-size:15.5px; margin-bottom:42px}
+.intro code{font-family:var(--mono); font-size:13px; background:var(--bg-2); padding:2px 6px; border-radius:4px; color:var(--accent-2)}
+section.s{margin-bottom:48px}
+section.s > h2{font-size:22px; font-weight:600; letter-spacing:-0.01em; margin:0 0 16px; color:var(--fg)}
+section.s p, section.s li{color:var(--fg-dim); font-size:15px; line-height:1.65}
+section.s ul{margin:0 0 0 0; padding-left:22px}
+section.s li{margin-bottom:8px}
+section.s strong{color:var(--fg); font-weight:600}
+section.s code{font-family:var(--mono); font-size:13px; background:var(--bg-2); padding:2px 6px; border-radius:4px; color:var(--accent-2)}
+.contact{margin-top:60px; padding-top:32px; border-top:1px solid var(--line)}
+.contact h2{margin-bottom:8px}
+footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
+.foot-grid{display:flex; flex-direction:column; gap:16px; align-items:center; text-align:center}
+.foot-links{display:flex; flex-wrap:wrap; gap:18px; justify-content:center}
+.foot-links a{font-family:var(--mono); font-size:12px; color:var(--fg-dim)}
+.foot-links a:hover{color:var(--fg); text-decoration:none}
+.foot-meta{font-family:var(--mono); font-size:11.5px; color:var(--fg-faint); display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.foot-meta .sep{color:var(--fg-faint)}
+@media (max-width:640px){
+  .nav-links{display:none}
+  main{padding:110px 0 60px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a href="/" class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l4 4-4 4M8 12h5"/></svg>
+      </span>
+      <span class="brand-name">commander</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-tag">terms</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="/">home</a>
+      <a class="nav-link" href="/compare">compare</a>
+      <a class="nav-link" href="https://docs.commanderplugin.com" rel="noopener">docs</a>
+      <a class="nav-link" href="https://github.com/KevinZai/commander" rel="noopener">github</a>
+      <a class="btn btn-primary btn-sm nav-cta" href="/#install">Install</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap">
+    <article>
+      <div class="hdr">
+        <p class="eyebrow">Effective 2026-05-13</p>
+        <h1>Terms of Service</h1>
+        <p class="lede">The plugin is MIT-licensed and free. The hosted MCP server is free with a usage cap and a few don't-be-evil rules. Plain language. Read it.</p>
+      </div>
+
+      <p class="intro">
+        These Terms govern your use of <code>commanderplugin.com</code>, <code>docs.commanderplugin.com</code>, the hosted MCP server at <code>commander-mcp.fly.dev</code>, and any related services operated by <a href="https://kevinz.ai" rel="noopener">Kevin Zicherman</a> via Axiom Marketing Inc. (a Delaware corporation). By using any of these services, you agree to these Terms.
+      </p>
+
+      <section class="s">
+        <h2>1. Two things, two licenses</h2>
+        <p><strong>The plugin itself</strong> — every skill, agent, hook, and the source code at <a href="https://github.com/KevinZai/commander" rel="noopener">github.com/KevinZai/commander</a> — is licensed under <a href="https://github.com/KevinZai/commander/blob/main/LICENSE" rel="noopener">MIT</a>. Fork it, modify it, ship it, sell your own derivative. The MIT license terms govern that work, not these site Terms.</p>
+        <p><strong>The hosted MCP server</strong> at <code>commander-mcp.fly.dev</code>, the marketing site, the docs site, and the waitlist API — those are operated services. These Terms govern your use of those services.</p>
+      </section>
+
+      <section class="s">
+        <h2>2. The deal in plain language</h2>
+        <ul>
+          <li>The plugin is free. It will stay free for the plugin core.</li>
+          <li>The hosted MCP server has a free tier of 100 calls per month per authenticated user, with sliding-window burst protection of 60 calls per minute.</li>
+          <li>If we ever ship a paid tier (Pro Individual or Pro Team), we'll email anyone on the waitlist first.</li>
+          <li>You can use everything for any purpose, commercial or personal, as long as you don't abuse the hosted infrastructure or impersonate someone.</li>
+        </ul>
+      </section>
+
+      <section class="s">
+        <h2>3. Acceptable use</h2>
+        <p>Don't do any of these against the hosted services:</p>
+        <ul>
+          <li>Circumvent the rate limits (rotating IPs, creating multiple accounts to multiply your free quota, scraping the catalog programmatically).</li>
+          <li>Resell access to the hosted MCP server as if it were yours.</li>
+          <li>Use the service to generate content that violates law, harasses someone, or attempts to compromise other infrastructure.</li>
+          <li>Pretend to be CC Commander, Kevin Zicherman, or Axiom Marketing Inc.</li>
+          <li>Reverse-engineer the auth or rate-limit logic to bypass it.</li>
+        </ul>
+        <p>If we observe abuse, we may revoke your access without notice. We'll try to email you first if it's ambiguous.</p>
+      </section>
+
+      <section class="s">
+        <h2>4. Availability — AS-IS, no SLA</h2>
+        <p>The hosted MCP server is provided <strong>as-is</strong>, without any warranty of uptime, accuracy, fitness for a particular purpose, or non-infringement. We make a best effort to keep it running and to notice when it's broken — but there is no service-level agreement and no compensation owed if it's down. If you have a workload that cannot tolerate downtime, run the plugin's local mode (it doesn't need our server).</p>
+      </section>
+
+      <section class="s">
+        <h2>5. Your responsibility for your work</h2>
+        <p>The plugin generates suggestions for code, plans, and documentation via Claude (or any MCP client you connect). The output is <strong>not reviewed by us</strong> before it reaches you. You are responsible for reviewing, testing, and validating any code or content before using it. CC Commander, Kevin Zicherman, and Axiom Marketing Inc. accept no liability for damages caused by output you chose to use without review.</p>
+      </section>
+
+      <section class="s">
+        <h2>6. Limitation of liability</h2>
+        <p>To the maximum extent permitted by law, the total liability of CC Commander, Kevin Zicherman, and Axiom Marketing Inc. for any claim arising out of the hosted services is capped at the greater of (a) the amount you paid us in the 12 months preceding the claim, or (b) USD $50. The plugin itself, being MIT-licensed, carries no warranty per the MIT license — your remedy under MIT is to fork.</p>
+      </section>
+
+      <section class="s">
+        <h2>7. Changes to these Terms</h2>
+        <p>We may update these Terms when the services change. Material changes get a banner on commanderplugin.com or an email to the waitlist. The effective date at the top of this page reflects the latest revision. Continued use after a change means you accept the new Terms; if you don't, stop using the hosted services.</p>
+      </section>
+
+      <section class="s">
+        <h2>8. Governing law</h2>
+        <p>These Terms are governed by the laws of the State of Delaware (the state of incorporation of Axiom Marketing Inc.), without regard to conflict-of-laws rules. Disputes are subject to the exclusive jurisdiction of state and federal courts located in Delaware.</p>
+      </section>
+
+      <section class="s">
+        <h2>9. Termination</h2>
+        <p>You can stop using the hosted services any time — close your account, delete the plugin, walk away. We can revoke your hosted access for abuse (Section 3). The MIT-licensed plugin remains yours to use under MIT regardless.</p>
+      </section>
+
+      <div class="contact">
+        <h2>Contact</h2>
+        <p>Questions about these Terms: <a href="mailto:hello@commanderplugin.com">hello@commanderplugin.com</a>.</p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l4 4-4 4M8 12h5"/></svg>
+      </span>
+      <span class="brand-name">commander</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-tag">commanderplugin.com</span>
+    </div>
+    <div class="foot-links">
+      <a href="/">home</a>
+      <a href="/compare">compare</a>
+      <a href="/privacy">privacy</a>
+      <a href="/terms">terms</a>
+      <a href="https://github.com/KevinZai/commander" rel="noopener noreferrer">github</a>
+      <a href="https://docs.commanderplugin.com" rel="noopener noreferrer">docs</a>
+      <a href="https://x.com/commanderplugin" rel="noopener noreferrer">@commanderplugin</a>
+    </div>
+    <div class="foot-meta">
+      <span>MIT</span><span class="sep">·</span>
+      <span>v4.1.0-beta.2</span><span class="sep">·</span>
+      <span>© 2026 Kevin Zicherman</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -30,6 +30,16 @@
 
 <script defer data-domain="commanderplugin.com" src="https://plausible.io/js/script.js"></script>
 
+<!-- PostHog (product analytics — pageviews + waitlist + sponsor events) -->
+<script>
+(function(){
+  var key="phc_AwLYeASq7oXk2EnTvp4U7pqbRi8JE4B6eZpNwz9K6kab";
+  var host="https://us.i.posthog.com";
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug getPageViewId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init(key,{api_host:host,capture_pageview:true,capture_pageleave:true,autocapture:false,persistence:"localStorage+cookie"});
+})();
+</script>
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -2636,7 +2646,7 @@ SEV-3 = should fix this sprint (polish, dx)
       </details>
       <details>
         <summary>What about privacy and telemetry?<span class="plus" aria-hidden="true">+</span></summary>
-        <div class="faq-body">No telemetry from the plugin itself. The hosted MCP endpoint logs request count for rate-limiting (1,000 calls/mo on the free tier) but never logs prompt content. Self-host the MCP server to keep everything on your box.</div>
+        <div class="faq-body">The plugin itself runs locally on your machine — no telemetry from the plugin code. The hosted MCP endpoint logs tool name, latency, and call count for rate-limiting (100 calls/mo free tier) but <strong>never logs prompt content or Claude's responses</strong>. This site uses Plausible (cookieless) + PostHog (first-party cookie) for pageview and click analytics — no session replay, no third-party trackers. Full breakdown in <a href="/privacy" style="color:var(--accent)">our privacy policy</a>. Self-host the MCP server to keep everything on your box.</div>
       </details>
       <details>
         <summary>How do I report a bug or request a skill?<span class="plus" aria-hidden="true">+</span></summary>
@@ -2658,11 +2668,18 @@ SEV-3 = should fix this sprint (polish, dx)
           <div class="support-desc">The fastest way to help. Stars signal traction and bring CC Commander to more developers.</div>
         </div>
       </a>
-      <a class="support-card" href="https://github.com/KevinZai/commander/discussions" rel="noopener" target="_blank">
-        <div class="support-icon">💬</div>
+      <button class="support-card" type="button" data-waitlist="pro" style="all:unset; cursor:pointer; display:flex">
+        <div class="support-icon">📬</div>
         <div class="support-body">
-          <div class="support-title">Pro Community — $49/mo</div>
-          <div class="support-desc">Weekly office hours, early access to new skills, and deep-dive sessions with Kevin Z. Discord URL coming soon — join discussions in the meantime.</div>
+          <div class="support-title">Pro tier — waitlist</div>
+          <div class="support-desc">Coming if 500+ devs ask. Drop your email — no card, no commitment, no spam. One note when (and only when) it's real.</div>
+        </div>
+      </button>
+      <a class="support-card" href="https://github.com/sponsors/KevinZai" rel="noopener" target="_blank">
+        <div class="support-icon">❤️</div>
+        <div class="support-body">
+          <div class="support-title">Sponsor on GitHub</div>
+          <div class="support-desc">Help keep CC Commander free. Recurring or one-time — every dollar funds the hosted MCP infrastructure.</div>
         </div>
       </a>
       <a class="support-card" href="https://kevinz.ai" rel="noopener" target="_blank">
@@ -2688,9 +2705,13 @@ SEV-3 = should fix this sprint (polish, dx)
       <span class="brand-tag">commanderplugin.com</span>
     </div>
     <div class="foot-links">
+      <a href="/compare">compare</a>
+      <a href="/privacy">privacy</a>
+      <a href="/terms">terms</a>
       <a href="https://github.com/KevinZai/commander" rel="noopener noreferrer">github</a>
       <a href="https://docs.commanderplugin.com" rel="noopener noreferrer">docs</a>
       <a href="https://x.com/commanderplugin" rel="noopener noreferrer">@commanderplugin</a>
+      <a href="https://github.com/sponsors/KevinZai" rel="noopener noreferrer">sponsor</a>
       <a href="https://github.com/KevinZai/commander/discussions" rel="noopener noreferrer">discussions</a>
       <a href="https://github.com/KevinZai/commander/blob/main/CHANGELOG.md" rel="noopener noreferrer">changelog</a>
       <a href="https://github.com/KevinZai/commander/blob/main/BIBLE.md" rel="noopener noreferrer">BIBLE.md</a>
@@ -3077,5 +3098,114 @@ SEV-3 = should fix this sprint (polish, dx)
   });
 })();
 </script>
+
+<!-- ──────────────── WAITLIST MODAL ──────────────── -->
+<div id="wl-modal" role="dialog" aria-modal="true" aria-labelledby="wl-title" aria-hidden="true" style="position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); padding:20px;">
+  <div id="wl-panel" style="background:var(--bg-1); border:1px solid var(--accent); border-radius:14px; padding:28px; max-width:440px; width:100%; box-shadow:0 20px 60px rgba(255,107,71,0.18);">
+    <h3 id="wl-title" style="font-size:20px; font-weight:700; margin:0 0 6px; color:var(--fg)">Pro tier — waitlist</h3>
+    <p id="wl-price" style="font-family:var(--mono); font-size:11.5px; color:var(--accent-2); margin:0 0 14px; letter-spacing:0.04em">aspirational pricing tbd</p>
+    <p id="wl-copy" style="color:var(--fg-dim); font-size:14.5px; line-height:1.55; margin:0 0 18px">We'll only build Pro if 500+ devs sign up. Drop your email — one note when it's real, that's it. No spam, no card.</p>
+
+    <form id="wl-form" autocomplete="off" style="display:flex; flex-direction:column; gap:10px;">
+      <input id="wl-email" type="email" required autocomplete="email" placeholder="you@example.com" style="width:100%; padding:12px 14px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; color:var(--fg); font-family:var(--sans); font-size:14.5px; outline:none; transition:border-color .15s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--line-2)'">
+      <button id="wl-submit" type="submit" style="padding:12px 14px; background:var(--accent); color:#0F0F0F; border:1px solid var(--accent); border-radius:8px; font-family:var(--mono); font-size:13px; font-weight:600; cursor:pointer; transition:background .15s;">Join waitlist</button>
+      <p id="wl-msg" style="font-size:12.5px; color:var(--fg-faint); margin:2px 0 0; min-height:18px"></p>
+    </form>
+
+    <div style="display:flex; gap:14px; justify-content:space-between; align-items:center; margin-top:14px; padding-top:14px; border-top:1px solid var(--line)">
+      <button id="wl-close" type="button" style="background:none; border:none; color:var(--fg-faint); font-family:var(--mono); font-size:11.5px; cursor:pointer; padding:0">Close</button>
+      <span style="font-family:var(--mono); font-size:10.5px; color:var(--fg-faint)">No spam · one email · only if we ship</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────── WAITLIST + EVENTS WIRING ──────────────── -->
+<script>
+(function(){
+  var modal = document.getElementById('wl-modal');
+  var panel = document.getElementById('wl-panel');
+  var form  = document.getElementById('wl-form');
+  var input = document.getElementById('wl-email');
+  var msg   = document.getElementById('wl-msg');
+  var btn   = document.getElementById('wl-submit');
+  var closeBtn = document.getElementById('wl-close');
+  var currentTier = 'pro';
+
+  function track(event, props){
+    try { if (window.posthog && window.posthog.capture) window.posthog.capture(event, props || {}); } catch(e){}
+    try { if (window.plausible) window.plausible(event, { props: props || {} }); } catch(e){}
+  }
+
+  function open(tier){
+    currentTier = tier || 'pro';
+    document.getElementById('wl-title').textContent = currentTier === 'lifetime' ? 'Lifetime founder — waitlist' : 'Pro tier — waitlist';
+    document.getElementById('wl-price').textContent = currentTier === 'lifetime' ? '$299 one-time · aspirational' : '$9–19/mo or $190/yr · aspirational';
+    msg.textContent = ''; msg.style.color = 'var(--fg-faint)';
+    btn.disabled = false; btn.textContent = 'Join waitlist';
+    input.value = ''; input.disabled = false;
+    modal.style.display = 'flex'; modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function(){ input.focus(); }, 50);
+    track('waitlist_modal_opened', { tier: currentTier });
+  }
+  function close(){
+    modal.style.display = 'none'; modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  // Open from any data-waitlist trigger
+  document.querySelectorAll('[data-waitlist]').forEach(function(el){
+    el.addEventListener('click', function(e){ e.preventDefault(); open(el.getAttribute('data-waitlist')); });
+  });
+
+  closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', function(e){ if (e.target === modal) close(); });
+  panel.addEventListener('click', function(e){ e.stopPropagation(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && modal.style.display === 'flex') close(); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = (input.value || '').trim();
+    if (!email) return;
+    btn.disabled = true; btn.textContent = 'Sending…'; msg.textContent = ''; msg.style.color = 'var(--fg-faint)';
+    var utm = new URLSearchParams(window.location.search);
+    fetch('/api/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        source: 'pricing-card',
+        utm_source: utm.get('utm_source') || null,
+        utm_medium: utm.get('utm_medium') || null,
+        utm_campaign: utm.get('utm_campaign') || ('waitlist-' + currentTier),
+      })
+    }).then(function(r){ return r.json().then(function(b){ return { status:r.status, body:b }; }); })
+      .then(function(res){
+        if (res.status === 200 && res.body && res.body.ok) {
+          msg.style.color = 'var(--accent-2)';
+          msg.textContent = res.body.deduped ? "You're already on the list 👍" : "You're in. We'll only email when it's real.";
+          btn.textContent = 'Done ✓'; input.disabled = true;
+          track('waitlist_signup', { tier: currentTier, deduped: !!res.body.deduped });
+        } else {
+          msg.style.color = '#ff7676';
+          msg.textContent = (res.body && res.body.error) ? res.body.error : ('Request failed (' + res.status + ')');
+          btn.disabled = false; btn.textContent = 'Try again';
+          track('waitlist_signup_failed', { tier: currentTier, error: (res.body && res.body.error) || res.status });
+        }
+      })
+      .catch(function(){
+        msg.style.color = '#ff7676'; msg.textContent = 'Network error — try again?';
+        btn.disabled = false; btn.textContent = 'Try again';
+        track('waitlist_signup_failed', { tier: currentTier, error: 'network' });
+      });
+  });
+
+  // Track sponsor + GitHub external clicks
+  document.querySelectorAll('a[href*="github.com/sponsors/KevinZai"]').forEach(function(a){
+    a.addEventListener('click', function(){ track('sponsor_clicked', { surface: 'support-card' }); });
+  });
+})();
+</script>
+
 </body>
 </html>
