@@ -146,7 +146,47 @@
     "socials": {
       "x": "https://x.com/kzic",
       "github": "https://github.com/KevinZai/commander"
-    }
+    },
+    "links": [
+      {
+        "header": "Powered by",
+        "items": [
+          {
+            "label": "Supabase",
+            "href": "https://supabase.com/?utm_source=cc-commander&utm_medium=docs-footer&utm_campaign=powered-by"
+          },
+          {
+            "label": "Vercel",
+            "href": "https://vercel.com/?utm_source=cc-commander&utm_medium=docs-footer&utm_campaign=powered-by"
+          },
+          {
+            "label": "Fly.io",
+            "href": "https://fly.io/?utm_source=cc-commander&utm_medium=docs-footer&utm_campaign=powered-by"
+          },
+          {
+            "label": "Upstash",
+            "href": "https://upstash.com/?utm_source=cc-commander&utm_medium=docs-footer&utm_campaign=powered-by"
+          },
+          {
+            "label": "Cloudflare",
+            "href": "https://cloudflare.com/?utm_source=cc-commander&utm_medium=docs-footer&utm_campaign=powered-by"
+          },
+          {
+            "label": "Anthropic",
+            "href": "https://anthropic.com/?utm_source=cc-commander&utm_medium=docs-footer&utm_campaign=powered-by"
+          }
+        ]
+      },
+      {
+        "header": "Project",
+        "items": [
+          { "label": "Marketing site", "href": "https://commanderplugin.com" },
+          { "label": "GitHub", "href": "https://github.com/KevinZai/commander" },
+          { "label": "Sponsor", "href": "https://github.com/sponsors/KevinZai" },
+          { "label": "Affiliate disclosure", "href": "/affiliate-disclosure" }
+        ]
+      }
+    ]
   },
   "integrations": {
     "plausible": {
