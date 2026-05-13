@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { serve } from "@hono/node-server";
 import { logger as honoLogger } from "hono/logger";
 import { cors } from "hono/cors";
 import { env } from "./lib/env.js";
@@ -375,7 +376,14 @@ process.on("unhandledRejection", (reason) => {
 // ─── Start server ──────────────────────────────────────────────────────────
 logger.info({ port: env.port, version: SERVER_VERSION }, "CC Commander MCP server starting");
 
+// Node entrypoint (Dockerfile runs `node dist/index.js`). @hono/node-server binds
+// the port and keeps the event loop alive — without this the process exits clean.
+serve({ fetch: app.fetch, port: env.port }, (info) => {
+  logger.info({ port: info.port, version: SERVER_VERSION }, "CC Commander MCP server listening");
+});
+
 export { app };
+// Bun-compatible default export — harmless under Node (serve() above does the work).
 export default {
   port: env.port,
   fetch: app.fetch,
@@ -383,5 +391,3 @@ export default {
 
 // Validate request body shape — exported for tests
 export { validateCallBody };
-{ validateCallBody };
-{ validateCallBody };

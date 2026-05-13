@@ -81,9 +81,20 @@ alter table public.creator_clicks enable row level security;
 
 -- Public read on creators (slug-based lookup for landing pages, anon traffic).
 -- Never expose email or ls_affiliate_id to anon — those are service-role only.
-create policy if not exists creators_public_read on public.creators
-  for select
-  using (true);
+-- NB: Postgres CREATE POLICY has no IF NOT EXISTS — guard with a DO block (same
+-- pattern this file uses for the creators_set_updated_at trigger below).
+do $do$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'creators' and policyname = 'creators_public_read'
+  ) then
+    create policy creators_public_read on public.creators
+      for select
+      using (true);
+  end if;
+end
+$do$;
 
 -- No public write — only service-role inserts/updates.
 -- (creator_clicks has no public policies — inserted via service-role only)
