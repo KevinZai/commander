@@ -6,10 +6,10 @@ import { Footer } from "@/components/footer";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Three paid plans. Free during launch. $0 Starter · $19/mo Pro · $299 Lifetime (first 100 only — then $499).",
+    "Free forever for the plugin core. Pro and Lifetime are aspirational — drop your email on the waitlist if you'd pay, no card required.",
   openGraph: {
     title: "CC Commander Pricing",
-    description: "Three paid plans. Starter free during launch. Pro $19/mo · $190/yr. Lifetime $299 (first 100, then $499).",
+    description: "Free forever for the plugin. Pro on a waitlist — only built if 500+ devs sign up.",
     images: [{ url: "/api/og/pricing", width: 1200, height: 630 }],
   },
   twitter: {
@@ -20,32 +20,32 @@ export const metadata: Metadata = {
 
 const FAQ = [
   {
-    q: "Is Starter really free?",
-    a: "Yes — free during early access. Starter pricing or caps may change after launch as we scale hosted infrastructure. The plugin code itself stays MIT-licensed (fork-able). Lifetime ($299, first 100 only) locks in unlimited Pro access permanently if you want certainty.",
+    q: "Is the plugin really free?",
+    a: "Yes — free forever. All 60+ skills, 22 sub-agents, 9 lifecycle hooks, and the hosted MCP server (100 free calls/mo anti-abuse cap). MIT-licensed, fork-able. No card, no telemetry of you, no upsell wall.",
   },
   {
-    q: "What does 'free during launch' mean?",
-    a: "While we're rolling out paid plans, Starter is free for early adopters. After we hit a stable user base (target: 1,000 active installs), Starter may move to capped free (e.g., reduced hosted MCP calls) while Pro remains unlimited. Anyone who installs Starter today keeps current access while we figure out the steady-state tier — but no guarantees beyond early access.",
+    q: "Why is Pro on a waitlist instead of buyable?",
+    a: "We don't know yet whether enough developers would actually pay for an enhanced tier. Rather than spin up checkout, dunning, refunds, and tax compliance for a tier nobody might want, we're letting you tell us. Drop your email if you'd pay. If 500+ devs sign up, we'll build it. If not, the plugin stays free and we move on.",
   },
   {
-    q: "What is the 14-day money-back guarantee?",
-    a: "If Pro doesn't work out for any reason within the first 14 days, email hello@commanderplugin.com and we'll refund you in full — no questions asked.",
+    q: "What do you get for joining the waitlist?",
+    a: "One email when (and only when) we ship a paid tier — you'll see the price, the feature list, and a checkout link. That's it. No newsletter, no drip campaign, no spam. You can ignore the email; you're not committing to anything by signing up.",
   },
   {
-    q: "How does Lifetime pricing work?",
-    a: "Pay $299 once and you get Pro forever, including all future Pro features. The first 100 sales are locked at $299; after that it goes to $499. This is our thank-you to early believers.",
+    q: "Will the free plugin stay free if Pro launches?",
+    a: "Yes. The plugin core (skills + agents + hooks + bundled MCP servers) stays MIT-licensed and free regardless. The hosted MCP free tier (100 calls/mo) stays free. Pro would be additive — premium skill packs, unlimited hosted MCP, priority support — not gating away anything you have today.",
   },
   {
-    q: "Can I switch from monthly to yearly?",
-    a: "Yes — upgrade to yearly anytime via your customer portal. You'll be credited the unused portion of your monthly subscription.",
+    q: "How does the hosted MCP work today?",
+    a: "We run a free MCP server at commander-mcp.fly.dev that any MCP client (Cursor, Windsurf, Codex, Cowork Desktop) can connect to. 100 calls/month per authenticated user, no card. Authentication via GitHub OAuth. The free tier covers ~95% of solo-dev usage.",
   },
   {
-    q: "Do you offer team or enterprise plans?",
-    a: "Not yet. If you need multi-seat licensing or custom invoicing, email hello@commanderplugin.com and we'll figure something out.",
+    q: "How does CC Commander make money if it's free?",
+    a: "Three ways, all transparent. (1) Affiliate links in the /ccc-connect skill — when we recommend Supabase, Vercel, Neon, etc., we use partner links. (2) GitHub Sponsors — github.com/sponsors/KevinZai. (3) Kevin's consulting practice — the plugin demonstrates the work; serious teams hire him to help build it for them. No tracking pixels, no behavioral retargeting, no selling your data.",
   },
   {
-    q: "What happens to my data if I cancel?",
-    a: "CC Commander runs 100% locally on your machine — no data leaves your environment. Cancel anytime with no data loss.",
+    q: "What happens to my data?",
+    a: "The plugin runs locally on your machine — skills, agents, hooks all execute in your Claude Code session. The only data we receive is what hits the hosted MCP server (anonymous IP, call counts for rate limiting, your GitHub username if you authenticate). No code, no prompts, no responses. See our /privacy page for the full breakdown.",
   },
 ];
 
@@ -61,16 +61,14 @@ export default function PricingPage() {
               Simple, transparent pricing
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-[1.1]">
-              Three paid plans.
+              Free forever.
               <br />
               <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-                Free during launch.
+                Pro is on a waitlist.
               </span>
             </h1>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-              Free for early adopters while we ship. Pro unlocks unlimited
-              hosted MCP, premium skill packs, and priority support. Starter
-              pricing may change after launch.
+              The plugin core is free forever — all 60+ skills, all 22 agents, all 9 hooks, plus the hosted MCP server with 100 free calls/mo. Pro and Lifetime show what we'd build <em>if</em> enough developers want it. No card, no commitment — just drop your email if you'd pay.
             </p>
           </div>
         </section>

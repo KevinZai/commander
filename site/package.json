@@ -12,6 +12,7 @@
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.13.0",
     "@stripe/stripe-js": "^9.4.0",
+    "@supabase/supabase-js": "^2.105.4",
     "@vercel/og": "^0.11.1",
     "@vercel/postgres": "^0.10.0",
     "class-variance-authority": "^0.7.1",
