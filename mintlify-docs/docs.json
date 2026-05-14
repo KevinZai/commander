@@ -47,6 +47,7 @@
             "group": "Core Features",
             "pages": [
               "features/compatibility",
+              "features/local-llm",
               "features/browse-modes",
               "features/token-optimization",
               "features/intelligence-layer",

@@ -1,0 +1,308 @@
+---
+title: "Local LLMs — Privacy-first AI without cloud costs"
+description: "Route Claude Code through Ollama, Headroom proxy, or LM Studio for complete privacy. Zero data leaves your machine. Free inference with open-source models."
+---
+
+# 🔒 Local LLMs
+
+CC Commander works with local large language models, giving you privacy guarantees that cloud-only solutions can't match. Run Llama 3, Qwen, CodeLlama, or Deepseek locally and route Claude Code through your own inference server.
+
+<Note>
+**Why local?** Three reasons: (1) **Privacy** — zero data leaves your machine, including telemetry; (2) **Cost** — free inference once the model is downloaded; (3) **Offline** — inference works without internet after setup.
+
+**Trade-off:** Local models are smaller (7B–70B params) than Claude Opus (200B+). Some skills (architect, security-auditor, research) are optimized for Claude and may produce weaker results on local models. Always verify output.
+</Note>
+
+## 🚀 Quick start with Ollama (3 steps)
+
+### 1. Install Ollama
+
+```bash
+# macOS (easiest)
+brew install ollama
+
+# or download from https://ollama.ai
+```
+
+### 2. Pull a model
+
+```bash
+# Fast (7B params, ~4GB download, ~6GB RAM)
+ollama pull llama2
+
+# Better for coding (13B params, ~8GB download, ~16GB RAM)
+ollama pull codellama
+
+# Latest & most capable (8B params, ~5GB download, ~8GB RAM)
+ollama pull llama3
+```
+
+Ollama starts a local server on `http://localhost:11434` automatically.
+
+### 3. Route Claude Code traffic through Ollama
+
+Set this environment variable in your shell or Claude Code settings:
+
+```bash
+export ANTHROPIC_BASE_URL=http://localhost:11434/v1
+```
+
+Then restart Claude Code (close the Desktop app and reopen, or restart the CLI session).
+
+**Verify it works:**
+
+```bash
+# Should return a local response, not cloud latency
+curl http://localhost:11434/v1/models
+```
+
+Claude Code will now route all requests through your local Ollama server. No Anthropic API calls, no costs, full privacy.
+
+## 🔥 Advanced: Headroom proxy (context compression + memory)
+
+Headroom wraps Ollama (or any compatible server) and adds **context compression** — it summarizes old context to fit more into your model's window. This is especially useful for long sessions where local models have small context windows (4K–8K tokens).
+
+### Setup
+
+```bash
+# Install Headroom via pipx
+pipx install headroom-proxy
+
+# Or: pip install headroom-proxy (system-wide)
+```
+
+### Launch with memory enabled
+
+```bash
+# Start Ollama first
+ollama serve
+
+# In a new terminal, start Headroom
+# --memory: enables TOIN (Temporal Ordered Input Nomenclature) for context retention
+# --learn: auto-improves compression based on your usage
+# Points to Ollama's API and listens on 0.0.0.0:6767
+headroom --upstream http://localhost:11434 --memory --learn --port 6767
+```
+
+### Route Claude Code through Headroom
+
+```bash
+export ANTHROPIC_BASE_URL=http://localhost:6767/v1
+```
+
+**What you gain:**
+- Fits 2–3× more context into the same model window
+- Remembers conversation themes across sessions (via `--memory`)
+- Transparent to Claude Code — no code changes needed
+
+**Cost vs. Claude Opus:** $0 (Ollama) vs. $15/million input tokens. At 10 sessions/week, local mode saves ~$500/month.
+
+## 🖥️ Alternative: LM Studio (OpenAI-compatible)
+
+LM Studio is a desktop GUI for running local models. Good if you prefer clicking over the terminal.
+
+### Setup
+
+1. Download from https://lmstudio.ai
+2. Launch LM Studio
+3. Search for a model (e.g., `llama-2-7b-chat-gguf`)
+4. Click **Download**
+5. In the **Local Server** tab, select the model and click **Start Server**
+
+By default, LM Studio runs on `http://localhost:1234/v1`.
+
+### Route Claude Code
+
+```bash
+export ANTHROPIC_BASE_URL=http://localhost:1234/v1
+```
+
+LM Studio handles everything in the GUI — no terminal commands needed. Useful for macOS users who prefer point-and-click.
+
+## 🎯 Per-skill local routing
+
+Some CCC skills are optimized for Claude (e.g., `/ccc-architect` uses extended thinking). You can route *most* work to local models and fall back to Claude for specific skills:
+
+**Option A: ENV-based fallback (in Claude Code settings)**
+
+```json
+// ~/.claude/settings.json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:11434/v1",
+    "CLAUDE_FALLBACK_API_KEY": "sk-..."  // Real Anthropic key for fallback
+  }
+}
+```
+
+Then, in your skill or agent prompt:
+
+```markdown
+If ANTHROPIC_BASE_URL=localhost, fall back to CLAUDE_FALLBACK_API_KEY
+for security-auditor and architect roles.
+```
+
+**Option B: Skip local mode for specific tasks**
+
+Unset `ANTHROPIC_BASE_URL` before running heavy skills:
+
+```bash
+unset ANTHROPIC_BASE_URL
+# Now Claude Code uses your default API key (Anthropic)
+# After done, re-enable local mode
+export ANTHROPIC_BASE_URL=http://localhost:11434/v1
+```
+
+## ⚠️ Limitations of local models
+
+### Context windows are smaller
+
+| Model | Context | Use case |
+|-------|---------|----------|
+| Llama 2 7B | 4K tokens | Quick Q&A, small files |
+| CodeLlama 13B | 4K tokens | Code review, bug fixes |
+| Llama 3 8B | 8K tokens | Longer conversations, multi-file edits |
+| Qwen 32B | 32K tokens | Full codebases, long sessions |
+| Local Mistral 7B | 8K tokens | Fast + reasonable context |
+
+Compare to Claude Opus: **200K tokens**. For week-long projects, cloud is necessary.
+
+### No extended thinking
+
+Claude's extended thinking (internal reasoning) is a cloud-only feature. Local models output immediately.
+
+### Weaker on expert domains
+
+Skills designed for deep reasoning (architect, security-auditor, researcher) produce better output on Claude Opus. Test before relying on local for critical decisions.
+
+### Slower inference
+
+Ollama on Mac Mini M4: ~50 tokens/sec (llama3 8B) vs. Claude API: ~500 tokens/sec. Acceptable for coding, frustrating for quick iterations.
+
+## 💚 Verify your setup
+
+Use `/ccc-doctor` to diagnose routing:
+
+```bash
+ccc doctor
+```
+
+Output will show:
+
+```
+✅ Model routing: http://localhost:11434/v1
+✅ Ollama server: responding
+✅ Memory: DISABLED (enable with `headroom --memory`)
+⚠️  Context window: 8192 tokens (tight for large projects)
+```
+
+## 📊 Cost comparison
+
+Running Llama 3 on your laptop for a month vs. Claude Opus in the cloud:
+
+| Metric | Local (Ollama) | Cloud (Claude Opus) |
+|--------|:-:|:-:|
+| Monthly cost | $0 | $300–1000* |
+| Privacy | ✅ Zero data leaves machine | ⚠️ Conversations logged by Anthropic |
+| Latency | ~100ms (fast) | ~50ms (faster) |
+| Offline capable | ✅ Yes | ❌ No |
+| Context window | 4K–32K | 200K |
+| Extended thinking | ❌ No | ✅ Yes |
+
+*Estimated for active development: 5M input tokens/month at $3/M.
+
+## 🔐 Privacy guarantee
+
+When `ANTHROPIC_BASE_URL` points to `localhost:*`:
+
+1. **Zero cloud requests** — Claude Code makes HTTP calls to your local server only
+2. **Zero telemetry** — Ollama does not phone home. No analytics, no feature tracking
+3. **Full data sovereignty** — All conversations stay on your machine
+4. **No session logging** — Unlike Anthropic's cloud API, local inference doesn't create audit trails
+
+**Verify:**
+
+```bash
+# Monitor network traffic to confirm no cloud calls
+sudo tcpdump -i en0 'port 443'
+# (You should see zero Anthropic API calls when using local models)
+```
+
+## 🔧 Troubleshooting
+
+### "Connection refused at localhost:11434"
+
+Ollama isn't running. Start it:
+
+```bash
+ollama serve
+```
+
+Or check if it's running:
+
+```bash
+ps aux | grep ollama
+```
+
+### "model not loaded" error
+
+The model isn't downloaded. Pull it:
+
+```bash
+ollama pull llama3
+```
+
+Check what's available:
+
+```bash
+ollama list
+```
+
+### Claude Code is still using the cloud API
+
+1. Verify `ANTHROPIC_BASE_URL` is set:
+
+```bash
+echo $ANTHROPIC_BASE_URL
+# Should print: http://localhost:11434/v1
+```
+
+2. Restart Claude Code (close the app completely, reopen)
+3. Check logs:
+
+```bash
+# In Claude Code CLI, see network debug info
+ccusage
+# Should show $0.00 cost if using local
+```
+
+### Headroom context compression isn't working
+
+Make sure `--memory` flag is set:
+
+```bash
+headroom --upstream http://localhost:11434 --memory --learn
+```
+
+Check Headroom logs:
+
+```bash
+# Should show [MEMORY] events as you chat
+```
+
+## 📚 See also
+
+- [/ccc-doctor troubleshooting](/troubleshooting) — Diagnose your setup
+- [Compatibility — What clients support local models](/features/compatibility)
+- [Token optimization — More strategies to reduce costs](/features/token-optimization)
+- [Ollama docs](https://ollama.ai) — Model library + advanced config
+- [Headroom proxy docs](https://github.com/paulobordoni/headroom) — Context compression
+
+## 🎉 Next steps
+
+1. **Try Ollama + Llama 3:** Takes 5 minutes, immediate privacy win
+2. **For long sessions:** Add Headroom proxy for context compression
+3. **For GUIs:** Switch to LM Studio if you prefer desktop apps
+4. **Monitor costs:** Use `ccusage` to track whether local mode is actually saving you money
+
+Local models aren't faster or smarter than Claude — but they're *yours*, fully private, and completely free after the one-time download.
