@@ -1,0 +1,119 @@
+{
+  "name": "cc-commander",
+  "displayName": "CC Commander",
+  "description": "Guided AI PM for Claude Code — 60 plugin skills, 22 specialist agents, 9 lifecycle hooks. Free.",
+  "version": "0.1.0",
+  "publisher": "kevinzicherman",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KevinZai/commander"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "AI"
+  ],
+  "keywords": [
+    "claude",
+    "ai",
+    "agents",
+    "skills",
+    "claude-code",
+    "pm",
+    "assistant"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ccc.openSkillPicker",
+        "title": "CCC: Open Skill Picker",
+        "category": "CC Commander"
+      },
+      {
+        "command": "ccc.openAgentPicker",
+        "title": "CCC: Pick Specialist Agent",
+        "category": "CC Commander"
+      },
+      {
+        "command": "ccc.openCommandHub",
+        "title": "CCC: Open Command Hub",
+        "category": "CC Commander"
+      },
+      {
+        "command": "ccc.openBible",
+        "title": "CCC: Read the Bible",
+        "category": "CC Commander"
+      },
+      {
+        "command": "ccc.installDesktop",
+        "title": "CCC: Install Claude Code Desktop",
+        "category": "CC Commander"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "ccc.openSkillPicker",
+        "key": "ctrl+shift+alt+s",
+        "mac": "cmd+shift+alt+s",
+        "when": "editorTextFocus"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ccc-commander",
+          "title": "CC Commander",
+          "icon": "$(rocket)"
+        }
+      ]
+    },
+    "views": {
+      "ccc-commander": [
+        {
+          "id": "ccc.actions",
+          "name": "Quick Actions",
+          "when": "true"
+        },
+        {
+          "id": "ccc.agents",
+          "name": "Specialist Agents",
+          "when": "true"
+        },
+        {
+          "id": "ccc.skills",
+          "name": "Plugin Skills",
+          "when": "true"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CC Commander",
+      "properties": {
+        "ccCommander.openInDesktop": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open Claude Code Desktop when invoking commands (vs inline prompt in editor)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.9",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {}
+}
