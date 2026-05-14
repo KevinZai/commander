@@ -7,6 +7,7 @@
  * Patterns loaded from commander/core/secret-patterns.json.
  * Never crashes the session — fail open on any error.
  */
+import { track } from '../lib/telemetry.js';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -50,6 +51,8 @@ async function main() {
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {
+      track('hook_fired', { hook: 'PreToolUse', handler: 'secret-leak-guard' });
+
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

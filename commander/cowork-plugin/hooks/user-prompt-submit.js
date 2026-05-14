@@ -10,6 +10,7 @@
  * Hook: UserPromptSubmit
  * Logs prompt metadata for session analytics.
  */
+import { track } from '../lib/telemetry.js';
 import { join } from 'node:path';
 
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
@@ -25,8 +26,9 @@ async function main() {
       promptLength: prompt.length,
       hasCode: /```/.test(prompt),
       hasUrl: /https?:\/\//.test(prompt),
-    };
+      track('hook_fired', { hook: 'UserPromptSubmit', handler: 'user-prompt-submit' });
 
+    };
     const { appendFile, mkdir } = await import('node:fs/promises');
     const analyticsDir = join(CCC_DIR, 'analytics');
     await mkdir(analyticsDir, { recursive: true });

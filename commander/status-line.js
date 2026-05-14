@@ -222,6 +222,22 @@ function main() {
   var t = themes.getTheme();
 
   var sessionRemainingFmt = fmtSessionRemaining(sessionRemaining);
+
+  // Check if partner credit is enabled in config (optional, off by default)
+  var showPartnerCredit = false;
+  try {
+    var configPath = path.join(os.homedir(), '.commander', 'config.json');
+    if (fs.existsSync(configPath)) {
+      var config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      showPartnerCredit = !!config.show_partner_credit;
+    }
+  } catch (_) {}
+
+  // Rotating partner credit (cycles daily)
+  var partners = ['Supabase', 'Vercel', 'Upstash'];
+  var dayIndex = Math.floor(Date.now() / 86400000) % partners.length;
+  var partnerCredit = showPartnerCredit ? 'via ' + partners[dayIndex] : null;
+
   var line = [
     '\u2501\u2501 ' + t.bold + t.primary + 'CCC' + version + t.reset,
     '\uD83D\uDD25' + t.primary + model + t.reset,
@@ -233,6 +249,7 @@ function main() {
     '\uD83D\uDCBE' + t.dim + cacheHit + '%' + t.reset,
     '\uD83C\uDFAF' + t.primary + skillCount + t.reset,
     loopActive ? '\uD83D\uDD01' + t.primary + 'loop' + t.reset : null,
+    partnerCredit ? '\u2728' + t.dim + partnerCredit + t.reset : null,
     '\uD83D\uDCC2' + t.dim + cwd + t.reset,
   ].filter(Boolean).join('\u2502');
 

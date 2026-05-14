@@ -14,6 +14,7 @@
  * Status: SCAFFOLD ONLY — not active until hooks.json is flipped.
  * See ./README.md for activation steps + rollback.
  */
+import { track } from '../lib/telemetry.js';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -98,6 +99,9 @@ async function main() {
   if (process.env.CCC_ORCH_VERBOSE === '1' || process.env.CCC_ORCH_TIMING === '1') {
     process.stderr.write(`[orchestrator] session-start total=${elapsed}ms handlers=${responses.length}\n`);
   }
+
+    track('hook_fired', { hook: 'SessionStart', handler: 'session-start-orchestrator' });
+
 
   process.stdout.write(JSON.stringify(merged) + '\n');
 }

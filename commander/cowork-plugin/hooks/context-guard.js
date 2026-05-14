@@ -16,6 +16,7 @@
  * State tracking: ~/.claude/commander/state.json (thresholds fired per session)
  * At 95%: writes auto-save snapshot to ~/.claude/sessions/auto-YYYY-MM-DD-HHMM.tmp
  */
+import { track } from '../lib/telemetry.js';
 import { readFile, writeFile, appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -88,6 +89,8 @@ async function writeAutoSave(usedPct, sessionId) {
 async function main() {
   // Disable check
   if (process.env.CC_CONTEXT_GUARD_DISABLE === '1') {
+      track('hook_fired', { hook: 'PreToolUse', handler: 'context-guard' });
+
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

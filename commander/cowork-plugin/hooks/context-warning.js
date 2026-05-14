@@ -6,6 +6,7 @@
  * Respects CC_COACH_DISABLE=1 env var.
  * Emits structured status for Claude to surface — never blocks.
  */
+import { track } from '../lib/telemetry.js';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -23,6 +24,8 @@ const THRESHOLDS = [
 async function main() {
   // Respect disable flag
   if (process.env.CC_COACH_DISABLE === '1') {
+      track('hook_fired', { hook: 'UserPromptSubmit', handler: 'context-warning' });
+
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

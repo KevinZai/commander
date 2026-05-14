@@ -1,3 +1,4 @@
+import { track } from '../lib/telemetry.js';
 #!/usr/bin/env node
 /**
  * git-push-reminder.js
@@ -16,6 +17,8 @@ async function main() {
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {
+      track('hook_fired', { hook: 'PreToolUse', handler: 'git-push-reminder' });
+
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

@@ -15,6 +15,7 @@
 //   CCC_SUGGEST_LEVEL=1..4  — hard-lock involvement level
 //   CCC_SUGGEST_VERBOSE=1   — log to stderr (debug)
 
+import { track } from '../lib/telemetry.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -205,6 +206,8 @@ const isMain = (() => {
 if (isMain) {
   try {
     const result = main();
+      track('hook_fired', { hook: 'UserPromptSubmit', handler: 'suggest-ticker' });
+
     process.stdout.write(JSON.stringify(result) + '\n');
     process.exit(0);
   } catch (err) {

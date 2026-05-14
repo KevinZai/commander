@@ -150,6 +150,33 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
       </section>
 
       <section class="s">
+        <h2>Anonymous usage telemetry from the plugin and CLI</h2>
+        <p><strong>Enabled by default.</strong> When you use the CC Commander plugin or CLI, we collect anonymous usage events to understand which features are valuable and prioritize improvements.</p>
+        <div class="note">
+          <strong>What we collect:</strong>
+          <ul style="margin-top: 0;">
+            <li>Event name (e.g., <code>hook_fired</code>, <code>skill_invoked</code>, <code>agent_dispatched</code>)</li>
+            <li>Anonymous device ID (UUID generated once and stored locally in <code>~/.commander/anon-id</code>)</li>
+            <li>Your OS, Node.js version, plugin version</li>
+            <li>Basic counts and non-sensitive metadata (which hook ran, which skill was invoked)</li>
+          </ul>
+        </div>
+        <div class="note">
+          <strong>What we explicitly DO NOT collect:</strong>
+          <ul style="margin-top: 0;">
+            <li>Prompts, file contents, or project paths</li>
+            <li>Environment variable values or secrets</li>
+            <li>Command arguments or personal context</li>
+            <li>Any property with a key matching <code>/prompt|content|path|file|cwd|secret|password|key|token/i</code></li>
+          </ul>
+        </div>
+        <div class="note">
+          <strong>How to opt out:</strong> Either set <code>CCC_TELEMETRY=0</code> in your shell before launching Claude Code, or edit <code>~/.commander/config.json</code> and set <code>"telemetry": false</code>. No restart required.
+        </div>
+        <p>All telemetry events are sent to PostHog and treated as anonymous (no personal data, no IP logging). We use this data to build aggregate reports: "X% of users invoke skill Y" and "hook Z fires most often in scenario W." These reports help us ship features people actually want.</p>
+      </section>
+
+      <section class="s">
         <h2>Third parties we share data with</h2>
         <ul>
           <li><strong>Plausible (EU)</strong> — site analytics, cookieless. <a href="https://plausible.io/privacy" rel="noopener">Plausible's privacy policy</a></li>

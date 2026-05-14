@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { track } from '../lib/telemetry.js';
 import { readFile, appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -30,8 +31,9 @@ async function main() {
       type: safeType,
       source: safeSource,
       message: safeMessage,
-    };
+      track('hook_fired', { hook: 'Notification', handler: 'fleet-notify' });
 
+    };
     await appendFile(join(FLEET_DIR, 'notifications.jsonl'), JSON.stringify(entry) + '\n');
     console.log(JSON.stringify({
       continue: true,

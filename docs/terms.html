@@ -177,6 +177,18 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
         <p>You can stop using the hosted services any time — close your account, delete the plugin, walk away. We can revoke your hosted access for abuse (Section 3). The MIT-licensed plugin remains yours to use under MIT regardless.</p>
       </section>
 
+      <section class="s">
+        <h2>10. Anonymous telemetry from the plugin and CLI</h2>
+        <p><strong>Enabled by default; opt-out is simple.</strong> By using the CC Commander plugin or CLI, you consent to the collection and analysis of anonymous usage events sent to PostHog. This data helps us understand which features provide value and prioritize improvements.</p>
+        <ul>
+          <li><strong>Collection scope:</strong> Event names (e.g., <code>hook_fired</code>, <code>skill_invoked</code>), an anonymous device ID, OS version, Node.js version, and non-sensitive metadata.</li>
+          <li><strong>Sensitive data exclusion:</strong> We explicitly exclude any properties with keys matching prompts, file paths, secrets, or personal context. A server-side scrubber strips these keys if they somehow reach us.</li>
+          <li><strong>Opt-out mechanism:</strong> Set <code>CCC_TELEMETRY=0</code> in your shell or edit <code>~/.commander/config.json</code> to set <code>"telemetry": false</code>. The plugin will not send events when disabled.</li>
+          <li><strong>Data use:</strong> Aggregate reports only — "X% of users invoke skill Y" and "hook Z triggers most often in scenario W." No personal profiles, no session replay, no retargeting.</li>
+          <li><strong>Data retention:</strong> PostHog retains events for 30 days by default unless you've configured a longer retention policy in your PostHog workspace.</li>
+        </ul>
+      </section>
+
       <div class="contact">
         <h2>Contact</h2>
         <p>Questions about these Terms: <a href="mailto:hello@commanderplugin.com">hello@commanderplugin.com</a>.</p>

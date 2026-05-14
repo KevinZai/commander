@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // License-tier gate removed 2026-04-23 — CC Commander is free for now.
+import { track } from '../lib/telemetry.js';
 import { appendFile, readFile, mkdir } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -35,8 +36,9 @@ async function main() {
       tool: toolName,
       file: filePath,
       fileName: basename(filePath),
-    };
+      track('hook_fired', { hook: 'PostToolUse', handler: 'knowledge-capture' });
 
+    };
     if (!existsSync(KNOWLEDGE_DIR)) await mkdir(KNOWLEDGE_DIR, { recursive: true });
     await appendFile(CAPTURES_FILE, JSON.stringify(entry) + '\n');
 

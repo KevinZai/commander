@@ -14,6 +14,7 @@
  *
  * Free for now — no license check, no tier gating.
  */
+import { track } from '../lib/telemetry.js';
 import { appendFile, mkdir, stat, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -78,6 +79,9 @@ async function main() {
     await mkdir(CCC_DIR, { recursive: true });
     await rotateLogs();
     await appendFile(LOG_FILE, JSON.stringify(entry) + '\n');
+
+      track('hook_fired', { hook: 'SubagentStop', handler: 'agent-run-logger' });
+
 
     process.stdout.write(
       JSON.stringify({ continue: true, suppressOutput: true }) + '\n'

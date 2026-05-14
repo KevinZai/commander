@@ -42,6 +42,26 @@ In these docs, we use a `<Note>` callout above any affiliate link:
   Affiliate link — we may earn a commission if you sign up. Same price either way.
 </Note>
 
+## Where you see affiliate links
+
+We surface partner recommendations in high-intent moments — after you scaffold a project, after you deploy, or when diagnostics suggest a missing service. Here are all 11 surfaces:
+
+| Surface | Location | Partners | When shown |
+|---|---|---|---|
+| **Plugin: /ccc-build** | Scaffold output | Supabase, Vercel, Upstash | After web app, API, or CLI scaffold completes |
+| **Plugin: /ccc-deploy** | Post-deploy section | Vercel, Upstash, Cloudflare, Fly, Railway | After successful deployment |
+| **Plugin: /ccc-start** | Onboarding step | Supabase, Vercel, Cloudflare | Optional "Connect your stack" step |
+| **Plugin: /ccc-doctor** | Diagnostics output | Context-aware (DB, deploy, cache, edge) | When your project lacks a service category |
+| **Plugin: session-end hook** | End of session | Rotating (Supabase, Vercel, Upstash) | When session ends (one-time credit) |
+| **Plugin: status-line** | Status bar (optional) | Rotating (Supabase, Vercel, Upstash) | If enabled via `~/.commander/config.json` |
+| **Website: /powered-by** | Marketing page | All 9 partners | Public reference of who powers CC Commander |
+| **Docs: /ccc-connect** | Skill output | 16+ opt-in connectors | When user requests integrations |
+| **Docs: landing page footer** | Powered by section | Top 3 partners | Visible on every page (future) |
+| **GitHub README** | Badges section | Partner logos | Public repository landing |
+| **GitHub Releases** | Release notes | Partner shout-outs | Version release announcements (future) |
+
+All links use UTM tags (`?utm_source=ccc&utm_medium=plugin`) so we can track which surfaces drive conversions.
+
 ## Revenue model
 
 CC Commander sustains itself through four independent revenue streams so no single one

@@ -7,6 +7,7 @@
 // Logs tier badge to stderr (visible in Cowork Desktop session panel).
 
 import { getLicenseTier, getLicenseKey } from '../lib/license.js';
+import { track } from '../lib/telemetry.js';
 
 const TIER_LABELS = {
   'starter':     'Starter',
@@ -44,6 +45,9 @@ async function main() {
       // Non-fatal
     }
   }
+
+  // Telemetry
+  track('hook_fired', { hook: 'SessionStart', handler: 'license-check' });
 
   // Hook protocol: always continue
   process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
