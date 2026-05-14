@@ -9,6 +9,7 @@
  * Non-blocking — warns only via stderr.
  * Never crashes the session — fail open on any error.
  */
+import { track } from '../lib/telemetry.mjs';
 import path from 'node:path';
 
 const ADHOC_FILENAMES = /^(NOTES|TODO|SCRATCH|TEMP|DRAFT|BRAINSTORM|SPIKE|DEBUG|WIP)\.(md|txt)$/;
@@ -31,6 +32,8 @@ async function main() {
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {
+      track('hook_fired', { hook: 'PreToolUse', handler: 'doc-file-warning' });
+
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

@@ -184,6 +184,40 @@ When writing the plan file (path from `EnterPlanMode` or existing session plan p
 Written by `/ccc-start` on <timestamp>.
 ```
 
+## M. Optional: Connect your stack (affiliate-supported)
+
+After the plan file is written, offer a one-time optional "stack connection" step. This is NON-BLOCKING — user can skip.
+
+Render:
+
+```
+question: "Want to connect your stack? (optional — skip if you prefer)"
+header: "CC Commander — Connect your tools"
+multiSelect: true
+options:
+  - label: "💾 Supabase — managed Postgres + auth"
+    description: "Database-as-a-service with built-in authentication and real-time."
+    preview: "[Sign up free](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=supabase-auth)"
+  - label: "🌐 Vercel — deployment + serverless"
+    description: "Deploy your app with one click. Perfect for Next.js + Node."
+    preview: "[Sign up free](https://vercel.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=vercel-deploy)"
+  - label: "🔗 Cloudflare — edge network + workers"
+    description: "Fast global CDN, edge functions, and real-time messaging."
+    preview: "[Sign up free](https://www.cloudflare.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=cloudflare-edge)"
+```
+
+If the user selects any, render a brief confirmation:
+
+> ✨ Great! Click those links to sign up. We'll remember you chose these partners.
+
+Then move on to the "Mark onboarding complete" step.
+
+If the user skips this step, render:
+
+> No problem — you can connect tools anytime via `/ccc-connect`.
+
+Then move on to the "Mark onboarding complete" step.
+
 ## N. Mark onboarding complete (MANDATORY last step)
 
 After the tour concludes (user has answered all questions, plan file written), run this bash command to flip the onboarding flag. This ensures the user is never shown `/ccc-start` again unless they reset state.

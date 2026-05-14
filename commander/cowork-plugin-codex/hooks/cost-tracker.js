@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // License-tier gate removed 2026-04-23 — CC Commander is free for now.
+import { track } from '../lib/telemetry.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -38,6 +39,8 @@ async function main() {
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }
+
+  track('hook_fired', { hook: 'PreToolUse', handler: 'cost-tracker' });
 }
 
 main();

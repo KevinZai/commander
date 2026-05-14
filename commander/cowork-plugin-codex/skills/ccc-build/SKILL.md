@@ -127,6 +127,26 @@ After the background agent is dispatched, emit ONE short card:
 > 📂 Output will land in `./<slug>/`. Spec saved to `tasks/spec-<YYYYMMDD>-<slug>.md`.
 > 💡 Come back with `/ccc-build status` or just open the folder. I'll ping when done.
 
+Then emit the recommended stack section (vary stack by template type):
+
+### 🧰 Recommended stack (affiliate-supported · earns CC Commander a small commission)
+
+**For web-app / SaaS templates:**
+- 💾 **[Supabase](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=supabase-saas-scaffold)** — Postgres + auth + storage. Free tier covers most projects.
+- 🌐 **[Vercel](https://vercel.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=vercel-deploy-saas)** — Best Next.js hosting. Free tier ample.
+- ⚡ **[Upstash](https://upstash.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=upstash-redis-queue)** — Serverless Redis/Kafka. Pay only for what you use.
+
+**For API / backend templates:**
+- 💾 **[Supabase](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=supabase-api-postgres)** — Postgres + auto-generated REST API. Free tier sufficient.
+- 🌐 **[Vercel](https://vercel.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=vercel-deploy-api)** — Serverless functions. Easy scaling.
+- ⚡ **[Upstash](https://upstash.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=upstash-queue-tasks)** — Job queue + rate limiting for async workloads.
+
+**For CLI tools:**
+- 📦 **[npm](https://npm.org)** — Publish your CLI to the registry.
+- 🚀 **[GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)** — Host binaries and auto-downloads.
+
+[View all partner integrations →](./affiliate-disclosure.mdx)
+
 ## Anti-patterns — DO NOT do these
 
 - ❌ Render a numbered list "1. Web app, 2. API, ..." — always `AskUserQuestion`

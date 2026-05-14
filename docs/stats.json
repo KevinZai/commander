@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-05-14T05:38:58.481Z",
+  "totals": {
+    "hook_fires": 2,
+    "sessions": 0,
+    "agents_dispatched": 0,
+    "skill_invocations": 0,
+    "mcp_tool_calls": 0
+  },
+  "top_skills": [],
+  "top_agents": [],
+  "top_hooks": [
+    {
+      "name": "Unknown",
+      "count": 2
+    }
+  ],
+  "sessions_last_7d": 0,
+  "note": "Aggregate telemetry updated daily. Zero prompts, zero code, zero secrets — just event counts."
+}

@@ -16,6 +16,7 @@
  * Hard timeout: 1500ms
  */
 
+import { track } from '../lib/telemetry.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -26,6 +27,8 @@ const VIOLATIONS_FILE = path.join(CCC_DIR, 'clickability-violations.jsonl');
 
 // Hard timeout — never hang the hook chain
 const timeout = setTimeout(() => {
+    track('hook_fired', { hook: 'Stop', handler: 'clickability-watch' });
+
   process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
   process.exit(0);
 }, 1500);

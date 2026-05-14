@@ -8,7 +8,7 @@
  *
  * Free for now — no license check, no tier gating.
  */
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 

@@ -7,6 +7,7 @@
  * Config: ~/.claude/commander/config.json { "costCeiling": 5.00 }
  * Default ceiling: $10.00 (matches existing cost-tracker alert threshold).
  */
+import { track } from '../lib/telemetry.mjs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -28,6 +29,8 @@ async function main() {
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {
+      track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
+
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

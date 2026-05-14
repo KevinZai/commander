@@ -7,7 +7,7 @@
  * Patterns loaded from commander/core/secret-patterns.json.
  * Never crashes the session — fail open on any error.
  */
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';

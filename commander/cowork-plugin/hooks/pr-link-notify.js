@@ -1,4 +1,4 @@
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 #!/usr/bin/env node
 /**
  * pr-link-notify.js

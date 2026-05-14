@@ -22,6 +22,7 @@
  * Hard timeout: 2000ms — process.exit(0) if exceeded.
  */
 
+import { track } from '../lib/telemetry.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -36,6 +37,8 @@ const IDEMPOTENCY_WINDOW_MS = 60_000; // 60 seconds
 
 // Hard timeout guard — exits cleanly rather than hanging the hook chain
 const timeout = setTimeout(() => {
+    track('hook_fired', { hook: 'Stop', handler: 'suggest-lightweight' });
+
   process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
   process.exit(0);
 }, 2000);

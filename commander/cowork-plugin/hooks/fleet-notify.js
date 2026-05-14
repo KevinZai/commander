@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import { readFile, appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';

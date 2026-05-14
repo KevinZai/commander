@@ -16,7 +16,7 @@
  * State tracking: ~/.claude/commander/state.json (thresholds fired per session)
  * At 95%: writes auto-save snapshot to ~/.claude/sessions/auto-YYYY-MM-DD-HHMM.tmp
  */
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import { readFile, writeFile, appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 

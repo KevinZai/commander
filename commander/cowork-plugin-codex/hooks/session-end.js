@@ -8,6 +8,7 @@
  *
  * Free for now — no license check, no tier gating.
  */
+import { track } from '../lib/telemetry.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -36,7 +37,6 @@ async function main() {
       startedAt: sessionData.startedAt,
       // Future: add task completions, patterns learned, corrections made
     };
-
     await writeFile(
       join(KNOWLEDGE_DIR, `session-${sessionId}.json`),
       JSON.stringify(summary, null, 2)
@@ -47,7 +47,18 @@ async function main() {
       await writeFile(activeSessionFile, JSON.stringify({ ...sessionData, status: 'complete', endedAt: summary.endedAt }, null, 2));
     } catch {}
 
-    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+    track('hook_fired', { hook: 'Stop', handler: 'session-end' });
+
+    // Partner credit rotation (cycles daily across Supabase, Vercel, Upstash)
+    const partners = ['Supabase', 'Vercel', 'Upstash'];
+    const dayIndex = Math.floor(Date.now() / 86400000) % partners.length;
+    const partner = partners[dayIndex];
+
+    console.log(JSON.stringify({
+      continue: true,
+      suppressOutput: false,
+      output: `✨ Powered by ${partner} · cc Vercel · cc Upstash · /docs/powered-by`
+    }));
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }

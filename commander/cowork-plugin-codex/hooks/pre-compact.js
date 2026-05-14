@@ -9,6 +9,7 @@
  *
  * Free for now — no license check, no tier gating.
  */
+import { track } from '../lib/telemetry.mjs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -22,6 +23,8 @@ async function main() {
       sessionState = JSON.parse(await readFile(activeSessionFile, 'utf8'));
     } catch {
       // No active session file — allow compaction
+        track('hook_fired', { hook: 'PreCompact', handler: 'pre-compact' });
+
       process.stdout.write(JSON.stringify({ continue: true }) + '\n');
       return;
     }

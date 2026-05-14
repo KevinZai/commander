@@ -10,7 +10,7 @@
  * Hook: UserPromptSubmit
  * Logs prompt metadata for session analytics.
  */
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import { join } from 'node:path';
 
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');

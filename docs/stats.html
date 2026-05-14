@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F0F0F">
+<meta name="color-scheme" content="dark">
+<title>Stats — CC Commander</title>
+<meta name="description" content="Anonymous aggregate usage statistics for CC Commander. Updated daily.">
+<link rel="canonical" href="https://commanderplugin.com/stats">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://commanderplugin.com/stats">
+<meta property="og:title" content="Stats — CC Commander">
+<meta property="og:description" content="Anonymous aggregate usage statistics for CC Commander.">
+<meta property="og:image" content="https://commanderplugin.com/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F0F0F'/%3E%3Cpath d='M9 11l5 5-5 5M16 22h8' stroke='%23FF6B47' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script defer data-domain="commanderplugin.com" src="https://plausible.io/js/script.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F0F0F; --bg-1:#141414; --bg-2:#181818; --bg-3:#1F1F1F;
+  --line:rgba(255,255,255,0.06); --line-2:rgba(255,255,255,0.10); --line-3:rgba(255,255,255,0.16);
+  --fg:#F5F5F0; --fg-dim:#A8A8A0; --fg-faint:#6E6E68;
+  --accent:#FF6B47; --accent-h:#ff7a59; --accent-2:#D4A574;
+  --max:1100px; --gutter:24px;
+  --sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg); color:var(--fg); font-family:var(--sans); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased}
+a{color:var(--accent); text-decoration:none}
+a:hover{color:var(--accent-h); text-decoration:underline; text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
+.wrap{width:100%; max-width:var(--max); margin:0 auto; padding:0 var(--gutter)}
+.nav{position:fixed; top:0; left:0; right:0; z-index:50; backdrop-filter:saturate(160%) blur(14px); -webkit-backdrop-filter:saturate(160%) blur(14px); background:rgba(15,15,15,.82); border-bottom:1px solid var(--line)}
+.nav-inner{display:flex; align-items:center; justify-content:space-between; height:60px}
+.brand{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:13px; font-weight:500; color:inherit}
+.brand:hover{text-decoration:none}
+.brand-mark{width:22px; height:22px; border-radius:5px; background:var(--bg-2); border:1px solid var(--line-2); display:grid; place-items:center; color:var(--accent)}
+.brand-mark svg{width:13px; height:13px}
+.brand-name{color:var(--fg)}
+.brand-sep{color:var(--fg-faint)}
+.brand-tag{color:var(--fg-dim)}
+.nav-links{display:flex; align-items:center; gap:4px}
+.nav-link{padding:7px 12px; border-radius:7px; font-family:var(--mono); font-size:12px; color:var(--fg-dim)}
+.nav-link:hover{color:var(--fg); background:rgba(255,255,255,.03); text-decoration:none}
+.btn{display:inline-flex; align-items:center; gap:8px; padding:0 14px; height:36px; border-radius:7px; font-family:var(--mono); font-size:12.5px; font-weight:500; border:1px solid transparent; transition:all .15s ease; cursor:pointer}
+.btn-primary{background:var(--accent); color:#0F0F0F; border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-h); transform:translateY(-1px); text-decoration:none}
+.btn-sm{height:32px; padding:0 12px; font-size:12px; border-radius:6px}
+main{padding:140px 0 80px; min-height:60vh}
+.eyebrow{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-dim); margin-bottom:18px}
+.eyebrow::before{content:""; width:18px; height:1px; background:var(--accent)}
+h1{font-size:clamp(34px,4.5vw,52px); font-weight:700; letter-spacing:-0.02em; line-height:1.08; margin:0 0 18px}
+.lede{font-size:clamp(16px,1.4vw,19px); color:var(--fg-dim); max-width:62ch; margin:0 0 8px}
+article{max-width:740px; margin:0 auto}
+article > .hdr{padding-bottom:36px; border-bottom:1px solid var(--line); margin-bottom:40px}
+.stats-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:18px; margin-bottom:48px}
+.stat-card{background:var(--bg-2); border:1px solid var(--line-2); border-radius:12px; padding:24px; transition:all .2s ease}
+.stat-card:hover{border-color:var(--line-3); background:var(--bg-3)}
+.stat-label{font-family:var(--mono); font-size:12px; color:var(--fg-faint); text-transform:uppercase; letter-spacing:.08em; margin-bottom:12px; display:block}
+.stat-value{font-family:var(--mono); font-size:clamp(32px, 4vw, 48px); font-weight:600; color:var(--accent); line-height:1.1; margin-bottom:6px}
+.stat-subtitle{font-size:13px; color:var(--fg-dim)}
+.leaderboard{margin-bottom:48px}
+.leaderboard-title{font-family:var(--mono); font-size:14px; font-weight:600; color:var(--fg); margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--line)}
+.leaderboard-list{display:flex; flex-direction:column; gap:10px}
+.leaderboard-item{display:flex; align-items:center; justify-content:space-between; padding:12px; background:var(--bg-2); border-radius:8px; border:1px solid var(--line-2); font-family:var(--mono); font-size:13px}
+.leaderboard-rank{color:var(--fg-faint); width:24px; text-align:center}
+.leaderboard-name{flex:1; color:var(--fg); margin:0 16px}
+.leaderboard-count{color:var(--accent); font-weight:500}
+.note{padding:14px 18px; background:var(--bg-2); border-left:2px solid var(--accent); border-radius:0 8px 8px 0; margin:24px 0; font-size:14.5px}
+.note strong{color:var(--fg)}
+.note-title{font-weight:600; margin-bottom:8px}
+footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
+.foot-grid{display:flex; flex-direction:column; gap:16px; align-items:center; text-align:center}
+.foot-links{display:flex; flex-wrap:wrap; gap:18px; justify-content:center}
+.foot-links a{font-family:var(--mono); font-size:12px; color:var(--fg-dim)}
+.foot-links a:hover{color:var(--fg); text-decoration:none}
+.foot-meta{font-family:var(--mono); font-size:11.5px; color:var(--fg-faint); display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.foot-meta .sep{color:var(--fg-faint)}
+@media (max-width:640px){
+  .nav-links{display:none}
+  main{padding:110px 0 60px}
+  .stats-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a href="/" class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l4 4-4 4M8 12h5"/></svg>
+      </span>
+      <span class="brand-name">commander</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-tag">stats</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="/">home</a>
+      <a class="nav-link" href="/compare">compare</a>
+      <a class="nav-link" href="https://docs.commanderplugin.com" rel="noopener">docs</a>
+      <a class="nav-link" href="https://github.com/KevinZai/commander" rel="noopener">github</a>
+      <a class="btn btn-primary btn-sm nav-cta" href="/#install">Install</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap">
+    <article>
+      <div class="hdr">
+        <p class="eyebrow">Updated daily</p>
+        <h1>Anonymous usage stats</h1>
+        <p class="lede">Aggregate telemetry shows what's valuable. We collect zero prompts, zero code, zero secrets. Just event counts.</p>
+      </div>
+
+      <div class="stats-grid" id="stats-container">
+        <div class="stat-card">
+          <label class="stat-label">Hook fires (30d)</label>
+          <div class="stat-value" data-metric="hook_fires">—</div>
+          <div class="stat-subtitle">Plugin lifecycle events</div>
+        </div>
+        <div class="stat-card">
+          <label class="stat-label">Sessions (30d)</label>
+          <div class="stat-value" data-metric="sessions">—</div>
+          <div class="stat-subtitle">Claude Code sessions</div>
+        </div>
+        <div class="stat-card">
+          <label class="stat-label">Agents dispatched (30d)</label>
+          <div class="stat-value" data-metric="agents_dispatched">—</div>
+          <div class="stat-subtitle">Sub-agent invocations</div>
+        </div>
+        <div class="stat-card">
+          <label class="stat-label">Skill invocations (30d)</label>
+          <div class="stat-value" data-metric="skill_invocations">—</div>
+          <div class="stat-subtitle">Plugin skills used</div>
+        </div>
+        <div class="stat-card">
+          <label class="stat-label">MCP tool calls (30d)</label>
+          <div class="stat-value" data-metric="mcp_tool_calls">—</div>
+          <div class="stat-subtitle">Hosted MCP server</div>
+        </div>
+      </div>
+
+      <div class="leaderboard">
+        <div class="leaderboard-title">Top 5 skills</div>
+        <div class="leaderboard-list" id="top-skills">
+          <div class="leaderboard-item">
+            <div class="leaderboard-rank">—</div>
+            <div class="leaderboard-name">Loading...</div>
+            <div class="leaderboard-count">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="leaderboard">
+        <div class="leaderboard-title">Top 5 agents</div>
+        <div class="leaderboard-list" id="top-agents">
+          <div class="leaderboard-item">
+            <div class="leaderboard-rank">—</div>
+            <div class="leaderboard-name">Loading...</div>
+            <div class="leaderboard-count">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="leaderboard">
+        <div class="leaderboard-title">Top 5 hooks</div>
+        <div class="leaderboard-list" id="top-hooks">
+          <div class="leaderboard-item">
+            <div class="leaderboard-rank">—</div>
+            <div class="leaderboard-name">Loading...</div>
+            <div class="leaderboard-count">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="note-title">What this data represents</div>
+        <p style="margin:0">Anonymous, aggregate usage over the past 30 days. We count events but never store your prompts, code, files, or personal context. You can opt out at any time by setting <code>CCC_TELEMETRY=0</code> before launching Claude Code or editing <code>~/.commander/config.json</code>.</p>
+      </div>
+
+      <div class="note">
+        <div class="note-title">Privacy</div>
+        <p style="margin:0">This data is 100% anonymous and aggregate. Read more about what we collect and why on our <a href="/privacy">privacy page</a>.</p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4l4 4-4 4M8 12h5"/></svg>
+      </span>
+      <span class="brand-name">commander</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-tag">commanderplugin.com</span>
+    </div>
+    <div class="foot-links">
+      <a href="/">home</a>
+      <a href="/compare">compare</a>
+      <a href="/privacy">privacy</a>
+      <a href="/stats">stats</a>
+      <a href="https://github.com/KevinZai/commander" rel="noopener noreferrer">github</a>
+      <a href="https://docs.commanderplugin.com" rel="noopener noreferrer">docs</a>
+      <a href="https://x.com/commanderplugin" rel="noopener noreferrer">@commanderplugin</a>
+    </div>
+    <div class="foot-meta">
+      <span>MIT</span><span class="sep">·</span>
+      <span>v4.1.0-beta.2</span><span class="sep">·</span>
+      <span>© 2026 Kevin Zicherman</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+async function loadStats() {
+  try {
+    const response = await fetch('/stats.json');
+    const data = await response.json();
+
+    // Animate totals
+    const totals = data.totals;
+    for (const [key, value] of Object.entries(totals)) {
+      const el = document.querySelector(`[data-metric="${key}"]`);
+      if (el) {
+        animateCounter(el, value);
+      }
+    }
+
+    // Populate leaderboards
+    if (data.top_skills && data.top_skills.length > 0) {
+      renderLeaderboard('top-skills', data.top_skills);
+    }
+    if (data.top_agents && data.top_agents.length > 0) {
+      renderLeaderboard('top-agents', data.top_agents);
+    }
+    if (data.top_hooks && data.top_hooks.length > 0) {
+      renderLeaderboard('top-hooks', data.top_hooks);
+    }
+  } catch (err) {
+    console.error('Failed to load stats:', err);
+  }
+}
+
+function animateCounter(el, targetValue) {
+  const duration = 1000;
+  const startTime = Date.now();
+  const startValue = 0;
+
+  function update() {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const current = Math.floor(startValue + (targetValue - startValue) * progress);
+    el.textContent = current.toLocaleString();
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+  update();
+}
+
+function renderLeaderboard(id, items) {
+  const container = document.getElementById(id);
+  container.innerHTML = items.map((item, idx) => `
+    <div class="leaderboard-item">
+      <div class="leaderboard-rank">${idx + 1}</div>
+      <div class="leaderboard-name">${item.name || item.skill || item.hook}</div>
+      <div class="leaderboard-count">${item.count.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', loadStats);
+</script>
+
+</body>
+</html>

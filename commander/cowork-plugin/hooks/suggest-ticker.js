@@ -15,7 +15,7 @@
 //   CCC_SUGGEST_LEVEL=1..4  — hard-lock involvement level
 //   CCC_SUGGEST_VERBOSE=1   — log to stderr (debug)
 
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

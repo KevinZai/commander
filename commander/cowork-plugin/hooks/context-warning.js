@@ -6,7 +6,7 @@
  * Respects CC_COACH_DISABLE=1 env var.
  * Emits structured status for Claude to surface — never blocks.
  */
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 

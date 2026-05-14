@@ -7,7 +7,7 @@
  * Config: ~/.claude/commander/config.json { "costCeiling": 5.00 }
  * Default ceiling: $10.00 (matches existing cost-tracker alert threshold).
  */
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 

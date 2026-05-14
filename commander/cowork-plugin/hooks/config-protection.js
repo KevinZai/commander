@@ -8,7 +8,7 @@
  * Adapted from ECC vendor (CommonJS → ESM).
  * Never crashes the session — fail open on any error.
  */
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import path from 'node:path';
 
 const PROTECTED_FILES = new Set([

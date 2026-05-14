@@ -22,7 +22,7 @@
  * Hard timeout: 2000ms — process.exit(0) if exceeded.
  */
 
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

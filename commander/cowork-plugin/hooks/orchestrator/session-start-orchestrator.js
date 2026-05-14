@@ -14,7 +14,7 @@
  * Status: SCAFFOLD ONLY — not active until hooks.json is flipped.
  * See ./README.md for activation steps + rollback.
  */
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 

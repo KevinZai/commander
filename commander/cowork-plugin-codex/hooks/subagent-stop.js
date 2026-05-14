@@ -8,6 +8,7 @@
  *
  * Free for now — no license check, no tier gating.
  */
+import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -26,8 +27,9 @@ async function main() {
       agentName,
       inputTokens,
       outputTokens,
-    };
+      track('hook_fired', { hook: 'SubagentStop', handler: 'subagent-stop' });
 
+    };
     const analyticsDir = join(CCC_DIR, 'analytics');
     await mkdir(analyticsDir, { recursive: true });
     await appendFile(

@@ -7,7 +7,7 @@
 // Logs tier badge to stderr (visible in Cowork Desktop session panel).
 
 import { getLicenseTier, getLicenseKey } from '../lib/license.js';
-import { track } from '../lib/telemetry.js';
+import { track } from '../lib/telemetry.mjs';
 
 const TIER_LABELS = {
   'starter':     'Starter',

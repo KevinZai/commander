@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // License-tier gate removed 2026-04-23 — CC Commander is free for now.
+import { track } from '../lib/telemetry.mjs';
 import { join } from 'node:path';
 
 const SKILL_PATTERNS = [
@@ -49,6 +50,8 @@ async function main() {
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }
+
+  track('hook_fired', { hook: 'UserPromptSubmit', handler: 'intent-classifier' });
 }
 
 main();

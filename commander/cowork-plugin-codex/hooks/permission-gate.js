@@ -29,6 +29,7 @@
  *
  * Free for now — no license check, no tier gating.
  */
+import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -94,6 +95,8 @@ async function main() {
     if (raw) input = JSON.parse(raw);
   } catch {
     // Malformed or missing payload — fail open
+      track('hook_fired', { hook: 'PermissionRequest', handler: 'permission-gate' });
+
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

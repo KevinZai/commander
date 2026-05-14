@@ -6,6 +6,7 @@ var adventure = require('./adventure');
 var tui = require('./tui');
 var state = require('./state');
 var BRAND = require('./branding');
+var telemetry = (function() { try { return require('./telemetry-cjs'); } catch (_e) { return { track: function() {}, flushBatch: function() {} }; } })();
 try { require('./lib/telemetry-cjs').track('cli_session_started', { ide: 'cli', surface: 'engine' }); } catch(_e) {}
 
 // Send status to the tmux right pane (Claude side) if in split mode
@@ -212,10 +213,15 @@ class KitCommander {
     process.on('SIGINT', function() {
       process.stdout.write('\n\n  Interrupted. Saving state...\n');
       process.stdout.write('  ' + tui.dimText(BRAND.footer) + '\n');
+      try { telemetry.flushBatch(); } catch (_e) {}
       process.exit(0);
     });
 
     this.running = true;
+    this._sessionStartedAt = Date.now();
+    this._skillsUsed = 0;
+    this._agentsDispatched = 0;
+    try { telemetry.track('cli_command_executed', { cmd: 'start' }); } catch (_e) {}
     var currentState = state.loadState();
 
     // Load saved theme
@@ -940,6 +946,15 @@ class KitCommander {
   async quit() {
     process.stdout.write('\n  ' + tui.colorText(S.BAR_END + '  Session complete. See you next time!', tui.getTheme().dim) + '\n\n');
     this.running = false;
+    try {
+      var duration = this._sessionStartedAt ? Math.round((Date.now() - this._sessionStartedAt) / 1000) : 0;
+      telemetry.track('session_ended', {
+        duration_seconds: duration,
+        skills_used_count: this._skillsUsed || 0,
+        agents_dispatched_count: this._agentsDispatched || 0,
+      });
+      telemetry.flushBatch();
+    } catch (_e) {}
     if (this.rl) this.rl.close();
   }
 
