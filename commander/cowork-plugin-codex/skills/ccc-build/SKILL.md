@@ -1,6 +1,6 @@
 ---
 name: ccc-build
-description: "scaffold a project or feature with a guided spec interview. Routes into web app, API, CLI, or mobile templates; cascades into a 3-question spec flow; spawns a…"
+description: "Build something new — web app, API, CLI, or mobile. Guided spec interview routes to the right template, then scaffolds. Use when: 'build something', 'new project', 'create app'."
 allowed-tools:
   - Read
   - Write
