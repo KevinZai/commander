@@ -1,6 +1,6 @@
 ---
 name: security-auditor
-description: "[C:agent] — Senior application security engineer for OWASP-mapped audits, vulnerability discovery, and remediation planning. Finds CVE/CWE-identified issues with actionable fixes…"
+description: "Senior application security engineer for OWASP-mapped audits, vulnerability discovery, and remediation planning. Finds CVE/CWE-identified issues with actionable fixes…"
 model: claude-opus-4-7
 effort: high
 persona: personas/security-auditor

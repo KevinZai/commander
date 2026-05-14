@@ -1,5 +1,5 @@
 ---
-description: "[C:lifecycle] — Load the most recent session file from ~/.claude/sessions/ and resume work with full context from where the last session ended."
+description: "Load the most recent session file from ~/.claude/sessions/ and resume work with full context from where the last session ended."
 ---
 
 # Resume Session Command

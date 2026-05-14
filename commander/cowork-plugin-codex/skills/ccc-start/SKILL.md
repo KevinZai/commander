@@ -1,6 +1,6 @@
 ---
 name: ccc-start
-description: "[C:plugin] — First-run onboarding for CC Commander. Detects setup, introduces the 22 specialist agent personas, and drafts a personalized start plan. Use when the user types…"
+description: "First-run onboarding for CC Commander. Detects setup, introduces the 22 specialist agent personas, and drafts a personalized start plan. Use when the user types…"
 allowed-tools:
   - Read
   - Write

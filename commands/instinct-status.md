@@ -1,6 +1,6 @@
 ---
 name: instinct-status
-description: "[C:meta] — Show learned instincts (project + global) with confidence"
+description: "Show learned instincts (project + global) with confidence"
 command: true
 ---
 

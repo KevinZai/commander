@@ -1,5 +1,5 @@
 name = "java-reviewer"
-description = "[C:agent] — Java-specific code reviewer. Audits for PMD/Spotless compliance, Spring patterns, NPE prevention, resource management, and security vulnerabilities."
+description = "Java-specific code reviewer. Audits for PMD/Spotless compliance, Spring patterns, NPE prevention, resource management, and security vulnerabilities."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep

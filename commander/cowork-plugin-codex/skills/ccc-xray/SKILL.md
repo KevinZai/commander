@@ -1,6 +1,6 @@
 ---
 name: ccc-xray
-description: "[C:plugin] — Project health scorecard — scans current repo across 7 dimensions (quality, docs, tests, deps, security, perf, CI) and returns a markdown table with 0-100 scores +…"
+description: "Project health scorecard — scans current repo across 7 dimensions (quality, docs, tests, deps, security, perf, CI) and returns a markdown table with 0-100 scores +…"
 allowed-tools:
   - Read
   - Write

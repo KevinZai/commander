@@ -1,6 +1,6 @@
 ---
 name: researcher
-description: "[C:agent] — Deep research agent for competitive analysis, market research, code audits, and SEO analysis. Synthesizes multi-source findings into structured reports with actionable…"
+description: "Deep research agent for competitive analysis, market research, code audits, and SEO analysis. Synthesizes multi-source findings into structured reports with actionable…"
 model: claude-sonnet-4-6
 effort: undefined
 effort: high

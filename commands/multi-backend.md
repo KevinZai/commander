@@ -1,5 +1,5 @@
 ---
-description: "[C:devops] — Backend-focused multi-model workflow: Research → Plan → Execute → Review, Codex-led."
+description: "Backend-focused multi-model workflow: Research → Plan → Execute → Review, Codex-led."
 ---
 
 # Backend - Backend-Focused Development

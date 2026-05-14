@@ -1,6 +1,6 @@
 ---
 name: ccc-brainstorm
-description: "[C:workflow] — Design-first ideation gate. Forces 3 alternatives before any code is written. Triggers AskUserQuestion to pick the path."
+description: "Design-first ideation gate. Forces 3 alternatives before any code is written. Triggers AskUserQuestion to pick the path."
 allowed-tools:
   - Agent
   - AskUserQuestion

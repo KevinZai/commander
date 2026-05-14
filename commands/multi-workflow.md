@@ -1,5 +1,5 @@
 ---
-description: "[C:devops] — Full multi-model development workflow with intelligent routing: Frontend → Gemini, Backend → Codex."
+description: "Full multi-model development workflow with intelligent routing: Frontend → Gemini, Backend → Codex."
 ---
 
 # Workflow - Multi-Model Collaborative Development

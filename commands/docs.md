@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Look up current documentation for a library or topic via Context7."
+description: "Look up current documentation for a library or topic via Context7."
 ---
 
 # /docs

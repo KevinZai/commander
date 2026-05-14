@@ -1,5 +1,5 @@
 ---
-description: "[C:plugin] — Orchestrate code changes across multiple repositories simultaneously using --add-dir."
+description: "Orchestrate code changes across multiple repositories simultaneously using --add-dir."
 ---
 
 # Multi-Repo

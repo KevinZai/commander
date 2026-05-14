@@ -1,6 +1,6 @@
 ---
 name: java-reviewer
-description: "[C:agent] — Java-specific code reviewer. Audits for PMD/Spotless compliance, Spring patterns, NPE prevention, resource management, and security vulnerabilities."
+description: "Java-specific code reviewer. Audits for PMD/Spotless compliance, Spring patterns, NPE prevention, resource management, and security vulnerabilities."
 model: sonnet
 effort: high
 persona: personas/reviewer

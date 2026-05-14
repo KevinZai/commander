@@ -1,6 +1,6 @@
 ---
 name: python-reviewer
-description: "[C:agent] — Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated…"
+description: "Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated…"
 model: sonnet
 effort: high
 persona: personas/reviewer

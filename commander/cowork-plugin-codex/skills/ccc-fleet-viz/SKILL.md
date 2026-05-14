@@ -1,6 +1,6 @@
 ---
 name: ccc-fleet-viz
-description: "[C:plugin] — Live CC Commander fleet visualization. Use when the user types /ccc-fleet-viz, asks to see agent fleet progress, or after any /ccc-fleet run finishes so the final…"
+description: "Live CC Commander fleet visualization. Use when the user types /ccc-fleet-viz, asks to see agent fleet progress, or after any /ccc-fleet run finishes so the final…"
 model: sonnet
 effort: medium
 allowed-tools:

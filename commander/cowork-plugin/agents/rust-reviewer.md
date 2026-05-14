@@ -1,6 +1,6 @@
 ---
 name: rust-reviewer
-description: "[C:agent] — Rust-specific code reviewer. Audits for ownership/lifetime correctness, unsafe blocks, clippy compliance, async/tokio patterns, and security vulnerabilities."
+description: "Rust-specific code reviewer. Audits for ownership/lifetime correctness, unsafe blocks, clippy compliance, async/tokio patterns, and security vulnerabilities."
 model: sonnet
 effort: high
 persona: personas/reviewer

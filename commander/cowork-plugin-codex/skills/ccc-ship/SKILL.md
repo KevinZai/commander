@@ -1,6 +1,6 @@
 ---
 name: ccc-ship
-description: "[C:plugin] — pre-flight checks, cut a release, deploy to a platform, or rollback safely. Runs the test matrix in parallel and reports a checkbox scorecard; orchestrates version…"
+description: "pre-flight checks, cut a release, deploy to a platform, or rollback safely. Runs the test matrix in parallel and reports a checkbox scorecard; orchestrates version…"
 allowed-tools:
   - Read
   - Write

@@ -1,6 +1,6 @@
 ---
 name: fleet-worker
-description: "[C:agent] — General-purpose parallel worker for fleet operations. Executes a single scoped task independently and reports structured results. Spawned by /ccc-fleet for batch…"
+description: "General-purpose parallel worker for fleet operations. Executes a single scoped task independently and reports structured results. Spawned by /ccc-fleet for batch…"
 model: sonnet
 effort: medium
 persona: personas/fleet-worker

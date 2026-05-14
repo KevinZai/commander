@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Activate careful/safety mode. Blocks destructive commands and requires explicit confirmation before mutations."
+description: "Activate careful/safety mode. Blocks destructive commands and requires explicit confirmation before mutations."
 ---
 
 Activate careful/safety mode for this session.

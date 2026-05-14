@@ -1,6 +1,6 @@
 ---
 name: ccc-standup
-description: "[C:meta] — \"Generate a standup update from recent activity. Use when: 'standup', 'daily update', 'what did I do', 'morning check-in', 'yesterday today blockers', 'team update',…"
+description: "\"Generate a standup update from recent activity. Use when: 'standup', 'daily update', 'what did I do', 'morning check-in', 'yesterday today blockers', 'team update',…"
 allowed-tools:
   - Read
   - Write

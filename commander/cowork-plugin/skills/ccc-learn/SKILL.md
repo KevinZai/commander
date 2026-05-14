@@ -1,6 +1,6 @@
 ---
 name: ccc-learn
-description: "[C:plugin] — CC Commander learning hub — click-first picker across 11 CCC domains (502+ skills). Routes to ccc-design, ccc-marketing, ccc-saas and 8 more domain routers. Use when…"
+description: "CC Commander learning hub — click-first picker across 11 CCC domains (502+ skills). Routes to ccc-design, ccc-marketing, ccc-saas and 8 more domain routers. Use when…"
 allowed-tools:
   - Read
   - Write

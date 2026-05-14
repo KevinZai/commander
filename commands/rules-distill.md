@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Scan skills to extract cross-cutting principles and distill them into rules"
+description: "Scan skills to extract cross-cutting principles and distill them into rules"
 ---
 
 # /rules-distill — Distill Principles from Skills into Rules

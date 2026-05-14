@@ -1,6 +1,6 @@
 ---
 name: ccc-infra
-description: "[C:devops] — Infrastructure probe — manage Fleet Commander, Synapse, Cost tracking, CloudCLI, AO, Paperclip, TaskMaster. Use when the user says 'infrastructure', 'fleet', 'cost',…"
+description: "Infrastructure probe — manage Fleet Commander, Synapse, Cost tracking, CloudCLI, AO, Paperclip, TaskMaster. Use when the user says 'infrastructure', 'fleet', 'cost',…"
 allowed-tools:
   - Bash
   - Read

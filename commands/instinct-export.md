@@ -1,6 +1,6 @@
 ---
 name: instinct-export
-description: "[C:meta] — Export instincts from project/global scope to a file"
+description: "Export instincts from project/global scope to a file"
 command: /instinct-export
 ---
 

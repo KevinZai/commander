@@ -1,6 +1,6 @@
 ---
 name: ccc-save-session
-description: "[C:lifecycle] — Compress the current Claude Code session into a dense reloadable summary — key decisions, files modified, what worked, what did NOT work, open questions, exact next step."
+description: "Compress the current Claude Code session into a dense reloadable summary — key decisions, files modified, what worked, what did NOT work, open questions, exact next step."
 model: sonnet
 effort: medium
 ---

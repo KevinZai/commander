@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Safely identify and remove dead code with test verification at every step."
+description: "Safely identify and remove dead code with test verification at every step."
 ---
 
 # Refactor Clean

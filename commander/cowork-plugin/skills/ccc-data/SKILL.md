@@ -1,7 +1,7 @@
 ---
 name: ccc-data
 context: fork
-description: "[C:data] — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search."
+description: "complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search."
 allowed-tools:
   - Read
 ---

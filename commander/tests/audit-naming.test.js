@@ -37,10 +37,9 @@ function makeTmp(structure) {
   }
 }
 
-// ── Unit: extractDescription ─────────────────────────────────────────────────
+// ── Unit: extractDescription parses correctly ────────────────────────────────
 test('extractDescription: parses quoted description', function() {
-  // Simulate what the script does
-  const content = `---\nname: foo\ndescription: "[C:plugin] — Something"\n---\n\nbody`;
+  const content = `---\nname: foo\ndescription: "Build something new"\n---\n\nbody`;
   const m = content.match(/^---\s*\n([\s\S]*?)\n---/);
   assert.ok(m, 'Has frontmatter');
   const fm = m[1];
@@ -48,7 +47,7 @@ test('extractDescription: parses quoted description', function() {
   assert.ok(dm, 'Has description line');
   let raw = dm[1].trim();
   if (raw.startsWith('"') && raw.endsWith('"')) raw = raw.slice(1, -1);
-  assert.ok(raw.startsWith('[C:plugin]'), 'Prefix present');
+  assert.equal(raw, 'Build something new', 'Description parsed clean');
 });
 
 // ── Live tree: 0 violations on current codebase ───────────────────────────────
@@ -71,9 +70,9 @@ test('Audit covers all 3 scan directories', function() {
   assert.ok(fs.existsSync(commandsDir), 'Commands dir exists');
   // Count files
   const skills = fs.readdirSync(skillsDir).filter(d => fs.existsSync(path.join(skillsDir, d, 'SKILL.md')));
-  assert.ok(skills.length >= 50, `Expected ≥50 plugin skills, got ${skills.length}`);
+  assert.ok(skills.length >= 60, `Expected ≥60 plugin skills, got ${skills.length}`);
   const agents = fs.readdirSync(agentsDir).filter(f => f.endsWith('.md') && !f.includes('.backup'));
-  assert.ok(agents.length >= 15, `Expected ≥15 agents, got ${agents.length}`);
+  assert.ok(agents.length >= 22, `Expected ≥22 agents, got ${agents.length}`);
 });
 
 // ── Valid domain list covers all used domains ─────────────────────────────────
@@ -86,8 +85,8 @@ test('All domains in VALID_DOMAINS are strings and non-empty', function() {
   assert.ok(VALID_DOMAINS.includes('meta'), 'meta domain present');
 });
 
-// ── All plugin skills have [C:...] prefix ─────────────────────────────────────
-test('All plugin skills have [C:domain] — prefix', function() {
+// ── Plugin skills must NOT have [C:...] prefix (UX cleanup 2026-05-14) ──────
+test('No plugin skill has [C:domain] — prefix (UX cleanup)', function() {
   const skillsDir = path.join(ROOT, 'commander/cowork-plugin/skills');
   const failures = [];
   for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
@@ -102,15 +101,15 @@ test('All plugin skills have [C:domain] — prefix', function() {
     if (!dm) { failures.push(`${entry.name}: no description`); continue; }
     let raw = dm[1].trim();
     if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) raw = raw.slice(1, -1);
-    if (!raw.match(/^\[C:[a-z-]+\]\s*[—–-]/)) {
-      failures.push(`${entry.name}: missing prefix — got: "${raw.slice(0, 60)}"`);
+    if (/^\[C:[a-z-]+\]\s*[—–-]/.test(raw)) {
+      failures.push(`${entry.name}: stale prefix — "${raw.slice(0, 60)}"`);
     }
   }
-  assert.deepStrictEqual(failures, [], `Skills with bad prefix:\n${failures.join('\n')}`);
+  assert.deepStrictEqual(failures, [], `Skills with stale [C:*] prefix:\n${failures.join('\n')}`);
 });
 
-// ── All agents have [C:agent] prefix ─────────────────────────────────────────
-test('All plugin agents have [C:agent] — prefix', function() {
+// ── Plugin agents must NOT have [C:agent] prefix (UX cleanup) ───────────────
+test('No plugin agent has [C:agent] — prefix (UX cleanup)', function() {
   const agentsDir = path.join(ROOT, 'commander/cowork-plugin/agents');
   const failures = [];
   for (const entry of fs.readdirSync(agentsDir)) {
@@ -124,11 +123,11 @@ test('All plugin agents have [C:agent] — prefix', function() {
     if (!dm) { failures.push(`${entry}: no description`); continue; }
     let raw = dm[1].trim();
     if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) raw = raw.slice(1, -1);
-    if (!raw.startsWith('[C:agent]')) {
-      failures.push(`${entry}: expected [C:agent], got: "${raw.slice(0, 60)}"`);
+    if (/^\[C:[a-z-]+\]\s*[—–-]/.test(raw)) {
+      failures.push(`${entry}: stale prefix — "${raw.slice(0, 60)}"`);
     }
   }
-  assert.deepStrictEqual(failures, [], `Agents with bad prefix:\n${failures.join('\n')}`);
+  assert.deepStrictEqual(failures, [], `Agents with stale [C:*] prefix:\n${failures.join('\n')}`);
 });
 
 // ── All descriptions ≤ 200 chars ──────────────────────────────────────────────

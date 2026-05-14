@@ -1,6 +1,6 @@
 ---
 name: ccc-e2e
-description: "[C:testing] — end-to-end pre-release assessment. Fans out via /ccc-fleet into 3 isolated worktrees (QA audit + unit tests + Playwright E2E), each invoking /ccc-testing sub-skills,…"
+description: "end-to-end pre-release assessment. Fans out via /ccc-fleet into 3 isolated worktrees (QA audit + unit tests + Playwright E2E), each invoking /ccc-testing sub-skills,…"
 model: sonnet
 effort: high
 allowed-tools:

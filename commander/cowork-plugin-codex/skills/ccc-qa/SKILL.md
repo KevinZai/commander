@@ -1,6 +1,6 @@
 ---
 name: ccc-qa
-description: "[C:testing] — QA workflow. Runs unit + integration + E2E tests, coverage delta, edge case enumeration, flaky test quarantine. Delegates to qa-engineer agent."
+description: "QA workflow. Runs unit + integration + E2E tests, coverage delta, edge case enumeration, flaky test quarantine. Delegates to qa-engineer agent."
 allowed-tools:
   - Bash
   - Read

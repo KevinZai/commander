@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Recommend the best model tier for the current task by complexity and budget constraints."
+description: "Recommend the best model tier for the current task by complexity and budget constraints."
 ---
 
 # Model Route Command

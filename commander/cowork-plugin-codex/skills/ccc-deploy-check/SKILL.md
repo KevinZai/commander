@@ -1,6 +1,6 @@
 ---
 name: ccc-deploy-check
-description: "[C:devops] — \"Pre-deployment readiness gate. Use when: 'deploy check', 'ready to ship?', 'pre-deploy', 'deployment gate', 'should I deploy?', 'is it safe to ship?', 'checklist…"
+description: "\"Pre-deployment readiness gate. Use when: 'deploy check', 'ready to ship?', 'pre-deploy', 'deployment gate', 'should I deploy?', 'is it safe to ship?', 'checklist…"
 allowed-tools:
   - Read
   - Write

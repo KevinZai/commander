@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: "[C:agent] — Systematic debugger using the Iron Law: no fix without confirmed root cause. Reproduces errors, traces execution paths, forms and verifies hypotheses, then implements…"
+description: "Systematic debugger using the Iron Law: no fix without confirmed root cause. Reproduces errors, traces execution paths, forms and verifies hypotheses, then implements…"
 model: claude-opus-4-7
 effort: xhigh
 persona: personas/debugger

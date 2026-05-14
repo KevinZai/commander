@@ -1,6 +1,6 @@
 ---
 name: ccc-linear
-description: "[C:plugin] — Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types /ccc-linear, /ccc linear, says…"
+description: "Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types /ccc-linear, /ccc linear, says…"
 allowed-tools:
   - Read
   - Write

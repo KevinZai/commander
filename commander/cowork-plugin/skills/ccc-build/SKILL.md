@@ -1,6 +1,6 @@
 ---
 name: ccc-build
-description: "[C:plugin] — scaffold a project or feature with a guided spec interview. Routes into web app, API, CLI, or mobile templates; cascades into a 3-question spec flow; spawns a…"
+description: "scaffold a project or feature with a guided spec interview. Routes into web app, API, CLI, or mobile templates; cascades into a 3-question spec flow; spawns a…"
 allowed-tools:
   - Read
   - Write

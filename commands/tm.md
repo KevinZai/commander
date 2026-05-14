@@ -1,5 +1,5 @@
 ---
-description: "[C:devops] — TaskMaster — structured PRD→task decomposition, complexity analysis, and implementation pipeline. Paid tier project planning engine."
+description: "TaskMaster — structured PRD→task decomposition, complexity analysis, and implementation pipeline. Paid tier project planning engine."
 ---
 
 # /tm — TaskMaster Project Planning

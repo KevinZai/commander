@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Real-time cost tracking across all agent sessions"
+description: "Real-time cost tracking across all agent sessions"
 ---
 
 # /cost — Cost Tracker

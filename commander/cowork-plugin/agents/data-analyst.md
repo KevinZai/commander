@@ -1,6 +1,6 @@
 ---
 name: data-analyst
-description: "[C:agent] — Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and…"
+description: "Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and…"
 model: sonnet
 effort: high
 persona: personas/data-analyst

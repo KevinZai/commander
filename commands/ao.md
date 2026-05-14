@@ -1,5 +1,5 @@
 ---
-description: "[C:devops] — Composio AO — spawn parallel agents with worktree isolation"
+description: "Composio AO — spawn parallel agents with worktree isolation"
 ---
 
 # /ao — Composio Agent Orchestrator

@@ -1,6 +1,6 @@
 ---
 name: ccc-suggest
-description: "[C:plugin] — AI-powered 'what should I do next' advisor. Always running in the background (via UserPromptSubmit hook) — observes project state, user intent, and session history,…"
+description: "AI-powered 'what should I do next' advisor. Always running in the background (via UserPromptSubmit hook) — observes project state, user intent, and session history,…"
 allowed-tools:
   - Read
   - Bash

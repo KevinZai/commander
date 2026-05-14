@@ -1,5 +1,5 @@
 ---
-description: "[C:lifecycle] — Manage Claude Code session history, aliases, and session metadata."
+description: "Manage Claude Code session history, aliases, and session metadata."
 ---
 
 # Sessions Command

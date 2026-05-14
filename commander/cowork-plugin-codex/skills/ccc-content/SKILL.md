@@ -1,6 +1,6 @@
 ---
 name: ccc-content
-description: "[C:marketing] — \"Create content — blog posts, social media, emails, marketing copy, or docs. Use when: 'create content', 'write post', 'blog', 'social media', 'email campaign',…"
+description: "\"Create content — blog posts, social media, emails, marketing copy, or docs. Use when: 'create content', 'write post', 'blog', 'social media', 'email campaign',…"
 allowed-tools:
   - Read
   - Write

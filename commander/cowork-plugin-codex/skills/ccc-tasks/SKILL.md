@@ -1,6 +1,6 @@
 ---
 name: ccc-tasks
-description: "[C:lifecycle] — Lightweight markdown task tracking via tasks/todo.md. Simple format — checkboxes, priorities, status. No database, no service, no sync. Every session start reads…"
+description: "Lightweight markdown task tracking via tasks/todo.md. Simple format — checkboxes, priorities, status. No database, no service, no sync. Every session start reads…"
 model: sonnet
 effort: medium
 ---

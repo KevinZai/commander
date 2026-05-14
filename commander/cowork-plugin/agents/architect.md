@@ -1,6 +1,6 @@
 ---
 name: architect
-description: "[C:agent] — Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield…"
+description: "Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield…"
 model: claude-opus-4-7
 effort: xhigh
 persona: personas/architect

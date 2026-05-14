@@ -1,6 +1,6 @@
 ---
 name: ccc-browse
-description: "[C:plugin] — Visual, filterable catalog of every CC Commander skill, agent, and command. Cascades from broad category picker into 4-at-a-time detail cards. Use when the user types…"
+description: "Visual, filterable catalog of every CC Commander skill, agent, and command. Cascades from broad category picker into 4-at-a-time detail cards. Use when the user types…"
 allowed-tools:
   - Read
   - Glob

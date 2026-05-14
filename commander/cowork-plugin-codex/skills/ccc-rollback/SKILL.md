@@ -1,6 +1,6 @@
 ---
 name: ccc-rollback
-description: "[C:devops] — CC Commander rollback workflow. Selects a rollback target, creates atomic git revert commits, pushes the revert, redeploys through ccc-deploy, verifies health, and…"
+description: "CC Commander rollback workflow. Selects a rollback target, creates atomic git revert commits, pushes the revert, redeploys through ccc-deploy, verifies health, and…"
 model: sonnet
 effort: high
 allowed-tools:

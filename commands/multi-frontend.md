@@ -1,5 +1,5 @@
 ---
-description: "[C:design] — Frontend-focused multi-model workflow: Research → Plan → Execute → Review, Gemini-led."
+description: "Frontend-focused multi-model workflow: Research → Plan → Execute → Review, Gemini-led."
 ---
 
 # Frontend - Frontend-Focused Development

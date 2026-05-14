@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Start a managed autonomous loop pattern with safety defaults, circuit-breaker, and progress tracking."
+description: "Start a managed autonomous loop pattern with safety defaults, circuit-breaker, and progress tracking."
 ---
 
 # Loop Start Command

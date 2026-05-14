@@ -1,6 +1,6 @@
 ---
 name: builder
-description: "[C:agent] — Implements features, fixes bugs, and creates projects from specs. Follows TDD, uses conventional commits, and prefers boring solutions. Delegated from /ccc-build after…"
+description: "Implements features, fixes bugs, and creates projects from specs. Follows TDD, uses conventional commits, and prefers boring solutions. Delegated from /ccc-build after…"
 model: sonnet
 effort: high
 persona: personas/builder

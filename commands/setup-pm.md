@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Configure your preferred package manager (npm/pnpm/yarn/bun)"
+description: "Configure your preferred package manager (npm/pnpm/yarn/bun)"
 disable-model-invocation: true
 ---
 

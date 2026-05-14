@@ -1,7 +1,7 @@
 ---
 name: ccc-design
 context: fork
-description: "[C:design] — click-first picker over 39 design skills. Landing pages, component systems, polish suite, Figma→code. Use when the user types /ccc-design, asks to 'design a landing…"
+description: "click-first picker over 39 design skills. Landing pages, component systems, polish suite, Figma→code. Use when the user types /ccc-design, asks to 'design a landing…"
 allowed-tools:
   - Read
   - Write

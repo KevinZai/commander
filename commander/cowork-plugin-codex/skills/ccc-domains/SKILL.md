@@ -1,6 +1,6 @@
 ---
 name: ccc-domains
-description: "[C:meta] — CCC domain router — browse and activate any of the 11 CCC skill domains. Use when the user says 'ccc domains', 'domain skills', 'show categories', 'what skills are…"
+description: "CCC domain router — browse and activate any of the 11 CCC skill domains. Use when the user says 'ccc domains', 'domain skills', 'show categories', 'what skills are…"
 allowed-tools:
   - Read
   - Bash

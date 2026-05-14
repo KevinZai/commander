@@ -1,6 +1,6 @@
 ---
 name: ccc-systematic-debugging
-description: "[C:plugin] — Root-cause debugging via the Iron Law: no fix without confirmed root cause. Reproduce → hypothesize → verify → fix. Use when investigating bugs, test failures, or…"
+description: "Root-cause debugging via the Iron Law: no fix without confirmed root cause. Reproduce → hypothesize → verify → fix. Use when investigating bugs, test failures, or…"
 allowed-tools:
   - Read
   - Write

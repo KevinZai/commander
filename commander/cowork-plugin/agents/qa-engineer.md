@@ -1,6 +1,6 @@
 ---
 name: qa-engineer
-description: "[C:agent] — Senior QA engineer for test suite creation, coverage analysis, and quality assurance. Runs in an isolated worktree and produces coverage deltas and structured reports…"
+description: "Senior QA engineer for test suite creation, coverage analysis, and quality assurance. Runs in an isolated worktree and produces coverage deltas and structured reports…"
 model: sonnet
 effort: high
 persona: personas/qa-engineer

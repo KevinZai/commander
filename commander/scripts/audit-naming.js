@@ -97,15 +97,12 @@ function checkFile(filePath) {
     return issues;
   }
 
-  // Check prefix
-  const prefixMatch = desc.match(/^\[C:([a-z-]+)\]\s*[—–-]/);
-  if (!prefixMatch) {
-    issues.push({ file: rel, type: 'ERROR', msg: `Missing [C:domain] — prefix. Got: "${desc.slice(0, 60)}"` });
-  } else {
-    const domain = prefixMatch[1];
-    if (!VALID_DOMAINS.has(domain)) {
-      issues.push({ file: rel, type: 'ERROR', msg: `Invalid domain "[C:${domain}]". Allowed: ${[...VALID_DOMAINS].join(', ')}` });
-    }
+  // Check that [C:domain] — prefix is ABSENT (UX cleanup 2026-05-14: prefixes
+  // were stripped from user-facing descriptions since they leaked into the
+  // Cowork Desktop chip picker. Source-of-truth for domain is the directory
+  // path / file location, not a stringly-typed prefix.)
+  if (/^\[C:[a-z-]+\]\s*[—–-]/.test(desc)) {
+    issues.push({ file: rel, type: 'ERROR', msg: `Stale [C:domain] — prefix present. Strip it. Got: "${desc.slice(0, 60)}"` });
   }
 
   // Length check

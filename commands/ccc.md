@@ -1,5 +1,5 @@
 ---
-description: "[C:plugin] — CC Commander Hub — interactive menu derived from adventure JSON files. 450+ skills, 11 CCC domains, 80+ commands, 9 modes."
+description: "CC Commander Hub — interactive menu derived from adventure JSON files. 450+ skills, 11 CCC domains, 80+ commands, 9 modes."
 ---
 
 # /ccc — CC Commander Hub

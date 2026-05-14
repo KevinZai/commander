@@ -1,6 +1,6 @@
 ---
 name: ccc-resume-session
-description: "[C:lifecycle] — Load the last saved session file from ~/.claude/sessions/ and orient fully before doing any work. Reads the complete file, formats a structured briefing (project,…"
+description: "Load the last saved session file from ~/.claude/sessions/ and orient fully before doing any work. Reads the complete file, formats a structured briefing (project,…"
 model: sonnet
 effort: medium
 ---

@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Signal task completion back to OpenClaw orchestration system. Use when a delegated task finishes."
+description: "Signal task completion back to OpenClaw orchestration system. Use when a delegated task finishes."
 ---
 
 # /complete — Signal Task Completion to OpenClaw

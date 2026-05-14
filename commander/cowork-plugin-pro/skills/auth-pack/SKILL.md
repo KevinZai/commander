@@ -1,6 +1,6 @@
 ---
 name: ccc-pro-auth
-description: "[C:pro] — SAML, OIDC, and enterprise identity provider scaffolds · Pro tier only"
+description: "SAML, OIDC, and enterprise identity provider scaffolds · Pro tier only"
 allowed-tools:
   - Read
   - Write

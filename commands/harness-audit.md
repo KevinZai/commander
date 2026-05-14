@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Run deterministic harness audit and return a prioritized scorecard of ECC setup health."
+description: "Run deterministic harness audit and return a prioritized scorecard of ECC setup health."
 ---
 
 # Harness Audit Command

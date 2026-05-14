@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Analyze codebase structure and generate token-lean architecture documentation."
+description: "Analyze codebase structure and generate token-lean architecture documentation."
 ---
 
 # Update Codemaps

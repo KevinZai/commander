@@ -1,6 +1,6 @@
 ---
 name: build
-description: "[C:plugin] — \"Build something new — a web app, API, CLI tool, or any project. Use when: 'build something', 'new project', 'create app', 'help me build', 'start a project', 'I want…"
+description: "\"Build something new — a web app, API, CLI tool, or any project. Use when: 'build something', 'new project', 'create app', 'help me build', 'start a project', 'I want…"
 allowed-tools:
   - Read
   - Write

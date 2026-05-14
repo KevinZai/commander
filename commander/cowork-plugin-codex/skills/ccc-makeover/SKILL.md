@@ -1,7 +1,7 @@
 ---
 name: ccc-makeover
 context: fork
-description: "[C:makeover] — design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm, and report card scoring. Wraps /ultrareview (v2.1.111 native)…"
+description: "design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm, and report card scoring. Wraps /ultrareview (v2.1.111 native)…"
 allowed-tools:
   - Read
 ---

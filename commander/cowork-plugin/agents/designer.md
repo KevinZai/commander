@@ -1,6 +1,6 @@
 ---
 name: designer
-description: "[C:agent] — Senior UI/UX designer and frontend implementer using anti-slop methodology and ccc-design patterns. Builds accessible, polished interfaces — e.g., 'design a pricing…"
+description: "Senior UI/UX designer and frontend implementer using anti-slop methodology and ccc-design patterns. Builds accessible, polished interfaces — e.g., 'design a pricing…"
 model: claude-sonnet-4-6
 effort: undefined
 effort: high

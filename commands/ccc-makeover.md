@@ -1,6 +1,6 @@
 ---
 name: ccc-makeover
-description: "[C:makeover] — Auto-apply top X-Ray recommendations to improve project health score"
+description: "Auto-apply top X-Ray recommendations to improve project health score"
 ---
 
 # /ccc-makeover

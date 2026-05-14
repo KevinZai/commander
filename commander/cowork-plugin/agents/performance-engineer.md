@@ -1,6 +1,6 @@
 ---
 name: performance-engineer
-description: "[C:agent] — Performance specialist for identifying bottlenecks, profiling hot paths, and estimating improvement impact. Audit-only — reads and analyzes without modifying files —…"
+description: "Performance specialist for identifying bottlenecks, profiling hot paths, and estimating improvement impact. Audit-only — reads and analyzes without modifying files —…"
 model: sonnet
 effort: high
 persona: personas/performance-engineer

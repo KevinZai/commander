@@ -1,6 +1,6 @@
 ---
 name: ccc-cheatsheet
-description: "[C:plugin] — CC Commander interactive discovery tool. Renders a live flow diagram of every /ccc-* workflow by reading the plugin directly as single source of truth. Use when the…"
+description: "CC Commander interactive discovery tool. Renders a live flow diagram of every /ccc-* workflow by reading the plugin directly as single source of truth. Use when the…"
 allowed-tools:
   - Read
   - Bash

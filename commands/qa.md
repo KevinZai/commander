@@ -1,6 +1,6 @@
 ---
 name: qa
-description: "[C:testing] — Diff-aware QA — analyzes what changed and runs targeted testing with prioritized checklist"
+description: "Diff-aware QA — analyzes what changed and runs targeted testing with prioritized checklist"
 usage: /qa [main|staging <url>|full]
 version: 1.3.0
 ---

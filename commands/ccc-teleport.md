@@ -1,5 +1,5 @@
 ---
-description: "[C:plugin] — Transfer your current Claude Code session to another device (mobile, web, desktop) using teleport."
+description: "Transfer your current Claude Code session to another device (mobile, web, desktop) using teleport."
 ---
 
 # Teleport Session

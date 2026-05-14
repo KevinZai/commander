@@ -1,5 +1,5 @@
 ---
-description: "[C:plugin] — Comprehensive security and quality review of uncommitted changes. Runs diff analysis across security, perf, and correctness."
+description: "Comprehensive security and quality review of uncommitted changes. Runs diff analysis across security, perf, and correctness."
 ---
 
 # Code Review

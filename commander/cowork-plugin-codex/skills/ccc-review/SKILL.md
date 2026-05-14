@@ -1,6 +1,6 @@
 ---
 name: ccc-review
-description: "[C:plugin] — audit current branch, security posture, performance hotpaths, or run full project x-ray. Spawns the matching specialist agent in the background; findings land at…"
+description: "audit current branch, security posture, performance hotpaths, or run full project x-ray. Spawns the matching specialist agent in the background; findings land at…"
 allowed-tools:
   - Read
   - Write

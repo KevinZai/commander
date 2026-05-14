@@ -1,6 +1,6 @@
 ---
 name: ccc-knowledge
-description: "[C:meta] — Knowledge compounding — search past lessons, view learning history, browse by category. Use when the user says 'what did we learn', 'past lessons', 'knowledge base',…"
+description: "Knowledge compounding — search past lessons, view learning history, browse by category. Use when the user says 'what did we learn', 'past lessons', 'knowledge base',…"
 allowed-tools:
   - Read
   - Glob

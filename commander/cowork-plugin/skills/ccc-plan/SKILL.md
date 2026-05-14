@@ -1,6 +1,6 @@
 ---
 name: ccc-plan
-description: "[C:plugin] — Feature planning flow for CC Commander. Runs a structured 3-5 question spec interview, then delegates to the planner agent in the background to write an…"
+description: "Feature planning flow for CC Commander. Runs a structured 3-5 question spec interview, then delegates to the planner agent in the background to write an…"
 allowed-tools:
   - Read
   - Write

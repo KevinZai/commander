@@ -1,6 +1,6 @@
 ---
 name: ccc-upgrade
-description: "[C:plugin] — Audit and update vendor submodules. Lists every submodule under vendor/, fetches latest, reports per-submodule current/latest commits and changed file counts, prompts…"
+description: "Audit and update vendor submodules. Lists every submodule under vendor/, fetches latest, reports per-submodule current/latest commits and changed file counts, prompts…"
 model: sonnet
 effort: medium
 allowed-tools:

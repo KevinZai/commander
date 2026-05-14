@@ -1,6 +1,6 @@
 ---
 name: ccc-loop
-description: "[C:meta] — Run any /ccc-* skill on a recurring interval via Claude Code's native /loop. Returns loop patterns and self-pacing guidance."
+description: "Run any /ccc-* skill on a recurring interval via Claude Code's native /loop. Returns loop patterns and self-pacing guidance."
 ---
 
 # /ccc-loop — Loop Integration Guide

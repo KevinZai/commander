@@ -1,6 +1,6 @@
 ---
 name: spawn
-description: "[C:plugin] — Spawn and manage multiple Claude Code peers for parallel development"
+description: "Spawn and manage multiple Claude Code peers for parallel development"
 triggers:
   - "/spawn"
   - "/spawn quick"

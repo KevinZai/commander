@@ -1,6 +1,6 @@
 ---
 name: ccc-memory
-description: "[C:plugin] — Two-tier persistent memory for Claude Code sessions. Layer 1 is CLAUDE.md (always-loaded context). Layer 2 is a memory/ directory with dated notes, decisions, and…"
+description: "Two-tier persistent memory for Claude Code sessions. Layer 1 is CLAUDE.md (always-loaded context). Layer 2 is a memory/ directory with dated notes, decisions, and…"
 model: sonnet
 effort: medium
 ---

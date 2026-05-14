@@ -1,6 +1,6 @@
 ---
 name: content-strategist
-description: "[C:agent] — Senior content strategist and writer for content strategy plans, editorial calendars, blog posts, landing pages, emails, and social copy. Connected to ccc-marketing…"
+description: "Senior content strategist and writer for content strategy plans, editorial calendars, blog posts, landing pages, emails, and social copy. Connected to ccc-marketing…"
 model: sonnet
 effort: medium
 persona: personas/content-strategist

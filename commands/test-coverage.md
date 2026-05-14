@@ -1,5 +1,5 @@
 ---
-description: "[C:testing] — Analyze test coverage gaps and generate missing tests to reach 80%+ coverage threshold."
+description: "Analyze test coverage gaps and generate missing tests to reach 80%+ coverage threshold."
 ---
 
 # Test Coverage

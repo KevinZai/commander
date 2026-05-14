@@ -1,6 +1,6 @@
 ---
 name: feature-start
-description: "[C:meta] — Kickoff a new feature with branch creation, TDD setup, and task breakdown"
+description: "Kickoff a new feature with branch creation, TDD setup, and task breakdown"
 usage: /feature-start [feature name or description]
 version: 1.3.0
 ---

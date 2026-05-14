@@ -1,6 +1,6 @@
 ---
 name: ccc-changelog
-description: "[C:plugin] — Show what changed in the latest CC Commander update. Reads CHANGELOG.md and renders the most-recent version section in a digestible summary. Use when the user types…"
+description: "Show what changed in the latest CC Commander update. Reads CHANGELOG.md and renders the most-recent version section in a digestible summary. Use when the user types…"
 model: sonnet
 effort: medium
 allowed-tools:

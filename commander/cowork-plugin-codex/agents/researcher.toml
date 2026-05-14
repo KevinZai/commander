@@ -1,5 +1,5 @@
 name = "researcher"
-description = "[C:agent] — Deep research agent for competitive analysis, market research, code audits, and SEO analysis. Synthesizes multi-source findings into structured reports with actionable…"
+description = "Deep research agent for competitive analysis, market research, code audits, and SEO analysis. Synthesizes multi-source findings into structured reports with actionable…"
 model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep, WebSearch, WebFetch

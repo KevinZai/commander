@@ -1,6 +1,6 @@
 ---
 name: ccc-pro-chaos
-description: "[C:pro] — Failure injection patterns and resilience testing for production services · Pro tier only"
+description: "Failure injection patterns and resilience testing for production services · Pro tier only"
 allowed-tools:
   - Read
   - Write

@@ -1,6 +1,6 @@
 ---
 name: ccc-pro-observability
-description: "[C:pro] — OpenTelemetry, Honeycomb, Datadog, and structured logging wiring · Pro tier only"
+description: "OpenTelemetry, Honeycomb, Datadog, and structured logging wiring · Pro tier only"
 allowed-tools:
   - Read
   - Write

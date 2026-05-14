@@ -1,6 +1,6 @@
 ---
 name: ccc-pro-migration
-description: "[C:pro] — Zero-downtime schema versioning, backfills, and safe deploy patterns · Pro tier only"
+description: "Zero-downtime schema versioning, backfills, and safe deploy patterns · Pro tier only"
 allowed-tools:
   - Read
   - Write

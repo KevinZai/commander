@@ -1,6 +1,6 @@
 ---
 name: ccc-hermes
-description: "[C:channel] — Bridge Claude Code to OpenClaw Hermes Gateway (port 18789). Hermes channels become CC triggers; CC skills become Hermes-callable. Optional."
+description: "Bridge Claude Code to OpenClaw Hermes Gateway (port 18789). Hermes channels become CC triggers; CC skills become Hermes-callable. Optional."
 allowed-tools:
   - Bash
   - Read

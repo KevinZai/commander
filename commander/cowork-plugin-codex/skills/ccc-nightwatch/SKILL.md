@@ -1,6 +1,6 @@
 ---
 name: ccc-nightwatch
-description: "[C:plugin] — Remote YOLO control. Approve/deny tool use from your phone via Telegram/Discord while Claude runs overnight. Auto-classifies risk: reads auto-allow, rm/deploy ask human."
+description: "Remote YOLO control. Approve/deny tool use from your phone via Telegram/Discord while Claude runs overnight. Auto-classifies risk: reads auto-allow, rm/deploy ask human."
 allowed-tools:
   - Read
   - Bash

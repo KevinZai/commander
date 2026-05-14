@@ -1,6 +1,6 @@
 ---
 name: evolve
-description: "[C:meta] — Analyze instincts and suggest or generate evolved structures"
+description: "Analyze instincts and suggest or generate evolved structures"
 command: true
 ---
 

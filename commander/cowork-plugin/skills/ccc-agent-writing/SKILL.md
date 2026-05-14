@@ -1,6 +1,6 @@
 ---
 name: ccc-agent-writing
-description: "[C:plugin] — Teach agents to write with clarity, persuasion, and testability. Use when drafting specs, PRDs, PR descriptions, or documentation. Triggers: 'write a spec', 'PR…"
+description: "Teach agents to write with clarity, persuasion, and testability. Use when drafting specs, PRDs, PR descriptions, or documentation. Triggers: 'write a spec', 'PR…"
 allowed-tools:
   - Read
   - Write

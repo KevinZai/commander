@@ -1,5 +1,5 @@
 ---
-description: "[C:plugin] — CC Commander init — scaffold or refresh project CLAUDE.md, tasks/, and lessons.md from the latest v4.0 template. Preserves custom sections."
+description: "CC Commander init — scaffold or refresh project CLAUDE.md, tasks/, and lessons.md from the latest v4.0 template. Preserves custom sections."
 ---
 
 # `/ccc:init` — Project Initialization + Refresh

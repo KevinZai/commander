@@ -1,5 +1,5 @@
 ---
-description: "[C:plugin] — Start NanoClaw v2 — ECC's persistent, zero-dependency REPL with model routing, skill hot-load, branching, compaction, export, and metrics."
+description: "Start NanoClaw v2 — ECC's persistent, zero-dependency REPL with model routing, skill hot-load, branching, compaction, export, and metrics."
 ---
 
 # Claw Command

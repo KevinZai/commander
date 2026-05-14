@@ -1,6 +1,6 @@
 ---
 name: peers
-description: "[C:meta] — Discover and communicate with other Claude Code instances"
+description: "Discover and communicate with other Claude Code instances"
 triggers:
   - "/peers"
   - "/peers list"

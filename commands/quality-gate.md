@@ -1,5 +1,5 @@
 ---
-description: "[C:testing] — Run the ECC quality pipeline on demand for a file or project scope — TypeScript, tests, lint."
+description: "Run the ECC quality pipeline on demand for a file or project scope — TypeScript, tests, lint."
 ---
 
 # Quality Gate Command

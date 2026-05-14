@@ -1,6 +1,6 @@
 ---
 name: ccc-doctor
-description: "[C:plugin] — Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions — plus 8 drift…"
+description: "Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions — plus 8 drift…"
 model: sonnet
 effort: medium
 allowed-tools:

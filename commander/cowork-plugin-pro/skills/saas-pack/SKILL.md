@@ -1,6 +1,6 @@
 ---
 name: ccc-pro-saas
-description: "[C:pro] — Multi-tenant SaaS scaffolds: row-level security, billing, invitations · Pro tier only"
+description: "Multi-tenant SaaS scaffolds: row-level security, billing, invitations · Pro tier only"
 allowed-tools:
   - Read
   - Write

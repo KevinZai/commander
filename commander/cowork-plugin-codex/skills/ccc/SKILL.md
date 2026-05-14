@@ -1,6 +1,6 @@
 ---
 name: ccc
-description: "[C:plugin] — CC Commander main hub — click-first menu that detects your project context and routes to 12 specialist workflows (plan, build, review, ship, design, learn, xray,…"
+description: "CC Commander main hub — click-first menu that detects your project context and routes to 12 specialist workflows (plan, build, review, ship, design, learn, xray,…"
 allowed-tools:
   - Read
   - Write

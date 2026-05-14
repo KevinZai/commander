@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Extract reusable patterns from the current session and save as skills or instincts for future sessions."
+description: "Extract reusable patterns from the current session and save as skills or instincts for future sessions."
 ---
 
 # /learn - Extract Reusable Patterns

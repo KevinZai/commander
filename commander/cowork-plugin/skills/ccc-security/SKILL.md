@@ -1,7 +1,7 @@
 ---
 name: ccc-security
 context: fork
-description: "[C:security] — complete application security ecosystem — 8 skills in one. OWASP Top 10, secrets scanning, dependency audits, prompt injection defense, CodeQL, and incident…"
+description: "complete application security ecosystem — 8 skills in one. OWASP Top 10, secrets scanning, dependency audits, prompt injection defense, CodeQL, and incident…"
 allowed-tools:
   - Read
 ---

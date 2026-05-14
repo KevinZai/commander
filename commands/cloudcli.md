@@ -1,5 +1,5 @@
 ---
-description: "[C:devops] — CloudCLI — bridge to web-based Claude Code sessions for mobile access"
+description: "CloudCLI — bridge to web-based Claude Code sessions for mobile access"
 ---
 
 # /cloudcli — Web Session Bridge

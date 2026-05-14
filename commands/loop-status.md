@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Inspect active loop state, progress, iteration count, and failure signals."
+description: "Inspect active loop state, progress, iteration count, and failure signals."
 ---
 
 # Loop Status Command

@@ -1,6 +1,6 @@
 ---
 name: ccc-session
-description: "[C:lifecycle] — Session management — resume work, review what was built, browse session history. Use when the user says 'resume session', 'review work', 'continue where I left…"
+description: "Session management — resume work, review what was built, browse session history. Use when the user says 'resume session', 'review work', 'continue where I left…"
 allowed-tools:
   - Read
   - Write

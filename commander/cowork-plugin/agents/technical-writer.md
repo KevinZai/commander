@@ -1,6 +1,6 @@
 ---
 name: technical-writer
-description: "[C:agent] — Senior technical writer for API docs, READMEs, user guides, and developer documentation. Reads code to produce accurate, scannable docs without running shell commands…"
+description: "Senior technical writer for API docs, READMEs, user guides, and developer documentation. Reads code to produce accurate, scannable docs without running shell commands…"
 model: sonnet
 effort: medium
 persona: personas/technical-writer

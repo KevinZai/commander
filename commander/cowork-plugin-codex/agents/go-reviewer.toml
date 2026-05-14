@@ -1,5 +1,5 @@
 name = "go-reviewer"
-description = "[C:agent] — Go-specific code reviewer. Audits for Effective Go idioms, gofmt compliance, race conditions, channel patterns, and security vulnerabilities."
+description = "Go-specific code reviewer. Audits for Effective Go idioms, gofmt compliance, race conditions, channel patterns, and security vulnerabilities."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep

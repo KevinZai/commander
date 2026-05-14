@@ -1,6 +1,6 @@
 ---
 name: ccc-code-review
-description: "[C:plugin] — \"Review code changes for security, performance, correctness, and maintainability. Use when: 'review code', 'PR review', 'check changes', 'review my diff', 'is this…"
+description: "\"Review code changes for security, performance, correctness, and maintainability. Use when: 'review code', 'PR review', 'check changes', 'review my diff', 'is this…"
 allowed-tools:
   - Read
   - Write

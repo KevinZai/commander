@@ -1,6 +1,6 @@
 ---
 name: promote
-description: "[C:meta] — Promote project-scoped instincts to global scope"
+description: "Promote project-scoped instincts to global scope"
 command: true
 ---
 

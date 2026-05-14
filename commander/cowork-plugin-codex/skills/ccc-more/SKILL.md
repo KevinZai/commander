@@ -1,6 +1,6 @@
 ---
 name: ccc-more
-description: "[C:plugin] — CC Commander second-page menu — click-first access to plan, x-ray, Linear, fleet, connect, and catalog browse. Use when the user types /ccc-more, picks 'More tools'…"
+description: "CC Commander second-page menu — click-first access to plan, x-ray, Linear, fleet, connect, and catalog browse. Use when the user types /ccc-more, picks 'More tools'…"
 allowed-tools:
   - Read
   - Write

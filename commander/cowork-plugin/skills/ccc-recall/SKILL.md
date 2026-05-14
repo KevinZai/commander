@@ -1,6 +1,6 @@
 ---
 name: ccc-recall
-description: "[C:plugin] — Search across all past Claude Code sessions — find when you solved a similar problem, what decision you made last quarter, which file you were editing the day before…"
+description: "Search across all past Claude Code sessions — find when you solved a similar problem, what decision you made last quarter, which file you were editing the day before…"
 model: sonnet
 effort: medium
 ---

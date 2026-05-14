@@ -1,6 +1,6 @@
 ---
 name: instinct-import
-description: "[C:meta] — Import instincts from file or URL into project/global scope"
+description: "Import instincts from file or URL into project/global scope"
 command: true
 ---
 

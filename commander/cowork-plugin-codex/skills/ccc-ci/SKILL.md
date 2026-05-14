@@ -1,6 +1,6 @@
 ---
 name: ccc-ci
-description: "[C:channel] — CI/CD webhook channel. Receive GitHub Actions, Vercel, Railway deploy events in your session. Auto-triggers /ccc-doctor on failures."
+description: "CI/CD webhook channel. Receive GitHub Actions, Vercel, Railway deploy events in your session. Auto-triggers /ccc-doctor on failures."
 model: sonnet
 effort: medium
 allowed-tools:

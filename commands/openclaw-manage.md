@@ -1,6 +1,6 @@
 ---
 name: openclaw-manage
-description: "[C:meta] — Manage OpenClaw agents, sessions, and gateway from within Claude Code"
+description: "Manage OpenClaw agents, sessions, and gateway from within Claude Code"
 ---
 
 # /openclaw-manage

@@ -1,5 +1,5 @@
 ---
-description: "[C:devops] — Launch multiple Claude Code agents in parallel git worktrees for concurrent development."
+description: "Launch multiple Claude Code agents in parallel git worktrees for concurrent development."
 ---
 
 # Parallel Agents

@@ -1,7 +1,7 @@
 ---
 name: ccc-mobile
 context: fork
-description: "[C:mobile] — complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Compose, mobile testing, ASO, push notifications, and deep linking."
+description: "complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Compose, mobile testing, ASO, push notifications, and deep linking."
 allowed-tools:
   - Read
 ---

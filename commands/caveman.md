@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Load caveman mode (lite/full/ultra). Strips markdown, emojis, and prose for maximum token savings during iteration."
+description: "Load caveman mode (lite/full/ultra). Strips markdown, emojis, and prose for maximum token savings during iteration."
 ---
 
 Load caveman mode at the requested intensity level.

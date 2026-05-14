@@ -1,6 +1,6 @@
 ---
 name: ccc-connect
-description: "[C:plugin] — Opt-in MCP connector setup — click-connect Notion, Slack, GitHub, Supabase, Figma, Linear, Vercel, Neon, Fly.io, Upstash, Sentry, Stripe, Browserbase, Postgres,…"
+description: "Opt-in MCP connector setup — click-connect Notion, Slack, GitHub, Supabase, Figma, Linear, Vercel, Neon, Fly.io, Upstash, Sentry, Stripe, Browserbase, Postgres,…"
 allowed-tools:
   - Read
   - Write

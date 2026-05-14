@@ -1,5 +1,5 @@
 ---
-description: "[C:meta] — Query and update Paperclip task management from Claude Code. List, create, and close tasks."
+description: "Query and update Paperclip task management from Claude Code. List, create, and close tasks."
 ---
 
 # /paperclip — Paperclip Task Management
