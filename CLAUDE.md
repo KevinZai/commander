@@ -138,9 +138,11 @@ Auto-updates weekly via GitHub Actions.
 
 Key vendors: ECC (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode (17K),
 claude-code-best-practice (26K), repomix (22.8K), Claude HUD (15K), RTK (14.6K),
-Compound Engineering (11.5K), claude-skills (8.6K), notebooklm-py (8.6K), claude-mem,
+Compound Engineering (11.5K), claude-skills (8.6K), notebooklm-py (8.6K),
 claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
 claude-code-prompts (142).
+
+**Note:** `claude-mem` was previously vendored but was removed in v4.1.0-beta.2 — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
 
 ## Footer Bar
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:

@@ -25,7 +25,14 @@ CC Commander includes upstream packages as git submodules in `vendor/`. This mea
 | claude-reflect | BayramAnnakov | 860+ | MIT | Self-improving skills, correction capture |
 | RTK (Rust Token Killer) | rtk-ai | 14.6K+ | MIT | Token optimization (60-90% reduction) |
 | acpx | openclaw | 1.8K+ | MIT | ACP protocol client, structured agent communication |
-| claude-mem | thedotmack | — | AGPL-3.0 | Persistent cross-session memory — semantic search, auto-capture, knowledge compounding |
+
+## External Recommendations (NOT Bundled)
+
+These projects are recommended via `/ccc-connect` or `/ccc-suggest` but are **NOT bundled** with CC Commander. Users install them separately. CCC may name-drop them inside skill output, but does not redistribute their code.
+
+| Project | Author | License | Why it's external |
+|---------|--------|---------|-------------------|
+| claude-mem | thedotmack | AGPL-3.0 | License incompatible with CC Commander's MIT distribution. Users install separately via `npm install claude-mem` or `/ccc-connect`. |
 
 ## Pattern Inspirations
 

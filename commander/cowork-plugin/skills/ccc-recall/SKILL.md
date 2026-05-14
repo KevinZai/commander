@@ -9,6 +9,12 @@ effort: medium
 
 Your past sessions are a goldmine. This skill indexes it.
 
+> **Optional integration:** If you have `claude-mem` (a separate AGPL-licensed
+> tool by @thedotmack) installed via `npm install claude-mem`, `/ccc-recall`
+> will use it for vector search across sessions. **CC Commander does NOT
+> bundle claude-mem** — install separately or skip; CCC's built-in grep +
+> file-based recall works without it.
+
 ## When to use
 
 - "Didn't we solve this last month?" — search instead of re-solving
