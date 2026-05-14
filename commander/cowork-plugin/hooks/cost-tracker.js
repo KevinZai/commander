@@ -39,6 +39,8 @@ async function main() {
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }
+
+  track('hook_fired', { hook: 'PreToolUse', handler: 'cost-tracker' });
 }
 
 main();

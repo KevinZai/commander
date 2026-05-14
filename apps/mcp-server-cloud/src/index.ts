@@ -33,6 +33,7 @@ import type { AuthContext } from "./middleware/auth.js";
 import { SERVER_VERSION } from "./lib/version.js";
 import { getServerTagline } from "./lib/registry-stats.js";
 import { captureEvent } from "./lib/posthog.js";
+import { eventsRouter } from "./routes/events.js";
 
 declare module "hono" {
   interface ContextVariableMap {
@@ -350,122 +351,8 @@ export async function dispatchTool(
 }
 
 // ─── Events ingestion endpoint (no auth required for plugin telemetry) ────────
-// This endpoint accepts batches of telemetry events from the local plugin + CLI.
-// Each event is forwarded to PostHog for aggregation.
-app.post("/v1/events", async (c) => {
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    return c.json({ error: "Invalid JSON body" }, 400);
-  }
-
-  // Validate payload shape
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return c.json({ error: "Body must be a JSON object" }, 400);
-  }
-
-  const b = body as Record<string, unknown>;
-  if (!Array.isArray(b.events)) {
-    return c.json({ error: "Missing 'events' array" }, 400);
-  }
-
-  const events = b.events as unknown[];
-  if (events.length === 0) {
-    return c.json({ error: "Events array cannot be empty" }, 400);
-  }
-  if (events.length > 50) {
-    return c.json({ error: "Maximum 50 events per batch" }, 400);
-  }
-
-  // Validate total payload size (50KB limit)
-  const payloadSize = JSON.stringify(body).length;
-  if (payloadSize > 50 * 1024) {
-    return c.json({ error: "Payload exceeds 50KB limit" }, 413);
-  }
-
-  // Whitelist of allowed event names
-  const ALLOWED_EVENTS = new Set([
-    // Plugin hook events
-    "hook_fired",
-    "plugin_session_started",
-    // CLI events
-    "cli_command_executed",
-    "cli_skill_invoked",
-    "cli_agent_dispatched",
-    "session_ended",
-    // Generic skill/agent tracking
-    "skill_invoked",
-    "agent_dispatched",
-  ]);
-
-  // Defensive regex to scrub sensitive keys
-  const SENSITIVE_PATTERN = /prompt|content|path|file|cwd|secret|password|key|token/i;
-
-  const results: Array<{ success: boolean; error?: string }> = [];
-  let accepted = 0;
-
-  for (const event of events) {
-    if (!event || typeof event !== "object" || Array.isArray(event)) {
-      results.push({ success: false, error: "Invalid event object" });
-      continue;
-    }
-
-    const evt = event as Record<string, unknown>;
-
-    // Validate required fields
-    if (typeof evt.name !== "string" || !ALLOWED_EVENTS.has(evt.name)) {
-      results.push({ success: false, error: `Invalid or disallowed event name: ${evt.name}` });
-      continue;
-    }
-
-    if (typeof evt.distinct_id !== "string" || evt.distinct_id.length === 0) {
-      results.push({ success: false, error: "Missing or invalid distinct_id" });
-      continue;
-    }
-
-    // Properties must be an object
-    let properties = evt.properties;
-    if (properties === undefined) {
-      properties = {};
-    } else if (typeof properties !== "object" || properties === null || Array.isArray(properties)) {
-      results.push({ success: false, error: "Properties must be an object" });
-      continue;
-    }
-
-    // Scrub sensitive keys from properties
-    const scrubbed: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(properties)) {
-      if (!SENSITIVE_PATTERN.test(key)) {
-        scrubbed[key] = value;
-      }
-    }
-
-    // Forward to PostHog (fire-and-forget, never block response)
-    try {
-      captureEvent(evt.distinct_id, evt.name, {
-        ...scrubbed,
-        ccc_surface: "plugin_cli",
-      });
-      accepted++;
-      results.push({ success: true });
-    } catch (err) {
-      results.push({ success: false, error: (err as Error).message });
-    }
-  }
-
-  // Rate limit: 100 batches/hour per distinct_id (simple in-memory counter)
-  // This is a soft limit — we still accept but log violations.
-  const rateKey = `events_${b.distinct_id ?? "anonymous"}`;
-  // TODO: Implement persistent rate limit tracking (Redis or TTL-based in-memory)
-
-  return c.json({
-    ok: true,
-    accepted,
-    rejected: events.length - accepted,
-    results,
-  });
-});
+// Mounted at /v1/events. Implementation lives in routes/events.ts.
+app.route("/v1/events", eventsRouter);
 
 app.route("/v1", mcp);
 

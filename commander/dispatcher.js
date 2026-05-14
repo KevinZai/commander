@@ -312,6 +312,7 @@ function checkCostCeiling(task, options, costCeilingUsd) {
 
 function dispatch(task, options) {
   if (!options) options = {};
+  try { require('./lib/telemetry-cjs').track('cli_agent_dispatched', { model: options.model || 'sonnet', effort: options.effort || 'medium' }); } catch(_e) {}
   var sync = options.sync !== undefined ? options.sync : true;
   var maxTurns = options.maxTurns || 30;
   var resume = options.resume;

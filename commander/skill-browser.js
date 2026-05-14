@@ -40,6 +40,7 @@ function saveUsageStats(stats) {
  */
 function trackSkillUsage(skillName, outcome) {
   if (!skillName) return;
+  try { require('./lib/telemetry-cjs').track('cli_skill_invoked', { skill_id: skillName, outcome: outcome || 'unknown' }); } catch(_e) {}
   const stats = loadUsageStats();
   if (!stats[skillName]) {
     stats[skillName] = { count: 0, lastUsed: null, outcomes: [] };
