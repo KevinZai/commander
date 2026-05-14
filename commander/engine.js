@@ -6,7 +6,7 @@ var adventure = require('./adventure');
 var tui = require('./tui');
 var state = require('./state');
 var BRAND = require('./branding');
-var telemetry = (function() { try { return require('./telemetry-cjs'); } catch (_e) { return { track: function() {}, flushBatch: function() {} }; } })();
+var telemetry = (function() { try { return require('./lib/telemetry-cjs'); } catch (_e) { return { track: function() {}, flushBatch: function() {} }; } })();
 try { require('./lib/telemetry-cjs').track('cli_session_started', { ide: 'cli', surface: 'engine' }); } catch(_e) {}
 
 // Send status to the tmux right pane (Claude side) if in split mode

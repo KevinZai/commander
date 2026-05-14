@@ -3,6 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var os = require('os');
+var telemetry = (function() { try { return require('./lib/telemetry-cjs'); } catch (_e) { return { track: function() {} }; } })();
 
 /**
  * Known plugin packages and their skill-to-phase mapping.
@@ -95,6 +96,7 @@ var BUILD_PHASES = [
  * @returns {object} { installed: string[], available: {phase: tool[]}, missing: string[] }
  */
 function detectPlugins() {
+  try { telemetry.track('cli_command_executed', { cmd: 'detect_plugins' }); } catch (_e) {}
   var skillDirs = [
     path.join(os.homedir(), '.claude', 'skills'),
     path.join(os.homedir(), '.claude', 'commands'),

@@ -1,18 +1,28 @@
 // CJS shim around the ESM telemetry client.
 // Fire-and-forget — never throws, never blocks the CLI.
 const ESM_PATH = require('path').join(__dirname, '..', 'cowork-plugin', 'lib', 'telemetry.mjs');
-let cachedTrack = null;
-async function loadTrack() {
-  if (cachedTrack) return cachedTrack;
+let cachedMod = null;
+async function loadMod() {
+  if (cachedMod) return cachedMod;
   try {
-    const mod = await import('file://' + ESM_PATH);
-    cachedTrack = mod.track || (() => {});
+    cachedMod = await import('file://' + ESM_PATH);
   } catch {
-    cachedTrack = () => {};
+    cachedMod = { track: () => {}, flushBatch: () => {} };
   }
-  return cachedTrack;
+  return cachedMod;
 }
 function track(name, properties = {}) {
-  loadTrack().then(fn => { try { fn(name, properties); } catch {} }).catch(() => {});
+  loadMod().then(mod => {
+    try {
+      if (typeof mod.track === 'function') mod.track(name, properties);
+    } catch {}
+  }).catch(() => {});
 }
-module.exports = { track };
+function flushBatch() {
+  loadMod().then(mod => {
+    try {
+      if (typeof mod.flushBatch === 'function') mod.flushBatch();
+    } catch {}
+  }).catch(() => {});
+}
+module.exports = { track, flushBatch };
