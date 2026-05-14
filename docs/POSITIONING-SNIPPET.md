@@ -13,7 +13,7 @@ audience: Wave 7 technical writer, README maintainer
 
 **Primary surface: Claude Code Desktop (aka Cowork Desktop)**
 
-CC Commander ships as a native Claude Code Desktop plugin. Install once — all 50 skills, 17 agents, 9 lifecycle hooks (25 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
+CC Commander ships as a native Claude Code Desktop plugin. Install once — all 60 plugin skills, 22 agents, 9 lifecycle hooks (25 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
 
 > **Note:** Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
@@ -75,7 +75,7 @@ A Desktop screenshot of this flow is pending capture at `docs/screenshots/03-ccc
 > Stop context-switching between docs, tools, and prompts. Commander runs everything from `/ccc`.
 
 **[C] Feature-led:**
-> 50 skills · 17 sub-agents · 9 lifecycle hooks (25 handlers) · 2 bundled + 16 opt-in MCPs — Desktop, CLI, Cursor, Windsurf. Free for now.
+> 60 plugin skills · 22 specialist sub-agents · 9 lifecycle hooks (25 handlers) · 2 bundled + 16 opt-in MCPs — Desktop, CLI, Cursor, Windsurf. Free for now.
 
 Recommended: run [A] as the hero H1, [C] as the subtitle/tagline underneath.
 

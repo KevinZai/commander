@@ -66,8 +66,23 @@ async function getTotals() {
   return totals;
 }
 
-async function getTopItems(event, propertyKey, limit = 5) {
-  const hql = `SELECT ${propertyKey} as name, count() as count FROM events WHERE event = '${event}' AND timestamp >= now() - INTERVAL 30 DAY GROUP BY ${propertyKey} ORDER BY count DESC LIMIT ${limit}`;
+function mergeTopItems(...lists) {
+  const map = new Map();
+  for (const list of lists) {
+    for (const item of list || []) {
+      const key = item.name;
+      map.set(key, (map.get(key) || 0) + item.count);
+    }
+  }
+  return [...map.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+async function getTopItems(events, propertyKey, limit = 5) {
+  const eventList = Array.isArray(events) ? events : [events];
+  const eventClause = eventList.map(e => `'${e}'`).join(', ');
+  const hql = `SELECT ${propertyKey} as name, count() as count FROM events WHERE event IN (${eventClause}) AND ${propertyKey} IS NOT NULL AND timestamp >= now() - INTERVAL 30 DAY GROUP BY ${propertyKey} ORDER BY count DESC LIMIT ${limit}`;
 
   try {
     const result = await query(hql);
@@ -112,8 +127,10 @@ async function main() {
 
   try {
     const totals = await getTotals();
-    const topSkills = await getTopItems('skill_invoked', 'properties.skill_id');
-    const topAgents = await getTopItems('agent_dispatched', 'properties.agent_id');
+    const topSkillsById = await getTopItems(['skill_invoked', 'cli_skill_invoked'], 'properties.skill_id');
+    const topSkillsByName = await getTopItems(['skill_invoked', 'cli_skill_invoked'], 'properties.skill_name');
+    const topSkills = mergeTopItems(topSkillsById, topSkillsByName).slice(0, 5);
+    const topAgents = await getTopItems(['agent_dispatched', 'cli_agent_dispatched'], 'properties.agent_id');
     const topHooks = await getTopItems('hook_fired', 'properties.hook');
 
     const stats = {

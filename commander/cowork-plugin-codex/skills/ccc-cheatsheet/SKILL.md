@@ -121,7 +121,7 @@ options:
     description: "Audit the current branch. Writes findings to tasks/reviews/."
     preview: "Next click: pick audit type → specialist agent runs in background"
   - label: "🗺️ Show me everything"
-    description: "Open /ccc-browse — filterable catalog of all 51 plugin skills + 17 agents."
+    description: "Open /ccc-browse — filterable catalog of all 60 plugin skills + 22 agents."
     preview: "Cascades: Domains (11) / Workflows (13) / Agents (17) / Full grid"
   - label: "👋 Skip — I've got this"
     description: "Close the cheatsheet, return to whatever I was doing."

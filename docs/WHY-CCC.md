@@ -247,8 +247,8 @@
 
 ### 34. Claude Desktop Cowork Plugin (51 Skills)
 **What:** `commander/cowork-plugin/` ships 51 skills that install directly as a Claude Desktop plugin. Works without the terminal CLI — pure point-and-click.
-**Proof:** `ls commander/cowork-plugin/skills/ | wc -l` → 51 skill directories + plugin manifest files.
-**Share-friendly:** Don't like terminals? Commander has a Claude Desktop plugin. 51 skills. Install, click, done.
+**Proof:** `ls commander/cowork-plugin/skills/ | wc -l` → 60 skill directories + plugin manifest files.
+**Share-friendly:** Don't like terminals? Commander has a Claude Desktop plugin. 60 plugin skills. Install, click, done.
 
 ---
 
@@ -370,7 +370,7 @@ The biggest lever by far is context-mode (differentiator #46 above). The rest ar
 | Project health | None | /xray audit: 21 rules, 6 dimensions, 0-100 score, 5-level maturity |
 | Auto-improvement | None | /makeover swarm auto-fixes /xray findings |
 | Repo evaluation | Manual | `ccc --ingest <url>` → ADOPT / REFERENCE / SKIP |
-| Claude Desktop support | None | Cowork plugin (51 skills, 17 agents, 16 hook handlers, 2 bundled + 16 opt-in MCPs) |
+| Claude Desktop support | None | Cowork plugin (60 plugin skills, 22 agents, 25 hook handlers, 2 bundled + 16 opt-in MCPs) |
 | VS Code integration | None | Extension scaffold with skill browser and stats sidebar |
 | Multi-CLI support | Claude only | Auto-detects Claude, Gemini CLI, Codex CLI |
 | Task complexity scoring | None | 41-signal keyword analysis + file scope estimation → turns/budget/model |

@@ -70,7 +70,7 @@ my-plugin/
 | Plugin format | `.claude-plugin/plugin.json` | `.codex-plugin/plugin.json` | same | translate.js ✅ |
 | Skills (SKILL.md) | ✅ | ✅ (identical spec since Dec 2025) | ✅ | passthrough ✅ |
 | Slash commands | first-class | deprecated → use skills | same | skip — already skills ✅ |
-| Hooks | 8 events × 16 handlers | 8 events (PreToolUse/PostToolUse/UserPromptSubmit/SessionStart/SessionEnd/Stop/StopFailure/PermissionRequest) | same | hooks-detector.js + translate.js ✅ |
+| Hooks | 9 events × 25 handlers | 8 events (PreToolUse/PostToolUse/UserPromptSubmit/SessionStart/SessionEnd/Stop/StopFailure/PermissionRequest) | same | hooks-detector.js + translate.js ✅ |
 | Sub-agent personas | `agents/*.md` (YAML) | `agents/*.toml` (TOML) | same | translate.js (md→toml) ⚠️ |
 | MCP servers | `.mcp.json` | `[mcp_servers.<name>]` in config.toml or `.mcp.json` | same | translate.js (json→toml) ✅ |
 | Marketplace install | `commander-hub` repo | `marketplace.json` catalog | same | manifest.json + builder ⚠️ |

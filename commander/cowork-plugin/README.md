@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Skills
 
-50 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog. Core surface:
+60 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog. Core surface:
 
 
 | Skill | Trigger | Description |
@@ -79,7 +79,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Specialized Agents
 
-17 purpose-built agents that skills delegate to automatically (core 5 shown — full list in `agents/`):
+22 specialist agents that skills delegate to automatically (core 5 shown — full list in `agents/`):
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
@@ -91,7 +91,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Lifecycle Hooks
 
-8 hooks run automatically throughout every session:
+9 lifecycle hooks with 25 handlers run automatically throughout every session:
 
 | Event | Hook | Behavior | Tier |
 |-------|------|---------|------|
@@ -185,7 +185,7 @@ Lessons compound across projects and teammates.
 
 ## Sub-agent roster
 
-17 specialist personas — each with a distinct role, model, and voice layer in `rules/personas/`:
+22 specialist personas — each with a distinct role, model, and voice layer in `rules/personas/`:
 
 | # | Persona | Model | When |
 |---|---------|-------|------|
@@ -207,7 +207,7 @@ Lessons compound across projects and teammates.
 
 ## Hook catalog
 
-8 lifecycle events, 16 handlers — fire automatically every session:
+9 lifecycle events, 25 handlers — fire automatically every session:
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
@@ -219,11 +219,11 @@ Lessons compound across projects and teammates.
 | Notification | System-level notification | 1 (fleet notify) |
 | PreCompact | Before context compaction | 1 (block if active subagents) |
 | SubagentStop | Subagent finishes | 1 (dispatch results tracker) |
-| **TOTAL** | **8 events** | **16 handlers** |
+| **TOTAL** | **9 events** | **25 handlers** |
 
 ## vs aider
 
-Aider is your pair programmer — diff-based file editing, any LLM, deep Git integration, terminal-native. CC Commander is your PM — brain/hands sub-agent architecture, 17 specialist personas, click-first workflows, lifecycle hooks that fire automatically. They're complementary: use aider for solo rapid file edits, CCC for multi-phase features that need planning, review, and fleet orchestration. See the [full comparison in the root README](../../README.md#vs-aiderchat--positioning).
+Aider is your pair programmer — diff-based file editing, any LLM, deep Git integration, terminal-native. CC Commander is your PM — brain/hands sub-agent architecture, 22 specialist personas, click-first workflows, lifecycle hooks that fire automatically. They're complementary: use aider for solo rapid file edits, CCC for multi-phase features that need planning, review, and fleet orchestration. See the [full comparison in the root README](../../README.md#vs-aiderchat--positioning).
 
 ## Attribution
 

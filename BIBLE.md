@@ -14,7 +14,7 @@
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
-- [The 60 Plugin Skills](#the-33-plugin-skills) — The curated plugin surface
+- [The 60 Plugin Skills](#the-60-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -26,7 +26,7 @@
 
 ### The Appendices
 - [CC Commander](#cc-commander) *(v4.1.0-beta.2 — Desktop plugin + CLI, Desktop-first)*
-- [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 17 sub-agent personas)*
+- [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v4.1.0-beta.2 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)

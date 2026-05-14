@@ -59,7 +59,7 @@ options:
     description: "Point us at your repo — we scan, write CLAUDE.md, and recommend the right agents for your stack."
     preview: "Runs stack detection + writes a personalized plan to ~/.claude/plans/."
   - label: "🗺️ Just show me around"
-    description: "Quick tour of the 17 agent personas, 33 skills, and 3 bundled MCP servers. No commitment."
+    description: "Quick tour of the 22 specialist agent personas, 60 skills, and 3 bundled MCP servers. No commitment."
     preview: "Routes to /ccc-browse — browse agents and skills by category."
   - label: "⏭️ Skip — I know what I'm doing"
     description: "Drop me at the main /ccc hub. No onboarding."
@@ -113,7 +113,7 @@ Invoke `ccc-browse` skill inline. User picks a category, we cascade.
 
 Invoke `ccc` skill inline. No wrapping text — the next picker does the work.
 
-## The 17 agents (for reference when recommending)
+## The 22 agents (for reference when recommending)
 
 Read `${CLAUDE_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline matrix:
 

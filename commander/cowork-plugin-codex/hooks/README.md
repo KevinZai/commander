@@ -1,6 +1,6 @@
 # Plugin Hooks — Registry Map
 
-Canonical count: **16 handlers across 8 events** (see `hooks.json`).
+Canonical count: **25 handlers across 9 events** (see `hooks.json`).
 
 ## ✅ Active handlers (wired in `hooks.json`)
 
