@@ -24,6 +24,7 @@
             "group": "Getting Started",
             "pages": [
               "introduction",
+              "bible",
               "faq",
               "quickstart",
               "why-ccc",
@@ -180,10 +181,22 @@
       {
         "header": "Project",
         "items": [
-          { "label": "Marketing site", "href": "https://commanderplugin.com" },
-          { "label": "GitHub", "href": "https://github.com/KevinZai/commander" },
-          { "label": "Sponsor", "href": "https://github.com/sponsors/KevinZai" },
-          { "label": "Affiliate disclosure", "href": "/affiliate-disclosure" }
+          {
+            "label": "Marketing site",
+            "href": "https://commanderplugin.com"
+          },
+          {
+            "label": "GitHub",
+            "href": "https://github.com/KevinZai/commander"
+          },
+          {
+            "label": "Sponsor",
+            "href": "https://github.com/sponsors/KevinZai"
+          },
+          {
+            "label": "Affiliate disclosure",
+            "href": "/affiliate-disclosure"
+          }
         ]
       }
     ]
