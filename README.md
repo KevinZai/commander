@@ -95,6 +95,19 @@ One brand: **Commander**. One tagline: **The guided AI PM for every AI coding ag
 
 Stock Claude Code is a blank terminal with amnesia. Every other plugin solves one slice. CC Commander is the first **guided AI PM** — click-first UX, an intelligence layer that thinks before you do, and the whole ecosystem pre-wired. One install, everything active.
 
+### 🥇 What no competitor has
+
+| Moat | CC Commander | Cursor / Windsurf / Copilot | OSS (Cline / Continue / Aider) |
+|------|--------------|----------------------------|-------------------------------|
+| **Lifecycle hooks (9 × 25 handlers)** | ✅ SessionStart, PreToolUse, PostToolUse, Stop, PreCompact, Notification, etc. | ❌ None | ❌ None |
+| **22 specialist agent personas** | ✅ Architect, Security-Auditor, TypeScript-Reviewer, Designer, Debugger, etc. | ❌ None ship pre-built | ❌ None ship pre-built |
+| **18 MCP servers (2 bundled + 16 opt-in)** | ✅ Zero-config — Notion, Slack, Supabase, Figma, Linear, GitHub, Vercel, Fly… | ⚠️ Manual MCP setup required | ⚠️ Manual MCP setup required |
+| **Spec-first planning** (/ccc-plan → interview → spec → multi-agent execution) | ✅ Native | ❌ No planning primitive | ❌ No planning primitive |
+| **Cross-platform** (CLI + Desktop + VS Code path + hosted MCP) | ✅ Same brain everywhere | ❌ IDE-locked | ⚠️ IDE-locked |
+| **Pricing transparency** | ✅ Free / $99/yr / $199 lifetime / $79 Teams | ⚠️ Cursor $20+ confusing tiers; Windsurf credit confusion | ✅ BYOK free |
+
+**The marketing angle:** *Set it once, the AI works smarter every session.* Lifecycle hooks fire automatically. Specialist agents already know your codebase conventions. The MCP ecosystem is pre-wired. No other tool ships any of this out of the box.
+
 - 🖱️ **Click-first UX** — every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII prompts. Works identically in Cowork Desktop, Claude Code Desktop, and the CLI.
 - 🧠 **`/ccc-suggest` intelligence layer** — Opus-class real-time recommendation. Scans your project state, recommends **one starred next step** with reasoning + named 3rd-party plugins. Kills info-paralysis.
 - 🧩 **60 plugin skills including 13 `/ccc-*` specialist workflows** — plain slash commands (no `commander:` prefix), skill-based architecture: `ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, `ccc-build`, `ccc-review`, `ccc-ship`, `ccc-design`, `ccc-learn`, `ccc-xray`, `ccc-linear`, `ccc-fleet`, `ccc-connect` + `/ccc-e2e`, `/ccc-save-session`, `/ccc-resume-session`, `/ccc-changelog`, `/ccc-doctor`, `/ccc-upgrade` and 11 domain routers.
