@@ -71,7 +71,7 @@ options:
 
 ## Step 2 — Spec interview (after template pick)
 
-Reuse the pattern from `skills/build/SKILL.md` — **3 questions, one at a time**, via separate `AskUserQuestion` calls. Do NOT batch them; each answer informs the next preview text.
+Reuse the pattern from `skills/ccc-build/SKILL.md` — **3 questions, one at a time**, via separate `AskUserQuestion` calls. Do NOT batch them; each answer informs the next preview text.
 
 **Q1 — Outcome goal:**
 - A: "Works end-to-end — click-through demo"
