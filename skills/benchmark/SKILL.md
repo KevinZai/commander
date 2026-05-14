@@ -1,7 +1,7 @@
 ---
 name: benchmark
 version: 1.0.0
-description: "[C:devops] — Detect performance regressions with browse daemon. Baselines page load, Core Web Vitals, and bundle sizes; compares before/after on every PR."
+description: "Detect performance regressions with browse daemon. Baselines page load, Core Web Vitals, and bundle sizes; compares before/after on every PR."
 allowed-tools:
   - Bash
   - Read

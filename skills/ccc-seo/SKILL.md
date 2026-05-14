@@ -1,6 +1,6 @@
 ---
 name: ccc-seo
-description: "[C:seo] — Complete SEO ecosystem — 20 skills. Technical SEO, AI search optimization, content strategy, analytics, and programmatic SEO at scale."
+description: "Complete SEO ecosystem — 20 skills. Technical SEO, AI search optimization, content strategy, analytics, and programmatic SEO at scale."
 version: 1.0.0
 category: CCC domain
 brand: Kevin Z's CC Commander

@@ -1,7 +1,7 @@
 ---
 name: continuous-improvement
 version: 1.3.0
-description: "[C:meta] — Daily scan for new Claude Code techniques and best practices. Multi-agent approval pipeline routes GitHub/npm findings through evaluator and security agents before queueing."
+description: "Daily scan for new Claude Code techniques and best practices. Multi-agent approval pipeline routes GitHub/npm findings through evaluator and security agents before queueing."
 triggers:
   - "improve the kit"
   - "find new techniques"
