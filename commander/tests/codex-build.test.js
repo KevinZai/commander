@@ -100,7 +100,7 @@ test('codex plugin build artifact', async (t) => {
     ]);
   });
 
-  await t.test('passes through all 55 skills unchanged', async () => {
+  await t.test('passes through all 60+ skills unchanged', async () => {
     const sourceSkillFiles = (await listFiles(path.join(SOURCE_DIR, 'skills')))
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
@@ -120,14 +120,14 @@ test('codex plugin build artifact', async (t) => {
     }
   });
 
-  await t.test('translates all 17 agents to TOML', async () => {
+  await t.test('translates all 22 agents to TOML', async () => {
     const sourceAgents = (await listFiles(path.join(SOURCE_DIR, 'agents')))
       .filter((file) => file.endsWith('.md'));
     const outputAgents = (await listFiles(path.join(OUTPUT_DIR, 'agents')))
       .filter((file) => file.endsWith('.toml'));
 
-    assert.equal(sourceAgents.length, 17);
-    assert.equal(outputAgents.length, 17);
+    assert.equal(sourceAgents.length, 22);
+    assert.equal(outputAgents.length, 22);
     assert.ok(outputAgents.includes('architect.toml'));
 
     const architect = await readFile(

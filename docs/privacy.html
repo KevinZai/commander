@@ -143,7 +143,7 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
         <h2>What we collect when you use the hosted MCP server</h2>
         <ul>
           <li><strong>GitHub user identifier</strong> after OAuth login. We use this to identify your account, enforce per-user rate limits, and link usage to your tier.</li>
-          <li><strong>Tool name + latency + success/failure</strong> on every call you make to the hosted MCP. We log <em>that</em> a tool ran, not <em>what</em> the tool produced. The tool inputs (your prompts) and outputs (Claude's responses) never leave Anthropic's infrastructure — they don't touch our server.</li>
+          <li><strong>Tool name + latency + success/failure</strong> on every call you make to the hosted MCP. We log <em>that</em> a tool ran, not <em>what</em> the tool produced. <strong>Tool calls (<code>/v1/call</code>) are processed server-side and transiently</strong> — the server receives and dispatches your tool arguments to fulfill the request, but we do <strong>not</strong> store, log, or retain tool inputs after the response is sent. Tool inputs are never sent to PostHog or any analytics system. The hosted MCP is stateless: no per-user tool history, no input persistence.</li>
           <li><strong>Monthly call count + rate-limit window.</strong> Stored in Supabase + Upstash Redis. Used for the 100-calls/mo free tier cap and the burst protection (60 calls/min).</li>
           <li><strong>Hashed IP</strong> (SHA-256) — used for anonymous rate-limit dedup on unauthenticated requests. We never store the raw IP.</li>
         </ul>

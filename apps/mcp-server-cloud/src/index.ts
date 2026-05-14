@@ -267,6 +267,9 @@ mcp.post("/call", async (c) => {
   }
 
   const reqId = c.get("reqId");
+  // PRIVACY: `args` are NOT logged here and NOT sent to PostHog at any point in this handler.
+  // Tool inputs are processed transiently, server-side, and are NOT stored or retained.
+  // The captureEvent calls below intentionally omit `args` — do not add them.
   logger.info({ userId: auth.userId, tool, reqId }, "Tool call");
   const t0 = Date.now();
 
@@ -287,12 +290,16 @@ mcp.post("/call", async (c) => {
   } catch (err) {
     const latency = Date.now() - t0;
     recordCall(tool, latency, true);
+    // PRIVACY: Never send error message text — may contain user input or file paths.
+    // Only send error class, optional code, and message length for cardinality signal.
     captureEvent(auth.userId, "mcp_tool_called", {
       tool,
       tier: auth.tier,
       latency_ms: latency,
       success: false,
-      error_message: (err as Error).message,
+      error_class: (err as Error).constructor?.name ?? "Error",
+      error_code: (err as any).code ?? null,
+      error_message_length: (err as Error).message?.length ?? 0,
     });
     logger.error(
       { err: (err as Error).message, tool, userId: auth.userId, reqId },

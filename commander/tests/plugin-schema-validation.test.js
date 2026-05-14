@@ -80,9 +80,9 @@ test('plugin.json: version === package.json.version', () => {
   assert.equal(pluginJson.version, pkg.version);
 });
 
-test('plugin.json: description claims 55 plugin skills', () => {
-  assert.ok(/\b55 plugin skills\b/.test(pluginJson.description),
-    'description must contain "55 plugin skills" as the canonical count claim');
+test('plugin.json: description claims 60 plugin skills', () => {
+  assert.ok(/\b60 plugin skills\b/.test(pluginJson.description),
+    'description must contain "60 plugin skills" as the canonical count claim');
 });
 
 test('plugin.json: keywords array has ≥3 entries', () => {
@@ -200,10 +200,10 @@ test('skills: every SKILL.md has valid frontmatter with required fields', () => 
   assert.deepEqual(missing, [], `Skill frontmatter issues: ${missing.join('; ')}`);
 });
 
-test('skills: total dir count is 55 (canonical claim)', () => {
+test('skills: total dir count is 60 (canonical claim)', () => {
   const dirs = fs.readdirSync(SKILLS_DIR, { withFileTypes: true })
     .filter(e => e.isDirectory()).length;
-  assert.equal(dirs, 55);
+  assert.equal(dirs, 60);
 });
 
 test('skills: no description contains angle brackets', () => {

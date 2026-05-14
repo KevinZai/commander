@@ -34,9 +34,73 @@ const ALLOWED_EVENTS = new Set([
   "agent_dispatched",
 ]);
 
-// Defensive regex to scrub sensitive keys — client also strips these, this is
-// a defense-in-depth second pass.
-const SENSITIVE_PATTERN = /prompt|content|path|file|cwd|secret|password|key|token/i;
+// Keys in this allowlist are NEVER scrubbed regardless of regex match.
+// Add known-safe event-schema keys here when the regex would produce false positives.
+const SCRUB_ALLOWLIST = new Set([
+  "event_name",
+  "os_name",
+  "os_version",
+  "node_version",
+  "ccc_version",
+  "surface_name",
+  "hook",
+  "handler",
+  "agent_id",
+  "skill_id",
+  "repo_count",
+  "org_count",
+  "tier",
+  "latency_ms",
+  "success",
+  "tool",
+  "ccc_surface",
+  "error_class",
+  "error_code",
+  "error_message_length",
+]);
+
+// Defensive regex to scrub sensitive keys — broader than strictly necessary, by design.
+// The allowlist above carves out safe keys to prevent false positives.
+const SENSITIVE_PATTERN =
+  /prompt|content|path|file|cwd|secret|password|key|token|email|username|user[_-]?id|login|name|ip|org|repo|auth|credential|cookie|session[_-]?id|credit|card|ssn|phone|address/i;
+
+const MAX_SCRUB_DEPTH = 5;
+const MAX_VALUE_LENGTH = 1000;
+
+// Recursively scrub sensitive keys from nested objects/arrays.
+// Does NOT mutate the input — returns a new clone.
+function scrubProperties(value: unknown, depth: number = 0): unknown {
+  if (depth > MAX_SCRUB_DEPTH) {
+    return "[depth-exceeded]";
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => scrubProperties(item, depth + 1));
+  }
+
+  if (value !== null && typeof value === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      // Allowlist wins — always keep known-safe keys
+      if (SCRUB_ALLOWLIST.has(k)) {
+        result[k] = scrubProperties(v, depth + 1);
+        continue;
+      }
+      // Drop the key entirely if it matches the sensitive pattern
+      if (SENSITIVE_PATTERN.test(k)) {
+        continue;
+      }
+      result[k] = scrubProperties(v, depth + 1);
+    }
+    return result;
+  }
+
+  if (typeof value === "string" && value.length > MAX_VALUE_LENGTH) {
+    return value.slice(0, MAX_VALUE_LENGTH) + "[truncated]";
+  }
+
+  return value;
+}
 
 // ─── In-memory rate limit counter ───────────────────────────────────────────
 // Keyed by distinct_id → array of timestamp milliseconds.
@@ -123,13 +187,8 @@ function validateEvent(raw: unknown): ValidationResult {
     properties = evt.properties as Record<string, unknown>;
   }
 
-  // Scrub sensitive keys
-  const scrubbed: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(properties)) {
-    if (!SENSITIVE_PATTERN.test(key)) {
-      scrubbed[key] = value;
-    }
-  }
+  // Recursively scrub sensitive keys (allowlist-aware, depth-bounded)
+  const scrubbed = scrubProperties(properties) as Record<string, unknown>;
 
   const timestamp =
     typeof evt.timestamp === "string" ? evt.timestamp : new Date().toISOString();
@@ -260,4 +319,4 @@ eventsRouter.post("/", async (c) => {
 });
 
 // Exported for tests
-export { validateEvent, checkRateLimit, ALLOWED_EVENTS };
+export { validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST, SENSITIVE_PATTERN };

@@ -27,19 +27,19 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 <p>
   <strong>Powered by:</strong>
-  <a href="https://anthropic.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Anthropic-D97757?style=flat&logo=anthropic&logoColor=white" alt="Anthropic"></a>
-  <a href="https://supabase.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white" alt="Supabase"></a>
-  <a href="https://vercel.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Vercel-000?style=flat&logo=vercel&logoColor=white" alt="Vercel"></a>
-  <a href="https://fly.io/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Fly.io-7B3FE4?style=flat&logo=fly.io&logoColor=white" alt="Fly.io"></a>
-  <a href="https://upstash.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Upstash-00C98D?style=flat&logo=upstash&logoColor=white" alt="Upstash"></a>
-  <a href="https://cloudflare.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Cloudflare-F38020?style=flat&logo=cloudflare&logoColor=white" alt="Cloudflare"></a>
-  <a href="https://posthog.com/?utm_source=cc-commander&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/PostHog-1D4AFF?style=flat&logo=posthog&logoColor=white" alt="PostHog"></a>
+  <a href="https://anthropic.com/?utm_source=ccc&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Anthropic-D97757?style=flat&logo=anthropic&logoColor=white" alt="Anthropic"></a>
+  <a href="https://supabase.com/?utm_source=ccc&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white" alt="Supabase"></a>
+  <a href="https://vercel.com/?utm_source=ccc&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Vercel-000?style=flat&logo=vercel&logoColor=white" alt="Vercel"></a>
+  <a href="https://fly.io/?utm_source=ccc&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Fly.io-7B3FE4?style=flat&logo=fly.io&logoColor=white" alt="Fly.io"></a>
+  <a href="https://upstash.com/?utm_source=ccc&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Upstash-00C98D?style=flat&logo=upstash&logoColor=white" alt="Upstash"></a>
+  <a href="https://cloudflare.com/?utm_source=ccc&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/Cloudflare-F38020?style=flat&logo=cloudflare&logoColor=white" alt="Cloudflare"></a>
+  <a href="https://posthog.com/?utm_source=ccc&utm_medium=readme&utm_campaign=powered-by"><img src="https://img.shields.io/badge/PostHog-1D4AFF?style=flat&logo=posthog&logoColor=white" alt="PostHog"></a>
   <em>· <a href="https://docs.commanderplugin.com/affiliate-disclosure">affiliate disclosure</a></em>
 </p>
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Plugin: **[@commanderplugin](https://x.com/commanderplugin)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
-**[Why CC Commander](#-why-cc-commander)** · **[The 55 skills](#the-55-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
+**[Why CC Commander](#-why-cc-commander)** · **[The 60 skills](#the-60-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ### 🎯 Who it's for
 
@@ -139,9 +139,10 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 
 ## 🌟 What's new in v4.1.0-beta.2
 
-- 🔴 **5 security vulnerabilities resolved** — cwd validation, execFile migration, path-traversal guards, CLAUDE_DIR sandbox enforcement.
-- 🎨 **XML strip across 17 agents + skills** — autocomplete tooltips no longer show raw angle-bracket tags. CI gate (`audit-frontmatter.js`) enforces this going forward.
-- ✨ **5 new skills: `/ccc-e2e`, `/ccc-save-session`, `/ccc-resume-session`, `/ccc-changelog`, `/ccc-doctor`** — plugin grows 45 → 50 skills. **`/ccc-upgrade` adds skill 51.**
+- 🎯 **60 plugin skills** — 6 new channel/CI/ECC skills (`/ccc-brainstorm`, `/ccc-qa`, `/ccc-loop`, `/ccc-hermes`, `/ccc-nightwatch`, `/ccc-ci`) + 5 language reviewer agents (Go, Rust, Java, Kotlin, C#).
+- 🔐 **4 security mediums resolved** — telemetry scrubber hardened (recursive, allowlist-aware, depth-bounded), error messages sanitized (no message text to PostHog), privacy policy accuracy fix.
+- 🤖 **22 specialist sub-agent personas** — 5 new language reviewers added (Go · Rust · Java · Kotlin · C#).
+- 🔗 **9 lifecycle hooks × 25 handlers** — 5 ECC hooks ported, PermissionRequest hook added.
 - 🧪 **284 tests passing** — +5 security regression tests added.
 - 📸 **Screenshot scaffold** — `docs/screenshots/` with 7 placeholder briefs ready for Kevin to drop real Desktop captures.
 - 🖥️ **Desktop-first positioning throughout** — all docs now lead with "Claude Code Desktop is the primary surface."
@@ -258,7 +259,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 502+ skills,
+You get:  A guided AI project manager with 457+ skills,
           60 plugin skills, 22 agents, 20 vendor packages,
           real learning, and zero setup.
 ```

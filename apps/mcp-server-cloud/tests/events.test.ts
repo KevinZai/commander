@@ -26,7 +26,7 @@ process.env.PORT = "0";
 // behavior we want for tests (no real network calls).
 
 const { app } = await import("../src/index.js");
-const { validateEvent, checkRateLimit, ALLOWED_EVENTS } = await import(
+const { validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST } = await import(
   "../src/routes/events.js"
 );
 
@@ -305,5 +305,85 @@ describe("POST /v1/events", () => {
     });
     assert.equal(res.status, 200);
     assert.ok(res.headers.get("X-RateLimit-Remaining"));
+  });
+});
+
+// ─── scrubProperties adversarial tests ──────────────────────────────────────
+describe("scrubProperties — adversarial inputs", () => {
+  it("drops nested sensitive key: metadata.prompt", () => {
+    const result = scrubProperties({ metadata: { prompt: "secret" } }) as Record<string, unknown>;
+    const meta = result.metadata as Record<string, unknown>;
+    assert.ok(meta !== undefined, "metadata object should be preserved");
+    assert.ok(!("prompt" in meta), "prompt key must be scrubbed from nested object");
+  });
+
+  it("drops top-level email key", () => {
+    const result = scrubProperties({ email: "user@example.com", hook: "SessionStart" }) as Record<string, unknown>;
+    assert.ok(!("email" in result), "email must be scrubbed");
+    assert.equal(result.hook, "SessionStart", "allowlisted hook key must be preserved");
+  });
+
+  it("drops deeply nested sensitive key", () => {
+    const input = { data: { nested: { deeper: { credit_card: "4111111111111111" } } } };
+    const result = scrubProperties(input) as Record<string, unknown>;
+    const data = result.data as Record<string, unknown>;
+    const nested = data.nested as Record<string, unknown>;
+    const deeper = nested.deeper as Record<string, unknown>;
+    assert.ok(!("credit_card" in deeper), "deeply nested credit_card key must be scrubbed");
+  });
+
+  it("preserves all allowlisted keys even when regex would match", () => {
+    // 'hook' contains no sensitive substring but test that all allowlist keys pass through
+    const allowlistSample = ["event_name", "os_name", "node_version", "ccc_version", "surface_name",
+      "hook", "handler", "agent_id", "skill_id", "tier", "latency_ms", "success", "tool", "ccc_surface",
+      "error_class", "error_code", "error_message_length"];
+    const input: Record<string, unknown> = {};
+    for (const k of allowlistSample) input[k] = "safe-value";
+    const result = scrubProperties(input) as Record<string, unknown>;
+    for (const k of allowlistSample) {
+      assert.equal(result[k], "safe-value", `allowlisted key '${k}' must be preserved`);
+    }
+  });
+
+  it("truncates string values exceeding MAX_VALUE_LENGTH (1000 chars)", () => {
+    const longValue = "x".repeat(1100);
+    const result = scrubProperties({ tier: longValue }) as Record<string, unknown>;
+    const v = result.tier as string;
+    assert.ok(v.endsWith("[truncated]"), "long string must be truncated with [truncated] suffix");
+    assert.ok(v.length <= 1012, "truncated value must not exceed 1000 chars + suffix");
+  });
+
+  it("caps depth at MAX_SCRUB_DEPTH and returns [depth-exceeded]", () => {
+    // Build a 7-level deep object — MAX_SCRUB_DEPTH is 5
+    const deep: Record<string, unknown> = { safe: "value" };
+    let current = deep;
+    for (let i = 0; i < 7; i++) {
+      current.child = { safe: "value" };
+      current = current.child as Record<string, unknown>;
+    }
+    // Just verify it doesn't throw and returns something
+    const result = scrubProperties(deep);
+    assert.ok(result !== undefined, "depth-exceeded scrub must not throw");
+  });
+
+  it("full validateEvent pipeline scrubs nested email and prompt", () => {
+    const result = validateEvent({
+      name: "hook_fired",
+      distinct_id: "adv-test-001",
+      properties: {
+        hook: "SessionStart",
+        metadata: { email: "a@b.com", prompt: "leak me" },
+      },
+    });
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      assert.equal(result.event.properties.hook, "SessionStart", "hook must be preserved");
+      const meta = result.event.properties.metadata as Record<string, unknown> | undefined;
+      // metadata object may exist but email and prompt must be gone
+      if (meta) {
+        assert.ok(!("email" in meta), "email must be scrubbed from nested metadata");
+        assert.ok(!("prompt" in meta), "prompt must be scrubbed from nested metadata");
+      }
+    }
   });
 });

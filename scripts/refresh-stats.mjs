@@ -39,7 +39,7 @@ async function query(hql) {
 async function getTotals() {
   const metrics = {
     hook_fires: "SELECT count() FROM events WHERE event = 'hook_fired' AND timestamp >= now() - INTERVAL 30 DAY",
-    sessions: "SELECT count(DISTINCT properties.session_id) FROM events WHERE event = 'session_start' AND timestamp >= now() - INTERVAL 30 DAY",
+    sessions: "SELECT count(DISTINCT properties.session_id) FROM events WHERE event IN ('cli_session_started', 'plugin_session_started') AND timestamp >= now() - INTERVAL 30 DAY",
     agents_dispatched: "SELECT count() FROM events WHERE event = 'agent_dispatched' AND timestamp >= now() - INTERVAL 30 DAY",
     skill_invocations: "SELECT count() FROM events WHERE event IN ('skill_invoked', 'cli_skill_invoked') AND timestamp >= now() - INTERVAL 30 DAY",
     mcp_tool_calls: "SELECT count() FROM events WHERE event = 'mcp_tool_called' AND timestamp >= now() - INTERVAL 30 DAY",
@@ -112,9 +112,9 @@ async function main() {
 
   try {
     const totals = await getTotals();
-    const topSkills = await getTopItems('skill_invoked', 'properties.skill_name');
+    const topSkills = await getTopItems('skill_invoked', 'properties.skill_id');
     const topAgents = await getTopItems('agent_dispatched', 'properties.agent_id');
-    const topHooks = await getTopItems('hook_fired', 'properties.hook_name');
+    const topHooks = await getTopItems('hook_fired', 'properties.hook');
 
     const stats = {
       generated_at: new Date().toISOString(),

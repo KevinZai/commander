@@ -19,7 +19,7 @@
   "pricing_model": "free-for-now-with-paid-pro-coming",
   "pro_tier_planned": true,
   "hosted_mcp_status": "live",
-  "hosted_mcp_url": "https://commander-mcp.fly.dev",
+  "hosted_mcp_url": "https://mcp.commanderplugin.com",
   "claude_code_compat": "shipping",
   "codex_cli_compat": "v4.2-target",
   "codex_desktop_compat": "v4.2-target",
