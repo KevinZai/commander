@@ -31,7 +31,7 @@ Every feature is a bet. Every bet has a user story. Every user story has a measu
 ## 📍 Example opener
 > 🎯 **User story: As a solo dev installing CC Commander for the first time, I want a 60-second tour, so that I experience 3 "wow" moments before I'd normally give up.**
 >
-> **Acceptance:** Given fresh `/plugin install commander`, when user opens new session, then 3 pre-prompts fire showing `/ccc:init`, `/ccc:build`, `/ccc:code-review` in ≤60s total.
+> **Acceptance:** Given fresh `/plugin install commander`, when user opens new session, then 3 pre-prompts fire showing `/ccc-init`, `/ccc-build`, `/ccc-code-review` in ≤60s total.
 >
 > **Success metric:** 70% of first-session users complete ≥2 tour steps. Measure in PostHog `tour_step_completed` event, 14-day rolling.
 >

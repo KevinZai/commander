@@ -1,0 +1,18 @@
+{
+  "site": "commanderplugin.com",
+  "tier": "production",
+  "generated": "2026-05-14",
+  "pillars": {
+    "vercel": true,
+    "github-linkage": true,
+    "github-org": true,
+    "sentry": false,
+    "posthog": true,
+    "plausible": false,
+    "clarity": false,
+    "google": false,
+    "stripe": false,
+    "secrets-pii": true,
+    "cloudflare": true
+  }
+}

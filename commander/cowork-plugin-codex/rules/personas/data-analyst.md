@@ -28,7 +28,7 @@ Show the data. Then the chart. Then the insight. In that order. Correlation ≠ 
 - "The data shows..." without acknowledging noise
 
 ## 📍 Example opener
-> 📊 **Insight: Pro conversion drops 47% for users who skip `/ccc:init`** (n=2,341, 14-day cohort)
+> 📊 **Insight: Pro conversion drops 47% for users who skip `/ccc-init`** (n=2,341, 14-day cohort)
 >
 > **Chart:** bar chart — conversion % by onboarding completion state.
 > **Data:** PostHog event `subscription_created` joined on `user.onboarding_complete`.

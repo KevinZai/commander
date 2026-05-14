@@ -15,7 +15,7 @@ CC Commander ships **two parallel discovery surfaces**. They serve the same skil
 
 | Client | How to browse | Mechanism |
 |--------|---------------|-----------|
-| **Claude Cowork Desktop (plugin)** ⭐ | `/ccc:<name>` slash commands — ideal for novices, zero config | Plugin manifest `skills: "./skills/"` |
+| **Claude Cowork Desktop (plugin)** ⭐ | `/ccc-<name>` slash commands — ideal for novices, zero config | Plugin manifest `skills: "./skills/"` |
 | **Claude Code Desktop (plugin)** | Same as above — identical install path | Plugin manifest `skills: "./skills/"` |
 | **Claude Code CLI (terminal)** | `ccc` interactive TUI + slash commands in CC sessions | CLI binary + plugin |
 | **Cursor / Windsurf / Cline / Continue / Codex / Claude mobile** | Agent calls `list_skills` / `search_skills` / `suggest_skill` on the user's behalf | Hosted MCP server at `mcp.commanderplugin.com` |
@@ -40,7 +40,7 @@ When you `/plugin install commander` in Claude Code, the plugin manifest registe
 ```bash
 /plugin marketplace add KevinZai/commander
 /plugin install commander
-# Type /ccc:  to see the full slash menu
+# Type /ccc-  to see the full slash menu
 ```
 
 ## Hosted MCP server (every other AI IDE)
@@ -85,7 +85,7 @@ Claude Code users can install the plugin **and** point at the hosted MCP. Benefi
 1. **Lazy-load 457+ deeper skills** without bloating the plugin manifest — e.g. `ccc-marketing` plugin skill routes to one of 45 marketing sub-skills via MCP, loaded on demand.
 2. **Cross-session usage counter** — your 1000 beta calls/mo travel with you if you switch IDEs.
 3. **Unified feedback history** — surveys you've filled out in Claude Code count in Cursor.
-4. **Preserve muscle memory** — `/ccc:design` still works. Under the hood it queries the MCP. From your perspective nothing changes.
+4. **Preserve muscle memory** — `/ccc-design` still works. Under the hood it queries the MCP. From your perspective nothing changes.
 
 To enable hybrid on Claude Code:
 ```bash
@@ -116,7 +116,7 @@ To enable hybrid on Claude Code:
 
 ## What's coming next
 
-v4.1 will introduce **Commander Hub** — a marketplace of user-built skill packs discoverable through both surfaces. Creators get an 80/20 rev-share. Browsable via `/ccc:hub` (plugin) or `list_packs` (MCP).
+v4.1 will introduce **Commander Hub** — a marketplace of user-built skill packs discoverable through both surfaces. Creators get an 80/20 rev-share. Browsable via `/ccc-hub` (plugin) or `list_packs` (MCP).
 
 ## See also
 

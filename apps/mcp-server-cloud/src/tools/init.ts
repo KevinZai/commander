@@ -43,7 +43,7 @@ export function initProject(args: InitProjectArgs) {
     nextSteps: [
       "1. Copy CLAUDE.md.template to your project root and customize",
       "2. Add your MCP config block to your IDE settings",
-      "3. Run /ccc:init in Claude Code to start the project wizard",
+      "3. Run /ccc-init in Claude Code to start the project wizard",
     ],
   };
 }

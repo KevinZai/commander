@@ -25,7 +25,7 @@ function classify(prompt) {
 }
 
 test('routes "what changed" to /ccc-changelog', function () {
-  // Note: "release" alone matches /ccc:deploy-check earlier in the table; we use "what changed" which is unambiguous.
+  // Note: "release" alone matches /ccc-deploy-check earlier in the table; we use "what changed" which is unambiguous.
   const r = classify('what changed in beta.11');
   assert.ok(r.status && r.status.includes('/ccc-changelog'), 'expected /ccc-changelog match, got: ' + JSON.stringify(r));
 });

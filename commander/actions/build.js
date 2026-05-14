@@ -36,7 +36,7 @@ module.exports = {
   async freeform_prompt(engine, tui, state, choice) {
     try {
       process.stdout.write('\x0a  ' + tui.boldText('Type anything — a command, a question, or what you want to build:', tui.getTheme().text) + '\x0a');
-      process.stdout.write('  ' + tui.dimText('Examples: /ccc:xray  |  build a landing page  |  /plan  |  fix the auth bug') + '\x0a');
+      process.stdout.write('  ' + tui.dimText('Examples: /ccc-xray  |  build a landing page  |  /plan  |  fix the auth bug') + '\x0a');
       process.stdout.write('  ' + tui.dimText('(empty or "back" to cancel)') + '\x0a\x0a');
       if (!engine.rl) { var readline = require('readline'); engine.rl = readline.createInterface({ input: process.stdin, output: process.stdout }); }
       var freeInput = await engine.ask('  > ');

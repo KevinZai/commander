@@ -20,7 +20,7 @@ Tracks which of the 7 scaffold slots are filled and which bonus shots landed bey
 |------|------|---------|
 | `02b-plugin-installed-agents-view.png` | Plugin page, Agents tab highlighted | Alternate for 02 showing agents catalog entry point |
 | `08-agents-catalog.png` | Full 17-agent grid with descriptions | README agent section + mintlify docs |
-| `09-skill-detail-ccc-build.png` | `/ccc:build` skill detail page | Docs — how skills render in Desktop |
+| `09-skill-detail-ccc-build.png` | `/ccc-build` skill detail page | Docs — how skills render in Desktop |
 | `10-agent-detail-architect.png` | Architect agent detail page | Docs — agent persona rendering |
 | `11-marketplace-code-tab.png` | Marketplace → Code tab with commander-hub visible | Install alternate-path docs |
 | `12-personal-marketplace.png` | Marketplace → Personal tab with commander | Install alternate-path docs |

@@ -473,7 +473,7 @@ CCC reads your project before every dispatch. No setup needed.
 | Lifecycle Hooks | 9 × 25 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest |
 | MCP Servers | 9 | Tavily · Context7 · Firecrawl · Exa · GitHub · Figma · Playwright · claude-mem · sequential-thinking |
 | CCC Domains | 11 | Domain routers with sub-skills |
-| Commands | 83 | Slash commands (/ccc: prefix) |
+| Commands | 83 | Slash commands (/ccc- prefix) |
 | Hooks (JS) | 25 | Lifecycle automation (kit-native) |
 | Adventures | 13 | Guided interactive flows |
 | Vendor Packages | 19 | Best-in-class tools, auto-updated |
@@ -606,8 +606,8 @@ CCC learns from every session. Knowledge compounds over time.
 **Audit any project. Fix it automatically.**
 
 ```bash
-/ccc:xray                    # Scan → health score 0-100
-/ccc:makeover                # Agent swarm applies top fixes
+/ccc-xray                    # Scan → health score 0-100
+/ccc-makeover                # Agent swarm applies top fixes
 ```
 
 | Dimension | Weight | What It Checks |

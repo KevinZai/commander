@@ -2,7 +2,7 @@
 description: "CC Commander init — scaffold or refresh project CLAUDE.md, tasks/, and lessons.md from the latest v4.0 template. Preserves custom sections."
 ---
 
-# `/ccc:init` — Project Initialization + Refresh
+# `/ccc-init` — Project Initialization + Refresh
 
 One command for both **new projects** and **existing stale CLAUDE.md refreshes**. Replaces `/ccc-refresh` (kept as deprecated alias).
 
@@ -50,12 +50,12 @@ Override via `CC_NUDGE_DISABLE=1`.
 
 ## Deprecated alias
 
-`/ccc-refresh` is preserved as a deprecated alias — calling it emits a deprecation notice, then executes `/ccc:init` refresh behavior.
+`/ccc-refresh` is preserved as a deprecated alias — calling it emits a deprecation notice, then executes `/ccc-init` refresh behavior.
 
 ## Example
 
 ```
-User: /ccc:init
+User: /ccc-init
 
 CC Commander:
 # Project Initialization
@@ -77,4 +77,4 @@ Apply? (yes / no / show-diff)
 
 ## Rationale
 
-Unifying `/ccc:init` with `/ccc-refresh` removes a common source of user confusion: "do I init or refresh?" Answer: always `/ccc:init` — the command figures out which it is.
+Unifying `/ccc-init` with `/ccc-refresh` removes a common source of user confusion: "do I init or refresh?" Answer: always `/ccc-init` — the command figures out which it is.

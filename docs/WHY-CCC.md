@@ -323,7 +323,7 @@
 ---
 
 ### 45. CLAUDE.md Staleness Detection
-**What:** A hook (`hooks/claude-md-staleness.js`) detects when your CLAUDE.md is stale (>30 days without update) and prompts you to refresh it with `/ccc:refresh`.
+**What:** A hook (`hooks/claude-md-staleness.js`) detects when your CLAUDE.md is stale (>30 days without update) and prompts you to refresh it with `/ccc-refresh`.
 **Proof:** `hooks/claude-md-staleness.js` present. Referenced in CHANGELOG.md v4.1.0-beta.2: "staleness hook (auto-prompts when stale >30 days)."
 **Share-friendly:** Your most important AI config file, kept fresh automatically. CCC tells you when it's time to update your CLAUDE.md.
 

@@ -25,7 +25,7 @@ That's the whole thing. The marketplace serves the latest version from `main` â€
 Or in a fresh Claude Code session:
 
 ```
-/ccc:settings
+/ccc-settings
 ```
 
 The settings menu header reports the installed version.
@@ -38,7 +38,7 @@ The settings menu header reports the installed version.
 | Agents | 10 domain specialists | 15 with persona voice system (added content-strategist, data-analyst, performance-engineer, product-manager, technical-writer) |
 | Hooks | 6 lifecycle events | 9 lifecycle events |
 | Rules shipped with plugin | none | 10 voice files + 17 personas at `rules/common/` + `rules/personas/` |
-| Commands | `/ccc-refresh` (canonical) | `/ccc:init` (canonical); `/ccc-refresh` kept as deprecated alias |
+| Commands | `/ccc-refresh` (canonical) | `/ccc-init` (canonical); `/ccc-refresh` kept as deprecated alias |
 | Publisher | "Kevin Z" | "Kevin Zicherman" (canonical) |
 | Status bar | Opus 4.6 default | Opus 4.7 default + session time remaining + cost gauge + cache hit % |
 
@@ -89,7 +89,7 @@ npm i -g cc-commander@4.1.0-beta.2
 
 ## After the upgrade
 
-Optional but recommended: run `/ccc:init` to refresh your project `CLAUDE.md` against the new v4 template (22-emoji palette, 10 Core Principles, 4 HARD RULES). Custom sections are preserved.
+Optional but recommended: run `/ccc-init` to refresh your project `CLAUDE.md` against the new v4 template (22-emoji palette, 10 Core Principles, 4 HARD RULES). Custom sections are preserved.
 
 ## Known issues in v4.1.0-beta.2
 

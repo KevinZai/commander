@@ -65,3 +65,5 @@ marketing/
 .claude/agent-memory/
 OPERATING-MANUAL.md
 .vercel
+.next/
+

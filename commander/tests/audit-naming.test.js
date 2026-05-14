@@ -166,14 +166,14 @@ test('No description exceeds 200 chars', function() {
   assert.deepStrictEqual(failures, [], `Descriptions > 200 chars:\n${failures.join('\n')}`);
 });
 
-// ── 3 zero-description skills now have descriptions ──────────────────────────
-test('Previously zero-description skills now have [C:...] descriptions', function() {
+// ── 3 zero-description skills have non-empty descriptions (post UX cleanup) ──
+test('Previously zero-description skills now have non-empty descriptions', function() {
   const targets = [
-    { file: 'skills/benchmark/SKILL.md',            expectedDomain: 'devops' },
-    { file: 'skills/plan-design-review/SKILL.md',   expectedDomain: 'design' },
-    { file: 'skills/continuous-improvement/SKILL.md', expectedDomain: 'meta' },
+    'skills/benchmark/SKILL.md',
+    'skills/plan-design-review/SKILL.md',
+    'skills/continuous-improvement/SKILL.md',
   ];
-  for (const { file, expectedDomain } of targets) {
+  for (const file of targets) {
     const filePath = path.join(ROOT, file);
     assert.ok(fs.existsSync(filePath), `Missing: ${file}`);
     const content = fs.readFileSync(filePath, 'utf-8');
@@ -184,12 +184,13 @@ test('Previously zero-description skills now have [C:...] descriptions', functio
     assert.ok(dm, `${file}: no description field`);
     let raw = dm[1].trim();
     if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) raw = raw.slice(1, -1);
-    assert.ok(raw.startsWith(`[C:${expectedDomain}]`), `${file}: expected [C:${expectedDomain}], got "${raw.slice(0, 60)}"`);
+    assert.ok(raw.length > 0, `${file}: description is empty`);
+    assert.ok(!/^\[C:[a-z-]+\]\s*[—–-]/.test(raw), `${file}: stale [C:*] prefix present`);
   }
 });
 
-// ── ccc-seo duplicate aligned ─────────────────────────────────────────────────
-test('skills/ccc-seo/SKILL.md has [C:seo] prefix (aligned with plugin version)', function() {
+// ── ccc-seo description is clean (no [C:*] prefix, post UX cleanup) ──────────
+test('skills/ccc-seo/SKILL.md has clean description (no [C:*] prefix)', function() {
   const filePath = path.join(ROOT, 'skills/ccc-seo/SKILL.md');
   assert.ok(fs.existsSync(filePath), 'skills/ccc-seo/SKILL.md exists');
   const content = fs.readFileSync(filePath, 'utf-8');
@@ -200,7 +201,7 @@ test('skills/ccc-seo/SKILL.md has [C:seo] prefix (aligned with plugin version)',
   assert.ok(dm, 'Has description');
   let raw = dm[1].trim();
   if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) raw = raw.slice(1, -1);
-  assert.ok(raw.startsWith('[C:seo]'), `Expected [C:seo] prefix, got "${raw.slice(0, 60)}"`);
+  assert.ok(!/^\[C:[a-z-]+\]\s*[—–-]/.test(raw), `Expected no [C:*] prefix, got "${raw.slice(0, 60)}"`);
 });
 
 // ── Cleanup ───────────────────────────────────────────────────────────────────

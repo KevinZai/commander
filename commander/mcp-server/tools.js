@@ -116,7 +116,7 @@ var TOOLS = [
   },
   {
     name: 'commander_init',
-    description: 'Generate a project CLAUDE.md from CCC template. Cross-IDE equivalent of /ccc:init.',
+    description: 'Generate a project CLAUDE.md from CCC template. Cross-IDE equivalent of /ccc-init.',
     inputSchema: {
       type: 'object',
       properties: {

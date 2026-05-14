@@ -2,7 +2,7 @@
 description: "Open the Linear board, pick issues, create tasks, and manage your project directly from CCC."
 ---
 
-# /ccc:linear — Linear Board
+# /ccc-linear — Linear Board
 
 Open your Linear project board directly in CCC. View issues by status, pick one to work on, or create new ones.
 
@@ -24,7 +24,7 @@ Open your Linear project board directly in CCC. View issues by status, pick one 
 ## Usage
 
 ```
-/ccc:linear              # Open the board
+/ccc-linear              # Open the board
 ccc > Linear Board       # Same thing via menu
 ```
 

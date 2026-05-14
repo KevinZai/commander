@@ -125,7 +125,7 @@ function handleInvokeAgent(args) {
   return {
     agent: args.name,
     task: args.task,
-    note: 'Local mode: use Claude Code /ccc:' + args.name + ' with the task context below.',
+    note: 'Local mode: use Claude Code /ccc-' + args.name + ' with the task context below.',
     dispatchHint: 'ccc --dispatch "' + args.task.replace(/"/g, '\\"') + '" --agent ' + args.name,
   };
 }
