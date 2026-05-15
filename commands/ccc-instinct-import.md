@@ -1,5 +1,5 @@
 ---
-name: instinct-import
+name: ccc-instinct-import
 description: "Import instincts from file or URL into project/global scope"
 command: true
 ---

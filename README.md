@@ -435,7 +435,7 @@ Every completed session extracts patterns and errors. The next dispatch is infor
 CCC reads your project before every dispatch. No setup needed.
 
 ```
-  Importing: ~/projects/my-saas-app
+  Importing: ~/ccc-projects/my-saas-app
 
   Detected:
   ├─ CLAUDE.md           142 lines
@@ -569,7 +569,7 @@ CCC aggregates the best Claude Code tools as git submodules. Auto-updated weekly
 |---------|-------|-------------|
 | [Everything Claude Code](https://github.com/affaan-m/everything-claude-code) | 120K+ | 156 skills, 72 commands, 38 agents, lifecycle hooks |
 | [gstack](https://github.com/garrytan/gstack) | 58K+ | CEO/eng plan review, office hours, QA — OpenClaw integration v2 |
-| [Superpowers](https://github.com/obra/superpowers) | 29K+ | Forces structured thinking — /plan, /tdd, /verify |
+| [Superpowers](https://github.com/obra/superpowers) | 29K+ | Forces structured thinking — /ccc-plan, /ccc-tdd, /ccc-verify |
 | [claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) | 26K+ | Reference architecture, Channels, Auto Mode |
 | [repomix](https://github.com/yamadashy/repomix) | 22.8K+ | Pack codebases for AI (tree-sitter compression = 60% smaller) |
 | [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) | 17K+ | HUD with worktree support, quota tracking, hyperlinks |
@@ -598,12 +598,12 @@ The **smart orchestrator** scores each tool: capability match (50%) + popularity
 ```
   PHASE          BEST TOOL              FALLBACK
   ──────────────────────────────────────────────
-  ▸ Clarify      /office-hours          Spec flow
+  ▸ Clarify      /ccc-office-hours          Spec flow
   ▸ Decide       /plan-ceo-review       Plan mode
   ▸ Plan         /ce:plan               Claude plan
   ▸ Execute      /ce:work               Dispatch
   ▸ Review       /ce:review (6+ agents) /simplify
-  ▸ Test         /qa (real browser)     /verify
+  ▸ Test         /ccc-qa (real browser)     /ccc-verify
   ▸ Learn        Knowledge engine       Always on
   ▸ Ship         /ship                  git commit
 ```

@@ -1,5 +1,5 @@
 ---
-name: improve-commands
+name: ccc-improve-commands
 description: "Audit and improve the slash command library — prune stale commands, identify gaps, enhance existing ones"
 usage: /improve-commands
 version: 1.3.0

@@ -1,5 +1,5 @@
 ---
-name: openclaw
+name: ccc-openclaw
 description: "OpenClaw platform integration — status, sync, configure, health check, agent management"
 usage: /openclaw [status|sync|configure|health|agents]
 version: 1.3.0

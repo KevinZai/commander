@@ -221,7 +221,7 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | Command | Key | What It Does |
 |---------|-----|-------------|
 | `/btw` | — | Side question without polluting main context |
-| `/aside` | — | Same idea — preserves context budget |
+| `/ccc-aside` | — | Same idea — preserves context budget |
 | Plan editor | `Ctrl+G` | Open current plan in your editor for review |
 | `/compact` | — | Compress context (add "preserve X" rules in CLAUDE.md) |
 | `@path/file` | — | Import file content into CLAUDE.md at load time |
@@ -271,7 +271,7 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 
 | Scenario | Skills to Use |
 |----------|--------------|
-| Code review | `/code-review` command or `review` skill |
+| Code review | `/ccc-code-review` command or `review` skill |
 | Important decision | `dialectic-review` (FOR/AGAINST/Referee agents) |
 | Security audit | `pentest-checklist` + `container-security` |
 | Design review | `design-review` + `audit` + `critique` |
@@ -282,11 +282,11 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 
 | Intent | Quick (command) | Deep (skill) |
 |--------|----------------|--------------|
-| Code review | `/code-review` | `review` or `codex` |
-| Test-driven dev | `/tdd` | `tdd-workflow` |
-| Verify before done | `/verify` | `verification-loop` |
-| End-to-end tests | `/e2e` | `e2e-testing` |
-| Audit quality | `/audit` | `audit` skill |
+| Code review | `/ccc-code-review` | `review` or `codex` |
+| Test-driven dev | `/ccc-tdd` | `tdd-workflow` |
+| Verify before done | `/ccc-verify` | `verification-loop` |
+| End-to-end tests | `/ccc-e2e` | `e2e-testing` |
+| Audit quality | `/ccc-audit` | `audit` skill |
 
 > Commands = quick-fire (<5 min). Skills = deep-dive (10+ min with methodology).
 
@@ -296,18 +296,18 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 
 | Command | What it does | Example |
 |---------|-------------|---------|
-| `/init` | Initialize project — creates `CLAUDE.md` with stack context | `/init` in project root |
+| `/ccc-init` | Initialize project — creates `CLAUDE.md` with stack context | `/ccc-init` in project root |
 | `/help` | Show all available commands and keyboard shortcuts | `/help` |
 | `/clear` | Clear conversation history (frees context window) | `/clear` |
 | `/compact` | Intelligently compress context, keeping key info | `/compact` |
 | `/model` | Switch model for current session | `/model claude-opus-4-5` |
 | `/think` | Enable extended thinking mode (deeper reasoning) | `/think hard about this architecture` |
 | `/review` | Trigger code review pass on current changes | `/review` |
-| `/cost` | Show token usage and cost for current session | `/cost` |
+| `/ccc-cost` | Show token usage and cost for current session | `/ccc-cost` |
 | `/doctor` | Diagnose Claude Code setup issues | `/doctor` |
 | `/add` | Add files or directories to active context | `/add src/api/` |
-| `/plan` | Spec-first planning — interview → spec doc → execute | `/plan build a Stripe checkout` |
-| `/verify` | Run verification loop before claiming done | `/verify` |
+| `/ccc-plan` | Spec-first planning — interview → spec doc → execute | `/ccc-plan build a Stripe checkout` |
+| `/ccc-verify` | Run verification loop before claiming done | `/ccc-verify` |
 
 ### CLI Entry Points
 
@@ -363,8 +363,8 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | `/resume` | Resume a previous session by picking from list | `/resume` |
 | `/ccc-save-session` | Persist context to `~/.claude/sessions/` | `/ccc-save-session` |
 | `/ccc-resume-session` | Reload last saved session on startup | `/ccc-resume-session` |
-| `/context-budget` | Check how much context you're using | `/context-budget` |
-| `/aside` | Quick side-task without losing main context | `/aside what does this regex do?` |
+| `/ccc-context-budget` | Check how much context you're using | `/ccc-context-budget` |
+| `/ccc-aside` | Quick side-task without losing main context | `/ccc-aside what does this regex do?` |
 | `/context` | Show current context summary | `/context` |
 | `/memory` | Manage memory files (view/edit CLAUDE.md) | `/memory` |
 | `/compact` | Manual context compaction | `/compact` |
@@ -489,7 +489,7 @@ CCC ships with 28 kit-native hooks that work standalone via `hooks-standalone.js
 | `CLAUDE.md` | Permanent project context — stack, commands, rules |
 | `tasks/todo.md` | Active task list — resume point each session |
 | `tasks/lessons.md` | Learned patterns — check at session start |
-| `tasks/spec-YYYYMMDD.md` | Spec documents from `/plan` |
+| `tasks/spec-YYYYMMDD.md` | Spec documents from `/ccc-plan` |
 | `~/.claude/learned-skills/` | Auto-saved patterns from `continuous-learning` |
 
 ### Project Settings vs Global
@@ -536,19 +536,19 @@ See `tasks/todo.md`
 
 | Command | When to Use | Example |
 |---------|-------------|---------|
-| `/plan` | Before ANY multi-step task. Spec-first. | `/plan add OAuth login` |
-| `/orchestrate` | Multi-agent pipeline for complex work | `/orchestrate` |
-| `/build-fix` | Auto-resolve build errors after `npm run build` fails | `/build-fix` |
-| `/verify` | Run full verification before claiming done | `/verify` |
-| `/checkpoint` | Git checkpoint — save state mid-work | `/checkpoint` |
-| `/complete` | Mark task complete with verification | `/complete` |
+| `/ccc-plan` | Before ANY multi-step task. Spec-first. | `/ccc-plan add OAuth login` |
+| `/ccc-orchestrate` | Multi-agent pipeline for complex work | `/ccc-orchestrate` |
+| `/ccc-build-fix` | Auto-resolve build errors after `npm run build` fails | `/ccc-build-fix` |
+| `/ccc-verify` | Run full verification before claiming done | `/ccc-verify` |
+| `/ccc-checkpoint` | Git checkpoint — save state mid-work | `/ccc-checkpoint` |
+| `/ccc-complete` | Mark task complete with verification | `/ccc-complete` |
 | `spec-interviewer` | Interview → spec doc → fresh session execute | use skill |
 | `writing-plans` | Structured planning before implementation | use skill |
 | `executing-plans` | Execute written plans with review checkpoints | use skill |
 
 ### Plan Workflow
 ```
-/plan
+/ccc-plan
 → Claude asks 5-7 clarifying questions
 → You answer them
 → Claude writes spec to tasks/spec-YYYYMMDD.md
@@ -562,14 +562,14 @@ See `tasks/todo.md`
 
 | Command | When to Use |
 |---------|-------------|
-| `/code-review` | Multi-agent code review (runs 3 reviewers) |
-| `/tdd` | Start test-driven workflow (write test → implement → refactor) |
-| `/quality-gate` | Run quality checks (lint, type, test) |
-| `/refactor-clean` | Safe refactoring with test preservation |
+| `/ccc-code-review` | Multi-agent code review (runs 3 reviewers) |
+| `/ccc-tdd` | Start test-driven workflow (write test → implement → refactor) |
+| `/ccc-quality-gate` | Run quality checks (lint, type, test) |
+| `/ccc-refactor-clean` | Safe refactoring with test preservation |
 | `/review` | Built-in code review pass |
 | `/test` | Run test suite |
-| `/test-coverage` | Check test coverage |
-| `/e2e` | Run Playwright E2E tests |
+| `/ccc-test-coverage` | Check test coverage |
+| `/ccc-e2e` | Run Playwright E2E tests |
 | `tdd-workflow` | TDD: red/green/refactor cycle (skill) |
 | `review` | Structured code review (skill) |
 
@@ -587,9 +587,9 @@ See `tasks/todo.md`
 
 | Command | What it does |
 |---------|-------------|
-| `/docs` | Generate/update documentation |
-| `/update-docs` | Refresh all doc files |
-| `/update-codemaps` | Refresh code maps |
+| `/ccc-docs` | Generate/update documentation |
+| `/ccc-update-docs` | Refresh all doc files |
+| `/ccc-update-codemaps` | Refresh code maps |
 | `document-release` skill | Post-ship doc update (README, ARCH, CONTRIBUTING) |
 
 ### Parallel Work with Subagents
@@ -608,12 +608,12 @@ Claude: [spawns 2 subagents — one for API, one for tests]
 
 ### Full Feature Workflow
 ```
-/plan → approve spec → /tdd → implement → /verify → /code-review → /pr → /deploy
+/ccc-plan → approve spec → /ccc-tdd → implement → /ccc-verify → /ccc-code-review → /ccc-pr → /ccc-deploy
 ```
 
 ### Bug Fix Workflow
 ```
-investigate skill → root cause → /tdd → fix → /verify → /pr
+investigate skill → root cause → /ccc-tdd → fix → /ccc-verify → /ccc-pr
 ```
 
 ---
@@ -881,10 +881,10 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 | Command | What it does |
 |---------|-------------|
-| `/learn` | Extract reusable patterns from current work |
-| `/instinct-status` | View learned patterns inventory |
-| `/instinct-export` | Export learned instincts |
-| `/instinct-import` | Import learned instincts |
+| `/ccc-learn` | Extract reusable patterns from current work |
+| `/ccc-instinct-status` | View learned patterns inventory |
+| `/ccc-instinct-export` | Export learned instincts |
+| `/ccc-instinct-import` | Import learned instincts |
 | `continuous-learning-v2` skill | Auto-extract patterns via hooks |
 | `rules-distill` | Distill rules from experience |
 
@@ -892,11 +892,11 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 | Command | What it does |
 |---------|-------------|
-| `/paperclip` | Manage tasks in Paperclip |
-| `/projects` | List active projects |
-| `/pm2` | Manage PM2 processes |
-| `/pr` | Create pull request |
-| `/deploy` | Deploy to production |
+| `/ccc-paperclip` | Manage tasks in Paperclip |
+| `/ccc-projects` | List active projects |
+| `/ccc-pm2` | Manage PM2 processes |
+| `/ccc-pr` | Create pull request |
+| `/ccc-deploy` | Deploy to production |
 | `project-kickoff` skill | Initialize new project (CLAUDE.md + tasks + hooks) |
 
 ---
@@ -907,11 +907,11 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 | Method | How |
 |--------|-----|
-| `/cost` | Show cost for current session |
+| `/ccc-cost` | Show cost for current session |
 | `cache-monitor` skill | Analyze cache efficiency from JSONL logs |
-| JSONL logs | `~/.claude/agents/*/sessions/*.jsonl` |
+| JSONL logs | `~/.claude/agents/*/ccc-sessions/*.jsonl` |
 | Agent-HQ dashboard | `http://localhost:3005/api/costs` |
-| `/context-budget` | See how much context is used |
+| `/ccc-context-budget` | See how much context is used |
 
 ### Token Optimization
 
@@ -923,7 +923,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Subagents for isolation | Each subagent gets full context window |
 | Fresh sessions for big tasks | `/ccc-save-session` → new session → `/ccc-resume-session` |
 | Haiku for simple tasks | `--model claude-haiku-4` for bulk/fast ops |
-| `/aside` for side questions | Preserves main context budget |
+| `/ccc-aside` for side questions | Preserves main context budget |
 
 ### Model Cost Comparison
 
@@ -952,12 +952,12 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Context window full | `/compact` or `/clear` or start new session with `/ccc-save-session` first |
 | Stale library docs | Add `"use context7"` to your prompt |
 | Forgot what was in context | `/context` to see summary |
-| Build keeps failing | `/build-fix` or `systematic-debugging` skill |
+| Build keeps failing | `/ccc-build-fix` or `systematic-debugging` skill |
 | Agent stuck in loop | `Ctrl+C` to cancel, then be more specific |
 | Wrong model for task | `--model <model>` flag or `/model` in session |
 | Global permissions bloat | Use project-level `.claude/settings.json` instead |
 | Changing models mid-session | Spawn subagent with different model instead |
-| No verification before done | Always `/verify` or `verification-before-completion` skill |
+| No verification before done | Always `/ccc-verify` or `verification-before-completion` skill |
 | Huge context window | `/ccc-save-session` → start fresh → `/ccc-resume-session` |
 | Missing skill for task | Check `SKILLS-INDEX.md` — there's probably one |
 | Session context lost | Check `~/.claude/sessions/` for auto-saved state |
@@ -973,13 +973,13 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Mistake | Fix |
 |---------|-----|
 | Building from scratch | Check `SKILLS-INDEX.md` first |
-| No plan for multi-step work | Always `/plan` before complex tasks |
-| Verifying by asking, not running | Always `/verify` or run tests yourself |
+| No plan for multi-step work | Always `/ccc-plan` before complex tasks |
+| Verifying by asking, not running | Always `/ccc-verify` or run tests yourself |
 | Editing global settings for one project | Use `.claude/settings.json` per project |
 | Huge prompt, tiny output | Break into spec → subagents → verify |
 | Forgetting lessons | Check `tasks/lessons.md` at session start |
-| Context bloat from side questions | Use `/aside` for side questions |
-| One-shot for 3-day tasks | `/plan` → spec → fresh sessions |
+| Context bloat from side questions | Use `/ccc-aside` for side questions |
+| One-shot for 3-day tasks | `/ccc-plan` → spec → fresh sessions |
 
 ---
 
@@ -987,16 +987,16 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 | Goal | Combo |
 |------|-------|
-| New feature (full cycle) | `/plan` → approve spec → `/tdd` → implement → `/verify` → `/code-review` → `/pr` → `/deploy` |
-| Bug fix | `investigate` skill → root cause → `/tdd` → fix → `operationalize-fixes` → `/verify` → `/pr` |
-| Design work | `/plan` → `brainstorming` → `frontend-design` → `/verify` → `design-review` → ship |
-| Content/SEO | `seo-content-brief` → `content-strategy` → write → `seo-optimizer` + `aaio` → `/verify` |
-| Feature kickoff | `evals-before-specs` → `/plan` → spec → implement → verify against evals |
+| New feature (full cycle) | `/ccc-plan` → approve spec → `/ccc-tdd` → implement → `/ccc-verify` → `/ccc-code-review` → `/ccc-pr` → `/ccc-deploy` |
+| Bug fix | `investigate` skill → root cause → `/ccc-tdd` → fix → `operationalize-fixes` → `/ccc-verify` → `/ccc-pr` |
+| Design work | `/ccc-plan` → `brainstorming` → `frontend-design` → `/ccc-verify` → `design-review` → ship |
+| Content/SEO | `seo-content-brief` → `content-strategy` → write → `seo-optimizer` + `aaio` → `/ccc-verify` |
+| Feature kickoff | `evals-before-specs` → `/ccc-plan` → spec → implement → verify against evals |
 | Overnight batch | `overnight-runner` → checkpoint file → wrapper script → notification |
 | Subagent dispatch | `delegation-templates` → structured prompt → report validation → accept/reject |
 | Performance | `audit` → `optimize` → `harden` → benchmark → `canary` monitor |
 | QA cycle | `qa` skill → fix bugs → `document-release` → deploy |
-| New project | `project-kickoff` → CLAUDE.md + tasks → `/plan` → build |
+| New project | `project-kickoff` → CLAUDE.md + tasks → `/ccc-plan` → build |
 
 ---
 

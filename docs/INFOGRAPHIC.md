@@ -115,9 +115,9 @@
   ║ START ║────>║ CONTEXT ║────>║ PLAN ║────>║ BUILD ║────>║ TEST ║────>║ REVIEW ║────>║ SHIP ║
   ╚═══════╝     ╚═════════╝     ╚══════╝     ╚═══════╝     ╚══════╝     ╚════════╝     ╚══════╝
       │              │              │             │             │             │             │
-   /init        CLAUDE.md       /plan          /tdd         /verify    /code-review      /pr
-   /resume      sessions     spec-first      skills        /e2e       3 reviewers     /deploy
-   mode-set     context      confidence     subagents    /quality    dialectic        /complete
+   /ccc-init        CLAUDE.md       /ccc-plan          /ccc-tdd         /ccc-verify    /ccc-code-review      /ccc-pr
+   /resume      sessions     spec-first      skills        /ccc-e2e       3 reviewers     /ccc-deploy
+   mode-set     context      confidence     subagents    /quality    dialectic        /ccc-complete
                 budget        check          /spawn       -gate      review
                                                                                         │
                                               ╔══════════════════╗                      │
@@ -234,7 +234,7 @@
     │  │          │  │          │  │  Tasks)  │  │          │    │
     │  │ 5 coord  │  │ Plugins  │  │ 8 pre-   │  │ Quick    │    │
     │  │ patterns │  │ Builder  │  │ built    │  │ Team     │    │
-    │  │ /peers   │  │ Handoff  │  │ templates│  │ Swarm    │    │
+    │  │ /ccc-peers   │  │ Handoff  │  │ templates│  │ Swarm    │    │
     │  │ /spawn   │  │ Schedule │  │ Overnight│  │ Expert   │    │
     │  └──────────┘  └──────────┘  └──────────┘  └──────────┘    │
     │                                                              │
@@ -291,7 +291,7 @@
   ║                              ║    ║  self-verify on every edit   ║
   ║                              ║    ║                              ║
   ║  Cost tracking:              ║    ║  Cost tracking:              ║
-  ║  /cost (manual)              ║    ║  Auto-alerts at $0.50/$2.00  ║
+  ║  /ccc-cost (manual)              ║    ║  Auto-alerts at $0.50/$2.00  ║
   ║                              ║    ║  Rate predictor              ║
   ║                              ║    ║  Dashboard cost tracker      ║
   ║                              ║    ║                              ║

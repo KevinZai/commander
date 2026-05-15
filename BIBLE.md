@@ -50,9 +50,9 @@
 
 > For commands, CLI flags, and model tables see **CHEATSHEET.md**.
 
-1. **Plan before coding** — `/plan` every multi-step task
+1. **Plan before coding** — `/ccc-plan` every multi-step task
 2. **Context is milk** — fresh + condensed = best output
-3. **Verify, don't trust** — always `/verify` before done
+3. **Verify, don't trust** — always `/ccc-verify` before done
 4. **Subagents = fresh context** — parallel work, no bloat
 5. **CLAUDE.md = investment** — your rules compound over time
 6. **Boring solutions win** — AI has a bias for complexity; push back
@@ -62,7 +62,7 @@
 
 ## The Kevin Z Method
 
-> Run `/init` to get this automatically configured. The decision tree asks these questions and sets up your project.
+> Run `/ccc-init` to get this automatically configured. The decision tree asks these questions and sets up your project.
 
 ### Build Type Selection
 
@@ -95,23 +95,23 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 
 #### Quick Build
 - [ ] Build the thing
-- [ ] `/verify` — works end-to-end
+- [ ] `/ccc-verify` — works end-to-end
 - [ ] `git commit` — conventional commit
 - [ ] Ship
 
 #### Deep Build
-- [ ] `/init` — deep build, skills loaded
-- [ ] `/plan` — spec interview complete
+- [ ] `/ccc-init` — deep build, skills loaded
+- [ ] `/ccc-plan` — spec interview complete
 - [ ] New session with spec
 - [ ] TDD: write failing tests first
 - [ ] Implement until tests pass
-- [ ] `/code-review`
-- [ ] `/verify` — full verification
+- [ ] `/ccc-code-review`
+- [ ] `/ccc-verify` — full verification
 - [ ] `operationalize-fixes` if bugs found
-- [ ] `/pr` — create draft PR
+- [ ] `/ccc-pr` — create draft PR
 
 #### SaaS Build
-- [ ] `/init` — SaaS build, template selected
+- [ ] `/ccc-init` — SaaS build, template selected
 - [ ] Scaffold from starter template
 - [ ] Auth (better-auth)
 - [ ] Database schema (drizzle-neon)
@@ -123,7 +123,7 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 - [ ] Deploy (ccc-devops)
 
 #### Overnight Build
-- [ ] `/init` — overnight build configured
+- [ ] `/ccc-init` — overnight build configured
 - [ ] Define batch tasks + error strategy
 - [ ] Set checkpoint frequency
 - [ ] Launch with `overnight-runner`
@@ -281,8 +281,8 @@ Arrow keys to navigate. No commands to memorize. The Intelligence Layer handles 
 
 ```bash
 # Step 1: Initialize project context
-/init                    # Creates CLAUDE.md with project overview
-/plan                    # Spec interview — Claude asks 5–7 questions
+/ccc-init                    # Creates CLAUDE.md with project overview
+/ccc-plan                    # Spec interview — Claude asks 5–7 questions
 
 # Step 2: Set up the COMP system (4 files every project needs)
 ```
@@ -325,11 +325,11 @@ See `tasks/todo.md`
 ### Kickoff Workflow
 
 ```
-1. /init → generates baseline CLAUDE.md
-2. /plan → spec interview → spec saved to tasks/spec-YYYYMMDD.md
+1. /ccc-init → generates baseline CLAUDE.md
+2. /ccc-plan → spec interview → spec saved to tasks/spec-YYYYMMDD.md
 3. New session with spec as context
 4. Execute against spec
-5. /verify after each milestone
+5. /ccc-verify after each milestone
 ```
 
 ### CLAUDE.md Gotchas
@@ -435,7 +435,7 @@ Daily 12pm: Check Gmail for urgent messages, draft responses, save as text file.
 2. **Compact at 40–50 turns** — not after context fills
 3. **Static content first in CLAUDE.md** — improves cache hits
 4. **Don't edit CLAUDE.md mid-session** — breaks the cache
-5. **`/aside` for side questions** — preserves main context budget
+5. **`/ccc-aside` for side questions** — preserves main context budget
 6. **Subagents = fresh windows** — use them for parallel work
 
 ### Tool & Context Awareness
@@ -455,7 +455,7 @@ These failure modes come from reverse-engineering Claude Code's internal behavio
 | `Ctrl+G` | Open the current plan in your editor |
 | `/compact` | Compress context. Add "When compacting, always preserve: [items]" to your CLAUDE.md |
 | `@path/to/file` | Import file content into CLAUDE.md at load time (compose from multiple sources) |
-| `/aside` | Similar to `/btw` — preserves main context budget |
+| `/ccc-aside` | Similar to `/btw` — preserves main context budget |
 
 ### CLAUDE.md Include/Exclude Table
 
@@ -485,24 +485,24 @@ Never start coding without a spec. Claude's first attempt is usually directional
 ### Key Commands
 
 ```bash
-/plan          # Always first — spec interview before building
-/tdd           # Test-driven development mode
+/ccc-plan          # Always first — spec interview before building
+/ccc-tdd           # Test-driven development mode
 /review        # After implementing
-/verify        # Before marking done
-/pr            # Create PR when ready
+/ccc-verify        # Before marking done
+/ccc-pr            # Create PR when ready
 ```
 
 ### Feature Build Workflow
 
 ```
-1. /plan → spec document saved to tasks/
+1. /ccc-plan → spec document saved to tasks/
 2. New session: load spec + execute
 3. Write tests FIRST (TDD)
 4. Implement until tests pass
 5. /review → address feedback
-6. /verify → confirm it's actually done
-7. /checkpoint → git save
-8. /pr → create draft PR
+6. /ccc-verify → confirm it's actually done
+7. /ccc-checkpoint → git save
+8. /ccc-pr → create draft PR
 ```
 
 ### For Non-Coders: Breaking Down Problems
@@ -603,7 +603,7 @@ Never fix a bug without finding the root cause first. The investigate-first rule
 ```bash
 # Bug workflow
 investigate skill → root cause → write test → fix → operationalize
-/verify              # Confirm fix works
+/ccc-verify              # Confirm fix works
 ```
 
 ### Bug Fix Workflow
@@ -616,7 +616,7 @@ investigate skill → root cause → write test → fix → operationalize
 5. Fix the root cause (not the symptom)
 6. Test passes → commit the fix
 7. `operationalize-fixes` skill → check for similar bugs, update CLAUDE.md
-8. /verify → confirm clean
+8. /ccc-verify → confirm clean
 ```
 
 ### The Operationalize Rule (from @GriffinHilly)
@@ -676,21 +676,21 @@ Shipping is a systems problem, not a code problem. Every deploy should be repeat
 
 ```bash
 /review          # Final code review
-/verify          # Confirm working
-/pr              # Create draft PR
-/deploy          # Deploy command
-/docs            # Generate/update docs
+/ccc-verify          # Confirm working
+/ccc-pr              # Create draft PR
+/ccc-deploy          # Deploy command
+/ccc-docs            # Generate/update docs
 ```
 
 ### Ship Workflow
 
 ```
 1. Feature complete → /review
-2. Address feedback → /verify
-3. /pr → create DRAFT PR (safe — not merged yet)
+2. Address feedback → /ccc-verify
+3. /ccc-pr → create DRAFT PR (safe — not merged yet)
 4. Review diff in GitHub Desktop (visual)
 5. CI passes → mark PR ready
-6. /deploy
+6. /ccc-deploy
 7. Verify in production (smoke test)
 ```
 
@@ -1050,7 +1050,7 @@ Mismatches trigger natural correction.
 - Static content goes first in CLAUDE.md (cache efficiency)
 - Don't edit CLAUDE.md mid-session (breaks cache)
 - Compact at 40–50 turns, not when context is full
-- Use /aside for side questions (preserve main budget)
+- Use /ccc-aside for side questions (preserve main budget)
 
 ## Workflow Evolution
 When a session reveals a new pattern, encode it here.
@@ -1344,29 +1344,29 @@ My tools: [list tools/APIs]."
 
 | Command | What it does | When to use |
 |---------|-------------|-------------|
-| `/init` | Create `CLAUDE.md` for the project | First time in new repo |
+| `/ccc-init` | Create `CLAUDE.md` for the project | First time in new repo |
 | `/help` | Show all commands + keyboard shortcuts | When lost |
 | `/clear` | Clear conversation, fresh start | New topic, stuck agent, bloated context |
 | `/compact` | Smart compress context | Every 40–50 turns |
 | `/new` | Start fresh same session | New sub-topic without full reset |
 | `/model` | Switch model for session | Need more power mid-task |
 | `/think` | Enable extended reasoning | Hard architecture decisions |
-| `/plan` | Spec-first planning | Before ANY multi-step task |
+| `/ccc-plan` | Spec-first planning | Before ANY multi-step task |
 | `/review` | Code review pass | After implementing |
-| `/verify` | Full verification | Before saying "it's done" |
-| `/cost` | Show token usage + cost | Checking spend |
+| `/ccc-verify` | Full verification | Before saying "it's done" |
+| `/ccc-cost` | Show token usage + cost | Checking spend |
 | `/context` | Show what's in current context | When confused |
-| `/context-budget` | How much context used vs remaining | Before long tasks |
+| `/ccc-context-budget` | How much context used vs remaining | Before long tasks |
 | `/memory` | View/edit CLAUDE.md files | Updating project rules |
 | `/doctor` | Diagnose Claude Code setup | Something broken? |
 | `/add` | Add files/dirs to active context | Claude doesn't know about a file |
-| `/aside` | Quick side question, keeps main context | Quick question mid-task |
-| `/checkpoint` | Git checkpoint | Mid-work safety save |
-| `/complete` | Mark task done with verification | Finishing a task |
+| `/ccc-aside` | Quick side question, keeps main context | Quick question mid-task |
+| `/ccc-checkpoint` | Git checkpoint | Mid-work safety save |
+| `/ccc-complete` | Mark task done with verification | Finishing a task |
 | `/resume` | Resume a previous session | Continuing yesterday's work |
-| `/pr` | Create pull request | Ready to merge |
-| `/deploy` | Deploy to production | Shipping |
-| `/docs` | Generate/update docs | After building something |
+| `/ccc-pr` | Create pull request | Ready to merge |
+| `/ccc-deploy` | Deploy to production | Shipping |
+| `/ccc-docs` | Generate/update docs | After building something |
 | `/usage` | Check rate limits | Worried about hitting limits |
 | `/stats` | Usage stats + activity graph | Curious about usage |
 | `/chrome` | Toggle native browser integration | Need logged-in browser state |
@@ -1745,7 +1745,7 @@ Rules:
 - Do not change unrelated code
 - Write a test that reproduces the bug FIRST
 - Watch it fail. Then fix. Then watch it pass.
-- After fixing: run /verify and confirm the test passes
+- After fixing: run /ccc-verify and confirm the test passes
 - Then use operationalize-fixes: check for similar bugs, update CLAUDE.md
 ```
 
@@ -2261,7 +2261,7 @@ Verification: [how you'll know it's done]
 
 **Good vs bad:**
 - ❌ "Fix the bug" → no context
-- ✅ "The login form throws `Error: undefined is not a function` when clicking Submit. Fix it. Don't change the UI. Test with `/verify` when done."
+- ✅ "The login form throws `Error: undefined is not a function` when clicking Submit. Fix it. Don't change the UI. Test with `/ccc-verify` when done."
 
 ### Voice Input
 
@@ -2340,8 +2340,8 @@ graph TD
 ### Framework Integrations
 | Framework | Stars | What We Integrated |
 |-----------|-------|-------------------|
-| **[gstack](https://github.com/garrytan/gstack)** (Garry Tan) | 40K | `/office-hours` product validation, `/retro` productivity stats, `/qa` diff-aware QA |
-| **[Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin)** (Every.to) | 10K | `/compound` post-task learning capture, compounding productivity methodology |
+| **[gstack](https://github.com/garrytan/gstack)** (Garry Tan) | 40K | `/ccc-office-hours` product validation, `/ccc-retro` productivity stats, `/ccc-qa` diff-aware QA |
+| **[Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin)** (Every.to) | 10K | `/ccc-compound` post-task learning capture, compounding productivity methodology |
 | **SuperClaude Framework** | 22K | Confidence checking, Four-question validation, Parallel execution |
 | **Everything Claude Code (ECC)** | 100K | Lifecycle hooks, developer profiles, agent definitions |
 | **anthropics/claude-plugins-official** | 15K | Plugin manifest format |
@@ -2774,7 +2774,7 @@ Insights distilled from 40+ community repos and articles, April 2026.
 
 ### Mental Models
 
-- **Agent Workspace Model** — A repository is a self-contained environment for ANY domain, not just coding. System admin, health tracking, competitive research, content creation — each gets its own workspace repo with CLAUDE.md, skills, and commands. CCC's `/init` wizard should offer non-coding workspace templates.
+- **Agent Workspace Model** — A repository is a self-contained environment for ANY domain, not just coding. System admin, health tracking, competitive research, content creation — each gets its own workspace repo with CLAUDE.md, skills, and commands. CCC's `/ccc-init` wizard should offer non-coding workspace templates.
 
 - **Unix philosophy for LLM tools** — Simple composable commands outperform rich interfaces. Prefer piped single-purpose outputs over multi-modal dashboards. When building CCC tools, ask: "Can this be a pipe?" before "Can this be a menu?"
 

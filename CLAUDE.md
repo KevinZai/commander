@@ -101,7 +101,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ├── skills/              # 502+ skills organized by category
 │   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 10 workflow modes
-��   ├── init-decision-tree/  # /init project wizard
+��   ├── init-decision-tree/  # /ccc-init project wizard
 │   ├── confidence-check/    # Pre-execution confidence assessment
 │   ├── four-question-validation/  # Post-implementation verification
 ���   └── */               # Individual skills (SKILL.md each)
@@ -237,7 +237,7 @@ ccc --status                  # Health check
 - VS Code snippets at `compatibility/vscode-snippets.json` (20+ snippets)
 - session-coach.js fires periodic coaching nudges (toggleable via `CC_COACH_DISABLE=1`, interval via `CC_COACH_INTERVAL`)
 - Status line (`lib/statusline.sh`) shows live context gauge, model, cost, tokens, account, rate limit countdown
-- `/init` checks `~/.claude/sessions/` and offers to resume prior sessions before the wizard
+- `/ccc-init` checks `~/.claude/sessions/` and offers to resume prior sessions before the wizard
 - 4 iTerm2 color profiles at `compatibility/` (Claude Anthropic, OLED Black, Matrix); legacy `kz-matrix.itermcolors` preserved
 - Theme system with 10 switchable themes
 - OpenClaw native integration with auto-detection, skill sync, bidirectional event forwarding

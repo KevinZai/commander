@@ -1,5 +1,5 @@
 ---
-name: openclaw-manage
+name: ccc-openclaw-manage
 description: "Manage OpenClaw agents, sessions, and gateway from within Claude Code"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: promote
+name: ccc-promote
 description: "Promote project-scoped instincts to global scope"
 command: true
 ---

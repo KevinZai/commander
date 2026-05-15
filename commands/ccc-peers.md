@@ -1,5 +1,5 @@
 ---
-name: peers
+name: ccc-peers
 description: "Discover and communicate with other Claude Code instances"
 triggers:
   - "/peers"

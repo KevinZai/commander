@@ -1,5 +1,5 @@
 ---
-name: retro
+name: ccc-retro
 description: "Periodic productivity retrospective — shipping summary, metrics, cost tracking, and reflection"
 usage: /retro [week|sprint|month|YYYY-MM-DD..YYYY-MM-DD]
 version: 1.3.0

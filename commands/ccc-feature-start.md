@@ -1,5 +1,5 @@
 ---
-name: feature-start
+name: ccc-feature-start
 description: "Kickoff a new feature with branch creation, TDD setup, and task breakdown"
 usage: /feature-start [feature name or description]
 version: 1.3.0

@@ -9,11 +9,11 @@ These are non-negotiable. They apply to every session, every project, every buil
 
 <AccordionGroup>
   <Accordion title="1. Plan before coding" icon="clipboard-list">
-    Run `/plan` on every multi-step task before writing a line of code.
+    Run `/ccc-plan` on every multi-step task before writing a line of code.
 
     Skipping planning is the #1 source of wasted tokens and context bloat. A 5-minute spec saves 50 minutes of back-and-forth mid-session.
 
-    CCC's `/init` wizard runs this automatically — it asks what you're building, selects the right domains, and generates a plan before dispatching.
+    CCC's `/ccc-init` wizard runs this automatically — it asks what you're building, selects the right domains, and generates a plan before dispatching.
 
     **When to invoke:** Any task with 3+ steps, architecture decisions, or unknown scope.
   </Accordion>
@@ -33,7 +33,7 @@ These are non-negotiable. They apply to every session, every project, every buil
   </Accordion>
 
   <Accordion title="3. Verify, don't trust" icon="circle-check">
-    Always run `/verify` before marking anything done. Never assume a tool call succeeded without checking the output.
+    Always run `/ccc-verify` before marking anything done. Never assume a tool call succeeded without checking the output.
 
     **The verification checklist:**
     - Feature works end-to-end
@@ -114,4 +114,4 @@ Before touching any code, answer: **What kind of build is this?**
 | **SAAS** | 1-4 weeks | Full lifecycle: scaffold→auth→billing→ship | Opus | `ccc-saas` + `ccc-seo` + `ccc-testing` + `ccc-devops` |
 | **OVERNIGHT** | 6-12h autonomous | Checkpoints, error recovery | Opus | `overnight-runner` + domain skills |
 
-Run `/init` to answer this question interactively and have CCC configure everything automatically.
+Run `/ccc-init` to answer this question interactively and have CCC configure everything automatically.

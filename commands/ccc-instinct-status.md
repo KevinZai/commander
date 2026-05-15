@@ -1,5 +1,5 @@
 ---
-name: instinct-status
+name: ccc-instinct-status
 description: "Show learned instincts (project + global) with confidence"
 command: true
 ---

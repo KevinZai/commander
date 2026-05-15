@@ -118,7 +118,7 @@ Target widgets:
 
 v0.1 status: static shell with Sessions as the only wired view.
 
-### `/sessions`
+### `/ccc-sessions`
 
 Purpose: list and inspect all CC session artifacts.
 
@@ -159,7 +159,7 @@ Target widgets:
 
 v0.1 status: planned.
 
-### `/cost`
+### `/ccc-cost`
 
 Purpose: explain model spend across providers.
 
@@ -219,7 +219,7 @@ Everything else belongs to v0.2+.
 
 ## v0.2+ Backlog
 
-- Add route-level navigation for `/sessions`, `/agents`, `/skills`, `/cost`, and `/health`.
+- Add route-level navigation for `/ccc-sessions`, `/agents`, `/skills`, `/ccc-cost`, and `/health`.
 - Parse session files into structured turns, tools, skills, and timestamps.
 - Add current session detection.
 - Add activity heatmap for the last 24 hours.

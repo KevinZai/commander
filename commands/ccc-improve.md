@@ -1,5 +1,5 @@
 ---
-name: improve
+name: ccc-improve
 description: "Manage the continuous improvement pipeline -- scan, review, approve, and implement improvements to CC Commander"
 triggers:
   - "/improve"

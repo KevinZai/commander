@@ -275,7 +275,7 @@
 
 ### 38. Session Crash Recovery
 **What:** Sessions are tracked with start/stop state in `~/.claude/commander/`. If a session is interrupted, the state file persists and `/ccc` offers to resume from where you left off.
-**Proof:** `commander/state.js` + `/init` adventure flow in `commander/adventures/` checks `~/.claude/sessions/` and offers resume on startup.
+**Proof:** `commander/state.js` + `/ccc-init` adventure flow in `commander/adventures/` checks `~/.claude/sessions/` and offers resume on startup.
 **Share-friendly:** Crash in the middle of a build? CCC offers to resume when you restart. State persists across crashes.
 
 ---
