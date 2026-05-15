@@ -1,5 +1,5 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-04-22 | Version: see package.json | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-05-15 | Version: see package.json | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -254,6 +254,18 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 You're briefing a brilliant contractor who knows nothing about your project yet. The more complete your brief, the less time you waste in corrections. Invest 20 minutes upfront to save 10 hours later.
 
 Stock Claude Code starts every session with amnesia. CC Commander doesn't. Before you type a single prompt, the Intelligence Layer has already read your `package.json`, scored the complexity of what you're about to build, and pre-ranked the skills most likely to help. See [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) in the appendices.
+
+### Three-Stage Mastery Path
+
+Track your progression from beginner to power user using this framework (from @aakashgupta on X):
+
+| Stage | Focus | Outcomes |
+|-------|-------|----------|
+| **1. Fundamentals** | Models, prompting, context windows, cost management | Can write effective prompts; understand model behavior |
+| **2. Agent Patterns** | Delegation, sub-agents, lifecycle hooks, CLAUDE.md, project setup | Can architect multi-step workflows; build reusable agents |
+| **3. OpenClaw-Level Orchestration** | Multi-agent fleets, autonomous loops, production deploys, observability | Can manage teams of agents; handle complex enterprise patterns |
+
+Each CCC domain (ccc-design, ccc-seo, ccc-saas, etc.) fits into Stage 2-3. Mastery is domain expertise + agent patterns combined.
 
 ### Quick Start (3 paths)
 
@@ -1190,7 +1202,7 @@ Write a complete SKILL.md that:
 ```
 
 **Skill resources:**
-- SkillsMSP marketplace: [skillsmp.com](https://skillsmp.com) — 500,000+ skills ready to download
+- SkillsMSP marketplace: [skillsmp.com](https://skillsmp.com) — 500K+ skills ready to download <!-- TODO: verify count 2026-05-15 -->
 - Awesome Claude Skills: [github.com/ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills)
 - Anthropic Complete Guide: [resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf](https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf)
 
@@ -1257,6 +1269,8 @@ Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skil
 | `critique` | "use critique skill" | Evaluate design effectiveness |
 | `bolder` | "use bolder skill" | Design is boring, needs amplification |
 
+**Reference:** See [ancoleman/ai-design-components](https://github.com/ancoleman/ai-design-components) for reusable design component patterns.
+
 #### Business & SEO
 
 | Skill | Invoke | Use when |
@@ -1267,6 +1281,8 @@ Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skil
 | `aaio` | "use aaio" | Agentic AI Optimization |
 | `cold-email` | "use cold-email skill" | B2B cold outreach |
 | `churn-prevention` | "use churn-prevention" | Cancellation flows |
+
+**SEO Reference:** See [geo-seo-claude](https://github.com/geo-seo-claude) <!-- TODO: verify URL 2026-05-15 --> for geolocation-based SEO optimization patterns.
 
 #### Context & Memory
 
@@ -1562,6 +1578,38 @@ All at: [anthropic.skilljar.com](https://anthropic.skilljar.com)
 "Index this codebase and tell me the architecture"
 ```
 
+### karpathy/autoresearch (Autonomous Research Agent)
+
+**Purpose:** Autonomous research agent that can search, synthesize, and evaluate sources across the web.
+
+**When to use:**
+- Large-scale competitive analysis
+- Market research requiring 50+ sources
+- Autonomous research during overnight builds
+
+**Access:** [github.com/karpathy/autoresearch](https://github.com/karpathy/autoresearch)
+
+### HKUDS/LightRAG (Lightweight RAG Framework)
+
+**Purpose:** Lightweight RAG framework optimized for document retrieval with minimal overhead.
+
+**When to use:**
+- Building RAG systems without infrastructure overhead
+- Local document search without embedding services
+- Cost-efficient retrieval-augmented generation
+
+**Access:** [github.com/HKUDS/LightRAG](https://github.com/HKUDS/LightRAG)
+
+### steipete/agent-scripts (Agent Script Library)
+
+**Purpose:** Collection of useful agent scripts and utilities for Claude Code automation.
+
+**When to use:**
+- Copy-paste agent workflows
+- Automation patterns you can fork and customize
+
+**Access:** [github.com/steipete/agent-scripts](https://github.com/steipete/agent-scripts)
+
 ### Playwright MCP (Browser Automation)
 
 ```
@@ -1569,6 +1617,83 @@ All at: [anthropic.skilljar.com](https://anthropic.skilljar.com)
 "Run the signup flow and verify it works"
 "Use playwright to test the checkout"
 ```
+
+### kepano/obsidian-skills (Obsidian Vault Integration)
+
+**Purpose:** Obsidian vault integration for Claude Code — read/write notes, search vault, link memory to sessions.
+
+**When to use:**
+- Pairing Claude Code with Obsidian's daily-notes system
+- Memory-first workflows using PARA organization
+- Linking session context to your personal knowledge base
+
+**Install:** `npm install kepano/obsidian-skills`
+
+**Access:** [github.com/kepano/obsidian-skills](https://github.com/kepano/obsidian-skills)
+
+### github/spec-kit (Structured PRD Toolkit)
+
+**Purpose:** GitHub's official spec toolkit for structured PRDs, templates, and validation.
+
+**When to use:**
+- Complement `/ccc-plan` spec-first workflow
+- Enforce spec validation rules in CI/CD
+- Align team on structured PRD format
+
+**Install:** `npm install github/spec-kit`
+
+**Access:** [github.com/github/spec-kit](https://github.com/github/spec-kit)
+
+### NotebookLM as MCP (Free Document Reference)
+
+**Purpose:** Google NotebookLM integrated as MCP server — upload PDFs/URLs, query them as MCP without token cost.
+
+**When to use:**
+- Zero-token library reference for large documentation
+- Batch document processing without Claude budget
+- Research on large source material
+
+**Setup:** Upload docs to NotebookLM, expose as MCP endpoint.
+
+**Source:** @aresotik on X (2026)
+
+### last30days Skill (Real-Time Research)
+
+**Purpose:** Real-time research skill — searches Reddit, X, YouTube, HN, web for recent content on any topic.
+
+**When to use:**
+- Competitive analysis requiring current data
+- Market research with fresh signals
+- Tech stack evaluation using recent posts
+
+**Access:** Pre-installed in CCC — run `/last30days <topic>`
+
+**Creator:** mvanhorn
+
+### Google 64-Page AI Agent Design Guide
+
+**Purpose:** Google's comprehensive agent design guide covering patterns, evaluation, and deployment.
+
+**When to use:**
+- Learning foundational agent architecture
+- Designing complex multi-step agent flows
+- Production readiness checklist for agents
+
+**Read:** Shared by @ihtesham2005 on X (2026)
+
+### aakashgupta 3-Stage Mastery Framework
+
+**Purpose:** Three-stage Claude Code mastery framework:
+1. **Fundamentals** — understand models, prompting, context windows
+2. **Agent Patterns** — learn delegation, sub-agents, lifecycle hooks
+3. **OpenClaw-Level Orchestration** — multi-agent fleets, autonomous loops, production deploys
+
+**When to use:**
+- Tracking your progression from beginner to power user
+- Understanding where each CCC domain fits in the learning path
+- Designing curricula for team onboarding
+
+**Source:** @aakashgupta on X (2026)
 
 ### Available MCP Servers (Always On)
 
@@ -2230,6 +2355,11 @@ graph TD
 | **Boris Cherny** (Claude Code creator) | Context window management, cost optimization |
 | **David Ondrej** | Comprehensive methodology, session management |
 | **Anthropic Official Docs** | CLAUDE.md conventions, hooks API, settings schema |
+| **hesreallyhim/awesome-claude-code** | Curated list of Claude Code resources and best practices |
+| **VoltAgent/awesome-openclaw-skills** | Curated OpenClaw skills and agent patterns |
+| **ClawTeam (HKUDS)** | Multi-agent team orchestration patterns |
+| **get-shit-done** | Pragmatic productivity skills for Claude Code <!-- TODO: verify URL 2026-05-15 --> |
+| **mgechev/skills-best-practices** | Skills 2.0 design patterns and architecture |
 
 200+ articles from X/Twitter, Reddit, Medium, YouTube, and GitHub were reviewed.
 
@@ -2756,6 +2886,6 @@ The community ecosystem provides the raw material. CCC provides the operating sy
 
 ---
 
-*Last updated: 2026-03-29*
+*Last updated: 2026-05-15*
 *CC Commander — by Kevin Zicherman*
 *Update this file when you learn something new. That's the point.*

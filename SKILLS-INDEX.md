@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
 > CC Commander v4.1.0-beta.2 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-05-08 | Desktop plugin first: 60 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop) + 22 specialist sub-agents + 9 lifecycle hooks (25 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free for now
+> Last verified: 2026-05-15 | Desktop plugin first: 60 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop) + 22 specialist sub-agents + 9 lifecycle hooks (25 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free for now
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
@@ -496,6 +496,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `citation-manager` | Track, format, and verify citations across research |
 | `source-validator` | Verify claims against original sources, flag hallucinations |
 | `research-brief` | Structured research output — executive summary, findings, recommendations |
+| `last30days` | Real-time research — Reddit/X/YouTube/HN/web for recent trends and current content (run before planning) |
 
 ## 📱 Mobile Development (ccc-mobile)
 | Skill | What it does |

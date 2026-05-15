@@ -1,6 +1,6 @@
 # CC Commander Cheatsheet
 > CC Commander v4.1.0-beta.2 — by Kevin Zicherman — commands, workflows, and power user tips
-> See CHANGELOG.md for version history
+> Last updated: 2026-05-15 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
@@ -97,7 +97,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | `PermissionRequest` | Tool permission prompt | 1 (permission gate) |
 | **TOTAL** | **9 events** | **25 handlers** |
 
-### Plugin MCP Servers (9)
+### Plugin MCP Servers (11)
 
 | MCP | Purpose |
 |-----|---------|
@@ -110,6 +110,8 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | Context7 | Current library/API docs (no hallucinated methods) |
 | Google Drive | Brand docs, style guides, draft storage |
 | Sequential Thinking | Complex multi-step reasoning primitive |
+| NotebookLM | Google NotebookLM as MCP — free documentation access, zero-token library reference (source: @aresotik) |
+| Obsidian Skills | Obsidian vault integration — read/write notes, search vault, link memory to sessions (kepano/obsidian-skills, MIT) |
 
 ### vs aider
 
