@@ -31,7 +31,11 @@ let tempHome;
 
 function makeEnv(extra = {}) {
   // Sanitize PATH-related vars; keep PATH so bash + node remain reachable.
-  return { ...process.env, HOME: tempHome, ...extra };
+  // Strip XDG_CONFIG_HOME so install.sh / uninstall.sh fall back to $HOME/.claude
+  // (= tempHome/.claude), not whatever XDG path the CI runner has set.
+  const baseEnv = { ...process.env };
+  delete baseEnv.XDG_CONFIG_HOME;
+  return { ...baseEnv, HOME: tempHome, ...extra };
 }
 
 function runShell(scriptPath, args = [], opts = {}) {
