@@ -1,0 +1,65 @@
+# Gitleaks config — CC Commander
+# Suppress false positives from test fixtures + documentation examples.
+# Reviewed 2026-05-14: all listed entries are documented placeholder values,
+# not real credentials. CC Commander uses 1Password + env vars for real secrets.
+
+title = "CC Commander gitleaks config"
+
+[extend]
+useDefault = true
+
+# ─── Global allowlist ─────────────────────────────────────────────────────────
+[allowlist]
+description = "CC Commander false-positive allowlist"
+paths = [
+  # Test fixtures — all secrets here are dummy values for test isolation
+  '''apps/mcp-server-cloud/tests/.*''',
+  # Documentation that LITERALLY documents what fake keys look like
+  '''commands/code/improve/security\.md''',
+  '''skills/ccc-saas/api-design/SKILL\.md''',
+  '''skills/engineering-pack/env-secrets-manager/SKILL\.md''',
+  '''skills/ccc-security/secrets-scanner/SKILL\.md''',
+  '''skills/engineering-pack/dependency-auditor/.*''',
+  # Code that DETECTS leaks — contains regex patterns matching secret shapes
+  '''commander/scripts/.*\.json''',
+  '''commander/scripts/audit-licenses\.js''',
+  '''commander/cowork-plugin/lib/secret-patterns\.json''',
+  '''commander/cowork-plugin-codex/lib/secret-patterns\.json''',
+  '''commander/core/secret-patterns\.json''',
+  # Public PostHog client key in HTML (intentional — phc_ is browser-safe)
+  '''docs/index\.html''',
+  # Build / lock files
+  '''.*package-lock\.json''',
+  '''.*\.lock''',
+  # Vendor submodules
+  '''vendor/.*''',
+  # Historical archives
+  '''docs/_archive/.*''',
+  '''CHANGELOG\.md''',
+  '''marketing/.*''',
+]
+
+# Known-safe placeholder patterns used in docs
+regexTarget = "match"
+regexes = [
+  # AWS docs example key (literally documented as fake)
+  '''AKIAIOSFODNN7EXAMPLE''',
+  # Documentation placeholders
+  '''sk-1234567890abcdef''',
+  '''sk_live_abc123''',
+  '''sk-proj-xxxxx''',
+  # Test JWT used across mcp-server-cloud test suite
+  '''test-jwt-secret-min-32-characters-long''',
+  # REDACTED placeholders in .env.example
+  '''REDACTED_[A-Z_]+''',
+  # Hashed PostHog client keys (phc_*) — browser-safe by design
+  '''phc_[a-zA-Z0-9]+''',
+  # UUID examples in docs
+  '''123e4567-e89b-12d3-a456-426614174000''',
+  # Stripe test key example in sample code
+  '''sk_test_1234567890''',
+  # curl example URL with bracket arrays
+  '''moz\.com/api/free/v2''',
+  # CCC license key format example in spec doc
+  '''ccc_live_abc123def456''',
+]
