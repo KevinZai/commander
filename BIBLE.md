@@ -1202,7 +1202,7 @@ Write a complete SKILL.md that:
 ```
 
 **Skill resources:**
-- SkillsMSP marketplace: [skillsmp.com](https://skillsmp.com) — 500K+ skills ready to download <!-- TODO: verify count 2026-05-15 -->
+- SkillsMSP marketplace: [skillsmp.com](https://skillsmp.com) — 66K+ skills ready to download
 - Awesome Claude Skills: [github.com/ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills)
 - Anthropic Complete Guide: [resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf](https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf)
 
@@ -1282,7 +1282,7 @@ Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skil
 | `cold-email` | "use cold-email skill" | B2B cold outreach |
 | `churn-prevention` | "use churn-prevention" | Cancellation flows |
 
-**SEO Reference:** See [geo-seo-claude](https://github.com/geo-seo-claude) <!-- TODO: verify URL 2026-05-15 --> for geolocation-based SEO optimization patterns.
+**SEO Reference:** See [geo-seo-claude](https://github.com/zubair-trabzada/geo-seo-claude) for geolocation-based SEO optimization patterns.
 
 #### Context & Memory
 
@@ -2358,7 +2358,7 @@ graph TD
 | **hesreallyhim/awesome-claude-code** | Curated list of Claude Code resources and best practices |
 | **VoltAgent/awesome-openclaw-skills** | Curated OpenClaw skills and agent patterns |
 | **ClawTeam (HKUDS)** | Multi-agent team orchestration patterns |
-| **get-shit-done** | Pragmatic productivity skills for Claude Code <!-- TODO: verify URL 2026-05-15 --> |
+| **get-shit-done** | [Pragmatic productivity skills for Claude Code](https://github.com/gsd-build/get-shit-done) |
 | **mgechev/skills-best-practices** | Skills 2.0 design patterns and architecture |
 
 200+ articles from X/Twitter, Reddit, Medium, YouTube, and GitHub were reviewed.

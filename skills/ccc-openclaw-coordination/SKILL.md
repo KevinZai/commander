@@ -1,5 +1,5 @@
 ---
-name: openclaw-coordination
+name: ccc-openclaw-coordination
 description: Cross-agent coordination between CCC and OpenClaw fleet
 version: 1.0.0
 category: orchestration
