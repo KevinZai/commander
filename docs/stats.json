@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-14T08:32:13.404Z",
+  "generated_at": "2026-05-15T08:44:07.574Z",
   "totals": {
-    "hook_fires": 2,
+    "hook_fires": 4,
     "sessions": 0,
     "agents_dispatched": 0,
     "skill_invocations": 0,
@@ -11,7 +11,7 @@
   "top_agents": [],
   "top_hooks": [
     {
-      "name": "Unknown",
+      "name": "SessionStart",
       "count": 2
     }
   ],
