@@ -46,9 +46,6 @@
 [submodule "vendor/claude-code-prompts"]
 	path = vendor/claude-code-prompts
 	url = https://github.com/repowise-dev/claude-code-prompts.git
-[submodule "vendor/claude-mem"]
-	path = vendor/claude-mem
-	url = https://github.com/thedotmack/claude-mem
 [submodule "vendor/graphify"]
 	path = vendor/graphify
 	url = https://github.com/safishamsi/graphify.git
