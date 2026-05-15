@@ -46,14 +46,14 @@ echo "  The following kit components will be removed:"
 echo ""
 
 components=0
-[ -d "$CLAUDE_DIR/skills" ] && echo "  · skills/" && ((components++))
-[ -d "$CLAUDE_DIR/commands" ] && echo "  · commands/" && ((components++))
-[ -d "$CLAUDE_DIR/hooks" ] && echo "  · hooks/" && ((components++))
-[ -d "$CLAUDE_DIR/lib" ] && echo "  · lib/" && ((components++))
-[ -d "$CLAUDE_DIR/templates" ] && echo "  · templates/" && ((components++))
-[ -f "$CLAUDE_DIR/BIBLE.md" ] && echo "  · BIBLE.md" && ((components++))
-[ -f "$CLAUDE_DIR/CHEATSHEET.md" ] && echo "  · CHEATSHEET.md" && ((components++))
-[ -f "$CLAUDE_DIR/SKILLS-INDEX.md" ] && echo "  · SKILLS-INDEX.md" && ((components++))
+[ -d "$CLAUDE_DIR/skills" ] && echo "  · skills/" && components=$((components + 1))
+[ -d "$CLAUDE_DIR/commands" ] && echo "  · commands/" && components=$((components + 1))
+[ -d "$CLAUDE_DIR/hooks" ] && echo "  · hooks/" && components=$((components + 1))
+[ -d "$CLAUDE_DIR/lib" ] && echo "  · lib/" && components=$((components + 1))
+[ -d "$CLAUDE_DIR/templates" ] && echo "  · templates/" && components=$((components + 1))
+[ -f "$CLAUDE_DIR/BIBLE.md" ] && echo "  · BIBLE.md" && components=$((components + 1))
+[ -f "$CLAUDE_DIR/CHEATSHEET.md" ] && echo "  · CHEATSHEET.md" && components=$((components + 1))
+[ -f "$CLAUDE_DIR/SKILLS-INDEX.md" ] && echo "  · SKILLS-INDEX.md" && components=$((components + 1))
 
 if [ "$components" -eq 0 ]; then
   echo "  No kit components found."
