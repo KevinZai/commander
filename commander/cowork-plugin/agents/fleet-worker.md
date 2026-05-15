@@ -91,3 +91,19 @@ Partial work completed: [what was done before the block]
 ```
 
 Never work around a blocker by making assumptions — surface it and halt.
+
+## 🚫 Hard rule: filesystem cleanup (post 2026-05-15 incident)
+
+**Never use raw `rm -rf` or raw `trash` for cleanup. Use `commander/scripts/safe-trash.sh`.**
+
+The 2026-05-15 incident traced to `rm -rf <symlink-to-dir>/` with a trailing slash, which on BSD/macOS follows the link and wipes the target directory's contents. Apple's `trash` does NOT follow symlinks (verified empirically), but `rm -rf` does in that one specific shape.
+
+Before any cleanup that touches a directory you did not create this session, list every symlink it contains and resolve each target:
+
+```bash
+find <dir> -type l -exec sh -c 'printf "%s -> %s\n" "$1" "$(python3 -c "import os,sys;print(os.path.realpath(sys.argv[1]))" "$1")"' _ {} \;
+```
+
+If ANY resolved target falls outside `~/Library/`, `~/.cache/`, `/private/tmp/`, `/tmp/`, or `~/.Trash/`, STOP and escalate to your orchestrator. Do not pass `--force` to safe-trash.sh — that flag is reserved for human-driven operations, not autonomous workers.
+
+Triggers for this rule: any instruction mentioning "delete", "remove", "uninstall", "clean up", "wipe", or operating on `~/.claude/`, `~/.config/`, or any directory you didn't create. See `~/.claude/sessions/2026-05-15-incident-report.md` for the full post-mortem.
