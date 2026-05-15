@@ -67,3 +67,6 @@ OPERATING-MANUAL.md
 .vercel
 .next/
 
+# Generated ebook artifacts (not for distribution yet)
+docs/bible.pdf
+

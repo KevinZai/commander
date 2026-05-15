@@ -1,9 +1,8 @@
 <!-- Keywords: Claude Code plugin, Claude Desktop, Cowork Desktop, AI PM, AI agents, MCP server, Anthropic, Claude SDK, prompt engineering, AI workflow, Claude Code Desktop, AI coding agent, Claude plugin, skill catalog -->
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ccc-hero.svg">
-  <img src="docs/assets/ccc-hero.svg" alt="CC Commander — AI PM plugin for Claude Code Desktop and Claude Code CLI" width="100%">
-</picture>
+<p align="center">
+  <img src="docs/assets/github-banner.png" alt="CC Commander — The guided AI PM for Claude Code" width="100%">
+</p>
 
 # CC Commander — AI PM for Claude Code · 60 Skills · 22 Agents · Free for Now
 
@@ -23,7 +22,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/60_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.1.0-beta.2](https://img.shields.io/badge/v4.1.0-beta.2?style=for-the-badge)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzicherman?style=social)](https://twitter.com/kzicherman) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/60_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.1.0-beta.2](https://img.shields.io/badge/v4.1.0-beta.2?style=for-the-badge)](./CHANGELOG.md)
 
 <p>
   <strong>Powered by:</strong>
@@ -37,7 +36,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
   <em>· <a href="https://docs.commanderplugin.com/affiliate-disclosure">affiliate disclosure</a></em>
 </p>
 
-**[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Plugin: **[@commanderplugin](https://x.com/commanderplugin)** · Built from 200+ community sources · Aggregates 20 vendor packages
+**[Kevin Zicherman](https://kevinz.ai)** · **[@kzicherman](https://x.com/kzicherman)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
 **[Why CC Commander](#-why-cc-commander)** · **[The 60 skills](#the-60-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
@@ -914,6 +913,12 @@ CCC aggregates 19 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](doc
 45+ ecosystem repos tracked: **[ECOSYSTEM.md](docs/ECOSYSTEM.md)**
 
 ---
+
+## Share
+
+If CC Commander helped you ship faster, share it:
+
+[![Share on X](https://img.shields.io/badge/Share_on-𝕏-black?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/intent/tweet?text=CC%20Commander%20%E2%80%94%2060%20skills%2C%2022%20agents%2C%209%20hooks.%20The%20guided%20AI%20PM%20for%20Claude%20Code.%20Free%20for%20now.&url=https%3A%2F%2Fgithub.com%2FKevinZai%2Fcommander&via=kzicherman)
 
 ## License
 
