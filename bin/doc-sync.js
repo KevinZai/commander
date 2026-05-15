@@ -12,7 +12,14 @@ var fs = require('fs');
 var path = require('path');
 var skillBrowser = require('../commander/skill-browser');
 
-var skillCount = skillBrowser.listSkills().length;
+// Use the canonical contract value as the marketing skill count — this is what
+// docs SHOULD say. Filesystem count (skillBrowser.listSkills()) is the floor.
+var contract = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'commander', 'contract.json'), 'utf8'));
+var actualSkillCount = skillBrowser.listSkills().length;
+var skillCount = contract.ecosystem_skills || actualSkillCount;
+if (actualSkillCount > skillCount) {
+  console.warn('NOTE: filesystem has ' + actualSkillCount + ' skills; contract.ecosystem_skills=' + skillCount + ' — consider bumping contract.');
+}
 var vendorCount = fs.readdirSync(path.join(__dirname, '..', 'vendor')).filter(function(f) { return f !== 'LICENSE' && !f.startsWith('.'); }).length;
 var adventureCount = fs.readdirSync(path.join(__dirname, '..', 'commander', 'adventures')).filter(function(f) { return f.endsWith('.json'); }).length;
 var commandCount = fs.readdirSync(path.join(__dirname, '..', 'commands')).filter(function(f) { return f.endsWith('.md'); }).length;
