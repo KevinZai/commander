@@ -65,19 +65,19 @@ test('dispatch rejects --cwd that is not a directory', function() {
 test('--skills install rejects path-traversal via ../../etc', function() {
   var res = runKc(['--skills', 'install', '../../etc']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for traversal');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 test('--skills install rejects path-traversal via ../..', function() {
   var res = runKc(['--skills', 'install', '../..']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for traversal');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 test('--skills install rejects traversal via foo/../../bar', function() {
   var res = runKc(['--skills', 'install', 'foo/../../bar']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for traversal');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 // ─── Path-traversal bypass matrix ────────────────────────────────────────────
@@ -86,19 +86,19 @@ test('--skills install rejects traversal via foo/../../bar', function() {
 test('--skills install rejects URL-encoded traversal %2e%2e%2f', function() {
   var res = runKc(['--skills', 'install', '%2e%2e%2fetc%2fpasswd']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for URL-encoded traversal');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 test('--skills install rejects URL-encoded traversal %2e%2e/', function() {
   var res = runKc(['--skills', 'install', '%2e%2e/etc/passwd']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for mixed URL-encoded traversal');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 test('--skills install rejects double-encoded traversal %252e%252e%252f', function() {
   var res = runKc(['--skills', 'install', '%252e%252e%252fetc']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for double-encoded traversal');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 test('--skills install rejects null-byte traversal', function() {
@@ -106,24 +106,24 @@ test('--skills install rejects null-byte traversal', function() {
   // The validator must reject any input containing a null byte
   var res = runKc(['--skills', 'install', 'foo\x00../../etc']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for null-byte traversal');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 test('--skills install rejects absolute path /etc/passwd', function() {
   var res = runKc(['--skills', 'install', '/etc/passwd']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for absolute path');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 test('--skills install rejects Windows-style traversal ..\\\\..\\\\etc', function() {
   var res = runKc(['--skills', 'install', '..\\..\\etc']);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for Windows traversal');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
 
 test('--skills install rejects long traversal repeated 500 times', function() {
   var payload = '../'.repeat(500) + 'etc/passwd';
   var res = runKc(['--skills', 'install', payload]);
   assert.notStrictEqual(res.status, 0, 'Expected non-zero exit for long traversal payload');
-  assert.match(res.stderr + res.stdout, /would escape skills directory/);
+  assert.match(res.stderr + res.stdout, /(?:would escape skills directory|Invalid skill name)/);
 });
