@@ -55,7 +55,7 @@ ccc --split
 # Run the test suite (187 tests)
 ccc --test
 
-# List all 457+ skills as JSON (for agent consumption)
+# List all 502+ skills as JSON (for agent consumption)
 ccc --list-skills --json
 ```
 

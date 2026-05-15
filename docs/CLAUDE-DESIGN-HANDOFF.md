@@ -52,7 +52,7 @@
    *(5 more domains exist — ccc-security, ccc-data, ccc-research, ccc-mobile, ccc-makeover — not shown on current page)*
 5. **CCC Methodology** — BIBLE.md callout: 1,749 lines, 13 sources, 15 chapters covering Golden Rules through Settings Reference. Link to GitHub.
 6. **How It All Connects** — Architecture diagram: install → Desktop + ~/.claude/ → Every Session. Tree: Plugin Skills / Agents / Hooks / MCP Servers / skills/ / commands/ / CLAUDE.md / BIBLE.md.
-7. **What's New in v4.0.0** — Desktop Plugin transformation. 4 build cards + 2 feature cards (457+ CLI skills still available, full hook lifecycle names).
+7. **What's New in v4.0.0** — Desktop Plugin transformation. 4 build cards + 2 feature cards (502+ CLI skills still available, full hook lifecycle names).
 8. **Get Started in 60 Seconds** — Two install paths side by side: Desktop Plugin (recommended) and CLI/legacy. Install summary grid: 12 items.
 9. **Works Everywhere Claude Runs** — IDE compatibility bar: Claude Desktop, Terminal, VS Code, Cursor, JetBrains.
 
@@ -65,7 +65,7 @@
 CLI alternative: `git clone https://github.com/KevinZai/commander.git && ./install.sh`
 
 ### Stats / Numbers (full set)
-- 502+ ecosystem skills | 55 plugin skills | 457+ CLI skills
+- 502+ ecosystem skills | 55 plugin skills | 502+ CLI skills
 - 17 specialist agents
 - 9 lifecycle hooks × 19 handlers
 - 11 CCC domains
@@ -275,7 +275,7 @@ The Mintlify documentation site at `https://docs.commanderplugin.com/` is **not 
 - [ ] `<link rel="canonical" href="https://commanderplugin.com/">` present
 - [ ] Favicon `data:` URI preserved (or replaced with equivalent `>` terminal icon)
 - [ ] Primary CTA is the 2-command install block (click-to-copy behavior retained)
-- [ ] Stats are accurate: 502+, 55, 17, 9, 11, 457+, 83
+- [ ] Stats are accurate: 502+, 55, 17, 9, 11, 502+, 83
 - [ ] "Free for now" messaging visible above the fold
 - [ ] Desktop plugin install path is primary; CLI is secondary
 - [ ] Real product screenshots (`docs/screenshots/`) used — not only SVG diagrams

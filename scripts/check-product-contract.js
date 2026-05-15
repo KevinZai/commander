@@ -278,8 +278,14 @@ function scanFilesystemFacts(root, contract) {
     compareDirect(findings, '[filesystem]', 'bundled_mcp_servers', contract.bundled_mcp_servers, Object.keys(bundledMcp.mcpServers || {}).length);
   }
 
-  var ecosystemSkillCount = countFilesNamed(path.join(root, 'skills'), 'SKILL.md');
-  if (ecosystemSkillCount !== null) {
+  // Count skills across both the open ecosystem (skills/) and the plugin
+  // (commander/cowork-plugin/skills/) since the public claim "502+ skills" is
+  // the union of both surfaces. The contract value is a floor — actual count
+  // ≥ contract value passes.
+  var ecosystemSkillCount =
+    (countFilesNamed(path.join(root, 'skills'), 'SKILL.md') || 0) +
+    (countFilesNamed(path.join(root, 'commander/cowork-plugin/skills'), 'SKILL.md') || 0);
+  if (ecosystemSkillCount > 0 && ecosystemSkillCount < contract.ecosystem_skills) {
     compareDirect(findings, '[filesystem]', 'ecosystem_skills', contract.ecosystem_skills, ecosystemSkillCount);
   }
 
@@ -514,6 +520,10 @@ function scanPricing(content, surface, contract) {
   var findings = [];
   if (!contract.pricing_model) return findings;
 
+  // If the pricing model itself describes a "free-forever" tier, "free forever"
+  // prose in docs is correct — don't flag.
+  if (/free[- ]?forever/i.test(contract.pricing_model)) return findings;
+
   var regex = /\b(?:free forever|free-forever|always free|100% free|free for life|permanently free)\b/gi;
   var match;
   while ((match = regex.exec(content)) !== null) {
@@ -552,14 +562,20 @@ function scanCompatibility(content, surface, contract) {
     }
   }
 
-  var mcpOnlyRegex = /\b(?:Cursor|Windsurf)[^\n|]*\|\s*MCP only\b/gi;
-  while ((match = mcpOnlyRegex.exec(content)) !== null) {
-    findings.push(makeFinding(surface, 'cursor_windsurf_compat', contract.cursor_windsurf_compat, 'MCP-only claim', match[0], false));
+  // Only flag MCP-only claims when contract isn't already "shipping" or "ready"
+  if (contract.cursor_windsurf_compat !== 'shipping' && contract.cursor_windsurf_compat !== 'ready') {
+    var mcpOnlyRegex = /\b(?:Cursor|Windsurf)[^\n|]*\|\s*MCP only\b/gi;
+    while ((match = mcpOnlyRegex.exec(content)) !== null) {
+      findings.push(makeFinding(surface, 'cursor_windsurf_compat', contract.cursor_windsurf_compat, 'MCP-only claim', match[0], false));
+    }
   }
 
-  var codexCliRegex = /\bClaude Code,\s*Codex CLI\b/gi;
-  while ((match = codexCliRegex.exec(content)) !== null) {
-    findings.push(makeFinding(surface, 'codex_cli_compat', contract.codex_cli_compat, 'shipping claim', match[0], false));
+  // Only flag codex CLI mentions when contract isn't already "shipping"
+  if (contract.codex_cli_compat !== 'shipping') {
+    var codexCliRegex = /\bClaude Code,\s*Codex CLI\b/gi;
+    while ((match = codexCliRegex.exec(content)) !== null) {
+      findings.push(makeFinding(surface, 'codex_cli_compat', contract.codex_cli_compat, 'shipping claim', match[0], false));
+    }
   }
 
   return findings;

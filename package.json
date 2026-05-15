@@ -1,7 +1,7 @@
 {
   "name": "cc-commander",
   "version": "4.1.0-beta.2",
-  "description": "Commander — Guided AI PM for every AI coding agent. 60 plugin skills. 22 specialist sub-agents. 9 lifecycle hooks (25 handlers). 2 bundled + 16 opt-in MCPs. 457+ skills across 11 CCC domains. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. Free for now.",
+  "description": "Commander — Guided AI PM for every AI coding agent. 60 plugin skills. 22 specialist sub-agents. 9 lifecycle hooks (25 handlers). 2 bundled + 16 opt-in MCPs. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. Free for now.",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"

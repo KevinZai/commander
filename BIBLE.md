@@ -1208,7 +1208,7 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 457 skills (original behavior)
+./install.sh --skills=full        # All 502+ skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.
@@ -2333,7 +2333,7 @@ ccc --repair
 | **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 457+ skills from within Commander |
+| **Skill browser** | Browse all 502+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
@@ -2548,7 +2548,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 457+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 502+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology

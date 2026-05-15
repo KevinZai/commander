@@ -69,10 +69,10 @@ Every other Claude Code plugin solves one slice — memory, structured thinking,
 - 🌐 **One license, every client.** Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile (hosted MCP).
 - 🚁 **`/ccc-fleet` runs parallel git worktrees.** True isolation for fan-out, pipeline, FOR/AGAINST, and background modes.
 - 🆓 **Free in beta.** No credit card. 1,000 hosted-MCP calls/month + one skippable survey per session.
-- 🧬 **Plugin + CLI share a brain.** Same intelligence layer, same 457-skill catalog, same personas. Install either, get both.
+- 🧬 **Plugin + CLI share a brain.** Same intelligence layer, same 502-skill catalog, same personas. Install either, get both.
 - 🎯 **Plugins-name-plugins.** `/ccc-suggest` calls out `claude-mem`, `superpowers`, `caveman`, `impeccable`, `graphify`, `claude-reflect`, `repomix`, `claude-hud`, and others by name when they're the right tool. You learn the whole ecosystem through one install.
 - 📖 **The Kevin Z Method ships with the plugin.** `BIBLE.md` — 7 rules, 200+ sources, 14 months of production methodology.
-- 📚 **457+ skills across 11 CCC domains** — design (39), marketing (45), saas (21), devops (21), seo (20), testing (15), security (8), data (8), research (8), mobile (8), makeover (3).
+- 📚 **502+ skills across 11 CCC domains** — design (39), marketing (45), saas (21), devops (21), seo (20), testing (15), security (8), data (8), research (8), mobile (8), makeover (3).
 
 ---
 
