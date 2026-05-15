@@ -30,10 +30,10 @@ async function main() {
       timestamp: new Date().toISOString(),
       type: safeType,
       source: safeSource,
-      message: safeMessage,
-      track('hook_fired', { hook: 'Notification', handler: 'fleet-notify' });
+      message: safeMessage
 
     };
+      track('hook_fired', { hook: 'Notification', handler: 'fleet-notify' });
     await appendFile(join(FLEET_DIR, 'notifications.jsonl'), JSON.stringify(entry) + '\n');
     console.log(JSON.stringify({
       continue: true,

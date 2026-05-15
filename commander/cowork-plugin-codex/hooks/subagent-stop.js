@@ -26,10 +26,10 @@ async function main() {
       sessionId,
       agentName,
       inputTokens,
-      outputTokens,
-      track('hook_fired', { hook: 'SubagentStop', handler: 'subagent-stop' });
+      outputTokens
 
     };
+      track('hook_fired', { hook: 'SubagentStop', handler: 'subagent-stop' });
     const analyticsDir = join(CCC_DIR, 'analytics');
     await mkdir(analyticsDir, { recursive: true });
     await appendFile(

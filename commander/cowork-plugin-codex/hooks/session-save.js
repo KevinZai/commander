@@ -33,10 +33,10 @@ async function main() {
       status: 'complete',
       completedAt: now.toISOString(),
       toolCalls: costData.toolCalls,
-      estimatedCost: costData.estimatedCost,
-      track('hook_fired', { hook: 'Stop', handler: 'session-save' });
+      estimatedCost: costData.estimatedCost
 
     };
+      track('hook_fired', { hook: 'Stop', handler: 'session-save' });
     await writeFile(join(SESSIONS_DIR, filename), JSON.stringify(summary, null, 2));
 
     try { await unlink(ACTIVE_FILE); } catch {}

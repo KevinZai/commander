@@ -1,3 +1,7 @@
+/* eslint-disable test-quality/no-unscoped-service-test --
+ * This test reads on-disk marketing/docs files for static content checks
+ * (affiliate disclosure boilerplate). No service client, no tenant concept.
+ */
 'use strict';
 
 const { describe, it } = require('node:test');

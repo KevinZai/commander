@@ -25,10 +25,10 @@ async function main() {
       sessionId,
       promptLength: prompt.length,
       hasCode: /```/.test(prompt),
-      hasUrl: /https?:\/\//.test(prompt),
-      track('hook_fired', { hook: 'UserPromptSubmit', handler: 'user-prompt-submit' });
+      hasUrl: /https?:\/\//.test(prompt)
 
     };
+      track('hook_fired', { hook: 'UserPromptSubmit', handler: 'user-prompt-submit' });
     const { appendFile, mkdir } = await import('node:fs/promises');
     const analyticsDir = join(CCC_DIR, 'analytics');
     await mkdir(analyticsDir, { recursive: true });

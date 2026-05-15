@@ -1,5 +1,5 @@
-import { track } from '../lib/telemetry.mjs';
 #!/usr/bin/env node
+import { track } from '../lib/telemetry.mjs';
 /**
  * pr-link-notify.js
  * Hook: PostToolUse (Bash)

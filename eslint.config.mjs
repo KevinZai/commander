@@ -46,6 +46,14 @@ export default [
         URLSearchParams: 'readonly',
         fetch: 'readonly',
         globalThis: 'readonly',
+        // Modern Node 18+ globals
+        AbortController: 'readonly',
+        AbortSignal: 'readonly',
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly',
+        crypto: 'readonly',
+        performance: 'readonly',
+        structuredClone: 'readonly',
       },
     },
     rules: {

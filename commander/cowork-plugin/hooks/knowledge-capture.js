@@ -35,10 +35,10 @@ async function main() {
       timestamp: new Date().toISOString(),
       tool: toolName,
       file: filePath,
-      fileName: basename(filePath),
-      track('hook_fired', { hook: 'PostToolUse', handler: 'knowledge-capture' });
+      fileName: basename(filePath)
 
     };
+      track('hook_fired', { hook: 'PostToolUse', handler: 'knowledge-capture' });
     if (!existsSync(KNOWLEDGE_DIR)) await mkdir(KNOWLEDGE_DIR, { recursive: true });
     await appendFile(CAPTURES_FILE, JSON.stringify(entry) + '\n');
 

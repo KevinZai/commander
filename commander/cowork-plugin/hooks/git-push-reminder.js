@@ -1,5 +1,5 @@
-import { track } from '../lib/telemetry.mjs';
 #!/usr/bin/env node
+import { track } from '../lib/telemetry.mjs';
 /**
  * git-push-reminder.js
  * Hook: PreToolUse (Bash)
