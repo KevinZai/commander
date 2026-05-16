@@ -1,0 +1,45 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'vercel.json'
+      - '.github/workflows/lighthouse.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'vercel.json'
+  workflow_dispatch:
+
+# Performance budgets — fail the build if any score drops below threshold.
+# Raise these over time, never lower without an explicit decision.
+#
+# Audit URL: production landing site (post-deploy).
+# Categories scored: performance, accessibility, best-practices, seo.
+
+jobs:
+  lighthouse:
+    name: Audit commanderplugin.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait briefly for Vercel preview/prod to settle
+        run: sleep 20
+
+      - name: Run Lighthouse against production
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://commanderplugin.com/
+            https://commanderplugin.com/bible
+            https://commanderplugin.com/compare
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          configPath: ./.github/lighthouserc.json
+
+  # Optional: comment the report URL on PRs once a token is configured.
+  # Not enabled by default to avoid noise on every push.

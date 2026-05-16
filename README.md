@@ -22,7 +22,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/60_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.1.0-beta.2](https://img.shields.io/badge/v4.1.0-beta.2?style=for-the-badge)](./CHANGELOG.md)
+[![GitHub stars](https://img.shields.io/github/stars/KevinZai/commander?style=for-the-badge&logo=github&color=FFD43B)](https://github.com/KevinZai/commander/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/60_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v4.1.0-beta.2](https://img.shields.io/badge/v4.1.0-beta.2?style=for-the-badge)](./CHANGELOG.md)
 
 <p>
   <strong>Powered by:</strong>
@@ -103,7 +103,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 | **18 MCP servers (2 bundled + 16 opt-in)** | ✅ Zero-config — Notion, Slack, Supabase, Figma, Linear, GitHub, Vercel, Fly… | ⚠️ Manual MCP setup required | ⚠️ Manual MCP setup required |
 | **Spec-first planning** (/ccc-plan → interview → spec → multi-agent execution) | ✅ Native | ❌ No planning primitive | ❌ No planning primitive |
 | **Cross-platform** (CLI + Desktop + VS Code path + hosted MCP) | ✅ Same brain everywhere | ❌ IDE-locked | ⚠️ IDE-locked |
-| **Pricing transparency** | ✅ Free / $99/yr / $199 lifetime / $79 Teams | ⚠️ Cursor $20+ confusing tiers; Windsurf credit confusion | ✅ BYOK free |
+| **Pricing transparency** | ✅ Free for now — no signup, no card, no gates | ⚠️ Cursor $20+ confusing tiers; Windsurf credit confusion | ✅ BYOK free |
 
 **The marketing angle:** *Set it once, the AI works smarter every session.* Lifecycle hooks fire automatically. Specialist agents already know your codebase conventions. The MCP ecosystem is pre-wired. No other tool ships any of this out of the box.
 
