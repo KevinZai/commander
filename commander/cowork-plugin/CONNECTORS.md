@@ -34,7 +34,7 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable with you
 
 ## 🔌 Recommended MCP Servers
 
-> CC Commander bundles **2 credential-free MCP servers** (`context7` + `sequential-thinking`) so the plugin works immediately on install with zero API keys. Everything below is **opt-in** via `/ccc-connect` — users enable per-MCP with their own credentials. No shared keys, no telemetry, no lock-in, no silent failures on install day.
+> CC Commander bundles **2 credential-free MCP servers** (`context7` + `sequential-thinking`) so the plugin works immediately on install with zero API keys. Everything below is **opt-in** via `/ccc-connect` — users enable per-MCP with their own credentials. No shared keys, no lock-in, no silent failures on install day. Anonymous usage telemetry is opt-out via `CCC_TELEMETRY=0`.
 
 | MCP | Category | Why it matters | Affiliate? | Install |
 |-----|----------|----------------|------------|---------|

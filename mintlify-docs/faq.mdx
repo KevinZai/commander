@@ -78,11 +78,13 @@ Quick answers to the questions we hear most. For deeper diagnostics, see [Troubl
 
 <AccordionGroup>
   <Accordion title="Does the plugin phone home?">
-    **No.** There is no telemetry endpoint, no analytics SDK, and no license server. The plugin runs entirely inside your Claude Code session. The only network calls it makes are the ones you trigger — slash commands, MCP tool invocations, and update checks against the public GitHub repo.
+    The plugin collects **anonymous usage telemetry** (enabled by default, easy to opt out). It sends event names (e.g. "hook fired", "skill used"), OS, Node version, and plugin version to our analytics endpoint — **never** prompts, file contents, paths, secrets, or any code. A random device ID is stored at `~/.commander/anon-id`; no account or identity is attached.
+
+    **Opt out instantly:** set `CCC_TELEMETRY=0` in your shell, or add `{"telemetry": false}` to `~/.commander/config.json`. No restart required. Full details in our [privacy policy](/privacy).
   </Accordion>
 
-  <Accordion title="Is there anonymous telemetry?">
-    No. The docs site uses Plausible (cookieless, no personal data) for page-view counts only. The plugin itself ships zero telemetry. Knowledge compounding is **local** — `~/.claude/commander/` stores session learnings on your machine and never transmits them.
+  <Accordion title="What exactly does telemetry collect?">
+    **Collected:** event name, anonymous device UUID, OS platform, Node.js version, plugin version, CCC surface (plugin vs CLI), and basic counts (e.g. hook name, skill name). **Never collected:** prompts, Claude responses, file contents, file paths, environment variables, secrets, or anything matching `/prompt|content|path|file|cwd|secret|password|key|token/i`. The docs site uses Plausible (cookieless) for page-view counts. Knowledge compounding is **local** — `~/.claude/commander/` stays on your machine.
   </Accordion>
 
   <Accordion title="What does \"free for now\" actually guarantee?">

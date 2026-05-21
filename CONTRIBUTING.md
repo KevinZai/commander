@@ -77,7 +77,7 @@ node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --check  # doc drift ch
 
 - PRs that paywall existing Starter features (skills/agents/hooks shipped today stay free in Starter forever)
 - PRs that add license-key gating to plugin **core** (Pro features can gate; the plugin is MIT and stays open)
-- PRs that add telemetry — there is no telemetry, period
+- PRs that add **new** telemetry event types without updating the [privacy policy](/privacy) and opt-out docs
 - PRs without tests for new behavior
 - Drive-by formatting churn unrelated to the change
 - Vendored dependencies as full source copies (use git submodules under `vendor/`)

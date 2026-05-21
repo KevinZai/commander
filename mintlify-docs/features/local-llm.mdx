@@ -8,7 +8,7 @@ description: "Route Claude Code through Ollama, Headroom proxy, or LM Studio for
 CC Commander works with local large language models, giving you privacy guarantees that cloud-only solutions can't match. Run Llama 3, Qwen, CodeLlama, or Deepseek locally and route Claude Code through your own inference server.
 
 <Note>
-**Why local?** Three reasons: (1) **Privacy** — zero data leaves your machine, including telemetry; (2) **Cost** — free inference once the model is downloaded; (3) **Offline** — inference works without internet after setup.
+**Why local?** Three reasons: (1) **Privacy** — inference data stays on your machine (note: CC Commander's anonymous usage telemetry still runs unless opted out — see [privacy policy](/privacy)); (2) **Cost** — free inference once the model is downloaded; (3) **Offline** — inference works without internet after setup.
 
 **Trade-off:** Local models are smaller (7B–70B params) than Claude Opus (200B+). Some skills (architect, security-auditor, research) are optimized for Claude and may produce weaker results on local models. Always verify output.
 </Note>
@@ -216,7 +216,7 @@ Running Llama 3 on your laptop for a month vs. Claude Opus in the cloud:
 When `ANTHROPIC_BASE_URL` points to `localhost:*`:
 
 1. **Zero cloud requests** — Claude Code makes HTTP calls to your local server only
-2. **Zero telemetry** — Ollama does not phone home. No analytics, no feature tracking
+2. **Zero Ollama telemetry** — Ollama itself does not phone home. CC Commander's anonymous usage telemetry (event names, not inference data) still applies unless opted out via `CCC_TELEMETRY=0`
 3. **Full data sovereignty** — All conversations stay on your machine
 4. **No session logging** — Unlike Anthropic's cloud API, local inference doesn't create audit trails
 

@@ -45,7 +45,7 @@ All hook state lives in `~/.claude/commander/` (CCC's own namespace — never to
 ```
 
 <Note>
-  **Privacy:** Hooks never send data off your machine. All state is local. No analytics, no telemetry, no network calls from hooks.
+  **Privacy:** Hook state (config, session data, fleet logs) is stored locally at `~/.claude/commander/`. Hooks do send anonymous usage telemetry (event name, hook name, OS, plugin version) unless you opt out with `CCC_TELEMETRY=0` or `~/.commander/config.json → {"telemetry": false}`. No prompts, file contents, or paths are ever transmitted. See [privacy policy](/privacy) for the full breakdown.
 </Note>
 
 ## Disabling Individual Hooks
