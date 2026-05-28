@@ -19,6 +19,7 @@ export default [
       '.claude/worktrees/**',          // embedded worktrees (fallback safety)
       'site/**',                       // next.js site has its own config
       'dashboard/**',                  // vite dashboard has its own config
+      'commander/cowork-plugin/workflows/**', // dynamic-workflow scripts: top-level await/return run in the Workflow runtime's async wrapper, not standard JS
     ],
   },
   {
