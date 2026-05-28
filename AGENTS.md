@@ -10,7 +10,7 @@
 | Field | Value |
 |---|---|
 | Agent ID | `commander-pm` |
-| Workspace | `/Users/ai/clawd/projects/cc-commander` |
+| Workspace | cc-commander repo root (auto-detected) |
 | Discord channel | `🌐commander (repurposed from 🌐opencode)` |
 | Memory room | `commander` |
 | Model | `claude-cli/claude-sonnet-4-6` |
