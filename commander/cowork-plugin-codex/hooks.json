@@ -138,16 +138,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/session-save.js",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
-            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/session-end.js",
-            "timeout": 10000
-          },
-          {
-            "type": "command",
             "command": "node ${CODEX_PLUGIN_ROOT}/hooks/suggest-lightweight.js",
             "timeout": 2000
           },

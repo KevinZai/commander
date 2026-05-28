@@ -50,7 +50,7 @@ Never restart the gateway from this skill. Restarts are Kevin-approved only (see
 ```
                        ┌──────────────────────┐
    Discord  ─────┐     │                      │     ┌─── Claude Code
-   Slack    ─────┤     │   Hermes Gateway     │     │    (Opus 4.7)
+   Slack    ─────┤     │   Hermes Gateway     │     │    (Opus 4.8)
    Telegram ─────┼─────│   :18789             │─────┤
    WhatsApp ─────┤     │                      │     │    .mcp.json
    WebChat  ─────┘     │   • 36 agents        │     │    └── ccc-hermes

@@ -139,10 +139,39 @@ export async function run({ input = {}, env = process.env, cwd = process.cwd() }
   return main();
 }
 
+/**
+ * Emit a brief ultracode hint if the user's prompt matches high-complexity keywords.
+ * Non-blocking — only fires when keywords clearly signal a workflow-scale task.
+ * Returns a hint string, or null if no match.
+ */
+function maybeUltracodeHint(promptText) {
+  if (!promptText || typeof promptText !== 'string') return null;
+  const WORKFLOW_KEYWORDS = /\b(migrat|audit|refactor\s+across|repo[\s-]?wide|every\s+file|all\s+endpoint|sweep|codebase[\s-]?wide)\b/i;
+  if (!WORKFLOW_KEYWORDS.test(promptText)) return null;
+  // Don't hint if user already mentions workflow/ultracode — they know
+  if (/\b(workflow|ultracode|\/effort)\b/i.test(promptText)) return null;
+  return '💡 This looks like a workflow-scale task — consider `/effort ultracode` or adding `workflow` to your prompt for adversarially verified, multi-agent results.';
+}
+
 function main() {
   if (process.env.CCC_SUGGEST_DISABLE === '1') {
     return { continue: true, suppressOutput: true };
   }
+
+  // Ultracode hint — read stdin for the hook payload (defensive, non-blocking)
+  try {
+    const rawInput = process.env.__CCC_HOOK_INPUT || '';
+    if (rawInput) {
+      let payload;
+      try { payload = JSON.parse(rawInput); } catch { payload = null; }
+      const promptText = payload && (payload.prompt || (payload.message && payload.message.content) || '');
+      const hint = maybeUltracodeHint(promptText);
+      if (hint) {
+        // Write to stderr — surfaced as ambient suggestion, never blocks the chain
+        process.stderr.write('[ccc-suggest] ' + hint + '\n');
+      }
+    }
+  } catch { /* fail-open — never block the hook chain */ }
 
   try {
     fs.mkdirSync(STATE_DIR, { recursive: true });

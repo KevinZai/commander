@@ -5,9 +5,10 @@ allowed-tools:
   - Read
   - Write
   - Bash
+  - Workflow
   - Agent
   - AskUserQuestion
-argument-hint: "[fanout | pipeline | review | background]"
+argument-hint: "[fanout | pipeline | review | background | team]"
 ---
 
 # /ccc-fleet — Parallel Agents
@@ -55,12 +56,39 @@ options:
   - label: "🌙 Background long-running task"
     description: "One agent, backgrounded, reports back when done."
     preview: "Best for: overnight scans, heavy refactors, large doc generation."
+  - label: "🏢 Team hierarchy (Director→Lead→Specialist)"
+    description: "3-tier cost-optimized: Opus plans, Sonnet builds, Haiku polishes."
+    preview: "Best for: large features needing architecture + implementation + polish."
 ```
 
 Prepend ⭐ to the best-fit option based on context:
 - Many files changed + divisible scope → ⭐ Fan-out
 - Single architecture question → ⭐ Opposing review
 - "scan" / "overnight" keywords in recent history → ⭐ Background
+- Complex multi-file feature needing architecture + implementation + polish → ⭐ Team hierarchy
+
+### Native workflow (Claude Code v2.1.154+)
+
+If the `Workflow` tool is available, prefer invoking the bundled fleet workflow instead of the Agent-based dispatch below. Map existing picker choices to workflow args:
+
+| Picker choice | Workflow invocation |
+|---------------|---------------------|
+| 🌿 Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 ...", "slice 2 ...", ...] } })` |
+| 🔗 Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 ...", "stage 2 ...", ...] } })` |
+| ⚖️ Opposing review | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+
+For **migration jobs** (transforming many files with pattern matching), use the dedicated migration workflow instead:
+
+```js
+Workflow({
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js",
+  args: { pattern: "<what to find>", transform: "<how to change it>", verify: "<how to confirm>" }
+})
+```
+
+Background and Team hierarchy picks do not have workflow equivalents — use the Agent-based flow below for those.
+
+If `Workflow` is unavailable (older client or tool not allowed), fall back to the Agent-based flow below — leave that flow intact.
 
 ## Pre-flight (required before dispatch)
 
@@ -165,6 +193,41 @@ Ask for the one task (free-text). Spawn ONE `Agent` with `run_in_background: tru
 Return:
 > 🌙 Background agent running. You can keep working — I'll surface the result when it completes. Check status: `git worktree list`.
 
+## Dispatch — Team hierarchy
+
+The Game Studios pattern (3-tier, cost-optimized orchestration).
+
+After user picks Team hierarchy, ask for ONE feature/task description (free-text).
+
+**Phase 1 — Director (Opus, 1 agent)**
+Spawn ONE Agent with `model=opus`, `run_in_background: true`:
+- "You are the Director. Given task: <task>. Produce: (1) architecture brief (≤200 words), (2) file domain assignments for 2-3 Leads, (3) checklist of Specialist polish tasks. Output as structured markdown."
+
+Wait for Director to complete. Parse its output.
+
+**Phase 2 — Leads (Sonnet, 2-3 agents)**
+Spawn 2-3 `Agent` calls in a SINGLE batch with `model=sonnet`, `run_in_background: true`:
+- Each Lead gets its assigned file domain from the Director's brief
+- Each Lead gets the architecture brief as context
+- Each works in its own worktree branch
+
+Wait for all Leads to complete.
+
+**Phase 3 — Specialists (Haiku, 2-4 agents)**
+Spawn 2-4 `Agent` calls in a SINGLE batch with `model=haiku`, `run_in_background: true`:
+- Tasks from Director's checklist: linting, formatting, docs, simple tests
+- Each operates on the Lead output (same worktrees)
+- Cheap — fire as many as needed
+
+**Synthesis:**
+Coordinator (main thread) merges all worktree branches, runs final verification, reports.
+
+**Cost model:**
+- Director: ~$0.50-2.00 (1 Opus call, planning only)
+- Leads: ~$0.20-0.80 each (2-3 Sonnet calls, real work)
+- Specialists: ~$0.02-0.10 each (2-4 Haiku calls, polish)
+- Total: ~$1-4 for a complete feature vs $5-15 all-Opus
+
 ## Worktree management (automatic)
 
 For every spawn, each Agent gets:
@@ -191,6 +254,7 @@ Agents CANNOT push — return files + diffs only. User merges to main via the co
 - `/ccc-fleet pipeline` → pipeline flow
 - `/ccc-fleet review` → opposing-review flow
 - `/ccc-fleet background` → background flow
+- `/ccc-fleet team` → skip picker, straight to team hierarchy flow
 - `/ccc-fleet` bare → show picker
 
 ## Anti-patterns — DO NOT
@@ -202,6 +266,8 @@ Agents CANNOT push — return files + diffs only. User merges to main via the co
 - ❌ Run opposing-review synchronously — FOR and AGAINST must be parallel, Referee after
 - ❌ Use `dangerouslyDisableSandbox` or give agents unscoped permissions
 - ❌ Dispatch without `run_in_background: true` — blocks the main thread
+- ❌ Use Director (Opus) for implementation work — Directors plan, Leads build
+- ❌ Skip the Director phase in team hierarchy — Leads without architecture brief produce inconsistent work
 
 ## Brand rules
 
