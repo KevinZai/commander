@@ -1259,6 +1259,11 @@ skills:
     domain: ccc-testing
     tier: free
     description: "name: ccc-testing"
+  - id: ccc-ultracode
+    path: skills/ccc-ultracode/SKILL.md
+    domain: ccc-ultracode
+    tier: free
+    description: "name: ccc-ultracode"
   - id: ccc-upgrade
     path: skills/ccc-upgrade/SKILL.md
     domain: ccc-upgrade
@@ -1590,6 +1595,10 @@ hooks:
     path: commander/cowork-plugin/hooks/cost-tracker.js
   - id: doc-file-warning
     path: commander/cowork-plugin/hooks/doc-file-warning.js
+  - id: elicitation-logger
+    path: commander/cowork-plugin/hooks/elicitation-logger.js
+  - id: elicitation-result-handler
+    path: commander/cowork-plugin/hooks/elicitation-result-handler.js
   - id: fleet-notify
     path: commander/cowork-plugin/hooks/fleet-notify.js
   - id: git-push-reminder
@@ -1604,22 +1613,36 @@ hooks:
     path: commander/cowork-plugin/hooks/license-check.js
   - id: permission-gate
     path: commander/cowork-plugin/hooks/permission-gate.js
+  - id: post-compact-recovery
+    path: commander/cowork-plugin/hooks/post-compact-recovery.js
+  - id: post-tool-failure-logger
+    path: commander/cowork-plugin/hooks/post-tool-failure-logger.js
   - id: pr-link-notify
     path: commander/cowork-plugin/hooks/pr-link-notify.js
   - id: pre-compact
     path: commander/cowork-plugin/hooks/pre-compact.js
+  - id: prompt-expansion-guard
+    path: commander/cowork-plugin/hooks/prompt-expansion-guard.js
   - id: secret-leak-guard
     path: commander/cowork-plugin/hooks/secret-leak-guard.js
   - id: session-end
     path: commander/cowork-plugin/hooks/session-end.js
   - id: session-save
     path: commander/cowork-plugin/hooks/session-save.js
+  - id: stale-claude-md-nudge
+    path: commander/cowork-plugin/hooks/stale-claude-md-nudge.js
+  - id: stop-failure-handler
+    path: commander/cowork-plugin/hooks/stop-failure-handler.js
+  - id: subagent-start-tracker
+    path: commander/cowork-plugin/hooks/subagent-start-tracker.js
   - id: subagent-stop
     path: commander/cowork-plugin/hooks/subagent-stop.js
   - id: suggest-lightweight
     path: commander/cowork-plugin/hooks/suggest-lightweight.js
   - id: suggest-ticker
     path: commander/cowork-plugin/hooks/suggest-ticker.js
+  - id: task-tracker
+    path: commander/cowork-plugin/hooks/task-tracker.js
   - id: user-prompt-submit
     path: commander/cowork-plugin/hooks/user-prompt-submit.js
 vendors:
