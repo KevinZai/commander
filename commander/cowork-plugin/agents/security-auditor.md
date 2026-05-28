@@ -1,7 +1,7 @@
 ---
 name: security-auditor
 description: "Senior application security engineer for OWASP-mapped audits, vulnerability discovery, and remediation planning. Finds CVE/CWE-identified issues with actionable fixes…"
-model: claude-opus-4-7
+model: claude-opus-4-8
 effort: high
 persona: personas/security-auditor
 memory: project

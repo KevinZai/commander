@@ -47,10 +47,10 @@ openclaw agent --agent prism --deliver --message "..."
 
 | Agent | Workspace | Role | Default model |
 |-------|-----------|------|---------------|
-| Alfred | workspaces/main | Default CCO assistant | Opus 4.7 |
-| Morpheus | workspaces/main | System infra (backups, OC config, agent health, PM2) | Opus 4.7 |
+| Alfred | workspaces/main | Default CCO assistant | Opus 4.8 |
+| Morpheus | workspaces/main | System infra (backups, OC config, agent health, PM2) | Opus 4.8 |
 | Prism | workspaces/main | Chief Product Officer (strategy, PRDs, ideas) | Sonnet 4.6 |
-| Jarvis | workspaces/guestnetworks | GN technical | Opus 4.7 |
+| Jarvis | workspaces/guestnetworks | GN technical | Opus 4.8 |
 | Damian | workspaces/guestnetworks | GN ops | Sonnet 4.6 |
 | Cleo | workspaces/home | Personal | GPT-5.5 |
 | Trading | workspaces/trading | Markets | GPT-5.5 |

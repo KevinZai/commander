@@ -17,7 +17,7 @@ Add to your agent's model config in `~/.openclaw/openclaw.json`:
         {
           "type": "advisor_20260301",
           "name": "advisor",
-          "model": "claude-opus-4-6",
+          "model": "claude-opus-4-8",
           "max_uses": 3
         }
       ]
@@ -36,7 +36,7 @@ In `~/.claudeswap/config.json`:
   "advisorInjection": {
     "enabled": true,
     "executorModels": ["claude-sonnet-4-6"],
-    "advisorModel": "claude-opus-4-6",
+    "advisorModel": "claude-opus-4-8",
     "maxUses": 3,
     "caching": {"type": "ephemeral", "ttl": "5m"}
   }

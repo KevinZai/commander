@@ -87,7 +87,7 @@ test('translateAgent emits Codex model_reasoning_effort from effort frontmatter'
   const toml = translate.translateAgent(`---
 name: architect
 description: Designs systems.
-model: claude-opus-4-7
+model: claude-opus-4-8
 effort: xhigh
 tools:
   - Read

@@ -132,23 +132,29 @@ function estimateScope(task, projectDir) {
 
 /**
  * Map a 0-100 score to turns/budget/effort.
+ * Effort levels: low → medium → high → xhigh → ultra
+ * xhigh and ultra are Opus 4.8-specific (adaptive thinking, agentic coding).
  * @param {number} score
  * @returns {{ turns: number, budget: number, effort: string }}
  */
 function scoreToParams(score) {
-  if (score <= 25) return { turns: 10, budget: 1, effort: 'low' };
-  if (score <= 50) return { turns: 20, budget: 3, effort: 'low' };
-  if (score <= 75) return { turns: 35, budget: 6, effort: 'medium' };
-  return { turns: 50, budget: 10, effort: 'high' };
+  if (score <= 20) return { turns: 10, budget: 1, effort: 'low' };
+  if (score <= 45) return { turns: 20, budget: 3, effort: 'low' };
+  if (score <= 65) return { turns: 35, budget: 6, effort: 'medium' };
+  if (score <= 80) return { turns: 50, budget: 10, effort: 'high' };
+  if (score <= 92) return { turns: 60, budget: 15, effort: 'xhigh' };
+  return { turns: 75, budget: 20, effort: 'ultra' };
 }
 
 /**
  * Score task complexity on a 0-100 scale using multiple signals.
  * Maps to turns/budget params via ranges:
- *   0-25: trivial (10 turns, $1)
- *   26-50: simple (20 turns, $3)
- *   51-75: moderate (35 turns, $6)
- *   76-100: complex (50 turns, $10)
+ *   0-20: trivial (10 turns, $1, low)
+ *   21-45: simple (20 turns, $3, low)
+ *   46-65: moderate (35 turns, $6, medium)
+ *   66-80: complex (50 turns, $10, high)
+ *   81-92: advanced (60 turns, $15, xhigh) — Opus 4.8 adaptive thinking
+ *   93-100: ultra (75 turns, $20, ultra) — Opus 4.8 Fast mode
  *
  * @param {string} task - Task description
  * @param {string} [projectDir] - Optional project directory for file-count scope estimation
@@ -202,13 +208,15 @@ function scoreComplexity(task, projectDir) {
 // ─── Cost Intelligence Layer ──────────────────────────────────
 
 /**
- * Model pricing ($/MTok, as of 2026-04-17 — update as Anthropic changes pricing).
+ * Model pricing ($/MTok, as of 2026-05-28 — update as Anthropic changes pricing).
  * Accuracy: ±30%. Used for pre-dispatch estimates, not billing.
+ * Opus 4.8: $5 input / $25 output standard; Fast mode (2.5×): $10 input / $50 output.
  */
 var MODEL_PRICING = {
   haiku: { input: 0.25, output: 1.25 },
   sonnet: { input: 3, output: 15 },
-  opus: { input: 15, output: 75 },
+  opus: { input: 5, output: 25 },
+  'opus-fast': { input: 10, output: 50 },
 };
 
 /**

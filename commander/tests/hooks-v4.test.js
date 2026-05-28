@@ -223,7 +223,7 @@ describe('subagent-start-tracker.js', () => {
     const r = runHook('subagent-start-tracker.js', {}, {
       CLAUDE_AGENT_NAME: 'researcher',
       CLAUDE_AGENT_PROMPT: 'Research competitor pricing',
-      CLAUDE_MODEL: 'claude-opus-4-6',
+      CLAUDE_MODEL: 'claude-opus-4-8',
       CLAUDE_SESSION_ID: 'test-session-123',
     });
     assert.equal(r.exitCode, 0);

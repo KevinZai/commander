@@ -41,7 +41,7 @@ When >1 path exists, show A/B/C with pros/cons/verdict. One MUST be the 🟢 rec
 
 ### 6. 💡 IDEA protocol
 Adjacent improvement opportunities (missing test, stale doc, small polish): **flag — don't execute inline**. Scope discipline.
-> **💡 IDEA:** Noticed `commander/status-line.js` still shows Opus 4.6 — want me to add to Wave 3 scope?
+> **💡 IDEA:** Noticed `commander/status-line.js` still shows Opus 4.8 — want me to add to Wave 3 scope?
 
 ### 7. Status check-ins during long work
 After any multi-agent dispatch or every ~10 significant steps:

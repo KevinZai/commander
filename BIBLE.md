@@ -560,7 +560,7 @@ Build a table with company, contact, email, phone, and top 3 outreach angles."
 
 ### Mobile Development with Claude Code (from @chddaniel)
 
-**Shipper platform** — Claude Opus 4.7 builds complete iOS/Android apps:
+**Shipper platform** — Claude Opus 4.8 builds complete iOS/Android apps:
 - Complete mobile apps from one prompt
 - iOS + Android compatibility handled automatically
 - App store listing autofill (icon, screenshots, descriptions, keywords, privacy policy)
@@ -2292,9 +2292,9 @@ Verification: [how you'll know it's done]
 |-------|---------|------|-------------|
 | **Haiku 4.5** | Fast iteration, bulk ops, simple tasks | $ | Lightweight subagents, pair programming, worker agents |
 | **Sonnet 4.6** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows |
-| **Opus 4.7** | Complex architecture, deep reasoning, agentic coding | $$$ | Architectural decisions, research, judgment calls — default for architect/debugger/security-auditor/product-manager agents |
+| **Opus 4.8** | Complex architecture, deep reasoning, agentic coding | $$$ | Architectural decisions, research, judgment calls — default for architect/debugger/security-auditor/product-manager agents. Fast mode: 2.5× speed ($10/$50/MTok). `ultra`/`xhigh` effort levels. |
 
-**Adaptive thinking:** Opus 4.7 uses `thinking: {type: "adaptive"}` (replaces `budget_tokens`). New effort level: `xhigh` (recommended for agentic/coding tasks). Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
+**Adaptive thinking:** Opus 4.8 uses `thinking: {type: "adaptive"}` (replaces `budget_tokens`). Effort levels: `xhigh` (agentic/coding tasks) and `ultra` (maximum depth). Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok). Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
 
 **Cost optimization tips:**
 - Use Haiku for 90% of subagent work (3x savings, 90% of Sonnet capability)
@@ -2308,7 +2308,7 @@ graph TD
     A[New Task] --> B{Complexity?}
     B -->|Simple/Bulk| C[Haiku 4.5 - $]
     B -->|Standard Dev| D[Sonnet 4.6 - $$]
-    B -->|Architecture/Research| E[Opus 4.7 - $$$]
+    B -->|Architecture/Research| E[Opus 4.8 - $$$]
     C --> F{Subagent?}
     D --> F
     E --> F
@@ -2385,17 +2385,17 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 
 | # | Persona | Model | Core responsibility |
 |---|---------|-------|-------------------|
-| 1 | `architect` | Opus 4.7 | System design, tradeoff analysis |
+| 1 | `architect` | Opus 4.8 | System design, tradeoff analysis |
 | 2 | `reviewer` | Sonnet 4.6 | Code review (security / perf / correctness / maintainability) |
 | 3 | `builder` | Sonnet 4.6 | Feature implementation, TDD |
-| 4 | `security-auditor` | Opus 4.7 | OWASP audits, threat modeling |
-| 5 | `debugger` | Opus 4.7 | Root-cause investigation (Iron Law) |
+| 4 | `security-auditor` | Opus 4.8 | OWASP audits, threat modeling |
+| 5 | `debugger` | Opus 4.8 | Root-cause investigation (Iron Law) |
 | 6 | `designer` | Sonnet 4.6 | UI/UX critique, accessibility |
 | 7 | `qa-engineer` | Sonnet 4.6 | Edge-case hunting, coverage audit |
 | 8 | `devops-engineer` | Sonnet 4.6 | Deploy planning, rollback specs |
 | 9 | `data-analyst` | Sonnet 4.6 | Signal extraction, statistical honesty |
 | 10 | `content-strategist` | Sonnet 4.6 | Brand voice, messaging, copy |
-| 11 | `product-manager` | Opus 4.7 | User stories, acceptance criteria |
+| 11 | `product-manager` | Opus 4.8 | User stories, acceptance criteria |
 | 12 | `performance-engineer` | Sonnet 4.6 | p99 benchmarking, hotpath analysis |
 | 13 | `researcher` | Sonnet 4.6 | Deep research, citation management |
 | 14 | `technical-writer` | Sonnet 4.6 | Documentation, clarity audits |

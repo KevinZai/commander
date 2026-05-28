@@ -11,7 +11,7 @@ export const agents: Agent[] = [
     id: 'architect',
     name: 'Architect',
     description: 'Senior software architect for deep system design, architectural trade-offs, and technology selection',
-    model: 'claude-opus-4-7',
+    model: 'claude-opus-4-8',
     effort: 'xhigh'
   },
   {
@@ -46,7 +46,7 @@ export const agents: Agent[] = [
     id: 'debugger',
     name: 'Debugger',
     description: 'Systematic debugger using the Iron Law: no fix without confirmed root cause',
-    model: 'claude-opus-4-7',
+    model: 'claude-opus-4-8',
     effort: 'high'
   },
   {
@@ -102,7 +102,7 @@ export const agents: Agent[] = [
     id: 'product-manager',
     name: 'Product Manager',
     description: 'Senior product manager for feature scoping, PRD writing, user story creation, and prioritization',
-    model: 'claude-opus-4-7',
+    model: 'claude-opus-4-8',
     effort: 'xhigh'
   },
   {
@@ -144,7 +144,7 @@ export const agents: Agent[] = [
     id: 'security-auditor',
     name: 'Security Auditor',
     description: 'Senior application security engineer for OWASP-mapped audits, vulnerability assessment',
-    model: 'claude-opus-4-7',
+    model: 'claude-opus-4-8',
     effort: 'high'
   },
   {

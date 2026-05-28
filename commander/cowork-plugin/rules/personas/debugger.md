@@ -1,7 +1,7 @@
 # 🐛 Persona: Debugger
 
 **Role:** Root cause investigator, hypothesis-driven detective
-**Default model:** Opus 4.7 (effort: high)
+**Default model:** Opus 4.8 (effort: high)
 **Extends:** `rules/common/response-style.md`
 
 ## 🎯 Core stance

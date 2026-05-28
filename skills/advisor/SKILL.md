@@ -32,11 +32,11 @@ The executor model must be paired with a compatible advisor. Only these combinat
 
 | Executor | Advisor |
 |----------|---------|
-| `claude-haiku-4-5` | `claude-opus-4-6` |
-| `claude-sonnet-4-6` | `claude-opus-4-6` |
-| `claude-opus-4-6` | `claude-opus-4-6` |
+| `claude-haiku-4-5` | `claude-opus-4-8` |
+| `claude-sonnet-4-6` | `claude-opus-4-8` |
+| `claude-opus-4-8` | `claude-opus-4-8` |
 
-**The advisor is always Opus 4.6.** You cannot use Sonnet as an advisor, and you cannot pair Opus 4.5 executor with a different advisor model.
+**The advisor is always Opus 4.8.** You cannot use Sonnet as an advisor, and you cannot pair Opus 4.5 executor with a different advisor model.
 
 ---
 
@@ -55,7 +55,7 @@ curl https://api.anthropic.com/v1/messages \
       {
         "type": "advisor_20260301",
         "name": "advisor",
-        "model": "claude-opus-4-6"
+        "model": "claude-opus-4-8"
       }
     ],
     "messages": [
@@ -84,7 +84,7 @@ response = client.messages.create(
         {
             "type": "advisor_20260301",
             "name": "advisor",
-            "model": "claude-opus-4-6",
+            "model": "claude-opus-4-8",
         }
     ],
     messages=[
@@ -110,7 +110,7 @@ response = client.messages.create(
         {
             "type": "advisor_20260301",
             "name": "advisor",
-            "model": "claude-opus-4-6",
+            "model": "claude-opus-4-8",
             "max_uses": 3,                        # Limit advisor calls per request
             "caching": {
                 "type": "ephemeral",
@@ -144,7 +144,7 @@ const response = await client.beta.messages.create({
     {
       type: "advisor_20260301",
       name: "advisor",
-      model: "claude-opus-4-6",
+      model: "claude-opus-4-8",
     },
   ],
   messages: [
@@ -170,7 +170,7 @@ const response = await client.beta.messages.create({
     {
       type: "advisor_20260301",
       name: "advisor",
-      model: "claude-opus-4-6",
+      model: "claude-opus-4-8",
       max_uses: 3,
       caching: {
         type: "ephemeral",
@@ -199,7 +199,7 @@ Caps the number of times the executor can call the advisor in a single request. 
 {
   "type": "advisor_20260301",
   "name": "advisor",
-  "model": "claude-opus-4-6",
+  "model": "claude-opus-4-8",
   "max_uses": 2
 }
 ```
@@ -214,7 +214,7 @@ Caches the advisor's context so repeated advisor calls within the TTL window reu
 {
   "type": "advisor_20260301",
   "name": "advisor",
-  "model": "claude-opus-4-6",
+  "model": "claude-opus-4-8",
   "caching": {
     "type": "ephemeral",
     "ttl": "5m"
@@ -255,7 +255,7 @@ for block in response.content:
 
 | HTTP | Error type | Cause | Fix |
 |------|------------|-------|-----|
-| 400 | `invalid_request_error` | Invalid model pair (e.g., Sonnet executor + Sonnet advisor) | Use `claude-opus-4-6` as advisor |
+| 400 | `invalid_request_error` | Invalid model pair (e.g., Sonnet executor + Sonnet advisor) | Use `claude-opus-4-8` as advisor |
 | 400 | `invalid_request_error` | Missing beta header | Add `anthropic-beta: advisor-tool-2026-03-01` |
 | 400 | `invalid_request_error` | `max_uses` is 0 or negative | Set `max_uses` to a positive integer |
 | 400 | `invalid_request_error` | Invalid `ttl` value | Use `"5m"` or `"1h"` only |
@@ -280,7 +280,7 @@ Add an `advisorTool` block to any agent's model config:
         "advisorTool": {
           "type": "advisor_20260301",
           "name": "advisor",
-          "model": "claude-opus-4-6",
+          "model": "claude-opus-4-8",
           "max_uses": 3,
           "caching": {
             "type": "ephemeral",
@@ -307,7 +307,7 @@ ClaudeSwap (:8082) proxies all Anthropic requests from OpenClaw. You can configu
       {
         "type": "advisor_20260301",
         "name": "advisor",
-        "model": "claude-opus-4-6",
+        "model": "claude-opus-4-8",
         "max_uses": 2
       }
     ],
