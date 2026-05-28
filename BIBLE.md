@@ -2296,6 +2296,41 @@ Verification: [how you'll know it's done]
 
 **Adaptive thinking:** Opus 4.8 uses `thinking: {type: "adaptive"}` (replaces `budget_tokens`). Effort levels: `xhigh` (agentic/coding tasks) and `ultra` (maximum depth). Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok). Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
 
+---
+
+## Dynamic Workflows + Ultracode
+
+> *Research preview — requires Claude Code v2.1.154+. Skills fall back to standard `Agent()` dispatch on older clients.*
+
+### What Is a Dynamic Workflow?
+
+A dynamic workflow is a JS file the Claude Code runtime executes outside your main session context. It spawns many subagents **concurrently**, cross-validates their findings, and returns a synthesized result. Think of it as running 4 Sonnet reviewers at once, where each reviewer's findings are reconciled before you see them.
+
+CC Commander ships 4 bundled workflows in `commander/cowork-plugin/workflows/`:
+
+| Workflow | Backs skill | What it does |
+|----------|-------------|--------------|
+| `ccc-audit` | `/ccc-xray` | Repo-wide audit — security, performance, architecture, test coverage |
+| `ccc-deep-review` | `/ccc-review` | 4-dimension branch review + reconciler agent |
+| `ccc-migrate` | `/ccc-build` migrate mode | Discover → transform → verify pipeline |
+| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge orchestration |
+
+You don't need to invoke workflows directly. Run the skill that backs them (`/ccc-xray`, `/ccc-review`, etc.) and CCC handles it. On Claude Code < v2.1.154, the same skills run via `Agent()` sequentially with identical output format.
+
+### Ultracode
+
+**`/effort ultracode`** = `xhigh` effort + automatic workflow orchestration. Use `/ccc-ultracode` for the guided path.
+
+Three ways to activate:
+
+```
+/ccc-ultracode               # guided — recommended
+/effort ultracode            # set for current session
+workflow: <task description> # one-off without mode switch
+```
+
+**Cost note:** ultracode runs Opus 4.8 at `xhigh` effort with parallel subagents — can be 3–5× a standard run. The `cost-ceiling-enforcer.js` hook fires automatically. Check session cost with `/ccc-session → Session Cost`.
+
 **Cost optimization tips:**
 - Use Haiku for 90% of subagent work (3x savings, 90% of Sonnet capability)
 - Set `MAX_THINKING_TOKENS=10000` for routine work (saves ~60% thinking budget)

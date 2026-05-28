@@ -80,9 +80,10 @@ test('plugin.json: version === package.json.version', () => {
   assert.equal(pluginJson.version, pkg.version);
 });
 
-test('plugin.json: description claims 60 plugin skills', () => {
-  assert.ok(/\b60 plugin skills\b/.test(pluginJson.description),
-    'description must contain "60 plugin skills" as the canonical count claim');
+test('plugin.json: description claims 61 skills', () => {
+  // Description uses "61 click-first /ccc-* skills" — match either form
+  assert.ok(/\b61\b/.test(pluginJson.description) && /skills/.test(pluginJson.description),
+    'description must contain "61" and "skills" as the canonical count claim');
 });
 
 test('plugin.json: keywords array has ≥3 entries', () => {
@@ -163,11 +164,14 @@ test('hooks.json: every command path exists on disk', () => {
 });
 
 test('hooks.json: every event name is a valid Claude Code lifecycle', () => {
-  // Claude Code core events + PermissionRequest (Codex Desktop only; harmless on Claude Code — won't fire)
+  // Full Claude Code 2026 lifecycle event set (all 23 known events)
   const valid = new Set([
-    'SessionStart', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse',
-    'Stop', 'Notification', 'PreCompact', 'SubagentStop',
-    'PermissionRequest',  // Codex-only; registered for Codex Desktop UX; ignored by Claude Code
+    'SessionStart', 'Setup', 'UserPromptSubmit', 'UserPromptExpansion',
+    'PreToolUse', 'PermissionRequest', 'PostToolUse', 'PostToolUseFailure',
+    'PostToolBatch', 'Notification', 'SubagentStart', 'SubagentStop',
+    'Stop', 'StopFailure', 'SessionEnd', 'PreCompact', 'PostCompact',
+    'ConfigChange', 'Elicitation', 'ElicitationResult',
+    'TaskCreated', 'TaskCompleted', 'InstructionsLoaded',
   ]);
   const events = Object.keys(hooksJson.hooks || {});
   const invalid = events.filter(e => !valid.has(e));
@@ -200,10 +204,10 @@ test('skills: every SKILL.md has valid frontmatter with required fields', () => 
   assert.deepEqual(missing, [], `Skill frontmatter issues: ${missing.join('; ')}`);
 });
 
-test('skills: total dir count is 60 (canonical claim)', () => {
+test('skills: total dir count is 61 (canonical claim)', () => {
   const dirs = fs.readdirSync(SKILLS_DIR, { withFileTypes: true })
     .filter(e => e.isDirectory()).length;
-  assert.equal(dirs, 60);
+  assert.equal(dirs, 61);
 });
 
 test('skills: no description contains angle brackets', () => {
@@ -222,9 +226,9 @@ test('skills: no description contains angle brackets', () => {
 
 const AGENTS_DIR = path.join(PLUGIN_DIR, 'agents');
 
-test('agents: total count is 17', () => {
+test('agents: total count is 22', () => {
   const files = fs.readdirSync(AGENTS_DIR).filter(f => f.endsWith('.md'));
-  assert.equal(files.length, 17);
+  assert.equal(files.length, 22);
 });
 
 test('agents: every .md has frontmatter with name + description + model + effort', () => {

@@ -1,0 +1,138 @@
+---
+title: "What's New in v5.0.0"
+description: "Opus 4.8 session model, dynamic workflows library (research preview), expanded hooks (9→23 events), and 15 vendor pin refreshes."
+---
+
+<Note>
+  **Released 2026-05-28** — v5.0.0 ships four major additions. All free for now. Plugin installs automatically — run `/ccc-upgrade` to pick up the latest.
+</Note>
+
+## Opus 4.8 — New Session Default
+
+CC Commander v5.0.0 sets `claude-opus-4-8` as the default session model. Opus 4.8 is the latest flagship model from Anthropic:
+
+| | Opus 4.8 |
+|---|---|
+| **Model ID** | `claude-opus-4-8` |
+| **Input / Output** | $5 / $25 per million tokens |
+| **Fast mode** | 2.5× speed at $10 / $50 per million tokens |
+| **Effort levels** | `ultra` (max depth) · `xhigh` (agentic coding) · `high` · `medium` |
+| **Context window** | 1 million tokens |
+| **Thinking** | `{type: "adaptive"}` — replaces deprecated `budget_tokens` |
+
+**What changed for you:** sessions that previously defaulted to Sonnet or an older Opus version now open on Opus 4.8. The `architect`, `debugger`, `security-auditor`, and `product-manager` sub-agent personas all use Opus 4.8. Sonnet handles the rest at lower cost.
+
+<Warning>
+  `budget_tokens` is deprecated on 4.6+ and removed on 4.7+. If you have custom CLAUDE.md or skills that pass `budget_tokens` directly, update them to `thinking: {type: "adaptive"}` or use the `/effort` command to set a level (`ultra` / `xhigh` / `high` / `medium`).
+</Warning>
+
+## Dynamic Workflows — Research Preview
+
+<Note>
+  **Research preview.** Requires Claude Code v2.1.154+ or later. On older clients, skills fall back to standard Agent dispatch — no breakage.
+</Note>
+
+Dynamic workflows are JavaScript scripts the Claude Code runtime executes in the background. Unlike standard agent dispatch, a workflow can spawn **many subagents** that run concurrently, cross-check findings, and merge results — all without blocking your session.
+
+CC Commander ships **4 bundled workflows** in `commander/cowork-plugin/workflows/`:
+
+| Workflow | Backs skill | What it does |
+|----------|-------------|--------------|
+| `ccc-audit` | `/ccc-xray` | Repo-wide multi-dimension audit across security, performance, architecture, and test coverage |
+| `ccc-deep-review` | `/ccc-review` | 4-dimension branch review (correctness · security · perf · maintainability) running in parallel |
+| `ccc-migrate` | `/ccc-build` migrate mode | Discover → transform → verify migration pipeline |
+| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge orchestration patterns |
+
+### Invocation
+
+Workflows are invoked via the `Workflow()` primitive in skill files:
+
+```javascript
+Workflow({
+  scriptPath: "commander/cowork-plugin/workflows/ccc-audit.js",
+  args: { focus: "security", branch: "main" }
+})
+```
+
+Skills call this automatically — you just run `/ccc-xray` or `/ccc-review` as normal. On clients that don't yet support `Workflow()`, the same skills dispatch via `Agent()` instead.
+
+The built-in `/deep-research` skill is also available for one-off deep research without writing a workflow script.
+
+See [Dynamic Workflows](/dynamic-workflows) for the full developer reference.
+
+## Ultracode — `/ccc-ultracode`
+
+`/effort ultracode` = `xhigh` effort + automatic workflow orchestration. The new `/ccc-ultracode` skill guides you through it.
+
+Add the word `workflow` to any prompt for a one-off orchestrated run without committing to ultracode mode:
+
+```
+workflow: refactor the auth module to use the new session strategy
+```
+
+See [Ultracode](/ultracode) for the full guide.
+
+## Expanded Hooks — 9 → 23 Events
+
+v5.0.0 expands the hook system from 9 to **23 lifecycle events** and from 24 to **38 handlers**. Existing hooks continue to work — the new events are additive.
+
+**New events in v5.0.0:**
+
+| Event | When it fires |
+|-------|---------------|
+| `SessionEnd` | Session cleanly closes (replaces Stop for session-save — correctness fix) |
+| `PostCompact` | After context compaction completes |
+| `SubagentStart` | Sub-agent spawns (pairs with existing `SubagentStop`) |
+| `StopFailure` | Session closes with an unhandled error |
+| `PostToolUseFailure` | A tool call returns an error |
+| `PostToolBatch` | After a batch of tool calls completes |
+| `Elicitation` | Claude requests clarification from the user |
+| `ElicitationResult` | User responds to an elicitation |
+| `TaskCreated` | A new background task starts |
+| `TaskCompleted` | A background task finishes |
+| `ConfigChange` | `.claude/settings.json` is modified |
+| `UserPromptExpansion` | A prompt template is expanded |
+| `InstructionsLoaded` | CLAUDE.md or skills are loaded into context |
+| `Setup` | One-time plugin initialization |
+
+**Correctness fix:** `session-save` was previously registered under `Stop`. It is now registered under `SessionEnd` (the correct event for session persistence). If you have custom hooks that checked for session state on `Stop`, move them to `SessionEnd`.
+
+See [Hooks 2026](/hooks-2026) for the full updated registry.
+
+## 15 Vendor Pins Refreshed
+
+19 vendor submodules are pinned and auto-updated weekly. v5.0.0 advances 15 of them:
+
+| Package | New version | Commits advanced |
+|---------|-------------|-----------------|
+| ECC (Everything Claude Code) | v1.7.0 | +52 |
+| oh-my-claudecode | v4.14.4 | +38 |
+| repomix | v1.14.1 | +29 |
+| gstack | latest | +21 |
+| claude-code-best-practice | latest | +16 |
+| Compound Engineering | latest | +14 |
+| RTK | latest | +11 |
+| Claude HUD | latest | +9 |
+| ACPX | v0.6.1 | +8 |
+| Superpowers | latest | +7 |
+| claude-skills | latest | +6 |
+| caliber | latest | +4 |
+| claude-reflect | latest | +3 |
+| claude-code-prompts | latest | +2 |
+| notebooklm-py | latest | +2 |
+
+4 packages were held at their current pins due to breaking changes or license conflicts pending review.
+
+## Summary
+
+| What changed | Details |
+|---|---|
+| Session default model | Opus 4.8 (`claude-opus-4-8`) |
+| Dynamic workflows library | 4 bundled workflows (research preview, requires Claude Code v2.1.154+) |
+| New skill | `/ccc-ultracode` |
+| Hook events | 9 → 23 |
+| Hook handlers | 24 → 38 |
+| Vendor pins refreshed | 15 of 19 |
+| Plugin skill count | 60 → 61 |
+
+All counts canonical — verified by `node scripts/check-product-contract.js --check`.

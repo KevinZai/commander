@@ -503,6 +503,12 @@ function isVersionRelevant(content, index) {
   var start = Math.max(0, index - 90);
   var end = Math.min(content.length, index + 90);
   var context = content.slice(start, end);
+  // Skip editor/runtime version mentions (e.g. "Claude Code v2.1.154+", "claude update").
+  // Those are the host CLI's version, NOT the CC Commander product version, so they
+  // must not be flagged as contract drift. Only the ~30 chars immediately before the
+  // number are inspected so we don't accidentally suppress a real CCC version nearby.
+  var before = content.slice(Math.max(0, index - 45), index);
+  if (/claude[\s-]?code/i.test(before)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
 }
 

@@ -80,22 +80,51 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | 21 | kotlin-reviewer | Sonnet | Kotlin review: coroutines, null safety, sealed classes |
 | 22 | csharp-reviewer | Sonnet | C# review: async/await, nullable references, LINQ, DI |
 
-### Lifecycle hook events (9)
+### Lifecycle hook events (23)
 
-23 events, 38 handlers — fire automatically every session (no configuration needed):
+23 events, 38 handlers — fire automatically every session (no configuration needed). v5.0.0 expanded from 9 → 23 events.
+
+**Core events:**
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
-| `SessionStart` | New session opens | 3 (init state, claude-md nudge, post-compact recovery) |
+| `SessionStart` | New session opens | 4 (init state, claude-md nudge, post-compact recovery, suggest ticker) |
+| `SessionEnd` | Session cleanly closes | 2 (session save, summary) — moved from `Stop` in v5.0.0 |
 | `UserPromptSubmit` | User hits Enter | 4 (suggest ticker, intent classifier, context warning, submit logger) |
 | `PreToolUse` | Before any tool call | 3 (cost tracker, cost ceiling, secret leak guard) |
 | `PostToolUse` | After tool completes | 3 (knowledge capture, quality gate, auto-format) |
-| `Stop` | Session ends | 2 (session save, session end) |
+| `Stop` | Session closes | 1 (legacy cleanup) |
 | `Notification` | System-level notification | 1 (fleet notify) |
 | `PreCompact` | Before context compaction | 1 (block if active subagents) |
-| `SubagentStop` | Subagent finishes | 1 (dispatch results tracker) |
-| `PermissionRequest` | Tool permission prompt | 1 (permission gate) |
-| **TOTAL** | **9 events** | **38 handlers** |
+| `PostCompact` | After compaction | 1 (context restoration hints) |
+| `SubagentStart` | Subagent spawns | 1 (spawn time tracking) |
+| `SubagentStop` | Subagent finishes | 1 (cost aggregation) |
+| `PermissionRequest` | Tool permission prompt | 1 (permission gate / nightwatch relay) |
+| `TaskCreated` | Background task starts | 1 (workflow/fleet tracking) |
+| `TaskCompleted` | Background task finishes | 1 (workflow/fleet tracking) |
+| **9 more** | `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup` | 9 (one each) |
+| **TOTAL** | **23 events** | **38 handlers** |
+
+### Dynamic Workflows + Ultracode (v5.0.0)
+
+> Research preview — requires Claude Code v2.1.154+. Falls back to `Agent()` on older clients.
+
+**4 bundled workflows** in `commander/cowork-plugin/workflows/`:
+
+| Workflow | Backs | What it does |
+|----------|-------|-------------|
+| `ccc-audit` | `/ccc-xray` | Parallel audit — security · performance · architecture · test coverage |
+| `ccc-deep-review` | `/ccc-review` | 4 Sonnet reviewers in parallel + reconciler |
+| `ccc-migrate` | `/ccc-build` | Discover → transform → verify pipeline |
+| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge patterns |
+
+**Ultracode** = `xhigh` effort + workflow orchestration:
+
+```
+/ccc-ultracode               # guided path
+/effort ultracode            # set for session
+workflow: <task>             # one-off
+```
 
 ### Plugin MCP Servers (11)
 

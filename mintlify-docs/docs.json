@@ -24,6 +24,7 @@
             "group": "Getting Started",
             "pages": [
               "introduction",
+              "whats-new-v5",
               "bible",
               "faq",
               "quickstart",
@@ -32,15 +33,23 @@
             ]
           },
           {
-            "group": "Desktop Plugin (v4.0 Beta)",
+            "group": "Desktop Plugin (v5.0.0)",
             "pages": [
               "plugin/install",
               "plugin/upgrade",
               "plugin/skills",
               "plugin/agents",
               "plugin/hooks",
+              "hooks-2026",
               "plugin/mcp-integrations",
               "plugin/free-vs-pro"
+            ]
+          },
+          {
+            "group": "v5.0.0 Features",
+            "pages": [
+              "dynamic-workflows",
+              "ultracode"
             ]
           },
           {

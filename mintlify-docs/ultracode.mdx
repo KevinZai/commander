@@ -1,0 +1,103 @@
+---
+title: "Ultracode"
+description: "xhigh effort + automatic workflow orchestration. For when you want the most powerful version of every CCC skill."
+---
+
+## What Is Ultracode?
+
+Ultracode is a combination of two things:
+
+1. **`xhigh` effort level** — Opus 4.8 uses its deepest reasoning chain (equivalent to maximum extended thinking budget)
+2. **Automatic workflow orchestration** — skills that support it will launch dynamic workflows instead of sequential agent dispatch
+
+The result: the most thorough version of every task that CCC knows how to do.
+
+## Enabling Ultracode
+
+**Option 1 — Use the skill (recommended):**
+
+```
+/ccc-ultracode
+```
+
+The `/ccc-ultracode` skill walks you through the task, sets effort, and launches the right workflow. It's the guided path.
+
+**Option 2 — Set effort directly:**
+
+```
+/effort ultracode
+```
+
+This sets `xhigh` effort for the current session and enables workflow orchestration on supported skills. Use this if you already know what you're building and want to skip the guided flow.
+
+**Option 3 — One-off workflow prompt:**
+
+Add the word `workflow` to any prompt to trigger orchestration without committing to ultracode mode:
+
+```
+workflow: refactor the auth module to use the new session strategy
+```
+
+```
+workflow: full security audit of the payments integration
+```
+
+This is the lightest-touch option — no mode switching, just a signal to CCC that you want parallel subagents for this one task.
+
+## Effort Levels
+
+Opus 4.8 supports four effort levels via `thinking: {type: "adaptive"}`:
+
+| Level | What it does | When to use |
+|-------|-------------|------------|
+| `ultra` | Maximum reasoning depth — no shortcuts | Architecture decisions, complex security audits, multi-system migrations |
+| `xhigh` | Deep reasoning with workflow orchestration | Most ultracode tasks — builds, reviews, audits |
+| `high` | Standard extended thinking | General development, most tasks |
+| `medium` | Compact reasoning | Fast iteration, bulk ops |
+
+`ultracode` = `xhigh` by convention. If you need `ultra` specifically, pass it explicitly:
+
+```
+/effort ultra
+```
+
+## Which Skills Benefit Most
+
+| Skill | Ultracode effect |
+|-------|-----------------|
+| `/ccc-xray` | Launches `ccc-audit` workflow — 4 parallel reviewers instead of 1 |
+| `/ccc-review` | Launches `ccc-deep-review` — 4 dimensions in parallel |
+| `/ccc-fleet` | Full pipeline + fan-out + judge patterns |
+| `/ccc-plan` | Deeper spec interview with more edge cases considered |
+| `/ccc-build` | Architecture-level planning before scaffolding |
+| `/ccc-research` | Integrates with `/deep-research` for multi-source validation |
+
+Skills that don't use workflows (single-agent tasks like `/ccc-session`, `/ccc-settings`) are unaffected by ultracode — they just run at `xhigh` thinking depth.
+
+## Cost Awareness
+
+Ultracode runs Opus 4.8 at `xhigh` effort, often with multiple parallel subagents. This can be 3–5× the cost of a standard `/ccc-review` run.
+
+**CCC's cost ceiling hook fires automatically** — if your session's total exceeds the configured ceiling (default: $2.00), the `cost-ceiling-enforcer.js` hook blocks the next tool call with a warning. You can raise the ceiling in `~/.claude/commander/config.json`:
+
+```json
+{
+  "cost_ceiling": 10.00
+}
+```
+
+Check your session cost at any time:
+
+```
+/ccc-session → Session Cost
+```
+
+## Version Gate
+
+Ultracode's workflow orchestration requires **Claude Code v2.1.154+ or later** for the parallel subagent step. On older clients, `/ccc-ultracode` still runs — it sets `xhigh` effort and uses sequential agent dispatch. The reasoning depth is the same; the parallelism is the upgrade.
+
+## See Also
+
+- [Dynamic Workflows](/dynamic-workflows) — the workflow scripts that ultracode invokes
+- [What's New in v5.0.0](/whats-new-v5) — full release notes
+- [Lifecycle Hooks](/plugin/hooks) — `TaskCreated` and `TaskCompleted` events fire around workflow execution

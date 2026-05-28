@@ -151,13 +151,39 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 
 ## 🌟 What's new in v5.0.0
 
-- 🎯 **61 plugin skills** — 6 new channel/CI/ECC skills (`/ccc-brainstorm`, `/ccc-qa`, `/ccc-loop`, `/ccc-hermes`, `/ccc-nightwatch`, `/ccc-ci`) + 5 language reviewer agents (Go, Rust, Java, Kotlin, C#).
-- 🔐 **4 security mediums resolved** — telemetry scrubber hardened (recursive, allowlist-aware, depth-bounded), error messages sanitized (no message text to PostHog), privacy policy accuracy fix.
+- 🧠 **Opus 4.8 session default** — `claude-opus-4-8`, $5/$25 per MTok, Fast mode 2.5× at $10/$50. New `ultra`/`xhigh` effort levels. `thinking: {type: "adaptive"}` replaces deprecated `budget_tokens`.
+- ⚡ **Dynamic workflows** (research preview, requires Claude Code v2.1.154+) — 4 bundled JS workflow scripts spawn parallel subagents that cross-check findings: `ccc-audit` (backs `/ccc-xray`), `ccc-deep-review` (backs `/ccc-review`), `ccc-migrate`, `ccc-fleet`. Skills fall back to `Agent()` on older clients.
+- 🚀 **`/ccc-ultracode`** — new skill for `xhigh` effort + automatic workflow orchestration. Or add `workflow:` to any prompt for a one-off run.
+- 🪝 **Hooks 9 → 23 events** — 14 new lifecycle events: `SessionEnd`, `PostCompact`, `SubagentStart`, `TaskCreated`, `TaskCompleted`, and 9 more. Handlers: 24 → 38. Correctness fix: `session-save` moved `Stop` → `SessionEnd`.
+- 🎯 **61 plugin skills** — 6 new channel/CI/ECC skills (`/ccc-brainstorm`, `/ccc-qa`, `/ccc-loop`, `/ccc-hermes`, `/ccc-nightwatch`, `/ccc-ci`) + 5 language reviewer agents (Go, Rust, Java, Kotlin, C#) + `/ccc-ultracode`.
+- 🔐 **4 security mediums resolved** — telemetry scrubber hardened, error messages sanitized.
 - 🤖 **22 specialist sub-agent personas** — 5 new language reviewers added (Go · Rust · Java · Kotlin · C#).
-- 🔗 **23 lifecycle hooks × 38 handlers** — 5 ECC hooks ported, PermissionRequest hook added.
+- 📦 **15 vendor pins refreshed** — ECC v1.7.0, oh-my-claudecode v4.14.4, repomix v1.14.1, and 12 more.
 - 🧪 **284 tests passing** — +5 security regression tests added.
-- 📸 **Screenshot scaffold** — `docs/screenshots/` with 7 placeholder briefs ready for Kevin to drop real Desktop captures.
 - 🖥️ **Desktop-first positioning throughout** — all docs now lead with "Claude Code Desktop is the primary surface."
+
+## ⚡ Dynamic Workflows + Ultracode
+
+> **Research preview — requires Claude Code v2.1.154+.** Skills fall back to standard `Agent()` dispatch on older clients.
+
+**Dynamic workflows** are JS scripts the runtime executes in the background, spawning many subagents that cross-check findings and merge results before returning. Four bundled workflows ship in `commander/cowork-plugin/workflows/`:
+
+| Workflow | Backs | What it does |
+|----------|-------|-------------|
+| `ccc-audit` | `/ccc-xray` | Repo-wide audit — security, performance, architecture, test coverage in parallel |
+| `ccc-deep-review` | `/ccc-review` | 4-dimension branch review (correctness · security · perf · maintainability) + reconciler |
+| `ccc-migrate` | `/ccc-build` migrate | Discover → transform → verify pipeline for safe large migrations |
+| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge orchestration patterns |
+
+**Ultracode** combines `xhigh` effort + automatic workflow orchestration. Three ways to activate:
+
+```
+/ccc-ultracode               # guided path — recommended
+/effort ultracode            # set for current session
+workflow: <your task here>   # one-off without mode switch
+```
+
+The built-in `/deep-research` is also available for multi-source validated research.
 
 ## The 61 plugin skills
 
