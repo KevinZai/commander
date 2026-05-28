@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "How CC Commander works: brain/hands separation, 22 specialist sub-agents, 9 lifecycle hooks, and the Claude Agent SDK pattern underneath."
+description: "How CC Commander works: brain/hands separation, 22 specialist sub-agents, 23 lifecycle hooks, and the Claude Agent SDK pattern underneath."
 ---
 
 ## Brain / Hands
@@ -51,7 +51,7 @@ Each persona has a fixed model tier, tool allowlist, turn budget, and voice syst
 
 Opus personas are used for tasks that require deep reasoning chains (architecture, security, debugging). Sonnet handles everything else at lower cost and higher speed.
 
-## 9 Lifecycle Hooks / 25 Handlers
+## 23 Lifecycle Hooks / 38 Handlers
 
 Hooks fire automatically around Claude Code sessions. Each hook event can have multiple handlers.
 

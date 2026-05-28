@@ -1,14 +1,14 @@
 # CC Commander Cheatsheet
-> CC Commander v4.1.0-beta.2 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v5.0.0 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-05-15 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v4.1.0-beta.2)
+## Desktop Plugin Commands (v5.0.0)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 60 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 61 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -82,7 +82,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ### Lifecycle hook events (9)
 
-9 events, 25 handlers — fire automatically every session (no configuration needed):
+23 events, 38 handlers — fire automatically every session (no configuration needed):
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
@@ -95,7 +95,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | `PreCompact` | Before context compaction | 1 (block if active subagents) |
 | `SubagentStop` | Subagent finishes | 1 (dispatch results tracker) |
 | `PermissionRequest` | Tool permission prompt | 1 (permission gate) |
-| **TOTAL** | **9 events** | **25 handlers** |
+| **TOTAL** | **9 events** | **38 handlers** |
 
 ### Plugin MCP Servers (11)
 
@@ -372,7 +372,7 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | `claude -c` | Continue last conversation from CLI | `claude -c` |
 | `claude --resume <id>` | Resume specific session ID | `claude --resume abc123` |
 
-### 🔁 /loop integration (Claude Code 4.1.0-beta.2+)
+### 🔁 /loop integration (Claude Code 5.0.0+)
 
 Pair `/loop` with any `/ccc-*` skill for recurring execution. Claude Code Desktop renders a "loop" tag in the UI automatically.
 
@@ -643,7 +643,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 4.1.0-beta.2
+version: 5.0.0
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -667,7 +667,7 @@ Install only the skills you need — smaller tiers save ~10k tokens per session:
 ```bash
 ./install.sh --skills=essential   # ~30 core skills (default, saves ~10k tokens)
 ./install.sh --skills=recommended # ~100 skills for most developers
-./install.sh --skills=full        # All 502+ skills (legacy behavior)
+./install.sh --skills=full        # All 457+ skills (legacy behavior)
 ```
 
 | Tier | Count | When to use |
@@ -1002,7 +1002,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v4.1.0-beta.2 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v5.0.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1086,7 +1086,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v4.1.0-beta.2 Quick Reference (CLI)
+## CC Commander v5.0.0 Quick Reference (CLI)
 
 ```bash
 # Launch
