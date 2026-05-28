@@ -25,9 +25,24 @@ function resolveOutputDir() {
 const OUTPUT_DIR = resolveOutputDir();
 
 const HOOK_EVENTS_DROPPED_BY_BUILD = new Set([
+  // Events not supported in Codex Desktop hook surface
   'Notification',
   'PreCompact',
+  'PostCompact',
   'SubagentStop',
+  'SubagentStart',
+  'SessionEnd',
+  'StopFailure',
+  'PostToolUseFailure',
+  'PostToolBatch',
+  'Elicitation',
+  'ElicitationResult',
+  'TaskCreated',
+  'TaskCompleted',
+  'ConfigChange',
+  'UserPromptExpansion',
+  'InstructionsLoaded',
+  'Setup',
 ]);
 
 const SUPPORT_DIRS = ['hooks', 'lib', 'menus', 'rules'];
