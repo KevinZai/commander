@@ -16,11 +16,14 @@ var SKILL_PATH = path.join(
   'SKILL.md'
 );
 
+// session-start.js was moved to _archive/ — the orchestrator-compatible version
+// that exports run() and contains the version-transition/changelog-nudge logic.
 var SESSION_START_PATH = path.join(
   ROOT,
   'commander',
   'cowork-plugin',
   'hooks',
+  '_archive',
   'session-start.js'
 );
 
