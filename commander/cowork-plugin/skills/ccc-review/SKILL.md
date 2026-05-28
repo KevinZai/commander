@@ -8,6 +8,7 @@ allowed-tools:
   - Bash
   - Glob
   - Grep
+  - Workflow
   - Agent
   - AskUserQuestion
   - TodoWrite
@@ -87,6 +88,23 @@ options:
 - SQL / ORM files in diff → ⭐ "Security audit"
 - Empty diff → ⭐ "Full project x-ray"
 - Hot-path files (`*/api/*`, `*/routes/*`, `*/hot/*`) in diff → ⭐ "Performance"
+
+### Native workflow (Claude Code v2.1.154+)
+
+If the `Workflow` tool is available, prefer invoking the bundled deep-review workflow for the **"Review current branch"** audit type instead of the Agent-based flow:
+
+```js
+Workflow({
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-deep-review.workflow.js",
+  args: { base: "main" }
+})
+```
+
+The workflow reviews the diff across 4 weighted dimensions (security 35%, performance 25%, correctness 25%, maintainability 15%), adversarially verifies each finding, and returns only confirmed issues — reducing false positives before they reach you.
+
+For Security, Performance, and Full x-ray audit types, continue using the Agent-based flow below — those types map to specialist agents that do not yet have dedicated workflow scripts.
+
+If `Workflow` is unavailable (older client or tool not allowed), fall back to the Agent-based flow below — leave that flow intact.
 
 ## Step 2 — Dispatch matching specialist agent
 

@@ -1,0 +1,130 @@
+---
+title: "Hooks 2026 — 23 Events"
+description: "v5.0.0 expanded the hook system from 9 to 23 lifecycle events and from 24 to 38 handlers. Full registry, new events, and migration notes."
+---
+
+<Note>
+  **v5.0.0 change.** The hook system expanded from 9 events to 23. Existing hooks continue to work unchanged. The new events are additive. One breaking change: `session-save` moved from `Stop` to `SessionEnd` (correctness fix — see [Migration Notes](#migration-notes)).
+</Note>
+
+## Full Hook Registry (v5.0.0)
+
+| Event | Handlers | Scripts | Purpose |
+|-------|----------|---------|---------|
+| `SessionStart` | 4 | `session-start-orchestrator.js` (single-process orchestrator for all 4 session-start scripts) | Seed state, stale CLAUDE.md nudge, post-compact recovery, ambient suggestion |
+| `SessionEnd` | 2 scripts | `session-save.js`, `session-summary.js` | Persist session JSON + write summary to knowledge dir |
+| `UserPromptSubmit` | 4 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `user-prompt-submit.js` | Ambient suggestion tick, skill routing, context budget warning, prompt logging |
+| `PreToolUse` | 3 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js` | Accumulate cost, block over ceiling, scan args for leaked secrets |
+| `PostToolUse` | 3 | `knowledge-capture.js`, `quality-gate.js`, `auto-format.js` | Capture file-touch observations, quality checks, format writes |
+| `PostToolUseFailure` | 1 | `tool-failure-logger.js` | Log failed tool calls to session telemetry |
+| `PostToolBatch` | 1 | `batch-summary.js` | Append batch stats to session metadata after multi-tool sequences |
+| `Stop` | 1 | `session-end.js` | Legacy session cleanup (session-save moved to SessionEnd in v5.0.0) |
+| `StopFailure` | 1 | `stop-failure-handler.js` | Log unhandled errors on session close |
+| `Notification` | 1 | `fleet-notify.js` | Append fleet agent completion events to `notifications.jsonl` |
+| `PreCompact` | 1 | `pre-compact.js` | Block compaction if session is mid-critical-task |
+| `PostCompact` | 1 | `post-compact-recovery.js` | Restore context hints after compaction completes |
+| `SubagentStart` | 1 | `subagent-start.js` | Track subagent spawn time for cost aggregation |
+| `SubagentStop` | 1 | `subagent-stop.js` | Aggregate subagent cost back into parent session |
+| `PermissionRequest` | 1 | `permission-gate.js` | Nightwatch relay — send permission prompts to mobile for YOLO-mode approval |
+| `Elicitation` | 1 | `elicitation-logger.js` | Log clarification requests to session metadata |
+| `ElicitationResult` | 1 | `elicitation-result.js` | Capture user clarification responses |
+| `TaskCreated` | 1 | `task-tracker.js` | Log background task start (workflows, fleet agents) |
+| `TaskCompleted` | 1 | `task-tracker.js` | Log background task completion + duration |
+| `ConfigChange` | 1 | `config-watch.js` | Warn if `.claude/settings.json` changes during an active session |
+| `UserPromptExpansion` | 1 | `prompt-expansion-logger.js` | Record expanded prompt template in session metadata |
+| `InstructionsLoaded` | 1 | `instructions-logger.js` | Log CLAUDE.md / skill loads at session start |
+| `Setup` | 1 | `plugin-setup.js` | One-time initialization when plugin first installs |
+
+**Total: 23 events · 38 handlers**
+
+## New vs Existing Events
+
+**Existing events (unchanged from v4.x):**
+
+`SessionStart` · `UserPromptSubmit` · `PreToolUse` · `PostToolUse` · `Stop` · `Notification` · `PreCompact` · `SubagentStop` · `PermissionRequest`
+
+**New in v5.0.0:**
+
+`SessionEnd` · `PostCompact` · `SubagentStart` · `StopFailure` · `PostToolUseFailure` · `PostToolBatch` · `Elicitation` · `ElicitationResult` · `TaskCreated` · `TaskCompleted` · `ConfigChange` · `UserPromptExpansion` · `InstructionsLoaded` · `Setup`
+
+## Migration Notes
+
+### `session-save` moved from `Stop` → `SessionEnd`
+
+In v4.x, `session-save.js` was registered under the `Stop` event. This was a bug: `Stop` fires before Claude Code fully closes the session, which could cause race conditions with file writes.
+
+In v5.0.0, `session-save.js` is registered under `SessionEnd` — the correct event for session persistence.
+
+**If you have custom hooks registered on `Stop` that depend on session state being present**, move them to `SessionEnd`.
+
+**All plugin hooks are automatically updated** — no action required unless you have project-level custom hooks that read from `~/.claude/commander/sessions/active-session.json` on `Stop`.
+
+## Disabling Individual Hooks
+
+To disable a hook event without uninstalling the plugin:
+
+```json
+// ~/.claude/commander/config.json
+{
+  "hooks": {
+    "PostToolUseFailure": false,
+    "Elicitation": false,
+    "ConfigChange": false
+  }
+}
+```
+
+Disabling an event disables all its handlers.
+
+## State Layout
+
+Hook state lives in `~/.claude/commander/` — never touches other `.claude/` contents:
+
+```
+~/.claude/commander/
+├── sessions/
+│   ├── active-session.json       # current session (created on SessionStart)
+│   ├── active-cost.json          # incremented on each PreToolUse
+│   └── YYYY-MM-DD-{hash}.json    # archived on SessionEnd
+├── knowledge/
+│   ├── auto-captures.jsonl       # file-touch observations (PostToolUse)
+│   └── {timestamp}.json          # manual lessons via /ccc-knowledge
+├── fleet/
+│   └── notifications.jsonl       # fleet task completion log (TaskCompleted)
+├── tasks/
+│   └── active-tasks.json         # in-flight background tasks (TaskCreated/TaskCompleted)
+├── pre-compact/
+│   └── YYYY-MM-DD-{hash}.json    # state before compaction (PreCompact)
+├── post-compact/
+│   └── hints.json                # context restoration hints (PostCompact)
+└── config.json                   # user settings
+```
+
+## Execution Model
+
+Hooks are JavaScript files executed natively by Claude Code's hook runtime:
+
+1. Receive event context as JSON on stdin
+2. Run logic (typically 5–50ms)
+3. Return `{"continue": true}` or `{"continue": false, "reason": "..."}` on stdout
+
+`{"continue": false}` from `PreToolUse` blocks the tool call. All other hooks are informational. `SessionEnd`, `PostCompact`, `TaskCreated`, and `TaskCompleted` are **async** — they fire without waiting for a return value.
+
+## Privacy
+
+Hooks store state locally at `~/.claude/commander/`. Anonymous event telemetry (event name, hook name, OS, plugin version) is sent unless you opt out:
+
+```bash
+# Opt out of telemetry
+echo '{"telemetry": false}' > ~/.claude/commander/config.json
+# or
+CCC_TELEMETRY=0 claude
+```
+
+No prompts, file contents, or paths are ever transmitted. See [Privacy Policy](/privacy) for details.
+
+## See Also
+
+- [Dynamic Workflows](/dynamic-workflows) — `TaskCreated` / `TaskCompleted` fire around workflow execution
+- [Ultracode](/ultracode) — uses `xhigh` effort + workflow hooks
+- [What's New in v5.0.0](/whats-new-v5) — full release notes

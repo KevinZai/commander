@@ -1,7 +1,7 @@
 ---
 name: architect
 description: "Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield…"
-model: claude-opus-4-7
+model: claude-opus-4-8
 effort: xhigh
 persona: personas/architect
 memory: project

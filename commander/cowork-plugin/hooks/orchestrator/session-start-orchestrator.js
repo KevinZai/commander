@@ -14,7 +14,7 @@
  * Status: SCAFFOLD ONLY — not active until hooks.json is flipped.
  * See ./README.md for activation steps + rollback.
  */
-import { track } from '../lib/telemetry.mjs';
+import { track } from '../../lib/telemetry.mjs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -70,10 +70,13 @@ async function main() {
   let shortCircuit = null;
 
   // Sequence: session-start (state init must run first) → stale-claude-md → post-compact
+  // NOTE: handlers live in _archive/ — these are the orchestrator-compatible versions that
+  // export run() instead of writing to stdout directly (the live hooks/ versions are
+  // standalone-only and do not export run()).
   const handlers = [
-    { name: 'session-start', file: '../session-start.js' },
-    { name: 'stale-claude-md-nudge', file: '../stale-claude-md-nudge.js' },
-    { name: 'post-compact-recovery', file: '../post-compact-recovery.js' },
+    { name: 'session-start', file: '../_archive/session-start.js' },
+    { name: 'stale-claude-md-nudge', file: '../_archive/stale-claude-md-nudge.js' },
+    { name: 'post-compact-recovery', file: '../_archive/post-compact-recovery.js' },
   ];
 
   for (const h of handlers) {

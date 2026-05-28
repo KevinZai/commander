@@ -2,6 +2,34 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [5.0.0] — 2026-05-28
+
+### Added
+
+- **Opus 4.8 session default** — session model bumped to `claude-opus-4-8` ($5/$25 per MTok, Fast mode 2.5× at $10/$50). Effort levels: `ultra` · `xhigh` · `high` · `medium`. `thinking: {type: "adaptive"}` replaces deprecated `budget_tokens`. All Opus sub-agent personas (architect · debugger · security-auditor · product-manager) updated to 4.8.
+- **Dynamic workflows library** (research preview, requires Claude Code v2.1.154+) — 4 bundled JS workflow scripts in `commander/cowork-plugin/workflows/`: `ccc-audit` (backs `/ccc-xray`), `ccc-deep-review` (backs `/ccc-review`), `ccc-migrate` (backs `/ccc-build` migrate mode), `ccc-fleet` (backs `/ccc-fleet`). Invoked via `Workflow({scriptPath, args})`; skills fall back to `Agent()` on older clients.
+- **`/ccc-ultracode` skill** — guided path for `xhigh` effort + automatic workflow orchestration. Add the word `workflow` to any prompt for a one-off orchestrated run.
+- **14 new lifecycle hook events** — hook system expanded from 9 → 23 events: `SessionEnd`, `PostCompact`, `SubagentStart`, `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup`. Handlers: 24 → 38.
+- **Mintlify docs refresh** — 4 new pages: `whats-new-v5`, `dynamic-workflows`, `ultracode`, `hooks-2026`. Existing pages updated with Opus 4.8 and workflow content.
+- **Marketing site refresh** (`site/`) — version badge, hero stats, terminal demo updated to v5.0.0 counts and Opus 4.8.
+
+### Changed
+
+- **`session-save` correctness fix** — moved from `Stop` → `SessionEnd` (the correct event for session persistence). Custom hooks that depended on session state on `Stop` should migrate to `SessionEnd`.
+- **15 vendor submodule pins refreshed** — ECC v1.7.0, oh-my-claudecode v4.14.4, repomix v1.14.1, and 12 more. Auto-update weekly via GitHub Actions.
+- **Plugin skill count 60 → 61** — `/ccc-ultracode` added.
+
+### Counts
+
+| Metric | Before | After |
+|--------|--------|-------|
+| plugin_skills | 60 | 61 |
+| lifecycle_hooks | 9 | 23 |
+| hook_handlers | 24 | 38 |
+| session_default_model | claude-sonnet-4-6 | claude-opus-4-8 |
+
+---
+
 ## [4.1.0-beta.2] — 2026-05-08
 
 ### Added

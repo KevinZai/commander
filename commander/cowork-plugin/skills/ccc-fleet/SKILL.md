@@ -5,6 +5,7 @@ allowed-tools:
   - Read
   - Write
   - Bash
+  - Workflow
   - Agent
   - AskUserQuestion
 argument-hint: "[fanout | pipeline | review | background | team]"
@@ -65,6 +66,29 @@ Prepend ⭐ to the best-fit option based on context:
 - Single architecture question → ⭐ Opposing review
 - "scan" / "overnight" keywords in recent history → ⭐ Background
 - Complex multi-file feature needing architecture + implementation + polish → ⭐ Team hierarchy
+
+### Native workflow (Claude Code v2.1.154+)
+
+If the `Workflow` tool is available, prefer invoking the bundled fleet workflow instead of the Agent-based dispatch below. Map existing picker choices to workflow args:
+
+| Picker choice | Workflow invocation |
+|---------------|---------------------|
+| 🌿 Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 ...", "slice 2 ...", ...] } })` |
+| 🔗 Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 ...", "stage 2 ...", ...] } })` |
+| ⚖️ Opposing review | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+
+For **migration jobs** (transforming many files with pattern matching), use the dedicated migration workflow instead:
+
+```js
+Workflow({
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js",
+  args: { pattern: "<what to find>", transform: "<how to change it>", verify: "<how to confirm>" }
+})
+```
+
+Background and Team hierarchy picks do not have workflow equivalents — use the Agent-based flow below for those.
+
+If `Workflow` is unavailable (older client or tool not allowed), fall back to the Agent-based flow below — leave that flow intact.
 
 ## Pre-flight (required before dispatch)
 

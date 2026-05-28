@@ -117,7 +117,7 @@ test('Telemetry: batch event structure', async (t) => {
     properties: {
       hook: 'SessionStart',
       handler: 'license-check',
-      version: '4.1.0-beta.2',
+      version: '5.0.0',
       os: 'darwin',
     },
     timestamp: new Date().toISOString(),

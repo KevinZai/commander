@@ -227,7 +227,9 @@ Run `/ccc:refresh` periodically to pull latest best practices.
 |-------|---------|------|
 | **Haiku 4.5** | Fast iteration, bulk ops, subagents | $ |
 | **Sonnet 4.6** | General dev, orchestration | $$ |
-| **Opus 4.6** | Complex architecture, deep reasoning | $$$ |
+| **Opus 4.8** | Complex architecture, deep reasoning, `ultra`/`xhigh` effort | $$$ |
+
+Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok) and an `ultra` effort level.
 
 **Rule:** Never change models mid-session — spawn a subagent instead.
 

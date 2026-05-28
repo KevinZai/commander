@@ -87,7 +87,7 @@ test('codex plugin build artifact', async (t) => {
 
     assert.equal(manifest.name, 'commander');
     assert.equal(manifest.displayName, 'CC Commander');
-    assert.equal(manifest.version, '4.1.0-beta.2');
+    assert.equal(manifest.version, '5.0.0');
     assert.equal(manifest.skills, './skills/');
     assert.equal(manifest.agents, './agents/');
     assert.equal(manifest.hooks, './hooks.json');
@@ -100,7 +100,7 @@ test('codex plugin build artifact', async (t) => {
     ]);
   });
 
-  await t.test('passes through all 60+ skills unchanged', async () => {
+  await t.test('passes through all 61+ skills unchanged', async () => {
     const sourceSkillFiles = (await listFiles(path.join(SOURCE_DIR, 'skills')))
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
@@ -108,7 +108,7 @@ test('codex plugin build artifact', async (t) => {
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
 
-    assert.equal(sourceSkillFiles.length, 62);
+    assert.equal(sourceSkillFiles.length, 61);
     assert.deepEqual(outputSkillFiles, sourceSkillFiles);
 
     for (const skillFile of sourceSkillFiles) {

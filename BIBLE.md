@@ -14,7 +14,7 @@
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
-- [The 60 Plugin Skills](#the-60-plugin-skills) — The curated plugin surface
+- [The 61 Plugin Skills](#the-60-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -25,9 +25,9 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v4.1.0-beta.2 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v5.0.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
-- [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v4.1.0-beta.2 — 4 modules that make CCC smart)*
+- [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.0.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
 - [Commands Reference](#commands-reference)
@@ -207,7 +207,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
 ---
 
-## The 60 Plugin Skills
+## The 61 Plugin Skills
 
 > *Every skill that ships with `/plugin install commander`. Not the 502-skill ecosystem — just the curated plugin surface.*
 
@@ -244,7 +244,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
 **Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
-**Plus 2 pre-wired MCPs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem) + 9 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification).
+**Plus 2 pre-wired MCPs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem) + 23 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification).
 
 ---
 
@@ -560,7 +560,7 @@ Build a table with company, contact, email, phone, and top 3 outreach angles."
 
 ### Mobile Development with Claude Code (from @chddaniel)
 
-**Shipper platform** — Claude Opus 4.7 builds complete iOS/Android apps:
+**Shipper platform** — Claude Opus 4.8 builds complete iOS/Android apps:
 - Complete mobile apps from one prompt
 - iOS + Android compatibility handled automatically
 - App store listing autofill (icon, screenshots, descriptions, keywords, privacy policy)
@@ -1220,7 +1220,7 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 502+ skills (original behavior)
+./install.sh --skills=full        # All 457+ skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.
@@ -1376,7 +1376,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v4.1.0-beta.2)
+### 🛠️ Plugin Workflows (v5.0.0)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
@@ -1929,7 +1929,7 @@ Then we'll write the spec.
 | 44 | Install dx plugin | `/dx:gha`, `/dx:handoff`, `/dx:clone`, `/dx:reddit-fetch` |
 | 45 | Quick setup script | `bash <(curl -s .../setup.sh)` — sets up all tips |
 
-### CCC-Specific Tips (v4.1.0-beta.2)
+### CCC-Specific Tips (v5.0.0)
 
 | # | Tip | Key Action |
 |---|-----|-----------|
@@ -2292,9 +2292,44 @@ Verification: [how you'll know it's done]
 |-------|---------|------|-------------|
 | **Haiku 4.5** | Fast iteration, bulk ops, simple tasks | $ | Lightweight subagents, pair programming, worker agents |
 | **Sonnet 4.6** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows |
-| **Opus 4.7** | Complex architecture, deep reasoning, agentic coding | $$$ | Architectural decisions, research, judgment calls — default for architect/debugger/security-auditor/product-manager agents |
+| **Opus 4.8** | Complex architecture, deep reasoning, agentic coding | $$$ | Architectural decisions, research, judgment calls — default for architect/debugger/security-auditor/product-manager agents. Fast mode: 2.5× speed ($10/$50/MTok). `ultra`/`xhigh` effort levels. |
 
-**Adaptive thinking:** Opus 4.7 uses `thinking: {type: "adaptive"}` (replaces `budget_tokens`). New effort level: `xhigh` (recommended for agentic/coding tasks). Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
+**Adaptive thinking:** Opus 4.8 uses `thinking: {type: "adaptive"}` (replaces `budget_tokens`). Effort levels: `xhigh` (agentic/coding tasks) and `ultra` (maximum depth). Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok). Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
+
+---
+
+## Dynamic Workflows + Ultracode
+
+> *Research preview — requires Claude Code v2.1.154+. Skills fall back to standard `Agent()` dispatch on older clients.*
+
+### What Is a Dynamic Workflow?
+
+A dynamic workflow is a JS file the Claude Code runtime executes outside your main session context. It spawns many subagents **concurrently**, cross-validates their findings, and returns a synthesized result. Think of it as running 4 Sonnet reviewers at once, where each reviewer's findings are reconciled before you see them.
+
+CC Commander ships 4 bundled workflows in `commander/cowork-plugin/workflows/`:
+
+| Workflow | Backs skill | What it does |
+|----------|-------------|--------------|
+| `ccc-audit` | `/ccc-xray` | Repo-wide audit — security, performance, architecture, test coverage |
+| `ccc-deep-review` | `/ccc-review` | 4-dimension branch review + reconciler agent |
+| `ccc-migrate` | `/ccc-build` migrate mode | Discover → transform → verify pipeline |
+| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge orchestration |
+
+You don't need to invoke workflows directly. Run the skill that backs them (`/ccc-xray`, `/ccc-review`, etc.) and CCC handles it. On Claude Code < v2.1.154, the same skills run via `Agent()` sequentially with identical output format.
+
+### Ultracode
+
+**`/effort ultracode`** = `xhigh` effort + automatic workflow orchestration. Use `/ccc-ultracode` for the guided path.
+
+Three ways to activate:
+
+```
+/ccc-ultracode               # guided — recommended
+/effort ultracode            # set for current session
+workflow: <task description> # one-off without mode switch
+```
+
+**Cost note:** ultracode runs Opus 4.8 at `xhigh` effort with parallel subagents — can be 3–5× a standard run. The `cost-ceiling-enforcer.js` hook fires automatically. Check session cost with `/ccc-session → Session Cost`.
 
 **Cost optimization tips:**
 - Use Haiku for 90% of subagent work (3x savings, 90% of Sonnet capability)
@@ -2308,7 +2343,7 @@ graph TD
     A[New Task] --> B{Complexity?}
     B -->|Simple/Bulk| C[Haiku 4.5 - $]
     B -->|Standard Dev| D[Sonnet 4.6 - $$]
-    B -->|Architecture/Research| E[Opus 4.7 - $$$]
+    B -->|Architecture/Research| E[Opus 4.8 - $$$]
     C --> F{Subagent?}
     D --> F
     E --> F
@@ -2366,7 +2401,7 @@ graph TD
 ---
 ## Built on Claude Agent SDK
 
-> *v4.1.0-beta.2* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v5.0.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2385,17 +2420,17 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 
 | # | Persona | Model | Core responsibility |
 |---|---------|-------|-------------------|
-| 1 | `architect` | Opus 4.7 | System design, tradeoff analysis |
+| 1 | `architect` | Opus 4.8 | System design, tradeoff analysis |
 | 2 | `reviewer` | Sonnet 4.6 | Code review (security / perf / correctness / maintainability) |
 | 3 | `builder` | Sonnet 4.6 | Feature implementation, TDD |
-| 4 | `security-auditor` | Opus 4.7 | OWASP audits, threat modeling |
-| 5 | `debugger` | Opus 4.7 | Root-cause investigation (Iron Law) |
+| 4 | `security-auditor` | Opus 4.8 | OWASP audits, threat modeling |
+| 5 | `debugger` | Opus 4.8 | Root-cause investigation (Iron Law) |
 | 6 | `designer` | Sonnet 4.6 | UI/UX critique, accessibility |
 | 7 | `qa-engineer` | Sonnet 4.6 | Edge-case hunting, coverage audit |
 | 8 | `devops-engineer` | Sonnet 4.6 | Deploy planning, rollback specs |
 | 9 | `data-analyst` | Sonnet 4.6 | Signal extraction, statistical honesty |
 | 10 | `content-strategist` | Sonnet 4.6 | Brand voice, messaging, copy |
-| 11 | `product-manager` | Opus 4.7 | User stories, acceptance criteria |
+| 11 | `product-manager` | Opus 4.8 | User stories, acceptance criteria |
 | 12 | `performance-engineer` | Sonnet 4.6 | p99 benchmarking, hotpath analysis |
 | 13 | `researcher` | Sonnet 4.6 | Deep research, citation management |
 | 14 | `technical-writer` | Sonnet 4.6 | Documentation, clarity audits |
@@ -2410,7 +2445,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v4.1.0-beta.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 60 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (25 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v5.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 61 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2423,10 +2458,10 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (60 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (61 plugin skills)
   +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
-  +-- 9 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
+  +-- 23 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
   +-- AskUserQuestion chip picker     (click-first — no menu traversal)
 ```
 
@@ -2463,11 +2498,11 @@ ccc --repair
 | **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 502+ skills from within Commander |
+| **Skill browser** | Browse all 457+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 60 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 9 lifecycle hooks (25 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 61 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -2622,7 +2657,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v4.1.0-beta.2 — How CCC thinks before it acts.*
+> *Appendix: v5.0.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 
@@ -2678,7 +2713,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 502+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 457+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology
@@ -2750,7 +2785,7 @@ A typical dispatch goes through all four modules in sequence:
 
 Total overhead: ~50ms. Completely invisible. Just better results.
 
-## Community Insights (v4.1.0-beta.2 Research Pass)
+## Community Insights (v5.0.0 Research Pass)
 
 Insights distilled from 40+ community repos and articles, April 2026.
 
@@ -2789,7 +2824,7 @@ CC Commander is designed to take advantage of the latest Claude Code features au
 | **500K character output** | Knowledge pipeline ingests full session transcripts in one pass — no chunking needed. |
 | **Pause mid-agent** | Confidence-gate hook emits PAUSE (not ABORT) when confidence drops. User can redirect, then resume. Works in YOLO and overnight modes. |
 | **Auto-mode boundaries** | Dispatcher defaults to `--permission-mode auto` for unattended runs. The background safety classifier blocks scope escalation without needing `--dangerously-skip-permissions`. |
-| **Plugin lifecycle hooks** | 9 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) — loaded automatically when the plugin is installed. |
+| **Plugin lifecycle hooks** | 23 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) — loaded automatically when the plugin is installed. |
 
 > These features require Claude Code v2.189+. Run `claude --version` to check.
 

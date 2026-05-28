@@ -7,6 +7,7 @@ const path = require('node:path');
 
 const HOOKS_JSON = path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'hooks.json');
 const ORCHESTRATOR_COMMAND = 'node ${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js';
+const LICENSE_CHECK_COMMAND = 'node ${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js';
 const FORMER_SESSION_START_HANDLERS = [
   'session-start.js',
   'stale-claude-md-nudge.js',
@@ -24,17 +25,19 @@ function sessionStartCommands(config) {
   return sessionStart.flatMap((entry) => entry.hooks ?? []).map((hook) => hook.command);
 }
 
-test('hooks.json registers exactly one SessionStart entry', () => {
+test('hooks.json registers exactly one SessionStart entry group', () => {
   const config = readHooksConfig();
 
+  // One entry group (array of length 1) containing the orchestrator + license-check pair.
   assert.equal(config.hooks.SessionStart.length, 1);
-  assert.equal(sessionStartCommands(config).length, 1);
+  // That group has exactly two hooks.
+  assert.equal(sessionStartCommands(config).length, 2);
 });
 
-test('SessionStart entry points at the orchestrator', () => {
+test('SessionStart entry contains orchestrator and license-check', () => {
   const config = readHooksConfig();
 
-  assert.deepEqual(sessionStartCommands(config), [ORCHESTRATOR_COMMAND]);
+  assert.deepEqual(sessionStartCommands(config), [ORCHESTRATOR_COMMAND, LICENSE_CHECK_COMMAND]);
 });
 
 test('former individual SessionStart handlers are no longer directly registered', () => {

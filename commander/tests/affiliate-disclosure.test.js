@@ -189,11 +189,16 @@ describe('ccc-connect skill — affiliate disclosure', () => {
 });
 
 describe('docs/index.html — footer link', () => {
-  it('index.html exists', () => {
+  // docs/index.html was moved to the private KevinZai/commanderplugin-com repo
+  // (commit 9ba44cc). These tests are skipped when the file is absent so the
+  // public repo CI stays green; the private repo has its own affiliate tests.
+  const indexExists = fs.existsSync(INDEX_HTML_PATH);
+
+  it('index.html exists', { skip: !indexExists ? 'marketing site moved to private repo' : false }, () => {
     assert.ok(fs.existsSync(INDEX_HTML_PATH), 'docs/index.html must exist');
   });
 
-  it('includes affiliate disclosure link in footer', () => {
+  it('includes affiliate disclosure link in footer', { skip: !indexExists ? 'marketing site moved to private repo' : false }, () => {
     const content = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
     assert.ok(
       content.includes('affiliate-disclosure'),

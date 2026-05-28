@@ -81,10 +81,10 @@ function buildGoodFixture() {
       ['---', 'name: ' + name, 'description: Test agent', 'model: ' + model, '---', '', '# Body'].join('\n')
     );
   }
-  agent('architect', 'claude-opus-4-7');
-  agent('security-auditor', 'claude-opus-4-7');
-  agent('debugger', 'claude-opus-4-7');
-  agent('product-manager', 'claude-opus-4-7');
+  agent('architect', 'claude-opus-4-8');
+  agent('security-auditor', 'claude-opus-4-8');
+  agent('debugger', 'claude-opus-4-8');
+  agent('product-manager', 'claude-opus-4-8');
   agent('designer', 'claude-sonnet-4-6');
   agent('researcher', 'claude-sonnet-4-6');
   agent('reviewer', 'claude-sonnet-4-6');

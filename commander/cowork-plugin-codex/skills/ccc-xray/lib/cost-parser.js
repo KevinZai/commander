@@ -49,7 +49,7 @@ function matchField(fragment) {
 }
 
 // Parse a model row like:
-//   "    claude-opus-4-7:  234.5k input, 12.3k output, 5.6k cache write, 89.0k cache read ($8.90)"
+//   "    claude-opus-4-8:  234.5k input, 12.3k output, 5.6k cache write, 89.0k cache read ($8.90)"
 function parseModelLine(line) {
   // Require leading whitespace + model name + colon
   const m = line.match(/^\s+([a-zA-Z][\w.\-/]*[\w]):\s*(.*)$/);

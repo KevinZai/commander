@@ -1,7 +1,7 @@
 {
   "name": "cc-commander",
-  "version": "4.1.0-beta.2",
-  "description": "Commander — Guided AI PM for every AI coding agent. 60 plugin skills. 22 specialist sub-agents. 9 lifecycle hooks (25 handlers). 2 bundled + 16 opt-in MCPs. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. Free for now.",
+  "version": "5.0.0",
+  "description": "Commander — Guided AI PM for every AI coding agent. 61 plugin skills. 22 specialist sub-agents. 23 lifecycle hooks (38 handlers). 2 bundled + 16 opt-in MCPs. 457 skills across 11 CCC domains. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. Free for now.",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
@@ -66,6 +66,7 @@
   "scripts": {
     "bench": "node scripts/perf-bench.js",
     "test": "node --test commander/tests/*.test.js tests/*.test.js",
+    "test:ci": "node bin/kc.js --test && node --test commander/tests/intelligence.test.js commander/tests/error-handling.test.js commander/tests/dispatch-security.test.js commander/tests/paths.test.js commander/tests/tmux-menu-audit.test.js commander/tests/claude-finder.test.js commander/tests/tui-visual.test.js commander/tests/vendor-scanner.test.js commander/tests/orchestrator.test.js commander/tests/audit-counts.test.js commander/tests/hooks-v4.test.js commander/tests/codex-build.test.js commander/tests/agent-personas.test.js commander/tests/agent-manifest.test.js commander/tests/plugin-schema-validation.test.js commander/tests/session-skills.test.js commander/tests/registry-drift.test.js commander/tests/ccc-e2e-skill.test.js commander/tests/audit-naming.test.js commander/tests/manifest-schema.test.js && node --test tests/hooks.test.js && MCP_DISABLED=1 node --test tests/airplane-mode.test.js && node scripts/check-product-contract.js --check && node scripts/audit-counts.js --check",
     "build:codex": "node scripts/build-codex.js",
     "mcp:dev": "node commander/mcp-server/index.js",
     "mcp:cloud:dev": "cd apps/mcp-server-cloud && npm run dev",

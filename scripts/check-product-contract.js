@@ -503,6 +503,12 @@ function isVersionRelevant(content, index) {
   var start = Math.max(0, index - 90);
   var end = Math.min(content.length, index + 90);
   var context = content.slice(start, end);
+  // Skip editor/runtime version mentions (e.g. "Claude Code v2.1.154+", "claude update").
+  // Those are the host CLI's version, NOT the CC Commander product version, so they
+  // must not be flagged as contract drift. Only the ~30 chars immediately before the
+  // number are inspected so we don't accidentally suppress a real CCC version nearby.
+  var before = content.slice(Math.max(0, index - 45), index);
+  if (/claude[\s-]?code/i.test(before)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
 }
 
@@ -519,6 +525,23 @@ function scanCommandPrefix(content, surface, contract) {
 function scanPricing(content, surface, contract) {
   var findings = [];
   if (!contract.pricing_model) return findings;
+
+  // When a pro/paid tier is planned, absolutist "no paid tier ever" claims are false —
+  // flag them as unpatchable (manual fix required) regardless of pricing_model wording.
+  if (contract.pro_tier_planned) {
+    var absolutistPatterns = [
+      /\bno\s+paid\s+tier\s+ever\b/gi,
+      /\bnever\s+pay\b/gi,
+      /\bno\s+pro\s+tier\b/gi,
+      /\bno\s+paid\s+plans?\s+ever\b/gi,
+    ];
+    absolutistPatterns.forEach(function(re) {
+      var m;
+      while ((m = re.exec(content)) !== null) {
+        findings.push(makeFinding(surface, 'pricing_model', contract.pricing_model, m[0], 'pro tier is planned — absolutist claim is false', false));
+      }
+    });
+  }
 
   // If the pricing model itself describes a "free-forever" tier, "free forever"
   // prose in docs is correct — don't flag.

@@ -1,11 +1,15 @@
 ---
 title: "Quickstart"
-description: "Install CCC in under 60 seconds. Desktop plugin is the recommended path for v4.1.0-beta.2."
+description: "Install CCC in under 60 seconds. Desktop plugin is the recommended path for v5.0.0."
 ---
 
 ## Desktop Plugin (Recommended)
 
-The fastest path to CCC v4.1.0-beta.2. Two commands inside any Claude Code session:
+The fastest path to CCC v5.0.0. Two commands inside any Claude Code session.
+
+<Note>
+  **v5.0.0:** Sessions now default to **Opus 4.8** (`claude-opus-4-8`). Dynamic workflows (research preview) are available on Claude Code v2.1.154+. Run `/ccc-ultracode` to try maximum-depth orchestration.
+</Note>
 
 <Steps>
   <Step title="Add to marketplace">
@@ -26,7 +30,7 @@ The fastest path to CCC v4.1.0-beta.2. Two commands inside any Claude Code sessi
   </Step>
 </Steps>
 
-**What you get:** 60 plugin skills, 22 specialist sub-agents, 9 lifecycle hooks × 25 handlers, 2 bundled MCP servers. All free for now — no paid tier, no caps.
+**What you get:** 61 plugin skills, 22 specialist sub-agents, 23 lifecycle hooks × 38 handlers, 2 bundled MCP servers. All free for now — no paid tier, no caps.
 
 <Card title="Plugin docs" icon="puzzle-piece" href="/plugin/install">
   Full plugin installation guide — verification, first commands, and troubleshooting.
@@ -56,7 +60,7 @@ These paths are for developers who want full CLI control or prefer staying insid
     ccc
     ```
 
-    **What you get:** Full CLI with tmux split mode, daemon, theme switching, cockpit dashboard, and all 502+ skills.
+    **What you get:** Full CLI with tmux split mode, daemon, theme switching, cockpit dashboard, and all 457+ skills.
 
     **Best for:** Developers who live in the terminal.
   </Tab>
@@ -76,7 +80,7 @@ These paths are for developers who want full CLI control or prefer staying insid
 
     Full interactive menu appears. Same features, no extra binary.
 
-    **What you get:** All 502+ skills and commands accessible via `/ccc` prefix.
+    **What you get:** All 457+ skills and commands accessible via `/ccc` prefix.
 
     **Best for:** Developers who prefer staying inside Claude Code.
   </Tab>
@@ -112,15 +116,15 @@ Health check JSON — shows gateway, skill count, session state.
 
 <CardGroup cols={2}>
   <Card title="Plugin Skills" href="/plugin/skills" icon="wand-magic-sparkles">
-    All 60 plugin skills — workflows, domain routers, deploy, fleet, and more.
+    All 61 plugin skills — workflows, domain routers, deploy, fleet, and more.
   </Card>
   <Card title="Agents" href="/plugin/agents" icon="robot">
     22 specialist sub-agents for review, build, research, debug, fleet, and more.
   </Card>
-  <Card title="MCP Integrations" href="/plugin/mcp-integrations" icon="plug">
-    2 bundled + 16 opt-in MCP servers via /ccc-connect.
+  <Card title="Dynamic Workflows" href="/dynamic-workflows" icon="bolt-lightning">
+    4 bundled workflows back /ccc-xray, /ccc-review, /ccc-fleet. Research preview.
   </Card>
-  <Card title="Codex Compatibility" href="/features/codex-compatibility" icon="code">
-    Use CC Commander skills in OpenAI Codex CLI and Codex Desktop.
+  <Card title="What's New in v5.0.0" href="/whats-new-v5" icon="sparkles">
+    Opus 4.8 default, dynamic workflows, hooks 9→23, 15 vendor refreshes.
   </Card>
 </CardGroup>

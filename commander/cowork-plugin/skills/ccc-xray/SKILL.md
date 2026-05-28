@@ -7,6 +7,7 @@ allowed-tools:
   - Bash
   - Glob
   - Grep
+  - Workflow
   - AskUserQuestion
   - mcp__ccd_session__spawn_task
 argument-hint: "[quick | full | security | deps | perf]"
@@ -64,6 +65,21 @@ options:
 ```
 
 Prepend ⭐ to Quick scan by default — it's the recommended starting point.
+
+### Native workflow (Claude Code v2.1.154+)
+
+If the `Workflow` tool is available, prefer invoking the bundled audit workflow for the **Full scan** depth (and optionally Quick scan when you want adversarially verified findings):
+
+```js
+Workflow({
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  args: { target: ".", dimensions: ["quality","security","perf","deps","tests","docs","ci"] }
+})
+```
+
+Pass `dimensions` to match the user's chosen scope (e.g. `["security","deps"]` for the focused security/deps picks). The workflow fans out one agent per dimension, adversarially verifies each finding, and returns a synthesized scorecard — false positives are filtered before they reach you.
+
+If `Workflow` is unavailable (older client or tool not allowed), fall back to the Agent-based flow below — leave that flow intact.
 
 ## Running the scan
 

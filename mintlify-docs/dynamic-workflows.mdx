@@ -1,0 +1,105 @@
+---
+title: "Dynamic Workflows"
+description: "JS scripts the runtime executes in the background, spawning many subagents that cross-check findings. Research preview — requires Claude Code v2.1.154+."
+---
+
+<Note>
+  **Research preview.** Dynamic workflows require **Claude Code v2.1.154+ or later**. On older clients, skills that use `Workflow()` automatically fall back to standard `Agent()` dispatch — no errors, no breakage, just sequential rather than parallel execution.
+</Note>
+
+## What Is a Dynamic Workflow?
+
+A dynamic workflow is a JavaScript file the Claude Code runtime executes outside your session's main context. Unlike a skill (which runs inline) or a sub-agent (which runs in a fresh context), a workflow:
+
+- Runs **in the background** without blocking your session
+- Can **spawn many subagents concurrently** — each checking a different dimension in parallel
+- Merges and **cross-validates** findings before returning a synthesized result
+- Has access to `Workflow()`, `Agent()`, and shell utilities from the runtime
+
+The result feels like running 4 Sonnet reviewers at once, where each reviewer's findings are reconciled before you see them.
+
+## The 4 Bundled Workflows
+
+CC Commander ships 4 production-ready workflows in `commander/cowork-plugin/workflows/`:
+
+<CardGroup cols={2}>
+  <Card title="ccc-audit" icon="magnifying-glass">
+    **Backs `/ccc-xray`**. Repo-wide audit across 4 dimensions: security vulnerabilities, performance hotpaths, architecture drift, and test coverage gaps. Spawns one Sonnet agent per dimension, merges findings, deduplicates, and returns a prioritized scorecard.
+  </Card>
+  <Card title="ccc-deep-review" icon="code-pull-request">
+    **Backs `/ccc-review`**. 4-dimension branch review running in parallel: correctness · security · performance · maintainability. Each reviewer scores 0-10 + blocking findings. The referee agent reconciles disagreements.
+  </Card>
+  <Card title="ccc-migrate" icon="arrow-right-arrow-left">
+    **Backs `/ccc-build` migrate mode**. Three-phase pipeline: (1) discover — map the current codebase; (2) transform — apply migration rules in parallel by file group; (3) verify — run tests and reconcile conflicts. Safe for large migrations.
+  </Card>
+  <Card title="ccc-fleet" icon="server">
+    **Backs `/ccc-fleet`**. Orchestrates the three fleet patterns: fan-out (N agents on N files), pipeline (each agent hands off to the next), and judge (FOR + AGAINST + Referee). Handles result aggregation and partial-failure recovery.
+  </Card>
+</CardGroup>
+
+## How to Use Them
+
+You don't need to know any of this to use the bundled workflows. Just run the skill that backs them:
+
+```
+/ccc-xray      → launches ccc-audit workflow
+/ccc-review    → launches ccc-deep-review workflow
+/ccc-fleet     → launches ccc-fleet workflow
+```
+
+On clients without workflow support (Claude Code before v2.1.154), the same skills call `Agent()` directly and run sequentially. The output format is identical.
+
+## Writing Your Own Workflow
+
+If you want to write a custom workflow for your project, create a `.js` file and invoke it from a skill:
+
+```javascript
+// commander/cowork-plugin/workflows/my-workflow.js
+export default async function run({ args, context }) {
+  // Spawn parallel subagents
+  const [secResult, perfResult] = await Promise.all([
+    Agent({
+      task: `Review ${args.file} for security issues`,
+      model: "claude-sonnet-4-6",
+      maxTurns: 10,
+    }),
+    Agent({
+      task: `Profile ${args.file} for performance hotpaths`,
+      model: "claude-sonnet-4-6",
+      maxTurns: 10,
+    }),
+  ]);
+
+  // Reconcile and return
+  return { security: secResult, performance: perfResult };
+}
+```
+
+Then invoke it from your skill file:
+
+```javascript
+Workflow({
+  scriptPath: "commander/cowork-plugin/workflows/my-workflow.js",
+  args: { file: "src/api/users.ts" }
+})
+```
+
+## The `/deep-research` Built-In
+
+Claude Code v2.1.154+ ships `/deep-research` as a built-in — a multi-source research workflow that fans out web searches, fetches sources, and cross-validates findings. CC Commander's `/ccc-research` skill integrates with it on supported clients.
+
+## Version Gate
+
+Check which version of Claude Code you're running:
+
+```bash
+claude --version
+```
+
+If you're on Claude Code older than v2.1.154, workflows silently fall back to sequential `Agent()` dispatch. You won't see an error — just slightly less parallelism. Update via the plugin marketplace or `claude update` to get full workflow support.
+
+## See Also
+
+- [Ultracode](/ultracode) — `xhigh` effort + automatic workflow orchestration
+- [Architecture](/architecture) — how workflows fit into the brain/hands data flow
+- [Lifecycle Hooks](/plugin/hooks) — events that fire around workflow execution (`TaskCreated`, `TaskCompleted`)
