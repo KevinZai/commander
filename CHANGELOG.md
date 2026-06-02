@@ -2,6 +2,16 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **`/ccc-tuneup` skill** — local-setup optimizer and companion to `/ccc-doctor`. Audits a local `~/.claude` install against the latest CC Commander features (version freshness, junk sweep, CLAUDE.md count drift, superseded local agents, hooks coverage, enabled-plugin diff, opt-in MCP staleness, settings keys) and remediates safely: read-only scan by default, backup before edits, archive (never `rm`), explicit AskUserQuestion confirm before any mutation. Every count/version is computed **live** (never hardcoded); consumes `ccc-doctor`'s `lib/diagnostics.js` for the license/hook-chain/mcp/agent-model/version-parity rows. CLAUDE.md count fixes are maintainer-gated (cc-commander git root only); `~/.claude/**` is never edited. New files: `skills/ccc-tuneup/SKILL.md`, `skills/ccc-tuneup/lib/tuneup-probes.sh`.
+
+### Changed
+
+- **Plugin skill count 61 → 62** — `/ccc-tuneup` added.
+
 ## [5.0.0] — 2026-05-28
 
 ### Added
