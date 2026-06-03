@@ -4,7 +4,7 @@
 
 CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Free for now** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **62 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 38 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 457 skills, 11 CCC domains, 83+ commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** v5.0.0 — the Opus 4.8 era. Session model bumped to `claude-opus-4-8`; dynamic-workflows library + `/ccc-ultracode`; hooks expanded 9→23 events; all 19 vendor pins refreshed; docs/website refresh. (Full notes in CHANGELOG.md.) · npm package `cc-commander@5.0.0` (version tracked in `package.json`)
+**Current Release:** v5.1.0 — the Opus 4.8 era. Session model bumped to `claude-opus-4-8`; dynamic-workflows library + `/ccc-ultracode`; hooks expanded 9→23 events; all 19 vendor pins refreshed; docs/website refresh. (Full notes in CHANGELOG.md.) · npm package `cc-commander@5.1.0` (version tracked in `package.json`)
 
 ## Session Defaults
 
@@ -21,7 +21,7 @@ CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantl
 
 ## Desktop Plugin (PRIMARY PRODUCT)
 
-CC Commander's primary product as of v5.0.0. Claude Cowork Desktop / Claude Code Desktop install:
+CC Commander's primary product as of v5.1.0. Claude Cowork Desktop / Claude Code Desktop install:
 
 **Via GUI (Cowork Desktop / Code Desktop):**
 1. Settings → Plugin Marketplace → **Add from GitHub**
@@ -36,7 +36,7 @@ CC Commander's primary product as of v5.0.0. Claude Cowork Desktop / Claude Code
 
 **Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
 
-**v5.0.0:** 62 plugin skills (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup) + 22 specialist agents + 23 lifecycle hooks × 38 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **free for now**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; no paid upgrade path planned.
+**v5.1.0:** 62 plugin skills (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup) + 22 specialist agents + 23 lifecycle hooks × 38 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **free for now**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; no paid upgrade path planned.
 
 **The 12 /ccc-* specialist workflows (all click-first via AskUserQuestion native picker):**
 - `/ccc` — main hub (6 intents via nested AUQ)
@@ -57,7 +57,7 @@ CC Commander's primary product as of v5.0.0. Claude Cowork Desktop / Claude Code
 
 Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
 
-### Architecture note (v5.0.0+)
+### Architecture note (v5.1.0+)
 
 Plugin commands are provided as **SKILLS** (not plugin commands) so they appear as plain `/ccc-*` in the autocomplete (no `commander:` namespace prefix). This is the correct primitive for click-first UX in Cowork Desktop. Menus live in `commander/cowork-plugin/menus/*.json` (root + 6 sub-menus); the template at `commander/cowork-plugin/lib/menu-artifact.html.tpl` and renderer at `commander/cowork-plugin/lib/menu-render.js` are kept for future use if/when Claude Desktop adds interactive-artifact support, but the active UX uses AskUserQuestion-native chip pickers (confirmed working in Cowork Desktop).
 
@@ -142,7 +142,7 @@ Compound Engineering (11.5K), claude-skills (8.6K), notebooklm-py (8.6K),
 claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
 claude-code-prompts (142).
 
-**Note:** `claude-mem` was previously vendored but was removed in v5.0.0 — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
+**Note:** `claude-mem` was previously vendored but was removed in v5.1.0 — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
 
 ## Footer Bar
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
@@ -187,7 +187,7 @@ Every menu recommends the best next action based on context.
 
 ## Current Status
 
-**Version:** 5.0.0 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
+**Version:** 5.1.0 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
 
 **Stats:** 457 skills total, 62 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (38 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 

@@ -1,0 +1,113 @@
+---
+title: "/ccc-tuneup"
+description: "Audit and safely remediate your local ~/.claude CC Commander setup. Read-only scan by default — backup, archive (never delete), and explicit confirm before any fix."
+---
+
+`/ccc-tuneup` is the safe-remediation companion to `/ccc-doctor`. Doctor *diagnoses*. Tune-up *fixes* — but only what you approve, with a backup first.
+
+## Trigger
+
+```
+/ccc-tuneup
+/ccc-tuneup --check
+/ccc-tuneup --fix
+/ccc-tuneup --aggressive
+```
+
+Also activates on: "tune up ccc", "optimize my setup", "fix my install", "clean up my claude config"
+
+## Arguments
+
+| Flag | Behavior |
+|------|----------|
+| *(none)* | Run audit, show scorecard, then open the fix chip picker |
+| `--check` | Read-only audit + scorecard. **No mutations, no prompt.** |
+| `--fix` | Audit, then offer safe fixes via AskUserQuestion chips (destructive items OFF by default) |
+| `--aggressive` | Same as `--fix` but pre-selects session archival + superseded-agent retirement |
+
+## What it does
+
+<Steps>
+  <Step title="Read-only audit">
+    Runs a side-effect-free probe script against your local install. Measures 9 dimensions: version freshness, junk files, archive-hook dupes, stale sessions, superseded local agents, settings key gaps, plugin-enabled state, opt-in MCP staleness, and CLAUDE.md count drift. Every count is computed **live from the filesystem** — never hardcoded.
+  </Step>
+  <Step title="Consume ccc-doctor diagnostics">
+    Reads `lib/diagnostics.js` (from the plugin clone) for the license-cleanup, hook-chain, mcp-availability, agent-models, and version-parity rows. Does not re-implement these checks.
+  </Step>
+  <Step title="Render scorecard">
+    Outputs a single markdown table with a color-coded status per check (🟢/🟡/🟠/🔴/⚪) and a top finding + suggested action per row. Stops here on `--check`.
+  </Step>
+  <Step title="Confirm fixes (AskUserQuestion)">
+    Opens a multi-select chip picker listing only the fixable rows. Every item is reversible. Destructive-leaning items (session archival, local-agent retirement) are OFF by default unless `--aggressive` was passed.
+  </Step>
+  <Step title="Backup → archive → fix (transactional)">
+    Takes ALL backups before ANY edit. Archives junk with `mv` (never `rm`). Applies one fix at a time and verifies after each. On any failure, restores all backups taken this run in reverse order.
+  </Step>
+  <Step title="Verify and report">
+    Re-runs the probe for changed rows only. Asserts each now reads 🟢. Lists every fix applied, every archive path, every backup path, and any commands you must run yourself (git pull, Desktop restart).
+  </Step>
+</Steps>
+
+## Scorecard dimensions
+
+| Check | What it measures |
+|-------|-----------------|
+| 📦 Version freshness | Installed version vs latest cached remote version |
+| 🧹 Junk sweep | `temp_*` dirs, stale `*.bak`/`*.old` files >14d, archive-hook dupes |
+| 📝 CLAUDE.md count drift | Claimed counts vs live filesystem counts |
+| 🤖 Local agent supersession | `~/.claude/agents/*.md` files the plugin persona strictly supersedes |
+| 🪝 Hooks coverage | All hook events present and all handler files resolve |
+| 🔌 Plugin enabled | `commander` in `enabledPlugins` in `settings.json` |
+| 🌐 Opt-in MCP staleness | `/ccc-connect` MCP entries whose configured path/command is missing |
+| ⚙️ Settings keys | Expected keys absent from `~/.claude/settings.json` |
+| 🗂️ Stale sessions (opt-in) | `~/.claude/sessions/` files older than 30 days |
+
+## Safety model
+
+Tune-up is safe by default and reversible by design.
+
+**Never deletes anything.** Junk moves to a timestamped archive dir at `~/.claude/commander/tuneup-archive/<UTC-stamp>/`. Restore any item with a plain `mv` back.
+
+**Backup before every edit.** Every file that will be mutated gets a `*.backup-YYYYMMDDHHMMSS` copy before the first edit. Keeps the last 3 backups per file; offers to archive older ones.
+
+**Transactional rollback.** If any fix fails mid-run, all backups taken this run are restored in reverse order.
+
+**CLAUDE.md edits are maintainer-gated.** Count-drift fixes are only offered when running from a verified cc-commander git root (`basename $(git rev-parse --show-toplevel) == "cc-commander"` AND `scripts/audit-counts.js` present). For end-user installs, the CLAUDE.md row is detect-only — drift is shown, no edit is offered.
+
+**Global config is off-limits.** Tune-up never edits `~/.claude/CLAUDE.md` or any file under `~/.claude/**` that isn't `settings.json`.
+
+**Commands that require a restart are emitted, not run.** `git pull` and Desktop restarts appear as copy-paste terminal commands — tune-up never runs them.
+
+## Usage examples
+
+```
+# See what needs attention — no changes made
+/ccc-tuneup --check
+
+# Audit + pick which fixes to apply
+/ccc-tuneup --fix
+
+# Audit + pre-select session archival and superseded-agent retirement
+/ccc-tuneup --aggressive
+
+# Bare — audit, scorecard, then chip picker
+/ccc-tuneup
+```
+
+## Relationship to /ccc-doctor
+
+| | `/ccc-doctor` | `/ccc-tuneup` |
+|--|--------------|--------------|
+| **Mode** | Diagnostic only | Diagnostic + remediation |
+| **Mutations** | None | Optional, gated by confirmation |
+| **Backups** | None needed | Taken automatically |
+| **Best for** | Filing a bug report, quick health check | Cleaning up after an upgrade, removing cruft |
+
+Run `/ccc-doctor` first if you want a pure read-only snapshot. Run `/ccc-tuneup --check` for an equivalent read-only view with the remediation lens.
+
+## Tips
+
+- Run `/ccc-tuneup --check` after every plugin upgrade to catch count drift and stale configs before they cause issues.
+- The scorecard's **🎯 My call** line tells you which row to fix first and why.
+- Archive dirs at `~/.claude/commander/tuneup-archive/` are safe to inspect and restore from at any time.
+- If `PLUGIN_ENABLED` shows 🔴, go to Settings → Plugin Marketplace → find Commander → Enable.

@@ -53,14 +53,14 @@ Opus personas are used for tasks that require deep reasoning chains (architectur
 
 ## 23 Lifecycle Hooks / 38 Handlers
 
-Hooks fire automatically around Claude Code sessions. v5.0.0 expanded the system from 9 to 23 events. Each hook event can have multiple handlers.
+Hooks fire automatically around Claude Code sessions. v5.1.0 expanded the system from 9 to 23 events. Each hook event can have multiple handlers.
 
 **Core events:**
 
 | Event | Handlers | What fires |
 |-------|----------|-----------|
 | `SessionStart` | 4 | Load context, stale CLAUDE.md nudge, post-compact recovery, ambient suggestion |
-| `SessionEnd` | 2 | Session save + summary (moved from `Stop` in v5.0.0 — correctness fix) |
+| `SessionEnd` | 2 | Session save + summary (moved from `Stop` in v5.1.0 — correctness fix) |
 | `UserPromptSubmit` | 4 | Intent classifier, context budget check, suggest ticker, prompt logger |
 | `PreToolUse` | 3 | Cost tracker + cost ceiling + secret leak guard |
 | `PostToolUse` | 3 | Knowledge capture + quality gate + auto-format |
@@ -74,13 +74,13 @@ Hooks fire automatically around Claude Code sessions. v5.0.0 expanded the system
 | `TaskCreated` | 1 | Background workflow/task start |
 | `TaskCompleted` | 1 | Background workflow/task finish |
 
-9 additional events added in v5.0.0: `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup`.
+9 additional events added in v5.1.0: `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup`.
 
 All hooks fail gracefully — if a hook errors, the session continues. Hook state lives in `~/.claude/commander/` and never touches other `.claude/` contents. See [Hooks 2026](/hooks-2026) for the full registry.
 
 ## Dynamic Workflows (Research Preview)
 
-v5.0.0 adds a second execution path for skills that need parallel subagents: **dynamic workflows**. A workflow is a JS file the runtime executes in the background, spawning many subagents concurrently and merging their findings.
+v5.1.0 adds a second execution path for skills that need parallel subagents: **dynamic workflows**. A workflow is a JS file the runtime executes in the background, spawning many subagents concurrently and merging their findings.
 
 CC Commander ships 4 bundled workflows:
 
