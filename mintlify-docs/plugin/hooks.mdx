@@ -6,13 +6,13 @@ description: "23 hook events with 38 handlers that load context, route intent, c
 CC Commander registers **23 lifecycle hook events** with **38 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
 
 <Note>
-  **v5.0.0 expanded from 9 to 23 events.** Existing hooks are unchanged. One correctness fix: `session-save` moved from `Stop` → `SessionEnd`. See [Hooks 2026](/hooks-2026) for the full updated registry including all 14 new events.
+  **v5.1.0 expanded from 9 to 23 events.** Existing hooks are unchanged. One correctness fix: `session-save` moved from `Stop` → `SessionEnd`. See [Hooks 2026](/hooks-2026) for the full updated registry including all 14 new events.
 </Note>
 
 All hooks use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and fail gracefully — if a hook errors, the session continues uninterrupted.
 
 <Note>
-  **v5.0.0:** `SessionStart` now uses a single-process orchestrator (`session-start-orchestrator.js`) that runs all 4 session-start handlers in one Node.js process, saving ~300ms of cold-start overhead per session. The 16-handler count is unchanged — the orchestrator is a performance optimization, not a feature reduction.
+  **v5.1.0:** `SessionStart` now uses a single-process orchestrator (`session-start-orchestrator.js`) that runs all 4 session-start handlers in one Node.js process, saving ~300ms of cold-start overhead per session. The 16-handler count is unchanged — the orchestrator is a performance optimization, not a feature reduction.
 </Note>
 
 ## Hook Registry
@@ -77,4 +77,4 @@ Hooks are JavaScript files executed natively by Claude Code's hook runtime. They
 
 A `{"continue": false}` return from `PreToolUse` blocks the tool call. All other hooks are informational — they can't block the session flow. This is by design: hooks should enhance, never gate.
 
-See [Architecture](/architecture) for how hooks fit into the full data flow. See [Hooks 2026](/hooks-2026) for the complete v5.0.0 registry with all 23 events and 38 handlers.
+See [Architecture](/architecture) for how hooks fit into the full data flow. See [Hooks 2026](/hooks-2026) for the complete v5.1.0 registry with all 23 events and 38 handlers.

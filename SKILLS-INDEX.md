@@ -1,5 +1,5 @@
 # Skills Index — Quick Reference
-> CC Commander v5.0.0 — by Kevin Zicherman
+> CC Commander v5.1.0 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
 > Last verified: 2026-05-15 | Desktop plugin first: 62 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop) + 22 specialist sub-agents + 23 lifecycle hooks (38 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free for now
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
@@ -39,7 +39,7 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 
 ---
 
-## Desktop Plugin Skills (v5.0.0)
+## Desktop Plugin Skills (v5.1.0)
 
 > Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 62 plugin skills total (13 /ccc-* workflows + 14 ccc-* domain routers + 6 new channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop). **All free for now.**
 
@@ -65,7 +65,9 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-e2e` | End-to-end test scaffolding and Playwright automation | "e2e test", "add playwright tests", "ccc e2e" |
 | `/ccc-save-session` | Save current session state to `~/.claude/commander/sessions/` for later resume | "save session", "save my progress" |
 | `/ccc-resume-session` | Resume a previously saved session — restores context, todos, and plan | "resume session", "pick up where I left off" |
-| `/ccc-loop` | Run any /ccc-* skill on a recurring interval via Claude Code's native /loop (5.0.0+) — includes 5+ patterns and self-pacing guidance | "loop a skill", "run ccc-doctor every 5 minutes", "continuous review" |
+| `/ccc-loop` | Run any /ccc-* skill on a recurring interval via Claude Code's native /loop (2.1.123+) — includes 5+ patterns and self-pacing guidance | "loop a skill", "run ccc-doctor every 5 minutes", "continuous review" |
+| `/ccc-doctor` | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component | "diagnose plugin", "ccc doctor", "something is broken" |
+| `/ccc-tuneup` | Local setup optimizer — companion to /ccc-doctor. Audit + safely remediate: version freshness, junk sweep, CLAUDE.md drift, superseded agents, hooks coverage, MCP staleness, settings keys. Read-only by default; backup + archive before any fix | "tune up ccc", "optimize my setup", "ccc tuneup", "fix my install" |
 | `/ccc-brainstorm` | Guided ideation: problem framing → divergent ideas → convergent shortlist | "brainstorm", "ccc brainstorm", "ideate on this" |
 | `/ccc-qa` | QA workflow router: test planning, coverage audit, edge-case generation, regression sweep | "ccc qa", "qa this", "find edge cases" |
 | `/ccc-hermes` | Hermes Gateway integration: OAuth bridge status, token refresh, provider health | "hermes status", "ccc hermes", "check oauth bridge" |
@@ -194,7 +196,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `browse` | Fast headless browser for QA, dogfooding, page state verification, annotated screenshots |
 | `cache-monitor` | Analyze Claude Code session costs and cache efficiency from JSONL session files |
 
-## 🔗 Multi-Agent & Peers (NEW in v5.0.0)
+## 🔗 Multi-Agent & Peers (NEW in v5.1.0)
 | Skill | What it does |
 |-------|-------------|
 | `claude-peers-bible` | **NEW** Comprehensive Claude Peers guide — discovery, messaging, 5 coordination patterns (coordinator, swarm, expert, review, research) |
@@ -202,7 +204,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `task-commander` | **NEW** Multi-agent orchestration brain — P0-P10 scoping, DAG workflows, circuit breaker, cost ceiling, COMP PROVE verification |
 | `contextual-assist` | **NEW** Proactive contextual suggestions — 5 levels (off/minimal/standard/guided/mentored), pattern matching, progressive disclosure |
 
-## 🏗️ Integrations (NEW in v5.0.0)
+## 🏗️ Integrations (NEW in v5.1.0)
 | Skill | What it does |
 |-------|-------------|
 | `cowork-bible` | **NEW** Claude Desktop Cowork integration — autonomous sessions, plugin compatibility, scheduled tasks, handoff protocol |
@@ -214,13 +216,13 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `openclaw-native` | **NEW** OpenClaw native integration — auto-detection, skill sync, bidirectional event forwarding, agent profile generation, memory sync |
 | `openclaw-post-install` | Post-upgrade protocol — backup, version-split check (both npm paths), changelog delta, doctor pre-start, launchctl bootstrap, proposals, rollback, Slack contract-api.js crash detection |
 
-## 📖 Beginner Experience (NEW in v5.0.0)
+## 📖 Beginner Experience (NEW in v5.1.0)
 | Skill | What it does |
 |-------|-------------|
 | `bible-guide` | **NEW** Interactive onboarding — "I'm new" → guided wizard, skill discovery, progressive disclosure |
 | `vscode-bible` | **NEW** VS Code integration guide — buttons, snippets, keyboard shortcuts, walkthrough, status bar customization |
 
-## 📘 Quick Start Guides (NEW in v5.0.0)
+## 📘 Quick Start Guides (NEW in v5.1.0)
 | Guide | Who it's for |
 |-------|-------------|
 | `guides/quickstart-beginner.md` | Complete beginner — never used Claude Code |
@@ -229,7 +231,7 @@ Each CCC domain has a router that dispatches to the right specialist. Individual
 | `guides/quickstart-fullstack.md` | Full-stack developer — combined workflow |
 | `guides/quickstart-mobile.md` | Mobile developer — React Native, Flutter, Swift, Kotlin |
 
-## 📊 Dashboard (NEW in v5.0.0)
+## 📊 Dashboard (NEW in v5.1.0)
 | Component | What it does |
 |-----------|-------------|
 | `dashboard/` | Real-time React dashboard — agent monitoring, spawn tree, cost tracker, live logs, 10 themes |
@@ -613,7 +615,7 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = added in CC Commander v5.0.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v5.0.0, updated in v5.0.0.*
+*⭐ = added in CC Commander v5.1.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v5.1.0, updated in v5.1.0.*
 
 ---
 

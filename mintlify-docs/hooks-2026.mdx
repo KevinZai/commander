@@ -1,13 +1,13 @@
 ---
 title: "Hooks 2026 — 23 Events"
-description: "v5.0.0 expanded the hook system from 9 to 23 lifecycle events and from 24 to 38 handlers. Full registry, new events, and migration notes."
+description: "v5.1.0 expanded the hook system from 9 to 23 lifecycle events and from 24 to 38 handlers. Full registry, new events, and migration notes."
 ---
 
 <Note>
-  **v5.0.0 change.** The hook system expanded from 9 events to 23. Existing hooks continue to work unchanged. The new events are additive. One breaking change: `session-save` moved from `Stop` to `SessionEnd` (correctness fix — see [Migration Notes](#migration-notes)).
+  **v5.1.0 change.** The hook system expanded from 9 events to 23. Existing hooks continue to work unchanged. The new events are additive. One breaking change: `session-save` moved from `Stop` to `SessionEnd` (correctness fix — see [Migration Notes](#migration-notes)).
 </Note>
 
-## Full Hook Registry (v5.0.0)
+## Full Hook Registry (v5.1.0)
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
@@ -18,7 +18,7 @@ description: "v5.0.0 expanded the hook system from 9 to 23 lifecycle events and 
 | `PostToolUse` | 3 | `knowledge-capture.js`, `quality-gate.js`, `auto-format.js` | Capture file-touch observations, quality checks, format writes |
 | `PostToolUseFailure` | 1 | `tool-failure-logger.js` | Log failed tool calls to session telemetry |
 | `PostToolBatch` | 1 | `batch-summary.js` | Append batch stats to session metadata after multi-tool sequences |
-| `Stop` | 1 | `session-end.js` | Legacy session cleanup (session-save moved to SessionEnd in v5.0.0) |
+| `Stop` | 1 | `session-end.js` | Legacy session cleanup (session-save moved to SessionEnd in v5.1.0) |
 | `StopFailure` | 1 | `stop-failure-handler.js` | Log unhandled errors on session close |
 | `Notification` | 1 | `fleet-notify.js` | Append fleet agent completion events to `notifications.jsonl` |
 | `PreCompact` | 1 | `pre-compact.js` | Block compaction if session is mid-critical-task |
@@ -43,7 +43,7 @@ description: "v5.0.0 expanded the hook system from 9 to 23 lifecycle events and 
 
 `SessionStart` · `UserPromptSubmit` · `PreToolUse` · `PostToolUse` · `Stop` · `Notification` · `PreCompact` · `SubagentStop` · `PermissionRequest`
 
-**New in v5.0.0:**
+**New in v5.1.0:**
 
 `SessionEnd` · `PostCompact` · `SubagentStart` · `StopFailure` · `PostToolUseFailure` · `PostToolBatch` · `Elicitation` · `ElicitationResult` · `TaskCreated` · `TaskCompleted` · `ConfigChange` · `UserPromptExpansion` · `InstructionsLoaded` · `Setup`
 
@@ -53,7 +53,7 @@ description: "v5.0.0 expanded the hook system from 9 to 23 lifecycle events and 
 
 In v4.x, `session-save.js` was registered under the `Stop` event. This was a bug: `Stop` fires before Claude Code fully closes the session, which could cause race conditions with file writes.
 
-In v5.0.0, `session-save.js` is registered under `SessionEnd` — the correct event for session persistence.
+In v5.1.0, `session-save.js` is registered under `SessionEnd` — the correct event for session persistence.
 
 **If you have custom hooks registered on `Stop` that depend on session state being present**, move them to `SessionEnd`.
 
@@ -127,4 +127,4 @@ No prompts, file contents, or paths are ever transmitted. See [Privacy Policy](/
 
 - [Dynamic Workflows](/dynamic-workflows) — `TaskCreated` / `TaskCompleted` fire around workflow execution
 - [Ultracode](/ultracode) — uses `xhigh` effort + workflow hooks
-- [What's New in v5.0.0](/whats-new-v5) — full release notes
+- [What's New in v5.1.0](/whats-new-v5) — full release notes

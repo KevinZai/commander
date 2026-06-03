@@ -38,6 +38,19 @@
               "plugin/install",
               "plugin/upgrade",
               "plugin/skills",
+              {
+                "group": "Individual Skills",
+                "pages": [
+                  "plugin/skills/ccc-deploy",
+                  "plugin/skills/ccc-rollback",
+                  "plugin/skills/ccc-onboard",
+                  "plugin/skills/ccc-fleet-viz",
+                  "plugin/skills/ccc-doctor",
+                  "plugin/skills/ccc-tuneup",
+                  "plugin/skills/ccc-changelog",
+                  "plugin/skills/ccc-upgrade"
+                ]
+              },
               "plugin/agents",
               "plugin/hooks",
               "hooks-2026",

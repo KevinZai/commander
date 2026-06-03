@@ -1,12 +1,12 @@
 # CC Commander Cheatsheet
-> CC Commander v5.0.0 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v5.1.0 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-05-15 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v5.0.0)
+## Desktop Plugin Commands (v5.1.0)
 
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 62 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
 
@@ -82,14 +82,14 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ### Lifecycle hook events (23)
 
-23 events, 38 handlers — fire automatically every session (no configuration needed). v5.0.0 expanded from 9 → 23 events.
+23 events, 38 handlers — fire automatically every session (no configuration needed). v5.1.0 expanded from 9 → 23 events.
 
 **Core events:**
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
 | `SessionStart` | New session opens | 4 (init state, claude-md nudge, post-compact recovery, suggest ticker) |
-| `SessionEnd` | Session cleanly closes | 2 (session save, summary) — moved from `Stop` in v5.0.0 |
+| `SessionEnd` | Session cleanly closes | 2 (session save, summary) — moved from `Stop` in v5.1.0 |
 | `UserPromptSubmit` | User hits Enter | 4 (suggest ticker, intent classifier, context warning, submit logger) |
 | `PreToolUse` | Before any tool call | 3 (cost tracker, cost ceiling, secret leak guard) |
 | `PostToolUse` | After tool completes | 3 (knowledge capture, quality gate, auto-format) |
@@ -105,7 +105,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | **9 more** | `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup` | 9 (one each) |
 | **TOTAL** | **23 events** | **38 handlers** |
 
-### Dynamic Workflows + Ultracode (v5.0.0)
+### Dynamic Workflows + Ultracode (v5.1.0)
 
 > Research preview — requires Claude Code v2.1.154+. Falls back to `Agent()` on older clients.
 
@@ -401,7 +401,7 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | `claude -c` | Continue last conversation from CLI | `claude -c` |
 | `claude --resume <id>` | Resume specific session ID | `claude --resume abc123` |
 
-### 🔁 /loop integration (Claude Code 5.0.0+)
+### 🔁 /loop integration (Claude Code 2.1.154+)
 
 Pair `/loop` with any `/ccc-*` skill for recurring execution. Claude Code Desktop renders a "loop" tag in the UI automatically.
 
@@ -412,6 +412,9 @@ Pair `/loop` with any `/ccc-*` skill for recurring execution. Claude Code Deskto
 | Loop command | What it does |
 |---|---|
 | `/loop 5m /ccc-doctor` | Plugin health every 5 min |
+| `/ccc-tuneup` | Diagnose + safely remediate local CC Commander setup |
+| `/ccc-tuneup --check` | Read-only audit scorecard (no mutations) |
+| `/ccc-tuneup --fix` | Audit → chip picker → backup → archive → apply safe fixes |
 | `/loop /ccc-review` | Self-paced branch audit |
 | `/loop 30m /ccc-tasks` | Task list refresh |
 | `/loop 1h /ccc-xray` | Periodic project health scan |
@@ -672,7 +675,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 5.0.0
+version: 5.1.0
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -1031,7 +1034,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v5.0.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v5.1.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1115,7 +1118,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v5.0.0 Quick Reference (CLI)
+## CC Commander v5.1.0 Quick Reference (CLI)
 
 ```bash
 # Launch
