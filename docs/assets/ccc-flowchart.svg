@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1100">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1400" height="1100" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="700" y="50" text-anchor="middle" font-family="'JetBrains Mono','SF Mono',monospace" font-size="28" fill="#ff6600" font-weight="bold" filter="url(#glow)">CC Commander v2.3.0 — Complete Flow Map</text>
+  <text x="700" y="75" text-anchor="middle" font-family="monospace" font-size="13" fill="#555">450+ skills · 19 vendors · 11 domains · Every path from the main menu</text>
+
+  <!-- Main Menu (center) -->
+  <rect x="530" y="100" width="340" height="36" rx="8" fill="#1a1b26" stroke="#ff6600" stroke-width="2"/>
+  <text x="700" y="124" text-anchor="middle" font-family="monospace" font-size="16" fill="#ff6600" font-weight="bold">◆ MAIN MENU</text>
+
+  <!-- Build Branch -->
+  <line x1="580" y1="136" x2="200" y2="190" stroke="#50ff78" stroke-width="1.5" opacity="0.6"/>
+  <rect x="60" y="180" width="280" height="28" rx="6" fill="#1a1b26" stroke="#50ff78" stroke-width="1"/>
+  <text x="200" y="199" text-anchor="middle" font-family="monospace" font-size="13" fill="#50ff78">● Build Something New</text>
+  <!-- Build sub-items -->
+  <text x="80" y="230" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Website / Web App → Claude Code</text>
+  <text x="80" y="248" font-family="monospace" font-size="11" fill="#8b949e">│ ○ API / Backend → Claude Code</text>
+  <text x="80" y="266" font-family="monospace" font-size="11" fill="#8b949e">│ ○ CLI Tool → Claude Code</text>
+  <text x="80" y="284" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Freeform Describe → Claude Code</text>
+  <text x="80" y="302" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- Create Content Branch -->
+  <line x1="620" y1="136" x2="200" y2="330" stroke="#58a6ff" stroke-width="1.5" opacity="0.6"/>
+  <rect x="60" y="320" width="280" height="28" rx="6" fill="#1a1b26" stroke="#58a6ff" stroke-width="1"/>
+  <text x="200" y="339" text-anchor="middle" font-family="monospace" font-size="13" fill="#58a6ff">○ Create Content</text>
+  <text x="80" y="368" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Blog Post → Claude Code</text>
+  <text x="80" y="386" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Social Media → Claude Code</text>
+  <text x="80" y="404" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Email Campaign → Claude Code</text>
+  <text x="80" y="422" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Marketing Copy → Claude Code</text>
+  <text x="80" y="440" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Documentation → Claude Code</text>
+  <text x="80" y="458" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- Research Branch -->
+  <line x1="640" y1="136" x2="200" y2="490" stroke="#d2a8ff" stroke-width="1.5" opacity="0.6"/>
+  <rect x="60" y="480" width="280" height="28" rx="6" fill="#1a1b26" stroke="#d2a8ff" stroke-width="1"/>
+  <text x="200" y="499" text-anchor="middle" font-family="monospace" font-size="13" fill="#d2a8ff">○ Research &amp; Analyze</text>
+  <text x="80" y="528" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Competitive Analysis</text>
+  <text x="80" y="546" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Market Research</text>
+  <text x="80" y="564" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Code Audit / Review</text>
+  <text x="80" y="582" font-family="monospace" font-size="11" fill="#8b949e">│ ○ SEO / Analytics</text>
+  <text x="80" y="600" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- Right side: Session / Review / Learn -->
+  <line x1="760" y1="136" x2="1100" y2="190" stroke="#ffa657" stroke-width="1.5" opacity="0.6"/>
+  <rect x="960" y="180" width="340" height="28" rx="6" fill="#1a1b26" stroke="#ffa657" stroke-width="1"/>
+  <text x="1130" y="199" text-anchor="middle" font-family="monospace" font-size="13" fill="#ffa657">○ Continue Where I Left Off</text>
+  <text x="980" y="228" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Resume exact session</text>
+  <text x="980" y="246" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Show progress summary</text>
+  <text x="980" y="264" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Start fresh with context</text>
+  <text x="980" y="282" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- Review Branch -->
+  <line x1="780" y1="136" x2="1100" y2="310" stroke="#79c0ff" stroke-width="1.5" opacity="0.6"/>
+  <rect x="960" y="300" width="340" height="28" rx="6" fill="#1a1b26" stroke="#79c0ff" stroke-width="1"/>
+  <text x="1130" y="319" text-anchor="middle" font-family="monospace" font-size="13" fill="#79c0ff">○ Review What I Built</text>
+  <text x="980" y="348" font-family="monospace" font-size="11" fill="#8b949e">│  Recent sessions + results</text>
+  <text x="980" y="366" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- Learn Branch -->
+  <line x1="800" y1="136" x2="1100" y2="400" stroke="#7ee787" stroke-width="1.5" opacity="0.6"/>
+  <rect x="960" y="390" width="340" height="28" rx="6" fill="#1a1b26" stroke="#7ee787" stroke-width="1"/>
+  <text x="1130" y="409" text-anchor="middle" font-family="monospace" font-size="13" fill="#7ee787">○ Learn a New Skill</text>
+  <text x="980" y="438" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Browse by category (450+)</text>
+  <text x="980" y="456" font-family="monospace" font-size="11" fill="#8b949e">│ ○ CCC Domains (11 routers)</text>
+  <text x="980" y="474" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Quick reference card</text>
+  <text x="980" y="492" font-family="monospace" font-size="11" fill="#8b949e">│ ○ Get a recommendation</text>
+  <text x="980" y="510" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- CCC Domains (bottom center-right) -->
+  <line x1="820" y1="136" x2="1100" y2="540" stroke="#ff7b72" stroke-width="1.5" opacity="0.6"/>
+  <rect x="960" y="530" width="340" height="28" rx="6" fill="#1a1b26" stroke="#ff7b72" stroke-width="1"/>
+  <text x="1130" y="549" text-anchor="middle" font-family="monospace" font-size="13" fill="#ff7b72">○ CCC Domains (11)</text>
+  <text x="980" y="578" font-family="monospace" font-size="10" fill="#8b949e">│ ccc-design(35+) ccc-marketing(46) ccc-saas(20)</text>
+  <text x="980" y="594" font-family="monospace" font-size="10" fill="#8b949e">│ ccc-testing(15) ccc-devops(20) ccc-seo(19)</text>
+  <text x="980" y="610" font-family="monospace" font-size="10" fill="#8b949e">│ ccc-security(8) ccc-data(8) ccc-research(8)</text>
+  <text x="980" y="626" font-family="monospace" font-size="10" fill="#8b949e">│ ccc-mobile(8) ccc-makeover(3)</text>
+  <text x="980" y="642" font-family="monospace" font-size="10" fill="#444">└</text>
+
+  <!-- Bottom row: Night Mode, Infrastructure, Settings -->
+  <line x1="660" y1="136" x2="200" y2="640" stroke="#f97583" stroke-width="1.5" opacity="0.6"/>
+  <rect x="60" y="630" width="280" height="28" rx="6" fill="#1a1b26" stroke="#f97583" stroke-width="1"/>
+  <text x="200" y="649" text-anchor="middle" font-family="monospace" font-size="13" fill="#f97583">○ Night Mode / YOLO</text>
+  <text x="80" y="678" font-family="monospace" font-size="11" fill="#8b949e">│ ○ YOLO Mode (8hr autonomous)</text>
+  <text x="80" y="696" font-family="monospace" font-size="11" fill="#8b949e">│ ○ YOLO Loop (experimental)</text>
+  <text x="80" y="714" font-family="monospace" font-size="11" fill="#8b949e">│ ○ What is YOLO Mode?</text>
+  <text x="80" y="732" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- Infrastructure -->
+  <line x1="680" y1="136" x2="200" y2="770" stroke="#8b949e" stroke-width="1.5" opacity="0.6"/>
+  <rect x="60" y="760" width="280" height="28" rx="6" fill="#1a1b26" stroke="#8b949e" stroke-width="1"/>
+  <text x="200" y="779" text-anchor="middle" font-family="monospace" font-size="13" fill="#8b949e">○ Infrastructure &amp; Fleet</text>
+  <text x="80" y="808" font-family="monospace" font-size="11" fill="#666">│ Fleet Commander · Cost Dashboard</text>
+  <text x="80" y="826" font-family="monospace" font-size="11" fill="#666">│ Synapse · CloudCLI · Paperclip</text>
+  <text x="80" y="844" font-family="monospace" font-size="11" fill="#666">│ TaskMaster · Service Detection</text>
+  <text x="80" y="862" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- Settings -->
+  <line x1="840" y1="136" x2="1100" y2="670" stroke="#8b949e" stroke-width="1.5" opacity="0.6"/>
+  <rect x="960" y="660" width="340" height="28" rx="6" fill="#1a1b26" stroke="#8b949e" stroke-width="1"/>
+  <text x="1130" y="679" text-anchor="middle" font-family="monospace" font-size="13" fill="#8b949e">○ Settings</text>
+  <text x="980" y="708" font-family="monospace" font-size="11" fill="#666">│ Name · Level · Cost Ceiling · Theme</text>
+  <text x="980" y="726" font-family="monospace" font-size="11" fill="#666">│ Animations · Linear · Launch Mode</text>
+  <text x="980" y="744" font-family="monospace" font-size="11" fill="#444">└</text>
+
+  <!-- Stats + Linear (center bottom) -->
+  <line x1="700" y1="136" x2="540" y2="900" stroke="#ffd700" stroke-width="1.5" opacity="0.4"/>
+  <rect x="400" y="890" width="200" height="28" rx="6" fill="#1a1b26" stroke="#ffd700" stroke-width="1"/>
+  <text x="500" y="909" text-anchor="middle" font-family="monospace" font-size="13" fill="#ffd700">○ Check My Stats</text>
+
+  <line x1="700" y1="136" x2="860" y2="900" stroke="#58a6ff" stroke-width="1.5" opacity="0.4"/>
+  <rect x="760" y="890" width="200" height="28" rx="6" fill="#1a1b26" stroke="#58a6ff" stroke-width="1"/>
+  <text x="860" y="909" text-anchor="middle" font-family="monospace" font-size="13" fill="#58a6ff">○ Linear Board</text>
+
+  <!-- Dispatch target -->
+  <rect x="450" y="960" width="500" height="44" rx="10" fill="#0d1117" stroke="#ff6600" stroke-width="2" stroke-dasharray="6,3"/>
+  <text x="700" y="987" text-anchor="middle" font-family="monospace" font-size="16" fill="#ff6600" font-weight="bold">→ Native Claude Code (--session-id)</text>
+  <text x="700" y="1000" text-anchor="middle" font-family="monospace" font-size="10" fill="#666">Interactive session · Resume capable · User can take over</text>
+
+  <!-- Connecting arrows to dispatch -->
+  <line x1="200" y1="302" x2="500" y2="960" stroke="#50ff78" stroke-width="1" opacity="0.3" stroke-dasharray="4,4"/>
+  <line x1="200" y1="458" x2="550" y2="960" stroke="#58a6ff" stroke-width="1" opacity="0.3" stroke-dasharray="4,4"/>
+  <line x1="200" y1="600" x2="600" y2="960" stroke="#d2a8ff" stroke-width="1" opacity="0.3" stroke-dasharray="4,4"/>
+  <line x1="200" y1="732" x2="650" y2="960" stroke="#f97583" stroke-width="1" opacity="0.3" stroke-dasharray="4,4"/>
+
+  <!-- Footer -->
+  <text x="700" y="1060" text-anchor="middle" font-family="monospace" font-size="12" fill="#444">CC Commander v2.3.0 · 450+ skills · 19 vendors · 11 domains · 187 tests · 91/100 audit</text>
+  <text x="700" y="1080" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">kevinz.ai · @kzic · github.com/KevinZai/cc-commander</text>
+</svg>
