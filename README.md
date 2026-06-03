@@ -36,7 +36,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
   <em>· <a href="https://docs.commanderplugin.com/affiliate-disclosure">affiliate disclosure</a></em>
 </p>
 
-**[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
+**[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 19 vendor packages
 
 **[Why CC Commander](#-why-cc-commander)** · **[The 60 skills](#the-60-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
@@ -98,7 +98,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 
 | Moat | CC Commander | Cursor / Windsurf / Copilot | OSS (Cline / Continue / Aider) |
 |------|--------------|----------------------------|-------------------------------|
-| **Lifecycle hooks (9 × 38 handlers)** | ✅ SessionStart, PreToolUse, PostToolUse, Stop, PreCompact, Notification, etc. | ❌ None | ❌ None |
+| **Lifecycle hooks (23 × 38 handlers)** | ✅ SessionStart, PreToolUse, PostToolUse, Stop, PreCompact, Notification, etc. | ❌ None | ❌ None |
 | **22 specialist agent personas** | ✅ Architect, Security-Auditor, TypeScript-Reviewer, Designer, Debugger, etc. | ❌ None ship pre-built | ❌ None ship pre-built |
 | **18 MCP servers (2 bundled + 16 opt-in)** | ✅ Zero-config — Notion, Slack, Supabase, Figma, Linear, GitHub, Vercel, Fly… | ⚠️ Manual MCP setup required | ⚠️ Manual MCP setup required |
 | **Spec-first planning** (/ccc-plan → interview → spec → multi-agent execution) | ✅ Native | ❌ No planning primitive | ❌ No planning primitive |
@@ -114,7 +114,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 - 🔌 **2 credential-free bundled MCP servers** — `context7` (library docs) + `sequential-thinking`. Opt-in via `/ccc-connect`: 16 more including Tavily, GitHub, Supabase, Figma, Playwright, Slack, Notion, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash.
 - 🪝 **23 lifecycle hooks × 38 handlers** — SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest. Schema-compliant, 100% pass on `claude plugin validate`.
 - 🗺️ **`/ccc-cheatsheet` live Mermaid map** — reads the filesystem as single source of truth, renders the whole plugin as a flow diagram. Never drifts.
-- 🔄 **Weekly vendor auto-sync** — 20 vendor submodules auto-update via GitHub Actions. The ecosystem stays current without you touching a thing.
+- 🔄 **Weekly vendor auto-sync** — 19 vendor submodules auto-update via GitHub Actions. The ecosystem stays current without you touching a thing.
 - 🌐 **Cross-client, one license** — Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile (hosted MCP).
 - 🚁 **Fleet orchestration** — `/ccc-fleet` runs multiple Sonnet agents in parallel **git worktrees**. Fan-out, pipeline, FOR/AGAINST, background modes.
 - 🆓 **Free for now** — no credit card, no signup. No feature gating, no paywalls.
@@ -139,7 +139,7 @@ One click → one next step. No info paralysis.
 
 ## Built on Claude Agent SDK primitives
 
-CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architecture — the same primitives that power agentic workflows across Claude Code Desktop, Cowork Desktop, and the CLI. The **brain/hands** pattern separates orchestration (the PM layer: planning, routing, decision-making) from execution (22 specialist sub-agent personas that each embody a distinct role, model, and voice). Nine lifecycle hook events with 38 handlers fire automatically throughout every session — from `SessionStart` initialization through `SubagentStop` result aggregation — so the right agent is always running at the right moment without you lifting a finger.
+CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architecture — the same primitives that power agentic workflows across Claude Code Desktop, Cowork Desktop, and the CLI. The **brain/hands** pattern separates orchestration (the PM layer: planning, routing, decision-making) from execution (22 specialist sub-agent personas that each embody a distinct role, model, and voice). 23 lifecycle hook events with 38 handlers fire automatically throughout every session — from `SessionStart` initialization through `SubagentStop` result aggregation — so the right agent is always running at the right moment without you lifting a finger.
 
 ---
 
@@ -298,7 +298,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 ```
 You type: ccc
 You get:  A guided AI project manager with 502+ skills,
-          61 plugin skills, 22 agents, 20 vendor packages,
+          61 plugin skills, 22 agents, 19 vendor packages,
           real learning, and zero setup.
 ```
 
@@ -508,7 +508,7 @@ CCC reads your project before every dispatch. No setup needed.
 | Skills | 502+ | On-demand expertise (deduplicated) |
 | Plugin Skills | 60 | Desktop-first skills (13 /ccc-* workflows + 11 domain routers + 6 new channel/ECC skills + meta + vendor-sourced + session management) |
 | Agents | 22 | Specialist sub-agent personas with distinct voice layers |
-| Lifecycle Hooks | 9 × 38 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest |
+| Lifecycle Hooks | 23 × 38 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest |
 | MCP Servers | 9 | Tavily · Context7 · Firecrawl · Exa · GitHub · Figma · Playwright · claude-mem · sequential-thinking |
 | CCC Domains | 11 | Domain routers with sub-skills |
 | Commands | 83 | Slash commands (/ccc- prefix) |
@@ -944,13 +944,13 @@ CCC aggregates 19 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](doc
 
 If CC Commander helped you ship faster, share it:
 
-[![Share on X](https://img.shields.io/badge/Share_on-𝕏-black?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/intent/tweet?text=CC%20Commander%20%E2%80%94%2060%20skills%2C%2022%20agents%2C%209%20hooks.%20The%20guided%20AI%20PM%20for%20Claude%20Code.%20Free%20for%20now.&url=https%3A%2F%2Fgithub.com%2FKevinZai%2Fcommander&via=commanderplugin)
+[![Share on X](https://img.shields.io/badge/Share_on-𝕏-black?style=for-the-badge&logo=x&logoColor=white)](https://twitter.com/intent/tweet?text=CC%20Commander%20%E2%80%94%2060%20skills%2C%2022%20agents%2C%2023%20hooks.%20The%20guided%20AI%20PM%20for%20Claude%20Code.%20Free%20for%20now.&url=https%3A%2F%2Fgithub.com%2FKevinZai%2Fcommander&via=commanderplugin)
 
 ## License
 
 MIT License for the full project. The Intelligence Layer (4 files) has an additional [Commons Clause](docs/LICENSE-INTELLIGENCE.md) — free to use, not to sell.
 
-All 20 vendor packages are permissive open-source: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0. Full details: **[LICENSES-VENDORS.md](docs/LICENSES-VENDORS.md)**
+All 19 vendor packages are permissive open-source: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0. Full details: **[LICENSES-VENDORS.md](docs/LICENSES-VENDORS.md)**
 
 > **Note:** GitHub may show "Unknown" in the sidebar because some vendor submodules don't ship a LICENSE file in their repo root. Every vendor's license has been verified — see the table above.
 
