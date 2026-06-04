@@ -4,7 +4,7 @@
 
 CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Free for now** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **62 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 38 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 457 skills, 11 CCC domains, 83+ commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** v5.1.0 — the Opus 4.8 era. Session model bumped to `claude-opus-4-8`; dynamic-workflows library + `/ccc-ultracode`; hooks expanded 9→23 events; all 19 vendor pins refreshed; docs/website refresh. (Full notes in CHANGELOG.md.) · npm package `cc-commander@5.1.0` (version tracked in `package.json`)
+**Current Release:** v5.1.1 — patch over v5.1.0. ESM-migrated 9 lifecycle hooks; pinned 15 sub-agents to claude-sonnet-4-6; consolidated post-compact-recovery + stale-claude-md-nudge dual adapters (run()+CLI), removed _archive copies. (Full notes in CHANGELOG.md.) · npm package `cc-commander@5.1.1` (version tracked in `package.json`)
 
 ## Session Defaults
 
@@ -187,7 +187,7 @@ Every menu recommends the best next action based on context.
 
 ## Current Status
 
-**Version:** 5.1.0 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
+**Version:** 5.1.1 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
 
 **Stats:** 457 skills total, 62 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (38 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 

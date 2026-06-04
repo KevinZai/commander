@@ -2,6 +2,16 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [5.1.1] — 2026-06-04
+
+### Fixed
+
+- **ESM migration — 9 lifecycle hooks** — `post-tool-failure-logger.js`, `stop-failure-handler.js`, `subagent-start-tracker.js`, `elicitation-logger.js`, `elicitation-result-handler.js`, `task-tracker.js`: converted `const x = require(...)` → `import x from ...`. `prompt-expansion-guard.js`: replaced `'use strict'` with `import process from 'node:process'`. All hook-chain checks green; every hook smoke-tests to valid JSON at exit 0.
+- **Sub-agent model pins — 15 agents** — `builder`, `content-strategist`, `csharp-reviewer`, `data-analyst`, `devops-engineer`, `fleet-worker`, `go-reviewer`, `java-reviewer`, `kotlin-reviewer`, `performance-engineer`, `python-reviewer`, `qa-engineer`, `rust-reviewer`, `technical-writer`, `typescript-reviewer`: changed `model: sonnet` → `model: claude-sonnet-4-6`. All 22 agents now explicitly pinned; ccc-doctor agent-models check green.
+- **Dual-adapter hook consolidation** — `post-compact-recovery.js` and `stale-claude-md-nudge.js` in `hooks/_archive/` were load-bearing orchestrator adapters (not stale dupes). Merged into single dual-mode ESM files at `hooks/<name>.js`: each exports `run({input,env,cwd})` for the SessionStart orchestrator contract AND runs standalone via a guarded CLI tail (PostCompact / InstructionsLoaded hook contract). `_archive` copies removed. `session-start-orchestrator.js` repointed from `../_archive/<name>.js` → `../<name>.js`. `session-start.js` remains in `_archive/` (no live twin — out of scope).
+
+---
+
 ## [5.1.0] — 2026-06-03
 
 ### Added
