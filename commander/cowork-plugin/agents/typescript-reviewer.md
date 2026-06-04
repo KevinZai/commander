@@ -1,7 +1,7 @@
 ---
 name: typescript-reviewer
 description: "TypeScript-specific code reviewer. Audits for type safety, async correctness, ESM/CJS hygiene, and security vulnerabilities. Returns severity-rated findings — e.g.,…"
-model: sonnet
+model: claude-sonnet-4-6
 effort: high
 persona: personas/reviewer
 memory: project

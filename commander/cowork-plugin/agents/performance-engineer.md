@@ -1,7 +1,7 @@
 ---
 name: performance-engineer
 description: "Performance specialist for identifying bottlenecks, profiling hot paths, and estimating improvement impact. Audit-only — reads and analyzes without modifying files —…"
-model: sonnet
+model: claude-sonnet-4-6
 effort: high
 persona: personas/performance-engineer
 color: yellow

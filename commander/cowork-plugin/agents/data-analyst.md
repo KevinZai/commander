@@ -1,7 +1,7 @@
 ---
 name: data-analyst
 description: "Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and…"
-model: sonnet
+model: claude-sonnet-4-6
 effort: high
 persona: personas/data-analyst
 color: cyan

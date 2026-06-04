@@ -1,7 +1,7 @@
 ---
 name: csharp-reviewer
 description: "C#-specific code reviewer. Audits for .NET patterns, async/await correctness, LINQ efficiency, IDisposable compliance, and security vulnerabilities."
-model: sonnet
+model: claude-sonnet-4-6
 effort: high
 persona: personas/reviewer
 memory: project

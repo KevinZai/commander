@@ -1,7 +1,7 @@
 ---
 name: java-reviewer
 description: "Java-specific code reviewer. Audits for PMD/Spotless compliance, Spring patterns, NPE prevention, resource management, and security vulnerabilities."
-model: sonnet
+model: claude-sonnet-4-6
 effort: high
 persona: personas/reviewer
 memory: project

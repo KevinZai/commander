@@ -1,7 +1,7 @@
 ---
 name: devops-engineer
 description: "Senior DevOps and platform engineer for CI/CD pipelines, infrastructure, deployments, and monitoring. Validates destructive commands before running — e.g., 'set up a…"
-model: sonnet
+model: claude-sonnet-4-6
 effort: high
 persona: personas/devops-engineer
 memory: project

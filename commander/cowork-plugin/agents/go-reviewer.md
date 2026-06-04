@@ -1,7 +1,7 @@
 ---
 name: go-reviewer
 description: "Go-specific code reviewer. Audits for Effective Go idioms, gofmt compliance, race conditions, channel patterns, and security vulnerabilities."
-model: sonnet
+model: claude-sonnet-4-6
 effort: high
 persona: personas/reviewer
 memory: project

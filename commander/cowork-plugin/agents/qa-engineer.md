@@ -1,7 +1,7 @@
 ---
 name: qa-engineer
 description: "Senior QA engineer for test suite creation, coverage analysis, and quality assurance. Runs in an isolated worktree and produces coverage deltas and structured reports…"
-model: sonnet
+model: claude-sonnet-4-6
 effort: high
 persona: personas/qa-engineer
 memory: project

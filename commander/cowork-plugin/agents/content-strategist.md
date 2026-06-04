@@ -1,7 +1,7 @@
 ---
 name: content-strategist
 description: "Senior content strategist and writer for content strategy plans, editorial calendars, blog posts, landing pages, emails, and social copy. Connected to ccc-marketing…"
-model: sonnet
+model: claude-sonnet-4-6
 effort: medium
 persona: personas/content-strategist
 memory: user
