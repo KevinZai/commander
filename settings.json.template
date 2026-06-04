@@ -54,6 +54,14 @@
     ],
     "defaultMode": "acceptEdits"
   },
+  "extraKnownMarketplaces": {
+    "commander-hub": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/kevinzai/commander.git"
+      }
+    }
+  },
   "hooks": {
     "Stop": [
       {

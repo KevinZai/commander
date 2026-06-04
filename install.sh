@@ -549,6 +549,66 @@ if should_install "claude-md" || should_install "settings"; then
     else
       cc_status_line "·" "settings.json preserved (existing config kept)"
     fi
+    # Deduplicate extraKnownMarketplaces: remove stale ccc-marketplace and
+    # commander-marketplace entries (both point at the same repo as commander-hub
+    # but in different source-object forms; Claude Code's reconciler treats them
+    # as distinct and re-clones into temp_<timestamp> dirs on every session start).
+    # Ensure only the canonical commander-hub (git-form) entry is present.
+    if [ -f "$CLAUDE_DIR/settings.json" ] && command -v python3 &>/dev/null; then
+      python3 - <<'DEDUP'
+import json, os, sys, tempfile
+
+p = os.path.expanduser('~/.claude/settings.json')
+try:
+    with open(p) as f:
+        d = json.load(f)
+except (OSError, json.JSONDecodeError) as e:
+    sys.exit(0)  # don't crash the install on a bad file
+
+ekm = d.get('extraKnownMarketplaces')
+if not isinstance(ekm, dict):
+    sys.exit(0)
+
+stale = ['ccc-marketplace', 'commander-marketplace']
+removed = [k for k in stale if k in ekm]
+if not removed:
+    sys.exit(1)  # nothing to do — exit non-zero so the shell skips the status line
+
+for k in removed:
+    del ekm[k]
+
+# Ensure the canonical entry is present (git-form, lowercase url)
+if 'commander-hub' not in ekm:
+    ekm['commander-hub'] = {
+        'source': {
+            'source': 'git',
+            'url': 'https://github.com/kevinzai/commander.git',
+        }
+    }
+
+d['extraKnownMarketplaces'] = ekm
+
+# Atomic write
+dir_ = os.path.dirname(p)
+fd, tmp = tempfile.mkstemp(prefix='.settings-', suffix='.json.tmp', dir=dir_)
+try:
+    with os.fdopen(fd, 'w') as f:
+        json.dump(d, f, indent=2)
+    os.replace(tmp, p)
+except Exception:
+    try:
+        os.unlink(tmp)
+    except OSError:
+        pass
+    raise
+
+print('deduped extraKnownMarketplaces: removed ' + ', '.join(removed))
+DEDUP
+      dedup_exit=$?
+      if [ $dedup_exit -eq 0 ]; then
+        cc_status_line "✓" "extraKnownMarketplaces deduplicated"
+      fi
+    fi
   fi
   cc_status_line "✓" "Config applied for $USER_NAME"
 
