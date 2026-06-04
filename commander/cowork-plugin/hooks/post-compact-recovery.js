@@ -1,57 +1,67 @@
 #!/usr/bin/env node
 /**
  * post-compact-recovery.js
- * Hook: PostCompact
- * Reads active-session.json and emits an orientation status message so the
- * model knows it just returned from context compaction. Always exits 0.
+ * Hook: PostCompact (standalone CLI) + SessionStart (via orchestrator run() export)
+ *
+ * Dual-mode: exports run({input,env,cwd}) for the SessionStart orchestrator,
+ * and runs standalone via CLI tail when invoked directly (PostCompact hook).
+ *
+ * Reads ~/.claude/commander/sessions/active-session.json and session-state.json.
+ * Emits an orientation status message so the model knows it returned from
+ * context compaction. Always exits 0. Keep output ≤3 lines to avoid wasting tokens.
  */
-'use strict';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const fs = require('node:fs');
-const path = require('node:path');
-
-async function main() {
-  // Parse stdin defensively
+/**
+ * Pure-function entry for orchestrator (CC-414).
+ * Returns the JSON output object instead of writing to stdout.
+ */
+export async function run({ input = {}, env = process.env, cwd = process.cwd() } = {}) {
+  const HOME = env.HOME || env.USERPROFILE || '/tmp';
+  const cccDir = join(HOME, '.claude', 'commander');
+  const sessionFile = join(cccDir, 'sessions', 'active-session.json');
+  const stateFile = join(cccDir, 'session-state.json');
   try {
-    const chunks = [];
-    for await (const chunk of process.stdin) chunks.push(chunk);
-    const raw = Buffer.concat(chunks).toString('utf8').trim();
-    if (raw) JSON.parse(raw); // validate but discard — we don't need it
-  } catch {
-    // Malformed or empty stdin — still continue
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-    return;
-  }
-
-  try {
-    const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
-    const sessionFile = path.join(HOME, '.claude', 'commander', 'sessions', 'active-session.json');
-
-    let session = null;
+    let sessionInfo = '';
     try {
-      const raw = fs.readFileSync(sessionFile, 'utf8');
-      session = JSON.parse(raw);
+      const session = JSON.parse(await readFile(sessionFile, 'utf8'));
+      const cost = session.estimatedCost ? ` | cost so far: $${session.estimatedCost.toFixed(2)}` : '';
+      const mode = session.activeMode ? ` | mode: ${session.activeMode}` : '';
+      const skill = session.activeSkill ? ` | skill: ${session.activeSkill}` : '';
+      sessionInfo = `tier: ${session.tier || 'free'}${cost}${mode}${skill}`;
     } catch {
-      // No session file — still fine, just no orientation message
+      sessionInfo = 'session state unavailable';
     }
-
-    if (!session) {
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
-    }
-
-    const cost = typeof session.estimatedCost === 'number'
-      ? ` ($${session.estimatedCost.toFixed(2)} so far)`
-      : '';
-    const mode = session.activeMode ? ` · mode: ${session.activeMode}` : '';
-    const status = `CCC context compact complete${cost}${mode}. CCC session state restored — ready to continue.`;
-
-    process.stdout.write(JSON.stringify({ continue: true, status }) + '\n');
+    let stateInfo = '';
+    try {
+      const state = JSON.parse(await readFile(stateFile, 'utf8'));
+      const parts = [];
+      if (state.activeMode) parts.push(`mode=${state.activeMode}`);
+      if (state.lastAgent) parts.push(`lastAgent=${state.lastAgent}`);
+      if (state.activeSkill) parts.push(`skill=${state.activeSkill}`);
+      if (parts.length) stateInfo = ` [${parts.join(', ')}]`;
+    } catch {}
+    return {
+      continue: true,
+      suppressOutput: false,
+      status: `CCC: Context compacted — re-orienting. ${sessionInfo}${stateInfo}`,
+    };
   } catch {
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+    return { continue: true };
   }
 }
 
-main().catch(() => {
-  process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-});
+// CLI tail — only runs when invoked directly, NOT on import (critical: prevents
+// stdin hang when the orchestrator dynamically imports this module).
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  (async () => {
+    const chunks = []; for await (const c of process.stdin) chunks.push(c);
+    const raw = Buffer.concat(chunks).toString('utf8').trim();
+    let input = {}; try { if (raw) input = JSON.parse(raw); } catch {}
+    let res; try { res = await run({ input, env: process.env, cwd: process.cwd() }); }
+    catch { res = { continue: true, suppressOutput: true }; }
+    process.stdout.write(JSON.stringify(res || { continue: true }) + '\n');
+  })();
+}
