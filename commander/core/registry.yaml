@@ -1721,12 +1721,6 @@ vendors:
     path: vendor/mattpocock-skills
     status: reference-only
     note: TypeScript-first skills (grill-me, to-prd); no user-facing mapping. Consider drop in v4.2.
-  - id: "vendor:notebooklm-py"
-    name: notebooklm-py
-    license: MIT
-    path: vendor/notebooklm-py
-    status: reference-only
-    note: NotebookLM Python CLI; no user-facing mapping. Consider drop in v4.2.
   - id: "vendor:repomix"
     name: repomix
     license: MIT

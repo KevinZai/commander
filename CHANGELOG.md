@@ -2,6 +2,14 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [5.1.2] — 2026-06-04
+
+### Changed
+
+- **Removed `notebooklm-py` vendor submodule** — vendor count drops 19 → 18. The submodule had no user-facing skill mappings and was flagged for removal since v4.2. Users needing NotebookLM integration can connect via `/ccc-connect`.
+
+---
+
 ## [5.1.1] — 2026-06-04
 
 ### Fixed
