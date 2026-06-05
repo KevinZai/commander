@@ -5,10 +5,8 @@
  * Logs sub-agent dispatch info (name, prompt, model, session) for observability.
  * Reads from stdin JSON or falls back to env vars. Never blocks.
  */
-'use strict';
-
-const fs = require('node:fs');
-const path = require('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
 const LOG_DIR = path.join(HOME, '.claude', 'commander');

@@ -5,7 +5,7 @@
  * Pass-through guard for prompt expansion events.
  * Never blocks — always exits 0 with {continue:true}.
  */
-'use strict';
+import process from 'node:process';
 
 async function main() {
   try {

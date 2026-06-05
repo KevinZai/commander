@@ -5,10 +5,8 @@
  * Logs API errors (rate_limit, billing, auth) for session diagnostics.
  * Never blocks — always exits 0 with {continue:true}.
  */
-'use strict';
-
-const fs = require('node:fs');
-const path = require('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
 const LOG_DIR = path.join(HOME, '.claude', 'commander');
