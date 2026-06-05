@@ -70,13 +70,14 @@ async function main() {
   let shortCircuit = null;
 
   // Sequence: session-start (state init must run first) → stale-claude-md → post-compact
-  // NOTE: handlers live in _archive/ — these are the orchestrator-compatible versions that
-  // export run() instead of writing to stdout directly (the live hooks/ versions are
-  // standalone-only and do not export run()).
+  // NOTE: session-start remains in _archive/ (orchestrator-compatible, no live twin).
+  // stale-claude-md-nudge and post-compact-recovery are dual-mode files that live in
+  // hooks/ — they export run() for the orchestrator AND run standalone via CLI tail
+  // (InstructionsLoaded and PostCompact hooks respectively).
   const handlers = [
     { name: 'session-start', file: '../_archive/session-start.js' },
-    { name: 'stale-claude-md-nudge', file: '../_archive/stale-claude-md-nudge.js' },
-    { name: 'post-compact-recovery', file: '../_archive/post-compact-recovery.js' },
+    { name: 'stale-claude-md-nudge', file: '../stale-claude-md-nudge.js' },
+    { name: 'post-compact-recovery', file: '../post-compact-recovery.js' },
   ];
 
   for (const h of handlers) {

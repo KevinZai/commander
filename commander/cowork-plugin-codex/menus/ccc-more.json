@@ -41,6 +41,13 @@
       "command": "/ccc-connect"
     },
     {
+      "id": "tuneup",
+      "icon": "🔧",
+      "label": "Tune-up setup",
+      "description": "Audit + safely optimize your local ~/.claude CC Commander install — version freshness, junk sweep, count drift, settings keys.",
+      "command": "/ccc-tuneup"
+    },
+    {
       "id": "browse",
       "icon": "🔎",
       "label": "Browse all commands + skills",
