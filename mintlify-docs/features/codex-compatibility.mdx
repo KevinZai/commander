@@ -1,58 +1,58 @@
 ---
 title: "Codex Compatibility"
-description: "Use CC Commander skills in OpenAI Codex CLI and Codex Desktop. ~85% of the plugin ports mechanically — targeted for v4.2."
+description: "Use CC Commander skills in OpenAI Codex CLI and Codex Desktop. v5.1.2 ships a generated Codex plugin mirror with skills, agents, hooks, and bundled MCP servers."
 ---
 
 CC Commander's plugin architecture is based on Anthropic's **Agent Skills spec**, which OpenAI adopted in December 2025. This means SKILL.md files — the core of the plugin — port to Codex with zero changes.
 
 <Note>
-  **Status (v5.1.0):** Codex compatibility is scaffolded and assessed — not yet shipping as a marketplace listing. Target: v4.2. The compatibility adapter files live in `commander/cowork-plugin/` and are ready for the mechanical translation pass.
+  **Status (v5.1.2):** Codex CLI and Codex Desktop compatibility is shipping as a generated mirror at `commander/cowork-plugin-codex/`. The canonical source remains `commander/cowork-plugin/`; run `npm run build:codex` to regenerate the Codex artifact.
 </Note>
 
 ## What works today
 
 | CC Commander component | Codex status | Notes |
 |------------------------|-------------|-------|
-| `skills/*.md` (SKILL.md files) | ✅ 1:1 port | Agent Skills spec is shared — same YAML frontmatter, same `/trigger` pattern |
-| `.mcp.json` MCP server configs | ✅ Compatible | Codex reads `.mcp.json` inside plugins natively |
-| `hooks.json` (most events) | ⚠️ Partial | `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop` all exist in Codex. `Notification`, `PreCompact`, `SubagentStop` drop silently |
-| `agents/*.md` persona files | 🔄 Needs TOML conversion | Codex uses `.toml` frontmatter — mechanical conversion (~50 LOC emitter, already scaffolded) |
-| `.claude-plugin/plugin.json` | 🔄 Needs rename | Becomes `.codex-plugin/plugin.json` — same shape, different directory |
+| `skills/*/SKILL.md` | ✅ 1:1 port | 62 skills pass through byte-for-byte from the Claude plugin tree |
+| `.mcp.json` MCP server configs | ✅ Compatible | The 2 bundled MCP servers, `context7` and `sequential-thinking`, pass through |
+| `hooks.json` | ✅ Supported subset | Codex artifact emits `PermissionRequest`, `PostToolUse`, `PreToolUse`, `SessionStart`, `Stop`, and `UserPromptSubmit` |
+| `agents/*.md` persona files | ✅ Translated | 22 Markdown-frontmatter agents become Codex `agents/*.toml` files |
+| `.claude-plugin/plugin.json` | ✅ Translated | Becomes `.codex-plugin/plugin.json` with Codex paths for skills, agents, hooks, and MCP |
 | `AskUserQuestion` (chip pickers) | ✅ Compatible | Codex ships `ask_user_question` with single/multi-choice and custom-option modes |
 
 ## What drops on the floor
 
-Three Claude Code-specific hook events have no Codex equivalent and are silently ignored:
+Several Claude Code-specific lifecycle events have no Codex equivalent and are intentionally filtered during the build:
 
 - `Notification` — Codex doesn't fire this event
 - `PreCompact` — no context compaction concept in Codex
 - `SubagentStop` — Codex uses a different subagent lifecycle model
+- `PostCompact`, `SubagentStart`, `SessionEnd`, `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, and `Setup` — no matching Codex plugin event in the generated artifact
 
-These affect fleet notification logging and pre-compact state saves only. Core workflows are unaffected.
+These affect lifecycle automation only. Core `/ccc-*` skills, specialist agents, and bundled MCP servers remain available in the Codex mirror.
 
-## Codex CLI quick test
+## Build and verify
 
-If you have Codex CLI installed (`~/.codex/config.toml`), you can already use CC Commander SKILL.md files directly by copying them to `~/.codex/skills/`:
+Regenerate the Codex plugin mirror from the repo root:
 
 ```bash
-# Copy a single skill to Codex
-cp ~/.claude/skills/ccc-plan/SKILL.md ~/.codex/skills/ccc-plan.md
+npm run build:codex
 ```
 
-Then in a Codex session:
+The build reads `commander/cowork-plugin/` and writes `commander/cowork-plugin-codex/`, including `.codex-plugin/plugin.json`, `skills/`, `agents/`, `hooks.json`, `.mcp.json`, `lib/`, `menus/`, and `rules/`.
+
+Verify the generated artifact:
+
+```bash
+node --test commander/tests/codex-build.test.js
 ```
-/ccc-plan
-```
 
-The skill fires identically — same trigger pattern, same AskUserQuestion picker.
+## v5.1.2 release note
 
-## Roadmap to v4.2
+v5.1.2 makes the Codex adapter a first-class release surface: Commander now publishes a mechanically generated Codex plugin mirror from the canonical Claude plugin tree. Skills stay source-compatible, agents are converted to TOML, unsupported hooks are dropped explicitly, and the bundled MCP config is carried forward.
 
-1. **Adapter script** (`bin/codex-adapter.js`) — emits `.codex-plugin/` from `cowork-plugin/` source in one pass
-2. **TOML agent emitter** — converts `agents/*.md` YAML frontmatter to Codex's TOML format
-3. **Marketplace listing** — `codex plugin marketplace add KevinZai/commander-codex`
-4. **Smoke suite** — 18-tool smoke tests already exist in `tests/mcp-smoke-suite/` and run against Codex MCP endpoints identically
+For users, the practical message is simple: install Commander where you work. Claude Code Desktop remains the primary product surface, and Codex CLI/Desktop now gets the same `/ccc-*` workflow catalog through the generated adapter.
 
 ## Reference
 
-Full assessment with per-component breakdown: [`docs/codex-compatibility-2026-04-24.md`](https://github.com/KevinZai/commander/blob/main/docs/codex-compatibility-2026-04-24.md)
+Implementation notes live in `commander/adapters/codex/README.md`. The generated artifact has its own maintainer notes in `commander/cowork-plugin-codex/README.md`.

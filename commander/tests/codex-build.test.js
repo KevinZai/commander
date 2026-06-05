@@ -18,6 +18,8 @@ const execFileAsync = promisify(execFile);
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(TEST_DIR, '..', '..');
 const SOURCE_DIR = path.join(ROOT_DIR, 'commander', 'cowork-plugin');
+const PACKAGE_JSON = await readJson(path.join(ROOT_DIR, 'package.json'));
+const PRODUCT_CONTRACT = await readJson(path.join(ROOT_DIR, 'commander', 'contract.json'));
 
 async function runBuild(outputDir) {
   await execFileAsync(process.execPath, ['scripts/build-codex.js', '--out', outputDir], {
@@ -87,7 +89,7 @@ test('codex plugin build artifact', async (t) => {
 
     assert.equal(manifest.name, 'commander');
     assert.equal(manifest.displayName, 'CC Commander');
-    assert.equal(manifest.version, '5.0.0');
+    assert.equal(manifest.version, PACKAGE_JSON.version);
     assert.equal(manifest.skills, './skills/');
     assert.equal(manifest.agents, './agents/');
     assert.equal(manifest.hooks, './hooks.json');
@@ -100,7 +102,7 @@ test('codex plugin build artifact', async (t) => {
     ]);
   });
 
-  await t.test('passes through all 61+ skills unchanged', async () => {
+  await t.test('passes through all skills unchanged', async () => {
     const sourceSkillFiles = (await listFiles(path.join(SOURCE_DIR, 'skills')))
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
@@ -108,7 +110,7 @@ test('codex plugin build artifact', async (t) => {
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
 
-    assert.equal(sourceSkillFiles.length, 61);
+    assert.equal(sourceSkillFiles.length, PRODUCT_CONTRACT.plugin_skills);
     assert.deepEqual(outputSkillFiles, sourceSkillFiles);
 
     for (const skillFile of sourceSkillFiles) {
