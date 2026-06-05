@@ -1644,19 +1644,6 @@ All at: [anthropic.skilljar.com](https://anthropic.skilljar.com)
 
 **Access:** [github.com/github/spec-kit](https://github.com/github/spec-kit)
 
-### NotebookLM as MCP (Free Document Reference)
-
-**Purpose:** Google NotebookLM integrated as MCP server — upload PDFs/URLs, query them as MCP without token cost.
-
-**When to use:**
-- Zero-token library reference for large documentation
-- Batch document processing without Claude budget
-- Research on large source material
-
-**Setup:** Upload docs to NotebookLM, expose as MCP endpoint.
-
-**Source:** @aresotik on X (2026)
-
 ### last30days Skill (Real-Time Research)
 
 **Purpose:** Real-time research skill — searches Reddit, X, YouTube, HN, web for recent content on any topic.

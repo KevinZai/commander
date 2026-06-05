@@ -139,7 +139,6 @@ workflow: <task>             # one-off
 | Context7 | Current library/API docs (no hallucinated methods) |
 | Google Drive | Brand docs, style guides, draft storage |
 | Sequential Thinking | Complex multi-step reasoning primitive |
-| NotebookLM | Google NotebookLM as MCP — free documentation access, zero-token library reference (source: @aresotik) |
 | Obsidian Skills | Obsidian vault integration — read/write notes, search vault, link memory to sessions (kepano/obsidian-skills, MIT) |
 
 ### vs aider
