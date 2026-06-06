@@ -7,6 +7,7 @@ All notable changes to CC Commander will be documented in this file.
 ### Changed
 
 - **Removed `notebooklm-py` vendor submodule** — vendor count drops 19 → 18. The submodule had no user-facing skill mappings and was flagged for removal since v4.2. Users needing NotebookLM integration can connect via `/ccc-connect`.
+- **Codex adapter release note** — v5.1.2 ships a generated Codex plugin mirror at `commander/cowork-plugin-codex/`: 62 skills pass through as `SKILL.md`, 22 agents translate to Codex TOML, 6 supported hook events are emitted, and the 2 bundled MCP servers pass through in `.mcp.json`. Build/verification path: `npm run build:codex` plus `node --test commander/tests/codex-build.test.js`.
 
 ---
 
