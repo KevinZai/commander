@@ -643,13 +643,17 @@ function scanJsonSurface(rel, content, contract) {
   return findings;
 }
 
-function replaceNamedNumber(content, regex, expected, min) {
+function replaceNamedNumber(content, regex, expected, min, guard) {
   regex.lastIndex = 0;
   return content.replace(regex, function() {
     var match = arguments[0];
     var groups = arguments[arguments.length - 1];
+    var offset = arguments[arguments.length - 3];
     if (!groups || !groups.value) return match;
     if (min && Number(groups.value) < min) return match;
+    // Mirror the checker's relevance filter so --patch only rewrites what --check flags
+    // (never host CLI versions like "Claude Code v2.1.154", dep ranges, or historical refs).
+    if (guard && !guard(content, offset, groups.value)) return match;
     var index = match.indexOf(groups.value);
     if (index === -1) return match;
     return match.slice(0, index) + String(expected) + match.slice(index + groups.value.length);
@@ -664,7 +668,11 @@ function patchText(content, contract) {
     }
   });
   var versionRule = makeVersionRule(contract);
-  patched = replaceNamedNumber(patched, versionRule.regex, contract.version, versionRule.min);
+  patched = replaceNamedNumber(patched, versionRule.regex, contract.version, versionRule.min, function(text, offset, value) {
+    // Same guard scanVersionRule uses: skip values already at target, and only
+    // patch product-version tokens in a relevant context (not host CLI / deps / history).
+    return value !== contract.version && isVersionRelevant(text, offset);
+  });
   return patched;
 }
 
