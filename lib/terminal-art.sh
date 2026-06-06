@@ -159,6 +159,8 @@ cc_matrix_rain() { cc_intro_animation "$@"; }
 # HSL(h, 0.9, 0.65) → RGB at h=0,60,120,180,240,300 (full spectrum)
 _cc_rainbow_line() {
   local text="$1"
+  # Honor no-color / non-tty / CI: emit plain text (NC is empty only when colors are disabled)
+  if [[ -z "${NC}" ]]; then printf '%s' "$text"; return; fi
   local len=${#text}
   local out=""
   local -a R=(246 246  85  85  85 246)
@@ -192,16 +194,29 @@ cc_banner() {
     return
   fi
 
+  # ── Framed CCC hero (frame restored 2026-06; box border removed in 89adc55) ──
+  local inner=51
+  local bar sp apad vstr vpad
+  bar=$(cc_repeat_char '━' "$inner")
+  sp=$(cc_repeat_char ' ' "$inner")
+  apad=$(cc_repeat_char ' ' $(( inner - 27 )))   # 3 left margin + 24-col art
+  vstr="v${VERSION:-2.3.0}"
+  vpad=$(cc_repeat_char ' ' $(( inner - 17 - ${#vstr} )))  # 3 + 12("CC Commander") + 2
+
   echo ""
-  echo -ne "   "; _cc_rainbow_line " ██████╗ ██████╗ ██████╗"; echo ""
-  echo -ne "   "; _cc_rainbow_line "██╔════╝██╔════╝██╔════╝"; echo ""
-  echo -ne "   "; _cc_rainbow_line "██║     ██║     ██║     "; echo ""
-  echo -ne "   "; _cc_rainbow_line "██║     ██║     ██║     "; echo ""
-  echo -ne "   "; _cc_rainbow_line "╚██████╗╚██████╗╚██████╗"; echo ""
-  echo -ne "   "; _cc_rainbow_line " ╚═════╝ ╚═════╝ ╚═════╝"; echo ""
-  echo ""
-  echo -ne "   "; _cc_rainbow_line "CC Commander"; echo -e "  ${M_DIM}v${VERSION:-2.3.0}${NC}"
-  echo -e "   ${M_CYAN}by Kevin Z${NC}  ${M_DIM}//${NC}  ${M_WHITE}450+ Skills. One Install.${NC}"
+  echo -e "${M_MID}┏${bar}┓${NC}"
+  echo -e "${M_MID}┃${sp}┃${NC}"
+  echo -ne "${M_MID}┃${NC}   "; _cc_rainbow_line " ██████╗ ██████╗ ██████╗"; echo -e "${apad}${M_MID}┃${NC}"
+  echo -ne "${M_MID}┃${NC}   "; _cc_rainbow_line "██╔════╝██╔════╝██╔════╝"; echo -e "${apad}${M_MID}┃${NC}"
+  echo -ne "${M_MID}┃${NC}   "; _cc_rainbow_line "██║     ██║     ██║     "; echo -e "${apad}${M_MID}┃${NC}"
+  echo -ne "${M_MID}┃${NC}   "; _cc_rainbow_line "██║     ██║     ██║     "; echo -e "${apad}${M_MID}┃${NC}"
+  echo -ne "${M_MID}┃${NC}   "; _cc_rainbow_line "╚██████╗╚██████╗╚██████╗"; echo -e "${apad}${M_MID}┃${NC}"
+  echo -ne "${M_MID}┃${NC}   "; _cc_rainbow_line " ╚═════╝ ╚═════╝ ╚═════╝"; echo -e "${apad}${M_MID}┃${NC}"
+  echo -e "${M_MID}┃${sp}┃${NC}"
+  echo -ne "${M_MID}┃${NC}   "; _cc_rainbow_line "CC Commander"; echo -e "  ${M_DIM}${vstr}${NC}${vpad}${M_MID}┃${NC}"
+  echo -e "${M_MID}┃${NC}   ${M_CYAN}by Kevin Z${NC}  ${M_DIM}//${NC}  ${M_WHITE}450+ Skills. One Install.${NC}       ${M_MID}┃${NC}"
+  echo -e "${M_MID}┃${sp}┃${NC}"
+  echo -e "${M_MID}┗${bar}┛${NC}"
   echo ""
 }
 kz_banner() { cc_banner "$@"; }
