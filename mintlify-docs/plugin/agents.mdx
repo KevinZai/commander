@@ -13,7 +13,7 @@ See [Architecture](/architecture) for how delegation works end-to-end.
 
 <CardGroup cols={2}>
   <Card title="architect" icon="building" color="#8b5cf6">
-    **Model:** Opus · **Role:** System design, tradeoff analysis, irreversibility assessment
+    **Model:** Fable 5 · **Role:** System design, tradeoff analysis, irreversibility assessment
 
     Leads with the decision, then the reasoning. Always names 2-3 alternatives. Calls out when a choice locks you in.
   </Card>
@@ -28,12 +28,12 @@ See [Architecture](/architecture) for how delegation works end-to-end.
     Ships the simplest thing that works. Extracts abstractions when seen twice, not once. Highest turn budget for multi-phase builds.
   </Card>
   <Card title="security-auditor" icon="shield" color="#ef4444">
-    **Model:** Opus · **Role:** OWASP audits, threat modeling, adversarial review
+    **Model:** Fable 5 · **Role:** OWASP audits, threat modeling, adversarial review
 
     Assumes every input is hostile. CWE IDs, exploit concepts, and verified fixes — never hand-waves "probably fine."
   </Card>
   <Card title="debugger" icon="bug" color="#f97316">
-    **Model:** Opus · **Role:** Root-cause investigation
+    **Model:** Fable 5 · **Role:** Root-cause investigation
 
     Iron Law: **no fix without confirmed root cause.** Four-phase process: reproduce → hypothesize → verify → fix.
   </Card>
@@ -63,7 +63,7 @@ See [Architecture](/architecture) for how delegation works end-to-end.
     First question: "Who's the reader?" Offers 3 headline variants. Says "delete this paragraph" when warranted.
   </Card>
   <Card title="product-manager" icon="target" color="#f59e0b">
-    **Model:** Opus · **Role:** User stories, acceptance criteria, priority sequencing
+    **Model:** Fable 5 · **Role:** User stories, acceptance criteria, priority sequencing
 
     Every feature is a bet. Every bet has a measurable outcome. Scope discipline is a moral act.
   </Card>
@@ -103,17 +103,17 @@ See [Architecture](/architecture) for how delegation works end-to-end.
 
 | # | Persona | Model | When it fires |
 |---|---------|-------|--------------|
-| 1 | `architect` | Opus | Architecture decisions, system design |
+| 1 | `architect` | Fable 5 | Architecture decisions, system design |
 | 2 | `reviewer` | Sonnet | `/ccc-review` — diff + 4-dimension audit |
 | 3 | `builder` | Sonnet | `/ccc-build` — after spec approval |
-| 4 | `security-auditor` | Opus | `/ccc-review` security pass, `/ccc-ship` gate |
-| 5 | `debugger` | Opus | Root-cause investigation tasks |
+| 4 | `security-auditor` | Fable 5 | `/ccc-review` security pass, `/ccc-ship` gate |
+| 5 | `debugger` | Fable 5 | Root-cause investigation tasks |
 | 6 | `designer` | Sonnet | `/ccc-design` — UI/UX workflows |
 | 7 | `qa-engineer` | Sonnet | `/ccc-review` QA pass, test coverage audit |
 | 8 | `devops-engineer` | Sonnet | `/ccc-ship` — deploy planning |
 | 9 | `data-analyst` | Sonnet | Analytics and data synthesis tasks |
 | 10 | `content-strategist` | Sonnet | Copy, messaging, content tasks |
-| 11 | `product-manager` | Opus | `/ccc-plan` — spec interview + user stories |
+| 11 | `product-manager` | Fable 5 | `/ccc-plan` — spec interview + user stories |
 | 12 | `performance-engineer` | Sonnet | Performance review in `/ccc-review` |
 | 13 | `researcher` | Sonnet | Deep research tasks |
 | 14 | `technical-writer` | Sonnet | Documentation generation |

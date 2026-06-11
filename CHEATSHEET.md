@@ -1,12 +1,12 @@
 # CC Commander Cheatsheet
-> CC Commander v5.1.2 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v6.0.0 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-05-15 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v5.1.2)
+## Desktop Plugin Commands (v6.0.0)
 
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 62 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
 
@@ -25,7 +25,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (60 total — 13 specialist workflows + 11 domain routers + 6 channel/CI/ECC skills + meta + vendor-sourced + lifecycle + session; core surface shown)
+### /ccc-* Skills (62 total — 13 specialist workflows + 11 domain routers + 6 channel/CI/ECC skills + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -674,7 +674,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 5.1.2
+version: 6.0.0
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -934,11 +934,23 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📊 Cost & Token Management
 
+### Model Ladder (v6.0)
+
+| Model | Role | Input | Output | Use |
+|-------|------|-------|--------|-----|
+| **Fable 5** | Deep reasoning escalation | $10/MTok | $50/MTok | `/model claude-fable-5[1m]` when 🧠 deep thinking needed (once/day nudge) |
+| **Opus 4.8** | Everyday session default | $5/MTok | $25/MTok | Main thread, heavy implementation, Fable fallback |
+| **Sonnet 4.6** | General dev, 16 sub-agents | $3/MTok | $15/MTok | Default for most delegated work — reviewers + builders + QA |
+| **Haiku 4.5** | Fast bulk ops | $1/MTok | $5/MTok | Bulk tasks, hooks, high-turn ops |
+
+**Savings tracking:** `ccc --savings` shows estimated cost vs all-Opus baseline (±30%). Smart routing via `selectModelForComplexity(0-100)`: 0-29→haiku, 30-65→sonnet, 66-85→opus, 86-100→fable.
+
 ### Session Cost Tracking
 
 | Method | How |
 |--------|-----|
 | `/ccc-cost` | Show cost for current session |
+| `ccc --savings` | Daily savings estimate vs all-Opus baseline |
 | `cache-monitor` skill | Analyze cache efficiency from JSONL logs |
 | JSONL logs | `~/.claude/agents/*/ccc-sessions/*.jsonl` |
 | Agent-HQ dashboard | `http://localhost:3005/api/costs` |
@@ -1033,7 +1045,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v5.1.2 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v6.0.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1117,7 +1129,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v5.1.2 Quick Reference (CLI)
+## CC Commander v6.0.0 Quick Reference (CLI)
 
 ```bash
 # Launch

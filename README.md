@@ -41,7 +41,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 **What you get:** 62 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 502+ ecosystem skills · Free for now.
 
-<img src="docs/assets/hero.gif" alt="CC Commander v5.1.2 — Claude Code Desktop plugin demo" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v6.0.0 — Claude Code Desktop plugin demo" width="100%">
 
 > **🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace. All 62 plugin skills, 22 agents, 23 lifecycle hooks (38 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
 >
@@ -186,6 +186,13 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 - 📦 **15 vendor pins refreshed** — ECC v1.7.0, oh-my-claudecode v4.14.4, repomix v1.14.1, and 12 more.
 - 🧪 **284 tests passing** — +5 security regression tests added.
 - 🖥️ **Desktop-first positioning throughout** — all docs now lead with "Claude Code Desktop is the primary surface."
+
+## 🚀 What's new in v6.0.0
+
+- 🧠 **Selective Fable 5 deep-mode** — Opus 4.8 stays session default (everyday), Fable 5 escalation-tier via `/model claude-fable-5` with once-per-day deep-reasoning nudge. Motto: *pay for Fable on the thinking, not the typing.*
+- 🎛️ **Smart model routing** — selectModelForComplexity(score) auto-assigns: 0-29 Haiku, 30-65 Sonnet, 66-85 Opus, 86-100 Fable. Dispatch tiers: power=Fable/Opus, assisted=Opus/Sonnet, guided=Sonnet/Haiku.
+- 💰 **Savings counter + `ccc --savings`** — every dispatch logs estimated cost vs baseline. Footer shows daily estimate (sv$X.XX); report command prints full breakdown to `~/.claude/commander/savings.json`.
+- 🎭 **4 deep personas on Fable** — architect, debugger, security-auditor, product-manager run claude-fable-5 for complex reasoning.
 
 ## ⚡ Dynamic Workflows + Ultracode
 
@@ -999,7 +1006,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v5.1.2** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v6.0.0** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 
