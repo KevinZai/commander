@@ -161,7 +161,7 @@ function renderCockpitFooter(data) {
   parts.push(dim('\u2501\u2501 ') + col('CCC' + B.version, t.primary));
 
   // Model
-  parts.push('\u{1F525}' + col(data.model || 'Opus1M', t.primary));
+  parts.push('\u{1F525}' + col(data.model || 'Opus4.8', t.primary));
 
   // Auth source + key hint
   var authSrc = detectAuthSource();
@@ -213,6 +213,14 @@ function renderCockpitFooter(data) {
   if (data.linearTicket) {
     parts.push('\u{1F4CB}' + bold(data.linearTicket, t.primary));
   }
+
+  // v6.0 savings segment — read-only, errors swallowed
+  try {
+    var _sv = require('./lib/savings').getSavings();
+    if (_sv.today && _sv.today.savedUsd > 0) {
+      parts.push('\u{1F4B0} ' + col('est. saved $' + _sv.today.savedUsd.toFixed(2) + ' today (vs all-Opus)', [80, 220, 80]));
+    }
+  } catch (_e) {}
 
   // Directory
   var dir = data.cwd || process.cwd();

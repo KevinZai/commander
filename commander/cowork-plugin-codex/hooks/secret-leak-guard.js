@@ -110,8 +110,7 @@ async function main() {
 
     const labels = detected.map(d => `${d.label} [${d.severity}]`).join(', ');
     const stopReason = `CCC SECRET GUARD: Possible secret detected in ${toolName} input — ${labels}. ` +
-      `Review the input before proceeding. Use environment variables or 1Password instead of inline secrets. ` +
-      `If this is a false positive, add the pattern to the allowlist in commander/core/secret-patterns.json.`;
+      `Use env vars or 1Password. False positive? Add to allowlist in secret-patterns.json.`;
 
     process.stdout.write(JSON.stringify({
       continue: false,

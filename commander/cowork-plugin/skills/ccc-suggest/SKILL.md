@@ -252,6 +252,17 @@ This is the headline differentiator. Other plugins ship tools. CC Commander ship
 - `/ccc-suggest --history` — show last 10 recommendations + what user actually picked
 - `/ccc-suggest --tune` — enter a quick AUQ flow to calibrate what level of involvement the user wants
 
+## Fable escalation rule
+
+When session intent is strongly deep-reasoning (≥2 of: architecture / redesign / migration / threat model / system design / refactor entire / plan the / roadmap; OR prompt >800 chars with planning verbs), surface **once per session** (never nag):
+
+> 🧠 **Deep-reasoning session detected** — consider `/model claude-fable-5[1m]` (Fable deep mode, 1M ctx, adaptive thinking always-on). CCC routes subagents cost-efficiently either way.
+
+- Fire at most ONCE per day (marker file `~/.claude/commander/fable-nudge-<date>`).
+- Never trigger on casual or short prompts.
+- Never block or delay the response — append as a lightweight suggestion only.
+- The `intent-classifier.js` UserPromptSubmit hook handles automatic detection; this skill surfaces it in explicit `/ccc-suggest` runs.
+
 ## Anti-patterns
 
 - ❌ Generic "you could try X" recommendations — always cite specific signals

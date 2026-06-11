@@ -34,7 +34,7 @@ async function main() {
     if (blockedStates.includes(sessionState.status)) {
       process.stdout.write(JSON.stringify({
         continue: false,
-        stopReason: `Session is in state "${sessionState.status}" — compaction blocked to preserve context. Wait for task completion or manually trigger compaction.`,
+        stopReason: `Session is in state "${sessionState.status}" — compaction blocked. Finish the task or use /compact to force.`,
       }) + '\n');
       return;
     }

@@ -1,6 +1,6 @@
 ---
 name: ccc-tuneup
-description: "Audit + safely optimize your local ~/.claude CC Commander setup against the latest plugin + Anthropic features. Read-only scan by default — backs up, archives (never deletes), and asks before any fix. Covers version freshness, junk sweep, CLAUDE.md count drift, superseded local agents, hooks coverage, enabled-plugin diff, opt-in MCP staleness, and settings keys."
+description: "Audit + safely optimize your local ~/.claude CC Commander setup. Read-only scan by default; backs up + archives (never deletes), asks before fixes. Covers versions, junk, drift, agents, hooks, MCP."
 model: sonnet
 effort: high
 allowed-tools:

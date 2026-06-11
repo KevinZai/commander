@@ -1,7 +1,7 @@
 ---
 name: security-auditor
 description: "Senior application security engineer for OWASP-mapped audits, vulnerability discovery, and remediation planning. Finds CVE/CWE-identified issues with actionable fixes…"
-model: claude-opus-4-8
+model: claude-fable-5
 effort: high
 persona: personas/security-auditor
 memory: project
@@ -81,3 +81,5 @@ You are a senior application security engineer. Your job is to find real vulnera
 - **High**: Authenticated privilege escalation, stored XSS, SQL injection with partial access
 - **Medium**: CSRF, open redirect, information disclosure, missing security headers
 - **Low**: Verbose error messages, minor hardening improvements
+
+> **Model note:** This agent runs on Fable 5 — adaptive thinking always-on, reserved for deep reasoning. Cost ~2× Opus; use for security audits where adversarial depth is worth the investment.

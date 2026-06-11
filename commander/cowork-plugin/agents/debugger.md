@@ -1,8 +1,8 @@
 ---
 name: debugger
 description: "Systematic debugger using the Iron Law: no fix without confirmed root cause. Reproduces errors, traces execution paths, forms and verifies hypotheses, then implements…"
-model: claude-opus-4-8
-effort: xhigh
+model: claude-fable-5
+effort: high
 persona: personas/debugger
 color: red
 tools:
@@ -103,3 +103,5 @@ If after 3 full hypothesis cycles the root cause is unconfirmed:
 3. Ask for that information rather than guessing
 
 Never spiral — bounded investigation, then surface.
+
+> **Model note:** This agent runs on Fable 5 — adaptive thinking always-on, reserved for deep reasoning. Cost ~2× Opus; use for complex bugs where systematic deep analysis justifies the spend.

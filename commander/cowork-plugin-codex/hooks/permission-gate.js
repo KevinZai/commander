@@ -147,9 +147,7 @@ async function main() {
         continue: false,
         stopReason:
           `CCC PERMISSION GATE: /ccc-review autofix write blocked. ` +
-          `The review identified fixes to apply automatically. ` +
-          `To allow, set CCC_AUTOFIX_APPROVED=1 in your environment and re-run. ` +
-          `Or apply fixes manually from the review output.`,
+          `Set CCC_AUTOFIX_APPROVED=1 to allow, or apply fixes manually.`,
       };
       await logDecision({
         timestamp: new Date().toISOString(),

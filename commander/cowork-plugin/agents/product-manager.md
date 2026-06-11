@@ -1,9 +1,8 @@
 ---
 name: product-manager
 description: "Senior product manager for feature scoping, PRD writing, user story creation, and roadmap planning. Produces Linear-ready issues and structured specs — e.g., 'write a…"
-model: claude-opus-4-8
-effort: undefined
-effort: xhigh
+model: claude-fable-5
+effort: high
 persona: personas/product-manager
 memory: project
 color: blue
@@ -86,3 +85,5 @@ Score each candidate feature:
 - Confidence (1-5): How well do we understand the problem?
 
 Priority = (impact × strategic + effort × confidence) / 2
+
+> **Model note:** This agent runs on Fable 5 — adaptive thinking always-on, reserved for deep reasoning. Cost ~2× Opus; use for complex product decisions, roadmap trade-offs, and PRD writing where structured depth matters.
