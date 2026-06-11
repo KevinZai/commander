@@ -35,6 +35,8 @@ test('detectSkills finds SKILL.md files in vendor packages', function() {
   // Test with a known vendor that has skills
   var gstackPath = path.join(vendorDir, 'gstack');
   if (!fs.existsSync(gstackPath)) return;
+  // Uninitialized submodule (e.g. git worktree) — dir exists but is empty; skip
+  if (fs.readdirSync(gstackPath).length === 0) return;
   var skills = vendorScanner.detectSkills(gstackPath);
   assert.ok(skills.length > 0, 'gstack should have skills, got ' + skills.length);
   var names = skills.map(function(s) { return s.name; });
@@ -53,6 +55,8 @@ test('detectSkills finds .claude/skills pattern', function() {
   if (!fs.existsSync(vendorDir)) return;
   var rtkPath = path.join(vendorDir, 'rtk');
   if (!fs.existsSync(rtkPath)) return;
+  // Uninitialized submodule (e.g. git worktree) — dir exists but is empty; skip
+  if (fs.readdirSync(rtkPath).length === 0) return;
   var skills = vendorScanner.detectSkills(rtkPath);
   assert.ok(skills.length > 0, 'rtk should have .claude/skills, got ' + skills.length);
 });

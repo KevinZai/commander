@@ -290,8 +290,17 @@ async function buildSupportDirs() {
 
 async function main() {
   console.log('Codex plugin build starting');
+  // README.md is hand-authored (CC-859 mirror-workflow doc) — preserve across the wipe
+  let readme = null;
+  try {
+    readme = await readFile(path.join(OUTPUT_DIR, 'README.md'), 'utf8');
+  } catch { /* first build or already gone */ }
   await rm(OUTPUT_DIR, { recursive: true, force: true });
   await mkdir(OUTPUT_DIR, { recursive: true });
+  if (readme) {
+    await writeFile(path.join(OUTPUT_DIR, 'README.md'), readme);
+    console.log('✓ README.md preserved');
+  }
 
   await buildManifest();
   const skillCount = await buildSkills();

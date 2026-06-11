@@ -80,10 +80,13 @@ test('plugin.json: version === package.json.version', () => {
   assert.equal(pluginJson.version, pkg.version);
 });
 
-test('plugin.json: description claims 61 skills', () => {
-  // Description uses "61 click-first /ccc-* skills" — match either form
-  assert.ok(/\b61\b/.test(pluginJson.description) && /skills/.test(pluginJson.description),
-    'description must contain "61" and "skills" as the canonical count claim');
+test('plugin.json: description skill-count claim matches live dir count', () => {
+  // Derive the canonical count from the filesystem so this test can't rot
+  // when skills are added (was hardcoded "61", drifted at 62 — 2026-06-10).
+  const liveCount = fs.readdirSync(SKILLS_DIR, { withFileTypes: true })
+    .filter(e => e.isDirectory()).length;
+  assert.ok(new RegExp(`\\b${liveCount}\\b`).test(pluginJson.description) && /skills/.test(pluginJson.description),
+    `description must claim the live skill count (${liveCount}) — found: "${pluginJson.description.slice(0, 80)}..."`);
 });
 
 test('plugin.json: keywords array has ≥3 entries', () => {
@@ -204,10 +207,14 @@ test('skills: every SKILL.md has valid frontmatter with required fields', () => 
   assert.deepEqual(missing, [], `Skill frontmatter issues: ${missing.join('; ')}`);
 });
 
-test('skills: total dir count is 61 (canonical claim)', () => {
+test('skills: dir count matches contract.json plugin_skills', () => {
+  // Cross-source parity instead of a hardcoded number (was 61, rotted at 62):
+  // filesystem dirs must equal the canonical product-contract claim.
   const dirs = fs.readdirSync(SKILLS_DIR, { withFileTypes: true })
     .filter(e => e.isDirectory()).length;
-  assert.equal(dirs, 61);
+  const contract = readJSON(path.join(ROOT, 'commander', 'contract.json'));
+  assert.equal(dirs, contract.plugin_skills,
+    `skills/ dirs (${dirs}) must match contract.json plugin_skills (${contract.plugin_skills})`);
 });
 
 test('skills: no description contains angle brackets', () => {
