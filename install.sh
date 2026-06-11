@@ -77,7 +77,7 @@ if $VERIFY_ONLY; then
     cc_status_line "✓" "Claude Code CLI installed"
   else
     cc_status_line "✗" "Claude Code CLI not found"
-    ((errors++))
+    errors=$((errors+1))
   fi
 
   # Check CLAUDE.md
@@ -85,7 +85,7 @@ if $VERIFY_ONLY; then
     cc_status_line "✓" "CLAUDE.md exists"
   else
     cc_status_line "✗" "CLAUDE.md missing"
-    ((errors++))
+    errors=$((errors+1))
   fi
 
   # Check settings.json
@@ -94,11 +94,11 @@ if $VERIFY_ONLY; then
       cc_status_line "✓" "settings.json valid JSON"
     else
       cc_status_line "✗" "settings.json invalid JSON"
-      ((errors++))
+      errors=$((errors+1))
     fi
   else
     cc_status_line "✗" "settings.json missing"
-    ((errors++))
+    errors=$((errors+1))
   fi
 
   # Check skills
@@ -108,7 +108,7 @@ if $VERIFY_ONLY; then
     cc_status_line "✓" "Skills directory ($skill_count skills)"
   else
     cc_status_line "✗" "Skills directory missing"
-    ((errors++))
+    errors=$((errors+1))
   fi
 
   # Check mega-skills
@@ -128,7 +128,7 @@ if $VERIFY_ONLY; then
     cc_status_line "✓" "Commands directory ($cmd_count commands)"
   else
     cc_status_line "✗" "Commands directory missing"
-    ((errors++))
+    errors=$((errors+1))
   fi
 
   # Check hooks
