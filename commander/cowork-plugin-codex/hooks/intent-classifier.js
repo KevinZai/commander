@@ -2,6 +2,39 @@
 // License-tier gate removed 2026-04-23 — CC Commander is free for now.
 import { track } from '../lib/telemetry.mjs';
 import { join } from 'node:path';
+import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { homedir } from 'node:os';
+
+// Deep-reasoning signals for Fable escalation nudge
+const FABLE_SIGNALS = [
+  'architecture', 'redesign', 'migration', 'threat model', 'system design',
+  'refactor entire', 'plan the', 'roadmap',
+];
+const FABLE_PLANNING_VERBS = ['design', 'architect', 'plan', 'migrate', 'refactor', 'model'];
+
+function checkFableNudge(prompt) {
+  try {
+    const lower = prompt.toLowerCase();
+    const sigCount = FABLE_SIGNALS.filter(s => lower.includes(s)).length;
+    const isLongWithVerbs = lower.length > 800 &&
+      FABLE_PLANNING_VERBS.some(v => lower.includes(v));
+    if (sigCount < 2 && !isLongWithVerbs) return null;
+
+    // Check marker file (once per day keyed by date)
+    const today = new Date().toISOString().slice(0, 10);
+    const markerDir = join(homedir(), '.claude', 'commander');
+    const markerFile = join(markerDir, `fable-nudge-${today}`);
+    if (existsSync(markerFile)) return null;
+
+    // Write marker before returning so concurrent calls don't double-fire
+    try { mkdirSync(markerDir, { recursive: true }); } catch (_) {}
+    try { writeFileSync(markerFile, '', { flag: 'wx' }); } catch (_) { return null; }
+
+    return '🧠 Deep-reasoning session detected — consider /model claude-fable-5[1m] (Fable deep mode). CCC routes subagents cost-efficiently either way.';
+  } catch (_) {
+    return null; // fail-safe: never break the hook
+  }
+}
 
 const SKILL_PATTERNS = [
   { skill: '/ccc-build', patterns: ['build', 'create app', 'new project', 'scaffold'], label: 'Build workflow' },
@@ -35,15 +68,21 @@ async function main() {
       return;
     }
 
+    const fableNudge = checkFableNudge(prompt);
+
     for (const { skill, patterns, label } of SKILL_PATTERNS) {
       if (patterns.some(p => prompt.includes(p))) {
-        console.log(JSON.stringify({
-          continue: true,
-          suppressOutput: false,
-          status: `CCC suggests: ${skill} (${label})`,
-        }));
+        const status = fableNudge
+          ? `CCC suggests: ${skill} (${label}) · ${fableNudge}`
+          : `CCC suggests: ${skill} (${label})`;
+        console.log(JSON.stringify({ continue: true, suppressOutput: false, status }));
         return;
       }
+    }
+
+    if (fableNudge) {
+      console.log(JSON.stringify({ continue: true, suppressOutput: false, status: fableNudge }));
+      return;
     }
 
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));

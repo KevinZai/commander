@@ -37,7 +37,7 @@ function parseArgs(argv) {
 }
 
 function formatModel(raw) {
-  if (!raw) return 'Opus4.7-1M';
+  if (!raw) return 'Opus4.8-1M';
   return raw
     .replace(/^claude-/, '')
     .replace(/-(\d+)-(\d+)$/, '$1.$2')
@@ -238,6 +238,15 @@ function main() {
   var dayIndex = Math.floor(Date.now() / 86400000) % partners.length;
   var partnerCredit = showPartnerCredit ? 'via ' + partners[dayIndex] : null;
 
+  // v6.0 savings segment \u2014 read-only, errors swallowed
+  var savingsSegment = null;
+  try {
+    var _sv = require('./lib/savings').getSavings();
+    if (_sv.today && _sv.today.savedUsd > 0) {
+      savingsSegment = '\uD83D\uDCB0sv$' + _sv.today.savedUsd.toFixed(2);
+    }
+  } catch (_e) {}
+
   var line = [
     '\u2501\u2501 ' + t.bold + t.primary + 'CCC' + version + t.reset,
     '\uD83D\uDD25' + t.primary + model + t.reset,
@@ -249,6 +258,7 @@ function main() {
     '\uD83D\uDCBE' + t.dim + cacheHit + '%' + t.reset,
     '\uD83C\uDFAF' + t.primary + skillCount + t.reset,
     loopActive ? '\uD83D\uDD01' + t.primary + 'loop' + t.reset : null,
+    savingsSegment ? t.primary + savingsSegment + t.reset : null,
     partnerCredit ? '\u2728' + t.dim + partnerCredit + t.reset : null,
     '\uD83D\uDCC2' + t.dim + cwd + t.reset,
   ].filter(Boolean).join('\u2502');

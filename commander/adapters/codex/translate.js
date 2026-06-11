@@ -156,6 +156,7 @@ export function translateAgent(mdSource, options = {}) {
 // Codex does not speak Anthropic model IDs. Translate known Claude names.
 export function remapModel(claudeModel) {
   if (!claudeModel) return 'gpt-5.4';
+  if (claudeModel.includes('fable')) return 'gpt-5.5';
   if (claudeModel.includes('opus')) return 'gpt-5.5';
   if (claudeModel.includes('sonnet')) return 'gpt-5.4';
   if (claudeModel.includes('haiku')) return 'gpt-5.4-mini';

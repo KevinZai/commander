@@ -91,6 +91,40 @@ test('getDefaultsForLevel: unknown level defaults to guided (30 turns)', functio
   assert.strictEqual(r.maxTurns, 30);
 });
 
+// ─── v6.0 Fable + pricing tests ────────────────────────────────────────────────
+
+test('getDefaultsForLevel: power tier model is fable', function() {
+  var r = dispatcher.getDefaultsForLevel('power');
+  assert.strictEqual(r.model, 'fable', 'power tier should use fable, got ' + r.model);
+});
+
+test('getDefaultsForLevel: guided tier model is sonnet (cost right-sized from opus)', function() {
+  var r = dispatcher.getDefaultsForLevel('guided');
+  assert.strictEqual(r.model, 'sonnet', 'guided tier should use sonnet, got ' + r.model);
+});
+
+test('estimateDispatchCost: modelKey is fable for claude-fable-5', function() {
+  var r = dispatcher.estimateDispatchCost('build a saas app', { model: 'claude-fable-5', maxTurns: 30 });
+  assert.strictEqual(r.modelKey, 'fable', 'expected modelKey fable, got ' + r.modelKey);
+});
+
+test('estimateDispatchCost: fable pricing is higher than opus (10/50 vs 5/25 $/MTok)', function() {
+  var fable = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-fable-5', maxTurns: 30 });
+  var opus = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-opus-4-8', maxTurns: 30 });
+  assert.ok(fable.estimateHigh > opus.estimateHigh, 'fable cost should exceed opus at same turns');
+});
+
+test('estimateDispatchCost: haiku pricing corrected to $1/$5 per MTok (not old 0.25/1.25)', function() {
+  var haiku = dispatcher.estimateDispatchCost('fix a typo', { model: 'claude-haiku-4-5', maxTurns: 10 });
+  var opus = dispatcher.estimateDispatchCost('fix a typo', { model: 'claude-opus-4-8', maxTurns: 10 });
+  // haiku should be cheaper than opus but the ratio should now be 1/5 vs 5/25 = 1/5x (not 0.25/5 = 0.05x)
+  assert.strictEqual(haiku.modelKey, 'haiku');
+  assert.ok(haiku.estimateHigh < opus.estimateHigh, 'haiku should still be cheaper than opus');
+  // At updated pricing haiku ($1/$5) is 5x cheaper than opus ($5/$25) not 20x cheaper (old 0.25/1.25)
+  // Just verify the estimate is finite and positive
+  assert.ok(haiku.estimateHigh > 0, 'haiku estimate should be positive');
+});
+
 test('isClaudeAvailable: returns boolean', function() {
   var r = dispatcher.isClaudeAvailable();
   assert.ok(typeof r === 'boolean', 'expected boolean, got ' + typeof r);

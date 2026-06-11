@@ -24,16 +24,18 @@ var ALLOWED_MODELS = [
   'claude-opus-4-8',
   'claude-sonnet-4-6',
   'claude-haiku-4-5',
+  'claude-fable-5',
 ];
 
 var ALLOWED_EFFORT = ['low', 'medium', 'high', 'xhigh'];
 
 // 5 specific agents pinned to explicit model IDs (mission spec lists 7 entries).
+// v6.0: architect, debugger, security-auditor, product-manager promoted to claude-fable-5
 var PINNED_MODELS = {
-  architect: 'claude-opus-4-8',
-  'security-auditor': 'claude-opus-4-8',
-  debugger: 'claude-opus-4-8',
-  'product-manager': 'claude-opus-4-8',
+  architect: 'claude-fable-5',
+  'security-auditor': 'claude-fable-5',
+  debugger: 'claude-fable-5',
+  'product-manager': 'claude-fable-5',
   designer: 'claude-sonnet-4-6',
   researcher: 'claude-sonnet-4-6',
   reviewer: 'claude-sonnet-4-6',

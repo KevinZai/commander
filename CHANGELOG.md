@@ -2,6 +2,27 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [6.0.0] — 2026-06-10
+
+### Added
+
+- **Claude Fable 5 integration (selective deep-mode)** — Fable 5 (`claude-fable-5`, GA 2026-06-09, $10/$50 per MTok, 1M ctx, 128K out, adaptive thinking always-on) joins the model ladder as escalation-tier, NOT blanket default. Opus 4.8 stays the everyday session default; deep-reasoning sessions get a one-per-day nudge to `/model claude-fable-5[1m]` via `intent-classifier.js` (≥2 deep-reasoning signals, fail-safe, marker-file suppressed). Motto: *pay for Fable on the thinking, not the typing.*
+- **Smart model routing** — `selectModelForComplexity(score)` in `commander/dispatcher.js`: 0-29→haiku, 30-65→sonnet, 66-85→opus, 86-100→fable. One threshold table drives both subagent auto-routing and the main-thread Fable nudge. Dispatch tiers re-pointed: `power`=fable/opus, `assisted`=opus/sonnet, `guided`=sonnet/haiku (right-sized from opus).
+- **Savings counter** — new `commander/lib/savings.js` records every dispatch's estimated cost vs an all-Opus baseline to `~/.claude/commander/savings.json` (atomic writes, errors swallowed, negative savings recorded honestly). Surfaces: `💰sv$X.XX` status-line segment, cockpit line, and `ccc --savings` report. All values labeled as estimates (±30%, not billing data).
+- **Fable persona tier** — architect · debugger · security-auditor · product-manager move `claude-opus-4-8` → `claude-fable-5` (effort `xhigh` → `high`; adaptive thinking is always-on). Mirrored in rules/personas, vscode-extension agent data, and the Codex mirror (`remapModel` gains fable → gpt-5.5).
+- **`/ccc-fleet` conductor tiers** — documented 3-tier fleet topology: Fable conducts, Opus leads, Sonnet works, Haiku bulk.
+
+### Fixed
+
+- **Model catalog truth** (`skills/claude-api/shared/models.md`) — Fable 5 + Mythos 5 (invite-only, never-default) catalogued; Opus 4.6 alias mislabel corrected; Opus 4.7 added; deprecation dates (Opus 4.1 → 2026-08-05; Sonnet 4/Opus 4 → 2026-06-15); resolver maps "most capable"/"fable" → `claude-fable-5`.
+- **Stale Haiku pricing** in dispatcher `MODEL_PRICING` — $0.25/$1.25 (Haiku 3.5 era) → $1/$5 (Haiku 4.5).
+- **Stale footer defaults** — status-line `Opus4.7-1M` → `Opus4.8-1M`; cockpit `Opus1M` → `Opus4.8`; `formatModel('claude-fable-5')` renders `Fable5`.
+- **Count-drift test rot** — registry gained missing `ccc-tuneup` entry; two tests that hardcoded "61 skills" now derive counts from the filesystem and `contract.json` so they cannot rot again.
+- **`build-codex.js` README wipe** — the full-regen `rm -rf` deleted the hand-authored mirror-workflow README (CC-859) on every build; now preserved across rebuilds.
+- **Hook output trims** — `secret-leak-guard`, `pre-compact`, `permission-gate` injected-text tightened (behavior-preserving).
+
+---
+
 ## [5.1.2] — 2026-06-04
 
 ### Changed

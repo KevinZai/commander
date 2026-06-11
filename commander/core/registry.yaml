@@ -1259,6 +1259,11 @@ skills:
     domain: ccc-testing
     tier: free
     description: "name: ccc-testing"
+  - id: ccc-tuneup
+    path: skills/ccc-tuneup/SKILL.md
+    domain: ccc-tuneup
+    tier: free
+    description: "name: ccc-tuneup"
   - id: ccc-ultracode
     path: skills/ccc-ultracode/SKILL.md
     domain: ccc-ultracode

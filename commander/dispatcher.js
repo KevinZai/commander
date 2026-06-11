@@ -20,9 +20,10 @@ function generateSessionName(task) {
 
 function getDefaultsForLevel(level) {
   switch (level) {
-    case 'power': return { effort: 'high', maxBudgetUsd: 10, model: 'opus', fallback: 'sonnet', maxTurns: 50 };
+    // v6.0 selective-Fable ladder: pay for Fable on the thinking, not the typing
+    case 'power': return { effort: 'high', maxBudgetUsd: 10, model: 'fable', fallback: 'opus', maxTurns: 50 };
     case 'assisted': return { effort: 'medium', maxBudgetUsd: 5, model: 'opus', fallback: 'sonnet', maxTurns: 40 };
-    case 'guided': default: return { effort: 'medium', maxBudgetUsd: 5, model: 'opus', fallback: 'sonnet', maxTurns: 30 };
+    case 'guided': default: return { effort: 'medium', maxBudgetUsd: 5, model: 'sonnet', fallback: 'haiku', maxTurns: 30 };
   }
 }
 
@@ -133,7 +134,8 @@ function estimateScope(task, projectDir) {
 /**
  * Map a 0-100 score to turns/budget/effort.
  * Effort levels: low → medium → high → xhigh → ultra
- * xhigh and ultra are Opus 4.8-specific (adaptive thinking, agentic coding).
+ * xhigh/ultra map to the flagship tier; Fable 5 has adaptive thinking always-on (no flag needed).
+ * ultra (93-100) targets Fable 5; xhigh (81-92) is suitable for Opus 4.8 or Fable 5.
  * @param {number} score
  * @returns {{ turns: number, budget: number, effort: string }}
  */
@@ -153,8 +155,8 @@ function scoreToParams(score) {
  *   21-45: simple (20 turns, $3, low)
  *   46-65: moderate (35 turns, $6, medium)
  *   66-80: complex (50 turns, $10, high)
- *   81-92: advanced (60 turns, $15, xhigh) — Opus 4.8 adaptive thinking
- *   93-100: ultra (75 turns, $20, ultra) — Opus 4.8 Fast mode
+ *   81-92: advanced (60 turns, $15, xhigh) — flagship tier (Fable 5 / Opus 4.8), adaptive thinking
+ *   93-100: ultra (75 turns, $20, ultra) — Fable 5 targeted; adaptive thinking always-on
  *
  * @param {string} task - Task description
  * @param {string} [projectDir] - Optional project directory for file-count scope estimation
@@ -208,12 +210,15 @@ function scoreComplexity(task, projectDir) {
 // ─── Cost Intelligence Layer ──────────────────────────────────
 
 /**
- * Model pricing ($/MTok, as of 2026-05-28 — update as Anthropic changes pricing).
+ * Model pricing ($/MTok, as of 2026-06-10 — update as Anthropic changes pricing).
  * Accuracy: ±30%. Used for pre-dispatch estimates, not billing.
+ * Fable 5 (claude-fable-5): GA 2026-06-09, $10 input / $50 output; adaptive thinking always-on.
  * Opus 4.8: $5 input / $25 output standard; Fast mode (2.5×): $10 input / $50 output.
+ * Haiku 4.5: corrected to $1 input / $5 output (old 0.25/1.25 was Haiku 3.5 pricing).
  */
 var MODEL_PRICING = {
-  haiku: { input: 0.25, output: 1.25 },
+  fable: { input: 10, output: 50 },
+  haiku: { input: 1, output: 5 },
   sonnet: { input: 3, output: 15 },
   opus: { input: 5, output: 25 },
   'opus-fast': { input: 10, output: 50 },
@@ -251,6 +256,7 @@ function estimateDispatchCost(task, options) {
   var modelStr = (options.model || 'sonnet').toLowerCase();
   var modelKey = 'sonnet';
   if (modelStr.includes('haiku')) modelKey = 'haiku';
+  else if (modelStr.includes('fable')) modelKey = 'fable';
   else if (modelStr.includes('opus')) modelKey = 'opus';
 
   var pricing = MODEL_PRICING[modelKey];
@@ -321,6 +327,20 @@ function checkCostCeiling(task, options, costCeilingUsd) {
 function dispatch(task, options) {
   if (!options) options = {};
   try { require('./lib/telemetry-cjs').track('cli_agent_dispatched', { model: options.model || 'sonnet', effort: options.effort || 'medium' }); } catch(_e) {}
+  // v6.0 savings tracking: estimate tokens then record (ESTIMATE ±30%)
+  try {
+    var _savings = require('./lib/savings');
+    var _maxTurns = options.maxTurns || 30;
+    var _taskTokens = Math.ceil(((task || '').length) / 4);
+    var _inputTok = (_taskTokens + 10000) * Math.min(_maxTurns / 5, 4);
+    var _outputTok = _maxTurns * 1000;
+    var _modelStr = (options.model || 'sonnet').toLowerCase();
+    var _mKey = 'sonnet';
+    if (_modelStr.includes('haiku')) _mKey = 'haiku';
+    else if (_modelStr.includes('fable')) _mKey = 'fable';
+    else if (_modelStr.includes('opus')) _mKey = 'opus';
+    _savings.recordDispatch({ modelKey: _mKey, inputTokens: Math.round(_inputTok), outputTokens: _outputTok });
+  } catch(_e) {}
   var sync = options.sync !== undefined ? options.sync : true;
   var maxTurns = options.maxTurns || 30;
   var resume = options.resume;
@@ -540,4 +560,24 @@ function dispatchWithRetry(task, options, retries) {
   });
 }
 
-module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel };
+/**
+ * v6.0 selective-Fable ladder; same thresholds drive subagent auto-route and the
+ * main-thread Fable nudge (86+).
+ *
+ * Bands:
+ *   0-29  → 'haiku'   trivial / single-file edits
+ *   30-65 → 'sonnet'  moderate / multi-file features
+ *   66-85 → 'opus'    complex / architecture / migrations
+ *   86-100 → 'fable'  ultra / full-system / flagship reasoning
+ *
+ * @param {number} score - 0-100 complexity score from scoreComplexity()
+ * @returns {'haiku'|'sonnet'|'opus'|'fable'}
+ */
+function selectModelForComplexity(score) {
+  if (score <= 29) return 'haiku';
+  if (score <= 65) return 'sonnet';
+  if (score <= 85) return 'opus';
+  return 'fable';
+}
+
+module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel, estimateDispatchCost: estimateDispatchCost, selectModelForComplexity: selectModelForComplexity, MODEL_PRICING: MODEL_PRICING };

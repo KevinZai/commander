@@ -287,4 +287,21 @@ Agents CANNOT push — return files + diffs only. User merges to main via the co
 
 ---
 
+## v6.0 Conductor Tiers (selectModelForComplexity)
+
+CC Commander v6.0 introduces a selective-Fable routing ladder driven by `selectModelForComplexity(score)` in `commander/dispatcher.js`. Assign fleet tiers accordingly:
+
+| Role | Model | Score band | When |
+|------|-------|------------|------|
+| **Conductor** (this session) | Fable 5 | 86-100 | Deep orchestration, synthesis, architecture decisions |
+| **Leads** | Opus 4.8 | 66-85 | Complex implementation slices, multi-file features |
+| **Workers** | Sonnet 4.6 | 30-65 | Standard feature work, tests, moderate refactors |
+| **Bulk slices** | Haiku 4.5 | 0-29 | Polish, linting, docs, trivial single-file edits |
+
+`selectModelForComplexity(score)` thresholds: ≤29→haiku · 30-65→sonnet · 66-85→opus · 86+→fable.
+
+When assigning agents in any fleet pattern, run `scoreComplexity(sliceDescription)` on each slice and route to the matching model. This keeps conductor sessions on Fable for deep reasoning while bulk work stays cheap on Haiku.
+
+---
+
 **Bottom line:** pick pattern → free-text task → parallel batch dispatch → Cmd+click to steer. Synthesis auto-kicks when all report back.

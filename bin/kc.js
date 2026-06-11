@@ -23,6 +23,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --version    Show version');
   console.log('  --test       Validate all modules');
   console.log('  --stats      Quick stats');
+  console.log('  --savings    Estimated savings vs all-Opus baseline (today / month / all-time)');
   console.log('  --repair     Fix corrupt state');
   console.log('  --simple     Menu-only mode (no tmux split)');
   console.log('  --update     Pull latest + reinstall');
@@ -82,6 +83,25 @@ if (args.includes('--stats')) {
   console.log('  Achievements: ' + a.length);
   console.log('  Cost:         $' + (s.totalCost||0).toFixed(2));
   console.log('  Level:        ' + st2.getUserLevel(cs) + '\n');
+  process.exit(0);
+}
+if (args.includes('--savings')) {
+  var svMod = require(path.join(__dirname,'..','commander','lib','savings'));
+  var svData = svMod.getSavings();
+  function fmtSvRow(label, d) {
+    return '  ' + label.padEnd(14) +
+      ('$' + (d.actualUsd||0).toFixed(4)).padStart(10) +
+      ('$' + (d.baselineUsd||0).toFixed(4)).padStart(12) +
+      ('$' + (d.savedUsd||0).toFixed(4)).padStart(10) +
+      String(d.dispatches||0).padStart(12);
+  }
+  console.log('\n  CC Commander v6.0 — Estimated Savings vs all-Opus baseline\n');
+  console.log('  ' + 'Period'.padEnd(14) + 'Actual'.padStart(10) + 'Baseline'.padStart(12) + 'Saved'.padStart(10) + 'Dispatches'.padStart(12));
+  console.log('  ' + '─'.repeat(58));
+  console.log(fmtSvRow('Today', svData.today));
+  console.log(fmtSvRow('This month', svData.month));
+  console.log(fmtSvRow('All time', svData.total));
+  console.log('\n  ⚠️  ' + svData.disclaimer + '\n');
   process.exit(0);
 }
 if (args.includes('--test')) {

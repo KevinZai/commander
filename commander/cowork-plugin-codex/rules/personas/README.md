@@ -12,20 +12,20 @@
 
 | Persona | Role | Model | When to use |
 |---------|------|-------|-------------|
-| 🏗️ architect | System designer | Opus xhigh | Deep design decisions, tradeoff analysis |
-| 🔐 security-auditor | Adversarial reviewer | Opus high | OWASP audits, threat modeling |
+| 🏗️ architect | System designer | Fable 5 (effort high, adaptive) | Deep design decisions, tradeoff analysis |
+| 🔐 security-auditor | Adversarial reviewer | Fable 5 (effort high, adaptive) | OWASP audits, threat modeling |
 | ⚡ performance-engineer | Hotpath hunter | Sonnet high | Benchmarking, optimization |
 | ✍️ content-strategist | Brand voice keeper | Sonnet medium | Marketing copy, messaging |
 | 📊 data-analyst | Signal extractor | Sonnet high | Analytics, dashboards, insights |
 | 🎨 designer | UI/UX advocate | Sonnet high | Design critique, a11y, polish |
-| 🎯 product-manager | User-story-first | Opus xhigh | Specs, prioritization |
+| 🎯 product-manager | User-story-first | Fable 5 (effort high, adaptive) | Specs, prioritization |
 | 📝 technical-writer | Clarity craftsperson | Sonnet medium | Docs, tutorials, API reference |
 | 🚀 devops-engineer | Runbook thinker | Sonnet high | Deploys, infra, monitoring |
 | 🧪 qa-engineer | Edge-case hunter | Sonnet high | Test coverage, breaking cases |
 | 🔍 reviewer | Severity-rated critic | Sonnet high | PR review, code gates |
 | 🔨 builder | MVP-first implementer | Sonnet high | Feature implementation, TDD |
 | 🔬 researcher | Structured synthesizer | Sonnet high | Competitive research, feature scouting |
-| 🐛 debugger | Root-cause detective | Opus high | Bug investigation (Iron Law) |
+| 🐛 debugger | Root-cause detective | Fable 5 (effort high, adaptive) | Bug investigation (Iron Law) |
 | ⚙️ fleet-worker | Strict-report executor | Sonnet medium | Parallel batch work, scoped tasks |
 
 ## 🔗 Integration with CC Commander plugin

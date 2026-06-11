@@ -25,7 +25,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v5.1.2 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v6.0.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -74,6 +74,7 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 | **DEEP** | 1-5 days | Spec-first, TDD, subagents | Opus | mega-{domain} + ccc-testing |
 | **SAAS** | 1-4 weeks | Full lifecycle: scaffold→auth→billing→ship | Opus | ccc-saas + ccc-seo + ccc-testing + ccc-devops |
 | **OVERNIGHT** | 6-12h autonomous | Checkpoints, error recovery | Opus | overnight-runner + domain skills |
+| **ARCHITECTURE / THREAT-MODEL / MIGRATION** | Any | Deep reasoning, multi-angle analysis | Fable 5 | `/model claude-fable-5[1m]` — escalation tier only |
 
 ### CCC Domains (Load ONE, Get Everything)
 
@@ -471,7 +472,7 @@ These failure modes come from reverse-engineering Claude Code's internal behavio
 ### Rate Limit Management (Cowork)
 
 - Track usage: `/usage` or check Settings → Usage
-- If hitting limits: switch to Haiku for bulk tasks, Sonnet for general work, Opus only for judgment calls
+- If hitting limits: switch to Haiku for bulk tasks, Sonnet for general work, Opus for judgment calls, Fable 5 only when deep reasoning is the bottleneck (architecture / threat-model / migration)
 - Rate limits reset: check `/usage` for exact timing
 - Max plan ($200/month) has higher Cowork limits than Pro ($20/month)
 
@@ -1376,7 +1377,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v5.1.2)
+### 🛠️ Plugin Workflows (v6.0.0)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
@@ -1834,7 +1835,7 @@ Spawn a [Implementer/Researcher/Reviewer/Batch/Explorer] subagent.
 
 Task: [specific, scoped task]
 Context they need: [paste all relevant context — subagents don't share memory]
-Model: [Sonnet for execution / Haiku for bulk / Opus for judgment]
+Model: [Sonnet for execution / Haiku for bulk / Opus for judgment / Fable 5 for architecture·threat-model·migration]
 Report format:
 - What was done
 - What files were changed
@@ -2279,9 +2280,14 @@ Verification: [how you'll know it's done]
 |-------|---------|------|-------------|
 | **Haiku 4.5** | Fast iteration, bulk ops, simple tasks | $ | Lightweight subagents, pair programming, worker agents |
 | **Sonnet 4.6** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows |
-| **Opus 4.8** | Complex architecture, deep reasoning, agentic coding | $$$ | Architectural decisions, research, judgment calls — default for architect/debugger/security-auditor/product-manager agents. Fast mode: 2.5× speed ($10/$50/MTok). `ultra`/`xhigh` effort levels. |
+| **Opus 4.8** | Complex architecture, deep reasoning, agentic coding | $$$ | **Everyday session default.** Architectural decisions, research, judgment calls. `ultra`/`xhigh` effort levels. |
+| **Fable 5** | Deep multi-angle reasoning | $$$$ | **Escalation tier only.** Architecture / planning / migration / threat-model sessions where deep reasoning is the actual bottleneck. Activate: `/model claude-fable-5[1m]`. Nudged once per day when ≥2 deep-reasoning signals detected. Motto: *pay for Fable on the thinking, not the typing.* |
 
-**Adaptive thinking:** Opus 4.8 uses `thinking: {type: "adaptive"}` (replaces `budget_tokens`). Effort levels: `xhigh` (agentic/coding tasks) and `ultra` (maximum depth). Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok). Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
+**Adaptive thinking:** Opus 4.8 uses `thinking: {type: "adaptive"}`. Effort levels: `xhigh` (agentic/coding tasks) and `ultra` (maximum depth). Fable 5 has adaptive thinking always-on. Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
+
+**Smart routing:** `selectModelForComplexity(score)` auto-routes subagents: 0–29 → Haiku, 30–65 → Sonnet, 66–85 → Opus, 86–100 → Fable. Dispatch tiers: `power` = Fable/Opus, `assisted` = Opus/Sonnet, `guided` = Sonnet/Haiku.
+
+**Savings counter:** every dispatch logs estimated cost vs an all-Opus baseline. Check with `ccc --savings` or the `💰sv$X.XX` footer segment. Values are estimates (±30%), not billing data.
 
 ---
 
@@ -2327,18 +2333,20 @@ workflow: <task description> # one-off without mode switch
 
 ```mermaid
 graph TD
-    A[New Task] --> B{Complexity?}
-    B -->|Simple/Bulk| C[Haiku 4.5 - $]
-    B -->|Standard Dev| D[Sonnet 4.6 - $$]
-    B -->|Architecture/Research| E[Opus 4.8 - $$$]
-    C --> F{Subagent?}
-    D --> F
-    E --> F
-    F -->|Yes| G[Spawn with desired model]
-    F -->|No| H[Use current session model]
+    A[New Task] --> B{Complexity score}
+    B -->|0-29 Simple/Bulk| C[Haiku 4.5 - $]
+    B -->|30-65 Standard Dev| D[Sonnet 4.6 - $$]
+    B -->|66-85 Architecture/Research| E[Opus 4.8 - $$$]
+    B -->|86-100 Deep Reasoning| F[Fable 5 - $$$$]
+    C --> G{Subagent?}
+    D --> G
+    E --> G
+    F --> G
+    G -->|Yes| H[Spawn with desired model]
+    G -->|No| I[Use current session model]
 ```
 
-**Rule:** Never change models mid-session. Spawn a subagent with the desired model instead.
+**Rule:** Never change models mid-session. Spawn a subagent with the desired model instead. Fable 5 is the escalation tier — use Opus 4.8 for everything else.
 
 ---
 
@@ -2388,7 +2396,7 @@ graph TD
 ---
 ## Built on Claude Agent SDK
 
-> *v5.1.2* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v6.0.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2407,23 +2415,23 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 
 | # | Persona | Model | Core responsibility |
 |---|---------|-------|-------------------|
-| 1 | `architect` | Opus 4.8 | System design, tradeoff analysis |
+| 1 | `architect` | Fable 5 | System design, tradeoff analysis |
 | 2 | `reviewer` | Sonnet 4.6 | Code review (security / perf / correctness / maintainability) |
 | 3 | `builder` | Sonnet 4.6 | Feature implementation, TDD |
-| 4 | `security-auditor` | Opus 4.8 | OWASP audits, threat modeling |
-| 5 | `debugger` | Opus 4.8 | Root-cause investigation (Iron Law) |
+| 4 | `security-auditor` | Fable 5 | OWASP audits, threat modeling |
+| 5 | `debugger` | Fable 5 | Root-cause investigation (Iron Law) |
 | 6 | `designer` | Sonnet 4.6 | UI/UX critique, accessibility |
 | 7 | `qa-engineer` | Sonnet 4.6 | Edge-case hunting, coverage audit |
 | 8 | `devops-engineer` | Sonnet 4.6 | Deploy planning, rollback specs |
 | 9 | `data-analyst` | Sonnet 4.6 | Signal extraction, statistical honesty |
 | 10 | `content-strategist` | Sonnet 4.6 | Brand voice, messaging, copy |
-| 11 | `product-manager` | Opus 4.8 | User stories, acceptance criteria |
+| 11 | `product-manager` | Fable 5 | User stories, acceptance criteria |
 | 12 | `performance-engineer` | Sonnet 4.6 | p99 benchmarking, hotpath analysis |
 | 13 | `researcher` | Sonnet 4.6 | Deep research, citation management |
 | 14 | `technical-writer` | Sonnet 4.6 | Documentation, clarity audits |
 | 15 | `fleet-worker` | Sonnet 4.6 | Parallel batch execution |
 
-Opus personas handle tasks requiring deep reasoning chains. Sonnet handles the rest at lower cost.
+Fable 5 personas (`architect`, `security-auditor`, `debugger`, `product-manager`) need deep multi-angle reasoning. Opus 4.8 is the everyday session default. Sonnet handles the rest at lower cost.
 
 ### What This Means for Users
 
@@ -2432,7 +2440,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v5.1.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 62 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v6.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 62 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2644,7 +2652,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v5.1.2 — How CCC thinks before it acts.*
+> *Appendix: v6.0.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 
@@ -2831,7 +2839,7 @@ One hour of active use can exhaust a Pro daily allocation.
 | Session resets | Prevents bloat | Start fresh after completing logical tasks. Context grows exponentially. |
 | Subagent delegation | Fresh context | Each subagent starts clean. No accumulated history. |
 | Batch dispatch | 50% cost | Use `--stream false` for non-urgent tasks (future: Batch API). |
-| Model routing | 3-10x savings | Haiku for simple tasks, Sonnet for standard, Opus for complex. CCC auto-selects. |
+| Model routing | 3-10x savings | Haiku for simple tasks, Sonnet for standard, Opus for complex, Fable 5 for deep-reasoning escalation. CCC auto-selects via complexity score. |
 
 ### Cache-Friendly CLAUDE.md Structure
 1. Static rules and standards (top) — cached across sessions

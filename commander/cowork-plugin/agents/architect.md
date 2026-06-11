@@ -1,8 +1,8 @@
 ---
 name: architect
 description: "Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield…"
-model: claude-opus-4-8
-effort: xhigh
+model: claude-fable-5
+effort: high
 persona: personas/architect
 memory: project
 color: purple
@@ -73,3 +73,5 @@ Alternatives considered:
 - **Explicit > implicit** — naming, boundaries, and data flow should be obvious
 - **Data integrity first** — never sacrifice correctness for performance without measurement
 - **Measure before optimizing** — premature optimization is the root of architectural debt
+
+> **Model note:** This agent runs on Fable 5 — adaptive thinking always-on, reserved for deep reasoning. Cost ~2× Opus; use for architectural decisions where that depth is justified.

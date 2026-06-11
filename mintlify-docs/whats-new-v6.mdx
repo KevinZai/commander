@@ -1,0 +1,124 @@
+---
+title: "What's New in v6.0.0"
+description: "Claude Fable 5 selective deep-mode, smart model routing, savings counter, and fleet conductor tiers."
+---
+
+<Note>
+  **Released 2026-06-10** — v6.0.0 ships four major additions. All free for now. Plugin installs automatically — run `/ccc-upgrade` to pick up the latest.
+</Note>
+
+## Claude Fable 5 — Selective Deep-Mode
+
+Fable 5 joins the model ladder as the **escalation tier**, not the new default. Opus 4.8 remains the everyday session model. Fable 5 is for the thinking that earns its cost.
+
+| | Claude Fable 5 |
+|---|---|
+| **Model ID** | `claude-fable-5` |
+| **Input / Output** | $10 / $50 per million tokens |
+| **Context window** | 1 million tokens (128K output) |
+| **Thinking** | Adaptive — always-on, no configuration needed |
+| **Tier** | Escalation (not default) |
+
+*Motto: pay for Fable on the thinking, not the typing.*
+
+### How escalation works
+
+CC Commander's `intent-classifier.js` watches for ≥2 deep-reasoning signals per session (architectural decisions, complex debugging, adversarial security review, multi-constraint planning). When detected, it surfaces a **once-per-day nudge**:
+
+```
+/model claude-fable-5[1m]
+```
+
+The nudge is suppressed after it fires once (marker-file guard) — you will not see it on every prompt. To escalate manually at any time, run `/model claude-fable-5[1m]` yourself.
+
+<Warning>
+  Fable 5 costs 2× Opus 4.8. The savings counter (below) shows you what each session spends vs an all-Opus baseline so the tradeoff is always visible.
+</Warning>
+
+### Fable persona tier
+
+Four deep-reasoning personas move from Opus 4.8 to Fable 5:
+
+| Persona | Previous model | New model |
+|---------|---------------|-----------|
+| `architect` | `claude-opus-4-8` | `claude-fable-5` |
+| `debugger` | `claude-opus-4-8` | `claude-fable-5` |
+| `security-auditor` | `claude-opus-4-8` | `claude-fable-5` |
+| `product-manager` | `claude-opus-4-8` | `claude-fable-5` |
+
+Effort level shifts from `xhigh` → `high` (adaptive thinking is always-on for Fable, making the explicit budget redundant). All other personas are unchanged.
+
+## Smart Model Routing
+
+`selectModelForComplexity(score)` in `commander/dispatcher.js` maps a 0–100 complexity score to the right model automatically:
+
+| Score range | Model | Tier label |
+|-------------|-------|-----------|
+| 0 – 29 | `claude-haiku-4-5` | Bulk |
+| 30 – 65 | `claude-sonnet-4-6` | Guided |
+| 66 – 85 | `claude-opus-4-8` | Assisted |
+| 86 – 100 | `claude-fable-5` | Power |
+
+One threshold table drives both sub-agent auto-routing and the main-thread Fable nudge. Dispatch tiers:
+
+- **`power`** — Fable / Opus (deep reasoning, architecture)
+- **`assisted`** — Opus / Sonnet (agentic coding, reviews)
+- **`guided`** — Sonnet / Haiku (scaffolding, bulk ops)
+
+You can override the auto-routed model for any dispatch via `~/.claude/commander/config.json` — see [Sub-Agent Customization](/plugin/agents#customizing-sub-agents).
+
+## Savings Counter
+
+Every dispatch now logs its **estimated cost vs an all-Opus baseline** to `~/.claude/commander/savings.json`. The running total surfaces in three places:
+
+- **Status-line footer:** `💰sv$X.XX` segment (alongside the existing cost gauge)
+- **Cockpit:** new savings line in the session overview
+- **CLI report:** `ccc --savings` prints a breakdown by dispatch tier and date
+
+```
+$ ccc --savings
+Savings report (2026-06-10) — estimates ±30%, not billing data
+  Haiku dispatches:   14   ~$0.18 saved vs Opus
+  Sonnet dispatches:  31   ~$1.12 saved vs Opus
+  Opus dispatches:     8   baseline
+  Fable dispatches:    2   ~$0.42 extra vs Opus
+  ──────────────────────────────────────────────
+  Net estimated savings today:  ~$0.88
+  Session total: ~$2.34
+```
+
+<Note>
+  All values are **estimates (±30%)** — they are not billing data. Negative savings (when Fable is used more than Opus would cost) are recorded honestly. The counter never inflates.
+</Note>
+
+## Fleet Conductor Tiers
+
+`/ccc-fleet` now documents a formal 3-tier fleet topology:
+
+| Tier | Model | Role |
+|------|-------|------|
+| **Conductor** | Fable 5 | Orchestrates the fleet, synthesizes results, makes final calls |
+| **Lead** | Opus 4.8 | Domain leads — architecture, security, QA |
+| **Worker** | Sonnet 4.6 | Implementation, transforms, per-file work |
+| **Bulk** | Haiku 4.5 | High-volume, low-complexity tasks |
+
+The conductor tier is opt-in — most fleet runs continue to use Opus as the coordinator. Run `/ccc-fleet` and select **deep conductor mode** to escalate to Fable.
+
+## Other Fixes
+
+- **Haiku pricing corrected** — `MODEL_PRICING` in dispatcher updated from $0.25/$1.25 (Haiku 3.5 era) to $1/$5 (Haiku 4.5). Savings estimates were previously understating Haiku's cost by 4×.
+- **Footer model labels** — status-line shows `Opus4.8-1M` (was `Opus4.7-1M`); cockpit shows `Opus4.8` (was `Opus1M`); `formatModel('claude-fable-5')` renders `Fable5`.
+- **Model catalog** (`skills/claude-api`) — Fable 5 and Mythos 5 (invite-only, never-default) catalogued; Opus 4.7 added; deprecation dates documented (Opus 4.1 → 2026-08-05; Sonnet 4 / Opus 4 → 2026-06-15).
+
+## Summary
+
+| What changed | Details |
+|---|---|
+| Escalation model | Claude Fable 5 (`claude-fable-5`, $10/$50/MTok) — not the default |
+| Session default | Opus 4.8 unchanged |
+| Deep personas | `architect` · `debugger` · `security-auditor` · `product-manager` → Fable 5 |
+| Smart routing | `selectModelForComplexity()` 0–100 score → haiku/sonnet/opus/fable |
+| Savings counter | `~/.claude/commander/savings.json` + `ccc --savings` + footer segment |
+| Fleet tiers | Fable conducts, Opus leads, Sonnet works, Haiku bulk |
+
+All counts canonical — verified by `node scripts/check-product-contract.js --check`.
