@@ -244,6 +244,23 @@ Click a cell → pick a sub-option → CC Commander handles it. No config files,
 
 Install any of these separately — CC Commander detects what's available and routes to it. If you've got `claude-mem` installed, `/ccc-suggest` will reach for it when memory recall is the right move.
 
+## 🧩 How Commander Extends ECC
+
+**Everything Claude Code (ECC)** is the comprehensive *harness* — 156 skills, 72 commands, 38 agents, full lifecycle hooks. CC Commander is **not a replacement** for it — it's the **PM/orchestration UX layer** on top.
+
+| Layer | Owns |
+|-------|------|
+| **ECC** (harness) | Raw breadth — skills, commands, agents, hook lifecycle |
+| **CC Commander** (UX) | Curation + guidance + memory: click-first `/ccc-*` chips (AskUserQuestion), `/ccc-suggest` routing, the brain/hands pattern, The Kevin Z Method |
+
+**What Commander adds on top of ECC:**
+- **Click-first front door** — 62 curated `/ccc-*` workflows via native chip pickers, instead of memorizing 156+ commands.
+- **`/ccc-suggest`** — Opus-class "next best move" routing across the whole ecosystem (names ECC when ECC is the right tool).
+- **Memory + compounding** — sessions learn; `/ccc-knowledge` + claude-mem integration.
+- **Vendor aggregation** — ECC is one of 18 vendor packages; the Smart Orchestrator scores and routes across all of them.
+
+**ECC-sourced parts are labeled** in the vendor tree (`vendor/everything-claude-code/`). Commander ports a minimal hook/agent set and otherwise defers to ECC upstream — run `/ccc-upgrade` to bump the pin. Install ECC separately for the full harness; Commander detects it and routes to it.
+
 ## 🆚 Compare to other Claude Code plugins
 
 CC Commander is a **meta-layer** — it routes to other plugins, not away from them. Here's how it differs from the top alternatives:

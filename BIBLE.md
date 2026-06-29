@@ -2376,6 +2376,15 @@ graph TD
 | **Everything Claude Code (ECC)** | 100K | Lifecycle hooks, developer profiles, agent definitions |
 | **anthropics/claude-plugins-official** | 15K | Plugin manifest format |
 
+### How Commander Extends ECC
+
+ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC Commander is the **PM/orchestration UX layer** on top — it does **not** replace ECC.
+
+- **ECC owns** raw breadth: skills, commands, agents, hook lifecycle.
+- **Commander owns** curation + guidance + memory: click-first `/ccc-*` chip pickers (AskUserQuestion), `/ccc-suggest` routing, brain/hands pattern, The Kevin Z Method.
+- **On top of ECC** Commander adds the 62-workflow front door, `/ccc-suggest` (names ECC when it's the right tool), session memory/compounding, and vendor aggregation (ECC = 1 of 18 vendors, scored by the Smart Orchestrator).
+- **ECC-sourced parts are labeled** under `vendor/everything-claude-code/`; Commander ports a minimal hook/agent set and defers to upstream. Bump the pin with `/ccc-upgrade`.
+
 ### Further Reading
 | Source | Topics |
 |--------|--------|
