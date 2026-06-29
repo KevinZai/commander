@@ -10,7 +10,7 @@ CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantl
 
 - **Model:** Opus 4.8 (1M context) — enforced via `.claude/settings.json`
 - **Mode:** Plan mode by default — SessionStart hook reminds to enter plan mode
-- **Effort:** High (`effortLevel: "high"` in settings.json)
+- **Effort:** Inherits the global default — set `effortLevel` in `~/.claude/settings.json` (`high`/`xhigh`). No project-level pin, so global governs.
 - **Thinking:** Summaries visible (`showThinkingSummaries: true`)
 - **Footer:** Run `node commander/status-line.js` for live session status bar
 - **Version:** Single source of truth is `package.json` — `branding.js` reads it at runtime

@@ -289,3 +289,32 @@ A clickability hook (`commander/cowork-plugin/hooks/clickability-watch.js`) obse
 4. Skills: check `SKILLS-INDEX.md` before building from scratch
 5. Bug fixes: write reproduction test FIRST, then fix, then operationalize
 6. Decisions: use dialectic review for anything expensive to reverse
+
+## 🛠️ Hard-won operational rules
+
+Battle-tested from real multi-agent sessions. These override convenience — follow them exactly.
+
+### Hardened-worktree pattern (MANDATORY for ALL code-writing subagents / workflows)
+A worktree agent that edits via the MAIN repo's absolute path can leak files into the main tree. Every code-writing subagent or workflow stage MUST:
+1. Create its OWN worktree: `git -C <main> worktree add <main>/.claude/worktrees/<slug> -b <branch> origin/<base>`
+2. `cd` in, then VERIFY: `git rev-parse --show-toplevel` MUST equal that worktree path — **abort if not**.
+3. Edit **RELATIVE paths only**, inside the worktree. NEVER the main-repo absolute path.
+4. On finish: clean up, then VERIFY the main tree is tracked-clean: `git -C <main> status --porcelain | grep -v '^??'` MUST be EMPTY.
+- **Never hand a worktree-isolated subagent the MAIN absolute repo path as an edit target.**
+- **Verify the main tree is tracked-clean after every code-writing subagent.**
+
+### Git truth & restart resilience
+- Verify a branch tip via `gh api repos/<owner>/<repo>/commits/<branch>` or `git rev-parse origin/<branch>`. A local `git log -1` or a stale fetch can **lie**, especially right after a restart.
+- After a restart, if `git fetch` says `could not read Username` — the HTTPS credential bridge dropped. Run **`gh auth setup-git`** (wire this into a SessionStart hook).
+- For grep-of-git-show, use DIRECT `git show <ref>:<path> | grep ...` — **never** capture `git show` into a variable inside a loop (silent false-zeros).
+
+### Coordination & oversight
+- **Autonomous cross-session coordination = your tracker's comments** (e.g. Linear/Paperclip). Peer `send_message` is harness-gated when unattended — do not rely on it for unattended hand-offs.
+
+### CI & deploy
+- Flaky CI: `##[error]The operation was canceled` during a frontend build while backend tests passed = OOM / flaky runner → `gh run rerun <id> --failed`. If it recurs, scale the runner.
+- **Prod = explicit human GO (HARD RULE).** Gated PRs (no auto-merge) for sensitive or self-initiated code.
+
+### Reasoning posture
+- Default effort is **xhigh (Extra)** and dynamic — drop lower only where clearly apt; never force a single level per task or onto subagents. Set persistently via `"effortLevel": "xhigh"` in `settings.json`.
+- For substantial multi-file work (migrations, deep audits, repo-wide cleanups) operate in **ultracode posture**: plan a dynamic Workflow that fans out subagents and adversarially verifies findings, rather than a single-pass answer.
