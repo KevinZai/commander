@@ -16,6 +16,7 @@ CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantl
 - **Version:** Single source of truth is `package.json` — `branding.js` reads it at runtime
 - **Fable 5 = deep mode:** For architecture, planning, migration, or threat-model work, escalate with `/model claude-fable-5[1m]`. Pay for Fable on the thinking, not the typing.
 - **Subagent routing:** Auto-routed by complexity — Haiku → Sonnet → Opus → Fable. Main thread stays Opus until you escalate.
+- **Claude Teams (HARD RULE):** Agent Teams is always on — `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` in `.claude/settings.json` env (and in the global `~/.claude/settings.json`). Multi-agent fan-out (`/ccc-fleet`, dynamic workflows) depends on it. Do not disable.
 - **Motto:** "Pay for Fable on the thinking, not the typing."
 
 ## Critical Rule

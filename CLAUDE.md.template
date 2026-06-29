@@ -257,10 +257,13 @@ Add this to your `.claude/settings.json` to save ~14,000 tokens per turn:
 ```json
 {
   "env": {
-    "ENABLE_TOOL_SEARCH": "true"
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   }
 }
 ```
+
+**Claude Teams (recommended hard rule):** keep `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` set in both your global `~/.claude/settings.json` and project `.claude/settings.json`. Multi-agent fan-out (`/ccc-fleet`, dynamic workflows) relies on Agent Teams — don't disable it.
 
 This loads only 6 primary tools upfront and lazy-loads the rest on demand. Starting context drops from ~45K to ~20K tokens. The single highest-ROI config change you can make.
 
