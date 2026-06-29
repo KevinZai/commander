@@ -14,7 +14,7 @@
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
-- [The 62 Plugin Skills](#the-60-plugin-skills) — The curated plugin surface
+- [The 63 Plugin Skills](#the-63-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -208,7 +208,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
 ---
 
-## The 62 Plugin Skills
+## The 63 Plugin Skills
 
 > *Every skill that ships with `/plugin install commander`. Not the 502-skill ecosystem — just the curated plugin surface.*
 
@@ -2382,7 +2382,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 
 - **ECC owns** raw breadth: skills, commands, agents, hook lifecycle.
 - **Commander owns** curation + guidance + memory: click-first `/ccc-*` chip pickers (AskUserQuestion), `/ccc-suggest` routing, brain/hands pattern, The Kevin Z Method.
-- **On top of ECC** Commander adds the 62-workflow front door, `/ccc-suggest` (names ECC when it's the right tool), session memory/compounding, and vendor aggregation (ECC = 1 of 18 vendors, scored by the Smart Orchestrator).
+- **On top of ECC** Commander adds the 63-workflow front door, `/ccc-suggest` (names ECC when it's the right tool), session memory/compounding, and vendor aggregation (ECC = 1 of 18 vendors, scored by the Smart Orchestrator).
 - **ECC-sourced parts are labeled** under `vendor/everything-claude-code/`; Commander ports a minimal hook/agent set and defers to upstream. Bump the pin with `/ccc-upgrade`.
 
 ### Further Reading
@@ -2449,7 +2449,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v6.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 62 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v6.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 63 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2462,7 +2462,7 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (62 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (63 plugin skills)
   +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 23 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
@@ -2506,7 +2506,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 62 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 63 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
