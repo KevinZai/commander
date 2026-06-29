@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# ccc-seo
+# /ccc-seo — SEO domain hub
 
 > Load ONE skill. Get the entire SEO domain. 20 skills in one.
 

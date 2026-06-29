@@ -10,7 +10,7 @@ allowed-tools:
 argument-hint: "[design | marketing | saas | testing | devops | seo | security | research | mobile | data | makeover]"
 ---
 
-# /ccc-domains
+# /ccc-domains — Domain router
 
 > Placeholders like ~~knowledge base refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

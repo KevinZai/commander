@@ -1,6 +1,6 @@
 ---
 name: ccc-code-review
-description: "\"Review code changes for security, performance, correctness, and maintainability. Use when: 'review code', 'PR review', 'check changes', 'review my diff', 'is this…"
+description: "Review code changes for security, performance, correctness, and maintainability. Use when: 'review code', 'PR review', 'check changes', 'review my diff', 'is this…"
 allowed-tools:
   - Read
   - Write
@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "<PR URL, file path, or diff>"
 ---
 
-# /ccc-code-review
+# /ccc-code-review — Diff security/perf/correctness review
 
 > Placeholders like ~~source control refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

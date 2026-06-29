@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[name | level | cost | theme | linear | reset]"
 ---
 
-# /ccc-settings
+# /ccc-settings — Configuration hub
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

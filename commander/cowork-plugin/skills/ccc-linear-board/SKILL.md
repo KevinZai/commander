@@ -1,6 +1,6 @@
 ---
 name: ccc-linear-board
-description: "\"View your Linear board, pick a task to work on, and sync issue status. Use when: 'linear board', 'show issues', 'pick a task', 'what should I work on', 'my Linear',…"
+description: "View your Linear board, pick a task to work on, and sync issue status. Use when: 'linear board', 'show issues', 'pick a task', 'what should I work on', 'my Linear', …"
 allowed-tools:
   - Read
   - Write

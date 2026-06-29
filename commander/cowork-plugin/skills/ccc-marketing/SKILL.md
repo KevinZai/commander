@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# ccc-marketing
+# /ccc-marketing — Marketing domain hub
 
 > Load ONE skill. Get the entire marketing domain. 45 skills across 7 specialist pods.
 

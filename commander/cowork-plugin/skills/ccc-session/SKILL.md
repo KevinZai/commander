@@ -10,7 +10,7 @@ allowed-tools:
 argument-hint: "[resume | review | history | export]"
 ---
 
-# /ccc-session
+# /ccc-session — Session management
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

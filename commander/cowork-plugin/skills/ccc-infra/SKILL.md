@@ -8,7 +8,7 @@ allowed-tools:
 argument-hint: "[probe | fleet | paperclip | cost | taskmaster]"
 ---
 
-# /ccc-infra
+# /ccc-infra — Infrastructure probe
 
 > Placeholders like ~~monitoring refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
