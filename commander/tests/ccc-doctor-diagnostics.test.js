@@ -73,6 +73,37 @@ function buildGoodFixture() {
       rows.join('\n'),
     ].join('\n')
   );
+  writeFile(
+    root,
+    'commander/contract.json',
+    JSON.stringify({
+      plugin_skills: 1,
+      specialist_agents: 9,
+      lifecycle_hooks: 2,
+      bundled_mcp_servers: 2,
+    })
+  );
+  writeFile(
+    root,
+    'CLAUDE.md',
+    'Aggregator Ecosystem\n18 vendor submodules in `vendor/`.\n'
+  );
+  for (var v = 1; v <= 18; v++) {
+    writeFile(root, 'vendor/vendor-' + v + '/README.md', '# vendor\n');
+  }
+  writeFile(
+    root,
+    'home/.claude/settings.json',
+    JSON.stringify({
+      env: { CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1' },
+      effortLevel: 'high',
+    })
+  );
+  writeFile(
+    root,
+    'commander/cowork-plugin/skills/ccc-doctor/SKILL.md',
+    ['---', 'name: ccc-doctor', 'description: Test skill', 'model: sonnet', '---', '', '# Body'].join('\n')
+  );
   // Agents — match expected pinning
   function agent(name, model) {
     writeFile(
@@ -121,6 +152,41 @@ function buildGoodFixture() {
   writeFile(root, 'commander/core/registry.yaml', 'version: 1\n');
   return root;
 }
+
+function diagnosticsOptions(root) {
+  return { homeDir: path.join(root, 'home') };
+}
+
+// --- 0. claude settings -----------------------------------------------------
+
+test('checkClaudeTeamsFlag: ok when Agent Teams env flag is set', function () {
+  var root = buildGoodFixture();
+  var r = diag.checkClaudeTeamsFlag(root, diagnosticsOptions(root));
+  assert.strictEqual(r.status, 'ok', r.message);
+});
+
+test('checkClaudeTeamsFlag: warn when Agent Teams env flag is missing', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'home/.claude/settings.json', JSON.stringify({ env: {} }));
+  var r = diag.checkClaudeTeamsFlag(root, diagnosticsOptions(root));
+  assert.strictEqual(r.status, 'warn');
+  assert.ok(r.message.includes('CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS'));
+});
+
+test('checkEffortDefault: reports configured effortLevel', function () {
+  var root = buildGoodFixture();
+  var r = diag.checkEffortDefault(root, diagnosticsOptions(root));
+  assert.strictEqual(r.status, 'ok', r.message);
+  assert.ok(r.message.includes('effortLevel=high'));
+});
+
+test('checkEffortDefault: notes inherited default when absent', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'home/.claude/settings.json', JSON.stringify({ env: { CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1' } }));
+  var r = diag.checkEffortDefault(root, diagnosticsOptions(root));
+  assert.strictEqual(r.status, 'ok');
+  assert.ok(r.message.includes('inherits harness default'));
+});
 
 // --- 1. license-cleanup -----------------------------------------------------
 
@@ -232,6 +298,63 @@ test('checkMcpAvailability: warn when connector count drifts', function () {
   var r = diag.checkMcpAvailability(root);
   assert.strictEqual(r.status, 'warn');
   assert.ok(r.message.includes('connector count drift'));
+});
+
+// --- 3b. full-stack integrity ----------------------------------------------
+
+test('checkContractIntegrity: ok when contract counts match filesystem', function () {
+  var root = buildGoodFixture();
+  var r = diag.checkContractIntegrity(root);
+  assert.strictEqual(r.status, 'ok', r.message);
+});
+
+test('checkContractIntegrity: fail when plugin skill count drifts', function () {
+  var root = buildGoodFixture();
+  writeFile(
+    root,
+    'commander/contract.json',
+    JSON.stringify({
+      plugin_skills: 2,
+      specialist_agents: 9,
+      lifecycle_hooks: 2,
+      bundled_mcp_servers: 2,
+    })
+  );
+  var r = diag.checkContractIntegrity(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.ok(r.message.includes('plugin_skills'));
+});
+
+test('checkVendorSubmodules: ok when vendor count matches CLAUDE.md claim', function () {
+  var root = buildGoodFixture();
+  var r = diag.checkVendorSubmodules(root);
+  assert.strictEqual(r.status, 'ok', r.message);
+});
+
+test('checkVendorSubmodules: warn when vendor count drifts', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'CLAUDE.md', 'Aggregator Ecosystem\n19 vendor submodules in `vendor/`.\n');
+  var r = diag.checkVendorSubmodules(root);
+  assert.strictEqual(r.status, 'warn');
+  assert.ok(r.message.includes('Vendor count drift'));
+});
+
+test('checkBundledMcpServers: ok when .mcp.json count matches contract', function () {
+  var root = buildGoodFixture();
+  var r = diag.checkBundledMcpServers(root);
+  assert.strictEqual(r.status, 'ok', r.message);
+});
+
+test('checkBundledMcpServers: warn when .mcp.json count drifts from contract', function () {
+  var root = buildGoodFixture();
+  writeFile(
+    root,
+    'commander/cowork-plugin/.mcp.json',
+    JSON.stringify({ mcpServers: { context7: {} } })
+  );
+  var r = diag.checkBundledMcpServers(root);
+  assert.strictEqual(r.status, 'warn');
+  assert.ok(r.message.includes('contract expects 2'));
 });
 
 // --- 4. agent-models --------------------------------------------------------
@@ -357,10 +480,10 @@ test('checkCriticalFiles: fail when LICENSE missing', function () {
 
 // --- runDiagnostics ---------------------------------------------------------
 
-test('runDiagnostics: returns 8 results with required shape', function () {
+test('runDiagnostics: returns 13 results with required shape', function () {
   var root = buildGoodFixture();
-  var results = diag.runDiagnostics(root);
-  assert.strictEqual(results.length, 8);
+  var results = diag.runDiagnostics(root, diagnosticsOptions(root));
+  assert.strictEqual(results.length, 13);
   for (var i = 0; i < results.length; i++) {
     var r = results[i];
     assert.ok(r.category, 'result needs category');
@@ -371,23 +494,28 @@ test('runDiagnostics: returns 8 results with required shape', function () {
 
 test('runDiagnostics: all categories ok on canonical fixture', function () {
   var root = buildGoodFixture();
-  var results = diag.runDiagnostics(root);
+  var results = diag.runDiagnostics(root, diagnosticsOptions(root));
   var nonOk = results.filter(function (r) { return r.status !== 'ok'; });
   assert.strictEqual(nonOk.length, 0, 'expected all ok, got: ' + JSON.stringify(nonOk));
 });
 
-test('runDiagnostics: covers all 8 expected categories', function () {
+test('runDiagnostics: covers all 13 expected categories', function () {
   var root = buildGoodFixture();
-  var results = diag.runDiagnostics(root);
+  var results = diag.runDiagnostics(root, diagnosticsOptions(root));
   var categories = results.map(function (r) { return r.category; }).sort();
   var expected = [
     'agent-models',
+    'bundled-mcp-servers',
+    'claude-teams-flag',
+    'contract-integrity',
     'critical-files',
     'display-name',
+    'effort-default',
     'hook-chain',
     'license-cleanup',
     'mcp-availability',
     'test-suite',
+    'vendor-submodules',
     'version-parity',
   ];
   assert.deepStrictEqual(categories, expected);

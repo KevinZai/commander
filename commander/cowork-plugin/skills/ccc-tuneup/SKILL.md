@@ -83,7 +83,7 @@ The probe emits `KEY=VALUE` lines (all side-effect-free, every field `2>/dev/nul
 | `INSTALLED_VERSION` | version from `installed_plugins.json` or `plugin.json` |
 | `CACHED_REMOTE_VERSION` | from `~/.claude/commander/update-cache.json` if < 4h old |
 
-### 1c. Consume ccc-doctor diagnostics (license/hook-chain/mcp/agent-models/version-parity only)
+### 1c. Consume ccc-doctor diagnostics (shared full-stack checks)
 
 ```bash
 [ "$CLONE" != "n/a" ] && node -e "
@@ -94,7 +94,7 @@ The probe emits `KEY=VALUE` lines (all side-effect-free, every field `2>/dev/nul
 " 2>/dev/null || echo "diagnostics n/a"
 ```
 
-Use this output ONLY for: `license-cleanup`, `hook-chain`, `mcp-availability`, `agent-models`, `version-parity` rows. Do NOT use it to compute handler/skill/event/vendor counts — those are computed live in the probe above (diagnostics.js has rot-prone hardcoded constants).
+Use this output for read-only source-tree and settings diagnostics. Keep the probe output as the source of truth for tuneup-specific remediation planning, but surface every `diagnostics.js` row in the scorecard so `/ccc-tuneup --check` covers the same full stack as `/ccc-doctor full`.
 
 ### 1d. Semver freshness check (no python3, no require from update-check.js)
 
@@ -341,7 +341,7 @@ For anything heavy/out-of-scope, offer ONE `mcp__ccd_session__spawn_task` chip (
 - ❌ Edit `~/.claude/**` — the global config is not ours to modify.
 - ❌ Edit `settings.json` or any `CLAUDE.md` without a `*.backup-<stamp>` first.
 - ❌ Hardcode counts/versions — read live, diff against claims.
-- ❌ Reimplement ccc-doctor's source-tree drift detection — consume `lib/diagnostics.js` for license/hook-chain/mcp/agent-models/version-parity rows.
+- ❌ Reimplement ccc-doctor's source-tree drift detection — consume `lib/diagnostics.js` for the shared full-stack rows.
 - ❌ Use `python3` in probes — pure `jq` + `bash` + `node -e` only.
 - ❌ Run `git pull` / restart Desktop yourself — emit commands.
 - ❌ Render rows for checks that passed as if they need fixing.

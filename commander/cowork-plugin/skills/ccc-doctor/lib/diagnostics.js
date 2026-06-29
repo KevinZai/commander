@@ -6,7 +6,7 @@
 // Each `check*` returns a `Result`:
 //   { category: string, status: 'ok'|'warn'|'fail', message: string, remediation?: string }
 //
-// `runDiagnostics(root)` runs all 8 categories and returns Result[].
+// `runDiagnostics(root, options)` runs all categories and returns Result[].
 
 'use strict';
 
@@ -50,6 +50,41 @@ function listFiles(dir, ext) {
   }
 }
 
+function listDirs(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true }).filter(function (entry) {
+      return entry.isDirectory() && entry.name.charAt(0) !== '.';
+    }).map(function (entry) {
+      return entry.name;
+    });
+  } catch (_) {
+    return [];
+  }
+}
+
+function countFilesNamed(dir, filename) {
+  var count = 0;
+  function walk(current) {
+    var entries;
+    try {
+      entries = fs.readdirSync(current, { withFileTypes: true });
+    } catch (_) {
+      return;
+    }
+    entries.forEach(function (entry) {
+      if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'vendor') return;
+      var full = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.isFile() && entry.name === filename) {
+        count++;
+      }
+    });
+  }
+  walk(dir);
+  return count;
+}
+
 function ok(category, message) {
   return { category: category, status: 'ok', message: message };
 }
@@ -60,6 +95,49 @@ function warn(category, message, remediation) {
 
 function fail(category, message, remediation) {
   return { category: category, status: 'fail', message: message, remediation: remediation };
+}
+
+// --- 0. Claude settings -----------------------------------------------------
+
+function settingsPathFromOptions(options) {
+  var homeDir = options && options.homeDir ? options.homeDir : process.env.HOME;
+  return path.join(homeDir || '', '.claude', 'settings.json');
+}
+
+function checkClaudeTeamsFlag(root, options) {
+  var settingsPath = settingsPathFromOptions(options);
+  var settings = safeJson(settingsPath);
+  if (!settings) {
+    return warn(
+      'claude-teams-flag',
+      'Could not read ~/.claude/settings.json; CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS not verified',
+      'Set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS to "1" in ~/.claude/settings.json.'
+    );
+  }
+  var env = settings.env || {};
+  if (env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS === '1') {
+    return ok('claude-teams-flag', 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in ~/.claude/settings.json');
+  }
+  return warn(
+    'claude-teams-flag',
+    'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS is not "1" in ~/.claude/settings.json',
+    'Set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS to "1" for multi-agent fan-out.'
+  );
+}
+
+function checkEffortDefault(root, options) {
+  var settingsPath = settingsPathFromOptions(options);
+  var settings = safeJson(settingsPath);
+  if (!settings) {
+    return warn(
+      'effort-default',
+      'Could not read ~/.claude/settings.json; effortLevel inherits harness default'
+    );
+  }
+  if (settings.effortLevel) {
+    return ok('effort-default', 'effortLevel=' + settings.effortLevel + ' in ~/.claude/settings.json');
+  }
+  return ok('effort-default', 'effortLevel absent in ~/.claude/settings.json; inherits harness default');
 }
 
 // --- 1. License-tier cleanup verification -----------------------------------
@@ -227,6 +305,117 @@ function checkMcpAvailability(root) {
     msgs.join('; '),
     'Reconcile .mcp.json or CONNECTORS.md with canonical claim (2 bundled + ' + EXPECTED_CONNECTOR_COUNT + ' opt-in).'
   );
+}
+
+// --- 3b. Product contract integrity ----------------------------------------
+
+function checkContractIntegrity(root) {
+  var contractPath = path.join(root, 'commander', 'contract.json');
+  var contract = safeJson(contractPath);
+  if (!contract) {
+    return fail(
+      'contract-integrity',
+      'contract.json missing or unparseable at ' + contractPath,
+      'Restore commander/contract.json before release.'
+    );
+  }
+
+  var hooks = safeJson(path.join(root, 'commander', 'cowork-plugin', 'hooks', 'hooks.json'));
+  var mcp = safeJson(path.join(root, 'commander', 'cowork-plugin', '.mcp.json'));
+  var actual = {
+    plugin_skills: countFilesNamed(path.join(root, 'commander', 'cowork-plugin', 'skills'), 'SKILL.md'),
+    specialist_agents: listFiles(path.join(root, 'commander', 'cowork-plugin', 'agents'), '.md').length,
+    lifecycle_hooks: hooks && hooks.hooks ? Object.keys(hooks.hooks).length : null,
+    bundled_mcp_servers: mcp && mcp.mcpServers ? Object.keys(mcp.mcpServers).length : null,
+  };
+  var problems = [];
+  Object.keys(actual).forEach(function (field) {
+    if (actual[field] === null) {
+      problems.push(field + ': unable to count');
+    } else if (contract[field] !== actual[field]) {
+      problems.push(field + ': contract=' + contract[field] + ' actual=' + actual[field]);
+    }
+  });
+
+  if (problems.length === 0) {
+    return ok(
+      'contract-integrity',
+      'contract counts match filesystem: ' +
+        'skills=' + actual.plugin_skills +
+        ', agents=' + actual.specialist_agents +
+        ', hook events=' + actual.lifecycle_hooks +
+        ', bundled MCP=' + actual.bundled_mcp_servers
+    );
+  }
+  return fail(
+    'contract-integrity',
+    'Contract count drift: ' + problems.join('; '),
+    'Update generated assets or reconcile source files before changing contract.json.'
+  );
+}
+
+// --- 3c. Vendor submodule count --------------------------------------------
+
+function readClaudeVendorClaim(root) {
+  var content = safeRead(path.join(root, 'CLAUDE.md'));
+  if (!content) return null;
+  var matches = content.match(/(\d+)\s+vendor(?:\s+submodules|\s+packages)?/gi);
+  if (!matches || matches.length === 0) return null;
+  var last = matches[matches.length - 1].match(/\d+/);
+  return last ? Number(last[0]) : null;
+}
+
+function checkVendorSubmodules(root) {
+  var contract = safeJson(path.join(root, 'commander', 'contract.json')) || {};
+  var actual = listDirs(path.join(root, 'vendor')).length;
+  var claudeClaim = readClaudeVendorClaim(root);
+  var contractClaim = typeof contract.vendor_submodules === 'number' ? contract.vendor_submodules : null;
+  var problems = [];
+
+  if (contractClaim !== null && contractClaim !== actual) {
+    problems.push('contract.json vendor_submodules=' + contractClaim + ' actual=' + actual);
+  }
+  if (claudeClaim !== null && claudeClaim !== actual) {
+    problems.push('CLAUDE.md vendor claim=' + claudeClaim + ' actual=' + actual);
+  }
+
+  if (problems.length > 0) {
+    return warn(
+      'vendor-submodules',
+      'Vendor count drift: ' + problems.join('; '),
+      'Reconcile vendor/ with product claims; do not edit vendor submodules from tuneup.'
+    );
+  }
+
+  var parts = ['actual=' + actual];
+  parts.push('CLAUDE.md=' + (claudeClaim === null ? 'n/a' : claudeClaim));
+  parts.push('contract.json=' + (contractClaim === null ? 'n/a' : contractClaim));
+  return ok('vendor-submodules', 'Vendor submodule count aligned (' + parts.join(', ') + ')');
+}
+
+// --- 3d. Bundled MCP contract ----------------------------------------------
+
+function checkBundledMcpServers(root) {
+  var contract = safeJson(path.join(root, 'commander', 'contract.json')) || {};
+  var mcpPath = path.join(root, 'commander', 'cowork-plugin', '.mcp.json');
+  var mcp = safeJson(mcpPath);
+  if (!mcp || !mcp.mcpServers) {
+    return fail(
+      'bundled-mcp-servers',
+      '.mcp.json missing or unparseable at ' + mcpPath,
+      'Restore commander/cowork-plugin/.mcp.json.'
+    );
+  }
+  var names = Object.keys(mcp.mcpServers).sort();
+  var expectedCount = contract.bundled_mcp_servers;
+  if (typeof expectedCount === 'number' && names.length !== expectedCount) {
+    return warn(
+      'bundled-mcp-servers',
+      '.mcp.json lists ' + names.length + ' bundled MCP servers, contract expects ' + expectedCount + ': ' + names.join(', '),
+      'Reconcile .mcp.json with commander/contract.json.'
+    );
+  }
+  return ok('bundled-mcp-servers', '.mcp.json parses and lists ' + names.length + ' bundled MCP servers: ' + names.join(', '));
 }
 
 // --- 4. Sub-agent model pin check -------------------------------------------
@@ -398,12 +587,17 @@ function checkCriticalFiles(root) {
 
 // --- runner -----------------------------------------------------------------
 
-function runDiagnostics(root) {
+function runDiagnostics(root, options) {
   var r = root || path.resolve(__dirname, '..', '..', '..', '..', '..');
   return [
+    checkClaudeTeamsFlag(r, options),
+    checkEffortDefault(r, options),
     checkLicenseCleanup(r),
     checkHookChain(r),
     checkMcpAvailability(r),
+    checkContractIntegrity(r),
+    checkVendorSubmodules(r),
+    checkBundledMcpServers(r),
     checkAgentModels(r),
     checkTestSuiteHealth(r),
     checkDisplayName(r),
@@ -414,9 +608,14 @@ function runDiagnostics(root) {
 
 module.exports = {
   runDiagnostics: runDiagnostics,
+  checkClaudeTeamsFlag: checkClaudeTeamsFlag,
+  checkEffortDefault: checkEffortDefault,
   checkLicenseCleanup: checkLicenseCleanup,
   checkHookChain: checkHookChain,
   checkMcpAvailability: checkMcpAvailability,
+  checkContractIntegrity: checkContractIntegrity,
+  checkVendorSubmodules: checkVendorSubmodules,
+  checkBundledMcpServers: checkBundledMcpServers,
   checkAgentModels: checkAgentModels,
   checkTestSuiteHealth: checkTestSuiteHealth,
   checkDisplayName: checkDisplayName,
