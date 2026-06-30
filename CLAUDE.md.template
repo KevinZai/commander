@@ -278,6 +278,29 @@ Exceptions (only):
 
 A clickability hook (`commander/cowork-plugin/hooks/clickability-watch.js`) observes the last assistant message and logs violations to `~/.claude/commander/clickability-violations.jsonl`. Violations don't block — they're observed for telemetry.
 
+## Workflow-First Execution & Context Discipline
+
+The lead session is an **ORCHESTRATOR / control tower** — decisions, delegations, and verified conclusions only. Never let it fill with raw file contents or tool output.
+
+### Workflow-first
+- For any **substantive** task — multi-file, multi-step, research, audit, migration, or repo-wide review — use the **Workflow tool**. Fan out agents that read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
+- Go **solo (inline) ONLY** for: a conversational reply, a single trivial edit, or reading the one file you are about to edit.
+- Prefer pipeline stages over barriers (no idle wall-clock). Adversarially verify findings before acting. After you delegate a search, don't also run it yourself — wait for the result. Agents do the reading; you keep the decision.
+
+### Keep context slim
+- Never read large tool outputs into context. Route big results to files — workflows return summaries; `list_*`/MCP overflow goes to disk, then `jq`/`grep`/slice it. **Never `cat` a large file** — read only the part you need (offset/limit).
+- Don't re-read a file you just edited; don't re-derive facts already established this session.
+- Reference code as `path:line`, not by pasting it.
+
+### Proactive compaction (don't wait to be cut off)
+- Track your context budget continuously.
+- At **~70%** used: write or refresh `tasks/SESSION-HANDOFF-<date>.md` capturing current state, decisions made, what-NOT-to-retry, and the exact next step.
+- At **~85%** used: proactively compact / hand off rather than risk an uncontrolled mid-task truncation. The handoff doc + structured memory ARE the durable state; live context is disposable.
+
+**The test:** if the transcript reads like a control tower (decisions in, conclusions out) you're doing it right. If it's filling with file contents or re-reads — push that work into a workflow or a file.
+
+Canonical doctrine: `commander/cowork-plugin/rules/workflow-first.md`.
+
 ## Cache Efficiency Rules
 1. Never add one-off permissions to global settings — use project-level
 2. Never change tools/models mid-session — use subagents

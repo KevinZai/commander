@@ -19,6 +19,16 @@ CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantl
 - **Claude Teams (HARD RULE):** Agent Teams is always on — `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` in `.claude/settings.json` env (and in the global `~/.claude/settings.json`). Multi-agent fan-out (`/ccc-fleet`, dynamic workflows) depends on it. Do not disable.
 - **Motto:** "Pay for Fable on the thinking, not the typing."
 
+## Workflow-First (default)
+
+The lead session is a **control plane** — decisions, delegations, and verified conclusions only.
+
+- **Delegate substantive work:** Any multi-file, multi-step, research, audit, migration, or repo-wide task goes through the **Workflow tool**. Agents read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
+- **Go solo (inline) only** for a conversational reply, a single trivial edit, or reading the one file you're about to edit.
+- **Keep context slim:** reference code as `path:line`, don't re-read files you just edited, route big tool output to disk.
+- **Proactive compaction:** at ~70% context, write/refresh a session handoff doc; at ~85%, compact or hand off rather than risk truncation mid-task.
+- Full doctrine: `commander/cowork-plugin/rules/workflow-first.md`.
+
 ## Critical Rule
 
 **Research the codebase before editing. Never change code you haven't read.** Read files before modifying them. Understand the surrounding context. If you're about to edit a function, read the whole file first.

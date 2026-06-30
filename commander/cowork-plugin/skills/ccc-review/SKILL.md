@@ -21,6 +21,8 @@ argument-hint: "[audit type: diff | security | perf | xray]"
 
 Click-first review flow. Four audit types, one specialist agent per pick, one scorecard artifact. User picks the lens, the agent works in the background, the markdown report lands in `tasks/reviews/`.
 
+> Broad reviews/audits run **workflow-first** — fan out by dimension, adversarially verify findings before acting. See `commander/cowork-plugin/rules/workflow-first.md`.
+
 ## Session markers
 
 - At the START of review (after user picks an audit type): call `mcp__ccd_session__mark_chapter` with `title: "Code review: <branch>"` and `summary: "<audit-type> audit on <branch>"`.

@@ -14,6 +14,8 @@ Ultracode flips two dials at once: **xhigh reasoning** (Opus 4.8 extended thinki
 
 **CC Commander** · Ultracode Mode · [Docs](https://commanderplugin.com)
 
+> Ultracode is the strongest expression of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): **delegate the doing, keep the deciding.**
+
 ---
 
 ## What ultracode is
