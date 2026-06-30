@@ -1,7 +1,7 @@
 ---
 name: kotlin-reviewer
 description: "Kotlin-specific code reviewer. Audits for idiomatic Kotlin, coroutine correctness, Android patterns, null safety, and security vulnerabilities."
-model: claude-sonnet-4-6
+model: claude-sonnet-5
 effort: high
 persona: personas/reviewer
 memory: project

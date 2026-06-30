@@ -33,7 +33,7 @@ The executor model must be paired with a compatible advisor. Only these combinat
 | Executor | Advisor |
 |----------|---------|
 | `claude-haiku-4-5` | `claude-opus-4-8` |
-| `claude-sonnet-4-6` | `claude-opus-4-8` |
+| `claude-sonnet-5` | `claude-opus-4-8` |
 | `claude-opus-4-8` | `claude-opus-4-8` |
 
 **The advisor is always Opus 4.8.** You cannot use Sonnet as an advisor, and you cannot pair Opus 4.5 executor with a different advisor model.
@@ -49,7 +49,7 @@ curl https://api.anthropic.com/v1/messages \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: advisor-tool-2026-03-01" \
   -d '{
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "max_tokens": 4096,
     "tools": [
       {
@@ -77,7 +77,7 @@ import anthropic
 client = anthropic.Anthropic()
 
 response = client.messages.create(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-5",
     max_tokens=4096,
     betas=["advisor-tool-2026-03-01"],
     tools=[
@@ -103,7 +103,7 @@ print(response.content)
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-5",
     max_tokens=4096,
     betas=["advisor-tool-2026-03-01"],
     tools=[
@@ -137,7 +137,7 @@ import Anthropic from "@anthropic-ai/sdk";
 const client = new Anthropic();
 
 const response = await client.beta.messages.create({
-  model: "claude-sonnet-4-6",
+  model: "claude-sonnet-5",
   max_tokens: 4096,
   betas: ["advisor-tool-2026-03-01"],
   tools: [
@@ -163,7 +163,7 @@ console.log(response.content);
 
 ```typescript
 const response = await client.beta.messages.create({
-  model: "claude-sonnet-4-6",
+  model: "claude-sonnet-5",
   max_tokens: 4096,
   betas: ["advisor-tool-2026-03-01"],
   tools: [
@@ -275,7 +275,7 @@ Add an `advisorTool` block to any agent's model config:
 {
   "agents": {
     "your-agent-id": {
-      "model": "claude-sonnet-4-6",
+      "model": "claude-sonnet-5",
       "modelConfig": {
         "advisorTool": {
           "type": "advisor_20260301",
@@ -302,7 +302,7 @@ ClaudeSwap (:8082) proxies all Anthropic requests from OpenClaw. You can configu
 ```json
 {
   "inject": {
-    "model_match": "claude-sonnet-4-6",
+    "model_match": "claude-sonnet-5",
     "tools": [
       {
         "type": "advisor_20260301",

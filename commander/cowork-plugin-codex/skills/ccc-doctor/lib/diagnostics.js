@@ -264,8 +264,8 @@ function checkAgentModels(root) {
     if (EXPECTED_OPUS_AGENTS.indexOf(name) >= 0 && model !== 'claude-opus-4-8') {
       problems.push(name + ': expected claude-opus-4-8, got ' + model);
     }
-    if (EXPECTED_SONNET_PINNED.indexOf(name) >= 0 && model !== 'claude-sonnet-4-6') {
-      problems.push(name + ': expected claude-sonnet-4-6, got ' + model);
+    if (EXPECTED_SONNET_PINNED.indexOf(name) >= 0 && model !== 'claude-sonnet-5') {
+      problems.push(name + ': expected claude-sonnet-5, got ' + model);
     }
   }
   // Upgrade candidates: any agent on a legacy alias instead of explicit pin
@@ -288,7 +288,7 @@ function checkAgentModels(root) {
     return warn(
       'agent-models',
       'Upgrade candidates on legacy aliases: ' + upgradeCandidates.join(', '),
-      'Pin to explicit model strings (e.g. claude-sonnet-4-6) for stable behavior.'
+      'Pin to explicit model strings (e.g. claude-sonnet-5) for stable behavior.'
     );
   }
   return ok('agent-models', 'All ' + files.length + ' agents on explicit model pins');

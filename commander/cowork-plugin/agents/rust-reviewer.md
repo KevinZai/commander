@@ -1,7 +1,7 @@
 ---
 name: rust-reviewer
 description: "Rust-specific code reviewer. Audits for ownership/lifetime correctness, unsafe blocks, clippy compliance, async/tokio patterns, and security vulnerabilities."
-model: claude-sonnet-4-6
+model: claude-sonnet-5
 effort: high
 persona: personas/reviewer
 memory: project

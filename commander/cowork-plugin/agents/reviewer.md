@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: "Reviews code changes for security vulnerabilities, performance issues, correctness, and maintainability. Returns severity-rated structured findings — e.g., 'review…"
-model: claude-sonnet-4-6
+model: claude-sonnet-5
 effort: undefined
 effort: high
 persona: personas/reviewer

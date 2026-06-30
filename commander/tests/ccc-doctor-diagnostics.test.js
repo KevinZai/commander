@@ -116,11 +116,11 @@ function buildGoodFixture() {
   agent('security-auditor', 'claude-opus-4-8');
   agent('debugger', 'claude-opus-4-8');
   agent('product-manager', 'claude-opus-4-8');
-  agent('designer', 'claude-sonnet-4-6');
-  agent('researcher', 'claude-sonnet-4-6');
-  agent('reviewer', 'claude-sonnet-4-6');
-  agent('builder', 'claude-sonnet-4-6');
-  agent('qa-engineer', 'claude-sonnet-4-6');
+  agent('designer', 'claude-sonnet-5');
+  agent('researcher', 'claude-sonnet-5');
+  agent('reviewer', 'claude-sonnet-5');
+  agent('builder', 'claude-sonnet-5');
+  agent('qa-engineer', 'claude-sonnet-5');
   // Audit scripts (empty stubs are enough — we only check existence)
   writeFile(root, 'scripts/audit-frontmatter.js', '// stub\n');
   writeFile(root, 'scripts/audit-counts.js', '// stub\n');

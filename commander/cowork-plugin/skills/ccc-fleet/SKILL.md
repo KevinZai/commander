@@ -299,7 +299,7 @@ CC Commander v6.0 introduces a selective-Fable routing ladder driven by `selectM
 |------|-------|------------|------|
 | **Conductor** (this session) | Fable 5 | 86-100 | Deep orchestration, synthesis, architecture decisions |
 | **Leads** | Opus 4.8 | 66-85 | Complex implementation slices, multi-file features |
-| **Workers** | Sonnet 4.6 | 30-65 | Standard feature work, tests, moderate refactors |
+| **Workers** | Sonnet 5 | 30-65 | Standard feature work, tests, moderate refactors |
 | **Bulk slices** | Haiku 4.5 | 0-29 | Polish, linting, docs, trivial single-file edits |
 
 `selectModelForComplexity(score)` thresholds: ≤29→haiku · 30-65→sonnet · 66-85→opus · 86+→fable.

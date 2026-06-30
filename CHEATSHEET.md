@@ -717,7 +717,7 @@ You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 
 ```json
 {
-  "model": "claude-sonnet-4-5",
+  "model": "claude-sonnet-5",
   "permissions": {
     "allow": [
       "Bash(npm run *)",
@@ -751,6 +751,7 @@ You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 | Model | Best for | Cost |
 |-------|---------|------|
 | `claude-opus-4-5` | Architecture, complex reasoning, audits | $$$ |
+| `claude-sonnet-5` | General development, most tasks (latest/best Sonnet) | $$ |
 | `claude-sonnet-4-5` | General development, most tasks | $$ |
 | `claude-haiku-4` | Fast iteration, simple tasks, bulk ops | $ |
 | `/model <name>` | Switch mid-session | `/model claude-haiku-4` |
@@ -940,7 +941,8 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 |-------|------|-------|--------|-----|
 | **Fable 5** | Deep reasoning escalation | $10/MTok | $50/MTok | `/model claude-fable-5[1m]` when 🧠 deep thinking needed (once/day nudge) |
 | **Opus 4.8** | Everyday session default | $5/MTok | $25/MTok | Main thread, heavy implementation, Fable fallback |
-| **Sonnet 4.6** | General dev, 16 sub-agents | $3/MTok | $15/MTok | Default for most delegated work — reviewers + builders + QA |
+| **Sonnet 5** | General dev, 16 sub-agents (latest/best Sonnet) | $3/MTok | $15/MTok | Default for most delegated work — reviewers + builders + QA |
+| **Sonnet 4.6** | General dev, prior Sonnet | $3/MTok | $15/MTok | Predecessor to Sonnet 5 |
 | **Haiku 4.5** | Fast bulk ops | $1/MTok | $5/MTok | Bulk tasks, hooks, high-turn ops |
 
 **Savings tracking:** `ccc --savings` shows estimated cost vs all-Opus baseline (±30%). Smart routing via `selectModelForComplexity(0-100)`: 0-29→haiku, 30-65→sonnet, 66-85→opus, 86-100→fable.
@@ -973,7 +975,8 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Model | Input (per 1M) | Output (per 1M) | Best Use |
 |-------|---------------|-----------------|---------|
 | claude-opus-4-5 | $15 | $75 | Architecture, deep reasoning |
-| claude-sonnet-4-5 | $3 | $15 | General development |
+| claude-sonnet-5 | $3 | $15 | General development (latest/best Sonnet) |
+| claude-sonnet-4-5 | $3 | $15 | General development (prior Sonnet) |
 | claude-haiku-4 | $0.25 | $1.25 | Fast tasks, bulk ops |
 
 ### Context Budget Rules

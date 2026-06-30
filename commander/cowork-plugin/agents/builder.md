@@ -1,7 +1,7 @@
 ---
 name: builder
 description: "Implements features, fixes bugs, and creates projects from specs. Follows TDD, uses conventional commits, and prefers boring solutions. Delegated from /ccc-build after…"
-model: claude-sonnet-4-6
+model: claude-sonnet-5
 effort: high
 persona: personas/builder
 color: green

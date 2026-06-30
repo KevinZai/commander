@@ -338,7 +338,7 @@ response = client.messages.create(
 
 # Use Sonnet for high-volume production workloads
 standard_response = client.messages.create(
-    model="claude-sonnet-4-6",  # $3.00/$15.00 per 1M tokens
+    model="claude-sonnet-5",  # $3.00/$15.00 per 1M tokens
     max_tokens=1024,
     messages=[{"role": "user", "content": "Summarize this document"}]
 )

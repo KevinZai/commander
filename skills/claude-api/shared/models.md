@@ -8,6 +8,7 @@
 |--------------------|----------------------|-------------------------------|---------|------------|---------------------------|--------|
 | Claude Fable 5     | `claude-fable-5`     | `claude-fable-5`              | 1M      | 128K       | $10 / $50                 | Active |
 | Claude Opus 4.8    | `claude-opus-4-8`    | —                             | 1M      | 128K       | $5 / $25                  | Active |
+| Claude Sonnet 5    | `claude-sonnet-5`    | —                             | 1M      | 64K        | $3 / $15                  | Active |
 | Claude Sonnet 4.6  | `claude-sonnet-4-6`  | —                             | 1M      | 64K        | $3 / $15                  | Active |
 | Claude Haiku 4.5   | `claude-haiku-4-5`   | `claude-haiku-4-5-20251001`   | 200K    | 64K        | $1 / $5                   | Active |
 
@@ -17,7 +18,8 @@
 
 - **Claude Fable 5** — Anthropic's most capable widely released model (GA 2026-06-09). No dateless alias — use the pinned ID `claude-fable-5` directly. Adaptive thinking is **always-on**; does NOT support the `extended-thinking` parameter. Uses the Opus-4.7+ tokenizer: same text produces ~30% more tokens than pre-4.7 models. Available: Claude API, Bedrock (`anthropic.claude-fable-5`), Vertex (`claude-fable-5`), Microsoft Foundry (200K ctx on Foundry). Knowledge cutoff Jan 2026. Pick Fable 5 when you need maximum capability; note it is 2× the price of Opus 4.8.
 - **Claude Opus 4.8** — Best cost/capability ratio for production agents and coding. Adaptive thinking always-on (no `extended-thinking` param); effort defaults to `high` on all surfaces. Adds Fast mode (2.5× speed, ~2× cost) and `ultra`/`xhigh` effort levels. 1M context window. 128K max output (requires streaming for large outputs). Knowledge cutoff Jan 2026.
-- **Claude Sonnet 4.6** — Best combination of speed and intelligence. Supports both extended thinking and adaptive thinking. 1M context window. 64K max output.
+- **Claude Sonnet 5** — Latest and best Sonnet (succeeds Sonnet 4.6). Best combination of speed and intelligence. Supports both extended thinking and adaptive thinking. 1M context window. 64K max output.
+- **Claude Sonnet 4.6** — Previous Sonnet generation. Best combination of speed and intelligence. Supports both extended thinking and adaptive thinking. 1M context window. 64K max output.
 - **Claude Haiku 4.5** — Fastest and most cost-effective model for simple tasks. Extended thinking only (no adaptive). 200K context. 64K max output.
 
 ## Legacy Models (still active)
@@ -68,7 +70,8 @@ When a user asks for a model by name, use this table to find the correct model I
 | "opus 4.5"                                | `claude-opus-4-5`                                                           |
 | "opus 4.1"                                | `claude-opus-4-1`                                                           |
 | "opus 4", "opus 4.0"                      | `claude-opus-4-0`                                                           |
-| "sonnet", "balanced"                      | `claude-sonnet-4-6`                                                         |
+| "sonnet", "balanced"                      | `claude-sonnet-5`                                                           |
+| "sonnet 5"                                | `claude-sonnet-5`                                                           |
 | "sonnet 4.6"                              | `claude-sonnet-4-6`                                                         |
 | "sonnet 4.5"                              | `claude-sonnet-4-5`                                                         |
 | "sonnet 4", "sonnet 4.0"                  | `claude-sonnet-4-0`                                                         |

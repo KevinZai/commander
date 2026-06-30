@@ -9,7 +9,7 @@ Add to your agent's model config in `~/.openclaw/openclaw.json`:
   "models": {
     "sonnet-with-advisor": {
       "provider": "anthropic",
-      "model": "claude-sonnet-4-6",
+      "model": "claude-sonnet-5",
       "extraHeaders": {
         "anthropic-beta": "advisor-tool-2026-03-01"
       },
@@ -35,7 +35,7 @@ In `~/.claudeswap/config.json`:
 {
   "advisorInjection": {
     "enabled": true,
-    "executorModels": ["claude-sonnet-4-6"],
+    "executorModels": ["claude-sonnet-5"],
     "advisorModel": "claude-opus-4-8",
     "maxUses": 3,
     "caching": {"type": "ephemeral", "ttl": "5m"}

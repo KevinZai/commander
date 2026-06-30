@@ -2067,7 +2067,7 @@ Every kit-native hook can be individually disabled via its `KZ_DISABLE_*` env va
 
 ```json
 {
-  "model": "claude-sonnet-4-6",
+  "model": "claude-sonnet-5",
   "permissions": {
     "allow": [
       "Bash(npm run *)",
@@ -2281,7 +2281,7 @@ Verification: [how you'll know it's done]
 | Model | Best For | Cost | When to Use |
 |-------|---------|------|-------------|
 | **Haiku 4.5** | Fast iteration, bulk ops, simple tasks | $ | Lightweight subagents, pair programming, worker agents |
-| **Sonnet 4.6** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows |
+| **Sonnet 5** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows. Best Sonnet — succeeds Sonnet 5. |
 | **Opus 4.8** | Complex architecture, deep reasoning, agentic coding | $$$ | **Everyday session default.** Architectural decisions, research, judgment calls. `ultra`/`xhigh` effort levels. |
 | **Fable 5** | Deep multi-angle reasoning | $$$$ | **Escalation tier only.** Architecture / planning / migration / threat-model sessions where deep reasoning is the actual bottleneck. Activate: `/model claude-fable-5[1m]`. Nudged once per day when ≥2 deep-reasoning signals detected. Motto: *pay for Fable on the thinking, not the typing.* |
 
@@ -2337,7 +2337,7 @@ workflow: <task description> # one-off without mode switch
 graph TD
     A[New Task] --> B{Complexity score}
     B -->|0-29 Simple/Bulk| C[Haiku 4.5 - $]
-    B -->|30-65 Standard Dev| D[Sonnet 4.6 - $$]
+    B -->|30-65 Standard Dev| D[Sonnet 5 - $$]
     B -->|66-85 Architecture/Research| E[Opus 4.8 - $$$]
     B -->|86-100 Deep Reasoning| F[Fable 5 - $$$$]
     C --> G{Subagent?}
@@ -2427,20 +2427,20 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 | # | Persona | Model | Core responsibility |
 |---|---------|-------|-------------------|
 | 1 | `architect` | Fable 5 | System design, tradeoff analysis |
-| 2 | `reviewer` | Sonnet 4.6 | Code review (security / perf / correctness / maintainability) |
-| 3 | `builder` | Sonnet 4.6 | Feature implementation, TDD |
+| 2 | `reviewer` | Sonnet 5 | Code review (security / perf / correctness / maintainability) |
+| 3 | `builder` | Sonnet 5 | Feature implementation, TDD |
 | 4 | `security-auditor` | Fable 5 | OWASP audits, threat modeling |
 | 5 | `debugger` | Fable 5 | Root-cause investigation (Iron Law) |
-| 6 | `designer` | Sonnet 4.6 | UI/UX critique, accessibility |
-| 7 | `qa-engineer` | Sonnet 4.6 | Edge-case hunting, coverage audit |
-| 8 | `devops-engineer` | Sonnet 4.6 | Deploy planning, rollback specs |
-| 9 | `data-analyst` | Sonnet 4.6 | Signal extraction, statistical honesty |
-| 10 | `content-strategist` | Sonnet 4.6 | Brand voice, messaging, copy |
+| 6 | `designer` | Sonnet 5 | UI/UX critique, accessibility |
+| 7 | `qa-engineer` | Sonnet 5 | Edge-case hunting, coverage audit |
+| 8 | `devops-engineer` | Sonnet 5 | Deploy planning, rollback specs |
+| 9 | `data-analyst` | Sonnet 5 | Signal extraction, statistical honesty |
+| 10 | `content-strategist` | Sonnet 5 | Brand voice, messaging, copy |
 | 11 | `product-manager` | Fable 5 | User stories, acceptance criteria |
-| 12 | `performance-engineer` | Sonnet 4.6 | p99 benchmarking, hotpath analysis |
-| 13 | `researcher` | Sonnet 4.6 | Deep research, citation management |
-| 14 | `technical-writer` | Sonnet 4.6 | Documentation, clarity audits |
-| 15 | `fleet-worker` | Sonnet 4.6 | Parallel batch execution |
+| 12 | `performance-engineer` | Sonnet 5 | p99 benchmarking, hotpath analysis |
+| 13 | `researcher` | Sonnet 5 | Deep research, citation management |
+| 14 | `technical-writer` | Sonnet 5 | Documentation, clarity audits |
+| 15 | `fleet-worker` | Sonnet 5 | Parallel batch execution |
 
 Fable 5 personas (`architect`, `security-auditor`, `debugger`, `product-manager`) need deep multi-angle reasoning. Opus 4.8 is the everyday session default. Sonnet handles the rest at lower cost.
 
