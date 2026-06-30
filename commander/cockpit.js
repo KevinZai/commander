@@ -79,6 +79,44 @@ function detectAuthSource() {
   return '?';
 }
 
+/**
+ * Permission / auto-mode status detection — read-only, degrades gracefully.
+ * Returns { auto, awaiting }. See status-line.js getPermissionState for the
+ * source-of-truth doc; this is a standalone mirror (cockpit.js has no deps on it).
+ */
+function detectPermissionState() {
+  var state = { auto: false, awaiting: false };
+  function truthy(v) { return v === '1' || v === 'true' || v === 'yes'; }
+  try {
+    var os = require('os');
+    var path = require('path');
+    var fs = require('fs');
+    var e = process.env;
+    if (truthy(e.CCC_YOLO) || truthy(e.CCC_AUTO_MODE) || truthy(e.CCC_AUTOFIX_APPROVED) ||
+        truthy(e.CLAUDE_AUTO_APPROVE) || truthy(e.CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS)) {
+      state.auto = true;
+    }
+    if (truthy(e.CCC_AWAITING_PERMISSION)) state.awaiting = true;
+    try {
+      var cfgPath = path.join(os.homedir(), '.commander', 'config.json');
+      if (fs.existsSync(cfgPath)) {
+        var cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+        if (cfg && (cfg.auto_mode === true || cfg.yolo === true)) state.auto = true;
+      }
+    } catch (_) {}
+    try {
+      var sp = path.join(os.homedir(), '.claude', 'commander', 'permission-state.json');
+      if (fs.existsSync(sp)) {
+        var ps = JSON.parse(fs.readFileSync(sp, 'utf8'));
+        if (ps && ps.awaiting === true && (!ps.ts || (Date.now() - ps.ts) < 60000)) {
+          state.awaiting = true;
+        }
+      }
+    } catch (_) {}
+  } catch (_) {}
+  return state;
+}
+
 function fmtTimeRemaining(minutesLeft) {
   if (minutesLeft <= 0) return '0m';
   if (minutesLeft < 60) return Math.round(minutesLeft) + 'm';
@@ -136,6 +174,9 @@ function renderCockpitStatus(data) {
   if (data.linearTicket) parts.push('\u{1F4CB} ' + bold(data.linearTicket, t.primary) + (data.linearTitle ? ' ' + dim(data.linearTitle) : ''));
   parts.push('\u{1F3AF} ' + bold(String(data.skillCount || 0), t.primary) + dim(' skills'));
   parts.push('\u{1F4E6} ' + bold(String(data.vendorCount || 0), t.secondary) + dim(' vendors'));
+  var permS = detectPermissionState();
+  if (permS.awaiting) parts.push('\u{1F7E1} ' + bold('PERM', [255, 200, 50]));
+  if (permS.auto) parts.push('\u{1F7E2} ' + bold('AUTO', [80, 220, 80]));
   if (data.activeSkill) parts.push('\u26A1 ' + col(data.activeSkill, t.accent || t.primary));
   var dir = data.cwd || process.cwd();
   var shortDir = dir.replace(require('os').homedir(), '~');
@@ -208,6 +249,11 @@ function renderCockpitFooter(data) {
 
   // Skills count
   parts.push('\u{1F3AF}' + col(String(data.skillCount || 0), t.primary));
+
+  // Permission / auto-mode indicators
+  var perm = detectPermissionState();
+  if (perm.awaiting) parts.push('\u{1F7E1}' + bold('PERM', [255, 200, 50]));
+  if (perm.auto) parts.push('\u{1F7E2}' + bold('AUTO', [80, 220, 80]));
 
   // Linear ticket
   if (data.linearTicket) {

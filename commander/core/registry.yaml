@@ -2,7 +2,7 @@
 # DO NOT edit by hand. Run: node scripts/build-from-registry.js --generate
 
 generated: 2026-06-30
-version: 6.0.0
+version: 6.1.0
 skills:
   - id: ab-test-setup
     path: skills/ab-test-setup/SKILL.md
@@ -1029,6 +1029,11 @@ skills:
     domain: ccc-data
     tier: free
     description: "name: ccc-data"
+  - id: ccc-debate
+    path: skills/ccc-debate/SKILL.md
+    domain: ccc-debate
+    tier: free
+    description: "name: ccc-debate"
   - id: ccc-deploy
     path: skills/ccc-deploy/SKILL.md
     domain: ccc-deploy
@@ -1169,6 +1174,11 @@ skills:
     domain: ccc-plan
     tier: free
     description: "name: ccc-plan"
+  - id: ccc-plan-exec
+    path: skills/ccc-plan-exec/SKILL.md
+    domain: ccc-plan-exec
+    tier: free
+    description: "name: ccc-plan-exec"
   - id: ccc-qa
     path: skills/ccc-qa/SKILL.md
     domain: ccc-qa
@@ -1264,6 +1274,11 @@ skills:
     domain: ccc-testing
     tier: free
     description: "name: ccc-testing"
+  - id: ccc-triage
+    path: skills/ccc-triage/SKILL.md
+    domain: ccc-triage
+    tier: free
+    description: "name: ccc-triage"
   - id: ccc-tuneup
     path: skills/ccc-tuneup/SKILL.md
     domain: ccc-tuneup

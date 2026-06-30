@@ -39,7 +39,7 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable with you
 | MCP | Category | Why it matters | Affiliate? | Install |
 |-----|----------|----------------|------------|---------|
 | Linear | Tasks | First-class CC Commander integration; already wired in Kevin's settings | No | Official Linear MCP |
-| Supabase | Backend | Primary DB recommendation for `/ccc-build` SaaS | ✅ | `npx -y @supabase/mcp-server-supabase` |
+| **Supabase** ⭐ | Backend (first-class) | **Default backend** for `/ccc-build` SaaS — auth, DB, storage, edge funcs. Also ships as a **Codex plugin**, so the same setup works in Claude Code *and* OpenAI Codex. | ✅ | `npx -y @supabase/mcp-server-supabase` |
 | Vercel | Hosting | Matches `/ccc-build` web scaffold | ✅ | Official Vercel MCP |
 | Neon | Database | Postgres serverless, lighter than Supabase for tiny projects | ✅ | `npx -y @neondatabase/mcp-server-neon` |
 | Fly.io | Hosting | Services + Docker; matches `/ccc-devops` | ✅ | TBD — verify before Pro launch |
@@ -54,6 +54,24 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable with you
 | Cloudflare | Edge | Workers + R2 + D1 | ✅ | Cloudflare MCP |
 | Resend | Email | Transactional email for SaaS | ✅ | TBD — verify before Pro launch |
 | AgentMail | Email | Agent-native inbox (new) | No | AgentMail MCP |
+
+## ⭐ Supabase — first-class backend
+
+Supabase is the **default, first-class backend connector** in CC Commander. When `/ccc-build` scaffolds a SaaS, or a user picks the Backend category in `/ccc-connect`, Supabase is recommended first.
+
+- **Why first-class:** auth + Postgres + storage + edge functions in one MCP — covers the whole backend surface a shipped SaaS needs, so it's the broadest single connector.
+- **Codex plugin too:** Supabase now also ships as an **OpenAI Codex plugin**. The same Supabase project and credentials work whether you drive it from Claude Code (via the MCP above) or from Codex (via the plugin) — no separate setup.
+- **Affiliate (✅):** the Supabase row is an affiliate link. Signing up via `/ccc-connect` may earn CC Commander a commission at no cost to you. This funds maintenance of the MIT-licensed tier and never changes the recommendation — Supabase is recommended on merit. A non-affiliate alternative (Neon, or bring-your-own Postgres) is always surfaced alongside it.
+- **Install:** `npx -y @supabase/mcp-server-supabase` (env `SUPABASE_URL`, `SUPABASE_KEY`) — or `/ccc-connect backend` for the click-through flow.
+
+## 🧬 acpx — bring-your-own agent harness
+
+acpx is the **agent-harness layer**, not an MCP server. It's a headless **ACP (Agent Client Protocol)** CLI that CC Commander shells out to for agent-to-agent runs — background, parallel, and crash-resilient sessions that go beyond a single Claude conversation.
+
+- **What it is:** a global CLI (`acpx prompt | exec | sessions`) that drives other agent harnesses headlessly. CC Commander uses it to fan work out across sessions.
+- **Not an MCP:** acpx has no `claude mcp add` step and no credential file. It is wired through the `acpx` and `acpx-patterns` skills, not the `.mcp.json` config.
+- **Install:** `npm install -g acpx`, then `acpx --help`.
+- **When to use:** parallel/background CC sessions, crash-resilient dispatch, or any workflow that needs to coordinate multiple agent harnesses. Reach it via `/ccc-connect agent-harness` or the `acpx` / `acpx-patterns` skills directly.
 
 ## 📁 Perforce workspaces
 

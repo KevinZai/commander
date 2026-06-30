@@ -80,6 +80,54 @@ Dispatch immediately — do NOT re-prompt. Map:
 
 If the user passes an argument (`/ccc-design landing`), skip the picker and dispatch directly.
 
+---
+
+## Sub-flow A — Chat UI (shadcn chat-interface)
+
+Trigger when the user asks for a chat UI, AI assistant interface, messaging panel, support widget, or "chat like ChatGPT/Claude". Offer it as a 5th option only when intent is clearly chat-related — otherwise reach it via the routing matrix below.
+
+1. **Pull real components** — prefer the shadcn MCP if connected. Use `mcp__Shadcn_UI__list_blocks` / `mcp__Shadcn_UI__get_block` and `mcp__Shadcn_UI__get_component` to fetch the canonical `chat-interface` building blocks: message list, message bubble (user vs assistant), composer/input with send, streaming/typing indicator, scroll-to-bottom, and the optional sidebar/thread list. If the MCP is absent, suggest `/ccc-connect shadcn`, then fall back to scaffolding the same primitives by hand.
+2. **Compose, don't reinvent** — assemble fetched blocks into `ChatPanel` + `MessageList` + `Composer`. Keep streaming, auto-scroll, and empty-state as first-class.
+3. **Apply the design soul** — if a `Design.md` exists (Sub-flow B), apply its tokens before final styling so the chat matches the product's voice.
+4. **Polish** — run the Impeccable Suite `polish` pass on spacing, contrast, and motion of the bubbles + composer.
+
+> Reference: shadcn `chat-interface` blocks are the source of truth for chat scaffolding — don't hand-roll bubbles/composers when the block exists.
+
+## Sub-flow B — Design.md (capture + apply a design's "soul")
+
+A `Design.md` file at repo root is the portable, human-readable soul of a product's look — its typography, color, and spacing decisions. This sub-flow has two directions; ask which via `AskUserQuestion`:
+
+```
+question: "Design.md — capture or apply?"
+header: "Design soul"
+multiSelect: false
+options:
+  - label: "📥 Capture (generate)"
+    description: "Read the current UI/tokens and distill them into a Design.md."
+    preview: "Scans tailwind.config, CSS vars, fonts → writes Design.md."
+  - label: "📤 Apply (consume)"
+    description: "Read an existing Design.md and apply its soul to new/edited UI."
+    preview: "Loads tokens from Design.md → uses them on every component."
+```
+
+- **Capture (generate)** — inspect `tailwind.config.*`, global CSS custom properties, font imports, and a few representative components. Distill into a `Design.md` with these sections: **Typography** (families, scale, weights, line-height), **Color** (named tokens + hex + semantic roles: bg/fg/primary/accent/border/muted), **Spacing** (base unit + scale + radius + shadow), **Voice/Mood** (one paragraph — the feeling). Write it with `Write` to repo root. Confirm before overwriting an existing `Design.md`.
+- **Apply (consume)** — read `Design.md`, load its tokens into working memory, and use them as the binding constraint for every subsequent component/edit in this session (and pass them in the `brand_context` payload to any spawned `frontend-design` agent). If no `Design.md` exists, offer Capture first.
+
+> `Design.md` is the single source of truth for a project's soul — capture once, apply everywhere, so chat UIs (Sub-flow A) and screenshot-derived UIs (Sub-flow C) stay on-brand.
+
+## Sub-flow C — Screenshot → interactive UI + onboarding video
+
+Trigger when the user pastes/attaches a screenshot (or mockup image) and wants it turned into working UI, optionally with an onboarding/demo video.
+
+1. **Read the image** — use `Read` on the screenshot path to see the layout, then describe structure: regions, components, type scale, color, spacing rhythm.
+2. **Apply the soul** — if a `Design.md` exists (Sub-flow B), reconcile observed styles against its tokens so the rebuild is on-brand rather than a pixel-trace.
+3. **Build interactive UI** — spawn the `frontend-design` agent (background) with payload `{ type: "screenshot-to-ui", stack: <detected>, brand_context: <Design.md tokens or "ask"> }`. Produce production React + Tailwind with real interactivity (hover/focus/active states, responsive breakpoints), not a static clone.
+4. **Onboarding video (pair with remotion)** — ask via `AskUserQuestion` whether to also produce a short onboarding/demo video. If yes, load the `remotion` skill and generate a programmatic walkthrough: scripted scenes that highlight the rebuilt UI's key flows (intro → feature beats → CTA), captioned, exported to MP4. Keep the video tokens (fonts/colors) sourced from `Design.md` for consistency.
+
+> Pairing note: UI build = `frontend-design` agent; video = `remotion` skill. They share the `Design.md` soul so the product and its onboarding film feel like one thing.
+
+---
+
 ## Anti-patterns — DO NOT
 
 - ❌ Render a numbered list of 39 skills and ask the user to type one
@@ -87,6 +135,10 @@ If the user passes an argument (`/ccc-design landing`), skip the picker and disp
 - ❌ Spawn multiple agents in parallel for Landing — one at a time
 - ❌ Skip the context strip — we need to tailor the preview field
 - ❌ Ignore the recommendation logic — ⭐ is the whole point
+- ❌ Hand-roll chat bubbles/composers when the shadcn `chat-interface` block exists (Sub-flow A)
+- ❌ Overwrite an existing `Design.md` without confirming (Sub-flow B)
+- ❌ Pixel-trace a screenshot into a static clone — rebuild interactive + on-brand (Sub-flow C)
+- ❌ Generate the onboarding video without sourcing tokens from `Design.md`
 
 ---
 
@@ -122,6 +174,9 @@ Below is the full routing matrix for agents that drill deeper after an initial p
 | "Retro" / "Pixel art" / "Glitch" | `retro-pixel` |
 | "Landing page" / "Hero section" | `landing-page-builder` + `interactive-landing` |
 | "Design system" / "Clean UI" | `frontend-design` + `design-consultation` |
+| "Chat UI" / "AI assistant interface" | Sub-flow A → shadcn `chat-interface` blocks |
+| "Capture / apply our design soul" | Sub-flow B → `Design.md` generate/consume |
+| "Turn this screenshot into UI" / "+ onboarding video" | Sub-flow C → `frontend-design` + `remotion` |
 | "Polish this" / "Make it better" | Impeccable Suite → `critique` then `polish` |
 | "Make it bolder" / "More impact" | `bolder` + `overdrive` |
 | "Tone it down" / "Too much" | `quieter` + `distill` |

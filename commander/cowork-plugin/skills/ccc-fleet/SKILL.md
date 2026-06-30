@@ -71,6 +71,8 @@ Prepend ⭐ to the best-fit option based on context:
 
 ### Native workflow (Claude Code v2.1.154+)
 
+This skill rides Anthropic's native `Workflow` tool (trigger word `workflow`) — it does not re-implement orchestration. The Agent-based flow below is only the fallback for clients without the `Workflow` tool.
+
 If the `Workflow` tool is available, prefer invoking the bundled fleet workflow instead of the Agent-based dispatch below. Map existing picker choices to workflow args:
 
 | Picker choice | Workflow invocation |
