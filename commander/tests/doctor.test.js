@@ -72,3 +72,31 @@ test('doctor.printAuthReport does not throw', function() {
   assert.ok(captured.includes('Summary:'), 'Report should include Summary');
   assert.ok(captured.includes('ccc doctor --auth'), 'Report should include command name');
 });
+
+test('doctor.runFullStackChecks returns diagnostics without throwing', function() {
+  var root = path.join(__dirname, '..', '..');
+  var result = doctor.runFullStackChecks(root);
+  assert.ok(Array.isArray(result.checks), 'Should have full-stack checks array');
+  assert.ok(result.checks.length >= 13, 'Should include expanded diagnostics');
+  assert.ok(result.summary, 'Should have summary');
+  assert.ok(result.checks.some(function(c) { return c.category === 'contract-integrity'; }), 'Should include contract integrity');
+  assert.ok(result.checks.some(function(c) { return c.category === 'vendor-submodules'; }), 'Should include vendor submodules');
+  assert.ok(result.checks.some(function(c) { return c.category === 'bundled-mcp-servers'; }), 'Should include bundled MCP servers');
+});
+
+test('doctor.printFullStackReport does not throw for doctor or tuneup', function() {
+  var root = path.join(__dirname, '..', '..');
+  var result = doctor.runFullStackChecks(root);
+  var oldWrite = process.stdout.write.bind(process.stdout);
+  var captured = '';
+  process.stdout.write = function(s) { captured += s; return true; };
+  try {
+    doctor.printFullStackReport(result, { title: 'ccc --doctor' });
+    doctor.printFullStackReport(result, { title: 'ccc --tuneup', tuneup: true });
+  } finally {
+    process.stdout.write = oldWrite;
+  }
+  assert.ok(captured.includes('ccc --doctor'), 'Report should include doctor title');
+  assert.ok(captured.includes('ccc --tuneup'), 'Report should include tuneup title');
+  assert.ok(captured.includes('Summary:'), 'Report should include Summary');
+});

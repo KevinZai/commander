@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# ccc-makeover
+# /ccc-makeover — Project makeover hub
 
 > Load ONE skill. Get the full project makeover pipeline. Audit → score → fix in one pass.
 

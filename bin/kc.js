@@ -23,6 +23,8 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --version    Show version');
   console.log('  --test       Validate all modules');
   console.log('  --stats      Quick stats');
+  console.log('  --doctor     Full-stack diagnostics');
+  console.log('  --tuneup     Read-only tuneup diagnostics');
   console.log('  --savings    Estimated savings vs all-Opus baseline (today / month / all-time)');
   console.log('  --repair     Fix corrupt state');
   console.log('  --simple     Menu-only mode (no tmux split)');
@@ -84,6 +86,13 @@ if (args.includes('--stats')) {
   console.log('  Cost:         $' + (s.totalCost||0).toFixed(2));
   console.log('  Level:        ' + st2.getUserLevel(cs) + '\n');
   process.exit(0);
+}
+if (args.includes('--doctor') || args.includes('--tuneup')) {
+  var doc = require(path.join(__dirname, '..', 'commander', 'doctor'));
+  var isTuneup = args.includes('--tuneup');
+  var docResult = doc.runFullStackChecks(path.resolve(__dirname, '..'));
+  doc.printFullStackReport(docResult, { title: isTuneup ? 'ccc --tuneup' : 'ccc --doctor', tuneup: isTuneup });
+  process.exit(docResult.summary.fail > 0 ? 1 : 0);
 }
 if (args.includes('--savings')) {
   var svMod = require(path.join(__dirname,'..','commander','lib','savings'));

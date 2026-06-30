@@ -106,6 +106,8 @@ No `spawn_task` chips for build — scaffold blockers are reported in the agent'
 
 ## Step 3 — Dispatch background agent
 
+> 🏗️ Multi-file scaffold work is delegated workflow-first per `commander/cowork-plugin/rules/workflow-first.md` — the lead session stays a control plane; agents do the building.
+
 On user 'go', invoke the `Agent` tool with:
 
 - `subagent_type: general-purpose`

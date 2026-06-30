@@ -15,6 +15,8 @@ argument-hint: "[fanout | pipeline | review | background | team]"
 
 Launch multiple Sonnet agents in parallel worktrees. Click-first picker selects the pattern.
 
+> `/ccc-fleet` is the **manual-dispatch sibling** of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): same delegate-the-doing-keep-the-deciding discipline, with you explicitly choosing the fan-out / pipeline / dialectic pattern.
+
 Promoted from `commands/ccc-parallel.md` (legacy slash command).
 
 ## Response shape (EVERY time)

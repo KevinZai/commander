@@ -2,6 +2,27 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [6.1.0] — 2026-06-29
+
+### Added
+
+- **Claude Teams hard rule** — documented `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` as the required flag for Teams-aware agent execution.
+- **`/ccc-yolo-setup` skill** — safe-YOLO setup keeps Plan mode as the risky-change gate while auto-approving a vetted read-only/safe allowlist and logging auto-approvals.
+- **`/ccc-ecc` skill** — selective Everything Claude Code loader for one ECC skill, agent, or hook from `vendor/everything-claude-code/` into `~/.claude/`, without copying the full ECC harness.
+- **How Commander Extends ECC docs** — README and BIBLE now spell out the boundary: ECC owns raw harness breadth; Commander adds the click-first PM/orchestration layer and selective loading.
+
+### Changed
+
+- **Plugin skill count 63 → 64** — `/ccc-ecc` added.
+- **Slash-command dedupe** — `ccc-linear-board` → `ccc-linear`, `ccc-code-review` → `ccc-review`, `ccc-session` → `ccc-save-session` / `ccc-resume-session`, and `ccc-domains` → `ccc-learn` now behave as alias-routers instead of duplicate command surfaces.
+- **`/ccc-*` H1 title normalization** — skill document titles now match slash-command naming consistently.
+
+### Fixed
+
+- **Malformed-description audit** — fixed 5 malformed skill descriptions so frontmatter stays short, parseable, and test-compliant.
+
+---
+
 ## [6.0.0] — 2026-06-10
 
 ### Added

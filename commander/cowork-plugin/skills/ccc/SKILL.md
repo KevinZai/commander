@@ -18,6 +18,8 @@ argument-hint: "[intent keyword: build | review | ship | design | learn | more]"
 
 Click-first entry point to the whole CC Commander surface (60 ccc-* skills, 22 specialist agents, 2 credential-free bundled MCP servers + 16 opt-in via /ccc-connect). The user types `/ccc` and gets a native visual picker — no typing, no menus.
 
+> **Workflow-first.** CC Commander delegates substantive work to the Workflow tool / fleet; the lead session stays a thin control plane (conclusions in, file-dumps out). See `../../rules/workflow-first.md`.
+
 ## Response shape (EVERY time)
 
 Output exactly four sections in order: **0) onboarding gate, 1) ASCII hero banner, 2) context strip, 3) picker (AskUserQuestion), 4) dispatch on selection**. Sections 1-3 are rendered up front; section 4 fires after the user clicks.

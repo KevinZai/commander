@@ -111,6 +111,23 @@ function runAuthChecks() {
   return { checks: checks, summary: summary };
 }
 
+function summarizeDiagnosticResults(results) {
+  var summary = { ok: 0, warn: 0, fail: 0 };
+  for (var i = 0; i < results.length; i++) {
+    if (results[i].status === 'ok') summary.ok++;
+    else if (results[i].status === 'warn') summary.warn++;
+    else summary.fail++;
+  }
+  return summary;
+}
+
+function runFullStackChecks(root, options) {
+  var diag = require('./cowork-plugin/skills/ccc-doctor/lib/diagnostics');
+  var repoRoot = root || path.resolve(__dirname, '..');
+  var checks = diag.runDiagnostics(repoRoot, options);
+  return { checks: checks, summary: summarizeDiagnosticResults(checks) };
+}
+
 /**
  * Print auth check results to stdout.
  */
@@ -144,7 +161,45 @@ function printAuthReport(result) {
   process.stdout.write('\n');
 }
 
-module.exports = { runAuthChecks, printAuthReport, checkOpCli, checkEnvAbsent, checkManagedByHost, checkResponseStyle };
+function printFullStackReport(result, opts) {
+  var checks = result.checks;
+  var summary = result.summary;
+  var title = opts && opts.title ? opts.title : 'ccc --doctor';
+  var tuneup = opts && opts.tuneup;
+
+  process.stdout.write('\n' + BOLD + title + RESET + '\n\n');
+
+  for (var i = 0; i < checks.length; i++) {
+    var c = checks[i];
+    var icon = c.status === 'ok' ? (GREEN + '✅' + RESET) : c.status === 'warn' ? (YELLOW + '⚠️ ' + RESET) : (RED + '❌' + RESET);
+    var line = icon + ' ' + c.category + ': ' + c.message;
+    process.stdout.write(line + '\n');
+    if (c.remediation && c.status !== 'ok') {
+      process.stdout.write(DIM + '     → ' + c.remediation + RESET + '\n');
+    }
+  }
+
+  process.stdout.write('\n');
+  var summaryColor = summary.fail > 0 ? RED : summary.warn > 0 ? YELLOW : GREEN;
+  process.stdout.write(summaryColor + BOLD + 'Summary: ' + summary.fail + ' critical, ' + summary.warn + ' warning, ' + summary.ok + ' ok' + RESET + '\n');
+  if (tuneup) {
+    process.stdout.write(DIM + 'Tuneup is read-only here; warnings above are suggested fixes to review before applying changes.' + RESET + '\n');
+  } else if (summary.warn > 0) {
+    process.stdout.write(DIM + 'Warnings are non-blocking but worth addressing.' + RESET + '\n');
+  }
+  process.stdout.write('\n');
+}
+
+module.exports = {
+  runAuthChecks: runAuthChecks,
+  runFullStackChecks: runFullStackChecks,
+  printAuthReport: printAuthReport,
+  printFullStackReport: printFullStackReport,
+  checkOpCli: checkOpCli,
+  checkEnvAbsent: checkEnvAbsent,
+  checkManagedByHost: checkManagedByHost,
+  checkResponseStyle: checkResponseStyle,
+};
 
 // ─── CLI entry ────────────────────────────────────────────────
 
@@ -154,8 +209,16 @@ if (require.main === module) {
     var result = runAuthChecks();
     printAuthReport(result);
     process.exit(result.summary.fail > 0 ? 1 : 0);
+  } else if (args.includes('--tuneup')) {
+    var tuneupResult = runFullStackChecks();
+    printFullStackReport(tuneupResult, { title: 'ccc --tuneup', tuneup: true });
+    process.exit(tuneupResult.summary.fail > 0 ? 1 : 0);
+  } else if (args.includes('--doctor') || args.includes('--full')) {
+    var fullResult = runFullStackChecks();
+    printFullStackReport(fullResult, { title: 'ccc --doctor' });
+    process.exit(fullResult.summary.fail > 0 ? 1 : 0);
   } else {
-    process.stdout.write('Usage: node commander/doctor.js --auth\n');
+    process.stdout.write('Usage: node commander/doctor.js --auth | --doctor | --tuneup\n');
     process.exit(0);
   }
 }
