@@ -90,6 +90,7 @@ Default to the starred first option unless user actively picks an alternative.
 When running the reasoning step, the internal Opus call uses these heuristics, ranked by signal strength:
 
 ### Tier 1 — Strong signals (drive the recommendation)
+- **Substantive task (multi-file / research / audit / migration / repo-wide)** → recommend running it workflow-first (the Workflow tool or `/ccc-fleet` / `/ccc-ultracode`); agents return conclusions, not file dumps. See `commander/cowork-plugin/rules/workflow-first.md`.
 - **Branch is ahead of main + tests present** → `/ccc-review diff` (audit before PR)
 - **Branch is ahead of main + no tests** → `/ccc-build` with TDD emphasis OR `/ccc-plan` if spec unclear
 - **No CLAUDE.md + empty repo or only README** → `/ccc-start` (onboard + plan file)

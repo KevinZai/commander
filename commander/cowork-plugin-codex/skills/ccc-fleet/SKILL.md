@@ -15,6 +15,8 @@ argument-hint: "[fanout | pipeline | review | background | team]"
 
 Launch multiple Sonnet agents in parallel worktrees. Click-first picker selects the pattern.
 
+> `/ccc-fleet` is the **manual-dispatch sibling** of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): same delegate-the-doing-keep-the-deciding discipline, with you explicitly choosing the fan-out / pipeline / dialectic pattern.
+
 Promoted from `commands/ccc-parallel.md` (legacy slash command).
 
 ## Response shape (EVERY time)
@@ -68,6 +70,8 @@ Prepend ⭐ to the best-fit option based on context:
 - Complex multi-file feature needing architecture + implementation + polish → ⭐ Team hierarchy
 
 ### Native workflow (Claude Code v2.1.154+)
+
+This skill rides Anthropic's native `Workflow` tool (trigger word `workflow`) — it does not re-implement orchestration. The Agent-based flow below is only the fallback for clients without the `Workflow` tool.
 
 If the `Workflow` tool is available, prefer invoking the bundled fleet workflow instead of the Agent-based dispatch below. Map existing picker choices to workflow args:
 

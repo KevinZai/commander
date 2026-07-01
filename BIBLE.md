@@ -25,7 +25,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v6.0.0 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v6.2.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -1379,7 +1379,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v6.0.0)
+### 🛠️ Plugin Workflows (v6.2.0)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
@@ -2407,7 +2407,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 ---
 ## Built on Claude Agent SDK
 
-> *v6.0.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v6.2.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2451,7 +2451,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v6.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 67 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v6.2.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 67 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2663,7 +2663,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v6.0.0 — How CCC thinks before it acts.*
+> *Appendix: v6.2.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 

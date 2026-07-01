@@ -35,7 +35,7 @@ The lead session is a **control plane** — decisions, delegations, and verified
 
 ## Desktop Plugin (PRIMARY PRODUCT)
 
-CC Commander's primary product as of v6.0.0. Claude Cowork Desktop / Claude Code Desktop install:
+CC Commander's primary product as of v6.2.0. Claude Cowork Desktop / Claude Code Desktop install:
 
 **Via GUI (Cowork Desktop / Code Desktop):**
 1. Settings → Plugin Marketplace → **Add from GitHub**
@@ -50,7 +50,7 @@ CC Commander's primary product as of v6.0.0. Claude Cowork Desktop / Claude Code
 
 **Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
 
-**v6.0.0:** 67 plugin skills (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup) + 22 specialist agents + 23 lifecycle hooks × 38 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **free for now**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; no paid upgrade path planned.
+**v6.2.0:** 67 plugin skills (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup) + 22 specialist agents + 23 lifecycle hooks × 38 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **free for now**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; no paid upgrade path planned.
 
 **The 12 /ccc-* specialist workflows (all click-first via AskUserQuestion native picker):**
 - `/ccc` — main hub (6 intents via nested AUQ)
@@ -71,7 +71,7 @@ CC Commander's primary product as of v6.0.0. Claude Cowork Desktop / Claude Code
 
 Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
 
-### Architecture note (v6.0.0+)
+### Architecture note (v6.2.0+)
 
 Plugin commands are provided as **SKILLS** (not plugin commands) so they appear as plain `/ccc-*` in the autocomplete (no `commander:` namespace prefix). This is the correct primitive for click-first UX in Cowork Desktop. Menus live in `commander/cowork-plugin/menus/*.json` (root + 6 sub-menus); the template at `commander/cowork-plugin/lib/menu-artifact.html.tpl` and renderer at `commander/cowork-plugin/lib/menu-render.js` are kept for future use if/when Claude Desktop adds interactive-artifact support, but the active UX uses AskUserQuestion-native chip pickers (confirmed working in Cowork Desktop).
 
@@ -156,7 +156,7 @@ Compound Engineering (11.5K), claude-skills (8.6K),
 claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
 claude-code-prompts (142).
 
-**Note:** `claude-mem` was previously vendored but was removed in v6.0.0 — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
+**Note:** `claude-mem` was previously vendored but was removed in v6.2.0 — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
 
 ## Footer Bar
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:

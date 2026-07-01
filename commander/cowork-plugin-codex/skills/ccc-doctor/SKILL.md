@@ -1,6 +1,6 @@
 ---
 name: ccc-doctor
-description: "Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions — plus 8 drift…"
+description: "Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions, and full-stack drift checks."
 model: sonnet
 effort: medium
 allowed-tools:
@@ -237,7 +237,7 @@ for (const r of results) {
 "
 ```
 
-The helper runs 8 categories. Append the table below after the main report when the user requested `full`.
+The helper runs full-stack categories: Claude settings, contract counts, vendors, bundled MCPs, hooks, agents, tests, display name, version parity, and critical files. Append the table below after the main report when the user requested `full`.
 
 | # | Category | What it verifies |
 |---|----------|------------------|

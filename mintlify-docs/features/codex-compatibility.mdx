@@ -1,12 +1,12 @@
 ---
 title: "Codex Compatibility"
-description: "Use CC Commander skills in OpenAI Codex CLI and Codex Desktop. v6.0.0 ships a generated Codex plugin mirror with skills, agents, hooks, and bundled MCP servers."
+description: "Use CC Commander skills in OpenAI Codex CLI and Codex Desktop. v6.2.0 ships a generated Codex plugin mirror with skills, agents, hooks, and bundled MCP servers."
 ---
 
 CC Commander's plugin architecture is based on Anthropic's **Agent Skills spec**, which OpenAI adopted in December 2025. This means SKILL.md files — the core of the plugin — port to Codex with zero changes.
 
 <Note>
-  **Status (v6.0.0):** Codex CLI and Codex Desktop compatibility is shipping as a generated mirror at `commander/cowork-plugin-codex/`. The canonical source remains `commander/cowork-plugin/`; run `npm run build:codex` to regenerate the Codex artifact.
+  **Status (v6.2.0):** Codex CLI and Codex Desktop compatibility is shipping as a generated mirror at `commander/cowork-plugin-codex/`. The canonical source remains `commander/cowork-plugin/`; run `npm run build:codex` to regenerate the Codex artifact.
 </Note>
 
 ## What works today
@@ -47,9 +47,9 @@ Verify the generated artifact:
 node --test commander/tests/codex-build.test.js
 ```
 
-## v6.0.0 release note
+## v6.2.0 release note
 
-v6.0.0 makes the Codex adapter a first-class release surface: Commander now publishes a mechanically generated Codex plugin mirror from the canonical Claude plugin tree. Skills stay source-compatible, agents are converted to TOML, unsupported hooks are dropped explicitly, and the bundled MCP config is carried forward.
+v6.2.0 makes the Codex adapter a first-class release surface: Commander now publishes a mechanically generated Codex plugin mirror from the canonical Claude plugin tree. Skills stay source-compatible, agents are converted to TOML, unsupported hooks are dropped explicitly, and the bundled MCP config is carried forward.
 
 For users, the practical message is simple: install Commander where you work. Claude Code Desktop remains the primary product surface, and Codex CLI/Desktop now gets the same `/ccc-*` workflow catalog through the generated adapter.
 
