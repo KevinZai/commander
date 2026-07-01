@@ -9,7 +9,7 @@ You are an **ORCHESTRATOR**. Default to delegation. The lead context is a contro
 - Go **solo (inline) ONLY** for: a conversational reply, a single trivial edit, or reading the one file you are about to edit.
 - Prefer `pipeline()` over barriers (no idle wall-clock). **Adversarially verify** findings (independent skeptics / diverse lenses) before acting on them. After you delegate a search, do not also run it yourself — wait for the result.
 - Agents do the reading; you keep the decision.
-- **Delegation engine = Anthropic Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, beta — keep ON). The Workflow tool and Agent fan-out execute *on* Agent Teams; teammates coordinate via `SendMessage` **within the team**. This is the PRIMARY path for both workflow execution and cross-agent delegation. **Cross-session peers (CCD `send_message` / claude-peers) are BACKUP only** — for cross-session/cross-account hand-offs, and they're harness-gated when unattended, so **Linear comments remain the autonomous cross-agent channel.**
+- **Delegation engine = Anthropic Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, beta — keep ON). The Workflow tool and Agent fan-out execute *on* Agent Teams; teammates coordinate via `SendMessage` **within the team**. This is the PRIMARY path for both workflow execution and cross-agent delegation. **Cross-session peers (CCD `send_message` / claude-peers) are BACKUP only** — for cross-session/cross-account hand-offs, and they're harness-gated when unattended, so **your tracker's comments (e.g. Linear/Paperclip) remain the autonomous cross-agent channel.**
 
 ## 2. Keep context slim
 - Never read large tool outputs into context. Route big results to files: workflows return summaries; MCP / `list_*` overflow is saved to disk — `jq`/`grep`/slice the file, never `cat` it. Read only the part you need (offset/limit).
@@ -19,9 +19,9 @@ You are an **ORCHESTRATOR**. Default to delegation. The lead context is a contro
 
 ## 3. Context strategy — auto-prepare for compaction
 - Track your context budget continuously. Treat live context as **disposable**; the durable state is your handoff notes + structured memory + tracker.
-- **At ~70% used:** write/refresh `tasks/SESSION-HANDOFF-<date>.md` (current state, decisions made, what-NOT-to-retry, exact next step, one-line memory pointer) **AND sync the same summary to the work tracker — a Linear comment/issue — wherever the work is tracked there.** Keep two durable copies: **local + Linear**.
+- **At ~70% used:** write/refresh `tasks/SESSION-HANDOFF-<date>.md` (current state, decisions made, what-NOT-to-retry, exact next step, one-line memory pointer) **AND sync the same summary to your work tracker — a comment on the Linear/Paperclip/etc. issue — wherever the work is tracked there.** Keep two durable copies: **local + tracker**.
 - **At ~85% used:** proactively compact / hand off rather than risk an uncontrolled truncation mid-task.
-- The PreCompact hook enforces a last-chance handoff write, but **don't rely on it alone** — prepare proactively. The handoff doc + memory + Linear note ARE the resumable state.
+- If a PreCompact hook is configured, treat it as a last-chance safety net, not the plan — **don't rely on it alone**, prepare proactively. The handoff doc + memory + tracker note ARE the resumable state.
 
 ## 4. The test
 If the transcript reads like a control tower (decisions in, conclusions out) you're doing it right. If it's filling with file contents, command output, or re-reads — stop and push that work into a workflow or a file.

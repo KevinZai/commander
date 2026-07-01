@@ -226,7 +226,7 @@ Run `/ccc:refresh` periodically to pull latest best practices.
 | Model | Best For | Cost |
 |-------|---------|------|
 | **Haiku 4.5** | Fast iteration, bulk ops, subagents | $ |
-| **Sonnet 4.6** | General dev, orchestration | $$ |
+| **Sonnet 5** | General dev, orchestration | $$ |
 | **Opus 4.8** | Complex architecture, deep reasoning, `ultra`/`xhigh` effort | $$$ |
 
 Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok) and an `ultra` effort level.
@@ -286,7 +286,7 @@ The lead session is an **ORCHESTRATOR / control tower** — decisions, delegatio
 - For any **substantive** task — multi-file, multi-step, research, audit, migration, or repo-wide review — use the **Workflow tool**. Fan out agents that read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
 - Go **solo (inline) ONLY** for: a conversational reply, a single trivial edit, or reading the one file you are about to edit.
 - Prefer pipeline stages over barriers (no idle wall-clock). Adversarially verify findings before acting. After you delegate a search, don't also run it yourself — wait for the result. Agents do the reading; you keep the decision.
-- **Delegation runs on Anthropic Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, beta — keep ON): the Workflow/Agent fan-out *is* the Teams mechanism; teammates coordinate via in-team SendMessage. This is the PRIMARY delegation path. **Cross-session peers (`send_message`) are BACKUP only** (harness-gated unattended) → Linear comments are the autonomous cross-agent channel.
+- **Delegation runs on Anthropic Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, beta — keep ON): the Workflow/Agent fan-out *is* the Teams mechanism; teammates coordinate via in-team SendMessage. This is the PRIMARY delegation path. **Cross-session peers (`send_message`) are BACKUP only** (harness-gated unattended) → your tracker's comments (e.g. Linear/Paperclip) are the autonomous cross-agent channel.
 
 ### Keep context slim
 - Never read large tool outputs into context. Route big results to files — workflows return summaries; `list_*`/MCP overflow goes to disk, then `jq`/`grep`/slice it. **Never `cat` a large file** — read only the part you need (offset/limit).
@@ -295,8 +295,8 @@ The lead session is an **ORCHESTRATOR / control tower** — decisions, delegatio
 
 ### Context strategy — auto-prepare for compaction
 - Track your context budget continuously; treat live context as **disposable**.
-- At **~70%** used: write/refresh `tasks/SESSION-HANDOFF-<date>.md` (state, decisions, what-NOT-to-retry, exact next step) **AND sync the same summary to your work tracker — a Linear comment/issue — where the work is tracked there.** Two durable copies: local + Linear.
-- At **~85%** used: proactively compact / hand off rather than risk an uncontrolled mid-task truncation. The handoff doc + memory + Linear note ARE the resumable state (a PreCompact hook enforces a last-chance write, but don't rely on it alone).
+- At **~70%** used: write/refresh `tasks/SESSION-HANDOFF-<date>.md` (state, decisions, what-NOT-to-retry, exact next step) **AND sync the same summary to your work tracker — a comment on the Linear/Paperclip/etc. issue — where the work is tracked there.** Two durable copies: local + tracker.
+- At **~85%** used: proactively compact / hand off rather than risk an uncontrolled mid-task truncation. The handoff doc + memory + tracker note ARE the resumable state. If a PreCompact hook is configured, treat it as a last-chance safety net, not the plan — prepare proactively rather than relying on it.
 
 **The test:** if the transcript reads like a control tower (decisions in, conclusions out) you're doing it right. If it's filling with file contents or re-reads — push that work into a workflow or a file.
 

@@ -91,7 +91,7 @@ Present findings as a table: `# · title · age · signals · 🟢 proposed acti
 
 If there are **15+ open items** or the user wants per-item analysis (reproduction assessment, dup detection, root-cause hints), delegate instead of reading every thread into the lead context:
 
-- **Agent:** dispatch a Sonnet `Task` (or a `Workflow` fanout) that reads each issue/PR thread, classifies it, and returns ONLY a structured table — never raw thread dumps.
+- **Agent:** dispatch a Sonnet `Agent` (or a `Workflow` fanout) that reads each issue/PR thread, classifies it, and returns ONLY a structured table — never raw thread dumps.
 - **Codex:** for a tough technical PR, pass the diff to Codex for an independent second-opinion review (see the `codex` skill). Codex reads, you decide.
 
 Report back which items need a maintainer decision vs which were auto-classified.

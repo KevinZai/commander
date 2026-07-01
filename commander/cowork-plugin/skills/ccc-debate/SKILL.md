@@ -14,7 +14,7 @@ Debate mode pits **N agents against each other** on a single design, plan, or di
 
 **CC Commander** · Debate Mode · [Docs](https://commanderplugin.com)
 
-> Debate is the dialectic expression of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): **delegate the arguing, keep the ruling.** Built on the Workflow tool + `dialectic-review` + `/ccc-fleet` judge mode.
+> Debate is the dialectic expression of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): **delegate the arguing, keep the ruling.** Built on the Workflow tool + `dialectic-review` + `/ccc-fleet` `mode: "debate"`.
 
 ---
 
@@ -59,7 +59,7 @@ Include the word **`workflow`** in your prompt to run a single debate without ch
 
 ## Requires CC v2.1.154+
 
-The Workflow tool ships in Claude Code v2.1.154 and later. On older clients, fall back to `/ccc-fleet` judge mode for the same fan-out/synthesize shape (manual dispatch), or the `dialectic-review` skill for a single FOR/AGAINST/Referee pass. Check: `claude --version`.
+The Workflow tool ships in Claude Code v2.1.154 and later. On older clients, fall back to `/ccc-fleet` `mode: "judge"` for a weaker fan-out/synthesize shape (manual dispatch, no lens customization or cross-examination), or the `dialectic-review` skill for a single FOR/AGAINST/Referee pass. Check: `claude --version`.
 
 ---
 
@@ -113,21 +113,23 @@ Prepend ⭐ to the best match:
 
 ## After the user picks
 
-Dispatch the debate as a workflow. Reuse the bundled fleet/judge machinery rather than inventing an API:
+Dispatch the debate as a workflow. `ccc-fleet.workflow.js` has a dedicated `mode: "debate"` that actually implements the lens fan-out + cross-examination rounds (distinct from plain `mode: "judge"`, which is single-round N-independent-attempts with hardcoded angles — no cross-examination, no custom lenses):
 
 ```js
 Workflow({
   scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js",
   args: {
-    mode: "judge",
-    task: "Adversarially debate <target>. Each agent argues one lens, cross-examines the others, and the judge rules a verdict.",
+    mode: "debate",
+    task: "Adversarially debate <target: the design doc, plan, or diff>.",
     lenses: ["security", "performance", "contrarian"],
     rounds: 2
   }
 })
 ```
 
-If `ccc-fleet.workflow.js` is unavailable, fall back to the `dialectic-review` skill for a single FOR/AGAINST/Referee round.
+`lenses` and `rounds` are both honored: round 1 has each lens argue independently (blind to the others); rounds 2+ have every lens cross-examine the others' prior-round positions (concede, sharpen, or withdraw); a final judge pass rules only on objections that survived cross-examination.
+
+If `ccc-fleet.workflow.js` is unavailable, fall back to `ccc-fleet` `mode: "judge"` (weaker — no lens customization or cross-examination) or the `dialectic-review` skill for a single FOR/AGAINST/Referee round.
 
 Report back with a progress card — do not block while the debate runs:
 > 🥊 **Debate running** — `<N> lenses × <M> rounds`. Agents argue and cross-examine async.
