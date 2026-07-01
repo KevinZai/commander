@@ -1,7 +1,7 @@
 ---
 name: technical-writer
 description: "Senior technical writer for API docs, READMEs, user guides, and developer documentation. Reads code to produce accurate, scannable docs without running shell commands…"
-model: claude-sonnet-4-6
+model: claude-sonnet-5
 effort: medium
 persona: personas/technical-writer
 memory: project

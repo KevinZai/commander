@@ -145,6 +145,61 @@ function shortenPath(p) {
   return p;
 }
 
+/**
+ * Permission / auto-mode status detection.
+ * Env/flag-driven, fully read-only, degrades gracefully (never throws).
+ *
+ * Returns { auto: bool, awaiting: bool }:
+ *   - auto:     a safe-yolo / auto-approve config is active (env flag or config.json)
+ *   - awaiting: a tool call is currently parked on a PermissionRequest prompt
+ *
+ * Sources (any one is enough):
+ *   - env: CCC_YOLO / CCC_AUTO_MODE / CCC_AUTOFIX_APPROVED=1, or Claude Code's
+ *     CLAUDE_AUTO_APPROVE / CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS
+ *   - env: CCC_AWAITING_PERMISSION=1 (set while a prompt is open)
+ *   - ~/.commander/config.json: { "auto_mode": true } / { "yolo": true }
+ *   - ~/.claude/commander/permission-state.json (written by permission-gate hook):
+ *     { "awaiting": true, "ts": <epoch-ms> } — honored only within a 60s TTL so a
+ *     stale file never pins the indicator on.
+ */
+function getPermissionState() {
+  var state = { auto: false, awaiting: false };
+
+  function truthy(v) { return v === '1' || v === 'true' || v === 'yes'; }
+
+  try {
+    var e = process.env;
+    if (truthy(e.CCC_YOLO) || truthy(e.CCC_AUTO_MODE) || truthy(e.CCC_AUTOFIX_APPROVED) ||
+        truthy(e.CLAUDE_AUTO_APPROVE) || truthy(e.CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS)) {
+      state.auto = true;
+    }
+    if (truthy(e.CCC_AWAITING_PERMISSION)) state.awaiting = true;
+  } catch (_) {}
+
+  // Optional config flag (off by default)
+  try {
+    var cfgPath = path.join(os.homedir(), '.commander', 'config.json');
+    if (fs.existsSync(cfgPath)) {
+      var cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+      if (cfg && (cfg.auto_mode === true || cfg.yolo === true)) state.auto = true;
+    }
+  } catch (_) {}
+
+  // Optional state file written by the PermissionRequest hook (TTL-guarded)
+  try {
+    var sp = path.join(os.homedir(), '.claude', 'commander', 'permission-state.json');
+    if (fs.existsSync(sp)) {
+      var ps = JSON.parse(fs.readFileSync(sp, 'utf8'));
+      if (ps && ps.awaiting === true) {
+        var fresh = !ps.ts || (Date.now() - ps.ts) < 60000;
+        if (fresh) state.awaiting = true;
+      }
+    }
+  } catch (_) {}
+
+  return state;
+}
+
 function getApiKeyLast3() {
   var key = process.env.ANTHROPIC_API_KEY || '';
   return key.length >= 3 ? key.slice(-3) : (key.length > 0 ? key : 'n/a');
@@ -187,6 +242,8 @@ function main() {
     }
   } catch (_) {}
 
+  var perm = getPermissionState();
+
   if (args.json) {
     process.stdout.write(JSON.stringify({
       version: version,
@@ -200,6 +257,8 @@ function main() {
       sessionRemaining: sessionRemaining,
       cacheHit: cacheHit,
       loopActive: loopActive,
+      autoMode: perm.auto,
+      awaitingPermission: perm.awaiting,
     }) + '\n');
     return;
   }
@@ -257,6 +316,8 @@ function main() {
     '\u23F3' + t.dim + sessionRemainingFmt + t.reset,
     '\uD83D\uDCBE' + t.dim + cacheHit + '%' + t.reset,
     '\uD83C\uDFAF' + t.primary + skillCount + t.reset,
+    perm.awaiting ? '\uD83D\uDFE1' + t.bold + 'PERM' + t.reset : null,
+    perm.auto ? '\uD83D\uDFE2' + t.bold + 'AUTO' + t.reset : null,
     loopActive ? '\uD83D\uDD01' + t.primary + 'loop' + t.reset : null,
     savingsSegment ? t.primary + savingsSegment + t.reset : null,
     partnerCredit ? '\u2728' + t.dim + partnerCredit + t.reset : null,

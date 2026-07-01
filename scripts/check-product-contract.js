@@ -500,6 +500,14 @@ function scanVersionRule(content, surface, contract) {
 }
 
 function isVersionRelevant(content, index) {
+  // Skip entire documents that announce a specific dated past release (e.g.
+  // "**Released 2026-05-28** — v6.0.0 ships four major additions."). Every version
+  // mention in a "what's new in vX" style doc describes that historical release, not
+  // the current product version — rewriting them to the current version would assert
+  // a past release shipped on a date before it existed. Doc-level (not proximity-based)
+  // because these pages repeat the historical version number throughout the body.
+  if (/\*{0,2}Released\s+\d{4}-\d{2}-\d{2}\*{0,2}/i.test(content)) return false;
+
   var start = Math.max(0, index - 90);
   var end = Math.min(content.length, index + 90);
   var context = content.slice(start, end);

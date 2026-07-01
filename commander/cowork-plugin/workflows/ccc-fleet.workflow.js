@@ -1,14 +1,14 @@
 export const meta = {
   name: 'ccc-fleet',
-  description: 'CC Commander parallel fleet — fan-out (slices in parallel), pipeline (sequential stages), or judge (N independent attempts scored by a panel).',
-  whenToUse: 'General multi-agent orchestration. mode=fanout for divisible work, pipeline for staged work, judge for a high-stakes decision worth several attempts.',
+  description: 'CC Commander parallel fleet — fan-out (slices in parallel), pipeline (sequential stages), judge (N independent attempts scored by a panel), or debate (adversarial multi-lens cross-examination).',
+  whenToUse: 'General multi-agent orchestration. mode=fanout for divisible work, pipeline for staged work, judge for a high-stakes decision worth several attempts, debate for stress-testing a design/diff from distinct adversarial lenses.',
   phases: [
     { title: 'Fleet', detail: 'dispatch the chosen pattern' },
     { title: 'Synthesize', detail: 'merge / score the results' },
   ],
 }
 
-// args (required): { mode: 'fanout'|'pipeline'|'judge', tasks: string[] (fanout/pipeline) | task: string (judge), attempts?: number }
+// args (required): { mode: 'fanout'|'pipeline'|'judge'|'debate', tasks: string[] (fanout/pipeline) | task: string (judge/debate), attempts?: number, lenses?: string[] (debate), rounds?: number (debate) }
 if (!args || !args.mode) throw new Error("ccc-fleet requires args: { mode, tasks|task }")
 const mode = args.mode
 
@@ -61,4 +61,50 @@ if (mode === 'judge') {
   return { mode, attempts: valid.length, judged }
 }
 
-throw new Error(`unknown mode: ${mode} (expected fanout|pipeline|judge)`)
+if (mode === 'debate') {
+  const task = args.task
+  if (!task) throw new Error('debate requires args.task: string')
+  const lenses = (args.lenses && args.lenses.length) ? args.lenses : ['security', 'performance', 'contrarian']
+  const rounds = Math.max(1, Math.min(3, args.rounds || 2))
+  log(`Debate: ${lenses.length} lenses × ${rounds} round(s)`)
+
+  // Round 1: each lens argues independently, blind to the others.
+  let positions = await parallel(lenses.map((lens, i) => () =>
+    agent(
+      `Adversarially argue about: ${task}\nYour lens: ${lens}. Take the strongest position from this lens — concrete objections, risks, or requirements it implies. Be specific (cite file:line where relevant). This is round 1 of ${rounds} — you have not seen the other lenses' arguments yet.`,
+      { label: `${lens}-r1`, phase: 'Fleet' }
+    ).then(r => ({ lens, text: typeof r === 'string' ? r : JSON.stringify(r) })).catch(() => ({ lens, text: '(no response)' }))
+  ))
+
+  // Rounds 2..N: cross-examine — each lens sees every other lens's prior-round position and
+  // either concedes, sharpens its objection, or rebuts. Weak claims should die here.
+  for (let round = 2; round <= rounds; round++) {
+    const summary = positions.map(p => `--- ${p.lens} (round ${round - 1}) ---\n${p.text}`).join('\n\n')
+    positions = await parallel(lenses.map((lens, i) => () =>
+      agent(
+        `You are the ${lens} lens in an adversarial debate about: ${task}\n\nAll lenses' round ${round - 1} positions:\n${summary}\n\nCross-examine the OTHER lenses' positions from your ${lens} viewpoint. For each: concede if it's actually stronger than your objection, sharpen your own objection if it survives scrutiny, or explicitly withdraw a weak claim. Round ${round} of ${rounds}.`,
+        { label: `${lens}-r${round}`, phase: 'Fleet' }
+      ).then(r => ({ lens, text: typeof r === 'string' ? r : JSON.stringify(r) })).catch(() => ({ lens, text: positions[i]?.text || '(no response)' }))
+    ))
+  }
+
+  phase('Synthesize')
+  const VERDICT = {
+    type: 'object',
+    required: ['verdict', 'rationale'],
+    properties: {
+      verdict: { type: 'string', enum: ['ship', 'revise', 'block'] },
+      blocking: { type: 'array', items: { type: 'string' } },
+      tradeoffs: { type: 'array', items: { type: 'string' } },
+      rationale: { type: 'string' },
+    },
+  }
+  const finalPositions = positions.map(p => `--- ${p.lens} (final position) ---\n${p.text}`).join('\n\n')
+  const judged = await agent(
+    `You are the judge for an adversarial debate about: ${task}\n\nFinal positions after ${rounds} round(s) of cross-examination:\n${finalPositions}\n\nRule: which objections SURVIVED cross-examination (blocking issues, cite file:line where given), which are accepted tradeoffs, and a ship/revise/block verdict with a one-line rationale. Only report objections that actually survived — discard anything a lens conceded or withdrew.`,
+    { label: 'judge', phase: 'Synthesize', schema: VERDICT }
+  )
+  return { mode, lenses, rounds, judged }
+}
+
+throw new Error(`unknown mode: ${mode} (expected fanout|pipeline|judge|debate)`)

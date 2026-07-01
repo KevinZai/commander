@@ -75,6 +75,8 @@ The probe emits `KEY=VALUE` lines (all side-effect-free, every field `2>/dev/nul
 | `PLUGIN_ENABLED` | whether commander is in `enabledPlugins` (yes/no/missing) |
 | `PLUGIN_DISABLED_INSTALLED` | commander installed-but-disabled flag |
 | `MCP_CONNECT_STALE` | opt-in MCP server entries in settings.json whose configured path/command is missing |
+| `COST_*` | per-key token-spend audit rows: `current\|suggested\|verdict` (verdict ∈ ok/missing/suboptimal) — see 1g |
+| `COST_FLAGGED` | count of non-`ok` cost-settings keys (rollup) |
 | `SKILL_COUNT` | live skill count from `ls skills/ | wc -l` in clone |
 | `AGENT_COUNT` | live agent count from `ls agents/*.md | wc -l` in clone |
 | `EVENT_COUNT` | live hook event count from `jq '.hooks | keys | length' hooks/hooks.json` |
@@ -169,6 +171,24 @@ When comparing agent model strings from frontmatter to plugin.json canonical val
 normalize_model() { echo "$1" | sed 's/ *\[.*\]$//' | xargs; }
 ```
 
+### 1g. Cost-settings audit (READ-ONLY — surface, suggest, NEVER auto-apply)
+
+The `SECTION:COST` probe rows surface high-impact, often-undocumented `settings.json` keys that reduce token spend. This is **detect-and-suggest only** — unlike the `⚙️ Settings keys` row (which *promotes* 3 structural keys on confirm), the cost row NEVER mutates `settings.json`. Each `COST_<KEY>` line is `current|suggested|verdict`:
+
+| Key | Why it cuts spend | Suggested |
+|-----|-------------------|-----------|
+| `effortLevel` | Lower effort = fewer thinking tokens on routine turns; `xhigh` ≈ 2× spend | `high` |
+| `autoCompactEnabled` | Caps runaway context growth → fewer overflow re-reads | `true` |
+| `env.MAX_THINKING_TOKENS` | Bounds per-turn reasoning budget (uncapped ≈ 32k/turn) | `10000` |
+| `env.ENABLE_TOOL_SEARCH` | Defers MCP tool schemas — large saver with many connected servers | `1` |
+| `showThinkingSummaries` | Summaries cost fewer output tokens than full thinking | `true` |
+| `cleanupPeriodDays` | Bounds transcript retention → smaller resume/search surface | `30` |
+| `model` | A premium pin (Opus/Fable) on the MAIN thread spends $$$ on routine turns | route routine work to Sonnet/Haiku subagents |
+
+Verdict semantics: `ok` = satisfies intent (do not surface); `missing` = key unset; `suboptimal` = set to a higher-spend value. `model` is **detect-only** — surface the cost note when a premium pin exists but NEVER suggest overriding the user's deliberate model choice; just inform.
+
+`∅` in a `current` field means the key is unset. If `COST_FLAGGED=n/a`, the probe could not read settings — render the row ⚪ and move on (never crash).
+
 ## Step 2 — Scorecard (one markdown table)
 
 ```
@@ -184,6 +204,7 @@ normalize_model() { echo "$1" | sed 's/ *\[.*\]$//' | xargs; }
 | 🔌 Plugin enabled | 🟢/🔴 | commander in enabledPlugins | Enable in Settings |
 | 🌐 Opt-in MCP staleness | 🟡 | context7 path missing | Re-run /ccc-connect |
 | ⚙️ Settings keys | 🟡 | showThinkingSummaries absent | Promote 3 keys |
+| 💰 Cost settings | 🟡 | N spend-reducing keys missing/suboptimal (effortLevel=xhigh, …) | Suggest only (copy-paste) |
 | 🗂️ Stale sessions (opt-in) | ⚪ | N files >30d | Archive (--aggressive only) |
 
 **🎯 My call: fix <lowest-score row> first — <one-line rationale>.**
@@ -192,6 +213,24 @@ normalize_model() { echo "$1" | sed 's/ *\[.*\]$//' | xargs; }
 Score rubric: 🟢 90-100 · 🟡 70-89 · 🟠 50-69 · 🔴 0-49 · ⚪ n/a (probe failed or check skipped — never crash).
 
 On `--check`: STOP HERE. Print the table and nothing else.
+
+### Cost-settings detail block (printed under the scorecard on EVERY mode)
+
+If `COST_FLAGGED` > 0, print a short read-only detail block listing each non-`ok` `COST_<KEY>` as `key: current → suggested  (reason)`, followed by ONE copy-paste snippet the user can paste into `~/.claude/settings.json` themselves. Example:
+
+```
+### 💰 Cost settings — suggestions (NOT applied)
+- effortLevel: xhigh → high  (xhigh burns ~2× on routine work)
+- env.MAX_THINKING_TOKENS: unset → 10000  (caps per-turn reasoning spend)
+- env.ENABLE_TOOL_SEARCH: unset → 1  (defer MCP tool schemas — saves heavily with many servers)
+
+# To apply, paste into ~/.claude/settings.json (review first — these are YOUR cost trade-offs):
+"effortLevel": "high",
+"showThinkingSummaries": true,
+"env": { "MAX_THINKING_TOKENS": "10000", "ENABLE_TOOL_SEARCH": "1" }
+```
+
+These are **always suggest-only** — the cost-settings audit NEVER appears as a mutating AskUserQuestion chip and `/ccc-tuneup --fix`/`--aggressive` never edits these keys. For `model`, only inform ("you've pinned <model> on the main thread — routine turns are pricey; consider routing them to Sonnet/Haiku subagents") — never propose overwriting it.
 
 ## Step 3 — Confirm fixes (AskUserQuestion)
 
@@ -348,5 +387,8 @@ For anything heavy/out-of-scope, offer ONE `mcp__ccd_session__spawn_task` chip (
 - ❌ Apply any fix without first verifying the result afterward.
 - ❌ Offer CLAUDE.md count edits when running from an end-user install (detect-only).
 - ❌ Compare model strings without normalizing away `[1m]`/`[128k]`/`[...]` context suffixes first.
+- ❌ Auto-apply the 💰 cost-settings keys (effortLevel, MAX_THINKING_TOKENS, ENABLE_TOOL_SEARCH, model, …) — they are read-only suggestions; surface them, emit copy-paste, never edit settings.json for them.
+- ❌ Suggest overriding the user's deliberate `model` pin — for cost-settings `model` is inform-only.
+- ❌ Render `ok`-verdict cost keys as if they need fixing — only surface `missing`/`suboptimal`.
 
 **Bottom line:** scan read-only → scorecard → click to confirm → backup + archive + fix → verify → report. Safe by default, reversible by design, always current.

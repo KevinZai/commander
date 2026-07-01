@@ -71,6 +71,8 @@ Prepend ⭐ to the best-fit option based on context:
 
 ### Native workflow (Claude Code v2.1.154+)
 
+This skill rides Anthropic's native `Workflow` tool (trigger word `workflow`) — it does not re-implement orchestration. The Agent-based flow below is only the fallback for clients without the `Workflow` tool.
+
 If the `Workflow` tool is available, prefer invoking the bundled fleet workflow instead of the Agent-based dispatch below. Map existing picker choices to workflow args:
 
 | Picker choice | Workflow invocation |
@@ -297,7 +299,7 @@ CC Commander v6.0 introduces a selective-Fable routing ladder driven by `selectM
 |------|-------|------------|------|
 | **Conductor** (this session) | Fable 5 | 86-100 | Deep orchestration, synthesis, architecture decisions |
 | **Leads** | Opus 4.8 | 66-85 | Complex implementation slices, multi-file features |
-| **Workers** | Sonnet 4.6 | 30-65 | Standard feature work, tests, moderate refactors |
+| **Workers** | Sonnet 5 | 30-65 | Standard feature work, tests, moderate refactors |
 | **Bulk slices** | Haiku 4.5 | 0-29 | Polish, linting, docs, trivial single-file edits |
 
 `selectModelForComplexity(score)` thresholds: ≤29→haiku · 30-65→sonnet · 66-85→opus · 86+→fable.

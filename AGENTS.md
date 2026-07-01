@@ -13,7 +13,7 @@
 | Workspace | cc-commander repo root (auto-detected) |
 | Discord channel | `🌐commander (repurposed from 🌐opencode)` |
 | Memory room | `commander` |
-| Model | `claude-cli/claude-sonnet-4-6` |
+| Model | `claude-cli/claude-sonnet-5` |
 | Voice | `elevenlabs-neutral-male-2` |
 | Role | CC Commander aggregator PM. Owns plugin marketplace, skill/agent curation, vendor submodule hygiene. |
 

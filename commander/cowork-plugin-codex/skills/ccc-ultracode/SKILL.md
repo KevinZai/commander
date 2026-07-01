@@ -14,6 +14,10 @@ Ultracode flips two dials at once: **xhigh reasoning** (Opus 4.8 extended thinki
 
 **CC Commander** · Ultracode Mode · [Docs](https://commanderplugin.com)
 
+> Ultracode is the strongest expression of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): **delegate the doing, keep the deciding.**
+>
+> **Rides Anthropic's native primitive:** orchestration here is Claude Code's built-in `Workflow` tool (trigger word `workflow`), not a CC Commander re-implementation. We supply scripts + picker UX on top; the fan-out/verify/synthesize engine is Anthropic's.
+
 ---
 
 ## What ultracode is

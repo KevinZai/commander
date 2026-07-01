@@ -14,7 +14,7 @@
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
-- [The 64 Plugin Skills](#the-64-plugin-skills) — The curated plugin surface
+- [The 67 Plugin Skills](#the-67-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -25,7 +25,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v6.0.0 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v6.2.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -208,7 +208,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
 ---
 
-## The 64 Plugin Skills
+## The 67 Plugin Skills
 
 > *Every skill that ships with `/plugin install commander`. Not the 502-skill ecosystem — just the curated plugin surface.*
 
@@ -1379,7 +1379,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v6.0.0)
+### 🛠️ Plugin Workflows (v6.2.0)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
@@ -2067,7 +2067,7 @@ Every kit-native hook can be individually disabled via its `KZ_DISABLE_*` env va
 
 ```json
 {
-  "model": "claude-sonnet-4-6",
+  "model": "claude-sonnet-5",
   "permissions": {
     "allow": [
       "Bash(npm run *)",
@@ -2281,7 +2281,7 @@ Verification: [how you'll know it's done]
 | Model | Best For | Cost | When to Use |
 |-------|---------|------|-------------|
 | **Haiku 4.5** | Fast iteration, bulk ops, simple tasks | $ | Lightweight subagents, pair programming, worker agents |
-| **Sonnet 4.6** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows |
+| **Sonnet 5** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows. Best Sonnet — succeeds Sonnet 5. |
 | **Opus 4.8** | Complex architecture, deep reasoning, agentic coding | $$$ | **Everyday session default.** Architectural decisions, research, judgment calls. `ultra`/`xhigh` effort levels. |
 | **Fable 5** | Deep multi-angle reasoning | $$$$ | **Escalation tier only.** Architecture / planning / migration / threat-model sessions where deep reasoning is the actual bottleneck. Activate: `/model claude-fable-5[1m]`. Nudged once per day when ≥2 deep-reasoning signals detected. Motto: *pay for Fable on the thinking, not the typing.* |
 
@@ -2337,7 +2337,7 @@ workflow: <task description> # one-off without mode switch
 graph TD
     A[New Task] --> B{Complexity score}
     B -->|0-29 Simple/Bulk| C[Haiku 4.5 - $]
-    B -->|30-65 Standard Dev| D[Sonnet 4.6 - $$]
+    B -->|30-65 Standard Dev| D[Sonnet 5 - $$]
     B -->|66-85 Architecture/Research| E[Opus 4.8 - $$$]
     B -->|86-100 Deep Reasoning| F[Fable 5 - $$$$]
     C --> G{Subagent?}
@@ -2407,7 +2407,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 ---
 ## Built on Claude Agent SDK
 
-> *v6.0.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v6.2.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2427,20 +2427,20 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 | # | Persona | Model | Core responsibility |
 |---|---------|-------|-------------------|
 | 1 | `architect` | Fable 5 | System design, tradeoff analysis |
-| 2 | `reviewer` | Sonnet 4.6 | Code review (security / perf / correctness / maintainability) |
-| 3 | `builder` | Sonnet 4.6 | Feature implementation, TDD |
+| 2 | `reviewer` | Sonnet 5 | Code review (security / perf / correctness / maintainability) |
+| 3 | `builder` | Sonnet 5 | Feature implementation, TDD |
 | 4 | `security-auditor` | Fable 5 | OWASP audits, threat modeling |
 | 5 | `debugger` | Fable 5 | Root-cause investigation (Iron Law) |
-| 6 | `designer` | Sonnet 4.6 | UI/UX critique, accessibility |
-| 7 | `qa-engineer` | Sonnet 4.6 | Edge-case hunting, coverage audit |
-| 8 | `devops-engineer` | Sonnet 4.6 | Deploy planning, rollback specs |
-| 9 | `data-analyst` | Sonnet 4.6 | Signal extraction, statistical honesty |
-| 10 | `content-strategist` | Sonnet 4.6 | Brand voice, messaging, copy |
+| 6 | `designer` | Sonnet 5 | UI/UX critique, accessibility |
+| 7 | `qa-engineer` | Sonnet 5 | Edge-case hunting, coverage audit |
+| 8 | `devops-engineer` | Sonnet 5 | Deploy planning, rollback specs |
+| 9 | `data-analyst` | Sonnet 5 | Signal extraction, statistical honesty |
+| 10 | `content-strategist` | Sonnet 5 | Brand voice, messaging, copy |
 | 11 | `product-manager` | Fable 5 | User stories, acceptance criteria |
-| 12 | `performance-engineer` | Sonnet 4.6 | p99 benchmarking, hotpath analysis |
-| 13 | `researcher` | Sonnet 4.6 | Deep research, citation management |
-| 14 | `technical-writer` | Sonnet 4.6 | Documentation, clarity audits |
-| 15 | `fleet-worker` | Sonnet 4.6 | Parallel batch execution |
+| 12 | `performance-engineer` | Sonnet 5 | p99 benchmarking, hotpath analysis |
+| 13 | `researcher` | Sonnet 5 | Deep research, citation management |
+| 14 | `technical-writer` | Sonnet 5 | Documentation, clarity audits |
+| 15 | `fleet-worker` | Sonnet 5 | Parallel batch execution |
 
 Fable 5 personas (`architect`, `security-auditor`, `debugger`, `product-manager`) need deep multi-angle reasoning. Opus 4.8 is the everyday session default. Sonnet handles the rest at lower cost.
 
@@ -2451,7 +2451,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v6.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 64 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v6.2.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 67 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2464,7 +2464,7 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (64 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (67 plugin skills)
   +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 23 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
@@ -2508,7 +2508,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 64 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 67 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -2663,7 +2663,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v6.0.0 — How CCC thinks before it acts.*
+> *Appendix: v6.2.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 

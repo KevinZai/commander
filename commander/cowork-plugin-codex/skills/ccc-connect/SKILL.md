@@ -6,7 +6,7 @@ allowed-tools:
   - Write
   - Bash
   - AskUserQuestion
-argument-hint: "[tasks | backend | hosting | cache | knowledge | comms | observability | billing | automation | email | research | productivity | dev | design]"
+argument-hint: "[tasks | backend | hosting | cache | knowledge | comms | observability | billing | automation | agent-harness | email | research | productivity | dev | design]"
 ---
 
 # /ccc-connect — MCP Connector Wizard
@@ -50,8 +50,8 @@ options:
     description: "Linear — first-class CC Commander integration."
     preview: "Best for: issue tracking, sprint planning, CC-* task routing."
   - label: "🗄️ Backend"
-    description: "Supabase, Neon, Postgres — databases for shipped apps."
-    preview: "Best for: SaaS backends, auth, schema inspection."
+    description: "Supabase (first-class), Neon, Postgres — databases for shipped apps."
+    preview: "Best for: SaaS backends, auth, schema inspection. ⭐ Supabase default."
   - label: "🚀 Hosting"
     description: "Vercel, Fly.io, Cloudflare — deploy and edge."
     preview: "Best for: web deploys, Docker services, Workers + R2."
@@ -73,6 +73,9 @@ options:
   - label: "🤖 Automation"
     description: "Browserbase, Playwright, Zapier, n8n — browser + workflows."
     preview: "Best for: remote headless browsers, cross-app automation."
+  - label: "🧬 Agent harness"
+    description: "acpx — bring-your-own agent harness for headless agent-to-agent runs."
+    preview: "Best for: parallel/background CC sessions, crash-resilient agent dispatch."
   - label: "✉️ Email"
     description: "Resend, AgentMail — transactional and agent-native email."
     preview: "Best for: SaaS emails, agent inbox workflows."
@@ -103,10 +106,12 @@ options:
 ### Backend
 ```
 options:
-  - ⚡ Supabase [aff] — auth, DB, storage, edge funcs
+  - ⭐ Supabase [aff] — FIRST-CLASS backend: auth, DB, storage, edge funcs. Also ships as a Codex plugin.
   - 🐘 Neon [aff] — Postgres serverless (lighter for small projects)
   - 🗄️ Postgres — direct DB query/schema inspection (bring your own)
 ```
+
+> **⭐ Supabase is the default backend for `/ccc-build` SaaS scaffolds.** It now also ships as a **Codex plugin**, so the same Supabase setup works whether you run inside Claude Code or OpenAI Codex. Always prepend ⭐ to the Supabase option and recommend it first for any new backend. [aff] = affiliate row — saving the credential earns CCC a commission at no cost to the user; always disclose this on install (see Brand rules).
 
 ### Hosting
 ```
@@ -155,6 +160,14 @@ options:
   - 🔗 Zapier — 5000+ app actions
   - 🧩 n8n — self-hosted workflows
 ```
+
+### Agent harness
+```
+options:
+  - 🧬 acpx — bring-your-own agent harness (headless ACP CLI for agent-to-agent runs)
+```
+
+> **acpx is the bring-your-own-agent-harness layer.** It is NOT an MCP server — it's a headless ACP (Agent Client Protocol) CLI that lets CC Commander drive background, parallel, and crash-resilient agent sessions (`acpx prompt|exec|sessions`). Use it when a workflow needs to fan out work to other agent harnesses instead of staying in one Claude session. Install: `npm install -g acpx` (then `acpx --help`). No credential capture or `claude mcp add` step — wiring is via the `acpx` / `acpx-patterns` skills, not the MCP config. See "acpx — agent harness" below.
 
 ### Email
 ```
@@ -251,6 +264,17 @@ Run: `claude mcp add <name> -- <command> <args>` — the exact command depends o
 
 Set env vars via the `--env` flag or ask user to export in shell profile.
 
+## acpx — agent harness (special case, NOT an MCP)
+
+acpx is the **bring-your-own agent-harness** layer. It does not get a credential file or a `claude mcp add` step — it's a globally-installed CLI that CC Commander shells out to for headless agent-to-agent runs.
+
+Flow when the user picks acpx:
+1. Check install: `command -v acpx >/dev/null && acpx --version || echo "not installed"`.
+2. If missing, echo: `npm install -g acpx` and tell the user to run it.
+3. Confirm by name only, then point them at the deeper skills:
+   > ✅ acpx ready — your bring-your-own agent harness. Use the `acpx` skill for prompt/exec/sessions, or `acpx-patterns` for background / parallel / crash-resilient session recipes.
+4. Do NOT write a `~/.claude/commander/connections/acpx.json` file and do NOT add an MCP entry — acpx is driven by skills, not MCP config.
+
 ## Verification
 
 After install:
@@ -270,6 +294,7 @@ After install:
 - `/ccc-connect observability` → Observability sub-picker
 - `/ccc-connect billing` → Billing sub-picker
 - `/ccc-connect automation` → Automation sub-picker
+- `/ccc-connect agent-harness` → Agent harness sub-picker (acpx — install-only, no MCP wiring)
 - `/ccc-connect email` → Email sub-picker (Resend / AgentMail)
 - `/ccc-connect research` → Research sub-picker (Tavily / Firecrawl / Exa / Context7)
 - `/ccc-connect productivity` → opens Tasks + Knowledge + Comms options
@@ -288,6 +313,9 @@ After install:
 - ❌ Ignore connector-specific rate limits — document them in the "after install" message
 - ❌ Connect >5 MCPs in one session — each adds tools to load, slows startup
 - ❌ Use install commands marked "TBD" — tell user to check the official docs instead
+- ❌ Recommend a backend without prepending ⭐ to Supabase — it's the first-class default
+- ❌ Install an affiliate connector (e.g. Supabase) without showing the affiliate disclosure
+- ❌ Treat acpx like an MCP — never `claude mcp add acpx` and never write an acpx credential file; it's `npm install -g acpx` + the acpx skills only
 
 ## Brand rules
 

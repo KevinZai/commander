@@ -1,6 +1,6 @@
 ---
 name: ccc-doctor
-description: "Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions — plus 8 drift…"
+description: "Diagnostic tool for CC Commander. Paste-ready report covering plugin version, Node, marketplace clone state, MCP servers, settings.json, sessions, and full-stack drift checks."
 model: sonnet
 effort: medium
 allowed-tools:
@@ -237,14 +237,14 @@ for (const r of results) {
 "
 ```
 
-The helper runs 8 categories. Append the table below after the main report when the user requested `full`.
+The helper runs full-stack categories: Claude settings, contract counts, vendors, bundled MCPs, hooks, agents, tests, display name, version parity, and critical files. Append the table below after the main report when the user requested `full`.
 
 | # | Category | What it verifies |
 |---|----------|------------------|
 | 1 | `license-cleanup` | No `license.json`, `licenseFile`, `tier === 'free'`, or `isPro()` references in plugin hooks. CC Commander is free for now — any residue is a red flag. |
 | 2 | `hook-chain` | Every `.js` referenced from `hooks.json` exists on disk and uses ESM `import` (not legacy `require`). Flags unregistered orphan hook files. |
 | 3 | `mcp-availability` | `.mcp.json` lists exactly the 2 bundled servers (context7 + sequential-thinking) and `CONNECTORS.md` advertises 16 opt-in connectors. Drift either way is flagged. |
-| 4 | `agent-models` | All 22 sub-agent `.md` frontmatter has the expected `model:` pin. `architect`, `security-auditor`, `debugger`, `product-manager` must be on `claude-opus-4-8`; `designer`, `researcher`, `reviewer` must be on `claude-sonnet-4-6`. Other agents on legacy aliases (`opus`, `sonnet`, `haiku`) are flagged as upgrade candidates. |
+| 4 | `agent-models` | All 22 sub-agent `.md` frontmatter has the expected `model:` pin. `architect`, `security-auditor`, `debugger`, `product-manager` must be on `claude-opus-4-8`; `designer`, `researcher`, `reviewer` must be on `claude-sonnet-5`. Other agents on legacy aliases (`opus`, `sonnet`, `haiku`) are flagged as upgrade candidates. |
 | 5 | `test-suite` | Required audit scripts (`audit-frontmatter.js`, `audit-counts.js`, `check-version-parity.js`) exist. Doctor doesn't shell out to them — it only verifies presence so the user can run `--check` manually. |
 | 6 | `display-name` | `plugin.json.displayName === "Commander"` AND `marketplace.json.plugins[0].displayName === "Commander"` (per brand commit `0954a3a`). |
 | 7 | `version-parity` | Spot-check that `package.json` and `plugin.json` versions match. Full parity check covered by `scripts/check-version-parity.js`. |

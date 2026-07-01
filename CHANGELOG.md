@@ -2,6 +2,31 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [6.2.0] — 2026-06-30
+
+### Added
+
+- **3 new skills** — `/ccc-debate` (antfooding adversarial multi-agent debate), `/ccc-plan-exec` (cheap-model-plans → capable-model-executes loop pattern), `/ccc-triage` (GitHub issue/PR triage for plugin maintainers).
+- **Permission/auto-mode status indicators** — 🟡PERM (awaiting permission) and 🟢AUTO (auto/yolo mode) segments in `status-line.js` and the cockpit footer/panel, env- and config-driven, degrades gracefully.
+- **`/ccc-tuneup` cost-settings audit** — read-only probe surfacing high-impact, often-undocumented `settings.json` keys that reduce token spend (effortLevel, autoCompactEnabled, ENABLE_TOOL_SEARCH, thinking budget, etc.), suggest-only.
+- **`ccc-design` design bundle** — shadcn chat-interface components, a Design.md generator/consumer ("capture a design's soul"), and a screenshot → interactive UI + onboarding video flow (paired with remotion).
+- **`/ccc-connect` + CONNECTORS.md** — Supabase elevated to a first-class backend connector (also ships as a Codex plugin); acpx documented as the bring-your-own agent-harness layer.
+- **Docs** — `docs/SKILLS-AUDIT-2026-06.md` (all plugin skills audited against Anthropic's Skills authoring guidance) and `docs/TOOL-SEARCH-TIER.md` (the deferred tool-loading context-discipline pattern).
+- **Sonnet 5 support** — model references updated to `claude-sonnet-5` across agents, skills, and docs. Sonnet 5 (display "Sonnet 5") succeeds Sonnet 4.6 as the current/best/default Sonnet; older versions are retained in model catalogs and comparison tables as historical rows.
+
+### Changed
+
+- **Workflow-first doctrine hardened** — Agent Teams (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) is now documented as the PRIMARY delegation engine for Workflow/Agent fan-out; cross-session peers (`send_message`) are backup-only (harness-gated unattended) with Linear comments as the autonomous channel.
+- **Context strategy** — proactive compaction prep now syncs the session handoff to both a local `tasks/SESSION-HANDOFF-<date>.md` and a Linear comment/issue (two durable copies), not local-only.
+- Verified `/ccc-fleet` and `/ccc-ultracode` correctly ride Anthropic's native Workflow-tool primitive (no parallel re-implementation).
+- Plugin skill count 64 → 67.
+
+### Fixed
+
+- `ccc-triage` frontmatter used the non-existent `Task` tool instead of `Agent` (caught by the skills-audit cross-check).
+
+---
+
 ## [6.1.0] — 2026-06-29
 
 ### Added
