@@ -5,9 +5,9 @@ description: "Primary surface: Claude Code Desktop. 70 plugin skills, 22 special
 
 <img src="/assets/ccc-hero.svg" alt="CC Commander — Guided AI PM to Master Claude Code Instantly" />
 
-> **One plugin. 62 skills. Free for now. Your guided AI PM for every AI coding agent.**
+> **One plugin. 70 skills. Free for now. Your guided AI PM for every AI coding agent.**
 
-**🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace — 61 skills, 22 agents, 23 lifecycle hooks (38 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear in every session automatically.
+**🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace — 70 skills, 22 agents, 23 lifecycle hooks (38 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear in every session automatically.
 
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. Type `/ccc` to open the hub.
 
@@ -17,7 +17,7 @@ CC Commander is a guided AI PM that helps you master Claude Code — or any Clau
 
 <CardGroup cols={2}>
   <Card title="Claude Cowork Desktop" icon="handshake">
-    **New to AI coding?** Cowork is the easiest place to start. Install the plugin, get 60 skills and 22 guided `/ccc-*` workflows, zero config. We love novices — Commander is built to make you feel like a senior dev from day one.
+    **New to AI coding?** Cowork is the easiest place to start. Install the plugin, get 70 skills and guided `/ccc-*` workflows, zero config. We love novices — Commander is built to make you feel like a senior dev from day one.
   </Card>
   <Card title="Claude Code Desktop" icon="laptop-code">
     **Developer on the standard Claude Code app?** Same install, same skills. Slash commands + lifecycle hooks + specialist agents available in every session.
@@ -34,7 +34,7 @@ CC Commander is a guided AI PM that helps you master Claude Code — or any Clau
 
 <CardGroup cols={2}>
   <Card title="70 Plugin Skills" icon="wand-magic-sparkles" href="/plugin/skills">
-    13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + deploy/session/memory skills. New in v5: `/ccc-ultracode` for maximum-depth workflow orchestration. All free for now.
+    13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 11 CCC domains + Orchestrator/Executor skills + 2 diagnostic/meta + 2 vendor-sourced + deploy/session/memory skills. New in v5: `/ccc-ultracode` for maximum-depth workflow orchestration. All free for now.
   </Card>
   <Card title="22 Specialist Sub-Agents" icon="robot" href="/plugin/agents">
     architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer. Opus agents now run on Opus 4.8.
@@ -46,6 +46,10 @@ CC Commander is a guided AI PM that helps you master Claude Code — or any Clau
     Credential-free ship-day: `context7` (library docs) + `sequential-thinking`. Opt-in via `/ccc-connect`: Tavily, GitHub, Figma, Supabase, Slack, Notion, Playwright, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash.
   </Card>
 </CardGroup>
+
+<Card title="Orchestrator / Executor Model" icon="diagram-project" href="/plugin/skills">
+  `/ccc-orchestrate` lets Fable/Opus write a Skill.md-style goal file, GPT-5.5 via `codex` or a Sonnet subagent execute it, and the orchestrator verify acceptance criteria. Pair it with `/ccc-handoff` for frequent fresh-chat resets and `/ccc-adopt` to merge the doctrine into existing projects.
+</Card>
 
 <Card title="Dynamic Workflows (Research Preview)" icon="bolt-lightning" href="/dynamic-workflows">
   New in v5.1.0. JS scripts the runtime executes in the background, spawning many subagents that cross-check findings. 4 bundled workflows back `/ccc-xray`, `/ccc-review`, `/ccc-fleet`, and migration tasks. Requires Claude Code v2.1.154+. Falls back to sequential dispatch on older clients.
@@ -106,9 +110,9 @@ CC Commander is a guided AI PM that helps you master Claude Code — or any Clau
 
 | Metric | Value |
 |--------|-------|
-| Version | v6.2.0 |
+| Version | v6.3.0 |
 | Session default model | Opus 4.8 (`claude-opus-4-8`) |
-| Plugin skills | 62 ( (13 /ccc-* workflows + 11 domain routers + 6 channel/CI/ECC + 2 meta + 2 vendor-sourced + session/lifecycle + /ccc-ultracode) |
+| Plugin skills | 70 (13 /ccc-* workflows + 11 CCC domains + 6 channel/CI/ECC + Orchestrator/Executor + 2 meta + 2 vendor-sourced + session/lifecycle + /ccc-ultracode) |
 | Ecosystem skills | 457 (deduplicated) |
 | Specialist sub-agents | 22 |
 | Hook events | 23 (expanded from 9 in v5.1.0) |

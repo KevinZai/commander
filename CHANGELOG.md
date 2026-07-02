@@ -2,16 +2,18 @@
 
 All notable changes to CC Commander will be documented in this file.
 
-## [Unreleased]
+## [6.3.0] — 2026-07-02
 
 ### Added
 
 - **3 new skills** — `/ccc-orchestrate` (cross-runtime Orchestrator/Executor: Fable/Opus plans a goal file, GPT-5.5 via the `codex` adapter or a Sonnet subagent executes it, Fable/Opus verifies against acceptance criteria), `/ccc-handoff` (Matt Pocock context-reset pattern — write a dense handoff file and start a fresh chat before context degrades quality, reusing `/ccc-save-session`'s file format), `/ccc-adopt` (brings the Orchestrator/Executor doctrine into an existing, non-CC-Commander project via a delimited, re-runnable CLAUDE.md block + stack-tailored skill pointers).
-- **Orchestrator/Executor doctrine** — new "Orchestrator / Executor Model" section in `CLAUDE.md.template`, pointed to from root `CLAUDE.md`'s Session Defaults.
+- **Orchestrator/Executor doctrine** — new "Orchestrator / Executor Model" section in `CLAUDE.md.template`, pointed to from root `CLAUDE.md`'s Session Defaults, and taught as a method in `BIBLE.md`'s Kevin Z Method chapter.
+- **Printable cheat sheets** — `docs/cheatsheets/` ships 3 print-ready PDFs (+ regenerable HTML sources): *CC Commander Essentials* (13 workflows, 11 domains, when-to-use-what), *The Orchestrator/Executor Method* (roles, 4-step loop, model pairing), *Agents & Model Tiers* (all 22 agents by frontmatter model, escalation rules). Every claim fact-checked against repo ground truth.
 
 ### Changed
 
 - Plugin skill count 67 → 70 (`commander/contract.json` updated; `commander/cowork-plugin/.claude-plugin/plugin.json` description and all doc surfaces re-synced via `node scripts/check-product-contract.js --patch`).
+- **Full docs audit + refresh** (GPT-5.5 codex executor, 32 findings fixed / 8 deferred with reasons): README, BIBLE, CHEATSHEET, SKILLS-INDEX, and mintlify pages (`introduction`, `quickstart`, `plugin/skills`) updated for the 70-skill surface and the new doctrine; killed stale "60/61/62 skills" copy across mintlify; fixed stale `ccc-saas`/`ccc-devops` domain counts (21 → 20) in `CLAUDE.md`.
 
 ---
 

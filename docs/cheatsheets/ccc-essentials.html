@@ -1,0 +1,204 @@
+<title>CC Commander Essentials — Cheat Sheet</title>
+<style>
+  @page { size: letter; margin: 0.45in; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 9.5px;
+    line-height: 1.35;
+    color: #1a1a2e;
+    background: #ffffff;
+  }
+  code, .cmd {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 9px;
+    background: #f1eefc;
+    color: #5b21b6;
+    padding: 1px 4px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .sheet { width: 100%; max-width: 100%; }
+
+  /* Header band */
+  .header {
+    background: #1a1a2e;
+    color: #ffffff;
+    padding: 10px 16px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .header .tagline {
+    font-size: 10px;
+    color: #c4b5fd;
+    font-weight: 500;
+    margin-top: 1px;
+  }
+  .header .stats {
+    font-size: 9.5px;
+    color: #e07b39;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* Layout */
+  .columns {
+    column-count: 2;
+    column-gap: 14px;
+  }
+  section {
+    break-inside: avoid;
+    margin-bottom: 8px;
+  }
+  .full-width { column-span: all; }
+
+  h2 {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #7c3aed;
+    border-bottom: 1.5px solid #7c3aed;
+    padding-bottom: 2px;
+    margin: 0 0 4px 0;
+    font-weight: 800;
+  }
+  h2 .sub {
+    color: #999;
+    text-transform: none;
+    font-weight: 500;
+    letter-spacing: 0;
+    font-size: 8.5px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2px;
+  }
+  td, th {
+    text-align: left;
+    padding: 2px 4px 2px 0;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #faf9fd; }
+  .wf-table td:first-child { width: 30%; white-space: nowrap; }
+  .wf-table td:last-child { color: #333; }
+
+  .domain-table td:nth-child(1),
+  .domain-table td:nth-child(3) { white-space: nowrap; width: 22%; font-weight: 600; color: #1a1a2e; }
+  .domain-table td:nth-child(2),
+  .domain-table td:nth-child(4) { width: 28%; color: #444; }
+
+  .decision-table td:first-child { width: 44%; color: #333; }
+  .decision-table td:last-child { white-space: nowrap; }
+
+  .new-badge {
+    display: inline-block;
+    background: #e07b39;
+    color: #fff;
+    font-size: 7px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-left: 3px;
+    vertical-align: middle;
+  }
+
+  footer {
+    margin-top: 8px;
+    padding-top: 5px;
+    border-top: 1px solid #ddd;
+    font-size: 8px;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+    column-span: all;
+  }
+  footer code { background: transparent; color: #7c3aed; padding: 0; }
+</style>
+
+<div class="sheet">
+  <div class="header">
+    <div>
+      <h1>CC Commander Essentials</h1>
+      <div class="tagline">Guided AI PM to Master Claude Code Instantly</div>
+    </div>
+    <div class="stats">70 plugin skills · 22 agents · 23 hooks</div>
+  </div>
+
+  <div class="columns">
+
+    <section class="full-width">
+      <h2>The 13 /ccc-* Specialist Workflows</h2>
+      <table class="wf-table">
+        <tr><td><span class="cmd">/ccc</span></td><td>Main hub — detects project context, routes to 12 specialist workflows.</td></tr>
+        <tr><td><span class="cmd">/ccc-start</span></td><td>First-run onboarding — detects setup, introduces 22 agent personas, drafts a start plan.</td></tr>
+        <tr><td><span class="cmd">/ccc-build</span></td><td>Build web app, API, CLI, or mobile — spec interview routes to template, scaffolds.</td></tr>
+        <tr><td><span class="cmd">/ccc-review</span></td><td>Audit branch, security posture, performance, or full x-ray — spawns matching specialist agent.</td></tr>
+        <tr><td><span class="cmd">/ccc-ship</span></td><td>Pre-flight checks, cut a release, deploy, or rollback — runs test matrix in parallel.</td></tr>
+        <tr><td><span class="cmd">/ccc-plan</span></td><td>Structured 3-5 question spec interview, delegates to planner agent in background.</td></tr>
+        <tr><td><span class="cmd">/ccc-design</span></td><td>Click-first picker over 39 design skills — landing pages, components, polish, Figma→code.</td></tr>
+        <tr><td><span class="cmd">/ccc-learn</span></td><td>Learning hub — click-first picker across 11 CCC domains (500+ skills).</td></tr>
+        <tr><td><span class="cmd">/ccc-xray</span></td><td>Project health scorecard — 7 dimensions scanned, 0-100 scores + fix chips.</td></tr>
+        <tr><td><span class="cmd">/ccc-linear</span></td><td>Linear board integration — view issues, pick one to work, or create tickets.</td></tr>
+        <tr><td><span class="cmd">/ccc-fleet</span></td><td>Multi-agent orchestration — parallel Sonnet agents in git worktrees, fan out or pipeline.</td></tr>
+        <tr><td><span class="cmd">/ccc-connect</span></td><td>Opt-in MCP connector setup — click-connect Notion, Slack, GitHub, Supabase, Figma, and more.</td></tr>
+        <tr><td><span class="cmd">/ccc-browse</span></td><td>Filterable catalog of every skill, agent, and command — cascading detail cards.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>New in This Release</h2>
+      <table class="wf-table">
+        <tr><td><span class="cmd">/ccc-orchestrate</span><span class="new-badge">New</span></td><td>Fable/Opus writes a goal file, GPT-5.5 or Sonnet executes, Fable/Opus verifies before done.</td></tr>
+        <tr><td><span class="cmd">/ccc-handoff</span><span class="new-badge">New</span></td><td>Proactive context reset — write a dense handoff file, start a new chat now.</td></tr>
+        <tr><td><span class="cmd">/ccc-adopt</span><span class="new-badge">New</span></td><td>Bring Orchestrator/Executor doctrine into an existing project — detects stack, merges CLAUDE.md.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>11 CCC Domain Routers <span class="sub">ccc-learn → domain</span></h2>
+      <table class="domain-table">
+        <tr><td><span class="cmd">ccc-design</span></td><td>39 skills — UI/UX, animation</td><td><span class="cmd">ccc-devops</span></td><td>20 skills — CI/CD, infra</td></tr>
+        <tr><td><span class="cmd">ccc-marketing</span></td><td>45 skills — CRO, content, SEO</td><td><span class="cmd">ccc-seo</span></td><td>20 skills — technical + content SEO</td></tr>
+        <tr><td><span class="cmd">ccc-saas</span></td><td>20 skills — auth, billing, schema</td><td><span class="cmd">ccc-testing</span></td><td>15 skills — TDD, E2E, QA</td></tr>
+        <tr><td><span class="cmd">ccc-security</span></td><td>8 skills — OWASP, secrets, audits</td><td><span class="cmd">ccc-data</span></td><td>8 skills — pipelines, SQL, ML</td></tr>
+        <tr><td><span class="cmd">ccc-research</span></td><td>8 skills — deep research, review</td><td><span class="cmd">ccc-mobile</span></td><td>8 skills — RN, Flutter, SwiftUI</td></tr>
+        <tr><td><span class="cmd">ccc-makeover</span></td><td>3 skills — x-ray, swarm, scorecard</td><td></td><td></td></tr>
+      </table>
+    </section>
+
+    <section class="full-width">
+      <h2>When to Use What</h2>
+      <table class="decision-table">
+        <tr><td>Starting a new feature</td><td><span class="cmd">/ccc-plan</span></td></tr>
+        <tr><td>Existing project wants CCC doctrine</td><td><span class="cmd">/ccc-adopt</span></td></tr>
+        <tr><td>Context getting long, quality dropping</td><td><span class="cmd">/ccc-handoff</span></td></tr>
+        <tr><td>Big task, want to save tokens</td><td><span class="cmd">/ccc-orchestrate</span></td></tr>
+        <tr><td>Not sure what state the repo is in</td><td><span class="cmd">/ccc-xray</span></td></tr>
+        <tr><td>Need parallel agents on independent slices</td><td><span class="cmd">/ccc-fleet</span></td></tr>
+        <tr><td>Ready to release</td><td><span class="cmd">/ccc-ship</span></td></tr>
+      </table>
+    </section>
+
+  </div>
+
+  <footer>
+    <span>CC Commander · github.com/KevinZai/commander · commanderplugin.com</span>
+    <span>Generated 2026-07-02</span>
+  </footer>
+</div>

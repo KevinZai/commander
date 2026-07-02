@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
-> CC Commander v6.2.0 — by Kevin Zicherman
+> CC Commander v6.3.0 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-05-15 | Desktop plugin first: 70 plugin skills (13 /ccc-* workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop) + 22 specialist sub-agents + 23 lifecycle hooks (38 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free for now
+> Last verified: 2026-05-15 | Desktop plugin first: 70 plugin skills (13 /ccc-* workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop + /ccc-orchestrate + /ccc-handoff + /ccc-adopt) + 22 specialist sub-agents + 23 lifecycle hooks (38 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free for now
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
@@ -39,9 +39,9 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 
 ---
 
-## Desktop Plugin Skills (v6.2.0)
+## Desktop Plugin Skills (v6.3.0)
 
-> Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 70 plugin skills total (13 /ccc-* workflows + 14 ccc-* domain routers + 6 new channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop). **All free for now.**
+> Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 70 plugin skills total (13 /ccc-* workflows + 11 CCC domains + 6 new channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop + /ccc-orchestrate + /ccc-handoff + /ccc-adopt). **All free for now.**
 
 | Skill | Description | Trigger Phrases |
 |-------|-------------|----------------|
@@ -73,6 +73,9 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-hermes` | Hermes Gateway integration: OAuth bridge status, token refresh, provider health | "hermes status", "ccc hermes", "check oauth bridge" |
 | `/ccc-nightwatch` | Remote YOLO permission relay: approve/reject tool calls from mobile while agent runs overnight | "ccc nightwatch", "overnight mode", "remote approve" |
 | `/ccc-ci` | CI/CD workflow: lint, test, build gate, branch checks, pre-push hooks | "ccc ci", "run ci checks", "pre-push gate" |
+| `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus writes a goal file, GPT-5.5 via `codex` or Sonnet executes, orchestrator verifies acceptance criteria | "ccc orchestrate", "orchestrate this", "goal file executor" |
+| `/ccc-handoff` | Proactive context reset — write a dense handoff file and start a fresh chat before context quality decays | "ccc handoff", "handoff session", "fresh chat" |
+| `/ccc-adopt` | Adopt CCC doctrine in an existing project — merge a marked Orchestrator/Executor block into `CLAUDE.md` without clobbering local rules | "ccc adopt", "adopt commander", "add ccc doctrine" |
 
 ### Bundled MCP Servers (9)
 
@@ -615,7 +618,7 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = added in CC Commander v6.2.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v6.2.0, updated in v6.2.0.*
+*⭐ = added in CC Commander v6.3.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v6.3.0, updated in v6.3.0.*
 
 ---
 
