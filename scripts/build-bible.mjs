@@ -1,6 +1,13 @@
 #!/usr/bin/env node
-// Build docs/bible.html from BIBLE.md
-// Inlines markdown source into <script type="text/markdown"> placeholder for client-side rendering.
+// Build the web Bible by inlining BIBLE.md into its HTML template shell
+// (<script id="bible-source" type="text/markdown"> placeholder, client-side rendered).
+//
+// NOTE: the shell (bible.html) moved to the PRIVATE marketing repo
+// (KevinZai/commanderplugin-com) in 9ba44cc — docs/bible.html no longer exists
+// here. Pass the shell path explicitly:
+//   node scripts/build-bible.mjs ~/clawd/projects/commanderplugin-com/bible.html
+// After building, commit+push that repo (Vercel deploys commanderplugin.com/bible;
+// kevinz.ai mirrors it hourly via its sync-bible workflow).
 
 import fs from 'fs';
 import path from 'path';
@@ -9,7 +16,15 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const BIBLE_MD = path.join(ROOT, 'BIBLE.md');
-const BIBLE_HTML = path.join(ROOT, 'docs', 'bible.html');
+const BIBLE_HTML = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : path.join(ROOT, 'docs', 'bible.html');
+
+if (!fs.existsSync(BIBLE_HTML)) {
+  console.error(`Shell not found: ${BIBLE_HTML}`);
+  console.error('The bible.html shell lives in the private commanderplugin-com repo — pass its path as the first argument.');
+  process.exit(1);
+}
 
 const md = fs.readFileSync(BIBLE_MD, 'utf8');
 let html = fs.readFileSync(BIBLE_HTML, 'utf8');
@@ -30,4 +45,4 @@ const after = html.slice(endIdx);
 html = before + safe + after;
 
 fs.writeFileSync(BIBLE_HTML, html);
-console.log(`✓ Built docs/bible.html (${(html.length / 1024).toFixed(1)}KB, ${md.split('\n').length} source lines)`);
+console.log(`✓ Built ${path.relative(process.cwd(), BIBLE_HTML)} (${(html.length / 1024).toFixed(1)}KB, ${md.split('\n').length} source lines)`);
