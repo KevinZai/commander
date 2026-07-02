@@ -233,6 +233,22 @@ Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok) and an `ultra` effort le
 
 **Rule:** Never change models mid-session — spawn a subagent instead.
 
+## Orchestrator / Executor Model (save ~70% tokens)
+
+CC Commander splits work into two roles instead of doing everything on one expensive model:
+
+- **Orchestrator** — a high-reasoning model (Claude Fable 5 `effort: high`, or Opus 4.8 as the everyday default) that does NOT write final code. It plans: breaks the task into steps, defines acceptance criteria, and produces a **Skill.md-style goal file** — a structured spec an executor can follow without re-deriving intent.
+- **Executor** — a fast, capable-at-execution model (GPT-5.5 `effort: xhigh` via the `codex` adapter, or a Sonnet subagent) that implements the plan file exactly. It does not re-plan; it executes, verifies its own work against the acceptance criteria in the plan, and reports back.
+
+Why this saves tokens: the expensive model's context stays small (just the plan, not every file it touches); the fast executor absorbs the token-heavy file reads/writes/diffs. You pay premium-model tokens only for the reasoning, not the typing.
+
+**How to run it:**
+- `/ccc-orchestrate` — Fable/Opus plans → writes a goal file → dispatches GPT-5.5 (via `codex`) or a Sonnet subagent to execute it, then verifies the result against the plan's acceptance criteria.
+- `/ccc-plan-exec` — the Claude-only variant (cheap Sonnet/Haiku plans, Opus/Fable executes) when you want to stay in one runtime.
+- `/ccc-handoff` — when context grows large mid-task, write a dense handoff file and start a fresh chat instead of letting the session bloat. Do this *frequently*, not just at the end — small, frequent resets beat one giant compaction.
+
+**Adopting this in an existing (non-CC-Commander) project:** run `/ccc-adopt` once. It reads your current CLAUDE.md (if any), detects your stack, and merges in this Orchestrator/Executor section plus a stack-appropriate list of which CCC skills/agents to reach for going forward — without clobbering your existing project-specific rules.
+
 ## Compaction Survival
 <!-- Add critical items to preserve: "When compacting, always preserve: [your items]" -->
 - `pre-compact` hook auto-saves session state

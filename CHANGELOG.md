@@ -2,6 +2,19 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **3 new skills** — `/ccc-orchestrate` (cross-runtime Orchestrator/Executor: Fable/Opus plans a goal file, GPT-5.5 via the `codex` adapter or a Sonnet subagent executes it, Fable/Opus verifies against acceptance criteria), `/ccc-handoff` (Matt Pocock context-reset pattern — write a dense handoff file and start a fresh chat before context degrades quality, reusing `/ccc-save-session`'s file format), `/ccc-adopt` (brings the Orchestrator/Executor doctrine into an existing, non-CC-Commander project via a delimited, re-runnable CLAUDE.md block + stack-tailored skill pointers).
+- **Orchestrator/Executor doctrine** — new "Orchestrator / Executor Model" section in `CLAUDE.md.template`, pointed to from root `CLAUDE.md`'s Session Defaults.
+
+### Changed
+
+- Plugin skill count 67 → 70 (`commander/contract.json` updated; `commander/cowork-plugin/.claude-plugin/plugin.json` description and all doc surfaces re-synced via `node scripts/check-product-contract.js --patch`).
+
+---
+
 ## [6.2.0] — 2026-06-30
 
 ### Added
