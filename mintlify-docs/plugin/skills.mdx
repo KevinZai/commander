@@ -1,9 +1,9 @@
 ---
 title: "Plugin Skills"
-description: "62 skills shipped with the CC Commander plugin (v6.2.0). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 14 ccc-* domain routers + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
+description: "70 skills shipped with the CC Commander plugin (v6.3.0). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 11 CCC domains + Orchestrator/Executor skills + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
 ---
 
-CC Commander v6.2.0 ships **67 plugin skills** across six groups. All skills are **free for now** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+CC Commander v6.3.0 ships **70 plugin skills** across eight groups. All skills are **free for now** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
 
 ## Group 1 — 13 /ccc-* Specialist Workflows
 
@@ -70,6 +70,7 @@ Added in v5.0.0 and v5.0.0.
 | `/ccc-e2e` | `/ccc-e2e` or "e2e test", "add playwright tests" | E2E test scaffolding and Playwright automation — new test suite, existing project, or visual regression |
 | `/ccc-save-session` | `/ccc-save-session` or "save session", "save my progress" | Save current session state to `~/.claude/commander/sessions/` — context, todos, and plan preserved |
 | `/ccc-resume-session` | `/ccc-resume-session` or "resume session", "pick up where I left off" | Resume a previously saved session — lists recent saves, pick one to restore context |
+| `/ccc-handoff` | `/ccc-handoff` or "handoff session", "fresh chat" | Proactive context reset — writes a dense handoff file and tells you to start a fresh chat before context quality decays |
 | `/ccc-changelog` | `/ccc-changelog` or "what changed", "what is new" | Renders the latest CHANGELOG.md section. Fires automatically on version-transition via SessionStart nudge (beta.11) |
 | `/ccc-doctor` | `/ccc-doctor` or "diagnose plugin" | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component (beta.11) |
 
@@ -96,7 +97,16 @@ New skills added in v5.0.0. These skills extend the deploy, fleet, onboard, and 
 | `/ccc-upgrade` | `/ccc-upgrade` or "upgrade ccc", "update commander" | Guided upgrade flow — checks current version, shows changelog diff, runs upgrade safely |
 | `/ccc-tuneup` | `/ccc-tuneup` or "tune up ccc", "optimize my setup", "fix my install" | Local setup optimizer — companion to `/ccc-doctor`. Read-only audit by default; backup + archive before any fix. Covers version freshness, junk sweep, CLAUDE.md drift, superseded agents, hooks coverage, opt-in MCP staleness, settings keys (v5.1.0) |
 
-## All 62 at a Glance
+## Group 8 — Orchestrator / Executor Skills
+
+The plan/execute split: high-reasoning models write goal files and verify; execution runtimes do the token-heavy implementation work.
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-orchestrate` | `/ccc-orchestrate` or "orchestrate this", "goal file executor" | Cross-runtime Orchestrator/Executor — Fable/Opus writes a Skill.md-style goal file, GPT-5.5 via `codex` or Sonnet executes, orchestrator verifies acceptance criteria |
+| `/ccc-adopt` | `/ccc-adopt` or "adopt commander", "add ccc doctrine" | Bring the Orchestrator/Executor doctrine into an existing project — merge a marked `CLAUDE.md` block without clobbering local rules |
+
+## All 70 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -141,7 +151,10 @@ New skills added in v5.0.0. These skills extend the deploy, fleet, onboard, and 
 | 39 | `/ccc-fleet-viz` | Fleet visualizer (beta.11) |
 | 40 | `/ccc-upgrade` | Upgrade flow (beta.11) |
 | 41 | `/ccc-tuneup` | Local setup optimizer (v5.1.0) |
-| 42–62 | `ccc-design`, `ccc-fleet`, `ccc-linear` double-counted + 12 supporting skills (build, code-review, content, deploy-check, domains, fleet, infra, knowledge, linear-board, night-mode, research, session, settings, standup) + aux | Includes specialist/domain double-purposes and aux skills. See `/ccc-browse` in Desktop for the live, filterable catalog. |
+| 42 | `/ccc-handoff` | Proactive fresh-chat handoff |
+| 43 | `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor |
+| 44 | `/ccc-adopt` | Existing-project doctrine adoption |
+| 45–70 | `ccc-design`, `ccc-fleet`, `ccc-linear` double-counted + supporting skills (build, code-review, content, deploy-check, domains, fleet, infra, knowledge, linear-board, night-mode, research, session, settings, standup, brainstorm, qa, loop, hermes, nightwatch, ci, yolo-setup, ecc, ultracode, debate, triage, doc-sync, harden) + aux | Includes specialist/domain double-purposes and aux skills. See `/ccc-browse` in Desktop for the live, filterable catalog. |
 | — | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2) |
 
 [Pricing — Free for Now →](/plugin/free-vs-pro)

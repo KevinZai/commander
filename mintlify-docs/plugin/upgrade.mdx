@@ -1,11 +1,11 @@
 ---
-title: "Upgrade to v6.2.0 Beta"
-description: "Upgrade an existing CC Commander plugin install to v6.2.0 in Claude Code Desktop, Claude Code CLI, or npm."
+title: "Upgrade to v6.3.0 Beta"
+description: "Upgrade an existing CC Commander plugin install to v6.3.0 in Claude Code Desktop, Claude Code CLI, or npm."
 ---
 
-# ⬆️ Upgrade to v6.2.0 Beta
+# ⬆️ Upgrade to v6.3.0 Beta
 
-You already have CC Commander installed? Here's how to pick up v6.2.0 with zero drama.
+You already have CC Commander installed? Here's how to pick up v6.3.0 with zero drama.
 
 ## Claude Code Desktop / CLI (plugin)
 
@@ -13,13 +13,13 @@ You already have CC Commander installed? Here's how to pick up v6.2.0 with zero 
 /plugin update commander
 ```
 
-That's the whole thing. The marketplace serves the latest version from `main` — once the v6.2.0 release lands, your next `/plugin update` pulls it.
+That's the whole thing. The marketplace serves the latest version from `main` — once the v6.3.0 release lands, your next `/plugin update` pulls it.
 
 ### Verify the upgrade
 
 ```
 /plugin list | grep commander
-# should show: commander  v6.2.0  Kevin Zicherman
+# should show: commander  v6.3.0  Kevin Zicherman
 ```
 
 Or in a fresh Claude Code session:
@@ -32,7 +32,7 @@ The settings menu header reports the installed version.
 
 ### What changes for you
 
-| Surface | Before (v6.2.0) | After (v6.2.0) |
+| Surface | Before (v6.3.0) | After (v6.3.0) |
 |---------|-----------------|----------------------|
 | Plugin skills | 15 free + 2 pro | 24 free + 2 pro (11 CCC domain routers now free) |
 | Agents | 10 domain specialists | 15 with persona voice system (added content-strategist, data-analyst, performance-engineer, product-manager, technical-writer) |
@@ -47,9 +47,9 @@ Your `~/.claude/commander/` state files, knowledge base, and learned-skills dire
 ## npm CLI
 
 ```bash
-npm i -g cc-commander@6.2.0
+npm i -g cc-commander@6.3.0
 # or: npm i -g cc-commander@next (if we tag the dist-tag)
-ccc --version   # should show 6.2.0
+ccc --version   # should show 6.3.0
 ```
 
 Re-run the post-install verify:
@@ -82,16 +82,16 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 If something breaks (please file an issue first):
 
 ```
-/plugin update commander --version 6.2.0
+/plugin update commander --version 6.3.0
 # or
-npm i -g cc-commander@6.2.0
+npm i -g cc-commander@6.3.0
 ```
 
 ## After the upgrade
 
 Optional but recommended: run `/ccc-init` to refresh your project `CLAUDE.md` against the new v4 template (22-emoji palette, 10 Core Principles, 4 HARD RULES). Custom sections are preserved.
 
-## Known issues in v6.2.0
+## Known issues in v6.3.0
 
 - Hosted MCP endpoint at `mcp.commanderplugin.com` is not live yet — deploy pending Kevin's infrastructure provisioning. Plugin-side UX is unaffected.
 - 135 eslint warnings exist in the codebase (tech-debt, not new regressions). `--max-warnings 140` is temporarily enforced. Will be fixed in beta.2.

@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Orchestrator/Executor Method — CC Commander</title>
+<style>
+  @page { size: letter; margin: 0.45in; }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-size: 9.5px;
+    line-height: 1.35;
+    color: #1a1a2e;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    background: #ffffff;
+  }
+
+  .sheet {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  code, .mono, .cmd {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  /* ---------- Header band ---------- */
+  header.band {
+    background: #1a1a2e;
+    color: #ffffff;
+    padding: 12px 18px;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  header.band h1 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  header.band h1 .accent {
+    color: #e07b39;
+  }
+
+  header.band .motto {
+    font-style: italic;
+    font-size: 10.5px;
+    color: #c9c9e0;
+    white-space: nowrap;
+  }
+
+  /* ---------- Section headers ---------- */
+  h2.section {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #7c3aed;
+    border-bottom: 1.5px solid #7c3aed;
+    margin: 10px 0 5px 0;
+    padding-bottom: 2px;
+    font-weight: 800;
+  }
+
+  h3.sub {
+    font-size: 9.5px;
+    color: #e07b39;
+    margin: 6px 0 3px 0;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  p { margin: 3px 0; }
+
+  /* ---------- Layout ---------- */
+  .content {
+    padding: 10px 18px 8px 18px;
+  }
+
+  .cols2 {
+    column-count: 2;
+    column-gap: 20px;
+  }
+
+  .no-break {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+  }
+
+  /* ---------- Role cards ---------- */
+  .roles {
+    display: flex;
+    gap: 12px;
+    margin: 4px 0 2px 0;
+  }
+
+  .role-card {
+    flex: 1;
+    border: 1.5px solid #d8d8ea;
+    border-radius: 6px;
+    padding: 7px 9px;
+    background: #f8f8fc;
+  }
+
+  .role-card.orch { border-color: #7c3aed; background: #f5f0fd; }
+  .role-card.exec { border-color: #e07b39; background: #fdf3ec; }
+
+  .role-card .role-title {
+    font-weight: 800;
+    font-size: 10.5px;
+    margin-bottom: 3px;
+  }
+
+  .role-card.orch .role-title { color: #7c3aed; }
+  .role-card.exec .role-title { color: #e07b39; }
+
+  .role-card .role-models {
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+
+  .role-card .role-models .cmd { font-size: 8.7px; }
+
+  /* ---------- Command chips ---------- */
+  .cmd {
+    background: #efeafc;
+    color: #5b21b6;
+    padding: 0.5px 4px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  /* ---------- Flow steps ---------- */
+  .flow {
+    counter-reset: step;
+    margin: 3px 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    margin: 3px 0;
+  }
+
+  .flow-num {
+    counter-increment: step;
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    background: #7c3aed;
+    color: #fff;
+    border-radius: 50%;
+    font-weight: 800;
+    font-size: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .flow-step:nth-child(4) .flow-num { background: #e07b39; }
+
+  .flow-text { flex: 1; }
+  .flow-text b { color: #1a1a2e; }
+
+  /* ---------- Tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4px 0;
+    font-size: 9px;
+  }
+
+  th {
+    background: #1a1a2e;
+    color: #fff;
+    text-align: left;
+    padding: 3px 6px;
+    font-weight: 700;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  td {
+    padding: 3px 6px;
+    border-bottom: 1px solid #e4e4ee;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td {
+    background: #f8f8fc;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* ---------- Command list ---------- */
+  .cmd-block {
+    border-left: 2.5px solid #7c3aed;
+    padding: 3px 8px;
+    margin: 5px 0;
+    background: #faf9fd;
+  }
+
+  .cmd-block .cmd-name {
+    font-weight: 800;
+    color: #7c3aed;
+  }
+
+  .cmd-block p { margin: 2px 0 0 0; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    border-top: 1px solid #d8d8ea;
+    margin-top: 6px;
+    padding: 6px 18px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    color: #6b6b85;
+  }
+
+  .callout {
+    background: #fdf3ec;
+    border: 1px solid #e07b39;
+    border-radius: 5px;
+    padding: 6px 9px;
+    margin: 6px 0;
+    font-size: 9px;
+  }
+
+  .callout b { color: #e07b39; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="band">
+    <h1>The <span class="accent">Orchestrator</span>/Executor Method <span style="font-weight:400; font-size:12px;">— save ~70% tokens</span></h1>
+    <div class="motto">"Pay for Fable on the thinking, not the typing."</div>
+  </header>
+
+  <div class="content">
+
+    <h2 class="section">1 · The Two Roles</h2>
+    <div class="roles no-break">
+      <div class="role-card orch">
+        <div class="role-title">🧭 Orchestrator</div>
+        <div class="role-models">Plans, writes the Skill.md-shaped goal file, sets acceptance criteria. <b>Never writes final code.</b></div>
+        <div class="role-models"><span class="cmd">Fable 5 (effort: high)</span> — or <span class="cmd">Opus 4.8</span> as the everyday default</div>
+      </div>
+      <div class="role-card exec">
+        <div class="role-title">⚙️ Executor</div>
+        <div class="role-models">Implements the plan file exactly. Absorbs the token-heavy file reads/writes/diffs. Does not re-plan.</div>
+        <div class="role-models"><span class="cmd">GPT-5.5 (effort: xhigh)</span> via <span class="cmd">codex</span> — or a <span class="cmd">Sonnet subagent</span></div>
+      </div>
+    </div>
+    <p style="font-size:8.7px; color:#555;">Why it saves tokens: the expensive model's context stays small (just the plan, not every file it touches) — the fast executor absorbs the file I/O. You pay premium-model tokens only for the reasoning.</p>
+
+    <h2 class="section">2 · The 4-Step Loop</h2>
+    <div class="flow no-break">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-text"><b>Orchestrator writes a goal file</b> — a Skill.md-shaped markdown spec: context, ordered steps, files in/out of scope, and testable "done-when" acceptance criteria (never a vibe — each box must be checkable by reading a diff or running a command).</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-text"><b>Executor implements it verbatim</b> — reads the goal file as its entire brief; does not re-scope or renegotiate criteria.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-text"><b>Orchestrator verifies output vs. acceptance criteria</b> — reads the diff line-by-line against the done-when checklist. Any unmet box → re-dispatch with the specific gap only, never a fresh goal file.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-text"><b>Hand off to a fresh chat frequently</b> — <span class="cmd">/ccc-handoff</span>. Context degrades quality as it fills; frequent small resets beat one giant compaction. Pattern credit: Matt Pocock.</div>
+      </div>
+    </div>
+
+    <h2 class="section">3 · Model Pairing</h2>
+    <table class="no-break">
+      <tr><th style="width:32%;">Orchestrator</th><th style="width:32%;">Executor</th><th>When</th></tr>
+      <tr><td><span class="cmd">Fable 5</span> (effort: high)</td><td><span class="cmd">GPT-5.5</span> (effort: xhigh) via <span class="cmd">codex</span></td><td>Cross-runtime diversity wanted; codex CLI installed (<code>which codex</code> succeeds)</td></tr>
+      <tr><td><span class="cmd">Opus 4.8</span> (everyday default)</td><td><span class="cmd">Sonnet subagent</span></td><td>Stay in one vendor; codex not installed, or single-vendor audit trail preferred</td></tr>
+      <tr><td>Sonnet/Haiku (cheap, fast)</td><td><span class="cmd">Opus</span>/<span class="cmd">Fable</span> (capable)</td><td><span class="cmd">/ccc-plan-exec</span>: cheap model drafts the loop structure, capable model executes each step's reasoning-heavy body</td></tr>
+    </table>
+
+    <h2 class="section">4 · The Commands</h2>
+
+    <div class="cmd-block no-break">
+      <span class="cmd-name">/ccc-orchestrate</span> — cross-runtime.
+      <p>Fable/Opus plans → writes a goal file → dispatches GPT-5.5 (via <code>codex</code>) or a Sonnet subagent to execute → verifies the result against the plan's acceptance criteria.</p>
+    </div>
+
+    <div class="cmd-block no-break">
+      <span class="cmd-name">/ccc-plan-exec</span> — Claude-only variant.
+      <p>Cheap/fast model (Sonnet/Haiku) drafts the plan or loop structure; capable model (Opus/Fable) executes each step. Stay in one runtime.</p>
+    </div>
+
+    <div class="cmd-block no-break">
+      <span class="cmd-name">/ccc-handoff</span> — context reset.
+      <p>Writes a dense handoff file (same format as <span class="cmd">/ccc-save-session</span>) to <code>~/.claude/sessions/</code>, then instructs you to start a fresh chat. Use proactively, not just when a session is dying — especially mid-orchestration.</p>
+    </div>
+
+    <div class="cmd-block no-break">
+      <span class="cmd-name">/ccc-adopt</span> — bring the doctrine to ANY project.
+      <p>Detects your stack, merges this Orchestrator/Executor section into your project's own <code>CLAUDE.md</code> (delimited block, never clobbers existing content), and tailors a skill/agent pointer list to your stack. Backs up first, previews the diff, re-run safe.</p>
+    </div>
+
+    <div class="callout no-break">
+      <b>Existing project?</b> Run <span class="cmd">/ccc-adopt</span> once — merges this doctrine into your CLAUDE.md and tailors skill recommendations to your stack.
+    </div>
+
+  </div>
+
+  <footer>
+    <span>CC Commander · github.com/KevinZai/commander · commanderplugin.com</span>
+    <span>Generated 2026-07-02</span>
+  </footer>
+
+</div>
+</body>
+</html>

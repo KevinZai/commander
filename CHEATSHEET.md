@@ -1,14 +1,14 @@
 # CC Commander Cheatsheet
-> CC Commander v6.2.0 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v6.3.0 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-05-15 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v6.2.0)
+## Desktop Plugin Commands (v6.3.0)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 67 plugin skills total (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 70 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -25,7 +25,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (62 total — 13 specialist workflows + 11 domain routers + 6 channel/CI/ECC skills + meta + vendor-sourced + lifecycle + session; core surface shown)
+### /ccc-* Skills (70 plugin skills — 13 specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -50,6 +50,9 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | `/ccc-hermes` | Hermes Gateway status, OAuth bridge health, token refresh | Free |
 | `/ccc-nightwatch` | Remote YOLO permission relay — approve tool calls from mobile | Free |
 | `/ccc-ci` | CI/CD gate: lint, test, build, branch checks, pre-push hooks | Free |
+| `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus goal file, GPT-5.5 or Sonnet executes, orchestrator verifies | Free |
+| `/ccc-handoff` | Proactive context reset — dense handoff file, then start a fresh chat before quality decays | Free |
+| `/ccc-adopt` | Adopt CCC doctrine in another repo — merge marked Orchestrator/Executor block into `CLAUDE.md` | Free |
 
 ### Sub-agent personas (22)
 
@@ -568,7 +571,9 @@ See `tasks/todo.md`
 | Command | When to Use | Example |
 |---------|-------------|---------|
 | `/ccc-plan` | Before ANY multi-step task. Spec-first. | `/ccc-plan add OAuth login` |
-| `/ccc-orchestrate` | Multi-agent pipeline for complex work | `/ccc-orchestrate` |
+| `/ccc-orchestrate` | Fable/Opus plans a goal file; GPT-5.5 via `codex` or Sonnet executes; orchestrator verifies | `/ccc-orchestrate` |
+| `/ccc-handoff` | Save dense handoff state and resume in a fresh chat before context quality decays | `/ccc-handoff` |
+| `/ccc-adopt` | Add the Orchestrator/Executor doctrine to an existing project's `CLAUDE.md` | `/ccc-adopt` |
 | `/ccc-build-fix` | Auto-resolve build errors after `npm run build` fails | `/ccc-build-fix` |
 | `/ccc-verify` | Run full verification before claiming done | `/ccc-verify` |
 | `/ccc-checkpoint` | Git checkpoint — save state mid-work | `/ccc-checkpoint` |
@@ -674,7 +679,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 6.2.0
+version: 6.3.0
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -1048,7 +1053,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v6.2.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v6.3.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1132,7 +1137,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v6.2.0 Quick Reference (CLI)
+## CC Commander v6.3.0 Quick Reference (CLI)
 
 ```bash
 # Launch
