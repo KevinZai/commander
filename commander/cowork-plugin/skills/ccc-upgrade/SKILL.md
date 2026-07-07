@@ -200,3 +200,7 @@ Next steps:
 2. If the user has uncommitted vendor changes (the `+` prefix in `git submodule status`), warn them up front: "Vendor X has uncommitted local changes. Stash or commit before continuing." Then exit unless they pass `--all` (in which case still skip that submodule, never trample local work).
 3. The weekly cron at `.github/workflows/vendor-update.yml` runs the same audit unattended. Skill is the human-in-the-loop variant.
 4. Star counts (when fetched) come from `vendor/<name>/.git/config` URL → GitHub API. Do not block on this. Cache results in `~/.claude/commander/vendor-stars.json` if you implement it later.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

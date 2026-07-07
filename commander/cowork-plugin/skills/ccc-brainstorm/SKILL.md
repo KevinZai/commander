@@ -166,3 +166,7 @@ Agent C: Tailwind UI — polished designs, pro license, fastest to ship a good-l
 ## Attribution
 
 > Adapted from superpowers/brainstorming — MIT licensed.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

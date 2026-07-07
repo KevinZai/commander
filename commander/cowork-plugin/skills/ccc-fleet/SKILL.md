@@ -309,3 +309,7 @@ When assigning agents in any fleet pattern, run `scoreComplexity(sliceDescriptio
 ---
 
 **Bottom line:** pick pattern → free-text task → parallel batch dispatch → Cmd+click to steer. Synthesis auto-kicks when all report back.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

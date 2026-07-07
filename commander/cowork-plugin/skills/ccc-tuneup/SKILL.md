@@ -392,3 +392,7 @@ For anything heavy/out-of-scope, offer ONE `mcp__ccd_session__spawn_task` chip (
 - ❌ Render `ok`-verdict cost keys as if they need fixing — only surface `missing`/`suboptimal`.
 
 **Bottom line:** scan read-only → scorecard → click to confirm → backup + archive + fix → verify → report. Safe by default, reversible by design, always current.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

@@ -227,3 +227,7 @@ Both must equal `1`. If not, restore from the backup and report the failure.
 - ❌ Run this skill against the cc-commander repo itself — redirect to `/ccc-onboard` or `/ccc-tuneup`.
 
 **Bottom line:** detect stack + existing CLAUDE.md → merge doctrine into a delimited, replaceable block → tailor skill pointers to the stack → backup → confirm via chips → write → verify markers are singular.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

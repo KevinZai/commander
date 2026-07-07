@@ -111,3 +111,7 @@ This skill exists so the methodology survives the model. A frontier model does s
 - `/ccc-orchestrate` — Pillar 1 implementation (goal file → executor → verify)
 - `/ccc-suggest` — Pillar 10 implementation (the IMPROVE/SCOPE/AUDIT loop)
 - `/ccc-handoff` — Pillar 7 implementation (context-reset before quality degrades)
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

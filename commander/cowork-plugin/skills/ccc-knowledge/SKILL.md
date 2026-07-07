@@ -136,3 +136,7 @@ If **~~project tracker** is connected:
 1. Pass a search term directly as argument (e.g., `knowledge next.js`) to skip the menu and search immediately.
 2. Before any significant build, the `commander` skill auto-surfaces relevant lessons — this skill exposes the full browse UI.
 3. Lessons compound over time — the more sessions you run, the more accurate the suggestions become.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

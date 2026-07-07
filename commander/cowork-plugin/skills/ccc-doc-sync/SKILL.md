@@ -100,3 +100,7 @@ SKILL.md         this file
 ```
 
 The `.js` file contains no hardcoded counts. All patterns live in `patterns.json`.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

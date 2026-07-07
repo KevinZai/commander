@@ -226,3 +226,7 @@ Below is the full routing matrix for agents that drill deeper after an initial p
 ---
 
 **Bottom line:** header → context → 4-option picker → dispatch to sub-skill or agent. One click, never typing.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

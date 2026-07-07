@@ -118,3 +118,7 @@ Report: "Session file found but appears empty or unreadable. You may need to cre
 - The briefing format is fixed — do not skip sections even if they are empty
 - "What Not To Retry" must always be shown, even if it just says "None" — it is too important to miss
 - After resuming, the user may want to run `/ccc-save-session` again at the end of the new session to create a new dated file
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

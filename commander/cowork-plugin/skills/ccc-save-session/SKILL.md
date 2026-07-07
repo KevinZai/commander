@@ -184,3 +184,7 @@ required, services that need to be running, etc. Skip if standard setup.]
 - The file is meant to be read by Claude at the start of the next session via `/ccc-resume-session`
 - Use the canonical global session store: `~/.claude/sessions/`
 - Prefer the short-id filename form for any new session file to avoid same-day collisions
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

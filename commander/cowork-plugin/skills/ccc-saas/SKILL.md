@@ -72,3 +72,7 @@ allowed-tools:
 **Example 3**
 - user: improve my trial-to-paid conversion rate
 - assistant: Loads ccc-saas and routes to paywall-upgrade-cro + feature-flags for plan-gated feature exposure and pricing page optimization.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

@@ -119,3 +119,7 @@ If the user has never run hardening before:
 This skill wraps `~/.claude/skills/harden-site/` (Kevin's site-hardening skill, a fork of the upstream "harden" pattern). The 11 pillars and auto-fix logic live there; this plugin skill is the UX layer that makes them discoverable inside CC Commander.
 
 To update the underlying logic, edit `~/.claude/skills/harden-site/pillars/*.sh` — this skill re-reads them every invocation.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

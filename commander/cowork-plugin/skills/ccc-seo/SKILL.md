@@ -83,3 +83,7 @@ This domain specializes in optimization for AI-powered search surfaces:
 **Example 3**
 - user: generate 500 city landing pages for programmatic SEO
 - assistant: Loads ccc-seo and routes to bulk-page-generator with template-driven page generation and schema markup.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

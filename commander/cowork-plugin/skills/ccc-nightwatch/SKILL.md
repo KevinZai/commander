@@ -152,3 +152,7 @@ Message content is scrubbed before relay. Nightwatch sends **tool name + argumen
 - Telegram bot requires a token registered with @BotFather — 2 min one-time setup
 - Discord inline buttons (✅/❌) require a bot with interactions enabled; webhook-only mode falls back to reaction-based approval
 - Not a substitute for reviewing the session log after — always audit `~/.claude/commander/nightwatch.log`
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
