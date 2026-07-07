@@ -188,7 +188,7 @@ Every menu recommends the best next action based on context.
 
 | Domain | Sub-Skills | Focus |
 |--------|-----------|-------|
-| `ccc-design` | 39 | UI/UX, animation, responsive, accessibility |
+| `ccc-design` | 41 | UI/UX, animation, responsive, accessibility |
 | `ccc-marketing` | 45 | CRO, email, ads, social, content |
 | `ccc-saas` | 20 | Auth, billing, multi-tenant, schema |
 | `ccc-devops` | 20 | CI/CD, Docker, AWS, monitoring |

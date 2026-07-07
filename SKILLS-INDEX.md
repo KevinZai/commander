@@ -52,7 +52,7 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-build` | Build wizard — web, API, CLI or mobile with spec | "ccc build", "start a build", "new project wizard" |
 | `/ccc-review` | Branch audit — diff, security, perf, x-ray | "ccc review", "review my code", "code review" |
 | `/ccc-ship` | Pre-flight checks + release + deploy (22-point gate) | "ccc ship", "ship this", "ready to deploy?" |
-| `/ccc-design` | UI/UX workflow — routes to ccc-design domain (39 skills) | "ccc design", "design this" |
+| `/ccc-design` | UI/UX workflow — routes to ccc-design domain (41 skills) | "ccc design", "design this" |
 | `/ccc-learn` | Skill discovery across 11 CCC domains | "teach me", "ccc learn", "show domains" |
 | `/ccc-xray` | Project health scorecard with fix chips | "audit my project", "ccc xray" |
 | `/ccc-linear` | Linear board — view issues, pick, create, sync | "ccc linear", "show my issues", "linear board" |

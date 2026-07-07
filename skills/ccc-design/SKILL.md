@@ -8,7 +8,7 @@ brand: Kevin Z's CC Commander
 
 # ccc-design
 
-> Load ONE skill. Get the entire design/animation domain. Built from 30+ proven skills + 5 new ones.
+> Load ONE skill. Get the entire design/animation domain. Built from 30+ proven skills + 5 new ones + 2 grafted from MengTo/Skills (v6.5.0).
 
 ## Absorbed Skills Manifest
 
@@ -37,6 +37,8 @@ brand: Kevin Z's CC Commander
 | 39 | `framer-motion-patterns` | Comprehensive Framer Motion — layout animations, gestures, scroll-triggered, stagger | **NEW** |
 | 40 | `gsap-patterns` | GSAP mastery — ScrollTrigger, timeline sequencing, SVG morphing, pinning | **NEW** |
 | 41 | `interactive-landing` | Interactive landing pages — hero animations, scroll narratives, 3D showcases | **NEW** |
+| 42 | `looks` | Named aesthetic look-book — 25 named design-system directions (clean-minimal, dark-glass, skeuomorphic, mesh-gradient, etc.) | **NEW (v6.5.0, MengTo/Skills)** |
+| 43 | `capture` | Design capture — video/HTML/live-page → reusable recreation prompts, robust full-page screenshots | **NEW (v6.5.0, MengTo/Skills)** |
 
 ### Impeccable Polish Suite (19 skills)
 | Skill | Purpose |
@@ -84,6 +86,8 @@ brand: Kevin Z's CC Commander
 | "Color palette" / "Colors" | `colorize` | `theme-factory` (broader theming) |
 | "Presentation" / "Slides" | `frontend-slides` + `theme-factory` | `landing-page-builder` |
 | "Product screenshots" | `screenshots` | `canvas-design` (art) |
+| "Give it a [named vibe/aesthetic]" | `looks` | `frontend-design` (system, not a named direction) |
+| "Recreate this video/site as a prompt" | `capture` | `screenshots` (marketing crops, not full-page capture) |
 
 ---
 

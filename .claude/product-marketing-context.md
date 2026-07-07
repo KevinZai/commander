@@ -153,7 +153,7 @@ Use these for ongoing content calendars, threads, and blog posts:
 
 | Domain | Sub-skills | Focus area |
 |--------|-----------|------------|
-| ccc-design | 39 | UI/UX, animation, responsive, component design |
+| ccc-design | 41 | UI/UX, animation, responsive, component design |
 | ccc-marketing | 45 | CRO, email, ads, social, content |
 | ccc-saas | 20 | Auth, billing, API, multi-tenant |
 | ccc-devops | 20 | CI/CD, Docker, AWS, monitoring |

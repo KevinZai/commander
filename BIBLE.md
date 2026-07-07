@@ -99,7 +99,7 @@ Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges th
 | CCC Domain | Skills Inside | What It Covers |
 |------------|--------------|----------------|
 | `ccc-seo` | 19 | Technical SEO, AI search, content strategy, analytics, programmatic SEO |
-| `ccc-design` | 39 | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
+| `ccc-design` | 41 | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
 | `ccc-testing` | 15 | TDD, E2E, verification, QA, regression, visual testing, load testing |
 | `ccc-marketing` | 45 | Content, CRO, channels, growth, intelligence, sales |
 | `ccc-saas` | 21 | Auth, billing, database, API, frontend stack, metrics, CRO |
@@ -281,7 +281,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 | `ccc-adopt` | Merge the CCC Orchestrator/Executor doctrine into an existing project's `CLAUDE.md` |
 | `ccc-yolo-setup` | Safe-YOLO permissions + Plan mode guardrails |
 | `ccc-ecc` | Selective ECC loader: one skill, agent, or hook without the full harness |
-| `ccc-design` (domain router) | Routes into 39 ccc-design sub-skills |
+| `ccc-design` (domain router) | Routes into 41 ccc-design sub-skills |
 | `ccc-marketing` (domain router) | Routes into 45 ccc-marketing sub-skills |
 | `ccc-saas` (domain router) | Routes into 21 ccc-saas sub-skills |
 | `ccc-devops` (domain router) | Routes into 21 ccc-devops sub-skills |
@@ -1174,7 +1174,7 @@ Instead of loading 5-15 individual skills per session, load ONE CCC domain to ge
 
 ```
 "Use the ccc-seo skill"       → All 19 SEO skills loaded via router
-"Use the ccc-design skill"    → All 39 design/animation skills loaded
+"Use the ccc-design skill"    → All 41 design/animation skills loaded
 "Use the ccc-testing skill"   → All 15 testing skills loaded
 "Use the ccc-marketing skill" → All 45 marketing skills loaded
 "Use the ccc-saas skill"      → All 21 SaaS building skills loaded
@@ -1445,7 +1445,7 @@ CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash
 | `/ccc-spike` | Timeboxed exploration with AskUserQuestion confirm |
 | `/ccc-spike-confirm` | Close-the-loop on a spike result |
 | `/ccc-research` | Structured competitive / market research |
-| `/ccc-design` | Route into the 39-skill design domain |
+| `/ccc-design` | Route into the 41-skill design domain |
 | `/ccc-deploy` | Pre-deploy GO/CAUTION/NO-GO gate |
 
 Pick one and the plugin handles it — no service ports, no persistent process. For CLI-only power-user commands (fleet dispatch, AO worker pool, cost dashboard), see the [CLI-Only Commands appendix](#cli-only-commands-cli-power-user) below.
@@ -2675,7 +2675,7 @@ Commander adds session management, guided menus, and visual flair on top.
 
 Each CCC domain is a domain router. One command, and it dispatches to the right specialist.
 
-#### ccc-design (39 sub-skills)
+#### ccc-design (41 sub-skills)
 UI/UX, responsive design, accessibility, animations, motion design, canvas, SVG animation, generative backgrounds, particle systems, WebGL shaders, interactive visuals, retro pixel art, design systems, Tailwind v4 patterns, shadcn/ui components, theme factory, colorize, typeset, frontend slides, brand guidelines, design consultation, design review, plan-design-review.
 
 #### ccc-marketing (45 sub-skills)
@@ -2960,7 +2960,7 @@ CCC does not replace these skills. It organizes and orchestrates them.
 - **Curation:** 500+ skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
 - **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
 - **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 16 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
-- **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (39 skills) behaves like a single expert, not 39 separate prompts.
+- **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (41 skills) behaves like a single expert, not 41 separate prompts.
 - **Session memory:** The knowledge-capture hook learns from every session. Community skills are stateless. CCC accumulates.
 
 The community ecosystem provides the raw material. CCC provides the operating system.

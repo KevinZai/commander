@@ -1,7 +1,7 @@
 ---
 name: ccc-design
 context: fork
-description: "click-first picker over 39 design skills. Landing pages, component systems, polish suite, Figma→code. Use when the user types /ccc-design, asks to 'design a landing…"
+description: "click-first picker over 41 design skills. Landing pages, component systems, polish suite, Figma→code, named aesthetic looks, design capture. Use when the user types /ccc-design, asks to 'design a landing…"
 allowed-tools:
   - Read
   - Write
@@ -17,14 +17,14 @@ argument-hint: "[intent: landing | components | polish | figma]"
 
 # /ccc-design — Design domain hub
 
-Click-first picker over the design domain (39 sub-skills). User picks an intent in one click — we route to the right sub-skill or agent. No text menus, no numbered lists.
+Click-first picker over the design domain (41 sub-skills). User picks an intent in one click — we route to the right sub-skill or agent. No text menus, no numbered lists.
 
 ## Response shape (EVERY time)
 
 ### 1. Brand header (one line)
 
 ```
-**CC Commander · Design** · 39 skills · [frontend-design](https://commanderplugin.com/design)
+**CC Commander · Design** · 41 skills · [frontend-design](https://commanderplugin.com/design)
 ```
 
 ### 2. Context strip (one line)
@@ -130,7 +130,7 @@ Trigger when the user pastes/attaches a screenshot (or mockup image) and wants i
 
 ## Anti-patterns — DO NOT
 
-- ❌ Render a numbered list of 39 skills and ask the user to type one
+- ❌ Render a numbered list of 41 skills and ask the user to type one
 - ❌ Show a table of 35+ options in `AskUserQuestion` (max 4)
 - ❌ Spawn multiple agents in parallel for Landing — one at a time
 - ❌ Skip the context strip — we need to tailor the preview field
@@ -142,7 +142,7 @@ Trigger when the user pastes/attaches a screenshot (or mockup image) and wants i
 
 ---
 
-## Domain reference — the 39 sub-skills
+## Domain reference — the 41 sub-skills
 
 Below is the full routing matrix for agents that drill deeper after an initial pick (e.g., during the Polish pass pipeline). **This content is reference material, not shown to the user via AUQ.**
 
@@ -156,6 +156,7 @@ Below is the full routing matrix for agents that drill deeper after an initial p
 | Presentation & Output | screenshots, frontend-slides, web-artifacts-builder |
 | Routing & Context | design-router, design-context |
 | Impeccable Polish Suite | adapt, arrange, audit, bolder, clarify, critique, delight, distill, extract, harden, normalize, onboard, optimize, overdrive, polish, quieter, typeset |
+| Look-Book & Capture (v6.5.0, MengTo/Skills) | looks, capture |
 
 **Note:** Aligned with Anthropic's `frontend-design` plugin — ccc-design absorbs and extends its methodology.
 
@@ -183,6 +184,8 @@ Below is the full routing matrix for agents that drill deeper after an initial p
 | "Color palette" / "Colors" | `colorize` |
 | "Presentation" / "Slides" | `frontend-slides` + `theme-factory` |
 | "Product screenshots" | `screenshots` |
+| "Give it a [named vibe]" / "dark-glass look" / "skeuomorphic" | Look-book → `looks` |
+| "Turn this video/HTML/site into a prompt" | Design capture → `capture` |
 
 ### Campaign templates
 
