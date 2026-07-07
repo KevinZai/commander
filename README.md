@@ -15,9 +15,9 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 **What you get:** 70 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 502+ ecosystem skills · Free for now.
 
-<img src="docs/assets/hero.gif" alt="CC Commander v6.3.0 — Claude Code Desktop plugin demo" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v6.4.0 — Claude Code Desktop plugin demo" width="100%">
 
-> **🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace. All 70 plugin skills, 22 agents, 23 lifecycle hooks (38 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
+> **🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace. All 71 plugin skills, 22 agents, 23 lifecycle hooks (38 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
@@ -59,7 +59,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 3. Find **`commander`** in the marketplace → click **Install**
 4. Cmd+Q, reopen the app, type **`/ccc`** — you're live
 
-✅ 70 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
+✅ 71 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
 
 **Power-user CLI install:**
 ```bash
@@ -108,7 +108,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 
 - 🖱️ **Click-first UX** — every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII prompts. Works identically in Cowork Desktop, Claude Code Desktop, and the CLI.
 - 🧠 **`/ccc-suggest` intelligence layer** — Opus-class real-time recommendation. Scans your project state, recommends **one starred next step** with reasoning + named 3rd-party plugins. Kills info-paralysis.
-- 🧩 **70 plugin skills including 13 `/ccc-*` specialist workflows** — plain slash commands (no `commander:` prefix), skill-based architecture: `ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, `ccc-build`, `ccc-review`, `ccc-ship`, `ccc-design`, `ccc-learn`, `ccc-xray`, `ccc-linear`, `ccc-fleet`, `ccc-connect` + `/ccc-e2e`, `/ccc-save-session`, `/ccc-resume-session`, `/ccc-changelog`, `/ccc-doctor`, `/ccc-tuneup`, `/ccc-upgrade`, `/ccc-yolo-setup`, `/ccc-ecc` and 11 domain routers.
+- 🧩 **71 plugin skills including 13 `/ccc-*` specialist workflows** — plain slash commands (no `commander:` prefix), skill-based architecture: `ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, `ccc-build`, `ccc-review`, `ccc-ship`, `ccc-design`, `ccc-learn`, `ccc-xray`, `ccc-linear`, `ccc-fleet`, `ccc-connect` + `/ccc-e2e`, `/ccc-save-session`, `/ccc-resume-session`, `/ccc-changelog`, `/ccc-doctor`, `/ccc-tuneup`, `/ccc-upgrade`, `/ccc-yolo-setup`, `/ccc-ecc` and 11 domain routers.
 - 🧭 **Orchestrator / Executor model** — `/ccc-orchestrate` has Fable/Opus write a Skill.md-style goal file, GPT-5.5 via `codex` or a Sonnet subagent execute it, and the orchestrator verify acceptance criteria. Pair it with `/ccc-handoff` for frequent fresh-chat resets and `/ccc-adopt` to bring the doctrine into any existing project. Pay for Fable on the thinking, not the typing.
 - 🎭 **22 specialist agents with persona voices** — architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer. Each with a distinct voice layer in `commander/cowork-plugin/rules/personas/`.
 - 🔌 **2 credential-free bundled MCP servers** — `context7` (library docs) + `sequential-thinking`. Opt-in via `/ccc-connect`: 16 more including Tavily, GitHub, Supabase, Figma, Playwright, Slack, Notion, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash.
@@ -123,6 +123,17 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 - 📄 **Printable cheat sheets** — [`docs/cheatsheets/`](docs/cheatsheets/) ships 3 print-ready PDFs: [CC Commander Essentials](docs/cheatsheets/ccc-essentials.pdf), [The Orchestrator/Executor Method](docs/cheatsheets/orchestrator-executor.pdf), and [Agents & Model Tiers](docs/cheatsheets/agents-model-tiers.pdf).
 - 📚 **457+ skills across 11 CCC domains** — design, marketing, SaaS, DevOps, SEO, testing, security, data, research, mobile, makeover. Plus the vendor ecosystem.
 - 🎯 **Plugins-name-plugins** — `/ccc-suggest` calls out specific 3rd-party plugins by name (`claude-mem`, `superpowers`, `caveman`, `impeccable`, `graphify`, and more) at the right moment. You learn the whole ecosystem through CC Commander.
+
+### 🧠 The Fable Method
+
+**The operating doctrine distilled from Anthropic's frontier Fable 5 model, encoded as 12 enforceable gates** — so ANY model running CC Commander produces Fable-shaped results, not just the flagship one. Arm it with `/ccc-fable on`, self-check with `/ccc-fable audit`. Full doctrine: [`commander/cowork-plugin/rules/fable-method.md`](commander/cowork-plugin/rules/fable-method.md).
+
+- **Never trust a single pass** — the agent that does the work never grades it. Every finding gets adversarial verification from a fresh context.
+- **Loops need verifiers, state, and stops** — repetition without a real verifier, a state file, and a deterministic stop condition is just an agent agreeing with itself on repeat.
+- **Prove it before you alarm** — a scary number is a hypothesis until you run the exact check, open real samples, and hunt the disconfirming case.
+- **Context is disposable, state is durable** — the durable record is handoff docs, memory, and the tracker, never the live chat.
+
+**The method IS the moat.** A mid-tier model following all 12 gates reliably out-delivers an ungated frontier model on any task longer than one turn.
 
 ### 💡 How the intelligence works (the beginner headline)
 
@@ -156,7 +167,7 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 - ⚡ **Dynamic workflows** (research preview, requires Claude Code v2.1.154+) — 4 bundled JS workflow scripts spawn parallel subagents that cross-check findings: `ccc-audit` (backs `/ccc-xray`), `ccc-deep-review` (backs `/ccc-review`), `ccc-migrate`, `ccc-fleet`. Skills fall back to `Agent()` on older clients.
 - 🚀 **`/ccc-ultracode`** — new skill for `xhigh` effort + automatic workflow orchestration. Or add `workflow:` to any prompt for a one-off run.
 - 🪝 **Hooks 9 → 23 events** — 14 new lifecycle events: `SessionEnd`, `PostCompact`, `SubagentStart`, `TaskCreated`, `TaskCompleted`, and 9 more. Handlers: 24 → 38. Correctness fix: `session-save` moved `Stop` → `SessionEnd`.
-- 🎯 **70 plugin skills** — recent channel/CI/ECC/setup skills (`/ccc-brainstorm`, `/ccc-qa`, `/ccc-loop`, `/ccc-hermes`, `/ccc-nightwatch`, `/ccc-ci`, `/ccc-yolo-setup`, `/ccc-ecc`) + 5 language reviewer agents (Go, Rust, Java, Kotlin, C#) + `/ccc-ultracode`.
+- 🎯 **71 plugin skills** — recent channel/CI/ECC/setup skills (`/ccc-brainstorm`, `/ccc-qa`, `/ccc-loop`, `/ccc-hermes`, `/ccc-nightwatch`, `/ccc-ci`, `/ccc-yolo-setup`, `/ccc-ecc`) + 5 language reviewer agents (Go, Rust, Java, Kotlin, C#) + `/ccc-ultracode`.
 - 🔐 **4 security mediums resolved** — telemetry scrubber hardened, error messages sanitized.
 - 🤖 **22 specialist sub-agent personas** — 5 new language reviewers added (Go · Rust · Java · Kotlin · C#).
 - 📦 **15 vendor pins refreshed** — ECC v1.7.0, oh-my-claudecode v4.14.4, repomix v1.14.1, and 12 more.
@@ -193,7 +204,7 @@ workflow: <your task here>   # one-off without mode switch
 
 The built-in `/deep-research` is also available for multi-source validated research.
 
-## The 70 plugin skills
+## The 71 plugin skills
 
 Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just click:
 
@@ -220,6 +231,7 @@ Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just 
 | **`/ccc-orchestrate`** | Cross-runtime Orchestrator/Executor | Fable/Opus goal file → GPT-5.5 or Sonnet executor → verified acceptance criteria |
 | **`/ccc-handoff`** | Proactive fresh-chat handoff | Dense session file + explicit restart before context quality decays |
 | **`/ccc-adopt`** | Adopt CCC doctrine in another repo | Merge Orchestrator/Executor markers into `CLAUDE.md` without clobbering project rules |
+| **`/ccc-fable`** | Arm the Fable Method — 12-gate session contract | on · status · audit · off — model-agnostic |
 | **`/ccc-yolo-setup`** | Safe-YOLO permissions + Plan mode guardrails | Conservative · Balanced · Aggressive-safe |
 | **`/ccc-ecc`** | Selective ECC component loader | Load skill · Load agent · Load hook · List |
 
@@ -313,7 +325,7 @@ Claude Code · Cursor · Windsurf · Cline · Continue · Codex · Claude mobile
 
 ## Free for Now
 
-All 70 plugin skills, 22 specialist agents, 23 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors — free, no credit card, no feature gating.
+All 71 plugin skills, 22 specialist agents, 23 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors — free, no credit card, no feature gating.
 
 ---
 
@@ -330,7 +342,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 ```
 You type: ccc
 You get:  A guided AI project manager with 502+ skills,
-          70 plugin skills, 22 agents, 18 vendor packages,
+          71 plugin skills, 22 agents, 18 vendor packages,
           real learning, and zero setup.
 ```
 
@@ -715,7 +727,7 @@ One question: **How are you using Claude?**
 
 CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what should I build" to begin.
 
-**What you get:** 70 plugin skills, 22 specialist agents, 23 lifecycle hooks (38 handlers), 2 credential-free bundled MCP servers + 16 opt-in via `/ccc-connect`. Free for now.
+**What you get:** 71 plugin skills, 22 specialist agents, 23 lifecycle hooks (38 handlers), 2 credential-free bundled MCP servers + 16 opt-in via `/ccc-connect`. Free for now.
 
 **Marketplace:** `commander-hub` at [KevinZai/commander](https://github.com/KevinZai/commander)
 
@@ -1006,7 +1018,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v6.3.0** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v6.4.0** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 
