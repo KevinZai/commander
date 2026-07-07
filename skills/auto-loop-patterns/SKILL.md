@@ -18,6 +18,14 @@ disable-model-invocation: true
 
 Pre-built `/loop` recipes for autonomous recurring tasks. Each pattern is battle-tested with safety guards to prevent runaway loops, cost overruns, and unintended side effects.
 
+## Before you loop
+
+See `/ccc-loop` for the full loop taxonomy (turn/goal/time/proactive). Three things to check before picking up any recipe below:
+
+- **The should-you-loop gate** — recurs weekly+, verification is automated, your token budget absorbs the waste, the agent has real tools. If any of those is false, a recipe here costs more than it returns.
+- **Verifier-separation** — the agent doing the work must not be the agent grading it. Every recipe below has a real, independent check (CI status, test exit code, audit output) — not the same agent self-certifying "looks done."
+- **State-file convention** — `.claude/loop-state/<loop-name>.json` is the standard shape for a loop that needs to resume across runs without repeating itself. Recipes here that persist state should use it.
+
 ## How /loop Works
 
 ```bash
@@ -448,6 +456,48 @@ Every 2 hours:
     2. "Use zod.coerce for form inputs" — added to tasks/lessons.md
   Existing patterns reinforced: 3
   Cost so far: $0.38
+```
+
+---
+
+## Recipe 11: Goal-Based Fix Loop (`/goal`)
+
+Drives a metric to a threshold using a deterministic stop condition instead of a polling interval — see `/ccc-loop` for the full `/goal` primitive.
+
+### Command
+
+```bash
+/goal get the homepage Lighthouse score to 90 or above, stop after 5 tries
+```
+
+### What It Does
+
+Each turn:
+1. Run the Lighthouse CLI against the homepage, read the score from its output
+2. If score < 90: diagnose the top-weighted opportunity (images, render-blocking JS, CLS, etc.) and apply one fix
+3. Re-run Lighthouse and report the new score in the transcript (the evaluator only reads what's surfaced — it doesn't run commands itself)
+4. Stop when score ≥ 90, or after 5 tries — whichever comes first
+
+### Safety Guards (max-iterations equivalent)
+
+| Guard | Value |
+|---|---|
+| Turn cap | 5 tries (equivalent to `Max iterations`) |
+| Verifier | Lighthouse CLI score — an independent, automated check, not the fixing agent's own judgment |
+| Stop condition | Score ≥ 90, or 5 tries reached |
+| Human gate | Changes land on a branch / draft PR — never pushed straight to main |
+| Permissions | `Bash(npx lighthouse *)`, `Read(**)`, `Write(**)`, `Bash(git *)` |
+
+### Example Output
+
+```
+[goal] Try 1/5 — Lighthouse score: 62
+  Fix: deferred render-blocking analytics script
+[goal] Try 2/5 — Lighthouse score: 78
+  Fix: added explicit width/height to hero image (CLS)
+[goal] Try 3/5 — Lighthouse score: 91
+  Condition met: score ≥ 90 — stopping
+  Changes on branch `fix/lighthouse-homepage`, opened as draft PR #61
 ```
 
 ---

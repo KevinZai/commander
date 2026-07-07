@@ -249,6 +249,10 @@ Why this saves tokens: the expensive model's context stays small (just the plan,
 
 **Adopting this in an existing (non-CC-Commander) project:** run `/ccc-adopt` once. It reads your current CLAUDE.md (if any), detects your stack, and merges in this Orchestrator/Executor section plus a stack-appropriate list of which CCC skills/agents to reach for going forward — without clobbering your existing project-specific rules.
 
+## Loops
+
+Claude Code has 4 loop types — turn-based (a prompt, Claude self-judges done), goal-based (`/goal`, stops on a verifiable condition or a turn cap), time-based (`/loop` locally, `/schedule` in the cloud), and proactive (schedule + goal + Workflow + auto mode composed together for unattended recurring work). Reach for `/goal` whenever "keep going until X is true" has a real number behind it — it beats polling on a timer. `/ccc-loop` is the entry point: taxonomy table, the should-you-loop gate, verifier-separation rule, and the state-file convention for any loop that needs to resume across runs.
+
 ## Compaction Survival
 <!-- Add critical items to preserve: "When compacting, always preserve: [your items]" -->
 - `pre-compact` hook auto-saves session state
