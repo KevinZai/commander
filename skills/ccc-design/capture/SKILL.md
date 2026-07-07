@@ -10,7 +10,7 @@ args:
 
 # ccc-design / capture — Design capture workflows
 
-> Adapted from [MengTo/Skills](https://github.com/MengTo/Skills) — MIT licensed. This is a **routing wrapper**, not a port — the 2nd (of 71) plugin skills. Full workflows stay in `vendor/mengto-skills/`; each row below points at the source spec.
+> Adapted from [MengTo/Skills](https://github.com/MengTo/Skills) — MIT licensed. This is a **routing wrapper**, not a port — full workflows stay in `vendor/mengto-skills/`; each row below points at the source spec.
 
 CCC's `frontend-design` covers *building* UI. This sub-skill covers *capturing* an existing reference (someone else's site, a screen recording, a mockup) and turning it into a reusable, screenshot-backed prompt — the missing "reverse" direction.
 

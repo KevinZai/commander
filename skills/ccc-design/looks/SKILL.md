@@ -10,7 +10,7 @@ args:
 
 # ccc-design / looks — Named aesthetic look-book
 
-> Adapted from [MengTo/Skills](https://github.com/MengTo/Skills) — MIT licensed. This is a **routing table**, not a port — the 2 (of 71) plugin skills. All ~25 skills stay in `vendor/mengto-skills/`; each row below points at the full spec.
+> Adapted from [MengTo/Skills](https://github.com/MengTo/Skills) — MIT licensed. This is a **routing table**, not a port — all ~25 look specs stay in `vendor/mengto-skills/`; each row below points at the full spec.
 
 A "look" is a complete, opinionated design-system direction — typography, color, surfaces, framing, and mood — described in a single vendor `SKILL.md`. Use this when the user asks for a named vibe ("give me a dark-glass agency look", "make it feel skeuomorphic") rather than a specific animation/technique (route those to `gsap-patterns`, `webgl-shader`, `svg-animation`, etc. instead — this router excludes pure-technique dirs like gsap, threejs, matterjs, globe-gl, tailwindcss, cobejs, vantajs, which CCC already covers natively).
 
