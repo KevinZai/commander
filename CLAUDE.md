@@ -157,7 +157,7 @@ Compound Engineering (11.5K), claude-skills (8.6K),
 claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
 claude-code-prompts (142), MengTo/Skills (web design + prompting, 100★).
 
-**Note:** `claude-mem` was previously vendored but was removed in v6.4.0 — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
+**Note:** `claude-mem` was previously vendored but was removed — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
 
 ## Footer Bar
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
