@@ -1,5 +1,5 @@
 # Skills Index — Quick Reference
-> CC Commander v6.4.0 — by Kevin Zicherman
+> CC Commander v6.5.0 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
 > Last verified: 2026-05-15 | Desktop plugin first: 71 plugin skills (13 /ccc-* workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop + /ccc-orchestrate + /ccc-handoff + /ccc-adopt) + 22 specialist sub-agents + 23 lifecycle hooks (39 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 28 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free for now
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
@@ -39,7 +39,7 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 
 ---
 
-## Desktop Plugin Skills (v6.4.0)
+## Desktop Plugin Skills (v6.5.0)
 
 > Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 71 plugin skills total (13 /ccc-* workflows + 11 CCC domains + 6 new channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop + /ccc-orchestrate + /ccc-handoff + /ccc-adopt). **All free for now.**
 
@@ -619,7 +619,7 @@ Pick a bundle to load the right skills for your project type:
 
 ---
 
-*⭐ = added in CC Commander v6.4.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v6.4.0, updated in v6.4.0.*
+*⭐ = added in CC Commander v6.5.0 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v6.5.0, updated in v6.5.0.*
 
 ---
 
