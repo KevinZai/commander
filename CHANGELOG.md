@@ -2,6 +2,21 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [6.5.0] — 2026-07-07
+
+### Added
+
+- **MengTo/Skills — 19th vendor submodule** (`vendor/mengto-skills`) — MIT-licensed web-design + prompting collection (73 `SKILL.md` files across web-design, codex, ui, and media categories).
+- **`ccc-design/looks`** — a look-book router over 25 named aesthetic design-system directions grafted from the vendor (clean-minimal-beige-light-mode, dark-glass-clean-layout, mesh-gradient-dark-blue-clean, skeuomorphic-ui, editorial-tech, tech-green-dark-mode-modern, and more). Routing only — each row points at the full spec in `vendor/mengto-skills/`, none of the ~25 look skills are ported wholesale.
+- **`ccc-design/capture`** — wraps the vendor's design-capture workflows CCC previously lacked: `video-to-superprompt`, `html-to-interaction-prompts`, `stitched-full-page-capture`, `daily-ui-inspiration-capture`, plus `design-first-ui-prompting` as the companion spec-skeleton skill.
+
+### Changed
+
+- `ccc-design` sub-skill count 39 → 41 across the top-level manifest, the plugin router (`commander/cowork-plugin/skills/ccc-design/SKILL.md`, additive routing rows only — no restructure), and doc surfaces that state the count (`README.md`, `CLAUDE.md`, `BIBLE.md`, `SKILLS-INDEX.md`, `ccc-browse`, the `designer` agent, `.claude/product-marketing-context.md`).
+- Vendor count 18 → 19 (`README.md`, `CLAUDE.md`, `BIBLE.md`); `README.md`'s vendor roster table gains a `MengTo/Skills` row.
+- Version 6.4.0 → 6.5.0 across `package.json`, `commander/cowork-plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `apps/mcp-server-cloud/package.json`, and `commander/contract.json`, synced via `node scripts/bump-version.js 6.5.0` + `node scripts/check-product-contract.js --patch` (diff-reviewed; `plugin_skills` stays 71 — this release adds top-level catalog sub-skills and a vendor, not plugin skills).
+- Codex mirror (`commander/cowork-plugin-codex/`) rebuilt via `npm run build:codex` to pick up the `ccc-design` router edit.
+
 ## [6.4.0] — 2026-07-07
 
 ### Added

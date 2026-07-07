@@ -72,7 +72,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/` glob for `ccc-<name>` directories excluding
 
 First `AskUserQuestion` (4 of 11):
 ```
-- 🎨 ccc-design · 39 sub-skills · UI/UX, animation, a11y
+- 🎨 ccc-design · 41 sub-skills · UI/UX, animation, a11y
 - 📢 ccc-marketing · 46 sub-skills · CRO, content, SEO, growth
 - 💼 ccc-saas · 21 sub-skills · auth, billing, multi-tenant
 - ⋯ Next 4 domains
@@ -156,7 +156,7 @@ Render a single markdown table, sorted alphabetically:
 | Type | Name | One-liner |
 |------|------|-----------|
 | 🤖 agent | architect | System design, trade-offs, tech selection |
-| 🎯 domain | ccc-design | 39 skills — UI/UX, animation, a11y |
+| 🎯 domain | ccc-design | 41 skills — UI/UX, animation, a11y |
 | 🛠️ workflow | ccc-build | Scaffold web/API/CLI/mobile from spec |
 | ... | ... | ... |
 ```

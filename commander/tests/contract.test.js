@@ -173,7 +173,7 @@ test('--patch fixes simple count and version mismatches', function() {
   assert.match(readme, /22 specialist agents/);
   assert.match(readme, new RegExp(contract.lifecycle_hooks + ' lifecycle hooks \\(' + contract.hook_handlers + ' handlers\\)'));
   assert.match(readme, /2 pre-configured MCP servers \+16 opt-in/);
-  assert.match(readme, /457\+ skills across 11 CCC domains/);
+  assert.match(readme, new RegExp(contract.ecosystem_skills + '\\+ skills across 11 CCC domains'));
 
   var check = spawnCheck(['--root', root, '--check']);
   assert.strictEqual(check.status, 0, check.stdout + check.stderr);

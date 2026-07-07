@@ -40,6 +40,10 @@ This CCC domain contains 35+ design specialist skills organized into 5 tiers.
 - `frontend-slides/` — Presentations
 - `web-artifacts-builder/` — Standalone HTML
 
+### Look-Book & Capture (v6.5.0, grafted from MengTo/Skills)
+- `looks/` — Named aesthetic look-book — 25 named design-system directions, routes to `vendor/mengto-skills/`
+- `capture/` — Video/HTML/live-page → reusable recreation prompts, robust full-page screenshots
+
 ## Usage Flow
 1. Run `design-context` to capture brand state (first session only)
 2. Route via the Routing Matrix in SKILL.md

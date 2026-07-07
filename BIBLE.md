@@ -25,7 +25,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v6.4.0 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v6.5.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -99,7 +99,7 @@ Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges th
 | CCC Domain | Skills Inside | What It Covers |
 |------------|--------------|----------------|
 | `ccc-seo` | 19 | Technical SEO, AI search, content strategy, analytics, programmatic SEO |
-| `ccc-design` | 39 | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
+| `ccc-design` | 41 | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
 | `ccc-testing` | 15 | TDD, E2E, verification, QA, regression, visual testing, load testing |
 | `ccc-marketing` | 45 | Content, CRO, channels, growth, intelligence, sales |
 | `ccc-saas` | 21 | Auth, billing, database, API, frontend stack, metrics, CRO |
@@ -281,7 +281,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 | `ccc-adopt` | Merge the CCC Orchestrator/Executor doctrine into an existing project's `CLAUDE.md` |
 | `ccc-yolo-setup` | Safe-YOLO permissions + Plan mode guardrails |
 | `ccc-ecc` | Selective ECC loader: one skill, agent, or hook without the full harness |
-| `ccc-design` (domain router) | Routes into 39 ccc-design sub-skills |
+| `ccc-design` (domain router) | Routes into 41 ccc-design sub-skills |
 | `ccc-marketing` (domain router) | Routes into 45 ccc-marketing sub-skills |
 | `ccc-saas` (domain router) | Routes into 21 ccc-saas sub-skills |
 | `ccc-devops` (domain router) | Routes into 21 ccc-devops sub-skills |
@@ -1174,7 +1174,7 @@ Instead of loading 5-15 individual skills per session, load ONE CCC domain to ge
 
 ```
 "Use the ccc-seo skill"       → All 19 SEO skills loaded via router
-"Use the ccc-design skill"    → All 39 design/animation skills loaded
+"Use the ccc-design skill"    → All 41 design/animation skills loaded
 "Use the ccc-testing skill"   → All 15 testing skills loaded
 "Use the ccc-marketing skill" → All 45 marketing skills loaded
 "Use the ccc-saas skill"      → All 21 SaaS building skills loaded
@@ -1273,7 +1273,7 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 457+ skills (original behavior)
+./install.sh --skills=full        # All 459+ skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.
@@ -1429,7 +1429,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v6.4.0)
+### 🛠️ Plugin Workflows (v6.5.0)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
@@ -1445,7 +1445,7 @@ CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash
 | `/ccc-spike` | Timeboxed exploration with AskUserQuestion confirm |
 | `/ccc-spike-confirm` | Close-the-loop on a spike result |
 | `/ccc-research` | Structured competitive / market research |
-| `/ccc-design` | Route into the 39-skill design domain |
+| `/ccc-design` | Route into the 41-skill design domain |
 | `/ccc-deploy` | Pre-deploy GO/CAUTION/NO-GO gate |
 
 Pick one and the plugin handles it — no service ports, no persistent process. For CLI-only power-user commands (fleet dispatch, AO worker pool, cost dashboard), see the [CLI-Only Commands appendix](#cli-only-commands-cli-power-user) below.
@@ -2434,7 +2434,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 
 - **ECC owns** raw breadth: skills, commands, agents, hook lifecycle.
 - **Commander owns** curation + guidance + memory: click-first `/ccc-*` chip pickers (AskUserQuestion), `/ccc-suggest` routing, brain/hands pattern, The Kevin Z Method.
-- **On top of ECC** Commander adds the 64-workflow front door, `/ccc-suggest` (names ECC when it's the right tool), `/ccc-ecc` for selective skill/agent/hook loading, session memory/compounding, and vendor aggregation (ECC = 1 of 18 vendors, scored by the Smart Orchestrator).
+- **On top of ECC** Commander adds the 64-workflow front door, `/ccc-suggest` (names ECC when it's the right tool), `/ccc-ecc` for selective skill/agent/hook loading, session memory/compounding, and vendor aggregation (ECC = 1 of 19 vendors, scored by the Smart Orchestrator).
 - **ECC-sourced parts are labeled** under `vendor/everything-claude-code/`; Commander ports a minimal hook/agent set and defers to upstream. Bump the pin with `/ccc-upgrade`.
 
 ### Further Reading
@@ -2457,7 +2457,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 ---
 ## Built on Claude Agent SDK
 
-> *v6.4.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v6.5.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2501,7 +2501,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v6.4.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 71 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (39 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v6.5.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 71 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (39 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2554,7 +2554,7 @@ ccc --repair
 | **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 457+ skills from within Commander |
+| **Skill browser** | Browse all 459+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
@@ -2675,7 +2675,7 @@ Commander adds session management, guided menus, and visual flair on top.
 
 Each CCC domain is a domain router. One command, and it dispatches to the right specialist.
 
-#### ccc-design (39 sub-skills)
+#### ccc-design (41 sub-skills)
 UI/UX, responsive design, accessibility, animations, motion design, canvas, SVG animation, generative backgrounds, particle systems, WebGL shaders, interactive visuals, retro pixel art, design systems, Tailwind v4 patterns, shadcn/ui components, theme factory, colorize, typeset, frontend slides, brand guidelines, design consultation, design review, plan-design-review.
 
 #### ccc-marketing (45 sub-skills)
@@ -2713,7 +2713,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v6.4.0 — How CCC thinks before it acts.*
+> *Appendix: v6.5.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 
@@ -2769,7 +2769,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 457+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 459+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology
@@ -2960,7 +2960,7 @@ CCC does not replace these skills. It organizes and orchestrates them.
 - **Curation:** 500+ skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
 - **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
 - **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 16 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
-- **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (39 skills) behaves like a single expert, not 39 separate prompts.
+- **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (41 skills) behaves like a single expert, not 41 separate prompts.
 - **Session memory:** The knowledge-capture hook learns from every session. Community skills are stateless. CCC accumulates.
 
 The community ecosystem provides the raw material. CCC provides the operating system.
