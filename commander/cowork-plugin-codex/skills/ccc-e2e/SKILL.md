@@ -240,3 +240,7 @@ Ship / Patch required / Triage needed
 ---
 
 **Bottom line:** one command fans out into up to 3 parallel QA workers, each isolated in its own worktree. Severity-ranked verdict lands in `tasks/reviews/`. Criticals become spawn_task chips for immediate fix sessions.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

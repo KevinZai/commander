@@ -19,3 +19,7 @@ argument-hint: "<PR URL, file path, or diff>"
 > **Deduplicated (v6.1).** This skill is now an alias for **/ccc-review** — the canonical review workflow — branch audit, security/perf/correctness, and specialist-agent dispatch (covers diff review).
 >
 > Invoke /ccc-review instead. This stub is kept so the `/ccc-code-review` command still resolves and prior references do not break.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

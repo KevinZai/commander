@@ -191,3 +191,7 @@ The parser is liberal: malformed lines land in `skipped[]` (not thrown), empty i
 ---
 
 **Bottom line:** pick scope → scan in parallel → one markdown table → one recommendation → chips for 🟠/🔴 rows. User clicks to fix.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

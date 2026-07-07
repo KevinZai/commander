@@ -264,3 +264,7 @@ The helper runs full-stack categories: Claude settings, contract counts, vendors
 ```
 
 Quick mode (default) skips this section. Pass `full` to run it. Doctor never blocks — even a `fail` row is just diagnostic output.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

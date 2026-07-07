@@ -152,3 +152,7 @@ If the user passed an argument (`/ccc-learn marketing`), skip all AUQs and invok
 ---
 
 **Bottom line:** one click picks a domain, the domain router takes it from there. Cascade for the long tail. Never dump 502 skills on the user.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

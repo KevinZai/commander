@@ -130,3 +130,7 @@ If the user passed an argument (`/ccc-more fleet`), skip both AUQs and invoke di
 ---
 
 **Bottom line:** 4 options on page 1, cascade to 3 more on page 2. Arguments bypass everything. Every pick dispatches inline to the named skill — no intermediate text menus.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

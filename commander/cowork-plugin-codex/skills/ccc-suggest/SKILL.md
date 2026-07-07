@@ -327,3 +327,7 @@ The CLI version of the same capability: `ccc --suggest` (headless, JSON output f
 2. The Opus pass is expensive — only on explicit `/ccc-suggest` invocation. The background hook uses Sonnet.
 3. If scan reveals no actionable signals: say so, recommend `/ccc-start` for onboarding.
 4. Every recommendation has a "what not to do" implicit — by picking ONE, you're hiding 11 others. That's intentional. Commit to the call.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

@@ -79,3 +79,7 @@ allowed-tools:
 **Example 3**
 - user: scan our dependencies for vulnerabilities
 - assistant: Loads ccc-security and routes to dependency-audit for npm/pip/cargo vulnerability scanning.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

@@ -1,8 +1,8 @@
 {
   "name": "commander",
   "displayName": "CC Commander",
-  "version": "6.3.0",
-  "description": "Guided AI PM for Claude Code. 70 plugin skills (click-first /ccc-* workflows), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 23 lifecycle hooks × 38 handlers, 2 bundled MCP servers + 16 opt-in. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Free for now — no signup, no card. MIT-licensed.",
+  "version": "6.4.0",
+  "description": "Guided AI PM for Claude Code, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. 71 plugin skills (click-first /ccc-* workflows), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 23 lifecycle hooks × 38 handlers, 2 bundled MCP servers + 16 opt-in. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Free for now — no signup, no card. MIT-licensed.",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"

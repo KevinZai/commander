@@ -138,3 +138,7 @@ Content is written directly to the conversation for immediate review and editing
 2. **Specify tone** — "casual and direct" vs. "professional and formal" makes a big difference.
 3. **Request variations** — always ask for 2-3 headline options; pick your favorite.
 4. **Schedule beats manual** — with ~~social media connected, schedule a week of posts in one session.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

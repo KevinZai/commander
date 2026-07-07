@@ -150,3 +150,7 @@ If either >0, include in context strip: "🧰 X skills · Y MCPs connected".
 ---
 
 **Bottom line:** three elements — header, context, picker — in that order. User clicks. We route. No typing, no text menus, ever.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

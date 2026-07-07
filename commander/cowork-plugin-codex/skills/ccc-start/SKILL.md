@@ -268,3 +268,7 @@ Mention this **once** during the tour close — never as a paywall on Starter fe
 ---
 
 **Bottom line:** header → context → 4-option picker → cascade → plan file → mark complete. The plan file is proof the onboarding landed. User never types a number.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

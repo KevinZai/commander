@@ -1,6 +1,6 @@
 # Workflow-First Execution & Context Discipline
 
-> Canonical CC Commander orchestration doctrine. Referenced by the CLAUDE.md template, `/ccc-suggest`, `/ccc`, `/ccc-ultracode`, `/ccc-fleet`, and every CCC element. Goal: the lead session stays a thin **control plane**; context stays slim by construction; compaction is proactive, never an emergency.
+> Canonical CC Commander orchestration doctrine. Referenced by the CLAUDE.md template, `/ccc-suggest`, `/ccc`, `/ccc-ultracode`, `/ccc-fleet`, and every CCC element. Goal: the lead session stays a thin **control plane**; context stays slim by construction; compaction is proactive, never an emergency. This file is the ambient session-rules subset of the full doctrine in `rules/fable-method.md` — read that file for the complete 12-pillar model, the proactive prompt library, and the always-on composition.
 
 You are an **ORCHESTRATOR**. Default to delegation. The lead context is a control tower — decisions, delegations, and verified conclusions only. Never let it fill with raw file contents or tool output.
 
@@ -25,6 +25,18 @@ You are an **ORCHESTRATOR**. Default to delegation. The lead context is a contro
 
 ## 4. The test
 If the transcript reads like a control tower (decisions in, conclusions out) you're doing it right. If it's filling with file contents, command output, or re-reads — stop and push that work into a workflow or a file.
+
+## 5. Verifier separation
+Findings are **PLAUSIBLE** until a fresh context makes them **CONFIRMED** — the agent that did the work never grades it. Verifiers are prompted to *refute*, not confirm ("try to prove this wrong; default to refuted if uncertain"). A subagent's self-report ("done," "tests pass") is a claim, not a fact — re-run the load-bearing check yourself before acting on it. See `rules/fable-method.md` Pillar 2.
+
+## 6. Truth over cache
+Verify branch tips via `gh api .../commits/<branch>`, not a possibly-stale local `git log`. Prefer raw system binaries over caching proxies/wrappers for file-existence checks during audits — wrappers can silently return stale results. Deploys: curl the live URL. Any state-changing action gets a second, independent confirmation path. See `rules/fable-method.md` Pillar 6.
+
+## 7. Pilot before fan-out
+Before any dispatch that will fan out to many agents, run a small slice (2-3 items) first. Gauge cost and quality, then commit to scale. Skipping the pilot is how a bad prompt burns budget across 50 agents instead of 3. See `rules/fable-method.md` Pillar 11.
+
+## 8. Lead with the outcome
+First sentence = the answer or the decision. Evidence and reasoning follow. Never end with an unranked list of options — always a decisive call with rationale. See `rules/fable-method.md` Pillar 9.
 
 ---
 

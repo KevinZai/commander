@@ -214,3 +214,7 @@ The five starter resources must be real files from the repo or official project 
 - Do not suggest a credential-required task for a first PR.
 - Do not output more or fewer than five first-hour checklist items.
 - Do not output more or fewer than five starter resources.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

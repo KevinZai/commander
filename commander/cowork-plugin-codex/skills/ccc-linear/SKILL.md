@@ -173,3 +173,7 @@ This matches CC Commander branch convention (`cc-{number}-{slug}`) from project 
 ---
 
 **Bottom line:** context → pick intent → MCP call → render → optional sub-pick. User clicks. Branch created. Work starts.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

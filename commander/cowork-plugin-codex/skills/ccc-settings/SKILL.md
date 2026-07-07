@@ -102,3 +102,7 @@ If **~~project tracker** is connected:
 1. Pass a setting name directly as argument (e.g., `settings theme`) to jump to that setting.
 2. The `linear` argument runs the Linear setup flow without opening the full settings menu.
 3. Config is never auto-reset — the reset option requires explicit confirmation.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

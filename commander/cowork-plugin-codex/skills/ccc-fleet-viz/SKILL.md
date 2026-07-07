@@ -64,3 +64,7 @@ graph TD
 ## Final Step From /ccc-fleet
 
 When `/ccc-fleet` synthesis is complete, invoke this skill once to render the final fleet tree. Do not reimplement the renderer in `/ccc-fleet`; keep the rendering path centralized here.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

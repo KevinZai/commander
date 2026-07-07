@@ -65,3 +65,7 @@ Run `/ccc` to get started or `/ccc-browse` to explore all 48 skills.
 - Never truncate mid-sentence — compress, don't cut.
 - No numbered lists — bullets only.
 - No "Let me know if..." sign-offs.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

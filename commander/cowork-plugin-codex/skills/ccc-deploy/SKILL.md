@@ -308,3 +308,7 @@ When a deploy command, log watch, or health check fails:
 - Do not claim success from a zero exit code alone.
 - Do not print secrets or `.env` values.
 - Do not post Slack or Discord comms without user confirmation.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
