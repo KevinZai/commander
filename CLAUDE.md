@@ -93,7 +93,7 @@ Key components:
 - `commander/knowledge.js` — Knowledge compounding (learns from every session)
 - `commander/plugins.js` — Auto-detects gstack, CE, Superpowers, sequences them
 - `commander/adventures/*.json` — 14 JSON decision tree flows
-- `commander/cowork-plugin/` — Desktop plugin (67 skills, 22 sub-agent personas, 23 hooks × 39 handlers, 2 credential-free bundled MCP servers per `.mcp.json` + 16 opt-in via `/ccc-connect`)
+- `commander/cowork-plugin/` — Desktop plugin (71 skills, 22 sub-agent personas, 23 hooks × 39 handlers, 2 credential-free bundled MCP servers per `.mcp.json` + 16 opt-in via `/ccc-connect`)
 - `commander/update-check.js` — Update checker (4h cache, silent on failure, runs at session start)
 - `commander/tests/paths.test.js` — 18 E2E path tests
 
@@ -267,7 +267,7 @@ ccc --status                  # Health check
 
 ## Ecosystem Context
 
-CCC ships 67 focused `/ccc-*` plugin skills as the curated front door, then routes into 457 CCC ecosystem skills across 11 domains. It is a meta-layer over the broader Claude skill ecosystem — not a replacement for it.
+CCC ships 71 focused `/ccc-*` plugin skills as the curated front door, then routes into 457 CCC ecosystem skills across 11 domains. It is a meta-layer over the broader Claude skill ecosystem — not a replacement for it.
 
 **External ecosystems CCC plays well with:**
 - `anthropics/skills` — official Anthropic skills (Frontend Design, Theme Factory, Spec Writer)
