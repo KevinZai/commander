@@ -22,7 +22,7 @@ Follows Anthropic's `frontend-design` plugin patterns:
 
 ## Connection to ccc-design
 
-For complex design tasks, routes through the `ccc-design` MEGA skill to access 39 specialist sub-skills:
+For complex design tasks, routes through the `ccc-design` MEGA skill to access 41 specialist sub-skills:
 - Animation needs → `framer-motion-patterns`, `gsap-patterns`, `animate`
 - Visual effects → `particle-systems`, `generative-backgrounds`, `webgl-shader`
 - Polish pass → Impeccable Suite (critique → polish pipeline)
