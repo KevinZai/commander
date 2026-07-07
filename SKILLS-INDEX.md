@@ -65,7 +65,7 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-e2e` | End-to-end test scaffolding and Playwright automation | "e2e test", "add playwright tests", "ccc e2e" |
 | `/ccc-save-session` | Save current session state to `~/.claude/commander/sessions/` for later resume | "save session", "save my progress" |
 | `/ccc-resume-session` | Resume a previously saved session — restores context, todos, and plan | "resume session", "pick up where I left off" |
-| `/ccc-loop` | Run any /ccc-* skill on a recurring interval via Claude Code's native /loop (2.1.123+) — includes 5+ patterns and self-pacing guidance | "loop a skill", "run ccc-doctor every 5 minutes", "continuous review" |
+| `/ccc-loop` | Loop taxonomy hub — turn/goal/time/proactive loops, `/goal` + `/loop` + `/schedule` guidance, should-you-loop gate, verifier-separation, state-file convention | "loop a skill", "run ccc-doctor every 5 minutes", "continuous review", "goal-based loop" |
 | `/ccc-doctor` | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component | "diagnose plugin", "ccc doctor", "something is broken" |
 | `/ccc-tuneup` | Local setup optimizer — companion to /ccc-doctor. Audit + safely remediate: version freshness, junk sweep, CLAUDE.md drift, superseded agents, hooks coverage, MCP staleness, settings keys. Read-only by default; backup + archive before any fix | "tune up ccc", "optimize my setup", "ccc tuneup", "fix my install" |
 | `/ccc-brainstorm` | Guided ideation: problem framing → divergent ideas → convergent shortlist | "brainstorm", "ccc brainstorm", "ideate on this" |
