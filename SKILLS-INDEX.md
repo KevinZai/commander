@@ -58,7 +58,7 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-linear` | Linear board — view issues, pick, create, sync | "ccc linear", "show my issues", "linear board" |
 | `/ccc-fleet` | Multi-agent orchestration — launch, route, monitor | "ccc fleet", "launch agents", "fleet status" |
 | `/ccc-connect` | Opt-in MCP connector — Supabase, Vercel, Figma, etc. | "connect my tools", "ccc connect" |
-| `/ccc-suggest` | Ambient intelligence — suggests best next skill (auto) | Auto-triggered at session start |
+| `/ccc-suggest` | Ambient intelligence — suggests best next skill; `loop` mode = always-on PM (improve/scope/audit) | Auto-triggered at session start; "ccc suggest loop" |
 | `/ccc-cheatsheet` | Inline cheatsheet — all counts, commands, hook events | "show cheatsheet", "ccc cheatsheet" |
 | `/ccc-agent-writing` | Write specs, PRDs, PR descriptions with clarity + persuasion | "write a spec", "PR description", "improve this doc" |
 | `/ccc-systematic-debugging` | Iron Law root-cause debugging: reproduce → hypothesize → verify → fix | "debug this", "root cause", "why is X failing" |

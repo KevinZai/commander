@@ -72,6 +72,7 @@ Both have a number to check against — "zero blockers," "score ≥ 90" — so t
 |---|---|---|
 | `/loop 5m /ccc-doctor` | Plugin health check every 5 min | Monitoring during active dev |
 | `/loop /ccc-review` | Self-paced branch audit, iterates until clean | Continuous code quality |
+| `/loop /ccc-suggest` | Always-on PM — improve/scope/audit lenses each tick, state-file-backed anti-nag | Ambient project intelligence during long sessions |
 | `/loop 30m /ccc-tasks` | Task list refresh on a half-hour cadence | Long work sessions |
 | `/loop /ccc-changelog` | Polls until a new release appears | Watching upstream deps |
 | `/loop 1h /ccc-xray` | Periodic project health scorecard | Background quality gate |

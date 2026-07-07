@@ -99,6 +99,13 @@ export function computeState() {
   if (envLevel && /^[1-4]$/.test(envLevel)) recommendedLevel = parseInt(envLevel, 10);
   if (process.env.CCC_SUGGEST_DISABLE === '1') recommendedLevel = 0;
 
+  // Three PM lenses — derived from signals already computed above, no new scans.
+  const pmLenses = {
+    audit: aheadMain > 0,
+    scope: !hasTodos && aheadMain > 0,
+    improve: lintErrors > 0 || ciStatus === 'failing',
+  };
+
   return {
     timestamp: new Date().toISOString(),
     branch,
@@ -113,6 +120,7 @@ export function computeState() {
     securityAlerts,
     lintErrors,
     recommendedLevel,
+    pmLenses,
     lastRecommendation: null, // populated when /ccc-suggest runs
   };
 }
@@ -137,6 +145,40 @@ function shouldRun(lastState) {
  */
 export async function run({ input = {}, env = process.env, cwd = process.cwd() } = {}) {
   return main();
+}
+
+/**
+ * Emit a once-per-session nudge to arm the PM loop (`/ccc-suggest loop`) when
+ * the session looks active but no loop is armed yet. Mirrors the fable-nudge
+ * marker-file pattern in intent-classifier.js — one line, never repeated.
+ * "Active" = last-suggestion.json shows several turns, OR project-state.json
+ * is already older than a day (long-running/reopened session). Non-blocking,
+ * fail-open. Respects CCC_SUGGEST_DISABLE.
+ */
+function maybeLoopNudge(lastState) {
+  if (process.env.CCC_SUGGEST_DISABLE === '1') return null;
+  try {
+    const loopStateFile = path.join(process.cwd(), '.claude', 'loop-state', 'ccc-suggest.json');
+    if (fs.existsSync(loopStateFile)) return null; // loop already armed
+
+    const markerFile = path.join(STATE_DIR, `loop-nudge-${new Date().toISOString().slice(0, 10)}`);
+    if (fs.existsSync(markerFile)) return null; // already nudged today
+
+    let turnCount = 0;
+    try {
+      const lastSuggestion = JSON.parse(fs.readFileSync(path.join(STATE_DIR, 'last-suggestion.json'), 'utf8'));
+      turnCount = lastSuggestion.turnCount || 0;
+    } catch {}
+    const stateIsStale = lastState && (Date.now() - new Date(lastState.timestamp).getTime()) > 86400000;
+    if (turnCount < 5 && !stateIsStale) return null;
+
+    try { fs.mkdirSync(STATE_DIR, { recursive: true }); } catch {}
+    try { fs.writeFileSync(markerFile, '', { flag: 'wx' }); } catch { return null; }
+
+    return '💡 Consider arming the always-on PM loop: /ccc-suggest loop — improve/scope/audit lenses every tick, anti-nag state file.';
+  } catch {
+    return null; // fail-open — never break the hook chain
+  }
 }
 
 /**
@@ -181,6 +223,14 @@ function main() {
   try {
     lastState = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
   } catch {}
+
+  // PM loop nudge — once per session/day, never repeated. Fail-open.
+  try {
+    const loopNudge = maybeLoopNudge(lastState);
+    if (loopNudge) {
+      process.stderr.write('[ccc-suggest] ' + loopNudge + '\n');
+    }
+  } catch { /* fail-open — never block the hook chain */ }
 
   if (!shouldRun(lastState)) {
     return { continue: true, suppressOutput: true };
