@@ -13,7 +13,7 @@ Claude Code has **four loop primitives**, not one. This skill is the entry point
 |---|---|---|---|---|
 | **Turn-based** | A user prompt | Claude judges "done" itself | Just run the skill directly; encode your manual verification steps as a `SKILL.md` so Claude can self-check | Short one-off tasks |
 | **Goal-based** | A manual prompt, real-time | Goal achieved OR max turns reached — an evaluator model checks your condition each time Claude tries to stop | `/goal` | Tasks with a verifiable exit criterion (test count, score threshold, build passing) |
-| **Time-based** | An interval | You cancel it, or `/schedule` graduates it to the cloud | `/loop` (local) + `/schedule` (cloud) | Recurring work, polling external systems |
+| **Time-based** | An interval | You cancel it, or the work completes (PR merged, queue empty) | `/loop` (local) + `/schedule` (cloud) | Recurring work, polling external systems |
 | **Proactive** | An event or schedule, no human in real time | Each task exits on its own goal; the routine runs until you turn it off | `/schedule` (heartbeat) + `/goal` (define done) + dynamic Workflow (orchestrate) + auto mode (no confirmation stops) | Recurring streams of well-defined work — bug triage, migrations, dependency upgrades |
 
 Deterministic, quantitative checks beat vague ones for every type above — "tests pass" and "score ≥ 90" are checkable; "looks good" is not.
@@ -31,11 +31,15 @@ All four must be true, or the loop costs more than it returns:
 
 ## `/goal` — deterministic stop conditions
 
+**Claude Code v2.1.139+.**
+
 ```
 /goal <what "done" looks like> [, stop after N tries]
 ```
 
 The key mechanic: when you define success criteria up front, Claude doesn't self-judge "good enough" — an evaluator model checks your condition every time Claude tries to stop, and sends it back if unmet. Deterministic criteria (test pass count, score threshold, exact command output) work far better than subjective ones.
+
+**One load-bearing constraint:** the evaluator does not run commands or read files itself — it judges only what Claude has already surfaced in the conversation. So the condition must state the check, not just the goal, so the proof lands in the transcript (e.g. "`npm test` exits 0", not just "tests pass"). A good condition names one measurable end state, states the check that proves it, and bounds runtime with a turn or time clause ("...or stop after 20 turns").
 
 **Worked examples using CCC skills as the target:**
 
@@ -135,7 +139,7 @@ Fails the should-you-loop gate above, OR:
 
 - **Cowork Desktop:** click the stop button in the loop tag at the bottom of the UI
 - **Terminal:** `Ctrl+C`
-- **`/goal`:** hits its max-turns cap automatically, or `/goal cancel`
+- **`/goal`:** met condition clears it automatically; `/goal clear` removes it early (aliases: stop, cancel)
 - **`/schedule`:** cancel the routine from wherever it's managed (cloud dashboard / CLI)
 
 ## Status-line indicator
