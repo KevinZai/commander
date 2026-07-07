@@ -139,7 +139,7 @@ spawn FOR agent + AGAINST agent + Referee.
 - Format: bullet points, stats, links. No prose.
 
 ### Operationalize Every Fix
-After fixing a bug: write class-level tests, sweep codebase for siblings, update CLAUDE.md.
+After fixing a bug: write a reproduction test FIRST (then fix, then green), sweep the codebase for siblings — the same defect class elsewhere, checked with the same exact method — and encode the lesson where the next actor will trip over it (CLAUDE.md, a hook, or an audit test). Prefer mechanical enforcement over documentation — docs drift, tests don't. See the Fable Method, Pillar 12.
 
 ### Self-Improvement
 - After ANY correction: update `tasks/lessons.md` immediately
@@ -238,7 +238,9 @@ Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok) and an `ultra` effort le
 CC Commander splits work into two roles instead of doing everything on one expensive model:
 
 - **Orchestrator** — a high-reasoning model (Claude Fable 5 `effort: high`, or Opus 4.8 as the everyday default) that does NOT write final code. It plans: breaks the task into steps, defines acceptance criteria, and produces a **Skill.md-style goal file** — a structured spec an executor can follow without re-deriving intent.
-- **Executor** — a fast, capable-at-execution model (GPT-5.5 `effort: xhigh` via the `codex` adapter, or a Sonnet subagent) that implements the plan file exactly. It does not re-plan; it executes, verifies its own work against the acceptance criteria in the plan, and reports back.
+- **Executor** — a fast, capable-at-execution model (GPT-5.5 `effort: xhigh` via the `codex` adapter, or a Sonnet subagent) that implements the plan file exactly. It does not re-plan; it runs its own tests as a first gate, then reports back.
+
+The executor's own test run is a first gate, not the finish line — the worker never grades its own homework. The **orchestrator** (or a fresh verifier agent) independently confirms the result against the plan's acceptance criteria before anything is called done. See the Fable Method, Pillar 2.
 
 Why this saves tokens: the expensive model's context stays small (just the plan, not every file it touches); the fast executor absorbs the token-heavy file reads/writes/diffs. You pay premium-model tokens only for the reasoning, not the typing.
 
@@ -248,6 +250,25 @@ Why this saves tokens: the expensive model's context stays small (just the plan,
 - `/ccc-handoff` — when context grows large mid-task, write a dense handoff file and start a fresh chat instead of letting the session bloat. Do this *frequently*, not just at the end — small, frequent resets beat one giant compaction.
 
 **Adopting this in an existing (non-CC-Commander) project:** run `/ccc-adopt` once. It reads your current CLAUDE.md (if any), detects your stack, and merges in this Orchestrator/Executor section plus a stack-appropriate list of which CCC skills/agents to reach for going forward — without clobbering your existing project-specific rules.
+
+## The Fable Method
+
+The Orchestrator/Executor split above is one instance of a broader doctrine: 12 enforceable gates distilled from Claude Fable 5, written to run on any model. Full text: `rules/fable-method.md`. Arm it as an active session contract with `/ccc-fable`.
+
+1. **Orchestrate, don't type** — plan file with acceptance criteria before implementation starts.
+2. **Never trust a single pass** — the maker never grades its own work; a fresh context verifies.
+3. **Loops with gates** — every loop needs a verifier, a state file, and a stop condition.
+4. **Prove it before you alarm** — falsifiable claim, exact check, real samples, disconfirm-hunt.
+5. **Isolation and blast-radius control** — worktree-isolated edits, archive not delete, human GO on anything irreversible.
+6. **Truth over cache** — verify branch tips and live state at the authoritative source, not a mirror.
+7. **Context is disposable; state is durable** — handoff docs + tracker survive; the chat doesn't.
+8. **Delegation discipline** — a subagent brief is a contract: scope, file domains, constraints, report format.
+9. **Lead with the outcome** — first sentence is the answer; a decisive call, never an unranked list.
+10. **The proactive PM posture** — IMPROVE / SCOPE / AUDIT lenses every cycle; scope outranks improve.
+11. **Effort calibration** — deep reasoning on judgment, cheap passes on mechanics; pilot before fan-out.
+12. **Operationalize every fix** — repro test, sibling sweep, mechanical encoding — every time.
+
+**The three PM lenses** (Pillar 10, run continuously via the `/ccc-suggest` loop): **IMPROVE** (repeated manual step → encode as a skill/hook), **SCOPE** (work ballooning past the ask → stop and scope — SCOPE OUTRANKS IMPROVE), **AUDIT** (unverified work accumulating → surface it). Flag adjacent opportunities; don't execute them inline.
 
 ## Loops
 
