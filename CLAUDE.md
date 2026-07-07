@@ -2,7 +2,7 @@
 
 ## What This Is
 
-CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Free for now** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **71 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 39 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 457 skills, 11 CCC domains, 83+ commands, 28 hooks, 37 prompt templates, 10 themes, 18 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Free for now** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **71 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 39 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 457 skills, 11 CCC domains, 83+ commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 **Current Release:** v6.4.0 — The Fable Method (12-gate operating doctrine distilled from Claude Fable 5, model-agnostic), `/ccc-fable` skill (arms the doctrine as a session contract), per-skill Fable contract footers across all 71 plugin skills. (Full notes in CHANGELOG.md.) · npm package `cc-commander@6.4.0` (version tracked in `package.json`)
 
@@ -147,7 +147,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ```
 
 ## Aggregator Ecosystem
-18 vendor submodules in `vendor/`. Smart orchestrator scores tools: capability 50% + stars 15% + recency 15% + user pref 20%.
+19 vendor submodules in `vendor/`. Smart orchestrator scores tools: capability 50% + stars 15% + recency 15% + user pref 20%.
 Vendor scanner builds capability index across 8-phase pipeline.
 Auto-updates weekly via GitHub Actions.
 
@@ -155,7 +155,7 @@ Key vendors: ECC (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode
 claude-code-best-practice (26K), repomix (22.8K), Claude HUD (15K), RTK (14.6K),
 Compound Engineering (11.5K), claude-skills (8.6K),
 claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
-claude-code-prompts (142).
+claude-code-prompts (142), MengTo/Skills (web design + prompting, 100★).
 
 **Note:** `claude-mem` was previously vendored but was removed in v6.4.0 — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
 
@@ -204,7 +204,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** 6.4.0 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
 
-**Stats:** 457 skills total, 71 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (39 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 28 JS hooks, 18 vendors, 10 themes
+**Stats:** 457 skills total, 71 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (39 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander

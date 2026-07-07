@@ -52,3 +52,6 @@
 [submodule "vendor/mattpocock-skills"]
 	path = vendor/mattpocock-skills
 	url = https://github.com/mattpocock/skills
+[submodule "vendor/mengto-skills"]
+	path = vendor/mengto-skills
+	url = https://github.com/MengTo/Skills

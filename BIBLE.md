@@ -2434,7 +2434,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 
 - **ECC owns** raw breadth: skills, commands, agents, hook lifecycle.
 - **Commander owns** curation + guidance + memory: click-first `/ccc-*` chip pickers (AskUserQuestion), `/ccc-suggest` routing, brain/hands pattern, The Kevin Z Method.
-- **On top of ECC** Commander adds the 64-workflow front door, `/ccc-suggest` (names ECC when it's the right tool), `/ccc-ecc` for selective skill/agent/hook loading, session memory/compounding, and vendor aggregation (ECC = 1 of 18 vendors, scored by the Smart Orchestrator).
+- **On top of ECC** Commander adds the 64-workflow front door, `/ccc-suggest` (names ECC when it's the right tool), `/ccc-ecc` for selective skill/agent/hook loading, session memory/compounding, and vendor aggregation (ECC = 1 of 19 vendors, scored by the Smart Orchestrator).
 - **ECC-sourced parts are labeled** under `vendor/everything-claude-code/`; Commander ports a minimal hook/agent set and defers to upstream. Bump the pin with `/ccc-upgrade`.
 
 ### Further Reading

@@ -35,7 +35,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
   <em>· <a href="https://docs.commanderplugin.com/affiliate-disclosure">affiliate disclosure</a></em>
 </p>
 
-**[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 18 vendor packages
+**[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 19 vendor packages
 
 **[Why CC Commander](#-why-cc-commander)** · **[The 70 skills](#the-70-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
@@ -114,7 +114,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 - 🔌 **2 credential-free bundled MCP servers** — `context7` (library docs) + `sequential-thinking`. Opt-in via `/ccc-connect`: 16 more including Tavily, GitHub, Supabase, Figma, Playwright, Slack, Notion, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash.
 - 🪝 **23 lifecycle hooks × 39 handlers** — SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest. Schema-compliant, 100% pass on `claude plugin validate`.
 - 🗺️ **`/ccc-cheatsheet` live Mermaid map** — reads the filesystem as single source of truth, renders the whole plugin as a flow diagram. Never drifts.
-- 🔄 **Weekly vendor auto-sync** — 18 vendor submodules auto-update via GitHub Actions. The ecosystem stays current without you touching a thing.
+- 🔄 **Weekly vendor auto-sync** — 19 vendor submodules auto-update via GitHub Actions. The ecosystem stays current without you touching a thing.
 - 🌐 **Cross-client, one license** — Cowork Desktop, Code Desktop, Code CLI, Cursor, Windsurf, Cline, Continue, Codex, mobile (hosted MCP).
 - 🚁 **Fleet orchestration** — `/ccc-fleet` runs multiple Sonnet agents in parallel **git worktrees**. Fan-out, pipeline, FOR/AGAINST, background modes.
 - 🆓 **Free for now** — no credit card, no signup. No feature gating, no paywalls.
@@ -278,7 +278,7 @@ Install any of these separately — CC Commander detects what's available and ro
 - **`/ccc-orchestrate` + `/ccc-handoff` + `/ccc-adopt`** — cross-runtime plan/execute split, proactive context reset, and one-command doctrine adoption for existing projects.
 - **`/ccc-ecc`** — selective ECC loader for one skill, agent, or hook without installing the full harness.
 - **Memory + compounding** — sessions learn; `/ccc-knowledge` + claude-mem integration.
-- **Vendor aggregation** — ECC is one of 18 vendor packages; the Smart Orchestrator scores and routes across all of them.
+- **Vendor aggregation** — ECC is one of 19 vendor packages; the Smart Orchestrator scores and routes across all of them.
 
 **ECC-sourced parts are labeled** in the vendor tree (`vendor/everything-claude-code/`). Commander ports a minimal hook/agent set and otherwise defers to ECC upstream — run `/ccc-upgrade` to bump the pin. Install ECC separately for the full harness; Commander detects it and routes to it.
 
@@ -342,7 +342,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 ```
 You type: ccc
 You get:  A guided AI project manager with 502+ skills,
-          71 plugin skills, 22 agents, 18 vendor packages,
+          71 plugin skills, 22 agents, 19 vendor packages,
           real learning, and zero setup.
 ```
 
@@ -660,6 +660,7 @@ CCC aggregates the best Claude Code tools as git submodules. Auto-updated weekly
 | [graphify](https://github.com/safishamsi/graphify) | 17.5K+ | Any input → knowledge graph, clustered communities, HTML + JSON |
 | [UI/UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | 62K+ | Design intelligence for professional UI/UX across platforms |
 | [claude-code-prompts](https://github.com/repowise-dev/claude-code-prompts) | 142+ | Defensive prompt patterns, verification specialist |
+| [MengTo/Skills](https://github.com/MengTo/Skills) | 100+ | Web design + prompting — named-look design systems, video/HTML → prompt capture |
 
 ---
 
@@ -999,7 +1000,7 @@ If CC Commander helped you ship faster, share it:
 
 MIT License for the full project. The Intelligence Layer (4 files) has an additional [Commons Clause](docs/LICENSE-INTELLIGENCE.md) — free to use, not to sell.
 
-All 18 vendor packages are permissive open-source (MIT, Apache-2.0, and CC-BY-SA-4.0).
+All 19 vendor packages are permissive open-source (MIT, Apache-2.0, and CC-BY-SA-4.0).
 
 > **Note:** GitHub may show "Unknown" in the sidebar because some vendor submodules don't ship a LICENSE file in their repo root. Each vendor retains its upstream license — check the linked vendor repositories for specifics.
 
