@@ -8,7 +8,7 @@ allowed-tools:
   - Grep
   - Agent
   - AskUserQuestion
-argument-hint: "[optional: describe current situation in plain English]"
+argument-hint: "[loop | loop status | loop stop | describe current situation in plain English]"
 ---
 
 # /ccc-suggest — The Intelligence Layer
@@ -88,6 +88,14 @@ Default to the starred first option unless user actively picks an alternative.
 ## The reasoning heuristics (Opus prompt)
 
 When running the reasoning step, the internal Opus call uses these heuristics, ranked by signal strength:
+
+### Tier 0 — The three PM lenses (frame every pass)
+
+Before ranking tier-1/2/3 signals, evaluate the project through all three PM lenses below. Every pass — explicit invocation AND ambient tick — runs all three and picks the strongest. **The loop is a PM, not a cheerleader:** it must be willing to say "stop building, scope this first." SCOPE outranks IMPROVE when both fire.
+
+1. **IMPROVE** — "What skill or workflow could be implemented right now to make things better?" Missing tests → `/ccc-review` + TDD emphasis. Generic UI → `ccc-design` sub-skills. Slow feedback cycle → propose a new `/loop` recipe. Repeated manual step (same fix/check happening twice) → recommend encoding it as a skill or hook so future iterations don't repeat it — that is the PM's job, not the user's.
+2. **SCOPE** — "Is the current work properly defined?" No plan file, vague acceptance criteria, or the task ballooning past its original ask → `/ccc-plan` or `spec-interviewer`. Scope creep detected in the diff vs. the stated goal → flag it explicitly, don't silently let it ride.
+3. **AUDIT** — "What is currently unverified?" Branch ahead with no review → `/ccc-review`. Deps unaudited → security scan. Docs drifted from code → doc-sync. Tests green but coverage dropped → qa pass.
 
 ### Tier 1 — Strong signals (drive the recommendation)
 - **Substantive task (multi-file / research / audit / migration / repo-wide)** → recommend running it workflow-first (the Workflow tool or `/ccc-fleet` / `/ccc-ultracode`); agents return conclusions, not file dumps. See `commander/cowork-plugin/rules/workflow-first.md`.
@@ -211,6 +219,30 @@ The ambient ticker re-evaluates the level at the start of every turn using these
 | `CCC_SUGGEST_LEVEL` env var set | → hard-override to that level for whole session |
 | `CCC_SUGGEST_DISABLE=1` | → disables ambient mode entirely (Level 0) |
 | Night mode / overnight autonomous session detected | → Level 4 (with the read-only safety constraint) |
+
+## PM Loop mode — the always-on thinking PM
+
+`/ccc-suggest loop` arms a recurring loop: start `/loop /ccc-suggest` (self-paced) or `/loop 30m /ccc-suggest` if the user gives an interval. Per the `/ccc-loop` taxonomy this is a **time-based** loop locally, and graduates to `/schedule /ccc-suggest` for teams who want it to survive laptop-close. See `/ccc-loop` for the full 4-type taxonomy this borrows from.
+
+Each tick runs the existing project scan + the three PM lenses above, then surfaces **at most ONE** recommendation through the existing involvement-level system. A tick with nothing new to say stays silent at Level 1 — logging only, no nag.
+
+**State file — dogfoods the `/ccc-loop` convention:** `.claude/loop-state/ccc-suggest.json`:
+
+```json
+{
+  "iteration": 4,
+  "lastRun": "2026-07-06T14:32:00Z",
+  "attempted": ["/ccc-review diff", "/ccc-plan"],
+  "dismissed": ["/ccc-ship preflight"],
+  "history": []
+}
+```
+
+**Hard rule:** a suggestion in `dismissed` is never re-surfaced unless its underlying signal materially changed (e.g. CI went from green to red). This is the anti-nag mechanism AND what makes the loop "learn" instead of repeating itself.
+
+**Should-you-loop gate, applied to itself:** recurs constantly (every turn) ✓ · verifier = deterministic project-state signals (git/CI/todos), not self-judged ✓ · budget = cheap Sonnet-tier pass per tick, capped ✓ · real tools = git/gh/fs already wired via the ticker ✓. Passes all 4 — this is why `/ccc-suggest` is the one skill CCC recommends running as a standing loop rather than one-shot.
+
+`/ccc-suggest loop status` reads the state file and prints iteration count + last recommendation + dismissed list. `/ccc-suggest loop stop` stops the loop — same mechanisms as `/ccc-loop` (Cowork Desktop stop button, `Ctrl+C`, or cancel the `/schedule` routine).
 
 ### Real-time project analysis signals (refreshed every 5 turns)
 
