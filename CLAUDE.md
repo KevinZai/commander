@@ -2,7 +2,7 @@
 
 ## What This Is
 
-CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Free for now** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **71 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 39 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 457 skills, 11 CCC domains, 83+ commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Free for now** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **71 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 39 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 459 skills, 11 CCC domains, 83+ commands, 28 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
 **Current Release:** v6.5.0 — MengTo/Skills vendor + design look-book & capture: 19th vendor submodule (MIT-licensed web-design + prompting collection) grafted into `ccc-design` as two routing-only sub-skills (`looks` — 25 named aesthetic directions; `capture` — video/HTML/live-page → reusable prompts), bumping ccc-design 39 → 41 sub-skills. (Full notes in CHANGELOG.md.) · npm package `cc-commander@6.5.0` (version tracked in `package.json`)
 
@@ -113,7 +113,7 @@ Tests: `node --test commander/tests/paths.test.js`
 │   ├── .mcp.json                # 2 credential-free bundled MCP server configs (context7, sequential-thinking) — 16 more opt-in via /ccc-connect
 │   ├── CONNECTORS.md            # 10 connector categories
 │   └── rules/                   # 17 persona voice files + common response-style
-├── skills/              # 457 skills organized by category
+├── skills/              # 459 skills organized by category
 │   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 10 workflow modes
 ��   ├── init-decision-tree/  # /ccc-init project wizard
@@ -177,7 +177,7 @@ All `/ccc` sub-commands open rich menus with recommendations:
 | `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
 | `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
 | `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 457 skills by category, preview, try |
+| `/ccc skills` | Skill browser | 459 skills by category, preview, try |
 | `/ccc domains` | CCC domains | 11 ccc-* domains |
 | `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
 | `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
@@ -204,7 +204,7 @@ Every menu recommends the best next action based on context.
 
 **Version:** 6.5.0 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
 
-**Stats:** 457 skills total, 71 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (39 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 28 JS hooks, 19 vendors, 10 themes
+**Stats:** 459 skills total, 71 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (39 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 28 JS hooks, 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
