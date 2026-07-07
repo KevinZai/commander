@@ -88,7 +88,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ### Lifecycle hook events (23)
 
-23 events, 38 handlers — fire automatically every session (no configuration needed). v5.1.0 expanded from 9 → 23 events.
+23 events, 39 handlers — fire automatically every session (no configuration needed). v5.1.0 expanded from 9 → 23 events.
 
 **Core events:**
 
@@ -109,7 +109,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | `TaskCreated` | Background task starts | 1 (workflow/fleet tracking) |
 | `TaskCompleted` | Background task finishes | 1 (workflow/fleet tracking) |
 | **9 more** | `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup` | 9 (one each) |
-| **TOTAL** | **23 events** | **38 handlers** |
+| **TOTAL** | **23 events** | **39 handlers** |
 
 ### Dynamic Workflows + Ultracode (v5.1.0)
 
