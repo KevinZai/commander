@@ -125,3 +125,7 @@ Create a missing label with `gh label create <name>` only after confirming with 
 ---
 
 **Bottom line:** triage = read with `gh`, decide in the lead, delegate the deep reads, confirm every write.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

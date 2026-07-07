@@ -65,3 +65,7 @@ allowed-tools:
 **Example 3**
 - user: show me a health score report card for this project
 - assistant: Loads ccc-makeover and runs report-card — formatted score card with per-dimension bars, maturity level, and improvement history.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

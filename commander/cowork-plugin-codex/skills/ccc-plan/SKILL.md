@@ -305,3 +305,7 @@ After the flow completes (with or without the optional copy), call `TodoWrite` w
 ---
 
 **Bottom line:** detect/enter plan mode → mark chapter → 4-path picker → 3-5 cascading questions → planner agent writes plan to session path → mark chapter "drafted" → ExitPlanMode triggers Desktop Plan pane → optional project copy → TodoWrite phase 1 tasks. User never sees a wall of spec in chat; it's always an artifact surfaced in the native Plan pane.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

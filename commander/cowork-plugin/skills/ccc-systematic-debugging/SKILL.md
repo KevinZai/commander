@@ -110,3 +110,7 @@ The `debugger` persona applies the Iron Law automatically and maintains a bug jo
 ---
 
 _Adapted from [superpowers/systematic-debugging](https://github.com/nicholasgasior/superpowers) — MIT licensed._
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

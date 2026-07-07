@@ -1084,6 +1084,11 @@ skills:
     domain: ccc-ecc
     tier: free
     description: "name: ccc-ecc"
+  - id: ccc-fable
+    path: skills/ccc-fable/SKILL.md
+    domain: ccc-fable
+    tier: free
+    description: "name: ccc-fable"
   - id: ccc-fleet
     path: skills/ccc-fleet/SKILL.md
     domain: ccc-fleet

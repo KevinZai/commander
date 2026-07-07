@@ -2,6 +2,28 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [6.4.0] — 2026-07-07
+
+### Added
+
+- **The Fable Method** — the operating doctrine distilled from Claude Fable 5, encoded as 12 enforceable gates so any model produces Fable-shaped results. Full doctrine at `commander/cowork-plugin/rules/fable-method.md` (12 pillars, each with Rule/Why/Mechanics/Gate/Failure-prevented, plus the proactive prompt library and the always-on composition).
+- **`/ccc-fable` skill** (71st plugin skill) — the master switch that arms the doctrine as an active session contract: `on` (arm the PM loop, 12 gates, proactive prompts, workflow-first posture, verifier separation), `status` (report what's armed), `audit` (self-check which pillars the session is currently violating, concrete and checkable), `off` (disarm).
+- **Per-skill Fable contract footer** — every plugin `SKILL.md` now carries a one-line contract pointer to `rules/fable-method.md`, enforced by `commander/tests/audit-fable-contract.test.js`.
+- **`rules/common/reasoning-hygiene.md`** — ported and genericized reasoning-hygiene doctrine (Pillar 4 in full): prove findings before they ship, label observed/inferred/assumed, hunt the disconfirming case.
+
+### Changed
+
+- Plugin skill count 70 → 71 (`commander/contract.json`, `package.json`, `commander/cowork-plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `apps/mcp-server-cloud/package.json` all bumped to 6.4.0 via `node scripts/check-product-contract.js --patch`, diff-reviewed).
+- Plugin manifest descriptions (`plugin.json`, `marketplace.json`) now mention The Fable Method.
+- `BIBLE.md` gains a ~30-line "The Fable Method" subsection in the Kevin Z Method chapter (12 pillars as a gate table); `README.md` gains a "🧠 The Fable Method" section near the features area; `CHEATSHEET.md` gains a `/ccc-fable` row + doctrine callout box.
+- Codex mirror (`commander/cowork-plugin-codex/`) rebuilt via `npm run build:codex` to pick up the Fable Method rules files and the verifier-separation fix.
+
+### Fixed
+
+- **`BIBLE.md` Executor role contradicted Pillar 2** ("verifies its own work" implied self-grading is sufficient). Corrected to: the executor runs its own tests as a first gate, but the orchestrator (or a fresh verifier) independently confirms. Same fix already applied to `commander/cowork-plugin/skills/ccc-adopt/SKILL.md` in 6.3.0's tail commits; the codex mirror is rebuilt to match.
+
+---
+
 ## [6.3.0] — 2026-07-02
 
 ### Added

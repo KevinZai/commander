@@ -10,6 +10,8 @@ Canonical count: **25 handlers across 9 events** (see `hooks.json`).
 | SessionStart | `stale-claude-md-nudge.js` | Warn if project CLAUDE.md is >14 days stale |
 | SessionStart | `post-compact-recovery.js` | Restore session context after a PreCompact cycle |
 | SessionStart | `suggest-ticker.js` | Ambient intelligence — recommend one starred next step |
+| SessionStart | `fable-armed-nudge.js` | Reminds the session the Fable Method doctrine is available (`rules/fable-method.md`, `/ccc-fable audit`); wired via the SessionStart orchestrator's handlers array |
+| SessionStart | `git-truth.js` | Pillar 6 (truth over cache): opt-in best-effort `gh auth setup-git` refresh. Silent no-op unless `CCC_GIT_TRUTH=1` — swallows all errors, never blocks a session |
 | UserPromptSubmit | `intent-classifier.js` | Match prompt against skill catalog, route when confident |
 | UserPromptSubmit | `context-warning.js` | Warn when context window crosses 80% / 95% thresholds |
 | UserPromptSubmit | `user-prompt-submit.js` | Generic prompt-submit dispatcher |
@@ -57,6 +59,13 @@ When Claude Code's plugin spec adds one of the missing events (confirm via the o
    - `mintlify-docs/plugin/hooks.mdx`
 3. Verify `npm test` still green (the audit-counts gate may need updating if it reads hooks.json).
 4. Update this README's table (move the file from Dormant to Active).
+
+## 🚩 Environment flags
+
+| Flag | Default | Effect |
+|------|---------|--------|
+| `CCC_GIT_TRUTH` | unset (off) | `git-truth.js` is a silent no-op unless set to `1`. When `1`, best-effort runs `gh auth setup-git` on SessionStart to refresh the git credential bridge — all errors swallowed, never blocks the session. |
+| `CCC_FABLE_NUDGE_DISABLE` | unset (off) | Set to `1` to suppress the `fable-armed-nudge.js` status line at session start. |
 
 ## 🧪 Testing a hook locally
 

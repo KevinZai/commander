@@ -165,3 +165,7 @@ Override per-task via `hermes.escalate({ force: "opus" | "hermes" })`.
 - **Codex sandbox:** Codex `exec` cannot write files. If Hermes routes a write task to a Codex worker, the bridge auto-escalates to Claude Code or `gemini --yolo`.
 
 See `~/clawd/CLAUDE.md` and `~/clawd/shared/INTER-AGENT-PROTOCOL.md` for the full Hermes architecture and channel-to-agent binding table.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

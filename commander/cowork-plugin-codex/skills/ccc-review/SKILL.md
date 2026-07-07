@@ -195,3 +195,7 @@ After dispatching the agent, emit ONE short card:
 ---
 
 **Bottom line:** four audit tiles → matching specialist agent → one markdown artifact. User never waits, findings always traceable.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

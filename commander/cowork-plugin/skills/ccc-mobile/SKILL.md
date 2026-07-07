@@ -59,3 +59,7 @@ allowed-tools:
 **Example 3**
 - user: add push notifications to our iOS and Android app
 - assistant: Loads ccc-mobile and routes to push-notifications for FCM + APNs setup with OneSignal or Expo Notifications.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

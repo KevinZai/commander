@@ -12,10 +12,12 @@
 - Orchestrating multi-agent workflows
 - Complex coding tasks
 
-**Opus 4.5** (Deepest reasoning):
+**Opus 4.8** (Deepest reasoning):
 - Complex architectural decisions
 - Maximum reasoning requirements
 - Research and analysis tasks
+
+**Fable 5** sits above Opus for judgment-heavy work — architecture, threat models, migrations, adversarial verification. Pay for Fable on the thinking, not the typing: use it to plan and verify, not to type. See `rules/fable-method.md` Pillar 11.
 
 ## Context Window Management
 

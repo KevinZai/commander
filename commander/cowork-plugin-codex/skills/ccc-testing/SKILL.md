@@ -80,3 +80,7 @@ This is the **Desktop plugin entry** for the CCC testing domain. For the CLI/cat
 **Example 3**
 - user: set up Playwright E2E tests for our checkout flow
 - assistant: Loads ccc-testing and routes to e2e-testing + webapp-testing with page objects and CI integration.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

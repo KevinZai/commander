@@ -198,3 +198,7 @@ Never require the user to leave `/ccc-browse` and type another slash command. We
 ---
 
 **Bottom line:** four top-level categories → cascaded 4-at-a-time pickers → user drills in → we dispatch to the target skill. No scrolling, no typing, no numbered lists.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

@@ -90,3 +90,7 @@ Restore the backup, or remove the added entries from `permissions.allow`. Plan m
 ---
 
 **Bottom line:** fewer prompts on the safe stuff, a plan gate on the risky stuff, an audit trail on all of it. Pair with `/fewer-permission-prompts` to extend the allowlist from your real usage.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

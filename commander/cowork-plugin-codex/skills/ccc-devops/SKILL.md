@@ -86,3 +86,7 @@ For **scheduled deployments** and automated infra tasks, see: https://code.claud
 **Example 3**
 - user: set up Prometheus and Grafana monitoring
 - assistant: Loads ccc-devops and routes to prometheus-configuration → grafana-dashboards → promql-alerting → infra-runbook pipeline.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

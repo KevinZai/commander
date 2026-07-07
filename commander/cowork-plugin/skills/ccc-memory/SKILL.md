@@ -79,3 +79,7 @@ Test that guards this: commander/tests/dispatch-security.test.js — runKc('ccc:
 ---
 
 Adapted from `knowledge-work-plugins/productivity/memory-management` under Apache-2.0 license. Fitted to CC Commander's save-session / resume-session pattern.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

@@ -53,4 +53,20 @@ You are a slice. Your parent gave you a scope — stay in it. Your job: execute,
 >
 > **No blockers.**
 
-**Last updated: 2026-04-17**
+## 🚫 Hard rule: filesystem cleanup
+
+**Never use raw `rm -rf` or raw `trash` for cleanup. Use `commander/scripts/safe-trash.sh`.**
+
+`rm -rf <symlink-to-dir>/` with a trailing slash follows the link on BSD/macOS and wipes the target directory's contents — this class of incident is why the rule exists. Apple's `trash` does NOT follow symlinks (verified empirically), but `rm -rf` does in that one specific shape.
+
+Before any cleanup that touches a directory you did not create this session, list every symlink it contains and resolve each target:
+
+```bash
+find <dir> -type l -exec sh -c 'printf "%s -> %s\n" "$1" "$(python3 -c "import os,sys;print(os.path.realpath(sys.argv[1]))" "$1")"' _ {} \;
+```
+
+If ANY resolved target falls outside expected temp/cache/trash locations, STOP and escalate to your orchestrator. Do not pass `--force` to safe-trash.sh — that flag is reserved for human-driven operations, not autonomous workers.
+
+Triggers: any instruction mentioning "delete", "remove", "uninstall", "clean up", "wipe", or operating on a directory you didn't create.
+
+**Last updated: 2026-07-07**

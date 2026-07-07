@@ -113,3 +113,7 @@ Report the source, destination, mode, and whether a backup was made.
 - Do not edit files under `vendor/everything-claude-code/`.
 - Do not install unknown binary files or dependency folders.
 - Do not add ECC hooks to settings automatically; install the file and tell the user where it landed.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

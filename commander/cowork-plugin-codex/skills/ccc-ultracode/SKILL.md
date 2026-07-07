@@ -143,3 +143,7 @@ Report back:
 ---
 
 **Bottom line:** ultracode = xhigh reasoning × dynamic workflows × adversarial verification. Use when depth beats speed. Scope first, then run.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

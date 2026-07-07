@@ -222,3 +222,7 @@ If invoked mid-orchestration (`/ccc-orchestrate` / `/ccc-plan-exec` in flight), 
 - Each invocation gets its own file — never append to a previous handoff's file, even if invoked twice in one session.
 - Ties into the Orchestrator/Executor model (`/ccc-orchestrate`, `/ccc-plan-exec`): long-running multi-step execution is exactly when this should fire mid-task, at natural phase boundaries — not only when the whole run finishes.
 - If the user asks to hand off mid-task, save what is known so far and mark in-progress items clearly — an honest partial handoff beats waiting for a "clean" stopping point that never comes.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

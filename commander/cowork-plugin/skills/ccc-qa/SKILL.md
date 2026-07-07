@@ -243,3 +243,7 @@ Decision chip: user picks "File issues to Linear."
 ## Attribution
 
 > Adapted from gstack — MIT licensed.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

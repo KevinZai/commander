@@ -154,3 +154,7 @@ Pair `/loop` with `/ccc-suggest` off (`CCC_SUGGEST_MODE=off`) during tight monit
 ---
 
 **Bottom line:** four loop types, one gate before you build any of them, a verifier that isn't the same agent as the worker, and a state file so a resumed loop doesn't repeat itself. `/goal` for "keep going until X is true," `/loop` for "keep going every N minutes while I'm here," `/schedule` for "keep going forever, even after I close my laptop."
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

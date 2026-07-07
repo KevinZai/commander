@@ -88,3 +88,7 @@ If **~~chat** is connected:
 2. **Rough notes work** — "fixed the login bug, reviewed sarah's PR, fought with docker all day" is enough input.
 3. **Post to chat** — with ~~chat connected, share to Slack/Discord/Teams without copy-pasting.
 4. **Blockers are gold** — surface them explicitly; they're the most valuable part of a standup.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

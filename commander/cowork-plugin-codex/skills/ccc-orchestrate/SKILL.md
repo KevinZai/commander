@@ -151,3 +151,7 @@ Report back:
 ---
 
 **Bottom line:** orchestrator (Fable/Opus) compresses fuzzy intent into a goal file with teeth; executor (GPT-5.5 via codex, or Sonnet) implements it in a different runtime; orchestrator verifies against the checklist before calling it done. Pay for Fable/Opus on the thinking, not the typing — and don't let the typing runtime decide what "done" means.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

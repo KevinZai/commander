@@ -103,3 +103,7 @@ If **~~CI/CD** is connected:
 1. OpenClaw must never be restarted without explicit user approval — the skill enforces this.
 2. Pass a service name as argument (e.g., `paperclip`) to jump directly to that service's status.
 3. TaskMaster status is checked via CLI — MCP tools (`get_tasks`, `next_task`) are used when the MCP server is available.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

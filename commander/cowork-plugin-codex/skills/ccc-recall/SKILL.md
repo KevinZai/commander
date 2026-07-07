@@ -83,3 +83,7 @@ User: "What did we decide about the MCP bundling split?"
 ---
 
 *Adapted from [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) (MIT license). Attribution required per MIT terms.*
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

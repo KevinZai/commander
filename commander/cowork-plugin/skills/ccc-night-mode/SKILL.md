@@ -118,3 +118,7 @@ If **~~chat** is connected:
 1. Always run the Spec Interview before any autonomous execution — skipping it leads to drift.
 2. `status` argument reads `~/.claude/commander/yolo-status.txt` to report current progress without interrupting.
 3. For recurring loops (CI monitor, doc updater), use Monitor & Maintain — it's safer than a one-shot YOLO run.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

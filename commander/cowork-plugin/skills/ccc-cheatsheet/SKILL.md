@@ -166,3 +166,7 @@ If user says "export" or passes `--html`, render the same diagram + tables as st
 ---
 
 **Bottom line:** this skill is the always-fresh, Kevin-Z-Method-compliant visual map of CC Commander. Every time the plugin grows, the cheatsheet grows with it — zero maintenance.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

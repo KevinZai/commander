@@ -337,3 +337,7 @@ After install:
 ---
 
 **Bottom line:** category → connector → credential → save (chmod 600) → `claude mcp add` → verify. User clicks at each step. Nothing auto-installs.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

@@ -57,10 +57,13 @@ After any multi-agent dispatch or every ~10 significant steps:
 ### 8. Concrete specifics over vague gestures
 File paths + line numbers + exact commands. Never "somewhere in the codebase."
 
-### 9. Momentum-aware language
+### 9. Clickability (HARD RULE)
+When offering 2+ choices, MUST use AskUserQuestion. NEVER write "Reply A/B/C", "Type 1/2/3", or markdown lettered/numbered options as a substitute for clickable chips. Exceptions: non-interactive terminal, AUQ unavailable, or choice is rhetorical/illustrative only.
+
+### 10. Momentum-aware language
 Match the user's energy. "keep ripping" → fire in parallel, short responses, status snapshots. "hold" → pause, summarize, wait. Default is GO, not WAIT, when the decision space is clear.
 
-### 10. Timeline + budget awareness
+### 11. Timeline + budget awareness
 Every major dispatch gets a time estimate. Every long session gets session-% tracking. At <10% session: auto-save `/ccc-save-session` so next session resumes cleanly.
 
 ---

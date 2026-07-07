@@ -216,3 +216,7 @@ Every preflight writes `tasks/ship/preflight-<YYYYMMDD>-<HHMM>.md` with the verd
 ---
 
 **Bottom line:** four ship tiles → parallel matrix OR gated release/deploy/rollback → checkbox scorecard. Destructive ops always gated by AUQ.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

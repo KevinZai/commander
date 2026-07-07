@@ -144,3 +144,7 @@ GitHub Actions calls the webhook with `test_failed` and the log URL. CCC fetches
 | `Bash` | Start the HTTP receiver, validate HMAC, curl CI log URLs |
 | `Read` | Parse `.github/workflows/`, `fly.toml`, `vercel.json` for CI context |
 | `Agent` | Spawn debugger sub-agent on `test_failed` with error payload |
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

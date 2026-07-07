@@ -71,3 +71,7 @@ Status: `[ ]` todo · `[x]` done (with date) · `[~]` in progress · `[!]` block
 ---
 
 Adapted from `knowledge-work-plugins/productivity/task-management` under Apache-2.0 license. Reframed around CC Commander priority conventions (P0-P3).
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

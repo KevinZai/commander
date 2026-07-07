@@ -64,3 +64,7 @@ The recommended sequence for any non-trivial feature:
 **Example 3**
 - user: analyze this 500-page PDF of technical documentation
 - assistant: Loads ccc-research and routes to data-ingestion for large document summarization and key insight extraction.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

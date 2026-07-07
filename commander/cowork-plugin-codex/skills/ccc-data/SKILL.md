@@ -68,3 +68,7 @@ For large datasets and data files, the Files API can ingest CSVs, JSON, Parquet,
 **Example 3**
 - user: add semantic search to our product catalog
 - assistant: Loads ccc-data and routes to vector-search for pgvector/Pinecone/Qdrant setup with embedding pipeline.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

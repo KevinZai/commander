@@ -66,3 +66,7 @@ Run the `marketing-context` sub-skill first to capture brand voice, audience per
 **Example 3**
 - user: set up email sequences for our SaaS trial
 - assistant: Loads ccc-marketing and routes to Channels pod — email sequences skill with onboarding, nurture, and churn prevention flows.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

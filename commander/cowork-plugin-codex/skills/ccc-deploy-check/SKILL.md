@@ -110,3 +110,7 @@ If **~~monitoring** is connected:
 2. **Production flag adds rigor** — pass `production` to enable the full risk assessment.
 3. **Fix FAIL before shipping** — WARNs are judgment calls; FAILs are not.
 4. **Rollback plan is required** — if you can't explain how to roll back, you're not ready to ship.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

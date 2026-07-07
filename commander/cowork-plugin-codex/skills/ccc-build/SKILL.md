@@ -178,3 +178,7 @@ Then emit the recommended stack section (vary stack by template type):
 ---
 
 **Bottom line:** four tiles → three questions → one background agent → one progress card. User never waits. Never types a number.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

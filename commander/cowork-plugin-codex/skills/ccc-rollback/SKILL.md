@@ -211,3 +211,7 @@ If rollback fails:
 - Do not push without confirmation.
 - Do not skip `/ccc-deploy`; rollback is only complete after redeploy and health verification.
 - Do not post comms without user confirmation.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

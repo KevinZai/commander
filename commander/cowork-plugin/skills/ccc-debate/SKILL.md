@@ -162,3 +162,7 @@ Act on the ruling. The agents' raw back-and-forth never lands in your lead conte
 ---
 
 **Bottom line:** debate = N adversarial lenses × cross-examination × a judged verdict. Antfood your design before reality does. Scope tight, push hard, keep the ruling.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

@@ -78,6 +78,7 @@ async function main() {
     { name: 'session-start', file: '../_archive/session-start.js' },
     { name: 'stale-claude-md-nudge', file: '../stale-claude-md-nudge.js' },
     { name: 'post-compact-recovery', file: '../post-compact-recovery.js' },
+    { name: 'fable-armed-nudge', file: '../fable-armed-nudge.js' },
   ];
 
   for (const h of handlers) {

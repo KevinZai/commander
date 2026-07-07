@@ -123,3 +123,7 @@ Report back:
 ---
 
 **Bottom line:** plan-exec = cheap model writes the loop, capable model runs the steps. Decompose into a repeating body, plan it for cents, and spend Opus/Fable only where the thinking lives.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

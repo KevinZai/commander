@@ -14,7 +14,7 @@
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
-- [The 70 Plugin Skills](#the-70-plugin-skills) — The curated plugin surface
+- [The 71 Plugin Skills](#the-71-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -25,7 +25,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v6.3.0 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v6.4.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -85,7 +85,7 @@ Use a high-reasoning orchestrator for ambiguity, judgment, and acceptance criter
 | Role | Job | Default Tool |
 |------|-----|--------------|
 | **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5 `effort: high`, or Opus 4.8 |
-| **Executor** | Implements the goal file exactly, verifies its own work, and reports evidence. It does not re-plan. | GPT-5.5 via `codex`, or a Sonnet subagent |
+| **Executor** | Implements the goal file exactly, runs its own tests as a first gate, and reports evidence — the orchestrator (or a fresh verifier) independently confirms. It does not re-plan. | GPT-5.5 via `codex`, or a Sonnet subagent |
 | **Verifier** | Re-reads the goal file and checks every acceptance criterion before calling the work done. | Same Fable/Opus orchestrator |
 
 Run `/ccc-orchestrate` when the work is big enough that planning and execution should be split. The orchestrator writes the goal file, dispatches GPT-5.5 through the `codex` adapter or a Sonnet subagent, then verifies against the checklist. If one criterion fails, re-dispatch only that gap.
@@ -147,6 +147,35 @@ Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges th
 - [ ] Set checkpoint frequency
 - [ ] Launch with `overnight-runner`
 - [ ] Review checkpoints in morning
+
+---
+
+### The Fable Method
+
+> **Distilled from Claude Fable 5, written to run on any model.** Frontier-model results come from the *system around the model*, not just raw capability. Every instinct that makes Fable reliable — refusing a single pass, isolating blast radius, verifying against ground truth, treating context as disposable, operating like a PM instead of a typist — can be externalized as a gate any model can follow. Arm it with `/ccc-fable on`. Full text: `commander/cowork-plugin/rules/fable-method.md`.
+
+**The one-line version:** *judgment as process.* When the model is weaker, the process must be stronger.
+
+**The 12 pillars, as gates (checkable), not values (aspirational):**
+
+| # | Pillar | Gate question |
+|---|--------|----------------|
+| 1 | Orchestrate, don't type | Is the plan written down with acceptance criteria before implementation started? |
+| 2 | Never trust a single pass | Who verified this, and were they the one who made it? |
+| 3 | Loops with gates | What is the verifier, where is the state file, and what stops this? |
+| 4 | Prove it before you alarm | What's the evidence, and what would disprove this? |
+| 5 | Isolation and blast-radius control | Is the main tree tracked-clean, and did the agent verify its worktree before editing? |
+| 6 | Truth over cache | Is this from the source of truth, or from something that could be stale? |
+| 7 | Context is disposable; state is durable | If this session died right now, could a fresh one resume from durable state alone? |
+| 8 | Delegation discipline | Could a competent stranger execute this brief without asking me anything? |
+| 9 | Lead with the outcome | Does the first sentence contain the answer? |
+| 10 | The proactive PM posture | Did I evaluate IMPROVE/SCOPE/AUDIT, and did I resist executing the flags inline? |
+| 11 | Effort calibration | Did a small pilot validate this approach and its cost before scaling it? |
+| 12 | Operationalize every fix | What prevents this exact class of bug from recurring, and is that prevention mechanical? |
+
+**Model-agnostic promise:** a frontier model does some of this by instinct; a mid-tier model does none of it by instinct. That's why every pillar is a gate rather than a value — Sonnet, GPT, or any executor following these gates produces Fable-shaped results. The weaker the model, the more the gates matter. **The method IS the moat.**
+
+**Related:** `/ccc-fable` (arms the doctrine as a session contract) · `rules/workflow-first.md` (Pillars 1, 2, 6, 7, 8, 9, 11 as ambient session rules) · `rules/common/reasoning-hygiene.md` (Pillar 4 in full) · `/ccc-orchestrate` (Pillar 1 implementation) · `/ccc-suggest` (Pillar 10 implementation).
 
 ---
 
@@ -226,7 +255,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
 ---
 
-## The 70 Plugin Skills
+## The 71 Plugin Skills
 
 > *Every skill that ships with `/plugin install commander`. Not the 502-skill ecosystem — just the curated plugin surface.*
 
@@ -1400,7 +1429,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v6.3.0)
+### 🛠️ Plugin Workflows (v6.4.0)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
 
@@ -2428,7 +2457,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 ---
 ## Built on Claude Agent SDK
 
-> *v6.3.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v6.4.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2472,7 +2501,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v6.3.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 70 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v6.4.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 71 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (39 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2485,7 +2514,7 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (70 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (71 plugin skills)
   +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 23 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
@@ -2529,7 +2558,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 70 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (38 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 71 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (39 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -2684,7 +2713,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v6.3.0 — How CCC thinks before it acts.*
+> *Appendix: v6.4.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 

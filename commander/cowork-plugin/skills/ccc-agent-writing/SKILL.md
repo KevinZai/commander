@@ -153,3 +153,7 @@ This skill handles technical writing (specs, PRDs, docs, PR descriptions).
 ---
 
 _Adapted from [superpowers/writing-skills](https://github.com/nicholasgasior/superpowers) — MIT licensed._
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
