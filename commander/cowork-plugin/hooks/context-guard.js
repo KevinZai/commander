@@ -10,13 +10,16 @@
  *   CC_CONTEXT_GUARD_DISABLE=1  — disables all nudges
  *   CC_CONTEXT_GUARD_THRESHOLD=N — override warn threshold (default 70)
  *
- * Context % detection: reads CLAUDE_CONTEXT_USED_PCT or CLAUDE_CONTEXT_PERCENT.
- * If neither is set, the hook no-ops silently (context metric unavailable).
+ * Context % detection: transcript JSONL estimate (lib/context-estimate.mjs) —
+ * env vars CLAUDE_CONTEXT_USED_PCT / CLAUDE_CONTEXT_PERCENT win when set.
+ * If no signal is available, the hook no-ops silently.
  *
  * State tracking: ~/.claude/commander/state.json (thresholds fired per session)
  * At 95%: writes auto-save snapshot to ~/.claude/sessions/auto-YYYY-MM-DD-HHMM.tmp
  */
 import { track } from '../lib/telemetry.mjs';
+import { emitUser } from './lib/emit.mjs';
+import { estimateContextPct } from './lib/context-estimate.mjs';
 import { readFile, writeFile, appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -95,31 +98,23 @@ async function main() {
     return;
   }
 
-  // Parse stdin (hook input)
+  // Parse stdin (hook input) — we need transcript_path for the estimate
+  let input = {};
   try {
     const chunks = [];
     for await (const chunk of process.stdin) chunks.push(chunk);
-    // We don't need stdin content — just drain it
+    const raw = Buffer.concat(chunks).toString('utf8').trim();
+    if (raw) input = JSON.parse(raw);
   } catch {
-    // Ignore
+    // Ignore — estimate falls back to env vars only
   }
 
   try {
-    // Detect context % used
-    const rawPct =
-      process.env.CLAUDE_CONTEXT_USED_PCT ||
-      process.env.CLAUDE_CONTEXT_PERCENT ||
-      '';
+    // Detect context % used: transcript JSONL heuristic (env vars win if set)
+    const transcriptPath = input.transcript_path || input.transcriptPath || '';
+    const usedPct = estimateContextPct(transcriptPath);
 
-    if (!rawPct || rawPct === '0') {
-      // Context metric unavailable — no-op silently
-      // NOTE: hook is dormant until Claude Code exposes this env var.
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
-    }
-
-    const usedPct = parseFloat(rawPct);
-    if (isNaN(usedPct) || usedPct <= 0) {
+    if (!usedPct || isNaN(usedPct) || usedPct <= 0) {
       process.stdout.write(JSON.stringify({ continue: true }) + '\n');
       return;
     }
@@ -142,11 +137,9 @@ async function main() {
       // Check custom threshold
       if (customWarnThreshold > 0 && usedPct >= customWarnThreshold) {
         process.stdout.write(
-          JSON.stringify({
-            continue: true,
-            suppressOutput: false,
-            status: `📊 Context at ${usedPct.toFixed(0)}% (custom threshold ${customWarnThreshold}%) — consider /save-session`,
-          }) + '\n'
+          JSON.stringify(
+            emitUser(`📊 Context at ${usedPct.toFixed(0)}% (custom threshold ${customWarnThreshold}%) — consider /save-session`)
+          ) + '\n'
         );
       } else {
         process.stdout.write(JSON.stringify({ continue: true }) + '\n');
@@ -191,13 +184,7 @@ async function main() {
       }
     }
 
-    process.stdout.write(
-      JSON.stringify({
-        continue: true,
-        suppressOutput: false,
-        status: statusMsg,
-      }) + '\n'
-    );
+    process.stdout.write(JSON.stringify(emitUser(statusMsg)) + '\n');
   } catch {
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
   }

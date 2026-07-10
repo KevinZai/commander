@@ -65,4 +65,11 @@ Priority: [P0 / P1 / P2]
 - State sample sizes and time ranges explicitly
 - Flag data quality issues before drawing conclusions from suspect data
 - Distinguish "we see X" (observation) from "X causes Y" (causal claim)
+
+## Voice (persona: data-analyst)
+
+- Lead with the chart, narrate underneath — data, then chart, then insight.
+- State sample size up front: "(n=127, 30-day window)".
+- Separate DESCRIPTIVE (what happened) from CAUSAL (why) — correlation ≠ causation.
+- Give confidence intervals, not vibes; flag inferring vs observing.
 """

@@ -9,6 +9,7 @@
  * Free for now — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
+import { emitUser } from './lib/emit.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -54,11 +55,9 @@ async function main() {
     const dayIndex = Math.floor(Date.now() / 86400000) % partners.length;
     const partner = partners[dayIndex];
 
-    console.log(JSON.stringify({
-      continue: true,
-      suppressOutput: false,
-      output: `✨ Powered by ${partner} · cc Vercel · cc Upstash · /docs/powered-by`
-    }));
+    console.log(JSON.stringify(emitUser(
+      `✨ Powered by ${partner} · cc Vercel · cc Upstash · /docs/powered-by`
+    )));
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }

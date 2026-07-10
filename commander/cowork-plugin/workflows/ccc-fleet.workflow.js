@@ -18,11 +18,27 @@ if (mode === 'fanout') {
   const tasks = args.tasks || []
   if (!tasks.length) throw new Error('fanout requires args.tasks: string[]')
   log(`Fan-out: ${tasks.length} parallel slices`)
+  // Failed slices are SURFACED, never silently dropped — SKILL.md promises this.
   const results = await parallel(tasks.map((t, i) => () =>
-    agent(`Slice ${i + 1} of a fan-out job. Work ONLY on this slice (non-overlapping with the others): ${t}. Report files changed + whether tests pass.`,
-      { label: `slice-${i + 1}`, phase: 'Fleet', isolation: 'worktree' }).catch(() => null)
+    agent(`Slice ${i + 1} of a fan-out job. Work ONLY on this slice (non-overlapping with the others): ${t}. Report files changed. Do NOT self-certify — an independent verifier checks your slice.`,
+      { label: `slice-${i + 1}`, phase: 'Fleet', isolation: 'worktree' })
+      .then(r => ({ slice: i + 1, task: t, result: r }))
+      .catch(err => ({ slice: i + 1, task: t, failed: true, error: (err && err.message) || String(err) }))
   ))
-  return { mode, slices: tasks.length, results: results.filter(Boolean) }
+
+  phase('Synthesize')
+  // Verifier ≠ worker: fresh refute-framed agent per completed slice before synthesis.
+  const verified = await parallel(results.map(r => () => {
+    if (r.failed) return Promise.resolve(r)
+    return agent(
+      `You are an independent verifier — you did NOT do this work. A fan-out slice claims to have completed: ${r.task}\nSlice report:\n${typeof r.result === 'string' ? r.result : JSON.stringify(r.result)}\nActively try to REFUTE the claim: check the reported files actually changed as described and run/inspect the relevant tests. Report verified plus a one-line verdict.`,
+      { label: `verify-slice-${r.slice}`, phase: 'Synthesize', agentType: 'Explore' }
+    ).then(v => ({ ...r, verification: typeof v === 'string' ? v : JSON.stringify(v) }))
+     .catch(() => ({ ...r, verification: 'verifier error — treat slice as unverified' }))
+  }))
+  const failed = verified.filter(r => r.failed)
+  if (failed.length) log(`⚠️ ${failed.length}/${tasks.length} slices failed — surfaced in results`)
+  return { mode, slices: tasks.length, failed: failed.length, results: verified }
 }
 
 if (mode === 'pipeline') {
@@ -33,7 +49,7 @@ if (mode === 'pipeline') {
   const out = []
   for (let i = 0; i < stages.length; i++) {
     const r = await agent(`Pipeline stage ${i + 1}/${stages.length}: ${stages[i]}${carry ? `\n\nPrior stage output:\n${carry}` : ''}`,
-      { label: `stage-${i + 1}`, phase: 'Fleet' })
+      { label: `stage-${i + 1}`, phase: 'Fleet', isolation: 'worktree' })
     carry = typeof r === 'string' ? r : JSON.stringify(r)
     out.push({ stage: i + 1, result: r })
   }

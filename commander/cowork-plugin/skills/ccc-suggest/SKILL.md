@@ -244,32 +244,34 @@ Each tick runs the existing project scan + the three PM lenses above, then surfa
 
 `/ccc-suggest loop status` reads the state file and prints iteration count + last recommendation + dismissed list. `/ccc-suggest loop stop` stops the loop — same mechanisms as `/ccc-loop` (Cowork Desktop stop button, `Ctrl+C`, or cancel the `/schedule` routine).
 
-### Real-time project analysis signals (refreshed every 5 turns)
+### Real-time project analysis signals (refreshed at most every ~30s of turn activity)
 
-The ticker maintains a cached project state in `~/.claude/commander/project-state.json` refreshed at most every 5 turns (or on SessionStart). Fields:
+The ticker maintains a cached project state in `~/.claude/commander/project-state.json`. Fields (exactly what `hooks/suggest-ticker.js` `computeState()` writes):
 
 ```json
 {
-  "timestamp": "2026-04-20T01:15:00Z",
+  "timestamp": "2026-07-10T01:15:00Z",
   "branch": "feature/xyz",
-  "behindMain": 0,
+  "defaultBranch": "origin/main",
   "aheadMain": 3,
-  "testsStatus": "green",
-  "ciStatus": "passing",
-  "openTodos": 2,
-  "lastSession": "2026-04-19T23:00:00Z",
+  "behindMain": 0,
+  "hasClaudeMd": true,
+  "claudeMdAgeDays": 12,
+  "openTodos": 1,
+  "lastSession": "/Users/you/.claude/sessions/2026-07-09-abc.tmp",
   "stack": ["nextjs", "tailwind", "supabase"],
-  "connectedMCPs": ["tavily", "claude-mem", "github"],
+  "testsStatus": "passing",
+  "ciStatus": "passing",
+  "lintStatus": "unknown",
   "securityAlerts": 0,
   "lintErrors": 0,
   "recommendedLevel": 2,
-  "lastRecommendation": {
-    "skill": "/ccc-review diff",
-    "confidence": "HIGH",
-    "reasoning": "branch ahead by 3 commits, tests green, ready for PR review"
-  }
+  "pmLenses": { "audit": true, "scope": false, "improve": false },
+  "lastRecommendation": null
 }
 ```
+
+Signal sources: `ciStatus` from a ≤10-min cached `gh run list --limit 1 --json conclusion` (stale cache refreshes in a detached background process — the hook never blocks); `testsStatus` / `lintStatus` / `securityAlerts` from the PostToolUse cache at `~/.claude/commander/last-test-result.json` (30-min TTL); `defaultBranch` via `git symbolic-ref refs/remotes/origin/HEAD` (fallback `origin/main`). Status values are `passing | failing | unknown`. `hasClaudeMd` + `claudeMdAgeDays` feed the CLAUDE.md drift recommendations (`/ccc-claudemd` at age > 30d, `/ccc-adopt` when missing). `lastRecommendation` is populated by explicit `/ccc-suggest` runs, not by the ticker.
 
 ### Marketing positioning (the headline feature)
 
@@ -310,6 +312,10 @@ When session intent is strongly deep-reasoning (≥2 of: architecture / redesign
 - **HIGH** — multiple tier-1 signals agree + stack signals confirm (e.g. "branch ahead + tests green + CHANGELOG staged" → `/ccc-ship` with HIGH confidence)
 - **MEDIUM** — one tier-1 signal + user intent compatible (e.g. "empty repo + user said 'build a SaaS'" → `/ccc-build` with MEDIUM)
 - **LOW** — no tier-1 signals + user intent ambiguous → show 3 alternatives via AUQ
+
+## Voice
+
+Speak in the PM Consultant voice with the semantic emoji palette from `rules/common/response-style.md` (🎯 focus · 💡 idea · 🟢 approve · 🟡 caution · 🔴 block · ⏭️ next) — every recommendation ends with a decisive **🟢 my call** + one-line rationale, never a hedge.
 
 ## Brand positioning (the value prop)
 

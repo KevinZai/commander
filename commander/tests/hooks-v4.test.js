@@ -173,8 +173,8 @@ describe('post-compact-recovery.js', () => {
     const r = runHook('post-compact-recovery.js', {}, { HOME: tmpHome });
     assert.equal(r.exitCode, 0);
     // Should have a status message mentioning compaction
-    if (r.parsed?.status) {
-      assert.ok(r.parsed.status.includes('compact') || r.parsed.status.includes('CCC'));
+    if (r.parsed?.systemMessage) {
+      assert.ok(r.parsed.systemMessage.includes('compact') || r.parsed.systemMessage.includes('CCC'));
     }
 
     fs.rmSync(tmpHome, { recursive: true, force: true });
@@ -266,37 +266,53 @@ describe('cost-ceiling-enforcer.js', () => {
     const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-test-'));
     const sessionsDir = path.join(tmpHome, '.claude', 'commander', 'sessions');
     fs.mkdirSync(sessionsDir, { recursive: true });
-    fs.writeFileSync(path.join(sessionsDir, 'active-cost.json'), JSON.stringify({
+    // State is keyed by CLAUDE_SESSION_ID (defaults to 'default')
+    fs.writeFileSync(path.join(sessionsDir, 'active-cost-default.json'), JSON.stringify({
       toolCalls: 10,
       estimatedCost: 0.10,
     }));
 
-    const r = runHook('cost-ceiling-enforcer.js', { tool_name: 'Bash' }, { HOME: tmpHome });
+    const r = runHook('cost-ceiling-enforcer.js', { tool_name: 'Bash' }, { HOME: tmpHome, CLAUDE_SESSION_ID: '' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
 
     fs.rmSync(tmpHome, { recursive: true, force: true });
   });
 
-  it('returns continue:false and stopReason when ceiling exceeded', () => {
+  it('warns on first crossing, then blocks with stopReason (warn-then-block)', () => {
     const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-test-'));
     const sessionsDir = path.join(tmpHome, '.claude', 'commander', 'sessions');
     const configDir = path.join(tmpHome, '.claude', 'commander');
     fs.mkdirSync(sessionsDir, { recursive: true });
 
-    // Set a low ceiling of $1.00
+    // Set a low ceiling of $1.00 (== 100 tool calls in budget units)
     fs.writeFileSync(path.join(configDir, 'config.json'), JSON.stringify({ costCeiling: 1.00 }));
-    // Write cost that exceeds ceiling
-    fs.writeFileSync(path.join(sessionsDir, 'active-cost.json'), JSON.stringify({
+    // Session-keyed budget file over the ceiling
+    const costFile = path.join(sessionsDir, 'active-cost-default.json');
+    fs.writeFileSync(costFile, JSON.stringify({
       toolCalls: 200,
       estimatedCost: 2.00,
     }));
 
-    const r = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: tmpHome });
+    // 1st crossing → visible warning, call allowed through
+    const warn = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: tmpHome, CLAUDE_SESSION_ID: '' });
+    assert.equal(warn.exitCode, 0);
+    assert.notEqual(warn.parsed?.continue, false, 'first crossing should warn, not block');
+    assert.ok(warn.parsed?.systemMessage?.includes('ceiling'), 'warning should mention the ceiling');
+    const afterWarn = JSON.parse(fs.readFileSync(costFile, 'utf8'));
+    assert.ok(afterWarn.ceilingWarnedAt, 'warning timestamp should be persisted');
+
+    // 2nd call → blocks
+    const r = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: tmpHome, CLAUDE_SESSION_ID: '' });
     assert.equal(r.exitCode, 0, 'process should exit 0 even when blocking');
     assert.equal(r.parsed?.continue, false);
     assert.ok(typeof r.parsed?.stopReason === 'string', 'should have stopReason');
     assert.ok(r.parsed.stopReason.includes('ceiling'), 'stopReason should mention ceiling');
+
+    // CCC_COST_OVERRIDE=1 → always allowed
+    const override = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: tmpHome, CLAUDE_SESSION_ID: '', CCC_COST_OVERRIDE: '1' });
+    assert.equal(override.exitCode, 0);
+    assert.equal(override.parsed?.continue, true, 'override env must bypass the ceiling');
 
     fs.rmSync(tmpHome, { recursive: true, force: true });
   });
@@ -337,8 +353,8 @@ describe('context-warning.js', () => {
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
     // Should emit a status warning
-    if (r.parsed?.status) {
-      assert.ok(r.parsed.status.includes('5%') || r.parsed.status.includes('CRITICAL'));
+    if (r.parsed?.systemMessage) {
+      assert.ok(r.parsed.systemMessage.includes('5%') || r.parsed.systemMessage.includes('CRITICAL'));
     }
   });
 
@@ -358,7 +374,7 @@ describe('context-warning.js', () => {
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
     // Should NOT emit a status warning when disabled
-    assert.ok(!r.parsed?.status || r.parsed.suppressOutput === true);
+    assert.ok(!r.parsed?.systemMessage || r.parsed.suppressOutput === true);
   });
 
   it('returns continue:true on malformed input', () => {
@@ -430,15 +446,15 @@ describe('stale-claude-md-nudge.js', () => {
       input: '{}',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: tmpDir },  // isolate once-per-day marker writes
       cwd: tmpDir,
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
     assert.equal(parsed.continue, true);
-    // Should emit a nudge status
-    if (parsed.status) {
-      assert.ok(parsed.status.includes('stale') || parsed.status.includes('CLAUDE.md'));
+    // Should emit a nudge systemMessage
+    if (parsed.systemMessage) {
+      assert.ok(parsed.systemMessage.includes('CLAUDE.md') || parsed.systemMessage.includes('/ccc-adopt'));
     }
 
     fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -455,13 +471,13 @@ describe('stale-claude-md-nudge.js', () => {
       input: '{}',
       encoding: 'utf-8',
       timeout: 5000,
-      env: { ...process.env, CC_NUDGE_DISABLE: '1' },
+      env: { ...process.env, CC_NUDGE_DISABLE: '1', HOME: tmpDir },
       cwd: tmpDir,
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
     assert.equal(parsed.continue, true);
-    assert.ok(!parsed.status, 'should not emit nudge when disabled');
+    assert.ok(!parsed.status && !parsed.systemMessage, 'should not emit nudge when disabled');
 
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });

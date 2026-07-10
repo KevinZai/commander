@@ -148,7 +148,7 @@ One worker failure must not cancel or roll back other workers. Preserve every wo
 
 ### Cleanup on success
 
-After all dispatched workers complete successfully and the synthesis report is written, prune entries in `/tmp/codex-fleet/` older than 24 hours via `pruneCodexFleetTmp()`. Do not prune on partial failure; preserve artifacts for diagnosis.
+After all dispatched workers complete successfully and the synthesis report is written, prune entries in `/tmp/ccc-fleet/` older than 24 hours via `pruneFleetTmp()`. Do not prune on partial failure; preserve artifacts for diagnosis.
 
 ## Dispatch — Fan-out
 
@@ -156,9 +156,13 @@ After user picks Fan-out, ask for ONE task description (via a follow-up plain qu
 
 Then spawn 3 `Agent` calls in a SINGLE tool-call batch with `run_in_background: true`:
 
+Every worker prompt starts with this isolation prefix (Fable Pillar 5 — non-negotiable):
+
+> FIRST: `git rev-parse --show-toplevel` must equal `<your-worktree-path>` — abort immediately if it doesn't. Edit RELATIVE paths only, inside your worktree. Never the main repo's absolute path.
+
 Example pseudocode:
 ```
-Agent 1: subagent_type=general-purpose, model=sonnet, prompt="Slice 1 of: <task>. Work in worktree feat/slice-1. Non-overlapping files: <domain 1>. Report: files changed, tests passing."
+Agent 1: subagent_type=general-purpose, model=sonnet, prompt="FIRST: git rev-parse --show-toplevel must equal .claude/worktrees/slice-1 — abort if not; relative paths only. Slice 1 of: <task>. Work in worktree feat/slice-1. Non-overlapping files: <domain 1>. Report: files changed, tests passing."
 Agent 2: same pattern for Slice 2 / worktree feat/slice-2 / domain 2
 Agent 3: same pattern for Slice 3 / worktree feat/slice-3 / domain 3
 ```
@@ -197,6 +201,8 @@ Ask for the one task (free-text). Spawn ONE `Agent` with `run_in_background: tru
 Return:
 > 🌙 Background agent running. You can keep working — I'll surface the result when it completes. Check status: `git worktree list`.
 
+If the background task is really "keep going until a gate holds" (tests green, criteria met, CI fixed), don't hand-roll the retry — run it as a `/goal` loop from the ccc-loop taxonomy, which gives you the convergence gate + iteration cap. Recurring checks on an interval are `/loop` or `/schedule` territory.
+
 ## Dispatch — Team hierarchy
 
 The Game Studios pattern (3-tier, cost-optimized orchestration).
@@ -224,7 +230,7 @@ Spawn 2-4 `Agent` calls in a SINGLE batch with `model=haiku`, `run_in_background
 - Cheap — fire as many as needed
 
 **Synthesis:**
-Coordinator (main thread) merges all worktree branches, runs final verification, reports.
+Coordinator (main thread) merges all worktree branches, runs final verification, reports. Before declaring the run done, the coordinator ALWAYS runs the tracked-clean check: `git status --porcelain | grep -v '^??'` on the main tree must be EMPTY — any tracked change outside the worker branches is a leak; stop and reconcile before reporting.
 
 **Cost model:**
 - Director: ~$0.50-2.00 (1 Opus call, planning only)
@@ -251,6 +257,8 @@ Agents CANNOT push — return files + diffs only. User merges to main via the co
 | Conflict resolution | Stop + report, never auto-resolve |
 | Background timeout | 60 minutes default, configurable |
 | Cost | Each agent tracks cost independently via Sonnet |
+| Worker isolation | Worker prompt prefix: verify `git rev-parse --show-toplevel` = worktree, abort if not, relative paths only |
+| Main-tree integrity | Coordinator runs `git status --porcelain \| grep -v '^??'` (must be empty) before declaring any run done |
 
 ## Argument handling
 

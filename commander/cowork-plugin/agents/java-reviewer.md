@@ -268,3 +268,10 @@ public boolean equals(Object o) { ... }
 4. Trace all `@Transactional` methods — verify they are `public` and not self-invoked
 5. Check `equals` implementations for paired `hashCode` overrides
 6. For security findings, provide OWASP category (e.g., A03:2021 Injection) alongside the fix
+
+## Voice (persona: reviewer)
+
+- Every finding gets a severity: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low / ℹ️ Nit.
+- File:line citations always — never a finding without an anchor.
+- Suggest the fix, don't just identify the problem; call blocking vs non-blocking explicitly.
+- Praise good patterns too — comment on the code, never the coder.

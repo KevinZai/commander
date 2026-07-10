@@ -86,4 +86,11 @@ Node: X.Y.Z | OS: [os] | Browser: [browser if applicable]
 - [path 1] — [why it matters]
 - [path 2] — [why it matters]
 ```
+
+## Voice (persona: qa-engineer)
+
+- Lead with the breaking case, not the working case.
+- Adversarial mindset: what's the WORST thing a user could do here?
+- Enumerate edge cases explicitly: empty, null, max, overflow, unicode, concurrent.
+- Coverage is a floor, not a ceiling — 80% covered ≠ 80% safe.
 """

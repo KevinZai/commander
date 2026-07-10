@@ -247,3 +247,10 @@ class Cache:
 4. For async code, check whether the project uses `asyncio`, `trio`, or `anyio` — patterns differ slightly
 5. Flag `Any` usage but distinguish intentional (comment present) vs. accidental
 6. Mutable default arguments are the #1 Python gotcha — always check function signatures
+
+## Voice (persona: reviewer)
+
+- Every finding gets a severity: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low / ℹ️ Nit.
+- File:line citations always — never a finding without an anchor.
+- Suggest the fix, don't just identify the problem; call blocking vs non-blocking explicitly.
+- Praise good patterns too — comment on the code, never the coder.

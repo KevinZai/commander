@@ -32,14 +32,17 @@ After the banner, add a single welcome line:
 
 ### 2. Context strip (one paragraph, markdown)
 
-Detect setup with **three parallel checks** (one Bash call, chained with `&&`, silent on failure):
+Detect setup with **parallel checks** (one Bash call, chained with `&&`, silent on failure). Never hardcode counts — compute them live, same as the VERSION read:
 - `ls ~/.claude/plugins/*/plugin.json 2>/dev/null | wc -l` → other plugins installed
 - `ls ~/.claude/plans/ 2>/dev/null | wc -l` → prior plans
 - `git rev-parse --show-toplevel 2>/dev/null` → inside a repo?
+- `ls ${CLAUDE_PLUGIN_ROOT}/agents/*.md 2>/dev/null | wc -l` → agents available
+- `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/*/ 2>/dev/null | wc -l` → plugin skills
+- `node -e "console.log(Object.keys(require('${CLAUDE_PLUGIN_ROOT}/.mcp.json').mcpServers||{}).length)" 2>/dev/null` → bundled MCPs
 
 Render a one-line summary:
 
-> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: 17 · MCPs: 3 bundled (9+ opt-in via /ccc-connect)
+> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: `<computed>` · MCPs: `<computed>` bundled (16 opt-in via /ccc-connect)
 
 If first-time (no plugins, no plans, no repo): "🧭 Fresh install — let's set you up in under 2 minutes."
 
@@ -59,7 +62,7 @@ options:
     description: "Point us at your repo — we scan, write CLAUDE.md, and recommend the right agents for your stack."
     preview: "Runs stack detection + writes a personalized plan to ~/.claude/plans/."
   - label: "🗺️ Just show me around"
-    description: "Quick tour of the 22 specialist agent personas, 60 skills, and 3 bundled MCP servers. No commitment."
+    description: "Quick tour of the specialist agent personas, plugin skills, and bundled MCP servers (use the live counts from the context strip). No commitment."
     preview: "Routes to /ccc-browse — browse agents and skills by category."
   - label: "⏭️ Skip — I know what I'm doing"
     description: "Drop me at the main /ccc hub. No onboarding."
@@ -87,7 +90,7 @@ Then write the plan file:
 2. If no plan mode is active: call `EnterPlanMode` and use the path it returns.
 3. Write the plan to the resolved path containing:
    - Project type, audience, milestone
-   - 3 recommended agents from the 17 available (see matrix below)
+   - 3 recommended agents from the live roster (see matrix below; count from the context strip)
    - Next 3 concrete steps
    - The `/ccc-build-<type>` command to run next
 4. Call `ExitPlanMode` to surface the plan in the Desktop Plan pane.
@@ -101,7 +104,7 @@ Parallel Bash scan:
 - `git log --oneline | head -5` → activity signal
 - `grep -l "CLAUDE.md" . 2>/dev/null` → already configured?
 
-Then invoke the `architect` agent via Agent tool with brief: "Scan this repo, detect the stack, recommend 3 CC Commander agents, write a CLAUDE.md if missing. Output a plan using EnterPlanMode → write → ExitPlanMode."
+Then route through the `/ccc-adopt` skill — it already does the safe CLAUDE.md flow (diff preview → AskUserQuestion approval → backup → delimited write). Never freeform-write CLAUDE.md from an architect brief here; adopt owns that surface. After adopt completes, write the start plan (recommended agents + next 3 steps) via EnterPlanMode → write → ExitPlanMode.
 
 Return: one-line summary + path to the plan.
 
@@ -136,6 +139,11 @@ Read `${CLAUDE_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline 
 | ⚙️ fleet-worker | Parallel batch work (migrations, sweeps) |
 | 🔷 typescript-reviewer | TypeScript-specific code review, type safety |
 | 🐍 python-reviewer | Python-specific code review, idioms, packaging |
+| 🐹 go-reviewer | Go-specific code review, concurrency, error handling |
+| 🦀 rust-reviewer | Rust-specific code review, ownership, unsafe audit |
+| ☕ java-reviewer | Java-specific code review, JVM patterns, Spring |
+| 🟣 kotlin-reviewer | Kotlin-specific code review, coroutines, Android |
+| 🟦 csharp-reviewer | C#-specific code review, .NET patterns, async |
 
 Pick **3** based on context signal (e.g. Next.js repo → designer + builder + qa-engineer).
 
@@ -146,6 +154,7 @@ Pick **3** based on context signal (e.g. Next.js repo → designer + builder + q
 - ❌ Tell the user to "type the number" — pickers only
 - ❌ Reference the legacy CLI (`ccc` npm binary) — this is the Desktop plugin audience
 - ❌ Hardcode VERSION — always read from plugin.json
+- ❌ Hardcode agent/skill/MCP counts — compute them live from the plugin directory (context strip checks)
 
 ## Brand rules
 
@@ -242,19 +251,18 @@ Reply to the user with a one-line confirmation:
 
 **Tip:** Run `/ccc-save-session` before closing a working session to capture state. Then `/ccc-resume-session` at the start of your next one to pick up instantly. Both are built into CC Commander — no extra install needed.
 
-## Pricing & how to support (mention near the end of the tour)
+## How CC Commander is sustained (mention near the end of the tour)
 
-CC Commander runs three paid plans, **free during early access** while we ship. The Starter plugin you just installed will keep working — but Starter pricing or limits may change after we hit a stable user base. The MIT-licensed plugin code stays open-source.
+CC Commander is **free for now** — all skills, all agents, all hooks, all bundled MCP servers. No feature gating, no paywalls, no license checks. The MIT-licensed plugin code stays open-source. The project is sustained by four transparent levers:
 
-| Path | Who it's for | Where |
-|------|--------------|-------|
-| **Pro — $19/mo · $190/yr** | Daily users wanting unlimited cloud + premium skill packs | commanderplugin.com/#pricing |
-| **Pro — Lifetime $299** | One-time payers, locked-in price, founding-member badge (first 100) | commanderplugin.com/#pricing |
+| Lever | What it is | Where |
+|-------|-----------|-------|
+| **Affiliate links** | Transparent partner links in /ccc-connect and scaffolds (Supabase, Vercel, Neon, …) | `/ccc-connect` |
 | **Hire Kevin** | Teams shipping AI features who need senior help | kevinz.ai/consulting |
-| **GitHub Sponsors** | Fans who want to fund the project independently of Pro features | github.com/sponsors/KevinZai |
-| **Star + share** | Anyone who finds CC Commander useful | github.com/KevinZai/commander |
+| **Pro community (optional)** | $49/mo Discord — community, not features; the plugin stays fully free | commanderplugin.com |
+| **GitHub Sponsors + star** | Fund or boost the project directly | github.com/sponsors/KevinZai · github.com/KevinZai/commander |
 
-Mention this **once** during the tour close — never as a paywall on Starter features, never blocking flow. Starter (free) users keep all 60 plugin skills, all 22 agents, all 9 hooks. Pro is for cloud unlimited + premium curation.
+Mention this **once** during the tour close — never as a paywall, never blocking flow. There is no paid feature tier: every user gets everything.
 
 ## Tips for the agent executing this skill
 

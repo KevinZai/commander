@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_description": "Standalone hooks for CC Commander. Use this if you do NOT have ECC installed. All 15 kit-native hooks organized by lifecycle.",
+  "_description": "Standalone hooks for CC Commander. Use this if you do NOT have ECC installed. All 14 kit-native hooks organized by lifecycle (session-coach retired 2026-07-10 — folded into the plugin's suggest engine).",
   "hooks": {
     "PreToolUse": [
       {
@@ -136,15 +136,6 @@
           }
         ],
         "description": "Verify modified files and check for console.log on session end"
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/hooks/session-coach.js"
-          }
-        ],
-        "description": "Periodic coaching nudges — skill suggestions, workflow tips, checkpoint reminders"
       },
       {
         "hooks": [

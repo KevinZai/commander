@@ -2,6 +2,37 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [6.6.0] — 2026-07-10
+
+**Engagement Engine** — closes the P0 tier of the 2026-07-10 Fable audit (F1–F8, F10–F12, F17, F19, F23, F25 + engagement phases 2–3).
+
+### Added
+
+- **`hooks/lib/emit.mjs` — hook output contract layer (F1)** — single source of the documented delivery fields: `emitUser` → `systemMessage`, `emitModel` → `hookSpecificOutput.additionalContext`, plus `emitBoth`/`emitSilent`. All 13 status-field emitters converted; the SessionStart orchestrator merges child outputs into both documented channels. New `commander/tests/hook-output-contract.test.js` (runtime whitelist + static scan, 75 assertions).
+- **Always-on skill suggestions with AUQ chip bridge (F7)** — `suggest-ticker` reads the real stdin payload, resolves the default branch via `origin/HEAD`, and works from cached real signals (CI runs ≤10 min, test/lint/audit outcomes captured on PostToolUse). Confidence ≥ 0.8 emits an AskUserQuestion chip bridge (⭐ Run <skill> / Dismiss / /ccc-browse). `suggest-lightweight` honors the recommended level (L1 log-only / L2 one-liner / L3 boxed 🎯 card); shared `hooks/lib/confidence.mjs` folds in the old session-coach heuristics — kit `session-coach.js` archived (24 kit hooks now).
+- **Emoji voice injector (Phase 2)** — `voice-injector.js` SessionStart handler injects the condensed emoji palette + "🟢 my call" convention via `additionalContext` (`CCC_VOICE_DISABLE=1` opts out); palette lines added to `ccc` + `ccc-suggest`, persona voice sections inlined into all 22 agents.
+- **`/ccc-claudemd` — CLAUDE.md auto-check skill (Phase 3)** — AUQ-gated CLAUDE.md audit with Fable contract footer; plugin skill count 71 → 72.
+
+### Fixed
+
+- **permission-gate (F2)** — rejections now exit 0 with a PermissionRequest deny-decision payload (stdout on exit 1 was discarded, so blocks never landed).
+- **cost-tracker + cost-ceiling-enforcer (F3)** — session-keyed state via `CLAUDE_SESSION_ID`, honest tool-call-budget labeling, warn-then-block with `CCC_COST_OVERRIDE=1` escape hatch.
+- **context-guard + context-warning (F8)** — context % estimated from the transcript JSONL (`hooks/lib/context-estimate.mjs`; env vars win when set); pre-compact now writes a handoff snapshot to `~/.claude/commander/handoff-<session>.json`.
+- **stale-claude-md-nudge (F11)** — `/ccc:init` → `/ccc-adopt --check`, missing-CLAUDE.md branch with code-repo detection + once-per-project-per-day marker, softened mtime wording.
+- **config-protection (F12)** — handles ConfigChange; settings-file drift surfaced via `emitUser`.
+- **clickability-watch (F17)** — violations now emit a visible user-facing warning; suggest-ticker tail-reads the violations JSONL for a one-turn reminder.
+- **fleet tmp prune (F19)** — targets `/tmp/ccc-fleet` (`pruneFleetTmp`, back-compat alias kept).
+- **hooks module type (F23)** — `hooks/package.json` `{"type":"module"}` scoped to `hooks/` kills the MODULE_TYPELESS re-parse per handler spawn; plugin root stays CJS.
+
+### Changed
+
+- **Verifier separation (F4)** — `ccc-migrate` Verify phase spawns a fresh refute agent per file; `ccc-fleet` fanout surfaces per-worker failures instead of swallowing them.
+- **Worktree isolation across all write paths (F5)** — `ccc-orchestrate` + `ccc-plan-exec` gained mandatory worktree/toplevel/tracked-clean sections; `ccc-fleet` workers isolate the same way.
+- **Onboarding truth pass (F6)** — `ccc-start` computes live counts instead of hardcoding, 5 language-reviewer rows added, pricing rewritten to the canonical free-for-now model.
+- **Review refute gate (F10)** — `ccc-review` security/perf routed through the `ccc-audit` workflow (dimensions + REFUTE); a refute agent runs before fix chips are offered.
+- **Loop-taxonomy cross-links (F25)** — `ccc-plan-exec` Terminology + independent per-step verifier; `/goal` pointers in `ccc-orchestrate`.
+- Version 6.5.0 → 6.6.0 across `package.json`, `commander/cowork-plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `apps/mcp-server-cloud/package.json`, and `commander/contract.json`; codex mirror rebuilt via `npm run build:codex`.
+
 ## [6.5.0] — 2026-07-07
 
 ### Added

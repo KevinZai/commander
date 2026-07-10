@@ -30,7 +30,9 @@ Click-first review flow. Four audit types, one specialist agent per pick, one sc
 
 ## Sidebar chips (spawn_task)
 
-After the review agent completes and findings are known, spawn ONE `mcp__ccd_session__spawn_task` chip per **🔴 Critical** or **🟠 High** blocker — each chip is a self-contained action for a fresh session:
+**Refute before chips (Agent fallback only — the workflows already verify):** when findings came from the Agent-based flow, dispatch ONE fresh refute agent before any chip fires: "Adversarially verify these findings — try to REFUTE each. Default verdict PLAUSIBLE unless you confirm it from the actual code (then CONFIRMED); drop anything you refute." Only CONFIRMED 🔴/🟠 findings become chips; PLAUSIBLE ones stay as markdown bullets marked for manual confirmation.
+
+After findings are verified, spawn ONE `mcp__ccd_session__spawn_task` chip per **confirmed 🔴 Critical** or **🟠 High** blocker — each chip is a self-contained action for a fresh session:
 
 - `title`: imperative phrase under 60 chars (e.g., `"Fix SQL injection in src/auth.ts:42"`)
 - `prompt`: self-contained — include file path, line number, issue summary, CWE/OWASP reference if applicable, and suggested fix direction. The spawned session has no memory of this conversation.
@@ -104,7 +106,23 @@ Workflow({
 
 The workflow reviews the diff across 4 weighted dimensions (security 35%, performance 25%, correctness 25%, maintainability 15%), adversarially verifies each finding, and returns only confirmed issues — reducing false positives before they reach you.
 
-For Security, Performance, and Full x-ray audit types, continue using the Agent-based flow below — those types map to specialist agents that do not yet have dedicated workflow scripts.
+For the **Security** and **Performance** audit types, route through the bundled audit workflow — it already supports scoped dimensions with REFUTE-framed verification of every finding:
+
+```js
+// Security audit
+Workflow({
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  args: { dimensions: ["security", "deps"] }
+})
+
+// Performance audit
+Workflow({
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  args: { dimensions: ["performance"] }
+})
+```
+
+Only **Full x-ray** stays on its own route (`ccc-xray` skill).
 
 If `Workflow` is unavailable (older client or tool not allowed), fall back to the Agent-based flow below — leave that flow intact.
 
@@ -169,8 +187,11 @@ After dispatching the agent, emit ONE short card:
 - Overall risk: Low / Medium / High
 
 ## Findings
+
+Every finding carries a verification verdict: **CONFIRMED** (independently verified against the actual code) or **PLAUSIBLE** (reported but not yet reproduced — verify before acting).
+
 ### 🔴 Critical (N)
-- `file:line` — `<issue>` — **Fix:** `<suggested fix>` — **Why:** `<rationale>`
+- `file:line` — `<issue>` — **Verdict:** `CONFIRMED|PLAUSIBLE` — **Fix:** `<suggested fix>` — **Why:** `<rationale>`
 
 ### 🟠 High (N)
 ...

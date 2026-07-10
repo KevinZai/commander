@@ -23,15 +23,28 @@
  *   "context": { "skill": "/ccc-review", "phase": "autofix" }
  * }
  *
- * Exit codes:
- *   0 → approved (continue: true)
- *   1 → rejected (continue: false, with rejection JSON on stdout)
+ * Output contract: ALWAYS exit 0. Rejections are delivered as a documented
+ * PermissionRequest decision payload on stdout —
+ *   { hookSpecificOutput: { hookEventName: 'PermissionRequest',
+ *     decision: { behavior: 'deny', message } } }
+ * (stdout on exit 1 is DISCARDED by the harness — the old exit-1 +
+ * {continue:false} shape never actually blocked anything and produced false
+ * `rejected-*` telemetry in permission-gate.jsonl.)
  *
  * Free for now — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+
+function denyDecision(message) {
+  return {
+    hookSpecificOutput: {
+      hookEventName: 'PermissionRequest',
+      decision: { behavior: 'deny', message },
+    },
+  };
+}
 
 const CCC_DIR = join(process.env.HOME || '/tmp', '.claude', 'commander');
 
@@ -118,16 +131,10 @@ async function main() {
     return;
   }
 
-  // 2. Dangerous bash commands → always reject
+  // 2. Dangerous bash commands → always reject (exit 0 + deny decision;
+  //    exit 1 would discard stdout and silently approve)
   if (toolName === 'Bash' && isDangerousCommand(toolInput)) {
     const cmd = toolInput?.command || toolInput?.cmd || '';
-    const rejection = {
-      continue: false,
-      stopReason:
-        `CCC PERMISSION GATE: Dangerous operation blocked — "${cmd.slice(0, 80)}" ` +
-        `matched a destructive command pattern. ` +
-        `Review the command and run manually if you are certain it is safe.`,
-    };
     await logDecision({
       timestamp: new Date().toISOString(),
       sessionId,
@@ -135,20 +142,18 @@ async function main() {
       toolName,
       commandSnippet: cmd.slice(0, 120),
     });
-    process.stdout.write(JSON.stringify(rejection) + '\n');
-    process.exit(1);
+    process.stdout.write(JSON.stringify(denyDecision(
+      `CCC PERMISSION GATE: Dangerous operation blocked — "${cmd.slice(0, 80)}" ` +
+      `matched a destructive command pattern. ` +
+      `Review the command and run manually if you are certain it is safe.`
+    )) + '\n');
+    return;
   }
 
   // 3. /ccc-review autofix writes → require explicit approval flag
   if (isAutofixWrite(toolName, context)) {
     const autofixApproved = process.env.CCC_AUTOFIX_APPROVED === '1';
     if (!autofixApproved) {
-      const rejection = {
-        continue: false,
-        stopReason:
-          `CCC PERMISSION GATE: /ccc-review autofix write blocked. ` +
-          `Set CCC_AUTOFIX_APPROVED=1 to allow, or apply fixes manually.`,
-      };
       await logDecision({
         timestamp: new Date().toISOString(),
         sessionId,
@@ -157,8 +162,11 @@ async function main() {
         skill: context.skill || '/ccc-review',
         phase: context.phase || 'autofix',
       });
-      process.stdout.write(JSON.stringify(rejection) + '\n');
-      process.exit(1);
+      process.stdout.write(JSON.stringify(denyDecision(
+        `CCC PERMISSION GATE: /ccc-review autofix write blocked. ` +
+        `Set CCC_AUTOFIX_APPROVED=1 to allow, or apply fixes manually.`
+      )) + '\n');
+      return;
     }
   }
 

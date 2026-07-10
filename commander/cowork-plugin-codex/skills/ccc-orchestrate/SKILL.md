@@ -103,6 +103,20 @@ If `which codex` fails, don't show the codex option — just note in your respon
 
 ---
 
+## Isolation (MANDATORY before any executor dispatch)
+
+The executor never touches the main tree directly (Fable Pillar 5). Before dispatching codex or the Sonnet subagent:
+
+```bash
+git worktree add .claude/worktrees/<goal-slug> -b goal/<goal-slug>
+```
+
+- Run the executor with **cwd = that worktree** (codex: spawn with the worktree as working directory; Sonnet: state the worktree path as the only edit root in the prompt).
+- The goal file's first step for the executor is always: `git rev-parse --show-toplevel` must equal the worktree path — **abort if not**. Relative paths only from there.
+- Never hand the executor the main repo's absolute path as an edit target.
+
+---
+
 ## Execute phase
 
 **Codex path** — build args via the real adapter interface in `commander/adapters/codex.js` (`adapter.buildArgs(prompt, opts)`), do not invent flags it doesn't expose:
@@ -124,6 +138,9 @@ Back in the orchestrator session, read the executor's diff/output and check it l
 
 - ✅ All boxes checkable and true → report done.
 - ❌ Any box unmet → **re-dispatch the executor with the specific gap only** ("criterion 3 unmet: tests still fail on X — fix that, do not touch anything else"). Do not re-plan the whole goal file and do not let the executor decide what "close enough" means.
+- 🧹 **Isolation check (always):** `git -C <main-repo> status --porcelain | grep -v '^??'` must be EMPTY — the executor's work lives only in its worktree branch. Any tracked change in the main tree is a leak; stop and reconcile before reporting done.
+
+If the goal needs repeated re-dispatch until criteria hold (a convergence loop, not a one-shot), run the verify cycle as a `/goal` loop from the ccc-loop taxonomy — it gives you the gate + iteration cap for free instead of hand-rolled retries.
 
 Report back:
 > 🧭 **Orchestrate: goal file at `<path>`, executed by `<codex-gpt-5.5|sonnet-subagent>`.**

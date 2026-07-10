@@ -35,7 +35,7 @@ Key components:
 - Knowledge Compounding — sessions build on sessions via fuzzy matching + time decay
 - 5-Layer Token Optimization Stack (see below)
 - 17 vendor packages aggregated from the Claude Code ecosystem, auto-updated weekly
-- 83 commands, 28 hooks (37 with ECC integration), tiered skill loading
+- 83 commands, 24 hooks (33 with ECC integration), tiered skill loading
 
 ---
 

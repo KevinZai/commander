@@ -3,8 +3,16 @@
  * suggest-lightweight.js
  * Hook: Stop
  *
- * Renders a "💡 Try next:" 2-3 line suggestion block after every assistant turn.
- * Reuses project-state.json written by suggest-ticker.js (UserPromptSubmit).
+ * Renders a suggestion block after assistant turns, honoring the involvement
+ * level suggest-ticker.js recorded in project-state.json (recommendedLevel,
+ * per ccc-suggest/SKILL.md):
+ *   L1 (passive)   — log-only: computes + records the suggestion, renders nothing
+ *   L2 (gentle)    — "💡 Try next:" one-to-three-liner at the bottom
+ *   L3+ (assertive) — boxed 🎯 recommendation card with confidence + why + alternatives
+ *
+ * Reuses project-state.json written by suggest-ticker.js (UserPromptSubmit)
+ * and the shared confidence engine in lib/confidence.mjs (which also folds in
+ * the retired session-coach ext→domain heuristics via state.stack).
  * Does NOT gather state itself — pure renderer.
  *
  * Modes via CCC_SUGGEST_MODE:
@@ -23,6 +31,8 @@
  */
 
 import { track } from '../lib/telemetry.mjs';
+import { emitUser, emitSilent } from './lib/emit.mjs';
+import { computeConfidence } from './lib/confidence.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -116,67 +126,13 @@ function shouldRenderForMode(mode, turnCount) {
 }
 
 // ---------------------------------------------------------------------------
-// Confidence calculation
+// Involvement level (recommendedLevel from suggest-ticker.js)
 // ---------------------------------------------------------------------------
 
-function computeConfidence(state) {
-  const suggestions = [];
-  let confidence = 0.4; // baseline: no clear signal
-
-  const ahead = state.aheadMain ?? state.ahead ?? 0;
-  const behind = state.behindMain ?? state.behind ?? 0;
-  const tests = state.testsStatus ?? state.tests ?? 'unknown';
-  const lastSkill = state.lastRecommendation?.skill ?? state.lastSkill ?? '';
-  const blockers = Array.isArray(state.blockers)
-    ? state.blockers.length
-    : (state.securityAlerts ?? 0) + (state.lintErrors > 10 ? 1 : 0);
-  const openTodos = state.openTodos ?? 0;
-  const ciStatus = state.ciStatus ?? 'unknown';
-
-  // Tier 1 signals
-  if (ahead >= 2 && (tests === 'green' || tests === 'passing')) {
-    confidence = 0.9;
-    suggestions.push({ skill: '/ccc-ship', reason: 'branch ahead by ≥2 commits and tests are green' });
-  }
-
-  if (behind > 0 && confidence < 0.86) {
-    confidence = Math.max(confidence, 0.85);
-    suggestions.push({ skill: '/ccc-review', reason: 'branch is behind main — sync before adding features' });
-  }
-
-  if (blockers > 0 && confidence < 0.86) {
-    confidence = Math.max(confidence, 0.85);
-    suggestions.push({ skill: '/ccc-doctor', reason: `${blockers} open blocker(s) detected — investigate first` });
-  }
-
-  if (ciStatus === 'failing' && confidence < 0.86) {
-    confidence = Math.max(confidence, 0.85);
-    suggestions.push({ skill: '/ccc-review', reason: 'CI is failing — review and fix before shipping' });
-  }
-
-  // Pipeline progression heuristic
-  if (confidence < 0.86 && lastSkill) {
-    const pipeline = ['/ccc-plan', '/ccc-build', '/ccc-review', '/ccc-ship'];
-    const idx = pipeline.findIndex(s => lastSkill.includes(s.replace('/', '')));
-    if (idx !== -1 && idx < pipeline.length - 1) {
-      const next = pipeline[idx + 1];
-      if (!suggestions.find(s => s.skill === next)) {
-        confidence = Math.max(confidence, 0.85);
-        suggestions.push({ skill: next, reason: `natural next step after ${pipeline[idx]}` });
-      }
-    }
-  }
-
-  // Open todos nudge
-  if (openTodos > 0 && confidence < 0.86) {
-    confidence = Math.max(confidence, 0.82);
-    if (!suggestions.find(s => s.skill === '/ccc-plan')) {
-      suggestions.push({ skill: '/ccc-plan', reason: `${openTodos} open todo(s) — resume the plan` });
-    }
-  }
-
-  // Cap suggestions at 3
-  return { confidence, suggestions: suggestions.slice(0, 3) };
+function getLevel(state) {
+  const lvl = parseInt(state.recommendedLevel, 10);
+  if (!isNaN(lvl) && lvl >= 1 && lvl <= 4) return lvl;
+  return 2; // gentle nudge by default
 }
 
 // ---------------------------------------------------------------------------
@@ -194,6 +150,28 @@ function renderSuggestions(suggestions) {
   return lines.join('\n') + '\n';
 }
 
+/** Level 3 boxed card per ccc-suggest/SKILL.md — confidence + why + alternatives. */
+function renderBoxedCard(suggestions, confidence) {
+  if (suggestions.length === 0) return '';
+  const top = suggestions[0];
+  const alternatives = suggestions.slice(1).map(s => s.skill).join(' · ');
+  const confLabel = confidence >= 0.85 ? 'HIGH' : confidence >= 0.7 ? 'MEDIUM' : 'LOW';
+
+  const body = [
+    `⭐ ${top.skill} (${confLabel} confidence)`,
+    `Why: ${top.reason}`,
+  ];
+  if (alternatives) body.push(`Alternatives: ${alternatives}`);
+
+  const width = Math.max(...body.map(l => l.length), 44);
+  const top_ = `┌─ 🎯 CC Commander Suggests ${'─'.repeat(Math.max(1, width - 25))}┐`;
+  const bottom = `└${'─'.repeat(top_.length - 2)}┘`;
+  const lines = [top_];
+  for (const l of body) lines.push(`│ ${l.padEnd(width)} │`);
+  lines.push(bottom);
+  return lines.join('\n') + '\n';
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -203,14 +181,14 @@ function main() {
 
   // Silent mode — fast exit
   if (mode === 'off') {
-    process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
   }
 
   // Read project state — missing file = graceful no-op
   const state = readJson(STATE_FILE);
   if (!state) {
-    process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
   }
 
@@ -225,7 +203,7 @@ function main() {
       ...(lastSuggestion || {}),
       turnCount: newTurnCount,
     });
-    process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
   }
 
@@ -239,15 +217,16 @@ function main() {
       ...lastSuggestion,
       turnCount: newTurnCount,
     });
-    process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
   }
 
-  // Confidence calculation
+  // Confidence calculation — shared engine (lib/confidence.mjs)
   const minConfidence = parseFloat(
     process.env.CCC_SUGGEST_MIN_CONFIDENCE || '0.8'
   );
   const { confidence, suggestions } = computeConfidence(state);
+  const level = getLevel(state);
 
   // Smart mode: gate on confidence
   if (mode === 'smart' && confidence < minConfidence) {
@@ -258,11 +237,11 @@ function main() {
       rendered: false,
       confidence,
     });
-    process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
   }
 
-  // Always: render even if no suggestions (but only if suggestions exist)
+  // No suggestions → nothing to render regardless of mode/level
   if (suggestions.length === 0) {
     writeJson(LAST_SUGGESTION_FILE, {
       hash,
@@ -271,29 +250,41 @@ function main() {
       rendered: false,
       confidence,
     });
-    process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
   }
 
-  // Render
-  const output = renderSuggestions(suggestions);
+  // Level 1 (passive): record the suggestion for /ccc-suggest but render nothing
+  if (level <= 1) {
+    writeJson(LAST_SUGGESTION_FILE, {
+      hash,
+      timestamp: Date.now(),
+      turnCount: newTurnCount,
+      rendered: false,
+      level,
+      confidence,
+      suggestions,
+    });
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
+    return;
+  }
+
+  // Level 2 (gentle) → bottom one-liner block · Level 3+ (assertive) → boxed card
+  const output = level >= 3
+    ? renderBoxedCard(suggestions, confidence)
+    : renderSuggestions(suggestions);
 
   writeJson(LAST_SUGGESTION_FILE, {
     hash,
     timestamp: Date.now(),
     turnCount: newTurnCount,
     rendered: true,
+    level,
     confidence,
     suggestions,
   });
 
-  process.stdout.write(
-    JSON.stringify({
-      continue: true,
-      suppressOutput: false,
-      status: output.trimEnd(),
-    }) + '\n'
-  );
+  process.stdout.write(JSON.stringify(emitUser(output.trimEnd())) + '\n');
 }
 
 main();

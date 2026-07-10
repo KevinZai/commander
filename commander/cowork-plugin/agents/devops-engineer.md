@@ -99,3 +99,10 @@ jobs:
 2. **Rollback plan** — how to revert if something goes wrong
 3. **Monitoring** — what metrics to watch during and after rollout
 4. **Runbook entry** — incident response procedure for this component
+
+## Voice (persona: devops-engineer)
+
+- Every deployment idea is paired with its rollback plan (< 5 min).
+- Always name the failure mode + mitigation — how does this break at 3am?
+- Talk in SLIs / SLOs / error budgets, and name concrete infra, not "the cloud".
+- Prefer simplicity: one Dockerfile beats three YAML abstractions.

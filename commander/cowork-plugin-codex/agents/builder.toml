@@ -54,4 +54,11 @@ Recommendation: [which you'd choose and why]
 ```
 
 Don't guess on architecture decisions — ask once, then execute.
+
+## Voice (persona: builder)
+
+- Lead with the simplest working version — 100 lines that work beat 1000 that abstract.
+- "Fastest to ship" beats "best long-term" by default; flag when you go fancy and why.
+- Every abstraction earns its place — extract on the 2nd occurrence, not the 1st.
+- Commit small and often, following the project's existing conventions.
 """

@@ -4,7 +4,8 @@ export const meta = {
   whenToUse: 'Large mechanical migrations across many files (API rename, framework bump, import rewrite). Each file is transformed + verified independently.',
   phases: [
     { title: 'Discover', detail: 'find every site that needs the change' },
-    { title: 'Migrate', detail: 'transform each site, then verify it' },
+    { title: 'Migrate', detail: 'transform each site' },
+    { title: 'Verify', detail: 'independent refute-framed verifier per changed file' },
   ],
 }
 
@@ -53,19 +54,34 @@ const sites = (discovery && discovery.sites) || []
 log(`Discovered ${sites.length} sites to migrate`)
 if (!sites.length) return { pattern, sites: 0, migrated: [], note: 'no sites matched the pattern' }
 
-// Each site is transformed in its OWN worktree (parallel-safe — no cross-file conflicts),
-// then verified in the same agent run before reporting.
+// Each site is transformed in its OWN worktree (parallel-safe — no cross-file conflicts).
+// The worker reports changed/unchanged only — verification belongs to an INDEPENDENT
+// agent below (Fable Pillar 2: the worker never grades its own work).
 const migrated = await parallel(sites.map(s => () =>
   agent(
-    `In file "${s.file}", apply this transform: ${transform}\nThen verify: ${VERIFY}.\nReport whether you changed the file and whether verification passed. If the transform does not apply cleanly, leave the file unchanged and report changed=false with a note.`,
+    `In file "${s.file}", apply this transform: ${transform}\nReport whether you changed the file. If the transform does not apply cleanly, leave the file unchanged and report changed=false with a note. Do NOT self-certify correctness — an independent verifier checks your work.`,
     { label: `migrate:${s.file}`, phase: 'Migrate', schema: RESULT_SCHEMA, isolation: 'worktree' }
   ).catch(() => ({ file: s.file, changed: false, verified: false, note: 'agent error' }))
 ))
 
-const results = migrated.filter(Boolean)
-const ok = results.filter(r => r.changed && r.verified)
-const failed = results.filter(r => r.changed && !r.verified)
-const skipped = results.filter(r => !r.changed)
-log(`Migrated ${ok.length}/${sites.length} (${failed.length} failed verify, ${skipped.length} skipped)`)
+const workerResults = migrated.filter(Boolean)
+const changed = workerResults.filter(r => r.changed)
+const skipped = workerResults.filter(r => !r.changed)
+
+phase('Verify')
+// Verifier ≠ worker: a FRESH refute-framed agent per changed file. verified stays
+// false unless the verifier affirmatively confirms — never trust worker self-reports.
+const verified = await parallel(changed.map(r => () =>
+  agent(
+    `You are an independent verifier — you did NOT make this change. In file "${r.file}", a worker claims to have applied: ${transform}\nActively try to REFUTE that claim: check the transform actually landed, check ${VERIFY}, and look for collateral damage (broken imports, syntax, adjacent behavior). Report verified=true ONLY if you affirmatively confirmed the change is present and correct.`,
+    { label: `verify:${r.file}`, phase: 'Verify', schema: RESULT_SCHEMA, agentType: 'Explore' }
+  ).then(v => ({ ...r, verified: v && v.verified === true, verifierNote: v && v.note }))
+   .catch(() => ({ ...r, verified: false, verifierNote: 'verifier error — treated as unverified' }))
+))
+
+const results = [...verified, ...skipped.map(r => ({ ...r, verified: false }))]
+const ok = verified.filter(r => r.verified)
+const failed = verified.filter(r => !r.verified)
+log(`Migrated ${ok.length}/${sites.length} (${failed.length} failed independent verify, ${skipped.length} skipped)`)
 
 return { pattern, transform, sites: sites.length, ok: ok.length, failed, skipped, results }

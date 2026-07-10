@@ -17,6 +17,7 @@
  */
 
 import { track } from '../lib/telemetry.mjs';
+import { emitUser } from './lib/emit.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -214,8 +215,12 @@ function main() {
     });
   }
 
-  // Always continue — observation only, never block
-  process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
+  // Close the loop: tell the user/model immediately — but never block.
+  // suggest-ticker.js also tail-reads the violations JSONL and injects a
+  // one-turn reminder on the next prompt.
+  process.stdout.write(JSON.stringify(
+    emitUser('⚠️ last reply offered choices as text — use AskUserQuestion chips')
+  ) + '\n');
 }
 
 main();

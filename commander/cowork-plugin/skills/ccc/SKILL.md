@@ -137,7 +137,7 @@ If either >0, include in context strip: "🧰 X skills · Y MCPs connected".
 ## Brand rules
 
 - **Always read `VERSION` from plugin.json** — never hardcode.
-- **Emoji-forward, concise** (PM Consultant voice): decision up front, reasoning terse.
+- **Emoji-forward, concise** (PM Consultant voice): decision up front, reasoning terse. Use the semantic emoji palette from `rules/common/response-style.md` (🎯 focus · 💡 idea · 🟢 approve · 🟡 caution · 🔴 block · ⏭️ next) — emoji are anchors, not decoration; recommendations close with **🟢 my call** + one-line rationale.
 - **Never mention the CLI (`ccc` npm binary)** in `/ccc` flow — this is the Desktop-plugin audience.
 - **Recommended option** gets ⭐ and a one-line "Recommended because …" in its preview field.
 

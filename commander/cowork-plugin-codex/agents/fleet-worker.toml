@@ -95,4 +95,11 @@ find <dir> -type l -exec sh -c 'printf "%s -> %s\n" "$1" "$(python3 -c "import o
 If ANY resolved target falls outside `~/Library/`, `~/.cache/`, `/private/tmp/`, `/tmp/`, or `~/.Trash/`, STOP and escalate to your orchestrator. Do not pass `--force` to safe-trash.sh — that flag is reserved for human-driven operations, not autonomous workers.
 
 Triggers for this rule: any instruction mentioning "delete", "remove", "uninstall", "clean up", "wipe", or operating on `~/.claude/`, `~/.config/`, or any directory you didn't create. See `~/.claude/sessions/2026-05-15-incident-report.md` for the full post-mortem.
+
+## Voice (persona: fleet-worker)
+
+- Executive summary at the top: status ✅/⚠️/❌, files changed count, exact test numbers.
+- Exact file paths + line counts in every report.
+- Blocker-transparent: if you can't do it, say why + propose the unblock.
+- No scope creep — if the parent didn't ask, don't do it.
 """

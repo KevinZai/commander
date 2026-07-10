@@ -6,15 +6,50 @@
  * Dual-mode: exports run({input,env,cwd}) for the SessionStart orchestrator,
  * and runs standalone via CLI tail when invoked directly (InstructionsLoaded hook).
  *
- * Checks CLAUDE.md mtime in cwd. If >30 days old, emits a nudge status.
- * Respects CC_NUDGE_DISABLE=1. Always exits 0.
+ * Two branches:
+ *   1. Missing CLAUDE.md in a git repo that clearly contains code →
+ *      nudge to run /ccc-adopt (which asks before writing anything).
+ *      Once per project per day (marker in ~/.claude/commander/).
+ *   2. CLAUDE.md untouched for >30 days (mtime only — content may be fine) →
+ *      soft nudge toward /ccc-adopt --check.
+ *
+ * Respects CC_NUDGE_DISABLE=1. Always exits 0, always fail-open.
  */
-import { stat } from 'node:fs/promises';
+import { stat, mkdir, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { emitUser } from './lib/emit.mjs';
 
 const STALE_DAYS = 30;
 const STALE_MS = STALE_DAYS * 24 * 60 * 60 * 1000;
+
+// Cheap "this repo contains code" signals — no directory walking.
+const CODE_MARKERS = ['package.json', 'pyproject.toml', 'go.mod', 'Cargo.toml', 'Gemfile', 'composer.json', 'src', 'lib'];
+
+function looksLikeCodeRepo(cwd) {
+  // .git may be a directory (normal repo) or a file (worktree) — existsSync handles both.
+  if (!existsSync(join(cwd, '.git'))) return false;
+  return CODE_MARKERS.some(m => existsSync(join(cwd, m)));
+}
+
+async function onceOnlyToday(env, cwd) {
+  // Once-per-project-per-day marker; returns false if already nudged today.
+  try {
+    const markerDir = join(env.HOME || homedir(), '.claude', 'commander');
+    const projectHash = createHash('sha256').update(cwd).digest('hex').slice(0, 12);
+    const today = new Date().toISOString().slice(0, 10);
+    const markerFile = join(markerDir, `claudemd-nudge-${projectHash}-${today}`);
+    if (existsSync(markerFile)) return false;
+    await mkdir(markerDir, { recursive: true });
+    try { await writeFile(markerFile, '', { flag: 'wx' }); } catch { return false; }
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Pure-function entry for orchestrator (CC-414).
@@ -29,16 +64,16 @@ export async function run({ input = {}, env = process.env, cwd = process.cwd() }
     try {
       fileStat = await stat(claudeMdPath);
     } catch {
+      // Missing-file branch: nudge once/day when this is clearly a code repo.
+      if (looksLikeCodeRepo(cwd) && await onceOnlyToday(env, cwd)) {
+        return emitUser('📝 No CLAUDE.md — run /ccc-adopt to generate one tuned to your stack (asks before writing)');
+      }
       return { continue: true };
     }
     const ageMs = Date.now() - fileStat.mtimeMs;
     const ageDays = Math.floor(ageMs / (24 * 60 * 60 * 1000));
-    if (ageMs > STALE_MS) {
-      return {
-        continue: true,
-        suppressOutput: false,
-        status: `💡 CLAUDE.md stale (${ageDays}d old) — run /ccc:init to refresh with latest CCC template sections`,
-      };
+    if (ageMs > STALE_MS && await onceOnlyToday(env, cwd)) {
+      return emitUser(`💡 CLAUDE.md untouched for ${ageDays}d — worth a /ccc-adopt --check drift pass? (mtime only — it may be fine)`);
     }
     return { continue: true };
   } catch {

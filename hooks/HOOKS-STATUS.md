@@ -34,7 +34,6 @@ These hooks pass all tests (61/61) but are not in any settings.json:
 | pre-commit-verify.js | Verify before commits | 70 |
 | preuse-logger.js | Log tool usage | 38 |
 | rate-predictor.js | Rate limit prediction | 76 |
-| session-coach.js | Periodic coaching nudges | 150 |
 | session-end-verify.js | End-of-session checklist | 87 |
 | self-verify.js | Incomplete work detection | 114 |
 | status-checkin.js | Status check-in dispatch | 139 |

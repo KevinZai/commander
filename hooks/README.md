@@ -9,7 +9,7 @@ Hooks are lifecycle scripts that run automatically during Claude Code sessions. 
 | File | For | Hooks |
 |------|-----|-------|
 | `hooks.json` | Users with ECC installed | 34 hooks (15 kit-native + 19 ECC-inherited via `CLAUDE_PLUGIN_ROOT`) |
-| `hooks-standalone.json` | Users WITHOUT ECC | 15 kit-native hooks only |
+| `hooks-standalone.json` | Users WITHOUT ECC | 14 kit-native hooks only (session-coach retired 2026-07-10 — folded into the plugin suggest engine) |
 
 ## Kit-Native Hooks (15)
 
@@ -46,7 +46,6 @@ Hooks are lifecycle scripts that run automatically during Claude Code sessions. 
 |------|------|---------|
 | Status Check-in | `status-checkin.js` | Session end status summary |
 | Session End Verify | `session-end-verify.js` | Verify modified files, check for console.log |
-| Session Coach | `session-coach.js` | Periodic coaching nudges (toggleable: `CC_COACH_DISABLE=1`) |
 
 ## Important: careful-guard.js Limitations
 

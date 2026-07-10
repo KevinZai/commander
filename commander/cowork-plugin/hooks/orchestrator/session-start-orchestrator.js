@@ -31,16 +31,22 @@ async function readStdin() {
 }
 
 /**
- * Merge handler outputs into a single response.
- * Strategy:
+ * Merge handler outputs into a single response using ONLY documented fields
+ * (see hooks/lib/emit.mjs — the hook output contract):
  *  - If any handler returns continue:false OR a stopReason, short-circuit.
- *  - Otherwise concatenate non-empty status strings with " · " separator.
- *  - suppressOutput is true only if ALL handlers requested it.
+ *  - User-facing messages (systemMessage, plus legacy status for safety)
+ *    concatenate with " · " into a single systemMessage.
+ *  - Model-facing context (hookSpecificOutput.additionalContext) concatenates
+ *    with blank lines; user messages are mirrored into it so the model can
+ *    act on what the user was told (both-channels delivery).
+ *  - suppressOutput is true only if ALL handlers requested it AND there is
+ *    nothing user-facing to show.
  */
 function mergeResponses(responses) {
   let continueFlag = true;
   let stopReason;
-  const statuses = [];
+  const messages = [];
+  const contexts = [];
   let suppressOutput = true;
   let anyExplicitShow = false;
 
@@ -50,15 +56,26 @@ function mergeResponses(responses) {
       continueFlag = false;
       if (r.stopReason) stopReason = r.stopReason;
     }
-    if (r.status && typeof r.status === 'string') statuses.push(r.status);
+    if (r.systemMessage && typeof r.systemMessage === 'string') messages.push(r.systemMessage);
+    // Legacy `status` tolerated from stragglers — promoted to systemMessage.
+    else if (r.status && typeof r.status === 'string') messages.push(r.status);
+    const ctx = r.hookSpecificOutput?.additionalContext;
+    if (ctx && typeof ctx === 'string') contexts.push(ctx);
     if (r.suppressOutput === false) anyExplicitShow = true;
     if (r.suppressOutput !== true) suppressOutput = false;
   }
-  if (anyExplicitShow) suppressOutput = false;
+  if (anyExplicitShow || messages.length) suppressOutput = false;
 
   const out = { continue: continueFlag };
   if (!continueFlag && stopReason) out.stopReason = stopReason;
-  if (statuses.length) out.status = statuses.join(' · ');
+  if (messages.length) out.systemMessage = messages.join(' · ');
+  const mergedContext = [...contexts, ...messages].join('\n\n');
+  if (mergedContext) {
+    out.hookSpecificOutput = {
+      hookEventName: 'SessionStart',
+      additionalContext: mergedContext,
+    };
+  }
   if (suppressOutput) out.suppressOutput = true;
   return out;
 }
@@ -79,6 +96,7 @@ async function main() {
     { name: 'stale-claude-md-nudge', file: '../stale-claude-md-nudge.js' },
     { name: 'post-compact-recovery', file: '../post-compact-recovery.js' },
     { name: 'fable-armed-nudge', file: '../fable-armed-nudge.js' },
+    { name: 'voice-injector', file: '../voice-injector.js' },
   ];
 
   for (const h of handlers) {

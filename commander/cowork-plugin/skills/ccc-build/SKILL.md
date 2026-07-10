@@ -100,7 +100,7 @@ Call `mcp__ccd_session__mark_chapter` at these phase transitions:
 |---------|-------|---------|
 | After user confirms spec (before dispatching agent) | `"Spec drafted"` | `"<template> spec confirmed — scaffolding queued"` |
 | Immediately after `Agent` tool call fires (background dispatch) | `"Scaffold generating"` | `"Sonnet agent scaffolding <template> in background"` |
-| When agent reports completion (or user returns with status) | `"Scaffold ready"` | `"<slug>/ scaffold complete — <file-count> files created"` |
+| Only after the **Verify scaffold** step (Step 5) passes | `"Scaffold ready"` | `"<slug>/ scaffold complete — <file-count> files created, verified"` |
 
 No `spawn_task` chips for build — scaffold blockers are reported in the agent's structured return and surfaced inline.
 
@@ -149,6 +149,16 @@ Then emit the recommended stack section (vary stack by template type):
 
 [View all partner integrations →](./affiliate-disclosure.mdx)
 
+## Step 5 — Verify scaffold (MANDATORY before "Scaffold ready")
+
+The scaffolding agent's completion report is a **claim, not a verdict** (verifier ≠ worker). Before emitting the `"Scaffold ready"` marker, the LEAD session independently verifies:
+
+1. `ls <slug>/` — the reported files actually exist (compare against `files_created`)
+2. Run the README's run commands (install + start/build) — they must exit clean
+3. Run the generated tests (if Q3 chose B or C) — record pass/fail counts
+
+If ANY check fails: do NOT mark "Scaffold ready". Report the failure with the exact command + output, and offer via AskUserQuestion: [🔧 Fix it, 🔁 Re-scaffold, ❌ Abandon]. Only a lead-verified scaffold gets the ready marker.
+
 ## Anti-patterns — DO NOT do these
 
 - ❌ Render a numbered list "1. Web app, 2. API, ..." — always `AskUserQuestion`
@@ -157,6 +167,7 @@ Then emit the recommended stack section (vary stack by template type):
 - ❌ Scaffold into the CWD root if the repo is non-empty — always a sub-directory
 - ❌ Offer more than 4 templates in the root picker — AUQ max is 4
 - ❌ Forget to write the spec file — every scaffold gets a spec artifact
+- ❌ Emit "Scaffold ready" from the agent's self-report alone — Step 5 verify is mandatory
 
 ## Argument handling
 

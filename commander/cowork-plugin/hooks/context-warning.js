@@ -3,10 +3,13 @@
  * context-warning.js
  * Hook: UserPromptSubmit
  * Proactively warns at context thresholds: 30% / 15% / 10% / 5% remaining.
+ * Context % is estimated from the transcript JSONL (lib/context-estimate.mjs).
  * Respects CC_COACH_DISABLE=1 env var.
- * Emits structured status for Claude to surface — never blocks.
+ * Emits a systemMessage for the user — never blocks.
  */
 import { track } from '../lib/telemetry.mjs';
+import { emitUser } from './lib/emit.mjs';
+import { estimateContextPct } from './lib/context-estimate.mjs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -42,12 +45,10 @@ async function main() {
   }
 
   try {
-    // Context usage comes from env vars Claude Code may set, or from session file
-    const contextUsedPct = parseFloat(
-      process.env.CLAUDE_CONTEXT_USED_PCT
-      || process.env.CLAUDE_CONTEXT_PERCENT
-      || '0'
-    );
+    // Context usage derived from the transcript JSONL (usage tokens on the
+    // newest assistant entry). Env vars win if the harness ever sets them.
+    const transcriptPath = input.transcript_path || input.transcriptPath || '';
+    const contextUsedPct = estimateContextPct(transcriptPath);
 
     // Also check session file for stored context info
     let storedPct = 0;
@@ -74,11 +75,9 @@ async function main() {
       return;
     }
 
-    process.stdout.write(JSON.stringify({
-      continue: true,
-      suppressOutput: false,
-      status: `${match.label}: ${match.msg} (${remainingPct.toFixed(0)}% remaining)`,
-    }) + '\n');
+    process.stdout.write(JSON.stringify(
+      emitUser(`${match.label}: ${match.msg} (~${remainingPct.toFixed(0)}% remaining, transcript estimate)`)
+    ) + '\n');
   } catch {
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
   }
