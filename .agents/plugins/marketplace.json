@@ -1,0 +1,19 @@
+{
+  "name": "commander-hub",
+  "description": "CC Commander local plugin marketplace for Codex CLI and the ChatGPT desktop app. Register with: codex plugin marketplace add <repo-root>",
+  "owner": {
+    "name": "Kevin Zicherman",
+    "url": "https://kevinz.ai"
+  },
+  "plugins": [
+    {
+      "name": "commander",
+      "description": "Guided AI PM — 72 skills, 22 specialist agent personas, Codex-supported hook subset, 2 credential-free MCP servers. Codex-format mirror of the Claude Code plugin.",
+      "version": "6.6.0",
+      "source": {
+        "path": "./commander/cowork-plugin-codex"
+      }
+    }
+  ],
+  "version": "6.6.0"
+}

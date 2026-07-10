@@ -23,6 +23,7 @@ var MANIFESTS = [
   path.join(ROOT, 'package.json'),
   path.join(ROOT, 'commander', 'cowork-plugin', '.claude-plugin', 'plugin.json'),
   path.join(ROOT, '.claude-plugin', 'marketplace.json'),
+  path.join(ROOT, '.agents', 'plugins', 'marketplace.json'),
   path.join(ROOT, 'apps', 'mcp-server-cloud', 'package.json'),
 ];
 
