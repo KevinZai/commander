@@ -294,7 +294,7 @@ test('Agent TOML format', () => {
 
   const architect = parsedAgents.find((agent) => agent.name === 'architect');
   assert.ok(architect, 'sample must include architect agent for opus model remap coverage');
-  assert.equal(architect.model, 'gpt-5.5');
+  assert.equal(architect.model, 'gpt-5.6-sol');
 });
 
 test('MCP config', () => {

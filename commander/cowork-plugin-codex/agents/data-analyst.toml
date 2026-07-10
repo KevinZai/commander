@@ -1,6 +1,6 @@
 name = "data-analyst"
 description = "Senior data analyst for data exploration, statistical analysis, pipeline design, and insight extraction. Produces structured insights with visualization specs and…"
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep
 

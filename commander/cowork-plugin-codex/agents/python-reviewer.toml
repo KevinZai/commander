@@ -1,6 +1,6 @@
 name = "python-reviewer"
 description = "Python-specific code reviewer. Audits for PEP 8 compliance, type hints, async/await patterns, pytest quality, and security vulnerabilities. Returns severity-rated…"
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep
 

@@ -1,6 +1,6 @@
 name = "go-reviewer"
 description = "Go-specific code reviewer. Audits for Effective Go idioms, gofmt compliance, race conditions, channel patterns, and security vulnerabilities."
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep
 

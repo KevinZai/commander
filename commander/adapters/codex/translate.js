@@ -16,6 +16,7 @@ import {
   detectCodexHookCapabilities,
   validateHookMapAgainstCapabilities,
 } from './hooks-detector.js';
+import { getModelEntry } from './models.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -153,14 +154,40 @@ export function translateAgent(mdSource, options = {}) {
   return toml.join('\n');
 }
 
-// Codex does not speak Anthropic model IDs. Translate known Claude names.
+// Codex does not speak Anthropic model IDs. Translate known Claude names to
+// a Codex model id, sourced from the registry in ./models.js so tier
+// assignments and fallback chains live in exactly one place.
+//
+// Tier mapping (registry-backed):
+//   fable, opus -> gpt-5.6-sol   (flagship/deep-reasoning, fallback gpt-5.5)
+//   sonnet      -> gpt-5.6-terra (balanced/default, fallback gpt-5.5)
+//   haiku       -> gpt-5.6-luna  (fast/light, fallback gpt-5.4-mini)
+//   default     -> gpt-5.6-terra
 export function remapModel(claudeModel) {
-  if (!claudeModel) return 'gpt-5.4';
-  if (claudeModel.includes('fable')) return 'gpt-5.5';
-  if (claudeModel.includes('opus')) return 'gpt-5.5';
-  if (claudeModel.includes('sonnet')) return 'gpt-5.4';
-  if (claudeModel.includes('haiku')) return 'gpt-5.4-mini';
-  return claudeModel;
+  const targetId = resolveTargetModelId(claudeModel);
+  if (targetId === PASSTHROUGH) return claudeModel;
+
+  const entry = getModelEntry(targetId);
+  // Every branch below picks its own target id from the registry — if one
+  // ever drifts out of sync with models.js, fail loud instead of silently
+  // emitting an unverified model string.
+  if (!entry) {
+    throw new Error(`remapModel: "${targetId}" is not in the Codex model registry`);
+  }
+  return entry.id;
+}
+
+const PASSTHROUGH = Symbol('passthrough');
+
+// Unrecognized Claude model strings (not fable/opus/sonnet/haiku) pass
+// through unchanged — this only classifies Claude names we know how to map.
+function resolveTargetModelId(claudeModel) {
+  if (!claudeModel) return 'gpt-5.6-terra';
+  if (claudeModel.includes('fable')) return 'gpt-5.6-sol';
+  if (claudeModel.includes('opus')) return 'gpt-5.6-sol';
+  if (claudeModel.includes('sonnet')) return 'gpt-5.6-terra';
+  if (claudeModel.includes('haiku')) return 'gpt-5.6-luna';
+  return PASSTHROUGH;
 }
 
 export function remapEffort(effort) {

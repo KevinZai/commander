@@ -1,6 +1,6 @@
 name = "fleet-worker"
 description = "General-purpose parallel worker for fleet operations. Executes a single scoped task independently and reports structured results. Spawned by /ccc-fleet for batch…"
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"  # was tools: Read, Write, Edit, Bash, Glob, Grep
 

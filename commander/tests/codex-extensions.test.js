@@ -100,7 +100,7 @@ Do deep design work.
 `);
 
   assert.match(toml, /name = "architect"/);
-  assert.match(toml, /model = "gpt-5\.5"/);
+  assert.match(toml, /model = "gpt-5\.6-sol"/);
   assert.match(toml, /model_reasoning_effort = "xhigh"/);
   assert.match(toml, /sandbox_mode = "workspace-write"/);
 });
@@ -172,7 +172,7 @@ Review changed code.
   );
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /model = "gpt-5\.4"/);
+  assert.match(result.stdout, /model = "gpt-5\.6-terra"/);
   assert.match(result.stdout, /model_reasoning_effort = "high"/);
   assert.match(result.stderr, /\[codex translate\] agent effort high -> high/);
 });
