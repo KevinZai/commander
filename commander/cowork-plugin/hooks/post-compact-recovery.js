@@ -13,6 +13,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { emitBoth } from './lib/emit.mjs';
 
 /**
  * Pure-function entry for orchestrator (CC-414).
@@ -43,11 +44,9 @@ export async function run({ input = {}, env = process.env, cwd = process.cwd() }
       if (state.activeSkill) parts.push(`skill=${state.activeSkill}`);
       if (parts.length) stateInfo = ` [${parts.join(', ')}]`;
     } catch {}
-    return {
-      continue: true,
-      suppressOutput: false,
-      status: `CCC: Context compacted — re-orienting. ${sessionInfo}${stateInfo}`,
-    };
+    // Orientation is for the MODEL as much as the user — emit on both channels.
+    const hookEventName = input.hook_event_name || 'PostCompact';
+    return emitBoth(hookEventName, `CCC: Context compacted — re-orienting. ${sessionInfo}${stateInfo}`);
   } catch {
     return { continue: true };
   }

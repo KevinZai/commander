@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { track } from '../lib/telemetry.mjs';
+import { emitUser } from './lib/emit.mjs';
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -7,7 +8,9 @@ import { randomBytes } from 'node:crypto';
 
 const SESSIONS_DIR = join(process.env.HOME, '.claude', 'commander', 'sessions');
 const ACTIVE_FILE = join(SESSIONS_DIR, 'active-session.json');
-const COST_FILE = join(SESSIONS_DIR, 'active-cost.json');
+// Session-keyed tool-call budget file (see cost-tracker.js)
+const SESSION_KEY = (process.env.CLAUDE_SESSION_ID || 'default').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'default';
+const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
 
 async function main() {
   try {
@@ -42,8 +45,9 @@ async function main() {
     try { await unlink(ACTIVE_FILE); } catch {}
     try { await unlink(COST_FILE); } catch {}
 
-    const status = `CCC session saved: ${filename} (${costData.toolCalls} tool calls, ~$${costData.estimatedCost.toFixed(2)})`;
-    console.log(JSON.stringify({ continue: true, suppressOutput: false, status }));
+    console.log(JSON.stringify(emitUser(
+      `CCC session saved: ${filename} (${costData.toolCalls} tool calls, budget unit ~$${costData.estimatedCost.toFixed(2)})`
+    )));
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }

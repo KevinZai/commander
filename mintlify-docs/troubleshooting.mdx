@@ -185,7 +185,7 @@ Then Cmd+Q, reopen, and reinstall:
 
 1. `/ccc-doctor` reports hook registration status for all 8 events × 39 handlers.
 2. Check `~/.claude/commander/state.json` exists. If missing, the SessionStart hook can't persist context.
-3. Confirm hooks aren't disabled: `echo $CC_COACH_DISABLE` should be empty for the session-coach to fire.
+3. Confirm hooks aren't disabled: `echo $CCC_SUGGEST_DISABLE` and `echo $CC_COACH_DISABLE` should be empty for ambient suggestions to fire.
 
 ### state.json missing
 

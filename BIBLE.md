@@ -39,7 +39,7 @@
 - [Workflow Modes](#workflow-modes) *(10 modes)*
 - [Prompt Library](#prompt-library-1) *(36+ templates)*
 - [Integrations](#integrations) *(Agency Orchestrator + OpenClaw)*
-- [Proactive Automation Suite](#proactive-automation-suite-v11) *(28 kit-native hooks)*
+- [Proactive Automation Suite](#proactive-automation-suite-v11) *(24 kit-native hooks)*
 - [Settings Reference](#settings-reference)
 - [Appendix A: Model Selection](#model-selection)
 - [Appendix B: Contributor Credits](#contributor-credits)
@@ -2175,7 +2175,7 @@ Integration patterns for OpenClaw multi-agent platform:
 
 ## Proactive Automation Suite
 
-28 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
+24 kit-native hooks that run automatically throughout every session. No prompting required — they guard, track, checkpoint, and coach in the background.
 
 ### The 9 New Hooks
 
@@ -2191,13 +2191,12 @@ The original 4 hooks (careful-guard, auto-notify, preuse-logger, status-checkin)
 | `cost-alert` | PostToolUse | Cost proxy alerts at ~$0.50 (30 tool calls) and ~$2.00 (60 calls) |
 | `auto-lessons` | PostToolUse | Automatically captures errors and corrections to tasks/lessons.md |
 | `rate-predictor` | PostToolUse | Predicts remaining session duration based on tool call rate |
-| `session-coach` | Stop | Periodic coaching nudges — skill suggestions, workflow tips, checkpoint reminders |
 | `pre-compact` | PreCompact | Saves session state and critical context before context compaction |
 | `self-verify` | PostToolUse | Auto-verifies file changes against stated intent, catches drift |
 
-### Session Coach
+### Session Coach (retired 2026-07-10)
 
-The session-coach hook fires every N responses (default: 10) with contextual suggestions: unused skills for the current task, workflow reminders, checkpoint nudges.
+The session-coach hook was folded into the Desktop plugin suggest engine (`commander/cowork-plugin/hooks/lib/confidence.mjs`) — its stack-aware skill hints now surface through `suggest-lightweight.js`. `CC_COACH_DISABLE=1` still silences those hints.
 
 | Env Var | Default | What it does |
 |---------|---------|-------------|

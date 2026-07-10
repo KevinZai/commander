@@ -140,13 +140,13 @@ describe('suggest-lightweight hook', () => {
     assert.equal(result.parsed.continue, true);
     assert.equal(result.parsed.suppressOutput, false, 'should NOT suppress on high confidence');
     assert.ok(
-      typeof result.parsed.status === 'string' &&
-        result.parsed.status.startsWith('💡 Try next:'),
-      `status should start with "💡 Try next:" — got: ${JSON.stringify(result.parsed.status)}`
+      typeof result.parsed.systemMessage === 'string' &&
+        result.parsed.systemMessage.startsWith('💡 Try next:'),
+      `status should start with "💡 Try next:" — got: ${JSON.stringify(result.parsed.systemMessage)}`
     );
     // Should include /ccc-ship suggestion
     assert.ok(
-      result.parsed.status.includes('/ccc-ship'),
+      result.parsed.systemMessage.includes('/ccc-ship'),
       'should suggest /ccc-ship for branch-ahead+tests-green state'
     );
   });
@@ -213,7 +213,7 @@ describe('suggest-lightweight hook', () => {
     // Turn 3 — should render (3 % 3 === 0)
     const r3 = runHook(home, { CCC_SUGGEST_MODE: 'every-3' });
     assert.equal(r3.parsed.suppressOutput, false, 'turn 3 should render');
-    assert.ok(r3.parsed.status && r3.parsed.status.startsWith('💡 Try next:'));
+    assert.ok(r3.parsed.systemMessage && r3.parsed.systemMessage.startsWith('💡 Try next:'));
   });
 
   // 6. Legacy CCC_SUGGEST_DISABLE=1 → silent
@@ -301,6 +301,37 @@ describe('suggest-lightweight hook', () => {
     assert.equal(result2.parsed.suppressOutput, true, 'confidence 0.9 < 0.95 threshold → suppress');
   });
 
+  // 11a. Level 1 (passive): logs the suggestion but renders nothing
+  it('recommendedLevel 1: computes suggestion but stays silent (log-only)', () => {
+    const home = tmpHome('t11a');
+    writeState(home, { ...HIGH_CONFIDENCE_STATE, recommendedLevel: 1 });
+
+    const result = runHook(home, { CCC_SUGGEST_MODE: 'smart' });
+
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.parsed.suppressOutput, true, 'L1 must render nothing');
+    // ...but the suggestion must be recorded for /ccc-suggest to pick up
+    const last = JSON.parse(fs.readFileSync(lastSuggestionFile(home), 'utf8'));
+    assert.equal(last.rendered, false);
+    assert.ok(Array.isArray(last.suggestions) && last.suggestions.length > 0,
+      'L1 should still record suggestions');
+  });
+
+  // 11b. Level 3 (assertive): boxed recommendation card
+  it('recommendedLevel 3: renders the boxed 🎯 card with confidence + why', () => {
+    const home = tmpHome('t11b');
+    writeState(home, { ...HIGH_CONFIDENCE_STATE, recommendedLevel: 3 });
+
+    const result = runHook(home, { CCC_SUGGEST_MODE: 'smart' });
+
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.parsed.suppressOutput, false, 'L3 must render');
+    const msg = result.parsed.systemMessage;
+    assert.ok(msg.includes('CC Commander Suggests'), `expected boxed card header, got: ${JSON.stringify(msg)}`);
+    assert.ok(msg.includes('confidence'), 'card must state confidence');
+    assert.ok(msg.includes('Why:'), 'card must state the reasoning');
+  });
+
   // 11. Output format: exactly matches expected pattern
   it('output format: matches 💡 Try next:\\n  /skill — reason pattern', () => {
     const home = tmpHome('t11');
@@ -309,7 +340,7 @@ describe('suggest-lightweight hook', () => {
     const result = runHook(home, { CCC_SUGGEST_MODE: 'smart' });
 
     assert.equal(result.parsed.suppressOutput, false);
-    const status = result.parsed.status;
+    const status = result.parsed.systemMessage;
 
     // Must start with the header
     assert.ok(status.startsWith('💡 Try next:'), `header check failed: ${JSON.stringify(status)}`);

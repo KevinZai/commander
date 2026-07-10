@@ -1,0 +1,4 @@
+{
+  "type": "module",
+  "description": "All CCC hook handlers are ESM. Scoped to hooks/ (not the plugin root) because lib/menu-render.js, lib/mcp-passthrough.js and several skills/*/lib helpers are CommonJS — a plugin-root type:module would break them. This kills the MODULE_TYPELESS re-parse penalty on every handler spawn."
+}

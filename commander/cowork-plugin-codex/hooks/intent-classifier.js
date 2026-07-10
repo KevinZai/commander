@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // License-tier gate removed 2026-04-23 — CC Commander is free for now.
 import { track } from '../lib/telemetry.mjs';
+import { emitUser, emitSilent } from './lib/emit.mjs';
 import { join } from 'node:path';
 import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -64,7 +65,7 @@ async function main() {
     const prompt = (data.prompt || data.message || '').toLowerCase();
 
     if (!prompt) {
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+      console.log(JSON.stringify(emitSilent()));
       return;
     }
 
@@ -72,20 +73,20 @@ async function main() {
 
     for (const { skill, patterns, label } of SKILL_PATTERNS) {
       if (patterns.some(p => prompt.includes(p))) {
-        const status = fableNudge
+        const message = fableNudge
           ? `CCC suggests: ${skill} (${label}) · ${fableNudge}`
           : `CCC suggests: ${skill} (${label})`;
-        console.log(JSON.stringify({ continue: true, suppressOutput: false, status }));
+        console.log(JSON.stringify(emitUser(message)));
         return;
       }
     }
 
     if (fableNudge) {
-      console.log(JSON.stringify({ continue: true, suppressOutput: false, status: fableNudge }));
+      console.log(JSON.stringify(emitUser(fableNudge)));
       return;
     }
 
-    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+    console.log(JSON.stringify(emitSilent()));
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }

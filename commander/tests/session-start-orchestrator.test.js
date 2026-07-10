@@ -63,10 +63,12 @@ test('orchestrator merges status from multiple handlers', () => {
   assert.equal(r.exitCode, 0);
   assert.ok(r.parsed, 'should produce JSON');
   assert.equal(r.parsed.continue, true);
-  // Either status combines messages or short-circuits — both are valid merges.
-  if (r.parsed.status) {
-    assert.equal(typeof r.parsed.status, 'string');
+  // Either systemMessage combines messages or short-circuits — both are valid merges.
+  if (r.parsed.systemMessage) {
+    assert.equal(typeof r.parsed.systemMessage, 'string');
   }
+  // No undocumented top-level keys may survive the merge (hook output contract)
+  assert.ok(!('status' in r.parsed), 'merged output must not contain legacy status key');
 });
 
 test('orchestrator logs elapsed time to stderr when CCC_ORCH_TIMING=1', () => {

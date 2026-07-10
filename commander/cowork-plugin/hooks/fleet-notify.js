@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { track } from '../lib/telemetry.mjs';
+import { emitUser } from './lib/emit.mjs';
 import { readFile, appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -35,11 +36,7 @@ async function main() {
     };
       track('hook_fired', { hook: 'Notification', handler: 'fleet-notify' });
     await appendFile(join(FLEET_DIR, 'notifications.jsonl'), JSON.stringify(entry) + '\n');
-    console.log(JSON.stringify({
-      continue: true,
-      suppressOutput: false,
-      status: `CCC Fleet: ${safeSource} completed`,
-    }));
+    console.log(JSON.stringify(emitUser(`CCC Fleet: ${safeSource} completed`)));
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }

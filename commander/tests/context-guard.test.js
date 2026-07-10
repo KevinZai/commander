@@ -86,7 +86,7 @@ describe('context-guard.js — no-op cases', () => {
     assert.equal(r.exitCode, 0);
     assert.ok(r.parsed, 'should output JSON');
     assert.equal(r.parsed.continue, true);
-    assert.ok(!r.parsed.status, 'should not have status message when disabled');
+    assert.ok(!r.parsed.systemMessage, 'should not have status message when disabled');
   });
 
   it('no-ops when context env var is absent', () => {
@@ -97,21 +97,21 @@ describe('context-guard.js — no-op cases', () => {
     assert.equal(r.exitCode, 0);
     assert.ok(r.parsed);
     assert.equal(r.parsed.continue, true);
-    assert.ok(!r.parsed.status, 'should not emit status when no context metric available');
+    assert.ok(!r.parsed.systemMessage, 'should not emit status when no context metric available');
   });
 
   it('no-ops at 50% usage (below all thresholds)', () => {
     const r = runHook({ CLAUDE_CONTEXT_USED_PCT: '50' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed.continue, true);
-    assert.ok(!r.parsed.status);
+    assert.ok(!r.parsed.systemMessage);
   });
 
   it('no-ops at 69% usage (just below 70% threshold)', () => {
     const r = runHook({ CLAUDE_CONTEXT_USED_PCT: '69' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed.continue, true);
-    assert.ok(!r.parsed.status);
+    assert.ok(!r.parsed.systemMessage);
   });
 });
 
@@ -121,9 +121,9 @@ describe('context-guard.js — threshold firing', () => {
     assert.equal(r.exitCode, 0);
     assert.ok(r.parsed);
     assert.equal(r.parsed.continue, true);
-    assert.ok(r.parsed.status, 'should emit status at 70%');
-    assert.ok(r.parsed.status.includes('70%'), 'status should mention 70%');
-    assert.ok(r.parsed.status.includes('/save-session'), 'should mention /save-session');
+    assert.ok(r.parsed.systemMessage, 'should emit status at 70%');
+    assert.ok(r.parsed.systemMessage.includes('70%'), 'status should mention 70%');
+    assert.ok(r.parsed.systemMessage.includes('/save-session'), 'should mention /save-session');
   });
 
   it('fires at 85% with strong warning', () => {
@@ -131,9 +131,9 @@ describe('context-guard.js — threshold firing', () => {
     assert.equal(r.exitCode, 0);
     assert.ok(r.parsed);
     assert.equal(r.parsed.continue, true);
-    assert.ok(r.parsed.status, 'should emit status at 85%');
-    assert.ok(r.parsed.status.includes('85%'), 'status should mention 85%');
-    assert.ok(r.parsed.status.includes('/save-session'), 'should mention /save-session');
+    assert.ok(r.parsed.systemMessage, 'should emit status at 85%');
+    assert.ok(r.parsed.systemMessage.includes('85%'), 'status should mention 85%');
+    assert.ok(r.parsed.systemMessage.includes('/save-session'), 'should mention /save-session');
   });
 
   it('fires at 95% and writes auto-save file', () => {
@@ -141,8 +141,8 @@ describe('context-guard.js — threshold firing', () => {
     assert.equal(r.exitCode, 0);
     assert.ok(r.parsed);
     assert.equal(r.parsed.continue, true);
-    assert.ok(r.parsed.status, 'should emit status at 95%');
-    assert.ok(r.parsed.status.includes('95%'), 'status should mention 95%');
+    assert.ok(r.parsed.systemMessage, 'should emit status at 95%');
+    assert.ok(r.parsed.systemMessage.includes('95%'), 'status should mention 95%');
 
     // Verify auto-save file was created
     const sessionsDir = path.join(TMP_HOME, '.claude', 'sessions');
@@ -160,11 +160,11 @@ describe('context-guard.js — idempotency', () => {
   it('does not double-fire at same threshold in one session', () => {
     // First run at 70% — should fire
     const r1 = runHook({ CLAUDE_CONTEXT_USED_PCT: '70', CLAUDE_SESSION_ID: 'idem-session' });
-    assert.ok(r1.parsed.status, 'first run should fire');
+    assert.ok(r1.parsed.systemMessage, 'first run should fire');
 
     // Second run at 70% same session — should NOT fire
     const r2 = runHook({ CLAUDE_CONTEXT_USED_PCT: '70', CLAUDE_SESSION_ID: 'idem-session' });
-    assert.ok(!r2.parsed.status, 'second run at same threshold should not fire again');
+    assert.ok(!r2.parsed.systemMessage, 'second run at same threshold should not fire again');
   });
 
   it('allows firing at higher threshold after 70% already fired', () => {
@@ -173,18 +173,18 @@ describe('context-guard.js — idempotency', () => {
 
     // Now at 85% — should fire the 85% threshold (not repeat 70%)
     const r = runHook({ CLAUDE_CONTEXT_USED_PCT: '85', CLAUDE_SESSION_ID: 'escalate-session' });
-    assert.ok(r.parsed.status, '85% should still fire even though 70% already fired');
-    assert.ok(r.parsed.status.includes('85%'), 'status should reference 85%');
+    assert.ok(r.parsed.systemMessage, '85% should still fire even though 70% already fired');
+    assert.ok(r.parsed.systemMessage.includes('85%'), 'status should reference 85%');
   });
 
   it('tracks state per session — different sessions fire independently', () => {
     // Fire in session A
     const r1 = runHook({ CLAUDE_CONTEXT_USED_PCT: '70', CLAUDE_SESSION_ID: 'session-a' });
-    assert.ok(r1.parsed.status, 'session A should fire');
+    assert.ok(r1.parsed.systemMessage, 'session A should fire');
 
     // Session B at same level — should also fire
     const r2 = runHook({ CLAUDE_CONTEXT_USED_PCT: '70', CLAUDE_SESSION_ID: 'session-b' });
-    assert.ok(r2.parsed.status, 'session B should fire independently');
+    assert.ok(r2.parsed.systemMessage, 'session B should fire independently');
   });
 });
 
@@ -197,8 +197,8 @@ describe('context-guard.js — custom threshold', () => {
     assert.equal(r.exitCode, 0);
     assert.ok(r.parsed);
     assert.equal(r.parsed.continue, true);
-    assert.ok(r.parsed.status, 'should fire at custom 60% threshold');
-    assert.ok(r.parsed.status.includes('60'), 'status should mention custom threshold');
+    assert.ok(r.parsed.systemMessage, 'should fire at custom 60% threshold');
+    assert.ok(r.parsed.systemMessage.includes('60'), 'status should mention custom threshold');
   });
 
   it('does not fire below custom threshold', () => {
@@ -207,7 +207,7 @@ describe('context-guard.js — custom threshold', () => {
       CC_CONTEXT_GUARD_THRESHOLD: '60',
     });
     assert.equal(r.exitCode, 0);
-    assert.ok(!r.parsed.status, 'should not fire at 55% when threshold is 60%');
+    assert.ok(!r.parsed.systemMessage, 'should not fire at 55% when threshold is 60%');
   });
 });
 

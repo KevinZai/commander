@@ -461,7 +461,7 @@ Stop: `Ctrl+C` or the stop button in Cowork Desktop. Avoid looping destructive s
 
 ### Proactive Hooks (28 Kit-Native)
 
-The kit ships 28 hooks that fire automatically — no prompting required. Disable any hook with its env var.
+The kit ships 24 hooks that fire automatically — no prompting required. Disable any hook with its env var.
 
 **PreToolUse (3 hooks)**
 
@@ -489,7 +489,6 @@ The kit ships 28 hooks that fire automatically — no prompting required. Disabl
 |------|-------------|-------------|
 | `status-checkin` | Session end status summary | `KZ_DISABLE_STATUS_CHECKIN=1` |
 | `session-end-verify` | Verifies modified files, checks for leftover console.log | `KZ_DISABLE_SESSION_END_VERIFY=1` |
-| `session-coach` | Periodic coaching nudges — skill tips, checkpoint reminders | `CC_COACH_DISABLE=1` |
 
 **PreCompact (1 hook)**
 
@@ -503,9 +502,9 @@ The kit ships 28 hooks that fire automatically — no prompting required. Disabl
 |------|-------------|-------------|
 | `self-verify` | Auto-verifies file changes against stated intent, catches drift | `KZ_DISABLE_SELF_VERIFY=1` |
 
-**Session Coach** fires every N responses (default: 10). Customize interval with `CC_COACH_INTERVAL=20` (number of responses between nudges). Disable entirely with `CC_COACH_DISABLE=1`.
+**Session Coach** was retired 2026-07-10 — its heuristics now feed the plugin suggest engine (`CCC_SUGGEST_MODE` / `CC_COACH_DISABLE=1` still silences the stack-hint suggestions).
 
-CCC ships with 28 kit-native hooks that work standalone via `hooks-standalone.json`.
+CCC ships with 24 kit-native hooks that work standalone via `hooks-standalone.json`.
 
 ---
 

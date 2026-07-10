@@ -2,6 +2,10 @@
 // CC Commander — permission-gate.js Test Suite
 // ============================================================================
 // Tests the PermissionRequest hook for Codex Desktop autofix gate.
+// Contract (F2): rejections exit 0 with a documented deny decision payload —
+//   { hookSpecificOutput: { hookEventName: 'PermissionRequest',
+//     decision: { behavior: 'deny', message } } }
+// (stdout on exit 1 is discarded by the harness, so exit-1 blocks never landed).
 // Run: node --test commander/tests/permission-gate.test.js
 // ============================================================================
 
@@ -96,7 +100,7 @@ describe('permission-gate: approve normal read-only operations', () => {
 // Case 2: Reject /ccc-review autofix write without explicit flag
 // ============================================================================
 describe('permission-gate: reject autofix write without CCC_AUTOFIX_APPROVED', () => {
-  it('blocks Write tool during /ccc-review autofix phase (exit 1)', () => {
+  it('denies Write tool during /ccc-review autofix phase (exit 0 + deny decision)', () => {
     const r = runGate(
       {
         tool_name: 'Write',
@@ -106,16 +110,17 @@ describe('permission-gate: reject autofix write without CCC_AUTOFIX_APPROVED', (
       },
       { CCC_AUTOFIX_APPROVED: '' }  // unset the flag
     );
-    assert.equal(r.exitCode, 1, `Expected exit 1 for autofix block, got ${r.exitCode}`);
+    assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
     assert.ok(r.parsed, 'Should output valid JSON');
-    assert.equal(r.parsed.continue, false, 'Should reject autofix write');
+    const decision = r.parsed.hookSpecificOutput?.decision;
+    assert.equal(decision?.behavior, 'deny', 'Should deny autofix write');
     assert.ok(
-      r.parsed.stopReason?.includes('autofix'),
-      `stopReason should mention autofix. Got: ${r.parsed.stopReason}`
+      decision?.message?.includes('autofix'),
+      `deny message should mention autofix. Got: ${decision?.message}`
     );
   });
 
-  it('blocks Edit tool during /ccc-review autofix phase', () => {
+  it('denies Edit tool during /ccc-review autofix phase', () => {
     const r = runGate(
       {
         tool_name: 'Edit',
@@ -124,8 +129,8 @@ describe('permission-gate: reject autofix write without CCC_AUTOFIX_APPROVED', (
       },
       { CCC_AUTOFIX_APPROVED: '' }
     );
-    assert.equal(r.exitCode, 1);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
   });
 
   it('approves Write tool during /ccc-review autofix when CCC_AUTOFIX_APPROVED=1', () => {
@@ -212,36 +217,37 @@ describe('permission-gate: missing payload → fail open', () => {
 // Case 5: Dangerous operation → always reject
 // ============================================================================
 describe('permission-gate: dangerous operations → always reject', () => {
-  it('blocks Bash rm -rf command (exit 1)', () => {
+  it('denies Bash rm -rf command (exit 0 + deny decision)', () => {
     const r = runGate({
       tool_name: 'Bash',
       tool_input: { command: 'rm -rf /tmp/project' },
       session_id: 'test-session-dangerous-001',
     });
-    assert.equal(r.exitCode, 1, `Expected exit 1 for dangerous command, got ${r.exitCode}`);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
+    const decision = r.parsed?.hookSpecificOutput?.decision;
+    assert.equal(decision?.behavior, 'deny', 'rm -rf must be denied');
     assert.ok(
-      r.parsed?.stopReason?.includes('dangerous') || r.parsed?.stopReason?.includes('Dangerous'),
-      `stopReason should indicate danger. Got: ${r.parsed?.stopReason}`
+      decision?.message?.includes('dangerous') || decision?.message?.includes('Dangerous'),
+      `deny message should indicate danger. Got: ${decision?.message}`
     );
   });
 
-  it('blocks git reset --hard', () => {
+  it('denies git reset --hard', () => {
     const r = runGate({
       tool_name: 'Bash',
       tool_input: { command: 'git reset --hard HEAD~3' },
     });
-    assert.equal(r.exitCode, 1);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
   });
 
-  it('blocks git push --force', () => {
+  it('denies git push --force', () => {
     const r = runGate({
       tool_name: 'Bash',
       tool_input: { command: 'git push --force origin main' },
     });
-    assert.equal(r.exitCode, 1);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
   });
 
   it('approves safe Bash commands (ls, echo)', () => {
@@ -278,10 +284,13 @@ describe('permission-gate: always outputs valid JSON', () => {
   payloads.forEach((payload, i) => {
     it(`produces valid JSON for payload variant ${i + 1}`, () => {
       const r = runGate(payload, { CCC_AUTOFIX_APPROVED: '' });
+      assert.equal(r.exitCode, 0, `Payload ${i + 1} must exit 0 — deny decisions ride stdout, not exit codes`);
       assert.ok(r.parsed !== null, `Payload ${i + 1} should produce parseable JSON. Got: ${r.stdout}`);
+      const isApprove = typeof r.parsed.continue === 'boolean';
+      const isDeny = r.parsed.hookSpecificOutput?.decision?.behavior === 'deny';
       assert.ok(
-        typeof r.parsed.continue === 'boolean',
-        `continue field must be boolean. Got: ${JSON.stringify(r.parsed)}`
+        isApprove || isDeny,
+        `output must be an approve (boolean continue) or a deny decision. Got: ${JSON.stringify(r.parsed)}`
       );
     });
   });

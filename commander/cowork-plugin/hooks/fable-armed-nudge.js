@@ -11,6 +11,7 @@
  * Respects CCC_FABLE_NUDGE_DISABLE=1.
  */
 import { fileURLToPath } from 'node:url';
+import { emitUser } from './lib/emit.mjs';
 
 /**
  * Pure-function entry for orchestrator (CC-414).
@@ -19,11 +20,7 @@ import { fileURLToPath } from 'node:url';
 export async function run({ env = process.env } = {}) {
   if (env.CCC_FABLE_NUDGE_DISABLE === '1') return { continue: true };
   try {
-    return {
-      continue: true,
-      suppressOutput: false,
-      status: 'Fable Method armed: 12 gates · rules/fable-method.md · /ccc-fable audit to self-check',
-    };
+    return emitUser('Fable Method armed: 12 gates · rules/fable-method.md · /ccc-fable audit to self-check');
   } catch {
     return { continue: true };
   }

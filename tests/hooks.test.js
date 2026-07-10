@@ -422,60 +422,10 @@ describe('session-end-verify.js', () => {
   });
 });
 
-// ---- session-coach.js (Stop) ----
-
-describe('session-coach.js', () => {
-  const hookPath = path.join(HOOKS_DIR, 'session-coach.js');
-
-  function runHook(toolName) {
-    const input = JSON.stringify({
-      tool_name: toolName || 'Bash',
-      tool_input: { command: 'ls' },
-      tool_output: {},
-    });
-    const result = spawnSync(process.execPath, [hookPath], {
-      input,
-      encoding: 'utf-8',
-      timeout: 5000,
-      env: { ...process.env, CLAUDE_SESSION_ID: 'test-coach-' + Date.now(), KZ_COACH_INTERVAL: '999' },
-    });
-    return { exitCode: result.status ?? 0, output: result.stdout || '' };
-  }
-
-  it('basic passthrough works', () => {
-    const result = runHook('Edit');
-    assert.equal(result.exitCode, 0);
-    const parsed = JSON.parse(result.output);
-    assert.equal(parsed.tool_name, 'Edit');
-  });
-
-  it('handles Bash tool input', () => {
-    const result = runHook('Bash');
-    assert.equal(result.exitCode, 0);
-    const parsed = JSON.parse(result.output);
-    assert.equal(parsed.tool_name, 'Bash');
-  });
-
-  it('respects KZ_COACH_DISABLE', () => {
-    const input = JSON.stringify({ tool_name: 'Bash', tool_input: {}, tool_output: {} });
-    spawnSync(process.execPath, [hookPath], {
-      input,
-      encoding: 'utf-8',
-      timeout: 5000,
-      env: { ...process.env, KZ_COACH_DISABLE: '1' },
-    });
-    assert.ok(true);
-  });
-
-  it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
-      input: 'not json',
-      encoding: 'utf-8',
-      timeout: 5000,
-    });
-    assert.ok(true);
-  });
-});
+// ---- session-coach.js — RETIRED 2026-07-10 ----
+// Archived to hooks/_archive/session-coach.js. Its heuristics (ext→domain
+// mapping, editsWithoutTests, errorStreak) now live in the plugin's shared
+// confidence engine: commander/cowork-plugin/hooks/lib/confidence.mjs.
 
 // ---- pre-compact.js (PreCompact) ----
 
@@ -617,7 +567,6 @@ describe('hook files exist', () => {
     'cost-alert.js',
     'auto-lessons.js',
     'rate-predictor.js',
-    'session-coach.js',
     'pre-compact.js',
     'self-verify.js',
   ];
