@@ -2,7 +2,6 @@
 name: researcher
 description: "Deep research agent for competitive analysis, market research, code audits, and SEO analysis. Synthesizes multi-source findings into structured reports with actionable…"
 model: claude-sonnet-5
-effort: undefined
 effort: high
 persona: personas/researcher
 color: purple
