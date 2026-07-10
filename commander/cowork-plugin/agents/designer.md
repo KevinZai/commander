@@ -2,7 +2,6 @@
 name: designer
 description: "Senior UI/UX designer and frontend implementer using anti-slop methodology and ccc-design patterns. Builds accessible, polished interfaces — e.g., 'design a pricing…"
 model: claude-sonnet-5
-effort: undefined
 effort: high
 persona: personas/designer
 memory: project
