@@ -96,12 +96,22 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
+      - name: Create GitHub Release (idempotent)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          body: ${{ steps.changelog.outputs.body }}
-          prerelease: ${{ steps.tag.outputs.dist_tag == 'beta' }}
+          TAG: ${{ github.ref_name }}
+          BODY: ${{ steps.changelog.outputs.body }}
+          PRERELEASE: ${{ steps.tag.outputs.dist_tag == 'beta' }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — skipping creation."
+            exit 0
+          fi
+          PRERELEASE_FLAG=""
+          if [ "$PRERELEASE" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "$BODY" \
+            $PRERELEASE_FLAG
