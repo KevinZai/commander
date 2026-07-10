@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import type { Context } from "hono";
 import { serve } from "@hono/node-server";
 import { logger as honoLogger } from "hono/logger";
 import { cors } from "hono/cors";
@@ -34,6 +35,9 @@ import { SERVER_VERSION } from "./lib/version.js";
 import { getServerTagline } from "./lib/registry-stats.js";
 import { captureEvent } from "./lib/posthog.js";
 import { eventsRouter } from "./routes/events.js";
+import { createStripeWebhookApp } from "./routes/stripe-webhook.js";
+import { mcpAuthMiddleware } from "./mcp/auth-middleware.js";
+import { createMcpTransportApp } from "./mcp/transport.js";
 
 declare module "hono" {
   interface ContextVariableMap {
@@ -376,6 +380,43 @@ export async function dispatchTool(
 app.route("/v1/events", eventsRouter);
 
 app.route("/v1", mcp);
+
+// ─── OAuth protected-resource metadata (RFC 9728, no auth) ─────────────────
+// Resource-server-only: this server does not run an authorization server; it
+// advertises the external issuer (OAUTH_ISSUER_URL) MCP clients should use
+// for authorization-code + PKCE. Served at both the bare well-known path and
+// the path-suffixed variant (RFC 9728 §3 for resources with path components).
+function protectedResourceMetadata(c: Context) {
+  const origin = new URL(c.req.url).origin;
+  const body: Record<string, unknown> = {
+    resource: env.oauthResourceUrl || `${origin}/mcp`,
+    bearer_methods_supported: ["header"],
+    resource_name: "CC Commander MCP",
+    resource_documentation: "https://github.com/KevinZai/commander",
+  };
+  if (env.oauthIssuerUrl) {
+    body.authorization_servers = [env.oauthIssuerUrl];
+  }
+  return c.json(body);
+}
+app.get("/.well-known/oauth-protected-resource", protectedResourceMetadata);
+app.get("/.well-known/oauth-protected-resource/mcp", protectedResourceMetadata);
+
+// ─── MCP streamable-HTTP endpoint (/mcp) ───────────────────────────────────
+// Additive second transport for ChatGPT Work / Apps SDK connector eligibility
+// (docs/compat/chatgpt-work.md gap G2). Same 18 tools, same auth records,
+// same burst + monthly-cap enforcement as /v1 — different wire protocol.
+const mcpStreamable = new Hono();
+mcpStreamable.use("*", mcpAuthMiddleware);
+mcpStreamable.use("*", rateLimitMiddleware);
+mcpStreamable.route(
+  "/",
+  createMcpTransportApp({ dispatchTool, recordCall, captureEvent })
+);
+app.route("/mcp", mcpStreamable);
+
+// ─── Stripe webhook (dark paywall plumbing — inert until configured) ───────
+app.route("/webhooks/stripe", createStripeWebhookApp());
 
 // ─── 404 handler ──────────────────────────────────────────────────────────
 app.notFound((c) => c.json({ error: "Not found" }, 404));

@@ -5,6 +5,7 @@ import { env } from "../lib/env.js";
 import { getCallsUsed, getEffectiveCap, incrementCallCount, touchLastSeen } from "../db/usage.js";
 import { logger } from "../lib/logger.js";
 import { captureEvent } from "../lib/posthog.js";
+import { applyPaywallCap, isPaidTier, isPaywallArmed } from "../lib/paywall.js";
 
 const redis = new Redis({
   url: env.upstashRedisUrl,
@@ -45,10 +46,14 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
   //    path, leaving clients blind to "how much of my cap is left?" on every
   //    rejection. Worth one extra Supabase round-trip even on burst-fail
   //    because that's the cheap path (auth + 2 reads, no write).
-  const [callsUsed, cap] = await Promise.all([
+  const [callsUsed, surveyCap] = await Promise.all([
     getCallsUsed(userId),
     getEffectiveCap(userId),
   ]);
+
+  // Dark paywall layer: pass-through unless CCC_PAYWALL_ARMED=1, in which case
+  // free-tier keys are capped at min(100, survey cap). See lib/paywall.ts.
+  const cap = applyPaywallCap(auth.tier, surveyCap);
 
   // Expose usage headers up-front so they appear on every response below.
   c.header("X-Commander-Calls-Used", String(Math.min(callsUsed + 1, cap)));
@@ -78,9 +83,11 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
         callsUsed,
         cap,
         message:
-          cap < 1000
-            ? "Answer a survey to restore your cap to 1,000 calls/month."
-            : "Upgrade to Pro for unlimited calls, or answer 2 surveys to unlock 2,000 calls this month.",
+          isPaywallArmed() && !isPaidTier(auth.tier)
+            ? "Free tier includes 100 calls/month. Upgrade to Pro for unlimited fair use."
+            : cap < 1000
+              ? "Answer a survey to restore your cap to 1,000 calls/month."
+              : "Upgrade to Pro for unlimited calls, or answer 2 surveys to unlock 2,000 calls this month.",
         upgradeUrl: "https://commanderplugin.com/pricing",
         surveyUrl: "https://commanderplugin.com/beta/survey/pending",
       },

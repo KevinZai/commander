@@ -15,7 +15,7 @@ CC Commander already targets or now targets with this compat layer:
 | 1 | **Plugins** | `.codex-plugin/plugin.json` package (skills + hooks + MCP + apps) | ✅ Shipping — `commander/cowork-plugin-codex/` mirror, now with local marketplace + AGENTS.md |
 | 2 | **Skills** | `SKILL.md` (Agent Skills open standard) in `.agents/skills/` | ✅ Shipping — 72 plugin skills are format-compatible |
 | 3 | **AGENTS.md** | Markdown instruction chain, 32 KiB default cap | ✅ Shipping — emitted by `npm run build:codex` into the mirror root |
-| 4 | **MCP connectors / Apps SDK** | Remote MCP server (`streamable_http` at a public `/mcp` URL) | 🟡 Partial — local stdio MCP works in Codex CLI today; hosted MCP needs `/mcp` transport + OAuth (tracked gap G2) |
+| 4 | **MCP connectors / Apps SDK** | Remote MCP server (`streamable_http` at a public `/mcp` URL) | 🟡 Partial — local stdio MCP works in Codex CLI today; hosted `/mcp` transport + OAuth **code complete** (gap G2 — pending deploy + issuer config) |
 
 ## What ChatGPT Work is
 
@@ -137,7 +137,7 @@ Verified as of 2026-07-10:
 |-------|------|--------------------|
 | Local skill-bridge MCP (stdio) | `commander/mcp-server/index.js` | ✅ in Codex CLI via `[mcp_servers]` in `~/.codex/config.toml` (see `compatibility/chatgpt-work.md`) |
 | Bundled credential-free MCPs | `commander/cowork-plugin-codex/.mcp.json` (context7, sequential-thinking) | ✅ ships inside the plugin |
-| Hosted MCP | `apps/mcp-server-cloud/` → `https://mcp.commanderplugin.com` | 🟡 gap **G2**: exposes `/v1` + `/v1/sse` + `POST /v1/call` with a static Bearer license key — ChatGPT's connect flow expects a `/mcp` streamable-HTTP endpoint and OAuth |
+| Hosted MCP | `apps/mcp-server-cloud/` → `https://mcp.commanderplugin.com` | 🟡 gap **G2 — code complete, pending deploy + issuer config**: `/mcp` streamable-HTTP endpoint (official MCP SDK transport, stateless) + OAuth 2.1 resource server (RFC 9728 metadata at `/.well-known/oauth-protected-resource`, external issuer via `OAUTH_ISSUER_URL`) built on branch `feat/mcp-streamable-oauth`; `/v1` + `/v1/sse` + `POST /v1/call` static-Bearer path unchanged for existing clients. Remaining: deploy + Kevin configures the OAuth issuer (see `apps/mcp-server-cloud/PAYWALL.md`) |
 | Domain-verification route | `GET /.well-known/openai-apps-challenge` (added in this PR, serves `OPENAI_APPS_CHALLENGE_TOKEN`) | ✅ unblocks the submission prerequisite once a token is issued |
 
 ## Per-surface install matrix
@@ -148,7 +148,7 @@ Verified as of 2026-07-10:
 | **Claude Code CLI** | `/plugin marketplace add KevinZai/commander` → `/plugin install commander` | Same as Desktop |
 | **Codex CLI** | `git clone https://github.com/KevinZai/commander && codex plugin marketplace add commander` (uses `.agents/plugins/marketplace.json`), or cherry-pick skills into `~/.agents/skills/` | 72 skills (byte-identical), 22 TOML agents, 6 hook events (Codex-supported subset), 2 MCPs, AGENTS.md |
 | **ChatGPT Work / Codex desktop app** | Same local marketplace (restart the desktop app after `marketplace add`), or — once **G3** clears — install "commander" from the universal plugin directory | Plugin skills + connectors surfaced inside ChatGPT Work |
-| **ChatGPT Work custom connector (workspace)** | Blocked on **G2** — once the hosted MCP speaks `/mcp` + OAuth: Developer mode → Settings → Plugins → ＋ → enter `https://mcp.commanderplugin.com/mcp` | 18 `commander_*` tools (skill catalog, plan composer, diagnostics) inside ChatGPT Work |
+| **ChatGPT Work custom connector (workspace)** | **G2 code complete** (pending deploy + issuer config) — once deployed: Developer mode → Settings → Plugins → ＋ → enter `https://mcp.commanderplugin.com/mcp` | 18 `commander_*` tools (skill catalog, plan composer, diagnostics) inside ChatGPT Work |
 
 ## Claude Cowork manifest compliance (re-verified 2026-07-10)
 
@@ -167,7 +167,7 @@ Checked against the current [Claude Code plugins reference](https://code.claude.
 | ID | Gap | Blocking dependency | Next action |
 |----|-----|--------------------|-------------|
 | **G1** | `apps` pointer + `.app.json` connector declaration not shipped | OpenAI has not published the `.app.json` schema — neither [build-app.md](https://developers.openai.com/codex/build-app.md) nor [app-server.md](https://developers.openai.com/codex/app-server.md) documents its fields (verified 2026-07-10) | Watch `learn.chatgpt.com/docs/build-plugins.md`; add `.app.json` + `apps` pointer to the codex mirror the day the schema lands |
-| **G2** | Hosted MCP not connectable from ChatGPT | `apps/mcp-server-cloud` needs (a) a streamable-HTTP `/mcp` endpoint (current custom `/v1` + SSE transport) and (b) OAuth (current static Bearer license key — ChatGPT's connector flow authenticates via `mcpServer/oauth/login`) | Transport + OAuth engineering task; keep `/v1` for existing clients, add `/mcp` alongside |
+| **G2** | Hosted MCP not connectable from ChatGPT — **code complete, pending deploy + issuer config** | ~~Transport + OAuth engineering~~ **Built** (branch `feat/mcp-streamable-oauth`): (a) `/mcp` streamable-HTTP via the official MCP SDK transport (stateless, same 18 tools, `/v1` untouched); (b) OAuth 2.1 resource-server — RFC 9728 protected-resource metadata + external-issuer JWT validation (JWKS), tokens map to the same key records as `/v1` Bearer. Remaining dependency: deploy to Fly + Kevin configures `OAUTH_ISSUER_URL`/`OAUTH_RESOURCE_URL` and an AS supporting auth-code + PKCE (setup: `apps/mcp-server-cloud/PAYWALL.md` §3) | Merge + deploy, configure issuer, then verify the connector flow end-to-end from ChatGPT Developer mode |
 | **G3** | Not in the universal ChatGPT/Codex plugin directory | Submission requires verified identity, production MCP URL (needs G2), domain-verification token live at `/.well-known/openai-apps-challenge` (route ships in this PR; token must be issued from the portal), 5+3 test cases | Kevin: complete identity verification at `platform.openai.com/plugins`, then submit after G2 |
 | **G4** | Hook parity — 17 Claude lifecycle events dropped in the codex build | Codex hook surface only documents SessionStart-class events; `scripts/build-codex.js` intentionally drops unsupported events | Re-audit `HOOK_EVENTS_DROPPED_BY_BUILD` when OpenAI expands hook events |
 | **G5** | Per-skill `agents/openai.yaml` metadata (icons, implicit-invocation policy, MCP deps) not emitted | Buildable today, but low-value until CCC skills declare MCP dependencies per-skill | Fold into `build-codex.js` when a skill actually needs `streamable_http` tool deps |
