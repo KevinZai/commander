@@ -873,21 +873,31 @@ Customize: `--interval 120` (2 min ticks) · `--tick-budget 30` · `--dream 30` 
 
 ## Use Inside Claude Code
 
-No CLI needed. Type `/ccc` in any Claude Code session for the full interactive menu.
+No CLI needed. Type `/ccc` in any Claude Code session — it opens a click-first visual picker (no typing, no menus). The six intents are **build · review · ship · design · learn · more**:
 
 ```
-/ccc              → Main menu (15 options with sub-menus)
-/ccc xray         → Project health scan
-/ccc makeover     → Auto-apply top fixes
-/ccc refresh      → Update your CLAUDE.md from latest template
-/ccc domains      → Browse 11 CCC domains
-/ccc skills       → Browse 459 skills
-/ccc grill        → 7-question Socratic planning probe
-/ccc infra        → Infrastructure sub-menu (Fleet, Synapse, Cost, AO, CloudCLI, Paperclip)
-/ccc detect       → Probe all services and CLIs
+/ccc build     → scaffold a project (web / API / CLI / mobile)
+/ccc review    → audit the current branch (diff / security / perf / x-ray)
+/ccc ship      → pre-flight checks + release + deploy
+/ccc design    → UI/UX workflow
+/ccc learn     → skill discovery across the 11 CCC domains
+/ccc more      → everything else (full catalog + specialists)
 ```
 
-Same choices, same sub-menus, same actions as the full CLI. Cancel anytime with "back" or `Escape`. Also works in **Claude Desktop Cowork** and **VS Code / Cursor**.
+Prefer to jump straight to a specialist? Each capability is its own `/ccc-*` command:
+
+| Capability | Command |
+|------------|---------|
+| Project health scorecard | `/ccc-xray` |
+| Auto-apply the top fixes | `/ccc-makeover` |
+| Audit & optimize your project's CLAUDE.md | `/ccc-claudemd` |
+| Browse the 11 CCC domains | `/ccc-domains` |
+| Browse the 459 skills | `/ccc-browse` |
+| Spec-first planning interview | `/ccc-plan` |
+| Infrastructure sub-menu (Fleet, Cost, Paperclip, …) | `/ccc-infra` |
+| Diagnose services & CLIs | `/ccc-doctor` |
+
+Works in **Claude Code**, **Claude Desktop Cowork**, and **VS Code / Cursor**.
 
 ---
 
