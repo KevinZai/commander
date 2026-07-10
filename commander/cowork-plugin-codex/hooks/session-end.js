@@ -6,7 +6,7 @@
  * Persists session learning to ~/.claude/commander/knowledge/ for
  * compounding intelligence across sessions.
  *
- * Free for now — no license check, no tier gating.
+ * Core free forever — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';

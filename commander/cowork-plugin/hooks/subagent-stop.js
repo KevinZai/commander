@@ -6,7 +6,7 @@
  * Tracks subagent cost aggregation per session to
  * ~/.claude/commander/analytics/subagent-costs.jsonl
  *
- * Free for now — no license check, no tier gating.
+ * Core free forever — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';

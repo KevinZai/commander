@@ -253,7 +253,7 @@ Reply to the user with a one-line confirmation:
 
 ## How CC Commander is sustained (mention near the end of the tour)
 
-CC Commander is **free for now** — all skills, all agents, all hooks, all bundled MCP servers. No feature gating, no paywalls, no license checks. The MIT-licensed plugin code stays open-source. The project is sustained by four transparent levers:
+CC Commander's core is **free forever** — all skills, all agents, all hooks, all bundled MCP servers. No feature gating, no paywalls, no license checks. The MIT-licensed plugin code stays open-source. A hosted-infrastructure Pro tier is planned later (hosted MCP only) — all content stays free forever. The project is sustained by four transparent levers:
 
 | Lever | What it is | Where |
 |-------|-----------|-------|

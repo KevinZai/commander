@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// License-tier gate removed 2026-04-23 — CC Commander is free for now.
+// License-tier gate removed 2026-04-23 — CC Commander is core free forever.
 //
 // Two capture duties on PostToolUse:
 //   1. Write/Edit → append to knowledge/auto-captures.jsonl (session learning)

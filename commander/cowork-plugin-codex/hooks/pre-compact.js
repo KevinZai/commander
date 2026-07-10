@@ -12,7 +12,7 @@
  * check (executing/writing/committing) was unreachable — no code ever wrote
  * those states — and has been removed.
  *
- * Free for now — no license check, no tier gating.
+ * Core free forever — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';

@@ -241,7 +241,7 @@ The helper runs full-stack categories: Claude settings, contract counts, vendors
 
 | # | Category | What it verifies |
 |---|----------|------------------|
-| 1 | `license-cleanup` | No `license.json`, `licenseFile`, `tier === 'free'`, or `isPro()` references in plugin hooks. CC Commander is free for now — any residue is a red flag. |
+| 1 | `license-cleanup` | No `license.json`, `licenseFile`, `tier === 'free'`, or `isPro()` references in plugin hooks. CC Commander's core is free forever — any residue is a red flag. |
 | 2 | `hook-chain` | Every `.js` referenced from `hooks.json` exists on disk and uses ESM `import` (not legacy `require`). Flags unregistered orphan hook files. |
 | 3 | `mcp-availability` | `.mcp.json` lists exactly the 2 bundled servers (context7 + sequential-thinking) and `CONNECTORS.md` advertises 16 opt-in connectors. Drift either way is flagged. |
 | 4 | `agent-models` | All 22 sub-agent `.md` frontmatter has the expected `model:` pin. `architect`, `security-auditor`, `debugger`, `product-manager` must be on `claude-opus-4-8`; `designer`, `researcher`, `reviewer` must be on `claude-sonnet-5`. Other agents on legacy aliases (`opus`, `sonnet`, `haiku`) are flagged as upgrade candidates. |
