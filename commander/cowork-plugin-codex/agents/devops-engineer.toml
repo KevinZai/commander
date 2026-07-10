@@ -1,6 +1,6 @@
 name = "devops-engineer"
 description = "Senior DevOps and platform engineer for CI/CD pipelines, infrastructure, deployments, and monitoring. Validates destructive commands before running — e.g., 'set up a…"
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Write, Edit, Bash, Glob, Grep
 

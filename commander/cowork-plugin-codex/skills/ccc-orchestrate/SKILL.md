@@ -1,6 +1,6 @@
 ---
 name: ccc-orchestrate
-description: "Cross-runtime Orchestrator/Executor — Fable/Opus writes a goal file, GPT-5.5 (codex) or a Sonnet subagent executes it, Fable/Opus verifies against acceptance criteria before reporting done."
+description: "Cross-runtime Orchestrator/Executor — Fable/Opus writes a goal file, GPT-5.6 Sol (codex) or a Sonnet subagent executes it, Fable/Opus verifies against acceptance criteria before reporting done."
 allowed-tools:
   - Read
   - Bash
@@ -11,24 +11,26 @@ allowed-tools:
 
 # /ccc-orchestrate — Cross-Runtime Orchestrator/Executor
 
-Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5** or **Opus 4.8** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution then happens **outside this runtime entirely** — on **GPT-5.5 via the `codex` CLI**, or on a **Sonnet subagent** if codex isn't available. The orchestrator never writes production code itself.
+Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5** or **Opus 4.8** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution then happens **outside this runtime entirely** — on **GPT-5.6 Sol via the `codex` CLI**, or on a **Sonnet subagent** if codex isn't available. The orchestrator never writes production code itself.
 
 **CC Commander** · Cross-Runtime Orchestrate · [Docs](https://commanderplugin.com)
 
-> This is `/ccc-plan-exec` generalized past Claude-only: instead of plan (cheap Claude) → execute (capable Claude), it's plan (Fable/Opus) → execute (a *different runtime* — GPT-5.5 or Sonnet). The goal file is the interface between the two systems, so it has to have real teeth.
+> This is `/ccc-plan-exec` generalized past Claude-only: instead of plan (cheap Claude) → execute (capable Claude), it's plan (Fable/Opus) → execute (a *different runtime* — GPT-5.6 or Sonnet). The goal file is the interface between the two systems, so it has to have real teeth.
 
 ---
 
 ## Why cross-runtime
 
-Fable/Opus is expensive per token but excellent at compressing a fuzzy request into a tight, unambiguous spec. GPT-5.5 at high/xhigh reasoning is a strong, comparatively cheaper implementer for well-specified work. The split only pays for itself if the goal file is genuinely load-bearing — vague or hand-wavy acceptance criteria collapse the whole advantage, because the orchestrator ends up re-explaining the task on every re-dispatch anyway. Write the goal file as if the executor has zero conversational context, because on the codex path it does.
+Fable/Opus is expensive per token but excellent at compressing a fuzzy request into a tight, unambiguous spec. GPT-5.6 Sol at high/xhigh reasoning is a strong, comparatively cheaper implementer for well-specified work. The split only pays for itself if the goal file is genuinely load-bearing — vague or hand-wavy acceptance criteria collapse the whole advantage, because the orchestrator ends up re-explaining the task on every re-dispatch anyway. Write the goal file as if the executor has zero conversational context, because on the codex path it does.
+
+**Model guidance (GPT-5.6 family, `commander/adapters/codex/models.js`):** default the executor to **Sol** for real implementation work (deep dev — flagship reasoning). Drop to **Terra** for balanced, well-specified tasks where Sol's extra reasoning wouldn't change the output. Reserve **Luna** for cheap, mechanical steps (renames, boilerplate, formatting) inside a larger loop — never for the primary executor role.
 
 ---
 
 ## The two roles
 
 1. **Orchestrator (Fable 5, effort high, or Opus 4.8 — this session)** — reads the request, asks clarifying questions if the scope is fuzzy, and writes a structured **goal file** to disk. Never edits production code in this mode.
-2. **Executor (GPT-5.5 via codex, or Sonnet subagent)** — reads the goal file verbatim as its entire brief and implements it. Does not re-plan, re-scope, or renegotiate the acceptance criteria.
+2. **Executor (GPT-5.6 Sol via codex, or Sonnet subagent)** — reads the goal file verbatim as its entire brief and implements it. Does not re-plan, re-scope, or renegotiate the acceptance criteria.
 
 The orchestrator resumes after execution to **verify against the goal file's done-when checklist**, not to re-review the diff from scratch.
 
@@ -43,7 +45,7 @@ A Skill.md-shaped markdown spec saved to a scratch path — use the session's sc
 goal: <slug>
 created: <ISO date>
 orchestrator: fable-5 | opus-4.8
-executor: codex-gpt-5.5 | sonnet-subagent
+executor: codex-gpt-5.6-sol | codex-gpt-5.6-terra | codex-gpt-5.6-luna | sonnet-subagent
 ---
 
 # Goal: <one-line outcome>
@@ -91,9 +93,9 @@ question: "Who should execute the goal file?"
 header: "Orchestrate Executor"
 multiSelect: false
 options:
-  - label: "🤖 GPT-5.5 via codex (recommended if installed)"
-    description: "Shells out to the codex CLI with model=gpt-5.5. Different runtime, different failure modes than Claude — good adversarial diversity."
-    preview: "Only offered when `which codex` succeeds."
+  - label: "🤖 GPT-5.6 Sol via codex (recommended if installed)"
+    description: "Shells out to the codex CLI with model=gpt-5.6-sol — flagship deep-reasoning tier. Different runtime, different failure modes than Claude — good adversarial diversity."
+    preview: "Only offered when `which codex` succeeds. Terra/Luna available for lighter steps — see model guidance above."
   - label: "🎯 Sonnet subagent"
     description: "Stays in-Claude. Use when codex isn't installed, or you want a single-vendor audit trail."
     preview: "Dispatched via Workflow/Agent, model=sonnet, goal file as its full prompt."
@@ -123,7 +125,7 @@ git worktree add .claude/worktrees/<goal-slug> -b goal/<goal-slug>
 
 ```js
 const codex = require('./commander/adapters/codex.js');
-const args = codex.buildArgs(goalFileContents, { model: 'gpt-5.5', approval: 'full-auto' });
+const args = codex.buildArgs(goalFileContents, { model: 'gpt-5.6-sol', approval: 'full-auto' });
 ```
 
 `buildArgs` currently supports `model`, `approval`, `allowedTools`, `quiet` — there is **no documented reasoning-effort flag** in this adapter today. If xhigh reasoning on codex is needed, that's a TODO to add to `commander/adapters/codex.js`, not a flag to guess at. Pass the goal file's full contents as `prompt`.
@@ -143,7 +145,7 @@ Back in the orchestrator session, read the executor's diff/output and check it l
 If the goal needs repeated re-dispatch until criteria hold (a convergence loop, not a one-shot), run the verify cycle as a `/goal` loop from the ccc-loop taxonomy — it gives you the gate + iteration cap for free instead of hand-rolled retries.
 
 Report back:
-> 🧭 **Orchestrate: goal file at `<path>`, executed by `<codex-gpt-5.5|sonnet-subagent>`.**
+> 🧭 **Orchestrate: goal file at `<path>`, executed by `<codex-gpt-5.6-sol|codex-gpt-5.6-terra|codex-gpt-5.6-luna|sonnet-subagent>`.**
 > Done-when: N/M criteria met.
 > <if gaps: re-dispatching with the specific gap · if clean: ✅ all criteria verified>
 
@@ -167,7 +169,7 @@ Report back:
 
 ---
 
-**Bottom line:** orchestrator (Fable/Opus) compresses fuzzy intent into a goal file with teeth; executor (GPT-5.5 via codex, or Sonnet) implements it in a different runtime; orchestrator verifies against the checklist before calling it done. Pay for Fable/Opus on the thinking, not the typing — and don't let the typing runtime decide what "done" means.
+**Bottom line:** orchestrator (Fable/Opus) compresses fuzzy intent into a goal file with teeth; executor (GPT-5.6 Sol via codex, or Sonnet) implements it in a different runtime; orchestrator verifies against the checklist before calling it done. Pay for Fable/Opus on the thinking, not the typing — and don't let the typing runtime decide what "done" means.
 
 ---
 

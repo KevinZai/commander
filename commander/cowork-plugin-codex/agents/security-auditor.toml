@@ -1,6 +1,6 @@
 name = "security-auditor"
 description = "Senior application security engineer for OWASP-mapped audits, vulnerability discovery, and remediation planning. Finds CVE/CWE-identified issues with actionable fixes…"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Glob, Grep, Bash, WebSearch
 

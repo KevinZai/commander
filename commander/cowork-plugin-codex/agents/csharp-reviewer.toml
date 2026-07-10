@@ -1,6 +1,6 @@
 name = "csharp-reviewer"
 description = "C#-specific code reviewer. Audits for .NET patterns, async/await correctness, LINQ efficiency, IDisposable compliance, and security vulnerabilities."
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep
 

@@ -1,6 +1,6 @@
 name = "performance-engineer"
 description = "Performance specialist for identifying bottlenecks, profiling hot paths, and estimating improvement impact. Audit-only — reads and analyzes without modifying files —…"
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep
 

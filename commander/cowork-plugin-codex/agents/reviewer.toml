@@ -1,6 +1,6 @@
 name = "reviewer"
 description = "Reviews code changes for security vulnerabilities, performance issues, correctness, and maintainability. Returns severity-rated structured findings — e.g., 'review…"
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Bash, Glob, Grep
 

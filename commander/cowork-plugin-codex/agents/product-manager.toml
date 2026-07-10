@@ -1,6 +1,6 @@
 name = "product-manager"
 description = "Senior product manager for feature scoping, PRD writing, user story creation, and roadmap planning. Produces Linear-ready issues and structured specs — e.g., 'write a…"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Write, Bash, WebSearch
 

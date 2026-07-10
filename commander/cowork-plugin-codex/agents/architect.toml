@@ -1,6 +1,6 @@
 name = "architect"
 description = "Senior software architect for deep system design, architectural trade-offs, and technology selection. Delegated from /ccc-build for architecture decisions, greenfield…"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"  # was tools: Read, Glob, Grep, Bash
 
