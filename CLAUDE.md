@@ -18,7 +18,7 @@ CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantl
 - **Subagent routing:** Auto-routed by complexity — Haiku → Sonnet → Opus → Fable. Main thread stays Opus until you escalate.
 - **Claude Teams (HARD RULE):** Agent Teams is always on — `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` in `.claude/settings.json` env (and in the global `~/.claude/settings.json`). Multi-agent fan-out (`/ccc-fleet`, dynamic workflows) depends on it. Do not disable.
 - **Motto:** "Pay for Fable on the thinking, not the typing."
-- **Orchestrator/Executor doctrine:** `/ccc-orchestrate` (Fable/Opus plans → GPT-5.5 via `codex` or a Sonnet subagent executes → Fable/Opus verifies), `/ccc-plan-exec` (same idea, Claude-only), `/ccc-handoff` (Matt Pocock-style context-reset — hand off to a fresh chat before quality degrades). Full doctrine: `CLAUDE.md.template` § "Orchestrator / Executor Model". Existing (non-CCC) projects adopt these rules via `/ccc-adopt`.
+- **Orchestrator/Executor doctrine:** `/ccc-orchestrate` (Fable/Opus plans → GPT-5.6 Sol via `codex` or a Sonnet subagent executes → Fable/Opus verifies), `/ccc-plan-exec` (same idea, Claude-only), `/ccc-handoff` (Matt Pocock-style context-reset — hand off to a fresh chat before quality degrades). Full doctrine: `CLAUDE.md.template` § "Orchestrator / Executor Model". Existing (non-CCC) projects adopt these rules via `/ccc-adopt`.
 
 ## Workflow-First (default)
 
