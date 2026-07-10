@@ -25,10 +25,9 @@ jobs:
         run: |
           node -e "
           var scanner = require('./commander/ingestion/github-scanner');
-          var result = scanner.run();
-          console.log('Scanned: ' + result.scanned + ' repos, ' + result.saved.new + ' new');
-          " > /tmp/scan-results.txt 2>&1
-          cat /tmp/scan-results.txt
+          var result = scanner.scan();
+          console.log('Scanned: ' + result.total + ' repos total, ' + result.new + ' new');
+          "
 
       - name: Evaluate and curate
         env:
