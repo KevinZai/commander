@@ -13,7 +13,7 @@
 Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Install
 ```
 
-**What you get:** 72 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 502+ ecosystem skills · Free for now.
+**What you get:** 72 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 459 ecosystem skills · Free for now.
 
 <img src="docs/assets/hero.gif" alt="CC Commander v6.6.0 — Claude Code Desktop plugin demo" width="100%">
 
@@ -181,6 +181,17 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 - 💰 **Savings counter + `ccc --savings`** — every dispatch logs estimated cost vs baseline. Footer shows daily estimate (sv$X.XX); report command prints full breakdown to `~/.claude/commander/savings.json`.
 - 🎭 **4 deep personas on Fable** — architect, debugger, security-auditor, product-manager run claude-fable-5 for complex reasoning.
 
+## 🎉 What's new in v6.6.0
+
+- 🎉 **Engagement Engine** — closes the P0 tier of the 2026-07-10 internal Fable audit: F1–F8, F10–F12, F17, F19, F23, and F25.
+- 🪝 **Documented hook delivery** — new `hooks/lib/emit.mjs` contract layer uses `systemMessage` and `hookSpecificOutput.additionalContext`; all 13 status-field emitters converted.
+- 💡 **Always-on skill suggestions** — `suggest-ticker` reads real CI, test, lint, and audit outcomes; at confidence ≥ 0.8 it emits an AskUserQuestion chip bridge: Run skill · Dismiss · `/ccc-browse`.
+- 📝 **`/ccc-claudemd`** — new CLAUDE.md auto-audit with AUQ-gated fixes; plugin skills 71 → 72.
+- 🎨 **Emoji voice injection** — a SessionStart handler injects the emoji-palette convention automatically; persona voice sections inlined across all 22 agents.
+- ✅ **Independent verification** — verifier separation and mandatory git-worktree isolation now cover every write path in `ccc-migrate`, `ccc-orchestrate`, `ccc-plan-exec`, and `ccc-fleet`; a fresh agent verifies or refutes the work.
+- 🧭 **Truthful onboarding** — `ccc-start` computes live counts instead of hardcoding stale totals.
+- 🛠️ **Hook correctness fixes** — permission-gate rejections now surface; cost tracking and ceilings are session-keyed; context guards and warnings estimate real transcript context usage.
+
 ## ⚡ Dynamic Workflows + Ultracode
 
 > **Research preview — requires Claude Code v2.1.154+.** Skills fall back to standard `Agent()` dispatch on older clients.
@@ -291,7 +302,7 @@ CC Commander is a **meta-layer** — it routes to other plugins, not away from t
 | **Primary surface** | Claude Code Desktop plugin + CLI | CLI harness | Claude Code CLI | Claude Code CLI |
 | **Click-first UX** | ✅ Native chip pickers, no typing | ❌ Text menus | ❌ Slash commands | ❌ Slash commands |
 | **Sub-agent personas** | 22 (architect, reviewer, debugger…) | 38 agents | 0 | 3 |
-| **Skill count** | 502+ (72 plugin + 450+ ecosystem) | 156 | ~20 | ~15 |
+| **Skill count** | 531 (72 plugin + 459 ecosystem) | 156 | ~20 | ~15 |
 | **Hosted MCP server** | ✅ (100 calls/mo free) | ❌ | ❌ | ❌ |
 | **Cross-IDE** | ✅ (Cursor, Windsurf, Cline, Codex) | ❌ Claude only | ❌ Claude only | ❌ Claude only |
 | **Free** | ✅ Forever | ✅ | ✅ | ✅ |
@@ -341,7 +352,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 502+ skills,
+You get:  A guided AI project manager with 531 skills,
           72 plugin skills, 22 agents, 19 vendor packages,
           real learning, and zero setup.
 ```
@@ -555,7 +566,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 | Component | Count | What It Does |
 |-----------|-------|-------------|
-| Skills | 502+ | On-demand expertise (deduplicated) |
+| Skills | 459 | On-demand expertise (deduplicated) |
 | Plugin Skills | 72 | Desktop-first skills (13 /ccc-* workflows + 11 domain routers + 7 new channel/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + session management) |
 | Agents | 22 | Specialist sub-agent personas with distinct voice layers |
 | Lifecycle Hooks | 23 × 39 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest |
@@ -870,7 +881,7 @@ No CLI needed. Type `/ccc` in any Claude Code session for the full interactive m
 /ccc makeover     → Auto-apply top fixes
 /ccc refresh      → Update your CLAUDE.md from latest template
 /ccc domains      → Browse 11 CCC domains
-/ccc skills       → Browse 502+ skills
+/ccc skills       → Browse 459 skills
 /ccc grill        → 7-question Socratic planning probe
 /ccc infra        → Infrastructure sub-menu (Fleet, Synapse, Cost, AO, CloudCLI, Paperclip)
 /ccc detect       → Probe all services and CLIs

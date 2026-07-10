@@ -1,7 +1,7 @@
 # Skills Index — Quick Reference
 > CC Commander v6.6.0 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-05-15 | Desktop plugin first: 72 plugin skills (13 /ccc-* workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop + /ccc-orchestrate + /ccc-handoff + /ccc-adopt) + 22 specialist sub-agents + 23 lifecycle hooks (39 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 502+ total skills across vendor ecosystem | 11 CCC Domains | 24 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free for now
+> Last verified: 2026-07-10 | Desktop plugin first: 72 plugin skills (13 /ccc-* workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop + /ccc-orchestrate + /ccc-handoff + /ccc-adopt) + 22 specialist sub-agents + 23 lifecycle hooks (39 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 459 total skills across vendor ecosystem | 11 CCC Domains | 24 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Free for now
 > Audit: `./bin/generate-index.sh --check` to find missing or broken skills
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
@@ -47,7 +47,7 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 |-------|-------------|----------------|
 | `/ccc` | Main CCC hub — interactive menu, session overview | "open ccc", "ccc menu", "show commander" |
 | `/ccc-start` | First-run onboarding — plan file, first win | "get started with ccc", "ccc start" |
-| `/ccc-browse` | Searchable catalog of 502+ skills and 22 sub-agents | "browse skills", "ccc browse" |
+| `/ccc-browse` | Searchable catalog of 459 skills and 22 sub-agents | "browse skills", "ccc browse" |
 | `/ccc-plan` | Spec-first planning — 5-question interview → spec file | "plan a feature", "ccc plan" |
 | `/ccc-build` | Build wizard — web, API, CLI or mobile with spec | "ccc build", "start a build", "new project wizard" |
 | `/ccc-review` | Branch audit — diff, security, perf, x-ray | "ccc review", "review my code", "code review" |
@@ -67,6 +67,7 @@ All 22 sub-agents are free. They fire automatically from skills — no manual in
 | `/ccc-resume-session` | Resume a previously saved session — restores context, todos, and plan | "resume session", "pick up where I left off" |
 | `/ccc-loop` | Loop taxonomy hub — turn/goal/time/proactive loops, `/goal` + `/loop` + `/schedule` guidance, should-you-loop gate, verifier-separation, state-file convention | "loop a skill", "run ccc-doctor every 5 minutes", "continuous review", "goal-based loop" |
 | `/ccc-doctor` | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component | "diagnose plugin", "ccc doctor", "something is broken" |
+| `/ccc-claudemd` | Audit CLAUDE.md against the codebase — stale paths, dead commands, drifted counts; fixes applied only after AskUserQuestion approval | "audit claude md", "check claude md", "is my claude md accurate", "optimize instructions" |
 | `/ccc-tuneup` | Local setup optimizer — companion to /ccc-doctor. Audit + safely remediate: version freshness, junk sweep, CLAUDE.md drift, superseded agents, hooks coverage, MCP staleness, settings keys. Read-only by default; backup + archive before any fix | "tune up ccc", "optimize my setup", "ccc tuneup", "fix my install" |
 | `/ccc-brainstorm` | Guided ideation: problem framing → divergent ideas → convergent shortlist | "brainstorm", "ccc brainstorm", "ideate on this" |
 | `/ccc-qa` | QA workflow router: test planning, coverage audit, edge-case generation, regression sweep | "ccc qa", "qa this", "find edge cases" |

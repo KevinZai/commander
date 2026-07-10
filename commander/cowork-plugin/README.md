@@ -1,10 +1,10 @@
 # CC Commander
 
-> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **60 plugin skills** incl **13 click-first `/ccc-*` workflows** + 14 ccc-* domain routers + 6 channel/CI/ECC skills + diagnostic/meta + vendor-sourced + session/lifecycle skills. **9 lifecycle hooks × 25 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest). **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 502+ skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free for now.**
+> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **72 plugin skills** incl **13 click-first `/ccc-*` specialist workflows** + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle skills. **23 lifecycle hooks × 39 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest). **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 459 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free for now.**
 
-> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 60 skills, 22 agents, 9 lifecycle hooks (25 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 72 skills, 22 agents, 23 lifecycle hooks (39 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
 
-CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **60 native skills** (`/ccc-*`) organized as 13 click-first specialist workflows, 14 domain routers, 6 channel/CI/ECC skills, 2 diagnostic/meta skills, 2 vendor-sourced skills, and session/lifecycle skills. They route into the broader CC Commander ecosystem of 502+ skills across 11 domains.
+CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **72 native skills** (`/ccc-*`) organized as 13 click-first specialist workflows, 14 domain routers, 7 channel/CI/ECC/setup skills, 2 diagnostic/meta skills, 2 vendor-sourced skills, and lifecycle skills. They route into the broader CC Commander ecosystem of 459 skills across 11 domains.
 
 **Who's it for?**
 - 👋 **New to AI coding agents?** Claude Code Desktop + CC Commander = the easiest on-ramp. Install via Settings → Plugin Marketplace.
@@ -21,7 +21,7 @@ Three ways to install CC Commander, depending on how you want to use it:
 
 **1. Desktop plugin marketplace (recommended)**
 
-The full plugin experience — 60 skills, 22 agents, 9 lifecycle hooks (25 handlers), 2 credential-free bundled MCPs + 16 opt-in. All free for now.
+The full plugin experience — 72 skills, 22 agents, 23 lifecycle hooks (39 handlers), 2 credential-free bundled MCPs + 16 opt-in. All free for now.
 
 **Via GUI (Claude Code Desktop / Cowork Desktop):**
 1. Open **Settings → Plugin Marketplace**
@@ -48,7 +48,7 @@ Use this when you want one specific skill without the full plugin, or when mixin
 
 **3. Full CLI install**
 
-Installs the CCC CLI (`ccc` command), all 502+ skills, hooks, commands, and templates into `~/.claude/`.
+Installs the CCC CLI (`ccc` command), all 459 skills, hooks, commands, and templates into `~/.claude/`.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Skills
 
-60 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog. Core surface:
+72 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog. Core surface:
 
 
 | Skill | Trigger | Description |
@@ -91,20 +91,33 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Lifecycle Hooks
 
-9 lifecycle hooks with 25 handlers run automatically throughout every session:
+23 lifecycle hooks with 39 handlers run automatically throughout every session:
 
-| Event | Hook | Behavior | Tier |
-|-------|------|---------|------|
-| `SessionStart` | `session-start` | Loads prior context, surfaces active tasks, prints session footer | Free |
-| `UserPromptSubmit` | `intent-classifier` | Prints skill recommendations based on intent (Pro-tier suggestion system — does not auto-route) | Pro |
-| `PreToolUse` | `cost-tracker` | Tracks approximate tool call count, warns at ceiling | Pro |
-| `PostToolUse` | `knowledge-capture` | Captures Write/Edit file touches to `auto-captures.jsonl` | Pro |
-| `Stop` | `session-save` | Saves session state for seamless resume | Free |
-| `Notification` | `fleet-notify` | Posts fleet agent status updates as they complete | Pro |
-| `PreCompact` | `pre-compact-save` | Saves critical session state before context compaction | Free |
-| `SubagentStop` | `subagent-reporter` | Reports subagent results back to orchestrator on completion | Pro |
-
-> **Note:** UserPromptSubmit, PreToolUse, PostToolUse, Notification, and SubagentStop hooks are Pro-tier — they are no-ops on the free tier. SessionStart, Stop, and PreCompact run on all tiers.
+| Event | Handlers | Count |
+|-------|----------|-------|
+| `SessionStart` | `session-start-orchestrator`, `license-check`, `git-truth` | 3 |
+| `SessionEnd` | `session-save`, `session-end` | 2 |
+| `UserPromptSubmit` | `suggest-ticker`, `intent-classifier`, `context-warning`, `context-guard`, `user-prompt-submit` | 5 |
+| `UserPromptExpansion` | `prompt-expansion-guard` | 1 |
+| `PreToolUse` | `cost-tracker`, `cost-ceiling-enforcer`, `secret-leak-guard`, `config-protection`, `doc-file-warning`, `git-push-reminder` | 6 |
+| `PostToolUse` | `knowledge-capture`, `console-log-warn`, `pr-link-notify` | 3 |
+| `PostToolUseFailure` | `post-tool-failure-logger` | 1 |
+| `PostToolBatch` | `knowledge-capture` | 1 |
+| `Stop` | `suggest-lightweight`, `clickability-watch` | 2 |
+| `StopFailure` | `stop-failure-handler` | 1 |
+| `Notification` | `fleet-notify` | 1 |
+| `PreCompact` | `pre-compact` | 1 |
+| `PostCompact` | `post-compact-recovery` | 1 |
+| `SubagentStart` | `subagent-start-tracker` | 1 |
+| `SubagentStop` | `subagent-stop`, `agent-run-logger` | 2 |
+| `PermissionRequest` | `permission-gate` | 1 |
+| `Elicitation` | `elicitation-logger` | 1 |
+| `ElicitationResult` | `elicitation-result-handler` | 1 |
+| `TaskCreated` | `task-tracker` | 1 |
+| `TaskCompleted` | `task-tracker` | 1 |
+| `ConfigChange` | `config-protection` | 1 |
+| `InstructionsLoaded` | `stale-claude-md-nudge` | 1 |
+| `Setup` | `license-check` | 1 |
 
 ## Quick Start
 
@@ -207,19 +220,34 @@ Lessons compound across projects and teammates.
 
 ## Hook catalog
 
-9 lifecycle events, 25 handlers — fire automatically every session:
+23 lifecycle events, 39 handlers — fire automatically every session:
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
-| SessionStart | New session opens | 3 (init state, claude-md nudge, post-compact recovery) |
-| UserPromptSubmit | User hits Enter | 4 (suggest ticker, intent classifier, context warning, submit logger) |
-| PreToolUse | Before any tool call | 3 (cost tracker, cost ceiling, secret leak guard) |
-| PostToolUse | After tool completes | 1 (knowledge capture) |
-| Stop | Session ends | 2 (session save, session end) |
-| Notification | System-level notification | 1 (fleet notify) |
-| PreCompact | Before context compaction | 1 (block if active subagents) |
-| SubagentStop | Subagent finishes | 1 (dispatch results tracker) |
-| **TOTAL** | **9 events** | **25 handlers** |
+| SessionStart | New session opens | 3 (`session-start-orchestrator`, `license-check`, `git-truth`) |
+| SessionEnd | Session ends | 2 (`session-save`, `session-end`) |
+| UserPromptSubmit | User submits prompt | 5 (`suggest-ticker`, `intent-classifier`, `context-warning`, `context-guard`, `user-prompt-submit`) |
+| UserPromptExpansion | Prompt expansion | 1 (`prompt-expansion-guard`) |
+| PreToolUse | Before tool use | 6 (`cost-tracker`, `cost-ceiling-enforcer`, `secret-leak-guard`, `config-protection`, `doc-file-warning`, `git-push-reminder`) |
+| PostToolUse | After tool use | 3 (`knowledge-capture`, `console-log-warn`, `pr-link-notify`) |
+| PostToolUseFailure | After tool failure | 1 (`post-tool-failure-logger`) |
+| PostToolBatch | After tool batch | 1 (`knowledge-capture`) |
+| Stop | Stop | 2 (`suggest-lightweight`, `clickability-watch`) |
+| StopFailure | Stop failure | 1 (`stop-failure-handler`) |
+| Notification | Notification | 1 (`fleet-notify`) |
+| PreCompact | Before compaction | 1 (`pre-compact`) |
+| PostCompact | After compaction | 1 (`post-compact-recovery`) |
+| SubagentStart | Subagent starts | 1 (`subagent-start-tracker`) |
+| SubagentStop | Subagent stops | 2 (`subagent-stop`, `agent-run-logger`) |
+| PermissionRequest | Permission requested | 1 (`permission-gate`) |
+| Elicitation | Elicitation | 1 (`elicitation-logger`) |
+| ElicitationResult | Elicitation result | 1 (`elicitation-result-handler`) |
+| TaskCreated | Task created | 1 (`task-tracker`) |
+| TaskCompleted | Task completed | 1 (`task-tracker`) |
+| ConfigChange | Config changes | 1 (`config-protection`) |
+| InstructionsLoaded | Instructions loaded | 1 (`stale-claude-md-nudge`) |
+| Setup | Setup | 1 (`license-check`) |
+| **TOTAL** | **23 events** | **39 handlers** |
 
 ## vs aider
 
