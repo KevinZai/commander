@@ -40,8 +40,9 @@ jobs:
 
           if (!fs.existsSync(inboxPath)) { console.log('No discoveries'); process.exit(0); }
 
-          var items = JSON.parse(fs.readFileSync(inboxPath, 'utf8'));
-          var pending = items.filter(function(i) { return i.status === 'pending'; });
+          var parsed = JSON.parse(fs.readFileSync(inboxPath, 'utf8'));
+          var items = Array.isArray(parsed) ? parsed : (parsed.items || []);
+          var pending = items.filter(function(i) { return !i.status || i.status === 'pending'; });
 
           if (pending.length === 0) { console.log('No new items'); process.exit(0); }
 
