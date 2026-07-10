@@ -69,9 +69,9 @@ describe('affiliate-disclosure.mdx', () => {
     }
   });
 
-  it('mentions "free for now" commitment', () => {
+  it('mentions "core free forever" commitment', () => {
     const content = fs.readFileSync(DISCLOSURE_PATH, 'utf8');
-    assert.ok(content.includes('free for now'), 'must state the free-for-now commitment');
+    assert.ok(content.includes('core free forever'), 'must state the core-free-forever commitment');
   });
 
   it('mentions contact/questions section', () => {
