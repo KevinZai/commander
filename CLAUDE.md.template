@@ -4,12 +4,12 @@
 ## Session Startup
 1. Read project-level `CLAUDE.md` if it exists
 2. Read `tasks/todo.md` and `tasks/lessons.md` — resume where you left off
-3. Check CLAUDE.md freshness (run `/ccc:refresh` if stale)
+3. Check CLAUDE.md freshness (run `/ccc-claudemd` if stale)
 4. Greet briefly, mention active tasks if any
 
 ## Environment
 - **Shell:** zsh | **Editor:** Claude Code
-- **CC Commander:** aggregator mode — 18 vendor packages (version: see `package.json`)
+- **CC Commander:** aggregator mode — 19 vendor packages (version: see `package.json`)
 - **Package manager:** npm/pnpm
 - **Task system:** tasks/ directory (todo.md, lessons.md, specs)
 
@@ -155,7 +155,7 @@ After fixing a bug: write a reproduction test FIRST (then fix, then green), swee
 - **Boring Solutions Win.** 100 lines when 100 suffice over 1000 lines with abstractions.
 
 ## Aggregator Ecosystem
-CC Commander aggregates 18 vendor packages via git submodules in `vendor/`.
+CC Commander aggregates 19 vendor packages via git submodules in `vendor/`.
 Smart orchestrator picks the best tool: capability 50% + stars 15% + recency 15% + user pref 20%.
 Auto-updates weekly via GitHub Actions.
 
@@ -183,7 +183,7 @@ All `/ccc` sub-commands open rich menus with recommendations:
 | `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
 | `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
 | `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 453 skills by category, preview, try |
+| `/ccc skills` | Skill browser | 459 skills by category, preview, try |
 | `/ccc domains` | CCC domains | 11 mega-skill domains |
 | `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
 | `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
@@ -207,7 +207,7 @@ Every menu recommends the best next action based on context.
 
 ## Knowledge Compounding
 Sessions compound knowledge. Corrections feed back into CLAUDE.md and tasks/lessons.md.
-Run `/ccc:refresh` periodically to pull latest best practices.
+Run `/ccc-claudemd` periodically to pull latest best practices.
 
 ## MCP Servers [Install separately]
 - `context7` — library docs (add "use context7")
@@ -287,7 +287,7 @@ Claude Code has 4 loop types — turn-based (a prompt, Claude self-judges done),
 |-------|------|---------|
 | CLI filtering | RTK | 99.5% of shell output |
 | Tool sandboxing | context-mode | 98% of tool results |
-| Skill tiering | _tiers.json | ~10k tokens (30 vs 453 skills) |
+| Skill tiering | _tiers.json | ~10k tokens (30 vs 459 skills) |
 | API proxy | ClaudeSwap | Rate limit rotation |
 | Server cache | Prompt caching | 90% discount, 1hr TTL |
 

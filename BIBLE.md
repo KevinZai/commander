@@ -5,6 +5,7 @@
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
+> **Latest: v6.6.0 "Engagement Engine"** — closes the P0 tier of the 2026-07-10 Fable audit: hook delivery rebuilt on documented output fields, always-on skill suggestions now surface as clickable AskUserQuestion chips, new `/ccc-claudemd` CLAUDE.md auditor (72nd plugin skill), and verifier-separation + worktree isolation enforced across every write path.
 
 ---
 
@@ -15,7 +16,7 @@
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists, The Fable Method (12 pillars)
 - [The Loop Taxonomy](#the-loop-taxonomy) — 4 loop primitives, `/goal`/`/loop`/`/schedule`, verifier-separation, state files
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers + always-on PM loop)
-- [The 72 Plugin Skills](#the-71-plugin-skills) — The curated plugin surface
+- [The 72 Plugin Skills](#the-72-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project

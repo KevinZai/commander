@@ -1,6 +1,6 @@
 # CC Commander Cheatsheet
 > CC Commander v6.6.0 — by Kevin Zicherman — commands, workflows, and power user tips
-> Last updated: 2026-05-15 · See CHANGELOG.md for version history
+> Last updated: 2026-07-10 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
@@ -11,6 +11,11 @@
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 72 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
+> **New in v6.6.0 — Engagement Engine**
+> - Hook delivery rebuilt on documented `systemMessage` / `additionalContext` fields.
+> - Always-on skill suggestions now emit an `AskUserQuestion` chip (`Run` / `Dismiss` / `/ccc-browse`) instead of plain text once confidence is high.
+> - New `/ccc-claudemd` skill (72nd plugin skill) audits `CLAUDE.md` drift with AUQ-gated fixes.
+> - Verifier-separation and mandatory worktree isolation are now enforced across every write path (`ccc-migrate`, `ccc-orchestrate`, `ccc-plan-exec`, `ccc-fleet`).
 
 ### Plugin Installation
 
@@ -54,6 +59,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | `/ccc-handoff` | Proactive context reset — dense handoff file, then start a fresh chat before quality decays | Free |
 | `/ccc-adopt` | Adopt CCC doctrine in another repo — merge marked Orchestrator/Executor block into `CLAUDE.md` | Free |
 | `/ccc-fable` | Arm the Fable Method — 12-gate session contract (`on` / `status` / `audit` / `off`) | Free |
+| `/ccc-claudemd` | Audit CLAUDE.md against the codebase — stale paths, dead commands, drifted counts (AUQ-approved fixes only) | Free |
 
 > 🧠 **The Fable Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
