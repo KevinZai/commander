@@ -1,5 +1,5 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-05-15 | Version: see package.json | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-07-10 | Version: 6.5.0 (see package.json) | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -12,8 +12,9 @@
 
 ### The Commandments
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
-- [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists
-- [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers)
+- [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists, The Fable Method (12 pillars)
+- [The Loop Taxonomy](#the-loop-taxonomy) — 4 loop primitives, `/goal`/`/loop`/`/schedule`, verifier-separation, state files
+- [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers + always-on PM loop)
 - [The 71 Plugin Skills](#the-71-plugin-skills) — The curated plugin surface
 
 ### The Chapters
@@ -102,8 +103,8 @@ Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges th
 | `ccc-design` | 41 | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
 | `ccc-testing` | 15 | TDD, E2E, verification, QA, regression, visual testing, load testing |
 | `ccc-marketing` | 45 | Content, CRO, channels, growth, intelligence, sales |
-| `ccc-saas` | 21 | Auth, billing, database, API, frontend stack, metrics, CRO |
-| `ccc-devops` | 21 | CI/CD, containers, AWS, monitoring, zero-downtime deploy, Terraform |
+| `ccc-saas` | 20 | Auth, billing, database, API, frontend stack, metrics, CRO |
+| `ccc-devops` | 20 | CI/CD, containers, AWS, monitoring, zero-downtime deploy, Terraform |
 | `ccc-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
 | `ccc-mobile` | 8 | iOS, Android, React Native, Flutter, Expo, app store optimization |
 | `ccc-security` | 8 | Pen testing, OWASP, supply chain, secrets management, threat modeling |
@@ -176,6 +177,75 @@ Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges th
 **Model-agnostic promise:** a frontier model does some of this by instinct; a mid-tier model does none of it by instinct. That's why every pillar is a gate rather than a value — Sonnet, GPT, or any executor following these gates produces Fable-shaped results. The weaker the model, the more the gates matter. **The method IS the moat.**
 
 **Related:** `/ccc-fable` (arms the doctrine as a session contract) · `rules/workflow-first.md` (Pillars 1, 2, 6, 7, 8, 9, 11 as ambient session rules) · `rules/common/reasoning-hygiene.md` (Pillar 4 in full) · `/ccc-orchestrate` (Pillar 1 implementation) · `/ccc-suggest` (Pillar 10 implementation).
+
+---
+
+## The Loop Taxonomy
+
+> **Pillar 3 (Loops with gates), operationalized.** `/ccc-loop` is the entry point — pick the right loop primitive before you reach for one by habit. Full text: `commander/cowork-plugin/skills/ccc-loop/SKILL.md`.
+
+Claude Code has **four loop primitives**, not one:
+
+| Type | Trigger | Stop criteria | CCC primitive | Best for |
+|---|---|---|---|---|
+| **Turn-based** | A user prompt | Claude judges "done" itself | Just run the skill directly | Short one-off tasks |
+| **Goal-based** | A manual prompt, real-time | Goal achieved OR max turns — an evaluator model checks the condition every time Claude tries to stop | `/goal` | Verifiable exit criteria (test count, score threshold, exact command output) |
+| **Time-based** | An interval | You cancel it, or work completes | `/loop` (local) + `/schedule` (cloud) | Recurring work, polling external systems |
+| **Proactive** | An event or schedule, no human in real time | Each task exits on its own goal; the routine runs until turned off | `/schedule` + `/goal` + dynamic Workflow + auto mode | Recurring streams of well-defined work |
+
+### Should this be a loop? (gate before you build one)
+
+All four must be true, or the loop costs more than it returns:
+
+1. **Recurs at least weekly** — a one-time job is better served by one good prompt.
+2. **Verification is automated** — a test suite, linter, or build that can fail the work without a human in the room.
+3. **Your token budget absorbs the waste** — loops re-read context, retry, explore, whether they ship anything or not.
+4. **The agent has real tools** — logs, a reproduction environment, the ability to run what it writes and see what breaks.
+
+### `/goal` — deterministic stop conditions (Claude Code v2.1.139+)
+
+```
+/goal <what "done" looks like> [, stop after N tries]
+```
+
+The evaluator judges only what Claude has already surfaced in the conversation — it doesn't run commands itself. State the check, not just the goal: `"npm test exits 0"`, not `"tests pass"`.
+
+```
+/goal run /ccc-review until there are zero 🔴 Critical or 🟠 High findings, stop after 5 passes
+/goal get the /ccc-xray health score to 90 or above, stop after 5 tries
+```
+
+### `/loop` and `/schedule` — time-based
+
+```
+/loop [interval] <prompt-or-skill>     # 5m, 30m, 1h, or self-paced if omitted
+```
+
+`/loop` runs on your machine — closing it stops it. Graduate to `/schedule` when the work should survive your laptop closing.
+
+### The verifier-separation rule (non-negotiable)
+
+**The agent that does the work must not be the agent that grades it.** Without a real, independent check, you don't have a loop — you have an agent agreeing with itself on repeat. Spawn a *second* persona for the check step (Agent tool), or route through `/ccc-review` / `/code-review` instead of letting the implementer self-certify.
+
+### State-file convention
+
+Any loop that resumes across runs writes state to `.claude/loop-state/<loop-name>.json`:
+
+```json
+{
+  "iteration": 3,
+  "lastRun": "2026-07-06T14:32:00Z",
+  "attempted": ["fix-1", "fix-2"],
+  "stopCondition": "zero blocking findings",
+  "history": [{ "iteration": 1, "result": "2 blockers found", "ts": "..." }]
+}
+```
+
+Without this, each pass repeats the same mistake because it doesn't know what was already tried. The status-line shows `🔁` when a loop is active (`CLAUDE_LOOP_ACTIVE`).
+
+**Common `/loop` + CCC patterns:** `/loop 5m /ccc-doctor` (health check) · `/loop /ccc-review` (self-paced audit) · `/loop /ccc-suggest` (always-on PM — see below) · `/goal run /ccc-review until zero blocking findings, stop after 5 passes` (deterministic cleanup) · `/schedule nightly /ccc-devops security-scan` (survives laptop close).
+
+**Related:** `commander/cowork-plugin/skills/ccc-loop/SKILL.md` (full taxonomy) · `rules/fable-method.md` Pillar 3 (the gate this section operationalizes) · `/ccc-suggest` (the one skill CCC recommends running as a standing loop).
 
 ---
 
@@ -253,6 +323,29 @@ Every `/ccc-suggest` response ships the same shape:
 
 One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 
+### Always-on mode — the PM loop
+
+`/ccc-suggest` isn't just an on-demand command — it's **auto-triggered on every user turn** via the `suggest-ticker.js` `UserPromptSubmit` hook, running a lightweight Sonnet pass and surfacing recommendations based on the current **involvement level**:
+
+| Level | Name | Behavior | Default when |
+|---|---|---|---|
+| 1 | **Passive** | Reasoning runs but never displays — logs to `~/.claude/commander/suggest-log.jsonl` | Project is green (tests pass, branch clean, no todos) |
+| 2 | **Gentle nudge** | One-line suggestion at the bottom, only when confidence ≥ HIGH | Signals present but no blockers (default) |
+| 3 | **Assertive** | Boxed recommendation card at the top with confidence + alternatives | Blockers present (failed CI, security alerts, drift) |
+| 4 | **Autopilot** | Runs the top read-only recommendation after a 5-second countdown | Never auto-activates — opt-in only via `CCC_SUGGEST_LEVEL=4` |
+
+Every pass — explicit invocation and ambient tick alike — runs **three PM lenses** before ranking anything else, framed by Fable Method Pillar 10:
+
+1. **IMPROVE** — what skill/hook could make things better right now? Same fix twice → propose encoding it.
+2. **SCOPE** — is the current work properly defined? No plan file or ballooning scope → flag it. **SCOPE outranks IMPROVE.**
+3. **AUDIT** — what's currently unverified? Branch ahead with no review, deps unscanned, docs drifted → surface it.
+
+**Arm it as a standing loop:** `/ccc-suggest loop` starts `/loop /ccc-suggest` (self-paced) or `/loop 30m /ccc-suggest` — a **time-based** loop per the taxonomy above, graduating to `/schedule /ccc-suggest` for teams. It's the one skill CCC recommends running as a standing loop rather than one-shot, because it passes the should-you-loop gate on all four counts: recurs every turn, verifier = deterministic project-state signals (not self-judged), cost = capped cheap Sonnet pass per tick, real tools = git/gh/fs already wired.
+
+**State file** (dogfoods the `/ccc-loop` convention): `.claude/loop-state/ccc-suggest.json` — tracks `iteration`, `dismissed`, and `history`. **Anti-nag rule:** a suggestion in `dismissed` is never re-surfaced unless its underlying signal materially changed (e.g. CI flips from green to red). `/ccc-suggest loop status` shows iteration count + last recommendation + dismissed list; `/ccc-suggest loop stop` cancels it.
+
+**Overrides:** `CCC_SUGGEST_LEVEL=1..4` hard-locks the level · `CCC_SUGGEST_DISABLE=1` disables ambient mode entirely · `/ccc-suggest --tune` calibrates via a quick AskUserQuestion flow.
+
 ---
 
 ## The 71 Plugin Skills
@@ -283,8 +376,8 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 | `ccc-ecc` | Selective ECC loader: one skill, agent, or hook without the full harness |
 | `ccc-design` (domain router) | Routes into 41 ccc-design sub-skills |
 | `ccc-marketing` (domain router) | Routes into 45 ccc-marketing sub-skills |
-| `ccc-saas` (domain router) | Routes into 21 ccc-saas sub-skills |
-| `ccc-devops` (domain router) | Routes into 21 ccc-devops sub-skills |
+| `ccc-saas` (domain router) | Routes into 20 ccc-saas sub-skills |
+| `ccc-devops` (domain router) | Routes into 20 ccc-devops sub-skills |
 | `ccc-seo` (domain router) | Routes into 20 ccc-seo sub-skills |
 | `ccc-testing` (domain router) | Routes into 15 ccc-testing sub-skills |
 | `ccc-security` (domain router) | Routes into 8 ccc-security sub-skills |
@@ -295,9 +388,9 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 | `ccc-more` | Long-tail menu (settings, infra, night mode, standup) |
 | `ccc-spike` / `ccc-spike-confirm` | Experimental spike + confirm-to-land flow |
 
-**Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
+**Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
-**Plus 2 pre-wired MCPs** (Tavily, Context7, Firecrawl, Exa, GitHub, Figma, Playwright, claude-mem) + 23 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification).
+**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 23 lifecycle hooks × 39 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, and more).
 
 ---
 
@@ -1177,8 +1270,8 @@ Instead of loading 5-15 individual skills per session, load ONE CCC domain to ge
 "Use the ccc-design skill"    → All 41 design/animation skills loaded
 "Use the ccc-testing skill"   → All 15 testing skills loaded
 "Use the ccc-marketing skill" → All 45 marketing skills loaded
-"Use the ccc-saas skill"      → All 21 SaaS building skills loaded
-"Use the ccc-devops skill"    → All 21 DevOps skills loaded
+"Use the ccc-saas skill"      → All 20 SaaS building skills loaded
+"Use the ccc-devops skill"    → All 20 DevOps skills loaded
 "Use the ccc-research skill"  → All 8 research skills loaded
 "Use the ccc-mobile skill"    → All 8 mobile dev skills loaded
 "Use the ccc-security skill"  → All 8 security skills loaded
@@ -1735,17 +1828,28 @@ All at: [anthropic.skilljar.com](https://anthropic.skilljar.com)
 
 **Source:** @aakashgupta on X (2026)
 
-### Available MCP Servers (Always On)
+### Available MCP Servers
+
+CC Commander bundles **2 credential-free MCPs** out of the box (no setup needed):
 
 | MCP | Say this... | For... |
 |-----|------------|--------|
 | `context7` | "use context7" | Latest library docs |
+| `sequential-thinking` | (used internally by agents) | Structured multi-step reasoning |
+
+**16 more connect via `/ccc-connect`** (opt-in, credentials required) — examples below. Which ones you have depends on what you've connected; these are not bundled or "always on":
+
+| MCP | Say this... | For... |
+|-----|------------|--------|
 | `playwright` | "screenshot this" | Browser automation, E2E testing |
-| `github` | "check the repo" | Personal GitHub |
-| `github-gn` (example) | "check Guest Networks repo" | Secondary org GitHub |
+| `github` | "check the repo" | GitHub issues/PRs |
 | `n8n-mcp` | "run the workflow" | n8n automation |
 | `granola` | "check my meeting notes" | Meeting transcripts |
-| `claude-peers` | "message the agent" | Agent-to-agent comms |
+| `figma` | "pull this Figma design" | Figma → code |
+| `supabase` | "check the database" | Supabase project ops |
+| `slack` | "post to the channel" | Slack messaging |
+
+Full connector list: `commander/cowork-plugin/CONNECTORS.md`.
 
 ---
 
@@ -2464,13 +2568,13 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 CC Commander follows a **brain/hands** separation:
 
 - **Brain (Claude):** Your main Claude Code session reads project context, routes intent, and makes decisions.
-- **Hands (CC Commander):** 22 specialist sub-agent personas execute the work — scoped, specialized, and disposable.
+- **Hands (CC Commander):** 22 specialist sub-agent personas execute the work — scoped, specialized, and disposable. 15 general-purpose personas plus 7 language-specific code reviewers (TypeScript, Python, Go, Rust, Java, Kotlin, C#).
 
 When you run `/ccc-review`, Claude doesn't guess how to do a code review. It loads the `reviewer` persona (Sonnet, read-only tools, structured severity format) and delegates. When the reviewer finishes, the persona is gone. The next task starts fresh. Context stays clean because each sub-agent operates at full capacity instead of a generalist stretched thin.
 
 This is the same pattern Anthropic describes in their Claude Agent SDK documentation: a parent session orchestrates specialist children, each with a narrow tool allowlist and a fixed turn budget.
 
-### The 15 Sub-Agent Personas
+### The 22 Sub-Agent Personas
 
 Each persona has a fixed model tier, voice system, and tool allowlist:
 
@@ -2491,12 +2595,19 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 | 13 | `researcher` | Sonnet 5 | Deep research, citation management |
 | 14 | `technical-writer` | Sonnet 5 | Documentation, clarity audits |
 | 15 | `fleet-worker` | Sonnet 5 | Parallel batch execution |
+| 16 | `typescript-reviewer` | Sonnet 5 | Type safety, async correctness, ESM/CJS hygiene |
+| 17 | `python-reviewer` | Sonnet 5 | PEP 8, type hints, async/await, pytest quality |
+| 18 | `go-reviewer` | Sonnet 5 | Effective Go idioms, gofmt, race conditions, channels |
+| 19 | `rust-reviewer` | Sonnet 5 | Ownership/lifetimes, unsafe blocks, clippy, tokio patterns |
+| 20 | `java-reviewer` | Sonnet 5 | PMD/Spotless, Spring patterns, NPE prevention |
+| 21 | `kotlin-reviewer` | Sonnet 5 | Idiomatic Kotlin, coroutines, Android patterns, null safety |
+| 22 | `csharp-reviewer` | Sonnet 5 | .NET patterns, async/await, LINQ, IDisposable compliance |
 
-Fable 5 personas (`architect`, `security-auditor`, `debugger`, `product-manager`) need deep multi-angle reasoning. Opus 4.8 is the everyday session default. Sonnet handles the rest at lower cost.
+Fable 5 personas (`architect`, `security-auditor`, `debugger`, `product-manager`) need deep multi-angle reasoning. Opus 4.8 is the everyday session default. Sonnet handles the rest at lower cost, including all 7 language-specific reviewers (16-22) — mechanical, well-specified audits are exactly the de-escalation candidates the Fable Method's Pillar 11 (Effort calibration) calls out.
 
 ### What This Means for Users
 
-You don't configure sub-agents. You don't pick them. The skills route automatically based on task type. `/ccc-review` spawns a reviewer + security-auditor. `/ccc-build` spawns a builder. `/ccc-plan` spawns a product-manager for the spec interview. You interact with the result — not the machinery.
+You don't configure sub-agents. You don't pick them. The skills route automatically based on task type. `/ccc-review` spawns a reviewer + security-auditor (plus the matching language-specific reviewer when the diff is TypeScript, Python, Go, Rust, Java, Kotlin, or C#). `/ccc-build` spawns a builder. `/ccc-plan` spawns a product-manager for the spec interview. You interact with the result — not the machinery.
 
 ---
 ## CC Commander
@@ -2705,7 +2816,7 @@ Vue/Nuxt, React patterns, multi-frontend, multi-backend, multi-plan, multi-execu
 #### ccc-data (8 sub-skills)
 Data analysis, data visualization, SQL queries, statistical analysis, explore data, validate data, build dashboard, data context extractor.
 
-**Total: 190 verified sub-skills across 11 CCC domains.**
+**Total: 192 verified sub-skills across the 10 counted CCC domains** (design 41 + marketing 45 + saas 20 + devops 20 + seo 19 + testing 15 + security 8 + research 8 + mobile 8 + data 8) **+ ccc-makeover** (`/xray` audit + `/makeover` swarm + report generation, routed from a single SKILL.md) **= 11 CCC domains total.**
 
 
 
