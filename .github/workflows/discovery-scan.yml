@@ -5,6 +5,10 @@ on:
     - cron: '0 8 * * 3'  # Wednesday 8am UTC
   workflow_dispatch:  # Manual trigger
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   scan:
     runs-on: ubuntu-latest
