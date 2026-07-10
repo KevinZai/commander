@@ -36,7 +36,7 @@
       "mcp"
     ],
     "websiteURL": "https://commanderplugin.com",
-    "defaultPrompt": "/ccc",
+    "defaultPrompt": ["/ccc"],
     "brandColor": "#7c3aed",
     "composerIcon": "./assets/marketplace/composer-icon.png",
     "logo": "./assets/marketplace/logo.png",

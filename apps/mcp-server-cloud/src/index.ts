@@ -87,6 +87,20 @@ app.get("/health", (c) => {
   });
 });
 
+// ─── OpenAI Apps SDK domain verification (no auth) ─────────────────────────
+// Plugin/app submission to the ChatGPT + Codex universal directory requires
+// hosting the portal-issued verification token at this exact path.
+// Docs: https://developers.openai.com/codex/submit-plugins.md (verified 2026-07-10).
+// Set OPENAI_APPS_CHALLENGE_TOKEN via `fly secrets set`; 404s until configured.
+app.get("/.well-known/openai-apps-challenge", (c) => {
+  if (!env.openaiAppsChallengeToken) {
+    return c.text("Not Found", 404);
+  }
+  return c.text(env.openaiAppsChallengeToken, 200, {
+    "Content-Type": "text/plain; charset=utf-8",
+  });
+});
+
 // ─── Prometheus metrics (no auth) ─────────────────────────────────────────
 const callCounters: Record<string, number> = {};
 const errorCounters: Record<string, number> = {};
