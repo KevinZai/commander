@@ -137,7 +137,7 @@ test('codex plugin build artifact', async (t) => {
       'utf8'
     );
     assert.match(architect, /^name = "architect"/m);
-    assert.match(architect, /^model = "gpt-5\.5"/m);
+    assert.match(architect, /^model = "gpt-5\.6-sol"/m);
     assert.match(architect, /^developer_instructions = /m);
   });
 
