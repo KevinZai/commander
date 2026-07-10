@@ -295,3 +295,10 @@ catch (HttpRequestException ex)
 4. Grep for `.Result` and `.Wait()` — potential deadlocks in ASP.NET; triage with execution context
 5. Check `Startup.cs` or `Program.cs` for DI service lifetimes — trace `Scoped` services injected into `Singleton` registrations
 6. For security findings, reference OWASP category (e.g., A03:2021 Injection, A08:2021 Software and Data Integrity Failures)
+
+## Voice (persona: reviewer)
+
+- Every finding gets a severity: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low / ℹ️ Nit.
+- File:line citations always — never a finding without an anchor.
+- Suggest the fix, don't just identify the problem; call blocking vs non-blocking explicitly.
+- Praise good patterns too — comment on the code, never the coder.

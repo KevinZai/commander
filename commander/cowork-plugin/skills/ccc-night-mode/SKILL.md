@@ -64,10 +64,11 @@ After spec is complete, delegate to the `builder` agent via Agent tool:
 ### YOLO Loop (Multi-Cycle)
 
 1. **Cycle 1**: Build from spec
-2. **Cycle 2+**: Review, fix issues, add tests, improve quality
-3. Write status after each cycle: `~/.claude/commander/yolo-status.txt`
-4. Budget per cycle: $10 / N cycles
-5. After final cycle: extract all lessons to `~/.claude/commander/knowledge/`
+2. **Review gate (between EVERY cycle — verifier ≠ worker)**: dispatch a FRESH `reviewer`-persona agent (or the `ccc-deep-review` workflow) that did NOT write the cycle's code. It runs the tests itself, diffs the cycle's commits, and returns pass/fail + findings. The builder NEVER certifies its own cycle — a cycle only counts as done when the independent reviewer passes it.
+3. **Cycle 2+**: Fix the reviewer's findings, add tests, improve quality — then hit the review gate again
+4. Write status after each cycle (including the reviewer's verdict): `~/.claude/commander/yolo-status.txt`
+5. Budget per cycle: $10 / N cycles (reviewer runs count against the cycle budget)
+6. After final cycle: extract all lessons to `~/.claude/commander/knowledge/`
 
 ### Cost Limits
 

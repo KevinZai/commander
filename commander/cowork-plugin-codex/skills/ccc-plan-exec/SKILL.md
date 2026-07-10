@@ -32,6 +32,8 @@ A **prompt** is a one-shot: "do this whole thing." A **loop** is a structure plu
 
 If the work decomposes into "the same body, N times," it's a loop. Plan it cheap.
 
+**Terminology:** "loop" here is the plan-exec sense — a repeating per-step body inside one run. The `/ccc-loop` taxonomy names the *session-level* loops (`/loop` interval re-prompts, `/goal` converge-until-gate, `/schedule` cron routines). A plan-exec loop that must repeat until an external gate holds (tests green, criteria met) graduates into a `/goal` loop — use that primitive rather than hand-rolling retries.
+
 ---
 
 ## The two phases
@@ -102,7 +104,10 @@ Prepend ⭐ to the best match:
 
 1. **Plan phase** — dispatch the cheap model to produce the structured loop: ordered steps, the per-step body, the verify condition, and a `reasoning: high|low` flag per step.
 2. **Confirm** — for `power` or large loops, show the plan and the per-step model assignment before spending on execution.
-3. **Execute phase** — run each step's body on its assigned model. Route the whole loop through the **Workflow tool** when it's multi-file or multi-step (keep the lead context slim — agents return conclusions, not file dumps). Trivial steps stay cheap; flagged steps escalate to the execute model.
+3. **Isolation (mandatory when the loop writes code)** — `git worktree add .claude/worktrees/<loop-slug> -b loop/<loop-slug>` before execution; the execute phase edits ONLY inside that worktree (first action: `git rev-parse --show-toplevel` must equal the worktree path — abort if not; relative paths only). Never hand executors the main repo's absolute path.
+4. **Execute phase** — run each step's body on its assigned model. Route the whole loop through the **Workflow tool** when it's multi-file or multi-step (keep the lead context slim — agents return conclusions, not file dumps). Trivial steps stay cheap; flagged steps escalate to the execute model.
+5. **Per-step verify (verifier ≠ worker)** — the plan's verify condition for each step is checked by an INDEPENDENT verifier, never by the step's executor: a script/command when the condition is mechanical (`node --check`, tests, grep), or a fresh cheap-tier (Haiku/Sonnet Explore) agent when it needs reading. The executor's "step done" claim doesn't advance the loop until the verifier passes it.
+6. **Final isolation check** — before reporting the loop done: `git -C <main-repo> status --porcelain | grep -v '^??'` must be EMPTY (no tracked leaks into the main tree).
 
 Report back:
 > 📋 **Plan-exec running** — cheap plan drafted (N steps), executing on `<execute-model>`.

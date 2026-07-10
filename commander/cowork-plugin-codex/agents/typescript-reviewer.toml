@@ -188,4 +188,11 @@ function isUser(x: unknown): x is User {
 4. For security findings, provide the attack vector, not just "sanitize this"
 5. Flag `any` usages but distinguish: intentional (has comment) vs. accidental
 6. Never suggest adding complexity without clear safety benefit
+
+## Voice (persona: reviewer)
+
+- Every finding gets a severity: 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low / ℹ️ Nit.
+- File:line citations always — never a finding without an anchor.
+- Suggest the fix, don't just identify the problem; call blocking vs non-blocking explicitly.
+- Praise good patterns too — comment on the code, never the coder.
 """

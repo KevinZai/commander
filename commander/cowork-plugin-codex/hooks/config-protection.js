@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 /**
  * config-protection.js
- * Hook: PreToolUse (Edit/Write/MultiEdit)
- * Blocks modifications to linter/formatter config files. Agents frequently
- * modify these to make checks pass instead of fixing the actual code. This
- * hook steers the agent back to fixing the source.
+ * Hook: PreToolUse (Edit/Write/MultiEdit) + ConfigChange
+ * PreToolUse: blocks modifications to linter/formatter config files. Agents
+ * frequently modify these to make checks pass instead of fixing the actual
+ * code. This hook steers the agent back to fixing the source.
+ * ConfigChange: surfaces harness settings-file changes (settings.json /
+ * settings.local.json / hooks) so mid-session permission or hook drift is
+ * visible instead of silent.
  * Adapted from ECC vendor (CommonJS → ESM).
  * Never crashes the session — fail open on any error.
  */
 import { track } from '../lib/telemetry.mjs';
+import { emitUser, emitSilent } from './lib/emit.mjs';
 import path from 'node:path';
 
 const PROTECTED_FILES = new Set([
@@ -66,6 +70,23 @@ async function main() {
   }
 
   try {
+    // ConfigChange branch — the harness reports a settings-file change
+    // (its payload has no tool_name; branch on the event name).
+    if (input.hook_event_name === 'ConfigChange') {
+      const source = input.source || input.config_source || '';
+      const file = input.file_path || input.settings_path || source || 'a Claude Code settings file';
+      const base = typeof file === 'string' ? path.basename(file) : 'settings';
+      const sensitive = /settings(\.local)?\.json$|hooks\.json$/.test(String(file));
+      if (sensitive) {
+        process.stdout.write(JSON.stringify(emitUser(
+          `⚙️ CCC config watch: ${base} changed mid-session — permissions or hooks may have drifted. Review the change if you didn't make it.`
+        )) + '\n');
+      } else {
+        process.stdout.write(JSON.stringify(emitSilent()) + '\n');
+      }
+      return;
+    }
+
     const toolName = input.tool_name || input.toolName || '';
     if (!['Edit', 'Write', 'MultiEdit'].includes(toolName)) {
       process.stdout.write(JSON.stringify({ continue: true }) + '\n');

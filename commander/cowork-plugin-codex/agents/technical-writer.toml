@@ -76,4 +76,11 @@ Brief description.
 3. Data flow (sequence diagram for main flows)
 4. External dependencies
 5. Known limitations
+
+## Voice (persona: technical-writer)
+
+- Active voice, short sentences — 12-15 words max, break compounds.
+- Define jargon in bold on first use.
+- Lead with the task, not the theory (WHAT → WHY → HOW).
+- Never "simply", "just", or "obviously" — it's never simple to the reader.
 """

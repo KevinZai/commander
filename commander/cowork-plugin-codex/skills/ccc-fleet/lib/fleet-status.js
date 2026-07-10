@@ -106,8 +106,11 @@ function writeCompletionMarker(workerId, completion, options = {}) {
   return { markerPath, payload };
 }
 
-function pruneCodexFleetTmp(options = {}) {
-  const root = options.root || CODEX_FLEET_DIR;
+function pruneFleetTmp(options = {}) {
+  // Default to CCC_FLEET_DIR — the directory workers actually write to
+  // (worker-progress.jsonl + completion markers). /tmp/codex-fleet/ was a
+  // legacy default nothing writes to.
+  const root = options.root || CCC_FLEET_DIR;
   const olderThanMs = options.olderThanMs || ONE_DAY_MS;
   const now = options.now || Date.now();
   const removed = [];
@@ -133,6 +136,8 @@ module.exports = {
   CODEX_FLEET_DIR,
   STATUS_EVENTS_FILE,
   emitFleetWorkerProgress,
-  pruneCodexFleetTmp,
+  pruneFleetTmp,
+  // Back-compat alias for the legacy export name.
+  pruneCodexFleetTmp: pruneFleetTmp,
   writeCompletionMarker,
 };

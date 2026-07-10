@@ -1,50 +1,22 @@
 #!/usr/bin/env node
 // CC Commander — SessionStart license check hook
-// Reads the current license tier and sets CCC_TIER in the environment
-// so downstream skills can gate Pro features without re-validating.
+//
+// EXPLICIT NO-OP (2026-07-10, F6/F16): CC Commander is free for now — no
+// feature gating, no paywalls, no license tiers. The old tier machinery
+// (getLicenseTier → process.env.CCC_TIER) was dead code twice over: the env
+// write died with this process and nothing ever consumed CCC_TIER. Rather
+// than pretend tiers exist, this hook now just confirms the free posture.
+// If a paid tier ever ships for real, persist the tier to
+// ~/.claude/commander/state.json (not a process env var) and give it a
+// consumer before resurrecting any of this.
 //
 // Outputs a single JSON line to stdout (Claude Code hook protocol).
-// Logs tier badge to stderr (visible in Cowork Desktop session panel).
 
-import { getLicenseTier, getLicenseKey } from '../lib/license.js';
 import { track } from '../lib/telemetry.mjs';
 
-const TIER_LABELS = {
-  'starter':     'Starter',
-  'pro-monthly': 'Pro (monthly)',
-  'pro-yearly':  'Pro (annual)',
-  'lifetime':    'Pro (lifetime)',
-};
-
 async function main() {
-  let tier = 'starter';
-  try {
-    tier = await getLicenseTier();
-  } catch {
-    // Fail-open — never block a session due to license errors
-  }
-
-  // Expose tier for downstream skills (process-level, not persisted)
-  process.env.CCC_TIER = tier;
-
-  const label = TIER_LABELS[tier] ?? 'Starter';
-  const isPro = tier !== 'starter';
-
   // Visible in Cowork Desktop session panel
-  process.stderr.write(`[CCC] License: ${label}\n`);
-
-  if (isPro) {
-    // Optionally surface when Pro was last validated (non-blocking)
-    try {
-      const key = await getLicenseKey();
-      if (key) {
-        const masked = key.slice(0, 8) + '••••••••';
-        process.stderr.write(`[CCC] License key: ${masked}\n`);
-      }
-    } catch {
-      // Non-fatal
-    }
-  }
+  process.stderr.write('[CCC] Free for now — all skills, agents, hooks and MCPs enabled\n');
 
   // Telemetry
   track('hook_fired', { hook: 'SessionStart', handler: 'license-check' });
@@ -54,6 +26,6 @@ async function main() {
 }
 
 main().catch(() => {
-  // Last-resort catch — never let a license hook crash a session
+  // Last-resort catch — never let this hook crash a session
   process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
 });

@@ -106,6 +106,35 @@ if (process.argv.includes('--check')) {
     errors.push('Vendor count ' + vendorStr + ' not in CLAUDE.md (expected "' + vendorStr + ' vendor")');
   }
 
+  // Onboarding truth: ccc-start must not carry stale hardcoded counts (F6).
+  var pluginRoot = path.join(ROOT, 'commander', 'cowork-plugin');
+  var startPath = path.join(pluginRoot, 'skills', 'ccc-start', 'SKILL.md');
+  var startMd = '';
+  try { startMd = fs.readFileSync(startPath, 'utf8'); } catch (_) {}
+  if (startMd) {
+    var liveAgents = countFilesByExt(path.join(pluginRoot, 'agents'), '.md');
+    var liveSkills = countFilesNamed(path.join(pluginRoot, 'skills'), 'SKILL.md');
+    var liveMcps = 0;
+    try {
+      liveMcps = Object.keys(JSON.parse(fs.readFileSync(path.join(pluginRoot, '.mcp.json'), 'utf8')).mcpServers || {}).length;
+    } catch (_) {}
+    var claims = [
+      { re: /agents available:\s*(\d+)/g, live: liveAgents, label: 'agent count' },
+      { re: /The (\d+) agents/g, live: liveAgents, label: 'agent count' },
+      { re: /(\d+) specialist agent personas/g, live: liveAgents, label: 'agent count' },
+      { re: /(\d+) (?:plugin )?skills\b/g, live: liveSkills, label: 'plugin skill count' },
+      { re: /(\d+) bundled MCP/g, live: liveMcps, label: 'bundled MCP count' },
+    ];
+    claims.forEach(function (c) {
+      var m;
+      while ((m = c.re.exec(startMd)) !== null) {
+        if (Number(m[1]) !== c.live) {
+          errors.push('ccc-start/SKILL.md hardcodes ' + c.label + ' ' + m[1] + ' but live count is ' + c.live + ' ("' + m[0] + '")');
+        }
+      }
+    });
+  }
+
   if (errors.length > 0) {
     process.stderr.write('FAIL: ' + errors.length + ' count mismatch(es)\n');
     errors.forEach(function (e) { process.stderr.write('  - ' + e + '\n'); });
