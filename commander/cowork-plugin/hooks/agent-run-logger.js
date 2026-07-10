@@ -12,7 +12,7 @@
  * Rotation: if agent-runs.jsonl exceeds 10MB, renames it to
  *   agent-runs.YYYY-MM-DD.jsonl and starts a fresh file.
  *
- * Free for now — no license check, no tier gating.
+ * Core free forever — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir, stat, rename } from 'node:fs/promises';

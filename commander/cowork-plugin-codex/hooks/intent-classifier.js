@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// License-tier gate removed 2026-04-23 — CC Commander is free for now.
+// License-tier gate removed 2026-04-23 — CC Commander is core free forever.
 import { track } from '../lib/telemetry.mjs';
 import { emitUser, emitSilent } from './lib/emit.mjs';
 import { join } from 'node:path';
