@@ -1,6 +1,6 @@
 ---
 name: caveman-mode
-description: Ultra-compressed communication — ~75% fewer output tokens while keeping full technical accuracy. Three levels: lite, full, ultra.
+description: "Ultra-compressed communication — ~75% fewer output tokens while keeping full technical accuracy. Three levels: lite, full, ultra."
 tags: [mode, tokens, efficiency, cost-saving]
 disable-model-invocation: true
 ---
