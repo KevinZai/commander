@@ -99,6 +99,7 @@ Before ranking tier-1/2/3 signals, evaluate the project through all three PM len
 
 ### Tier 1 — Strong signals (drive the recommendation)
 - **Substantive task (multi-file / research / audit / migration / repo-wide)** → recommend running it workflow-first (the Workflow tool or `/ccc-fleet` / `/ccc-ultracode`); agents return conclusions, not file dumps. See `commander/cowork-plugin/rules/workflow-first.md`.
+- **Isolated / parallel work described** (a background job, a separate *unrelated* task, "handle this independently", "while I'm away") → offer to spin it into its **own session** instead of derailing the current thread: a `spawn_task` chip in Cowork Desktop, or `/spawn quick <task>` in the CLI. Detected automatically every turn by the suggest ticker (`hooks/suggest-ticker.js` → `detectIsolationSignal`), deduped so it never nags. **Never spawn without the user's go-ahead.**
 - **Branch is ahead of main + tests present** → `/ccc-review diff` (audit before PR)
 - **Branch is ahead of main + no tests** → `/ccc-build` with TDD emphasis OR `/ccc-plan` if spec unclear
 - **No CLAUDE.md + empty repo or only README** → `/ccc-start` (onboard + plan file)
