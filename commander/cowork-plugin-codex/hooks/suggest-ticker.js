@@ -313,6 +313,76 @@ function maybeClickabilityReminder() {
   }
 }
 
+/**
+ * Detect when the user's prompt describes an ISOLATED / PARALLEL unit of work
+ * — something that would be better handled in its own session than derailing
+ * the current thread. Pure function; returns { reason, phrase } or null.
+ *
+ * Precision over recall: fires only on strong isolation phrasing, never on a
+ * bare "also" (too common). If the user already knows about spawning
+ * (mentions spawn / fleet / a separate session by name), we stay silent —
+ * they don't need the nudge.
+ */
+export function detectIsolationSignal(promptText) {
+  if (!promptText || typeof promptText !== 'string') return null;
+  // User already knows the spawn surface — don't nudge them toward it.
+  if (/\b(spawn|\/spawn|spawn_task|ccc-fleet|fleet-worker|new session|separate session)\b/i.test(promptText)) {
+    return null;
+  }
+  const STRONG = [
+    { re: /\b(in the background|as a background task|background job)\b/i, reason: 'a background job' },
+    { re: /\b(in parallel|on the side|on a separate track|meanwhile|while you'?re at it)\b/i, reason: 'parallel work' },
+    { re: /\b(spin (up|off)|kick off) (a|an|another)\b/i, reason: 'a spun-off task' },
+    { re: /\b(handle|do|run) (this|that|it|the [\w-]+(?:\s+[\w-]+){0,3}) (separately|independently|on its own)\b/i, reason: 'an independent task' },
+    { re: /\b(separately|unrelated|different (repo|project|codebase))[,:]/i, reason: 'a separate, unrelated task' },
+    { re: /\b(while (i|you)('| a)?m? (away|out|afk|asleep|at lunch|gone))\b/i, reason: 'unattended work' },
+  ];
+  for (const { re, reason } of STRONG) {
+    const m = promptText.match(re);
+    if (m) return { reason, phrase: m[0] };
+  }
+  return null;
+}
+
+/**
+ * Proactive isolation-spawn nudge (CC-1370 slice 1). When the prompt describes
+ * isolated/parallel work, instruct the model to OFFER spinning it into its own
+ * session — surface-aware: a spawn_task chip in Cowork Desktop, or `/spawn
+ * quick` in the CLI. Hooks can't call spawn_task/AskUserQuestion; the model can
+ * — same bridge pattern as the AUQ suggestion below.
+ *
+ * Anti-nag: the same detected phrase is suggested at most once (deduped via a
+ * seen-file), so a lingering phrase across turns doesn't repeat. Respects
+ * CCC_SUGGEST_DISABLE. Fail-open — never breaks the hook chain.
+ */
+function maybeSpawnNudge(promptText) {
+  if (process.env.CCC_SUGGEST_DISABLE === '1') return null;
+  try {
+    const signal = detectIsolationSignal(promptText);
+    if (!signal) return null;
+
+    const seenFile = path.join(STATE_DIR, 'spawn-nudge-seen.json');
+    const key = signal.phrase.toLowerCase().replace(/\s+/g, ' ').trim();
+    let last = '';
+    try { last = JSON.parse(fs.readFileSync(seenFile, 'utf8')).key || ''; } catch {}
+    if (key === last) return null; // same phrase already nudged — don't nag
+
+    try {
+      fs.mkdirSync(STATE_DIR, { recursive: true });
+      fs.writeFileSync(seenFile, JSON.stringify({ key, ts: Date.now() }));
+    } catch {}
+
+    return (
+      `CCC isolation signal: the user described ${signal.reason} ("${signal.phrase}"). ` +
+      `Once the immediate ask is handled, OFFER to run it in its own session instead of derailing this thread — ` +
+      `in Claude Cowork via a spawn_task chip [⭐ Spawn as separate session, Keep here, Dismiss]; ` +
+      `in the Claude Code CLI via \`/spawn quick <task>\`. Do not spawn without the user's go-ahead.`
+    );
+  } catch {
+    return null; // fail-open
+  }
+}
+
 function main(payload = {}) {
   if (process.env.CCC_SUGGEST_DISABLE === '1') {
     return emitSilent();
@@ -335,6 +405,13 @@ function main(payload = {}) {
     const reminder = maybeClickabilityReminder();
     if (reminder) modelNotes.push(reminder);
   } catch { /* fail-open */ }
+
+  // Proactive isolation-spawn nudge — offer to spin isolated/parallel work
+  // into its own session (spawn_task chip in Cowork / /spawn in CLI).
+  try {
+    const spawnNudge = maybeSpawnNudge(promptText);
+    if (spawnNudge) modelNotes.push(spawnNudge);
+  } catch { /* fail-open — never break the hook chain */ }
 
   try {
     fs.mkdirSync(STATE_DIR, { recursive: true });
