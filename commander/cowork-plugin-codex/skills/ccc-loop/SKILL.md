@@ -121,6 +121,10 @@ Without this, each pass repeats the same mistake because it doesn't know what wa
 
 New loop-capable skills should prefer the `.claude/loop-state/<loop-name>.json` shape above over inventing a new ad-hoc file per skill.
 
+## Relay — cross-session chaining
+
+Everything above loops *inside* one session. To chain *separate* loop sessions — a spec loop that hands to a build loop that hands to a review loop, each independently gated, each launching the next automatically — see **`ccc-relay`** (the "Finn Loop" pattern). A relay extends the `.claude/loop-state/<name>.json` shape here with a `{ phase, next, signal, handoff }` block, passes the baton through a durable mailbox (state file, Linear status, or a 🚀 reaction), and requires the full should-loop gate plus verifier-separation on *every* link — because fresh context per link is exactly what makes the downstream review a real verifier. Reach for `/ccc-relay` when the whole `spec → build → review → merge` arc should run as auto-handing-off sessions instead of one session iterating.
+
 ## Managing token usage
 
 - **Pilot before a big fan-out** — dynamic Workflows can spawn hundreds of agents. Test on a small slice first.

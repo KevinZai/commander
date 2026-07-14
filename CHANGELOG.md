@@ -2,6 +2,21 @@
 
 All notable changes to CC Commander will be documented in this file.
 
+## [6.7.0] — 2026-07-13
+
+**ccc-relay + ccc-smb-ops** — two new front-door capabilities: cross-session loop chaining and a small-business-operations domain.
+
+### Added
+
+- **`/ccc-relay` — cross-session loop chaining (plugin skill)** — composes a `spec → build → review → merge` relay of *independent*, individually-gated loop sessions. Each link runs with fresh context and passes a durable `handoff` baton (state file / Linear / a 🚀 reaction) to the next; per-link gates, worktree isolation, and a human merge gate cap the blast radius. Composes `ccc-loop` (each link), `ccc-fleet` (parallelism within a link), and `/spawn` (launch the next) rather than re-implementing them.
+- **`ccc-smb-ops` — small-business-operations domain** — one ecosystem router (`skills/ccc-smb-ops/`) + 6 sub-skills (invoicing & AR, cash-flow forecast, expense tracking, payroll planning, CRM hygiene, weekly owner brief) + a plugin router (`commander/cowork-plugin/skills/ccc-smb-ops/`). Owner-facing operations, not just code.
+- Fable contract footers on every new plugin `SKILL.md` via `scripts/add-fable-contract.js`.
+
+### Changed
+
+- Plugin skill count 73 → 75; ecosystem skill count (`skills/` tree) 459 → 466; total catalog 531 → 541 (75 plugin + 466 ecosystem).
+- Version 6.6.0 → 6.7.0 across `package.json`, `commander/cowork-plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `apps/mcp-server-cloud/package.json` (+ lockfile), and `commander/contract.json`; codex mirror rebuilt via `npm run build:codex`; product-contract + doc-sync surfaces re-synced.
+
 ## [6.6.0] — 2026-07-10
 
 **Engagement Engine** — closes the P0 tier of the 2026-07-10 Fable audit (F1–F8, F10–F12, F17, F19, F23, F25 + engagement phases 2–3).
