@@ -1,5 +1,11 @@
 # Changelog
 
+## [6.7.3] - 2026-07-14
+
+### Added
+- **/ccc-prompt-fix** — the auto prompt fixer (plugin skill). Diagnoses a user prompt against the 6 prompt-quality patterns (outcome-not-steps, self-check, reference, measurable target, artifact, answer-format), returns a tightened rewrite with per-pattern reasoning, and suggests the matching library prompt. Modes: fix / last / for-a-task / score. plugin_skills 76 to 77.
+- **claude-code-library** — integrated the Claude Code prompt library into the ecosystem (`skills/claude-code-library`): 52 copy-paste prompts across Discover, Design, Build, Ship, Operate + a 7-module best-practices course, adapted from Anthropic's published docs. ecosystem_skills to 467. This is the ground-truth `/ccc-prompt-fix` reads from.
+
 ## [6.7.2] - 2026-07-14
 
 ### Added

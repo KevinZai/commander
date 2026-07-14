@@ -2,7 +2,7 @@
 # DO NOT edit by hand. Run: node scripts/build-from-registry.js --generate
 
 generated: 2026-07-14
-version: 6.7.2
+version: 6.7.3
 skills:
   - id: ab-test-setup
     path: skills/ab-test-setup/SKILL.md
@@ -204,6 +204,11 @@ skills:
     domain: general
     tier: free
     description: "name: claude-api"
+  - id: claude-code-library
+    path: skills/claude-code-library/SKILL.md
+    domain: general
+    tier: free
+    description: "name: claude-code-library"
   - id: claude-md-refresh
     path: skills/claude-md-refresh/SKILL.md
     domain: general
@@ -1214,6 +1219,11 @@ skills:
     domain: ccc-plan-exec
     tier: free
     description: "name: ccc-plan-exec"
+  - id: ccc-prompt-fix
+    path: skills/ccc-prompt-fix/SKILL.md
+    domain: ccc-prompt-fix
+    tier: free
+    description: "name: ccc-prompt-fix"
   - id: ccc-qa
     path: skills/ccc-qa/SKILL.md
     domain: ccc-qa
