@@ -2,9 +2,9 @@
 
 ## What This Is
 
-CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Core free forever** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **72 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 39 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 459 skills, 11 CCC domains, 83+ commands, 24 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Core free forever** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **75 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 39 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 466 skills, 11 CCC domains, 83+ commands, 24 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** v6.6.0 — Engagement Engine: hook delivery layer rebuilt on the documented output fields (`systemMessage` / `hookSpecificOutput.additionalContext` via `hooks/lib/emit.mjs`), always-on skill suggestions with an AUQ chip bridge, emoji voice injector, new `/ccc-claudemd` auto-check skill (72nd plugin skill), verifier-separation + worktree isolation enforced across all write paths, and an onboarding truth pass. Closes the P0 tier of the 2026-07-10 Fable audit. (Full notes in CHANGELOG.md.) · npm package `cc-commander@6.6.0` (version tracked in `package.json`)
+**Current Release:** v6.7.0 — two new front-door skills: `/ccc-relay` (cross-session loop chaining — a `spec → build → review → merge` relay of independent gated loop sessions, each passing a durable handoff baton with fresh context per link) and the `ccc-smb-ops` domain (small-business operations: invoicing/AR, cash-flow forecast, expense tracking, payroll planning, CRM hygiene, weekly owner brief). Ships the ecosystem router + 6 sub-skills plus a plugin router. Verifier ≠ worker and worktree isolation enforced across the new write paths. (Full notes in CHANGELOG.md.) · npm package `cc-commander@6.7.0` (version tracked in `package.json`)
 
 ## Session Defaults
 
@@ -36,7 +36,7 @@ The lead session is a **control plane** — decisions, delegations, and verified
 
 ## Desktop Plugin (PRIMARY PRODUCT)
 
-CC Commander's primary product as of v6.6.0. Claude Cowork Desktop / Claude Code Desktop install:
+CC Commander's primary product as of v6.7.0. Claude Cowork Desktop / Claude Code Desktop install:
 
 **Via GUI (Cowork Desktop / Code Desktop):**
 1. Settings → Plugin Marketplace → **Add from GitHub**
@@ -51,7 +51,7 @@ CC Commander's primary product as of v6.6.0. Claude Cowork Desktop / Claude Code
 
 **Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
 
-**v6.6.0:** 72 plugin skills (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup + /ccc-orchestrate + /ccc-handoff + /ccc-adopt) + 22 specialist agents + 23 lifecycle hooks × 39 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **core free forever**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; hosted-infrastructure Pro tier planned later — all content stays free forever.
+**v6.7.0:** 75 plugin skills (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup + /ccc-orchestrate + /ccc-handoff + /ccc-adopt + /ccc-relay + /ccc-smb-ops) + 22 specialist agents + 23 lifecycle hooks × 39 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **core free forever**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; hosted-infrastructure Pro tier planned later — all content stays free forever.
 
 **The 12 /ccc-* specialist workflows (all click-first via AskUserQuestion native picker):**
 - `/ccc` — main hub (6 intents via nested AUQ)
@@ -72,7 +72,7 @@ CC Commander's primary product as of v6.6.0. Claude Cowork Desktop / Claude Code
 
 Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
 
-### Architecture note (v6.6.0+)
+### Architecture note (v6.7.0+)
 
 Plugin commands are provided as **SKILLS** (not plugin commands) so they appear as plain `/ccc-*` in the autocomplete (no `commander:` namespace prefix). This is the correct primitive for click-first UX in Cowork Desktop. Menus live in `commander/cowork-plugin/menus/*.json` (root + 6 sub-menus); the template at `commander/cowork-plugin/lib/menu-artifact.html.tpl` and renderer at `commander/cowork-plugin/lib/menu-render.js` are kept for future use if/when Claude Desktop adds interactive-artifact support, but the active UX uses AskUserQuestion-native chip pickers (confirmed working in Cowork Desktop).
 
@@ -93,7 +93,7 @@ Key components:
 - `commander/knowledge.js` — Knowledge compounding (learns from every session)
 - `commander/plugins.js` — Auto-detects gstack, CE, Superpowers, sequences them
 - `commander/adventures/*.json` — 14 JSON decision tree flows
-- `commander/cowork-plugin/` — Desktop plugin (72 skills, 22 sub-agent personas, 23 hooks × 39 handlers, 2 credential-free bundled MCP servers per `.mcp.json` + 16 opt-in via `/ccc-connect`)
+- `commander/cowork-plugin/` — Desktop plugin (75 skills, 22 sub-agent personas, 23 hooks × 39 handlers, 2 credential-free bundled MCP servers per `.mcp.json` + 16 opt-in via `/ccc-connect`)
 - `commander/update-check.js` — Update checker (4h cache, silent on failure, runs at session start)
 - `commander/tests/paths.test.js` — 18 E2E path tests
 
@@ -105,7 +105,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ```
 ├── commander/cowork-plugin/     # Desktop plugin (primary product)
 │   ├── .claude-plugin/plugin.json   # Plugin manifest (schema-compliant)
-│   ├── skills/                  # 72 plugin skills (23 ccc-* workflows + 7 channel/CI/ECC/setup + remaining lifecycle + 2 vendor-sourced + 25 other + /ccc-tuneup)
+│   ├── skills/                  # 75 plugin skills (23 ccc-* workflows + 7 channel/CI/ECC/setup + remaining lifecycle + 2 vendor-sourced + 25 other + /ccc-tuneup)
 │   ├── agents/                  # 22 specialist agents (architect, reviewer, builder, designer, security-auditor, typescript-reviewer, python-reviewer, etc.)
 │   ├── hooks/                   # 23 lifecycle hooks (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup)
 │   ├── menus/                   # 7 menu JSON trees (root + 6 sub-menus)
@@ -113,7 +113,7 @@ Tests: `node --test commander/tests/paths.test.js`
 │   ├── .mcp.json                # 2 credential-free bundled MCP server configs (context7, sequential-thinking) — 16 more opt-in via /ccc-connect
 │   ├── CONNECTORS.md            # 10 connector categories
 │   └── rules/                   # 17 persona voice files + common response-style
-├── skills/              # 459 skills organized by category
+├── skills/              # 466 skills organized by category
 │   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
 │   ├── mode-switcher/   # 10 workflow modes
 ��   ├── init-decision-tree/  # /ccc-init project wizard
@@ -163,7 +163,7 @@ claude-code-prompts (142), MengTo/Skills (web design + prompting, 100★).
 CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
 
 ```
-━━ CCC4.0.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯457│📋CC-150│📂~/project
+━━ CCC4.0.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯466│📋CC-150│📂~/project
 ```
 
 Render this at session start and after major actions. Source: `commander/cockpit.js`.
@@ -177,7 +177,7 @@ All `/ccc` sub-commands open rich menus with recommendations:
 | `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
 | `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
 | `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 459 skills by category, preview, try |
+| `/ccc skills` | Skill browser | 466 skills by category, preview, try |
 | `/ccc domains` | CCC domains | 11 ccc-* domains |
 | `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
 | `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
@@ -202,9 +202,9 @@ Every menu recommends the best next action based on context.
 
 ## Current Status
 
-**Version:** 6.6.0 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
+**Version:** 6.7.0 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
 
-**Stats:** 459 skills total, 72 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (39 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 24 JS hooks, 19 vendors, 10 themes
+**Stats:** 466 skills total, 75 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (39 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 24 JS hooks, 19 vendors, 10 themes
 
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
@@ -266,7 +266,7 @@ ccc --status                  # Health check
 
 ## Ecosystem Context
 
-CCC ships 72 focused `/ccc-*` plugin skills as the curated front door, then routes into 457 CCC ecosystem skills across 11 domains. It is a meta-layer over the broader Claude skill ecosystem — not a replacement for it.
+CCC ships 75 focused `/ccc-*` plugin skills as the curated front door, then routes into 466 CCC ecosystem skills across 11 domains. It is a meta-layer over the broader Claude skill ecosystem — not a replacement for it.
 
 **External ecosystems CCC plays well with:**
 - `anthropics/skills` — official Anthropic skills (Frontend Design, Theme Factory, Spec Writer)
@@ -283,9 +283,9 @@ CCC ships 72 focused `/ccc-*` plugin skills as the curated front door, then rout
 
 **When Claude agents load this CLAUDE.md, they should know:**
 - CCC is a meta-layer over the Claude skill ecosystem — curation + guidance + memory, not raw skills
-- 67 `/ccc-*` plugin skills are the curated front door; they route into 459+ deeper skills
+- 67 `/ccc-*` plugin skills are the curated front door; they route into 466+ deeper skills
 - `CONNECTORS.md` defines 13 tool-agnostic connector categories via `~~category` placeholders — skills are tool-agnostic
-- Everything core free forever: 72 plugin skills, 22 agents, 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect, 23 lifecycle hooks × 39 handlers. No feature gating, no paywalls, no license checks.
+- Everything core free forever: 75 plugin skills, 22 agents, 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect, 23 lifecycle hooks × 39 handlers. No feature gating, no paywalls, no license checks.
 - Revenue model: core free forever — 4 levers: (1) transparent affiliate links in /ccc-connect (Supabase, Vercel, Neon, etc.) + (2) Kevin's consulting pipeline (plugin = trust engine → consulting funnel) + (3) optional Pro community ($49/mo Discord) + (4) GitHub Sponsors
 
 ## UI Components
