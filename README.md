@@ -892,7 +892,7 @@ Prefer to jump straight to a specialist? Each capability is its own `/ccc-*` com
 | Auto-apply the top fixes | `/ccc-makeover` |
 | Audit & optimize your project's CLAUDE.md | `/ccc-claudemd` |
 | Browse the 11 CCC domains | `/ccc-domains` |
-| Browse the 466 skills | `/ccc-browse` |
+| Browse the 467 skills | `/ccc-browse` |
 | Spec-first planning interview | `/ccc-plan` |
 | Infrastructure sub-menu (Fleet, Cost, Paperclip, …) | `/ccc-infra` |
 | Diagnose services & CLIs | `/ccc-doctor` |
