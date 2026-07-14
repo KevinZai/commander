@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.7.1] - 2026-07-14
+
+### Added
+- **/ccc-broadcast** — outbound-status relay skill. Pushes CC Commander build/deploy/CI/task/cost signals to a team's `~~chat`/`~~email` (via /ccc-connect) so non-devs see what shipped without watching a terminal. Read-only, scrubbed (event + outcome + link only, never file contents/diffs/secrets), audience-classified. The outbound counterpart to /ccc-nightwatch (inbound approvals). plugin_skills 74 → 75.
+
 All notable changes to CC Commander will be documented in this file.
 
 ## [6.7.0] — 2026-07-13

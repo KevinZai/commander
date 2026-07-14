@@ -2,7 +2,7 @@
 # DO NOT edit by hand. Run: node scripts/build-from-registry.js --generate
 
 generated: 2026-07-14
-version: 6.7.0
+version: 6.7.1
 skills:
   - id: ab-test-setup
     path: skills/ab-test-setup/SKILL.md
@@ -994,6 +994,11 @@ skills:
     domain: ccc-brainstorm
     tier: free
     description: "name: ccc-brainstorm"
+  - id: ccc-broadcast
+    path: skills/ccc-broadcast/SKILL.md
+    domain: ccc-broadcast
+    tier: free
+    description: "name: ccc-broadcast"
   - id: ccc-browse
     path: skills/ccc-browse/SKILL.md
     domain: ccc-browse
