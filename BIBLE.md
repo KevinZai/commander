@@ -1,11 +1,11 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-07-10 | Version: 6.7.3 (see package.json) | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-07-14 | Version: 6.7.3 (see package.json) | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
-> **Latest: v6.7.3 "Engagement Engine"** — closes the P0 tier of the 2026-07-10 Fable audit: hook delivery rebuilt on documented output fields, always-on skill suggestions now surface as clickable AskUserQuestion chips, new `/ccc-claudemd` CLAUDE.md auditor (72nd plugin skill), and verifier-separation + worktree isolation enforced across every write path.
+> **Latest: v6.7.3** — v6.7 adds `/ccc-relay` for durable cross-session spec → build → review handoffs, the 6-skill `ccc-smb-ops` domain, scrubbed outbound `/ccc-broadcast` status, click-first `/ccc-spawn`, and the `/ccc-prompt-fix` coach backed by a new ecosystem library of 52 prompts plus a 7-module Claude Code course.
 
 ---
 
@@ -16,7 +16,7 @@
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists, The Fable Method (12 pillars)
 - [The Loop Taxonomy](#the-loop-taxonomy) — 4 loop primitives, `/goal`/`/loop`/`/schedule`, verifier-separation, state files
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers + always-on PM loop)
-- [The 77 Plugin Skills](#the-72-plugin-skills) — The curated plugin surface
+- [The 77 Plugin Skills](#the-77-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -356,38 +356,82 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 | Skill | What it does |
 |---|---|
 | `ccc` | Main hub — 6-intent chip picker |
-| `ccc-suggest` 🌟 | Intelligence layer — ONE starred next step + reasoning |
-| `ccc-start` | First-run onboarding + plan file + persona intro |
-| `ccc-browse` | Cascading catalog: Domains · Workflows · Agents · All |
-| `ccc-plan` | Spec interview → plan file in `~/.claude/plans/` |
-| `ccc-build` | Scaffold: web / API / CLI / mobile / from-spec |
-| `ccc-review` | Audit: diff / security / perf / full x-ray |
-| `ccc-ship` | Pre-flight → release → deploy → rollback |
-| `ccc-design` | UI/UX: landing / components / polish / Figma→code |
-| `ccc-learn` | Skill discovery across 11 CCC domains |
-| `ccc-xray` | Project health scorecard with per-finding spawn chips |
-| `ccc-linear` | Linear integration: view / pick / create / overview |
-| `ccc-fleet` | Multi-agent orchestration: fan-out / pipeline / FOR-AGAINST / background |
-| `ccc-connect` | Opt-in MCP connector: Notion / Zapier / Supabase / Slack / GDrive |
-| `ccc-cheatsheet` | Live Mermaid map of the whole plugin — filesystem-backed |
-| `ccc-orchestrate` | Cross-runtime Orchestrator/Executor: Fable/Opus goal file → GPT-5.5 or Sonnet executor → verified result |
-| `ccc-handoff` | Dense context-reset handoff file for frequent fresh-chat resumes |
 | `ccc-adopt` | Merge the CCC Orchestrator/Executor doctrine into an existing project's `CLAUDE.md` |
+| `ccc-agent-writing` | Clear, persuasive, testable specs and documentation |
+| `ccc-brainstorm` | Design-first ideation with 3 alternatives before code |
+| `ccc-broadcast` | Scrubbed build/deploy/CI/task/cost status to chat or email |
+| `ccc-browse` | Cascading catalog: Domains · Workflows · Agents · All |
+| `ccc-build` | Scaffold: web / API / CLI / mobile / from-spec |
+| `ccc-changelog` | Render the latest release as a concise digest |
+| `ccc-cheatsheet` | Live filesystem-backed map of the whole plugin |
+| `ccc-ci` | CI/CD webhook channel and failure diagnostics |
+| `ccc-claudemd` | Audit `CLAUDE.md` drift with approval-gated fixes |
+| `ccc-code-review` | Security, performance, correctness, and maintainability review |
+| `ccc-connect` | Opt-in MCP connector setup |
+| `ccc-content` | Blog, social, email, copy, and documentation creation |
+| `ccc-data` | Data router: pipelines, SQL, analytics, ML ops |
+| `ccc-debate` | Adversarial multi-agent debate and synthesis |
+| `ccc-deploy` | Detect, run, and verify a platform deployment |
+| `ccc-deploy-check` | Pre-deployment readiness gate |
+| `ccc-design` | 41-skill design router and click-first UI/UX workflow |
+| `ccc-devops` | DevOps router: CI/CD, containers, cloud, IaC, runbooks |
+| `ccc-doc-sync` | Sync version and count references from canonical sources |
+| `ccc-doctor` | Plugin and local-install diagnostic report |
+| `ccc-domains` | Browse and activate the 11 canonical CCC domains |
+| `ccc-e2e` | Isolated unit, QA, and Playwright release assessment |
+| `ccc-ecc` | Selective Everything Claude Code component loader |
+| `ccc-fable` | Arm the model-agnostic Fable Method session contract |
+| `ccc-fleet` | Worktree-isolated multi-agent orchestration |
+| `ccc-fleet-viz` | Live agent fleet progress and cost view |
+| `ccc-handoff` | Dense context-reset handoff for a fresh chat |
+| `ccc-harden` | Read-only production hardening audit across 11 pillars |
+| `ccc-hermes` | Optional OpenClaw Hermes Gateway bridge |
+| `ccc-infra` | Infrastructure, fleet, cost, and worker-pool hub |
+| `ccc-knowledge` | Search and browse compounded project lessons |
+| `ccc-learn` | Skill discovery across 11 CCC domains |
+| `ccc-linear` | Linear integration: view / pick / create / overview |
+| `ccc-linear-board` | Browse and sync Linear issues |
+| `ccc-loop` | Safe recurring-loop taxonomy, gates, and state convention |
+| `ccc-makeover` | Project audit, design swarm, and report card |
+| `ccc-marketing` | Marketing router: content, CRO, growth, sales |
+| `ccc-memory` | Two-tier persistent project memory |
+| `ccc-mobile` | Mobile router: React Native, Flutter, SwiftUI, Android |
+| `ccc-more` | Long-tail click-first tools menu |
+| `ccc-night-mode` | Checkpointed autonomous overnight builds |
+| `ccc-nightwatch` | Remote approval relay for unattended sessions |
+| `ccc-onboard` | Contributor onboarding and first-hour checklist |
+| `ccc-orchestrate` | Cross-runtime Orchestrator/Executor with independent verification |
+| `ccc-plan` | Spec interview → implementation plan file |
+| `ccc-plan-exec` | Cheap-model plan, capable-model execution loop |
+| `ccc-prompt-fix` | Diagnose prompts against 6 patterns and tighten them |
+| `ccc-qa` | Test planning, coverage, edge cases, and flaky-test quarantine |
+| `ccc-recall` | Search prior Claude Code sessions |
+| `ccc-relay` | Durable spec → build → review cross-session loop chain |
+| `ccc-research` | Research router: multi-source, competitive, literature, synthesis |
+| `ccc-resume-session` | Restore a saved session briefing |
+| `ccc-review` | Audit branch diff, security, performance, or full x-ray |
+| `ccc-rollback` | Revert, redeploy, and verify recovery |
+| `ccc-saas` | SaaS router: auth, billing, database, APIs, growth |
+| `ccc-save-session` | Save decisions, changes, failures, and next steps |
+| `ccc-security` | Security router: OWASP, secrets, dependencies, incidents |
+| `ccc-seo` | SEO router: technical, AI search, content, analytics |
+| `ccc-session` | Session history, resume, and review router |
+| `ccc-settings` | Theme, cost, integration, and hook configuration |
+| `ccc-ship` | Pre-flight → release → deploy → rollback |
+| `ccc-smb-ops` | 6-skill small-business operations router |
+| `ccc-spawn` | Click-first isolated session, fleet, relay, or expert spawn |
+| `ccc-standup` | Standup update from recent project activity |
+| `ccc-start` | First-run onboarding + plan file + persona intro |
+| `ccc-suggest` 🌟 | Intelligence layer — ONE starred next step + reasoning |
+| `ccc-systematic-debugging` | Root-cause-first Iron Law debugging |
+| `ccc-tasks` | Lightweight Markdown task tracking |
+| `ccc-testing` | Testing router: TDD, E2E, visual, load, coverage |
+| `ccc-triage` | GitHub issue and PR triage |
+| `ccc-tuneup` | Read-only local setup optimization with safe fixes |
+| `ccc-ultracode` | Maximum-reasoning dynamic workflow orchestration |
+| `ccc-upgrade` | Audit and update vendor submodules |
+| `ccc-xray` | Project health scorecard with fix chips |
 | `ccc-yolo-setup` | Safe-YOLO permissions + Plan mode guardrails |
-| `ccc-ecc` | Selective ECC loader: one skill, agent, or hook without the full harness |
-| `ccc-design` (domain router) | Routes into 41 ccc-design sub-skills |
-| `ccc-marketing` (domain router) | Routes into 45 ccc-marketing sub-skills |
-| `ccc-saas` (domain router) | Routes into 20 ccc-saas sub-skills |
-| `ccc-devops` (domain router) | Routes into 20 ccc-devops sub-skills |
-| `ccc-seo` (domain router) | Routes into 20 ccc-seo sub-skills |
-| `ccc-testing` (domain router) | Routes into 15 ccc-testing sub-skills |
-| `ccc-security` (domain router) | Routes into 8 ccc-security sub-skills |
-| `ccc-data` (domain router) | Routes into 8 ccc-data sub-skills |
-| `ccc-research` (domain router) | Routes into 8 ccc-research sub-skills |
-| `ccc-mobile` (domain router) | Routes into 8 ccc-mobile sub-skills |
-| `ccc-makeover` (domain router) | `/xray` audit + `/makeover` swarm + report card |
-| `ccc-more` | Long-tail menu (settings, infra, night mode, standup) |
-| `ccc-spike` / `ccc-spike-confirm` | Experimental spike + confirm-to-land flow |
 
 **Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
@@ -1525,7 +1569,7 @@ My tools: [list tools/APIs]."
 
 ### 🛠️ Plugin Workflows (v6.7.3)
 
-CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. 12 specialist workflows ship in the plugin — no menu traversal required:
+CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 77 skills; these core workflow shortcuts require no menu traversal:
 
 | Workflow | What it does |
 |----------|-------------|
@@ -1541,6 +1585,11 @@ CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash
 | `/ccc-research` | Structured competitive / market research |
 | `/ccc-design` | Route into the 41-skill design domain |
 | `/ccc-deploy` | Pre-deploy GO/CAUTION/NO-GO gate |
+| `/ccc-relay` | Chain independently gated spec → build → review sessions with a durable baton |
+| `/ccc-broadcast` | Relay scrubbed build, deploy, CI, task, and cost status to chat or email |
+| `/ccc-spawn` | Start an isolated session, fleet, relay, or expert pass from one click-first hub |
+| `/ccc-prompt-fix` | Diagnose a prompt against 6 quality patterns and return a tighter rewrite |
+| `/ccc-smb-ops` | Route into 6 owner-facing invoicing, cash-flow, expense, payroll, CRM, and briefing skills |
 
 Pick one and the plugin handles it — no service ports, no persistent process. For CLI-only power-user commands (fleet dispatch, AO worker pool, cost dashboard), see the [CLI-Only Commands appendix](#cli-only-commands-cli-power-user) below.
 

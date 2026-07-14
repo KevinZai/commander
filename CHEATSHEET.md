@@ -56,6 +56,11 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | `/ccc-nightwatch` | Remote YOLO permission relay — approve tool calls from mobile | Free |
 | `/ccc-ci` | CI/CD gate: lint, test, build, branch checks, pre-push hooks | Free |
 | `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus goal file, GPT-5.5 or Sonnet executes, orchestrator verifies | Free |
+| `/ccc-relay` | Cross-session loop chaining — spec → build → review as gated hand-off sessions | Free |
+| `/ccc-smb-ops` | Small-business ops domain — invoicing/AR, cash-flow, payroll, CRM, weekly owner brief | Free |
+| `/ccc-broadcast` | Outbound status relay — push scrubbed build/deploy/CI/cost signals to team chat/email | Free |
+| `/ccc-spawn` | Click-first spawn hub — isolated session (Cowork chip / CLI /spawn), routes to fleet/relay | Free |
+| `/ccc-prompt-fix` | Auto prompt fixer — diagnose a prompt against the 6 patterns + return a tighter rewrite | Free |
 | `/ccc-handoff` | Proactive context reset — dense handoff file, then start a fresh chat before quality decays | Free |
 | `/ccc-adopt` | Adopt CCC doctrine in another repo — merge marked Orchestrator/Executor block into `CLAUDE.md` | Free |
 | `/ccc-fable` | Arm the Fable Method — 12-gate session contract (`on` / `status` / `audit` / `off`) | Free |

@@ -13,7 +13,7 @@
 Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Install
 ```
 
-**What you get:** 77 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 466 ecosystem skills · Core free forever.
+**What you get:** 77 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 467 ecosystem skills · Core free forever.
 
 <img src="docs/assets/hero.gif" alt="CC Commander v6.7.3 — Claude Code Desktop plugin demo" width="100%">
 
@@ -21,7 +21,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
-[![GitHub stars](https://img.shields.io/github/stars/KevinZai/commander?style=for-the-badge&logo=github&color=FFD43B)](https://github.com/KevinZai/commander/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/502%2B_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/77_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v6.3.0](https://img.shields.io/badge/v6.3.0?style=for-the-badge)](./CHANGELOG.md)
+[![GitHub stars](https://img.shields.io/github/stars/KevinZai/commander?style=for-the-badge&logo=github&color=FFD43B)](https://github.com/KevinZai/commander/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/544_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/77_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v6.7.3](https://img.shields.io/badge/v6.7.3?style=for-the-badge)](./CHANGELOG.md)
 
 <p>
   <strong>Powered by:</strong>
@@ -37,7 +37,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 19 vendor packages
 
-**[Why CC Commander](#-why-cc-commander)** · **[The 70 skills](#the-70-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
+**[Why CC Commander](#-why-cc-commander)** · **[The 77 skills](#the-77-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ### 🎯 Who it's for
 
@@ -192,6 +192,15 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 - 🧭 **Truthful onboarding** — `ccc-start` computes live counts instead of hardcoding stale totals.
 - 🛠️ **Hook correctness fixes** — permission-gate rejections now surface; cost tracking and ceilings are session-keyed; context guards and warnings estimate real transcript context usage.
 
+## 🚀 What's new in v6.7.x
+
+- 🏃 **`/ccc-relay` (v6.7.0)** — chains independent, gated spec → build → review sessions with a durable handoff baton; merge remains human-approved.
+- 🧾 **`ccc-smb-ops` (v6.7.0)** — small-business operations router with 6 sub-skills for invoicing/AR, cash-flow forecasting, expenses, payroll planning, CRM hygiene, and a weekly owner brief.
+- 📣 **`/ccc-broadcast` (v6.7.1)** — pushes scrubbed build, deploy, CI, task, and cost status to connected team chat or email via `/ccc-connect`.
+- 🪄 **`/ccc-spawn` (v6.7.2)** — click-first spawn hub: `spawn_task` in Desktop, `/spawn` in CLI, with routes to `/ccc-fleet` or `/ccc-relay`.
+- 🔧 **`/ccc-prompt-fix` (v6.7.3)** — diagnoses prompts against 6 quality patterns and returns a tighter rewrite with the reasoning.
+- 📚 **Claude Code library (v6.7.3)** — 52 copy-paste prompts plus a 7-module best-practices course in the ecosystem catalog.
+
 ## ⚡ Dynamic Workflows + Ultracode
 
 > **Research preview — requires Claude Code v2.1.154+.** Skills fall back to standard `Agent()` dispatch on older clients.
@@ -234,6 +243,10 @@ Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just 
 | **`/ccc-xray`** | Project health scorecard | Quick · Full · Deps-focused · Security-focused |
 | **`/ccc-linear`** | Linear board integration | View · Pick · Create · Overview |
 | **`/ccc-fleet`** | Multi-agent orchestration (git worktrees) | Fan-out · Pipeline · FOR/AGAINST · Background |
+| **`/ccc-relay`** | Cross-session gated loop chaining | Spec → Build → Review → human-gated Merge |
+| **`/ccc-broadcast`** | Scrubbed outbound status relay | Setup · Status · Test · Digest |
+| **`/ccc-spawn`** | Click-first isolated-session hub | Isolated · Fleet · Relay · Expert |
+| **`/ccc-prompt-fix`** | Diagnose and tighten a prompt | Fix prompt · Last prompt · Suggest · Score |
 | **`/ccc-connect`** | Opt-in MCP connector | Notion · Zapier · Supabase · Slack · GDrive |
 | **`/ccc-cheatsheet`** | Live Mermaid map of the whole plugin | Filesystem is single source of truth |
 | **`/ccc-e2e`** | E2E test scaffolding + Playwright automation | New suite · Existing project · Visual regression |
@@ -246,7 +259,7 @@ Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just 
 | **`/ccc-yolo-setup`** | Safe-YOLO permissions + Plan mode guardrails | Conservative · Balanced · Aggressive-safe |
 | **`/ccc-ecc`** | Selective ECC component loader | Load skill · Load agent · Load hook · List |
 
-Plus 11 domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devops`, `ccc-seo`, `ccc-testing`, `ccc-security`, `ccc-data`, `ccc-research`, `ccc-mobile`, `ccc-makeover`) + 2 vendor-sourced skills (`/ccc-agent-writing`, `/ccc-systematic-debugging`). See [SKILLS-INDEX.md](SKILLS-INDEX.md) for the full catalog.
+Plus 11 canonical domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devops`, `ccc-seo`, `ccc-testing`, `ccc-security`, `ccc-data`, `ccc-research`, `ccc-mobile`, `ccc-makeover`), the `ccc-smb-ops` operations router (6 sub-skills), and 2 vendor-sourced skills (`/ccc-agent-writing`, `/ccc-systematic-debugging`). See [SKILLS-INDEX.md](SKILLS-INDEX.md) for the full catalog.
 
 Click a cell → pick a sub-option → CC Commander handles it. No config files, no YAML editing, no syntax to memorize.
 
@@ -284,7 +297,7 @@ Install any of these separately — CC Commander detects what's available and ro
 | **CC Commander** (UX) | Curation + guidance + memory: click-first `/ccc-*` chips (AskUserQuestion), `/ccc-suggest` routing, the brain/hands pattern, The Kevin Z Method |
 
 **What Commander adds on top of ECC:**
-- **Click-first front door** — 70 curated `/ccc-*` workflows via native chip pickers, instead of memorizing 156+ commands.
+- **Click-first front door** — 77 curated `/ccc-*` workflows via native chip pickers, instead of memorizing 156+ commands.
 - **`/ccc-suggest`** — Opus-class "next best move" routing across the whole ecosystem (names ECC when ECC is the right tool).
 - **`/ccc-orchestrate` + `/ccc-handoff` + `/ccc-adopt`** — cross-runtime plan/execute split, proactive context reset, and one-command doctrine adoption for existing projects.
 - **`/ccc-ecc`** — selective ECC loader for one skill, agent, or hook without installing the full harness.
@@ -302,7 +315,7 @@ CC Commander is a **meta-layer** — it routes to other plugins, not away from t
 | **Primary surface** | Claude Code Desktop plugin + CLI | CLI harness | Claude Code CLI | Claude Code CLI |
 | **Click-first UX** | ✅ Native chip pickers, no typing | ❌ Text menus | ❌ Slash commands | ❌ Slash commands |
 | **Sub-agent personas** | 22 (architect, reviewer, debugger…) | 38 agents | 0 | 3 |
-| **Skill count** | 541 (75 plugin + 466 ecosystem) | 156 | ~20 | ~15 |
+| **Skill count** | 544 (77 plugin + 467 ecosystem) | 156 | ~20 | ~15 |
 | **Hosted MCP server** | ✅ (100 calls/mo free) | ❌ | ❌ | ❌ |
 | **Cross-IDE** | ✅ (Cursor, Windsurf, Cline, Codex) | ❌ Claude only | ❌ Claude only | ❌ Claude only |
 | **Free** | ✅ Forever | ✅ | ✅ | ✅ |
@@ -552,7 +565,7 @@ CCC reads your project before every dispatch. No setup needed.
 |-------|------|---------|
 | Tool output sandboxing | context-mode | **98%** — SQLite + FTS5, BM25 snippets only |
 | CLI output filtering | RTK | 99.5% — strips verbose shell output |
-| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 466 full |
+| Skill tiering | `_tiers.json` | ~10k tokens — 30 essential vs 467 full |
 | Rate limit rotation | ClaudeSwap | 2 MAX accounts, drain-first strategy |
 | Prompt caching | Extended TTL | 90% discount, 1hr cache window |
 
@@ -566,7 +579,7 @@ CCC reads your project before every dispatch. No setup needed.
 
 | Component | Count | What It Does |
 |-----------|-------|-------------|
-| Skills | 466 | On-demand expertise (deduplicated) |
+| Skills | 467 | On-demand expertise (deduplicated) |
 | Plugin Skills | 77 | Desktop-first skills (13 /ccc-* workflows + 11 domain routers + 7 new channel/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + session management) |
 | Agents | 22 | Specialist sub-agent personas with distinct voice layers |
 | Lifecycle Hooks | 23 × 39 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest |
