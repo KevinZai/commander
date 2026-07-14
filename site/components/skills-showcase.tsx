@@ -122,7 +122,7 @@ export function SkillsShowcase() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            76 skills. Tab through them.
+            77 skills. Tab through them.
           </h2>
           <p className="text-zinc-400">
             Every skill is AI-guided. Ask once, watch it orchestrate.
