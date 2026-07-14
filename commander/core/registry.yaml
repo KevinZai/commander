@@ -2,7 +2,7 @@
 # DO NOT edit by hand. Run: node scripts/build-from-registry.js --generate
 
 generated: 2026-07-14
-version: 6.7.1
+version: 6.7.2
 skills:
   - id: ab-test-setup
     path: skills/ab-test-setup/SKILL.md
@@ -1289,6 +1289,11 @@ skills:
     domain: ccc-smb-ops
     tier: free
     description: "name: ccc-smb-ops"
+  - id: ccc-spawn
+    path: skills/ccc-spawn/SKILL.md
+    domain: ccc-spawn
+    tier: free
+    description: "name: ccc-spawn"
   - id: ccc-standup
     path: skills/ccc-standup/SKILL.md
     domain: ccc-standup
