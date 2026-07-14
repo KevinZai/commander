@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.7.2] - 2026-07-14
+
+### Added
+- **/ccc-spawn** — click-first spawn hub (plugin skill). Spin isolated work into its own session on demand: a spawn_task chip in Cowork Desktop, a /spawn peer in the CLI; routes to /ccc-fleet (parallel) or /ccc-relay (cross-session). The manual, click-first counterpart to the automatic isolation-spawn nudge in suggest-ticker. plugin_skills 75 → 76.
+
 ## [6.7.1] - 2026-07-14
 
 ### Added
