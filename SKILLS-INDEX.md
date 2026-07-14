@@ -1,651 +1,233 @@
 # Skills Index — Quick Reference
-> CC Commander v6.7.3 — by Kevin Zicherman
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-07-10 | Desktop plugin first: 77 plugin skills (13 /ccc-* workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop + /ccc-orchestrate + /ccc-handoff + /ccc-adopt) + 22 specialist sub-agents + 23 lifecycle hooks (39 handlers) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect | 459 total skills across vendor ecosystem | 11 CCC Domains | 24 kit-native hooks | 3 starter templates | 37 prompt templates | 10 workflow modes | Real-time dashboard | 10 themes | Core free forever
-> Audit: `./bin/generate-index.sh --check` to find missing or broken skills
+> Last verified: 2026-07-14 (202 skill directories, 195 with SKILL.md, 3 starter templates)
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
 
 ---
 
-## Specialist Sub-Agents (22)
+## All Skills (alphabetical)
 
-All 22 sub-agents are free. They fire automatically from skills — no manual invocation needed. Routed by `/ccc-build`, `/ccc-review`, `/ccc-plan`, `/ccc-design`, `/ccc-ship`, and `/ccc-fleet`.
-
-| # | Sub-Agent | Model | Best For |
-|---|-----------|-------|---------|
-| 1 | `architect` | Opus | System design, tradeoff analysis, irreversibility assessment |
-| 2 | `reviewer` | Sonnet | Code review across security / perf / correctness / maintainability |
-| 3 | `builder` | Sonnet | Feature implementation, TDD, scaffolding |
-| 4 | `security-auditor` | Opus | OWASP audits, threat modeling, adversarial review |
-| 5 | `debugger` | Opus | Root-cause investigation (Iron Law: no fix without confirmed root cause) |
-| 6 | `designer` | Sonnet | UI/UX critique, accessibility, visual hierarchy |
-| 7 | `qa-engineer` | Sonnet | Edge-case hunting, test coverage audit |
-| 8 | `devops-engineer` | Sonnet | Deploy planning, rollback specs, monitoring setup |
-| 9 | `data-analyst` | Sonnet | Signal extraction, statistical honesty, visualization |
-| 10 | `content-strategist` | Sonnet | Brand voice, messaging, copy variants |
-| 11 | `product-manager` | Opus | User stories, acceptance criteria, priority sequencing |
-| 12 | `performance-engineer` | Sonnet | Hotpath identification, p99 benchmarking |
-| 13 | `researcher` | Sonnet | Deep research, competitive analysis, citation management |
-| 14 | `technical-writer` | Sonnet | Documentation, API reference, clarity audits |
-| 15 | `fleet-worker` | Sonnet | Parallel batch work, scoped execution in fleet mode |
-| 16 | `typescript-reviewer` | Sonnet | TypeScript-specific review: strict mode, async correctness, ESM/CJS, ReDoS, idiomatic patterns |
-| 17 | `python-reviewer` | Sonnet | Python-specific review: PEP 8, type hints, async/await, pytest, security, idiomatic patterns |
-| 18 | `go-reviewer` | Sonnet | Go-specific review: idiomatic patterns, goroutine safety, error wrapping, interface hygiene |
-| 19 | `rust-reviewer` | Sonnet | Rust-specific review: ownership/borrowing, lifetimes, unsafe blocks, trait coherence |
-| 20 | `java-reviewer` | Sonnet | Java-specific review: Spring patterns, null safety, checked exceptions, record classes |
-| 21 | `kotlin-reviewer` | Sonnet | Kotlin-specific review: coroutines, null safety, sealed classes, idiomatic stdlib |
-| 22 | `csharp-reviewer` | Sonnet | C#-specific review: async/await, nullable reference types, LINQ, DI patterns |
+| Skill | Description |
+|-------|-------------|
+| `ab-test-setup` | Structured guide for setting up A/B tests with mandatory gates for hypothesis, metrics, and execution readiness. |
+| `accessibility-compliance-accessibility-audit` | You are an accessibility expert specializing in WCAG compliance, inclusive design, and assistive technology compatibi... |
+| `acpx-patterns` | Pre-built acpx usage patterns for background, parallel, and crash-resilient sessions |
+| `acpx` | Use acpx as a headless ACP CLI for agent-to-agent communication, including prompt/exec/sessions workflows, session sc... |
+| `ad-creative` | When the user wants to generate, iterate, or scale ad creative — headlines, descriptions, primary text, or full ad ... |
+| `advisor` | Anthropic Advisor Tool — pair a cheaper executor model with Opus for guidance. TRIGGER when: user asks about adviso... |
+| `agency-orchestrator` | Integrate with Agency Orchestrator for multi-agent DAG workflows — parallel research, code review pipelines, deploy... |
+| `ao` | Composio AO — spawn parallel agents with worktree isolation |
+| `api-first-workflow` | API-first development — OpenAPI spec authoring, contract-first dev, SDK generation, mock servers, and API documenta... |
+| `architecture-auditor` | Review cross-module boundaries, dependency direction, and architectural patterns. Use when 'audit architecture', 'che... |
+| `auto-loop-patterns` | Pre-built /loop recipes with safety guards for autonomous recurring tasks. 10+ |
+| `batch-migration` | /batch recipes for large-scale code changes across many files. Patterns for |
+| `beginner-pm` | Beginner-friendly project manager mode. Translates plain English requests into Claude Code |
+| `benchmark` | Detect performance regressions with browse daemon. Baselines page load, Core Web Vitals, and bundle sizes; compares b... |
+| `bible-guide` | Interactive onboarding guide for the CC Commander — skill discovery, progressive disclosure, capability overview fo... |
+| `brainstorming` | You MUST use this before any creative work - creating features, building components, adding functionality, or modifyi... |
+| `brand-guidelines` | Applies Anthropic's official brand colors and typography to any sort of artifact that may benefit from having Anthrop... |
+| `browse` | Fast headless browser for QA testing and site dogfooding. Navigate any URL, interact with |
+| `business-analytics` | Master modern business analysis with AI-powered analytics, real-time dashboards, and data-driven insights. Build comp... |
+| `c-level-advisor` | Complete virtual board of directors — 28 skills covering 10 C-level roles, orchestration, cross-cutting capabilitie... |
+| `cache-monitor` | Analyze Claude Code and OpenClaw session costs and cache efficiency. |
+| `canary` | Post-deploy canary monitoring. Watches the live app for console errors, |
+| `caveman` | Ultra-compressed communication mode. Cuts ~75% of output tokens by speaking like caveman |
+| `cc-plugin-registry` | Reports all installed plugins, vendor packages, phase coverage, conflicts, and scoring |
+| `ccc-data` | CCC domain — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine ... |
+| `ccc-design` | CCC domain — complete design & animation ecosystem — 35+ skills in one. Animations, visual effects, design system... |
+| `ccc-devops` | CCC domain — complete DevOps ecosystem — 20 skills in one. Deployments, CI/CD, containers, AWS, monitoring, secur... |
+| `ccc-makeover` | CCC domain — design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm,... |
+| `ccc-marketing` | CCC domain — 46-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channe... |
+| `ccc-marketing` | CCC domain — 46-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channe... |
+| `ccc-mobile` | CCC domain — complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Com... |
+| `ccc-openclaw-coordination` | Cross-agent coordination between CCC and OpenClaw fleet |
+| `ccc-research` | CCC domain — complete research ecosystem — 8 skills in one. Deep research, spec interviews, cross-model review, l... |
+| `ccc-saas` | CCC domain — complete SaaS development ecosystem -- 20 skills in one. Scaffold, authenticate, bill, ship, and grow ... |
+| `ccc-security` | CCC domain — complete security ecosystem — 8 skills in one. Security audits, prompt injection defense, dependency... |
+| `ccc-seo` | Complete SEO ecosystem — 20 skills. Technical SEO, AI search optimization, content strategy, analytics, and program... |
+| `ccc-smb-ops` | CCC domain — complete small-business-operations ecosystem — 6 skills in one. 13-week cash-flow forecasting, invoi... |
+| `ccc-testing` | CCC domain — complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testin... |
+| `chat-widget` | Build a real-time support chat system with a floating widget for users and an admin dashboard for support staff. Use ... |
+| `churn-prevention` | When the user wants to reduce churn, build cancellation flows, set up save offers, recover failed payments, or implem... |
+| `claude-api` | Build apps with the Claude API or Anthropic SDK. TRIGGER when: code imports `anthropic`/`@anthropic-ai/sdk`/`claude_a... |
+| `claude-code-library` | The Claude Code prompt library (52 copy-paste prompts by SDLC phase) + a 7-module Claude Code Best Practices course. ... |
+| `claude-md-refresh` | Analyze and refresh CLAUDE.md files against the latest CC Commander template |
+| `claude-mem` | Persistent AI memory across Claude Code sessions — semantic search, auto-capture, knowledge compounding. Use when t... |
+| `claude-peers-bible` | Master guide to Claude Peers — the built-in MCP server for multi-instance communication, coordination, and parallel... |
+| `claudemd-auditor` | Audit your CLAUDE.md against the actual codebase — find stale instructions, missing context, and optimization oppor... |
+| `clickhouse-io` | ClickHouse database patterns, query optimization, analytics, and data engineering best practices for high-performance... |
+| `cloudcli` | CloudCLI — bridge to web-based Claude Code sessions for mobile access |
+| `codex` | OpenAI Codex CLI wrapper — three modes. Code review: independent diff review via |
+| `coding-standards` | Universal coding standards, best practices, and patterns for TypeScript, JavaScript, React, and Node.js development. |
+| `cold-email` | Write B2B cold emails and follow-up sequences that get replies. Use when the user wants to write cold outreach emails... |
+| `compass-bridge` | Shared state bridge between Claude Chat, Cowork, and Code. Uses markdown files at |
+| `competitor-alternatives` | When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when ... |
+| `confidence-check` | Pre-execution confidence assessment. Rate confidence 0-100% across 4 dimensions |
+| `configure-ecc` | Interactive installer for Everything Claude Code — guides users through selecting and installing skills and rules t... |
+| `context-budget` | Visual context window budget analyzer — shows usage gauge, identifies bloat sources, recommends when to save sessio... |
+| `context-hub` | Fetch curated API documentation using the chub CLI before writing code. Use when calling external APIs (OpenAI, Strip... |
+| `context-mode` | Tool output sandboxing — 98% context reduction via FTS5 |
+| `contextual-assist` | Proactive contextual suggestion system with 5 configurable levels. |
+| `continuous-improvement` | Daily scan for new Claude Code techniques and best practices. Multi-agent approval pipeline routes GitHub/npm finding... |
+| `continuous-learning-v2` | Instinct-based learning system that observes sessions via hooks, creates atomic instincts with confidence scoring, an... |
+| `corrective-framing` | Prompt engineering technique: present possibly-wrong claims to trigger correction instead of 'remember to X' reminder... |
+| `cost-tracker` | Real-time cost tracking across all agent sessions with budget alerts |
+| `cowork-bible` | Claude Desktop Cowork integration guide for CC Commander users. Cowork is Claude Desktop's |
+| `cowork-plugin-builder` | Guide for building custom Cowork plugins that leverage CC Commander skills. Covers plugin |
+| `database-migrations` | Database migration best practices for schema changes, data migrations, rollbacks, and zero-downtime deployments acros... |
+| `delegation-templates` | Structured subagent delegation with 7 agent types, report format enforcement, and model selection. Use when delegatin... |
+| `design-review` | Designer's eye QA: finds visual inconsistency, spacing issues, hierarchy problems, |
+| `desktop-preview-loop` | Server-browser-test-iterate development cycle using Claude Desktop's preview |
+| `developer-icons` | Curated SVG tech stack icons for React/Next.js. TypeScript-first, SVGO-optimized, with light/dark/wordmark variants. ... |
+| `dialectic-review` | Multi-agent opposing review for important decisions. Spawns FOR agent + AGAINST agent + Referee for synthesized analy... |
+| `dispatch-bible` | Dispatch is Claude's background task execution system. Bible-optimized patterns for |
+| `dispatch-templates` | Pre-built Dispatch task templates for common background workflows. 8 ready-to-use |
+| `dispatching-parallel-agents` | Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies |
+| `dmux-workflows` | Multi-agent orchestration using dmux (tmux pane manager for AI agents). Patterns for parallel agent workflows across ... |
+| `doc-coauthoring` | Guide users through a structured workflow for co-authoring documentation. Use when user wants to write documentation,... |
+| `document-release` | Post-ship documentation update. Reads all project docs, cross-references the |
+| `email-capture` | Build email capture and newsletter signup components for Next.js + shadcn/ui projects. Signup forms, lead magnets, po... |
+| `email-systems` | You are an email systems engineer who has maintained 99.9% deliverability across millions of emails. You've debugged ... |
+| `evals-before-specs` | Define success criteria before writing specs. Progression: evals → spec → plan → implement → verify. Use when... |
+| `executing-plans` | Use when you have a written implementation plan to execute in a separate session with review checkpoints |
+| `experiment-designer` | Use when planning product experiments, writing testable hypotheses, estimating sample size, prioritizing tests, or in... |
+| `finishing-a-development-branch` | Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides comple... |
+| `firecrawl-scraper` | Deep web scraping, screenshots, PDF parsing, and website crawling using Firecrawl API |
+| `fleet` | Fleet Commander — launch, monitor, and manage parallel CC agent teams |
+| `four-question-validation` | Post-implementation hallucination detection. Four questions to verify work |
+| `free-tool-strategy` | You are an expert in engineering-as-marketing strategy. Your goal is to help plan and evaluate free tools that genera... |
+| `freeze` | Restrict file edits to a specific directory for the session. Blocks Edit and |
+| `frontend-patterns` | Frontend development patterns for React, Next.js, state management, performance optimization, and UI best practices. |
+| `gdpr-data-handling` | Practical implementation guide for GDPR-compliant data processing, consent management, and privacy controls. |
+| `gh-issues` | Fetch GitHub issues, spawn sub-agents to implement fixes and open PRs, then monitor and address PR review comments. U... |
+| `github` | GitHub operations via `gh` CLI: issues, PRs, CI runs, code review, API queries. Use when: (1) checking PR status or C... |
+| `graphify` | Build a knowledge graph from your codebase for 71.5x token reduction per query |
+| `gstack-upgrade` | Upgrade gstack to the latest version. Detects global vs vendored install, |
+| `guard` | Full safety mode: destructive command warnings + directory-scoped edits. |
+| `health` | Run when Claude feels off, ignores rules, or hooks/MCP need auditing. |
+| `i18n-localization` | Internationalization and localization patterns. Detecting hardcoded strings, managing translations, locale files, RTL... |
+| `init-decision-tree` | Interactive project initialization — questionnaire-driven setup that determines build type, selects skills, and gen... |
+| `intercom-automation` | Automate Intercom tasks via Rube MCP (Composio): conversations, contacts, companies, segments, admins. Always search ... |
+| `internal-comms` | A set of resources to help me write all kinds of internal communications, using the formats that my company likes to ... |
+| `investigate` | Systematic debugging with root cause investigation. Four phases: investigate, |
+| `iterative-retrieval` | Pattern for progressively refining context retrieval to solve the subagent context problem |
+| `jpa-patterns` | JPA/Hibernate patterns for entity design, relationships, query optimization, transactions, auditing, indexing, pagina... |
+| `land-and-deploy` | Land and deploy workflow. Merges the PR, waits for CI and deploy, |
+| `laravel-patterns` | Laravel architecture patterns, routing/controllers, Eloquent ORM, service layers, queues, events, caching, and API re... |
+| `laravel-tdd` | Test-driven development for Laravel with PHPUnit and Pest, factories, database testing, fakes, and coverage targets. |
+| `laravel-verification` | Verification loop for Laravel projects: env checks, linting, static analysis, tests with coverage, security scans, an... |
+| `mcp-server-patterns` | Build MCP servers with Node/TypeScript SDK — tools, resources, prompts, Zod validation, stdio vs Streamable HTTP. U... |
+| `metrics-dashboard` | Define and design a product metrics dashboard with key metrics, data sources, visualization types, and alert threshol... |
+| `mintlify` | Build and maintain documentation sites with Mintlify. Use when |
+| `mode-switcher` | Switch between optimized workflow modes — design, saas, marketing, research, writing, night, yolo, unhinged, cavema... |
+| `monetization-strategy` | Brainstorm 3-5 monetization strategies with audience fit, risks, and validation experiments. Use when exploring reven... |
+| `multi-agent-swarm` | Advanced multi-agent orchestration — swarm patterns, agent specialization, shared state, consensus, and supervision... |
+| `multi-repo-orchestrate` | Cross-repo changes using Claude Code's --add-dir flag. Orchestrate changes across |
+| `mywifi-platform` | MyWiFi Networks / Guest Networks platform patterns. Multi-tenant WiFi management, location provisioning, splash page ... |
+| `n8n-mcp-setup` | Setup guide for n8n-MCP server — connect Claude Code to 400+ n8n integrations |
+| `office-hours` | YC Office Hours — two modes. Startup mode: six forcing questions that expose |
+| `openclaw-agent-scaffolder` | Scaffold a new OpenClaw agent from scratch. Interviews for requirements, then generates |
+| `openclaw-bridge` | Bridge CC Commander skills and hooks to OpenClaw agent orchestration platform |
+| `openclaw-ccc-bridge` | OpenClaw ↔ CCC Bridge — lets OpenClaw agents dispatch CCC tasks, browse skills, and manage sessions via the agent... |
+| `openclaw-health-check` | Full OpenClaw system health audit. Checks all agents, gateway status, costs, memory, |
+| `openclaw-management` | Complete OpenClaw management suite for Claude Code. Combines self-healing, |
+| `openclaw-native` | Native integration with OpenClaw platform — auto-detection, skill sync, bidirectional hooks, agent profiles, memory... |
+| `openclaw-patterns` | Production patterns from a 38-agent orchestration system — COMP protocol, atomic messaging, cost-aware routing, esc... |
+| `operationalize-fixes` | After fixing a bug, don't stop — write tests, check for similar issues, update instructions. Every bug is a learnin... |
+| `overnight-runner` | Run autonomous batch jobs overnight or during long unattended periods. Patterns for usage limit retries, batch checkp... |
+| `paperclip-bridge` | Integration with Paperclip task management API for tracking CC Commander workflows |
+| `paperclip-create-agent` | Create new agents in Paperclip with governance-aware hiring. Use when you need |
+| `paperclip-create-plugin` | Create new Paperclip plugins with the current alpha SDK/runtime. Use when |
+| `paperclip` | Interact with the Paperclip control plane API to manage tasks, coordinate with |
+| `para-memory-files` | File-based memory system using Tiago Forte's PARA method. Use this skill whenever |
+| `partner-logo-standard` | Standards and process for creating, cleaning, and maintaining vendor/partner SVG logos across GuestNetworks projects |
+| `pci-compliance` | Master PCI DSS (Payment Card Industry Data Security Standard) compliance for secure payment processing and handling o... |
+| `pentest-checklist` | This skill should be used when the user asks to \plan a penetration test\, \create a security assessment checklist\, ... |
+| `performance-monitoring` | Full-stack performance monitoring — Core Web Vitals, APM, RUM, synthetic monitoring, and performance budgets |
+| `plan-ceo-review` | CEO/founder-mode plan review. Rethink the problem, find the 10-star product, |
+| `plan-design-review` | Review a UI/UX plan with a designer's eye. Rates each design dimension 0-10, explains what makes it a 10, then fixes ... |
+| `plan-eng-review` | Eng manager-mode plan review. Lock in the execution plan — architecture, |
+| `playground` | Connect to The Playground — a virtual social space where AI agents can meet, chat, and explore together. Use when t... |
+| `postgres-patterns` | PostgreSQL database patterns for query optimization, schema design, indexing, and security. Based on Supabase best pr... |
+| `posthog-automation` | Automate PostHog tasks via Rube MCP (Composio): events, feature flags, projects, user profiles, annotations. Always s... |
+| `project-guidelines-example` | Example project-specific skill template based on a real production application. |
+| `project-kickoff` | Initialize a new project with full Claude Code + OpenClaw integration. |
+| `python-patterns` | Pythonic idioms, PEP 8 standards, type hints, and best practices for building robust, efficient, and maintainable Pyt... |
+| `realtime-architecture` | Real-time application architecture — WebSocket, SSE, pub/sub, presence, and collaborative editing patterns |
+| `receiving-code-review` | Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or tec... |
+| `redis-patterns` | Redis patterns — data structures, caching strategies, pub/sub, rate limiting, session management, and operational b... |
+| `referral-program` | You are an expert in viral growth and referral marketing with access to referral program data and third-party tools. ... |
+| `remotion-best-practices` | Best practices for Remotion - Video creation in React |
+| `remotion` | Generate walkthrough videos from Stitch projects using Remotion with smooth transitions, zooming, and text overlays |
+| `requesting-code-review` | Use when completing tasks, implementing major features, or before merging to verify work meets requirements |
+| `retro` | Weekly engineering retrospective. Analyzes commit history, work patterns, |
+| `review` | Pre-landing PR review. Analyzes diff against the base branch for SQL safety, LLM trust |
+| `revops` | When the user wants help with revenue operations, lead lifecycle management, or marketing-to-sales handoff processes.... |
+| `safeclaw-integration` | Docker-based isolated sessions for YOLO mode with resource limits |
+| `sales-enablement` | When the user wants to create sales collateral, pitch decks, one-pagers, objection handling docs, or demo scripts. Al... |
+| `self-healing` | Self-healing system patterns — circuit breakers, auto-restart, error budgets, graceful degradation, and auto-recovery |
+| `sendgrid-automation` | Automate SendGrid email operations including sending emails, managing contacts/lists, sender identities, templates, a... |
+| `senior-backend` | Designs and implements backend systems including REST APIs, microservices, database architectures, authentication flo... |
+| `sentry-automation` | Automate Sentry tasks via Rube MCP (Composio): manage issues/events, configure alerts, track releases, monitor projec... |
+| `session-compress` | Compress the current session into a dense, reloadable summary. Extracts key decisions, |
+| `session-startup` | Auto-run at the start of every Claude Code session. Loads project context, |
+| `setup-browser-cookies` | Import cookies from your real browser (Comet, Chrome, Arc, Brave, Edge) into the |
+| `setup-deploy` | Configure deployment settings for /land-and-deploy. Detects your deploy |
+| `ship` | Ship workflow: detect + merge base branch, run tests, review diff, bump VERSION, update CHANGELOG, commit, push, crea... |
+| `skill-evolution` | Self-evolving skills — analyzes session corrections, error patterns, and successful approaches to automatically pro... |
+| `skill-stocktake` | Use when auditing Claude skills and commands for quality. Supports Quick Scan (changed skills only) and Full Stocktak... |
+| `slack-gif-creator` | Knowledge and utilities for creating animated GIFs optimized for Slack. Provides constraints, validation tools, and a... |
+| `spawn-manager` | Spawn and manage multiple Claude Code peers for parallel development |
+| `spec-interviewer` | Structured spec interview for new features and projects. Asks 5-7 targeted questions |
+| `status-updates` | Send progress updates to Discord, Slack, or email at configurable intervals during long-running sessions |
+| `strategic-compact` | Suggests manual context compaction at logical intervals to preserve context through task phases rather than arbitrary... |
+| `subagent-driven-development` | Use when executing implementation plans with independent tasks in the current session |
+| `supabase-cli` | Supabase CLI workflows — local dev, migrations, Edge Functions, type generation |
+| `synapse` | Synapse — real-time agent observability and session analytics |
+| `systematic-debugging` | Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes |
+| `task-commander` | Multi-agent orchestration — Claude manages ACP agents (Codex, OpenCode, Kimi, Pi) for complex tasks |
+| `taskmaster` | TaskMaster — structured PRD→task decomposition, complexity analysis, and implementation pipeline |
+| `teach-impeccable` | One-time setup that gathers design context for your project and saves it to your AI config file. Run once to establis... |
+| `trading-analysis` | Market data analysis for Kevin's trading workspace. Fetches quotes via yf, |
+| `turborepo-monorepo` | (no description) |
+| `twilio-communications` | Build communication features with Twilio: SMS messaging, voice calls, WhatsApp Business API, and user verification (2... |
+| `ui-ux-pro-max` | AI-powered design intelligence — 161 reasoning rules, 67 UI styles, 57 font pairings |
+| `unfreeze` | Clear the freeze boundary set by /freeze, allowing edits to all directories |
+| `using-git-worktrees` | Use when starting feature work that needs isolation from current workspace or before executing implementation plans -... |
+| `using-superpowers` | Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before A... |
+| `video-gallery` | Build video gallery and player components for Next.js + shadcn/ui projects. YouTube, Vimeo, and self-hosted video emb... |
+| `visual-verify` | Chrome extension screenshot verification loop. Write UI code, open Chrome, |
+| `voice-workflow` | Voice-optimized command flows for /voice coding sessions. Short voice aliases |
+| `voicemode-setup` | Setup guide for VoiceMode — natural voice conversations with Claude Code via Whisper + Kokoro |
+| `vscode-bible` | VS Code integration guide — rich buttons, keyboard shortcuts, walkthrough, snippets, and extension configuration fo... |
+| `vue-nuxt` | (no description) |
+| `web-scraper` | Web scraping inteligente multi-estrategia. Extrai dados estruturados de paginas web (tabelas, listas, precos). Pagina... |
+| `whatsapp-automation` | Automate WhatsApp Business tasks via Rube MCP (Composio): send messages, manage templates, upload media, and handle c... |
+| `whatsapp-cloud-api` | Integracao com WhatsApp Business Cloud API (Meta). Mensagens, templates, webhooks HMAC-SHA256, automacao de atendimen... |
+| `wifi-captive-portal` | WiFi captive portal development patterns for guest WiFi networks. Splash pages, authentication flows, data capture, R... |
+| `writing-plans` | Use when you have a spec or requirements for a multi-step task, before touching code |
 
 ---
 
-## Desktop Plugin Skills (v6.7.3)
+## ⚠️ Directories without SKILL.md
 
-> Installed at `commander/cowork-plugin/`. Primary install: **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`) in Claude Code Desktop or Cowork Desktop. CLI fallback: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`. 77 plugin skills total (13 /ccc-* workflows + 11 CCC domains + 6 new channel/CI/ECC skills + 2 meta + 2 vendor-sourced + /ccc-save-session + /ccc-resume-session + /ccc-e2e + /ccc-memory + /ccc-tasks + /ccc-recall + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-loop + /ccc-orchestrate + /ccc-handoff + /ccc-adopt). **Core free forever.**
-
-| Skill | Description | Trigger Phrases |
-|-------|-------------|----------------|
-| `/ccc` | Main CCC hub — interactive menu, session overview | "open ccc", "ccc menu", "show commander" |
-| `/ccc-start` | First-run onboarding — plan file, first win | "get started with ccc", "ccc start" |
-| `/ccc-browse` | Searchable catalog of 459 skills and 22 sub-agents | "browse skills", "ccc browse" |
-| `/ccc-plan` | Spec-first planning — 5-question interview → spec file | "plan a feature", "ccc plan" |
-| `/ccc-build` | Build wizard — web, API, CLI or mobile with spec | "ccc build", "start a build", "new project wizard" |
-| `/ccc-review` | Branch audit — diff, security, perf, x-ray | "ccc review", "review my code", "code review" |
-| `/ccc-ship` | Pre-flight checks + release + deploy (22-point gate) | "ccc ship", "ship this", "ready to deploy?" |
-| `/ccc-design` | UI/UX workflow — routes to ccc-design domain (41 skills) | "ccc design", "design this" |
-| `/ccc-learn` | Skill discovery across 11 CCC domains | "teach me", "ccc learn", "show domains" |
-| `/ccc-xray` | Project health scorecard with fix chips | "audit my project", "ccc xray" |
-| `/ccc-linear` | Linear board — view issues, pick, create, sync | "ccc linear", "show my issues", "linear board" |
-| `/ccc-fleet` | Multi-agent orchestration — launch, route, monitor | "ccc fleet", "launch agents", "fleet status" |
-| `/ccc-connect` | Opt-in MCP connector — Supabase, Vercel, Figma, etc. | "connect my tools", "ccc connect" |
-| `/ccc-suggest` | Ambient intelligence — suggests best next skill; `loop` mode = always-on PM (improve/scope/audit) | Auto-triggered at session start; "ccc suggest loop" |
-| `/ccc-cheatsheet` | Inline cheatsheet — all counts, commands, hook events | "show cheatsheet", "ccc cheatsheet" |
-| `/ccc-agent-writing` | Write specs, PRDs, PR descriptions with clarity + persuasion | "write a spec", "PR description", "improve this doc" |
-| `/ccc-systematic-debugging` | Iron Law root-cause debugging: reproduce → hypothesize → verify → fix | "debug this", "root cause", "why is X failing" |
-| `/ccc-e2e` | End-to-end test scaffolding and Playwright automation | "e2e test", "add playwright tests", "ccc e2e" |
-| `/ccc-save-session` | Save current session state to `~/.claude/commander/sessions/` for later resume | "save session", "save my progress" |
-| `/ccc-resume-session` | Resume a previously saved session — restores context, todos, and plan | "resume session", "pick up where I left off" |
-| `/ccc-loop` | Loop taxonomy hub — turn/goal/time/proactive loops, `/goal` + `/loop` + `/schedule` guidance, should-you-loop gate, verifier-separation, state-file convention | "loop a skill", "run ccc-doctor every 5 minutes", "continuous review", "goal-based loop" |
-| `/ccc-doctor` | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component | "diagnose plugin", "ccc doctor", "something is broken" |
-| `/ccc-claudemd` | Audit CLAUDE.md against the codebase — stale paths, dead commands, drifted counts; fixes applied only after AskUserQuestion approval | "audit claude md", "check claude md", "is my claude md accurate", "optimize instructions" |
-| `/ccc-tuneup` | Local setup optimizer — companion to /ccc-doctor. Audit + safely remediate: version freshness, junk sweep, CLAUDE.md drift, superseded agents, hooks coverage, MCP staleness, settings keys. Read-only by default; backup + archive before any fix | "tune up ccc", "optimize my setup", "ccc tuneup", "fix my install" |
-| `/ccc-brainstorm` | Guided ideation: problem framing → divergent ideas → convergent shortlist | "brainstorm", "ccc brainstorm", "ideate on this" |
-| `/ccc-qa` | QA workflow router: test planning, coverage audit, edge-case generation, regression sweep | "ccc qa", "qa this", "find edge cases" |
-| `/ccc-hermes` | Hermes Gateway integration: OAuth bridge status, token refresh, provider health | "hermes status", "ccc hermes", "check oauth bridge" |
-| `/ccc-nightwatch` | Remote YOLO permission relay: approve/reject tool calls from mobile while agent runs overnight | "ccc nightwatch", "overnight mode", "remote approve" |
-| `/ccc-ci` | CI/CD workflow: lint, test, build gate, branch checks, pre-push hooks | "ccc ci", "run ci checks", "pre-push gate" |
-| `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus writes a goal file, GPT-5.5 via `codex` or Sonnet executes, orchestrator verifies acceptance criteria | "ccc orchestrate", "orchestrate this", "goal file executor" |
-| `/ccc-handoff` | Proactive context reset — write a dense handoff file and start a fresh chat before context quality decays | "ccc handoff", "handoff session", "fresh chat" |
-| `/ccc-fable` | Arm the Fable Method — 12-gate session contract (`on` / `status` / `audit` / `off`), model-agnostic | "ccc fable", "arm the fable method", "audit my session" |
-| `/ccc-adopt` | Adopt CCC doctrine in an existing project — merge a marked Orchestrator/Executor block into `CLAUDE.md` without clobbering local rules | "ccc adopt", "adopt commander", "add ccc doctrine" |
-
-### Bundled MCP Servers (9)
-
-All 9 are pre-configured in `.mcp.json`. Activate the ones you need — the plugin works fully offline without any of them.
-
-| MCP | Transport | Skills That Use It |
-|-----|-----------|--------------------|
-| Tavily | stdio | `/ccc-browse`, research tasks |
-| Context7 | stdio | Any skill needing live library docs |
-| Firecrawl | HTTP | Web scraping in research workflows |
-| Exa | stdio | Semantic web search |
-| GitHub | HTTP | `/ccc-review`, `/ccc-ship` |
-| Figma | HTTP | `/ccc-design` |
-| Playwright | stdio | `/ccc-ship` E2E gate |
-| claude-mem | stdio | Knowledge compounding across sessions |
-| sequential-thinking | stdio | Complex multi-step reasoning primitive |
+- `business-pack`
+- `engineering-pack`
+- `finance-pack`
+- `product-pack`
 
 ---
 
-## CCC Domains (Load ONE, Get Everything)
+## 🏗 Starter Templates
 
-| CCC Domain | Skills | What It Covers |
-|------------|--------|----------------|
-| `ccc-seo` | 19 | Technical SEO, AI search optimization, content strategy, analytics, programmatic SEO |
-| `ccc-design` | 35+ | Animations, SVG, motion, visual effects, design systems, landing pages, Impeccable polish suite |
-| `ccc-testing` | 15 | TDD, E2E (Playwright), verification, QA, regression, visual testing, load testing |
-| `ccc-marketing` | 46 | Content, CRO, channels, growth, intelligence, sales (renamed from marketing-pack) |
-| `ccc-saas` | 20 | Auth, billing, database, API, frontend stack (Next.js+shadcn+Tailwind), metrics |
-| `ccc-devops` | 20 | CI/CD, Docker, AWS, monitoring, zero-downtime deploy, Terraform |
-| `ccc-research` | 8 | Deep research, literature review, competitive analysis, citation management, data synthesis |
-| `ccc-mobile` | 7 | iOS, Android, React Native, Flutter, cross-platform patterns, app store optimization |
-| `ccc-security` | 9 | Pen testing, OWASP top 10, supply chain security, secrets management, threat modeling |
-| `ccc-data` | 8 | ETL pipelines, data warehousing, analytics engineering, visualization, ML ops |
-
-Each CCC domain has a router that dispatches to the right specialist. Individual skills inside CCC domains are still accessible by their original names via symlinks.
+| Template | Stack |
+|----------|-------|
+| `nextjs-shadcn-starter` | Next.js 15 + shadcn/ui + Drizzle + Better Auth |
+| `turborepo-fullstack-starter` | Turborepo + pnpm + Fastify backend |
+| `marketing-site-starter` | Next.js 15 + Tailwind v4 + Framer Motion |
 
 ---
 
-## Token Optimization
-
-| Skill | What it does | Category | Tier |
-|-------|-------------|----------|------|
-| `context-mode` | Tool output sandboxing via SQLite + FTS5. 98% context reduction. Stores tool results in sandbox, returns BM25 snippets. | optimization | recommended |
-| `context-budget` | Visual context window budget analyzer — gauge, zone indicators, bloat sources, session-save nudges | optimization | recommended |
-| `cache-monitor` | Analyze Claude Code session costs and cache efficiency from JSONL session files | optimization | recommended |
-| `caveman` | Strips markdown/emojis/prose for ~75% output token savings during iteration | optimization | recommended |
-
----
-
-## 🔧 Core Workflow (Planning, Execution, Verification)
-| Skill | What it does |
-|-------|-------------|
-| `spec-interviewer` | Interview → spec doc → execute in fresh session |
-| `evals-before-specs` | **NEW** Define success criteria BEFORE writing specs: evals → spec → plan → implement → verify |
-| `writing-plans` | Structured planning before implementation |
-| `executing-plans` | Execute written plans with review checkpoints |
-| `delegation-templates` | **NEW** 7 structured subagent types (Implementer, Researcher, Reviewer, Batch, Explorer, Creative, Session) with report formats |
-| `dialectic-review` | **NEW** Multi-agent FOR/AGAINST/Referee pattern for important decisions |
-| `subagent-driven-development` | Multi-agent parallel execution patterns |
-| `dispatching-parallel-agents` | 2+ independent tasks without shared state |
-| `iterative-retrieval` | Progressive context retrieval for subagents |
-| `systematic-debugging` | 4-phase root cause analysis before fixing |
-| `investigate` | Systematic root cause investigation — never fix without cause |
-| `operationalize-fixes` | **NEW** Post-bug-fix protocol: test → sweep → update instructions → root cause chain |
-| `verification-before-completion` | Proof-of-work before marking done |
-| `verification-loop` | Comprehensive verification system |
-| `tdd-workflow` | Test-driven: red/green/refactor cycle |
-| `using-git-worktrees` | Isolated branches for parallel work |
-| `finishing-a-development-branch` | Integration decisions after implementation |
-| `overnight-runner` | **NEW** Autonomous batch jobs: checkpoint files, usage limit retries, human gates, notifications |
-| `strategic-compact` | Manual context compaction at logical intervals |
-| `session-startup` | Session startup protocol |
-| `using-superpowers` | How to find and use skills (meta-skill) |
-| `corrective-framing` | **NEW** Prompt engineering: present possibly-wrong claims to trigger correction > "remember to X" |
-| `confidence-check` | **NEW** Pre-execution confidence assessment (0-100%) — 4 dimensions, thresholds at 90/70, 25-250x token savings |
-| `four-question-validation` | **NEW** Post-implementation hallucination check — tests passing? requirements met? no assumptions? evidence? (94% detection) |
-| `context-budget` | **NEW** Visual context window budget analyzer — gauge, zone indicators, bloat sources, session-save nudges |
-| `brainstorming` | Pre-creative-work ideation (use before creative work) |
-| `playground` | HTML playgrounds for visual/interactive problems |
-| `freeze` | Restrict file edits to a specific directory for the session |
-| `unfreeze` | Clear freeze boundary, allowing edits to all directories again |
-| `project-kickoff` | Initialize new project with CLAUDE.md, tasks/, .claude/settings.json, git worktree setup |
-| `status-updates` | **NEW** Send progress reports to Slack/Discord/email at configurable intervals during long sessions |
-| `continuous-improvement` | **NEW** Daily cron scan for ecosystem improvements, multi-agent approval workflow, proposal queue management |
-
-## 🚀 Ship & Review
-| Skill | What it does |
-|-------|-------------|
-| `gstack` | Full dev lifecycle: browser QA, workflow stages |
-| `gstack-upgrade` | Upgrade gstack to the latest version |
-| `ship` | Build → test → PR → deploy pipeline |
-| `review` | Code review with structured feedback |
-| `requesting-code-review` | Before merging — verify work |
-| `receiving-code-review` | Implementing review feedback |
-| `retro` | Post-ship retrospective + lessons |
-| `design-review` | Visual design audit |
-| `plan-eng-review` | Engineering plan review |
-| `plan-ceo-review` | Strategy/business plan review |
-| `plan-design-review` | Design plan review |
-| `office-hours` | Brainstorming and ideation |
-| `codex` | Adversarial second-opinion code review |
-| `guard` | Maximum safety mode |
-| `document-release` | Post-ship doc update: README, ARCH, CONTRIBUTING, CLAUDE.md |
-| `qa` | QA test a web app and fix bugs found, commit atomically |
-| `qa-only` | Report-only QA — structured report with health score + screenshots, never modifies code |
-
-## 🤖 AI & Agent Tools
-| Skill | What it does |
-|-------|-------------|
-| `acpx` | Headless ACP CLI for agent-to-agent comms |
-| `advisor` | **NEW** Anthropic Advisor Tool — pair Sonnet/Haiku executor with Opus advisor; full API docs, code samples, OpenClaw/ClaudeSwap integration guide |
-| `dmux-workflows` | Multi-agent orchestration via tmux |
-| `eval-harness` | Formal eval-driven development (EDD) |
-| `ai-regression-testing` | AI-assisted dev regression testing |
-| `continuous-learning-v2` | Instinct-based learning from session hooks |
-| `context-hub` | Fetch curated API docs via `chub` CLI |
-| `claude-api` | Build apps with Claude/Anthropic SDK |
-| `configure-ecc` | Interactive ECC installer |
-| `benchmark` | Performance regression detection — baselines for page load, Core Web Vitals, resource sizes |
-| `canary` | Post-deploy canary monitoring — watches live app for errors, regressions, failures |
-| `browse` | Fast headless browser for QA, dogfooding, page state verification, annotated screenshots |
-| `cache-monitor` | Analyze Claude Code session costs and cache efficiency from JSONL session files |
-
-## 🔗 Multi-Agent & Peers (NEW in v5.1.0)
-| Skill | What it does |
-|-------|-------------|
-| `claude-peers-bible` | **NEW** Comprehensive Claude Peers guide — discovery, messaging, 5 coordination patterns (coordinator, swarm, expert, review, research) |
-| `spawn-manager` | **NEW** Spawn and manage multiple Claude Code peers — Quick/Team/Swarm/Expert spawn patterns, coordinator protocol, cost management |
-| `task-commander` | **NEW** Multi-agent orchestration brain — P0-P10 scoping, DAG workflows, circuit breaker, cost ceiling, COMP PROVE verification |
-| `contextual-assist` | **NEW** Proactive contextual suggestions — 5 levels (off/minimal/standard/guided/mentored), pattern matching, progressive disclosure |
-
-## 🏗️ Integrations (NEW in v5.1.0)
-| Skill | What it does |
-|-------|-------------|
-| `cowork-bible` | **NEW** Claude Desktop Cowork integration — autonomous sessions, plugin compatibility, scheduled tasks, handoff protocol |
-| `cowork-plugin-builder` | **NEW** Build custom Cowork plugins — 5 example plugins, packaging guide, testing, publishing |
-| `dispatch-bible` | **NEW** Dispatch background task system — overnight builds, batch processing, error handling, cost tracking |
-| `dispatch-templates` | **NEW** 8 pre-built Dispatch templates — overnight-build, batch-review, security-scan, perf-benchmark, and more |
-| `openclaw-bridge` | **NEW** Bridge CCC ↔ OpenClaw (38-agent platform) — skill mapping, hook translation, agent profiles, session handoff |
-| `paperclip-bridge` | **NEW** Paperclip task management integration — issue creation, priority mapping, bidirectional sync, REST API |
-| `openclaw-native` | **NEW** OpenClaw native integration — auto-detection, skill sync, bidirectional event forwarding, agent profile generation, memory sync |
-| `openclaw-post-install` | Post-upgrade protocol — backup, version-split check (both npm paths), changelog delta, doctor pre-start, launchctl bootstrap, proposals, rollback, Slack contract-api.js crash detection |
-
-## 📖 Beginner Experience (NEW in v5.1.0)
-| Skill | What it does |
-|-------|-------------|
-| `bible-guide` | **NEW** Interactive onboarding — "I'm new" → guided wizard, skill discovery, progressive disclosure |
-| `vscode-bible` | **NEW** VS Code integration guide — buttons, snippets, keyboard shortcuts, walkthrough, status bar customization |
-
-## 📘 Quick Start Guides (NEW in v5.1.0)
-| Guide | Who it's for |
-|-------|-------------|
-| `guides/quickstart-beginner.md` | Complete beginner — never used Claude Code |
-| `guides/quickstart-frontend.md` | Frontend developer — React, Next.js, Tailwind |
-| `guides/quickstart-backend.md` | Backend developer — APIs, databases, auth |
-| `guides/quickstart-fullstack.md` | Full-stack developer — combined workflow |
-| `guides/quickstart-mobile.md` | Mobile developer — React Native, Flutter, Swift, Kotlin |
-
-## 📊 Dashboard (NEW in v5.1.0)
-| Component | What it does |
-|-----------|-------------|
-| `dashboard/` | Real-time React dashboard — agent monitoring, spawn tree, cost tracker, live logs, 10 themes |
-
-## 🏗️ Backend & Database
-| Skill | What it does |
-|-------|-------------|
-| `api-design` | REST API patterns, status codes, pagination |
-| `backend-patterns` | Node.js/Express/Next.js backend architecture |
-| `senior-backend` | REST APIs, microservices, auth, security |
-| `database-designer` | Full database design skill |
-| `database-migrations` | Schema changes, rollbacks, zero-downtime |
-| `postgres-patterns` | PostgreSQL query optimization, indexing |
-| `redis-patterns` | Caching, pub/sub, rate limiting, sessions |
-| `clickhouse-io` | ClickHouse analytics + high-perf queries |
-| `jpa-patterns` | JPA/Hibernate for Spring Boot |
-| `mcp-server-patterns` | Build MCP servers (Node/TypeScript SDK) |
-| `stripe-subscriptions` | Stripe lifecycle, webhooks, checkout |
-| `drizzle-neon` ⭐ | Drizzle ORM + Neon Postgres: schema, migrations, queries, relations, serverless |
-| `fastify-api` ⭐ | Fastify API patterns: routes, hooks, WebSocket, testing, MCP server |
-
-## ⚛️ Frontend — React / Next.js
-| Skill | What it does |
-|-------|-------------|
-| `frontend-patterns` | React, Next.js, state management, performance |
-| `nextjs-app-router` ⭐ | Next.js 15+ App Router: RSC, server actions, streaming, caching, middleware |
-| `shadcn-ui` ⭐ | shadcn/ui component patterns: forms, data tables, theming, composition, charts |
-| `tailwind-v4` ⭐ | Tailwind CSS v4: CSS-based config, container queries, new utilities, migration |
-| `landing-page-builder` | High-converting landing pages (Next.js) |
-| `blog-engine` | SEO-optimized blog systems (MDX, Next.js) |
-| `frontend-design` | Anti-slop design system (Anthropic official) |
-| `coding-standards` | Universal TS/JS/React coding standards |
-| `plankton-code-quality` | Write-time code quality enforcement |
-
-## 🔷 Laravel & Vue.js (MyWiFi Stack)
-| Skill | What it does |
-|-------|-------------|
-| `laravel-patterns` | Routing, Eloquent, service layers, queues, events |
-| `laravel-tdd` | PHPUnit, Pest, factories, DB testing |
-| `laravel-verification` | Linting, static analysis, security scans |
-| `mywifi-platform` | MyWiFi multi-tenant WiFi management patterns |
-| `wifi-captive-portal` | Splash pages, auth flows for guest WiFi |
-| `vue-nuxt` | Vue 3 Composition API, Nuxt 4, Pinia, TypeScript, VueUse, SSR/SSG |
-
-## 🔐 Auth & Security
-| Skill | What it does |
-|-------|-------------|
-| `better-auth` ⭐ | Better Auth authentication: setup, OAuth, sessions, multi-tenant, plugins |
-| `container-security` | Docker/container hardening |
-| `github-actions-security` | CI/CD security patterns |
-| `pci-compliance` | Payment security (PCI DSS) |
-| `pentest-checklist` | Penetration test planning + checklists |
-| `gdpr-data-handling` | GDPR-compliant data processing |
-| `accessibility-compliance` | WCAG, inclusive design, assistive tech |
-
-## 🏗 Monorepo & Infra Tooling
-| Skill | What it does |
-|-------|-------------|
-| `turborepo-monorepo` ⭐ | Turborepo monorepo: pipeline, caching, shared packages, deployment |
-
-## ☁️ DevOps & Cloud
-| Skill | What it does |
-|-------|-------------|
-| `docker-development` | Dockerfile optimization, compose, security |
-| `senior-devops` | CI/CD, IaC, containers, cloud platforms |
-| `github-actions-reusable-workflows` | Reusable workflows, matrix, caching |
-| `github-actions-security` | Secrets, OIDC, permissions hardening |
-| `github` | `gh` CLI operations: issues, PRs, CI runs |
-| `gh-issues` | Fetch issues, spawn sub-agents for fixes |
-| `aws-solution-architect` | Serverless AWS architectures for startups |
-| `aws-lambda-best-practices` | Lambda: cold starts, layers, monitoring |
-| `aws-s3-patterns` | S3: lifecycle, presigned URLs, encryption |
-| `aws-cloudfront-optimization` | CloudFront: cache policies, Lambda@Edge |
-| `aws-iam-security` | IAM: least privilege, OIDC, boundaries |
-| `network-engineer` | Cloud networking + security architectures |
-| `prometheus-configuration` | Prometheus setup + scrape config |
-| `promql-alerting` | PromQL queries, SLO-based alerting |
-| `grafana-dashboards` | Production-ready Grafana dashboards |
-| `infra-runbook` | Infrastructure runbook skill |
-| `land-and-deploy` | Deployment patterns |
-| `setup-deploy` | Deploy setup patterns |
-
-## 🎨 Design & Frontend UI
-| Skill | What it does |
-|-------|-------------|
-| `frontend-slides` | Animation-rich HTML presentations / PPT convert |
-| `web-artifacts-builder` | Multi-component Claude HTML artifacts |
-| `brand-guidelines` | Anthropic brand colors + typography |
-| `teach-impeccable` | One-time design context setup |
-| `theme-factory` | Themed slides, docs, reports, HTML |
-| `design-consultation` | Full design system proposal: aesthetic, typography, color, layout, motion |
-
-## ✨ Design Polish (Impeccable Suite)
-| Skill | What it does |
-|-------|-------------|
-| `adapt` | Responsive design across screen sizes |
-| `animate` | Purposeful animations + micro-interactions |
-| `arrange` | Layout, spacing, visual rhythm fixes |
-| `audit` | Full interface quality audit |
-| `bolder` | Amplify boring designs |
-| `clarify` | UX copy, error messages, microcopy |
-| `colorize` | Add strategic color to flat interfaces |
-| `critique` | Evaluate design effectiveness |
-| `delight` | Joy, personality, memorable touches |
-| `distill` | Strip to essence, remove complexity |
-| `extract` | Extract reusable components + tokens |
-| `harden` | Error handling, i18n, text overflow |
-| `normalize` | Match design system consistency |
-| `onboard` | Onboarding flows + empty states |
-| `optimize` | Loading speed, rendering, bundle size |
-| `overdrive` | Shaders, 60fps, spring physics, scroll-driven |
-| `polish` | Final quality pass before shipping |
-| `quieter` | Tone down aggressive designs |
-| `typeset` | Typography: fonts, hierarchy, readability |
-
-## 🎬 Visual Effects
-| Skill | What it does |
-|-------|-------------|
-| `svg-animation` | Animated SVGs: GSAP, Lottie, morphing |
-| `motion-design` | Framer Motion, CSS keyframes, parallax |
-| `interactive-visuals` | Cursor trails, hover distortions, physics |
-| `particle-systems` | Canvas/WebGL: confetti, fire, snow, aurora |
-| `generative-backgrounds` | Noise gradients, voronoi, cellular automata |
-| `retro-pixel` | CRT scanlines, 8-bit, VHS glitch, ASCII |
-| `webgl-shader` | Three.js + custom GLSL shaders |
-| `canvas-design` | Visual art in PNG/PDF |
-| `remotion` | Video generation with Remotion |
-| `remotion-best-practices` | 30 rule files for Remotion |
-| `video-gallery` | Video gallery/player (YouTube, Vimeo, self-hosted) |
-| `slack-gif-creator` | Animated GIFs optimized for Slack |
-
-## 📈 SEO & Content
-| Skill | What it does |
-|-------|-------------|
-| `aaio` | **NEW** Agentic AI Optimization — robots.txt AI policy, JSON-LD, markdown twins, agent-ready interfaces |
-| `ai-seo` | Optimize for AI search engines / LLM citations |
-| `seo-optimizer` | Technical SEO: meta, OG, JSON-LD, sitemaps |
-| `seo-content-brief` | SEO content briefs for writers |
-| `serp-analyzer` | Analyze Google SERP for any keyword |
-| `backlink-audit` | Domain backlink profile via SemRush API |
-| `site-architecture` | Page hierarchy, navigation, URL structure |
-| `content-strategy` | Content planning + editorial calendar |
-| `bulk-page-generator` | Programmatic SEO pages at scale |
-| `blog-engine` | SEO-optimized blog systems (MDX, Next.js) |
-| `social-integration` | OG previews, Twitter cards, sharing |
-| `search-console` | Google Search Console data — rankings, clicks, impressions, CTR, index coverage |
-| `guest-blogger` | Guest blog search strategy, source analysis, quality evaluation, pitch templates |
-
-## 📧 Email & Messaging
-| Skill | What it does |
-|-------|-------------|
-| `cold-email` | B2B cold outreach sequences |
-| `email-capture` | Newsletter signup components |
-| `email-systems` | 99.9% deliverability email engineering |
-| `sendgrid-automation` | SendGrid: send, contacts, sender identity |
-| `whatsapp-automation` | WhatsApp Business via Composio |
-| `whatsapp-cloud-api` | WhatsApp Cloud API: templates, webhooks |
-| `twilio-communications` | SMS, voice, WhatsApp via Twilio |
-| `intercom-automation` | Intercom: conversations, contacts, segments |
-| `internal-comms` | Internal communications writing |
-
-## 💰 Business & Growth
-| Skill | What it does |
-|-------|-------------|
-| `saas-metrics-coach` | ARR, MRR, churn, LTV, CAC analysis |
-| `revops` | Revenue operations, lead lifecycle |
-| `sales-enablement` | Sales decks, one-pagers, objection handling |
-| `monetization-strategy` | 3-5 monetization strategies + validation |
-| `experiment-designer` | Product experiments, hypotheses, sample size |
-| `ab-test-setup` | A/B test gates: hypothesis, metrics, execution |
-| `billing-automation` | Recurring payments, invoicing, dunning |
-| `churn-prevention` | Cancellation flows, save offers, recovery |
-| `paywall-upgrade-cro` | In-app paywalls, upgrade screens, upsells |
-| `signup-flow-cro` | Signup/registration/trial optimization |
-| `form-cro` | Non-signup form optimization |
-| `free-tool-strategy` | Engineering-as-marketing free tools |
-| `referral-program` | Viral growth + referral marketing |
-| `ad-creative` | Ad headlines, descriptions, creative |
-| `competitor-alternatives` | Competitor comparison pages |
-| `analytics-conversion` | GA4, Plausible, PostHog conversion tracking |
-| `analytics-product` | Product analytics: funnels, cohorts, retention |
-| `metrics-dashboard` | Product metrics dashboards + KPIs |
-| `posthog-automation` | PostHog: events, flags, user profiles |
-| `sentry-automation` | Sentry: issues, alerts, releases |
-
-## 📦 Skill Packs (multi-skill bundles)
-| Skill | What it does |
-|-------|-------------|
-| `c-level-pack` | 28 skills covering 10 C-level roles |
-| `product-pack` | 20 product management skills |
-| `marketing-pack` | 42 marketing skills across 7 pods |
-| `business-pack` | Business strategy skills |
-| `engineering-pack` | Engineering leadership skills |
-| `finance-pack` | Financial analysis + planning |
-
-## 🐍 Python
-| Skill | What it does |
-|-------|-------------|
-| `python-patterns` | Pythonic idioms, PEP 8, type hints |
-| `python-testing` | Pytest, TDD, fixtures, mocking |
-
-## 🧪 Testing
-| Skill | What it does |
-|-------|-------------|
-| `e2e-testing` | Playwright: Page Object Model, CI/CD |
-| `webapp-testing` | Playwright for local web apps |
-| `screenshots` | Marketing screenshots via Playwright |
-
-## 📄 Documents & Media
-| Skill | What it does |
-|-------|-------------|
-| `pptx` | PowerPoint file handling (in/out) |
-| `pdf-official` | PDF: extract, create, merge, split |
-| `doc-coauthoring` | Structured documentation co-authoring |
-| `partner-logo-standard` | SVG logo standards (Guest Networks) |
-| `humanizer` | Content humanization |
-
-## 🏢 OpenClaw / Paperclip
-| Skill | What it does |
-|-------|-------------|
-| `openclaw-health-check` | Full system health audit |
-| `openclaw-agent-scaffolder` | Interview → generate agent config |
-| `paperclip` | Paperclip task management API |
-| `paperclip-create-agent` | Scaffold new Paperclip agents |
-| `paperclip-create-plugin` | Scaffold Paperclip plugins |
-| `skill-stocktake` | Audit skill quality (quick scan / full) |
-
-## 🌐 Internationalization
-| Skill | What it does |
-|-------|-------------|
-| `i18n-localization` | Detect hardcoded strings, manage translations |
-
-## 📊 Misc / Utilities
-| Skill | What it does |
-|-------|-------------|
-| `web-scraper` | Multi-strategy web scraping |
-| `firecrawl-scraper` | Deep scraping via Firecrawl API |
-| `chat-widget` | Real-time support chat system |
-| `trading-analysis` | Trading analysis patterns |
-| `para-memory-files` | PARA method memory organization |
-| `setup-browser-cookies` | Browser cookie setup |
-| `business-analytics` | AI-powered business analysis |
-| `investigate` | Systematic debugging with root cause investigation |
-| `project-guidelines-example` | Example project-specific skill template (real production app) |
-
-## 🔬 Observability & QA
-| Skill | What it does |
-|-------|-------------|
-| `benchmark` | Performance regression detection — page load baselines, Core Web Vitals |
-| `canary` | Post-deploy canary monitoring — console errors, perf regressions, page failures |
-| `browse` | Headless browser for QA and site dogfooding — navigate, interact, screenshot, diff |
-| `cache-monitor` | Claude Code/OpenClaw session cost and cache efficiency analysis |
-| `qa` | Full QA loop: test web app, fix bugs, commit atomically |
-| `qa-only` | Report-only QA: structured report with health score, never modifies code |
-
-## 🔬 Research & Analysis (ccc-research)
-| Skill | What it does |
-|-------|-------------|
-| `deep-research` | Multi-source research with citation management and confidence scoring |
-| `literature-review` | Academic and technical literature synthesis |
-| `competitive-analysis` | Competitor feature matrices, pricing analysis, positioning |
-| `market-research` | TAM/SAM/SOM analysis, market sizing, trend identification |
-| `data-synthesis` | Cross-source data aggregation and insight extraction |
-| `citation-manager` | Track, format, and verify citations across research |
-| `source-validator` | Verify claims against original sources, flag hallucinations |
-| `research-brief` | Structured research output — executive summary, findings, recommendations |
-| `last30days` | Real-time research — Reddit/X/YouTube/HN/web for recent trends and current content (run before planning) |
-
-## 📱 Mobile Development (ccc-mobile)
-| Skill | What it does |
-|-------|-------------|
-| `react-native-patterns` | React Native: navigation, state, native modules, performance |
-| `flutter-patterns` | Flutter: widgets, state management, platform channels |
-| `ios-swift` | Swift/SwiftUI patterns, App Store guidelines |
-| `android-kotlin` | Kotlin/Jetpack Compose, Play Store guidelines |
-| `mobile-testing` | Mobile E2E testing, device farms, screenshot testing |
-| `app-store-optimization` | ASO: keywords, screenshots, descriptions, A/B testing |
-| `cross-platform-patterns` | Shared code strategies, platform-specific adaptations |
-
-## 🛡️ Security & Compliance (ccc-security)
-| Skill | What it does |
-|-------|-------------|
-| `owasp-top-10` | OWASP Top 10 vulnerability detection and remediation |
-| `supply-chain-security` | Dependency auditing, SBOM generation, lockfile verification |
-| `secrets-management` | Vault patterns, secret rotation, env var hygiene |
-| `threat-modeling` | STRIDE/DREAD threat models, attack surface analysis |
-| `security-headers` | HTTP security headers audit and configuration |
-| `auth-hardening` | Authentication hardening — MFA, session management, brute force protection |
-| `api-security` | API security — rate limiting, input validation, JWT best practices |
-| `incident-response-security` | Security incident response playbooks and forensics |
-| `compliance-frameworks` | SOC 2, ISO 27001, HIPAA compliance checklists |
-
-## 📊 Data & Analytics (ccc-data)
-| Skill | What it does |
-|-------|-------------|
-| `etl-pipelines` | ETL/ELT pipeline design — extraction, transformation, loading patterns |
-| `data-warehousing` | Data warehouse design — star schema, slowly changing dimensions |
-| `analytics-engineering` | dbt patterns, data modeling, metrics layer |
-| `data-visualization` | Chart selection, dashboard design, storytelling with data |
-| `ml-ops` | ML pipeline management — training, deployment, monitoring, drift detection |
-| `data-quality` | Data quality checks, anomaly detection, validation rules |
-| `streaming-data` | Real-time data processing — Kafka, event sourcing, CDC |
-| `data-governance` | Data catalogs, lineage tracking, access policies |
-
-## 🔄 Workflow Modes (mode-switcher)
-| Mode | What it does |
-|------|-------------|
-| `mode-switcher` | Router skill — switch between 10 workflow modes via `/cc mode <name>` |
-| `mode-normal` | Balanced defaults — plan-first, verify-before-done |
-| `mode-design` | Visual-first — loads design/animation skills, critique loop |
-| `mode-saas` | Full SaaS lifecycle — auth, billing, DB, deploy pipeline |
-| `mode-marketing` | Content + CRO focus — SEO, copy, conversion optimization |
-| `mode-research` | Deep research — citations, confidence levels, source verification |
-| `mode-writing` | Long-form content — blog posts, docs, technical writing |
-| `mode-night` | Autonomous overnight — checkpoints, error recovery, notifications |
-| `mode-yolo` | Maximum speed — skip confirmations, auto-approve, ship fast |
-| `mode-unhinged` | No guardrails — experimental, creative, push boundaries |
-
-## 🤝 Integrations
-| Skill | What it does |
-|-------|-------------|
-| `agency-orchestrator` | Multi-agent orchestration patterns — coordinator, workers, reporting, error recovery |
-| `openclaw-patterns` | OpenClaw integration — agent configs, channel routing, session management, tool binding |
-
-## 📝 Prompt Library
-> 36+ prompt templates across 6 categories in `prompts/`
-
-| Category | Templates | What they cover |
-|----------|-----------|----------------|
-| Coding | 8 | Bug fix, code review, architecture review, TDD setup, refactor brief, performance audit, migration plan, API design |
-| Planning | 6 | Spec interview, evals-first, decomposition, handoff, sprint planning, project kickoff |
-| Design | 5 | Design critique, accessibility audit, animation brief, design system setup, responsive review |
-| Marketing | 6 | SEO content brief, cold email sequence, landing page copy, ad creative, social media calendar, competitor teardown |
-| DevOps | 5 | CI failure investigation, deploy checklist, incident response, infrastructure review, monitoring setup |
-| Meta | 5+ | Subagent dispatch, research, PR description, skill creation, CLAUDE.md generation |
-
-## 🏗 Project Starters
-> Ready-to-use project templates in `templates/` + skills that bootstrap full setups.
-
-### Starter Templates (`templates/`)
-| Template | Stack | What you get |
-|----------|-------|-------------|
-| `nextjs-shadcn-starter.md` | Next.js 15 + shadcn/ui + Better Auth + Drizzle + Neon | Full SaaS scaffold: auth, dashboard, DB schema, middleware |
-| `turborepo-fullstack-starter.md` | Turborepo + Next.js + Fastify + shared packages | Monorepo: web app, API, shared DB/types/validators |
-| `marketing-site-starter.md` | Next.js 15 + MDX + PostHog + Framer Motion | Marketing site: hero, pricing, blog, analytics, OG images |
-
-### Scaffolding Skills
-| Skill | What it starts |
-|-------|---------------|
-| `project-kickoff` | Any project — CLAUDE.md, tasks/, .claude/settings.json, git worktree |
-| `nextjs-app-router` ⭐ | Next.js 15+ App Router project with RSC, server actions, streaming |
-| `turborepo-monorepo` ⭐ | Turborepo monorepo with pipeline, caching, shared packages |
-| `landing-page-builder` | High-converting Next.js landing page |
-| `laravel-patterns` | Laravel project with routing, Eloquent, service layers |
-| `vue-nuxt` | Vue 3 / Nuxt 4 project with Pinia + TypeScript |
-
----
-
-## 📖 Reference MCPs (always available)
-| MCP | What it provides |
-|-----|-----------------|
-| `context7` | Up-to-date library docs ("use context7") |
-| `playwright` | Browser automation, screenshots, E2E |
-| `n8n-mcp` | n8n workflow automation |
-| `github` / `github-gn` (example) | GitHub API (primary + optional secondary org) |
-| `granola` | Meeting notes / transcripts |
-| `claude-peers` | Agent-to-agent communication |
-
----
-
-## 🚀 Quick Start Bundles
-
-Pick a bundle to load the right skills for your project type:
-
-| Bundle | Skills to Load | For |
-|--------|---------------|-----|
-| **Web Wizard** | `nextjs-app-router` + `shadcn-ui` + `tailwind-v4` + `drizzle-neon` | Full-stack web apps |
-| **Security Engineer** | `pci-compliance` + `container-security` + `github-actions-security` + `pentest-checklist` | Security audits & hardening |
-| **Content Creator** | `ccc-marketing` + `ccc-seo` + `blog-engine` | Content & SEO campaigns |
-| **Full Stack SaaS** | `ccc-saas` + `ccc-devops` + `ccc-testing` | SaaS product from scratch |
-
----
-
-*⭐ = added in CC Commander v6.7.3 and kept current with each release. Desktop plugin skills (plain `/ccc-*` namespace) added in v6.7.3, updated in v6.7.3.*
-
----
-
-## CCC (Claude Code Commander) Skills
-
-Desktop plugin is the primary surface — adds plain `/ccc-*` skills (see top of file). Interactive CLI project manager is a secondary CLI-only surface that sits above Claude Code sessions.
-
-| Skill | Category | Description |
-|-------|----------|-------------|
-| `cc-commander` | Commander | Full interactive PM with spec flow, plugin orchestration, knowledge injection |
-| `cc-yolo-mode` | Commander | YOLO Mode — 10-question spec → 8hr autonomous build (Opus, $10, 100 turns) |
-| `cc-knowledge` | Commander | Search knowledge base for past lessons |
-| `cc-plugins` | Commander | Detect installed packages + show orchestration plan |
-
-### Commander Adventures (11 flows)
-| Adventure | Choices | Description |
-|-----------|---------|-------------|
-| main-menu | 12 | Hub: build, content, research, learn, stats, settings, YOLO, theme |
-| build-something | 5 | Code: web apps, APIs, CLI tools + 3 sub-adventures |
-| create-content | 7 | Marketing: blog, social, email, copy, docs + 5 sub-adventures |
-| research | 6 | Analysis: competitive, market, code audit, SEO + 4 sub-adventures |
-| CCC domains | 7 | Browse 11 CCC domains (200+ sub-skills) with dispatch |
-| night-build | 4 | YOLO Mode + YOLO Loop (3-10 cycles) |
-| continue-work | 4 | Resume sessions: exact, summary, fresh start |
-| review-work | 4 | Session history, resume, details |
-| learn-skill | 5 | Skill browser, CCC domains, cheatsheet, recommendations |
-| check-stats | 4 | Dashboard with sparklines, achievements, history |
-| settings | 7 | Name, level, cost, theme, animations, reset |
+*Skills live in `~/.claude/skills/` — load any with: "use the `skill-name` skill"*
+*Templates live in `~/.claude/templates/`*
