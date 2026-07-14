@@ -105,6 +105,11 @@ The plan/execute split: high-reasoning models write goal files and verify; execu
 |-------|---------|--------------|
 | `/ccc-orchestrate` | `/ccc-orchestrate` or "orchestrate this", "goal file executor" | Cross-runtime Orchestrator/Executor — Fable/Opus writes a Skill.md-style goal file, GPT-5.5 via `codex` or Sonnet executes, orchestrator verifies acceptance criteria |
 | `/ccc-adopt` | `/ccc-adopt` or "adopt commander", "add ccc doctrine" | Bring the Orchestrator/Executor doctrine into an existing project — merge a marked `CLAUDE.md` block without clobbering local rules |
+| `/ccc-relay` | `/ccc-relay` or "cross-session loop", "spec build review chain" | Cross-session loop chaining — chains independent gated spec → build → review sessions with a durable handoff baton; merge stays human-approved (v6.7.0) |
+| `/ccc-smb-ops` | `/ccc-smb-ops` or "small business ops", "invoicing", "cash flow" | Small-business-operations domain (router + 6 sub-skills): invoicing/AR, cash-flow forecast, expense tracking, payroll planning, CRM hygiene, weekly owner brief (v6.7.0) |
+| `/ccc-broadcast` | `/ccc-broadcast` or "status updates", "tell the team when it ships" | Outbound status relay — pushes scrubbed build/deploy/CI/task/cost signals to team chat or email via `/ccc-connect`; the outbound counterpart to `/ccc-nightwatch` (v6.7.1) |
+| `/ccc-spawn` | `/ccc-spawn` or "spawn a session", "spin this off" | Click-first spawn hub — spin isolated work into its own session (spawn_task chip in Cowork, `/spawn` peer in CLI); routes to `/ccc-fleet` or `/ccc-relay` (v6.7.2) |
+| `/ccc-prompt-fix` | `/ccc-prompt-fix` or "fix my prompt", "sharpen this prompt" | Auto prompt fixer — diagnoses a prompt against the 6 quality patterns, returns a tighter rewrite with the reasoning, suggests the matching library prompt (v6.7.3) |
 
 ## All 77 at a Glance
 
