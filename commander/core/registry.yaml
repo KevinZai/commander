@@ -1224,11 +1224,6 @@ skills:
     domain: ccc-relay
     tier: free
     description: "name: relay"
-  - id: ccc-relay-smbops
-    path: skills/ccc-relay-smbops/SKILL.md
-    domain: ccc-relay-smbops
-    tier: free
-    description: "name: ccc-relay-smbops"
   - id: ccc-research
     path: skills/ccc-research/SKILL.md
     domain: ccc-research
