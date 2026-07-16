@@ -651,8 +651,11 @@ function dispatch(server, url, options = {}) {
 }
 
 test('GET /api/mission returns the full model', async () => {
+  // The endpoint builds the model against the real clock, so this fixture must stay
+  // recent in wall-clock terms — a fixed T() date ages past RUNNING_WINDOW_MS and rots to 'stale'.
+  const justNow = new Date(Date.now() - 60_000).toISOString();
   const commanderDir = await makeBase({
-    subagent: [start({ agent_name: 'builder', ts: T('10:01:00') })],
+    subagent: [start({ agent_name: 'builder', ts: justNow })],
     tasks: [{ ts: T('09:00:00'), task_id: '1', status: 'pending', title: 'Plan launch' }],
   });
   const server = createServer({ sessionsDir: path.join(tmpRoot, 'none'), commanderDir });
