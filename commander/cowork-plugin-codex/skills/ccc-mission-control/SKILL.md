@@ -42,7 +42,7 @@ Explicit sub-commands skip the picker: `/ccc-mission-control open`, `/ccc-missio
    ```
 2. **If not `200`, start it** — run `node dashboard/server.js` as a **background task** from the CC Commander repo root. Finding that root:
    - Working inside the CCC repo → use the current checkout.
-   - Installed via marketplace → the plugin lives in the marketplace cache; the repo checkout is at `${CLAUDE_PLUGIN_ROOT}/../..` — verify `dashboard/server.js` exists there before launching.
+   - Installed via marketplace → the plugin lives in the marketplace cache; the repo checkout is at `${CODEX_PLUGIN_ROOT}/../..` — verify `dashboard/server.js` exists there before launching.
    - No `dashboard/server.js` anywhere → **fall back to snapshot mode** (next section) instead of failing.
 3. **Open the Browser pane** at `http://127.0.0.1:4690/mission-control.html` (`preview_start {url}`). The panel docks beside the chat and keeps itself fresh while you keep working.
 
@@ -55,7 +55,7 @@ Build the model and render the self-contained HTML file with the plugin's own li
 ```bash
 mkdir -p scratchpad
 node --input-type=module -e "
-import { readModel, buildSnapshotHtml } from '${CLAUDE_PLUGIN_ROOT}/lib/mission-control-snapshot.js';
+import { readModel, buildSnapshotHtml } from '${CODEX_PLUGIN_ROOT}/lib/mission-control-snapshot.js';
 import { writeFile } from 'node:fs/promises';
 const html = buildSnapshotHtml(await readModel({}));
 await writeFile(process.argv[1], html);
@@ -106,7 +106,7 @@ Agents can drop a proactive "you might want to do X" idea into `~/.claude/comman
    Once the ticket exists, append the status line with a `node -e` one-liner against the shared writer lib (never write the JSONL by hand):
    ```bash
    node -e "
-   import('${CLAUDE_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
+   import('${CODEX_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
      appendStatus({ id: '<suggestion-id>', status: 'promoted', promoted_ticket: { id: '<ticket-id>', title: '<ticket-title>', url: '<ticket-url>' }, by: 'mission-control' }, {})
    );
    "
@@ -114,7 +114,7 @@ Agents can drop a proactive "you might want to do X" idea into `~/.claude/comman
 5. **On dismiss:** append the same way with `status: 'dismissed'`:
    ```bash
    node -e "
-   import('${CLAUDE_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
+   import('${CODEX_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
      appendStatus({ id: '<suggestion-id>', status: 'dismissed', by: 'mission-control' }, {})
    );
    "

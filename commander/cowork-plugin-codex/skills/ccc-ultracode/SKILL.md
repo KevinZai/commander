@@ -70,10 +70,10 @@ Check your version: `claude --version` in the terminal.
 
 ## Bundled CC Commander workflows
 
-Four production-ready workflows live at `${CLAUDE_PLUGIN_ROOT}/workflows/`. Invoke them via:
+Four production-ready workflows live at `${CODEX_PLUGIN_ROOT}/workflows/`. Invoke them via:
 
 ```js
-Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/<name>.workflow.js", args: { ... } })
+Workflow({ scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/<name>.workflow.js", args: { ... } })
 ```
 
 | Workflow | scriptPath | What it does | Example args |

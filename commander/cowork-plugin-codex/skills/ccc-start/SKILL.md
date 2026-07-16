@@ -25,7 +25,7 @@ Output exactly these three sections in order:
 
 ### 1. ASCII hero (read banner.txt + interpolate version)
 
-Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block.
+Read `${CODEX_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CODEX_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block.
 
 After the banner, add a single welcome line:
 > **Welcome to CC Commander** — let's get you oriented in under 90 seconds.
@@ -36,9 +36,9 @@ Detect setup with **parallel checks** (one Bash call, chained with `&&`, silent 
 - `ls ~/.claude/plugins/*/plugin.json 2>/dev/null | wc -l` → other plugins installed
 - `ls ~/.claude/plans/ 2>/dev/null | wc -l` → prior plans
 - `git rev-parse --show-toplevel 2>/dev/null` → inside a repo?
-- `ls ${CLAUDE_PLUGIN_ROOT}/agents/*.md 2>/dev/null | wc -l` → agents available
-- `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/*/ 2>/dev/null | wc -l` → plugin skills
-- `node -e "console.log(Object.keys(require('${CLAUDE_PLUGIN_ROOT}/.mcp.json').mcpServers||{}).length)" 2>/dev/null` → bundled MCPs
+- `ls ${CODEX_PLUGIN_ROOT}/agents/*.md 2>/dev/null | wc -l` → agents available
+- `ls -d ${CODEX_PLUGIN_ROOT}/skills/*/ 2>/dev/null | wc -l` → plugin skills
+- `node -e "console.log(Object.keys(require('${CODEX_PLUGIN_ROOT}/.mcp.json').mcpServers||{}).length)" 2>/dev/null` → bundled MCPs
 
 Render a one-line summary:
 
@@ -118,7 +118,7 @@ Invoke `ccc` skill inline. No wrapping text — the next picker does the work.
 
 ## The 22 agents (for reference when recommending)
 
-Read `${CLAUDE_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline matrix:
+Read `${CODEX_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline matrix:
 
 | Persona | Best for |
 |---------|---------|

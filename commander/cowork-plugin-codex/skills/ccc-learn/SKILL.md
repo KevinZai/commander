@@ -39,7 +39,7 @@ If nothing installed: "📚 No CCC skills installed yet — pick a domain, I'll 
 
 ### 3. The picker — `AskUserQuestion` with 4 options
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-learn.json` once. Use its `choices` for labels + descriptions. **Max 4 options** — take the 3 headline domains + "More domains…".
+Read `${CODEX_PLUGIN_ROOT}/menus/ccc-learn.json` once. Use its `choices` for labels + descriptions. **Max 4 options** — take the 3 headline domains + "More domains…".
 
 ```
 question: "Which domain?"

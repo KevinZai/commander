@@ -40,7 +40,7 @@ If barely any context: "🧭 Empty-ish project — Plan a feature or run X-ray t
 
 ### 3. The picker — `AskUserQuestion` page 1
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-more.json` once. Use its `choices`. **Max 4 options** — 3 headline tools + "Even more…".
+Read `${CODEX_PLUGIN_ROOT}/menus/ccc-more.json` once. Use its `choices`. **Max 4 options** — 3 headline tools + "Even more…".
 
 ```
 question: "Which tool?"

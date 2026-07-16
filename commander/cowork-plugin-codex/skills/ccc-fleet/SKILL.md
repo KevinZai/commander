@@ -77,15 +77,15 @@ If the `Workflow` tool is available, prefer invoking the bundled fleet workflow 
 
 | Picker choice | Workflow invocation |
 |---------------|---------------------|
-| 🌿 Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 ...", "slice 2 ...", ...] } })` |
-| 🔗 Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 ...", "stage 2 ...", ...] } })` |
-| ⚖️ Opposing review | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+| 🌿 Fan-out | `Workflow({ scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 ...", "slice 2 ...", ...] } })` |
+| 🔗 Pipeline | `Workflow({ scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 ...", "stage 2 ...", ...] } })` |
+| ⚖️ Opposing review | `Workflow({ scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
 
 For **migration jobs** (transforming many files with pattern matching), use the dedicated migration workflow instead:
 
 ```js
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js",
+  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js",
   args: { pattern: "<what to find>", transform: "<how to change it>", verify: "<how to confirm>" }
 })
 ```

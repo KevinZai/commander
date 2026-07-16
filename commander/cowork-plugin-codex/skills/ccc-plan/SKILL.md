@@ -56,7 +56,7 @@ Output exactly these three sections in order:
 **CC Commander** · v{VERSION} · Planner · spec-first, plan-before-code
 ```
 
-Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
+Read `VERSION` from `${CODEX_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
 
 ### 2. Context strip (one paragraph, markdown)
 

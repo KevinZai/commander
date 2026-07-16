@@ -47,7 +47,7 @@ If state.json shows `onboardingCompleted: true`, skip this step and proceed to s
 
 ### 1. ASCII hero (read banner.txt + interpolate version)
 
-Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block (` ```text ... ``` `), NO trailing prose on the same block.
+Read `${CODEX_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CODEX_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block (` ```text ... ``` `), NO trailing prose on the same block.
 
 This replaces the markdown one-liner header.
 
@@ -118,7 +118,7 @@ When the user picks an option, use the `SendMessage` pattern by invoking the tar
 
 > Loading the build workflow — `ccc-build` routes you to web / API / CLI / mobile / from-spec with one more click.
 
-Then proceed as if the user had invoked `/ccc-build` directly. Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for its options and call `AskUserQuestion` with them.
+Then proceed as if the user had invoked `/ccc-build` directly. Read `${CODEX_PLUGIN_ROOT}/menus/ccc-build.json` for its options and call `AskUserQuestion` with them.
 
 ## When user passes an argument
 

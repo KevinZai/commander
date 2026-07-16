@@ -23,14 +23,14 @@ Output exactly these three sections in order:
 **CC Commander** · v{VERSION} · Browser · 60 skills · 22 agents · 11 domains
 ```
 
-Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
+Read `VERSION` from `${CODEX_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
 
 ### 2. Context strip (one paragraph, markdown)
 
 Count categories live with a single Bash call:
-- `ls ${CLAUDE_PLUGIN_ROOT}/skills/ | wc -l` → total skills
-- `ls ${CLAUDE_PLUGIN_ROOT}/agents/*.md | wc -l` → agents
-- `ls ${CLAUDE_PLUGIN_ROOT}/skills/ccc-* -d 2>/dev/null | wc -l` → ccc-* skills
+- `ls ${CODEX_PLUGIN_ROOT}/skills/ | wc -l` → total skills
+- `ls ${CODEX_PLUGIN_ROOT}/agents/*.md | wc -l` → agents
+- `ls ${CODEX_PLUGIN_ROOT}/skills/ccc-* -d 2>/dev/null | wc -l` → ccc-* skills
 
 Render:
 
@@ -68,7 +68,7 @@ Recommendation (⭐):
 
 ### Domains (11) → cascade
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/` glob for `ccc-<name>` directories excluding meta (`ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, etc.).
+Read `${CODEX_PLUGIN_ROOT}/skills/` glob for `ccc-<name>` directories excluding meta (`ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, etc.).
 
 First `AskUserQuestion` (4 of 11):
 ```
@@ -128,7 +128,7 @@ On pick → invoke the skill inline.
 
 ### Agents (15) → cascade
 
-Read `${CLAUDE_PLUGIN_ROOT}/agents/*.md` frontmatter. Cascade 4-at-a-time across 4 pickers:
+Read `${CODEX_PLUGIN_ROOT}/agents/*.md` frontmatter. Cascade 4-at-a-time across 4 pickers:
 
 Pass 1: architect, builder, debugger, reviewer
 Pass 2: qa-engineer, security-auditor, performance-engineer, designer
@@ -193,7 +193,7 @@ Never require the user to leave `/ccc-browse` and type another slash command. We
 1. Parallel the three count Bash calls into one. Saves a turn.
 2. When cascading, maintain a simple state in your responses: "Page 1 of 3 · 4 of 11 shown".
 3. If `argument-hint` is `domains`, `workflows`, `agents`, or `all`, skip the root picker and jump to that path.
-4. Agent descriptions are in `${CLAUDE_PLUGIN_ROOT}/agents/*.md` frontmatter — read the whole file only on user drill-in.
+4. Agent descriptions are in `${CODEX_PLUGIN_ROOT}/agents/*.md` frontmatter — read the whole file only on user drill-in.
 
 ---
 

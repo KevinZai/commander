@@ -42,7 +42,7 @@ If no project detected: "🎨 No project yet — I'll scaffold one after you pic
 
 ### 3. The picker — `AskUserQuestion` with 4 options
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-design.json` once. Use its `choices` array to drive the question. **Max 4 options** — take the 4 non-back choices (landing / components / polish / figma). Back-to-main is not an AUQ option; users invoke `/ccc` directly.
+Read `${CODEX_PLUGIN_ROOT}/menus/ccc-design.json` once. Use its `choices` array to drive the question. **Max 4 options** — take the 4 non-back choices (landing / components / polish / figma). Back-to-main is not an AUQ option; users invoke `/ccc` directly.
 
 ```
 question: "What design work?"
