@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.8.1] - 2026-07-16
+
+### Added
+- **Mission Control multi-source groundwork** — the dashboard, snapshot artifact, and read model now track which app produced each run: `sourceApp`-tagged agents/events, a Source filter + colored pill on the Live Feed and agent roster, and an `agent_key` (`sourceApp:name`) so two sources can never collide on a shared agent name.
+- **Suggestions panel** — a 5th "who's working on what" panel: the proactive ideas queue (`~/.claude/commander/mission-control/suggestions.jsonl`) with status chips (new/promoted/dismissed) on the live dashboard and a plain list on the snapshot artifact, plus a `GET /api/suggestions` endpoint and a "Review & promote suggestions" conversational flow in `/ccc-mission-control`.
+
+### Fixed
+- Telemetry writer hooks (`agent-run-logger`, `subagent-start-tracker`) now read the Claude Code hook STDIN payload as the primary source for agent name/session/status/duration/tokens instead of unpopulated env vars; prompt text stored by `subagent-start-tracker` is now redacted and capped.
+- `mission-model.js`'s timestamp parsing now accepts numeric epoch-ms the same way the snapshot library already did, so both readers agree on event ordering.
+- `events.jsonl` entries carrying an optional `id` are now deduped on read (first occurrence wins) — guards against the cowork + codex plugin mirrors double-appending the same event.
+
 ## [6.8.0] - 2026-07-16
 
 ### Added
