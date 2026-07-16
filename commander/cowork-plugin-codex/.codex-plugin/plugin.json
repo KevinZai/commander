@@ -1,8 +1,8 @@
 {
   "name": "commander",
   "displayName": "CC Commander",
-  "version": "6.7.3",
-  "description": "Guided AI PM for Claude Code, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. 77 plugin skills (click-first /ccc-* workflows), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 23 lifecycle hooks × 39 handlers, 2 bundled MCP servers + 16 opt-in. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Core free forever — no signup, no card. MIT-licensed.",
+  "version": "6.8.0",
+  "description": "Guided AI PM for Claude Code, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. 78 plugin skills (click-first /ccc-* workflows), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 23 lifecycle hooks × 41 handlers, 2 bundled MCP servers + 16 opt-in. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Core free forever — no signup, no card. MIT-licensed.",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
@@ -25,7 +25,7 @@
   "hooks": "./hooks.json",
   "interface": {
     "displayName": "CC Commander",
-    "shortDescription": "Guided AI PM. 60 skills, 22 specialist agents, 8 hooks. Free for now.",
+    "shortDescription": "Guided AI PM. 78 skills, 22 specialist agents, Codex-supported hook subset. Core free forever.",
     "longDescription": "CC Commander is a PM/orchestration layer over Codex's sub-agent primitive. Brain/hands architecture: opinionated workflows for plan→build→review→ship. Works equally well in Claude Code and Codex CLI.",
     "developerName": "Kevin Zicherman",
     "category": "productivity",

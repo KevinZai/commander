@@ -8,12 +8,12 @@
   "plugins": [
     {
       "name": "commander",
-      "description": "Guided AI PM — 72 skills, 22 specialist agent personas, Codex-supported hook subset, 2 credential-free MCP servers. Codex-format mirror of the Claude Code plugin.",
-      "version": "6.7.3",
+      "description": "Guided AI PM — 78 skills, 22 specialist agent personas, Codex-supported hook subset, 2 credential-free MCP servers. Codex-format mirror of the Claude Code plugin.",
+      "version": "6.8.0",
       "source": {
         "path": "./commander/cowork-plugin-codex"
       }
     }
   ],
-  "version": "6.7.3"
+  "version": "6.8.0"
 }

@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.8.0] - 2026-07-16
+
+### Added
+- **Commander Mission Control** — a visual harness inside Claude Code Desktop. See who's working on what, delegation and data flow, and a plain-English status of every agent — built for non-coders managing coding agents. plugin_skills 77 → 78.
+  - **/ccc-mission-control** (plugin skill) — click-first hub: open the live dashboard in the Desktop side pane, publish a self-contained snapshot artifact, get a plain-English status, or stop the server.
+  - **Live dashboard** (`dashboard/public/mission-control.html`, zero-dep, port 4690) — agent roster with per-agent emoji/role/status/duration/tokens/est-cost heartbeat, delegation flow graph (SVG), task board, live event feed with filters, and an ⚠️ amber **awaiting-permission** state so unattended fleets never stall silently.
+  - **mission-control-feed hook** (PostToolUse + PermissionRequest, async, never-blocking) — captures delegation, cross-agent messages, workflow launches, task lifecycle, and permission requests to `~/.claude/commander/mission-control/events.jsonl` (source-app tagged, 10MB rotation, prompt-privacy truncation). 40th and 41st hook handlers (one file, two lifecycle registrations).
+  - **Snapshot artifact mode** (`lib/mission-control-snapshot.js`) — CSP-safe single-file HTML; republish to the same URL for a living status page you can check from your phone.
+- **Proactivity wave** — 5 new ambient signals in the suggestion engine: multiple-agents→mission-control, measurable-goal→/ccc-loop, vague-prompt→/ccc-prompt-fix, repeated-tool-failures→systematic debugging, and dismissed-suggestion tracking ported to the default path (ignored suggestions stop repeating).
+
+### Changed
+- `task-tracker` hook now records `subject` and `session_id` alongside existing fields (backward-compatible).
+- `dashboard/server.js` gains `/api/mission` and `/api/mission/events?after=<iso>` endpoints (127.0.0.1 bind unchanged).
+
 ## [6.7.3] - 2026-07-14
 
 ### Added

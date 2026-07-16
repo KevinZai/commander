@@ -1,17 +1,17 @@
 # CC Commander Cheatsheet
-> CC Commander v6.7.3 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v6.8.0 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-07-10 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v6.7.3)
+## Desktop Plugin Commands (v6.8.0)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 77 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 78 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
-> **New in v6.7.3 — Engagement Engine**
+> **New in v6.8.0 — Engagement Engine**
 > - Hook delivery rebuilt on documented `systemMessage` / `additionalContext` fields.
 > - Always-on skill suggestions now emit an `AskUserQuestion` chip (`Run` / `Dismiss` / `/ccc-browse`) instead of plain text once confidence is high.
 > - New `/ccc-claudemd` skill (72nd plugin skill) audits `CLAUDE.md` drift with AUQ-gated fixes.
@@ -30,7 +30,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (77 plugin skills — 13 specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
+### /ccc-* Skills (78 plugin skills — 13 specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -99,7 +99,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ### Lifecycle hook events (23)
 
-23 events, 39 handlers — fire automatically every session (no configuration needed). v5.1.0 expanded from 9 → 23 events.
+23 events, 41 handlers — fire automatically every session (no configuration needed). v5.1.0 expanded from 9 → 23 events.
 
 **Core events:**
 
@@ -120,7 +120,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | `TaskCreated` | Background task starts | 1 (workflow/fleet tracking) |
 | `TaskCompleted` | Background task finishes | 1 (workflow/fleet tracking) |
 | **9 more** | `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup` | 9 (one each) |
-| **TOTAL** | **23 events** | **39 handlers** |
+| **TOTAL** | **23 events** | **41 handlers** |
 
 ### Dynamic Workflows + Ultracode (v5.1.0)
 
@@ -692,7 +692,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 6.7.3
+version: 6.8.0
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -1066,7 +1066,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v6.7.3 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v6.8.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1150,7 +1150,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v6.7.3 Quick Reference (CLI)
+## CC Commander v6.8.0 Quick Reference (CLI)
 
 ```bash
 # Launch

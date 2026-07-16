@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Commander Mission Control</title>
+    <link rel="stylesheet" href="/mission-control.css">
+  </head>
+  <body>
+    <header class="mc-header">
+      <div class="mc-brand">
+        <span class="mc-logo" aria-hidden="true">&#8984;</span>
+        <div>
+          <h1>Commander Mission Control</h1>
+          <p class="mc-tagline">Who's working on what, in plain English</p>
+        </div>
+      </div>
+      <div class="mc-meta">
+        <span class="mc-refresh-dot" id="refresh-dot" title="Live — refreshes every 2 seconds"></span>
+        <span id="generated-at">Connecting&hellip;</span>
+      </div>
+    </header>
+
+    <section class="mc-summary" id="summary" aria-live="polite">
+      Connecting to your Commander activity&hellip;
+    </section>
+
+    <section class="mc-permission-banner" id="permission-banner" aria-live="assertive" hidden>
+      <span class="mc-permission-icon" aria-hidden="true">!</span>
+      <div>
+        <strong>Approval needed</strong>
+        <ul class="mc-permission-items" id="permission-items"></ul>
+        <p>Claude is asking permission &mdash; switch to that session and approve or deny to unblock it.</p>
+      </div>
+    </section>
+
+    <main class="mc-grid">
+      <section class="mc-panel" aria-label="Agent roster">
+        <h2><span aria-hidden="true">&#129302;</span> Agent Roster</h2>
+        <div class="mc-agents" id="agents"></div>
+      </section>
+
+      <section class="mc-panel" aria-label="Delegation flow">
+        <h2><span aria-hidden="true">&#128256;</span> Delegation Flow</h2>
+        <div class="mc-flow" id="flow"></div>
+      </section>
+
+      <section class="mc-panel" aria-label="Task board">
+        <h2><span aria-hidden="true">&#128203;</span> Task Board</h2>
+        <div class="mc-board" id="board">
+          <div class="mc-column" data-bucket="waiting">
+            <h3>Waiting</h3>
+            <div class="mc-column-body" id="col-waiting"></div>
+          </div>
+          <div class="mc-column" data-bucket="inProgress">
+            <h3>In progress</h3>
+            <div class="mc-column-body" id="col-inProgress"></div>
+          </div>
+          <div class="mc-column" data-bucket="done">
+            <h3>Completed</h3>
+            <div class="mc-column-body" id="col-done"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mc-panel" aria-label="Live feed">
+        <h2><span aria-hidden="true">&#128225;</span> Live Feed</h2>
+        <div class="mc-filter-bar" aria-label="Live Feed filters">
+          <label>
+            <span>Agent</span>
+            <select id="filter-agent">
+              <option value="">All agents</option>
+            </select>
+          </label>
+          <label>
+            <span>Type</span>
+            <select id="filter-type">
+              <option value="">All activity</option>
+            </select>
+          </label>
+          <button class="mc-filter-chip" id="filter-chip" type="button" hidden>
+            <span id="filter-chip-text"></span>
+            <span aria-hidden="true">&times;</span>
+            <span class="mc-sr-only">Clear agent filter</span>
+          </button>
+        </div>
+        <ol class="mc-feed" id="feed"></ol>
+      </section>
+    </main>
+
+    <footer class="mc-footer">
+      Reads <code>~/.claude/commander/</code> logs on this machine only &middot; nothing leaves your computer
+    </footer>
+
+    <script src="/mission-control.js"></script>
+  </body>
+</html>

@@ -5,12 +5,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { buildMissionModel, filterEventsAfter } from './lib/mission-model.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = 4690;
 const DEFAULT_SESSIONS_DIR = path.join(os.homedir(), '.claude', 'sessions');
+const DEFAULT_COMMANDER_DIR = path.join(os.homedir(), '.claude', 'commander');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PACKAGE_PATH = path.join(__dirname, 'package.json');
 
@@ -131,6 +134,7 @@ async function readSessionFile(sessionsDir, filename) {
 
 function createServer(options = {}) {
   const sessionsDir = options.sessionsDir || DEFAULT_SESSIONS_DIR;
+  const commanderDir = options.commanderDir || DEFAULT_COMMANDER_DIR;
   const startedAt = process.hrtime.bigint();
 
   return http.createServer(async (req, res) => {
@@ -163,6 +167,53 @@ function createServer(options = {}) {
 
       if (url.pathname === '/style.css') {
         await sendFile(res, path.join(PUBLIC_DIR, 'style.css'), 'text/css; charset=utf-8');
+        return;
+      }
+
+      if (url.pathname === '/mission-control' || url.pathname === '/mission-control.html') {
+        await sendFile(
+          res,
+          path.join(PUBLIC_DIR, 'mission-control.html'),
+          'text/html; charset=utf-8'
+        );
+        return;
+      }
+
+      if (url.pathname === '/mission-control.js') {
+        await sendFile(
+          res,
+          path.join(PUBLIC_DIR, 'mission-control.js'),
+          'text/javascript; charset=utf-8'
+        );
+        return;
+      }
+
+      if (url.pathname === '/mission-control.css') {
+        await sendFile(
+          res,
+          path.join(PUBLIC_DIR, 'mission-control.css'),
+          'text/css; charset=utf-8'
+        );
+        return;
+      }
+
+      if (url.pathname === '/api/mission') {
+        sendJson(res, 200, await buildMissionModel({ baseDir: commanderDir }));
+        return;
+      }
+
+      if (url.pathname === '/api/mission/filter-options') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, model.filterOptions);
+        return;
+      }
+
+      if (url.pathname === '/api/mission/events') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, {
+          events: filterEventsAfter(model.events, url.searchParams.get('after')),
+          generatedAt: model.generatedAt,
+        });
         return;
       }
 
@@ -243,6 +294,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export {
+  DEFAULT_COMMANDER_DIR,
   DEFAULT_PORT,
   DEFAULT_SESSIONS_DIR,
   HOST,
@@ -253,4 +305,3 @@ export {
   readSessionFile,
   startServer,
 };
-

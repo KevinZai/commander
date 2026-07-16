@@ -40,8 +40,26 @@ const TEST_CACHE_FILE = path.join(STATE_DIR, 'last-test-result.json');
 const VIOLATIONS_FILE = path.join(STATE_DIR, 'clickability-violations.jsonl');
 const VIOLATIONS_SEEN_FILE = path.join(STATE_DIR, 'clickability-last-seen.json');
 
+// Proactivity-wave inputs (written by subagent-start-tracker.js,
+// agent-run-logger.js, task-tracker.js, post-tool-failure-logger.js).
+const SUBAGENT_RUNS_FILE = path.join(STATE_DIR, 'subagent-runs.jsonl');
+const AGENT_RUNS_FILE = path.join(STATE_DIR, 'agent-runs.jsonl');
+const TASKS_FILE = path.join(STATE_DIR, 'tasks.jsonl');
+const TOOL_FAILURES_FILE = path.join(STATE_DIR, 'tool-failures.jsonl');
+
+// Proactivity-wave anti-nag state (same pattern as spawn-nudge-seen.json).
+const MC_NUDGE_SEEN_FILE = path.join(STATE_DIR, 'mission-control-nudge-seen.json');
+const METRIC_LOOP_SEEN_FILE = path.join(STATE_DIR, 'metric-loop-nudge-seen.json');
+const VAGUE_PROMPT_SEEN_FILE = path.join(STATE_DIR, 'vague-prompt-nudge-seen.json');
+const TOOL_FAILURES_SEEN_FILE = path.join(STATE_DIR, 'tool-failures-nudge-seen.json');
+
 const CI_CACHE_MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes
 const TEST_CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+const IN_FLIGHT_WINDOW_MS = 30 * 60 * 1000; // agents/tasks considered "current"
+const TOOL_FAILURE_WINDOW_MS = 10 * 60 * 1000; // failures considered "recent"
+const TOOL_FAILURE_COOLDOWN_MS = 30 * 60 * 1000; // re-nudge cooldown
+const CLOCK_SKEW_MS = 60 * 1000; // tolerate slightly-future ts values
+const JSONL_TAIL_BYTES = 64 * 1024; // logs rotate at 10MB — only tail-read
 
 // Fast, failure-tolerant exec (timeout 1s, returns '' on error).
 // Uses execFileSync + argv array (no shell interpolation) for safety.
@@ -383,6 +401,221 @@ function maybeSpawnNudge(promptText) {
   }
 }
 
+/**
+ * Tail-read a JSONL file (last JSONL_TAIL_BYTES only — the source logs rotate
+ * at 10MB, so a full read could blow the 2s hook budget). Malformed lines are
+ * skipped; a missing file reads as empty. Never throws.
+ */
+function readJsonlTail(file, maxBytes = JSONL_TAIL_BYTES) {
+  try {
+    const st = fs.statSync(file);
+    if (!st.isFile() || st.size === 0) return [];
+    const start = Math.max(0, st.size - maxBytes);
+    const fd = fs.openSync(file, 'r');
+    let text;
+    try {
+      const len = st.size - start;
+      const buf = Buffer.alloc(len);
+      fs.readSync(fd, buf, 0, len, start);
+      text = buf.toString('utf8');
+    } finally {
+      fs.closeSync(fd);
+    }
+    if (start > 0) {
+      const nl = text.indexOf('\n');
+      text = nl === -1 ? '' : text.slice(nl + 1); // drop the partial first line
+    }
+    const out = [];
+    for (const line of text.split('\n')) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === 'object') out.push(parsed);
+      } catch {}
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+function tsWithinWindow(rawTs, windowStart, now) {
+  const t = Date.parse(rawTs);
+  return Number.isFinite(t) && t >= windowStart && t <= now + CLOCK_SKEW_MS;
+}
+
+/**
+ * Agents currently running: SubagentStart records (subagent-runs.jsonl) in the
+ * last 30 min lacking a matching SubagentStop record (agent-runs.jsonl).
+ * Matched per agent name by count — N starts with M stops = N-M in flight.
+ */
+function countAgentsInFlight(now = Date.now()) {
+  const windowStart = now - IN_FLIGHT_WINDOW_MS;
+  const startCounts = new Map();
+  for (const e of readJsonlTail(SUBAGENT_RUNS_FILE)) {
+    if (!tsWithinWindow(e.ts, windowStart, now)) continue;
+    const name = typeof e.agent_name === 'string' && e.agent_name ? e.agent_name : 'unknown';
+    startCounts.set(name, (startCounts.get(name) || 0) + 1);
+  }
+  if (startCounts.size === 0) return 0;
+  const stopCounts = new Map();
+  for (const e of readJsonlTail(AGENT_RUNS_FILE)) {
+    if (!tsWithinWindow(e.ts, windowStart, now)) continue;
+    const name = typeof e.agent === 'string' && e.agent ? e.agent : 'unknown';
+    stopCounts.set(name, (stopCounts.get(name) || 0) + 1);
+  }
+  let running = 0;
+  for (const [name, starts] of startCounts) {
+    running += Math.max(0, starts - (stopCounts.get(name) || 0));
+  }
+  return running;
+}
+
+/**
+ * Tasks still open: tasks.jsonl entries in the last 30 min whose LATEST status
+ * per task_id is in_progress/pending (a later completed line clears the task).
+ */
+function countActiveTasks(now = Date.now()) {
+  const windowStart = now - IN_FLIGHT_WINDOW_MS;
+  const latest = new Map();
+  let i = 0;
+  for (const e of readJsonlTail(TASKS_FILE)) {
+    i += 1;
+    if (!tsWithinWindow(e.ts, windowStart, now)) continue;
+    const key = e.task_id != null && e.task_id !== '' ? String(e.task_id) : `line-${i}`;
+    latest.set(key, e.status);
+  }
+  let active = 0;
+  for (const status of latest.values()) {
+    if (status === 'in_progress' || status === 'pending') active += 1;
+  }
+  return active;
+}
+
+/** Failed tool calls in the last 10 min (tool-failures.jsonl, PostToolUseFailure). */
+function countRecentToolFailures(now = Date.now()) {
+  if (!fs.existsSync(TOOL_FAILURES_FILE)) return 0;
+  const windowStart = now - TOOL_FAILURE_WINDOW_MS;
+  let count = 0;
+  for (const e of readJsonlTail(TOOL_FAILURES_FILE)) {
+    if (tsWithinWindow(e.ts, windowStart, now)) count += 1;
+  }
+  return count;
+}
+
+/**
+ * Measurable-goal phrasing: "reduce X to 200ms", "get revenue above $10k",
+ * "keep trying until it passes" — work /ccc-loop can iterate against.
+ * Pure function; exported for unit tests.
+ */
+export function detectMetricLoopSignal(promptText) {
+  if (!promptText || typeof promptText !== 'string') return false;
+  return /(improve|raise|increase|reduce|lower|get|bring) .{0,40}(to|below|under|above|past) [0-9$%]|until it (works|passes)|keep (trying|going) until/i.test(promptText);
+}
+
+/**
+ * Vague ask: short prompt ("fix it", "make the app better") with a fuzzy
+ * object and zero specifics — no path, no backtick, no number, no file.ext.
+ * Precision over recall: any concrete anchor disqualifies. Pure; exported.
+ */
+export function detectVaguePrompt(promptText) {
+  if (!promptText || typeof promptText !== 'string') return false;
+  const words = promptText.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0 || words.length >= 12) return false;
+  if (!/(fix|improve|make|do|build|clean|update) (it|this|that|the app|the site|everything)\b/i.test(promptText)) return false;
+  if (/[`/\\0-9]/.test(promptText)) return false; // path, backtick, or number
+  if (/\b[\w-]+\.[a-z]{1,6}\b/i.test(promptText)) return false; // file.ext mention
+  return true;
+}
+
+function readNudgeState(file) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function sessionKeyFrom(payload) {
+  const sid = (payload && typeof payload.session_id === 'string' && payload.session_id)
+    || process.env.CLAUDE_SESSION_ID
+    || '';
+  // No session id available → fall back to a daily key so the nudge still
+  // re-arms instead of firing every turn or never again.
+  return sid || `unknown-${new Date().toISOString().slice(0, 10)}`;
+}
+
+function seenThisSession(file, sessionKey) {
+  const state = readNudgeState(file);
+  return Boolean(state && state.sessionKey === sessionKey);
+}
+
+function recordNudge(file, data = {}) {
+  fs.mkdirSync(STATE_DIR, { recursive: true });
+  fs.writeFileSync(file, JSON.stringify({ ...data, ts: Date.now() }));
+}
+
+/**
+ * Proactivity wave (v6.8.0 — CCC thinking one step ahead). Four signals,
+ * evaluated in priority order; returns AT MOST ONE candidate per turn as
+ * { note, record } — record() persists the anti-nag marker and is called by
+ * main() only when the note actually ships, so a candidate deferred behind a
+ * higher-priority note can still fire on a later turn. Respects
+ * CCC_SUGGEST_DISABLE. Every branch fails open.
+ */
+export function maybeProactivityWave(promptText, payload = {}) {
+  if (process.env.CCC_SUGGEST_DISABLE === '1') return null;
+  const sessionKey = sessionKeyFrom(payload);
+
+  // 1. Mission-control: ≥2 agents in flight OR ≥3 open tasks (30-min window).
+  try {
+    if (!seenThisSession(MC_NUDGE_SEEN_FILE, sessionKey) &&
+        (countAgentsInFlight() >= 2 || countActiveTasks() >= 3)) {
+      return {
+        note: '🎛️ Multiple agents in flight — open /ccc-mission-control to see who\'s doing what.',
+        record: () => recordNudge(MC_NUDGE_SEEN_FILE, { sessionKey }),
+      };
+    }
+  } catch { /* fail-open */ }
+
+  // 2. Metric-loop: measurable goal in the prompt → /ccc-loop scoreboard.
+  try {
+    if (detectMetricLoopSignal(promptText) && !seenThisSession(METRIC_LOOP_SEEN_FILE, sessionKey)) {
+      return {
+        note: '🔁 That\'s a measurable goal — /ccc-loop can iterate against a scoreboard until it\'s hit.',
+        record: () => recordNudge(METRIC_LOOP_SEEN_FILE, { sessionKey }),
+      };
+    }
+  } catch { /* fail-open */ }
+
+  // 3. Vague prompt: short + unspecific ask → /ccc-prompt-fix sharpener.
+  try {
+    if (detectVaguePrompt(promptText) && !seenThisSession(VAGUE_PROMPT_SEEN_FILE, sessionKey)) {
+      return {
+        note: '🎯 Vague ask — /ccc-prompt-fix can sharpen this into a prompt that gets the result you actually want.',
+        record: () => recordNudge(VAGUE_PROMPT_SEEN_FILE, { sessionKey }),
+      };
+    }
+  } catch { /* fail-open */ }
+
+  // 4. Tool failures: ≥3 failed calls in 10 min → debugging beats retrying.
+  //    Time-based dedup (30-min cooldown) rather than per-session.
+  try {
+    const seen = readNudgeState(TOOL_FAILURES_SEEN_FILE);
+    const cooled = !seen || !Number.isFinite(seen.ts) || Date.now() - seen.ts >= TOOL_FAILURE_COOLDOWN_MS;
+    if (cooled && countRecentToolFailures() >= 3) {
+      return {
+        note: '🐛 Several tool calls failing — /ccc-debug or a systematic-debugging pass beats retrying.',
+        record: () => recordNudge(TOOL_FAILURES_SEEN_FILE),
+      };
+    }
+  } catch { /* fail-open */ }
+
+  return null;
+}
+
 function main(payload = {}) {
   if (process.env.CCC_SUGGEST_DISABLE === '1') {
     return emitSilent();
@@ -428,7 +661,21 @@ function main(payload = {}) {
     if (loopNudge) modelNotes.push(loopNudge);
   } catch { /* fail-open — never break the hook chain */ }
 
+  // Proactivity wave — mission-control / metric-loop / vague-prompt /
+  // tool-failure signals. Ranks BELOW every existing signal (including the
+  // SCOPE/AUDIT-class ambient suggestion added later): the note ships only
+  // when nothing above fired this turn, capping wave suggestions at 1/turn.
+  // Dedup markers are written only on actual ship (see maybeProactivityWave).
+  let waveCandidate = null;
+  try { waveCandidate = maybeProactivityWave(promptText, payload); } catch { /* fail-open */ }
+  const appendWaveNote = () => {
+    if (!waveCandidate || modelNotes.length > 0) return;
+    modelNotes.push(waveCandidate.note);
+    try { waveCandidate.record(); } catch { /* fail-open */ }
+  };
+
   if (!shouldRun(lastState)) {
+    appendWaveNote();
     if (modelNotes.length) return emitModel('UserPromptSubmit', modelNotes.join('\n'));
     return emitSilent();
   }
@@ -481,6 +728,7 @@ function main(payload = {}) {
     process.stderr.write(`ccc-suggest ticker: level=${state.recommendedLevel} stack=[${state.stack.join(',')}] ahead=${state.aheadMain} ci=${state.ciStatus} tests=${state.testsStatus}\n`);
   }
 
+  appendWaveNote();
   if (modelNotes.length) return emitModel('UserPromptSubmit', modelNotes.join('\n'));
   return emitSilent();
 }

@@ -101,6 +101,13 @@ function toPosix(filePath) {
   return filePath.split(path.sep).join('/');
 }
 
+// Historical/rollback pages describe PAST versions on purpose — scanning them as
+// current-state surfaces is how release notes got rewritten (v6.8.0 audit finding).
+var HISTORICAL_SURFACES = [
+  'mintlify-docs/whats-new-v5.mdx',
+  'mintlify-docs/plugin/upgrade.mdx',
+];
+
 function listMdxFiles(root) {
   var base = path.join(root, 'mintlify-docs');
   var files = [];
@@ -113,7 +120,8 @@ function listMdxFiles(root) {
       if (entry.isDirectory()) {
         walk(full);
       } else if (entry.isFile() && entry.name.endsWith('.mdx')) {
-        files.push(toPosix(path.relative(root, full)));
+        var rel = toPosix(path.relative(root, full));
+        if (HISTORICAL_SURFACES.indexOf(rel) === -1) files.push(rel);
       }
     });
   }
@@ -517,6 +525,10 @@ function isVersionRelevant(content, index) {
   // number are inspected so we don't accidentally suppress a real CCC version nearby.
   var before = content.slice(Math.max(0, index - 45), index);
   if (/claude[\s-]?code/i.test(before)) return false;
+  // "Added in vX" / "since vX" / "introduced in vX" are historical stamps naming the
+  // release a feature first shipped in — rewriting them each release falsifies history
+  // (v6.8.0 audit finding: every skill page claimed it was added in the current version).
+  if (/(added|introduced|shipped|since|new)\s+(in\s+)?$/i.test(before)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
 }
 
