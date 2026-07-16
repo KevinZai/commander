@@ -78,6 +78,12 @@
               <option value="">All activity</option>
             </select>
           </label>
+          <label>
+            <span>Source</span>
+            <select id="filter-source">
+              <option value="">All sources</option>
+            </select>
+          </label>
           <button class="mc-filter-chip" id="filter-chip" type="button" hidden>
             <span id="filter-chip-text"></span>
             <span aria-hidden="true">&times;</span>
@@ -85,6 +91,16 @@
           </button>
         </div>
         <ol class="mc-feed" id="feed"></ol>
+      </section>
+
+      <section class="mc-panel mc-panel-wide" aria-label="Suggestions">
+        <h2><span aria-hidden="true">&#128161;</span> Suggestions</h2>
+        <div class="mc-suggestion-filters" role="group" aria-label="Filter suggestions by status">
+          <button class="mc-chip-toggle" data-status="new" type="button" aria-pressed="true">New</button>
+          <button class="mc-chip-toggle" data-status="promoted" type="button" aria-pressed="true">Promoted</button>
+          <button class="mc-chip-toggle" data-status="dismissed" type="button" aria-pressed="true">Dismissed</button>
+        </div>
+        <div class="mc-suggestions" id="suggestions"></div>
       </section>
     </main>
 
