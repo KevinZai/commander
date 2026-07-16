@@ -41,7 +41,7 @@ const state = {
   latestEdges: [],
   latestEvents: [],
   latestSuggestions: [],
-  filters: { agent: '', session: '', type: '', source: '' },
+  filters: { agent: '', session: '', agentSource: '', type: '', source: '' },
   suggestionStatuses: new Set(SUGGESTION_STATUSES),
   polling: false,
 };
@@ -156,7 +156,7 @@ function buildAgentCard() {
 
   card.append(dot, mid, right, gauges);
   card.addEventListener('click', () => {
-    toggleAgentFilter(card.dataset.agent || '', card.dataset.session || '');
+    toggleAgentFilter(card.dataset.agent || '', card.dataset.session || '', card.dataset.source || '');
   });
   return { card, dot, name, sub, sourcePill, stateBadge, duration, tokens, cost, agent: null };
 }
@@ -192,6 +192,7 @@ function updateAgentCard(refs, agent, maxima) {
   refs.card.dataset.startedAt = agent.startedAt || '';
   refs.card.dataset.agent = agent.name || '';
   refs.card.dataset.session = agent.sessionId || '';
+  refs.card.dataset.source = agent.sourceApp || 'claude-code';
   refs.card.classList.toggle('is-filtered', matchesActiveAgent(agent));
   refs.card.setAttribute('aria-pressed', matchesActiveAgent(agent) ? 'true' : 'false');
   refs.name.textContent = `${agent.emoji || '🤖'} ${agent.name || 'unknown agent'}`;
@@ -474,7 +475,10 @@ function eventMatchesFilters(event) {
     return false;
   }
   if (!state.filters.agent && !state.filters.session) return true;
-  const actorMatch = state.filters.agent && event.actor === state.filters.agent;
+  const actorMatch =
+    state.filters.agent &&
+    event.actor === state.filters.agent &&
+    (!state.filters.agentSource || (event.sourceApp || 'claude-code') === state.filters.agentSource);
   const sessionMatch = eventMatchesSession(event, state.filters.session);
   return Boolean(actorMatch || sessionMatch);
 }
@@ -520,14 +524,18 @@ function renderFeed(events) {
   els.feed.replaceChildren(...rows);
 }
 
-function matchesAgentValues(agent, session) {
+function matchesAgentValues(agent, session, source) {
   if (!state.filters.agent) return false;
   if (state.filters.agent !== agent) return false;
-  return !state.filters.session || state.filters.session === String(session || '');
+  if (state.filters.session && state.filters.session !== String(session || '')) return false;
+  // Same-named agents from different apps must stay distinguishable when click-filtered;
+  // callers that don't know the source (flow nodes) pass undefined and skip the check.
+  if (state.filters.agentSource && source !== undefined && String(source || 'claude-code') !== state.filters.agentSource) return false;
+  return true;
 }
 
 function matchesActiveAgent(agent) {
-  return matchesAgentValues(agent.name || '', agent.sessionId || '');
+  return matchesAgentValues(agent.name || '', agent.sessionId || '', agent.sourceApp || 'claude-code');
 }
 
 function syncFilterControls() {
@@ -538,7 +546,8 @@ function syncFilterControls() {
   els.filterChip.hidden = !hasAgent;
   if (hasAgent) {
     const session = state.filters.session ? ` · ${shortLabel(state.filters.session, 12)}` : '';
-    els.filterChipText.textContent = `${state.filters.agent}${session}`;
+    const src = state.filters.agentSource && state.filters.agentSource !== 'claude-code' ? ` · ${state.filters.agentSource}` : '';
+    els.filterChipText.textContent = `${state.filters.agent}${session}${src}`;
   }
 }
 
@@ -549,10 +558,11 @@ function refreshInteractiveViews() {
   refreshFeed();
 }
 
-function toggleAgentFilter(agent, session) {
-  const isSame = matchesAgentValues(agent, session);
+function toggleAgentFilter(agent, session, source) {
+  const isSame = matchesAgentValues(agent, session, source);
   state.filters.agent = isSame ? '' : agent;
   state.filters.session = isSame ? '' : session;
+  state.filters.agentSource = isSame || !source ? '' : String(source);
   syncFilterControls();
   refreshInteractiveViews();
 }
@@ -791,6 +801,7 @@ async function poll() {
 els.filterAgent.addEventListener('change', () => {
   state.filters.agent = els.filterAgent.value;
   state.filters.session = '';
+  state.filters.agentSource = '';
   syncFilterControls();
   refreshInteractiveViews();
 });
@@ -807,7 +818,7 @@ els.filterSource.addEventListener('change', () => {
   refreshFeed();
 });
 
-els.filterChip.addEventListener('click', () => toggleAgentFilter('', ''));
+els.filterChip.addEventListener('click', () => toggleAgentFilter('', '', ''));
 
 for (const button of els.suggestionFilters) {
   button.addEventListener('click', () => toggleSuggestionStatus(button.dataset.status));
