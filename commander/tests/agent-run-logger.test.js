@@ -79,6 +79,37 @@ beforeEach(() => {
   }
 });
 
+describe('agent-run-logger.js — rotation', () => {
+  it('does not overwrite an existing archive when rotating twice in one day', () => {
+    const dir = path.dirname(LOG_FILE);
+    const archivesBefore = fs
+      .readdirSync(dir)
+      .filter((f) => f.startsWith('agent-runs.') && f !== 'agent-runs.jsonl');
+    for (const f of archivesBefore) fs.unlinkSync(path.join(dir, f));
+
+    // Two rotations in the same calendar day: a date-only archive name makes the
+    // second rename clobber the first, losing the whole first archive.
+    const oversized = 'x'.repeat(10 * 1024 * 1024 + 1);
+    for (const marker of ['first-archive', 'second-archive']) {
+      fs.writeFileSync(LOG_FILE, JSON.stringify({ marker }) + '\n' + oversized);
+      runHook({ CLAUDE_AGENT_NAME: 'architect', CLAUDE_SESSION_ID: 'rot' });
+    }
+
+    const archives = fs
+      .readdirSync(dir)
+      .filter((f) => f.startsWith('agent-runs.') && f !== 'agent-runs.jsonl');
+    assert.equal(archives.length, 2, 'both same-day archives should survive');
+
+    const markers = archives
+      .map((f) => fs.readFileSync(path.join(dir, f), 'utf8').split('\n')[0])
+      .map((line) => JSON.parse(line).marker)
+      .sort();
+    assert.deepEqual(markers, ['first-archive', 'second-archive']);
+
+    for (const f of archives) fs.unlinkSync(path.join(dir, f));
+  });
+});
+
 describe('agent-run-logger.js — basic logging', () => {
   it('exits 0 and returns continue:true suppressOutput:true', () => {
     const r = runHook({ CLAUDE_AGENT_NAME: 'architect', CLAUDE_SESSION_ID: 'test-123' });

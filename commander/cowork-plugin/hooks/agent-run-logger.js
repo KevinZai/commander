@@ -25,6 +25,7 @@
  */
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir, stat, rename } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
@@ -36,17 +37,33 @@ const STDIN_MAX_BYTES = 256 * 1024;
 async function rotateLogs() {
   try {
     const info = await stat(LOG_FILE);
-    if (info.size >= MAX_BYTES) {
-      const now = new Date();
-      const datestamp =
-        now.getFullYear() +
-        '-' +
-        String(now.getMonth() + 1).padStart(2, '0') +
-        '-' +
-        String(now.getDate()).padStart(2, '0');
-      const rotatedPath = join(CCC_DIR, `agent-runs.${datestamp}.jsonl`);
-      await rename(LOG_FILE, rotatedPath);
+    if (info.size < MAX_BYTES) return;
+
+    // Date alone collides when the log rotates twice in a day — rename would
+    // silently overwrite the earlier archive. Same -HHMMSS + counter scheme as
+    // mission-control-feed.js.
+    const now = new Date();
+    const datestamp =
+      now.getFullYear() +
+      '-' +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(now.getDate()).padStart(2, '0');
+    const timestamp =
+      String(now.getHours()).padStart(2, '0') +
+      String(now.getMinutes()).padStart(2, '0') +
+      String(now.getSeconds()).padStart(2, '0');
+
+    let rotatedPath = join(CCC_DIR, `agent-runs.${datestamp}-${timestamp}.jsonl`);
+    let counter = 1;
+    while (existsSync(rotatedPath)) {
+      rotatedPath = join(
+        CCC_DIR,
+        `agent-runs.${datestamp}-${timestamp}-${counter}.jsonl`
+      );
+      counter += 1;
     }
+    await rename(LOG_FILE, rotatedPath);
   } catch {
     // File doesn't exist yet or stat failed — that's fine
   }
