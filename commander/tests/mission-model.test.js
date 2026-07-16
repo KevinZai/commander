@@ -16,6 +16,7 @@ import {
   filterEventsAfter,
 } from '../../dashboard/lib/mission-model.js';
 import { createServer } from '../../dashboard/server.js';
+import { readModel } from '../cowork-plugin/lib/mission-control-snapshot.js';
 
 let tmpRoot;
 
@@ -489,6 +490,35 @@ test('filterOptions contains unique agents, event types, and sessions', async ()
     types: ['agent_done', 'agent_start', 'message', 'permission', 'task'],
     sessions: ['S1', 'S2', 'S3', 'S4'],
   });
+});
+
+test('parseTs/toMs parity: ISO strings and finite numeric epoch-ms both survive, model and snapshot agree on ordering', async () => {
+  const isoTs = T('10:00:00');
+  const numericTs = Date.parse(T('10:01:00'));
+  const baseDir = await makeBase({
+    events: [
+      { ts: isoTs, session_id: 'S1', type: 'message', actor: 'reviewer', subject: 'iso event' },
+      { ts: numericTs, session_id: 'S1', type: 'message', actor: 'builder', subject: 'numeric event' },
+    ],
+  });
+
+  const model = await buildMissionModel({ baseDir, now: NOW });
+  const snapshot = await readModel({ baseDir, now: NOW });
+
+  const toMillis = (ts) => (typeof ts === 'number' ? ts : Date.parse(ts));
+
+  assert.equal(model.events.length, 2, 'model keeps both the ISO and numeric-ts events');
+  assert.equal(snapshot.events.length, 2, 'snapshot keeps both the ISO and numeric-ts events');
+  // Both readers must resolve the numeric-ts line to the same millisecond as
+  // the ISO line's neighbor and order identically — text formatting differs
+  // between the two readers by design and isn't asserted here.
+  assert.deepEqual(
+    model.events.map((event) => toMillis(event.ts)),
+    snapshot.events.map((event) => toMillis(event.ts)),
+    'identical ordering (by resolved ms) between model and snapshot'
+  );
+  assert.equal(model.events[0].actor, 'builder', 'newest (numeric ts) first in model');
+  assert.equal(snapshot.events[0].actor, 'builder', 'newest (numeric ts) first in snapshot');
 });
 
 test('filterEventsAfter keeps only events strictly newer than after', () => {

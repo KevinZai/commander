@@ -55,8 +55,8 @@ function defaultBaseDir() {
 
 function parseTs(value) {
   if (typeof value !== 'string' && typeof value !== 'number') return null;
-  const ms = Date.parse(value);
-  return Number.isNaN(ms) ? null : ms;
+  const ms = typeof value === 'number' ? value : Date.parse(value);
+  return Number.isFinite(ms) ? ms : null;
 }
 
 async function readJsonl(filePath) {
