@@ -674,6 +674,12 @@ async function readModel({ baseDir, now } = {}) {
   };
 }
 
+function sourceSlug(value) {
+  const trimmed = String(value || 'claude-code').trim().toLowerCase();
+  const slug = trimmed.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return slug || 'claude-code';
+}
+
 function esc(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -697,12 +703,23 @@ function timeAgo(tsMs, nowMs) {
   return `${Math.round(delta / 86400000)}d ago`;
 }
 
+function renderSourceBadge(sourceApp) {
+  const label = typeof sourceApp === 'string' && sourceApp.trim() ? sourceApp.trim() : 'claude-code';
+  return `<span class="src src-${sourceSlug(label)}">${esc(label)}</span>`;
+}
+
 const STATUS_META = {
   running: { label: 'working', cls: 'st-running' },
   awaiting_permission: { label: '⚠ awaiting approval', cls: 'st-awaiting' },
   done: { label: 'finished', cls: 'st-done' },
   failed: { label: 'hit a problem', cls: 'st-failed' },
   stale: { label: 'stale (no end recorded)', cls: 'st-stale' },
+};
+
+const SUGGESTION_STATUS_META = {
+  new: { label: 'new', cls: 'st-waiting' },
+  promoted: { label: 'promoted', cls: 'st-done' },
+  dismissed: { label: 'dismissed', cls: 'st-stale' },
 };
 
 const SNAPSHOT_CSS = `
@@ -756,6 +773,11 @@ body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
   padding:2px 10px;font-size:.8rem;color:var(--mc-muted);white-space:nowrap;}
 .mc .badge{display:inline-block;border-radius:999px;padding:1px 9px;
   font-size:.78rem;font-weight:600;white-space:nowrap;}
+.mc .src{display:inline-block;border:1px solid var(--mc-line);border-radius:999px;
+  padding:0 8px;font-size:.72rem;font-weight:600;color:var(--mc-muted);
+  background:var(--mc-line);white-space:nowrap;}
+.mc .src-claude-code{color:var(--mc-accent);border-color:var(--mc-accent);
+  background:color-mix(in srgb,var(--mc-accent) 16%,transparent);}
 .mc .st-running{color:var(--mc-run);background:var(--mc-run-bg);}
 .mc .st-done{color:var(--mc-ok);background:var(--mc-ok-bg);}
 .mc .st-failed{color:var(--mc-err);background:var(--mc-err-bg);}
@@ -883,7 +905,7 @@ function renderAgentsSection(agents, nowMs) {
           : '';
     return `<article class="agent-card${statusClass}">
 <div class="agent-head">
-<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')}</div></div></div>
+<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')} · ${renderSourceBadge(agent.sourceApp)}</div></div></div>
 <span class="badge ${meta.cls}">${esc(meta.label)}</span>
 </div>
 <p class="agent-task"><strong>Current task:</strong> ${esc(currentTask)}</p>
@@ -967,12 +989,57 @@ function renderEventsSection(events, nowMs) {
   const items = events.slice(0, ROW_CAP).map((event) => {
     const ms = toMs(event.ts);
     const when = timeAgo(ms ?? NaN, nowMs ?? NaN) || (ms !== null ? stamp(ms) : '');
-    return `<li>${when ? `<span class="muted mono">${esc(when)}</span> ` : ''}${esc(event.text)}</li>`;
+    return `<li>${when ? `<span class="muted mono">${esc(when)}</span> ` : ''}${renderSourceBadge(event.sourceApp)} ${esc(event.text)}</li>`;
   });
 
   return `<section aria-label="Latest activity">
 <h2>🕐 Latest activity</h2>
 <ol>${items.join('')}</ol>
+</section>`;
+}
+
+function renderSuggestionsSection(suggestions) {
+  if (suggestions.length === 0) {
+    return `<section aria-label="Suggestions">
+<h2>💡 Suggestions</h2>
+<p class="zero">No suggestions yet — agents surface ideas here as they notice them.</p>
+</section>`;
+  }
+
+  const items = suggestions.slice(0, ROW_CAP).map((suggestion) => {
+    const meta = SUGGESTION_STATUS_META[suggestion.status] || {
+      label: suggestion.status || 'unknown',
+      cls: 'st-stale',
+    };
+    const from = suggestion.from ? `<strong>${esc(suggestion.from)}</strong> — ` : '';
+    const idea = suggestion.idea ? esc(suggestion.idea) : 'No idea text.';
+    const evidence = suggestion.evidence
+      ? `<div class="muted">${esc(suggestion.evidence)}</div>`
+      : '';
+    const proposedTitle =
+      suggestion.proposed_ticket && suggestion.proposed_ticket.title
+        ? `<div class="muted">Proposed: ${esc(suggestion.proposed_ticket.title)}</div>`
+        : '';
+    const promoted =
+      suggestion.status === 'promoted' && suggestion.promoted_ticket
+        ? `<div class="muted">Tracked as: ${esc(
+            suggestion.promoted_ticket.title ||
+              suggestion.promoted_ticket.id ||
+              suggestion.promoted_ticket.url ||
+              'ticket'
+          )}</div>`
+        : '';
+    return `<li><span class="badge ${meta.cls}">${esc(meta.label)}</span> ${from}${idea}${evidence}${proposedTitle}${promoted}</li>`;
+  });
+
+  const overflow =
+    suggestions.length > ROW_CAP
+      ? `<p class="muted">…and ${suggestions.length - ROW_CAP} more suggestion${suggestions.length - ROW_CAP === 1 ? '' : 's'}.</p>`
+      : '';
+
+  return `<section aria-label="Suggestions">
+<h2>💡 Suggestions</h2>
+<ul>${items.join('')}</ul>${overflow}
 </section>`;
 }
 
@@ -982,6 +1049,7 @@ function buildSnapshotHtml(model, { now } = {}) {
   const tasks = Array.isArray(source.tasks) ? source.tasks : [];
   const edges = Array.isArray(source.edges) ? source.edges : [];
   const events = Array.isArray(source.events) ? source.events : [];
+  const suggestions = Array.isArray(source.suggestions) ? source.suggestions : [];
   const awaitingPermission = Array.isArray(source.awaitingPermission)
     ? source.awaitingPermission
     : [];
@@ -995,6 +1063,7 @@ function buildSnapshotHtml(model, { now } = {}) {
     tasks.length === 0 &&
     edges.length === 0 &&
     events.length === 0 &&
+    suggestions.length === 0 &&
     awaitingPermission.length === 0;
 
   const hero = empty
@@ -1017,6 +1086,7 @@ ${renderAgentsSection(agents, nowMs)}
 ${renderTasksSection(tasks, nowMs)}
 ${renderEdgesSection(edges, nowMs)}
 ${renderEventsSection(events, nowMs)}
+${renderSuggestionsSection(suggestions)}
 <footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>
 </main>`;
 }

@@ -284,6 +284,142 @@ describe('buildSnapshotHtml — zero state + fail-open', () => {
   });
 });
 
+describe('buildSnapshotHtml — source badges (CC-1378 Item 1)', () => {
+  it('renders a source badge on agent cards and event rows, colored for claude-code, gray fallback otherwise', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    model.agents[0].sourceApp = 'claude-code';
+    model.agents[1].sourceApp = 'agent-hq';
+    model.events[0].sourceApp = 'claude-code';
+    model.events[1].sourceApp = 'agent-hq';
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+
+    assert.ok(html.includes('class="src src-claude-code"'), 'known source gets its palette class');
+    assert.ok(html.includes('class="src src-agent-hq"'), 'unknown source still gets a slugged class (gray fallback via CSS)');
+    assert.ok(html.includes('>claude-code<'), 'source label rendered');
+    assert.ok(html.includes('>agent-hq<'), 'source label rendered');
+  });
+
+  it('defaults a missing sourceApp to claude-code and escapes a hostile sourceApp label', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    delete model.agents[0].sourceApp;
+    model.events[0].sourceApp = '<script>alert(2)</script>';
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+
+    assert.ok(html.includes('class="src src-claude-code"'), 'missing sourceApp defaults to claude-code');
+    assert.ok(!html.includes('<script>alert(2)</script>'), 'hostile sourceApp never lands as raw markup');
+    assert.ok(html.includes('&lt;script&gt;alert(2)&lt;/script&gt;'), 'hostile sourceApp label escaped');
+  });
+});
+
+describe('buildSnapshotHtml — renderSuggestionsSection (CC-1378 Item 5)', () => {
+  const suggestionsModel = () => ({
+    ...fixtureModel(),
+    suggestions: [
+      {
+        id: 'sug-1',
+        ts: '2026-07-16T11:59:00.000Z',
+        from: 'reviewer',
+        idea: 'Add a retry to the flaky upload test',
+        evidence: 'Failed 3/10 runs in CI last week',
+        proposed_ticket: { title: 'Fix flaky upload test', project: 'CC', priority: 'P2' },
+        status: 'new',
+      },
+      {
+        id: 'sug-2',
+        ts: '2026-07-16T11:00:00.000Z',
+        from: 'builder',
+        idea: 'Cache the vendor scan results',
+        evidence: null,
+        proposed_ticket: null,
+        status: 'promoted',
+        promoted_ticket: { id: 'CC-42', title: 'Cache vendor scan', url: null },
+      },
+      {
+        id: 'sug-3',
+        ts: '2026-07-16T10:00:00.000Z',
+        from: '<img src=x onerror=alert(3)>',
+        idea: '<script>alert(4)</script>',
+        evidence: null,
+        proposed_ticket: null,
+        status: 'dismissed',
+      },
+    ],
+  });
+
+  it('renders each suggestion with status badge, from, idea, evidence, and proposed title', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const html = buildSnapshotHtml(suggestionsModel(), { now: FIXED_NOW });
+
+    assert.ok(html.includes('💡 Suggestions'), 'section heading present');
+    for (const value of [
+      'Add a retry to the flaky upload test',
+      'Failed 3/10 runs in CI last week',
+      'Proposed: Fix flaky upload test',
+      'Cache the vendor scan results',
+      'Tracked as: Cache vendor scan',
+    ]) {
+      assert.ok(html.includes(value), `suggestion field rendered: ${value}`);
+    }
+  });
+
+  it('escapes hostile suggestion fields — raw markup never lands unescaped', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const html = buildSnapshotHtml(suggestionsModel(), { now: FIXED_NOW });
+
+    assert.ok(!html.includes('<script>alert(4)</script>'), 'hostile idea never lands as raw markup');
+    assert.ok(html.includes('&lt;script&gt;alert(4)&lt;/script&gt;'), 'hostile idea escaped');
+    assert.ok(!html.includes('<img src=x onerror=alert(3)>'), 'hostile from field never lands as raw markup');
+    assert.ok(html.includes('&lt;img src=x onerror=alert(3)&gt;'), 'hostile from field escaped');
+  });
+
+  it('caps suggestions at ROW_CAP (30) with an overflow note', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    model.suggestions = [];
+    for (let i = 0; i < 35; i += 1) {
+      model.suggestions.push({
+        id: `sug-${i}`,
+        ts: `2026-07-16T0${String(i).padStart(2, '0')}:00:00.000Z`,
+        from: 'reviewer',
+        idea: `idea ${i}`,
+        status: 'new',
+      });
+    }
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+    assert.equal((html.match(/idea \d+/g) || []).length, 30, 'only 30 suggestions rendered');
+    assert.ok(html.includes('…and 5 more suggestions.'), 'overflow note rendered');
+  });
+
+  it('renders the zero-state message when there are no suggestions', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    model.suggestions = [];
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+    assert.ok(html.includes('No suggestions yet — agents surface ideas here as they notice them.'));
+  });
+
+  it('a suggestion alone (no agents/tasks/events) still renders a valid non-empty page', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const html = buildSnapshotHtml(
+      {
+        agents: [],
+        tasks: [],
+        edges: [],
+        events: [],
+        awaitingPermission: [],
+        summary: '1 suggestion awaiting review.',
+        suggestions: [{ id: 's1', from: 'reviewer', idea: 'Add caching', status: 'new' }],
+        generatedAt: FIXED_NOW,
+      },
+      { now: FIXED_NOW }
+    );
+    assert.ok(!html.includes('Nothing to show yet'), 'a suggestion alone breaks the empty/getting-started hero');
+    assert.ok(html.includes('Add caching'));
+  });
+});
+
 // ── readModel — tolerant JSONL reading in an isolated tmpdir ────────────────
 
 function writeFixtureLogs(baseDir) {
