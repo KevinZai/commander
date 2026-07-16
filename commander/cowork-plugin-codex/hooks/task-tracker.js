@@ -14,6 +14,7 @@ const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
 const LOG_DIR = path.join(HOME, '.claude', 'commander');
 const LOG_FILE = path.join(LOG_DIR, 'tasks.jsonl');
 const TEXT_MAX = 200;
+const STDIN_MAX_BYTES = 256 * 1024;
 
 function redact(value) {
   if (typeof value !== 'string') return null;
@@ -41,7 +42,16 @@ async function main() {
   let input = {};
   try {
     const chunks = [];
-    for await (const chunk of process.stdin) chunks.push(chunk);
+    let totalBytes = 0;
+    for await (const chunk of process.stdin) {
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      totalBytes += buffer.length;
+      if (totalBytes > STDIN_MAX_BYTES) {
+        process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+        return;
+      }
+      chunks.push(buffer);
+    }
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {

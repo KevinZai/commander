@@ -65,7 +65,7 @@ If no diff detected: "🧭 No diff vs main — I'll audit the whole project inst
 
 ### 3. The picker — `AskUserQuestion` with 4 audit types
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-review.json` for canonical option data. Surface the 4 non-back choices.
+Read `${CODEX_PLUGIN_ROOT}/menus/ccc-review.json` for canonical option data. Surface the 4 non-back choices.
 
 ```
 question: "What should I audit?"
@@ -99,7 +99,7 @@ If the `Workflow` tool is available, prefer invoking the bundled deep-review wor
 
 ```js
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-deep-review.workflow.js",
+  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-deep-review.workflow.js",
   args: { base: "main" }
 })
 ```
@@ -111,13 +111,13 @@ For the **Security** and **Performance** audit types, route through the bundled 
 ```js
 // Security audit
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
   args: { dimensions: ["security", "deps"] }
 })
 
 // Performance audit
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
   args: { dimensions: ["performance"] }
 })
 ```

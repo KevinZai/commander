@@ -284,6 +284,142 @@ describe('buildSnapshotHtml — zero state + fail-open', () => {
   });
 });
 
+describe('buildSnapshotHtml — source badges (CC-1378 Item 1)', () => {
+  it('renders a source badge on agent cards and event rows, colored for claude-code, gray fallback otherwise', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    model.agents[0].sourceApp = 'claude-code';
+    model.agents[1].sourceApp = 'agent-hq';
+    model.events[0].sourceApp = 'claude-code';
+    model.events[1].sourceApp = 'agent-hq';
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+
+    assert.ok(html.includes('class="src src-claude-code"'), 'known source gets its palette class');
+    assert.ok(html.includes('class="src src-agent-hq"'), 'unknown source still gets a slugged class (gray fallback via CSS)');
+    assert.ok(html.includes('>claude-code<'), 'source label rendered');
+    assert.ok(html.includes('>agent-hq<'), 'source label rendered');
+  });
+
+  it('defaults a missing sourceApp to claude-code and escapes a hostile sourceApp label', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    delete model.agents[0].sourceApp;
+    model.events[0].sourceApp = '<script>alert(2)</script>';
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+
+    assert.ok(html.includes('class="src src-claude-code"'), 'missing sourceApp defaults to claude-code');
+    assert.ok(!html.includes('<script>alert(2)</script>'), 'hostile sourceApp never lands as raw markup');
+    assert.ok(html.includes('&lt;script&gt;alert(2)&lt;/script&gt;'), 'hostile sourceApp label escaped');
+  });
+});
+
+describe('buildSnapshotHtml — renderSuggestionsSection (CC-1378 Item 5)', () => {
+  const suggestionsModel = () => ({
+    ...fixtureModel(),
+    suggestions: [
+      {
+        id: 'sug-1',
+        ts: '2026-07-16T11:59:00.000Z',
+        from: 'reviewer',
+        idea: 'Add a retry to the flaky upload test',
+        evidence: 'Failed 3/10 runs in CI last week',
+        proposed_ticket: { title: 'Fix flaky upload test', project: 'CC', priority: 'P2' },
+        status: 'new',
+      },
+      {
+        id: 'sug-2',
+        ts: '2026-07-16T11:00:00.000Z',
+        from: 'builder',
+        idea: 'Cache the vendor scan results',
+        evidence: null,
+        proposed_ticket: null,
+        status: 'promoted',
+        promoted_ticket: { id: 'CC-42', title: 'Cache vendor scan', url: null },
+      },
+      {
+        id: 'sug-3',
+        ts: '2026-07-16T10:00:00.000Z',
+        from: '<img src=x onerror=alert(3)>',
+        idea: '<script>alert(4)</script>',
+        evidence: null,
+        proposed_ticket: null,
+        status: 'dismissed',
+      },
+    ],
+  });
+
+  it('renders each suggestion with status badge, from, idea, evidence, and proposed title', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const html = buildSnapshotHtml(suggestionsModel(), { now: FIXED_NOW });
+
+    assert.ok(html.includes('💡 Suggestions'), 'section heading present');
+    for (const value of [
+      'Add a retry to the flaky upload test',
+      'Failed 3/10 runs in CI last week',
+      'Proposed: Fix flaky upload test',
+      'Cache the vendor scan results',
+      'Tracked as: Cache vendor scan',
+    ]) {
+      assert.ok(html.includes(value), `suggestion field rendered: ${value}`);
+    }
+  });
+
+  it('escapes hostile suggestion fields — raw markup never lands unescaped', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const html = buildSnapshotHtml(suggestionsModel(), { now: FIXED_NOW });
+
+    assert.ok(!html.includes('<script>alert(4)</script>'), 'hostile idea never lands as raw markup');
+    assert.ok(html.includes('&lt;script&gt;alert(4)&lt;/script&gt;'), 'hostile idea escaped');
+    assert.ok(!html.includes('<img src=x onerror=alert(3)>'), 'hostile from field never lands as raw markup');
+    assert.ok(html.includes('&lt;img src=x onerror=alert(3)&gt;'), 'hostile from field escaped');
+  });
+
+  it('caps suggestions at ROW_CAP (30) with an overflow note', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    model.suggestions = [];
+    for (let i = 0; i < 35; i += 1) {
+      model.suggestions.push({
+        id: `sug-${i}`,
+        ts: `2026-07-16T0${String(i).padStart(2, '0')}:00:00.000Z`,
+        from: 'reviewer',
+        idea: `idea ${i}`,
+        status: 'new',
+      });
+    }
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+    assert.equal((html.match(/idea \d+/g) || []).length, 30, 'only 30 suggestions rendered');
+    assert.ok(html.includes('…and 5 more suggestions.'), 'overflow note rendered');
+  });
+
+  it('renders the zero-state message when there are no suggestions', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    model.suggestions = [];
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+    assert.ok(html.includes('No suggestions yet — agents surface ideas here as they notice them.'));
+  });
+
+  it('a suggestion alone (no agents/tasks/events) still renders a valid non-empty page', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const html = buildSnapshotHtml(
+      {
+        agents: [],
+        tasks: [],
+        edges: [],
+        events: [],
+        awaitingPermission: [],
+        summary: '1 suggestion awaiting review.',
+        suggestions: [{ id: 's1', from: 'reviewer', idea: 'Add caching', status: 'new' }],
+        generatedAt: FIXED_NOW,
+      },
+      { now: FIXED_NOW }
+    );
+    assert.ok(!html.includes('Nothing to show yet'), 'a suggestion alone breaks the empty/getting-started hero');
+    assert.ok(html.includes('Add caching'));
+  });
+});
+
 // ── readModel — tolerant JSONL reading in an isolated tmpdir ────────────────
 
 function writeFixtureLogs(baseDir) {
@@ -343,7 +479,12 @@ describe('readModel — tolerant reading', () => {
       assert.deepEqual(model.edges, []);
       assert.deepEqual(model.events, []);
       assert.deepEqual(model.awaitingPermission, []);
-      assert.deepEqual(model.filterOptions, { agents: [], types: [], sessions: [] });
+      assert.deepEqual(model.filterOptions, {
+        agents: [],
+        types: [],
+        sessions: [],
+        sourceApps: ['claude-code'],
+      });
       assert.equal(model.summary, 'No agent activity yet.');
       assert.equal(model.generatedAt, FIXED_NOW);
     });
@@ -471,6 +612,7 @@ describe('readModel — tolerant reading', () => {
         agents: ['builder', 'ghost', 'reviewer'],
         types: ['agent_done', 'agent_failed', 'agent_start', 'delegation', 'noise', 'task'],
         sessions: ['s0', 's1', 's2', 's9'],
+        sourceApps: ['claude-code'],
       });
     });
   });
@@ -545,6 +687,61 @@ describe('readModel — tolerant reading', () => {
         model.summary,
         '1 agent working — reviewer (1h). 2 tasks: 1 in progress, 1 done.'
       );
+    });
+  });
+
+  it('sourceApp flows into agents/events/filterOptions; key is sourceApp:name (CC-1378 Items 1+2)', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      fs.mkdirSync(path.join(dir, 'mission-control'), { recursive: true });
+      fs.writeFileSync(
+        path.join(dir, 'subagent-runs.jsonl'),
+        [
+          JSON.stringify({ ts: '2026-07-16T10:00:00.000Z', agent_name: 'reviewer', session_id: 's1' }),
+          JSON.stringify({ ts: '2026-07-16T10:01:00.000Z', agent_name: 'scout', session_id: 's5', source_app: 'other-app' }),
+        ].join('\n')
+      );
+      fs.writeFileSync(
+        path.join(dir, 'mission-control', 'events.jsonl'),
+        JSON.stringify({ ts: '2026-07-16T10:02:00.000Z', type: 'message', actor: 'reviewer', session_id: 's1', source_app: 'other-app' })
+      );
+
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      const reviewer = model.agents.find((a) => a.name === 'reviewer');
+      const scout = model.agents.find((a) => a.name === 'scout');
+      assert.equal(reviewer.sourceApp, 'claude-code');
+      assert.equal(reviewer.key, 'claude-code:reviewer');
+      assert.equal(scout.sourceApp, 'other-app');
+      assert.equal(scout.key, 'other-app:scout');
+
+      const mcEvent = model.events.find((e) => e.source === 'mission-control');
+      assert.equal(mcEvent.sourceApp, 'other-app');
+      const startEvent = model.events.find((e) => e.source === 'subagent-runs');
+      assert.equal(startEvent.sourceApp, 'claude-code');
+
+      assert.deepEqual(model.filterOptions.sourceApps, ['claude-code', 'other-app']);
+    });
+  });
+
+  it('duplicate-id events.jsonl lines render once (cowork+codex double-append guard)', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      fs.mkdirSync(path.join(dir, 'mission-control'), { recursive: true });
+      fs.writeFileSync(
+        path.join(dir, 'mission-control', 'events.jsonl'),
+        [
+          JSON.stringify({ id: 'evt-1', ts: '2026-07-16T10:00:00.000Z', type: 'delegation', actor: 'reviewer', subject: 'audit auth', session_id: 's1' }),
+          JSON.stringify({ id: 'evt-1', ts: '2026-07-16T10:00:00.000Z', type: 'delegation', actor: 'reviewer', subject: 'audit auth (dup)', session_id: 's1' }),
+          JSON.stringify({ id: 'evt-2', ts: '2026-07-16T10:00:05.000Z', type: 'workflow', actor: 'builder', session_id: 's1' }),
+          JSON.stringify({ ts: '2026-07-16T10:00:10.000Z', type: 'workflow', actor: 'qa', session_id: 's1' }),
+        ].join('\n')
+      );
+
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      assert.equal(model.events.length, 3, 'first evt-1 kept, duplicate evt-1 dropped, evt-2 + id-less kept');
+      assert.equal(model.edges.length, 3, 'evt-1 (deduped) + evt-2 + the id-less line all survive as edges');
+      const delegationEvents = model.events.filter((e) => e.type === 'delegation');
+      assert.equal(delegationEvents.length, 1, 'only one of the two identical-id delegation lines survives');
     });
   });
 

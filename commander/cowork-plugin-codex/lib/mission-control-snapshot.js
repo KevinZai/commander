@@ -28,6 +28,7 @@ import path from 'node:path';
 const AGENT_CAP = 200;
 const TASK_CAP = 100;
 const EVENT_CAP = 100;
+const SUGGESTION_CAP = 50;
 const ROW_CAP = 30;
 const JOIN_WINDOW_MS = 24 * 60 * 60 * 1000;
 const RUNNING_WINDOW_MS = 6 * 60 * 60 * 1000;
@@ -59,6 +60,18 @@ const PERSONA_MAP = Object.freeze({
   'kotlin-reviewer': { emoji: '🔍', role: 'Kotlin Reviewer' },
   'csharp-reviewer': { emoji: '🔍', role: 'C# Reviewer' },
 });
+// Per-sourceApp persona overrides, keyed by sourceApp then agent name.
+// PERSONA_MAP above stays the persona table for sourceApp 'claude-code'
+// only; other sources fall back to DEFAULT_PERSONA until they earn an
+// entry here.
+const SOURCE_PERSONAS = Object.freeze({});
+
+function personaFor(sourceApp, name) {
+  const table = Object.hasOwn(SOURCE_PERSONAS, sourceApp) ? SOURCE_PERSONAS[sourceApp] : null;
+  if (table && Object.hasOwn(table, name)) return table[name];
+  if (sourceApp === 'claude-code' && Object.hasOwn(PERSONA_MAP, name)) return PERSONA_MAP[name];
+  return DEFAULT_PERSONA;
+}
 
 function defaultBaseDir() {
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
@@ -174,6 +187,7 @@ function joinAgents(starts, stops, nowMs) {
       const stop = best.candidate.record;
       agents.push({
         name: name || stop.agent || 'unknown',
+        sourceApp: start.source_app || 'claude-code',
         model: start.model ?? null,
         sessionId,
         startedAt: start.ts ?? null,
@@ -188,6 +202,7 @@ function joinAgents(starts, stops, nowMs) {
       const ageMs = startMs !== null ? nowMs - startMs : Infinity;
       agents.push({
         name: name || 'unknown',
+        sourceApp: start.source_app || 'claude-code',
         model: start.model ?? null,
         sessionId,
         startedAt: start.ts ?? null,
@@ -211,6 +226,9 @@ function joinAgents(starts, stops, nowMs) {
         : null;
     agents.push({
       name: stop.agent || 'unknown',
+      // No start record to consult for an orphan stop — agent-runs.jsonl
+      // (like the other two legacy log files) is always claude-code.
+      sourceApp: 'claude-code',
       model: null,
       sessionId: stop.sessionId ?? null,
       startedAt,
@@ -257,6 +275,49 @@ function latestTasks(taskEntries) {
     .map((wrapped) => wrapped.task);
 }
 
+// suggestions.jsonl merge: same latest-ts-wins-by-id pattern as
+// latestTasks above. A later status-only line (no idea/evidence/
+// proposed_ticket) still wins on status; the earlier creation line's
+// content persists forward. Mirrors this same lib's sibling
+// lib/suggestions.js's own readSuggestions() (deliberately duplicated
+// here — buildSnapshotHtml's model shape must not depend on it).
+function latestSuggestions(suggestionEntries) {
+  const byId = new Map();
+
+  for (const entry of suggestionEntries) {
+    const id = entry.id;
+    // Scalar ids only — an object/array id coerces to "[object Object]"/"1,2",
+    // silently merging unrelated suggestions under one key.
+    if (typeof id !== 'string' && !Number.isFinite(id)) continue;
+    const key = String(id).trim();
+    if (!key) continue;
+    const ms = toMs(entry.ts) ?? 0;
+    const existing = byId.get(key);
+    if (existing && ms < existing.ms) continue;
+    const prior = existing ? existing.suggestion : null;
+    byId.set(key, {
+      ms,
+      suggestion: {
+        id: key,
+        ts: entry.ts ?? null,
+        from: entry.from ?? (prior ? prior.from : null) ?? null,
+        source_app: entry.source_app ?? (prior ? prior.source_app : null) ?? 'claude-code',
+        idea: entry.idea ?? (prior ? prior.idea : null) ?? null,
+        evidence: entry.evidence ?? (prior ? prior.evidence : null) ?? null,
+        proposed_ticket: entry.proposed_ticket ?? (prior ? prior.proposed_ticket : null) ?? null,
+        status: entry.status ?? (prior ? prior.status : null) ?? 'new',
+        promoted_ticket: entry.promoted_ticket ?? (prior ? prior.promoted_ticket : null) ?? null,
+        by: entry.by ?? (prior ? prior.by : null) ?? null,
+      },
+    });
+  }
+
+  return [...byId.values()]
+    .sort((left, right) => right.ms - left.ms)
+    .slice(0, SUGGESTION_CAP)
+    .map((wrapped) => wrapped.suggestion);
+}
+
 function indexNewestEvents(eventEntries) {
   const latestByActor = new Map();
   const latestBySession = new Map();
@@ -284,16 +345,20 @@ function indexNewestEvents(eventEntries) {
 }
 
 function decorateAgents(agents, stops, eventIndex) {
-  const completedByAgent = new Map();
+  // agent-runs.jsonl is always claude-code (same legacy-file rule as
+  // mergeEvents) — there's no per-record source_app to key off here.
+  const completedByKey = new Map();
   for (const stop of stops) {
     if (!stop.agent || stopStatus(stop.status) !== 'done') continue;
-    completedByAgent.set(stop.agent, (completedByAgent.get(stop.agent) || 0) + 1);
+    const key = `claude-code:${stop.agent}`;
+    completedByKey.set(key, (completedByKey.get(key) || 0) + 1);
   }
 
   return agents.map((agent) => {
-    const persona = Object.hasOwn(PERSONA_MAP, agent.name)
-      ? PERSONA_MAP[agent.name]
-      : DEFAULT_PERSONA;
+    const sourceApp = agent.sourceApp || 'claude-code';
+    // sourceApp:name — so two sources can't collide on a shared agent name.
+    const key = `${sourceApp}:${agent.name}`;
+    const persona = personaFor(sourceApp, agent.name);
     const actorMatch = eventIndex.latestByActor.get(agent.name) || null;
     const sessionMatch =
       agent.sessionId === null || agent.sessionId === undefined
@@ -303,13 +368,14 @@ function decorateAgents(agents, stops, eventIndex) {
 
     return {
       ...agent,
+      key,
       emoji: persona.emoji,
       role: persona.role,
       currentTask:
         taskMatch && typeof taskMatch.entry.subject === 'string'
           ? taskMatch.entry.subject
           : null,
-      tasksCompleted: completedByAgent.get(agent.name) || 0,
+      tasksCompleted: completedByKey.get(key) || 0,
       estCostUsd: estimatedCostUsd(agent.inputTokens, agent.outputTokens),
     };
   });
@@ -351,6 +417,25 @@ function uniqueSorted(values) {
   return [...new Set(values.filter((value) => typeof value === 'string' && value))].sort();
 }
 
+// Cowork and Codex mirrors can both append to the same events.jsonl on a
+// shared machine (double-append guard) — keep the first occurrence of any
+// entry that carries an `id`, drop later duplicates. Entries without an id
+// are unaffected.
+function dedupeById(entries) {
+  const seen = new Set();
+  const result = [];
+  for (const entry of entries) {
+    const id = entry && typeof entry === 'object' ? entry.id : undefined;
+    if (id !== undefined && id !== null) {
+      const key = String(id);
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    result.push(entry);
+  }
+  return result;
+}
+
 function buildFilterOptions({ starts, stops, taskEntries, eventEntries }) {
   const types = [];
   if (starts.length > 0) types.push('agent_start');
@@ -370,6 +455,10 @@ function buildFilterOptions({ starts, stops, taskEntries, eventEntries }) {
     sessions: uniqueSorted(
       allEntries.map((entry) => entry.session_id ?? entry.sessionId ?? null)
     ),
+    // subagent-runs/agent-runs/tasks are always 'claude-code' (Item 1) —
+    // only events.jsonl can carry a different source_app — but the option
+    // list always offers 'claude-code' even with zero data.
+    sourceApps: uniqueSorted(['claude-code', ...eventEntries.map((entry) => entry.source_app)]),
   };
 }
 
@@ -412,6 +501,7 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
       source: 'subagent-runs',
       type: 'agent_start',
       actor: start.agent_name || 'unknown',
+      sourceApp: 'claude-code',
       text: `${name} started working${start.model ? ` (${start.model})` : ''}`,
     });
   }
@@ -428,6 +518,7 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
       source: 'agent-runs',
       type: failed ? 'agent_failed' : 'agent_done',
       actor: stop.agent || 'unknown',
+      sourceApp: 'claude-code',
       text: failed ? `${name} hit a problem${took}` : `${name} finished${took}`,
     });
   }
@@ -440,6 +531,7 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
       source: 'tasks',
       type: 'task',
       actor: id !== null ? String(id) : 'task',
+      sourceApp: 'claude-code',
       text: entry.status ? `"${title}" is ${prettyTaskStatus(entry.status)}` : `"${title}" was updated`,
     });
   }
@@ -450,6 +542,7 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
       source: 'mission-control',
       type: entry.type || 'event',
       actor: entry.actor || entry.to || entry.from || 'system',
+      sourceApp: entry.source_app || 'claude-code',
       text: describeMissionEvent(entry),
     });
   }
@@ -460,8 +553,14 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
     .slice(0, EVENT_CAP);
 }
 
-function summarize(agents, tasks, nowMs, awaitingPermission) {
-  if (agents.length === 0 && tasks.length === 0 && awaitingPermission.length === 0) {
+function summarize(agents, tasks, nowMs, awaitingPermission, suggestions = []) {
+  const newSuggestionCount = suggestions.filter((suggestion) => suggestion.status === 'new').length;
+  if (
+    agents.length === 0 &&
+    tasks.length === 0 &&
+    awaitingPermission.length === 0 &&
+    newSuggestionCount === 0
+  ) {
     return 'No agent activity yet.';
   }
 
@@ -525,18 +624,26 @@ function summarize(agents, tasks, nowMs, awaitingPermission) {
     parts.push(`${tasks.length} task${tasks.length === 1 ? '' : 's'}: ${segments.join(', ')}.`);
   }
 
+  if (newSuggestionCount > 0) {
+    parts.push(
+      `${newSuggestionCount} suggestion${newSuggestionCount === 1 ? '' : 's'} awaiting review.`
+    );
+  }
+
   return parts.join(' ');
 }
 
 async function readModel({ baseDir, now } = {}) {
   const root = baseDir || defaultBaseDir();
 
-  const [starts, stops, taskEntries, eventEntries] = await Promise.all([
+  const [starts, stops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
     readJsonl(path.join(root, 'subagent-runs.jsonl')),
     readJsonl(path.join(root, 'agent-runs.jsonl')),
     readJsonl(path.join(root, 'tasks.jsonl')),
     readJsonl(path.join(root, 'mission-control', 'events.jsonl')),
+    readJsonl(path.join(root, 'mission-control', 'suggestions.jsonl')),
   ]);
+  const eventEntries = dedupeById(rawEventEntries);
 
   const nowMs = toMs(now) ?? Date.now();
 
@@ -554,7 +661,8 @@ async function readModel({ baseDir, now } = {}) {
   const agents = permissionState.agents;
   const awaitingPermission = permissionState.awaitingPermission;
   const filterOptions = buildFilterOptions({ starts, stops, taskEntries, eventEntries });
-  const summary = summarize(agents, tasks, nowMs, awaitingPermission);
+  const suggestions = latestSuggestions(suggestionEntries);
+  const summary = summarize(agents, tasks, nowMs, awaitingPermission, suggestions);
 
   return {
     agents,
@@ -564,8 +672,15 @@ async function readModel({ baseDir, now } = {}) {
     summary,
     awaitingPermission,
     filterOptions,
+    suggestions,
     generatedAt: new Date(nowMs).toISOString(),
   };
+}
+
+function sourceSlug(value) {
+  const trimmed = String(value || 'claude-code').trim().toLowerCase();
+  const slug = trimmed.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return slug || 'claude-code';
 }
 
 function esc(value) {
@@ -591,12 +706,23 @@ function timeAgo(tsMs, nowMs) {
   return `${Math.round(delta / 86400000)}d ago`;
 }
 
+function renderSourceBadge(sourceApp) {
+  const label = typeof sourceApp === 'string' && sourceApp.trim() ? sourceApp.trim() : 'claude-code';
+  return `<span class="src src-${sourceSlug(label)}">${esc(label)}</span>`;
+}
+
 const STATUS_META = {
   running: { label: 'working', cls: 'st-running' },
   awaiting_permission: { label: '⚠ awaiting approval', cls: 'st-awaiting' },
   done: { label: 'finished', cls: 'st-done' },
   failed: { label: 'hit a problem', cls: 'st-failed' },
   stale: { label: 'stale (no end recorded)', cls: 'st-stale' },
+};
+
+const SUGGESTION_STATUS_META = {
+  new: { label: 'new', cls: 'st-waiting' },
+  promoted: { label: 'promoted', cls: 'st-done' },
+  dismissed: { label: 'dismissed', cls: 'st-stale' },
 };
 
 const SNAPSHOT_CSS = `
@@ -650,6 +776,11 @@ body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
   padding:2px 10px;font-size:.8rem;color:var(--mc-muted);white-space:nowrap;}
 .mc .badge{display:inline-block;border-radius:999px;padding:1px 9px;
   font-size:.78rem;font-weight:600;white-space:nowrap;}
+.mc .src{display:inline-block;border:1px solid var(--mc-line);border-radius:999px;
+  padding:0 8px;font-size:.72rem;font-weight:600;color:var(--mc-muted);
+  background:var(--mc-line);white-space:nowrap;}
+.mc .src-claude-code{color:var(--mc-accent);border-color:var(--mc-accent);
+  background:color-mix(in srgb,var(--mc-accent) 16%,transparent);}
 .mc .st-running{color:var(--mc-run);background:var(--mc-run-bg);}
 .mc .st-done{color:var(--mc-ok);background:var(--mc-ok-bg);}
 .mc .st-failed{color:var(--mc-err);background:var(--mc-err-bg);}
@@ -777,7 +908,7 @@ function renderAgentsSection(agents, nowMs) {
           : '';
     return `<article class="agent-card${statusClass}">
 <div class="agent-head">
-<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')}</div></div></div>
+<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')} · ${renderSourceBadge(agent.sourceApp)}</div></div></div>
 <span class="badge ${meta.cls}">${esc(meta.label)}</span>
 </div>
 <p class="agent-task"><strong>Current task:</strong> ${esc(currentTask)}</p>
@@ -861,12 +992,57 @@ function renderEventsSection(events, nowMs) {
   const items = events.slice(0, ROW_CAP).map((event) => {
     const ms = toMs(event.ts);
     const when = timeAgo(ms ?? NaN, nowMs ?? NaN) || (ms !== null ? stamp(ms) : '');
-    return `<li>${when ? `<span class="muted mono">${esc(when)}</span> ` : ''}${esc(event.text)}</li>`;
+    return `<li>${when ? `<span class="muted mono">${esc(when)}</span> ` : ''}${renderSourceBadge(event.sourceApp)} ${esc(event.text)}</li>`;
   });
 
   return `<section aria-label="Latest activity">
 <h2>🕐 Latest activity</h2>
 <ol>${items.join('')}</ol>
+</section>`;
+}
+
+function renderSuggestionsSection(suggestions) {
+  if (suggestions.length === 0) {
+    return `<section aria-label="Suggestions">
+<h2>💡 Suggestions</h2>
+<p class="zero">No suggestions yet — agents surface ideas here as they notice them.</p>
+</section>`;
+  }
+
+  const items = suggestions.slice(0, ROW_CAP).map((suggestion) => {
+    const meta = SUGGESTION_STATUS_META[suggestion.status] || {
+      label: suggestion.status || 'unknown',
+      cls: 'st-stale',
+    };
+    const from = suggestion.from ? `<strong>${esc(suggestion.from)}</strong> — ` : '';
+    const idea = suggestion.idea ? esc(suggestion.idea) : 'No idea text.';
+    const evidence = suggestion.evidence
+      ? `<div class="muted">${esc(suggestion.evidence)}</div>`
+      : '';
+    const proposedTitle =
+      suggestion.proposed_ticket && suggestion.proposed_ticket.title
+        ? `<div class="muted">Proposed: ${esc(suggestion.proposed_ticket.title)}</div>`
+        : '';
+    const promoted =
+      suggestion.status === 'promoted' && suggestion.promoted_ticket
+        ? `<div class="muted">Tracked as: ${esc(
+            suggestion.promoted_ticket.title ||
+              suggestion.promoted_ticket.id ||
+              suggestion.promoted_ticket.url ||
+              'ticket'
+          )}</div>`
+        : '';
+    return `<li><span class="badge ${meta.cls}">${esc(meta.label)}</span> ${from}${idea}${evidence}${proposedTitle}${promoted}</li>`;
+  });
+
+  const overflow =
+    suggestions.length > ROW_CAP
+      ? `<p class="muted">…and ${suggestions.length - ROW_CAP} more suggestion${suggestions.length - ROW_CAP === 1 ? '' : 's'}.</p>`
+      : '';
+
+  return `<section aria-label="Suggestions">
+<h2>💡 Suggestions</h2>
+<ul>${items.join('')}</ul>${overflow}
 </section>`;
 }
 
@@ -876,6 +1052,7 @@ function buildSnapshotHtml(model, { now } = {}) {
   const tasks = Array.isArray(source.tasks) ? source.tasks : [];
   const edges = Array.isArray(source.edges) ? source.edges : [];
   const events = Array.isArray(source.events) ? source.events : [];
+  const suggestions = Array.isArray(source.suggestions) ? source.suggestions : [];
   const awaitingPermission = Array.isArray(source.awaitingPermission)
     ? source.awaitingPermission
     : [];
@@ -889,6 +1066,7 @@ function buildSnapshotHtml(model, { now } = {}) {
     tasks.length === 0 &&
     edges.length === 0 &&
     events.length === 0 &&
+    suggestions.length === 0 &&
     awaitingPermission.length === 0;
 
   const hero = empty
@@ -911,6 +1089,7 @@ ${renderAgentsSection(agents, nowMs)}
 ${renderTasksSection(tasks, nowMs)}
 ${renderEdgesSection(edges, nowMs)}
 ${renderEventsSection(events, nowMs)}
+${renderSuggestionsSection(suggestions)}
 <footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>
 </main>`;
 }

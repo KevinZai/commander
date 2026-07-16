@@ -16,6 +16,7 @@ import {
   filterEventsAfter,
 } from '../../dashboard/lib/mission-model.js';
 import { createServer } from '../../dashboard/server.js';
+import { readModel } from '../cowork-plugin/lib/mission-control-snapshot.js';
 
 let tmpRoot;
 
@@ -84,6 +85,7 @@ test('joins a start and stop record into one done agent', async () => {
   assert.equal(model.agents.length, 1);
   assert.deepEqual(model.agents[0], {
     name: 'reviewer',
+    sourceApp: 'claude-code',
     model: 'claude-sonnet-4-6',
     sessionId: 'S1',
     startedAt: T('10:00:00'),
@@ -92,6 +94,7 @@ test('joins a start and stop record into one done agent', async () => {
     inputTokens: 1200,
     outputTokens: 345,
     status: 'done',
+    key: 'claude-code:reviewer',
     emoji: '🔍',
     role: 'Reviewer',
     currentTask: null,
@@ -488,7 +491,99 @@ test('filterOptions contains unique agents, event types, and sessions', async ()
     agents: ['builder', 'reviewer'],
     types: ['agent_done', 'agent_start', 'message', 'permission', 'task'],
     sessions: ['S1', 'S2', 'S3', 'S4'],
+    sourceApps: ['claude-code'],
   });
+});
+
+test('sourceApp flows end-to-end: agents, merged events, and filterOptions.sourceApps', async () => {
+  const baseDir = await makeBase({
+    subagent: [
+      start({ agent_name: 'reviewer', session_id: 'S1' }),
+      start({ agent_name: 'scout', session_id: 'S5', source_app: 'other-app' }),
+    ],
+    agent: [stop({ agent: 'qa', sessionId: 'S9' })],
+    events: [
+      { ts: T('10:02:00'), session_id: 'S1', type: 'message', actor: 'reviewer', source_app: 'other-app' },
+    ],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  const reviewer = model.agents.find((agent) => agent.name === 'reviewer');
+  assert.equal(reviewer.sourceApp, 'claude-code', 'no source_app on the start record defaults to claude-code');
+
+  const scout = model.agents.find((agent) => agent.name === 'scout');
+  assert.equal(scout.sourceApp, 'other-app', 'a source_app on the start record is honored');
+
+  const qa = model.agents.find((agent) => agent.name === 'qa');
+  assert.equal(qa.sourceApp, 'claude-code', 'legacy agent-runs.jsonl orphan stops are always claude-code per Item 1');
+
+  const legacyEvents = model.events.filter((event) => event.source !== 'mission-control');
+  assert.ok(legacyEvents.length > 0);
+  assert.ok(legacyEvents.every((event) => event.sourceApp === 'claude-code'));
+
+  const mcEvent = model.events.find((event) => event.source === 'mission-control');
+  assert.equal(mcEvent.sourceApp, 'other-app', 'events.jsonl source_app is honored');
+
+  assert.deepEqual(model.filterOptions.sourceApps, ['claude-code', 'other-app']);
+});
+
+test('agent_key: sourceApp:name identity keeps tasksCompleted scoped per key', async () => {
+  const baseDir = await makeBase({
+    subagent: [start({ agent_name: 'reviewer', session_id: 'S1' })],
+    agent: [stop({ agent: 'reviewer', sessionId: 'S1' })],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  assert.equal(model.agents.length, 1);
+  assert.equal(model.agents[0].key, 'claude-code:reviewer');
+  assert.equal(model.agents[0].tasksCompleted, 1);
+});
+
+test('parseTs/toMs parity: ISO strings and finite numeric epoch-ms both survive, model and snapshot agree on ordering', async () => {
+  const isoTs = T('10:00:00');
+  const numericTs = Date.parse(T('10:01:00'));
+  const baseDir = await makeBase({
+    events: [
+      { ts: isoTs, session_id: 'S1', type: 'message', actor: 'reviewer', subject: 'iso event' },
+      { ts: numericTs, session_id: 'S1', type: 'message', actor: 'builder', subject: 'numeric event' },
+    ],
+  });
+
+  const model = await buildMissionModel({ baseDir, now: NOW });
+  const snapshot = await readModel({ baseDir, now: NOW });
+
+  const toMillis = (ts) => (typeof ts === 'number' ? ts : Date.parse(ts));
+
+  assert.equal(model.events.length, 2, 'model keeps both the ISO and numeric-ts events');
+  assert.equal(snapshot.events.length, 2, 'snapshot keeps both the ISO and numeric-ts events');
+  // Both readers must resolve the numeric-ts line to the same millisecond as
+  // the ISO line's neighbor and order identically — text formatting differs
+  // between the two readers by design and isn't asserted here.
+  assert.deepEqual(
+    model.events.map((event) => toMillis(event.ts)),
+    snapshot.events.map((event) => toMillis(event.ts)),
+    'identical ordering (by resolved ms) between model and snapshot'
+  );
+  assert.equal(model.events[0].actor, 'builder', 'newest (numeric ts) first in model');
+  assert.equal(snapshot.events[0].actor, 'builder', 'newest (numeric ts) first in snapshot');
+});
+
+test('duplicate-id events.jsonl lines render once in events and edges (cowork+codex double-append guard)', async () => {
+  const baseDir = await makeBase({
+    events: [
+      { id: 'evt-1', ts: T('10:00:00'), session_id: 'S1', type: 'delegation', actor: 'reviewer', subject: 'audit auth' },
+      { id: 'evt-1', ts: T('10:00:00'), session_id: 'S1', type: 'delegation', actor: 'reviewer', subject: 'audit auth (dup)' },
+      { id: 'evt-2', ts: T('10:00:05'), session_id: 'S1', type: 'workflow', actor: 'builder' },
+      { ts: T('10:00:10'), session_id: 'S1', type: 'workflow', actor: 'qa' },
+    ],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  assert.equal(model.events.length, 3, 'first evt-1 kept, duplicate evt-1 dropped, evt-2 + id-less kept');
+  assert.equal(model.edges.length, 3, 'evt-1 (deduped to one) + evt-2 + the id-less line all survive as edges');
+  const auditEvents = model.events.filter((event) => event.text.includes('audit auth'));
+  assert.equal(auditEvents.length, 1, 'the duplicate audit-auth event line was dropped');
+  assert.equal(auditEvents[0].text.includes('(dup)'), false, 'first occurrence wins, not the duplicate');
 });
 
 test('filterEventsAfter keeps only events strictly newer than after', () => {
@@ -556,8 +651,11 @@ function dispatch(server, url, options = {}) {
 }
 
 test('GET /api/mission returns the full model', async () => {
+  // The endpoint builds the model against the real clock, so this fixture must stay
+  // recent in wall-clock terms — a fixed T() date ages past RUNNING_WINDOW_MS and rots to 'stale'.
+  const justNow = new Date(Date.now() - 60_000).toISOString();
   const commanderDir = await makeBase({
-    subagent: [start({ agent_name: 'builder', ts: T('10:01:00') })],
+    subagent: [start({ agent_name: 'builder', ts: justNow })],
     tasks: [{ ts: T('09:00:00'), task_id: '1', status: 'pending', title: 'Plan launch' }],
   });
   const server = createServer({ sessionsDir: path.join(tmpRoot, 'none'), commanderDir });

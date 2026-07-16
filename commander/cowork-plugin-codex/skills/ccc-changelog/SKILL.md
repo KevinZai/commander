@@ -17,7 +17,7 @@ Reads `CHANGELOG.md` at the repo root and surfaces the most-recent version secti
 
 ### 1. Locate CHANGELOG.md
 
-Read `${CLAUDE_PLUGIN_ROOT}/../../CHANGELOG.md` via the Read tool.
+Read `${CODEX_PLUGIN_ROOT}/../../CHANGELOG.md` via the Read tool.
 
 If that fails, try `Bash`: `find ~ -name CHANGELOG.md -path "*/cc-commander/*" 2>/dev/null | head -1` and read the result.
 

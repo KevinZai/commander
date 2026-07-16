@@ -12,14 +12,19 @@ const els = {
   feed: document.getElementById('feed'),
   filterAgent: document.getElementById('filter-agent'),
   filterType: document.getElementById('filter-type'),
+  filterSource: document.getElementById('filter-source'),
   filterChip: document.getElementById('filter-chip'),
   filterChipText: document.getElementById('filter-chip-text'),
+  suggestions: document.getElementById('suggestions'),
+  suggestionFilters: document.querySelectorAll('.mc-chip-toggle'),
   columns: {
     waiting: document.getElementById('col-waiting'),
     inProgress: document.getElementById('col-inProgress'),
     done: document.getElementById('col-done'),
   },
 };
+
+const SUGGESTION_STATUSES = ['new', 'promoted', 'dismissed'];
 
 const state = {
   lastAgents: '',
@@ -28,15 +33,24 @@ const state = {
   lastEvents: '',
   lastPermissions: '',
   lastFilterOptions: '',
+  lastSuggestions: '',
   agentCards: new Map(),
   permissionAges: [],
   latestAgents: [],
   latestTasks: [],
   latestEdges: [],
   latestEvents: [],
-  filters: { agent: '', session: '', type: '' },
+  latestSuggestions: [],
+  filters: { agent: '', session: '', agentSource: '', type: '', source: '' },
+  suggestionStatuses: new Set(SUGGESTION_STATUSES),
   polling: false,
 };
+
+function sourceSlug(value) {
+  const trimmed = String(value || 'claude-code').trim().toLowerCase();
+  const slug = trimmed.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return slug || 'claude-code';
+}
 
 function taskBucket(status) {
   const value = String(status || '').toLowerCase();
@@ -82,7 +96,9 @@ function emptyState(text) {
 }
 
 function agentKey(agent) {
-  return `${agent.name}|${agent.sessionId || ''}|${agent.startedAt || ''}`;
+  // sourceApp leads: two apps can run a same-named agent in the same session,
+  // and without it their cards collide in the DOM even though the model keys them apart.
+  return `${agent.sourceApp || 'claude-code'}|${agent.name}|${agent.sessionId || ''}|${agent.startedAt || ''}`;
 }
 
 function agentStateLabel(status) {
@@ -121,7 +137,9 @@ function buildAgentCard() {
   name.className = 'mc-agent-name';
   const sub = document.createElement('div');
   sub.className = 'mc-agent-sub';
-  mid.append(name, sub);
+  const sourcePill = document.createElement('span');
+  sourcePill.className = 'mc-src';
+  mid.append(name, sub, sourcePill);
 
   const right = document.createElement('div');
   right.className = 'mc-agent-right';
@@ -138,9 +156,9 @@ function buildAgentCard() {
 
   card.append(dot, mid, right, gauges);
   card.addEventListener('click', () => {
-    toggleAgentFilter(card.dataset.agent || '', card.dataset.session || '');
+    toggleAgentFilter(card.dataset.agent || '', card.dataset.session || '', card.dataset.source || '');
   });
-  return { card, dot, name, sub, stateBadge, duration, tokens, cost, agent: null };
+  return { card, dot, name, sub, sourcePill, stateBadge, duration, tokens, cost, agent: null };
 }
 
 function durationForAgent(agent) {
@@ -174,12 +192,16 @@ function updateAgentCard(refs, agent, maxima) {
   refs.card.dataset.startedAt = agent.startedAt || '';
   refs.card.dataset.agent = agent.name || '';
   refs.card.dataset.session = agent.sessionId || '';
+  refs.card.dataset.source = agent.sourceApp || 'claude-code';
   refs.card.classList.toggle('is-filtered', matchesActiveAgent(agent));
   refs.card.setAttribute('aria-pressed', matchesActiveAgent(agent) ? 'true' : 'false');
   refs.name.textContent = `${agent.emoji || '🤖'} ${agent.name || 'unknown agent'}`;
   const detail = agent.currentTask || agent.model || 'No current task details';
   const completed = `${agent.tasksCompleted || 0} completed`;
   refs.sub.textContent = `${agent.role || 'Agent'} · ${shortLabel(detail, 54)} · ${completed}`;
+  const sourceApp = agent.sourceApp || 'claude-code';
+  refs.sourcePill.className = `mc-src mc-src-${sourceSlug(sourceApp)}`;
+  refs.sourcePill.textContent = sourceApp;
   refs.stateBadge.textContent = agentStateLabel(agent.status);
   const stale = agent.status === 'stale';
   refs.card.style.opacity = stale ? '0.68' : '';
@@ -449,8 +471,14 @@ function eventMatchesSession(event, session) {
 
 function eventMatchesFilters(event) {
   if (state.filters.type && event.type !== state.filters.type) return false;
+  if (state.filters.source && (event.sourceApp || 'claude-code') !== state.filters.source) {
+    return false;
+  }
   if (!state.filters.agent && !state.filters.session) return true;
-  const actorMatch = state.filters.agent && event.actor === state.filters.agent;
+  const actorMatch =
+    state.filters.agent &&
+    event.actor === state.filters.agent &&
+    (!state.filters.agentSource || (event.sourceApp || 'claude-code') === state.filters.agentSource);
   const sessionMatch = eventMatchesSession(event, state.filters.session);
   return Boolean(actorMatch || sessionMatch);
 }
@@ -480,35 +508,46 @@ function renderFeed(events) {
     text.className = 'mc-event-text';
     text.textContent = event.text || `${event.type} · ${event.actor}`;
 
-    const source = document.createElement('span');
-    source.className = 'mc-event-source';
-    source.textContent = event.source || 'log';
+    const sourceApp = event.sourceApp || 'claude-code';
+    const appSource = document.createElement('span');
+    appSource.className = `mc-src mc-src-${sourceSlug(sourceApp)}`;
+    appSource.textContent = sourceApp;
 
-    row.append(time, text, source);
+    const logSource = document.createElement('span');
+    logSource.className = 'mc-event-source';
+    logSource.textContent = event.source || 'log';
+
+    row.append(time, text, appSource, logSource);
     return row;
   });
 
   els.feed.replaceChildren(...rows);
 }
 
-function matchesAgentValues(agent, session) {
+function matchesAgentValues(agent, session, source) {
   if (!state.filters.agent) return false;
   if (state.filters.agent !== agent) return false;
-  return !state.filters.session || state.filters.session === String(session || '');
+  if (state.filters.session && state.filters.session !== String(session || '')) return false;
+  // Same-named agents from different apps must stay distinguishable when click-filtered;
+  // callers that don't know the source (flow nodes) pass undefined and skip the check.
+  if (state.filters.agentSource && source !== undefined && String(source || 'claude-code') !== state.filters.agentSource) return false;
+  return true;
 }
 
 function matchesActiveAgent(agent) {
-  return matchesAgentValues(agent.name || '', agent.sessionId || '');
+  return matchesAgentValues(agent.name || '', agent.sessionId || '', agent.sourceApp || 'claude-code');
 }
 
 function syncFilterControls() {
   els.filterAgent.value = state.filters.agent;
   els.filterType.value = state.filters.type;
+  els.filterSource.value = state.filters.source;
   const hasAgent = Boolean(state.filters.agent);
   els.filterChip.hidden = !hasAgent;
   if (hasAgent) {
     const session = state.filters.session ? ` · ${shortLabel(state.filters.session, 12)}` : '';
-    els.filterChipText.textContent = `${state.filters.agent}${session}`;
+    const src = state.filters.agentSource && state.filters.agentSource !== 'claude-code' ? ` · ${state.filters.agentSource}` : '';
+    els.filterChipText.textContent = `${state.filters.agent}${session}${src}`;
   }
 }
 
@@ -519,10 +558,11 @@ function refreshInteractiveViews() {
   refreshFeed();
 }
 
-function toggleAgentFilter(agent, session) {
-  const isSame = matchesAgentValues(agent, session);
+function toggleAgentFilter(agent, session, source) {
+  const isSame = matchesAgentValues(agent, session, source);
   state.filters.agent = isSame ? '' : agent;
   state.filters.session = isSame ? '' : session;
+  state.filters.agentSource = isSame || !source ? '' : String(source);
   syncFilterControls();
   refreshInteractiveViews();
 }
@@ -551,12 +591,14 @@ function applyFilterOptions(options) {
   const normalized = {
     agents: Array.isArray(options.agents) ? options.agents : [],
     types: Array.isArray(options.types) ? options.types : [],
+    sourceApps: Array.isArray(options.sourceApps) ? options.sourceApps : [],
   };
   const signature = JSON.stringify(normalized);
   if (signature === state.lastFilterOptions) return;
   state.lastFilterOptions = signature;
   setSelectOptions(els.filterAgent, normalized.agents, 'All agents');
   setSelectOptions(els.filterType, normalized.types, 'All activity', labelEventType);
+  setSelectOptions(els.filterSource, normalized.sourceApps, 'All sources');
   syncFilterControls();
 }
 
@@ -588,6 +630,94 @@ function renderPermissionBanner(items) {
   });
   els.permissionItems.replaceChildren(...rows);
   updatePermissionAges();
+}
+
+function syncSuggestionFilterControls() {
+  for (const button of els.suggestionFilters) {
+    const pressed = state.suggestionStatuses.has(button.dataset.status);
+    button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+  }
+}
+
+function toggleSuggestionStatus(status) {
+  const isolated = state.suggestionStatuses.size === 1 && state.suggestionStatuses.has(status);
+  state.suggestionStatuses = isolated ? new Set(SUGGESTION_STATUSES) : new Set([status]);
+  syncSuggestionFilterControls();
+  refreshSuggestions();
+}
+
+function renderSuggestions(suggestions) {
+  const filtered = suggestions.filter((suggestion) => state.suggestionStatuses.has(suggestion.status));
+  if (filtered.length === 0) {
+    els.suggestions.replaceChildren(
+      emptyState(
+        suggestions.length === 0
+          ? 'No suggestions yet — agents surface ideas here as they notice them.'
+          : 'No suggestions match this filter.'
+      )
+    );
+    return;
+  }
+
+  const rows = filtered.map((suggestion) => {
+    const row = document.createElement('div');
+    row.className = 'mc-suggestion';
+    row.dataset.status = suggestion.status || 'new';
+
+    const head = document.createElement('div');
+    head.className = 'mc-suggestion-head';
+    const statusBadge = document.createElement('span');
+    statusBadge.className = 'mc-suggestion-status';
+    statusBadge.textContent = suggestion.status || 'new';
+    const from = document.createElement('span');
+    from.className = 'mc-suggestion-from';
+    from.textContent = suggestion.from || 'unknown';
+    head.append(statusBadge, from);
+
+    const idea = document.createElement('p');
+    idea.className = 'mc-suggestion-idea';
+    idea.textContent = suggestion.idea || 'No idea text.';
+
+    row.append(head, idea);
+
+    if (suggestion.evidence) {
+      const evidence = document.createElement('p');
+      evidence.className = 'mc-suggestion-evidence';
+      evidence.textContent = suggestion.evidence;
+      row.append(evidence);
+    }
+
+    if (suggestion.proposed_ticket && suggestion.proposed_ticket.title) {
+      const proposed = document.createElement('p');
+      proposed.className = 'mc-suggestion-proposed';
+      proposed.textContent = `Proposed: ${suggestion.proposed_ticket.title}`;
+      row.append(proposed);
+    }
+
+    if (suggestion.status === 'promoted' && suggestion.promoted_ticket) {
+      const ticket = suggestion.promoted_ticket;
+      const promoted = document.createElement('p');
+      promoted.className = 'mc-suggestion-promoted';
+      promoted.textContent = `Tracked as: ${ticket.title || ticket.id || ticket.url || 'ticket'}`;
+      row.append(promoted);
+    }
+
+    return row;
+  });
+
+  els.suggestions.replaceChildren(...rows);
+}
+
+function refreshSuggestions() {
+  const signature = JSON.stringify([state.latestSuggestions, [...state.suggestionStatuses].sort()]);
+  if (signature === state.lastSuggestions) return;
+  state.lastSuggestions = signature;
+  renderSuggestions(state.latestSuggestions);
+}
+
+function applySuggestions(suggestions) {
+  state.latestSuggestions = Array.isArray(suggestions) ? suggestions : [];
+  refreshSuggestions();
 }
 
 function applyModel(model) {
@@ -641,18 +771,24 @@ async function poll() {
   if (state.polling) return;
   state.polling = true;
   try {
-    const [missionResponse, optionsResponse] = await Promise.all([
+    const [missionResponse, optionsResponse, suggestionsResponse] = await Promise.all([
       fetch('/api/mission', { cache: 'no-store' }),
       fetch('/api/mission/filter-options', { cache: 'no-store' }),
+      fetch('/api/suggestions', { cache: 'no-store' }),
     ]);
     if (!missionResponse.ok) throw new Error(`Mission API returned ${missionResponse.status}`);
     if (!optionsResponse.ok) throw new Error(`Filter API returned ${optionsResponse.status}`);
-    const [model, options] = await Promise.all([
+    if (!suggestionsResponse.ok) {
+      throw new Error(`Suggestions API returned ${suggestionsResponse.status}`);
+    }
+    const [model, options, suggestionsPayload] = await Promise.all([
       missionResponse.json(),
       optionsResponse.json(),
+      suggestionsResponse.json(),
     ]);
     applyFilterOptions(options);
     applyModel(model);
+    applySuggestions(suggestionsPayload.suggestions);
     els.refreshDot.className = 'mc-refresh-dot ok';
   } catch {
     els.refreshDot.className = 'mc-refresh-dot err';
@@ -665,6 +801,7 @@ async function poll() {
 els.filterAgent.addEventListener('change', () => {
   state.filters.agent = els.filterAgent.value;
   state.filters.session = '';
+  state.filters.agentSource = '';
   syncFilterControls();
   refreshInteractiveViews();
 });
@@ -675,7 +812,18 @@ els.filterType.addEventListener('change', () => {
   refreshFeed();
 });
 
-els.filterChip.addEventListener('click', () => toggleAgentFilter('', ''));
+els.filterSource.addEventListener('change', () => {
+  state.filters.source = els.filterSource.value;
+  syncFilterControls();
+  refreshFeed();
+});
+
+els.filterChip.addEventListener('click', () => toggleAgentFilter('', '', ''));
+
+for (const button of els.suggestionFilters) {
+  button.addEventListener('click', () => toggleSuggestionStatus(button.dataset.status));
+}
+syncSuggestionFilterControls();
 
 poll();
 window.setInterval(poll, POLL_MS);

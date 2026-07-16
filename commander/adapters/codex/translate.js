@@ -244,9 +244,13 @@ export function translateHooks(claudeHooks, options = {}) {
   return out;
 }
 
-// Skills are identical.
+// Skills carry over as-is except for the plugin-root variable: Codex exports
+// CODEX_PLUGIN_ROOT, so a skill body telling the agent to run
+// `node ${CLAUDE_PLUGIN_ROOT}/lib/...` expands to nothing there. Same rewrite
+// translateHookHandlers applies to hook commands.
 export function translateSkill(skillMd) {
-  return skillMd;
+  if (typeof skillMd !== 'string') return skillMd;
+  return skillMd.replaceAll('${CLAUDE_PLUGIN_ROOT}', '${CODEX_PLUGIN_ROOT}');
 }
 
 // .mcp.json - Codex accepts the same shape.

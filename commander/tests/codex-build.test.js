@@ -102,7 +102,7 @@ test('codex plugin build artifact', async (t) => {
     ]);
   });
 
-  await t.test('passes through all skills unchanged', async () => {
+  await t.test('rewrites the plugin-root variable and passes skills through otherwise', async () => {
     const sourceSkillFiles = (await listFiles(path.join(SOURCE_DIR, 'skills')))
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
@@ -113,13 +113,30 @@ test('codex plugin build artifact', async (t) => {
     assert.equal(sourceSkillFiles.length, PRODUCT_CONTRACT.plugin_skills);
     assert.deepEqual(outputSkillFiles, sourceSkillFiles);
 
+    let rewrittenSkills = 0;
     for (const skillFile of sourceSkillFiles) {
+      const source = await readFile(path.join(SOURCE_DIR, 'skills', skillFile), 'utf8');
+      const output = await readFile(path.join(OUTPUT_DIR, 'skills', skillFile), 'utf8');
+
+      // Codex exports CODEX_PLUGIN_ROOT; a mirrored body telling the agent to run
+      // `node ${CLAUDE_PLUGIN_ROOT}/lib/...` would expand to nothing there.
       assert.equal(
-        await readFile(path.join(OUTPUT_DIR, 'skills', skillFile), 'utf8'),
-        await readFile(path.join(SOURCE_DIR, 'skills', skillFile), 'utf8'),
-        `${skillFile} should be byte-identical`
+        output,
+        source.replaceAll('${CLAUDE_PLUGIN_ROOT}', '${CODEX_PLUGIN_ROOT}'),
+        `${skillFile} should differ from source only by the plugin-root variable`
       );
+      assert.ok(
+        !output.includes('${CLAUDE_PLUGIN_ROOT}'),
+        `${skillFile} must not reference CLAUDE_PLUGIN_ROOT in the Codex mirror`
+      );
+      if (source.includes('${CLAUDE_PLUGIN_ROOT}')) rewrittenSkills += 1;
     }
+
+    // Guards the rewrite against silently becoming a no-op.
+    assert.ok(
+      rewrittenSkills > 0,
+      'expected at least one skill to exercise the plugin-root rewrite'
+    );
   });
 
   await t.test('translates all 22 agents to TOML', async () => {

@@ -72,7 +72,7 @@ If the `Workflow` tool is available, prefer invoking the bundled audit workflow 
 
 ```js
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
   args: { target: ".", dimensions: ["quality","security","perf","deps","tests","docs","ci"] }
 })
 ```

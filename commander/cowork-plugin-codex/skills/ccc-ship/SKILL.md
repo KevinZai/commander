@@ -67,7 +67,7 @@ If uncommitted changes > 0: "⚠️ Uncommitted changes detected — commit or s
 
 ### 3. The picker — `AskUserQuestion` with 4 ship actions
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-ship.json` for canonical option data. Surface the 4 non-back choices.
+Read `${CODEX_PLUGIN_ROOT}/menus/ccc-ship.json` for canonical option data. Surface the 4 non-back choices.
 
 ```
 question: "What are we shipping?"

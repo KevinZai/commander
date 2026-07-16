@@ -6,7 +6,7 @@ allowed-tools:
   - Bash
   - Write
   - AskUserQuestion
-argument-hint: "[open | snapshot | status | stop]"
+argument-hint: "[open | snapshot | status | suggestions | stop]"
 ---
 
 # /ccc-mission-control — Mission Control
@@ -26,10 +26,11 @@ AskUserQuestion:
     - 🖥️ Open live dashboard — auto-refreshing panel that sits beside your chat
     - 🛰️ Publish snapshot artifact — a living status page you can keep or share
     - 🗣️ Plain-English status — narrate it right here, zero jargon
+    - 💡 Review & promote suggestions — triage the ideas agents have surfaced
     - ⏹️ Stop dashboard — shut the local server down
 ```
 
-Explicit sub-commands skip the picker: `/ccc-mission-control open`, `/ccc-mission-control snapshot`, `/ccc-mission-control status`, `/ccc-mission-control stop`.
+Explicit sub-commands skip the picker: `/ccc-mission-control open`, `/ccc-mission-control snapshot`, `/ccc-mission-control status`, `/ccc-mission-control suggestions`, `/ccc-mission-control stop`.
 
 **Zero-state:** if the logs are empty or missing, say so plainly and point forward — "No agents yet — spawn one with `/ccc-spawn` (or fan out with `/ccc-fleet`) and this board lights up." Never render an error for an empty board.
 
@@ -41,7 +42,7 @@ Explicit sub-commands skip the picker: `/ccc-mission-control open`, `/ccc-missio
    ```
 2. **If not `200`, start it** — run `node dashboard/server.js` as a **background task** from the CC Commander repo root. Finding that root:
    - Working inside the CCC repo → use the current checkout.
-   - Installed via marketplace → the plugin lives in the marketplace cache; the repo checkout is at `${CLAUDE_PLUGIN_ROOT}/../..` — verify `dashboard/server.js` exists there before launching.
+   - Installed via marketplace → the plugin lives in the marketplace cache; the repo checkout is at `${CODEX_PLUGIN_ROOT}/../..` — verify `dashboard/server.js` exists there before launching.
    - No `dashboard/server.js` anywhere → **fall back to snapshot mode** (next section) instead of failing.
 3. **Open the Browser pane** at `http://127.0.0.1:4690/mission-control.html` (`preview_start {url}`). The panel docks beside the chat and keeps itself fresh while you keep working.
 
@@ -54,7 +55,7 @@ Build the model and render the self-contained HTML file with the plugin's own li
 ```bash
 mkdir -p scratchpad
 node --input-type=module -e "
-import { readModel, buildSnapshotHtml } from '${CLAUDE_PLUGIN_ROOT}/lib/mission-control-snapshot.js';
+import { readModel, buildSnapshotHtml } from '${CODEX_PLUGIN_ROOT}/lib/mission-control-snapshot.js';
 import { writeFile } from 'node:fs/promises';
 const html = buildSnapshotHtml(await readModel({}));
 await writeFile(process.argv[1], html);
@@ -84,6 +85,44 @@ If `awaitingPermission` is non-empty, say that **first**. Name each waiting sess
 > **Right now:** 2 helpers working — *reviewer* has been at it 12 minutes, *builder* just started. **Earlier today:** 3 helpers finished fine, 1 hit a problem (*auditor* — timed out). **Tasks:** 2 in progress, 4 done, 1 waiting. **Hand-offs:** your main session delegated work to *reviewer* 12 minutes ago.
 
 Rules: never say "subagent", "JSONL", "session_id", or token counts unless asked. Say "helper", "hand-off", "finished", "hit a problem".
+
+### 💡 Review & promote suggestions
+
+Agents can drop a proactive "you might want to do X" idea into `~/.claude/commander/mission-control/suggestions.jsonl` (see `lib/suggestions.js`). This flow triages that queue.
+
+1. **Read the queue:** run `readModel({})` from the snapshot library (or read `model.suggestions` off the live dashboard's `/api/suggestions`) and pull `model.suggestions`, newest `status: "new"` first.
+2. **Zero-state:** if there are no `new` suggestions, say so plainly — "Nothing waiting for review right now." — and stop.
+3. **Triage in batches of up to 4** with a click-first picker per item:
+   ```
+   AskUserQuestion:
+     question: "<idea text> — from <from>. <evidence, if any>."
+     options:
+       - ✅ Promote — create a tracked ticket for this
+       - ⏭️ Skip for now — leave it as "new", ask again later
+       - 🗑️ Dismiss — this isn't worth tracking
+   ```
+4. **On promote:** create the ticket with whatever tracker the session already has access to — the Linear MCP if it's connected, otherwise a `curl` GraphQL call against `$LINEAR_API_KEY` if the user has that configured. Use the suggestion's `proposed_ticket.title`/`project`/`priority` as the starting draft, but confirm the title with the user before creating anything (never publish external tickets silently). If no tracker is available, say so and offer to just dismiss or leave it as `new`.
+
+   Once the ticket exists, append the status line with a `node -e` one-liner against the shared writer lib (never write the JSONL by hand):
+   ```bash
+   node -e "
+   import('${CODEX_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
+     appendStatus({ id: '<suggestion-id>', status: 'promoted', promoted_ticket: { id: '<ticket-id>', title: '<ticket-title>', url: '<ticket-url>' }, by: 'mission-control' }, {})
+   );
+   "
+   ```
+5. **On dismiss:** append the same way with `status: 'dismissed'`:
+   ```bash
+   node -e "
+   import('${CODEX_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
+     appendStatus({ id: '<suggestion-id>', status: 'dismissed', by: 'mission-control' }, {})
+   );
+   "
+   ```
+6. **On skip:** do nothing — it stays `status: "new"` and resurfaces next time this flow runs.
+7. **Report back** a one-line tally: how many promoted, dismissed, and skipped.
+
+Both the live dashboard and the published snapshot show the same queue (a 💡 Suggestions panel — status chips new/promoted/dismissed on the dashboard, a plain list with status badges on the snapshot) so you can review from either surface; this flow is for triaging it conversationally instead of clicking through the panel.
 
 ### ⏹️ Stop dashboard
 

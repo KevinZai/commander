@@ -43,7 +43,7 @@ If an existing project is detected, add a gentle note: "I'll scaffold into a sub
 
 ### 3. The picker — `AskUserQuestion` with 4 templates
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for canonical option data. Surface exactly 4 of the 5 non-back choices (drop "mobile" if the user's stack is backend-only; otherwise keep web-app / api / cli / mobile).
+Read `${CODEX_PLUGIN_ROOT}/menus/ccc-build.json` for canonical option data. Surface exactly 4 of the 5 non-back choices (drop "mobile" if the user's stack is backend-only; otherwise keep web-app / api / cli / mobile).
 
 ```
 question: "What are we building?"

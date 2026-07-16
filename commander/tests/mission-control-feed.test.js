@@ -5,7 +5,10 @@
 // ~/.claude/commander/mission-control/events.jsonl — with a zero-I/O fast
 // path for every other tool, ≤120/≤200-char truncation (privacy: no full
 // prompts on disk), 10MB rotation, and fail-open stdout contract. Also pins
-// the task-tracker.js enrichment (subject + session_id, old fields intact).
+// the task-tracker.js enrichment (subject + session_id, old fields intact)
+// and, per CC-1378, subagent-start-tracker.js's stdin-primary field probing
+// + prompt redaction/cap + the 256KB STDIN_MAX bound shared with the feed
+// hook and task-tracker.js.
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
@@ -27,6 +30,13 @@ const TRACKER_HOOK = path.join(
   'cowork-plugin',
   'hooks',
   'task-tracker.js'
+);
+const SUBAGENT_START_HOOK = path.join(
+  __dirname,
+  '..',
+  'cowork-plugin',
+  'hooks',
+  'subagent-start-tracker.js'
 );
 const HOOKS_JSON = path.join(
   __dirname,
@@ -90,6 +100,33 @@ function runTracker(payloadRaw, extraEnv = {}) {
   const logFile = path.join(home, '.claude', 'commander', 'tasks.jsonl');
   try {
     const res = spawnHook(TRACKER_HOOK, payloadRaw, home, extraEnv);
+    let parsed = null;
+    try {
+      parsed = JSON.parse((res.stdout || '').trim().split('\n')[0]);
+    } catch {}
+    return {
+      exitCode: res.status ?? 0,
+      parsed,
+      entries: fs.existsSync(logFile)
+        ? fs
+            .readFileSync(logFile, 'utf8')
+            .split('\n')
+            .filter(Boolean)
+            .map((l) => JSON.parse(l))
+        : [],
+    };
+  } finally {
+    try {
+      fs.rmSync(home, { recursive: true, force: true });
+    } catch {}
+  }
+}
+
+function runSubagentStart(payloadRaw, extraEnv = {}) {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-mcf-substart-test-'));
+  const logFile = path.join(home, '.claude', 'commander', 'subagent-runs.jsonl');
+  try {
+    const res = spawnHook(SUBAGENT_START_HOOK, payloadRaw, home, extraEnv);
     let parsed = null;
     try {
       parsed = JSON.parse((res.stdout || '').trim().split('\n')[0]);
@@ -196,6 +233,31 @@ describe('mission-control-feed — event capture', () => {
     assert.equal(ev.subject, message.slice(0, 120));
     assert.equal(ev.session_id, 'sess-permission');
     assert.equal(ev.source_app, 'claude-code');
+  });
+
+  it('stamps source_app codex when Codex Desktop spawns the hook', () => {
+    const codexEnv = { CODEX_PLUGIN_ROOT: '/tmp/codex-plugin-root' };
+    const tool = runFeed(
+      { tool_name: 'Agent', tool_input: { subagent_type: 'builder' } },
+      { env: codexEnv }
+    );
+    assert.equal(tool.events.length, 1);
+    assert.equal(tool.events[0].source_app, 'codex');
+
+    const permission = runFeed(
+      {
+        permission_request: {
+          tool_name: 'Bash',
+          description: 'Run the release command',
+        },
+      },
+      { env: codexEnv }
+    );
+    assert.equal(permission.events[0].source_app, 'codex');
+
+    // Without the Codex signal the same file must still identify as claude-code.
+    const claude = runFeed({ tool_name: 'Agent', tool_input: {} });
+    assert.equal(claude.events[0].source_app, 'claude-code');
   });
 
   it('captures permission-shaped payloads and tags all event types with source_app', () => {
@@ -507,6 +569,96 @@ describe('task-tracker — enrichment (old fields intact + new fields)', () => {
 
   it('malformed stdin → continue:true, exit 0', () => {
     const r = runTracker('not-json{{');
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.parsed.continue, true);
+    assert.equal(r.entries.length, 0);
+  });
+
+  it('fails open (0 entries) when stdin exceeds the 256KB cap', () => {
+    const huge = 'x'.repeat(300 * 1024);
+    const r = runTracker({ task_id: 't-huge', title: huge });
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.parsed.continue, true);
+    assert.equal(r.entries.length, 0);
+  });
+});
+
+describe('subagent-start-tracker — stdin is the primary source (Iron Law fix, CC-1378)', () => {
+  it('reads agent name, prompt, model, session id from top-level stdin fields', () => {
+    const r = runSubagentStart({
+      agent_name: 'reviewer',
+      prompt: 'Audit the auth flow',
+      model: 'claude-sonnet-4-6',
+      session_id: 'sess-a',
+    });
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.entries.length, 1);
+    const e = r.entries[0];
+    assert.equal(e.agent_name, 'reviewer');
+    assert.equal(e.prompt, 'Audit the auth flow');
+    assert.equal(e.model, 'claude-sonnet-4-6');
+    assert.equal(e.session_id, 'sess-a');
+  });
+
+  it('probes nested subagent_type/tool_input field paths defensively', () => {
+    const r = runSubagentStart({
+      subagent_type: 'builder',
+      session_id: 'sess-b',
+      tool_input: { prompt: 'Build the widget', model: 'claude-opus-4-8' },
+    });
+    const e = r.entries[0];
+    assert.equal(e.agent_name, 'builder');
+    assert.equal(e.prompt, 'Build the widget');
+    assert.equal(e.model, 'claude-opus-4-8');
+    assert.equal(e.session_id, 'sess-b');
+  });
+
+  it('redacts secrets and caps the prompt at 500 characters', () => {
+    const bearer = 'abc123def456ghi789';
+    const r = runSubagentStart({
+      agent_name: 'debugger',
+      prompt: `Bearer ${bearer} ${'p'.repeat(600)}`,
+    });
+    const e = r.entries[0];
+    assert.ok(e.prompt.length <= 500);
+    assert.match(e.prompt, /\[redacted\]/);
+    assert.doesNotMatch(JSON.stringify(e), new RegExp(bearer));
+  });
+
+  it('falls back to env vars when stdin has no matching fields', () => {
+    const r = runSubagentStart(
+      {},
+      {
+        CLAUDE_AGENT_NAME: 'researcher',
+        CLAUDE_AGENT_PROMPT: 'Research competitor pricing',
+        CLAUDE_MODEL: 'claude-opus-4-8',
+        CLAUDE_SESSION_ID: 'env-sess',
+      }
+    );
+    const e = r.entries[0];
+    assert.equal(e.agent_name, 'researcher');
+    assert.equal(e.prompt, 'Research competitor pricing');
+    assert.equal(e.model, 'claude-opus-4-8');
+    assert.equal(e.session_id, 'env-sess');
+  });
+
+  it('stdin values win over env vars when both are present', () => {
+    const r = runSubagentStart(
+      { agent_name: 'stdin-agent' },
+      { CLAUDE_AGENT_NAME: 'env-agent' }
+    );
+    assert.equal(r.entries[0].agent_name, 'stdin-agent');
+  });
+
+  it('fails open (no entry) when stdin exceeds the 256KB cap', () => {
+    const huge = 'x'.repeat(300 * 1024);
+    const r = runSubagentStart({ agent_name: 'oversized', prompt: huge });
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.entries.length, 0);
+  });
+
+  it('malformed stdin → continue:true, exit 0', () => {
+    const r = runSubagentStart('not-json{{');
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed.continue, true);
     assert.equal(r.entries.length, 0);

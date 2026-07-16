@@ -217,6 +217,12 @@ function createServer(options = {}) {
         return;
       }
 
+      if (url.pathname === '/api/suggestions') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, { suggestions: model.suggestions });
+        return;
+      }
+
       if (url.pathname === '/api/health' || url.pathname === '/health') {
         const uptime = Number((Number(process.hrtime.bigint() - startedAt) / 1e9).toFixed(3));
         sendJson(res, 200, {

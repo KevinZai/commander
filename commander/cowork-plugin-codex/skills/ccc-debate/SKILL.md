@@ -117,7 +117,7 @@ Dispatch the debate as a workflow. `ccc-fleet.workflow.js` has a dedicated `mode
 
 ```js
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js",
+  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js",
   args: {
     mode: "debate",
     task: "Adversarially debate <target: the design doc, plan, or diff>.",
