@@ -85,6 +85,7 @@ test('joins a start and stop record into one done agent', async () => {
   assert.equal(model.agents.length, 1);
   assert.deepEqual(model.agents[0], {
     name: 'reviewer',
+    sourceApp: 'claude-code',
     model: 'claude-sonnet-4-6',
     sessionId: 'S1',
     startedAt: T('10:00:00'),
@@ -93,6 +94,7 @@ test('joins a start and stop record into one done agent', async () => {
     inputTokens: 1200,
     outputTokens: 345,
     status: 'done',
+    key: 'claude-code:reviewer',
     emoji: '🔍',
     role: 'Reviewer',
     currentTask: null,
@@ -489,7 +491,52 @@ test('filterOptions contains unique agents, event types, and sessions', async ()
     agents: ['builder', 'reviewer'],
     types: ['agent_done', 'agent_start', 'message', 'permission', 'task'],
     sessions: ['S1', 'S2', 'S3', 'S4'],
+    sourceApps: ['claude-code'],
   });
+});
+
+test('sourceApp flows end-to-end: agents, merged events, and filterOptions.sourceApps', async () => {
+  const baseDir = await makeBase({
+    subagent: [
+      start({ agent_name: 'reviewer', session_id: 'S1' }),
+      start({ agent_name: 'scout', session_id: 'S5', source_app: 'other-app' }),
+    ],
+    agent: [stop({ agent: 'qa', sessionId: 'S9' })],
+    events: [
+      { ts: T('10:02:00'), session_id: 'S1', type: 'message', actor: 'reviewer', source_app: 'other-app' },
+    ],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  const reviewer = model.agents.find((agent) => agent.name === 'reviewer');
+  assert.equal(reviewer.sourceApp, 'claude-code', 'no source_app on the start record defaults to claude-code');
+
+  const scout = model.agents.find((agent) => agent.name === 'scout');
+  assert.equal(scout.sourceApp, 'other-app', 'a source_app on the start record is honored');
+
+  const qa = model.agents.find((agent) => agent.name === 'qa');
+  assert.equal(qa.sourceApp, 'claude-code', 'legacy agent-runs.jsonl orphan stops are always claude-code per Item 1');
+
+  const legacyEvents = model.events.filter((event) => event.source !== 'mission-control');
+  assert.ok(legacyEvents.length > 0);
+  assert.ok(legacyEvents.every((event) => event.sourceApp === 'claude-code'));
+
+  const mcEvent = model.events.find((event) => event.source === 'mission-control');
+  assert.equal(mcEvent.sourceApp, 'other-app', 'events.jsonl source_app is honored');
+
+  assert.deepEqual(model.filterOptions.sourceApps, ['claude-code', 'other-app']);
+});
+
+test('agent_key: sourceApp:name identity keeps tasksCompleted scoped per key', async () => {
+  const baseDir = await makeBase({
+    subagent: [start({ agent_name: 'reviewer', session_id: 'S1' })],
+    agent: [stop({ agent: 'reviewer', sessionId: 'S1' })],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  assert.equal(model.agents.length, 1);
+  assert.equal(model.agents[0].key, 'claude-code:reviewer');
+  assert.equal(model.agents[0].tasksCompleted, 1);
 });
 
 test('parseTs/toMs parity: ISO strings and finite numeric epoch-ms both survive, model and snapshot agree on ordering', async () => {

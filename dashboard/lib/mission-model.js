@@ -48,6 +48,18 @@ const PERSONA_MAP = Object.freeze({
   'kotlin-reviewer': { emoji: '🔍', role: 'Kotlin Reviewer' },
   'csharp-reviewer': { emoji: '🔍', role: 'C# Reviewer' },
 });
+// Per-sourceApp persona overrides, keyed by sourceApp then agent name.
+// PERSONA_MAP above stays the persona table for sourceApp 'claude-code'
+// only; other sources fall back to DEFAULT_PERSONA until they earn an
+// entry here.
+const SOURCE_PERSONAS = Object.freeze({});
+
+function personaFor(sourceApp, name) {
+  const table = Object.hasOwn(SOURCE_PERSONAS, sourceApp) ? SOURCE_PERSONAS[sourceApp] : null;
+  if (table && Object.hasOwn(table, name)) return table[name];
+  if (sourceApp === 'claude-code' && Object.hasOwn(PERSONA_MAP, name)) return PERSONA_MAP[name];
+  return DEFAULT_PERSONA;
+}
 
 function defaultBaseDir() {
   return path.join(os.homedir(), '.claude', 'commander');
@@ -151,6 +163,7 @@ function joinAgents(starts, stops, nowMs) {
       const stop = best.candidate.record;
       agents.push({
         name: name || stop.agent || 'unknown',
+        sourceApp: start.source_app || 'claude-code',
         model: start.model ?? null,
         sessionId,
         startedAt: start.ts ?? null,
@@ -167,6 +180,7 @@ function joinAgents(starts, stops, nowMs) {
       const ageMs = startMs !== null ? nowMs - startMs : Infinity;
       agents.push({
         name: name || 'unknown',
+        sourceApp: start.source_app || 'claude-code',
         model: start.model ?? null,
         sessionId,
         startedAt: start.ts ?? null,
@@ -190,6 +204,9 @@ function joinAgents(starts, stops, nowMs) {
         : null;
     agents.push({
       name: stop.agent || 'unknown',
+      // No start record to consult for an orphan stop — agent-runs.jsonl
+      // (like the other two legacy log files) is always claude-code.
+      sourceApp: 'claude-code',
       model: null,
       sessionId: stop.sessionId ?? null,
       startedAt,
@@ -263,16 +280,20 @@ function indexNewestEvents(eventEntries) {
 }
 
 function decorateAgents(agents, stops, eventIndex) {
-  const completedByAgent = new Map();
+  // agent-runs.jsonl is always claude-code (same legacy-file rule as
+  // mergeEvents) — there's no per-record source_app to key off here.
+  const completedByKey = new Map();
   for (const stop of stops) {
     if (!stop.agent || stopStatus(stop.status) !== 'done') continue;
-    completedByAgent.set(stop.agent, (completedByAgent.get(stop.agent) || 0) + 1);
+    const key = `claude-code:${stop.agent}`;
+    completedByKey.set(key, (completedByKey.get(key) || 0) + 1);
   }
 
   return agents.map((agent) => {
-    const persona = Object.hasOwn(PERSONA_MAP, agent.name)
-      ? PERSONA_MAP[agent.name]
-      : DEFAULT_PERSONA;
+    const sourceApp = agent.sourceApp || 'claude-code';
+    // sourceApp:name — so two sources can't collide on a shared agent name.
+    const key = `${sourceApp}:${agent.name}`;
+    const persona = personaFor(sourceApp, agent.name);
     const actorMatch = eventIndex.latestByActor.get(agent.name) || null;
     const sessionMatch =
       agent.sessionId === null || agent.sessionId === undefined
@@ -282,13 +303,14 @@ function decorateAgents(agents, stops, eventIndex) {
 
     return {
       ...agent,
+      key,
       emoji: persona.emoji,
       role: persona.role,
       currentTask:
         taskMatch && typeof taskMatch.entry.subject === 'string'
           ? taskMatch.entry.subject
           : null,
-      tasksCompleted: completedByAgent.get(agent.name) || 0,
+      tasksCompleted: completedByKey.get(key) || 0,
       estCostUsd: estimatedCostUsd(agent.inputTokens, agent.outputTokens),
     };
   });
@@ -368,6 +390,10 @@ function buildFilterOptions({ starts, stops, taskEntries, eventEntries }) {
     sessions: uniqueSorted(
       allEntries.map((entry) => entry.session_id ?? entry.sessionId ?? null)
     ),
+    // subagent-runs/agent-runs/tasks are always 'claude-code' (Item 1) —
+    // only events.jsonl can carry a different source_app — but the option
+    // list always offers 'claude-code' even with zero data.
+    sourceApps: uniqueSorted(['claude-code', ...eventEntries.map((entry) => entry.source_app)]),
   };
 }
 
@@ -420,6 +446,7 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
       source: 'subagent-runs',
       type: 'agent_start',
       actor: start.agent_name || 'unknown',
+      sourceApp: 'claude-code',
       text: `${name} started working${start.model ? ` (${start.model})` : ''}`,
     });
   }
@@ -436,6 +463,7 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
       source: 'agent-runs',
       type: failed ? 'agent_failed' : 'agent_done',
       actor: stop.agent || 'unknown',
+      sourceApp: 'claude-code',
       text: failed ? `${name} hit a problem${took}` : `${name} finished${took}`,
     });
   }
@@ -448,6 +476,7 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
       source: 'tasks',
       type: 'task',
       actor: id !== null ? String(id) : 'task',
+      sourceApp: 'claude-code',
       text: entry.status ? `"${title}" is ${prettyTaskStatus(entry.status)}` : `"${title}" was updated`,
     });
   }
@@ -458,6 +487,7 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
       source: 'mission-control',
       type: entry.type || 'event',
       actor: entry.actor || entry.to || entry.from || 'system',
+      sourceApp: entry.source_app || 'claude-code',
       text: describeMissionEvent(entry),
     });
   }

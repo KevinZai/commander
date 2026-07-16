@@ -343,7 +343,12 @@ describe('readModel — tolerant reading', () => {
       assert.deepEqual(model.edges, []);
       assert.deepEqual(model.events, []);
       assert.deepEqual(model.awaitingPermission, []);
-      assert.deepEqual(model.filterOptions, { agents: [], types: [], sessions: [] });
+      assert.deepEqual(model.filterOptions, {
+        agents: [],
+        types: [],
+        sessions: [],
+        sourceApps: ['claude-code'],
+      });
       assert.equal(model.summary, 'No agent activity yet.');
       assert.equal(model.generatedAt, FIXED_NOW);
     });
@@ -471,6 +476,7 @@ describe('readModel — tolerant reading', () => {
         agents: ['builder', 'ghost', 'reviewer'],
         types: ['agent_done', 'agent_failed', 'agent_start', 'delegation', 'noise', 'task'],
         sessions: ['s0', 's1', 's2', 's9'],
+        sourceApps: ['claude-code'],
       });
     });
   });
@@ -545,6 +551,39 @@ describe('readModel — tolerant reading', () => {
         model.summary,
         '1 agent working — reviewer (1h). 2 tasks: 1 in progress, 1 done.'
       );
+    });
+  });
+
+  it('sourceApp flows into agents/events/filterOptions; key is sourceApp:name (CC-1378 Items 1+2)', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      fs.mkdirSync(path.join(dir, 'mission-control'), { recursive: true });
+      fs.writeFileSync(
+        path.join(dir, 'subagent-runs.jsonl'),
+        [
+          JSON.stringify({ ts: '2026-07-16T10:00:00.000Z', agent_name: 'reviewer', session_id: 's1' }),
+          JSON.stringify({ ts: '2026-07-16T10:01:00.000Z', agent_name: 'scout', session_id: 's5', source_app: 'other-app' }),
+        ].join('\n')
+      );
+      fs.writeFileSync(
+        path.join(dir, 'mission-control', 'events.jsonl'),
+        JSON.stringify({ ts: '2026-07-16T10:02:00.000Z', type: 'message', actor: 'reviewer', session_id: 's1', source_app: 'other-app' })
+      );
+
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      const reviewer = model.agents.find((a) => a.name === 'reviewer');
+      const scout = model.agents.find((a) => a.name === 'scout');
+      assert.equal(reviewer.sourceApp, 'claude-code');
+      assert.equal(reviewer.key, 'claude-code:reviewer');
+      assert.equal(scout.sourceApp, 'other-app');
+      assert.equal(scout.key, 'other-app:scout');
+
+      const mcEvent = model.events.find((e) => e.source === 'mission-control');
+      assert.equal(mcEvent.sourceApp, 'other-app');
+      const startEvent = model.events.find((e) => e.source === 'subagent-runs');
+      assert.equal(startEvent.sourceApp, 'claude-code');
+
+      assert.deepEqual(model.filterOptions.sourceApps, ['claude-code', 'other-app']);
     });
   });
 
