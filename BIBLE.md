@@ -5,7 +5,7 @@
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
-> **Latest: v6.8.1** — v6.7 adds `/ccc-relay` for durable cross-session spec → build → review handoffs, the 6-skill `ccc-smb-ops` domain, scrubbed outbound `/ccc-broadcast` status, click-first `/ccc-spawn`, and the `/ccc-prompt-fix` coach backed by a new ecosystem library of 52 prompts plus a 7-module Claude Code course.
+> **Latest: v6.8.1** — Mission Control now tracks Claude and Codex sessions side by side (`source_app` tagging, Source filter + pills, `sourceApp:name` agent keys) and adds a Suggestions panel you can promote to a ticket from `/ccc-mission-control`. v6.8.0 shipped Mission Control itself; v6.7 added `/ccc-relay` for durable cross-session spec → build → review handoffs, the 6-skill `ccc-smb-ops` domain, scrubbed outbound `/ccc-broadcast` status, click-first `/ccc-spawn`, and the `/ccc-prompt-fix` coach backed by a new ecosystem library of 52 prompts plus a 7-module Claude Code course.
 
 ---
 

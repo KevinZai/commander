@@ -5,6 +5,7 @@
 ### Added
 - **Mission Control multi-source groundwork** — the dashboard, snapshot artifact, and read model now track which app produced each run: `sourceApp`-tagged agents/events, a Source filter + colored pill on the Live Feed and agent roster, and an `agent_key` (`sourceApp:name`) so two sources can never collide on a shared agent name.
 - **Suggestions panel** — a 5th "who's working on what" panel: the proactive ideas queue (`~/.claude/commander/mission-control/suggestions.jsonl`) with status chips (new/promoted/dismissed) on the live dashboard and a plain list on the snapshot artifact, plus a `GET /api/suggestions` endpoint and a "Review & promote suggestions" conversational flow in `/ccc-mission-control`.
+- **Codex sessions identify themselves** — the feed hook detects at runtime whether Claude Code or Codex Desktop spawned it (via `CODEX_PLUGIN_ROOT`) and stamps `source_app` accordingly, so the new Source filter separates Claude and Codex work instead of labelling everything `claude-code`.
 
 ### Fixed
 - Telemetry writer hooks (`agent-run-logger`, `subagent-start-tracker`) now read the Claude Code hook STDIN payload as the primary source for agent name/session/status/duration/tokens instead of unpopulated env vars; prompt text stored by `subagent-start-tracker` is now redacted and capped.
