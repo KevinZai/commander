@@ -351,6 +351,25 @@ function uniqueSorted(values) {
   return [...new Set(values.filter((value) => typeof value === 'string' && value))].sort();
 }
 
+// Cowork and Codex mirrors can both append to the same events.jsonl on a
+// shared machine (double-append guard) — keep the first occurrence of any
+// entry that carries an `id`, drop later duplicates. Entries without an id
+// are unaffected.
+function dedupeById(entries) {
+  const seen = new Set();
+  const result = [];
+  for (const entry of entries) {
+    const id = entry && typeof entry === 'object' ? entry.id : undefined;
+    if (id !== undefined && id !== null) {
+      const key = String(id);
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    result.push(entry);
+  }
+  return result;
+}
+
 function buildFilterOptions({ starts, stops, taskEntries, eventEntries }) {
   const types = [];
   if (starts.length > 0) types.push('agent_start');
@@ -531,12 +550,13 @@ function summarize(agents, tasks, nowMs, awaitingPermission) {
 async function readModel({ baseDir, now } = {}) {
   const root = baseDir || defaultBaseDir();
 
-  const [starts, stops, taskEntries, eventEntries] = await Promise.all([
+  const [starts, stops, taskEntries, rawEventEntries] = await Promise.all([
     readJsonl(path.join(root, 'subagent-runs.jsonl')),
     readJsonl(path.join(root, 'agent-runs.jsonl')),
     readJsonl(path.join(root, 'tasks.jsonl')),
     readJsonl(path.join(root, 'mission-control', 'events.jsonl')),
   ]);
+  const eventEntries = dedupeById(rawEventEntries);
 
   const nowMs = toMs(now) ?? Date.now();
 

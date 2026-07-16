@@ -521,6 +521,24 @@ test('parseTs/toMs parity: ISO strings and finite numeric epoch-ms both survive,
   assert.equal(snapshot.events[0].actor, 'builder', 'newest (numeric ts) first in snapshot');
 });
 
+test('duplicate-id events.jsonl lines render once in events and edges (cowork+codex double-append guard)', async () => {
+  const baseDir = await makeBase({
+    events: [
+      { id: 'evt-1', ts: T('10:00:00'), session_id: 'S1', type: 'delegation', actor: 'reviewer', subject: 'audit auth' },
+      { id: 'evt-1', ts: T('10:00:00'), session_id: 'S1', type: 'delegation', actor: 'reviewer', subject: 'audit auth (dup)' },
+      { id: 'evt-2', ts: T('10:00:05'), session_id: 'S1', type: 'workflow', actor: 'builder' },
+      { ts: T('10:00:10'), session_id: 'S1', type: 'workflow', actor: 'qa' },
+    ],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  assert.equal(model.events.length, 3, 'first evt-1 kept, duplicate evt-1 dropped, evt-2 + id-less kept');
+  assert.equal(model.edges.length, 3, 'evt-1 (deduped to one) + evt-2 + the id-less line all survive as edges');
+  const auditEvents = model.events.filter((event) => event.text.includes('audit auth'));
+  assert.equal(auditEvents.length, 1, 'the duplicate audit-auth event line was dropped');
+  assert.equal(auditEvents[0].text.includes('(dup)'), false, 'first occurrence wins, not the duplicate');
+});
+
 test('filterEventsAfter keeps only events strictly newer than after', () => {
   const events = [
     { ts: T('10:03:00'), text: 'newest' },

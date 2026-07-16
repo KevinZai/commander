@@ -548,6 +548,28 @@ describe('readModel — tolerant reading', () => {
     });
   });
 
+  it('duplicate-id events.jsonl lines render once (cowork+codex double-append guard)', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      fs.mkdirSync(path.join(dir, 'mission-control'), { recursive: true });
+      fs.writeFileSync(
+        path.join(dir, 'mission-control', 'events.jsonl'),
+        [
+          JSON.stringify({ id: 'evt-1', ts: '2026-07-16T10:00:00.000Z', type: 'delegation', actor: 'reviewer', subject: 'audit auth', session_id: 's1' }),
+          JSON.stringify({ id: 'evt-1', ts: '2026-07-16T10:00:00.000Z', type: 'delegation', actor: 'reviewer', subject: 'audit auth (dup)', session_id: 's1' }),
+          JSON.stringify({ id: 'evt-2', ts: '2026-07-16T10:00:05.000Z', type: 'workflow', actor: 'builder', session_id: 's1' }),
+          JSON.stringify({ ts: '2026-07-16T10:00:10.000Z', type: 'workflow', actor: 'qa', session_id: 's1' }),
+        ].join('\n')
+      );
+
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      assert.equal(model.events.length, 3, 'first evt-1 kept, duplicate evt-1 dropped, evt-2 + id-less kept');
+      assert.equal(model.edges.length, 3, 'evt-1 (deduped) + evt-2 + the id-less line all survive as edges');
+      const delegationEvents = model.events.filter((e) => e.type === 'delegation');
+      assert.equal(delegationEvents.length, 1, 'only one of the two identical-id delegation lines survives');
+    });
+  });
+
   it('feeds straight into buildSnapshotHtml deterministically', async () => {
     const { readModel, buildSnapshotHtml } = await loadLib();
     await withTmpDir(async (dir) => {
