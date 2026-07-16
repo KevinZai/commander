@@ -19,8 +19,10 @@ The server binds to `127.0.0.1` only (never exposed to the network).
 - `GET /mission-control` — Mission Control UI (see below)
 - `GET /api/sessions` — lists `~/.claude/sessions/*.tmp` files sorted by modified time
 - `GET /api/sessions/:filename` — returns one `.tmp` session file as text
-- `GET /api/mission` — unified mission model: `{ agents, tasks, edges, events, summary, generatedAt }`
+- `GET /api/mission` — unified mission model: `{ agents, tasks, edges, events, suggestions, summary, generatedAt }`
 - `GET /api/mission/events?after=<iso>` — mission events newer than the `after` timestamp
+- `GET /api/mission/filter-options` — `{ agents, types, sessions, sourceApps }` for the Live Feed filter bar
+- `GET /api/suggestions` — `{ suggestions }`, the proactive ideas queue (see below)
 - `GET /api/health` — returns `{ "status": "ok", "uptime", "version" }`
 - `GET /health` — monitoring alias for the same health payload
 
@@ -32,23 +34,42 @@ All non-GET methods return `405`. Missing `~/.claude/sessions/` returns an empty
 built for non-coders. It answers "who's working on what right now?" without any
 terminal knowledge.
 
-Four live panels, refreshed every 2 seconds:
+Five live panels, refreshed every 2 seconds:
 
 - 🤖 **Agent Roster** — one card per agent run: pulsing green = working,
-  gray = finished, red = hit a problem, plus model, duration, and token counts
+  gray = finished, red = hit a problem, plus model, duration, token counts, and a
+  small source pill (which app produced the run — `claude-code` by default)
 - 🔀 **Delegation Flow** — an inline SVG map of session → agent → task hand-offs
 - 📋 **Task Board** — waiting / in progress / completed columns
-- 📡 **Live Feed** — newest-first event stream ("reviewer finished after 3m")
+- 📡 **Live Feed** — newest-first event stream ("reviewer finished after 3m"),
+  filterable by agent, activity type, and source app
+- 💡 **Suggestions** — proactive ideas any agent has surfaced, filterable by
+  status (new / promoted / dismissed)
 
 The big summary bar at the top reads like a sentence:
 `2 agents working — reviewer (3m), builder (1m). 4 tasks: 1 in progress, 2 done, 1 waiting.`
 
 Data comes from the Commander plugin hook logs under `~/.claude/commander/`
 (`subagent-runs.jsonl`, `agent-runs.jsonl`, `tasks.jsonl`,
-`mission-control/events.jsonl`). The read model lives in `lib/mission-model.js` —
-zero dependencies, read-only, fail-open (missing files → empty panels, bad lines
-skipped). No build step, no external assets: everything works offline and never
-leaves 127.0.0.1. Dark theme by default, light theme via `prefers-color-scheme`.
+`mission-control/events.jsonl`, `mission-control/suggestions.jsonl`). The read
+model lives in `lib/mission-model.js` — zero dependencies, read-only, fail-open
+(missing files → empty panels, bad lines skipped). No build step, no external
+assets: everything works offline and never leaves 127.0.0.1. Dark theme by
+default, light theme via `prefers-color-scheme`.
+
+### Suggestions feed
+
+`mission-control/suggestions.jsonl` is an append-only log any agent can write
+to via the plugin's `lib/suggestions.js` helpers — a proactive "you might want
+to do X" idea for the user to promote (into a tracked ticket) or dismiss.
+Two line shapes, merged latest-status-wins by `id`:
+
+- creation: `{ id, ts, from, source_app, idea, evidence, proposed_ticket, status: "new" }`
+- status change: `{ id, ts, status: "promoted" | "dismissed", promoted_ticket?, by }`
+
+Ideas and evidence are redacted and length-capped on write; the log rotates at
+10MB. See `/ccc-mission-control` → "Review & promote suggestions" for the
+conversational triage flow.
 
 ## Stack
 
