@@ -96,7 +96,9 @@ function emptyState(text) {
 }
 
 function agentKey(agent) {
-  return `${agent.name}|${agent.sessionId || ''}|${agent.startedAt || ''}`;
+  // sourceApp leads: two apps can run a same-named agent in the same session,
+  // and without it their cards collide in the DOM even though the model keys them apart.
+  return `${agent.sourceApp || 'claude-code'}|${agent.name}|${agent.sessionId || ''}|${agent.startedAt || ''}`;
 }
 
 function agentStateLabel(status) {
