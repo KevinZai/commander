@@ -113,6 +113,12 @@
             "type": "command",
             "command": "node ${CODEX_PLUGIN_ROOT}/hooks/knowledge-capture.js",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/mission-control-feed.js",
+            "timeout": 3000,
+            "async": true
           }
         ]
       },
@@ -161,6 +167,12 @@
             "type": "command",
             "command": "node ${CODEX_PLUGIN_ROOT}/hooks/permission-gate.js",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "node ${CODEX_PLUGIN_ROOT}/hooks/mission-control-feed.js",
+            "timeout": 3000,
+            "async": true
           }
         ]
       }

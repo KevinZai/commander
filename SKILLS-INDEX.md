@@ -1,6 +1,6 @@
 # Skills Index — Quick Reference
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-07-14 (202 skill directories, 195 with SKILL.md, 3 starter templates)
+> Last verified: 2026-07-16 (202 skill directories, 195 with SKILL.md, 3 starter templates)
 
 > **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
 

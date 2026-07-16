@@ -25,7 +25,7 @@
   "hooks": "./hooks.json",
   "interface": {
     "displayName": "CC Commander",
-    "shortDescription": "Guided AI PM. 60 skills, 22 specialist agents, 8 hooks. Free for now.",
+    "shortDescription": "Guided AI PM. 78 skills, 22 specialist agents, Codex-supported hook subset. Core free forever.",
     "longDescription": "CC Commander is a PM/orchestration layer over Codex's sub-agent primitive. Brain/hands architecture: opinionated workflows for plan→build→review→ship. Works equally well in Claude Code and Codex CLI.",
     "developerName": "Kevin Zicherman",
     "category": "productivity",

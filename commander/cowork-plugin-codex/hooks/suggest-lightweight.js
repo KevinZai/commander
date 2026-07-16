@@ -42,15 +42,30 @@ const HOME = process.env.HOME || process.env.USERPROFILE || os.homedir();
 const CCC_DIR = path.join(HOME, '.claude', 'commander');
 const STATE_FILE = path.join(CCC_DIR, 'project-state.json');
 const LAST_SUGGESTION_FILE = path.join(CCC_DIR, 'last-suggestion.json');
+const SUGGEST_DISMISSED_FILE = path.join(CCC_DIR, 'suggest-dismissed.json');
 
 const IDEMPOTENCY_WINDOW_MS = 60_000; // 60 seconds
+const DISMISSED_AFTER_SHOWS = 2; // ignored twice → stop repeating
+const DISMISSED_TTL_MS = 7 * 24 * 60 * 60 * 1000; // decay so nothing is banned forever
+
+function emitFailOpen({ exit = false } = {}) {
+  try {
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
+  } catch {
+    // stdout failures cannot be recovered from
+  }
+  if (exit) process.exit(0);
+  process.exitCode = 0;
+}
 
 // Hard timeout guard — exits cleanly rather than hanging the hook chain
 const timeout = setTimeout(() => {
+  try {
     track('hook_fired', { hook: 'Stop', handler: 'suggest-lightweight' });
-
-  process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
-  process.exit(0);
+  } catch {
+    // telemetry must never block the hook chain
+  }
+  emitFailOpen({ exit: true });
 }, 2000);
 timeout.unref(); // don't prevent normal exit
 
@@ -93,6 +108,46 @@ function makeHash(mtime, turnCount) {
     .slice(0, 16);
 }
 
+function normalizeState(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const recommendation = raw.lastRecommendation;
+  const normalizedRecommendation =
+    recommendation &&
+    typeof recommendation === 'object' &&
+    !Array.isArray(recommendation)
+      ? {
+          ...recommendation,
+          skill:
+            typeof recommendation.skill === 'string'
+              ? recommendation.skill
+              : '',
+        }
+      : undefined;
+  return {
+    ...raw,
+    lastRecommendation: normalizedRecommendation,
+    lastSkill: typeof raw.lastSkill === 'string' ? raw.lastSkill : '',
+    recommendedLevel:
+      typeof raw.recommendedLevel === 'string' ||
+      typeof raw.recommendedLevel === 'number'
+        ? raw.recommendedLevel
+        : undefined,
+  };
+}
+
+function normalizeSuggestions(value) {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (suggestion) =>
+      suggestion &&
+      typeof suggestion === 'object' &&
+      typeof suggestion.skill === 'string' &&
+      suggestion.skill &&
+      typeof suggestion.reason === 'string' &&
+      suggestion.reason
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Turn counter (stored in last-suggestion.json)
 // ---------------------------------------------------------------------------
@@ -101,6 +156,60 @@ function getTurnCount(lastSuggestion) {
   return (lastSuggestion && typeof lastSuggestion.turnCount === 'number')
     ? lastSuggestion.turnCount
     : 0;
+}
+
+// ---------------------------------------------------------------------------
+// Dismissed tracking (proactivity wave — mirrors suggest-ticker's seen-file
+// anti-nag pattern): a suggestion rendered twice without engagement stops
+// repeating. Shared state file ~/.claude/commander/suggest-dismissed.json:
+//   { "/ccc-ship": { shows: 2, ts: 1699999999999 }, ... }
+// Entries decay after 7 days. Fail-open — malformed state reads as empty.
+// ---------------------------------------------------------------------------
+
+function readDismissed() {
+  try {
+    const raw = readJson(SUGGEST_DISMISSED_FILE);
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    const now = Date.now();
+    const out = {};
+    for (const [skill, entry] of Object.entries(raw)) {
+      if (!entry || typeof entry !== 'object') continue;
+      const shows = Number(entry.shows);
+      const ts = Number(entry.ts);
+      if (!Number.isFinite(shows) || shows <= 0) continue;
+      if (Number.isFinite(ts) && now - ts > DISMISSED_TTL_MS) continue; // decayed
+      out[skill] = { shows, ts: Number.isFinite(ts) ? ts : now };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function filterDismissed(suggestions, dismissed) {
+  try {
+    return suggestions.filter(s => {
+      const entry = s && dismissed[s.skill];
+      return !entry || entry.shows < DISMISSED_AFTER_SHOWS;
+    });
+  } catch {
+    return suggestions;
+  }
+}
+
+function recordShown(suggestions, dismissed) {
+  try {
+    const now = Date.now();
+    const next = { ...dismissed };
+    for (const s of suggestions) {
+      if (!s || typeof s.skill !== 'string' || !s.skill) continue;
+      const prev = next[s.skill];
+      next[s.skill] = { shows: (prev ? prev.shows : 0) + 1, ts: now };
+    }
+    writeJson(SUGGEST_DISMISSED_FILE, next);
+  } catch {
+    // non-fatal
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -186,7 +295,7 @@ function main() {
   }
 
   // Read project state — missing file = graceful no-op
-  const state = readJson(STATE_FILE);
+  const state = normalizeState(readJson(STATE_FILE));
   if (!state) {
     process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
@@ -225,8 +334,17 @@ function main() {
   const minConfidence = parseFloat(
     process.env.CCC_SUGGEST_MIN_CONFIDENCE || '0.8'
   );
-  const { confidence, suggestions } = computeConfidence(state);
+  const computed = computeConfidence(state);
+  const confidence =
+    typeof computed.confidence === 'number' && Number.isFinite(computed.confidence)
+      ? computed.confidence
+      : 0;
+  const suggestions = normalizeSuggestions(computed.suggestions);
   const level = getLevel(state);
+
+  // Dismissed[] anti-nag: drop suggestions the user has ignored twice.
+  const dismissed = readDismissed();
+  const visibleSuggestions = filterDismissed(suggestions, dismissed);
 
   // Smart mode: gate on confidence
   if (mode === 'smart' && confidence < minConfidence) {
@@ -241,8 +359,8 @@ function main() {
     return;
   }
 
-  // No suggestions → nothing to render regardless of mode/level
-  if (suggestions.length === 0) {
+  // No suggestions (after the dismissed filter) → nothing to render
+  if (visibleSuggestions.length === 0) {
     writeJson(LAST_SUGGESTION_FILE, {
       hash,
       timestamp: Date.now(),
@@ -263,7 +381,7 @@ function main() {
       rendered: false,
       level,
       confidence,
-      suggestions,
+      suggestions: visibleSuggestions,
     });
     process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
@@ -271,8 +389,8 @@ function main() {
 
   // Level 2 (gentle) → bottom one-liner block · Level 3+ (assertive) → boxed card
   const output = level >= 3
-    ? renderBoxedCard(suggestions, confidence)
-    : renderSuggestions(suggestions);
+    ? renderBoxedCard(visibleSuggestions, confidence)
+    : renderSuggestions(visibleSuggestions);
 
   writeJson(LAST_SUGGESTION_FILE, {
     hash,
@@ -281,10 +399,18 @@ function main() {
     rendered: true,
     level,
     confidence,
-    suggestions,
+    suggestions: visibleSuggestions,
   });
+
+  // Rendered = shown to the user — bump the ignored-counter for each skill.
+  recordShown(visibleSuggestions, dismissed);
 
   process.stdout.write(JSON.stringify(emitUser(output.trimEnd())) + '\n');
 }
 
-main();
+try {
+  main();
+} catch {
+  clearTimeout(timeout);
+  emitFailOpen();
+}

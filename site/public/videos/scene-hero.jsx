@@ -164,7 +164,7 @@ const HeroScene = () => {
                   fontSize:22, color:'#A8A8A0', lineHeight:1.5,
                   opacity: animate({from:0,to:1,start:0.5,end:0.75})(t),
                 }}>
-                  77 plugin skills. 22 specialist agents. 9 lifecycle hooks. <br/>
+                  78 plugin skills. 22 specialist agents. 9 lifecycle hooks. <br/>
                   One install. Zero config. <span style={{color:'#D4A574'}}>Free for now.</span>
                 </div>
               </div>
