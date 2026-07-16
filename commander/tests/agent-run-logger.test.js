@@ -25,7 +25,7 @@ const AGENTS_DIR = path.join(
 const TMP_HOME = path.join(os.tmpdir(), 'ccc-agent-logger-test-' + process.pid);
 const LOG_FILE = path.join(TMP_HOME, '.claude', 'commander', 'agent-runs.jsonl');
 
-function runHook(envOverrides = {}) {
+function runHook(envOverrides = {}, stdinPayload = {}) {
   const env = {
     ...process.env,
     HOME: TMP_HOME,
@@ -34,7 +34,8 @@ function runHook(envOverrides = {}) {
   };
 
   const result = spawnSync('node', [HOOK_PATH], {
-    input: JSON.stringify({}),
+    input:
+      typeof stdinPayload === 'string' ? stdinPayload : JSON.stringify(stdinPayload),
     encoding: 'utf-8',
     timeout: 6000,
     env,
@@ -185,6 +186,80 @@ describe('agent-run-logger.js — log rotation', () => {
     const lines = readLogLines();
     assert.equal(lines.length, 1, 'fresh log should have only the new entry');
     assert.equal(lines[0].agent, 'architect');
+  });
+});
+
+describe('agent-run-logger.js — stdin is the primary source (Iron Law fix, CC-1378)', () => {
+  it('reads agent name, session id, status, duration, and tokens from top-level stdin fields', () => {
+    runHook({}, {
+      agent_name: 'reviewer',
+      session_id: 'sess-stdin-1',
+      status: 'end_turn',
+      duration_ms: 4200,
+      input_tokens: 900,
+      output_tokens: 210,
+    });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 1);
+    const entry = lines[0];
+    assert.equal(entry.agent, 'reviewer');
+    assert.equal(entry.sessionId, 'sess-stdin-1');
+    assert.equal(entry.status, 'end_turn');
+    assert.equal(entry.durationMs, 4200);
+    assert.equal(entry.inputTokens, 900);
+    assert.equal(entry.outputTokens, 210);
+  });
+
+  it('probes nested subagent/agent/usage field paths defensively', () => {
+    runHook({}, {
+      subagent_type: 'builder',
+      session_id: 'sess-stdin-2',
+      subagent: { status: 'completed' },
+      usage: { input_tokens: 500, output_tokens: 75 },
+      duration_ms: 6000,
+    });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 1);
+    const entry = lines[0];
+    assert.equal(entry.agent, 'builder');
+    assert.equal(entry.sessionId, 'sess-stdin-2');
+    assert.equal(entry.status, 'completed');
+    assert.equal(entry.inputTokens, 500);
+    assert.equal(entry.outputTokens, 75);
+    assert.equal(entry.durationMs, 6000);
+  });
+
+  it('stdin values win over env vars when both are present', () => {
+    runHook(
+      { CLAUDE_AGENT_NAME: 'env-agent', CLAUDE_SESSION_ID: 'env-sess' },
+      { agent_name: 'stdin-agent', session_id: 'stdin-sess' }
+    );
+
+    const lines = readLogLines();
+    const entry = lines[0];
+    assert.equal(entry.agent, 'stdin-agent');
+    assert.equal(entry.sessionId, 'stdin-sess');
+  });
+
+  it('falls back to env vars when stdin has no matching fields, then to defaults', () => {
+    runHook({ CLAUDE_SUBAGENT_NAME: 'debugger' }, { unrelated: true });
+
+    const lines = readLogLines();
+    const entry = lines[0];
+    assert.equal(entry.agent, 'debugger');
+    assert.equal(entry.sessionId, 'unknown');
+    assert.equal(entry.status, 'completed');
+  });
+
+  it('fails open (0 tokens, unknown agent) when stdin exceeds the 256KB cap', () => {
+    const hugePrompt = 'x'.repeat(300 * 1024);
+    runHook({}, { agent_name: 'oversized', prompt: hugePrompt });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0].agent, 'unknown');
   });
 });
 
