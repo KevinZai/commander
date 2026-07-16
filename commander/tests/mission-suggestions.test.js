@@ -384,3 +384,67 @@ test('POST /api/suggestions is rejected — server stays GET-only', async () => 
   assert.equal(response.statusCode, 405);
   assert.equal(response.headers.Allow, 'GET');
 });
+
+test('object and array ids are skipped rather than merged under one key', async () => {
+  const commanderDir = await freshBaseDir();
+  const dir = path.join(commanderDir, 'mission-control');
+  await fs.mkdir(dir, { recursive: true });
+  // Both object ids would coerce to "[object Object]" and collapse into a single
+  // suggestion; only scalar ids are a stable identity.
+  await fs.writeFile(
+    path.join(dir, 'suggestions.jsonl'),
+    [
+      JSON.stringify({ id: { a: 1 }, ts: '2026-07-16T10:00:00.000Z', idea: 'first object' }),
+      JSON.stringify({ id: { b: 2 }, ts: '2026-07-16T10:00:01.000Z', idea: 'second object' }),
+      JSON.stringify({ id: [1, 2], ts: '2026-07-16T10:00:02.000Z', idea: 'array id' }),
+      JSON.stringify({ id: '   ', ts: '2026-07-16T10:00:03.000Z', idea: 'blank id' }),
+      JSON.stringify({ id: 'real-1', ts: '2026-07-16T10:00:04.000Z', idea: 'keeper' }),
+      JSON.stringify({ id: 7, ts: '2026-07-16T10:00:05.000Z', idea: 'numeric id keeper' }),
+    ].join('\n') + '\n'
+  );
+
+  const model = await buildMissionModel({ baseDir: commanderDir });
+  assert.deepEqual(
+    model.suggestions.map((s) => s.id).sort(),
+    ['7', 'real-1'],
+    'only scalar ids survive'
+  );
+
+  const snapshot = await readModel({ baseDir: commanderDir });
+  assert.deepEqual(
+    snapshot.suggestions.map((s) => s.id).sort(),
+    ['7', 'real-1'],
+    'snapshot reader agrees with the model'
+  );
+});
+
+test('unqualified suggestions inherit the running app, not a hardcoded claude-code', async () => {
+  const commanderDir = await freshBaseDir();
+  // The lib is mirrored verbatim into the Codex plugin; an entry that does not
+  // name its own source must not be labelled claude-code when Codex is the host.
+  const child = await import('node:child_process');
+  const script = `
+    import { appendSuggestion } from ${JSON.stringify(
+      path.join(process.cwd(), 'commander/cowork-plugin/lib/suggestions.js')
+    )};
+    await appendSuggestion({ id: 'codex-1', from: 'reviewer', idea: 'from codex' }, { baseDir: ${JSON.stringify(
+      commanderDir
+    )} });
+  `;
+  const res = child.spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    encoding: 'utf8',
+    timeout: 10000,
+    env: { ...process.env, CODEX_PLUGIN_ROOT: '/tmp/codex-root' },
+  });
+  assert.equal(res.status, 0, res.stderr);
+
+  const rows = await readSuggestions(commanderDir);
+  assert.equal(rows[0].source_app, 'codex');
+
+  await appendSuggestion(
+    { id: 'claude-1', from: 'reviewer', idea: 'from claude' },
+    { baseDir: commanderDir }
+  );
+  const after = await readSuggestions(commanderDir);
+  assert.equal(after.find((r) => r.id === 'claude-1').source_app, 'claude-code');
+});

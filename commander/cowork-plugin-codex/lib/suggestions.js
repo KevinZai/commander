@@ -31,6 +31,13 @@ const EVIDENCE_MAX = 300;
 const TICKET_TITLE_MAX = 200;
 const SUGGESTION_CAP = 50;
 
+// build:codex mirrors this file verbatim, so an unqualified caller under Codex
+// must not be labelled claude-code. Same detection as mission-control-feed.js.
+const SOURCE_APP =
+  process.env.CODEX_PLUGIN_ROOT || /cowork-plugin-codex|\/\.codex\//.test(import.meta.url)
+    ? 'codex'
+    : 'claude-code';
+
 function defaultBaseDir() {
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
   return path.join(home, '.claude', 'commander');
@@ -148,7 +155,7 @@ async function appendSuggestion(entry, { baseDir } = {}) {
       source_app:
         typeof entry.source_app === 'string' && entry.source_app.trim()
           ? entry.source_app.trim()
-          : 'claude-code',
+          : SOURCE_APP,
       idea: truncate(entry.idea, IDEA_MAX),
       evidence: truncate(entry.evidence, EVIDENCE_MAX),
       proposed_ticket: normalizeProposedTicket(entry.proposed_ticket),

@@ -286,8 +286,11 @@ function latestSuggestions(suggestionEntries) {
 
   for (const entry of suggestionEntries) {
     const id = entry.id;
-    if (id === null || id === undefined) continue;
-    const key = String(id);
+    // Scalar ids only — an object/array id coerces to "[object Object]"/"1,2",
+    // silently merging unrelated suggestions under one key.
+    if (typeof id !== 'string' && !Number.isFinite(id)) continue;
+    const key = String(id).trim();
+    if (!key) continue;
     const ms = toMs(entry.ts) ?? 0;
     const existing = byId.get(key);
     if (existing && ms < existing.ms) continue;
