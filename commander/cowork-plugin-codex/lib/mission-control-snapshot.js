@@ -28,6 +28,7 @@ import path from 'node:path';
 const AGENT_CAP = 200;
 const TASK_CAP = 100;
 const EVENT_CAP = 100;
+const SUGGESTION_CAP = 50;
 const ROW_CAP = 30;
 const JOIN_WINDOW_MS = 24 * 60 * 60 * 1000;
 const RUNNING_WINDOW_MS = 6 * 60 * 60 * 1000;
@@ -274,6 +275,46 @@ function latestTasks(taskEntries) {
     .map((wrapped) => wrapped.task);
 }
 
+// suggestions.jsonl merge: same latest-ts-wins-by-id pattern as
+// latestTasks above. A later status-only line (no idea/evidence/
+// proposed_ticket) still wins on status; the earlier creation line's
+// content persists forward. Mirrors this same lib's sibling
+// lib/suggestions.js's own readSuggestions() (deliberately duplicated
+// here — buildSnapshotHtml's model shape must not depend on it).
+function latestSuggestions(suggestionEntries) {
+  const byId = new Map();
+
+  for (const entry of suggestionEntries) {
+    const id = entry.id;
+    if (id === null || id === undefined) continue;
+    const key = String(id);
+    const ms = toMs(entry.ts) ?? 0;
+    const existing = byId.get(key);
+    if (existing && ms < existing.ms) continue;
+    const prior = existing ? existing.suggestion : null;
+    byId.set(key, {
+      ms,
+      suggestion: {
+        id: key,
+        ts: entry.ts ?? null,
+        from: entry.from ?? (prior ? prior.from : null) ?? null,
+        source_app: entry.source_app ?? (prior ? prior.source_app : null) ?? 'claude-code',
+        idea: entry.idea ?? (prior ? prior.idea : null) ?? null,
+        evidence: entry.evidence ?? (prior ? prior.evidence : null) ?? null,
+        proposed_ticket: entry.proposed_ticket ?? (prior ? prior.proposed_ticket : null) ?? null,
+        status: entry.status ?? (prior ? prior.status : null) ?? 'new',
+        promoted_ticket: entry.promoted_ticket ?? (prior ? prior.promoted_ticket : null) ?? null,
+        by: entry.by ?? (prior ? prior.by : null) ?? null,
+      },
+    });
+  }
+
+  return [...byId.values()]
+    .sort((left, right) => right.ms - left.ms)
+    .slice(0, SUGGESTION_CAP)
+    .map((wrapped) => wrapped.suggestion);
+}
+
 function indexNewestEvents(eventEntries) {
   const latestByActor = new Map();
   const latestBySession = new Map();
@@ -509,8 +550,14 @@ function mergeEvents({ starts, stops, taskEntries, eventEntries }) {
     .slice(0, EVENT_CAP);
 }
 
-function summarize(agents, tasks, nowMs, awaitingPermission) {
-  if (agents.length === 0 && tasks.length === 0 && awaitingPermission.length === 0) {
+function summarize(agents, tasks, nowMs, awaitingPermission, suggestions = []) {
+  const newSuggestionCount = suggestions.filter((suggestion) => suggestion.status === 'new').length;
+  if (
+    agents.length === 0 &&
+    tasks.length === 0 &&
+    awaitingPermission.length === 0 &&
+    newSuggestionCount === 0
+  ) {
     return 'No agent activity yet.';
   }
 
@@ -574,17 +621,24 @@ function summarize(agents, tasks, nowMs, awaitingPermission) {
     parts.push(`${tasks.length} task${tasks.length === 1 ? '' : 's'}: ${segments.join(', ')}.`);
   }
 
+  if (newSuggestionCount > 0) {
+    parts.push(
+      `${newSuggestionCount} suggestion${newSuggestionCount === 1 ? '' : 's'} awaiting review.`
+    );
+  }
+
   return parts.join(' ');
 }
 
 async function readModel({ baseDir, now } = {}) {
   const root = baseDir || defaultBaseDir();
 
-  const [starts, stops, taskEntries, rawEventEntries] = await Promise.all([
+  const [starts, stops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
     readJsonl(path.join(root, 'subagent-runs.jsonl')),
     readJsonl(path.join(root, 'agent-runs.jsonl')),
     readJsonl(path.join(root, 'tasks.jsonl')),
     readJsonl(path.join(root, 'mission-control', 'events.jsonl')),
+    readJsonl(path.join(root, 'mission-control', 'suggestions.jsonl')),
   ]);
   const eventEntries = dedupeById(rawEventEntries);
 
@@ -604,7 +658,8 @@ async function readModel({ baseDir, now } = {}) {
   const agents = permissionState.agents;
   const awaitingPermission = permissionState.awaitingPermission;
   const filterOptions = buildFilterOptions({ starts, stops, taskEntries, eventEntries });
-  const summary = summarize(agents, tasks, nowMs, awaitingPermission);
+  const suggestions = latestSuggestions(suggestionEntries);
+  const summary = summarize(agents, tasks, nowMs, awaitingPermission, suggestions);
 
   return {
     agents,
@@ -614,6 +669,7 @@ async function readModel({ baseDir, now } = {}) {
     summary,
     awaitingPermission,
     filterOptions,
+    suggestions,
     generatedAt: new Date(nowMs).toISOString(),
   };
 }
