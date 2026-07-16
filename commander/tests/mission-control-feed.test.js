@@ -235,6 +235,31 @@ describe('mission-control-feed — event capture', () => {
     assert.equal(ev.source_app, 'claude-code');
   });
 
+  it('stamps source_app codex when Codex Desktop spawns the hook', () => {
+    const codexEnv = { CODEX_PLUGIN_ROOT: '/tmp/codex-plugin-root' };
+    const tool = runFeed(
+      { tool_name: 'Agent', tool_input: { subagent_type: 'builder' } },
+      { env: codexEnv }
+    );
+    assert.equal(tool.events.length, 1);
+    assert.equal(tool.events[0].source_app, 'codex');
+
+    const permission = runFeed(
+      {
+        permission_request: {
+          tool_name: 'Bash',
+          description: 'Run the release command',
+        },
+      },
+      { env: codexEnv }
+    );
+    assert.equal(permission.events[0].source_app, 'codex');
+
+    // Without the Codex signal the same file must still identify as claude-code.
+    const claude = runFeed({ tool_name: 'Agent', tool_input: {} });
+    assert.equal(claude.events[0].source_app, 'claude-code');
+  });
+
   it('captures permission-shaped payloads and tags all event types with source_app', () => {
     const payloads = [
       { tool_name: 'Agent', tool_input: {} },

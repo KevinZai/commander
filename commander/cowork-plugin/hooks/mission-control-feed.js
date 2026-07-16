@@ -36,6 +36,15 @@ const STDIN_MAX_BYTES = 256 * 1024;
 const SUBJECT_MAX = 120;
 const DETAIL_MAX = 200;
 
+// This file is copied verbatim into the Codex plugin by scripts/build-codex.js, so the
+// producing app is detected at runtime: Codex Desktop exports CODEX_PLUGIN_ROOT to spawn
+// hooks (the build rewrites ${CLAUDE_PLUGIN_ROOT} -> ${CODEX_PLUGIN_ROOT}); the mirror's
+// install path is the fallback signal when only the command string carries the root.
+const SOURCE_APP =
+  process.env.CODEX_PLUGIN_ROOT || /cowork-plugin-codex|\/\.codex\//.test(import.meta.url)
+    ? 'codex'
+    : 'claude-code';
+
 function redact(value) {
   if (typeof value !== 'string') return null;
   return value
@@ -170,7 +179,7 @@ async function main() {
       ? {
           ts: new Date().toISOString(),
           session_id: sessionId,
-          source_app: 'claude-code',
+          source_app: SOURCE_APP,
           type: 'permission',
           tool: redact(permissionTool),
           actor: null,
@@ -192,7 +201,7 @@ async function main() {
       : {
           ts: new Date().toISOString(),
           session_id: sessionId,
-          source_app: 'claude-code',
+          source_app: SOURCE_APP,
           type,
           tool: redact(toolName),
           actor: firstString(ti, [
