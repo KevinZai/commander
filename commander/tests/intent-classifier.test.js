@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const path = require('node:path');
+const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 
 const HOOK = path.join(
@@ -14,10 +15,14 @@ const HOOK = path.join(
 );
 
 function classify(prompt) {
+  // HOME isolated: the hook's Fable-nudge path can write a
+  // fable-nudge-YYYY-MM-DD marker file under ~/.claude/commander/ — never
+  // let a test write into the real home directory.
   const result = spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify({ prompt }),
     encoding: 'utf8',
     timeout: 5000,
+    env: { ...process.env, HOME: os.tmpdir(), USERPROFILE: os.tmpdir() },
   });
   assert.strictEqual(result.status, 0, 'classifier should exit 0');
   const out = JSON.parse(result.stdout.trim());
