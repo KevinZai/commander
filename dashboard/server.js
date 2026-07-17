@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildMissionModel, filterEventsAfter } from './lib/mission-model.js';
 import { defaultDbPath as defaultHistoryDbPath, readHistory } from './lib/history.js';
+import { brandBaseCss } from '../commander/cowork-plugin/lib/brand-css.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -197,6 +198,13 @@ function createServer(options = {}) {
           path.join(PUBLIC_DIR, 'mission-control.js'),
           'text/javascript; charset=utf-8'
         );
+        return;
+      }
+
+      if (url.pathname === '/mission-control-brand.css') {
+        // Shared CCC brand tokens + primitives (brand-css.js), the same source
+        // the artifact snapshot inlines — one design system, two surfaces.
+        send(res, 200, brandBaseCss(), { 'Content-Type': 'text/css; charset=utf-8' });
         return;
       }
 

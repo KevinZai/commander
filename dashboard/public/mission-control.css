@@ -1,49 +1,54 @@
+/* CCC brand (commanderplugin.com) — dark-first terminal: amber #D97706 action
+   + indigo #6366F1 accents, macOS traffic-light status colors. The shared
+   tokens/primitives (terminal chrome, dots) come from /mission-control-brand.css
+   (brand-css.js), linked before this file; these semantic vars map the dashboard's
+   own names onto that palette so the whole var()-driven board reskins at once. */
 :root {
   color-scheme: dark;
-  --bg: #1a1a18;
-  --panel: #22221f;
-  --panel-strong: #2a2a26;
-  --line: #3a3a34;
-  --text: #f0eee6;
-  --muted: #a8a498;
-  --soft: #7c786c;
-  --accent: #d97757;
-  --accent-soft: rgba(217, 119, 87, 0.16);
-  --good: #5fbf8a;
-  --good-soft: rgba(95, 191, 138, 0.16);
-  --bad: #e5665c;
-  --bad-soft: rgba(229, 102, 92, 0.16);
-  --amber: #f0aa3c;
-  --amber-soft: rgba(240, 170, 60, 0.15);
-  --idle: #8a877c;
-  --blue: #6a9bd8;
-  --purple: #a98fd6;
-  --shadow: rgba(0, 0, 0, 0.35);
-  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  --bg: #0f0f1a;
+  --panel: #1a1a2e;
+  --panel-strong: #141422;
+  --line: #1e1e35;
+  --text: #e0e0e0;
+  --muted: #888888;
+  --soft: #555555;
+  --accent: #d97706;
+  --accent-soft: rgba(217, 119, 6, 0.16);
+  --good: #27c93f;
+  --good-soft: rgba(39, 201, 63, 0.16);
+  --bad: #ff5f56;
+  --bad-soft: rgba(255, 95, 86, 0.16);
+  --amber: #ffbd2e;
+  --amber-soft: rgba(255, 189, 46, 0.15);
+  --idle: #555555;
+  --blue: #6366f1;
+  --purple: #6366f1;
+  --shadow: rgba(0, 0, 0, 0.5);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
     color-scheme: light;
-    --bg: #faf9f5;
+    --bg: #f6f7f9;
     --panel: #ffffff;
-    --panel-strong: #f2f0e9;
-    --line: #ddd9cd;
-    --text: #2a2a26;
-    --muted: #6d6a5f;
-    --soft: #96927f;
-    --accent: #c15f3c;
-    --accent-soft: rgba(193, 95, 60, 0.12);
-    --good: #2e8f5e;
-    --good-soft: rgba(46, 143, 94, 0.12);
-    --bad: #c23b32;
-    --bad-soft: rgba(194, 59, 50, 0.12);
-    --amber: #ad6900;
-    --amber-soft: rgba(184, 108, 0, 0.12);
-    --idle: #8b877a;
-    --blue: #3d6fae;
-    --purple: #7a5cad;
-    --shadow: rgba(60, 50, 30, 0.12);
+    --panel-strong: #eef0f3;
+    --line: #e3e6ea;
+    --text: #1a1d21;
+    --muted: #5c6470;
+    --soft: #8a92a0;
+    --accent: #b45309;
+    --accent-soft: rgba(217, 119, 6, 0.12);
+    --good: #15803d;
+    --good-soft: rgba(21, 128, 61, 0.12);
+    --bad: #dc2626;
+    --bad-soft: rgba(220, 38, 38, 0.12);
+    --amber: #b45309;
+    --amber-soft: rgba(180, 108, 0, 0.12);
+    --idle: #8a92a0;
+    --blue: #4f46e5;
+    --purple: #4f46e5;
+    --shadow: rgba(30, 30, 53, 0.12);
   }
 }
 
