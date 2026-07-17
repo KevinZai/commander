@@ -1,6 +1,6 @@
 ---
 title: "Troubleshooting"
-description: "Diagnostic guide for CC Commander v6.8.2 — install, update, slash command, agent, hook, MCP, and performance issues with fixes and escalation paths."
+description: "Diagnostic guide for CC Commander v6.8.3 — install, update, slash command, agent, hook, MCP, and performance issues with fixes and escalation paths."
 ---
 
 # Troubleshooting
@@ -43,7 +43,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
 
 1. **Cmd+Q the app fully** (not just close the window — the menu-bar process must exit).
 2. Reopen Claude Code Desktop.
-3. Run `/plugin list`. The `commander` row should appear with version `v6.8.2`.
+3. Run `/plugin list`. The `commander` row should appear with version `v6.8.3`.
 
 <Note>
   **Cmd+Q + reopen** is the canonical fix for ~80% of plugin visibility issues. The autocomplete index, slash command registry, and MCP server list are all populated at startup.
@@ -103,7 +103,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
 
 **Fix:**
 
-1. `/plugin list` — confirm `commander` is present and at `v6.8.2`.
+1. `/plugin list` — confirm `commander` is present and at `v6.8.3`.
 2. If missing: `/plugin install commander`.
 3. If present: Cmd+Q + reopen.
 
@@ -111,7 +111,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
 
 **Symptom:** Autocomplete suggests `/ccc-ccc` or `/commander:ccc` instead of plain `/ccc`.
 
-**Cause:** Stale install from before v6.8.2. The plugin migrated from plugin commands (namespaced) to skills (plain `/ccc-*`).
+**Cause:** Stale install from before v6.8.3. The plugin migrated from plugin commands (namespaced) to skills (plain `/ccc-*`).
 
 **Fix:**
 
@@ -133,7 +133,7 @@ Then Cmd+Q, reopen, and reinstall:
 
 **Cause:** Stale install from before the v5.1.0 XML strip pass across all 22 agents and skills.
 
-**Fix:** Update to v6.8.2 or later: `/plugin update commander`. Cmd+Q + reopen to clear the tooltip cache.
+**Fix:** Update to v6.8.3 or later: `/plugin update commander`. Cmd+Q + reopen to clear the tooltip cache.
 
 ## Agent issues
 
@@ -204,11 +204,11 @@ Restart the session. The SessionStart hook will populate the file on next launch
 
 ### Version-transition nudge stuck
 
-**Symptom:** Every session opens with "you upgraded to v6.8.2" even after you've acknowledged it.
+**Symptom:** Every session opens with "you upgraded to v6.8.3" even after you've acknowledged it.
 
 **Cause:** The acknowledgment flag in `state.json` isn't persisting.
 
-**Fix:** Edit `~/.claude/commander/state.json` and set `"versionAcked": "6.8.2"`. Restart.
+**Fix:** Edit `~/.claude/commander/state.json` and set `"versionAcked": "6.8.3"`. Restart.
 
 ## MCP issues
 

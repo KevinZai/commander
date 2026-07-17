@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.8.3] - 2026-07-17
+
+### Added
+- **Mission Control Charts strip** — zero-dependency inline-SVG `sparkline`/`barStrip` builders (`commander/cowork-plugin/lib/charts.js`) render cost/day, agents dispatched/day, tasks completed/week, and tool failures/day. One canonical module renders BOTH the live dashboard (served client-side at `GET /charts.js`) and the CSP-safe snapshot artifact (server-rendered, no `<script>`) — theme-safe via `currentColor`/CSS vars, clean zero-state (flat baseline + "no data yet") instead of a broken axis or NaN path.
+- **`metrics.jsonl` daily rollup** (`commander/cowork-plugin/lib/metrics.js`) — per-`(date, source_app)` cost/agents/tasks/failures/sessions, `cost_usd` sourced from `ccusage claude daily --json` / `ccusage codex daily --json` (Claude + Codex only), gap-filled across the window so charts never draw a misleading flat line, latest-wins on re-run.
+- **Complete Claude + Codex roster** — Codex Desktop's hook surface drops `SubagentStart`/`SubagentStop`/`TaskCreated`/`TaskCompleted` (verified against `scripts/build-codex.js`'s `HOOK_EVENTS_DROPPED_BY_BUILD`), so Codex work showed up in the Live Feed but never the Agent Roster. `deriveRosterFromDelegations()` synthesizes a roster row from `events.jsonl`'s delegation entries for any source with no real start record — marked `derived: true`, shown with a dimmed "inferred" badge + tooltip (never claims token/cost data that isn't real), and never duplicates a row that already has a real start record.
+- **claude-mem History panel** (`dashboard/lib/history.js`, `GET /api/history`) — a read-only timeline over `~/.claude-mem/claude-mem.db` via `node:sqlite`, cursored on the existing `created_at_epoch` index, titles-only (never raw prompt/facts/narrative). Opt-in: the panel hides entirely when claude-mem isn't installed.
+- **`topSkills` contract** (`commander/cowork-plugin/lib/top-skills.js`, `GET /api/top-skills`) — `{skill, runs7d, runs30d, bySource}` rows from `skill-runs.jsonl` (the same file Cockpit's v6.8.2 skill-runs logger writes), sorted by `runs7d` desc, capped at 10.
+- In-memory TTL cache (Item 6, ported from Agent HQ v4) — the base model caches 2s (matching the dashboard's poll interval), metrics/topSkills cache 30s, so N concurrent pollers share one read instead of each re-scanning every log / re-shelling out to `ccusage`.
+
 ## [6.8.2] - 2026-07-16
 
 ### Added

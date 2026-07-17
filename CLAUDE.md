@@ -4,7 +4,7 @@
 
 CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Core free forever** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **78 plugin skills** (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 42 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 467 skills, 11 CCC domains, 83+ commands, 24 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
 
-**Current Release:** v6.8.2 — adds the **Commander Cockpit** (`/ccc-browse` → 🎛️): every Commander tool clickable inside one self-contained artifact — skill/agent browser with job-first search, catalog-grounded idea generator, live prompt enhancer, your own agent analytics (Claude + Codex side by side), and an agent-profile manager with edit→export — plus a skill-runs logger (42nd handler) so "most-used skill" is real data. v6.8.2 taught **Commander Mission Control** to track Claude *and* Codex sessions side by side: every agent/event is tagged with the app that produced it (`source_app`), the Live Feed and roster gain a Source filter + pill, agents are keyed `sourceApp:name` so two apps can't collide, and a new **Suggestions** panel queues proactive ideas you can promote to a ticket from `/ccc-mission-control`. v6.8.0 shipped Mission Control itself: a visual harness inside Claude Code Desktop (live zero-dep dashboard + never-blocking event feed hook + CSP-safe snapshot artifact) plus a 5-signal proactivity wave. Recent additions: /ccc-prompt-fix, claude-code-library, /ccc-spawn, /ccc-broadcast — see CHANGELOG for per-version detail. · npm package `cc-commander@6.8.2` (version tracked in `package.json`)
+**Current Release:** v6.8.3 — completes **Commander Mission Control**'s Claude+Codex rosters with a Charts strip (cost/day, agents dispatched/day, tasks completed/week, tool failures/day — zero-dep inline SVG, theme-safe, rendered on both the live dashboard and the snapshot artifact from one shared `charts.js`), a claude-mem **History** panel (opt-in, hidden when claude-mem isn't installed), and a "derived" marker on roster rows synthesized from delegation events (Codex work that has no real start record — dimmed gauges + tooltip, never claims token/cost data it doesn't have). The Commander Cockpit — every tool clickable inside one self-contained artifact: skill/agent browser with job-first search, catalog-grounded idea generator, live prompt enhancer, your own agent analytics (Claude + Codex side by side), an agent-profile manager with edit→export, and a skill-runs logger (42nd handler) so "most-used skill" is real data — shipped in v6.8.2. Claude *and* Codex side-by-side session tracking (`source_app` tagging, Source filter + pills, `sourceApp:name` agent keys) plus the Suggestions panel were added in v6.8.1. Mission Control itself — a visual harness inside Claude Code Desktop (live zero-dep dashboard + never-blocking event feed hook + CSP-safe snapshot artifact) plus a 5-signal proactivity wave — shipped in v6.8.0. Recent additions: /ccc-prompt-fix, claude-code-library, /ccc-spawn, /ccc-broadcast — see CHANGELOG for per-version detail. · npm package `cc-commander@6.8.3` (version tracked in `package.json`)
 
 ## Session Defaults
 
@@ -36,7 +36,7 @@ The lead session is a **control plane** — decisions, delegations, and verified
 
 ## Desktop Plugin (PRIMARY PRODUCT)
 
-CC Commander's primary product as of v6.8.2. Claude Cowork Desktop / Claude Code Desktop install:
+CC Commander's primary product as of v6.8.3. Claude Cowork Desktop / Claude Code Desktop install:
 
 **Via GUI (Cowork Desktop / Code Desktop):**
 1. Settings → Plugin Marketplace → **Add from GitHub**
@@ -51,7 +51,7 @@ CC Commander's primary product as of v6.8.2. Claude Cowork Desktop / Claude Code
 
 **Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
 
-**v6.8.2:** 78 plugin skills (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup + /ccc-orchestrate + /ccc-handoff + /ccc-adopt + /ccc-relay + /ccc-smb-ops + /ccc-broadcast + /ccc-spawn + /ccc-prompt-fix + /ccc-mission-control) + 22 specialist agents + 23 lifecycle hooks × 42 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **core free forever**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; hosted-infrastructure Pro tier planned later — all content stays free forever.
+**v6.8.3:** 78 plugin skills (13 /ccc-* specialist workflows + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup + /ccc-orchestrate + /ccc-handoff + /ccc-adopt + /ccc-relay + /ccc-smb-ops + /ccc-broadcast + /ccc-spawn + /ccc-prompt-fix + /ccc-mission-control) + 22 specialist agents + 23 lifecycle hooks × 42 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **core free forever**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; hosted-infrastructure Pro tier planned later — all content stays free forever.
 
 **The 12 /ccc-* specialist workflows (all click-first via AskUserQuestion native picker):**
 - `/ccc` — main hub (6 intents via nested AUQ)
@@ -72,7 +72,7 @@ CC Commander's primary product as of v6.8.2. Claude Cowork Desktop / Claude Code
 
 Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
 
-### Architecture note (v6.8.2+)
+### Architecture note (v6.8.3+)
 
 Plugin commands are provided as **SKILLS** (not plugin commands) so they appear as plain `/ccc-*` in the autocomplete (no `commander:` namespace prefix). This is the correct primitive for click-first UX in Cowork Desktop. Menus live in `commander/cowork-plugin/menus/*.json` (root + 6 sub-menus); the template at `commander/cowork-plugin/lib/menu-artifact.html.tpl` and renderer at `commander/cowork-plugin/lib/menu-render.js` are kept for future use if/when Claude Desktop adds interactive-artifact support, but the active UX uses AskUserQuestion-native chip pickers (confirmed working in Cowork Desktop).
 
@@ -202,7 +202,7 @@ Every menu recommends the best next action based on context.
 
 ## Current Status
 
-**Version:** 6.8.2 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
+**Version:** 6.8.3 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
 
 **Stats:** 467 skills total, 78 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (42 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 24 JS hooks, 19 vendors, 10 themes
 
