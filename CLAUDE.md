@@ -36,7 +36,7 @@ The lead session is a **control plane** — decisions, delegations, and verified
 
 ## Desktop Plugin (PRIMARY PRODUCT)
 
-CC Commander's primary product as of v6.8.3. Claude Cowork Desktop / Claude Code Desktop install:
+CC Commander's primary product as of v6.8.2. Claude Cowork Desktop / Claude Code Desktop install:
 
 **Via GUI (Cowork Desktop / Code Desktop):**
 1. Settings → Plugin Marketplace → **Add from GitHub**
