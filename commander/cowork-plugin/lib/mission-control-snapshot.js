@@ -29,6 +29,16 @@
  * amortize here — it still uses the same bounded-read cap, though, so a
  * huge log can't blow up a single snapshot build.
  *
+ * Item 1 also drives a UI marker: derived roster rows carry no real
+ * token/cost data (see mission-model.js's doc comment on why), so their
+ * agent card gets an `is-derived` class (dimmed) plus a small "inferred"
+ * badge with a tooltip — never presented as if it were a verified run.
+ *
+ * Item 3 (charts strip) renders the SAME sparkline/barStrip builders
+ * from ./charts.js the live dashboard's client-side script uses (see
+ * that file's doc comment for why it's one canonical module, not a
+ * duplicate) — server-rendered inline SVG, no <script>, CSP-safe.
+ *
  * Deterministic rendering: every timestamp derives from the model or the
  * `now` argument — never Date.now() inside buildSnapshotHtml.
  * Zero dependencies (beyond this plugin's own lib/), ESM, read-only,
@@ -39,6 +49,7 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { aggregateDaily, aggregateWeekly, barStrip, sparkline } from './charts.js';
 import { getMetrics } from './metrics.js';
 import { readTopSkills } from './top-skills.js';
 
@@ -888,10 +899,18 @@ body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
 .mc .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84rem;}
 .mc .muted{color:var(--mc-muted);}
 .mc .zero{color:var(--mc-muted);margin:0;}
+.mc .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
+.mc .chart-card{border:1px solid var(--mc-line);border-radius:10px;padding:10px 12px 8px;min-width:0;}
+.mc .chart-card h3{margin:0 0 6px;font-size:.8rem;font-weight:600;color:var(--mc-muted);}
+.mc .mc-chart{display:block;width:100%;height:auto;color:var(--mc-accent);}
 .mc .agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
 .mc .agent-card{border:1px solid var(--mc-line);border-radius:10px;padding:12px;min-width:0;}
 .mc .agent-card.is-awaiting{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
 .mc .agent-card.is-stale{color:var(--mc-muted);opacity:.68;}
+.mc .agent-card.is-derived{opacity:.82;}
+.mc .agent-card.is-derived .agent-meta{opacity:.55;}
+.mc .derived-badge{display:inline-block;border:1px dashed var(--mc-line);border-radius:999px;
+  padding:0 7px;font-size:.68rem;color:var(--mc-muted);margin-left:4px;cursor:help;white-space:nowrap;}
 .mc .agent-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .mc .agent-name{display:flex;gap:9px;align-items:flex-start;min-width:0;}
 .mc .agent-emoji{font-size:1.35rem;line-height:1.2;}
@@ -988,15 +1007,19 @@ function renderAgentsSection(agents, nowMs) {
       ? `$${agent.estCostUsd.toFixed(4)}`
       : '—';
     const currentTask = agent.currentTask || 'No current task';
+    const isDerived = agent.derived === true;
     const statusClass =
-      agent.status === 'awaiting_permission'
+      (agent.status === 'awaiting_permission'
         ? ' is-awaiting'
         : agent.status === 'stale'
           ? ' is-stale'
-          : '';
+          : '') + (isDerived ? ' is-derived' : '');
+    const derivedBadge = isDerived
+      ? ` <span class="derived-badge" title="Inferred from a delegation event — no token/cost data available">inferred</span>`
+      : '';
     return `<article class="agent-card${statusClass}">
 <div class="agent-head">
-<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')} · ${renderSourceBadge(agent.sourceApp)}</div></div></div>
+<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')} · ${renderSourceBadge(agent.sourceApp)}${derivedBadge}</div></div></div>
 <span class="badge ${meta.cls}">${esc(meta.label)}</span>
 </div>
 <p class="agent-task"><strong>Current task:</strong> ${esc(currentTask)}</p>
@@ -1134,6 +1157,45 @@ function renderSuggestionsSection(suggestions) {
 </section>`;
 }
 
+// Item 3 — same builders the live dashboard's client-side script uses
+// (./charts.js), server-rendered here into plain inline SVG (no
+// <script>, CSP-safe). Combines every source_app into one line per
+// chart (Item 2's public-repo scope: Claude + Codex only). A metrics
+// array with no rows at all still renders 4 zero-state charts, never an
+// empty section — Charts stay always-visible (unlike History, which is
+// opt-in and hides entirely when absent).
+function renderChartsSection(metrics) {
+  const rows = Array.isArray(metrics) ? metrics : [];
+  const costSeries = aggregateDaily(rows, 'cost_usd', 30);
+  const agentsSeries = aggregateDaily(rows, 'agents_dispatched', 30);
+  const failuresSeries = aggregateDaily(rows, 'tool_failures', 30);
+  const tasksSeries = aggregateWeekly(rows, 'tasks_completed', 8);
+
+  const cards = [
+    [
+      '💰 Cost / day (30d)',
+      sparkline(costSeries, { label: 'Cost per day, last 30 days', color: 'var(--mc-accent)' }),
+    ],
+    [
+      '🤖 Agents dispatched / day (30d)',
+      sparkline(agentsSeries, { label: 'Agents dispatched per day, last 30 days', color: 'var(--mc-run)' }),
+    ],
+    [
+      '📋 Tasks completed / week (8w)',
+      barStrip(tasksSeries, { label: 'Tasks completed per week, last 8 weeks', color: 'var(--mc-ok)' }),
+    ],
+    [
+      '⚠ Tool failures / day (30d)',
+      sparkline(failuresSeries, { label: 'Tool failures per day, last 30 days', color: 'var(--mc-err)' }),
+    ],
+  ];
+
+  return `<section aria-label="Trends">
+<h2>📈 Trends</h2>
+<div class="chart-grid">${cards.map(([title, svg]) => `<div class="chart-card"><h3>${esc(title)}</h3>${svg}</div>`).join('')}</div>
+</section>`;
+}
+
 function buildSnapshotHtml(model, { now } = {}) {
   const source = model && typeof model === 'object' ? model : {};
   const agents = Array.isArray(source.agents) ? source.agents : [];
@@ -1141,6 +1203,7 @@ function buildSnapshotHtml(model, { now } = {}) {
   const edges = Array.isArray(source.edges) ? source.edges : [];
   const events = Array.isArray(source.events) ? source.events : [];
   const suggestions = Array.isArray(source.suggestions) ? source.suggestions : [];
+  const metrics = Array.isArray(source.metrics) ? source.metrics : [];
   const awaitingPermission = Array.isArray(source.awaitingPermission)
     ? source.awaitingPermission
     : [];
@@ -1173,6 +1236,7 @@ function buildSnapshotHtml(model, { now } = {}) {
 ${renderAwaitingPermissionSection(awaitingPermission, nowMs)}
 ${hero}
 ${renderSummarySection(summary, agents, tasks)}
+${renderChartsSection(metrics)}
 ${renderAgentsSection(agents, nowMs)}
 ${renderTasksSection(tasks, nowMs)}
 ${renderEdgesSection(edges, nowMs)}
