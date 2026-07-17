@@ -1,6 +1,6 @@
 ---
 title: "Lifecycle Hooks"
-description: "23 hook events with 41 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
+description: "23 hook events with 42 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
 ---
 
 CC Commander registers **23 lifecycle hook events** with **38 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
@@ -77,4 +77,4 @@ Hooks are JavaScript files executed natively by Claude Code's hook runtime. They
 
 A `{"continue": false}` return from `PreToolUse` blocks the tool call. All other hooks are informational — they can't block the session flow. This is by design: hooks should enhance, never gate.
 
-See [Architecture](/architecture) for how hooks fit into the full data flow. See [Hooks 2026](/hooks-2026) for the complete v5.1.0 registry with all 23 events and 41 handlers.
+See [Architecture](/architecture) for how hooks fit into the full data flow. See [Hooks 2026](/hooks-2026) for the complete v5.1.0 registry with all 23 events and 42 handlers.

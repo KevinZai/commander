@@ -196,10 +196,17 @@ test('analytics aggregates local JSONL activity into the documented payload shap
     avgMs: 2000,
   });
   assert.deepStrictEqual(analytics.topAgents.map(function(agent) { return agent.name; }), ['builder', 'reviewer']);
-  assert.deepStrictEqual(analytics.flows, [
-    { from: 'abcdefgh', to: 'builder', count: 2 },
-    { from: 'session', to: 'Workflow', count: 1 },
-  ]);
+  // Distinct sessions stay distinct (the old 8-char prefix both leaked ids AND
+  // merged different sessions on prefix collisions — anonymized labels fix both).
+  var flowKey = function(flow) { return flow.from + '|' + flow.to; };
+  assert.deepStrictEqual(
+    analytics.flows.slice().sort(function(a, b) { return flowKey(a) < flowKey(b) ? -1 : 1; }),
+    [
+      { from: 'session-1', to: 'builder', count: 1 },
+      { from: 'session-2', to: 'builder', count: 1 },
+      { from: 'session', to: 'Workflow', count: 1 },
+    ]
+  );
 });
 
 test('task analytics counts each task once from its latest explicit completion state', function(t) {

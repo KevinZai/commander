@@ -1,0 +1,443 @@
+<!--
+  Commander Cockpit — template consumed by scripts/build-cockpit.mjs.
+  The generator replaces the __COCKPIT_DATA__ marker below with a JSON payload:
+    window.__COCKPIT__ = {
+      meta:   { version, generatedAt, pluginSkills, ecosystemSkills, agents },
+      skills: [{ id, name, cmd, desc, domain, tier, source }],        // cmd = "/ccc-…" or "skill id"
+      agents: [{ id, name, emoji, role, desc, model }],
+      jobs:   [{ label, query }],                                     // "what are you trying to accomplish?"
+      ideas:  [{ project, goal, title, why, cmd }],                   // pre-composed catalog-grounded moves
+      patterns: [{ key, name, hint, test }],                          // the 6 prompt-quality patterns; test = regex source
+      analytics: {                                                    // OPTIONAL — computed from ~/.claude/commander/*.jsonl at generate time; {} or absent = zero-state
+        tiles:  [{ label, value }],                                   // e.g. "Agent runs (7d)": 42, "Tokens (7d)", "Est cost (7d)"
+        topAgents: [{ name, emoji, runs, tokens, costUsd, avgMs }],   // desc by runs, ≤10
+        daily:  [{ date, runs }],                                     // last 14 days, for the sparkline
+        flows:  [{ from, to, count }]                                 // delegation edges aggregated, ≤10
+      }
+    };
+  Constraints: this file must stay 100% self-contained when rendered — no external URLs of any kind.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commander Cockpit</title>
+<style>
+  :root {
+    --bg: #faf9f5; --panel: #ffffff; --ink: #1a1a18; --muted: #6e6e66;
+    --line: #e4e2da; --accent: #d97757; --accent-ink: #fff; --chipbg: #f0eee6;
+    --ok: #2e8555; --card-shadow: 0 1px 3px rgba(26,26,24,.07);
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --bg: #1a1a18; --panel: #232320; --ink: #f0efea; --muted: #a3a299;
+    --line: #38382f; --accent: #d97757; --chipbg: #2c2c27; --ok: #4cbf7a;
+    --card-shadow: 0 1px 3px rgba(0,0,0,.35);
+  }}
+  :root[data-theme="light"] {
+    --bg: #faf9f5; --panel: #ffffff; --ink: #1a1a18; --muted: #6e6e66;
+    --line: #e4e2da; --chipbg: #f0eee6; --ok: #2e8555; --card-shadow: 0 1px 3px rgba(26,26,24,.07);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a1a18; --panel: #232320; --ink: #f0efea; --muted: #a3a299;
+    --line: #38382f; --chipbg: #2c2c27; --ok: #4cbf7a; --card-shadow: 0 1px 3px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); margin: 0;
+         font: 15px/1.5 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 64px; }
+  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .mark { width: 40px; height: 40px; border-radius: 10px; background: var(--accent);
+          color: var(--accent-ink); display: grid; place-items: center; font-size: 21px; }
+  h1 { font-size: 21px; margin: 0; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 13px; width: 100%; margin: 0 0 14px 52px; }
+  .counts { margin-left: auto; color: var(--muted); font-size: 12px; text-align: right; }
+  nav { display: flex; gap: 6px; margin: 10px 0 18px; border-bottom: 1px solid var(--line); }
+  nav button { appearance: none; background: none; border: none; color: var(--muted); font: inherit;
+               font-weight: 600; padding: 9px 14px; cursor: pointer; border-bottom: 2px solid transparent; }
+  nav button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .search { display: flex; gap: 8px; margin-bottom: 12px; }
+  .search input { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+                  color: var(--ink); font: inherit; padding: 10px 14px; outline: none; }
+  .search input:focus { border-color: var(--accent); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chip { background: var(--chipbg); border: 1px solid transparent; border-radius: 999px; color: var(--ink);
+          font-size: 12.5px; font-weight: 600; padding: 5px 12px; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .jobrow { margin: 0 0 16px; }
+  .jobrow .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px;
+          box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 6px; }
+  .card h3 { margin: 0; font-size: 14.5px; display: flex; align-items: center; gap: 7px; }
+  .card .desc { color: var(--muted); font-size: 13px; flex: 1; }
+  .badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  .badge { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+           background: var(--chipbg); color: var(--muted); border-radius: 5px; padding: 2px 7px; }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .cmd { font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; background: var(--chipbg);
+         border-radius: 7px; padding: 4px 9px; overflow: hidden; text-overflow: ellipsis;
+         white-space: nowrap; flex: 1; }
+  .copy { appearance: none; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+          border-radius: 8px; font: 600 12px inherit; padding: 5px 11px; cursor: pointer; white-space: nowrap; }
+  .copy:hover { border-color: var(--accent); }
+  .copy.ok { border-color: var(--ok); color: var(--ok); }
+  .agent-group { margin: 18px 0 8px; font-size: 12.5px; font-weight: 700; color: var(--muted);
+                 text-transform: uppercase; letter-spacing: .05em; }
+  .empty { color: var(--muted); text-align: center; padding: 48px 0; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px;
+           box-shadow: var(--card-shadow); }
+  textarea { width: 100%; min-height: 110px; background: var(--bg); color: var(--ink); font: inherit;
+             border: 1px solid var(--line); border-radius: 10px; padding: 12px; resize: vertical; outline: none; }
+  textarea:focus { border-color: var(--accent); }
+  .checklist { display: grid; gap: 8px; margin: 14px 0; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
+  .check .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line);
+                flex: none; margin-top: 1px; display: grid; place-items: center; font-size: 11px; }
+  .check.pass .dot { border-color: var(--ok); color: var(--ok); }
+  .check.pass .dot::before { content: "✓"; }
+  .check .hint { color: var(--muted); display: block; font-size: 12.5px; }
+  .primary { appearance: none; border: none; background: var(--accent); color: var(--accent-ink);
+             border-radius: 10px; font: 600 14px inherit; padding: 10px 18px; cursor: pointer; }
+  .out { margin-top: 14px; }
+  .out pre { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px;
+             font: 13px ui-monospace, Menlo, monospace; white-space: pre-wrap; margin: 8px 0 0; }
+  .selrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  select { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px;
+           font: inherit; padding: 9px 12px; outline: none; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12px; text-align: center; }
+  .kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px;
+         font: 11px ui-monospace, monospace; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mark">🎛️</div>
+    <h1>Commander Cockpit</h1>
+    <div class="counts" id="counts"></div>
+    <p class="sub">Every Commander tool, clickable. Copy a command, paste it into Claude Code. <span class="kbd">/</span> to search.</p>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="browse">🧭 Browse</button>
+    <button role="tab" aria-selected="false" data-tab="ideas">💡 Ideas</button>
+    <button role="tab" aria-selected="false" data-tab="enhance">✨ Enhance a prompt</button>
+    <button role="tab" aria-selected="false" data-tab="analytics">📊 Analytics</button>
+    <button role="tab" aria-selected="false" data-tab="agents">👥 Agents</button>
+  </nav>
+
+  <section id="tab-browse">
+    <div class="search"><input id="q" type="search" placeholder="Search 500+ skills and 22 agents… (name, task, domain)" aria-label="Search skills"></div>
+    <div class="jobrow"><div class="lbl">What are you trying to accomplish?</div><div class="chips" id="jobs"></div></div>
+    <div class="chips" id="domains"></div>
+    <div id="results"></div>
+  </section>
+
+  <section id="tab-ideas" hidden>
+    <div class="panel">
+      <div class="selrow">
+        <select id="idea-project" aria-label="Project type"></select>
+        <select id="idea-goal" aria-label="Goal"></select>
+        <button class="primary" id="idea-go">Show me moves</button>
+        <button class="copy" id="idea-shuffle">🎲 Surprise me</button>
+      </div>
+      <div class="grid" id="idea-cards"></div>
+    </div>
+  </section>
+
+  <section id="tab-enhance" hidden>
+    <div class="panel">
+      <textarea id="raw" placeholder="Paste the prompt you were about to send…"></textarea>
+      <div class="checklist" id="patterns"></div>
+      <button class="primary" id="enhance-go">Sharpen it</button>
+      <div class="out" id="enhanced" hidden>
+        <div class="row"><strong>Sharpened prompt</strong><button class="copy" id="copy-enhanced">📋 Copy</button></div>
+        <pre id="enhanced-text"></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-analytics" hidden>
+    <div class="grid" id="an-tiles" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin-bottom:12px"></div>
+    <div class="panel" style="margin-bottom:12px">
+      <div class="agent-group" style="margin-top:0">Activity — last 14 days</div>
+      <div id="an-spark"></div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+      <div class="panel"><div class="agent-group" style="margin-top:0">Top agents</div><div id="an-top"></div></div>
+      <div class="panel"><div class="agent-group" style="margin-top:0">Delegation flows</div><div id="an-flows"></div></div>
+    </div>
+  </section>
+
+  <section id="tab-agents" hidden>
+    <p class="sub" style="margin:0 0 12px">Your crew — stats from your own machine. Edit a profile, copy it out, and tell Claude to apply it.</p>
+    <div class="grid" id="mgr-cards"></div>
+    <div class="panel" id="mgr-editor" hidden style="margin-top:12px">
+      <div class="agent-group" style="margin-top:0">✏️ Edit profile — <span id="mgr-name"></span></div>
+      <div class="selrow">
+        <input id="mgr-role" class="cmd" style="flex:1;border:1px solid var(--line);background:var(--bg)" placeholder="Role">
+        <select id="mgr-model"><option>inherit</option><option>claude-sonnet-5</option><option>claude-opus-4-8</option><option>claude-haiku-4-5</option></select>
+        <select id="mgr-effort"><option>inherit</option><option>low</option><option>medium</option><option>high</option><option>xhigh</option></select>
+      </div>
+      <textarea id="mgr-desc" placeholder="What this agent does, when to use it…"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" id="mgr-export">📋 Copy profile for Claude</button>
+        <button class="copy" id="mgr-download" hidden>⬇ Save as file</button>
+        <span class="sub" style="margin:0">Paste it in chat: “apply this agent profile”.</span>
+      </div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/*__COCKPIT_DATA__*/
+(function () {
+  'use strict';
+  var D = window.__COCKPIT__;
+  if (!D || !Array.isArray(D.skills)) {
+    document.getElementById('results').innerHTML = '<div class="empty">Catalog payload missing — regenerate with scripts/build-cockpit.mjs</div>';
+    return;
+  }
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  $('counts').textContent = D.meta.pluginSkills + ' plugin + ' + D.meta.ecosystemSkills + ' ecosystem skills · ' + D.meta.agents + ' agents · v' + D.meta.version;
+  $('foot').textContent = 'CC Commander v' + D.meta.version + ' · generated ' + D.meta.generatedAt + ' · core free forever · everything runs in this page, nothing leaves it';
+
+  // ---------- tabs ----------
+  var tabs = document.querySelectorAll('nav [role="tab"]');
+  tabs.forEach(function (b) {
+    b.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+      ['browse', 'ideas', 'enhance', 'analytics', 'agents'].forEach(function (t) { $('tab-' + t).hidden = (t !== b.dataset.tab); });
+    });
+  });
+
+  // ---------- clipboard ----------
+  function wireCopy(btn, text) {
+    btn.addEventListener('click', function () {
+      var done = function () { btn.classList.add('ok'); var old = btn.textContent; btn.textContent = '✓ Copied'; setTimeout(function () { btn.classList.remove('ok'); btn.textContent = old; }, 1400); };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, function () { fallback(); done(); }); }
+      else { fallback(); done(); }
+      function fallback() { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); }
+    });
+  }
+
+  // ---------- browse ----------
+  var activeDomain = null, activeJob = null;
+  var domains = [];
+  D.skills.forEach(function (s) { if (s.domain && domains.indexOf(s.domain) === -1) domains.push(s.domain); });
+  domains.sort();
+
+  $('domains').innerHTML = domains.map(function (d) {
+    return '<button class="chip" data-d="' + esc(d) + '" aria-pressed="false">' + esc(d) + '</button>';
+  }).join('');
+  $('jobs').innerHTML = (D.jobs || []).map(function (j, i) {
+    return '<button class="chip" data-j="' + i + '" aria-pressed="false">' + esc(j.label) + '</button>';
+  }).join('');
+
+  $('domains').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip'); if (!b) return;
+    activeDomain = (activeDomain === b.dataset.d) ? null : b.dataset.d;
+    this.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', String(c.dataset.d === activeDomain)); });
+    render();
+  });
+  $('jobs').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip'); if (!b) return;
+    var j = D.jobs[Number(b.dataset.j)];
+    activeJob = (activeJob === j) ? null : j;
+    this.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', String(D.jobs[Number(c.dataset.j)] === activeJob)); });
+    if (activeJob) { $('q').value = activeJob.query; } else { $('q').value = ''; }
+    render();
+  });
+
+  function matches(s, q) {
+    if (activeDomain && s.domain !== activeDomain) return false;
+    if (!q) return true;
+    var hay = (s.name + ' ' + (s.cmd || '') + ' ' + (s.desc || '') + ' ' + (s.domain || '')).toLowerCase();
+    return q.split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });
+  }
+
+  function skillCard(s) {
+    return '<div class="card"><h3>' + esc(s.name) + '</h3>'
+      + '<div class="badges"><span class="badge">' + esc(s.source) + '</span>'
+      + (s.domain ? '<span class="badge">' + esc(s.domain) + '</span>' : '')
+      + (s.tier ? '<span class="badge">' + esc(s.tier) + '</span>' : '') + '</div>'
+      + '<div class="desc">' + esc(s.desc) + '</div>'
+      + '<div class="row"><span class="cmd">' + esc(s.cmd) + '</span><button class="copy" data-copy="' + esc(s.cmd) + '">📋 Copy</button></div></div>';
+  }
+  function agentCard(a) {
+    return '<div class="card"><h3>' + esc(a.emoji) + ' ' + esc(a.name) + '</h3>'
+      + '<div class="badges"><span class="badge">agent</span><span class="badge">' + esc(a.role) + '</span></div>'
+      + '<div class="desc">' + esc(a.desc) + '</div>'
+      + '<div class="row"><span class="cmd">Use the ' + esc(a.name) + ' agent to…</span><button class="copy" data-copy="Use the ' + esc(a.name) + ' subagent to ">📋 Copy</button></div></div>';
+  }
+
+  function render() {
+    var q = $('q').value.trim().toLowerCase();
+    var skills = D.skills.filter(function (s) { return matches(s, q); });
+    var agents = (activeDomain ? [] : D.agents.filter(function (a) {
+      if (!q) return true;
+      return (a.name + ' ' + a.role + ' ' + a.desc).toLowerCase().indexOf(q) !== -1;
+    }));
+    var html = '';
+    if (agents.length && (q || !activeDomain)) {
+      var byRole = {};
+      agents.forEach(function (a) { var k = a.role.indexOf('Reviewer') !== -1 ? 'Review crew' : 'Specialists'; (byRole[k] = byRole[k] || []).push(a); });
+      Object.keys(byRole).sort().forEach(function (g) {
+        html += '<div class="agent-group">' + esc(g) + ' (' + byRole[g].length + ')</div><div class="grid">' + byRole[g].map(agentCard).join('') + '</div>';
+      });
+    }
+    html += '<div class="agent-group">Skills (' + skills.length + ')</div>';
+    html += skills.length ? '<div class="grid">' + skills.slice(0, 120).map(skillCard).join('') + '</div>' : '<div class="empty">Nothing matches — try fewer words.</div>';
+    if (skills.length > 120) html += '<div class="empty">Showing 120 of ' + skills.length + ' — refine the search to see the rest.</div>';
+    $('results').innerHTML = html;
+  }
+  $('q').addEventListener('input', render);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== $('q') && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); $('q').focus(); }
+  });
+  document.body.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-copy]'); if (b && !b.dataset.wired) { b.dataset.wired = '1'; wireCopy(b, b.getAttribute('data-copy')); b.click(); }
+  });
+  render();
+
+  // ---------- ideas ----------
+  var projects = [], goals = [];
+  (D.ideas || []).forEach(function (i) {
+    if (projects.indexOf(i.project) === -1) projects.push(i.project);
+    if (goals.indexOf(i.goal) === -1) goals.push(i.goal);
+  });
+  $('idea-project').innerHTML = projects.map(function (p) { return '<option>' + esc(p) + '</option>'; }).join('');
+  $('idea-goal').innerHTML = goals.map(function (g) { return '<option>' + esc(g) + '</option>'; }).join('');
+  function ideaCards(list) {
+    $('idea-cards').innerHTML = list.length ? list.map(function (i) {
+      return '<div class="card"><h3>' + esc(i.title) + '</h3><div class="desc">' + esc(i.why) + '</div>'
+        + '<div class="row"><span class="cmd">' + esc(i.cmd) + '</span><button class="copy" data-copy="' + esc(i.cmd) + '">📋 Copy</button></div></div>';
+    }).join('') : '<div class="empty">No moves for that combo yet — hit 🎲.</div>';
+  }
+  $('idea-go').addEventListener('click', function () {
+    var p = $('idea-project').value, g = $('idea-goal').value;
+    ideaCards(D.ideas.filter(function (i) { return i.project === p && i.goal === g; }));
+  });
+  $('idea-shuffle').addEventListener('click', function () {
+    var pool = D.ideas.slice(); var pick = [];
+    while (pick.length < Math.min(6, pool.length)) { pick.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); }
+    ideaCards(pick);
+  });
+  $('idea-shuffle').click();
+
+  // ---------- enhance ----------
+  var pats = (D.patterns || []).map(function (p) { return { key: p.key, name: p.name, hint: p.hint, re: new RegExp(p.test, 'i') }; });
+  $('patterns').innerHTML = pats.map(function (p) {
+    return '<div class="check" data-k="' + esc(p.key) + '"><span class="dot"></span><span><strong>' + esc(p.name) + '</strong><span class="hint">' + esc(p.hint) + '</span></span></div>';
+  }).join('');
+  function diagnose() {
+    var t = $('raw').value;
+    pats.forEach(function (p) {
+      var el = document.querySelector('.check[data-k="' + p.key + '"]');
+      el.classList.toggle('pass', p.re.test(t));
+    });
+  }
+  $('raw').addEventListener('input', diagnose);
+  $('enhance-go').addEventListener('click', function () {
+    var t = $('raw').value.trim();
+    if (!t) { $('raw').focus(); return; }
+    var missing = pats.filter(function (p) { return !p.re.test(t); });
+    var out = t;
+    var add = [];
+    missing.forEach(function (p) {
+      if (p.key === 'outcome') add.push('Outcome: [describe what DONE looks like — the end state, not the steps]');
+      if (p.key === 'selfcheck') add.push('Before finishing, verify your work: run it / test it and show me the proof.');
+      if (p.key === 'reference') add.push('Reference: match the patterns already in [file or example to imitate].');
+      if (p.key === 'target') add.push('Target: [a measurable bar — e.g. all tests green, under 200ms, zero console errors].');
+      if (p.key === 'artifact') add.push('Deliverable: [the exact artifact — a PR, a file, a report — not just chat].');
+      if (p.key === 'format') add.push('Answer format: [how to present it — table, bullet summary, diff].');
+    });
+    if (add.length) out = t + '\n\n' + add.join('\n');
+    $('enhanced-text').textContent = out;
+    $('enhanced').hidden = false;
+    var btn = $('copy-enhanced');
+    var clone = btn.cloneNode(true); btn.parentNode.replaceChild(clone, btn);
+    wireCopy(clone, out);
+  });
+
+  // ---------- analytics ----------
+  var AN = D.analytics || {};
+  var zero = '<div class="empty">No activity data yet — run some agents, then republish the Cockpit to refresh.</div>';
+  $('an-tiles').innerHTML = (AN.tiles || []).map(function (t) {
+    return '<div class="card"><div class="desc">' + esc(t.label) + '</div><h3 style="font-size:22px">' + esc(t.value) + '</h3></div>';
+  }).join('') || zero;
+  (function spark() {
+    var d = AN.daily || [];
+    if (!d.length) { $('an-spark').innerHTML = zero; return; }
+    var max = Math.max.apply(null, d.map(function (x) { return x.runs; }).concat([1]));
+    var W = 560, H = 64, step = W / Math.max(d.length - 1, 1);
+    var pts = d.map(function (x, i) { return (i * step).toFixed(1) + ',' + (H - 4 - (x.runs / max) * (H - 12)).toFixed(1); }).join(' ');
+    $('an-spark').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:64px" role="img" aria-label="daily agent runs">'
+      + '<polyline points="' + pts + '" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/></svg>'
+      + '<div class="row" style="justify-content:space-between"><span class="hint">' + esc(d[0].date) + '</span><span class="hint">peak ' + max + '/day</span><span class="hint">' + esc(d[d.length - 1].date) + '</span></div>';
+  })();
+  $('an-top').innerHTML = (AN.topAgents || []).map(function (a) {
+    return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span style="flex:1">' + esc(a.emoji || '🤖') + ' <strong>' + esc(a.name) + '</strong></span>'
+      + '<span class="badge">' + a.runs + ' runs</span><span class="badge">' + Math.round((a.tokens || 0) / 1000) + 'k tok</span>'
+      + (a.costUsd != null ? '<span class="badge">$' + a.costUsd.toFixed(2) + ' est</span>' : '') + '</div>';
+  }).join('') || zero;
+  $('an-flows').innerHTML = (AN.flows || []).map(function (f) {
+    return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="cmd" style="flex:1">' + esc(f.from) + ' → ' + esc(f.to) + '</span><span class="badge">×' + f.count + '</span></div>';
+  }).join('') || zero;
+
+  // ---------- agent manager ----------
+  var statsByName = {};
+  (AN.topAgents || []).forEach(function (a) { statsByName[a.name] = a; });
+  var editing = null;
+  function mgrRender() {
+    $('mgr-cards').innerHTML = D.agents.map(function (a, i) {
+      var st = statsByName[a.name];
+      return '<div class="card"><h3>' + esc(a.emoji) + ' ' + esc(a.name) + '</h3>'
+        + '<div class="badges"><span class="badge">' + esc(a.role) + '</span>'
+        + (st ? '<span class="badge">' + st.runs + ' runs</span>' : '<span class="badge">no runs yet</span>')
+        + (a.model ? '<span class="badge">' + esc(a.model) + '</span>' : '') + '</div>'
+        + '<div class="desc">' + esc(a.desc) + '</div>'
+        + '<div class="row"><button class="copy" data-edit="' + i + '">✏️ Edit</button></div></div>';
+    }).join('');
+  }
+  $('mgr-cards').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-edit]'); if (!b) return;
+    editing = D.agents[Number(b.dataset.edit)];
+    $('mgr-name').textContent = editing.emoji + ' ' + editing.name;
+    $('mgr-role').value = editing.role || '';
+    $('mgr-desc').value = editing.desc || '';
+    $('mgr-model').value = editing.model || 'inherit';
+    $('mgr-effort').value = 'inherit';
+    $('mgr-editor').hidden = false;
+    $('mgr-editor').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+  function profileText() {
+    if (!editing) return '';
+    var model = $('mgr-model').value, effort = $('mgr-effort').value;
+    return 'Apply this CC Commander agent profile (update the matching file under commander/cowork-plugin/agents/ or my project agents):\n\n'
+      + '---\nname: ' + editing.id + '\ndescription: "' + $('mgr-desc').value.replace(/"/g, "'") + '"\n'
+      + (model !== 'inherit' ? 'model: ' + model + '\n' : '')
+      + (effort !== 'inherit' ? 'effort: ' + effort + '\n' : '')
+      + '---\n# Role\n' + $('mgr-role').value + '\n';
+  }
+  $('mgr-export').addEventListener('click', function () {
+    var t = profileText(); if (!t) return;
+    var btn = this;
+    var done = function () { var old = btn.textContent; btn.textContent = '✓ Copied — paste it in chat'; setTimeout(function () { btn.textContent = old; }, 1800); };
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(done, done); }
+    else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); done(); }
+  });
+  if (window.claude && window.claude.downloads && window.claude.downloads.save) {
+    var dl = $('mgr-download'); dl.hidden = false;
+    dl.addEventListener('click', function () {
+      window.claude.downloads.save({ filename: (editing ? editing.id : 'agent') + '.md', data: profileText() }).catch(function () {});
+    });
+  }
+  mgrRender();
+})();
+</script>

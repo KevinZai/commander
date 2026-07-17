@@ -410,8 +410,12 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
   const grouped = new Map();
   for (const entry of recentEntries(agentRuns, cutoffMs, nowMs)) {
     const name = typeof entry.agent === 'string' && entry.agent.trim() ? entry.agent.trim() : 'unknown';
-    const current = grouped.get(name) || {
+    // v6.8.1 telemetry stamps source_app; older rows without it are Claude's (Codex can't reach these hooks pre-6.8.1).
+    const source = typeof entry.source_app === 'string' && entry.source_app ? entry.source_app : 'claude-code';
+    const key = source + ':' + name;
+    const current = grouped.get(key) || {
       name,
+      source,
       runs: 0,
       inputTokens: 0,
       outputTokens: 0,
@@ -425,12 +429,12 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
       current.durationMs += entry.durationMs;
       current.durations += 1;
     }
-    grouped.set(name, current);
+    grouped.set(key, current);
   }
 
   return [...grouped.values()]
     .map((agent) => ({
-      name: agent.name,
+      name: agent.source === 'claude-code' ? agent.name : `${agent.name} · ${agent.source}`,
       emoji: (PERSONA_MAP[agent.name.toLowerCase()] || DEFAULT_PERSONA).emoji,
       runs: agent.runs,
       tokens: agent.inputTokens + agent.outputTokens,
@@ -461,10 +465,18 @@ function buildDaily(agentRuns, nowMs) {
 
 function buildFlows(events) {
   const grouped = new Map();
+  // Session ids never leave the machine as-is: the artifact may be published,
+  // so sessions get stable anonymous labels instead of id prefixes.
+  const sessionLabels = new Map();
   for (const entry of events) {
     if (entry.type !== 'delegation' && entry.type !== 'workflow') continue;
     const source = entry.session_id || entry.sessionId || entry.from;
-    const from = source ? String(source).slice(0, 8) : 'session';
+    let from = 'session';
+    if (source) {
+      const raw = String(source);
+      if (!sessionLabels.has(raw)) sessionLabels.set(raw, `session-${sessionLabels.size + 1}`);
+      from = sessionLabels.get(raw);
+    }
     const target = entry.actor || entry.tool;
     if (!target) continue;
     const to = String(target);
