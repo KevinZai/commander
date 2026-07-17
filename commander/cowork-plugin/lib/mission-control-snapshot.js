@@ -49,6 +49,7 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { brandBaseCss } from './brand-css.js';
 import { aggregateDaily, aggregateWeekly, barStrip, sparkline } from './charts.js';
 import { getMetrics } from './metrics.js';
 import { readTopSkills } from './top-skills.js';
@@ -877,43 +878,28 @@ const SUGGESTION_STATUS_META = {
   dismissed: { label: 'dismissed', cls: 'st-stale' },
 };
 
+// CCC brand mapping (commanderplugin.com design system, via ./brand-css.js):
+// these --mc-* tokens are the ONLY color layer this file still owns — each
+// one simply forwards a shared brand token, so light/dark/data-theme
+// switching is handled entirely by brandBaseCss()'s :root cascade (a
+// custom property's `var()` reference resolves at used-value time, so one
+// unconditional forwarding block here tracks whichever theme is active —
+// no need to re-declare --mc-* per theme). Status colors map onto the
+// terminal traffic-light dots: running/working -> indigo (accent),
+// done/finished -> green, failed -> red, waiting/awaiting -> yellow.
 const SNAPSHOT_CSS = `
 :root{
-  --mc-bg:#f6f7f9;--mc-card:#ffffff;--mc-fg:#1a1d21;--mc-muted:#5c6470;
-  --mc-line:#e3e6ea;--mc-accent:#7c3aed;
-  --mc-run:#1d4ed8;--mc-run-bg:#dbeafe;
-  --mc-ok:#15803d;--mc-ok-bg:#dcfce7;
-  --mc-err:#b91c1c;--mc-err-bg:#fee2e2;
-  --mc-wait:#b45309;--mc-wait-bg:#fef3c7;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --mc-bg:#0f1115;--mc-card:#171a21;--mc-fg:#e8eaed;--mc-muted:#9aa3af;
-    --mc-line:#262b33;--mc-accent:#a78bfa;
-    --mc-run:#93c5fd;--mc-run-bg:#12233d;
-    --mc-ok:#4ade80;--mc-ok-bg:#132a1a;
-    --mc-err:#f87171;--mc-err-bg:#2a1414;
-    --mc-wait:#fbbf24;--mc-wait-bg:#2a2210;
-  }
-}
-:root[data-theme="light"]{
-  --mc-bg:#f6f7f9;--mc-card:#ffffff;--mc-fg:#1a1d21;--mc-muted:#5c6470;
-  --mc-line:#e3e6ea;--mc-accent:#7c3aed;
-  --mc-run:#1d4ed8;--mc-run-bg:#dbeafe;
-  --mc-ok:#15803d;--mc-ok-bg:#dcfce7;
-  --mc-err:#b91c1c;--mc-err-bg:#fee2e2;
-  --mc-wait:#b45309;--mc-wait-bg:#fef3c7;
-}
-:root[data-theme="dark"]{
-  --mc-bg:#0f1115;--mc-card:#171a21;--mc-fg:#e8eaed;--mc-muted:#9aa3af;
-  --mc-line:#262b33;--mc-accent:#a78bfa;
-  --mc-run:#93c5fd;--mc-run-bg:#12233d;
-  --mc-ok:#4ade80;--mc-ok-bg:#132a1a;
-  --mc-err:#f87171;--mc-err-bg:#2a1414;
-  --mc-wait:#fbbf24;--mc-wait-bg:#2a2210;
+  --mc-bg:var(--bg);--mc-card:var(--bg-card);--mc-fg:var(--text);--mc-muted:var(--text-dim);
+  --mc-line:var(--border);--mc-accent:var(--primary);
+  --mc-run:var(--accent);--mc-run-bg:color-mix(in srgb,var(--accent) 18%,transparent);
+  --mc-ok:var(--green-dot);--mc-ok-bg:color-mix(in srgb,var(--green-dot) 16%,transparent);
+  --mc-err:var(--red);--mc-err-bg:color-mix(in srgb,var(--red) 16%,transparent);
+  --mc-wait:var(--yellow);--mc-wait-bg:color-mix(in srgb,var(--yellow) 18%,transparent);
 }
 body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
-.mc{max-width:1080px;margin:0 auto;padding:24px 16px 48px;
+.mc-shell{max-width:1080px;margin:20px auto 40px;}
+.mc-shell .terminal-title{letter-spacing:0.03em;}
+.mc{padding:20px 16px 40px;
   font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color:var(--mc-fg);}
 .mc *{box-sizing:border-box;}
@@ -984,6 +970,19 @@ body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
 .mc footer{color:var(--mc-muted);font-size:.82rem;text-align:center;}
 @media (max-width:560px){.mc{padding:16px 10px 32px;}.mc section{padding:12px;}}
 `;
+
+// Terminal-window chrome wraps the whole board: 3 traffic-light dots +
+// a mono title, matching commanderplugin.com's `.terminal` component.
+// Deterministic, CSP-safe (no <script>) — see buildSnapshotHtml below.
+function renderTerminalChromeOpen() {
+  return `<div class="terminal-chrome mc-shell">
+<div class="terminal-header">
+<span class="terminal-dot red" aria-hidden="true"></span><span class="terminal-dot yellow" aria-hidden="true"></span><span class="terminal-dot green" aria-hidden="true"></span>
+<span class="terminal-title">commander &middot; mission-control</span>
+</div>`;
+}
+
+const TERMINAL_CHROME_CLOSE = '</div>';
 
 function renderSummarySection(summary, agents, tasks) {
   const running = agents.filter((agent) => agent.status === 'running').length;
@@ -1286,7 +1285,8 @@ function buildSnapshotHtml(model, { now } = {}) {
     : '';
 
   return `<title>Commander Mission Control</title>
-<style>${SNAPSHOT_CSS}</style>
+<style>${brandBaseCss()}${SNAPSHOT_CSS}</style>
+${renderTerminalChromeOpen()}
 <main class="mc">
 <header>
 <h1>🎛️ Commander Mission Control</h1>
@@ -1302,7 +1302,8 @@ ${renderEdgesSection(edges, nowMs)}
 ${renderEventsSection(events, nowMs)}
 ${renderSuggestionsSection(suggestions)}
 <footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>
-</main>`;
+</main>
+${TERMINAL_CHROME_CLOSE}`;
 }
 
 export { buildSnapshotHtml, readModel, formatDuration, taskBucket };
