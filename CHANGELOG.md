@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.8.2] - 2026-07-16
+
+### Added
+- **Commander Cockpit** — every Commander tool, clickable, inside one artifact. Published from `/ccc-browse` → "🎛️ Open the Commander Cockpit": a self-contained, CSP-safe page with five tabs —
+  - 🧭 **Browse**: all 78 plugin + 467 ecosystem skills and 22 agents embedded, instant search, domain chips, a "what are you trying to accomplish?" job-first row, and copy-to-run on every card.
+  - 💡 **Ideas**: catalog-grounded next-move generator (project × goal), every suggestion a real skill with a copy button.
+  - ✨ **Enhance a prompt**: the 6 prompt-quality patterns as a live checklist — paste a prompt, watch the diagnosis, copy the sharpened rewrite.
+  - 📊 **Analytics**: your own machine's agent runs, tokens, est. cost, 14-day activity sparkline, top agents (Claude and Codex side by side via `source_app`), delegation flows, skill launches.
+  - 👥 **Agents**: the roster as a manager — per-agent run stats, edit a profile in-page, copy it out (or save it with the `downloads` capability) and tell Claude to apply it.
+  - Generator: `scripts/build-cockpit.mjs` (zero-dep, count-guarded against contract.json); republish to the same path for a living page.
+- **skill-runs logger** (UserPromptSubmit, 42nd hook handler) — records which skills you actually launch (`~/.claude/commander/skill-runs.jsonl`, slash-command name only, never prompt content, `source_app`-tagged, built-in CLI commands excluded) — powers the Cockpit's per-skill analytics.
+
 ## [6.8.1] - 2026-07-16
 
 ### Added

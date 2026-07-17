@@ -64,6 +64,12 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.js",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/skill-runs-logger.js",
+            "timeout": 3000,
+            "async": true
           }
         ]
       }

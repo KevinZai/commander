@@ -1,11 +1,11 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-07-14 | Version: 6.8.1 (see package.json) | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-07-14 | Version: 6.8.2 (see package.json) | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
-> **Latest: v6.8.1** — Mission Control now tracks Claude and Codex sessions side by side (`source_app` tagging, Source filter + pills, `sourceApp:name` agent keys) and adds a Suggestions panel you can promote to a ticket from `/ccc-mission-control`. v6.8.0 shipped Mission Control itself; v6.7 added `/ccc-relay` for durable cross-session spec → build → review handoffs, the 6-skill `ccc-smb-ops` domain, scrubbed outbound `/ccc-broadcast` status, click-first `/ccc-spawn`, and the `/ccc-prompt-fix` coach backed by a new ecosystem library of 52 prompts plus a 7-module Claude Code course.
+> **Latest: v6.8.2** — Mission Control now tracks Claude and Codex sessions side by side (`source_app` tagging, Source filter + pills, `sourceApp:name` agent keys) and adds a Suggestions panel you can promote to a ticket from `/ccc-mission-control`. v6.8.0 shipped Mission Control itself; v6.7 added `/ccc-relay` for durable cross-session spec → build → review handoffs, the 6-skill `ccc-smb-ops` domain, scrubbed outbound `/ccc-broadcast` status, click-first `/ccc-spawn`, and the `/ccc-prompt-fix` coach backed by a new ecosystem library of 52 prompts plus a 7-module Claude Code course.
 
 ---
 
@@ -27,7 +27,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v6.8.1 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v6.8.2 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -435,7 +435,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 
 **Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
-**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 23 lifecycle hooks × 41 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, and more).
+**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 23 lifecycle hooks × 42 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, and more).
 
 ---
 
@@ -1567,7 +1567,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v6.8.1)
+### 🛠️ Plugin Workflows (v6.8.2)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 78 skills; these core workflow shortcuts require no menu traversal:
 
@@ -2610,7 +2610,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 ---
 ## Built on Claude Agent SDK
 
-> *v6.8.1* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v6.8.2* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2661,7 +2661,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v6.8.1* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 78 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (41 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v6.8.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 78 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (42 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2718,7 +2718,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 78 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (41 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 78 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (42 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -2873,7 +2873,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v6.8.1 — How CCC thinks before it acts.*
+> *Appendix: v6.8.2 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 
