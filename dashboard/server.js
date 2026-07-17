@@ -18,6 +18,15 @@ const DEFAULT_COMMANDER_DIR = path.join(os.homedir(), '.claude', 'commander');
 const DEFAULT_HISTORY_DB_PATH = defaultHistoryDbPath();
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PACKAGE_PATH = path.join(__dirname, 'package.json');
+// charts.js (Item 3) lives in commander/cowork-plugin/lib/ — not
+// dashboard/public/ or dashboard/lib/ — because the SAME file is
+// imported directly by commander/cowork-plugin/lib/mission-control-
+// snapshot.js (the plugin ships without dashboard/, so a file it needs
+// must live in its own lib/ tree; see charts.js's own doc comment).
+// This route serves that one canonical file to the browser so the live
+// board's client-side script can `import` it too — one module, two
+// runtimes, never a duplicate to drift.
+const CHARTS_JS_PATH = path.join(__dirname, '..', 'commander', 'cowork-plugin', 'lib', 'charts.js');
 
 function readVersion() {
   try {
@@ -197,6 +206,11 @@ function createServer(options = {}) {
           path.join(PUBLIC_DIR, 'mission-control.css'),
           'text/css; charset=utf-8'
         );
+        return;
+      }
+
+      if (url.pathname === '/charts.js') {
+        await sendFile(res, CHARTS_JS_PATH, 'text/javascript; charset=utf-8');
         return;
       }
 

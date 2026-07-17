@@ -1,5 +1,18 @@
+import { aggregateDaily, aggregateWeekly, barStrip, sparkline } from './charts.js';
+
 const POLL_MS = 2000;
 const SVG_NS = 'http://www.w3.org/2000/svg';
+
+const HISTORY_TYPE_GLYPH = {
+  discovery: '🔍',
+  bugfix: '🐛',
+  change: '📝',
+  feature: '✨',
+  decision: '🧭',
+  refactor: '🔧',
+  security_alert: '🚨',
+  security_note: '🔐',
+};
 
 const els = {
   summary: document.getElementById('summary'),
@@ -22,6 +35,12 @@ const els = {
     inProgress: document.getElementById('col-inProgress'),
     done: document.getElementById('col-done'),
   },
+  chartCost: document.getElementById('chart-cost'),
+  chartAgents: document.getElementById('chart-agents'),
+  chartTasks: document.getElementById('chart-tasks'),
+  chartFailures: document.getElementById('chart-failures'),
+  historyPanel: document.getElementById('history-panel'),
+  history: document.getElementById('history'),
 };
 
 const SUGGESTION_STATUSES = ['new', 'promoted', 'dismissed'];
@@ -34,6 +53,8 @@ const state = {
   lastPermissions: '',
   lastFilterOptions: '',
   lastSuggestions: '',
+  lastMetrics: '',
+  lastHistory: '',
   agentCards: new Map(),
   permissionAges: [],
   latestAgents: [],
@@ -139,7 +160,12 @@ function buildAgentCard() {
   sub.className = 'mc-agent-sub';
   const sourcePill = document.createElement('span');
   sourcePill.className = 'mc-src';
-  mid.append(name, sub, sourcePill);
+  const derivedBadge = document.createElement('span');
+  derivedBadge.className = 'mc-derived-badge';
+  derivedBadge.textContent = 'inferred';
+  derivedBadge.title = 'Inferred from a delegation event — no token/cost data available';
+  derivedBadge.hidden = true;
+  mid.append(name, sub, sourcePill, derivedBadge);
 
   const right = document.createElement('div');
   right.className = 'mc-agent-right';
@@ -158,7 +184,7 @@ function buildAgentCard() {
   card.addEventListener('click', () => {
     toggleAgentFilter(card.dataset.agent || '', card.dataset.session || '', card.dataset.source || '');
   });
-  return { card, dot, name, sub, sourcePill, stateBadge, duration, tokens, cost, agent: null };
+  return { card, dot, name, sub, sourcePill, derivedBadge, stateBadge, duration, tokens, cost, agent: null };
 }
 
 function durationForAgent(agent) {
@@ -208,6 +234,12 @@ function updateAgentCard(refs, agent, maxima) {
   refs.dot.style.background = stale ? 'var(--idle)' : '';
   refs.stateBadge.style.background = stale ? 'var(--panel-strong)' : '';
   refs.stateBadge.style.color = stale ? 'var(--muted)' : '';
+  // Item 1's derived rows carry no real token/cost data — never present
+  // one as if it were a verified run: dim the gauges and flag it with a
+  // tooltip-bearing badge instead.
+  const derived = Boolean(agent.derived);
+  refs.card.classList.toggle('is-derived', derived);
+  refs.derivedBadge.hidden = !derived;
 
   const tokens = (agent.inputTokens || 0) + (agent.outputTokens || 0);
   const duration = durationForAgent(agent);
@@ -720,6 +752,90 @@ function applySuggestions(suggestions) {
   refreshSuggestions();
 }
 
+// Item 3 — same builder functions the server-rendered snapshot uses
+// (charts.js is the one canonical module, imported here and by
+// commander/cowork-plugin/lib/mission-control-snapshot.js — see that
+// file's doc comment). Charts stay always-visible: a metrics-less
+// machine still renders 4 clean zero-state charts, never a broken axis.
+function renderCharts(metrics) {
+  const costSeries = aggregateDaily(metrics, 'cost_usd', 30);
+  const agentsSeries = aggregateDaily(metrics, 'agents_dispatched', 30);
+  const failuresSeries = aggregateDaily(metrics, 'tool_failures', 30);
+  const tasksSeries = aggregateWeekly(metrics, 'tasks_completed', 8);
+
+  els.chartCost.innerHTML = sparkline(costSeries, {
+    label: 'Cost per day, last 30 days',
+    color: 'var(--accent)',
+  });
+  els.chartAgents.innerHTML = sparkline(agentsSeries, {
+    label: 'Agents dispatched per day, last 30 days',
+    color: 'var(--blue)',
+  });
+  els.chartFailures.innerHTML = sparkline(failuresSeries, {
+    label: 'Tool failures per day, last 30 days',
+    color: 'var(--bad)',
+  });
+  els.chartTasks.innerHTML = barStrip(tasksSeries, {
+    label: 'Tasks completed per week, last 8 weeks',
+    color: 'var(--good)',
+  });
+}
+
+function applyMetrics(metrics) {
+  const normalized = Array.isArray(metrics) ? metrics : [];
+  const signature = JSON.stringify(normalized);
+  if (signature === state.lastMetrics) return;
+  state.lastMetrics = signature;
+  renderCharts(normalized);
+}
+
+function historyGlyph(type) {
+  return HISTORY_TYPE_GLYPH[type] || '🧠';
+}
+
+// Item 5 — opt-in: the panel is `hidden` in the HTML by default and
+// only ever un-hides once a non-empty history list arrives (which only
+// happens if claude-mem is installed AND has observations). A genuinely
+// empty-but-installed claude-mem looks identical to "not installed" —
+// both render as "stay hidden", which is the same equivalence the
+// server-side reader documents (missing DB → same [] as zero rows).
+function renderHistory(history) {
+  if (history.length === 0) {
+    els.history.replaceChildren(emptyState('No history yet.'));
+    return;
+  }
+  const rows = history.map((item) => {
+    const row = document.createElement('li');
+    row.className = 'mc-history-item';
+
+    const glyph = document.createElement('span');
+    glyph.className = 'mc-history-glyph';
+    glyph.setAttribute('aria-hidden', 'true');
+    glyph.textContent = historyGlyph(item.type);
+
+    const title = document.createElement('span');
+    title.className = 'mc-history-title';
+    title.textContent = item.title || '(untitled)';
+
+    const meta = document.createElement('span');
+    meta.className = 'mc-history-meta';
+    meta.textContent = `${item.project ? `${item.project} · ` : ''}${formatClock(item.ts)}`;
+
+    row.append(glyph, title, meta);
+    return row;
+  });
+  els.history.replaceChildren(...rows);
+}
+
+function applyHistory(history) {
+  const normalized = Array.isArray(history) ? history : [];
+  const signature = JSON.stringify(normalized);
+  if (signature === state.lastHistory) return;
+  state.lastHistory = signature;
+  els.historyPanel.hidden = normalized.length === 0;
+  renderHistory(normalized);
+}
+
 function applyModel(model) {
   if (typeof model.summary === 'string') els.summary.textContent = model.summary;
   els.generatedAt.textContent = `Updated ${formatClock(model.generatedAt)}`;
@@ -795,6 +911,29 @@ async function poll() {
     els.generatedAt.textContent = 'Offline — retrying…';
   } finally {
     state.polling = false;
+  }
+  // Charts + History poll independently of the core model above: metrics
+  // are server-cached for 30s (Item 6) and history is opt-in — a hiccup
+  // fetching either must never flip the whole board offline, so each
+  // gets its own try/catch that just leaves the last-rendered view in
+  // place on failure.
+  try {
+    const response = await fetch('/api/metrics', { cache: 'no-store' });
+    if (response.ok) {
+      const payload = await response.json();
+      applyMetrics(payload.metrics);
+    }
+  } catch {
+    // keep the last-rendered charts
+  }
+  try {
+    const response = await fetch('/api/history', { cache: 'no-store' });
+    if (response.ok) {
+      const payload = await response.json();
+      applyHistory(payload.history);
+    }
+  } catch {
+    // keep the last-rendered history panel (or stay hidden)
   }
 }
 
