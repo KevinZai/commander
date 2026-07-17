@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildMissionModel, filterEventsAfter } from './lib/mission-model.js';
+import { defaultDbPath as defaultHistoryDbPath, readHistory } from './lib/history.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +15,7 @@ const HOST = '127.0.0.1';
 const DEFAULT_PORT = 4690;
 const DEFAULT_SESSIONS_DIR = path.join(os.homedir(), '.claude', 'sessions');
 const DEFAULT_COMMANDER_DIR = path.join(os.homedir(), '.claude', 'commander');
+const DEFAULT_HISTORY_DB_PATH = defaultHistoryDbPath();
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PACKAGE_PATH = path.join(__dirname, 'package.json');
 
@@ -135,6 +137,7 @@ async function readSessionFile(sessionsDir, filename) {
 function createServer(options = {}) {
   const sessionsDir = options.sessionsDir || DEFAULT_SESSIONS_DIR;
   const commanderDir = options.commanderDir || DEFAULT_COMMANDER_DIR;
+  const historyDbPath = options.historyDbPath || DEFAULT_HISTORY_DB_PATH;
   const startedAt = process.hrtime.bigint();
 
   return http.createServer(async (req, res) => {
@@ -223,6 +226,32 @@ function createServer(options = {}) {
         return;
       }
 
+      if (url.pathname === '/api/metrics') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, { metrics: model.metrics, generatedAt: model.generatedAt });
+        return;
+      }
+
+      if (url.pathname === '/api/top-skills') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, { topSkills: model.topSkills, generatedAt: model.generatedAt });
+        return;
+      }
+
+      if (url.pathname === '/api/history') {
+        // Opt-in: readHistory() itself returns [] when claude-mem isn't
+        // installed (missing DB) or node:sqlite isn't available — the
+        // panel hides entirely on an empty list, no separate flag needed.
+        const afterParam = url.searchParams.get('after');
+        const after = afterParam !== null ? Number(afterParam) : undefined;
+        const history = await readHistory({
+          dbPath: historyDbPath,
+          after: Number.isFinite(after) ? after : undefined,
+        });
+        sendJson(res, 200, { history, generatedAt: new Date().toISOString() });
+        return;
+      }
+
       if (url.pathname === '/api/health' || url.pathname === '/health') {
         const uptime = Number((Number(process.hrtime.bigint() - startedAt) / 1e9).toFixed(3));
         sendJson(res, 200, {
@@ -301,6 +330,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 export {
   DEFAULT_COMMANDER_DIR,
+  DEFAULT_HISTORY_DB_PATH,
   DEFAULT_PORT,
   DEFAULT_SESSIONS_DIR,
   HOST,
