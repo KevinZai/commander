@@ -244,9 +244,17 @@ function updateAgentCard(refs, agent, maxima) {
   const tokens = (agent.inputTokens || 0) + (agent.outputTokens || 0);
   const duration = durationForAgent(agent);
   const cost = Number(agent.estCostUsd) || 0;
-  setGauge(refs.duration, formatDuration(duration), duration, maxima.duration);
-  setGauge(refs.tokens, `${formatTokens(tokens)} tokens`, tokens, maxima.tokens);
-  setGauge(refs.cost, `$${cost.toFixed(4)} est`, cost, maxima.cost);
+  if (derived) {
+    // No real numbers exist for a delegation-inferred row — show them as
+    // absent ("—"), not as 0 tokens / $0.0000 (which reads as "free").
+    setGauge(refs.duration, '—', 0, maxima.duration);
+    setGauge(refs.tokens, '—', 0, maxima.tokens);
+    setGauge(refs.cost, '—', 0, maxima.cost);
+  } else {
+    setGauge(refs.duration, formatDuration(duration), duration, maxima.duration);
+    setGauge(refs.tokens, `${formatTokens(tokens)} tokens`, tokens, maxima.tokens);
+    setGauge(refs.cost, `$${cost.toFixed(4)} est`, cost, maxima.cost);
+  }
 }
 
 function renderAgents(agents) {

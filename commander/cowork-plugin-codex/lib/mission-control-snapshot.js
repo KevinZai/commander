@@ -299,6 +299,16 @@ function enrichUnknownAgentsFromDelegations(agents, eventEntries) {
   if (actorsBySession.size === 0) return agents;
   for (const list of actorsBySession.values()) list.sort((a, b) => a.ms - b.ms);
 
+  // Names already owned by a real named start record — exclude from the pool so a
+  // null start isn't renamed to a duplicate of an already-named agent.
+  const namedBySession = new Map();
+  for (const agent of agents) {
+    if (!agent.name || agent.name === 'unknown') continue;
+    const key = `${agent.sourceApp || 'claude-code'}:${agent.sessionId ?? ''}`;
+    if (!namedBySession.has(key)) namedBySession.set(key, new Set());
+    namedBySession.get(key).add(agent.name);
+  }
+
   const result = agents.slice();
   const unknownIdx = new Map();
   result.forEach((agent, idx) => {
@@ -308,8 +318,11 @@ function enrichUnknownAgentsFromDelegations(agents, eventEntries) {
     unknownIdx.get(key).push(idx);
   });
   for (const [key, idxs] of unknownIdx) {
-    const actors = actorsBySession.get(key);
+    let actors = actorsBySession.get(key);
     if (!actors) continue;
+    const owned = namedBySession.get(key);
+    if (owned) actors = actors.filter((a) => !owned.has(a.actor));
+    if (actors.length === 0) continue;
     idxs.sort((x, y) => (toMs(result[x].startedAt) ?? 0) - (toMs(result[y].startedAt) ?? 0));
     for (let i = 0; i < idxs.length && i < actors.length; i += 1) {
       result[idxs[i]] = { ...result[idxs[i]], name: actors[i].actor, nameFromDelegation: true };
@@ -1043,11 +1056,13 @@ function renderAgentsSection(agents, nowMs) {
     const tasksCompleted = Number.isFinite(agent.tasksCompleted)
       ? Math.max(0, Math.round(agent.tasksCompleted))
       : 0;
-    const cost = Number.isFinite(agent.estCostUsd)
-      ? `$${agent.estCostUsd.toFixed(4)}`
-      : '—';
-    const currentTask = agent.currentTask || 'No current task';
     const isDerived = agent.derived === true;
+    // Derived rows carry no real cost — show it absent, not $0.0000 (reads as free).
+    const cost =
+      !isDerived && Number.isFinite(agent.estCostUsd)
+        ? `$${agent.estCostUsd.toFixed(4)}`
+        : '—';
+    const currentTask = agent.currentTask || 'No current task';
     const statusClass =
       (agent.status === 'awaiting_permission'
         ? ' is-awaiting'

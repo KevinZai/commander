@@ -206,4 +206,27 @@ for (const [label, read] of readers) {
     // It kept its real start record — it is NOT a synthesized derived row.
     assert.notEqual(row.derived, true);
   });
+
+  test(`${label}: a named start + a null start in one session don't cross-pair into a duplicate`, async () => {
+    // Mixed case: named 'alpha' start + one null start, delegations [alpha, beta].
+    // 'alpha' is already owned by the named start, so the null start must take
+    // 'beta' — not a second 'alpha' (duplicate) plus a spurious derived 'beta'.
+    const baseDir = await makeBase({
+      subagent: [
+        { ts: T('10:00:00'), agent_name: 'alpha', prompt: 'p', model: 'm', session_id: 'S9' },
+        { ts: T('10:00:01'), agent_name: null, prompt: null, model: null, session_id: 'S9' },
+      ],
+      events: [
+        { ts: T('10:00:02'), session_id: 'S9', source_app: 'claude-code', type: 'delegation', actor: 'alpha' },
+        { ts: T('10:00:03'), session_id: 'S9', source_app: 'claude-code', type: 'delegation', actor: 'beta' },
+      ],
+    });
+    const model = await read({ baseDir, now: NOW });
+
+    const keys = model.agents.map((agent) => agent.key).sort();
+    assert.deepEqual(keys, ['claude-code:alpha', 'claude-code:beta']);
+    assert.equal(model.agents.filter((a) => a.name === 'alpha').length, 1, 'no duplicate alpha');
+    // beta came from the null start record adopting the name, not a synthesized row.
+    assert.notEqual(model.agents.find((a) => a.name === 'beta').derived, true);
+  });
 }

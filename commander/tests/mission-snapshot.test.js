@@ -115,6 +115,38 @@ function fixtureModel() {
   };
 }
 
+describe('buildSnapshotHtml — derived rows show no fabricated numbers', () => {
+  it('renders "—" for a derived row cost, never $0.0000', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    const model = fixtureModel();
+    model.agents = [
+      {
+        name: 'codex-worker',
+        model: null,
+        sessionId: 's-codex',
+        startedAt: '2026-07-16T11:30:00.000Z',
+        endedAt: null,
+        durationMs: null,
+        inputTokens: 0,
+        outputTokens: 0,
+        status: 'running',
+        emoji: '🤖',
+        role: 'Agent',
+        sourceApp: 'codex',
+        currentTask: 'Codex-only task',
+        tasksCompleted: 0,
+        estCostUsd: 0,
+        derived: true,
+      },
+    ];
+    const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+    // The inferred row must not present $0.0000 (reads as "free"); its cost is "—".
+    assert.doesNotMatch(html, /\$0\.0000/);
+    assert.match(html, /Est\. cost: <span class="mono">—<\/span>/);
+    assert.ok(html.includes('inferred'), 'still flagged as inferred');
+  });
+});
+
 describe('buildSnapshotHtml — single self-contained document', () => {
   it('returns one HTML string with exactly one stable <title>', async () => {
     const { buildSnapshotHtml } = await loadLib();

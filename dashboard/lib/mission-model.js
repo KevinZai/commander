@@ -298,6 +298,17 @@ function enrichUnknownAgentsFromDelegations(agents, eventEntries) {
   if (actorsBySession.size === 0) return agents;
   for (const list of actorsBySession.values()) list.sort((a, b) => a.ms - b.ms);
 
+  // Names already owned by a real named start record, per session — their
+  // delegations belong to them, not to an unknown start, so they must not be
+  // in the pairing pool (else a null start gets renamed to a duplicate).
+  const namedBySession = new Map();
+  for (const agent of agents) {
+    if (!agent.name || agent.name === 'unknown') continue;
+    const key = `${agent.sourceApp || 'claude-code'}:${agent.sessionId ?? ''}`;
+    if (!namedBySession.has(key)) namedBySession.set(key, new Set());
+    namedBySession.get(key).add(agent.name);
+  }
+
   const result = agents.slice();
   const unknownIdx = new Map();
   result.forEach((agent, idx) => {
@@ -307,9 +318,12 @@ function enrichUnknownAgentsFromDelegations(agents, eventEntries) {
     unknownIdx.get(key).push(idx);
   });
   for (const [key, idxs] of unknownIdx) {
-    const actors = actorsBySession.get(key);
+    let actors = actorsBySession.get(key);
     if (!actors) continue;
-    // Pair oldest unknown start with oldest delegation, 1:1, per session.
+    const owned = namedBySession.get(key);
+    if (owned) actors = actors.filter((a) => !owned.has(a.actor));
+    if (actors.length === 0) continue;
+    // Pair oldest unknown start with oldest unclaimed delegation, 1:1, per session.
     idxs.sort((x, y) => (parseTs(result[x].startedAt) ?? 0) - (parseTs(result[y].startedAt) ?? 0));
     for (let i = 0; i < idxs.length && i < actors.length; i += 1) {
       result[idxs[i]] = { ...result[idxs[i]], name: actors[i].actor, nameFromDelegation: true };
