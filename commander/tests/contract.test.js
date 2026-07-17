@@ -158,6 +158,28 @@ test('check-product-contract.js exits 1 when a fixture has drift', function() {
   assert.match(result.stdout, /actual: 50/);
 });
 
+test('version scan skips historical phrasing but catches current-version drift', function() {
+  // Historical release-attribution phrasings must NOT be rewritten to the current
+  // version (the recurring --patch corruption class), but a genuine CURRENT-version
+  // claim carrying an old number still has to be caught.
+  var skipped = makeFixture({
+    'README.md':
+      'The mirror was added in v6.0.0. It has been primary as of v6.0.0.\n' +
+      '**Status (v6.0.0):** the codex mirror. Fixed from before v6.0.0.\n' +
+      'v6.0.0 ships a generated mirror; v6.0.0 makes the adapter first-class.\n',
+  });
+  var okResult = spawnCheck(['--root', skipped, '--check']);
+  assert.strictEqual(okResult.status, 0, 'historical version phrasing is skipped: ' + okResult.stdout + okResult.stderr);
+
+  var caught = makeFixture({
+    'README.md': 'CC Commander current Status (v6.0.0): the plugin is live now.\n',
+  });
+  var driftResult = spawnCheck(['--root', caught, '--check']);
+  assert.strictEqual(driftResult.status, 1, '"current Status (vX)" drift is caught: ' + driftResult.stdout);
+  assert.match(driftResult.stdout, /field: version/);
+  assert.match(driftResult.stdout, /actual: "?6\.0\.0"?/);
+});
+
 test('--patch fixes simple count and version mismatches', function() {
   var contract = readJson(CONTRACT_PATH);
   var root = makeFixture({
