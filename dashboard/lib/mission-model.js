@@ -3,27 +3,62 @@
  * Unified read model for Commander Mission Control.
  *
  * Merges the plugin hook logs under ~/.claude/commander/ into one
- * dashboard-ready snapshot: agents (start/stop joined), tasks (latest
- * state per id), delegation edges, a merged event feed, suggestions
- * (latest-status-wins per id — see commander/cowork-plugin/lib/
- * suggestions.js for the writer side), and a plain-English summary a
- * non-coder can read.
+ * dashboard-ready snapshot: agents (start/stop joined, PLUS derived
+ * roster rows synthesized from delegation events for sources that never
+ * get a real start record — see deriveRosterFromDelegations below),
+ * tasks (latest state per id), delegation edges, a merged event feed,
+ * suggestions (latest-status-wins per id — see commander/cowork-plugin/
+ * lib/suggestions.js for the writer side), metrics (daily cost/agents/
+ * tasks/failures rollup — see commander/cowork-plugin/lib/metrics.js),
+ * topSkills (see commander/cowork-plugin/lib/top-skills.js), and a
+ * plain-English summary a non-coder can read.
+ *
+ * Item 1 — Codex Desktop's hook surface drops SubagentStart/
+ * SubagentStop (see scripts/build-codex.js
+ * HOOK_EVENTS_DROPPED_BY_BUILD), so subagent-runs.jsonl/agent-runs.jsonl
+ * — the files joinAgents() below reads — are ALWAYS claude-code. Codex
+ * work would otherwise appear in the Live Feed (events.jsonl, written
+ * from the PostToolUse hook Codex keeps) but never the roster. To close
+ * that gap, deriveRosterFromDelegations() synthesizes roster rows from
+ * events.jsonl's `delegation`-type entries for any (sourceApp, name,
+ * sessionId) combo that has no real start record — marked `derived:
+ * true` so the UI can show them dimmed/unverified, since they carry no
+ * token/cost data (a later completion signal is unavailable for these,
+ * so — like real unjoined starts — they age out by RUNNING_WINDOW_MS
+ * into 'stale').
+ *
+ * Item 6 — an in-memory TTL cache (default 2s, matching the dashboard's
+ * POLL_MS) keyed by baseDir avoids N concurrent pollers each re-reading
+ * every file; metrics/topSkills get a longer 30s TTL since they don't
+ * change per-poll (and, for metrics, so a 2s poll doesn't append 30
+ * duplicate ccusage-priced rows a minute). JSONL reads are bounded to
+ * the most recent MAX_JSONL_LINES lines per file — a higher-volume log
+ * beyond that cap silently undercounts older activity in the window;
+ * rotated archives are never read.
  *
  * Zero dependencies, ESM, read-only, fail-open: a missing file yields
- * an empty slice, a bad JSONL line is skipped.
+ * an empty slice, a bad JSONL line is skipped, any source erroring
+ * (including a missing ccusage binary or a missing claude-mem db)
+ * yields zero-state for that slice, never a 500.
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { getMetrics } from '../../commander/cowork-plugin/lib/metrics.js';
+import { readTopSkills } from '../../commander/cowork-plugin/lib/top-skills.js';
+
 const AGENT_CAP = 200;
 const TASK_CAP = 100;
 const EVENT_CAP = 100;
 const SUGGESTION_CAP = 50;
+const MAX_JSONL_LINES = 5000; // Item 6 bounded-scan cap, per source file
 const JOIN_WINDOW_MS = 24 * 60 * 60 * 1000;
 const RUNNING_WINDOW_MS = 6 * 60 * 60 * 1000;
 const PERMISSION_WINDOW_MS = 15 * 60 * 1000;
+const MODEL_CACHE_TTL_MS = 2000; // matches dashboard/public/mission-control.js's POLL_MS
+const SLOW_FIELD_CACHE_TTL_MS = 30_000; // metrics/topSkills — Item 6
 const EDGE_TYPES = new Set(['delegation', 'message', 'workflow']);
 const FAILED_RE = /fail|error|abort|cancel|timeout|crash/i;
 const DEFAULT_PERSONA = Object.freeze({ emoji: '🤖', role: 'Agent' });
@@ -74,7 +109,11 @@ function parseTs(value) {
   return Number.isFinite(ms) ? ms : null;
 }
 
-async function readJsonl(filePath) {
+// Item 6 bounded-scan discipline: only the most recent maxLines
+// non-empty lines are parsed — a file that has grown past the cap
+// silently undercounts older entries in this file (its rotated
+// archives, e.g. events.2026-01-01.jsonl, are never read at all).
+async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
   let raw;
   try {
     raw = await fsp.readFile(filePath, 'utf8');
@@ -82,12 +121,13 @@ async function readJsonl(filePath) {
     return [];
   }
 
+  const lines = raw.split('\n').filter((line) => line.trim());
+  const tail = lines.length > maxLines ? lines.slice(lines.length - maxLines) : lines;
+
   const entries = [];
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
+  for (const line of tail) {
     try {
-      const parsed = JSON.parse(trimmed);
+      const parsed = JSON.parse(line);
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         entries.push(parsed);
       }
@@ -224,6 +264,62 @@ function joinAgents(starts, stops, nowMs) {
 
   agents.sort((left, right) => right.refMs - left.refMs);
   return agents.slice(0, AGENT_CAP).map(({ refMs, ...agent }) => agent);
+}
+
+// Item 1 — the roster's headline gap: joinAgents() above only ever sees
+// claude-code (subagent-runs.jsonl/agent-runs.jsonl are claude-code-only
+// legacy files — SubagentStart/SubagentStop are dropped by the Codex
+// build). Synthesize a roster row from events.jsonl's `delegation`-type
+// entries for any (sourceApp, name, sessionId) combo that has no real
+// start record — so Codex (and any future non-claude-code source) shows
+// up in the roster, not just the Live Feed. If multiple delegation
+// events share a combo, the most recent one represents it (freshest
+// signal for the running/stale status window below). A real start
+// record for the same combo always wins — this never creates a
+// duplicate.
+function deriveRosterFromDelegations(eventEntries, existingAgents, nowMs) {
+  const existingKeys = new Set(
+    existingAgents.map(
+      (agent) => `${agent.sourceApp || 'claude-code'}:${agent.name}:${agent.sessionId ?? ''}`
+    )
+  );
+
+  const latestByCombo = new Map();
+  for (const entry of eventEntries) {
+    if (entry.type !== 'delegation') continue;
+    const actor = typeof entry.actor === 'string' && entry.actor.trim() ? entry.actor.trim() : null;
+    if (!actor) continue;
+    const sourceApp = entry.source_app || 'claude-code';
+    const sessionId = entry.session_id ?? entry.sessionId ?? null;
+    const comboKey = `${sourceApp}:${actor}:${sessionId ?? ''}`;
+    if (existingKeys.has(comboKey)) continue; // a real row already covers this combo
+
+    const ms = parseTs(entry.ts);
+    if (ms === null) continue;
+    const current = latestByCombo.get(comboKey);
+    if (!current || ms > current.ms) {
+      latestByCombo.set(comboKey, { ms, entry, sourceApp, actor, sessionId });
+    }
+  }
+
+  const derived = [];
+  for (const { ms, entry, sourceApp, actor, sessionId } of latestByCombo.values()) {
+    const ageMs = nowMs - ms;
+    derived.push({
+      name: actor,
+      sourceApp,
+      model: null,
+      sessionId,
+      startedAt: entry.ts ?? null,
+      endedAt: null,
+      durationMs: null,
+      inputTokens: 0,
+      outputTokens: 0,
+      status: ageMs >= 0 && ageMs <= RUNNING_WINDOW_MS ? 'running' : 'stale',
+      derived: true,
+    });
+  }
+  return derived;
 }
 
 function latestTasks(taskEntries) {
@@ -628,7 +724,7 @@ function summarize(agents, tasks, nowMs, awaitingPermission, suggestions = []) {
   return parts.join(' ');
 }
 
-async function buildMissionModel({ baseDir, now } = {}) {
+async function computeBaseModel({ baseDir, now }) {
   const root = baseDir || defaultBaseDir();
 
   const [starts, stops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
@@ -644,11 +740,19 @@ async function buildMissionModel({ baseDir, now } = {}) {
     now instanceof Date ? now.getTime() : Number.isFinite(now) ? now : Date.now();
 
   const joinedAgents = joinAgents(starts, stops, nowMs);
+  // Item 1: fold in roster rows derived from delegation events for
+  // sources (e.g. Codex) that never get a real start record, then
+  // re-sort/re-cap the combined roster by recency.
+  const derivedAgents = deriveRosterFromDelegations(eventEntries, joinedAgents, nowMs);
+  const mergedAgents = [...joinedAgents, ...derivedAgents]
+    .sort((left, right) => (parseTs(right.startedAt) ?? 0) - (parseTs(left.startedAt) ?? 0))
+    .slice(0, AGENT_CAP);
+
   const tasks = latestTasks(taskEntries);
   const edges = toEdges(eventEntries);
   const events = mergeEvents({ starts, stops, taskEntries, eventEntries });
   const eventIndex = indexNewestEvents(eventEntries);
-  const decoratedAgents = decorateAgents(joinedAgents, stops, eventIndex);
+  const decoratedAgents = decorateAgents(mergedAgents, stops, eventIndex);
   const permissionState = applyAwaitingPermissions(
     decoratedAgents,
     eventIndex.latestBySession,
@@ -673,6 +777,76 @@ async function buildMissionModel({ baseDir, now } = {}) {
   };
 }
 
+// metrics/topSkills are computed independently of the base model above —
+// see the module doc comment (Item 6) for why they get their own,
+// longer-lived cache entry instead of riding the 2s base-model TTL.
+async function computeSlowFields({ baseDir, now, metricsDays }) {
+  const [metrics, topSkills] = await Promise.all([
+    getMetrics({ baseDir, now, days: metricsDays }).catch(() => []),
+    readTopSkills({ baseDir, now }).catch(() => []),
+  ]);
+  return { metrics, topSkills };
+}
+
+// Item 6 — in-memory TTL cache keyed by baseDir, so N concurrent
+// pollers (or, in tests, N calls against the same fixture within the
+// TTL window) share one computed result instead of each re-reading
+// every file / re-shelling out to ccusage. A rejected factory promise
+// is evicted immediately so a transient failure doesn't poison the
+// cache for the rest of the TTL window.
+function cached(map, key, ttlMs, factory) {
+  const nowWall = Date.now();
+  const hit = map.get(key);
+  if (hit && hit.expiresAt > nowWall) return hit.promise;
+  const promise = factory();
+  map.set(key, { expiresAt: nowWall + ttlMs, promise });
+  promise.catch(() => {
+    if (map.get(key)?.promise === promise) map.delete(key);
+  });
+  return promise;
+}
+
+const modelCache = new Map(); // baseDir -> { expiresAt, promise<baseModel> }
+const slowFieldCache = new Map(); // baseDir -> { expiresAt, promise<{metrics, topSkills}> }
+
+/** Test-only escape hatch: drop every cached model/metrics/topSkills entry. */
+function clearMissionModelCaches() {
+  modelCache.clear();
+  slowFieldCache.clear();
+}
+
+/**
+ * Build the full Mission Control read model. `cache` (default true)
+ * gates the Item 6 TTL caching described above — pass `cache: false` to
+ * force a fresh read (used by tests that mutate fixture files between
+ * back-to-back calls against the same baseDir). `cacheTtlMs`/
+ * `slowFieldTtlMs` override the default 2s/30s windows, and
+ * `metricsDays` overrides metrics.js's default lookback window.
+ */
+async function buildMissionModel({
+  baseDir,
+  now,
+  cache = true,
+  cacheTtlMs = MODEL_CACHE_TTL_MS,
+  slowFieldTtlMs = SLOW_FIELD_CACHE_TTL_MS,
+  metricsDays,
+} = {}) {
+  const root = baseDir || defaultBaseDir();
+
+  const [base, slow] = await Promise.all([
+    cache
+      ? cached(modelCache, root, cacheTtlMs, () => computeBaseModel({ baseDir: root, now }))
+      : computeBaseModel({ baseDir: root, now }),
+    cache
+      ? cached(slowFieldCache, root, slowFieldTtlMs, () =>
+          computeSlowFields({ baseDir: root, now, metricsDays })
+        )
+      : computeSlowFields({ baseDir: root, now, metricsDays }),
+  ]);
+
+  return { ...base, ...slow };
+}
+
 function filterEventsAfter(events, after) {
   if (!Array.isArray(events)) return [];
   const afterMs = parseTs(after);
@@ -683,4 +857,10 @@ function filterEventsAfter(events, after) {
   });
 }
 
-export { buildMissionModel, filterEventsAfter, formatDuration, taskBucket };
+export {
+  buildMissionModel,
+  clearMissionModelCaches,
+  filterEventsAfter,
+  formatDuration,
+  taskBucket,
+};

@@ -13,21 +13,39 @@
  *
  * readModel({ baseDir, now }) is a self-contained tolerant JSONL reader
  * over ~/.claude/commander/ that mirrors dashboard/lib/mission-model.js
- * (same shape, same wording) — duplicated on purpose: the plugin ships
- * WITHOUT dashboard/, so this file must not import from it.
+ * (same shape, same wording) — duplicated on purpose for the agent-join/
+ * event-merge/summary logic: the plugin ships WITHOUT dashboard/, so
+ * this file must not import from it. metrics.js and top-skills.js are
+ * NOT duplicated the same way — they already live in this same
+ * commander/cowork-plugin/lib/ tree (they ship with the plugin), so
+ * readModel imports them directly rather than re-implementing the
+ * ccusage-shelling/rollup logic a second time.
+ *
+ * Item 1 (roster from delegation events) is mirrored verbatim from
+ * mission-model.js's deriveRosterFromDelegations() — see that file's
+ * doc comment for the Codex hook-drop rationale. readModel does NOT
+ * mirror mission-model.js's Item 6 TTL cache: a snapshot is a one-shot
+ * render, not a polled endpoint, so there's no repeated-read cost to
+ * amortize here — it still uses the same bounded-read cap, though, so a
+ * huge log can't blow up a single snapshot build.
  *
  * Deterministic rendering: every timestamp derives from the model or the
  * `now` argument — never Date.now() inside buildSnapshotHtml.
- * Zero dependencies, ESM, read-only, fail-open.
+ * Zero dependencies (beyond this plugin's own lib/), ESM, read-only,
+ * fail-open.
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { getMetrics } from './metrics.js';
+import { readTopSkills } from './top-skills.js';
+
 const AGENT_CAP = 200;
 const TASK_CAP = 100;
 const EVENT_CAP = 100;
+const MAX_JSONL_LINES = 5000; // Item 6 bounded-scan cap, per source file
 const SUGGESTION_CAP = 50;
 const ROW_CAP = 30;
 const JOIN_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -88,7 +106,11 @@ function toMs(value) {
   return Number.isFinite(ms) ? ms : null;
 }
 
-async function readJsonl(filePath) {
+// Item 6 bounded-scan discipline: only the most recent maxLines
+// non-empty lines are parsed — a file that has grown past the cap
+// silently undercounts older entries (rotated archives are never read
+// at all).
+async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
   let raw;
   try {
     raw = await fsp.readFile(filePath, 'utf8');
@@ -96,12 +118,13 @@ async function readJsonl(filePath) {
     return [];
   }
 
+  const lines = raw.split('\n').filter((line) => line.trim());
+  const tail = lines.length > maxLines ? lines.slice(lines.length - maxLines) : lines;
+
   const entries = [];
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
+  for (const line of tail) {
     try {
-      const parsed = JSON.parse(trimmed);
+      const parsed = JSON.parse(line);
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         entries.push(parsed);
       }
@@ -243,6 +266,58 @@ function joinAgents(starts, stops, nowMs) {
 
   agents.sort((left, right) => right.refMs - left.refMs);
   return agents.slice(0, AGENT_CAP).map(({ refMs, ...agent }) => agent);
+}
+
+// Item 1 — mirrors mission-model.js's deriveRosterFromDelegations()
+// verbatim (see that file's doc comment for the full Codex hook-drop
+// rationale): joinAgents() above only ever sees claude-code
+// (subagent-runs.jsonl/agent-runs.jsonl are claude-code-only legacy
+// files). Synthesize a roster row from events.jsonl's `delegation`-type
+// entries for any (sourceApp, name, sessionId) combo with no real start
+// record. A real start record for the same combo always wins.
+function deriveRosterFromDelegations(eventEntries, existingAgents, nowMs) {
+  const existingKeys = new Set(
+    existingAgents.map(
+      (agent) => `${agent.sourceApp || 'claude-code'}:${agent.name}:${agent.sessionId ?? ''}`
+    )
+  );
+
+  const latestByCombo = new Map();
+  for (const entry of eventEntries) {
+    if (entry.type !== 'delegation') continue;
+    const actor = typeof entry.actor === 'string' && entry.actor.trim() ? entry.actor.trim() : null;
+    if (!actor) continue;
+    const sourceApp = entry.source_app || 'claude-code';
+    const sessionId = entry.session_id ?? entry.sessionId ?? null;
+    const comboKey = `${sourceApp}:${actor}:${sessionId ?? ''}`;
+    if (existingKeys.has(comboKey)) continue; // a real row already covers this combo
+
+    const ms = toMs(entry.ts);
+    if (ms === null) continue;
+    const current = latestByCombo.get(comboKey);
+    if (!current || ms > current.ms) {
+      latestByCombo.set(comboKey, { ms, entry, sourceApp, actor, sessionId });
+    }
+  }
+
+  const derived = [];
+  for (const { ms, entry, sourceApp, actor, sessionId } of latestByCombo.values()) {
+    const ageMs = nowMs - ms;
+    derived.push({
+      name: actor,
+      sourceApp,
+      model: null,
+      sessionId,
+      startedAt: entry.ts ?? null,
+      endedAt: null,
+      durationMs: null,
+      inputTokens: 0,
+      outputTokens: 0,
+      status: ageMs >= 0 && ageMs <= RUNNING_WINDOW_MS ? 'running' : 'stale',
+      derived: true,
+    });
+  }
+  return derived;
 }
 
 function latestTasks(taskEntries) {
@@ -648,11 +723,18 @@ async function readModel({ baseDir, now } = {}) {
   const nowMs = toMs(now) ?? Date.now();
 
   const joinedAgents = joinAgents(starts, stops, nowMs);
+  // Item 1: fold in roster rows derived from delegation events for
+  // sources (e.g. Codex) that never get a real start record.
+  const derivedAgents = deriveRosterFromDelegations(eventEntries, joinedAgents, nowMs);
+  const mergedAgents = [...joinedAgents, ...derivedAgents]
+    .sort((left, right) => (toMs(right.startedAt) ?? 0) - (toMs(left.startedAt) ?? 0))
+    .slice(0, AGENT_CAP);
+
   const tasks = latestTasks(taskEntries);
   const edges = toEdges(eventEntries);
   const events = mergeEvents({ starts, stops, taskEntries, eventEntries });
   const eventIndex = indexNewestEvents(eventEntries);
-  const decoratedAgents = decorateAgents(joinedAgents, stops, eventIndex);
+  const decoratedAgents = decorateAgents(mergedAgents, stops, eventIndex);
   const permissionState = applyAwaitingPermissions(
     decoratedAgents,
     eventIndex.latestBySession,
@@ -663,6 +745,10 @@ async function readModel({ baseDir, now } = {}) {
   const filterOptions = buildFilterOptions({ starts, stops, taskEntries, eventEntries });
   const suggestions = latestSuggestions(suggestionEntries);
   const summary = summarize(agents, tasks, nowMs, awaitingPermission, suggestions);
+  const [metrics, topSkills] = await Promise.all([
+    getMetrics({ baseDir: root, now: nowMs }).catch(() => []),
+    readTopSkills({ baseDir: root, now: nowMs }).catch(() => []),
+  ]);
 
   return {
     agents,
@@ -673,6 +759,8 @@ async function readModel({ baseDir, now } = {}) {
     awaitingPermission,
     filterOptions,
     suggestions,
+    metrics,
+    topSkills,
     generatedAt: new Date(nowMs).toISOString(),
   };
 }
