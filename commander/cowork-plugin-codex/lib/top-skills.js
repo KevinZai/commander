@@ -6,9 +6,12 @@
  * (`{ts, skill, source_app, session_id}`).
  *
  * Zero-state tolerant and NOT blocking: the writer
- * (skill-runs-logger.js) ships with Cockpit v6.8.2 and is NOT on main
- * yet — the file will usually be absent. Missing file → []. This
- * module never writes skill-runs.jsonl — that's CC-1379's job.
+ * (hooks/skill-runs-logger.js) ships with Cockpit v6.8.2 — on main as
+ * of that release, writing `{ts, skill, source_app, session_id}` rows
+ * exactly matching the shape this reader expects. Still zero-state
+ * tolerant on a machine that predates v6.8.2 (or simply hasn't run a
+ * skill yet): missing file → []. This module never writes
+ * skill-runs.jsonl — that's the hook's job (CC-1379).
  *
  * Rows lacking source_app count into 'claude-code' (pre-fix history —
  * before a source_app-aware writer existed).

@@ -1,11 +1,16 @@
 // Pins Commander Mission Control's Item 4 (CC-1380) — the topSkills
 // panel: commander/cowork-plugin/lib/top-skills.js (readTopSkills), a
-// contract owed to Cockpit (CC-1379). The writer (skill-runs-logger.js)
-// ships with Cockpit v6.8.2 and is NOT on main yet, so
-// ~/.claude/commander/skill-runs.jsonl is normally absent — every
-// reader here must degrade to [] cleanly, not throw.
+// contract owed to Cockpit (CC-1379). The writer
+// (hooks/skill-runs-logger.js) shipped with Cockpit v6.8.2 and is on
+// main as of that release — the "writer confirmed absent" spec claim
+// this file used to pin no longer holds (verified below, replaced with
+// a positive integration check against the real writer's record
+// shape). ~/.claude/commander/skill-runs.jsonl is still commonly absent
+// on a machine that predates v6.8.2 or simply hasn't run a skill yet —
+// every reader here must still degrade to [] cleanly, not throw.
 
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -14,6 +19,13 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const SKILL_RUNS_LOGGER_PATH = path.join(
+  REPO_ROOT,
+  'commander',
+  'cowork-plugin',
+  'hooks',
+  'skill-runs-logger.js'
+);
 
 import { readTopSkills, skillRunsFile } from '../cowork-plugin/lib/top-skills.js';
 import { buildMissionModel } from '../../dashboard/lib/mission-model.js';
@@ -40,18 +52,31 @@ function toLines(entries) {
 
 const NOW = Date.parse('2026-07-16T10:04:00.000Z');
 
-test('readTopSkills: skill-runs-logger.js is confirmed NOT present anywhere on main (CC-1380 spec claim, verified)', async () => {
-  // This is a repo-state assertion, not a functional one: it fails loudly
-  // if a future change lands the writer without updating this file's
-  // "zero-state tolerant" framing.
-  let found = false;
-  try {
-    await fs.access(path.join(REPO_ROOT, 'commander', 'cowork-plugin', 'hooks', 'skill-runs-logger.js'));
-    found = true;
-  } catch {
-    found = false;
-  }
-  assert.equal(found, false, 'skill-runs-logger.js should not exist yet — CC-1379 owns adding it');
+test('readTopSkills: the real skill-runs-logger.js writer (Cockpit v6.8.2, now on main) produces a row this reader parses correctly', async () => {
+  // This used to pin the OPPOSITE repo-state claim (the writer confirmed
+  // absent) — that held when this test was written, and stopped holding
+  // the moment Cockpit v6.8.2 merged. Rather than re-pin an absence that
+  // can flip again, this asserts the actual contract: spawn the real
+  // hook, confirm the line it appends round-trips through readTopSkills()
+  // exactly as this reader's own {ts, skill, source_app, session_id}
+  // shape expects — a reader/writer integration check, not a duplicate
+  // of skill-runs-logger.test.js's own hook-internals coverage.
+  const home = await fs.mkdtemp(path.join(tmpRoot, 'writer-home-'));
+  const result = spawnSync('node', [SKILL_RUNS_LOGGER_PATH], {
+    input: JSON.stringify({ prompt: '/ccc-build make me a landing page', session_id: 'writer-check-1' }),
+    encoding: 'utf8',
+    timeout: 5000,
+    env: { ...process.env, HOME: home, USERPROFILE: home },
+  });
+  assert.equal(result.status, 0, `hook exited non-zero: ${result.stderr}`);
+
+  const baseDir = path.join(home, '.claude', 'commander');
+  const rows = await readTopSkills({ baseDir, now: Date.now() });
+
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].skill, 'ccc-build');
+  assert.equal(rows[0].runs7d, 1);
+  assert.deepEqual(rows[0].bySource, { 'claude-code': 1 });
 });
 
 test('readTopSkills: missing skill-runs.jsonl returns []', async () => {
