@@ -1042,21 +1042,25 @@ function renderAgentsSection(agents, nowMs) {
       label: 'unknown status',
       cls: 'st-stale',
     };
+    const isDerived = agent.derived === true;
     const startMs = toMs(agent.startedAt);
     const started = timeAgo(startMs ?? NaN, nowMs ?? NaN) || (startMs !== null ? stamp(startMs) : '—');
+    // A derived row's startedAt is the delegation event, not a real start — we
+    // don't measure its runtime, so show '—' rather than a "Xm so far" duration.
     let took = '—';
-    if (agent.status === 'running') {
-      took =
-        startMs !== null && Number.isFinite(nowMs) && nowMs > startMs
-          ? `${formatDuration(nowMs - startMs)} so far`
-          : 'just started';
-    } else if (Number.isFinite(agent.durationMs) && agent.durationMs > 0) {
-      took = formatDuration(agent.durationMs);
+    if (!isDerived) {
+      if (agent.status === 'running') {
+        took =
+          startMs !== null && Number.isFinite(nowMs) && nowMs > startMs
+            ? `${formatDuration(nowMs - startMs)} so far`
+            : 'just started';
+      } else if (Number.isFinite(agent.durationMs) && agent.durationMs > 0) {
+        took = formatDuration(agent.durationMs);
+      }
     }
     const tasksCompleted = Number.isFinite(agent.tasksCompleted)
       ? Math.max(0, Math.round(agent.tasksCompleted))
       : 0;
-    const isDerived = agent.derived === true;
     // Derived rows carry no real cost — show it absent, not $0.0000 (reads as free).
     const cost =
       !isDerived && Number.isFinite(agent.estCostUsd)

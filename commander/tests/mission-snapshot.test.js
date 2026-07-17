@@ -143,6 +143,10 @@ describe('buildSnapshotHtml — derived rows show no fabricated numbers', () => 
     // The inferred row must not present $0.0000 (reads as "free"); its cost is "—".
     assert.doesNotMatch(html, /\$0\.0000/);
     assert.match(html, /Est\. cost: <span class="mono">—<\/span>/);
+    // Its startedAt is the delegation event, not a real start — so the running
+    // "so far" duration is a number we don't have. Took must be "—", not "Xm so far".
+    assert.match(html, /Took: <span class="mono">—<\/span>/);
+    assert.doesNotMatch(html, /so far/);
     assert.ok(html.includes('inferred'), 'still flagged as inferred');
   });
 });
