@@ -277,6 +277,47 @@ function joinAgents(starts, stops, nowMs) {
 // signal for the running/stale status window below). A real start
 // record for the same combo always wins — this never creates a
 // duplicate.
+// Real Claude Desktop SubagentStart payloads currently arrive with no agent
+// name — only the Task delegation event in the same session carries it. Without
+// this, a null-named start record and its delegation surface as TWO rows (one
+// "unknown", one derived). Lend each unknown start the name from a delegation in
+// its own session so the pair folds into a single real row before deriving.
+function enrichUnknownAgentsFromDelegations(agents, eventEntries) {
+  const actorsBySession = new Map();
+  for (const entry of eventEntries) {
+    if (entry.type !== 'delegation') continue;
+    const actor =
+      typeof entry.actor === 'string' && entry.actor.trim() ? entry.actor.trim() : null;
+    if (!actor) continue;
+    const ms = parseTs(entry.ts);
+    if (ms === null) continue;
+    const key = `${entry.source_app || 'claude-code'}:${entry.session_id ?? entry.sessionId ?? ''}`;
+    if (!actorsBySession.has(key)) actorsBySession.set(key, []);
+    actorsBySession.get(key).push({ ms, actor });
+  }
+  if (actorsBySession.size === 0) return agents;
+  for (const list of actorsBySession.values()) list.sort((a, b) => a.ms - b.ms);
+
+  const result = agents.slice();
+  const unknownIdx = new Map();
+  result.forEach((agent, idx) => {
+    if (agent.name && agent.name !== 'unknown') return;
+    const key = `${agent.sourceApp || 'claude-code'}:${agent.sessionId ?? ''}`;
+    if (!unknownIdx.has(key)) unknownIdx.set(key, []);
+    unknownIdx.get(key).push(idx);
+  });
+  for (const [key, idxs] of unknownIdx) {
+    const actors = actorsBySession.get(key);
+    if (!actors) continue;
+    // Pair oldest unknown start with oldest delegation, 1:1, per session.
+    idxs.sort((x, y) => (parseTs(result[x].startedAt) ?? 0) - (parseTs(result[y].startedAt) ?? 0));
+    for (let i = 0; i < idxs.length && i < actors.length; i += 1) {
+      result[idxs[i]] = { ...result[idxs[i]], name: actors[i].actor, nameFromDelegation: true };
+    }
+  }
+  return result;
+}
+
 function deriveRosterFromDelegations(eventEntries, existingAgents, nowMs) {
   const existingKeys = new Set(
     existingAgents.map(
@@ -741,10 +782,12 @@ async function computeBaseModel({ baseDir, now }) {
 
   const joinedAgents = joinAgents(starts, stops, nowMs);
   // Item 1: fold in roster rows derived from delegation events for
-  // sources (e.g. Codex) that never get a real start record, then
-  // re-sort/re-cap the combined roster by recency.
-  const derivedAgents = deriveRosterFromDelegations(eventEntries, joinedAgents, nowMs);
-  const mergedAgents = [...joinedAgents, ...derivedAgents]
+  // sources (e.g. Codex) that never get a real start record. First lend
+  // delegation names to null-named real start records so they don't double
+  // up as an "unknown" row plus a derived row, then re-sort/re-cap by recency.
+  const enrichedAgents = enrichUnknownAgentsFromDelegations(joinedAgents, eventEntries);
+  const derivedAgents = deriveRosterFromDelegations(eventEntries, enrichedAgents, nowMs);
+  const mergedAgents = [...enrichedAgents, ...derivedAgents]
     .sort((left, right) => (parseTs(right.startedAt) ?? 0) - (parseTs(left.startedAt) ?? 0))
     .slice(0, AGENT_CAP);
 

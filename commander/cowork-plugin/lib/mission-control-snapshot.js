@@ -279,6 +279,45 @@ function joinAgents(starts, stops, nowMs) {
   return agents.slice(0, AGENT_CAP).map(({ refMs, ...agent }) => agent);
 }
 
+// Mirrors mission-model.js's enrichUnknownAgentsFromDelegations() (uses toMs
+// here instead of parseTs): real Claude SubagentStart payloads carry no name,
+// so lend each null-named start record a same-session delegation actor before
+// deriving, or it double-ups as an "unknown" row plus a derived row.
+function enrichUnknownAgentsFromDelegations(agents, eventEntries) {
+  const actorsBySession = new Map();
+  for (const entry of eventEntries) {
+    if (entry.type !== 'delegation') continue;
+    const actor =
+      typeof entry.actor === 'string' && entry.actor.trim() ? entry.actor.trim() : null;
+    if (!actor) continue;
+    const ms = toMs(entry.ts);
+    if (ms === null) continue;
+    const key = `${entry.source_app || 'claude-code'}:${entry.session_id ?? entry.sessionId ?? ''}`;
+    if (!actorsBySession.has(key)) actorsBySession.set(key, []);
+    actorsBySession.get(key).push({ ms, actor });
+  }
+  if (actorsBySession.size === 0) return agents;
+  for (const list of actorsBySession.values()) list.sort((a, b) => a.ms - b.ms);
+
+  const result = agents.slice();
+  const unknownIdx = new Map();
+  result.forEach((agent, idx) => {
+    if (agent.name && agent.name !== 'unknown') return;
+    const key = `${agent.sourceApp || 'claude-code'}:${agent.sessionId ?? ''}`;
+    if (!unknownIdx.has(key)) unknownIdx.set(key, []);
+    unknownIdx.get(key).push(idx);
+  });
+  for (const [key, idxs] of unknownIdx) {
+    const actors = actorsBySession.get(key);
+    if (!actors) continue;
+    idxs.sort((x, y) => (toMs(result[x].startedAt) ?? 0) - (toMs(result[y].startedAt) ?? 0));
+    for (let i = 0; i < idxs.length && i < actors.length; i += 1) {
+      result[idxs[i]] = { ...result[idxs[i]], name: actors[i].actor, nameFromDelegation: true };
+    }
+  }
+  return result;
+}
+
 // Item 1 — mirrors mission-model.js's deriveRosterFromDelegations()
 // verbatim (see that file's doc comment for the full Codex hook-drop
 // rationale): joinAgents() above only ever sees claude-code
@@ -734,10 +773,11 @@ async function readModel({ baseDir, now } = {}) {
   const nowMs = toMs(now) ?? Date.now();
 
   const joinedAgents = joinAgents(starts, stops, nowMs);
-  // Item 1: fold in roster rows derived from delegation events for
-  // sources (e.g. Codex) that never get a real start record.
-  const derivedAgents = deriveRosterFromDelegations(eventEntries, joinedAgents, nowMs);
-  const mergedAgents = [...joinedAgents, ...derivedAgents]
+  // Item 1: lend delegation names to null-named real start records, then fold
+  // in synthesized rows for sources (e.g. Codex) that never get a start record.
+  const enrichedAgents = enrichUnknownAgentsFromDelegations(joinedAgents, eventEntries);
+  const derivedAgents = deriveRosterFromDelegations(eventEntries, enrichedAgents, nowMs);
+  const mergedAgents = [...enrichedAgents, ...derivedAgents]
     .sort((left, right) => (toMs(right.startedAt) ?? 0) - (toMs(left.startedAt) ?? 0))
     .slice(0, AGENT_CAP);
 

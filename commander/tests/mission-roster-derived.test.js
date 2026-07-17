@@ -183,4 +183,27 @@ for (const [label, read] of readers) {
     const keys = model.agents.map((agent) => agent.key).sort();
     assert.deepEqual(keys, ['claude-code:builder', 'codex:builder']);
   });
+
+  test(`${label}: a null-named real start record adopts the session's delegation name instead of doubling up`, async () => {
+    // Real Claude Desktop SubagentStart payloads arrive name-less; the Task
+    // delegation event in the same session carries the name. Without enrichment
+    // this surfaced as TWO rows — one "unknown" (the start), one derived (the
+    // delegation). It must collapse to ONE real row with the real name.
+    const baseDir = await makeBase({
+      subagent: [
+        { ts: T('10:00:00'), agent_name: null, prompt: null, model: null, session_id: 'S8' },
+      ],
+      events: [
+        { ts: T('10:00:01'), session_id: 'S8', source_app: 'claude-code', type: 'delegation', actor: 'builder' },
+      ],
+    });
+    const model = await read({ baseDir, now: NOW });
+
+    assert.equal(model.agents.length, 1);
+    const row = model.agents[0];
+    assert.equal(row.key, 'claude-code:builder');
+    assert.equal(row.name, 'builder');
+    // It kept its real start record — it is NOT a synthesized derived row.
+    assert.notEqual(row.derived, true);
+  });
 }
