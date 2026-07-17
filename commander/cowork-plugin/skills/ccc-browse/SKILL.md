@@ -5,6 +5,8 @@ allowed-tools:
   - Read
   - Glob
   - Grep
+  - Bash
+  - Artifact
   - AskUserQuestion
 argument-hint: "[domains | workflows | agents | all]"
 ---
@@ -36,7 +38,7 @@ Render:
 
 > 🧭 Catalog: `<N>` skills · `<M>` agents · `<K>` CCC domains · filter by category below.
 
-### 3. The picker — `AskUserQuestion` with 4 categories
+### 3. The picker — `AskUserQuestion` with the Cockpit + 4 categories
 
 **Never dump a numbered list. Never ask the user to type a name.** Call `AskUserQuestion`:
 
@@ -45,6 +47,9 @@ question: "What do you want to browse?"
 header: "CC Commander catalog"
 multiSelect: false
 options:
+  - label: "🎛️ Open the Commander Cockpit — the whole catalog, clickable"
+    description: "Generate and publish the searchable, offline catalog as a living Artifact page."
+    preview: "Every Commander skill, agent, idea, and prompt pattern in one private client-side page."
   - label: "🎯 Domains (11)"
     description: "MEGA skills — design, marketing, saas, devops, seo, testing, security, data, research, mobile, makeover."
     preview: "Each domain bundles 8-45 sub-skills behind one entry point. Pick one to drill in."
@@ -60,11 +65,30 @@ options:
 ```
 
 Recommendation (⭐):
+- User asks for the full, visual, searchable, or offline catalog → ⭐ "🎛️ Open the Commander Cockpit — the whole catalog, clickable"
 - First-time browser (no prior `/ccc-browse` use in session) → ⭐ "Workflows (9)" — most actionable
 - User came from `/ccc-start` → ⭐ "Domains (11)"
 - Argument `all` passed → skip picker, go straight to grid
 
 ## Handle the selection
+
+### Commander Cockpit → generate and publish the living page
+
+1. Use the same stable path on every run: `<scratchpad>/commander-cockpit.html`. Do not add timestamps or alternate filenames; republishing the same file preserves the living page URL.
+2. From the CC Commander repo root, run:
+
+   ```bash
+   node scripts/build-cockpit.mjs --out <scratchpad>/commander-cockpit.html
+   ```
+
+3. Publish that exact file with the Artifact tool using:
+   - title: `Commander Cockpit`
+   - favicon: `🎛️`
+   - description: `Every Commander skill, agent, idea and prompt pattern — clickable, searchable, offline.`
+   - capabilities: `{downloads: true}` — enables the ⬇ Save button for edited agent profiles; the page feature-detects this capability and hides the button elsewhere.
+4. Say that the page is fully client-side and nothing leaves the page. Republish the same file path after Commander upgrades to refresh the catalog while keeping the same URL.
+
+The generator ships in the CC Commander repo. For marketplace-installed users, resolve the repository containing `scripts/build-cockpit.mjs` before running it. If `scripts/` or the generator is absent, say so and fall back to the existing category browse flow below; do not fabricate a Cockpit artifact.
 
 ### Domains (11) → cascade
 
@@ -168,7 +192,7 @@ After the grid, one `AskUserQuestion` with 4 follow-ups: "Launch one" / "Filter 
 - ❌ Render a single markdown list with 30+ rows and ask the user to type a name
 - ❌ Dump raw HTML in code blocks expecting artifact rendering
 - ❌ Output ASCII banners or box-drawing tables for the catalog
-- ❌ Put more than 4 options in a single `AskUserQuestion` — max 4, always include a "Back" option on cascades
+- ❌ Put more than 4 options in a cascade `AskUserQuestion` — the five-option root picker is the sole exception; always include a "Back" option on cascades
 - ❌ Read every agent .md eagerly up front — read on demand only
 - ❌ Reference legacy CLI browse commands — this is Desktop-plugin only
 
@@ -197,7 +221,7 @@ Never require the user to leave `/ccc-browse` and type another slash command. We
 
 ---
 
-**Bottom line:** four top-level categories → cascaded 4-at-a-time pickers → user drills in → we dispatch to the target skill. No scrolling, no typing, no numbered lists.
+**Bottom line:** one-click Cockpit + four top-level categories → cascaded 4-at-a-time pickers → user drills in → we dispatch to the target skill. No scrolling, no typing, no numbered lists.
 
 ---
 
