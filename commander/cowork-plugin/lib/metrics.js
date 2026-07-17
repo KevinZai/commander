@@ -53,18 +53,52 @@
  * Core free forever — no license check, no tier gating.
  */
 import { spawn } from 'node:child_process';
-import { access, appendFile, mkdir, readFile, rename, stat } from 'node:fs/promises';
+import { access, appendFile, mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB — same rotation threshold as suggestions.js
 const MAX_JSONL_LINES = 5000; // Item 6 bounded-scan cap, per source file
 const DEFAULT_DAYS = 56; // 8 weeks — covers both the 30d daily charts and the 8w weekly chart
-const CCUSAGE_TIMEOUT_MS = 10_000; // no `timeout` binary on macOS — see runCcusage()
+const CCUSAGE_TIMEOUT_MS = 30_000; // no `timeout` binary on macOS — see runCcusage()
+
+// Kill the whole ccusage process group (it may spawn children) and tear down
+// stdio so a hung read can't keep the event loop alive. Detached spawn makes the
+// child a group leader, so a negative-pid signal reaches the group.
+function hardKill(child) {
+  try {
+    child.stdout?.destroy();
+  } catch {
+    // already gone
+  }
+  try {
+    if (child.pid) process.kill(-child.pid, 'SIGKILL');
+  } catch {
+    try {
+      child.kill('SIGKILL');
+    } catch {
+      // already exited
+    }
+  }
+}
 const CCUSAGE_MAX_OUTPUT_BYTES = 20 * 1024 * 1024;
 const DELEGATION_TYPE = 'delegation';
 const TASK_TYPE = 'task';
-const TASK_DONE_RE = /(done|complete|closed|resolved|finished|shipped|merged)/i;
+// Exact completion statuses — a substring match counts "incomplete"/"not_done"
+// as done (both contain "complete"/"done").
+const TASK_DONE_STATUSES = new Set([
+  'done',
+  'complete',
+  'completed',
+  'closed',
+  'resolved',
+  'finished',
+  'shipped',
+  'merged',
+]);
+function isTaskDone(status) {
+  return typeof status === 'string' && TASK_DONE_STATUSES.has(status.trim().toLowerCase());
+}
 
 function defaultBaseDir() {
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
@@ -152,7 +186,7 @@ function runCcusage(args, { timeoutMs = CCUSAGE_TIMEOUT_MS } = {}) {
     let settled = false;
     let child;
     try {
-      child = spawn('ccusage', args, { stdio: ['ignore', 'pipe', 'ignore'] });
+      child = spawn('ccusage', args, { stdio: ['ignore', 'pipe', 'ignore'], detached: true });
     } catch {
       resolve(null);
       return;
@@ -166,11 +200,7 @@ function runCcusage(args, { timeoutMs = CCUSAGE_TIMEOUT_MS } = {}) {
     };
 
     const timer = setTimeout(() => {
-      try {
-        child.kill('SIGKILL');
-      } catch {
-        // already exited
-      }
+      hardKill(child);
       finish(null);
     }, timeoutMs);
     // Never let the guard timer keep the process alive on its own.
@@ -181,11 +211,7 @@ function runCcusage(args, { timeoutMs = CCUSAGE_TIMEOUT_MS } = {}) {
     child.stdout?.on('data', (chunk) => {
       bytes += chunk.length;
       if (bytes > CCUSAGE_MAX_OUTPUT_BYTES) {
-        try {
-          child.kill('SIGKILL');
-        } catch {
-          // already exited
-        }
+        hardKill(child);
         finish(null);
         return;
       }
@@ -366,7 +392,7 @@ async function buildMetrics({ baseDir, now, days, runner } = {}) {
     if (entry.type === DELEGATION_TYPE && typeof entry.actor === 'string' && entry.actor.trim()) {
       rowFor(date, sourceApp).agents_dispatched += 1;
     }
-    if (entry.type === TASK_TYPE && typeof entry.status === 'string' && TASK_DONE_RE.test(entry.status)) {
+    if (entry.type === TASK_TYPE && isTaskDone(entry.status)) {
       rowFor(date, sourceApp).tasks_completed += 1;
     }
   }
@@ -528,6 +554,46 @@ async function readMetrics({ baseDir } = {}) {
   }
 }
 
+// Merge freshly-built rows over the existing bounded rollup (fresh wins per
+// date+source, older out-of-window dates preserved) and atomic-write the whole
+// set once — tmp file + rename. Keeps metrics.jsonl bounded instead of growing
+// on every poll. Returns the merged, sorted rows. Never throws.
+async function persistMerged(rows, baseDir) {
+  const root = baseDir || defaultBaseDir();
+  const dir = metricsDir(root);
+  const file = metricsFile(root);
+  try {
+    const byKey = new Map();
+    for (const row of await readMetrics({ baseDir: root })) {
+      byKey.set(`${row.date}::${row.source_app}`, row);
+    }
+    for (const row of Array.isArray(rows) ? rows : []) {
+      if (!row || typeof row.date !== 'string' || typeof row.source_app !== 'string') continue;
+      byKey.set(`${row.date}::${row.source_app}`, {
+        date: row.date,
+        source_app: row.source_app,
+        cost_usd: Number.isFinite(row.cost_usd) ? row.cost_usd : 0,
+        agents_dispatched: Number.isFinite(row.agents_dispatched) ? row.agents_dispatched : 0,
+        tasks_completed: Number.isFinite(row.tasks_completed) ? row.tasks_completed : 0,
+        tool_failures: Number.isFinite(row.tool_failures) ? row.tool_failures : 0,
+        sessions: Number.isFinite(row.sessions) ? row.sessions : 0,
+      });
+    }
+    const merged = [...byKey.values()].sort((left, right) =>
+      left.date === right.date
+        ? left.source_app.localeCompare(right.source_app)
+        : left.date.localeCompare(right.date)
+    );
+    await mkdir(dir, { recursive: true });
+    const tmp = `${file}.tmp`;
+    await writeFile(tmp, merged.map((row) => JSON.stringify(row)).join('\n') + (merged.length ? '\n' : ''));
+    await rename(tmp, file);
+    return merged;
+  } catch {
+    return readMetrics({ baseDir: root });
+  }
+}
+
 /**
  * Compute → persist → read-back the merged history, filtered to the
  * requested window. This is the entry point mission-model.js and
@@ -537,11 +603,14 @@ async function readMetrics({ baseDir } = {}) {
 async function getMetrics({ baseDir, now, days, runner } = {}) {
   try {
     const rows = await buildMetrics({ baseDir, now, days, runner });
-    await appendMetrics(rows, { baseDir });
+    // Atomic-replace, not append: getMetrics runs on every (cache-missed) poll,
+    // and appending the whole rollup each time grows the file without bound
+    // (~15KB/poll). Merge fresh rows over the existing bounded set, keep older
+    // dates outside the window, and write the file once.
+    const merged = await persistMerged(rows, baseDir);
     const nowMs = now instanceof Date ? now.getTime() : Number.isFinite(now) ? now : Date.now();
     const windowDays = Number.isInteger(days) && days > 0 ? days : DEFAULT_DAYS;
     const wantedDates = new Set(dateRange(windowDays, nowMs));
-    const merged = await readMetrics({ baseDir });
     return merged.filter((row) => wantedDates.has(row.date));
   } catch {
     return [];

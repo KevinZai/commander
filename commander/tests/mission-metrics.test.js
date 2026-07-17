@@ -277,3 +277,52 @@ test('GET /api/metrics returns { metrics, generatedAt }', async () => {
   assert.ok(Array.isArray(body.metrics));
   assert.equal(typeof body.generatedAt, 'string');
 });
+
+test('getMetrics: repeated polls do not grow metrics.jsonl (atomic-replace, not append)', async () => {
+  const baseDir = await freshBaseDir();
+  // Seed one task event so there is a non-empty row to persist.
+  const mcDir = path.join(baseDir, 'mission-control');
+  await fs.mkdir(mcDir, { recursive: true });
+  await fs.writeFile(
+    path.join(mcDir, 'events.jsonl'),
+    JSON.stringify({
+      ts: new Date(NOW).toISOString(),
+      session_id: 'S',
+      source_app: 'claude-code',
+      type: 'task',
+      status: 'completed',
+    }) + '\n'
+  );
+
+  for (let i = 0; i < 5; i += 1) {
+    await getMetrics({ baseDir, now: NOW, days: 3, runner: zeroRunner });
+  }
+  const sizeAfter5 = (await fs.stat(metricsFile(baseDir))).size;
+  for (let i = 0; i < 20; i += 1) {
+    await getMetrics({ baseDir, now: NOW, days: 3, runner: zeroRunner });
+  }
+  const sizeAfter25 = (await fs.stat(metricsFile(baseDir))).size;
+
+  assert.equal(sizeAfter25, sizeAfter5, 'file size is stable across polls — no unbounded append');
+});
+
+test('buildMetrics: task status is matched exactly — "incomplete"/"not_done" are not completions', async () => {
+  const baseDir = await freshBaseDir();
+  const mcDir = path.join(baseDir, 'mission-control');
+  await fs.mkdir(mcDir, { recursive: true });
+  const ts = new Date(NOW).toISOString();
+  await fs.writeFile(
+    path.join(mcDir, 'events.jsonl'),
+    [
+      { ts, session_id: 'S', source_app: 'claude-code', type: 'task', status: 'completed' },
+      { ts, session_id: 'S', source_app: 'claude-code', type: 'task', status: 'incomplete' },
+      { ts, session_id: 'S', source_app: 'claude-code', type: 'task', status: 'not_done' },
+    ]
+      .map((e) => JSON.stringify(e))
+      .join('\n') + '\n'
+  );
+
+  const rows = await buildMetrics({ baseDir, now: NOW, days: 1, runner: zeroRunner });
+  const today = rows.find((r) => r.source_app === 'claude-code');
+  assert.equal(today.tasks_completed, 1, 'only the exact "completed" status counts');
+});
