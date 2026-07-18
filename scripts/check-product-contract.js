@@ -501,13 +501,13 @@ function scanVersionRule(content, surface, contract) {
   while ((match = rule.regex.exec(content)) !== null) {
     var version = match.groups && match.groups.value;
     if (!version || version === contract.version) continue;
-    if (!isVersionRelevant(content, match.index)) continue;
+    if (!isVersionRelevant(content, match.index, match[0].length)) continue;
     findings.push(makeFinding(surface, 'version', contract.version, version, match[0], true));
   }
   return findings;
 }
 
-function isVersionRelevant(content, index) {
+function isVersionRelevant(content, index, matchLen) {
   // Skip entire documents that announce a specific dated past release (e.g.
   // "**Released 2026-05-28** — v6.0.0 ships four major additions."). Every version
   // mention in a "what's new in vX" style doc describes that historical release, not
@@ -525,10 +525,17 @@ function isVersionRelevant(content, index) {
   // number are inspected so we don't accidentally suppress a real CCC version nearby.
   var before = content.slice(Math.max(0, index - 45), index);
   if (/claude[\s-]?code/i.test(before)) return false;
-  // "Added in vX" / "since vX" / "introduced in vX" are historical stamps naming the
-  // release a feature first shipped in — rewriting them each release falsifies history
-  // (v6.8.0 audit finding: every skill page claimed it was added in the current version).
-  if (/(added|introduced|shipped|since|new)\s+(in\s+)?$/i.test(before)) return false;
+  // Historical stamps naming the release a feature first shipped in — rewriting them
+  // each release falsifies history (v6.8.0 audit + the recurring --patch corruption
+  // class). Both "before" phrasings ("added in vX", "as of vX", "from before vX",
+  // "Status (vX") and "after" phrasings ("vX ships a…", "vX makes…", "vX release note").
+  if (/(added|introduced|shipped|since|new|as of|from before)\s+(in\s+)?$/i.test(before)) return false;
+  // "Status (vX)" is historical release-status labelling (e.g. the codex-compat
+  // page's "**Status (v6.8.2):**") — BUT only skip it when the surrounding text
+  // isn't asserting a CURRENT version, so "current Status (vX)" drift is still caught.
+  if (/\bStatus\s*\($/i.test(before) && !/\b(current|latest|now)\b/i.test(context)) return false;
+  var after = content.slice(index + (matchLen || 0), index + (matchLen || 0) + 45);
+  if (/^\)?\s*(ships?\b|makes?\b|release note\b)/i.test(after)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
 }
 

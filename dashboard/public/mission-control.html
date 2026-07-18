@@ -34,6 +34,25 @@
       </div>
     </section>
 
+    <section class="mc-charts" id="charts-strip" aria-label="Trends">
+      <div class="mc-chart-card">
+        <h3><span aria-hidden="true">&#128176;</span> Cost / day <span class="mc-chart-sub">30d</span></h3>
+        <div class="mc-chart-svg" id="chart-cost"></div>
+      </div>
+      <div class="mc-chart-card">
+        <h3><span aria-hidden="true">&#129302;</span> Agents dispatched / day <span class="mc-chart-sub">30d</span></h3>
+        <div class="mc-chart-svg" id="chart-agents"></div>
+      </div>
+      <div class="mc-chart-card">
+        <h3><span aria-hidden="true">&#128203;</span> Tasks completed / week <span class="mc-chart-sub">8w</span></h3>
+        <div class="mc-chart-svg" id="chart-tasks"></div>
+      </div>
+      <div class="mc-chart-card">
+        <h3><span aria-hidden="true">&#9888;</span> Tool failures / day <span class="mc-chart-sub">30d</span></h3>
+        <div class="mc-chart-svg" id="chart-failures"></div>
+      </div>
+    </section>
+
     <main class="mc-grid">
       <section class="mc-panel" aria-label="Agent roster">
         <h2><span aria-hidden="true">&#129302;</span> Agent Roster</h2>
@@ -102,12 +121,18 @@
         </div>
         <div class="mc-suggestions" id="suggestions"></div>
       </section>
+
+      <section class="mc-panel mc-panel-wide" id="history-panel" aria-label="History" hidden>
+        <h2><span aria-hidden="true">&#129504;</span> History</h2>
+        <p class="mc-panel-note">From claude-mem &mdash; hidden automatically when it isn&rsquo;t installed.</p>
+        <ol class="mc-history" id="history"></ol>
+      </section>
     </main>
 
     <footer class="mc-footer">
       Reads <code>~/.claude/commander/</code> logs on this machine only &middot; nothing leaves your computer
     </footer>
 
-    <script src="/mission-control.js"></script>
+    <script type="module" src="/mission-control.js"></script>
   </body>
 </html>

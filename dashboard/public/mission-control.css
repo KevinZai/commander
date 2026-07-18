@@ -211,6 +211,48 @@ h1 {
   white-space: nowrap;
 }
 
+.mc-charts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mc-chart-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 10px 24px var(--shadow);
+  padding: 10px 12px 8px;
+}
+
+.mc-chart-card h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.mc-chart-sub {
+  color: var(--soft);
+  font-weight: 500;
+  font-size: 0.68rem;
+}
+
+.mc-chart-svg {
+  line-height: 0;
+}
+
+.mc-chart-svg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .mc-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -358,6 +400,33 @@ h1 {
   color: var(--accent);
   background: var(--accent-soft);
   border-color: var(--accent);
+}
+
+.mc-derived-badge {
+  display: inline-block;
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  margin-top: 4px;
+  margin-left: 5px;
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.mc-derived-badge[hidden] {
+  display: none;
+}
+
+.mc-agent.is-derived {
+  opacity: 0.86;
+}
+
+.mc-agent.is-derived .mc-agent-gauges {
+  opacity: 0.55;
 }
 
 .mc-agent-state {
@@ -841,6 +910,51 @@ h1 {
   overflow-wrap: break-word;
 }
 
+.mc-panel-note {
+  color: var(--soft);
+  font-size: 0.78rem;
+  margin: -6px 0 10px;
+}
+
+.mc-history {
+  display: grid;
+  gap: 8px;
+  max-height: 340px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-history-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-strong);
+  padding: 8px 10px;
+  font-size: 0.86rem;
+}
+
+.mc-history-glyph {
+  font-size: 1.05rem;
+}
+
+.mc-history-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.mc-history-meta {
+  color: var(--muted);
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
 .mc-footer {
   color: var(--soft);
   font-size: 0.76rem;
@@ -897,6 +1011,10 @@ h1 {
 @media (max-width: 900px) {
   body {
     padding: 14px 12px 8px;
+  }
+
+  .mc-charts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .mc-grid {

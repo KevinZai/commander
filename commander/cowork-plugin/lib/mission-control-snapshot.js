@@ -13,21 +13,50 @@
  *
  * readModel({ baseDir, now }) is a self-contained tolerant JSONL reader
  * over ~/.claude/commander/ that mirrors dashboard/lib/mission-model.js
- * (same shape, same wording) — duplicated on purpose: the plugin ships
- * WITHOUT dashboard/, so this file must not import from it.
+ * (same shape, same wording) — duplicated on purpose for the agent-join/
+ * event-merge/summary logic: the plugin ships WITHOUT dashboard/, so
+ * this file must not import from it. metrics.js and top-skills.js are
+ * NOT duplicated the same way — they already live in this same
+ * commander/cowork-plugin/lib/ tree (they ship with the plugin), so
+ * readModel imports them directly rather than re-implementing the
+ * ccusage-shelling/rollup logic a second time.
+ *
+ * Item 1 (roster from delegation events) is mirrored verbatim from
+ * mission-model.js's deriveRosterFromDelegations() — see that file's
+ * doc comment for the Codex hook-drop rationale. readModel does NOT
+ * mirror mission-model.js's Item 6 TTL cache: a snapshot is a one-shot
+ * render, not a polled endpoint, so there's no repeated-read cost to
+ * amortize here — it still uses the same bounded-read cap, though, so a
+ * huge log can't blow up a single snapshot build.
+ *
+ * Item 1 also drives a UI marker: derived roster rows carry no real
+ * token/cost data (see mission-model.js's doc comment on why), so their
+ * agent card gets an `is-derived` class (dimmed) plus a small "inferred"
+ * badge with a tooltip — never presented as if it were a verified run.
+ *
+ * Item 3 (charts strip) renders the SAME sparkline/barStrip builders
+ * from ./charts.js the live dashboard's client-side script uses (see
+ * that file's doc comment for why it's one canonical module, not a
+ * duplicate) — server-rendered inline SVG, no <script>, CSP-safe.
  *
  * Deterministic rendering: every timestamp derives from the model or the
  * `now` argument — never Date.now() inside buildSnapshotHtml.
- * Zero dependencies, ESM, read-only, fail-open.
+ * Zero dependencies (beyond this plugin's own lib/), ESM, read-only,
+ * fail-open.
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { aggregateDaily, aggregateWeekly, barStrip, sparkline } from './charts.js';
+import { getMetrics } from './metrics.js';
+import { readTopSkills } from './top-skills.js';
+
 const AGENT_CAP = 200;
 const TASK_CAP = 100;
 const EVENT_CAP = 100;
+const MAX_JSONL_LINES = 5000; // Item 6 bounded-scan cap, per source file
 const SUGGESTION_CAP = 50;
 const ROW_CAP = 30;
 const JOIN_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -88,7 +117,11 @@ function toMs(value) {
   return Number.isFinite(ms) ? ms : null;
 }
 
-async function readJsonl(filePath) {
+// Item 6 bounded-scan discipline: only the most recent maxLines
+// non-empty lines are parsed — a file that has grown past the cap
+// silently undercounts older entries (rotated archives are never read
+// at all).
+async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
   let raw;
   try {
     raw = await fsp.readFile(filePath, 'utf8');
@@ -96,12 +129,13 @@ async function readJsonl(filePath) {
     return [];
   }
 
+  const lines = raw.split('\n').filter((line) => line.trim());
+  const tail = lines.length > maxLines ? lines.slice(lines.length - maxLines) : lines;
+
   const entries = [];
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
+  for (const line of tail) {
     try {
-      const parsed = JSON.parse(trimmed);
+      const parsed = JSON.parse(line);
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         entries.push(parsed);
       }
@@ -243,6 +277,110 @@ function joinAgents(starts, stops, nowMs) {
 
   agents.sort((left, right) => right.refMs - left.refMs);
   return agents.slice(0, AGENT_CAP).map(({ refMs, ...agent }) => agent);
+}
+
+// Mirrors mission-model.js's enrichUnknownAgentsFromDelegations() (uses toMs
+// here instead of parseTs): real Claude SubagentStart payloads carry no name,
+// so lend each null-named start record a same-session delegation actor before
+// deriving, or it double-ups as an "unknown" row plus a derived row.
+function enrichUnknownAgentsFromDelegations(agents, eventEntries) {
+  const actorsBySession = new Map();
+  for (const entry of eventEntries) {
+    if (entry.type !== 'delegation') continue;
+    const actor =
+      typeof entry.actor === 'string' && entry.actor.trim() ? entry.actor.trim() : null;
+    if (!actor) continue;
+    const ms = toMs(entry.ts);
+    if (ms === null) continue;
+    const key = `${entry.source_app || 'claude-code'}:${entry.session_id ?? entry.sessionId ?? ''}`;
+    if (!actorsBySession.has(key)) actorsBySession.set(key, []);
+    actorsBySession.get(key).push({ ms, actor });
+  }
+  if (actorsBySession.size === 0) return agents;
+  for (const list of actorsBySession.values()) list.sort((a, b) => a.ms - b.ms);
+
+  // Names already owned by a real named start record — exclude from the pool so a
+  // null start isn't renamed to a duplicate of an already-named agent.
+  const namedBySession = new Map();
+  for (const agent of agents) {
+    if (!agent.name || agent.name === 'unknown') continue;
+    const key = `${agent.sourceApp || 'claude-code'}:${agent.sessionId ?? ''}`;
+    if (!namedBySession.has(key)) namedBySession.set(key, new Set());
+    namedBySession.get(key).add(agent.name);
+  }
+
+  const result = agents.slice();
+  const unknownIdx = new Map();
+  result.forEach((agent, idx) => {
+    if (agent.name && agent.name !== 'unknown') return;
+    const key = `${agent.sourceApp || 'claude-code'}:${agent.sessionId ?? ''}`;
+    if (!unknownIdx.has(key)) unknownIdx.set(key, []);
+    unknownIdx.get(key).push(idx);
+  });
+  for (const [key, idxs] of unknownIdx) {
+    let actors = actorsBySession.get(key);
+    if (!actors) continue;
+    const owned = namedBySession.get(key);
+    if (owned) actors = actors.filter((a) => !owned.has(a.actor));
+    if (actors.length === 0) continue;
+    idxs.sort((x, y) => (toMs(result[x].startedAt) ?? 0) - (toMs(result[y].startedAt) ?? 0));
+    for (let i = 0; i < idxs.length && i < actors.length; i += 1) {
+      result[idxs[i]] = { ...result[idxs[i]], name: actors[i].actor, nameFromDelegation: true };
+    }
+  }
+  return result;
+}
+
+// Item 1 — mirrors mission-model.js's deriveRosterFromDelegations()
+// verbatim (see that file's doc comment for the full Codex hook-drop
+// rationale): joinAgents() above only ever sees claude-code
+// (subagent-runs.jsonl/agent-runs.jsonl are claude-code-only legacy
+// files). Synthesize a roster row from events.jsonl's `delegation`-type
+// entries for any (sourceApp, name, sessionId) combo with no real start
+// record. A real start record for the same combo always wins.
+function deriveRosterFromDelegations(eventEntries, existingAgents, nowMs) {
+  const existingKeys = new Set(
+    existingAgents.map(
+      (agent) => `${agent.sourceApp || 'claude-code'}:${agent.name}:${agent.sessionId ?? ''}`
+    )
+  );
+
+  const latestByCombo = new Map();
+  for (const entry of eventEntries) {
+    if (entry.type !== 'delegation') continue;
+    const actor = typeof entry.actor === 'string' && entry.actor.trim() ? entry.actor.trim() : null;
+    if (!actor) continue;
+    const sourceApp = entry.source_app || 'claude-code';
+    const sessionId = entry.session_id ?? entry.sessionId ?? null;
+    const comboKey = `${sourceApp}:${actor}:${sessionId ?? ''}`;
+    if (existingKeys.has(comboKey)) continue; // a real row already covers this combo
+
+    const ms = toMs(entry.ts);
+    if (ms === null) continue;
+    const current = latestByCombo.get(comboKey);
+    if (!current || ms > current.ms) {
+      latestByCombo.set(comboKey, { ms, entry, sourceApp, actor, sessionId });
+    }
+  }
+
+  const derived = [];
+  for (const { ms, entry, sourceApp, actor, sessionId } of latestByCombo.values()) {
+    const ageMs = nowMs - ms;
+    derived.push({
+      name: actor,
+      sourceApp,
+      model: null,
+      sessionId,
+      startedAt: entry.ts ?? null,
+      endedAt: null,
+      durationMs: null,
+      inputTokens: 0,
+      outputTokens: 0,
+      status: ageMs >= 0 && ageMs <= RUNNING_WINDOW_MS ? 'running' : 'stale',
+      derived: true,
+    });
+  }
+  return derived;
 }
 
 function latestTasks(taskEntries) {
@@ -648,11 +786,19 @@ async function readModel({ baseDir, now } = {}) {
   const nowMs = toMs(now) ?? Date.now();
 
   const joinedAgents = joinAgents(starts, stops, nowMs);
+  // Item 1: lend delegation names to null-named real start records, then fold
+  // in synthesized rows for sources (e.g. Codex) that never get a start record.
+  const enrichedAgents = enrichUnknownAgentsFromDelegations(joinedAgents, eventEntries);
+  const derivedAgents = deriveRosterFromDelegations(eventEntries, enrichedAgents, nowMs);
+  const mergedAgents = [...enrichedAgents, ...derivedAgents]
+    .sort((left, right) => (toMs(right.startedAt) ?? 0) - (toMs(left.startedAt) ?? 0))
+    .slice(0, AGENT_CAP);
+
   const tasks = latestTasks(taskEntries);
   const edges = toEdges(eventEntries);
   const events = mergeEvents({ starts, stops, taskEntries, eventEntries });
   const eventIndex = indexNewestEvents(eventEntries);
-  const decoratedAgents = decorateAgents(joinedAgents, stops, eventIndex);
+  const decoratedAgents = decorateAgents(mergedAgents, stops, eventIndex);
   const permissionState = applyAwaitingPermissions(
     decoratedAgents,
     eventIndex.latestBySession,
@@ -663,6 +809,10 @@ async function readModel({ baseDir, now } = {}) {
   const filterOptions = buildFilterOptions({ starts, stops, taskEntries, eventEntries });
   const suggestions = latestSuggestions(suggestionEntries);
   const summary = summarize(agents, tasks, nowMs, awaitingPermission, suggestions);
+  const [metrics, topSkills] = await Promise.all([
+    getMetrics({ baseDir: root, now: nowMs }).catch(() => []),
+    readTopSkills({ baseDir: root, now: nowMs }).catch(() => []),
+  ]);
 
   return {
     agents,
@@ -673,6 +823,8 @@ async function readModel({ baseDir, now } = {}) {
     awaitingPermission,
     filterOptions,
     suggestions,
+    metrics,
+    topSkills,
     generatedAt: new Date(nowMs).toISOString(),
   };
 }
@@ -800,10 +952,18 @@ body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
 .mc .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84rem;}
 .mc .muted{color:var(--mc-muted);}
 .mc .zero{color:var(--mc-muted);margin:0;}
+.mc .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
+.mc .chart-card{border:1px solid var(--mc-line);border-radius:10px;padding:10px 12px 8px;min-width:0;}
+.mc .chart-card h3{margin:0 0 6px;font-size:.8rem;font-weight:600;color:var(--mc-muted);}
+.mc .mc-chart{display:block;width:100%;height:auto;color:var(--mc-accent);}
 .mc .agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
 .mc .agent-card{border:1px solid var(--mc-line);border-radius:10px;padding:12px;min-width:0;}
 .mc .agent-card.is-awaiting{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
 .mc .agent-card.is-stale{color:var(--mc-muted);opacity:.68;}
+.mc .agent-card.is-derived{opacity:.82;}
+.mc .agent-card.is-derived .agent-meta{opacity:.55;}
+.mc .derived-badge{display:inline-block;border:1px dashed var(--mc-line);border-radius:999px;
+  padding:0 7px;font-size:.68rem;color:var(--mc-muted);margin-left:4px;cursor:help;white-space:nowrap;}
 .mc .agent-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .mc .agent-name{display:flex;gap:9px;align-items:flex-start;min-width:0;}
 .mc .agent-emoji{font-size:1.35rem;line-height:1.2;}
@@ -882,33 +1042,43 @@ function renderAgentsSection(agents, nowMs) {
       label: 'unknown status',
       cls: 'st-stale',
     };
+    const isDerived = agent.derived === true;
     const startMs = toMs(agent.startedAt);
     const started = timeAgo(startMs ?? NaN, nowMs ?? NaN) || (startMs !== null ? stamp(startMs) : '—');
+    // A derived row's startedAt is the delegation event, not a real start — we
+    // don't measure its runtime, so show '—' rather than a "Xm so far" duration.
     let took = '—';
-    if (agent.status === 'running') {
-      took =
-        startMs !== null && Number.isFinite(nowMs) && nowMs > startMs
-          ? `${formatDuration(nowMs - startMs)} so far`
-          : 'just started';
-    } else if (Number.isFinite(agent.durationMs) && agent.durationMs > 0) {
-      took = formatDuration(agent.durationMs);
+    if (!isDerived) {
+      if (agent.status === 'running') {
+        took =
+          startMs !== null && Number.isFinite(nowMs) && nowMs > startMs
+            ? `${formatDuration(nowMs - startMs)} so far`
+            : 'just started';
+      } else if (Number.isFinite(agent.durationMs) && agent.durationMs > 0) {
+        took = formatDuration(agent.durationMs);
+      }
     }
     const tasksCompleted = Number.isFinite(agent.tasksCompleted)
       ? Math.max(0, Math.round(agent.tasksCompleted))
       : 0;
-    const cost = Number.isFinite(agent.estCostUsd)
-      ? `$${agent.estCostUsd.toFixed(4)}`
-      : '—';
+    // Derived rows carry no real cost — show it absent, not $0.0000 (reads as free).
+    const cost =
+      !isDerived && Number.isFinite(agent.estCostUsd)
+        ? `$${agent.estCostUsd.toFixed(4)}`
+        : '—';
     const currentTask = agent.currentTask || 'No current task';
     const statusClass =
-      agent.status === 'awaiting_permission'
+      (agent.status === 'awaiting_permission'
         ? ' is-awaiting'
         : agent.status === 'stale'
           ? ' is-stale'
-          : '';
+          : '') + (isDerived ? ' is-derived' : '');
+    const derivedBadge = isDerived
+      ? ` <span class="derived-badge" title="Inferred from a delegation event — no token/cost data available">inferred</span>`
+      : '';
     return `<article class="agent-card${statusClass}">
 <div class="agent-head">
-<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')} · ${renderSourceBadge(agent.sourceApp)}</div></div></div>
+<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')} · ${renderSourceBadge(agent.sourceApp)}${derivedBadge}</div></div></div>
 <span class="badge ${meta.cls}">${esc(meta.label)}</span>
 </div>
 <p class="agent-task"><strong>Current task:</strong> ${esc(currentTask)}</p>
@@ -1046,6 +1216,45 @@ function renderSuggestionsSection(suggestions) {
 </section>`;
 }
 
+// Item 3 — same builders the live dashboard's client-side script uses
+// (./charts.js), server-rendered here into plain inline SVG (no
+// <script>, CSP-safe). Combines every source_app into one line per
+// chart (Item 2's public-repo scope: Claude + Codex only). A metrics
+// array with no rows at all still renders 4 zero-state charts, never an
+// empty section — Charts stay always-visible (unlike History, which is
+// opt-in and hides entirely when absent).
+function renderChartsSection(metrics) {
+  const rows = Array.isArray(metrics) ? metrics : [];
+  const costSeries = aggregateDaily(rows, 'cost_usd', 30);
+  const agentsSeries = aggregateDaily(rows, 'agents_dispatched', 30);
+  const failuresSeries = aggregateDaily(rows, 'tool_failures', 30);
+  const tasksSeries = aggregateWeekly(rows, 'tasks_completed', 8);
+
+  const cards = [
+    [
+      '💰 Cost / day (30d)',
+      sparkline(costSeries, { label: 'Cost per day, last 30 days', color: 'var(--mc-accent)' }),
+    ],
+    [
+      '🤖 Agents dispatched / day (30d)',
+      sparkline(agentsSeries, { label: 'Agents dispatched per day, last 30 days', color: 'var(--mc-run)' }),
+    ],
+    [
+      '📋 Tasks completed / week (8w)',
+      barStrip(tasksSeries, { label: 'Tasks completed per week, last 8 weeks', color: 'var(--mc-ok)' }),
+    ],
+    [
+      '⚠ Tool failures / day (30d)',
+      sparkline(failuresSeries, { label: 'Tool failures per day, last 30 days', color: 'var(--mc-err)' }),
+    ],
+  ];
+
+  return `<section aria-label="Trends">
+<h2>📈 Trends</h2>
+<div class="chart-grid">${cards.map(([title, svg]) => `<div class="chart-card"><h3>${esc(title)}</h3>${svg}</div>`).join('')}</div>
+</section>`;
+}
+
 function buildSnapshotHtml(model, { now } = {}) {
   const source = model && typeof model === 'object' ? model : {};
   const agents = Array.isArray(source.agents) ? source.agents : [];
@@ -1053,6 +1262,7 @@ function buildSnapshotHtml(model, { now } = {}) {
   const edges = Array.isArray(source.edges) ? source.edges : [];
   const events = Array.isArray(source.events) ? source.events : [];
   const suggestions = Array.isArray(source.suggestions) ? source.suggestions : [];
+  const metrics = Array.isArray(source.metrics) ? source.metrics : [];
   const awaitingPermission = Array.isArray(source.awaitingPermission)
     ? source.awaitingPermission
     : [];
@@ -1085,6 +1295,7 @@ function buildSnapshotHtml(model, { now } = {}) {
 ${renderAwaitingPermissionSection(awaitingPermission, nowMs)}
 ${hero}
 ${renderSummarySection(summary, agents, tasks)}
+${renderChartsSection(metrics)}
 ${renderAgentsSection(agents, nowMs)}
 ${renderTasksSection(tasks, nowMs)}
 ${renderEdgesSection(edges, nowMs)}
