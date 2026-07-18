@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { readTopSkills } from '../commander/cowork-plugin/lib/top-skills.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATE_PATH = path.join(ROOT, 'commander/cowork-plugin/lib/cockpit-template.html');
@@ -490,22 +491,28 @@ function buildFlows(events) {
     .slice(0, 10);
 }
 
-function mostUsedSkillTile(skillRuns, cutoffMs, nowMs) {
-  const counts = new Map();
-  for (const entry of recentEntries(skillRuns, cutoffMs, nowMs)) {
-    if (typeof entry.skill !== 'string' || !entry.skill.trim()) continue;
-    const skill = entry.skill.trim().toLowerCase();
-    counts.set(skill, (counts.get(skill) || 0) + 1);
-  }
-  const top = [...counts]
-    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+// Both skill tiles derive from the SINGLE shared reader (top-skills.js, the
+// Mission Control model's topSkills — CC-1380). No second skill-runs parser
+// lives here: this is the "drop Cockpit's raw skill-runs aggregation in favor
+// of the model's topSkills" consolidation. topSkills is already sorted runs7d
+// desc and capped at 10 (the shared module's scan-discipline cap), so the 7d
+// launch total below is the sum over the top-N skills — a machine with >10
+// distinct skills in a week undercounts the headline, which the shared cap
+// makes an accepted, documented bound.
+function skillTilesFromTopSkills(topSkills) {
+  const tiles = [];
+  const launches7d = topSkills.reduce((sum, row) => sum + (row.runs7d || 0), 0);
+  tiles.push({ label: 'Skill launches (7d)', value: launches7d });
+  const top3 = [...topSkills]
+    .sort((left, right) => right.runs30d - left.runs30d || left.skill.localeCompare(right.skill))
     .slice(0, 3);
-  return top.length > 0
-    ? {
-        label: 'Most-used skill (30d)',
-        value: top.map(([skill, count]) => `${skill} ×${count}`).join(' · '),
-      }
-    : null;
+  if (top3.length > 0) {
+    tiles.push({
+      label: 'Most-used skill (30d)',
+      value: top3.map((row) => `${row.skill} ×${row.runs30d}`).join(' · '),
+    });
+  }
+  return tiles;
 }
 
 function completedTaskCount(tasks, cutoffMs, nowMs) {
@@ -531,43 +538,46 @@ function completedTaskCount(tasks, cutoffMs, nowMs) {
   return completed;
 }
 
-function buildAnalytics() {
+async function buildAnalytics() {
   const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
   const baseDir = path.join(home, '.claude', 'commander');
   const sources = {
     agentRuns: readJsonl(path.join(baseDir, 'agent-runs.jsonl')),
     subagentRuns: readJsonl(path.join(baseDir, 'subagent-runs.jsonl')),
     tasks: readJsonl(path.join(baseDir, 'tasks.jsonl')),
-    skillRuns: readJsonl(path.join(baseDir, 'skill-runs.jsonl')),
     events: readJsonl(path.join(baseDir, 'mission-control', 'events.jsonl')),
   };
-  if (Object.values(sources).every((entries) => entries.length === 0)) return {};
-
   const nowMs = Date.now();
+  // The single skill-runs reader — the same module Mission Control's roster/
+  // topSkills panel uses. bySource gives Claude and Codex counts per skill.
+  const topSkills = await readTopSkills({ baseDir, now: nowMs });
+  if (topSkills.length === 0 && Object.values(sources).every((entries) => entries.length === 0)) {
+    return {};
+  }
+
   const sevenDaysAgo = nowMs - 7 * 24 * 60 * 60 * 1000;
   const thirtyDaysAgo = nowMs - 30 * 24 * 60 * 60 * 1000;
   const recentAgents = recentEntries(sources.agentRuns, sevenDaysAgo, nowMs);
   const inputTokens = recentAgents.reduce((sum, entry) => sum + safeMetric(entry.inputTokens), 0);
   const outputTokens = recentAgents.reduce((sum, entry) => sum + safeMetric(entry.outputTokens), 0);
-  const skillTile = mostUsedSkillTile(sources.skillRuns, thirtyDaysAgo, nowMs);
   const tiles = [
     { label: 'Agent runs (7d)', value: recentAgents.length },
     { label: 'Tokens (7d)', value: formatTokens(inputTokens + outputTokens) },
     { label: 'Est cost (7d)', value: `$${estimatedCostUsd(inputTokens, outputTokens).toFixed(2)} est` },
-    { label: 'Skill launches (7d)', value: recentEntries(sources.skillRuns, sevenDaysAgo, nowMs).length },
+    ...skillTilesFromTopSkills(topSkills),
     { label: 'Tasks done (7d)', value: completedTaskCount(sources.tasks, sevenDaysAgo, nowMs) },
   ];
-  if (skillTile) tiles.push(skillTile);
 
   return {
     tiles,
     topAgents: buildTopAgents(sources.agentRuns, thirtyDaysAgo, nowMs),
+    topSkills,
     daily: buildDaily(sources.agentRuns, nowMs),
     flows: buildFlows(sources.events),
   };
 }
 
-function buildDocument() {
+async function buildDocument() {
   const contract = JSON.parse(fs.readFileSync(CONTRACT_PATH, 'utf8'));
   const pluginFiles = walkFilesNamed(PLUGIN_SKILLS_DIR, 'SKILL.md');
   const ecosystemFiles = walkFilesNamed(ECOSYSTEM_SKILLS_DIR, 'SKILL.md');
@@ -598,7 +608,7 @@ function buildDocument() {
     jobs: JOBS,
     ideas: buildIdeas(skills),
     patterns: PATTERNS,
-    analytics: buildAnalytics(),
+    analytics: await buildAnalytics(),
   };
 
   const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
@@ -610,9 +620,9 @@ function buildDocument() {
   return output;
 }
 
-function main() {
+async function main() {
   const { outPath } = parseArgs(process.argv.slice(2));
-  const output = buildDocument();
+  const output = await buildDocument();
   if (outPath) {
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
     fs.writeFileSync(outPath, output);
@@ -621,10 +631,8 @@ function main() {
   }
 }
 
-try {
-  main();
-} catch (error) {
+main().catch((error) => {
   const message = error instanceof Error ? error.message : String(error);
   process.stderr.write(`build-cockpit: ${message}\n`);
   process.exitCode = 1;
-}
+});

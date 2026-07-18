@@ -185,6 +185,12 @@ test('analytics aggregates local JSONL activity into the documented payload shap
   assert.strictEqual(tiles['Skill launches (7d)'], 2);
   assert.strictEqual(tiles['Tasks done (7d)'], 1);
   assert.strictEqual(tiles['Most-used skill (30d)'], 'ccc-browse ×2 · ccc-debug ×1');
+  // topSkills = the shared Mission Control reader (top-skills.js), not a second
+  // local parser. Sorted runs7d desc; carries bySource for Claude+Codex split.
+  assert.deepStrictEqual(analytics.topSkills, [
+    { skill: 'ccc-browse', runs7d: 2, runs30d: 2, bySource: { 'claude-code': 2 } },
+    { skill: 'ccc-debug', runs7d: 0, runs30d: 1, bySource: { 'claude-code': 1 } },
+  ]);
   assert.strictEqual(analytics.daily.length, 14);
   assert.strictEqual(analytics.daily.reduce(function(sum, day) { return sum + day.runs; }, 0), 3);
   assert.deepStrictEqual(builder, {

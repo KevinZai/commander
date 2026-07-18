@@ -11,6 +11,7 @@
       analytics: {                                                    // OPTIONAL — computed from ~/.claude/commander/*.jsonl at generate time; {} or absent = zero-state
         tiles:  [{ label, value }],                                   // e.g. "Agent runs (7d)": 42, "Tokens (7d)", "Est cost (7d)"
         topAgents: [{ name, emoji, runs, tokens, costUsd, avgMs }],   // desc by runs, ≤10
+        topSkills: [{ skill, runs7d, runs30d, bySource }],            // Mission Control's shared reader; bySource = { 'claude-code': n, codex: n }; desc by runs7d, ≤10
         daily:  [{ date, runs }],                                     // last 14 days, for the sparkline
         flows:  [{ from, to, count }]                                 // delegation edges aggregated, ≤10
       }
@@ -162,6 +163,7 @@
     </div>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
       <div class="panel"><div class="agent-group" style="margin-top:0">Top agents</div><div id="an-top"></div></div>
+      <div class="panel"><div class="agent-group" style="margin-top:0">Top skills · Claude + Codex</div><div id="an-skills"></div></div>
       <div class="panel"><div class="agent-group" style="margin-top:0">Delegation flows</div><div id="an-flows"></div></div>
     </div>
   </section>
@@ -385,6 +387,13 @@
     return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span style="flex:1">' + esc(a.emoji || '🤖') + ' <strong>' + esc(a.name) + '</strong></span>'
       + '<span class="badge">' + a.runs + ' runs</span><span class="badge">' + Math.round((a.tokens || 0) / 1000) + 'k tok</span>'
       + (a.costUsd != null ? '<span class="badge">$' + a.costUsd.toFixed(2) + ' est</span>' : '') + '</div>';
+  }).join('') || zero;
+  $('an-skills').innerHTML = (AN.topSkills || []).map(function (s) {
+    var by = s.bySource || {};
+    var cc = by['claude-code'] || 0, cx = by.codex || 0;
+    var split = (cc ? '<span class="badge">claude ' + cc + '</span>' : '') + (cx ? '<span class="badge">codex ' + cx + '</span>' : '');
+    return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="cmd" style="flex:1">' + esc(s.skill) + '</span>'
+      + '<span class="badge">' + (s.runs7d || 0) + '×7d</span><span class="badge">' + (s.runs30d || 0) + '×30d</span>' + split + '</div>';
   }).join('') || zero;
   $('an-flows').innerHTML = (AN.flows || []).map(function (f) {
     return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="cmd" style="flex:1">' + esc(f.from) + ' → ' + esc(f.to) + '</span><span class="badge">×' + f.count + '</span></div>';
