@@ -1,143 +1,274 @@
 <!--
   Commander Cockpit — template consumed by scripts/build-cockpit.mjs.
-  The generator replaces the __COCKPIT_DATA__ marker below with a JSON payload:
-    window.__COCKPIT__ = {
-      meta:   { version, generatedAt, pluginSkills, ecosystemSkills, agents },
-      skills: [{ id, name, cmd, desc, domain, tier, source }],        // cmd = "/ccc-…" or "skill id"
-      agents: [{ id, name, emoji, role, desc, model }],
-      jobs:   [{ label, query }],                                     // "what are you trying to accomplish?"
-      ideas:  [{ project, goal, title, why, cmd }],                   // pre-composed catalog-grounded moves
-      patterns: [{ key, name, hint, test }],                          // the 6 prompt-quality patterns; test = regex source
-      analytics: {                                                    // OPTIONAL — computed from ~/.claude/commander/*.jsonl at generate time; {} or absent = zero-state
-        tiles:  [{ label, value }],                                   // e.g. "Agent runs (7d)": 42, "Tokens (7d)", "Est cost (7d)"
-        topAgents: [{ name, emoji, runs, tokens, costUsd, avgMs }],   // desc by runs, ≤10
-        topSkills: [{ skill, runs7d, runs30d, bySource }],            // Mission Control's shared reader; bySource = { 'claude-code': n, codex: n }; desc by runs7d, ≤10
-        daily:  [{ date, runs }],                                     // last 14 days, for the sparkline
-        flows:  [{ from, to, count }]                                 // delegation edges aggregated, ≤10
-      }
-    };
-  Constraints: this file must stay 100% self-contained when rendered — no external URLs of any kind.
+  The generator replaces two markers (shown here without their comment
+  wrappers so this doc block doesn't itself count as a marker):
+    BRAND_CSS marker  → brandBaseCss() from commander/cowork-plugin/lib/brand-css.js
+                          (the shared commanderplugin.com design system: tokens +
+                          terminal/eyebrow/status primitives). Single source of truth.
+    COCKPIT_DATA marker → window.__COCKPIT__ = { ...payload }:
+      meta:   { version, generatedAt, pluginSkills, ecosystemSkills, agents }
+      skills: [{ id, name, cmd, desc, domain, tier, source }]
+      agents: [{ id, name, emoji, role, desc, model }]
+      jobs:   [{ label, query }]
+      ideas:  [{ project, goal, title, why, cmd }]
+      patterns: [{ key, name, hint, test }]
+      analytics: { tiles:[{label,value}], topAgents:[{name,emoji,runs,tokens,costUsd,avgMs}],
+                   topSkills:[{skill,runs7d,runs30d,bySource}], daily:[{date,runs}], flows:[{from,to,count}] }
+      linear: { connected, board, tickets:[{id,title,state,stateKind,project,updated,stale}] } // optional; absent/{} = not connected
+  Constraints: 100% self-contained when rendered — no external URLs of any kind.
 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Commander Cockpit</title>
 <style>
-  :root {
-    --bg: #faf9f5; --panel: #ffffff; --ink: #1a1a18; --muted: #6e6e66;
-    --line: #e4e2da; --accent: #d97757; --accent-ink: #fff; --chipbg: #f0eee6;
-    --ok: #2e8555; --card-shadow: 0 1px 3px rgba(26,26,24,.07);
-  }
-  @media (prefers-color-scheme: dark) { :root {
-    --bg: #1a1a18; --panel: #232320; --ink: #f0efea; --muted: #a3a299;
-    --line: #38382f; --accent: #d97757; --chipbg: #2c2c27; --ok: #4cbf7a;
-    --card-shadow: 0 1px 3px rgba(0,0,0,.35);
-  }}
-  :root[data-theme="light"] {
-    --bg: #faf9f5; --panel: #ffffff; --ink: #1a1a18; --muted: #6e6e66;
-    --line: #e4e2da; --chipbg: #f0eee6; --ok: #2e8555; --card-shadow: 0 1px 3px rgba(26,26,24,.07);
-  }
-  :root[data-theme="dark"] {
-    --bg: #1a1a18; --panel: #232320; --ink: #f0efea; --muted: #a3a299;
-    --line: #38382f; --chipbg: #2c2c27; --ok: #4cbf7a; --card-shadow: 0 1px 3px rgba(0,0,0,.35);
-  }
-  * { box-sizing: border-box; }
-  body { background: var(--bg); color: var(--ink); margin: 0;
-         font: 15px/1.5 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 64px; }
-  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
-  .mark { width: 40px; height: 40px; border-radius: 10px; background: var(--accent);
-          color: var(--accent-ink); display: grid; place-items: center; font-size: 21px; }
-  h1 { font-size: 21px; margin: 0; letter-spacing: -.01em; }
-  .sub { color: var(--muted); font-size: 13px; width: 100%; margin: 0 0 14px 52px; }
-  .counts { margin-left: auto; color: var(--muted); font-size: 12px; text-align: right; }
-  nav { display: flex; gap: 6px; margin: 10px 0 18px; border-bottom: 1px solid var(--line); }
-  nav button { appearance: none; background: none; border: none; color: var(--muted); font: inherit;
-               font-weight: 600; padding: 9px 14px; cursor: pointer; border-bottom: 2px solid transparent; }
-  nav button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
-  .search { display: flex; gap: 8px; margin-bottom: 12px; }
-  .search input { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-                  color: var(--ink); font: inherit; padding: 10px 14px; outline: none; }
-  .search input:focus { border-color: var(--accent); }
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-  .chip { background: var(--chipbg); border: 1px solid transparent; border-radius: 999px; color: var(--ink);
-          font-size: 12.5px; font-weight: 600; padding: 5px 12px; cursor: pointer; }
-  .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-  .jobrow { margin: 0 0 16px; }
-  .jobrow .lbl { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px;
-          box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 6px; }
-  .card h3 { margin: 0; font-size: 14.5px; display: flex; align-items: center; gap: 7px; }
-  .card .desc { color: var(--muted); font-size: 13px; flex: 1; }
-  .badges { display: flex; gap: 5px; flex-wrap: wrap; }
-  .badge { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
-           background: var(--chipbg); color: var(--muted); border-radius: 5px; padding: 2px 7px; }
-  .row { display: flex; align-items: center; gap: 8px; }
-  .cmd { font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; background: var(--chipbg);
-         border-radius: 7px; padding: 4px 9px; overflow: hidden; text-overflow: ellipsis;
-         white-space: nowrap; flex: 1; }
-  .copy { appearance: none; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
-          border-radius: 8px; font: 600 12px inherit; padding: 5px 11px; cursor: pointer; white-space: nowrap; }
-  .copy:hover { border-color: var(--accent); }
-  .copy.ok { border-color: var(--ok); color: var(--ok); }
-  .agent-group { margin: 18px 0 8px; font-size: 12.5px; font-weight: 700; color: var(--muted);
-                 text-transform: uppercase; letter-spacing: .05em; }
-  .empty { color: var(--muted); text-align: center; padding: 48px 0; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px;
-           box-shadow: var(--card-shadow); }
-  textarea { width: 100%; min-height: 110px; background: var(--bg); color: var(--ink); font: inherit;
-             border: 1px solid var(--line); border-radius: 10px; padding: 12px; resize: vertical; outline: none; }
-  textarea:focus { border-color: var(--accent); }
-  .checklist { display: grid; gap: 8px; margin: 14px 0; }
-  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
-  .check .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line);
-                flex: none; margin-top: 1px; display: grid; place-items: center; font-size: 11px; }
-  .check.pass .dot { border-color: var(--ok); color: var(--ok); }
-  .check.pass .dot::before { content: "✓"; }
-  .check .hint { color: var(--muted); display: block; font-size: 12.5px; }
-  .primary { appearance: none; border: none; background: var(--accent); color: var(--accent-ink);
-             border-radius: 10px; font: 600 14px inherit; padding: 10px 18px; cursor: pointer; }
-  .out { margin-top: 14px; }
-  .out pre { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px;
-             font: 13px ui-monospace, Menlo, monospace; white-space: pre-wrap; margin: 8px 0 0; }
-  .selrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-  select { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px;
-           font: inherit; padding: 9px 12px; outline: none; }
-  footer { margin-top: 40px; color: var(--muted); font-size: 12px; text-align: center; }
-  .kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px;
-         font: 11px ui-monospace, monospace; }
+/*__BRAND_CSS__*/
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+::selection { background: var(--primary-glow); color: var(--text); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+a { color: inherit; text-decoration: none; }
+.mono { font-family: var(--font-mono); }
+.acc { color: var(--primary); }
+.tan { color: var(--accent-2); }
+.dim { color: var(--text-dim); }
+.faint { color: var(--text-muted); }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 72px; }
+
+/* ── terminal window header ── */
+.deck { margin: 22px 0 18px; }
+.deck-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px;
+  background: rgba(255,255,255,.014);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);
+}
+.deck-body {
+  border: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  background: var(--bg-terminal);
+  padding: 22px 22px 20px;
+  display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+}
+.deck-mark {
+  width: 42px; height: 42px; flex: none; border-radius: 9px;
+  background: var(--bg-card); border: 1px solid var(--border-strong);
+  display: grid; place-items: center; color: var(--primary); font-size: 20px;
+}
+.deck-title { flex: 1; min-width: 220px; }
+.deck-title h1 {
+  margin: 6px 0 3px; font-size: 24px; font-weight: 600; letter-spacing: -.02em;
+}
+.deck-title .tag { color: var(--text-dim); font-size: 13.5px; }
+.deck-title .tag kbd {
+  font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--border-strong);
+  border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; color: var(--text-dim);
+}
+.deck-counts {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted);
+  text-align: right; line-height: 1.7; align-self: center;
+}
+.deck-counts b { color: var(--accent-2); font-weight: 500; }
+
+/* ── tabs ── */
+nav {
+  display: flex; gap: 2px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border); margin-bottom: 20px;
+}
+nav button {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim);
+  padding: 10px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+nav button:hover { color: var(--text); }
+nav button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--primary); }
+
+/* ── search ── */
+.search { position: relative; margin-bottom: 14px; }
+.search::before {
+  content: "/"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-family: var(--font-mono); color: var(--primary); font-size: 14px;
+}
+.search input {
+  width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-card); color: var(--text);
+  font: inherit; padding: 12px 14px 12px 34px; outline: none;
+  transition: border-color .15s;
+}
+.search input::placeholder { color: var(--text-muted); }
+.search input:focus { border-color: var(--primary); }
+
+/* ── job chips ── */
+.jobrow { margin: 0 0 18px; }
+.chips { display: flex; gap: 7px; flex-wrap: wrap; }
+.chip {
+  background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-small);
+  color: var(--text); font-family: var(--font-mono); font-size: 12px; padding: 7px 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.chip:hover { border-color: var(--border-strongest); transform: translateY(-1px); }
+.chip[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-glow); color: var(--text); }
+
+/* ── ls file-listing (domains, tickets, flows) ── */
+.ls { border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--bg-card); overflow: hidden; font-family: var(--font-mono); }
+.ls-head {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); background: rgba(255,255,255,.013);
+  font-size: 12px; color: var(--text-muted);
+}
+.ls-head .pmt { color: var(--primary); }
+.ls-row {
+  display: grid; align-items: center; gap: 16px;
+  grid-template-columns: 96px 96px 1fr auto;
+  padding: 11px 16px; border-top: 1px solid var(--border);
+  font-size: 13px; color: var(--text-dim); cursor: pointer;
+  transition: background .14s, color .14s;
+  width: 100%; text-align: left; appearance: none; background: none; border-left: 0; border-right: 0; border-bottom: 0; font-family: inherit;
+}
+.ls-row:first-of-type { border-top: 0; }
+.ls-row:hover, .ls-row[aria-pressed="true"] { background: var(--primary-glow); color: var(--text); }
+.ls-row .perm { color: var(--text-muted); font-size: 12px; }
+.ls-row .size { color: var(--accent-2); font-weight: 500; white-space: nowrap; }
+.ls-row .name { color: var(--text); }
+.ls-row .name .acc { color: var(--primary); }
+.ls-row .ext { color: var(--text-muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; text-align: right; }
+.ls-foot { padding: 11px 16px; border-top: 1px solid var(--border); background: rgba(255,255,255,.013); color: var(--text-muted); font-size: 12px; }
+.ls-foot b { color: var(--primary); font-weight: 500; }
+@media (max-width: 720px) {
+  .ls-row { grid-template-columns: 1fr auto; gap: 10px; }
+  .ls-row .perm, .ls-row .ext { display: none; }
+}
+
+.eyebrow.group { margin: 22px 0 10px; }
+
+/* ── cards ── */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card);
+  padding: 14px 15px; display: flex; flex-direction: column; gap: 8px;
+  transition: border-color .16s, transform .16s, background .16s;
+}
+.card:hover { border-color: var(--border-strongest); transform: translateY(-2px); }
+.card h3 { margin: 0; font-size: 14.5px; font-weight: 600; letter-spacing: -.005em; display: flex; align-items: center; gap: 8px; }
+.card .desc { color: var(--text-dim); font-size: 13px; line-height: 1.55; flex: 1; }
+.badges { display: flex; gap: 5px; flex-wrap: wrap; }
+.badge {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-dim); border: 1px solid var(--border-strong); border-radius: var(--radius-small); padding: 2px 7px;
+}
+.badge.pri { color: var(--primary); border-color: var(--border-glow); }
+.badge.tan { color: var(--accent-2); }
+.row { display: flex; align-items: center; gap: 8px; }
+.cmd {
+  font-family: var(--font-mono); font-size: 12px; background: var(--bg-terminal);
+  border: 1px solid var(--border); border-radius: var(--radius-small); padding: 5px 9px;
+  color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
+}
+.copy {
+  appearance: none; border: 1px solid var(--border-strong); background: transparent; color: var(--text);
+  border-radius: var(--radius-small); font-family: var(--font-mono); font-size: 11.5px; padding: 6px 11px;
+  cursor: pointer; white-space: nowrap; transition: border-color .15s, color .15s;
+}
+.copy:hover { border-color: var(--primary); color: var(--primary); }
+.copy.ok { border-color: var(--green-dot); color: var(--green-dot); }
+
+/* ── panels ── */
+.panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 20px; }
+.panel .panel-h { margin: 0 0 14px; }
+.metric { display: flex; flex-direction: column; gap: 5px; padding: 14px 16px; }
+.metric .k { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.metric .v { font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+.listrow { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.listrow:first-child { border-top: 0; }
+
+/* ── inputs ── */
+textarea, select, .in {
+  width: 100%; background: var(--bg-terminal); color: var(--text); font: inherit;
+  border: 1px solid var(--border); border-radius: var(--radius-small); padding: 11px 12px; outline: none;
+}
+textarea { min-height: 118px; resize: vertical; }
+textarea:focus, select:focus, .in:focus { border-color: var(--primary); }
+select { width: auto; font-family: var(--font-mono); font-size: 12.5px; }
+.selrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.primary {
+  appearance: none; border: 0; background: var(--primary); color: #1a0f0a;
+  border-radius: var(--radius-small); font-family: var(--font-mono); font-weight: 600; font-size: 13px;
+  padding: 11px 18px; cursor: pointer; transition: background .15s;
+}
+.primary:hover { background: var(--primary-dim); }
+
+/* ── checklist (enhance) ── */
+.checklist { display: grid; gap: 9px; margin: 16px 0; }
+.check { display: flex; gap: 11px; align-items: flex-start; font-size: 13.5px; }
+.check .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-strong); flex: none; margin-top: 2px; display: grid; place-items: center; font-size: 11px; color: var(--green-dot); }
+.check.pass .dot { border-color: var(--green-dot); }
+.check.pass .dot::before { content: "✓"; }
+.check .hint { color: var(--text-dim); display: block; font-size: 12.5px; }
+.out { margin-top: 16px; }
+.out pre { background: var(--bg-terminal); border: 1px solid var(--border); border-radius: var(--radius-small); padding: 14px; font-family: var(--font-mono); font-size: 12.5px; white-space: pre-wrap; margin: 8px 0 0; color: var(--text); }
+
+.empty { color: var(--text-muted); text-align: center; padding: 44px 0; font-size: 13.5px; }
+.spark svg { width: 100%; height: 64px; display: block; }
+footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--text-muted); font-family: var(--font-mono); font-size: 11.5px; text-align: center; }
 </style>
 
 <div class="wrap">
-  <header>
-    <div class="mark">🎛️</div>
-    <h1>Commander Cockpit</h1>
-    <div class="counts" id="counts"></div>
-    <p class="sub">Every Commander tool, clickable. Copy a command, paste it into Claude Code. <span class="kbd">/</span> to search.</p>
-  </header>
+  <div class="deck">
+    <div class="deck-bar">
+      <span class="terminal-dot red"></span><span class="terminal-dot yellow"></span><span class="terminal-dot green"></span>
+      <span style="margin-left:6px">commander · cockpit</span>
+    </div>
+    <div class="deck-body">
+      <div class="deck-mark">🎛️</div>
+      <div class="deck-title">
+        <div class="eyebrow">Mission Deck</div>
+        <h1>Commander Cockpit</h1>
+        <div class="tag">Every Commander tool, one click away. Copy a command, paste it into Claude Code. <kbd>/</kbd> to search.</div>
+      </div>
+      <div class="deck-counts" id="counts"></div>
+    </div>
+  </div>
 
   <nav role="tablist">
-    <button role="tab" aria-selected="true" data-tab="browse">🧭 Browse</button>
-    <button role="tab" aria-selected="false" data-tab="ideas">💡 Ideas</button>
-    <button role="tab" aria-selected="false" data-tab="enhance">✨ Enhance a prompt</button>
-    <button role="tab" aria-selected="false" data-tab="analytics">📊 Analytics</button>
-    <button role="tab" aria-selected="false" data-tab="agents">👥 Agents</button>
+    <button role="tab" aria-selected="true" data-tab="browse">▸ browse</button>
+    <button role="tab" aria-selected="false" data-tab="ideas">▸ ideas</button>
+    <button role="tab" aria-selected="false" data-tab="enhance">▸ enhance</button>
+    <button role="tab" aria-selected="false" data-tab="linear">▸ linear</button>
+    <button role="tab" aria-selected="false" data-tab="analytics">▸ analytics</button>
+    <button role="tab" aria-selected="false" data-tab="agents">▸ agents</button>
   </nav>
 
   <section id="tab-browse">
-    <div class="search"><input id="q" type="search" placeholder="Search 500+ skills and 22 agents… (name, task, domain)" aria-label="Search skills"></div>
-    <div class="jobrow"><div class="lbl">What are you trying to accomplish?</div><div class="chips" id="jobs"></div></div>
-    <div class="chips" id="domains"></div>
+    <div class="search"><input id="q" type="search" placeholder="search skills & agents by name, task, or domain…" aria-label="Search skills"></div>
+    <div class="jobrow"><div class="eyebrow" style="margin-bottom:9px">What are you trying to accomplish?</div><div class="chips" id="jobs"></div></div>
+    <div id="ls-domains"></div>
     <div id="results"></div>
   </section>
 
   <section id="tab-ideas" hidden>
     <div class="panel">
+      <div class="eyebrow" style="margin-bottom:14px">Catalog-grounded next moves</div>
       <div class="selrow">
         <select id="idea-project" aria-label="Project type"></select>
         <select id="idea-goal" aria-label="Goal"></select>
-        <button class="primary" id="idea-go">Show me moves</button>
-        <button class="copy" id="idea-shuffle">🎲 Surprise me</button>
+        <button class="primary" id="idea-go">show me moves</button>
+        <button class="copy" id="idea-shuffle">🎲 surprise me</button>
       </div>
       <div class="grid" id="idea-cards"></div>
     </div>
@@ -145,44 +276,49 @@
 
   <section id="tab-enhance" hidden>
     <div class="panel">
+      <div class="eyebrow" style="margin-bottom:14px">Sharpen a prompt against 6 quality patterns</div>
       <textarea id="raw" placeholder="Paste the prompt you were about to send…"></textarea>
       <div class="checklist" id="patterns"></div>
-      <button class="primary" id="enhance-go">Sharpen it</button>
+      <button class="primary" id="enhance-go">sharpen it</button>
       <div class="out" id="enhanced" hidden>
-        <div class="row"><strong>Sharpened prompt</strong><button class="copy" id="copy-enhanced">📋 Copy</button></div>
+        <div class="row"><span class="eyebrow">Sharpened prompt</span><button class="copy" id="copy-enhanced">📋 copy</button></div>
         <pre id="enhanced-text"></pre>
       </div>
     </div>
   </section>
 
+  <section id="tab-linear" hidden>
+    <div id="linear-body"></div>
+  </section>
+
   <section id="tab-analytics" hidden>
-    <div class="grid" id="an-tiles" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin-bottom:12px"></div>
+    <div class="ls" id="an-tiles" style="margin-bottom:14px"></div>
     <div class="panel" style="margin-bottom:12px">
-      <div class="agent-group" style="margin-top:0">Activity — last 14 days</div>
-      <div id="an-spark"></div>
+      <div class="eyebrow" style="margin-bottom:12px">Activity — last 14 days</div>
+      <div class="spark" id="an-spark"></div>
     </div>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
-      <div class="panel"><div class="agent-group" style="margin-top:0">Top agents</div><div id="an-top"></div></div>
-      <div class="panel"><div class="agent-group" style="margin-top:0">Top skills · Claude + Codex</div><div id="an-skills"></div></div>
-      <div class="panel"><div class="agent-group" style="margin-top:0">Delegation flows</div><div id="an-flows"></div></div>
+      <div class="panel"><div class="eyebrow" style="margin-bottom:10px">Top agents</div><div id="an-top"></div></div>
+      <div class="panel"><div class="eyebrow" style="margin-bottom:10px">Top skills · Claude + Codex</div><div id="an-skills"></div></div>
+      <div class="panel"><div class="eyebrow" style="margin-bottom:10px">Delegation flows</div><div id="an-flows"></div></div>
     </div>
   </section>
 
   <section id="tab-agents" hidden>
-    <p class="sub" style="margin:0 0 12px">Your crew — stats from your own machine. Edit a profile, copy it out, and tell Claude to apply it.</p>
+    <div class="eyebrow" style="margin:2px 0 12px">Your crew — stats from your own machine · edit a profile, copy it out, tell Claude to apply it</div>
     <div class="grid" id="mgr-cards"></div>
-    <div class="panel" id="mgr-editor" hidden style="margin-top:12px">
-      <div class="agent-group" style="margin-top:0">✏️ Edit profile — <span id="mgr-name"></span></div>
+    <div class="panel" id="mgr-editor" hidden style="margin-top:14px">
+      <div class="eyebrow" style="margin-bottom:12px">✏️ Edit profile — <span id="mgr-name"></span></div>
       <div class="selrow">
-        <input id="mgr-role" class="cmd" style="flex:1;border:1px solid var(--line);background:var(--bg)" placeholder="Role">
+        <input id="mgr-role" class="in" style="flex:1;min-width:180px" placeholder="Role — e.g. Senior code reviewer">
         <select id="mgr-model"><option>inherit</option><option>claude-sonnet-5</option><option>claude-opus-4-8</option><option>claude-haiku-4-5</option></select>
         <select id="mgr-effort"><option>inherit</option><option>low</option><option>medium</option><option>high</option><option>xhigh</option></select>
       </div>
       <textarea id="mgr-desc" placeholder="What this agent does, when to use it…"></textarea>
-      <div class="row" style="margin-top:10px">
-        <button class="primary" id="mgr-export">📋 Copy profile for Claude</button>
-        <button class="copy" id="mgr-download" hidden>⬇ Save as file</button>
-        <span class="sub" style="margin:0">Paste it in chat: “apply this agent profile”.</span>
+      <div class="row" style="margin-top:12px; flex-wrap:wrap">
+        <button class="primary" id="mgr-export">📋 copy profile for Claude</button>
+        <button class="copy" id="mgr-download" hidden>⬇ save as file</button>
+        <span class="dim" style="font-size:12.5px">Paste it in chat: “apply this agent profile”.</span>
       </div>
     </div>
   </section>
@@ -206,106 +342,164 @@
     });
   };
 
-  $('counts').textContent = D.meta.pluginSkills + ' plugin + ' + D.meta.ecosystemSkills + ' ecosystem skills · ' + D.meta.agents + ' agents · v' + D.meta.version;
+  $('counts').innerHTML = '<b>' + D.meta.pluginSkills + '</b> plugin · <b>' + D.meta.ecosystemSkills + '</b> ecosystem skills<br><b>' + D.meta.agents + '</b> agents · <span class="acc">v' + esc(D.meta.version) + '</span>';
   $('foot').textContent = 'CC Commander v' + D.meta.version + ' · generated ' + D.meta.generatedAt + ' · core free forever · everything runs in this page, nothing leaves it';
 
   // ---------- tabs ----------
+  var TABS = ['browse', 'ideas', 'enhance', 'linear', 'analytics', 'agents'];
   var tabs = document.querySelectorAll('nav [role="tab"]');
   tabs.forEach(function (b) {
     b.addEventListener('click', function () {
       tabs.forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
-      ['browse', 'ideas', 'enhance', 'analytics', 'agents'].forEach(function (t) { $('tab-' + t).hidden = (t !== b.dataset.tab); });
+      TABS.forEach(function (t) { $('tab-' + t).hidden = (t !== b.dataset.tab); });
     });
   });
 
   // ---------- clipboard ----------
   function wireCopy(btn, text) {
     btn.addEventListener('click', function () {
-      var done = function () { btn.classList.add('ok'); var old = btn.textContent; btn.textContent = '✓ Copied'; setTimeout(function () { btn.classList.remove('ok'); btn.textContent = old; }, 1400); };
+      var done = function () { btn.classList.add('ok'); var old = btn.textContent; btn.textContent = '✓ copied'; setTimeout(function () { btn.classList.remove('ok'); btn.textContent = old; }, 1400); };
       if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, function () { fallback(); done(); }); }
       else { fallback(); done(); }
       function fallback() { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); }
     });
   }
+  document.body.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-copy]'); if (b && !b.dataset.wired) { b.dataset.wired = '1'; wireCopy(b, b.getAttribute('data-copy')); b.click(); }
+  });
 
-  // ---------- browse ----------
+  // ---------- browse: domains as an `ls` listing, not a tag wall ----------
+  var DOMAIN_BLURB = {
+    'ccc-design': 'landing · components · UI·UX',
+    'ccc-marketing': 'launch · copy · ads · CRO',
+    'ccc-saas': 'auth · billing · schema',
+    'ccc-devops': 'CI · deploy · rollback',
+    'ccc-seo': 'schema · sitemap · vitals',
+    'ccc-testing': 'TDD · e2e · coverage',
+    'ccc-security': 'OWASP · secrets · hardening',
+    'ccc-data': 'SQL · ETL · dashboards',
+    'ccc-research': 'competitive · market',
+    'ccc-mobile': 'react-native · expo',
+    'ccc-makeover': 'xray · polish',
+    'ccc-smb-ops': 'invoicing · cash-flow · CRM',
+    'core': 'workflows · hooks · lifecycle',
+    'plugin': 'the /ccc-* front door'
+  };
   var activeDomain = null, activeJob = null;
-  var domains = [];
-  D.skills.forEach(function (s) { if (s.domain && domains.indexOf(s.domain) === -1) domains.push(s.domain); });
-  domains.sort();
+  var domainCounts = {};
+  D.skills.forEach(function (s) { var d = s.domain || 'core'; domainCounts[d] = (domainCounts[d] || 0) + 1; });
+  var domainList = Object.keys(domainCounts).sort(function (a, b) { return domainCounts[b] - domainCounts[a] || a.localeCompare(b); });
 
-  $('domains').innerHTML = domains.map(function (d) {
-    return '<button class="chip" data-d="' + esc(d) + '" aria-pressed="false">' + esc(d) + '</button>';
-  }).join('');
+  function renderDomains() {
+    var rows = domainList.map(function (d) {
+      var n = domainCounts[d];
+      return '<button class="ls-row" type="button" data-d="' + esc(d) + '" aria-pressed="' + (activeDomain === d) + '">'
+        + '<span class="perm">drwxr-xr-x</span>'
+        + '<span class="size">' + n + ' skill' + (n === 1 ? '' : 's') + '</span>'
+        + '<span class="name">/<span class="acc">' + esc(d.replace(/^ccc-/, '')) + '</span>'
+        + '<span class="dim" style="font-family:var(--font-sans);font-size:12.5px;margin-left:10px">' + esc(DOMAIN_BLURB[d] || 'skills') + '</span></span>'
+        + '<span class="ext">' + esc(d.indexOf('ccc-') === 0 ? 'domain' : d) + '</span></button>';
+    }).join('');
+    $('ls-domains').innerHTML =
+      '<div class="ls"><div class="ls-head"><span class="pmt">$</span> ls ~/.commander/skills'
+      + (activeDomain ? '/<span class="acc">' + esc(activeDomain) + '</span>  <span class="dim">— click again to clear</span>' : '  <span class="dim">— pick a domain, or search above</span>')
+      + '</div>' + rows
+      + '<div class="ls-foot"><b>' + D.meta.pluginSkills + '</b> plugin + <b>' + D.meta.ecosystemSkills + '</b> ecosystem skills across <b>' + domainList.length + '</b> domains · <b>' + D.meta.agents + '</b> specialist agents</div></div>';
+  }
   $('jobs').innerHTML = (D.jobs || []).map(function (j, i) {
     return '<button class="chip" data-j="' + i + '" aria-pressed="false">' + esc(j.label) + '</button>';
   }).join('');
 
-  $('domains').addEventListener('click', function (e) {
-    var b = e.target.closest('.chip'); if (!b) return;
+  $('ls-domains').addEventListener('click', function (e) {
+    var b = e.target.closest('.ls-row'); if (!b) return;
     activeDomain = (activeDomain === b.dataset.d) ? null : b.dataset.d;
-    this.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', String(c.dataset.d === activeDomain)); });
-    render();
+    renderDomains(); render();
+    if (activeDomain) $('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
   $('jobs').addEventListener('click', function (e) {
     var b = e.target.closest('.chip'); if (!b) return;
     var j = D.jobs[Number(b.dataset.j)];
     activeJob = (activeJob === j) ? null : j;
     this.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', String(D.jobs[Number(c.dataset.j)] === activeJob)); });
-    if (activeJob) { $('q').value = activeJob.query; } else { $('q').value = ''; }
+    $('q').value = activeJob ? activeJob.query : '';
     render();
   });
 
   function matches(s, q) {
-    if (activeDomain && s.domain !== activeDomain) return false;
+    if (activeDomain && (s.domain || 'core') !== activeDomain) return false;
     if (!q) return true;
     var hay = (s.name + ' ' + (s.cmd || '') + ' ' + (s.desc || '') + ' ' + (s.domain || '')).toLowerCase();
     return q.split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });
   }
-
   function skillCard(s) {
     return '<div class="card"><h3>' + esc(s.name) + '</h3>'
-      + '<div class="badges"><span class="badge">' + esc(s.source) + '</span>'
+      + '<div class="badges"><span class="badge pri">' + esc(s.source) + '</span>'
       + (s.domain ? '<span class="badge">' + esc(s.domain) + '</span>' : '')
-      + (s.tier ? '<span class="badge">' + esc(s.tier) + '</span>' : '') + '</div>'
+      + (s.tier ? '<span class="badge tan">' + esc(s.tier) + '</span>' : '') + '</div>'
       + '<div class="desc">' + esc(s.desc) + '</div>'
-      + '<div class="row"><span class="cmd">' + esc(s.cmd) + '</span><button class="copy" data-copy="' + esc(s.cmd) + '">📋 Copy</button></div></div>';
+      + '<div class="row"><span class="cmd">' + esc(s.cmd) + '</span><button class="copy" data-copy="' + esc(s.cmd) + '">📋 copy</button></div></div>';
   }
   function agentCard(a) {
     return '<div class="card"><h3>' + esc(a.emoji) + ' ' + esc(a.name) + '</h3>'
-      + '<div class="badges"><span class="badge">agent</span><span class="badge">' + esc(a.role) + '</span></div>'
+      + '<div class="badges"><span class="badge tan">agent</span><span class="badge">' + esc(a.role) + '</span></div>'
       + '<div class="desc">' + esc(a.desc) + '</div>'
-      + '<div class="row"><span class="cmd">Use the ' + esc(a.name) + ' agent to…</span><button class="copy" data-copy="Use the ' + esc(a.name) + ' subagent to ">📋 Copy</button></div></div>';
+      + '<div class="row"><span class="cmd">Use the ' + esc(a.name) + ' agent to…</span><button class="copy" data-copy="Use the ' + esc(a.name) + ' subagent to ">📋 copy</button></div></div>';
   }
-
   function render() {
     var q = $('q').value.trim().toLowerCase();
+    // While searching, the `ls` domain map gives way to the live results so
+    // the filter is visible in place; it returns when the query is cleared.
+    $('ls-domains').style.display = q ? 'none' : '';
+    // Home state: no search, no domain → the ls listing is the whole view.
+    if (!q && !activeDomain) { $('results').innerHTML = ''; return; }
     var skills = D.skills.filter(function (s) { return matches(s, q); });
-    var agents = (activeDomain ? [] : D.agents.filter(function (a) {
-      if (!q) return true;
+    var agents = activeDomain ? [] : D.agents.filter(function (a) {
+      if (!q) return false;
       return (a.name + ' ' + a.role + ' ' + a.desc).toLowerCase().indexOf(q) !== -1;
-    }));
+    });
     var html = '';
-    if (agents.length && (q || !activeDomain)) {
-      var byRole = {};
-      agents.forEach(function (a) { var k = a.role.indexOf('Reviewer') !== -1 ? 'Review crew' : 'Specialists'; (byRole[k] = byRole[k] || []).push(a); });
-      Object.keys(byRole).sort().forEach(function (g) {
-        html += '<div class="agent-group">' + esc(g) + ' (' + byRole[g].length + ')</div><div class="grid">' + byRole[g].map(agentCard).join('') + '</div>';
-      });
+    if (agents.length) {
+      html += '<div class="eyebrow group">Agents (' + agents.length + ')</div><div class="grid">' + agents.map(agentCard).join('') + '</div>';
     }
-    html += '<div class="agent-group">Skills (' + skills.length + ')</div>';
+    html += '<div class="eyebrow group">' + (activeDomain ? esc(activeDomain) + ' — ' : '') + 'skills (' + skills.length + ')</div>';
     html += skills.length ? '<div class="grid">' + skills.slice(0, 120).map(skillCard).join('') + '</div>' : '<div class="empty">Nothing matches — try fewer words.</div>';
     if (skills.length > 120) html += '<div class="empty">Showing 120 of ' + skills.length + ' — refine the search to see the rest.</div>';
     $('results').innerHTML = html;
   }
-  $('q').addEventListener('input', render);
+  $('q').addEventListener('input', function () { if ($('q').value.trim()) { activeDomain = null; renderDomains(); } render(); });
   document.addEventListener('keydown', function (e) {
     if (e.key === '/' && document.activeElement !== $('q') && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); $('q').focus(); }
   });
-  document.body.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-copy]'); if (b && !b.dataset.wired) { b.dataset.wired = '1'; wireCopy(b, b.getAttribute('data-copy')); b.click(); }
-  });
-  render();
+  renderDomains(); render();
+
+  // ---------- linear ----------
+  (function linear() {
+    var L = D.linear || {};
+    var body = $('linear-body');
+    if (!L.connected || !Array.isArray(L.tickets) || !L.tickets.length) {
+      body.innerHTML = '<div class="panel"><div class="eyebrow" style="margin-bottom:12px">Your board</div>'
+        + '<div class="empty">Linear isn’t connected yet.<br><span class="dim">Run <span class="cmd" style="display:inline-block">/ccc-connect</span> to link your board, then republish the Cockpit — your tickets appear here, click-to-work.</span></div></div>';
+      return;
+    }
+    var order = { 'in_progress': 0, 'todo': 1, 'backlog': 2, 'in_review': 3, 'done': 4 };
+    var counts = {};
+    L.tickets.forEach(function (t) { counts[t.stateKind] = (counts[t.stateKind] || 0) + 1; });
+    var chipRow = Object.keys(counts).sort(function (a, b) { return (order[a] == null ? 9 : order[a]) - (order[b] == null ? 9 : order[b]); })
+      .map(function (k) { return '<span class="chip" style="cursor:default">' + esc(k.replace('_', ' ')) + ' · ' + counts[k] + '</span>'; }).join('');
+    var rows = L.tickets.slice().sort(function (a, b) {
+      return (order[a.stateKind] == null ? 9 : order[a.stateKind]) - (order[b.stateKind] == null ? 9 : order[b.stateKind]);
+    }).map(function (t) {
+      var cmd = '/ccc-linear-board work ' + t.id;
+      return '<div class="ls-row" style="cursor:default;grid-template-columns:88px 120px 1fr auto">'
+        + '<span class="size">' + esc(t.id) + '</span>'
+        + '<span class="perm">' + esc(t.state) + (t.stale ? ' <span class="acc">· stale</span>' : '') + '</span>'
+        + '<span class="name" style="font-family:var(--font-sans);white-space:normal">' + esc(t.title) + (t.project ? ' <span class="dim" style="font-size:12px">· ' + esc(t.project) + '</span>' : '') + '</span>'
+        + '<button class="copy" data-copy="' + esc(cmd) + '">▸ work</button></div>';
+    }).join('');
+    body.innerHTML = '<div class="eyebrow" style="margin:2px 0 12px">Your board' + (L.board ? ' — ' + esc(L.board) : '') + ' · click ▸ work to start a ticket in Claude Code</div>'
+      + '<div class="chips" style="margin-bottom:14px">' + chipRow + '</div>'
+      + '<div class="ls"><div class="ls-head"><span class="pmt">$</span> linear · ' + L.tickets.length + ' tickets</div>' + rows + '</div>';
+  })();
 
   // ---------- ideas ----------
   var projects = [], goals = [];
@@ -318,7 +512,7 @@
   function ideaCards(list) {
     $('idea-cards').innerHTML = list.length ? list.map(function (i) {
       return '<div class="card"><h3>' + esc(i.title) + '</h3><div class="desc">' + esc(i.why) + '</div>'
-        + '<div class="row"><span class="cmd">' + esc(i.cmd) + '</span><button class="copy" data-copy="' + esc(i.cmd) + '">📋 Copy</button></div></div>';
+        + '<div class="row"><span class="cmd">' + esc(i.cmd) + '</span><button class="copy" data-copy="' + esc(i.cmd) + '">📋 copy</button></div></div>';
     }).join('') : '<div class="empty">No moves for that combo yet — hit 🎲.</div>';
   }
   $('idea-go').addEventListener('click', function () {
@@ -326,7 +520,7 @@
     ideaCards(D.ideas.filter(function (i) { return i.project === p && i.goal === g; }));
   });
   $('idea-shuffle').addEventListener('click', function () {
-    var pool = D.ideas.slice(); var pick = [];
+    var pool = D.ideas.slice(), pick = [];
     while (pick.length < Math.min(6, pool.length)) { pick.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); }
     ideaCards(pick);
   });
@@ -339,17 +533,13 @@
   }).join('');
   function diagnose() {
     var t = $('raw').value;
-    pats.forEach(function (p) {
-      var el = document.querySelector('.check[data-k="' + p.key + '"]');
-      el.classList.toggle('pass', p.re.test(t));
-    });
+    pats.forEach(function (p) { document.querySelector('.check[data-k="' + p.key + '"]').classList.toggle('pass', p.re.test(t)); });
   }
   $('raw').addEventListener('input', diagnose);
   $('enhance-go').addEventListener('click', function () {
     var t = $('raw').value.trim();
     if (!t) { $('raw').focus(); return; }
     var missing = pats.filter(function (p) { return !p.re.test(t); });
-    var out = t;
     var add = [];
     missing.forEach(function (p) {
       if (p.key === 'outcome') add.push('Outcome: [describe what DONE looks like — the end state, not the steps]');
@@ -359,45 +549,44 @@
       if (p.key === 'artifact') add.push('Deliverable: [the exact artifact — a PR, a file, a report — not just chat].');
       if (p.key === 'format') add.push('Answer format: [how to present it — table, bullet summary, diff].');
     });
-    if (add.length) out = t + '\n\n' + add.join('\n');
+    var out = add.length ? t + '\n\n' + add.join('\n') : t;
     $('enhanced-text').textContent = out;
     $('enhanced').hidden = false;
-    var btn = $('copy-enhanced');
-    var clone = btn.cloneNode(true); btn.parentNode.replaceChild(clone, btn);
-    wireCopy(clone, out);
+    var btn = $('copy-enhanced'), clone = btn.cloneNode(true);
+    btn.parentNode.replaceChild(clone, btn); wireCopy(clone, out);
   });
 
   // ---------- analytics ----------
   var AN = D.analytics || {};
-  var zero = '<div class="empty">No activity data yet — run some agents, then republish the Cockpit to refresh.</div>';
-  $('an-tiles').innerHTML = (AN.tiles || []).map(function (t) {
-    return '<div class="card"><div class="desc">' + esc(t.label) + '</div><h3 style="font-size:22px">' + esc(t.value) + '</h3></div>';
-  }).join('') || zero;
+  var zero = '<div class="empty">No activity yet — run some agents, then republish to refresh.</div>';
+  $('an-tiles').innerHTML = (AN.tiles || []).length
+    ? (AN.tiles || []).map(function (t, i) {
+        return '<div class="ls-row" style="cursor:default;grid-template-columns:1fr auto;border-top:' + (i ? '1px solid var(--border)' : '0') + '"><span class="k mono" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)">' + esc(t.label) + '</span><span class="v" style="font-size:18px;font-weight:600;color:var(--text)">' + esc(t.value) + '</span></div>';
+      }).join('')
+    : zero;
   (function spark() {
     var d = AN.daily || [];
     if (!d.length) { $('an-spark').innerHTML = zero; return; }
     var max = Math.max.apply(null, d.map(function (x) { return x.runs; }).concat([1]));
     var W = 560, H = 64, step = W / Math.max(d.length - 1, 1);
     var pts = d.map(function (x, i) { return (i * step).toFixed(1) + ',' + (H - 4 - (x.runs / max) * (H - 12)).toFixed(1); }).join(' ');
-    $('an-spark').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:64px" role="img" aria-label="daily agent runs">'
-      + '<polyline points="' + pts + '" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/></svg>'
-      + '<div class="row" style="justify-content:space-between"><span class="hint">' + esc(d[0].date) + '</span><span class="hint">peak ' + max + '/day</span><span class="hint">' + esc(d[d.length - 1].date) + '</span></div>';
+    $('an-spark').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="daily agent runs"><polyline points="' + pts + '" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      + '<div class="row" style="justify-content:space-between;margin-top:4px"><span class="faint mono" style="font-size:11px">' + esc(d[0].date) + '</span><span class="acc mono" style="font-size:11px">peak ' + max + '/day</span><span class="faint mono" style="font-size:11px">' + esc(d[d.length - 1].date) + '</span></div>';
   })();
-  $('an-top').innerHTML = (AN.topAgents || []).map(function (a) {
-    return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span style="flex:1">' + esc(a.emoji || '🤖') + ' <strong>' + esc(a.name) + '</strong></span>'
-      + '<span class="badge">' + a.runs + ' runs</span><span class="badge">' + Math.round((a.tokens || 0) / 1000) + 'k tok</span>'
-      + (a.costUsd != null ? '<span class="badge">$' + a.costUsd.toFixed(2) + ' est</span>' : '') + '</div>';
-  }).join('') || zero;
-  $('an-skills').innerHTML = (AN.topSkills || []).map(function (s) {
-    var by = s.bySource || {};
-    var cc = by['claude-code'] || 0, cx = by.codex || 0;
-    var split = (cc ? '<span class="badge">claude ' + cc + '</span>' : '') + (cx ? '<span class="badge">codex ' + cx + '</span>' : '');
-    return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="cmd" style="flex:1">' + esc(s.skill) + '</span>'
-      + '<span class="badge">' + (s.runs7d || 0) + '×7d</span><span class="badge">' + (s.runs30d || 0) + '×30d</span>' + split + '</div>';
-  }).join('') || zero;
-  $('an-flows').innerHTML = (AN.flows || []).map(function (f) {
-    return '<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="cmd" style="flex:1">' + esc(f.from) + ' → ' + esc(f.to) + '</span><span class="badge">×' + f.count + '</span></div>';
-  }).join('') || zero;
+  $('an-top').innerHTML = (AN.topAgents || []).length ? (AN.topAgents || []).map(function (a) {
+    return '<div class="listrow"><span style="flex:1">' + esc(a.emoji || '🤖') + ' <strong>' + esc(a.name) + '</strong></span>'
+      + '<span class="badge">' + a.runs + ' runs</span><span class="badge tan">' + Math.round((a.tokens || 0) / 1000) + 'k tok</span>'
+      + (a.costUsd != null ? '<span class="badge pri">$' + a.costUsd.toFixed(2) + '</span>' : '') + '</div>';
+  }).join('') : zero;
+  $('an-skills').innerHTML = (AN.topSkills || []).length ? (AN.topSkills || []).map(function (s) {
+    var by = s.bySource || {}, cc = by['claude-code'] || 0, cx = by.codex || 0;
+    var split = (cc ? '<span class="badge">claude ' + cc + '</span>' : '') + (cx ? '<span class="badge tan">codex ' + cx + '</span>' : '');
+    return '<div class="listrow"><span class="cmd" style="flex:1;background:none;border:0;padding:0">' + esc(s.skill) + '</span>'
+      + '<span class="badge">' + (s.runs7d || 0) + '×7d</span>' + split + '</div>';
+  }).join('') : zero;
+  $('an-flows').innerHTML = (AN.flows || []).length ? (AN.flows || []).map(function (f) {
+    return '<div class="listrow"><span class="cmd" style="flex:1;background:none;border:0;padding:0">' + esc(f.from) + ' <span class="acc">→</span> ' + esc(f.to) + '</span><span class="badge">×' + f.count + '</span></div>';
+  }).join('') : zero;
 
   // ---------- agent manager ----------
   var statsByName = {};
@@ -408,10 +597,10 @@
       var st = statsByName[a.name];
       return '<div class="card"><h3>' + esc(a.emoji) + ' ' + esc(a.name) + '</h3>'
         + '<div class="badges"><span class="badge">' + esc(a.role) + '</span>'
-        + (st ? '<span class="badge">' + st.runs + ' runs</span>' : '<span class="badge">no runs yet</span>')
-        + (a.model ? '<span class="badge">' + esc(a.model) + '</span>' : '') + '</div>'
+        + (st ? '<span class="badge pri">' + st.runs + ' runs</span>' : '<span class="badge">no runs yet</span>')
+        + (a.model ? '<span class="badge tan">' + esc(a.model) + '</span>' : '') + '</div>'
         + '<div class="desc">' + esc(a.desc) + '</div>'
-        + '<div class="row"><button class="copy" data-edit="' + i + '">✏️ Edit</button></div></div>';
+        + '<div class="row"><button class="copy" data-edit="' + i + '">✏️ edit</button></div></div>';
     }).join('');
   }
   $('mgr-cards').addEventListener('click', function (e) {
@@ -437,7 +626,7 @@
   $('mgr-export').addEventListener('click', function () {
     var t = profileText(); if (!t) return;
     var btn = this;
-    var done = function () { var old = btn.textContent; btn.textContent = '✓ Copied — paste it in chat'; setTimeout(function () { btn.textContent = old; }, 1800); };
+    var done = function () { var old = btn.textContent; btn.textContent = '✓ copied — paste it in chat'; setTimeout(function () { btn.textContent = old; }, 1800); };
     if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(done, done); }
     else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); done(); }
   });

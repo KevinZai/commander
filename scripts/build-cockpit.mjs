@@ -5,6 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readTopSkills } from '../commander/cowork-plugin/lib/top-skills.js';
+import { brandBaseCss } from '../commander/cowork-plugin/lib/brand-css.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATE_PATH = path.join(ROOT, 'commander/cowork-plugin/lib/cockpit-template.html');
@@ -14,6 +15,7 @@ const ECOSYSTEM_SKILLS_DIR = path.join(ROOT, 'skills');
 const AGENTS_DIR = path.join(ROOT, 'commander/cowork-plugin/agents');
 const TIERS_PATH = path.join(ECOSYSTEM_SKILLS_DIR, '_tiers.json');
 const DATA_MARKER = '/*__COCKPIT_DATA__*/';
+const BRAND_MARKER = '/*__BRAND_CSS__*/';
 const SKIPPED_DIRS = new Set(['node_modules', '.git', 'vendor']);
 
 const DEFAULT_PERSONA = Object.freeze({ emoji: '🤖', role: 'Agent' });
@@ -354,6 +356,26 @@ function assertSelfContained(output) {
   const titleCount = (output.match(/<title(?:\s|>)/gi) || []).length;
   if (titleCount !== 1) throw new Error(`Cockpit output must contain exactly one <title>; found ${titleCount}`);
   if (output.includes(DATA_MARKER)) throw new Error('Cockpit data marker was not replaced');
+  if (output.includes(BRAND_MARKER)) throw new Error('Cockpit brand-css marker was not replaced');
+}
+
+// Linear board is a PRIVATE, opt-in surface: the Cockpit bakes whatever the
+// user's own Linear connector cached to ~/.claude/commander/linear-board.json
+// at generate time (never a network call at view time). Absent file → the tab
+// renders a "connect Linear" empty state. Shape:
+//   { connected, board, tickets:[{id,title,state,stateKind,project,updated,stale}] }
+function readLinearBoard() {
+  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
+  const file = path.join(home, '.claude', 'commander', 'linear-board.json');
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (parsed && Array.isArray(parsed.tickets)) {
+      return { connected: true, board: parsed.board || null, tickets: parsed.tickets };
+    }
+  } catch {
+    /* absent or malformed → not connected */
+  }
+  return { connected: false };
 }
 
 function readJsonl(filePath) {
@@ -609,13 +631,18 @@ async function buildDocument() {
     ideas: buildIdeas(skills),
     patterns: PATTERNS,
     analytics: await buildAnalytics(),
+    linear: readLinearBoard(),
   };
 
   const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
-  const markerCount = template.split(DATA_MARKER).length - 1;
-  if (markerCount !== 1) throw new Error(`Expected exactly one Cockpit data marker; found ${markerCount}`);
+  const dataMarkerCount = template.split(DATA_MARKER).length - 1;
+  if (dataMarkerCount !== 1) throw new Error(`Expected exactly one Cockpit data marker; found ${dataMarkerCount}`);
+  const brandMarkerCount = template.split(BRAND_MARKER).length - 1;
+  if (brandMarkerCount !== 1) throw new Error(`Expected exactly one Cockpit brand-css marker; found ${brandMarkerCount}`);
   const json = JSON.stringify(payload).replace(/<\/script/gi, '<\\/script');
-  const output = template.replace(DATA_MARKER, `window.__COCKPIT__ = ${json};`);
+  const output = template
+    .replace(BRAND_MARKER, brandBaseCss())
+    .replace(DATA_MARKER, `window.__COCKPIT__ = ${json};`);
   assertSelfContained(output);
   return output;
 }

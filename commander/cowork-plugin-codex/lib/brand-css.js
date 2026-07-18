@@ -1,94 +1,101 @@
 /**
  * brand-css.js
  * Single shared source of truth for the CC Commander / commanderplugin.com
- * design system, consumed by every Mission Control surface (the plugin's
- * CSP-safe artifact snapshot AND the live dashboard). Presentation only —
- * no logic, no DOM, no fetch, zero dependencies.
+ * design system, consumed by every Commander surface (the Cockpit artifact,
+ * the Mission Control snapshot artifact AND the live dashboard). Presentation
+ * only — no logic, no DOM, no fetch, zero dependencies.
  *
  * Exports:
- *   BRAND_TOKENS  — raw token values (colors, fonts, radii, shadow) for
- *                    any JS caller that needs a value outside of CSS.
- *   brandBaseCss()— a CSS string: `:root` custom-property declarations
- *                    (dark default) + a light adaptation via
+ *   BRAND_TOKENS   — raw token values for any JS caller needing a value
+ *                    outside CSS.
+ *   brandBaseCss() — a CSS string: `:root` custom properties (dark default)
+ *                    + a warm-paper light adaptation via
  *                    `@media (prefers-color-scheme: light)` AND
  *                    `:root[data-theme="light"]`, with
- *                    `:root[data-theme="dark"]` declared LAST so an
- *                    explicit theme toggle always wins over both the
- *                    dark default and the light media query — plus a
- *                    small set of shared component primitives
- *                    (`.terminal-chrome`, `.terminal-header`,
- *                    `.terminal-dot`, status-color helpers, the brand
- *                    gradient text helper) any surface can reuse.
+ *                    `:root[data-theme="dark"]` LAST so an explicit toggle
+ *                    always wins over both — plus shared component
+ *                    primitives (terminal chrome, traffic-light dots,
+ *                    the `.eyebrow` label, status colors, gradient text).
  *
- * No external references of any kind (no `@import`, no `url()`, no
- * http(s) links, no web fonts) — every consumer bakes this string
- * inline, so it must stay CSP-safe under a strict `style-src 'self'`
- * (or artifact-inline) policy with zero network fetches.
+ * No external references of any kind (no `@import`, no `url()`, no http
+ * links) — the webfont *names* (Inter / JetBrains Mono) are listed first
+ * in the stacks so a machine that has them installed uses them, but there
+ * is NO network fetch, so the string stays CSP-safe under a strict inline
+ * policy and degrades to the system stack with zero flash.
  *
- * Palette source: commanderplugin-com/assets/style.css (the marketing
- * site's dark terminal theme — amber primary + indigo accent). Light
- * mode promotes the `-dim` (darker) variant of primary/accent into the
- * foreground role so text stays WCAG AA against light surfaces; the
- * vivid values remain available as `--primary-dim`/`--accent-dim` for
- * hover/active states in both themes. Traffic-light red/yellow/green
- * and the rainbow/gradient decorations are intentionally constant
- * across themes — they're used as small graphic accents (dots, badges,
- * gradient text), not body text, so WCAG text-contrast rules don't
- * apply to them the way they do to `--text`/`--text-dim`/`--text-muted`.
+ * Palette source: commanderplugin.com (the marketing site's dark terminal
+ * theme) — near-black ground, warm off-white text, coral `#FF6B47` as the
+ * single action accent, tan `#D4A574` as the quiet secondary, and terminal
+ * green/cyan/yellow reserved for status. The light theme promotes a darker
+ * coral into the action role so it keeps WCAG AA against warm-paper
+ * surfaces. Status hues are graphic accents (dots, pills), not body text,
+ * so text-contrast rules apply to `--text*`, not to them.
+ *
+ * Token names are kept stable across releases — Mission Control consumes
+ * `--bg`, `--primary`, `--accent`, `--text`, `--green-dot`, `--red`,
+ * `--yellow`, `--border` by name; this file only remaps their *values* to
+ * the site palette.
  *
  * Core free forever — no license check, no tier gating.
  */
 
 const DARK = Object.freeze({
-  bg: '#0F0F1A',
-  bgRaised: '#141422',
-  bgCard: '#1A1A2E',
-  bgTerminal: '#12121F',
-  border: '#1E1E35',
-  borderGlow: 'rgba(217, 119, 6, 0.2)',
-  text: '#e0e0e0',
-  textDim: '#888888',
-  textMuted: '#555555',
-  primary: '#D97706',
-  primaryDim: '#B45309',
-  primaryGlow: 'rgba(217, 119, 6, 0.13)',
-  accent: '#6366F1',
-  accentDim: '#4F46E5',
+  bg: '#0F0F0F',
+  bgRaised: '#141414',
+  bgCard: '#181818',
+  bgTerminal: '#141414',
+  border: 'rgba(245, 245, 240, 0.08)',
+  borderStrong: 'rgba(245, 245, 240, 0.14)',
+  borderStrongest: 'rgba(245, 245, 240, 0.22)',
+  borderGlow: 'rgba(255, 107, 71, 0.22)',
+  text: '#F5F5F0',
+  textDim: '#A8A8A0',
+  textMuted: '#6E6E68',
+  primary: '#FF6B47',
+  primaryDim: '#FF7A59',
+  primaryGlow: 'rgba(255, 107, 71, 0.13)',
+  accent: '#D4A574',
+  accentDim: '#C29257',
 });
 
-// Light mode promotes the darker "-dim" hue into the foreground role so
-// primary/accent text keeps WCAG AA contrast against light surfaces —
-// see module doc comment above.
+// Warm-paper light theme. Coral darkens into the action role for WCAG AA on
+// light surfaces; tan darkens to a readable bronze; borders warm.
 const LIGHT = Object.freeze({
-  bg: '#faf9f5',
-  bgRaised: '#f2f0e9',
-  bgCard: '#ffffff',
-  bgTerminal: '#f6f5ee',
-  border: '#e3ded0',
-  borderGlow: 'rgba(217, 119, 6, 0.14)',
-  text: '#1f1e1a',
-  textDim: '#57534a',
-  textMuted: '#78716c',
-  primary: '#B45309',
-  primaryDim: '#92400E',
-  primaryGlow: 'rgba(180, 83, 9, 0.12)',
-  accent: '#4F46E5',
-  accentDim: '#4338CA',
+  bg: '#F7F6F1',
+  bgRaised: '#FBFAF6',
+  bgCard: '#FFFFFF',
+  bgTerminal: '#F1EFE8',
+  border: 'rgba(26, 26, 20, 0.10)',
+  borderStrong: 'rgba(26, 26, 20, 0.16)',
+  borderStrongest: 'rgba(26, 26, 20, 0.24)',
+  borderGlow: 'rgba(214, 74, 42, 0.18)',
+  text: '#1A1A16',
+  textDim: '#5A5A50',
+  textMuted: '#8A8A7E',
+  primary: '#D64A2A',
+  primaryDim: '#B33C20',
+  primaryGlow: 'rgba(214, 74, 42, 0.10)',
+  accent: '#9A6E38',
+  accentDim: '#7E5A2C',
 });
 
 const SHARED = Object.freeze({
-  red: '#ff5f56',
-  yellow: '#ffbd2e',
-  green: '#27c93f',
-  gradient: 'linear-gradient(135deg, #D97706, #6366F1)',
+  red: '#FF5F56',
+  yellow: '#E6C76B',
+  green: '#6BCF7F',
+  cyan: '#7FD4D4',
+  tan: '#D4A574',
+  gradient: 'linear-gradient(135deg, #FF6B47, #D4A574)',
   rainbow:
     'linear-gradient(90deg, #ff0080, #ff8c00, #ffff00, #00ff80, #00c8ff, #8000ff, #ff0080)',
-  fontMono: "ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace",
-  fontSans: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
-  radiusCard: '8px',
-  radiusSmall: '4px',
+  fontMono:
+    "'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace",
+  fontSans:
+    "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  radiusCard: '10px',
+  radiusSmall: '6px',
   radiusPill: '100px',
-  shadowCard: '0 8px 32px rgba(0, 0, 0, 0.5)',
+  shadowCard: '0 10px 34px rgba(0, 0, 0, 0.45)',
 });
 
 const BRAND_TOKENS = Object.freeze({
@@ -103,6 +110,8 @@ function varBlock(tokens) {
   --bg-card: ${tokens.bgCard};
   --bg-terminal: ${tokens.bgTerminal};
   --border: ${tokens.border};
+  --border-strong: ${tokens.borderStrong};
+  --border-strongest: ${tokens.borderStrongest};
   --border-glow: ${tokens.borderGlow};
   --text: ${tokens.text};
   --text-dim: ${tokens.textDim};
@@ -114,12 +123,12 @@ function varBlock(tokens) {
   --accent-dim: ${tokens.accentDim};`;
 }
 
-function brandBaseCss() {
-  return `:root {
-${varBlock(DARK)}
-  --red: ${SHARED.red};
+function sharedBlock() {
+  return `  --red: ${SHARED.red};
   --yellow: ${SHARED.yellow};
   --green-dot: ${SHARED.green};
+  --term-cyan: ${SHARED.cyan};
+  --accent-2: ${SHARED.tan};
   --gradient-brand: ${SHARED.gradient};
   --gradient-rainbow: ${SHARED.rainbow};
   --font-mono: ${SHARED.fontMono};
@@ -127,7 +136,13 @@ ${varBlock(DARK)}
   --radius-card: ${SHARED.radiusCard};
   --radius-small: ${SHARED.radiusSmall};
   --radius-pill: ${SHARED.radiusPill};
-  --shadow-card: ${SHARED.shadowCard};
+  --shadow-card: ${SHARED.shadowCard};`;
+}
+
+function brandBaseCss() {
+  return `:root {
+${varBlock(DARK)}
+${sharedBlock()}
   color-scheme: dark;
 }
 
@@ -166,15 +181,15 @@ ${varBlock(DARK)}
 .terminal-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 10px 14px;
-  background: var(--bg-raised);
+  background: rgba(255, 255, 255, 0.013);
   border-bottom: 1px solid var(--border);
 }
 
 .terminal-dot {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   flex: 0 0 auto;
 }
@@ -187,13 +202,27 @@ ${varBlock(DARK)}
   flex: 1;
   text-align: center;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
 }
 
-.terminal-body {
+.eyebrow {
   font-family: var(--font-mono);
-  color: var(--text);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--primary);
 }
 
 .brand-gradient-text {
@@ -203,7 +232,7 @@ ${varBlock(DARK)}
   background-clip: text;
 }
 
-.status-running { color: var(--accent); }
+.status-running { color: var(--primary); }
 .status-done { color: var(--green-dot); }
 .status-failed { color: var(--red); }
 .status-waiting,
