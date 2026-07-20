@@ -84,6 +84,21 @@ a { color: inherit; text-decoration: none; }
 }
 .deck-counts b { color: var(--accent-2); font-weight: 500; }
 
+/* ── refresh / auto-update bar ── */
+.refresh-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 14px 0 4px; font-family: var(--font-mono); font-size: 12px; }
+.refresh-btn {
+  appearance: none; cursor: pointer; font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  color: #1a0f0a; background: var(--primary); border: 0; border-radius: var(--radius-small); padding: 9px 16px;
+  transition: background .15s;
+}
+.refresh-btn:hover { background: var(--primary-dim); }
+.refresh-btn.spin { opacity: .6; }
+.refresh-auto { display: inline-flex; align-items: center; gap: 7px; color: var(--text-dim); }
+.refresh-auto select { padding: 6px 8px; }
+.refresh-age { color: var(--accent-2); }
+.refresh-note { font-size: 11.5px; margin-left: auto; }
+@media (max-width: 640px) { .refresh-note { margin-left: 0; width: 100%; } }
+
 /* ── tabs ── */
 nav {
   display: flex; gap: 2px; flex-wrap: wrap;
@@ -245,6 +260,22 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
     </div>
   </div>
 
+  <div class="refresh-bar">
+    <button class="refresh-btn" id="refresh-now" title="Reload to fetch the latest published snapshot">⟳ Refresh</button>
+    <label class="refresh-auto">auto
+      <select id="refresh-interval" aria-label="Auto-refresh interval">
+        <option value="0">off</option>
+        <option value="10">10s</option>
+        <option value="30">30s</option>
+        <option value="60">1m</option>
+        <option value="300">5m</option>
+        <option value="600">10m</option>
+      </select>
+    </label>
+    <span class="refresh-age" id="refresh-age"></span>
+    <span class="refresh-note dim">snapshot — reload fetches the newest published version · <span class="tan">:4690</span> dashboard is live</span>
+  </div>
+
   <nav role="tablist">
     <button role="tab" aria-selected="true" data-tab="browse">▸ browse</button>
     <button role="tab" aria-selected="false" data-tab="ideas">▸ ideas</button>
@@ -345,15 +376,59 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
   $('counts').innerHTML = '<b>' + D.meta.pluginSkills + '</b> plugin · <b>' + D.meta.ecosystemSkills + '</b> ecosystem skills<br><b>' + D.meta.agents + '</b> agents · <span class="acc">v' + esc(D.meta.version) + '</span>';
   $('foot').textContent = 'CC Commander v' + D.meta.version + ' · generated ' + D.meta.generatedAt + ' · core free forever · everything runs in this page, nothing leaves it';
 
-  // ---------- tabs ----------
+  // ---------- tabs (persisted via hash so auto-refresh keeps your place) ----------
   var TABS = ['browse', 'ideas', 'enhance', 'linear', 'analytics', 'agents'];
   var tabs = document.querySelectorAll('nav [role="tab"]');
+  function activateTab(name) {
+    if (TABS.indexOf(name) === -1) name = 'browse';
+    tabs.forEach(function (x) { x.setAttribute('aria-selected', String(x.dataset.tab === name)); });
+    TABS.forEach(function (t) { $('tab-' + t).hidden = (t !== name); });
+  }
   tabs.forEach(function (b) {
-    b.addEventListener('click', function () {
-      tabs.forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
-      TABS.forEach(function (t) { $('tab-' + t).hidden = (t !== b.dataset.tab); });
-    });
+    b.addEventListener('click', function () { activateTab(b.dataset.tab); try { history.replaceState(null, '', '#' + b.dataset.tab); } catch (e) {} });
   });
+  activateTab((location.hash || '').replace('#', '') || 'browse');
+
+  // ---------- refresh / auto-update ----------
+  // The artifact is a SNAPSHOT — it can't fetch new data at view time (CSP).
+  // But it's republished to the SAME url, so reloading pulls the newest
+  // published snapshot. Refresh = reload; Auto = reload on an interval. The
+  // interval persists (localStorage) and scroll is restored, so an auto-reload
+  // returns you to the same place. For continuous live data, the :4690
+  // dashboard polls in place.
+  (function refresh() {
+    var LS_KEY = 'ccc-cockpit-refresh', SC_KEY = 'ccc-cockpit-scroll';
+    var sel = $('refresh-interval'), age = $('refresh-age'), btn = $('refresh-now');
+    var gen = Date.parse(D.meta.generatedAt);
+    function fmtAge() {
+      if (!gen) { age.textContent = ''; return; }
+      var s = Math.max(0, Math.round((Date.now() - gen) / 1000));
+      var t = s < 60 ? s + 's' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h';
+      age.textContent = 'snapshot ' + t + ' old';
+    }
+    fmtAge(); setInterval(fmtAge, 5000);
+    function reloadNow() {
+      try { sessionStorage.setItem(SC_KEY, String(window.scrollY)); } catch (e) {}
+      btn.classList.add('spin'); location.reload();
+    }
+    btn.addEventListener('click', reloadNow);
+    var timer = null;
+    function arm(secs) {
+      if (timer) { clearInterval(timer); timer = null; }
+      if (secs > 0) timer = setInterval(reloadNow, secs * 1000);
+    }
+    var saved = 0; try { saved = parseInt(localStorage.getItem(LS_KEY) || '0', 10) || 0; } catch (e) {}
+    sel.value = String(saved); arm(saved);
+    sel.addEventListener('change', function () {
+      var v = parseInt(sel.value, 10) || 0;
+      try { localStorage.setItem(LS_KEY, String(v)); } catch (e) {}
+      arm(v);
+    });
+    try {
+      var y = sessionStorage.getItem(SC_KEY);
+      if (y != null) { window.scrollTo(0, parseInt(y, 10) || 0); sessionStorage.removeItem(SC_KEY); }
+    } catch (e) {}
+  })();
 
   // ---------- clipboard ----------
   function wireCopy(btn, text) {

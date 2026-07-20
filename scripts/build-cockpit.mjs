@@ -367,10 +367,28 @@ function assertSelfContained(output) {
 function readLinearBoard() {
   const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
   const file = path.join(home, '.claude', 'commander', 'linear-board.json');
+  const str = (v) => (typeof v === 'string' ? v : '');
   try {
     const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
     if (parsed && Array.isArray(parsed.tickets)) {
-      return { connected: true, board: parsed.board || null, tickets: parsed.tickets };
+      // Structurally sanitize every ticket: coerce to strings, drop non-objects,
+      // require an id. esc() in the template is the second layer; this is the
+      // first — an untrusted board file can never inject a non-string into the
+      // payload (a malicious `title: {toString...}` or `id: ["</script>"]` is
+      // flattened to '' here).
+      const tickets = parsed.tickets
+        .filter((t) => t && typeof t === 'object' && !Array.isArray(t))
+        .map((t) => ({
+          id: str(t.id),
+          title: str(t.title),
+          state: str(t.state),
+          stateKind: str(t.stateKind),
+          project: str(t.project),
+          updated: str(t.updated),
+          stale: t.stale === true,
+        }))
+        .filter((t) => t.id);
+      return { connected: tickets.length > 0, board: str(parsed.board) || null, tickets };
     }
   } catch {
     /* absent or malformed → not connected */
