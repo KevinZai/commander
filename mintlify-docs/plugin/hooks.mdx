@@ -3,7 +3,7 @@ title: "Lifecycle Hooks"
 description: "23 hook events with 42 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
 ---
 
-CC Commander registers **23 lifecycle hook events** with **38 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
+CC Commander registers **23 lifecycle hook events** with **42 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
 
 <Note>
   **v5.1.0 expanded from 9 to 23 events.** Existing hooks are unchanged. One correctness fix: `session-save` moved from `Stop` → `SessionEnd`. See [Hooks 2026](/hooks-2026) for the full updated registry including all 14 new events.
@@ -15,7 +15,9 @@ All hooks use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and fail grac
   **v5.1.0:** `SessionStart` now uses a single-process orchestrator (`session-start-orchestrator.js`) that runs all 4 session-start handlers in one Node.js process, saving ~300ms of cold-start overhead per session. The 16-handler count is unchanged — the orchestrator is a performance optimization, not a feature reduction.
 </Note>
 
-## Hook Registry
+## Hook Registry (core events)
+
+This is the original core-event subset, kept for quick reference. **See [Hooks 2026](/hooks-2026) for the complete, current registry — all 23 events and 42 handlers.**
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
@@ -27,6 +29,8 @@ All hooks use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and fail grac
 | `Notification` | 1 | `fleet-notify.js` | Append fleet agent completion events to `notifications.jsonl` |
 | `PreCompact` | 1 | `pre-compact.js` | Block compaction if session is mid-critical-task |
 | `SubagentStop` | 1 | `subagent-stop.js` | Track subagent cost aggregation per session |
+
+The remaining 15 events (`SessionEnd`, `PostCompact`, `SubagentStart`, `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `PermissionRequest`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup`) are documented in the [full registry](/hooks-2026).
 
 ## State Layout
 

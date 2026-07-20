@@ -1,5 +1,5 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-07-17 | Version: 7.2.0 (see package.json) | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-07-20 | Version: 7.2.0 (see package.json) | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
@@ -288,7 +288,7 @@ Detected from `package.json`, `Dockerfile`, `go.mod`, `.github/workflows/`, fram
 
 #### Tier 3: User intent (pattern match)
 
-Pattern-matches your last 5 prompts against the 502-skill catalog, cross-references the trending skills window (last 7 days), and boosts skills that succeeded in your past sessions. If a **third-party plugin** serves the intent better than CC Commander's own tools, it is named:
+Pattern-matches your last 5 prompts against the 467-skill catalog, cross-references the trending skills window (last 7 days), and boosts skills that succeeded in your past sessions. If a **third-party plugin** serves the intent better than CC Commander's own tools, it is named:
 
 - Recall-heavy intent ("what did I decide about X?") → **`claude-mem`**
 - Structured planning drift ("keep losing the thread") → **`superpowers`**
@@ -351,7 +351,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 
 ## The 80 Plugin Skills
 
-> *Every skill that ships with `/plugin install commander`. Not the 502-skill ecosystem — just the curated plugin surface.*
+> *Every skill that ships with `/plugin install commander`. Not the 467-skill ecosystem — just the curated plugin surface.*
 
 | Skill | What it does |
 |---|---|
@@ -395,6 +395,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 | `ccc-makeover` | Project audit, design swarm, and report card |
 | `ccc-marketing` | Marketing router: content, CRO, growth, sales |
 | `ccc-memory` | Two-tier persistent project memory |
+| `ccc-mission-control` | Live agent dashboard — roster, task board, delegation flow, Charts strip |
 | `ccc-mobile` | Mobile router: React Native, Flutter, SwiftUI, Android |
 | `ccc-more` | Long-tail click-first tools menu |
 | `ccc-night-mode` | Checkpointed autonomous overnight builds |
@@ -412,6 +413,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 | `ccc-review` | Audit branch diff, security, performance, or full x-ray |
 | `ccc-rollback` | Revert, redeploy, and verify recovery |
 | `ccc-saas` | SaaS router: auth, billing, database, APIs, growth |
+| `ccc-safety` | Safety deck — blocked/auto-fixed actions + redacted tool-failure hotspots |
 | `ccc-save-session` | Save decisions, changes, failures, and next steps |
 | `ccc-security` | Security router: OWASP, secrets, dependencies, incidents |
 | `ccc-seo` | SEO router: technical, AI search, content, analytics |
@@ -430,6 +432,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 | `ccc-tuneup` | Read-only local setup optimization with safe fixes |
 | `ccc-ultracode` | Maximum-reasoning dynamic workflow orchestration |
 | `ccc-upgrade` | Audit and update vendor submodules |
+| `ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app |
 | `ccc-xray` | Project health scorecard with fix chips |
 | `ccc-yolo-setup` | Safe-YOLO permissions + Plan mode guardrails |
 
@@ -1406,7 +1409,7 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 | Essential | `--skills=essential` (default) | ~30 | Most developers — core workflows |
 | Recommended | `--skills=recommended` | ~100 | Active builders who use many domains |
 | Domain | `--skills=domain` | 11 routers | Load one ccc-domain per domain as needed |
-| Full | `--skills=full` | 459 | Legacy behavior — everything installed |
+| Full | `--skills=full` | 467 | Legacy behavior — everything installed |
 
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
@@ -1590,6 +1593,8 @@ CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash
 | `/ccc-spawn` | Start an isolated session, fleet, relay, or expert pass from one click-first hub |
 | `/ccc-prompt-fix` | Diagnose a prompt against 6 quality patterns and return a tighter rewrite |
 | `/ccc-smb-ops` | Route into 6 owner-facing invoicing, cash-flow, expense, payroll, CRM, and briefing skills |
+| `/ccc-usage` | Usage & Cost deck — burn, estimated savings vs. all-Opus baseline, cost-by-app |
+| `/ccc-safety` | Safety deck — blocked/auto-fixed action outcomes, redacted tool-failure hotspots |
 
 Pick one and the plugin handles it — no service ports, no persistent process. For CLI-only power-user commands (fleet dispatch, AO worker pool, cost dashboard), see the [CLI-Only Commands appendix](#cli-only-commands-cli-power-user) below.
 

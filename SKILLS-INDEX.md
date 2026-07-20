@@ -1,12 +1,12 @@
 # Skills Index — Quick Reference
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-07-16 (202 skill directories, 195 with SKILL.md, 3 starter templates)
+> Last verified: 2026-07-20 (203 top-level directories, 195 top-level SKILL.md, 467 total SKILL.md, 3 starter templates)
 
-> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).**
+> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 80 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage` and `ccc-safety` below), see [BIBLE.md](BIBLE.md#the-80-plugin-skills) or `/plugin/skills` in the Mintlify docs.
 
 ---
 
-## All Skills (alphabetical)
+## Ecosystem Skills (alphabetical)
 
 | Skill | Description |
 |-------|-------------|
@@ -44,10 +44,12 @@
 | `ccc-openclaw-coordination` | Cross-agent coordination between CCC and OpenClaw fleet |
 | `ccc-research` | CCC domain — complete research ecosystem — 8 skills in one. Deep research, spec interviews, cross-model review, l... |
 | `ccc-saas` | CCC domain — complete SaaS development ecosystem -- 20 skills in one. Scaffold, authenticate, bill, ship, and grow ... |
+| `ccc-safety` | Plugin skill (Commander deck) — Safety deck: blocked/auto-fixed/approved action outcomes + redacted tool-failure hot... |
 | `ccc-security` | CCC domain — complete security ecosystem — 8 skills in one. Security audits, prompt injection defense, dependency... |
 | `ccc-seo` | Complete SEO ecosystem — 20 skills. Technical SEO, AI search optimization, content strategy, analytics, and program... |
 | `ccc-smb-ops` | CCC domain — complete small-business-operations ecosystem — 6 skills in one. 13-week cash-flow forecasting, invoi... |
 | `ccc-testing` | CCC domain — complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testin... |
+| `ccc-usage` | Plugin skill (Commander deck) — Usage & Cost deck: burn, estimated savings vs. an all-Opus baseline, saved/day + cos... |
 | `chat-widget` | Build a real-time support chat system with a floating widget for users and an admin dashboard for support staff. Use ... |
 | `churn-prevention` | When the user wants to reduce churn, build cancellation flows, set up save offers, recover failed payments, or implem... |
 | `claude-api` | Build apps with the Claude API or Anthropic SDK. TRIGGER when: code imports `anthropic`/`@anthropic-ai/sdk`/`claude_a... |

@@ -24,6 +24,7 @@
             "group": "Getting Started",
             "pages": [
               "introduction",
+              "whats-new-v7",
               "whats-new-v6",
               "whats-new-v5",
               "bible",
@@ -34,7 +35,7 @@
             ]
           },
           {
-            "group": "Desktop Plugin (v5.0.0)",
+            "group": "Desktop Plugin (v7.2.0)",
             "pages": [
               "plugin/install",
               "plugin/upgrade",
@@ -49,7 +50,9 @@
                   "plugin/skills/ccc-doctor",
                   "plugin/skills/ccc-tuneup",
                   "plugin/skills/ccc-changelog",
-                  "plugin/skills/ccc-upgrade"
+                  "plugin/skills/ccc-upgrade",
+                  "plugin/skills/ccc-usage",
+                  "plugin/skills/ccc-safety"
                 ]
               },
               "plugin/agents",

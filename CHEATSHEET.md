@@ -1,6 +1,6 @@
 # CC Commander Cheatsheet
 > CC Commander v7.2.0 — by Kevin Zicherman — commands, workflows, and power user tips
-> Last updated: 2026-07-10 · See CHANGELOG.md for version history
+> Last updated: 2026-07-20 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
@@ -11,11 +11,10 @@
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 80 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
-> **New in v6.8.0 — Engagement Engine**
-> - Hook delivery rebuilt on documented `systemMessage` / `additionalContext` fields.
-> - Always-on skill suggestions now emit an `AskUserQuestion` chip (`Run` / `Dismiss` / `/ccc-browse`) instead of plain text once confidence is high.
-> - New `/ccc-claudemd` skill (72nd plugin skill) audits `CLAUDE.md` drift with AUQ-gated fixes.
-> - Verifier-separation and mandatory worktree isolation are now enforced across every write path (`ccc-migrate`, `ccc-orchestrate`, `ccc-plan-exec`, `ccc-fleet`).
+> **New — Commander Cockpit, Tools & Decks**
+> - Shipped in v7.0.0: Cockpit rebuilt on the real commanderplugin.com coral brand — rows/tiles skill browser + live filter, 11-strategy prompt enhancer with a GO button, honest per-agent token/cost telemetry.
+> - Added in v7.1.0: Cockpit Tools tab — launch Commander surfaces, install MIT-licensed companion apps, or generate an artifact dashboard on demand.
+> - New in v7.2.0: shared **Commander decks** switcher across every artifact, plus two new decks — `/ccc-usage` (Usage & Cost) and `/ccc-safety` (Safety).
 
 ### Plugin Installation
 
@@ -65,6 +64,8 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | `/ccc-adopt` | Adopt CCC doctrine in another repo — merge marked Orchestrator/Executor block into `CLAUDE.md` | Free |
 | `/ccc-fable` | Arm the Fable Method — 12-gate session contract (`on` / `status` / `audit` / `off`) | Free |
 | `/ccc-claudemd` | Audit CLAUDE.md against the codebase — stale paths, dead commands, drifted counts (AUQ-approved fixes only) | Free |
+| `/ccc-usage` | Usage & Cost deck — burn, estimated savings vs. all-Opus baseline, cost-by-app | Free |
+| `/ccc-safety` | Safety deck — blocked/auto-fixed action outcomes, redacted tool-failure hotspots | Free |
 
 > 🧠 **The Fable Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
@@ -143,7 +144,16 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 workflow: <task>             # one-off
 ```
 
-### Plugin MCP Servers (11)
+### Plugin MCP Servers (2 bundled + 16 opt-in)
+
+**Bundled (2, credential-free — ship in `.mcp.json`, zero setup):**
+
+| MCP | Purpose |
+|-----|---------|
+| Context7 | Current library/API docs (no hallucinated methods) |
+| Sequential Thinking | Complex multi-step reasoning primitive |
+
+**Opt-in via `/ccc-connect` (16, a sample):**
 
 | MCP | Purpose |
 |-----|---------|
@@ -153,14 +163,13 @@ workflow: <task>             # one-off
 | Gmail | Email digest, standup context |
 | Google Calendar | Schedule awareness, standup |
 | Tavily | Real-time web search + research |
-| Context7 | Current library/API docs (no hallucinated methods) |
 | Google Drive | Brand docs, style guides, draft storage |
-| Sequential Thinking | Complex multi-step reasoning primitive |
 | Obsidian Skills | Obsidian vault integration — read/write notes, search vault, link memory to sessions (kepano/obsidian-skills, MIT) |
+| + 8 more | Supabase, Figma, Playwright, Notion, claude-mem, Exa, Firecrawl, Zapier, and more — see `/ccc-connect` |
 
 ### vs aider
 
-Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 17 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aiderchat--positioning)
+Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 22 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aiderchat--positioning)
 
 ---
 
@@ -470,7 +479,7 @@ Stop: `Ctrl+C` or the stop button in Cowork Desktop. Avoid looping destructive s
 | `Stop` | When agent stops | Cost tracking, session persistence, sound |
 | `PreCompact` | Before context compaction | Save state snapshot |
 
-### Proactive Hooks (28 Kit-Native)
+### Proactive Hooks (24 Kit-Native)
 
 The kit ships 24 hooks that fire automatically — no prompting required. Disable any hook with its env var.
 
@@ -723,7 +732,7 @@ Install only the skills you need — smaller tiers save ~10k tokens per session:
 |------|-------|------------|
 | `essential` | ~30 | Default — covers 90% of use cases |
 | `recommended` | ~100 | Active builders across multiple domains |
-| `full` | 459 | Legacy behavior, maximum coverage |
+| `full` | 467 | Legacy behavior, maximum coverage |
 
 You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 
@@ -970,6 +979,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Method | How |
 |--------|-----|
 | `/ccc-cost` | Show cost for current session |
+| `/ccc-usage` | Usage & Cost deck (artifact) — burn, estimated savings, saved/day + cost/day trends, cost-by-app |
 | `ccc --savings` | Daily savings estimate vs all-Opus baseline |
 | `cache-monitor` skill | Analyze cache efficiency from JSONL logs |
 | JSONL logs | `~/.claude/agents/*/ccc-sessions/*.jsonl` |
@@ -1080,6 +1090,8 @@ CC Commander v7.2.0 — the Desktop plugin is the primary surface. Invoke the in
 | `/ccc-knowledge` | Search past lessons (Pro) |
 | `/ccc-code-review` | Multi-agent code review (Pro) |
 | `/ccc-deploy-check` | Pre-deploy readiness gate (Pro) |
+| `/ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app |
+| `/ccc-safety` | Safety deck — blocked/auto-fixed actions, tool-failure hotspots |
 
 > **CLI-only users:** Some `/cc *` commands (grill, confidence, mode, prompts) remain in the CLI build. See `docs/cli.md` for the CLI-only command set.
 

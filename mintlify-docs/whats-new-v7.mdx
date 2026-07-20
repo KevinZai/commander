@@ -1,0 +1,74 @@
+---
+title: "What's New in v7.2.0"
+description: "Commander Cockpit becomes a real product (v7.0.0), a Tools tab turns it into an ecosystem launcher (v7.1.0), and a shared decks switcher plus two new artifacts — Usage & Cost and Safety — ship in v7.2.0."
+---
+
+<Note>
+  **Released 2026-07-20** — v7.0.0 → v7.2.0 ship together as one arc: the Cockpit becomes the real commanderplugin.com product, gains a Tools tab, then gains a shared deck family. All core free forever. Plugin installs automatically — run `/ccc-upgrade` to pick up the latest.
+</Note>
+
+## v7.0.0 — Commander Cockpit Product Release
+
+The Commander Cockpit becomes a real product: the commanderplugin.com terminal brand end-to-end, a browse experience built for finding a skill fast, a genuinely usable prompt enhancer, and — under the hood — agent telemetry that reports real numbers or an honest "—", never a fabricated zero.
+
+### Filterable skill browser
+
+Browse is now a scannable skill LIST with a **rows / tiles toggle** (persisted) instead of a wall of one-skill "domains". Compact domain-filter chips (`all · 533`, `marketing · 46` … `general · 257`) plus real-time filter on name, purpose, or domain; a whole-row click copies the command.
+
+### Multi-select prompt enhancer
+
+The enhance tab is **11 improvement strategies as multi-select chips** (outcome, self-check, reference, target, deliverable, format, role, constraints, context, plan-first, example) with a ✓ "already covered" hint, `select all` / `what's missing` / `clear`, and a **GO** button that appends the chosen directives to your prompt to copy into Claude Code.
+
+### Real per-agent token & cost telemetry
+
+`hooks/lib/transcript-usage.mjs` recovers real input/output tokens and duration from the transcript each `SubagentStop` points to, keyed by `message.id` so streaming rows are never double-counted. `cache_read` tokens are recovered and priced into cost (≈0.1× rate) without inflating the token headline.
+
+<Note>
+  **Honest telemetry contract:** when token data was never captured, tiles render `— unavailable` and per-agent tokens/cost render `— tok` / `$—` rather than a measured-looking `0` / `$0.00`.
+</Note>
+
+### Brand and taxonomy
+
+Cockpit, Mission Control, dashboard, and both websites are unified on the real commanderplugin.com palette (coral `#FF6B47` / tan / near-black, Inter + JetBrains Mono). The skill taxonomy collapses plugin `/ccc-*` commands into one **commands** front-door group, routes ungrouped ecosystem skills to an honest **general** bucket, and groups domain routers as `ccc-X` — **14 real display domains**, no misleading "core" catch-all. This is a display taxonomy inside the Cockpit; it's distinct from the 11 canonical CCC domain routers documented in [Plugin Skills](/plugin/skills).
+
+## v7.1.0 — Cockpit Tools Tab
+
+A 7th Cockpit tab turns it into an ecosystem launcher, surfacing everything that pairs with Commander as clickable cards:
+
+- **Commander surfaces** to open — `/ccc-mission-control`, `/ccc-fleet-viz`, `/ccc-xray`, `/ccc-doctor`.
+- **Companion apps** — the best MIT-licensed tools to install alongside Commander (Nimbalyst, Claude Code Usage Monitor, Claude Control, Sniffly, tmux session manager), licenses verified via the GitHub API. These are links (copied to the clipboard, never an external `href`) — per the "interop, don't rebuild" principle. AGPL tools are deliberately excluded.
+- **Artifact recipes** — copy-a-prompt cards (before/after sales arcade, standup/status board, PR walkthrough) that have Claude build a live dashboard on demand.
+
+Self-contained and CSP-safe; companion URLs never leak into an external `href`.
+
+## v7.2.0 — Commander Decks Switcher + 2 New Decks
+
+### Commander decks switcher
+
+A shared top strip (`lib/deck-switcher.js`) now rides every Commander artifact — Cockpit, Mission Control, and the two new decks below — listing all of them as chips with the current one highlighted, so you can always see every artifact exists and jump between them. Interactive (copy-to-open) on the Cockpit; static (command shown) on the no-`<script>` snapshot decks. One shared module, theme-safe via brand tokens.
+
+### `/ccc-usage` — Usage & Cost deck
+
+A self-contained artifact built from data CCC already logs: cumulative **estimated savings** ("$X saved across N dispatches", honestly labelled as an estimate vs. an all-Opus baseline — never presented as a bill), saved/day and cost/day trends, and a **cost-by-app** split (Claude vs. Codex). See [`/ccc-usage`](/plugin/skills/ccc-usage) for the full reference.
+
+### `/ccc-safety` — Safety deck
+
+Dangerous actions **blocked**, **auto-fixed**, and approved (from `permission-gate.jsonl`), plus a Sniffly-style **tool-failure hotspots** breakdown — top tools plus normalized, secret-redacted error signatures from `tool-failures.jsonl`. See [`/ccc-safety`](/plugin/skills/ccc-safety) for the full reference.
+
+### Fixed
+
+Emoji mojibake in the snapshot artifacts — Mission Control, Usage, and Safety fragments now declare `<meta charset="utf-8">` (the Cockpit already did), so emoji render correctly when served standalone, not just inside the Artifact wrapper.
+
+## Summary
+
+| What changed | Details |
+|---|---|
+| Cockpit redesign | commanderplugin.com brand, rows/tiles browse, 11-strategy GO enhancer, honest telemetry (v7.0.0) |
+| Cockpit display taxonomy | 14 real domains, no "core" catch-all (v7.0.0) — distinct from the 11 canonical CCC routers |
+| Cockpit Tools tab | Commander surfaces + MIT companion apps + artifact recipes (v7.1.0) |
+| Commander decks switcher | Shared strip across every artifact — Cockpit, Mission Control, Usage & Cost, Safety (v7.2.0) |
+| New skill | `/ccc-usage` — Usage & Cost deck |
+| New skill | `/ccc-safety` — Safety deck |
+| Plugin skill count | 78 → 80 |
+
+All counts canonical — verified by `node scripts/check-product-contract.js --check`.

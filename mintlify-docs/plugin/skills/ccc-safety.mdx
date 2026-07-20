@@ -1,0 +1,56 @@
+---
+title: "/ccc-safety"
+description: "Safety deck: what Commander's hooks caught for you — dangerous actions blocked, auto-fixes applied, and redacted tool-failure hotspots. A self-contained artifact."
+---
+
+`/ccc-safety` reads the guardrail journals CC Commander's hooks already keep — `~/.claude/commander/analytics/permission-gate.jsonl` (every permission decision) and `~/.claude/commander/tool-failures.jsonl` (every tool failure) — and turns them into one page: how many dangerous actions got blocked, how many were auto-fixed, and which tools or error signatures trip you up most (a Sniffly-style breakdown). New in v7.2.0.
+
+## Trigger
+
+```
+/ccc-safety
+/ccc-safety open
+/ccc-safety status
+```
+
+Also activates on: "what did commander block", "show blocked actions", "safety report", "tool failure hotspots"
+
+## What it does
+
+<Steps>
+  <Step title="Pick a format">
+    No argument opens a click-first `AskUserQuestion` picker: **🛰️ Publish the deck** (a living artifact) or **🗣️ Plain-English status** (narrated inline, no jargon). `/ccc-safety open` (or `snapshot`) skips straight to publishing; `/ccc-safety status` skips straight to narration.
+  </Step>
+  <Step title="Read the local model">
+    Loads `readSafetyModel()` from the plugin's `lib/safety-snapshot.js` — pulls `permission-gate.jsonl` and `tool-failures.jsonl` locally. Error text is redacted (`sk-`/`Bearer`/token patterns → `[redacted]`) at read time, before it can reach the page.
+  </Step>
+  <Step title="Publish (if chosen)">
+    Renders `buildSafetyHtml()` to the same living path (`scratchpad/ccc-safety-live.html`) every time, then republishes that path with the Artifact tool — same path, same URL, one page that updates instead of a trail of copies. **Always asks before publishing.**
+  </Step>
+  <Step title="Or narrate (if chosen)">
+    Reads the decision counts plus the top failing tool, then narrates caveman-simple: "Commander stopped N risky actions and quietly fixed M. Your Bash commands fail most — usually timeouts." No jargon.
+  </Step>
+</Steps>
+
+## What's on the deck
+
+- **Action outcomes** — blocked, auto-fixed, and approved counts from the permission gate.
+- **Tool-failure hotspots** — normalized error signatures grouped by tool, so recurring failure classes stand out instead of one-off noise.
+- **Redaction** — secrets-shaped strings (`sk-`, `Bearer`, other token patterns) are replaced with `[redacted]` before rendering, every time.
+- **Commander decks switcher** — the same shared strip that appears on every Commander artifact (Cockpit, Mission Control, Usage & Cost, Safety), so you're always one click away from the others.
+
+## Zero-state
+
+If `permission-gate.jsonl` and `tool-failures.jsonl` are both missing or empty, the skill says so plainly: "No guardrail activity logged yet — the hooks fill this in as you work." It never renders an error for an empty deck.
+
+## Privacy
+
+<Note>
+  The read step is local-only. Publishing uploads the rendered artifact (counts, tool names, redacted error signatures) to your private claude.ai artifact URL — private to your account, but it does leave the machine. The skill always asks before publishing and never publishes automatically. Raw error text is never uploaded — only the redacted, normalized signature is.
+</Note>
+
+## Notes
+
+- Backed by `commander/cowork-plugin/lib/safety-snapshot.js` — `readSafetyModel()` + `buildSafetyHtml()`.
+- Favicon: 🛡️.
+- Companion deck: [`/ccc-usage`](/plugin/skills/ccc-usage) — burn, estimated savings, and cost-by-app.

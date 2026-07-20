@@ -3,7 +3,7 @@ title: "Plugin Skills"
 description: "80 skills shipped with the CC Commander plugin (v7.2.0). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 11 CCC domains + Orchestrator/Executor skills + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
 ---
 
-CC Commander v7.2.0 ships **80 plugin skills** across eight groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+CC Commander v7.2.0 ships **80 plugin skills** across nine groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
 
 ## Group 1 — 13 /ccc-* Specialist Workflows
 
@@ -25,9 +25,9 @@ Click-first workflows. Each opens an interactive picker (AskUserQuestion native 
 | `/ccc-fleet` | `/ccc-fleet` or "run in parallel" | Multi-agent orchestration — launch, route, monitor, and kill parallel agent workers |
 | `/ccc-connect` | `/ccc-connect` or "connect my tools" | Opt-in MCP connector — Notion, Zapier, Supabase, Slack, Google Drive, Figma, and more |
 
-## Group 2 — 14 ccc-* Domain Routers
+## Group 2 — 11 ccc-* Domain Routers
 
-Load ONE domain skill to get an entire specialty. Each router matches your intent and dispatches to the right sub-skill.
+Load ONE domain skill to get an entire specialty. Each router matches your intent and dispatches to the right sub-skill. (The Commander Cockpit's Browse tab additionally displays a **14-domain taxonomy** for filtering — it splits `commands`, `general`, and a few finer-grained buckets out of these same 11 routers for browsing purposes. The 11 routers below are the canonical CCC domains.)
 
 | Skill | Skills Inside | What it covers |
 |-------|--------------|----------------|
@@ -111,6 +111,15 @@ The plan/execute split: high-reasoning models write goal files and verify; execu
 | `/ccc-spawn` | `/ccc-spawn` or "spawn a session", "spin this off" | Click-first spawn hub — spin isolated work into its own session (spawn_task chip in Cowork, `/spawn` peer in CLI); routes to `/ccc-fleet` or `/ccc-relay` (v6.7.2) |
 | `/ccc-prompt-fix` | `/ccc-prompt-fix` or "fix my prompt", "sharpen this prompt" | Auto prompt fixer — diagnoses a prompt against the 6 quality patterns, returns a tighter rewrite with the reasoning, suggests the matching library prompt (v6.7.3) |
 
+## Group 9 — Decks
+
+Self-contained artifacts that turn data CCC already logs into a page. Every deck carries a shared decks switcher strip so you can jump between them.
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-usage` | `/ccc-usage` or "what am I spending", "show my savings" | Usage & Cost deck — burn, estimated savings vs. an all-Opus baseline (honest, not a bill), saved/day + cost/day trends, cost-by-app split. See [`/ccc-usage`](/plugin/skills/ccc-usage). |
+| `/ccc-safety` | `/ccc-safety` or "what did commander block", "safety report" | Safety deck — blocked/auto-fixed/approved action outcomes, redacted tool-failure hotspots. See [`/ccc-safety`](/plugin/skills/ccc-safety). |
+
 ## All 80 at a Glance
 
 | # | Skill | Group |
@@ -159,7 +168,19 @@ The plan/execute split: high-reasoning models write goal files and verify; execu
 | 42 | `/ccc-handoff` | Proactive fresh-chat handoff |
 | 43 | `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor |
 | 44 | `/ccc-adopt` | Existing-project doctrine adoption |
-| 45–70 | `ccc-design`, `ccc-fleet`, `ccc-linear` double-counted + supporting skills (build, code-review, content, deploy-check, domains, fleet, infra, knowledge, linear-board, night-mode, research, session, settings, standup, brainstorm, qa, loop, hermes, nightwatch, ci, yolo-setup, ecc, ultracode, debate, triage, doc-sync, harden) + aux | Includes specialist/domain double-purposes and aux skills. See `/ccc-browse` in Desktop for the live, filterable catalog. |
+| 45–68 | Supporting skills — code-review, content, deploy-check, domains, infra, knowledge, linear-board, night-mode, session, settings, standup, brainstorm, qa, loop, hermes, nightwatch, ci, yolo-setup, ecc, ultracode, debate, triage, doc-sync, harden | Aux and lifecycle-adjacent skills. See `/ccc-browse` in Desktop for the live, filterable catalog. |
+| 69 | `/ccc-relay` | Cross-session gated loop chaining (v6.7.0) |
+| 70 | `ccc-smb-ops` | Small-business-operations router + 6 sub-skills (v6.7.0) |
+| 71 | `/ccc-broadcast` | Scrubbed outbound status relay (v6.7.1) |
+| 72 | `/ccc-spawn` | Click-first isolated-session hub (v6.7.2) |
+| 73 | `/ccc-prompt-fix` | Prompt diagnosis + tighter rewrite (v6.7.3) |
+| 74 | `/ccc-mission-control` | Live agent dashboard — Claude + Codex rosters, Charts strip, claude-mem History panel |
+| 75 | `/ccc-claudemd` | CLAUDE.md drift audit with AUQ-gated fixes |
+| 76 | `/ccc-fable` | Arms the Fable Method — 12-gate session contract |
+| 77 | `/ccc-more` | Overflow menu for less-frequent workflows |
+| 78 | `/ccc-plan-exec` | Claude-only plan → execute → verify split |
+| 79 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app (v7.2.0) |
+| 80 | `/ccc-safety` | Safety deck — blocked/auto-fixed actions + tool-failure hotspots (v7.2.0) |
 | — | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2) |
 
 [Pricing — Core Free Forever →](/plugin/free-vs-pro)

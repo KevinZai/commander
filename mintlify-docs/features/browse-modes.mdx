@@ -1,15 +1,15 @@
 ---
 title: "How users browse skills — Plugin vs MCP"
-description: "Two ways to access 502+ CC Commander skills — native plugin slash commands in Claude Code vs. MCP tool calls in Cursor, Windsurf, Cline, Continue, Codex, and Claude mobile."
+description: "Two ways to access 467+ CC Commander skills — native plugin slash commands in Claude Code (including the v7 Commander Cockpit browse experience) vs. MCP tool calls in Cursor, Windsurf, Cline, Continue, Codex, and Claude mobile."
 ---
 
 # 🎭 How users browse skills
 
 CC Commander ships **two parallel discovery surfaces**. They serve the same skill catalog but are shaped by what each client supports.
 
-<Warning>
-  **Beta v5.1.0 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.commanderplugin.com` goes live post-deploy.
-</Warning>
+<Note>
+  **Current status:** the hosted MCP server at `mcp.commanderplugin.com` is live. Plugin install works in Claude Code today; MCP access for Cursor/Windsurf/Cline/Continue/Codex/Claude mobile is available now via the hosted endpoint below.
+</Note>
 
 ## The split in one sentence
 
@@ -20,7 +20,7 @@ CC Commander ships **two parallel discovery surfaces**. They serve the same skil
 | **Claude Code CLI (terminal)** | `ccc` interactive TUI + slash commands in CC sessions | CLI binary + plugin |
 | **Cursor / Windsurf / Cline / Continue / Codex / Claude mobile** | Agent calls `list_skills` / `search_skills` / `suggest_skill` on the user's behalf | Hosted MCP server at `mcp.commanderplugin.com` |
 
-Same 500+ skills. Different UX glue.
+Same 467+ skills. Different UX glue.
 
 <Info>
   **New to AI coding agents?** Start with **Claude Cowork Desktop** — it's designed for novice users and CC Commander's guided workflows are perfect for learning by doing. The plugin install is identical to Claude Code Desktop; Cowork just surfaces agent coordination more prominently in its UI.
@@ -42,6 +42,16 @@ When you `/plugin install commander` in Claude Code, the plugin manifest registe
 /plugin install commander
 # Type /ccc-  to see the full slash menu
 ```
+
+### The v7 Browse experience — `/ccc-browse` and the Commander Cockpit
+
+Since v7.0.0, `/ccc-browse` is a scannable skill LIST built for finding a skill fast, not a wall of one-skill "domains":
+
+- **Rows / tiles toggle** — switch layouts; your choice is persisted across sessions.
+- **Live filter** — real-time filtering on name, purpose, or domain as you type, plus compact domain-filter chips (`all · 533`, `marketing · 46` … `general · 257`).
+- **Copy-on-click** — clicking a whole row copies the command instead of requiring a precise click target.
+- **Honest taxonomy** — the Cockpit's browse taxonomy has **14 real display domains**: plugin `/ccc-*` commands collapse into one **commands** front-door group (not ~78 one-skill "domains"), ungrouped ecosystem skills route to an honest **general** bucket (sorted last), and domain routers living in `skills/ccc-X/` are grouped as `ccc-X`. No misleading "core" catch-all. (This 14-domain browse taxonomy is a Cockpit display concept — distinct from the 11 canonical CCC domain routers documented in [Plugin Skills](/plugin/skills).)
+- **🎛️ Open the Commander Cockpit** — the same picker's top option publishes the full catalog as a self-contained, clickable artifact (skill/agent browser, prompt enhancer, agent analytics, Tools tab), carrying the shared **Commander decks** switcher to jump to Mission Control, Usage & Cost, or Safety.
 
 ## Hosted MCP server (every other AI IDE)
 
