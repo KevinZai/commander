@@ -457,13 +457,19 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
     'ccc-mobile': 'react-native · expo',
     'ccc-makeover': 'xray · polish',
     'ccc-smb-ops': 'invoicing · cash-flow · CRM',
-    'core': 'workflows · hooks · lifecycle',
-    'plugin': 'the /ccc-* front door'
+    'ccc-openclaw-coordination': 'multi-agent · dispatch',
+    'commands': 'the /ccc-* front door',
+    'general': 'standalone · not in a domain'
   };
   var activeDomain = null, activeJob = null;
   var domainCounts = {};
-  D.skills.forEach(function (s) { var d = s.domain || 'core'; domainCounts[d] = (domainCounts[d] || 0) + 1; });
-  var domainList = Object.keys(domainCounts).sort(function (a, b) { return domainCounts[b] - domainCounts[a] || a.localeCompare(b); });
+  D.skills.forEach(function (s) { var d = s.domain || 'general'; domainCounts[d] = (domainCounts[d] || 0) + 1; });
+  // Real domains first (by count), then "commands" (front door), then the
+  // honest "general" bucket last — a dumping bucket shouldn't head the list.
+  function domainRank(d) { return d === 'general' ? 2 : d === 'commands' ? 1 : 0; }
+  var domainList = Object.keys(domainCounts).sort(function (a, b) {
+    return domainRank(a) - domainRank(b) || domainCounts[b] - domainCounts[a] || a.localeCompare(b);
+  });
 
   function renderDomains() {
     var rows = domainList.map(function (d) {
@@ -501,7 +507,7 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
   });
 
   function matches(s, q) {
-    if (activeDomain && (s.domain || 'core') !== activeDomain) return false;
+    if (activeDomain && (s.domain || 'general') !== activeDomain) return false;
     if (!q) return true;
     var hay = (s.name + ' ' + (s.cmd || '') + ' ' + (s.desc || '') + ' ' + (s.domain || '')).toLowerCase();
     return q.split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });

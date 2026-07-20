@@ -197,16 +197,48 @@ function buildTierMap() {
   return tierById;
 }
 
+// Canonical CCC domains — each has a real skills/<domain>/ directory of
+// specialist sub-skills. Used to (a) route plugin domain-routers into their
+// domain group and (b) classify otherwise-ungrouped ecosystem skills.
+const CANONICAL_DOMAINS = new Set([
+  'ccc-design',
+  'ccc-marketing',
+  'ccc-saas',
+  'ccc-devops',
+  'ccc-seo',
+  'ccc-testing',
+  'ccc-security',
+  'ccc-data',
+  'ccc-research',
+  'ccc-mobile',
+  'ccc-makeover',
+  'ccc-smb-ops',
+  'ccc-openclaw-coordination',
+]);
+
+// Standalone ecosystem skills (directly under skills/, not nested in a
+// skills/ccc-*/ dir) go to the honest "general" bucket. A keyword classifier
+// was evaluated and REJECTED: on the classifiable subset it mislabelled ~40%
+// (e.g. github→design, senior-backend→security, synapse→devops, benchmark→seo).
+// A wrong domain label is worse than an honest "uncategorised" one, so these
+// stay in "general" until a hand-curated map is worth the maintenance.
+const UNGROUPED_DOMAIN = 'general';
+
 function buildPluginSkills(files) {
   return files.map((filePath) => {
     const fallbackId = path.basename(path.dirname(filePath));
     const { name, desc } = readSkill(filePath, fallbackId);
+    // A plugin skill that names a canonical domain is that domain's router —
+    // fold it into the domain group. Everything else (workflow commands like
+    // /ccc-build, /ccc-review, and any non-ccc plugin skill) is a front-door
+    // "command", NOT its own one-skill domain.
+    const domain = CANONICAL_DOMAINS.has(name) ? name : 'commands';
     return {
       id: name,
       name,
       cmd: `/${name}`,
       desc,
-      domain: name.startsWith('ccc-') ? name : '',
+      domain,
       tier: '',
       source: 'plugin',
     };
@@ -219,7 +251,10 @@ function buildEcosystemSkills(files, tierById) {
     const directories = relativePath.split(path.sep).slice(0, -1);
     const id = directories.at(-1);
     const { name, desc } = readSkill(filePath, id);
-    const domain = directories.slice(0, -1).find((part) => part.startsWith('ccc-')) || '';
+    // Nested under skills/ccc-*/ → that domain. Otherwise classify by content,
+    // falling back to the honest "general" bucket (never a fake per-skill domain).
+    const nestedDomain = directories.slice(0, -1).find((part) => part.startsWith('ccc-'));
+    const domain = nestedDomain || UNGROUPED_DOMAIN;
     return {
       id,
       name,
