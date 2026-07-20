@@ -140,6 +140,35 @@ describe('readUsageModel — latest-wins dedupe by (date, source_app)', () => {
   });
 });
 
+describe('readUsageModel — 8MB tail boundary', () => {
+  it('keeps a valid record beginning exactly at the byte-window edge (not dropped)', async () => {
+    const { readUsageModel } = await loadLib();
+    const MAX = 8 * 1024 * 1024; // must match MAX_JSONL_BYTES in the lib
+    const boundary = JSON.stringify({ date: '2026-07-18', source_app: 'boundary', cost_usd: 7 }) + '\n';
+    // Large junk lines (4KB, invalid JSON → skipped) so the 8MiB tail holds
+    // ~2k lines — under the 5000-line cap — and the boundary record stays in
+    // scope; a small-line fill would evict it by the line cap and mask the bug.
+    const junk = 'x'.repeat(4095) + '\n';
+    const avail = MAX - Buffer.byteLength(boundary);
+    const padCount = Math.floor(avail / junk.length);
+    const remainder = avail - padCount * junk.length;
+    const tail = boundary + junk.repeat(padCount) + 'q'.repeat(remainder); // exactly MAX bytes
+    // A newline-terminated prefix pushes the window start onto the boundary
+    // record — the exact case the old "drop the first line" logic mishandled.
+    const file = 'z'.repeat(100) + '\n' + tail;
+
+    const dir = await fs.mkdtemp(path.join(tmpRoot, 'boundary-'));
+    const mcDir = path.join(dir, 'mission-control');
+    await fs.mkdir(mcDir, { recursive: true });
+    await fs.writeFile(path.join(mcDir, 'metrics.jsonl'), file);
+
+    const model = await readUsageModel({ baseDir: dir, now: FIXED_NOW });
+    const boundaryApp = model.costByApp.find((r) => r.sourceApp === 'boundary');
+    assert.ok(boundaryApp, 'boundary record at the window edge must be read, not dropped');
+    assert.equal(boundaryApp.costUsd, 7);
+  });
+});
+
 describe('readUsageModel — empty baseDir', () => {
   it('never crashes and returns an honest zero-state model', async () => {
     const { readUsageModel } = await loadLib();

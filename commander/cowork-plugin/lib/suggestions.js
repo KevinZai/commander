@@ -56,7 +56,7 @@ function redact(value) {
   return value
     .replace(/sk-[a-zA-Z0-9_-]{8,}/g, '[redacted]')
     .replace(/Bearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, '[redacted]')
-    .replace(/Basic\s+[A-Za-z0-9+/=]{12,}/gi, '[redacted]')
+    .replace(/(authorization\s*[=:]\s*)(?:bearer|basic|digest|negotiate|token)\s+[^\s"']+/gi, '$1[redacted]')
     .replace(/AKIA[0-9A-Z]{16}/g, '[redacted]')
     .replace(/gh[pousr]_[A-Za-z0-9]{20,}/g, '[redacted]')
     .replace(/hf_[A-Za-z0-9]{16,}/g, '[redacted]')

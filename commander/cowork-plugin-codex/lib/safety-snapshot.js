@@ -75,9 +75,12 @@ function toMs(value) {
 // Bounded scan: only the tail maxLines non-empty lines are parsed. Mirrors
 // mission-control-snapshot.js's readJsonl() — duplicated per this file's
 // own doc-comment rationale (small, self-contained, no cross-import).
-// Read at most the trailing maxBytes of a file, dropping the first (likely
-// partial) line so callers only ever see whole lines. Keeps an unrotated,
-// ever-growing append-only log from being slurped whole into memory.
+// Read at most the trailing maxBytes of a file. Keeps an unrotated,
+// ever-growing append-only log from being slurped whole into memory. The
+// leading line of the window may be partial (the cut can land mid-record) —
+// that's left as-is on purpose: readJsonl's JSON.parse tolerance drops an
+// unparseable partial line, while a record that begins exactly at the byte
+// boundary is preserved rather than being wrongly discarded.
 async function readTailText(filePath, maxBytes = MAX_JSONL_BYTES) {
   let handle;
   try {
@@ -89,10 +92,8 @@ async function readTailText(filePath, maxBytes = MAX_JSONL_BYTES) {
     const { size } = await handle.stat();
     if (size <= maxBytes) return await handle.readFile('utf8');
     const buf = Buffer.alloc(maxBytes);
-    await handle.read(buf, 0, maxBytes, size - maxBytes);
-    const text = buf.toString('utf8');
-    const nl = text.indexOf('\n');
-    return nl >= 0 ? text.slice(nl + 1) : text;
+    const { bytesRead } = await handle.read(buf, 0, maxBytes, size - maxBytes);
+    return buf.toString('utf8', 0, bytesRead);
   } catch {
     return '';
   } finally {
@@ -124,17 +125,21 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
 // Same redact() pattern set used across this plugin's hooks (see
 // hooks/mission-control-feed.js, hooks/task-tracker.js,
 // hooks/subagent-start-tracker.js) — duplicated here rather than imported
-// so this lib file has no runtime dependency on hooks/. Basic-auth and AWS
-// AKIA patterns were added after an adversarial review found a
-// `Authorization: Basic <base64>` credential surviving redaction (the
-// keyword pattern below only redacts a single token after the colon, so it
-// stripped "Basic" and left the base64 payload).
+// so this lib file has no runtime dependency on hooks/.
+//
+// The `authorization: <scheme> <credential>` matcher and AWS AKIA pattern
+// were added after an adversarial review: the generic keyword pattern below
+// only redacts ONE token after the colon, so `Authorization: Basic <base64>`
+// lost "Basic" but kept the base64 payload. The matcher is context-anchored
+// (it only fires after `authorization[:=]`) and length-agnostic, so it
+// catches short Basic credentials without over-redacting prose like
+// "Basic authentication failed".
 function redact(value) {
   if (typeof value !== 'string') return null;
   return value
     .replace(/sk-[a-zA-Z0-9_-]{8,}/g, '[redacted]')
     .replace(/Bearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, '[redacted]')
-    .replace(/Basic\s+[A-Za-z0-9+/=]{12,}/gi, '[redacted]')
+    .replace(/(authorization\s*[=:]\s*)(?:bearer|basic|digest|negotiate|token)\s+[^\s"']+/gi, '$1[redacted]')
     .replace(/AKIA[0-9A-Z]{16}/g, '[redacted]')
     .replace(/gh[pousr]_[A-Za-z0-9]{20,}/g, '[redacted]')
     .replace(/hf_[A-Za-z0-9]{16,}/g, '[redacted]')

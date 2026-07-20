@@ -89,9 +89,12 @@ function num(value, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
 }
 
-// Read at most the trailing maxBytes of a file, dropping the first (likely
-// partial) line so callers only ever see whole lines. Keeps an unrotated,
-// ever-growing append-only log from being slurped whole into memory.
+// Read at most the trailing maxBytes of a file. Keeps an unrotated,
+// ever-growing append-only log from being slurped whole into memory. The
+// leading line of the window may be partial (the cut can land mid-record) —
+// that's left as-is on purpose: readJsonl's JSON.parse tolerance drops an
+// unparseable partial line, while a record that begins exactly at the byte
+// boundary is preserved rather than being wrongly discarded.
 async function readTailText(filePath, maxBytes = MAX_JSONL_BYTES) {
   let handle;
   try {
@@ -103,10 +106,8 @@ async function readTailText(filePath, maxBytes = MAX_JSONL_BYTES) {
     const { size } = await handle.stat();
     if (size <= maxBytes) return await handle.readFile('utf8');
     const buf = Buffer.alloc(maxBytes);
-    await handle.read(buf, 0, maxBytes, size - maxBytes);
-    const text = buf.toString('utf8');
-    const nl = text.indexOf('\n');
-    return nl >= 0 ? text.slice(nl + 1) : text;
+    const { bytesRead } = await handle.read(buf, 0, maxBytes, size - maxBytes);
+    return buf.toString('utf8', 0, bytesRead);
   } catch {
     return '';
   } finally {
