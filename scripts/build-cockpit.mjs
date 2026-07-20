@@ -5,6 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readTopSkills } from '../commander/cowork-plugin/lib/top-skills.js';
+import { brandBaseCss } from '../commander/cowork-plugin/lib/brand-css.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATE_PATH = path.join(ROOT, 'commander/cowork-plugin/lib/cockpit-template.html');
@@ -14,6 +15,7 @@ const ECOSYSTEM_SKILLS_DIR = path.join(ROOT, 'skills');
 const AGENTS_DIR = path.join(ROOT, 'commander/cowork-plugin/agents');
 const TIERS_PATH = path.join(ECOSYSTEM_SKILLS_DIR, '_tiers.json');
 const DATA_MARKER = '/*__COCKPIT_DATA__*/';
+const BRAND_MARKER = '/*__BRAND_CSS__*/';
 const SKIPPED_DIRS = new Set(['node_modules', '.git', 'vendor']);
 
 const DEFAULT_PERSONA = Object.freeze({ emoji: '🤖', role: 'Agent' });
@@ -55,42 +57,87 @@ const JOBS = Object.freeze([
   { label: '🤖 Automate a workflow', query: 'loop schedule automation' },
 ]);
 
+// Prompt-improvement strategies for the enhance tab. Each is a multi-select
+// chip: `test` auto-detects whether it's already present (a ✓ hint), and
+// `directive` is the line GO appends when the strategy is selected. Ordered
+// most-impactful first.
 const PATTERNS = Object.freeze([
   {
     key: 'outcome',
     name: 'Describe the outcome',
     hint: 'Say what the finished result should look like, not the steps to take.',
     test: '(so that|end state|done (looks|means)|goal:|outcome)',
+    directive: 'Outcome: describe what DONE looks like — the end state, not the steps to take.',
   },
   {
     key: 'selfcheck',
-    name: 'Give it a self-check',
-    hint: 'Ask it to run, test, compare, or verify its work before stopping.',
+    name: 'Add a self-check',
+    hint: 'Ask it to run, test, or verify its work before stopping.',
     test: '(verify|prove|show (me )?(proof|output)|run (the )?tests|check your)',
+    directive: 'Before finishing, verify your work — run it or test it and show me the proof.',
   },
   {
     key: 'reference',
     name: 'Point at a reference',
-    hint: 'Name an existing file, test, example, or pattern for it to match.',
+    hint: 'Name an existing file, test, example, or pattern to match.',
     test: '(like|match|same as|following|pattern in|@|\\.md|\\.ts|\\.js)',
+    directive: 'Reference: match the patterns already in [the file / example to imitate].',
   },
   {
     key: 'target',
-    name: 'State a measurable target',
+    name: 'Set a measurable target',
     hint: 'Give a metric and threshold that make done unambiguous.',
     test: '([0-9]+\\s*(%|ms|s\\b|x\\b)|all tests|zero |under |at least)',
+    directive: 'Target: [a measurable bar — e.g. all tests green, under 200ms, zero console errors].',
   },
   {
     key: 'artifact',
-    name: 'Give it the artifact',
-    hint: 'Provide the exact file, error, log, screenshot, or deliverable it needs.',
-    test: '(PR|pull request|file|report|diff|artifact|document|table)',
+    name: 'Name the deliverable',
+    hint: 'State the exact file, PR, report, or artifact you want back.',
+    test: '(PR|pull request|deliverable|report|diff|artifact|commit)',
+    directive: 'Deliverable: [the exact artifact — a PR, a file, a report — not just a chat reply].',
   },
   {
     key: 'format',
-    name: 'Say how you want the answer',
-    hint: 'Specify the answer format, length, structure, or audience.',
+    name: 'Say how to answer',
+    hint: 'Specify the answer format, length, or structure.',
     test: '(format|table|bullet|json|markdown|structure|sections)',
+    directive: 'Answer format: [how to present it — table, bullet summary, diff, or sections].',
+  },
+  {
+    key: 'role',
+    name: 'Give it a role',
+    hint: 'Frame the model as the right kind of expert for the task.',
+    test: '(act as|you are (a|an)|as a senior|role:|expert)',
+    directive: 'Role: act as a senior [domain] engineer who values correctness over speed.',
+  },
+  {
+    key: 'constraints',
+    name: 'Add constraints',
+    hint: 'Fence what it must NOT do, or what it must stay within.',
+    test: "(don't|do not|avoid|must not|only touch|stay within|constraint|no (new )?deps)",
+    directive: 'Constraints: only touch [X]; do not [Y]; keep the change as small as the task allows.',
+  },
+  {
+    key: 'context',
+    name: 'Give the context',
+    hint: 'Say why it matters, who it is for, and what you already tried.',
+    test: '(context|background|because|the reason|so far|already tried|why:)',
+    directive: 'Context: [why this matters, who it is for, and what you have already tried].',
+  },
+  {
+    key: 'planfirst',
+    name: 'Ask for a plan first',
+    hint: 'Have it think through the approach before it writes anything.',
+    test: '(plan first|before (you )?(start|code|implement)|outline (the|your)|step[- ]by[- ]step|think through)',
+    directive: 'Plan first: outline your approach and wait for my go before implementing.',
+  },
+  {
+    key: 'examples',
+    name: 'Show an example',
+    hint: 'One input→output example anchors the format better than prose.',
+    test: '(for example|e\\.g\\.|example:|input.*output|few[- ]shot|sample)',
+    directive: 'Example: here is one input → the output I expect: [ … ].',
   },
 ]);
 
@@ -195,16 +242,48 @@ function buildTierMap() {
   return tierById;
 }
 
+// Canonical CCC domains — each has a real skills/<domain>/ directory of
+// specialist sub-skills. Used to (a) route plugin domain-routers into their
+// domain group and (b) classify otherwise-ungrouped ecosystem skills.
+const CANONICAL_DOMAINS = new Set([
+  'ccc-design',
+  'ccc-marketing',
+  'ccc-saas',
+  'ccc-devops',
+  'ccc-seo',
+  'ccc-testing',
+  'ccc-security',
+  'ccc-data',
+  'ccc-research',
+  'ccc-mobile',
+  'ccc-makeover',
+  'ccc-smb-ops',
+  'ccc-openclaw-coordination',
+]);
+
+// Standalone ecosystem skills (directly under skills/, not nested in a
+// skills/ccc-*/ dir) go to the honest "general" bucket. A keyword classifier
+// was evaluated and REJECTED: on the classifiable subset it mislabelled ~40%
+// (e.g. github→design, senior-backend→security, synapse→devops, benchmark→seo).
+// A wrong domain label is worse than an honest "uncategorised" one, so these
+// stay in "general" until a hand-curated map is worth the maintenance.
+const UNGROUPED_DOMAIN = 'general';
+
 function buildPluginSkills(files) {
   return files.map((filePath) => {
     const fallbackId = path.basename(path.dirname(filePath));
     const { name, desc } = readSkill(filePath, fallbackId);
+    // A plugin skill that names a canonical domain is that domain's router —
+    // fold it into the domain group. Everything else (workflow commands like
+    // /ccc-build, /ccc-review, and any non-ccc plugin skill) is a front-door
+    // "command", NOT its own one-skill domain.
+    const domain = CANONICAL_DOMAINS.has(name) ? name : 'commands';
     return {
       id: name,
       name,
       cmd: `/${name}`,
       desc,
-      domain: name.startsWith('ccc-') ? name : '',
+      domain,
       tier: '',
       source: 'plugin',
     };
@@ -217,7 +296,12 @@ function buildEcosystemSkills(files, tierById) {
     const directories = relativePath.split(path.sep).slice(0, -1);
     const id = directories.at(-1);
     const { name, desc } = readSkill(filePath, id);
-    const domain = directories.slice(0, -1).find((part) => part.startsWith('ccc-')) || '';
+    // A skill under a canonical domain dir → that domain. Search ALL path
+    // segments (including the skill's own dir) so a domain router that lives
+    // directly at skills/ccc-X/SKILL.md is grouped as ccc-X, not "general".
+    // Everything else → the honest "general" bucket (never a fake per-skill domain).
+    const nestedDomain = directories.find((part) => CANONICAL_DOMAINS.has(part));
+    const domain = nestedDomain || UNGROUPED_DOMAIN;
     return {
       id,
       name,
@@ -354,6 +438,44 @@ function assertSelfContained(output) {
   const titleCount = (output.match(/<title(?:\s|>)/gi) || []).length;
   if (titleCount !== 1) throw new Error(`Cockpit output must contain exactly one <title>; found ${titleCount}`);
   if (output.includes(DATA_MARKER)) throw new Error('Cockpit data marker was not replaced');
+  if (output.includes(BRAND_MARKER)) throw new Error('Cockpit brand-css marker was not replaced');
+}
+
+// Linear board is a PRIVATE, opt-in surface: the Cockpit bakes whatever the
+// user's own Linear connector cached to ~/.claude/commander/linear-board.json
+// at generate time (never a network call at view time). Absent file → the tab
+// renders a "connect Linear" empty state. Shape:
+//   { connected, board, tickets:[{id,title,state,stateKind,project,updated,stale}] }
+function readLinearBoard() {
+  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
+  const file = path.join(home, '.claude', 'commander', 'linear-board.json');
+  const str = (v) => (typeof v === 'string' ? v : '');
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (parsed && Array.isArray(parsed.tickets)) {
+      // Structurally sanitize every ticket: coerce to strings, drop non-objects,
+      // require an id. esc() in the template is the second layer; this is the
+      // first — an untrusted board file can never inject a non-string into the
+      // payload (a malicious `title: {toString...}` or `id: ["</script>"]` is
+      // flattened to '' here).
+      const tickets = parsed.tickets
+        .filter((t) => t && typeof t === 'object' && !Array.isArray(t))
+        .map((t) => ({
+          id: str(t.id),
+          title: str(t.title),
+          state: str(t.state),
+          stateKind: str(t.stateKind),
+          project: str(t.project),
+          updated: str(t.updated),
+          stale: t.stale === true,
+        }))
+        .filter((t) => t.id);
+      return { connected: tickets.length > 0, board: str(parsed.board) || null, tickets };
+    }
+  } catch {
+    /* absent or malformed → not connected */
+  }
+  return { connected: false };
 }
 
 function readJsonl(filePath) {
@@ -388,8 +510,26 @@ function safeMetric(value) {
   return Number.isFinite(value) && value >= 0 ? value : 0;
 }
 
-function estimatedCostUsd(inputTokens, outputTokens) {
-  return Number(((safeMetric(inputTokens) * 3 + safeMetric(outputTokens) * 15) / 1_000_000).toFixed(4));
+// Token data is "available" for a run only if it carries a positive count or an
+// explicit tokensAvailable:true. A bare 0 is indistinguishable from "never
+// captured" (the 3k+ historical rows are exactly that), so treat 0/null/absent
+// as unavailable — the honesty contract renders "—", not a measured-looking 0.
+function hasTokenData(entry) {
+  if (entry.tokensAvailable === false) return false;
+  if (entry.tokensAvailable === true) return true;
+  return (
+    (Number.isFinite(entry.inputTokens) && entry.inputTokens > 0) ||
+    (Number.isFinite(entry.outputTokens) && entry.outputTokens > 0)
+  );
+}
+
+// Rough Sonnet-rate estimate ($/M): new input 3, cache-read 0.3 (≈0.1×), output 15.
+// cache_read is priced (a cache-heavy run costs real money) but is NOT folded
+// into the token headline, where cross-turn re-reads would inflate the count.
+function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
+  return Number(
+    ((safeMetric(inputTokens) * 3 + safeMetric(cacheReadTokens) * 0.3 + safeMetric(outputTokens) * 15) / 1_000_000).toFixed(4)
+  );
 }
 
 function formatTokens(tokens) {
@@ -420,12 +560,18 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
       runs: 0,
       inputTokens: 0,
       outputTokens: 0,
+      cacheReadTokens: 0,
+      tokenRuns: 0,
       durationMs: 0,
       durations: 0,
     };
     current.runs += 1;
-    current.inputTokens += safeMetric(entry.inputTokens);
-    current.outputTokens += safeMetric(entry.outputTokens);
+    if (hasTokenData(entry)) {
+      current.inputTokens += safeMetric(entry.inputTokens);
+      current.outputTokens += safeMetric(entry.outputTokens);
+      current.cacheReadTokens += safeMetric(entry.cacheReadTokens);
+      current.tokenRuns += 1;
+    }
     if (Number.isFinite(entry.durationMs) && entry.durationMs >= 0) {
       current.durationMs += entry.durationMs;
       current.durations += 1;
@@ -438,9 +584,14 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
       name: agent.source === 'claude-code' ? agent.name : `${agent.name} · ${agent.source}`,
       emoji: (PERSONA_MAP[agent.name.toLowerCase()] || DEFAULT_PERSONA).emoji,
       runs: agent.runs,
-      tokens: agent.inputTokens + agent.outputTokens,
-      costUsd: estimatedCostUsd(agent.inputTokens, agent.outputTokens),
-      avgMs: agent.durations > 0 ? Math.round(agent.durationMs / agent.durations) : 0,
+      // null (not 0) when no run for this agent carried real token data, so the
+      // roster shows "—" rather than a fabricated 0k / $0.00.
+      tokens: agent.tokenRuns > 0 ? agent.inputTokens + agent.outputTokens : null,
+      costUsd:
+        agent.tokenRuns > 0
+          ? estimatedCostUsd(agent.inputTokens, agent.outputTokens, agent.cacheReadTokens)
+          : null,
+      avgMs: agent.durations > 0 ? Math.round(agent.durationMs / agent.durations) : null,
     }))
     .sort((left, right) => right.runs - left.runs || right.tokens - left.tokens || left.name.localeCompare(right.name))
     .slice(0, 10);
@@ -558,12 +709,25 @@ async function buildAnalytics() {
   const sevenDaysAgo = nowMs - 7 * 24 * 60 * 60 * 1000;
   const thirtyDaysAgo = nowMs - 30 * 24 * 60 * 60 * 1000;
   const recentAgents = recentEntries(sources.agentRuns, sevenDaysAgo, nowMs);
-  const inputTokens = recentAgents.reduce((sum, entry) => sum + safeMetric(entry.inputTokens), 0);
-  const outputTokens = recentAgents.reduce((sum, entry) => sum + safeMetric(entry.outputTokens), 0);
+  // Only runs with real token data feed the token/cost tiles. If none do, the
+  // tiles say so honestly instead of showing a 0 that reads as "measured zero".
+  const tokenAgents = recentAgents.filter(hasTokenData);
+  const inputTokens = tokenAgents.reduce((sum, entry) => sum + safeMetric(entry.inputTokens), 0);
+  const outputTokens = tokenAgents.reduce((sum, entry) => sum + safeMetric(entry.outputTokens), 0);
+  const cacheReadTokens = tokenAgents.reduce((sum, entry) => sum + safeMetric(entry.cacheReadTokens), 0);
+  const tokensMeasured = tokenAgents.length > 0;
   const tiles = [
     { label: 'Agent runs (7d)', value: recentAgents.length },
-    { label: 'Tokens (7d)', value: formatTokens(inputTokens + outputTokens) },
-    { label: 'Est cost (7d)', value: `$${estimatedCostUsd(inputTokens, outputTokens).toFixed(2)} est` },
+    {
+      label: 'Tokens (7d)',
+      value: tokensMeasured ? formatTokens(inputTokens + outputTokens) : '— unavailable',
+    },
+    {
+      label: 'Est cost (7d)',
+      value: tokensMeasured
+        ? `$${estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens).toFixed(2)} est`
+        : '—',
+    },
     ...skillTilesFromTopSkills(topSkills),
     { label: 'Tasks done (7d)', value: completedTaskCount(sources.tasks, sevenDaysAgo, nowMs) },
   ];
@@ -609,13 +773,18 @@ async function buildDocument() {
     ideas: buildIdeas(skills),
     patterns: PATTERNS,
     analytics: await buildAnalytics(),
+    linear: readLinearBoard(),
   };
 
   const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
-  const markerCount = template.split(DATA_MARKER).length - 1;
-  if (markerCount !== 1) throw new Error(`Expected exactly one Cockpit data marker; found ${markerCount}`);
+  const dataMarkerCount = template.split(DATA_MARKER).length - 1;
+  if (dataMarkerCount !== 1) throw new Error(`Expected exactly one Cockpit data marker; found ${dataMarkerCount}`);
+  const brandMarkerCount = template.split(BRAND_MARKER).length - 1;
+  if (brandMarkerCount !== 1) throw new Error(`Expected exactly one Cockpit brand-css marker; found ${brandMarkerCount}`);
   const json = JSON.stringify(payload).replace(/<\/script/gi, '<\\/script');
-  const output = template.replace(DATA_MARKER, `window.__COCKPIT__ = ${json};`);
+  const output = template
+    .replace(BRAND_MARKER, brandBaseCss())
+    .replace(DATA_MARKER, `window.__COCKPIT__ = ${json};`);
   assertSelfContained(output);
   return output;
 }

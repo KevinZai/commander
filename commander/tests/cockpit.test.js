@@ -13,6 +13,8 @@ var CONTRACT_PATH = path.join(ROOT, 'commander', 'contract.json');
 var PLUGIN_SKILLS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'skills');
 var ECOSYSTEM_SKILLS_DIR = path.join(ROOT, 'skills');
 var DATA_MARKER = '/*__COCKPIT_DATA__*/';
+var BRAND_MARKER = '/*__BRAND_CSS__*/';
+var TEMPLATE_PATH = path.join(ROOT, 'commander', 'cowork-plugin', 'lib', 'cockpit-template.html');
 
 function walkFilesNamed(rootDir, filename) {
   var matches = [];
@@ -64,6 +66,16 @@ function writeJsonl(home, relativePath, entries) {
 
 function ago(days, minutes) {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000 - (minutes || 0) * 60 * 1000).toISOString();
+}
+
+function writeJson(home, relativePath, data) {
+  var filePath = path.join(home, '.claude', 'commander', relativePath);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, JSON.stringify(data));
+}
+
+function countOccurrences(haystack, needle) {
+  return haystack.split(needle).length - 1;
 }
 
 var generated = cp.spawnSync(process.execPath, [GENERATOR_PATH], {
@@ -120,14 +132,20 @@ test('every idea command resolves to a displayed skill', function() {
   });
 });
 
-test('prompt patterns contain the exact six keys and valid regex sources', function() {
-  var expectedKeys = ['artifact', 'format', 'outcome', 'reference', 'selfcheck', 'target'];
+test('prompt patterns are the multi-select enhance strategies with valid regex + a directive each', function() {
+  var expectedKeys = [
+    'artifact', 'constraints', 'context', 'examples', 'format', 'outcome',
+    'planfirst', 'reference', 'role', 'selfcheck', 'target',
+  ];
   var actualKeys = payload.patterns.map(function(pattern) { return pattern.key; }).sort();
 
-  assert.strictEqual(payload.patterns.length, 6);
+  assert.strictEqual(payload.patterns.length, 11);
   assert.deepStrictEqual(actualKeys, expectedKeys);
   payload.patterns.forEach(function(pattern) {
     assert.doesNotThrow(function() { return new RegExp(pattern.test, 'i'); }, pattern.key);
+    // Each strategy must carry a non-empty directive — that's what GO appends.
+    assert.strictEqual(typeof pattern.directive, 'string', pattern.key + ' directive type');
+    assert.ok(pattern.directive.trim().length > 0, pattern.key + ' directive non-empty');
   });
 });
 
@@ -243,4 +261,210 @@ test('analytics is an empty object when local activity sources are empty', funct
   var result = runGenerator(home);
   assert.strictEqual(result.status, 0, result.stderr);
   assert.deepStrictEqual(parsePayload(result.stdout).analytics, {});
+});
+
+// ---------------------------------------------------------------------------
+// Linear payload states — readLinearBoard() bakes ~/.claude/commander/
+// linear-board.json into window.__COCKPIT__.linear at build time. It is a
+// PRIVATE opt-in surface, so absent/empty/malformed/malicious input must all
+// resolve to a well-formed, safely-encoded payload.
+// ---------------------------------------------------------------------------
+
+test('linear payload is {connected:false} when linear-board.json is absent', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-linear-absent-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var linear = parsePayload(result.stdout).linear;
+  assert.deepStrictEqual(linear, { connected: false });
+});
+
+test('linear payload is well-formed and not connected for an empty tickets array', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-linear-empty-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  writeJson(home, 'linear-board.json', { tickets: [] });
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var linear = parsePayload(result.stdout).linear;
+  assert.deepStrictEqual(linear, { connected: false, board: null, tickets: [] });
+});
+
+test('linear payload drops malformed ticket entries and keeps + defaults valid ones', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-linear-malformed-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  writeJson(home, 'linear-board.json', {
+    board: 'CC Team',
+    tickets: [
+      'not-an-object',
+      42,
+      null,
+      ['array', 'not', 'object'],
+      { title: 'missing id field' },
+      { id: '', title: 'empty id is falsy, also dropped' },
+      { id: 'CC-1', title: 'Valid ticket', state: 'In Progress', stateKind: 'in_progress', project: 'Cockpit', updated: '2026-07-18', stale: true },
+      { id: 'CC-2', title: 'Partial fields default to empty strings' },
+    ],
+  });
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var linear = parsePayload(result.stdout).linear;
+  assert.strictEqual(linear.connected, true);
+  assert.strictEqual(linear.board, 'CC Team');
+  assert.strictEqual(linear.tickets.length, 2);
+  assert.deepStrictEqual(linear.tickets[0], {
+    id: 'CC-1', title: 'Valid ticket', state: 'In Progress', stateKind: 'in_progress',
+    project: 'Cockpit', updated: '2026-07-18', stale: true,
+  });
+  assert.deepStrictEqual(linear.tickets[1], {
+    id: 'CC-2', title: 'Partial fields default to empty strings', state: '', stateKind: '',
+    project: '', updated: '', stale: false,
+  });
+});
+
+test('linear payload safely encodes malicious ticket field values', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-linear-xss-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  var payloadStr = '</script><img src=x onerror=alert(1)>';
+  writeJson(home, 'linear-board.json', {
+    board: 'CC',
+    tickets: [{ id: 'MAL-1', title: payloadStr, state: payloadStr, stateKind: 'in_progress' }],
+  });
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+
+  // The raw, unescaped attack string must never appear in the emitted
+  // document — it would prematurely close the <script> block that carries
+  // window.__COCKPIT__ and let the <img onerror> execute as live markup.
+  assert.ok(!result.stdout.includes('</script><img src=x onerror=alert(1)>'),
+    'raw unescaped </script> breakout must not appear in the built output');
+  // build-cockpit.mjs escapes every "</script" occurrence in the JSON blob to
+  // "<\/script" before embedding it, which is what keeps the payload inert.
+  assert.ok(result.stdout.includes('<\\/script><img src=x onerror=alert(1)>'),
+    'the malicious string should survive JSON-encoded with </script escaped');
+
+  // And it must still round-trip losslessly for legitimate consumers: once a
+  // browser JSON.parses the payload, the ticket text is exactly what was fed in.
+  var linear = parsePayload(result.stdout).linear;
+  var ticket = linear.tickets.find(function(t) { return t.id === 'MAL-1'; });
+  assert.strictEqual(ticket.title, payloadStr);
+  assert.strictEqual(ticket.state, payloadStr);
+});
+
+// ---------------------------------------------------------------------------
+// Template markers — both are replaced exactly once; the template itself
+// must define each exactly once so the build's own "exactly one marker"
+// guard (build-cockpit.mjs) has something unambiguous to replace.
+// ---------------------------------------------------------------------------
+
+test('template defines each marker exactly once and the build removes both', function() {
+  var template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
+  assert.strictEqual(countOccurrences(template, BRAND_MARKER), 1, 'template should contain exactly one BRAND_CSS marker');
+  assert.strictEqual(countOccurrences(template, DATA_MARKER), 1, 'template should contain exactly one COCKPIT_DATA marker');
+  assert.ok(!output.includes(BRAND_MARKER), 'built output must not contain the literal brand-css marker');
+  assert.ok(!output.includes(DATA_MARKER), 'built output must not contain the literal cockpit-data marker');
+});
+
+// ---------------------------------------------------------------------------
+// Brand tokens — the built CSS must carry the commanderplugin.com coral
+// palette from commander/cowork-plugin/lib/brand-css.js, not a placeholder.
+// ---------------------------------------------------------------------------
+
+test('built output carries the coral brand palette tokens', function() {
+  assert.match(output, /--primary:\s*#FF6B47/, 'expected --primary to be set to the brand coral');
+  assert.match(output, /--bg:\s*#0F0F0F/, 'expected --bg to be set to the brand near-black');
+  assert.ok(output.includes('#FF6B47'), 'expected the literal coral hex to appear in the built CSS');
+});
+
+// ---------------------------------------------------------------------------
+// Self-contained — assertSelfContained() enforces some of this at build time
+// (external src/href, <script src>, marker leftovers); this test also covers
+// @import and protocol-relative refs, which the build-time guard does not.
+// ---------------------------------------------------------------------------
+
+test('built output has no external or protocol-relative asset references', function() {
+  assert.doesNotMatch(output, /\b(?:src|href)\s*=\s*["']?\s*https?:\/\//i);
+  assert.doesNotMatch(output, /url\(\s*["']?\s*https?:\/\//i);
+  assert.doesNotMatch(output, /\b(?:src|href)\s*=\s*["']?\/\//);
+  assert.doesNotMatch(output, /url\(\s*["']?\/\//);
+
+  // @import is scoped to the real <style> block rather than the whole
+  // document: skill/agent descriptions in the __COCKPIT__ data legitimately
+  // mention "@import" as documentation prose (e.g. the tailwind-v4 skill
+  // describing CSS-based config), which is not a live external CSS import.
+  var styleMatch = /<style>([\s\S]*?)<\/style>/.exec(output);
+  assert.ok(styleMatch, 'expected a <style> block in the built output');
+  assert.doesNotMatch(styleMatch[1], /@import/i);
+});
+
+// ---------------------------------------------------------------------------
+// Telemetry honesty — hasTokenData() governs whether a run's tokens count
+// toward the Tokens/Est-cost tiles and a topAgents entry. A bare 0 (or an
+// explicit tokensAvailable:false) must never render as a measured-looking
+// '0' / '$0.00' — only real, positive token data may.
+// ---------------------------------------------------------------------------
+
+test('telemetry tiles and topAgents render honest "unavailable" markers for zero-token-only runs', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-telemetry-zero-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  writeJsonl(home, 'agent-runs.jsonl', [
+    { ts: ago(0), agent: 'ghost', durationMs: 500, inputTokens: 0, outputTokens: 0 },
+    { ts: ago(0, 5), agent: 'ghost', durationMs: 500, tokensAvailable: false },
+  ]);
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var analytics = parsePayload(result.stdout).analytics;
+  var tiles = Object.fromEntries(analytics.tiles.map(function(tile) { return [tile.label, tile.value]; }));
+  var ghost = analytics.topAgents.find(function(agent) { return agent.name === 'ghost'; });
+
+  assert.strictEqual(tiles['Tokens (7d)'], '— unavailable');
+  assert.strictEqual(tiles['Est cost (7d)'], '—');
+  assert.strictEqual(ghost.runs, 2);
+  assert.strictEqual(ghost.tokens, null);
+  assert.strictEqual(ghost.costUsd, null);
+});
+
+test('telemetry tiles and topAgents render real numbers once a run carries positive token data', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-telemetry-real-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  writeJsonl(home, 'agent-runs.jsonl', [
+    { ts: ago(0), agent: 'ghost', durationMs: 500, inputTokens: 0, outputTokens: 0 },
+    { ts: ago(0, 5), agent: 'ghost', durationMs: 1500, inputTokens: 1000, outputTokens: 200 },
+  ]);
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var analytics = parsePayload(result.stdout).analytics;
+  var tiles = Object.fromEntries(analytics.tiles.map(function(tile) { return [tile.label, tile.value]; }));
+  var ghost = analytics.topAgents.find(function(agent) { return agent.name === 'ghost'; });
+
+  assert.strictEqual(tiles['Tokens (7d)'], '1k');
+  assert.strictEqual(tiles['Est cost (7d)'], '$0.01 est');
+  assert.strictEqual(ghost.runs, 2);
+  assert.strictEqual(ghost.tokens, 1200);
+  assert.ok(ghost.tokens > 0);
+  assert.strictEqual(ghost.costUsd, 0.006);
+});
+
+test('cache_read tokens are priced into cost but not folded into the token headline', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-cacheread-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  // A cache-heavy run: modest input/output, large cache_read. Cost must reflect
+  // the cache reads (not $0.00), while the token headline stays input+output.
+  writeJsonl(home, 'agent-runs.jsonl', [
+    { ts: ago(0), agent: 'cacher', durationMs: 1000, inputTokens: 100, outputTokens: 50, cacheReadTokens: 100000, tokensAvailable: true },
+  ]);
+
+  var analytics = parsePayload(runGenerator(home).stdout).analytics;
+  var cacher = analytics.topAgents.find(function(agent) { return agent.name === 'cacher'; });
+
+  // tokens headline = 100 + 50 (cache_read excluded)
+  assert.strictEqual(cacher.tokens, 150);
+  // cost = (100*3 + 100000*0.3 + 50*15) / 1e6 = (300 + 30000 + 750)/1e6 = 0.03105
+  assert.strictEqual(cacher.costUsd, 0.0311);
+  assert.ok(cacher.costUsd > 0, 'cache-heavy run must not price to $0');
 });

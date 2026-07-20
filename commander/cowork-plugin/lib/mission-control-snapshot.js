@@ -180,11 +180,13 @@ function safeTokens(value) {
   return Number.isFinite(value) && value >= 0 ? value : 0;
 }
 
-function estimatedCostUsd(inputTokens, outputTokens) {
+function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
   const input = safeTokens(inputTokens);
   const output = safeTokens(outputTokens);
-  if (input === 0 && output === 0) return null;
-  return Number(((input * 3 + output * 15) / 1_000_000).toFixed(4));
+  const cacheRead = safeTokens(cacheReadTokens);
+  if (input === 0 && output === 0 && cacheRead === 0) return null;
+  // Sonnet-rate est ($/M): new input 3, cache-read 0.3 (≈0.1×), output 15.
+  return Number(((input * 3 + cacheRead * 0.3 + output * 15) / 1_000_000).toFixed(4));
 }
 
 function joinAgents(starts, stops, nowMs) {
@@ -230,6 +232,7 @@ function joinAgents(starts, stops, nowMs) {
         durationMs: Number.isFinite(stop.durationMs) ? stop.durationMs : null,
         inputTokens: safeTokens(stop.inputTokens),
         outputTokens: safeTokens(stop.outputTokens),
+        cacheReadTokens: safeTokens(stop.cacheReadTokens),
         status: stopStatus(stop.status),
         refMs: best.candidate.ms ?? startMs ?? 0,
       });
@@ -271,6 +274,7 @@ function joinAgents(starts, stops, nowMs) {
       durationMs,
       inputTokens: safeTokens(stop.inputTokens),
       outputTokens: safeTokens(stop.outputTokens),
+      cacheReadTokens: safeTokens(stop.cacheReadTokens),
       status: stopStatus(stop.status),
       refMs: orphan.ms ?? 0,
     });
@@ -515,7 +519,7 @@ function decorateAgents(agents, stops, eventIndex) {
           ? taskMatch.entry.subject
           : null,
       tasksCompleted: completedByKey.get(key) || 0,
-      estCostUsd: estimatedCostUsd(agent.inputTokens, agent.outputTokens),
+      estCostUsd: estimatedCostUsd(agent.inputTokens, agent.outputTokens, agent.cacheReadTokens),
     };
   });
 }

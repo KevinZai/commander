@@ -60,13 +60,22 @@ async function main() {
   }
 
   try {
-    const title = sanitizeText(input.title);
+    // TaskCreated nests the human fields under `task_input` (title/description);
+    // `status` isn't assigned yet at creation (only TaskCompleted carries it),
+    // so a null status there is honest, not a bug. Fall back to the flat keys
+    // for TaskCompleted / other shapes.
+    const taskInput =
+      input.task_input && typeof input.task_input === 'object' ? input.task_input : {};
+    const title = sanitizeText(input.title) || sanitizeText(taskInput.title);
     const entry = {
       ts: new Date().toISOString(),
-      task_id: input.task_id || input.id || null,
+      task_id: input.task_id || input.id || taskInput.task_id || null,
       status: input.status || null,
       title,
-      subject: sanitizeText(input.subject) || title,
+      subject:
+        sanitizeText(input.subject) ||
+        sanitizeText(taskInput.description) ||
+        title,
       session_id: input.session_id || process.env.CLAUDE_SESSION_ID || null,
     };
     fs.mkdirSync(LOG_DIR, { recursive: true });
