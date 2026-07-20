@@ -161,17 +161,48 @@ describe('agent-run-logger.js — basic logging', () => {
     assert.equal(entry.status, 'max_turns');
   });
 
-  it('handles missing env vars with defaults', () => {
+  it('records honest null tokens (not a fabricated 0) when no data is anywhere', () => {
     runHook({});
     const lines = readLogLines();
     assert.equal(lines.length, 1);
     const entry = lines[0];
     assert.equal(entry.agent, 'unknown');
     assert.equal(entry.sessionId, 'unknown');
-    assert.equal(entry.inputTokens, 0);
-    assert.equal(entry.outputTokens, 0);
-    assert.equal(entry.durationMs, 0);
+    // Honesty contract: no payload / transcript / env token data → null, so the
+    // UI shows "— · telemetry unavailable" instead of a measured-looking zero.
+    assert.equal(entry.inputTokens, null);
+    assert.equal(entry.outputTokens, null);
+    assert.equal(entry.durationMs, null);
+    assert.equal(entry.tokensAvailable, false);
     assert.equal(entry.status, 'completed');
+  });
+
+  it('recovers real tokens from transcript_path when the payload omits them', () => {
+    const tPath = path.join(TMP_HOME, 'agent-transcript.jsonl');
+    fs.mkdirSync(path.dirname(tPath), { recursive: true });
+    const lines = [
+      {
+        type: 'assistant',
+        timestamp: '2026-07-20T00:00:00.000Z',
+        message: { usage: { input_tokens: 40, cache_creation_input_tokens: 60, output_tokens: 30 } },
+      },
+      {
+        type: 'assistant',
+        timestamp: '2026-07-20T00:00:02.000Z',
+        message: { usage: { input_tokens: 10, cache_read_input_tokens: 5000, output_tokens: 70 } },
+      },
+    ]
+      .map((o) => JSON.stringify(o))
+      .join('\n');
+    fs.writeFileSync(tPath, lines);
+
+    runHook({}, { agent_type: 'commander:reviewer', transcript_path: tPath });
+    const entry = readLogLines().at(-1);
+    assert.equal(entry.agent, 'commander:reviewer');
+    assert.equal(entry.inputTokens, 110); // (40+60) + (10+0)
+    assert.equal(entry.outputTokens, 100); // 30 + 70
+    assert.equal(entry.durationMs, 2000);
+    assert.equal(entry.tokensAvailable, true);
   });
 
   it('appends multiple runs to the same file', () => {

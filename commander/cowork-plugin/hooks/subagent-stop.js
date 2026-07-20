@@ -6,15 +6,20 @@
  * Tracks subagent cost aggregation per session to
  * ~/.claude/commander/analytics/subagent-costs.jsonl
  *
- * Reads the hook STDIN payload first and only falls back to env vars: the
- * CLAUDE_* vars this used to rely on are not populated in practice, which is
- * why historical rows are almost all unknown/0.
+ * Agent name comes from `agent_type` (the field the SubagentStop payload
+ * actually delivers, alongside `agent_id` and `transcript_path`). Token usage
+ * and duration are NOT on the payload — they are recovered from the transcript
+ * the payload points to (readTranscriptUsage). When neither the payload nor the
+ * transcript yields tokens, the numbers stay null and `tokensAvailable:false`
+ * marks the row honestly instead of writing a fabricated 0 (this is why
+ * historical rows were unknown/0 — the data was never in the payload).
  *
  * Core free forever — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readTranscriptUsage } from './lib/transcript-usage.mjs';
 
 const CCC_DIR = join(
   process.env.HOME || process.env.USERPROFILE || '/tmp',
@@ -51,7 +56,9 @@ function firstString(...candidates) {
   return null;
 }
 
-function firstFiniteNumber(...candidates) {
+// Returns null (not 0) when no candidate is a finite number, so an absent
+// token count stays distinguishable from a real zero.
+function firstFiniteNullable(...candidates) {
   for (const value of candidates) {
     const num =
       typeof value === 'number'
@@ -61,7 +68,7 @@ function firstFiniteNumber(...candidates) {
           : NaN;
     if (Number.isFinite(num)) return num;
   }
-  return 0;
+  return null;
 }
 
 async function main() {
@@ -77,6 +84,7 @@ async function main() {
       'unknown';
     const agentName =
       firstString(
+        input.agent_type,
         input.agent_name,
         input.agentName,
         input.subagent_type,
@@ -84,22 +92,55 @@ async function main() {
         process.env.CLAUDE_AGENT_NAME,
         process.env.CLAUDE_SUBAGENT_NAME
       ) || 'unknown';
-    const inputTokens = firstFiniteNumber(
+
+    // Payload rarely carries tokens (SubagentStop schema omits usage). Probe it
+    // anyway, then fall back to the transcript the payload points to.
+    let inputTokens = firstFiniteNullable(
       input.input_tokens,
       input.inputTokens,
       usage.input_tokens,
-      usage.inputTokens,
-      process.env.CLAUDE_INPUT_TOKENS,
-      process.env.CLAUDE_TOKENS_INPUT
+      usage.inputTokens
     );
-    const outputTokens = firstFiniteNumber(
+    let outputTokens = firstFiniteNullable(
       input.output_tokens,
       input.outputTokens,
       usage.output_tokens,
-      usage.outputTokens,
-      process.env.CLAUDE_OUTPUT_TOKENS,
-      process.env.CLAUDE_TOKENS_OUTPUT
+      usage.outputTokens
     );
+    let durationMs = firstFiniteNullable(input.duration_ms, input.durationMs);
+    let tokensAvailable = inputTokens !== null || outputTokens !== null;
+
+    if (!tokensAvailable) {
+      const transcriptPath = firstString(
+        input.transcript_path,
+        input.transcriptPath
+      );
+      const recovered = await readTranscriptUsage(transcriptPath);
+      if (recovered.available) {
+        inputTokens = recovered.inputTokens;
+        outputTokens = recovered.outputTokens;
+        if (durationMs === null) durationMs = recovered.durationMs;
+        tokensAvailable = true;
+      }
+    }
+
+    // Last-resort env fallback (CLAUDE_* token vars are not populated in
+    // practice, but keep the legacy path for callers that do set them).
+    if (!tokensAvailable) {
+      const envIn = firstFiniteNullable(
+        process.env.CLAUDE_INPUT_TOKENS,
+        process.env.CLAUDE_TOKENS_INPUT
+      );
+      const envOut = firstFiniteNullable(
+        process.env.CLAUDE_OUTPUT_TOKENS,
+        process.env.CLAUDE_TOKENS_OUTPUT
+      );
+      if (envIn !== null || envOut !== null) {
+        inputTokens = envIn;
+        outputTokens = envOut;
+        tokensAvailable = true;
+      }
+    }
 
     const entry = {
       timestamp: new Date().toISOString(),
@@ -107,6 +148,8 @@ async function main() {
       agentName,
       inputTokens,
       outputTokens,
+      durationMs,
+      tokensAvailable,
     };
     track('hook_fired', { hook: 'SubagentStop', handler: 'subagent-stop' });
     const analyticsDir = join(CCC_DIR, 'analytics');

@@ -122,13 +122,57 @@ describe('subagent-stop.js — stdin-primary cost capture', () => {
     assert.equal(r.rows[0].outputTokens, 8);
   });
 
-  it('falls back to unknown/0 and never blocks on malformed stdin', () => {
+  it('records unknown + honest null tokens (not a fabricated 0) on malformed stdin', () => {
     const r = runHook('not json at all');
 
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed.continue, true);
     assert.equal(r.rows[0].sessionId, 'unknown');
     assert.equal(r.rows[0].agentName, 'unknown');
-    assert.equal(r.rows[0].inputTokens, 0);
+    // Honesty contract: no token data anywhere → null + tokensAvailable:false,
+    // never a fabricated 0 that a UI would render as a measured zero.
+    assert.equal(r.rows[0].inputTokens, null);
+    assert.equal(r.rows[0].outputTokens, null);
+    assert.equal(r.rows[0].tokensAvailable, false);
+  });
+
+  it('resolves agentName from agent_type (the field SubagentStop delivers)', () => {
+    const r = runHook({ session_id: 's', agent_type: 'commander:reviewer' });
+    assert.equal(r.rows[0].agentName, 'commander:reviewer');
+  });
+
+  it('recovers real tokens + duration from transcript_path when payload omits them', () => {
+    // A tiny JSONL transcript with two assistant turns carrying usage.
+    const tPath = path.join(TMP_HOME, 'transcript.jsonl');
+    const lines = [
+      { type: 'user', timestamp: '2026-07-20T00:00:00.000Z', message: { role: 'user' } },
+      {
+        type: 'assistant',
+        timestamp: '2026-07-20T00:00:01.000Z',
+        message: {
+          role: 'assistant',
+          usage: { input_tokens: 100, cache_creation_input_tokens: 900, output_tokens: 50 },
+        },
+      },
+      {
+        type: 'assistant',
+        timestamp: '2026-07-20T00:00:05.000Z',
+        message: {
+          role: 'assistant',
+          usage: { input_tokens: 5, cache_read_input_tokens: 1000, output_tokens: 200 },
+        },
+      },
+    ]
+      .map((o) => JSON.stringify(o))
+      .join('\n');
+    fs.writeFileSync(tPath, lines);
+
+    const r = runHook({ session_id: 's', agent_type: 'x', transcript_path: tPath });
+    // input = (100+900) + (5+0)  [cache_read excluded] = 1005
+    // output = 50 + 200 = 250 ; duration = 5000ms
+    assert.equal(r.rows[0].inputTokens, 1005);
+    assert.equal(r.rows[0].outputTokens, 250);
+    assert.equal(r.rows[0].durationMs, 5000);
+    assert.equal(r.rows[0].tokensAvailable, true);
   });
 });

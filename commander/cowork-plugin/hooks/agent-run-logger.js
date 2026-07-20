@@ -27,6 +27,7 @@ import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir, stat, rename } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { readTranscriptUsage } from './lib/transcript-usage.mjs';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
 const CCC_DIR = join(HOME, '.claude', 'commander');
@@ -143,44 +144,70 @@ async function main() {
       process.env.CLAUDE_SUBAGENT_NAME ||
       'unknown';
 
-    const inputTokens =
-      firstFiniteNumber(
-        input.input_tokens,
-        input.inputTokens,
-        usage.input_tokens,
-        usage.prompt_tokens,
-        sub.input_tokens
-      ) ??
-      parseInt(
-        process.env.CLAUDE_INPUT_TOKENS || process.env.CLAUDE_TOKENS_INPUT || '0',
-        10
-      );
+    // SubagentStop delivers no usage/duration on the payload — probe it anyway,
+    // then recover from the transcript it points to. Null (not 0) when neither
+    // yields data, so consumers render an honest "—" rather than a fake zero.
+    let inputTokens = firstFiniteNumber(
+      input.input_tokens,
+      input.inputTokens,
+      usage.input_tokens,
+      usage.prompt_tokens,
+      sub.input_tokens
+    );
+    let outputTokens = firstFiniteNumber(
+      input.output_tokens,
+      input.outputTokens,
+      usage.output_tokens,
+      usage.completion_tokens,
+      sub.output_tokens
+    );
+    let durationMs = firstFiniteNumber(
+      input.duration_ms,
+      input.durationMs,
+      input.elapsed_ms,
+      sub.duration_ms,
+      usage.duration_ms
+    );
+    let tokensAvailable = inputTokens !== null || outputTokens !== null;
 
-    const outputTokens =
-      firstFiniteNumber(
-        input.output_tokens,
-        input.outputTokens,
-        usage.output_tokens,
-        usage.completion_tokens,
-        sub.output_tokens
-      ) ??
-      parseInt(
-        process.env.CLAUDE_OUTPUT_TOKENS || process.env.CLAUDE_TOKENS_OUTPUT || '0',
-        10
+    if (!tokensAvailable) {
+      const transcriptPath = firstString(
+        input.transcript_path,
+        input.transcriptPath,
+        sub.transcript_path
       );
+      const recovered = await readTranscriptUsage(transcriptPath);
+      if (recovered.available) {
+        inputTokens = recovered.inputTokens;
+        outputTokens = recovered.outputTokens;
+        if (durationMs === null) durationMs = recovered.durationMs;
+        tokensAvailable = true;
+      }
+    }
 
-    const durationMs =
-      firstFiniteNumber(
-        input.duration_ms,
-        input.durationMs,
-        input.elapsed_ms,
-        sub.duration_ms,
-        usage.duration_ms
-      ) ??
-      parseInt(
-        process.env.CLAUDE_DURATION_MS || process.env.CLAUDE_ELAPSED_MS || '0',
-        10
+    // Last-resort env fallback (CLAUDE_* token vars are not populated in
+    // practice, but keep the legacy path for callers that do set them).
+    if (!tokensAvailable) {
+      const envIn = firstFiniteNumber(
+        process.env.CLAUDE_INPUT_TOKENS,
+        process.env.CLAUDE_TOKENS_INPUT
       );
+      const envOut = firstFiniteNumber(
+        process.env.CLAUDE_OUTPUT_TOKENS,
+        process.env.CLAUDE_TOKENS_OUTPUT
+      );
+      if (envIn !== null || envOut !== null) {
+        inputTokens = envIn;
+        outputTokens = envOut;
+        tokensAvailable = true;
+      }
+    }
+    if (durationMs === null) {
+      durationMs = firstFiniteNumber(
+        process.env.CLAUDE_DURATION_MS,
+        process.env.CLAUDE_ELAPSED_MS
+      );
+    }
 
     const status =
       firstString(input.status, input.stop_reason, input.stopReason, sub.status) ||
@@ -196,6 +223,7 @@ async function main() {
       inputTokens,
       outputTokens,
       status,
+      tokensAvailable,
     };
 
     await mkdir(CCC_DIR, { recursive: true });
