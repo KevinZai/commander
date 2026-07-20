@@ -149,6 +149,32 @@ test('prompt patterns are the multi-select enhance strategies with valid regex +
   });
 });
 
+test('tools payload — Commander surfaces, all-MIT companions, and artifact recipes', function() {
+  var t = payload.tools;
+  assert.ok(t && typeof t === 'object', 'tools payload present');
+  assert.ok(Array.isArray(t.surfaces) && t.surfaces.length >= 3, 'surfaces present');
+  assert.ok(Array.isArray(t.companions) && t.companions.length >= 3, 'companions present');
+  assert.ok(Array.isArray(t.recipes) && t.recipes.length >= 3, 'recipes present');
+  // Kevin's requirement: companion apps are MIT-only.
+  t.companions.forEach(function(c) {
+    assert.strictEqual(c.license, 'MIT', c.name + ' must be MIT');
+    assert.match(c.url, /^https:\/\/github\.com\//, c.name + ' url');
+    assert.ok(c.desc && c.desc.length > 10, c.name + ' desc');
+  });
+  t.surfaces.forEach(function(s) { assert.match(s.run, /^\/ccc-/, s.name + ' runs a /ccc- command'); });
+  t.recipes.forEach(function(r) { assert.ok(r.prompt && r.prompt.length > 40, r.name + ' has a prompt'); });
+});
+
+test('tools tab is wired and companion links stay self-contained (data-copy, not href)', function() {
+  assert.ok(output.includes('data-tab="tools"'), 'tools nav button');
+  assert.ok(output.includes('id="tab-tools"'), 'tools section');
+  // Companion URLs live in the embedded JSON payload and become a clipboard
+  // data-copy at runtime — they must NEVER be baked into an external href/src
+  // (assertSelfContained enforces this at build; assert it here too).
+  assert.ok(output.includes('github.com/nimbalyst/nimbalyst'), 'companion url present in payload');
+  assert.doesNotMatch(output, /\b(?:src|href)\s*=\s*["']?https?:\/\//i, 'no external src/href');
+});
+
 test('template marker is replaced and the document has one title', function() {
   assert.ok(!output.includes(DATA_MARKER));
   assert.strictEqual((output.match(/<title(?:\s|>)/gi) || []).length, 1);

@@ -323,6 +323,7 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
     <button role="tab" aria-selected="false" data-tab="linear">▸ linear</button>
     <button role="tab" aria-selected="false" data-tab="analytics">▸ analytics</button>
     <button role="tab" aria-selected="false" data-tab="agents">▸ agents</button>
+    <button role="tab" aria-selected="false" data-tab="tools">▸ tools</button>
   </nav>
 
   <section id="tab-browse">
@@ -408,6 +409,11 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
     </div>
   </section>
 
+  <section id="tab-tools" hidden>
+    <div class="eyebrow" style="margin:2px 0 14px">Everything that pairs with Commander — open a surface, install a companion app, or generate a dashboard</div>
+    <div id="tools-body"></div>
+  </section>
+
   <footer id="foot"></footer>
 </div>
 
@@ -431,7 +437,7 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
   $('foot').textContent = 'CC Commander v' + D.meta.version + ' · generated ' + D.meta.generatedAt + ' · core free forever · everything runs in this page, nothing leaves it';
 
   // ---------- tabs (persisted via hash so auto-refresh keeps your place) ----------
-  var TABS = ['browse', 'ideas', 'enhance', 'linear', 'analytics', 'agents'];
+  var TABS = ['browse', 'ideas', 'enhance', 'linear', 'analytics', 'agents', 'tools'];
   var tabs = document.querySelectorAll('nav [role="tab"]');
   function activateTab(name) {
     if (TABS.indexOf(name) === -1) name = 'browse';
@@ -619,6 +625,39 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
     if (e.key === '/' && document.activeElement !== $('q') && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); $('q').focus(); }
   });
   renderDomainFilter(); renderViewToggle(); render();
+
+  // ---------- tools (ecosystem launcher) ----------
+  (function tools() {
+    var T = D.tools || {};
+    function card(inner) { return '<div class="card">' + inner + '</div>'; }
+    function surfaceCard(s) {
+      return card('<h3>' + esc(s.icon) + ' ' + esc(s.name) + '</h3>'
+        + '<div class="desc">' + esc(s.desc) + '</div>'
+        + '<div class="row"><span class="cmd">' + esc(s.run) + '</span><button class="copy" data-copy="' + esc(s.run) + '">▸ open</button></div>');
+    }
+    function companionCard(c) {
+      var host = String(c.url || '').replace(/^https?:\/\//, '');
+      return card('<h3>' + esc(c.icon) + ' ' + esc(c.name) + '</h3>'
+        + '<div class="badges"><span class="badge tan">' + esc(c.license) + '</span><span class="badge">' + esc(c.stars) + '★</span></div>'
+        + '<div class="desc">' + esc(c.desc) + '</div>'
+        + '<div class="row"><span class="cmd">' + esc(host) + '</span><button class="copy" data-copy="' + esc(c.url) + '">📋 copy link</button></div>');
+    }
+    function recipeCard(r) {
+      return card('<h3>' + esc(r.icon) + ' ' + esc(r.name) + '</h3>'
+        + '<div class="desc">' + esc(r.desc) + '</div>'
+        + '<div class="row"><button class="copy" data-copy="' + esc(r.prompt) + '">📋 copy prompt → new Artifact</button></div>');
+    }
+    function group(title, sub, cards) {
+      if (!cards.length) return '';
+      return '<div class="eyebrow group">' + esc(title)
+        + ' <span class="dim" style="font-family:var(--font-sans);text-transform:none;letter-spacing:0;margin-left:8px">' + esc(sub) + '</span></div>'
+        + '<div class="grid">' + cards.join('') + '</div>';
+    }
+    $('tools-body').innerHTML =
+      group('Commander surfaces', 'open these in Claude Code', (T.surfaces || []).map(surfaceCard))
+      + group('Companion apps', 'the best MIT-licensed tools — install alongside Commander', (T.companions || []).map(companionCard))
+      + group('Artifact recipes', 'copy a prompt → Claude builds the live dashboard', (T.recipes || []).map(recipeCard));
+  })();
 
   // ---------- linear ----------
   (function linear() {
