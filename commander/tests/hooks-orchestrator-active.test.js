@@ -6,9 +6,11 @@ const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
 const HOOKS_JSON = path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'hooks.json');
-const ORCHESTRATOR_COMMAND = 'node ${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js';
-const LICENSE_CHECK_COMMAND = 'node ${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js';
-const GIT_TRUTH_COMMAND = 'node ${CLAUDE_PLUGIN_ROOT}/hooks/git-truth.js';
+// Paths are quoted so a plugin root containing a space (Cowork Desktop:
+// ~/Library/Application Support/...) doesn't word-split at hook exec.
+const ORCHESTRATOR_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js"';
+const LICENSE_CHECK_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js"';
+const GIT_TRUTH_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/git-truth.js"';
 const FORMER_SESSION_START_HANDLERS = [
   'session-start.js',
   'stale-claude-md-nudge.js',

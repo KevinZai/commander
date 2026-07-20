@@ -13,7 +13,7 @@ CC Commander's plugin architecture is based on Anthropic's **Agent Skills spec**
 
 | CC Commander component | Codex status | Notes |
 |------------------------|-------------|-------|
-| `skills/*/SKILL.md` | ✅ 1:1 port | 62 skills pass through byte-for-byte from the Claude plugin tree |
+| `skills/*/SKILL.md` | ✅ 1:1 port | 80 skills pass through byte-for-byte from the Claude plugin tree |
 | `.mcp.json` MCP server configs | ✅ Compatible | The 2 bundled MCP servers, `context7` and `sequential-thinking`, pass through |
 | `hooks.json` | ✅ Supported subset | Codex artifact emits `PermissionRequest`, `PostToolUse`, `PreToolUse`, `SessionStart`, `Stop`, and `UserPromptSubmit` |
 | `agents/*.md` persona files | ✅ Translated | 22 Markdown-frontmatter agents become Codex `agents/*.toml` files |

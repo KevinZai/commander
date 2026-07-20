@@ -1,11 +1,11 @@
 ---
-title: "Upgrade to v6.8.0 Beta"
-description: "Upgrade an existing CC Commander plugin install to v6.8.0 in Claude Code Desktop, Claude Code CLI, or npm."
+title: "Upgrade to v7.2.0"
+description: "Upgrade an existing CC Commander plugin install to v7.2.0 in Claude Code Desktop, Claude Code CLI, or npm."
 ---
 
-# ⬆️ Upgrade to v6.8.0 Beta
+# ⬆️ Upgrade to v7.2.0
 
-You already have CC Commander installed? Here's how to pick up v6.8.0 with zero drama.
+You already have CC Commander installed? Here's how to pick up v7.2.0 with zero drama.
 
 ## Claude Code Desktop / CLI (plugin)
 
@@ -13,13 +13,13 @@ You already have CC Commander installed? Here's how to pick up v6.8.0 with zero 
 /plugin update commander
 ```
 
-That's the whole thing. The marketplace serves the latest version from `main` — once the v6.8.0 release lands, your next `/plugin update` pulls it.
+That's the whole thing. The marketplace serves the latest version from `main` — your next `/plugin update` pulls v7.2.0.
 
 ### Verify the upgrade
 
 ```
 /plugin list | grep commander
-# should show: commander  v6.8.0  Kevin Zicherman
+# should show: commander  v7.2.0  Kevin Zicherman
 ```
 
 Or in a fresh Claude Code session:
@@ -28,34 +28,32 @@ Or in a fresh Claude Code session:
 /ccc-settings
 ```
 
-The settings menu header reports the installed version.
+The settings menu header reports the installed version. You can also run `/ccc-doctor` — it validates the plugin manifest and reports drift against expected canonical counts.
 
 ### What changes for you
 
-| Surface | Before (v6.8.0) | After (v6.8.0) |
+| Surface | Before (v6.8.0) | Now (v7.2.0) |
 |---------|-----------------|----------------------|
-| Plugin skills | 15 free + 2 pro | 24 free + 2 pro (11 CCC domain routers now free) |
-| Agents | 10 domain specialists | 15 with persona voice system (added content-strategist, data-analyst, performance-engineer, product-manager, technical-writer) |
-| Hooks | 6 lifecycle events | 9 lifecycle events |
-| Rules shipped with plugin | none | 10 voice files + 17 personas at `rules/common/` + `rules/personas/` |
-| Commands | `/ccc-refresh` (canonical) | `/ccc-init` (canonical); `/ccc-refresh` kept as deprecated alias |
-| Publisher | "Kevin Z" | "Kevin Zicherman" (canonical) |
-| Status bar | Opus 4.6 default | Opus 4.7 default + session time remaining + cost gauge + cache hit % |
+| Plugin skills | 78 | 80 (adds `/ccc-usage` Usage & Cost deck, `/ccc-safety` Safety deck) |
+| Agents | 22 specialist personas | 22 (unchanged since v6.8.0) |
+| Hooks | 23 lifecycle events / 42 handlers | 23 lifecycle events / 42 handlers (unchanged) |
+| Bundled MCP servers | 2 credential-free + 16 opt-in | 2 credential-free + 16 opt-in (unchanged) |
+| Cockpit | Skill/agent browser, prompt enhancer | Rebuilt on the commanderplugin.com coral brand (v7.0.0), gained a Tools tab (v7.1.0), and every artifact now shares a **Commander decks** switcher (v7.2.0) |
+| Ecosystem skills | 467 | 467 (unchanged) |
 
 Your `~/.claude/commander/` state files, knowledge base, and learned-skills directory are preserved. No data migration needed.
 
 ## npm CLI
 
 ```bash
-npm i -g cc-commander@6.7.3
-# or: npm i -g cc-commander@next (if we tag the dist-tag)
-ccc --version   # should show 6.8.0
+npm i -g cc-commander@latest
+ccc --version   # should show 7.2.0
 ```
 
 Re-run the post-install verify:
 
 ```bash
-ccc --test      # should print 208/208 tests passing
+ccc --test      # runs the full test suite
 ccc --status    # shows plugin + cli + vendor + tests + integrations
 ```
 
@@ -68,7 +66,7 @@ cd ~/path/to/commander   # or wherever you cloned
 git pull origin main
 git submodule update --init --recursive   # pick up vendor updates
 npm install
-npm test                 # 208/208
+npm test
 ```
 
 Or the one-liner reinstall:
@@ -82,20 +80,23 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 If something breaks (please file an issue first):
 
 ```
-/plugin update commander --version 6.7.3
+/plugin update commander --version 7.1.0
 # or
-npm i -g cc-commander@6.7.3
+npm i -g cc-commander@7.1.0
 ```
 
 ## After the upgrade
 
-Optional but recommended: run `/ccc-init` to refresh your project `CLAUDE.md` against the new v4 template (22-emoji palette, 10 Core Principles, 4 HARD RULES). Custom sections are preserved.
+Optional but recommended: run `/ccc-tuneup` to audit your local `~/.claude` setup (versions, drift, superseded agents, hooks coverage) or `/ccc-claudemd` to refresh your project `CLAUDE.md` against current conventions. Custom sections are preserved.
 
-## Known issues in v6.8.0
+## Try the new decks
 
-- Hosted MCP endpoint at `mcp.commanderplugin.com` is not live yet — deploy pending Kevin's infrastructure provisioning. Plugin-side UX is unaffected.
-- 135 eslint warnings exist in the codebase (tech-debt, not new regressions). `--max-warnings 140` is temporarily enforced. Will be fixed in beta.2.
-- Full marketing site pivot is deferred — homepage + pricing are shipping; other pages (/beta, /dashboard, /compatibility, /faq) are stubs.
+```
+/ccc-usage    # Usage & Cost deck — burn, estimated savings, cost-by-app
+/ccc-safety   # Safety deck — blocked/auto-fixed actions, tool-failure hotspots
+```
+
+Both are new in v7.2.0 and carry the shared Commander decks switcher, so you can jump straight to the Cockpit or Mission Control from either one.
 
 ## Questions
 

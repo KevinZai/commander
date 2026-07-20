@@ -1,41 +1,53 @@
 ---
-title: "Local Dashboard"
-description: "CC Commander's localhost browser dashboard — session inspector, fleet activity, and skill usage at a glance. Added in v6.8.0 (MVP)."
+title: "Dashboards & Artifacts"
+description: "CC Commander's two dashboard surfaces: the interactive Commander Cockpit + Mission Control + Usage & Cost + Safety artifact family (in-session), and the localhost session inspector (browser, port 4690)."
 ---
 
-CC Commander ships a local browser dashboard that answers one question: **what is the system doing right now, and what has it been doing recently?**
+CC Commander answers "what is the system doing right now, and what has it been doing recently?" two ways: **self-contained artifacts published inside your Claude Code session** (the current, primary surface, current as of v7.2.0), and a **localhost browser dashboard** for raw session-file inspection outside any session.
+
+## Commander Cockpit, Mission Control & Decks (in-session artifacts)
 
 <Note>
-  **v5.1.0 status:** Dashboard MVP is shipped — a vanilla HTML/JS localhost server that lists Claude session temp files and lets you inspect their contents in the browser. No build step, no dependencies, read-only.
+  **Current as of v7.2.0.** These are self-contained HTML artifacts — no server, no build step — published via the Artifact tool from inside a Claude Code session. Every one of them carries a shared **Commander decks** switcher strip so you can jump between them.
 </Note>
 
-## What it shows (v0.1 MVP)
+<CardGroup cols={2}>
+  <Card title="Commander Cockpit" icon="gauge-high" href="/plugin/skills">
+    Opened via `/ccc-browse` → "🎛️ Open the Commander Cockpit". The whole catalog, clickable: a filterable skill/agent browser (rows/tiles toggle + live filter), an 11-strategy prompt enhancer with a GO button, agent analytics, an agent-profile manager, and the Tools tab (ecosystem launcher).
+  </Card>
+  <Card title="Mission Control" href="/plugin/skills" icon="satellite-dish">
+    Opened via [`/ccc-mission-control`](/plugin/skills). "Who's working on what?" — agent roster, task board, delegation flow, a Charts strip (cost/day, agents dispatched/day, tasks completed/week, tool failures/day), and a plain-English status option. Live dashboard binds to `127.0.0.1`; the optional snapshot artifact is opt-in and always asks before publishing.
+  </Card>
+  <Card title="Usage & Cost deck" href="/plugin/skills/ccc-usage" icon="sack-dollar">
+    [`/ccc-usage`](/plugin/skills/ccc-usage) — new in v7.2.0. Burn, estimated savings vs. an all-Opus baseline, saved/day and cost/day trends, and a cost-by-app split.
+  </Card>
+  <Card title="Safety deck" href="/plugin/skills/ccc-safety" icon="shield-halved">
+    [`/ccc-safety`](/plugin/skills/ccc-safety) — new in v7.2.0. Blocked/auto-fixed/approved action outcomes, plus redacted tool-failure hotspots (Sniffly-style).
+  </Card>
+</CardGroup>
 
-- Active session metadata (model, cost, context %, start time)
-- Recent session history from `~/.claude/commander/sessions/`
-- Fleet agent completion log from `notifications.jsonl`
-- Skill usage frequency from knowledge captures
+<Warning>
+  Publishing any of these artifacts uploads the rendered page to your private claude.ai artifact URL — private to your account, but it leaves the machine. Every deck always asks before publishing and never publishes automatically. The Safety and Usage decks redact secrets-shaped strings and label cost figures as estimates, not bills.
+</Warning>
 
-## Start the dashboard
+## Local session inspector (browser, port 4690)
+
+CC Commander also ships a separate, standalone localhost browser dashboard for raw session-file inspection — useful outside any active Claude Code session.
 
 ```bash
 ccc --dashboard
 ```
 
-Opens `http://localhost:4200` in your default browser. The server is local-only — no external network connections.
+Opens `http://localhost:4690` in your default browser. The server is local-only — no external network connections.
 
-## Architecture
+**What it shows:**
+- Active session metadata (model, cost, context %, start time)
+- Recent session history from `~/.claude/commander/sessions/`
+- Fleet agent completion log from `notifications.jsonl`
+- Skill usage frequency from knowledge captures
 
-The v0.1 dashboard is intentionally minimal:
-
-- **Server:** tiny Node.js `http` server, no framework
-- **Frontend:** vanilla HTML + CSS + JS, no build step
-- **Data:** reads `~/.claude/commander/` directory on request
-- **Auth:** localhost-only, no auth needed
-- **Dependencies:** zero (ships with Node.js)
-
-The vanilla MVP is the canonical dashboard — zero dependencies, no build step, reads real session data. A React/Vite prototype exists in `dashboard/_archive/` as a UI reference; it was retired because it only rendered demo data. The v0.2 roadmap adds real data sources (cost, agents, skills) to the vanilla server before any framework is introduced. See the [scope document](https://github.com/KevinZai/commander/blob/main/docs/dashboard-scope.md) for planned views.
+**Architecture:** tiny Node.js `http` server, no framework; vanilla HTML/CSS/JS frontend, no build step; reads `~/.claude/commander/` on request; localhost-only, no auth needed; zero dependencies (ships with Node.js). A React/Vite prototype exists in `dashboard/_archive/` as a UI reference only — it rendered demo data and was retired.
 
 ## Fleet view
 
-The dashboard's fleet view is complementary to [`/ccc-fleet-viz`](/plugin/skills/ccc-fleet-viz) — the skill renders in-session ASCII/Mermaid, the dashboard shows historical activity in the browser.
+[`/ccc-fleet-viz`](/plugin/skills/ccc-fleet-viz) is complementary to both surfaces above — it renders in-session ASCII/Mermaid fleet activity without needing either dashboard open.

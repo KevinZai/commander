@@ -50,6 +50,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { brandBaseCss } from './brand-css.js';
+import { deckStripHtml, deckStripCss } from './deck-switcher.js';
 import { aggregateDaily, aggregateWeekly, barStrip, sparkline } from './charts.js';
 import { getMetrics } from './metrics.js';
 import { readTopSkills } from './top-skills.js';
@@ -1288,10 +1289,12 @@ function buildSnapshotHtml(model, { now } = {}) {
 </section>`
     : '';
 
-  return `<title>Commander Mission Control</title>
-<style>${brandBaseCss()}${SNAPSHOT_CSS}</style>
+  return `<meta charset="utf-8">
+<title>Commander Mission Control</title>
+<style>${brandBaseCss()}${deckStripCss()}${SNAPSHOT_CSS}</style>
 ${renderTerminalChromeOpen()}
 <main class="mc">
+${deckStripHtml('mission-control', { interactive: false })}
 <header>
 <h1>🎛️ Commander Mission Control</h1>
 <p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}</p>

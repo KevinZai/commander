@@ -1,6 +1,6 @@
 {
-  "version": "7.1.0",
-  "plugin_skills": 78,
+  "version": "7.2.0",
+  "plugin_skills": 80,
   "specialist_agents": 22,
   "lifecycle_hooks": 23,
   "hook_handlers": 42,

@@ -147,7 +147,7 @@ describe('skill-runs-logger — registration', () => {
 
     assert.deepEqual(logger, {
       type: 'command',
-      command: 'node ${CLAUDE_PLUGIN_ROOT}/hooks/skill-runs-logger.js',
+      command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/skill-runs-logger.js"',
       timeout: 3000,
       async: true,
     });

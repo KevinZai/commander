@@ -139,6 +139,6 @@ Structured result returned to main session
 
 ## Offline-First
 
-The entire plugin works without any network connection. Skills, personas, and hooks are plain markdown + JavaScript files executed natively by Claude Code. The optional `.mcp.json` adds 9 external integrations (Linear, GitHub, Slack, sequential-thinking, etc.) but they are additive — the plugin is fully functional without them.
+The entire plugin works without any network connection. Skills, personas, and hooks are plain markdown + JavaScript files executed natively by Claude Code. The bundled `.mcp.json` adds 2 credential-free servers (`context7`, `sequential-thinking`); 16 more external integrations (Linear, GitHub, Slack, etc.) connect separately, opt-in via `/ccc-connect` — none of them are required, the plugin is fully functional without any of them.
 
 See [vs aider.chat](/compare/vs-aider) for a direct positioning comparison.

@@ -111,11 +111,11 @@ test('payload counts match the contract and account for plugin-first dedup', fun
   assert.strictEqual(payload.meta.pluginSkills, contract.plugin_skills);
   assert.strictEqual(payload.meta.ecosystemSkills, contract.ecosystem_skills);
   assert.strictEqual(payload.meta.agents, contract.specialist_agents);
-  assert.strictEqual(payload.meta.pluginSkills, 78);
+  assert.strictEqual(payload.meta.pluginSkills, 80);
   assert.strictEqual(payload.meta.ecosystemSkills, 467);
   assert.strictEqual(pluginShown, payload.meta.pluginSkills);
   assert.strictEqual(ecosystemShown + dedupCount, payload.meta.ecosystemSkills);
-  assert.strictEqual(payload.skills.length, 78 + 467 - dedupCount);
+  assert.strictEqual(payload.skills.length, 80 + 467 - dedupCount);
   assert.strictEqual(payload.agents.length, payload.meta.agents);
 });
 

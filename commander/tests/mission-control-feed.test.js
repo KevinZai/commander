@@ -512,7 +512,7 @@ describe('mission-control-feed — registration', () => {
       .find((h) => (h.command || '').includes('mission-control-feed.js'));
     assert.deepEqual(feedHook, {
       type: 'command',
-      command: 'node ${CLAUDE_PLUGIN_ROOT}/hooks/mission-control-feed.js',
+      command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/mission-control-feed.js"',
       timeout: 3000,
       async: true,
     });
