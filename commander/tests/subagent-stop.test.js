@@ -193,4 +193,17 @@ describe('subagent-stop.js — stdin-primary cost capture', () => {
     assert.equal(r.rows[0].inputTokens, 1020);
     assert.equal(r.rows[0].outputTokens, 57);
   });
+
+  it('prefers agent_transcript_path (the subagent) over transcript_path (the parent session)', () => {
+    // The parent transcript is huge; the subagent's own is small. Reading the
+    // parent would over-count the whole session for one subagent.
+    const parent = path.join(TMP_HOME, 'parent.jsonl');
+    const child = path.join(TMP_HOME, 'child.jsonl');
+    fs.writeFileSync(parent, JSON.stringify({ type: 'assistant', message: { id: 'p1', usage: { input_tokens: 999999, output_tokens: 88888 } } }));
+    fs.writeFileSync(child, JSON.stringify({ type: 'assistant', message: { id: 'c1', usage: { input_tokens: 42, output_tokens: 7 } } }));
+
+    const r = runHook({ session_id: 's', agent_type: 'x', transcript_path: parent, agent_transcript_path: child });
+    assert.equal(r.rows[0].inputTokens, 42);
+    assert.equal(r.rows[0].outputTokens, 7);
+  });
 });

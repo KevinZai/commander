@@ -112,7 +112,13 @@ async function main() {
     let tokensAvailable = inputTokens !== null || outputTokens !== null;
 
     if (!tokensAvailable) {
+      // Prefer the subagent's OWN transcript. SubagentStop carries
+      // `agent_transcript_path` (the subagent) alongside `transcript_path` (which
+      // can be the parent session) — reading the parent would sum the whole
+      // session's tokens for one subagent. transcript_path is the fallback.
       const transcriptPath = firstString(
+        input.agent_transcript_path,
+        input.agentTranscriptPath,
         input.transcript_path,
         input.transcriptPath
       );

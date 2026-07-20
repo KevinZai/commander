@@ -172,9 +172,17 @@ async function main() {
     let tokensAvailable = inputTokens !== null || outputTokens !== null;
 
     if (!tokensAvailable) {
+      // Prefer the subagent's OWN transcript. Per the hook docs, SubagentStop
+      // carries `agent_transcript_path` (the subagent) alongside `transcript_path`
+      // (which can be the parent session) — reading the parent would sum the whole
+      // session's tokens for one subagent. Fall back to transcript_path for callers
+      // that only set that.
       const transcriptPath = firstString(
+        input.agent_transcript_path,
+        input.agentTranscriptPath,
         input.transcript_path,
         input.transcriptPath,
+        sub.agent_transcript_path,
         sub.transcript_path
       );
       const recovered = await readTranscriptUsage(transcriptPath);
