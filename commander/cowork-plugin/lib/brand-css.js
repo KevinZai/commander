@@ -71,7 +71,9 @@ const LIGHT = Object.freeze({
   borderGlow: 'rgba(214, 74, 42, 0.18)',
   text: '#1A1A16',
   textDim: '#5A5A50',
-  textMuted: '#8A8A7E',
+  // Darkened from #8A8A7E (3.2:1 on paper — failed AA) to ~5:1 for small muted
+  // text like the footer/status line. WCAG AA for normal text needs 4.5:1.
+  textMuted: '#6B6B60',
   primary: '#D64A2A',
   primaryDim: '#B33C20',
   primaryGlow: 'rgba(214, 74, 42, 0.10)',
