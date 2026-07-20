@@ -57,6 +57,32 @@ const JOBS = Object.freeze([
   { label: '🤖 Automate a workflow', query: 'loop schedule automation' },
 ]);
 
+// Curated ecosystem for the Tools tab: Commander's own surfaces to open, the best
+// MIT-licensed companion apps to install (licenses verified via the GitHub API
+// 2026-07-20 — these are LINKS, not bundled code; per the brainstorm's "interop,
+// don't rebuild" rule), and artifact recipes you can generate on the spot. Icons
+// are category emoji, never a vendor's real logo.
+const TOOLS = Object.freeze({
+  surfaces: [
+    { icon: '🎛️', name: 'Mission Control', desc: 'Live agent dashboard — fleet, tasks, cost, roster.', run: '/ccc-mission-control' },
+    { icon: '🚀', name: 'Fleet viz', desc: 'See your parallel worktree agents at a glance.', run: '/ccc-fleet-viz' },
+    { icon: '📊', name: 'X-ray', desc: 'Project health scorecard with fix chips.', run: '/ccc-xray' },
+    { icon: '🩺', name: 'Doctor', desc: 'Health-check your Commander + Claude Code setup.', run: '/ccc-doctor' },
+  ],
+  companions: [
+    { icon: '🗂️', name: 'Nimbalyst', desc: 'Visual multi-agent workspace: session kanban, git worktrees, markdown/Excalidraw. The "overall session manager" pick.', license: 'MIT', stars: '1.3k', url: 'https://github.com/nimbalyst/nimbalyst' },
+    { icon: '📈', name: 'Claude Code Usage Monitor', desc: 'Real-time token burn, limit predictions, and cost warnings across your sessions.', license: 'MIT', stars: '8.5k', url: 'https://github.com/Maciek-roboblog/Claude-Code-Usage-Monitor' },
+    { icon: '🖥️', name: 'Claude Control', desc: 'macOS: see what every Claude is doing (working/waiting/idle) and jump to its terminal tab.', license: 'MIT', stars: '126', url: 'https://github.com/sverrirsig/claude-control' },
+    { icon: '🔎', name: 'Sniffly', desc: 'Log analytics, error breakdown, and shareable dashboards over your ~/.claude logs.', license: 'MIT', stars: '1.2k', url: 'https://github.com/chiphuyen/sniffly' },
+    { icon: '🪟', name: 'tmux Session Manager', desc: 'A tmux popup to list and jump between your project Claude sessions.', license: 'MIT', stars: '314', url: 'https://github.com/craftzdog/tmux-claude-session-manager' },
+  ],
+  recipes: [
+    { icon: '🎬', name: 'Before / After arcade', desc: 'A sales-demo artifact: stock Claude Code chaos vs Commander mission control.', prompt: 'Build a Claude Artifact "Before vs After CC Commander": left = stock Claude Code (blank prompt, no gates, no fleet); right = Mission Control with plan gates, reviewer SEVs, fleet worktrees, and model savings. CTA chips: Install commander · Book a call · Start /ccc-plan. Use a realistic (fake) SaaS example. Zero backend, no secrets.' },
+    { icon: '🗓️', name: 'Standup / status board', desc: 'A living status Artifact: Now / Next / Blocked, fed by your session.', prompt: 'Build a dark ops-dashboard Artifact "Team status" for this repo: NOW (max 3 in-progress bullets), NEXT, BLOCKED, and a fleet table (worktree | task | status). Also emit a short markdown block I can paste into Discord/standup. Zero backend, no secrets, do not dump transcripts.' },
+    { icon: '🔀', name: 'PR walkthrough', desc: 'Review the current branch as a narrative Artifact with a checklist — no terminal spam.', prompt: "Build a Claude Artifact that walks through the current branch's diff as a narrative: a per-file summary, a risk/severity list, and a review checklist with checkboxes. End with a paste-ready PR summary. Read-only, zero backend, no secrets." },
+  ],
+});
+
 // Prompt-improvement strategies for the enhance tab. Each is a multi-select
 // chip: `test` auto-detects whether it's already present (a ✓ hint), and
 // `directive` is the line GO appends when the strategy is selected. Ordered
@@ -770,6 +796,7 @@ async function buildDocument() {
     skills,
     agents,
     jobs: JOBS,
+    tools: TOOLS,
     ideas: buildIdeas(skills),
     patterns: PATTERNS,
     analytics: await buildAnalytics(),
