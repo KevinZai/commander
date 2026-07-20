@@ -10,7 +10,7 @@ const ROWS = [
   ['Spec → ship handoffs',   'manual', 'automatic', 7],
   ['Specialist coverage',    '1 agent','22 agents', 9],
   ['Lifecycle hooks',        '0',     '9 × 24 handlers', 8],
-  ['Skill library',          'ad-hoc', '78 curated', 8],
+  ['Skill library',          'ad-hoc', '80 curated', 8],
   ['Audit on commit',        '—',     'always',   7],
 ];
 

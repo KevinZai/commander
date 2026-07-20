@@ -6,6 +6,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readTopSkills } from '../commander/cowork-plugin/lib/top-skills.js';
 import { brandBaseCss } from '../commander/cowork-plugin/lib/brand-css.js';
+import { deckStripHtml, deckStripCss } from '../commander/cowork-plugin/lib/deck-switcher.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATE_PATH = path.join(ROOT, 'commander/cowork-plugin/lib/cockpit-template.html');
@@ -16,6 +17,7 @@ const AGENTS_DIR = path.join(ROOT, 'commander/cowork-plugin/agents');
 const TIERS_PATH = path.join(ECOSYSTEM_SKILLS_DIR, '_tiers.json');
 const DATA_MARKER = '/*__COCKPIT_DATA__*/';
 const BRAND_MARKER = '/*__BRAND_CSS__*/';
+const DECK_MARKER = '<!--__DECK_STRIP__-->';
 const SKIPPED_DIRS = new Set(['node_modules', '.git', 'vendor']);
 
 const DEFAULT_PERSONA = Object.freeze({ emoji: '🤖', role: 'Agent' });
@@ -808,9 +810,12 @@ async function buildDocument() {
   if (dataMarkerCount !== 1) throw new Error(`Expected exactly one Cockpit data marker; found ${dataMarkerCount}`);
   const brandMarkerCount = template.split(BRAND_MARKER).length - 1;
   if (brandMarkerCount !== 1) throw new Error(`Expected exactly one Cockpit brand-css marker; found ${brandMarkerCount}`);
+  const deckMarkerCount = template.split(DECK_MARKER).length - 1;
+  if (deckMarkerCount !== 1) throw new Error(`Expected exactly one Cockpit deck-strip marker; found ${deckMarkerCount}`);
   const json = JSON.stringify(payload).replace(/<\/script/gi, '<\\/script');
   const output = template
-    .replace(BRAND_MARKER, brandBaseCss())
+    .replace(BRAND_MARKER, brandBaseCss() + deckStripCss())
+    .replace(DECK_MARKER, deckStripHtml('cockpit', { interactive: true }))
     .replace(DATA_MARKER, `window.__COCKPIT__ = ${json};`);
   assertSelfContained(output);
   return output;

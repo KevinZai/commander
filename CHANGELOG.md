@@ -1,5 +1,28 @@
 # Changelog
 
+## [7.2.0] - 2026-07-20
+
+### Added
+- **Commander decks switcher** — a shared top strip (`lib/deck-switcher.js`) now
+  rides every Commander artifact (Cockpit, Mission Control, and the two new decks),
+  listing all of them as chips with the current one highlighted, so users can see
+  every artifact exists and jump between them. Interactive (copy-to-open) on the
+  Cockpit; static (command shown) on the no-`<script>` snapshot decks. One shared
+  module, theme-safe via brand tokens.
+- **Usage & Cost deck** (`/ccc-usage`, `lib/usage-snapshot.js`) — a self-contained
+  artifact from data CCC already logs: cumulative **savings** ("$X saved across N
+  dispatches", honestly labelled an estimate vs an all-Opus baseline), saved/day +
+  cost/day trends, and a **cost-by-app** split (Claude vs Codex).
+- **Safety deck** (`/ccc-safety`, `lib/safety-snapshot.js`) — dangerous actions
+  **blocked**, **auto-fixed**, and approved (from `permission-gate.jsonl`), plus a
+  Sniffly-style **tool-failure hotspots** breakdown (top tools + normalised, secret-
+  redacted error signatures from `tool-failures.jsonl`).
+
+### Fixed
+- Emoji mojibake in the snapshot artifacts — Mission Control, Usage, and Safety
+  fragments now declare `<meta charset="utf-8">` (the Cockpit already did), so
+  emoji render correctly when served standalone, not just inside the Artifact wrapper.
+
 ## [7.1.0] - 2026-07-20
 
 ### Added

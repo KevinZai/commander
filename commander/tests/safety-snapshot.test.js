@@ -1,0 +1,220 @@
+// Pins the Commander "Safety" deck (feat/ecosystem-tools):
+// commander/cowork-plugin/lib/safety-snapshot.js must render ONE
+// self-contained, strict-CSP-safe HTML string from a bounded, tolerant
+// read of ~/.claude/commander/analytics/permission-gate.jsonl and
+// ~/.claude/commander/tool-failures.jsonl — decision-classification
+// counts, top-failing-tool aggregation, error-signature grouping,
+// secret redaction, the shared deck strip, and an honest zero-state
+// when both logs are absent.
+
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+
+import { buildSafetyHtml, readSafetyModel } from '../cowork-plugin/lib/safety-snapshot.js';
+
+let tmpRoot;
+
+test.before(async () => {
+  tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'ccc-safety-snapshot-'));
+});
+
+test.after(async () => {
+  if (tmpRoot) await fs.rm(tmpRoot, { force: true, recursive: true });
+});
+
+const NOW = Date.parse('2026-07-20T12:00:00.000Z');
+
+function toLines(entries) {
+  return entries.map((entry) => JSON.stringify(entry)).join('\n') + '\n';
+}
+
+async function makeBase({ gate, failures } = {}) {
+  const dir = await fs.mkdtemp(path.join(tmpRoot, 'base-'));
+  if (gate) {
+    await fs.mkdir(path.join(dir, 'analytics'), { recursive: true });
+    await fs.writeFile(path.join(dir, 'analytics', 'permission-gate.jsonl'), toLines(gate));
+  }
+  if (failures) {
+    await fs.writeFile(path.join(dir, 'tool-failures.jsonl'), toLines(failures));
+  }
+  return dir;
+}
+
+const GATE_ROWS = [
+  { timestamp: '2026-07-20T05:00:00.000Z', sessionId: 's1', decision: 'approved', toolName: 'Bash' },
+  { timestamp: '2026-07-20T05:00:01.000Z', sessionId: 's1', decision: 'approved', toolName: 'Read' },
+  { timestamp: '2026-07-20T05:00:02.000Z', sessionId: 's1', decision: 'approved', toolName: 'Bash' },
+  {
+    timestamp: '2026-07-20T05:00:03.000Z',
+    sessionId: 's1',
+    decision: 'rejected-dangerous',
+    toolName: 'Bash',
+    commandSnippet: 'rm -rf /tmp',
+  },
+  {
+    timestamp: '2026-07-20T05:00:04.000Z',
+    sessionId: 's1',
+    decision: 'rejected-autofix',
+    toolName: 'Write',
+    skill: '/ccc-review',
+    phase: 'autofix',
+  },
+];
+
+const SECRET = 'sk-THISISNOTAREALKEY1234567890ABCDEF';
+
+const FAILURE_ROWS = [
+  { ts: '2026-07-19T10:00:00.000Z', tool_name: 'Bash', error: 'Exit code 143\nCommand timed out after 1m 30s' },
+  { ts: '2026-07-19T11:00:00.000Z', tool_name: 'Bash', error: 'Exit code 143\nCommand timed out after 2m 45s' },
+  {
+    ts: '2026-07-19T12:00:00.000Z',
+    tool_name: 'mcp__openclaw__web_search',
+    error: 'Blocked hostname or private/internal/special-use IP address',
+  },
+  {
+    ts: '2026-07-19T13:00:00.000Z',
+    tool_name: 'Bash',
+    error: `Auth failed using token ${SECRET}`,
+  },
+];
+
+test('readSafetyModel classifies permission-gate decisions into blocked/auto-fixed/approved', async () => {
+  const baseDir = await makeBase({ gate: GATE_ROWS });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+
+  assert.equal(model.decisions.total, 5);
+  assert.equal(model.decisions.approved, 3);
+  assert.equal(model.decisions.blocked, 1);
+  assert.equal(model.decisions.autofixed, 1);
+  assert.equal(model.decisions.otherCount, 0);
+
+  const byDecision = Object.fromEntries(model.decisions.counts.map((c) => [c.decision, c]));
+  assert.equal(byDecision.approved.count, 3);
+  assert.equal(byDecision.approved.kind, 'approved');
+  assert.equal(byDecision['rejected-dangerous'].count, 1);
+  assert.equal(byDecision['rejected-dangerous'].kind, 'blocked');
+  assert.equal(byDecision['rejected-autofix'].count, 1);
+  assert.equal(byDecision['rejected-autofix'].kind, 'autofixed');
+});
+
+test('readSafetyModel aggregates top-failing tools by count', async () => {
+  const baseDir = await makeBase({ failures: FAILURE_ROWS });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+
+  assert.equal(model.toolFailures.total, 4);
+  assert.equal(model.toolFailures.byTool[0].tool, 'Bash');
+  assert.equal(model.toolFailures.byTool[0].count, 3);
+  const webSearch = model.toolFailures.byTool.find((t) => t.tool === 'mcp__openclaw__web_search');
+  assert.equal(webSearch.count, 1);
+});
+
+test('readSafetyModel groups near-duplicate errors (same signature, different exit-timing) into one row', async () => {
+  const baseDir = await makeBase({ failures: FAILURE_ROWS });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+
+  const timeoutSignature = model.toolFailures.topErrors.find((e) => /Exit code/.test(e.signature));
+  assert.ok(timeoutSignature, 'expected a grouped Exit-code-143 signature');
+  assert.equal(timeoutSignature.count, 2);
+});
+
+test('readSafetyModel redacts secrets in both the sample and the signature — never shown raw', async () => {
+  const baseDir = await makeBase({ failures: FAILURE_ROWS });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+
+  const serialized = JSON.stringify(model);
+  assert.ok(!serialized.includes(SECRET), 'raw secret leaked into the model');
+  assert.ok(serialized.includes('[redacted]'), 'expected the redaction marker to appear');
+});
+
+test('readSafetyModel on an empty baseDir returns an honest zero-state, no crash', async () => {
+  const baseDir = await makeBase({});
+  const model = await readSafetyModel({ baseDir, now: NOW });
+
+  assert.equal(model.decisions.total, 0);
+  assert.deepEqual(model.decisions.counts, []);
+  assert.equal(model.toolFailures.total, 0);
+  assert.deepEqual(model.toolFailures.byTool, []);
+  assert.deepEqual(model.toolFailures.topErrors, []);
+});
+
+test('readSafetyModel tolerates a missing baseDir entirely (no throw)', async () => {
+  const missing = path.join(tmpRoot, 'does-not-exist-' + Math.random().toString(36).slice(2));
+  const model = await readSafetyModel({ baseDir: missing, now: NOW });
+  assert.equal(model.decisions.total, 0);
+  assert.equal(model.toolFailures.total, 0);
+});
+
+test('buildSafetyHtml is self-contained: one <title>, no <script>, no external URLs', async () => {
+  const baseDir = await makeBase({ gate: GATE_ROWS, failures: FAILURE_ROWS });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  const titleMatches = html.match(/<title>/g) || [];
+  assert.equal(titleMatches.length, 1, 'expected exactly one <title>');
+  assert.ok(!/<script/i.test(html), 'artifact must not contain <script>');
+  assert.ok(!/https?:\/\//i.test(html), 'artifact must not reference an external URL');
+  assert.ok(!/\bsrc=["']/i.test(html), 'artifact must not have a src= attribute');
+});
+
+test('buildSafetyHtml includes the deck strip with Safety marked current', async () => {
+  const baseDir = await makeBase({ gate: GATE_ROWS, failures: FAILURE_ROWS });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.ok(html.includes('deck-strip'), 'expected the shared deck-switcher strip');
+  assert.ok(html.includes('Commander decks'), 'expected the deck-strip label');
+  const currentChipIdx = html.indexOf('deck-chip current');
+  assert.ok(currentChipIdx !== -1, 'expected a deck-chip current element');
+  assert.ok(
+    html.slice(currentChipIdx, currentChipIdx + 200).includes('Safety'),
+    'expected Safety marked as the current deck'
+  );
+  // Non-interactive render mode (no <script> in this artifact) — other decks
+  // show their open command as plain text, not a data-copy button.
+  assert.ok(!html.includes('data-copy'), 'safety snapshot has no <script>, so chips must not be interactive buttons');
+});
+
+test('buildSafetyHtml never shows the raw secret, even end-to-end through the renderer', async () => {
+  const baseDir = await makeBase({ failures: FAILURE_ROWS });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.ok(!html.includes(SECRET), 'raw secret leaked into rendered HTML');
+});
+
+test('buildSafetyHtml renders the hero headline with real blocked/auto-fixed/approved counts', async () => {
+  const baseDir = await makeBase({ gate: GATE_ROWS });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.ok(html.includes('blocked <strong>1</strong> dangerous action'));
+  assert.ok(html.includes('auto-fixed <strong>1</strong>'));
+  assert.ok(html.includes('<strong>3</strong> tool call'));
+});
+
+test('buildSafetyHtml with no data anywhere renders an honest zero-state, not fabricated numbers', async () => {
+  const baseDir = await makeBase({});
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.ok(html.includes('No permission-gate telemetry yet'));
+  assert.ok(html.includes('No tool failures logged yet'));
+  assert.ok(!/<script/i.test(html));
+  const titleMatches = html.match(/<title>/g) || [];
+  assert.equal(titleMatches.length, 1);
+});
+
+test('readSafetyModel bad JSONL lines are skipped, valid lines survive', async () => {
+  const dir = await fs.mkdtemp(path.join(tmpRoot, 'base-'));
+  await fs.mkdir(path.join(dir, 'analytics'), { recursive: true });
+  await fs.writeFile(
+    path.join(dir, 'analytics', 'permission-gate.jsonl'),
+    'not json\n' + JSON.stringify(GATE_ROWS[0]) + '\n\n[1,2,3]\n'
+  );
+  const model = await readSafetyModel({ baseDir: dir, now: NOW });
+  // The bad line and the bare array are dropped; the one valid object survives.
+  assert.equal(model.decisions.total, 1);
+});
