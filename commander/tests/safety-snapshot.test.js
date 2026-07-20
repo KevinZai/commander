@@ -81,14 +81,17 @@ const FAILURE_ROWS = [
   },
 ];
 
-test('readSafetyModel classifies permission-gate decisions into blocked/auto-fixed/approved', async () => {
+test('readSafetyModel classifies decisions: a DENIED autofix is blocked, not auto-fixed', async () => {
   const baseDir = await makeBase({ gate: GATE_ROWS });
   const model = await readSafetyModel({ baseDir, now: NOW });
 
   assert.equal(model.decisions.total, 5);
   assert.equal(model.decisions.approved, 3);
-  assert.equal(model.decisions.blocked, 1);
-  assert.equal(model.decisions.autofixed, 1);
+  // rejected-dangerous AND rejected-autofix are both BLOCKS — the gate logs
+  // `rejected-autofix` when it DENIES the write (permission-gate.js:160), so
+  // it must never be counted as an applied auto-fix.
+  assert.equal(model.decisions.blocked, 2);
+  assert.equal(model.decisions.autofixed, 0);
   assert.equal(model.decisions.otherCount, 0);
 
   const byDecision = Object.fromEntries(model.decisions.counts.map((c) => [c.decision, c]));
@@ -97,7 +100,19 @@ test('readSafetyModel classifies permission-gate decisions into blocked/auto-fix
   assert.equal(byDecision['rejected-dangerous'].count, 1);
   assert.equal(byDecision['rejected-dangerous'].kind, 'blocked');
   assert.equal(byDecision['rejected-autofix'].count, 1);
-  assert.equal(byDecision['rejected-autofix'].kind, 'autofixed');
+  assert.equal(byDecision['rejected-autofix'].kind, 'blocked');
+});
+
+test('readSafetyModel counts a GENUINE applied auto-fix as auto-fixed (forward-compat)', async () => {
+  const baseDir = await makeBase({
+    gate: [
+      { timestamp: '2026-07-20T06:00:00.000Z', sessionId: 's2', decision: 'auto-fixed', toolName: 'Edit' },
+      { timestamp: '2026-07-20T06:00:01.000Z', sessionId: 's2', decision: 'approved-autofix', toolName: 'Edit' },
+    ],
+  });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  assert.equal(model.decisions.autofixed, 2);
+  assert.equal(model.decisions.blocked, 0);
 });
 
 test('readSafetyModel aggregates top-failing tools by count', async () => {
@@ -127,6 +142,27 @@ test('readSafetyModel redacts secrets in both the sample and the signature — n
   const serialized = JSON.stringify(model);
   assert.ok(!serialized.includes(SECRET), 'raw secret leaked into the model');
   assert.ok(serialized.includes('[redacted]'), 'expected the redaction marker to appear');
+});
+
+test('readSafetyModel redacts MULTI-TOKEN secrets — Basic auth base64 + AWS AKIA never leak', async () => {
+  // Regression for the adversarial finding: `Authorization: Basic <base64>`
+  // survived redaction because the keyword pattern only stripped one token.
+  const BASIC = 'dXNlcm5hbWU6c3VwZXJzZWNyZXRwYXNzd29yZA==';
+  const AKIA = 'AKIAIOSFODNN7EXAMPLE';
+  const baseDir = await makeBase({
+    failures: [
+      { ts: '2026-07-19T14:00:00.000Z', tool_name: 'Bash', error: `curl -H "Authorization: Basic ${BASIC}" failed` },
+      { ts: '2026-07-19T15:00:00.000Z', tool_name: 'Bash', error: `aws call denied for ${AKIA}` },
+    ],
+  });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  for (const surface of [JSON.stringify(model), html]) {
+    assert.ok(!surface.includes(BASIC), 'Basic-auth base64 credential leaked');
+    assert.ok(!surface.includes(AKIA), 'AWS access-key id leaked');
+  }
+  assert.ok(html.includes('[redacted]'), 'expected the redaction marker');
 });
 
 test('readSafetyModel on an empty baseDir returns an honest zero-state, no crash', async () => {
@@ -190,8 +226,11 @@ test('buildSafetyHtml renders the hero headline with real blocked/auto-fixed/app
   const model = await readSafetyModel({ baseDir, now: NOW });
   const html = buildSafetyHtml(model, { now: NOW });
 
-  assert.ok(html.includes('blocked <strong>1</strong> dangerous action'));
-  assert.ok(html.includes('auto-fixed <strong>1</strong>'));
+  // blocked = 2 (dangerous + denied autofix); no longer labelled "dangerous",
+  // and the "auto-fixed" clause is absent because autofixed === 0.
+  assert.ok(html.includes('blocked <strong>2</strong> action'));
+  assert.ok(!/blocked <strong>\d+<\/strong> dangerous action/.test(html), 'headline must not claim all blocks are dangerous');
+  assert.ok(!html.includes('auto-fixed <strong>0</strong>'), 'must not render "auto-fixed 0 for you"');
   assert.ok(html.includes('<strong>3</strong> tool call'));
 });
 

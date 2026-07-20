@@ -51,6 +51,7 @@ import { brandBaseCss } from './brand-css.js';
 import { deckStripCss, deckStripHtml } from './deck-switcher.js';
 
 const MAX_JSONL_LINES = 50000; // bounded-scan cap — see doc comment above
+const MAX_JSONL_BYTES = 8 * 1024 * 1024; // read at most the trailing 8MB — the producer never rotates these logs
 const TOP_TOOLS = 10;
 const TOP_ERRORS = 10;
 const SAMPLE_MAX = 240;
@@ -74,13 +75,34 @@ function toMs(value) {
 // Bounded scan: only the tail maxLines non-empty lines are parsed. Mirrors
 // mission-control-snapshot.js's readJsonl() — duplicated per this file's
 // own doc-comment rationale (small, self-contained, no cross-import).
-async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
-  let raw;
+// Read at most the trailing maxBytes of a file, dropping the first (likely
+// partial) line so callers only ever see whole lines. Keeps an unrotated,
+// ever-growing append-only log from being slurped whole into memory.
+async function readTailText(filePath, maxBytes = MAX_JSONL_BYTES) {
+  let handle;
   try {
-    raw = await fsp.readFile(filePath, 'utf8');
+    handle = await fsp.open(filePath, 'r');
   } catch {
-    return [];
+    return '';
   }
+  try {
+    const { size } = await handle.stat();
+    if (size <= maxBytes) return await handle.readFile('utf8');
+    const buf = Buffer.alloc(maxBytes);
+    await handle.read(buf, 0, maxBytes, size - maxBytes);
+    const text = buf.toString('utf8');
+    const nl = text.indexOf('\n');
+    return nl >= 0 ? text.slice(nl + 1) : text;
+  } catch {
+    return '';
+  } finally {
+    await handle.close();
+  }
+}
+
+async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
+  const raw = await readTailText(filePath, MAX_JSONL_BYTES);
+  if (!raw) return [];
 
   const lines = raw.split('\n').filter((line) => line.trim());
   const tail = lines.length > maxLines ? lines.slice(lines.length - maxLines) : lines;
@@ -99,15 +121,21 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
   return entries;
 }
 
-// Same redact() six-pattern set used across this plugin's hooks (see
+// Same redact() pattern set used across this plugin's hooks (see
 // hooks/mission-control-feed.js, hooks/task-tracker.js,
 // hooks/subagent-start-tracker.js) — duplicated here rather than imported
-// so this lib file has no runtime dependency on hooks/.
+// so this lib file has no runtime dependency on hooks/. Basic-auth and AWS
+// AKIA patterns were added after an adversarial review found a
+// `Authorization: Basic <base64>` credential surviving redaction (the
+// keyword pattern below only redacts a single token after the colon, so it
+// stripped "Basic" and left the base64 payload).
 function redact(value) {
   if (typeof value !== 'string') return null;
   return value
     .replace(/sk-[a-zA-Z0-9_-]{8,}/g, '[redacted]')
     .replace(/Bearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, '[redacted]')
+    .replace(/Basic\s+[A-Za-z0-9+/=]{12,}/gi, '[redacted]')
+    .replace(/AKIA[0-9A-Z]{16}/g, '[redacted]')
     .replace(/gh[pousr]_[A-Za-z0-9]{20,}/g, '[redacted]')
     .replace(/hf_[A-Za-z0-9]{16,}/g, '[redacted]')
     .replace(/xox[baprs]-[A-Za-z0-9-]{10,}/g, '[redacted]')
@@ -119,13 +147,21 @@ function redact(value) {
 
 // Classifies a raw permission-gate `decision` string into a display kind.
 // Pattern-matched against the string itself rather than an enum, so a new
-// decision value the gate hook starts writing still lands in a sane
-// bucket instead of silently falling out of the hero counts. Order
-// matters: "rejected-autofix" must classify as auto-fixed, not blocked,
-// so autofix is checked before the broader reject/deny/block pattern.
+// decision value the gate hook starts writing still lands in a sane bucket
+// instead of silently falling out of the hero counts.
+//
+// Order matters, and it is the OPPOSITE of what the name might suggest:
+// `rejected-autofix` is what permission-gate.js logs when it DENIES an
+// autofix write (CCC_AUTOFIX_APPROVED !== '1') — the write did NOT happen,
+// so it is a BLOCK, not an applied fix. A rejection/denial pattern is
+// therefore matched BEFORE the bare-autofix pattern, so a denied autofix
+// counts as blocked. The "auto-fixed" bucket is reserved for a genuine
+// applied fix (a future `auto-fixed` / `approved-autofix` decision).
 function classifyDecision(decision) {
   const raw = typeof decision === 'string' && decision.trim() ? decision.trim() : 'unknown';
-  if (/autofix|auto-fix|auto_fixed/i.test(raw)) return { kind: 'autofixed', label: 'auto-fixed' };
+  if (/(?:reject|deny|denied|block).*autofix|autofix.*(?:reject|deny|denied|block)/i.test(raw))
+    return { kind: 'blocked', label: 'blocked (autofix needs approval)' };
+  if (/auto-?fixed|autofix-applied|approved-autofix/i.test(raw)) return { kind: 'autofixed', label: 'auto-fixed' };
   if (/danger/i.test(raw)) return { kind: 'blocked', label: 'blocked (dangerous)' };
   if (/reject|deny|denied|block/i.test(raw)) return { kind: 'blocked', label: 'blocked' };
   if (/approve/i.test(raw)) return { kind: 'approved', label: 'approved' };
@@ -353,11 +389,16 @@ function renderHeroSection(decisions) {
 </section>`;
   }
 
+  // `blocked` aggregates dangerous-command blocks AND denied-autofix writes,
+  // so the headline says "action(s)", not "dangerous action(s)". The
+  // auto-fixed clause is only shown when a genuine applied fix exists —
+  // "auto-fixed 0 for you" is noise (and, before the classifier fix, was
+  // actively wrong: denied autofixes were miscounted here).
   const headlineParts = [];
   headlineParts.push(
-    `Commander blocked <strong>${esc(blocked)}</strong> dangerous action${blocked === 1 ? '' : 's'}`
+    `Commander blocked <strong>${esc(blocked)}</strong> action${blocked === 1 ? '' : 's'}`
   );
-  headlineParts.push(`auto-fixed <strong>${esc(autofixed)}</strong> for you`);
+  if (autofixed > 0) headlineParts.push(`auto-fixed <strong>${esc(autofixed)}</strong> for you`);
   const headline = `${headlineParts.join(' and ')}. <strong>${esc(approved)}</strong> tool call${approved === 1 ? '' : 's'} approved without intervention${otherCount > 0 ? ` (${esc(otherCount)} other decision${otherCount === 1 ? '' : 's'})` : ''}.`;
 
   return `<section aria-label="Safety overview">

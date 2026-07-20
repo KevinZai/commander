@@ -65,6 +65,7 @@ import { aggregateDaily, sparkline } from './charts.js';
 import { deckStripCss, deckStripHtml } from './deck-switcher.js';
 
 const MAX_JSONL_LINES = 5000; // same bounded-scan cap as mission-control-snapshot.js
+const MAX_JSONL_BYTES = 8 * 1024 * 1024; // read at most the trailing 8MB — the producer never rotates these logs
 const ROW_CAP = 30;
 const SAVINGS_DAYS_CAP = 30;
 const COST_DAYS_CAP = 30;
@@ -88,16 +89,38 @@ function num(value, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
 }
 
+// Read at most the trailing maxBytes of a file, dropping the first (likely
+// partial) line so callers only ever see whole lines. Keeps an unrotated,
+// ever-growing append-only log from being slurped whole into memory.
+async function readTailText(filePath, maxBytes = MAX_JSONL_BYTES) {
+  let handle;
+  try {
+    handle = await fsp.open(filePath, 'r');
+  } catch {
+    return '';
+  }
+  try {
+    const { size } = await handle.stat();
+    if (size <= maxBytes) return await handle.readFile('utf8');
+    const buf = Buffer.alloc(maxBytes);
+    await handle.read(buf, 0, maxBytes, size - maxBytes);
+    const text = buf.toString('utf8');
+    const nl = text.indexOf('\n');
+    return nl >= 0 ? text.slice(nl + 1) : text;
+  } catch {
+    return '';
+  } finally {
+    await handle.close();
+  }
+}
+
 // Bounded-scan discipline (mirrors mission-control-snapshot.js's readJsonl):
 // only the most recent maxLines non-empty lines are parsed — a file that
-// has grown past the cap silently undercounts older entries.
+// has grown past the cap silently undercounts older entries. The read is
+// also byte-bounded (readTailText) so a huge log can't OOM the render.
 async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
-  let raw;
-  try {
-    raw = await fsp.readFile(filePath, 'utf8');
-  } catch {
-    return [];
-  }
+  const raw = await readTailText(filePath, MAX_JSONL_BYTES);
+  if (!raw) return [];
 
   const lines = raw.split('\n').filter((line) => line.trim());
   const tail = lines.length > maxLines ? lines.slice(lines.length - maxLines) : lines;
@@ -143,14 +166,32 @@ function dailySeriesFromDays(days, field, capDays) {
   return Number.isInteger(capDays) && capDays > 0 ? entries.slice(-capDays) : entries;
 }
 
+// Latest-wins merge by (date, source_app) — mirrors metrics.js's
+// readMetrics()/latestByDateSource(). A metrics.jsonl carries repeated
+// recomputations of the same day (each poll's buildMetrics appends a fresh
+// line), so summing raw rows double-counts spend. The last-appended row for
+// a given (date, source_app) wins, exactly as the canonical reader does — so
+// the Usage deck's totals match the dashboard's. Rows missing either merge
+// key are dropped, again matching the canonical reader.
+function latestByDateSource(rows) {
+  const byKey = new Map();
+  for (const row of Array.isArray(rows) ? rows : []) {
+    if (!row || typeof row !== 'object') continue;
+    if (typeof row.date !== 'string' || typeof row.source_app !== 'string') continue;
+    byKey.set(`${row.date}::${row.source_app}`, row);
+  }
+  return [...byKey.values()];
+}
+
 async function readUsageModel({ baseDir, now } = {}) {
   const root = baseDir || defaultBaseDir();
   const nowMs = toMs(now) ?? Date.now();
 
-  const [savingsRaw, metricsRows] = await Promise.all([
+  const [savingsRaw, metricsRawRows] = await Promise.all([
     readSavingsJson(path.join(root, 'savings.json')),
     readJsonl(path.join(root, 'mission-control', 'metrics.jsonl')),
   ]);
+  const metricsRows = latestByDateSource(metricsRawRows);
 
   const days = savingsRaw.days;
 
@@ -237,6 +278,7 @@ const USAGE_CSS = `
   --uc-bg:var(--bg);--uc-card:var(--bg-card);--uc-fg:var(--text);--uc-muted:var(--text-dim);
   --uc-line:var(--border);--uc-accent:var(--primary);
   --uc-ok:var(--green-dot);--uc-ok-bg:color-mix(in srgb,var(--green-dot) 16%,transparent);
+  --uc-warn:var(--red-dot,#e5484d);
 }
 body{margin:0;background:var(--uc-bg);color:var(--uc-fg);}
 .uc-shell{max-width:1080px;margin:20px auto 40px;}
@@ -247,12 +289,15 @@ body{margin:0;background:var(--uc-bg);color:var(--uc-fg);}
 .uc *{box-sizing:border-box;}
 .uc h1{font-size:1.45rem;margin:0 0 2px;}
 .uc h2{font-size:1.02rem;margin:0 0 10px;}
+.uc .tf-note{color:var(--uc-muted);font-size:.75em;font-weight:400;}
 .uc .stamp{color:var(--uc-muted);margin:0 0 18px;font-size:.86rem;}
 .uc section{background:var(--uc-card);border:1px solid var(--uc-line);
   border-radius:12px;padding:16px;margin-bottom:16px;}
 .uc .hero{border-color:var(--uc-accent);}
 .uc .hero-line{font-size:1.12rem;margin:0 0 8px;}
 .uc .hero-amount{color:var(--uc-ok);font-size:1.3em;font-weight:700;}
+.uc .hero-negative{border-color:var(--uc-warn);}
+.uc .hero-negative .hero-amount{color:var(--uc-warn);}
 .uc .disclaimer{margin:0;font-size:.8rem;}
 .uc .muted{color:var(--uc-muted);}
 .uc .zero{color:var(--uc-muted);margin:0;}
@@ -295,12 +340,25 @@ function renderHeroSection(totalSavedUsd, totalDispatches) {
 </section>`;
   }
 
-  const savedLabel = formatUsd(totalSavedUsd);
   const dispatchCount = Math.max(0, Math.round(totalDispatches));
+  const dispatchWord = `dispatch${dispatchCount === 1 ? '' : 'es'}`;
+  const disclaimer = '<p class="muted disclaimer">Estimates vs an all-Opus 4.8 baseline, ±30%. Not actual Anthropic billing data.</p>';
 
+  // Negative "savings" is legitimate — delegation that ran pricier than the
+  // all-Opus baseline. Render it honestly as an extra cost (warn-coloured),
+  // not as green success copy reading "saved you -$3.50".
+  if (Number.isFinite(totalSavedUsd) && totalSavedUsd < 0) {
+    const overLabel = formatUsd(Math.abs(totalSavedUsd));
+    return `<section aria-label="Savings summary" class="hero hero-negative">
+<p class="hero-line">Delegation cost <span class="hero-amount">${esc(overLabel)}</span> more than an all-Opus 4.8 baseline across ${esc(dispatchCount)} ${dispatchWord}.</p>
+${disclaimer}
+</section>`;
+  }
+
+  const savedLabel = formatUsd(totalSavedUsd);
   return `<section aria-label="Savings summary" class="hero">
-<p class="hero-line">Delegating to cheaper models saved you <span class="hero-amount">${esc(savedLabel)}</span> across ${esc(dispatchCount)} dispatch${dispatchCount === 1 ? '' : 'es'}.</p>
-<p class="muted disclaimer">Estimates vs an all-Opus 4.8 baseline, ±30%. Not actual Anthropic billing data.</p>
+<p class="hero-line">Delegating to cheaper models saved you <span class="hero-amount">${esc(savedLabel)}</span> across ${esc(dispatchCount)} ${dispatchWord}.</p>
+${disclaimer}
 </section>`;
 }
 
@@ -349,8 +407,11 @@ function renderCostByAppSection(costByApp) {
       ? `<p class="muted">…and ${rows.length - ROW_CAP} more app${rows.length - ROW_CAP === 1 ? '' : 's'}.</p>`
       : '';
 
+  // Timeframe label matters: the Trends charts above are explicitly 30-day,
+  // but this breakdown totals all retained metrics history. Label it so a
+  // large all-time total isn't misread as a 30-day figure.
   return `<section aria-label="Cost by app">
-<h2>🧮 Cost by app</h2>
+<h2>🧮 Cost by app <span class="tf-note">· all time (retained history)</span></h2>
 <ul class="cost-list">${items.join('')}</ul>${overflow}
 </section>`;
 }

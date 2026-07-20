@@ -119,6 +119,27 @@ describe('readUsageModel — cost by app', () => {
   });
 });
 
+describe('readUsageModel — latest-wins dedupe by (date, source_app)', () => {
+  it('does NOT double-count repeated recomputations of the same day+app (last row wins)', async () => {
+    const { readUsageModel } = await loadLib();
+    // metrics.jsonl carries one $1 row then a $9 recompute for the same
+    // (date, source_app). The canonical readMetrics() reports $9; a naive
+    // sum would report $10. Both cost-by-app AND the daily series must dedupe.
+    const baseDir = await makeBase({
+      metrics: [
+        { date: '2026-07-18', source_app: 'codex', cost_usd: 1 },
+        { date: '2026-07-18', source_app: 'codex', cost_usd: 9 },
+      ],
+    });
+    const model = await readUsageModel({ baseDir, now: FIXED_NOW });
+
+    assert.equal(model.costByApp.length, 1);
+    assert.equal(model.costByApp[0].sourceApp, 'codex');
+    assert.equal(model.costByApp[0].costUsd, 9);
+    assert.deepEqual(model.costSeries, [{ label: '2026-07-18', value: 9 }]);
+  });
+});
+
 describe('readUsageModel — empty baseDir', () => {
   it('never crashes and returns an honest zero-state model', async () => {
     const { readUsageModel } = await loadLib();
@@ -184,6 +205,37 @@ describe('buildUsageHtml — panels with real data', () => {
     assert.match(html, /codex/);
     assert.match(html, /\$2\.00/);
     assert.match(html, /\$0\.30/);
+  });
+
+  it('labels cost-by-app as all-time so it is not misread as the 30d trend', async () => {
+    const { buildUsageHtml, readUsageModel } = await loadLib();
+    const baseDir = await makeBase({ metrics: SAMPLE_METRICS });
+    const model = await readUsageModel({ baseDir, now: FIXED_NOW });
+    const html = buildUsageHtml(model, { now: FIXED_NOW });
+
+    // Cost-by-app carries a timeframe note ("all time"), while the trend
+    // charts are labelled 30d — the two must be visually distinguishable.
+    assert.match(html, /Cost by app[\s\S]{0,80}all time/i);
+    assert.match(html, /Cost \/ day \(30d\)/);
+  });
+});
+
+describe('buildUsageHtml — negative savings honesty', () => {
+  it('renders negative savings as an extra cost, never green "saved you -$X"', async () => {
+    const { buildUsageHtml, readUsageModel } = await loadLib();
+    const baseDir = await makeBase({
+      savings: { days: { '2026-07-18': { actualUsd: 5, baselineUsd: 1.5, savedUsd: -3.5, dispatches: 2 } } },
+    });
+    const model = await readUsageModel({ baseDir, now: FIXED_NOW });
+    assert.equal(model.totalSavedUsd, -3.5);
+
+    const html = buildUsageHtml(model, { now: FIXED_NOW });
+    assert.doesNotMatch(html, /saved you/, 'must not say "saved you" for a loss');
+    assert.doesNotMatch(html, /-\$3\.50/, 'must not render a negative dollar amount');
+    assert.match(html, /Delegation cost/);
+    assert.match(html, /\$3\.50/);
+    assert.match(html, /more than an all-Opus/);
+    assert.match(html, /hero-negative/);
   });
 });
 
