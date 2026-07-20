@@ -168,11 +168,29 @@ describe('subagent-stop.js — stdin-primary cost capture', () => {
     fs.writeFileSync(tPath, lines);
 
     const r = runHook({ session_id: 's', agent_type: 'x', transcript_path: tPath });
-    // input = (100+900) + (5+0)  [cache_read excluded] = 1005
-    // output = 50 + 200 = 250 ; duration = 5000ms
+    // input = (100+900) + (5+0)  [cache_read excluded from the token count] = 1005
+    // output = 50 + 200 = 250 ; cacheRead = 0 + 1000 = 1000 ; duration = 5000ms
     assert.equal(r.rows[0].inputTokens, 1005);
     assert.equal(r.rows[0].outputTokens, 250);
+    assert.equal(r.rows[0].cacheReadTokens, 1000);
     assert.equal(r.rows[0].durationMs, 5000);
     assert.equal(r.rows[0].tokensAvailable, true);
+  });
+
+  it('dedupes streaming rows by message.id — keeps last usage, never sums duplicates', () => {
+    // Two rows for the SAME message.id (streaming partial → final) plus one
+    // distinct message. Summing every row would 2x the first message.
+    const tPath = path.join(TMP_HOME, 'stream.jsonl');
+    const lines = [
+      { type: 'assistant', timestamp: '2026-07-20T00:00:00.000Z', message: { id: 'm1', usage: { input_tokens: 1000, output_tokens: 1 } } },
+      { type: 'assistant', timestamp: '2026-07-20T00:00:01.000Z', message: { id: 'm1', usage: { input_tokens: 1000, output_tokens: 50 } } },
+      { type: 'assistant', timestamp: '2026-07-20T00:00:02.000Z', message: { id: 'm2', usage: { input_tokens: 20, output_tokens: 7 } } },
+    ].map((o) => JSON.stringify(o)).join('\n');
+    fs.writeFileSync(tPath, lines);
+
+    const r = runHook({ session_id: 's', agent_type: 'x', transcript_path: tPath });
+    // m1 last row (1000/50) + m2 (20/7) — NOT 2000/51+20/7.
+    assert.equal(r.rows[0].inputTokens, 1020);
+    assert.equal(r.rows[0].outputTokens, 57);
   });
 });

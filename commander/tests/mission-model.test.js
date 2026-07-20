@@ -93,6 +93,7 @@ test('joins a start and stop record into one done agent', async () => {
     durationMs: 180000,
     inputTokens: 1200,
     outputTokens: 345,
+    cacheReadTokens: 0,
     status: 'done',
     key: 'claude-code:reviewer',
     emoji: '🔍',

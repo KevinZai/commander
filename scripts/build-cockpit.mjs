@@ -57,42 +57,87 @@ const JOBS = Object.freeze([
   { label: '🤖 Automate a workflow', query: 'loop schedule automation' },
 ]);
 
+// Prompt-improvement strategies for the enhance tab. Each is a multi-select
+// chip: `test` auto-detects whether it's already present (a ✓ hint), and
+// `directive` is the line GO appends when the strategy is selected. Ordered
+// most-impactful first.
 const PATTERNS = Object.freeze([
   {
     key: 'outcome',
     name: 'Describe the outcome',
     hint: 'Say what the finished result should look like, not the steps to take.',
     test: '(so that|end state|done (looks|means)|goal:|outcome)',
+    directive: 'Outcome: describe what DONE looks like — the end state, not the steps to take.',
   },
   {
     key: 'selfcheck',
-    name: 'Give it a self-check',
-    hint: 'Ask it to run, test, compare, or verify its work before stopping.',
+    name: 'Add a self-check',
+    hint: 'Ask it to run, test, or verify its work before stopping.',
     test: '(verify|prove|show (me )?(proof|output)|run (the )?tests|check your)',
+    directive: 'Before finishing, verify your work — run it or test it and show me the proof.',
   },
   {
     key: 'reference',
     name: 'Point at a reference',
-    hint: 'Name an existing file, test, example, or pattern for it to match.',
+    hint: 'Name an existing file, test, example, or pattern to match.',
     test: '(like|match|same as|following|pattern in|@|\\.md|\\.ts|\\.js)',
+    directive: 'Reference: match the patterns already in [the file / example to imitate].',
   },
   {
     key: 'target',
-    name: 'State a measurable target',
+    name: 'Set a measurable target',
     hint: 'Give a metric and threshold that make done unambiguous.',
     test: '([0-9]+\\s*(%|ms|s\\b|x\\b)|all tests|zero |under |at least)',
+    directive: 'Target: [a measurable bar — e.g. all tests green, under 200ms, zero console errors].',
   },
   {
     key: 'artifact',
-    name: 'Give it the artifact',
-    hint: 'Provide the exact file, error, log, screenshot, or deliverable it needs.',
-    test: '(PR|pull request|file|report|diff|artifact|document|table)',
+    name: 'Name the deliverable',
+    hint: 'State the exact file, PR, report, or artifact you want back.',
+    test: '(PR|pull request|deliverable|report|diff|artifact|commit)',
+    directive: 'Deliverable: [the exact artifact — a PR, a file, a report — not just a chat reply].',
   },
   {
     key: 'format',
-    name: 'Say how you want the answer',
-    hint: 'Specify the answer format, length, structure, or audience.',
+    name: 'Say how to answer',
+    hint: 'Specify the answer format, length, or structure.',
     test: '(format|table|bullet|json|markdown|structure|sections)',
+    directive: 'Answer format: [how to present it — table, bullet summary, diff, or sections].',
+  },
+  {
+    key: 'role',
+    name: 'Give it a role',
+    hint: 'Frame the model as the right kind of expert for the task.',
+    test: '(act as|you are (a|an)|as a senior|role:|expert)',
+    directive: 'Role: act as a senior [domain] engineer who values correctness over speed.',
+  },
+  {
+    key: 'constraints',
+    name: 'Add constraints',
+    hint: 'Fence what it must NOT do, or what it must stay within.',
+    test: "(don't|do not|avoid|must not|only touch|stay within|constraint|no (new )?deps)",
+    directive: 'Constraints: only touch [X]; do not [Y]; keep the change as small as the task allows.',
+  },
+  {
+    key: 'context',
+    name: 'Give the context',
+    hint: 'Say why it matters, who it is for, and what you already tried.',
+    test: '(context|background|because|the reason|so far|already tried|why:)',
+    directive: 'Context: [why this matters, who it is for, and what you have already tried].',
+  },
+  {
+    key: 'planfirst',
+    name: 'Ask for a plan first',
+    hint: 'Have it think through the approach before it writes anything.',
+    test: '(plan first|before (you )?(start|code|implement)|outline (the|your)|step[- ]by[- ]step|think through)',
+    directive: 'Plan first: outline your approach and wait for my go before implementing.',
+  },
+  {
+    key: 'examples',
+    name: 'Show an example',
+    hint: 'One input→output example anchors the format better than prose.',
+    test: '(for example|e\\.g\\.|example:|input.*output|few[- ]shot|sample)',
+    directive: 'Example: here is one input → the output I expect: [ … ].',
   },
 ]);
 
@@ -251,9 +296,11 @@ function buildEcosystemSkills(files, tierById) {
     const directories = relativePath.split(path.sep).slice(0, -1);
     const id = directories.at(-1);
     const { name, desc } = readSkill(filePath, id);
-    // Nested under skills/ccc-*/ → that domain. Otherwise classify by content,
-    // falling back to the honest "general" bucket (never a fake per-skill domain).
-    const nestedDomain = directories.slice(0, -1).find((part) => part.startsWith('ccc-'));
+    // A skill under a canonical domain dir → that domain. Search ALL path
+    // segments (including the skill's own dir) so a domain router that lives
+    // directly at skills/ccc-X/SKILL.md is grouped as ccc-X, not "general".
+    // Everything else → the honest "general" bucket (never a fake per-skill domain).
+    const nestedDomain = directories.find((part) => CANONICAL_DOMAINS.has(part));
     const domain = nestedDomain || UNGROUPED_DOMAIN;
     return {
       id,
@@ -476,8 +523,13 @@ function hasTokenData(entry) {
   );
 }
 
-function estimatedCostUsd(inputTokens, outputTokens) {
-  return Number(((safeMetric(inputTokens) * 3 + safeMetric(outputTokens) * 15) / 1_000_000).toFixed(4));
+// Rough Sonnet-rate estimate ($/M): new input 3, cache-read 0.3 (≈0.1×), output 15.
+// cache_read is priced (a cache-heavy run costs real money) but is NOT folded
+// into the token headline, where cross-turn re-reads would inflate the count.
+function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
+  return Number(
+    ((safeMetric(inputTokens) * 3 + safeMetric(cacheReadTokens) * 0.3 + safeMetric(outputTokens) * 15) / 1_000_000).toFixed(4)
+  );
 }
 
 function formatTokens(tokens) {
@@ -508,6 +560,7 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
       runs: 0,
       inputTokens: 0,
       outputTokens: 0,
+      cacheReadTokens: 0,
       tokenRuns: 0,
       durationMs: 0,
       durations: 0,
@@ -516,6 +569,7 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
     if (hasTokenData(entry)) {
       current.inputTokens += safeMetric(entry.inputTokens);
       current.outputTokens += safeMetric(entry.outputTokens);
+      current.cacheReadTokens += safeMetric(entry.cacheReadTokens);
       current.tokenRuns += 1;
     }
     if (Number.isFinite(entry.durationMs) && entry.durationMs >= 0) {
@@ -535,7 +589,7 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
       tokens: agent.tokenRuns > 0 ? agent.inputTokens + agent.outputTokens : null,
       costUsd:
         agent.tokenRuns > 0
-          ? estimatedCostUsd(agent.inputTokens, agent.outputTokens)
+          ? estimatedCostUsd(agent.inputTokens, agent.outputTokens, agent.cacheReadTokens)
           : null,
       avgMs: agent.durations > 0 ? Math.round(agent.durationMs / agent.durations) : null,
     }))
@@ -660,6 +714,7 @@ async function buildAnalytics() {
   const tokenAgents = recentAgents.filter(hasTokenData);
   const inputTokens = tokenAgents.reduce((sum, entry) => sum + safeMetric(entry.inputTokens), 0);
   const outputTokens = tokenAgents.reduce((sum, entry) => sum + safeMetric(entry.outputTokens), 0);
+  const cacheReadTokens = tokenAgents.reduce((sum, entry) => sum + safeMetric(entry.cacheReadTokens), 0);
   const tokensMeasured = tokenAgents.length > 0;
   const tiles = [
     { label: 'Agent runs (7d)', value: recentAgents.length },
@@ -670,7 +725,7 @@ async function buildAnalytics() {
     {
       label: 'Est cost (7d)',
       value: tokensMeasured
-        ? `$${estimatedCostUsd(inputTokens, outputTokens).toFixed(2)} est`
+        ? `$${estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens).toFixed(2)} est`
         : '—',
     },
     ...skillTilesFromTopSkills(topSkills),

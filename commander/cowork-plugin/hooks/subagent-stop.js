@@ -108,6 +108,7 @@ async function main() {
       usage.outputTokens
     );
     let durationMs = firstFiniteNullable(input.duration_ms, input.durationMs);
+    let cacheReadTokens = firstFiniteNullable(usage.cache_read_input_tokens);
     let tokensAvailable = inputTokens !== null || outputTokens !== null;
 
     if (!tokensAvailable) {
@@ -119,6 +120,7 @@ async function main() {
       if (recovered.available) {
         inputTokens = recovered.inputTokens;
         outputTokens = recovered.outputTokens;
+        cacheReadTokens = recovered.cacheReadTokens;
         if (durationMs === null) durationMs = recovered.durationMs;
         tokensAvailable = true;
       }
@@ -148,6 +150,7 @@ async function main() {
       agentName,
       inputTokens,
       outputTokens,
+      cacheReadTokens,
       durationMs,
       tokensAvailable,
     };

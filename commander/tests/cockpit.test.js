@@ -132,14 +132,20 @@ test('every idea command resolves to a displayed skill', function() {
   });
 });
 
-test('prompt patterns contain the exact six keys and valid regex sources', function() {
-  var expectedKeys = ['artifact', 'format', 'outcome', 'reference', 'selfcheck', 'target'];
+test('prompt patterns are the multi-select enhance strategies with valid regex + a directive each', function() {
+  var expectedKeys = [
+    'artifact', 'constraints', 'context', 'examples', 'format', 'outcome',
+    'planfirst', 'reference', 'role', 'selfcheck', 'target',
+  ];
   var actualKeys = payload.patterns.map(function(pattern) { return pattern.key; }).sort();
 
-  assert.strictEqual(payload.patterns.length, 6);
+  assert.strictEqual(payload.patterns.length, 11);
   assert.deepStrictEqual(actualKeys, expectedKeys);
   payload.patterns.forEach(function(pattern) {
     assert.doesNotThrow(function() { return new RegExp(pattern.test, 'i'); }, pattern.key);
+    // Each strategy must carry a non-empty directive — that's what GO appends.
+    assert.strictEqual(typeof pattern.directive, 'string', pattern.key + ' directive type');
+    assert.ok(pattern.directive.trim().length > 0, pattern.key + ' directive non-empty');
   });
 });
 
@@ -442,4 +448,23 @@ test('telemetry tiles and topAgents render real numbers once a run carries posit
   assert.strictEqual(ghost.tokens, 1200);
   assert.ok(ghost.tokens > 0);
   assert.strictEqual(ghost.costUsd, 0.006);
+});
+
+test('cache_read tokens are priced into cost but not folded into the token headline', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-cacheread-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  // A cache-heavy run: modest input/output, large cache_read. Cost must reflect
+  // the cache reads (not $0.00), while the token headline stays input+output.
+  writeJsonl(home, 'agent-runs.jsonl', [
+    { ts: ago(0), agent: 'cacher', durationMs: 1000, inputTokens: 100, outputTokens: 50, cacheReadTokens: 100000, tokensAvailable: true },
+  ]);
+
+  var analytics = parsePayload(runGenerator(home).stdout).analytics;
+  var cacher = analytics.topAgents.find(function(agent) { return agent.name === 'cacher'; });
+
+  // tokens headline = 100 + 50 (cache_read excluded)
+  assert.strictEqual(cacher.tokens, 150);
+  // cost = (100*3 + 100000*0.3 + 50*15) / 1e6 = (300 + 30000 + 750)/1e6 = 0.03105
+  assert.strictEqual(cacher.costUsd, 0.0311);
+  assert.ok(cacher.costUsd > 0, 'cache-heavy run must not price to $0');
 });
