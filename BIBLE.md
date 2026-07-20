@@ -1,11 +1,11 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-07-17 | Version: 6.8.3 (see package.json) | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-07-17 | Version: 7.0.0 (see package.json) | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
-> **Latest: v6.8.3** — Mission Control gets a Charts strip (cost/day, agents dispatched/day, tasks completed/week, tool failures/day — zero-dep inline SVG shared by the live dashboard and the snapshot artifact), an opt-in claude-mem **History** panel, and a "derived" marker (dimmed gauges + tooltip) on roster rows synthesized from delegation events for sources like Codex that have no real start record. The Commander Cockpit (`/ccc-browse` → 🎛️) — every tool clickable inside one self-contained artifact — shipped in v6.8.2. Claude+Codex side-by-side session tracking (`source_app` tagging, Source filter + pills, `sourceApp:name` agent keys) and the Suggestions panel were added in v6.8.1. Mission Control itself shipped in v6.8.0; v6.7 added `/ccc-relay` for durable cross-session spec → build → review handoffs, the 6-skill `ccc-smb-ops` domain, scrubbed outbound `/ccc-broadcast` status, click-first `/ccc-spawn`, and the `/ccc-prompt-fix` coach backed by a new ecosystem library of 52 prompts plus a 7-module Claude Code course.
+> **Latest: v7.0.0** — The Commander Cockpit gets a full redesign on the real commanderplugin.com coral brand: a filterable skill browser (rows/tiles toggle + real-time filter, replacing the one-skill-domain wall), an 11-strategy multi-select prompt enhancer with a GO button, real per-agent token/cost telemetry (recovered from the subagent transcript, deduped by `message.id`, honest "—" when unavailable), and an honest 14-domain taxonomy (no "core"). Mission Control's Charts strip (cost/day, agents dispatched/day, tasks completed/week, tool failures/day), an opt-in claude-mem **History** panel, and "derived" markers on Codex roster rows shipped in v6.8.3. The Commander Cockpit (`/ccc-browse` → 🎛️) — every tool clickable inside one self-contained artifact — shipped in v6.8.2. Claude+Codex side-by-side session tracking (`source_app` tagging, Source filter + pills, `sourceApp:name` agent keys) and the Suggestions panel were added in v6.8.1. Mission Control itself shipped in v6.8.0; v6.7 added `/ccc-relay` for durable cross-session spec → build → review handoffs, the 6-skill `ccc-smb-ops` domain, scrubbed outbound `/ccc-broadcast` status, click-first `/ccc-spawn`, and the `/ccc-prompt-fix` coach backed by a new ecosystem library of 52 prompts plus a 7-module Claude Code course.
 
 ---
 
@@ -27,7 +27,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v6.8.3 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v7.0.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -1567,7 +1567,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v6.8.3)
+### 🛠️ Plugin Workflows (v7.0.0)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 78 skills; these core workflow shortcuts require no menu traversal:
 
@@ -2610,7 +2610,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 ---
 ## Built on Claude Agent SDK
 
-> *v6.8.3* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v7.0.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2661,7 +2661,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v6.8.3* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 78 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (42 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v7.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 78 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (42 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2873,7 +2873,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v6.8.3 — How CCC thinks before it acts.*
+> *Appendix: v7.0.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 

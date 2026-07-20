@@ -1,5 +1,50 @@
 # Changelog
 
+## [7.0.0] - 2026-07-20
+
+The Commander Cockpit becomes a real product: the commanderplugin.com terminal
+brand end-to-end, a browse experience built for finding a skill fast, a genuinely
+usable prompt enhancer, and — under the hood — agent telemetry that reports real
+numbers or an honest "—", never a fabricated zero.
+
+### Added
+- **Filterable skill browser** — Browse is now a scannable skill LIST with a
+  **rows / tiles toggle** (persisted) instead of a wall of one-skill "domains".
+  Compact domain-filter chips (`all · 533`, `marketing · 46` … `general · 257`)
+  + real-time filter on name / purpose / domain; whole-row click copies the
+  command. Render is capped and single-line so the list stays snappy, with the
+  filter (not an endless scroll) doing the navigation.
+- **Multi-select prompt enhancer** — the enhance tab is now **11 improvement
+  strategies as multi-select chips** (outcome, self-check, reference, target,
+  deliverable, format, role, constraints, context, plan-first, example) with a
+  ✓ "already covered" hint, `select all` / `what's missing` / `clear`, and a
+  clear **GO** that appends the chosen directives to your prompt to copy into
+  Claude Code.
+- **Real per-agent token & cost telemetry** — a new `hooks/lib/transcript-usage.mjs`
+  recovers real input/output tokens + duration from the transcript each
+  `SubagentStop` points to (the payload itself carries none), keyed by
+  `message.id` so streaming rows are never double-counted; `cache_read` tokens
+  are recovered and priced into cost (≈0.1× rate) without inflating the token
+  headline. Agent names come from the real `agent_type` field.
+
+### Changed
+- **Brand** — Cockpit, Mission Control, dashboard, and both websites are unified
+  on the real commanderplugin.com palette (coral `#FF6B47` / tan / near-black,
+  Inter + JetBrains Mono) via one shared `brand-css.js`.
+- **Honest telemetry contract** — when token data was never captured (the legacy
+  case), tiles render `— unavailable` and per-agent tokens/cost render `— tok` /
+  `$—` rather than a measured-looking `0` / `$0.00`.
+- **Skill taxonomy** — plugin `/ccc-*` commands collapse into one **commands**
+  front-door group (was ~78 one-skill "domains"); ungrouped ecosystem skills go
+  to an honest **general** bucket (sorted last), and domain routers living in
+  `skills/ccc-X/` are grouped as `ccc-X`. 14 real domains, no misleading "core".
+
+### Fixed
+- Light-theme muted text now meets WCAG AA contrast (was 3.2:1).
+- Prompt-metadata, task, and SubagentStop loggers read the stdin payload (not
+  absent env vars); negative/garbage usage values are clamped, never recorded as
+  measured.
+
 ## [6.8.3] - 2026-07-17
 
 ### Added
