@@ -165,15 +165,20 @@ test('readSafetyModel redacts MULTI-TOKEN secrets — Basic auth base64 + AWS AK
   assert.ok(html.includes('[redacted]'), 'expected the redaction marker');
 });
 
-test('redaction: SHORT Basic credential is redacted, benign "Basic ..." prose is NOT', async () => {
-  // Follow-up adversarial finding: a length threshold both missed short
-  // credentials AND over-redacted prose. The context-anchored matcher must
-  // redact any `Authorization: Basic <cred>` regardless of length, yet leave
-  // "Basic authentication failed" untouched.
+test('redaction: Basic credentials redact in EVERY wrapping form; benign "Basic ..." prose does NOT', async () => {
+  // Two adversarial rounds: a length threshold missed short creds + over-redacted
+  // prose; then a context-anchored matcher leaked quoted/JSON/raw forms. The
+  // shape-based decoder must redact `Basic <base64-of-user:pass>` however it's
+  // wrapped, while leaving prose words after "Basic" untouched.
   const SHORT = 'dXNlcjpw'; // base64("user:p")
+  const LONG = 'dXNlcjpwYXNz'; // base64("user:pass")
   const baseDir = await makeBase({
     failures: [
       { ts: '2026-07-19T16:00:00.000Z', tool_name: 'Bash', error: `curl -H "Authorization: Basic ${SHORT}" -> 401` },
+      { ts: '2026-07-19T16:10:00.000Z', tool_name: 'Bash', error: `header Authorization: "Basic ${LONG}" rejected` },
+      { ts: '2026-07-19T16:20:00.000Z', tool_name: 'Bash', error: `{"Authorization":"Basic ${LONG}"}` },
+      { ts: '2026-07-19T16:30:00.000Z', tool_name: 'Bash', error: `raw creds Basic ${LONG} in log` },
+      { ts: '2026-07-19T16:40:00.000Z', tool_name: 'Bash', error: `Proxy-Authorization: Basic ${LONG}` },
       { ts: '2026-07-19T17:00:00.000Z', tool_name: 'Bash', error: 'Basic authentication failed for the upstream proxy' },
     ],
   });
@@ -182,6 +187,7 @@ test('redaction: SHORT Basic credential is redacted, benign "Basic ..." prose is
 
   for (const surface of [JSON.stringify(model), html]) {
     assert.ok(!surface.includes(SHORT), 'short Basic credential leaked');
+    assert.ok(!surface.includes(LONG), 'Basic credential leaked in a quoted/JSON/raw/Proxy form');
   }
   // benign prose survives — "authentication" must not have been eaten
   assert.ok(html.includes('authentication failed'), 'benign "Basic authentication failed" prose was over-redacted');

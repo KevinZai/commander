@@ -127,19 +127,29 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
 // hooks/subagent-start-tracker.js) — duplicated here rather than imported
 // so this lib file has no runtime dependency on hooks/.
 //
-// The `authorization: <scheme> <credential>` matcher and AWS AKIA pattern
-// were added after an adversarial review: the generic keyword pattern below
-// only redacts ONE token after the colon, so `Authorization: Basic <base64>`
-// lost "Basic" but kept the base64 payload. The matcher is context-anchored
-// (it only fires after `authorization[:=]`) and length-agnostic, so it
-// catches short Basic credentials without over-redacting prose like
-// "Basic authentication failed".
+// Basic-auth redaction is SHAPE-based, not context- or length-based: match
+// `Basic <token>` anywhere (quoted, JSON, raw, or after Authorization/
+// Proxy-Authorization) and redact ONLY when the token base64-decodes to a
+// string containing ":". Real Basic credentials are base64("user:pass") and
+// always contain a colon; English words after "Basic" (e.g. "Basic
+// authentication failed") decode to non-colon bytes and are left alone. This
+// replaced an earlier context-anchored matcher that leaked quoted/serialized
+// forms, and a length-based one that both missed short creds and over-redacted
+// prose. The remaining `authorization: <scheme>` matcher covers the other
+// multi-token schemes; AKIA covers AWS access-key ids.
 function redact(value) {
   if (typeof value !== 'string') return null;
   return value
     .replace(/sk-[a-zA-Z0-9_-]{8,}/g, '[redacted]')
     .replace(/Bearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, '[redacted]')
-    .replace(/(authorization\s*[=:]\s*)(?:bearer|basic|digest|negotiate|token)\s+[^\s"']+/gi, '$1[redacted]')
+    .replace(/\b(basic)\s+([A-Za-z0-9+/]{4,}={0,2})/gi, (match, scheme, b64) => {
+      try {
+        return Buffer.from(b64, 'base64').toString('utf8').includes(':') ? `${scheme} [redacted]` : match;
+      } catch {
+        return match;
+      }
+    })
+    .replace(/(authorization\s*[=:]\s*)(?:bearer|digest|negotiate|token)\s+[^\s"']+/gi, '$1[redacted]')
     .replace(/AKIA[0-9A-Z]{16}/g, '[redacted]')
     .replace(/gh[pousr]_[A-Za-z0-9]{20,}/g, '[redacted]')
     .replace(/hf_[A-Za-z0-9]{16,}/g, '[redacted]')
