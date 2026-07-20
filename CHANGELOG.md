@@ -1,5 +1,21 @@
 # Changelog
 
+## [7.1.0] - 2026-07-20
+
+### Added
+- **Cockpit Tools tab** — a 7th tab that turns the Cockpit into an ecosystem
+  launcher, surfacing everything that pairs with Commander as clickable cards:
+  - **Commander surfaces** to open (`/ccc-mission-control`, `/ccc-fleet-viz`,
+    `/ccc-xray`, `/ccc-doctor`).
+  - **Companion apps** — the best MIT-licensed tools to install alongside
+    Commander (Nimbalyst, Claude Code Usage Monitor, Claude Control, Sniffly,
+    tmux session manager), licenses verified via the GitHub API. These are links
+    (copied to the clipboard, never an external `href`), not bundled code — per
+    the "interop, don't rebuild" principle; AGPL tools are deliberately excluded.
+  - **Artifact recipes** — copy-a-prompt cards (before/after sales arcade,
+    standup/status board, PR walkthrough) that have Claude build a live dashboard.
+  Self-contained and CSP-safe; companion URLs never leak into an external href.
+
 ## [7.0.0] - 2026-07-20
 
 The Commander Cockpit becomes a real product: the commanderplugin.com terminal

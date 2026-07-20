@@ -15,13 +15,13 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 **What you get:** 78 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 467 ecosystem skills · Core free forever.
 
-<img src="docs/assets/hero.gif" alt="CC Commander v7.0.0 — Claude Code Desktop plugin demo" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v7.1.0 — Claude Code Desktop plugin demo" width="100%">
 
 > **🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace. All 78 plugin skills, 22 agents, 23 lifecycle hooks (42 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
-[![GitHub stars](https://img.shields.io/github/stars/KevinZai/commander?style=for-the-badge&logo=github&color=FFD43B)](https://github.com/KevinZai/commander/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/544_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/78_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v7.0.0](https://img.shields.io/badge/v7.0.0-4F46E5?style=for-the-badge)](./CHANGELOG.md)
+[![GitHub stars](https://img.shields.io/github/stars/KevinZai/commander?style=for-the-badge&logo=github&color=FFD43B)](https://github.com/KevinZai/commander/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/544_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/78_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v7.1.0](https://img.shields.io/badge/v7.1.0-4F46E5?style=for-the-badge)](./CHANGELOG.md)
 
 <p>
   <strong>Powered by:</strong>
@@ -1053,7 +1053,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v7.0.0** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v7.1.0** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 
