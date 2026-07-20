@@ -655,8 +655,12 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
       + '<div class="row" style="justify-content:space-between;margin-top:4px"><span class="faint mono" style="font-size:11px">' + esc(d[0].date) + '</span><span class="acc mono" style="font-size:11px">peak ' + max + '/day</span><span class="faint mono" style="font-size:11px">' + esc(d[d.length - 1].date) + '</span></div>';
   })();
   $('an-top').innerHTML = (AN.topAgents || []).length ? (AN.topAgents || []).map(function (a) {
+    // runs is always measured; tokens/cost are null when never captured → "—".
+    var tokBadge = a.tokens != null
+      ? '<span class="badge tan">' + Math.round(a.tokens / 1000) + 'k tok</span>'
+      : '<span class="badge tan" title="token telemetry unavailable for this agent">— tok</span>';
     return '<div class="listrow"><span style="flex:1">' + esc(a.emoji || '🤖') + ' <strong>' + esc(a.name) + '</strong></span>'
-      + '<span class="badge">' + a.runs + ' runs</span><span class="badge tan">' + Math.round((a.tokens || 0) / 1000) + 'k tok</span>'
+      + '<span class="badge">' + a.runs + ' runs</span>' + tokBadge
       + (a.costUsd != null ? '<span class="badge pri">$' + a.costUsd.toFixed(2) + '</span>' : '') + '</div>';
   }).join('') : zero;
   $('an-skills').innerHTML = (AN.topSkills || []).length ? (AN.topSkills || []).map(function (s) {

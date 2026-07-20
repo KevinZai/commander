@@ -463,6 +463,19 @@ function safeMetric(value) {
   return Number.isFinite(value) && value >= 0 ? value : 0;
 }
 
+// Token data is "available" for a run only if it carries a positive count or an
+// explicit tokensAvailable:true. A bare 0 is indistinguishable from "never
+// captured" (the 3k+ historical rows are exactly that), so treat 0/null/absent
+// as unavailable — the honesty contract renders "—", not a measured-looking 0.
+function hasTokenData(entry) {
+  if (entry.tokensAvailable === false) return false;
+  if (entry.tokensAvailable === true) return true;
+  return (
+    (Number.isFinite(entry.inputTokens) && entry.inputTokens > 0) ||
+    (Number.isFinite(entry.outputTokens) && entry.outputTokens > 0)
+  );
+}
+
 function estimatedCostUsd(inputTokens, outputTokens) {
   return Number(((safeMetric(inputTokens) * 3 + safeMetric(outputTokens) * 15) / 1_000_000).toFixed(4));
 }
@@ -495,12 +508,16 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
       runs: 0,
       inputTokens: 0,
       outputTokens: 0,
+      tokenRuns: 0,
       durationMs: 0,
       durations: 0,
     };
     current.runs += 1;
-    current.inputTokens += safeMetric(entry.inputTokens);
-    current.outputTokens += safeMetric(entry.outputTokens);
+    if (hasTokenData(entry)) {
+      current.inputTokens += safeMetric(entry.inputTokens);
+      current.outputTokens += safeMetric(entry.outputTokens);
+      current.tokenRuns += 1;
+    }
     if (Number.isFinite(entry.durationMs) && entry.durationMs >= 0) {
       current.durationMs += entry.durationMs;
       current.durations += 1;
@@ -513,9 +530,14 @@ function buildTopAgents(agentRuns, cutoffMs, nowMs) {
       name: agent.source === 'claude-code' ? agent.name : `${agent.name} · ${agent.source}`,
       emoji: (PERSONA_MAP[agent.name.toLowerCase()] || DEFAULT_PERSONA).emoji,
       runs: agent.runs,
-      tokens: agent.inputTokens + agent.outputTokens,
-      costUsd: estimatedCostUsd(agent.inputTokens, agent.outputTokens),
-      avgMs: agent.durations > 0 ? Math.round(agent.durationMs / agent.durations) : 0,
+      // null (not 0) when no run for this agent carried real token data, so the
+      // roster shows "—" rather than a fabricated 0k / $0.00.
+      tokens: agent.tokenRuns > 0 ? agent.inputTokens + agent.outputTokens : null,
+      costUsd:
+        agent.tokenRuns > 0
+          ? estimatedCostUsd(agent.inputTokens, agent.outputTokens)
+          : null,
+      avgMs: agent.durations > 0 ? Math.round(agent.durationMs / agent.durations) : null,
     }))
     .sort((left, right) => right.runs - left.runs || right.tokens - left.tokens || left.name.localeCompare(right.name))
     .slice(0, 10);
@@ -633,12 +655,24 @@ async function buildAnalytics() {
   const sevenDaysAgo = nowMs - 7 * 24 * 60 * 60 * 1000;
   const thirtyDaysAgo = nowMs - 30 * 24 * 60 * 60 * 1000;
   const recentAgents = recentEntries(sources.agentRuns, sevenDaysAgo, nowMs);
-  const inputTokens = recentAgents.reduce((sum, entry) => sum + safeMetric(entry.inputTokens), 0);
-  const outputTokens = recentAgents.reduce((sum, entry) => sum + safeMetric(entry.outputTokens), 0);
+  // Only runs with real token data feed the token/cost tiles. If none do, the
+  // tiles say so honestly instead of showing a 0 that reads as "measured zero".
+  const tokenAgents = recentAgents.filter(hasTokenData);
+  const inputTokens = tokenAgents.reduce((sum, entry) => sum + safeMetric(entry.inputTokens), 0);
+  const outputTokens = tokenAgents.reduce((sum, entry) => sum + safeMetric(entry.outputTokens), 0);
+  const tokensMeasured = tokenAgents.length > 0;
   const tiles = [
     { label: 'Agent runs (7d)', value: recentAgents.length },
-    { label: 'Tokens (7d)', value: formatTokens(inputTokens + outputTokens) },
-    { label: 'Est cost (7d)', value: `$${estimatedCostUsd(inputTokens, outputTokens).toFixed(2)} est` },
+    {
+      label: 'Tokens (7d)',
+      value: tokensMeasured ? formatTokens(inputTokens + outputTokens) : '— unavailable',
+    },
+    {
+      label: 'Est cost (7d)',
+      value: tokensMeasured
+        ? `$${estimatedCostUsd(inputTokens, outputTokens).toFixed(2)} est`
+        : '—',
+    },
     ...skillTilesFromTopSkills(topSkills),
     { label: 'Tasks done (7d)', value: completedTaskCount(sources.tasks, sevenDaysAgo, nowMs) },
   ];
