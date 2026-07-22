@@ -41,18 +41,28 @@ The companion to `$ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remedia
 
 ### 1a. Resolve the clone root
 
+The marketplace clone root is `~/.claude/plugins/marketplaces/commander-hub`
+(that dir has `.git` directly in it — the repo's OWN top-level layout then
+nests the plugin source one level further at `commander/cowork-plugin/`; do
+not add an extra `/commander` segment to the clone root itself, and do not
+substitute `installed_plugins.json`'s `installPath` here — that field points
+into `plugins/cache/<mp>/<plugin>/<version>/`, a differently-shaped,
+already-resolved copy with no repo wrapper).
+
 ```bash
-CLONE="$HOME/.claude/plugins/marketplaces/commander-hub/commander"
+CLONE="$HOME/.claude/plugins/marketplaces/commander-hub"
 if [ ! -d "$CLONE" ]; then
+  # Authoritative fallback: known_marketplaces.json's installLocation.
   CLONE=$(node -e "
     try {
-      const d=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
-      const k=Object.keys(d.plugins||{}).find(k=>k.startsWith('commander'));
-      if(k&&d.plugins[k][0]) process.stdout.write(d.plugins[k][0].installPath||'');
+      const d=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/known_marketplaces.json','utf8'));
+      const m=d['commander-hub'];
+      if(m&&m.installLocation) process.stdout.write(m.installLocation);
     } catch(e) {}
   " 2>/dev/null || echo "")
 fi
 [ -z "$CLONE" ] && CLONE="n/a"
+[ "$CLONE" != "n/a" ] && [ ! -d "$CLONE" ] && CLONE="n/a"
 echo "CLONE=$CLONE"
 ```
 
@@ -344,10 +354,20 @@ Use `Edit` with surgical key insertion. Verify the file is valid JSON after each
 
 ### Version refresh / marketplace re-add (EMIT ONLY — never run)
 
+Marketplace-installed users have no working tree to `git pull` into — the
+clone at `~/.claude/plugins/marketplaces/commander-hub` is Claude Code's own
+cache. The sanctioned sequence is the marketplace-update flow:
+
 ```
 # To update the plugin — paste into terminal:
-cd ~/.claude/plugins/marketplaces/commander-hub/commander && git pull
-# Then restart Claude Code Desktop
+claude plugin marketplace update commander-hub
+claude plugin update commander
+# Then restart Claude Code / Cowork Desktop to apply
+#
+# To stop needing step 1 by hand: set "autoUpdate": true on the
+# "commander-hub" entry in ~/.claude/plugins/known_marketplaces.json
+# (or via the /plugin menu, if offered). /ccc-doctor offers to do this
+# for you with a backup + confirmation.
 ```
 
 ## Step 5 — Verify

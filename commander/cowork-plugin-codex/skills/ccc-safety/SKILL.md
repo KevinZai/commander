@@ -49,7 +49,7 @@ console.log('wrote scratchpad/ccc-safety-live.html');
 "
 ```
 
-Then **ask before publishing**, and publish `scratchpad/ccc-safety-live.html` with the Artifact tool (favicon 🛡️). Republish the same path to the same URL if you've published it before. End with the artifact title + the headline: "blocked N dangerous actions, auto-fixed M."
+**First publish this session** → ask before publishing (counts, tool names, redacted error signatures leave the machine for your private artifact URL). **Every later run of `$ccc-safety`** → invoking the skill again IS the refresh consent: republish the same file path to the same URL without re-asking. Publish `scratchpad/ccc-safety-live.html` with the Artifact tool (favicon 🛡️). End with the artifact title + the headline: "blocked N dangerous actions, auto-fixed M." To refresh later: run `$ccc-safety` again — same URL updates in place; viewers reload.
 
 ### 🗣️ Plain-English status
 
@@ -58,6 +58,8 @@ Run `readSafetyModel({})` and read the decision counts + top failing tool, then 
 ## The deck also links the others
 
 The published artifact carries the shared **Commander decks** strip at the top — one click (copy) away from the Cockpit, Mission Control, and Usage & Cost decks. Users always know the other decks exist.
+
+> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
 
 ---
 

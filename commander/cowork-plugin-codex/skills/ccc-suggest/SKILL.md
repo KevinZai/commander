@@ -247,7 +247,14 @@ Each tick runs the existing project scan + the three PM lenses above, then surfa
 
 ### Real-time project analysis signals (refreshed at most every ~30s of turn activity)
 
-The ticker maintains a cached project state in `~/.claude/commander/project-state.json`. Fields (exactly what `hooks/suggest-ticker.js` `computeState()` writes):
+The ticker maintains a cached project state **per project** at
+`~/.claude/commander/projects/<slug>/project-state.json`, where `<slug>` is
+`basename(cwd)` + `-` + the first 8 hex chars of `sha256(cwd)` (the exact
+algorithm is `projectSlug()` in `hooks/suggest-ticker.js`). To locate the
+current project's file: `ls -d ~/.claude/commander/projects/$(basename "$PWD")-*`.
+(The old flat `~/.claude/commander/project-state.json` is pre-v7.3.0 and no
+longer written — treat it as stale.) Fields (exactly what `hooks/suggest-ticker.js`
+`computeState()` writes):
 
 ```json
 {

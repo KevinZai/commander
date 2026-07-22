@@ -13,6 +13,10 @@ argument-hint: "[--all | --check]"
 
 # /ccc-upgrade — Vendor Submodule Updater
 
+> 🔎 **Looking to update the CC Commander plugin itself** (not this repo's
+> vendor submodules)? That's `$ccc-update` — a different, end-user-facing
+> tool with a similarly-spelled name. This skill is maintainer-only.
+
 > ⚠️ **Run only from the CC Commander repo root.** Verify `pwd` ends in `/cc-commander` (or your fork's name) and `ls .claude-plugin/marketplace.json` succeeds. Running this skill in the wrong cwd would touch unrelated submodules.
 
 Interactive workflow that audits the 19+ vendor submodules under `vendor/`, surfaces what changed upstream, lets the user pick which to update via AskUserQuestion, then runs the update + test + commit cycle one submodule at a time.

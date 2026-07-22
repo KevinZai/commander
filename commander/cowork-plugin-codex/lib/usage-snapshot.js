@@ -50,6 +50,23 @@
  * to an honest zero-state panel, never a fabricated number and never a
  * crash.
  *
+ * Metrics recompute (v7.3.0, W2+/codex 6): readUsageModel() triggers
+ * ./metrics.js's getMetrics() as a side effect before reading
+ * metrics.jsonl itself — getMetrics() shells out to `ccusage`, computes
+ * fresh daily rows, and atomically persists the merged result back to
+ * the same file (see metrics.js's persistMerged doc comment). This deck
+ * used to ONLY read whatever was already on disk, which could be
+ * arbitrarily stale if nothing else had polled getMetrics() recently
+ * (e.g. the live dashboard was never opened this session). The recompute
+ * result itself is discarded — this file still reads + aggregates
+ * metrics.jsonl through its OWN byte-bounded reader below (readJsonl/
+ * readTailText), unchanged, because that is the tolerant/bounded shape
+ * this deck's cost-by-app + daily-rollup logic already depends on and
+ * tests pin. `recompute` defaults to true; pass `recompute:false` (or an
+ * injected `metricsRunner`) to skip/stub the real `ccusage` spawn in
+ * tests — see metrics.js's own test suite for the same `runner`
+ * injection seam.
+ *
  * Deterministic rendering: every timestamp derives from the model or the
  * `now` argument — never Date.now() inside buildUsageHtml.
  * Zero dependencies (beyond this plugin's own lib/), ESM, read-only,
@@ -63,12 +80,17 @@ import path from 'node:path';
 import { brandBaseCss } from './brand-css.js';
 import { aggregateDaily, sparkline } from './charts.js';
 import { deckStripCss, deckStripHtml } from './deck-switcher.js';
+import { getMetrics } from './metrics.js';
 
 const MAX_JSONL_LINES = 5000; // same bounded-scan cap as mission-control-snapshot.js
 const MAX_JSONL_BYTES = 8 * 1024 * 1024; // read at most the trailing 8MB — the producer never rotates these logs
 const ROW_CAP = 30;
 const SAVINGS_DAYS_CAP = 30;
 const COST_DAYS_CAP = 30;
+const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // v7.3.0 staleness banner threshold
+const SAVINGS_STALE_MS = 7 * 24 * 60 * 60 * 1000; // savings-source honesty note threshold (W2+/codex 6)
+const DOCTOR_POINTER =
+  'Run /ccc-doctor to check your hooks are wired. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)';
 
 function defaultBaseDir() {
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
@@ -184,9 +206,17 @@ function latestByDateSource(rows) {
   return [...byKey.values()];
 }
 
-async function readUsageModel({ baseDir, now } = {}) {
+async function readUsageModel({ baseDir, now, recompute = true, metricsRunner } = {}) {
   const root = baseDir || defaultBaseDir();
   const nowMs = toMs(now) ?? Date.now();
+
+  if (recompute) {
+    // Trigger the canonical recompute+persist path (metrics.js's getMetrics())
+    // before reading metrics.jsonl ourselves — see this file's doc comment.
+    // Side-effect only: the resolved rows are discarded here. Never let a
+    // failed recompute (missing ccusage binary, offline, etc.) block the deck.
+    await getMetrics({ baseDir: root, now: nowMs, runner: metricsRunner }).catch(() => []);
+  }
 
   const [savingsRaw, metricsRawRows] = await Promise.all([
     readSavingsJson(path.join(root, 'savings.json')),
@@ -227,6 +257,35 @@ async function readUsageModel({ baseDir, now } = {}) {
 
   const costSeries = aggregateDaily(metricsRows, 'cost_usd', COST_DAYS_CAP);
 
+  // dataThrough (v7.3.0, Item 6): newest source-row timestamp across this
+  // deck's own sources — savings.json's day-keys and metrics.jsonl's `date`
+  // rows are both daily-granularity (not full timestamps), so each day-key
+  // is treated as that day's UTC midnight via the same toMs() used
+  // everywhere else in this file. hasAnySourceRow distinguishes "never
+  // written" (zero-state) from "written, but stale" (warning banner).
+  const dayKeys = Object.keys(days || {});
+  let dataThroughMs = null;
+  for (const key of dayKeys) {
+    const ms = toMs(key);
+    if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
+  }
+  for (const row of metricsRawRows) {
+    const ms = row && typeof row === 'object' ? toMs(row.date) : null;
+    if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
+  }
+  const hasAnySourceRow = dayKeys.length > 0 || metricsRawRows.length > 0;
+
+  // Savings-source honesty (W2+/codex 6): savings.json is ONLY ever written
+  // by the legacy CLI dispatcher (commander/lib/savings.js) — plugin-native
+  // agent runs never touch it. "Stale" here means no day bucket within the
+  // last 7 days (or the file was never written at all).
+  let newestSavingsDayMs = null;
+  for (const key of dayKeys) {
+    const ms = toMs(key);
+    if (ms !== null && (newestSavingsDayMs === null || ms > newestSavingsDayMs)) newestSavingsDayMs = ms;
+  }
+  const savingsStale = newestSavingsDayMs === null || nowMs - newestSavingsDayMs > SAVINGS_STALE_MS;
+
   return {
     totalSavedUsd,
     totalActualUsd,
@@ -235,6 +294,9 @@ async function readUsageModel({ baseDir, now } = {}) {
     savingsSeries,
     costSeries,
     costByApp,
+    dataThroughMs,
+    hasAnySourceRow,
+    savingsStale,
     generatedAt: new Date(nowMs).toISOString(),
   };
 }
@@ -251,6 +313,18 @@ function esc(value) {
 function stamp(ms) {
   if (!Number.isFinite(ms)) return '';
   return `${new Date(ms).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+}
+
+// Mirrors mission-control-snapshot.js's timeAgo() — duplicated per this
+// file's own doc-comment convention (small, self-contained helpers are
+// copied, not imported, across this lib/ tree).
+function timeAgo(tsMs, nowMs) {
+  if (!Number.isFinite(tsMs) || !Number.isFinite(nowMs)) return '';
+  const delta = nowMs - tsMs;
+  if (delta < 45 * 1000) return 'just now';
+  if (delta < 60 * 60 * 1000) return `${Math.max(1, Math.round(delta / 60000))}m ago`;
+  if (delta < 24 * 60 * 60 * 1000) return `${Math.round(delta / 3600000)}h ago`;
+  return `${Math.round(delta / 86400000)}d ago`;
 }
 
 function sourceSlug(value) {
@@ -299,6 +373,8 @@ body{margin:0;background:var(--uc-bg);color:var(--uc-fg);}
 .uc .hero-amount{color:var(--uc-ok);font-size:1.3em;font-weight:700;}
 .uc .hero-negative{border-color:var(--uc-warn);}
 .uc .hero-negative .hero-amount{color:var(--uc-warn);}
+.uc .stale-banner{border-color:var(--uc-warn);background:color-mix(in srgb,var(--uc-warn) 12%,transparent);}
+.uc .stale-banner p{margin:0;color:var(--uc-warn);font-size:.9rem;}
 .uc .disclaimer{margin:0;font-size:.8rem;}
 .uc .muted{color:var(--uc-muted);}
 .uc .zero{color:var(--uc-muted);margin:0;}
@@ -334,16 +410,39 @@ function renderTerminalChromeOpen() {
 
 const TERMINAL_CHROME_CLOSE = '</div>';
 
-function renderHeroSection(totalSavedUsd, totalDispatches) {
+// Staleness warning banner (v7.3.0, Item 6) — only rendered when at least
+// one source row exists but the newest one is older than the threshold.
+// The fully-empty case (no source rows at all) is handled separately by
+// appending DOCTOR_POINTER to the hero's zero-state, not this banner.
+function renderStalenessBanner(dataThroughMs, nowMs) {
+  if (!Number.isFinite(dataThroughMs) || !Number.isFinite(nowMs)) return '';
+  if (nowMs - dataThroughMs <= STALE_THRESHOLD_MS) return '';
+  return `<section aria-label="Telemetry freshness" class="stale-banner">
+<p>⚠️ Telemetry last written ${esc(timeAgo(dataThroughMs, nowMs))} — hooks may not be running. Run /ccc-doctor. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)</p>
+</section>`;
+}
+
+// Savings-source honesty sub-note (W2+/codex 6) — only shown when
+// savings.json has no day bucket within the last 7 days (or was never
+// written), since savings.json is exclusively a legacy-CLI-dispatcher signal.
+function renderSavingsSourceNote(savingsStale) {
+  if (!savingsStale) return '';
+  return '<p class="muted disclaimer">Savings tracking currently comes from CLI dispatches — plugin-native agent runs aren\'t counted yet.</p>';
+}
+
+function renderHeroSection(totalSavedUsd, totalDispatches, { savingsStale = false, hasAnySourceRow = true } = {}) {
   if (!Number.isFinite(totalDispatches) || totalDispatches <= 0) {
+    const doctorNote = hasAnySourceRow ? '' : ` ${DOCTOR_POINTER}`;
     return `<section aria-label="Savings summary">
-<p class="zero">💰 No savings data yet — dispatch a task and Commander starts tracking what delegating to cheaper models saved you.</p>
+<p class="zero">💰 No savings data yet — dispatch a task and Commander starts tracking what delegating to cheaper models saved you.${esc(doctorNote)}</p>
+${renderSavingsSourceNote(savingsStale)}
 </section>`;
   }
 
   const dispatchCount = Math.max(0, Math.round(totalDispatches));
   const dispatchWord = `dispatch${dispatchCount === 1 ? '' : 'es'}`;
   const disclaimer = '<p class="muted disclaimer">Estimates vs an all-Opus 4.8 baseline, ±30%. Not actual Anthropic billing data.</p>';
+  const savingsNote = renderSavingsSourceNote(savingsStale);
 
   // Negative "savings" is legitimate — delegation that ran pricier than the
   // all-Opus baseline. Render it honestly as an extra cost (warn-coloured),
@@ -353,6 +452,7 @@ function renderHeroSection(totalSavedUsd, totalDispatches) {
     return `<section aria-label="Savings summary" class="hero hero-negative">
 <p class="hero-line">Delegation cost <span class="hero-amount">${esc(overLabel)}</span> more than an all-Opus 4.8 baseline across ${esc(dispatchCount)} ${dispatchWord}.</p>
 ${disclaimer}
+${savingsNote}
 </section>`;
   }
 
@@ -360,6 +460,7 @@ ${disclaimer}
   return `<section aria-label="Savings summary" class="hero">
 <p class="hero-line">Delegating to cheaper models saved you <span class="hero-amount">${esc(savedLabel)}</span> across ${esc(dispatchCount)} ${dispatchWord}.</p>
 ${disclaimer}
+${savingsNote}
 </section>`;
 }
 
@@ -424,7 +525,12 @@ function buildUsageHtml(model, { now } = {}) {
   const savingsSeries = Array.isArray(source.savingsSeries) ? source.savingsSeries : [];
   const costSeries = Array.isArray(source.costSeries) ? source.costSeries : [];
   const costByApp = Array.isArray(source.costByApp) ? source.costByApp : [];
+  const dataThroughMs = Number.isFinite(source.dataThroughMs) ? source.dataThroughMs : null;
+  const hasAnySourceRow = source.hasAnySourceRow !== false;
+  const savingsStale = source.savingsStale === true;
   const nowMs = toMs(now) ?? toMs(source.generatedAt);
+  const dataThroughLine =
+    dataThroughMs !== null ? ` · Data through: ${esc(stamp(dataThroughMs))}` : '';
 
   return `<meta charset="utf-8">
 <title>Commander Usage &amp; Cost</title>
@@ -434,9 +540,10 @@ ${renderTerminalChromeOpen()}
 ${deckStripHtml('usage', { interactive: false })}
 <header>
 <h1>💰 Commander Usage &amp; Cost</h1>
-<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}</p>
+<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}${dataThroughLine}</p>
 </header>
-${renderHeroSection(totalSavedUsd, totalDispatches)}
+${renderStalenessBanner(dataThroughMs, nowMs)}
+${renderHeroSection(totalSavedUsd, totalDispatches, { savingsStale, hasAnySourceRow })}
 ${renderChartsSection(savingsSeries, costSeries)}
 ${renderCostByAppSection(costByApp)}
 <footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>

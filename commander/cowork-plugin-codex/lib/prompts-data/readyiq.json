@@ -1,0 +1,28 @@
+{
+  "source": "ReadyIQ agent builder (readyiq.ai)",
+  "compiledAt": "2026-07-22T00:00:00.000Z",
+  "teaser": true,
+  "totalAgents": 223,
+  "attribution": "ReadyIQ agent builder — a small teaser sample. Names + one-line descriptions only, no prompt frameworks.",
+  "funnel": {
+    "title": "Build agents like these with ReadyIQ",
+    "desc": "ReadyIQ's Studio ships 223+ ready-made agent personas across Engineering, Marketing, Operations, Sales, Support, and HR — plus a builder to create your own, with prompt frameworks, capabilities, and model routing included.",
+    "cta": "readyiq.ai"
+  },
+  "entries": [
+    { "id": "api-designer", "name": "API Designer", "category": "Engineering", "avatar": "🛠️", "desc": "Designs clear, secure APIs and documentation that make software integrations easier to build and maintain." },
+    { "id": "frontend-developer", "name": "Frontend Developer", "category": "Engineering", "avatar": "🛠️", "desc": "Builds accessible, responsive website interfaces that connect cleanly to your existing systems." },
+    { "id": "fullstack-developer", "name": "Fullstack Developer", "category": "Engineering", "avatar": "🛠️", "desc": "Builds complete web features across the database, server, and customer-facing interface." },
+    { "id": "microservices-architect", "name": "Microservices Architect", "category": "Engineering", "avatar": "🛠️", "desc": "Reviews complex software systems and designs resilient service boundaries, communication, and rollout plans." },
+    { "id": "ui-designer", "name": "UI Designer", "category": "Engineering", "avatar": "🛠️", "desc": "Creates clear, accessible interface designs and reusable visual patterns for websites and apps." },
+    { "id": "sql-specialist", "name": "SQL Specialist", "category": "Operations", "avatar": "⚙️", "desc": "Writes and improves database queries, schemas, and safeguards for reliable business data." },
+    { "id": "reliability-engineer", "name": "Reliability Engineer", "category": "Operations", "avatar": "⚙️", "desc": "Monitors service reliability, explains incidents, and recommends practical ways to reduce downtime." },
+    { "id": "data-analyst", "name": "Data Analyst", "category": "Operations", "avatar": "⚙️", "desc": "Turns business data into trustworthy metrics, clear findings, and decision-ready recommendations." },
+    { "id": "seo-specialist", "name": "SEO Specialist", "category": "Marketing", "avatar": "✍️", "desc": "Audits your website and turns search data into a prioritized plan for sustainable organic growth." },
+    { "id": "content-marketer", "name": "Content Marketer", "category": "Marketing", "avatar": "✍️", "desc": "Plans, creates, distributes, and measures content that supports your marketing goals." },
+    { "id": "competitive-analyst", "name": "Competitive Analyst", "category": "Marketing", "avatar": "✍️", "desc": "Tracks competitors and turns public evidence into positioning insights and practical response options." },
+    { "id": "customer-success-manager", "name": "Customer Success Manager", "category": "Support", "avatar": "🎧", "desc": "Tracks customer health and prepares practical actions to improve adoption, retention, and renewals." },
+    { "id": "sales-outreach-automator", "name": "Sales Outreach Automator", "category": "Sales", "avatar": "📈", "desc": "Drafts personalized outreach sequences, follow-ups, proposals, and objection responses." },
+    { "id": "hr-pro", "name": "HR Pro", "category": "HR Onboarding", "avatar": "🧑‍💼", "desc": "Drafts practical hiring, onboarding, leave, performance, and employee-relations materials with clear legal guardrails." }
+  ]
+}

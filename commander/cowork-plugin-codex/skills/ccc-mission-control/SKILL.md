@@ -64,9 +64,11 @@ await writeFile(process.argv[1], html);
 
 Then publish that same file with the **Artifact** tool using favicon `🎛️` and stable title **"Commander Mission Control"**.
 
-**Confirm before publishing:** before the first Artifact publish, use `AskUserQuestion` to tell the user that agent names, task subjects, and timings will leave the machine for their private claude.ai artifact URL. Publish only after an explicit confirmation. Never publish automatically.
+**Confirm before the FIRST publish only:** before the first Artifact publish this session, use `AskUserQuestion` to tell the user that agent names, task subjects, and timings will leave the machine for their private claude.ai artifact URL. Publish only after an explicit confirmation. Never publish automatically.
 
-**🔄 Refresh snapshot:** rebuild the model → rewrite `scratchpad/mission-control-live.html` → republish that same file. The URL stays the same. Ask for explicit confirmation before every republish. If new session IDs appeared since the last published snapshot, call them out in the confirmation so the user knows new session data will be uploaded.
+**🔄 Refresh snapshot:** rebuild the model → rewrite `scratchpad/mission-control-live.html` → republish that same file. The URL stays the same. **Invoking `$ccc-mission-control` again IS the refresh consent** — republish without re-asking; the first-publish confirmation above already covered what leaves the machine. If new session IDs appeared since the last published snapshot, mention it in passing (not as a fresh ask). To refresh later: run `$ccc-mission-control` again — same URL updates in place; viewers reload.
+
+> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
 
 **📱 Check from your phone:** open the published URL there and revisit it after each refresh.
 
