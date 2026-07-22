@@ -24,7 +24,7 @@ urllib3==1.26.15
 # Data processing and analysis
 pandas==2.0.1
 numpy==1.24.3
-Pillow==9.5.0
+Pillow==12.3.0
 openpyxl==3.1.2
 
 # Monitoring and logging
