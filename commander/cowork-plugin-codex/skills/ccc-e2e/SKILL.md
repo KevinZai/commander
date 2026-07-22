@@ -124,7 +124,7 @@ After dispatching, emit one card:
 
 > 🔄 **<N> worker(s) running** — ETA ~<X> min. I'll synthesize when all complete.
 > 📂 Verdict will land at `tasks/reviews/ccc-e2e-<YYYYMMDD>.md`.
-> 💡 Use `/ccc-e2e status` to check in. Or wait — I'll surface the verdict automatically.
+> 💡 Use `$ccc-e2e status` to check in. Or wait — I'll surface the verdict automatically.
 
 ## Step 4 — Synthesize and write verdict
 
@@ -244,3 +244,5 @@ Ship / Patch required / Triage needed
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

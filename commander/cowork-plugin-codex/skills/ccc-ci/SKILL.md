@@ -16,7 +16,7 @@ Bridges your CI/CD pipeline to your active Claude Code session. Deploy events ar
 
 ## What it does
 
-`/ccc-ci` runs a lightweight HTTP receiver on `localhost:7891` that accepts signed webhook payloads from GitHub Actions, Vercel, Railway, and Fly.io. Each inbound event is classified, routed to a handler, and surfaced in chat — so you see deploy failures, test results, and approval gates without leaving your session. On failure, CCC automatically loads `/ccc-doctor`, reads the CI log, classifies the error, and proposes a concrete fix. On success, it drafts a celebration tweet you can post with one click.
+`$ccc-ci` runs a lightweight HTTP receiver on `localhost:7891` that accepts signed webhook payloads from GitHub Actions, Vercel, Railway, and Fly.io. Each inbound event is classified, routed to a handler, and surfaced in chat — so you see deploy failures, test results, and approval gates without leaving your session. On failure, CCC automatically loads `$ccc-doctor`, reads the CI log, classifies the error, and proposes a concrete fix. On success, it drafts a celebration tweet you can post with one click.
 
 ## Setup
 
@@ -47,7 +47,7 @@ Bridges your CI/CD pipeline to your active Claude Code session. Deploy events ar
 
 ### Vercel — Dashboard → Settings → Webhooks → Add
 
-Point to the URL printed by `/ccc-ci init`. Select: `deployment.created`, `deployment.succeeded`, `deployment.error`.
+Point to the URL printed by `$ccc-ci init`. Select: `deployment.created`, `deployment.succeeded`, `deployment.error`.
 
 ### Fly.io — `fly webhooks create`
 
@@ -72,7 +72,7 @@ fly webhooks create --app myapp \
 ## Auto-actions per event
 
 ### `deploy_failed`
-1. Load `/ccc-doctor` in the current session
+1. Load `$ccc-doctor` in the current session
 2. Read the error log URL from the payload
 3. Classify: dependency error / OOM / config drift / timeout / unknown
 4. Propose targeted fix command in chat (copy-paste ready)
@@ -87,7 +87,7 @@ fly webhooks create --app myapp \
 2. Draft a celebration tweet: "Just shipped X to production in Ys. 🚀 #buildinpublic"
 
 ### `approval_required`
-1. Forward notification to `/ccc-nightwatch` so you're alerted even if your session is idle
+1. Forward notification to `$ccc-nightwatch` so you're alerted even if your session is idle
 2. Print the approval URL and the command to approve via CLI
 
 ## Architecture
@@ -129,7 +129,7 @@ GitHub Actions calls the webhook with `test_failed` and the log URL. CCC fetches
 - **Signature validation:** every request is verified with HMAC-SHA256 against a shared secret generated at `init` time and stored in `~/.claude/commander/ccc-ci.secret`.
 - **Loopback only by default:** the receiver binds `127.0.0.1:7891` — not reachable from the internet unless `--tunnel` is passed.
 - **Tunnel exposure:** `--tunnel` launches `ngrok http 7891` or `cloudflared tunnel --url http://localhost:7891`. The tunnel URL is rotated each `init` run; update your webhook config accordingly.
-- **Secret rotation:** run `/ccc-ci init --rotate` to generate a new secret and print updated webhook configs.
+- **Secret rotation:** run `$ccc-ci init --rotate` to generate a new secret and print updated webhook configs.
 
 ## When NOT to use
 

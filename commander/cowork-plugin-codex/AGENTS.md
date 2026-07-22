@@ -11,6 +11,7 @@ The Codex-format mirror of the CC Commander plugin: 80 skills (`skills/*/SKILL.m
 - Start with the `ccc` skill (`$ccc`) — the guided hub for the /ccc-* workflows.
 - Skills load from `skills/`; invoke explicitly with `$<skill-name>` or let the task match implicitly.
 - Agent personas in `agents/*.toml` define specialist voices (architect, reviewer, security-auditor, …). Adopt the matching persona when a task fits one.
+- Skill/hook commands reference `${CLAUDE_PLUGIN_ROOT}` — Codex exposes it as a documented compatibility alias for its native `PLUGIN_ROOT`, so it resolves correctly here unmodified.
 
 ## Operating rules for agents working here
 

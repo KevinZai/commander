@@ -40,11 +40,11 @@ Audit a site across **11 hardening pillars** to confirm it's safe to ship. Read-
 
 🚫 **Don't use when:**
 - Project is pre-MVP / local-only (overkill)
-- Quick fix that doesn't touch infra/config (use `/ccc-doctor` instead)
+- Quick fix that doesn't touch infra/config (use `$ccc-doctor` instead)
 
 ## Trigger flow
 
-When the user invokes `/ccc-harden`:
+When the user invokes `$ccc-harden`:
 
 1. **Read `.harden.json`** at project root. If missing, run `bash ~/.claude/skills/harden-site/lib/tier.sh` to auto-classify (production/staging/parked/personal) and generate it.
 
@@ -81,7 +81,7 @@ CC Commander's hardening audit **never** sends data to PostHog or any telemetry 
 - Reports rendered in the terminal
 - Findings written to `.harden.report.md` (gitignored by default)
 
-Telemetry from `/ccc-harden` itself emits **only**:
+Telemetry from `$ccc-harden` itself emits **only**:
 - `skill_invoked` with `skill_id=ccc-harden`
 - `harden_audit_completed` with `{ tier, pillars_run, pass, warn, fail }` (counts only, no file paths, no findings)
 
@@ -109,10 +109,10 @@ If the user has never run hardening before:
 
 ## Related skills
 
-- `/ccc-doctor` — generic project health check (lighter weight, no API tokens)
-- `/ccc-security` — OWASP audit + threat modeling (deeper than infra hardening)
-- `/ccc-deploy-check` — pre-deploy gate (12 quick checks before pushing)
-- `/ccc-deploy` — actual deploy workflow (uses hardening output as a precondition)
+- `$ccc-doctor` — generic project health check (lighter weight, no API tokens)
+- `$ccc-security` — OWASP audit + threat modeling (deeper than infra hardening)
+- `$ccc-deploy-check` — pre-deploy gate (12 quick checks before pushing)
+- `$ccc-deploy` — actual deploy workflow (uses hardening output as a precondition)
 
 ## Vendor sources
 
@@ -123,3 +123,5 @@ To update the underlying logic, edit `~/.claude/skills/harden-site/pillars/*.sh`
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

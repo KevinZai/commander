@@ -181,7 +181,7 @@ required, services that need to be running, etc. Skip if standard setup.]
 - Each session gets its own file — never append to a previous session's file
 - The "What Did NOT Work" section is the most critical — future sessions will blindly retry failed approaches without it
 - If the user asks to save mid-session, save what is known so far and mark in-progress items clearly
-- The file is meant to be read by Claude at the start of the next session via `/ccc-resume-session`
+- The file is meant to be read by Claude at the start of the next session via `$ccc-resume-session`
 - Use the canonical global session store: `~/.claude/sessions/`
 - Prefer the short-id filename form for any new session file to avoid same-day collisions
 

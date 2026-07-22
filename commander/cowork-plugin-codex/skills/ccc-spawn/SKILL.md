@@ -23,7 +23,7 @@ Spin work off into its **own session** on demand — the manual counterpart to t
 
 ## How it routes
 
-On `/ccc-spawn` with no argument, open a click-first picker:
+On `$ccc-spawn` with no argument, open a click-first picker:
 
 ```
 AskUserQuestion:
@@ -38,11 +38,11 @@ AskUserQuestion:
 | Choice | Surface behaviour | Under the hood |
 |--------|-------------------|----------------|
 | **Isolated session** | Cowork → emit a `spawn_task` chip `[⭐ Spawn as separate session]`; CLI → `/spawn quick <task>` | A fresh peer/session with a self-contained brief; never derails the current thread |
-| **Parallel fleet** | Route to **`/ccc-fleet`** (worktree-isolated parallel agents) | fan-out / pipeline / judge / debate modes |
-| **Cross-session relay** | Route to **`/ccc-relay`** | loop-state hand-off, spec→build→review→merge |
+| **Parallel fleet** | Route to **`$ccc-fleet`** (worktree-isolated parallel agents) | fan-out / pipeline / judge / debate modes |
+| **Cross-session relay** | Route to **`$ccc-relay`** | loop-state hand-off, spec→build→review→merge |
 | **Expert pass** | Cowork → `spawn_task` chip scoped to one reviewer persona; CLI → `/spawn expert <domain>` | a single fresh-context reviewer, prompted to refute (Pillar 2) |
 
-Explicit sub-commands skip the picker: `/ccc-spawn isolated <task>`, `/ccc-spawn fleet`, `/ccc-spawn relay`, `/ccc-spawn expert <domain>`, `/ccc-spawn status`.
+Explicit sub-commands skip the picker: `$ccc-spawn isolated <task>`, `$ccc-spawn fleet`, `$ccc-spawn relay`, `$ccc-spawn expert <domain>`, `$ccc-spawn status`.
 
 ## The brief a spawned session gets
 
@@ -53,7 +53,7 @@ Every spawn carries a **self-contained contract** (Pillar 8), because a peer/ses
 - **Hard constraints** — worktree-isolated, relative paths only, don't touch X, don't merge without a human GO (Pillar 5).
 - **Report format** — so the result is parseable when it comes back.
 
-`/ccc-spawn status` lists active peers/sessions (CLI: `list_peers`; Cowork: the task chips you've started) and any pending hand-offs.
+`$ccc-spawn status` lists active peers/sessions (CLI: `list_peers`; Cowork: the task chips you've started) and any pending hand-offs.
 
 ## Safety (Pillar 5)
 
@@ -76,3 +76,5 @@ Every spawn carries a **self-contained contract** (Pillar 8), because a peer/ses
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

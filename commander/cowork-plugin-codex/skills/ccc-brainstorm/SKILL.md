@@ -15,7 +15,7 @@ Before writing code or specs, generate 3 distinct alternatives. Forces designer-
 
 ## Triggers
 
-- `/ccc-brainstorm` or `/brainstorm`
+- `$ccc-brainstorm` or `/brainstorm`
 - "how should I build X"
 - "which approach should I take"
 - "I'm torn between X and Y"
@@ -25,9 +25,9 @@ Before writing code or specs, generate 3 distinct alternatives. Forces designer-
 
 ## When NOT to Use
 
-- Fixing a bug with an obvious solution (use `/ccc-review` or just fix it)
+- Fixing a bug with an obvious solution (use `$ccc-review` or just fix it)
 - Well-known patterns where the answer is already standard (e.g., "how do I add a .env file")
-- Tasks with a single correct answer (use `/ccc-plan` directly)
+- Tasks with a single correct answer (use `$ccc-plan` directly)
 - Mid-implementation pivots where switching costs exceed the decision value
 
 ## Process
@@ -170,3 +170,5 @@ Agent C: Tailwind UI — polished designs, pro license, fastest to ship a good-l
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

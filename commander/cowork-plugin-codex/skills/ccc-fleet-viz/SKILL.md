@@ -11,7 +11,7 @@ allowed-tools:
 
 # /ccc-fleet-viz — Live Fleet Tree
 
-Triggered by user typing `/ccc-fleet-viz` or automatically at the end of any `/ccc-fleet` run.
+Triggered by user typing `$ccc-fleet-viz` or automatically at the end of any `$ccc-fleet` run.
 
 ## Inputs
 
@@ -63,7 +63,7 @@ graph TD
 
 ## Final Step From /ccc-fleet
 
-When `/ccc-fleet` synthesis is complete, invoke this skill once to render the final fleet tree. Do not reimplement the renderer in `/ccc-fleet`; keep the rendering path centralized here.
+When `$ccc-fleet` synthesis is complete, invoke this skill once to render the final fleet tree. Do not reimplement the renderer in `$ccc-fleet`; keep the rendering path centralized here.
 
 ---
 

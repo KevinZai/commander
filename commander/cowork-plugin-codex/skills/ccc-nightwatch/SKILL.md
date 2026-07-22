@@ -18,7 +18,7 @@ Nightwatch installs a PreToolUse permission hook that intercepts tool calls duri
 
 ## Triggers
 
-- `/ccc-nightwatch`
+- `$ccc-nightwatch`
 - "I want to run Claude Code overnight"
 - "approve from phone"
 - "remote YOLO"
@@ -65,7 +65,7 @@ proceed silently     [Notifier]               block + alert
 
 ### Step 1 — Choose your channel
 
-Run `/ccc-nightwatch` and pick your channel:
+Run `$ccc-nightwatch` and pick your channel:
 
 ```
 AskUserQuestion:
@@ -156,3 +156,5 @@ Message content is scrubbed before relay. Nightwatch sends **tool name + argumen
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

@@ -19,7 +19,7 @@ argument-hint: "[on | status | audit | off]"
 
 ## What this skill does
 
-`/ccc-fable` doesn't run a build — it arms a **session-wide operating contract**. Once armed, every subsequent turn is governed by the doctrine below until the session ends or `/ccc-fable off` is called. Full text: `rules/fable-method.md`.
+`$ccc-fable` doesn't run a build — it arms a **session-wide operating contract**. Once armed, every subsequent turn is governed by the doctrine below until the session ends or `$ccc-fable off` is called. Full text: `rules/fable-method.md`.
 
 ## Argument routing
 
@@ -29,7 +29,7 @@ Ask via AskUserQuestion if no argument is given: **on** (arm the full contract) 
 
 Arm all five layers as the session's operating contract:
 
-**1. The PM loop** — every work cycle, run the three lenses ambiently (cross-ref `/ccc-suggest loop`):
+**1. The PM loop** — every work cycle, run the three lenses ambiently (cross-ref `$ccc-suggest loop`):
 - **IMPROVE:** repeated manual step → encode it as a skill or hook.
 - **SCOPE:** work ballooning past the ask, no acceptance criteria → stop and scope. SCOPE OUTRANKS IMPROVE.
 - **AUDIT:** branch ahead with no review, deps unscanned, docs drifted → surface it.
@@ -73,7 +73,7 @@ Flag adjacent opportunities — never execute them inline.
 
 **5. Verifier separation, hard-enforced** — the maker of a finding, fix, or claim never grades it. Subagent self-reports are claims, not facts. Re-run the load-bearing check before reporting done.
 
-Confirm armed with a one-line ack: "Fable Method armed: 12 gates · PM loop · workflow-first posture. `/ccc-fable audit` to self-check."
+Confirm armed with a one-line ack: "Fable Method armed: 12 gates · PM loop · workflow-first posture. `$ccc-fable audit` to self-check."
 
 ### `status`
 
@@ -108,10 +108,12 @@ This skill exists so the methodology survives the model. A frontier model does s
 - `rules/fable-method.md` — full doctrine, all 12 pillars with Rule/Why/Mechanics/Gate/Failure-prevented
 - `rules/common/reasoning-hygiene.md` — Pillar 4 in full
 - `rules/workflow-first.md` — Pillars 1, 2, 6, 7, 8, 9, 11 as ambient session rules
-- `/ccc-orchestrate` — Pillar 1 implementation (goal file → executor → verify)
-- `/ccc-suggest` — Pillar 10 implementation (the IMPROVE/SCOPE/AUDIT loop)
-- `/ccc-handoff` — Pillar 7 implementation (context-reset before quality degrades)
+- `$ccc-orchestrate` — Pillar 1 implementation (goal file → executor → verify)
+- `$ccc-suggest` — Pillar 10 implementation (the IMPROVE/SCOPE/AUDIT loop)
+- `$ccc-handoff` — Pillar 7 implementation (context-reset before quality degrades)
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

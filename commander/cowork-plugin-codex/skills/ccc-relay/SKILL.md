@@ -5,9 +5,9 @@ description: "Cross-session loop chaining — chain independent spec/build/revie
 
 # /ccc-relay — Cross-Session Loop Chaining
 
-`/ccc-loop` iterates *inside* one session. `/ccc-relay` chains *separate* sessions: an always-on **spec** loop hands its result to a **build** loop, which hands to a **review** loop, which hands to **merge** — each a distinct, independently-gated loop that launches the next automatically when its own stop condition is met. This is the "Finn Loop" pattern: not one agent looping, but a relay team of loops passing a baton.
+`$ccc-loop` iterates *inside* one session. `$ccc-relay` chains *separate* sessions: an always-on **spec** loop hands its result to a **build** loop, which hands to a **review** loop, which hands to **merge** — each a distinct, independently-gated loop that launches the next automatically when its own stop condition is met. This is the "Finn Loop" pattern: not one agent looping, but a relay team of loops passing a baton.
 
-> `/ccc-relay` **composes** three primitives instead of re-implementing them — read those skills for the mechanics this one orchestrates:
+> `$ccc-relay` **composes** three primitives instead of re-implementing them — read those skills for the mechanics this one orchestrates:
 > - `ccc-loop` — the loop taxonomy, the should-loop gate, the state-file convention, verifier-separation. **Each link in a relay is one loop from that taxonomy.**
 > - `ccc-fleet` — parallelism *within* a link (fan out the build across worktrees). A relay is sequential across links; a fleet is parallel within one.
 > - `commands/ccc-spawn.md` (`/spawn`) — the CLI mechanism for launching the next session as a peer when you're at a terminal.
@@ -33,7 +33,7 @@ Baton pass, per link:
    - **CLI** → `/spawn` launches the next session as a peer (see `ccc-spawn.md`).
 4. **Link B consumes the `handoff` block** as its brief, runs its own gated loop, and repeats the pass — through `review`, then stops at `merge` for an explicit human GO.
 
-The key distinction from `/ccc-loop`: `/ccc-loop` is one context iterating; `/ccc-relay` is **fresh context per link**. That freshness is not incidental — it is what makes the review link a real verifier (Pillar 2 below).
+The key distinction from `$ccc-loop`: `$ccc-loop` is one context iterating; `$ccc-relay` is **fresh context per link**. That freshness is not incidental — it is what makes the review link a real verifier (Pillar 2 below).
 
 ## The relay-state convention
 
@@ -98,7 +98,7 @@ Because the mailbox is durable, the relay is restart-resilient: if the machine s
 
 A relay multiplies the blast radius of an ungated loop by the number of links. **Every single link must independently pass the gate — the relay does not inherit one gate for the whole chain.** Before wiring any link, prove all four parts of the should-loop gate *for that link* (from `ccc-loop`):
 
-1. **Recurs at least weekly** — if the chain runs once, it's a one-shot pipeline, not a relay; just run `/ccc-plan` → `/ccc-build` → `/ccc-review` by hand.
+1. **Recurs at least weekly** — if the chain runs once, it's a one-shot pipeline, not a relay; just run `$ccc-plan` → `$ccc-build` → `$ccc-review` by hand.
 2. **Verification is automated for this link** — the build link's bar is `npm test exits 0`; the review link's bar is `zero 🔴/🟠 findings`. A link with no checkable bar can't decide `phase: done`, so it can't hand off.
 3. **Budget absorbs the waste** — every link re-reads context and retries. A four-link relay burns roughly four loops' worth of tokens per full pass. Pilot on a small slice first (Pillar 11).
 4. **The link has real tools** — the build link needs a run/test environment; the review link needs the diff and the repo. A link that iterates blind is worse than useless in a chain — it hands garbage to the next link with a confident `done`.
@@ -121,14 +121,14 @@ The reason to chain *separate* sessions instead of looping one is that **the age
 - The **review** link — a fresh context, no anchoring on the build link's reasoning, prompted to *refute* — grades it against the `handoff.acceptance` bar. Its verdict (zero blocking findings) is what flips `phase` to `done` and releases the merge link.
 - Set `handoff.verifier` to the grading link so the contract is explicit: build's verifier is `review`, never `build` itself.
 
-Self-graded relays are the failure this skill exists to prevent: a build loop that reviews its own output is just an agent agreeing with itself across four sessions instead of one. If a link's output has no *downstream* link to grade it, that link needs a `/ccc-review` or Agent-tool verifier pass wired in before it's allowed to hand off.
+Self-graded relays are the failure this skill exists to prevent: a build loop that reviews its own output is just an agent agreeing with itself across four sessions instead of one. If a link's output has no *downstream* link to grade it, that link needs a `$ccc-review` or Agent-tool verifier pass wired in before it's allowed to hand off.
 
 ## Safety
 
 - **Never auto-merge or auto-deploy.** The `merge` link is always `handoff.humanGate: true` — it waits for an explicit human GO (the 🚀 reaction, a Linear status move by a person, a typed approval). Approval on one relay pass never carries to the next (Pillar 5).
 - **Each link is worktree-isolated (Pillar 5).** A link that writes files does so in its own git worktree on its own branch; the `handoff.worktree`/`handoff.branch` fields carry that location to the next link. First act inside any link: verify `git rev-parse --show-toplevel` equals the worktree path — abort if not. After a link finishes, the main tree must be tracked-clean (`git status --porcelain | grep -v '^??'` empty).
 - **`blocked` halts, it does not retry forever.** A link that can't converge sets `phase: "blocked"` and escalates (Linear comment / notification) instead of silently burning the token budget.
-- **Destructive links stay off the relay.** `/ccc-deploy`, `/ccc-rollback`, and deletions are never relay links — route them through `/ccc-ship`'s human gate.
+- **Destructive links stay off the relay.** `$ccc-deploy`, `$ccc-rollback`, and deletions are never relay links — route them through `$ccc-ship`'s human gate.
 
 ## Wiring a relay (the flow)
 
@@ -140,7 +140,7 @@ Self-graded relays are the failure this skill exists to prevent: a build loop th
 
 ## When NOT to relay
 
-- **One-shot work** — a single `spec → build → review` pass is a pipeline; use `/ccc-fleet pipeline` or run the three skills by hand. Relays earn their setup only when the chain recurs (gate #1).
+- **One-shot work** — a single `spec → build → review` pass is a pipeline; use `$ccc-fleet pipeline` or run the three skills by hand. Relays earn their setup only when the chain recurs (gate #1).
 - **Any link fails its gate** — no automated verifier, no state, no stop cap → that link is a prompt, and the chain is a runaway waiting to happen.
 - **Parallel, not sequential** — if the work fans out rather than chains, that's `ccc-fleet`, not a relay.
 

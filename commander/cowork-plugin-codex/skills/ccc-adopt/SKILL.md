@@ -18,11 +18,11 @@ argument-hint: "[--check]"
 
 ## Not to be confused with
 
-- **`/ccc-onboard`** — onboards a new *contributor* INTO the cc-commander repo itself (this repo).
-- **`/ccc-tuneup`** — tunes up the user's local `~/.claude` CC Commander *install* (plugin freshness, junk, settings).
-- **`/ccc-adopt` (this skill)** — runs INSIDE ANY OTHER PROJECT (yours, not cc-commander) and adds CCC's Orchestrator/Executor doctrine plus a tailored skill/agent pointer list to that project's own `CLAUDE.md`.
+- **`$ccc-onboard`** — onboards a new *contributor* INTO the cc-commander repo itself (this repo).
+- **`$ccc-tuneup`** — tunes up the user's local `~/.claude` CC Commander *install* (plugin freshness, junk, settings).
+- **`$ccc-adopt` (this skill)** — runs INSIDE ANY OTHER PROJECT (yours, not cc-commander) and adds CCC's Orchestrator/Executor doctrine plus a tailored skill/agent pointer list to that project's own `CLAUDE.md`.
 
-If the current working directory's git root is `cc-commander` itself, stop and point the user at `/ccc-onboard` or `/ccc-tuneup` instead — this skill is for adopting CCC doctrine into a *different* codebase.
+If the current working directory's git root is `cc-commander` itself, stop and point the user at `$ccc-onboard` or `$ccc-tuneup` instead — this skill is for adopting CCC doctrine into a *different* codebase.
 
 ## Safety rules (NON-NEGOTIABLE)
 
@@ -37,7 +37,7 @@ If the current working directory's git root is `cc-commander` itself, stop and p
 ## Arguments
 
 - `--check` — read-only: detect stack + existing CLAUDE.md + marker state, print the plan, do NOT write anything.
-- bare `/ccc-adopt` — detect, preview the diff via chips, write on confirm.
+- bare `$ccc-adopt` — detect, preview the diff via chips, write on confirm.
 
 ## Step 1 — Detect
 
@@ -66,7 +66,7 @@ test -f yarn.lock && echo "PM=yarn"
 test -f package-lock.json && echo "PM=npm"
 ```
 
-If `GIT_ROOT` resolves and `basename "$GIT_ROOT"` is `cc-commander` (or `test -f "$GIT_ROOT/scripts/audit-counts.js"` exists) — STOP. This is the cc-commander repo itself; redirect to `/ccc-onboard` or `/ccc-tuneup` instead of proceeding.
+If `GIT_ROOT` resolves and `basename "$GIT_ROOT"` is `cc-commander` (or `test -f "$GIT_ROOT/scripts/audit-counts.js"` exists) — STOP. This is the cc-commander repo itself; redirect to `$ccc-onboard` or `$ccc-tuneup` instead of proceeding.
 
 If `IS_GIT` is empty (not a git repo), ask via `AskUserQuestion` whether to continue anyway before touching any file.
 
@@ -111,11 +111,11 @@ The executor's own test run is a first gate, not the finish line — the worker 
 Why this saves tokens: the expensive model's context stays small (just the plan, not every file it touches); the fast executor absorbs the token-heavy file reads/writes/diffs. You pay premium-model tokens only for the reasoning, not the typing.
 
 **How to run it:**
-- `/ccc-orchestrate` — Fable/Opus plans → writes a goal file → dispatches GPT-5.5 (via `codex`) or a Sonnet subagent to execute it, then verifies the result against the plan's acceptance criteria.
-- `/ccc-plan-exec` — the Claude-only variant (cheap Sonnet/Haiku plans, Opus/Fable executes) when you want to stay in one runtime.
-- `/ccc-handoff` — when context grows large mid-task, write a dense handoff file and start a fresh chat instead of letting the session bloat. Do this *frequently*, not just at the end — small, frequent resets beat one giant compaction.
+- `$ccc-orchestrate` — Fable/Opus plans → writes a goal file → dispatches GPT-5.5 (via `codex`) or a Sonnet subagent to execute it, then verifies the result against the plan's acceptance criteria.
+- `$ccc-plan-exec` — the Claude-only variant (cheap Sonnet/Haiku plans, Opus/Fable executes) when you want to stay in one runtime.
+- `$ccc-handoff` — when context grows large mid-task, write a dense handoff file and start a fresh chat instead of letting the session bloat. Do this *frequently*, not just at the end — small, frequent resets beat one giant compaction.
 
-**Adopting this in an existing (non-CC-Commander) project:** run `/ccc-adopt` once. It reads your current CLAUDE.md (if any), detects your stack, and merges in this Orchestrator/Executor section plus a stack-appropriate list of which CCC skills/agents to reach for going forward — without clobbering your existing project-specific rules.
+**Adopting this in an existing (non-CC-Commander) project:** run `$ccc-adopt` once. It reads your current CLAUDE.md (if any), detects your stack, and merges in this Orchestrator/Executor section plus a stack-appropriate list of which CCC skills/agents to reach for going forward — without clobbering your existing project-specific rules.
 <!-- CCC:orchestrator-executor:end -->
 ```
 
@@ -124,17 +124,17 @@ Why this saves tokens: the expensive model's context stays small (just the plan,
 After the doctrine block, always append this fixed core list, then a tailored list based on detected stack. Do not dump the full 67-skill catalog — pick what's actually relevant.
 
 **Always include (every stack):**
-- `/ccc-orchestrate` — plan/execute split for any multi-step task
-- `/ccc-plan-exec` — Claude-only orchestrator/executor variant
-- `/ccc-handoff` — context-growth session handoff
-- `/ccc-xray` — project health scorecard
-- `/ccc-review` — branch/diff audit
+- `$ccc-orchestrate` — plan/execute split for any multi-step task
+- `$ccc-plan-exec` — Claude-only orchestrator/executor variant
+- `$ccc-handoff` — context-growth session handoff
+- `$ccc-xray` — project health scorecard
+- `$ccc-review` — branch/diff audit
 
 **Stack-tailored additions (pick relevant rows only):**
 
 | Detected stack signal | Add these pointers |
 |---|---|
-| `next`/`react`/`vue`/`nuxt` in package.json | `ccc-design` (UI/UX), `designer` agent, `/ccc-e2e` |
+| `next`/`react`/`vue`/`nuxt` in package.json | `ccc-design` (UI/UX), `designer` agent, `$ccc-e2e` |
 | `express`/`fastify`/`hono`/generic Node API | `ccc-saas` (auth/billing/multi-tenant), `security-auditor` agent, `ccc-devops` |
 | `pyproject.toml`/`requirements.txt` | `python-reviewer` agent, `ccc-testing`, `ccc-data` if data/ETL signals present |
 | `Cargo.toml` | `rust-reviewer` agent, `performance-engineer` persona |
@@ -224,10 +224,12 @@ Both must equal `1`. If not, restore from the backup and report the failure.
 - ❌ Paraphrase the Orchestrator/Executor doctrine text — it must match `CLAUDE.md.template` verbatim.
 - ❌ Run destructive operations (`rm`/`trash`) — this skill only ever adds a backup file and an edit.
 - ❌ Proceed in a non-git directory without asking first.
-- ❌ Run this skill against the cc-commander repo itself — redirect to `/ccc-onboard` or `/ccc-tuneup`.
+- ❌ Run this skill against the cc-commander repo itself — redirect to `$ccc-onboard` or `$ccc-tuneup`.
 
 **Bottom line:** detect stack + existing CLAUDE.md → merge doctrine into a delimited, replaceable block → tailor skill pointers to the stack → backup → confirm via chips → write → verify markers are singular.
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

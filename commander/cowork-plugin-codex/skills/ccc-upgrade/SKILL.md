@@ -17,11 +17,11 @@ argument-hint: "[--all | --check]"
 
 Interactive workflow that audits the 19+ vendor submodules under `vendor/`, surfaces what changed upstream, lets the user pick which to update via AskUserQuestion, then runs the update + test + commit cycle one submodule at a time.
 
-Similar in spirit to `/ccc-doctor` (read-only diagnostic) — this one writes (commits per submodule) but only after explicit user approval.
+Similar in spirit to `$ccc-doctor` (read-only diagnostic) — this one writes (commits per submodule) but only after explicit user approval.
 
 ## When to fire
 
-User types `/ccc-upgrade`, or says any of:
+User types `$ccc-upgrade`, or says any of:
 - "update vendors"
 - "refresh submodules"
 - "pull latest vendor changes"
@@ -204,3 +204,5 @@ Next steps:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)
