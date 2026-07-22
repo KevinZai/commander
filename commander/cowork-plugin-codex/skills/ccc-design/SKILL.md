@@ -42,7 +42,7 @@ If no project detected: "🎨 No project yet — I'll scaffold one after you pic
 
 ### 3. The picker — `AskUserQuestion` with 4 options
 
-Read `${CODEX_PLUGIN_ROOT}/menus/ccc-design.json` once. Use its `choices` array to drive the question. **Max 4 options** — take the 4 non-back choices (landing / components / polish / figma). Back-to-main is not an AUQ option; users invoke `/ccc` directly.
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-design.json` once. Use its `choices` array to drive the question. **Max 4 options** — take the 4 non-back choices (landing / components / polish / figma). Back-to-main is not an AUQ option; users invoke `/ccc` directly.
 
 ```
 question: "What design work?"
@@ -76,9 +76,9 @@ Dispatch immediately — do NOT re-prompt. Map:
 - **Landing page** → spawn `frontend-design` agent in background with payload `{ type: "landing-page", stack: <detected>, brand_context: "ask if missing" }`. Report back when agent completes. Fallback (if agent unavailable): invoke the domain routing sub-skills below — `design-context` → `landing-page-builder` → `interactive-landing` → `framer-motion-patterns` → `polish`.
 - **Component system** → invoke sub-skills: `frontend-design` + `design-consultation` + `colorize` + `typeset` + `normalize`.
 - **Polish pass** → invoke the Impeccable Suite pipeline: `critique` → `clarify` → (`bolder` or `distill` based on user's next answer) → `arrange` → `typeset` → `adapt` → `polish`.
-- **Figma → code** → check `claude mcp list` for `figma`. If missing, suggest `/ccc-connect figma` first. If present, ask for the Figma URL, then route to `frontend-design` + `adapt`.
+- **Figma → code** → check `claude mcp list` for `figma`. If missing, suggest `$ccc-connect figma` first. If present, ask for the Figma URL, then route to `frontend-design` + `adapt`.
 
-If the user passes an argument (`/ccc-design landing`), skip the picker and dispatch directly.
+If the user passes an argument (`$ccc-design landing`), skip the picker and dispatch directly.
 
 ---
 
@@ -86,7 +86,7 @@ If the user passes an argument (`/ccc-design landing`), skip the picker and disp
 
 Trigger when the user asks for a chat UI, AI assistant interface, messaging panel, support widget, or "chat like ChatGPT/Claude". Offer it as a 5th option only when intent is clearly chat-related — otherwise reach it via the routing matrix below.
 
-1. **Pull real components** — prefer the shadcn MCP if connected. Use `mcp__Shadcn_UI__list_blocks` / `mcp__Shadcn_UI__get_block` and `mcp__Shadcn_UI__get_component` to fetch the canonical `chat-interface` building blocks: message list, message bubble (user vs assistant), composer/input with send, streaming/typing indicator, scroll-to-bottom, and the optional sidebar/thread list. If the MCP is absent, suggest `/ccc-connect shadcn`, then fall back to scaffolding the same primitives by hand.
+1. **Pull real components** — prefer the shadcn MCP if connected. Use `mcp__Shadcn_UI__list_blocks` / `mcp__Shadcn_UI__get_block` and `mcp__Shadcn_UI__get_component` to fetch the canonical `chat-interface` building blocks: message list, message bubble (user vs assistant), composer/input with send, streaming/typing indicator, scroll-to-bottom, and the optional sidebar/thread list. If the MCP is absent, suggest `$ccc-connect shadcn`, then fall back to scaffolding the same primitives by hand.
 2. **Compose, don't reinvent** — assemble fetched blocks into `ChatPanel` + `MessageList` + `Composer`. Keep streaming, auto-scroll, and empty-state as first-class.
 3. **Apply the design soul** — if a `Design.md` exists (Sub-flow B), apply its tokens before final styling so the chat matches the product's voice.
 4. **Polish** — run the Impeccable Suite `polish` pass on spacing, contrast, and motion of the bubbles + composer.
@@ -233,3 +233,5 @@ Below is the full routing matrix for agents that drill deeper after an initial p
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

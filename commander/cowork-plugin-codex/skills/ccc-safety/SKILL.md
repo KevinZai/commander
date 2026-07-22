@@ -17,7 +17,7 @@ The guardrails deck. CC Commander's hooks already journal every permission decis
 
 ## How it routes
 
-On `/ccc-safety` with no argument, open a click-first picker:
+On `$ccc-safety` with no argument, open a click-first picker:
 
 ```
 AskUserQuestion:
@@ -27,7 +27,7 @@ AskUserQuestion:
     - 🗣️ Plain-English status — narrate the headline numbers here, no jargon
 ```
 
-`/ccc-safety open` (or `snapshot`) → publish the deck. `/ccc-safety status` → narrate.
+`$ccc-safety open` (or `snapshot`) → publish the deck. `$ccc-safety status` → narrate.
 
 **Zero-state:** if `permission-gate.jsonl` and `tool-failures.jsonl` are both missing/empty, say so plainly — "No guardrail activity logged yet — the hooks fill this in as you work." Never render an error for an empty deck.
 
@@ -40,7 +40,7 @@ Build the self-contained HTML with the plugin's own library:
 ```bash
 mkdir -p scratchpad
 node --input-type=module -e "
-import { readSafetyModel, buildSafetyHtml } from '${CODEX_PLUGIN_ROOT}/lib/safety-snapshot.js';
+import { readSafetyModel, buildSafetyHtml } from '${CLAUDE_PLUGIN_ROOT}/lib/safety-snapshot.js';
 import { writeFile } from 'node:fs/promises';
 const now = Date.now();
 const html = buildSafetyHtml(await readSafetyModel({ now }), { now });
@@ -62,3 +62,5 @@ The published artifact carries the shared **Commander decks** strip at the top �
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

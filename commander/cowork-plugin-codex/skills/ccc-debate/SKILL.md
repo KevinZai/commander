@@ -14,13 +14,13 @@ Debate mode pits **N agents against each other** on a single design, plan, or di
 
 **CC Commander** · Debate Mode · [Docs](https://commanderplugin.com)
 
-> Debate is the dialectic expression of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): **delegate the arguing, keep the ruling.** Built on the Workflow tool + `dialectic-review` + `/ccc-fleet` `mode: "debate"`.
+> Debate is the dialectic expression of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): **delegate the arguing, keep the ruling.** Built on the Workflow tool + `dialectic-review` + `$ccc-fleet` `mode: "debate"`.
 
 ---
 
 ## What debate is
 
-`/ccc-debate` runs a structured adversarial loop:
+`$ccc-debate` runs a structured adversarial loop:
 
 1. **Fan out lenses** — Claude spawns one agent per lens via the Workflow tool. Each independently reads the target and produces its strongest argument + objections.
 2. **Cross-examine** — agents critique each other's positions. Weak claims get torn down; survivors are the real issues. (Adversarial verification per workflow-first §1.)
@@ -59,7 +59,7 @@ Include the word **`workflow`** in your prompt to run a single debate without ch
 
 ## Requires CC v2.1.154+
 
-The Workflow tool ships in Claude Code v2.1.154 and later. On older clients, fall back to `/ccc-fleet` `mode: "judge"` for a weaker fan-out/synthesize shape (manual dispatch, no lens customization or cross-examination), or the `dialectic-review` skill for a single FOR/AGAINST/Referee pass. Check: `claude --version`.
+The Workflow tool ships in Claude Code v2.1.154 and later. On older clients, fall back to `$ccc-fleet` `mode: "judge"` for a weaker fan-out/synthesize shape (manual dispatch, no lens customization or cross-examination), or the `dialectic-review` skill for a single FOR/AGAINST/Referee pass. Check: `claude --version`.
 
 ---
 
@@ -117,7 +117,7 @@ Dispatch the debate as a workflow. `ccc-fleet.workflow.js` has a dedicated `mode
 
 ```js
 Workflow({
-  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js",
   args: {
     mode: "debate",
     task: "Adversarially debate <target: the design doc, plan, or diff>.",
@@ -166,3 +166,7 @@ Act on the ruling. The agents' raw back-and-forth never lands in your lead conte
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)
+
+> (The Workflow(...) tool is not available on Codex — run the steps sequentially.)

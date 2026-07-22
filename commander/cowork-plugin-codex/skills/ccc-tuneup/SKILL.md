@@ -14,7 +14,7 @@ argument-hint: "[--check | --fix | --aggressive]"
 
 # /ccc-tuneup — Local Setup Optimizer
 
-The companion to `/ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remediates* — but safely: read-only scan first, backup before any edit, archive (never `rm`) for junk, and an explicit click-to-confirm before anything mutates.
+The companion to `$ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remediates* — but safely: read-only scan first, backup before any edit, archive (never `rm`) for junk, and an explicit click-to-confirm before anything mutates.
 
 **CC Commander** · Tune-Up · [Docs](https://commanderplugin.com)
 
@@ -22,7 +22,7 @@ The companion to `/ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remedia
 - `--check` — read-only audit + scorecard. NO prompt, NO mutation. (Default if the user seems unsure.)
 - `--fix` — audit, then offer safe fixes via AskUserQuestion chips (destructive-leaning items OFF by default).
 - `--aggressive` — same as `--fix` but pre-selects session archival + superseded-agent retirement chips.
-- bare `/ccc-tuneup` — runs the audit, shows the scorecard, then opens the chip picker.
+- bare `$ccc-tuneup` — runs the audit, shows the scorecard, then opens the chip picker.
 
 ## Safety rules (NON-NEGOTIABLE)
 
@@ -96,7 +96,7 @@ The probe emits `KEY=VALUE` lines (all side-effect-free, every field `2>/dev/nul
 " 2>/dev/null || echo "diagnostics n/a"
 ```
 
-Use this output for read-only source-tree and settings diagnostics. Keep the probe output as the source of truth for tuneup-specific remediation planning, but surface every `diagnostics.js` row in the scorecard so `/ccc-tuneup --check` covers the same full stack as `/ccc-doctor full`.
+Use this output for read-only source-tree and settings diagnostics. Keep the probe output as the source of truth for tuneup-specific remediation planning, but surface every `diagnostics.js` row in the scorecard so `$ccc-tuneup --check` covers the same full stack as `$ccc-doctor full`.
 
 ### 1d. Semver freshness check (no python3, no require from update-check.js)
 
@@ -230,7 +230,7 @@ If `COST_FLAGGED` > 0, print a short read-only detail block listing each non-`ok
 "env": { "MAX_THINKING_TOKENS": "10000", "ENABLE_TOOL_SEARCH": "1" }
 ```
 
-These are **always suggest-only** — the cost-settings audit NEVER appears as a mutating AskUserQuestion chip and `/ccc-tuneup --fix`/`--aggressive` never edits these keys. For `model`, only inform ("you've pinned <model> on the main thread — routine turns are pricey; consider routing them to Sonnet/Haiku subagents") — never propose overwriting it.
+These are **always suggest-only** — the cost-settings audit NEVER appears as a mutating AskUserQuestion chip and `$ccc-tuneup --fix`/`--aggressive` never edits these keys. For `model`, only inform ("you've pinned <model> on the main thread — routine turns are pricey; consider routing them to Sonnet/Haiku subagents") — never propose overwriting it.
 
 ## Step 3 — Confirm fixes (AskUserQuestion)
 
@@ -396,3 +396,5 @@ For anything heavy/out-of-scope, offer ONE `mcp__ccd_session__spawn_task` chip (
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

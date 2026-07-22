@@ -39,7 +39,7 @@ If output contains `ONBOARDING_NEEDED`, respond with ONLY this (no picker, no co
 
 > 👋 Welcome to CC Commander — first time? Let me walk you through the basics.
 >
-> *Dispatching `/ccc-start`…*
+> *Dispatching `$ccc-start`…*
 
 Then dispatch the `ccc-start` skill immediately. Do NOT show the main `/ccc` picker on first run.
 
@@ -47,7 +47,7 @@ If state.json shows `onboardingCompleted: true`, skip this step and proceed to s
 
 ### 1. ASCII hero (read banner.txt + interpolate version)
 
-Read `${CODEX_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CODEX_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block (` ```text ... ``` `), NO trailing prose on the same block.
+Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`. Render in a fenced code block (` ```text ... ``` `), NO trailing prose on the same block.
 
 This replaces the markdown one-liner header.
 
@@ -118,7 +118,7 @@ When the user picks an option, use the `SendMessage` pattern by invoking the tar
 
 > Loading the build workflow — `ccc-build` routes you to web / API / CLI / mobile / from-spec with one more click.
 
-Then proceed as if the user had invoked `/ccc-build` directly. Read `${CODEX_PLUGIN_ROOT}/menus/ccc-build.json` for its options and call `AskUserQuestion` with them.
+Then proceed as if the user had invoked `$ccc-build` directly. Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for its options and call `AskUserQuestion` with them.
 
 ## When user passes an argument
 
@@ -154,3 +154,5 @@ If either >0, include in context strip: "🧰 X skills · Y MCPs connected".
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

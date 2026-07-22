@@ -18,16 +18,16 @@ Use this proactively — the whole point is that you run it BEFORE quality degra
 - After finishing a coherent chunk of work (a feature, a fix, a review pass) — even mid-session
 - Before starting an unrelated task in the same chat (topic switch = handoff point)
 - The moment you notice the model getting slower, forgetting earlier context, or making mistakes it wouldn't normally make
-- Mid-way through a long orchestration run (`/ccc-orchestrate`, `/ccc-plan-exec`) — long multi-step Executor loops are exactly when context degrades fastest; do not wait for the run to finish
-- End of a work session before closing Claude Code (same use case as `/ccc-save-session`, but treat "session end" as just one of many trigger points, not the primary one)
+- Mid-way through a long orchestration run (`$ccc-orchestrate`, `$ccc-plan-exec`) — long multi-step Executor loops are exactly when context degrades fastest; do not wait for the run to finish
+- End of a work session before closing Claude Code (same use case as `$ccc-save-session`, but treat "session end" as just one of many trigger points, not the primary one)
 
 If you are asking "should I hand off now or wait" — the answer is hand off now. Frequency is cheap; degraded output is not.
 
 ## Relationship to /ccc-save-session and /ccc-resume-session
 
-This skill reuses the **exact same file format and location** as `/ccc-save-session` — same `~/.claude/sessions/` directory, same `YYYY-MM-DD-<short-id>-session.tmp` naming. It does not invent a second format. `/ccc-resume-session` loads a handoff file with zero changes.
+This skill reuses the **exact same file format and location** as `$ccc-save-session` — same `~/.claude/sessions/` directory, same `YYYY-MM-DD-<short-id>-session.tmp` naming. It does not invent a second format. `$ccc-resume-session` loads a handoff file with zero changes.
 
-The difference is framing and cadence: `/ccc-save-session` is typically invoked once, at the natural end of a session. `/ccc-handoff` is the same mechanic invoked deliberately and repeatedly, as a quality-preservation habit — and it always ends with an explicit instruction to leave the current chat.
+The difference is framing and cadence: `$ccc-save-session` is typically invoked once, at the natural end of a session. `$ccc-handoff` is the same mechanic invoked deliberately and repeatedly, as a quality-preservation habit — and it always ends with an explicit instruction to leave the current chat.
 
 ## Process
 
@@ -39,7 +39,7 @@ Before writing the file, collect:
 - Review what was discussed, attempted, and decided
 - Note any errors encountered and how they were resolved (or not)
 - Check current test/build status if relevant
-- If this handoff is firing mid-orchestration (`/ccc-orchestrate` or `/ccc-plan-exec` in flight), capture the exact step/phase the Executor is on — not just the overall goal
+- If this handoff is firing mid-orchestration (`$ccc-orchestrate` or `$ccc-plan-exec` in flight), capture the exact step/phase the Executor is on — not just the overall goal
 
 ### Step 2: Create the sessions folder if it does not exist
 
@@ -64,7 +64,7 @@ Full valid filename example: `2024-01-15-abc123de-session.tmp`
 
 Write every section honestly and completely — full depth, not a shorter or lossier version just because handoffs are meant to be frequent. Frequency should come from cheap, fast invocation of the full format, never from cutting corners on what's preserved. Write "Nothing yet" or "N/A" if a section genuinely has no content. An incomplete file is worse than an honest empty section.
 
-Use the identical section set as `/ccc-save-session`:
+Use the identical section set as `$ccc-save-session`:
 
 ```markdown
 # Session: YYYY-MM-DD
@@ -203,7 +203,7 @@ Do not continue this conversation for further work.
 ════════════════════════════════════════════════
 ```
 
-If invoked mid-orchestration (`/ccc-orchestrate` / `/ccc-plan-exec` in flight), add one line above the box: "Orchestration paused at [phase/step] — the fresh session will resume the Executor loop from there."
+If invoked mid-orchestration (`$ccc-orchestrate` / `$ccc-plan-exec` in flight), add one line above the box: "Orchestration paused at [phase/step] — the fresh session will resume the Executor loop from there."
 
 ---
 
@@ -211,16 +211,16 @@ If invoked mid-orchestration (`/ccc-orchestrate` / `/ccc-plan-exec` in flight), 
 
 - **Waiting until context is nearly full to run this.** By the time context pressure is obvious, quality has already degraded — that's the failure mode this skill exists to prevent. Run it early and often, not as a last resort.
 - **Skipping the "open a new chat now" instruction, or softening it into a suggestion.** The instruction to leave is not optional framing — it is the mechanism. A handoff file nobody acts on accomplishes nothing.
-- **Writing a shorter or lossier file "because this is meant to be frequent."** Frequency must come from how cheap and fast invocation is, not from truncating what gets preserved. Every section from `/ccc-save-session`'s format is still required, every time.
+- **Writing a shorter or lossier file "because this is meant to be frequent."** Frequency must come from how cheap and fast invocation is, not from truncating what gets preserved. Every section from `$ccc-save-session`'s format is still required, every time.
 - **Continuing to work in the same chat after writing the file** "just to finish one more thing." That one more thing is exactly what degraded context produces worse output for.
 
 ---
 
 ## Notes
 
-- Reuses `/ccc-save-session`'s exact file format and `~/.claude/sessions/` location — no second format, no compatibility shim needed for `/ccc-resume-session`.
+- Reuses `$ccc-save-session`'s exact file format and `~/.claude/sessions/` location — no second format, no compatibility shim needed for `$ccc-resume-session`.
 - Each invocation gets its own file — never append to a previous handoff's file, even if invoked twice in one session.
-- Ties into the Orchestrator/Executor model (`/ccc-orchestrate`, `/ccc-plan-exec`): long-running multi-step execution is exactly when this should fire mid-task, at natural phase boundaries — not only when the whole run finishes.
+- Ties into the Orchestrator/Executor model (`$ccc-orchestrate`, `$ccc-plan-exec`): long-running multi-step execution is exactly when this should fire mid-task, at natural phase boundaries — not only when the whole run finishes.
 - If the user asks to hand off mid-task, save what is known so far and mark in-progress items clearly — an honest partial handoff beats waiting for a "clean" stopping point that never comes.
 
 ---

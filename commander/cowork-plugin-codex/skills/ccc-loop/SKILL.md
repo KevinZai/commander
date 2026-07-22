@@ -88,7 +88,7 @@ Reach for `/goal` instead of `/loop` whenever "keep going until X is true" has a
 
 Apply this in CCC with either:
 - The **Agent tool** — spawn a *second* agent/persona for the check step (fresh context, not anchored on the first agent's reasoning). E.g. a `builder` persona writes the fix, a `reviewer` persona (see `commander/cowork-plugin/agents/reviewer.md`) grades it independently.
-- The **`/code-review` skill** or `/ccc-review` — route the verification step through a dedicated review pass instead of letting the implementer self-certify.
+- The **`/code-review` skill** or `$ccc-review` — route the verification step through a dedicated review pass instead of letting the implementer self-certify.
 
 When an individual result fails the bar, don't just fix that instance — encode the fix into a skill or check so future iterations of the loop don't repeat it.
 
@@ -123,7 +123,7 @@ New loop-capable skills should prefer the `.claude/loop-state/<loop-name>.json` 
 
 ## Relay — cross-session chaining
 
-Everything above loops *inside* one session. To chain *separate* loop sessions — a spec loop that hands to a build loop that hands to a review loop, each independently gated, each launching the next automatically — see **`ccc-relay`** (the "Finn Loop" pattern). A relay extends the `.claude/loop-state/<name>.json` shape here with a `{ phase, next, signal, handoff }` block, passes the baton through a durable mailbox (state file, Linear status, or a 🚀 reaction), and requires the full should-loop gate plus verifier-separation on *every* link — because fresh context per link is exactly what makes the downstream review a real verifier. Reach for `/ccc-relay` when the whole `spec → build → review → merge` arc should run as auto-handing-off sessions instead of one session iterating.
+Everything above loops *inside* one session. To chain *separate* loop sessions — a spec loop that hands to a build loop that hands to a review loop, each independently gated, each launching the next automatically — see **`ccc-relay`** (the "Finn Loop" pattern). A relay extends the `.claude/loop-state/<name>.json` shape here with a `{ phase, next, signal, handoff }` block, passes the baton through a durable mailbox (state file, Linear status, or a 🚀 reaction), and requires the full should-loop gate plus verifier-separation on *every* link — because fresh context per link is exactly what makes the downstream review a real verifier. Reach for `$ccc-relay` when the whole `spec → build → review → merge` arc should run as auto-handing-off sessions instead of one session iterating.
 
 ## Managing token usage
 
@@ -136,7 +136,7 @@ Everything above loops *inside* one session. To chain *separate* loop sessions �
 ## When NOT to use any loop primitive
 
 Fails the should-you-loop gate above, OR:
-- Destructive operations (`/ccc-deploy`, `/ccc-rollback`) — use the `/ccc-ship` gate instead, never a bare loop
+- Destructive operations (`$ccc-deploy`, `$ccc-rollback`) — use the `$ccc-ship` gate instead, never a bare loop
 - Skills that write files without idempotency guards — repeated writes will accumulate
 - One-off tasks where a single good prompt (turn-based) already gets you there
 
@@ -153,7 +153,7 @@ CCC's status-line shows `🔁` when `CLAUDE_LOOP_ACTIVE` is set by the runtime, 
 
 ## Tip
 
-Pair `/loop` with `/ccc-suggest` off (`CCC_SUGGEST_MODE=off`) during tight monitor loops to suppress between-turn suggestion output.
+Pair `/loop` with `$ccc-suggest` off (`CCC_SUGGEST_MODE=off`) during tight monitor loops to suppress between-turn suggestion output.
 
 ---
 

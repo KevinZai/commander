@@ -8,7 +8,7 @@ effort: medium
 # /ccc-resume-session — Resume Session State
 
 Load the last saved session state and orient fully before doing any work.
-This skill is the counterpart to `/ccc-save-session`.
+This skill is the counterpart to `$ccc-save-session`.
 
 ## When to Use
 
@@ -117,7 +117,7 @@ Report: "Session file found but appears empty or unreadable. You may need to cre
 - Never modify the session file when loading it — it is a read-only historical record
 - The briefing format is fixed — do not skip sections even if they are empty
 - "What Not To Retry" must always be shown, even if it just says "None" — it is too important to miss
-- After resuming, the user may want to run `/ccc-save-session` again at the end of the new session to create a new dated file
+- After resuming, the user may want to run `$ccc-save-session` again at the end of the new session to create a new dated file
 
 ---
 

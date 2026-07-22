@@ -19,7 +19,7 @@ The money deck. CC Commander already logs your model routing to `~/.claude/comma
 
 ## How it routes
 
-On `/ccc-usage` with no argument, open a click-first picker:
+On `$ccc-usage` with no argument, open a click-first picker:
 
 ```
 AskUserQuestion:
@@ -29,9 +29,9 @@ AskUserQuestion:
     - 🗣️ Plain-English status — narrate the headline numbers here, no jargon
 ```
 
-`/ccc-usage open` (or `snapshot`) → publish the deck. `/ccc-usage status` → narrate.
+`$ccc-usage open` (or `snapshot`) → publish the deck. `$ccc-usage status` → narrate.
 
-**Zero-state:** if `savings.json` and `metrics.jsonl` are both missing/empty, say so plainly — "No cost data logged yet — run some agents (`/ccc-fleet`, `/ccc-spawn`) and this deck fills in." Never render an error for an empty deck.
+**Zero-state:** if `savings.json` and `metrics.jsonl` are both missing/empty, say so plainly — "No cost data logged yet — run some agents (`$ccc-fleet`, `$ccc-spawn`) and this deck fills in." Never render an error for an empty deck.
 
 ### 🛰️ Publish the deck
 
@@ -42,7 +42,7 @@ Build the self-contained HTML with the plugin's own library (no server needed):
 ```bash
 mkdir -p scratchpad
 node --input-type=module -e "
-import { readUsageModel, buildUsageHtml } from '${CODEX_PLUGIN_ROOT}/lib/usage-snapshot.js';
+import { readUsageModel, buildUsageHtml } from '${CLAUDE_PLUGIN_ROOT}/lib/usage-snapshot.js';
 import { writeFile } from 'node:fs/promises';
 const now = Date.now();
 const html = buildUsageHtml(await readUsageModel({ now }), { now });
@@ -64,3 +64,5 @@ The published artifact carries the shared **Commander decks** strip at the top �
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

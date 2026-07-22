@@ -15,7 +15,7 @@ argument-hint: "[platform: vercel | fly | cloudflare | github-pages | npm]"
 
 **CC Commander** · /ccc-deploy · Detect target → deploy → verify → announce
 
-Use this when the user is ready to push a build live. This is distinct from `/ccc-ship` and `/ccc-deploy-check`: `/ccc-ship` handles pre-flight and release tagging, `/ccc-deploy-check` is a readiness gate, and `/ccc-deploy` runs the real deploy.
+Use this when the user is ready to push a build live. This is distinct from `$ccc-ship` and `$ccc-deploy-check`: `$ccc-ship` handles pre-flight and release tagging, `$ccc-deploy-check` is a readiness gate, and `$ccc-deploy` runs the real deploy.
 
 ## Response Shape
 
@@ -271,7 +271,7 @@ Deploy complete: <project> to <platform>
 - Rollback: /ccc-rollback
 ```
 
-If Discord or Slack is configured through `/ccc-connect`, offer to post the comms there. Do not invent channel names; use configured connector context or ask the user.
+If Discord or Slack is configured through `$ccc-connect`, offer to post the comms there. Do not invent channel names; use configured connector context or ask the user.
 
 ## Post-Deploy Recommended Services
 
@@ -298,12 +298,12 @@ When a deploy command, log watch, or health check fails:
 1. Surface the exact failing command and the relevant error lines.
 2. State whether the deploy likely failed before release, released but unhealthy, or could not be verified.
 3. Preserve the deploy URL, run id, release id, and commit sha if available.
-4. Suggest `/ccc-rollback` for released-but-bad deploys.
+4. Suggest `$ccc-rollback` for released-but-bad deploys.
 5. Do not keep retrying indefinitely. One retry is acceptable only for transient network or platform status errors.
 
 ## Anti-Patterns
 
-- Do not run `/ccc-ship`; this skill is the actual deploy step.
+- Do not run `$ccc-ship`; this skill is the actual deploy step.
 - Do not skip health verification.
 - Do not claim success from a zero exit code alone.
 - Do not print secrets or `.env` values.
@@ -312,3 +312,5 @@ When a deploy command, log watch, or health check fails:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

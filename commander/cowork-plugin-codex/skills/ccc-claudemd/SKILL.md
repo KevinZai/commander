@@ -17,7 +17,7 @@ Compares the project's CLAUDE.md instructions against the real state of the code
 
 **CC Commander** · /ccc-claudemd · Keep your instructions honest
 
-> The ambient suggest engine recommends this skill when `claudeMdAgeDays > 30` (from `~/.claude/commander/project-state.json`). If the project has NO CLAUDE.md at all, route to `/ccc-adopt` instead — it owns the create flow (diff preview → approval → backup → delimited write).
+> The ambient suggest engine recommends this skill when `claudeMdAgeDays > 30` (from `~/.claude/commander/project-state.json`). If the project has NO CLAUDE.md at all, route to `$ccc-adopt` instead — it owns the create flow (diff preview → approval → backup → delimited write).
 
 ## What It Checks
 
@@ -50,7 +50,7 @@ Compares the project's CLAUDE.md instructions against the real state of the code
 ## Process
 
 ### Step 1: Read CLAUDE.md
-Read the project's CLAUDE.md file completely. If it doesn't exist, stop and offer `/ccc-adopt` via AskUserQuestion — do not create one here.
+Read the project's CLAUDE.md file completely. If it doesn't exist, stop and offer `$ccc-adopt` via AskUserQuestion — do not create one here.
 
 ### Step 2: Scan Codebase
 Use Glob and Bash to check (one parallel Bash call, silent on failure):
@@ -101,7 +101,7 @@ options:
 
 - ❌ Edit CLAUDE.md before the AskUserQuestion approval gate — the permission ask is the whole point
 - ❌ Flag a "stale" reference you didn't verify against the live tree (no scary counts without a method line)
-- ❌ Create a CLAUDE.md when none exists — that's `/ccc-adopt`'s job
+- ❌ Create a CLAUDE.md when none exists — that's `$ccc-adopt`'s job
 - ❌ Rewrite historical sections (changelogs, dated decisions) — only current-state claims are in scope
 - ❌ Render fixes as a numbered "type 1/2/3" list — AskUserQuestion chips only
 
@@ -112,3 +112,5 @@ options:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

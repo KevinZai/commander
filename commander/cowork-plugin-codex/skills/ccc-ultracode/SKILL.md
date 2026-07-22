@@ -62,7 +62,7 @@ Examples:
 
 ## Requires CC v2.1.154+
 
-The Workflow tool is available in Claude Code v2.1.154 and later. On older clients, this skill gracefully falls back — use `/ccc-fleet` for multi-agent orchestration instead (same patterns, manual dispatch).
+The Workflow tool is available in Claude Code v2.1.154 and later. On older clients, this skill gracefully falls back — use `$ccc-fleet` for multi-agent orchestration instead (same patterns, manual dispatch).
 
 Check your version: `claude --version` in the terminal.
 
@@ -70,10 +70,10 @@ Check your version: `claude --version` in the terminal.
 
 ## Bundled CC Commander workflows
 
-Four production-ready workflows live at `${CODEX_PLUGIN_ROOT}/workflows/`. Invoke them via:
+Four production-ready workflows live at `${CLAUDE_PLUGIN_ROOT}/workflows/`. Invoke them via:
 
 ```js
-Workflow({ scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/<name>.workflow.js", args: { ... } })
+Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/<name>.workflow.js", args: { ... } })
 ```
 
 | Workflow | scriptPath | What it does | Example args |
@@ -147,3 +147,7 @@ Report back:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)
+
+> (The Workflow(...) tool is not available on Codex — run the steps sequentially.)

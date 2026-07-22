@@ -15,16 +15,16 @@ Full QA pass before shipping. Detects test framework, runs all suites, reports c
 
 ## Triggers
 
-- `/ccc-qa` or `/qa`
+- `$ccc-qa` or `/qa`
 - "QA pass", "run all tests", "test coverage check"
 - "before shipping", "pre-release checks", "is this ready to ship"
 - "check test coverage", "find missing tests"
 - "flaky test", "test suite health"
-- Coming from `/ccc-review` or `/ccc-ship`
+- Coming from `$ccc-review` or `$ccc-ship`
 
 ## When NOT to Use
 
-- Greenfield project with no tests yet — use `/ccc-testing` to scaffold the test suite first
+- Greenfield project with no tests yet — use `$ccc-testing` to scaffold the test suite first
 - Single-function bug fixes where a targeted unit test is the right move (write it directly)
 - Pure documentation or config-only changes with no testable behavior
 
@@ -63,7 +63,7 @@ cat .ccc/coverage-history.json 2>/dev/null || cat coverage/coverage-summary.json
 - `go.mod` present → **Go test** (`go test ./... -cover`)
 - `Cargo.toml` present → **cargo test** (`cargo test 2>&1`)
 - `pom.xml` present → **JUnit via Maven** (`mvn test`)
-- None detected → report to user and offer to scaffold via `/ccc-testing`
+- None detected → report to user and offer to scaffold via `$ccc-testing`
 
 ### Step 2 — Confirm scope
 
@@ -247,3 +247,5 @@ Decision chip: user picks "File issues to Linear."
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

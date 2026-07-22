@@ -102,7 +102,7 @@ test('codex plugin build artifact', async (t) => {
     ]);
   });
 
-  await t.test('rewrites the plugin-root variable and passes skills through otherwise', async () => {
+  await t.test('keeps CLAUDE_PLUGIN_ROOT verbatim and never emits CODEX_PLUGIN_ROOT', async () => {
     const sourceSkillFiles = (await listFiles(path.join(SOURCE_DIR, 'skills')))
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
@@ -113,30 +113,84 @@ test('codex plugin build artifact', async (t) => {
     assert.equal(sourceSkillFiles.length, PRODUCT_CONTRACT.plugin_skills);
     assert.deepEqual(outputSkillFiles, sourceSkillFiles);
 
-    let rewrittenSkills = 0;
+    let skillsReferencingPluginRoot = 0;
     for (const skillFile of sourceSkillFiles) {
       const source = await readFile(path.join(SOURCE_DIR, 'skills', skillFile), 'utf8');
       const output = await readFile(path.join(OUTPUT_DIR, 'skills', skillFile), 'utf8');
 
-      // Codex exports CODEX_PLUGIN_ROOT; a mirrored body telling the agent to run
-      // `node ${CLAUDE_PLUGIN_ROOT}/lib/...` would expand to nothing there.
-      assert.equal(
-        output,
-        source.replaceAll('${CLAUDE_PLUGIN_ROOT}', '${CODEX_PLUGIN_ROOT}'),
-        `${skillFile} should differ from source only by the plugin-root variable`
-      );
+      // CODEX_PLUGIN_ROOT is not a real Codex variable (verified 2026-07-22 against
+      // learn.chatgpt.com/docs/hooks — Codex exports CLAUDE_PLUGIN_ROOT as a documented
+      // compatibility alias for its native PLUGIN_ROOT). ${CLAUDE_PLUGIN_ROOT} must
+      // therefore survive translation unmodified.
       assert.ok(
-        !output.includes('${CLAUDE_PLUGIN_ROOT}'),
-        `${skillFile} must not reference CLAUDE_PLUGIN_ROOT in the Codex mirror`
+        !output.includes('${CODEX_PLUGIN_ROOT}'),
+        `${skillFile} must not reference CODEX_PLUGIN_ROOT in the Codex mirror`
       );
-      if (source.includes('${CLAUDE_PLUGIN_ROOT}')) rewrittenSkills += 1;
+      if (source.includes('${CLAUDE_PLUGIN_ROOT}')) {
+        skillsReferencingPluginRoot += 1;
+        assert.ok(
+          output.includes('${CLAUDE_PLUGIN_ROOT}'),
+          `${skillFile} should keep CLAUDE_PLUGIN_ROOT verbatim`
+        );
+      }
     }
 
-    // Guards the rewrite against silently becoming a no-op.
+    // Guards the "don't touch it" behaviour against silently regressing back
+    // to a rewrite.
     assert.ok(
-      rewrittenSkills > 0,
-      'expected at least one skill to exercise the plugin-root rewrite'
+      skillsReferencingPluginRoot > 0,
+      'expected at least one skill to reference CLAUDE_PLUGIN_ROOT'
     );
+  });
+
+  await t.test('maps /ccc-* invocation references to $ccc-* form inside backticks', async () => {
+    const output = await readFile(
+      path.join(OUTPUT_DIR, 'skills', 'ccc-build', 'SKILL.md'),
+      'utf8'
+    );
+    assert.match(output, /`\$ccc-build`/);
+    assert.ok(!/`\/ccc-build`/.test(output), 'source /ccc-build slash form must not survive translation');
+  });
+
+  await t.test('rewrites the plugin\'s own manifest sub-path but not unrelated .claude-plugin mentions', async () => {
+    const startOutput = await readFile(
+      path.join(OUTPUT_DIR, 'skills', 'ccc-start', 'SKILL.md'),
+      'utf8'
+    );
+    assert.ok(
+      startOutput.includes('${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json'),
+      'ccc-start should read its own manifest from .codex-plugin/plugin.json in the Codex mirror'
+    );
+
+    const suggestOutput = await readFile(
+      path.join(OUTPUT_DIR, 'skills', 'ccc-suggest', 'SKILL.md'),
+      'utf8'
+    );
+    assert.ok(
+      suggestOutput.includes('.claude-plugin/plugin.json'),
+      'ccc-suggest\'s unrelated ~/.claude/plugins/cache glob must not be rewritten'
+    );
+  });
+
+  await t.test('appends a Codex fallback note to every skill referencing AskUserQuestion', async () => {
+    const sourceSkillFiles = (await listFiles(path.join(SOURCE_DIR, 'skills')))
+      .filter((file) => path.basename(file) === 'SKILL.md');
+
+    let askUserQuestionSkills = 0;
+    for (const skillFile of sourceSkillFiles) {
+      const source = await readFile(path.join(SOURCE_DIR, 'skills', skillFile), 'utf8');
+      if (!/\bAskUserQuestion\b/.test(source)) continue;
+      askUserQuestionSkills += 1;
+
+      const output = await readFile(path.join(OUTPUT_DIR, 'skills', skillFile), 'utf8');
+      assert.match(
+        output,
+        /AskUserQuestion is Claude-only/,
+        `${skillFile} should carry the Codex AskUserQuestion fallback note`
+      );
+    }
+
+    assert.ok(askUserQuestionSkills >= 40, `expected many skills to reference AskUserQuestion, got ${askUserQuestionSkills}`);
   });
 
   await t.test('translates all 22 agents to TOML', async () => {
@@ -158,19 +212,36 @@ test('codex plugin build artifact', async (t) => {
     assert.match(architect, /^developer_instructions = /m);
   });
 
-  await t.test('emits expected hook events including PermissionRequest', async () => {
+  await t.test('emits exactly the 10 Codex-supported hook events', async () => {
     const hooks = await readJson(path.join(OUTPUT_DIR, 'hooks.json'));
     const eventNames = Object.keys(hooks.hooks).sort();
 
+    // Verified 2026-07-22 against primary docs (learn.chatgpt.com/docs/hooks).
+    // Corrects the prior 6-event list, which wrongly dropped PreCompact,
+    // PostCompact, SubagentStart, and SubagentStop.
     assert.deepEqual(eventNames, [
-      'PermissionRequest',  // Codex Desktop only — gates /ccc-review autofix writes
+      'PermissionRequest',
+      'PostCompact',
       'PostToolUse',
+      'PreCompact',
       'PreToolUse',
       'SessionStart',
       'Stop',
+      'SubagentStart',
+      'SubagentStop',
       'UserPromptSubmit',
     ]);
-    assert.equal(eventNames.length, 6);
+    assert.equal(eventNames.length, 10);
+  });
+
+  await t.test('never emits async:true and never emits CODEX_PLUGIN_ROOT', async () => {
+    const hooksText = await readFile(path.join(OUTPUT_DIR, 'hooks.json'), 'utf8');
+    assert.ok(!hooksText.includes('"async"'), 'translated hooks.json must not contain an async field');
+    assert.ok(!hooksText.includes('CODEX_PLUGIN_ROOT'), 'translated hooks.json must not reference CODEX_PLUGIN_ROOT');
+    assert.ok(
+      hooksText.includes('${CLAUDE_PLUGIN_ROOT}'),
+      'translated hooks.json should keep CLAUDE_PLUGIN_ROOT verbatim'
+    );
   });
 
   await t.test('passes through 2 MCP servers', async () => {
@@ -187,5 +258,27 @@ test('codex plugin build artifact', async (t) => {
     const secondHash = await hashTree(OUTPUT_DIR);
 
     assert.equal(secondHash, firstHash);
+  });
+
+  await t.test('the broken ${CODEX_PLUGIN_ROOT} template form never appears anywhere in the tree', async () => {
+    // Scoped precisely to the literal shell/JS template-literal expansion
+    // form (the thing that was actually broken -- an unset variable
+    // expanding to nothing in hook commands and skill bodies). This does
+    // NOT forbid the string "CODEX_PLUGIN_ROOT" outright: mission-control-
+    // feed.js, skill-runs-logger.js, and lib/suggestions.js legitimately
+    // read `process.env.CODEX_PLUGIN_ROOT` as a documented, harmless
+    // backward-compat fallback in their source-app detection (see the
+    // comments in those files) -- that pattern is intentional, not a bug.
+    const files = await listFiles(OUTPUT_DIR);
+    const offenders = [];
+
+    for (const relativePath of files) {
+      const content = await readFile(path.join(OUTPUT_DIR, relativePath), 'utf8').catch(() => '');
+      if (content.includes('${CODEX_PLUGIN_ROOT}')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    assert.deepEqual(offenders, [], `found broken \${CODEX_PLUGIN_ROOT} references in: ${offenders.join(', ')}`);
   });
 });

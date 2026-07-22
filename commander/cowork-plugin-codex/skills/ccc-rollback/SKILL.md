@@ -15,7 +15,7 @@ argument-hint: "[target: last-good | tag | n-back]"
 
 **CC Commander** · /ccc-rollback · Pick target → revert commits → deploy → verify
 
-Use this when production is bad and the safest path is an atomic revert commit followed by a fresh deploy. This workflow preserves history and always redeploys through `/ccc-deploy`.
+Use this when production is bad and the safest path is an atomic revert commit followed by a fresh deploy. This workflow preserves history and always redeploys through `$ccc-deploy`.
 
 ## Response Shape
 
@@ -169,11 +169,11 @@ Ask for confirmation, then push:
 git push origin <branch>
 ```
 
-Immediately invoke `/ccc-deploy` with the platform context if it is known from the current repo. If the platform is unknown, run `/ccc-deploy` normally so it can detect and ask.
+Immediately invoke `$ccc-deploy` with the platform context if it is known from the current repo. If the platform is unknown, run `$ccc-deploy` normally so it can detect and ask.
 
 ## Verification
 
-Use `/ccc-deploy` health verification as the source of truth. If a production URL is known, fetch it with `WebFetch` after deploy and report:
+Use `$ccc-deploy` health verification as the source of truth. If a production URL is known, fetch it with `WebFetch` after deploy and report:
 
 - URL checked
 - HTTP status or platform status
@@ -193,7 +193,7 @@ Rollback complete: <project>
 - Follow-up: investigate original bad deploy and add a regression test.
 ```
 
-If Discord or Slack is configured through `/ccc-connect`, ask before posting the comms. Include incident context only if the user provided it.
+If Discord or Slack is configured through `$ccc-connect`, ask before posting the comms. Include incident context only if the user provided it.
 
 ## Failure Mode
 
@@ -202,16 +202,18 @@ If rollback fails:
 1. Surface the exact command and relevant error lines.
 2. State whether failure happened during target resolution, revert, push, deploy, or health verification.
 3. Preserve any partial revert state and tell the user the next safe command to inspect it, usually `git status --short`.
-4. If a revert commit was pushed but deploy failed, suggest running `/ccc-deploy` again or escalating to the platform rollback command.
+4. If a revert commit was pushed but deploy failed, suggest running `$ccc-deploy` again or escalating to the platform rollback command.
 
 ## Anti-Patterns
 
 - Do not rewrite history.
 - Do not deploy with unresolved conflicts.
 - Do not push without confirmation.
-- Do not skip `/ccc-deploy`; rollback is only complete after redeploy and health verification.
+- Do not skip `$ccc-deploy`; rollback is only complete after redeploy and health verification.
 - Do not post comms without user confirmation.
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

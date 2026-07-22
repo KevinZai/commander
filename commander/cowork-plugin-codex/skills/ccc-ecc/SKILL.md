@@ -31,7 +31,7 @@ test -d vendor/everything-claude-code && echo ok || echo missing
 
 If missing, stop with:
 
-> ECC vendor checkout not found at `vendor/everything-claude-code/`. Run `/ccc-upgrade` or initialize submodules first.
+> ECC vendor checkout not found at `vendor/everything-claude-code/`. Run `$ccc-upgrade` or initialize submodules first.
 
 ### 2. Ask what to do
 
@@ -117,3 +117,5 @@ Report the source, destination, mode, and whether a backup was made.
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)
