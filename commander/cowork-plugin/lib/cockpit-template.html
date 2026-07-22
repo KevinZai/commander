@@ -1,12 +1,21 @@
 <!--
-  Commander Cockpit — template consumed by scripts/build-cockpit.mjs.
+  Commander Cockpit — template consumed by commander/cowork-plugin/scripts/
+  build-cockpit.mjs (canonical, in-plugin location — v7.3.0, W2+/codex 7;
+  the repo-root scripts/build-cockpit.mjs is a thin spawn shim).
   The generator replaces two markers (shown here without their comment
   wrappers so this doc block doesn't itself count as a marker):
     BRAND_CSS marker  → brandBaseCss() from commander/cowork-plugin/lib/brand-css.js
                           (the shared commanderplugin.com design system: tokens +
                           terminal/eyebrow/status primitives). Single source of truth.
     COCKPIT_DATA marker → window.__COCKPIT__ = { ...payload }:
-      meta:   { version, generatedAt, pluginSkills, ecosystemSkills, agents }
+      meta:   { version, generatedAt, pluginSkills, ecosystemSkills, agents,
+                pluginOnly, dataThroughMs, hasAnySourceRow, telemetryStale }
+        pluginOnly is true when built from a marketplace-only install (no
+        commander/contract.json, no top-level ecosystem skills/ catalog) —
+        ecosystemSkills is 0 and ideas referencing ecosystem-only skills are
+        dropped rather than crashing the build. dataThroughMs/hasAnySourceRow/
+        telemetryStale (v7.3.0, Item 6) mirror the other 3 decks' staleness
+        signal — newest ts across the same local logs buildAnalytics() reads.
       skills: [{ id, name, cmd, desc, domain, tier, source }]
       agents: [{ id, name, emoji, role, desc, model }]
       jobs:   [{ label, query }]
@@ -279,6 +288,8 @@ select { width: auto; font-family: var(--font-mono); font-size: 12.5px; }
 .out pre { background: var(--bg-terminal); border: 1px solid var(--border); border-radius: var(--radius-small); padding: 14px; font-family: var(--font-mono); font-size: 12.5px; white-space: pre-wrap; margin: 8px 0 0; color: var(--text); }
 
 .empty { color: var(--text-muted); text-align: center; padding: 44px 0; font-size: 13.5px; }
+.freshness-warn { border: 1px solid var(--yellow); background: color-mix(in srgb, var(--yellow) 12%, transparent); border-radius: var(--radius-card); padding: 12px 14px; font-size: 13px; color: var(--yellow); }
+.freshness-ok { color: var(--text-muted); font-size: 12px; font-family: var(--font-mono); }
 .spark svg { width: 100%; height: 64px; display: block; }
 footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--text-muted); font-family: var(--font-mono); font-size: 11.5px; text-align: center; }
 </style>
@@ -379,6 +390,7 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
   </section>
 
   <section id="tab-analytics" hidden>
+    <div id="an-freshness" style="margin-bottom:12px"></div>
     <div class="ls" id="an-tiles" style="margin-bottom:14px"></div>
     <div class="panel" style="margin-bottom:12px">
       <div class="eyebrow" style="margin-bottom:12px">Activity — last 14 days</div>
@@ -767,6 +779,37 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
   // ---------- analytics ----------
   var AN = D.analytics || {};
   var zero = '<div class="empty">No activity yet — run some agents, then republish to refresh.</div>';
+  // v7.3.0, Item 6 — telemetry freshness note. Ticks live (Date.now(), not
+  // build-time) because this template already carries a <script> and
+  // already ticks a "snapshot Xs old" age elsewhere (see refresh() below) —
+  // unlike the 3 no-JS decks, which must derive staleness from a fixed
+  // `now` at build time.
+  (function renderFreshness() {
+    var el = $('an-freshness');
+    if (!el) return;
+    var dt = D.meta && D.meta.dataThroughMs;
+    function fmtAgo(ms) {
+      if (ms < 60000) return 'just now';
+      if (ms < 3600000) return Math.round(ms / 60000) + 'm ago';
+      if (ms < 86400000) return Math.round(ms / 3600000) + 'h ago';
+      return Math.round(ms / 86400000) + 'd ago';
+    }
+    function render() {
+      if (!D.meta || D.meta.hasAnySourceRow === false) {
+        el.innerHTML = '<div class="freshness-ok">No telemetry logged yet on this machine. Run <span class="cmd">/ccc-doctor</span> to check your hooks are wired.</div>';
+        return;
+      }
+      if (typeof dt !== 'number' || !isFinite(dt)) { el.innerHTML = ''; return; }
+      var ageMs = Date.now() - dt;
+      if (ageMs <= 24 * 60 * 60 * 1000) {
+        el.innerHTML = '<div class="freshness-ok">Data through ' + esc(new Date(dt).toISOString().slice(0, 16).replace('T', ' ')) + ' UTC</div>';
+        return;
+      }
+      el.innerHTML = '<div class="freshness-warn">⚠️ Telemetry last written ' + esc(fmtAgo(ageMs)) + ' — hooks may not be running. Run <span class="cmd">/ccc-doctor</span>. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)</div>';
+    }
+    render();
+    setInterval(render, 60000);
+  })();
   $('an-tiles').innerHTML = (AN.tiles || []).length
     ? (AN.tiles || []).map(function (t, i) {
         return '<div class="ls-row" style="cursor:default;grid-template-columns:1fr auto;border-top:' + (i ? '1px solid var(--border)' : '0') + '"><span class="k mono" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)">' + esc(t.label) + '</span><span class="v" style="font-size:18px;font-weight:600;color:var(--text)">' + esc(t.value) + '</span></div>';

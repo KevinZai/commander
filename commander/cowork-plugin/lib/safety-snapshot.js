@@ -56,6 +56,9 @@ const TOP_TOOLS = 10;
 const TOP_ERRORS = 10;
 const SAMPLE_MAX = 240;
 const SIGNATURE_MAX = 160;
+const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // v7.3.0 staleness banner threshold
+const DOCTOR_POINTER =
+  'Run /ccc-doctor to check your hooks are wired. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)';
 
 function defaultBaseDir() {
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
@@ -287,9 +290,26 @@ async function readSafetyModel({ baseDir, now } = {}) {
 
   const nowMs = toMs(now) ?? Date.now();
 
+  // dataThrough (v7.3.0, Item 6): newest source-row timestamp across this
+  // deck's own two logs — permission-gate.jsonl's `timestamp` field and
+  // tool-failures.jsonl's `ts` field (both real ISO timestamps, unlike
+  // usage-snapshot.js's day-bucketed sources).
+  let dataThroughMs = null;
+  for (const row of gateRows) {
+    const ms = row && typeof row === 'object' ? toMs(row.timestamp) : null;
+    if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
+  }
+  for (const row of failureRows) {
+    const ms = row && typeof row === 'object' ? toMs(row.ts) : null;
+    if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
+  }
+  const hasAnySourceRow = gateRows.length > 0 || failureRows.length > 0;
+
   return {
     decisions: aggregateDecisions(gateRows),
     toolFailures: aggregateToolFailures(failureRows),
+    dataThroughMs,
+    hasAnySourceRow,
     generatedAt: new Date(nowMs).toISOString(),
   };
 }
@@ -306,6 +326,18 @@ function esc(value) {
 function stamp(ms) {
   if (!Number.isFinite(ms)) return '';
   return `${new Date(ms).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+}
+
+// Mirrors mission-control-snapshot.js's timeAgo() — duplicated per this
+// file's own doc-comment convention (small, self-contained helpers are
+// copied, not imported, across this lib/ tree).
+function timeAgo(tsMs, nowMs) {
+  if (!Number.isFinite(tsMs) || !Number.isFinite(nowMs)) return '';
+  const delta = nowMs - tsMs;
+  if (delta < 45 * 1000) return 'just now';
+  if (delta < 60 * 60 * 1000) return `${Math.max(1, Math.round(delta / 60000))}m ago`;
+  if (delta < 24 * 60 * 60 * 1000) return `${Math.round(delta / 3600000)}h ago`;
+  return `${Math.round(delta / 86400000)}d ago`;
 }
 
 function pct(count, total) {
@@ -339,6 +371,8 @@ body{margin:0;background:var(--sf-bg);color:var(--sf-fg);}
 .safety section{background:var(--sf-card);border:1px solid var(--sf-line);
   border-radius:12px;padding:16px;margin-bottom:16px;}
 .safety .zero{color:var(--sf-muted);margin:0;}
+.safety .stale-banner{border-color:var(--sf-warn);background:var(--sf-warn-bg);}
+.safety .stale-banner p{margin:0;color:var(--sf-warn);font-size:.9rem;}
 .safety .scroll{overflow-x:auto;}
 .safety .muted{color:var(--sf-muted);}
 .safety .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84rem;}
@@ -394,13 +428,26 @@ function renderTerminalChromeOpen() {
 
 const TERMINAL_CHROME_CLOSE = '</div>';
 
-function renderHeroSection(decisions) {
+// Staleness warning banner (v7.3.0, Item 6) — only rendered when at least
+// one source row exists but the newest one is older than the threshold.
+// The fully-empty case (no source rows at all) is handled separately by
+// appending DOCTOR_POINTER to the hero's zero-state, not this banner.
+function renderStalenessBanner(dataThroughMs, nowMs) {
+  if (!Number.isFinite(dataThroughMs) || !Number.isFinite(nowMs)) return '';
+  if (nowMs - dataThroughMs <= STALE_THRESHOLD_MS) return '';
+  return `<section aria-label="Telemetry freshness" class="stale-banner">
+<p>⚠️ Telemetry last written ${esc(timeAgo(dataThroughMs, nowMs))} — hooks may not be running. Run /ccc-doctor. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)</p>
+</section>`;
+}
+
+function renderHeroSection(decisions, { hasAnySourceRow = true } = {}) {
   const { total, blocked, autofixed, approved, otherCount } = decisions;
 
   if (total === 0) {
+    const doctorNote = hasAnySourceRow ? '' : ` ${DOCTOR_POINTER}`;
     return `<section aria-label="Safety overview">
 <h2>🛡️ Safety overview</h2>
-<p class="zero">No permission-gate telemetry yet — Commander hasn't logged any tool-permission decisions on this machine.</p>
+<p class="zero">No permission-gate telemetry yet — Commander hasn't logged any tool-permission decisions on this machine.${esc(doctorNote)}</p>
 </section>`;
   }
 
@@ -508,7 +555,11 @@ function buildSafetyHtml(model, { now } = {}) {
     source.toolFailures && typeof source.toolFailures === 'object'
       ? source.toolFailures
       : { total: 0, byTool: [], topErrors: [] };
+  const dataThroughMs = Number.isFinite(source.dataThroughMs) ? source.dataThroughMs : null;
+  const hasAnySourceRow = source.hasAnySourceRow !== false;
   const nowMs = toMs(now) ?? toMs(source.generatedAt);
+  const dataThroughLine =
+    dataThroughMs !== null ? ` · Data through: ${esc(stamp(dataThroughMs))}` : '';
 
   return `<meta charset="utf-8">
 <title>Commander Safety</title>
@@ -518,9 +569,10 @@ ${renderTerminalChromeOpen()}
 ${deckStripHtml('safety', { interactive: false })}
 <header>
 <h1>🛡️ Commander Safety</h1>
-<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}</p>
+<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}${dataThroughLine}</p>
 </header>
-${renderHeroSection(decisions)}
+${renderStalenessBanner(dataThroughMs, nowMs)}
+${renderHeroSection(decisions, { hasAnySourceRow })}
 ${renderToolFailuresSection(toolFailures)}
 ${renderDecisionsSection(decisions)}
 <footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>
