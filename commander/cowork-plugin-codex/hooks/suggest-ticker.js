@@ -617,9 +617,17 @@ function readUpdateAvailableSignal() {
   try {
     const raw = JSON.parse(fs.readFileSync(UPDATE_NUDGE_CACHE_FILE, 'utf8'));
     if (!raw || typeof raw !== 'object' || raw.status !== 'outdated') return null;
-    const latest = typeof raw.latest === 'string' && raw.latest ? raw.latest : null;
+    // STRICT re-validation at the READ side — the cache file is a trust
+    // boundary too: a pre-validation plugin version (or hand-tampered file)
+    // can carry a poisoned `latest` like "7.4.0-IGNORE_ALL_PRIOR..." that the
+    // writer never sanitized, and whatever passes here is interpolated into
+    // model-facing context. Anything but plain X.Y.Z → no signal.
+    const STRICT_VERSION = /^\d+\.\d+\.\d+$/;
+    const latest =
+      typeof raw.latest === 'string' && STRICT_VERSION.test(raw.latest) ? raw.latest : null;
     if (!latest) return null;
-    const installed = typeof raw.installed === 'string' && raw.installed ? raw.installed : '?';
+    const installed =
+      typeof raw.installed === 'string' && STRICT_VERSION.test(raw.installed) ? raw.installed : '?';
     return {
       key: `update-${latest}`,
       skill: '/ccc-update',

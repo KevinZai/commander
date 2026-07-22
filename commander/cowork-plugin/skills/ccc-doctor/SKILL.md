@@ -362,7 +362,11 @@ RUNTIME_SRC=$(node -e "
     if(r&&r.installPath) process.stdout.write(r.installPath);
   } catch(e) {}
 " 2>/dev/null || echo "")
-[ -z "$RUNTIME_SRC" ] || [ ! -d "$RUNTIME_SRC" ] && RUNTIME_SRC="$PLUGIN_SRC"
+# NO fallback to $PLUGIN_SRC here — with a marketplace clone present, that
+# fallback would "verify" the CLONE (which a marketplace refresh updates even
+# when the plugin update failed) and falsely report the new version as
+# running. If there is no installed-runtime record, say so honestly instead.
+{ [ -z "$RUNTIME_SRC" ] || [ ! -d "$RUNTIME_SRC" ]; } && RUNTIME_SRC="n/a"
 
 RUNTIME_VERSION="n/a"
 [ "$RUNTIME_SRC" != "n/a" ] && RUNTIME_VERSION=$(node -e "

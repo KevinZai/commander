@@ -133,6 +133,12 @@ export async function run({ env = process.env, fetchText = defaultFetchText, now
       typeof cache.checkedAt === 'number' &&
       cache.checkedAt <= nowMs && // a future timestamp (clock skew, tampered cache) is stale, not immortal
       cache.installed === localVersion &&
+      // A cache whose `latest` isn't a strict X.Y.Z is a legacy/poisoned
+      // artifact of a pre-validation version — never honor it as fresh;
+      // fall through to a re-fetch, which overwrites it with clean values
+      // (self-healing) while downstream readers (suggest-ticker) also
+      // re-validate on read.
+      isValidVersion(cache.latest) &&
       nowMs - cache.checkedAt < CACHE_TTL_MS;
 
     if (fresh) return emitSilent();

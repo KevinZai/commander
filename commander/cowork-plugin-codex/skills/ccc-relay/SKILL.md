@@ -1,5 +1,5 @@
 ---
-name: relay
+name: ccc-relay
 description: "Cross-session loop chaining — chain independent spec/build/review loop SESSIONS that auto-hand-off. Use when the user types $ccc-relay, wants the Finn Loop, or auto-chained loops."
 ---
 
