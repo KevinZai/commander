@@ -95,6 +95,8 @@ Recommendation (⭐):
 
 If neither generator path exists (very old cached plugin version), say so and fall back to the existing category browse flow below; do not fabricate a Cockpit artifact.
 
+> **v7.3.0:** the Cockpit's 8th tab, **Prompts**, is a searchable browser across 4 sources — Anthropic's Claude Code docs prompt library, the CCC field-tested prompt library (+ patterns + course modules), the repo's `prompts/` templates, and a ReadyIQ teaser (agent names + descriptions only). Each entry offers Copy and "✨ Enhance" (hands it straight to the Enhance tab).
+
 > **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
 
 ### Domains (11) → cascade

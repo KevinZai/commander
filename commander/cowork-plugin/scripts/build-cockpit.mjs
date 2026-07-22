@@ -35,6 +35,7 @@ const PLUGIN_ROOT = path.resolve(HERE, '..'); // commander/cowork-plugin — alw
 const TEMPLATE_PATH = path.join(PLUGIN_ROOT, 'lib', 'cockpit-template.html');
 const CONTRACT_PATH = path.join(PLUGIN_ROOT, '..', 'contract.json'); // commander/contract.json — dev checkout only
 const PLUGIN_SKILLS_DIR = path.join(PLUGIN_ROOT, 'skills');
+const PROMPTS_DATA_DIR = path.join(PLUGIN_ROOT, 'lib', 'prompts-data'); // v7.3.0, W5 — ships inside the plugin
 const ECOSYSTEM_SKILLS_DIR_CANDIDATE = path.join(PLUGIN_ROOT, '..', '..', 'skills'); // repo-root/skills — dev checkout only
 const AGENTS_DIR = path.join(PLUGIN_ROOT, 'agents');
 const DATA_MARKER = '/*__COCKPIT_DATA__*/';
@@ -191,6 +192,26 @@ const PATTERNS = Object.freeze([
     directive: 'Example: here is one input → the output I expect: [ … ].',
   },
 ]);
+
+// Prompts tab (v7.3.0, W5/Item 15) — display labels for the two cross-source
+// filter dimensions (source id, SDLC phase). Category is NOT a fixed set —
+// it varies per source (Anthropic/CCC-library SDLC categories, template
+// subdirs, ReadyIQ agent categories, "Pattern"/"Course module") and is
+// rendered from whatever buildPrompts() actually emits, the same way Browse's
+// domain-filter chips are derived from the skill data rather than hardcoded.
+const PROMPT_SOURCE_LABELS = Object.freeze({
+  anthropic: 'Claude Code docs',
+  'ccc-library': 'CCC library',
+  templates: 'Templates',
+  readyiq: 'ReadyIQ',
+});
+const PROMPT_PHASE_LABELS = Object.freeze({
+  discover: 'Discover',
+  design: 'Design',
+  build: 'Build',
+  ship: 'Ship',
+  operate: 'Operate',
+});
 
 function parseArgs(argv) {
   let outPath = null;
@@ -575,6 +596,139 @@ function readLinearBoard() {
   return { connected: false };
 }
 
+// Prompts tab (v7.3.0, W5/Item 15) — reads the 4 vendored JSON sources under
+// lib/prompts-data/ (shipped inside the plugin, per the packaging lesson
+// already applied to contract.json/ecosystem-skills above) and normalizes
+// each into the SAME flat entry shape the template renders generically:
+//   { id, source, kind, title, desc, category, sdlc, roles, prompt }
+// A source file that is absent or fails to parse contributes 0 entries
+// rather than crashing the build — same fail-soft contract as the rest of
+// this file's optional/dev-checkout-only inputs.
+function readPromptsDataFile(filename) {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(PROMPTS_DATA_DIR, filename), 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function normalizeAnthropicPrompts(data) {
+  if (!data || !Array.isArray(data.entries)) return [];
+  return data.entries.map((entry) => ({
+    id: 'anthropic:' + entry.id,
+    source: 'anthropic',
+    kind: 'prompt',
+    title: String(entry.title || entry.id || ''),
+    desc: String(entry.teaches || ''),
+    category: String(entry.cat || ''),
+    sdlc: String(entry.sdlc || ''),
+    roles: Array.isArray(entry.roles) ? entry.roles.map(String) : [],
+    prompt: String(entry.prompt || ''),
+  }));
+}
+
+function normalizeCccLibraryPrompts(data) {
+  if (!data) return [];
+  const prompts = (Array.isArray(data.prompts) ? data.prompts : []).map((entry) => ({
+    id: 'ccc-library:' + entry.id,
+    source: 'ccc-library',
+    kind: 'prompt',
+    title: String(entry.title || entry.id || ''),
+    // A "paste an image, then:" context note (if any) is prose, not part of
+    // the copyable prompt body — it's folded into desc so Copy stays clean.
+    desc: (entry.context ? String(entry.context) + ' ' : '') + String(entry.why || ''),
+    category: String(entry.cat || ''),
+    sdlc: String(entry.sdlc || ''),
+    roles: Array.isArray(entry.roles) ? entry.roles.map(String) : [],
+    prompt: String(entry.prompt || ''),
+  }));
+  const patterns = (Array.isArray(data.patterns) ? data.patterns : []).map((entry) => ({
+    id: 'ccc-library:pattern:' + entry.id,
+    source: 'ccc-library',
+    kind: 'pattern',
+    title: String(entry.title || entry.id || ''),
+    desc: String(entry.why || ''),
+    category: 'Pattern',
+    sdlc: '',
+    roles: [],
+    prompt: String(entry.example || ''),
+  }));
+  const modules = (Array.isArray(data.modules) ? data.modules : []).map((entry) => ({
+    id: 'ccc-library:module:' + entry.id,
+    source: 'ccc-library',
+    kind: 'module',
+    title: 'Module ' + entry.number + ' — ' + String(entry.title || ''),
+    desc: String(entry.objective || ''),
+    category: 'Course module',
+    sdlc: '',
+    roles: [],
+    prompt: '', // not a copyable prompt — browsable only
+  }));
+  return [...prompts, ...patterns, ...modules];
+}
+
+function normalizeTemplatePrompts(data) {
+  if (!data || !Array.isArray(data.entries)) return [];
+  return data.entries.map((entry) => ({
+    id: 'templates:' + entry.id,
+    source: 'templates',
+    kind: 'template',
+    title: String(entry.title || entry.id || ''),
+    desc: String(entry.whenToUse || ''),
+    category: String(entry.category || ''),
+    sdlc: '',
+    roles: [],
+    prompt: String(entry.prompt || ''),
+  }));
+}
+
+// TEASER TIER (Kevin, 2026-07-22): readyiq.json carries names + one-line
+// descriptions only — the full agent set (prompt frameworks, system
+// prompts) is Kevin's paid ReadyIQ product and stays out of this MIT repo.
+// Entries here NEVER get a `prompt` body (no Copy button renders for them);
+// readyiqFunnel below is the "build agents like these" upsell card.
+function normalizeReadyiqPrompts(data) {
+  if (!data || !Array.isArray(data.entries)) return [];
+  return data.entries.map((entry) => ({
+    id: 'readyiq:' + entry.id,
+    source: 'readyiq',
+    kind: 'agent',
+    title: String(entry.name || entry.id || ''),
+    desc: String(entry.desc || ''),
+    category: String(entry.category || ''),
+    sdlc: '',
+    roles: [],
+    prompt: '',
+  }));
+}
+
+function buildPrompts() {
+  const anthropic = readPromptsDataFile('anthropic.json');
+  const cccLibrary = readPromptsDataFile('ccc-library.json');
+  const templates = readPromptsDataFile('templates.json');
+  const readyiq = readPromptsDataFile('readyiq.json');
+
+  const entries = [
+    ...normalizeAnthropicPrompts(anthropic),
+    ...normalizeCccLibraryPrompts(cccLibrary),
+    ...normalizeTemplatePrompts(templates),
+    ...normalizeReadyiqPrompts(readyiq),
+  ];
+
+  return {
+    entries,
+    sourceLabels: PROMPT_SOURCE_LABELS,
+    phaseLabels: PROMPT_PHASE_LABELS,
+    attribution: {
+      anthropic: (anthropic && anthropic.attribution) || '',
+      'ccc-library': (cccLibrary && cccLibrary.attribution) || '',
+      templates: (templates && templates.attribution) || '',
+      readyiq: (readyiq && readyiq.attribution) || '',
+    },
+    readyiqFunnel: (readyiq && readyiq.funnel) || null,
+  };
+}
+
 function readJsonl(filePath) {
   let raw;
   try {
@@ -924,6 +1078,7 @@ async function buildDocument() {
     patterns: PATTERNS,
     analytics: await buildAnalytics(),
     linear: readLinearBoard(),
+    prompts: buildPrompts(),
   };
 
   const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
