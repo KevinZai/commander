@@ -35,7 +35,7 @@
             ]
           },
           {
-            "group": "Desktop Plugin (v7.2.0)",
+            "group": "Desktop Plugin (v7.3.0)",
             "pages": [
               "plugin/install",
               "plugin/upgrade",
@@ -52,7 +52,8 @@
                   "plugin/skills/ccc-changelog",
                   "plugin/skills/ccc-upgrade",
                   "plugin/skills/ccc-usage",
-                  "plugin/skills/ccc-safety"
+                  "plugin/skills/ccc-safety",
+                  "plugin/skills/ccc-update"
                 ]
               },
               "plugin/agents",

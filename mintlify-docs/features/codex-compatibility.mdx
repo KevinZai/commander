@@ -6,7 +6,7 @@ description: "Use CC Commander skills in OpenAI Codex CLI and Codex Desktop. v7.
 CC Commander's plugin architecture is based on Anthropic's **Agent Skills spec**, which OpenAI adopted in December 2025. This means SKILL.md files — the core of the plugin — port to Codex with almost no changes.
 
 <Note>
-  **Status (v7.3.0):** Codex CLI and Codex Desktop compatibility ships as a generated mirror at `commander/cowork-plugin-codex/`. The canonical source remains `commander/cowork-plugin/`; run `npm run build:codex` to regenerate the Codex artifact. This release corrects a bug present in every version through v6.8.2/v7.2.0 — see "What changed in v7.3.0" below.
+  **Status (v7.3.0):** Codex CLI and Codex Desktop compatibility ships as a generated mirror at `commander/cowork-plugin-codex/`. The canonical source remains `commander/cowork-plugin/`; run `npm run build:codex` to regenerate the Codex artifact. This release corrects a bug introduced in v6.8.2 and present as of v7.2.0 — see "What changed in v7.3.0" below.
 </Note>
 
 <Warning>
@@ -15,7 +15,7 @@ CC Commander's plugin architecture is based on Anthropic's **Agent Skills spec**
 
 ## What changed in v7.3.0
 
-Every version of this adapter through v7.2.0 rewrote `${CLAUDE_PLUGIN_ROOT}` references in hooks and skill bodies to `${CODEX_PLUGIN_ROOT}` — but **`CODEX_PLUGIN_ROOT` is not a real Codex variable**. That rewrite broke every generated hook command and every skill instruction that referenced the plugin root, on every Codex install to date.
+Every version of this adapter, as of v7.2.0, rewrote `${CLAUDE_PLUGIN_ROOT}` references in hooks and skill bodies to `${CODEX_PLUGIN_ROOT}` — but **`CODEX_PLUGIN_ROOT` is not a real Codex variable**. That rewrite broke every generated hook command and every skill instruction that referenced the plugin root, on every Codex install to date.
 
 Verified against primary docs (learn.chatgpt.com/docs/hooks, fetched 2026-07-22): Codex exposes its native `PLUGIN_ROOT` / `PLUGIN_DATA` env vars to plugin hook commands, plus `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA` as documented compatibility aliases "for compatibility with existing plugin hooks." As of v7.3.0, `${CLAUDE_PLUGIN_ROOT}` is left verbatim everywhere and resolves correctly under Codex.
 
@@ -54,7 +54,7 @@ Claude Code has hook events, and two capabilities referenced from skill prose, w
 
 | CC Commander component | Codex status | Notes |
 |------------------------|-------------|-------|
-| `skills/*/SKILL.md` | ✅ ports with 4 conservative prose transforms | 80 skills pass through byte-for-byte except: `/ccc-<name>` invocation references inside backticks become `$ccc-<name>`; the plugin's own `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` reference becomes `.codex-plugin/plugin.json`; and the two fallback notes above are appended where relevant |
+| `skills/*/SKILL.md` | ✅ ports with 4 conservative prose transforms | 81 skills pass through byte-for-byte except: `/ccc-<name>` invocation references inside backticks become `$ccc-<name>`; the plugin's own `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` reference becomes `.codex-plugin/plugin.json`; and the two fallback notes above are appended where relevant |
 | `.mcp.json` MCP server configs | ✅ Compatible | The 2 bundled MCP servers, `context7` and `sequential-thinking`, pass through |
 | `hooks.json` | ✅ 10 supported events | See table above |
 | `agents/*.md` persona files | ✅ Translated | 22 Markdown-frontmatter agents become Codex `agents/*.toml` files |

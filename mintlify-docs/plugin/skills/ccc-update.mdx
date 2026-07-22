@@ -1,0 +1,77 @@
+---
+title: "/ccc-update"
+description: "Click-first plugin update walkthrough: detect installed vs. latest version, run the marketplace-update sequence, remind you to restart, and verify the new version + hooks are actually live."
+---
+
+`/ccc-update` is the end-user counterpart to `/ccc-doctor` (which also detects staleness, but as one row in a bigger diagnostic report) — this skill does ONE thing: get you onto the latest version, correctly, in the fewest steps. New in v7.3.0.
+
+<Note>
+  Looking for the vendor-submodule updater instead (`vendor/*` git submodules in the source repo, maintainer-only)? That's [`/ccc-upgrade`](/plugin/skills/ccc-upgrade) — a different tool with a similarly-spelled name. `/ccc-update` is for end users updating the installed plugin itself.
+</Note>
+
+## Trigger
+
+```
+/ccc-update
+```
+
+Also activates on: "update commander", "am I on the latest version", "check for updates"
+
+## What it does
+
+<Steps>
+  <Step title="Detect installed vs. latest">
+    Reads your installed version from `~/.claude/plugins/installed_plugins.json`, then checks the latest version published on `main` (same remote check `update-nudge.js` performs at session start). Reports plainly: `Installed: vX.Y.Z · Latest: vA.B.C`.
+
+    - Can't reach GitHub (offline or rate-limited)? Says so and stops — nothing else to do until network is back.
+    - Already on the latest version? Says so and stops.
+  </Step>
+  <Step title="Confirm and run the update">
+    An `AskUserQuestion` chip picker confirms the version jump, then hands you the two commands to run yourself — skills cannot invoke `/plugin` built-ins on your behalf:
+
+    ```
+    /plugin marketplace update commander-hub
+    /plugin update commander
+    ```
+
+    (CLI one-liner: `claude plugin marketplace update commander-hub && claude plugin update commander`.)
+  </Step>
+  <Step title="Restart reminder">
+    `/plugin update` stages the new version — it does not hot-swap the running session. You're reminded to fully quit Claude Code / Cowork Desktop (Cmd+Q, not just closing the window) and reopen, or start a new CLI session.
+  </Step>
+  <Step title="Verify after restart">
+    Once you confirm you've restarted, `/ccc-update` re-reads the installed version (it should now match the "latest" from step 1) and pipes a test payload through a bundled hook to prove the hook chain in the updated install actually runs — not just that the version string changed.
+  </Step>
+</Steps>
+
+## Why this exists
+
+Third-party plugin marketplaces don't auto-refresh by default. `/plugin update commander` alone updates against whatever your **local marketplace clone** last synced — which can be weeks stale — so the marketplace refresh has to run first, every time, or the update silently does nothing. `/ccc-update` runs both steps in the right order and proves the result, instead of leaving you to remember the sequence.
+
+## The ambient version
+
+You don't have to remember to run this. A **SessionStart hook** (`hooks/update-nudge.js`) checks once every 24 hours (cached, silent on failure — never blocks a session on a network call) whether a newer version exists on `main`, and if so, surfaces the exact fix inline. `/ccc-update` is the click-first version of the same check, for whenever you want to run it on demand.
+
+## Related: `/ccc-doctor`
+
+`/ccc-doctor` runs a broader diagnostic and, since v7.3.0, catches every stale-install layer this skill's simple version-compare can miss:
+
+- Marketplace clone behind `origin/main`
+- Old `cache/<version>` directories left behind by a prior update
+- Stale Desktop inline copies
+- Aged catalog-cache timestamps
+
+It can also offer — with your consent, backing up the file first — to set `"autoUpdate": true` on the `commander-hub` entry in `~/.claude/plugins/known_marketplaces.json`, so step 1 of the update sequence stops needing a manual run.
+
+## Anti-patterns this skill avoids
+
+- Never suggests `git pull` — there is no working tree in a marketplace install.
+- Never claims to have run `/plugin update` itself — those are Claude Code CLI/Desktop built-ins a skill cannot shell out to; it always hands you the exact commands.
+- Never skips the restart reminder — updating without a restart is the most common cause of "I updated but nothing changed."
+- Never claims success from the update step alone — verification (reading the version back + a live hook probe) is what actually confirms the update landed.
+
+## Notes
+
+- Backed by `commander/cowork-plugin/skills/ccc-update/SKILL.md` and `commander/update-check.js`.
+- Ambient counterpart: `hooks/update-nudge.js` (SessionStart, 24h-cached, offline-silent).
+- Full manual walkthrough: [Upgrade guide](/plugin/upgrade).
