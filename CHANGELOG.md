@@ -1,5 +1,59 @@
 # Changelog
 
+## [7.3.0] - 2026-07-22
+
+### Added
+- **Update self-detection** (`hooks/update-nudge.js`) — Commander finally notices its
+  own updates: a SessionStart hook (24h-cached, offline-silent) compares the installed
+  version against GitHub `main` and, when newer, tells you the exact fix —
+  `/plugin marketplace update commander-hub` → `/plugin update commander` → restart.
+  Third-party marketplaces have auto-update **off by default**, so nothing else was
+  ever going to tell you.
+- **`/ccc-update`** (81st plugin skill) — click-first walkthrough: detect installed vs
+  latest → run the two update commands → restart → verify the version and that hooks
+  are alive. `/ccc-doctor` also now diagnoses every stale-install layer (marketplace
+  clone behind origin, old `cache/<version>` dirs, Desktop inline copies, catalog-cache
+  age) and offers — with consent — to enable marketplace auto-update.
+- **Cockpit "Prompts" tab** (8th tab) — a navigable, searchable prompt browser:
+  the Claude Code docs prompt library (52 prompts, with attribution + a refresh
+  script), the CCC library (52 field-tested prompts + 6 quality patterns + course
+  modules), the repo's 36 prompt templates, and a ReadyIQ agent showcase. Filter by
+  source / SDLC phase / category, copy any prompt, or send it straight into the
+  Enhance tab with one click.
+- **Deck freshness honesty** — every deck now shows "**Data through** <timestamp>"
+  (the newest source row) beside the render stamp, and warns when telemetry is >24h
+  stale ("hooks may not be running — run /ccc-doctor"). Rebuilding a deck from
+  months-old data can no longer masquerade as fresh.
+- **Proactive moments** — the suggestion engine now surfaces update-available and
+  stale-telemetry signals, writes real entries to Mission Control's Suggestions panel
+  (previously it had no producer and sat permanently empty), and keys all its state
+  per-project (suggestions and dismissals no longer leak between repositories).
+- Safety's "auto-fixed" metric is now real: the permission gate logs
+  `approved-autofix` when an autofix write is actually approved.
+
+### Fixed
+- **The Codex mirror actually works now.** The translator rewrote every hook and
+  skill to `${CODEX_PLUGIN_ROOT}` — a variable Codex never sets (it provides
+  `PLUGIN_ROOT`/`PLUGIN_DATA` and honours `CLAUDE_PLUGIN_ROOT` for compatibility) —
+  so **every mirrored hook has been dead on every Codex install to date**. Also:
+  4 supported events were wrongly dropped (SubagentStart/Stop, Pre/PostCompact — the
+  mirror now carries 10), `async` handlers (which Codex silently skips) are stripped,
+  and the docs now cover Codex's hook **trust gate**.
+- `/ccc-usage` now triggers the canonical metrics recompute instead of reading a
+  stale rollup, and honestly labels the savings hero when `savings.json` isn't being
+  fed (it is only written by CLI dispatches today).
+- The Cockpit builder now ships **inside** the plugin
+  (`cowork-plugin/scripts/build-cockpit.mjs`) — marketplace installs previously could
+  not regenerate the Cockpit at all (the builder lived outside the packaged directory).
+- Deck refresh friction: re-running a deck skill republishes the same URL without
+  re-asking (invoking the skill is the consent); docs updated — the published update
+  sequence (`/plugin update` alone) could never deliver an update, and two doc pages
+  invented settings that don't exist.
+- `update-check.js` is a real module now (no side-effect `main()` corrupting MCP
+  stdio; `--remote-only` implemented; remediation text no longer tells marketplace
+  users to `git pull` a maintainer path). `check-version-parity` now gates 9 version
+  surfaces (was 4); release CI runs `check-compat`.
+
 ## [7.2.0] - 2026-07-20
 
 ### Added
@@ -19,6 +73,13 @@
   redacted error signatures from `tool-failures.jsonl`).
 
 ### Fixed
+- **Every plugin hook was broken on macOS Claude Code Desktop** — all 42 hook
+  commands used an unquoted `${CLAUDE_PLUGIN_ROOT}`, and Desktop installs under
+  `~/Library/Application Support/…`, so the space word-split the path and every
+  hook died on startup. All 42 commands are now quoted. If Commander's dashboards,
+  telemetry, or suggestions looked empty or frozen on Desktop, **this was why —
+  updating to ≥7.2.0 fixes it** (your data starts flowing again from the moment
+  the new hooks run).
 - Emoji mojibake in the snapshot artifacts — Mission Control, Usage, and Safety
   fragments now declare `<meta charset="utf-8">` (the Cockpit already did), so
   emoji render correctly when served standalone, not just inside the Artifact wrapper.
