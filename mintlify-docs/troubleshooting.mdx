@@ -49,7 +49,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
   **Cmd+Q + reopen** is the canonical fix for ~80% of plugin visibility issues. The autocomplete index, slash command registry, and MCP server list are all populated at startup.
 </Note>
 
-**If still broken:** check `~/.claude/plugins/commander/` exists on disk. If present but not listed, the manifest failed validation — run `/ccc-doctor`.
+**If still broken:** check `~/.claude/plugins/cache/commander-hub/commander/` exists on disk (this is where the actual executing copy lives — not `~/.claude/plugins/commander/`, which isn't a real path). If present but not listed, the manifest failed validation — run `/ccc-doctor`.
 
 ### Autocomplete cache shows old skills
 
@@ -75,15 +75,24 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
 /plugin update commander
 ```
 
-**Permanent fix:** enable auto-update in your plugin settings file.
+**Permanent fix:** enable auto-update for the `commander-hub` marketplace.
+This is NOT a `settings.json` key — it's a per-marketplace flag in
+`~/.claude/plugins/known_marketplaces.json`:
 
 ```json
 {
-  "plugins": {
-    "commander": { "autoUpdate": true }
+  "commander-hub": {
+    "source": { "source": "github", "repo": "KevinZai/commander" },
+    "installLocation": "~/.claude/plugins/marketplaces/commander-hub",
+    "autoUpdate": true
   }
 }
 ```
+
+Add `"autoUpdate": true` to the existing `commander-hub` entry — don't
+overwrite `source`/`installLocation`, and don't touch other marketplaces'
+entries in the same file. `/ccc-doctor` offers to make this exact edit for
+you, with a backup taken first.
 
 ### displayName not updating
 

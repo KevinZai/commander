@@ -6,21 +6,61 @@ var path = require('path');
 
 var ROOT = path.join(__dirname, '..');
 
+// Each entry: { path, extract } — extract(obj) returns the version string
+// (or null) to compare against the root SSoT. Most manifests have a plain
+// top-level `version`; marketplace.json-shaped files carry TWO independent
+// version fields (top-level = the marketplace's own version, plugins[i]
+// = the published version Desktop's Plugin UI actually reads) — both are
+// checked separately since bump-version.js writes both and either can drift.
 var MANIFESTS = {
-  'package.json': path.join(ROOT, 'package.json'),
-  'commander/cowork-plugin/.claude-plugin/plugin.json': path.join(ROOT, 'commander', 'cowork-plugin', '.claude-plugin', 'plugin.json'),
-  '.claude-plugin/marketplace.json': path.join(ROOT, '.claude-plugin', 'marketplace.json'),
-  'apps/mcp-server-cloud/package.json': path.join(ROOT, 'apps', 'mcp-server-cloud', 'package.json'),
+  'package.json': {
+    path: path.join(ROOT, 'package.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  'commander/cowork-plugin/.claude-plugin/plugin.json': {
+    path: path.join(ROOT, 'commander', 'cowork-plugin', '.claude-plugin', 'plugin.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  '.claude-plugin/marketplace.json (top-level)': {
+    path: path.join(ROOT, '.claude-plugin', 'marketplace.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  '.claude-plugin/marketplace.json (plugins[commander])': {
+    path: path.join(ROOT, '.claude-plugin', 'marketplace.json'),
+    extract: function (obj) {
+      var p = Array.isArray(obj.plugins) ? obj.plugins.find(function (x) { return x && x.name === 'commander'; }) : null;
+      return p ? (p.version || null) : null;
+    },
+  },
+  '.agents/plugins/marketplace.json (top-level)': {
+    path: path.join(ROOT, '.agents', 'plugins', 'marketplace.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  '.agents/plugins/marketplace.json (plugins[commander])': {
+    path: path.join(ROOT, '.agents', 'plugins', 'marketplace.json'),
+    extract: function (obj) {
+      var p = Array.isArray(obj.plugins) ? obj.plugins.find(function (x) { return x && x.name === 'commander'; }) : null;
+      return p ? (p.version || null) : null;
+    },
+  },
+  'commander/contract.json': {
+    path: path.join(ROOT, 'commander', 'contract.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  'commander/cowork-plugin-codex/.codex-plugin/plugin.json (generated)': {
+    path: path.join(ROOT, 'commander', 'cowork-plugin-codex', '.codex-plugin', 'plugin.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  'apps/mcp-server-cloud/package.json': {
+    path: path.join(ROOT, 'apps', 'mcp-server-cloud', 'package.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
 };
 
-function readVersion(filePath) {
+function readVersion(entry) {
   try {
-    var obj = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    // marketplace.json nests version under plugins[0]
-    if (obj.plugins && Array.isArray(obj.plugins) && obj.plugins[0]) {
-      return obj.plugins[0].version || null;
-    }
-    return obj.version || null;
+    var obj = JSON.parse(fs.readFileSync(entry.path, 'utf8'));
+    return entry.extract(obj);
   } catch (err) {
     return null;
   }
@@ -47,7 +87,7 @@ var isCheck = process.argv.includes('--check');
 
 if (isCheck) {
   if (drifted.length === 0) {
-    process.stdout.write('PASS: All 4 manifests at ' + rootVersion + '\n');
+    process.stdout.write('PASS: All ' + results.length + ' manifests at ' + rootVersion + '\n');
     process.exit(0);
   } else {
     process.stderr.write('FAIL: Version drift detected (root is ' + rootVersion + ')\n');

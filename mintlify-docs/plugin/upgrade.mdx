@@ -7,13 +7,68 @@ description: "Upgrade an existing CC Commander plugin install to v7.2.0 in Claud
 
 You already have CC Commander installed? Here's how to pick up v7.2.0 with zero drama.
 
+<Warning>
+  Third-party plugin marketplaces do **not** auto-refresh by default. If you
+  only run `/plugin update commander`, it updates against whatever your
+  **local marketplace clone** last synced — which can be weeks stale. Run
+  the marketplace refresh first, every time.
+</Warning>
+
 ## Claude Code Desktop / CLI (plugin)
 
 ```
+/plugin marketplace update commander-hub
 /plugin update commander
 ```
 
-That's the whole thing. The marketplace serves the latest version from `main` — your next `/plugin update` pulls v7.2.0.
+Step 1 refreshes the local marketplace clone from `KevinZai/commander`'s
+`main` branch. Step 2 then actually updates the installed plugin — it can
+only pull a version that step 1 just fetched.
+
+**CLI one-liner** (same two steps):
+
+```bash
+claude plugin marketplace update commander-hub && claude plugin update commander
+```
+
+<Note>
+  **Restart required.** `/plugin update` stages the new version — it does
+  not hot-swap the running session. Fully quit Claude Code / Cowork Desktop
+  (Cmd+Q, not just closing the window — the menu-bar process must exit) and
+  reopen, or start a new CLI session.
+</Note>
+
+### Skip step 1 next time (auto-update)
+
+Third-party marketplaces support an opt-in auto-refresh flag. Set
+`"autoUpdate": true` on the `commander-hub` entry in
+`~/.claude/plugins/known_marketplaces.json`:
+
+```json
+{
+  "commander-hub": {
+    "source": { "source": "github", "repo": "KevinZai/commander" },
+    "installLocation": "~/.claude/plugins/marketplaces/commander-hub",
+    "autoUpdate": true
+  }
+}
+```
+
+Preserve every other key already in that entry — only add `autoUpdate`.
+Or run `/ccc-doctor`, which offers to do this for you (backs up the file
+first, asks for confirmation, verifies the write). Some Claude Code builds
+also expose this as a toggle in the `/plugin` interactive menu — check
+there first if you'd rather not hand-edit JSON.
+
+With `autoUpdate: true`, the marketplace clone still refreshes in the
+background rather than instantly — `/plugin update commander` (step 2, plus
+the restart) still applies it.
+
+### Click-first walkthrough
+
+Prefer not to run commands by hand? `/ccc-update` detects your installed
+vs. latest version, runs both commands for you to confirm, reminds you to
+restart, and verifies the new version + hooks are actually live afterward.
 
 ### Verify the upgrade
 
