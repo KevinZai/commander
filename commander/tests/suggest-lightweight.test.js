@@ -15,29 +15,44 @@ const HOOK_PATH = path.join(
   'suggest-lightweight.js'
 );
 
+// projectSlug is a pure function of the cwd string (no HOME dependency) —
+// safe to import directly and use to build the per-project fixture path
+// below. Node 24 supports require(esm) natively (no top-level await here).
+const { projectSlug } = require('../cowork-plugin/hooks/suggest-ticker.js');
+
 // Per-test tmp dir (process-unique)
 const TMP_BASE = path.join(os.tmpdir(), 'ccc-suggest-lightweight-test-' + process.pid);
+
+// Fixed synthetic cwd sent via the hook's stdin payload (CC-1386 W4 item 1 —
+// per-project state keying). suggest-lightweight.js only hashes this string;
+// it never touches the filesystem at this path, so it needn't exist.
+const TEST_CWD = '/tmp/ccc-suggest-lightweight-fixture-cwd';
+const TEST_SLUG = projectSlug(TEST_CWD);
 
 function tmpHome(suffix = '') {
   return path.join(TMP_BASE, suffix || 'default');
 }
 
+function projectStateDir(home) {
+  return path.join(home, '.claude', 'commander', 'projects', TEST_SLUG);
+}
+
 function stateFile(home) {
-  return path.join(home, '.claude', 'commander', 'project-state.json');
+  return path.join(projectStateDir(home), 'project-state.json');
 }
 
 function lastSuggestionFile(home) {
-  return path.join(home, '.claude', 'commander', 'last-suggestion.json');
+  return path.join(projectStateDir(home), 'last-suggestion.json');
 }
 
 function writeState(home, state) {
-  const dir = path.join(home, '.claude', 'commander');
+  const dir = projectStateDir(home);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(stateFile(home), JSON.stringify(state, null, 2));
 }
 
 function writeLastSuggestion(home, data) {
-  const dir = path.join(home, '.claude', 'commander');
+  const dir = projectStateDir(home);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(lastSuggestionFile(home), JSON.stringify(data, null, 2));
 }
@@ -59,6 +74,7 @@ function runHook(home, envOverrides = {}) {
   }
 
   const result = spawnSync('node', [HOOK_PATH], {
+    input: JSON.stringify({ cwd: TEST_CWD }),
     encoding: 'utf-8',
     timeout: 4000,
     env,

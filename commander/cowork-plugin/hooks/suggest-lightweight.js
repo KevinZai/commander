@@ -33,6 +33,7 @@
 import { track } from '../lib/telemetry.mjs';
 import { emitUser, emitSilent } from './lib/emit.mjs';
 import { computeConfidence } from './lib/confidence.mjs';
+import { resolveCwd, projectDir } from './suggest-ticker.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -40,9 +41,18 @@ import crypto from 'node:crypto';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || os.homedir();
 const CCC_DIR = path.join(HOME, '.claude', 'commander');
-const STATE_FILE = path.join(CCC_DIR, 'project-state.json');
-const LAST_SUGGESTION_FILE = path.join(CCC_DIR, 'last-suggestion.json');
-const SUGGEST_DISMISSED_FILE = path.join(CCC_DIR, 'suggest-dismissed.json');
+
+// Per-project state keying (codex finding 10, CC-1386 W4 item 1) — see the
+// matching comment block in suggest-ticker.js. project-state.json,
+// last-suggestion.json, and suggest-dismissed.json all moved from a flat
+// CCC_DIR file (shared/leaked across every repo) to
+// ~/.claude/commander/projects/<slug>/, slug derived from cwd (payload.cwd
+// first, process.cwd() fallback — resolveCwd/projectDir imported from
+// suggest-ticker.js so both hooks share one hashing implementation). Legacy
+// flat files are never read as a fallback and never deleted.
+function stateFileFor(cwd) { return path.join(projectDir(cwd), 'project-state.json'); }
+function lastSuggestionFileFor(cwd) { return path.join(projectDir(cwd), 'last-suggestion.json'); }
+function dismissedFileFor(cwd) { return path.join(projectDir(cwd), 'suggest-dismissed.json'); }
 
 const IDEMPOTENCY_WINDOW_MS = 60_000; // 60 seconds
 const DISMISSED_AFTER_SHOWS = 2; // ignored twice → stop repeating
@@ -92,9 +102,9 @@ function writeJson(filePath, data) {
   }
 }
 
-function stateMtime() {
+function stateMtime(stateFile) {
   try {
-    return fs.statSync(STATE_FILE).mtimeMs;
+    return fs.statSync(stateFile).mtimeMs;
   } catch {
     return 0;
   }
@@ -161,14 +171,14 @@ function getTurnCount(lastSuggestion) {
 // ---------------------------------------------------------------------------
 // Dismissed tracking (proactivity wave — mirrors suggest-ticker's seen-file
 // anti-nag pattern): a suggestion rendered twice without engagement stops
-// repeating. Shared state file ~/.claude/commander/suggest-dismissed.json:
+// repeating. Per-project state file (see dismissedFileFor, above):
 //   { "/ccc-ship": { shows: 2, ts: 1699999999999 }, ... }
 // Entries decay after 7 days. Fail-open — malformed state reads as empty.
 // ---------------------------------------------------------------------------
 
-function readDismissed() {
+function readDismissed(dismissedFile) {
   try {
-    const raw = readJson(SUGGEST_DISMISSED_FILE);
+    const raw = readJson(dismissedFile);
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
     const now = Date.now();
     const out = {};
@@ -197,7 +207,7 @@ function filterDismissed(suggestions, dismissed) {
   }
 }
 
-function recordShown(suggestions, dismissed) {
+function recordShown(suggestions, dismissed, dismissedFile) {
   try {
     const now = Date.now();
     const next = { ...dismissed };
@@ -206,7 +216,7 @@ function recordShown(suggestions, dismissed) {
       const prev = next[s.skill];
       next[s.skill] = { shows: (prev ? prev.shows : 0) + 1, ts: now };
     }
-    writeJson(SUGGEST_DISMISSED_FILE, next);
+    writeJson(dismissedFile, next);
   } catch {
     // non-fatal
   }
@@ -285,8 +295,22 @@ function renderBoxedCard(suggestions, confidence) {
 // Main
 // ---------------------------------------------------------------------------
 
-function main() {
+/** Read the hook's stdin JSON payload — same contract as suggest-ticker.js. */
+async function readStdinPayload() {
+  try {
+    let input = '';
+    for await (const chunk of process.stdin) input += chunk;
+    if (input.trim()) return JSON.parse(input);
+  } catch { /* fail-open — empty payload just means cwd falls back */ }
+  return {};
+}
+
+function main(payload = {}) {
   const mode = getMode();
+  const cwd = resolveCwd(payload);
+  const stateFile = stateFileFor(cwd);
+  const lastSuggestionFile = lastSuggestionFileFor(cwd);
+  const dismissedFile = dismissedFileFor(cwd);
 
   // Silent mode — fast exit
   if (mode === 'off') {
@@ -295,20 +319,20 @@ function main() {
   }
 
   // Read project state — missing file = graceful no-op
-  const state = normalizeState(readJson(STATE_FILE));
+  const state = normalizeState(readJson(stateFile));
   if (!state) {
     process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
   }
 
   // Load last-suggestion state
-  const lastSuggestion = readJson(LAST_SUGGESTION_FILE);
+  const lastSuggestion = readJson(lastSuggestionFile);
   const newTurnCount = getTurnCount(lastSuggestion) + 1;
 
   // Mode-based render gate
   if (!shouldRenderForMode(mode, newTurnCount)) {
     // Still write the updated turn count so every-N counting stays accurate
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       ...(lastSuggestion || {}),
       turnCount: newTurnCount,
     });
@@ -317,12 +341,12 @@ function main() {
   }
 
   // Idempotency check (smart + always modes)
-  const mtime = stateMtime();
+  const mtime = stateMtime(stateFile);
   const hash = makeHash(mtime, Math.floor(Date.now() / IDEMPOTENCY_WINDOW_MS));
 
   if (lastSuggestion && lastSuggestion.hash === hash) {
     // Same hash within the 60s window — skip
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       ...lastSuggestion,
       turnCount: newTurnCount,
     });
@@ -330,25 +354,34 @@ function main() {
     return;
   }
 
-  // Confidence calculation — shared engine (lib/confidence.mjs)
+  // Confidence calculation — shared engine (lib/confidence.mjs), merged with
+  // the ticker's own signals (update-available / stale-telemetry) persisted
+  // on state.tickerSuggestions by suggest-ticker.js — same involvement/
+  // dismissal machinery, no separate render path needed for them.
   const minConfidence = parseFloat(
     process.env.CCC_SUGGEST_MIN_CONFIDENCE || '0.8'
   );
   const computed = computeConfidence(state);
-  const confidence =
+  const baseConfidence =
     typeof computed.confidence === 'number' && Number.isFinite(computed.confidence)
       ? computed.confidence
       : 0;
-  const suggestions = normalizeSuggestions(computed.suggestions);
+  const tickerSuggestions = normalizeSuggestions(state.tickerSuggestions);
+  const tickerConfidence = tickerSuggestions.reduce(
+    (max, s) => Math.max(max, Number.isFinite(Number(s.confidence)) ? Number(s.confidence) : 0),
+    0
+  );
+  const confidence = Math.max(baseConfidence, tickerConfidence);
+  const suggestions = normalizeSuggestions(computed.suggestions).concat(tickerSuggestions);
   const level = getLevel(state);
 
   // Dismissed[] anti-nag: drop suggestions the user has ignored twice.
-  const dismissed = readDismissed();
+  const dismissed = readDismissed(dismissedFile);
   const visibleSuggestions = filterDismissed(suggestions, dismissed);
 
   // Smart mode: gate on confidence
   if (mode === 'smart' && confidence < minConfidence) {
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       hash,
       timestamp: Date.now(),
       turnCount: newTurnCount,
@@ -361,7 +394,7 @@ function main() {
 
   // No suggestions (after the dismissed filter) → nothing to render
   if (visibleSuggestions.length === 0) {
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       hash,
       timestamp: Date.now(),
       turnCount: newTurnCount,
@@ -374,7 +407,7 @@ function main() {
 
   // Level 1 (passive): record the suggestion for /ccc-suggest but render nothing
   if (level <= 1) {
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       hash,
       timestamp: Date.now(),
       turnCount: newTurnCount,
@@ -392,7 +425,7 @@ function main() {
     ? renderBoxedCard(visibleSuggestions, confidence)
     : renderSuggestions(visibleSuggestions);
 
-  writeJson(LAST_SUGGESTION_FILE, {
+  writeJson(lastSuggestionFile, {
     hash,
     timestamp: Date.now(),
     turnCount: newTurnCount,
@@ -403,14 +436,17 @@ function main() {
   });
 
   // Rendered = shown to the user — bump the ignored-counter for each skill.
-  recordShown(visibleSuggestions, dismissed);
+  recordShown(visibleSuggestions, dismissed, dismissedFile);
 
   process.stdout.write(JSON.stringify(emitUser(output.trimEnd())) + '\n');
 }
 
-try {
-  main();
-} catch {
-  clearTimeout(timeout);
-  emitFailOpen();
-}
+(async () => {
+  try {
+    const payload = await readStdinPayload();
+    main(payload);
+  } catch {
+    clearTimeout(timeout);
+    emitFailOpen();
+  }
+})();

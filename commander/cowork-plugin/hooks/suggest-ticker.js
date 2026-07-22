@@ -3,13 +3,17 @@
 //
 // UserPromptSubmit hook. Runs on every user turn. Cheap, non-blocking.
 // Computes project state signals → picks an involvement level (1-4) →
-// writes ~/.claude/commander/project-state.json for /ccc-suggest and
+// writes ~/.claude/commander/projects/<slug>/project-state.json (per-project
+// since v7.3.0 — see "Per-project state keying" below) for /ccc-suggest and
 // other skills to read.
 //
 // Payload arrives on STDIN (standard hook contract — same pattern as
 // intent-classifier.js). When suggestion confidence ≥ 0.8 the ticker emits
 // additionalContext instructing the model to offer the skill via
-// AskUserQuestion chips — hooks can't call AUQ; the model can.
+// AskUserQuestion chips — hooks can't call AUQ; the model can. Also produces
+// entries into mission-control/suggestions.jsonl at that same confidence bar
+// (see produceSuggestion()) so Mission Control's Suggestions panel has a
+// real feed.
 //
 // Signals (real, cached — no stubs):
 //   ciStatus     — `gh run list` conclusion, refreshed in a detached
@@ -26,19 +30,71 @@
 import { track } from '../lib/telemetry.mjs';
 import { emitModel, emitSilent } from './lib/emit.mjs';
 import { computeConfidence } from './lib/confidence.mjs';
+import { appendSuggestion, readSuggestions } from '../lib/suggestions.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import crypto from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const STATE_DIR = path.join(os.homedir(), '.claude', 'commander');
-const STATE_FILE = path.join(STATE_DIR, 'project-state.json');
 const LOG_FILE = path.join(STATE_DIR, 'suggest-log.jsonl');
-const CI_CACHE_FILE = path.join(STATE_DIR, 'ci-status-cache.json');
 const TEST_CACHE_FILE = path.join(STATE_DIR, 'last-test-result.json');
 const VIOLATIONS_FILE = path.join(STATE_DIR, 'clickability-violations.jsonl');
 const VIOLATIONS_SEEN_FILE = path.join(STATE_DIR, 'clickability-last-seen.json');
+
+// ---------------------------------------------------------------------------
+// Per-project state keying (codex finding 10, CC-1386 W4 item 1).
+//
+// project-state.json / ci-status-cache.json / last-suggestion.json /
+// suggest-dismissed.json used to live flat under STATE_DIR — one file shared
+// by EVERY repo on the machine, so repo B's ticker read repo A's branch/CI/
+// dismissal state. Those four are now keyed under
+// ~/.claude/commander/projects/<slug>/, slug = basename(cwd) + '-' +
+// 8-char sha256(cwd). cwd is read from the hook's stdin payload.cwd first
+// (the documented field in Claude Code's hook contract), falling back to
+// process.cwd() only when the payload doesn't carry one.
+//
+// Migration: legacy flat files are NEVER read as a fallback (would silently
+// mix data from whichever repo wrote them last) and NEVER deleted (no-deletes
+// rule) — they just go frozen/stale in place. Known remaining readers of the
+// legacy path (pre-compact.js, ccc-suggest/SKILL.md, ccc-claudemd/SKILL.md)
+// are outside this hook's ownership — flagged separately, not fixed here.
+//
+// TEST/lint/audit caches (last-test-result.json) and the cross-hook JSONL
+// feeds (subagent-runs / agent-runs / tasks / tool-failures / violations)
+// are written by OTHER hooks this file doesn't own — moving only the READ
+// side here would silently break those signals (the writer would keep
+// writing the global path forever), which is worse than today's leak. Left
+// global; a matching fix belongs with whichever hook owns each writer.
+const PROJECTS_DIR = path.join(STATE_DIR, 'projects');
+
+/** cwd per the hook contract: payload.cwd first, process.cwd() fallback. */
+export function resolveCwd(payload) {
+  if (payload && typeof payload.cwd === 'string' && payload.cwd.trim()) {
+    return payload.cwd;
+  }
+  return process.cwd();
+}
+
+/** basename(cwd) + '-' + 8-char sha256(cwd) — stable, filesystem-safe. */
+export function projectSlug(cwd) {
+  const safeCwd = typeof cwd === 'string' && cwd ? cwd : process.cwd();
+  const rawBase = path.basename(safeCwd) || 'root';
+  const base = rawBase.replace(/[^a-zA-Z0-9_.-]/g, '_').slice(0, 60) || 'root';
+  const hash = crypto.createHash('sha256').update(safeCwd).digest('hex').slice(0, 8);
+  return `${base}-${hash}`;
+}
+
+/** ~/.claude/commander/projects/<slug>/ for the given cwd. */
+export function projectDir(cwd) {
+  return path.join(PROJECTS_DIR, projectSlug(cwd));
+}
+
+function projectStateFile(cwd) { return path.join(projectDir(cwd), 'project-state.json'); }
+function projectCiCacheFile(cwd) { return path.join(projectDir(cwd), 'ci-status-cache.json'); }
+function projectLastSuggestionFile(cwd) { return path.join(projectDir(cwd), 'last-suggestion.json'); }
 
 // Proactivity-wave inputs (written by subagent-start-tracker.js,
 // agent-run-logger.js, task-tracker.js, post-tool-failure-logger.js).
@@ -106,14 +162,16 @@ export function defaultBranchRef() {
  * CI status from a ≤10-min cache of `gh run list --limit 1 --json conclusion`.
  * Reads whatever cache exists NOW; if stale, refreshes in a DETACHED
  * background process so the 2s hook budget is never at risk.
+ * cacheFile is per-project (see projectCiCacheFile) — self-contained,
+ * written and read only by this function, so it's safe to key per-project.
  */
-function ciStatusCached() {
+function ciStatusCached(cacheFile) {
   let status = 'unknown';
   let fresh = false;
   try {
-    const st = fs.statSync(CI_CACHE_FILE);
+    const st = fs.statSync(cacheFile);
     fresh = Date.now() - st.mtimeMs < CI_CACHE_MAX_AGE_MS;
-    const raw = JSON.parse(fs.readFileSync(CI_CACHE_FILE, 'utf8'));
+    const raw = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
     const conclusion = Array.isArray(raw) ? raw[0]?.conclusion : raw?.conclusion;
     if (conclusion === 'success') status = 'passing';
     else if (conclusion === 'failure' || conclusion === 'timed_out') status = 'failing';
@@ -121,9 +179,10 @@ function ciStatusCached() {
 
   if (!fresh) {
     try {
-      const tmp = CI_CACHE_FILE + '.tmp';
+      fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+      const tmp = cacheFile + '.tmp';
       const child = spawn('/bin/sh', ['-c',
-        `gh run list --limit 1 --json conclusion > ${JSON.stringify(tmp)} 2>/dev/null && mv ${JSON.stringify(tmp)} ${JSON.stringify(CI_CACHE_FILE)}`,
+        `gh run list --limit 1 --json conclusion > ${JSON.stringify(tmp)} 2>/dev/null && mv ${JSON.stringify(tmp)} ${JSON.stringify(cacheFile)}`,
       ], { detached: true, stdio: 'ignore' });
       child.unref();
     } catch {}
@@ -148,7 +207,7 @@ function toolResultCache() {
   return out;
 }
 
-export function computeState(promptText = '') {
+export function computeState(promptText = '', cwd = process.cwd()) {
   const branch = runCmd('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
   const defaultBranch = defaultBranchRef();
   const aheadBehind = runCmd('git', ['rev-list', '--left-right', '--count', `HEAD...${defaultBranch}`]).split('\t');
@@ -159,7 +218,7 @@ export function computeState(promptText = '') {
   const stack = detectProjectStack();
 
   // Real, cached signals (see header) — never a blocking network call.
-  const ciStatus = ciStatusCached();
+  const ciStatus = ciStatusCached(projectCiCacheFile(cwd));
   const { testsStatus, lintStatus, securityAlerts } = toolResultCache();
   const lintErrors = lintStatus === 'failing' ? 1 : 0;
 
@@ -263,7 +322,7 @@ export async function run({ input = {}, env = process.env, cwd = process.cwd() }
  * is already older than a day (long-running/reopened session). Non-blocking,
  * fail-open. Respects CCC_SUGGEST_DISABLE.
  */
-function maybeLoopNudge(lastState) {
+function maybeLoopNudge(lastState, cwd = process.cwd()) {
   if (process.env.CCC_SUGGEST_DISABLE === '1') return null;
   try {
     const loopStateFile = path.join(process.cwd(), '.claude', 'loop-state', 'ccc-suggest.json');
@@ -274,7 +333,7 @@ function maybeLoopNudge(lastState) {
 
     let turnCount = 0;
     try {
-      const lastSuggestion = JSON.parse(fs.readFileSync(path.join(STATE_DIR, 'last-suggestion.json'), 'utf8'));
+      const lastSuggestion = JSON.parse(fs.readFileSync(projectLastSuggestionFile(cwd), 'utf8'));
       turnCount = lastSuggestion.turnCount || 0;
     } catch {}
     const stateIsStale = lastState && (Date.now() - new Date(lastState.timestamp).getTime()) > 86400000;
@@ -529,6 +588,157 @@ export function detectVaguePrompt(promptText) {
   return true;
 }
 
+// ---------------------------------------------------------------------------
+// New ticker signals (v7.3.0, CC-1386 W4 item 13) — update-available and
+// stale-telemetry. Both cheap/local: a cached JSON read and a bounded JSONL
+// tail read, never a network call. Each candidate carries its own
+// {key, skill, reason, confidence} — key is the producer/anti-nag dedupe
+// identity (version- or week-scoped, so it naturally re-arms when the
+// underlying fact changes). Global (not per-project): the update state and
+// the mission-control telemetry feed are both install-wide facts, not
+// per-repo ones.
+// ---------------------------------------------------------------------------
+
+const UPDATE_NUDGE_CACHE_FILE = path.join(STATE_DIR, 'update-nudge.json');
+const MC_EVENTS_FILE = path.join(STATE_DIR, 'mission-control', 'events.jsonl');
+const STALE_TELEMETRY_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+function weekBucket(now = Date.now()) {
+  return Math.floor(now / WEEK_MS);
+}
+
+/**
+ * update-available — reads the cache written by update-nudge.js's SessionStart
+ * hook (a sibling workstream; ships independently, so this file's absence or
+ * malformed shape is tolerated silently, not an error).
+ */
+function readUpdateAvailableSignal() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(UPDATE_NUDGE_CACHE_FILE, 'utf8'));
+    if (!raw || typeof raw !== 'object' || raw.status !== 'outdated') return null;
+    const latest = typeof raw.latest === 'string' && raw.latest ? raw.latest : null;
+    if (!latest) return null;
+    const installed = typeof raw.installed === 'string' && raw.installed ? raw.installed : '?';
+    return {
+      key: `update-${latest}`,
+      skill: '/ccc-update',
+      reason: `CC Commander v${installed}→v${latest} available — run: claude plugin marketplace update commander-hub && claude plugin update commander@commander-hub (then restart)`,
+      confidence: 0.9,
+    };
+  } catch {
+    return null; // absent/malformed — the update-nudge feature ships together, tolerate silently
+  }
+}
+
+/**
+ * stale-telemetry — mission-control/events.jsonl hasn't been written to in
+ * >7 days even though this session is clearly active (the ticker only runs
+ * on a live UserPromptSubmit). Tail-read only (JSONL_TAIL_BYTES) — the file
+ * is append-only, so the tail always contains the newest entries.
+ */
+function readStaleTelemetrySignal(now = Date.now()) {
+  try {
+    if (!fs.existsSync(MC_EVENTS_FILE)) return null;
+    const entries = readJsonlTail(MC_EVENTS_FILE);
+    if (entries.length === 0) return null;
+    let newest = 0;
+    for (const e of entries) {
+      const t = Date.parse(e && e.ts);
+      if (Number.isFinite(t) && t > newest) newest = t;
+    }
+    if (newest === 0 || now - newest <= STALE_TELEMETRY_MAX_AGE_MS) return null;
+    const ageDays = Math.floor((now - newest) / 86400000);
+    return {
+      key: `stale-telemetry-${weekBucket(now)}`,
+      skill: '/ccc-doctor',
+      reason: `telemetry last written ${ageDays}d ago — hooks may not be running`,
+      confidence: 0.85,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// deck-stale (W4 item 13c) — SKIPPED. Deck HTML artifacts are written into
+// the session's own scratchpad directory (a path the deck skills choose per
+// run, e.g. /private/tmp/claude-.../scratchpad/), and there is no index or
+// registry file this hook can read to find "the" deck path for a project.
+// Comparing an mtime we can't reliably locate would mean inventing a path —
+// against the "no pattern found → ask, don't invent" rule. Revisit once W2
+// (deck freshness) ships a recorded deck-path registry (spec item 8).
+function computeTickerSignals(now = Date.now()) {
+  const out = [];
+  const upd = readUpdateAvailableSignal();
+  if (upd) out.push(upd);
+  const stale = readStaleTelemetrySignal(now);
+  if (stale) out.push(stale);
+  return out;
+}
+
+function tickerSignalSeenFile(key) {
+  const safe = String(key).replace(/[^a-zA-Z0-9_.-]/g, '_');
+  return path.join(STATE_DIR, `ticker-signal-seen-${safe}.json`);
+}
+
+function alreadyNudgedTickerSignal(key) {
+  return fs.existsSync(tickerSignalSeenFile(key));
+}
+
+function recordTickerSignalNudge(key) {
+  try {
+    fs.mkdirSync(STATE_DIR, { recursive: true });
+    fs.writeFileSync(tickerSignalSeenFile(key), JSON.stringify({ ts: Date.now() }), { flag: 'wx' });
+  } catch { /* already exists or write failed — fine either way */ }
+}
+
+/**
+ * Model-facing notes for the new ticker signals — same bridge pattern as the
+ * computeConfidence "top suggestion" block above (recommendedLevel >= 2 gate,
+ * hooks can't call AskUserQuestion so the model is instructed to offer it).
+ * Each signal nudges the model AT MOST ONCE per key (the key is
+ * version/week-scoped, so a new version or a newly-stale week re-arms it) —
+ * this file's own anti-nag, kept separate from suggest-lightweight.js's
+ * dismissed[] mechanism, which independently governs the USER-facing render
+ * via state.tickerSuggestions (see main()).
+ */
+function maybeTickerSignalNotes(state, signals) {
+  const notes = [];
+  if (state.recommendedLevel < 2) return notes;
+  for (const sig of signals) {
+    if (sig.confidence < 0.8 || alreadyNudgedTickerSignal(sig.key)) continue;
+    notes.push(
+      `CCC ambient suggestion: ${sig.skill} — ${sig.reason}. ` +
+      `If you finish the user's request with room to spare, offer it via AskUserQuestion ` +
+      `with options [⭐ Run ${sig.skill}, Dismiss, /ccc-browse] — never a typed-letter list.`
+    );
+    recordTickerSignalNudge(sig.key);
+  }
+  return notes;
+}
+
+/**
+ * suggestions.jsonl producer (CC-1386 W4 item 14 — codex finding 11). Any
+ * ticker signal at confidence >= 0.8 also gets appended to Commander Mission
+ * Control's suggestions feed so its Suggestions panel has a real producer.
+ * Deduped by key: id === sig.key, skipped when an open ("new") suggestion
+ * with that id already exists (readSuggestions() first, per lib/suggestions.js's
+ * documented shape — never writes a second creation line for the same id).
+ * Fails open — a broken producer must never affect the hook chain.
+ */
+async function produceSuggestion(sig) {
+  try {
+    const existing = await readSuggestions();
+    if (existing.some(s => s.id === sig.key && s.status === 'new')) return;
+    await appendSuggestion({
+      id: sig.key,
+      from: 'suggest-ticker',
+      idea: sig.reason,
+      evidence: sig.skill,
+    });
+  } catch { /* fail-open */ }
+}
+
 function readNudgeState(file) {
   try {
     const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -616,12 +826,14 @@ export function maybeProactivityWave(promptText, payload = {}) {
   return null;
 }
 
-function main(payload = {}) {
+async function main(payload = {}) {
   if (process.env.CCC_SUGGEST_DISABLE === '1') {
     return emitSilent();
   }
 
   const modelNotes = [];
+  const cwd = resolveCwd(payload);
+  const stateFile = projectStateFile(cwd);
 
   const promptText = typeof payload.prompt === 'string'
     ? payload.prompt
@@ -647,17 +859,17 @@ function main(payload = {}) {
   } catch { /* fail-open — never break the hook chain */ }
 
   try {
-    fs.mkdirSync(STATE_DIR, { recursive: true });
+    fs.mkdirSync(projectDir(cwd), { recursive: true });
   } catch {}
 
   let lastState = null;
   try {
-    lastState = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+    lastState = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
   } catch {}
 
   // PM loop nudge — once per session/day, never repeated. Fail-open.
   try {
-    const loopNudge = maybeLoopNudge(lastState);
+    const loopNudge = maybeLoopNudge(lastState, cwd);
     if (loopNudge) modelNotes.push(loopNudge);
   } catch { /* fail-open — never break the hook chain */ }
 
@@ -680,13 +892,21 @@ function main(payload = {}) {
     return emitSilent();
   }
 
-  const state = computeState(promptText);
+  const state = computeState(promptText, cwd);
+
+  // New ticker signals (CC-1386 W4 item 13) — update-available / stale-telemetry.
+  // Folded onto state.tickerSuggestions so suggest-lightweight.js's independent
+  // computeConfidence() pass picks them up too (same involvement/dismissal
+  // machinery as every other suggestion — see suggest-lightweight.js).
+  let tickerSignals = [];
+  try { tickerSignals = computeTickerSignals(); } catch { /* fail-open */ }
+  state.tickerSuggestions = tickerSignals.map(({ skill, reason, confidence }) => ({ skill, reason, confidence }));
 
   // Persist
   try {
-    const tmp = STATE_FILE + '.tmp';
+    const tmp = stateFile + '.tmp';
     fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
-    fs.renameSync(tmp, STATE_FILE);
+    fs.renameSync(tmp, stateFile);
   } catch {}
 
   // Hook→AUQ-chip bridge: at confidence ≥ 0.8 instruct the model to OFFER the
@@ -702,6 +922,20 @@ function main(payload = {}) {
       );
     }
   } catch { /* fail-open */ }
+
+  // New ticker signals — model-facing nudge (own anti-nag, see
+  // maybeTickerSignalNotes) PLUS the mission-control/suggestions.jsonl
+  // producer (CC-1386 W4 item 14) for every candidate ≥0.8 confidence,
+  // regardless of whether the chat nudge fired this turn — Mission Control's
+  // history should reflect the fact even when the chat note is cooling down.
+  try {
+    for (const note of maybeTickerSignalNotes(state, tickerSignals)) modelNotes.push(note);
+  } catch { /* fail-open */ }
+  for (const sig of tickerSignals) {
+    if (sig.confidence >= 0.8) {
+      try { await produceSuggestion(sig); } catch { /* fail-open */ }
+    }
+  }
 
   // Log for telemetry — with size-based rotation (keep last ~500 lines)
   try {
@@ -753,7 +987,7 @@ if (isMain) {
     } catch { payload = {}; }
 
     try {
-      const result = main(payload);
+      const result = await main(payload);
       track('hook_fired', { hook: 'UserPromptSubmit', handler: 'suggest-ticker' });
 
       process.stdout.write(JSON.stringify(result) + '\n');
