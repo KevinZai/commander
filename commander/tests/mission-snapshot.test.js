@@ -796,3 +796,86 @@ describe('readModel — tolerant reading', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// v7.3.0 — Item 6: dataThrough + staleness banner.
+// ---------------------------------------------------------------------------
+
+describe('readModel — dataThroughMs + hasAnySourceRow', () => {
+  it('computes dataThroughMs as the newest ts across subagent-runs/agent-runs/tasks/events', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      writeFixtureLogs(dir);
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      // Fixture's newest ts is subagent-runs.jsonl's reviewer start at 11:00.
+      assert.equal(model.dataThroughMs, Date.parse('2026-07-16T11:00:00.000Z'));
+      assert.equal(model.hasAnySourceRow, true);
+    });
+  });
+
+  it('hasAnySourceRow is false and dataThroughMs is null for a missing baseDir', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      const model = await readModel({ baseDir: path.join(dir, 'does-not-exist'), now: FIXED_NOW });
+      assert.equal(model.hasAnySourceRow, false);
+      assert.equal(model.dataThroughMs, null);
+    });
+  });
+});
+
+describe('buildSnapshotHtml — Data through stamp + staleness banner', () => {
+  it('renders "Data through" next to the snapshot stamp', async () => {
+    const { readModel, buildSnapshotHtml } = await loadLib();
+    await withTmpDir(async (dir) => {
+      writeFixtureLogs(dir);
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+      assert.match(html, /Data through: 2026-07-16 11:00/);
+    });
+  });
+
+  it('does NOT show the stale-telemetry warning when the newest row is within 24h of now', async () => {
+    const { readModel, buildSnapshotHtml } = await loadLib();
+    await withTmpDir(async (dir) => {
+      writeFixtureLogs(dir);
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+      assert.doesNotMatch(html, /Telemetry last written/);
+    });
+  });
+
+  it('shows the stale-telemetry warning when the newest row is more than 24h before now', async () => {
+    const { readModel, buildSnapshotHtml } = await loadLib();
+    await withTmpDir(async (dir) => {
+      writeFixtureLogs(dir);
+      // 2026-07-19T14:00:00Z is ~75h after the fixture's newest row (07-16 11:00).
+      const laterNow = '2026-07-19T14:00:00.000Z';
+      const model = await readModel({ baseDir: dir, now: laterNow });
+      const html = buildSnapshotHtml(model, { now: laterNow });
+      assert.match(html, /Telemetry last written .* ago/);
+      assert.match(html, /\/ccc-doctor/);
+      assert.match(html, /update the plugin to ≥7\.2\.0/);
+    });
+  });
+
+  it('extends the "Nothing to show yet" hero with the doctor pointer when no source rows exist at all', async () => {
+    const { readModel, buildSnapshotHtml } = await loadLib();
+    await withTmpDir(async (dir) => {
+      const model = await readModel({ baseDir: path.join(dir, 'does-not-exist'), now: FIXED_NOW });
+      const html = buildSnapshotHtml(model, { now: FIXED_NOW });
+      assert.match(html, /Nothing to show yet/);
+      assert.match(html, /Run \/ccc-doctor to check your hooks are wired/);
+    });
+  });
+
+  it('does NOT append the doctor pointer for a legacy/garbage model missing hasAnySourceRow', async () => {
+    const { buildSnapshotHtml } = await loadLib();
+    // No dataThroughMs/hasAnySourceRow field at all — mirrors a hand-built
+    // fixture model or an older cached model shape. Must default to NOT
+    // showing the alarming doctor-pointer copy (fail-open, never fabricate
+    // a "hooks aren't running" claim from an unknown/absent signal).
+    const html = buildSnapshotHtml(null, { now: FIXED_NOW });
+    assert.match(html, /Nothing to show yet/);
+    assert.doesNotMatch(html, /Run \/ccc-doctor to check your hooks are wired/);
+  });
+});

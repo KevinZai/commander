@@ -8,7 +8,13 @@ var os = require('node:os');
 var path = require('node:path');
 
 var ROOT = path.join(__dirname, '..', '..');
-var GENERATOR_PATH = path.join(ROOT, 'scripts', 'build-cockpit.mjs');
+// v7.3.0, W2+/codex 7 — the real builder now ships INSIDE the plugin so a
+// marketplace-only install can regenerate the Cockpit; GENERATOR_PATH points
+// at that canonical location. SHIM_GENERATOR_PATH is the repo-root
+// dev-muscle-memory shim (a thin spawn wrapper) — see the "shim parity"
+// describe block below for the test that keeps the two in sync.
+var GENERATOR_PATH = path.join(ROOT, 'commander', 'cowork-plugin', 'scripts', 'build-cockpit.mjs');
+var SHIM_GENERATOR_PATH = path.join(ROOT, 'scripts', 'build-cockpit.mjs');
 var CONTRACT_PATH = path.join(ROOT, 'commander', 'contract.json');
 var PLUGIN_SKILLS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'skills');
 var ECOSYSTEM_SKILLS_DIR = path.join(ROOT, 'skills');
@@ -493,4 +499,120 @@ test('cache_read tokens are priced into cost but not folded into the token headl
   // cost = (100*3 + 100000*0.3 + 50*15) / 1e6 = (300 + 30000 + 750)/1e6 = 0.03105
   assert.strictEqual(cacher.costUsd, 0.0311);
   assert.ok(cacher.costUsd > 0, 'cache-heavy run must not price to $0');
+});
+
+// ---------------------------------------------------------------------------
+// v7.3.0, W2+/codex 7 — Cockpit builder relocation. The real builder now
+// lives at commander/cowork-plugin/scripts/build-cockpit.mjs; the repo-root
+// scripts/build-cockpit.mjs is a thin spawn shim.
+// ---------------------------------------------------------------------------
+
+test('shim (scripts/build-cockpit.mjs) and the canonical in-plugin builder produce equivalent output', function() {
+  var shimResult = cp.spawnSync(process.execPath, [SHIM_GENERATOR_PATH], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: 5 * 1024 * 1024,
+  });
+  assert.strictEqual(shimResult.status, 0, shimResult.stderr);
+  var shimPayload = parsePayload(shimResult.stdout);
+
+  // `payload` (module-level) is the direct-location run from the top of this
+  // file. generatedAt/dataThroughMs are real-clock-dependent — compare
+  // everything else.
+  assert.strictEqual(shimPayload.meta.version, payload.meta.version);
+  assert.strictEqual(shimPayload.meta.pluginSkills, payload.meta.pluginSkills);
+  assert.strictEqual(shimPayload.meta.ecosystemSkills, payload.meta.ecosystemSkills);
+  assert.strictEqual(shimPayload.meta.agents, payload.meta.agents);
+  assert.strictEqual(shimPayload.meta.pluginOnly, payload.meta.pluginOnly);
+  assert.deepStrictEqual(shimPayload.skills, payload.skills);
+  assert.deepStrictEqual(shimPayload.agents, payload.agents);
+  assert.deepStrictEqual(shimPayload.ideas, payload.ideas);
+  assert.deepStrictEqual(shimPayload.tools, payload.tools);
+  assert.deepStrictEqual(shimPayload.patterns, payload.patterns);
+});
+
+test('plugin-only install (no commander/contract.json, no top-level ecosystem skills/) still builds — honest smaller Cockpit, never crashes', function(t) {
+  var pluginOnlyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-plugin-only-'));
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-plugin-only-home-'));
+  t.after(function() {
+    fs.rmSync(pluginOnlyRoot, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+  // Copy ONLY the cowork-plugin/ subtree — mirrors exactly what a
+  // marketplace install ships (agents/hooks/lib/menus/rules/skills/scripts,
+  // per .claude-plugin/plugin.json). No commander/contract.json, no
+  // top-level skills/ ecosystem catalog anywhere on this tmp filesystem.
+  fs.cpSync(path.join(ROOT, 'commander', 'cowork-plugin'), path.join(pluginOnlyRoot, 'cowork-plugin'), { recursive: true });
+
+  var scriptPath = path.join(pluginOnlyRoot, 'cowork-plugin', 'scripts', 'build-cockpit.mjs');
+  var result = cp.spawnSync(process.execPath, [scriptPath], {
+    encoding: 'utf8',
+    maxBuffer: 5 * 1024 * 1024,
+    env: Object.assign({}, process.env, { HOME: home }),
+  });
+  assert.strictEqual(result.status, 0, result.stderr);
+
+  var pluginOnlyPayload = parsePayload(result.stdout);
+  assert.strictEqual(pluginOnlyPayload.meta.pluginOnly, true);
+  assert.strictEqual(pluginOnlyPayload.meta.ecosystemSkills, 0);
+  assert.strictEqual(
+    pluginOnlyPayload.meta.pluginSkills,
+    payload.meta.pluginSkills,
+    'plugin skill count is unaffected by the relocation — same 80 skills ship either way'
+  );
+  assert.strictEqual(pluginOnlyPayload.meta.version, payload.meta.version, 'version falls back to plugin.json when contract.json is absent');
+  assert.strictEqual(pluginOnlyPayload.skills.filter(function(s) { return s.source === 'ecosystem'; }).length, 0);
+  assert.ok(pluginOnlyPayload.ideas.length > 0, 'at least some ideas resolve against plugin-only skills');
+  assert.ok(pluginOnlyPayload.ideas.length < payload.ideas.length, 'fewer ideas resolve without the ecosystem catalog to fall back on');
+  assert.doesNotThrow(function() { assertSelfContainedFromOutput(result.stdout); });
+});
+
+function assertSelfContainedFromOutput(output) {
+  if (/\b(?:src|href)\s*=\s*["']?\s*https?:\/\//i.test(output)) throw new Error('external src/href leaked');
+  if (/<script\b[^>]*\bsrc\s*=/i.test(output)) throw new Error('<script src> leaked');
+}
+
+// ---------------------------------------------------------------------------
+// v7.3.0, Item 6 — telemetry freshness on the Cockpit's meta payload.
+// ---------------------------------------------------------------------------
+
+test('meta.dataThroughMs/hasAnySourceRow/telemetryStale reflect the newest local telemetry row', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-freshness-stale-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  writeJsonl(home, 'agent-runs.jsonl', [
+    { ts: ago(10), agent: 'ghost', durationMs: 500, inputTokens: 100, outputTokens: 20 },
+  ]);
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var meta = parsePayload(result.stdout).meta;
+  assert.strictEqual(meta.hasAnySourceRow, true);
+  assert.strictEqual(meta.telemetryStale, true);
+  assert.ok(Number.isFinite(meta.dataThroughMs));
+});
+
+test('meta.telemetryStale is false when there is no telemetry at all', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-freshness-empty-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var meta = parsePayload(result.stdout).meta;
+  assert.strictEqual(meta.hasAnySourceRow, false);
+  assert.strictEqual(meta.telemetryStale, false);
+  assert.strictEqual(meta.dataThroughMs, null);
+});
+
+test('meta.telemetryStale is false when the newest row is within 24h', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-freshness-fresh-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  writeJsonl(home, 'agent-runs.jsonl', [
+    { ts: ago(0, 5), agent: 'ghost', durationMs: 500, inputTokens: 100, outputTokens: 20 },
+  ]);
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var meta = parsePayload(result.stdout).meta;
+  assert.strictEqual(meta.hasAnySourceRow, true);
+  assert.strictEqual(meta.telemetryStale, false);
 });

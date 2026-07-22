@@ -51,7 +51,7 @@ console.log('wrote scratchpad/ccc-usage-live.html');
 "
 ```
 
-Then **ask before publishing**, and publish `scratchpad/ccc-usage-live.html` with the Artifact tool (favicon 💰). If you've published it before this session, republish the same file path to the same URL. End with the artifact title + the headline: "$X saved across N dispatches."
+**First publish this session** → ask before publishing ($ figures leave the machine for your private artifact URL). **Every later run of `/ccc-usage`** → invoking the skill again IS the refresh consent: republish the same file path to the same URL without re-asking. Publish `scratchpad/ccc-usage-live.html` with the Artifact tool (favicon 💰). End with the artifact title + the headline: "$X saved across N dispatches." To refresh later: run `/ccc-usage` again — same URL updates in place; viewers reload.
 
 ### 🗣️ Plain-English status
 
@@ -60,6 +60,8 @@ Run `readUsageModel({})` and read `model.totalSavedUsd` / `model.totalDispatches
 ## The deck also links the others
 
 The published artifact carries the shared **Commander decks** strip at the top — one click (copy) away from the Cockpit, Mission Control, and Safety decks. Users always know the other decks exist.
+
+> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
 
 ---
 
