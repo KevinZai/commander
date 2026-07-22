@@ -1,0 +1,813 @@
+{
+  "source": "code.claude.com/docs/en/prompt-library",
+  "fetchedAt": "2026-07-22T05:02:30.125Z",
+  "attribution": "Prompt library from code.claude.com/docs — © Anthropic",
+  "labels": {
+    "phase": {
+      "discover": "Discover",
+      "design": "Design",
+      "build": "Build",
+      "ship": "Ship",
+      "operate": "Operate"
+    },
+    "source": {
+      "workflows": "Common workflows",
+      "teams": "How Anthropic teams use Claude Code",
+      "legal": "How Anthropic uses Claude in Legal",
+      "cybersecurity": "How Anthropic uses Claude in Cybersecurity",
+      "best-practices": "Best practices",
+      "ebook": "Scaling agentic coding guide"
+    },
+    "cat": {
+      "Onboard": "Onboard",
+      "Understand": "Understand",
+      "Plan": "Plan",
+      "Prototype": "Prototype",
+      "Implement": "Implement",
+      "Test": "Test",
+      "Refactor": "Refactor",
+      "Review": "Review",
+      "Steer": "Steer",
+      "Git": "Git",
+      "Release": "Release",
+      "Debug": "Debug",
+      "Incident": "Incident",
+      "Data": "Data",
+      "Automate": "Automate"
+    }
+  },
+  "entries": [
+    {
+      "id": "get-oriented-in-a",
+      "sdlc": "discover",
+      "cat": "Onboard",
+      "roles": [],
+      "prompt": "give me an overview of this codebase: architecture, key directories, and how the pieces connect",
+      "slots": null,
+      "src": "workflows",
+      "title": "Get oriented in a new repository",
+      "teaches": "Describe what you want to know, not which files to read. Claude explores the project on its own and returns a summary of how it fits together."
+    },
+    {
+      "id": "explain-unfamiliar-code",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [],
+      "prompt": "explain what {path} does and how data flows through it. write it up as {format}",
+      "slots": {
+        "path": "src/scheduler/queue.ts",
+        "format": "an HTML page with a diagram, then open it in my browser"
+      },
+      "src": "workflows",
+      "title": "Explain unfamiliar code",
+      "teaches": "Name the file and say what format you want the answer in. Swap the HTML page for a diagram, bullet points, or whatever fits how you learn."
+    },
+    {
+      "id": "find-where-something-happens",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [],
+      "prompt": "where do we {behavior}?",
+      "slots": {
+        "behavior": "validate uploaded file types"
+      },
+      "src": "workflows",
+      "title": "Find where something happens",
+      "teaches": "Search by behavior instead of by filename. The search works even when you don't know what the file is called or which directory it lives in."
+    },
+    {
+      "id": "see-what-depends-on",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [],
+      "prompt": "what would break if I deleted {target}?",
+      "slots": {
+        "target": "the retryWithBackoff helper"
+      },
+      "src": "workflows",
+      "title": "Check what breaks before you delete",
+      "teaches": "Ask before you remove anything. The list of callers and downstream effects tells you whether you're looking at a one-line cleanup or a change you need to coordinate."
+    },
+    {
+      "id": "trace-how-code-evolved",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [],
+      "prompt": "look through the commit history of {path} and summarize how it evolved and why",
+      "slots": {
+        "path": "internal/auth/session.go"
+      },
+      "src": "best-practices",
+      "title": "Trace how code evolved",
+      "teaches": "Point at commit history when the question is why, not what. Claude reads the log and blame for whatever version control you use and explains the decisions behind the current implementation."
+    },
+    {
+      "id": "scope-a-change-before",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [
+        "pm",
+        "design"
+      ],
+      "prompt": "which files would I need to touch to {change}?",
+      "slots": {
+        "change": "add a dark mode toggle to settings"
+      },
+      "src": "teams",
+      "title": "Scope a change before you start",
+      "teaches": "Size the work before you commit it to a roadmap. The file list tells you whether you're looking at one component or a cross-cutting change."
+    },
+    {
+      "id": "ask-the-codebase-a",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [
+        "pm"
+      ],
+      "prompt": "I am a {role}. walk me through what happens when a user {action}, from the UI down to the result",
+      "slots": {
+        "role": "PM",
+        "action": "clicks Export to PDF"
+      },
+      "src": "teams",
+      "title": "Ask the codebase a product question",
+      "teaches": "State your role so the answer is pitched at the right level. Claude explains what the product actually does from the source code, without you needing to read it."
+    },
+    {
+      "id": "plan-a-multi-file",
+      "sdlc": "design",
+      "cat": "Plan",
+      "roles": [
+        "pm",
+        "design"
+      ],
+      "prompt": "plan how to refactor the {target} to {goal}. list the files you would change, but don't edit anything yet",
+      "slots": {
+        "target": "payment module",
+        "goal": "support multiple currencies"
+      },
+      "src": "workflows",
+      "title": "Plan a multi-file change before touching code",
+      "teaches": "Adding \"don't edit yet\" separates exploration from changes, so you see the approach before any code moves. To make plan-first the default on every prompt, press Shift+Tab for [plan mode](/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode)."
+    },
+    {
+      "id": "draft-a-spec-by",
+      "sdlc": "design",
+      "cat": "Plan",
+      "roles": [
+        "pm"
+      ],
+      "prompt": "I want to build {feature}. interview me about implementation, UX, edge cases, and tradeoffs until we have covered everything, then write the spec to SPEC.md",
+      "slots": {
+        "feature": "per-workspace rate limits"
+      },
+      "src": "best-practices",
+      "title": "Draft a spec by interview",
+      "teaches": "Ask to be interviewed instead of writing the spec yourself. Claude asks you structured questions until the requirements are complete, then writes the result to a file."
+    },
+    {
+      "id": "turn-a-meeting-into",
+      "sdlc": "design",
+      "cat": "Plan",
+      "roles": [
+        "pm"
+      ],
+      "prompt": "read {input} and write up the action items, then create a {tracker} ticket for each with acceptance criteria",
+      "slots": {
+        "input": "@meeting-notes.md",
+        "tracker": "Linear"
+      },
+      "src": "teams",
+      "title": "Turn a meeting into tickets",
+      "teaches": "Skip the transcription step. Claude pulls action items from the unstructured input and writes them straight into your tracker via [MCP](/docs/en/mcp), so you review the tickets, not the transcript."
+    },
+    {
+      "id": "map-edge-cases-before",
+      "sdlc": "design",
+      "cat": "Plan",
+      "roles": [
+        "design",
+        "pm"
+      ],
+      "prompt": "list the error states, empty states, and edge cases for {feature} that the design needs to cover",
+      "slots": {
+        "feature": "the file upload flow"
+      },
+      "src": "teams",
+      "title": "Map edge cases before building",
+      "teaches": "Ask for what's missing, not what's there. Claude lists the error states, empty states, and edge cases a happy-path design tends to skip."
+    },
+    {
+      "id": "turn-a-mockup-into",
+      "sdlc": "design",
+      "cat": "Prototype",
+      "roles": [
+        "design",
+        "pm",
+        "marketing"
+      ],
+      "prompt": "here is a mockup. build a working prototype I can click through, matching the layout and states shown",
+      "slots": null,
+      "src": "teams",
+      "title": "Turn a mockup into a working prototype",
+      "teaches": "A clickable prototype answers questions a static mockup can't. Hand the working code to engineering instead of explaining the interactions in a doc."
+    },
+    {
+      "id": "implement-from-a-screenshot",
+      "sdlc": "design",
+      "cat": "Prototype",
+      "roles": [
+        "design"
+      ],
+      "prompt": "implement this design, then take a screenshot of the result, compare it to the original, and fix any differences",
+      "slots": null,
+      "src": "best-practices",
+      "title": "Implement from a screenshot and self-check",
+      "teaches": "This gives Claude a verification loop: it renders, compares against the source image, and iterates without you pointing out each gap."
+    },
+    {
+      "id": "follow-an-existing-pattern",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [],
+      "prompt": "look at how {example} is implemented to understand the pattern, then build {new} the same way",
+      "slots": {
+        "example": "the GitHub webhook handler",
+        "new": "a Stripe webhook handler"
+      },
+      "src": "best-practices",
+      "title": "Follow an existing pattern",
+      "teaches": "Point at code you already like. Without a reference, Claude defaults to general best practices. With one, it matches the conventions your codebase actually uses."
+    },
+    {
+      "id": "generate-docs-for-code",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [
+        "docs"
+      ],
+      "prompt": "find {scope} without {format} comments and add them, matching the style already used in the file",
+      "slots": {
+        "scope": "the public functions in src/auth/",
+        "format": "JSDoc"
+      },
+      "src": "workflows",
+      "title": "Generate docs for undocumented code",
+      "teaches": "Name the scope and the format. Claude finds what's missing and matches the comment style already in the file, so the new docs read like the rest."
+    },
+    {
+      "id": "add-a-small-well",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [],
+      "prompt": "add a {endpoint} endpoint that returns {payload}",
+      "slots": {
+        "endpoint": "/health",
+        "payload": "the app version and uptime"
+      },
+      "src": "workflows",
+      "title": "Add a small, well-defined feature",
+      "teaches": "State the inputs and outputs, not how to build it. Claude finds where similar code lives and adds yours alongside it."
+    },
+    {
+      "id": "build-a-small-internal",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [
+        "pm",
+        "design",
+        "marketing",
+        "docs"
+      ],
+      "prompt": "create a {tool} using HTML, CSS, and vanilla JavaScript, then open it in my browser",
+      "slots": {
+        "tool": "drag-and-drop Kanban board with three columns"
+      },
+      "src": "teams",
+      "title": "Build a small internal tool from scratch",
+      "teaches": "You don't need a project, a framework, or a build step. Describe the tool and ask Claude to open it so you see it working immediately."
+    },
+    {
+      "id": "work-an-issue-end",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [],
+      "prompt": "read issue #{issue}, implement the fix, and run the tests",
+      "slots": {
+        "issue": "312"
+      },
+      "src": "workflows",
+      "title": "Work an issue end to end",
+      "teaches": "Give the issue number, not a summary. Claude reads the full ticket itself, so requirements you'd forget to mention come through, and it validates the change before reporting back."
+    },
+    {
+      "id": "find-and-update-copy",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [
+        "design",
+        "docs",
+        "marketing"
+      ],
+      "prompt": "find every place we say \"{copy}\" or a close variant, show me each one in context, then update them all to \"{new}\". leave tests and the changelog alone",
+      "slots": {
+        "copy": "Sign up free",
+        "new": "Start free trial"
+      },
+      "src": "teams",
+      "title": "Find and update copy across the codebase",
+      "teaches": "Ask for variants and say what to skip. Claude finds phrasings a literal search would miss and leaves test fixtures and history untouched, so you review only the copy users actually see."
+    },
+    {
+      "id": "draft-from-past-examples",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [
+        "docs",
+        "marketing",
+        "pm"
+      ],
+      "prompt": "read the {examples} in {folder} to learn the structure and voice, then draft a new one for {topic}",
+      "slots": {
+        "examples": "privacy impact assessments",
+        "folder": "legal/pia/",
+        "topic": "the new analytics integration"
+      },
+      "src": "legal",
+      "title": "Draft a document from past examples",
+      "teaches": "Point at a folder of finished work instead of describing your style. Claude learns the structure and voice from what you've already shipped, so the first draft reads like one of yours."
+    },
+    {
+      "id": "write-tests-run-them",
+      "sdlc": "build",
+      "cat": "Test",
+      "roles": [],
+      "prompt": "write tests for {path}, run them, and fix any failures",
+      "slots": {
+        "path": "app/parsers/feed.py"
+      },
+      "src": "workflows",
+      "title": "Write tests, run them, fix failures",
+      "teaches": "Ask for write, run, and fix together so Claude iterates without stopping for instructions."
+    },
+    {
+      "id": "drive-implementation-from-tests",
+      "sdlc": "build",
+      "cat": "Test",
+      "roles": [],
+      "prompt": "write tests for {feature} first, then implement it until they pass",
+      "slots": {
+        "feature": "the password reset flow"
+      },
+      "src": "ebook",
+      "title": "Drive implementation from tests",
+      "teaches": "Test-driven development: the tests define when the work is complete, and Claude iterates on the implementation until they pass."
+    },
+    {
+      "id": "fill-gaps-from-a",
+      "sdlc": "build",
+      "cat": "Test",
+      "roles": [],
+      "prompt": "read {report} and add tests for the lowest-covered files until each is above {target}%",
+      "slots": {
+        "report": "coverage/coverage-summary.json",
+        "target": "80"
+      },
+      "src": "workflows",
+      "title": "Fill gaps from a coverage report",
+      "teaches": "Point at the coverage report instead of guessing what's untested. Claude reads the actual numbers and writes tests for the files that need them most."
+    },
+    {
+      "id": "migrate-a-pattern-across",
+      "sdlc": "build",
+      "cat": "Refactor",
+      "roles": [],
+      "prompt": "migrate everything from {from} to {to}: identify every place that needs to change, then make the changes",
+      "slots": {
+        "from": "the old logging API",
+        "to": "the structured logger"
+      },
+      "src": "workflows",
+      "title": "Migrate a pattern across the codebase",
+      "teaches": "Describe the old pattern and the new one. Asking Claude to identify every place first means the call sites are listed in the response, so you can check none were missed."
+    },
+    {
+      "id": "port-code-between-languages",
+      "sdlc": "build",
+      "cat": "Refactor",
+      "roles": [],
+      "prompt": "port {source} to {target}, keeping the same {keep}",
+      "slots": {
+        "source": "this Python module",
+        "target": "Rust",
+        "keep": "public API and test behavior"
+      },
+      "src": "teams",
+      "title": "Port code to another language",
+      "teaches": "Say what to preserve, not just the target language. Naming the API or behavior that must stay the same gives Claude a contract to check the port against."
+    },
+    {
+      "id": "optimize-against-a-measurable",
+      "sdlc": "build",
+      "cat": "Refactor",
+      "roles": [
+        "data"
+      ],
+      "prompt": "optimize {target} to bring {metric} from {current} down to under {goal}",
+      "slots": {
+        "target": "the search query",
+        "metric": "p95 latency",
+        "current": "2s",
+        "goal": "500ms"
+      },
+      "src": "ebook",
+      "title": "Optimize against a measurable target",
+      "teaches": "Stating the metric and target gives Claude a clear definition of done."
+    },
+    {
+      "id": "fix-a-precise-visual",
+      "sdlc": "build",
+      "cat": "Refactor",
+      "roles": [
+        "design"
+      ],
+      "prompt": "the {element} extends {amount} beyond the {container} on {viewport}. fix it.",
+      "slots": {
+        "element": "login button",
+        "amount": "20px",
+        "container": "card border",
+        "viewport": "mobile"
+      },
+      "src": "ebook",
+      "title": "Fix a precise visual bug",
+      "teaches": "Precise visual feedback gets a precise fix. State the exact element, measurement, and viewport."
+    },
+    {
+      "id": "review-your-changes-before",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [],
+      "prompt": "review my uncommitted changes and flag anything that looks risky before I commit",
+      "slots": null,
+      "src": "workflows",
+      "title": "Review your changes before you commit",
+      "teaches": "Catch problems while they're still cheap to fix. Claude reads the changed files in full, not just the diff lines, so it spots issues a quick self-review misses."
+    },
+    {
+      "id": "review-a-pull-request",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [],
+      "prompt": "review PR #{pr} and summarize what changed, then list any concerns",
+      "slots": {
+        "pr": "247"
+      },
+      "src": "workflows",
+      "title": "Review a pull request",
+      "teaches": "Claude reviews with the whole codebase in context, not just the diff. It reads the changed code and what it calls, so it catches problems a diff-only review would miss."
+    },
+    {
+      "id": "review-infrastructure-changes-before",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [
+        "security",
+        "ops"
+      ],
+      "prompt": "here is my Terraform plan output. what is this going to do, and is anything here going to cause problems?",
+      "slots": null,
+      "src": "teams",
+      "title": "Review infrastructure changes before applying",
+      "teaches": "Plan output is dense and hard to scan. Pasting it gets you a plain-language summary of what's actually going to change before you apply it."
+    },
+    {
+      "id": "run-a-security-review",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [
+        "security"
+      ],
+      "prompt": "use a subagent to review {path} for security issues and report what it finds",
+      "slots": {
+        "path": "src/api/"
+      },
+      "src": "best-practices",
+      "title": "Run a security review with a subagent",
+      "teaches": "A [subagent](/docs/en/sub-agents) runs the audit in its own context window and reports back a summary, so a long security review doesn't fill up your main session. The built-in general-purpose subagent handles this without extra setup."
+    },
+    {
+      "id": "review-content-before-sending",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [
+        "marketing",
+        "docs"
+      ],
+      "prompt": "review {file} for {concerns} and list anything I should fix before it goes to {reviewer}",
+      "slots": {
+        "file": "launch-post.md",
+        "concerns": "unsupported claims, missing attributions, and brand-guideline issues",
+        "reviewer": "legal"
+      },
+      "src": "legal",
+      "title": "Catch issues before formal review",
+      "teaches": "Get a first pass before a human spends time on it. Name the concerns you want checked so the review is focused, then fix what it finds and send a cleaner draft."
+    },
+    {
+      "id": "course-correct-a-wrong",
+      "sdlc": "build",
+      "cat": "Steer",
+      "roles": [],
+      "prompt": "that is not right: {feedback}. try a different approach",
+      "slots": {
+        "feedback": "the function signature needs to stay backward-compatible"
+      },
+      "src": "best-practices",
+      "title": "Course-correct a wrong approach",
+      "teaches": "Name the constraint Claude missed, not just that it's wrong. A specific reason gives Claude a concrete constraint to satisfy on the retry, instead of guessing again."
+    },
+    {
+      "id": "narrow-the-scope-of",
+      "sdlc": "build",
+      "cat": "Steer",
+      "roles": [],
+      "prompt": "that is too much. keep only the changes to {scope} and undo your other edits",
+      "slots": {
+        "scope": "the validation logic in src/forms/"
+      },
+      "src": "best-practices",
+      "title": "Narrow the scope of a change",
+      "teaches": "When the direction is right but the change went too broad, ask Claude to keep part of it rather than rewinding everything. A stated boundary keeps a small fix from becoming a refactor."
+    },
+    {
+      "id": "turn-a-correction-into",
+      "sdlc": "build",
+      "cat": "Steer",
+      "roles": [],
+      "prompt": "you keep {mistake}. add a rule to CLAUDE.md so this stops happening",
+      "slots": {
+        "mistake": "using default exports when this project uses named exports"
+      },
+      "src": "best-practices",
+      "title": "Turn a correction into a rule",
+      "teaches": "A correction in chat isn't shared with your team. A rule in the project's [CLAUDE.md](/docs/en/memory) is shared once you commit it, and Claude reads it at the start of every session."
+    },
+    {
+      "id": "resolve-merge-conflicts",
+      "sdlc": "ship",
+      "cat": "Git",
+      "roles": [],
+      "prompt": "resolve the merge conflicts in this branch and explain what you kept from each side",
+      "slots": null,
+      "src": "workflows",
+      "title": "Resolve merge conflicts",
+      "teaches": "Say what state you want, not which markers to keep. Asking for the reasoning makes the merge reviewable instead of a black box."
+    },
+    {
+      "id": "commit-with-a-generated",
+      "sdlc": "ship",
+      "cat": "Git",
+      "roles": [],
+      "prompt": "commit these changes with a message that summarizes what I did",
+      "slots": null,
+      "src": "workflows",
+      "title": "Commit with a generated message",
+      "teaches": "Let Claude derive the message from the diff. It matches your repository's existing commit style."
+    },
+    {
+      "id": "open-a-pull-request",
+      "sdlc": "ship",
+      "cat": "Git",
+      "roles": [],
+      "prompt": "find the {tracker} ticket about {topic} and open a PR that implements it",
+      "slots": {
+        "tracker": "Linear",
+        "topic": "the login timeout"
+      },
+      "src": "workflows",
+      "title": "Open a pull request from a ticket",
+      "teaches": "Skip the context switch between tracker, editor, and GitHub. One prompt reads the spec, makes the change, and opens the PR."
+    },
+    {
+      "id": "draft-release-notes-from",
+      "sdlc": "ship",
+      "cat": "Release",
+      "roles": [
+        "pm",
+        "docs",
+        "marketing"
+      ],
+      "prompt": "compare {from} to {to} and draft release notes grouped by feature, fix, and breaking change",
+      "slots": {
+        "from": "v2.3.0",
+        "to": "v2.4.0"
+      },
+      "src": "workflows",
+      "title": "Draft release notes from git history",
+      "teaches": "Give two reference points and the structure you want. Claude reads the commit log between them and drafts a changelog you can edit."
+    },
+    {
+      "id": "write-a-ci-workflow",
+      "sdlc": "ship",
+      "cat": "Release",
+      "roles": [
+        "ops"
+      ],
+      "prompt": "write a GitHub Actions workflow that {steps} on every push to {branch}",
+      "slots": {
+        "steps": "runs the tests and deploys to staging",
+        "branch": "main"
+      },
+      "src": "workflows",
+      "title": "Write a CI workflow",
+      "teaches": "Describe when it should run and what it should do; the YAML is generated for you, matched to your project's build and test commands."
+    },
+    {
+      "id": "find-and-fix-a",
+      "sdlc": "operate",
+      "cat": "Debug",
+      "roles": [],
+      "prompt": "the {test} test is failing, find out why and fix it",
+      "slots": {
+        "test": "UserAuth"
+      },
+      "src": "workflows",
+      "title": "Find and fix a failing test",
+      "teaches": "Describe the symptom; you don't need to know which file is broken. Claude runs the test to see the failure, traces it into source, and fixes it."
+    },
+    {
+      "id": "investigate-a-reported-error",
+      "sdlc": "operate",
+      "cat": "Debug",
+      "roles": [
+        "ops"
+      ],
+      "prompt": "users are seeing {symptom} on {where}. investigate and tell me what is going on",
+      "slots": {
+        "symptom": "500 errors",
+        "where": "/api/settings"
+      },
+      "src": "workflows",
+      "title": "Investigate a reported error",
+      "teaches": "Describe the symptom and location; Claude reads the relevant code path and traces likely causes. Paste stack traces or logs if you have them."
+    },
+    {
+      "id": "fix-a-build-error",
+      "sdlc": "operate",
+      "cat": "Debug",
+      "roles": [
+        "ops"
+      ],
+      "prompt": "here is a build error. fix the root cause and verify the build succeeds",
+      "slots": null,
+      "src": "best-practices",
+      "title": "Fix a build error at the root",
+      "teaches": "Asking for root cause and verification prevents surface-level patches that suppress the error without fixing it."
+    },
+    {
+      "id": "investigate-a-production-incident",
+      "sdlc": "operate",
+      "cat": "Incident",
+      "roles": [
+        "ops",
+        "security"
+      ],
+      "prompt": "{symptom}. check the logs, recent deploys, and config changes, then tell me the most likely cause",
+      "slots": {
+        "symptom": "the checkout endpoint started returning 500s an hour ago"
+      },
+      "src": "workflows",
+      "title": "Investigate a production incident",
+      "teaches": "List the evidence sources to correlate, not the steps to take. Claude reads logs, git history, and config together to narrow the cause."
+    },
+    {
+      "id": "diagnose-from-a-console",
+      "sdlc": "operate",
+      "cat": "Incident",
+      "roles": [
+        "ops",
+        "data"
+      ],
+      "prompt": "here is a screenshot of {console}. walk me through why {resource} is failing and give me the exact commands to fix it",
+      "slots": {
+        "console": "the GCP Kubernetes dashboard",
+        "resource": "this pod"
+      },
+      "src": "teams",
+      "title": "Diagnose from a console screenshot",
+      "teaches": "Cloud consoles show you the problem but not the commands to fix it. Claude reads the screenshot and translates the dashboard into the kubectl, gcloud, or aws commands to run."
+    },
+    {
+      "id": "query-logs-in-plain",
+      "sdlc": "operate",
+      "cat": "Incident",
+      "roles": [
+        "security",
+        "ops",
+        "data"
+      ],
+      "prompt": "show me all {events} for {scope} over {timeframe}. write the query, run it, and tell me what stands out",
+      "slots": {
+        "events": "failed logins",
+        "scope": "the auth service",
+        "timeframe": "the past 24 hours"
+      },
+      "src": "cybersecurity",
+      "title": "Query logs in plain English",
+      "teaches": "Ask the question instead of writing the SQL. Claude builds the query, runs it against your connected logs, and shows both the query and the result so you can check what ran."
+    },
+    {
+      "id": "analyze-a-data-file",
+      "sdlc": "operate",
+      "cat": "Data",
+      "roles": [
+        "data",
+        "pm",
+        "marketing"
+      ],
+      "prompt": "read {file}, summarize the key patterns, and write the results to {output}",
+      "slots": {
+        "file": "@reports/q1-signups.csv",
+        "output": "an HTML page with charts, then open it in my browser"
+      },
+      "src": "teams",
+      "title": "Analyze a data file",
+      "teaches": "A one-off question doesn't need a one-off script. Point at a file in your project folder and Claude reads it directly, finds the patterns, and writes the output where you ask."
+    },
+    {
+      "id": "generate-variations-from-performance",
+      "sdlc": "operate",
+      "cat": "Data",
+      "roles": [
+        "marketing",
+        "data"
+      ],
+      "prompt": "read {file}, find the underperforming {items}, and generate {n} new variations that stay under {limit} characters",
+      "slots": {
+        "file": "@ads-performance.csv",
+        "items": "headlines",
+        "n": "20",
+        "limit": "90"
+      },
+      "src": "teams",
+      "title": "Generate variations from performance data",
+      "teaches": "State the constraint at the start so generation stays within the limit. Claude reads the metrics, picks what to replace, and produces alternatives that fit."
+    },
+    {
+      "id": "turn-a-recurring-task",
+      "sdlc": "operate",
+      "cat": "Automate",
+      "roles": [],
+      "prompt": "create a /{name} skill for this project that {steps}",
+      "slots": {
+        "name": "ship",
+        "steps": "runs the linter and tests, then drafts a commit message"
+      },
+      "src": "workflows",
+      "title": "Turn a recurring task into a skill",
+      "teaches": "Name the steps once; reuse them as a command. Claude writes a [skill](/docs/en/skills) anyone on your team can run."
+    },
+    {
+      "id": "add-a-hook-for",
+      "sdlc": "operate",
+      "cat": "Automate",
+      "roles": [],
+      "prompt": "write a hook that {action} after every {event}",
+      "slots": {
+        "action": "runs prettier",
+        "event": "edit to a .ts or .tsx file"
+      },
+      "src": "best-practices",
+      "title": "Add a hook for repeat behavior",
+      "teaches": "Hooks make a behavior automatic instead of something you have to remember to ask for. Describe the trigger and action and Claude writes the [hook](/docs/en/hooks) configuration."
+    },
+    {
+      "id": "connect-a-tool-with",
+      "sdlc": "operate",
+      "cat": "Automate",
+      "roles": [],
+      "prompt": "set up the {server} MCP server so you can read my {data} directly",
+      "slots": {
+        "server": "Sentry",
+        "data": "error reports"
+      },
+      "src": "workflows",
+      "title": "Connect a tool with MCP",
+      "teaches": "Connect the source once instead of pasting data every session. After [MCP](/docs/en/mcp) setup, Claude reads from the tool directly when you ask about it."
+    },
+    {
+      "id": "capture-what-to-remember",
+      "sdlc": "operate",
+      "cat": "Automate",
+      "roles": [
+        "pm",
+        "docs"
+      ],
+      "prompt": "summarize what we did this session and suggest what to add to CLAUDE.md",
+      "slots": null,
+      "src": "teams",
+      "title": "Capture what to remember for next time",
+      "teaches": "Ask before you forget. Claude knows what it had to figure out this session and proposes [CLAUDE.md](/docs/en/memory) entries so the next session starts with that context."
+    }
+  ]
+}

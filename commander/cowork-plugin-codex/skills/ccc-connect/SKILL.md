@@ -9,11 +9,11 @@ allowed-tools:
 argument-hint: "[tasks | backend | hosting | cache | knowledge | comms | observability | billing | automation | agent-harness | email | research | productivity | dev | design]"
 ---
 
-# /ccc-connect — MCP Connector Wizard
+# $ccc-connect — MCP Connector Wizard
 
 Click-to-connect opt-in MCP servers. Never auto-installs — always user-initiated.
 
-## Affiliate disclosure (ALWAYS show at top of every /ccc-connect response)
+## Affiliate disclosure (ALWAYS show at top of every $ccc-connect response)
 
 ```
 💸 Some links below are affiliate — CCC may earn a commission at no cost to you.
@@ -111,7 +111,7 @@ options:
   - 🗄️ Postgres — direct DB query/schema inspection (bring your own)
 ```
 
-> **⭐ Supabase is the default backend for `/ccc-build` SaaS scaffolds.** It now also ships as a **Codex plugin**, so the same Supabase setup works whether you run inside Claude Code or OpenAI Codex. Always prepend ⭐ to the Supabase option and recommend it first for any new backend. [aff] = affiliate row — saving the credential earns CCC a commission at no cost to the user; always disclose this on install (see Brand rules).
+> **⭐ Supabase is the default backend for `$ccc-build` SaaS scaffolds.** It now also ships as a **Codex plugin**, so the same Supabase setup works whether you run inside Claude Code or OpenAI Codex. Always prepend ⭐ to the Supabase option and recommend it first for any new backend. [aff] = affiliate row — saving the credential earns CCC a commission at no cost to the user; always disclose this on install (see Brand rules).
 
 ### Hosting
 ```
@@ -285,22 +285,22 @@ After install:
 
 ## Argument handling
 
-- `/ccc-connect tasks` → skip picker, straight to Tasks sub-picker
-- `/ccc-connect backend` → Backend sub-picker (Supabase / Neon / Postgres)
-- `/ccc-connect hosting` → Hosting sub-picker (Vercel / Fly.io / Cloudflare)
-- `/ccc-connect cache` → Cache/Queue sub-picker
-- `/ccc-connect knowledge` → Knowledge sub-picker
-- `/ccc-connect comms` → Comms sub-picker (Slack / Discord)
-- `/ccc-connect observability` → Observability sub-picker
-- `/ccc-connect billing` → Billing sub-picker
-- `/ccc-connect automation` → Automation sub-picker
-- `/ccc-connect agent-harness` → Agent harness sub-picker (acpx — install-only, no MCP wiring)
-- `/ccc-connect email` → Email sub-picker (Resend / AgentMail)
-- `/ccc-connect research` → Research sub-picker (Tavily / Firecrawl / Exa / Context7)
-- `/ccc-connect productivity` → opens Tasks + Knowledge + Comms options
-- `/ccc-connect dev` → opens Backend + Hosting + Observability + Billing options
-- `/ccc-connect design` → Design & Automation sub-picker
-- `/ccc-connect` bare → top-level category picker
+- `$ccc-connect tasks` → skip picker, straight to Tasks sub-picker
+- `$ccc-connect backend` → Backend sub-picker (Supabase / Neon / Postgres)
+- `$ccc-connect hosting` → Hosting sub-picker (Vercel / Fly.io / Cloudflare)
+- `$ccc-connect cache` → Cache/Queue sub-picker
+- `$ccc-connect knowledge` → Knowledge sub-picker
+- `$ccc-connect comms` → Comms sub-picker (Slack / Discord)
+- `$ccc-connect observability` → Observability sub-picker
+- `$ccc-connect billing` → Billing sub-picker
+- `$ccc-connect automation` → Automation sub-picker
+- `$ccc-connect agent-harness` → Agent harness sub-picker (acpx — install-only, no MCP wiring)
+- `$ccc-connect email` → Email sub-picker (Resend / AgentMail)
+- `$ccc-connect research` → Research sub-picker (Tavily / Firecrawl / Exa / Context7)
+- `$ccc-connect productivity` → opens Tasks + Knowledge + Comms options
+- `$ccc-connect dev` → opens Backend + Hosting + Observability + Billing options
+- `$ccc-connect design` → Design & Automation sub-picker
+- `$ccc-connect` bare → top-level category picker
 
 ## Anti-patterns — DO NOT
 
@@ -341,3 +341,5 @@ After install:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

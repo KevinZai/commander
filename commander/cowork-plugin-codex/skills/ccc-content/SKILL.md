@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "<content type and topic>"
 ---
 
-# /ccc-content — Content creation
+# $ccc-content — Content creation
 
 > Placeholders like ~~social media and ~~email refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -142,3 +142,5 @@ Content is written directly to the conversation for immediate review and editing
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

@@ -11,17 +11,21 @@ allowed-tools:
 argument-hint: "[--all | --check]"
 ---
 
-# /ccc-upgrade — Vendor Submodule Updater
+# $ccc-upgrade — Vendor Submodule Updater
+
+> 🔎 **Looking to update the CC Commander plugin itself** (not this repo's
+> vendor submodules)? That's `$ccc-update` — a different, end-user-facing
+> tool with a similarly-spelled name. This skill is maintainer-only.
 
 > ⚠️ **Run only from the CC Commander repo root.** Verify `pwd` ends in `/cc-commander` (or your fork's name) and `ls .claude-plugin/marketplace.json` succeeds. Running this skill in the wrong cwd would touch unrelated submodules.
 
 Interactive workflow that audits the 19+ vendor submodules under `vendor/`, surfaces what changed upstream, lets the user pick which to update via AskUserQuestion, then runs the update + test + commit cycle one submodule at a time.
 
-Similar in spirit to `/ccc-doctor` (read-only diagnostic) — this one writes (commits per submodule) but only after explicit user approval.
+Similar in spirit to `$ccc-doctor` (read-only diagnostic) — this one writes (commits per submodule) but only after explicit user approval.
 
 ## When to fire
 
-User types `/ccc-upgrade`, or says any of:
+User types `$ccc-upgrade`, or says any of:
 - "update vendors"
 - "refresh submodules"
 - "pull latest vendor changes"
@@ -37,7 +41,7 @@ Args:
 
 ### 1. Locate the repo root + sanity check
 
-Resolve repo root via `git rev-parse --show-toplevel`. If that fails, output: "Not in a git repo — /ccc-upgrade only works inside the cc-commander checkout." and exit.
+Resolve repo root via `git rev-parse --show-toplevel`. If that fails, output: "Not in a git repo — $ccc-upgrade only works inside the cc-commander checkout." and exit.
 
 Before proceeding, verify you are at the cc-commander repo root:
 ```bash
@@ -204,3 +208,5 @@ Next steps:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

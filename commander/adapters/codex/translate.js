@@ -25,8 +25,22 @@ const HOOK_MAP = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'hook-event-map.json'), 'utf8')
 );
 
-const DEFAULT_TELEMETRY_MODULE = '${CODEX_PLUGIN_ROOT}/adapters/codex/telemetry.js';
+// CLAUDE_PLUGIN_ROOT, not CODEX_PLUGIN_ROOT: Codex documents CLAUDE_PLUGIN_ROOT
+// as a compatibility alias it also exports (learn.chatgpt.com/docs/hooks,
+// verified 2026-07-22); CODEX_PLUGIN_ROOT is not a real Codex variable. Note
+// this snippet is a manually-copy-pasted addition to a user's own
+// ~/.codex/config.toml (see telemetryInitToml below), not part of the
+// generated plugin tree -- Codex's plugin-root env vars are only guaranteed
+// for commands Codex itself spawns as plugin hooks, so this path may still
+// need to be absolute in practice. Flagged, not fixed here (out of scope).
+const DEFAULT_TELEMETRY_MODULE = '${CLAUDE_PLUGIN_ROOT}/adapters/codex/telemetry.js';
 const VALID_EFFORTS = new Set(['low', 'medium', 'high', 'xhigh']);
+// Handlers that were "async": true in the Claude source keep their timeout
+// but never exceed this once translated to a synchronous Codex command hook
+// (Codex parses "async": true but skips those handlers entirely -- see
+// hook-event-map.json's schema_compat.async_handlers). Current source data
+// tops out at 5000ms, well under this; the clamp is a defensive ceiling.
+const MAX_SYNC_HANDLER_TIMEOUT_MS = 8000;
 
 function createLogger(verbose, writer = process.stderr) {
   return (message) => {
@@ -42,18 +56,25 @@ function escapeTomlMultiline(value) {
   return String(value).replace(/"""/g, '\\"\\"\\"');
 }
 
+// Hook commands keep ${CLAUDE_PLUGIN_ROOT} verbatim -- Codex documents it as
+// a compatibility alias for its native PLUGIN_ROOT (learn.chatgpt.com/docs/hooks,
+// verified 2026-07-22), and the quoted-path form already used throughout
+// hooks.json (`node "${CLAUDE_PLUGIN_ROOT}/hooks/..."`) is already correct
+// for that env var. The only real translation left is stripping "async":
+// true, which Codex parses but silently skips ("asynchronous command hooks
+// aren't supported yet") -- without this, every async handler would be lost
+// with no error. Handlers keep running, now synchronously, so their timeout
+// is clamped to a sane ceiling.
 function translateHookHandlers(handlers, log) {
   const translated = JSON.parse(JSON.stringify(handlers));
   for (const slot of translated) {
     for (const hook of slot.hooks || []) {
-      if (typeof hook.command !== 'string') continue;
-      const nextCommand = hook.command.replaceAll(
-        '${CLAUDE_PLUGIN_ROOT}',
-        '${CODEX_PLUGIN_ROOT}'
-      );
-      if (nextCommand !== hook.command) {
-        log(`hook command root ${hook.command} -> ${nextCommand}`);
-        hook.command = nextCommand;
+      if (hook.async !== true) continue;
+      log(`hook ${hook.command || '(no command)'}: stripped async (Codex skips async command hooks; now runs synchronously)`);
+      delete hook.async;
+      if (typeof hook.timeout === 'number' && hook.timeout > MAX_SYNC_HANDLER_TIMEOUT_MS) {
+        log(`hook ${hook.command}: clamped timeout ${hook.timeout}ms -> ${MAX_SYNC_HANDLER_TIMEOUT_MS}ms`);
+        hook.timeout = MAX_SYNC_HANDLER_TIMEOUT_MS;
       }
     }
   }
@@ -244,13 +265,90 @@ export function translateHooks(claudeHooks, options = {}) {
   return out;
 }
 
-// Skills carry over as-is except for the plugin-root variable: Codex exports
-// CODEX_PLUGIN_ROOT, so a skill body telling the agent to run
-// `node ${CLAUDE_PLUGIN_ROOT}/lib/...` expands to nothing there. Same rewrite
-// translateHookHandlers applies to hook commands.
+// Skills carry over almost verbatim. ${CLAUDE_PLUGIN_ROOT} is NOT rewritten
+// (see translateHookHandlers) -- Codex documents it as a compatibility alias
+// for its native PLUGIN_ROOT, so a skill body telling the agent to run
+// `node ${CLAUDE_PLUGIN_ROOT}/lib/...` keeps working unmodified. The four
+// transforms below patch the things that genuinely differ between Claude
+// Code and Codex: invocation syntax, the plugin's own manifest sub-path, and
+// two Claude-only capabilities (AskUserQuestion, the Workflow tool) that
+// need a fallback note so a skill body doesn't silently instruct an agent to
+// reach for a tool Codex doesn't have. Order matters only in that the two
+// notes are appended in this sequence when a file needs both.
+
+// (a) `/ccc-<name>` invocation references -> Codex's `$ccc-<name>` form (see
+// the generated AGENTS.md: "invoke explicitly with `$<skill-name>`"). The
+// guard is INVOCATION POSITION, not backtick-span membership: `/ccc-` is
+// rewritten only when preceded by start-of-line, whitespace, or a backtick.
+// That covers the simple `` `/ccc-review` ``, composite recipes like
+// `` `/loop 5m /ccc-doctor` `` (adversarial-gate finding: a span-opening
+// anchor missed every composite), and bare prose/heading invocations — all
+// of which should read `$ccc-*` on Codex — while URLs (https://.../ccc-x)
+// and file paths (skills/ccc-build/SKILL.md) stay untouched because their
+// `/ccc-` is preceded by a non-space, non-backtick character.
+//
+// Deliberately NOT a backtick-pairing regex: triple-backtick fences put an
+// odd number of backticks on a line, which flips pair parity for the rest
+// of the document and silently mis-scopes every later span (that exact bug
+// shipped briefly and left `` `/ccc-build` `` untranslated below a fence).
+const CCC_INVOCATION = /(^|[\s`])\/ccc-/g;
+
+function rewriteCcInvocations(text) {
+  return text.replace(CCC_INVOCATION, '$1$$ccc-');
+}
+
+// (b) The plugin's own manifest path. Scoped specifically to the
+// ${CLAUDE_PLUGIN_ROOT}/-prefixed form (5 legitimate occurrences in the
+// source tree, all "read my own version from my own manifest") so it never
+// touches the unrelated `.claude-plugin/plugin.json` mentions that describe
+// Claude-specific tooling paths (e.g. `~/.claude/plugins/cache/*/*/1*/...`
+// glob in ccc-suggest, or `$PLUGIN_DIR/...` in ccc-doctor) which have no
+// Codex equivalent and must stay as-is.
+const OWN_MANIFEST_PATH = '${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json';
+const OWN_MANIFEST_PATH_CODEX = '${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json';
+
+function rewriteOwnManifestPath(text) {
+  return text.replaceAll(OWN_MANIFEST_PATH, OWN_MANIFEST_PATH_CODEX);
+}
+
+// (c) AskUserQuestion has no Codex equivalent. Append one note per file
+// (never inline -- an inline replace could land inside YAML frontmatter's
+// `allowed-tools` list, which several skills reference it from) so the
+// Codex-side reader knows to fall back to a numbered list.
+const ASKUSERQUESTION_MENTION = /\bAskUserQuestion\b/;
+const ASKUSERQUESTION_NOTE =
+  '\n> (On Codex, present these options as a numbered list and ask the ' +
+  'user to reply with a number — AskUserQuestion is Claude-only.)\n';
+
+function appendAskUserQuestionNote(text) {
+  if (!ASKUSERQUESTION_MENTION.test(text)) return text;
+  const withTrailingNewline = text.endsWith('\n') ? text : `${text}\n`;
+  return `${withTrailingNewline}${ASKUSERQUESTION_NOTE}`;
+}
+
+// (d) The Workflow(...) tool is not packaged for Codex. Same one-note-per-
+// file treatment as AskUserQuestion -- the real usages are multi-line
+// `Workflow({ scriptPath, args })` code blocks, so annotating every call
+// site inline risks corrupting fenced code blocks; a single file-level note
+// is the conservative choice.
+const WORKFLOW_TOOL_MENTION = /\bWorkflow\(/;
+const WORKFLOW_NOTE =
+  '\n> (The Workflow(...) tool is not available on Codex — run the steps sequentially.)\n';
+
+function appendWorkflowNote(text) {
+  if (!WORKFLOW_TOOL_MENTION.test(text)) return text;
+  const withTrailingNewline = text.endsWith('\n') ? text : `${text}\n`;
+  return `${withTrailingNewline}${WORKFLOW_NOTE}`;
+}
+
 export function translateSkill(skillMd) {
   if (typeof skillMd !== 'string') return skillMd;
-  return skillMd.replaceAll('${CLAUDE_PLUGIN_ROOT}', '${CODEX_PLUGIN_ROOT}');
+  let out = skillMd;
+  out = rewriteCcInvocations(out);
+  out = rewriteOwnManifestPath(out);
+  out = appendAskUserQuestionNote(out);
+  out = appendWorkflowNote(out);
+  return out;
 }
 
 // .mcp.json - Codex accepts the same shape.

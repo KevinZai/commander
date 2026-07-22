@@ -15,7 +15,7 @@ allowed-tools:
 argument-hint: "[new | existing | tour | skip]"
 ---
 
-# /ccc-start — First-Run Onboarding
+# $ccc-start — First-Run Onboarding
 
 This is the welcome mat. User installed CC Commander, and the Desktop app routed them here. Goal: make them feel oriented in under 90 seconds, give them a real artifact (a plan file) to anchor the next session, and never force them to type a number.
 
@@ -25,7 +25,7 @@ Output exactly these three sections in order:
 
 ### 1. ASCII hero (read banner.txt + interpolate version)
 
-Read `${CODEX_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CODEX_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block.
+Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`. Render in a fenced code block.
 
 After the banner, add a single welcome line:
 > **Welcome to CC Commander** — let's get you oriented in under 90 seconds.
@@ -36,13 +36,13 @@ Detect setup with **parallel checks** (one Bash call, chained with `&&`, silent 
 - `ls ~/.claude/plugins/*/plugin.json 2>/dev/null | wc -l` → other plugins installed
 - `ls ~/.claude/plans/ 2>/dev/null | wc -l` → prior plans
 - `git rev-parse --show-toplevel 2>/dev/null` → inside a repo?
-- `ls ${CODEX_PLUGIN_ROOT}/agents/*.md 2>/dev/null | wc -l` → agents available
-- `ls -d ${CODEX_PLUGIN_ROOT}/skills/*/ 2>/dev/null | wc -l` → plugin skills
-- `node -e "console.log(Object.keys(require('${CODEX_PLUGIN_ROOT}/.mcp.json').mcpServers||{}).length)" 2>/dev/null` → bundled MCPs
+- `ls ${CLAUDE_PLUGIN_ROOT}/agents/*.md 2>/dev/null | wc -l` → agents available
+- `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/*/ 2>/dev/null | wc -l` → plugin skills
+- `node -e "console.log(Object.keys(require('${CLAUDE_PLUGIN_ROOT}/.mcp.json').mcpServers||{}).length)" 2>/dev/null` → bundled MCPs
 
 Render a one-line summary:
 
-> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: `<computed>` · MCPs: `<computed>` bundled (16 opt-in via /ccc-connect)
+> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: `<computed>` · MCPs: `<computed>` bundled (16 opt-in via $ccc-connect)
 
 If first-time (no plugins, no plans, no repo): "🧭 Fresh install — let's set you up in under 2 minutes."
 
@@ -57,13 +57,13 @@ multiSelect: false
 options:
   - label: "🚀 Set up a new project"
     description: "Blank canvas — we scaffold a web app, API, CLI, or mobile app and write the first plan file together."
-    preview: "Routes to /ccc-build after a 3-question spec interview. ~90 seconds."
+    preview: "Routes to $ccc-build after a 3-question spec interview. ~90 seconds."
   - label: "📦 Import existing project"
     description: "Point us at your repo — we scan, write CLAUDE.md, and recommend the right agents for your stack."
     preview: "Runs stack detection + writes a personalized plan to ~/.claude/plans/."
   - label: "🗺️ Just show me around"
     description: "Quick tour of the specialist agent personas, plugin skills, and bundled MCP servers (use the live counts from the context strip). No commitment."
-    preview: "Routes to /ccc-browse — browse agents and skills by category."
+    preview: "Routes to $ccc-browse — browse agents and skills by category."
   - label: "⏭️ Skip — I know what I'm doing"
     description: "Drop me at the main /ccc hub. No onboarding."
     preview: "Jumps straight to the top-level picker."
@@ -92,7 +92,7 @@ Then write the plan file:
    - Project type, audience, milestone
    - 3 recommended agents from the live roster (see matrix below; count from the context strip)
    - Next 3 concrete steps
-   - The `/ccc-build-<type>` command to run next
+   - The `$ccc-build-<type>` command to run next
 4. Call `ExitPlanMode` to surface the plan in the Desktop Plan pane.
 
 Finally: invoke `ccc-build` skill to scaffold.
@@ -104,7 +104,7 @@ Parallel Bash scan:
 - `git log --oneline | head -5` → activity signal
 - `grep -l "CLAUDE.md" . 2>/dev/null` → already configured?
 
-Then route through the `/ccc-adopt` skill — it already does the safe CLAUDE.md flow (diff preview → AskUserQuestion approval → backup → delimited write). Never freeform-write CLAUDE.md from an architect brief here; adopt owns that surface. After adopt completes, write the start plan (recommended agents + next 3 steps) via EnterPlanMode → write → ExitPlanMode.
+Then route through the `$ccc-adopt` skill — it already does the safe CLAUDE.md flow (diff preview → AskUserQuestion approval → backup → delimited write). Never freeform-write CLAUDE.md from an architect brief here; adopt owns that surface. After adopt completes, write the start plan (recommended agents + next 3 steps) via EnterPlanMode → write → ExitPlanMode.
 
 Return: one-line summary + path to the plan.
 
@@ -118,7 +118,7 @@ Invoke `ccc` skill inline. No wrapping text — the next picker does the work.
 
 ## The 22 agents (for reference when recommending)
 
-Read `${CODEX_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline matrix:
+Read `${CLAUDE_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline matrix:
 
 | Persona | Best for |
 |---------|---------|
@@ -177,20 +177,20 @@ When writing the plan file (path from `EnterPlanMode` or existing session plan p
 
 ## Next 3 steps
 
-1. [ ] <concrete action with /ccc-<command>>
+1. [ ] <concrete action with $ccc-<command>>
 2. [ ] <concrete action>
 3. [ ] <concrete action>
 
 ## Quick links
 
 - `/ccc` — main hub
-- `/ccc-browse` — browse all skills + agents
-- `/ccc-plan` — write a feature plan
+- `$ccc-browse` — browse all skills + agents
+- `$ccc-plan` — write a feature plan
 - [CC Commander docs](https://commanderplugin.com)
 
 ---
 
-Written by `/ccc-start` on <timestamp>.
+Written by `$ccc-start` on <timestamp>.
 ```
 
 ## M. Optional: Connect your stack (affiliate-supported)
@@ -223,13 +223,13 @@ Then move on to the "Mark onboarding complete" step.
 
 If the user skips this step, render:
 
-> No problem — you can connect tools anytime via `/ccc-connect`.
+> No problem — you can connect tools anytime via `$ccc-connect`.
 
 Then move on to the "Mark onboarding complete" step.
 
 ## N. Mark onboarding complete (MANDATORY last step)
 
-After the tour concludes (user has answered all questions, plan file written), run this bash command to flip the onboarding flag. This ensures the user is never shown `/ccc-start` again unless they reset state.
+After the tour concludes (user has answered all questions, plan file written), run this bash command to flip the onboarding flag. This ensures the user is never shown `$ccc-start` again unless they reset state.
 
 ```bash
 node -e "
@@ -249,7 +249,7 @@ Reply to the user with a one-line confirmation:
 
 ## Session Persistence
 
-**Tip:** Run `/ccc-save-session` before closing a working session to capture state. Then `/ccc-resume-session` at the start of your next one to pick up instantly. Both are built into CC Commander — no extra install needed.
+**Tip:** Run `$ccc-save-session` before closing a working session to capture state. Then `$ccc-resume-session` at the start of your next one to pick up instantly. Both are built into CC Commander — no extra install needed.
 
 ## How CC Commander is sustained (mention near the end of the tour)
 
@@ -257,7 +257,7 @@ CC Commander's core is **free forever** — all skills, all agents, all hooks, a
 
 | Lever | What it is | Where |
 |-------|-----------|-------|
-| **Affiliate links** | Transparent partner links in /ccc-connect and scaffolds (Supabase, Vercel, Neon, …) | `/ccc-connect` |
+| **Affiliate links** | Transparent partner links in $ccc-connect and scaffolds (Supabase, Vercel, Neon, …) | `$ccc-connect` |
 | **Hire Kevin** | Teams shipping AI features who need senior help | kevinz.ai/consulting |
 | **Pro community (optional)** | $49/mo Discord — community, not features; the plugin stays fully free | commanderplugin.com |
 | **GitHub Sponsors + star** | Fund or boost the project directly | github.com/sponsors/KevinZai · github.com/KevinZai/commander |
@@ -280,3 +280,5 @@ Mention this **once** during the tour close — never as a paywall, never blocki
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

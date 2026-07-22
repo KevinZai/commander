@@ -5,7 +5,7 @@ model: sonnet
 effort: medium
 ---
 
-# /ccc-tasks — Markdown Task Tracking
+# $ccc-tasks — Markdown Task Tracking
 
 The simplest thing that could possibly work. One file. Markdown checkboxes. That's it.
 
@@ -18,7 +18,7 @@ The simplest thing that could possibly work. One file. Markdown checkboxes. That
 
 ## Not for
 
-- Team coordination with 2+ humans → use /ccc-linear
+- Team coordination with 2+ humans → use $ccc-linear
 - Long-term project milestones → use Linear project
 - Sub-tasks of a complex feature → use the feature's spec doc + todo tool
 

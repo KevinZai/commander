@@ -1,12 +1,21 @@
 <!--
-  Commander Cockpit — template consumed by scripts/build-cockpit.mjs.
+  Commander Cockpit — template consumed by commander/cowork-plugin/scripts/
+  build-cockpit.mjs (canonical, in-plugin location — v7.3.0, W2+/codex 7;
+  the repo-root scripts/build-cockpit.mjs is a thin spawn shim).
   The generator replaces two markers (shown here without their comment
   wrappers so this doc block doesn't itself count as a marker):
     BRAND_CSS marker  → brandBaseCss() from commander/cowork-plugin/lib/brand-css.js
                           (the shared commanderplugin.com design system: tokens +
                           terminal/eyebrow/status primitives). Single source of truth.
     COCKPIT_DATA marker → window.__COCKPIT__ = { ...payload }:
-      meta:   { version, generatedAt, pluginSkills, ecosystemSkills, agents }
+      meta:   { version, generatedAt, pluginSkills, ecosystemSkills, agents,
+                pluginOnly, dataThroughMs, hasAnySourceRow, telemetryStale }
+        pluginOnly is true when built from a marketplace-only install (no
+        commander/contract.json, no top-level ecosystem skills/ catalog) —
+        ecosystemSkills is 0 and ideas referencing ecosystem-only skills are
+        dropped rather than crashing the build. dataThroughMs/hasAnySourceRow/
+        telemetryStale (v7.3.0, Item 6) mirror the other 3 decks' staleness
+        signal — newest ts across the same local logs buildAnalytics() reads.
       skills: [{ id, name, cmd, desc, domain, tier, source }]
       agents: [{ id, name, emoji, role, desc, model }]
       jobs:   [{ label, query }]
@@ -15,6 +24,11 @@
       analytics: { tiles:[{label,value}], topAgents:[{name,emoji,runs,tokens,costUsd,avgMs}],
                    topSkills:[{skill,runs7d,runs30d,bySource}], daily:[{date,runs}], flows:[{from,to,count}] }
       linear: { connected, board, tickets:[{id,title,state,stateKind,project,updated,stale}] } // optional; absent/{} = not connected
+      prompts: { entries:[{id,source,kind,title,desc,category,sdlc,roles,prompt}],
+                 sourceLabels, phaseLabels, attribution:{anthropic,ccc-library,templates,readyiq},
+                 readyiqFunnel:{title,desc,cta} } // v7.3.0, W5 — 4 vendored sources under lib/prompts-data/;
+        readyiq entries always carry prompt:'' (teaser tier — names + descriptions only, no
+        prompt bodies) and readyiqFunnel is rendered as a standalone card, never a searchable entry.
   Constraints: 100% self-contained when rendered — no external URLs of any kind.
 -->
 <meta charset="utf-8">
@@ -279,6 +293,8 @@ select { width: auto; font-family: var(--font-mono); font-size: 12.5px; }
 .out pre { background: var(--bg-terminal); border: 1px solid var(--border); border-radius: var(--radius-small); padding: 14px; font-family: var(--font-mono); font-size: 12.5px; white-space: pre-wrap; margin: 8px 0 0; color: var(--text); }
 
 .empty { color: var(--text-muted); text-align: center; padding: 44px 0; font-size: 13.5px; }
+.freshness-warn { border: 1px solid var(--yellow); background: color-mix(in srgb, var(--yellow) 12%, transparent); border-radius: var(--radius-card); padding: 12px 14px; font-size: 13px; color: var(--yellow); }
+.freshness-ok { color: var(--text-muted); font-size: 12px; font-family: var(--font-mono); }
 .spark svg { width: 100%; height: 64px; display: block; }
 footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--text-muted); font-family: var(--font-mono); font-size: 11.5px; text-align: center; }
 </style>
@@ -325,6 +341,7 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
     <button role="tab" aria-selected="false" data-tab="analytics">▸ analytics</button>
     <button role="tab" aria-selected="false" data-tab="agents">▸ agents</button>
     <button role="tab" aria-selected="false" data-tab="tools">▸ tools</button>
+    <button role="tab" aria-selected="false" data-tab="prompts">▸ prompts</button>
   </nav>
 
   <section id="tab-browse">
@@ -379,6 +396,7 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
   </section>
 
   <section id="tab-analytics" hidden>
+    <div id="an-freshness" style="margin-bottom:12px"></div>
     <div class="ls" id="an-tiles" style="margin-bottom:14px"></div>
     <div class="panel" style="margin-bottom:12px">
       <div class="eyebrow" style="margin-bottom:12px">Activity — last 14 days</div>
@@ -415,6 +433,15 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
     <div id="tools-body"></div>
   </section>
 
+  <section id="tab-prompts" hidden>
+    <div class="search"><input id="pq" type="search" placeholder="filter prompts by title, purpose, or category…" aria-label="Search prompts"></div>
+    <div class="chips wrap" id="prompt-source-filter" style="margin-bottom:9px"></div>
+    <div class="chips wrap" id="prompt-phase-filter" style="margin-bottom:9px"></div>
+    <div class="chips wrap" id="prompt-category-filter" style="margin-bottom:14px"></div>
+    <div id="prompt-attribution" class="faint mono" style="font-size:11.5px;margin-bottom:14px"></div>
+    <div id="prompt-results"></div>
+  </section>
+
   <footer id="foot"></footer>
 </div>
 
@@ -438,7 +465,7 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
   $('foot').textContent = 'CC Commander v' + D.meta.version + ' · generated ' + D.meta.generatedAt + ' · core free forever · everything runs in this page, nothing leaves it';
 
   // ---------- tabs (persisted via hash so auto-refresh keeps your place) ----------
-  var TABS = ['browse', 'ideas', 'enhance', 'linear', 'analytics', 'agents', 'tools'];
+  var TABS = ['browse', 'ideas', 'enhance', 'linear', 'analytics', 'agents', 'tools', 'prompts'];
   var tabs = document.querySelectorAll('nav [role="tab"]');
   function activateTab(name) {
     if (TABS.indexOf(name) === -1) name = 'browse';
@@ -660,6 +687,140 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
       + group('Artifact recipes', 'copy a prompt → Claude builds the live dashboard', (T.recipes || []).map(recipeCard));
   })();
 
+  // ---------- prompts: a filterable, 4-source prompt library ----------
+  // Sources: Anthropic's Claude Code docs, the CCC field-tested library
+  // (+ its 6 patterns + 7 course modules), the repo's prompts/ templates,
+  // and a ReadyIQ teaser (names + descriptions only — see readyiqFunnel).
+  // "✨ enhance" hands a prompt to the Enhance tab via diagnose()/activateTab()
+  // (both function DECLARATIONS defined later in this closure, so — like
+  // every other cross-section reference in this file — they're safely
+  // hoisted and available here).
+  (function prompts() {
+    var P = D.prompts || {};
+    var entries = Array.isArray(P.entries) ? P.entries : [];
+    if (!entries.length) {
+      $('prompt-results').innerHTML = '<div class="empty">Prompt library data unavailable — regenerate with scripts/build-cockpit.mjs</div>';
+      return;
+    }
+    var sourceLabels = P.sourceLabels || {};
+    var phaseLabels = P.phaseLabels || {};
+    var byId = {}, bySourceCount = {};
+    entries.forEach(function (e) { byId[e.id] = e; bySourceCount[e.source] = (bySourceCount[e.source] || 0) + 1; });
+
+    var activePSource = null, activePhase = null, activePCategory = null;
+    var sourceOrder = ['anthropic', 'ccc-library', 'templates', 'readyiq'];
+    var sourceList = sourceOrder.filter(function (s) { return bySourceCount[s]; });
+
+    var phaseCounts = {};
+    entries.forEach(function (e) { if (e.sdlc) phaseCounts[e.sdlc] = (phaseCounts[e.sdlc] || 0) + 1; });
+    var phaseOrder = ['discover', 'design', 'build', 'ship', 'operate'];
+    var phaseList = phaseOrder.filter(function (p) { return phaseCounts[p]; });
+
+    var categoryCounts = {};
+    entries.forEach(function (e) { var c = e.category || 'other'; categoryCounts[c] = (categoryCounts[c] || 0) + 1; });
+    var categoryList = Object.keys(categoryCounts).sort(function (a, b) { return categoryCounts[b] - categoryCounts[a] || a.localeCompare(b); });
+
+    function renderSourceFilter() {
+      var chips = ['<button class="chip" type="button" data-ps="" aria-pressed="' + (activePSource === null) + '">all sources · ' + entries.length + '</button>'];
+      sourceList.forEach(function (s) {
+        chips.push('<button class="chip" type="button" data-ps="' + esc(s) + '" aria-pressed="' + (activePSource === s) + '">'
+          + esc(sourceLabels[s] || s) + ' · ' + bySourceCount[s] + '</button>');
+      });
+      $('prompt-source-filter').innerHTML = chips.join('');
+    }
+    function renderPhaseFilter() {
+      if (!phaseList.length) { $('prompt-phase-filter').innerHTML = ''; return; }
+      var chips = ['<button class="chip" type="button" data-pp="" aria-pressed="' + (activePhase === null) + '">any phase</button>'];
+      phaseList.forEach(function (p) {
+        chips.push('<button class="chip" type="button" data-pp="' + esc(p) + '" aria-pressed="' + (activePhase === p) + '">'
+          + esc(phaseLabels[p] || p) + ' · ' + phaseCounts[p] + '</button>');
+      });
+      $('prompt-phase-filter').innerHTML = chips.join('');
+    }
+    function renderCategoryFilter() {
+      var chips = ['<button class="chip" type="button" data-pc="" aria-pressed="' + (activePCategory === null) + '">any category</button>'];
+      categoryList.forEach(function (c) {
+        chips.push('<button class="chip" type="button" data-pc="' + esc(c) + '" aria-pressed="' + (activePCategory === c) + '">' + esc(c) + ' · ' + categoryCounts[c] + '</button>');
+      });
+      $('prompt-category-filter').innerHTML = chips.join('');
+    }
+
+    $('prompt-source-filter').addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      activePSource = b.dataset.ps || null; renderSourceFilter(); renderPromptResults();
+    });
+    $('prompt-phase-filter').addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      activePhase = b.dataset.pp || null; renderPhaseFilter(); renderPromptResults();
+    });
+    $('prompt-category-filter').addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      activePCategory = b.dataset.pc || null; renderCategoryFilter(); renderPromptResults();
+    });
+    $('pq').addEventListener('input', renderPromptResults);
+
+    function matchesPrompt(e, q) {
+      if (activePSource && e.source !== activePSource) return false;
+      if (activePhase && e.sdlc !== activePhase) return false;
+      if (activePCategory && (e.category || 'other') !== activePCategory) return false;
+      if (!q) return true;
+      var hay = (e.title + ' ' + e.desc + ' ' + e.category + ' ' + e.sdlc + ' ' + (e.roles || []).join(' ') + ' ' + e.prompt).toLowerCase();
+      return q.split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });
+    }
+
+    function promptCard(e) {
+      var badges = '<span class="badge pri">' + esc(sourceLabels[e.source] || e.source) + '</span>'
+        + (e.category ? '<span class="badge">' + esc(e.category) + '</span>' : '')
+        + (e.sdlc ? '<span class="badge tan">' + esc(phaseLabels[e.sdlc] || e.sdlc) + '</span>' : '');
+      var body = e.desc ? '<div class="desc">' + esc(e.desc) + '</div>' : '';
+      var preview = e.prompt ? '<div class="cmd" style="white-space:normal;height:auto;max-height:76px;overflow:hidden">' + esc(e.prompt) + '</div>' : '';
+      var actions = e.prompt
+        ? '<button class="copy" data-copy="' + esc(e.prompt) + '">📋 copy</button><button class="copy" data-enhance="' + esc(e.id) + '">✨ enhance</button>'
+        : '<span class="dim" style="font-size:12px">browse only — no copyable prompt</span>';
+      return '<div class="card"><h3>' + esc(e.title) + '</h3><div class="badges">' + badges + '</div>'
+        + body + preview + '<div class="row" style="flex-wrap:wrap;margin-top:auto">' + actions + '</div></div>';
+    }
+    function funnelCard(f) {
+      return '<div class="card" style="border-color:var(--border-glow)"><h3>🚀 ' + esc(f.title) + '</h3>'
+        + '<div class="desc">' + esc(f.desc) + '</div>'
+        + '<div class="row"><span class="cmd">' + esc(f.cta) + '</span></div></div>';
+    }
+
+    function renderPromptResults() {
+      var q = $('pq').value.trim().toLowerCase();
+      var shown = entries.filter(function (e) { return matchesPrompt(e, q); });
+      var hasReadyiqShown = shown.some(function (e) { return e.source === 'readyiq'; });
+      var showFunnel = !!(P.readyiqFunnel && (hasReadyiqShown || activePSource === 'readyiq'));
+      var html = '<div class="eyebrow group">' + shown.length + ' prompt' + (shown.length === 1 ? '' : 's') + (q ? ' matching “' + esc(q) + '”' : '') + '</div>';
+      var cards = shown.map(promptCard);
+      if (showFunnel) cards.push(funnelCard(P.readyiqFunnel));
+      $('prompt-results').innerHTML = cards.length
+        ? html + '<div class="grid">' + cards.join('') + '</div>'
+        : html + '<div class="empty">Nothing matches — try fewer words or clear a filter.</div>';
+    }
+
+    document.body.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-enhance]'); if (!b) return;
+      var entry = byId[b.dataset.enhance];
+      if (!entry || !entry.prompt) return;
+      $('raw').value = entry.prompt;
+      diagnose();
+      activateTab('enhance');
+      try { history.replaceState(null, '', '#enhance'); } catch (err) {}
+      $('raw').focus();
+      $('raw').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    var attributionParts = [];
+    sourceList.forEach(function (s) {
+      var text = P.attribution && P.attribution[s];
+      if (text) attributionParts.push(text);
+    });
+    $('prompt-attribution').textContent = attributionParts.join(' · ');
+
+    renderSourceFilter(); renderPhaseFilter(); renderCategoryFilter(); renderPromptResults();
+  })();
+
   // ---------- linear ----------
   (function linear() {
     var L = D.linear || {};
@@ -767,6 +928,37 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
   // ---------- analytics ----------
   var AN = D.analytics || {};
   var zero = '<div class="empty">No activity yet — run some agents, then republish to refresh.</div>';
+  // v7.3.0, Item 6 — telemetry freshness note. Ticks live (Date.now(), not
+  // build-time) because this template already carries a <script> and
+  // already ticks a "snapshot Xs old" age elsewhere (see refresh() below) —
+  // unlike the 3 no-JS decks, which must derive staleness from a fixed
+  // `now` at build time.
+  (function renderFreshness() {
+    var el = $('an-freshness');
+    if (!el) return;
+    var dt = D.meta && D.meta.dataThroughMs;
+    function fmtAgo(ms) {
+      if (ms < 60000) return 'just now';
+      if (ms < 3600000) return Math.round(ms / 60000) + 'm ago';
+      if (ms < 86400000) return Math.round(ms / 3600000) + 'h ago';
+      return Math.round(ms / 86400000) + 'd ago';
+    }
+    function render() {
+      if (!D.meta || D.meta.hasAnySourceRow === false) {
+        el.innerHTML = '<div class="freshness-ok">No telemetry logged yet on this machine. Run <span class="cmd">/ccc-doctor</span> to check your hooks are wired.</div>';
+        return;
+      }
+      if (typeof dt !== 'number' || !isFinite(dt)) { el.innerHTML = ''; return; }
+      var ageMs = Date.now() - dt;
+      if (ageMs <= 24 * 60 * 60 * 1000) {
+        el.innerHTML = '<div class="freshness-ok">Data through ' + esc(new Date(dt).toISOString().slice(0, 16).replace('T', ' ')) + ' UTC</div>';
+        return;
+      }
+      el.innerHTML = '<div class="freshness-warn">⚠️ Telemetry last written ' + esc(fmtAgo(ageMs)) + ' — hooks may not be running. Run <span class="cmd">/ccc-doctor</span>. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)</div>';
+    }
+    render();
+    setInterval(render, 60000);
+  })();
   $('an-tiles').innerHTML = (AN.tiles || []).length
     ? (AN.tiles || []).map(function (t, i) {
         return '<div class="ls-row" style="cursor:default;grid-template-columns:1fr auto;border-top:' + (i ? '1px solid var(--border)' : '0') + '"><span class="k mono" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)">' + esc(t.label) + '</span><span class="v" style="font-size:18px;font-weight:600;color:var(--text)">' + esc(t.value) + '</span></div>';

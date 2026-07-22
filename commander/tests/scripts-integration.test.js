@@ -114,7 +114,12 @@ test('audit-counts.js --json emits valid JSON with required keys', function () {
 
 // ─── check-version-parity.js ───────────────────────────────────────────────
 
-test('check-version-parity.js --check exits 0 when 4 manifests are in sync', function () {
+test('check-version-parity.js --check exits 0 when all manifests are in sync', function () {
+  // v7.3.0 W12: expanded from 4 to 9 checked surfaces (marketplace.json's
+  // top-level version, .agents/plugins/marketplace.json, contract.json,
+  // and the generated codex manifest were added) — assert "PASS" + a
+  // semver, not a hardcoded manifest count that would go stale again the
+  // next time coverage is expanded.
   const r = runScript(CHECK_VERSION_PARITY, ['--check']);
   assert.strictEqual(
     r.status,
@@ -124,9 +129,11 @@ test('check-version-parity.js --check exits 0 when 4 manifests are in sync', fun
   assert.match(r.stdout, /PASS/, 'stdout should contain PASS');
   assert.match(
     r.stdout,
-    /All 4 manifests at \d+\.\d+\.\d+/,
-    'stdout should announce all 4 manifests at a semver version'
+    /All \d+ manifests at \d+\.\d+\.\d+/,
+    'stdout should announce all N manifests at a semver version'
   );
+  const countMatch = r.stdout.match(/All (\d+) manifests/);
+  assert.ok(countMatch && Number(countMatch[1]) >= 9, 'expected at least 9 checked manifests, got: ' + r.stdout);
 });
 
 test('check-version-parity.js default (no --check) reports parity table', function () {

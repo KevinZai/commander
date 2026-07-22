@@ -8,7 +8,7 @@ allowed-tools:
 argument-hint: "[probe | fleet | paperclip | cost | taskmaster]"
 ---
 
-# /ccc-infra — Infrastructure probe
+# $ccc-infra — Infrastructure probe
 
 > Placeholders like ~~monitoring refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -107,3 +107,5 @@ If **~~CI/CD** is connected:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

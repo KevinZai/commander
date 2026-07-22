@@ -16,7 +16,7 @@ allowed-tools:
 argument-hint: "[action: preflight | release | deploy | rollback]"
 ---
 
-# /ccc-ship — Pre-flight + deploy
+# $ccc-ship — Pre-flight + deploy
 
 Click-first ship flow. Four actions, one test matrix, one release pipeline, one deploy path. User picks the action, the matrix (or agent) runs, results surface as a checkbox scorecard.
 
@@ -48,7 +48,7 @@ Output exactly these three sections in order:
 ### 1. Brand header (one line, markdown)
 
 ```
-**CC Commander** · /ccc-ship · Pre-flight → tag → deploy
+**CC Commander** · $ccc-ship · Pre-flight → tag → deploy
 ```
 
 ### 2. Context strip (one paragraph)
@@ -67,7 +67,7 @@ If uncommitted changes > 0: "⚠️ Uncommitted changes detected — commit or s
 
 ### 3. The picker — `AskUserQuestion` with 4 ship actions
 
-Read `${CODEX_PLUGIN_ROOT}/menus/ccc-ship.json` for canonical option data. Surface the 4 non-back choices.
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-ship.json` for canonical option data. Surface the 4 non-back choices.
 
 ```
 question: "What are we shipping?"
@@ -150,7 +150,7 @@ Then execute (via Bash, sequentially, with confirmation before push):
 
 Report back:
 > 📦 **Released v<version>** · tag pushed · [GitHub release](<url>) · CHANGELOG updated
-> 💡 Next: `/ccc-ship deploy` to push it live.
+> 💡 Next: `$ccc-ship deploy` to push it live.
 
 ### Action C: "Deploy"
 
@@ -194,12 +194,12 @@ Report: previous version restored + ETA + health-check command.
 
 ## Argument handling
 
-- `/ccc-ship` → root picker
-- `/ccc-ship preflight` → skip picker, run matrix immediately
-- `/ccc-ship release` → skip picker, jump to bump-type AUQ
-- `/ccc-ship deploy` → skip picker, jump to platform AUQ
-- `/ccc-ship rollback` → skip picker, jump to confirmation AUQ
-- `/ccc-ship <anything else>` → echo arg in context strip + show root picker
+- `$ccc-ship` → root picker
+- `$ccc-ship preflight` → skip picker, run matrix immediately
+- `$ccc-ship release` → skip picker, jump to bump-type AUQ
+- `$ccc-ship deploy` → skip picker, jump to platform AUQ
+- `$ccc-ship rollback` → skip picker, jump to confirmation AUQ
+- `$ccc-ship <anything else>` → echo arg in context strip + show root picker
 
 ## Artifact format
 
@@ -220,3 +220,5 @@ Every preflight writes `tasks/ship/preflight-<YYYYMMDD>-<HHMM>.md` with the verd
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

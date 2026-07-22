@@ -29,21 +29,51 @@ echo "SECTION:CLONE"
 
 CLONE="${1:-}"
 if [ -z "$CLONE" ]; then
-  CLONE="$HOME/.claude/plugins/marketplaces/commander-hub/commander"
+  CLONE="$HOME/.claude/plugins/marketplaces/commander-hub"
 fi
 if [ ! -d "$CLONE" ]; then
-  # Try installed_plugins.json
+  # Fall back to the authoritative source: known_marketplaces.json's
+  # installLocation for commander-hub. Deliberately NOT
+  # installed_plugins.json's installPath here — that field points into
+  # plugins/cache/<mp>/<plugin>/<version>/, a DIFFERENT directory shape
+  # (the resolved plugin-source subtree, no repo wrapper). Conflating the
+  # two under one CLONE var breaks every downstream commander/cowork-plugin/
+  # join below (verified: it silently resolved to a non-existent doubled
+  # path before this fix).
   CLONE=$(node -e "
     try {
       const fs=require('fs');
-      const d=JSON.parse(fs.readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
-      const k=Object.keys(d.plugins||{}).find(k=>k.startsWith('commander'));
-      if(k&&d.plugins[k]&&d.plugins[k][0]) process.stdout.write(d.plugins[k][0].installPath||'');
+      const d=JSON.parse(fs.readFileSync(process.env.HOME+'/.claude/plugins/known_marketplaces.json','utf8'));
+      const m=d['commander-hub'];
+      if(m&&m.installLocation) process.stdout.write(m.installLocation);
     } catch(e) {}
   " 2>/dev/null || echo "")
 fi
 [ -z "$CLONE" ] && CLONE="n/a"
+[ "$CLONE" != "n/a" ] && [ ! -d "$CLONE" ] && CLONE="n/a"
 echo "CLONE=$CLONE"
+
+# Resolved plugin SOURCE dir — works for BOTH install layouts. Clone layout
+# nests the source at commander/cowork-plugin/; a cache-only install's
+# installed_plugins.json installPath IS the source directly (no wrapper).
+# Downstream file probes use PLUGIN_SRC; git-specific probes stay CLONE-gated
+# (only a clone has .git).
+PLUGIN_SRC="n/a"
+if [ "$CLONE" != "n/a" ] && [ -d "$CLONE/commander/cowork-plugin" ]; then
+  PLUGIN_SRC="$CLONE/commander/cowork-plugin"
+elif [ -f "$HOME/.claude/plugins/installed_plugins.json" ]; then
+  PLUGIN_SRC=$(node -e "
+    try {
+      const j=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
+      const rows=(j.plugins&&(j.plugins['commander@commander-hub']||j.plugins['commander']))||[];
+      const r=Array.isArray(rows)?rows[0]:rows;
+      if(r&&r.installPath) process.stdout.write(r.installPath);
+    } catch(e) {}
+  " 2>/dev/null || echo "")
+  [ -z "$PLUGIN_SRC" ] && PLUGIN_SRC="n/a"
+  [ "$PLUGIN_SRC" != "n/a" ] && [ ! -d "$PLUGIN_SRC" ] && PLUGIN_SRC="n/a"
+fi
+echo "PLUGIN_SRC=$PLUGIN_SRC"
 
 # ---------------------------------------------------------------------------
 # SECTION:JUNK
@@ -68,8 +98,8 @@ echo "JUNK_BAK=$JUNK_BAK"
 
 # Archive-hook dupes: files in BOTH hooks/_archive/ AND hooks/ (by basename)
 ARCHIVE_DUPES=0
-if [ "$CLONE" != "n/a" ]; then
-  HOOKS_DIR="$CLONE/commander/cowork-plugin/hooks"
+if [ "$PLUGIN_SRC" != "n/a" ]; then
+  HOOKS_DIR="$PLUGIN_SRC/hooks"
   if [ -d "$HOOKS_DIR/_archive" ] && [ -d "$HOOKS_DIR" ]; then
     ARCHIVE_DUPES=$(comm -12 \
       <(ls "$HOOKS_DIR/_archive/" 2>/dev/null | sort) \
@@ -90,8 +120,8 @@ EVENT_COUNT=n/a
 HANDLER_COUNT=n/a
 VENDOR_COUNT=n/a
 
-if [ "$CLONE" != "n/a" ]; then
-  PLUGIN_DIR="$CLONE/commander/cowork-plugin"
+if [ "$PLUGIN_SRC" != "n/a" ]; then
+  PLUGIN_DIR="$PLUGIN_SRC"
 
   # Skill count: directories under skills/
   SKILL_COUNT=$(ls -d "$PLUGIN_DIR/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
@@ -137,8 +167,8 @@ INSTALLED_VERSION=$(node -e "
 " 2>/dev/null || echo n/a)
 
 # Fallback: read from plugin.json directly
-if [ "$INSTALLED_VERSION" = "n/a" ] && [ "$CLONE" != "n/a" ]; then
-  PLUGIN_JSON="$CLONE/commander/cowork-plugin/.claude-plugin/plugin.json"
+if [ "$INSTALLED_VERSION" = "n/a" ] && [ "$PLUGIN_SRC" != "n/a" ]; then
+  PLUGIN_JSON="$PLUGIN_SRC/.claude-plugin/plugin.json"
   if [ -f "$PLUGIN_JSON" ]; then
     INSTALLED_VERSION=$(jq -r '.version // "n/a"' "$PLUGIN_JSON" 2>/dev/null || echo n/a)
   fi
@@ -213,9 +243,10 @@ if [ -f "$SETTINGS" ]; then
     } catch(e) { process.stdout.write('parse-error'); }
   " 2>/dev/null || echo n/a)
 
-  # Installed-but-disabled: clone present in marketplace but not actively enabled.
+  # Installed-but-disabled: plugin source present (clone OR cache install)
+  # but not actively enabled.
   if { [ "$PLUGIN_ENABLED" = "disabled" ] || [ "$PLUGIN_ENABLED" = "missing" ]; } \
-     && [ -d "$HOME/.claude/plugins/marketplaces/commander-hub/commander" ]; then
+     && [ "$PLUGIN_SRC" != "n/a" ]; then
     PLUGIN_DISABLED_INSTALLED=yes
   fi
 fi
@@ -260,8 +291,8 @@ echo "SECTION:AGENTS"
 
 LOCAL_AGENT_OVERLAP=none
 
-if [ -d "$HOME/.claude/agents" ] && [ "$CLONE" != "n/a" ]; then
-  PLUGIN_AGENTS_DIR="$CLONE/commander/cowork-plugin/agents"
+if [ -d "$HOME/.claude/agents" ] && [ "$PLUGIN_SRC" != "n/a" ]; then
+  PLUGIN_AGENTS_DIR="$PLUGIN_SRC/agents"
   if [ -d "$PLUGIN_AGENTS_DIR" ]; then
     LOCAL_AGENT_OVERLAP=$(comm -12 \
       <(ls "$HOME/.claude/agents/" 2>/dev/null | grep '\.md$' | sed 's/\.md$//' | sort) \

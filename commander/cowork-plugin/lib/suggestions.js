@@ -32,11 +32,22 @@ const TICKET_TITLE_MAX = 200;
 const SUGGESTION_CAP = 50;
 
 // build:codex mirrors this file verbatim, so an unqualified caller under Codex
-// must not be labelled claude-code. Same detection as mission-control-feed.js.
-const SOURCE_APP =
-  process.env.CODEX_PLUGIN_ROOT || /cowork-plugin-codex|\/\.codex\//.test(import.meta.url)
-    ? 'codex'
-    : 'claude-code';
+// must not be labelled claude-code. Same detection as mission-control-feed.js:
+// CODEX_PLUGIN_ROOT is NOT a real Codex variable (verified 2026-07-22 against
+// learn.chatgpt.com/docs/hooks), so the deterministic mirror-path check is
+// primary; CODEX_PLUGIN_ROOT is kept only as a back-compat fallback, and
+// CCC_SOURCE_APP is an explicit override. See mission-control-feed.js for the
+// full rationale + limitation.
+function detectSourceApp() {
+  if (process.env.CCC_SOURCE_APP === 'codex' || process.env.CCC_SOURCE_APP === 'claude-code') {
+    return process.env.CCC_SOURCE_APP;
+  }
+  if (/cowork-plugin-codex|\/\.codex\//.test(import.meta.url)) return 'codex';
+  if (process.env.CODEX_PLUGIN_ROOT) return 'codex';
+  return 'claude-code';
+}
+
+const SOURCE_APP = detectSourceApp();
 
 function defaultBaseDir() {
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();

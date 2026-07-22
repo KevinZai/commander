@@ -32,11 +32,17 @@ The menu-bar process must exit. A closed window is not enough.
 **Step 2 — Clear the plugin cache**
 
 ```bash
-# Remove the installed plugin directory
-rm -rf ~/.claude/plugins/commander
+# Remove every cached executable version (installed_plugins.json's
+# installPath points into here — old versions linger with no auto-clean)
+rm -rf ~/.claude/plugins/cache/commander-hub/commander
 
-# Clear the marketplace clone cache
-rm -rf ~/.claude/marketplace/KevinZai-commander
+# Remove the Desktop inline copy, if present (bypasses the marketplace
+# clone entirely on some installs — a stale one wins silently otherwise)
+rm -rf ~/.claude/plugins/data/commander-inline
+
+# Clear the marketplace SOURCE clone (this is the git checkout of
+# KevinZai/commander itself — .git lives directly inside this directory)
+rm -rf ~/.claude/plugins/marketplaces/commander-hub
 ```
 
 **Step 3 — Re-add from marketplace and reinstall**
@@ -48,25 +54,33 @@ Reopen Claude Code Desktop, then in a new session:
 /plugin install commander
 ```
 
-**Step 4 — Enable autoSync (prevents future stale-cache issues)**
+**Step 4 — Enable marketplace auto-update (prevents future stale-cache issues)**
 
-If you had an orphan `.claude-plugin` directory from a previous manual clone, autoSync may be disabled. Force it on:
+There is no `plugins.autoSync` setting — that shape doesn't exist. The real
+mechanism is a per-marketplace `autoUpdate` flag in
+`~/.claude/plugins/known_marketplaces.json` (NOT `settings.json`), keyed by
+marketplace name:
 
 ```bash
-# In your project directory or home dir, open .claude/settings.json
-# and add/set:
-#   "plugins": { "autoSync": true }
-
-# Or via CLI:
 node -e "
 const fs = require('fs');
-const p = require('os').homedir() + '/.claude/settings.json';
-const s = JSON.parse(fs.readFileSync(p,'utf8'));
-s.plugins = { ...(s.plugins||{}), autoSync: true };
-fs.writeFileSync(p, JSON.stringify(s, null, 2));
-console.log('autoSync enabled');
+const p = require('os').homedir() + '/.claude/plugins/known_marketplaces.json';
+const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+if (!j['commander-hub']) { console.log('commander-hub not registered yet — add the marketplace first (Step 3), then re-run this'); process.exit(0); }
+j['commander-hub'].autoUpdate = true;
+fs.writeFileSync(p, JSON.stringify(j, null, 2));
+console.log('autoUpdate enabled for commander-hub');
 "
 ```
+
+Back up the file first if you're doing this by hand:
+`cp ~/.claude/plugins/known_marketplaces.json ~/.claude/plugins/known_marketplaces.json.backup-$(date +%Y%m%d-%H%M%S)`.
+Or just run `/ccc-doctor` — it offers this exact toggle with the backup
+already built in.
+
+Even with `autoUpdate: true`, you still need `/plugin update commander` +
+a restart to apply a fetched release to your running session — auto-update
+only removes the manual `/plugin marketplace update` step.
 
 **Step 5 — Full quit and reopen again**
 
@@ -90,7 +104,7 @@ You should see the main CC Commander menu with chip pickers for Plan / Build / R
 /ccc-doctor
 ```
 
-Should report green on all checks: manifest valid, hooks wired, MCP servers reachable, skill count matches expected (80 skills / 22 agents / 23 hooks × 42 handlers / 2 bundled MCPs).
+Should report green on all checks: manifest valid, hooks wired, MCP servers reachable, skill count matches expected (81 skills / 22 agents / 23 hooks × 43 handlers / 2 bundled MCPs). `/ccc-doctor` also now diagnoses stale-install layers — a marketplace clone behind `main`, old `cache/<version>` dirs, stale Desktop inline copies, or an aged catalog cache — and offers to enable marketplace auto-update.
 
 ## Orphan `.claude-plugin` bug
 

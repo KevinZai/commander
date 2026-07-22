@@ -155,13 +155,31 @@ function handleStatus(_args) {
 
 function handleUpdate(_args) {
   var checkPath = path.join(__dirname, '..', 'update-check.js');
+  var checker;
   try {
-    var checker = require(checkPath);
-    if (typeof checker.checkForUpdate === 'function') {
-      return checker.checkForUpdate().then ? { async: true } : { message: 'Update check ran synchronously.' };
-    }
-  } catch (_) {}
-  return { currentVersion: pkg.version, latestVersion: null, note: 'Run: npm view cc-commander version' };
+    checker = require(checkPath);
+  } catch (_) {
+    return { currentVersion: pkg.version, latestVersion: null, note: 'Run: npm view cc-commander version' };
+  }
+  if (typeof checker.checkForUpdate !== 'function') {
+    return { currentVersion: pkg.version, latestVersion: null, note: 'Run: npm view cc-commander version' };
+  }
+  // checkForUpdate() is async (it fetches over the network) — returns a
+  // Promise the router (see handleRequest) awaits before replying.
+  return checker.checkForUpdate({ localVersion: pkg.version }).then(function (result) {
+    var note;
+    if (result.status === 'outdated') note = checker.remediationText();
+    else if (result.status === 'unknown') note = 'Could not reach the update server — offline or rate-limited. Try again later.';
+    else note = 'Up to date.';
+    return {
+      currentVersion: result.installed,
+      latestVersion: result.latest,
+      status: result.status,
+      note: note,
+    };
+  }).catch(function () {
+    return { currentVersion: pkg.version, latestVersion: null, note: 'Update check failed.' };
+  });
 }
 
 function handleInit(args) {
@@ -255,6 +273,14 @@ function handleRequest(req) {
     }
     try {
       var result = handler(toolArgs);
+      // A handful of handlers (e.g. commander_update) are async and return a
+      // Promise — every other handler stays synchronous and unaffected.
+      if (result && typeof result.then === 'function') {
+        result
+          .then(function(resolved) { reply(id, translator.translateResult(toolName, resolved)); })
+          .catch(function(err) { reply(id, translator.translateError(err)); });
+        return;
+      }
       reply(id, translator.translateResult(toolName, result));
     } catch (err) {
       reply(id, translator.translateError(err));

@@ -8,7 +8,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-yolo-setup — Safe YOLO + Plan Mode
+# $ccc-yolo-setup — Safe YOLO + Plan Mode
 
 Reduce approval friction **without** going recklessly permissive. Safe-YOLO auto-approves a **vetted allowlist of read-only / non-destructive** operations, keeps **Plan mode** for anything that writes, deletes, or hits the network, and **logs every auto-approval** so the trail is auditable.
 
@@ -94,3 +94,5 @@ Restore the backup, or remove the added entries from `permissions.allow`. Plan m
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

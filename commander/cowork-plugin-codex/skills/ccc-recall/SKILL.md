@@ -5,12 +5,12 @@ model: sonnet
 effort: medium
 ---
 
-# /ccc-recall — Cross-Session Memory Search
+# $ccc-recall — Cross-Session Memory Search
 
 Your past sessions are a goldmine. This skill indexes it.
 
 > **Optional integration:** If you have `claude-mem` (a separate AGPL-licensed
-> tool by @thedotmack) installed via `npm install claude-mem`, `/ccc-recall`
+> tool by @thedotmack) installed via `npm install claude-mem`, `$ccc-recall`
 > will use it for vector search across sessions. **CC Commander does NOT
 > bundle claude-mem** — install separately or skip; CCC's built-in grep +
 > file-based recall works without it.
@@ -24,9 +24,9 @@ Your past sessions are a goldmine. This skill indexes it.
 
 ## Not for
 
-- Current session state — that's `/ccc-memory` (curated) or `/ccc-save-session` (snapshot)
+- Current session state — that's `$ccc-memory` (curated) or `$ccc-save-session` (snapshot)
 - Code search across the repo — use `Grep` tool directly
-- Documentation lookup — use `context7` MCP or `/ccc-docs`
+- Documentation lookup — use `context7` MCP or `$ccc-docs`
 
 ## Three-layer lookup
 
@@ -38,11 +38,11 @@ File-based. Fast grep:
 ```bash
 grep -l "${keyword}" ~/.claude/sessions/*.tmp | head -5
 ```
-Returns session files whose summary mentions the keyword. Each is a structured save from `/ccc-save-session` with sections for What Worked / Didn't Work / Decisions.
+Returns session files whose summary mentions the keyword. Each is a structured save from `$ccc-save-session` with sections for What Worked / Didn't Work / Decisions.
 
 ### Layer 2 — `memory/` curated notes
 
-If project has a `memory/` dir (from `/ccc-memory`):
+If project has a `memory/` dir (from `$ccc-memory`):
 ```bash
 grep -rn "${keyword}" memory/
 ```
@@ -63,7 +63,7 @@ This indexes all session transcripts and archived notes. Best for semantic match
 3. **If no hits, Layer 2** — curated notes
 4. **If still no hits, Layer 3** — full-text grep across all sessions
 5. **Summarize findings** — always cite the source file + date so Kevin can verify
-6. **Offer to save the recall** — if this turned out to be a common question, suggest `/ccc-memory` entry for next time
+6. **Offer to save the recall** — if this turned out to be a common question, suggest `$ccc-memory` entry for next time
 
 ## Example
 
@@ -71,13 +71,13 @@ User: "What did we decide about the MCP bundling split?"
 
 1. Layer 1 grep for "mcp bundling" in `~/.claude/sessions/*.tmp` → finds `2026-04-23-commander-blitz-session.tmp`
 2. Read that file's "Decisions" section
-3. Answer: "On 2026-04-23 during the post-beta.10 hardening review, R1/R5/R8 flagged 9 auto-bundled MCPs as install-day failure. Decision: trim to 2 credential-free (context7 + sequential-thinking), move rest to opt-in via /ccc-connect. Shipped in commit 3cba64d."
-4. Offer: "This would make a good `/ccc-memory` entry as `memory/decisions/mcp-bundling.md` — want me to write it?"
+3. Answer: "On 2026-04-23 during the post-beta.10 hardening review, R1/R5/R8 flagged 9 auto-bundled MCPs as install-day failure. Decision: trim to 2 credential-free (context7 + sequential-thinking), move rest to opt-in via $ccc-connect. Shipped in commit 3cba64d."
+4. Offer: "This would make a good `$ccc-memory` entry as `memory/decisions/mcp-bundling.md` — want me to write it?"
 
 ## Depends on
 
-- `~/.claude/sessions/` directory (created by `/ccc-save-session`)
-- Optional: `memory/` in project root (created by `/ccc-memory`)
+- `~/.claude/sessions/` directory (created by `$ccc-save-session`)
+- Optional: `memory/` in project root (created by `$ccc-memory`)
 - Native bash grep (no external dependencies)
 
 ---

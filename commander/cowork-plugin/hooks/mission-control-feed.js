@@ -37,13 +37,26 @@ const SUBJECT_MAX = 120;
 const DETAIL_MAX = 200;
 
 // This file is copied verbatim into the Codex plugin by scripts/build-codex.js, so the
-// producing app is detected at runtime: Codex Desktop exports CODEX_PLUGIN_ROOT to spawn
-// hooks (the build rewrites ${CLAUDE_PLUGIN_ROOT} -> ${CODEX_PLUGIN_ROOT}); the mirror's
-// install path is the fallback signal when only the command string carries the root.
-const SOURCE_APP =
-  process.env.CODEX_PLUGIN_ROOT || /cowork-plugin-codex|\/\.codex\//.test(import.meta.url)
-    ? 'codex'
-    : 'claude-code';
+// producing app is detected at runtime. CODEX_PLUGIN_ROOT is NOT a real Codex variable
+// (verified 2026-07-22 against learn.chatgpt.com/docs/hooks -- Codex exports its native
+// PLUGIN_ROOT/PLUGIN_DATA plus CLAUDE_PLUGIN_ROOT/CLAUDE_PLUGIN_DATA compatibility
+// aliases, never CODEX_PLUGIN_ROOT), so it can never actually fire in production. The
+// primary, deterministic signal is this file's own resolved path: the mirror lives under
+// cowork-plugin-codex/ (or a Codex install's ~/.codex/ tree). CODEX_PLUGIN_ROOT is kept
+// as a harmless fallback only for back-compat with existing tests and in case a future
+// Codex build introduces it. CCC_SOURCE_APP is an explicit override for callers that want
+// to force the label. LIMITATION: none of these signals are Codex-confirmed at runtime --
+// a symlinked or renamed plugin install directory would misclassify via the path check.
+function detectSourceApp() {
+  if (process.env.CCC_SOURCE_APP === 'codex' || process.env.CCC_SOURCE_APP === 'claude-code') {
+    return process.env.CCC_SOURCE_APP;
+  }
+  if (/cowork-plugin-codex|\/\.codex\//.test(import.meta.url)) return 'codex';
+  if (process.env.CODEX_PLUGIN_ROOT) return 'codex';
+  return 'claude-code';
+}
+
+const SOURCE_APP = detectSourceApp();
 
 function redact(value) {
   if (typeof value !== 'string') return null;

@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# /ccc-smb-ops — Small-business operations hub
+# $ccc-smb-ops — Small-business operations hub
 
 > Load ONE skill. Get the entire back-office operations domain for a small business. 6 skills in one — plain-language checklists and templates for the owner who runs the shop, not the accountant.
 

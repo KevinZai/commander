@@ -24,14 +24,17 @@ function resolveOutputDir() {
 
 const OUTPUT_DIR = resolveOutputDir();
 
+// Events not in Codex's 10-event hook surface (SessionStart, SubagentStart,
+// PreToolUse, PermissionRequest, PostToolUse, PreCompact, PostCompact,
+// UserPromptSubmit, SubagentStop, Stop). Verified 2026-07-22 against primary
+// docs (learn.chatgpt.com/docs/hooks) -- see hook-event-map.json for the
+// full per-event table. PreCompact/PostCompact/SubagentStart/SubagentStop
+// used to be listed here as unsupported; they are not -- dropping them was
+// silently killing Mission Control's subagent-start-tracker.js and
+// agent-run-logger.js writers on Codex.
 const HOOK_EVENTS_DROPPED_BY_BUILD = new Set([
-  // Events not supported in Codex Desktop hook surface
-  'Notification',
-  'PreCompact',
-  'PostCompact',
-  'SubagentStop',
-  'SubagentStart',
   'SessionEnd',
+  'Notification',
   'StopFailure',
   'PostToolUseFailure',
   'PostToolBatch',
@@ -301,6 +304,7 @@ async function buildAgentsMd() {
     `- Start with the \`ccc\` skill (\`$ccc\`) — the guided hub for the ${contract.command_prefix}* workflows.`,
     '- Skills load from `skills/`; invoke explicitly with `$<skill-name>` or let the task match implicitly.',
     '- Agent personas in `agents/*.toml` define specialist voices (architect, reviewer, security-auditor, …). Adopt the matching persona when a task fits one.',
+    '- Skill/hook commands reference `${CLAUDE_PLUGIN_ROOT}` — Codex exposes it as a documented compatibility alias for its native `PLUGIN_ROOT`, so it resolves correctly here unmodified.',
     '',
     '## Operating rules for agents working here',
     '',

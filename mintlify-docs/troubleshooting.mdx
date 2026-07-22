@@ -1,6 +1,6 @@
 ---
 title: "Troubleshooting"
-description: "Diagnostic guide for CC Commander v7.2.0 — install, update, slash command, agent, hook, MCP, and performance issues with fixes and escalation paths."
+description: "Diagnostic guide for CC Commander v7.3.0 — install, update, slash command, agent, hook, MCP, and performance issues with fixes and escalation paths."
 ---
 
 # Troubleshooting
@@ -14,7 +14,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
   /ccc-doctor
   ```
 
-  It validates the plugin manifest, checks hook wiring, probes MCP servers, and reports drift between expected counts (80 skills / 22 agents / 23 hooks × 42 handlers / 2 bundled MCPs) and what's actually loaded.
+  It validates the plugin manifest, checks hook wiring, probes MCP servers, and reports drift between expected counts (81 skills / 22 agents / 23 hooks × 43 handlers / 2 bundled MCPs) and what's actually loaded.
 </Tip>
 
 ## Install issues
@@ -43,13 +43,13 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
 
 1. **Cmd+Q the app fully** (not just close the window — the menu-bar process must exit).
 2. Reopen Claude Code Desktop.
-3. Run `/plugin list`. The `commander` row should appear with version `v7.2.0`.
+3. Run `/plugin list`. The `commander` row should appear with version `v7.3.0`.
 
 <Note>
   **Cmd+Q + reopen** is the canonical fix for ~80% of plugin visibility issues. The autocomplete index, slash command registry, and MCP server list are all populated at startup.
 </Note>
 
-**If still broken:** check `~/.claude/plugins/commander/` exists on disk. If present but not listed, the manifest failed validation — run `/ccc-doctor`.
+**If still broken:** check `~/.claude/plugins/cache/commander-hub/commander/` exists on disk (this is where the actual executing copy lives — not `~/.claude/plugins/commander/`, which isn't a real path). If present but not listed, the manifest failed validation — run `/ccc-doctor`.
 
 ### Autocomplete cache shows old skills
 
@@ -75,15 +75,24 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
 /plugin update commander
 ```
 
-**Permanent fix:** enable auto-update in your plugin settings file.
+**Permanent fix:** enable auto-update for the `commander-hub` marketplace.
+This is NOT a `settings.json` key — it's a per-marketplace flag in
+`~/.claude/plugins/known_marketplaces.json`:
 
 ```json
 {
-  "plugins": {
-    "commander": { "autoUpdate": true }
+  "commander-hub": {
+    "source": { "source": "github", "repo": "KevinZai/commander" },
+    "installLocation": "~/.claude/plugins/marketplaces/commander-hub",
+    "autoUpdate": true
   }
 }
 ```
+
+Add `"autoUpdate": true` to the existing `commander-hub` entry — don't
+overwrite `source`/`installLocation`, and don't touch other marketplaces'
+entries in the same file. `/ccc-doctor` offers to make this exact edit for
+you, with a backup taken first.
 
 ### displayName not updating
 
@@ -103,7 +112,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
 
 **Fix:**
 
-1. `/plugin list` — confirm `commander` is present and at `v7.2.0`.
+1. `/plugin list` — confirm `commander` is present and at `v7.3.0`.
 2. If missing: `/plugin install commander`.
 3. If present: Cmd+Q + reopen.
 
@@ -133,7 +142,7 @@ Then Cmd+Q, reopen, and reinstall:
 
 **Cause:** Stale install from before the v5.1.0 XML strip pass across all 22 agents and skills.
 
-**Fix:** Update to v7.2.0 or later: `/plugin update commander`. Cmd+Q + reopen to clear the tooltip cache.
+**Fix:** Update to v7.3.0 or later: `/plugin update commander`. Cmd+Q + reopen to clear the tooltip cache.
 
 ## Agent issues
 
@@ -183,7 +192,7 @@ Then Cmd+Q, reopen, and reinstall:
 
 **Fix:**
 
-1. `/ccc-doctor` reports hook registration status for all 23 events × 42 handlers.
+1. `/ccc-doctor` reports hook registration status for all 23 events × 43 handlers.
 2. Check `~/.claude/commander/state.json` exists. If missing, the SessionStart hook can't persist context.
 3. Confirm hooks aren't disabled: `echo $CCC_SUGGEST_DISABLE` and `echo $CC_COACH_DISABLE` should be empty for ambient suggestions to fire.
 
@@ -204,11 +213,11 @@ Restart the session. The SessionStart hook will populate the file on next launch
 
 ### Version-transition nudge stuck
 
-**Symptom:** Every session opens with "you upgraded to v7.2.0" even after you've acknowledged it.
+**Symptom:** Every session opens with "you upgraded to v7.3.0" even after you've acknowledged it.
 
 **Cause:** The acknowledgment flag in `state.json` isn't persisting.
 
-**Fix:** Edit `~/.claude/commander/state.json` and set `"versionAcked": "7.2.0"`. Restart.
+**Fix:** Edit `~/.claude/commander/state.json` and set `"versionAcked": "7.3.0"`. Restart.
 
 ## MCP issues
 

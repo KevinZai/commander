@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[yesterday | today | blockers]"
 ---
 
-# /ccc-standup — Standup generator
+# $ccc-standup — Standup generator
 
 > Placeholders like ~~source control refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -92,3 +92,5 @@ If **~~chat** is connected:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

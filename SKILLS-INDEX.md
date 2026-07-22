@@ -2,7 +2,7 @@
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
 > Last verified: 2026-07-20 (203 top-level directories, 195 top-level SKILL.md, 467 total SKILL.md, 3 starter templates)
 
-> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 80 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage` and `ccc-safety` below), see [BIBLE.md](BIBLE.md#the-80-plugin-skills) or `/plugin/skills` in the Mintlify docs.
+> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 81 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage`, `ccc-safety`, and `ccc-update` below), see [BIBLE.md](BIBLE.md#the-81-plugin-skills) or `/plugin/skills` in the Mintlify docs.
 
 ---
 
@@ -49,6 +49,7 @@
 | `ccc-seo` | Complete SEO ecosystem — 20 skills. Technical SEO, AI search optimization, content strategy, analytics, and program... |
 | `ccc-smb-ops` | CCC domain — complete small-business-operations ecosystem — 6 skills in one. 13-week cash-flow forecasting, invoi... |
 | `ccc-testing` | CCC domain — complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testin... |
+| `ccc-update` | Plugin skill — click-first update walkthrough: detect installed vs. latest, run marketplace + plugin update, restar... |
 | `ccc-usage` | Plugin skill (Commander deck) — Usage & Cost deck: burn, estimated savings vs. an all-Opus baseline, saved/day + cos... |
 | `chat-widget` | Build a real-time support chat system with a floating widget for users and an admin dashboard for support staff. Use ... |
 | `churn-prevention` | When the user wants to reduce churn, build cancellation flows, set up save offers, recover failed payments, or implem... |

@@ -12,9 +12,9 @@ allowed-tools:
 argument-hint: "[--check | --fix | --aggressive]"
 ---
 
-# /ccc-tuneup — Local Setup Optimizer
+# $ccc-tuneup — Local Setup Optimizer
 
-The companion to `/ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remediates* — but safely: read-only scan first, backup before any edit, archive (never `rm`) for junk, and an explicit click-to-confirm before anything mutates.
+The companion to `$ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remediates* — but safely: read-only scan first, backup before any edit, archive (never `rm`) for junk, and an explicit click-to-confirm before anything mutates.
 
 **CC Commander** · Tune-Up · [Docs](https://commanderplugin.com)
 
@@ -22,7 +22,7 @@ The companion to `/ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remedia
 - `--check` — read-only audit + scorecard. NO prompt, NO mutation. (Default if the user seems unsure.)
 - `--fix` — audit, then offer safe fixes via AskUserQuestion chips (destructive-leaning items OFF by default).
 - `--aggressive` — same as `--fix` but pre-selects session archival + superseded-agent retirement chips.
-- bare `/ccc-tuneup` — runs the audit, shows the scorecard, then opens the chip picker.
+- bare `$ccc-tuneup` — runs the audit, shows the scorecard, then opens the chip picker.
 
 ## Safety rules (NON-NEGOTIABLE)
 
@@ -41,18 +41,28 @@ The companion to `/ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remedia
 
 ### 1a. Resolve the clone root
 
+The marketplace clone root is `~/.claude/plugins/marketplaces/commander-hub`
+(that dir has `.git` directly in it — the repo's OWN top-level layout then
+nests the plugin source one level further at `commander/cowork-plugin/`; do
+not add an extra `/commander` segment to the clone root itself, and do not
+substitute `installed_plugins.json`'s `installPath` here — that field points
+into `plugins/cache/<mp>/<plugin>/<version>/`, a differently-shaped,
+already-resolved copy with no repo wrapper).
+
 ```bash
-CLONE="$HOME/.claude/plugins/marketplaces/commander-hub/commander"
+CLONE="$HOME/.claude/plugins/marketplaces/commander-hub"
 if [ ! -d "$CLONE" ]; then
+  # Authoritative fallback: known_marketplaces.json's installLocation.
   CLONE=$(node -e "
     try {
-      const d=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
-      const k=Object.keys(d.plugins||{}).find(k=>k.startsWith('commander'));
-      if(k&&d.plugins[k][0]) process.stdout.write(d.plugins[k][0].installPath||'');
+      const d=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/known_marketplaces.json','utf8'));
+      const m=d['commander-hub'];
+      if(m&&m.installLocation) process.stdout.write(m.installLocation);
     } catch(e) {}
   " 2>/dev/null || echo "")
 fi
 [ -z "$CLONE" ] && CLONE="n/a"
+[ "$CLONE" != "n/a" ] && [ ! -d "$CLONE" ] && CLONE="n/a"
 echo "CLONE=$CLONE"
 ```
 
@@ -96,7 +106,7 @@ The probe emits `KEY=VALUE` lines (all side-effect-free, every field `2>/dev/nul
 " 2>/dev/null || echo "diagnostics n/a"
 ```
 
-Use this output for read-only source-tree and settings diagnostics. Keep the probe output as the source of truth for tuneup-specific remediation planning, but surface every `diagnostics.js` row in the scorecard so `/ccc-tuneup --check` covers the same full stack as `/ccc-doctor full`.
+Use this output for read-only source-tree and settings diagnostics. Keep the probe output as the source of truth for tuneup-specific remediation planning, but surface every `diagnostics.js` row in the scorecard so `$ccc-tuneup --check` covers the same full stack as `$ccc-doctor full`.
 
 ### 1d. Semver freshness check (no python3, no require from update-check.js)
 
@@ -202,7 +212,7 @@ Verdict semantics: `ok` = satisfies intent (do not surface); `missing` = key uns
 | 🤖 Local agent supersession | 🟡 | architect.md → plugin version supersedes | Retire local |
 | 🪝 Hooks coverage | 🟢 | 23/23 events, all handlers resolve | — |
 | 🔌 Plugin enabled | 🟢/🔴 | commander in enabledPlugins | Enable in Settings |
-| 🌐 Opt-in MCP staleness | 🟡 | context7 path missing | Re-run /ccc-connect |
+| 🌐 Opt-in MCP staleness | 🟡 | context7 path missing | Re-run $ccc-connect |
 | ⚙️ Settings keys | 🟡 | showThinkingSummaries absent | Promote 3 keys |
 | 💰 Cost settings | 🟡 | N spend-reducing keys missing/suboptimal (effortLevel=xhigh, …) | Suggest only (copy-paste) |
 | 🗂️ Stale sessions (opt-in) | ⚪ | N files >30d | Archive (--aggressive only) |
@@ -230,7 +240,7 @@ If `COST_FLAGGED` > 0, print a short read-only detail block listing each non-`ok
 "env": { "MAX_THINKING_TOKENS": "10000", "ENABLE_TOOL_SEARCH": "1" }
 ```
 
-These are **always suggest-only** — the cost-settings audit NEVER appears as a mutating AskUserQuestion chip and `/ccc-tuneup --fix`/`--aggressive` never edits these keys. For `model`, only inform ("you've pinned <model> on the main thread — routine turns are pricey; consider routing them to Sonnet/Haiku subagents") — never propose overwriting it.
+These are **always suggest-only** — the cost-settings audit NEVER appears as a mutating AskUserQuestion chip and `$ccc-tuneup --fix`/`--aggressive` never edits these keys. For `model`, only inform ("you've pinned <model> on the main thread — routine turns are pricey; consider routing them to Sonnet/Haiku subagents") — never propose overwriting it.
 
 ## Step 3 — Confirm fixes (AskUserQuestion)
 
@@ -261,7 +271,7 @@ options:
     preview: "OFF by default. --aggressive pre-selects this. Frees clutter; transcripts preserved."
   - label: "❌ Cancel"
     description: "Make no changes."
-    preview: "Re-run anytime with /ccc-tuneup."
+    preview: "Re-run anytime with $ccc-tuneup."
 ```
 
 With `--aggressive`, also pre-select the two OFF-by-default items. The "Fix CLAUDE.md counts" option is only shown when `CLAUDE_MD_MODE=maintainer` AND drift was detected.
@@ -344,10 +354,20 @@ Use `Edit` with surgical key insertion. Verify the file is valid JSON after each
 
 ### Version refresh / marketplace re-add (EMIT ONLY — never run)
 
+Marketplace-installed users have no working tree to `git pull` into — the
+clone at `~/.claude/plugins/marketplaces/commander-hub` is Claude Code's own
+cache. The sanctioned sequence is the marketplace-update flow:
+
 ```
 # To update the plugin — paste into terminal:
-cd ~/.claude/plugins/marketplaces/commander-hub/commander && git pull
-# Then restart Claude Code Desktop
+claude plugin marketplace update commander-hub
+claude plugin update commander
+# Then restart Claude Code / Cowork Desktop to apply
+#
+# To stop needing step 1 by hand: set "autoUpdate": true on the
+# "commander-hub" entry in ~/.claude/plugins/known_marketplaces.json
+# (or via the /plugin menu, if offered). $ccc-doctor offers to do this
+# for you with a backup + confirmation.
 ```
 
 ## Step 5 — Verify
@@ -368,7 +388,7 @@ If any fix introduced a regression: restore the matching `*.backup-<TS>` for tha
 ✅ Fixed: <list each fix applied>
 🗂️ Archived (reversible): ~/.claude/commander/tuneup-archive/<stamp>/  (restore: mv <path> back)
 💾 Backups: <each *.backup-stamp path>
-⏭️ You must run by hand: git pull + Desktop restart (version), /ccc-connect re-run (MCP staleness)
+⏭️ You must run by hand: git pull + Desktop restart (version), $ccc-connect re-run (MCP staleness)
 ```
 
 For anything heavy/out-of-scope, offer ONE `mcp__ccd_session__spawn_task` chip (e.g. "deep-clean stale sessions older than 90d — review before deleting"). Never auto-spawn.
@@ -396,3 +416,5 @@ For anything heavy/out-of-scope, offer ONE `mcp__ccd_session__spawn_task` chip (
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

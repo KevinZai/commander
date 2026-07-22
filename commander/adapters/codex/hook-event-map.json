@@ -1,22 +1,35 @@
 {
-  "_comment": "Maps Claude Code hook events → Codex hook events. Used by translate.js when porting hooks.json. Last verified against Codex docs 2026-04-24.",
+  "_comment": "Maps Claude Code hook events -> Codex hook events. Used by translate.js when porting hooks.json. VERIFIED 2026-07-22 against primary Codex docs (learn.chatgpt.com/docs/hooks). Codex supports exactly 10 hook events, all identically named to their Claude Code counterparts: SessionStart, SubagentStart, PreToolUse, PermissionRequest, PostToolUse, PreCompact, PostCompact, UserPromptSubmit, SubagentStop, Stop. This corrects the 2026-04-24 version of this file, which wrongly dropped SubagentStop/PreCompact and never had a PostCompact/SubagentStart/PermissionRequest entry at all -- those assumptions were unverified against primary docs.",
   "events": {
-    "SessionStart":     { "codex": "SessionStart",      "status": "identical" },
-    "UserPromptSubmit": { "codex": "UserPromptSubmit",  "status": "identical" },
-    "PreToolUse":       { "codex": "PreToolUse",        "status": "compatible", "note": "Codex fires for Bash, apply_patch, MCP tool calls. ApplyPatchHandler bug exists per openai/codex#16732." },
-    "PostToolUse":      { "codex": "PostToolUse",       "status": "compatible", "note": "Same matcher field semantics." },
-    "Stop":             { "codex": "Stop",              "status": "identical" },
-    "SubagentStop":     { "codex": null,                "status": "drop",       "note": "Codex returns subagent results to parent context — no separate stop event. Fold logic into Stop or drop." },
-    "Notification":     { "codex": null,                "status": "drop",       "note": "No Codex equivalent. macOS notification handlers must move to launchd or a separate daemon." },
-    "PreCompact":       { "codex": null,                "status": "drop",       "note": "Codex has SessionEnd, but no compaction lifecycle event. Drop instead of pretending SessionEnd has equivalent semantics." }
-  },
-  "codex_only_events": {
-    "SessionEnd":        "Fires when session terminates. Receive PreCompact handlers here.",
-    "PermissionRequest": "Fires when Codex asks user to approve a tool. No Claude analog — use as opt-in for security policy."
+    "SessionStart":     { "codex": "SessionStart",      "status": "identical",  "verified": "2026-07-22" },
+    "UserPromptSubmit": { "codex": "UserPromptSubmit",  "status": "identical",  "verified": "2026-07-22" },
+    "PreToolUse":       { "codex": "PreToolUse",        "status": "compatible", "verified": "2026-07-22", "note": "Codex fires for Bash, apply_patch, MCP tool calls. ApplyPatchHandler bug exists per openai/codex#16732." },
+    "PostToolUse":      { "codex": "PostToolUse",       "status": "compatible", "verified": "2026-07-22", "note": "Same matcher field semantics." },
+    "Stop":             { "codex": "Stop",              "status": "identical",  "verified": "2026-07-22" },
+    "PermissionRequest": { "codex": "PermissionRequest", "status": "identical", "verified": "2026-07-22", "note": "Fires when Codex asks the user to approve a tool call. Previously only reached the Codex output via translateHooks' no-mapping passthrough path -- now explicit." },
+    "SubagentStart":    { "codex": "SubagentStart",     "status": "identical",  "verified": "2026-07-22", "note": "Verified supported 2026-07-22 -- corrects the prior assumption that Codex has no per-subagent lifecycle events. Revives Mission Control's subagent-start-tracker.js writer on Codex." },
+    "SubagentStop":     { "codex": "SubagentStop",      "status": "identical",  "verified": "2026-07-22", "note": "Verified supported 2026-07-22 -- corrects the prior 'drop' status (which assumed subagent results return to the parent context with no separate stop event). Revives Mission Control's agent-run-logger.js writer (agent-runs / subagent-costs) on Codex." },
+    "PreCompact":       { "codex": "PreCompact",        "status": "identical",  "verified": "2026-07-22", "note": "Verified supported 2026-07-22 -- corrects the prior 'drop' status." },
+    "PostCompact":      { "codex": "PostCompact",       "status": "identical",  "verified": "2026-07-22", "note": "Verified supported 2026-07-22 -- new entry; this map previously had no PostCompact row at all." },
+    "SessionEnd":         { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "NOT in Codex's 10-event hook surface -- corrects the prior (unverified) assumption that Codex has a SessionEnd event." },
+    "Notification":       { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "No Codex equivalent. macOS notification handlers must move to launchd or a separate daemon." },
+    "PostToolUseFailure": { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Not in Codex's 10-event hook surface." },
+    "PostToolBatch":      { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "StopFailure":        { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "Elicitation":         { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "ElicitationResult":   { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "TaskCreated":         { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "TaskCompleted":       { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "ConfigChange":        { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "UserPromptExpansion": { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "InstructionsLoaded":  { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." },
+    "Setup":               { "codex": null, "status": "drop", "verified": "2026-07-22", "note": "Claude-only extended event." }
   },
   "schema_compat": {
-    "command_format": "Both use { type: 'command', command: '<path>' } — JSON identical.",
+    "command_format": "Both use { type: 'command', command: '<path>' } -- JSON identical.",
     "matcher_field":  "Both support regex matcher. Use '*' or omit for all events.",
-    "stdin_payload":  "Both pipe JSON to stdin. Field names mostly match. Verify per-event schema in Codex hooks reference."
+    "stdin_payload":  "Both pipe JSON to stdin. Field names mostly match. Verify per-event schema in Codex hooks reference.",
+    "env_vars":       "Codex plugin hook commands receive PLUGIN_ROOT + PLUGIN_DATA (native) AND CLAUDE_PLUGIN_ROOT + CLAUDE_PLUGIN_DATA ('for compatibility with existing plugin hooks' -- learn.chatgpt.com/docs/hooks). CODEX_PLUGIN_ROOT is NOT a real Codex variable; a prior version of this adapter rewrote hook/skill bodies to reference it, which broke every generated hook and skill instruction that touched the plugin root. Fixed 2026-07-22: hook commands and skill bodies now keep ${CLAUDE_PLUGIN_ROOT} verbatim.",
+    "async_handlers": "A handler with \"async\": true is parsed by Codex but skipped ('asynchronous command hooks aren't supported yet'). translate.js strips the async flag so the handler still runs, synchronously, instead of being silently dropped."
   }
 }

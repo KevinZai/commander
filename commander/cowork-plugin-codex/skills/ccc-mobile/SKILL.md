@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# /ccc-mobile — Mobile domain hub
+# $ccc-mobile — Mobile domain hub
 
 > Load ONE skill. Get the entire mobile development domain. 8 skills in one.
 

@@ -8,21 +8,21 @@ allowed-tools:
 argument-hint: "[setup | status | test | digest]"
 ---
 
-# /ccc-broadcast — Outbound Status Relay
+# $ccc-broadcast — Outbound Status Relay
 
 > Placeholders like `~~chat` and `~~email` refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
 Turn "did the deploy work?", "is the site up?", and "did the overnight run finish?" into pushed status updates. `ccc-broadcast` watches the operational signals a CC Commander session already produces — builds, deploys, CI results, task completions, cost/budget alerts — and relays a plain-language summary to the channels a team actually reads (`~~chat`, `~~email`). No dashboards to open, no terminal to babysit.
 
-This is the **outbound-status counterpart to `/ccc-nightwatch`** (which relays *approval requests* to your phone). Nightwatch asks "can I do this?"; broadcast tells "here's what happened."
+This is the **outbound-status counterpart to `$ccc-nightwatch`** (which relays *approval requests* to your phone). Nightwatch asks "can I do this?"; broadcast tells "here's what happened."
 
 ## What it does
 
-The skill maps CC Commander lifecycle events to a small set of business-legible messages and forwards them through whatever `~~chat` or `~~email` connector is enabled via `/ccc-connect`. Each relay is a short, scrubbed summary — event type, human outcome, and a link if one exists — never file contents, diffs, or secret values. Signals are classified by audience so engineers, owners, and clients each get the right altitude.
+The skill maps CC Commander lifecycle events to a small set of business-legible messages and forwards them through whatever `~~chat` or `~~email` connector is enabled via `$ccc-connect`. Each relay is a short, scrubbed summary — event type, human outcome, and a link if one exists — never file contents, diffs, or secret values. Signals are classified by audience so engineers, owners, and clients each get the right altitude.
 
 ## Triggers
 
-- `/ccc-broadcast`
+- `$ccc-broadcast`
 - "tell the team when the deploy finishes"
 - "send me a status when the build is done"
 - "broadcast ops updates to Slack"
@@ -65,7 +65,7 @@ immediate            digest (batched)
 
 ### Step 1 — Choose your audience + channel
 
-Run `/ccc-broadcast setup` and pick where updates go:
+Run `$ccc-broadcast setup` and pick where updates go:
 
 ```
 AskUserQuestion:
@@ -79,7 +79,7 @@ AskUserQuestion:
 
 ### Step 2 — Connect a channel
 
-Broadcast is tool-agnostic. Enable a `~~chat` and/or `~~email` connector once via `/ccc-connect`; broadcast uses whatever is configured there. No channel-specific credentials live in this skill.
+Broadcast is tool-agnostic. Enable a `~~chat` and/or `~~email` connector once via `$ccc-connect`; broadcast uses whatever is configured there. No channel-specific credentials live in this skill.
 
 ### Step 3 — Pick a noise level
 
@@ -95,8 +95,8 @@ AskUserQuestion:
 ### Step 4 — Verify
 
 ```bash
-/ccc-broadcast test   # sends one sample message to each connected channel
-/ccc-broadcast status # shows audience map, noise level, and last 5 relays
+$ccc-broadcast test   # sends one sample message to each connected channel
+$ccc-broadcast status # shows audience map, noise level, and last 5 relays
 ```
 
 ## Concrete Examples
@@ -128,7 +128,7 @@ Every relay is scrubbed before it leaves the session. Broadcast sends **event ty
 
 ## Limitations
 
-- Requires a `~~chat` or `~~email` connector enabled via `/ccc-connect`; log-only mode works with none
+- Requires a `~~chat` or `~~email` connector enabled via `$ccc-connect`; log-only mode works with none
 - Broadcast reflects only signals the session actually emits — it does not poll external infra on its own
 - Digest batching means non-incident updates can lag up to the digest window
 - Audience routing is a default heuristic; per-signal overrides are configured in `~/.claude/commander/broadcast.json`
@@ -137,3 +137,5 @@ Every relay is scrubbed before it leaves the session. Broadcast sends **event ty
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

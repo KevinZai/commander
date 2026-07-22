@@ -1,6 +1,6 @@
 ---
 name: ccc-linear
-description: "Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types /ccc-linear, /ccc linear, says…"
+description: "Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types $ccc-linear, /ccc linear, says…"
 allowed-tools:
   - Read
   - Write
@@ -10,7 +10,7 @@ allowed-tools:
 argument-hint: "[view | pick | create | board]"
 ---
 
-# /ccc-linear — Linear Board
+# $ccc-linear — Linear Board
 
 View your board, pick an issue, or create a new one — all click-first.
 
@@ -35,7 +35,7 @@ Detect in parallel via a single Bash call:
 Render:
 > 🎟️ Team: `<detected team or 'unknown'>` · MCP: <connected | not connected> · key: <set | missing>
 
-If MCP not connected AND no API key: add line — "→ Run `/ccc-connect` to wire Linear first."
+If MCP not connected AND no API key: add line — "→ Run `$ccc-connect` to wire Linear first."
 
 ### 3. Action picker — `AskUserQuestion`
 
@@ -121,14 +121,14 @@ Render:
 ### ⚠️ Linear not connected
 
 Two setup paths:
-1. **Recommended:** run `/ccc-connect` → pick Productivity → pick Linear (one-click OAuth)
+1. **Recommended:** run `$ccc-connect` → pick Productivity → pick Linear (one-click OAuth)
 2. **Manual:** `export LINEAR_API_KEY_PERSONAL=lin_api_xxxxx` then retry
 
 Get a key at https://linear.app/settings/api.
 ```
 
 Offer one `AskUserQuestion`:
-- "🔌 Run /ccc-connect now"
+- "🔌 Run $ccc-connect now"
 - "📖 Show manual setup"
 - "⏭️ Skip for now"
 
@@ -141,16 +141,16 @@ This matches CC Commander branch convention (`cc-{number}-{slug}`) from project 
 
 ## Argument handling
 
-- `/ccc-linear view` → skip picker, run "View my open issues"
-- `/ccc-linear pick` → skip picker, run "Pick one to work on"
-- `/ccc-linear create` → skip picker, run "Create a new issue"
-- `/ccc-linear board` → skip picker, run "Board overview"
-- `/ccc-linear` bare → show the picker
+- `$ccc-linear view` → skip picker, run "View my open issues"
+- `$ccc-linear pick` → skip picker, run "Pick one to work on"
+- `$ccc-linear create` → skip picker, run "Create a new issue"
+- `$ccc-linear board` → skip picker, run "Board overview"
+- `$ccc-linear` bare → show the picker
 
 ## Anti-patterns — DO NOT
 
 - ❌ Render a numbered list and ask user to type a number — click-first only
-- ❌ Proceed if MCP isn't connected AND no API key — always offer `/ccc-connect` fallback
+- ❌ Proceed if MCP isn't connected AND no API key — always offer `$ccc-connect` fallback
 - ❌ Create a branch WITHOUT moving the issue to In Progress first (state stays inconsistent)
 - ❌ Fetch more than 10 issues per `list_issues` call — pagination exists for a reason
 - ❌ Output the full issue description — show title + ID only, user can click through
@@ -177,3 +177,5 @@ This matches CC Commander branch convention (`cc-{number}-{slug}`) from project 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

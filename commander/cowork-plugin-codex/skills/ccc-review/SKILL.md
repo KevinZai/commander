@@ -17,7 +17,7 @@ allowed-tools:
 argument-hint: "[audit type: diff | security | perf | xray]"
 ---
 
-# /ccc-review — Audit your work
+# $ccc-review — Audit your work
 
 Click-first review flow. Four audit types, one specialist agent per pick, one scorecard artifact. User picks the lens, the agent works in the background, the markdown report lands in `tasks/reviews/`.
 
@@ -47,7 +47,7 @@ Output exactly these three sections in order:
 ### 1. Brand header (one line, markdown)
 
 ```
-**CC Commander** · /ccc-review · Audit before you ship
+**CC Commander** · $ccc-review · Audit before you ship
 ```
 
 ### 2. Context strip (one paragraph)
@@ -65,7 +65,7 @@ If no diff detected: "🧭 No diff vs main — I'll audit the whole project inst
 
 ### 3. The picker — `AskUserQuestion` with 4 audit types
 
-Read `${CODEX_PLUGIN_ROOT}/menus/ccc-review.json` for canonical option data. Surface the 4 non-back choices.
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-review.json` for canonical option data. Surface the 4 non-back choices.
 
 ```
 question: "What should I audit?"
@@ -99,7 +99,7 @@ If the `Workflow` tool is available, prefer invoking the bundled deep-review wor
 
 ```js
 Workflow({
-  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-deep-review.workflow.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-deep-review.workflow.js",
   args: { base: "main" }
 })
 ```
@@ -111,13 +111,13 @@ For the **Security** and **Performance** audit types, route through the bundled 
 ```js
 // Security audit
 Workflow({
-  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
   args: { dimensions: ["security", "deps"] }
 })
 
 // Performance audit
 Workflow({
-  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
   args: { dimensions: ["performance"] }
 })
 ```
@@ -145,7 +145,7 @@ On user pick, immediately dispatch the right agent in background. **Never block 
 
 **"Full project x-ray":**
 - Route to the `ccc-xray` skill — do NOT spawn the agent here. Emit: "Loading x-ray workflow — `ccc-xray` runs a full health scorecard across code, docs, tests, deps, CI."
-- Then behave as if the user had invoked `/ccc-xray` directly.
+- Then behave as if the user had invoked `$ccc-xray` directly.
 
 ## Step 3 — Return progress card to user
 
@@ -153,7 +153,7 @@ After dispatching the agent, emit ONE short card:
 
 > 🔍 **Audit running in background** — `<audit-type>` on `<branch>`, agent ID `<id>`, ETA ~1–3 min.
 > 📂 Findings will land at `tasks/reviews/ccc-review-<YYYYMMDD>-<type>.md`.
-> 💡 Come back with `/ccc-review status` — I'll report blocker count + artifact path when done.
+> 💡 Come back with `$ccc-review status` — I'll report blocker count + artifact path when done.
 
 ## Anti-patterns — DO NOT do these
 
@@ -166,12 +166,12 @@ After dispatching the agent, emit ONE short card:
 
 ## Argument handling
 
-- `/ccc-review` → root picker
-- `/ccc-review diff` → skip picker, dispatch reviewer agent immediately
-- `/ccc-review security` → skip picker, dispatch security-auditor
-- `/ccc-review perf` → skip picker, dispatch performance-engineer
-- `/ccc-review xray` → route to `ccc-xray` skill
-- `/ccc-review <anything else>` → treat as free-form audit question; confirm scope with one AUQ, then dispatch reviewer
+- `$ccc-review` → root picker
+- `$ccc-review diff` → skip picker, dispatch reviewer agent immediately
+- `$ccc-review security` → skip picker, dispatch security-auditor
+- `$ccc-review perf` → skip picker, dispatch performance-engineer
+- `$ccc-review xray` → route to `ccc-xray` skill
+- `$ccc-review <anything else>` → treat as free-form audit question; confirm scope with one AUQ, then dispatch reviewer
 
 ## Artifact format (every review writes this)
 
@@ -220,3 +220,7 @@ Every finding carries a verification verdict: **CONFIRMED** (independently verif
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)
+
+> (The Workflow(...) tool is not available on Codex — run the steps sequentially.)

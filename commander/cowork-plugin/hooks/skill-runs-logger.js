@@ -15,7 +15,10 @@ import path from 'node:path';
 const OK = JSON.stringify({ continue: true, suppressOutput: true }) + '\n';
 const MAX_BYTES = 10 * 1024 * 1024;
 const STDIN_MAX_BYTES = 256 * 1024;
-const SKILL_PATTERN = /^\/([a-z][a-z0-9:_-]{1,60})/i;
+// Leading `/` is the Claude Code invocation form; leading `$` is Codex's
+// (`$ccc-review`) — this hook is mirrored verbatim into the Codex plugin, so
+// both must log or Codex top-skill analytics stay permanently empty.
+const SKILL_PATTERN = /^[/$]([a-z][a-z0-9:_-]{1,60})/i;
 // Built-in CLI slash commands are not skills — without this, /model and /clear top the "most-used skill" analytics.
 const BUILTIN_COMMANDS = new Set([
   'model', 'clear', 'compact', 'plan', 'config', 'help', 'resume', 'exit',
@@ -24,10 +27,21 @@ const BUILTIN_COMMANDS = new Set([
 ]);
 // build:codex mirrors this hook verbatim into the Codex plugin; runs must stay
 // separable per runtime or Claude-vs-Codex analytics can never be backfilled.
-const SOURCE_APP =
-  process.env.CODEX_PLUGIN_ROOT || /cowork-plugin-codex|\/\.codex\//.test(import.meta.url)
-    ? 'codex'
-    : 'claude-code';
+// Same detection as mission-control-feed.js: CODEX_PLUGIN_ROOT is NOT a real
+// Codex variable (verified 2026-07-22 against learn.chatgpt.com/docs/hooks),
+// so the deterministic mirror-path check is primary; CODEX_PLUGIN_ROOT is
+// kept only as a back-compat fallback, and CCC_SOURCE_APP is an explicit
+// override. See mission-control-feed.js for the full rationale + limitation.
+function detectSourceApp() {
+  if (process.env.CCC_SOURCE_APP === 'codex' || process.env.CCC_SOURCE_APP === 'claude-code') {
+    return process.env.CCC_SOURCE_APP;
+  }
+  if (/cowork-plugin-codex|\/\.codex\//.test(import.meta.url)) return 'codex';
+  if (process.env.CODEX_PLUGIN_ROOT) return 'codex';
+  return 'claude-code';
+}
+
+const SOURCE_APP = detectSourceApp();
 
 function rotateLog(dir, file) {
   try {

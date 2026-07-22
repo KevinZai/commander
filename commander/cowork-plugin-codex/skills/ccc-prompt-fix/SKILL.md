@@ -7,7 +7,7 @@ allowed-tools:
 argument-hint: "[<your prompt> | last | for <task> | score <prompt>]"
 ---
 
-# /ccc-prompt-fix — Auto Prompt Fixer
+# $ccc-prompt-fix — Auto Prompt Fixer
 
 Take a rough prompt and hand back a sharper one — with the *why*, so you learn the pattern instead of just copying the fix. Grounded in the **Claude Code prompt library** (`skills/claude-code-library/`): 52 field-tested prompts + the 6 patterns behind all of them.
 
@@ -17,11 +17,11 @@ Take a rough prompt and hand back a sharper one — with the *why*, so you learn
 
 | You type | It does |
 |----------|---------|
-| `/ccc-prompt-fix <your prompt>` | **Fix** — diagnose + rewrite that prompt |
-| `/ccc-prompt-fix last` | Fix the **last prompt you sent** this session (read from the transcript) |
-| `/ccc-prompt-fix for <task>` | **Suggest** — pull the best matching prompt from the library for that task |
-| `/ccc-prompt-fix score <prompt>` | **Score** — rate 0–6 on the patterns, no rewrite (quick gut-check) |
-| `/ccc-prompt-fix` (no args) | Ask (via AskUserQuestion) which of the above you want |
+| `$ccc-prompt-fix <your prompt>` | **Fix** — diagnose + rewrite that prompt |
+| `$ccc-prompt-fix last` | Fix the **last prompt you sent** this session (read from the transcript) |
+| `$ccc-prompt-fix for <task>` | **Suggest** — pull the best matching prompt from the library for that task |
+| `$ccc-prompt-fix score <prompt>` | **Score** — rate 0–6 on the patterns, no rewrite (quick gut-check) |
+| `$ccc-prompt-fix` (no args) | Ask (via AskUserQuestion) which of the above you want |
 
 ## The rubric — the 6 patterns (from the library)
 
@@ -42,7 +42,7 @@ Diagnose every prompt against these. A missing pattern is a fix opportunity; not
 2. **Diagnose** — mark each of the 6 patterns present ✅ / absent ⬜. Absent ≠ always wrong — judge which ones this task actually needs.
 3. **Rewrite** — produce a tightened version that adds the *load-bearing* missing patterns, without bloating (a fix that doubles the length isn't a fix).
 4. **Explain** — one line per pattern you added, so the reasoning transfers.
-5. **Offer to make it stick** — if the prompt is one you'll reuse, offer `/ccc-claudemd` (record the convention) or a `/command` skill.
+5. **Offer to make it stick** — if the prompt is one you'll reuse, offer `$ccc-claudemd` (record the convention) or a `/command` skill.
 
 ## Output format
 
@@ -61,7 +61,7 @@ Sharper:
 Why:
   + self-check: added "run the tests and confirm they pass" so it closes its own loop
   + measurable: pinned "p95 under 200ms" so "done" is unambiguous
-  💡 Reusable? Save as a /command or record in CLAUDE.md (via /ccc-claudemd).
+  💡 Reusable? Save as a /command or record in CLAUDE.md (via $ccc-claudemd).
 ```
 
 For **suggest** mode, return the matching library prompt verbatim + its *why it works* note (cite the SDLC phase). For **score** mode, return just the 0–6 tally + the single highest-leverage missing pattern.
@@ -79,3 +79,5 @@ For **suggest** mode, return the matching library prompt verbatim + its *why it 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

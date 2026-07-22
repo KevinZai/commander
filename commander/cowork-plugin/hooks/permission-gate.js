@@ -168,6 +168,21 @@ async function main() {
       )) + '\n');
       return;
     }
+    // CCC_AUTOFIX_APPROVED=1 — the autofix write is allowed. Log a distinct
+    // `approved-autofix` decision (not the generic 'approved' below) so
+    // Safety's "auto-fixed" bucket (safety-snapshot.js's classifyDecision)
+    // has a real signal to count instead of being permanently empty (v7.3.0,
+    // W2+/codex 13).
+    await logDecision({
+      timestamp: new Date().toISOString(),
+      sessionId,
+      decision: 'approved-autofix',
+      toolName,
+      skill: context.skill || '/ccc-review',
+      phase: context.phase || 'autofix',
+    });
+    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+    return;
   }
 
   // Default: approve

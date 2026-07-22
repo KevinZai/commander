@@ -8,13 +8,24 @@ var os = require('node:os');
 var path = require('node:path');
 
 var ROOT = path.join(__dirname, '..', '..');
-var GENERATOR_PATH = path.join(ROOT, 'scripts', 'build-cockpit.mjs');
+// v7.3.0, W2+/codex 7 — the real builder now ships INSIDE the plugin so a
+// marketplace-only install can regenerate the Cockpit; GENERATOR_PATH points
+// at that canonical location. SHIM_GENERATOR_PATH is the repo-root
+// dev-muscle-memory shim (a thin spawn wrapper) — see the "shim parity"
+// describe block below for the test that keeps the two in sync.
+var GENERATOR_PATH = path.join(ROOT, 'commander', 'cowork-plugin', 'scripts', 'build-cockpit.mjs');
+var SHIM_GENERATOR_PATH = path.join(ROOT, 'scripts', 'build-cockpit.mjs');
 var CONTRACT_PATH = path.join(ROOT, 'commander', 'contract.json');
 var PLUGIN_SKILLS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'skills');
 var ECOSYSTEM_SKILLS_DIR = path.join(ROOT, 'skills');
 var DATA_MARKER = '/*__COCKPIT_DATA__*/';
 var BRAND_MARKER = '/*__BRAND_CSS__*/';
 var TEMPLATE_PATH = path.join(ROOT, 'commander', 'cowork-plugin', 'lib', 'cockpit-template.html');
+// v7.3.0, W5/Item 15 — Prompts tab: 4 vendored JSON sources shipped inside
+// the plugin (lib/prompts-data/), normalized by buildPrompts() into
+// payload.prompts.entries.
+var PROMPTS_DATA_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'lib', 'prompts-data');
+var COWORK_PLUGIN_DIR = path.join(ROOT, 'commander', 'cowork-plugin');
 
 function walkFilesNamed(rootDir, filename) {
   var matches = [];
@@ -111,11 +122,11 @@ test('payload counts match the contract and account for plugin-first dedup', fun
   assert.strictEqual(payload.meta.pluginSkills, contract.plugin_skills);
   assert.strictEqual(payload.meta.ecosystemSkills, contract.ecosystem_skills);
   assert.strictEqual(payload.meta.agents, contract.specialist_agents);
-  assert.strictEqual(payload.meta.pluginSkills, 80);
+  assert.strictEqual(payload.meta.pluginSkills, 81);
   assert.strictEqual(payload.meta.ecosystemSkills, 467);
   assert.strictEqual(pluginShown, payload.meta.pluginSkills);
   assert.strictEqual(ecosystemShown + dedupCount, payload.meta.ecosystemSkills);
-  assert.strictEqual(payload.skills.length, 80 + 467 - dedupCount);
+  assert.strictEqual(payload.skills.length, 81 + 467 - dedupCount);
   assert.strictEqual(payload.agents.length, payload.meta.agents);
 });
 
@@ -493,4 +504,276 @@ test('cache_read tokens are priced into cost but not folded into the token headl
   // cost = (100*3 + 100000*0.3 + 50*15) / 1e6 = (300 + 30000 + 750)/1e6 = 0.03105
   assert.strictEqual(cacher.costUsd, 0.0311);
   assert.ok(cacher.costUsd > 0, 'cache-heavy run must not price to $0');
+});
+
+// ---------------------------------------------------------------------------
+// v7.3.0, W2+/codex 7 — Cockpit builder relocation. The real builder now
+// lives at commander/cowork-plugin/scripts/build-cockpit.mjs; the repo-root
+// scripts/build-cockpit.mjs is a thin spawn shim.
+// ---------------------------------------------------------------------------
+
+test('shim (scripts/build-cockpit.mjs) and the canonical in-plugin builder produce equivalent output', function() {
+  var shimResult = cp.spawnSync(process.execPath, [SHIM_GENERATOR_PATH], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: 5 * 1024 * 1024,
+  });
+  assert.strictEqual(shimResult.status, 0, shimResult.stderr);
+  var shimPayload = parsePayload(shimResult.stdout);
+
+  // `payload` (module-level) is the direct-location run from the top of this
+  // file. generatedAt/dataThroughMs are real-clock-dependent — compare
+  // everything else.
+  assert.strictEqual(shimPayload.meta.version, payload.meta.version);
+  assert.strictEqual(shimPayload.meta.pluginSkills, payload.meta.pluginSkills);
+  assert.strictEqual(shimPayload.meta.ecosystemSkills, payload.meta.ecosystemSkills);
+  assert.strictEqual(shimPayload.meta.agents, payload.meta.agents);
+  assert.strictEqual(shimPayload.meta.pluginOnly, payload.meta.pluginOnly);
+  assert.deepStrictEqual(shimPayload.skills, payload.skills);
+  assert.deepStrictEqual(shimPayload.agents, payload.agents);
+  assert.deepStrictEqual(shimPayload.ideas, payload.ideas);
+  assert.deepStrictEqual(shimPayload.tools, payload.tools);
+  assert.deepStrictEqual(shimPayload.patterns, payload.patterns);
+  assert.deepStrictEqual(shimPayload.prompts, payload.prompts);
+});
+
+test('plugin-only install (no commander/contract.json, no top-level ecosystem skills/) still builds — honest smaller Cockpit, never crashes', function(t) {
+  var pluginOnlyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-plugin-only-'));
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-plugin-only-home-'));
+  t.after(function() {
+    fs.rmSync(pluginOnlyRoot, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+  // Copy ONLY the cowork-plugin/ subtree — mirrors exactly what a
+  // marketplace install ships (agents/hooks/lib/menus/rules/skills/scripts,
+  // per .claude-plugin/plugin.json). No commander/contract.json, no
+  // top-level skills/ ecosystem catalog anywhere on this tmp filesystem.
+  fs.cpSync(path.join(ROOT, 'commander', 'cowork-plugin'), path.join(pluginOnlyRoot, 'cowork-plugin'), { recursive: true });
+
+  var scriptPath = path.join(pluginOnlyRoot, 'cowork-plugin', 'scripts', 'build-cockpit.mjs');
+  var result = cp.spawnSync(process.execPath, [scriptPath], {
+    encoding: 'utf8',
+    maxBuffer: 5 * 1024 * 1024,
+    env: Object.assign({}, process.env, { HOME: home }),
+  });
+  assert.strictEqual(result.status, 0, result.stderr);
+
+  var pluginOnlyPayload = parsePayload(result.stdout);
+  assert.strictEqual(pluginOnlyPayload.meta.pluginOnly, true);
+  assert.strictEqual(pluginOnlyPayload.meta.ecosystemSkills, 0);
+  assert.strictEqual(
+    pluginOnlyPayload.meta.pluginSkills,
+    payload.meta.pluginSkills,
+    'plugin skill count is unaffected by the relocation — same 80 skills ship either way'
+  );
+  assert.strictEqual(pluginOnlyPayload.meta.version, payload.meta.version, 'version falls back to plugin.json when contract.json is absent');
+  assert.strictEqual(pluginOnlyPayload.skills.filter(function(s) { return s.source === 'ecosystem'; }).length, 0);
+  assert.ok(pluginOnlyPayload.ideas.length > 0, 'at least some ideas resolve against plugin-only skills');
+  assert.ok(pluginOnlyPayload.ideas.length < payload.ideas.length, 'fewer ideas resolve without the ecosystem catalog to fall back on');
+  // Prompts tab data ships INSIDE cowork-plugin/lib/prompts-data/ — unlike
+  // contract.json/ecosystem skills, a plugin-only install carries it in full.
+  assert.deepStrictEqual(pluginOnlyPayload.prompts, payload.prompts);
+  assert.doesNotThrow(function() { assertSelfContainedFromOutput(result.stdout); });
+});
+
+function assertSelfContainedFromOutput(output) {
+  if (/\b(?:src|href)\s*=\s*["']?\s*https?:\/\//i.test(output)) throw new Error('external src/href leaked');
+  if (/<script\b[^>]*\bsrc\s*=/i.test(output)) throw new Error('<script src> leaked');
+}
+
+// ---------------------------------------------------------------------------
+// v7.3.0, Item 6 — telemetry freshness on the Cockpit's meta payload.
+// ---------------------------------------------------------------------------
+
+test('meta.dataThroughMs/hasAnySourceRow/telemetryStale reflect the newest local telemetry row', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-freshness-stale-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  writeJsonl(home, 'agent-runs.jsonl', [
+    { ts: ago(10), agent: 'ghost', durationMs: 500, inputTokens: 100, outputTokens: 20 },
+  ]);
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var meta = parsePayload(result.stdout).meta;
+  assert.strictEqual(meta.hasAnySourceRow, true);
+  assert.strictEqual(meta.telemetryStale, true);
+  assert.ok(Number.isFinite(meta.dataThroughMs));
+});
+
+test('meta.telemetryStale is false when there is no telemetry at all', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-freshness-empty-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var meta = parsePayload(result.stdout).meta;
+  assert.strictEqual(meta.hasAnySourceRow, false);
+  assert.strictEqual(meta.telemetryStale, false);
+  assert.strictEqual(meta.dataThroughMs, null);
+});
+
+test('meta.telemetryStale is false when the newest row is within 24h', function(t) {
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-freshness-fresh-'));
+  t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
+  writeJsonl(home, 'agent-runs.jsonl', [
+    { ts: ago(0, 5), agent: 'ghost', durationMs: 500, inputTokens: 100, outputTokens: 20 },
+  ]);
+
+  var result = runGenerator(home);
+  assert.strictEqual(result.status, 0, result.stderr);
+  var meta = parsePayload(result.stdout).meta;
+  assert.strictEqual(meta.hasAnySourceRow, true);
+  assert.strictEqual(meta.telemetryStale, false);
+});
+
+// ---------------------------------------------------------------------------
+// v7.3.0, W5/Item 15 — Prompts tab. 4 vendored JSON sources under
+// commander/cowork-plugin/lib/prompts-data/ are normalized by
+// buildPrompts() into payload.prompts.entries, a single flat shape the
+// template renders generically ({id, source, kind, title, desc, category,
+// sdlc, roles, prompt}). readyiq.json is TEASER TIER ONLY (Kevin, 2026-07-22):
+// names + one-line descriptions, never a prompt/systemPrompt body.
+// ---------------------------------------------------------------------------
+
+function readPromptsDataFixture(filename) {
+  return JSON.parse(fs.readFileSync(path.join(PROMPTS_DATA_DIR, filename), 'utf8'));
+}
+
+test('prompts tab is wired into the nav and section markup', function() {
+  assert.ok(output.includes('data-tab="prompts"'), 'prompts nav button');
+  assert.ok(output.includes('id="tab-prompts"'), 'prompts section');
+  assert.match(output, /var TABS = \[[^\]]*'prompts'[^\]]*\]/, "TABS array includes 'prompts'");
+});
+
+test('prompts tab carries its search/filter DOM hooks', function() {
+  ['id="pq"', 'id="prompt-source-filter"', 'id="prompt-phase-filter"', 'id="prompt-category-filter"', 'id="prompt-attribution"', 'id="prompt-results"'].forEach(function(needle) {
+    assert.ok(output.includes(needle), 'expected ' + needle + ' in built output');
+  });
+});
+
+test('all 4 prompt sources render with non-zero counts in the payload', function() {
+  var anthropic = readPromptsDataFixture('anthropic.json');
+  var cccLibrary = readPromptsDataFixture('ccc-library.json');
+  var templates = readPromptsDataFixture('templates.json');
+  var readyiq = readPromptsDataFixture('readyiq.json');
+  var expectedCccLibraryCount = cccLibrary.prompts.length + cccLibrary.patterns.length + cccLibrary.modules.length;
+
+  var entries = payload.prompts.entries;
+  var bySource = {};
+  entries.forEach(function(e) { bySource[e.source] = (bySource[e.source] || 0) + 1; });
+
+  assert.strictEqual(bySource.anthropic, anthropic.entries.length);
+  assert.strictEqual(bySource['ccc-library'], expectedCccLibraryCount);
+  assert.strictEqual(bySource.templates, templates.entries.length);
+  assert.strictEqual(bySource.readyiq, readyiq.entries.length);
+  assert.ok(bySource.readyiq >= 1, 'readyiq teaser must contribute at least 1 entry');
+  assert.strictEqual(entries.length, anthropic.entries.length + expectedCccLibraryCount + templates.entries.length + readyiq.entries.length);
+  // Regression pin — matches the committed vendored data as of this change.
+  assert.deepStrictEqual(bySource, { anthropic: 52, 'ccc-library': 65, templates: 36, readyiq: 14 });
+});
+
+test('every prompt entry has the documented normalized shape', function() {
+  payload.prompts.entries.forEach(function(e) {
+    assert.strictEqual(typeof e.id, 'string');
+    assert.ok(['anthropic', 'ccc-library', 'templates', 'readyiq'].indexOf(e.source) !== -1, e.id + ' source');
+    assert.ok(['prompt', 'pattern', 'module', 'template', 'agent'].indexOf(e.kind) !== -1, e.id + ' kind');
+    assert.strictEqual(typeof e.title, 'string');
+    assert.strictEqual(typeof e.desc, 'string');
+    assert.strictEqual(typeof e.category, 'string');
+    assert.strictEqual(typeof e.sdlc, 'string');
+    assert.ok(Array.isArray(e.roles), e.id + ' roles');
+    assert.strictEqual(typeof e.prompt, 'string');
+  });
+});
+
+test('readyiq is teaser tier — no prompt bodies anywhere, and a funnel card is present', function() {
+  var readyiqEntries = payload.prompts.entries.filter(function(e) { return e.source === 'readyiq'; });
+  assert.ok(readyiqEntries.length >= 1);
+  readyiqEntries.forEach(function(e) {
+    assert.strictEqual(e.prompt, '', e.id + ' must carry no prompt body (teaser tier)');
+    assert.strictEqual(e.kind, 'agent');
+  });
+
+  var funnel = payload.prompts.readyiqFunnel;
+  assert.ok(funnel && typeof funnel === 'object', 'readyiqFunnel present');
+  assert.ok(funnel.title && funnel.desc && funnel.cta, 'funnel has title/desc/cta');
+  assert.ok(output.includes('Build agents like these with ReadyIQ'), 'funnel card copy present in built output');
+
+  // Structural guard directly on the source fixture: only name/category/
+  // avatar/desc fields are allowed — no systemPrompt, keywords, capabilities,
+  // or model leaking the proprietary ReadyIQ agent framework into the MIT repo.
+  var readyiqFixture = readPromptsDataFixture('readyiq.json');
+  var allowedKeys = ['id', 'name', 'category', 'avatar', 'desc'];
+  readyiqFixture.entries.forEach(function(entry) {
+    var keys = Object.keys(entry);
+    keys.forEach(function(key) {
+      assert.ok(allowedKeys.indexOf(key) !== -1, 'readyiq.json entry ' + entry.id + ' has disallowed key: ' + key);
+    });
+    assert.strictEqual(entry.hasOwnProperty('prompt'), false, entry.id + ' must not carry a prompt field');
+    assert.strictEqual(entry.hasOwnProperty('systemPrompt'), false, entry.id + ' must not carry a systemPrompt field');
+  });
+});
+
+test('prompt attribution is rendered as plain text with no external href', function() {
+  assert.ok(output.includes('Prompt library from code.claude.com/docs'), 'anthropic attribution text present');
+  assert.ok(output.includes('© Anthropic'), 'anthropic attribution copyright present');
+  assert.ok(output.includes('readyiq.ai'), 'readyiq domain present as plain text');
+  // readyiq.ai must never appear inside a live href/src — it's copy inside
+  // the JSON payload + rendered as plain text, per Kevin's no-hyperlink rule.
+  assert.doesNotMatch(output, /href\s*=\s*["']?[^"'>]*readyiq\.ai/i);
+  assert.doesNotMatch(output, /src\s*=\s*["']?[^"'>]*readyiq\.ai/i);
+});
+
+test('prompts tab wires copy + enhance actions and a source/phase/category filter chip pattern', function() {
+  assert.ok(output.includes('data-enhance'), 'enhance action wiring present');
+  assert.ok(output.includes("activateTab('enhance')"), 'enhance action switches to the Enhance tab');
+  assert.ok(output.includes('data-ps='), 'source filter chips present');
+  assert.ok(output.includes('data-pp='), 'phase filter chips present');
+  assert.ok(output.includes('data-pc='), 'category filter chips present');
+});
+
+test('prompts payload data-copy strings for a malicious prompt body are escaped against script-breakout, and round-trip losslessly', function(t) {
+  var tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-prompts-xss-'));
+  t.after(function() { fs.rmSync(tmpRoot, { recursive: true, force: true }); });
+  fs.cpSync(COWORK_PLUGIN_DIR, path.join(tmpRoot, 'cowork-plugin'), { recursive: true });
+
+  var payloadStr = '</script><img src=x onerror=alert(1)>';
+  var anthropicPath = path.join(tmpRoot, 'cowork-plugin', 'lib', 'prompts-data', 'anthropic.json');
+  var fixture = JSON.parse(fs.readFileSync(anthropicPath, 'utf8'));
+  fixture.entries[0].prompt = payloadStr;
+  fixture.entries[0].title = payloadStr;
+  fs.writeFileSync(anthropicPath, JSON.stringify(fixture));
+
+  var scriptPath = path.join(tmpRoot, 'cowork-plugin', 'scripts', 'build-cockpit.mjs');
+  var result = cp.spawnSync(process.execPath, [scriptPath], { encoding: 'utf8', maxBuffer: 5 * 1024 * 1024 });
+  assert.strictEqual(result.status, 0, result.stderr);
+
+  assert.ok(!result.stdout.includes(payloadStr), 'raw unescaped </script> breakout must not appear in the built output');
+  assert.ok(result.stdout.includes('<\\/script><img src=x onerror=alert(1)>'), 'malicious string should survive JSON-encoded with </script escaped');
+
+  var tmpPayload = parsePayload(result.stdout);
+  var maliciousEntry = tmpPayload.prompts.entries.find(function(e) { return e.id === 'anthropic:' + fixture.entries[0].id; });
+  assert.ok(maliciousEntry, 'malicious entry present in normalized payload');
+  assert.strictEqual(maliciousEntry.prompt, payloadStr);
+  assert.strictEqual(maliciousEntry.title, payloadStr);
+  assert.doesNotThrow(function() { assertSelfContainedFromOutput(result.stdout); });
+});
+
+test('prompts tab degrades to 0 entries for a source (never a crash) when its JSON file is absent', function(t) {
+  var tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-prompts-missing-'));
+  t.after(function() { fs.rmSync(tmpRoot, { recursive: true, force: true }); });
+  fs.cpSync(COWORK_PLUGIN_DIR, path.join(tmpRoot, 'cowork-plugin'), { recursive: true });
+  fs.rmSync(path.join(tmpRoot, 'cowork-plugin', 'lib', 'prompts-data', 'readyiq.json'));
+
+  var scriptPath = path.join(tmpRoot, 'cowork-plugin', 'scripts', 'build-cockpit.mjs');
+  var result = cp.spawnSync(process.execPath, [scriptPath], { encoding: 'utf8', maxBuffer: 5 * 1024 * 1024 });
+  assert.strictEqual(result.status, 0, result.stderr);
+
+  var tmpPayload = parsePayload(result.stdout);
+  var bySource = {};
+  tmpPayload.prompts.entries.forEach(function(e) { bySource[e.source] = (bySource[e.source] || 0) + 1; });
+  assert.strictEqual(bySource.readyiq, undefined, 'readyiq contributes 0 entries when its JSON is missing');
+  assert.ok(bySource.anthropic > 0, 'other sources are unaffected by one missing file');
+  assert.strictEqual(tmpPayload.prompts.readyiqFunnel, null);
+  assert.doesNotThrow(function() { assertSelfContainedFromOutput(result.stdout); });
 });

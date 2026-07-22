@@ -1,6 +1,6 @@
 ---
 name: ccc-cheatsheet
-description: "CC Commander interactive discovery tool. Renders a live flow diagram of every /ccc-* workflow by reading the plugin directly as single source of truth. Use when the…"
+description: "CC Commander interactive discovery tool. Renders a live flow diagram of every $ccc-* workflow by reading the plugin directly as single source of truth. Use when the…"
 allowed-tools:
   - Read
   - Bash
@@ -12,7 +12,7 @@ allowed-tools:
 argument-hint: "[workflow name to drill into: plan | build | review | ship | design | learn | xray | linear | fleet | connect | start | browse]"
 ---
 
-# /ccc-cheatsheet — Interactive Discovery Tool
+# $ccc-cheatsheet — Interactive Discovery Tool
 
 Live, always-in-sync visual reference for the entire CC Commander plugin surface. Reads the plugin directly — no hardcoded skill list, no stale counts. Renders a Mermaid flow diagram (which Claude Desktop natively renders inline) + an AskUserQuestion navigator to drill into any workflow.
 
@@ -28,21 +28,21 @@ Four sections in order:
 **CC Commander** · v{VERSION} · Interactive Cheatsheet · [docs/plugin.md](../../docs/plugin.md)
 ```
 
-Read `VERSION` from `${CODEX_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
+Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`.
 
 ### 2. Live stats line
 
 Compute by scanning plugin directories:
 
-- **Skills:** `ls ${CODEX_PLUGIN_ROOT}/skills | wc -l` total; `ls -d ${CODEX_PLUGIN_ROOT}/skills/ccc-* | wc -l` specialist workflows
-- **Agents:** `ls ${CODEX_PLUGIN_ROOT}/agents/*.md | wc -l`
-- **Hooks:** count events in `${CODEX_PLUGIN_ROOT}/hooks/hooks.json` → `.hooks` object
-- **MCPs:** count keys in `${CODEX_PLUGIN_ROOT}/.mcp.json` → `.mcpServers` if present, else count entries in `${CODEX_PLUGIN_ROOT}/MCP.md` headings
-- **Menu trees:** `ls ${CODEX_PLUGIN_ROOT}/menus/*.json | wc -l`
+- **Skills:** `ls ${CLAUDE_PLUGIN_ROOT}/skills | wc -l` total; `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/ccc-* | wc -l` specialist workflows
+- **Agents:** `ls ${CLAUDE_PLUGIN_ROOT}/agents/*.md | wc -l`
+- **Hooks:** count events in `${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json` → `.hooks` object
+- **MCPs:** count keys in `${CLAUDE_PLUGIN_ROOT}/.mcp.json` → `.mcpServers` if present, else count entries in `${CLAUDE_PLUGIN_ROOT}/MCP.md` headings
+- **Menu trees:** `ls ${CLAUDE_PLUGIN_ROOT}/menus/*.json | wc -l`
 
 Render:
 
-> 🧰 **{N} skills** ({M} `/ccc-*` workflows) · **{agents} agents** · **{hooks} lifecycle hooks** · **{mcps} MCP servers** · **{menus} menu trees**
+> 🧰 **{N} skills** ({M} `$ccc-*` workflows) · **{agents} agents** · **{hooks} lifecycle hooks** · **{mcps} MCP servers** · **{menus} menu trees**
 
 ### 3. The Mermaid flow diagram
 
@@ -65,12 +65,12 @@ graph TD
     BUILD --> B2[api]
     BUILD --> B3[cli]
     BUILD --> B4[mobile]
-    BUILD --> B5[from spec → /ccc-plan]
+    BUILD --> B5[from spec → $ccc-plan]
 
     REVIEW --> R1[diff vs main]
     REVIEW --> R2[security OWASP]
     REVIEW --> R3[performance]
-    REVIEW --> R4[full x-ray → /ccc-xray]
+    REVIEW --> R4[full x-ray → $ccc-xray]
 
     SHIP --> S1[preflight]
     SHIP --> S2[release]
@@ -103,7 +103,7 @@ graph TD
 ```
 ````
 
-**Before rendering:** verify the tree against actual menu JSONs. Read `${CODEX_PLUGIN_ROOT}/menus/ccc-root.json`, `ccc-build.json`, `ccc-review.json`, `ccc-ship.json`, `ccc-design.json`, `ccc-learn.json`, `ccc-more.json`. If any menu has added / removed options, update the Mermaid to match. The diagram MUST reflect the real plugin state.
+**Before rendering:** verify the tree against actual menu JSONs. Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-root.json`, `ccc-build.json`, `ccc-review.json`, `ccc-ship.json`, `ccc-design.json`, `ccc-learn.json`, `ccc-more.json`. If any menu has added / removed options, update the Mermaid to match. The diagram MUST reflect the real plugin state.
 
 ### 4. Navigator picker
 
@@ -121,7 +121,7 @@ options:
     description: "Audit the current branch. Writes findings to tasks/reviews/."
     preview: "Next click: pick audit type → specialist agent runs in background"
   - label: "🗺️ Show me everything"
-    description: "Open /ccc-browse — filterable catalog of all 60 plugin skills + 22 agents."
+    description: "Open $ccc-browse — filterable catalog of all 60 plugin skills + 22 agents."
     preview: "Cascades: Domains (11) / Workflows (13) / Agents (17) / Full grid"
   - label: "👋 Skip — I've got this"
     description: "Close the cheatsheet, return to whatever I was doing."
@@ -132,7 +132,7 @@ On pick, dispatch to the named skill. Don't ask again.
 
 ## If user passes an argument
 
-If `/ccc-cheatsheet plan` → skip the picker, show the Mermaid + drill directly into `ccc-plan` details. Render a mini-tree for just that workflow (read `${CODEX_PLUGIN_ROOT}/skills/ccc-<arg>/SKILL.md` + the corresponding menu JSON).
+If `$ccc-cheatsheet plan` → skip the picker, show the Mermaid + drill directly into `ccc-plan` details. Render a mini-tree for just that workflow (read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-<arg>/SKILL.md` + the corresponding menu JSON).
 
 Same for: `build`, `review`, `ship`, `design`, `learn`, `xray`, `linear`, `fleet`, `connect`, `start`, `browse`.
 
@@ -145,7 +145,7 @@ If user says "export" or passes `--html`, render the same diagram + tables as st
 - ❌ Hardcode a skill list — ALWAYS scan the plugin dir, that's the point of this tool
 - ❌ Paraphrase descriptions — read directly from SKILL.md frontmatter so descriptions stay canonical
 - ❌ Output a numbered list of commands — use the Mermaid diagram, that's the visual
-- ❌ Include legacy `/ccc:X` or `/commander:ccc` namespace — the plugin now ships plain `/ccc-*`
+- ❌ Include legacy `/ccc:X` or `/commander:ccc` namespace — the plugin now ships plain `$ccc-*`
 - ❌ Show counts from CLAUDE.md or README — those drift; always count from the filesystem
 
 ## Brand rules
@@ -170,3 +170,5 @@ If user says "export" or passes `--html`, render the same diagram + tables as st
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

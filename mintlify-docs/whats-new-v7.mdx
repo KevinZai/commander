@@ -1,10 +1,10 @@
 ---
-title: "What's New in v7.2.0"
-description: "Commander Cockpit becomes a real product (v7.0.0), a Tools tab turns it into an ecosystem launcher (v7.1.0), and a shared decks switcher plus two new artifacts — Usage & Cost and Safety — ship in v7.2.0."
+title: "What's New in v7.3.0"
+description: "Commander Cockpit becomes a real product (v7.0.0), gains a Tools tab (v7.1.0), a shared decks switcher (v7.2.0), and — in v7.3.0 — finally notices its own updates, gains a Prompts tab, honest deck freshness, and a fixed Codex mirror."
 ---
 
 <Note>
-  **Released 2026-07-20** — v7.0.0 → v7.2.0 ship together as one arc: the Cockpit becomes the real commanderplugin.com product, gains a Tools tab, then gains a shared deck family. All core free forever. Plugin installs automatically — run `/ccc-upgrade` to pick up the latest.
+  **Released 2026-07-20 → 2026-07-22** — v7.0.0 → v7.3.0 ship together as one arc: the Cockpit becomes the real commanderplugin.com product, gains a Tools tab, gains a shared deck family, then gains update self-detection and a Prompts tab. All core free forever. Plugin installs automatically — run `/ccc-update` to pick up the latest.
 </Note>
 
 ## v7.0.0 — Commander Cockpit Product Release
@@ -59,6 +59,36 @@ Dangerous actions **blocked**, **auto-fixed**, and approved (from `permission-ga
 
 Emoji mojibake in the snapshot artifacts — Mission Control, Usage, and Safety fragments now declare `<meta charset="utf-8">` (the Cockpit already did), so emoji render correctly when served standalone, not just inside the Artifact wrapper.
 
+## v7.3.0 — Update Self-Detection + Cockpit Prompts Tab
+
+### Commander finally notices its own updates
+
+A **SessionStart hook** (`hooks/update-nudge.js`, 24h-cached, offline-silent) compares your installed version against GitHub `main` and, when a newer release exists, tells you the exact fix — marketplace update → plugin update → restart. Third-party plugin marketplaces have auto-update **off by default**, so nothing else was ever going to tell you.
+
+### `/ccc-update` — 81st plugin skill
+
+The click-first counterpart to the ambient nudge: detect installed vs. latest, run the two update commands (with your confirmation), remind you to restart, and verify the version + hooks are actually live afterward. See [`/ccc-update`](/plugin/skills/ccc-update) for the full reference. `/ccc-doctor` also now diagnoses every stale-install layer — a marketplace clone behind `main`, old `cache/<version>` directories, stale Desktop inline copies, catalog-cache age — and offers, with consent, to enable marketplace auto-update.
+
+### Cockpit "Prompts" tab
+
+An 8th Cockpit tab: a navigable, searchable prompt browser across four sources — the Claude Code docs prompt library (52 prompts, with attribution + a refresh script), the CCC library (52 field-tested prompts + 6 quality patterns + course modules), the repo's 36 prompt templates, and a ReadyIQ agent showcase. Filter by source, SDLC phase, or category; copy any prompt, or send it straight into the Enhance tab with one click.
+
+### Deck freshness honesty
+
+Every deck now shows "**Data through** &lt;timestamp&gt;" (the newest source row) beside the render stamp, and warns when telemetry is more than 24 hours stale ("hooks may not be running — run `/ccc-doctor`"). Rebuilding a deck from months-old data can no longer masquerade as fresh.
+
+### Proactive moments, made real
+
+The suggestion engine now surfaces update-available and stale-telemetry signals, writes real entries into Mission Control's Suggestions panel (previously it had no producer and sat permanently empty), and keys all its state per-project — suggestions and dismissals no longer leak between repositories. Safety's "auto-fixed" metric is now real too: the permission gate logs `approved-autofix` when an autofix write is actually approved.
+
+### Fixed: the Codex mirror actually works now
+
+The translator had been rewriting every hook and skill to `${CODEX_PLUGIN_ROOT}` — a variable Codex never sets (it provides `PLUGIN_ROOT`/`PLUGIN_DATA` and honors `CLAUDE_PLUGIN_ROOT` for compatibility) — so **every mirrored hook was dead on every Codex install to date**. Also fixed: 4 supported events were wrongly dropped (`SubagentStart`/`SubagentStop`, `PreCompact`/`PostCompact` — the mirror now carries 10 events, was 6), `async` handlers (which Codex silently skips) are stripped, and the docs now cover Codex's hook trust gate. See [Codex Compatibility](/features/codex-compatibility) for the full writeup.
+
+<Note>
+  Also fixed: `/ccc-usage` now triggers the canonical metrics recompute instead of reading a stale rollup and honestly labels the savings hero when `savings.json` isn't being fed; the Cockpit builder now ships **inside** the plugin so marketplace installs can regenerate it; and `check-version-parity` now gates 9 version surfaces (was 4).
+</Note>
+
 ## Summary
 
 | What changed | Details |
@@ -67,8 +97,13 @@ Emoji mojibake in the snapshot artifacts — Mission Control, Usage, and Safety 
 | Cockpit display taxonomy | 14 real domains, no "core" catch-all (v7.0.0) — distinct from the 11 canonical CCC routers |
 | Cockpit Tools tab | Commander surfaces + MIT companion apps + artifact recipes (v7.1.0) |
 | Commander decks switcher | Shared strip across every artifact — Cockpit, Mission Control, Usage & Cost, Safety (v7.2.0) |
-| New skill | `/ccc-usage` — Usage & Cost deck |
-| New skill | `/ccc-safety` — Safety deck |
-| Plugin skill count | 78 → 80 |
+| New skill | `/ccc-usage` — Usage & Cost deck (v7.2.0) |
+| New skill | `/ccc-safety` — Safety deck (v7.2.0) |
+| Update self-detection | SessionStart hook + `/ccc-doctor` stale-install diagnostics (v7.3.0) |
+| New skill | `/ccc-update` — click-first update walkthrough (v7.3.0) |
+| Cockpit Prompts tab | 8th tab — 4 prompt sources, Copy + "Enhance this" (v7.3.0) |
+| Deck freshness | "Data through &lt;timestamp&gt;" + stale-telemetry warnings (v7.3.0) |
+| Fixed | Codex hook surface: 6 → 10 events, dead-variable bug (v7.3.0) |
+| Plugin skill count | 78 → 81 |
 
 All counts canonical — verified by `node scripts/check-product-contract.js --check`.

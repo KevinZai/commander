@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[domain: design | marketing | saas | devops | seo | testing | security | data | research | mobile | makeover | all]"
 ---
 
-# /ccc-learn — Discover skills across domains
+# $ccc-learn — Discover skills across domains
 
 Click-first browser over CCC's 11 domain routers. User picks a domain in one click — we load its domain-router skill and hand off. No text menus, no grep-through-502-skills.
 
@@ -39,7 +39,7 @@ If nothing installed: "📚 No CCC skills installed yet — pick a domain, I'll 
 
 ### 3. The picker — `AskUserQuestion` with 4 options
 
-Read `${CODEX_PLUGIN_ROOT}/menus/ccc-learn.json` once. Use its `choices` for labels + descriptions. **Max 4 options** — take the 3 headline domains + "More domains…".
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-learn.json` once. Use its `choices` for labels + descriptions. **Max 4 options** — take the 3 headline domains + "More domains…".
 
 ```
 question: "Which domain?"
@@ -120,15 +120,15 @@ options:
 ```
 
 **Remaining domain routers** not surfaced in AUQ but available by argument:
-- `ccc-research` (8 skills) — `/ccc-learn research`
-- `ccc-mobile` (8 skills) — `/ccc-learn mobile`
-- `ccc-makeover` (3 skills) — `/ccc-learn makeover`
+- `ccc-research` (8 skills) — `$ccc-learn research`
+- `ccc-mobile` (8 skills) — `$ccc-learn mobile`
+- `ccc-makeover` (3 skills) — `$ccc-learn makeover`
 
 These tail-end domains are thin. If a user explicitly asks about them, route directly.
 
 ### 7. Argument handling
 
-If the user passed an argument (`/ccc-learn marketing`), skip all AUQs and invoke the matching domain router immediately. Accept: `design` / `marketing` / `saas` / `devops` / `seo` / `testing` / `security` / `data` / `research` / `mobile` / `makeover` / `all` (→ `ccc-browse`).
+If the user passed an argument (`$ccc-learn marketing`), skip all AUQs and invoke the matching domain router immediately. Accept: `design` / `marketing` / `saas` / `devops` / `seo` / `testing` / `security` / `data` / `research` / `mobile` / `makeover` / `all` (→ `ccc-browse`).
 
 ## Anti-patterns — DO NOT
 
@@ -136,7 +136,7 @@ If the user passed an argument (`/ccc-learn marketing`), skip all AUQs and invok
 - ❌ Dump the 502-skill list inline — that's ccc-browse's job
 - ❌ Skip the cascade — users need the "More → Even more" flow for the long tail
 - ❌ Show a numbered text list and ask them to type a number
-- ❌ Forget to check the argument — `/ccc-learn marketing` must skip the root picker
+- ❌ Forget to check the argument — `$ccc-learn marketing` must skip the root picker
 
 ## When to invoke this skill
 
@@ -156,3 +156,5 @@ If the user passed an argument (`/ccc-learn marketing`), skip all AUQs and invok
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

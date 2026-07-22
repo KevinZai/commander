@@ -8,12 +8,17 @@
 // when both logs are absent.
 
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 import { buildSafetyHtml, readSafetyModel } from '../cowork-plugin/lib/safety-snapshot.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PERMISSION_GATE_HOOK = path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'permission-gate.js');
 
 let tmpRoot;
 
@@ -115,6 +120,39 @@ test('readSafetyModel counts a GENUINE applied auto-fix as auto-fixed (forward-c
   const model = await readSafetyModel({ baseDir, now: NOW });
   assert.equal(model.decisions.autofixed, 2);
   assert.equal(model.decisions.blocked, 0);
+});
+
+// v7.3.0, W2+/codex 13 — end-to-end: spawns the REAL permission-gate.js hook
+// (not a hand-crafted fixture row) with CCC_AUTOFIX_APPROVED=1, then feeds
+// its actual jsonl output straight into readSafetyModel/buildSafetyHtml.
+// This is what proves the "auto-fixed" bucket is wired end-to-end, not just
+// that classifyDecision() recognizes the string in isolation.
+test('end-to-end: permission-gate.js CCC_AUTOFIX_APPROVED=1 write feeds readSafetyModel\'s "auto-fixed" bucket', async () => {
+  const home = await fs.mkdtemp(path.join(tmpRoot, 'e2e-home-'));
+  const payload = JSON.stringify({
+    tool_name: 'Write',
+    tool_input: { file_path: '/tmp/foo.js', content: 'fixed' },
+    session_id: 'e2e-autofix',
+    context: { skill: '/ccc-review', phase: 'autofix' },
+  });
+
+  const result = spawnSync(process.execPath, [PERMISSION_GATE_HOOK], {
+    input: payload,
+    encoding: 'utf-8',
+    timeout: 8000,
+    env: { ...process.env, HOME: home, CCC_AUTOFIX_APPROVED: '1' },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout.trim()).continue, true);
+
+  const baseDir = path.join(home, '.claude', 'commander');
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  assert.equal(model.decisions.autofixed, 1);
+  assert.equal(model.decisions.blocked, 0);
+  assert.equal(model.decisions.total, 1);
+
+  const html = buildSafetyHtml(model, { now: NOW });
+  assert.match(html, /auto-fixed <strong>1<\/strong> for you/);
 });
 
 test('readSafetyModel aggregates top-failing tools by count', async () => {
@@ -286,4 +324,79 @@ test('readSafetyModel bad JSONL lines are skipped, valid lines survive', async (
   const model = await readSafetyModel({ baseDir: dir, now: NOW });
   // The bad line and the bare array are dropped; the one valid object survives.
   assert.equal(model.decisions.total, 1);
+});
+
+// ---------------------------------------------------------------------------
+// v7.3.0 — Item 6: dataThrough + staleness banner.
+// ---------------------------------------------------------------------------
+
+test('readSafetyModel computes dataThroughMs as the newest of both logs\' timestamps', async () => {
+  const baseDir = await makeBase({
+    gate: [{ timestamp: '2026-07-18T00:00:00.000Z', sessionId: 's', decision: 'approved', toolName: 'Bash' }],
+    failures: [{ ts: '2026-07-19T06:00:00.000Z', tool_name: 'Bash', error: 'boom' }],
+  });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+
+  assert.equal(model.dataThroughMs, Date.parse('2026-07-19T06:00:00.000Z'));
+  assert.equal(model.hasAnySourceRow, true);
+});
+
+test('readSafetyModel hasAnySourceRow is false and dataThroughMs is null when both logs are empty', async () => {
+  const baseDir = await makeBase({});
+  const model = await readSafetyModel({ baseDir, now: NOW });
+
+  assert.equal(model.hasAnySourceRow, false);
+  assert.equal(model.dataThroughMs, null);
+});
+
+test('buildSafetyHtml renders "Data through" next to the snapshot stamp', async () => {
+  const baseDir = await makeBase({
+    failures: [{ ts: '2026-07-19T06:00:00.000Z', tool_name: 'Bash', error: 'boom' }],
+  });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.match(html, /Data through: 2026-07-19/);
+});
+
+test('buildSafetyHtml shows the stale-telemetry warning when the newest row is more than 24h old', async () => {
+  const baseDir = await makeBase({
+    failures: [{ ts: '2026-07-10T06:00:00.000Z', tool_name: 'Bash', error: 'boom' }],
+  });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.match(html, /Telemetry last written .* ago/);
+  assert.match(html, /\/ccc-doctor/);
+  assert.match(html, /update the plugin to ≥7\.2\.0/);
+});
+
+test('buildSafetyHtml does NOT show the stale-telemetry warning when the newest row is within 24h', async () => {
+  const baseDir = await makeBase({
+    failures: [{ ts: '2026-07-20T06:00:00.000Z', tool_name: 'Bash', error: 'boom' }],
+  });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.doesNotMatch(html, /Telemetry last written/);
+});
+
+test('buildSafetyHtml extends the honest zero-state with the doctor pointer when both logs are empty', async () => {
+  const baseDir = await makeBase({});
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.match(html, /No permission-gate telemetry yet/);
+  assert.match(html, /Run \/ccc-doctor to check your hooks are wired/);
+});
+
+test('buildSafetyHtml does NOT append the doctor pointer when tool-failures has data but permission-gate is empty', async () => {
+  const baseDir = await makeBase({
+    failures: [{ ts: '2026-07-20T06:00:00.000Z', tool_name: 'Bash', error: 'boom' }],
+  });
+  const model = await readSafetyModel({ baseDir, now: NOW });
+  const html = buildSafetyHtml(model, { now: NOW });
+
+  assert.match(html, /No permission-gate telemetry yet/);
+  assert.doesNotMatch(html, /Run \/ccc-doctor to check your hooks are wired/);
 });

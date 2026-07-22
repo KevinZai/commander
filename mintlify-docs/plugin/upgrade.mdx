@@ -1,25 +1,80 @@
 ---
-title: "Upgrade to v7.2.0"
-description: "Upgrade an existing CC Commander plugin install to v7.2.0 in Claude Code Desktop, Claude Code CLI, or npm."
+title: "Upgrade to v7.3.0"
+description: "Upgrade an existing CC Commander plugin install to v7.3.0 in Claude Code Desktop, Claude Code CLI, or npm."
 ---
 
-# ⬆️ Upgrade to v7.2.0
+# ⬆️ Upgrade to v7.3.0
 
-You already have CC Commander installed? Here's how to pick up v7.2.0 with zero drama.
+You already have CC Commander installed? Here's how to pick up v7.3.0 with zero drama.
+
+<Warning>
+  Third-party plugin marketplaces do **not** auto-refresh by default. If you
+  only run `/plugin update commander`, it updates against whatever your
+  **local marketplace clone** last synced — which can be weeks stale. Run
+  the marketplace refresh first, every time.
+</Warning>
 
 ## Claude Code Desktop / CLI (plugin)
 
 ```
+/plugin marketplace update commander-hub
 /plugin update commander
 ```
 
-That's the whole thing. The marketplace serves the latest version from `main` — your next `/plugin update` pulls v7.2.0.
+Step 1 refreshes the local marketplace clone from `KevinZai/commander`'s
+`main` branch. Step 2 then actually updates the installed plugin — it can
+only pull a version that step 1 just fetched.
+
+**CLI one-liner** (same two steps):
+
+```bash
+claude plugin marketplace update commander-hub && claude plugin update commander
+```
+
+<Note>
+  **Restart required.** `/plugin update` stages the new version — it does
+  not hot-swap the running session. Fully quit Claude Code / Cowork Desktop
+  (Cmd+Q, not just closing the window — the menu-bar process must exit) and
+  reopen, or start a new CLI session.
+</Note>
+
+### Skip step 1 next time (auto-update)
+
+Third-party marketplaces support an opt-in auto-refresh flag. Set
+`"autoUpdate": true` on the `commander-hub` entry in
+`~/.claude/plugins/known_marketplaces.json`:
+
+```json
+{
+  "commander-hub": {
+    "source": { "source": "github", "repo": "KevinZai/commander" },
+    "installLocation": "~/.claude/plugins/marketplaces/commander-hub",
+    "autoUpdate": true
+  }
+}
+```
+
+Preserve every other key already in that entry — only add `autoUpdate`.
+Or run `/ccc-doctor`, which offers to do this for you (backs up the file
+first, asks for confirmation, verifies the write). Some Claude Code builds
+also expose this as a toggle in the `/plugin` interactive menu — check
+there first if you'd rather not hand-edit JSON.
+
+With `autoUpdate: true`, the marketplace clone still refreshes in the
+background rather than instantly — `/plugin update commander` (step 2, plus
+the restart) still applies it.
+
+### Click-first walkthrough
+
+Prefer not to run commands by hand? `/ccc-update` detects your installed
+vs. latest version, runs both commands for you to confirm, reminds you to
+restart, and verifies the new version + hooks are actually live afterward.
 
 ### Verify the upgrade
 
 ```
 /plugin list | grep commander
-# should show: commander  v7.2.0  Kevin Zicherman
+# should show: commander  v7.3.0  Kevin Zicherman
 ```
 
 Or in a fresh Claude Code session:
@@ -32,13 +87,13 @@ The settings menu header reports the installed version. You can also run `/ccc-d
 
 ### What changes for you
 
-| Surface | Before (v6.8.0) | Now (v7.2.0) |
+| Surface | Before (v7.2.0) | Now (v7.3.0) |
 |---------|-----------------|----------------------|
-| Plugin skills | 78 | 80 (adds `/ccc-usage` Usage & Cost deck, `/ccc-safety` Safety deck) |
+| Plugin skills | 80 | 81 (adds `/ccc-update` — click-first update walkthrough) |
 | Agents | 22 specialist personas | 22 (unchanged since v6.8.0) |
-| Hooks | 23 lifecycle events / 42 handlers | 23 lifecycle events / 42 handlers (unchanged) |
+| Hooks | 23 lifecycle events / 42 handlers | 23 lifecycle events / 43 handlers (adds the approved-autofix logger) |
 | Bundled MCP servers | 2 credential-free + 16 opt-in | 2 credential-free + 16 opt-in (unchanged) |
-| Cockpit | Skill/agent browser, prompt enhancer | Rebuilt on the commanderplugin.com coral brand (v7.0.0), gained a Tools tab (v7.1.0), and every artifact now shares a **Commander decks** switcher (v7.2.0) |
+| Cockpit | Skill/agent browser, prompt enhancer, Tools launcher, Commander decks switcher | Adds a **Prompts** tab (8th) — searchable browser across the Claude Code docs library, the CCC library, repo templates, and a ReadyIQ showcase |
 | Ecosystem skills | 467 | 467 (unchanged) |
 
 Your `~/.claude/commander/` state files, knowledge base, and learned-skills directory are preserved. No data migration needed.
@@ -47,7 +102,7 @@ Your `~/.claude/commander/` state files, knowledge base, and learned-skills dire
 
 ```bash
 npm i -g cc-commander@latest
-ccc --version   # should show 7.2.0
+ccc --version   # should show 7.3.0
 ```
 
 Re-run the post-install verify:
@@ -80,23 +135,23 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 If something breaks (please file an issue first):
 
 ```
-/plugin update commander --version 7.1.0
+/plugin update commander --version 7.2.0
 # or
-npm i -g cc-commander@7.1.0
+npm i -g cc-commander@7.2.0
 ```
 
 ## After the upgrade
 
 Optional but recommended: run `/ccc-tuneup` to audit your local `~/.claude` setup (versions, drift, superseded agents, hooks coverage) or `/ccc-claudemd` to refresh your project `CLAUDE.md` against current conventions. Custom sections are preserved.
 
-## Try the new decks
+## Try what's new
 
 ```
-/ccc-usage    # Usage & Cost deck — burn, estimated savings, cost-by-app
-/ccc-safety   # Safety deck — blocked/auto-fixed actions, tool-failure hotspots
+/ccc-update   # detects installed vs. latest, walks the update, verifies hooks are alive
+/ccc-doctor   # now also diagnoses stale marketplace clones and offers to enable auto-update
 ```
 
-Both are new in v7.2.0 and carry the shared Commander decks switcher, so you can jump straight to the Cockpit or Mission Control from either one.
+Open the Cockpit and click into the new **Prompts** tab (8th tab) for a searchable prompt browser across four sources — copy any prompt or send it straight into the Enhance tab.
 
 ## Questions
 

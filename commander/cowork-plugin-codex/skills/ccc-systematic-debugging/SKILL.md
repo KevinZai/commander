@@ -12,7 +12,7 @@ allowed-tools:
   - TodoWrite
 ---
 
-# /ccc-systematic-debugging — Root-cause debugging
+# $ccc-systematic-debugging — Root-cause debugging
 
 ## The Iron Law
 
@@ -114,3 +114,5 @@ _Adapted from [superpowers/systematic-debugging](https://github.com/nicholasgasi
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

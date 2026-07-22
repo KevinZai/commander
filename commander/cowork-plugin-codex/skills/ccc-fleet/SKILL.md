@@ -1,6 +1,6 @@
 ---
 name: ccc-fleet
-description: "Multi-agent orchestration — launch parallel Sonnet agents in git worktrees to fan out, pipeline, or compete on a task. Use when the user types /ccc-fleet, /ccc fleet,…"
+description: "Multi-agent orchestration — launch parallel Sonnet agents in git worktrees to fan out, pipeline, or compete on a task. Use when the user types $ccc-fleet, /ccc fleet,…"
 allowed-tools:
   - Read
   - Write
@@ -11,11 +11,11 @@ allowed-tools:
 argument-hint: "[fanout | pipeline | review | background | team]"
 ---
 
-# /ccc-fleet — Parallel Agents
+# $ccc-fleet — Parallel Agents
 
 Launch multiple Sonnet agents in parallel worktrees. Click-first picker selects the pattern.
 
-> `/ccc-fleet` is the **manual-dispatch sibling** of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): same delegate-the-doing-keep-the-deciding discipline, with you explicitly choosing the fan-out / pipeline / dialectic pattern.
+> `$ccc-fleet` is the **manual-dispatch sibling** of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): same delegate-the-doing-keep-the-deciding discipline, with you explicitly choosing the fan-out / pipeline / dialectic pattern.
 
 Promoted from `commands/ccc-parallel.md` (legacy slash command).
 
@@ -77,15 +77,15 @@ If the `Workflow` tool is available, prefer invoking the bundled fleet workflow 
 
 | Picker choice | Workflow invocation |
 |---------------|---------------------|
-| 🌿 Fan-out | `Workflow({ scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 ...", "slice 2 ...", ...] } })` |
-| 🔗 Pipeline | `Workflow({ scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 ...", "stage 2 ...", ...] } })` |
-| ⚖️ Opposing review | `Workflow({ scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+| 🌿 Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 ...", "slice 2 ...", ...] } })` |
+| 🔗 Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 ...", "stage 2 ...", ...] } })` |
+| ⚖️ Opposing review | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
 
 For **migration jobs** (transforming many files with pattern matching), use the dedicated migration workflow instead:
 
 ```js
 Workflow({
-  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js",
   args: { pattern: "<what to find>", transform: "<how to change it>", verify: "<how to confirm>" }
 })
 ```
@@ -262,12 +262,12 @@ Agents CANNOT push — return files + diffs only. User merges to main via the co
 
 ## Argument handling
 
-- `/ccc-fleet fanout` → skip picker, straight to fan-out task prompt
-- `/ccc-fleet pipeline` → pipeline flow
-- `/ccc-fleet review` → opposing-review flow
-- `/ccc-fleet background` → background flow
-- `/ccc-fleet team` → skip picker, straight to team hierarchy flow
-- `/ccc-fleet` bare → show picker
+- `$ccc-fleet fanout` → skip picker, straight to fan-out task prompt
+- `$ccc-fleet pipeline` → pipeline flow
+- `$ccc-fleet review` → opposing-review flow
+- `$ccc-fleet background` → background flow
+- `$ccc-fleet team` → skip picker, straight to team hierarchy flow
+- `$ccc-fleet` bare → show picker
 
 ## Anti-patterns — DO NOT
 
@@ -295,7 +295,7 @@ Agents CANNOT push — return files + diffs only. User merges to main via the co
 3. Parallel calls go in a SINGLE tool-call batch (one message, multiple function_calls) — not sequential.
 4. If RAM detection fails, default to 3 parallel (safest for Mac Mini M4 baseline).
 5. Always echo the synthesis plan BEFORE dispatching — user needs to see the full arc.
-6. After all workers report, automatically invoke `/ccc-fleet-viz` to render the final fleet tree.
+6. After all workers report, automatically invoke `$ccc-fleet-viz` to render the final fleet tree.
 
 ---
 
@@ -321,3 +321,7 @@ When assigning agents in any fleet pattern, run `scoreComplexity(sliceDescriptio
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)
+
+> (The Workflow(...) tool is not available on Codex — run the steps sequentially.)

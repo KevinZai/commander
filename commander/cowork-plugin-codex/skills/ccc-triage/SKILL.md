@@ -9,7 +9,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-triage — GitHub Issue & PR Triage
+# $ccc-triage — GitHub Issue & PR Triage
 
 Maintainer-grade triage for the plugin's GitHub repo. Uses the **`gh` CLI** to list, label, and summarize open issues and pull requests — and can hand off deep, per-item triage to a Sonnet agent or Codex when the backlog is large.
 
@@ -129,3 +129,5 @@ Create a missing label with `gh label create <name>` only after confirming with 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

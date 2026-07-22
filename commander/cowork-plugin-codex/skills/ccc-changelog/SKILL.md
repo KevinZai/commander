@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[version]"
 ---
 
-# /ccc-changelog — What's New
+# $ccc-changelog — What's New
 
 Reads `CHANGELOG.md` at the repo root and surfaces the most-recent version section in a scan-friendly summary. Works whether invoked directly or triggered by the SessionStart version-transition nudge.
 
@@ -17,7 +17,7 @@ Reads `CHANGELOG.md` at the repo root and surfaces the most-recent version secti
 
 ### 1. Locate CHANGELOG.md
 
-Read `${CODEX_PLUGIN_ROOT}/../../CHANGELOG.md` via the Read tool.
+Read `${CLAUDE_PLUGIN_ROOT}/../../CHANGELOG.md` via the Read tool.
 
 If that fails, try `Bash`: `find ~ -name CHANGELOG.md -path "*/cc-commander/*" 2>/dev/null | head -1` and read the result.
 
@@ -56,7 +56,7 @@ Full notes: CHANGELOG.md
 Always end with:
 
 ```
-Run `/ccc` to get started or `/ccc-browse` to explore all 48 skills.
+Run `/ccc` to get started or `$ccc-browse` to explore all 48 skills.
 ```
 
 ## Anti-patterns

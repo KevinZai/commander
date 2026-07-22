@@ -15,7 +15,7 @@ allowed-tools:
 argument-hint: "[template: web-app | api | cli | mobile | spec]"
 ---
 
-# /ccc-build — Scaffold a project
+# $ccc-build — Scaffold a project
 
 Click-first build flow. Four templates, one spec interview, one background agent. User clicks a tile, answers 3 questions, walks away — the scaffold lands in their worktree while they wait.
 
@@ -26,7 +26,7 @@ Output exactly these three sections in order:
 ### 1. Brand header (one line, markdown)
 
 ```
-**CC Commander** · /ccc-build · Scaffold a project or feature
+**CC Commander** · $ccc-build · Scaffold a project or feature
 ```
 
 ### 2. Context strip (one paragraph)
@@ -43,7 +43,7 @@ If an existing project is detected, add a gentle note: "I'll scaffold into a sub
 
 ### 3. The picker — `AskUserQuestion` with 4 templates
 
-Read `${CODEX_PLUGIN_ROOT}/menus/ccc-build.json` for canonical option data. Surface exactly 4 of the 5 non-back choices (drop "mobile" if the user's stack is backend-only; otherwise keep web-app / api / cli / mobile).
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for canonical option data. Surface exactly 4 of the 5 non-back choices (drop "mobile" if the user's stack is backend-only; otherwise keep web-app / api / cli / mobile).
 
 ```
 question: "What are we building?"
@@ -127,7 +127,7 @@ After the background agent is dispatched, emit ONE short card:
 
 > 🚀 **Scaffolding in background** — agent ID `<id>`, ETA ~2–4 min.
 > 📂 Output will land in `./<slug>/`. Spec saved to `tasks/spec-<YYYYMMDD>-<slug>.md`.
-> 💡 Come back with `/ccc-build status` or just open the folder. I'll ping when done.
+> 💡 Come back with `$ccc-build status` or just open the folder. I'll ping when done.
 
 Then emit the recommended stack section (vary stack by template type):
 
@@ -171,13 +171,13 @@ If ANY check fails: do NOT mark "Scaffold ready". Report the failure with the ex
 
 ## Argument handling
 
-- `/ccc-build` → root picker + full flow
-- `/ccc-build web-app` → skip picker, jump to Q1 of spec interview
-- `/ccc-build api` → same, for API
-- `/ccc-build cli` → same, for CLI
-- `/ccc-build mobile` → route to `ccc-mobile` skill, don't try to scaffold here
-- `/ccc-build spec` → route to `ccc-plan` skill
-- `/ccc-build <anything else>` → treat as a free-form spec; skip templates, jump to Q1 with the arg echoed back
+- `$ccc-build` → root picker + full flow
+- `$ccc-build web-app` → skip picker, jump to Q1 of spec interview
+- `$ccc-build api` → same, for API
+- `$ccc-build cli` → same, for CLI
+- `$ccc-build mobile` → route to `ccc-mobile` skill, don't try to scaffold here
+- `$ccc-build spec` → route to `ccc-plan` skill
+- `$ccc-build <anything else>` → treat as a free-form spec; skip templates, jump to Q1 with the arg echoed back
 
 ## Brand rules
 
@@ -193,3 +193,5 @@ If ANY check fails: do NOT mark "Scaffold ready". Report the failure with the ex
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

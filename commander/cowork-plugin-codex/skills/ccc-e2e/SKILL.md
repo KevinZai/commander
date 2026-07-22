@@ -1,6 +1,6 @@
 ---
 name: ccc-e2e
-description: "end-to-end pre-release assessment. Fans out via /ccc-fleet into 3 isolated worktrees (QA audit + unit tests + Playwright E2E), each invoking /ccc-testing sub-skills,…"
+description: "end-to-end pre-release assessment. Fans out via $ccc-fleet into 3 isolated worktrees (QA audit + unit tests + Playwright E2E), each invoking $ccc-testing sub-skills,…"
 model: sonnet
 effort: high
 allowed-tools:
@@ -18,11 +18,11 @@ allowed-tools:
 argument-hint: "[scope: quick | full | qa-only | e2e-only]"
 ---
 
-# /ccc-e2e — End-to-End Pre-Release Assessment
+# $ccc-e2e — End-to-End Pre-Release Assessment
 
-**CC Commander** · /ccc-e2e · Full-surface confidence before you ship
+**CC Commander** · $ccc-e2e · Full-surface confidence before you ship
 
-Composes /ccc-fleet + /ccc-testing to run a full pre-release assessment in parallel across 3 isolated worktrees. One command. Three workers. One verdict.
+Composes $ccc-fleet + $ccc-testing to run a full pre-release assessment in parallel across 3 isolated worktrees. One command. Three workers. One verdict.
 
 ## Session markers
 
@@ -49,7 +49,7 @@ Only Critical findings get chips. High/Medium/Low go into the verdict artifact a
 ### 1. Brand header
 
 ```
-**CC Commander** · /ccc-e2e · Full-surface pre-release confidence
+**CC Commander** · $ccc-e2e · Full-surface pre-release confidence
 ```
 
 ### 2. Context strip
@@ -79,10 +79,10 @@ options:
     preview: "Skips Playwright. Good for API/library changes."
   - label: "🎭 E2E only (Playwright)"
     description: "1 worker. ~5-10 min. Use when fixing a specific UI regression."
-    preview: "Runs /ccc-testing e2e-testing + visual-regression only."
+    preview: "Runs $ccc-testing e2e-testing + visual-regression only."
   - label: "🏃 Quick QA pass only"
     description: "1 worker. ~3-5 min. Use for sanity check, not release gate."
-    preview: "Runs /ccc-testing qa-only. Finds but does not fix."
+    preview: "Runs $ccc-testing qa-only. Finds but does not fix."
 ```
 
 **Recommendation logic** (prepend to ONE label):
@@ -99,15 +99,15 @@ On scope pick, dispatch the appropriate workers via the `Agent` tool with `run_i
 
 **Worker 1 — QA audit** (`../qa-audit/` worktree):
 - `Agent`, `subagent_type: qa-engineer`, `model: sonnet`, `run_in_background: true`
-- Task: "Run /ccc-testing qa-only in this worktree. Report: bug count by severity (Critical/High/Medium/Low), affected files, reproduction steps for any Critical. Return JSON: `{worker: 'qa', status: 'pass|fail', findings: [{severity, file, description}], duration_s}`"
+- Task: "Run $ccc-testing qa-only in this worktree. Report: bug count by severity (Critical/High/Medium/Low), affected files, reproduction steps for any Critical. Return JSON: `{worker: 'qa', status: 'pass|fail', findings: [{severity, file, description}], duration_s}`"
 
 **Worker 2 — Unit-TDD** (`../unit-tdd/` worktree):
 - `Agent`, `subagent_type: qa-engineer`, `model: sonnet`, `run_in_background: true`
-- Task: "Run /ccc-testing tdd-workflow + test-strategy in this worktree. Execute the full test suite. Report: pass/fail counts, coverage delta vs last run, any failing test names. Return JSON: `{worker: 'unit-tdd', status: 'pass|fail', tests_pass: N, tests_fail: N, coverage_delta: '+N%|-N%', duration_s}`"
+- Task: "Run $ccc-testing tdd-workflow + test-strategy in this worktree. Execute the full test suite. Report: pass/fail counts, coverage delta vs last run, any failing test names. Return JSON: `{worker: 'unit-tdd', status: 'pass|fail', tests_pass: N, tests_fail: N, coverage_delta: '+N%|-N%', duration_s}`"
 
 **Worker 3 — E2E** (`../e2e/` worktree):
 - `Agent`, `subagent_type: qa-engineer`, `model: sonnet`, `run_in_background: true`
-- Task: "Run /ccc-testing e2e-testing + visual-regression in this worktree. Run the Playwright suite and screenshot baseline comparison. Report: pass/fail counts, any visual diffs found. Return JSON: `{worker: 'e2e', status: 'pass|fail', tests_pass: N, tests_fail: N, visual_diffs: N, duration_s}`"
+- Task: "Run $ccc-testing e2e-testing + visual-regression in this worktree. Run the Playwright suite and screenshot baseline comparison. Report: pass/fail counts, any visual diffs found. Return JSON: `{worker: 'e2e', status: 'pass|fail', tests_pass: N, tests_fail: N, visual_diffs: N, duration_s}`"
 
 ### QA + Unit-TDD (2 workers)
 Dispatch Worker 1 + Worker 2 only. Skip Worker 3.
@@ -124,7 +124,7 @@ After dispatching, emit one card:
 
 > 🔄 **<N> worker(s) running** — ETA ~<X> min. I'll synthesize when all complete.
 > 📂 Verdict will land at `tasks/reviews/ccc-e2e-<YYYYMMDD>.md`.
-> 💡 Use `/ccc-e2e status` to check in. Or wait — I'll surface the verdict automatically.
+> 💡 Use `$ccc-e2e status` to check in. Or wait — I'll surface the verdict automatically.
 
 ## Step 4 — Synthesize and write verdict
 
@@ -185,20 +185,20 @@ Ship / Patch required / Triage needed
 
 ## When NOT to use
 
-- Quick bug-fix patches — use /ccc-review instead
-- Single-file changes — use /ccc-testing directly
+- Quick bug-fix patches — use $ccc-review instead
+- Single-file changes — use $ccc-testing directly
 - Docs-only PRs — skip this, docs don't need E2E
-- Hotfixes under time pressure — use /ccc-ship preflight instead
+- Hotfixes under time pressure — use $ccc-ship preflight instead
 
 ## Flow (pseudocode)
 
 ```
 1. AUQ → user picks scope
 
-2. /ccc-fleet fan-out:
-     Worker 1 (qa): /ccc-testing qa-only in ../qa-audit/
-     Worker 2 (unit-tdd): /ccc-testing tdd-workflow in ../unit-tdd/
-     Worker 3 (e2e): /ccc-testing e2e-testing+visual-regression in ../e2e/
+2. $ccc-fleet fan-out:
+     Worker 1 (qa): $ccc-testing qa-only in ../qa-audit/
+     Worker 2 (unit-tdd): $ccc-testing tdd-workflow in ../unit-tdd/
+     Worker 3 (e2e): $ccc-testing e2e-testing+visual-regression in ../e2e/
 
 3. Wait for all (timeout: 30 min per worker)
 
@@ -215,8 +215,8 @@ Ship / Patch required / Triage needed
 
 ## Depends on
 
-- /ccc-fleet (parallel orchestration + worktree isolation)
-- /ccc-testing (testing sub-skill router)
+- $ccc-fleet (parallel orchestration + worktree isolation)
+- $ccc-testing (testing sub-skill router)
 - git worktree (isolation — worktrees must already exist or be created)
 - jq / node (for parsing worker JSON reports)
 
@@ -226,7 +226,7 @@ Ship / Patch required / Triage needed
 - Do not merge results without checking worker status field
 - Do not mark PASS if any Critical finding exists — verdicts must be honest
 - Do not auto-fix findings during assessment — this is audit-only
-- Do not skip the verdict artifact — /ccc-ship reads from `tasks/reviews/`
+- Do not skip the verdict artifact — $ccc-ship reads from `tasks/reviews/`
 - Do not timeout workers before 30 min — E2E suites are slow
 
 ## Brand rules
@@ -244,3 +244,5 @@ Ship / Patch required / Triage needed
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

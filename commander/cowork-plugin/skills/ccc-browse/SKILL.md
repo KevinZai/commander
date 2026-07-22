@@ -75,20 +75,29 @@ Recommendation (⭐):
 ### Commander Cockpit → generate and publish the living page
 
 1. Use the same stable path on every run: `<scratchpad>/commander-cockpit.html`. Do not add timestamps or alternate filenames; republishing the same file preserves the living page URL.
-2. From the CC Commander repo root, run:
+2. Run the generator — **prefer the in-plugin copy first** (works for every install, marketplace or dev checkout), falling back to the repo-root shim only if that path doesn't exist:
 
    ```bash
-   node scripts/build-cockpit.mjs --out <scratchpad>/commander-cockpit.html
+   if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-cockpit.mjs" ]; then
+     node "${CLAUDE_PLUGIN_ROOT}/scripts/build-cockpit.mjs" --out <scratchpad>/commander-cockpit.html
+   else
+     node scripts/build-cockpit.mjs --out <scratchpad>/commander-cockpit.html
+   fi
    ```
 
+   (v7.3.0: the real builder ships inside the plugin at `${CLAUDE_PLUGIN_ROOT}/scripts/build-cockpit.mjs` — see W2+/codex 7. A marketplace-only install still produces a full Cockpit; it just won't have the 467-skill ecosystem catalog to merge in — the generator degrades that gracefully, never crashing.)
 3. Publish that exact file with the Artifact tool using:
    - title: `Commander Cockpit`
    - favicon: `🎛️`
    - description: `Every Commander skill, agent, idea and prompt pattern — clickable, searchable, offline.`
    - capabilities: `{downloads: true}` — enables the ⬇ Save button for edited agent profiles; the page feature-detects this capability and hides the button elsewhere.
-4. Say that the page is fully client-side and nothing leaves the page. Republish the same file path after Commander upgrades to refresh the catalog while keeping the same URL.
+4. **First publish this session** → ask before publishing (skill/agent names and any local telemetry the page bakes in leave the machine for the artifact URL). **Every later run of `/ccc-browse`** → invoking the skill again IS the refresh consent: republish the same file path to the same URL without re-asking. Say that the page is fully client-side and nothing leaves the page beyond that one publish. To refresh later: run `/ccc-browse` again — same URL updates in place; viewers reload.
 
-The generator ships in the CC Commander repo. For marketplace-installed users, resolve the repository containing `scripts/build-cockpit.mjs` before running it. If `scripts/` or the generator is absent, say so and fall back to the existing category browse flow below; do not fabricate a Cockpit artifact.
+If neither generator path exists (very old cached plugin version), say so and fall back to the existing category browse flow below; do not fabricate a Cockpit artifact.
+
+> **v7.3.0:** the Cockpit's 8th tab, **Prompts**, is a searchable browser across 4 sources — Anthropic's Claude Code docs prompt library, the CCC field-tested prompt library (+ patterns + course modules), the repo's `prompts/` templates, and a ReadyIQ teaser (agent names + descriptions only). Each entry offers Copy and "✨ Enhance" (hands it straight to the Enhance tab).
+
+> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
 
 ### Domains (11) → cascade
 

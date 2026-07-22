@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# /ccc-research — Research domain hub
+# $ccc-research — Research domain hub
 
 > Load ONE skill. Get the entire research domain. 8 skills in one.
 

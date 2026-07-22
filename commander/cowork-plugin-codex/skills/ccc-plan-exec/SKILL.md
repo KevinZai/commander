@@ -8,7 +8,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-plan-exec — Plan Cheap, Execute Capable
+# $ccc-plan-exec — Plan Cheap, Execute Capable
 
 Plan-exec splits work into two phases on two models. A **cheap, fast model drafts the plan** — the step list, the loop body, the structure. Then a **capable model (Opus/Fable) executes each step**. You write a *loop*, not a one-shot prompt: the structure is decided once, cheaply, then run N times against the expensive reasoner only where reasoning earns its cost.
 
@@ -32,7 +32,7 @@ A **prompt** is a one-shot: "do this whole thing." A **loop** is a structure plu
 
 If the work decomposes into "the same body, N times," it's a loop. Plan it cheap.
 
-**Terminology:** "loop" here is the plan-exec sense — a repeating per-step body inside one run. The `/ccc-loop` taxonomy names the *session-level* loops (`/loop` interval re-prompts, `/goal` converge-until-gate, `/schedule` cron routines). A plan-exec loop that must repeat until an external gate holds (tests green, criteria met) graduates into a `/goal` loop — use that primitive rather than hand-rolling retries.
+**Terminology:** "loop" here is the plan-exec sense — a repeating per-step body inside one run. The `$ccc-loop` taxonomy names the *session-level* loops (`/loop` interval re-prompts, `/goal` converge-until-gate, `/schedule` cron routines). A plan-exec loop that must repeat until an external gate holds (tests green, criteria met) graduates into a `/goal` loop — use that primitive rather than hand-rolling retries.
 
 ---
 
@@ -132,3 +132,5 @@ Report back:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

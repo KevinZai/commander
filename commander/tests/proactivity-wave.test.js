@@ -423,12 +423,25 @@ const HIGH_CONFIDENCE_STATE = {
   hasClaudeMd: true,
 };
 
+// Per-project state keying (CC-1386 W4 item 1) — projectSlug is a pure
+// function of the cwd string (no HOME dependency), so it's safe to import
+// and use to build the fixture path directly (Node 24 supports require(esm)).
+const { projectSlug } = require('../cowork-plugin/hooks/suggest-ticker.js');
+const DISMISSED_TEST_CWD = '/tmp/ccc-proactivity-wave-dismissed-fixture-cwd';
+const DISMISSED_TEST_SLUG = projectSlug(DISMISSED_TEST_CWD);
+
+function dismissedProjectDir(home) {
+  return path.join(cccDir(home), 'projects', DISMISSED_TEST_SLUG);
+}
+
 function writeState(home, state) {
-  fs.writeFileSync(path.join(cccDir(home), 'project-state.json'), JSON.stringify(state, null, 2));
+  const dir = dismissedProjectDir(home);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'project-state.json'), JSON.stringify(state, null, 2));
 }
 
 function dismissedFile(home) {
-  return path.join(home, '.claude', 'commander', 'suggest-dismissed.json');
+  return path.join(dismissedProjectDir(home), 'suggest-dismissed.json');
 }
 
 function runLightweight(home, env = {}) {
@@ -445,6 +458,7 @@ function runLightweight(home, env = {}) {
     if (fullEnv[k] === undefined) delete fullEnv[k];
   }
   const res = spawnSync(process.execPath, [LIGHTWEIGHT], {
+    input: JSON.stringify({ cwd: DISMISSED_TEST_CWD }),
     env: fullEnv,
     encoding: 'utf8',
     timeout: 8000,
@@ -473,13 +487,13 @@ describe('suggest-lightweight dismissed[] port — end to end', () => {
     assert.equal(r1.parsed.suppressOutput, false, 'first render should show');
     // Bust the mtime-based idempotency hash, then render again → shows: 2
     writeState(home, { ...HIGH_CONFIDENCE_STATE, timestamp: new Date().toISOString() });
-    fs.utimesSync(path.join(cccDir(home), 'project-state.json'), new Date(now + 1000), new Date(now + 1000));
+    fs.utimesSync(path.join(dismissedProjectDir(home), 'project-state.json'), new Date(now + 1000), new Date(now + 1000));
     const r2 = runLightweight(home);
     assert.equal(r2.parsed.suppressOutput, false, 'second render should still show');
     const afterTwo = JSON.parse(fs.readFileSync(dismissedFile(home), 'utf8'));
     assert.equal(afterTwo['/ccc-ship'].shows, 2, 'two renders recorded');
     // Third turn: ignored twice → the suggestion must NOT repeat
-    fs.utimesSync(path.join(cccDir(home), 'project-state.json'), new Date(now + 2000), new Date(now + 2000));
+    fs.utimesSync(path.join(dismissedProjectDir(home), 'project-state.json'), new Date(now + 2000), new Date(now + 2000));
     const r3 = runLightweight(home);
     assert.equal(r3.status, 0);
     assert.equal(r3.parsed.suppressOutput, true, 'ignored-twice suggestion must stop repeating');

@@ -66,6 +66,9 @@ const RUNNING_WINDOW_MS = 6 * 60 * 60 * 1000;
 const PERMISSION_WINDOW_MS = 15 * 60 * 1000;
 const EDGE_TYPES = new Set(['delegation', 'message', 'workflow']);
 const FAILED_RE = /fail|error|abort|cancel|timeout|crash/i;
+const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // v7.3.0 staleness banner threshold
+const DOCTOR_POINTER =
+  'Run /ccc-doctor to check your hooks are wired. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)';
 const DEFAULT_PERSONA = Object.freeze({ emoji: '🤖', role: 'Agent' });
 const PERSONA_MAP = Object.freeze({
   architect: { emoji: '🏗️', role: 'Architect' },
@@ -820,6 +823,22 @@ async function readModel({ baseDir, now } = {}) {
     readTopSkills({ baseDir: root, now: nowMs }).catch(() => []),
   ]);
 
+  // dataThrough (v7.3.0, Item 6): newest source-row timestamp across this
+  // deck's own hook-written logs — the raw signal for "are hooks actually
+  // running", independent of any derived/joined agent-roster shape above.
+  // metrics.jsonl is deliberately excluded: it's a derived rollup of
+  // events.jsonl, not a primary source, and getMetrics() already recomputes
+  // it fresh on every read regardless of this deck's own hook health.
+  let dataThroughMs = null;
+  let hasAnySourceRow = false;
+  for (const rows of [starts, stops, taskEntries, eventEntries, suggestionEntries]) {
+    for (const row of rows) {
+      hasAnySourceRow = true;
+      const ms = row && typeof row === 'object' ? toMs(row.ts) : null;
+      if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
+    }
+  }
+
   return {
     agents,
     tasks,
@@ -831,6 +850,8 @@ async function readModel({ baseDir, now } = {}) {
     suggestions,
     metrics,
     topSkills,
+    dataThroughMs,
+    hasAnySourceRow,
     generatedAt: new Date(nowMs).toISOString(),
   };
 }
@@ -933,6 +954,8 @@ body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
 .mc .permission-banner h2{color:var(--mc-wait);}
 .mc .permission-banner p{margin:8px 0 0;}
 .mc .permission-banner li{border-color:color-mix(in srgb,var(--mc-wait) 30%,transparent);}
+.mc .stale-banner{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
+.mc .stale-banner p{margin:0;color:var(--mc-wait);font-size:.9rem;}
 .mc .scroll{overflow-x:auto;}
 .mc table{border-collapse:collapse;width:100%;font-size:.9rem;}
 .mc th{text-align:left;color:var(--mc-muted);font-weight:600;
@@ -988,6 +1011,18 @@ function renderTerminalChromeOpen() {
 }
 
 const TERMINAL_CHROME_CLOSE = '</div>';
+
+// Staleness warning banner (v7.3.0, Item 6) — only rendered when at least
+// one source row exists but the newest one is older than the threshold.
+// The fully-empty case (no source rows at all) is handled by appending
+// DOCTOR_POINTER to the existing "Nothing to show yet" hero, not this banner.
+function renderStalenessBanner(dataThroughMs, nowMs) {
+  if (!Number.isFinite(dataThroughMs) || !Number.isFinite(nowMs)) return '';
+  if (nowMs - dataThroughMs <= STALE_THRESHOLD_MS) return '';
+  return `<section aria-label="Telemetry freshness" class="stale-banner">
+<p>⚠️ Telemetry last written ${esc(timeAgo(dataThroughMs, nowMs))} — hooks may not be running. Run /ccc-doctor. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)</p>
+</section>`;
+}
 
 function renderSummarySection(summary, agents, tasks) {
   const running = agents.filter((agent) => agent.status === 'running').length;
@@ -1274,7 +1309,11 @@ function buildSnapshotHtml(model, { now } = {}) {
     typeof source.summary === 'string' && source.summary
       ? source.summary
       : 'No agent activity yet.';
+  const dataThroughMs = Number.isFinite(source.dataThroughMs) ? source.dataThroughMs : null;
+  const hasAnySourceRow = source.hasAnySourceRow !== false;
   const nowMs = toMs(now) ?? toMs(source.generatedAt);
+  const dataThroughLine =
+    dataThroughMs !== null ? ` · Data through: ${esc(stamp(dataThroughMs))}` : '';
   const empty =
     agents.length === 0 &&
     tasks.length === 0 &&
@@ -1282,10 +1321,11 @@ function buildSnapshotHtml(model, { now } = {}) {
     events.length === 0 &&
     suggestions.length === 0 &&
     awaitingPermission.length === 0;
+  const doctorNote = empty && !hasAnySourceRow ? ` ${DOCTOR_POINTER}` : '';
 
   const hero = empty
     ? `<section aria-label="Getting started">
-<p class="zero">🎛️ Nothing to show yet — no agents have run on this machine. Spawn one with /ccc-spawn (or fan out with /ccc-fleet) and mission control lights up.</p>
+<p class="zero">🎛️ Nothing to show yet — no agents have run on this machine. Spawn one with /ccc-spawn (or fan out with /ccc-fleet) and mission control lights up.${esc(doctorNote)}</p>
 </section>`
     : '';
 
@@ -1297,8 +1337,9 @@ ${renderTerminalChromeOpen()}
 ${deckStripHtml('mission-control', { interactive: false })}
 <header>
 <h1>🎛️ Commander Mission Control</h1>
-<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}</p>
+<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}${dataThroughLine}</p>
 </header>
+${renderStalenessBanner(dataThroughMs, nowMs)}
 ${renderAwaitingPermissionSection(awaitingPermission, nowMs)}
 ${hero}
 ${renderSummarySection(summary, agents, tasks)}

@@ -1,20 +1,21 @@
 # CC Commander Cheatsheet
-> CC Commander v7.2.0 — by Kevin Zicherman — commands, workflows, and power user tips
-> Last updated: 2026-07-20 · See CHANGELOG.md for version history
+> CC Commander v7.3.0 — by Kevin Zicherman — commands, workflows, and power user tips
+> Last updated: 2026-07-22 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v7.2.0)
+## Desktop Plugin Commands (v7.3.0)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 80 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 81 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard + update).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 > **New — Commander Cockpit, Tools & Decks**
 > - Shipped in v7.0.0: Cockpit rebuilt on the real commanderplugin.com coral brand — rows/tiles skill browser + live filter, 11-strategy prompt enhancer with a GO button, honest per-agent token/cost telemetry.
 > - Added in v7.1.0: Cockpit Tools tab — launch Commander surfaces, install MIT-licensed companion apps, or generate an artifact dashboard on demand.
-> - New in v7.2.0: shared **Commander decks** switcher across every artifact, plus two new decks — `/ccc-usage` (Usage & Cost) and `/ccc-safety` (Safety).
+> - Added in v7.2.0: shared **Commander decks** switcher across every artifact, plus two new decks — `/ccc-usage` (Usage & Cost) and `/ccc-safety` (Safety).
+> - New in v7.3.0: update self-detection + `/ccc-update` (click-first update walkthrough), an 8th Cockpit tab **Prompts** (searchable prompt browser), deck data-freshness warnings, and a fixed Codex mirror (10 supported hook events, was 6).
 
 ### Plugin Installation
 
@@ -29,7 +30,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (80 plugin skills — 13 specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
+### /ccc-* Skills (81 plugin skills — 13 specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -66,6 +67,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | `/ccc-claudemd` | Audit CLAUDE.md against the codebase — stale paths, dead commands, drifted counts (AUQ-approved fixes only) | Free |
 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings vs. all-Opus baseline, cost-by-app | Free |
 | `/ccc-safety` | Safety deck — blocked/auto-fixed action outcomes, redacted tool-failure hotspots | Free |
+| `/ccc-update` | Click-first update walkthrough — detect installed vs. latest, update, restart, verify hooks | Free |
 
 > 🧠 **The Fable Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
@@ -100,13 +102,13 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ### Lifecycle hook events (23)
 
-23 events, 42 handlers — fire automatically every session (no configuration needed). v5.1.0 expanded from 9 → 23 events.
+23 events, 43 handlers — fire automatically every session (no configuration needed). v5.1.0 expanded from 9 → 23 events.
 
 **Core events:**
 
 | Event | When fires | Handlers |
 |-------|-----------|----------|
-| `SessionStart` | New session opens | 4 (init state, claude-md nudge, post-compact recovery, suggest ticker) |
+| `SessionStart` | New session opens | 5 (init state, claude-md nudge, post-compact recovery, suggest ticker, update-nudge) |
 | `SessionEnd` | Session cleanly closes | 2 (session save, summary) — moved from `Stop` in v5.1.0 |
 | `UserPromptSubmit` | User hits Enter | 4 (suggest ticker, intent classifier, context warning, submit logger) |
 | `PreToolUse` | Before any tool call | 3 (cost tracker, cost ceiling, secret leak guard) |
@@ -121,7 +123,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 | `TaskCreated` | Background task starts | 1 (workflow/fleet tracking) |
 | `TaskCompleted` | Background task finishes | 1 (workflow/fleet tracking) |
 | **9 more** | `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup` | 9 (one each) |
-| **TOTAL** | **23 events** | **42 handlers** |
+| **TOTAL** | **23 events** | **43 handlers** |
 
 ### Dynamic Workflows + Ultracode (v5.1.0)
 
@@ -701,7 +703,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 7.2.0
+version: 7.3.0
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -1076,7 +1078,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v7.2.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v7.3.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1092,6 +1094,7 @@ CC Commander v7.2.0 — the Desktop plugin is the primary surface. Invoke the in
 | `/ccc-deploy-check` | Pre-deploy readiness gate (Pro) |
 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app |
 | `/ccc-safety` | Safety deck — blocked/auto-fixed actions, tool-failure hotspots |
+| `/ccc-update` | Click-first update walkthrough — detect, update, restart, verify |
 
 > **CLI-only users:** Some `/cc *` commands (grill, confidence, mode, prompts) remain in the CLI build. See `docs/cli.md` for the CLI-only command set.
 
@@ -1162,7 +1165,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v7.2.0 Quick Reference (CLI)
+## CC Commander v7.3.0 Quick Reference (CLI)
 
 ```bash
 # Launch

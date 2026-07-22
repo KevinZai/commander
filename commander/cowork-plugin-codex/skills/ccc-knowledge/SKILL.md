@@ -11,7 +11,7 @@ allowed-tools:
 argument-hint: "[search <topic> | recent | stats | category <name>]"
 ---
 
-# /ccc-knowledge — Knowledge compounding
+# $ccc-knowledge — Knowledge compounding
 
 > Placeholders like ~~knowledge base refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -140,3 +140,5 @@ If **~~project tracker** is connected:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

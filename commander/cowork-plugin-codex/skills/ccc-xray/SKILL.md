@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[quick | full | security | deps | perf]"
 ---
 
-# /ccc-xray — Project Health Scorecard
+# $ccc-xray — Project Health Scorecard
 
 Scan this repo and return a scorecard. Click-first UX — the user never types a number.
 
@@ -72,7 +72,7 @@ If the `Workflow` tool is available, prefer invoking the bundled audit workflow 
 
 ```js
 Workflow({
-  scriptPath: "${CODEX_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
   args: { target: ".", dimensions: ["quality","security","perf","deps","tests","docs","ci"] }
 })
 ```
@@ -110,7 +110,7 @@ Render this shape:
 
 | Area | Score | Top finding | Fix |
 |------|-------|-------------|-----|
-| 🧹 Code quality | 🟢 88 | 2 files >800 lines | Spawn `/ccc-makeover` |
+| 🧹 Code quality | 🟢 88 | 2 files >800 lines | Spawn `$ccc-makeover` |
 | 📚 Docs | 🟡 72 | CHANGELOG stale (14d) | Spawn docs-update task |
 | 🧪 Tests | 🟠 54 | Coverage 41% | Run `/tdd` on missing modules |
 | 📦 Deps | 🟡 70 | 4 minor updates pending | Run `npm outdated` |
@@ -143,10 +143,10 @@ Output: `**🎯 My call: fix <area> first — <one-line rationale>.**`
 
 ## Argument handling
 
-- `/ccc-xray quick` → skip picker, run Quick scan directly
-- `/ccc-xray full` → skip picker, run Full scan directly
-- `/ccc-xray security` / `deps` / `perf` → skip picker, run focused scan
-- `/ccc-xray` bare → show the picker
+- `$ccc-xray quick` → skip picker, run Quick scan directly
+- `$ccc-xray full` → skip picker, run Full scan directly
+- `$ccc-xray security` / `deps` / `perf` → skip picker, run focused scan
+- `$ccc-xray` bare → show the picker
 
 ## Anti-patterns — DO NOT
 
@@ -166,7 +166,7 @@ Output: `**🎯 My call: fix <area> first — <one-line rationale>.**`
 
 ## Cost analysis (NEW in beta.11+)
 
-When the user asks for `/ccc-xray cost` or `/ccc-xray full` and a `/cost` transcript is available, parse it via the bundled utility at `lib/cost-parser.js` (ESM, side-effect-free):
+When the user asks for `$ccc-xray cost` or `$ccc-xray full` and a `/cost` transcript is available, parse it via the bundled utility at `lib/cost-parser.js` (ESM, side-effect-free):
 
 ```js
 import { parseCostOutput } from './lib/cost-parser.js';
@@ -195,3 +195,7 @@ The parser is liberal: malformed lines land in `skipped[]` (not thrown), empty i
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)
+
+> (The Workflow(...) tool is not available on Codex — run the steps sequentially.)

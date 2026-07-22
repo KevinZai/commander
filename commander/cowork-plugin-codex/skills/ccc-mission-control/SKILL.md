@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[open | snapshot | status | suggestions | stop]"
 ---
 
-# /ccc-mission-control — Mission Control
+# $ccc-mission-control — Mission Control
 
 One board that answers "**who's working on what?**" without reading a single log line. Every CC Commander session already journals its agent runs, tasks, and delegations to `~/.claude/commander/` (`subagent-runs.jsonl`, `agent-runs.jsonl`, `tasks.jsonl`, `mission-control/events.jsonl`). Mission control turns those logs into a picture a non-coder can read: agent roster, task board, delegation flow, and a plain-English summary.
 
@@ -17,7 +17,7 @@ One board that answers "**who's working on what?**" without reading a single log
 
 ## How it routes
 
-On `/ccc-mission-control` with no argument, open a click-first picker:
+On `$ccc-mission-control` with no argument, open a click-first picker:
 
 ```
 AskUserQuestion:
@@ -30,9 +30,9 @@ AskUserQuestion:
     - ⏹️ Stop dashboard — shut the local server down
 ```
 
-Explicit sub-commands skip the picker: `/ccc-mission-control open`, `/ccc-mission-control snapshot`, `/ccc-mission-control status`, `/ccc-mission-control suggestions`, `/ccc-mission-control stop`.
+Explicit sub-commands skip the picker: `$ccc-mission-control open`, `$ccc-mission-control snapshot`, `$ccc-mission-control status`, `$ccc-mission-control suggestions`, `$ccc-mission-control stop`.
 
-**Zero-state:** if the logs are empty or missing, say so plainly and point forward — "No agents yet — spawn one with `/ccc-spawn` (or fan out with `/ccc-fleet`) and this board lights up." Never render an error for an empty board.
+**Zero-state:** if the logs are empty or missing, say so plainly and point forward — "No agents yet — spawn one with `$ccc-spawn` (or fan out with `$ccc-fleet`) and this board lights up." Never render an error for an empty board.
 
 ### 🖥️ Open live dashboard ("sits on the left side" mode)
 
@@ -42,7 +42,7 @@ Explicit sub-commands skip the picker: `/ccc-mission-control open`, `/ccc-missio
    ```
 2. **If not `200`, start it** — run `node dashboard/server.js` as a **background task** from the CC Commander repo root. Finding that root:
    - Working inside the CCC repo → use the current checkout.
-   - Installed via marketplace → the plugin lives in the marketplace cache; the repo checkout is at `${CODEX_PLUGIN_ROOT}/../..` — verify `dashboard/server.js` exists there before launching.
+   - Installed via marketplace → the plugin lives in the marketplace cache; the repo checkout is at `${CLAUDE_PLUGIN_ROOT}/../..` — verify `dashboard/server.js` exists there before launching.
    - No `dashboard/server.js` anywhere → **fall back to snapshot mode** (next section) instead of failing.
 3. **Open the Browser pane** at `http://127.0.0.1:4690/mission-control.html` (`preview_start {url}`). The panel docks beside the chat and keeps itself fresh while you keep working.
 
@@ -55,7 +55,7 @@ Build the model and render the self-contained HTML file with the plugin's own li
 ```bash
 mkdir -p scratchpad
 node --input-type=module -e "
-import { readModel, buildSnapshotHtml } from '${CODEX_PLUGIN_ROOT}/lib/mission-control-snapshot.js';
+import { readModel, buildSnapshotHtml } from '${CLAUDE_PLUGIN_ROOT}/lib/mission-control-snapshot.js';
 import { writeFile } from 'node:fs/promises';
 const html = buildSnapshotHtml(await readModel({}));
 await writeFile(process.argv[1], html);
@@ -64,9 +64,11 @@ await writeFile(process.argv[1], html);
 
 Then publish that same file with the **Artifact** tool using favicon `🎛️` and stable title **"Commander Mission Control"**.
 
-**Confirm before publishing:** before the first Artifact publish, use `AskUserQuestion` to tell the user that agent names, task subjects, and timings will leave the machine for their private claude.ai artifact URL. Publish only after an explicit confirmation. Never publish automatically.
+**Confirm before the FIRST publish only:** before the first Artifact publish this session, use `AskUserQuestion` to tell the user that agent names, task subjects, and timings will leave the machine for their private claude.ai artifact URL. Publish only after an explicit confirmation. Never publish automatically.
 
-**🔄 Refresh snapshot:** rebuild the model → rewrite `scratchpad/mission-control-live.html` → republish that same file. The URL stays the same. Ask for explicit confirmation before every republish. If new session IDs appeared since the last published snapshot, call them out in the confirmation so the user knows new session data will be uploaded.
+**🔄 Refresh snapshot:** rebuild the model → rewrite `scratchpad/mission-control-live.html` → republish that same file. The URL stays the same. **Invoking `$ccc-mission-control` again IS the refresh consent** — republish without re-asking; the first-publish confirmation above already covered what leaves the machine. If new session IDs appeared since the last published snapshot, mention it in passing (not as a fresh ask). To refresh later: run `$ccc-mission-control` again — same URL updates in place; viewers reload.
+
+> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
 
 **📱 Check from your phone:** open the published URL there and revisit it after each refresh.
 
@@ -106,7 +108,7 @@ Agents can drop a proactive "you might want to do X" idea into `~/.claude/comman
    Once the ticket exists, append the status line with a `node -e` one-liner against the shared writer lib (never write the JSONL by hand):
    ```bash
    node -e "
-   import('${CODEX_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
+   import('${CLAUDE_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
      appendStatus({ id: '<suggestion-id>', status: 'promoted', promoted_ticket: { id: '<ticket-id>', title: '<ticket-title>', url: '<ticket-url>' }, by: 'mission-control' }, {})
    );
    "
@@ -114,7 +116,7 @@ Agents can drop a proactive "you might want to do X" idea into `~/.claude/comman
 5. **On dismiss:** append the same way with `status: 'dismissed'`:
    ```bash
    node -e "
-   import('${CODEX_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
+   import('${CLAUDE_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
      appendStatus({ id: '<suggestion-id>', status: 'dismissed', by: 'mission-control' }, {})
    );
    "
@@ -138,14 +140,14 @@ Confirm to the user what was stopped (or that nothing was running).
 ## When you'd reach for it
 
 - "What are my agents doing right now?" — before interrupting anything.
-- After `/ccc-fleet` or `/ccc-spawn` kicked off parallel work and you want one board instead of scrollback.
+- After `$ccc-fleet` or `$ccc-spawn` kicked off parallel work and you want one board instead of scrollback.
 - A non-coder (or future you) needs a status they can actually read — snapshot it.
 - End of day: publish a snapshot as the durable "what happened" record.
 
 ## When NOT to use
 
-- Mid-`/ccc-fleet` run when you want the fleet-specific tree — that's `/ccc-fleet-viz`.
-- You want *advice* on what to do next — that's `/ccc-suggest`; mission control only reports.
+- Mid-`$ccc-fleet` run when you want the fleet-specific tree — that's `$ccc-fleet-viz`.
+- You want *advice* on what to do next — that's `$ccc-suggest`; mission control only reports.
 - Nothing has ever run on this machine — there's nothing to show yet (spawn first).
 
 ## Limitations
@@ -157,11 +159,13 @@ Confirm to the user what was stopped (or that nothing was running).
 
 ## Related
 
-- `/ccc-spawn` — put new work on the board (isolated sessions)
-- `/ccc-fleet` — parallel agent fan-out (mission control watches it)
-- `/ccc-relay` — chained spec → build → review sessions
-- `/ccc-suggest` — the "what next" advisor that reads the same signals
+- `$ccc-spawn` — put new work on the board (isolated sessions)
+- `$ccc-fleet` — parallel agent fan-out (mission control watches it)
+- `$ccc-relay` — chained spec → build → review sessions
+- `$ccc-suggest` — the "what next" advisor that reads the same signals
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

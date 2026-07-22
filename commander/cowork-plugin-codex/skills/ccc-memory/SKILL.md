@@ -5,7 +5,7 @@ model: sonnet
 effort: medium
 ---
 
-# /ccc-memory — Two-Tier Persistent Memory
+# $ccc-memory — Two-Tier Persistent Memory
 
 Claude Code sessions forget everything at the end. Memory makes the important bits stick.
 
@@ -18,8 +18,8 @@ Claude Code sessions forget everything at the end. Memory makes the important bi
 
 ## Not for
 
-- Session-scoped state that ends with this session — use /ccc-save-session for that
-- Searchable cross-project knowledge — use /ccc-recall for that
+- Session-scoped state that ends with this session — use $ccc-save-session for that
+- Searchable cross-project knowledge — use $ccc-recall for that
 - Per-skill notes — put those inline in the skill's body
 
 ## How it works
@@ -55,17 +55,17 @@ Load on demand by reading the specific file — Claude sees only what's needed.
 
 ## Example
 
-After Kevin says "no more /ccc-style: prefix, use /ccc-*" — you write:
+After Kevin says "no more $ccc-style: prefix, use $ccc-*" — you write:
 
 ```
 memory/2026-04-23-ccc-prefix-dash.md
 
-## Correction: /ccc- not /ccc:
+## Correction: $ccc- not /ccc:
 
 Date: 2026-04-23
 Source: Kevin (chat)
 
-All skill names use dash prefix /ccc-* not colon /ccc:*. Colon form is stale
+All skill names use dash prefix $ccc-* not colon /ccc:*. Colon form is stale
 from v3. Check: grep -rn "/ccc:" should return zero results outside CHANGELOG.
 
 Test that guards this: commander/tests/dispatch-security.test.js — runKc('ccc:') rejected.

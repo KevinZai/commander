@@ -1,22 +1,28 @@
 # Codex Adapter — CC Commander
 
-**Status:** runtime-hardened translator (v0.2) · 2026-04-26
-**Target:** OpenAI Codex CLI >= 0.125.0 + Codex Desktop (macOS / Windows)
+**Status:** runtime-hardened translator (v0.3) · 2026-07-22
+**Target:** OpenAI Codex CLI + Codex Desktop (macOS / Windows)
 
 ---
 
 ## TL;DR
 
-Codex adopted the **same Agent Skills spec** Anthropic shipped in Dec 2025. CC Commander's plugin is **~85% portable to Codex with mechanical translation**. The skills layer ports 1:1, MCP servers port 1:1, agents are translated from Claude markdown frontmatter to Codex TOML, and hooks are filtered through runtime capability detection before the generated plugin writes handlers.
+Codex adopted the **same Agent Skills spec** Anthropic shipped in Dec 2025. CC Commander's plugin is **~90% portable to Codex with mechanical translation**. The skills layer ports 1:1 (plus four small, conservative prose transforms — see below), MCP servers port 1:1, agents are translated from Claude markdown frontmatter to Codex TOML, and hooks are filtered through the verified 10-event Codex hook surface before the generated plugin writes handlers.
 
 What does NOT port for free:
 
 - `agents/*.md` (YAML frontmatter, Claude format) → must be translated to `agents/*.toml` (Codex format)
 - `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json` (similar shape, different required fields)
 - Marketplace metadata (`commander-hub` → Codex marketplace JSON catalog)
-- Some niche hook events (Codex has `PermissionRequest`, lacks `Notification`, `PreCompact`, and `SubagentStop`)
+- 13 Claude-only hook events with no Codex equivalent (`SessionEnd`, `Notification`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, and the extended-only events — see the capability matrix below)
+- `AskUserQuestion` (Claude-only chip picker — skills get a one-line fallback note instead)
+- The `Workflow(...)` tool (not packaged for Codex — skills get a one-line fallback note instead)
 
 This adapter contains the translator, runtime hook detector, local telemetry hook, and the Codex-flavored manifest template. The repo build pipeline imports these ESM modules and emits `commander/cowork-plugin-codex/` from the canonical Claude plugin tree.
+
+### Correction (2026-07-22)
+
+A prior version of this adapter (through v0.2) rewrote every `${CLAUDE_PLUGIN_ROOT}` reference in hooks and skill bodies to `${CODEX_PLUGIN_ROOT}` — but **`CODEX_PLUGIN_ROOT` is not a real Codex variable**. That rewrite broke every generated hook command and every skill instruction that referenced the plugin root, on every Codex install. Verified against primary docs (learn.chatgpt.com/docs/hooks): Codex exposes its native `PLUGIN_ROOT`/`PLUGIN_DATA` env vars to plugin hook commands, plus `CLAUDE_PLUGIN_ROOT`/`CLAUDE_PLUGIN_DATA` as documented compatibility aliases "for compatibility with existing plugin hooks." As of v0.3, `${CLAUDE_PLUGIN_ROOT}` is left verbatim everywhere — hooks, skill bodies, the telemetry-init snippet — and it resolves correctly under Codex. The same pass also corrected the hook-event capability list (see below) and added `async` stripping.
 
 ## Build
 
@@ -42,7 +48,7 @@ node --test commander/tests/codex-build.test.js
 
 ---
 
-## How Codex's plugin model works (as of 2026-04)
+## How Codex's plugin model works
 
 **Plugin layout (mirrors Claude almost exactly):**
 
@@ -65,22 +71,27 @@ my-plugin/
 
 ## Capability matrix
 
-| Capability | Claude Code | Codex CLI | Codex Desktop | Adapter status |
-|---|---|---|---|---|
-| Plugin format | `.claude-plugin/plugin.json` | `.codex-plugin/plugin.json` | same | translate.js ✅ |
-| Skills (SKILL.md) | ✅ | ✅ (identical spec since Dec 2025) | ✅ | passthrough ✅ |
-| Slash commands | first-class | deprecated → use skills | same | skip — already skills ✅ |
-| Hooks | 9 events × 25 handlers | 8 events (PreToolUse/PostToolUse/UserPromptSubmit/SessionStart/SessionEnd/Stop/StopFailure/PermissionRequest) | same | hooks-detector.js + translate.js ✅ |
-| Sub-agent personas | `agents/*.md` (YAML) | `agents/*.toml` (TOML) | same | translate.js (md→toml) ⚠️ |
-| MCP servers | `.mcp.json` | `[mcp_servers.<name>]` in config.toml or `.mcp.json` | same | translate.js (json→toml) ✅ |
-| Marketplace install | `commander-hub` repo | `marketplace.json` catalog | same | manifest.json + builder ⚠️ |
-| AskUserQuestion | ✅ chip picker | ✅ tabbed picker (`ask_user_question`) | ✅ | passthrough ✅ |
-| Memory primitive | `CLAUDE.md` | `AGENTS.md` | same | filename swap ✅ |
-| Notification hook | ✅ | ❌ | ❌ | drop on translate ❌ |
-| PreCompact hook | ✅ | ❌ | ❌ | drop on translate ❌ |
-| SubagentStop hook | ✅ | ⚠️ partial (subagent results returned to parent) | ⚠️ | drop on translate ❌ |
+Verified 2026-07-22 against primary Codex docs (learn.chatgpt.com/docs/hooks).
 
-**Bottom line:** ~85% of the plugin maps mechanically. The 15% loss is concentrated in lifecycle nuance (`Notification`, `PreCompact`, `SubagentStop`).
+| Capability | Claude Code | Codex | Adapter status |
+|---|---|---|---|
+| Plugin format | `.claude-plugin/plugin.json` | `.codex-plugin/plugin.json` | translate.js ✅ |
+| Skills (SKILL.md) | ✅ | ✅ (identical spec since Dec 2025) | passthrough + 4 conservative prose transforms ✅ |
+| Slash commands | first-class | deprecated → use skills | skip — already skills ✅ |
+| Hooks — supported (10) | `SessionStart`, `SubagentStart`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`, `UserPromptSubmit`, `SubagentStop`, `Stop` | same | hooks-detector.js + translate.js ✅ |
+| Hooks — Claude-only, dropped | `SessionEnd`, `Notification`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup` | ❌ no equivalent | drop on translate ❌ |
+| Hook `"async": true` | ✅ supported | parsed but **skipped** — "asynchronous command hooks aren't supported yet" | stripped on translate; handler still runs, synchronously, with a clamped timeout ⚠️ |
+| Env vars in hook commands | `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA` | native `PLUGIN_ROOT` / `PLUGIN_DATA`, plus `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA` as documented compatibility aliases | kept verbatim — no rewrite ✅ |
+| Sub-agent personas | `agents/*.md` (YAML) | `agents/*.toml` (TOML) | translate.js (md→toml) ⚠️ |
+| MCP servers | `.mcp.json` | `[mcp_servers.<name>]` in config.toml or `.mcp.json` | translate.js (json→toml) ✅ |
+| Marketplace install | `commander-hub` repo | `marketplace.json` catalog | manifest.json + builder ⚠️ |
+| AskUserQuestion | ✅ chip picker | ❌ no equivalent | one-line fallback note appended per skill file ❌ |
+| Workflow(...) tool | ✅ | ❌ not packaged | one-line fallback note appended per skill file ❌ |
+| `/ccc-<name>` invocation | `/ccc-<name>` slash form | `$ccc-<name>` skill form | rewritten inside backticks only (URLs/paths untouched) ✅ |
+| Memory primitive | `CLAUDE.md` | `AGENTS.md` | filename swap ✅ |
+| Hook trust gate | N/A | Installing/enabling a plugin does **not** auto-trust its hooks — Codex skips plugin-bundled hooks until the user reviews and trusts the current hook definition | user action required post-install; documented, not automatable ⚠️ |
+
+**Bottom line:** the hook-event surface is now a straight 10-for-10 mechanical map (up from the prior, unverified 6-8 event subset). The remaining real gaps are two Claude-only capabilities referenced from skill prose (`AskUserQuestion`, `Workflow(...)`) and the Codex-side hook trust gate, which no adapter can bypass.
 
 ---
 
@@ -95,11 +106,9 @@ my-plugin/
 | `hook-event-map.json` | Event name + payload mapping table |
 | `hooks-detector.js` | Reads `~/.codex/config.toml`, detects Codex CLI hook support, and validates hook maps |
 | `telemetry.js` | Local JSONL telemetry emitter for Commander-on-Codex usage events |
+| `ask-bridge.js` | **Experimental, not shipped in the build.** Speculative bridge to Codex Desktop's `tool/requestUserInput` App Server method — every wire-format assumption is unverified against a live Desktop instance and documented inline. Falls back to plain readline. Not wired into `build-codex.js`; do not treat as production-ready. |
 
-**Still pending:**
-- CI job that publishes `commander-codex` marketplace entry
-- Smoke test against `~/.codex/plugins/`
-- Codex marketplace submission (per OpenAI's third-party plugin process — currently community marketplaces only via GitHub URL)
+See "Status" below for what's shipping vs. still pending.
 
 ---
 
@@ -110,16 +119,18 @@ my-plugin/
 ```json
 {
   "codexVersion": "0.125.0",
-  "supportedEvents": ["SessionStart", "SessionEnd", "UserPromptSubmit", "Stop", "StopFailure", "PreToolUse", "PostToolUse", "PermissionRequest"],
-  "droppedFromClaude": ["Notification", "PreCompact", "SubagentStop"]
+  "supportedEvents": ["SessionStart", "SubagentStart", "PreToolUse", "PermissionRequest", "PostToolUse", "PreCompact", "PostCompact", "UserPromptSubmit", "SubagentStop", "Stop"],
+  "droppedFromClaude": ["SessionEnd", "Notification", "PostToolUseFailure", "PostToolBatch", "StopFailure", "Elicitation", "ElicitationResult", "TaskCreated", "TaskCompleted", "ConfigChange", "UserPromptExpansion", "InstructionsLoaded", "Setup"]
 }
 ```
 
 The translator uses this detector before writing hooks. If `hook-event-map.json` points at a Codex event that the current runtime does not support, translation throws instead of producing a plugin that silently drops handlers at runtime.
 
-`PreCompact` is intentionally dropped. Codex has `SessionEnd`, but it does not carry the same compaction semantics.
+No version threshold is documented for hook-event support, so `supportedEventsForVersion()` returns the verified set unconditionally regardless of the detected Codex CLI version.
 
-Hook commands are deep-cloned during translation and `${CLAUDE_PLUGIN_ROOT}` is rewritten to `${CODEX_PLUGIN_ROOT}`.
+Hook commands are deep-cloned during translation. `${CLAUDE_PLUGIN_ROOT}` is kept verbatim (see the "Correction" note above). The one real transform is stripping `"async": true` — Codex parses it but silently skips the handler ("asynchronous command hooks aren't supported yet"), so translation removes the flag and clamps the timeout so the handler still runs, now synchronously.
+
+**Hook trust gate:** installing or enabling this plugin does not automatically trust its hooks. Codex skips plugin-bundled hooks until the user reviews and trusts the current hook definition — there is no adapter-side workaround; this is a one-time manual step on the Codex side after install.
 
 ---
 
@@ -152,11 +163,11 @@ No network calls are made. Tests can override the output path with `CODEX_COMMAN
 ```toml
 [[hooks.SessionStart]]
 name = "commander-telemetry"
-command = "node ${CODEX_PLUGIN_ROOT}/adapters/codex/telemetry.js session SessionStart"
+command = "node ${CLAUDE_PLUGIN_ROOT}/adapters/codex/telemetry.js session SessionStart"
 timeout_ms = 1000
 ```
 
-The build pipeline should write that snippet beside the generated Codex plugin or include it in Codex config assembly.
+The build pipeline should write that snippet beside the generated Codex plugin or include it in Codex config assembly. **Caveat:** this snippet is a manual addition to a user's own `~/.codex/config.toml`, not part of the generated plugin tree (`adapters/` is not copied into `commander/cowork-plugin-codex/`) — Codex's plugin-root env vars are documented for commands Codex itself spawns as *plugin* hooks, so a user-level `~/.codex/config.toml` hook may need an absolute path instead. Not resolved here; flagged for follow-up.
 
 ---
 
@@ -174,15 +185,14 @@ node commander/adapters/codex/translate.js --telemetry-init
 
 ---
 
-## Recommendation
+## Status
 
-**GO** — but staged:
+**Shipping today:** `commander/cowork-plugin-codex/` is generated on every `npm run build:codex` and gated in CI by `scripts/check-compat.js` (17 checks, incl. Codex manifest shape, `.agents/plugins/marketplace.json` resolution, and the `AGENTS.md` byte cap) plus `commander/tests/codex-build.test.js`. It is not yet submitted to a standalone Codex marketplace listing — installation today is via the local `.agents/plugins/marketplace.json` entry pointing at the generated tree.
 
-1. **v4.1 (now):** ship this scaffold. Document Codex compat in README. No actual Codex marketplace presence yet.
-2. **v4.2:** publish `commander-codex` as a parallel marketplace artifact from the `npm run build:codex` output.
-3. **v4.3:** unify under one CI build that publishes BOTH Claude + Codex artifacts from a single source tree (`commander/cowork-plugin/`).
-
-Effort estimate for v4.2: **~3 days** (1 day translator polish + 1 day testing in actual Codex CLI + 1 day docs + marketplace setup).
+**Still pending:**
+1. Publish `commander-codex` as its own listed marketplace artifact (today it's a local marketplace-json entry, not a public Codex marketplace submission).
+2. Live smoke test in Codex Desktop against a real installed plugin, including the hook trust-gate flow.
+3. Resolve the `telemetry.js` config.toml snippet's plugin-root-vs-absolute-path question (see "Local telemetry" above).
 
 ---
 

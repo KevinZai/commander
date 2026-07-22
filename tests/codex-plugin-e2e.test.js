@@ -41,6 +41,10 @@ const REQUIRED_AGENT_FIELDS = [
   'model_reasoning_effort',
   'developer_instructions',
 ];
+// Verified 2026-07-22 against primary Codex docs (learn.chatgpt.com/docs/hooks).
+// Corrects the prior (unverified) list: SessionEnd was wrongly assumed
+// supported; PreCompact/PostCompact/SubagentStart/SubagentStop were wrongly
+// assumed unsupported.
 const BASE_CODEX_HOOK_EVENTS = [
   'SessionStart',
   'UserPromptSubmit',
@@ -50,10 +54,13 @@ const BASE_CODEX_HOOK_EVENTS = [
 ];
 const VALID_CODEX_HOOK_EVENTS = new Set([
   ...BASE_CODEX_HOOK_EVENTS,
-  'SessionEnd',
   'PermissionRequest',
+  'SubagentStart',
+  'SubagentStop',
+  'PreCompact',
+  'PostCompact',
 ]);
-const DROPPED_CLAUDE_HOOK_EVENTS = ['Notification', 'PreCompact', 'SubagentStop'];
+const DROPPED_CLAUDE_HOOK_EVENTS = ['Notification', 'SessionEnd', 'PostToolUseFailure'];
 const CANONICAL_CCC_SKILLS = [
   'ccc',
   'ccc-agent-writing',
@@ -257,12 +264,14 @@ test('Hook event mapping correctness', () => {
     assert.ok(!eventNames.includes(eventName), `Claude-only hook event should be dropped: ${eventName}`);
   }
 
-  // PreCompact is intentionally DROPPED on translate (W18 decision):
-  // Codex has SessionEnd but it does not carry the same compaction semantics,
-  // so silently remapping would mislead handlers about run-end vs compaction.
+  // PreCompact/PostCompact ARE supported (verified 2026-07-22 against
+  // learn.chatgpt.com/docs/hooks). This corrects a prior "W18 decision" that
+  // assumed Codex had no compaction-aware lifecycle event and dropped both
+  // events on translate -- that assumption was never verified against
+  // primary docs and was wrong.
   assert.ok(
-    !eventNames.includes('PreCompact'),
-    'PreCompact must be dropped (Codex has no compaction-aware lifecycle event)'
+    eventNames.includes('PreCompact'),
+    'PreCompact should be mapped through (Codex supports it)'
   );
 });
 

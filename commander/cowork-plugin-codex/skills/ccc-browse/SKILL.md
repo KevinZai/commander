@@ -11,7 +11,7 @@ allowed-tools:
 argument-hint: "[domains | workflows | agents | all]"
 ---
 
-# /ccc-browse — Skill + Agent Catalog
+# $ccc-browse — Skill + Agent Catalog
 
 A click-first browser for the entire CC Commander surface: 11 CCC domains, 9 workflow skills, 22 specialist agents, plus meta skills. User never scrolls a wall of markdown — we cascade through `AskUserQuestion` 4-at-a-time.
 
@@ -25,14 +25,14 @@ Output exactly these three sections in order:
 **CC Commander** · v{VERSION} · Browser · 60 skills · 22 agents · 11 domains
 ```
 
-Read `VERSION` from `${CODEX_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
+Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`.
 
 ### 2. Context strip (one paragraph, markdown)
 
 Count categories live with a single Bash call:
-- `ls ${CODEX_PLUGIN_ROOT}/skills/ | wc -l` → total skills
-- `ls ${CODEX_PLUGIN_ROOT}/agents/*.md | wc -l` → agents
-- `ls ${CODEX_PLUGIN_ROOT}/skills/ccc-* -d 2>/dev/null | wc -l` → ccc-* skills
+- `ls ${CLAUDE_PLUGIN_ROOT}/skills/ | wc -l` → total skills
+- `ls ${CLAUDE_PLUGIN_ROOT}/agents/*.md | wc -l` → agents
+- `ls ${CLAUDE_PLUGIN_ROOT}/skills/ccc-* -d 2>/dev/null | wc -l` → ccc-* skills
 
 Render:
 
@@ -66,8 +66,8 @@ options:
 
 Recommendation (⭐):
 - User asks for the full, visual, searchable, or offline catalog → ⭐ "🎛️ Open the Commander Cockpit — the whole catalog, clickable"
-- First-time browser (no prior `/ccc-browse` use in session) → ⭐ "Workflows (9)" — most actionable
-- User came from `/ccc-start` → ⭐ "Domains (11)"
+- First-time browser (no prior `$ccc-browse` use in session) → ⭐ "Workflows (9)" — most actionable
+- User came from `$ccc-start` → ⭐ "Domains (11)"
 - Argument `all` passed → skip picker, go straight to grid
 
 ## Handle the selection
@@ -75,24 +75,33 @@ Recommendation (⭐):
 ### Commander Cockpit → generate and publish the living page
 
 1. Use the same stable path on every run: `<scratchpad>/commander-cockpit.html`. Do not add timestamps or alternate filenames; republishing the same file preserves the living page URL.
-2. From the CC Commander repo root, run:
+2. Run the generator — **prefer the in-plugin copy first** (works for every install, marketplace or dev checkout), falling back to the repo-root shim only if that path doesn't exist:
 
    ```bash
-   node scripts/build-cockpit.mjs --out <scratchpad>/commander-cockpit.html
+   if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-cockpit.mjs" ]; then
+     node "${CLAUDE_PLUGIN_ROOT}/scripts/build-cockpit.mjs" --out <scratchpad>/commander-cockpit.html
+   else
+     node scripts/build-cockpit.mjs --out <scratchpad>/commander-cockpit.html
+   fi
    ```
 
+   (v7.3.0: the real builder ships inside the plugin at `${CLAUDE_PLUGIN_ROOT}/scripts/build-cockpit.mjs` — see W2+/codex 7. A marketplace-only install still produces a full Cockpit; it just won't have the 467-skill ecosystem catalog to merge in — the generator degrades that gracefully, never crashing.)
 3. Publish that exact file with the Artifact tool using:
    - title: `Commander Cockpit`
    - favicon: `🎛️`
    - description: `Every Commander skill, agent, idea and prompt pattern — clickable, searchable, offline.`
    - capabilities: `{downloads: true}` — enables the ⬇ Save button for edited agent profiles; the page feature-detects this capability and hides the button elsewhere.
-4. Say that the page is fully client-side and nothing leaves the page. Republish the same file path after Commander upgrades to refresh the catalog while keeping the same URL.
+4. **First publish this session** → ask before publishing (skill/agent names and any local telemetry the page bakes in leave the machine for the artifact URL). **Every later run of `$ccc-browse`** → invoking the skill again IS the refresh consent: republish the same file path to the same URL without re-asking. Say that the page is fully client-side and nothing leaves the page beyond that one publish. To refresh later: run `$ccc-browse` again — same URL updates in place; viewers reload.
 
-The generator ships in the CC Commander repo. For marketplace-installed users, resolve the repository containing `scripts/build-cockpit.mjs` before running it. If `scripts/` or the generator is absent, say so and fall back to the existing category browse flow below; do not fabricate a Cockpit artifact.
+If neither generator path exists (very old cached plugin version), say so and fall back to the existing category browse flow below; do not fabricate a Cockpit artifact.
+
+> **v7.3.0:** the Cockpit's 8th tab, **Prompts**, is a searchable browser across 4 sources — Anthropic's Claude Code docs prompt library, the CCC field-tested prompt library (+ patterns + course modules), the repo's `prompts/` templates, and a ReadyIQ teaser (agent names + descriptions only). Each entry offers Copy and "✨ Enhance" (hands it straight to the Enhance tab).
+
+> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
 
 ### Domains (11) → cascade
 
-Read `${CODEX_PLUGIN_ROOT}/skills/` glob for `ccc-<name>` directories excluding meta (`ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, etc.).
+Read `${CLAUDE_PLUGIN_ROOT}/skills/` glob for `ccc-<name>` directories excluding meta (`ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, etc.).
 
 First `AskUserQuestion` (4 of 11):
 ```
@@ -128,23 +137,23 @@ Workflows = the click-first skills. Cascade 4-at-a-time:
 
 First picker:
 ```
-- 🚀 /ccc-start · first-run onboarding
-- 📋 /ccc-plan · feature planning flow
-- 🔨 /ccc-build · scaffold web/API/CLI/mobile
-- 🔍 /ccc-review · audit diff/security/perf
+- 🚀 $ccc-start · first-run onboarding
+- 📋 $ccc-plan · feature planning flow
+- 🔨 $ccc-build · scaffold web/API/CLI/mobile
+- 🔍 $ccc-review · audit diff/security/perf
 ```
 
 Second picker:
 ```
-- 🚢 /ccc-ship · deploy + PR workflow
-- 🎓 /ccc-learn · extract patterns from session
-- 🩻 /ccc-xray · full project health scorecard
-- 📌 /ccc-linear · Linear issue board
+- 🚢 $ccc-ship · deploy + PR workflow
+- 🎓 $ccc-learn · extract patterns from session
+- 🩻 $ccc-xray · full project health scorecard
+- 📌 $ccc-linear · Linear issue board
 ```
 
 Third picker:
 ```
-- ⚙️ /ccc-fleet · parallel agent batch work
+- ⚙️ $ccc-fleet · parallel agent batch work
 - ↩️ Back to categories
 ```
 
@@ -152,7 +161,7 @@ On pick → invoke the skill inline.
 
 ### Agents (15) → cascade
 
-Read `${CODEX_PLUGIN_ROOT}/agents/*.md` frontmatter. Cascade 4-at-a-time across 4 pickers:
+Read `${CLAUDE_PLUGIN_ROOT}/agents/*.md` frontmatter. Cascade 4-at-a-time across 4 pickers:
 
 Pass 1: architect, builder, debugger, reviewer
 Pass 2: qa-engineer, security-auditor, performance-engineer, designer
@@ -162,7 +171,7 @@ Pass 4: data-analyst, content-strategist, fleet-worker, ↩️ Back
 Each option:
 - `label: "<emoji> <name>"`
 - `description: "<first sentence of agent's frontmatter description>"`
-- `preview: "Best for: <one-line use case>. Model: <opus|sonnet>. Trigger: /ccc-<flow>."`
+- `preview: "Best for: <one-line use case>. Model: <opus|sonnet>. Trigger: $ccc-<flow>."`
 
 On pick → offer two actions via second `AskUserQuestion`:
 ```
@@ -210,14 +219,14 @@ After a user picks any skill or agent, the handler:
 2. Echoes one paragraph of what's about to happen
 3. Invokes the skill/agent inline
 
-Never require the user to leave `/ccc-browse` and type another slash command. We stay in-flow.
+Never require the user to leave `$ccc-browse` and type another slash command. We stay in-flow.
 
 ## Tips for the agent executing this skill
 
 1. Parallel the three count Bash calls into one. Saves a turn.
 2. When cascading, maintain a simple state in your responses: "Page 1 of 3 · 4 of 11 shown".
 3. If `argument-hint` is `domains`, `workflows`, `agents`, or `all`, skip the root picker and jump to that path.
-4. Agent descriptions are in `${CODEX_PLUGIN_ROOT}/agents/*.md` frontmatter — read the whole file only on user drill-in.
+4. Agent descriptions are in `${CLAUDE_PLUGIN_ROOT}/agents/*.md` frontmatter — read the whole file only on user drill-in.
 
 ---
 
@@ -226,3 +235,5 @@ Never require the user to leave `/ccc-browse` and type another slash command. We
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

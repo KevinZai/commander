@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# /ccc-security — Security domain hub
+# $ccc-security — Security domain hub
 
 > Load ONE skill. Get the entire application security domain. 8 skills in one.
 

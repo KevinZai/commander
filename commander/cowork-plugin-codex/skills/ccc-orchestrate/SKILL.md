@@ -9,13 +9,13 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-orchestrate — Cross-Runtime Orchestrator/Executor
+# $ccc-orchestrate — Cross-Runtime Orchestrator/Executor
 
 Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5** or **Opus 4.8** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution then happens **outside this runtime entirely** — on **GPT-5.6 Sol via the `codex` CLI**, or on a **Sonnet subagent** if codex isn't available. The orchestrator never writes production code itself.
 
 **CC Commander** · Cross-Runtime Orchestrate · [Docs](https://commanderplugin.com)
 
-> This is `/ccc-plan-exec` generalized past Claude-only: instead of plan (cheap Claude) → execute (capable Claude), it's plan (Fable/Opus) → execute (a *different runtime* — GPT-5.6 or Sonnet). The goal file is the interface between the two systems, so it has to have real teeth.
+> This is `$ccc-plan-exec` generalized past Claude-only: instead of plan (cheap Claude) → execute (capable Claude), it's plan (Fable/Opus) → execute (a *different runtime* — GPT-5.6 or Sonnet). The goal file is the interface between the two systems, so it has to have real teeth.
 
 ---
 
@@ -153,8 +153,8 @@ Report back:
 
 ## See also
 
-- `/ccc-plan-exec` — same idea, Claude-only (cheap Claude plans, capable Claude executes). Use that when you want to stay in one vendor.
-- `/ccc-handoff` — use if the orchestration spans enough turns that context grows large; write a handoff doc before compacting rather than losing the goal file's state.
+- `$ccc-plan-exec` — same idea, Claude-only (cheap Claude plans, capable Claude executes). Use that when you want to stay in one vendor.
+- `$ccc-handoff` — use if the orchestration spans enough turns that context grows large; write a handoff doc before compacting rather than losing the goal file's state.
 
 ---
 
@@ -174,3 +174,5 @@ Report back:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

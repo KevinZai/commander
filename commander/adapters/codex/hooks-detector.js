@@ -7,29 +7,47 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-export const CODEX_HOOK_EVENTS_0125 = Object.freeze([
+// Verified 2026-07-22 against primary Codex docs (learn.chatgpt.com/docs/hooks).
+// Codex supports exactly these 10 hook events. This replaces an earlier,
+// unverified list (CODEX_HOOK_EVENTS_0125 below, kept only as an alias for
+// callers that still import that name) which wrongly included SessionEnd
+// and StopFailure and wrongly omitted SubagentStart, SubagentStop,
+// PreCompact, and PostCompact. No version threshold is documented for hook
+// support, so supportedEventsForVersion() no longer branches on version --
+// see the comment there.
+export const CODEX_HOOK_EVENTS_VERIFIED_20260722 = Object.freeze([
   'SessionStart',
-  'SessionEnd',
-  'UserPromptSubmit',
-  'Stop',
-  'StopFailure',
+  'SubagentStart',
   'PreToolUse',
-  'PostToolUse',
   'PermissionRequest',
-]);
-
-export const CODEX_HOOK_EVENTS_LEGACY = Object.freeze([
-  'SessionStart',
-  'UserPromptSubmit',
-  'Stop',
-  'PreToolUse',
   'PostToolUse',
+  'PreCompact',
+  'PostCompact',
+  'UserPromptSubmit',
+  'SubagentStop',
+  'Stop',
 ]);
 
+// Back-compat alias -- some callers may still import this name.
+export const CODEX_HOOK_EVENTS_0125 = CODEX_HOOK_EVENTS_VERIFIED_20260722;
+
+// Claude Code hook events with no Codex equivalent (Codex's 10-event surface
+// has no matching event at all). Distinct from events that map 1:1 -- see
+// hook-event-map.json for the full per-event mapping table.
 export const CLAUDE_EVENTS_DROPPED_BY_CODEX = Object.freeze([
+  'SessionEnd',
   'Notification',
-  'PreCompact',
-  'SubagentStop',
+  'PostToolUseFailure',
+  'PostToolBatch',
+  'StopFailure',
+  'Elicitation',
+  'ElicitationResult',
+  'TaskCreated',
+  'TaskCompleted',
+  'ConfigChange',
+  'UserPromptExpansion',
+  'InstructionsLoaded',
+  'Setup',
 ]);
 
 export function codexConfigPath(homeDir = os.homedir()) {
@@ -88,12 +106,14 @@ export function compareVersions(left, right) {
   return 0;
 }
 
-export function supportedEventsForVersion(codexVersion) {
-  if (!codexVersion) return [...CODEX_HOOK_EVENTS_0125];
-  if (compareVersions(codexVersion, '0.125.0') >= 0) {
-    return [...CODEX_HOOK_EVENTS_0125];
-  }
-  return [...CODEX_HOOK_EVENTS_LEGACY];
+export function supportedEventsForVersion(_codexVersion) {
+  // No version threshold is documented for hook-event support as of the
+  // 2026-07-22 verification against learn.chatgpt.com/docs/hooks -- the
+  // prior version-gated split (a lesser "legacy" set below some Codex
+  // version) was an unverified guess. Return the verified set
+  // unconditionally; the codexVersion parameter is kept for API
+  // compatibility and future use if a real threshold is ever documented.
+  return [...CODEX_HOOK_EVENTS_VERIFIED_20260722];
 }
 
 export function detectCodexHookCapabilities(options = {}) {
