@@ -8,7 +8,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-yolo-setup — Safe YOLO + Plan Mode
+# $ccc-yolo-setup — Safe YOLO + Plan Mode
 
 Reduce approval friction **without** going recklessly permissive. Safe-YOLO auto-approves a **vetted allowlist of read-only / non-destructive** operations, keeps **Plan mode** for anything that writes, deletes, or hits the network, and **logs every auto-approval** so the trail is auditable.
 

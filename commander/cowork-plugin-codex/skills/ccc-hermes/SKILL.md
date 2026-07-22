@@ -8,7 +8,7 @@ allowed-tools:
   - Edit
 ---
 
-# /ccc-hermes — Hermes ↔ Claude Code Bridge
+# $ccc-hermes — Hermes ↔ Claude Code Bridge
 
 Turns Claude Code into a Hermes frontend and Hermes into a Claude Code extension. Messages flow both ways: a Telegram DM can wake a Claude Code session, and a long-running Opus task can stream progress back to your Discord. Only loads if the OpenClaw Gateway (Hermes) is running locally on port 18789.
 

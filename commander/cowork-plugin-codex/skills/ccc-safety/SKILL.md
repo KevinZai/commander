@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[open | status]"
 ---
 
-# /ccc-safety — Safety
+# $ccc-safety — Safety
 
 The guardrails deck. CC Commander's hooks already journal every permission decision (`~/.claude/commander/analytics/permission-gate.jsonl`) and every tool failure (`~/.claude/commander/tool-failures.jsonl`). This turns them into one page: how many dangerous actions got blocked, how many were auto-fixed, and which tools/errors trip you up most (a Sniffly-style breakdown).
 

@@ -17,7 +17,7 @@ allowed-tools:
 argument-hint: "[audit type: diff | security | perf | xray]"
 ---
 
-# /ccc-review — Audit your work
+# $ccc-review — Audit your work
 
 Click-first review flow. Four audit types, one specialist agent per pick, one scorecard artifact. User picks the lens, the agent works in the background, the markdown report lands in `tasks/reviews/`.
 
@@ -47,7 +47,7 @@ Output exactly these three sections in order:
 ### 1. Brand header (one line, markdown)
 
 ```
-**CC Commander** · /ccc-review · Audit before you ship
+**CC Commander** · $ccc-review · Audit before you ship
 ```
 
 ### 2. Context strip (one paragraph)

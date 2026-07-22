@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[environment: staging | production]"
 ---
 
-# /ccc-deploy-check — Pre-deploy readiness gate
+# $ccc-deploy-check — Pre-deploy readiness gate
 
 > Placeholders like ~~CI/CD and ~~monitoring refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

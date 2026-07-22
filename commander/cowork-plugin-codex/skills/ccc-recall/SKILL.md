@@ -5,7 +5,7 @@ model: sonnet
 effort: medium
 ---
 
-# /ccc-recall — Cross-Session Memory Search
+# $ccc-recall — Cross-Session Memory Search
 
 Your past sessions are a goldmine. This skill indexes it.
 
@@ -71,7 +71,7 @@ User: "What did we decide about the MCP bundling split?"
 
 1. Layer 1 grep for "mcp bundling" in `~/.claude/sessions/*.tmp` → finds `2026-04-23-commander-blitz-session.tmp`
 2. Read that file's "Decisions" section
-3. Answer: "On 2026-04-23 during the post-beta.10 hardening review, R1/R5/R8 flagged 9 auto-bundled MCPs as install-day failure. Decision: trim to 2 credential-free (context7 + sequential-thinking), move rest to opt-in via /ccc-connect. Shipped in commit 3cba64d."
+3. Answer: "On 2026-04-23 during the post-beta.10 hardening review, R1/R5/R8 flagged 9 auto-bundled MCPs as install-day failure. Decision: trim to 2 credential-free (context7 + sequential-thinking), move rest to opt-in via $ccc-connect. Shipped in commit 3cba64d."
 4. Offer: "This would make a good `$ccc-memory` entry as `memory/decisions/mcp-bundling.md` — want me to write it?"
 
 ## Depends on

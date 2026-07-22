@@ -5,7 +5,7 @@ model: sonnet
 effort: medium
 ---
 
-# /ccc-handoff — Hand Off to a Fresh Session
+# $ccc-handoff — Hand Off to a Fresh Session
 
 **Core idea:** context windows degrade model quality as they fill up. The fix is not "compact harder" — it's "hand off to a fresh chat frequently." This skill writes a dense, information-preserving handoff file and then tells you, explicitly, to open a new chat and resume there. It is meant to be invoked **often**, not just when a session is dying.
 
@@ -23,7 +23,7 @@ Use this proactively — the whole point is that you run it BEFORE quality degra
 
 If you are asking "should I hand off now or wait" — the answer is hand off now. Frequency is cheap; degraded output is not.
 
-## Relationship to /ccc-save-session and /ccc-resume-session
+## Relationship to $ccc-save-session and $ccc-resume-session
 
 This skill reuses the **exact same file format and location** as `$ccc-save-session` — same `~/.claude/sessions/` directory, same `YYYY-MM-DD-<short-id>-session.tmp` naming. It does not invent a second format. `$ccc-resume-session` loads a handoff file with zero changes.
 
@@ -161,7 +161,7 @@ If none: "No active blockers."
 [If known: The single most important thing to do when resuming. Be precise
 enough that resuming requires zero thinking about where to start. If this
 handoff fired mid-orchestration, name the exact phase/step the Executor
-should re-enter — e.g. "resume /ccc-plan-exec at Step 4 of the plan file,
+should re-enter — e.g. "resume $ccc-plan-exec at Step 4 of the plan file,
 Task 4.2 (Task 4.1 is done and verified)."]
 
 [If not known: "Next step not determined — review 'What Has NOT Been Tried Yet'
@@ -197,7 +197,7 @@ This session's context is getting long enough that quality will
 start degrading if you keep working here. Open a NEW chat/session
 and run:
 
-  /ccc-resume-session [actual resolved path to the session file]
+  $ccc-resume-session [actual resolved path to the session file]
 
 Do not continue this conversation for further work.
 ════════════════════════════════════════════════

@@ -8,7 +8,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-plan-exec — Plan Cheap, Execute Capable
+# $ccc-plan-exec — Plan Cheap, Execute Capable
 
 Plan-exec splits work into two phases on two models. A **cheap, fast model drafts the plan** — the step list, the loop body, the structure. Then a **capable model (Opus/Fable) executes each step**. You write a *loop*, not a one-shot prompt: the structure is decided once, cheaply, then run N times against the expensive reasoner only where reasoning earns its cost.
 

@@ -87,7 +87,12 @@ const MAX_JSONL_BYTES = 8 * 1024 * 1024; // read at most the trailing 8MB — th
 const ROW_CAP = 30;
 const SAVINGS_DAYS_CAP = 30;
 const COST_DAYS_CAP = 30;
-const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // v7.3.0 staleness banner threshold
+// v7.3.0 staleness banner threshold. 48h, NOT 24h, deliberately: this deck's
+// sources are DAY-granularity (savings.json day-keys, metrics.jsonl `date`
+// rows), each treated as its UTC midnight — a genuinely-fresh "yesterday"
+// bucket is already up to ~24h old at comparison time, so a 24h threshold
+// would false-flag fresh data every day right after midnight UTC.
+const STALE_THRESHOLD_MS = 48 * 60 * 60 * 1000;
 const SAVINGS_STALE_MS = 7 * 24 * 60 * 60 * 1000; // savings-source honesty note threshold (W2+/codex 6)
 const DOCTOR_POINTER =
   'Run /ccc-doctor to check your hooks are wired. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)';
@@ -269,11 +274,25 @@ async function readUsageModel({ baseDir, now, recompute = true, metricsRunner } 
     const ms = toMs(key);
     if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
   }
+  // Metrics rows only count as telemetry when they carry ACTUAL activity.
+  // getMetrics() gap-fills the window with all-zero rows on every read
+  // (including "today"), so an unfiltered newest-`date` scan would stamp a
+  // dead install as fresh-as-of-now and suppress the stale warning — the
+  // exact failure the banner exists to expose.
+  const metricsRowHasActivity = (row) =>
+    row &&
+    typeof row === 'object' &&
+    ['cost_usd', 'agents_dispatched', 'tasks_completed', 'tool_failures', 'sessions'].some(
+      (field) => Number.isFinite(row[field]) && row[field] > 0
+    );
+  let activeMetricsRows = 0;
   for (const row of metricsRawRows) {
-    const ms = row && typeof row === 'object' ? toMs(row.date) : null;
+    if (!metricsRowHasActivity(row)) continue;
+    activeMetricsRows += 1;
+    const ms = toMs(row.date);
     if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
   }
-  const hasAnySourceRow = dayKeys.length > 0 || metricsRawRows.length > 0;
+  const hasAnySourceRow = dayKeys.length > 0 || activeMetricsRows > 0;
 
   // Savings-source honesty (W2+/codex 6): savings.json is ONLY ever written
   // by the legacy CLI dispatcher (commander/lib/savings.js) — plugin-native

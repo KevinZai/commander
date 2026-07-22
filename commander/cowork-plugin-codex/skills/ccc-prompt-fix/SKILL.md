@@ -7,7 +7,7 @@ allowed-tools:
 argument-hint: "[<your prompt> | last | for <task> | score <prompt>]"
 ---
 
-# /ccc-prompt-fix — Auto Prompt Fixer
+# $ccc-prompt-fix — Auto Prompt Fixer
 
 Take a rough prompt and hand back a sharper one — with the *why*, so you learn the pattern instead of just copying the fix. Grounded in the **Claude Code prompt library** (`skills/claude-code-library/`): 52 field-tested prompts + the 6 patterns behind all of them.
 
@@ -61,7 +61,7 @@ Sharper:
 Why:
   + self-check: added "run the tests and confirm they pass" so it closes its own loop
   + measurable: pinned "p95 under 200ms" so "done" is unambiguous
-  💡 Reusable? Save as a /command or record in CLAUDE.md (via /ccc-claudemd).
+  💡 Reusable? Save as a /command or record in CLAUDE.md (via $ccc-claudemd).
 ```
 
 For **suggest** mode, return the matching library prompt verbatim + its *why it works* note (cite the SDLC phase). For **score** mode, return just the 0–6 tally + the single highest-leverage missing pattern.

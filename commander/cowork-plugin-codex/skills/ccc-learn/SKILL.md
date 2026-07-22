@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[domain: design | marketing | saas | devops | seo | testing | security | data | research | mobile | makeover | all]"
 ---
 
-# /ccc-learn — Discover skills across domains
+# $ccc-learn — Discover skills across domains
 
 Click-first browser over CCC's 11 domain routers. User picks a domain in one click — we load its domain-router skill and hand off. No text menus, no grep-through-502-skills.
 

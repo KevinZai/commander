@@ -9,7 +9,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-orchestrate — Cross-Runtime Orchestrator/Executor
+# $ccc-orchestrate — Cross-Runtime Orchestrator/Executor
 
 Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5** or **Opus 4.8** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution then happens **outside this runtime entirely** — on **GPT-5.6 Sol via the `codex` CLI**, or on a **Sonnet subagent** if codex isn't available. The orchestrator never writes production code itself.
 

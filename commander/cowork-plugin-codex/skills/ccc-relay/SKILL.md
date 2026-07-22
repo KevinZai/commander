@@ -1,9 +1,9 @@
 ---
 name: relay
-description: "Cross-session loop chaining — chain independent spec/build/review loop SESSIONS that auto-hand-off. Use when the user types /ccc-relay, wants the Finn Loop, or auto-chained loops."
+description: "Cross-session loop chaining — chain independent spec/build/review loop SESSIONS that auto-hand-off. Use when the user types $ccc-relay, wants the Finn Loop, or auto-chained loops."
 ---
 
-# /ccc-relay — Cross-Session Loop Chaining
+# $ccc-relay — Cross-Session Loop Chaining
 
 `$ccc-loop` iterates *inside* one session. `$ccc-relay` chains *separate* sessions: an always-on **spec** loop hands its result to a **build** loop, which hands to a **review** loop, which hands to **merge** — each a distinct, independently-gated loop that launches the next automatically when its own stop condition is met. This is the "Finn Loop" pattern: not one agent looping, but a relay team of loops passing a baton.
 
@@ -20,7 +20,7 @@ The canonical chain:
 
 ```
 spec loop  ──▶  build loop  ──▶  review loop  ──▶  merge (human GO)
- /ccc-plan       /ccc-build        /ccc-review       /ccc-ship
+ $ccc-plan       $ccc-build        $ccc-review       $ccc-ship
  + /goal         + /goal           + /goal           (gated — never auto)
 ```
 

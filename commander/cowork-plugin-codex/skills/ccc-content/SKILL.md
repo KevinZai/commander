@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "<content type and topic>"
 ---
 
-# /ccc-content — Content creation
+# $ccc-content — Content creation
 
 > Placeholders like ~~social media and ~~email refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

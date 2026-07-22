@@ -14,11 +14,11 @@ argument-hint: "[team | filter | issue-id]"
 ---
 
 
-# /ccc-linear-board — alias → /ccc-linear
+# $ccc-linear-board — alias → $ccc-linear
 
 > **Deduplicated (v6.1).** This skill is now an alias for **/ccc-linear** — the canonical click-first Linear board skill — board view, pick-a-task, standalone GraphQL, and MCP-connected modes.
 >
-> Invoke /ccc-linear instead. This stub is kept so the `$ccc-linear-board` command still resolves and prior references do not break.
+> Invoke $ccc-linear instead. This stub is kept so the `$ccc-linear-board` command still resolves and prior references do not break.
 
 ---
 

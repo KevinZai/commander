@@ -11,7 +11,7 @@ allowed-tools:
 argument-hint: "[domains | workflows | agents | all]"
 ---
 
-# /ccc-browse — Skill + Agent Catalog
+# $ccc-browse — Skill + Agent Catalog
 
 A click-first browser for the entire CC Commander surface: 11 CCC domains, 9 workflow skills, 22 specialist agents, plus meta skills. User never scrolls a wall of markdown — we cascade through `AskUserQuestion` 4-at-a-time.
 
@@ -137,23 +137,23 @@ Workflows = the click-first skills. Cascade 4-at-a-time:
 
 First picker:
 ```
-- 🚀 /ccc-start · first-run onboarding
-- 📋 /ccc-plan · feature planning flow
-- 🔨 /ccc-build · scaffold web/API/CLI/mobile
-- 🔍 /ccc-review · audit diff/security/perf
+- 🚀 $ccc-start · first-run onboarding
+- 📋 $ccc-plan · feature planning flow
+- 🔨 $ccc-build · scaffold web/API/CLI/mobile
+- 🔍 $ccc-review · audit diff/security/perf
 ```
 
 Second picker:
 ```
-- 🚢 /ccc-ship · deploy + PR workflow
-- 🎓 /ccc-learn · extract patterns from session
-- 🩻 /ccc-xray · full project health scorecard
-- 📌 /ccc-linear · Linear issue board
+- 🚢 $ccc-ship · deploy + PR workflow
+- 🎓 $ccc-learn · extract patterns from session
+- 🩻 $ccc-xray · full project health scorecard
+- 📌 $ccc-linear · Linear issue board
 ```
 
 Third picker:
 ```
-- ⚙️ /ccc-fleet · parallel agent batch work
+- ⚙️ $ccc-fleet · parallel agent batch work
 - ↩️ Back to categories
 ```
 
@@ -171,7 +171,7 @@ Pass 4: data-analyst, content-strategist, fleet-worker, ↩️ Back
 Each option:
 - `label: "<emoji> <name>"`
 - `description: "<first sentence of agent's frontmatter description>"`
-- `preview: "Best for: <one-line use case>. Model: <opus|sonnet>. Trigger: /ccc-<flow>."`
+- `preview: "Best for: <one-line use case>. Model: <opus|sonnet>. Trigger: $ccc-<flow>."`
 
 On pick → offer two actions via second `AskUserQuestion`:
 ```

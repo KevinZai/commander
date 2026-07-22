@@ -11,7 +11,7 @@ version: 1.0.0
 argument-hint: "[--check | --apply]"
 ---
 
-# /ccc-doc-sync — Doc Count Synchronizer
+# $ccc-doc-sync — Doc Count Synchronizer
 
 Keeps every count reference (`plugin_skills`, `specialist_agents`, `hook_handlers`) and version string in sync across the entire project. One source of truth — never manually edit numbers in docs again.
 

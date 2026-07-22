@@ -11,7 +11,7 @@ allowed-tools:
 argument-hint: "[search <topic> | recent | stats | category <name>]"
 ---
 
-# /ccc-knowledge — Knowledge compounding
+# $ccc-knowledge — Knowledge compounding
 
 > Placeholders like ~~knowledge base refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

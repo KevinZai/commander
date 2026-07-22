@@ -7,7 +7,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-ecc — Selective ECC Loader
+# $ccc-ecc — Selective ECC Loader
 
 Load one specific **Everything Claude Code (ECC)** component into `~/.claude/` without copying the whole ECC harness.
 

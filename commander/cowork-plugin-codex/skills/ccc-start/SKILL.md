@@ -15,7 +15,7 @@ allowed-tools:
 argument-hint: "[new | existing | tour | skip]"
 ---
 
-# /ccc-start — First-Run Onboarding
+# $ccc-start — First-Run Onboarding
 
 This is the welcome mat. User installed CC Commander, and the Desktop app routed them here. Goal: make them feel oriented in under 90 seconds, give them a real artifact (a plan file) to anchor the next session, and never force them to type a number.
 
@@ -42,7 +42,7 @@ Detect setup with **parallel checks** (one Bash call, chained with `&&`, silent 
 
 Render a one-line summary:
 
-> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: `<computed>` · MCPs: `<computed>` bundled (16 opt-in via /ccc-connect)
+> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: `<computed>` · MCPs: `<computed>` bundled (16 opt-in via $ccc-connect)
 
 If first-time (no plugins, no plans, no repo): "🧭 Fresh install — let's set you up in under 2 minutes."
 
@@ -57,13 +57,13 @@ multiSelect: false
 options:
   - label: "🚀 Set up a new project"
     description: "Blank canvas — we scaffold a web app, API, CLI, or mobile app and write the first plan file together."
-    preview: "Routes to /ccc-build after a 3-question spec interview. ~90 seconds."
+    preview: "Routes to $ccc-build after a 3-question spec interview. ~90 seconds."
   - label: "📦 Import existing project"
     description: "Point us at your repo — we scan, write CLAUDE.md, and recommend the right agents for your stack."
     preview: "Runs stack detection + writes a personalized plan to ~/.claude/plans/."
   - label: "🗺️ Just show me around"
     description: "Quick tour of the specialist agent personas, plugin skills, and bundled MCP servers (use the live counts from the context strip). No commitment."
-    preview: "Routes to /ccc-browse — browse agents and skills by category."
+    preview: "Routes to $ccc-browse — browse agents and skills by category."
   - label: "⏭️ Skip — I know what I'm doing"
     description: "Drop me at the main /ccc hub. No onboarding."
     preview: "Jumps straight to the top-level picker."
@@ -177,7 +177,7 @@ When writing the plan file (path from `EnterPlanMode` or existing session plan p
 
 ## Next 3 steps
 
-1. [ ] <concrete action with /ccc-<command>>
+1. [ ] <concrete action with $ccc-<command>>
 2. [ ] <concrete action>
 3. [ ] <concrete action>
 
@@ -257,7 +257,7 @@ CC Commander's core is **free forever** — all skills, all agents, all hooks, a
 
 | Lever | What it is | Where |
 |-------|-----------|-------|
-| **Affiliate links** | Transparent partner links in /ccc-connect and scaffolds (Supabase, Vercel, Neon, …) | `$ccc-connect` |
+| **Affiliate links** | Transparent partner links in $ccc-connect and scaffolds (Supabase, Vercel, Neon, …) | `$ccc-connect` |
 | **Hire Kevin** | Teams shipping AI features who need senior help | kevinz.ai/consulting |
 | **Pro community (optional)** | $49/mo Discord — community, not features; the plugin stays fully free | commanderplugin.com |
 | **GitHub Sponsors + star** | Fund or boost the project directly | github.com/sponsors/KevinZai · github.com/KevinZai/commander |

@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[unit | integration | e2e | all | coverage]"
 ---
 
-# /ccc-qa — Comprehensive QA Workflow
+# $ccc-qa — Comprehensive QA Workflow
 
 Full QA pass before shipping. Detects test framework, runs all suites, reports coverage delta, flags edge cases and flaky tests. Delegates analysis to the `qa-engineer` subagent. Never marks QA passed with open 🔴 Critical findings.
 
@@ -205,7 +205,7 @@ When the qa-engineer returns missing edge cases, use this checklist as the base:
 ### Example 1 — Auth refactor QA
 
 ```
-/ccc-qa unit
+$ccc-qa unit
 ```
 
 Framework detected: Vitest. Output: 187/187 pass, coverage 74% → 82% (+8% on `src/auth/*`).
@@ -215,7 +215,7 @@ Decision chip: user picks "Write missing edge case tests."
 ### Example 2 — Payment flow QA
 
 ```
-/ccc-qa all
+$ccc-qa all
 ```
 
 Framework detected: Vitest + Playwright. Unit: 204/210 (6 failing). E2E: 12/12. Coverage delta: −3% branches (🟠 regression).
@@ -225,7 +225,7 @@ Decision chip: user picks "Fix failing tests now."
 ### Example 3 — Migration QA (flaky audit)
 
 ```
-/ccc-qa
+$ccc-qa
 # User selects: Flaky test audit (run suite 3×)
 ```
 

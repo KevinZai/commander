@@ -9,7 +9,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-harden — Production Hardening Audit
+# $ccc-harden — Production Hardening Audit
 
 Audit a site across **11 hardening pillars** to confirm it's safe to ship. Read-only by default. Apply safe auto-fixes with `--fix`.
 

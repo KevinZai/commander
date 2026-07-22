@@ -1,6 +1,6 @@
 ---
 name: ccc-more
-description: "CC Commander second-page menu — click-first access to plan, x-ray, Linear, fleet, connect, and catalog browse. Use when the user types /ccc-more, picks 'More tools'…"
+description: "CC Commander second-page menu — click-first access to plan, x-ray, Linear, fleet, connect, and catalog browse. Use when the user types $ccc-more, picks 'More tools'…"
 allowed-tools:
   - Read
   - Write
@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[intent: plan | xray | linear | fleet | connect | browse]"
 ---
 
-# /ccc-more — Second-page tools menu
+# $ccc-more — Second-page tools menu
 
 Click-first picker for the CC Commander surface area that's NOT build/review/ship/design/learn. Plan, x-ray, Linear, fleet, connect, browse — one click each, cascade for the long tail.
 
@@ -55,7 +55,7 @@ options:
     preview: "Invokes ccc-xray. Reads repo, returns report card + remediation steps."
   - label: "📊 Linear board"
     description: "View, pick, or create issues without leaving Claude."
-    preview: "Invokes ccc-linear. Requires Linear MCP; will prompt /ccc-connect if missing."
+    preview: "Invokes ccc-linear. Requires Linear MCP; will prompt $ccc-connect if missing."
   - label: "⋯ Even more…"
     description: "Fleet, connect apps, browse catalog."
     preview: "3 more tools — click to cascade."
@@ -90,7 +90,7 @@ options:
     description: "Enable Notion, Zapier, Supabase, Slack, Google Drive, and more MCPs."
     preview: "Invokes ccc-connect. Browses connector categories + runs OAuth."
   - label: "🔎 Browse catalog"
-    description: "Searchable grid of every /ccc-* command and every installed skill."
+    description: "Searchable grid of every $ccc-* command and every installed skill."
     preview: "Invokes ccc-browse. Filters by domain, status, recency."
   - label: "🏠 Back to main"
     description: "Return to /ccc."

@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[version]"
 ---
 
-# /ccc-changelog — What's New
+# $ccc-changelog — What's New
 
 Reads `CHANGELOG.md` at the repo root and surfaces the most-recent version section in a scan-friendly summary. Works whether invoked directly or triggered by the SessionStart version-transition nudge.
 

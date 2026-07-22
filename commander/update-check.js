@@ -27,8 +27,11 @@ var DEFAULT_TIMEOUT_MS = 3000;
 var MARKETPLACE = 'commander-hub';
 var PLUGIN_ID = 'commander';
 
+// STRICT full-string match (anchored) — the remote value is attacker-
+// controllable and downstream callers interpolate it into user/model-facing
+// text. Prerelease/suffixed strings are rejected (treated as unknown).
 function isValidVersion(v) {
-  return typeof v === 'string' && /^\d+\.\d+\.\d+/.test(v);
+  return typeof v === 'string' && /^\d+\.\d+\.\d+$/.test(v);
 }
 
 function semverCompare(a, b) {

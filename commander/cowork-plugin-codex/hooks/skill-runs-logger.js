@@ -15,7 +15,10 @@ import path from 'node:path';
 const OK = JSON.stringify({ continue: true, suppressOutput: true }) + '\n';
 const MAX_BYTES = 10 * 1024 * 1024;
 const STDIN_MAX_BYTES = 256 * 1024;
-const SKILL_PATTERN = /^\/([a-z][a-z0-9:_-]{1,60})/i;
+// Leading `/` is the Claude Code invocation form; leading `$` is Codex's
+// (`$ccc-review`) — this hook is mirrored verbatim into the Codex plugin, so
+// both must log or Codex top-skill analytics stay permanently empty.
+const SKILL_PATTERN = /^[/$]([a-z][a-z0-9:_-]{1,60})/i;
 // Built-in CLI slash commands are not skills — without this, /model and /clear top the "most-used skill" analytics.
 const BUILTIN_COMMANDS = new Set([
   'model', 'clear', 'compact', 'plan', 'config', 'help', 'resume', 'exit',

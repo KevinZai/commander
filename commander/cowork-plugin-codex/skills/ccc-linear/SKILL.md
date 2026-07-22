@@ -1,6 +1,6 @@
 ---
 name: ccc-linear
-description: "Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types /ccc-linear, /ccc linear, says…"
+description: "Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types $ccc-linear, /ccc linear, says…"
 allowed-tools:
   - Read
   - Write
@@ -10,7 +10,7 @@ allowed-tools:
 argument-hint: "[view | pick | create | board]"
 ---
 
-# /ccc-linear — Linear Board
+# $ccc-linear — Linear Board
 
 View your board, pick an issue, or create a new one — all click-first.
 
@@ -128,7 +128,7 @@ Get a key at https://linear.app/settings/api.
 ```
 
 Offer one `AskUserQuestion`:
-- "🔌 Run /ccc-connect now"
+- "🔌 Run $ccc-connect now"
 - "📖 Show manual setup"
 - "⏭️ Skip for now"
 

@@ -11,7 +11,7 @@ allowed-tools:
 argument-hint: "[loop | loop status | loop stop | describe current situation in plain English]"
 ---
 
-# /ccc-suggest — The Intelligence Layer
+# $ccc-suggest — The Intelligence Layer
 
 This is CC Commander's headline feature. **The user never has to guess which tool to use.** An Opus-class reasoning pass runs over the current project state + user signals + recent session activity, then surfaces ONE concrete recommendation: the next `$ccc-*` workflow, CCC skill, or third-party plugin to invoke — with named reasoning.
 
@@ -73,14 +73,14 @@ question: "Prefer something else?"
 header: "Alternatives"
 multiSelect: false
 options:
-  - label: "⭐ Go with recommended: /ccc-<workflow>"
+  - label: "⭐ Go with recommended: $ccc-<workflow>"
     description: "<reasoning abstract>"
-  - label: "Runner-up: /ccc-<alt-1>"
+  - label: "Runner-up: $ccc-<alt-1>"
     description: "<when this would be better>"
-  - label: "Deeper option: /ccc-<alt-2>"
+  - label: "Deeper option: $ccc-<alt-2>"
     description: "<more investment, potentially more value>"
-  - label: "Show all 12 /ccc-* options"
-    description: "Open /ccc-browse for the full picker."
+  - label: "Show all 12 $ccc-* options"
+    description: "Open $ccc-browse for the full picker."
 ```
 
 Default to the starred first option unless user actively picks an alternative.
@@ -163,7 +163,7 @@ When relevant to the current task, NAME SPECIFIC 3RD-PARTY PLUGINS from the vend
 - `claude-hud` — status bar + tool tracking. ✅ Already in vendor.
 - `visual-explainer` — rich HTML/slide diagrams. Pairs perfectly with `$ccc-cheatsheet`.
 
-When recommending one, include: name, purpose, install path (`install via /ccc-connect OR vendor submodule OR npm`). Make it one-click from the recommendation to install.
+When recommending one, include: name, purpose, install path (`install via $ccc-connect OR vendor submodule OR npm`). Make it one-click from the recommendation to install.
 
 ## Always-on mode — ambient intelligence with 4 involvement levels
 
@@ -179,7 +179,7 @@ The level auto-adjusts based on real-time project analysis. Users can also overr
 
 ### Level 2 — **Gentle nudge** (default)
 - Shows a one-line suggestion at the BOTTOM of the response ONLY when confidence ≥ HIGH
-- Format: `💡 **Suggested next:** /ccc-ship preflight — tests green, branch ahead, CHANGELOG staged. Ready to release?`
+- Format: `💡 **Suggested next:** $ccc-ship preflight — tests green, branch ahead, CHANGELOG staged. Ready to release?`
 - Dismissible by user (any response that doesn't use the suggestion is fine — no nag)
 - Default when: project has signals but no blockers (e.g. branch ahead of main, recent plan file)
 - Use case: most users; low intrusion, high value
@@ -190,10 +190,10 @@ The level auto-adjusts based on real-time project analysis. Users can also overr
 - Format:
   ```
   ┌─ 🎯 CC Commander Suggests ─────────────────────┐
-  │ ⭐ /ccc-review diff (HIGH confidence)          │
+  │ ⭐ $ccc-review diff (HIGH confidence)          │
   │ Why: 18 files changed, 0 test files touched,   │
   │ and you're ahead of main by 3 commits.         │
-  │ Alternatives: /ccc-ship preflight · /ccc-plan  │
+  │ Alternatives: $ccc-ship preflight · $ccc-plan  │
   └────────────────────────────────────────────────┘
   ```
 - Default when: project has BLOCKERS (failed CI, security alerts, lint errors, stale CLAUDE.md drift)
@@ -223,7 +223,7 @@ The ambient ticker re-evaluates the level at the start of every turn using these
 
 ## PM Loop mode — the always-on thinking PM
 
-`$ccc-suggest loop` arms a recurring loop: start `/loop /ccc-suggest` (self-paced) or `/loop 30m /ccc-suggest` if the user gives an interval. Per the `$ccc-loop` taxonomy this is a **time-based** loop locally, and graduates to `/schedule /ccc-suggest` for teams who want it to survive laptop-close. See `$ccc-loop` for the full 4-type taxonomy this borrows from.
+`$ccc-suggest loop` arms a recurring loop: start `/loop $ccc-suggest` (self-paced) or `/loop 30m $ccc-suggest` if the user gives an interval. Per the `$ccc-loop` taxonomy this is a **time-based** loop locally, and graduates to `/schedule $ccc-suggest` for teams who want it to survive laptop-close. See `$ccc-loop` for the full 4-type taxonomy this borrows from.
 
 Each tick runs the existing project scan + the three PM lenses above, then surfaces **at most ONE** recommendation through the existing involvement-level system. A tick with nothing new to say stays silent at Level 1 — logging only, no nag.
 

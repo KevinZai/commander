@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# /ccc-devops — DevOps domain hub
+# $ccc-devops — DevOps domain hub
 
 > Load ONE skill. Get the entire DevOps domain. 21 skills in one.
 

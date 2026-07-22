@@ -11,9 +11,9 @@ allowed-tools:
 argument-hint: "[role: frontend | backend | full-stack | docs | first-pr]"
 ---
 
-# /ccc-onboard — New Contributor Onboarding
+# $ccc-onboard — New Contributor Onboarding
 
-**CC Commander** · /ccc-onboard · Role → first task → first hour
+**CC Commander** · $ccc-onboard · Role → first task → first hour
 
 Use this when a contributor is new to the repository and needs a practical first hour, not a generic tour. Build the guide from the repo’s own instructions and scripts.
 
@@ -24,7 +24,7 @@ Always return these sections:
 1. Brand header:
 
 ```markdown
-**CC Commander** · /ccc-onboard · Contributor first hour
+**CC Commander** · $ccc-onboard · Contributor first hour
 ```
 
 2. Repo context:

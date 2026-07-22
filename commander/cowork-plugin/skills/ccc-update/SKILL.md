@@ -103,26 +103,42 @@ to):
 
 ## Step 4 — Verify after restart
 
-Once the user confirms they've restarted, run:
+Once the user confirms they've restarted, verify the **installed runtime** —
+NOT the marketplace clone. A successful `marketplace update` with a
+failed/unapplied `plugin update` leaves the clone showing the new version
+while the old runtime keeps running; probing the clone would falsely declare
+victory.
 
 ```bash
-CLONE="$HOME/.claude/plugins/marketplaces/commander-hub"
-[ -d "$CLONE" ] || CLONE="n/a"
-PLUGIN_SRC="n/a"
-[ "$CLONE" != "n/a" ] && [ -d "$CLONE/commander/cowork-plugin" ] && PLUGIN_SRC="$CLONE/commander/cowork-plugin"
+# The client's own record of what is INSTALLED (authoritative). The cache
+# installPath IS the plugin source directly — no commander/cowork-plugin
+# wrapper like the clone has.
+RUNTIME_SRC=$(node -e "
+  try {
+    const j=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
+    const rows=(j.plugins&&(j.plugins['commander@commander-hub']||j.plugins['commander']))||[];
+    const r=Array.isArray(rows)?rows[0]:rows;
+    if(r&&r.installPath) process.stdout.write(r.installPath);
+  } catch(e) {}
+" 2>/dev/null || echo "")
+{ [ -z "$RUNTIME_SRC" ] || [ ! -d "$RUNTIME_SRC" ]; } && RUNTIME_SRC="n/a"
 
 NEW_VERSION="n/a"
-[ "$PLUGIN_SRC" != "n/a" ] && NEW_VERSION=$(node -e "
-  try { process.stdout.write(JSON.parse(require('fs').readFileSync('$PLUGIN_SRC/.claude-plugin/plugin.json','utf8')).version||'n/a'); }
+[ "$RUNTIME_SRC" != "n/a" ] && NEW_VERSION=$(node -e "
+  try { process.stdout.write(JSON.parse(require('fs').readFileSync('$RUNTIME_SRC/.claude-plugin/plugin.json','utf8')).version||'n/a'); }
   catch(e) { process.stdout.write('n/a'); }
 " 2>/dev/null || echo "n/a")
 echo "NEW_VERSION=$NEW_VERSION"
 
-# Prove the hook chain in the updated clone actually runs.
-[ "$PLUGIN_SRC" != "n/a" ] && echo '{}' | node "$PLUGIN_SRC/hooks/session-end.js" | head -c 200
+# Prove the hook chain in the INSTALLED runtime actually runs.
+[ "$RUNTIME_SRC" != "n/a" ] && echo '{}' | node "$RUNTIME_SRC/hooks/session-end.js" | head -c 200
 ```
 
-- `NEW_VERSION` should now equal `REMOTE_VERSION` from Step 1. If it
+- `NEW_VERSION` (the installed runtime) should now equal `REMOTE_VERSION`
+  from Step 1. If the CLONE shows the new version but `NEW_VERSION` is still
+  old, say exactly that: the marketplace refreshed but the plugin update
+  didn't apply (or the app wasn't fully restarted) — re-run
+  `claude plugin update commander` and restart again. If it
   doesn't, the update didn't apply — most likely cause: Desktop wasn't
   fully quit (a closed window keeps the old process, and the old process
   keeps the old plugin loaded). Point the user at `install-recovery.mdx`

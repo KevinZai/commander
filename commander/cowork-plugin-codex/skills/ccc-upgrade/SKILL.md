@@ -11,7 +11,7 @@ allowed-tools:
 argument-hint: "[--all | --check]"
 ---
 
-# /ccc-upgrade — Vendor Submodule Updater
+# $ccc-upgrade — Vendor Submodule Updater
 
 > 🔎 **Looking to update the CC Commander plugin itself** (not this repo's
 > vendor submodules)? That's `$ccc-update` — a different, end-user-facing
@@ -41,7 +41,7 @@ Args:
 
 ### 1. Locate the repo root + sanity check
 
-Resolve repo root via `git rev-parse --show-toplevel`. If that fails, output: "Not in a git repo — /ccc-upgrade only works inside the cc-commander checkout." and exit.
+Resolve repo root via `git rev-parse --show-toplevel`. If that fails, output: "Not in a git repo — $ccc-upgrade only works inside the cc-commander checkout." and exit.
 
 Before proceeding, verify you are at the cc-commander repo root:
 ```bash

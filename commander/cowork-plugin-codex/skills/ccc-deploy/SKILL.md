@@ -11,9 +11,9 @@ allowed-tools:
 argument-hint: "[platform: vercel | fly | cloudflare | github-pages | npm]"
 ---
 
-# /ccc-deploy — Actual Deploy Workflow
+# $ccc-deploy — Actual Deploy Workflow
 
-**CC Commander** · /ccc-deploy · Detect target → deploy → verify → announce
+**CC Commander** · $ccc-deploy · Detect target → deploy → verify → announce
 
 Use this when the user is ready to push a build live. This is distinct from `$ccc-ship` and `$ccc-deploy-check`: `$ccc-ship` handles pre-flight and release tagging, `$ccc-deploy-check` is a readiness gate, and `$ccc-deploy` runs the real deploy.
 
@@ -24,7 +24,7 @@ Always return these sections:
 1. Brand header:
 
 ```markdown
-**CC Commander** · /ccc-deploy · Actual deployment
+**CC Commander** · $ccc-deploy · Actual deployment
 ```
 
 2. Detection summary:
@@ -268,7 +268,7 @@ Deploy complete: <project> to <platform>
 - Version or commit: <sha-or-version>
 - URL: <deploy-url>
 - Health check: PASS at <timestamp>
-- Rollback: /ccc-rollback
+- Rollback: $ccc-rollback
 ```
 
 If Discord or Slack is configured through `$ccc-connect`, offer to post the comms there. Do not invent channel names; use configured connector context or ask the user.

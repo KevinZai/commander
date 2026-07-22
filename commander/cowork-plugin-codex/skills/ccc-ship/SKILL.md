@@ -16,7 +16,7 @@ allowed-tools:
 argument-hint: "[action: preflight | release | deploy | rollback]"
 ---
 
-# /ccc-ship — Pre-flight + deploy
+# $ccc-ship — Pre-flight + deploy
 
 Click-first ship flow. Four actions, one test matrix, one release pipeline, one deploy path. User picks the action, the matrix (or agent) runs, results surface as a checkbox scorecard.
 
@@ -48,7 +48,7 @@ Output exactly these three sections in order:
 ### 1. Brand header (one line, markdown)
 
 ```
-**CC Commander** · /ccc-ship · Pre-flight → tag → deploy
+**CC Commander** · $ccc-ship · Pre-flight → tag → deploy
 ```
 
 ### 2. Context strip (one paragraph)

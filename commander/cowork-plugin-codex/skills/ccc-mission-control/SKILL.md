@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[open | snapshot | status | suggestions | stop]"
 ---
 
-# /ccc-mission-control — Mission Control
+# $ccc-mission-control — Mission Control
 
 One board that answers "**who's working on what?**" without reading a single log line. Every CC Commander session already journals its agent runs, tasks, and delegations to `~/.claude/commander/` (`subagent-runs.jsonl`, `agent-runs.jsonl`, `tasks.jsonl`, `mission-control/events.jsonl`). Mission control turns those logs into a picture a non-coder can read: agent roster, task board, delegation flow, and a plain-English summary.
 

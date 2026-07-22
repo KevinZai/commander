@@ -276,16 +276,25 @@ export function translateHooks(claudeHooks, options = {}) {
 // reach for a tool Codex doesn't have. Order matters only in that the two
 // notes are appended in this sequence when a file needs both.
 
-// (a) Bare `/ccc-<name>` invocation references inside backticks -> Codex's
-// `$ccc-<name>` skill-invocation form (see the generated AGENTS.md: "invoke
-// explicitly with `$<skill-name>`"). Scoped to backtick spans that open
-// directly on "/ccc-" so URLs (https://.../ccc-x) and file paths
-// (skills/ccc-build/SKILL.md) are never touched -- verified against every
-// occurrence in the source tree before landing this pattern.
-const BACKTICKED_CCC_SLASH_INVOCATION = /`\/ccc-([^`]*)`/g;
+// (a) `/ccc-<name>` invocation references -> Codex's `$ccc-<name>` form (see
+// the generated AGENTS.md: "invoke explicitly with `$<skill-name>`"). The
+// guard is INVOCATION POSITION, not backtick-span membership: `/ccc-` is
+// rewritten only when preceded by start-of-line, whitespace, or a backtick.
+// That covers the simple `` `/ccc-review` ``, composite recipes like
+// `` `/loop 5m /ccc-doctor` `` (adversarial-gate finding: a span-opening
+// anchor missed every composite), and bare prose/heading invocations — all
+// of which should read `$ccc-*` on Codex — while URLs (https://.../ccc-x)
+// and file paths (skills/ccc-build/SKILL.md) stay untouched because their
+// `/ccc-` is preceded by a non-space, non-backtick character.
+//
+// Deliberately NOT a backtick-pairing regex: triple-backtick fences put an
+// odd number of backticks on a line, which flips pair parity for the rest
+// of the document and silently mis-scopes every later span (that exact bug
+// shipped briefly and left `` `/ccc-build` `` untranslated below a fence).
+const CCC_INVOCATION = /(^|[\s`])\/ccc-/g;
 
 function rewriteCcInvocations(text) {
-  return text.replace(BACKTICKED_CCC_SLASH_INVOCATION, (_match, rest) => `\`$ccc-${rest}\``);
+  return text.replace(CCC_INVOCATION, '$1$$ccc-');
 }
 
 // (b) The plugin's own manifest path. Scoped specifically to the

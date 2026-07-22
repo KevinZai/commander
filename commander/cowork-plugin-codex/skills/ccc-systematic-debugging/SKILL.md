@@ -12,7 +12,7 @@ allowed-tools:
   - TodoWrite
 ---
 
-# /ccc-systematic-debugging — Root-cause debugging
+# $ccc-systematic-debugging — Root-cause debugging
 
 ## The Iron Law
 

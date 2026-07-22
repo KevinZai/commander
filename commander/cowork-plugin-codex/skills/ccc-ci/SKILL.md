@@ -1,6 +1,6 @@
 ---
 name: ccc-ci
-description: "CI/CD webhook channel. Receive GitHub Actions, Vercel, Railway deploy events in your session. Auto-triggers /ccc-doctor on failures."
+description: "CI/CD webhook channel. Receive GitHub Actions, Vercel, Railway deploy events in your session. Auto-triggers $ccc-doctor on failures."
 model: sonnet
 effort: medium
 allowed-tools:
@@ -10,7 +10,7 @@ allowed-tools:
 argument-hint: "[init | status | stop | test <event>]"
 ---
 
-# /ccc-ci — CI/CD Webhook Channel
+# $ccc-ci — CI/CD Webhook Channel
 
 Bridges your CI/CD pipeline to your active Claude Code session. Deploy events arrive in real time; failures trigger automatic diagnosis; successes get celebrated.
 
@@ -22,13 +22,13 @@ Bridges your CI/CD pipeline to your active Claude Code session. Deploy events ar
 
 ```bash
 # 1. Start the local receiver (default port 7891)
-/ccc-ci init
+$ccc-ci init
 
 # 2. (Optional) pick a different port
-/ccc-ci init --port 8321
+$ccc-ci init --port 8321
 
 # 3. Expose publicly if your CI provider can't reach localhost
-/ccc-ci init --tunnel   # wraps with ngrok or cloudflared
+$ccc-ci init --tunnel   # wraps with ngrok or cloudflared
 ```
 
 `init` prints a webhook URL, copies it to clipboard, and emits ready-to-paste configs for each supported provider.
@@ -96,7 +96,7 @@ fly webhooks create --app myapp \
 GitHub Actions / Vercel / Fly.io / Railway
             │  (HTTPS POST, HMAC-signed)
             ▼
-   localhost:7891  ◄── /ccc-ci init (Node http.Server)
+   localhost:7891  ◄── $ccc-ci init (Node http.Server)
             │
    signature check (HMAC-SHA256)
             │  pass               │  fail
@@ -107,10 +107,10 @@ GitHub Actions / Vercel / Fly.io / Railway
    session bus (stdout pipe to Claude Code session)
             │
    skill router
-   ├── deploy_failed  → /ccc-doctor + fix proposal
+   ├── deploy_failed  → $ccc-doctor + fix proposal
    ├── test_failed    → debugger agent
    ├── deploy_succeeded → celebration + tweet draft
-   └── approval_required → /ccc-nightwatch relay
+   └── approval_required → $ccc-nightwatch relay
 ```
 
 ## Examples

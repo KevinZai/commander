@@ -1,6 +1,6 @@
 ---
 name: ccc-cheatsheet
-description: "CC Commander interactive discovery tool. Renders a live flow diagram of every /ccc-* workflow by reading the plugin directly as single source of truth. Use when the…"
+description: "CC Commander interactive discovery tool. Renders a live flow diagram of every $ccc-* workflow by reading the plugin directly as single source of truth. Use when the…"
 allowed-tools:
   - Read
   - Bash
@@ -12,7 +12,7 @@ allowed-tools:
 argument-hint: "[workflow name to drill into: plan | build | review | ship | design | learn | xray | linear | fleet | connect | start | browse]"
 ---
 
-# /ccc-cheatsheet — Interactive Discovery Tool
+# $ccc-cheatsheet — Interactive Discovery Tool
 
 Live, always-in-sync visual reference for the entire CC Commander plugin surface. Reads the plugin directly — no hardcoded skill list, no stale counts. Renders a Mermaid flow diagram (which Claude Desktop natively renders inline) + an AskUserQuestion navigator to drill into any workflow.
 
@@ -65,12 +65,12 @@ graph TD
     BUILD --> B2[api]
     BUILD --> B3[cli]
     BUILD --> B4[mobile]
-    BUILD --> B5[from spec → /ccc-plan]
+    BUILD --> B5[from spec → $ccc-plan]
 
     REVIEW --> R1[diff vs main]
     REVIEW --> R2[security OWASP]
     REVIEW --> R3[performance]
-    REVIEW --> R4[full x-ray → /ccc-xray]
+    REVIEW --> R4[full x-ray → $ccc-xray]
 
     SHIP --> S1[preflight]
     SHIP --> S2[release]
@@ -121,7 +121,7 @@ options:
     description: "Audit the current branch. Writes findings to tasks/reviews/."
     preview: "Next click: pick audit type → specialist agent runs in background"
   - label: "🗺️ Show me everything"
-    description: "Open /ccc-browse — filterable catalog of all 60 plugin skills + 22 agents."
+    description: "Open $ccc-browse — filterable catalog of all 60 plugin skills + 22 agents."
     preview: "Cascades: Domains (11) / Workflows (13) / Agents (17) / Full grid"
   - label: "👋 Skip — I've got this"
     description: "Close the cheatsheet, return to whatever I was doing."

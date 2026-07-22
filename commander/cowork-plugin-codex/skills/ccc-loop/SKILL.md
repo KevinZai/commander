@@ -3,7 +3,7 @@ name: ccc-loop
 description: "Loop taxonomy hub — turn/goal/time/proactive loops, /goal + /loop + /schedule guidance, the should-loop gate, verifier-separation, and state-file conventions for recurring agent work."
 ---
 
-# /ccc-loop — Loop Integration Guide
+# $ccc-loop — Loop Integration Guide
 
 Claude Code has **four loop primitives**, not one. This skill is the entry point for all of them — pick the right primitive before you reach for `/loop` by habit.
 
@@ -44,11 +44,11 @@ The key mechanic: when you define success criteria up front, Claude doesn't self
 **Worked examples using CCC skills as the target:**
 
 ```
-/goal run /ccc-review until there are zero 🔴 Critical or 🟠 High findings, stop after 5 passes
+/goal run $ccc-review until there are zero 🔴 Critical or 🟠 High findings, stop after 5 passes
 ```
 
 ```
-/goal get the /ccc-xray health score to 90 or above, stop after 5 tries
+/goal get the $ccc-xray health score to 90 or above, stop after 5 tries
 ```
 
 Both have a number to check against — "zero blockers," "score ≥ 90" — so the evaluator has something unambiguous to grade, not a vibe.
@@ -70,15 +70,15 @@ Both have a number to check against — "zero blockers," "score ≥ 90" — so t
 
 | Loop command | What it does | Best for |
 |---|---|---|
-| `/loop 5m /ccc-doctor` | Plugin health check every 5 min | Monitoring during active dev |
-| `/loop /ccc-review` | Self-paced branch audit, iterates until clean | Continuous code quality |
-| `/loop /ccc-suggest` | Always-on PM — improve/scope/audit lenses each tick, state-file-backed anti-nag | Ambient project intelligence during long sessions |
-| `/loop 30m /ccc-tasks` | Task list refresh on a half-hour cadence | Long work sessions |
-| `/loop /ccc-changelog` | Polls until a new release appears | Watching upstream deps |
-| `/loop 1h /ccc-xray` | Periodic project health scorecard | Background quality gate |
-| `/goal run /ccc-review until zero blocking findings, stop after 5 passes` | Deterministic stop instead of polling — no interval to guess at | Cleanup passes where "done" is a real number, not a schedule |
-| `/goal get /ccc-xray score to 90+, stop after 5 tries` | Same — quality gate expressed as a threshold, not a timer | Health-score-driven fix loops |
-| `/schedule nightly /ccc-devops security-scan` | Cloud routine, survives laptop close | Recurring infra/security checks (see `ccc-devops` § Routines Integration) |
+| `/loop 5m $ccc-doctor` | Plugin health check every 5 min | Monitoring during active dev |
+| `/loop $ccc-review` | Self-paced branch audit, iterates until clean | Continuous code quality |
+| `/loop $ccc-suggest` | Always-on PM — improve/scope/audit lenses each tick, state-file-backed anti-nag | Ambient project intelligence during long sessions |
+| `/loop 30m $ccc-tasks` | Task list refresh on a half-hour cadence | Long work sessions |
+| `/loop $ccc-changelog` | Polls until a new release appears | Watching upstream deps |
+| `/loop 1h $ccc-xray` | Periodic project health scorecard | Background quality gate |
+| `/goal run $ccc-review until zero blocking findings, stop after 5 passes` | Deterministic stop instead of polling — no interval to guess at | Cleanup passes where "done" is a real number, not a schedule |
+| `/goal get $ccc-xray score to 90+, stop after 5 tries` | Same — quality gate expressed as a threshold, not a timer | Health-score-driven fix loops |
+| `/schedule nightly $ccc-devops security-scan` | Cloud routine, survives laptop close | Recurring infra/security checks (see `ccc-devops` § Routines Integration) |
 
 Reach for `/goal` instead of `/loop` whenever "keep going until X is true" has a real number behind X — polling every 5 minutes to check if a score crossed 90 is strictly worse than an evaluator that checks the exact condition each pass.
 

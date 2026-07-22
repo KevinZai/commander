@@ -8,7 +8,7 @@ allowed-tools:
 argument-hint: "[setup | status | test | digest]"
 ---
 
-# /ccc-broadcast — Outbound Status Relay
+# $ccc-broadcast — Outbound Status Relay
 
 > Placeholders like `~~chat` and `~~email` refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -95,8 +95,8 @@ AskUserQuestion:
 ### Step 4 — Verify
 
 ```bash
-/ccc-broadcast test   # sends one sample message to each connected channel
-/ccc-broadcast status # shows audience map, noise level, and last 5 relays
+$ccc-broadcast test   # sends one sample message to each connected channel
+$ccc-broadcast status # shows audience map, noise level, and last 5 relays
 ```
 
 ## Concrete Examples

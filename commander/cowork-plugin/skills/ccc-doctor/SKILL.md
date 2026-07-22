@@ -32,6 +32,24 @@ if [ "$CLONE" != "n/a" ] && [ -d "$CLONE/commander/cowork-plugin" ]; then
   PLUGIN_SRC="$CLONE/commander/cowork-plugin"
 fi
 
+# Cache-only fallback (no marketplace clone — removed by the user, or an
+# install flow that never cloned): the INSTALLED runtime recorded in
+# installed_plugins.json is authoritative. SHAPE DIFFERENCE: the clone nests
+# the source at commander/cowork-plugin/; the cache installPath IS the plugin
+# source directly — no wrapper segment.
+if [ "$PLUGIN_SRC" = "n/a" ] && [ -f "$HOME/.claude/plugins/installed_plugins.json" ]; then
+  PLUGIN_SRC=$(node -e "
+    try {
+      const j=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
+      const rows=(j.plugins&&(j.plugins['commander@commander-hub']||j.plugins['commander']))||[];
+      const r=Array.isArray(rows)?rows[0]:rows;
+      if(r&&r.installPath) process.stdout.write(r.installPath);
+    } catch(e) {}
+  " 2>/dev/null || echo "")
+  [ -z "$PLUGIN_SRC" ] && PLUGIN_SRC="n/a"
+  [ "$PLUGIN_SRC" != "n/a" ] && [ ! -d "$PLUGIN_SRC" ] && PLUGIN_SRC="n/a"
+fi
+
 # ── Plugin version (from the marketplace clone's own plugin.json) ────
 PLUGIN_JSON="$PLUGIN_SRC/.claude-plugin/plugin.json"
 PLUGIN_VERSION="n/a"
@@ -329,13 +347,39 @@ report is diagnostic-only (see `/ccc-tuneup` for general remediation).
 
 ### Post-update verification (run after the user says they updated)
 
+Verify the **installed runtime**, not the marketplace clone — a successful
+`marketplace update` with a failed/unapplied `plugin update` leaves the clone
+new while the runtime stays old, and probing the clone would falsely report
+success.
+
 ```bash
-[ "$PLUGIN_SRC" != "n/a" ] && echo '{}' | node "$PLUGIN_SRC/hooks/session-end.js" | head -c 200 || echo "n/a — no clone to test against"
+# Installed runtime source + version (authoritative for what actually runs)
+RUNTIME_SRC=$(node -e "
+  try {
+    const j=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
+    const rows=(j.plugins&&(j.plugins['commander@commander-hub']||j.plugins['commander']))||[];
+    const r=Array.isArray(rows)?rows[0]:rows;
+    if(r&&r.installPath) process.stdout.write(r.installPath);
+  } catch(e) {}
+" 2>/dev/null || echo "")
+[ -z "$RUNTIME_SRC" ] || [ ! -d "$RUNTIME_SRC" ] && RUNTIME_SRC="$PLUGIN_SRC"
+
+RUNTIME_VERSION="n/a"
+[ "$RUNTIME_SRC" != "n/a" ] && RUNTIME_VERSION=$(node -e "
+  try { process.stdout.write(JSON.parse(require('fs').readFileSync('$RUNTIME_SRC/.claude-plugin/plugin.json','utf8')).version||'n/a'); }
+  catch(e) { process.stdout.write('n/a'); }
+" 2>/dev/null || echo "n/a")
+echo "RUNTIME_VERSION=$RUNTIME_VERSION"
+
+[ "$RUNTIME_SRC" != "n/a" ] && echo '{}' | node "$RUNTIME_SRC/hooks/session-end.js" | head -c 200 || echo "n/a — no installed runtime found to test"
 ```
 
 Expect a single JSON line back (e.g. `{"continue":true,...}`). That proves
-the hook chain in the newly-updated clone actually runs — not just that the
-version string changed.
+the hook chain in the RUNNING install works — not just that the clone's
+version string changed. If `RUNTIME_VERSION` still shows the old version
+while the clone shows the new one, say exactly that: the marketplace
+refreshed but `claude plugin update commander` didn't apply (or the app
+hasn't been restarted) — re-run the update step.
 
 ### Nuclear fix commands (paste into terminal if needed)
 

@@ -15,7 +15,7 @@ allowed-tools:
 argument-hint: "[template: web-app | api | cli | mobile | spec]"
 ---
 
-# /ccc-build — Scaffold a project
+# $ccc-build — Scaffold a project
 
 Click-first build flow. Four templates, one spec interview, one background agent. User clicks a tile, answers 3 questions, walks away — the scaffold lands in their worktree while they wait.
 
@@ -26,7 +26,7 @@ Output exactly these three sections in order:
 ### 1. Brand header (one line, markdown)
 
 ```
-**CC Commander** · /ccc-build · Scaffold a project or feature
+**CC Commander** · $ccc-build · Scaffold a project or feature
 ```
 
 ### 2. Context strip (one paragraph)

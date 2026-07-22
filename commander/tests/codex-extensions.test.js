@@ -243,16 +243,30 @@ test('translateSkill: (a) maps bare /ccc-<name> invocations inside backticks to 
   assert.ok(!out.includes('/ccc-build'), 'slash form must not survive translation');
 });
 
-test('translateSkill: (a) never touches /ccc- occurrences outside backticks or in URLs/paths', async () => {
+test('translateSkill: (a) never touches /ccc- in URLs or file paths; bare prose invocations DO rewrite', async () => {
   const translate = await import(adapterUrl('translate.js'));
 
-  const fixture =
+  // URLs and paths: the char before /ccc- is non-space/non-backtick — protected.
+  const protectedFixture =
     'See https://commanderplugin.com/ccc-build for docs, or the file at ' +
-    '`skills/ccc-build/SKILL.md`. Prose mentioning /ccc-build without ' +
-    'backticks should also be left alone.';
-  const out = translate.translateSkill(fixture);
+    '`skills/ccc-build/SKILL.md`.';
+  assert.equal(translate.translateSkill(protectedFixture).trim(), protectedFixture.trim());
 
-  assert.equal(out.trim(), fixture.trim());
+  // Bare prose/heading invocations are whitespace-preceded — on Codex the
+  // correct invocation form is $ccc-*, so these rewrite (v7.3.0 gate fix:
+  // invocation-position scoping replaced fragile backtick-span pairing).
+  assert.equal(translate.translateSkill('Run /ccc-build to start.'), 'Run $ccc-build to start.');
+
+  // Composite recipe inside one span (the adversarial-gate miss) + a
+  // triple-backtick fence above must not de-scope later spans (parity bug).
+  assert.equal(
+    translate.translateSkill('try `/loop 5m /ccc-doctor` then'),
+    'try `/loop 5m $ccc-doctor` then'
+  );
+  assert.equal(
+    translate.translateSkill('```bash\nfoo\n```\n- `/ccc-build` → picker'),
+    '```bash\nfoo\n```\n- `$ccc-build` → picker'
+  );
 });
 
 test('translateSkill: (b) rewrites only the plugin\'s own ${CLAUDE_PLUGIN_ROOT}-prefixed manifest path', async () => {

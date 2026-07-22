@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[open | status]"
 ---
 
-# /ccc-usage — Usage & Cost
+# $ccc-usage — Usage & Cost
 
 The money deck. CC Commander already logs your model routing to `~/.claude/commander/` — `savings.json` (what delegating to cheaper models saved vs an all-Opus baseline) and `mission-control/metrics.jsonl` (cost per app per day). This turns those into one page: cumulative savings, saved/day + cost/day trends, and a cost-by-app split.
 

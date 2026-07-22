@@ -11,11 +11,11 @@ allowed-tools:
 argument-hint: "[check | fix | report]"
 ---
 
-# /ccc-claudemd — CLAUDE.md Auditor
+# $ccc-claudemd — CLAUDE.md Auditor
 
 Compares the project's CLAUDE.md instructions against the real state of the codebase and proposes concrete fixes. **Nothing is edited without explicit AskUserQuestion approval** — the permission ask is native to this flow.
 
-**CC Commander** · /ccc-claudemd · Keep your instructions honest
+**CC Commander** · $ccc-claudemd · Keep your instructions honest
 
 > The ambient suggest engine recommends this skill when `claudeMdAgeDays > 30` (from the per-project state at `~/.claude/commander/projects/<slug>/project-state.json` — locate it with `ls -d ~/.claude/commander/projects/$(basename "$PWD")-*`; the flat pre-v7.3.0 path is no longer written). If the project has NO CLAUDE.md at all, route to `$ccc-adopt` instead — it owns the create flow (diff preview → approval → backup → delimited write).
 

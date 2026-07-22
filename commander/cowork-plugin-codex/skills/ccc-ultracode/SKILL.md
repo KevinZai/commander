@@ -8,7 +8,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-ultracode — Ultracode Mode
+# $ccc-ultracode — Ultracode Mode
 
 Ultracode flips two dials at once: **xhigh reasoning** (Opus 4.8 extended thinking) and **automatic dynamic-workflow orchestration** (Claude plans a multi-agent Workflow per substantial task instead of solving it in a single agent pass). The result is adversarially verified, multi-perspective output — at the cost of meaningfully more tokens.
 

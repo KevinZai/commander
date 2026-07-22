@@ -12,9 +12,9 @@ allowed-tools:
 argument-hint: "[--check]"
 ---
 
-# /ccc-adopt — Bring CCC Doctrine Into an Existing Project
+# $ccc-adopt — Bring CCC Doctrine Into an Existing Project
 
-**CC Commander** · /ccc-adopt · Adopt Orchestrator/Executor in your own repo
+**CC Commander** · $ccc-adopt · Adopt Orchestrator/Executor in your own repo
 
 ## Not to be confused with
 
@@ -88,7 +88,7 @@ options:
   - label: "Cancel"
     value: "cancel"
     description: "Don't create anything."
-    preview: "Re-run /ccc-adopt anytime once you have a CLAUDE.md."
+    preview: "Re-run $ccc-adopt anytime once you have a CLAUDE.md."
 ```
 
 If `HAS_MARKER=yes`, this is a re-run — plan an in-place replace of the existing block (between the start/end markers), not an append.
@@ -151,7 +151,7 @@ Print the tailored result as:
 ## Recommended CCC skills for this project
 
 Always:
-- /ccc-orchestrate · /ccc-plan-exec · /ccc-handoff · /ccc-xray · /ccc-review
+- $ccc-orchestrate · $ccc-plan-exec · $ccc-handoff · $ccc-xray · $ccc-review
 
 For this stack (<detected stack>):
 - <pointer 1> — <one-line why>
@@ -179,7 +179,7 @@ options:
   - label: "Cancel"
     value: "cancel"
     description: "Make no changes."
-    preview: "Re-run /ccc-adopt anytime."
+    preview: "Re-run $ccc-adopt anytime."
 ```
 
 On `--check`: stop after Step 4's printed plan — never reach this prompt, never write.
@@ -212,7 +212,7 @@ Both must equal `1`. If not, restore from the backup and report the failure.
 💾 Backup: CLAUDE.md.backup-<timestamp>
 🎯 Stack detected: <stack> (<package manager>)
 📌 Skill pointers added: <count> stack-specific + 5 universal
-⏭️ Next: try /ccc-orchestrate on your next multi-step task
+⏭️ Next: try $ccc-orchestrate on your next multi-step task
 ```
 
 ## Anti-patterns — DO NOT

@@ -12,7 +12,7 @@ allowed-tools:
 argument-hint: "[--check | --fix | --aggressive]"
 ---
 
-# /ccc-tuneup — Local Setup Optimizer
+# $ccc-tuneup — Local Setup Optimizer
 
 The companion to `$ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remediates* — but safely: read-only scan first, backup before any edit, archive (never `rm`) for junk, and an explicit click-to-confirm before anything mutates.
 
@@ -212,7 +212,7 @@ Verdict semantics: `ok` = satisfies intent (do not surface); `missing` = key uns
 | 🤖 Local agent supersession | 🟡 | architect.md → plugin version supersedes | Retire local |
 | 🪝 Hooks coverage | 🟢 | 23/23 events, all handlers resolve | — |
 | 🔌 Plugin enabled | 🟢/🔴 | commander in enabledPlugins | Enable in Settings |
-| 🌐 Opt-in MCP staleness | 🟡 | context7 path missing | Re-run /ccc-connect |
+| 🌐 Opt-in MCP staleness | 🟡 | context7 path missing | Re-run $ccc-connect |
 | ⚙️ Settings keys | 🟡 | showThinkingSummaries absent | Promote 3 keys |
 | 💰 Cost settings | 🟡 | N spend-reducing keys missing/suboptimal (effortLevel=xhigh, …) | Suggest only (copy-paste) |
 | 🗂️ Stale sessions (opt-in) | ⚪ | N files >30d | Archive (--aggressive only) |
@@ -271,7 +271,7 @@ options:
     preview: "OFF by default. --aggressive pre-selects this. Frees clutter; transcripts preserved."
   - label: "❌ Cancel"
     description: "Make no changes."
-    preview: "Re-run anytime with /ccc-tuneup."
+    preview: "Re-run anytime with $ccc-tuneup."
 ```
 
 With `--aggressive`, also pre-select the two OFF-by-default items. The "Fix CLAUDE.md counts" option is only shown when `CLAUDE_MD_MODE=maintainer` AND drift was detected.
@@ -366,7 +366,7 @@ claude plugin update commander
 #
 # To stop needing step 1 by hand: set "autoUpdate": true on the
 # "commander-hub" entry in ~/.claude/plugins/known_marketplaces.json
-# (or via the /plugin menu, if offered). /ccc-doctor offers to do this
+# (or via the /plugin menu, if offered). $ccc-doctor offers to do this
 # for you with a backup + confirmation.
 ```
 
@@ -388,7 +388,7 @@ If any fix introduced a regression: restore the matching `*.backup-<TS>` for tha
 ✅ Fixed: <list each fix applied>
 🗂️ Archived (reversible): ~/.claude/commander/tuneup-archive/<stamp>/  (restore: mv <path> back)
 💾 Backups: <each *.backup-stamp path>
-⏭️ You must run by hand: git pull + Desktop restart (version), /ccc-connect re-run (MCP staleness)
+⏭️ You must run by hand: git pull + Desktop restart (version), $ccc-connect re-run (MCP staleness)
 ```
 
 For anything heavy/out-of-scope, offer ONE `mcp__ccd_session__spawn_task` chip (e.g. "deep-clean stale sessions older than 90d — review before deleting"). Never auto-spawn.

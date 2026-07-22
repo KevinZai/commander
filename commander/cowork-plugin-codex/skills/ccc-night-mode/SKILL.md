@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[night | yolo | status | cancel]"
 ---
 
-# /ccc-night-mode — Autonomous overnight build
+# $ccc-night-mode — Autonomous overnight build
 
 > Placeholders like ~~project tracker refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

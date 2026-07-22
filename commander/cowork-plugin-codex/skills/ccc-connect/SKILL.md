@@ -9,11 +9,11 @@ allowed-tools:
 argument-hint: "[tasks | backend | hosting | cache | knowledge | comms | observability | billing | automation | agent-harness | email | research | productivity | dev | design]"
 ---
 
-# /ccc-connect — MCP Connector Wizard
+# $ccc-connect — MCP Connector Wizard
 
 Click-to-connect opt-in MCP servers. Never auto-installs — always user-initiated.
 
-## Affiliate disclosure (ALWAYS show at top of every /ccc-connect response)
+## Affiliate disclosure (ALWAYS show at top of every $ccc-connect response)
 
 ```
 💸 Some links below are affiliate — CCC may earn a commission at no cost to you.

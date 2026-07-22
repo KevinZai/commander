@@ -1,6 +1,6 @@
 ---
 name: ccc-spawn
-description: "Click-first spawn hub — spin isolated work into its own session on demand: a spawn_task chip in Cowork, a /spawn peer in the CLI. Also routes to /ccc-fleet or /ccc-relay."
+description: "Click-first spawn hub — spin isolated work into its own session on demand: a spawn_task chip in Cowork, a /spawn peer in the CLI. Also routes to $ccc-fleet or $ccc-relay."
 allowed-tools:
   - Read
   - Bash
@@ -8,7 +8,7 @@ allowed-tools:
 argument-hint: "[isolated | fleet | relay | expert | status]"
 ---
 
-# /ccc-spawn — Spawn Hub
+# $ccc-spawn — Spawn Hub
 
 Spin work off into its **own session** on demand — the manual counterpart to the automatic isolation-spawn nudge (`suggest-ticker`). One click-first entry point that routes to the right spawn mechanism for what you're doing, and for the surface you're on.
 

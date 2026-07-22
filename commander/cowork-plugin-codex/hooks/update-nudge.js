@@ -30,8 +30,14 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h — also the "don't repeat the 
 const MARKETPLACE = 'commander-hub';
 const PLUGIN_ID = 'commander';
 
+// STRICT full-string match — nothing but digits and dots. The remote value is
+// attacker-controllable (a compromised GitHub manifest), and whatever passes
+// here is interpolated into model-facing context: an unanchored pattern would
+// let `7.4.0<arbitrary instructions>` through as a prompt-injection vector.
+// Prerelease/suffixed versions are deliberately rejected too (treated as
+// unknown → silent) — release versions in this repo are always plain X.Y.Z.
 function isValidVersion(v) {
-  return typeof v === 'string' && /^\d+\.\d+\.\d+/.test(v);
+  return typeof v === 'string' && /^\d+\.\d+\.\d+$/.test(v);
 }
 
 function semverGt(a, b) {
@@ -125,6 +131,7 @@ export async function run({ env = process.env, fetchText = defaultFetchText, now
     const fresh =
       cache &&
       typeof cache.checkedAt === 'number' &&
+      cache.checkedAt <= nowMs && // a future timestamp (clock skew, tampered cache) is stale, not immortal
       cache.installed === localVersion &&
       nowMs - cache.checkedAt < CACHE_TTL_MS;
 
@@ -144,7 +151,16 @@ export async function run({ env = process.env, fetchText = defaultFetchText, now
     }
 
     const outdated = semverGt(remoteVersion, localVersion);
-    await writeCache(env, { installed: localVersion, latest: remoteVersion, outdated, checkedAt: nowMs });
+    // `status` is the cross-hook contract (suggest-ticker.js keys on
+    // status === 'outdated'); the `outdated` boolean is kept alongside for
+    // any reader that predates the contract.
+    await writeCache(env, {
+      installed: localVersion,
+      latest: remoteVersion,
+      outdated,
+      status: outdated ? 'outdated' : 'current',
+      checkedAt: nowMs,
+    });
 
     if (!outdated) return emitSilent();
 

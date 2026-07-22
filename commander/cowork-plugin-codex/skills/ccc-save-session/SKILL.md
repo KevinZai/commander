@@ -5,7 +5,7 @@ model: sonnet
 effort: medium
 ---
 
-# /ccc-save-session — Save Session State
+# $ccc-save-session — Save Session State
 
 Capture everything that happened in this session — what was built, what worked, what failed, what is left — and write it to a dated file so the next session can pick up exactly where this one left off.
 

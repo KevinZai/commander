@@ -9,7 +9,7 @@ allowed-tools:
 argument-hint: "[feature idea or design question in quotes]"
 ---
 
-# /ccc-brainstorm — Design-First Ideation Gate
+# $ccc-brainstorm — Design-First Ideation Gate
 
 Before writing code or specs, generate 3 distinct alternatives. Forces designer-mode thinking and surfaces tradeoffs early. No code is written during this skill — only decisions are made.
 
@@ -130,7 +130,7 @@ Never write code or create files during this skill.
 ### Example 1 — Choosing an auth strategy
 
 ```
-/ccc-brainstorm "auth strategy for a B2B SaaS — do I use Clerk, Auth.js, or roll my own JWT?"
+$ccc-brainstorm "auth strategy for a B2B SaaS — do I use Clerk, Auth.js, or roll my own JWT?"
 ```
 
 Agent A returns: "Roll your own JWT — dead simple, no vendor lock-in, 4 hours to ship."
@@ -139,12 +139,12 @@ Agent C returns: "Clerk + magic links — passwordless UX, branded email, zero f
 
 Matrix surfaces: Clerk is highly reversible (eject any time), Auth.js needs infra, custom JWT is medium-risk.
 
-Decision chip: user picks Path B (Clerk). Output locks: "Chosen: Clerk. Tradeoff: $25/mo vs. zero maintenance overhead. Next: /ccc-plan."
+Decision chip: user picks Path B (Clerk). Output locks: "Chosen: Clerk. Tradeoff: $25/mo vs. zero maintenance overhead. Next: $ccc-plan."
 
 ### Example 2 — Picking a database
 
 ```
-/ccc-brainstorm "should this app use Postgres, SQLite, or Turso for a low-traffic personal tool?"
+$ccc-brainstorm "should this app use Postgres, SQLite, or Turso for a low-traffic personal tool?"
 ```
 
 Agent A: SQLite — single file, zero ops, works locally and on Fly.io with LiteFS.
@@ -156,7 +156,7 @@ Matrix shows SQLite reversibility is easy (file copy = backup), Postgres medium,
 ### Example 3 — Design system pick
 
 ```
-/ccc-brainstorm "shadcn/ui vs Radix primitives vs Tailwind UI for a dashboard project"
+$ccc-brainstorm "shadcn/ui vs Radix primitives vs Tailwind UI for a dashboard project"
 ```
 
 Agent A: shadcn/ui — copy-paste components, no runtime dependency, full ownership.

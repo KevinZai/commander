@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[yesterday | today | blockers]"
 ---
 
-# /ccc-standup — Standup generator
+# $ccc-standup — Standup generator
 
 > Placeholders like ~~source control refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 

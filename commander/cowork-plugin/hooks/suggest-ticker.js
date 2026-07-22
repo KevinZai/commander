@@ -721,15 +721,17 @@ function maybeTickerSignalNotes(state, signals) {
  * suggestions.jsonl producer (CC-1386 W4 item 14 — codex finding 11). Any
  * ticker signal at confidence >= 0.8 also gets appended to Commander Mission
  * Control's suggestions feed so its Suggestions panel has a real producer.
- * Deduped by key: id === sig.key, skipped when an open ("new") suggestion
- * with that id already exists (readSuggestions() first, per lib/suggestions.js's
- * documented shape — never writes a second creation line for the same id).
+ * Deduped by key: id === sig.key, skipped when ANY suggestion with that id
+ * already exists — regardless of status. A dismissed/promoted suggestion must
+ * stay dead (appending a fresh creation line would resurrect it in the
+ * latest-wins merge); genuinely new situations mint new ids because keys are
+ * content-versioned (update-<latest>, stale-telemetry-<weekBucket>).
  * Fails open — a broken producer must never affect the hook chain.
  */
 async function produceSuggestion(sig) {
   try {
     const existing = await readSuggestions();
-    if (existing.some(s => s.id === sig.key && s.status === 'new')) return;
+    if (existing.some(s => s.id === sig.key)) return;
     await appendSuggestion({
       id: sig.key,
       from: 'suggest-ticker',

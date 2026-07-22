@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# /ccc-data — Data domain hub
+# $ccc-data — Data domain hub
 
 > Load ONE skill. Get the entire data domain. 8 skills in one.
 

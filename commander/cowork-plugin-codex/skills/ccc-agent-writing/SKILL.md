@@ -8,7 +8,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-agent-writing — Agent writing craft
+# $ccc-agent-writing — Agent writing craft
 
 ## Overview
 

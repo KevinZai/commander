@@ -6,7 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# /ccc-saas — SaaS domain hub
+# $ccc-saas — SaaS domain hub
 
 > Load ONE skill. Get the entire SaaS stack. 21 skills from scaffold to scale.
 

@@ -8,7 +8,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /ccc-debate — Adversarial Multi-Agent Debate (Antfooding)
+# $ccc-debate — Adversarial Multi-Agent Debate (Antfooding)
 
 Debate mode pits **N agents against each other** on a single design, plan, or diff. Each argues from a distinct lens (security, performance, maintainability, product, contrarian), critiques the others' positions, and the strongest objections survive. A judge synthesizes a single ruled verdict. This is **antfooding** — you stress-test your own work by adversarially eating it before reality does.
 

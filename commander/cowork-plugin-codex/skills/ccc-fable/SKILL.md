@@ -13,9 +13,9 @@ allowed-tools:
 argument-hint: "[on | status | audit | off]"
 ---
 
-# /ccc-fable — Arm the Fable Method
+# $ccc-fable — Arm the Fable Method
 
-**CC Commander** · /ccc-fable · The operating doctrine distilled from Claude Fable 5, encoded as 12 gates so any model produces Fable-shaped results.
+**CC Commander** · $ccc-fable · The operating doctrine distilled from Claude Fable 5, encoded as 12 gates so any model produces Fable-shaped results.
 
 ## What this skill does
 

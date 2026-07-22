@@ -13,7 +13,7 @@ allowed-tools:
 argument-hint: "[quick | full | security | deps | perf]"
 ---
 
-# /ccc-xray — Project Health Scorecard
+# $ccc-xray — Project Health Scorecard
 
 Scan this repo and return a scorecard. Click-first UX — the user never types a number.
 

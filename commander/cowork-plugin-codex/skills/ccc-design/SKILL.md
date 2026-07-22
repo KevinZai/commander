@@ -1,7 +1,7 @@
 ---
 name: ccc-design
 context: fork
-description: "click-first picker over 41 design skills. Landing pages, component systems, polish, Figma→code, named looks, design capture. Use when the user types /ccc-design, asks to 'design a landing…"
+description: "click-first picker over 41 design skills. Landing pages, component systems, polish, Figma→code, named looks, design capture. Use when the user types $ccc-design, asks to 'design a landing…"
 allowed-tools:
   - Read
   - Write
@@ -15,7 +15,7 @@ allowed-tools:
 argument-hint: "[intent: landing | components | polish | figma]"
 ---
 
-# /ccc-design — Design domain hub
+# $ccc-design — Design domain hub
 
 Click-first picker over the design domain (41 sub-skills). User picks an intent in one click — we route to the right sub-skill or agent. No text menus, no numbered lists.
 
@@ -60,7 +60,7 @@ options:
     preview: "Runs critique → clarify → (bolder | distill) → polish pipeline."
   - label: "🎨 Figma → code"
     description: "Paste a Figma URL, get production React + Tailwind."
-    preview: "Needs figma MCP connected. Otherwise prompts /ccc-connect figma first."
+    preview: "Needs figma MCP connected. Otherwise prompts $ccc-connect figma first."
 ```
 
 **Recommendation logic** (prepend ⭐ to ONE option):

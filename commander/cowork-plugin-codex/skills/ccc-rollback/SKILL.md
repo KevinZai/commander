@@ -11,9 +11,9 @@ allowed-tools:
 argument-hint: "[target: last-good | tag | n-back]"
 ---
 
-# /ccc-rollback — Revert + Redeploy
+# $ccc-rollback — Revert + Redeploy
 
-**CC Commander** · /ccc-rollback · Pick target → revert commits → deploy → verify
+**CC Commander** · $ccc-rollback · Pick target → revert commits → deploy → verify
 
 Use this when production is bad and the safest path is an atomic revert commit followed by a fresh deploy. This workflow preserves history and always redeploys through `$ccc-deploy`.
 
@@ -24,7 +24,7 @@ Always return these sections:
 1. Brand header:
 
 ```markdown
-**CC Commander** · /ccc-rollback · Revert + redeploy
+**CC Commander** · $ccc-rollback · Revert + redeploy
 ```
 
 2. Current state strip:
@@ -62,7 +62,7 @@ options:
   - label: "Specific tag"
     value: "tag"
     description: "Pick a release tag such as v4.0.0-beta.10."
-    preview: "Reverts commits after the tag, pushes, then runs /ccc-deploy."
+    preview: "Reverts commits after the tag, pushes, then runs $ccc-deploy."
   - label: "N versions back"
     value: "n-back"
     description: "Choose how many release tags back to restore."
@@ -160,7 +160,7 @@ Before pushing, summarize:
 Rollback target: <target-label>
 Commits reverted: <N>
 New revert commit: <sha>
-Deploy command: /ccc-deploy
+Deploy command: $ccc-deploy
 ```
 
 Ask for confirmation, then push:

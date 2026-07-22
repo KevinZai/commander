@@ -8,7 +8,7 @@ allowed-tools:
 argument-hint: "[setup | status | test]"
 ---
 
-# /ccc-nightwatch — Remote YOLO Control
+# $ccc-nightwatch — Remote YOLO Control
 
 Run Claude Code autonomously overnight. Approve or deny tool use from your phone via Telegram or Discord. A PreToolUse hook intercepts every tool call, classifies it by risk, and either auto-allows, asks you, or hard-blocks — no sitting at the terminal required.
 
