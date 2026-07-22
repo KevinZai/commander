@@ -74,6 +74,36 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ---
 
+## ⬆️ Updating
+
+Third-party plugin marketplaces don't auto-refresh by default, so "I have
+an old version" is usually a stale local cache, not a missing release.
+
+```
+/plugin marketplace update commander-hub
+/plugin update commander
+```
+
+Then **fully quit and reopen** Claude Code / Cowork Desktop (Cmd+Q — a
+closed window is not enough) to apply. Same thing from the CLI in one line:
+
+```bash
+claude plugin marketplace update commander-hub && claude plugin update commander
+```
+
+Click-first walkthrough (detects your version, runs the two commands,
+verifies afterward): **`/ccc-update`**. Full diagnostic — including
+whether you're stuck on an old cached version and why — is **`/ccc-doctor`**.
+
+**Skip the manual step next time:** set `"autoUpdate": true` on the
+`commander-hub` entry in `~/.claude/plugins/known_marketplaces.json` (or
+toggle it in the `/plugin` menu, if your build offers one). `/ccc-doctor`
+offers to do this for you, with a backup taken first.
+
+More detail: [Upgrade guide](https://commanderplugin.com/plugin/upgrade) · [Install recovery (stuck installs)](https://commanderplugin.com/install-recovery)
+
+---
+
 ## 🌐 One plugin, every agent
 
 > **Commander is a PM layer for whichever AI coding tool you use.** Same 80 skills, same 22 specialist agents, same lifecycle hooks — different install path per platform. The package name stays `commander` everywhere; the surrounding UI (Claude Code, Codex, Cursor, etc.) provides the platform context.

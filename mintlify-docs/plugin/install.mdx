@@ -78,6 +78,16 @@ Expected: the hub opens with 6 intent chips (Build, Review, Ship, Design, Learn,
   </Card>
 </CardGroup>
 
+## Staying up to date
+
+By default you'll refresh manually — see the [Upgrade guide](/plugin/upgrade)
+for the exact two-command sequence. To have new releases fetched in the
+background automatically, set `"autoUpdate": true` on the `commander-hub`
+entry in `~/.claude/plugins/known_marketplaces.json` (or run `/ccc-doctor`,
+which offers to do this for you). Even with auto-update on, `/plugin update
+commander` + a restart is still what applies the new version to your
+running session.
+
 ## Core Free Forever
 
 All 80 plugin skills, 22 specialist agents, 23 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors are core free forever. No credit card, no feature gating. Visit [commanderplugin.com](https://commanderplugin.com) for details.

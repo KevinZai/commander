@@ -29,20 +29,28 @@ echo "SECTION:CLONE"
 
 CLONE="${1:-}"
 if [ -z "$CLONE" ]; then
-  CLONE="$HOME/.claude/plugins/marketplaces/commander-hub/commander"
+  CLONE="$HOME/.claude/plugins/marketplaces/commander-hub"
 fi
 if [ ! -d "$CLONE" ]; then
-  # Try installed_plugins.json
+  # Fall back to the authoritative source: known_marketplaces.json's
+  # installLocation for commander-hub. Deliberately NOT
+  # installed_plugins.json's installPath here — that field points into
+  # plugins/cache/<mp>/<plugin>/<version>/, a DIFFERENT directory shape
+  # (the resolved plugin-source subtree, no repo wrapper). Conflating the
+  # two under one CLONE var breaks every downstream commander/cowork-plugin/
+  # join below (verified: it silently resolved to a non-existent doubled
+  # path before this fix).
   CLONE=$(node -e "
     try {
       const fs=require('fs');
-      const d=JSON.parse(fs.readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
-      const k=Object.keys(d.plugins||{}).find(k=>k.startsWith('commander'));
-      if(k&&d.plugins[k]&&d.plugins[k][0]) process.stdout.write(d.plugins[k][0].installPath||'');
+      const d=JSON.parse(fs.readFileSync(process.env.HOME+'/.claude/plugins/known_marketplaces.json','utf8'));
+      const m=d['commander-hub'];
+      if(m&&m.installLocation) process.stdout.write(m.installLocation);
     } catch(e) {}
   " 2>/dev/null || echo "")
 fi
 [ -z "$CLONE" ] && CLONE="n/a"
+[ "$CLONE" != "n/a" ] && [ ! -d "$CLONE" ] && CLONE="n/a"
 echo "CLONE=$CLONE"
 
 # ---------------------------------------------------------------------------
@@ -215,7 +223,7 @@ if [ -f "$SETTINGS" ]; then
 
   # Installed-but-disabled: clone present in marketplace but not actively enabled.
   if { [ "$PLUGIN_ENABLED" = "disabled" ] || [ "$PLUGIN_ENABLED" = "missing" ]; } \
-     && [ -d "$HOME/.claude/plugins/marketplaces/commander-hub/commander" ]; then
+     && [ "$CLONE" != "n/a" ] && [ -d "$CLONE/commander" ]; then
     PLUGIN_DISABLED_INSTALLED=yes
   fi
 fi

@@ -11,6 +11,7 @@ const HOOKS_JSON = path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'hooks.j
 const ORCHESTRATOR_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js"';
 const LICENSE_CHECK_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js"';
 const GIT_TRUTH_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/git-truth.js"';
+const UPDATE_NUDGE_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/update-nudge.js"';
 const FORMER_SESSION_START_HANDLERS = [
   'session-start.js',
   'stale-claude-md-nudge.js',
@@ -31,16 +32,28 @@ function sessionStartCommands(config) {
 test('hooks.json registers exactly one SessionStart entry group', () => {
   const config = readHooksConfig();
 
-  // One entry group (array of length 1) containing orchestrator + license-check + git-truth.
+  // One entry group (array of length 1) containing orchestrator + license-check + git-truth + update-nudge.
   assert.equal(config.hooks.SessionStart.length, 1);
-  // That group has exactly three hooks.
-  assert.equal(sessionStartCommands(config).length, 3);
+  // That group has exactly four hooks.
+  assert.equal(sessionStartCommands(config).length, 4);
 });
 
-test('SessionStart entry contains orchestrator, license-check, and git-truth', () => {
+test('SessionStart entry contains orchestrator, license-check, git-truth, and update-nudge', () => {
   const config = readHooksConfig();
 
-  assert.deepEqual(sessionStartCommands(config), [ORCHESTRATOR_COMMAND, LICENSE_CHECK_COMMAND, GIT_TRUTH_COMMAND]);
+  assert.deepEqual(sessionStartCommands(config), [
+    ORCHESTRATOR_COMMAND,
+    LICENSE_CHECK_COMMAND,
+    GIT_TRUTH_COMMAND,
+    UPDATE_NUDGE_COMMAND,
+  ]);
+});
+
+test('update-nudge is registered async: true (never blocks session start)', () => {
+  const config = readHooksConfig();
+  const entry = config.hooks.SessionStart[0].hooks.find((h) => h.command === UPDATE_NUDGE_COMMAND);
+  assert.ok(entry, 'update-nudge.js must be registered in the SessionStart group');
+  assert.equal(entry.async, true, 'update-nudge.js must be async: true');
 });
 
 test('former individual SessionStart handlers are no longer directly registered', () => {
