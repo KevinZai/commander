@@ -24,7 +24,7 @@ From multi-source deep dives to spec interviews to cross-model validation — st
 | 5 | competitive-analysis | `/competitive-analysis` | Analyze competing products/tools/libraries for feature comparison |
 | 6 | data-ingestion | `/data-ingestion` | Ingest and summarize large documents, codebases, or datasets |
 | 7 | trend-analysis | `/trend-analysis` | Analyze trends in technology, markets, or usage patterns |
-| 8 | gemini-fallback | `/gemini-fallback` | Use Gemini's 1M context window for tasks that exceed Claude's context |
+| 8 | large-context | `/large-context` | Opus 5 has a 1M window natively — reduce, chunk-and-synthesize, then Codex CLI for mechanical execution |
 
 ## Routing Matrix
 
@@ -37,7 +37,7 @@ From multi-source deep dives to spec interviews to cross-model validation — st
 | "Compare these tools / what's the competition doing?" | `competitive-analysis` |
 | "Summarize this codebase" | `data-ingestion` |
 | "What's trending in X?" | `trend-analysis` |
-| "This is too big for Claude's context" | `gemini-fallback` |
+| "This is too big for one pass" | `large-context` |
 
 ## New Project Research Flow
 

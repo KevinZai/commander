@@ -162,7 +162,7 @@ Override per-task via `hermes.escalate({ force: "opus" | "hermes" })`.
 - **Auth model:** Single shared bridge token. No per-user scoping yet — anyone with the token has full agent access.
 - **Anthropic MAX disabled-billing edge case:** If the MAX account is `disabled_billing`, escalations to Opus fall back per ClaudeSwap chains. The bridge surfaces a `degraded` status but continues.
 - **Restart blast radius:** Restarting the gateway drops all in-flight bridge calls. Do not restart without Kevin's explicit approval.
-- **Codex sandbox:** Codex `exec` cannot write files. If Hermes routes a write task to a Codex worker, the bridge auto-escalates to Claude Code or `gemini --yolo`.
+- **Codex sandbox:** Codex `exec` is read-only by default. If Hermes routes a write task to a Codex worker, either pass `-s workspace-write` (inside an isolated worktree only) or escalate to Claude Code. There is no third-party fallback — Commander routes to Anthropic models and the Codex CLI only.
 
 See `~/clawd/CLAUDE.md` and `~/clawd/shared/INTER-AGENT-PROTOCOL.md` for the full Hermes architecture and channel-to-agent binding table.
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## [7.3.2] - 2026-07-28
+
+### Changed
+- **Anthropic + Codex CLI only.** Commander no longer routes work to Gemini or to any
+  local-inference runtime. The Gemini adapter is removed and the executor preference
+  order is now `claude` → `codex`. This is a deliberate product constraint: it keeps
+  behaviour predictable and every documented workflow reproducible on a stock install.
+- **`ccc-research/gemini-fallback` → `ccc-research/large-context`.** The old skill
+  existed to escape "Claude's 200K limit" by routing to a third-party 1M-context
+  model. Both halves of that premise are gone — Opus 5 is 1M by default — so it is
+  rewritten as a ladder: use the window, reduce the input, chunk-and-synthesize, then
+  hand mechanical execution to the Codex CLI.
+- `ccc-hermes` no longer documents a `gemini --yolo` escalation for Codex write tasks;
+  it points at `-s workspace-write` inside an isolated worktree, or Claude Code.
+- `service-detector` still *detects* a local Ollama for status display, but now carries
+  an explicit note that Commander never routes work to it.
+- Removed the `features/local-llm` documentation page and its nav entry.
+- README's roadmap row promoted: the Codex native plugin runtime ships today (generated
+  by `npm run build:codex`); the Gemini runtime row is gone.
+
 ## [7.3.1] - 2026-07-28
 
 ### Fixed
