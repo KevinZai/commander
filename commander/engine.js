@@ -523,7 +523,7 @@ class KitCommander {
       var dispPlan = pluginsMod.buildDispatchPlan(det);
       var pluginInstructions = dispPlan.filter(function(s){return s.hasPlugin;}).map(function(s){return s.name + ": use " + s.tool;}).join(". ");
       var prompt = "## CCC Project Manager (Opus)\n" +
-        "You are a senior PM. ALWAYS plan first (Opus reasoning), delegate ALL implementation to Sonnet workers, then audit ALL results yourself (Opus).\n\n" +
+        "You are a senior PM. ALWAYS plan first, then delegate implementation to Sonnet workers when the work is large, genuinely independent and parallelizable — not when you could finish it in a handful of tool calls. Keep spawn counts low. Verify load-bearing results yourself, preferring deterministic checks (tests, gates, diffs) over spawning a verifier.\n\n" +
         "## Workflow\n" +
         "1. UNDERSTAND: Ask clarifying questions via AskUserQuestion.\n" +
         "2. RECOMMEND: Present 2-3 approaches with reasoning. Suggest CCC skill and why.\n" +

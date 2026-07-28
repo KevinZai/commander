@@ -541,7 +541,11 @@ function isVersionRelevant(content, index, matchLen) {
   var after = content.slice(index + (matchLen || 0), index + (matchLen || 0) + 45);
   // "vX ships…", "vX corrects…", "update to vX or later" — the number names the
   // release that did the thing (or the remediation floor), not the current version.
-  if (/^\)?\s*(ships?\b|makes?\b|release note\b|corrects?\b|fixes?\b|or later\b)/i.test(after)) return false;
+  // EXCEPT when the product name leads it ("CC Commander v7.3.1 ships as a native
+  // plugin") — that is a current-state assertion and must still be checked, or the
+  // guard silently blinds the gate to the very line it is meant to keep fresh.
+  var productLed = /\b(CC Commander|Commander|CCC)\s+v?$/i.test(before);
+  if (!productLed && /^\)?\s*(ships?\b|makes?\b|release note\b|corrects?\b|fixes?\b|or later\b)/i.test(after)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
 }
 
@@ -686,7 +690,11 @@ function replaceNamedNumber(content, regex, expected, min, guard) {
     if (min && Number(groups.value) < min) return match;
     // Mirror the checker's relevance filter so --patch only rewrites what --check flags
     // (never host CLI versions like "Claude Code v2.1.154", dep ranges, or historical refs).
-    if (guard && !guard(content, offset, groups.value)) return match;
+    // match.length matters: isVersionRelevant inspects the text AFTER the match, and
+    // without a length it would inspect the match itself, silently disabling every
+    // trailing guard during --patch while --check kept working. That asymmetry is how
+    // --patch kept corrupting historical refs the checker correctly left alone.
+    if (guard && !guard(content, offset, groups.value, match.length)) return match;
     var index = match.indexOf(groups.value);
     if (index === -1) return match;
     return match.slice(0, index) + String(expected) + match.slice(index + groups.value.length);
@@ -701,10 +709,11 @@ function patchText(content, contract) {
     }
   });
   var versionRule = makeVersionRule(contract);
-  patched = replaceNamedNumber(patched, versionRule.regex, contract.version, versionRule.min, function(text, offset, value) {
-    // Same guard scanVersionRule uses: skip values already at target, and only
-    // patch product-version tokens in a relevant context (not host CLI / deps / history).
-    return value !== contract.version && isVersionRelevant(text, offset);
+  patched = replaceNamedNumber(patched, versionRule.regex, contract.version, versionRule.min, function(text, offset, value, matchLen) {
+    // Same guard scanVersionRule uses — and it MUST be called the same way, with the
+    // match length, or the trailing guards go dead and --patch rewrites history that
+    // --check deliberately skipped.
+    return value !== contract.version && isVersionRelevant(text, offset, matchLen);
   });
   return patched;
 }

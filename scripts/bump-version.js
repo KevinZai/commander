@@ -34,8 +34,13 @@ var MANIFESTS = [
   path.join(ROOT, 'apps', 'mcp-server-cloud', 'package.json'),
 ];
 
-// Also update the lockfile version field (top-level + packages[""] entry)
-var LOCKFILE = path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json');
+// Also update lockfile version fields (top-level + packages[""] entry).
+// The ROOT lockfile was missing here until 7.3.1 and had silently shipped a
+// release behind; check-version-parity.js now asserts both of its fields.
+var LOCKFILES = [
+  path.join(ROOT, 'package-lock.json'),
+  path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json'),
+];
 
 // ATOMIC TWO-PHASE UPDATE:
 // Phase 1 — read + parse + mutate all files into an in-memory plan.
@@ -82,20 +87,22 @@ function buildPlan() {
     });
   }
 
-  // Lockfile has version in two places: top-level + packages[""].version
-  var lockRaw = fs.readFileSync(LOCKFILE, 'utf8');
-  var lock = JSON.parse(lockRaw);
-  var lockPrev = lock.version;
-  lock.version = version;
-  if (lock.packages && lock.packages['']) {
-    lock.packages[''].version = version;
-  }
-  plan.push({
-    path: LOCKFILE,
-    beforeBytes: lockRaw,
-    afterBytes: JSON.stringify(lock, null, 2) + '\n',
-    tempPath: LOCKFILE + '.bump-tmp',
-    summary: ['apps/mcp-server-cloud/package-lock.json (' + lockPrev + ' -> ' + version + ')'],
+  // Each lockfile has version in two places: top-level + packages[""].version
+  LOCKFILES.forEach(function (lockfile) {
+    var lockRaw = fs.readFileSync(lockfile, 'utf8');
+    var lock = JSON.parse(lockRaw);
+    var lockPrev = lock.version;
+    lock.version = version;
+    if (lock.packages && lock.packages['']) {
+      lock.packages[''].version = version;
+    }
+    plan.push({
+      path: lockfile,
+      beforeBytes: lockRaw,
+      afterBytes: JSON.stringify(lock, null, 2) + '\n',
+      tempPath: lockfile + '.bump-tmp',
+      summary: [path.relative(ROOT, lockfile) + ' (' + lockPrev + ' -> ' + version + ')'],
+    });
   });
 }
 

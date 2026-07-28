@@ -79,7 +79,7 @@ import anthropic
 
 client = anthropic.Anthropic()
 
-response = client.messages.create(
+response = client.beta.messages.create(
     model="claude-sonnet-5",
     max_tokens=4096,
     betas=["advisor-tool-2026-03-01"],
@@ -105,7 +105,7 @@ print(response.content)
 ### With max_uses and caching
 
 ```python
-response = client.messages.create(
+response = client.beta.messages.create(
     model="claude-sonnet-5",
     max_tokens=4096,
     betas=["advisor-tool-2026-03-01"],

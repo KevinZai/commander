@@ -17,6 +17,17 @@ var MANIFESTS = {
     path: path.join(ROOT, 'package.json'),
     extract: function (obj) { return obj.version || null; },
   },
+  // The root lockfile carries the version TWICE and bump-version.js used to write
+  // neither, so it silently shipped a release behind (caught at 7.3.1). Both fields
+  // are checked because npm reads packages[""] and humans read the top-level one.
+  'package-lock.json': {
+    path: path.join(ROOT, 'package-lock.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  'package-lock.json (packages[""])': {
+    path: path.join(ROOT, 'package-lock.json'),
+    extract: function (obj) { return (obj.packages && obj.packages[''] && obj.packages[''].version) || null; },
+  },
   'commander/cowork-plugin/.claude-plugin/plugin.json': {
     path: path.join(ROOT, 'commander', 'cowork-plugin', '.claude-plugin', 'plugin.json'),
     extract: function (obj) { return obj.version || null; },
