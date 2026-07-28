@@ -122,11 +122,14 @@ test('payload counts match the contract and account for plugin-first dedup', fun
   assert.strictEqual(payload.meta.pluginSkills, contract.plugin_skills);
   assert.strictEqual(payload.meta.ecosystemSkills, contract.ecosystem_skills);
   assert.strictEqual(payload.meta.agents, contract.specialist_agents);
-  assert.strictEqual(payload.meta.pluginSkills, 81);
+  // Literal anchors alongside the contract-derived assertions above: if the
+  // contract and the payload both drifted the same way, the comparisons above
+  // would still pass. 82 as of v7.4.0 (+/ccc-console).
+  assert.strictEqual(payload.meta.pluginSkills, 82);
   assert.strictEqual(payload.meta.ecosystemSkills, 467);
   assert.strictEqual(pluginShown, payload.meta.pluginSkills);
   assert.strictEqual(ecosystemShown + dedupCount, payload.meta.ecosystemSkills);
-  assert.strictEqual(payload.skills.length, 81 + 467 - dedupCount);
+  assert.strictEqual(payload.skills.length, 82 + 467 - dedupCount);
   assert.strictEqual(payload.agents.length, payload.meta.agents);
 });
 

@@ -11,6 +11,13 @@
  * raw file fine too. Theme-aware via prefers-color-scheme with
  * :root[data-theme] overrides declared last so the viewer toggle wins.
  *
+ * Since v7.4.0 the markup itself lives in ./console-render.js — this file's
+ * buildSnapshotHtml is a one-line delegation to buildDeckHtml(model, {tab:
+ * 'mission-control'}), so the deck, the Usage deck, the Safety deck and the
+ * v7.4.0 console all render from one section renderer instead of four copies.
+ * The exported signature is unchanged; equivalence is pinned byte-for-byte by
+ * commander/tests/console-extraction.test.js. What remains here is the READER.
+ *
  * readModel({ baseDir, now }) is a self-contained tolerant JSONL reader
  * over ~/.claude/commander/ that mirrors dashboard/lib/mission-model.js
  * (same shape, same wording) — duplicated on purpose for the agent-join/
@@ -37,7 +44,9 @@
  * Item 3 (charts strip) renders the SAME sparkline/barStrip builders
  * from ./charts.js the live dashboard's client-side script uses (see
  * that file's doc comment for why it's one canonical module, not a
- * duplicate) — server-rendered inline SVG, no <script>, CSP-safe.
+ * duplicate) — server-rendered inline SVG, no <script>, CSP-safe. That
+ * rendering now happens in ./console-render.js; readModel just supplies the
+ * `metrics` rows it charts.
  *
  * Deterministic rendering: every timestamp derives from the model or the
  * `now` argument — never Date.now() inside buildSnapshotHtml.
@@ -49,9 +58,10 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { brandBaseCss } from './brand-css.js';
-import { deckStripHtml, deckStripCss } from './deck-switcher.js';
-import { aggregateDaily, aggregateWeekly, barStrip, sparkline } from './charts.js';
+// formatDuration/taskBucket live in ./console-render.js (they format and
+// classify for display) — imported rather than re-declared here, and re-exported
+// below so this module's public API is unchanged.
+import { buildDeckHtml, formatDuration, taskBucket } from './console-render.js';
 import { getMetrics } from './metrics.js';
 import { readTopSkills } from './top-skills.js';
 
@@ -60,15 +70,11 @@ const TASK_CAP = 100;
 const EVENT_CAP = 100;
 const MAX_JSONL_LINES = 5000; // Item 6 bounded-scan cap, per source file
 const SUGGESTION_CAP = 50;
-const ROW_CAP = 30;
 const JOIN_WINDOW_MS = 24 * 60 * 60 * 1000;
 const RUNNING_WINDOW_MS = 6 * 60 * 60 * 1000;
 const PERMISSION_WINDOW_MS = 15 * 60 * 1000;
 const EDGE_TYPES = new Set(['delegation', 'message', 'workflow']);
 const FAILED_RE = /fail|error|abort|cancel|timeout|crash/i;
-const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // v7.3.0 staleness banner threshold
-const DOCTOR_POINTER =
-  'Run /ccc-doctor to check your hooks are wired. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)';
 const DEFAULT_PERSONA = Object.freeze({ emoji: '🤖', role: 'Agent' });
 const PERSONA_MAP = Object.freeze({
   architect: { emoji: '🏗️', role: 'Architect' },
@@ -151,17 +157,6 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
   return entries;
 }
 
-function formatDuration(ms) {
-  if (!Number.isFinite(ms) || ms <= 0) return '0s';
-  const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${Math.max(seconds, 1)}s`;
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return rest > 0 ? `${hours}h ${rest}m` : `${hours}h`;
-}
-
 function formatTokens(count) {
   if (!Number.isFinite(count) || count <= 0) return '0';
   if (count >= 1e6) return `${(count / 1e6).toFixed(1)}M`;
@@ -171,13 +166,6 @@ function formatTokens(count) {
 
 function stopStatus(status) {
   return FAILED_RE.test(String(status || '')) ? 'failed' : 'done';
-}
-
-function taskBucket(status) {
-  const value = String(status || '').toLowerCase();
-  if (/(progress|active|started|running|working|doing)/.test(value)) return 'inProgress';
-  if (/(done|complete|closed|resolved|finished|shipped|merged)/.test(value)) return 'done';
-  return 'waiting';
 }
 
 function safeTokens(value) {
@@ -856,502 +844,11 @@ async function readModel({ baseDir, now } = {}) {
   };
 }
 
-function sourceSlug(value) {
-  const trimmed = String(value || 'claude-code').trim().toLowerCase();
-  const slug = trimmed.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  return slug || 'claude-code';
-}
-
-function esc(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function stamp(ms) {
-  if (!Number.isFinite(ms)) return '';
-  return `${new Date(ms).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
-}
-
-function timeAgo(tsMs, nowMs) {
-  if (!Number.isFinite(tsMs) || !Number.isFinite(nowMs)) return '';
-  const delta = nowMs - tsMs;
-  if (delta < 45 * 1000) return 'just now';
-  if (delta < 60 * 60 * 1000) return `${Math.max(1, Math.round(delta / 60000))}m ago`;
-  if (delta < 24 * 60 * 60 * 1000) return `${Math.round(delta / 3600000)}h ago`;
-  return `${Math.round(delta / 86400000)}d ago`;
-}
-
-function renderSourceBadge(sourceApp) {
-  const label = typeof sourceApp === 'string' && sourceApp.trim() ? sourceApp.trim() : 'claude-code';
-  return `<span class="src src-${sourceSlug(label)}">${esc(label)}</span>`;
-}
-
-const STATUS_META = {
-  running: { label: 'working', cls: 'st-running' },
-  awaiting_permission: { label: '⚠ awaiting approval', cls: 'st-awaiting' },
-  done: { label: 'finished', cls: 'st-done' },
-  failed: { label: 'hit a problem', cls: 'st-failed' },
-  stale: { label: 'stale (no end recorded)', cls: 'st-stale' },
-};
-
-const SUGGESTION_STATUS_META = {
-  new: { label: 'new', cls: 'st-waiting' },
-  promoted: { label: 'promoted', cls: 'st-done' },
-  dismissed: { label: 'dismissed', cls: 'st-stale' },
-};
-
-// CCC brand mapping (commanderplugin.com design system, via ./brand-css.js):
-// these --mc-* tokens are the ONLY color layer this file still owns — each
-// one simply forwards a shared brand token, so light/dark/data-theme
-// switching is handled entirely by brandBaseCss()'s :root cascade (a
-// custom property's `var()` reference resolves at used-value time, so one
-// unconditional forwarding block here tracks whichever theme is active —
-// no need to re-declare --mc-* per theme). Status colors map onto the
-// terminal traffic-light dots: running/working -> indigo (accent),
-// done/finished -> green, failed -> red, waiting/awaiting -> yellow.
-const SNAPSHOT_CSS = `
-:root{
-  --mc-bg:var(--bg);--mc-card:var(--bg-card);--mc-fg:var(--text);--mc-muted:var(--text-dim);
-  --mc-line:var(--border);--mc-accent:var(--primary);
-  --mc-run:var(--accent);--mc-run-bg:color-mix(in srgb,var(--accent) 18%,transparent);
-  --mc-ok:var(--green-dot);--mc-ok-bg:color-mix(in srgb,var(--green-dot) 16%,transparent);
-  --mc-err:var(--red);--mc-err-bg:color-mix(in srgb,var(--red) 16%,transparent);
-  --mc-wait:var(--yellow);--mc-wait-bg:color-mix(in srgb,var(--yellow) 18%,transparent);
-}
-body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
-.mc-shell{max-width:1080px;margin:20px auto 40px;}
-.mc-shell .terminal-title{letter-spacing:0.03em;}
-.mc{padding:20px 16px 40px;
-  font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  color:var(--mc-fg);}
-.mc *{box-sizing:border-box;}
-.mc h1{font-size:1.45rem;margin:0 0 2px;}
-.mc h2{font-size:1.02rem;margin:0 0 10px;}
-.mc .stamp{color:var(--mc-muted);margin:0 0 18px;font-size:.86rem;}
-.mc section{background:var(--mc-card);border:1px solid var(--mc-line);
-  border-radius:12px;padding:16px;margin-bottom:16px;}
-.mc .summary-text{font-size:1.06rem;margin:0 0 10px;}
-.mc .chips{display:flex;flex-wrap:wrap;gap:8px;}
-.mc .chip{border:1px solid var(--mc-line);border-radius:999px;
-  padding:2px 10px;font-size:.8rem;color:var(--mc-muted);white-space:nowrap;}
-.mc .badge{display:inline-block;border-radius:999px;padding:1px 9px;
-  font-size:.78rem;font-weight:600;white-space:nowrap;}
-.mc .src{display:inline-block;border:1px solid var(--mc-line);border-radius:999px;
-  padding:0 8px;font-size:.72rem;font-weight:600;color:var(--mc-muted);
-  background:var(--mc-line);white-space:nowrap;}
-.mc .src-claude-code{color:var(--mc-accent);border-color:var(--mc-accent);
-  background:color-mix(in srgb,var(--mc-accent) 16%,transparent);}
-.mc .st-running{color:var(--mc-run);background:var(--mc-run-bg);}
-.mc .st-done{color:var(--mc-ok);background:var(--mc-ok-bg);}
-.mc .st-failed{color:var(--mc-err);background:var(--mc-err-bg);}
-.mc .st-stale{color:var(--mc-muted);background:var(--mc-line);}
-.mc .st-waiting,.mc .st-awaiting{color:var(--mc-wait);background:var(--mc-wait-bg);}
-.mc .permission-banner{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
-.mc .permission-banner h2{color:var(--mc-wait);}
-.mc .permission-banner p{margin:8px 0 0;}
-.mc .permission-banner li{border-color:color-mix(in srgb,var(--mc-wait) 30%,transparent);}
-.mc .stale-banner{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
-.mc .stale-banner p{margin:0;color:var(--mc-wait);font-size:.9rem;}
-.mc .scroll{overflow-x:auto;}
-.mc table{border-collapse:collapse;width:100%;font-size:.9rem;}
-.mc th{text-align:left;color:var(--mc-muted);font-weight:600;
-  border-bottom:1px solid var(--mc-line);padding:6px 12px 6px 0;white-space:nowrap;}
-.mc td{border-bottom:1px solid var(--mc-line);padding:7px 12px 7px 0;
-  vertical-align:top;}
-.mc tr:last-child td{border-bottom:none;}
-.mc .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84rem;}
-.mc .muted{color:var(--mc-muted);}
-.mc .zero{color:var(--mc-muted);margin:0;}
-.mc .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
-.mc .chart-card{border:1px solid var(--mc-line);border-radius:10px;padding:10px 12px 8px;min-width:0;}
-.mc .chart-card h3{margin:0 0 6px;font-size:.8rem;font-weight:600;color:var(--mc-muted);}
-.mc .mc-chart{display:block;width:100%;height:auto;color:var(--mc-accent);}
-.mc .agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
-.mc .agent-card{border:1px solid var(--mc-line);border-radius:10px;padding:12px;min-width:0;}
-.mc .agent-card.is-awaiting{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
-.mc .agent-card.is-stale{color:var(--mc-muted);opacity:.68;}
-.mc .agent-card.is-derived{opacity:.82;}
-.mc .agent-card.is-derived .agent-meta{opacity:.55;}
-.mc .derived-badge{display:inline-block;border:1px dashed var(--mc-line);border-radius:999px;
-  padding:0 7px;font-size:.68rem;color:var(--mc-muted);margin-left:4px;cursor:help;white-space:nowrap;}
-.mc .agent-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.mc .agent-name{display:flex;gap:9px;align-items:flex-start;min-width:0;}
-.mc .agent-emoji{font-size:1.35rem;line-height:1.2;}
-.mc .agent-role,.mc .agent-task,.mc .agent-meta{color:var(--mc-muted);font-size:.82rem;}
-.mc .agent-task{margin:10px 0;color:var(--mc-fg);overflow-wrap:anywhere;}
-.mc .agent-meta{display:flex;flex-wrap:wrap;gap:5px 12px;}
-.mc .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
-.mc .col{border:1px solid var(--mc-line);border-radius:10px;padding:10px;min-width:0;}
-.mc .col h3{margin:0 0 8px;font-size:.86rem;color:var(--mc-muted);}
-.mc .card{border:1px solid var(--mc-line);border-radius:8px;padding:8px 10px;
-  margin-bottom:8px;font-size:.9rem;overflow-wrap:anywhere;}
-.mc .card:last-child{margin-bottom:0;}
-.mc .card .when{display:block;font-size:.78rem;color:var(--mc-muted);margin-top:2px;}
-.mc ul,.mc ol{margin:0;padding-left:0;list-style:none;}
-.mc li{padding:6px 0;border-bottom:1px solid var(--mc-line);overflow-wrap:anywhere;}
-.mc li:last-child{border-bottom:none;}
-.mc .arrow{color:var(--mc-accent);font-weight:700;}
-.mc footer{color:var(--mc-muted);font-size:.82rem;text-align:center;}
-@media (max-width:560px){.mc{padding:16px 10px 32px;}.mc section{padding:12px;}}
-`;
-
-// Terminal-window chrome wraps the whole board: 3 traffic-light dots +
-// a mono title, matching commanderplugin.com's `.terminal` component.
-// Deterministic, CSP-safe (no <script>) — see buildSnapshotHtml below.
-function renderTerminalChromeOpen() {
-  return `<div class="terminal-chrome mc-shell">
-<div class="terminal-header">
-<span class="terminal-dot red" aria-hidden="true"></span><span class="terminal-dot yellow" aria-hidden="true"></span><span class="terminal-dot green" aria-hidden="true"></span>
-<span class="terminal-title">commander &middot; mission-control</span>
-</div>`;
-}
-
-const TERMINAL_CHROME_CLOSE = '</div>';
-
-// Staleness warning banner (v7.3.0, Item 6) — only rendered when at least
-// one source row exists but the newest one is older than the threshold.
-// The fully-empty case (no source rows at all) is handled by appending
-// DOCTOR_POINTER to the existing "Nothing to show yet" hero, not this banner.
-function renderStalenessBanner(dataThroughMs, nowMs) {
-  if (!Number.isFinite(dataThroughMs) || !Number.isFinite(nowMs)) return '';
-  if (nowMs - dataThroughMs <= STALE_THRESHOLD_MS) return '';
-  return `<section aria-label="Telemetry freshness" class="stale-banner">
-<p>⚠️ Telemetry last written ${esc(timeAgo(dataThroughMs, nowMs))} — hooks may not be running. Run /ccc-doctor. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)</p>
-</section>`;
-}
-
-function renderSummarySection(summary, agents, tasks) {
-  const running = agents.filter((agent) => agent.status === 'running').length;
-  const awaiting = agents.filter((agent) => agent.status === 'awaiting_permission').length;
-  const failed = agents.filter((agent) => agent.status === 'failed').length;
-  const finished = agents.filter((agent) => agent.status === 'done').length;
-  const headlineAgents = agents.filter((agent) => agent.status !== 'stale').length;
-  const buckets = { inProgress: 0, done: 0, waiting: 0 };
-  for (const task of tasks) buckets[taskBucket(task.status)] += 1;
-
-  const chips = [
-    `🤖 ${headlineAgents} agent${headlineAgents === 1 ? '' : 's'}`,
-    `🔄 ${running} working`,
-    `⚠ ${awaiting} awaiting approval`,
-    `✅ ${finished} finished`,
-    `❌ ${failed} failed`,
-    `📋 ${tasks.length} task${tasks.length === 1 ? '' : 's'}`,
-    `⏳ ${buckets.inProgress} in progress`,
-    `🕐 ${buckets.waiting} waiting`,
-    `🏁 ${buckets.done} done`,
-  ];
-
-  return `<section aria-label="Summary">
-<p class="summary-text">${esc(summary)}</p>
-<div class="chips">${chips.map((chip) => `<span class="chip">${esc(chip)}</span>`).join('')}</div>
-</section>`;
-}
-
-function renderAwaitingPermissionSection(awaitingPermission, nowMs) {
-  if (awaitingPermission.length === 0) return '';
-
-  const items = awaitingPermission.slice(0, ROW_CAP).map((permission) => {
-    const sessionId = permission.session_id ?? 'unknown';
-    const subject = permission.subject || 'Approval needed';
-    const when = timeAgo(toMs(permission.ts) ?? NaN, nowMs ?? NaN);
-    return `<li><strong>${esc(subject)}</strong> · session <span class="mono">${esc(sessionId)}</span>${when ? ` <span class="muted">· ${esc(when)}</span>` : ''}</li>`;
-  });
-
-  return `<section class="permission-banner" aria-label="Awaiting permission">
-<h2>⚠ Waiting for your approval</h2>
-<ul>${items.join('')}</ul>
-<p><strong>Switch to that session to approve.</strong></p>
-</section>`;
-}
-
-function renderAgentsSection(agents, nowMs) {
-  if (agents.length === 0) {
-    return `<section aria-label="Agent roster">
-<h2>🤖 Agents</h2>
-<p class="zero">No agents yet — spawn one with /ccc-spawn and this board lights up.</p>
-</section>`;
-  }
-
-  const cards = agents.slice(0, ROW_CAP).map((agent) => {
-    const meta = STATUS_META[agent.status] || {
-      label: 'unknown status',
-      cls: 'st-stale',
-    };
-    const isDerived = agent.derived === true;
-    const startMs = toMs(agent.startedAt);
-    const started = timeAgo(startMs ?? NaN, nowMs ?? NaN) || (startMs !== null ? stamp(startMs) : '—');
-    // A derived row's startedAt is the delegation event, not a real start — we
-    // don't measure its runtime, so show '—' rather than a "Xm so far" duration.
-    let took = '—';
-    if (!isDerived) {
-      if (agent.status === 'running') {
-        took =
-          startMs !== null && Number.isFinite(nowMs) && nowMs > startMs
-            ? `${formatDuration(nowMs - startMs)} so far`
-            : 'just started';
-      } else if (Number.isFinite(agent.durationMs) && agent.durationMs > 0) {
-        took = formatDuration(agent.durationMs);
-      }
-    }
-    const tasksCompleted = Number.isFinite(agent.tasksCompleted)
-      ? Math.max(0, Math.round(agent.tasksCompleted))
-      : 0;
-    // Derived rows carry no real cost — show it absent, not $0.0000 (reads as free).
-    const cost =
-      !isDerived && Number.isFinite(agent.estCostUsd)
-        ? `$${agent.estCostUsd.toFixed(4)}`
-        : '—';
-    const currentTask = agent.currentTask || 'No current task';
-    const statusClass =
-      (agent.status === 'awaiting_permission'
-        ? ' is-awaiting'
-        : agent.status === 'stale'
-          ? ' is-stale'
-          : '') + (isDerived ? ' is-derived' : '');
-    const derivedBadge = isDerived
-      ? ` <span class="derived-badge" title="Inferred from a delegation event — no token/cost data available">inferred</span>`
-      : '';
-    return `<article class="agent-card${statusClass}">
-<div class="agent-head">
-<div class="agent-name"><span class="agent-emoji" aria-hidden="true">${esc(agent.emoji || '🤖')}</span><div><strong>${esc(agent.name)}</strong><div class="agent-role">${esc(agent.role || 'Agent')} · ${renderSourceBadge(agent.sourceApp)}${derivedBadge}</div></div></div>
-<span class="badge ${meta.cls}">${esc(meta.label)}</span>
-</div>
-<p class="agent-task"><strong>Current task:</strong> ${esc(currentTask)}</p>
-<div class="agent-meta">
-<span>${esc(tasksCompleted)} task${tasksCompleted === 1 ? '' : 's'} completed</span>
-<span>Est. cost: <span class="mono">${esc(cost)}</span></span>
-<span>Started: ${esc(started)}</span>
-<span>Took: <span class="mono">${esc(took)}</span></span>
-<span>Model: <span class="mono">${esc(agent.model || '—')}</span></span>
-</div>
-</article>`;
-  });
-
-  const overflow =
-    agents.length > ROW_CAP
-      ? `<p class="muted">…and ${agents.length - ROW_CAP} earlier run${agents.length - ROW_CAP === 1 ? '' : 's'}.</p>`
-      : '';
-
-  return `<section aria-label="Agent roster">
-<h2>🤖 Agents</h2>
-<div class="agent-grid">${cards.join('')}</div>${overflow}
-</section>`;
-}
-
-function renderTasksSection(tasks, nowMs) {
-  if (tasks.length === 0) {
-    return `<section aria-label="Task board">
-<h2>📋 Tasks</h2>
-<p class="zero">No tasks tracked yet.</p>
-</section>`;
-  }
-
-  const columns = [
-    ['inProgress', 'In progress', 'st-running'],
-    ['waiting', 'Waiting', 'st-waiting'],
-    ['done', 'Done', 'st-done'],
-  ];
-
-  const cols = columns.map(([bucket, label, cls]) => {
-    const items = tasks.filter((task) => taskBucket(task.status) === bucket).slice(0, ROW_CAP);
-    const cards = items.map((task) => {
-      const when = timeAgo(toMs(task.ts) ?? NaN, nowMs ?? NaN);
-      return `<div class="card"><span class="badge ${cls}">${esc(label.toLowerCase())}</span> ${esc(task.title)}${when ? `<span class="when">${esc(when)}</span>` : ''}</div>`;
-    });
-    return `<div class="col"><h3>${esc(label)} · ${items.length}</h3>${cards.join('') || '<p class="zero">none</p>'}</div>`;
-  });
-
-  return `<section aria-label="Task board">
-<h2>📋 Tasks</h2>
-<div class="board">${cols.join('')}</div>
-</section>`;
-}
-
-function renderEdgesSection(edges, nowMs) {
-  if (edges.length === 0) {
-    return `<section aria-label="Delegation flow">
-<h2>🔀 Delegation flow</h2>
-<p class="zero">No delegations recorded yet — when a session hands work to an agent, it shows up here.</p>
-</section>`;
-  }
-
-  const items = edges.slice(0, ROW_CAP).map((edge) => {
-    const when = timeAgo(toMs(edge.ts) ?? NaN, nowMs ?? NaN);
-    return `<li><span class="mono">${esc(edge.from)}</span> <span class="arrow">→</span> <strong>${esc(edge.to)}</strong> <span class="chip">${esc(edge.type)}</span>${when ? ` <span class="muted">${esc(when)}</span>` : ''}</li>`;
-  });
-
-  return `<section aria-label="Delegation flow">
-<h2>🔀 Delegation flow</h2>
-<ul>${items.join('')}</ul>
-</section>`;
-}
-
-function renderEventsSection(events, nowMs) {
-  if (events.length === 0) {
-    return `<section aria-label="Latest activity">
-<h2>🕐 Latest activity</h2>
-<p class="zero">No activity yet.</p>
-</section>`;
-  }
-
-  const items = events.slice(0, ROW_CAP).map((event) => {
-    const ms = toMs(event.ts);
-    const when = timeAgo(ms ?? NaN, nowMs ?? NaN) || (ms !== null ? stamp(ms) : '');
-    return `<li>${when ? `<span class="muted mono">${esc(when)}</span> ` : ''}${renderSourceBadge(event.sourceApp)} ${esc(event.text)}</li>`;
-  });
-
-  return `<section aria-label="Latest activity">
-<h2>🕐 Latest activity</h2>
-<ol>${items.join('')}</ol>
-</section>`;
-}
-
-function renderSuggestionsSection(suggestions) {
-  if (suggestions.length === 0) {
-    return `<section aria-label="Suggestions">
-<h2>💡 Suggestions</h2>
-<p class="zero">No suggestions yet — agents surface ideas here as they notice them.</p>
-</section>`;
-  }
-
-  const items = suggestions.slice(0, ROW_CAP).map((suggestion) => {
-    const meta = SUGGESTION_STATUS_META[suggestion.status] || {
-      label: suggestion.status || 'unknown',
-      cls: 'st-stale',
-    };
-    const from = suggestion.from ? `<strong>${esc(suggestion.from)}</strong> — ` : '';
-    const idea = suggestion.idea ? esc(suggestion.idea) : 'No idea text.';
-    const evidence = suggestion.evidence
-      ? `<div class="muted">${esc(suggestion.evidence)}</div>`
-      : '';
-    const proposedTitle =
-      suggestion.proposed_ticket && suggestion.proposed_ticket.title
-        ? `<div class="muted">Proposed: ${esc(suggestion.proposed_ticket.title)}</div>`
-        : '';
-    const promoted =
-      suggestion.status === 'promoted' && suggestion.promoted_ticket
-        ? `<div class="muted">Tracked as: ${esc(
-            suggestion.promoted_ticket.title ||
-              suggestion.promoted_ticket.id ||
-              suggestion.promoted_ticket.url ||
-              'ticket'
-          )}</div>`
-        : '';
-    return `<li><span class="badge ${meta.cls}">${esc(meta.label)}</span> ${from}${idea}${evidence}${proposedTitle}${promoted}</li>`;
-  });
-
-  const overflow =
-    suggestions.length > ROW_CAP
-      ? `<p class="muted">…and ${suggestions.length - ROW_CAP} more suggestion${suggestions.length - ROW_CAP === 1 ? '' : 's'}.</p>`
-      : '';
-
-  return `<section aria-label="Suggestions">
-<h2>💡 Suggestions</h2>
-<ul>${items.join('')}</ul>${overflow}
-</section>`;
-}
-
-// Item 3 — same builders the live dashboard's client-side script uses
-// (./charts.js), server-rendered here into plain inline SVG (no
-// <script>, CSP-safe). Combines every source_app into one line per
-// chart (Item 2's public-repo scope: Claude + Codex only). A metrics
-// array with no rows at all still renders 4 zero-state charts, never an
-// empty section — Charts stay always-visible (unlike History, which is
-// opt-in and hides entirely when absent).
-function renderChartsSection(metrics) {
-  const rows = Array.isArray(metrics) ? metrics : [];
-  const costSeries = aggregateDaily(rows, 'cost_usd', 30);
-  const agentsSeries = aggregateDaily(rows, 'agents_dispatched', 30);
-  const failuresSeries = aggregateDaily(rows, 'tool_failures', 30);
-  const tasksSeries = aggregateWeekly(rows, 'tasks_completed', 8);
-
-  const cards = [
-    [
-      '💰 Cost / day (30d)',
-      sparkline(costSeries, { label: 'Cost per day, last 30 days', color: 'var(--mc-accent)' }),
-    ],
-    [
-      '🤖 Agents dispatched / day (30d)',
-      sparkline(agentsSeries, { label: 'Agents dispatched per day, last 30 days', color: 'var(--mc-run)' }),
-    ],
-    [
-      '📋 Tasks completed / week (8w)',
-      barStrip(tasksSeries, { label: 'Tasks completed per week, last 8 weeks', color: 'var(--mc-ok)' }),
-    ],
-    [
-      '⚠ Tool failures / day (30d)',
-      sparkline(failuresSeries, { label: 'Tool failures per day, last 30 days', color: 'var(--mc-err)' }),
-    ],
-  ];
-
-  return `<section aria-label="Trends">
-<h2>📈 Trends</h2>
-<div class="chart-grid">${cards.map(([title, svg]) => `<div class="chart-card"><h3>${esc(title)}</h3>${svg}</div>`).join('')}</div>
-</section>`;
-}
-
+// The deck page — chrome, CSS, and every section — is rendered by
+// ./console-render.js. This wrapper exists so the skill-facing entry point and
+// its signature are unchanged.
 function buildSnapshotHtml(model, { now } = {}) {
-  const source = model && typeof model === 'object' ? model : {};
-  const agents = Array.isArray(source.agents) ? source.agents : [];
-  const tasks = Array.isArray(source.tasks) ? source.tasks : [];
-  const edges = Array.isArray(source.edges) ? source.edges : [];
-  const events = Array.isArray(source.events) ? source.events : [];
-  const suggestions = Array.isArray(source.suggestions) ? source.suggestions : [];
-  const metrics = Array.isArray(source.metrics) ? source.metrics : [];
-  const awaitingPermission = Array.isArray(source.awaitingPermission)
-    ? source.awaitingPermission
-    : [];
-  const summary =
-    typeof source.summary === 'string' && source.summary
-      ? source.summary
-      : 'No agent activity yet.';
-  const dataThroughMs = Number.isFinite(source.dataThroughMs) ? source.dataThroughMs : null;
-  const hasAnySourceRow = source.hasAnySourceRow !== false;
-  const nowMs = toMs(now) ?? toMs(source.generatedAt);
-  const dataThroughLine =
-    dataThroughMs !== null ? ` · Data through: ${esc(stamp(dataThroughMs))}` : '';
-  const empty =
-    agents.length === 0 &&
-    tasks.length === 0 &&
-    edges.length === 0 &&
-    events.length === 0 &&
-    suggestions.length === 0 &&
-    awaitingPermission.length === 0;
-  const doctorNote = empty && !hasAnySourceRow ? ` ${DOCTOR_POINTER}` : '';
-
-  const hero = empty
-    ? `<section aria-label="Getting started">
-<p class="zero">🎛️ Nothing to show yet — no agents have run on this machine. Spawn one with /ccc-spawn (or fan out with /ccc-fleet) and mission control lights up.${esc(doctorNote)}</p>
-</section>`
-    : '';
-
-  return `<meta charset="utf-8">
-<title>Commander Mission Control</title>
-<style>${brandBaseCss()}${deckStripCss()}${SNAPSHOT_CSS}</style>
-${renderTerminalChromeOpen()}
-<main class="mc">
-${deckStripHtml('mission-control', { interactive: false })}
-<header>
-<h1>🎛️ Commander Mission Control</h1>
-<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}${dataThroughLine}</p>
-</header>
-${renderStalenessBanner(dataThroughMs, nowMs)}
-${renderAwaitingPermissionSection(awaitingPermission, nowMs)}
-${hero}
-${renderSummarySection(summary, agents, tasks)}
-${renderChartsSection(metrics)}
-${renderAgentsSection(agents, nowMs)}
-${renderTasksSection(tasks, nowMs)}
-${renderEdgesSection(edges, nowMs)}
-${renderEventsSection(events, nowMs)}
-${renderSuggestionsSection(suggestions)}
-<footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>
-</main>
-${TERMINAL_CHROME_CLOSE}`;
+  return buildDeckHtml(model, { tab: 'mission-control', surface: 'artifact', now });
 }
 
 export { buildSnapshotHtml, readModel, formatDuration, taskBucket };

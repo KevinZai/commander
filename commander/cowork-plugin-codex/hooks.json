@@ -22,6 +22,11 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/update-nudge.js\"",
             "timeout": 6000
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/console-autopen.js\"",
+            "timeout": 5000
           }
         ]
       }

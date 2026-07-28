@@ -48,19 +48,22 @@ Explicit sub-commands skip the picker: `$ccc-mission-control open`, `$ccc-missio
 
 ### 🛰️ Publish snapshot artifact
 
-**LIVING PATTERN:** always render to the same file path, such as `scratchpad/mission-control-live.html`, then republish that same path with the Artifact tool. Same path means the same URL, so each republish updates one living status page instead of creating a trail of stale copies.
+**LIVING PATTERN:** always render to the same file path, `scratchpad/mission-control-live.html`, then republish that same path with the Artifact tool. Same path means the same URL, so each republish updates one living status page instead of creating a trail of stale copies. **Do not change this path** — it is the identity of every bookmark anyone already has for this deck.
 
-Build the model and render the self-contained HTML file with the plugin's own library (no dashboard needed):
+Since v7.4.0 this page is the **Overview tab of the Commander Console**, published on its own. One builder renders every deck and the console, so the numbers can't disagree:
 
 ```bash
 mkdir -p scratchpad
-node --input-type=module -e "
-import { readModel, buildSnapshotHtml } from '${CLAUDE_PLUGIN_ROOT}/lib/mission-control-snapshot.js';
-import { writeFile } from 'node:fs/promises';
-const html = buildSnapshotHtml(await readModel({}));
-await writeFile(process.argv[1], html);
-" scratchpad/mission-control-live.html
+if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" ]; then
+  node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
+    --surface artifact --tab overview --out scratchpad/mission-control-live.html
+else
+  node commander/cowork-plugin/scripts/build-console.mjs \
+    --surface artifact --tab overview --out scratchpad/mission-control-live.html
+fi
 ```
+
+The page is unchanged apart from one added line pointing at `$ccc-console` (the inline all-in-one view, with a prompt bar this static page can't have).
 
 Then publish that same file with the **Artifact** tool using favicon `🎛️` and stable title **"Commander Mission Control"**.
 
@@ -159,6 +162,7 @@ Confirm to the user what was stopped (or that nothing was running).
 
 ## Related
 
+- `$ccc-console` — the same Overview plus Usage, Safety, Memory and History in one inline panel, with a prompt bar
 - `$ccc-spawn` — put new work on the board (isolated sessions)
 - `$ccc-fleet` — parallel agent fan-out (mission control watches it)
 - `$ccc-relay` — chained spec → build → review sessions

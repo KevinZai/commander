@@ -1,9 +1,9 @@
 ---
 title: "Plugin Skills"
-description: "81 skills shipped with the CC Commander plugin (v7.3.2). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 11 CCC domains + Orchestrator/Executor skills + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
+description: "82 skills shipped with the CC Commander plugin (v7.4.0). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 11 CCC domains + Orchestrator/Executor skills + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
 ---
 
-CC Commander v7.3.2 ships **81 plugin skills** across nine groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+CC Commander v7.4.0 ships **82 plugin skills** across nine groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
 
 ## Group 1 — 13 /ccc-* Specialist Workflows
 
@@ -73,7 +73,8 @@ Added in v5.0.0 and v5.0.0.
 | `/ccc-handoff` | `/ccc-handoff` or "handoff session", "fresh chat" | Proactive context reset — writes a dense handoff file and tells you to start a fresh chat before context quality decays |
 | `/ccc-changelog` | `/ccc-changelog` or "what changed", "what is new" | Renders the latest CHANGELOG.md section. Fires automatically on version-transition via SessionStart nudge (beta.11) |
 | `/ccc-doctor` | `/ccc-doctor` or "diagnose plugin" | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component (beta.11). As of v7.3.0 also diagnoses stale-install layers (marketplace clone behind `main`, old cache dirs, stale Desktop copies) and can enable marketplace auto-update. |
-| `/ccc-update` | `/ccc-update` or "update commander", "check for updates" | Click-first update walkthrough — detect installed vs. latest, run the update sequence, restart, verify version + hooks are live. See [`/ccc-update`](/plugin/skills/ccc-update) (v7.3.2). |
+| `/ccc-update` | `/ccc-update` or "update commander", "check for updates" | Click-first update walkthrough — detect installed vs. latest, run the update sequence, restart, verify version + hooks are live. See [`/ccc-update`](/plugin/skills/ccc-update) (v7.4.0). |
+| `/ccc-console` | `/ccc-console` or "open the console", "what's going on" | The Commander Console — one inline widget with agents, usage, safety, memory and history, plus a prompt bar wired to this session. Chips send fixed commands only; publishing a snapshot is separate and consent-gated (v7.4.0). |
 
 ## Group 6 — Memory / Task / Recall (MIT-ported from community)
 
@@ -121,7 +122,7 @@ Self-contained artifacts that turn data CCC already logs into a page. Every deck
 | `/ccc-usage` | `/ccc-usage` or "what am I spending", "show my savings" | Usage & Cost deck — burn, estimated savings vs. an all-Opus baseline (honest, not a bill), saved/day + cost/day trends, cost-by-app split. See [`/ccc-usage`](/plugin/skills/ccc-usage). |
 | `/ccc-safety` | `/ccc-safety` or "what did commander block", "safety report" | Safety deck — blocked/auto-fixed/approved action outcomes, redacted tool-failure hotspots. See [`/ccc-safety`](/plugin/skills/ccc-safety). |
 
-## All 81 at a Glance
+## All 82 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -183,6 +184,7 @@ Self-contained artifacts that turn data CCC already logs into a page. Every deck
 | 79 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app (v7.2.0) |
 | 80 | `/ccc-safety` | Safety deck — blocked/auto-fixed actions + tool-failure hotspots (v7.2.0) |
 | 81 | `/ccc-update` | Click-first update walkthrough — detect, update, restart, verify (v7.3.0) |
+| 82 | `/ccc-console` | Inline console widget — agents, usage, safety, memory, history and a prompt bar that reaches the live session (v7.4.0) |
 | — | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2) |
 
 [Pricing — Core Free Forever →](/plugin/free-vs-pro)

@@ -1,9 +1,9 @@
 {
-  "version": "7.3.2",
-  "plugin_skills": 81,
+  "version": "7.4.0",
+  "plugin_skills": 82,
   "specialist_agents": 22,
   "lifecycle_hooks": 23,
-  "hook_handlers": 43,
+  "hook_handlers": 44,
   "bundled_mcp_servers": 2,
   "opt_in_mcp_servers": 16,
   "ecosystem_skills": 467,

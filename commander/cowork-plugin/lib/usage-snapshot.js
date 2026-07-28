@@ -13,6 +13,13 @@
  * raw file fine too. Theme-aware via brand-css.js's prefers-color-scheme
  * cascade with :root[data-theme] overrides.
  *
+ * Since v7.4.0 the markup itself lives in ./console-render.js — buildUsageHtml
+ * is a one-line delegation to buildDeckHtml(model, {tab: 'usage'}), so this
+ * deck, Mission Control, Safety and the v7.4.0 console render from one section
+ * renderer instead of four copies. The exported signature is unchanged;
+ * equivalence is pinned byte-for-byte by
+ * commander/tests/console-extraction.test.js. What remains here is the READER.
+ *
  * readUsageModel({ baseDir, now }) is a self-contained, bounded, tolerant
  * reader over two local logs under baseDir (default ~/.claude/commander):
  *
@@ -35,14 +42,10 @@
  *
  * Charts reuse the SAME sparkline builder from ./charts.js the live
  * dashboard and Mission Control snapshot use — server-rendered inline
- * SVG, no <script>, CSP-safe (see that file's doc comment).
- *
- * The shared deck strip (./deck-switcher.js) renders first inside <main>
- * so a viewer can discover Commander's other decks (Cockpit, Mission
- * Control, Safety). Rendered with interactive:false — like Mission
- * Control, this file emits no <script>, so the deck chips are plain
- * <span> elements showing the /ccc-* command as text, not a live-copy
- * button.
+ * SVG, no <script>, CSP-safe (see that file's doc comment). The shared
+ * deck strip (./deck-switcher.js) renders first inside <main> so a viewer
+ * can discover Commander's other decks. Both now happen in
+ * ./console-render.js; this file just supplies the series they plot.
  *
  * Honesty rule (mirrors savings.js's own disclaimer): every $ figure
  * here is an ESTIMATE vs an all-Opus 4.8 baseline, ±30% — never actual
@@ -77,25 +80,15 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { brandBaseCss } from './brand-css.js';
-import { aggregateDaily, sparkline } from './charts.js';
-import { deckStripCss, deckStripHtml } from './deck-switcher.js';
+import { aggregateDaily } from './charts.js';
+import { buildDeckHtml } from './console-render.js';
 import { getMetrics } from './metrics.js';
 
 const MAX_JSONL_LINES = 5000; // same bounded-scan cap as mission-control-snapshot.js
 const MAX_JSONL_BYTES = 8 * 1024 * 1024; // read at most the trailing 8MB — the producer never rotates these logs
-const ROW_CAP = 30;
 const SAVINGS_DAYS_CAP = 30;
 const COST_DAYS_CAP = 30;
-// v7.3.0 staleness banner threshold. 48h, NOT 24h, deliberately: this deck's
-// sources are DAY-granularity (savings.json day-keys, metrics.jsonl `date`
-// rows), each treated as its UTC midnight — a genuinely-fresh "yesterday"
-// bucket is already up to ~24h old at comparison time, so a 24h threshold
-// would false-flag fresh data every day right after midnight UTC.
-const STALE_THRESHOLD_MS = 48 * 60 * 60 * 1000;
 const SAVINGS_STALE_MS = 7 * 24 * 60 * 60 * 1000; // savings-source honesty note threshold (W2+/codex 6)
-const DOCTOR_POINTER =
-  'Run /ccc-doctor to check your hooks are wired. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)';
 
 function defaultBaseDir() {
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
@@ -320,254 +313,11 @@ async function readUsageModel({ baseDir, now, recompute = true, metricsRunner } 
   };
 }
 
-function esc(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function stamp(ms) {
-  if (!Number.isFinite(ms)) return '';
-  return `${new Date(ms).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
-}
-
-// Mirrors mission-control-snapshot.js's timeAgo() — duplicated per this
-// file's own doc-comment convention (small, self-contained helpers are
-// copied, not imported, across this lib/ tree).
-function timeAgo(tsMs, nowMs) {
-  if (!Number.isFinite(tsMs) || !Number.isFinite(nowMs)) return '';
-  const delta = nowMs - tsMs;
-  if (delta < 45 * 1000) return 'just now';
-  if (delta < 60 * 60 * 1000) return `${Math.max(1, Math.round(delta / 60000))}m ago`;
-  if (delta < 24 * 60 * 60 * 1000) return `${Math.round(delta / 3600000)}h ago`;
-  return `${Math.round(delta / 86400000)}d ago`;
-}
-
-function sourceSlug(value) {
-  const trimmed = String(value || 'claude-code').trim().toLowerCase();
-  const slug = trimmed.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  return slug || 'claude-code';
-}
-
-function formatUsd(value) {
-  const n = Number.isFinite(value) ? value : 0;
-  const sign = n < 0 ? '-' : '';
-  return `${sign}$${Math.abs(n).toFixed(2)}`;
-}
-
-function fmtPct(value) {
-  const n = Number.isFinite(value) ? value : 0;
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
-}
-
-// Same --uc-* forwarding-token pattern mission-control-snapshot.js uses
-// for --mc-*: every color is a `var()` reference into brand-css.js's
-// :root cascade, so light/dark/data-theme switching needs zero extra
-// logic here.
-const USAGE_CSS = `
-:root{
-  --uc-bg:var(--bg);--uc-card:var(--bg-card);--uc-fg:var(--text);--uc-muted:var(--text-dim);
-  --uc-line:var(--border);--uc-accent:var(--primary);
-  --uc-ok:var(--green-dot);--uc-ok-bg:color-mix(in srgb,var(--green-dot) 16%,transparent);
-  --uc-warn:var(--red-dot,#e5484d);
-}
-body{margin:0;background:var(--uc-bg);color:var(--uc-fg);}
-.uc-shell{max-width:1080px;margin:20px auto 40px;}
-.uc-shell .terminal-title{letter-spacing:0.03em;}
-.uc{padding:20px 16px 40px;
-  font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  color:var(--uc-fg);}
-.uc *{box-sizing:border-box;}
-.uc h1{font-size:1.45rem;margin:0 0 2px;}
-.uc h2{font-size:1.02rem;margin:0 0 10px;}
-.uc .tf-note{color:var(--uc-muted);font-size:.75em;font-weight:400;}
-.uc .stamp{color:var(--uc-muted);margin:0 0 18px;font-size:.86rem;}
-.uc section{background:var(--uc-card);border:1px solid var(--uc-line);
-  border-radius:12px;padding:16px;margin-bottom:16px;}
-.uc .hero{border-color:var(--uc-accent);}
-.uc .hero-line{font-size:1.12rem;margin:0 0 8px;}
-.uc .hero-amount{color:var(--uc-ok);font-size:1.3em;font-weight:700;}
-.uc .hero-negative{border-color:var(--uc-warn);}
-.uc .hero-negative .hero-amount{color:var(--uc-warn);}
-.uc .stale-banner{border-color:var(--uc-warn);background:color-mix(in srgb,var(--uc-warn) 12%,transparent);}
-.uc .stale-banner p{margin:0;color:var(--uc-warn);font-size:.9rem;}
-.uc .disclaimer{margin:0;font-size:.8rem;}
-.uc .muted{color:var(--uc-muted);}
-.uc .zero{color:var(--uc-muted);margin:0;}
-.uc .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
-.uc .chart-card{border:1px solid var(--uc-line);border-radius:10px;padding:10px 12px 8px;min-width:0;}
-.uc .chart-card h3{margin:0 0 6px;font-size:.8rem;font-weight:600;color:var(--uc-muted);}
-.uc .mc-chart{display:block;width:100%;height:auto;color:var(--uc-accent);}
-.uc .cost-list{margin:0;padding:0;list-style:none;}
-.uc .cost-row{padding:8px 0;border-bottom:1px solid var(--uc-line);}
-.uc .cost-row:last-child{border-bottom:none;}
-.uc .cost-row-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
-.uc .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84rem;}
-.uc .src{display:inline-block;border:1px solid var(--uc-line);border-radius:999px;
-  padding:0 8px;font-size:.72rem;font-weight:600;color:var(--uc-muted);
-  background:var(--uc-line);white-space:nowrap;}
-.uc .src-claude-code{color:var(--uc-accent);border-color:var(--uc-accent);
-  background:color-mix(in srgb,var(--uc-accent) 16%,transparent);}
-.uc .cost-bar-track{height:6px;border-radius:999px;background:var(--uc-line);overflow:hidden;}
-.uc .cost-bar-fill{height:100%;background:var(--uc-accent);border-radius:999px;}
-.uc footer{color:var(--uc-muted);font-size:.82rem;text-align:center;}
-@media (max-width:560px){.uc{padding:16px 10px 32px;}.uc section{padding:12px;}}
-`;
-
-// Terminal-window chrome wraps the whole board, same component the
-// Cockpit and Mission Control snapshot use.
-function renderTerminalChromeOpen() {
-  return `<div class="terminal-chrome uc-shell">
-<div class="terminal-header">
-<span class="terminal-dot red" aria-hidden="true"></span><span class="terminal-dot yellow" aria-hidden="true"></span><span class="terminal-dot green" aria-hidden="true"></span>
-<span class="terminal-title">commander &middot; usage</span>
-</div>`;
-}
-
-const TERMINAL_CHROME_CLOSE = '</div>';
-
-// Staleness warning banner (v7.3.0, Item 6) — only rendered when at least
-// one source row exists but the newest one is older than the threshold.
-// The fully-empty case (no source rows at all) is handled separately by
-// appending DOCTOR_POINTER to the hero's zero-state, not this banner.
-function renderStalenessBanner(dataThroughMs, nowMs) {
-  if (!Number.isFinite(dataThroughMs) || !Number.isFinite(nowMs)) return '';
-  if (nowMs - dataThroughMs <= STALE_THRESHOLD_MS) return '';
-  return `<section aria-label="Telemetry freshness" class="stale-banner">
-<p>⚠️ Telemetry last written ${esc(timeAgo(dataThroughMs, nowMs))} — hooks may not be running. Run /ccc-doctor. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)</p>
-</section>`;
-}
-
-// Savings-source honesty sub-note (W2+/codex 6) — only shown when
-// savings.json has no day bucket within the last 7 days (or was never
-// written), since savings.json is exclusively a legacy-CLI-dispatcher signal.
-function renderSavingsSourceNote(savingsStale) {
-  if (!savingsStale) return '';
-  return '<p class="muted disclaimer">Savings tracking currently comes from CLI dispatches — plugin-native agent runs aren\'t counted yet.</p>';
-}
-
-function renderHeroSection(totalSavedUsd, totalDispatches, { savingsStale = false, hasAnySourceRow = true } = {}) {
-  if (!Number.isFinite(totalDispatches) || totalDispatches <= 0) {
-    const doctorNote = hasAnySourceRow ? '' : ` ${DOCTOR_POINTER}`;
-    return `<section aria-label="Savings summary">
-<p class="zero">💰 No savings data yet — dispatch a task and Commander starts tracking what delegating to cheaper models saved you.${esc(doctorNote)}</p>
-${renderSavingsSourceNote(savingsStale)}
-</section>`;
-  }
-
-  const dispatchCount = Math.max(0, Math.round(totalDispatches));
-  const dispatchWord = `dispatch${dispatchCount === 1 ? '' : 'es'}`;
-  const disclaimer = '<p class="muted disclaimer">Estimates vs an all-Opus 4.8 baseline, ±30%. Not actual Anthropic billing data.</p>';
-  const savingsNote = renderSavingsSourceNote(savingsStale);
-
-  // Negative "savings" is legitimate — delegation that ran pricier than the
-  // all-Opus baseline. Render it honestly as an extra cost (warn-coloured),
-  // not as green success copy reading "saved you -$3.50".
-  if (Number.isFinite(totalSavedUsd) && totalSavedUsd < 0) {
-    const overLabel = formatUsd(Math.abs(totalSavedUsd));
-    return `<section aria-label="Savings summary" class="hero hero-negative">
-<p class="hero-line">Delegation cost <span class="hero-amount">${esc(overLabel)}</span> more than an all-Opus 4.8 baseline across ${esc(dispatchCount)} ${dispatchWord}.</p>
-${disclaimer}
-${savingsNote}
-</section>`;
-  }
-
-  const savedLabel = formatUsd(totalSavedUsd);
-  return `<section aria-label="Savings summary" class="hero">
-<p class="hero-line">Delegating to cheaper models saved you <span class="hero-amount">${esc(savedLabel)}</span> across ${esc(dispatchCount)} ${dispatchWord}.</p>
-${disclaimer}
-${savingsNote}
-</section>`;
-}
-
-// Same sparkline builder Mission Control's Charts strip uses — see
-// ./charts.js's doc comment for why it's one canonical module.
-function renderChartsSection(savingsSeries, costSeries) {
-  const cards = [
-    [
-      '💵 Saved / day (30d)',
-      sparkline(savingsSeries, { label: 'Amount saved per day, last 30 days', color: 'var(--uc-ok)' }),
-    ],
-    [
-      '💳 Cost / day (30d)',
-      sparkline(costSeries, { label: 'Dispatch cost per day, last 30 days', color: 'var(--uc-accent)' }),
-    ],
-  ];
-
-  return `<section aria-label="Trends">
-<h2>📈 Trends</h2>
-<div class="chart-grid">${cards.map(([title, svg]) => `<div class="chart-card"><h3>${esc(title)}</h3>${svg}</div>`).join('')}</div>
-</section>`;
-}
-
-function renderCostByAppSection(costByApp) {
-  const rows = Array.isArray(costByApp) ? costByApp : [];
-  const hasData = rows.some((row) => Number.isFinite(row.costUsd) && row.costUsd > 0);
-
-  if (!hasData) {
-    return `<section aria-label="Cost by app">
-<h2>🧮 Cost by app</h2>
-<p class="zero">No cost data yet.</p>
-</section>`;
-  }
-
-  const items = rows.slice(0, ROW_CAP).map((row) => {
-    const pct = Number.isFinite(row.pct) ? row.pct : 0;
-    const widthPct = Math.max(0, Math.min(100, pct));
-    return `<li class="cost-row">
-<div class="cost-row-head"><span class="src src-${sourceSlug(row.sourceApp)}">${esc(row.sourceApp)}</span><span class="mono">${esc(formatUsd(row.costUsd))} &middot; ${esc(fmtPct(pct))}%</span></div>
-<div class="cost-bar-track"><div class="cost-bar-fill" style="width:${fmtPct(widthPct)}%"></div></div>
-</li>`;
-  });
-
-  const overflow =
-    rows.length > ROW_CAP
-      ? `<p class="muted">…and ${rows.length - ROW_CAP} more app${rows.length - ROW_CAP === 1 ? '' : 's'}.</p>`
-      : '';
-
-  // Timeframe label matters: the Trends charts above are explicitly 30-day,
-  // but this breakdown totals all retained metrics history. Label it so a
-  // large all-time total isn't misread as a 30-day figure.
-  return `<section aria-label="Cost by app">
-<h2>🧮 Cost by app <span class="tf-note">· all time (retained history)</span></h2>
-<ul class="cost-list">${items.join('')}</ul>${overflow}
-</section>`;
-}
-
+// The deck page — chrome, CSS, and every section — is rendered by
+// ./console-render.js. This wrapper exists so the skill-facing entry point and
+// its signature are unchanged.
 function buildUsageHtml(model, { now } = {}) {
-  const source = model && typeof model === 'object' ? model : {};
-  const totalSavedUsd = Number.isFinite(source.totalSavedUsd) ? source.totalSavedUsd : 0;
-  const totalDispatches = Number.isFinite(source.totalDispatches) ? source.totalDispatches : 0;
-  const savingsSeries = Array.isArray(source.savingsSeries) ? source.savingsSeries : [];
-  const costSeries = Array.isArray(source.costSeries) ? source.costSeries : [];
-  const costByApp = Array.isArray(source.costByApp) ? source.costByApp : [];
-  const dataThroughMs = Number.isFinite(source.dataThroughMs) ? source.dataThroughMs : null;
-  const hasAnySourceRow = source.hasAnySourceRow !== false;
-  const savingsStale = source.savingsStale === true;
-  const nowMs = toMs(now) ?? toMs(source.generatedAt);
-  const dataThroughLine =
-    dataThroughMs !== null ? ` · Data through: ${esc(stamp(dataThroughMs))}` : '';
-
-  return `<meta charset="utf-8">
-<title>Commander Usage &amp; Cost</title>
-<style>${brandBaseCss()}${deckStripCss()}${USAGE_CSS}</style>
-${renderTerminalChromeOpen()}
-<main class="uc">
-${deckStripHtml('usage', { interactive: false })}
-<header>
-<h1>💰 Commander Usage &amp; Cost</h1>
-<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}${dataThroughLine}</p>
-</header>
-${renderStalenessBanner(dataThroughMs, nowMs)}
-${renderHeroSection(totalSavedUsd, totalDispatches, { savingsStale, hasAnySourceRow })}
-${renderChartsSection(savingsSeries, costSeries)}
-${renderCostByAppSection(costByApp)}
-<footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>
-</main>
-${TERMINAL_CHROME_CLOSE}`;
+  return buildDeckHtml(model, { tab: 'usage', surface: 'artifact', now });
 }
 
 export { buildUsageHtml, readUsageModel };

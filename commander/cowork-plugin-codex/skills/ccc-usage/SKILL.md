@@ -35,21 +35,22 @@ AskUserQuestion:
 
 ### 🛰️ Publish the deck
 
-**LIVING PATTERN:** always render to the SAME file path (`scratchpad/ccc-usage-live.html`), then republish that same path with the Artifact tool — same path means same URL, so it updates one living page instead of a trail of copies.
+**LIVING PATTERN:** always render to the SAME file path (`scratchpad/ccc-usage-live.html`), then republish that same path with the Artifact tool — same path means same URL, so it updates one living page instead of a trail of copies. **Do not change this path** — it is the identity of every bookmark anyone already has for this deck.
 
-Build the self-contained HTML with the plugin's own library (no server needed):
+Since v7.4.0 this page is the **Usage tab of the Commander Console**, published on its own — one builder renders every deck and the console, so the numbers can't disagree:
 
 ```bash
 mkdir -p scratchpad
-node --input-type=module -e "
-import { readUsageModel, buildUsageHtml } from '${CLAUDE_PLUGIN_ROOT}/lib/usage-snapshot.js';
-import { writeFile } from 'node:fs/promises';
-const now = Date.now();
-const html = buildUsageHtml(await readUsageModel({ now }), { now });
-await writeFile('scratchpad/ccc-usage-live.html', html);
-console.log('wrote scratchpad/ccc-usage-live.html');
-"
+if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" ]; then
+  node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
+    --surface artifact --tab usage --out scratchpad/ccc-usage-live.html
+else
+  node commander/cowork-plugin/scripts/build-console.mjs \
+    --surface artifact --tab usage --out scratchpad/ccc-usage-live.html
+fi
 ```
+
+The page is unchanged apart from one added line pointing at `$ccc-console` (the inline all-in-one view).
 
 **First publish this session** → ask before publishing ($ figures leave the machine for your private artifact URL). **Every later run of `$ccc-usage`** → invoking the skill again IS the refresh consent: republish the same file path to the same URL without re-asking. Publish `scratchpad/ccc-usage-live.html` with the Artifact tool (favicon 💰). End with the artifact title + the headline: "$X saved across N dispatches." To refresh later: run `$ccc-usage` again — same URL updates in place; viewers reload.
 
@@ -59,7 +60,7 @@ Run `readUsageModel({})` and read `model.totalSavedUsd` / `model.totalDispatches
 
 ## The deck also links the others
 
-The published artifact carries the shared **Commander decks** strip at the top — one click (copy) away from the Cockpit, Mission Control, and Safety decks. Users always know the other decks exist.
+The published artifact carries the shared **Commander decks** strip at the top — one click (copy) away from the Cockpit, Mission Control, and Safety decks. Users always know the other decks exist. It also carries one line pointing at `$ccc-console`, the inline console that shows all of these tabs at once (and has a prompt bar, which a published page cannot).
 
 > **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
 

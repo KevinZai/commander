@@ -1,6 +1,6 @@
 ---
 title: "Hooks 2026 — 23 Events"
-description: "v5.1.0 expanded the hook system from 9 to 23 lifecycle events and from 24 to 43 handlers. Full registry, new events, and migration notes."
+description: "v5.1.0 expanded the hook system from 9 to 23 lifecycle events and nearly doubled the handler count. Full registry, new events, and migration notes."
 ---
 
 <Note>
@@ -11,7 +11,7 @@ description: "v5.1.0 expanded the hook system from 9 to 23 lifecycle events and 
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
-| `SessionStart` | 4 | `session-start-orchestrator.js` (single-process orchestrator for all 4 session-start scripts) | Seed state, stale CLAUDE.md nudge, post-compact recovery, ambient suggestion |
+| `SessionStart` | 5 | `session-start-orchestrator.js` (single-process orchestrator for the session-start scripts), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed state, stale CLAUDE.md nudge, post-compact recovery, ambient suggestion, update nudge, console auto-open (v7.4.0) |
 | `SessionEnd` | 2 scripts | `session-save.js`, `session-summary.js` | Persist session JSON + write summary to knowledge dir |
 | `UserPromptSubmit` | 4 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `user-prompt-submit.js` | Ambient suggestion tick, skill routing, context budget warning, prompt logging |
 | `PreToolUse` | 3 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js` | Accumulate cost, block over ceiling, scan args for leaked secrets |
@@ -35,7 +35,7 @@ description: "v5.1.0 expanded the hook system from 9 to 23 lifecycle events and 
 | `InstructionsLoaded` | 1 | `instructions-logger.js` | Log CLAUDE.md / skill loads at session start |
 | `Setup` | 1 | `plugin-setup.js` | One-time initialization when plugin first installs |
 
-**Total: 23 events · 43 handlers**
+**Total: 23 events · 44 handlers**
 
 ## New vs Existing Events
 
