@@ -7,7 +7,7 @@
   demanded an Opus pin for `architect`, `security-auditor`, `debugger` and
   `product-manager`, but those four were promoted to `claude-fable-5` back in v6.0.
   Anyone running the doctor on a healthy install got a red `fail`. It went unnoticed
-  for two releases because the test used a synthetic fixture that drifted alongside
+  since v6.0 because the test used a synthetic fixture that drifted alongside
   the wrong expectation — so the suite stayed green while the real check was broken.
   Fixed, and the doctor is now additionally asserted against the **real repo**, not
   just a fixture, so fixture drift alone can no longer hide a failing check.

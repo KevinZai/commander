@@ -548,7 +548,11 @@ function isVersionRelevant(content, index, matchLen) {
   // was a false negative that let genuine current-state drift through.
   // But an explicit historical lead-in ("the release note says: CC Commander v6.0.0
   // ships…") still wins: quoting a past release is not asserting a current version.
-  var historicalQuote = /\b(release note|changelog|previously|back in|as of)\b[^.!?\n]{0,60}$/i.test(before);
+  // `before` is only 45 chars, so a {0,60} window here silently truncated — keep the
+  // bound inside the slice. Bare "changelog" is NOT a history cue on its own
+  // ("obsolete changelog; CC Commander version 6.4.2 ships…" is current-state drift);
+  // require a phrasing that actually quotes a past release.
+  var historicalQuote = /\b(release note|changelog entry|changelog for|previously|back in|as of)\b[^.!?\n;]{0,40}$/i.test(before);
   var productLed = !historicalQuote && /\b(CC Commander|Commander|CCC)\s+(v|version\s+)?$/i.test(before);
   if (!productLed && /^\)?\s*(ships?\b|makes?\b|release note\b|corrects?\b|fixes?\b|or later\b)/i.test(after)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);

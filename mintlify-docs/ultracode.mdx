@@ -50,12 +50,12 @@ Opus 5 supports four effort levels via `thinking: {type: "adaptive"}`:
 
 | Level | What it does | When to use |
 |-------|-------------|------------|
-| `ultra` | Maximum reasoning depth — no shortcuts | Architecture decisions, complex security audits, multi-system migrations |
+| `max` | Maximum reasoning depth — no shortcuts | Architecture decisions, complex security audits, multi-system migrations |
 | `xhigh` | Deep reasoning with workflow orchestration | Most ultracode tasks — builds, reviews, audits |
 | `high` | Standard extended thinking | General development, most tasks |
 | `medium` | Compact reasoning | Fast iteration, bulk ops |
 
-`ultracode` = `xhigh` by convention. If you need `ultra` specifically, pass it explicitly:
+`ultracode` = `xhigh` by convention. The valid levels are `low`, `medium`, `high`, `xhigh`, `max` — there is no `ultra`. If you need maximum depth, use `max`:
 
 ```
 /ccc-ultracode
