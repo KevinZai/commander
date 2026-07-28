@@ -273,7 +273,7 @@ committing.
 **Commit:**
 
 1. Stage modified documentation files by name (never `git add -A` or `git add .`).
-2. Create a single commit:
+2. Create a single commit. Omit the co-author trailer entirely if the project has AI attribution disabled:
 
 ```bash
 git commit -m "$(cat <<'EOF'

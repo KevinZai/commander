@@ -552,10 +552,41 @@ function isVersionRelevant(content, index, matchLen) {
   // bound inside the slice. Bare "changelog" is NOT a history cue on its own
   // ("obsolete changelog; CC Commander version 6.4.2 ships…" is current-state drift);
   // require a phrasing that actually quotes a past release.
-  var historicalQuote = /\b(release note|changelog entry|changelog for|previously|back in|as of)\b[^.!?\n;]{0,40}$/i.test(before);
+  // "as of" is deliberately NOT here: "as of now, CC Commander version X ships…" is
+  // present-tense. Only phrasings that unambiguously quote a PAST release qualify.
+  var historicalQuote = /\b(release note|changelog entry|changelog for|previously|back in)\b[^.!?\n;]{0,40}$/i.test(before);
   var productLed = !historicalQuote && /\b(CC Commander|Commander|CCC)\s+(v|version\s+)?$/i.test(before);
   if (!productLed && /^\)?\s*(ships?\b|makes?\b|release note\b|corrects?\b|fixes?\b|or later\b)/i.test(after)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
+}
+
+// --- patch safety ------------------------------------------------------------
+//
+// isVersionRelevant is a PROSE HEURISTIC, and four consecutive adversarial review
+// rounds each broke it with a new phrasing. It is good enough to *report* on, but
+// not to silently rewrite on: the two error directions are wildly asymmetric.
+//   over-report  -> a human reads one extra line. Free.
+//   over-rewrite -> history is falsified in a committed doc, usually unnoticed.
+// So --patch gets a STRICTER predicate than --check. If anything in the vicinity
+// hints the reference might be historical, --patch declines and leaves it for the
+// human that --check already told. Under-patching is a chore; over-patching is a
+// corrupted record — when unsure, do nothing.
+var HISTORY_HINT = /\b(release note|changelog|previously|back in|as of|history|historical|used to|formerly|prior to|before|since|was|were|shipped|introduced|added|launched|old|legacy|deprecated|v\d+\.\d+)\b/i;
+
+function isSafeToPatch(content, index, matchLen) {
+  if (!isVersionRelevant(content, index, matchLen)) return false;
+  // Bounded to the SAME LINE. A raw character window bleeds into neighbouring lines,
+  // so one "changelog" in an adjacent bullet would freeze patching for a perfectly
+  // current line below it — over-conservative to the point of uselessness.
+  var lineStart = content.lastIndexOf('\n', index) + 1;
+  var lineEndRaw = content.indexOf('\n', index);
+  var lineEnd = lineEndRaw === -1 ? content.length : lineEndRaw;
+  var line = content.slice(lineStart, lineEnd);
+  // Drop the version token itself so its own "v7.3.0" shape can't trip the hint.
+  var lineSansMatch =
+    line.slice(0, index - lineStart) + line.slice(index - lineStart + (matchLen || 0));
+  if (HISTORY_HINT.test(lineSansMatch)) return false;
+  return true;
 }
 
 function scanCommandPrefix(content, surface, contract) {
@@ -719,10 +750,10 @@ function patchText(content, contract) {
   });
   var versionRule = makeVersionRule(contract);
   patched = replaceNamedNumber(patched, versionRule.regex, contract.version, versionRule.min, function(text, offset, value, matchLen) {
-    // Same guard scanVersionRule uses — and it MUST be called the same way, with the
-    // match length, or the trailing guards go dead and --patch rewrites history that
-    // --check deliberately skipped.
-    return value !== contract.version && isVersionRelevant(text, offset, matchLen);
+    // STRICTER than the checker on purpose — see isSafeToPatch. --check still
+    // reports everything isVersionRelevant flags; --patch only rewrites the
+    // unambiguous subset, so a missed rewrite is a TODO rather than falsified history.
+    return value !== contract.version && isSafeToPatch(text, offset, matchLen);
   });
   return patched;
 }
@@ -839,4 +870,14 @@ function main() {
   process.exit(0);
 }
 
-main();
+// Only self-run as a CLI. Being require-able is what lets the patch-safety
+// property be unit-tested instead of hand-verified once per audit round.
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  isVersionRelevant: isVersionRelevant,
+  isSafeToPatch: isSafeToPatch,
+  patchText: patchText,
+};

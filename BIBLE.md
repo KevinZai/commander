@@ -2495,7 +2495,7 @@ Verification: [how you'll know it's done]
 | **Opus 5** | Complex architecture, deep reasoning, agentic coding | $$$ | **Everyday session default.** Architectural decisions, research, judgment calls. Default effort is `high` — step up to `xhigh`/`max` only for demanding coding/agentic work or maximum depth; don't reuse an effort setting carried over from Opus 4.8 without re-sweeping it. |
 | **Fable 5** | Deep multi-angle reasoning | $$$$ | **Escalation tier only.** Architecture / planning / migration / threat-model sessions where deep reasoning is the actual bottleneck. Activate: `/model claude-fable-5[1m]`. Nudged once per day when ≥2 deep-reasoning signals detected. Motto: *pay for Fable on the thinking, not the typing.* |
 
-**Adaptive thinking:** Opus 5 uses `thinking: {type: "adaptive"}`. Effort levels: `xhigh` (agentic/coding tasks) and `ultra` (maximum depth) — note `thinking: {type: "disabled"}` now errors at `xhigh`/`ultra` on Opus 5, only valid at `high` or below. Fable 5 has adaptive thinking always-on. Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
+**Adaptive thinking:** Opus 5 uses `thinking: {type: "adaptive"}`. Effort levels: `xhigh` (agentic/coding tasks) and `max` (maximum depth) — note `thinking: {type: "disabled"}` now errors at `xhigh`/`max` on Opus 5, only valid at `high` or below. Fable 5 has adaptive thinking always-on. Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
 
 **Smart routing:** `selectModelForComplexity(score)` auto-routes subagents: 0–29 → Haiku, 30–65 → Sonnet, 66–85 → Opus, 86–100 → Fable. Dispatch tiers: `power` = Fable/Opus, `assisted` = Opus/Sonnet, `guided` = Sonnet/Haiku.
 

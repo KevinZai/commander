@@ -227,7 +227,7 @@ Run `/ccc-claudemd` periodically to pull latest best practices.
 |-------|---------|------|
 | **Haiku 4.5** | Fast iteration, bulk ops, subagents | $ |
 | **Sonnet 5** | General dev, orchestration | $$ |
-| **Opus 5** | Complex architecture, deep reasoning, `ultra`/`xhigh` effort | $$$ |
+| **Opus 5** | Complex architecture, deep reasoning, `xhigh`/`max` effort | $$$ |
 
 Opus 5 adds Fast mode (2.5× speed, $10/$50 per MTok — pricing carried over from 4.8, not yet re-verified against Opus 5's pricing page) and an `ultra` effort level. Anthropic's own default guidance for Opus 5 is `high`, escalating to `xhigh`/`max` only when justified — don't reuse an effort setting carried over from 4.8 without re-sweeping it.
 
