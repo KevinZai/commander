@@ -80,17 +80,19 @@ What does **not** exist and must never be claimed: per-message content, session 
 
 A frozen, shareable page — think "export to PDF", not "live dashboard". Render the **artifact** surface for one tab and publish it with the **Artifact** tool.
 
-**LIVING PATTERN:** always render to the same file path so republishing updates one page instead of leaving a trail:
+**LIVING PATTERN:** always render to the same file path so republishing updates one page instead of leaving a trail. That path is the **Cockpit's** existing one, `scratchpad/commander-cockpit.html` — the console snapshot **absorbs the Cockpit's living URL** rather than minting a fifth Commander URL (Kevin's call, v7.4.0). `/ccc-browse` republishes the same path with the catalog page; both keep favicon `🎛️`, so the bookmark stays the one Commander page it has always been.
 
 ```bash
 mkdir -p scratchpad
 node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
-  --surface artifact --tab overview --out scratchpad/commander-console.html
+  --surface artifact --tab overview --out scratchpad/commander-cockpit.html
 ```
 
 (Same `if [ -f … ]` fallback as above when `${CLAUDE_PLUGIN_ROOT}/scripts/` isn't present.)
 
-Publish that file with favicon `🎛️` and the stable title **"Commander Console"**.
+Publish that file with favicon `🎛️` and the stable title **"Commander Console"**. Never invent a new path or filename for it — a new path is a new URL, and every existing bookmark stops updating.
+
+The four deck skills work the same way in reverse: `/ccc-mission-control`, `/ccc-usage` and `/ccc-safety` publish **one tab each** through this same builder onto their own existing paths (`scratchpad/mission-control-live.html`, `ccc-usage-live.html`, `ccc-safety-live.html`), so their URLs keep updating in place and every page comes from one renderer.
 
 **Confirm before the FIRST publish this session:** use `AskUserQuestion` to tell the user that **agent names, task subjects and timings will leave the machine** for their private claude.ai artifact URL — private to their account, but off the machine. Publish only after an explicit confirmation, and never publish automatically. **Re-invoking `/ccc-console publish` IS the refresh consent** — republish the same path without re-asking.
 
@@ -115,7 +117,7 @@ Publish that file with favicon `🎛️` and the stable title **"Commander Conso
 - The console only sees work journaled by the plugin's hooks — agents run without CC Commander installed leave no trace.
 - The widget is a snapshot at render time; it has no network access in either direction. `refresh` re-runs the read.
 - `agent-runs.jsonl` rotates at 10MB, so ancient detail ages out.
-- Memory and History tabs land in a follow-up; this release ships Overview, Usage, Safety and Launch.
+- `--tab launch` is widget-only: a chip launcher is meaningless on a static page, so it has no published form.
 
 ## Related
 

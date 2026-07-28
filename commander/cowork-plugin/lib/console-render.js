@@ -431,14 +431,37 @@ function renderStalenessBanner(dataThroughMs, nowMs, thresholdMs) {
 </section>`;
 }
 
+// v7.4.0 Phase 3 — a published deck page is "just this tab" of the console, so
+// it carries one line saying where the all-in-one view lives. Static text: no
+// model data reaches it, so nothing here needs escaping.
+//
+// OFF BY DEFAULT, and that is deliberate. buildSnapshotHtml/buildUsageHtml/
+// buildSafetyHtml are the pre-console entry points whose bytes are pinned by the
+// Phase 0 goldens (commander/tests/console-extraction.test.js) — goldens
+// generated BEFORE the extraction, which must never be regenerated because a
+// regenerated golden compares the renderer against itself. The console pipeline
+// (scripts/build-console.mjs) is the one caller that opts in, and every deck
+// skill publishes through it, so every published page gets the banner while the
+// legacy signatures stay byte-identical.
+const CONSOLE_BANNER_CSS = `
+.console-banner{margin:0 0 16px;padding:9px 12px;border:1px solid var(--border);border-left:2px solid var(--primary);border-radius:var(--radius-small,6px);background:var(--bg-card,transparent);}
+.console-banner p{margin:0;font-family:var(--font-mono);font-size:12px;line-height:1.5;color:var(--text-dim);}
+.console-banner code{color:var(--text);}
+`;
+
+const CONSOLE_BANNER_HTML = `<aside class="console-banner" aria-label="Commander Console">
+<p>🎛️ Part of <strong>Commander Console</strong> — run <code>/ccc-console</code> for the all-in-one view.</p>
+</aside>`;
+
 /**
  * Wrap one tab's sections in the shared deck page.
  *
  * @param {object} model  the tab's model (see the matching read*Model())
- * @param {{tab: string, surface?: 'widget'|'artifact', now?: string|number|Date}} opts
+ * @param {{tab: string, surface?: 'widget'|'artifact', now?: string|number|Date,
+ *          consoleBanner?: boolean}} opts
  * @returns {string} a self-contained, script-free HTML fragment
  */
-function buildDeckHtml(model, { tab, surface = 'artifact', now } = {}) {
+function buildDeckHtml(model, { tab, surface = 'artifact', now, consoleBanner = false } = {}) {
   const chrome = Object.hasOwn(TAB_CHROME, tab) ? TAB_CHROME[tab] : null;
   if (!chrome) throw new Error(`buildDeckHtml: unknown tab "${tab}"`);
   if (surface !== 'artifact') {
@@ -450,10 +473,14 @@ function buildDeckHtml(model, { tab, surface = 'artifact', now } = {}) {
   const nowMs = nowMsFor(source, { now });
   const dataThroughLine =
     dataThroughMs !== null ? ` · Data through: ${esc(stamp(dataThroughMs))}` : '';
+  // Artifact-only by construction: the banner points at an inline widget, which
+  // a published page has no way to open. (Today `surface` can only be
+  // 'artifact' here — the check documents the intent for when it can't be.)
+  const banner = consoleBanner === true && surface === 'artifact';
 
   return `<meta charset="utf-8">
 <title>${chrome.title}</title>
-<style>${brandBaseCss()}${deckStripCss()}${chrome.css}</style>
+<style>${brandBaseCss()}${deckStripCss()}${chrome.css}${banner ? CONSOLE_BANNER_CSS : ''}</style>
 ${renderTerminalChromeOpen(chrome)}
 <main class="${chrome.mainClass}">
 ${deckStripHtml(tab, { interactive: false })}
@@ -461,7 +488,7 @@ ${deckStripHtml(tab, { interactive: false })}
 <h1>${chrome.heading}</h1>
 <p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}${dataThroughLine}</p>
 </header>
-${renderStalenessBanner(dataThroughMs, nowMs, chrome.staleThresholdMs)}
+${banner ? `${CONSOLE_BANNER_HTML}\n` : ''}${renderStalenessBanner(dataThroughMs, nowMs, chrome.staleThresholdMs)}
 ${TAB_RENDERERS[tab](source, { surface, now })}
 <footer>🔒 ${chrome.sourceNote || 'Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.'}</footer>
 </main>

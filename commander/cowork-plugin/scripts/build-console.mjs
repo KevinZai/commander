@@ -82,7 +82,17 @@ async function main() {
     // model.errors and keeps going). Render the deck's own zero-state from an
     // empty model rather than crashing the publish — same fail-open contract
     // the decks already have for a machine with no telemetry.
-    output = buildDeckHtml(model[section] || {}, { tab: deckTab, now: args.now });
+    // consoleBanner: every artifact this script emits is a "publish just this
+    // tab" export — the four deck skills publish through here since v7.4.0 — so
+    // each page says where the all-in-one view lives. The legacy build*Html()
+    // entry points leave it off so their bytes stay pinned by the Phase 0
+    // goldens; this is the one caller that opts in.
+    output = buildDeckHtml(model[section] || {}, {
+      tab: deckTab,
+      surface: 'artifact',
+      now: args.now,
+      consoleBanner: true,
+    });
   }
 
   if (args.outPath) {

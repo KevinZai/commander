@@ -74,7 +74,7 @@ Recommendation (⭐):
 
 ### Commander Cockpit → generate and publish the living page
 
-1. Use the same stable path on every run: `<scratchpad>/commander-cockpit.html`. Do not add timestamps or alternate filenames; republishing the same file preserves the living page URL.
+1. Use the same stable path on every run: `<scratchpad>/commander-cockpit.html`. Do not add timestamps or alternate filenames; republishing the same file preserves the living page URL. **`/ccc-console publish` deliberately writes to this same path** (v7.4.0, Kevin's call): the Cockpit and the console snapshot share one living Commander page rather than minting a fifth URL, so keep the favicon `🎛️` in both and never move this path.
 2. Run the generator — **prefer the in-plugin copy first** (works for every install, marketplace or dev checkout), falling back to the repo-root shim only if that path doesn't exist:
 
    ```bash
@@ -94,6 +94,8 @@ Recommendation (⭐):
 4. **First publish this session** → ask before publishing (skill/agent names and any local telemetry the page bakes in leave the machine for the artifact URL). **Every later run of `/ccc-browse`** → invoking the skill again IS the refresh consent: republish the same file path to the same URL without re-asking. Say that the page is fully client-side and nothing leaves the page beyond that one publish. To refresh later: run `/ccc-browse` again — same URL updates in place; viewers reload.
 
 If neither generator path exists (very old cached plugin version), say so and fall back to the existing category browse flow below; do not fabricate a Cockpit artifact.
+
+> **v7.4.0 — the Cockpit is the console's artifact-side catalog.** The Cockpit's heavy client-side tabs (Enhance, Prompts, Ideas, Agent manager) stay here, on a full-width page where they work; `/ccc-console`'s Launch tab is the compact, one-click version for the 680px inline widget. Same product, two surfaces — mention `/ccc-console` when the user wants the live agent/usage/safety picture rather than the catalog.
 
 > **v7.3.0:** the Cockpit's 8th tab, **Prompts**, is a searchable browser across 4 sources — Anthropic's Claude Code docs prompt library, the CCC field-tested prompt library (+ patterns + course modules), the repo's `prompts/` templates, and a ReadyIQ teaser (agent names + descriptions only). Each entry offers Copy and "✨ Enhance" (hands it straight to the Enhance tab).
 
