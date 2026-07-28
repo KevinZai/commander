@@ -2524,13 +2524,13 @@ You don't need to invoke workflows directly. Run the skill that backs them (`/cc
 
 ### Ultracode
 
-**`/effort ultracode`** = `xhigh` effort + automatic workflow orchestration. Use `/ccc-ultracode` for the guided path.
+**`/ccc-ultracode`** = `xhigh` effort + automatic workflow orchestration.
 
 Three ways to activate:
 
 ```
 /ccc-ultracode               # guided — recommended
-/effort ultracode            # set for current session
+/ccc-ultracode               # guided ultracode mode
 workflow: <task description> # one-off without mode switch
 ```
 

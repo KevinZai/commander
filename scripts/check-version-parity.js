@@ -28,6 +28,15 @@ var MANIFESTS = {
     path: path.join(ROOT, 'package-lock.json'),
     extract: function (obj) { return (obj.packages && obj.packages[''] && obj.packages[''].version) || null; },
   },
+  // bump-version.js writes this one too, so check it for the same reason.
+  'apps/mcp-server-cloud/package-lock.json': {
+    path: path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  'apps/mcp-server-cloud/package-lock.json (packages[""])': {
+    path: path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json'),
+    extract: function (obj) { return (obj.packages && obj.packages[''] && obj.packages[''].version) || null; },
+  },
   'commander/cowork-plugin/.claude-plugin/plugin.json': {
     path: path.join(ROOT, 'commander', 'cowork-plugin', '.claude-plugin', 'plugin.json'),
     extract: function (obj) { return obj.version || null; },

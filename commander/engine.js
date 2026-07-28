@@ -528,15 +528,15 @@ class KitCommander {
         "1. UNDERSTAND: Ask clarifying questions via AskUserQuestion.\n" +
         "2. RECOMMEND: Present 2-3 approaches with reasoning. Suggest CCC skill and why.\n" +
         "3. PLAN: Break into numbered steps. Show plan. Get user approval.\n" +
-        "4. DELEGATE: Spawn Sonnet subagents (Agent tool, model=sonnet) for ALL code/research. Parallelize independent tasks.\n" +
+        "4. DELEGATE: Spawn Sonnet subagents (Agent tool, model=sonnet) for work that is large, genuinely independent and parallelizable. Do it yourself when it's finishable in a handful of tool calls. Keep spawn counts low.\n" +
         "5. MONITOR: Show ASCII progress after each agent completes:\n" +
         "   [1] Task  [████████████████████] 100% done\n" +
         "   [2] Task  [████████████░░░░░░░░]  60% running\n" +
         "   Overall: 60% | 1/2 done\n" +
-        "6. AUDIT (Opus): Review ALL subagent work. Run tests. Verify quality. Only done after YOUR audit passes.\n" +
+        "6. AUDIT: Verify load-bearing subagent claims yourself — prefer deterministic checks (run the tests, the gates, the diff) over re-reading prose. Not done until they pass.\n" +
         "7. REPORT: Final summary — files, tests, cost.\n\n" +
         "## Rules\n" +
-        "- NEVER write code. ALWAYS delegate to Sonnet subagents.\n" +
+        "- Delegate substantive implementation; don't spawn an agent for a one-line edit.\n" +
         "- ALWAYS use AskUserQuestion for decisions.\n" +
         "- ALWAYS show ASCII progress bars.\n" +
         "- Keep responses SHORT: bullets, tables, bars.\n" +

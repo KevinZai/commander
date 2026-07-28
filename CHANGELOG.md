@@ -10,7 +10,7 @@
   for two releases because the test used a synthetic fixture that drifted alongside
   the wrong expectation — so the suite stayed green while the real check was broken.
   Fixed, and the doctor is now additionally asserted against the **real repo**, not
-  just a fixture, so this class of drift can't recur.
+  just a fixture, so fixture drift alone can no longer hide a failing check.
 - **The hardest tasks failed at dispatch** — complexity scores ≥93 produced
   `--effort ultra`, which is not a valid level (`low|medium|high|xhigh|max`). Mapped
   to `max`, and unknown values now clamp to `xhigh` instead of being forwarded to the
@@ -37,8 +37,9 @@
   verifier-≠-worker gate now explicitly targets substantive claims, findings and
   expensive-to-reverse changes, and ranks deterministic verification (tests, gates,
   diffs) above a spawned verifier. No gates were removed.
-- **`skills/claude-api` swept to Opus 5** (~83 replacements across 15 files). Opus 4.8
-  is *not* deprecated, so it keeps its alias and moves to an explicit Legacy table.
+- **`skills/claude-api` swept to Opus 5** — 19 files changed, 95 lines referencing
+  `claude-opus-4-8` removed. Opus 4.8 is *not* deprecated, so it keeps its alias and
+  moves to an explicit Legacy table.
 - Main-response length ceiling added to `response-style.md`, since Opus 5 is more
   verbose by default.
 

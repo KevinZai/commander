@@ -142,7 +142,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ```
 /ccc-ultracode               # guided path
-/effort ultracode            # set for session
+/ccc-ultracode               # guided ultracode mode
 workflow: <task>             # one-off
 ```
 

@@ -544,7 +544,12 @@ function isVersionRelevant(content, index, matchLen) {
   // EXCEPT when the product name leads it ("CC Commander v7.3.1 ships as a native
   // plugin") — that is a current-state assertion and must still be checked, or the
   // guard silently blinds the gate to the very line it is meant to keep fresh.
-  var productLed = /\b(CC Commander|Commander|CCC)\s+v?$/i.test(before);
+  // Accept both "CC Commander v7.3.1" and "CC Commander version 7.3.1" — the latter
+  // was a false negative that let genuine current-state drift through.
+  // But an explicit historical lead-in ("the release note says: CC Commander v6.0.0
+  // ships…") still wins: quoting a past release is not asserting a current version.
+  var historicalQuote = /\b(release note|changelog|previously|back in|as of)\b[^.!?\n]{0,60}$/i.test(before);
+  var productLed = !historicalQuote && /\b(CC Commander|Commander|CCC)\s+(v|version\s+)?$/i.test(before);
   if (!productLed && /^\)?\s*(ships?\b|makes?\b|release note\b|corrects?\b|fixes?\b|or later\b)/i.test(after)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
 }

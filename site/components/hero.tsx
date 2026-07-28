@@ -13,7 +13,7 @@ const TERMINAL_LINES = [
 ];
 
 const STATS = [
-  { value: "61", label: "Plugin skills curated" },
+  { value: "81", label: "Plugin skills curated" },
   { value: "22", label: "Specialist agents" },
   { value: "23", label: "Lifecycle hooks · 43 handlers" },
   { value: "18", label: "MCP integrations (2 bundled + 16 opt-in)" },

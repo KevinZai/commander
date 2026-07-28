@@ -259,7 +259,7 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 
 ```
 /ccc-ultracode               # guided path — recommended
-/effort ultracode            # set for current session
+/ccc-ultracode               # guided ultracode mode
 workflow: <your task here>   # one-off without mode switch
 ```
 
