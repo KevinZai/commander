@@ -1034,6 +1034,10 @@ function renderSafetyTab(model, opts = {}) {
 
 export {
   buildDeckHtml,
+  // esc is exported for ./console-widget.js: the widget renders its own compact
+  // fragments, but every surface must escape model-derived text with the SAME
+  // function — a second copy is a second place for an escaping bug to hide.
+  esc,
   formatDuration,
   renderMissionControlTab,
   renderSafetyTab,

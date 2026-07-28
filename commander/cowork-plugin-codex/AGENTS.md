@@ -4,7 +4,7 @@
 
 ## What this directory is
 
-The Codex-format mirror of the CC Commander plugin: 81 skills (`skills/*/SKILL.md`, byte-identical to the Claude Code tree), 22 specialist agent personas (`agents/*.toml`), the Codex-supported hook subset (`hooks.json`), and 2 credential-free MCP servers (`.mcp.json`).
+The Codex-format mirror of the CC Commander plugin: 82 skills (`skills/*/SKILL.md`, byte-identical to the Claude Code tree), 22 specialist agent personas (`agents/*.toml`), the Codex-supported hook subset (`hooks.json`), and 2 credential-free MCP servers (`.mcp.json`).
 
 ## How to use it
 
