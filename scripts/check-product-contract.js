@@ -530,12 +530,18 @@ function isVersionRelevant(content, index, matchLen) {
   // class). Both "before" phrasings ("added in vX", "as of vX", "from before vX",
   // "Status (vX") and "after" phrasings ("vX ships a…", "vX makes…", "vX release note").
   if (/(added|introduced|shipped|since|new|as of|from before)\s+(in\s+)?$/i.test(before)) return false;
+  // Same class, but with words between the cue and the number — "two new self-contained
+  // artifacts in v7.2.0", "what changed in v7.3.0". Bounded to 40 chars with no sentence
+  // break so a cue in a previous sentence can't suppress a real current-version ref.
+  if (/\b(added|introduced|shipped|new|what changed)\b[^.!?\n]{0,40}\bin\s+$/i.test(before)) return false;
   // "Status (vX)" is historical release-status labelling (e.g. the codex-compat
   // page's "**Status (v6.8.2):**") — BUT only skip it when the surrounding text
   // isn't asserting a CURRENT version, so "current Status (vX)" drift is still caught.
   if (/\bStatus\s*\($/i.test(before) && !/\b(current|latest|now)\b/i.test(context)) return false;
   var after = content.slice(index + (matchLen || 0), index + (matchLen || 0) + 45);
-  if (/^\)?\s*(ships?\b|makes?\b|release note\b)/i.test(after)) return false;
+  // "vX ships…", "vX corrects…", "update to vX or later" — the number names the
+  // release that did the thing (or the remediation floor), not the current version.
+  if (/^\)?\s*(ships?\b|makes?\b|release note\b|corrects?\b|fixes?\b|or later\b)/i.test(after)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
 }
 

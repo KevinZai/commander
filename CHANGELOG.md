@@ -1,5 +1,47 @@
 # Changelog
 
+## [7.3.1] - 2026-07-28
+
+### Fixed
+- **`/ccc-doctor` failed on correctly-configured repos** — its `agent-models` check
+  demanded an Opus pin for `architect`, `security-auditor`, `debugger` and
+  `product-manager`, but those four were promoted to `claude-fable-5` back in v6.0.
+  Anyone running the doctor on a healthy install got a red `fail`. It went unnoticed
+  for two releases because the test used a synthetic fixture that drifted alongside
+  the wrong expectation — so the suite stayed green while the real check was broken.
+  Fixed, and the doctor is now additionally asserted against the **real repo**, not
+  just a fixture, so this class of drift can't recur.
+- **The hardest tasks failed at dispatch** — complexity scores ≥93 produced
+  `--effort ultra`, which is not a valid level (`low|medium|high|xhigh|max`). Mapped
+  to `max`, and unknown values now clamp to `xhigh` instead of being forwarded to the
+  CLI. `/ccc-doctor` also validates `effortLevel` now and flags typos.
+- **`skills/advisor` documented an invalid model pair** — per Anthropic's advisor-tool
+  docs the advisor must be Sonnet 4.6+ *and* at least as capable as the executor, so
+  `claude-opus-4-8` is not a valid advisor for an `claude-opus-5` executor. The old
+  "the advisor is always Opus 4.8" line would have had users build a 400-erroring
+  request. Replaced with the real compatibility matrix.
+
+### Changed
+- **Claude Opus 5 adopted end-to-end.** Default model pin is now `claude-opus-5` —
+  dateless, and with no `[1m]` suffix, because Opus 5 is 1M context as both default
+  and maximum, making the suffix redundant.
+- **Effort posture follows Anthropic's Opus 5 guidance**: default `high`, escalate to
+  `xhigh` for demanding coding/agentic work, `max` only when justified. This replaces
+  the previous always-on `xhigh` floor.
+- **Delegation now has a size threshold.** Opus 5 delegates more eagerly than 4.8 and
+  over-spawns without explicit caps, so the doctrine across `CLAUDE.md`,
+  `CLAUDE.md.template`, `workflow-first.md`, `agents.md` and `delegation-templates`
+  now requires work to be large, genuinely independent and parallelizable before it
+  gets delegated — and keeps spawn counts low.
+- **Fable Method Pillar 2 scoped.** Opus 5 self-verifies more readily, so the
+  verifier-≠-worker gate now explicitly targets substantive claims, findings and
+  expensive-to-reverse changes, and ranks deterministic verification (tests, gates,
+  diffs) above a spawned verifier. No gates were removed.
+- **`skills/claude-api` swept to Opus 5** (~83 replacements across 15 files). Opus 4.8
+  is *not* deprecated, so it keeps its alias and moves to an explicit Legacy table.
+- Main-response length ceiling added to `response-style.md`, since Opus 5 is more
+  verbose by default.
+
 ## [7.3.0] - 2026-07-22
 
 ### Added
