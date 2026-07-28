@@ -1,6 +1,23 @@
 #!/usr/bin/env node
 'use strict';
 
+// ⚠️  --patch IS ADVISORY. ALWAYS `git diff` ITS OUTPUT BEFORE COMMITTING.
+//
+// Deciding whether a version reference in prose is "current" or "historical" is a
+// natural-language judgement, and six consecutive adversarial review rounds each
+// defeated the heuristic with a new phrasing ("vX ships", spelled-out "version",
+// "as of now", "Historical release note:", "from vX onward", "vX or newer"…).
+// Each miss silently falsified a committed doc — usually a release date or a
+// compatibility floor, which then tells users to upgrade past a version that
+// already works for them.
+//
+// The guards below (HISTORY_HINT, HISTORY_LEAD_IN, isSafeToPatch) close every case
+// found so far and are pinned by commander/tests/contract-patch-safety.test.js.
+// They are NOT proof of correctness — assume the next phrasing is still unhandled.
+// --check is the trustworthy half: it reports liberally and is the release gate.
+// This file is maintainer tooling only; it is not published to npm and not part of
+// the shipped plugin.
+
 var fs = require('fs');
 var path = require('path');
 
