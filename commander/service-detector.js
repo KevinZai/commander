@@ -10,6 +10,9 @@ var SERVICES = [
   { name: 'CloudCLI', port: 4681, path: '/', cli: null, command: '/cloudcli' },
   { name: 'Paperclip', port: 3110, path: '/', cli: null, command: '/paperclip' },
   { name: 'OpenClaw', port: 18789, path: '/', cli: 'openclaw', command: '/openclaw' },
+  // NOTE: local-inference services are detected for status display only. Commander
+  // never routes work to them — Anthropic models + the Codex CLI are the only
+  // execution paths. Do not wire a detected local model into dispatch.
   { name: 'Ollama', port: 11434, path: '/', cli: 'ollama', command: null },
   { name: 'n8n', port: 5678, path: '/', cli: null, command: null },
 ];

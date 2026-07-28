@@ -21,7 +21,7 @@ allowed-tools:
 | 5 | competitive-analysis | Competing products/tools/libraries feature comparison |
 | 6 | data-ingestion | Ingest and summarize large documents, codebases, or datasets |
 | 7 | trend-analysis | Technology, market, or usage pattern trend analysis |
-| 8 | gemini-fallback | Gemini 1M context for tasks exceeding standard context limits |
+| 8 | large-context | Opus 5's native 1M window, reduction, chunk-and-synthesize, then Codex CLI for mechanical execution |
 
 ## Research Surfaces
 
@@ -41,7 +41,7 @@ In addition to web search, research can use connected channels as surfaces:
 | "Compare these tools/libraries" | `competitive-analysis` |
 | "Summarize this large document" | `data-ingestion` |
 | "What are the trends in X?" | `trend-analysis` |
-| "File too large for context" | `gemini-fallback` |
+| "File too large for context" | `large-context` |
 
 ## Protocol: Research Before Build
 
