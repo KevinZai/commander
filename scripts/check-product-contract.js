@@ -571,7 +571,17 @@ function isVersionRelevant(content, index, matchLen) {
 // hints the reference might be historical, --patch declines and leaves it for the
 // human that --check already told. Under-patching is a chore; over-patching is a
 // corrupted record — when unsure, do nothing.
-var HISTORY_HINT = /\b(release note|changelog|previously|back in|as of|history|historical|used to|formerly|prior to|before|since|was|were|shipped|introduced|added|launched|old|legacy|deprecated|v\d+\.\d+)\b/i;
+// Includes COMPATIBILITY FLOORS ("from vX onward", "vX or newer", "requires vX"),
+// not just past-tense history. A floor names the release something became true in;
+// bumping it silently tells users to upgrade past a version that already works.
+var HISTORY_HINT = /\b(release note|changelog|previously|back in|as of|history|historical|used to|formerly|prior to|before|since|was|were|shipped|introduced|added|launched|old|legacy|deprecated|onward|or newer|or above|or higher|or later|compatible|compatibility|requires|required|minimum|at least|from|v\d+\.\d+)\b/i;
+
+// Historical lead-ins are often a HEADING on the preceding line ("Historical release
+// note:\nCC Commander v6.4.2 ships…"), which same-line bounding alone cannot see.
+// Must LOOK like a lead-in — a markdown heading, or a short line ending in a colon.
+// Matching any sentence that merely mentions "changelog" would freeze the perfectly
+// current line that happens to follow it.
+var HISTORY_LEAD_IN = /^(#{1,6}\s+|\**)[^\n]{0,80}\b(release notes?|changelog|history|historical|previously|deprecated|legacy|older releases?|past releases?)\b[^\n]{0,40}(:|\**)\s*$/i;
 
 function isSafeToPatch(content, index, matchLen) {
   if (!isVersionRelevant(content, index, matchLen)) return false;
@@ -586,6 +596,14 @@ function isSafeToPatch(content, index, matchLen) {
   var lineSansMatch =
     line.slice(0, index - lineStart) + line.slice(index - lineStart + (matchLen || 0));
   if (HISTORY_HINT.test(lineSansMatch)) return false;
+  // Look back one non-empty line for a historical heading/lead-in.
+  var prevEnd = lineStart > 0 ? lineStart - 1 : 0;
+  while (prevEnd > 0 && /\s/.test(content.charAt(prevEnd - 1)) && content.charAt(prevEnd - 1) !== '\n') prevEnd--;
+  if (prevEnd > 0) {
+    var prevStart = content.lastIndexOf('\n', prevEnd - 1) + 1;
+    var prevLine = content.slice(prevStart, prevEnd);
+    if (prevLine.trim() && HISTORY_LEAD_IN.test(prevLine)) return false;
+  }
   return true;
 }
 

@@ -40,6 +40,12 @@ var MUST_KEEP = [
   ['explicit historical lead-in', 'Historical release note: CC Commander version 6.4.2 ships a hub.'],
   ['ambiguous "as of now"', 'As of now, CC Commander version 6.4.2 ships with 81 skills.'],
   ['ambiguous "obsolete changelog"', 'Obsolete changelog; CC Commander version 6.4.2 ships with 81 skills.'],
+  // Round 5: compatibility FLOORS. Bumping these tells users to upgrade past a
+  // version that already works for them — the same falsification class as history.
+  ['floor: "from vX onward"', 'From v6.4.2 onward, the CC Commander plugin ships the hub.'],
+  ['floor: spelled-out "from version X onward"', 'From version 6.4.2 onward, CC Commander supports the hub.'],
+  ['floor: "compatible with vX onward"', 'Compatible with CC Commander v6.4.2 onward.'],
+  ['floor: "requires ... vX or newer"', 'Requires the plugin at v6.4.2 or newer.'],
 ];
 
 MUST_KEEP.forEach(function (row) {
@@ -71,6 +77,13 @@ MUST_PATCH.forEach(function (row) {
 });
 
 // --- the invariant that actually matters -------------------------------------
+
+test('patch safety: a historical heading on the PRECEDING line protects the version below it', function () {
+  // Same-line bounding alone cannot see a lead-in heading, so multi-line historical
+  // blocks were still being rewritten (found round 5).
+  var doc = 'Historical release note:\nCC Commander v6.4.2 ships a new hub.';
+  assert.strictEqual(patch(doc), doc, '--patch rewrote a version under a historical heading');
+});
 
 test('patch safety: a history hint on a NEIGHBOURING line does not freeze patching', function () {
   // A raw character window bled across lines, so one "changelog" in an adjacent

@@ -229,7 +229,7 @@ Run `/ccc-claudemd` periodically to pull latest best practices.
 | **Sonnet 5** | General dev, orchestration | $$ |
 | **Opus 5** | Complex architecture, deep reasoning, `xhigh`/`max` effort | $$$ |
 
-Opus 5 adds Fast mode (2.5× speed, $10/$50 per MTok — pricing carried over from 4.8, not yet re-verified against Opus 5's pricing page) and an `ultra` effort level. Anthropic's own default guidance for Opus 5 is `high`, escalating to `xhigh`/`max` only when justified — don't reuse an effort setting carried over from 4.8 without re-sweeping it.
+Opus 5 adds Fast mode (2.5× speed, $10/$50 per MTok — pricing carried over from 4.8, not yet re-verified against Opus 5's pricing page) and supports the full effort range (`low`/`medium`/`high`/`xhigh`/`max` — there is no `ultra`). Anthropic's own default guidance for Opus 5 is `high`, escalating to `xhigh`/`max` only when justified — don't reuse an effort setting carried over from 4.8 without re-sweeping it.
 
 **Rule:** Never change models mid-session — spawn a subagent instead.
 

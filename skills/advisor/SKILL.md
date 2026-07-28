@@ -30,12 +30,12 @@ Think of it as giving Sonnet a senior engineer it can quietly ask for help — w
 
 The rule (per Anthropic's [advisor tool docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool)): **the advisor must be Claude Sonnet 4.6 or more capable, AND at least as capable as the executor.**
 
-| Executor | Valid advisors |
-|----------|----------------|
-| `claude-haiku-4-5` | `claude-opus-5`, `claude-opus-4-8`, `claude-fable-5`, `claude-mythos-5`, `claude-sonnet-5`, `claude-sonnet-4-6` |
-| `claude-sonnet-5` | `claude-opus-5`, `claude-opus-4-8`, `claude-fable-5`, `claude-mythos-5` |
-| `claude-opus-4-8` | `claude-opus-5`, `claude-opus-4-8`, `claude-fable-5`, `claude-mythos-5` |
-| `claude-opus-5` | `claude-opus-5`, `claude-fable-5`, `claude-mythos-5` |
+Both conditions must hold:
+
+1. The advisor is **Claude Sonnet 4.6 or more capable**.
+2. The advisor is **at least as capable as the executor** — an advisor can't be weaker than the model it's advising.
+
+🔗 **Check the exact per-executor matrix in [Anthropic's docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool#model-compatibility) before pinning a pair.** That table is deliberately not mirrored here — a copied matrix goes stale silently every time Anthropic ships a model, and a wrong row sends you a 400 at runtime.
 
 ⚠️ **`claude-opus-4-8` is NOT a valid advisor for an `claude-opus-5` executor** — it fails the "at least as capable" rule. If you moved your executor to Opus 5, you must also move the advisor.
 
