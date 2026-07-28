@@ -43,6 +43,7 @@
  * Zero dependencies (beyond this plugin's own lib/), ESM, read-only,
  * fail-open. Core free forever — no license check, no tier gating.
  */
+import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -140,9 +141,45 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
 // forms, and a length-based one that both missed short creds and over-redacted
 // prose. The remaining `authorization: <scheme>` matcher covers the other
 // multi-token schemes; AKIA covers AWS access-key ids.
+// The full pattern library (JWTs, Google AIza keys, Stripe, SendGrid, private-key
+// headers…) lives in secret-patterns.json and was previously consumed ONLY by
+// secret-leak-guard.js — so a JWT could ride an error sample into a published
+// artifact untouched (2026-07-28 security audit). Compile it once here too.
+// JSON regexes may carry a Python-style `(?i)` inline flag JS rejects: strip it
+// and set the 'i' flag instead. A pattern that still fails to compile is skipped
+// (never let one bad vendor pattern take down the whole redactor).
+// This file is ESM — require() is unavailable, so read the JSON synchronously
+// relative to this module. (A silent `require` failure here was caught by the
+// regression tests: the catch swallowed it and the pattern list became [].)
+const EXTRA_SECRET_PATTERNS = (() => {
+  try {
+    const here = path.dirname(new URL(import.meta.url).pathname);
+    const lib = JSON.parse(
+      fs.readFileSync(path.join(here, 'secret-patterns.json'), 'utf8')
+    );
+    return (lib.patterns || [])
+      .map((p) => {
+        try {
+          const insensitive = p.regex.startsWith('(?i)');
+          const source = insensitive ? p.regex.slice(4) : p.regex;
+          return new RegExp(source, insensitive ? 'gi' : 'g');
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+})();
+
 function redact(value) {
   if (typeof value !== 'string') return null;
-  return value
+  let out = value;
+  for (const re of EXTRA_SECRET_PATTERNS) {
+    out = out.replace(re, '[redacted]');
+  }
+  return out
     .replace(/sk-[a-zA-Z0-9_-]{8,}/g, '[redacted]')
     .replace(/Bearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, '[redacted]')
     .replace(/\b(basic)\s+([A-Za-z0-9+/]{4,}={0,2})/gi, (match, scheme, b64) => {
@@ -203,7 +240,14 @@ function normalizeErrorSignature(rawError) {
 function redactedSample(rawError) {
   const redacted = redact(rawError);
   if (redacted === null) return '(no error text)';
-  const collapsed = redacted.replace(/\s+/g, ' ').trim();
+  // Fold home-dir paths in DISPLAY samples too, not just grouping signatures —
+  // "/Users/<name>/…" in a published artifact leaks the machine's username
+  // (2026-07-28 security audit). Keep the leaf segment for debuggability.
+  const noHome = redacted.replace(
+    /(?:\/(?:Users|home)\/)[\w.@-]+((?:\/[\w.@-]+)*)/g,
+    (_m, rest) => `<home>${rest}`
+  );
+  const collapsed = noHome.replace(/\s+/g, ' ').trim();
   if (!collapsed) return '(no error text)';
   return collapsed.length > SAMPLE_MAX ? `${collapsed.slice(0, SAMPLE_MAX - 3)}...` : collapsed;
 }
@@ -580,4 +624,6 @@ ${renderDecisionsSection(decisions)}
 ${TERMINAL_CHROME_CLOSE}`;
 }
 
-export { buildSafetyHtml, readSafetyModel };
+// redact/redactedSample exported so their behaviour is pinned by tests instead of
+// re-verified by hand each audit (same lesson as the contract patcher).
+export { buildSafetyHtml, readSafetyModel, redact, redactedSample };

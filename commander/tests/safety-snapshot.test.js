@@ -400,3 +400,46 @@ test('buildSafetyHtml does NOT append the doctor pointer when tool-failures has 
   assert.match(html, /No permission-gate telemetry yet/);
   assert.doesNotMatch(html, /Run \/ccc-doctor to check your hooks are wired/);
 });
+
+// ── 2026-07-28 security-audit regressions ────────────────────────────────────
+// The full pattern library (secret-patterns.json) was previously consumed ONLY
+// by secret-leak-guard.js, so JWTs and Google API keys rode error samples into
+// published artifacts unredacted; and redactedSample kept absolute home paths,
+// leaking the machine username. All fixture values are split literals per the
+// repo convention so secret-scan tooling doesn't false-positive on them.
+
+import { redact, redactedSample } from '../cowork-plugin/lib/safety-snapshot.js';
+
+const FAKE_JWT =
+  'eyJ' + 'hbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' + '.' +
+  'eyJ' + 'zdWIiOiIxMjM0NTY3ODkwIn0' + '.' +
+  'dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U';
+const FAKE_GOOGLE_KEY = 'AIza' + 'SyA1234567890abcdefghijklmnopqrstuvw';
+
+test('redact: JWTs are redacted (pattern library is wired in)', () => {
+  const out = redact(`auth failed: ${FAKE_JWT}`);
+  assert.ok(!out.includes(FAKE_JWT), 'JWT must not survive redaction');
+  assert.ok(out.includes('[redacted]'), 'redaction marker expected');
+});
+
+test('redact: Google API keys are redacted (pattern library is wired in)', () => {
+  const out = redact(`fetch with key ${FAKE_GOOGLE_KEY} failed`);
+  assert.ok(!out.includes(FAKE_GOOGLE_KEY), 'AIza key must not survive redaction');
+});
+
+test('redactedSample: home-dir username is folded out of display samples', () => {
+  const out = redactedSample('ENOENT: /Users/somebody/clawd/projects/x/file.txt missing');
+  assert.ok(!out.includes('/Users/somebody'), 'username must not reach a published sample');
+  assert.ok(out.includes('<home>'), 'folded marker expected');
+  assert.ok(out.includes('file.txt'), 'leaf segment kept for debuggability');
+});
+
+test('redactedSample: linux /home paths fold too', () => {
+  const out = redactedSample('read /home/someuser/.ssh/config failed');
+  assert.ok(!out.includes('/home/someuser'));
+  assert.ok(out.includes('<home>'));
+});
+
+test('redact: clean text passes through unmodified', () => {
+  assert.equal(redact('ordinary error, no secrets'), 'ordinary error, no secrets');
+});
