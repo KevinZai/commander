@@ -6,7 +6,7 @@ allowed-tools:
   - Bash
   - Write
   - AskUserQuestion
-argument-hint: "[open | overview | usage | safety | memory | history | launch | refresh | publish]"
+argument-hint: "[open | overview | usage | safety | memory | history | launch | refresh | publish | on | off]"
 ---
 
 # /ccc-console — the Commander Console
@@ -31,6 +31,7 @@ On `/ccc-console` with no argument, open the widget on the **Overview** tab (bel
 | `launch` | one-click chips for the common Commander workflows |
 | `refresh` | re-read the logs and render a fresh widget |
 | `publish` | build the **snapshot artifact** — consent-gated, see below |
+| `on` / `off` | turn the session-start auto-open on or off (see below) |
 
 ## 🖥️ Open the console (the default — inline widget)
 
@@ -58,6 +59,22 @@ The script prints the widget HTML on stdout (add `--out <path>` to write a file 
 - **Chips** — every chip is a **fixed template command** (`/ccc-doctor`, `/ccc-suggest`, `/ccc-usage`, `/ccc-browse`, the deck launchers, `/ccc-console refresh|publish`, and the Launch-tab workflows) and displays the exact command it will send *before* the click.
 - **What chips deliberately cannot do:** no chip payload is ever built from an agent name, a task subject, a branch, a file path or a log line. Anything that can append to a JSONL under `~/.claude/commander/` would otherwise be able to compose a command the user appears to have typed. Model text renders as escaped text only. If you extend this skill, keep that rule — `commander/tests/console-widget.test.js` enforces it.
 - **Tabs and refresh cost a round-trip on purpose.** Switching tabs sends `/ccc-console <tab>`; refreshing sends `/ccc-console refresh`. The widget is a snapshot at render time and cannot fetch anything — no polling, no localhost, no live data. That is honest and cheap.
+
+## 🔆 Auto-open at session start (`on` / `off`)
+
+Since v7.4.0 a SessionStart handler (`hooks/console-autopen.js`) asks the model to render this widget once, near the top of a session. **Opening is local** — it reads your own logs and draws a panel in this chat. It never publishes, and it never asks the network for anything.
+
+It stays quiet unless all of these hold: auto-open isn't switched off · you aren't on CI · the session is genuinely starting (not a resume or a post-compact re-fire) · this session hasn't already been nudged · there is actually telemetry to show. On a fresh install with no agent history, nothing happens. If the user's opening message is a real request, answer that and skip the console.
+
+**Turning it off** — any one of these:
+
+| Off switch | How |
+|---|---|
+| `/ccc-console off` | write `{"autoOpen": false}` to `~/.claude/commander/console.json` (create the file/dir if needed, preserving any other keys), then confirm in one line. `/ccc-console on` writes `{"autoOpen": true}`. |
+| Config file | edit `~/.claude/commander/console.json` by hand |
+| Environment | `CCC_NO_AUTOCONSOLE=1` |
+
+A missing or malformed `console.json` means **on** — a corrupt config must never silently disable something the user didn't turn off.
 
 ## 🧠 The Memory tab — optional, and absent is normal
 

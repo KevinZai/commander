@@ -1,5 +1,76 @@
 # Changelog
 
+## [7.4.0] - 2026-07-28
+
+### Added
+- **`/ccc-console` — One Commander.** The four published decks (`/ccc-browse`,
+  `/ccc-mission-control`, `/ccc-usage`, `/ccc-safety`) were four separate pages with
+  four URLs. `/ccc-console` is one **inline widget** — Overview · Usage · Safety ·
+  Memory · History · Launch — rendered through the visualize MCP, with a prompt bar
+  that reaches the live session via `sendPrompt(text)`. 82nd plugin skill.
+- **The prompt bar's security model is the feature, not a detail.** Chips send fixed
+  template commands only, and display the exact command before the click; free text is
+  newline-stripped and capped at 500 characters; **no telemetry-, memory- or
+  log-derived text ever reaches a `sendPrompt` payload**, because anything that can
+  append to a JSONL under `~/.claude/commander/` could otherwise compose a command the
+  user appears to have typed. All model text renders through `esc()`. The allowlist
+  test retypes the chip list deliberately, so editing a chip is a reviewed change.
+- **Memory tab** — reads *your own* claude-mem store (`~/.claude-mem/`), read-only,
+  titles only (`id / project / type / title / created_at_epoch`; never `text`,
+  `facts` or `narrative`), redacted and capped. claude-mem is AGPL-3.0 and Commander
+  is MIT, so it is **not bundled**: "not installed" is the normal zero-state — one
+  quiet card, never an error, never a nag.
+- **History tab** — the last 30 days from telemetry Commander already writes. No new
+  collector: `mission-control/metrics.jsonl` is the durable per-day backbone (it
+  survives the detail logs' 10MB rotation), and `skill-runs.jsonl`, `tasks.jsonl`,
+  `agent-runs.jsonl`, `subagent-runs.jsonl` and the `sessions/` stubs supply recent
+  detail, counted by filename only. Per-message content is not collected and is not
+  claimed.
+- **Auto-open** — a SessionStart handler (`hooks/console-autopen.js`, async, 44th
+  handler) asks the model to render the console widget once at the top of a session.
+  Local-only: it never publishes, and publishing stays consent-gated. It stays silent
+  on CI, on resume/compact re-fires, on a session it has already nudged, and on a
+  machine with no telemetry at all. Off switches: `/ccc-console off`,
+  `{"autoOpen": false}` in `~/.claude/commander/console.json`, or
+  `CCC_NO_AUTOCONSOLE=1`.
+- `defaultEnabled: true` in `plugin.json` — Commander is active on install rather than
+  needing to be switched on (field supported by Claude Code ≥ 2.1.154).
+
+### Changed
+- **The four deck skills are now "publish just this tab" exports of the console.**
+  `/ccc-mission-control`, `/ccc-usage` and `/ccc-safety` publish through
+  `scripts/build-console.mjs --surface artifact --tab <tab>` instead of each inlining
+  its own builder. **Every existing artifact URL keeps updating in place**: an
+  artifact URL is its scratchpad file path, so all three keep publishing to the paths
+  they always used, and a test pins those paths as literals. Each published page gains
+  one line pointing at `/ccc-console`.
+- `/ccc-console publish` writes to the **Cockpit's** existing path
+  (`commander-cockpit.html`) rather than minting a fifth Commander URL. The Cockpit
+  builder is untouched — its heavy client-side tabs (Enhance, Prompts, Ideas, Agent
+  manager) stay artifact-side where a full-width page works; the widget's Launch tab
+  is the compact one-click version.
+- **Extraction refactor.** Mission Control, Usage & Cost and Safety each owned a full
+  copy of the same page shell *and* its own section markup. `lib/console-render.js`
+  now owns all of it and `lib/console-model.js` composes the existing readers; the
+  three deck libraries keep their signatures as one-line delegations and shed the
+  duplicated render code (net −1,009 lines across the three). Proof that the
+  extraction changed nothing: 3 decks × 3 cases compared **byte-for-byte** against
+  goldens generated from the pre-extraction renderers, which are deliberately never
+  regenerated.
+
+### Fixed
+- **A read/write race between the Usage and Mission Control readers.** Mission
+  Control's `readModel()` recomputes and persists `mission-control/metrics.jsonl`,
+  which the Usage reader then reads for its cost-by-app split. Run concurrently, Usage
+  saw the file before *or* after that write depending on scheduling, so identical
+  telemetry produced different numbers run to run. The composed model now sequences
+  the writer ahead of its readers.
+- **Hook timeouts were milliseconds in a seconds field** (#83). Claude Code's hook
+  `timeout` is seconds, so the shipped `3000` meant 50 minutes and `15000` over four
+  hours — the anti-hang ceilings had never actually been in force. All handlers
+  converted; the Codex mirror reads milliseconds, so the translator now converts at
+  the boundary, and a test pins the convention at both ends.
+
 ## [7.3.2] - 2026-07-28
 
 ### Changed

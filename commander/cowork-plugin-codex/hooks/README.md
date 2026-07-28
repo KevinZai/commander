@@ -12,6 +12,7 @@ Canonical count: **25 handlers across 9 events** (see `hooks.json`).
 | SessionStart | `suggest-ticker.js` | Ambient intelligence — recommend one starred next step |
 | SessionStart | `fable-armed-nudge.js` | Reminds the session the Fable Method doctrine is available (`rules/fable-method.md`, `/ccc-fable audit`); wired via the SessionStart orchestrator's handlers array |
 | SessionStart | `git-truth.js` | Pillar 6 (truth over cache): opt-in best-effort `gh auth setup-git` refresh. Silent no-op unless `CCC_GIT_TRUTH=1` — swallows all errors, never blocks a session |
+| SessionStart | `console-autopen.js` | v7.4.0 — asks the model to render the `/ccc-console` widget once, locally. Async, silent on CI / resume / already-nudged sessions / no telemetry. Off via `/ccc-console off`, `{"autoOpen": false}` in `~/.claude/commander/console.json`, or `CCC_NO_AUTOCONSOLE=1`. Never publishes |
 | UserPromptSubmit | `intent-classifier.js` | Match prompt against skill catalog, route when confident |
 | UserPromptSubmit | `context-warning.js` | Warn when context window crosses 80% / 95% thresholds |
 | UserPromptSubmit | `user-prompt-submit.js` | Generic prompt-submit dispatcher |

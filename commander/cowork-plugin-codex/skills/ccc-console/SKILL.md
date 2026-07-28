@@ -6,7 +6,7 @@ allowed-tools:
   - Bash
   - Write
   - AskUserQuestion
-argument-hint: "[open | overview | usage | safety | memory | history | launch | refresh | publish]"
+argument-hint: "[open | overview | usage | safety | memory | history | launch | refresh | publish | on | off]"
 ---
 
 # $ccc-console — the Commander Console
@@ -31,6 +31,7 @@ On `$ccc-console` with no argument, open the widget on the **Overview** tab (bel
 | `launch` | one-click chips for the common Commander workflows |
 | `refresh` | re-read the logs and render a fresh widget |
 | `publish` | build the **snapshot artifact** — consent-gated, see below |
+| `on` / `off` | turn the session-start auto-open on or off (see below) |
 
 ## 🖥️ Open the console (the default — inline widget)
 
@@ -59,6 +60,22 @@ The script prints the widget HTML on stdout (add `--out <path>` to write a file 
 - **What chips deliberately cannot do:** no chip payload is ever built from an agent name, a task subject, a branch, a file path or a log line. Anything that can append to a JSONL under `~/.claude/commander/` would otherwise be able to compose a command the user appears to have typed. Model text renders as escaped text only. If you extend this skill, keep that rule — `commander/tests/console-widget.test.js` enforces it.
 - **Tabs and refresh cost a round-trip on purpose.** Switching tabs sends `$ccc-console <tab>`; refreshing sends `$ccc-console refresh`. The widget is a snapshot at render time and cannot fetch anything — no polling, no localhost, no live data. That is honest and cheap.
 
+## 🔆 Auto-open at session start (`on` / `off`)
+
+Since v7.4.0 a SessionStart handler (`hooks/console-autopen.js`) asks the model to render this widget once, near the top of a session. **Opening is local** — it reads your own logs and draws a panel in this chat. It never publishes, and it never asks the network for anything.
+
+It stays quiet unless all of these hold: auto-open isn't switched off · you aren't on CI · the session is genuinely starting (not a resume or a post-compact re-fire) · this session hasn't already been nudged · there is actually telemetry to show. On a fresh install with no agent history, nothing happens. If the user's opening message is a real request, answer that and skip the console.
+
+**Turning it off** — any one of these:
+
+| Off switch | How |
+|---|---|
+| `$ccc-console off` | write `{"autoOpen": false}` to `~/.claude/commander/console.json` (create the file/dir if needed, preserving any other keys), then confirm in one line. `$ccc-console on` writes `{"autoOpen": true}`. |
+| Config file | edit `~/.claude/commander/console.json` by hand |
+| Environment | `CCC_NO_AUTOCONSOLE=1` |
+
+A missing or malformed `console.json` means **on** — a corrupt config must never silently disable something the user didn't turn off.
+
 ## 🧠 The Memory tab — optional, and absent is normal
 
 Memory reads **your own** claude-mem store at `~/.claude-mem/claude-mem.db`, read-only, titles only. Commander does **not** bundle claude-mem: it is AGPL-3.0 and Commander is MIT.
@@ -80,17 +97,19 @@ What does **not** exist and must never be claimed: per-message content, session 
 
 A frozen, shareable page — think "export to PDF", not "live dashboard". Render the **artifact** surface for one tab and publish it with the **Artifact** tool.
 
-**LIVING PATTERN:** always render to the same file path so republishing updates one page instead of leaving a trail:
+**LIVING PATTERN:** always render to the same file path so republishing updates one page instead of leaving a trail. That path is the **Cockpit's** existing one, `scratchpad/commander-cockpit.html` — the console snapshot **absorbs the Cockpit's living URL** rather than minting a fifth Commander URL (Kevin's call, v7.4.0). `$ccc-browse` republishes the same path with the catalog page; both keep favicon `🎛️`, so the bookmark stays the one Commander page it has always been.
 
 ```bash
 mkdir -p scratchpad
 node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
-  --surface artifact --tab overview --out scratchpad/commander-console.html
+  --surface artifact --tab overview --out scratchpad/commander-cockpit.html
 ```
 
 (Same `if [ -f … ]` fallback as above when `${CLAUDE_PLUGIN_ROOT}/scripts/` isn't present.)
 
-Publish that file with favicon `🎛️` and the stable title **"Commander Console"**.
+Publish that file with favicon `🎛️` and the stable title **"Commander Console"**. Never invent a new path or filename for it — a new path is a new URL, and every existing bookmark stops updating.
+
+The four deck skills work the same way in reverse: `$ccc-mission-control`, `$ccc-usage` and `$ccc-safety` publish **one tab each** through this same builder onto their own existing paths (`scratchpad/mission-control-live.html`, `ccc-usage-live.html`, `ccc-safety-live.html`), so their URLs keep updating in place and every page comes from one renderer.
 
 **Confirm before the FIRST publish this session:** use `AskUserQuestion` to tell the user that **agent names, task subjects and timings will leave the machine** for their private claude.ai artifact URL — private to their account, but off the machine. Publish only after an explicit confirmation, and never publish automatically. **Re-invoking `$ccc-console publish` IS the refresh consent** — republish the same path without re-asking.
 
@@ -115,7 +134,7 @@ Publish that file with favicon `🎛️` and the stable title **"Commander Conso
 - The console only sees work journaled by the plugin's hooks — agents run without CC Commander installed leave no trace.
 - The widget is a snapshot at render time; it has no network access in either direction. `refresh` re-runs the read.
 - `agent-runs.jsonl` rotates at 10MB, so ancient detail ages out.
-- Memory and History tabs land in a follow-up; this release ships Overview, Usage, Safety and Launch.
+- `--tab launch` is widget-only: a chip launcher is meaningless on a static page, so it has no published form.
 
 ## Related
 
