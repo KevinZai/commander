@@ -34,7 +34,7 @@ import { readConsoleModel } from '../lib/console-model.js';
 import { buildDeckHtml } from '../lib/console-render.js';
 import { buildConsoleWidgetHtml } from '../lib/console-widget.js';
 
-const WIDGET_TABS = new Set(['overview', 'usage', 'safety', 'launch']);
+const WIDGET_TABS = new Set(['overview', 'usage', 'safety', 'memory', 'history', 'launch']);
 
 // Console tab -> (deck tab, model section). 'launch' has no artifact form: it is
 // a chip launcher, which degrades to nothing useful on a static page.
@@ -42,6 +42,8 @@ const ARTIFACT_TABS = Object.freeze({
   overview: { deckTab: 'mission-control', section: 'missionControl' },
   usage: { deckTab: 'usage', section: 'usage' },
   safety: { deckTab: 'safety', section: 'safety' },
+  memory: { deckTab: 'memory', section: 'memory' },
+  history: { deckTab: 'history', section: 'history' },
 });
 
 function parseArgs(argv) {

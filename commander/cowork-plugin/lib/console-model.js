@@ -4,15 +4,17 @@
  *
  * readConsoleModel({ baseDir, now }) composes the readers that already exist —
  * mission-control-snapshot.js's readModel(), usage-snapshot.js's
- * readUsageModel(), safety-snapshot.js's readSafetyModel() — into a single
- * model whose sub-objects are EXACTLY what those readers return:
+ * readUsageModel(), safety-snapshot.js's readSafetyModel(), and (Phase 2)
+ * memory-reader.js's readMemoryModel() + history-reader.js's
+ * readHistoryModel() — into a single model whose sub-objects are EXACTLY what
+ * those readers return:
  *
- *   { missionControl, usage, safety, meta: { generatedAt, dataThrough }, errors }
+ *   { missionControl, usage, safety, memory, history,
+ *     meta: { generatedAt, dataThrough }, errors }
  *
  * It delegates; it does not re-derive. Every log path, cap, tolerance rule and
  * dataThrough calculation stays owned by the reader that already got it right,
  * so a fix there reaches the console for free and the two can never disagree.
- * (Memory and History join in Phase 2 — this file is where they'll hang.)
  *
  * Fail-open per section: the decks exist to report on telemetry that may be
  * absent, partial or malformed, so one reader throwing must not blank the other
@@ -26,10 +28,24 @@
  * still come from each section's own dataThroughMs, because the sources have
  * genuinely different tails.
  *
+ * MEMORY IS DELIBERATELY EXCLUDED from that max. It reads claude-mem — another
+ * tool's store, not Commander telemetry — so a busy claude-mem would mask a
+ * dead Commander hook behind a fresh-looking header stamp, which is exactly the
+ * staleness signal the header exists to raise. The Memory tab shows its own
+ * stamp. History IS included: it reads Commander's own logs.
+ *
+ * Memory is also the one section where absence is NORMAL: claude-mem is AGPL
+ * and never bundled, so most machines don't have it. `memory` is therefore
+ * always an OBJECT carrying {available:false, unavailableReason} in that case —
+ * a `null` section here keeps meaning strictly "this reader threw", which
+ * "you haven't installed an optional third-party tool" is not.
+ *
  * Deterministic: `now` flows through to every reader, so a pinned clock pins
  * the whole model. Zero dependencies (beyond this plugin's own lib/), ESM,
  * read-only. Core free forever — no license check, no tier gating.
  */
+import { readHistoryModel } from './history-reader.js';
+import { readMemoryModel } from './memory-reader.js';
 import { readModel } from './mission-control-snapshot.js';
 import { readSafetyModel } from './safety-snapshot.js';
 import { readUsageModel } from './usage-snapshot.js';
@@ -62,8 +78,9 @@ async function section(name, read, errors) {
  * @param {boolean} [opts.recompute]  forwarded to readUsageModel — false skips
  *   its getMetrics() `ccusage` recompute side effect (tests, offline renders)
  * @param {Function} [opts.metricsRunner]  forwarded to readUsageModel
+ * @param {string} [opts.memoryDbPath]  forwarded to readMemoryModel (tests)
  */
-async function readConsoleModel({ baseDir, now, recompute, metricsRunner } = {}) {
+async function readConsoleModel({ baseDir, now, recompute, metricsRunner, memoryDbPath } = {}) {
   const nowMs = toMs(now) ?? Date.now();
   const errors = [];
 
@@ -74,22 +91,28 @@ async function readConsoleModel({ baseDir, now, recompute, metricsRunner } = {})
   // before or after that write depending on scheduling, so the same telemetry
   // yields two different Usage sections run to run. Sequencing the writer ahead
   // of the reader makes the composed model deterministic.
+  //
+  // History reads that same metrics.jsonl as its long-horizon backbone, so it
+  // sits in the post-mission batch for exactly the same reason Usage does.
   const missionControl = await section(
     'missionControl',
     () => readModel({ baseDir, now: nowMs }),
     errors
   );
-  const [usage, safety] = await Promise.all([
+  const [usage, safety, memory, history] = await Promise.all([
     section(
       'usage',
       () => readUsageModel({ baseDir, now: nowMs, recompute, metricsRunner }),
       errors
     ),
     section('safety', () => readSafetyModel({ baseDir, now: nowMs }), errors),
+    section('memory', () => readMemoryModel({ dbPath: memoryDbPath, now: nowMs }), errors),
+    section('history', () => readHistoryModel({ baseDir, now: nowMs }), errors),
   ]);
 
+  // Memory is excluded on purpose — see the header. It is another tool's store.
   let dataThroughMs = null;
-  for (const part of [missionControl, usage, safety]) {
+  for (const part of [missionControl, usage, safety, history]) {
     const ms = part && typeof part === 'object' ? toMs(part.dataThroughMs) : null;
     if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
   }
@@ -98,6 +121,8 @@ async function readConsoleModel({ baseDir, now, recompute, metricsRunner } = {})
     missionControl,
     usage,
     safety,
+    memory,
+    history,
     meta: {
       generatedAt: new Date(nowMs).toISOString(),
       dataThrough: dataThroughMs === null ? null : new Date(dataThroughMs).toISOString(),

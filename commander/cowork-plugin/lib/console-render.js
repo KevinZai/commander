@@ -9,9 +9,17 @@
  * would have made it four. This module owns all of it:
  *
  *   - renderMissionControlTab(model, opts) ─┐
- *   - renderUsageTab(model, opts)           ├─ pure section markup, no chrome
- *   - renderSafetyTab(model, opts)         ─┘
+ *   - renderUsageTab(model, opts)           │
+ *   - renderSafetyTab(model, opts)          ├─ pure section markup, no chrome
+ *   - renderMemoryTab(model, opts)          │
+ *   - renderHistoryTab(model, opts)        ─┘
  *   - buildDeckHtml(model, { tab, surface, now }) — a tab inside the page shell
+ *
+ * Memory and History (v7.4.0 Phase 2) are console TABS, not new decks: they
+ * reuse SNAPSHOT_CSS and the `.mc` layout wholesale rather than growing two more
+ * near-identical stylesheets. Adding a deck's worth of CSS for markup that is
+ * sections, a table and two sparklines would recreate exactly the duplication
+ * this file was extracted to remove.
  *
  * The three lib/*-snapshot.js files keep their readers and their public
  * build*Html() signatures, but their bodies are now one-line delegations to
@@ -355,12 +363,43 @@ const TAB_CHROME = Object.freeze({
     css: SAFETY_CSS,
     staleThresholdMs: 24 * 60 * 60 * 1000,
   },
+  // Memory reads claude-mem, an OPTIONAL third-party store Commander neither
+  // bundles nor writes. staleThresholdMs is null (no banner) because the banner
+  // says "hooks may not be running — run /ccc-doctor", which is simply untrue of
+  // someone who just hasn't used claude-mem for two days.
+  memory: {
+    title: 'Commander Memory',
+    heading: '🧠 Commander Memory',
+    shellClass: 'mc-shell',
+    terminalTitle: 'commander &middot; memory',
+    mainClass: 'mc',
+    css: SNAPSHOT_CSS,
+    staleThresholdMs: null,
+    // The shared footer's "~/.claude/commander" would be wrong here — this tab
+    // is the only one that reads someone else's store.
+    sourceNote:
+      "Built from your own claude-mem store in ~/.claude-mem (titles only, read-only). If published, the displayed data leaves this machine for your private artifact URL.",
+  },
+  // 48h, not 24h — same reason as Usage: History's backbone is
+  // metrics.jsonl's DAY-granularity rows, each treated as its UTC midnight, so
+  // a genuinely fresh "today" bucket is already up to ~24h old at comparison.
+  history: {
+    title: 'Commander History',
+    heading: '📜 Commander History',
+    shellClass: 'mc-shell',
+    terminalTitle: 'commander &middot; history',
+    mainClass: 'mc',
+    css: SNAPSHOT_CSS,
+    staleThresholdMs: 48 * 60 * 60 * 1000,
+  },
 });
 
 const TAB_RENDERERS = {
   'mission-control': renderMissionControlTab,
   usage: renderUsageTab,
   safety: renderSafetyTab,
+  memory: renderMemoryTab,
+  history: renderHistoryTab,
 };
 
 // Terminal-window chrome wraps the whole board: 3 traffic-light dots + a mono
@@ -382,6 +421,10 @@ const TERMINAL_CHROME_CLOSE = '</div>';
 // zero-state hero appending DOCTOR_POINTER, not by this banner.
 function renderStalenessBanner(dataThroughMs, nowMs, thresholdMs) {
   if (!Number.isFinite(dataThroughMs) || !Number.isFinite(nowMs)) return '';
+  // A null/absent threshold means "this tab has no staleness opinion" (Memory —
+  // see TAB_CHROME). Without this guard `x <= null` is false and every render
+  // would raise the banner, which is the opposite of the intent.
+  if (!Number.isFinite(thresholdMs)) return '';
   if (nowMs - dataThroughMs <= thresholdMs) return '';
   return `<section aria-label="Telemetry freshness" class="stale-banner">
 <p>⚠️ Telemetry last written ${esc(timeAgo(dataThroughMs, nowMs))} — hooks may not be running. Run /ccc-doctor. (macOS Desktop: update the plugin to ≥7.2.0 — hook fix.)</p>
@@ -420,7 +463,7 @@ ${deckStripHtml(tab, { interactive: false })}
 </header>
 ${renderStalenessBanner(dataThroughMs, nowMs, chrome.staleThresholdMs)}
 ${TAB_RENDERERS[tab](source, { surface, now })}
-<footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>
+<footer>🔒 ${chrome.sourceNote || 'Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.'}</footer>
 </main>
 ${TERMINAL_CHROME_CLOSE}`;
 }
@@ -1032,6 +1075,243 @@ function renderSafetyTab(model, opts = {}) {
   ].join('\n');
 }
 
+// ---------------------------------------------------------------------------
+// Memory tab (v7.4.0 Phase 2)
+//
+// The store is claude-mem's, and claude-mem is AGPL-3.0 — Commander does not
+// bundle it, so NOT HAVING IT IS THE NORMAL CASE. That state renders as one
+// quiet hint card in ordinary muted styling: no red, no ⚠, no "error", and no
+// repeat nagging. Every title and project has already been redacted and capped
+// by memory-reader.js; here they are escaped TEXT and nothing else — a memory
+// title never becomes a link, a command, or a chip payload.
+
+const MEMORY_INSTALL_HINT =
+  'Optional and separate: install claude-mem (npm install -g claude-mem) and this tab fills in. It is AGPL-licensed, which is why Commander does not bundle it.';
+
+function renderMemoryUnavailableSection(reason) {
+  return `<section aria-label="Memory">
+<h2>🧠 Memory</h2>
+<p class="zero">${esc(reason || 'claude-mem not detected — install it separately to see session memory here.')}</p>
+<p class="muted">${esc(MEMORY_INSTALL_HINT)}</p>
+</section>`;
+}
+
+function renderMemorySummarySection(counts, projects) {
+  const chips = [
+    `🧠 ${counts.last7d} in the last 7 days`,
+    `📅 ${counts.last30d} in the last 30 days`,
+    `👀 showing the ${counts.shown} most recent`,
+  ];
+  const projectChips = projects.map(
+    (entry) => `<span class="chip">${esc(entry.project)} · ${esc(entry.count)}</span>`
+  );
+
+  return `<section aria-label="Memory summary">
+<h2>🧠 Memory</h2>
+<div class="chips">${chips.map((chip) => `<span class="chip">${esc(chip)}</span>`).join('')}</div>
+${projectChips.length ? `<h3 class="muted" style="margin:14px 0 6px;font-size:.84rem;">Projects in view</h3><div class="chips">${projectChips.join('')}</div>` : ''}
+</section>`;
+}
+
+function renderMemoryObservationsSection(observations, nowMs) {
+  if (observations.length === 0) {
+    return `<section aria-label="Recent memory">
+<h2>🕐 Recent observations</h2>
+<p class="zero">claude-mem is installed but hasn't recorded anything yet.</p>
+</section>`;
+  }
+
+  const items = observations.slice(0, ROW_CAP).map((entry) => {
+    const ms = toMs(entry.ts);
+    const when = timeAgo(ms ?? NaN, nowMs ?? NaN) || (ms !== null ? stamp(ms) : '');
+    const project = entry.project ? ` <span class="chip">${esc(entry.project)}</span>` : '';
+    return `<li>${when ? `<span class="muted mono">${esc(when)}</span> ` : ''}<span class="chip">${esc(entry.type)}</span> ${esc(entry.title)}${project}</li>`;
+  });
+
+  return `<section aria-label="Recent memory">
+<h2>🕐 Recent observations</h2>
+<ol>${items.join('')}</ol>
+<p class="muted">Titles only — Commander never reads claude-mem's text, facts or narrative columns.</p>
+</section>`;
+}
+
+/**
+ * @param {object} model  a lib/memory-reader.js readMemoryModel() result
+ * @param {{surface?: 'widget'|'artifact', now?: string|number|Date}} [opts]
+ */
+function renderMemoryTab(model, opts = {}) {
+  const source = model && typeof model === 'object' ? model : {};
+  if (source.available !== true) return renderMemoryUnavailableSection(source.unavailableReason);
+
+  const observations = Array.isArray(source.observations) ? source.observations : [];
+  const projects = Array.isArray(source.projects) ? source.projects : [];
+  const counts =
+    source.counts && typeof source.counts === 'object'
+      ? source.counts
+      : { last7d: 0, last30d: 0, shown: observations.length };
+  const nowMs = nowMsFor(source, opts);
+
+  return [
+    renderMemorySummarySection(counts, projects),
+    renderMemoryObservationsSection(observations, nowMs),
+  ].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// History tab (v7.4.0 Phase 2)
+//
+// No new data source: the day rows come from telemetry Commander already
+// writes (see history-reader.js). The charts reuse ./charts.js — the same
+// builders Mission Control and Usage render — and the table is the part that
+// is genuinely new: per-day cost, dispatches, tasks, failures and top skills.
+
+function formatCost(value) {
+  const n = Number.isFinite(value) ? value : 0;
+  if (n === 0) return '$0';
+  return n >= 100 ? `$${Math.round(n)}` : `$${n.toFixed(2)}`;
+}
+
+function renderHistoryChartsSection(days) {
+  // sparkline() wants oldest-first; `days` is newest-first for the table below.
+  const oldestFirst = [...days].reverse();
+  const cards = [
+    [
+      '💰 Cost / day',
+      sparkline(
+        oldestFirst.map((day) => ({ label: day.date, value: day.costUsd })),
+        { label: 'Cost per day across the window', color: 'var(--mc-accent)' }
+      ),
+    ],
+    [
+      '🤖 Agents dispatched / day',
+      sparkline(
+        oldestFirst.map((day) => ({ label: day.date, value: day.agentsDispatched })),
+        { label: 'Agents dispatched per day across the window', color: 'var(--mc-run)' }
+      ),
+    ],
+  ];
+
+  return `<section aria-label="History trends">
+<h2>📈 Trends</h2>
+<div class="chart-grid">${cards.map(([title, svg]) => `<div class="chart-card"><h3>${esc(title)}</h3>${svg}</div>`).join('')}</div>
+</section>`;
+}
+
+function renderHistorySummarySection(totals, backbone, windowDays, topSkills) {
+  const chips = [
+    `📅 ${totals.activeDays} active day${totals.activeDays === 1 ? '' : 's'} in the last ${windowDays}`,
+    `💰 ${formatCost(totals.costUsd)} spent`,
+    `🤖 ${Math.round(totals.agentsDispatched)} dispatched`,
+    `🧵 ${Math.round(totals.agentRuns)} agent run${Math.round(totals.agentRuns) === 1 ? '' : 's'} logged`,
+    `📋 ${Math.round(totals.tasksCompleted)} task${Math.round(totals.tasksCompleted) === 1 ? '' : 's'} completed`,
+    `⚠ ${Math.round(totals.toolFailures)} tool failure${Math.round(totals.toolFailures) === 1 ? '' : 's'}`,
+  ];
+
+  const backboneNote =
+    backbone.dayCount > 0
+      ? `Daily rollups retained from ${backbone.firstDate} to ${backbone.lastDate} (${backbone.dayCount} day${backbone.dayCount === 1 ? '' : 's'}). The detail logs rotate; these rollups do not.`
+      : 'No daily rollups retained yet.';
+
+  const skills = topSkills
+    .slice(0, 10)
+    .map((entry) => `<span class="chip">${esc(entry.skill)} · ${esc(entry.runs)}</span>`);
+
+  return `<section aria-label="History summary">
+<h2>📜 Last ${esc(windowDays)} days</h2>
+<div class="chips">${chips.map((chip) => `<span class="chip">${esc(chip)}</span>`).join('')}</div>
+${skills.length ? `<h3 class="muted" style="margin:14px 0 6px;font-size:.84rem;">Skills run in this window</h3><div class="chips">${skills.join('')}</div>` : ''}
+<p class="muted" style="margin:12px 0 0;">${esc(backboneNote)}</p>
+</section>`;
+}
+
+function renderHistoryTableSection(days) {
+  const rows = days.slice(0, ROW_CAP).map((day) => {
+    const skills = day.skills.length
+      ? day.skills.map((entry) => `${entry.skill} ×${entry.runs}`).join(', ')
+      : '—';
+    return `<tr>
+<td class="mono">${esc(day.date)}</td>
+<td class="mono">${esc(formatCost(day.costUsd))}</td>
+<td class="mono">${esc(Math.round(day.agentsDispatched))}</td>
+<td class="mono">${esc(Math.round(day.agentRuns))}</td>
+<td class="mono">${esc(Math.round(day.tasksCompleted))}</td>
+<td class="mono">${esc(Math.round(day.toolFailures))}</td>
+<td class="mono">${esc(Math.round(day.sessions))}</td>
+<td>${esc(skills)}</td>
+</tr>`;
+  });
+
+  const overflow =
+    days.length > ROW_CAP
+      ? `<p class="muted">…and ${days.length - ROW_CAP} earlier day${days.length - ROW_CAP === 1 ? '' : 's'}.</p>`
+      : '';
+
+  return `<section aria-label="History by day">
+<h2>🗓️ By day</h2>
+<div class="scroll"><table>
+<thead><tr><th>Date</th><th>Cost</th><th>Dispatched</th><th>Agent runs</th><th>Tasks</th><th>Failures</th><th>Sessions</th><th>Top skills</th></tr></thead>
+<tbody>${rows.join('')}</tbody>
+</table></div>${overflow}
+</section>`;
+}
+
+// A source that threw is reported as a muted footnote, never as an alarm: the
+// rest of the timeline is still real, and the reader already degraded gracefully.
+function renderHistoryErrorsNote(errors) {
+  if (errors.length === 0) return '';
+  const names = errors.map((entry) => entry.source).join(', ');
+  return `<section aria-label="History source notes">
+<p class="muted">Some history sources could not be read this time (${esc(names)}) — the days above are built from the rest.</p>
+</section>`;
+}
+
+/**
+ * @param {object} model  a lib/history-reader.js readHistoryModel() result
+ * @param {{surface?: 'widget'|'artifact', now?: string|number|Date}} [opts]
+ */
+function renderHistoryTab(model, opts = {}) {
+  void opts;
+  const source = model && typeof model === 'object' ? model : {};
+  const days = Array.isArray(source.days) ? source.days : [];
+  const topSkills = Array.isArray(source.topSkills) ? source.topSkills : [];
+  const errors = Array.isArray(source.errors) ? source.errors : [];
+  const windowDays = Number.isFinite(source.windowDays) ? source.windowDays : 30;
+  const backbone =
+    source.backbone && typeof source.backbone === 'object'
+      ? source.backbone
+      : { firstDate: null, lastDate: null, dayCount: 0 };
+  const totals =
+    source.totals && typeof source.totals === 'object'
+      ? source.totals
+      : {
+          costUsd: 0,
+          agentsDispatched: 0,
+          tasksCompleted: 0,
+          toolFailures: 0,
+          sessions: 0,
+          agentRuns: 0,
+          skillRuns: 0,
+          activeDays: 0,
+        };
+  const hasAnySourceRow = source.hasAnySourceRow !== false;
+
+  if (days.length === 0) {
+    const doctorNote = hasAnySourceRow ? '' : ` ${DOCTOR_POINTER}`;
+    return `<section aria-label="History">
+<h2>📜 History</h2>
+<p class="zero">📜 Nothing in the last ${esc(windowDays)} days — Commander records a day here once an agent runs, a task moves or a skill fires.${esc(doctorNote)}</p>
+${renderHistoryErrorsNote(errors)}
+</section>`;
+  }
+
+  return [
+    renderHistorySummarySection(totals, backbone, windowDays, topSkills),
+    renderHistoryChartsSection(days),
+    renderHistoryTableSection(days),
+    renderHistoryErrorsNote(errors),
+  ].join('\n');
+}
+
 export {
   buildDeckHtml,
   // esc is exported for ./console-widget.js: the widget renders its own compact
@@ -1039,6 +1319,8 @@ export {
   // function — a second copy is a second place for an escaping bug to hide.
   esc,
   formatDuration,
+  renderHistoryTab,
+  renderMemoryTab,
   renderMissionControlTab,
   renderSafetyTab,
   renderUsageTab,

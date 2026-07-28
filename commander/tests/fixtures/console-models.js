@@ -29,6 +29,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { readHistoryModel } from '../../cowork-plugin/lib/history-reader.js';
 import { readSafetyModel } from '../../cowork-plugin/lib/safety-snapshot.js';
 import { readUsageModel } from '../../cowork-plugin/lib/usage-snapshot.js';
 
@@ -323,6 +324,124 @@ function safetyModel({ gate, failures, now = DECK_NOW }) {
 }
 
 // ---------------------------------------------------------------------------
+// Memory (v7.4.0 Phase 2) — claude-mem is optional and NOT bundled, so the
+// not-installed shape is a first-class fixture, not an edge case.
+//
+// These are literal models rather than a real sqlite read: creating a claude-mem
+// store would make the fixture depend on node:sqlite being present, which is
+// exactly the condition memory-reader.js is designed to survive the ABSENCE of.
+// ../console-memory-history.test.js pins these literals against the real
+// reader's key set so they cannot silently drift out of shape.
+
+function memoryFixtureModel() {
+  return {
+    available: true,
+    unavailableReason: null,
+    observations: [
+      {
+        id: 3,
+        ts: Date.parse('2026-07-20T09:00:00.000Z'),
+        type: 'bugfix',
+        title: 'Fixed the deck strip <script>alert(1)</script> escaping',
+        project: 'cc-commander',
+      },
+      {
+        id: 2,
+        ts: Date.parse('2026-07-19T09:00:00.000Z'),
+        type: 'feature',
+        title: 'Added the console widget prompt bar',
+        project: 'cc-commander',
+      },
+      {
+        id: 1,
+        ts: Date.parse('2026-07-18T09:00:00.000Z'),
+        type: 'discovery',
+        title: 'Telemetry lives under <home>/.claude/commander',
+        project: 'dashboard-v2',
+      },
+    ],
+    projects: [
+      { project: 'cc-commander', count: 2 },
+      { project: 'dashboard-v2', count: 1 },
+    ],
+    counts: { last7d: 3, last30d: 11, shown: 3 },
+    dataThroughMs: Date.parse('2026-07-20T09:00:00.000Z'),
+    generatedAt: DECK_NOW,
+  };
+}
+
+function memoryUnavailableModel(reason) {
+  return {
+    available: false,
+    unavailableReason: reason,
+    observations: [],
+    projects: [],
+    counts: { last7d: 0, last30d: 0, shown: 0 },
+    dataThroughMs: null,
+    generatedAt: DECK_NOW,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// History (v7.4.0 Phase 2) — built through the REAL reader over a temp baseDir,
+// like Usage and Safety, so the fixtures can never describe a shape the reader
+// does not actually produce.
+
+const HISTORY_METRICS = [
+  { date: '2026-07-18', source_app: 'claude-code', cost_usd: 1.2, agents_dispatched: 3, tasks_completed: 2, tool_failures: 1, sessions: 1 },
+  { date: '2026-07-19', source_app: 'claude-code', cost_usd: 0.8, agents_dispatched: 2, tasks_completed: 4, tool_failures: 0, sessions: 2 },
+  { date: '2026-07-19', source_app: 'codex', cost_usd: 0.3, agents_dispatched: 1, tasks_completed: 1, tool_failures: 2, sessions: 1 },
+  // Older than the 30-day window: it must widen `backbone` without adding a day row.
+  { date: '2026-05-23', source_app: 'claude-code', cost_usd: 9.99, agents_dispatched: 9, tasks_completed: 9, tool_failures: 9, sessions: 9 },
+];
+
+const HISTORY_SKILL_RUNS = [
+  { ts: '2026-07-19T10:00:00.000Z', skill: 'commander:ccc-review', source_app: 'claude-code', session_id: 's1' },
+  { ts: '2026-07-19T11:00:00.000Z', skill: 'commander:ccc-review', source_app: 'claude-code', session_id: 's1' },
+  { ts: '2026-07-19T12:00:00.000Z', skill: '<img src=x onerror=1>', source_app: 'codex', session_id: 's2' },
+  { ts: '2026-07-18T12:00:00.000Z', skill: 'commander:ccc-plan', source_app: 'claude-code', session_id: 's3' },
+];
+
+const HISTORY_TASKS = [
+  { ts: '2026-07-19T09:30:00.000Z', task_id: '1', status: 'completed', title: 'Ship Phase 2' },
+  { ts: '2026-07-18T09:30:00.000Z', task_id: '2', status: 'in_progress', title: 'Write the tests' },
+];
+
+const HISTORY_AGENT_RUNS = [
+  { ts: '2026-07-19T10:05:00.000Z', agent: 'builder', sessionId: 's1', durationMs: 1000, status: 'completed' },
+  { ts: '2026-07-18T10:05:00.000Z', agent: 'reviewer', sessionId: 's3', durationMs: 2000, status: 'completed' },
+];
+
+const HISTORY_SUBAGENT_RUNS = [
+  { ts: '2026-07-19T10:06:00.000Z', agent_name: 'general-purpose', session_id: 's1' },
+];
+
+// Deliberately broken lines around good ones: an append-only log routinely ends
+// mid-record, and a half-written line must be skipped, not counted, and never
+// throw. This is tolerance, not an error state — `errors` stays empty.
+const MALFORMED_METRICS_TEXT = [
+  JSON.stringify({ date: '2026-07-19', source_app: 'claude-code', cost_usd: 0.5, agents_dispatched: 1, tasks_completed: 1, tool_failures: 0, sessions: 1 }),
+  '{"date":"2026-07-19","cost_usd":',
+  'not json at all',
+  '[]',
+  'null',
+  JSON.stringify({ date: 'not-a-date', cost_usd: 99 }),
+  JSON.stringify({ date: '2026-07-18', source_app: 'codex', cost_usd: 0.25, agents_dispatched: 1, tasks_completed: 0, tool_failures: 3, sessions: 1 }),
+].join('\n') + '\n';
+
+function historyModel({ metrics, skills, tasks, agents, subagents, sessions, rawFiles, now = DECK_NOW }) {
+  const files = {};
+  if (metrics) files[path.join('mission-control', 'metrics.jsonl')] = toLines(metrics);
+  if (skills) files['skill-runs.jsonl'] = toLines(skills);
+  if (tasks) files['tasks.jsonl'] = toLines(tasks);
+  if (agents) files['agent-runs.jsonl'] = toLines(agents);
+  if (subagents) files['subagent-runs.jsonl'] = toLines(subagents);
+  for (const name of sessions || []) files[path.join('sessions', name)] = '{}';
+  Object.assign(files, rawFiles || {});
+  return withBaseDir(files, (baseDir) => readHistoryModel({ baseDir, now }));
+}
+
+// ---------------------------------------------------------------------------
 // Cases. `name` is the golden basename half; `now` is what build*Html receives.
 
 export async function missionControlCases() {
@@ -360,6 +479,49 @@ export async function safetyCases() {
       model: await safetyModel({ gate: GATE_ROWS, failures: FAILURE_ROWS, now: STALE_NOW }),
     },
     { name: 'zero', now: DECK_NOW, model: await safetyModel({}) },
+  ];
+}
+
+export async function memoryCases() {
+  return [
+    { name: 'fixture', now: DECK_NOW, model: memoryFixtureModel() },
+    {
+      name: 'not-installed',
+      now: DECK_NOW,
+      model: memoryUnavailableModel(
+        'claude-mem not detected — install it separately to see session memory here.'
+      ),
+    },
+    {
+      name: 'empty',
+      now: DECK_NOW,
+      model: { ...memoryFixtureModel(), observations: [], projects: [], counts: { last7d: 0, last30d: 0, shown: 0 }, dataThroughMs: null },
+    },
+  ];
+}
+
+export async function historyCases() {
+  return [
+    {
+      name: 'fixture',
+      now: DECK_NOW,
+      model: await historyModel({
+        metrics: HISTORY_METRICS,
+        skills: HISTORY_SKILL_RUNS,
+        tasks: HISTORY_TASKS,
+        agents: HISTORY_AGENT_RUNS,
+        subagents: HISTORY_SUBAGENT_RUNS,
+        sessions: ['2026-07-19-abc123.json', '2026-07-19-def456.json', 'active-cost-default.json'],
+      }),
+    },
+    {
+      name: 'malformed',
+      now: DECK_NOW,
+      model: await historyModel({
+        rawFiles: { [path.join('mission-control', 'metrics.jsonl')]: MALFORMED_METRICS_TEXT },
+      }),
+    },
+    { name: 'zero', now: DECK_NOW, model: await historyModel({}) },
   ];
 }
 

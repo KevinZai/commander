@@ -7,6 +7,11 @@
  * body, fixed-template action chips, and the free-text prompt bar that reaches
  * the LIVE session through the widget host's global `sendPrompt(text)`.
  *
+ * Tabs: Overview · Usage · Safety · Memory · History · Launch. Memory and
+ * History arrived in Phase 2; Memory is backed by claude-mem, an OPTIONAL
+ * third-party store Commander does not bundle, so "not installed" is its normal
+ * state and renders as the ordinary muted zero-state card.
+ *
  * ─── Why the widget renders its own compact fragments ──────────────────────
  * The rule for Phase 1 was "one renderer per fragment, no copied markup". This
  * file therefore imports the console model and `esc()` from console-render.js,
@@ -57,6 +62,7 @@ import { esc } from './console-render.js';
 const WIDGET_WIDTH_PX = 680;
 const AGENT_ROWS = 5;
 const DIGEST_ROWS = 3;
+const HISTORY_ROWS = 7; // the last week, at a glance
 const STALE_MS = 24 * 60 * 60 * 1000;
 
 /**
@@ -117,6 +123,8 @@ const TABS = Object.freeze([
   { id: 'overview', label: 'Overview', prompt: '/ccc-console overview' },
   { id: 'usage', label: 'Usage', prompt: '/ccc-console usage' },
   { id: 'safety', label: 'Safety', prompt: '/ccc-console safety' },
+  { id: 'memory', label: 'Memory', prompt: '/ccc-console memory' },
+  { id: 'history', label: 'History', prompt: '/ccc-console history' },
   { id: 'launch', label: 'Launch', prompt: '/ccc-console launch' },
 ]);
 
@@ -180,10 +188,13 @@ function renderZeroState(message, pointer) {
   }</div>`;
 }
 
-function renderStamp(sectionModel, nowMs) {
+// `staleHint: false` drops the "run /ccc-doctor" nudge for a section Commander's
+// hooks do not feed (Memory reads claude-mem) — a quiet old stamp there is a
+// user who hasn't used that tool lately, not a broken install.
+function renderStamp(sectionModel, nowMs, { staleHint = true } = {}) {
   const ms = sectionModel && typeof sectionModel === 'object' ? toMs(sectionModel.dataThroughMs) : null;
   if (ms === null) return '<p class="ccc-stamp">Data through —</p>';
-  const stale = Number.isFinite(nowMs) && nowMs - ms > STALE_MS;
+  const stale = staleHint && Number.isFinite(nowMs) && nowMs - ms > STALE_MS;
   return `<p class="ccc-stamp${stale ? ' ccc-stale' : ''}">Data through ${esc(stamp(ms))}${
     stale ? ' · stale — run /ccc-doctor' : ''
   }</p>`;
@@ -397,6 +408,98 @@ function renderSafetyTab(model, nowMs) {
   }${renderStamp(safety, nowMs)}`;
 }
 
+// Memory digest. claude-mem is optional and NOT bundled (AGPL vs MIT), so the
+// missing case is the common one and renders as the ordinary zero-state card —
+// same muted styling as "no agents yet", never an error, never red.
+// Observation titles arrive already redacted and capped from memory-reader.js;
+// here they are escaped text and can never reach a data-prompt.
+function renderMemoryTab(model, nowMs) {
+  const memory = model.memory;
+  if (!memory) {
+    return renderZeroState('Memory is unavailable.', 'Run /ccc-doctor to check your install.');
+  }
+  if (memory.available !== true) {
+    return renderZeroState(
+      memory.unavailableReason || 'claude-mem not detected.',
+      'Optional — install claude-mem separately (npm install -g claude-mem) and this tab fills in.'
+    );
+  }
+
+  const observations = list(memory.observations);
+  if (observations.length === 0) {
+    return `${renderZeroState(
+      'claude-mem is installed but has not recorded anything yet.',
+      'Sessions land here as claude-mem summarizes them.'
+    )}${renderStamp(memory, nowMs, { staleHint: false })}`;
+  }
+
+  const counts = memory.counts && typeof memory.counts === 'object' ? memory.counts : {};
+  const rows = observations.slice(0, DIGEST_ROWS).map((entry) => {
+    const project = entry && entry.project ? entry.project : '';
+    return `<li><span class="ccc-row-name">${esc(entry && entry.type ? entry.type : 'note')}</span><span class="ccc-dim ccc-row-task">${esc(
+      entry && entry.title ? entry.title : '(untitled)'
+    )}</span><span class="ccc-row-status">${esc(project)}</span></li>`;
+  });
+
+  return `<div class="ccc-pair"><div><span class="ccc-tile-label">Last 7d</span><strong class="ccc-tile-value">${esc(
+    count(counts.last7d)
+  )}</strong></div><div><span class="ccc-tile-label">Last 30d</span><strong class="ccc-tile-value">${esc(
+    count(counts.last30d)
+  )}</strong></div><div><span class="ccc-tile-label">Shown</span><strong class="ccc-tile-value">${esc(
+    count(observations.length)
+  )}</strong></div></div><h2 class="ccc-h2">Recent observations</h2><ul class="ccc-rows">${rows.join(
+    ''
+  )}</ul><p class="ccc-dim">Titles only — never claude-mem's text or narrative columns.</p>${renderStamp(
+    memory,
+    nowMs,
+    { staleHint: false }
+  )}`;
+}
+
+// History digest: the last 7 days of the reader's 30-day window. Skill names are
+// non-user-authored text from skill-runs.jsonl — escaped, display-only.
+function renderHistoryTab(model, nowMs) {
+  const history = model.history;
+  if (!history) {
+    return renderZeroState('History telemetry is unavailable.', 'Run /ccc-doctor to check your hooks are wired.');
+  }
+
+  const days = list(history.days);
+  if (days.length === 0) {
+    return `${renderZeroState(
+      'No day has any recorded activity yet.',
+      'Run an agent, move a task or fire a skill and days start showing up here.'
+    )}${renderStamp(history, nowMs)}`;
+  }
+
+  const totals = history.totals && typeof history.totals === 'object' ? history.totals : {};
+  const rows = days.slice(0, HISTORY_ROWS).map((day) => {
+    const skill = day && Array.isArray(day.skills) && day.skills.length ? day.skills[0].skill : '';
+    return `<li><span class="ccc-row-name">${esc(day && day.date ? day.date : '—')}</span><span class="ccc-row-status">${esc(
+      usd(day && day.costUsd)
+    )}</span><span class="ccc-dim ccc-row-task">${esc(
+      `${count(day && day.agentRuns)} runs${skill ? ` · ${skill}` : ''}`
+    )}</span></li>`;
+  });
+
+  const backbone =
+    history.backbone && typeof history.backbone === 'object' && history.backbone.dayCount > 0
+      ? `<p class="ccc-dim">Rollups retained from ${esc(history.backbone.firstDate)} (${esc(
+          count(history.backbone.dayCount)
+        )} days).</p>`
+      : '';
+
+  return `<div class="ccc-pair"><div><span class="ccc-tile-label">Active days</span><strong class="ccc-tile-value">${esc(
+    count(totals.activeDays)
+  )}</strong></div><div><span class="ccc-tile-label">Spent</span><strong class="ccc-tile-value">${esc(
+    usd(totals.costUsd)
+  )}</strong></div><div><span class="ccc-tile-label">Agent runs</span><strong class="ccc-tile-value">${esc(
+    count(totals.agentRuns)
+  )}</strong></div></div><h2 class="ccc-h2">Recent days</h2><ul class="ccc-rows">${rows.join(
+    ''
+  )}</ul>${backbone}${renderStamp(history, nowMs)}`;
+}
+
 function renderLaunchTab() {
   return `<p class="ccc-summary">Run a Commander workflow without leaving this panel — each chip shows the exact command it sends.</p>${renderChipRow(
     LAUNCH_CHIPS
@@ -407,6 +510,8 @@ const TAB_BODIES = Object.freeze({
   overview: renderOverviewTab,
   usage: renderUsageTab,
   safety: renderSafetyTab,
+  memory: renderMemoryTab,
+  history: renderHistoryTab,
   launch: (_model, _nowMs) => renderLaunchTab(),
 });
 
@@ -505,8 +610,8 @@ function widgetScript() {
 /**
  * Render the inline Commander Console widget.
  *
- * @param {object} model  a readConsoleModel() result: {missionControl, usage, safety, meta, errors}
- * @param {{tab?: 'overview'|'usage'|'safety'|'launch', now?: string|number|Date}} [opts]
+ * @param {object} model  a readConsoleModel() result: {missionControl, usage, safety, memory, history, meta, errors}
+ * @param {{tab?: 'overview'|'usage'|'safety'|'memory'|'history'|'launch', now?: string|number|Date}} [opts]
  * @returns {string} widget HTML (no doctype/html/head/body — the host supplies those)
  */
 function buildConsoleWidgetHtml(model, { tab = 'overview', now } = {}) {

@@ -84,7 +84,9 @@ for (const [deck, build, renderTab, cases] of DECKS) {
 }
 
 test('buildDeckHtml rejects an unknown tab and the unbuilt widget surface', () => {
-  assert.throws(() => buildDeckHtml({}, { tab: 'memory' }), /unknown tab/);
+  // 'memory' was the example here until Phase 2 made it a real tab — the
+  // assertion needs a name that is genuinely not in TAB_CHROME.
+  assert.throws(() => buildDeckHtml({}, { tab: 'no-such-tab' }), /unknown tab/);
   assert.throws(
     () => buildDeckHtml({}, { tab: 'usage', surface: 'widget' }),
     /not implemented yet/

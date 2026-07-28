@@ -74,7 +74,7 @@ Added in v5.0.0 and v5.0.0.
 | `/ccc-changelog` | `/ccc-changelog` or "what changed", "what is new" | Renders the latest CHANGELOG.md section. Fires automatically on version-transition via SessionStart nudge (beta.11) |
 | `/ccc-doctor` | `/ccc-doctor` or "diagnose plugin" | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component (beta.11). As of v7.3.0 also diagnoses stale-install layers (marketplace clone behind `main`, old cache dirs, stale Desktop copies) and can enable marketplace auto-update. |
 | `/ccc-update` | `/ccc-update` or "update commander", "check for updates" | Click-first update walkthrough — detect installed vs. latest, run the update sequence, restart, verify version + hooks are live. See [`/ccc-update`](/plugin/skills/ccc-update) (v7.3.2). |
-| `/ccc-console` | `/ccc-console` or "open the console", "what's going on" | The Commander Console — one inline widget with agents, usage, safety and a prompt bar wired to this session. Chips send fixed commands only; publishing a snapshot is separate and consent-gated (v7.4.0). |
+| `/ccc-console` | `/ccc-console` or "open the console", "what's going on" | The Commander Console — one inline widget with agents, usage, safety, memory and history, plus a prompt bar wired to this session. Chips send fixed commands only; publishing a snapshot is separate and consent-gated (v7.4.0). |
 
 ## Group 6 — Memory / Task / Recall (MIT-ported from community)
 
@@ -184,7 +184,7 @@ Self-contained artifacts that turn data CCC already logs into a page. Every deck
 | 79 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app (v7.2.0) |
 | 80 | `/ccc-safety` | Safety deck — blocked/auto-fixed actions + tool-failure hotspots (v7.2.0) |
 | 81 | `/ccc-update` | Click-first update walkthrough — detect, update, restart, verify (v7.3.0) |
-| 82 | `/ccc-console` | Inline console widget — agents, usage, safety and a prompt bar that reaches the live session (v7.4.0) |
+| 82 | `/ccc-console` | Inline console widget — agents, usage, safety, memory, history and a prompt bar that reaches the live session (v7.4.0) |
 | — | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2) |
 
 [Pricing — Core Free Forever →](/plugin/free-vs-pro)

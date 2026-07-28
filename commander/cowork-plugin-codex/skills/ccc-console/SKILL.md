@@ -1,19 +1,19 @@
 ---
 name: ccc-console
-description: "The Commander Console: one inline panel with your agents, usage, safety and a prompt bar that talks back to this session. Opens in chat — publishing a snapshot is separate and consent-gated."
+description: "The Commander Console: one inline panel — agents, usage, safety, memory, history — plus a prompt bar that reaches this session. Publishing a snapshot is separate and consent-gated."
 allowed-tools:
   - Read
   - Bash
   - Write
   - AskUserQuestion
-argument-hint: "[open | overview | usage | safety | launch | refresh | publish]"
+argument-hint: "[open | overview | usage | safety | memory | history | launch | refresh | publish]"
 ---
 
 # $ccc-console — the Commander Console
 
 **The Console lives in your chat. Publishing makes a snapshot page you can keep or share.**
 
-One panel instead of four separate decks: who's working, what it cost, what got blocked, and a box you can type into that reaches *this* session. It reads only your own local telemetry under `~/.claude/commander/` — the same logs `$ccc-mission-control`, `$ccc-usage` and `$ccc-safety` already read, composed once by `lib/console-model.js`.
+One panel instead of four separate decks: who's working, what it cost, what got blocked, what you've done over the last month, and a box you can type into that reaches *this* session. It reads only your own local telemetry under `~/.claude/commander/` — the same logs `$ccc-mission-control`, `$ccc-usage` and `$ccc-safety` already read, composed once by `lib/console-model.js`. The one exception is **Memory**, which reads your own claude-mem store at `~/.claude-mem/` if (and only if) you have one.
 
 > 🔒 **Opening is local.** The inline widget renders from local logs and nothing leaves the machine. **Publishing is a separate act** and always asks first — see below.
 
@@ -26,6 +26,8 @@ On `$ccc-console` with no argument, open the widget on the **Overview** tab (bel
 | `overview` (default) | agents working, anything awaiting your approval, task counts |
 | `usage` | saved / spent / dispatches, cost by app |
 | `safety` | blocked, auto-fixed, approved, tool-failure hotspots |
+| `memory` | recent claude-mem observation titles + counts — **optional**, see below |
+| `history` | the last 30 days day by day: cost, dispatches, tasks, failures, top skills |
 | `launch` | one-click chips for the common Commander workflows |
 | `refresh` | re-read the logs and render a fresh widget |
 | `publish` | build the **snapshot artifact** — consent-gated, see below |
@@ -57,6 +59,23 @@ The script prints the widget HTML on stdout (add `--out <path>` to write a file 
 - **What chips deliberately cannot do:** no chip payload is ever built from an agent name, a task subject, a branch, a file path or a log line. Anything that can append to a JSONL under `~/.claude/commander/` would otherwise be able to compose a command the user appears to have typed. Model text renders as escaped text only. If you extend this skill, keep that rule — `commander/tests/console-widget.test.js` enforces it.
 - **Tabs and refresh cost a round-trip on purpose.** Switching tabs sends `$ccc-console <tab>`; refreshing sends `$ccc-console refresh`. The widget is a snapshot at render time and cannot fetch anything — no polling, no localhost, no live data. That is honest and cheap.
 
+## 🧠 The Memory tab — optional, and absent is normal
+
+Memory reads **your own** claude-mem store at `~/.claude-mem/claude-mem.db`, read-only, titles only. Commander does **not** bundle claude-mem: it is AGPL-3.0 and Commander is MIT.
+
+**Most machines will not have it, and that is not a problem to report.** When the store is missing the tab renders one quiet card — "claude-mem not detected", plus how to install it and why it isn't bundled. Do not describe this as an error, do not treat it as a broken install, and do not offer to fix it unless the user asks. `$ccc-doctor` is the wrong pointer here.
+
+Commander reads only `id / project / type / title / created_at_epoch`. It never touches claude-mem's `text`, `facts` or `narrative` columns, and every title is redacted (secret patterns + `/Users/<name>` → `<home>`) and capped before it is rendered. Say so if the user asks what's being read.
+
+## 📜 The History tab — real data only
+
+History is built from telemetry Commander already writes. **There is no history collector, and you should not invent one.**
+
+- **Backbone:** `mission-control/metrics.jsonl` — durable per-day rollups (cost, dispatches, tasks, failures, sessions). It survives the detail logs' rotation, so it carries the long horizon and is the only source of cost.
+- **Detail (last 30 days):** `skill-runs.jsonl`, `tasks.jsonl`, `agent-runs.jsonl`, `subagent-runs.jsonl`, and the `sessions/` stubs — counted by **filename only**; their contents are never opened.
+
+What does **not** exist and must never be claimed: per-message content, session summaries, or rollups before the first `metrics.jsonl` row. A day with a rollup but no detail is honest — the detail aged out. If a source can't be read, the tab says which one in a muted footnote and shows the rest.
+
 ## 📤 Publish a snapshot (`$ccc-console publish`)
 
 A frozen, shareable page — think "export to PDF", not "live dashboard". Render the **artifact** surface for one tab and publish it with the **Artifact** tool.
@@ -75,7 +94,7 @@ Publish that file with favicon `🎛️` and the stable title **"Commander Conso
 
 **Confirm before the FIRST publish this session:** use `AskUserQuestion` to tell the user that **agent names, task subjects and timings will leave the machine** for their private claude.ai artifact URL — private to their account, but off the machine. Publish only after an explicit confirmation, and never publish automatically. **Re-invoking `$ccc-console publish` IS the refresh consent** — republish the same path without re-asking.
 
-`--tab launch` has no artifact form (a chip launcher is meaningless on a static page); the script refuses it rather than emitting a dead page.
+`--tab launch` has no artifact form (a chip launcher is meaningless on a static page); the script refuses it rather than emitting a dead page. `--tab memory` and `--tab history` both publish. **Memory adds a consent consideration:** publishing it sends claude-mem observation *titles* off the machine — name that explicitly in the confirmation, not just "agent names and task subjects".
 
 > **On Codex:** some panels are thin on Codex today — Safety's failure hotspots, the agent roster and Usage's savings hero are fed by Claude-side hooks. The same note the decks carry applies here.
 
