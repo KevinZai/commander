@@ -969,7 +969,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Model | Role | Input | Output | Use |
 |-------|------|-------|--------|-----|
 | **Fable 5** | Deep reasoning escalation | $10/MTok | $50/MTok | `/model claude-fable-5[1m]` when 🧠 deep thinking needed (once/day nudge) |
-| **Opus 4.8** | Everyday session default | $5/MTok | $25/MTok | Main thread, heavy implementation, Fable fallback |
+| **Opus 5** | Everyday session default | $5/MTok | $25/MTok | Main thread, heavy implementation, Fable fallback |
 | **Sonnet 5** | General dev, 16 sub-agents (latest/best Sonnet) | $3/MTok | $15/MTok | Default for most delegated work — reviewers + builders + QA |
 | **Sonnet 4.6** | General dev, prior Sonnet | $3/MTok | $15/MTok | Predecessor to Sonnet 5 |
 | **Haiku 4.5** | Fast bulk ops | $1/MTok | $5/MTok | Bulk tasks, hooks, high-turn ops |

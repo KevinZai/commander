@@ -435,7 +435,7 @@ Context, rate limits, and budget meters in your terminal. Color-codes green → 
 **Rich footer bar** — rainbow status line with live session meters:
 
 ```
-━━ CCC7.2│🔥Opus4.8-1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯467│📋CC-150│📂~/project
+━━ CCC7.2│🔥Opus5-1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯467│📋CC-150│📂~/project
 ```
 
 ### Stats Dashboard

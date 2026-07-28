@@ -8,14 +8,14 @@ CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantl
 
 ## Session Defaults
 
-- **Model:** Opus 4.8 (1M context) — enforced via `.claude/settings.json`
+- **Model:** Opus 5 (1M context is default and max, no `[1m]` suffix needed) — enforced via `.claude/settings.json`
 - **Mode:** Plan mode by default — SessionStart hook reminds to enter plan mode
-- **Effort:** Inherits the global default — set `effortLevel` in `~/.claude/settings.json` (`high`/`xhigh`). No project-level pin, so global governs.
-- **Thinking:** Summaries visible (`showThinkingSummaries: true`)
+- **Effort:** Anthropic's Opus 5 guidance: start at `high` (the default), drop to `low`/`medium` liberally wherever evals hold quality, step up to `xhigh` only for demanding coding/agentic work, `max` only when justified. Set `effortLevel` in `~/.claude/settings.json`. No project-level pin, so global governs — re-sweep any effort setting carried over from Opus 4.8, don't reuse blindly.
+- **Thinking:** Summaries visible (`showThinkingSummaries: true`). Note: `thinking:{"type":"disabled"}` errors on Opus 5 at `xhigh`/`max` — only valid at `high` or below.
 - **Footer:** Run `node commander/status-line.js` for live session status bar
 - **Version:** Single source of truth is `package.json` — `branding.js` reads it at runtime
 - **Fable 5 = deep mode:** For architecture, planning, migration, or threat-model work, escalate with `/model claude-fable-5[1m]`. Pay for Fable on the thinking, not the typing.
-- **Subagent routing:** Auto-routed by complexity — Haiku → Sonnet → Opus → Fable. Main thread stays Opus until you escalate.
+- **Subagent routing:** Auto-routed by complexity — Haiku → Sonnet → Opus → Fable. Main thread stays Opus until you escalate. Opus 5 delegates more eagerly than 4.8 and over-spawns without explicit caps — delegate to a subagent only for large, genuinely independent, parallelizable work (not things finishable in a handful of tool calls), and keep spawn counts low.
 - **Claude Teams (HARD RULE):** Agent Teams is always on — `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` in `.claude/settings.json` env (and in the global `~/.claude/settings.json`). Multi-agent fan-out (`/ccc-fleet`, dynamic workflows) depends on it. Do not disable.
 - **Motto:** "Pay for Fable on the thinking, not the typing."
 - **Orchestrator/Executor doctrine:** `/ccc-orchestrate` (Fable/Opus plans → GPT-5.6 Sol via `codex` or a Sonnet subagent executes → Fable/Opus verifies), `/ccc-plan-exec` (same idea, Claude-only), `/ccc-handoff` (Matt Pocock-style context-reset — hand off to a fresh chat before quality degrades). Full doctrine: `CLAUDE.md.template` § "Orchestrator / Executor Model". Existing (non-CCC) projects adopt these rules via `/ccc-adopt`.
@@ -24,8 +24,8 @@ CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantl
 
 The lead session is a **control plane** — decisions, delegations, and verified conclusions only.
 
-- **Delegate substantive work:** Any multi-file, multi-step, research, audit, migration, or repo-wide task goes through the **Workflow tool**. Agents read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
-- **Go solo (inline) only** for a conversational reply, a single trivial edit, or reading the one file you're about to edit.
+- **Delegate substantive work:** multi-file, multi-step, research, audit, migration, or repo-wide tasks go through the **Workflow tool** — but only when the work is large, genuinely independent, and parallelizable. Agents read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
+- **Go solo (inline)** for a conversational reply, a single trivial edit, reading the one file you're about to edit, or anything finishable in a handful of tool calls — Opus 5 over-delegates without this cap, so don't spawn a subagent just because a task touches more than one file.
 - **Keep context slim:** reference code as `path:line`, don't re-read files you just edited, route big tool output to disk.
 - **Proactive compaction:** at ~70% context, write/refresh a session handoff doc; at ~85%, compact or hand off rather than risk truncation mid-task.
 - Full doctrine: `commander/cowork-plugin/rules/workflow-first.md`.

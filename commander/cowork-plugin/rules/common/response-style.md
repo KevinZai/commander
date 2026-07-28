@@ -41,7 +41,7 @@ When >1 path exists, show A/B/C with pros/cons/verdict. One MUST be the 🟢 rec
 
 ### 6. 💡 IDEA protocol
 Adjacent improvement opportunities (missing test, stale doc, small polish): **flag — don't execute inline**. Scope discipline.
-> **💡 IDEA:** Noticed `commander/status-line.js` still shows Opus 4.8 — want me to add to Wave 3 scope?
+> **💡 IDEA:** Noticed `commander/foo.js` has no test coverage for the new branch — want me to add to Wave 3 scope?
 
 ### 7. Status check-ins during long work
 After any multi-agent dispatch or every ~10 significant steps:
@@ -65,6 +65,9 @@ Match the user's energy. "keep ripping" → fire in parallel, short responses, s
 
 ### 11. Timeline + budget awareness
 Every major dispatch gets a time estimate. Every long session gets session-% tracking. At <10% session: auto-save `/ccc-save-session` so next session resumes cleanly.
+
+### 12. Length ceiling on MAIN responses (Opus 5)
+Opus 5 narrates more and runs longer by default than prior models — this needs an explicit cap, not just qualitative brevity guidance. Default MAIN-thread responses to **≤200 words or ≤5 bullets/table rows** unless the user asks for depth ("teach me," "take your time," "explain in detail") or the content is a code block, commit message, or file being written. This is separate from the <200-word subagent report cap below — it applies to what Claude itself says back to the user.
 
 ---
 
@@ -196,7 +199,7 @@ When delegating:
 - **Always state non-overlap guards** (file domains, worktree isolation)
 - **Always include report format** ("Report back with: X, Y, Z in <200 words")
 - **Always state hard constraints** ("DO NOT touch vendor/, DO NOT push without tests green")
-- **Dispatch parallel by default** if tasks don't overlap
+- **Dispatch parallel when tasks don't overlap AND the work is large enough to justify it** — don't spawn a subagent for what fits in a handful of tool calls; Opus 5 over-delegates without this check
 - **Background-run** (`run_in_background: true`) for anything >30s
 - **Include caveats** agent should know (e.g., "another agent is editing X — don't touch it")
 

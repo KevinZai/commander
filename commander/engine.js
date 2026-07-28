@@ -334,7 +334,7 @@ class KitCommander {
       var vendorCount = 0; try { var fs = require('fs'); vendorCount = fs.readdirSync(require('path').join(__dirname, '..', 'vendor')).length; } catch(_e) {}
       var activeLinear = currentState.activeSession ? (currentState.activeSession.linearIssueIdentifier || null) : null;
       var cockpitData = {
-        model: process.env.ANTHROPIC_MODEL || 'Opus 1M',
+        model: process.env.ANTHROPIC_MODEL || undefined,
         cost: stats.totalCost || 0,
         inputTokens: 0,
         outputTokens: 0,

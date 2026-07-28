@@ -7,7 +7,7 @@ const TERMINAL_LINES = [
   { prompt: ">", text: "/plugin marketplace add KevinZai/commander" },
   { prompt: "✓", text: "Marketplace added", color: "text-green-400" },
   { prompt: ">", text: "/plugin install commander" },
-  { prompt: "✓", text: "Installed: commander v5.0.0 · Opus 4.8", color: "text-green-400" },
+  { prompt: "✓", text: "Installed: commander v5.0.0 · Opus 5", color: "text-green-400" },
   { prompt: " ", text: "61 skills · 22 agents · 23 hooks · 4 workflows · 2 bundled MCP + 16 opt-in", color: "text-zinc-500" },
   { prompt: "✓", text: "Ready. Try /ccc-ultracode to ship something.", color: "text-green-400" },
 ];
@@ -60,7 +60,7 @@ export function Hero() {
             CCC is the curated,{" "}
             <span className="text-white font-semibold">AI-guided</span> package
             that turns Claude from a brain-in-a-jar into an operator.{" "}
-            <span className="text-white">81 skills. 22 agents. Dynamic workflows. Opus 4.8.</span>{" "}
+            <span className="text-white">81 skills. 22 agents. Dynamic workflows. Opus 5.</span>{" "}
             One install.
           </motion.p>
 

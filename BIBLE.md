@@ -86,7 +86,7 @@ Use a high-reasoning orchestrator for ambiguity, judgment, and acceptance criter
 
 | Role | Job | Default Tool |
 |------|-----|--------------|
-| **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5 `effort: high`, or Opus 4.8 |
+| **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5 `effort: high`, or Opus 5 |
 | **Executor** | Implements the goal file exactly, runs its own tests as a first gate, and reports evidence — the orchestrator (or a fresh verifier) independently confirms. It does not re-plan. | GPT-5.5 via `codex`, or a Sonnet subagent |
 | **Verifier** | Re-reads the goal file and checks every acceptance criterion before calling the work done. | Same Fable/Opus orchestrator |
 
@@ -2492,10 +2492,10 @@ Verification: [how you'll know it's done]
 |-------|---------|------|-------------|
 | **Haiku 4.5** | Fast iteration, bulk ops, simple tasks | $ | Lightweight subagents, pair programming, worker agents |
 | **Sonnet 5** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows. Best Sonnet — succeeds Sonnet 4.6. |
-| **Opus 4.8** | Complex architecture, deep reasoning, agentic coding | $$$ | **Everyday session default.** Architectural decisions, research, judgment calls. `ultra`/`xhigh` effort levels. |
+| **Opus 5** | Complex architecture, deep reasoning, agentic coding | $$$ | **Everyday session default.** Architectural decisions, research, judgment calls. Default effort is `high` — step up to `xhigh`/`ultra` only for demanding coding/agentic work or maximum depth; don't reuse an effort setting carried over from Opus 4.8 without re-sweeping it. |
 | **Fable 5** | Deep multi-angle reasoning | $$$$ | **Escalation tier only.** Architecture / planning / migration / threat-model sessions where deep reasoning is the actual bottleneck. Activate: `/model claude-fable-5[1m]`. Nudged once per day when ≥2 deep-reasoning signals detected. Motto: *pay for Fable on the thinking, not the typing.* |
 
-**Adaptive thinking:** Opus 4.8 uses `thinking: {type: "adaptive"}`. Effort levels: `xhigh` (agentic/coding tasks) and `ultra` (maximum depth). Fable 5 has adaptive thinking always-on. Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
+**Adaptive thinking:** Opus 5 uses `thinking: {type: "adaptive"}`. Effort levels: `xhigh` (agentic/coding tasks) and `ultra` (maximum depth) — note `thinking: {type: "disabled"}` now errors at `xhigh`/`ultra` on Opus 5, only valid at `high` or below. Fable 5 has adaptive thinking always-on. Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
 
 **Smart routing:** `selectModelForComplexity(score)` auto-routes subagents: 0–29 → Haiku, 30–65 → Sonnet, 66–85 → Opus, 86–100 → Fable. Dispatch tiers: `power` = Fable/Opus, `assisted` = Opus/Sonnet, `guided` = Sonnet/Haiku.
 
@@ -2534,7 +2534,7 @@ Three ways to activate:
 workflow: <task description> # one-off without mode switch
 ```
 
-**Cost note:** ultracode runs Opus 4.8 at `xhigh` effort with parallel subagents — can be 3–5× a standard run. The `cost-ceiling-enforcer.js` hook fires automatically. Check session cost with `/ccc-session → Session Cost`.
+**Cost note:** ultracode runs Opus 5 at `xhigh` effort with parallel subagents — can be 3–5× a standard run. The `cost-ceiling-enforcer.js` hook fires automatically. Check session cost with `/ccc-session → Session Cost`.
 
 **Cost optimization tips:**
 - Use Haiku for 90% of subagent work (3x savings, 90% of Sonnet capability)
@@ -2548,7 +2548,7 @@ graph TD
     A[New Task] --> B{Complexity score}
     B -->|0-29 Simple/Bulk| C[Haiku 4.5 - $]
     B -->|30-65 Standard Dev| D[Sonnet 5 - $$]
-    B -->|66-85 Architecture/Research| E[Opus 4.8 - $$$]
+    B -->|66-85 Architecture/Research| E[Opus 5 - $$$]
     B -->|86-100 Deep Reasoning| F[Fable 5 - $$$$]
     C --> G{Subagent?}
     D --> G
@@ -2558,7 +2558,7 @@ graph TD
     G -->|No| I[Use current session model]
 ```
 
-**Rule:** Never change models mid-session. Spawn a subagent with the desired model instead. Fable 5 is the escalation tier — use Opus 4.8 for everything else.
+**Rule:** Never change models mid-session. Spawn a subagent with the desired model instead. Fable 5 is the escalation tier — use Opus 5 for everything else.
 
 ---
 
@@ -2659,7 +2659,7 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 | 21 | `kotlin-reviewer` | Sonnet 5 | Idiomatic Kotlin, coroutines, Android patterns, null safety |
 | 22 | `csharp-reviewer` | Sonnet 5 | .NET patterns, async/await, LINQ, IDisposable compliance |
 
-Fable 5 personas (`architect`, `security-auditor`, `debugger`, `product-manager`) need deep multi-angle reasoning. Opus 4.8 is the everyday session default. Sonnet handles the rest at lower cost, including all 7 language-specific reviewers (16-22) — mechanical, well-specified audits are exactly the de-escalation candidates the Fable Method's Pillar 11 (Effort calibration) calls out.
+Fable 5 personas (`architect`, `security-auditor`, `debugger`, `product-manager`) need deep multi-angle reasoning. Opus 5 is the everyday session default. Sonnet handles the rest at lower cost, including all 7 language-specific reviewers (16-22) — mechanical, well-specified audits are exactly the de-escalation candidates the Fable Method's Pillar 11 (Effort calibration) calls out.
 
 ### What This Means for Users
 

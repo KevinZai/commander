@@ -2,12 +2,12 @@
 
 > Canonical CC Commander orchestration doctrine. Referenced by the CLAUDE.md template, `/ccc-suggest`, `/ccc`, `/ccc-ultracode`, `/ccc-fleet`, and every CCC element. Goal: the lead session stays a thin **control plane**; context stays slim by construction; compaction is proactive, never an emergency. This file is the ambient session-rules subset of the full doctrine in `rules/fable-method.md` — read that file for the complete 12-pillar model, the proactive prompt library, and the always-on composition.
 
-You are an **ORCHESTRATOR**. Default to delegation. The lead context is a control tower — decisions, delegations, and verified conclusions only. Never let it fill with raw file contents or tool output.
+You are an **ORCHESTRATOR**. Default to delegation for large, genuinely independent, parallelizable work. The lead context is a control tower — decisions, delegations, and verified conclusions only. Never let it fill with raw file contents or tool output.
 
 ## 1. Workflow-first
-- For any **substantive** task — multi-file, multi-step, research, audit, migration, repo-wide review, or anything requiring broad reads — use the **Workflow tool**. Fan out agents that read/search/build and return ONLY conclusions or structured results; never raw file dumps into the lead context.
-- Go **solo (inline) ONLY** for: a conversational reply, a single trivial edit, or reading the one file you are about to edit.
-- Prefer `pipeline()` over barriers (no idle wall-clock). **Adversarially verify** findings (independent skeptics / diverse lenses) before acting on them. After you delegate a search, do not also run it yourself — wait for the result.
+- For a **substantive** task — multi-file, multi-step, research, audit, migration, repo-wide review, or anything requiring broad reads — use the **Workflow tool**, when the work is large enough and independent/parallelizable enough to be worth the spawn overhead. Fan out agents that read/search/build and return ONLY conclusions or structured results; never raw file dumps into the lead context.
+- Go **solo (inline)** for: a conversational reply, a single trivial edit, reading the one file you are about to edit, or anything finishable in a handful of tool calls. Opus 5 over-delegates without this cap — keep spawn counts low.
+- Prefer `pipeline()` over barriers (no idle wall-clock). **Adversarially verify** substantive or expensive-to-reverse findings (independent skeptics / diverse lenses) before acting on them — lighter self-checks are fine for the rest. After you delegate a search, do not also run it yourself — wait for the result.
 - Agents do the reading; you keep the decision.
 - **Delegation engine = Anthropic Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, beta — keep ON). The Workflow tool and Agent fan-out execute *on* Agent Teams; teammates coordinate via `SendMessage` **within the team**. This is the PRIMARY path for both workflow execution and cross-agent delegation. **Cross-session peers (CCD `send_message` / claude-peers) are BACKUP only** — for cross-session/cross-account hand-offs, and they're harness-gated when unattended, so **your tracker's comments (e.g. Linear/Paperclip) remain the autonomous cross-agent channel.**
 
@@ -27,7 +27,7 @@ You are an **ORCHESTRATOR**. Default to delegation. The lead context is a contro
 If the transcript reads like a control tower (decisions in, conclusions out) you're doing it right. If it's filling with file contents, command output, or re-reads — stop and push that work into a workflow or a file.
 
 ## 5. Verifier separation
-Findings are **PLAUSIBLE** until a fresh context makes them **CONFIRMED** — the agent that did the work never grades it. Verifiers are prompted to *refute*, not confirm ("try to prove this wrong; default to refuted if uncertain"). A subagent's self-report ("done," "tests pass") is a claim, not a fact — re-run the load-bearing check yourself before acting on it. See `rules/fable-method.md` Pillar 2.
+For substantive claims/findings and expensive-to-reverse changes: findings are **PLAUSIBLE** until a fresh context makes them **CONFIRMED** — the agent that did the work doesn't grade it alone. Verifiers are prompted to *refute*, not confirm ("try to prove this wrong; default to refuted if uncertain"). A subagent's self-report ("done," "tests pass") on load-bearing work is a claim, not a fact — re-run the check yourself before acting on it. For small, easily-reversible work, Opus 5's own self-verification is enough — don't add a redundant verifier pass. See `rules/fable-method.md` Pillar 2.
 
 ## 6. Truth over cache
 Verify branch tips via `gh api .../commits/<branch>`, not a possibly-stale local `git log`. Prefer raw system binaries over caching proxies/wrappers for file-existence checks during audits — wrappers can silently return stale results. Deploys: curl the live URL. Any state-changing action gets a second, independent confirmation path. See `rules/fable-method.md` Pillar 6.

@@ -166,7 +166,7 @@
     </tr>
     <tr>
       <td class="tier-opus">🥈 Everyday default</td>
-      <td><span class="badge badge-opus">claude-opus-4-8</span></td>
+      <td><span class="badge badge-opus">claude-opus-5</span></td>
       <td>Session default (main thread PM); fleet Leads</td>
       <td>The baseline everything starts on — general dev, orchestration, complex implementation slices</td>
     </tr>
@@ -185,8 +185,8 @@
   </table>
 
   <div class="cost-note">
-    <b>Cost intuition:</b> Fable ≈ <b>2×</b> Opus 4.8 per token ($10/$50 vs $5/$25 per MTok in/out) · Sonnet ≈ 0.6× Opus · Haiku ≈ 0.2× Opus.
-    Fable is <b>escalated into</b>, not the default — a blanket Fable default taxes every trivial session at 2×. Opus 4.8 stays the everyday PM.
+    <b>Cost intuition:</b> Fable ≈ <b>2×</b> Opus 5 per token ($10/$50 vs $5/$25 per MTok in/out) · Sonnet ≈ 0.6× Opus · Haiku ≈ 0.2× Opus.
+    Fable is <b>escalated into</b>, not the default — a blanket Fable default taxes every trivial session at 2×. Opus 5 stays the everyday PM.
     Pay for Fable on the <b>thinking</b>, not the <b>typing</b>.
   </div>
 
@@ -230,7 +230,7 @@
 
   <h2 class="section">3 · Escalation Rules</h2>
   <ul class="rules">
-    <li><b>Main thread is fixed at session start</b> — Claude cannot silently hot-swap the running session's model. Escalate deep-reasoning work explicitly: <code>/model claude-fable-5</code>. Main thread stays Opus 4.8 until you escalate.</li>
+    <li><b>Main thread is fixed at session start</b> — Claude cannot silently hot-swap the running session's model. Escalate deep-reasoning work explicitly: <code>/model claude-fable-5</code>. Main thread stays Opus 5 until you escalate.</li>
     <li><b>Subagents auto-route by complexity</b> — dispatcher picks Haiku → Sonnet → Opus → Fable per delegated task, silently, based on a reasoning-complexity score.</li>
     <li><b>Never switch models mid-session</b> — spawn a subagent on the target model instead of changing the main thread's model repeatedly.</li>
     <li><b>Fleet-scale work → <code>/ccc-fleet</code></b> — 3-tier orchestration: <span class="badge badge-fable">Fable conducts</span> <span class="badge badge-opus">Opus leads</span> <span class="badge badge-sonnet">Sonnet workers</span>, reserved for fleet/worktree-parallel work only.</li>

@@ -12,10 +12,11 @@
 - Orchestrating multi-agent workflows
 - Complex coding tasks
 
-**Opus 4.8** (Deepest reasoning):
+**Opus 5** (`claude-opus-5` — 1M context is default and max, no `[1m]` suffix needed; deepest reasoning):
 - Complex architectural decisions
 - Maximum reasoning requirements
 - Research and analysis tasks
+- Delegates to subagents more eagerly than 4.8 and self-verifies more by default — delegate only for large, genuinely independent, parallelizable work (keep spawn counts low), and reserve explicit re-verification for genuinely high-stakes/hard-to-check work rather than blanket "always verify with a separate subagent" instructions.
 
 **Fable 5** sits above Opus for judgment-heavy work — architecture, threat models, migrations, adversarial verification. Pay for Fable on the thinking, not the typing: use it to plan and verify, not to type. See `rules/fable-method.md` Pillar 11.
 

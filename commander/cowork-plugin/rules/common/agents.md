@@ -26,10 +26,10 @@ No user prompt needed:
 
 ## Parallel Task Execution
 
-ALWAYS use parallel Task execution for independent operations:
+Use parallel Task execution for independent operations — but only when the combined work is large enough to be worth the spawn overhead. Opus 5 over-delegates without this check; a handful of tool calls done inline beats three agents spun up to do the same thing.
 
 ```markdown
-# GOOD: Parallel execution
+# GOOD: Parallel execution (large, genuinely independent work)
 Launch 3 agents in parallel:
 1. Agent 1: Security analysis of auth module
 2. Agent 2: Performance review of cache system
@@ -37,6 +37,9 @@ Launch 3 agents in parallel:
 
 # BAD: Sequential when unnecessary
 First agent 1, then agent 2, then agent 3
+
+# ALSO BAD: spawning agents for what fits in a handful of tool calls
+Don't launch a subagent to read one file and fix a typo.
 ```
 
 ## Multi-Perspective Analysis

@@ -35,6 +35,7 @@
 - Verifiers are prompted to REFUTE, not to confirm ("try to prove this finding wrong; default to refuted if uncertain").
 - For high-stakes claims: N independent skeptics with distinct lenses (correctness / security / does-it-reproduce), majority rules.
 - Subagent reports are claims, not facts: re-run the tests yourself, curl the live URL yourself, check the merge commit yourself.
+- **Scope the gate to substantive work.** This pillar applies to claims, findings, fixes, and anything expensive to reverse — not to mechanical edits a cheap deterministic check already covers (a passing test, a green gate script, a one-line rename). Opus 5 self-verifies more readily than earlier models, so spawning a verifier for trivial output is redundant spend, not rigor. Deterministic verification (tests, gates, diffs) outranks a spawned verifier wherever it exists.
 **Gate:** Before reporting any finding or "done": "Who verified this, and were they the one who made it?" Same agent = not verified.
 **Failure prevented:** plausible-but-wrong findings shipping; a scary "broken" count that was actually zero (see Pillar 4); subagents reporting success on work that silently failed.
 

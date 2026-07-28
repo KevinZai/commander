@@ -7,7 +7,7 @@ description: "xhigh effort + automatic workflow orchestration. For when you want
 
 Ultracode is a combination of two things:
 
-1. **`xhigh` effort level** — Opus 4.8 uses its deepest reasoning chain (equivalent to maximum extended thinking budget)
+1. **`xhigh` effort level** — Opus 5 uses its deepest reasoning chain (equivalent to maximum extended thinking budget)
 2. **Automatic workflow orchestration** — skills that support it will launch dynamic workflows instead of sequential agent dispatch
 
 The result: the most thorough version of every task that CCC knows how to do.
@@ -46,7 +46,7 @@ This is the lightest-touch option — no mode switching, just a signal to CCC th
 
 ## Effort Levels
 
-Opus 4.8 supports four effort levels via `thinking: {type: "adaptive"}`:
+Opus 5 supports four effort levels via `thinking: {type: "adaptive"}`:
 
 | Level | What it does | When to use |
 |-------|-------------|------------|
@@ -76,7 +76,7 @@ Skills that don't use workflows (single-agent tasks like `/ccc-session`, `/ccc-s
 
 ## Cost Awareness
 
-Ultracode runs Opus 4.8 at `xhigh` effort, often with multiple parallel subagents. This can be 3–5× the cost of a standard `/ccc-review` run.
+Ultracode runs Opus 5 at `xhigh` effort, often with multiple parallel subagents. This can be 3–5× the cost of a standard `/ccc-review` run.
 
 **CCC's cost ceiling hook fires automatically** — if your session's total exceeds the configured ceiling (default: $2.00), the `cost-ceiling-enforcer.js` hook blocks the next tool call with a warning. You can raise the ceiling in `~/.claude/commander/config.json`:
 

@@ -22,7 +22,7 @@
 ## Workflow
 
 ### Operating Model
-You are a PM consultant. Recommend approaches with reasoning, present choices via AskUserQuestion, and delegate ALL implementation to Sonnet subagents (Agent tool, model='sonnet'). Keep the main chat clean — planning, decisions, and progress updates only. Show ASCII progress bars after each subagent completes. Never write code directly — always delegate.
+You are a PM consultant. Recommend approaches with reasoning, present choices via AskUserQuestion, and delegate implementation to Sonnet subagents (Agent tool, model='sonnet') when the work is large, genuinely independent, and parallelizable. For a single trivial edit or anything finishable in a handful of tool calls, do it inline — don't spawn a subagent just to avoid touching code yourself. Keep the main chat clean — planning, decisions, and progress updates only. Show ASCII progress bars after each subagent completes.
 
 ### Scope Discipline
 Push back on ambitious plans. Ship small wins. 100 lines > 1000 lines when both work.
@@ -42,8 +42,8 @@ Define success criteria BEFORE the spec: evals > spec > plan > implement > verif
 3. **Plan mode** for any task with 3+ steps
 
 ### Subagent Strategy
-- Use subagents liberally — keep main context clean
-- One task per subagent. Parallel when independent.
+- Delegate large, genuinely independent, parallelizable work — keep main context clean. Don't spawn a subagent for what you can finish in a handful of tool calls.
+- One task per subagent. Parallel when independent, and keep spawn counts low.
 - Never switch models mid-session — use subagents instead
 
 ### Tool Awareness (Critical)
@@ -227,9 +227,9 @@ Run `/ccc-claudemd` periodically to pull latest best practices.
 |-------|---------|------|
 | **Haiku 4.5** | Fast iteration, bulk ops, subagents | $ |
 | **Sonnet 5** | General dev, orchestration | $$ |
-| **Opus 4.8** | Complex architecture, deep reasoning, `ultra`/`xhigh` effort | $$$ |
+| **Opus 5** | Complex architecture, deep reasoning, `ultra`/`xhigh` effort | $$$ |
 
-Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok) and an `ultra` effort level.
+Opus 5 adds Fast mode (2.5× speed, $10/$50 per MTok — pricing carried over from 4.8, not yet re-verified against Opus 5's pricing page) and an `ultra` effort level. Anthropic's own default guidance for Opus 5 is `high`, escalating to `xhigh`/`max` only when justified — don't reuse an effort setting carried over from 4.8 without re-sweeping it.
 
 **Rule:** Never change models mid-session — spawn a subagent instead.
 
@@ -237,10 +237,10 @@ Opus 4.8 adds Fast mode (2.5× speed, $10/$50 per MTok) and an `ultra` effort le
 
 CC Commander splits work into two roles instead of doing everything on one expensive model:
 
-- **Orchestrator** — a high-reasoning model (Claude Fable 5 `effort: high`, or Opus 4.8 as the everyday default) that does NOT write final code. It plans: breaks the task into steps, defines acceptance criteria, and produces a **Skill.md-style goal file** — a structured spec an executor can follow without re-deriving intent.
+- **Orchestrator** — a high-reasoning model (Claude Fable 5 `effort: high`, or Opus 5 as the everyday default) that does NOT write final code. It plans: breaks the task into steps, defines acceptance criteria, and produces a **Skill.md-style goal file** — a structured spec an executor can follow without re-deriving intent.
 - **Executor** — a fast, capable-at-execution model (GPT-5.6 Sol `effort: xhigh` via the `codex` adapter, or a Sonnet subagent) that implements the plan file exactly. It does not re-plan; it runs its own tests as a first gate, then reports back.
 
-The executor's own test run is a first gate, not the finish line — the worker never grades its own homework. The **orchestrator** (or a fresh verifier agent) independently confirms the result against the plan's acceptance criteria before anything is called done. See the Fable Method, Pillar 2.
+The executor's own test run is a first gate, not the finish line — for substantive or expensive-to-reverse changes, the worker shouldn't grade its own homework alone. The **orchestrator** (or a fresh verifier agent) independently confirms the result against the plan's acceptance criteria before anything is called done; skip the extra verifier pass for small, easily-reversible steps where self-verification is enough. See the Fable Method, Pillar 2.
 
 Why this saves tokens: the expensive model's context stays small (just the plan, not every file it touches); the fast executor absorbs the token-heavy file reads/writes/diffs. You pay premium-model tokens only for the reasoning, not the typing.
 
@@ -256,8 +256,8 @@ Why this saves tokens: the expensive model's context stays small (just the plan,
 The Orchestrator/Executor split above is one instance of a broader doctrine: 12 enforceable gates distilled from Claude Fable 5, written to run on any model. Full text: `rules/fable-method.md`. Arm it as an active session contract with `/ccc-fable`.
 
 1. **Orchestrate, don't type** — plan file with acceptance criteria before implementation starts.
-2. **Never trust a single pass** — the maker never grades its own work; a fresh context verifies.
-3. **Loops with gates** — every loop needs a verifier, a state file, and a stop condition.
+2. **Never trust a single pass on what matters** — for substantive claims, findings, and expensive-to-reverse changes, the maker doesn't grade its own work alone; a fresh context verifies. Skip the extra pass on small, reversible steps — self-verification is enough there.
+3. **Loops with gates** — every loop needs a stop condition and a state file; add a spawned verifier when the loop's output is substantive or hard to undo.
 4. **Prove it before you alarm** — falsifiable claim, exact check, real samples, disconfirm-hunt.
 5. **Isolation and blast-radius control** — worktree-isolated edits, archive not delete, human GO on anything irreversible.
 6. **Truth over cache** — verify branch tips and live state at the authoritative source, not a mirror.
@@ -324,9 +324,9 @@ A clickability hook (`commander/cowork-plugin/hooks/clickability-watch.js`) obse
 The lead session is an **ORCHESTRATOR / control tower** — decisions, delegations, and verified conclusions only. Never let it fill with raw file contents or tool output.
 
 ### Workflow-first
-- For any **substantive** task — multi-file, multi-step, research, audit, migration, or repo-wide review — use the **Workflow tool**. Fan out agents that read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
-- Go **solo (inline) ONLY** for: a conversational reply, a single trivial edit, or reading the one file you are about to edit.
-- Prefer pipeline stages over barriers (no idle wall-clock). Adversarially verify findings before acting. After you delegate a search, don't also run it yourself — wait for the result. Agents do the reading; you keep the decision.
+- For a **substantive** task — multi-file, multi-step, research, audit, migration, or repo-wide review — use the **Workflow tool**, but only when the work is large, genuinely independent, and parallelizable. Fan out agents that read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
+- Go **solo (inline)** for: a conversational reply, a single trivial edit, reading the one file you are about to edit, or anything finishable in a handful of tool calls. Opus 5 over-delegates without this cap — don't spawn a subagent for what you could just do.
+- Prefer pipeline stages over barriers (no idle wall-clock). Adversarially verify substantive or expensive-to-reverse findings before acting — lighter self-checks are fine for the rest. After you delegate a search, don't also run it yourself — wait for the result. Agents do the reading; you keep the decision.
 - **Delegation runs on Anthropic Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, beta — keep ON): the Workflow/Agent fan-out *is* the Teams mechanism; teammates coordinate via in-team SendMessage. This is the PRIMARY delegation path. **Cross-session peers (`send_message`) are BACKUP only** (harness-gated unattended) → your tracker's comments (e.g. Linear/Paperclip) are the autonomous cross-agent channel.
 
 ### Keep context slim
@@ -384,5 +384,5 @@ A worktree agent that edits via the MAIN repo's absolute path can leak files int
 - **Prod = explicit human GO (HARD RULE).** Gated PRs (no auto-merge) for sensitive or self-initiated code.
 
 ### Reasoning posture
-- Default effort is **xhigh (Extra)** and dynamic — drop lower only where clearly apt; never force a single level per task or onto subagents. Set persistently via `"effortLevel": "xhigh"` in `settings.json`.
+- Default effort is **high** (Anthropic's Opus 5 guidance) and dynamic — escalate to `xhigh` for demanding coding/agentic work, `max` only when justified; never force a single level per task or onto subagents. Set the default via `"effortLevel": "high"` in `settings.json`. Don't reuse an `xhigh`-everywhere setting carried over from Opus 4.8 without re-sweeping it.
 - For substantial multi-file work (migrations, deep audits, repo-wide cleanups) operate in **ultracode posture**: plan a dynamic Workflow that fans out subagents and adversarially verifies findings, rather than a single-pass answer.
