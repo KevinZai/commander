@@ -17,7 +17,7 @@
   "command_prefix": "/ccc-",
   "license": "MIT",
   "pricing_model": "free-forever-with-pro-tier",
-  "pro_tier_pricing": "$99/yr · $199 lifetime (first 500, then $299) · $79/seat Teams",
+  "pro_tier_pricing": "TBD — free while in testing; no Pro tier is being charged yet",
   "pro_tier_planned": true,
   "hosted_mcp_status": "live",
   "hosted_mcp_url": "https://mcp.commanderplugin.com",
