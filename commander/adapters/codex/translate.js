@@ -69,6 +69,15 @@ function translateHookHandlers(handlers, log) {
   const translated = JSON.parse(JSON.stringify(handlers));
   for (const slot of translated) {
     for (const hook of slot.hooks || []) {
+      // Claude Code hook timeouts are SECONDS (docs: "Seconds before canceling",
+      // default 600 — fixed 2026-07-28 after 43 handlers shipped ms-scale values,
+      // i.e. "3000" = 50 minutes). Codex reads ms (verified against Codex hook
+      // docs 2026-07-22), so convert at the boundary. Guard: a value >= 100 is
+      // assumed to already be ms (a stale un-migrated source) and passed through,
+      // so a double conversion can never produce a multi-hour timeout.
+      if (typeof hook.timeout === 'number' && hook.timeout > 0 && hook.timeout < 100) {
+        hook.timeout = hook.timeout * 1000;
+      }
       if (hook.async !== true) continue;
       log(`hook ${hook.command || '(no command)'}: stripped async (Codex skips async command hooks; now runs synchronously)`);
       delete hook.async;
