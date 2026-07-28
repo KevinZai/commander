@@ -133,9 +133,10 @@ function estimateScope(task, projectDir) {
 
 /**
  * Map a 0-100 score to turns/budget/effort.
- * Effort levels: low → medium → high → xhigh → ultra
- * xhigh/ultra map to the flagship tier; Fable 5 has adaptive thinking always-on (no flag needed).
- * ultra (93-100) targets Fable 5; xhigh (81-92) is suitable for Opus 4.8 or Fable 5.
+ * Effort levels: low → medium → high → xhigh → max. These are the ONLY values the
+ * CLI accepts — 'ultra' is not one of them and was rejected downstream (fixed 2026-07-28).
+ * xhigh/max map to the flagship tier; Fable 5 has adaptive thinking always-on (no flag needed).
+ * max (93-100) targets Fable 5; xhigh (81-92) is suitable for Opus 5 or Fable 5.
  * @param {number} score
  * @returns {{ turns: number, budget: number, effort: string }}
  */
@@ -145,7 +146,7 @@ function scoreToParams(score) {
   if (score <= 65) return { turns: 35, budget: 6, effort: 'medium' };
   if (score <= 80) return { turns: 50, budget: 10, effort: 'high' };
   if (score <= 92) return { turns: 60, budget: 15, effort: 'xhigh' };
-  return { turns: 75, budget: 20, effort: 'ultra' };
+  return { turns: 75, budget: 20, effort: 'max' };
 }
 
 /**
@@ -155,8 +156,8 @@ function scoreToParams(score) {
  *   21-45: simple (20 turns, $3, low)
  *   46-65: moderate (35 turns, $6, medium)
  *   66-80: complex (50 turns, $10, high)
- *   81-92: advanced (60 turns, $15, xhigh) — flagship tier (Fable 5 / Opus 4.8), adaptive thinking
- *   93-100: ultra (75 turns, $20, ultra) — Fable 5 targeted; adaptive thinking always-on
+ *   81-92: advanced (60 turns, $15, xhigh) — flagship tier (Fable 5 / Opus 5), adaptive thinking
+ *   93-100: ultra (75 turns, $20, max) — Fable 5 targeted; adaptive thinking always-on
  *
  * @param {string} task - Task description
  * @param {string} [projectDir] - Optional project directory for file-count scope estimation
@@ -213,7 +214,7 @@ function scoreComplexity(task, projectDir) {
  * Model pricing ($/MTok, as of 2026-06-10 — update as Anthropic changes pricing).
  * Accuracy: ±30%. Used for pre-dispatch estimates, not billing.
  * Fable 5 (claude-fable-5): GA 2026-06-09, $10 input / $50 output; adaptive thinking always-on.
- * Opus 4.8: $5 input / $25 output standard; Fast mode (2.5×): $10 input / $50 output.
+ * Opus 5: $5 input / $25 output standard; Fast mode (2.5×): $10 input / $50 output. (pricing carried over from 4.8 — NOT yet verified against Opus 5 pricing page)
  * Haiku 4.5: corrected to $1 input / $5 output (old 0.25/1.25 was Haiku 3.5 pricing).
  */
 var MODEL_PRICING = {
@@ -396,7 +397,13 @@ function dispatch(task, options) {
   // resume handled above in args init
   if (model) args.push('--model', model);
   if (fallbackModel && fallbackModel !== model) args.push('--fallback-model', fallbackModel);
-  if (effort) args.push('--effort', effort);
+  // Only these 5 levels are accepted by the CLI. An out-of-range value (e.g. the
+  // legacy 'ultra') makes the whole dispatch fail, so clamp to the nearest valid
+  // level rather than forwarding garbage — hard tasks must not error out.
+  if (effort) {
+    var VALID_EFFORT = ['low', 'medium', 'high', 'xhigh', 'max'];
+    args.push('--effort', VALID_EFFORT.indexOf(effort) >= 0 ? effort : 'xhigh');
+  }
   if (maxBudgetUsd) args.push('--max-budget-usd', String(maxBudgetUsd));
   if (name) args.push('--name', name);
   if (worktree) args.push('--worktree', worktree);

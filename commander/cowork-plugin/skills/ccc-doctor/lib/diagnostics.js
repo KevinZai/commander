@@ -125,6 +125,8 @@ function checkClaudeTeamsFlag(root, options) {
   );
 }
 
+var VALID_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max'];
+
 function checkEffortDefault(root, options) {
   var settingsPath = settingsPathFromOptions(options);
   var settings = safeJson(settingsPath);
@@ -135,6 +137,13 @@ function checkEffortDefault(root, options) {
     );
   }
   if (settings.effortLevel) {
+    if (VALID_EFFORT_LEVELS.indexOf(settings.effortLevel) === -1) {
+      return warn(
+        'effort-default',
+        'effortLevel=' + settings.effortLevel + ' in ~/.claude/settings.json is not a valid level',
+        'Valid levels are: ' + VALID_EFFORT_LEVELS.join(', ') + '. Fix the typo or invalid value in ~/.claude/settings.json.'
+      );
+    }
     return ok('effort-default', 'effortLevel=' + settings.effortLevel + ' in ~/.claude/settings.json');
   }
   return ok('effort-default', 'effortLevel absent in ~/.claude/settings.json; inherits harness default');
@@ -420,7 +429,8 @@ function checkBundledMcpServers(root) {
 
 // --- 4. Sub-agent model pin check -------------------------------------------
 
-var EXPECTED_OPUS_AGENTS = ['architect', 'security-auditor', 'debugger', 'product-manager'];
+// These 4 were promoted to Fable 5 in v6.0 — they are NOT Opus-pinned.
+var EXPECTED_FABLE_AGENTS = ['architect', 'security-auditor', 'debugger', 'product-manager'];
 var EXPECTED_SONNET_PINNED = ['designer', 'researcher', 'reviewer'];
 var LEGACY_ALIASES = ['opus', 'sonnet', 'haiku'];
 
@@ -450,8 +460,8 @@ function checkAgentModels(root) {
       problems.push(name + ': missing model field');
       continue;
     }
-    if (EXPECTED_OPUS_AGENTS.indexOf(name) >= 0 && model !== 'claude-opus-4-8') {
-      problems.push(name + ': expected claude-opus-4-8, got ' + model);
+    if (EXPECTED_FABLE_AGENTS.indexOf(name) >= 0 && model !== 'claude-fable-5') {
+      problems.push(name + ': expected claude-fable-5, got ' + model);
     }
     if (EXPECTED_SONNET_PINNED.indexOf(name) >= 0 && model !== 'claude-sonnet-5') {
       problems.push(name + ': expected claude-sonnet-5, got ' + model);

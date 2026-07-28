@@ -112,10 +112,10 @@ function buildGoodFixture() {
       ['---', 'name: ' + name, 'description: Test agent', 'model: ' + model, '---', '', '# Body'].join('\n')
     );
   }
-  agent('architect', 'claude-opus-4-8');
-  agent('security-auditor', 'claude-opus-4-8');
-  agent('debugger', 'claude-opus-4-8');
-  agent('product-manager', 'claude-opus-4-8');
+  agent('architect', 'claude-fable-5');
+  agent('security-auditor', 'claude-fable-5');
+  agent('debugger', 'claude-fable-5');
+  agent('product-manager', 'claude-fable-5');
   agent('designer', 'claude-sonnet-5');
   agent('researcher', 'claude-sonnet-5');
   agent('reviewer', 'claude-sonnet-5');
@@ -363,6 +363,21 @@ test('checkAgentModels: ok when expected pinning matches', function () {
   var root = buildGoodFixture();
   var r = diag.checkAgentModels(root);
   assert.strictEqual(r.status, 'ok', r.message);
+});
+
+// Regression guard: for ~2 releases the fixture and the expectation drifted together
+// (agents were promoted to claude-fable-5 in v6.0, but this check still demanded an
+// Opus pin), so every fixture test stayed green while /ccc-doctor failed on the real,
+// healthy repo. A synthetic fixture can never again mask that — assert against the
+// ACTUAL repo, which is the thing users' doctor runs actually inspect.
+test('checkAgentModels: ok against the REAL repo (not a fixture)', function () {
+  var repoRoot = path.resolve(__dirname, '..', '..');
+  var r = diag.checkAgentModels(repoRoot);
+  assert.strictEqual(
+    r.status,
+    'ok',
+    'ccc-doctor must pass on this repo as shipped. Got: ' + r.message
+  );
 });
 
 test('checkAgentModels: fail when architect not pinned to opus 4.7', function () {
