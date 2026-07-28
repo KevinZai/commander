@@ -34,7 +34,7 @@ const HOOK_MAP = JSON.parse(
 // for commands Codex itself spawns as plugin hooks, so this path may still
 // need to be absolute in practice. Flagged, not fixed here (out of scope).
 const DEFAULT_TELEMETRY_MODULE = '${CLAUDE_PLUGIN_ROOT}/adapters/codex/telemetry.js';
-const VALID_EFFORTS = new Set(['low', 'medium', 'high', 'xhigh']);
+const VALID_EFFORTS = new Set(['low', 'medium', 'high', 'xhigh', 'max']);
 // Handlers that were "async": true in the Claude source keep their timeout
 // but never exceed this once translated to a synchronous Codex command hook
 // (Codex parses "async": true but skips those handlers entirely -- see

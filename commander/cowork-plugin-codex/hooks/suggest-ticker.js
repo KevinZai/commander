@@ -359,7 +359,9 @@ function maybeUltracodeHint(promptText) {
   if (!WORKFLOW_KEYWORDS.test(promptText)) return null;
   // Don't hint if user already mentions workflow/ultracode — they know
   if (/\b(workflow|ultracode|\/effort)\b/i.test(promptText)) return null;
-  return '💡 This looks like a workflow-scale task — consider `/effort ultracode` or adding `workflow` to your prompt for adversarially verified, multi-agent results.';
+  // `/ccc-ultracode` is the skill; `ultracode` is NOT a valid --effort level
+  // (low|medium|high|xhigh|max), so never suggest it as one.
+  return '💡 This looks like a workflow-scale task — consider `/ccc-ultracode` or adding `workflow` to your prompt for adversarially verified, multi-agent results.';
 }
 
 /**

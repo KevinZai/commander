@@ -11,7 +11,7 @@ allowed-tools:
 
 # $ccc-orchestrate — Cross-Runtime Orchestrator/Executor
 
-Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5** or **Opus 4.8** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution then happens **outside this runtime entirely** — on **GPT-5.6 Sol via the `codex` CLI**, or on a **Sonnet subagent** if codex isn't available. The orchestrator never writes production code itself.
+Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5** or **Opus 5** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution then happens **outside this runtime entirely** — on **GPT-5.6 Sol via the `codex` CLI**, or on a **Sonnet subagent** if codex isn't available. The orchestrator never writes production code itself.
 
 **CC Commander** · Cross-Runtime Orchestrate · [Docs](https://commanderplugin.com)
 
@@ -29,7 +29,7 @@ Fable/Opus is expensive per token but excellent at compressing a fuzzy request i
 
 ## The two roles
 
-1. **Orchestrator (Fable 5, effort high, or Opus 4.8 — this session)** — reads the request, asks clarifying questions if the scope is fuzzy, and writes a structured **goal file** to disk. Never edits production code in this mode.
+1. **Orchestrator (Fable 5, effort high, or Opus 5 — this session)** — reads the request, asks clarifying questions if the scope is fuzzy, and writes a structured **goal file** to disk. Never edits production code in this mode.
 2. **Executor (GPT-5.6 Sol via codex, or Sonnet subagent)** — reads the goal file verbatim as its entire brief and implements it. Does not re-plan, re-scope, or renegotiate the acceptance criteria.
 
 The orchestrator resumes after execution to **verify against the goal file's done-when checklist**, not to re-review the diff from scratch.
@@ -44,7 +44,7 @@ A Skill.md-shaped markdown spec saved to a scratch path — use the session's sc
 ---
 goal: <slug>
 created: <ISO date>
-orchestrator: fable-5 | opus-4.8
+orchestrator: fable-5 | opus-5
 executor: codex-gpt-5.6-sol | codex-gpt-5.6-terra | codex-gpt-5.6-luna | sonnet-subagent
 ---
 

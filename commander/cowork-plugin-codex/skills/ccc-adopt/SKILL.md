@@ -103,7 +103,7 @@ This exact content must be inserted, wrapped in the delimiter comments below. It
 
 CC Commander splits work into two roles instead of doing everything on one expensive model:
 
-- **Orchestrator** — a high-reasoning model (Claude Fable 5 `effort: high`, or Opus 4.8 as the everyday default) that does NOT write final code. It plans: breaks the task into steps, defines acceptance criteria, and produces a **Skill.md-style goal file** — a structured spec an executor can follow without re-deriving intent.
+- **Orchestrator** — a high-reasoning model (Claude Fable 5 `effort: high`, or Opus 5 as the everyday default) that does NOT write final code. It plans: breaks the task into steps, defines acceptance criteria, and produces a **Skill.md-style goal file** — a structured spec an executor can follow without re-deriving intent.
 - **Executor** — a fast, capable-at-execution model (GPT-5.5 `effort: xhigh` via the `codex` adapter, or a Sonnet subagent) that implements the plan file exactly. It does not re-plan; it runs its own tests as a first gate, then reports back.
 
 The executor's own test run is a first gate, not the finish line — the worker never grades its own homework. The **orchestrator** (or a fresh verifier agent) independently confirms the result against the plan's acceptance criteria before anything is called done. See the Fable Method, Pillar 2.

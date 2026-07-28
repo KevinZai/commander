@@ -1,12 +1,12 @@
 # CC Commander Cheatsheet
-> CC Commander v7.3.0 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v7.3.1 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-07-22 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v7.3.0)
+## Desktop Plugin Commands (v7.3.1)
 
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 81 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard + update).
 
@@ -142,7 +142,7 @@ Brain/hands architecture — each persona has a distinct role, model, and voice.
 
 ```
 /ccc-ultracode               # guided path
-/effort ultracode            # set for session
+/ccc-ultracode               # guided ultracode mode
 workflow: <task>             # one-off
 ```
 
@@ -703,7 +703,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 7.3.0
+version: 7.3.1
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -969,7 +969,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Model | Role | Input | Output | Use |
 |-------|------|-------|--------|-----|
 | **Fable 5** | Deep reasoning escalation | $10/MTok | $50/MTok | `/model claude-fable-5[1m]` when 🧠 deep thinking needed (once/day nudge) |
-| **Opus 4.8** | Everyday session default | $5/MTok | $25/MTok | Main thread, heavy implementation, Fable fallback |
+| **Opus 5** | Everyday session default | $5/MTok | $25/MTok | Main thread, heavy implementation, Fable fallback |
 | **Sonnet 5** | General dev, 16 sub-agents (latest/best Sonnet) | $3/MTok | $15/MTok | Default for most delegated work — reviewers + builders + QA |
 | **Sonnet 4.6** | General dev, prior Sonnet | $3/MTok | $15/MTok | Predecessor to Sonnet 5 |
 | **Haiku 4.5** | Fast bulk ops | $1/MTok | $5/MTok | Bulk tasks, hooks, high-turn ops |
@@ -1078,7 +1078,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v7.3.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v7.3.1 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1165,7 +1165,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v7.3.0 Quick Reference (CLI)
+## CC Commander v7.3.1 Quick Reference (CLI)
 
 ```bash
 # Launch

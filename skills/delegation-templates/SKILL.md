@@ -13,8 +13,9 @@ Structured templates for subagent delegation. Every dispatch includes a mandator
 ## Structural Discipline (All Agents)
 
 1. **Mandatory report format.** Empty fields = visible signal. Validate before accepting.
-2. **Assumed verification.** Every prompt: "Your output will be reviewed by a separate agent."
+2. **Verification scaled to stakes.** For substantive claims/findings or expensive-to-reverse changes: "Your output will be reviewed by a separate agent." For small, easily-reversible work, the agent's own self-check is enough — don't add a redundant verifier pass.
 3. **Escalation as safe default.** BLOCKED > wrong. Reporting uncertainty = success.
+4. **Delegate only when it's worth it.** Large, genuinely independent, parallelizable work goes to a subagent. Anything finishable in a handful of tool calls, do inline — Opus 5 over-delegates without this check.
 
 ## Model Selection Matrix
 
@@ -37,7 +38,7 @@ Structured templates for subagent delegation. Every dispatch includes a mandator
 1. Implement exactly what is described. No extras.
 2. If spec is ambiguous → NEEDS_CONTEXT with specific questions.
 3. BLOCKED > wrong.
-4. Your output will be reviewed by a separate agent.
+4. For substantive or expensive-to-reverse changes: your output will be reviewed by a separate agent. For small, easily-reversible edits, self-check is sufficient.
 </rules>
 <report-format>
 Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT

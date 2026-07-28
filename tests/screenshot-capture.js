@@ -362,7 +362,7 @@ function tryReturn(name, fn) {
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const COCKPIT_DATA = {
-  model: 'claude-opus-4-8',
+  model: 'claude-opus-5',
   cost: 2.47,
   inputTokens: 145200,
   outputTokens: 12800,

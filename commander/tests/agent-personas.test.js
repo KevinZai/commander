@@ -17,11 +17,15 @@ var PERSONAS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'rules', 'perso
 
 var EXPECTED_AGENT_COUNT = 22;
 
+// claude-opus-4-8 is intentionally NOT in this list: the repo has fully migrated
+// to Opus 5, no agent in commander/cowork-plugin/agents/*.md is pinned to 4.8
+// (verified via grep), and keeping the old pin allowed would let a stale agent
+// pass this test silently instead of flagging the leftover migration.
 var ALLOWED_MODELS = [
   'opus',
   'sonnet',
   'haiku',
-  'claude-opus-4-8',
+  'claude-opus-5',
   'claude-sonnet-5',
   'claude-haiku-4-5',
   'claude-fable-5',

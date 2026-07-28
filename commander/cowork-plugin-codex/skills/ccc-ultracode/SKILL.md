@@ -10,7 +10,7 @@ allowed-tools:
 
 # $ccc-ultracode — Ultracode Mode
 
-Ultracode flips two dials at once: **xhigh reasoning** (Opus 4.8 extended thinking) and **automatic dynamic-workflow orchestration** (Claude plans a multi-agent Workflow per substantial task instead of solving it in a single agent pass). The result is adversarially verified, multi-perspective output — at the cost of meaningfully more tokens.
+Ultracode flips two dials at once: **xhigh reasoning** (Opus 5 extended thinking) and **automatic dynamic-workflow orchestration** (Claude plans a multi-agent Workflow per substantial task instead of solving it in a single agent pass). The result is adversarially verified, multi-perspective output — at the cost of meaningfully more tokens.
 
 **CC Commander** · Ultracode Mode · [Docs](https://commanderplugin.com)
 
@@ -22,9 +22,9 @@ Ultracode flips two dials at once: **xhigh reasoning** (Opus 4.8 extended thinki
 
 ## What ultracode is
 
-`/effort ultracode` = two things working together:
+`$ccc-ultracode` = two things working together:
 
-1. **xhigh reasoning** — Opus 4.8 extended thinking budget. Claude thinks longer before answering. Catches edge cases, cross-checks assumptions, surfaces risks.
+1. **xhigh reasoning** — Opus 5 extended thinking budget. Claude thinks longer before answering. Catches edge cases, cross-checks assumptions, surfaces risks.
 2. **Dynamic-workflow orchestration** — for any substantial task, Claude plans a Workflow that fans out specialized subagents, verifies their findings adversarially, then synthesizes a single result. You get a multi-angle, cross-checked output instead of a single-pass answer.
 
 Drop back any time: `/effort high` (or just start a new session — ultracode does not persist).

@@ -7,15 +7,15 @@ const TERMINAL_LINES = [
   { prompt: ">", text: "/plugin marketplace add KevinZai/commander" },
   { prompt: "✓", text: "Marketplace added", color: "text-green-400" },
   { prompt: ">", text: "/plugin install commander" },
-  { prompt: "✓", text: "Installed: commander v5.0.0 · Opus 4.8", color: "text-green-400" },
-  { prompt: " ", text: "61 skills · 22 agents · 23 hooks · 4 workflows · 2 bundled MCP + 16 opt-in", color: "text-zinc-500" },
+  { prompt: "✓", text: "Installed: commander v7.3.1 · Opus 5", color: "text-green-400" },
+  { prompt: " ", text: "81 skills · 22 agents · 23 hooks · 43 handlers · 2 bundled MCP + 16 opt-in", color: "text-zinc-500" },
   { prompt: "✓", text: "Ready. Try /ccc-ultracode to ship something.", color: "text-green-400" },
 ];
 
 const STATS = [
-  { value: "61", label: "Plugin skills curated" },
+  { value: "81", label: "Plugin skills curated" },
   { value: "22", label: "Specialist agents" },
-  { value: "23", label: "Lifecycle hooks · 38 handlers" },
+  { value: "23", label: "Lifecycle hooks · 43 handlers" },
   { value: "18", label: "MCP integrations (2 bundled + 16 opt-in)" },
 ];
 
@@ -60,7 +60,7 @@ export function Hero() {
             CCC is the curated,{" "}
             <span className="text-white font-semibold">AI-guided</span> package
             that turns Claude from a brain-in-a-jar into an operator.{" "}
-            <span className="text-white">81 skills. 22 agents. Dynamic workflows. Opus 4.8.</span>{" "}
+            <span className="text-white">81 skills. 22 agents. Dynamic workflows. Opus 5.</span>{" "}
             One install.
           </motion.p>
 

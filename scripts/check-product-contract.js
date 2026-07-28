@@ -1,6 +1,23 @@
 #!/usr/bin/env node
 'use strict';
 
+// ⚠️  --patch IS ADVISORY. ALWAYS `git diff` ITS OUTPUT BEFORE COMMITTING.
+//
+// Deciding whether a version reference in prose is "current" or "historical" is a
+// natural-language judgement, and six consecutive adversarial review rounds each
+// defeated the heuristic with a new phrasing ("vX ships", spelled-out "version",
+// "as of now", "Historical release note:", "from vX onward", "vX or newer"…).
+// Each miss silently falsified a committed doc — usually a release date or a
+// compatibility floor, which then tells users to upgrade past a version that
+// already works for them.
+//
+// The guards below (HISTORY_HINT, HISTORY_LEAD_IN, isSafeToPatch) close every case
+// found so far and are pinned by commander/tests/contract-patch-safety.test.js.
+// They are NOT proof of correctness — assume the next phrasing is still unhandled.
+// --check is the trustworthy half: it reports liberally and is the release gate.
+// This file is maintainer tooling only; it is not published to npm and not part of
+// the shipped plugin.
+
 var fs = require('fs');
 var path = require('path');
 
@@ -530,13 +547,81 @@ function isVersionRelevant(content, index, matchLen) {
   // class). Both "before" phrasings ("added in vX", "as of vX", "from before vX",
   // "Status (vX") and "after" phrasings ("vX ships a…", "vX makes…", "vX release note").
   if (/(added|introduced|shipped|since|new|as of|from before)\s+(in\s+)?$/i.test(before)) return false;
+  // Same class, but with words between the cue and the number — "two new self-contained
+  // artifacts in v7.2.0", "what changed in v7.3.0". Bounded to 40 chars with no sentence
+  // break so a cue in a previous sentence can't suppress a real current-version ref.
+  if (/\b(added|introduced|shipped|new|what changed)\b[^.!?\n]{0,40}\bin\s+$/i.test(before)) return false;
   // "Status (vX)" is historical release-status labelling (e.g. the codex-compat
   // page's "**Status (v6.8.2):**") — BUT only skip it when the surrounding text
   // isn't asserting a CURRENT version, so "current Status (vX)" drift is still caught.
   if (/\bStatus\s*\($/i.test(before) && !/\b(current|latest|now)\b/i.test(context)) return false;
   var after = content.slice(index + (matchLen || 0), index + (matchLen || 0) + 45);
-  if (/^\)?\s*(ships?\b|makes?\b|release note\b)/i.test(after)) return false;
+  // "vX ships…", "vX corrects…", "update to vX or later" — the number names the
+  // release that did the thing (or the remediation floor), not the current version.
+  // EXCEPT when the product name leads it ("CC Commander v7.3.1 ships as a native
+  // plugin") — that is a current-state assertion and must still be checked, or the
+  // guard silently blinds the gate to the very line it is meant to keep fresh.
+  // Accept both "CC Commander v7.3.1" and "CC Commander version 7.3.1" — the latter
+  // was a false negative that let genuine current-state drift through.
+  // But an explicit historical lead-in ("the release note says: CC Commander v6.0.0
+  // ships…") still wins: quoting a past release is not asserting a current version.
+  // `before` is only 45 chars, so a {0,60} window here silently truncated — keep the
+  // bound inside the slice. Bare "changelog" is NOT a history cue on its own
+  // ("obsolete changelog; CC Commander version 6.4.2 ships…" is current-state drift);
+  // require a phrasing that actually quotes a past release.
+  // "as of" is deliberately NOT here: "as of now, CC Commander version X ships…" is
+  // present-tense. Only phrasings that unambiguously quote a PAST release qualify.
+  var historicalQuote = /\b(release note|changelog entry|changelog for|previously|back in)\b[^.!?\n;]{0,40}$/i.test(before);
+  var productLed = !historicalQuote && /\b(CC Commander|Commander|CCC)\s+(v|version\s+)?$/i.test(before);
+  if (!productLed && /^\)?\s*(ships?\b|makes?\b|release note\b|corrects?\b|fixes?\b|or later\b)/i.test(after)) return false;
   return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
+}
+
+// --- patch safety ------------------------------------------------------------
+//
+// isVersionRelevant is a PROSE HEURISTIC, and four consecutive adversarial review
+// rounds each broke it with a new phrasing. It is good enough to *report* on, but
+// not to silently rewrite on: the two error directions are wildly asymmetric.
+//   over-report  -> a human reads one extra line. Free.
+//   over-rewrite -> history is falsified in a committed doc, usually unnoticed.
+// So --patch gets a STRICTER predicate than --check. If anything in the vicinity
+// hints the reference might be historical, --patch declines and leaves it for the
+// human that --check already told. Under-patching is a chore; over-patching is a
+// corrupted record — when unsure, do nothing.
+// Includes COMPATIBILITY FLOORS ("from vX onward", "vX or newer", "requires vX"),
+// not just past-tense history. A floor names the release something became true in;
+// bumping it silently tells users to upgrade past a version that already works.
+var HISTORY_HINT = /\b(release note|changelog|previously|back in|as of|history|historical|used to|formerly|prior to|before|since|was|were|shipped|introduced|added|launched|old|legacy|deprecated|onward|or newer|or above|or higher|or later|compatible|compatibility|requires|required|minimum|at least|from|v\d+\.\d+)\b/i;
+
+// Historical lead-ins are often a HEADING on the preceding line ("Historical release
+// note:\nCC Commander v6.4.2 ships…"), which same-line bounding alone cannot see.
+// Must LOOK like a lead-in — a markdown heading, or a short line ending in a colon.
+// Matching any sentence that merely mentions "changelog" would freeze the perfectly
+// current line that happens to follow it.
+var HISTORY_LEAD_IN = /^(#{1,6}\s+|\**)[^\n]{0,80}\b(release notes?|changelog|history|historical|previously|deprecated|legacy|older releases?|past releases?)\b[^\n]{0,40}(:|\**)\s*$/i;
+
+function isSafeToPatch(content, index, matchLen) {
+  if (!isVersionRelevant(content, index, matchLen)) return false;
+  // Bounded to the SAME LINE. A raw character window bleeds into neighbouring lines,
+  // so one "changelog" in an adjacent bullet would freeze patching for a perfectly
+  // current line below it — over-conservative to the point of uselessness.
+  var lineStart = content.lastIndexOf('\n', index) + 1;
+  var lineEndRaw = content.indexOf('\n', index);
+  var lineEnd = lineEndRaw === -1 ? content.length : lineEndRaw;
+  var line = content.slice(lineStart, lineEnd);
+  // Drop the version token itself so its own "v7.3.0" shape can't trip the hint.
+  var lineSansMatch =
+    line.slice(0, index - lineStart) + line.slice(index - lineStart + (matchLen || 0));
+  if (HISTORY_HINT.test(lineSansMatch)) return false;
+  // Look back one non-empty line for a historical heading/lead-in.
+  var prevEnd = lineStart > 0 ? lineStart - 1 : 0;
+  while (prevEnd > 0 && /\s/.test(content.charAt(prevEnd - 1)) && content.charAt(prevEnd - 1) !== '\n') prevEnd--;
+  if (prevEnd > 0) {
+    var prevStart = content.lastIndexOf('\n', prevEnd - 1) + 1;
+    var prevLine = content.slice(prevStart, prevEnd);
+    if (prevLine.trim() && HISTORY_LEAD_IN.test(prevLine)) return false;
+  }
+  return true;
 }
 
 function scanCommandPrefix(content, surface, contract) {
@@ -680,7 +765,11 @@ function replaceNamedNumber(content, regex, expected, min, guard) {
     if (min && Number(groups.value) < min) return match;
     // Mirror the checker's relevance filter so --patch only rewrites what --check flags
     // (never host CLI versions like "Claude Code v2.1.154", dep ranges, or historical refs).
-    if (guard && !guard(content, offset, groups.value)) return match;
+    // match.length matters: isVersionRelevant inspects the text AFTER the match, and
+    // without a length it would inspect the match itself, silently disabling every
+    // trailing guard during --patch while --check kept working. That asymmetry is how
+    // --patch kept corrupting historical refs the checker correctly left alone.
+    if (guard && !guard(content, offset, groups.value, match.length)) return match;
     var index = match.indexOf(groups.value);
     if (index === -1) return match;
     return match.slice(0, index) + String(expected) + match.slice(index + groups.value.length);
@@ -695,10 +784,11 @@ function patchText(content, contract) {
     }
   });
   var versionRule = makeVersionRule(contract);
-  patched = replaceNamedNumber(patched, versionRule.regex, contract.version, versionRule.min, function(text, offset, value) {
-    // Same guard scanVersionRule uses: skip values already at target, and only
-    // patch product-version tokens in a relevant context (not host CLI / deps / history).
-    return value !== contract.version && isVersionRelevant(text, offset);
+  patched = replaceNamedNumber(patched, versionRule.regex, contract.version, versionRule.min, function(text, offset, value, matchLen) {
+    // STRICTER than the checker on purpose — see isSafeToPatch. --check still
+    // reports everything isVersionRelevant flags; --patch only rewrites the
+    // unambiguous subset, so a missed rewrite is a TODO rather than falsified history.
+    return value !== contract.version && isSafeToPatch(text, offset, matchLen);
   });
   return patched;
 }
@@ -815,4 +905,14 @@ function main() {
   process.exit(0);
 }
 
-main();
+// Only self-run as a CLI. Being require-able is what lets the patch-safety
+// property be unit-tested instead of hand-verified once per audit round.
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  isVersionRelevant: isVersionRelevant,
+  isSafeToPatch: isSafeToPatch,
+  patchText: patchText,
+};
