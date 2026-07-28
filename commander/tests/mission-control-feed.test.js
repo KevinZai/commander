@@ -513,7 +513,7 @@ describe('mission-control-feed — registration', () => {
     assert.deepEqual(feedHook, {
       type: 'command',
       command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/mission-control-feed.js"',
-      timeout: 3000,
+      timeout: 3,
       async: true,
     });
   });
