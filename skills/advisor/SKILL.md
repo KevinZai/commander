@@ -1,6 +1,6 @@
 ---
 name: advisor
-description: "Anthropic Advisor Tool — pair a cheaper executor model with Opus for guidance. TRIGGER when: user asks about advisor tool, model pairing, Sonnet+Opus, cost optimization with quality, or 'how to make Sonnet smarter'. DO NOT TRIGGER when: general API questions (use claude-api skill instead)."
+description: "Anthropic Advisor Tool — pair a cheaper executor model with a more capable advisor model for guidance. TRIGGER when: user asks about advisor tool, model pairing, Sonnet+Opus, cost optimization with quality, or 'how to make Sonnet smarter'. DO NOT TRIGGER when: general API questions (use claude-api skill instead)."
 license: Complete terms in LICENSE.txt
 ---
 
@@ -28,15 +28,18 @@ Think of it as giving Sonnet a senior engineer it can quietly ask for help — w
 
 ## Model Compatibility
 
-The executor model must be paired with a compatible advisor. Only these combinations are valid:
+The rule (per Anthropic's [advisor tool docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool)): **the advisor must be Claude Sonnet 4.6 or more capable, AND at least as capable as the executor.**
 
-| Executor | Advisor |
-|----------|---------|
-| `claude-haiku-4-5` | `claude-opus-4-8` |
-| `claude-sonnet-5` | `claude-opus-4-8` |
-| `claude-opus-4-8` | `claude-opus-4-8` |
+| Executor | Valid advisors |
+|----------|----------------|
+| `claude-haiku-4-5` | `claude-opus-5`, `claude-opus-4-8`, `claude-fable-5`, `claude-mythos-5`, `claude-sonnet-5`, `claude-sonnet-4-6` |
+| `claude-sonnet-5` | `claude-opus-5`, `claude-opus-4-8`, `claude-fable-5`, `claude-mythos-5` |
+| `claude-opus-4-8` | `claude-opus-5`, `claude-opus-4-8`, `claude-fable-5`, `claude-mythos-5` |
+| `claude-opus-5` | `claude-opus-5`, `claude-fable-5`, `claude-mythos-5` |
 
-**The advisor is always Opus 4.8.** You cannot use Sonnet as an advisor, and you cannot pair Opus 4.5 executor with a different advisor model.
+⚠️ **`claude-opus-4-8` is NOT a valid advisor for an `claude-opus-5` executor** — it fails the "at least as capable" rule. If you moved your executor to Opus 5, you must also move the advisor.
+
+📝 Opus 5 / Fable 5 / Mythos 5 advisors return an encrypted `advisor_redacted_result` instead of a plaintext `advisor_result` — round-trip it verbatim, do not attempt to parse it.
 
 ---
 
@@ -55,7 +58,7 @@ curl https://api.anthropic.com/v1/messages \
       {
         "type": "advisor_20260301",
         "name": "advisor",
-        "model": "claude-opus-4-8"
+        "model": "claude-opus-5"
       }
     ],
     "messages": [
@@ -84,7 +87,7 @@ response = client.messages.create(
         {
             "type": "advisor_20260301",
             "name": "advisor",
-            "model": "claude-opus-4-8",
+            "model": "claude-opus-5",
         }
     ],
     messages=[
@@ -110,7 +113,7 @@ response = client.messages.create(
         {
             "type": "advisor_20260301",
             "name": "advisor",
-            "model": "claude-opus-4-8",
+            "model": "claude-opus-5",
             "max_uses": 3,                        # Limit advisor calls per request
             "caching": {
                 "type": "ephemeral",
@@ -144,7 +147,7 @@ const response = await client.beta.messages.create({
     {
       type: "advisor_20260301",
       name: "advisor",
-      model: "claude-opus-4-8",
+      model: "claude-opus-5",
     },
   ],
   messages: [
@@ -170,7 +173,7 @@ const response = await client.beta.messages.create({
     {
       type: "advisor_20260301",
       name: "advisor",
-      model: "claude-opus-4-8",
+      model: "claude-opus-5",
       max_uses: 3,
       caching: {
         type: "ephemeral",
@@ -199,7 +202,7 @@ Caps the number of times the executor can call the advisor in a single request. 
 {
   "type": "advisor_20260301",
   "name": "advisor",
-  "model": "claude-opus-4-8",
+  "model": "claude-opus-5",
   "max_uses": 2
 }
 ```
@@ -214,7 +217,7 @@ Caches the advisor's context so repeated advisor calls within the TTL window reu
 {
   "type": "advisor_20260301",
   "name": "advisor",
-  "model": "claude-opus-4-8",
+  "model": "claude-opus-5",
   "caching": {
     "type": "ephemeral",
     "ttl": "5m"
@@ -255,7 +258,7 @@ for block in response.content:
 
 | HTTP | Error type | Cause | Fix |
 |------|------------|-------|-----|
-| 400 | `invalid_request_error` | Invalid model pair (e.g., Sonnet executor + Sonnet advisor) | Use `claude-opus-4-8` as advisor |
+| 400 | `invalid_request_error` | Invalid model pair — advisor is weaker than the executor, or below Sonnet 4.6 | Pick an advisor at least as capable as the executor (see Model Compatibility) |
 | 400 | `invalid_request_error` | Missing beta header | Add `anthropic-beta: advisor-tool-2026-03-01` |
 | 400 | `invalid_request_error` | `max_uses` is 0 or negative | Set `max_uses` to a positive integer |
 | 400 | `invalid_request_error` | Invalid `ttl` value | Use `"5m"` or `"1h"` only |
@@ -280,7 +283,7 @@ Add an `advisorTool` block to any agent's model config:
         "advisorTool": {
           "type": "advisor_20260301",
           "name": "advisor",
-          "model": "claude-opus-4-8",
+          "model": "claude-opus-5",
           "max_uses": 3,
           "caching": {
             "type": "ephemeral",
@@ -307,7 +310,7 @@ ClaudeSwap (:8082) proxies all Anthropic requests from OpenClaw. You can configu
       {
         "type": "advisor_20260301",
         "name": "advisor",
-        "model": "claude-opus-4-8",
+        "model": "claude-opus-5",
         "max_uses": 2
       }
     ],
