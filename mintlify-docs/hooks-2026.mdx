@@ -7,33 +7,35 @@ description: "v5.1.0 expanded the hook system from 9 to 23 lifecycle events and 
   **v5.1.0 change.** The hook system expanded from 9 events to 23. Existing hooks continue to work unchanged. The new events are additive. One breaking change: `session-save` moved from `Stop` to `SessionEnd` (correctness fix — see [Migration Notes](#migration-notes)).
 </Note>
 
-## Full Hook Registry (v5.1.0)
+## Full Hook Registry (current)
+
+Rebuilt from the plugin's `hooks.json` — the per-event handler counts below sum to the canonical total.
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
-| `SessionStart` | 5 | `session-start-orchestrator.js` (single-process orchestrator for the session-start scripts), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed state, stale CLAUDE.md nudge, post-compact recovery, ambient suggestion, update nudge, console auto-open (v7.4.0) |
-| `SessionEnd` | 2 scripts | `session-save.js`, `session-summary.js` | Persist session JSON + write summary to knowledge dir |
-| `UserPromptSubmit` | 4 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `user-prompt-submit.js` | Ambient suggestion tick, skill routing, context budget warning, prompt logging |
-| `PreToolUse` | 3 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js` | Accumulate cost, block over ceiling, scan args for leaked secrets |
-| `PostToolUse` | 3 | `knowledge-capture.js`, `quality-gate.js`, `auto-format.js` | Capture file-touch observations, quality checks, format writes |
-| `PostToolUseFailure` | 1 | `tool-failure-logger.js` | Log failed tool calls to session telemetry |
-| `PostToolBatch` | 1 | `batch-summary.js` | Append batch stats to session metadata after multi-tool sequences |
-| `Stop` | 1 | `session-end.js` | Legacy session cleanup (session-save moved to SessionEnd in v5.1.0) |
+| `SessionStart` | 5 | `session-start-orchestrator.js` (single-process orchestrator running the session-start, stale-CLAUDE.md-nudge, post-compact-recovery, fable-armed-nudge, and voice-injector scripts), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed state, stale CLAUDE.md nudge, post-compact recovery, git credential refresh (opt-in), update nudge, console auto-open (v7.4.0) |
+| `SessionEnd` | 2 | `session-save.js`, `session-end.js` | Persist session JSON + write summary to knowledge dir |
+| `UserPromptSubmit` | 6 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick, skill routing, context budget warnings, prompt logging, skill-run telemetry |
+| `UserPromptExpansion` | 1 | `prompt-expansion-guard.js` | Pass-through guard for expanded prompt templates |
+| `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js` (Edit/Write), `doc-file-warning.js` (Write), `git-push-reminder.js` (Bash) | Accumulate cost, block over ceiling, scan args for leaked secrets, protect config files, warn on scratch markdown, pre-push reminder |
+| `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js` (Edit/Write), `pr-link-notify.js` (Bash) | Capture file-touch observations, feed Mission Control, warn on console.log, surface new PR links |
+| `PostToolUseFailure` | 1 | `post-tool-failure-logger.js` | Log failed tool calls to session telemetry |
+| `PostToolBatch` | 1 | `knowledge-capture.js` | Batch-level knowledge capture after multi-tool sequences |
+| `Stop` | 2 | `suggest-lightweight.js`, `clickability-watch.js` | End-of-turn suggestion pass + clickability telemetry (session-save moved to SessionEnd in v5.1.0) |
 | `StopFailure` | 1 | `stop-failure-handler.js` | Log unhandled errors on session close |
 | `Notification` | 1 | `fleet-notify.js` | Append fleet agent completion events to `notifications.jsonl` |
 | `PreCompact` | 1 | `pre-compact.js` | Block compaction if session is mid-critical-task |
 | `PostCompact` | 1 | `post-compact-recovery.js` | Restore context hints after compaction completes |
-| `SubagentStart` | 1 | `subagent-start.js` | Track subagent spawn time for cost aggregation |
-| `SubagentStop` | 1 | `subagent-stop.js` | Aggregate subagent cost back into parent session |
-| `PermissionRequest` | 1 | `permission-gate.js` | Nightwatch relay — send permission prompts to mobile for YOLO-mode approval |
+| `SubagentStart` | 1 | `subagent-start-tracker.js` | Track subagent spawn for cost aggregation |
+| `SubagentStop` | 2 | `subagent-stop.js`, `agent-run-logger.js` | Aggregate subagent cost back into parent session + log agent runs for Mission Control |
+| `PermissionRequest` | 2 | `permission-gate.js`, `mission-control-feed.js` | Permission relay (Codex Desktop) + Mission Control event feed |
 | `Elicitation` | 1 | `elicitation-logger.js` | Log clarification requests to session metadata |
-| `ElicitationResult` | 1 | `elicitation-result.js` | Capture user clarification responses |
+| `ElicitationResult` | 1 | `elicitation-result-handler.js` | Capture user clarification responses |
 | `TaskCreated` | 1 | `task-tracker.js` | Log background task start (workflows, fleet agents) |
 | `TaskCompleted` | 1 | `task-tracker.js` | Log background task completion + duration |
-| `ConfigChange` | 1 | `config-watch.js` | Warn if `.claude/settings.json` changes during an active session |
-| `UserPromptExpansion` | 1 | `prompt-expansion-logger.js` | Record expanded prompt template in session metadata |
-| `InstructionsLoaded` | 1 | `instructions-logger.js` | Log CLAUDE.md / skill loads at session start |
-| `Setup` | 1 | `plugin-setup.js` | One-time initialization when plugin first installs |
+| `ConfigChange` | 1 | `config-protection.js` | Warn if protected config changes during an active session |
+| `InstructionsLoaded` | 1 | `stale-claude-md-nudge.js` | Warn when a stale project CLAUDE.md is loaded |
+| `Setup` | 1 | `license-check.js` | One-time initialization slot when plugin first installs (explicit no-op — core is free forever) |
 
 **Total: 23 events · 44 handlers**
 
@@ -108,7 +110,7 @@ Hooks are JavaScript files executed natively by Claude Code's hook runtime:
 2. Run logic (typically 5–50ms)
 3. Return `{"continue": true}` or `{"continue": false, "reason": "..."}` on stdout
 
-`{"continue": false}` from `PreToolUse` blocks the tool call. All other hooks are informational. `SessionEnd`, `PostCompact`, `TaskCreated`, and `TaskCompleted` are **async** — they fire without waiting for a return value.
+`{"continue": false}` from `PreToolUse` blocks the tool call. All other hooks are informational. Handlers flagged `"async": true` in `hooks.json` — the telemetry and notification writers such as `mission-control-feed.js`, `task-tracker.js`, `fleet-notify.js`, and `update-nudge.js` — fire without waiting for a return value.
 
 ## Privacy
 

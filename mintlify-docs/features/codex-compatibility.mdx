@@ -54,7 +54,7 @@ Claude Code has hook events, and two capabilities referenced from skill prose, w
 
 | CC Commander component | Codex status | Notes |
 |------------------------|-------------|-------|
-| `skills/*/SKILL.md` | ✅ ports with 4 conservative prose transforms | 81 skills pass through byte-for-byte except: `/ccc-<name>` invocation references inside backticks become `$ccc-<name>`; the plugin's own `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` reference becomes `.codex-plugin/plugin.json`; and the two fallback notes above are appended where relevant |
+| `skills/*/SKILL.md` | ✅ ports with 4 conservative prose transforms | 82 skills pass through byte-for-byte except: `/ccc-<name>` invocation references inside backticks become `$ccc-<name>`; the plugin's own `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` reference becomes `.codex-plugin/plugin.json`; and the two fallback notes above are appended where relevant |
 | `.mcp.json` MCP server configs | ✅ Compatible | The 2 bundled MCP servers, `context7` and `sequential-thinking`, pass through |
 | `hooks.json` | ✅ 10 supported events | See table above |
 | `agents/*.md` persona files | ✅ Translated | 22 Markdown-frontmatter agents become Codex `agents/*.toml` files |
