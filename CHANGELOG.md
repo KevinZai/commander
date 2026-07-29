@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.4.1] - 2026-07-29
+
+### Fixed
+- **`/ccc-update` and `/ccc-doctor` dead-ended on Desktop-managed installs.** Claude
+  Desktop (Cowork) provisions the plugin from your claude.ai account under
+  Application Support — no marketplace clone and no `installed_plugins.json` entry
+  exist in that mode *by design*. Both skills treated that healthy state as "not
+  installed" and either stopped or gave CLI-marketplace advice that cannot work
+  there. They now detect three install modes (CLI marketplace / Desktop-managed /
+  dev checkout), read the Desktop copy's real version, fetch the latest from
+  GitHub directly when no clone exists, and give mode-correct update guidance.
+  First-party repro: the maintainer's own dev box.
+
 ## [7.4.0] - 2026-07-28
 
 ### Added
