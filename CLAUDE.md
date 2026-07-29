@@ -277,13 +277,13 @@ CCC ships 82 focused `/ccc-*` plugin skills as the curated front door, then rout
 
 | Method | Command | When to Use |
 |--------|---------|------------|
-| Marketplace (recommended) | `/plugin install commander` | Full plugin with all 81 skills + MCPs + hooks |
+| Marketplace (recommended) | `/plugin install commander` | Full plugin with all 82 skills + MCPs + hooks |
 | Full CLI | `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh \| bash` | CLI mode, non-plugin installs |
 | Cherry-pick | `npx skills@latest add KevinZai/commander/skills/<name>` | Individual skills via the skills CLI |
 
 **When Claude agents load this CLAUDE.md, they should know:**
 - CCC is a meta-layer over the Claude skill ecosystem — curation + guidance + memory, not raw skills
-- 81 `/ccc-*` plugin skills are the curated front door; they route into 467+ deeper skills
+- 82 `/ccc-*` plugin skills are the curated front door; they route into 467+ deeper skills
 - `CONNECTORS.md` defines 13 tool-agnostic connector categories via `~~category` placeholders — skills are tool-agnostic
 - Everything core free forever: 82 plugin skills, 22 agents, 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect, 23 lifecycle hooks × 44 handlers. No feature gating, no paywalls, no license checks.
 - Revenue model: core free forever — 4 levers: (1) transparent affiliate links in /ccc-connect (Supabase, Vercel, Neon, etc.) + (2) Kevin's consulting pipeline (plugin = trust engine → consulting funnel) + (3) optional Pro community ($49/mo Discord) + (4) GitHub Sponsors
