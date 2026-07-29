@@ -518,6 +518,12 @@ function scanVersionRule(content, surface, contract) {
   while ((match = rule.regex.exec(content)) !== null) {
     var version = match.groups && match.groups.value;
     if (!version || version === contract.version) continue;
+    // Shields badge URLs: `badge/v7.4.1-4F46E5` — the color hex after the dash is
+    // NOT a prerelease tag, but the version regex's prerelease group consumes it.
+    // Compare the X.Y.Z core when we're inside a badge URL, or a CORRECT badge
+    // would be flagged forever with actual "7.4.1-4F46E5".
+    var inBadge = /shields\.io\/badge/i.test(content.slice(Math.max(0, match.index - 60), match.index));
+    if (inBadge && version.split('-')[0] === contract.version) continue;
     if (!isVersionRelevant(content, match.index, match[0].length)) continue;
     findings.push(makeFinding(surface, 'version', contract.version, version, match[0], true));
   }
@@ -574,7 +580,10 @@ function isVersionRelevant(content, index, matchLen) {
   var historicalQuote = /\b(release note|changelog entry|changelog for|previously|back in)\b[^.!?\n;]{0,40}$/i.test(before);
   var productLed = !historicalQuote && /\b(CC Commander|Commander|CCC)\s+(v|version\s+)?$/i.test(before);
   if (!productLed && /^\)?\s*(ships?\b|makes?\b|release note\b|corrects?\b|fixes?\b|or later\b)/i.test(after)) return false;
-  return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect/i.test(context);
+  // 'shields.io/badge' added 2026-07-29: the README hero version badge sat at
+  // v7.3.0 through two releases because nothing in its ±90-char context matched
+  // this list — a version inside a badge URL is always a current-state claim.
+  return /CC Commander|Commander|cc-commander|commander|Version|version|plugin|npm|should show|expect|shields\.io\/badge/i.test(context);
 }
 
 // --- patch safety ------------------------------------------------------------
