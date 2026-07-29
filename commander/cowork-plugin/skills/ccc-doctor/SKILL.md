@@ -50,6 +50,24 @@ if [ "$PLUGIN_SRC" = "n/a" ] && [ -f "$HOME/.claude/plugins/installed_plugins.js
   [ "$PLUGIN_SRC" != "n/a" ] && [ ! -d "$PLUGIN_SRC" ] && PLUGIN_SRC="n/a"
 fi
 
+# Desktop-managed (account-synced) fallback: Cowork/Claude Desktop provisions the
+# plugin per session under Application Support — no clone AND no
+# installed_plugins.json entry is a HEALTHY state in that mode, not a broken
+# install. Report the mode; do not advise CLI marketplace commands (there is no
+# clone for them to act on). Update path in this mode: Desktop → Settings →
+# Plugin Marketplace (stuck versions: remove at claude.ai web → Cmd+Q → reinstall).
+INSTALL_MODE="cli-marketplace"
+if [ "$PLUGIN_SRC" = "n/a" ]; then
+  DESKTOP_MANIFEST=$(/bin/ls -t "$HOME/Library/Application Support/Claude/"local-agent-mode-sessions/*/*/rpm/plugin_*/.claude-plugin/plugin.json 2>/dev/null | head -50 | while read -r f; do
+    if /usr/bin/grep -q '"name"[[:space:]]*:[[:space:]]*"commander"' "$f" 2>/dev/null; then echo "$f"; break; fi
+  done)
+  if [ -n "$DESKTOP_MANIFEST" ]; then
+    INSTALL_MODE="desktop-managed"
+    PLUGIN_SRC=$(dirname "$(dirname "$DESKTOP_MANIFEST")")
+  fi
+fi
+echo "INSTALL_MODE=$INSTALL_MODE"
+
 # ── Plugin version (from the marketplace clone's own plugin.json) ────
 PLUGIN_JSON="$PLUGIN_SRC/.claude-plugin/plugin.json"
 PLUGIN_VERSION="n/a"

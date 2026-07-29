@@ -15,7 +15,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 **What you get:** 82 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 467 ecosystem skills · Core free forever.
 
-<img src="docs/assets/hero.gif" alt="CC Commander v7.4.0 — Claude Code Desktop plugin demo" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v7.4.1 — Claude Code Desktop plugin demo" width="100%">
 
 > **🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace. All 82 plugin skills, 22 agents, 23 lifecycle hooks (44 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
 >
@@ -192,7 +192,7 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 
 ---
 
-## 🎛️ What's new in v7.0.0 → v7.4.0
+## 🎛️ What's new in v7.0.0 → v7.4.1
 
 - 🎛️ **One Commander — `/ccc-console`, new in v7.4.0** — the four published decks become tabs of a single **inline** console (Overview · Usage · Safety · Memory · History · Launch) with a prompt bar that reaches the live session. Every existing deck URL keeps updating in place: the deck skills now publish one tab each through the same builder, on the same file paths. Memory reads your own claude-mem store (titles only, never bundled — it's AGPL); History is 30 days of telemetry Commander already writes, with no new collector. It opens itself once at session start, locally — publishing stays consent-gated, and there are three off switches.
 - 🔄 **Update self-detection + `/ccc-update`, new in v7.3.0** — a SessionStart hook compares your installed version against GitHub `main` and tells you the exact fix; `/ccc-update` (81st plugin skill) is the click-first walkthrough; `/ccc-doctor` now diagnoses every stale-install layer and can enable marketplace auto-update.
@@ -1098,7 +1098,7 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v7.4.0** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v7.4.1** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 

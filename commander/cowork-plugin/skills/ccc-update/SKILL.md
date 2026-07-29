@@ -50,13 +50,54 @@ if [ -f "$INSTALLED_JSON" ]; then
   " 2>/dev/null || echo "n/a")
 fi
 
+# Desktop-managed (account-synced) install: Cowork/Claude Desktop provisions the
+# plugin under Application Support per session — NO marketplace clone and NO
+# installed_plugins.json entry exist in that mode. Detect it and read its version.
+DESKTOP_VERSION="n/a"
+if [ "$CLONE" = "n/a" ] && [ "$INSTALLED_VERSION" = "n/a" ]; then
+  DESKTOP_MANIFEST=$(/bin/ls -t "$HOME/Library/Application Support/Claude/"local-agent-mode-sessions/*/*/rpm/plugin_*/.claude-plugin/plugin.json 2>/dev/null | head -50 | while read -r f; do
+    if /usr/bin/grep -q '"name"[[:space:]]*:[[:space:]]*"commander"' "$f" 2>/dev/null; then echo "$f"; break; fi
+  done)
+  if [ -n "$DESKTOP_MANIFEST" ]; then
+    DESKTOP_VERSION=$(node -e "
+      try { process.stdout.write(JSON.parse(require('fs').readFileSync('$DESKTOP_MANIFEST','utf8')).version||'n/a'); }
+      catch(e) { process.stdout.write('n/a'); }
+    " 2>/dev/null || echo "n/a")
+  fi
+fi
+
+# Dev checkout: running inside the cc-commander repo itself (maintainer mode).
+DEV_REPO="n/a"
+if [ -f "package.json" ] && /usr/bin/grep -q '"name": "cc-commander"' package.json 2>/dev/null; then
+  DEV_REPO="$(pwd)"
+fi
+
 REMOTE_VERSION="n/a"
-[ "$CLONE" != "n/a" ] && REMOTE_VERSION=$(node "$CLONE/commander/update-check.js" --remote-only 2>/dev/null || echo "n/a")
+if [ "$CLONE" != "n/a" ]; then
+  REMOTE_VERSION=$(node "$CLONE/commander/update-check.js" --remote-only 2>/dev/null || echo "n/a")
+else
+  # No clone to run the checker from — ask GitHub directly (raw manifest on main).
+  REMOTE_VERSION=$(curl -fsSL --max-time 8 "https://raw.githubusercontent.com/KevinZai/commander/main/commander/cowork-plugin/.claude-plugin/plugin.json" 2>/dev/null | node -e "
+    let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const v=JSON.parse(s).version;process.stdout.write(/^\d+\.\d+\.\d+$/.test(v)?v:'n/a');}catch(e){process.stdout.write('n/a');}});
+  " 2>/dev/null || echo "n/a")
+fi
 
 echo "CLONE=$CLONE"
 echo "INSTALLED_VERSION=$INSTALLED_VERSION"
+echo "DESKTOP_VERSION=$DESKTOP_VERSION"
+echo "DEV_REPO=$DEV_REPO"
 echo "REMOTE_VERSION=$REMOTE_VERSION"
 ```
+
+**Route by install mode — there are three, and only the first uses Step 2:**
+
+| Mode | Signals | What to do |
+|---|---|---|
+| CLI marketplace | `CLONE` ≠ n/a or `INSTALLED_VERSION` ≠ n/a | Continue to Step 2 (the marketplace-update sequence) |
+| **Desktop-managed** | both n/a, `DESKTOP_VERSION` ≠ n/a | No local clone exists **by design** — the Desktop app provisions the plugin from your claude.ai account. Report `Installed: vDESKTOP_VERSION · Latest: vREMOTE_VERSION`. If behind: update from **Desktop → Settings → Plugin Marketplace** (re-install/update the `commander` entry there), then fully quit (Cmd+Q) and relaunch. If Desktop keeps showing an old version after that, the known fix is: remove the plugin at claude.ai (web) → Cmd+Q → reinstall. Do NOT run the `claude plugin marketplace` CLI sequence — there is no clone for it to update in this mode. |
+| Dev checkout | `DEV_REPO` ≠ n/a (and the others n/a) | You're the maintainer running from the repo: `git pull` + restart the session. Version truth is `package.json`. |
+
+If ALL of `INSTALLED_VERSION`, `DESKTOP_VERSION`, `DEV_REPO` are n/a: Commander genuinely isn't installed on this machine — point at the install guide (`/plugin marketplace add KevinZai/commander` or Desktop → Settings → Plugin Marketplace → Add from GitHub) rather than `/ccc-doctor`.
 
 Report the result plainly: `Installed: vX.Y.Z · Latest: vA.B.C`.
 
