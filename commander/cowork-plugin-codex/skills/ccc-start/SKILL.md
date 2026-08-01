@@ -193,6 +193,31 @@ When writing the plan file (path from `EnterPlanMode` or existing session plan p
 Written by `$ccc-start` on <timestamp>.
 ```
 
+## L. Optional: Answer-first output mode
+
+After the plan file is written, offer a one-time optional output-style toggle. NON-BLOCKING — user can skip. Recommend it (⭐) when the user's path was "new" or "existing" (beginners benefit most); no star needed on "tour"/"skip".
+
+```
+question: "Want answer-first output? (optional — skip if you prefer)"
+header: "CC Commander — Output style"
+multiSelect: false
+options:
+  - label: "⚡ Answer-first output"
+    description: "Great for beginners — the fix is always the first line. Command and file:line follow, context last."
+    preview: "Based on ayghri/i-have-adhd (MIT). Writes {\"adhd\": true} to ~/.claude/commander/output-mode.json. Toggle anytime with $ccc-adhd off."
+  - label: "📝 Keep the normal style"
+    description: "Standard CCC voice — context and reasoning woven in, not just answer-first."
+    preview: "No change — default behavior."
+  - label: "⚡ + 🗿 Answer-first, compressed too"
+    description: "Answer-first ordering AND ~75% fewer output tokens (stacks with caveman mode)."
+    preview: "Writes {\"adhd\": true, \"stackCaveman\": true}."
+  - label: "⏭️ Decide later"
+    description: "Skip for now — run $ccc-adhd anytime to turn it on."
+    preview: "No change."
+```
+
+If the user picks either answer-first option, run the write from `ccc-adhd/SKILL.md`'s "State persistence" section (set `stackCaveman: true` only for the third option), then confirm in one line: "Answer-first mode on — the fix leads from here." Otherwise, no write, no comment needed beyond moving on.
+
 ## M. Optional: Connect your stack (affiliate-supported)
 
 After the plan file is written, offer a one-time optional "stack connection" step. This is NON-BLOCKING — user can skip.
