@@ -250,7 +250,11 @@ function redactedSample(rawError) {
     /(?:\/(?:Users|home)\/)[\w.@-]+((?:\/[\w.@-]+)*)/g,
     (_m, rest) => `<home>${rest}`
   );
-  const collapsed = noHome.replace(/\s+/g, ' ').trim();
+  // FLATTENED form: Claude Code's project-dir naming turns "/Users/kevin/…"
+  // into "-Users-kevin-…" (slashes → dashes), which the fold above never
+  // matches — it requires a literal "/". Fold that shape too (CC-1397).
+  const noFlattenedHome = noHome.replace(/-(?:Users|home)-[\w.@-]+/g, '<home>');
+  const collapsed = noFlattenedHome.replace(/\s+/g, ' ').trim();
   if (!collapsed) return '(no error text)';
   return collapsed.length > SAMPLE_MAX ? `${collapsed.slice(0, SAMPLE_MAX - 3)}...` : collapsed;
 }

@@ -9,11 +9,19 @@
  * Reads ~/.claude/commander/sessions/active-session.json and session-state.json.
  * Emits an orientation status message so the model knows it returned from
  * context compaction. Always exits 0. Keep output ≤3 lines to avoid wasting tokens.
+ *
+ * IMPORTANT: 'PostCompact' is not in the harness's hookSpecificOutput.hookEventName
+ * allowlist (see hooks/lib/emit.mjs VALID_HOOKSPECIFIC_EVENTS), so the standalone
+ * PostCompact path must use emitUser (systemMessage only) — emitBoth here would get
+ * its entire output rejected by the harness validator on every compaction. No model
+ * context is lost: on the SessionStart-orchestrator path, mergeResponses() in
+ * hooks/orchestrator/session-start-orchestrator.js already mirrors systemMessage into
+ * the merged SessionStart additionalContext.
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { emitBoth } from './lib/emit.mjs';
+import { emitUser } from './lib/emit.mjs';
 
 /**
  * Pure-function entry for orchestrator (CC-414).
@@ -44,9 +52,9 @@ export async function run({ input = {}, env = process.env, cwd = process.cwd() }
       if (state.activeSkill) parts.push(`skill=${state.activeSkill}`);
       if (parts.length) stateInfo = ` [${parts.join(', ')}]`;
     } catch {}
-    // Orientation is for the MODEL as much as the user — emit on both channels.
-    const hookEventName = input.hook_event_name || 'PostCompact';
-    return emitBoth(hookEventName, `CCC: Context compacted — re-orienting. ${sessionInfo}${stateInfo}`);
+    // 'PostCompact' isn't in the harness's hookSpecificOutput allowlist — emit
+    // systemMessage only (see file header + hooks/lib/emit.mjs).
+    return emitUser(`CCC: Context compacted — re-orienting. ${sessionInfo}${stateInfo}`);
   } catch {
     return { continue: true };
   }

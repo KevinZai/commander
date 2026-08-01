@@ -148,6 +148,40 @@ test('start without a stop is reported as running', async () => {
   assert.equal(model.agents[0].durationMs, null);
 });
 
+test('CC-1397: joins a null-named start to an "unknown"-named stop via a shared agent_id', async () => {
+  const baseDir = await makeBase({
+    subagent: [start({ agent_name: null, agent_id: 'agent-xyz' })],
+    agent: [stop({ agent: 'unknown', agentId: 'agent-xyz' })],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  assert.equal(model.agents.length, 1, 'start+stop join into a single row via agent_id');
+  assert.equal(model.agents[0].status, 'done');
+  assert.equal(model.agents[0].durationMs, 180000);
+});
+
+test('CC-1397: falls back to normalized-name + session/time join when neither side has agent_id', async () => {
+  const baseDir = await makeBase({
+    subagent: [start({ agent_name: null })],
+    // No agentId field at all — mirrors the pre-CC-1397 stop rows already on disk.
+    agent: [stop({ agent: 'unknown' })],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  assert.equal(model.agents.length, 1, 'null start name and "unknown" stop name join via normalization');
+  assert.equal(model.agents[0].status, 'done');
+});
+
+test('CC-1397: does not cross-join mismatched agent_ids in the same session', async () => {
+  const baseDir = await makeBase({
+    subagent: [start({ agent_name: null, agent_id: 'agent-aaa' })],
+    agent: [stop({ agent: 'unknown', agentId: 'agent-bbb' })],
+  });
+  const model = await buildMissionModel({ baseDir, now: NOW });
+
+  assert.equal(model.agents.length, 2, 'mismatched agent_id keeps start and stop as separate rows');
+});
+
 test('orphan stop derives startedAt from durationMs and keeps token counts', async () => {
   const baseDir = await makeBase({
     agent: [
