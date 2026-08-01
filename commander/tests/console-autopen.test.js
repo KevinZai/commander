@@ -120,6 +120,31 @@ test('does not interrupt a resume or a compact', async () => {
   assert.ok(isNudge(await run({ input: { source: 'clear', session_id: 's-clear' }, env: { HOME }, now: NOW })));
 });
 
+test('CC-1397: a missing session_id dedupes per-day instead of always firing', async () => {
+  const HOME = await homeWithTelemetry();
+  const noSessionInput = { source: 'startup' }; // no session_id at all
+  const first = await run({ input: noSessionInput, env: { HOME }, now: NOW });
+  assert.ok(isNudge(first), 'first fire with no session_id should still nudge');
+
+  // A second re-fire the SAME day with no session_id must NOT nudge again —
+  // before CC-1397 the dedupe check was skipped entirely whenever session_id
+  // was missing, so this always fired.
+  const second = await run({ input: noSessionInput, env: { HOME }, now: NOW });
+  assert.ok(!isNudge(second), 'same-day re-fire with no session_id nudged again');
+
+  // The next day, it is allowed to nudge again.
+  const nextDay = () => Date.parse('2026-07-29T12:00:00.000Z');
+  const third = await run({ input: noSessionInput, env: { HOME }, now: nextDay });
+  assert.ok(isNudge(third), 'a new day did not get its own nudge');
+});
+
+test('CC-1397: the fallback build-console.mjs path is guarded by test -f', async () => {
+  const HOME = await homeWithTelemetry();
+  const result = await run({ input: INPUT, env: { HOME }, now: NOW });
+  const context = result.hookSpecificOutput.additionalContext;
+  assert.match(context, /test -f "\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/build-console\.mjs"/, 'no test -f guard before the fallback');
+});
+
 test('never throws — a read-only home degrades to silence, not an error', async () => {
   const result = await run({ input: INPUT, env: { HOME: '/nonexistent-ccc-autopen' }, now: NOW });
   assert.equal(result.continue, true);

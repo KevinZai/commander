@@ -440,16 +440,23 @@ function renderMemoryTab(model, nowMs) {
       entry && entry.title ? entry.title : '(untitled)'
     )}</span><span class="ccc-row-status">${esc(project)}</span></li>`;
   });
+  // "Shown" must count what actually rendered (rows.length, ≤ DIGEST_ROWS) —
+  // observations.length is memory-reader.js's OBSERVATION_CAP (20), which the
+  // digest never displays in full. Same "+N more" pointer as the Overview tab.
+  const more =
+    observations.length > DIGEST_ROWS
+      ? `<p class="ccc-dim">+${esc(count(observations.length - DIGEST_ROWS))} more — open /ccc-console for the full list.</p>`
+      : '';
 
   return `<div class="ccc-pair"><div><span class="ccc-tile-label">Last 7d</span><strong class="ccc-tile-value">${esc(
     count(counts.last7d)
   )}</strong></div><div><span class="ccc-tile-label">Last 30d</span><strong class="ccc-tile-value">${esc(
     count(counts.last30d)
   )}</strong></div><div><span class="ccc-tile-label">Shown</span><strong class="ccc-tile-value">${esc(
-    count(observations.length)
+    count(rows.length)
   )}</strong></div></div><h2 class="ccc-h2">Recent observations</h2><ul class="ccc-rows">${rows.join(
     ''
-  )}</ul><p class="ccc-dim">Titles only — never claude-mem's text or narrative columns.</p>${renderStamp(
+  )}</ul>${more}<p class="ccc-dim">Titles only — never claude-mem's text or narrative columns.</p>${renderStamp(
     memory,
     nowMs,
     { staleHint: false }

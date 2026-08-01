@@ -17,7 +17,7 @@
  * publishes anything — publishing is the skill's job, and it is consent-gated.
  *
  * Usage:
- *   node build-console.mjs [--tab overview|usage|safety|launch]
+ *   node build-console.mjs [--tab overview|usage|safety|memory|history|launch]
  *                          [--surface widget|artifact]
  *                          [--out <path>]        # default: stdout
  *                          [--now <ISO>]         # pinned clock, for tests

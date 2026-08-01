@@ -173,6 +173,16 @@ function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
   return Number(((input * 3 + cacheRead * 0.3 + output * 15) / 1_000_000).toFixed(4));
 }
 
+// The start writer logs agent_name:null when it can't find a name (~97% of real
+// rows — subagent-start-tracker.js); the stop writer floors an equally-missing
+// name to the literal string 'unknown' (agent-run-logger.js). Treating those as
+// distinct values defeats the name-equality join for the vast majority of pairs
+// that actually match. Normalize both to null so the fallback session+time join
+// below can find them.
+function normalizeAgentName(name) {
+  return name && name !== 'unknown' ? name : null;
+}
+
 function joinAgents(starts, stops, nowMs) {
   const stopPool = stops.map((record) => ({
     record,
@@ -190,13 +200,26 @@ function joinAgents(starts, stops, nowMs) {
     const startMs = parseTs(start.ts);
     const name = start.agent_name ?? null;
     const sessionId = start.session_id ?? null;
+    const agentId = start.agent_id ?? null;
+    const normalizedName = normalizeAgentName(name);
 
     let best = null;
     if (startMs !== null) {
       for (const candidate of stopPool) {
         if (candidate.matched || candidate.ms === null) continue;
         if ((candidate.record.sessionId ?? null) !== sessionId) continue;
-        if ((candidate.record.agent ?? null) !== name) continue;
+        // Prefer the stable agent_id join when both sides have one (see
+        // subagent-start-tracker.js / agent-run-logger.js): a shared id is
+        // authoritative even when both names are anonymized to null, and a
+        // MISMATCHED id rules a candidate out even if the names coincidentally
+        // (both being anonymous) "agree". Falls back to the normalized name
+        // when either side lacks an id (older rows, back-compat).
+        const stopAgentId = candidate.record.agentId ?? null;
+        if (agentId !== null && stopAgentId !== null) {
+          if (agentId !== stopAgentId) continue;
+        } else if (normalizeAgentName(candidate.record.agent ?? null) !== normalizedName) {
+          continue;
+        }
         const delta = candidate.ms - startMs;
         if (delta < 0 || delta > JOIN_WINDOW_MS) continue;
         if (!best || delta < best.delta) best = { candidate, delta };

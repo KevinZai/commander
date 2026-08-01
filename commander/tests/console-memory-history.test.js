@@ -275,6 +275,76 @@ test('an empty telemetry dir is a zero-state, not an error', async () => {
   assert.equal(model.totals.activeDays, 0);
 });
 
+test('CC-1397: history skill names are redacted, same as safety-snapshot.js error samples', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ccc-history-redact-'));
+  try {
+    await fs.writeFile(
+      path.join(dir, 'skill-runs.jsonl'),
+      [
+        JSON.stringify({ ts: '2026-07-19T10:00:00.000Z', skill: `deploy --token ${FAKE_KEY}`, session_id: 's1' }),
+        JSON.stringify({
+          ts: '2026-07-19T11:00:00.000Z',
+          skill: 'read -Users-kevin-clawd-projects-cc-commander/config',
+          session_id: 's1',
+        }),
+      ].join('\n') + '\n'
+    );
+
+    const model = await readHistoryModel({ baseDir: dir, now: NOW });
+    const day = model.days.find((entry) => entry.date === '2026-07-19');
+    const skillNames = day.skills.map((entry) => entry.skill);
+
+    assert.ok(
+      skillNames.every((name) => !name.includes(FAKE_KEY)),
+      'a secret pasted into a skill name must not survive'
+    );
+    assert.ok(skillNames.some((name) => name.includes('[redacted]')), 'redaction marker expected');
+    assert.ok(
+      skillNames.every((name) => !name.includes('-Users-kevin-clawd-projects-cc-commander')),
+      'the flattened home path must not survive'
+    );
+    assert.ok(skillNames.some((name) => name.includes('<home>')), 'home-fold marker expected');
+  } finally {
+    await fs.rm(dir, { force: true, recursive: true });
+  }
+});
+
+test('CC-1397: an all-zero metrics row dated today does not fake freshness (mirrors readUsageModel)', async () => {
+  // getMetrics() gap-fills the whole window with all-zero rows on every read,
+  // including "today" — before this fix, the backbone loop stamped
+  // dataThroughMs/hasAnySourceRow from EVERY row regardless of content, so a
+  // dead install (nothing real ever written) always looked "fresh as of now"
+  // and the >24h staleness warning could never fire.
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ccc-history-allzero-'));
+  try {
+    await fs.mkdir(path.join(dir, 'mission-control'), { recursive: true });
+    await fs.writeFile(
+      path.join(dir, 'mission-control', 'metrics.jsonl'),
+      JSON.stringify({
+        date: '2026-07-20', // "today" relative to NOW below
+        source_app: 'claude-code',
+        cost_usd: 0,
+        agents_dispatched: 0,
+        tasks_completed: 0,
+        tool_failures: 0,
+        sessions: 0,
+      }) + '\n'
+    );
+
+    const model = await readHistoryModel({ baseDir: dir, now: NOW });
+
+    assert.equal(model.hasAnySourceRow, false, 'an all-zero gap-fill row is not real activity');
+    assert.equal(model.dataThroughMs, null, 'freshness stays null/old, never stamped "now"');
+    // Chart continuity: the zero row still occupies its day bucket.
+    assert.equal(model.days.length, 1);
+    assert.equal(model.days[0].date, '2026-07-20');
+    assert.equal(model.days[0].costUsd, 0);
+    assert.equal(model.backbone.dayCount, 1, 'the row still widens the retained-backbone horizon');
+  } finally {
+    await fs.rm(dir, { force: true, recursive: true });
+  }
+});
+
 test('a source that throws is named in errors and the rest still renders', async () => {
   // A non-string baseDir makes every path.join() throw — the reachable way to
   // prove the per-source catch, since a MISSING file is fail-open by design.
@@ -435,6 +505,29 @@ test('the widget memory digest shows counts and titles when present', async () =
   assert.ok(!html.includes('<script>alert(1)'), 'never live markup');
   // claude-mem going quiet must not nag about Commander's hooks.
   assert.ok(!html.includes('stale — run /ccc-doctor'));
+});
+
+test('CC-1397: the widget memory "Shown" tile matches the rendered row count, not the full observation cap', async () => {
+  const model = await widgetModel();
+  // memory-reader.js's OBSERVATION_CAP is 20 — simulate a near-full cap so the
+  // digest (which only ever renders DIGEST_ROWS=3) must diverge from it.
+  const observations = Array.from({ length: 5 }, (_, i) => ({
+    id: i + 1,
+    ts: NOW_MS - i * 1000,
+    type: 'note',
+    title: `Observation ${i + 1}`,
+    project: 'cc-commander',
+  }));
+  model.memory = { ...model.memory, observations, counts: { last7d: 5, last30d: 5, shown: 5 } };
+
+  const html = buildConsoleWidgetHtml(model, { tab: 'memory', now: NOW });
+  const liCount = (html.match(/<li>/g) || []).length;
+
+  assert.equal(liCount, 3, 'digest renders only DIGEST_ROWS observations');
+  // Before CC-1397 this tile printed observations.length (5) even though only
+  // 3 <li> rows were on the page.
+  assert.match(html, /Shown<\/span><strong class="ccc-tile-value">3<\/strong>/);
+  assert.ok(html.includes('+2 more — open /ccc-console for the full list.'), 'overflow pointer names the gap');
 });
 
 test('the widget history digest shows the recent days', async () => {
