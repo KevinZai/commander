@@ -26,6 +26,24 @@ export const env = {
   posthogKey: process.env.POSTHOG_API_KEY ?? "",
   metricsAuthToken: process.env.METRICS_AUTH_TOKEN ?? "",
   openaiAppsChallengeToken: process.env.OPENAI_APPS_CHALLENGE_TOKEN ?? "",
+  // ── OAuth 2.1 resource-server config for the /mcp streamable-HTTP endpoint.
+  // All optional: when OAUTH_ISSUER_URL is unset, /mcp accepts only CC Commander
+  // license JWTs (same records as /v1 Bearer) and the protected-resource
+  // metadata omits authorization_servers. See PAYWALL.md + docs/compat.
+  oauthIssuerUrl: process.env.OAUTH_ISSUER_URL ?? "",
+  // JWKS override; defaults to `${OAUTH_ISSUER_URL}/.well-known/jwks.json`.
+  oauthJwksUrl: process.env.OAUTH_JWKS_URL ?? "",
+  // Canonical resource identifier for aud validation + RFC 9728 metadata.
+  // Defaults to `${request origin}/mcp` when unset.
+  oauthResourceUrl: process.env.OAUTH_RESOURCE_URL ?? "",
+  // Expected `aud` claim; defaults to the resource URL.
+  oauthAudience: process.env.OAUTH_AUDIENCE ?? "",
   port: parseInt(process.env.PORT ?? "8080", 10),
   nodeEnv: process.env.NODE_ENV ?? "production",
 } as const;
+
+// NOTE: dark-paywall vars (CCC_PAYWALL_ARMED) and Stripe vars
+// (CCC_STRIPE_WEBHOOK_SECRET, CCC_STRIPE_PRICE_*) are intentionally NOT frozen
+// here — lib/paywall.ts and routes/stripe-webhook.ts read process.env at call
+// time so the armed/dark state and webhook config always reflect the live
+// environment (and so tests can exercise both states). See PAYWALL.md.
