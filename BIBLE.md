@@ -87,10 +87,10 @@ Use a high-reasoning orchestrator for ambiguity, judgment, and acceptance criter
 | Role | Job | Default Tool |
 |------|-----|--------------|
 | **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5 `effort: high`, or Opus 5 |
-| **Executor** | Implements the goal file exactly, runs its own tests as a first gate, and reports evidence — the orchestrator (or a fresh verifier) independently confirms. It does not re-plan. | GPT-5.5 via `codex`, or a Sonnet subagent |
+| **Executor** | Implements the goal file exactly, runs its own tests as a first gate, and reports evidence — the orchestrator (or a fresh verifier) independently confirms. It does not re-plan. | The Codex CLI executor (GPT-5.6) via `codex`, or a Sonnet subagent |
 | **Verifier** | Re-reads the goal file and checks every acceptance criterion before calling the work done. | Same Fable/Opus orchestrator |
 
-Run `/ccc-orchestrate` when the work is big enough that planning and execution should be split. The orchestrator writes the goal file, dispatches GPT-5.5 through the `codex` adapter or a Sonnet subagent, then verifies against the checklist. If one criterion fails, re-dispatch only that gap.
+Run `/ccc-orchestrate` when the work is big enough that planning and execution should be split. The orchestrator writes the goal file, dispatches the Codex CLI executor (GPT-5.6) through the `codex` adapter or a Sonnet subagent, then verifies against the checklist. If one criterion fails, re-dispatch only that gap.
 
 Run `/ccc-handoff` frequently. Context quality decays as the window fills; the fix is not one giant compaction at the end. Write a dense handoff file, start a fresh chat, and resume from the saved state while the problem is still crisp.
 

@@ -51,7 +51,7 @@ CC Commander's primary product as of v6.8.2. Claude Cowork Desktop / Claude Code
 
 **Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
 
-**v7.4.1:** 82 plugin skills (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup + /ccc-orchestrate + /ccc-handoff + /ccc-adopt + /ccc-relay + /ccc-smb-ops + /ccc-broadcast + /ccc-spawn + /ccc-prompt-fix + /ccc-mission-control + /ccc-usage + /ccc-safety + /ccc-update + /ccc-console) + 22 specialist agents + 23 lifecycle hooks × 44 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **core free forever**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP (v4.1) will be free with a 100-call/mo anti-abuse cap; hosted-infrastructure Pro tier planned later — all content stays free forever.
+**v7.4.1:** 82 plugin skills (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup + /ccc-orchestrate + /ccc-handoff + /ccc-adopt + /ccc-relay + /ccc-smb-ops + /ccc-broadcast + /ccc-spawn + /ccc-prompt-fix + /ccc-mission-control + /ccc-usage + /ccc-safety + /ccc-update + /ccc-console) + 22 specialist agents + 23 lifecycle hooks × 44 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **core free forever**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP is **live** at mcp.commanderplugin.com, free for everyone with a 100-call/mo anti-abuse cap; hosted-infrastructure Pro tier planned later — all content stays free forever.
 
 **The 12 /ccc-* specialist workflows (all click-first via AskUserQuestion native picker):**
 - `/ccc` — main hub (6 intents via nested AUQ)
@@ -68,7 +68,7 @@ CC Commander's primary product as of v6.8.2. Claude Cowork Desktop / Claude Code
 - `/ccc-fleet` — multi-agent parallel orchestration
 - `/ccc-connect` — opt-in MCP connector (Notion/Zapier/Supabase/Slack/GDrive/Figma)
 
-**v4.1 (next):** hosted MCP (free with 100-call/mo anti-abuse cap; hosted-infrastructure Pro tier planned later — all content stays free forever) + Commander Hub marketplace + Anthropic Connectors directory submission.
+**v4.1 (next):** hosted MCP is already live at mcp.commanderplugin.com (free, 100-call/mo anti-abuse cap) — next up is the Commander Hub marketplace + Anthropic Connectors directory submission.
 
 Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
 
@@ -82,7 +82,7 @@ Interactive CLI that sits ABOVE Claude Code sessions. Manages, dispatches, and t
 
 ```bash
 ccc          # Launch interactive mode
-ccc --test   # 187 tests across 14 suites
+ccc --test   # 27/27 CLI modules validated (bin/kc.js --test)
 ccc --stats  # Quick stats
 ```
 
@@ -126,9 +126,7 @@ Tests: `node --test commander/tests/paths.test.js`
 ├── hooks/               # 24 kit-native hooks (JS) + hooks.json + hooks-standalone.json
 ├── templates/           # 3 starter templates (nextjs, api, cli)
 ├── lib/                 # Terminal art (bash + JS) + statusline.sh
-├── docs/                # GitHub Pages landing site
-│   ├── index.html       # Single-page marketing site
-│   └── assets/          # CSS, JS, images
+├── docs/                # Internal docs — audit reports, cheatsheets/, compat/ (marketing site lives in a separate private repo)
 ├── kevin/               # Kevin's personal overlay (not installed by default)
 │   ├── install-kevin.sh # Layer Kevin-specific config after public install
 │   ├── CLAUDE.md.kevin  # Kevin's CLAUDE.md (full MCP, OpenClaw)
@@ -209,7 +207,7 @@ Every menu recommends the best next action based on context.
 **Live:**
 - GitHub repo: github.com/KevinZai/commander
 - Marketplace: `commander-hub` — `/plugin marketplace add KevinZai/commander`
-- Landing page: KevinZai.github.io/cc-commander
+- Landing page: commanderplugin.com
 - One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash`
 - Core free forever: all skills, all agents, all hooks, all MCP servers — sustained by affiliate links + Kevin's consulting
 
