@@ -1,6 +1,6 @@
 ---
 name: ccc-learn
-description: "CC Commander learning hub — click-first picker across 11 CCC domains (502+ skills). Routes to ccc-design, ccc-marketing, ccc-saas and 8 more domain routers. Use when…"
+description: "CC Commander learning hub — click-first picker across 11 CCC domains (467+ skills). Routes to ccc-design, ccc-marketing, ccc-saas and 8 more domain routers. Use when…"
 allowed-tools:
   - Read
   - Write
@@ -15,14 +15,14 @@ argument-hint: "[domain: design | marketing | saas | devops | seo | testing | se
 
 # $ccc-learn — Discover skills across domains
 
-Click-first browser over CCC's 11 domain routers. User picks a domain in one click — we load its domain-router skill and hand off. No text menus, no grep-through-502-skills.
+Click-first browser over CCC's 11 domain routers. User picks a domain in one click — we load its domain-router skill and hand off. No text menus, no grep-through-467-skills.
 
 ## Response shape (EVERY time)
 
 ### 1. Brand header (one line)
 
 ```
-**CC Commander · Learn** · 502+ skills · 11 domains · [catalog](https://commanderplugin.com/skills)
+**CC Commander · Learn** · 467+ skills · 11 domains · [catalog](https://commanderplugin.com/skills)
 ```
 
 ### 2. Context strip (one line)
@@ -66,7 +66,7 @@ options:
 - `src/components` populated + Tailwind config → ⭐ Design
 - Nothing to go on → ⭐ Design (safe default)
 
-Also offer "Browse all 502+" as a small footer note under the picker — see handling below.
+Also offer "Browse all 467+" as a small footer note under the picker — see handling below.
 
 ### 4. Handle the selection
 
@@ -111,7 +111,7 @@ options:
   - label: "📊 Data (8 skills)"
     description: "Pipelines, SQL, visualization, ML, quality, vector search."
     preview: "Routes to ccc-data."
-  - label: "🔎 Browse all (502+)"
+  - label: "🔎 Browse all (467+)"
     description: "Searchable grid of every installed skill + command."
     preview: "Routes to ccc-browse."
   - label: "↩️ Back to /ccc"
@@ -133,7 +133,7 @@ If the user passed an argument (`$ccc-learn marketing`), skip all AUQs and invok
 ## Anti-patterns — DO NOT
 
 - ❌ Render all 11 domains in one AUQ (max 4 per call)
-- ❌ Dump the 502-skill list inline — that's ccc-browse's job
+- ❌ Dump the 467-skill list inline — that's ccc-browse's job
 - ❌ Skip the cascade — users need the "More → Even more" flow for the long tail
 - ❌ Show a numbered text list and ask them to type a number
 - ❌ Forget to check the argument — `$ccc-learn marketing` must skip the root picker
@@ -151,7 +151,7 @@ If the user passed an argument (`$ccc-learn marketing`), skip all AUQs and invok
 
 ---
 
-**Bottom line:** one click picks a domain, the domain router takes it from there. Cascade for the long tail. Never dump 502 skills on the user.
+**Bottom line:** one click picks a domain, the domain router takes it from there. Cascade for the long tail. Never dump 467 skills on the user.
 
 ---
 

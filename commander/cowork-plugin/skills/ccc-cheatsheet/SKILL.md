@@ -25,7 +25,7 @@ Four sections in order:
 ### 1. Brand header
 
 ```
-**CC Commander** · v{VERSION} · Interactive Cheatsheet · [docs/plugin.md](../../docs/plugin.md)
+**CC Commander** · v{VERSION} · Interactive Cheatsheet
 ```
 
 Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
@@ -121,8 +121,8 @@ options:
     description: "Audit the current branch. Writes findings to tasks/reviews/."
     preview: "Next click: pick audit type → specialist agent runs in background"
   - label: "🗺️ Show me everything"
-    description: "Open /ccc-browse — filterable catalog of all 60 plugin skills + 22 agents."
-    preview: "Cascades: Domains (11) / Workflows (13) / Agents (17) / Full grid"
+    description: "Open /ccc-browse — filterable catalog of all 82 plugin skills + 22 agents."
+    preview: "Cascades: Domains (11) / Workflows (13) / Agents (22) / Full grid"
   - label: "👋 Skip — I've got this"
     description: "Close the cheatsheet, return to whatever I was doing."
     preview: "No action — acknowledge and exit."

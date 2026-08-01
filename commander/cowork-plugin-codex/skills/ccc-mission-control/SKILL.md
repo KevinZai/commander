@@ -87,7 +87,9 @@ For non-coders, or when a panel is overkill. Read the JSONL logs (or run `readMo
 
 If `awaitingPermission` is non-empty, say that **first**. Name each waiting session and tell the user to switch to that session to approve.
 
-> **Right now:** 2 helpers working — *reviewer* has been at it 12 minutes, *builder* just started. **Earlier today:** 3 helpers finished fine, 1 hit a problem (*auditor* — timed out). **Tasks:** 2 in progress, 4 done, 1 waiting. **Hand-offs:** your main session delegated work to *reviewer* 12 minutes ago.
+Example format — fill every value from the live model; never echo these placeholders verbatim:
+
+> **Right now:** N helpers working — *helper-a* has been at it X minutes, *helper-b* just started. **Earlier today:** N helpers finished fine, M hit a problem (*helper-c* — timed out). **Tasks:** N in progress, M done, K waiting. **Hand-offs:** your main session delegated work to *helper-a* X minutes ago.
 
 Rules: never say "subagent", "JSONL", "session_id", or token counts unless asked. Say "helper", "hand-off", "finished", "hit a problem".
 

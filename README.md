@@ -37,7 +37,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 19 vendor packages
 
-**[Why CC Commander](#-why-cc-commander)** · **[The 82 skills](#the-82-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
+**[Why CC Commander](#-why-cc-commander)** · **[The 82 skills](#the-82-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ### 🎯 Who it's for
 
@@ -268,7 +268,7 @@ The built-in `/deep-research` is also available for multi-source validated resea
 
 ## The 82 plugin skills
 
-Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just click:
+Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just click. The table below highlights the core workflows; all 82 are browsable in-app via `/ccc-browse`:
 
 | Command | What it does | First click |
 |---|---|---|
@@ -304,7 +304,7 @@ Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just 
 | **`/ccc-safety`** | Safety deck — blocked/auto-fixed actions + failure hotspots | Open · Status · Action outcomes · Hotspots |
 | **`/ccc-update`** | Click-first update walkthrough — detect installed vs. latest, update, restart, verify | Update now · Check only · What's new |
 
-Plus 11 canonical domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devops`, `ccc-seo`, `ccc-testing`, `ccc-security`, `ccc-data`, `ccc-research`, `ccc-mobile`, `ccc-makeover`), the `ccc-smb-ops` operations router (6 sub-skills), and 2 vendor-sourced skills (`/ccc-agent-writing`, `/ccc-systematic-debugging`). See [SKILLS-INDEX.md](SKILLS-INDEX.md) for the full catalog.
+Plus 11 canonical domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devops`, `ccc-seo`, `ccc-testing`, `ccc-security`, `ccc-data`, `ccc-research`, `ccc-mobile`, `ccc-makeover`), the `ccc-smb-ops` operations router (6 sub-skills), 2 vendor-sourced skills (`/ccc-agent-writing`, `/ccc-systematic-debugging`), and the remaining lifecycle, channel/CI, diagnostic, and session-management skills — 82 total. Run `/ccc-browse` for the complete live catalog, or see [SKILLS-INDEX.md](SKILLS-INDEX.md).
 
 Click a cell → pick a sub-option → CC Commander handles it. No config files, no YAML editing, no syntax to memorize.
 
@@ -433,10 +433,10 @@ Context, rate limits, and budget meters in your terminal. Color-codes green → 
 
 <img src="docs/assets/screenshots/cockpit-footer.png" alt="Cockpit Footer" width="100%">
 
-**Rich footer bar** — rainbow status line with live session meters:
+**Rich footer bar** — rainbow status line with live session meters (example output):
 
 ```
-━━ CCC7.2│🔥Opus5-1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯467│📋CC-150│📂~/project
+━━ CCC7.4.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯467│📋CC-150│📂~/project
 ```
 
 ### Stats Dashboard
@@ -449,17 +449,11 @@ Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 
 <img src="docs/assets/screenshots/domains.gif" alt="CCC Domains" width="100%">
 
-### 500+ Skills — Install Only What You Need
+### 467 Skills — Install Only What You Need
 
 <img src="docs/assets/screenshots/skills-install.gif" alt="Skill Management" width="100%">
 
 > All recordings are real terminal output captured with [vhs](https://github.com/charmbracelet/vhs). No mockups.
-
----
-
-## 📸 Screenshots
-
-Desktop screenshots arriving with the v5.1.0 stable tag — see [`docs/screenshots/PLACEHOLDERS.md`](docs/screenshots/PLACEHOLDERS.md) for in-progress capture briefs.
 
 ---
 
@@ -625,18 +619,18 @@ CCC reads your project before every dispatch. No setup needed.
 | Component | Count | What It Does |
 |-----------|-------|-------------|
 | Skills | 467 | On-demand expertise (deduplicated) |
-| Plugin Skills | 82 | Desktop-first skills (13 /ccc-* workflows + 11 domain routers + 7 new channel/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + session management) |
+| Plugin Skills | 82 | Desktop-first skills — click-first /ccc-* workflows, 11 domain routers, channel/CI, diagnostics, lifecycle & session management |
 | Agents | 22 | Specialist sub-agent personas with distinct voice layers |
 | Lifecycle Hooks | 23 × 44 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest |
 | MCP Servers | 2 + 16 opt-in | Context7 + Sequential-Thinking bundled; 16 more opt-in via /ccc-connect (GitHub, Supabase, Figma, Playwright, Slack, Notion…) |
 | CCC Domains | 11 | Domain routers with sub-skills |
-| Commands | 83 | Slash commands (/ccc- prefix) |
+| Commands | 74 | Slash commands (+32 namespaced under tools/, test/, code/, project/, sdd/) |
 | Hooks (JS) | 24 | Lifecycle automation (kit-native) |
-| Adventures | 13 | Guided interactive flows |
+| Adventures | 14 | Guided interactive flows |
 | Vendor Packages | 19 | Best-in-class tools, auto-updated |
 | Themes | 10 | Cyberpunk, Fire, Ocean, Aurora, Sunset, Monochrome, Rainbow, Dracula + more |
 | Prompts | 36+ | Battle-tested templates |
-| Modes | 9 | Workflow presets |
+| Modes | 10 | Workflow presets |
 | Split Mode | tmux | Tabbed sessions — each task gets a window |
 | Agent API | CLI | Headless dispatch for AI orchestrators |
 | Infrastructure | 6 | Fleet, Synapse, Cost, AO, CloudCLI, Paperclip commands |
@@ -995,19 +989,6 @@ ccc --list-skills --json | jq '.[] | select(.name | contains("auth"))'
 
 ---
 
-## Agent Bible
-
-**[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-readable reference. Any AI agent reads this and can manage CCC immediately.
-
-```bash
-# Tell any agent:
-"Read docs/BIBLE-AGENT.md from the cc-commander repo, then use the CLI API to manage this project."
-```
-
-Covers: CLI API, dispatch patterns, JSON schemas, skill catalog, level/model defaults, integration points.
-
----
-
 ## The Kevin Z Method
 
 > 7 rules from 200+ articles. 14 months of production.
@@ -1021,8 +1002,6 @@ Covers: CLI API, dispatch patterns, JSON schemas, skill catalog, level/model def
 7. Operationalize every fix
 
 Full methodology: **[BIBLE.md](BIBLE.md)** — 2000+ lines, 7 chapters, appendices.
-
-For AI agents: **[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-readable version.
 
 ---
 
@@ -1063,9 +1042,7 @@ CCC is built by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic)) — a
 
 ## Acknowledgments
 
-CCC aggregates 19 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](docs/ACKNOWLEDGMENTS.md)**
-
-45+ ecosystem repos tracked: **[ECOSYSTEM.md](docs/ECOSYSTEM.md)**
+CCC aggregates 19 open-source packages — see [`vendor/`](vendor/) for the full list; each package retains its upstream license and credit.
 
 ---
 
@@ -1102,6 +1079,6 @@ commander/adventures/X.json        # Add a flow
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 
-**[Install Now](#quick-start--pick-your-path)** · **[Read the BIBLE](BIBLE.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
+**[Install Now](#quick-start--pick-your-path)** · **[Read the BIBLE](BIBLE.md)** · **[Browse Skills](SKILLS-INDEX.md)**
 
 </div>

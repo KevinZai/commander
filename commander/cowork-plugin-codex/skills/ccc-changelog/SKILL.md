@@ -56,7 +56,7 @@ Full notes: CHANGELOG.md
 Always end with:
 
 ```
-Run `/ccc` to get started or `$ccc-browse` to explore all 48 skills.
+Run `/ccc` to get started or `$ccc-browse` to explore all 82 skills.
 ```
 
 ## Anti-patterns

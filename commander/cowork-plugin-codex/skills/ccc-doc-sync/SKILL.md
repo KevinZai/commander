@@ -40,7 +40,6 @@ The pattern engine uses `${plugin_skills}`, `${specialist_agents}`, `${hook_hand
 | Root docs | `README.md`, `BIBLE.md`, `CHEATSHEET.md`, `SKILLS-INDEX.md`, `CLAUDE.md` |
 | Plugin manifest | `commander/cowork-plugin/.claude-plugin/plugin.json`, `CONNECTORS.md` |
 | Mintlify docs | `introduction.mdx`, `install.mdx`, `agents.mdx`, `skills.mdx`, `free-vs-pro.mdx`, `install-recovery.mdx` |
-| Landing page | `docs/index.html` |
 | Site components | `site/components/hero.tsx`, `site/components/skills-showcase.tsx` |
 | Video scenes | `scene-hero.jsx`, `scene-agents.jsx`, `scene-compare.jsx`, `scene-hooks.jsx`, `scene-install.jsx` |
 

@@ -22,7 +22,7 @@ Output exactly these three sections in order:
 ### 1. Brand header (one line, markdown)
 
 ```
-**CC Commander** · v{VERSION} · Browser · 60 skills · 22 agents · 11 domains
+**CC Commander** · v{VERSION} · Browser · 82 skills · 22 agents · 11 domains
 ```
 
 Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
