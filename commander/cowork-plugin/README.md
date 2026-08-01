@@ -1,10 +1,10 @@
 # CC Commander
 
-> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **72 plugin skills** incl **13 click-first `/ccc-*` specialist workflows** + 14 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle skills. **23 lifecycle hooks × 39 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest). **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 459 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Core free forever.**
+> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **82 plugin skills** incl click-first `/ccc-*` specialist workflows + 11 ccc-* domain routers + channel/CI/setup skills + diagnostics + vendor-sourced + lifecycle & session skills. **23 lifecycle hooks × 44 handlers**. **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 467 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Core free forever.**
 
-> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 72 skills, 22 agents, 23 lifecycle hooks (39 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 82 skills, 22 agents, 23 lifecycle hooks (44 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
 
-CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **72 native skills** (`/ccc-*`) organized as 13 click-first specialist workflows, 14 domain routers, 7 channel/CI/ECC/setup skills, 2 diagnostic/meta skills, 2 vendor-sourced skills, and lifecycle skills. They route into the broader CC Commander ecosystem of 459 skills across 11 domains.
+CC Commander is a guided AI PM plugin that orchestrates your entire development workflow — from planning to shipping. The plugin ships **82 native skills** (`/ccc-*`) — click-first specialist workflows, 11 domain routers, channel/CI/setup skills, diagnostics, vendor-sourced skills, and lifecycle & session skills. They route into the broader CC Commander ecosystem of 467 skills across 11 domains.
 
 **Who's it for?**
 - 👋 **New to AI coding agents?** Claude Code Desktop + CC Commander = the easiest on-ramp. Install via Settings → Plugin Marketplace.
@@ -21,7 +21,7 @@ Three ways to install CC Commander, depending on how you want to use it:
 
 **1. Desktop plugin marketplace (recommended)**
 
-The full plugin experience — 72 skills, 22 agents, 23 lifecycle hooks (39 handlers), 2 credential-free bundled MCPs + 16 opt-in. Core free forever.
+The full plugin experience — 82 skills, 22 agents, 23 lifecycle hooks (44 handlers), 2 credential-free bundled MCPs + 16 opt-in. Core free forever.
 
 **Via GUI (Claude Code Desktop / Cowork Desktop):**
 1. Open **Settings → Plugin Marketplace**
@@ -41,14 +41,14 @@ Install individual CCC skills using the `npx skills@latest` CLI — compatible w
 ```bash
 npx skills@latest add KevinZai/commander/skills/ccc-design
 npx skills@latest add KevinZai/commander/skills/ccc-marketing
-npx skills@latest add KevinZai/commander/skills/ccc-night-mode
+npx skills@latest add KevinZai/commander/skills/ccc-seo
 ```
 
 Use this when you want one specific skill without the full plugin, or when mixing CCC skills with skills from `anthropics/skills`, `mattpocock/skills`, or `skillsmp.com`.
 
 **3. Full CLI install**
 
-Installs the CCC CLI (`ccc` command), all 459 skills, hooks, commands, and templates into `~/.claude/`.
+Installs the CCC CLI (`ccc` command), all 467 skills, hooks, commands, and templates into `~/.claude/`.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Skills
 
-72 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog. Core surface:
+82 plugin skills covering every phase of the development lifecycle. See [mintlify-docs/plugin/skills.mdx](../../mintlify-docs/plugin/skills.mdx) for the full catalog, or run `/ccc-browse` in-app. Core surface:
 
 
 | Skill | Trigger | Description |
@@ -79,7 +79,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Specialized Agents
 
-22 specialist agents that skills delegate to automatically (core 5 shown — full list in `agents/`):
+22 specialist agents that skills delegate to automatically (core 5 shown — full roster below and in `agents/`):
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
@@ -91,16 +91,16 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## Lifecycle Hooks
 
-23 lifecycle hooks with 39 handlers run automatically throughout every session:
+23 lifecycle events with 44 handlers run automatically throughout every session (source of truth: `hooks/hooks.json`):
 
 | Event | Handlers | Count |
 |-------|----------|-------|
-| `SessionStart` | `session-start-orchestrator`, `license-check`, `git-truth` | 3 |
+| `SessionStart` | `session-start-orchestrator`, `license-check`, `git-truth`, `update-nudge`, `console-autopen` | 5 |
 | `SessionEnd` | `session-save`, `session-end` | 2 |
-| `UserPromptSubmit` | `suggest-ticker`, `intent-classifier`, `context-warning`, `context-guard`, `user-prompt-submit` | 5 |
+| `UserPromptSubmit` | `suggest-ticker`, `intent-classifier`, `context-warning`, `context-guard`, `user-prompt-submit`, `skill-runs-logger` | 6 |
 | `UserPromptExpansion` | `prompt-expansion-guard` | 1 |
 | `PreToolUse` | `cost-tracker`, `cost-ceiling-enforcer`, `secret-leak-guard`, `config-protection`, `doc-file-warning`, `git-push-reminder` | 6 |
-| `PostToolUse` | `knowledge-capture`, `console-log-warn`, `pr-link-notify` | 3 |
+| `PostToolUse` | `knowledge-capture`, `mission-control-feed`, `console-log-warn`, `pr-link-notify` | 4 |
 | `PostToolUseFailure` | `post-tool-failure-logger` | 1 |
 | `PostToolBatch` | `knowledge-capture` | 1 |
 | `Stop` | `suggest-lightweight`, `clickability-watch` | 2 |
@@ -110,7 +110,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 | `PostCompact` | `post-compact-recovery` | 1 |
 | `SubagentStart` | `subagent-start-tracker` | 1 |
 | `SubagentStop` | `subagent-stop`, `agent-run-logger` | 2 |
-| `PermissionRequest` | `permission-gate` | 1 |
+| `PermissionRequest` | `permission-gate`, `mission-control-feed` | 2 |
 | `Elicitation` | `elicitation-logger` | 1 |
 | `ElicitationResult` | `elicitation-result-handler` | 1 |
 | `TaskCreated` | `task-tracker` | 1 |
@@ -118,6 +118,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 | `ConfigChange` | `config-protection` | 1 |
 | `InstructionsLoaded` | `stale-claude-md-nudge` | 1 |
 | `Setup` | `license-check` | 1 |
+| **TOTAL** | **23 events** | **44 handlers** |
 
 ## Quick Start
 
@@ -126,7 +127,7 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 3. Pick a workflow: build, research, standup, review, or night mode
 4. Connect tools (optional) for richer results
 
-No configuration required to start. The intent classifier (Pro-tier) prints skill recommendations — select the suggested skill to proceed.
+No configuration required to start. The intent classifier prints skill recommendations — select the suggested skill to proceed.
 
 ## Dual Mode
 
@@ -142,27 +143,25 @@ No configuration required to start. The intent classifier (Pro-tier) prints skil
 
 ## Connected Tools
 
-The plugin is tool-agnostic — it works with any MCP server in each category. `.mcp.json` pre-configures 8 defaults:
+The plugin is tool-agnostic — it works with any MCP server in each category. `.mcp.json` bundles exactly **2 credential-free servers** (Context7 + Sequential-Thinking); everything else is opt-in via `/ccc-connect`:
 
-| Category | Pre-configured in .mcp.json | What It Enables |
-|----------|---------------------------|-----------------|
+| Category | Example tool | What It Enables |
+|----------|--------------|-----------------|
+| Library docs | Context7 *(bundled)* | Current API docs — no hallucinated methods |
 | Project tracker | Linear | Sprint board, issue sync, task routing |
 | Source control | GitHub | PR diffs, commit history, branch status |
 | Chat | Slack | Team discussions, standup channels |
 | Email | Gmail | Standup distribution, status updates |
 | Calendar | Google Calendar | Sprint planning, meeting context |
 | Web search | Tavily | Real-time web data, competitive intel, news |
-| Library docs | Context7 | Current API docs — no hallucinated methods |
 | Files | Google Drive | Brand docs, style guides, draft storage |
-| Knowledge base | _(available via CONNECTORS.md)_ | Notion, Confluence, Coda — prior decisions, runbooks |
-| CI/CD | _(available via CONNECTORS.md)_ | GitHub Actions, CircleCI — deploy gate data |
-| Monitoring | _(available via CONNECTORS.md)_ | Datadog, Grafana — logs and metrics for debugging |
+| Knowledge base | Notion, Confluence, Coda | Prior decisions, runbooks |
+| CI/CD | GitHub Actions, CircleCI | Deploy gate data |
+| Monitoring | Datadog, Grafana | Logs and metrics for debugging |
 
 Every skill works standalone. Connected tools make it faster and more complete.
 
-> **Setup note:** Tavily requires an API key — set `TAVILY_API_KEY` in your shell. Context7 and Google Drive are plug-and-play.
-
-> Placeholders like `~~project tracker` in skill output refer to whatever tool is connected in that category. See [CONNECTORS.md](CONNECTORS.md) for the full connector reference.
+> Placeholders like `~~project tracker` in skill output refer to whatever tool is connected in that category. See [CONNECTORS.md](CONNECTORS.md) for the full 13-category connector reference.
 
 ## Knowledge Compounding
 
@@ -175,26 +174,6 @@ CCC learns from every session. The `knowledge-capture` hook captures Write/Edit 
 ```
 
 Lessons compound across projects and teammates.
-
-## Skills Reference
-
-| Skill | Key Trigger Phrases |
-|-------|-------------------|
-| `ccc` | "help me build", "manage my project", "open commander", "what should I work on" |
-| `ccc-build` | "build something", "new project", "create app", "I want to make", "start a project" |
-| `ccc-research` | "research", "analyze", "audit", "investigate", "competitive analysis", "deep dive" |
-| `ccc-standup` | "standup", "daily update", "what did I do", "yesterday today blockers", "team update" |
-| `ccc-code-review` | "review code", "PR review", "check changes", "is this safe?", "before I merge" |
-| `ccc-deploy-check` | "deploy check", "ready to ship?", "pre-deploy", "should I deploy?" |
-| `ccc-night-mode` | "night mode", "overnight build", "build while I sleep", "autonomous build" |
-| `ccc-fleet` | "parallel agents", "swarm", "launch workers", "fan out", "multi-agent" |
-| `ccc-linear-board` | "linear board", "show issues", "pick a task", "sprint board", "open issues" |
-| `ccc-knowledge` | "what did we learn", "past lessons", "search knowledge", "knowledge base" |
-| `ccc-session` | "resume session", "continue where I left off", "review work", "show sessions" |
-| `ccc-content` | "write post", "blog", "social media", "email campaign", "marketing copy" |
-| `ccc-infra` | "infrastructure", "service status", "check ports", "what services are running" |
-| `ccc-domains` | "ccc domains", "design skills", "marketing skills", "show categories" |
-| `ccc-settings` | "settings", "change theme", "configure", "set up linear", "cost ceiling" |
 
 ## Sub-agent roster
 
@@ -217,37 +196,13 @@ Lessons compound across projects and teammates.
 | 13 | researcher | Sonnet | Competitive + market analysis |
 | 14 | technical-writer | Sonnet | Docs, API refs, tutorials |
 | 15 | fleet-worker | Sonnet | Parallel scoped batch work |
-
-## Hook catalog
-
-23 lifecycle events, 39 handlers — fire automatically every session:
-
-| Event | When fires | Handlers |
-|-------|-----------|----------|
-| SessionStart | New session opens | 3 (`session-start-orchestrator`, `license-check`, `git-truth`) |
-| SessionEnd | Session ends | 2 (`session-save`, `session-end`) |
-| UserPromptSubmit | User submits prompt | 5 (`suggest-ticker`, `intent-classifier`, `context-warning`, `context-guard`, `user-prompt-submit`) |
-| UserPromptExpansion | Prompt expansion | 1 (`prompt-expansion-guard`) |
-| PreToolUse | Before tool use | 6 (`cost-tracker`, `cost-ceiling-enforcer`, `secret-leak-guard`, `config-protection`, `doc-file-warning`, `git-push-reminder`) |
-| PostToolUse | After tool use | 3 (`knowledge-capture`, `console-log-warn`, `pr-link-notify`) |
-| PostToolUseFailure | After tool failure | 1 (`post-tool-failure-logger`) |
-| PostToolBatch | After tool batch | 1 (`knowledge-capture`) |
-| Stop | Stop | 2 (`suggest-lightweight`, `clickability-watch`) |
-| StopFailure | Stop failure | 1 (`stop-failure-handler`) |
-| Notification | Notification | 1 (`fleet-notify`) |
-| PreCompact | Before compaction | 1 (`pre-compact`) |
-| PostCompact | After compaction | 1 (`post-compact-recovery`) |
-| SubagentStart | Subagent starts | 1 (`subagent-start-tracker`) |
-| SubagentStop | Subagent stops | 2 (`subagent-stop`, `agent-run-logger`) |
-| PermissionRequest | Permission requested | 1 (`permission-gate`) |
-| Elicitation | Elicitation | 1 (`elicitation-logger`) |
-| ElicitationResult | Elicitation result | 1 (`elicitation-result-handler`) |
-| TaskCreated | Task created | 1 (`task-tracker`) |
-| TaskCompleted | Task completed | 1 (`task-tracker`) |
-| ConfigChange | Config changes | 1 (`config-protection`) |
-| InstructionsLoaded | Instructions loaded | 1 (`stale-claude-md-nudge`) |
-| Setup | Setup | 1 (`license-check`) |
-| **TOTAL** | **23 events** | **39 handlers** |
+| 16 | typescript-reviewer | Sonnet | Type safety, async correctness, ESM/CJS hygiene |
+| 17 | python-reviewer | Sonnet | PEP 8, type hints, async patterns, pytest quality |
+| 18 | go-reviewer | Sonnet | Effective Go idioms, race conditions, channels |
+| 19 | rust-reviewer | Sonnet | Ownership/lifetimes, unsafe blocks, clippy |
+| 20 | java-reviewer | Sonnet | Spring patterns, NPE prevention, resources |
+| 21 | kotlin-reviewer | Sonnet | Idiomatic Kotlin, coroutines, null safety |
+| 22 | csharp-reviewer | Sonnet | .NET patterns, async/await, LINQ, IDisposable |
 
 ## vs aider
 

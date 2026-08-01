@@ -1573,7 +1573,7 @@ My tools: [list tools/APIs]."
 
 ### 🛠️ Plugin Workflows (v7.4.1)
 
-CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 82 skills; these core workflow shortcuts require no menu traversal:
+CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 82 skills — the full table lives in [README.md § The 82 plugin skills](README.md#the-82-plugin-skills); these core workflow shortcuts (plugin skills plus kit commands) require no menu traversal:
 
 | Workflow | What it does |
 |----------|-------------|
@@ -1582,10 +1582,8 @@ CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash
 | `/ccc-ship` | Tests → changelog → commit → PR pipeline |
 | `/ccc-verify` | Four-question verification before marking done |
 | `/ccc-plan` | Multi-step plan with risk + rollback |
-| `/ccc-debug` | Root-cause investigation (Iron Law workflow) |
+| `/ccc-debug-session` | Root-cause investigation (Iron Law workflow) |
 | `/ccc-learn` | Extract reusable patterns from the session |
-| `/ccc-spike` | Timeboxed exploration with AskUserQuestion confirm |
-| `/ccc-spike-confirm` | Close-the-loop on a spike result |
 | `/ccc-research` | Structured competitive / market research |
 | `/ccc-design` | Route into the 41-skill design domain |
 | `/ccc-deploy` | Pre-deploy GO/CAUTION/NO-GO gate |
@@ -2746,7 +2744,7 @@ ccc --repair
 The rich footer bar displays 12 live segments at the bottom of every session:
 
 ```
-━━ CCC4.0.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│↑640K↓694K│⏰8h0m│🎯457│📋CC-150│📂~/project
+━━ CCC7.4.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯467│📋CC-150│📂~/project
 ```
 
 | Segment | What It Shows |

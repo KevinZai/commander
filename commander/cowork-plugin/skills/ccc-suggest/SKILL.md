@@ -283,7 +283,7 @@ Signal sources: `ciStatus` from a ≤10-min cached `gh run list --limit 1 --json
 
 ### Marketing positioning (the headline feature)
 
-> **"An Opus-class AI watches your project in real time and always tells you the next best move. You never have to know which of 502+ tools to use — the plugin knows for you."**
+> **"An Opus-class AI watches your project in real time and always tells you the next best move. You never have to know which of 467+ tools to use — the plugin knows for you."**
 
 This is the headline differentiator. Other plugins ship tools. CC Commander ships **the decision** about which tool to use.
 

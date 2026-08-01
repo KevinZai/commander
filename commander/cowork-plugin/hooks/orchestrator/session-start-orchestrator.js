@@ -11,8 +11,8 @@
  * Estimated savings: ~150ms × 2 spawns avoided = ~300ms per session start
  * (Node.js cold start dominates; actual handler logic is sub-millisecond).
  *
- * Status: SCAFFOLD ONLY — not active until hooks.json is flipped.
- * See ./README.md for activation steps + rollback.
+ * Status: LIVE — registered as the first SessionStart handler in hooks.json.
+ * See ./README.md for current wiring + rollback.
  */
 import { track } from '../../lib/telemetry.mjs';
 import { fileURLToPath } from 'node:url';

@@ -35,7 +35,7 @@
 | `caveman` | Ultra-compressed communication mode. Cuts ~75% of output tokens by speaking like caveman |
 | `cc-plugin-registry` | Reports all installed plugins, vendor packages, phase coverage, conflicts, and scoring |
 | `ccc-data` | CCC domain — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine ... |
-| `ccc-design` | CCC domain — complete design & animation ecosystem — 35+ skills in one. Animations, visual effects, design system... |
+| `ccc-design` | CCC domain — complete design & animation ecosystem — 41 skills in one. Animations, visual effects, design system... |
 | `ccc-devops` | CCC domain — complete DevOps ecosystem — 20 skills in one. Deployments, CI/CD, containers, AWS, monitoring, secur... |
 | `ccc-makeover` | CCC domain — design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm,... |
 | `ccc-marketing` | CCC domain — 46-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channe... |

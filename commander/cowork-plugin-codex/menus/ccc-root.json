@@ -1,7 +1,7 @@
 {
   "id": "ccc-root",
   "title": "CC Commander",
-  "subtitle": "Guided AI PM · 502+ skills · Click anything",
+  "subtitle": "Guided AI PM · 467+ skills · Click anything",
   "footer": "Click a tile to drill in. Each path ends in a concrete action — a plan, a scaffold, a review, or a deploy.",
   "shortcuts": ["/ccc-start", "/ccc-browse", "/ccc-plan", "/ccc-build", "/ccc-review"],
   "choices": [
@@ -37,7 +37,7 @@
       "id": "learn",
       "icon": "📚",
       "label": "Learn",
-      "description": "Browse 502+ skills across 11 domains. Searchable catalog.",
+      "description": "Browse 467+ skills across 11 domains. Searchable catalog.",
       "command": "/ccc-learn"
     },
     {

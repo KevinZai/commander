@@ -1,7 +1,7 @@
 {
   "id": "ccc-learn",
   "title": "Learn",
-  "subtitle": "502+ skills across 11 domains — click to browse",
+  "subtitle": "467+ skills across 11 domains — click to browse",
   "footer": "Each domain is a router skill that loads 15–45 sub-skills on demand. Installing one gets you the whole domain.",
   "shortcuts": ["/ccc", "/ccc-browse"],
   "choices": [
@@ -36,7 +36,7 @@
     {
       "id": "browse-all",
       "icon": "🔎",
-      "label": "Browse all (502+)",
+      "label": "Browse all (467+)",
       "description": "Searchable, filterable grid of every skill and command.",
       "command": "/ccc-browse"
     },
