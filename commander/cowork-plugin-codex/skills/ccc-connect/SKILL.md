@@ -205,13 +205,13 @@ After user picks a specific connector, echo the command template below (with `<n
 ```bash
 mkdir -p ~/.claude/commander/connections && \
 read -s -p "Paste your <Connector> credential (input hidden, nothing echoed): " CCC_SECRET && echo && \
-printf '{\n  "name": "<name>",\n  "kind": "<oauth|api-key>",\n  "credential": "%s",\n  "createdAt": "%s",\n  "tier": "free"\n}\n' "$CCC_SECRET" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ~/.claude/commander/connections/<name>.json && \
+printf '%s' "$CCC_SECRET" | node -e 'const fs=require("fs");let s="";process.stdin.on("data",d=>s+=d).on("end",()=>fs.writeFileSync(process.env.HOME+"/.claude/commander/connections/<name>.json",JSON.stringify({name:"<name>",kind:"<oauth|api-key>",credential:s,createdAt:new Date().toISOString(),tier:"free"},null,2)+"\n"))' && \
 chmod 600 ~/.claude/commander/connections/<name>.json && \
 unset CCC_SECRET && \
 echo "Saved ~/.claude/commander/connections/<name>.json (chmod 600)."
 ```
 
-`read -s` hides the input from the terminal and — unlike `export TOKEN=...` — never lands in shell history, because it's a `read` prompt, not a command line containing the secret.
+`read -s` hides the input from the terminal and — unlike `export TOKEN=...` — never lands in shell history, because it's a `read` prompt, not a command line containing the secret. The value reaches `node` on **stdin** and is written via `JSON.stringify`, so credentials containing quotes, backslashes, or newlines cannot corrupt the JSON file.
 
 ### OAuth connectors (GitHub, Slack, Notion, Linear, Google Drive, Figma, Discord)
 

@@ -1,11 +1,11 @@
 ---
-title: "Upgrade to v7.4.1"
-description: "Upgrade an existing CC Commander plugin install to v7.4.1 in Claude Code Desktop, Claude Code CLI, or npm."
+title: "Upgrade to v7.4.2"
+description: "Upgrade an existing CC Commander plugin install to v7.4.2 in Claude Code Desktop, Claude Code CLI, or npm."
 ---
 
-# ⬆️ Upgrade to v7.4.1
+# ⬆️ Upgrade to v7.4.2
 
-You already have CC Commander installed? Here's how to pick up v7.4.1 with zero drama.
+You already have CC Commander installed? Here's how to pick up v7.4.2 with zero drama.
 
 <Warning>
   Third-party plugin marketplaces do **not** auto-refresh by default. If you
@@ -74,7 +74,7 @@ restart, and verifies the new version + hooks are actually live afterward.
 
 ```
 /plugin list | grep commander
-# should show the latest version (currently v7.4.1), Kevin Zicherman
+# should show the latest version (currently v7.4.2), Kevin Zicherman
 ```
 
 Or in a fresh Claude Code session:
@@ -87,13 +87,15 @@ The settings menu header reports the installed version. You can also run `/ccc-d
 
 ### What changes for you
 
-| Surface | Before (v7.4.0) | Now (v7.4.1) |
+| Surface | Before (v7.4.1) | Now (v7.4.2) |
 |---------|-----------------|----------------------|
 | Plugin skills | 82 | 82 (unchanged) |
 | Agents | 22 specialist personas | 22 (unchanged) |
 | Hooks | 23 lifecycle events / 44 handlers | 23 lifecycle events / 44 handlers (unchanged) |
 | Bundled MCP servers | 2 credential-free + 16 opt-in | 2 credential-free + 16 opt-in (unchanged) |
-| `/ccc-update` / `/ccc-doctor` | Dead-ended on Desktop-managed (account-synced) installs — no marketplace clone, no `installed_plugins.json` entry | Detects three install modes (CLI marketplace / Desktop-managed / dev checkout), reads the Desktop copy's real version, and gives mode-correct guidance |
+| Compaction hook | Emitted output Claude Code rejected on every `/compact` ("Hook JSON output validation failed") | Schema-valid on every event — the emit layer now guards the real 20-event union |
+| Mission Control roster | ~98% of finished subagents stayed "working" forever | Finished agents show finished — the roster joins on `agent_id` |
+| Hosted MCP docs | Some shipped guides still asked for a license key | Keyless everywhere: no account, no key, free 100-call/mo cap |
 | Ecosystem skills | 467 | 467 (unchanged) |
 
 Your `~/.claude/commander/` state files, knowledge base, and learned-skills directory are preserved. No data migration needed.
@@ -102,7 +104,7 @@ Your `~/.claude/commander/` state files, knowledge base, and learned-skills dire
 
 ```bash
 npm i -g cc-commander@latest
-ccc --version   # should show the latest version (currently 7.4.1)
+ccc --version   # should show the latest version (currently 7.4.2)
 ```
 
 Re-run the post-install verify:

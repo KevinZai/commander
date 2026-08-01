@@ -1,5 +1,76 @@
 # Changelog
 
+## [7.4.2] - 2026-08-01
+
+Full end-to-end audit release. An 11-agent adversarially-verified audit swept every
+subsystem (hooks, console, vendors, dependencies, docs, click-first UX, tests);
+every confirmed finding shipped across PRs #89, #91, #92, and this integration pass.
+
+### Fixed
+- **PostCompact hook output was rejected by Claude Code on every compaction.**
+  `hookSpecificOutput.hookEventName` only accepts a 20-event union (verified
+  against the CLI 2.1.220 validator itself — the 6-event list in the error
+  message is stale display text), and `PostCompact` isn't in it, so the plugin's
+  re-orientation hook failed schema validation every time context compacted.
+  The hook now emits `systemMessage` only; `emit.mjs` gained a
+  `VALID_HOOKSPECIFIC_EVENTS` guard that degrades any non-union event to a
+  schema-valid shape, killing the bug class; and the hook-output contract test
+  now drives every emitter under its REAL registered events and pins the union
+  (reverting the guard makes the suite fail — proven, not assumed).
+- **Mission Control marked ~98% of finished subagents as still working.** The
+  start writer logged `agent_name: null`, the stop writer floored to
+  `"unknown"`, and the roster join required strict name equality — 78 of 3,337
+  live start rows ever matched. Both writers now log `agent_id`, the join keys
+  on it first, and a normalized-name + session/time fallback keeps the ~3,400
+  pre-fix telemetry rows joining too (mirrored in the dashboard's model).
+- **The "Data through …" staleness warning could never fire.** The history
+  reader stamped freshness from gap-filled all-zero metrics rows (which the
+  pipeline persists daily, including "today"). Freshness now counts only rows
+  with actual activity; chart continuity keeps the zero days.
+- **Memory tab claimed "Shown 20" while rendering 3 rows.** The tile now
+  reports the rendered count with a "+N more" pointer, with a test pinning
+  tile == rendered rows.
+- **Redaction gaps (M1/L1/L2):** flattened `-Users-<name>-…` project-dir paths
+  now fold to `<home>`; History skill names pass through the redactor;
+  console auto-open dedupes by day when no session id is present.
+- **`bin/doc-sync.js` compared the contract against a machine-dependent
+  count.** `listSkills()` also scans `~/.claude/skills`, so a dev machine with
+  personal skills installed over-reported (522 vs the repo's 467) and nearly
+  drove a wrong contract bump. The gate now counts the repo tree only.
+
+### Changed
+- **Keyless everywhere, for real.** `MCP.md`, the Cursor/Windsurf adapter
+  guides, their config templates, and `mcp-config.example.json` still
+  instructed users to obtain a `COMMANDER_LICENSE_KEY` — contradicting the
+  keyless 100-call/mo model documented everywhere else. Every shipped surface
+  now tells one story: no account, no key, free cap, silent local fallback.
+- **Click-first gaps closed** (from the beginner-UX audit): `/ccc-tuneup` is
+  now actually reachable by chips from the hub; all 11 domain routers present
+  a picker on bare invocation; the hub computes its counts instead of
+  hardcoding stale ones; `/ccc-settings` respects the 4-chip max; `/ccc-ecc`
+  lost its numbered-table fallback; `/ccc-connect` credentials are captured
+  via a hidden-input terminal command (stdin → `JSON.stringify`, never argv,
+  never chat) instead of being pasted into the transcript; `/ccc-infra` no
+  longer references any private infrastructure.
+- **Vendor refresh with one security bump:** rtk picked up 6 upstream
+  `fix(security)` commits (v0.44.2 — history DB / tee logs / audit log now
+  owner-only), plus routine bumps for compound-engineering, graphify (its
+  default branch is `v8` — noted for refresh tooling), claude-code-ultimate-guide,
+  repomix (tip-only, spanning the sandbox feature *and* its fixes),
+  everything-claude-code, ui-ux-pro-max, superpowers. 10 of 19 vendors were
+  already current; zero license changes across all 19.
+- **Dependency wave:** root audit → 0 vulnerabilities; site/ 19 → 12
+  advisories via posthog-js/next bumps + `ws`/`sharp` overrides (the 2
+  remaining highs are pinned inside Next's own bundled deps); Remotion
+  packages re-aligned on one exact version; the archived dashboard React
+  app's stale lockfile no longer produces phantom audit findings.
+- **Docs truth pass:** the shipped plugin README said 72 skills / 39 handlers
+  (real: 82 / 44), eight surfaces still said "GPT-5.5", the live upgrade guide
+  was pinned to v7.3.0, and the version gate gained detection for every one of
+  those blind-spot patterns (table-cell counts, "total handlers" phrasing,
+  the plugin README surface, upgrade-guide currency) — report-only, with the
+  patch scope unchanged.
+
 ## [7.4.1] - 2026-07-29
 
 ### Fixed

@@ -8,23 +8,22 @@ The plugin is 100% functional without any network connection. MCP is opt-in icin
 |-------------|----------|
 | Local skill catalog only | Skill catalog synced from cloud |
 | Usage tracked locally | Usage tracked server-side (analytics) |
-| Free tier enforced locally | Pro license validated server-side |
+| Local catalog only | 100-call/mo anti-abuse cap — no account, no license key |
 | No cross-IDE support | Works in Cursor, Windsurf, Zed, and any MCP-compatible IDE |
 
 ## How to opt in
 
 1. Copy `lib/mcp-config.example.json` to `.claude/mcp.json` in your project root.
-2. Replace `YOUR_LICENSE_KEY` with your Commander license key (free or pro).
-3. That's it. The plugin detects the config automatically on next session start.
+2. That's it. The plugin detects the config automatically on next session start.
+
+There are no license keys — the hosted endpoint is free for everyone with a
+100-call/mo anti-abuse cap. No `Authorization` header is needed.
 
 ```json
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse",
-      "headers": {
-        "Authorization": "Bearer YOUR_LICENSE_KEY"
-      }
+      "url": "https://mcp.commanderplugin.com/sse"
     }
   }
 }

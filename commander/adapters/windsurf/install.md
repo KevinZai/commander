@@ -5,22 +5,18 @@ This installs Commander through the hosted MCP endpoint. The endpoint below is t
 ## Prerequisites
 
 - Windsurf with Cascade.
-- `COMMANDER_LICENSE_KEY` from the Commander beta signup.
 - MCP access enabled for your account or team.
 - Network access to `https://mcp.commanderplugin.com/v1/sse`.
 
+No license key is required — the hosted endpoint is free for everyone with a
+100-call/mo anti-abuse cap.
+
 ## Option A - One-Line Install
 
-Set the license key in your shell first:
+Merge the Commander MCP server into your Windsurf MCP config:
 
 ```bash
-export COMMANDER_LICENSE_KEY="your-commander-license-key"
-```
-
-Then merge the Commander MCP server into your Windsurf MCP config:
-
-```bash
-mkdir -p "$HOME/.codeium/windsurf" && node -e 'const fs=require("fs");const p=process.env.HOME+"/.codeium/windsurf/mcp_config.json";let cfg={mcpServers:{}};try{cfg=JSON.parse(fs.readFileSync(p,"utf8"))}catch{}cfg.mcpServers=cfg.mcpServers||{};cfg.mcpServers["cc-commander"]={serverUrl:"https://mcp.commanderplugin.com/v1/sse",headers:{Authorization:"Bearer ${env:COMMANDER_LICENSE_KEY}"}};fs.writeFileSync(p,JSON.stringify(cfg,null,2)+"\n");console.log("Installed cc-commander MCP in "+p);'
+mkdir -p "$HOME/.codeium/windsurf" && node -e 'const fs=require("fs");const p=process.env.HOME+"/.codeium/windsurf/mcp_config.json";let cfg={mcpServers:{}};try{cfg=JSON.parse(fs.readFileSync(p,"utf8"))}catch{}cfg.mcpServers=cfg.mcpServers||{};cfg.mcpServers["cc-commander"]={serverUrl:"https://mcp.commanderplugin.com/v1/sse"};fs.writeFileSync(p,JSON.stringify(cfg,null,2)+"\n");console.log("Installed cc-commander MCP in "+p);'
 ```
 
 Restart Windsurf, then refresh MCPs in Cascade.
@@ -32,8 +28,7 @@ Restart Windsurf, then refresh MCPs in Cascade.
 3. Click the MCPs icon or go to **Windsurf Settings -> Cascade -> MCP Servers**.
 4. Choose **View Raw Config**.
 5. Paste or merge the contents of `windsurf-mcp-config.template.json`.
-6. Replace `COMMANDER_LICENSE_KEY` with your environment variable or literal beta key if your setup does not resolve env interpolation.
-7. Save, refresh MCPs, and restart Windsurf if the server does not appear.
+6. Save, refresh MCPs, and restart Windsurf if the server does not appear.
 
 [Screenshot placeholder: Cascade MCPs menu]
 
@@ -71,7 +66,7 @@ Cascade should call `commander_suggest_for` or another `commander_*` MCP tool. I
 | Symptom | Fix |
 |---|---|
 | `cc-commander` is missing | Confirm `~/.codeium/windsurf/mcp_config.json` exists, then refresh MCPs in Cascade. |
-| Auth fails | Confirm `COMMANDER_LICENSE_KEY` is exported before launching Windsurf. |
+| Requests rejected | You may have hit the free 100-call/mo anti-abuse cap — the plugin falls back to the local catalog automatically. |
 | Tools appear but are not used | Add `.windsurf/rules/commander.md` from `windsurfrules.template`. |
 | Admin blocks MCP | Ask the team admin to allow `cc-commander` or add the hosted endpoint to the team MCP registry. |
 | Endpoint fails | W7 may not have deployed the hosted endpoint yet; keep the config and retry after deploy. |
