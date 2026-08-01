@@ -11,20 +11,20 @@
   },
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.13.0",
-    "@stripe/stripe-js": "^9.4.0",
+    "@stripe/stripe-js": "^9.12.1",
     "@supabase/supabase-js": "^2.105.4",
     "@vercel/og": "^0.11.1",
     "@vercel/postgres": "^0.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.38.0",
-    "lucide-react": "^1.14.0",
-    "next": "^16.2.11",
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^1.28.0",
+    "next": "^16.2.12",
     "next-auth": "5.0.0-beta.32",
-    "posthog-js": "^1.373.4",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "stripe": "^22.1.1",
+    "posthog-js": "^1.409.5",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "stripe": "^22.4.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
@@ -32,8 +32,14 @@
     "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "postcss": "^8.5.14",
-    "tailwindcss": "^4.2.4",
+    "postcss": "^8.5.25",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "ws": ">=8.21.0",
+      "sharp": ">=0.35.0"
+    }
   }
 }
