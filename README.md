@@ -342,7 +342,7 @@ Install any of these separately — CC Commander detects what's available and ro
 | **CC Commander** (UX) | Curation + guidance + memory: click-first `/ccc-*` chips (AskUserQuestion), `/ccc-suggest` routing, the brain/hands pattern, The Kevin Z Method |
 
 **What Commander adds on top of ECC:**
-- **Click-first front door** — 82 curated `/ccc-*` plugin skills via native chip pickers, instead of memorizing 156+ commands.
+- **Click-first front door** — 83 curated `/ccc-*` plugin skills via native chip pickers, instead of memorizing 156+ commands.
 - **`/ccc-suggest`** — Opus-class "next best move" routing across the whole ecosystem (names ECC when ECC is the right tool).
 - **`/ccc-orchestrate` + `/ccc-handoff` + `/ccc-adopt`** — cross-runtime plan/execute split, proactive context reset, and one-command doctrine adoption for existing projects.
 - **`/ccc-ecc`** — selective ECC loader for one skill, agent, or hook without installing the full harness.
@@ -360,7 +360,7 @@ CC Commander is a **meta-layer** — it routes to other plugins, not away from t
 | **Primary surface** | Claude Code Desktop plugin + CLI | CLI harness | Claude Code CLI | Claude Code CLI |
 | **Click-first UX** | ✅ Native chip pickers, no typing | ❌ Text menus | ❌ Slash commands | ❌ Slash commands |
 | **Sub-agent personas** | 22 (architect, reviewer, debugger…) | 38 agents | 0 | 3 |
-| **Skill count** | 549 (82 plugin + 467 ecosystem) | 156 | ~20 | ~15 |
+| **Skill count** | 550 (83 plugin + 467 ecosystem) | 156 | ~20 | ~15 |
 | **Hosted MCP server** | ✅ (100 calls/mo free) | ❌ | ❌ | ❌ |
 | **Cross-IDE** | ✅ (Cursor, Windsurf, Cline, Codex) | ❌ Claude only | ❌ Claude only | ❌ Claude only |
 | **Free** | ✅ Forever | ✅ | ✅ | ✅ |

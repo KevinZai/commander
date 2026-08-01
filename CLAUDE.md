@@ -281,7 +281,7 @@ CCC ships 83 focused `/ccc-*` plugin skills as the curated front door, then rout
 
 **When Claude agents load this CLAUDE.md, they should know:**
 - CCC is a meta-layer over the Claude skill ecosystem — curation + guidance + memory, not raw skills
-- 82 `/ccc-*` plugin skills are the curated front door; they route into 467+ deeper skills
+- 83 `/ccc-*` plugin skills are the curated front door; they route into 467+ deeper skills
 - `CONNECTORS.md` defines 13 tool-agnostic connector categories via `~~category` placeholders — skills are tool-agnostic
 - Everything core free forever: 83 plugin skills, 22 agents, 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect, 23 lifecycle hooks × 44 handlers. No feature gating, no paywalls, no license checks.
 - Revenue model: core free forever — 4 levers: (1) transparent affiliate links in /ccc-connect (Supabase, Vercel, Neon, etc.) + (2) Kevin's consulting pipeline (plugin = trust engine → consulting funnel) + (3) optional Pro community ($49/mo Discord) + (4) GitHub Sponsors
