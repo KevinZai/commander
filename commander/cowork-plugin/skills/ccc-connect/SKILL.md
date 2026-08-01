@@ -211,7 +211,7 @@ unset CCC_SECRET && \
 echo "Saved ~/.claude/commander/connections/<name>.json (chmod 600)."
 ```
 
-`read -s` hides the input from the terminal and — unlike `export TOKEN=...` — never lands in shell history, because it's a `read` prompt, not a command line containing the secret. The value is piped to `node` on **stdin** (not argv, so it never appears in `ps`) and written via `JSON.stringify`, so credentials containing quotes, backslashes, or newlines cannot corrupt the JSON file.
+`read -s` hides the input from the terminal and — unlike `export TOKEN=...` — never lands in shell history, because it's a `read` prompt, not a command line containing the secret. The value reaches `node` on **stdin** and is written via `JSON.stringify`, so credentials containing quotes, backslashes, or newlines cannot corrupt the JSON file.
 
 ### OAuth connectors (GitHub, Slack, Notion, Linear, Google Drive, Figma, Discord)
 

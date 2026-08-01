@@ -10,7 +10,6 @@
 
 var fs = require('fs');
 var path = require('path');
-var skillBrowser = require('../commander/skill-browser');
 
 // Use the canonical contract value as the marketing skill count — this is what
 // docs SHOULD say. The floor is the REPO's own skills tree, counted directly:
