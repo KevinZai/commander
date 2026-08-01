@@ -4,6 +4,7 @@ context: fork
 description: "complete SaaS development ecosystem — 21 skills in one. Scaffold, authenticate, bill, ship, and grow a production SaaS from zero to revenue."
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # /ccc-saas — SaaS domain hub
@@ -22,6 +23,8 @@ allowed-tools:
 | Billing | stripe-subscriptions, billing-automation |
 | Growth | saas-metrics-coach, signup-flow-cro, paywall-upgrade-cro, form-cro |
 | Advanced | multi-tenant, webhook-patterns, feature-flags |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 

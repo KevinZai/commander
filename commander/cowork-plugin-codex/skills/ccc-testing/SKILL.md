@@ -4,6 +4,7 @@ context: fork
 description: "complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testing, and load testing. Default isolation mode for test dispatches:…"
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # ccc-testing
@@ -22,6 +23,8 @@ allowed-tools:
 | Visual & Performance | visual-regression, load-testing |
 | Quality Assurance | qa, qa-only, ai-regression-testing |
 | Verification | verification-loop, verification-before-completion, eval-harness |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 
@@ -84,3 +87,5 @@ This is the **Desktop plugin entry** for the CCC testing domain. For the CLI/cat
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

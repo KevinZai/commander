@@ -4,6 +4,7 @@ context: fork
 description: "45-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channels, growth, intelligence, and sales. Works standalone or with…"
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # /ccc-marketing — Marketing domain hub
@@ -23,6 +24,8 @@ allowed-tools:
 | **Intelligence** | 4 | Competitor analysis, marketing psychology, analytics, campaigns |
 | **Sales & GTM** | 2 | Pricing strategy, launch planning |
 | **New** | 3 | Influencer outreach, Product Hunt launch, SEO content production |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 

@@ -196,45 +196,56 @@ options:
 
 ## Credential capture (per connector)
 
-After user picks a specific connector, ask for credentials via a follow-up flow:
+**Never paste secrets into chat — they land in the session transcript.** The agent's Bash tool must never be the thing that reads or types the secret either — anything the agent runs is also transcript-visible. Instead, the user runs ONE terminal command **themselves**, in their own shell, that prompts for the value with hidden input and writes it straight to disk. The agent never sees the credential.
+
+After user picks a specific connector, echo the command template below (with `<name>` and `<kind>` filled in for that connector), then wait for a "Done" click — do not ask the user to paste anything back.
+
+### Command template (OAuth callback tokens AND API keys — same mechanism)
+
+```bash
+mkdir -p ~/.claude/commander/connections && \
+read -s -p "Paste your <Connector> credential (input hidden, nothing echoed): " CCC_SECRET && echo && \
+printf '{\n  "name": "<name>",\n  "kind": "<oauth|api-key>",\n  "credential": "%s",\n  "createdAt": "%s",\n  "tier": "free"\n}\n' "$CCC_SECRET" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ~/.claude/commander/connections/<name>.json && \
+chmod 600 ~/.claude/commander/connections/<name>.json && \
+unset CCC_SECRET && \
+echo "Saved ~/.claude/commander/connections/<name>.json (chmod 600)."
+```
+
+`read -s` hides the input from the terminal and — unlike `export TOKEN=...` — never lands in shell history, because it's a `read` prompt, not a command line containing the secret.
 
 ### OAuth connectors (GitHub, Slack, Notion, Linear, Google Drive, Figma, Discord)
 
 Echo:
-> 🔐 <Connector> uses OAuth. Visit this URL to authorize: https://<auth-url>
+> 🔐 <Connector> uses OAuth. Visit this URL to authorize: https://<auth-url> — copy the callback token, then run this in your terminal (I'll never see the value):
 >
-> When you paste the callback token here, I'll save it to `~/.claude/commander/connections/<name>.json` (chmod 600).
+> ```bash
+> <command template above, kind=oauth>
+> ```
+>
+> Click **Done** below once it's saved.
+
+Offer an `AskUserQuestion` with a single "Done" option (plus "Cancel") — do not proceed to the MCP-wiring step until the user confirms.
 
 ### API-key connectors (Tavily, Firecrawl, Exa, Supabase, Cloudflare, Sentry, Zapier, n8n, Stripe, Resend, Upstash, Neon, Browserbase, AgentMail, Postgres)
 
 Echo:
 > 🔑 <Connector> uses an API key.
 > 1. Get one at https://<keys-url>
-> 2. Paste it in your next message.
+> 2. Run this in your terminal (I'll never see the value):
 >
-> I'll save it to `~/.claude/commander/connections/<name>.json` (chmod 600) and wire the MCP config.
+> ```bash
+> <command template above, kind=api-key>
+> ```
+>
+> Click **Done** below once it's saved.
 
-## Writing the config (after credentials received)
+Offer an `AskUserQuestion` with a single "Done" option (plus "Cancel") — do not proceed to the MCP-wiring step until the user confirms.
 
-Two files to write per connector:
+## Writing the config (after the user clicks "Done")
 
-### 1. Secret storage
+The secret file is **already written** — the user's own terminal command from the credential-capture step above created `~/.claude/commander/connections/<name>.json` (chmod 600) directly. Do not re-write it, and do not ask the user to repeat the value; the only remaining step is wiring the MCP entry.
 
-Path: `~/.claude/commander/connections/<name>.json`
-
-```json
-{
-  "name": "<connector>",
-  "kind": "oauth | api-key",
-  "credential": "<token>",
-  "createdAt": "<iso-date>",
-  "tier": "free | pro"
-}
-```
-
-After write: `chmod 600 ~/.claude/commander/connections/<name>.json`
-
-### 2. MCP config (wire into Claude Code)
+### MCP config (wire into Claude Code)
 
 Run: `claude mcp add <name> -- <command> <args>` — the exact command depends on the connector:
 
@@ -330,7 +341,7 @@ After install:
 1. Whole flow is ≤5 turns: category → connector → credential ask → save + install → verify.
 2. Create `~/.claude/commander/connections/` directory if it doesn't exist (mkdir -p + chmod 700 on the dir).
 3. If `claude mcp add` fails (not installed, wrong version), echo the raw command and tell user to run it manually.
-4. For OAuth flows where user can't paste a token mid-session, write a placeholder config and tell them to come back after auth.
+4. The terminal command is async by design — if the user can't finish the OAuth authorization mid-session, tell them to run the command whenever they have the callback token and click "Done" in a later session; don't write a placeholder credential file.
 5. NEVER log or echo the token after capture — confirm by connector name only.
 6. For connectors marked "TBD — verify before Pro launch", link to the official docs page rather than guessing a command.
 
