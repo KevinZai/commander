@@ -1,6 +1,6 @@
 ---
 title: "Troubleshooting"
-description: "Diagnostic guide for CC Commander v7.4.1 — install, update, slash command, agent, hook, MCP, and performance issues with fixes and escalation paths."
+description: "Diagnostic guide for CC Commander v7.4.2 — install, update, slash command, agent, hook, MCP, and performance issues with fixes and escalation paths."
 ---
 
 # Troubleshooting
@@ -43,7 +43,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
 
 1. **Cmd+Q the app fully** (not just close the window — the menu-bar process must exit).
 2. Reopen Claude Code Desktop.
-3. Run `/plugin list`. The `commander` row should appear with version `v7.4.1`.
+3. Run `/plugin list`. The `commander` row should appear with version `v7.4.2`.
 
 <Note>
   **Cmd+Q + reopen** is the canonical fix for ~80% of plugin visibility issues. The autocomplete index, slash command registry, and MCP server list are all populated at startup.
@@ -112,7 +112,7 @@ you, with a backup taken first.
 
 **Fix:**
 
-1. `/plugin list` — confirm `commander` is present and at `v7.4.1`.
+1. `/plugin list` — confirm `commander` is present and at `v7.4.2`.
 2. If missing: `/plugin install commander`.
 3. If present: Cmd+Q + reopen.
 
@@ -213,11 +213,11 @@ Restart the session. The SessionStart hook will populate the file on next launch
 
 ### Version-transition nudge stuck
 
-**Symptom:** Every session opens with "you upgraded to v7.4.1" even after you've acknowledged it.
+**Symptom:** Every session opens with "you upgraded to v7.4.2" even after you've acknowledged it.
 
 **Cause:** The acknowledgment flag in `state.json` isn't persisting.
 
-**Fix:** Edit `~/.claude/commander/state.json` and set `"versionAcked": "7.4.1"`. Restart.
+**Fix:** Edit `~/.claude/commander/state.json` and set `"versionAcked": "7.4.2"`. Restart.
 
 ## MCP issues
 
