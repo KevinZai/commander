@@ -16,7 +16,7 @@
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists, The Fable Method (12 pillars)
 - [The Loop Taxonomy](#the-loop-taxonomy) — 4 loop primitives, `/goal`/`/loop`/`/schedule`, verifier-separation, state files
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers + always-on PM loop)
-- [The 82 Plugin Skills](#the-82-plugin-skills) — The curated plugin surface
+- [The 83 Plugin Skills](#the-83-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -349,13 +349,14 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 
 ---
 
-## The 82 Plugin Skills
+## The 83 Plugin Skills
 
 > *Every skill that ships with `/plugin install commander`. Not the 467-skill ecosystem — just the curated plugin surface.*
 
 | Skill | What it does |
 |---|---|
 | `ccc` | Main hub — 6-intent chip picker |
+| `ccc-adhd` | Answer-first output — fix, then command, then file:line, context last (based on ayghri/i-have-adhd, MIT) |
 | `ccc-adopt` | Merge the CCC Orchestrator/Executor doctrine into an existing project's `CLAUDE.md` |
 | `ccc-agent-writing` | Clear, persuasive, testable specs and documentation |
 | `ccc-brainstorm` | Design-first ideation with 3 alternatives before code |
@@ -1573,7 +1574,7 @@ My tools: [list tools/APIs]."
 
 ### 🛠️ Plugin Workflows (v7.4.2)
 
-CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 82 skills; these core workflow shortcuts require no menu traversal:
+CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 83 skills; these core workflow shortcuts require no menu traversal:
 
 | Workflow | What it does |
 |----------|-------------|
@@ -2668,7 +2669,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v7.4.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 82 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (44 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v7.4.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 83 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (44 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2681,7 +2682,7 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (82 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (83 plugin skills)
   +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 23 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
@@ -2725,7 +2726,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 82 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (44 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 83 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (44 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 

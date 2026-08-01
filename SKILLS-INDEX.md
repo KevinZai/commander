@@ -2,7 +2,7 @@
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
 > Last verified: 2026-07-20 (203 top-level directories, 195 top-level SKILL.md, 467 total SKILL.md, 3 starter templates)
 
-> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 82 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage`, `ccc-safety`, and `ccc-update` below), see [BIBLE.md](BIBLE.md#the-82-plugin-skills) or `/plugin/skills` in the Mintlify docs.
+> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 83 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage`, `ccc-safety`, and `ccc-update` below), see [BIBLE.md](BIBLE.md#the-83-plugin-skills) or `/plugin/skills` in the Mintlify docs.
 
 ---
 

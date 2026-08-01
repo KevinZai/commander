@@ -8,7 +8,7 @@
 
 ## Desktop Plugin Commands (v7.4.2)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 82 plugin skills total (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 83 plugin skills total (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 > **New — Commander Cockpit, Tools & Decks**
@@ -30,7 +30,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (82 plugin skills — 13 specialist workflows + 11 CCC domains + 7 channel/CI/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
+### /ccc-* Skills (83 plugin skills — 13 specialist workflows + 11 CCC domains + 7 channel/CI/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
