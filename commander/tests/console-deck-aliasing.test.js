@@ -72,9 +72,11 @@ for (const [skill, tab, outPath] of ALIASES) {
 
 test('/ccc-console publish absorbs the Cockpit path instead of minting a fifth URL', async () => {
   const text = await skillText('ccc-console');
-  assert.match(text, /--out scratchpad\/commander-cockpit\.html/);
+  // CC-1397: uses the <scratchpad> session-placeholder convention (same as
+  // ccc-browse), not a literal cwd-relative "scratchpad/" directory.
+  assert.match(text, /--out <scratchpad>\/commander-cockpit\.html/);
   assert.ok(
-    !text.includes('scratchpad/commander-console.html'),
+    !text.includes('scratchpad/commander-console.html') && !text.includes('<scratchpad>/commander-console.html'),
     'ccc-console still writes a fifth, separate artifact path'
   );
   const browse = await skillText('ccc-browse');

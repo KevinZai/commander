@@ -50,15 +50,14 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## 🔌 MCP clients (hosted server)
 
-For any AI IDE that supports Model Context Protocol. Point at `mcp.commanderplugin.com` with your license key:
+For any AI IDE that supports Model Context Protocol. Point at `mcp.commanderplugin.com` — no license key required, just a 100-call/month anti-abuse cap:
 
 ```json
 // Example: ~/.cursor/mcp.json
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse",
-      "headers": { "Authorization": "Bearer YOUR_LICENSE_KEY" }
+      "url": "https://mcp.commanderplugin.com/sse"
     }
   }
 }
@@ -86,19 +85,19 @@ Coming soon — MCP support rolling out in Anthropic's mobile + desktop apps dur
 
 **All MCP clients get:**
 - 13 tools: `list_skills`, `search_skills`, `get_skill`, `suggest_skill`, `list_agents`, `get_agent`, `list_modes`, `enter_mode`, `get_status`, `send_feedback`, `get_session_time`, `list_hooks`, `get_connector`
-- Cross-IDE usage counter (same 1000 calls/mo counts across all your editors)
-- Unified feedback history (surveys you complete in one client count everywhere)
+- No account or license key required — just point at the URL
+- A shared 100-call/month anti-abuse cap (not a paywall)
 - Live skill updates — no reinstall needed when we ship improvements
 
 ## 🔄 Mix and match
 
-Power users can install the plugin in Cowork/Claude Code Desktop AND point Cursor at the hosted MCP. Your license key travels:
+Power users can install the plugin in Cowork/Claude Code Desktop AND point Cursor at the hosted MCP. The 100-call/month anti-abuse cap applies no matter which client you're calling from:
 
 ```
 Monday:     /ccc-build in Claude Code Desktop   (uses 5 calls)
 Tuesday:    search_skills in Cursor              (uses 3 calls)
 Wednesday:  /ccc-review on mobile                 (uses 2 calls)
-Total month usage: 10/1000 calls — all synced
+Total month usage: 10/100 calls
 ```
 
 ## 📊 Feature matrix by client

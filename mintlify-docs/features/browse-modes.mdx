@@ -73,7 +73,7 @@ Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any
 | `list_hooks` | Inspect lifecycle hook configuration |
 | `get_connector` | Fetch MCP integration details |
 
-**Pros:** works in any MCP-capable client, zero install on user's machine, lazy-loads skills (only the ones invoked hit the wire), cross-IDE identity (same license key, same usage counter, same feedback history).
+**Pros:** works in any MCP-capable client, zero install on user's machine, lazy-loads skills (only the ones invoked hit the wire), no license key or account required — just point at the URL.
 **Cons:** requires network round-trip, no slash-command autocomplete (agent-mediated only), no lifecycle hooks (MCP is request/response).
 
 ```json
@@ -81,8 +81,7 @@ Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse",
-      "headers": { "Authorization": "Bearer YOUR_LICENSE_KEY" }
+      "url": "https://mcp.commanderplugin.com/sse"
     }
   }
 }
@@ -93,7 +92,7 @@ Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any
 Claude Code users can install the plugin **and** point at the hosted MCP. Benefits:
 
 1. **Lazy-load 467+ deeper skills** without bloating the plugin manifest — e.g. `ccc-marketing` plugin skill routes to one of 45 marketing sub-skills via MCP, loaded on demand.
-2. **Cross-session usage counter** — your 1000 beta calls/mo travel with you if you switch IDEs.
+2. **Cross-session usage counter** — the same 100-call/month anti-abuse cap applies wherever you call the hosted MCP from.
 3. **Unified feedback history** — surveys you've filled out in Claude Code count in Cursor.
 4. **Preserve muscle memory** — `/ccc-design` still works. Under the hood it queries the MCP. From your perspective nothing changes.
 

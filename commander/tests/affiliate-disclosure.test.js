@@ -20,7 +20,6 @@ const CCC_CONNECT_PATH = path.join(
   'ccc-connect',
   'SKILL.md'
 );
-const INDEX_HTML_PATH = path.join(ROOT, 'docs', 'index.html');
 
 // Affiliate-eligible services that must be tagged with [aff] in ccc-connect skill
 const AFFILIATE_SERVICES = [
@@ -188,25 +187,6 @@ describe('ccc-connect skill — affiliate disclosure', () => {
   });
 });
 
-describe('docs/index.html — footer link', () => {
-  // docs/index.html was moved to the private KevinZai/commanderplugin-com repo
-  // (commit 9ba44cc). These tests are skipped when the file is absent so the
-  // public repo CI stays green; the private repo has its own affiliate tests.
-  const indexExists = fs.existsSync(INDEX_HTML_PATH);
-
-  it('index.html exists', { skip: !indexExists ? 'marketing site moved to private repo' : false }, () => {
-    assert.ok(fs.existsSync(INDEX_HTML_PATH), 'docs/index.html must exist');
-  });
-
-  it('includes affiliate disclosure link in footer', { skip: !indexExists ? 'marketing site moved to private repo' : false }, () => {
-    const content = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
-    assert.ok(
-      content.includes('affiliate-disclosure'),
-      'index.html footer must include a link to affiliate-disclosure'
-    );
-    assert.ok(
-      content.includes('Affiliate Disclosure') || content.includes('affiliate'),
-      'index.html should have visible affiliate disclosure text'
-    );
-  });
-});
+// docs/index.html and its affiliate-disclosure footer-link tests were removed:
+// the marketing site moved to the private KevinZai/commanderplugin-com repo
+// (commit 9ba44cc), which has its own affiliate tests.

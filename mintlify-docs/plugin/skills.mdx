@@ -105,7 +105,7 @@ The plan/execute split: high-reasoning models write goal files and verify; execu
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
-| `/ccc-orchestrate` | `/ccc-orchestrate` or "orchestrate this", "goal file executor" | Cross-runtime Orchestrator/Executor — Fable/Opus writes a Skill.md-style goal file, GPT-5.5 via `codex` or Sonnet executes, orchestrator verifies acceptance criteria |
+| `/ccc-orchestrate` | `/ccc-orchestrate` or "orchestrate this", "goal file executor" | Cross-runtime Orchestrator/Executor — Fable/Opus writes a Skill.md-style goal file, the Codex CLI executor (GPT-5.6) or Sonnet executes, orchestrator verifies acceptance criteria |
 | `/ccc-adopt` | `/ccc-adopt` or "adopt commander", "add ccc doctrine" | Bring the Orchestrator/Executor doctrine into an existing project — merge a marked `CLAUDE.md` block without clobbering local rules |
 | `/ccc-relay` | `/ccc-relay` or "cross-session loop", "spec build review chain" | Cross-session loop chaining — chains independent gated spec → build → review sessions with a durable handoff baton; merge stays human-approved (v6.7.0) |
 | `/ccc-smb-ops` | `/ccc-smb-ops` or "small business ops", "invoicing", "cash flow" | Small-business-operations domain (router + 6 sub-skills): invoicing/AR, cash-flow forecast, expense tracking, payroll planning, CRM hygiene, weekly owner brief (v6.7.0) |

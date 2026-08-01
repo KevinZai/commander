@@ -139,7 +139,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 - 🖱️ **Click-first UX** — every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII prompts. Works identically in Cowork Desktop, Claude Code Desktop, and the CLI.
 - 🧠 **`/ccc-suggest` intelligence layer** — Opus-class real-time recommendation. Scans your project state, recommends **one starred next step** with reasoning + named 3rd-party plugins. Kills info-paralysis.
 - 🧩 **82 plugin skills including 13 `/ccc-*` specialist workflows** — plain slash commands (no `commander:` prefix), skill-based architecture: `ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, `ccc-build`, `ccc-review`, `ccc-ship`, `ccc-design`, `ccc-learn`, `ccc-xray`, `ccc-linear`, `ccc-fleet`, `ccc-connect` + `/ccc-e2e`, `/ccc-save-session`, `/ccc-resume-session`, `/ccc-changelog`, `/ccc-doctor`, `/ccc-tuneup`, `/ccc-upgrade`, `/ccc-update`, `/ccc-yolo-setup`, `/ccc-ecc` and 11 domain routers.
-- 🧭 **Orchestrator / Executor model** — `/ccc-orchestrate` has Fable/Opus write a Skill.md-style goal file, GPT-5.5 via `codex` or a Sonnet subagent execute it, and the orchestrator verify acceptance criteria. Pair it with `/ccc-handoff` for frequent fresh-chat resets and `/ccc-adopt` to bring the doctrine into any existing project. Pay for Fable on the thinking, not the typing.
+- 🧭 **Orchestrator / Executor model** — `/ccc-orchestrate` has Fable/Opus write a Skill.md-style goal file, the Codex CLI executor (GPT-5.6) or a Sonnet subagent execute it, and the orchestrator verify acceptance criteria. Pair it with `/ccc-handoff` for frequent fresh-chat resets and `/ccc-adopt` to bring the doctrine into any existing project. Pay for Fable on the thinking, not the typing.
 - 🎭 **22 specialist agents with persona voices** — architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer. Each with a distinct voice layer in `commander/cowork-plugin/rules/personas/`.
 - 🎛️ **Commander Cockpit + decks** — a self-contained interactive artifact (skill/agent browser, prompt enhancer, agent analytics, Tools launcher, and the newest **Prompts** tab) plus a shared **Commander decks** switcher across every artifact, including **Usage & Cost** (`/ccc-usage`) and **Safety** (`/ccc-safety`) decks — every deck now shows a data-freshness stamp.
 - 🔌 **2 credential-free bundled MCP servers** — `context7` (library docs) + `sequential-thinking`. Opt-in via `/ccc-connect`: 16 more including Tavily, GitHub, Supabase, Figma, Playwright, Slack, Notion, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash.
@@ -188,7 +188,7 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 
 ## Using Cursor, Windsurf, Cline, Continue, or Codex?
 
-[Hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL + license key unlocks all 467+ skills in your editor.
+[Hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL unlocks all 467+ skills in your editor, no license key required (100-call/month anti-abuse cap).
 
 ---
 
@@ -294,7 +294,7 @@ Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just 
 | **`/ccc-e2e`** | E2E test scaffolding + Playwright automation | New suite · Existing project · Visual regression |
 | **`/ccc-save-session`** | Save session state for later resume | Saves context, todos, plan to `~/.claude/commander/` |
 | **`/ccc-resume-session`** | Resume a previously saved session | Lists recent sessions → pick one to restore |
-| **`/ccc-orchestrate`** | Cross-runtime Orchestrator/Executor | Fable/Opus goal file → GPT-5.5 or Sonnet executor → verified acceptance criteria |
+| **`/ccc-orchestrate`** | Cross-runtime Orchestrator/Executor | Fable/Opus goal file → Codex CLI (GPT-5.6) or Sonnet executor → verified acceptance criteria |
 | **`/ccc-handoff`** | Proactive fresh-chat handoff | Dense session file + explicit restart before context quality decays |
 | **`/ccc-adopt`** | Adopt CCC doctrine in another repo | Merge Orchestrator/Executor markers into `CLAUDE.md` without clobbering project rules |
 | **`/ccc-fable`** | Arm the Fable Method — 12-gate session contract | on · status · audit · off — model-agnostic |

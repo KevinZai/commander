@@ -4,6 +4,7 @@ context: fork
 description: "complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testing, and load testing. Default isolation mode for test dispatches:…"
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # ccc-testing
@@ -22,6 +23,8 @@ allowed-tools:
 | Visual & Performance | visual-regression, load-testing |
 | Quality Assurance | qa, qa-only, ai-regression-testing |
 | Verification | verification-loop, verification-before-completion, eval-harness |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 

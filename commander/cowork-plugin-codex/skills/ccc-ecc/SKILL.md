@@ -56,7 +56,25 @@ find "$ECC" \( -path '*/node_modules/*' -o -path '*/.git/*' -o -path '*/dist/*' 
 
 Classify `skills/<name>/SKILL.md` as skills, `agents/*.md` as agents, and `hooks/*.{js,sh}` as hooks. If the user chose "List available", render grouped markdown tables and stop.
 
-### 4. Ask which component
+### 4. Ask which component — two-level AUQ cascade, never a typed-name table
+
+ECC ships 156+ skills — never dump them into one picker (max 4 options) and never fall back to "type the exact name" as a first resort; that reintroduces the numbered-list anti-pattern this plugin exists to avoid.
+
+**Level 1 — category.** If the matched candidates (skills, agents, or hooks) number more than 4:
+- If they group meaningfully by directory prefix (e.g. `skills/testing/*`, `skills/security/*`), present up to 3 category buckets + "More categories…" as an `AskUserQuestion` (≤4 options).
+- Otherwise (a flat namespace), bucket alphabetically into roughly-equal groups computed from the actual candidate count (e.g. ~4 buckets sized `ceil(N/4)` each) and present those buckets as the picker — do not hardcode fixed letter ranges like "A-F"; they skew badly on a real name distribution.
+
+```
+question: "Which category?"
+header: "ECC · <skill|agent|hook>"
+options:
+  - label: "<category or letter-range bucket>"
+    description: "<N> components"
+```
+
+**Level 2 — component.** Within the chosen bucket:
+- If ≤4 remain, present them directly as an `AskUserQuestion` (the original step-4 shape below).
+- If still >4, repeat Level 1's bucketing recursively on that subset (cascade again, ≤4 options each time) until a bucket has ≤4 candidates.
 
 ```
 question: "Pick one ECC <skill|agent|hook> to load."
@@ -66,7 +84,7 @@ options:
     description: "<relative path under vendor/everything-claude-code>"
 ```
 
-If there are too many options for a picker, show a numbered table and ask for the exact name or relative path.
+**Typed-name fallback — last resort only.** Only if cascading twice still leaves a bucket with more than 16 candidates (an extreme skew the alphabetical split can't converge on quickly), ask the user for a substring to filter by, then present the filtered matches as an `AskUserQuestion` (≤4, cascading again if the filter still returns too many). Never ask for the exact literal name or path as the first move.
 
 ### 5. Ask symlink or copy
 

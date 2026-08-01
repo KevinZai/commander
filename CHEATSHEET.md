@@ -8,7 +8,7 @@
 
 ## Desktop Plugin Commands (v7.4.1)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 82 plugin skills total (13 /ccc-* specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + 2 diagnostic/meta + 2 vendor-sourced + 11 lifecycle/session skills + deploy + rollback + onboard + update).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 82 plugin skills total (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 > **New — Commander Cockpit, Tools & Decks**
@@ -30,7 +30,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (82 plugin skills — 13 specialist workflows + 11 CCC domains + 6 channel/CI/ECC skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
+### /ccc-* Skills (82 plugin skills — 13 specialist workflows + 11 CCC domains + 7 channel/CI/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -55,7 +55,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | `/ccc-hermes` | Hermes Gateway status, OAuth bridge health, token refresh | Free |
 | `/ccc-nightwatch` | Remote YOLO permission relay — approve tool calls from mobile | Free |
 | `/ccc-ci` | CI/CD gate: lint, test, build, branch checks, pre-push hooks | Free |
-| `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus goal file, GPT-5.5 or Sonnet executes, orchestrator verifies | Free |
+| `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus goal file, the Codex CLI executor (GPT-5.6) or Sonnet executes, orchestrator verifies | Free |
 | `/ccc-relay` | Cross-session loop chaining — spec → build → review as gated hand-off sessions | Free |
 | `/ccc-smb-ops` | Small-business ops domain — invoicing/AR, cash-flow, payroll, CRM, weekly owner brief | Free |
 | `/ccc-broadcast` | Outbound status relay — push scrubbed build/deploy/CI/cost signals to team chat/email | Free |
@@ -595,7 +595,7 @@ See `tasks/todo.md`
 | Command | When to Use | Example |
 |---------|-------------|---------|
 | `/ccc-plan` | Before ANY multi-step task. Spec-first. | `/ccc-plan add OAuth login` |
-| `/ccc-orchestrate` | Fable/Opus plans a goal file; GPT-5.5 via `codex` or Sonnet executes; orchestrator verifies | `/ccc-orchestrate` |
+| `/ccc-orchestrate` | Fable/Opus plans a goal file; the Codex CLI executor (GPT-5.6) or Sonnet executes; orchestrator verifies | `/ccc-orchestrate` |
 | `/ccc-handoff` | Save dense handoff state and resume in a fresh chat before context quality decays | `/ccc-handoff` |
 | `/ccc-adopt` | Add the Orchestrator/Executor doctrine to an existing project's `CLAUDE.md` | `/ccc-adopt` |
 | `/ccc-build-fix` | Auto-resolve build errors after `npm run build` fails | `/ccc-build-fix` |
