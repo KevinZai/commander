@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-26T06:39:08.096Z",
+  "generated_at": "2026-08-27T17:14:05.663Z",
   "totals": {
-    "hook_fires": 1,
+    "hook_fires": 0,
     "sessions": 0,
     "agents_dispatched": 0,
     "skill_invocations": 0,
@@ -9,12 +9,7 @@
   },
   "top_skills": [],
   "top_agents": [],
-  "top_hooks": [
-    {
-      "name": "PostToolUse",
-      "count": 1
-    }
-  ],
+  "top_hooks": [],
   "sessions_last_7d": 0,
   "note": "Aggregate telemetry updated daily. Zero prompts, zero code, zero secrets — just event counts."
 }
