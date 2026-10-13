@@ -1,21 +1,27 @@
 # CC Commander Cheatsheet
-> CC Commander v7.4.2 — by Kevin Zicherman — commands, workflows, and power user tips
-> Last updated: 2026-07-22 · See CHANGELOG.md for version history
+> CC Commander v8.0.0 — by Kevin Zicherman — commands, workflows, and power user tips
+> Last updated: 2026-10-13 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v7.4.2)
+## Desktop Plugin Commands (v8.0.0)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 83 plugin skills total (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle).
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 84 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
-> **New — Commander Cockpit, Tools & Decks**
-> - Shipped in v7.0.0: Cockpit rebuilt on the real commanderplugin.com coral brand — rows/tiles skill browser + live filter, 11-strategy prompt enhancer with a GO button, honest per-agent token/cost telemetry.
-> - Added in v7.1.0: Cockpit Tools tab — launch Commander surfaces, install MIT-licensed companion apps, or generate an artifact dashboard on demand.
-> - Added in v7.2.0: shared **Commander decks** switcher across every artifact, plus two new decks — `/ccc-usage` (Usage & Cost) and `/ccc-safety` (Safety).
-> - New in v7.3.0: update self-detection + `/ccc-update` (click-first update walkthrough), an 8th Cockpit tab **Prompts** (searchable prompt browser), deck data-freshness warnings, and a fixed Codex mirror (10 supported hook events, was 6).
+
+### What's new in v8
+
+| Feature | Use it |
+|---|---|
+| `/ccc-codex` | Manage the Codex CLI from Claude: `doctor`, models, plugins and marketplaces, MCP servers, Commander agents as Codex TOML subagents, Codex Cloud, remote control, `codex review`, `codex update`, `config.toml` (every write asked, backed up, verified with `codex doctor --json`) |
+| Commander HUD mod | Band above the prompt: Fable state · running agents · tool-call budget · update pill. `/ccc-hud`, `/ccc-hud on`, `/ccc-hud off`, `/ccc-hud status` — runs without a model turn. Claude Code 2.1.287+ (Desktop 2.1.286+) |
+| Plugin workflows | `/commander:ccc-audit` · `/commander:ccc-deep-review` · `/commander:ccc-fleet` · `/commander:ccc-migrate` · `/commander:ccc-prompt-audit` · `/commander:ccc-release-audit` |
+| Plugin evals | `claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3` (cases: hub, plan, review, doctor, fable, update, suggest, codex) |
+| New hook events | PermissionDenied · PreModelSwitch · PostModelSwitch · TeammateIdle · CwdChanged · DirectoryAdded · FileChanged (`CLAUDE.md`). WorktreeCreate/WorktreeRemove deliberately unregistered — a hook there replaces git worktree handling |
+| Routing | `fable` (Fable 5.1) deep · `opus` (Opus 5.5) default · `sonnet` (Sonnet 5.5) fast · `haiku` (Haiku 5.5) bulk; Codex: `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6-sol` · `gpt-6-luna` |
 
 ### Plugin Installation
 
@@ -24,150 +30,126 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 2. Click **Add from GitHub** → enter `KevinZai/commander`
 3. Find `commander` → click **Install**
 
-**Via CLI (Claude Code terminal only):**
+**Via CLI (one step, Claude Code 2.1.292+):**
 ```bash
-/plugin marketplace add KevinZai/commander
-/plugin install commander
+/plugin install commander --marketplace KevinZai/commander
 ```
 
-### /ccc-* Skills (83 plugin skills — 13 specialist workflows + 11 CCC domains + 7 channel/CI/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
+Older builds: `/plugin marketplace add KevinZai/commander` then `/plugin install commander`.
 
-| Skill | Description | Tier |
-|-------|-------------|------|
-| `/ccc` | Main CCC hub — interactive menu, session overview | Free |
-| `/ccc-build` | Build wizard — web, API, CLI with spec questions | Free |
-| `/ccc-linear-board` | Linear issue browser — view, pick, create tasks | Free |
-| `/ccc-research` | Deep research with citations and confidence scoring | Free |
-| `/ccc-content` | Content creation — blog, social, email, copy | Free |
-| `/ccc-session` | Session management — save, resume, context budget | Free |
-| `/ccc-settings` | CCC settings — model, cost, theme, MCP, hooks | Free |
-| `/ccc-domains` | Browse 11 CCC domains (200+ sub-skills) | Free |
-| `/ccc-infra` | Infrastructure — fleet, cost, Synapse, Paperclip | Pro |
-| `/ccc-knowledge` | Search knowledge base for past lessons | Pro |
-| `/ccc-night-mode` | Autonomous overnight build — checkpoints, recovery | Pro |
-| `/ccc-standup` | Generate standup update from recent git activity | Pro |
-| `/ccc-code-review` | Multi-agent code review (3 reviewers, structured) | Pro |
-| `/ccc-deploy-check` | Pre-deployment readiness gate | Pro |
-| `/ccc-fleet` | Fleet Commander — launch, monitor, kill agent pool | Pro |
-| `/ccc-brainstorm` | Guided ideation: problem framing → divergent ideas → shortlist | Free |
-| `/ccc-qa` | QA workflow: test planning, coverage audit, edge-case generation | Free |
-| `/ccc-loop` | Run any /ccc-* skill on a recurring interval | Free |
-| `/ccc-hermes` | Hermes Gateway status, OAuth bridge health, token refresh | Free |
-| `/ccc-nightwatch` | Remote YOLO permission relay — approve tool calls from mobile | Free |
-| `/ccc-ci` | CI/CD gate: lint, test, build, branch checks, pre-push hooks | Free |
-| `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus goal file, the Codex CLI executor (GPT-5.6) or Sonnet executes, orchestrator verifies | Free |
-| `/ccc-relay` | Cross-session loop chaining — spec → build → review as gated hand-off sessions | Free |
-| `/ccc-smb-ops` | Small-business ops domain — invoicing/AR, cash-flow, payroll, CRM, weekly owner brief | Free |
-| `/ccc-broadcast` | Outbound status relay — push scrubbed build/deploy/CI/cost signals to team chat/email | Free |
-| `/ccc-spawn` | Click-first spawn hub — isolated session (Cowork chip / CLI /spawn), routes to fleet/relay | Free |
-| `/ccc-prompt-fix` | Auto prompt fixer — diagnose a prompt against the 6 patterns + return a tighter rewrite | Free |
-| `/ccc-handoff` | Proactive context reset — dense handoff file, then start a fresh chat before quality decays | Free |
-| `/ccc-adopt` | Adopt CCC doctrine in another repo — merge marked Orchestrator/Executor block into `CLAUDE.md` | Free |
-| `/ccc-fable` | Arm the Fable Method — 12-gate session contract (`on` / `status` / `audit` / `off`) | Free |
-| `/ccc-claudemd` | Audit CLAUDE.md against the codebase — stale paths, dead commands, drifted counts (AUQ-approved fixes only) | Free |
-| `/ccc-usage` | Usage & Cost deck — burn, estimated savings vs. all-Opus baseline, cost-by-app | Free |
-| `/ccc-safety` | Safety deck — blocked/auto-fixed action outcomes, redacted tool-failure hotspots | Free |
-| `/ccc-update` | Click-first update walkthrough — detect installed vs. latest, update, restart, verify hooks | Free |
+**Via Codex:**
+```bash
+codex plugin marketplace add KevinZai/commander
+codex plugin add commander@commander-hub
+```
+
+### /ccc-* Skills (84 total — core surface shown; full table in README.md)
+
+| Skill | Description |
+|-------|-------------|
+| `/ccc` | Main hub — Build · Review · Ship · More |
+| `/ccc-suggest` | One starred next step with reasoning |
+| `/ccc-plan` | Spec interview → plan file with evals |
+| `/ccc-build` | Build wizard — web, API, CLI with spec questions |
+| `/ccc-review` | Branch review (runs `ccc-deep-review`) |
+| `/ccc-ship` | Pre-flight → release → deploy → rollback |
+| `/ccc-xray` | Project health scorecard (runs `ccc-audit`) |
+| `/ccc-codex` | Codex CLI management from Claude |
+| `/ccc-orchestrate` | Fable/Opus goal file → Codex (`gpt-6-astra`, `gpt-6.1-sol`, `gpt-6-luna`), Codex Cloud or a Sonnet subagent executes → orchestrator verifies |
+| `/ccc-ultracode` | Explains `/effort ultracode` and launches a bundled workflow |
+| `/ccc-fleet` | Parallel agents in git worktrees — fan-out, pipeline, judge, debate |
+| `/ccc-console` | Inline console — Overview · Usage · Safety · Memory · History · Launch |
+| `/ccc-fable` | Arm the Fable Method — `on` / `status` / `audit` / `off` |
+| `/ccc-handoff` | Dense handoff file, then a fresh chat before quality decays |
+| `/ccc-adopt` | Merge the Orchestrator/Executor block into another repo's `CLAUDE.md` |
+| `/ccc-claudemd` | Audit `CLAUDE.md` against the codebase, picker-approved fixes only |
+| `/ccc-loop` | Loop taxonomy — `/goal`, `/loop`, Routines, verifiers, state files |
+| `/ccc-relay` | Gated spec → build → review sessions with a durable baton |
+| `/ccc-connect` | Opt-in MCP connector setup |
+| `/ccc-doctor` | Plugin and install diagnostics, including stale caches |
+| `/ccc-update` | Detect installed vs. latest, update, restart, verify |
+| `/ccc-usage` · `/ccc-safety` | Usage & Cost and Safety decks |
+| `/ccc-domains` | Browse the 11 CCC domains |
 
 > 🧠 **The Fable Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
 ### Sub-agent personas (22)
 
-Brain/hands architecture — each persona has a distinct role, model, and voice. Skills delegate to these automatically.
+Brain/hands architecture — each persona has a distinct role, model alias and voice. Skills delegate to these automatically.
 
 | # | Persona | Model | When to invoke |
 |---|---------|-------|----------------|
-| 1 | architect | Opus | System design, tradeoffs, tech selection |
-| 2 | reviewer | Sonnet | Multi-dim PR review with severity ratings |
-| 3 | builder | Sonnet | MVP-first feature implementation |
-| 4 | security-auditor | Opus | OWASP audits, threat modeling |
-| 5 | debugger | Opus | Root-cause investigation (Iron Law) |
-| 6 | designer | Sonnet | UI/UX critique, a11y, polish |
-| 7 | qa-engineer | Sonnet | Edge-case hunt, coverage, breaking cases |
-| 8 | devops-engineer | Sonnet | CI/CD, infra, deploys, runbooks |
-| 9 | data-analyst | Sonnet | Insights, stats, visualization |
-| 10 | content-strategist | Sonnet | Marketing copy, brand voice |
-| 11 | product-manager | Opus | PRDs, scoping, user stories |
-| 12 | performance-engineer | Sonnet | Hotpath hunting, benchmarking |
-| 13 | researcher | Sonnet | Competitive + market analysis |
-| 14 | technical-writer | Sonnet | Docs, API refs, tutorials |
-| 15 | fleet-worker | Sonnet | Parallel scoped batch work |
-| 16 | typescript-reviewer | Sonnet | TypeScript review: strict mode, async, ESM/CJS |
-| 17 | python-reviewer | Sonnet | Python review: PEP 8, type hints, pytest, security |
-| 18 | go-reviewer | Sonnet | Go review: idiomatic patterns, goroutine safety, error wrapping |
-| 19 | rust-reviewer | Sonnet | Rust review: ownership/borrowing, lifetimes, unsafe blocks |
-| 20 | java-reviewer | Sonnet | Java review: Spring patterns, null safety, checked exceptions |
-| 21 | kotlin-reviewer | Sonnet | Kotlin review: coroutines, null safety, sealed classes |
-| 22 | csharp-reviewer | Sonnet | C# review: async/await, nullable references, LINQ, DI |
+| 1 | architect | `fable` | System design, tradeoffs, tech selection |
+| 2 | reviewer | `opus` | Multi-dim PR review with severity ratings |
+| 3 | builder | `opus` | MVP-first feature implementation |
+| 4 | security-auditor | `fable` | OWASP audits, threat modeling |
+| 5 | debugger | `opus` | Root-cause investigation (Iron Law) |
+| 6 | designer | `opus` | UI/UX critique, a11y, polish |
+| 7 | qa-engineer | `opus` | Edge-case hunt, coverage, breaking cases |
+| 8 | devops-engineer | `opus` | CI/CD, infra, deploys, runbooks |
+| 9 | data-analyst | `opus` | Insights, stats, visualization |
+| 10 | content-strategist | `sonnet` | Marketing copy, brand voice |
+| 11 | product-manager | `opus` | PRDs, scoping, user stories |
+| 12 | performance-engineer | `opus` | Hotpath hunting, benchmarking |
+| 13 | researcher | `opus` | Competitive + market analysis |
+| 14 | technical-writer | `sonnet` | Docs, API refs, tutorials |
+| 15 | fleet-worker | `sonnet` | Parallel scoped batch work |
+| 16 | typescript-reviewer | `opus` | TypeScript review: strict mode, async, ESM/CJS |
+| 17 | python-reviewer | `opus` | Python review: PEP 8, type hints, pytest, security |
+| 18 | go-reviewer | `opus` | Go review: idiomatic patterns, goroutine safety, error wrapping |
+| 19 | rust-reviewer | `opus` | Rust review: ownership/borrowing, lifetimes, unsafe blocks |
+| 20 | java-reviewer | `opus` | Java review: Spring patterns, null safety, checked exceptions |
+| 21 | kotlin-reviewer | `opus` | Kotlin review: coroutines, null safety, sealed classes |
+| 22 | csharp-reviewer | `opus` | C# review: async/await, nullable references, LINQ, DI |
 
-### Lifecycle hook events (23)
+### Lifecycle hook events (30)
 
-23 events, 44 handlers — fire automatically every session (no configuration needed). v5.1.0 expanded from 9 → 23 events.
+30 events, 51 handlers — fire automatically every session (no configuration needed).
 
-**Core events:**
+| Event | Handlers |
+|-------|----------|
+| `SessionStart` | 5 (orchestrator, license check, git truth, update nudge, console auto-open) |
+| `SessionEnd` | 2 (session save, session end) |
+| `UserPromptSubmit` | 6 (suggest ticker, intent classifier, context warning, context guard, submit logger, skill-runs logger) |
+| `PreToolUse` | 6 (cost tracker, cost ceiling, secret-leak guard, config protection, doc-file warning, git-push reminder) |
+| `PostToolUse` | 4 (knowledge capture, Mission Control feed, console-log warning, PR link notify) |
+| `PermissionRequest` | 2 (permission gate, Mission Control feed) |
+| `Stop` / `SubagentStop` | 2 each |
+| `PermissionDenied` | 1 (denial logger → `/ccc-safety`) — new in v8 |
+| `PreModelSwitch` / `PostModelSwitch` | 1 each (model-switch logger) — new in v8 |
+| `TeammateIdle` | 1 (fleet telemetry) — new in v8 |
+| `CwdChanged` / `DirectoryAdded` | 1 each (session-state sync) — new in v8 |
+| `FileChanged` | 1 (stale `CLAUDE.md` nudge) — new in v8 |
+| 15 more | `Setup`, `UserPromptExpansion`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, `Notification`, `PreCompact`, `PostCompact`, `SubagentStart`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `InstructionsLoaded` — one handler each |
+| **TOTAL** | **30 events** · **51 handlers** |
 
-| Event | When fires | Handlers |
-|-------|-----------|----------|
-| `SessionStart` | New session opens | 5 (init state, claude-md nudge, post-compact recovery, suggest ticker, update-nudge) |
-| `SessionEnd` | Session cleanly closes | 2 (session save, summary) — moved from `Stop` in v5.1.0 |
-| `UserPromptSubmit` | User hits Enter | 4 (suggest ticker, intent classifier, context warning, submit logger) |
-| `PreToolUse` | Before any tool call | 3 (cost tracker, cost ceiling, secret leak guard) |
-| `PostToolUse` | After tool completes | 3 (knowledge capture, quality gate, auto-format) |
-| `Stop` | Session closes | 1 (legacy cleanup) |
-| `Notification` | System-level notification | 1 (fleet notify) |
-| `PreCompact` | Before context compaction | 1 (block if active subagents) |
-| `PostCompact` | After compaction | 1 (context restoration hints) |
-| `SubagentStart` | Subagent spawns | 1 (spawn time tracking) |
-| `SubagentStop` | Subagent finishes | 1 (cost aggregation) |
-| `PermissionRequest` | Tool permission prompt | 1 (permission gate / nightwatch relay) |
-| `TaskCreated` | Background task starts | 1 (workflow/fleet tracking) |
-| `TaskCompleted` | Background task finishes | 1 (workflow/fleet tracking) |
-| **9 more** | `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup` | 9 (one each) |
-| **TOTAL** | **23 events** | **44 handlers** |
+### Plugin Workflows + Ultracode
 
-### Dynamic Workflows + Ultracode (v5.1.0)
+**6 plugin workflows** in `commander/cowork-plugin/workflows/`, each runnable as `/commander:<name>`:
 
-> Research preview — requires Claude Code v2.1.154+. Falls back to `Agent()` on older clients.
-
-**4 bundled workflows** in `commander/cowork-plugin/workflows/`:
-
-| Workflow | Backs | What it does |
+| Workflow | Also launched by | What it does |
 |----------|-------|-------------|
-| `ccc-audit` | `/ccc-xray` | Parallel audit — security · performance · architecture · test coverage |
-| `ccc-deep-review` | `/ccc-review` | 4 Sonnet reviewers in parallel + reconciler |
-| `ccc-migrate` | `/ccc-build` | Discover → transform → verify pipeline |
-| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge patterns |
+| `ccc-audit` | `/ccc-xray` | Repo health audit, every finding verified |
+| `ccc-deep-review` | `/ccc-review` | Four-dimension branch review, severity-grouped verdict |
+| `ccc-migrate` | `/ccc-ultracode` | Per-site worktree transforms, each change independently verified |
+| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge / debate |
+| `ccc-prompt-audit` | `/ccc-ultracode` | Skills and agents vs. the prompt standard |
+| `ccc-release-audit` | `/ccc-ultracode` | Every release gate → go or no-go |
 
-**Ultracode** = `xhigh` effort + workflow orchestration:
+**Ultracode** is its own toggle (not an effort level):
 
 ```
+/effort ultracode on         # substantial tasks become planned, verified workflows
+/effort ultracode off
 /ccc-ultracode               # guided path
-/ccc-ultracode               # guided ultracode mode
-workflow: <task>             # one-off
+"audit auth as a workflow"   # one task, no toggle
 ```
 
 ### Plugin MCP Servers (2 bundled + 16 opt-in)
 
-**Bundled (2, credential-free — ship in `.mcp.json`, zero setup):**
+**Bundled (2, credential-free — ship in `.mcp.json`, zero setup):** Context7 (current library docs) and Sequential Thinking (multi-step reasoning).
 
-| MCP | Purpose |
-|-----|---------|
-| Context7 | Current library/API docs (no hallucinated methods) |
-| Sequential Thinking | Complex multi-step reasoning primitive |
-
-**Opt-in via `/ccc-connect` (16, a sample):**
-
-| MCP | Purpose |
-|-----|---------|
-| Linear | Issue tracking, sprint board |
-| GitHub | PRs, CI status, code review |
-| Slack | Progress notifications |
-| Gmail | Email digest, standup context |
-| Google Calendar | Schedule awareness, standup |
-| Tavily | Real-time web search + research |
-| Google Drive | Brand docs, style guides, draft storage |
-| Obsidian Skills | Obsidian vault integration — read/write notes, search vault, link memory to sessions (kepano/obsidian-skills, MIT) |
-| + 8 more | Supabase, Figma, Playwright, Notion, claude-mem, Exa, Firecrawl, Zapier, and more — see `/ccc-connect` |
+**Opt-in via `/ccc-connect` (16):** Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Google Drive, Supabase, Figma, Playwright, Notion, claude-mem, Exa, Firecrawl, Zapier and more — see `/ccc-connect` and `commander/cowork-plugin/CONNECTORS.md`.
 
 ### vs aider
 
@@ -356,7 +338,7 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | `/help` | Show all available commands and keyboard shortcuts | `/help` |
 | `/clear` | Clear conversation history (frees context window) | `/clear` |
 | `/compact` | Intelligently compress context, keeping key info | `/compact` |
-| `/model` | Switch model for current session | `/model claude-opus-4-5` |
+| `/model` | Switch model for current session | `/model opus` |
 | `/think` | Enable extended thinking mode (deeper reasoning) | `/think hard about this architecture` |
 | `/review` | Trigger code review pass on current changes | `/review` |
 | `/ccc-cost` | Show token usage and cost for current session | `/ccc-cost` |
@@ -384,7 +366,7 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 
 | Flag | What it does | Example |
 |------|-------------|---------|
-| `--model <model>` | Set model (overrides config) | `--model claude-haiku-4` |
+| `--model <model>` | Set model (overrides config) | `--model haiku` |
 | `--headless` | Run without interactive UI (CI/CD) | `--headless` |
 | `--output-format json` | JSON output for scripting | `--output-format json` |
 | `--output-format stream-json` | Streaming JSON (token by token) | `--output-format stream-json` |
@@ -595,7 +577,7 @@ See `tasks/todo.md`
 | Command | When to Use | Example |
 |---------|-------------|---------|
 | `/ccc-plan` | Before ANY multi-step task. Spec-first. | `/ccc-plan add OAuth login` |
-| `/ccc-orchestrate` | Fable/Opus plans a goal file; the Codex CLI executor (GPT-5.6) or Sonnet executes; orchestrator verifies | `/ccc-orchestrate` |
+| `/ccc-orchestrate` | Fable/Opus plans a goal file; the Codex CLI executor (GPT-6.1 Sol by default) or Sonnet executes; orchestrator verifies | `/ccc-orchestrate` |
 | `/ccc-handoff` | Save dense handoff state and resume in a fresh chat before context quality decays | `/ccc-handoff` |
 | `/ccc-adopt` | Add the Orchestrator/Executor doctrine to an existing project's `CLAUDE.md` | `/ccc-adopt` |
 | `/ccc-build-fix` | Auto-resolve build errors after `npm run build` fails | `/ccc-build-fix` |
@@ -703,7 +685,6 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 7.4.2
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -746,7 +727,7 @@ You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 
 ```json
 {
-  "model": "claude-sonnet-5",
+  "model": "opus",
   "permissions": {
     "allow": [
       "Bash(npm run *)",
@@ -768,7 +749,7 @@ You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `model` | Default model for this project | `"claude-opus-4-5"` |
+| `model` | Default model for this project (alias or full id) | `"opus"` |
 | `permissions.allow` | Whitelist tool patterns | `["Bash(npm *)"]` |
 | `permissions.deny` | Blacklist tool patterns | `["Bash(rm -rf *)"]` |
 | `env` | Environment variables | `{"PORT": "3000"}` |
@@ -779,11 +760,11 @@ You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 
 | Model | Best for | Cost |
 |-------|---------|------|
-| `claude-opus-4-5` | Architecture, complex reasoning, audits | $$$ |
-| `claude-sonnet-5` | General development, most tasks (latest/best Sonnet) | $$ |
-| `claude-sonnet-4-5` | General development, most tasks | $$ |
-| `claude-haiku-4` | Fast iteration, simple tasks, bulk ops | $ |
-| `/model <name>` | Switch mid-session | `/model claude-haiku-4` |
+| `fable` (`claude-fable-5-1`) | Architecture, migrations, threat models, verification | $$$$ |
+| `opus` (`claude-opus-5-5`) | Implementation, review, orchestration — the default | $$$ |
+| `sonnet` (`claude-sonnet-5-5`) | Bounded edits, docs, routers, focused reviews | $$ |
+| `haiku` (`claude-haiku-5-5`) | Classification, routing, extraction, bulk ops | $ |
+| `/model <alias>` | Switch mid-session | `/model haiku` |
 
 **Rule:** Never change models mid-session — spawn a subagent with the desired model instead.
 
@@ -930,7 +911,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
 const response = await client.messages.create({
-  model: "claude-opus-4-5",
+  model: "claude-opus-5-5",
   max_tokens: 1024,
   messages: [{ role: "user", content: "Hello!" }],
 });
@@ -964,15 +945,14 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📊 Cost & Token Management
 
-### Model Ladder (v6.0)
+### Model Ladder (v8)
 
 | Model | Role | Input | Output | Use |
 |-------|------|-------|--------|-----|
-| **Fable 5** | Deep reasoning escalation | $10/MTok | $50/MTok | `/model claude-fable-5[1m]` when 🧠 deep thinking needed (once/day nudge) |
-| **Opus 5** | Everyday session default | $5/MTok | $25/MTok | Main thread, heavy implementation, Fable fallback |
-| **Sonnet 5** | General dev, 16 sub-agents (latest/best Sonnet) | $3/MTok | $15/MTok | Default for most delegated work — reviewers + builders + QA |
-| **Sonnet 4.6** | General dev, prior Sonnet | $3/MTok | $15/MTok | Predecessor to Sonnet 5 |
-| **Haiku 4.5** | Fast bulk ops | $1/MTok | $5/MTok | Bulk tasks, hooks, high-turn ops |
+| **Fable 5.1** (`fable`) | Deep reasoning escalation | $10/MTok | $50/MTok | `/model fable` for architecture, migrations, threat models; architect + security-auditor agents |
+| **Opus 5.5** (`opus`) | Everyday session default | $4/MTok | $20/MTok | Main thread, implementation, review, most specialist agents |
+| **Sonnet 5.5** (`sonnet`) | Fast tier | $2/MTok | $10/MTok | Writers, fleet workers, routers, bounded edits |
+| **Haiku 5.5** (`haiku`) | Bulk tier | from $0.10/MTok | $0.50/MTok | Classification, extraction, hook-side summaries |
 
 **Savings tracking:** `ccc --savings` shows estimated cost vs all-Opus baseline (±30%). Smart routing via `selectModelForComplexity(0-100)`: 0-29→haiku, 30-65→sonnet, 66-85→opus, 86-100→fable.
 
@@ -985,7 +965,6 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | `ccc --savings` | Daily savings estimate vs all-Opus baseline |
 | `cache-monitor` skill | Analyze cache efficiency from JSONL logs |
 | JSONL logs | `~/.claude/agents/*/ccc-sessions/*.jsonl` |
-| Agent-HQ dashboard | `http://localhost:3005/api/costs` |
 | `/ccc-context-budget` | See how much context is used |
 
 ### Token Optimization
@@ -997,17 +976,17 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 | Strategic compact | Use `strategic-compact` skill at key moments |
 | Subagents for isolation | Each subagent gets full context window |
 | Fresh sessions for big tasks | `/ccc-save-session` → new session → `/ccc-resume-session` |
-| Haiku for simple tasks | `--model claude-haiku-4` for bulk/fast ops |
+| Haiku for simple tasks | `--model haiku` for bulk/fast ops |
 | `/ccc-aside` for side questions | Preserves main context budget |
 
 ### Model Cost Comparison
 
 | Model | Input (per 1M) | Output (per 1M) | Best Use |
 |-------|---------------|-----------------|---------|
-| claude-opus-4-5 | $15 | $75 | Architecture, deep reasoning |
-| claude-sonnet-5 | $3 | $15 | General development (latest/best Sonnet) |
-| claude-sonnet-4-5 | $3 | $15 | General development (prior Sonnet) |
-| claude-haiku-4 | $0.25 | $1.25 | Fast tasks, bulk ops |
+| claude-fable-5-1 | $10 | $50 | Architecture, deep reasoning |
+| claude-opus-5-5 | $4 | $20 | Default — implementation, review |
+| claude-sonnet-5-5 | $2 | $10 | Fast tier — bounded edits, docs |
+| claude-haiku-5-5 | from $0.10 | $0.50 | Bulk — classification, extraction |
 
 ### Context Budget Rules
 1. Static content first in CLAUDE.md (improves cache hit rate)
@@ -1078,7 +1057,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v7.4.2 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v8.0.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1165,7 +1144,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v7.4.2 Quick Reference (CLI)
+## CC Commander v8.0.0 Quick Reference (CLI)
 
 ```bash
 # Launch
@@ -1188,9 +1167,9 @@ Cyberpunk, Fire, Graffiti, Futuristic  # Switch via menu or settings
 YOLO Loop: 3-10 cycles of build → review → improve
 
 # Dispatch defaults by level
-Guided:   sonnet / medium / $2 / 30 turns
-Assisted: opusplan / medium / $3 / 40 turns
-Power:    opusplan / high / $5 / 50 turns
+Guided:   sonnet / medium / $5 / 30 turns
+Assisted: opus / medium / $5 / 40 turns
+Power:    fable / high / $10 / 50 turns
 
 # State
 ~/.claude/commander/state.json      # Preferences, theme, active session

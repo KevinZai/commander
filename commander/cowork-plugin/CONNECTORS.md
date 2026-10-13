@@ -1,6 +1,6 @@
 # Connectors
 
-> **Affiliate links** — rows marked ✅ in the MCP catalog below may earn CC Commander a commission if you sign up via `/ccc-connect`. Revenue funds ongoing maintenance of the MIT-licensed Starter tier. No impact on pricing or product recommendations; non-affiliate alternatives always surfaced. Full list: [Affiliate disclosure](https://kevinzai.github.io/cc-commander/affiliates)
+> **Affiliate links** — rows marked ✅ in the MCP catalog below may earn CC Commander a commission if you sign up via `/ccc-connect`. Revenue funds maintenance of the MIT-licensed core, which stays free forever. No impact on pricing or recommendations; a non-affiliate alternative is always surfaced. Full list: [Affiliate disclosure](https://docs.commanderplugin.com/affiliate-disclosure)
 
 ## How tool references work
 
@@ -14,7 +14,7 @@ Plugins are **tool-agnostic** — they describe workflows in terms of categories
 - `context7` — library documentation lookup
 - `sequential-thinking` — structured multi-step reasoning
 
-All other connectors below are **opt-in** via `/ccc-connect` — enable with your own credentials. This prevents silent MCP failures on install day (flagged by R1/R5/R8 reviews).
+All other connectors below are **opt-in** via `/ccc-connect` — enable each with your own credentials. Nothing that needs a key is bundled, so nothing fails silently on install day.
 
 | Category | Placeholder | Opt-in servers | Other options |
 |----------|-------------|-----------------|---------------|
@@ -32,17 +32,17 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable with you
 | Library docs | `~~library docs` | Context7 (bundled) | — |
 | Files | `~~files` | Google Drive | Dropbox, OneDrive |
 
-## 🔌 Recommended MCP Servers
+## 🔌 The 16 opt-in MCP servers
 
 > CC Commander bundles **2 credential-free MCP servers** (`context7` + `sequential-thinking`) so the plugin works immediately on install with zero API keys. Everything below is **opt-in** via `/ccc-connect` — users enable per-MCP with their own credentials. No shared keys, no lock-in, no silent failures on install day. Anonymous usage telemetry is opt-out via `CCC_TELEMETRY=0`.
 
 | MCP | Category | Why it matters | Affiliate? | Install |
 |-----|----------|----------------|------------|---------|
-| Linear | Tasks | First-class CC Commander integration; already wired in Kevin's settings | No | Official Linear MCP |
+| Linear | Tasks | First-class CC Commander integration (`/ccc-linear`, `/ccc-linear-board`) | No | Official Linear MCP |
 | **Supabase** ⭐ | Backend (first-class) | **Default backend** for `/ccc-build` SaaS — auth, DB, storage, edge funcs. Also ships as a **Codex plugin**, so the same setup works in Claude Code *and* OpenAI Codex. | ✅ | `npx -y @supabase/mcp-server-supabase` |
 | Vercel | Hosting | Matches `/ccc-build` web scaffold | ✅ | Official Vercel MCP |
 | Neon | Database | Postgres serverless, lighter than Supabase for tiny projects | ✅ | `npx -y @neondatabase/mcp-server-neon` |
-| Fly.io | Hosting | Services + Docker; matches `/ccc-devops` | ✅ | TBD — verify before Pro launch |
+| Fly.io | Hosting | Services + Docker; matches `/ccc-devops` | ✅ | Unverified — `/ccc-connect` links the official docs |
 | Upstash | Cache/Queue | Redis + Kafka serverless | ✅ | `npx -y @upstash/mcp-server` |
 | Notion | Knowledge | Docs workflow; official MCP | No | Official Notion MCP |
 | Slack | Comms | Team workflows; official MCP | No | Official Slack MCP |
@@ -52,7 +52,7 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable with you
 | Browserbase | Automation | Remote headless browsers beyond Playwright | ✅ | `npx -y @browserbasehq/mcp` |
 | Postgres | Database | Direct DB query/schema inspection | No | `npx -y @modelcontextprotocol/server-postgres` |
 | Cloudflare | Edge | Workers + R2 + D1 | ✅ | Cloudflare MCP |
-| Resend | Email | Transactional email for SaaS | ✅ | TBD — verify before Pro launch |
+| Resend | Email | Transactional email for SaaS | ✅ | Unverified — `/ccc-connect` links the official docs |
 | AgentMail | Email | Agent-native inbox (new) | No | AgentMail MCP |
 
 ## ⭐ Supabase — first-class backend
@@ -61,8 +61,8 @@ Supabase is the **default, first-class backend connector** in CC Commander. When
 
 - **Why first-class:** auth + Postgres + storage + edge functions in one MCP — covers the whole backend surface a shipped SaaS needs, so it's the broadest single connector.
 - **Codex plugin too:** Supabase now also ships as an **OpenAI Codex plugin**. The same Supabase project and credentials work whether you drive it from Claude Code (via the MCP above) or from Codex (via the plugin) — no separate setup.
-- **Affiliate (✅):** the Supabase row is an affiliate link. Signing up via `/ccc-connect` may earn CC Commander a commission at no cost to you. This funds maintenance of the MIT-licensed tier and never changes the recommendation — Supabase is recommended on merit. A non-affiliate alternative (Neon, or bring-your-own Postgres) is always surfaced alongside it.
-- **Install:** `npx -y @supabase/mcp-server-supabase` (env `SUPABASE_URL`, `SUPABASE_KEY`) — or `/ccc-connect backend` for the click-through flow.
+- **Affiliate (✅):** the Supabase row is an affiliate link. Signing up via `/ccc-connect` may earn CC Commander a commission at no cost to you. This funds maintenance of the MIT-licensed core and never changes the recommendation — Supabase is recommended on merit. A non-affiliate alternative (Neon, or bring-your-own Postgres) is always surfaced alongside it.
+- **Install:** `/ccc-connect backend` → Supabase for the click-through flow (it prefers a Claude Code plugin when one is listed, otherwise wires `npx -y @supabase/mcp-server-supabase` with `SUPABASE_URL` and `SUPABASE_KEY` without putting the secret on the command line).
 
 ## 🧬 acpx — bring-your-own agent harness
 

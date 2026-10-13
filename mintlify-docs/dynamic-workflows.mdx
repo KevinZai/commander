@@ -1,105 +1,70 @@
 ---
 title: "Dynamic Workflows"
-description: "JS scripts the runtime executes in the background, spawning many subagents that cross-check findings. Research preview — requires Claude Code v2.1.154+."
+description: "Six plugin workflows ship with Commander and run as /commander:<name>. Each spawns many agents in the background and cross-checks their findings before you see them."
 ---
 
-<Note>
-  **Research preview.** Dynamic workflows require **Claude Code v2.1.154+ or later**. On older clients, skills that use `Workflow()` automatically fall back to standard `Agent()` dispatch — no errors, no breakage, just sequential rather than parallel execution.
-</Note>
+## What is a dynamic workflow?
 
-## What Is a Dynamic Workflow?
-
-A dynamic workflow is a JavaScript file the Claude Code runtime executes outside your session's main context. Unlike a skill (which runs inline) or a sub-agent (which runs in a fresh context), a workflow:
+A dynamic workflow is a JavaScript script that Claude Code's Workflow tool runs in the background. Unlike a skill (which runs inline) or a single subagent, a workflow:
 
 - Runs **in the background** without blocking your session
-- Can **spawn many subagents concurrently** — each checking a different dimension in parallel
-- Merges and **cross-validates** findings before returning a synthesized result
-- Has access to `Workflow()`, `Agent()`, and shell utilities from the runtime
+- **Spawns many agents concurrently**, each on its own slice or dimension
+- Has a **fresh agent try to refute** each finding before it is reported
+- Returns one synthesized result
 
-The result feels like running 4 Sonnet reviewers at once, where each reviewer's findings are reconciled before you see them.
+Plugins can ship workflows. Each plugin workflow runs from the prompt as `/<plugin>:<name>`, so Commander's run as **`/commander:<name>`**. List everything available with `/workflows`.
 
-## The 4 Bundled Workflows
+## The six plugin workflows
 
-CC Commander ships 4 production-ready workflows in `commander/cowork-plugin/workflows/`:
+All six live in `commander/cowork-plugin/workflows/`:
 
-<CardGroup cols={2}>
-  <Card title="ccc-audit" icon="magnifying-glass">
-    **Backs `/ccc-xray`**. Repo-wide audit across 4 dimensions: security vulnerabilities, performance hotpaths, architecture drift, and test coverage gaps. Spawns one Sonnet agent per dimension, merges findings, deduplicates, and returns a prioritized scorecard.
-  </Card>
-  <Card title="ccc-deep-review" icon="code-pull-request">
-    **Backs `/ccc-review`**. 4-dimension branch review running in parallel: correctness · security · performance · maintainability. Each reviewer scores 0-10 + blocking findings. The referee agent reconciles disagreements.
-  </Card>
-  <Card title="ccc-migrate" icon="arrow-right-arrow-left">
-    **Backs `/ccc-build` migrate mode**. Three-phase pipeline: (1) discover — map the current codebase; (2) transform — apply migration rules in parallel by file group; (3) verify — run tests and reconcile conflicts. Safe for large migrations.
-  </Card>
-  <Card title="ccc-fleet" icon="server">
-    **Backs `/ccc-fleet`**. Orchestrates the three fleet patterns: fan-out (N agents on N files), pipeline (each agent hands off to the next), and judge (FOR + AGAINST + Referee). Handles result aggregation and partial-failure recovery.
-  </Card>
-</CardGroup>
+| Workflow | Run it | Also behind | What it does |
+|---|---|---|---|
+| `ccc-audit` | `/commander:ccc-audit` | `/ccc-xray` | Repo health audit — one finder per dimension, every finding adversarially verified, scored scorecard |
+| `ccc-deep-review` | `/commander:ccc-deep-review` | `/ccc-review` | Branch review over four weighted dimensions, every finding verified, severity-grouped verdict |
+| `ccc-migrate` | `/commander:ccc-migrate` | `/ccc-ultracode` | Discover every matching site, transform each in its own worktree, verify each change with an independent skeptic. Pipeline by default |
+| `ccc-fleet` | `/commander:ccc-fleet` | `/ccc-fleet` | Fan-out slices with independent verifiers, sequential stage chains, a judge panel or a multi-lens debate |
+| `ccc-prompt-audit` | `/commander:ccc-prompt-audit` | `/ccc-more` | **New in v8.** Checks every plugin `SKILL.md` and agent file against the prompt standard; read-only |
+| `ccc-release-audit` | `/commander:ccc-release-audit` | `/ccc-more` | **New in v8.** Runs every release gate and returns go or no-go with blockers |
 
-## How to Use Them
+You don't need to know the scripts to use them: run the skill, or type the `/commander:<name>` command. `/ccc-ultracode` picks the right one from a chip picker.
 
-You don't need to know any of this to use the bundled workflows. Just run the skill that backs them:
+## Writing your own workflow
 
-```
-/ccc-xray      → launches ccc-audit workflow
-/ccc-review    → launches ccc-deep-review workflow
-/ccc-fleet     → launches ccc-fleet workflow
-```
-
-On clients without workflow support (Claude Code before v2.1.154), the same skills call `Agent()` directly and run sequentially. The output format is identical.
-
-## Writing Your Own Workflow
-
-If you want to write a custom workflow for your project, create a `.js` file and invoke it from a skill:
+A workflow file exports a pure-literal `meta` object and uses the Workflow script API (`agent()`, `parallel()`, `pipeline()`, `phase()`, `log()`, `args`):
 
 ```javascript
-// commander/cowork-plugin/workflows/my-workflow.js
-export default async function run({ args, context }) {
-  // Spawn parallel subagents
-  const [secResult, perfResult] = await Promise.all([
-    Agent({
-      task: `Review ${args.file} for security issues`,
-      model: "sonnet",
-      maxTurns: 10,
-    }),
-    Agent({
-      task: `Profile ${args.file} for performance hotpaths`,
-      model: "sonnet",
-      maxTurns: 10,
-    }),
-  ]);
-
-  // Reconcile and return
-  return { security: secResult, performance: perfResult };
+// workflows/my-review.workflow.js
+export const meta = {
+  name: 'my-review',
+  description: 'Review one file for security and performance, then verify each finding.',
 }
+
+const file = (args && args.file) || 'src/index.ts'
+
+const [security, perf] = await parallel([
+  () => agent(`Review ${file} for security issues. Return findings with path:line evidence.`),
+  () => agent(`Profile ${file} for performance hot paths. Return findings with path:line evidence.`),
+])
+
+const verified = await agent(
+  `Try to refute each finding below by reading the code. Keep only confirmed ones.\n${security}\n${perf}`
+)
+log(verified)
 ```
 
-Then invoke it from your skill file:
+A plugin picks up files in its `workflows/` directory automatically. Two platform rules worth knowing: `meta` must be a pure literal, and `Date.now()` and `Math.random()` throw inside a workflow. `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` pins the model for every agent a workflow spawns.
 
-```javascript
-Workflow({
-  scriptPath: "commander/cowork-plugin/workflows/my-workflow.js",
-  args: { file: "src/api/users.ts" }
-})
-```
+## The `/deep-research` built-in
 
-## The `/deep-research` Built-In
+Claude Code ships `/deep-research` as a built-in workflow — fan-out search, fact-checking and a cited report. `/ccc-research` and `/ccc-ultracode` hand research questions to it.
 
-Claude Code v2.1.154+ ships `/deep-research` as a built-in — a multi-source research workflow that fans out web searches, fetches sources, and cross-validates findings. CC Commander's `/ccc-research` skill integrates with it on supported clients.
+## Requirements
 
-## Version Gate
+Plugin workflows need a Claude Code build with the Workflow tool. Check with `claude --version` and update with `claude update`. Run `/workflows` to see the six Commander workflows once the plugin is installed.
 
-Check which version of Claude Code you're running:
+## See also
 
-```bash
-claude --version
-```
-
-If you're on Claude Code older than v2.1.154, workflows silently fall back to sequential `Agent()` dispatch. You won't see an error — just slightly less parallelism. Update via the plugin marketplace or `claude update` to get full workflow support.
-
-## See Also
-
-- [Ultracode](/ultracode) — `xhigh` effort + automatic workflow orchestration
-- [Architecture](/architecture) — how workflows fit into the brain/hands data flow
-- [Lifecycle Hooks](/plugin/hooks) — events that fire around workflow execution (`TaskCreated`, `TaskCompleted`)
+- [Ultracode](/ultracode) — `/effort ultracode` and `/ccc-ultracode`
+- [Architecture](/architecture) — how workflows fit the brain/hands pattern
+- [Hooks 2026](/hooks-2026) — `TaskCreated` and `TaskCompleted` fire around workflow execution

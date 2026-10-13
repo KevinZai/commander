@@ -1,11 +1,62 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-07-22 | Version: 7.4.2 (see package.json) | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-10-13 | Version: 8.0.0 (see package.json) | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
-> **Latest: v7.4.2** — full-audit release: the PostCompact hook no longer emits output Claude Code rejects on every compaction, Mission Control finally shows finished agents as finished (roster joins on `agent_id`), staleness warnings can actually fire, every shipped surface tells the keyless story, and the rtk vendor picked up six upstream security fixes. Added in v7.4.1: `/ccc-update` and `/ccc-doctor` no longer dead-end on **Desktop-managed (account-synced) installs** — the mode with no marketplace clone and no `installed_plugins.json` entry *by design*. Both now detect three install modes (CLI marketplace / Desktop-managed / dev checkout), read the Desktop copy's real version, fetch latest from GitHub directly, and give mode-correct guidance. Added in v7.4.0: **One Commander.** The four published decks are now tabs of a single **inline console**, `/ccc-console` (82nd plugin skill): Overview · Usage · Safety · **Memory** · **History** · Launch, with a prompt bar that reaches the live session. Chips send fixed template commands and show exactly what they will send; nothing derived from telemetry, memory or logs ever reaches a `sendPrompt` payload. The deck skills survive as "publish just this tab" exports on their existing file paths, so every bookmarked artifact URL keeps updating in place. Memory reads your own claude-mem store (titles only; AGPL, so never bundled — "not installed" is the normal state). History is 30 days of telemetry Commander already writes, with no new collector. The console opens itself once at session start, locally; publishing stays consent-gated, with three off switches. Underneath: one renderer and one composed model, proven byte-identical against pre-refactor goldens. Fixed: a race that let identical telemetry produce different Usage numbers, and hook timeouts that were milliseconds in a seconds field. Added in v7.3.2: **Anthropic + Codex CLI only.** No Gemini adapter, no local-inference routing; executor preference is `claude` → `codex`. `gemini-fallback` is rewritten as `large-context`: use Opus 5's native 1M window, reduce, chunk-and-synthesize, then hand mechanical execution to the Codex CLI. Added in v7.3.1: **Claude Opus 5 end-to-end.** Default pin is `claude-opus-5` (no `[1m]` suffix needed — Opus 5 is 1M context by default and max), effort posture defaults to `high` and escalates deliberately instead of sitting at `xhigh`, and delegation now requires work to be large and genuinely independent before it gets spawned. **Fixed:** `/ccc-doctor` had been reporting `fail` on healthy installs since v6.0, and the highest-complexity tasks were emitting an invalid effort level and failing at dispatch. Added in v7.3.0: Commander notices its own updates — a SessionStart hook compares your installed version against GitHub `main` and tells you the exact fix; **`/ccc-update`** (81st plugin skill) is the click-first walkthrough, and `/ccc-doctor` diagnoses every stale-install layer. The Cockpit gained an 8th tab, **Prompts** — a searchable browser across the Claude Code docs library, the CCC library, repo templates, and a ReadyIQ showcase. Every deck now shows a data-freshness stamp, and the suggestion engine finally writes real update/staleness signals into Mission Control's Suggestions panel. Also fixed: the Codex mirror was silently dead on every install — it now carries the correct 10 supported hook events. Added in v7.2.0: a shared **Commander decks** switcher across every artifact (so users can see and jump between all of them) plus two new decks — **Usage & Cost** (`/ccc-usage`: burn, savings, cost-by-app) and **Safety** (`/ccc-safety`: blocked/auto-fixed actions + tool-failure hotspots). Added in v7.1.0: an ecosystem **Tools** tab in the Cockpit — open Commander surfaces, install the best MIT-licensed companion apps (Nimbalyst, Usage Monitor, Sniffly…), or generate an artifact dashboard. A full redesign of the Commander Cockpit shipped in v7.0.0 on the real commanderplugin.com coral brand: a filterable skill browser (rows/tiles toggle + real-time filter, replacing the one-skill-domain wall), an 11-strategy multi-select prompt enhancer with a GO button, real per-agent token/cost telemetry (recovered from the subagent transcript, deduped by `message.id`, honest "—" when unavailable), and an honest 14-domain taxonomy (no "core"). Mission Control's Charts strip (cost/day, agents dispatched/day, tasks completed/week, tool failures/day), an opt-in claude-mem **History** panel, and "derived" markers on Codex roster rows shipped in v6.8.3. The Commander Cockpit (`/ccc-browse` → 🎛️) — every tool clickable inside one self-contained artifact — shipped in v6.8.2. Claude+Codex side-by-side session tracking (`source_app` tagging, Source filter + pills, `sourceApp:name` agent keys) and the Suggestions panel were added in v6.8.1. Mission Control itself shipped in v6.8.0; v6.7 added `/ccc-relay` for durable cross-session spec → build → review handoffs, the 6-skill `ccc-smb-ops` domain, scrubbed outbound `/ccc-broadcast` status, click-first `/ccc-spawn`, and the `/ccc-prompt-fix` coach backed by a new ecosystem library of 52 prompts plus a 7-module Claude Code course.
+> **Latest: v8.0.0** — the October 2026 revamp: `/ccc-codex` manages the Codex CLI from Claude, the Commander HUD mod draws a status band above the prompt, six plugin workflows ship as `/commander:<name>`, eight plugin evals guard the core skills, seven new hook events are wired (30 events, 51 handlers), and every model reference moved to the Claude 5.5 generation and the GPT-6 family. See [What's New in v8](#whats-new-in-v8). Earlier releases are in [CHANGELOG.md](CHANGELOG.md).
+
+---
+
+## What's New in v8
+
+> Commander 8.0.0 (2026-10-13) — full notes in [CHANGELOG.md](CHANGELOG.md).
+
+### `/ccc-codex` — the Codex CLI from inside Claude
+
+One click-first skill for the whole Codex surface: `codex doctor`, model selection, plugins and marketplaces, MCP servers, installing Commander's agents as Codex TOML subagents in `~/.codex/agents/`, Codex Cloud tasks, remote control, `codex review`, `codex update`, `/import` guidance and `config.toml` edits. Every config write asks first, backs the file up and verifies with `codex doctor --json`.
+
+### The Commander HUD mod
+
+A Claude Mod (`commander/cowork-plugin/mods/commander-hud/`) draws one line above the prompt: Fable Method state, running agents, the session's tool-call budget and an update pill. `/ccc-hud` toggles it (`on`, `off`, `status`) without starting a model turn. It only observes — no tool, permission or prompt hooks, no model calls, no network — and reads only `~/.claude/commander/`. Needs Claude Code 2.1.287+ (Desktop 2.1.286+); older clients ignore it. Details: [docs/MODS.md](docs/MODS.md).
+
+### Plugin workflows
+
+Six dynamic workflows ship in the plugin and run as `/commander:<name>`: `ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate`, `ccc-prompt-audit` and `ccc-release-audit`. Each fans out agents and has a fresh agent confirm or refute every finding before it reaches you.
+
+### Plugin evals
+
+Eight `claude plugin eval` cases under `commander/cowork-plugin/evals/` (hub, plan, review, doctor, fable, update, suggest, codex):
+
+```bash
+claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3
+```
+
+### New hook events
+
+30 lifecycle hooks, 51 handlers. New in v8:
+
+| Event | Handler | What it does |
+|---|---|---|
+| `PermissionDenied` | `permission-denied-logger` | Auto-mode denials reach `/ccc-safety` |
+| `PreModelSwitch` / `PostModelSwitch` | `model-switch-logger` | Routing telemetry and a tier reminder |
+| `TeammateIdle` | `fleet-telemetry` | Fleet telemetry |
+| `CwdChanged` / `DirectoryAdded` | `session-state-sync` | Session state follows the working directory |
+| `FileChanged` | `stale-claude-md-nudge` | Stale-instructions nudge when `CLAUDE.md` changes (watch list seeded at SessionStart) |
+
+`WorktreeCreate` and `WorktreeRemove` are deliberately not registered: a hook on either replaces git's own worktree handling. The Codex mirror carries the 12 events Codex supports.
+
+### Routing
+
+| Tier | Claude alias | Codex | Use |
+|---|---|---|---|
+| Deep | `fable` (Fable 5.1) | `gpt-6-astra` | architecture, migrations, threat models, verification |
+| Default | `opus` (Opus 5.5) | `gpt-6.1-sol` | implementation, review, orchestration |
+| Fast | `sonnet` (Sonnet 5.5) | `gpt-6-sol` | bounded edits, docs, routers |
+| Bulk | `haiku` (Haiku 5.5) | `gpt-6-luna` | classification, extraction, hook-side summaries |
+
+Agents name an alias, never a pinned id, so they track the newest model in each line.
 
 ---
 
@@ -16,7 +67,8 @@
 - [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists, The Fable Method (12 pillars)
 - [The Loop Taxonomy](#the-loop-taxonomy) — 4 loop primitives, `/goal`/`/loop`/`/schedule`, verifier-separation, state files
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers + always-on PM loop)
-- [The 83 Plugin Skills](#the-83-plugin-skills) — The curated plugin surface
+- [What's New in v8](#whats-new-in-v8) — `/ccc-codex`, the HUD mod, plugin workflows, evals, new hook events, routing
+- [The 84 Plugin Skills](#the-84-plugin-skills) — The curated plugin surface
 
 ### The Chapters
 - [Chapter 1: Genesis](#stage-1-starting-a-new-project) — Starting a New Project
@@ -27,7 +79,7 @@
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v7.4.2 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v8.0.0 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -76,7 +128,7 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 | **DEEP** | 1-5 days | Spec-first, TDD, subagents | Opus | mega-{domain} + ccc-testing |
 | **SAAS** | 1-4 weeks | Full lifecycle: scaffold→auth→billing→ship | Opus | ccc-saas + ccc-seo + ccc-testing + ccc-devops |
 | **OVERNIGHT** | 6-12h autonomous | Checkpoints, error recovery | Opus | overnight-runner + domain skills |
-| **ARCHITECTURE / THREAT-MODEL / MIGRATION** | Any | Deep reasoning, multi-angle analysis | Fable 5 | `/model claude-fable-5[1m]` — escalation tier only |
+| **ARCHITECTURE / THREAT-MODEL / MIGRATION** | Any | Deep reasoning, multi-angle analysis | Fable 5.1 | `/model fable` — escalation tier only |
 
 ### Orchestrator / Executor Model
 
@@ -86,11 +138,11 @@ Use a high-reasoning orchestrator for ambiguity, judgment, and acceptance criter
 
 | Role | Job | Default Tool |
 |------|-----|--------------|
-| **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5 `effort: high`, or Opus 5 |
-| **Executor** | Implements the goal file exactly, runs its own tests as a first gate, and reports evidence — the orchestrator (or a fresh verifier) independently confirms. It does not re-plan. | The Codex CLI executor (GPT-5.6) via `codex`, or a Sonnet subagent |
+| **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5.1 `effort: high`, or Opus 5.5 |
+| **Executor** | Implements the goal file exactly, runs its own tests as a first gate, and reports evidence — the orchestrator (or a fresh verifier) independently confirms. It does not re-plan. | The Codex CLI executor (GPT-6.1 Sol, or GPT-6 Astra for deep work) via `codex`, or a Sonnet subagent |
 | **Verifier** | Re-reads the goal file and checks every acceptance criterion before calling the work done. | Same Fable/Opus orchestrator |
 
-Run `/ccc-orchestrate` when the work is big enough that planning and execution should be split. The orchestrator writes the goal file, dispatches the Codex CLI executor (GPT-5.6) through the `codex` adapter or a Sonnet subagent, then verifies against the checklist. If one criterion fails, re-dispatch only that gap.
+Run `/ccc-orchestrate` when the work is big enough that planning and execution should be split. The orchestrator writes the goal file, dispatches the Codex CLI executor (GPT-6.1 Sol) through the `codex` adapter or a Sonnet subagent, then verifies against the checklist. If one criterion fails, re-dispatch only that gap.
 
 Run `/ccc-handoff` frequently. Context quality decays as the window fills; the fix is not one giant compaction at the end. Write a dense handoff file, start a fresh chat, and resume from the saved state while the problem is still crisp.
 
@@ -154,7 +206,7 @@ Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges th
 
 ### The Fable Method
 
-> **Distilled from Claude Fable 5, written to run on any model.** Frontier-model results come from the *system around the model*, not just raw capability. Every instinct that makes Fable reliable — refusing a single pass, isolating blast radius, verifying against ground truth, treating context as disposable, operating like a PM instead of a typist — can be externalized as a gate any model can follow. Arm it with `/ccc-fable on`. Full text: `commander/cowork-plugin/rules/fable-method.md`.
+> **Distilled from Claude Fable, written to run on any model.** Frontier-model results come from the *system around the model*, not just raw capability. Every instinct that makes Fable reliable — refusing a single pass, isolating blast radius, verifying against ground truth, treating context as disposable, operating like a PM instead of a typist — can be externalized as a gate any model can follow. Arm it with `/ccc-fable on`. Full text: `commander/cowork-plugin/rules/fable-method.md`.
 
 **The one-line version:** *judgment as process.* When the model is weaker, the process must be stronger.
 
@@ -349,7 +401,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 
 ---
 
-## The 83 Plugin Skills
+## The 84 Plugin Skills
 
 > *Every skill that ships with `/plugin install commander`. Not the 467-skill ecosystem — just the curated plugin surface.*
 
@@ -368,7 +420,9 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 | `ccc-ci` | CI/CD webhook channel and failure diagnostics |
 | `ccc-claudemd` | Audit `CLAUDE.md` drift with approval-gated fixes |
 | `ccc-code-review` | Security, performance, correctness, and maintainability review |
+| `ccc-codex` | Manage the Codex CLI: doctor, models, plugins, MCP, agents, cloud tasks, review, update, config |
 | `ccc-connect` | Opt-in MCP connector setup |
+| `ccc-console` | Inline Commander Console — Overview · Usage · Safety · Memory · History · Launch |
 | `ccc-content` | Blog, social, email, copy, and documentation creation |
 | `ccc-data` | Data router: pipelines, SQL, analytics, ML ops |
 | `ccc-debate` | Adversarial multi-agent debate and synthesis |
@@ -431,16 +485,16 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 | `ccc-testing` | Testing router: TDD, E2E, visual, load, coverage |
 | `ccc-triage` | GitHub issue and PR triage |
 | `ccc-tuneup` | Read-only local setup optimization with safe fixes |
-| `ccc-ultracode` | Maximum-reasoning dynamic workflow orchestration |
+| `ccc-ultracode` | Explains `/effort ultracode` and launches a verified multi-agent workflow |
 | `ccc-upgrade` | Audit and update vendor submodules |
 | `ccc-update` | Click-first plugin update — detect installed vs. latest, update, restart, verify |
 | `ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app |
 | `ccc-xray` | Project health scorecard with fix chips |
-| `ccc-yolo-setup` | Safe-YOLO permissions + Plan mode guardrails |
+| `ccc-yolo-setup` | Fewer approval prompts: auto permission mode, a vetted read-only allowlist and secret deny rules |
 
 **Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
-**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 23 lifecycle hooks × 44 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, and more).
+**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 30 lifecycle hooks × 51 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, PermissionDenied, PreModelSwitch, Stop, PreCompact, SubagentStop, TeammateIdle, FileChanged, SessionEnd, and more). Plus the Commander HUD mod, 6 plugin workflows (`/commander:<name>`) and 8 plugin evals.
 
 ---
 
@@ -667,7 +721,7 @@ These failure modes come from reverse-engineering Claude Code's internal behavio
 ### Rate Limit Management (Cowork)
 
 - Track usage: `/usage` or check Settings → Usage
-- If hitting limits: switch to Haiku for bulk tasks, Sonnet for general work, Opus for judgment calls, Fable 5 only when deep reasoning is the bottleneck (architecture / threat-model / migration)
+- If hitting limits: switch to Haiku for bulk tasks, Sonnet for general work, Opus for judgment calls, Fable 5.1 only when deep reasoning is the bottleneck (architecture / threat-model / migration)
 - Rate limits reset: check `/usage` for exact timing
 - Max plan ($200/month) has higher Cowork limits than Pro ($20/month)
 
@@ -1177,7 +1231,7 @@ CCC is designed to be driven by AI agents, not just humans. Any orchestrator —
 
 **OpenClaw agent dispatching a build:**
 ```bash
-result=$(ccc --dispatch "Build JWT auth module" --json --model opusplan --budget 5)
+result=$(ccc --dispatch "Build JWT auth module" --json --model opus --budget 5)
 echo $result | jq '.session_id, .cost, .result'
 ```
 
@@ -1572,9 +1626,9 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v7.4.2)
+### 🛠️ Plugin Workflows (v8.0.0)
 
-CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 83 skills; these core workflow shortcuts require no menu traversal:
+CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 84 skills; these core workflow shortcuts require no menu traversal:
 
 | Workflow | What it does |
 |----------|-------------|
@@ -1598,6 +1652,9 @@ CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash
 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings vs. all-Opus baseline, cost-by-app |
 | `/ccc-safety` | Safety deck — blocked/auto-fixed action outcomes, redacted tool-failure hotspots |
 | `/ccc-update` | Click-first update walkthrough — detect installed vs. latest, update, restart, verify hooks |
+| `/ccc-codex` | Manage the Codex CLI from Claude — doctor, models, plugins, MCP, agents, cloud, review, update |
+
+The six bundled dynamic workflows also run directly as `/commander:ccc-audit`, `/commander:ccc-deep-review`, `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit` and `/commander:ccc-release-audit`.
 
 Pick one and the plugin handles it — no service ports, no persistent process. For CLI-only power-user commands (fleet dispatch, AO worker pool, cost dashboard), see the [CLI-Only Commands appendix](#cli-only-commands-cli-power-user) below.
 
@@ -2049,7 +2106,7 @@ Spawn a [Implementer/Researcher/Reviewer/Batch/Explorer] subagent.
 
 Task: [specific, scoped task]
 Context they need: [paste all relevant context — subagents don't share memory]
-Model: [Sonnet for execution / Haiku for bulk / Opus for judgment / Fable 5 for architecture·threat-model·migration]
+Model: [Sonnet for execution / Haiku for bulk / Opus for judgment / Fable 5.1 for architecture·threat-model·migration]
 Report format:
 - What was done
 - What files were changed
@@ -2278,7 +2335,7 @@ Every kit-native hook can be individually disabled via its `KZ_DISABLE_*` env va
 
 ```json
 {
-  "model": "claude-sonnet-5",
+  "model": "opus",
   "permissions": {
     "allow": [
       "Bash(npm run *)",
@@ -2491,12 +2548,14 @@ Verification: [how you'll know it's done]
 
 | Model | Best For | Cost | When to Use |
 |-------|---------|------|-------------|
-| **Haiku 4.5** | Fast iteration, bulk ops, simple tasks | $ | Lightweight subagents, pair programming, worker agents |
-| **Sonnet 5** | General development, most coding tasks | $$ | Main development, orchestrating multi-agent workflows. Best Sonnet — succeeds Sonnet 4.6. |
-| **Opus 5** | Complex architecture, deep reasoning, agentic coding | $$$ | **Everyday session default.** Architectural decisions, research, judgment calls. Default effort is `high` — step up to `xhigh`/`max` only for demanding coding/agentic work or maximum depth; don't reuse an effort setting carried over from Opus 4.8 without re-sweeping it. |
-| **Fable 5** | Deep multi-angle reasoning | $$$$ | **Escalation tier only.** Architecture / planning / migration / threat-model sessions where deep reasoning is the actual bottleneck. Activate: `/model claude-fable-5[1m]`. Nudged once per day when ≥2 deep-reasoning signals detected. Motto: *pay for Fable on the thinking, not the typing.* |
+| **Haiku 5.5** (`haiku`) | Classification, routing, extraction, bulk ops | $ | Hook-side summaries, high-volume worker agents. From $0.10 / $0.50 per MTok. |
+| **Sonnet 5.5** (`sonnet`) | Bounded edits, docs, routers, focused reviews | $$ | Writers, fleet workers, quick passes. $2 / $10 per MTok. |
+| **Opus 5.5** (`opus`) | Implementation, review, orchestration | $$$ | **Everyday session default** and most specialist agents. Default effort is `medium`; step up to `high` or `xhigh` for demanding agentic work. $4 / $20 per MTok. |
+| **Fable 5.1** (`fable`) | Deep multi-angle reasoning | $$$$ | **Escalation tier.** Architecture, migrations, threat models and verification of load-bearing claims; the architect and security-auditor agents run on it. Activate with `/model fable`. $10 / $50 per MTok. Motto: *pay for Fable on the thinking, not the typing.* |
 
-**Adaptive thinking:** Opus 5 uses `thinking: {type: "adaptive"}`. Effort levels: `xhigh` (agentic/coding tasks) and `max` (maximum depth) — note `thinking: {type: "disabled"}` now errors at `xhigh`/`max` on Opus 5, only valid at `high` or below. Fable 5 has adaptive thinking always-on. Do not use `budget_tokens` — deprecated on 4.6+, removed on 4.7.
+**Adaptive thinking:** thinking is adaptive and always on for Fable 5.1 and Opus 5.5, and adaptive for Sonnet 5.5 and Haiku 5.5. Effort levels are `low`, `medium`, `high`, `xhigh` and `max`; `max` lasts only for the current session in Claude Code. `thinking: {type: "disabled"}` is not accepted at `xhigh` or `max`. Do not use `budget_tokens`.
+
+**Aliases over ids:** plugin agents and skills name `fable`, `opus`, `sonnet`, `haiku` or `inherit`; aliases track the newest model in each line. Name a full id such as `claude-opus-5-5` only when the text is about that specific model.
 
 **Smart routing:** `selectModelForComplexity(score)` auto-routes subagents: 0–29 → Haiku, 30–65 → Sonnet, 66–85 → Opus, 86–100 → Fable. Dispatch tiers: `power` = Fable/Opus, `assisted` = Opus/Sonnet, `guided` = Sonnet/Haiku.
 
@@ -2506,36 +2565,34 @@ Verification: [how you'll know it's done]
 
 ## Dynamic Workflows + Ultracode
 
-> *Research preview — requires Claude Code v2.1.154+. Skills fall back to standard `Agent()` dispatch on older clients.*
-
 ### What Is a Dynamic Workflow?
 
-A dynamic workflow is a JS file the Claude Code runtime executes outside your main session context. It spawns many subagents **concurrently**, cross-validates their findings, and returns a synthesized result. Think of it as running 4 Sonnet reviewers at once, where each reviewer's findings are reconciled before you see them.
+A dynamic workflow is a script the Workflow tool runs outside your main session context. It spawns many agents **concurrently**, has fresh agents confirm or refute their findings, and returns a synthesized result.
 
-CC Commander ships 4 bundled workflows in `commander/cowork-plugin/workflows/`:
+CC Commander ships 6 plugin workflows in `commander/cowork-plugin/workflows/`. Each runs directly as `/commander:<name>`, and the skills in the second column launch them for you:
 
-| Workflow | Backs skill | What it does |
+| Workflow | Also launched by | What it does |
 |----------|-------------|--------------|
-| `ccc-audit` | `/ccc-xray` | Repo-wide audit — security, performance, architecture, test coverage |
-| `ccc-deep-review` | `/ccc-review` | 4-dimension branch review + reconciler agent |
-| `ccc-migrate` | `/ccc-build` migrate mode | Discover → transform → verify pipeline |
-| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge orchestration |
+| `ccc-audit` | `/ccc-xray` | Repo health audit — one finder per dimension, every finding verified, scored scorecard |
+| `ccc-deep-review` | `/ccc-review` | Branch review over four weighted dimensions, severity-grouped verdict |
+| `ccc-migrate` | `/ccc-ultracode` | Discover every site, transform each in its own worktree, verify each change independently |
+| `ccc-fleet` | `/ccc-fleet` | Fan-out, sequential pipeline, judge panel or multi-lens debate |
+| `ccc-prompt-audit` | `/ccc-ultracode` | Check every skill and agent against the prompt standard |
+| `ccc-release-audit` | `/ccc-ultracode` | Run every release gate, return go or no-go with blockers |
 
-You don't need to invoke workflows directly. Run the skill that backs them (`/ccc-xray`, `/ccc-review`, etc.) and CCC handles it. On Claude Code < v2.1.154, the same skills run via `Agent()` sequentially with identical output format.
+`CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` pins every workflow agent's model when you need a fixed tier.
 
 ### Ultracode
 
-**`/ccc-ultracode`** = `xhigh` effort + automatic workflow orchestration.
-
-Three ways to activate:
+Ultracode is its own toggle: `/effort ultracode on` makes Claude plan a verified workflow for each substantial task instead of a single-agent pass, and `/effort ultracode off` turns it off. It does not change the reasoning level — that is the separate `/effort xhigh` (or `high`, `max`) dial.
 
 ```
-/ccc-ultracode               # guided — recommended
-/ccc-ultracode               # guided ultracode mode
-workflow: <task description> # one-off without mode switch
+/effort ultracode on         # every substantial task becomes a planned workflow
+/ccc-ultracode               # explains both dials, launches a bundled workflow
+"audit auth as a workflow"   # one task, no toggle
 ```
 
-**Cost note:** ultracode runs Opus 5 at `xhigh` effort with parallel subagents — can be 3–5× a standard run. The `cost-ceiling-enforcer.js` hook fires automatically. Check session cost with `/ccc-session → Session Cost`.
+**Cost note:** a workflow spawns many agents; a full-repo audit can cost ten to fifty times a single pass. Scope to a path first. The `cost-ceiling-enforcer.js` hook still applies. Check spend with `/ccc-usage`.
 
 **Cost optimization tips:**
 - Use Haiku for 90% of subagent work (3x savings, 90% of Sonnet capability)
@@ -2547,10 +2604,10 @@ workflow: <task description> # one-off without mode switch
 ```mermaid
 graph TD
     A[New Task] --> B{Complexity score}
-    B -->|0-29 Simple/Bulk| C[Haiku 4.5 - $]
-    B -->|30-65 Standard Dev| D[Sonnet 5 - $$]
-    B -->|66-85 Architecture/Research| E[Opus 5 - $$$]
-    B -->|86-100 Deep Reasoning| F[Fable 5 - $$$$]
+    B -->|0-29 Simple/Bulk| C[Haiku 5.5 - $]
+    B -->|30-65 Standard Dev| D[Sonnet 5.5 - $$]
+    B -->|66-85 Architecture/Research| E[Opus 5.5 - $$$]
+    B -->|86-100 Deep Reasoning| F[Fable 5.1 - $$$$]
     C --> G{Subagent?}
     D --> G
     E --> G
@@ -2559,7 +2616,7 @@ graph TD
     G -->|No| I[Use current session model]
 ```
 
-**Rule:** Never change models mid-session. Spawn a subagent with the desired model instead. Fable 5 is the escalation tier — use Opus 5 for everything else.
+**Rule:** Never change models mid-session. Spawn a subagent with the desired model instead. Fable 5.1 is the escalation tier — use Opus 5.5 for everything else.
 
 ---
 
@@ -2618,7 +2675,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 ---
 ## Built on Claude Agent SDK
 
-> *v7.4.2* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v8.0.0* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2627,7 +2684,7 @@ CC Commander follows a **brain/hands** separation:
 - **Brain (Claude):** Your main Claude Code session reads project context, routes intent, and makes decisions.
 - **Hands (CC Commander):** 22 specialist sub-agent personas execute the work — scoped, specialized, and disposable. 15 general-purpose personas plus 7 language-specific code reviewers (TypeScript, Python, Go, Rust, Java, Kotlin, C#).
 
-When you run `/ccc-review`, Claude doesn't guess how to do a code review. It loads the `reviewer` persona (Sonnet, read-only tools, structured severity format) and delegates. When the reviewer finishes, the persona is gone. The next task starts fresh. Context stays clean because each sub-agent operates at full capacity instead of a generalist stretched thin.
+When you run `/ccc-review`, Claude doesn't guess how to do a code review. It loads the `reviewer` persona (Opus, read-only tools, structured severity format) and delegates. When the reviewer finishes, the persona is gone. The next task starts fresh. Context stays clean because each sub-agent operates at full capacity instead of a generalist stretched thin.
 
 This is the same pattern Anthropic describes in their Claude Agent SDK documentation: a parent session orchestrates specialist children, each with a narrow tool allowlist and a fixed turn budget.
 
@@ -2637,30 +2694,30 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 
 | # | Persona | Model | Core responsibility |
 |---|---------|-------|-------------------|
-| 1 | `architect` | Fable 5 | System design, tradeoff analysis |
-| 2 | `reviewer` | Sonnet 5 | Code review (security / perf / correctness / maintainability) |
-| 3 | `builder` | Sonnet 5 | Feature implementation, TDD |
-| 4 | `security-auditor` | Fable 5 | OWASP audits, threat modeling |
-| 5 | `debugger` | Fable 5 | Root-cause investigation (Iron Law) |
-| 6 | `designer` | Sonnet 5 | UI/UX critique, accessibility |
-| 7 | `qa-engineer` | Sonnet 5 | Edge-case hunting, coverage audit |
-| 8 | `devops-engineer` | Sonnet 5 | Deploy planning, rollback specs |
-| 9 | `data-analyst` | Sonnet 5 | Signal extraction, statistical honesty |
-| 10 | `content-strategist` | Sonnet 5 | Brand voice, messaging, copy |
-| 11 | `product-manager` | Fable 5 | User stories, acceptance criteria |
-| 12 | `performance-engineer` | Sonnet 5 | p99 benchmarking, hotpath analysis |
-| 13 | `researcher` | Sonnet 5 | Deep research, citation management |
-| 14 | `technical-writer` | Sonnet 5 | Documentation, clarity audits |
-| 15 | `fleet-worker` | Sonnet 5 | Parallel batch execution |
-| 16 | `typescript-reviewer` | Sonnet 5 | Type safety, async correctness, ESM/CJS hygiene |
-| 17 | `python-reviewer` | Sonnet 5 | PEP 8, type hints, async/await, pytest quality |
-| 18 | `go-reviewer` | Sonnet 5 | Effective Go idioms, gofmt, race conditions, channels |
-| 19 | `rust-reviewer` | Sonnet 5 | Ownership/lifetimes, unsafe blocks, clippy, tokio patterns |
-| 20 | `java-reviewer` | Sonnet 5 | PMD/Spotless, Spring patterns, NPE prevention |
-| 21 | `kotlin-reviewer` | Sonnet 5 | Idiomatic Kotlin, coroutines, Android patterns, null safety |
-| 22 | `csharp-reviewer` | Sonnet 5 | .NET patterns, async/await, LINQ, IDisposable compliance |
+| 1 | `architect` | `fable` | System design, tradeoff analysis |
+| 2 | `reviewer` | `opus` | Code review (security / perf / correctness / maintainability) |
+| 3 | `builder` | `opus` | Feature implementation, TDD |
+| 4 | `security-auditor` | `fable` | OWASP audits, threat modeling |
+| 5 | `debugger` | `opus` | Root-cause investigation (Iron Law) |
+| 6 | `designer` | `opus` | UI/UX critique, accessibility |
+| 7 | `qa-engineer` | `opus` | Edge-case hunting, coverage audit |
+| 8 | `devops-engineer` | `opus` | Deploy planning, rollback specs |
+| 9 | `data-analyst` | `opus` | Signal extraction, statistical honesty |
+| 10 | `content-strategist` | `sonnet` | Brand voice, messaging, copy |
+| 11 | `product-manager` | `opus` | User stories, acceptance criteria |
+| 12 | `performance-engineer` | `opus` | p99 benchmarking, hotpath analysis |
+| 13 | `researcher` | `opus` | Deep research, citation management |
+| 14 | `technical-writer` | `sonnet` | Documentation, clarity audits |
+| 15 | `fleet-worker` | `sonnet` | Parallel batch execution |
+| 16 | `typescript-reviewer` | `opus` | Type safety, async correctness, ESM/CJS hygiene |
+| 17 | `python-reviewer` | `opus` | PEP 8, type hints, async/await, pytest quality |
+| 18 | `go-reviewer` | `opus` | Effective Go idioms, gofmt, race conditions, channels |
+| 19 | `rust-reviewer` | `opus` | Ownership/lifetimes, unsafe blocks, clippy, tokio patterns |
+| 20 | `java-reviewer` | `opus` | PMD/Spotless, Spring patterns, NPE prevention |
+| 21 | `kotlin-reviewer` | `opus` | Idiomatic Kotlin, coroutines, Android patterns, null safety |
+| 22 | `csharp-reviewer` | `opus` | .NET patterns, async/await, LINQ, IDisposable compliance |
 
-Fable 5 personas (`architect`, `security-auditor`, `debugger`, `product-manager`) need deep multi-angle reasoning. Opus 5 is the everyday session default. Sonnet handles the rest at lower cost, including all 7 language-specific reviewers (16-22) — mechanical, well-specified audits are exactly the de-escalation candidates the Fable Method's Pillar 11 (Effort calibration) calls out.
+Models are aliases: `fable` (Fable 5.1) for `architect` and `security-auditor`, where deep multi-angle reasoning is the bottleneck; `sonnet` (Sonnet 5.5) for `content-strategist`, `technical-writer` and `fleet-worker`, where the work is bounded and well specified; `opus` (Opus 5.5) for everything else. Read-only reviewers carry `disallowedTools` so they cannot edit. The routing follows the Fable Method's Pillar 11 (effort calibration).
 
 ### What This Means for Users
 
@@ -2669,7 +2726,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v7.4.2* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 83 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (44 handlers). Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`).
+> *v8.0.0* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 84 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (51 handlers), the Commander HUD mod, 6 plugin workflows and 8 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2682,10 +2739,12 @@ Claude Code session
   |
   +-- /plugin install commander       (one-time, from marketplace)
   |
-  +-- /ccc-build, /ccc-review, ...    (83 plugin skills)
+  +-- /ccc-build, /ccc-review, ...    (84 plugin skills)
   +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
-  +-- 23 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
+  +-- 30 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
+  +-- Commander HUD mod               (band above the prompt, /ccc-hud)
+  +-- 6 plugin workflows              (/commander:ccc-audit, ...)
   +-- AskUserQuestion chip picker     (click-first — no menu traversal)
 ```
 
@@ -2717,16 +2776,16 @@ ccc --repair
 | **Arrow-key menus** | Navigate with arrows or letter shortcuts |
 | **10 themes** | Cyberpunk, Fire, Graffiti, Futuristic (switch anytime) |
 | **Spec-driven build** | 3 clarification questions before dispatch |
-| **Plan-mode-first** | Every dispatch starts in plan mode for safety |
+| **Auto permission mode** | Dispatches run with `--permission-mode auto`; night mode is the only opt-in exception |
 | **Auto-compact** | 70% context threshold for compaction |
-| **Level-based defaults** | Guided=$2/sonnet, Assisted=$3/opusplan, Power=$5/opusplan |
+| **Level-based defaults** | Guided = `sonnet` / $5, Assisted = `opus` / $5, Power = `fable` / $10 |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
 | **Skill browser** | Browse all 467+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 83 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 23 lifecycle hooks (44 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 84 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (51 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -2881,7 +2940,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v7.4.2 — How CCC thinks before it acts.*
+> *Appendix: v8.0.0 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 
@@ -3048,7 +3107,7 @@ CC Commander is designed to take advantage of the latest Claude Code features au
 | **500K character output** | Knowledge pipeline ingests full session transcripts in one pass — no chunking needed. |
 | **Pause mid-agent** | Confidence-gate hook emits PAUSE (not ABORT) when confidence drops. User can redirect, then resume. Works in YOLO and overnight modes. |
 | **Auto-mode boundaries** | Dispatcher defaults to `--permission-mode auto` for unattended runs. The background safety classifier blocks scope escalation without needing `--dangerously-skip-permissions`. |
-| **Plugin lifecycle hooks** | 23 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) — loaded automatically when the plugin is installed. |
+| **Plugin lifecycle hooks** | 30 lifecycle hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification) — loaded automatically when the plugin is installed. |
 
 > These features require Claude Code v2.189+. Run `claude --version` to check.
 
@@ -3068,7 +3127,7 @@ One hour of active use can exhaust a Pro daily allocation.
 | Session resets | Prevents bloat | Start fresh after completing logical tasks. Context grows exponentially. |
 | Subagent delegation | Fresh context | Each subagent starts clean. No accumulated history. |
 | Batch dispatch | 50% cost | Use `--stream false` for non-urgent tasks (future: Batch API). |
-| Model routing | 3-10x savings | Haiku for simple tasks, Sonnet for standard, Opus for complex, Fable 5 for deep-reasoning escalation. CCC auto-selects via complexity score. |
+| Model routing | 3-10x savings | Haiku for simple tasks, Sonnet for standard, Opus for complex, Fable 5.1 for deep-reasoning escalation. CCC auto-selects via complexity score. |
 
 ### Cache-Friendly CLAUDE.md Structure
 1. Static rules and standards (top) — cached across sessions

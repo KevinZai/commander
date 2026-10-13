@@ -1,9 +1,9 @@
 ---
 title: "Specialist Sub-Agents"
-description: "22 specialist personas built on the Claude Agent SDK pattern. Each has a fixed model tier, scoped tool allowlist, turn budget, and voice system."
+description: "22 specialist personas built on the Claude Agent SDK pattern. Each declares a model alias, effort level, scoped tools and a voice system."
 ---
 
-CC Commander ships **22 specialist sub-agents** — all free, no tier gating. Each persona is a scoped execution context: fixed model, specific tools, turn budget, and a voice layer that shapes how it communicates.
+CC Commander ships **22 specialist sub-agents** — all free, no tier gating. Each persona is a scoped execution context: a model alias (`fable`, `opus` or `sonnet`) that tracks the newest model in its line, an effort level, specific tools (read-only reviewers use `disallowedTools`), and a voice layer that shapes how it communicates.
 
 This is the **brain/hands** pattern: Claude (your main session) is the brain. Sub-agents are the hands — each specialized for one domain, disposable after the task. Context stays clean because each sub-agent starts fresh.
 
@@ -13,87 +13,87 @@ See [Architecture](/architecture) for how delegation works end-to-end.
 
 <CardGroup cols={2}>
   <Card title="architect" icon="building" color="#8b5cf6">
-    **Model:** Fable · **Role:** System design, tradeoff analysis, irreversibility assessment
+    **Model:** Fable 5.1 (`fable`), effort `xhigh` · **Role:** System design, tradeoff analysis, irreversibility assessment
 
     Leads with the decision, then the reasoning. Always names 2-3 alternatives. Calls out when a choice locks you in.
   </Card>
   <Card title="reviewer" icon="eye" color="#3b82f6">
-    **Model:** Sonnet · **Role:** Code review across 4 dimensions: security, performance, correctness, maintainability
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Code review across 4 dimensions: security, performance, correctness, maintainability
 
     Severity-rated findings (🔴/🟠/🟡/🟢). Read-only by design — analyzes, never modifies.
   </Card>
   <Card title="builder" icon="hammer" color="#22c55e">
-    **Model:** Sonnet · **Role:** Feature implementation, TDD, scaffolding
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Feature implementation, TDD, scaffolding
 
     Ships the simplest thing that works. Extracts abstractions when seen twice, not once. Highest turn budget for multi-phase builds.
   </Card>
   <Card title="security-auditor" icon="shield" color="#ef4444">
-    **Model:** Fable · **Role:** OWASP audits, threat modeling, adversarial review
+    **Model:** Fable 5.1 (`fable`), effort `xhigh` · **Role:** OWASP audits, threat modeling, adversarial review
 
     Assumes every input is hostile. CWE IDs, exploit concepts, and verified fixes — never hand-waves "probably fine."
   </Card>
   <Card title="debugger" icon="bug" color="#f97316">
-    **Model:** Fable · **Role:** Root-cause investigation
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Root-cause investigation
 
     Iron Law: **no fix without confirmed root cause.** Four-phase process: reproduce → hypothesize → verify → fix.
   </Card>
   <Card title="designer" icon="palette" color="#ec4899">
-    **Model:** Sonnet · **Role:** UI/UX critique, accessibility, visual hierarchy
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** UI/UX critique, accessibility, visual hierarchy
 
     Visual-first. References design principles by name. Never gives vague feedback — specific values, contrast ratios, spacing tokens.
   </Card>
   <Card title="qa-engineer" icon="flask" color="#14b8a6">
-    **Model:** Sonnet · **Role:** Edge-case hunting, test coverage audit
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Edge-case hunting, test coverage audit
 
     Leads with the breaking case. Enumerates: empty, null, max, overflow, unicode, concurrent. Coverage delta per change.
   </Card>
   <Card title="devops-engineer" icon="server" color="#64748b">
-    **Model:** Sonnet · **Role:** Deploy planning, rollback specs, monitoring setup
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Deploy planning, rollback specs, monitoring setup
 
     Every deployment idea paired with a rollback plan. Talks in SLIs/SLOs/error budgets. Rollback in &lt;5 min or it's incomplete.
   </Card>
   <Card title="data-analyst" icon="chart-bar" color="#0ea5e9">
-    **Model:** Sonnet · **Role:** Signal extraction, visualization, statistical honesty
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Signal extraction, visualization, statistical honesty
 
     Shows the data, then the chart, then the insight — in that order. Correlation ≠ causation, always stated.
   </Card>
   <Card title="content-strategist" icon="pen" color="#a855f7">
-    **Model:** Sonnet · **Role:** Brand voice, messaging, copy variants
+    **Model:** Sonnet 5.5 (`sonnet`), effort `medium` · **Role:** Brand voice, messaging, copy variants
 
     First question: "Who's the reader?" Offers 3 headline variants. Says "delete this paragraph" when warranted.
   </Card>
   <Card title="product-manager" icon="target" color="#f59e0b">
-    **Model:** Fable · **Role:** User stories, acceptance criteria, priority sequencing
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** User stories, acceptance criteria, priority sequencing
 
     Every feature is a bet. Every bet has a measurable outcome. Scope discipline is a moral act.
   </Card>
   <Card title="performance-engineer" icon="bolt" color="#22d3ee">
-    **Model:** Sonnet · **Role:** Hotpath identification, p99 benchmarking
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Hotpath identification, p99 benchmarking
 
     Measure, don't guess. Every claim backed by a benchmark or labeled "estimated." Never says "faster" without a baseline.
   </Card>
   <Card title="researcher" icon="magnifying-glass" color="#6366f1">
-    **Model:** Sonnet · **Role:** Deep research, competitive analysis, citation management
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Deep research, competitive analysis, citation management
 
     Facts, inferences, and opinions separated. Every claim cites a source. Recency matters.
   </Card>
   <Card title="technical-writer" icon="file-text" color="#84cc16">
-    **Model:** Sonnet · **Role:** Documentation, API reference, clarity audits
+    **Model:** Sonnet 5.5 (`sonnet`), effort `medium` · **Role:** Documentation, API reference, clarity audits
 
     Clarity over cleverness. Active voice. Short sentences. If a beginner can't follow it, it's broken.
   </Card>
   <Card title="fleet-worker" icon="users" color="#06b6d4">
-    **Model:** Sonnet · **Role:** Parallel batch work, scoped execution in fleet mode
+    **Model:** Sonnet 5.5 (`sonnet`), effort `medium` · **Role:** Parallel batch work, scoped execution in fleet mode
 
     Strict-report executor. Stays in scope. Returns structured output the parent can parse. No scope creep.
   </Card>
   <Card title="typescript-reviewer" icon="code" color="#3b82f6">
-    **Model:** Sonnet · **Role:** TypeScript-specific code review
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** TypeScript-specific code review
 
     Strict mode compliance, async correctness, ESM/CJS module hygiene, ReDoS detection, prototype pollution, idiomatic type patterns. Severity-rated.
   </Card>
   <Card title="python-reviewer" icon="snake" color="#22c55e">
-    **Model:** Sonnet · **Role:** Python-specific code review
+    **Model:** Opus 5.5 (`opus`), effort `high` · **Role:** Python-specific code review
 
     PEP 8, type hints (PEP 484/604), async/await patterns, pytest fixtures/parametrize, security (SQL/shell injection, path traversal, pickle), idiomatic Python. Severity-rated.
   </Card>
@@ -103,23 +103,28 @@ See [Architecture](/architecture) for how delegation works end-to-end.
 
 | # | Persona | Model | When it fires |
 |---|---------|-------|--------------|
-| 1 | `architect` | Fable | Architecture decisions, system design |
-| 2 | `reviewer` | Sonnet | `/ccc-review` — diff + 4-dimension audit |
-| 3 | `builder` | Sonnet | `/ccc-build` — after spec approval |
-| 4 | `security-auditor` | Fable | `/ccc-review` security pass, `/ccc-ship` gate |
-| 5 | `debugger` | Fable | Root-cause investigation tasks |
-| 6 | `designer` | Sonnet | `/ccc-design` — UI/UX workflows |
-| 7 | `qa-engineer` | Sonnet | `/ccc-review` QA pass, test coverage audit |
-| 8 | `devops-engineer` | Sonnet | `/ccc-ship` — deploy planning |
-| 9 | `data-analyst` | Sonnet | Analytics and data synthesis tasks |
-| 10 | `content-strategist` | Sonnet | Copy, messaging, content tasks |
-| 11 | `product-manager` | Fable | `/ccc-plan` — spec interview + user stories |
-| 12 | `performance-engineer` | Sonnet | Performance review in `/ccc-review` |
-| 13 | `researcher` | Sonnet | Deep research tasks |
-| 14 | `technical-writer` | Sonnet | Documentation generation |
-| 15 | `fleet-worker` | Sonnet | `/ccc-fleet` — each parallel task spawn |
-| 16 | `typescript-reviewer` | Sonnet | TypeScript PR review, strict mode audit |
-| 17 | `python-reviewer` | Sonnet | Python PR review, PEP 8 + security audit |
+| 1 | `architect` | `fable` · xhigh | Architecture decisions, system design |
+| 2 | `reviewer` | `opus` · high | `/ccc-review` — diff + 4-dimension audit |
+| 3 | `builder` | `opus` · high | `/ccc-build` — after spec approval |
+| 4 | `security-auditor` | `fable` · xhigh | `/ccc-review` security pass, `/ccc-ship` gate |
+| 5 | `debugger` | `opus` · high | Root-cause investigation tasks |
+| 6 | `designer` | `opus` · high | `/ccc-design` — UI/UX workflows |
+| 7 | `qa-engineer` | `opus` · high | `/ccc-review` QA pass, test coverage audit |
+| 8 | `devops-engineer` | `opus` · high | `/ccc-ship` — deploy planning |
+| 9 | `data-analyst` | `opus` · high | Analytics and data synthesis tasks |
+| 10 | `content-strategist` | `sonnet` · medium | Copy, messaging, content tasks |
+| 11 | `product-manager` | `opus` · high | `/ccc-plan` — spec interview + user stories |
+| 12 | `performance-engineer` | `opus` · high | Performance review in `/ccc-review` |
+| 13 | `researcher` | `opus` · high | Deep research tasks |
+| 14 | `technical-writer` | `sonnet` · medium | Documentation generation |
+| 15 | `fleet-worker` | `sonnet` · medium | `/ccc-fleet` — each parallel task spawn |
+| 16 | `typescript-reviewer` | `opus` · high | TypeScript PR review, strict mode audit |
+| 17 | `python-reviewer` | `opus` · high | Python PR review, PEP 8 + security audit |
+| 18 | `go-reviewer` | `opus` · high | Go PR review, idioms and race conditions |
+| 19 | `rust-reviewer` | `opus` · high | Rust PR review, ownership and unsafe blocks |
+| 20 | `java-reviewer` | `opus` · high | Java PR review, Spring patterns and resource management |
+| 21 | `kotlin-reviewer` | `opus` · high | Kotlin PR review, coroutines and null safety |
+| 22 | `csharp-reviewer` | `opus` · high | C# PR review, async/await and IDisposable |
 
 ## How Delegation Works
 

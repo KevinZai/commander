@@ -14,11 +14,12 @@ Think of it as a senior developer pair programming with you, except it never get
 
 CC Commander is a configuration toolkit that makes Claude Code dramatically more effective. It adds:
 
-- **450+ skills** — specialized knowledge modules (like plugins)
-- **80+ commands** — slash commands for common workflows (`/plan`, `/verify`, `/tdd`)
+- **84 plugin skills** — click-first `/ccc-*` workflows, plus a 467-skill ecosystem catalog across 11 domains
+- **22 specialist agents** — architect, reviewer, debugger, designer and more
+- **70+ commands** — slash commands for common workflows (`/plan`, `/verify`, `/tdd`)
 - **9 workflow modes** — switch Claude's behavior to match your task (design, SaaS, marketing, etc.)
 - **36+ prompt templates** — battle-tested starting points for common tasks
-- **25 hooks** — automatic behaviors (checkpoints, cost alerts, context monitoring)
+- **30 lifecycle hooks (51 handlers)** — automatic behaviors (secret guards, tool-call budget, context monitoring, session saves)
 
 Without CC Commander, Claude Code is a general-purpose assistant. With CC Commander, it becomes a structured development environment with best practices baked in.
 
@@ -192,7 +193,7 @@ A: Yes, Claude Code requires an Anthropic API key or a Claude Pro/Max subscripti
 A: No. The installer backs up your existing files before making changes. You can restore from backup at any time with the uninstaller.
 
 **Q: Which model should I use?**
-A: Start with **Sonnet** (the default). It handles 90% of tasks well. Switch to **Opus** for complex architecture decisions. Use **Haiku** for simple, repetitive tasks to save cost.
+A: Start with **Opus** (Opus 5.5, the default). Switch to **Fable** (Fable 5.1) for hard architecture and migration decisions. Use **Sonnet** for fast, bounded edits and **Haiku** for simple, repetitive tasks to save cost. Commander routes its own agents to the right tier by alias.
 
 **Q: How do I update CC Commander?**
 A: Re-run the installer. It detects the existing installation and updates only changed files.
@@ -346,10 +347,10 @@ New to AI-assisted development? Here are the key terms you will encounter:
 |------|-----------|
 | **Claude Code** | Anthropic's AI coding assistant that runs in your terminal or VS Code. It reads, writes, and edits files in your real codebase. |
 | **Session** | A single conversation with Claude Code. Context accumulates within a session. Starting a new session resets context. |
-| **Context Window** | The total amount of text Claude can "see" at once (currently ~200K tokens). When it fills up, older context gets dropped. |
+| **Context Window** | The total amount of text Claude can "see" at once (1M tokens on the current Claude models). When it fills up, older context gets dropped. |
 | **Token** | A unit of text (roughly 3/4 of a word). Used to measure context size and API cost. |
-| **Model** | The AI brain powering Claude Code. Options: Sonnet (fast, capable), Opus (deep reasoning), Haiku (cheap, simple tasks). |
-| **Extended Thinking** | A mode where Claude uses extra internal reasoning tokens before responding. Improves quality on complex tasks. |
+| **Model** | The AI brain powering Claude Code. Options: Fable (deepest reasoning), Opus (the default), Sonnet (fast, capable), Haiku (cheap, simple tasks). |
+| **Effort** | How long Claude reasons before responding (`/effort low` to `max`). Thinking is adaptive on current models; higher effort helps on complex tasks. |
 
 ### CC Commander Terms
 
