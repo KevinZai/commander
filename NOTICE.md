@@ -18,3 +18,9 @@ The following skills contain code adapted from Apache-2.0 licensed sources:
 Each skill directory contains the full Apache 2.0 LICENSE.txt file with complete terms. These skills are redistributed under the same Apache-2.0 license.
 
 For full license text and notices from upstream projects, see the LICENSE.txt file in each skill's directory.
+
+## Vendor Submodules
+
+Vendor packages under `vendor/` are git submodules, each under its own license; the full table is in `vendor/LICENSE`.
+
+- claude-code-playground (`vendor/claude-code-playground`, https://github.com/anthropics/claude-code-playground) — owned by Anthropic, PBC — Apache License 2.0. Upstream describes it as an Anthropic DevRel playground, provided as-is and not an official Anthropic product.

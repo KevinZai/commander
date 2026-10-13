@@ -1,5 +1,30 @@
 Each package in this directory is a git submodule with its own license.
-See ../LICENSES-VENDORS.md for the complete license table.
+The authoritative terms are the LICENSE file inside each submodule.
 
-Summary: 14 MIT, 1 Apache-2.0, 1 CC-BY-SA-4.0.
-All permissive open-source licenses.
+| Submodule | Upstream | License |
+|---|---|---|
+| acpx | openclaw/acpx | MIT |
+| caliber-ai-setup | caliber-ai-org/ai-setup | MIT |
+| claude-code-best-practice | shanraisshan/claude-code-best-practice | MIT |
+| claude-code-playground | anthropics/claude-code-playground | Apache-2.0 |
+| claude-code-prompts | repowise-dev/claude-code-prompts | MIT |
+| claude-code-ultimate-guide | FlorianBruniaux/claude-code-ultimate-guide | CC-BY-SA-4.0 |
+| claude-hud | jarrodwatts/claude-hud | MIT |
+| claude-reflect | BayramAnnakov/claude-reflect | MIT |
+| claude-skills | alirezarezvani/claude-skills | MIT |
+| compound-engineering | EveryInc/compound-engineering-plugin | MIT |
+| everything-claude-code | affaan-m/everything-claude-code | MIT |
+| graphify | safishamsi/graphify | Apache-2.0 (also ships LICENSE-MIT) |
+| gstack | garrytan/gstack | MIT (with Apache-2.0 derived files listed in its NOTICE.md) |
+| mattpocock-skills | mattpocock/skills | MIT |
+| mengto-skills | MengTo/Skills | MIT |
+| oh-my-claudecode | Yeachan-Heo/oh-my-claudecode | MIT |
+| repomix | yamadashy/repomix | MIT |
+| rtk | rtk-ai/rtk | Apache-2.0 |
+| superpowers | obra/superpowers | MIT |
+| ui-ux-pro-max-skill | nextlevelbuilder/ui-ux-pro-max-skill | MIT |
+
+Summary (20 submodules, verified 2026-10-13 from each LICENSE file):
+16 MIT, 3 Apache-2.0, 1 CC-BY-SA-4.0.
+CC-BY-SA-4.0 is a share-alike license: material adapted from
+claude-code-ultimate-guide must keep attribution and the same terms.
