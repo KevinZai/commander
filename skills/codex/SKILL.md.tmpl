@@ -93,7 +93,7 @@ codex review -c 'sandbox_mode="read-only"' -c 'review_model="gpt-6-astra"' -c 'w
 Use `timeout: 300000` on the Bash call. If the user provided custom instructions
 (e.g., `/codex review focus on security`), pass them as the prompt argument:
 ```bash
-codex review -c 'sandbox_mode="read-only"' -c 'review_model="gpt-6-astra"' -c 'web_search="cached"' "focus on security"   # prompt-only: a diff selector cannot combine with instructions 2>"$TMPERR"
+codex review -c 'sandbox_mode="read-only"' -c 'review_model="gpt-6-astra"' -c 'web_search="cached"' "focus on security" 2>"$TMPERR"   # prompt-only: a diff selector cannot combine with instructions
 ```
 
 For a JSONL event stream or a saved final message, use the headless form:
