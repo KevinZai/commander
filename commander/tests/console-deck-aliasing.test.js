@@ -31,11 +31,13 @@ const BUILD_CONSOLE = path.join(PLUGIN, 'scripts', 'build-console.mjs');
 const NOW = '2026-07-20T12:00:00.000Z';
 const BANNER_TEXT = 'Part of <strong>Commander Console</strong>';
 
-// deck skill -> [console tab, the scratchpad path its artifact URL is bound to]
+// deck skill -> [console tab, the scratchpad path its artifact URL is bound to].
+// v8: every deck uses the <scratchpad> session placeholder (the same convention
+// /ccc-console and /ccc-browse adopted in CC-1397); the file names are unchanged.
 const ALIASES = [
-  ['ccc-mission-control', 'overview', 'scratchpad/mission-control-live.html'],
-  ['ccc-usage', 'usage', 'scratchpad/ccc-usage-live.html'],
-  ['ccc-safety', 'safety', 'scratchpad/ccc-safety-live.html'],
+  ['ccc-mission-control', 'overview', '<scratchpad>/mission-control-live.html'],
+  ['ccc-usage', 'usage', '<scratchpad>/ccc-usage-live.html'],
+  ['ccc-safety', 'safety', '<scratchpad>/ccc-safety-live.html'],
 ];
 
 async function skillText(name) {
