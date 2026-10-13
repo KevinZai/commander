@@ -326,7 +326,7 @@
         {
           "regex": "(\\| Plugin skills \\|\\s*)\\d+( \\(\\d+)",
           "flags": "g",
-          "template": "$1${plugin_skills} ($2"
+          "template": "$1${plugin_skills}$2"
         },
         {
           "regex": "(\\| Specialist sub-agents \\|\\s*)\\d+(\\s*\\|)",

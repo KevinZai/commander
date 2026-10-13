@@ -5,21 +5,17 @@ This installs Commander through the hosted MCP endpoint. The endpoint below is t
 ## Prerequisites
 
 - Cursor editor or Cursor CLI.
-- `COMMANDER_LICENSE_KEY` from the Commander beta signup.
 - Network access to `https://mcp.commanderplugin.com/v1/sse`.
+
+No license key is required — the hosted endpoint is free for everyone with a
+100-call/mo anti-abuse cap.
 
 ## Option A - One-Line Install
 
-Set the license key in your shell first:
+Merge the Commander MCP server into your global Cursor MCP config:
 
 ```bash
-export COMMANDER_LICENSE_KEY="your-commander-license-key"
-```
-
-Then merge the Commander MCP server into your global Cursor MCP config:
-
-```bash
-mkdir -p "$HOME/.cursor" && node -e 'const fs=require("fs");const p=process.env.HOME+"/.cursor/mcp.json";let cfg={mcpServers:{}};try{cfg=JSON.parse(fs.readFileSync(p,"utf8"))}catch{}cfg.mcpServers=cfg.mcpServers||{};cfg.mcpServers["cc-commander"]={url:"https://mcp.commanderplugin.com/v1/sse",headers:{Authorization:"Bearer ${env:COMMANDER_LICENSE_KEY}"}};fs.writeFileSync(p,JSON.stringify(cfg,null,2)+"\n");console.log("Installed cc-commander MCP in "+p);'
+mkdir -p "$HOME/.cursor" && node -e 'const fs=require("fs");const p=process.env.HOME+"/.cursor/mcp.json";let cfg={mcpServers:{}};try{cfg=JSON.parse(fs.readFileSync(p,"utf8"))}catch{}cfg.mcpServers=cfg.mcpServers||{};cfg.mcpServers["cc-commander"]={url:"https://mcp.commanderplugin.com/v1/sse"};fs.writeFileSync(p,JSON.stringify(cfg,null,2)+"\n");console.log("Installed cc-commander MCP in "+p);'
 ```
 
 Restart Cursor after writing the config.
@@ -30,8 +26,7 @@ Restart Cursor after writing the config.
 2. Go to **Cursor Settings -> MCP**.
 3. Add a new custom MCP server.
 4. Paste the contents of `cursor-mcp-config.template.json`.
-5. Replace `COMMANDER_LICENSE_KEY` with your environment variable or literal beta key if your setup does not resolve env interpolation.
-6. Save and restart Cursor.
+5. Save and restart Cursor.
 
 [Screenshot placeholder: Cursor Settings -> MCP server list]
 
@@ -68,6 +63,6 @@ cursor-agent mcp list
 | Symptom | Fix |
 |---|---|
 | `cc-commander` is missing | Confirm `~/.cursor/mcp.json` exists and Cursor was restarted. |
-| Auth fails | Confirm `COMMANDER_LICENSE_KEY` is exported before launching Cursor. |
+| Requests rejected | You may have hit the free 100-call/mo anti-abuse cap — the plugin falls back to the local catalog automatically. |
 | Tools appear but are not used | Add `.cursorrules` or a `.cursor/rules/commander.mdc` project rule. |
 | Endpoint fails | W7 may not have deployed the hosted endpoint yet; keep the config and retry after deploy. |

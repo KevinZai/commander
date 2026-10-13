@@ -1,14 +1,14 @@
 # CC Commander Cheatsheet
-> CC Commander v7.4.1 — by Kevin Zicherman — commands, workflows, and power user tips
-> Last updated: 2026-08-01 · See CHANGELOG.md for version history
+> CC Commander v7.4.2 — by Kevin Zicherman — commands, workflows, and power user tips
+> Last updated: 2026-07-22 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v7.4.1)
+## Desktop Plugin Commands (v7.4.2)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 82 plugin skills total — click-first /ccc-* workflows, 11 CCC domain routers, channel/CI, diagnostics, vendor-sourced, and lifecycle/session skills. Browse them all with `/ccc-browse`.
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 83 plugin skills total (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle).
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 > **New — Commander Cockpit, Tools & Decks**
@@ -30,7 +30,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 /plugin install commander
 ```
 
-### /ccc-* Skills (82 plugin skills — core surface shown; run `/ccc-browse` for the full list)
+### /ccc-* Skills (83 plugin skills — 13 specialist workflows + 11 CCC domains + 7 channel/CI/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + lifecycle + session; core surface shown)
 
 | Skill | Description | Tier |
 |-------|-------------|------|
@@ -55,7 +55,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | `/ccc-hermes` | Hermes Gateway status, OAuth bridge health, token refresh | Free |
 | `/ccc-nightwatch` | Remote YOLO permission relay — approve tool calls from mobile | Free |
 | `/ccc-ci` | CI/CD gate: lint, test, build, branch checks, pre-push hooks | Free |
-| `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus goal file, GPT-5.5 or Sonnet executes, orchestrator verifies | Free |
+| `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor — Fable/Opus goal file, the Codex CLI executor (GPT-5.6) or Sonnet executes, orchestrator verifies | Free |
 | `/ccc-relay` | Cross-session loop chaining — spec → build → review as gated hand-off sessions | Free |
 | `/ccc-smb-ops` | Small-business ops domain — invoicing/AR, cash-flow, payroll, CRM, weekly owner brief | Free |
 | `/ccc-broadcast` | Outbound status relay — push scrubbed build/deploy/CI/cost signals to team chat/email | Free |
@@ -182,13 +182,13 @@ Load ONE CCC domain to get an entire domain. Each has a router that dispatches t
 | Domain | Load This | Skills Inside |
 |--------|-----------|---------------|
 | SEO & Content | `ccc-seo` | 19 skills — technical SEO, AI search, analytics, programmatic SEO |
-| Design & Animation | `ccc-design` | 41 skills — animations, effects, design systems, Impeccable suite |
+| Design & Animation | `ccc-design` | 35+ skills — animations, effects, design systems, Impeccable suite |
 | Testing & QA | `ccc-testing` | 15 skills — TDD, E2E, verification, visual, load testing |
-| Marketing | `ccc-marketing` | 45 skills — content, CRO, channels, growth, sales |
+| Marketing | `ccc-marketing` | 46 skills — content, CRO, channels, growth, sales |
 | SaaS Building | `ccc-saas` | 20 skills — auth, billing, DB, API, frontend, metrics |
 | DevOps & Cloud | `ccc-devops` | 20 skills — CI/CD, Docker, AWS, monitoring, Terraform |
 | Research & Analysis | `ccc-research` | 8 skills — deep research, literature review, competitive analysis, data synthesis |
-| Mobile Development | `ccc-mobile` | 8 skills — iOS, Android, React Native, Flutter, app store optimization |
+| Mobile Development | `ccc-mobile` | 7 skills — iOS, Android, React Native, Flutter, app store optimization |
 | Security & Compliance | `ccc-security` | 9 skills — pen testing, OWASP, supply chain, secrets management, threat modeling |
 | Data & Analytics | `ccc-data` | 8 skills — ETL pipelines, data warehousing, analytics, visualization, ML ops |
 | Design Makeover | `ccc-makeover` | 3 skills — `/xray` project audit + `/makeover` design swarm + report generation |
@@ -595,7 +595,7 @@ See `tasks/todo.md`
 | Command | When to Use | Example |
 |---------|-------------|---------|
 | `/ccc-plan` | Before ANY multi-step task. Spec-first. | `/ccc-plan add OAuth login` |
-| `/ccc-orchestrate` | Fable/Opus plans a goal file; GPT-5.5 via `codex` or Sonnet executes; orchestrator verifies | `/ccc-orchestrate` |
+| `/ccc-orchestrate` | Fable/Opus plans a goal file; the Codex CLI executor (GPT-5.6) or Sonnet executes; orchestrator verifies | `/ccc-orchestrate` |
 | `/ccc-handoff` | Save dense handoff state and resume in a fresh chat before context quality decays | `/ccc-handoff` |
 | `/ccc-adopt` | Add the Orchestrator/Executor doctrine to an existing project's `CLAUDE.md` | `/ccc-adopt` |
 | `/ccc-build-fix` | Auto-resolve build errors after `npm run build` fails | `/ccc-build-fix` |
@@ -703,7 +703,7 @@ SKILL.md front matter:
 ```yaml
 ---
 name: skill-name
-version: 7.4.1
+version: 7.4.2
 description: |
   What this skill does in 2-3 lines.
 triggers:
@@ -1078,7 +1078,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v7.4.1 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v7.4.2 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1089,14 +1089,14 @@ CC Commander v7.4.1 — the Desktop plugin is the primary surface. Invoke the in
 | `/ccc-session` | Save, resume, context budget |
 | `/ccc-research` | Deep research with citations and confidence scoring |
 | `/ccc-content` | Blog, social, email, copy |
-| `/ccc-knowledge` | Search past lessons |
-| `/ccc-code-review` | Multi-agent code review |
-| `/ccc-deploy-check` | Pre-deploy readiness gate |
+| `/ccc-knowledge` | Search past lessons (Pro) |
+| `/ccc-code-review` | Multi-agent code review (Pro) |
+| `/ccc-deploy-check` | Pre-deploy readiness gate (Pro) |
 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app |
 | `/ccc-safety` | Safety deck — blocked/auto-fixed actions, tool-failure hotspots |
 | `/ccc-update` | Click-first update walkthrough — detect, update, restart, verify |
 
-> **CLI-only users:** Some `/cc *` commands (grill, confidence, mode, prompts) remain in the CLI build. See BIBLE.md's "CLI-Only Commands" appendix for the CLI-only command set.
+> **CLI-only users:** Some `/cc *` commands (grill, confidence, mode, prompts) remain in the CLI build. See `docs/cli.md` for the CLI-only command set.
 
 ---
 
@@ -1165,7 +1165,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v7.4.1 Quick Reference (CLI)
+## CC Commander v7.4.2 Quick Reference (CLI)
 
 ```bash
 # Launch

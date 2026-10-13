@@ -4,6 +4,7 @@ context: fork
 description: "Small-business operations — 6 skills in one: 13-week cash-flow forecast, invoicing + AR chasing, payroll planning, CRM hygiene, expense tracking, and a weekly owner brief."
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # /ccc-smb-ops — Small-business operations hub
@@ -22,6 +23,8 @@ allowed-tools:
 | 4 | crm-hygiene | Dedup contacts, sweep stale leads, standardize fields, review the pipeline |
 | 5 | expense-tracking | Categorize spend, receipt-capture workflow, budget vs. actual |
 | 6 | weekly-owner-brief | Monday one-pager: cash, AR aging, pipeline, and the top 3 actions |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 

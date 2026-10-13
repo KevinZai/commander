@@ -3,9 +3,9 @@
   <img src="docs/assets/github-banner.png" alt="CC Commander — The guided AI PM for Claude Code" width="100%">
 </p>
 
-# CC Commander — AI PM for Claude Code · 82 Skills · 22 Agents · Core Free Forever
+# CC Commander — AI PM for Claude Code · 83 Skills · 22 Agents · Core Free Forever
 
-> **Ship faster with Claude Code and Cowork Desktop.** One plugin install activates 82 skills, 22 specialist AI agents, and 23 lifecycle hooks across Claude Code Desktop, Claude Code CLI, Cursor, Windsurf, and every MCP-capable IDE.
+> **Ship faster with Claude Code and Cowork Desktop.** One plugin install activates 83 skills, 22 specialist AI agents, and 23 lifecycle hooks across Claude Code Desktop, Claude Code CLI, Cursor, Windsurf, and every MCP-capable IDE.
 
 **Install in 30 seconds:**
 
@@ -13,15 +13,15 @@
 Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Install
 ```
 
-**What you get:** 82 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 467 ecosystem skills · Core free forever.
+**What you get:** 83 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer, and more) · 23 lifecycle hooks · 2 bundled MCP servers · 467 ecosystem skills · Core free forever.
 
-<img src="docs/assets/hero.gif" alt="CC Commander v7.4.1 — Claude Code Desktop plugin demo" width="100%">
+<img src="docs/assets/hero.gif" alt="CC Commander v7.4.2 — Claude Code Desktop plugin demo" width="100%">
 
-> **🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace. All 82 plugin skills, 22 agents, 23 lifecycle hooks (44 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
+> **🖥️ Primary surface: Claude Code Desktop (aka Cowork Desktop).** Install once via Settings → Plugin Marketplace. All 83 plugin skills, 22 agents, 23 lifecycle hooks (44 handlers), and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both. All screenshots in `docs/screenshots/` were taken in Desktop.
 
-[![GitHub stars](https://img.shields.io/github/stars/KevinZai/commander?style=for-the-badge&logo=github&color=FFD43B)](https://github.com/KevinZai/commander/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/549_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/82_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v7.4.1](https://img.shields.io/badge/v7.4.1-4F46E5?style=for-the-badge)](./CHANGELOG.md)
+[![GitHub stars](https://img.shields.io/github/stars/KevinZai/commander?style=for-the-badge&logo=github&color=FFD43B)](https://github.com/KevinZai/commander/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/550_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/83_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Cursor%20%2B%20Windsurf-7C3AED?style=for-the-badge)](#️-who-its-for) [![v7.4.2](https://img.shields.io/badge/v7.4.2-4F46E5?style=for-the-badge)](./CHANGELOG.md)
 
 <p>
   <strong>Powered by:</strong>
@@ -37,7 +37,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 19 vendor packages
 
-**[Why CC Commander](#-why-cc-commander)** · **[The 82 skills](#the-82-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
+**[Why CC Commander](#-why-cc-commander)** · **[The 83 skills](#the-83-plugin-skills)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Ecosystem](docs/ECOSYSTEM.md)** · **[BIBLE](BIBLE.md)** · **[Changelog](CHANGELOG.md)**
 
 ### 🎯 Who it's for
 
@@ -59,7 +59,7 @@ Settings → Plugin Marketplace → Add from GitHub: KevinZai/commander → Inst
 3. Find **`commander`** in the marketplace → click **Install**
 4. Cmd+Q, reopen the app, type **`/ccc`** — you're live
 
-✅ 82 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
+✅ 83 plugin skills activate. ✅ Zero config. ✅ Zero API keys.
 
 **Power-user CLI install:**
 ```bash
@@ -106,7 +106,7 @@ More detail: [Upgrade guide](https://commanderplugin.com/plugin/upgrade) · [Ins
 
 ## 🌐 One plugin, every agent
 
-> **Commander is a PM layer for whichever AI coding tool you use.** Same 82 skills, same 22 specialist agents, same lifecycle hooks — different install path per platform. The package name stays `commander` everywhere; the surrounding UI (Claude Code, Codex, Cursor, etc.) provides the platform context.
+> **Commander is a PM layer for whichever AI coding tool you use.** Same 83 skills, same 22 specialist agents, same lifecycle hooks — different install path per platform. The package name stays `commander` everywhere; the surrounding UI (Claude Code, Codex, Cursor, etc.) provides the platform context.
 
 | Platform | Status | Install |
 |---------|--------|---------|
@@ -138,8 +138,8 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 
 - 🖱️ **Click-first UX** — every menu is a native `AskUserQuestion` chip picker. No typing. No numbered menus. No ASCII prompts. Works identically in Cowork Desktop, Claude Code Desktop, and the CLI.
 - 🧠 **`/ccc-suggest` intelligence layer** — Opus-class real-time recommendation. Scans your project state, recommends **one starred next step** with reasoning + named 3rd-party plugins. Kills info-paralysis.
-- 🧩 **82 plugin skills including 13 `/ccc-*` specialist workflows** — plain slash commands (no `commander:` prefix), skill-based architecture: `ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, `ccc-build`, `ccc-review`, `ccc-ship`, `ccc-design`, `ccc-learn`, `ccc-xray`, `ccc-linear`, `ccc-fleet`, `ccc-connect` + `/ccc-e2e`, `/ccc-save-session`, `/ccc-resume-session`, `/ccc-changelog`, `/ccc-doctor`, `/ccc-tuneup`, `/ccc-upgrade`, `/ccc-update`, `/ccc-yolo-setup`, `/ccc-ecc` and 11 domain routers.
-- 🧭 **Orchestrator / Executor model** — `/ccc-orchestrate` has Fable/Opus write a Skill.md-style goal file, GPT-5.5 via `codex` or a Sonnet subagent execute it, and the orchestrator verify acceptance criteria. Pair it with `/ccc-handoff` for frequent fresh-chat resets and `/ccc-adopt` to bring the doctrine into any existing project. Pay for Fable on the thinking, not the typing.
+- 🧩 **83 plugin skills including 13 `/ccc-*` specialist workflows** — plain slash commands (no `commander:` prefix), skill-based architecture: `ccc`, `ccc-start`, `ccc-browse`, `ccc-plan`, `ccc-build`, `ccc-review`, `ccc-ship`, `ccc-design`, `ccc-learn`, `ccc-xray`, `ccc-linear`, `ccc-fleet`, `ccc-connect` + `/ccc-e2e`, `/ccc-save-session`, `/ccc-resume-session`, `/ccc-changelog`, `/ccc-doctor`, `/ccc-tuneup`, `/ccc-upgrade`, `/ccc-update`, `/ccc-yolo-setup`, `/ccc-ecc` and 11 domain routers.
+- 🧭 **Orchestrator / Executor model** — `/ccc-orchestrate` has Fable/Opus write a Skill.md-style goal file, the Codex CLI executor (GPT-5.6) or a Sonnet subagent execute it, and the orchestrator verify acceptance criteria. Pair it with `/ccc-handoff` for frequent fresh-chat resets and `/ccc-adopt` to bring the doctrine into any existing project. Pay for Fable on the thinking, not the typing.
 - 🎭 **22 specialist agents with persona voices** — architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer. Each with a distinct voice layer in `commander/cowork-plugin/rules/personas/`.
 - 🎛️ **Commander Cockpit + decks** — a self-contained interactive artifact (skill/agent browser, prompt enhancer, agent analytics, Tools launcher, and the newest **Prompts** tab) plus a shared **Commander decks** switcher across every artifact, including **Usage & Cost** (`/ccc-usage`) and **Safety** (`/ccc-safety`) decks — every deck now shows a data-freshness stamp.
 - 🔌 **2 credential-free bundled MCP servers** — `context7` (library docs) + `sequential-thinking`. Opt-in via `/ccc-connect`: 16 more including Tavily, GitHub, Supabase, Figma, Playwright, Slack, Notion, claude-mem, Exa, Firecrawl, Zapier, Google Drive, Vercel, Neon, Fly.io, Upstash.
@@ -188,11 +188,11 @@ CC Commander is built on Anthropic's 2026 Claude Agent SDK sub-agent architectur
 
 ## Using Cursor, Windsurf, Cline, Continue, or Codex?
 
-[Hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL + license key unlocks all 467+ skills in your editor.
+[Hosted MCP setup](./mintlify-docs/features/browse-modes.mdx) — one URL unlocks all 467+ skills in your editor, no license key required (100-call/month anti-abuse cap).
 
 ---
 
-## 🎛️ What's new in v7.0.0 → v7.4.1
+## 🎛️ What's new in v7.0.0 → v7.4.2
 
 - 🎛️ **One Commander — `/ccc-console`, new in v7.4.0** — the four published decks become tabs of a single **inline** console (Overview · Usage · Safety · Memory · History · Launch) with a prompt bar that reaches the live session. Every existing deck URL keeps updating in place: the deck skills now publish one tab each through the same builder, on the same file paths. Memory reads your own claude-mem store (titles only, never bundled — it's AGPL); History is 30 days of telemetry Commander already writes, with no new collector. It opens itself once at session start, locally — publishing stays consent-gated, and there are three off switches.
 - 🔄 **Update self-detection + `/ccc-update`, new in v7.3.0** — a SessionStart hook compares your installed version against GitHub `main` and tells you the exact fix; `/ccc-update` (81st plugin skill) is the click-first walkthrough; `/ccc-doctor` now diagnoses every stale-install layer and can enable marketplace auto-update.
@@ -266,9 +266,9 @@ workflow: <your task here>   # one-off without mode switch
 
 The built-in `/deep-research` is also available for multi-source validated research.
 
-## The 82 plugin skills
+## The 83 plugin skills
 
-Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just click. The table below highlights the core workflows; all 82 are browsable in-app via `/ccc-browse`:
+Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just click:
 
 | Command | What it does | First click |
 |---|---|---|
@@ -294,7 +294,7 @@ Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just 
 | **`/ccc-e2e`** | E2E test scaffolding + Playwright automation | New suite · Existing project · Visual regression |
 | **`/ccc-save-session`** | Save session state for later resume | Saves context, todos, plan to `~/.claude/commander/` |
 | **`/ccc-resume-session`** | Resume a previously saved session | Lists recent sessions → pick one to restore |
-| **`/ccc-orchestrate`** | Cross-runtime Orchestrator/Executor | Fable/Opus goal file → GPT-5.5 or Sonnet executor → verified acceptance criteria |
+| **`/ccc-orchestrate`** | Cross-runtime Orchestrator/Executor | Fable/Opus goal file → Codex CLI (GPT-5.6) or Sonnet executor → verified acceptance criteria |
 | **`/ccc-handoff`** | Proactive fresh-chat handoff | Dense session file + explicit restart before context quality decays |
 | **`/ccc-adopt`** | Adopt CCC doctrine in another repo | Merge Orchestrator/Executor markers into `CLAUDE.md` without clobbering project rules |
 | **`/ccc-fable`** | Arm the Fable Method — 12-gate session contract | on · status · audit · off — model-agnostic |
@@ -304,7 +304,7 @@ Each `/ccc-*` workflow works via native Desktop chip picker — no typing, just 
 | **`/ccc-safety`** | Safety deck — blocked/auto-fixed actions + failure hotspots | Open · Status · Action outcomes · Hotspots |
 | **`/ccc-update`** | Click-first update walkthrough — detect installed vs. latest, update, restart, verify | Update now · Check only · What's new |
 
-Plus 11 canonical domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devops`, `ccc-seo`, `ccc-testing`, `ccc-security`, `ccc-data`, `ccc-research`, `ccc-mobile`, `ccc-makeover`), the `ccc-smb-ops` operations router (6 sub-skills), 2 vendor-sourced skills (`/ccc-agent-writing`, `/ccc-systematic-debugging`), and the remaining lifecycle, channel/CI, diagnostic, and session-management skills — 82 total. Run `/ccc-browse` for the complete live catalog, or see [SKILLS-INDEX.md](SKILLS-INDEX.md).
+Plus 11 canonical domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devops`, `ccc-seo`, `ccc-testing`, `ccc-security`, `ccc-data`, `ccc-research`, `ccc-mobile`, `ccc-makeover`), the `ccc-smb-ops` operations router (6 sub-skills), and 2 vendor-sourced skills (`/ccc-agent-writing`, `/ccc-systematic-debugging`). See [SKILLS-INDEX.md](SKILLS-INDEX.md) for the full catalog.
 
 Click a cell → pick a sub-option → CC Commander handles it. No config files, no YAML editing, no syntax to memorize.
 
@@ -342,7 +342,7 @@ Install any of these separately — CC Commander detects what's available and ro
 | **CC Commander** (UX) | Curation + guidance + memory: click-first `/ccc-*` chips (AskUserQuestion), `/ccc-suggest` routing, the brain/hands pattern, The Kevin Z Method |
 
 **What Commander adds on top of ECC:**
-- **Click-first front door** — 82 curated `/ccc-*` plugin skills via native chip pickers, instead of memorizing 156+ commands.
+- **Click-first front door** — 83 curated `/ccc-*` plugin skills via native chip pickers, instead of memorizing 156+ commands.
 - **`/ccc-suggest`** — Opus-class "next best move" routing across the whole ecosystem (names ECC when ECC is the right tool).
 - **`/ccc-orchestrate` + `/ccc-handoff` + `/ccc-adopt`** — cross-runtime plan/execute split, proactive context reset, and one-command doctrine adoption for existing projects.
 - **`/ccc-ecc`** — selective ECC loader for one skill, agent, or hook without installing the full harness.
@@ -360,7 +360,7 @@ CC Commander is a **meta-layer** — it routes to other plugins, not away from t
 | **Primary surface** | Claude Code Desktop plugin + CLI | CLI harness | Claude Code CLI | Claude Code CLI |
 | **Click-first UX** | ✅ Native chip pickers, no typing | ❌ Text menus | ❌ Slash commands | ❌ Slash commands |
 | **Sub-agent personas** | 22 (architect, reviewer, debugger…) | 38 agents | 0 | 3 |
-| **Skill count** | 549 (82 plugin + 467 ecosystem) | 156 | ~20 | ~15 |
+| **Skill count** | 550 (83 plugin + 467 ecosystem) | 156 | ~20 | ~15 |
 | **Hosted MCP server** | ✅ (100 calls/mo free) | ❌ | ❌ | ❌ |
 | **Cross-IDE** | ✅ (Cursor, Windsurf, Cline, Codex) | ❌ Claude only | ❌ Claude only | ❌ Claude only |
 | **Free** | ✅ Forever | ✅ | ✅ | ✅ |
@@ -394,7 +394,7 @@ Claude Code · Cursor · Windsurf · Cline · Continue · Codex · Claude mobile
 
 ## Core Free Forever
 
-All 82 plugin skills, 22 specialist agents, 23 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors — free forever, no credit card, no feature gating. Sustained by transparent affiliate links, Kevin's consulting practice, an optional Pro community, and GitHub Sponsors. A hosted-infrastructure Pro tier is planned later — all content stays free forever.
+All 83 plugin skills, 22 specialist agents, 23 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors — free forever, no credit card, no feature gating. Sustained by transparent affiliate links, Kevin's consulting practice, an optional Pro community, and GitHub Sponsors. A hosted-infrastructure Pro tier is planned later — all content stays free forever.
 
 ---
 
@@ -410,7 +410,7 @@ Stock Claude Code is a blank terminal with amnesia. No skills. No guidance. No m
 
 ```
 You type: ccc
-You get:  A guided AI project manager with 82 plugin skills
+You get:  A guided AI project manager with 83 plugin skills
           + 467 ecosystem skills, 22 agents, 19 vendor packages,
           real learning, and zero setup.
 ```
@@ -433,10 +433,10 @@ Context, rate limits, and budget meters in your terminal. Color-codes green → 
 
 <img src="docs/assets/screenshots/cockpit-footer.png" alt="Cockpit Footer" width="100%">
 
-**Rich footer bar** — rainbow status line with live session meters (example output):
+**Rich footer bar** — rainbow status line with live session meters:
 
 ```
-━━ CCC7.4.1│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯467│📋CC-150│📂~/project
+━━ CCC7.2│🔥Opus5-1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯467│📋CC-150│📂~/project
 ```
 
 ### Stats Dashboard
@@ -449,11 +449,17 @@ Sessions, streaks, badges, cost tracking, activity heatmap, level progression.
 
 <img src="docs/assets/screenshots/domains.gif" alt="CCC Domains" width="100%">
 
-### 467 Skills — Install Only What You Need
+### 500+ Skills — Install Only What You Need
 
 <img src="docs/assets/screenshots/skills-install.gif" alt="Skill Management" width="100%">
 
 > All recordings are real terminal output captured with [vhs](https://github.com/charmbracelet/vhs). No mockups.
+
+---
+
+## 📸 Screenshots
+
+Desktop screenshots arriving with the v5.1.0 stable tag — see [`docs/screenshots/PLACEHOLDERS.md`](docs/screenshots/PLACEHOLDERS.md) for in-progress capture briefs.
 
 ---
 
@@ -619,18 +625,18 @@ CCC reads your project before every dispatch. No setup needed.
 | Component | Count | What It Does |
 |-----------|-------|-------------|
 | Skills | 467 | On-demand expertise (deduplicated) |
-| Plugin Skills | 82 | Desktop-first skills — click-first /ccc-* workflows, 11 domain routers, channel/CI, diagnostics, lifecycle & session management |
+| Plugin Skills | 83 | Desktop-first skills (13 /ccc-* workflows + 11 domain routers + 7 new channel/ECC/setup skills + Orchestrator/Executor + meta + vendor-sourced + session management) |
 | Agents | 22 | Specialist sub-agent personas with distinct voice layers |
 | Lifecycle Hooks | 23 × 44 handlers | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop, PermissionRequest |
 | MCP Servers | 2 + 16 opt-in | Context7 + Sequential-Thinking bundled; 16 more opt-in via /ccc-connect (GitHub, Supabase, Figma, Playwright, Slack, Notion…) |
 | CCC Domains | 11 | Domain routers with sub-skills |
-| Commands | 74 | Slash commands (+32 namespaced under tools/, test/, code/, project/, sdd/) |
+| Commands | 83 | Slash commands (/ccc- prefix) |
 | Hooks (JS) | 24 | Lifecycle automation (kit-native) |
-| Adventures | 14 | Guided interactive flows |
+| Adventures | 13 | Guided interactive flows |
 | Vendor Packages | 19 | Best-in-class tools, auto-updated |
 | Themes | 10 | Cyberpunk, Fire, Ocean, Aurora, Sunset, Monochrome, Rainbow, Dracula + more |
 | Prompts | 36+ | Battle-tested templates |
-| Modes | 10 | Workflow presets |
+| Modes | 9 | Workflow presets |
 | Split Mode | tmux | Tabbed sessions — each task gets a window |
 | Agent API | CLI | Headless dispatch for AI orchestrators |
 | Infrastructure | 6 | Fleet, Synapse, Cost, AO, CloudCLI, Paperclip commands |
@@ -791,7 +797,7 @@ One question: **How are you using Claude?**
 
 CCC appears as a plugin you can invoke immediately. Say "start ccc" or "what should I build" to begin.
 
-**What you get:** 82 plugin skills, 22 specialist agents, 23 lifecycle hooks (44 handlers), 2 credential-free bundled MCP servers + 16 opt-in via `/ccc-connect`. Core free forever.
+**What you get:** 83 plugin skills, 22 specialist agents, 23 lifecycle hooks (44 handlers), 2 credential-free bundled MCP servers + 16 opt-in via `/ccc-connect`. Core free forever.
 
 **Marketplace:** `commander-hub` at [KevinZai/commander](https://github.com/KevinZai/commander)
 
@@ -989,6 +995,19 @@ ccc --list-skills --json | jq '.[] | select(.name | contains("auth"))'
 
 ---
 
+## Agent Bible
+
+**[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-readable reference. Any AI agent reads this and can manage CCC immediately.
+
+```bash
+# Tell any agent:
+"Read docs/BIBLE-AGENT.md from the cc-commander repo, then use the CLI API to manage this project."
+```
+
+Covers: CLI API, dispatch patterns, JSON schemas, skill catalog, level/model defaults, integration points.
+
+---
+
 ## The Kevin Z Method
 
 > 7 rules from 200+ articles. 14 months of production.
@@ -1002,6 +1021,8 @@ ccc --list-skills --json | jq '.[] | select(.name | contains("auth"))'
 7. Operationalize every fix
 
 Full methodology: **[BIBLE.md](BIBLE.md)** — 2000+ lines, 7 chapters, appendices.
+
+For AI agents: **[BIBLE-AGENT.md](docs/BIBLE-AGENT.md)** — 268-line machine-readable version.
 
 ---
 
@@ -1042,7 +1063,9 @@ CCC is built by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic)) — a
 
 ## Acknowledgments
 
-CCC aggregates 19 open-source packages — see [`vendor/`](vendor/) for the full list; each package retains its upstream license and credit.
+CCC aggregates 19 open-source packages. Full credits: **[ACKNOWLEDGMENTS.md](docs/ACKNOWLEDGMENTS.md)**
+
+45+ ecosystem repos tracked: **[ECOSYSTEM.md](docs/ECOSYSTEM.md)**
 
 ---
 
@@ -1075,10 +1098,10 @@ commander/adventures/X.json        # Add a flow
 
 <div align="center">
 
-**CC Commander v7.4.1** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
+**CC Commander v7.4.2** · **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)**
 
 *Every Claude Code tool. One install. An AI brain that learns.*
 
-**[Install Now](#quick-start--pick-your-path)** · **[Read the BIBLE](BIBLE.md)** · **[Browse Skills](SKILLS-INDEX.md)**
+**[Install Now](#quick-start--pick-your-path)** · **[Read the BIBLE](BIBLE.md)** · **[Agent Bible](docs/BIBLE-AGENT.md)** · **[Browse Skills](SKILLS-INDEX.md)** · **[Ecosystem](docs/ECOSYSTEM.md)**
 
 </div>

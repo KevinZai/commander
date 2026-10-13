@@ -144,6 +144,18 @@ async function main() {
       process.env.CLAUDE_SUBAGENT_NAME ||
       'unknown';
 
+    // Mirrors subagent-start-tracker.js's agent_id so mission-control-snapshot.js's
+    // joinAgents() can match start↔stop on a stable id instead of the
+    // frequently-null/`unknown` agent name (see that file's header comment).
+    const agentId =
+      firstString(
+        input.agent_id,
+        input.agentId,
+        sub.agent_id,
+        agentInfo.id,
+        agentInfo.agent_id
+      ) || null;
+
     // SubagentStop delivers no usage/duration on the payload — probe it anyway,
     // then recover from the transcript it points to. Null (not 0) when neither
     // yields data, so consumers render an honest "—" rather than a fake zero.
@@ -228,6 +240,7 @@ async function main() {
     const entry = {
       ts: new Date().toISOString(),
       agent: agentName,
+      agentId,
       sessionId,
       durationMs,
       inputTokens,

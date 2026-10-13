@@ -4,6 +4,7 @@ context: fork
 description: "design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm, and report card scoring. Wraps /ultrareview (v2.1.111 native)…"
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # $ccc-makeover — Project makeover hub
@@ -28,6 +29,8 @@ allowed-tools:
 4. **Code Quality** — complexity, duplication, tech debt
 5. **Documentation** — coverage, accuracy, onboarding clarity
 6. **Performance** — bundle size, query efficiency, load times
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 
@@ -69,3 +72,5 @@ allowed-tools:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

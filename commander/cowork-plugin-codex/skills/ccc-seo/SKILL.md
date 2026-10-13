@@ -4,6 +4,7 @@ context: fork
 description: "complete SEO ecosystem — 20 skills in one. Technical SEO, AI search optimization, content strategy, analytics, and programmatic SEO at scale."
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # $ccc-seo — SEO domain hub
@@ -21,6 +22,8 @@ allowed-tools:
 | Analytics & Tracking | analytics-conversion, analytics-product, search-console, serp-analyzer |
 | Growth | bulk-page-generator, backlink-audit, social-integration |
 | Dashboard | seo-dashboard |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 
@@ -87,3 +90,5 @@ This domain specializes in optimization for AI-powered search surfaces:
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

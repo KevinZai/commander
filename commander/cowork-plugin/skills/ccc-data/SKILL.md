@@ -4,6 +4,7 @@ context: fork
 description: "complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search."
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # /ccc-data — Data domain hub
@@ -22,6 +23,8 @@ allowed-tools:
 | 6 | analytics-setup | Analytics implementation — PostHog, Mixpanel, GA4 |
 | 7 | reporting | Automated report generation and scheduling |
 | 8 | vector-search | Vector database — Pinecone, pgvector, Qdrant with semantic search |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 

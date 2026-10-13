@@ -57,6 +57,11 @@ var TEXT_SURFACES = [
   'docs/plugin.md',
   'docs/cli.md',
   'docs/WHY-CCC.md',
+  // Ships inside every install (commander/cowork-plugin/ is the plugin
+  // directory) — a stale count here reaches every user, not just the repo's
+  // own README. Was NOT scanned before the CC-1397 audit and had drifted to
+  // 72 skills / 39 handlers / 459 ecosystem skills / 14 domain routers.
+  'commander/cowork-plugin/README.md',
 ];
 
 var JSON_SURFACES = [
@@ -124,6 +129,42 @@ var HISTORICAL_SURFACES = [
   'mintlify-docs/whats-new-v5.mdx',
   'mintlify-docs/plugin/upgrade.mdx',
 ];
+
+// upgrade.mdx is historical for the GENERAL number/version scan above — its
+// "Before (vX) / Now (vY)" table legitimately quotes a past release's counts,
+// and scanning it as current-state is how release notes get falsified (the
+// same reason it is in HISTORICAL_SURFACES). But it is also the one LIVE
+// upgrade guide users read to move to the CURRENT release — if nobody
+// refreshes it, it happily walks people through "upgrading to v7.3.0" forever.
+// This is a narrow, separate assertion instead of un-exempting the file:
+// the current contract version must appear somewhere in it. It does not
+// care WHERE (title, table, verify string) or how many stale version
+// mentions might remain — that nuance is exactly what HISTORICAL_SURFACES
+// protects.
+var CURRENT_GUIDE_SURFACE = 'mintlify-docs/plugin/upgrade.mdx';
+
+// Split from scanUpgradeGuideCurrency so the assertion itself (content in,
+// findings out) is unit-testable without touching the filesystem.
+function checkUpgradeGuideCurrency(content, contract) {
+  var findings = [];
+  if (content.indexOf(contract.version) === -1) {
+    findings.push(makeFinding(
+      CURRENT_GUIDE_SURFACE,
+      'version',
+      contract.version,
+      'not mentioned anywhere in file',
+      'live upgrade guide never mentions the current version — likely stuck on a stale release snapshot',
+      false
+    ));
+  }
+  return findings;
+}
+
+function scanUpgradeGuideCurrency(root, contract) {
+  var full = path.join(root, CURRENT_GUIDE_SURFACE);
+  if (!exists(full)) return [];
+  return checkUpgradeGuideCurrency(readFile(full), contract);
+}
 
 function listMdxFiles(root) {
   var base = path.join(root, 'mintlify-docs');
@@ -335,6 +376,18 @@ function makeNumberRules(contract) {
       patchable: true,
     },
     {
+      // Markdown-table label-first cells: "| Plugin skills | 81 (...) |" — the
+      // number FOLLOWS the label here, which the prose-oriented rule above
+      // (number then "plugin skills") never matches. Found by the CC-1397
+      // audit as a live blind spot (mintlify-docs/introduction.mdx's Key
+      // Stats table sat at 81 through a release while every prose mention
+      // said 82).
+      field: 'plugin_skills',
+      expected: contract.plugin_skills,
+      regex: /\|\s*Plugin skills\s*\|\s*(?<value>\d+)/gi,
+      patchable: true,
+    },
+    {
       field: 'specialist_agents',
       expected: contract.specialist_agents,
       regex: /\b(?<value>\d+)\s+(?:speciali[sz]ed|specialist)\s+(?:sub-?)?agents?\b/gi,
@@ -367,7 +420,18 @@ function makeNumberRules(contract) {
     {
       field: 'hook_handlers',
       expected: contract.hook_handlers,
-      regex: /\b(?<value>\d+)\s+handlers?\b/gi,
+      // "(?:total\s+)?" catches "44 total handlers" phrasing, not just
+      // "44 handlers" — mintlify-docs/plugin/hooks.mdx said "43 total
+      // handlers" while every other sentence on the same page said 44, and
+      // the un-broadened regex never saw it.
+      regex: /\b(?<value>\d+)\s+(?:total\s+)?handlers?\b/gi,
+      patchable: true,
+    },
+    {
+      // Markdown-table label-first cell, same blind spot as plugin_skills above.
+      field: 'hook_handlers',
+      expected: contract.hook_handlers,
+      regex: /\|\s*Hook handlers\s*\|\s*(?<value>\d+)/gi,
       patchable: true,
     },
     {
@@ -895,17 +959,22 @@ function main() {
   var contract = readJson(contractPath);
   var contractFindings = validateContract(contract);
   var fsFindings = scanFilesystemFacts(args.root, contract);
+  var upgradeGuideFindings = scanUpgradeGuideCurrency(args.root, contract);
 
   if (args.mode === 'patch') {
     var changed = applyPatches(args.root, contract);
     var patchedScan = scanSurfaces(args.root, contract);
-    patchedScan.findings = contractFindings.concat(fsFindings).concat(patchedScan.findings);
+    // Re-scan for currency AFTER patching too: --patch never touches
+    // upgrade.mdx (it's in HISTORICAL_SURFACES), so this finding is
+    // unpatchable either way, but it must still surface in --patch's report
+    // rather than silently vanish because --patch only calls scanSurfaces.
+    patchedScan.findings = contractFindings.concat(fsFindings).concat(scanUpgradeGuideCurrency(args.root, contract)).concat(patchedScan.findings);
     printReport(contract, patchedScan, changed);
     process.exit(patchedScan.findings.length === 0 ? 0 : 1);
   }
 
   var scan = scanSurfaces(args.root, contract);
-  scan.findings = contractFindings.concat(fsFindings).concat(scan.findings);
+  scan.findings = contractFindings.concat(fsFindings).concat(upgradeGuideFindings).concat(scan.findings);
   printReport(contract, scan, []);
 
   if (args.mode === 'check' && scan.findings.length > 0) {
@@ -924,4 +993,7 @@ module.exports = {
   isVersionRelevant: isVersionRelevant,
   isSafeToPatch: isSafeToPatch,
   patchText: patchText,
+  scanTextSurface: scanTextSurface,
+  checkUpgradeGuideCurrency: checkUpgradeGuideCurrency,
+  TEXT_SURFACES: TEXT_SURFACES,
 };

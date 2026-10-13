@@ -1,6 +1,6 @@
 ---
 name: ccc
-description: "CC Commander main hub — click-first menu that detects your project context and routes to 12 specialist workflows (plan, build, review, ship, design, learn, xray,…"
+description: "CC Commander main hub — click-first menu that detects your project context and routes to 13 specialist workflows (plan, build, review, ship, design, learn, xray,…"
 allowed-tools:
   - Read
   - Write
@@ -16,7 +16,7 @@ argument-hint: "[intent keyword: build | review | ship | design | learn | more]"
 
 # /ccc — CC Commander Hub
 
-Click-first entry point to the whole CC Commander surface (60 ccc-* skills, 22 specialist agents, 2 credential-free bundled MCP servers + 16 opt-in via $ccc-connect). The user types `/ccc` and gets a native visual picker — no typing, no menus.
+Click-first entry point to the whole CC Commander surface (`<N>` ccc-* skills — never hardcode, compute via `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/*/ | wc -l` — 22 specialist agents, 2 credential-free bundled MCP servers + 16 opt-in via $ccc-connect). The user types `/ccc` and gets a native visual picker — no typing, no menus.
 
 > **Workflow-first.** CC Commander delegates substantive work to the Workflow tool / fleet; the lead session stays a thin control plane (conclusions in, file-dumps out). See `../../rules/workflow-first.md`.
 
@@ -84,7 +84,7 @@ options:
     preview: "(per-context note)"
   - label: "⋯ More tools"
     description: "Plan, design, learn, x-ray, Linear, fleet, connect apps."
-    preview: "27 more skills — click to expand"
+    preview: "<N> more skills — click to expand (N = total plugin skill count minus the 3 shown above; compute via `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/*/ | wc -l`, never hardcode)"
 ```
 
 **Recommendation logic** (prepend ⭐ to the label of ONE option based on context):
@@ -102,7 +102,7 @@ Based on user pick, invoke the matching skill. Do NOT prompt again; dispatch imm
 - **Ship** → invoke `ccc-ship` skill
 - **More** → invoke `ccc-more` skill (which presents the second-page picker)
 
-Each target skill handles its own sub-picker. Never unroll all 27+ options in one `/ccc` call — that's anti-pattern (burns context, overwhelming UX).
+Each target skill handles its own sub-picker. Never unroll the full skill catalog in one `/ccc` call — that's anti-pattern (burns context, overwhelming UX).
 
 ## Anti-patterns — DO NOT do these
 
@@ -111,6 +111,7 @@ Each target skill handles its own sub-picker. Never unroll all 27+ options in on
 - ❌ Render more than 4 options in a single `AskUserQuestion` — not supported (max 4)
 - ❌ Load `references/main-menu.json` and dump 18 options — nested flow is required
 - ❌ Reference legacy `/commander:ccc` namespace — the plugin now ships `/ccc` as a plain skill
+- ❌ Hardcode skill/agent counts — compute them live via `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/*/ | wc -l` (same rule as `ccc-start/SKILL.md`)
 
 ## Dispatching after selection
 

@@ -581,6 +581,69 @@ describe('readModel — tolerant reading', () => {
     });
   });
 
+  it('joins a null-named start to an "unknown"-named stop via a shared agent_id (CC-1397)', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      fs.writeFileSync(
+        path.join(dir, 'subagent-runs.jsonl'),
+        `${JSON.stringify({ ts: '2026-07-16T10:00:00.000Z', agent_name: null, agent_id: 'agent-xyz', session_id: 's1' })}\n`
+      );
+      fs.writeFileSync(
+        path.join(dir, 'agent-runs.jsonl'),
+        `${JSON.stringify({ ts: '2026-07-16T10:05:00.000Z', agent: 'unknown', agentId: 'agent-xyz', sessionId: 's1', durationMs: 300000, inputTokens: 1200, outputTokens: 800, status: 'ok' })}\n`
+      );
+
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      // Before CC-1397: agent_name:null never equals the stop's 'unknown' floor,
+      // so this start and stop rendered as TWO separate rows (an eternally
+      // "running" start plus a nameless orphan stop) instead of one joined agent.
+      assert.equal(model.agents.length, 1, 'start+stop join into a single row via agent_id');
+      assert.equal(model.agents[0].status, 'done');
+      assert.equal(model.agents[0].durationMs, 300000);
+      assert.equal(model.agents[0].inputTokens, 1200);
+      assert.equal(model.agents[0].outputTokens, 800);
+    });
+  });
+
+  it('falls back to normalized-name + session/time join when neither side has agent_id (backward compat)', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      fs.writeFileSync(
+        path.join(dir, 'subagent-runs.jsonl'),
+        `${JSON.stringify({ ts: '2026-07-16T10:00:00.000Z', agent_name: null, session_id: 's1' })}\n`
+      );
+      // No agentId field at all — mirrors the 3,386 pre-CC-1397 stop rows on disk.
+      fs.writeFileSync(
+        path.join(dir, 'agent-runs.jsonl'),
+        `${JSON.stringify({ ts: '2026-07-16T10:05:00.000Z', agent: 'unknown', sessionId: 's1', durationMs: 60000, inputTokens: 10, outputTokens: 5, status: 'ok' })}\n`
+      );
+
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      assert.equal(model.agents.length, 1, 'null start name and "unknown" stop name join via normalization');
+      assert.equal(model.agents[0].status, 'done');
+      assert.equal(model.agents[0].durationMs, 60000);
+    });
+  });
+
+  it('does not cross-join mismatched agent_ids in the same session', async () => {
+    const { readModel } = await loadLib();
+    await withTmpDir(async (dir) => {
+      fs.writeFileSync(
+        path.join(dir, 'subagent-runs.jsonl'),
+        `${JSON.stringify({ ts: '2026-07-16T10:00:00.000Z', agent_name: null, agent_id: 'agent-aaa', session_id: 's1' })}\n`
+      );
+      fs.writeFileSync(
+        path.join(dir, 'agent-runs.jsonl'),
+        `${JSON.stringify({ ts: '2026-07-16T10:05:00.000Z', agent: 'unknown', agentId: 'agent-bbb', sessionId: 's1', durationMs: 60000, status: 'ok' })}\n`
+      );
+
+      const model = await readModel({ baseDir: dir, now: FIXED_NOW });
+      // Both sides HAVE an agent_id but they differ — must not be treated as a
+      // match just because the (normalized) names also happen to agree.
+      assert.equal(model.agents.length, 2, 'mismatched agent_id keeps start and stop as separate rows');
+    });
+  });
+
   it('renders an old unmatched start as muted stale, outside working and finished counts', async () => {
     const { readModel, buildSnapshotHtml } = await loadLib();
     await withTmpDir(async (dir) => {

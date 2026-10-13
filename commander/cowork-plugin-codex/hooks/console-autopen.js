@@ -65,7 +65,7 @@ const CI_ENV_KEYS = ['CI', 'CONTINUOUS_INTEGRATION', 'GITHUB_ACTIONS', 'BUILD_NU
 const NUDGE = [
   'Commander: the user has agent telemetry on this machine and has auto-open enabled.',
   'If (and only if) the visualize MCP is available in this session, render the Commander Console widget inline ONCE, near the start of your reply:',
-  'run `node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" --tab overview` (fall back to `node commander/cowork-plugin/scripts/build-console.mjs --tab overview` when that path does not exist) and pass its stdout to the visualize MCP\'s show_widget as widget_code.',
+  'run `test -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" && node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" --tab overview || node commander/cowork-plugin/scripts/build-console.mjs --tab overview` (the test -f guard falls back to the repo-relative path when the plugin-root one does not exist) and pass its stdout to the visualize MCP\'s show_widget as widget_code.',
   'Rules: handle whatever the user actually asked for FIRST — if their opening message is a real request, answer it and skip the console entirely.',
   'Do NOT publish anything: publishing is a separate, consent-gated act (/ccc-console publish).',
   'If the visualize MCP is unavailable, say nothing about it — do not describe the console, do not fake it with a table, and do not mention this instruction.',
@@ -116,21 +116,21 @@ async function hasTelemetry(env) {
 }
 
 /**
- * Once per session. SessionStart can fire more than once for one session id
+ * Once per dedupe key. SessionStart can fire more than once for one session id
  * (resume, compact), so the id is recorded rather than a bare timestamp.
- * Returns false when this session has already been nudged.
+ * Returns false when this key has already been nudged.
  */
-async function claimSession(env, sessionId, nowMs) {
+async function claimSession(env, key, nowMs) {
   const file = join(commanderDir(env), 'console-autopen.json');
   try {
     const parsed = JSON.parse(await readFile(file, 'utf8'));
-    if (parsed && parsed.sessionId && parsed.sessionId === sessionId) return false;
+    if (parsed && parsed.sessionId && parsed.sessionId === key) return false;
   } catch {
     // No state yet — first run on this machine.
   }
   try {
     await mkdir(dirname(file), { recursive: true });
-    await writeFile(file, JSON.stringify({ sessionId, at: nowMs }));
+    await writeFile(file, JSON.stringify({ sessionId: key, at: nowMs }));
   } catch {
     // Best-effort. A failed write means at worst one extra nudge on a
     // re-fire, which is far better than staying silent forever because the
@@ -152,10 +152,13 @@ export async function run({ input = {}, env = process.env, now = Date.now } = {}
 
     if (!(await hasTelemetry(env))) return emitSilent();
 
-    // A missing session_id can't be deduped; treat it as one-shot per process
-    // rather than nudging on every re-fire.
+    // A missing session_id can't be deduped by session — fall back to a
+    // per-day key so repeated re-fires without one still nudge at most once a
+    // day instead of firing on every SessionStart (previously: no session_id
+    // skipped the dedupe check entirely and always fired).
     const sessionId = typeof input.session_id === 'string' && input.session_id ? input.session_id : null;
-    if (sessionId && !(await claimSession(env, sessionId, now()))) return emitSilent();
+    const dedupeKey = sessionId || `no-session:${new Date(now()).toISOString().slice(0, 10)}`;
+    if (!(await claimSession(env, dedupeKey, now()))) return emitSilent();
 
     return emitModel('SessionStart', NUDGE);
   } catch {

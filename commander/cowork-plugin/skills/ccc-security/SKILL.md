@@ -4,6 +4,7 @@ context: fork
 description: "complete application security ecosystem — 8 skills in one. OWASP Top 10, secrets scanning, dependency audits, prompt injection defense, CodeQL, and incident…"
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # /ccc-security — Security domain hub
@@ -24,6 +25,8 @@ allowed-tools:
 | 6 | codeql-integration | Set up CodeQL for automated security analysis in CI |
 | 7 | variant-analysis | Find variants of known vulnerabilities across codebase |
 | 8 | incident-response | Security incident response playbook and remediation |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 

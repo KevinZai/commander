@@ -23,20 +23,23 @@ Load current config and show top 4 most-changed settings:
 cat ~/.claude/commander/config.json 2>/dev/null || echo '{}'
 ```
 
-Display current values and offer via AskUserQuestion:
+Display current values and offer via AskUserQuestion (max 4 options — "Back to main menu" is a plain-text line below the picker, not a 5th chip):
 - "Change my name" (currently: {name})
 - "Change theme" (currently: {theme})
 - "Set cost ceiling" (currently: ${costCeiling})
 - "More settings..."
-- "Back to main menu"
+
+Below the picker: `Or say "back" to return to /ccc.`
 
 ## Power Mode
 
 Full settings menu from `references/settings.json`. Activate by passing `--power` or `all` as argument, or when user selects "More settings...".
 
+Page the 8 settings below into **two 4-option `AskUserQuestion` pickers** (max 4 per AUQ) rather than one 8-item list — page 1: name, level, cost ceiling, theme; page 2: animations, Linear setup, launch mode, reset. A "More…" chip on page 1 cascades to page 2, same pattern as `/ccc-more`.
+
 ### Available Settings
 
-All options from `references/settings.json`:
+All options from `references/settings.json`. Entries marked **(CLI-only)** configure the `ccc` terminal binary and have no effect in Claude Code Desktop / Cowork Desktop — surface them anyway (users may run both), but note the scope.
 
 **a) Display name** — How CC Commander addresses you
 - Ask: "What name should I use?" → write to `config.json`
@@ -49,11 +52,11 @@ All options from `references/settings.json`:
 - Ask: "Max budget per session?" → validate is a number → write to `config.json`
 - Note: $10 hard ceiling in night-mode is separate
 
-**d) Theme** — Visual theme for `ccc` CLI
+**d) Theme (CLI-only)** — Visual theme for `ccc` CLI
 - Options: Claude Anthropic (default) / OLED Black / Matrix / Surprise Me
 - Use Bash to apply if `ccc --theme` is available; otherwise note takes effect on next `ccc` launch
 
-**e) Animations** — Toggle terminal animations
+**e) Animations (CLI-only)** — Toggle terminal animations
 - Ask: Enable / Disable
 - Sets `CC_NO_ANIMATION=1` in shell profile if disabled
 
@@ -63,7 +66,7 @@ All options from `references/settings.json`:
   `export LINEAR_CC_CLIENT_ID=<your_client_id>` and `export LINEAR_CC_CLIENT_SECRET=<your_client_secret>`
 - If set: test connection, show linked team and project, offer to change
 
-**m) Launch mode** — Simple or Advanced (split tmux)
+**m) Launch mode (CLI-only)** — Simple or Advanced (split tmux)
 - Simple: standard single-pane launch
 - Advanced: tabbed tmux split mode (`ccc --split`)
 

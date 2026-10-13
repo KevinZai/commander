@@ -89,24 +89,27 @@ options:
   - label: "🔌 Connect apps"
     description: "Enable Notion, Zapier, Supabase, Slack, Google Drive, and more MCPs."
     preview: "Invokes ccc-connect. Browses connector categories + runs OAuth."
+  - label: "🔧 Tune-up setup"
+    description: "Audit + safely optimize your local ~/.claude CC Commander install."
+    preview: "Invokes ccc-tuneup. Version freshness, junk sweep, count drift, settings keys — read-only by default."
   - label: "🔎 Browse catalog"
     description: "Searchable grid of every $ccc-* command and every installed skill."
     preview: "Invokes ccc-browse. Filters by domain, status, recency."
-  - label: "🏠 Back to main"
-    description: "Return to /ccc."
-    preview: "Invokes ccc skill (root picker)."
 ```
+
+Below the picker, render a plain-text line (not a 5th chip — AUQ stays at 4 options): `Or say "back" to return to /ccc.`
 
 ### 6. Handle the selection (page 2)
 
 - **Fleet** → invoke `ccc-fleet` skill.
 - **Connect apps** → invoke `ccc-connect` skill.
+- **Tune-up setup** → invoke `ccc-tuneup` skill.
 - **Browse catalog** → invoke `ccc-browse` skill.
-- **Back to main** → invoke `ccc` skill.
+- User types/says "back" instead of picking → invoke `ccc` skill.
 
 ### 7. Argument handling
 
-If the user passed an argument (`$ccc-more fleet`), skip both AUQs and invoke directly. Accept: `plan` / `xray` / `linear` / `fleet` / `connect` / `browse`.
+If the user passed an argument (`$ccc-more fleet`), skip both AUQs and invoke directly. Accept: `plan` / `xray` / `linear` / `fleet` / `connect` / `tuneup` / `browse`.
 
 ## Anti-patterns — DO NOT
 
@@ -129,7 +132,7 @@ If the user passed an argument (`$ccc-more fleet`), skip both AUQs and invoke di
 
 ---
 
-**Bottom line:** 4 options on page 1, cascade to 3 more on page 2. Arguments bypass everything. Every pick dispatches inline to the named skill — no intermediate text menus.
+**Bottom line:** 4 options on page 1, cascade to 4 more on page 2 (plus a plain-text way back to `/ccc`). Arguments bypass everything. Every pick dispatches inline to the named skill — no intermediate text menus.
 
 ---
 

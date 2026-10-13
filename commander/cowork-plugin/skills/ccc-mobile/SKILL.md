@@ -4,6 +4,7 @@ context: fork
 description: "complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Compose, mobile testing, ASO, push notifications, and deep linking."
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # /ccc-mobile — Mobile domain hub
@@ -22,6 +23,8 @@ allowed-tools:
 | 6 | app-store-optimization | ASO — App Store + Play Store listing optimization |
 | 7 | push-notifications | Push notifications — FCM, APNs, OneSignal, Expo Notifications |
 | 8 | deep-linking | Universal links, App Links, deep link configuration |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 

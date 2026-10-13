@@ -44,6 +44,8 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { redactedSample } from './safety-snapshot.js';
+
 const MAX_JSONL_LINES = 20000;
 const MAX_JSONL_BYTES = 8 * 1024 * 1024;
 const DEFAULT_WINDOW_DAYS = 30;
@@ -156,8 +158,13 @@ function emptyDay(date) {
 
 function skillName(value) {
   if (typeof value !== 'string' || !value.trim()) return null;
-  const trimmed = value.trim();
-  return trimmed.length > SKILL_NAME_MAX ? `${trimmed.slice(0, SKILL_NAME_MAX - 1)}…` : trimmed;
+  // Route through safety-snapshot.js's redactedSample so a hostile/pasted
+  // skill name can't leak a secret or the machine's username the same way an
+  // error sample already couldn't (CC-1397) — skill-runs.jsonl's `skill`
+  // field is free text and was never scrubbed before this.
+  const redacted = redactedSample(value.trim());
+  if (!redacted || redacted === '(no error text)') return null;
+  return redacted.length > SKILL_NAME_MAX ? `${redacted.slice(0, SKILL_NAME_MAX - 1)}…` : redacted;
 }
 
 /**
@@ -220,16 +227,34 @@ async function readHistoryModel({ baseDir, now, windowDays = DEFAULT_WINDOW_DAYS
     return day;
   };
 
+  // Metrics rows only count as telemetry (for dataThroughMs/hasAnySourceRow)
+  // when they carry ACTUAL activity. getMetrics() gap-fills the window with
+  // all-zero rows on every read (including "today"), so an unfiltered scan
+  // would stamp a dead install as fresh-as-of-now and the >24h stale warning
+  // could never fire — the exact failure the banner exists to expose. Mirrors
+  // usage-snapshot.js's metricsRowHasActivity (see that file's comment).
+  const metricsRowHasActivity = (row) =>
+    row &&
+    typeof row === 'object' &&
+    ['cost_usd', 'agents_dispatched', 'tasks_completed', 'tool_failures', 'sessions'].some(
+      (field) => Number.isFinite(row[field]) && row[field] > 0
+    );
+
   // ── Backbone. Also carries the FULL horizon (not window-clipped) so the
-  // renderer can say how far the retained rollups actually go back.
+  // renderer can say how far the retained rollups actually go back — every
+  // row (including all-zero gap-fill rows) still counts toward that horizon
+  // and toward per-day chart accumulation below; only the freshness stamps
+  // are gated on real activity.
   const backboneDays = new Set();
   for (const row of metricsRows || []) {
     const key = typeof row.date === 'string' ? row.date.trim() : '';
     if (!DAY_KEY.test(key)) continue;
-    hasAnySourceRow = true;
     backboneDays.add(key);
-    const ms = dayKeyToMs(key);
-    if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
+    if (metricsRowHasActivity(row)) {
+      hasAnySourceRow = true;
+      const ms = dayKeyToMs(key);
+      if (ms !== null && (dataThroughMs === null || ms > dataThroughMs)) dataThroughMs = ms;
+    }
 
     const day = bump(key);
     if (!day) continue;

@@ -97,19 +97,21 @@ What does **not** exist and must never be claimed: per-message content, session 
 
 A frozen, shareable page — think "export to PDF", not "live dashboard". Render the **artifact** surface for one tab and publish it with the **Artifact** tool.
 
-**LIVING PATTERN:** always render to the same file path so republishing updates one page instead of leaving a trail. That path is the **Cockpit's** existing one, `scratchpad/commander-cockpit.html` — the console snapshot **absorbs the Cockpit's living URL** rather than minting a fifth Commander URL (Kevin's call, v7.4.0). `/ccc-browse` republishes the same path with the catalog page; both keep favicon `🎛️`, so the bookmark stays the one Commander page it has always been.
+**LIVING PATTERN:** always render to the same file path so republishing updates one page instead of leaving a trail. That path is the **Cockpit's** existing one, `<scratchpad>/commander-cockpit.html` (the session-placeholder convention `/ccc-browse` uses — not a literal `scratchpad/` directory relative to cwd) — the console snapshot **absorbs the Cockpit's living URL** rather than minting a fifth Commander URL (Kevin's call, v7.4.0). `/ccc-browse` republishes the same path with the catalog page; both keep favicon `🎛️`, so the bookmark stays the one Commander page it has always been.
 
 ```bash
-mkdir -p scratchpad
+mkdir -p <scratchpad>
 node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
-  --surface artifact --tab overview --out scratchpad/commander-cockpit.html
+  --surface artifact --tab overview --out <scratchpad>/commander-cockpit.html
 ```
 
 (Same `if [ -f … ]` fallback as above when `${CLAUDE_PLUGIN_ROOT}/scripts/` isn't present.)
 
 Publish that file with favicon `🎛️` and the stable title **"Commander Console"**. Never invent a new path or filename for it — a new path is a new URL, and every existing bookmark stops updating.
 
-The four deck skills work the same way in reverse: `/ccc-mission-control`, `/ccc-usage` and `/ccc-safety` publish **one tab each** through this same builder onto their own existing paths (`scratchpad/mission-control-live.html`, `ccc-usage-live.html`, `ccc-safety-live.html`), so their URLs keep updating in place and every page comes from one renderer.
+**Same-file-path alone only redeploys to the same URL within the session that first published it.** A fresh session that never itself ran `/ccc-browse` or `/ccc-console publish` has no memory of the Commander Cockpit's URL, and publishing by file path alone in that session mints a brand-new URL instead of updating the shared one. Before publishing, check whether you already know the URL (from earlier in this same session); if not, call the Artifact tool's `list` action to find the existing "Commander Cockpit" artifact and pass its URL via `url=` on the publish call. Only fall back to a plain file-path publish (which mints a new URL) if `list` finds no prior "Commander Cockpit" artifact at all.
+
+The four deck skills work the same way in reverse: `/ccc-mission-control`, `/ccc-usage` and `/ccc-safety` publish **one tab each** through this same builder onto their own existing paths (`<scratchpad>/mission-control-live.html`, `<scratchpad>/ccc-usage-live.html`, `<scratchpad>/ccc-safety-live.html`), so their URLs keep updating in place and every page comes from one renderer — the same `url=` lookup applies to each of them.
 
 **Confirm before the FIRST publish this session:** use `AskUserQuestion` to tell the user that **agent names, task subjects and timings will leave the machine** for their private claude.ai artifact URL — private to their account, but off the machine. Publish only after an explicit confirmation, and never publish automatically. **Re-invoking `/ccc-console publish` IS the refresh consent** — republish the same path without re-asking.
 

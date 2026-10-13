@@ -99,6 +99,12 @@ async function main() {
         ) ||
         process.env.CLAUDE_AGENT_NAME ||
         null,
+      // Mirrors the SubagentStop payload's agent_id (see subagent-stop.js's
+      // header comment) so mission-control-snapshot.js's joinAgents() can match
+      // start↔stop on a stable id instead of the frequently-null agent_name.
+      agent_id:
+        firstString(input.agent_id, input.agentId, sub.agent_id, sub.id, ti.agent_id) ||
+        null,
       prompt: truncate(
         firstString(input.prompt, input.task, sub.prompt, ti.prompt, ti.task) ||
           process.env.CLAUDE_AGENT_PROMPT,

@@ -4,6 +4,7 @@ context: fork
 description: "complete DevOps ecosystem — 21 skills in one. Deployments, CI/CD, containers, AWS, monitoring, security, IaC, networking, and runbooks."
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # $ccc-devops — DevOps domain hub
@@ -26,6 +27,8 @@ allowed-tools:
 ## Routines Integration
 
 For **scheduled deployments** and automated infra tasks, see: https://code.claude.com/docs/en/scheduled-tasks — ccc-devops skills (especially `cicd-pipeline-generator` and `zero-downtime-deploy`) can be wrapped as scheduled routines for nightly deployments, weekly security scans, or periodic drift detection.
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 
@@ -90,3 +93,5 @@ For **scheduled deployments** and automated infra tasks, see: https://code.claud
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

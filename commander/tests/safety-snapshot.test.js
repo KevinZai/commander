@@ -440,6 +440,15 @@ test('redactedSample: linux /home paths fold too', () => {
   assert.ok(out.includes('<home>'));
 });
 
+test('redactedSample: flattened Claude project-dir home paths fold too (CC-1397)', () => {
+  // Claude Code's project-dir naming turns "/Users/kevin/clawd/…" into
+  // "-Users-kevin-clawd-…" (slashes replaced with dashes) — the "/Users/" fold
+  // above never matches that shape because it requires a literal slash.
+  const out = redactedSample('config read from -Users-kevin-clawd-projects-cc-commander/settings.json failed');
+  assert.ok(!out.includes('-Users-kevin-clawd-projects-cc-commander'), 'flattened home path must not survive');
+  assert.ok(out.includes('<home>'), 'folded marker expected');
+});
+
 test('redact: clean text passes through unmodified', () => {
   assert.equal(redact('ordinary error, no secrets'), 'ordinary error, no secrets');
 });

@@ -1,9 +1,9 @@
 ---
 title: "Plugin Skills"
-description: "82 skills shipped with the CC Commander plugin (v7.4.1). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 11 CCC domains + Orchestrator/Executor skills + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
+description: "83 skills shipped with the CC Commander plugin (v7.4.2). 13 /ccc-* specialist workflows + 7 channel/CI/ECC/setup skills + 11 CCC domains + Orchestrator/Executor skills + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
 ---
 
-CC Commander v7.4.1 ships **82 plugin skills** across nine groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+CC Commander v7.4.2 ships **83 plugin skills** across nine groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
 
 ## Group 1 — 13 /ccc-* Specialist Workflows
 
@@ -73,8 +73,9 @@ Added in v5.0.0 and v5.0.0.
 | `/ccc-handoff` | `/ccc-handoff` or "handoff session", "fresh chat" | Proactive context reset — writes a dense handoff file and tells you to start a fresh chat before context quality decays |
 | `/ccc-changelog` | `/ccc-changelog` or "what changed", "what is new" | Renders the latest CHANGELOG.md section. Fires automatically on version-transition via SessionStart nudge (beta.11) |
 | `/ccc-doctor` | `/ccc-doctor` or "diagnose plugin" | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component (beta.11). As of v7.3.0 also diagnoses stale-install layers (marketplace clone behind `main`, old cache dirs, stale Desktop copies) and can enable marketplace auto-update. |
-| `/ccc-update` | `/ccc-update` or "update commander", "check for updates" | Click-first update walkthrough — detect installed vs. latest, run the update sequence, restart, verify version + hooks are live. See [`/ccc-update`](/plugin/skills/ccc-update) (v7.4.1). |
+| `/ccc-update` | `/ccc-update` or "update commander", "check for updates" | Click-first update walkthrough — detect installed vs. latest, run the update sequence, restart, verify version + hooks are live. See [`/ccc-update`](/plugin/skills/ccc-update) (v7.4.2). |
 | `/ccc-console` | `/ccc-console` or "open the console", "what's going on" | The Commander Console — one inline widget with agents, usage, safety, memory and history, plus a prompt bar wired to this session. Chips send fixed commands only; publishing a snapshot is separate and consent-gated (v7.4.0). |
+| `/ccc-adhd` | `/ccc-adhd` or "answer-first mode", "stop burying the fix" | Answer-first output — every response leads with the fix, then the command, then the file:line, context last. Ported from `ayghri/i-have-adhd` (MIT). Toggle `on`/`off`/`status`; stacks with `caveman` (v7.5.0). |
 
 ## Group 6 — Memory / Task / Recall (MIT-ported from community)
 
@@ -105,7 +106,7 @@ The plan/execute split: high-reasoning models write goal files and verify; execu
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
-| `/ccc-orchestrate` | `/ccc-orchestrate` or "orchestrate this", "goal file executor" | Cross-runtime Orchestrator/Executor — Fable/Opus writes a Skill.md-style goal file, GPT-5.5 via `codex` or Sonnet executes, orchestrator verifies acceptance criteria |
+| `/ccc-orchestrate` | `/ccc-orchestrate` or "orchestrate this", "goal file executor" | Cross-runtime Orchestrator/Executor — Fable/Opus writes a Skill.md-style goal file, the Codex CLI executor (GPT-5.6) or Sonnet executes, orchestrator verifies acceptance criteria |
 | `/ccc-adopt` | `/ccc-adopt` or "adopt commander", "add ccc doctrine" | Bring the Orchestrator/Executor doctrine into an existing project — merge a marked `CLAUDE.md` block without clobbering local rules |
 | `/ccc-relay` | `/ccc-relay` or "cross-session loop", "spec build review chain" | Cross-session loop chaining — chains independent gated spec → build → review sessions with a durable handoff baton; merge stays human-approved (v6.7.0) |
 | `/ccc-smb-ops` | `/ccc-smb-ops` or "small business ops", "invoicing", "cash flow" | Small-business-operations domain (router + 6 sub-skills): invoicing/AR, cash-flow forecast, expense tracking, payroll planning, CRM hygiene, weekly owner brief (v6.7.0) |
@@ -122,7 +123,7 @@ Self-contained artifacts that turn data CCC already logs into a page. Every deck
 | `/ccc-usage` | `/ccc-usage` or "what am I spending", "show my savings" | Usage & Cost deck — burn, estimated savings vs. an all-Opus baseline (honest, not a bill), saved/day + cost/day trends, cost-by-app split. See [`/ccc-usage`](/plugin/skills/ccc-usage). |
 | `/ccc-safety` | `/ccc-safety` or "what did commander block", "safety report" | Safety deck — blocked/auto-fixed/approved action outcomes, redacted tool-failure hotspots. See [`/ccc-safety`](/plugin/skills/ccc-safety). |
 
-## All 82 at a Glance
+## All 83 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -185,6 +186,7 @@ Self-contained artifacts that turn data CCC already logs into a page. Every deck
 | 80 | `/ccc-safety` | Safety deck — blocked/auto-fixed actions + tool-failure hotspots (v7.2.0) |
 | 81 | `/ccc-update` | Click-first update walkthrough — detect, update, restart, verify (v7.3.0) |
 | 82 | `/ccc-console` | Inline console widget — agents, usage, safety, memory, history and a prompt bar that reaches the live session (v7.4.0) |
+| 83 | `/ccc-adhd` | Answer-first output — fix, then command, then file:line, context last. Ported from `ayghri/i-have-adhd` (MIT) (v7.5.0) |
 | — | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2) |
 
 [Pricing — Core Free Forever →](/plugin/free-vs-pro)

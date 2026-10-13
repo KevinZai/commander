@@ -115,3 +115,114 @@ test('patch safety: --patch is never more permissive than --check', function () 
     }
   });
 });
+
+// --- CC-1397 §B: blind spots found by the 11-agent audit ---------------------
+//
+// Four gaps let real drift ship silently: markdown-table label-first cells
+// ("| Plugin skills | 81 |"), the "N total handlers" phrasing, an unscanned
+// surface that ships inside every install, and a live upgrade guide that can
+// go stale forever with nobody noticing. Each gets a negative control (the
+// stale fixture the audit actually found IS detected) and a positive control
+// (the corrected doc is NOT flagged) — a rule that only has the negative half
+// tested can regress into flagging correct docs and nobody would catch it.
+
+var FULL_CONTRACT = {
+  version: '7.4.1',
+  plugin_skills: 82,
+  specialist_agents: 22,
+  lifecycle_hooks: 23,
+  hook_handlers: 44,
+  bundled_mcp_servers: 2,
+  opt_in_mcp_servers: 16,
+  ecosystem_skills: 467,
+  ccc_domains: 11,
+  command_prefix: '/ccc-',
+  pricing_model: 'free-forever-with-pro-tier',
+  pro_tier_planned: true,
+  hosted_mcp_status: 'live',
+  codex_cli_compat: 'shipping',
+  cursor_windsurf_compat: 'shipping',
+};
+
+function fieldFindings(content, field) {
+  return contractCli
+    .scanTextSurface(content, 'test-surface.mdx', FULL_CONTRACT)
+    .filter(function (f) { return f.field === field; });
+}
+
+test('blind spot: markdown-table "| Plugin skills | N |" — stale value IS detected', function () {
+  var stale = '| Plugin skills | 81 (13 /ccc-* workflows + 11 CCC domains) |';
+  var findings = fieldFindings(stale, 'plugin_skills');
+  assert.ok(findings.length > 0, 'stale table-cell plugin_skills count was not flagged');
+  assert.strictEqual(findings[0].actual, 81);
+});
+
+test('blind spot: markdown-table "| Plugin skills | N |" — corrected value is NOT flagged', function () {
+  var corrected = '| Plugin skills | 82 (13 /ccc-* workflows + 11 CCC domains) |';
+  assert.deepStrictEqual(fieldFindings(corrected, 'plugin_skills'), []);
+});
+
+test('blind spot: markdown-table "| Hook handlers | N |" — stale value IS detected', function () {
+  var stale = '| Hook handlers | 43 |';
+  var findings = fieldFindings(stale, 'hook_handlers');
+  assert.ok(findings.length > 0, 'stale table-cell hook_handlers count was not flagged');
+  assert.strictEqual(findings[0].actual, 43);
+});
+
+test('blind spot: markdown-table "| Hook handlers | N |" — corrected value is NOT flagged', function () {
+  var corrected = '| Hook handlers | 44 |';
+  assert.deepStrictEqual(fieldFindings(corrected, 'hook_handlers'), []);
+});
+
+test('blind spot: "N total handlers" phrasing — stale value IS detected', function () {
+  // The un-broadened regex required the number immediately before "handlers"
+  // with nothing but whitespace between — "total" in the middle hid this
+  // exact sentence from hooks.mdx while every other sentence on the page
+  // correctly said 44.
+  var stale = 'CC Commander registers 23 lifecycle hook events with 43 total handlers.';
+  var findings = fieldFindings(stale, 'hook_handlers');
+  assert.ok(findings.length > 0, '"N total handlers" phrasing was not flagged when stale');
+  assert.strictEqual(findings[0].actual, 43);
+});
+
+test('blind spot: "N total handlers" phrasing — corrected value is NOT flagged', function () {
+  var corrected = 'CC Commander registers 23 lifecycle hook events with 44 total handlers.';
+  assert.deepStrictEqual(fieldFindings(corrected, 'hook_handlers'), []);
+});
+
+test('blind spot: commander/cowork-plugin/README.md is now a scanned surface', function () {
+  // This file ships inside every install. It was not in TEXT_SURFACES before
+  // CC-1397 and had drifted to 72 skills / 39 handlers / 459 ecosystem skills
+  // for at least one release with the gate reporting PASS the whole time.
+  assert.ok(
+    contractCli.TEXT_SURFACES.indexOf('commander/cowork-plugin/README.md') !== -1,
+    'commander/cowork-plugin/README.md must be a scanned TEXT_SURFACE'
+  );
+});
+
+test('blind spot: upgrade.mdx currency — a guide with no current-version mention IS flagged', function () {
+  var stale = '# Upgrade to v7.3.0\n\nHere is how to upgrade to v7.3.0.\n';
+  var findings = contractCli.checkUpgradeGuideCurrency(stale, FULL_CONTRACT);
+  assert.ok(findings.length > 0, 'upgrade guide stuck on a stale version snapshot was not flagged');
+});
+
+test('blind spot: upgrade.mdx currency — a guide mentioning the current version is NOT flagged', function () {
+  var current = '# Upgrade to v7.4.1\n\nHere is how to upgrade to v7.4.1.\n';
+  assert.deepStrictEqual(contractCli.checkUpgradeGuideCurrency(current, FULL_CONTRACT), []);
+});
+
+test('blind spot: upgrade.mdx currency does NOT weaken historical protection elsewhere', function () {
+  // The targeted assertion only checks "does the version appear somewhere" —
+  // it must not start flagging the file's legitimate Before/Now comparison
+  // table, which is exactly the historical content HISTORICAL_SURFACES exists
+  // to protect. A before/after table for an OLDER release pair (neither side
+  // is the current version) must still pass as long as the file mentions the
+  // current version anywhere else.
+  var doc = [
+    '# Upgrade to v7.4.1',
+    '| Surface | Before (v7.3.0) | Now (v7.4.0) |',
+    '| Plugin skills | 80 | 81 |',
+    'Verify: should show the latest version (currently v7.4.1)',
+  ].join('\n');
+  assert.deepStrictEqual(contractCli.checkUpgradeGuideCurrency(doc, FULL_CONTRACT), []);
+});

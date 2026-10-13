@@ -4,6 +4,7 @@ context: fork
 description: "complete SEO ecosystem — 20 skills in one. Technical SEO, AI search optimization, content strategy, analytics, and programmatic SEO at scale."
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # /ccc-seo — SEO domain hub
@@ -21,6 +22,8 @@ allowed-tools:
 | Analytics & Tracking | analytics-conversion, analytics-product, search-console, serp-analyzer |
 | Growth | bulk-page-generator, backlink-audit, social-integration |
 | Dashboard | seo-dashboard |
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 

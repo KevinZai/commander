@@ -4,6 +4,7 @@ context: fork
 description: "complete research ecosystem — 8 skills in one. Deep multi-source research, spec interviews, cross-model review, competitive analysis, trend analysis, and large…"
 allowed-tools:
   - Read
+  - AskUserQuestion
 ---
 
 # /ccc-research — Research domain hub
@@ -29,6 +30,8 @@ In addition to web search, research can use connected channels as surfaces:
 - **Telegram/Discord channels** — community sentiment, ecosystem news, real-time signals
 - **Files API** — ingest uploaded documents, codebases, or data files directly
 - **Cross-model review** — route to multiple models for independent perspectives
+
+> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
 
 ## Routing Matrix
 
