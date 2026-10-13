@@ -54,6 +54,9 @@ Rules:
 10. **No persona theater.** No "You are a world-class…", no ALL-CAPS emphasis, no exclamation marks, no emoji outside the fixed semantic palette (🎯 💡 🚀 📊 💰 ✅ ❌ 🔄 ⏭️ ⏳ 🔒 🟢 🟡 🔴 ⚠️ 🎉 🏗️ 🔧 🧪 📝 🎨 🔐 🤖 🔬 🧠 📦 🌐 ⌨️). Instructions are imperative sentences.
 11. **Platform-current.** Where a skill touches a surface that changed, use the current primitive: Agent tool `effort`, `isolation: worktree`; Workflow tool and `/workflows`; `/effort ultracode`; Routines (`/schedule`) and `/loop`; Artifact tool (`publish`, `capabilities`, ArtifactData `db`, comments); `claude plugin validate --strict`, `claude plugin details`, `claude plugin eval`, `/doctor prompt-audit`; auto permission mode; Codex `exec --json`, `review --uncommitted`, `cloud exec`, `doctor --json`, `agents`, `plugin`, `remote-control`.
 12. **Privacy and portability.** No personal paths (`/Users/<name>`), hostnames, agent rosters, private services (OpenClaw, Hermes, Paperclip) or credentials. Only `claude-code` and `codex` are first-class sources. Anything optional (claude-mem, Linear, connectors) is described as opt-in and absent-by-default.
+13. **The Fable contract footer.** Every plugin SKILL.md ends with exactly one copy of this line, verbatim (the audit in `commander/tests/audit-fable-contract.test.js` pins the wording; `node scripts/add-fable-contract.js` re-adds a missing one and `--check` reports them):
+
+    `> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md``
 
 ## 2. Shape of an agent
 
