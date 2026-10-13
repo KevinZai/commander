@@ -103,10 +103,10 @@ If you pinned old model ids in your own `~/.claude/settings.json` or agent files
 
 Your `~/.claude/commander/` state files, knowledge base, and learned-skills directory are preserved. No data migration needed.
 
-## npm CLI
+## CLI toolkit
 
 ```bash
-npm i -g cc-commander@latest
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
 ccc --version   # should show the latest version (currently 8.0.0)
 ```
 
@@ -142,7 +142,7 @@ If something breaks (please file an issue first):
 ```
 /plugin update commander --version 7.4.2
 # or
-npm i -g cc-commander@7.4.2
+git clone --branch v7.4.2 https://github.com/KevinZai/commander && cd commander && ./install.sh
 ```
 
 ## After the upgrade

@@ -122,3 +122,7 @@ Scope · tools run · tools absent
 - `/ccc-code-review` — general code review of a diff.
 - `/ccc-ci` — CI pipelines where the CodeQL workflow lands.
 - `/ccc-safety` — session guardrails for destructive commands.
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

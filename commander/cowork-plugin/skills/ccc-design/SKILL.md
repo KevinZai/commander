@@ -14,6 +14,7 @@ allowed-tools:
   - mcp__Shadcn_UI__list_blocks
   - mcp__Shadcn_UI__get_block
   - mcp__Shadcn_UI__get_component
+  - mcp__figma
 argument-hint: "[landing | components | polish | figma | chat | design-md | screenshot]"
 model: inherit
 effort: medium
@@ -98,7 +99,7 @@ Dispatch the selection immediately; do not re-prompt.
 
 Continue: `clarify` → `arrange` → `typeset` → `adapt` → `polish`.
 
-**Figma → code.** If `claude mcp list` shows no figma server, suggest `/ccc-connect figma` and stop. Otherwise ask for the Figma URL, read the file with the connected figma server's tools, and route to `frontend-design` + `adapt`.
+**Figma → code.** If `claude mcp list` shows no figma server, suggest `/ccc-connect figma` and stop. Otherwise ask for the Figma URL, read the file with the figma server's `mcp__figma__*` tools (pre-approved when the server is named `figma`, as `/ccc-connect figma` registers it; under any other name its tools run only when the user grants them at the permission prompt), and route to `frontend-design` + `adapt`.
 
 ### Sub-flow A — Chat UI
 

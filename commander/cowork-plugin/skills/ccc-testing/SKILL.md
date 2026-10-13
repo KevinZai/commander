@@ -2,6 +2,7 @@
 name: ccc-testing
 description: "Testing domain router: picks the lane for TDD, E2E, visual regression, load testing, QA, regression checks, evals or verification and runs test-writing work in an isolated worktree. Use when the user asks to write tests, plan a test strategy, or test, verify or load-test a change."
 allowed-tools:
+  - Bash
   - Read
   - Glob
   - Skill
@@ -32,7 +33,7 @@ An argument or a clear request picks the lane directly:
 |---|---|---|
 | "Write tests first", TDD | `tdd-workflow` | Red-green-refactor inline: write the failing test, run it and show the failure, implement, rerun to green |
 | "E2E tests", Playwright | `e2e-testing` + `webapp-testing` | `/ccc-e2e e2e-only` |
-| "Verify my work", "is this done?" | `verification-loop`, then `verification-before-completion` | Run the project's test, lint and build commands and quote each result |
+| "Verify my work", "is this done?" | `verification-loop`, then `verification-before-completion` | Run the test, lint and build commands the project declares (`package.json` scripts, `Makefile`, `pyproject.toml`) with Bash and quote each exit status |
 | "QA this", find and fix bugs | `qa` | `/ccc-qa` |
 | Find bugs, report only | `qa-only` | `/ccc-qa`, stopping at the report |
 | "What should I test?", test strategy | `test-strategy` | `qa-engineer` agent: a strategy with test types, priorities and coverage targets |
@@ -65,7 +66,7 @@ Tell the user in one line which source ran: "Lane `<lane>` via toolkit" or "Lane
 
 ### 3. Isolate test-writing work
 
-When a lane writes or rewrites tests through a subagent, dispatch it with the Agent tool and `isolation: "worktree"` so the user's working tree stays clean, then report the worktree branch and the files it changed for the user to merge. Run in the current tree only when the user asks. Read-only lanes (strategy, qa-only, verify) run in place.
+When a lane writes or rewrites tests through a subagent, dispatch it with the Agent tool using `isolation: worktree` so the user's working tree stays clean, then report the worktree branch and the files it changed for the user to merge. Run in the current tree only when the user asks. Read-only lanes (strategy, qa-only, verify) run in place.
 
 Codex: run the lane in a git worktree the user approves (`/worktree`), or with `codex exec --cd <worktree>`.
 

@@ -116,7 +116,22 @@ If the user has zero open issues, put "🟢 Create a new issue" first instead an
 
 ### 4c. Create a new issue
 
-1. Ask with AskUserQuestion: "What kind?" — Bug, Feature, Chore, Spike / investigation. The kind maps to a team label of that name if one exists; never create a label silently.
+1. Ask with AskUserQuestion: "What kind?" Put the kind inferred from the user's request first and mark it 🟢; with no signal, the default order is below. The kind maps to a team label of that name if one exists; never create a label silently.
+
+   ```yaml
+   question: "What kind of issue?"
+   header: "Kind"
+   multiSelect: false
+   options:
+     - label: "🟢 Feature"
+       description: "New or changed behavior. Applies the Feature label if the team has one."
+     - label: "Bug"
+       description: "Something broken. Applies the Bug label if the team has one."
+     - label: "Chore"
+       description: "Maintenance with no user-visible change. Applies the Chore label if present."
+     - label: "Spike / investigation"
+       description: "Time-boxed research that ends in a finding, not shipped code."
+   ```
 2. Ask in plain chat for the title and an optional one-paragraph description. AskUserQuestion has no free-text field.
 3. Show the draft (team, label, title, description) and ask: "🟢 Create it", "Edit title", "Cancel".
 4. On create, call the connector's save/create issue tool (or `issueCreate`) with `teamId` passed explicitly. Echo the returned identifier and URL.
@@ -141,7 +156,7 @@ For a shareable page version, point to `/ccc-linear-board`.
 ### ⚠️ Linear not connected
 
 1. Recommended: run `/ccc-connect`, pick Productivity, then Linear (OAuth).
-2. Manual: set `LINEAR_API_KEY` in your shell (key from linear.app/settings/api), then run `/ccc-linear` again.
+2. Manual: set `LINEAR_API_KEY` in your shell (key from linear.app/settings/api), then run `/ccc-linear` again. If you keep the key as `LINEAR_API_KEY_PERSONAL`, run `export LINEAR_API_KEY="$LINEAR_API_KEY_PERSONAL"` first.
 ```
 
 Ask with AskUserQuestion: "🟢 Run /ccc-connect now", "Show manual setup", "Skip for now".

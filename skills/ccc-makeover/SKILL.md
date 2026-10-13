@@ -13,6 +13,7 @@ allowed-tools:
 argument-hint: "[xray | makeover | report-card] [--dry-run] [--auto] [--max N] [--category CAT]"
 model: inherit
 effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-makeover — audit, fix, re-score

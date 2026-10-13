@@ -107,6 +107,8 @@ Offer only mechanisms the current surface exposes. Creating a Routine is an exte
 
 Run the first link as a gated loop: `/goal` for a deterministic stop inside a session, or the Routine from step 4 for unattended runs. Confirm the start with AskUserQuestion: 🟢 "Start the spec link" · "Edit the chain first" · "Cancel".
 
+Verify the start: for a Routine, list Routines in `/schedule` and confirm the id it returned is listed and enabled; for `/goal`, confirm the active goal it reports matches the spec link's stop condition. Report that id. If no id came back, the link did not start; say so instead of reporting a start.
+
 ### 6. What every link does
 
 Put these in each link's brief (the Routine prompt, chip brief or peer prompt):
@@ -126,7 +128,7 @@ Put these in each link's brief (the Routine prompt, chip brief or peer prompt):
 node -e 'const s=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); console.log(s.relay.phase, "next:", s.relay.next); console.log(JSON.stringify(s.history.slice(-3),null,2))' .claude/loop-state/<chain-name>.json
 ```
 
-`/ccc-relay stop <chain-name>` sets `phase: "blocked"` with a "stopped by user" history entry and tells the user how to cancel the launcher: `/goal clear`, cancel the Routine in `/schedule`, or withhold the release reaction.
+`/ccc-relay stop <chain-name>` sets `phase: "blocked"` with a "stopped by user" history entry and tells the user how to cancel the launcher: `/goal clear`, cancel the Routine in `/schedule`, or withhold the release reaction. Verify the stop: re-run the status one-liner above and confirm it prints `blocked` and that the last `history` entry reads "stopped by user".
 
 ## Verifier separation
 
@@ -142,7 +144,8 @@ The point of chaining separate sessions is that the agent that does the work nev
 - `.claude/loop-state/<chain-name>.json` exists and the `node -e` validation prints `state ok`.
 - Every link in the chain has a verifier, the state file, and a stop condition with a cap recorded; links that failed the gate are listed as manual steps.
 - The merge link has `humanGate: true`.
-- The first link was started (loop or Routine id reported), or the user chose to stop before starting.
+- The first link was started and its loop or Routine id was reported and checked as in step 5, or the user chose to stop before starting.
+- After a `stop`, the status one-liner prints `blocked`.
 
 ## Guardrails
 

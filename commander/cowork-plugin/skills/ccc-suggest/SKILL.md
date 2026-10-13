@@ -59,6 +59,7 @@ echo "open tasks: $(ls tasks/todo.md tasks/plan-*.md 2>/dev/null | tr '\n' ' ')"
 echo "loop state: $(ls .claude/loop-state/*.json 2>/dev/null | tr '\n' ' ')"
 echo "last session: $(ls -t ~/.claude/sessions/*.tmp 2>/dev/null | head -1)"
 echo "installed plugins: $(ls ~/.claude/plugins/cache/*/*/*/.claude-plugin/plugin.json 2>/dev/null | wc -l | tr -d ' ')"
+command -v claude >/dev/null && echo "connected MCPs: $(claude mcp list 2>/dev/null | grep -c 'Connected')" || echo "connected MCPs: unknown"
 echo "ci: $(gh run list --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || echo unknown)"
 state=$(ls -d ~/.claude/commander/projects/"$(basename "$PWD")"-* 2>/dev/null | head -1)
 [ -n "$state" ] && cat "$state/project-state.json" 2>/dev/null
@@ -67,7 +68,7 @@ SCAN
 
 The heredoc runs under bash so unmatched globs stay quiet in zsh. Every line degrades to `none`, `n/a` or `unknown` when a tool is missing; never stop the scan for one. The cached `project-state.json` may be stale; its schema and signal sources are in [references/project-state.md](references/project-state.md). When the cache and the live scan disagree, the live scan wins.
 
-Show a short context card of what was detected (branch, ahead/behind, dirty count, stack, CI, open tasks).
+Show a short context card of what was detected (branch, ahead/behind, dirty count, stack, CI, open tasks, connected MCPs).
 
 ### 3. Reason over the signals
 
@@ -151,6 +152,8 @@ On a pick, invoke the chosen skill with the Skill tool. Append one JSON line to 
 [ -f ~/.claude/commander/suggest-log.jsonl ] && node -e 'require("fs").appendFileSync(require("os").homedir()+"/.claude/commander/suggest-log.jsonl",JSON.stringify({ts:new Date().toISOString(),source:"explicit",pick:process.argv[1],chosen:process.argv[2]})+"\n")' "/ccc-<workflow>" "<chosen option>"
 ```
 
+The log line is best-effort telemetry and never blocks the hand-off. When the append ran, confirm it with `tail -n 1 ~/.claude/commander/suggest-log.jsonl` and check that the line shows `"source":"explicit"` and the pick; if it is missing, say the log was not written and continue.
+
 When a hook injected suggestion chips this turn, render them exactly as the hook names them (formats in [references/involvement-levels.md](references/involvement-levels.md)); that is the chip contract. Never offer choices as a typed-letter list.
 
 ### 6. PM loop mode
@@ -173,6 +176,7 @@ When the session is strongly deep-reasoning (two or more of: architecture, redes
 - The scan output was shown as a context card and every reason in the recommendation cites a line from it.
 - Exactly one recommendation carries the 🎯 header and one 🟢 call.
 - The picker was shown, or the user picked; a pick invoked the chosen skill.
+- When `suggest-log.jsonl` existed and the user picked, `tail -n 1 ~/.claude/commander/suggest-log.jsonl` shows the new explicit entry.
 - In loop mode, `.claude/loop-state/ccc-suggest.json` exists and its `iteration` advanced (`cat` it to confirm).
 
 ## Guardrails

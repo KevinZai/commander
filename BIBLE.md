@@ -521,7 +521,7 @@ Each CCC domain (ccc-design, ccc-seo, ccc-saas, etc.) fits into Stage 2-3. Maste
 
 | Path | You Use | Command |
 |------|---------|---------|
-| **CLI** | `claude` in terminal | `npm install -g cc-commander` → `ccc` |
+| **CLI** | `claude` in terminal | the installer one-liner from the README → `ccc` |
 | **Slash commands only** | Claude Code sessions | `curl ... \| bash` → `/ccc` in any session |
 | **Desktop plugin** | Claude Desktop | `/plugin marketplace add KevinZai/commander` |
 

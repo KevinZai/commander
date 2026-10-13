@@ -23,7 +23,7 @@ This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doin
 ## When to use / when not to
 
 - Use when the work splits into independent slices, staged hand-offs, or a decision worth several independent opinions.
-- Use `/ccc-spawn` for one isolated task, `/ccc-relay` for recurring chains of separate sessions, `/ccc-debate` for a multi-lens stress test, `/ccc-migrate` for a pattern-driven codebase migration.
+- Use `/ccc-spawn` for one isolated task, `/ccc-relay` for recurring chains of separate sessions, `/ccc-debate` for a multi-lens stress test; for a pattern-driven codebase migration run the ccc-migrate workflow (see step 5, or `/commander:ccc-migrate`).
 - Do not use for work that fits in a handful of tool calls; spawn overhead is real.
 
 ## What happens

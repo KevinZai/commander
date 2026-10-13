@@ -295,14 +295,14 @@ options:
     description: "No changes. Re-run any time with /ccc-tuneup."
 ```
 
-Individual-fix picker (`multiSelect: true`; list only flagged rows):
+Individual-fix picker (`multiSelect: true`; list only flagged rows, and if the junk sweep is not flagged, mark the first listed fix 🟢):
 
 ```yaml
 question: "Pick the fixes to apply."
 header: "Fixes"
 multiSelect: true
 options:
-  - label: "Sweep junk to archive"
+  - label: "🟢 Sweep junk to archive"
     description: "Moves temp_* dirs, stale *.bak/*.old and archive-hook dupes into a timestamped archive. Nothing deleted."
   - label: "Add settings keys"
     description: "Backs up settings.json, then adds only the missing structural keys."
@@ -317,6 +317,8 @@ question: "Also archive these? Both are off by default."
 header: "Opt-in"
 multiSelect: true
 options:
+  - label: "🟢 Skip both"
+    description: "Archives neither; local agents and sessions stay in place. Ignored if a cleanup below is also selected."
   - label: "Retire superseded local agents"
     description: "Moves matching ~/.claude/agents/*.md to the archive; the plugin agent takes over."
   - label: "Archive stale sessions (older than 30 days)"

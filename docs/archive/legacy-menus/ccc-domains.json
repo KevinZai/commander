@@ -3,73 +3,73 @@
   "version": 1,
   "screen": {
     "title": "CCC Domains",
-    "subtitle": "11 domain routers, each dispatching to 3-46 specialist sub-skills."
+    "subtitle": "Archived legacy menu. /ccc-learn owns the domain picker (menus/ccc-learn.json)."
   },
   "prompt": "Pick a CCC domain to explore:",
   "choices": [
     {
       "key": "a",
-      "label": "ccc-design (35+ sub-skills)",
+      "label": "ccc-design",
       "description": "UI/UX, animations, polish, responsive, a11y",
       "next": "ccc-design-detail"
     },
     {
       "key": "b",
-      "label": "ccc-marketing (46 sub-skills)",
+      "label": "ccc-marketing",
       "description": "Content, CRO, email, ads, analytics, SEO",
       "next": "ccc-marketing-detail"
     },
     {
       "key": "c",
-      "label": "ccc-saas (20 sub-skills)",
+      "label": "ccc-saas",
       "description": "Auth, billing, API, database, deploy",
       "next": "ccc-saas-detail"
     },
     {
       "key": "d",
-      "label": "ccc-testing (15 sub-skills)",
+      "label": "ccc-testing",
       "description": "Unit, integration, E2E, load, security",
       "next": "ccc-testing-detail"
     },
     {
       "key": "e",
-      "label": "ccc-devops (20 sub-skills)",
+      "label": "ccc-devops",
       "description": "CI/CD, Docker, AWS, monitoring",
       "next": "ccc-devops-detail"
     },
     {
       "key": "f",
-      "label": "ccc-seo (19 sub-skills)",
+      "label": "ccc-seo",
       "description": "Technical SEO, Core Web Vitals, schema markup",
       "next": "ccc-seo-detail"
     },
     {
       "key": "g",
-      "label": "ccc-security (8 sub-skills)",
+      "label": "ccc-security",
       "description": "OWASP, pen-test, secrets, hardening",
       "next": "ccc-security-detail"
     },
     {
       "key": "h",
-      "label": "ccc-research (8 sub-skills)",
+      "label": "ccc-research",
       "description": "Competitive analysis, market research, data",
       "next": "ccc-research-detail"
     },
     {
       "key": "i",
-      "label": "ccc-mobile (8 sub-skills)",
+      "label": "ccc-mobile",
       "description": "React Native, Expo, mobile patterns",
       "next": "ccc-mobile-detail"
     },
     {
       "key": "j",
-      "label": "ccc-data (8 sub-skills)",
+      "label": "ccc-data",
       "description": "SQL, ETL, analytics, visualization",
       "next": "ccc-data-detail"
     },
     {
       "key": "k",
-      "label": "ccc-makeover (3 sub-skills)",
+      "label": "ccc-makeover",
       "description": "/xray audit + /makeover swarm",
       "next": "ccc-makeover-detail"
     },

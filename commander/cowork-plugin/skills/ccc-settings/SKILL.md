@@ -19,7 +19,7 @@ effort: low
 
 ## When to use / when not to
 
-- Use to change Commander preferences in `~/.claude/commander/config.json`, or the Claude Code settings this skill covers in `~/.claude/settings.json`: permission mode, effort, model restrictions, workflow size.
+- Use to change Commander preferences in `~/.claude/commander/config.json`, or the Claude Code settings this skill covers in user (`~/.claude/settings.json`) or project (`.claude/settings.json`) settings: permission mode, effort, model restrictions, workflow size.
 - Not for switching the current model: that is `/model` in the session, and the user's selected model is preserved.
 - Not for cleanup or missing structural keys: `/ccc-tuneup`. Not for unattended permission setups: `/ccc-yolo-setup`.
 - `$ARGUMENTS` jumps straight to one setting (`theme`, `effort`, `mode`, …); `linear` runs only the Linear flow; `--power` (or `all`) opens the full menu.
@@ -47,16 +47,18 @@ Skip when `$ARGUMENTS` names a setting. Otherwise ask the top picker in Decision
 
 ### 3. Commander preferences (`~/.claude/commander/config.json`)
 
-Ask the preferences pickers (two pages of four, same pattern as `/ccc-more`). Entries marked CLI-only configure the `ccc` terminal binary and have no effect in Claude Code Desktop or Cowork; show them anyway and say so. The menu definition used by the CLI is [references/settings.json](references/settings.json).
+Ask the preferences page-1 picker in Decision points; "More…" opens the page-2 picker, and its "Back" returns to page 1. Entries marked CLI-only configure the `ccc` terminal binary and have no effect in Claude Code Desktop or Cowork; show them anyway and say so. The menu definition used by the CLI is [references/settings.json](references/settings.json).
+
+For each setting, ask as below. Value pickers list the 🟢 option first; put the current value in its description.
 
 | Setting | How to ask | Write |
 |---|---|---|
 | Display name | "What name should I use?" | `name` |
-| Experience level | Picker: beginner / intermediate / expert. Affects verbosity, auto-confirm thresholds, suggested skill complexity | `level` |
+| Experience level | Picker: 🟢 intermediate (balanced detail) / beginner (more explanation, more confirmations) / expert (terse, fewer confirmations). Affects verbosity, auto-confirm thresholds, suggested skill complexity | `level` |
 | Cost ceiling | "Max budget per dispatch (USD)?" Validate a positive number. Default 10. The night-mode hard ceiling is separate | `costCeiling` |
-| Theme (CLI-only) | Picker: Claude Anthropic (default) / OLED Black / Matrix / Surprise me. Apply with `ccc --theme <name>` when available, else it takes effect on the next `ccc` launch | `theme` |
-| Animations (CLI-only) | Picker: enable / disable. Disabling also means `CC_NO_ANIMATION=1` in the shell profile; print the line for the user to add | `animations` |
-| Launch mode (CLI-only) | Picker: simple (single pane) / advanced (tabbed tmux split, `ccc --split`) | `launchMode` |
+| Theme (CLI-only) | Picker: 🟢 Claude Anthropic (default) / OLED Black / Matrix / Surprise me. Apply with `ccc --theme <name>` when available, else it takes effect on the next `ccc` launch | `theme` |
+| Animations (CLI-only) | Picker: 🟢 enable (default) / disable (for slow terminals, screen readers or CI). Disabling also means `CC_NO_ANIMATION=1` in the shell profile; print the line for the user to add | `animations` |
+| Launch mode (CLI-only) | Picker: 🟢 simple (single pane, default) / advanced (tabbed tmux split, `ccc --split`) | `launchMode` |
 
 File shape (placeholders, not real values):
 
@@ -87,11 +89,28 @@ Verify with `node -e "console.log(JSON.parse(require('fs').readFileSync(process.
 3. Set: test the connection, show the linked team and project, and offer to change them (write `linear.teamId`, `linear.projectId`).
 4. If ~~project tracker is connected, show its connection status, allow switching teams or projects, and after a successful setup offer to import open issues.
 
-**Reset all state:** ask the reset picker. "Archive, then reset" moves `~/.claude/commander/sessions/` and `~/.claude/commander/knowledge/` into `~/.claude/commander/reset-archive/<UTC-stamp>/`; "Delete permanently" runs `rm -rf ~/.claude/commander/sessions/ ~/.claude/commander/knowledge/`. Skills are preserved either way. Verify with `ls ~/.claude/commander/` and report what remains.
+**Reset all state:** ask the reset picker. Skills are preserved either way; "Cancel" changes nothing.
 
-### 4. Claude Code settings (`~/.claude/settings.json`)
+1. "Archive, then reset": move whichever of `sessions/` and `knowledge/` exist into a UTC-stamped archive. A missing folder is skipped and reported; if neither exists, report that there is nothing to reset and stop.
 
-Ask the Claude Code picker in Decision points, then the value picker for the chosen setting. Values, layers and caveats for each are in [references/claude-code-settings.md](references/claude-code-settings.md).
+   ```bash
+   base="$HOME/.claude/commander"; stamp=$(date -u +%Y%m%dT%H%M%SZ); dest="$base/reset-archive/$stamp"
+   if [ ! -d "$base/sessions" ] && [ ! -d "$base/knowledge" ]; then echo "nothing to reset"; else
+     mkdir -p "$dest" || { echo "cannot create $dest"; exit 1; }
+     for d in sessions knowledge; do
+       if [ -d "$base/$d" ]; then mv "$base/$d" "$dest/$d" && echo "archived $d" || echo "FAILED to move $d"; else echo "skipped $d (missing)"; fi
+     done
+     echo "archive: $dest"; ls "$dest"; ls "$base"
+   fi
+   ```
+
+   Look for each existing folder listed under the archive path and absent from `ls "$base"`. On a failed move, stop and report it; nothing has been deleted.
+2. "Delete permanently": run `rm -rf ~/.claude/commander/sessions/ ~/.claude/commander/knowledge/` (a missing folder is not an error).
+3. Verify with `ls ~/.claude/commander/` and report what remains, plus the archive path when archived.
+
+### 4. Claude Code settings (user or project `settings.json`)
+
+Ask the Claude Code picker in Decision points, then the value picker for the chosen setting. For permission mode and workflow size, then ask the settings-layer picker (🟢 user settings unless the user wants this repository only). Effort is always written to user settings. Values, layers and caveats for each are in [references/claude-code-settings.md](references/claude-code-settings.md).
 
 - **Permission mode** → `permissions.defaultMode`. Offer 🟢 `auto` (the interactive default since Claude Code 2.1.284), `default` (ask before edits and commands), `acceptEdits`, `plan`. Mention Shift+Tab to switch for one session. Route `bypassPermissions` requests to `/ccc-yolo-setup`.
 - **Effort** → `effortLevel`. Offer `low` / `medium` / 🟢 `high` / `xhigh`. Say that `max` is session-only (`/effort max`), that `/effort` opens the slider, and that `/effort ultracode on|off` is a separate toggle that does not change the effort level.
@@ -100,11 +119,12 @@ Ask the Claude Code picker in Decision points, then the value picker for the cho
 
 ### 5. Write a Claude Code setting
 
-Show `key: old → new`, confirm, then run (replace the key and JSON value):
+Show `key: old → new` and the target file, confirm, then run (set `F` for the chosen layer, replace the key and JSON value). For project settings, run from the repository root.
 
 ```bash
-F="$HOME/.claude/settings.json"
-[ -f "$F" ] && cp "$F" "$F.backup-$(date +%Y%m%d-%H%M%S)"
+F="$HOME/.claude/settings.json"   # project layer: F=".claude/settings.json"
+mkdir -p "$(dirname "$F")"
+if [ -f "$F" ]; then B="$F.backup-$(date +%Y%m%d-%H%M%S)"; cp "$F" "$B" && echo "backup: $B"; else echo "no existing file; no backup"; fi
 node -e '
 const fs=require("fs");const [f,key,raw]=process.argv.slice(1);
 const j=fs.existsSync(f)?JSON.parse(fs.readFileSync(f,"utf8")):{};
@@ -113,7 +133,7 @@ o[ks[ks.length-1]]=JSON.parse(raw);fs.writeFileSync(f,JSON.stringify(j,null,2)+"
 const back=ks.reduce((x,k)=>x&&x[k],JSON.parse(fs.readFileSync(f,"utf8")));console.log(key+" = "+JSON.stringify(back));' "$F" permissions.defaultMode '"auto"'
 ```
 
-The printed read-back must equal the chosen value. If the write or parse fails, restore the backup and report the error. New sessions pick up the change; tell the user to restart or use the in-session command (`/effort`, Shift+Tab) for the current one.
+The printed read-back must equal the chosen value. If the write or parse fails, restore with `cp "<backup path>" "$F"` using the printed backup path, and report the error. New sessions pick up the change; tell the user to restart or use the in-session command (`/effort`, Shift+Tab) for the current one.
 
 ## Decision points
 
@@ -125,7 +145,7 @@ header: "Settings"
 multiSelect: false
 options:
   - label: "🟢 Commander preferences"
-    description: "Name, level, cost ceiling, theme, animations, launch mode. Currently: <name> · <level> · $<costCeiling>."
+    description: "Recommended start: touches only Commander's own config.json. Currently: <name> · <level> · $<costCeiling>."
   - label: "Claude Code settings"
     description: "Permission mode, effort, model restrictions, workflow size."
   - label: "Linear setup"
@@ -134,21 +154,38 @@ options:
     description: "Clears Commander sessions and knowledge; skills stay. Asks again before acting."
 ```
 
-Commander preferences, page 1 (page 2: theme, animations, launch mode, back):
+Commander preferences, page 1:
 
 ```yaml
 question: "Which preference?"
 header: "Preferences"
 multiSelect: false
 options:
+  - label: "🟢 Experience level"
+    description: "Currently: <level>; changes verbosity and suggestions everywhere."
   - label: "Display name"
     description: "Currently: <name>"
-  - label: "Experience level"
-    description: "Currently: <level>; changes verbosity and suggestions."
   - label: "Cost ceiling"
     description: "Currently: $<costCeiling> per dispatch."
   - label: "More…"
     description: "Theme, animations, launch mode (CLI-only)."
+```
+
+Commander preferences, page 2 (after "More…"):
+
+```yaml
+question: "Which CLI preference? These affect only the ccc terminal binary."
+header: "Preferences"
+multiSelect: false
+options:
+  - label: "🟢 Theme"
+    description: "Currently: <theme>; applies with ccc --theme or on next launch."
+  - label: "Animations"
+    description: "Currently: <animations>; disabling also needs CC_NO_ANIMATION=1."
+  - label: "Launch mode"
+    description: "Currently: <launchMode>; simple single pane or tmux split."
+  - label: "Back"
+    description: "Return to page 1; no change."
 ```
 
 Claude Code settings:
@@ -166,6 +203,19 @@ options:
     description: "availableModels / deniedModels; shown, with an admin snippet."
   - label: "Workflow size"
     description: "Currently: <workflowSizeGuideline or unset>; caps dynamic workflow size."
+```
+
+Settings layer (permission mode and workflow size only):
+
+```yaml
+question: "Which settings file should hold this value?"
+header: "Layer"
+multiSelect: false
+options:
+  - label: "🟢 User settings"
+    description: "~/.claude/settings.json; applies to every project on this machine."
+  - label: "Project settings"
+    description: ".claude/settings.json in this repository; overrides user settings and is shared if committed."
 ```
 
 Reset:

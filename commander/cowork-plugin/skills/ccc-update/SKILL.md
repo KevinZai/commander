@@ -196,3 +196,7 @@ If the user updates often, offer the marketplace `autoUpdate` toggle. Point to `
 - `/ccc-doctor` — full install diagnostics, cache recovery, `autoUpdate` toggle
 - `/ccc-upgrade` — maintainer-only vendor submodule updater
 - `/ccc-changelog` — what changed between versions
+
+---
+
+> ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

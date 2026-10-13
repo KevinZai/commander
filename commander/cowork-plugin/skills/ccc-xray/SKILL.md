@@ -74,15 +74,13 @@ effort: medium
 
    Result fields: `totalUsd`, `models`, `cacheHitRate`, `turns`, `avgUsdPerTurn`, `skipped`, `raw`. Score the 💰 Cost row: 🟢 when `cacheHitRate >= 0.5` and `avgUsdPerTurn < 0.10`; 🟡 when `cacheHitRate` is 0.2–0.5 or `avgUsdPerTurn` is 0.10–0.50; 🟠 when `cacheHitRate < 0.2` or `avgUsdPerTurn >= 0.50`.
 
-6. **Plugin context cost row (`context`, or Full).** Inventory every enabled plugin's projected token cost with `claude plugin details`:
+6. **Plugin context cost row (`context`, or Full).** Inventory each enabled plugin's projected context cost with `claude plugin details <name>`. Take the plugin names from the namespaces of the plugin skills loaded in this session (`<plugin>:<skill>`) or from the `/plugin` manager; if neither gives a list, ask the user which plugins to inspect. Then run one guarded Bash call:
 
    ```bash
-   claude plugin list --json 2>/dev/null \
-     | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{for (const p of JSON.parse(s)) if (p.enabled) console.log(p.id.split("@")[0])})' \
-     | while read -r p; do printf '%s\t' "$p"; claude plugin details "$p" 2>/dev/null | grep -m1 'Always-on:' || echo 'n/a'; done
+   for p in <plugin> <plugin>; do echo "== $p"; claude plugin details "$p" 2>/dev/null || echo "n/a"; done
    ```
 
-   Each line gives that plugin's always-on token cost, which is added to every session. For the largest contributor, run `claude plugin details <name>` once more and quote its biggest per-component `always-on` and `on-invoke` rows. Score the 🧠 Context row on the summed always-on cost: 🟢 under 10k tokens, 🟡 10k–25k, 🟠 25k–50k, 🔴 over 50k. These thresholds are a Commander heuristic, not a platform limit; say so in the finding.
+   Read the token breakdown from that output as printed; do not assume a particular line label, column layout or machine-readable format. For each plugin, note the cost it reports as loaded into every session and, separately, any cost it reports as loaded only when a component is invoked. When a plugin's output gives no token figure, or the command is unavailable, that plugin is `n/a`; when no plugin yields a figure, the 🧠 Context row renders as `⚪ n/a`. For the largest contributor, quote its biggest per-component rows exactly as the output shows them. Score the 🧠 Context row on the summed every-session cost: 🟢 under 10k tokens, 🟡 10k–25k, 🟠 25k–50k, 🔴 over 50k. These thresholds are a Commander heuristic, not a platform limit; say so in the finding.
 
 7. **Score and render.** Translate each result to 0–100: 90–100 🟢 healthy, 70–89 🟡 acceptable, 50–69 🟠 needs attention, 0–49 🔴 critical. Render exactly the rows for the chosen scope (Quick shows five), keep the table under 15 rows, and summarize sub-findings in the Top finding column:
 
@@ -93,7 +91,7 @@ effort: medium
    |------|-------|-------------|-----|
    | 🧹 Code quality | 🟢 88 | 2 files over 800 lines | /ccc-makeover |
    | 🚢 CI | 🔴 20 | No .github/workflows/ | CI setup task |
-   | 🧠 Context | 🟡 72 | 18k always-on; <plugin> ~9k | disable an unused plugin |
+   | 🧠 Context | 🟡 72 | 18k every-session; <plugin> ~9k | disable an unused plugin |
 
    **Overall: 66 · 🟠 needs attention**
    ```

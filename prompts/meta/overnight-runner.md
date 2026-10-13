@@ -1,7 +1,7 @@
 ---
 name: overnight-runner
 category: meta
-skills: [overnight-runner, delegation-templates, strategic-compact]
+skills: [overnight-runner, ccc-night-mode, delegation-templates, strategic-compact]
 mode: plan
 estimated_tokens: 600
 ---
@@ -9,12 +9,12 @@ estimated_tokens: 600
 # Overnight Runner Setup
 
 ## When to Use
-When you have a large, well-defined task that can run autonomously while you sleep. The key is structured setup: clear goals, checkpoints, and guardrails so the agent can work unsupervised for hours.
+Use when a large, well-defined task can run unattended for hours. The run is only as safe as its setup: a clear goal, checkpoints and guardrails that let the agent work without supervision.
 
 ## Template
 
-```
-Set up an overnight autonomous task that can run for {{duration}} without human input. The task must be safe to run unsupervised.
+````
+Set up an autonomous task that can run for {{duration}} without my input. It must be safe to run unsupervised.
 
 **Task:**
 {{what_needs_to_be_done}}
@@ -28,19 +28,16 @@ Set up an overnight autonomous task that can run for {{duration}} without human 
 **Failure modes to guard against:**
 {{what_could_go_wrong — infinite loops, wrong files, runaway costs}}
 
-**Step 1: Pre-flight checks**
-Before starting the autonomous run:
-- [ ] Task is well-defined with clear boundaries (not open-ended exploration)
-- [ ] All required files and dependencies are available
-- [ ] No human decisions needed during execution
-- [ ] No destructive operations (delete, force push, production deploys)
-- [ ] Cost estimate is within budget (check model pricing)
-- [ ] Git state is clean (`git status` shows no uncommitted changes)
+Step 1: Pre-flight checks. Confirm each item before starting and stop to ask me if any fails:
+- [ ] The task is well defined with clear boundaries, not open-ended exploration.
+- [ ] All required files and dependencies are available.
+- [ ] No human decision is needed during execution.
+- [ ] No destructive operations: no deletes, force pushes or production deploys.
+- [ ] The cost estimate fits the budget for the chosen model tier.
+- [ ] `git status` shows a clean tree, and the run will work on its own branch or worktree.
 
-**Step 2: Context preparation**
-Prepare the context that will guide the autonomous session:
+Step 2: Write the task file `tasks/overnight-{{date}}.md` that will guide the run:
 
-Write a `tasks/overnight-{{date}}.md` file with:
 ```markdown
 # Overnight Task: {{title}}
 
@@ -48,8 +45,8 @@ Write a `tasks/overnight-{{date}}.md` file with:
 {{1-2 sentence clear goal}}
 
 ## Scope
-- IN scope: {{explicit list}}
-- OUT of scope: {{explicit exclusions}}
+- In scope: {{explicit list}}
+- Out of scope: {{explicit exclusions}}
 
 ## Steps
 1. {{step_1}}
@@ -60,54 +57,55 @@ Write a `tasks/overnight-{{date}}.md` file with:
 After each step, commit with message: "overnight: step N complete — {{description}}"
 
 ## Guardrails
-- Do NOT modify: {{protected_files}}
-- Do NOT install new dependencies without justification
-- Do NOT make breaking API changes
+- Do not modify: {{protected_files}}
+- Do not install new dependencies without a written justification in the commit message.
+- Do not make breaking API changes.
 - Stop and leave a TODO comment if you encounter: {{ambiguous_situations}}
 
 ## Verification
-When complete, run:
+When complete, run and record the result of:
 - {{test_command}}
 - {{type_check_command}}
 - {{any_other_verification}}
 ```
 
-**Step 3: Configure the session**
-- Use `strategic-compact` skill to save current context before the long run
-- Set the model to {{sonnet|haiku}} for cost efficiency on batch work
-- Enable auto-commit checkpoints (one commit per completed step)
-- Set up the task file as the entry point for the session
+Read the file back to confirm it was written.
 
-**Step 4: Launch**
-- Start the Claude Code session with the overnight task file as context
-- Verify the first step begins executing correctly
-- Monitor for 5 minutes to catch any immediate issues
-- Leave it running
+Step 3: Configure the run:
+- Save current context with the `strategic-compact` skill before the long run.
+- Propose the {{sonnet|haiku}} tier for the batch work and use it only if I approve; otherwise keep my selected model.
+- Commit once per completed step so any step can be reverted.
+- Use the task file as the run's entry point.
 
-**Step 5: Morning review**
-When you return:
-- Check `git log --oneline` for overnight commits
-- Run the test suite to verify nothing is broken
-- Review the diff: `git diff main...HEAD`
-- Check for TODO comments left by the agent
-- Verify success criteria are met
-```
+Step 4: Launch. Pick one and tell me which:
+- `/ccc-night-mode` for a spec-first build with build and review cycles.
+- A Routine (`/schedule`) that starts a cloud session at a set time with the task file as its prompt.
+- A local session with `/loop` driving the steps, if the machine stays on.
+Watch the first step for about 5 minutes to catch immediate failures, then leave it running.
+
+Step 5: Morning review. When I return, report on:
+- `git log --oneline` for the overnight commits.
+- The test suite result, run fresh.
+- `git diff main...HEAD` for the full change.
+- Any TODO comments the run left.
+- Each success criterion: met or not, with evidence.
+````
 
 ## Tips
-- Use the `overnight-runner` skill for automated overnight session management
-- The `delegation-templates` skill provides structured formats for autonomous task dispatch
-- Start with small overnight tasks (4 hours) before attempting 8-hour runs
-- Always have a clean git state so you can easily revert if the overnight run goes sideways
+- The `overnight-runner` skill covers usage-limit retries, batch checkpointing and multi-session resume.
+- The `delegation-templates` skill provides structured briefs for autonomous task dispatch.
+- Start with a 4-hour task before attempting an 8-hour run.
+- Keep a clean git state and a dedicated branch so a bad run is easy to revert.
 
 ## Example
 
 ```
-Set up an overnight autonomous task that can run for 6 hours without human input.
+Set up an autonomous task that can run for 6 hours without my input.
 
 **Task:**
 Migrate all 47 API endpoints from Express.js to Hono.js. Each endpoint has existing tests that must continue to pass.
 
 **Expected duration:** 6 hours
 **Success criteria:** All 47 endpoints migrated, all 128 tests passing, zero TypeScript errors
-**Failure modes:** Breaking existing tests, missing edge cases in request parsing, accidentally modifying DB schema
+**Failure modes:** Breaking existing tests, missing edge cases in request parsing, accidentally modifying the DB schema
 ```

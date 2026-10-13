@@ -108,7 +108,7 @@ options:
     preview: "Opens a second picker for non-code or first-contribution paths."
 ```
 
-If the user picks "More roles":
+If the user picks "More roles", ask a second picker. Check for prior history with `git log --author="$(git config user.email)" -1 --format=%h 2>/dev/null`. Mark First PR with 🟢 when that prints nothing (no prior history in the repo), otherwise mark Docs with 🟢. Put the recommended label first; Back always stays last. The default order (no prior history) is:
 
 ```yaml
 question: "Which onboarding path?"
@@ -116,7 +116,7 @@ header: "CC Commander Onboard"
 multiSelect: false
 autocomplete: true
 options:
-  - label: "First PR"
+  - label: "🟢 First PR"
     value: "first-pr"
     description: "Smallest safe contribution for a brand-new contributor."
     preview: "First task: a low-risk validation or test improvement with a clean PR path."

@@ -47,7 +47,7 @@ Report the detected targets in one line. If `$ARGUMENTS` names a platform, skip 
 
 ### 2. Platform picker — `AskUserQuestion`
 
-Build the options from step 1. Put the strongest detected target first and prefix it with 🟢. Show at most four options; less common targets go in the second picker.
+Build the options from step 1. Each picker below has exactly one 🟢 option, listed first: the strongest detected target in that picker. In the first picker, if the only detected targets are in the second picker, "More deployment targets" is the 🟢 option. Show at most four options; less common targets go in the second picker. The examples assume Vercel and GitHub Pages were detected.
 
 ```yaml
 question: "Where should I deploy?"
@@ -55,7 +55,7 @@ header: "Deploy"
 multiSelect: false
 autocomplete: true
 options:
-  - label: "Vercel production"
+  - label: "🟢 Vercel production"
     description: "Detected from vercel.json or Vercel scripts. Runs vercel deploy --prod."
     preview: "Deploys the current branch to Vercel production and verifies the returned URL."
   - label: "Fly.io"
@@ -69,7 +69,7 @@ options:
     preview: "Opens one more picker with less common deploy targets."
 ```
 
-On "More deployment targets":
+On "More deployment targets", show the second picker. Mark its strongest detected target 🟢 and list it first; if none of its targets was detected, mark the first target option 🟢. "Back" is never the 🟢 option.
 
 ```yaml
 question: "Which deploy target?"
@@ -77,7 +77,7 @@ header: "Deploy"
 multiSelect: false
 autocomplete: true
 options:
-  - label: "GitHub Pages"
+  - label: "🟢 GitHub Pages"
     description: "Detected from GitHub Pages workflow files."
     preview: "Dispatches or watches the deploy workflow and verifies the Pages URL."
   - label: "npm publish"
@@ -91,7 +91,7 @@ options:
     preview: "Choose Vercel, Fly.io, or Cloudflare instead."
 ```
 
-If nothing was detected, show the first picker without 🟢 and say: "No deploy target was obvious from the repo; pick the platform to use."
+If nothing was detected, still mark one option 🟢: the first option of the first picker ("Vercel production"). Say: "No deploy target was obvious from the repo; 🟢 is a default, not a detection. Pick the platform to use."
 
 ### 3. Pre-deploy gate
 

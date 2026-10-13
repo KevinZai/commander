@@ -56,7 +56,13 @@ On Codex, AskUserQuestion becomes a plain-text question and skills are invoked a
 
 5. **Answer with citations.** Every claim names its source file and date so the user can verify it. Nothing found in any layer → say so, list the keywords and layers searched, and suggest other keywords. Never answer from model memory.
 
-6. **Offer to save the recall** when it answers a question likely to recur, using the decision below. On the 🟢 option, invoke the `ccc-memory` skill with `add`.
+6. **Offer to save the recall** when it answers a question likely to recur, using the decision below. On the 🟢 option, invoke the `ccc-memory` skill with `add`, then verify the write and report the actual output:
+
+   ```bash
+   ls -l memory/decisions/<slug>.md && head -20 memory/decisions/<slug>.md
+   ```
+
+   A missing file or a body without the cited source means the save failed; say so instead of reporting it saved.
 
 ## Decision points
 
@@ -84,10 +90,11 @@ User: "What did we decide about bundling MCP servers?"
 
 - The answer cites at least one source file and date, or the report names every keyword and layer searched with no match.
 - The save offer was made when the question is likely to recur.
+- If the user chose to save, the note exists and its path and the `ls -l` / `head -20` output were shown.
 
 ## Guardrails
 
-- Read-only: never edit, move or delete a session file or memory note. Saving happens only through `/ccc-memory` after the user picks it.
+- Read-only: never edit, move or delete a session file or memory note. Saving happens only through `/ccc-memory` after the user picks it, and is confirmed by the step 6 check before it is reported as saved.
 - Never present a guess as a recalled fact; uncited claims are not answers.
 - Never quote secrets or credential values found in old files; name the variable instead.
 

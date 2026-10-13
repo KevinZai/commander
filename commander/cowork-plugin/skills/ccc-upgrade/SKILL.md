@@ -4,12 +4,11 @@ description: "Maintainer-only vendor submodule updater: audits every submodule u
 allowed-tools:
   - Read
   - Bash
-  - Edit
   - AskUserQuestion
-  - WebSearch
 argument-hint: "[--check | --all]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-upgrade — Vendor submodule updater
@@ -68,7 +67,7 @@ echo "$S $CURRENT_SHA $LATEST_SHA $COMMITS_BEHIND $CHANGED_FILES"
 
 A missing remote prints `unknown`; report it, do not fail the run. `LATEST_SHA == CURRENT_SHA` means up to date.
 
-Star counts are optional polish: use them only when already available (for example a cached lookup); never block on `WebSearch` for them, and omit the column when unknown.
+Star counts are optional polish: add the column only when they are already available locally (for example a cached lookup); this skill does not fetch them, so omit the column otherwise.
 
 ### 4. Render the audit table
 
@@ -89,7 +88,7 @@ On `--check`, stop here. The fetch already ran and is read-only; nothing else ch
 
 ### 5. Pick what to update
 
-With `--all`, select every update-eligible submodule and skip to Step 6. Otherwise, if at least one submodule has updates, ask the scope picker in Decision points. For "Choose submodules", ask the selection picker, four submodules per page, ordered by commits behind.
+With `--all`, select every update-eligible submodule and skip to Step 6. If no submodule is eligible, report the table and stop. Otherwise ask the scope picker in Decision points. For "Choose submodules": when exactly one submodule is eligible, skip the selection picker and treat that one as chosen; when two or more are eligible, ask the selection picker, three submodules per page ordered by commits behind, plus the leading "All listed on this page" option. Selecting that option chooses every submodule on the page, whatever else is ticked.
 
 ### 6. Update each selected submodule, sequentially
 
@@ -165,20 +164,23 @@ options:
   - label: "🟢 All available"
     description: "Updates every eligible submodule in sequence, with checks and one commit each."
   - label: "Choose submodules"
-    description: "Pick from the list, four per page."
+    description: "Pick from the list, three per page."
   - label: "Cancel"
     description: "No updates; the audit table stays as the result."
 ```
 
-Selection picker (`multiSelect: true`, up to four per page, one option per submodule with updates):
+Selection picker (`multiSelect: true`, asked only when two or more submodules are eligible). Each page has the all option first plus up to three submodules, so 2 to 4 options:
 
 ```yaml
 question: "Pick the submodules to update (page <p> of <n>)."
 header: "Pick"
 multiSelect: true
 options:
+  - label: "🟢 All listed on this page"
+    description: "Updates every submodule on this page in sequence, one commit each."
   - label: "<name>"
     description: "<commits> commits, <files> files behind upstream."
+  # one option per eligible submodule on this page, at most three
 ```
 
 ## Done when

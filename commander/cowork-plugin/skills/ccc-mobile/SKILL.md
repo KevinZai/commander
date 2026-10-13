@@ -54,7 +54,12 @@ Otherwise ask with AskUserQuestion (header "Mobile"), recommended first:
 - 🟢 Build or extend the app — the sub-skill for the detected platform
 - Test it — `mobile-testing` (Detox, Maestro, XCTest, Espresso)
 - Ship to the stores — `app-store-optimization`
-- More — push notifications or deep links (a follow-up picker with those two)
+- More — push notifications or deep links, chosen in a follow-up picker
+
+On More, ask with AskUserQuestion (header "More"), recommended first:
+
+- 🟢 Push notifications — `push-notifications` (APNs, FCM, permission prompts)
+- Deep links — `deep-linking` (universal links, app links, URL routing)
 
 ### 3. New app
 

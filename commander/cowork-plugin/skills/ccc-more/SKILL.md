@@ -8,7 +8,7 @@ allowed-tools:
   - Skill
   - Workflow
   - AskUserQuestion
-argument-hint: "[plan | xray | codex | fleet | linear | connect | tuneup | browse | workflows | audit | deep-review | release-audit]"
+argument-hint: "[plan | xray | codex | fleet | linear | connect | tuneup | browse | workflows | audit | deep-review | migrate | prompt-audit | release-audit | back]"
 model: sonnet
 effort: low
 ---
@@ -46,6 +46,9 @@ git rev-parse --abbrev-ref HEAD 2>/dev/null
 git ls-files 2>/dev/null | wc -l | tr -d ' '
 test -f CLAUDE.md && echo has-claude-md
 test -f tasks/todo.md && grep -c '^- \[ \]' tasks/todo.md
+git worktree list 2>/dev/null | wc -l | tr -d ' '
+git status --porcelain 2>/dev/null | head -1 | grep -q . && echo dirty
+git rev-list --count @{upstream}..HEAD 2>/dev/null
 claude mcp list 2>/dev/null | grep -ci linear
 test -f .linear/config.json && echo linear-config
 command -v codex >/dev/null 2>&1 && echo codex-installed
@@ -96,12 +99,16 @@ Page 2 — header "CC Commander · More · 2":
 - 🌐 Connect apps — enable Notion, Zapier, Supabase, Slack, Google Drive and other connectors
 - ⏭️ Even more… — plugin workflows, tune-up, catalog
 
+Page 2 🟢, first match wins: more than one worktree or at least one open task → Fleet; Linear connected and still on this page → Linear board; otherwise → Connect apps.
+
 Page 3 — header "CC Commander · More · 3":
 
 - 🧪 Plugin workflows — audit, deep review, release audit, fleet, migrate, prompt audit
 - 🔧 Tune-up setup — audit and safely optimize the local Commander install; read-only by default
 - 📦 Browse catalog — searchable grid of every `/ccc-*` command and installed skill
 - 🔄 Back to /ccc — return to the hub
+
+Page 3 🟢: Plugin workflows.
 
 Plugin workflows page — header "Plugin workflows" (details: [plugin-workflows.md](references/plugin-workflows.md)):
 
@@ -110,7 +117,9 @@ Plugin workflows page — header "Plugin workflows" (details: [plugin-workflows.
 - ✅ Release audit — `/commander:ccc-release-audit`: every release gate, go or no-go (Commander repository only)
 - ⏭️ More workflows — `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`
 
-"More workflows" opens one last picker with those three. Mark 🟢 on the workflow that fits the step 2 context (uncommitted changes or commits ahead → deep review; otherwise repo audit).
+Plugin workflows page 🟢: `dirty` printed or a non-zero commits-ahead count → Deep branch review; otherwise → Repo audit.
+
+"More workflows" opens one last picker with those three (Fleet run, Migrate, Prompt audit); 🟢 Fleet run.
 
 ### 5. Dispatch
 

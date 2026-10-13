@@ -93,6 +93,12 @@ node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); console
 4. Night Mode start time — ask with AskUserQuestion:
    - 🟢 **Start now in this session** — leave the session open; the run stops at 8 hours of wall-clock time.
    - **One-time Routine at a set time** — invoke the `schedule` skill to create a one-time Routine. It runs in a fresh cloud session against the pushed repository, so the branch must be pushed first. Creating the Routine and pushing each need the user's go now.
+     1. Push the branch, then confirm it reached the remote (the command prints a ref line; empty output means the push failed):
+        ```bash
+        git push -u origin night/<task-slug>
+        git ls-remote --heads origin night/<task-slug>
+        ```
+     2. Create the Routine with the `schedule` skill, then confirm it with the `schedule` skill's list action: the new Routine appears with the chosen one-time run time. If it is missing, report that and do not claim the build is scheduled.
 
 ### 4. Build in cycles (YOLO loop)
 
@@ -100,7 +106,12 @@ Ask how many cycles (3, 🟢 5, or 10). For each cycle:
 
 1. **Build.** Delegate to the `builder` agent with the Agent tool: `model: "opus"` for planning, `model: "sonnet"` for execution, `effort: "xhigh"`, max 100 turns. Self-testing is mandatory: write tests, run the spec's test command, fix failures before moving on. Codex: `codex exec --json -m gpt-6.1-sol` with the same prompt.
 2. **Review gate (verifier ≠ worker).** Dispatch a fresh `reviewer` agent, or the `ccc-deep-review` workflow, that did not write the cycle's code. It runs the tests itself, diffs the cycle's commits, and returns pass/fail with findings. The builder never certifies its own cycle; a cycle counts as done only when the reviewer passes it.
-3. **Checkpoint.** Append the cycle, reviewer verdict, test result and cost to `~/.claude/commander/yolo-status.txt` and to `history` in `.claude/loop-state/night-mode.json`. Commit the cycle's work on the branch with a conventional message.
+3. **Checkpoint.** Append the cycle, reviewer verdict, test result and cost to `~/.claude/commander/yolo-status.txt` and to `history` in `.claude/loop-state/night-mode.json`. Commit the cycle's work on the branch with a conventional message. Verify all three:
+   ```bash
+   tail -n 3 ~/.claude/commander/yolo-status.txt
+   node -e 'const s=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); console.log("state ok, history:", s.history.length)' .claude/loop-state/night-mode.json
+   git status --short && git log -1 --oneline
+   ```
 4. **Next cycle.** Fix the reviewer's findings, add tests, improve quality, then hit the review gate again.
 5. **Stop check.** Stop early when `~/.claude/commander/yolo-stop` exists (remove it after reading), the budget is reached, or the stop condition is met and the reviewer passed.
 
@@ -119,12 +130,16 @@ Preserve the user's selected model wherever they chose one.
 2. Fix failures, at most 3 retry attempts.
 3. Remove debug `console.log` statements.
 4. Commit with a conventional message, for example `feat: build <task> per night-mode spec`.
-5. Extract lessons to `~/.claude/commander/knowledge/<timestamp>.json`.
-6. Write the completion summary: what was built, tests passing, reviewer verdict per cycle, cost, time elapsed. Write `COMPLETE` and the summary line to `~/.claude/commander/yolo-status.txt`.
+5. Extract lessons to `~/.claude/commander/knowledge/<timestamp>.json` with the Write tool, then confirm the newest file is the one just written and parses:
+   ```bash
+   ls -t ~/.claude/commander/knowledge/*.json | head -1
+   node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); console.log("lessons ok")' ~/.claude/commander/knowledge/<timestamp>.json
+   ```
+6. Write the completion summary: what was built, tests passing, reviewer verdict per cycle, cost, time elapsed. Write `COMPLETE` and the summary line to `~/.claude/commander/yolo-status.txt`, then confirm with `tail -n 2 ~/.claude/commander/yolo-status.txt`.
 
 ## Cancel a running build
 
-Read `~/.claude/commander/yolo-status.txt`, then ask with AskUserQuestion: 🟢 "Stop now and commit what's done" / "Let the current cycle finish". To stop a CLI-driven loop between cycles: `touch ~/.claude/commander/yolo-stop`. On stop: run the tests on whatever is built, commit with a `wip:` prefix, extract lessons.
+Read `~/.claude/commander/yolo-status.txt`, then ask with AskUserQuestion: 🟢 "Stop now and commit what's done" / "Let the current cycle finish". To stop a CLI-driven loop between cycles: `touch ~/.claude/commander/yolo-stop`. On stop: run the tests on whatever is built, commit with a `wip:` prefix, extract lessons. Verify with `git log -1 --oneline` (shows the `wip:` commit), `git status --short` (clean), and the same `lessons ok` parse check as post-build step 5.
 
 ## If connectors are available
 

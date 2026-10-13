@@ -120,7 +120,7 @@ Without the Workflow tool (older client, tool not allowed, usage limit), keep th
 - `/ccc-fleet` — manual-dispatch patterns and pinned fleets.
 - `/ccc-review` — branch review without the full workflow.
 - `/ccc-xray` — repo health scorecard.
-- `/ccc-migrate` — guided codebase migration.
+- `/commander:ccc-migrate` — the migration workflow, run directly.
 
 ---
 

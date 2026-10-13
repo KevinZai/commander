@@ -65,7 +65,7 @@ For update status, point to `/ccc-update`; do not compare versions over the netw
 
 ### 4. Intent picker
 
-Never render a numbered list or ask the user to type a number. Call AskUserQuestion with these four options. Put the recommended one first and prefix its label with 🟢:
+Never render a numbered list or ask the user to type a number. Call AskUserQuestion with these four options. Exactly one option carries 🟢 and it goes first. The YAML below shows the no-repo case; when the strip says otherwise, move the matching option to the top and move the 🟢 to it:
 
 - Repo with code files (`code` non-empty) and `claude_md=no` → recommend "Import existing project".
 - No repo → recommend "Set up a new project".
@@ -76,7 +76,7 @@ question: "How do you want to start?"
 header: "CC Commander onboarding"
 multiSelect: false
 options:
-  - label: "🚀 Set up a new project"
+  - label: "🟢 🚀 Set up a new project"
     description: "Blank canvas — scaffold a web app, API, CLI, or mobile app and write the first plan file together."
     preview: "Three quick questions, then /ccc-build scaffolds. About 90 seconds."
   - label: "📦 Import existing project"
@@ -92,11 +92,11 @@ options:
 
 ### 5. Handle the selection
 
-**New project.** Ask three AskUserQuestion pickers, one at a time, up to four options each:
+**New project.** Ask three AskUserQuestion pickers, one at a time, four options each. The first option listed is the default: put it first and prefix its label with 🟢; the other options carry no 🟢:
 
-1. "What are you building?" → Web app / API / CLI / Mobile
-2. "Who's the audience?" → Solo or team / SMB / Enterprise / Public
-3. "What's the first milestone?" → MVP demo / First paying user / Open-source launch / Internal tool
+1. "What are you building?" → 🟢 Web app / API / CLI / Mobile
+2. "Who's the audience?" → 🟢 Solo or team / SMB / Enterprise / Public
+3. "What's the first milestone?" → 🟢 MVP demo / First paying user / Open-source launch / Internal tool
 
 Write the plan file (step 6), run step 7, then invoke the `ccc-build` skill with the matching template argument (`web-app`, `api`, `cli`, or `mobile`). Run step 8 before handing over.
 
@@ -115,14 +115,14 @@ Write the plan file (step 6), run step 7, then invoke the `ccc-build` skill with
 
 ### 7. Optional follow-ups (non-blocking, after the plan file)
 
-**Answer-first output.** Ask once. On the new and import paths put the answer-first option first with 🟢.
+**Answer-first output.** Ask once (this step runs on the new and import paths only). Answer-first is the 🟢 recommendation.
 
 ```yaml
 question: "Want answer-first output? (optional — skip if you prefer)"
 header: "CC Commander — Output style"
 multiSelect: false
 options:
-  - label: "🎯 Answer-first output"
+  - label: "🟢 🎯 Answer-first output"
     description: "The fix is always the first line; command and file:line follow, context last."
     preview: "Based on ayghri/i-have-adhd (MIT). Writes {\"adhd\": true} to ~/.claude/commander/output-mode.json. Toggle anytime with /ccc-adhd off."
   - label: "📝 Keep the normal style"
@@ -136,15 +136,18 @@ options:
     preview: "No change."
 ```
 
-For either answer-first option, run the write from the "State persistence" section of `${CLAUDE_PLUGIN_ROOT}/skills/ccc-adhd/SKILL.md` (set `stackCaveman: true` only for the compressed option) and confirm in one line: "Answer-first mode on — the fix leads from here." Otherwise write nothing.
+For either answer-first option, run the command in step "4. Write the state" of `${CLAUDE_PLUGIN_ROOT}/skills/ccc-adhd/SKILL.md`: pass `on` for "Answer-first output" and `stack` for "Answer-first, compressed too" (only `stack` sets `stackCaveman: true`). On a non-zero exit, report the error and do not claim the mode changed. On success, confirm in one line: "Answer-first mode on — the fix leads from here." Otherwise write nothing.
 
-**Connect your stack (affiliate-supported, opt-in).** Ask once with `multiSelect: true`:
+**Connect your stack (affiliate-supported, opt-in).** Ask once with `multiSelect: true`. Skip is the 🟢 default; no partner is recommended over another. If Skip is picked alongside a partner, treat the partner picks as the answer:
 
 ```yaml
 question: "Want to connect your stack? (optional — skip if you prefer)"
 header: "CC Commander — Connect your tools"
 multiSelect: true
 options:
+  - label: "🟢 ⏭️ Skip for now"
+    description: "Connect nothing now; run /ccc-connect whenever you are ready."
+    preview: "No change."
   - label: "Supabase — managed Postgres and auth"
     description: "Database-as-a-service with built-in authentication and real-time."
     preview: "[Sign up free](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=supabase-auth)"

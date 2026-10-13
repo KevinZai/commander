@@ -18,7 +18,7 @@ disable-model-invocation: true
 Show this disclosure at the top of every /ccc-connect response:
 
 ```
-💸 Some links below are affiliate — CCC may earn a commission at no cost to you.
+💰 Some links below are affiliate — CCC may earn a commission at no cost to you.
 [Disclosure](https://docs.commanderplugin.com/affiliate-disclosure)
 ```
 
@@ -29,16 +29,18 @@ Show this disclosure at the top of every /ccc-connect response:
 
 ## What happens
 
-1. **Context strip.** One Bash call:
+1. **Context strip.** One Bash call (the last two lines report the project signals the pickers use):
 
    ```bash
    claude mcp list 2>/dev/null
    claude plugin list --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).filter(p=>p.enabled).map(p=>p.id).join(", ")||"none")}catch{console.log("none")}})'
+   node -e 'try{const p=require("./package.json");const d={...p.dependencies,...p.devDependencies};console.log("signals:",["stripe","react","next"].filter(k=>d[k]).join(", ")||"none")}catch{console.log("signals: none")}'
+   test -f prisma/schema.prisma && echo "signals: prisma" || true
    ```
 
-   Render `🔌 Connected: <MCP names> · plugins: <ids>`, or "🔌 Nothing wired yet — pick a category below." Never print server env values.
+   Render `Connected: <MCP names> · plugins: <ids>`, or "Nothing wired yet — pick a category below." Never print server env values.
 
-2. **Category picker** (cascade; see Decision points). An argument skips straight to its level. Mark the 🟢 option from project context: `prisma/schema.prisma` or a new SaaS → Build & ship (Supabase); `stripe` in `package.json` → Build & ship (Billing); React or Next in `package.json` → Automate & design (Figma); otherwise Research & observe (broadest utility).
+2. **Category picker** (cascade; see Decision points). An argument skips straight to its level. Every level has a stated 🟢 default; the project signals listed under Decision points can move it.
 
 3. **Connector picker.** Show the connectors for the chosen category. A category with one connector skips this picker and confirms the choice in one line.
 
@@ -85,36 +87,49 @@ Show this disclosure at the top of every /ccc-connect response:
 
 ## Decision points
 
-All pickers are `AskUserQuestion`, single select, at most four options, 🟢 on the recommended one (listed first). In Codex or any surface without it, ask the same options as one plain-text question.
+All pickers are `AskUserQuestion`, single select, two to four options, the 🟢 recommended option listed first, each option with a one-line consequence. In Codex or any surface without it, ask the same options as one plain-text question. A picker with a single possible option is skipped and its choice confirmed in one line.
 
-**Category picker, level 1** (header "Connect"):
+**Category picker, level 1** (header "Connect"), default order:
 
-- **🏗️ Build & ship** — Backend, Hosting, Cache / Queue, Billing.
-- **📋 Team & comms** — Tasks, Knowledge, Comms, Email.
-- **🔬 Research & observe** — Research, Observability.
-- **🤖 Automate & design** — Automation, Design, Agent harness.
+- 🟢 **🔬 Research & observe** — opens Research, Observability (broadest utility).
+- **🏗️ Build & ship** — opens Backend, Hosting, Cache / Queue, Billing.
+- **🌐 Team & comms** — opens Tasks, Knowledge, Comms, Email.
+- **🤖 Automate & design** — opens Automation, Design, Agent harness.
 
-**Level 2** lists the categories inside the chosen group. **Level 3, connectors per category:**
+Project signals from step 1 move the 🟢 to another group, which is then listed first: `prisma/schema.prisma`, a new SaaS, or `stripe` in `package.json` → Build & ship; React or Next in `package.json` → Automate & design. No signal keeps the default.
+
+**Level 2, categories per group** (header "Category"; 🟢 option first):
+
+| Group | Options |
+|---|---|
+| Research & observe | 🟢 Research — search, scraping, docs · Observability — errors and performance |
+| Build & ship | 🟢 Backend — database, auth, storage · Hosting — deploys and previews · Cache / Queue — Redis and Kafka · Billing — payments |
+| Team & comms | 🟢 Tasks — issues and projects · Knowledge — pages and databases · Comms — channels and threads · Email — sending and inboxes |
+| Automate & design | 🟢 Automation — browsers and app actions · Design — files and components · Agent harness — external agent CLI |
+
+With `stripe` in `package.json`, Billing takes the 🟢 in Build & ship and is listed first.
+
+**Level 3, connectors per category** (header "Connector"; 🟢 option first; one-connector categories skip the picker):
 
 | Category | Connector options |
 |---|---|
-| 🗄️ Backend | 🟢 Supabase [aff] — first-class backend: auth, DB, storage, edge functions; also ships as a Codex plugin · Neon [aff] — serverless Postgres · Postgres — bring your own database |
-| 🚀 Hosting | Vercel [aff] — web deploys, previews · Fly.io [aff] — Docker services · Cloudflare [aff] — Workers, Pages, R2, D1 |
-| ⚡ Cache / Queue | Upstash [aff] — serverless Redis and Kafka |
-| 💳 Billing | Stripe — payments, subscriptions, invoices |
-| 📋 Tasks | Linear — issues, projects, cycles (first-class Commander integration) · GitHub — issues and PRs |
-| 📚 Knowledge | Notion — pages, databases, comments |
-| 💬 Comms | Slack — channels, threads · Discord — community server |
-| ✉️ Email | Resend [aff] — transactional email · AgentMail — agent-native inbox |
-| 🔬 Research | Tavily — web search · Firecrawl — scraping to markdown · Exa — neural search · Context7 — live library docs (already bundled) |
-| 🚨 Observability | Sentry [aff] — errors, performance, releases |
-| 🤖 Automation | Browserbase [aff] — remote headless browsers · Playwright — local browser automation · Zapier — app actions · n8n — self-hosted workflows |
-| 🎨 Design | Figma — files, components, comments |
-| 🧬 Agent harness | acpx — bring-your-own agent harness; install-only, no MCP wiring |
+| Backend | 🟢 Supabase [aff] — first-class backend: auth, DB, storage, edge functions; also ships as a Codex plugin · Neon [aff] — serverless Postgres · Postgres — bring your own database |
+| Hosting | 🟢 Vercel [aff] — web deploys, previews · Fly.io [aff] — Docker services · Cloudflare [aff] — Workers, Pages, R2, D1 |
+| Cache / Queue | Upstash [aff] — serverless Redis and Kafka (only option) |
+| Billing | Stripe — payments, subscriptions, invoices (only option) |
+| Tasks | 🟢 Linear — issues, projects, cycles (first-class Commander integration) · GitHub — issues and PRs |
+| Knowledge | Notion — pages, databases, comments (only option) |
+| Comms | 🟢 Slack — channels, threads · Discord — community server |
+| Email | 🟢 Resend [aff] — transactional email · AgentMail — agent-native inbox |
+| Research | 🟢 Tavily — web search · Firecrawl — scraping to markdown · Exa — neural search · Context7 — live library docs (already bundled; nothing to wire) |
+| Observability | Sentry [aff] — errors, performance, releases (only option) |
+| Automation | 🟢 Playwright — local browser automation, no credential · Browserbase [aff] — remote headless browsers · Zapier — app actions · n8n — self-hosted workflows |
+| Design | Figma — files, components, comments (only option) |
+| Agent harness | acpx — bring-your-own agent harness; install-only, no MCP wiring (only option) |
 
 Supabase is the default backend for `/ccc-build` SaaS scaffolds: always list it first with 🟢 in Backend.
 
-**Arguments:** a category name (`tasks`, `backend`, `hosting`, `cache`, `knowledge`, `comms`, `observability`, `billing`, `automation`, `agent-harness`, `email`, `research`, `design`) opens its level-3 picker; `productivity` opens level 2 with Tasks, Knowledge, Comms; `dev` opens level 2 with Backend, Hosting, Observability, Billing; no argument opens level 1.
+**Arguments:** a category name (`tasks`, `backend`, `hosting`, `cache`, `knowledge`, `comms`, `observability`, `billing`, `automation`, `agent-harness`, `email`, `research`, `design`) opens its level-3 picker; `productivity` opens a level-2 picker with 🟢 Tasks, Knowledge, Comms; `dev` opens a level-2 picker with 🟢 Backend, Hosting, Observability, Billing; no argument opens level 1.
 
 **Install picker** (header "Install"): 🟢 **Install now** (runs the one install command shown) · **Show the command only** (the user runs it) · **Cancel**.
 

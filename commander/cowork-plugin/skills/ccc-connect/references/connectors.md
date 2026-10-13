@@ -2,9 +2,13 @@
 
 Loaded by `../SKILL.md` after the user picks a specific connector. Commands marked "TBD" are unverified: link the vendor's official docs instead of guessing a command. `[aff]` marks an affiliate connector (see the disclosure in the skill). The canonical catalog with affiliate status is `commander/cowork-plugin/CONNECTORS.md`.
 
+## CLI surface used here
+
+Every `claude` command and flag in this skill was checked against the installed CLI help on Claude Code 2.1.296 (2026-10-13): `claude mcp --help` lists `add` (with `--transport http` and `-e`), `get`, `list` and `login <name>` ("Authenticate with an MCP server (HTTP, SSE, or claude.ai connector)"); `claude plugin list --help` lists `--json` and `--available` ("requires --json"; output keys `installed`, `available[].name`, `available[].pluginId`); `claude plugin configure --help` lists `--json` and `--values-stdin` ("a JSON object of single-line strings; options left out keep their values"); `claude plugin install --help` lists repeatable `--config <key=value>`. `plugin configure` and `install --config` landed in 2.1.285 (`docs/reference/platform-facts-2026-10.md`). On an older CLI where a command is missing, fall back to authenticating in `/mcp` and entering options in the interactive `/plugin` configure flow.
+
 ## Wiring path per connector
 
-Path P = Claude Code plugin (check `claude plugin list --available --json` for a plugin with the connector's name; the official marketplace is `claude-plugins-official`). Path H = remote HTTP MCP with OAuth. Path S = stdio MCP with an API key captured by the user's own terminal.
+Path P = Claude Code plugin (check `claude plugin list --available --json` for a plugin with the connector's name in any marketplace the user has added; `claude plugin marketplace list` shows those marketplaces). Path H = remote HTTP MCP with OAuth. Path S = stdio MCP with an API key captured by the user's own terminal.
 
 | Connector | Credential | Preferred path | stdio fallback (Path S) and env |
 |-----------|-----------|----------------|----------------------------------|
