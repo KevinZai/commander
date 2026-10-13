@@ -90,4 +90,4 @@ TOML subagents, `codex plugin|agents|cloud|remote-control|doctor|update`.
 - Parallel writers and the Codex mirror: only the orchestrator runs `build:codex`, after Phase A and B land.
 - Count gates disagree (three mechanisms): run all of `bin/doc-sync.js`, `docs:sync:check`, `audit-counts --check`, `check-product-contract --check` before every push.
 - Historical text: never rewrite CHANGELOG entries, `whats-new-v5/v6/v7`, or site release notes; the stale-model grep excludes them on purpose.
-- PII: sweep every diff for `openclaw`, `hermes`, `k3v80`, `/Users/ai`, personal rosters before commit.
+- PII: sweep every diff for private service names, private hostnames, personal home-directory paths and personal rosters before commit (the CI PII scan greps for the literal tokens, so never write them into a tracked file).
