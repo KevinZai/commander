@@ -1,6 +1,6 @@
 ---
 name: ccc-orchestrate
-description: "Cross-runtime Orchestrator/Executor — Fable/Opus writes a goal file, GPT-5.6 Sol (codex) or a Sonnet subagent executes it, Fable/Opus verifies against acceptance criteria before reporting done."
+description: "Cross-runtime Orchestrator/Executor — Fable/Opus writes a goal file, GPT-6 Astra (codex) or a Sonnet subagent executes it, Fable/Opus verifies against acceptance criteria before reporting done."
 allowed-tools:
   - Read
   - Bash
@@ -11,26 +11,26 @@ allowed-tools:
 
 # $ccc-orchestrate — Cross-Runtime Orchestrator/Executor
 
-Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5** or **Opus 5** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution then happens **outside this runtime entirely** — on **GPT-5.6 Sol via the `codex` CLI**, or on a **Sonnet subagent** if codex isn't available. The orchestrator never writes production code itself.
+Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5.1** or **Opus 5** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution happens on **GPT-6 Astra via the `codex` CLI**, or on a **Sonnet subagent** within Claude when that route is preferred or Codex is unavailable. The orchestrator never writes production code itself.
 
 **CC Commander** · Cross-Runtime Orchestrate · [Docs](https://commanderplugin.com)
 
-> This is `$ccc-plan-exec` generalized past Claude-only: instead of plan (cheap Claude) → execute (capable Claude), it's plan (Fable/Opus) → execute (a *different runtime* — GPT-5.6 or Sonnet). The goal file is the interface between the two systems, so it has to have real teeth.
+> This is `$ccc-plan-exec` generalized past Claude-only: instead of plan (cheap Claude) → execute (capable Claude), it's plan (Fable/Opus) → execute (a separate executor — Codex or Sonnet). The goal file is the interface between the two systems, so it has to have real teeth.
 
 ---
 
 ## Why cross-runtime
 
-Fable/Opus is expensive per token but excellent at compressing a fuzzy request into a tight, unambiguous spec. GPT-5.6 Sol at high/xhigh reasoning is a strong, comparatively cheaper implementer for well-specified work. The split only pays for itself if the goal file is genuinely load-bearing — vague or hand-wavy acceptance criteria collapse the whole advantage, because the orchestrator ends up re-explaining the task on every re-dispatch anyway. Write the goal file as if the executor has zero conversational context, because on the codex path it does.
+Use a goal file when a task benefits from a separate executor and independent verification. Include the minimum context, scope, constraints, and observable acceptance criteria the executor needs. This separation adds handoff cost; do not promise savings without workload evidence.
 
-**Model guidance (GPT-5.6 family, `commander/adapters/codex/models.js`):** default the executor to **Sol** for real implementation work (deep dev — flagship reasoning). Drop to **Terra** for balanced, well-specified tasks where Sol's extra reasoning wouldn't change the output. Reserve **Luna** for cheap, mechanical steps (renames, boilerplate, formatting) inside a larger loop — never for the primary executor role.
+**Model guidance:** use Astra (`gpt-6-astra`) for demanding Codex execution, Terra for balanced bounded implementation, and Luna for clear mechanical steps. Preserve a user-selected supported tier. Verify installed CLI and account availability before selecting a model; Claude Fable 5.1 (`claude-fable-5-1`) and Opus are orchestrator options, not mandatory session overrides.
 
 ---
 
 ## The two roles
 
-1. **Orchestrator (Fable 5, effort high, or Opus 5 — this session)** — reads the request, asks clarifying questions if the scope is fuzzy, and writes a structured **goal file** to disk. Never edits production code in this mode.
-2. **Executor (GPT-5.6 Sol via codex, or Sonnet subagent)** — reads the goal file verbatim as its entire brief and implements it. Does not re-plan, re-scope, or renegotiate the acceptance criteria.
+1. **Orchestrator (Fable 5.1, configured effort, or Opus 5 — this session)** — reads the request, asks clarifying questions if the scope is fuzzy, and writes a structured **goal file** to disk. Never edits production code in this mode.
+2. **Executor (GPT-6 Astra via codex, or Sonnet subagent)** — reads the goal file verbatim as its entire brief and implements it. Preserves the accepted scope and reports contradictory, infeasible, or unauthorized requirements before continuing dependent work. Does not silently redefine acceptance criteria.
 
 The orchestrator resumes after execution to **verify against the goal file's done-when checklist**, not to re-review the diff from scratch.
 
@@ -44,8 +44,8 @@ A Skill.md-shaped markdown spec saved to a scratch path — use the session's sc
 ---
 goal: <slug>
 created: <ISO date>
-orchestrator: fable-5 | opus-5
-executor: codex-gpt-5.6-sol | codex-gpt-5.6-terra | codex-gpt-5.6-luna | sonnet-subagent
+orchestrator: claude-fable-5-1 | opus-5
+executor: codex-gpt-6-astra | codex-gpt-5.6-terra | codex-gpt-5.6-luna | sonnet-subagent
 ---
 
 # Goal: <one-line outcome>
@@ -67,14 +67,14 @@ executor: codex-gpt-5.6-sol | codex-gpt-5.6-terra | codex-gpt-5.6-luna | sonnet-
 ## Done-when (acceptance criteria)
 - [ ] <testable, verifiable condition>
 - [ ] <testable, verifiable condition>
-- [ ] `npx tsc --noEmit` passes (if TS project)
+- [ ] The repository's configured type check passes (when applicable)
 - [ ] Tests green: `<exact command>`
 
 ## Explicitly NOT required
 - <anything that might look tempting but is out of scope>
 ```
 
-Each acceptance-criteria line must be checkable by reading a diff or running a command — not a vibe. "Code is cleaner" is not a criterion. "`grep -c 'TODO' src/foo.ts` returns 0" is.
+Each acceptance-criteria line must be checkable by reading a diff or running a command — not a vibe. "Code is cleaner" is not a criterion. "The relevant regression test fails before the change and passes afterward" is.
 
 ---
 
@@ -86,15 +86,15 @@ Check codex availability before offering it:
 which codex
 ```
 
-Call `AskUserQuestion`:
+Honor an executor/model preference already given by the user. Otherwise choose a supported tier from task complexity, or use the available choice tool when the runtime tradeoff needs user input. Example when a real choice remains:
 
 ```
 question: "Who should execute the goal file?"
 header: "Orchestrate Executor"
 multiSelect: false
 options:
-  - label: "🤖 GPT-5.6 Sol via codex (recommended if installed)"
-    description: "Shells out to the codex CLI with model=gpt-5.6-sol — flagship deep-reasoning tier. Different runtime, different failure modes than Claude — good adversarial diversity."
+  - label: "🤖 GPT-6 Astra via codex (recommended if installed)"
+    description: "Shells out to the codex CLI with model=gpt-6-astra — flagship deep-reasoning tier. Different runtime, different failure modes than Claude — good adversarial diversity."
     preview: "Only offered when `which codex` succeeds. Terra/Luna available for lighter steps — see model guidance above."
   - label: "🎯 Sonnet subagent"
     description: "Stays in-Claude. Use when codex isn't installed, or you want a single-vendor audit trail."
@@ -121,16 +121,15 @@ git worktree add .claude/worktrees/<goal-slug> -b goal/<goal-slug>
 
 ## Execute phase
 
-**Codex path** — build args via the real adapter interface in `commander/adapters/codex.js` (`adapter.buildArgs(prompt, opts)`), do not invent flags it doesn't expose:
+**Codex path** — use the installed CLI's supported headless interface, preserving OAuth authentication and the isolated write root:
 
-```js
-const codex = require('./commander/adapters/codex.js');
-const args = codex.buildArgs(goalFileContents, { model: 'gpt-5.6-sol', approval: 'full-auto' });
+```bash
+codex exec -C "<verified-worktree>" -s workspace-write -m gpt-6-astra - < "<goal-file>"
 ```
 
-`buildArgs` currently supports `model`, `approval`, `allowedTools`, `quiet` — there is **no documented reasoning-effort flag** in this adapter today. If xhigh reasoning on codex is needed, that's a TODO to add to `commander/adapters/codex.js`, not a flag to guess at. Pass the goal file's full contents as `prompt`.
+Verify `codex exec --help` before dispatch when CLI compatibility is uncertain. Inherit configured reasoning unless the task warrants a supported override; Astra does not support `none` or `minimal`. Do not add API-key chat authentication or bypass sandbox/approval controls. The legacy `commander/adapters/codex.js` emits older flags such as `--full-auto`; do not assume it supports a newer installed CLI. Updating that adapter is a separate code change.
 
-**Sonnet path** — dispatch through the Workflow tool's agent equivalent, `model: sonnet`, with the goal file's contents as the entire prompt. No additional framing — the goal file already has context, steps, and scope.
+**Sonnet path** — dispatch through an actually available Workflow/Agent equivalent, `model: sonnet`, with the goal file's contents as the entire prompt. No additional framing — the goal file already has context, steps, and scope.
 
 ---
 
@@ -140,12 +139,12 @@ Back in the orchestrator session, read the executor's diff/output and check it l
 
 - ✅ All boxes checkable and true → report done.
 - ❌ Any box unmet → **re-dispatch the executor with the specific gap only** ("criterion 3 unmet: tests still fail on X — fix that, do not touch anything else"). Do not re-plan the whole goal file and do not let the executor decide what "close enough" means.
-- 🧹 **Isolation check (always):** `git -C <main-repo> status --porcelain | grep -v '^??'` must be EMPTY — the executor's work lives only in its worktree branch. Any tracked change in the main tree is a leak; stop and reconcile before reporting done.
+- 🧹 **Isolation check:** compare the main checkout against its recorded pre-dispatch state. It must have no new changes from the executor; preserve any unrelated pre-existing edits. Keep the executor's changes in its assigned worktree, and investigate a new unexpected change without resetting other work.
 
 If the goal needs repeated re-dispatch until criteria hold (a convergence loop, not a one-shot), run the verify cycle as a `/goal` loop from the ccc-loop taxonomy — it gives you the gate + iteration cap for free instead of hand-rolled retries.
 
 Report back:
-> 🧭 **Orchestrate: goal file at `<path>`, executed by `<codex-gpt-5.6-sol|codex-gpt-5.6-terra|codex-gpt-5.6-luna|sonnet-subagent>`.**
+> 🧭 **Orchestrate: goal file at `<path>`, executed by `<codex-gpt-6-astra|codex-gpt-5.6-terra|codex-gpt-5.6-luna|sonnet-subagent>`.**
 > Done-when: N/M criteria met.
 > <if gaps: re-dispatching with the specific gap · if clean: ✅ all criteria verified>
 
@@ -162,14 +161,14 @@ Report back:
 
 - ❌ Let the executor re-plan or renegotiate the goal file — it executes the steps as written; scope changes go back through the orchestrator
 - ❌ Skip the acceptance-criteria verification step — "the executor said it's done" is not verification; read the diff against the checklist yourself
-- ❌ Invent a codex CLI flag (like a reasoning-effort flag) that isn't in `commander/adapters/codex.js` — check the adapter first, file a TODO if it's missing
+- ❌ Invent CLI flags or assume the legacy adapter supports the installed release — inspect `codex exec --help` and use the supported invocation
 - ❌ Use this for a single trivial edit — the goal-file overhead only pays off when there's real ambiguity to compress; for a one-liner, just do it inline
 - ❌ Re-plan from scratch on a failed verification — re-dispatch with the specific unmet criterion, not a fresh goal file
 - ❌ Offer the codex executor option without confirming `which codex` succeeds first
 
 ---
 
-**Bottom line:** orchestrator (Fable/Opus) compresses fuzzy intent into a goal file with teeth; executor (GPT-5.6 Sol via codex, or Sonnet) implements it in a different runtime; orchestrator verifies against the checklist before calling it done. Pay for Fable/Opus on the thinking, not the typing — and don't let the typing runtime decide what "done" means.
+The orchestrator (Fable/Opus) compresses fuzzy intent into a goal file with teeth; executor (GPT-6 Astra via codex, or Sonnet) implements it in a different runtime; orchestrator verifies against the checklist before calling it done. Pay for Fable/Opus on the thinking, not the typing — and don't let the typing runtime decide what "done" means.
 
 ---
 
