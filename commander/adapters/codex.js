@@ -133,11 +133,15 @@ const adapter = {
     if (opts.cwd != null) {
       throw new Error('Codex review has no --cd; run it with the repository as the process cwd');
     }
-    const targets = ['uncommitted', 'base', 'commit'].filter(
+    // codex-cli 0.162: `review` takes exactly one target, either a diff
+    // selector (--uncommitted / --base / --commit) or a positional prompt of
+    // custom instructions; combining a selector with a prompt is rejected by
+    // the CLI ("the argument '--base <BRANCH>' cannot be used with '[PROMPT]'").
+    const targets = ['uncommitted', 'base', 'commit', 'instructions'].filter(
       (key) => opts[key] != null && opts[key] !== false
     );
     if (targets.length !== 1) {
-      throw new Error('Codex review needs exactly one of uncommitted, base or commit');
+      throw new Error('Codex review needs exactly one of uncommitted, base, commit or instructions; a diff selector cannot combine with custom instructions');
     }
     if (opts.uncommitted != null && opts.uncommitted !== false && opts.uncommitted !== true) {
       throw new TypeError('Codex review uncommitted must be a boolean');

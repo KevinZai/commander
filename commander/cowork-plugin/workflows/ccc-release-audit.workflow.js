@@ -21,9 +21,13 @@ const POST_RELEASE = !!(args && args.postRelease)
 const REPO = (args && typeof args.repo === 'string' && args.repo) || 'KevinZai/commander'
 const SITE = (args && typeof args.site === 'string' && args.site) || 'https://commanderplugin.com/'
 
-// Built from parts so this file never matches its own stale-model grep.
-const STALE = ['claude-fable-' + '5\\b', 'claude-opus-' + '5\\b', 'claude-sonnet-' + '5\\b', 'claude-haiku-4-' + '5', 'gpt-5\\.6', 'GPT-5\\.6', 'Haiku 4\\.5', '\\bOpus 5\\b', '\\bFable 5\\b', '\\bSonnet 5\\b']
-const STALE_MODEL_GREP = "git grep -nE '" + STALE.join('|') + "' -- ':!CHANGELOG.md' ':!docs/reference' ':!vendor' ':!mintlify-docs/whats-new-v*' ':!site/releases' ':!package-lock.json' ':!**/*.pdf' ':!**/*.png' ':!**/*.ansi'"
+// Built from parts so this file never matches its own stale-model grep. PCRE
+// lookaheads keep current names (claude-opus-5-5, "Opus 5.5") out of the match;
+// the registry, the model catalog's legacy table, dated history and the tests
+// that deliberately pin superseded ids are excluded on purpose.
+const STALE = ['claude-(fable|opus|sonnet)-' + '5(?![-\\d])', 'claude-haiku-4-' + '5', '\\b(Opus|Fable|Sonnet) ' + '5(?![.\\d])', 'Haiku 4\\' + '.5', 'gpt-5\\' + '.[0-9]', 'GPT-5\\' + '.[0-9]']
+const STALE_EXCLUDES = ["':!CHANGELOG.md'", "':!docs/reference'", "':!docs/compat'", "':!docs/archive'", "':!vendor'", "':!mintlify-docs/whats-new-v*'", "':!mintlify-docs/quickstart.mdx'", "':!site/releases'", "':!package-lock.json'", "':!commander/adapters/codex/models.js'", "':!skills/claude-api/shared/models.md'", "':!skills/advisor'", "':!scripts/prompt-lint.js'", "':!commander/cowork-plugin/workflows'", "':!commander/cowork-plugin-codex/skills/ccc-codex'", "':!commander/tests/agent-personas.test.js'", "':!**/*.pdf'", "':!**/*.png'", "':!**/*.ansi'"]
+const STALE_MODEL_GREP = "git grep -nP '" + STALE.join('|') + "' -- " + STALE_EXCLUDES.join(' ')
 
 // Read-only gates run concurrently. expect: 'exit0' | 'empty' (exit 0 or 1 with no output) | 'contains:<text>'.
 const READ_ONLY_GATES = [
@@ -141,7 +145,7 @@ const [gateRows, consistency] = await parallel([
         `You did not report this. Try to refute it by reading the cited files: ${m.what}\nFiles: ${m.files.join(', ')}\nEvidence: ${m.evidence}\n` +
         'It is refuted if the values actually agree, the cited text is historical (CHANGELOG entries for older releases, archived docs), or the file is generated and not shipped. If you cannot confirm it, answer refuted=true.',
         { label: `verify:${m.area}`, phase: 'Verify', schema: VERDICT_SCHEMA, agentType: 'Explore', effort: 'high' }
-      ).then(v => ({ ...m, confirmed: !!v && v.refuted === false, verifierReason: v ? v.reason : 'verifier failed' }))
+      ).then(v => ({ ...m, confirmed: !!v && v.refuted === false, unchecked: !v, verifierReason: v ? v.reason : 'verifier failed (unchecked, blocks GO)' }))
     })).then(vs => vs.filter(Boolean))
   ),
 ])

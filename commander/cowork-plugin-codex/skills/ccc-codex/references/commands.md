@@ -13,7 +13,7 @@ Global options (any subcommand): `-c key=value` (TOML value override), `--enable
 | Run | `codex exec [--json] [-o/--output-last-message <file>] [-m <id>] [--cd <dir>] [--sandbox read-only\|workspace-write] [-p <profile>] [--skip-git-repo-check] -- "<prompt>"` | files in `--cd` when `workspace-write` | `-` as the prompt reads stdin |
 | Resume | `codex exec resume --last [--json] [-o <file>] [-m <id>] "<prompt>"` | per session sandbox | no `--cd` / `--sandbox`; run from the session's directory; set sandbox with `-c sandbox_mode="..."` |
 | Resume | `codex exec resume <session-id> "<prompt>"` | same | |
-| Review | `codex review --uncommitted \| --base <branch> \| --commit <sha> [--title <t>] ["<instructions>"]` | no | model via `-c review_model="<id>"` |
+| Review | `codex review --uncommitted \| --base <branch> \| --commit <sha> [--title <t>]` or `codex review "<instructions>"` (a diff selector and a prompt cannot be combined) | no | model via `-c review_model="<id>"` |
 | Review (headless) | `codex exec review --uncommitted \| --base <branch> \| --commit <sha> [-m <id>] [--json] [-o <file>]` | no | |
 | Plugins | `codex plugin list [--json] [--available] [-m <marketplace>]` | no | |
 | Plugins | `codex plugin add <plugin>@<marketplace> [--json]` | config + cache | |

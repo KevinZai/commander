@@ -55,14 +55,16 @@ Linear access is opt-in: the Linear connector, or `LINEAR_API_KEY` in the enviro
    ```bash
    mkdir -p "<scratchpad>"
    cp "${CLAUDE_PLUGIN_ROOT:-commander/cowork-plugin}/skills/ccc-linear-board/references/board-page.html" \
-      <scratchpad>/linear-board.html
+      "<scratchpad>/linear-board-<team-slug>.html"
+   sed -i '' 's#<title>Commander Linear Board</title>#<title>Linear Board <TEAM></title>#' "<scratchpad>/linear-board-<team-slug>.html"
    ```
+   One page per team: the file name and the page title carry the team key, so two teams never share a URL or a data store.
 3. Publish with the Artifact tool and these capabilities (everyone the page is shared with reads; only editors and the owner write):
    ```json
    {"db": {"rules": [{"path": "", "read": "view", "write": "admin"}]}}
    ```
    - Already published from this path in this session: skip the publish; the page does not change between syncs.
-   - Otherwise: `action: "list"`, find "Commander Linear Board", `action: "read"` its `url`. Found: reuse that `url` and go to step 4 (republish with `file_path`, `url` and the capabilities only if the template changed). None: publish `file_path` with the capabilities, `icon: "board"` and `description: "Read-only Kanban of one Linear team, synced from Linear by Claude."`.
+   - Otherwise: `action: "list"`, find the artifact titled "Linear Board <TEAM>" (never a board for another team), `action: "read"` its `url`, then `ArtifactData` `action: "get"`, `collection: "meta"`, `doc_id: "board"` on that `url`. Found and its `team` equals `<TEAM>` (or the `meta` row does not exist yet): reuse that `url` and go to step 4 (republish with `file_path`, `url` and the capabilities only if the template changed). Found but `team` differs, or nothing found: publish `file_path` as a new page with the capabilities, `icon: "board"` and `description: "Read-only Kanban of the <TEAM> Linear team, synced from Linear by Claude."`. Never sync one team's issues into a page whose `meta/board` names another team: that page may already be shared with its viewers.
    - On Codex or without the Artifact tool: say the board needs the Artifact tool's data store and offer `/ccc-linear` instead.
 
 ### 4. Sync the rows (no republish)

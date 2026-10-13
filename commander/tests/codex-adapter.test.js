@@ -105,13 +105,18 @@ test('review targets uncommitted changes or a base branch, always read-only', ()
     model: 'gpt-6-astra',
     json: true,
     outputLastMessage: '/tmp/review.md',
-    instructions: '--focus on auth',
   });
   assert.equal(valueAfter(base, '--base'), 'main');
   assert.equal(valueAfter(base, '--model'), 'gpt-6-astra');
   assert.ok(base.includes('--json'));
-  assert.equal(base.at(-2), '--');
-  assert.equal(base.at(-1), '--focus on auth');
+  assert.ok(!base.includes('--'), 'a targeted review carries no positional prompt');
+
+  // Prompt-only review: custom instructions are themselves the target
+  // (codex review [PROMPT]); a leading dash stays a prompt, not an option.
+  const prompted = adapter.buildReviewArgs({ instructions: '--focus on auth', json: true });
+  assert.equal(prompted.at(-2), '--');
+  assert.equal(prompted.at(-1), '--focus on auth');
+  assert.ok(!prompted.includes('--base') && !prompted.includes('--uncommitted'));
 
   const commit = adapter.buildReviewArgs({ commit: 'abc1234', title: 'Fix login' });
   assert.equal(valueAfter(commit, '--commit'), 'abc1234');
@@ -148,11 +153,22 @@ test('installed Codex parses adapter-generated arguments without a model invocat
     [adapter.buildArgs('Parser check only.', { sandbox: 'read-only', cwd: process.cwd(), model: 'gpt-6-astra', json: true, outputLastMessage: '/tmp/out.md' }), /Usage: codex exec/],
     [adapter.buildArgs('Parser check only.', { resume: 'last', json: true, outputLastMessage: '/tmp/out.md' }), /Usage: codex exec resume/],
     [adapter.buildReviewArgs({ uncommitted: true }), /Usage: codex exec review/],
-    [adapter.buildReviewArgs({ base: 'main', json: true, outputLastMessage: '/tmp/r.md', instructions: 'focus' }), /Usage: codex exec review/],
+    [adapter.buildReviewArgs({ base: 'main', json: true, outputLastMessage: '/tmp/r.md' }), /Usage: codex exec review/],
+    [adapter.buildReviewArgs({ instructions: 'focus', json: true, outputLastMessage: '/tmp/r.md' }), /Usage: codex exec review/],
   ];
   for (const [args, usage] of cases) {
     const result = spawnSync('codex', withHelp(args), { encoding: 'utf8', timeout: 5000 });
     assert.equal(result.status, 0, `${args.join(' ')}\n${result.stderr}`);
     assert.match(result.stdout, usage);
   }
+});
+
+test('buildReviewArgs: refuses a review target combined with custom instructions (codex-cli 0.162)', () => {
+  assert.throws(() => adapter.buildReviewArgs({ base: 'main', instructions: 'Focus on auth' }), /exactly one/);
+  assert.throws(() => adapter.buildReviewArgs({ uncommitted: true, instructions: 'x' }), /exactly one/);
+  assert.throws(() => adapter.buildReviewArgs({ commit: 'a'.repeat(40), instructions: 'x' }), /exactly one/);
+  const targetOnly = adapter.buildReviewArgs({ base: 'main' });
+  assert.ok(targetOnly.includes('--base') && !targetOnly.includes('--'), 'target-only review carries no prompt separator');
+  const promptOnly = adapter.buildReviewArgs({ instructions: 'Focus on auth' });
+  assert.equal(promptOnly[promptOnly.length - 1], 'Focus on auth');
 });

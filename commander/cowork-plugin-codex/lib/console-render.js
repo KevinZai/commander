@@ -509,11 +509,16 @@ const LIVE_TASKS_SCRIPT = `<script>
     var note = el('p', 'live-note', 'Live task board \u00b7 ' + rows.length + ' task' + (rows.length === 1 ? '' : 's') + (stamp ? ' \u00b7 synced ' + stamp : ''));
     host.replaceChildren(note, board);
   }
+  // The baked snapshot stays only while the store has never delivered rows
+  // (no sync yet, or the db is unavailable). Once live rows have rendered, an
+  // empty snapshot means every task was removed and the board must say so.
+  var seenLive = false;
   window.claude.use('db').then(function (db) {
     if (!db) return;
     db.collection('tasks').orderBy('ts', 'desc').limit(200).onSnapshot(function (snap) {
-      if (snap.empty) return;
-      var rows = snap.docs.map(function (doc) { var data = doc.data() || {}; data.id = doc.id; return data; });
+      if (snap.empty && !seenLive) return;
+      seenLive = true;
+      var rows = snap.empty ? [] : snap.docs.map(function (doc) { var data = doc.data() || {}; data.id = doc.id; return data; });
       var stamp = rows.reduce(function (max, row) { return row.syncedAt && row.syncedAt > max ? row.syncedAt : max; }, '');
       render(rows, stamp ? String(stamp).slice(0, 16).replace('T', ' ') : '');
     }, function () {});
