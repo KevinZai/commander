@@ -499,7 +499,7 @@ function checkAgentModels(root) {
     return warn(
       'agent-models',
       'Upgrade candidates on legacy aliases: ' + upgradeCandidates.join(', '),
-      'Pin to explicit model strings (e.g. claude-sonnet-5) for stable behavior.'
+      'Use the v8 alias (sonnet, opus, fable) or the current id (e.g. claude-sonnet-5-5); superseded ids drift as models retire.'
     );
   }
   return ok('agent-models', 'All ' + files.length + ' agents on explicit model pins');

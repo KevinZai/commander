@@ -135,8 +135,8 @@ function estimateScope(task, projectDir) {
  * Map a 0-100 score to turns/budget/effort.
  * Effort levels: low → medium → high → xhigh → max. These are the ONLY values the
  * CLI accepts — 'ultra' is not one of them and was rejected downstream (fixed 2026-07-28).
- * xhigh/max map to the flagship tier; Fable 5 has adaptive thinking always-on (no flag needed).
- * max (93-100) targets Fable 5; xhigh (81-92) is suitable for Opus 5 or Fable 5.
+ * xhigh/max map to the flagship tier; Fable 5.1 has adaptive thinking always-on (no flag needed).
+ * max (93-100) targets Fable 5.1; xhigh (81-92) is suitable for Opus 5.5 or Fable 5.1.
  * @param {number} score
  * @returns {{ turns: number, budget: number, effort: string }}
  */
@@ -156,8 +156,8 @@ function scoreToParams(score) {
  *   21-45: simple (20 turns, $3, low)
  *   46-65: moderate (35 turns, $6, medium)
  *   66-80: complex (50 turns, $10, high)
- *   81-92: advanced (60 turns, $15, xhigh) — flagship tier (Fable 5 / Opus 5), adaptive thinking
- *   93-100: ultra (75 turns, $20, max) — Fable 5 targeted; adaptive thinking always-on
+ *   81-92: advanced (60 turns, $15, xhigh) — flagship tier (Fable 5.1 / Opus 5.5), adaptive thinking
+ *   93-100: ultra (75 turns, $20, max) — Fable 5.1 targeted; adaptive thinking always-on
  *
  * @param {string} task - Task description
  * @param {string} [projectDir] - Optional project directory for file-count scope estimation
