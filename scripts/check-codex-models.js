@@ -11,10 +11,12 @@
  *   codex exec -m <id> "reply OK"
  * and reports PASS / FAIL / TIMEOUT in a table.
  *
- * Exit code: 0 only if every GPT-5.6 family entry (Sol/Terra/Luna) passes.
- * Older families (5.5, 5.4, 5.4-mini) are warn-only — a failure there is
- * printed but never flips the exit code, since this repo's own routing no
- * longer targets them directly (they're fallback-chain entries only).
+ * Exit code: 0 only if every `status: 'current'` entry passes (the GPT-6
+ * routing targets: gpt-6-astra, gpt-6.1-sol, gpt-6-sol, gpt-6-luna).
+ * `legacy` and `retiring` entries (GPT-5.6 family, gpt-5.5) are warn-only —
+ * a failure there is printed but never flips the exit code, since Commander
+ * routing no longer targets them directly (they're fallback-chain entries).
+ * Ids and sources: docs/reference/platform-facts-2026-10.md §3.1.
  *
  * Not wired into `npm test` — this hits the network / a real CLI process
  * and can rate-limit or hang. Run explicitly via `npm run check:codex-models`.
@@ -60,7 +62,7 @@ function usage() {
     '  --json             Emit machine-readable JSON instead of a table',
     '  --help             Show this help',
     '',
-    'Exit code 0 only if all gpt-5.6-* entries pass. Older families warn-only.',
+    "Exit code 0 only if every status 'current' entry passes. Legacy/retiring entries warn-only.",
   ].join('\n');
 }
 
@@ -90,7 +92,7 @@ function probeModel(id, timeoutMs) {
 }
 
 function formatTable(rows) {
-  const headers = ['id', 'tier', 'family', 'status', 'ms', 'note'];
+  const headers = ['id', 'tier', 'family', 'lifecycle', 'status', 'ms', 'note'];
   const widths = headers.map((header) =>
     Math.max(header.length, ...rows.map((row) => String(row[header] ?? '').length))
   );
@@ -124,6 +126,7 @@ async function main() {
       id: entry.id,
       tier: entry.tier,
       family: entry.family,
+      lifecycle: entry.status,
       status: probe.status,
       ms: probe.elapsedMs,
       note: probe.note,
@@ -139,26 +142,31 @@ async function main() {
     process.stdout.write(`\n${formatTable(rows)}\n\n`);
   }
 
-  const gpt56Rows = rows.filter((row) => row.family === '5.6');
-  const gpt56Failures = gpt56Rows.filter((row) => row.status !== 'PASS');
-  const legacyFailures = rows.filter((row) => row.family !== '5.6' && row.status !== 'PASS');
+  const currentRows = rows.filter((row) => row.lifecycle === 'current');
+  const currentFailures = currentRows.filter((row) => row.status !== 'PASS');
+  const legacyFailures = rows.filter((row) => row.lifecycle !== 'current' && row.status !== 'PASS');
 
   if (legacyFailures.length > 0) {
     process.stderr.write(
-      `⚠ ${legacyFailures.length} legacy-family model(s) failed (warn-only): ` +
+      `⚠ ${legacyFailures.length} legacy/retiring model(s) failed (warn-only): ` +
         `${legacyFailures.map((row) => row.id).join(', ')}\n`
     );
   }
 
-  if (gpt56Failures.length > 0) {
+  if (currentRows.length === 0) {
+    process.stderr.write("✗ registry has no status 'current' entries\n");
+    return 1;
+  }
+
+  if (currentFailures.length > 0) {
     process.stderr.write(
-      `✗ ${gpt56Failures.length}/${gpt56Rows.length} GPT-5.6 model(s) failed: ` +
-        `${gpt56Failures.map((row) => row.id).join(', ')}\n`
+      `✗ ${currentFailures.length}/${currentRows.length} current model(s) failed: ` +
+        `${currentFailures.map((row) => row.id).join(', ')}\n`
     );
     return 1;
   }
 
-  process.stderr.write(`✓ all ${gpt56Rows.length} GPT-5.6 models passed\n`);
+  process.stderr.write(`✓ all ${currentRows.length} current models passed\n`);
   return 0;
 }
 

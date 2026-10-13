@@ -60,12 +60,12 @@ export default async function run({ args, context }) {
   const [secResult, perfResult] = await Promise.all([
     Agent({
       task: `Review ${args.file} for security issues`,
-      model: "claude-sonnet-4-6",
+      model: "sonnet",
       maxTurns: 10,
     }),
     Agent({
       task: `Profile ${args.file} for performance hotpaths`,
-      model: "claude-sonnet-4-6",
+      model: "sonnet",
       maxTurns: 10,
     }),
   ]);
