@@ -1,42 +1,45 @@
 {
   "id": "ccc-learn",
   "title": "Learn",
-  "subtitle": "467+ skills across 11 domains — click to browse",
-  "footer": "Each domain is a router skill that loads 15–45 sub-skills on demand. Installing one gets you the whole domain.",
-  "shortcuts": ["/ccc", "/ccc-browse"],
+  "subtitle": "Skill domains: click one to browse",
+  "footer": "Each domain is a router skill that loads its sub-skills on demand.",
+  "shortcuts": [
+    "/ccc",
+    "/ccc-browse"
+  ],
   "choices": [
     {
       "id": "design",
       "icon": "🎨",
-      "label": "Design (39 skills)",
+      "label": "Design",
       "description": "UI/UX, animation, responsive, a11y, Impeccable polish suite.",
       "command": "/ccc-design"
     },
     {
       "id": "marketing",
       "icon": "📣",
-      "label": "Marketing (45 skills)",
-      "description": "CRO, email, ads, social, content — 7 specialist pods.",
+      "label": "Marketing",
+      "description": "CRO, email, ads, social, content.",
       "command": "/ccc-learn marketing"
     },
     {
       "id": "saas",
       "icon": "💼",
-      "label": "SaaS (21 skills)",
+      "label": "SaaS",
       "description": "Auth, billing, multi-tenant, schema, zero-to-revenue.",
       "command": "/ccc-learn saas"
     },
     {
       "id": "devops",
       "icon": "🛠️",
-      "label": "DevOps (21 skills)",
+      "label": "DevOps",
       "description": "CI/CD, Docker, AWS, monitoring, runbooks.",
       "command": "/ccc-learn devops"
     },
     {
       "id": "browse-all",
       "icon": "🔎",
-      "label": "Browse all (467+)",
+      "label": "Browse all",
       "description": "Searchable, filterable grid of every skill and command.",
       "command": "/ccc-browse"
     },

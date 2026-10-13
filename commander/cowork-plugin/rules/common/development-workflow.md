@@ -1,37 +1,19 @@
 # Development Workflow
 
-> This file extends [common/git-workflow.md](./git-workflow.md) with the full feature development process that happens before git operations.
+The pipeline from idea to commit. Git conventions are in [git-workflow.md](./git-workflow.md), test expectations in [testing.md](./testing.md), and the gates behind each step in `rules/fable-method.md`.
 
-The Feature Implementation Workflow describes the development pipeline: research, planning, TDD, code review, and then committing to git.
+## Feature pipeline
 
-## Feature Implementation Workflow
+1. **Define done.** Write the acceptance criteria and what "broken" looks like before the spec: evals, spec, plan, implement, verify.
+2. **Reuse before building.** Check the project's existing utilities and installed dependencies, then mature libraries or prior art (`gh search code`, package registries) when the need is new. Add a dependency only for a demonstrated need and say why.
+3. **Plan.** For multi-file or multi-day work, write a plan file with phases, risks, and acceptance criteria (`/ccc-plan`). Small edits do not need one.
+4. **Implement test-first** where the project requires it or a regression needs reproducing ([testing.md](./testing.md)).
+5. **Review.** Run `/code-review` or a reviewer agent on the diff. Fix critical and high findings; fix medium ones when cheap.
+6. **Verify.** Run the project's required checks and inspect the actual output. Report what ran and what passed or failed.
+7. **Commit** per [git-workflow.md](./git-workflow.md) when the user asks for a commit.
 
-0. **Research & Reuse** _(mandatory before any new implementation)_
-   - **GitHub code search first:** Run `gh search repos` and `gh search code` to find existing implementations, templates, and patterns before writing anything new.
-   - **Exa MCP for research:** Use `exa-web-search` MCP during the planning phase for broader research, data ingestion, and discovering prior art.
-   - **Check package registries:** Search npm, PyPI, crates.io, and other registries before writing utility code. Prefer battle-tested libraries over hand-rolled solutions.
-   - **Search for adaptable implementations:** Look for open-source projects that solve 80%+ of the problem and can be forked, ported, or wrapped.
-   - Prefer adopting or porting a proven approach over writing net-new code when it meets the requirement.
+## Scope
 
-1. **Plan First**
-   - Use **planner** agent to create implementation plan
-   - Generate planning docs before coding: PRD, architecture, system_design, tech_doc, task_list
-   - Identify dependencies and risks
-   - Break down into phases
-
-2. **TDD Approach**
-   - Use **tdd-guide** agent
-   - Write tests first (RED)
-   - Implement to pass tests (GREEN)
-   - Refactor (IMPROVE)
-   - Verify 80%+ coverage
-
-3. **Code Review**
-   - Use **code-reviewer** agent immediately after writing code
-   - Address CRITICAL and HIGH issues
-   - Fix MEDIUM issues when possible
-
-4. **Commit & Push**
-   - Detailed commit messages
-   - Follow conventional commits format
-   - See [git-workflow.md](./git-workflow.md) for commit message format and PR process
+- Make the smallest coherent diff that meets the acceptance criteria.
+- Flag adjacent improvements instead of folding them into the change.
+- Planning-only and review-only requests end with the plan or the review.

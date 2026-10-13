@@ -1,5 +1,5 @@
 {
-  "model": "claude-opus-5",
+  "model": "opus",
   "showThinkingSummaries": true,
   "hooks": {
     "SessionStart": [
@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node commander/update-check.js 2>/dev/null; echo '## Session Guidance\nStart from the current user request. Do not enter plan mode merely because a session started.\nPreserve the chosen model and effort. For demanding reasoning, use the supported Fable 5.1 alias: /model claude-fable-5-1.\nRun node commander/status-line.js only for requested session status or a CCC menu flow. Do not add greetings or tracker pulses as startup side effects.'"
+            "command": "node \"$CLAUDE_PROJECT_DIR/commander/update-check.js\" 2>/dev/null; echo \"## Session Guidance\nStart from the current user request. Interactive sessions run in auto permission mode; enter plan mode only when asked or when a material design decision needs approval.\nPreserve the chosen model and effort. For demanding reasoning, switch with /model fable; for workflow-scale orchestration, toggle /effort ultracode.\nRun node commander/status-line.js only for requested session status or a CCC menu flow. Do not add greetings or tracker pulses as startup side effects.\""
           }
         ]
       }
