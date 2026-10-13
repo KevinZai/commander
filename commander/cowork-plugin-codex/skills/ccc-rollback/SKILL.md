@@ -1,35 +1,32 @@
 ---
 name: ccc-rollback
-description: "CC Commander rollback workflow. Selects a rollback target, creates atomic git revert commits, pushes the revert, redeploys through ccc-deploy, verifies health, and…"
-model: sonnet
-effort: high
+description: "Roll production back by picking a known-good commit or tag, creating atomic git revert commits, pushing them, redeploying through the $ccc-deploy runners, and verifying health. Use when a deploy is bad, production is broken, or the user asks to revert or roll back a release."
 allowed-tools:
   - Read
   - Bash
   - WebFetch
   - AskUserQuestion
 argument-hint: "[target: last-good | tag | n-back]"
+model: sonnet
+effort: high
+disable-model-invocation: true
 ---
 
-# $ccc-rollback — Revert + Redeploy
+# $ccc-rollback — Revert and redeploy
 
-**CC Commander** · $ccc-rollback · Pick target → revert commits → deploy → verify
+**CC Commander** · $ccc-rollback · pick target → revert commits → push → redeploy → verify
 
-Use this when production is bad and the safest path is an atomic revert commit followed by a fresh deploy. This workflow preserves history and always redeploys through `$ccc-deploy`.
+## When to use / when not to
 
-## Response Shape
+- Use when production is bad and the safest fix is a revert commit followed by a fresh deploy. History is preserved; nothing is rewritten.
+- For an instant platform-level rollback with no git change (`vercel rollback`, `fly releases rollback`, `wrangler rollback`), use `$ccc-ship rollback` instead.
+- In Codex, ask each picker below as a plain-text question with the same options.
 
-Always return these sections:
+## What happens
 
-1. Brand header:
+### 1. Read the current state
 
-```markdown
-**CC Commander** · $ccc-rollback · Revert + redeploy
-```
-
-2. Current state strip:
-
-Use Bash reads, silent on missing refs:
+Run in one Bash call; a missing ref is not an error:
 
 ```bash
 git rev-parse --abbrev-ref HEAD
@@ -39,41 +36,38 @@ git tag --sort=-creatordate | head -10
 git log --oneline --decorate -12
 ```
 
-Render:
+Render one line:
 
 ```markdown
 Branch: `<branch>` · HEAD: `<short-sha>` · dirty files: `<N>` · latest tag: `<tag-or-none>`
 ```
 
-If dirty files are present, warn before any rollback command. Do not proceed until the user confirms.
+If dirty files are present, ask with AskUserQuestion before any rollback command: "🟢 Stop — I'll commit or stash first" or "Continue with a dirty tree" (the revert may mix with uncommitted work). Do not proceed without an answer.
 
-3. Rollback target picker — `AskUserQuestion`
+### 2. Rollback target picker — `AskUserQuestion`
+
+Skip this picker when `$ARGUMENTS` names the target type.
 
 ```yaml
 question: "What should I roll back to?"
-header: "CC Commander Rollback"
+header: "Rollback"
 multiSelect: false
 autocomplete: true
 options:
-  - label: "Last good commit"
-    value: "last-good"
+  - label: "🟢 Last good commit"
     description: "You provide or confirm the last known good commit sha."
     preview: "Creates revert commits for everything after that commit, then deploys."
   - label: "Specific tag"
-    value: "tag"
-    description: "Pick a release tag such as v4.0.0-beta.10."
-    preview: "Reverts commits after the tag, pushes, then runs $ccc-deploy."
+    description: "Pick a release tag from the list shown in step 1."
+    preview: "Reverts commits after the tag, pushes, then redeploys through $ccc-deploy."
   - label: "N versions back"
-    value: "n-back"
     description: "Choose how many release tags back to restore."
     preview: "Finds the older tag, warns about distance, reverts, then deploys."
 ```
 
-## Target Resolution
+### 3. Resolve and validate the target
 
-### Last Good Commit
-
-Ask for the commit sha if it was not supplied in the prompt. Validate it:
+**Last good commit.** Ask for the sha if it was not supplied. Validate:
 
 ```bash
 git cat-file -e <target-sha>^{commit}
@@ -81,23 +75,7 @@ git merge-base --is-ancestor <target-sha> HEAD
 git rev-list --count <target-sha>..HEAD
 ```
 
-If `HEAD` is more than 5 commits ahead of the target, warn:
-
-```markdown
-Warning: HEAD is <N> commits ahead of <target>. This may need a surgical rollback instead of reverting everything after the target.
-```
-
-Ask the user to confirm before continuing.
-
-### Specific Tag
-
-Show recent tags from:
-
-```bash
-git tag --sort=-creatordate | head -20
-```
-
-Ask for or autocomplete the tag. Validate it:
+**Specific tag.** Show `git tag --sort=-creatordate | head -20`, take the tag, then validate:
 
 ```bash
 git rev-parse <tag>^{commit}
@@ -105,84 +83,86 @@ git merge-base --is-ancestor <tag> HEAD
 git rev-list --count <tag>..HEAD
 ```
 
-Apply the same more-than-5-commits warning before continuing.
+**N versions back.** Ask for `N`, list `git tag --sort=-creatordate | head -50`, and resolve: `N=1` is the tag before the current release tag, `N=2` is two release tags back. Validate the resolved tag as above.
 
-### N Versions Back
+If any validation command fails, stop and report which one. If `HEAD` is more than 5 commits ahead of the target, warn:
 
-Ask for `N`, list tags in descending creation order, and resolve the target tag:
-
-```bash
-git tag --sort=-creatordate | head -50
+```markdown
+Warning: HEAD is <N> commits ahead of <target>. This may need a surgical rollback instead of reverting everything after the target.
 ```
 
-Example: if `N=1`, target the previous tag before the current release tag. If `N=2`, target two release tags back.
+Then ask with AskUserQuestion: "🟢 Revert only the bad commit" (asks for its sha; uses the single-commit form below), "Revert everything after the target", or "Cancel".
 
-Validate the resolved tag and apply the same more-than-5-commits warning.
+### 4. Revert
 
-## Revert Procedure
+Create explicit revert commits; never rewrite public history.
 
-Never rewrite public history. Create explicit revert commits.
-
-For a single bad commit:
+Single bad commit:
 
 ```bash
 git revert <bad-sha>
 ```
 
-For a range after the selected target:
+Everything after the target:
 
 ```bash
 git revert --no-commit <target>..HEAD
 git commit -m "fix(rollback): revert to <target-label>"
 ```
 
-If conflicts occur:
+On conflicts:
 
 1. Stop immediately.
 2. Show conflicted files from `git status --short`.
-3. Explain that manual conflict resolution is required before continuing.
-4. Do not attempt a deploy until the revert commit exists and tests or smoke checks pass.
+3. Say that manual conflict resolution is required, and that `git revert --abort` returns to the pre-rollback state.
+4. Do not deploy until the revert commit exists and the project's test or smoke command passes.
 
-After the revert commit:
+After the commit:
 
 ```bash
 git log --oneline -3
 git status --short
 ```
 
-If the working tree is not clean after committing, stop and report the remaining files.
+If the tree is not clean, stop and list the remaining files. If the project has a test command (`npm test`, `pytest`, or the script in `package.json`), run it now and report the result before pushing.
 
-## Push + Redeploy
+### 5. Push — confirm first
 
-Before pushing, summarize:
+Summarize:
 
 ```markdown
 Rollback target: <target-label>
 Commits reverted: <N>
 New revert commit: <sha>
-Deploy command: $ccc-deploy
+Tests: <result or "not run — no test command">
+Deploy: $ccc-deploy runner for <platform-or-"detect">
 ```
 
-Ask for confirmation, then push:
+Ask with AskUserQuestion: "🟢 Push and redeploy" or "Stop here — keep the revert local". On push:
 
 ```bash
 git push origin <branch>
+git ls-remote origin <branch>
 ```
 
-Immediately invoke `$ccc-deploy` with the platform context if it is known from the current repo. If the platform is unknown, run `$ccc-deploy` normally so it can detect and ask.
+The remote sha from `git ls-remote` must equal `git rev-parse HEAD`.
 
-## Verification
+### 6. Redeploy through $ccc-deploy
 
-Use `$ccc-deploy` health verification as the source of truth. If a production URL is known, fetch it with `WebFetch` after deploy and report:
+`$ccc-deploy` is user-invoked only, so do not call it through the Skill tool. Run its procedure directly: read `${CLAUDE_SKILL_DIR}/../ccc-deploy/SKILL.md` steps 1, 4 and 5, and the matching section of [../ccc-deploy/references/platform-runners.md](../ccc-deploy/references/platform-runners.md). Use the platform from the repo when step 1 of that skill detects exactly one target; otherwise ask its platform picker. The "Push and redeploy" answer in step 5 is the deploy authorization.
+
+If the platform deploys on push (a GitHub workflow, a Git-connected Vercel or Cloudflare project), watch that run instead of starting a second deploy.
+
+### 7. Verify health
+
+Use the `$ccc-deploy` health check as the source of truth. Fetch the production URL with WebFetch and report:
 
 - URL checked
 - HTTP status or platform status
 - deploy id, run id, release id, or commit sha
 - PASS, WARN, or FAIL
 
-## Post-Rollback Comms
-
-After health verification, emit:
+### 8. Draft post-rollback comms
 
 ```markdown
 Rollback complete: <project>
@@ -190,27 +170,38 @@ Rollback complete: <project>
 - Revert commit: <sha>
 - Deployment: <platform-and-url>
 - Health check: <PASS-or-FAIL>
-- Follow-up: investigate original bad deploy and add a regression test.
+- Follow-up: investigate the original bad deploy and add a regression test.
 ```
 
-If Discord or Slack is configured through `$ccc-connect`, ask before posting the comms. Include incident context only if the user provided it.
+If Slack or Discord is configured through `$ccc-connect`, ask before posting: "🟢 Keep it here" or "Post to <configured channel>". Include incident context only if the user provided it.
 
-## Failure Mode
+## Failure mode
 
-If rollback fails:
+1. Show the exact command and the relevant error lines.
+2. Name the stage: target resolution, revert, push, deploy, or health verification.
+3. Preserve partial revert state and give the next safe inspection command, usually `git status --short`.
+4. If the revert was pushed but the deploy failed, offer to rerun the step 6 runner or use the platform rollback in [../ccc-deploy/references/platform-runners.md](../ccc-deploy/references/platform-runners.md#platform-rollback-no-git-change).
 
-1. Surface the exact command and relevant error lines.
-2. State whether failure happened during target resolution, revert, push, deploy, or health verification.
-3. Preserve any partial revert state and tell the user the next safe command to inspect it, usually `git status --short`.
-4. If a revert commit was pushed but deploy failed, suggest running `$ccc-deploy` again or escalating to the platform rollback command.
+## Done when
 
-## Anti-Patterns
+- `git ls-remote origin <branch>` matches the local revert commit, and
+- step 7 reported PASS from a real fetch of the production URL,
+- or the failure report names the failing stage and the next safe command.
 
-- Do not rewrite history.
-- Do not deploy with unresolved conflicts.
-- Do not push without confirmation.
-- Do not skip `$ccc-deploy`; rollback is only complete after redeploy and health verification.
-- Do not post comms without user confirmation.
+## Guardrails
+
+- Pushing, deploying and posting comms each need the user's authorization in this conversation; ask at steps 5 and 8, not at the start.
+- Never rewrite history: no `git reset --hard` on a shared branch, no force push.
+- Never deploy with unresolved conflicts or a dirty tree after the revert.
+- Never skip the redeploy and health check; a rollback is complete only after both.
+- Never print secrets or `.env` values.
+
+## See also
+
+- `$ccc-deploy` — the deploy runners and health check this skill reuses
+- `$ccc-ship` — platform-level rollback and release tagging
+- `$ccc-deploy-check` — readiness gate before redeploying
+- `$ccc-systematic-debugging` — find the root cause of the bad deploy
 
 ---
 

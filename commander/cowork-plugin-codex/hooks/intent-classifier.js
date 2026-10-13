@@ -31,7 +31,7 @@ function checkFableNudge(prompt) {
     try { mkdirSync(markerDir, { recursive: true }); } catch (_) {}
     try { writeFileSync(markerFile, '', { flag: 'wx' }); } catch (_) { return null; }
 
-    return '🧠 Deep-reasoning session detected — consider /model claude-fable-5[1m] (Fable deep mode). CCC routes subagents cost-efficiently either way.';
+    return '🧠 Deep-reasoning session detected — consider /model fable (Fable 5.1, 1M context). CCC routes subagents cost-efficiently either way.';
   } catch (_) {
     return null; // fail-safe: never break the hook
   }

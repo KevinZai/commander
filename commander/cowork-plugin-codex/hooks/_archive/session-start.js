@@ -22,7 +22,7 @@ const PLUGIN_JSON = join(import.meta.dirname, '..', '.claude-plugin', 'plugin.js
  * Returns the output JSON object instead of writing to stdout.
  * Caller may pass { home, cwd } overrides; defaults read from process.env / process.cwd().
  */
-export async function run({ home, cwd } = {}) {
+export async function run({ home, cwd: _cwd } = {}) {
   const HOME = home || process.env.HOME;
   const CCC_DIR = join(HOME, '.claude', 'commander');
   const SESSIONS_DIR = join(CCC_DIR, 'sessions');
@@ -47,7 +47,7 @@ export async function run({ home, cwd } = {}) {
       packageVersion = pkgJson.version || packageVersion;
     } catch {}
 
-    let isFirstRun = !existsSync(STATE_FILE);
+    const isFirstRun = !existsSync(STATE_FILE);
     if (isFirstRun) {
       try {
         await writeFile(STATE_FILE, JSON.stringify({
@@ -149,7 +149,7 @@ async function main() {
     } catch {}
 
     // Seed state.json on first run (idempotent — never clobber existing state)
-    let isFirstRun = !existsSync(STATE_FILE);
+    const isFirstRun = !existsSync(STATE_FILE);
     if (isFirstRun) {
       try {
         await writeFile(STATE_FILE, JSON.stringify({

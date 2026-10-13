@@ -2,7 +2,7 @@
   "name": "commander",
   "displayName": "CC Commander",
   "version": "8.0.0",
-  "description": "Guided AI PM for Claude Code, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. 83 plugin skills (click-first /ccc-* workflows), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 23 lifecycle hooks × 44 handlers, 2 bundled MCP servers + 16 opt-in. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Core free forever — no signup, no card. MIT-licensed.",
+  "description": "Guided AI PM for Claude Code, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. 84 plugin skills (click-first /ccc-* workflows, incl. /ccc-codex for the Codex CLI), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 30 lifecycle hooks × 51 handlers, a Commander HUD mod, 6 distributable workflows, 8 plugin evals, 2 bundled MCP servers + 16 opt-in. Built for Claude Opus 5.5 / Fable 5.1 and Codex GPT-6. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Core free forever — no signup, no card. MIT-licensed.",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
@@ -25,7 +25,7 @@
   "hooks": "./hooks.json",
   "interface": {
     "displayName": "CC Commander",
-    "shortDescription": "Guided AI PM. 78 skills, 22 specialist agents, Codex-supported hook subset. Core free forever.",
+    "shortDescription": "Guided AI PM for Codex: plan, build, review and ship workflows, specialist agents, and the Codex-supported hook subset.",
     "longDescription": "CC Commander is a PM/orchestration layer over Codex's sub-agent primitive. Brain/hands architecture: opinionated workflows for plan→build→review→ship. Works equally well in Claude Code and Codex CLI.",
     "developerName": "Kevin Zicherman",
     "category": "productivity",
@@ -51,5 +51,39 @@
     ],
     "privacyPolicyURL": "https://commanderplugin.com/privacy",
     "termsOfServiceURL": "https://commanderplugin.com/terms"
+  },
+  "extensions": {
+    "com.openai": {
+      "hooks": "./hooks.json",
+      "interface": {
+        "displayName": "CC Commander",
+        "shortDescription": "Guided AI PM for Codex: plan, build, review and ship workflows, specialist agents, and the Codex-supported hook subset.",
+        "longDescription": "CC Commander is a PM/orchestration layer over Codex's sub-agent primitive. Brain/hands architecture: opinionated workflows for plan→build→review→ship. Works equally well in Claude Code and Codex CLI.",
+        "developerName": "Kevin Zicherman",
+        "category": "productivity",
+        "capabilities": [
+          "skills",
+          "agents",
+          "hooks",
+          "mcp"
+        ],
+        "websiteURL": "https://commanderplugin.com",
+        "defaultPrompt": [
+          "/ccc"
+        ],
+        "brandColor": "#7c3aed",
+        "composerIcon": "./assets/marketplace/composer-icon.png",
+        "logo": "./assets/marketplace/logo.png",
+        "screenshots": [
+          "./assets/marketplace/screenshot-1.png",
+          "./assets/marketplace/screenshot-2.png",
+          "./assets/marketplace/screenshot-3.png",
+          "./assets/marketplace/screenshot-4.png",
+          "./assets/marketplace/screenshot-5.png"
+        ],
+        "privacyPolicyURL": "https://commanderplugin.com/privacy",
+        "termsOfServiceURL": "https://commanderplugin.com/terms"
+      }
+    }
   }
 }

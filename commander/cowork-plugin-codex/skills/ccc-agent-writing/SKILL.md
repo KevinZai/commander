@@ -1,154 +1,132 @@
 ---
 name: ccc-agent-writing
-description: "Teach agents to write with clarity, persuasion, and testability. Use when drafting specs, PRDs, PR descriptions, or documentation. Triggers: 'write a spec', 'PR…"
+description: "Draft a spec, PRD, PR description, README section, runbook or technical doc that a reader can act on without a follow-up question: named reader, answer first, typed structure, self-test. Use when the user says write a spec, draft a PRD, write the PR description, or document this."
 allowed-tools:
   - Read
+  - Glob
+  - Grep
+  - Bash
   - Write
   - Edit
   - AskUserQuestion
+argument-hint: "[spec | prd | pr | readme | runbook | doc] [topic or path]"
+model: sonnet
+effort: medium
 ---
 
-# $ccc-agent-writing — Agent writing craft
+# $ccc-agent-writing — docs a reader can act on
 
-## Overview
+**CC Commander** · $ccc-agent-writing · a technical document with one named reader, one outcome, and a passed self-test.
 
-Good writing is testable. If an agent (or a beginner developer) can't follow your doc, it's broken. This skill teaches agents to write specs, PRDs, PR descriptions, and documentation that are clear, persuasive, and structured to be acted on.
+Writing is testable: if the reader (a junior developer, a reviewer, an agent) cannot act on it without asking a follow-up question, it is broken.
 
-For long-form content and brand-voice alignment, delegate to the `content-strategist` persona.
+## When to use / when not to
 
-## Core Principle
+- Use for technical writing: specs, PRDs, PR descriptions, README sections, runbooks, technical docs.
+- Hand marketing copy, landing pages, brand voice, headline or CTA variants, and long-form editorial to `$ccc-content` or the plugin's `content-strategist` agent. This skill handles technical writing only.
+- Use `$ccc-plan` when the document is an implementation plan with evals; use `$ccc-changelog` for release notes.
 
-**Write for a reader, not for yourself.** Every piece of writing has one reader and one outcome. Name them both before writing a word.
+## What happens
 
-## The Writing Process
+### 1. Pick the document type
 
-### Step 1: Define Reader + Outcome
+Take the type from the first argument (`spec`, `prd`, `pr`, `readme`, `runbook`, `doc`). Otherwise infer it from the request; if still unclear, ask the type picker.
 
-Before writing anything:
-- Who is the reader? (junior dev, senior reviewer, product stakeholder, future-you)
-- What should they DO after reading? (approve, implement, understand, install)
-- What's the format? (spec, PRD, PR description, README section, runbook)
+### 2. Name the reader and the outcome
 
-### Step 2: Choose a Structure
+Before writing a word, state both in one line: `🎯 Reader: <who> · Outcome: <what they do after reading>`. Readers: junior developer, senior reviewer, product stakeholder, operator on call, future maintainer. Outcomes: approve, implement, review, install, operate. If neither the request nor the context implies them, ask the reader picker.
 
-| Writing Type | Structure |
-|---|---|
-| Spec / PRD | Problem → Context → Requirements → Acceptance Criteria → Out-of-scope |
-| PR Description | Summary → Changes → Test plan → Screenshots (if UI) |
-| README section | What → Why → How (in that order) |
-| Runbook | Trigger → Steps → Expected result → Rollback |
-| Technical doc | Concept → Example → Edge cases → See also |
+### 3. Gather the facts
 
-### Step 3: Lead with the Answer
+Read the sources instead of describing from memory.
 
-Bury the lede = broken writing. The first sentence answers: "What is this and why do I care?"
+PR description: run these against the base branch (default `main`; use the branch the user names), then Read the changed files that carry the behavior change and find the test command in `package.json` (or the project's equivalent) for the test plan. On "unknown revision", ask which base branch to use.
 
-- ❌ "This PR refactors the authentication module to improve code quality and make future changes easier."
-- ✅ "Fixes a race condition in `/login` that created duplicate sessions under concurrent requests."
-
-### Step 4: The Scanability Test
-
-Reviewers scan before they read. Your document should make sense at scan speed:
-
-1. Every section header is a complete thought, not a label
-2. Code examples for every non-trivial concept
-3. Bullet points for lists of 3+
-4. Tables for comparisons
-5. Bold the load-bearing words in each paragraph
-
-### Step 5: Persuasion (for PRDs and Specs)
-
-When you need stakeholder buy-in, apply AIDA in order:
-
-| Stage | What it does | Example |
-|---|---|---|
-| **Attention** | Name the pain | "Users abandon onboarding at step 3 — 47% drop-off" |
-| **Interest** | Show the opportunity | "One change cuts this to 12% (competitor benchmark)" |
-| **Desire** | Connect to goals | "This recovers ~$8K MRR at current conversion rate" |
-| **Action** | Clear ask | "Approve spec by Friday to hit Q2 sprint" |
-
-### Step 6: Test Your Writing
-
-Run the writing through these checks:
-
-- [ ] Can the reader act on this without asking a follow-up question?
-- [ ] Does the first sentence tell them what this is?
-- [ ] Is every term defined on first use?
-- [ ] Are edge cases and out-of-scope items explicit?
-- [ ] Would a new team member understand this in 6 months?
-
-## PR Description Template
-
-```markdown
-## Summary
-
-[1-3 bullets — WHAT changed and WHY]
-
-## Changes
-
-- `path/to/file.ts` — [what changed and why]
-
-## Test plan
-
-- [ ] [Specific step to verify the happy path]
-- [ ] [Edge case tested]
-- [ ] [Regression check]
-
-## Screenshots (if UI change)
-
-[Before/After screenshots]
+```bash
+git rev-parse --abbrev-ref HEAD
+git log --oneline main..HEAD
+git diff --stat main...HEAD
 ```
 
-## Spec Template
+Other types:
 
-```markdown
-## Problem
+- Spec or PRD: Read the issue text, linked files and prior decisions the user points to; Grep the codebase for the feature's current behavior.
+- README, runbook or doc: Read the code, commands and config being documented; run read-only commands (`--help`, `--version`) to confirm exact syntax.
 
-[1 paragraph: what's broken, who it affects, evidence]
+Mark anything you could not verify as `[unverified]` in the draft rather than guessing.
 
-## Context
+### 4. Draft from the template
 
-[Background needed to understand the decision. Links to prior decisions.]
+Use the structure and template for the type from [references/templates.md](references/templates.md). Apply these rules from [references/style.md](references/style.md):
 
-## Requirements
+1. The first sentence answers "what is this and why do I care?"
+2. Section headers are complete thoughts; lists of three or more are bullets; comparisons are tables.
+3. Every term is defined on first use; voice is active.
+4. Specs and PRDs carry Given/When/Then acceptance criteria and an explicit out-of-scope list. Add the AIDA persuasion pass only when the document needs stakeholder buy-in, with numbers sourced from the user's data.
+5. PR descriptions explain why, not only what; the test plan lists the exact commands.
 
-- MUST: [non-negotiable]
-- SHOULD: [strong preference]
-- COULD: [nice to have]
+### 5. Self-test
 
-## Acceptance Criteria
+Check the draft against every item and fix each failure before showing it:
 
-- Given [state], when [action], then [outcome]
+- [ ] The reader can act on it without asking a follow-up question.
+- [ ] The first sentence says what this is.
+- [ ] Every term is defined on first use.
+- [ ] Edge cases and out-of-scope items are explicit.
+- [ ] A new team member would understand it in six months.
+- [ ] No "simply", "just" or "obviously"; no invented metric, quote or link.
 
-## Out of Scope
+### 6. Deliver
 
-- [Explicit exclusion] — deferred to [issue/version]
+Ask the delivery picker. Write the file only to the path the user picked, then run the Done-when check. A PR description is returned as text for the user to paste or pass to `$ccc-ship`; this skill never opens or edits a PR.
 
-## Open Questions
+## Decision points
 
-- [ ] [Unresolved question] — owner: @name, by: date
+Type (step 1):
+
+```
+question: "What are we writing?"
+header: "Agent writing"
+multiSelect: false
+options:
+  - label: "🟢 📝 Spec or PRD"
+    description: "Problem, requirements, Given/When/Then acceptance criteria, out of scope."
+  - label: "PR description"
+    description: "Summary, changes, test plan built from the actual diff."
+  - label: "README section or technical doc"
+    description: "What, why, how, with a runnable example."
+  - label: "Runbook"
+    description: "Trigger, exact steps, expected result, rollback."
 ```
 
-## Common Mistakes
+Put the type the request implies first and mark it 🟢.
 
-| Mistake | Fix |
-|---|---|
-| Jargon without definition | First use in **bold** + inline definition |
-| Passive voice | Active: "Claude returns X" not "X is returned by Claude" |
-| Buried lede | Move the conclusion to sentence 1 |
-| "Simply" / "just" / "obviously" | Delete — they're condescending |
-| No acceptance criteria | Every spec needs Given/When/Then |
-| PR description = git log | Explain WHY, not just what changed |
+Reader (step 2): 🟢 the reader the context implies · senior reviewer · product stakeholder · operator on call. Each description names the outcome expected from that reader.
 
-## When to Delegate to content-strategist
+Delivery (step 6):
 
-The `content-strategist` persona handles:
-- Marketing copy and landing pages
-- Brand voice alignment
-- A/B variants for headlines and CTAs
-- Long-form editorial content
+- 🟢 Show it here — the draft in chat, no files written.
+- Write to a file — the path the user names, or `docs/<slug>.md` for specs and docs.
+- Revise first — name what to change; repeat steps 4 and 5.
 
-This skill handles technical writing (specs, PRDs, docs, PR descriptions).
+## Done when
+
+- The reply states the reader and outcome, and every self-test item passed (list any `[unverified]` markers that remain).
+- If a file was written: `test -s "<path>" && head -3 "<path>"` prints the document's first lines, and the reply names the path.
+
+## Guardrails
+
+- Never write outside the path the user picked, and never overwrite an existing file without showing the diff and asking.
+- Never invent metrics, benchmarks, quotes, issue numbers or links; mark gaps `[unverified]`.
+- Never push, open a PR, post, or write to a tracker from this skill; those go through `$ccc-ship` or `$ccc-linear`, which ask at that moment.
+- Codex: ask each picker as a plain-text question with the same options.
+
+## See also
+
+- `$ccc-content` — marketing and editorial writing
+- `$ccc-plan` — implementation plans with evals
+- `$ccc-changelog` — release notes from `CHANGELOG.md`
+- `$ccc-prompt-fix` — sharpen a prompt instead of a document
 
 ---
 

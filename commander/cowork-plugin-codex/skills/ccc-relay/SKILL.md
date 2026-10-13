@@ -1,153 +1,169 @@
 ---
 name: ccc-relay
-description: "Cross-session loop chaining — chain independent spec/build/review loop SESSIONS that auto-hand-off. Use when the user types $ccc-relay, wants the Finn Loop, or auto-chained loops."
+description: "Chain independent loop sessions (spec, build, review, then a human-gated merge) that hand off through a durable state file, tracker status or reaction, each link separately gated and verified. Use when the user types $ccc-relay, wants the Finn Loop, or wants auto-chained loops."
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Skill
+  - AskUserQuestion
+argument-hint: "[new <chain-name> | status <chain-name> | stop <chain-name>]"
+model: sonnet
+effort: medium
 ---
 
-# $ccc-relay — Cross-Session Loop Chaining
+# $ccc-relay — chained loop sessions
 
-`$ccc-loop` iterates *inside* one session. `$ccc-relay` chains *separate* sessions: an always-on **spec** loop hands its result to a **build** loop, which hands to a **review** loop, which hands to **merge** — each a distinct, independently-gated loop that launches the next automatically when its own stop condition is met. This is the "Finn Loop" pattern: not one agent looping, but a relay team of loops passing a baton.
+**CC Commander** · $ccc-relay · a relay team of loops: each link runs in fresh context, meets its own gate, and passes a baton to the next.
 
-> `$ccc-relay` **composes** three primitives instead of re-implementing them — read those skills for the mechanics this one orchestrates:
-> - `ccc-loop` — the loop taxonomy, the should-loop gate, the state-file convention, verifier-separation. **Each link in a relay is one loop from that taxonomy.**
-> - `ccc-fleet` — parallelism *within* a link (fan out the build across worktrees). A relay is sequential across links; a fleet is parallel within one.
-> - `commands/ccc-spawn.md` (`/spawn`) — the CLI mechanism for launching the next session as a peer when you're at a terminal.
+`$ccc-loop` iterates inside one session. `$ccc-relay` chains separate sessions (the "Finn Loop"): a spec loop hands to a build loop, which hands to a review loop, which stops at merge for an explicit human go. No human re-prompts between links.
 
-## What it is
+It composes three primitives instead of re-implementing them:
 
-A **relay** is a directed chain of loop sessions. Each link is a real loop (turn/goal/time/proactive — see `ccc-loop`), runs to its own stop condition, then triggers the next link and exits. No human re-prompts between links.
+- `$ccc-loop`: the loop taxonomy, the should-loop gate, the state-file convention, verifier separation. Each link is one loop from that taxonomy.
+- `$ccc-fleet`: parallelism inside a link (fan the build out across worktrees). A relay is sequential across links.
+- `$ccc-spawn` and the CLI `/spawn` command (`commands/ccc-spawn.md`): launching the next link as its own session.
+
+## When to use / when not to
+
+- Use when a spec → build → review chain recurs (at least weekly) and each link has an automated bar.
+- One-shot work is a pipeline: use `$ccc-fleet pipeline` or run `$ccc-plan`, `$ccc-build`, `$ccc-review` by hand.
+- Parallel rather than sequential work belongs to `$ccc-fleet`.
+- If any link fails its gate (step 2), that link is a manual step, and the chain is not a relay.
+
+## What happens
 
 The canonical chain:
 
 ```
-spec loop  ──▶  build loop  ──▶  review loop  ──▶  merge (human GO)
+spec loop  ──▶  build loop  ──▶  review loop  ──▶  merge (human go)
  $ccc-plan       $ccc-build        $ccc-review       $ccc-ship
- + /goal         + /goal           + /goal           (gated — never auto)
+ + /goal         + /goal           + /goal           (gated, never automatic)
 ```
 
-Baton pass, per link:
-1. **Link A runs** as a normal gated loop (e.g. a `/goal` spec loop: "produce a plan file with acceptance criteria, stop after 5 tries").
-2. **On convergence**, Link A writes its result **and** a completion marker into `.claude/loop-state/<relay-name>.json` — it sets `relay.phase` to `done` and fills the `handoff` block.
-3. **The next link is launched** by whichever mechanism fits the surface:
-   - **Cloud / unattended** → `/schedule` fires the next loop (survives a closed laptop — the right default for a real relay).
-   - **Cowork Desktop** → a `spawn_task` chip offers to spin the next link into its own session (one click).
-   - **CLI** → `/spawn` launches the next session as a peer (see `ccc-spawn.md`).
-4. **Link B consumes the `handoff` block** as its brief, runs its own gated loop, and repeats the pass — through `review`, then stops at `merge` for an explicit human GO.
+### 1. Name the chain and define the links
 
-The key distinction from `$ccc-loop`: `$ccc-loop` is one context iterating; `$ccc-relay` is **fresh context per link**. That freshness is not incidental — it is what makes the review link a real verifier (Pillar 2 below).
+Ask for the chain name and the links (default `spec → build → review → merge`), and for each link its acceptance bar. Write the state file before anything starts:
 
-## The relay-state convention
-
-A relay extends the existing `.claude/loop-state/<name>.json` shape (from `ccc-loop`) — it keeps `iteration`, `lastRun`, `attempted`, `stopCondition`, and `history`, and adds one `relay` block: `{ phase, next, signal, handoff }`.
-
-```json
-{
-  "iteration": 3,
-  "lastRun": "2026-07-13T14:32:00Z",
-  "attempted": ["spec", "build"],
-  "stopCondition": "review link reports zero 🔴/🟠 findings",
-  "history": [
-    { "link": "spec",  "result": "plan file written, acceptance criteria set", "ts": "2026-07-13T13:10:00Z" },
-    { "link": "build", "result": "feat converged, npm test exits 0",           "ts": "2026-07-13T14:32:00Z" }
-  ],
-  "relay": {
-    "phase": "done",
-    "next": "review",
-    "signal": {
-      "type": "linear",
-      "ref": "CC-1370",
-      "on": "status:In Review"
-    },
-    "handoff": {
-      "from": "build",
-      "worktree": ".claude/worktrees/relay-build-x",
-      "branch": "feat/relay-build-x",
-      "artifact": "plan + diff on feat/relay-build-x",
-      "acceptance": "npm test exits 0; tsc --noEmit clean",
-      "verifier": "review",
-      "humanGate": false,
-      "note": "Build loop converged at iteration 3; review grades with fresh context."
-    }
-  }
-}
+```bash
+mkdir -p .claude/loop-state
 ```
 
-Field contract for the `relay` block:
+Then write `.claude/loop-state/<chain-name>.json` with the Write tool, following [references/relay-state.md](references/relay-state.md): `iteration: 0`, `stopCondition`, empty `history`, and a `relay` block with `phase: "running"`, `next`, `signal`, and a `handoff` whose `verifier` names the grading link and whose `humanGate` is `true` for merge. Validate it:
 
-| Field | Type | Meaning |
-|---|---|---|
-| `phase` | `"running" \| "done" \| "blocked"` | Lifecycle status of the **current** link. The next link is launched only when this flips to `done`. `blocked` halts the relay and escalates (never silently retries forever). |
-| `next` | string \| `null` | Name of the link to launch on `done` (`"build"`, `"review"`, `"merge"`). `null` at the terminal link. |
-| `signal` | object | The external mailbox that actually triggers the next session — see below. `{ type, ref, on }`. |
-| `handoff` | object | The contract the next link consumes as its brief: `from` (link that produced it), `worktree` + `branch` (isolated location of the work, Pillar 5), `artifact`, `acceptance` (the checkable bar the next link inherits), `verifier` (which link grades this one), `humanGate` (bool — `true` forces an explicit human GO before this link runs, always `true` for merge/deploy), `note`. |
+```bash
+node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); console.log("state ok")' .claude/loop-state/<chain-name>.json
+```
 
-One state file per relay chain, keyed by the chain name (e.g. `feature-x-relay.json`). Each link reads it, does its work, rewrites the `relay` block, and appends to `history` — so a relay that dies mid-chain resumes from durable state, not from zero (Pillar 7).
+### 2. Gate every link
 
-## The external signal mailbox
+A relay multiplies an ungated loop's blast radius by the number of links. Every link passes the gate on its own; the chain does not inherit one gate. For each link, confirm all four parts of the should-loop gate from `$ccc-loop`:
 
-A relayed session doesn't share memory with the one before it, so the baton is passed through an **external, durable mailbox** the next session polls or is woken by. The `signal` block records which mailbox and what to watch for:
+1. **Recurs at least weekly.** Otherwise it is a one-shot pipeline.
+2. **Verification is automated for this link.** Build: `npm test` exits 0 (or the project's test command). Review: zero blocking findings (critical or high severity). A link without a checkable bar cannot set `phase: "done"`, so it cannot hand off.
+3. **Budget absorbs the waste.** A four-link relay costs roughly four loops of tokens per pass. Pilot on a small slice first.
+4. **The link has real tools.** Build needs a run and test environment; review needs the diff and the repo. A link that iterates blind hands garbage on with a confident `done`.
 
-| `signal.type` | How the next link is triggered | Use when |
-|---|---|---|
-| `state-file` | Next loop (via `/schedule` or `/loop`) polls `.claude/loop-state/<name>.json` and starts when `phase === "done"` | Fully local, unattended chains |
-| `linear` | Next session is gated on a Linear issue status change (e.g. `CC-1370` → **In Review**); CCC already uses **Linear comments as its canonical cross-session coordination channel** | Tracked work that spans sessions/agents |
-| `slack` / `discord` | A human reaction is the baton — the **Finn Loop 🚀-to-merge**: a 🚀 emoji on the build summary releases the merge link; anything else holds it | A human-in-the-loop release gate |
+And the three answers per link (Fable Method pillar 3): **verifier** (an independent grader), **state file** (the shared `.claude/loop-state/<chain-name>.json`), **stop condition** with a hard cap ("zero blocking findings, or stop after 5 passes"). Record them in the state file. A link missing any answer is removed from the chain and becomes a manual step; tell the user which and why.
 
-Because the mailbox is durable, the relay is restart-resilient: if the machine sleeps between `build` and `review`, the signal (Linear status, the reaction, the state file) is still there when the next session wakes. Prefer Linear for anything already tracked there — it doubles as the audit trail.
+### 3. Pick the signal for each hop
 
-## The GATE — a relay without gates is a runaway (Pillar 3)
+Call AskUserQuestion (Codex: the same question in plain text) once per hop:
 
-A relay multiplies the blast radius of an ungated loop by the number of links. **Every single link must independently pass the gate — the relay does not inherit one gate for the whole chain.** Before wiring any link, prove all four parts of the should-loop gate *for that link* (from `ccc-loop`):
+```
+question: "How should <link> hand off to <next>?"
+header: "Signal"
+multiSelect: false
+options:
+  - label: "🟢 State file"
+    description: "The next loop polls .claude/loop-state and starts on phase done. Fully local."
+  - label: "📝 Tracker status"
+    description: "Gate on an issue status in the opt-in Linear connector; comments are the audit trail."
+  - label: "🚀 Human reaction"
+    description: "A reaction on the summary in Slack or Discord releases the link. Use for merge."
+```
 
-1. **Recurs at least weekly** — if the chain runs once, it's a one-shot pipeline, not a relay; just run `$ccc-plan` → `$ccc-build` → `$ccc-review` by hand.
-2. **Verification is automated for this link** — the build link's bar is `npm test exits 0`; the review link's bar is `zero 🔴/🟠 findings`. A link with no checkable bar can't decide `phase: done`, so it can't hand off.
-3. **Budget absorbs the waste** — every link re-reads context and retries. A four-link relay burns roughly four loops' worth of tokens per full pass. Pilot on a small slice first (Pillar 11).
-4. **The link has real tools** — the build link needs a run/test environment; the review link needs the diff and the repo. A link that iterates blind is worse than useless in a chain — it hands garbage to the next link with a confident `done`.
+Offer the tracker or reaction options only when that connector is present in this session. Signal semantics: [references/relay-state.md](references/relay-state.md).
 
-And every link independently satisfies Pillar 3's three-answer loop gate:
+### 4. Pick how the next link launches
 
-> **Verifier, state file, stop condition — three answers per link or that link is not a loop.**
+```
+question: "How should each next link start?"
+header: "Launch"
+multiSelect: false
+options:
+  - label: "🟢 Routine via /schedule"
+    description: "Runs unattended in the cloud and survives a closed laptop. The default for a real relay."
+  - label: "🤖 Desktop spawn_task chip"
+    description: "One click in Claude Desktop (Cowork) spins the next link into its own session."
+  - label: "⌨️ CLI /spawn peer"
+    description: "Launches the next session as a peer; needs the opt-in claude-peers broker."
+```
 
-- **Verifier** — an independent grader (see Pillar 2 below).
-- **State file** — the shared `.claude/loop-state/<name>.json`, so a resumed link learns instead of repeating.
-- **Stop condition** — a deterministic bound *and* a hard cap: "review reports zero blocking findings, **or stop after 5 passes**." A link with no cap can wedge the whole relay.
+Offer only mechanisms the current surface exposes. Creating a Routine is an external write: confirm with the user at that moment, then invoke `/schedule` with the Skill tool.
 
-Miss one part on one link and you don't have a slower chain — you have an automated way to propagate a mistake through four sessions.
+### 5. Start the first link
 
-## Verifier-separation — the whole point of relaying (Pillar 2)
+Run the first link as a gated loop: `/goal` for a deterministic stop inside a session, or the Routine from step 4 for unattended runs. Confirm the start with AskUserQuestion: 🟢 "Start the spec link" · "Edit the chain first" · "Cancel".
 
-The reason to chain *separate* sessions instead of looping one is that **the agent that does the work must never be the agent that grades it.** In a relay this is structural, not optional:
+Verify the start: for a Routine, list Routines in `/schedule` and confirm the id it returned is listed and enabled; for `/goal`, confirm the active goal it reports matches the spec link's stop condition. Report that id. If no id came back, the link did not start; say so instead of reporting a start.
 
-- The **build** link produces the diff. It does **not** decide whether the diff is good.
-- The **review** link — a fresh context, no anchoring on the build link's reasoning, prompted to *refute* — grades it against the `handoff.acceptance` bar. Its verdict (zero blocking findings) is what flips `phase` to `done` and releases the merge link.
-- Set `handoff.verifier` to the grading link so the contract is explicit: build's verifier is `review`, never `build` itself.
+### 6. What every link does
 
-Self-graded relays are the failure this skill exists to prevent: a build loop that reviews its own output is just an agent agreeing with itself across four sessions instead of one. If a link's output has no *downstream* link to grade it, that link needs a `$ccc-review` or Agent-tool verifier pass wired in before it's allowed to hand off.
+Put these in each link's brief (the Routine prompt, chip brief or peer prompt):
 
-## Safety
+1. Read `.claude/loop-state/<chain-name>.json`; take `relay.handoff` as the brief and `handoff.acceptance` as the bar.
+2. If the link writes files, work in its own git worktree and branch; first run `git rev-parse --show-toplevel` and abort if it is not that worktree.
+3. Run the link's loop to its stop condition and run the acceptance command; quote its result.
+4. On success: set `phase: "done"`, fill `handoff` (worktree, branch, artifact, acceptance for the next link, verifier), append a `history` entry, and fire the chosen signal.
+5. On failure to converge within the cap: set `phase: "blocked"`, append the reason to `history`, and escalate (a tracker comment or notification, if authorized). Never retry past the cap.
+6. Before exiting, check that the main checkout is tracked-clean: `git status --porcelain | grep -v '^??'` prints nothing.
 
-- **Never auto-merge or auto-deploy.** The `merge` link is always `handoff.humanGate: true` — it waits for an explicit human GO (the 🚀 reaction, a Linear status move by a person, a typed approval). Approval on one relay pass never carries to the next (Pillar 5).
-- **Each link is worktree-isolated (Pillar 5).** A link that writes files does so in its own git worktree on its own branch; the `handoff.worktree`/`handoff.branch` fields carry that location to the next link. First act inside any link: verify `git rev-parse --show-toplevel` equals the worktree path — abort if not. After a link finishes, the main tree must be tracked-clean (`git status --porcelain | grep -v '^??'` empty).
-- **`blocked` halts, it does not retry forever.** A link that can't converge sets `phase: "blocked"` and escalates (Linear comment / notification) instead of silently burning the token budget.
-- **Destructive links stay off the relay.** `$ccc-deploy`, `$ccc-rollback`, and deletions are never relay links — route them through `$ccc-ship`'s human gate.
+### 7. Watch and stop
 
-## Wiring a relay (the flow)
+`$ccc-relay status <chain-name>` reads the state file and prints the current link, phase and the last `history` entries:
 
-1. **Name the chain and define the links** — usually `spec → build → review → merge`. Write the chain and each link's acceptance bar into `.claude/loop-state/<name>.json` before starting.
-2. **Gate every link** — run the 4-part should-loop gate and Pillar 3's three-answer gate on each. If any link fails, it's a manual step, not a relay link.
-3. **Pick the signal per hop** — `state-file` for fully local, `linear` for tracked work, `slack`/`discord` reaction for the human release gate.
-4. **Start the first link** as a gated loop (`/goal` for a deterministic stop, `/schedule` if it should survive a closed laptop).
-5. **Let it relay** — each link converges, writes its handoff, triggers the next. Watch the `history` array and the Linear trail; stop the chain anytime (`/goal clear`, cancel the schedule, or don't 🚀 the release).
+```bash
+node -e 'const s=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); console.log(s.relay.phase, "next:", s.relay.next); console.log(JSON.stringify(s.history.slice(-3),null,2))' .claude/loop-state/<chain-name>.json
+```
 
-## When NOT to relay
+`$ccc-relay stop <chain-name>` sets `phase: "blocked"` with a "stopped by user" history entry and tells the user how to cancel the launcher: `/goal clear`, cancel the Routine in `/schedule`, or withhold the release reaction. Verify the stop: re-run the status one-liner above and confirm it prints `blocked` and that the last `history` entry reads "stopped by user".
 
-- **One-shot work** — a single `spec → build → review` pass is a pipeline; use `$ccc-fleet pipeline` or run the three skills by hand. Relays earn their setup only when the chain recurs (gate #1).
-- **Any link fails its gate** — no automated verifier, no state, no stop cap → that link is a prompt, and the chain is a runaway waiting to happen.
-- **Parallel, not sequential** — if the work fans out rather than chains, that's `ccc-fleet`, not a relay.
+## Verifier separation
 
----
+The point of chaining separate sessions is that the agent that does the work never grades it.
 
-**Bottom line:** a relay is loops all the way down — a chain of *independent* gated loop sessions (`spec → build → review → merge`), each passing a `handoff` baton through a durable mailbox (state file / Linear / a 🚀 reaction). Fresh context per link makes the verifier real (Pillar 2); a full gate per link keeps the chain from becoming a runaway (Pillar 3); worktree isolation and a human merge gate cap the blast radius (Pillar 5). Compose `ccc-loop` (each link), `ccc-fleet` (parallelism within a link), and `/spawn` (launch the next) — don't re-implement them.
+- The build link produces the diff; it does not decide whether the diff is good.
+- The review link has fresh context, no anchoring on the build link's reasoning, and is prompted to refute. Its verdict against `handoff.acceptance` is what flips `phase` to `done` and releases merge.
+- `handoff.verifier` names the grading link: build's verifier is `review`, never `build`.
+- A link with no downstream grader gets a `$ccc-review` or Agent-tool verifier pass before it may hand off.
+
+## Done when
+
+- `.claude/loop-state/<chain-name>.json` exists and the `node -e` validation prints `state ok`.
+- Every link in the chain has a verifier, the state file, and a stop condition with a cap recorded; links that failed the gate are listed as manual steps.
+- The merge link has `humanGate: true`.
+- The first link was started and its loop or Routine id was reported and checked as in step 5, or the user chose to stop before starting.
+- After a `stop`, the status one-liner prints `blocked`.
+
+## Guardrails
+
+- Never auto-merge or auto-deploy. Merge waits for an explicit human go each pass; approval on one pass never carries to the next.
+- `$ccc-deploy`, `$ccc-rollback` and deletions are never relay links; route them through `$ccc-ship`'s human gate.
+- `blocked` halts the chain; no link retries past its cap.
+- Each writing link is worktree-isolated, and the main checkout stays tracked-clean.
+- Routines, tracker writes and chat posts each need the user's authorization in this conversation, asked at the moment they happen.
+
+## See also
+
+- `$ccc-loop` — the loop taxonomy and gate each link uses.
+- `$ccc-fleet` — parallel work inside one link.
+- `$ccc-spawn` — launch one isolated session.
+- `$ccc-ship` — the human-gated merge and release.
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

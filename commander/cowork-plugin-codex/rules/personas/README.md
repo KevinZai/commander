@@ -1,87 +1,63 @@
-# 🎭 Agent Personas
+# Agent personas
 
-**Voice layers for CC Commander agents.** Each persona extends `rules/common/response-style.md` with role-specific tone, output conventions, and anti-patterns.
+Voice layers for the plugin agents in `commander/cowork-plugin/agents/`. Each persona extends `rules/common/response-style.md` with a role's stance, voice, output habits and the things it avoids. Personas define tone and limits only; the agent file owns the protocol, tools, model and output contract.
 
-## 📖 How this works
+## How an agent picks up its persona
 
-1. **Base layer:** `rules/common/response-style.md` — the PM Consultant voice (emoji-forward, decisive, anti-sycophancy, structured)
-2. **Agent layer:** persona file in this directory — role-specific overrides
-3. When an agent is spawned, it inherits base + layers persona on top
-
-## 📜 Current personas (15)
-
-| Persona | Role | Model | When to use |
-|---------|------|-------|-------------|
-| 🏗️ architect | System designer | Fable 5 (effort high, adaptive) | Deep design decisions, tradeoff analysis |
-| 🔐 security-auditor | Adversarial reviewer | Fable 5 (effort high, adaptive) | OWASP audits, threat modeling |
-| ⚡ performance-engineer | Hotpath hunter | Sonnet high | Benchmarking, optimization |
-| ✍️ content-strategist | Brand voice keeper | Sonnet medium | Marketing copy, messaging |
-| 📊 data-analyst | Signal extractor | Sonnet high | Analytics, dashboards, insights |
-| 🎨 designer | UI/UX advocate | Sonnet high | Design critique, a11y, polish |
-| 🎯 product-manager | User-story-first | Fable 5 (effort high, adaptive) | Specs, prioritization |
-| 📝 technical-writer | Clarity craftsperson | Sonnet medium | Docs, tutorials, API reference |
-| 🚀 devops-engineer | Runbook thinker | Sonnet high | Deploys, infra, monitoring |
-| 🧪 qa-engineer | Edge-case hunter | Sonnet high | Test coverage, breaking cases |
-| 🔍 reviewer | Severity-rated critic | Sonnet high | PR review, code gates |
-| 🔨 builder | MVP-first implementer | Sonnet high | Feature implementation, TDD |
-| 🔬 researcher | Structured synthesizer | Sonnet high | Competitive research, feature scouting |
-| 🐛 debugger | Root-cause detective | Fable 5 (effort high, adaptive) | Bug investigation (Iron Law) |
-| ⚙️ fleet-worker | Strict-report executor | Sonnet medium | Parallel batch work, scoped tasks |
-
-## 🔗 Integration with CC Commander plugin
-
-CC Commander ships plugin agents at `commander/cowork-plugin/agents/*.md`. Each plugin agent's frontmatter references its matching persona:
+Each agent's frontmatter names its persona with Commander's `persona:` key:
 
 ```yaml
 ---
 name: security-auditor
-description: ...
-model: opus
-effort: high
+model: fable
+effort: xhigh
 persona: personas/security-auditor
 ---
 ```
 
-When the agent is invoked, it loads:
-1. `rules/common/response-style.md` (base)
-2. `rules/personas/security-auditor.md` (layer)
-3. Its own agent body instructions
+The platform ignores `persona:`; Commander's tests use it to check that every reference resolves to a file in this directory. Read the persona alongside the agent body when adopting a role. The language reviewers (`typescript-reviewer`, `python-reviewer`, and the others) share the `reviewer` persona.
 
-## 🎟️ Adding a new persona
+## Personas
 
-Use this template:
+| Persona | Role | Used by |
+|---|---|---|
+| architect | System designer and trade-off analyst | architect |
+| builder | Pragmatic implementer of scoped changes | builder |
+| content-strategist | Audience translator and message sharpener | content-strategist |
+| data-analyst | Signal extractor and statistical honest broker | data-analyst |
+| debugger | Root-cause investigator | debugger |
+| designer | Visual and UX advocate | designer |
+| devops-engineer | Delivery and reliability planner | devops-engineer |
+| fleet-worker | Scoped executor in a parallel fleet | fleet-worker |
+| performance-engineer | Hot-path and bottleneck analyst | performance-engineer |
+| product-manager | User advocate and priority owner | product-manager |
+| qa-engineer | Edge-case hunter and coverage auditor | qa-engineer |
+| researcher | Source-cited synthesizer | researcher |
+| reviewer | Severity-rated change analyst | reviewer and every language reviewer |
+| security-auditor | Adversarial reviewer and threat modeler | security-auditor |
+| technical-writer | Clarity editor for developer docs | technical-writer |
+
+## Adding a persona
+
+Keep it under 40 lines and state only what differs from `response-style.md`:
 
 ```markdown
-# {EMOJI} Persona: {Name}
+# Persona: <Name>
 
-**Role:** {1-line role}
-**Default model:** {model} (effort: {level})
+**Role:** <one line>
 **Extends:** `rules/common/response-style.md`
 
-## 🎯 Core stance
-{1-2 sentence worldview}
+## Stance
+<two or three sentences>
 
-## 💬 Voice patterns
-- {specific quirks, 4-5 items}
+## Voice
+- <three to five habits>
 
-## 🔧 Output conventions
-- {structured output preferences}
+## Output habits
+- <structure the role prefers>
 
-## 🚫 Avoid
-- {anti-patterns specific to this role}
-
-## 📍 Example opener
-> "{concrete first-sentence example}"
-
-**Last updated: {date}**
+## Avoid
+- <anti-patterns specific to the role>
 ```
 
-Keep it ~30 lines. Don't re-explain response-style.md — only specify what's DIFFERENT.
-
-## 📐 Design principle
-
-Personas are **additive**, not **replacement**. A designer agent still follows emoji-forward, decisive, anti-sycophancy rules — but adds visual-first output + design-principles literacy on top.
-
-Think of it as: PM Consultant voice × role knowledge = agent.
-
-**Last updated: 2026-04-17**
+Do not put model, cost, quota or tool-access claims in a persona; those belong in the agent frontmatter.

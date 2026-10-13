@@ -113,6 +113,8 @@ The same workflow runs from the prompt as `/commander:ccc-fleet`; inspect runnin
 - Set `run_in_background: true`, and send parallel calls in one message so they start together.
 - Start every writing agent's prompt with: "FIRST: run `git rev-parse --show-toplevel`. It must be your assigned worktree, not the main checkout; abort and report if it is not. Edit relative paths only."
 - Each prompt names the non-overlapping file domain, the check command to run, "do not push, do not force, do not merge", and the report shape: files changed, check run and result, worktree path, branch.
+- Naming: worker branches are `feat/fleet-<slug>-<n>` (or `feat/<task-slug>` for a single background agent) and worktrees live at `.claude/worktrees/<branch-slug>`; the Workflow runtime and `isolation: "worktree"` create their own paths, so only the fallback dispatch applies these names.
+- Background agents get a time budget: 60 minutes by default, or the number the user names. State it in the prompt ("stop and report at the budget, even if unfinished") and in the plan echo.
 
 Per pattern:
 
@@ -138,8 +140,8 @@ Emit worker progress events and write a completion marker for every worker that 
 ## Decision points
 
 - Pattern and sub-pattern (step 2).
-- Branch behind or diverged, or secret-like variables present (step 3): ask with AskUserQuestion, 🟢 "Stop and fix first".
-- Pinned versus role-based models (step 5), only when the user asks for one model or the run is large.
+- Branch behind or diverged, or secret-like variables present (step 3): ask with AskUserQuestion: 🟢 "Stop and fix first" (sync the branch or move the secrets out of the environment, then rerun pre-flight) · "Proceed anyway" (workers start from the current HEAD with the variables redacted from their prompts; the report notes the skipped check).
+- Pinned versus role-based models (step 5), only when the user asks for one model or the run is large: 🟢 "Role-based" (each role on its tier from references/model-tiers.md) · "Pinned" (every workflow agent on one model; requires `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` in the session environment, so relaunch if it is unset) · "Pinned for this run only" (set `model` on every Agent call instead).
 - Merge conflict (step 7): 🟢 "Stop, show the conflicting files" · "Keep branches unmerged for manual review".
 
 ## Arguments

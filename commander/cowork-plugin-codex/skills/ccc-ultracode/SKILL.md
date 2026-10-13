@@ -1,148 +1,126 @@
 ---
 name: ccc-ultracode
-description: "Ultracode mode: xhigh reasoning + automatic dynamic-workflow orchestration for migrations, deep audits, and repo-wide work. Requires Claude Code v2.1.154+."
+description: "Run deep, multi-agent work as adversarially verified workflows: repo audits, branch reviews, migrations, fleets. Explains the /effort ultracode toggle and launches the bundled Commander workflows. Use when the user types $ccc-ultracode or wants depth over speed on repo-wide work."
 allowed-tools:
   - Read
   - Bash
   - Workflow
+  - Skill
   - AskUserQuestion
+argument-hint: "[audit | review | migrate | fleet | prompt-audit | release-audit]"
+model: inherit
+effort: high
 ---
 
-# $ccc-ultracode — Ultracode Mode
+# $ccc-ultracode — depth over speed
 
-Ultracode flips two dials at once: **xhigh reasoning** (Opus 5 extended thinking) and **automatic dynamic-workflow orchestration** (Claude plans a multi-agent Workflow per substantial task instead of solving it in a single agent pass). The result is adversarially verified, multi-perspective output — at the cost of meaningfully more tokens.
+**CC Commander** · $ccc-ultracode · substantial tasks run as multi-agent workflows whose findings are cross-checked before they reach you.
 
-**CC Commander** · Ultracode Mode · [Docs](https://commanderplugin.com)
+The strongest form of `rules/workflow-first.md`: delegate the doing, keep the deciding. Orchestration is the platform's Workflow tool; Commander supplies the scripts and the pickers.
 
-> Ultracode is the strongest expression of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): **delegate the doing, keep the deciding.**
->
-> **Rides Anthropic's native primitive:** orchestration here is Claude Code's built-in `Workflow` tool (trigger word `workflow`), not a CC Commander re-implementation. We supply scripts + picker UX on top; the fan-out/verify/synthesize engine is Anthropic's.
+## Two separate dials
 
----
+| Dial | Command | Effect |
+|---|---|---|
+| Ultracode | `/effort ultracode on` · `/effort ultracode off` | Claude plans a dynamic workflow (fan out, verify adversarially, synthesize) for each substantial task instead of a single-agent pass. Its own toggle since Claude Code 2.1.284; it does not change the reasoning level. |
+| Reasoning effort | `/effort xhigh` (or `high`, `max`) | How long the model thinks per turn. `max` lasts only for the current session. |
 
-## What ultracode is
+Both are typed by the user; this skill cannot flip them. Treat ultracode as a per-session choice and turn it off with `/effort ultracode off` when the deep work is done. Check the current state with `/effort`.
 
-`$ccc-ultracode` = two things working together:
+**One task without the toggle:** include the word `workflow` in the prompt ("audit the auth module as a workflow") or let this skill launch a bundled workflow directly.
 
-1. **xhigh reasoning** — Opus 5 extended thinking budget. Claude thinks longer before answering. Catches edge cases, cross-checks assumptions, surfaces risks.
-2. **Dynamic-workflow orchestration** — for any substantial task, Claude plans a Workflow that fans out specialized subagents, verifies their findings adversarially, then synthesizes a single result. You get a multi-angle, cross-checked output instead of a single-pass answer.
+## When to use / when not to
 
-Drop back any time: `/effort high` (or just start a new session — ultracode does not persist).
+- Use for migrations across many files, audits where false positives waste time, repo-wide cleanups, design stress-tests, and plans worth checking from several angles.
+- Skip for routine edits, single-file fixes, quick questions, and anything where speed matters more than depth.
+- Token cost: a workflow spawns many agents; a full-repo audit can cost ten to fifty times a single pass. Scope to a path first.
 
----
+## What happens
 
-## When to use ultracode
+### 1. Read the scope
 
-**Use for:**
-- Migrations across many files (API renames, framework bumps, import rewrites)
-- Deep audits where false positives waste engineering time
-- Repo-wide cleanups that touch 20+ files
-- Design stress-tests where you want FOR/AGAINST/Referee reasoning
-- Hard plans worth reasoning from multiple angles before committing
-
-**Skip for:**
-- Routine edits, single-file fixes, quick questions
-- Anything where speed matters more than depth
-- Tasks where you already know the answer
-
-**Token caution:** Workflows spawn many subagents. A full repo audit can consume 10-50x tokens vs a single-agent pass. **Scope to a path first** (`target: 'src/auth/'`) rather than the whole repo. Watch your rate limits.
-
----
-
-## One-off without flipping the session
-
-Include the word **`workflow`** anywhere in your prompt and CC Commander will run that single task as a workflow without activating ultracode mode session-wide.
-
-Examples:
-- "Audit the auth module as a workflow"
-- "workflow: review this PR diff across all 4 dimensions"
-- "Run a migration workflow for all `fetch()` calls to use our `apiFetch()` wrapper"
-
----
-
-## Requires CC v2.1.154+
-
-The Workflow tool is available in Claude Code v2.1.154 and later. On older clients, this skill gracefully falls back — use `$ccc-fleet` for multi-agent orchestration instead (same patterns, manual dispatch).
-
-Check your version: `claude --version` in the terminal.
-
----
-
-## Bundled CC Commander workflows
-
-Four production-ready workflows live at `${CLAUDE_PLUGIN_ROOT}/workflows/`. Invoke them via:
-
-```js
-Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/<name>.workflow.js", args: { ... } })
+```bash
+git rev-parse --abbrev-ref HEAD; git diff --stat main...HEAD 2>/dev/null | tail -1; git status --porcelain | wc -l
 ```
 
-| Workflow | scriptPath | What it does | Example args |
-|----------|-----------|--------------|--------------|
-| **ccc-audit** | `ccc-audit.workflow.js` | Repo-wide health audit — one agent per dimension (quality/security/perf/deps/tests/docs/CI), adversarially verifies every finding, returns scorecard | `{ target: 'src/', dimensions: ['security','tests'] }` |
-| **ccc-deep-review** | `ccc-deep-review.workflow.js` | Branch diff review — 4 weighted dimensions (security 35%, perf 25%, correctness 25%, maintainability 15%), findings cross-checked before reporting | `{ base: 'main' }` |
-| **ccc-migrate** | `ccc-migrate.workflow.js` | Codebase migration — discovers every matching site, transforms each in an isolated worktree, verifies before reporting | `{ pattern: 'fetch(', transform: 'use apiFetch()', verify: 'tests pass' }` |
-| **ccc-fleet** | `ccc-fleet.workflow.js` | General multi-agent orchestration — fanout (parallel slices), pipeline (sequential stages), or judge (N independent attempts scored by a referee) | `{ mode: 'fanout', tasks: ['slice A', 'slice B'] }` |
+A branch diff with no path in the request points to a review; "migrate", "rename" or "rewrite" to a migration; "audit", "health" or "scan" to an audit; "research", "compare" or "options" to `/deep-research`.
 
-**Also available:** `/deep-research` — multi-source web research with adversarial verification and cited synthesis. Not a Workflow scriptPath — invoke as a skill: `/deep-research <question>`.
+### 2. Pick the run
 
----
-
-## Mode picker
-
-Call `AskUserQuestion` to help the user choose:
+An argument skips this picker. Otherwise call AskUserQuestion (Codex: the same question in plain text), best match first with 🟢:
 
 ```
-question: "What should I run in ultracode mode?"
+question: "What should run as a verified workflow?"
 header: "Ultracode"
 multiSelect: false
 options:
-  - label: "🔬 Deep repo audit (ccc-audit)"
-    description: "Health scorecard across 7 dimensions. Adversarially verified findings only."
-    preview: "Scope a path first to contain token spend. Args: { target, dimensions }."
-  - label: "🔍 Deep branch review (ccc-deep-review)"
-    description: "PR-quality review with cross-checked findings. 4 weighted dimensions."
-    preview: "Compares current branch vs main. Args: { base: 'main' }."
-  - label: "🔄 Codebase migration (ccc-migrate)"
-    description: "Discover every site, transform each in isolation, verify before reporting."
-    preview: "Args: { pattern, transform, verify }."
-  - label: "🚀 Multi-agent fleet (ccc-fleet)"
-    description: "Fanout, pipeline, or judge pattern. General parallel orchestration."
-    preview: "Args: { mode, tasks|task }."
-  - label: "🌐 Deep research (/deep-research)"
-    description: "Web research — fan-out searches, adversarial fact-checking, cited report."
-    preview: "Invoke as a skill: /deep-research <question>."
+  - label: "🟢 🔬 Deep repo audit"
+    description: "One finder per dimension, every finding verified, scorecard returned. Scope a path first."
+  - label: "📝 Deep branch review"
+    description: "Four weighted dimensions over the branch diff; findings confirmed or refuted before reporting."
+  - label: "🔄 Codebase migration"
+    description: "Find every matching site, transform each in its own worktree, verify each change."
+  - label: "🚀 Multi-agent fleet"
+    description: "Fan-out, pipeline, judge or debate pattern for general parallel work."
 ```
 
-Prepend ⭐ to the best match:
-- Diff present + no path specified → ⭐ Deep branch review
-- "migrate" / "rename" / "rewrite" keywords → ⭐ Codebase migration
-- "audit" / "health" / "scan" keywords → ⭐ Deep repo audit
-- "research" / "compare" / "options" → ⭐ Deep research
+Research questions do not use this picker: invoke `/deep-research <question>` with the Skill tool (fan-out search, fact-checking, cited report).
 
----
+### 3. Fill missing args
 
-## After user picks
+Ask only for what has no safe default: an audit target path on a large repo, `pattern` and `transform` for a migration, the slices or task for a fleet. Defaults: `target: "."` only on a small repo, `base: "main"`.
 
-Dispatch the workflow immediately with the matching `scriptPath` and `args`. No additional prompting needed — if args are missing, use sensible defaults (`base: 'main'`, `target: '.'`).
+### 4. Launch
 
-Report back:
-> 🔬 **Ultracode workflow running** — `<workflow-name>`, ETA varies by repo size.
-> Findings will be adversarially verified before they reach you — expect ~2-5min for a scoped audit.
-> ⚠️ Token spend is meaningfully higher than a standard pass. Monitor your usage.
+```js
+Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/<name>.workflow.js", args: { … } })
+```
 
----
+Each also runs from the prompt as `/commander:<name>`.
 
-## Anti-patterns — DO NOT
+| Workflow | Args | Notes |
+|---|---|---|
+| `ccc-audit` | `{ target, dimensions, maxPerDimension }` | Dimensions: quality, security, performance, deps, tests, docs, ci. Read-only. |
+| `ccc-deep-review` | `{ base, maxPerDimension }` | Security 35, correctness 25, performance 25, maintainability 15. Read-only. |
+| `ccc-migrate` | `{ pattern, transform, verify, maxSites }` | Each site in its own worktree with an independent verifier. Writes files. |
+| `ccc-fleet` | `{ mode: "fanout" \| "pipeline" \| "judge" \| "debate", tasks \| task, attempts, lenses, rounds }` | See `$ccc-fleet` for pattern choice. |
+| `ccc-prompt-audit` | `{ root, standard, paths, maxFiles }` | Prompt-standard check of plugin skills and agents. Commander repository only. Read-only. |
+| `ccc-release-audit` | `{ version, skipTests, postRelease }` | Release gates and doc/count/manifest agreement. Commander repository only. Does not commit, tag, push or publish. |
 
-- ❌ Activate ultracode for routine single-file edits — wastes tokens and rate limits
-- ❌ Run ccc-audit on `.` (whole repo) without scoping to a path first
-- ❌ Invent a Workflow API — always use `Workflow({ scriptPath, args })` exactly
-- ❌ Block the user while the workflow runs — emit the progress card and let the workflow run async
-- ❌ Persist ultracode mode across sessions — it resets on session start
+Do not invent other Workflow parameters. To pin every workflow agent to one model, the user sets `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` before the session starts (see `$ccc-fleet`).
 
----
+Report one line, then let the run continue in the background:
 
-**Bottom line:** ultracode = xhigh reasoning × dynamic workflows × adversarial verification. Use when depth beats speed. Scope first, then run.
+> 🔬 Workflow `<name>` running on `<scope>`. Findings are verified before they reach you; inspect progress with `/workflows`. ⚠️ Token use is well above a single pass.
+
+### 5. Report the result
+
+Relay the workflow's verdict: verified findings as `path:line`, severity and fix; unverified findings labelled as such; any dimension or slice that failed, by name. For `ccc-migrate` and `ccc-fleet` fan-out, also run `git status --porcelain | grep -v '^??'` on the main checkout and confirm it prints nothing.
+
+## Fallback
+
+Without the Workflow tool (older client, tool not allowed, usage limit), keep the shape and swap the engine: `$ccc-fleet` with Agent-tool dispatch, or `codex exec --json` workers via `$ccc-orchestrate`. Codex has no `/effort ultracode`; its nearest equivalent is `model_reasoning_effort = "ultra"` where the model supports it (Ultra uses subagents).
+
+## Done when
+
+- The workflow returned and its verdict is reported, with verified and unverified findings separated and failed parts named.
+- For writing workflows, the main-checkout integrity check printed nothing.
+- The user knows whether ultracode is still on and how to turn it off.
+
+## Guardrails
+
+- Never run `ccc-audit` on a large repo's root without first offering to scope a path.
+- Never invent a Workflow API; use `Workflow({ scriptPath, args })` exactly.
+- Never block the user while a workflow runs.
+- Never claim to have toggled `/effort ultracode` or `/effort`; the user types them.
+- Workflows here do not push, publish or deploy; any such step afterwards needs the user's authorization in this conversation.
+
+## See also
+
+- `$ccc-fleet` — manual-dispatch patterns and pinned fleets.
+- `$ccc-review` — branch review without the full workflow.
+- `$ccc-xray` — repo health scorecard.
+- `/commander:ccc-migrate` — the migration workflow, run directly.
 
 ---
 
