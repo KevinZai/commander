@@ -20,7 +20,7 @@
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
 import { estimateContextPct } from './lib/context-estimate.mjs';
-import { readFile, writeFile, appendFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';

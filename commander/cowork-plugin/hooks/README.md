@@ -1,19 +1,19 @@
 # Plugin Hooks — Registry Map
 
-Canonical count: **44 handlers across 23 events** (see `hooks.json` — `commander/contract.json` carries the same numbers).
+Canonical count: **51 handlers across 30 events** (see `hooks.json` — `commander/contract.json` carries the same numbers).
 
 ## ✅ Active handlers (wired in `hooks.json`)
 
-Handler counts per event, rebuilt from `hooks.json`. A handler = one command entry; the same script may serve more than one event (e.g. `knowledge-capture.js`, `mission-control-feed.js`, `license-check.js`, `task-tracker.js`, `config-protection.js`).
+Handler counts per event, rebuilt from `hooks.json`. A handler = one command entry; the same script may serve more than one event (e.g. `knowledge-capture.js`, `mission-control-feed.js`, `license-check.js`, `task-tracker.js`, `config-protection.js`, `model-switch-logger.js`, `session-state-sync.js`, `stale-claude-md-nudge.js`).
 
 | Event | Handler file | Matcher | Purpose |
 |------|------|------|------|
-| SessionStart | `orchestrator/session-start-orchestrator.js` | — | Single-process orchestrator — runs `_archive/session-start.js` (seed state.json, version-transition nudge, first-run welcome), `stale-claude-md-nudge.js`, `post-compact-recovery.js`, `fable-armed-nudge.js`, and `voice-injector.js` via one Node spawn |
+| SessionStart | `orchestrator/session-start-orchestrator.js` | — | Single-process orchestrator — runs `_archive/session-start.js` (seed state.json, version-transition nudge, first-run welcome), `stale-claude-md-nudge.js`, `post-compact-recovery.js`, `fable-armed-nudge.js`, and `voice-injector.js` via one Node spawn. Returns `watchPaths` for the CLAUDE.md files it locates |
 | SessionStart | `license-check.js` | — | Explicit no-op kept as an anti-paywall tripwire — core is free forever |
 | SessionStart | `git-truth.js` | — | Pillar 6 (truth over cache): opt-in best-effort `gh auth setup-git` refresh. Silent no-op unless `CCC_GIT_TRUTH=1` — swallows all errors, never blocks a session |
 | SessionStart | `update-nudge.js` (async) | — | Compares installed plugin version against GitHub `main` (24h cache, offline-silent) and spells out the marketplace-update fix when newer |
 | SessionStart | `console-autopen.js` (async) | — | v7.4.0 — asks the model to render the `/ccc-console` widget once, locally. Silent on CI / resume / already-nudged sessions / no telemetry. Off via `/ccc-console off`, `{"autoOpen": false}` in `~/.claude/commander/console.json`, or `CCC_NO_AUTOCONSOLE=1`. Never publishes |
-| SessionEnd | `session-save.js` | — | Persist session state to sessions/active-session.json (moved off `Stop` in v5.1.0) |
+| SessionEnd | `session-save.js` | — | Persist session state from sessions/active-session.json (moved off `Stop` in v5.1.0). 3 s timeout fits the Codex SessionEnd cap |
 | SessionEnd | `session-end.js` | — | Persist session summary to knowledge/ directory |
 | UserPromptSubmit | `suggest-ticker.js` | — | Ambient intelligence — computes project-state signals and recommends one starred next step |
 | UserPromptSubmit | `intent-classifier.js` | — | Match prompt against skill catalog, route when confident |
@@ -50,8 +50,26 @@ Handler counts per event, rebuilt from `hooks.json`. A handler = one command ent
 | TaskCreated | `task-tracker.js` (async) | — | Logs background task start (id, status, subject, session) |
 | TaskCompleted | `task-tracker.js` (async) | — | Logs background task completion + duration |
 | ConfigChange | `config-protection.js` | — | Warns when protected config changes during an active session |
-| InstructionsLoaded | `stale-claude-md-nudge.js` | — | Warn if project CLAUDE.md is >14 days stale (dual-mode: also runs at SessionStart via the orchestrator) |
+| InstructionsLoaded | `stale-claude-md-nudge.js` | — | Warn if project CLAUDE.md is >30 days stale (dual-mode: also runs at SessionStart via the orchestrator) |
 | Setup | `license-check.js` | — | Same explicit no-op as SessionStart — one-time plugin initialization slot |
+| PermissionDenied | `permission-denied-logger.js` | — | v8 — appends auto-mode denials to `analytics/permission-gate.jsonl` (`decision: denied-auto-mode`) so `/ccc-safety` counts them as blocked. Never requests a retry |
+| PreModelSwitch | `model-switch-logger.js` | — | v8 — logs the requested switch to `model-switches.jsonl`. Never decides, so the switch stays allowed and any user or managed policy wins |
+| PostModelSwitch | `model-switch-logger.js` | — | v8 — logs the switch and adds one line of `additionalContext` naming the routing tiers (fable deep · opus default · sonnet fast · haiku bulk); the selected model is kept |
+| TeammateIdle | `fleet-telemetry.js` | — | v8 — appends a `teammate_idle` row to `fleet/teammates.jsonl`. Prints nothing; never returns `continue:false` |
+| CwdChanged | `session-state-sync.js` | — | v8 — records `cwd` / `previousCwd` in `sessions/active-session.json`. Prints nothing |
+| DirectoryAdded | `session-state-sync.js` | — | v8 — appends the added directory to `directories[]` in `sessions/active-session.json` (deduped, capped at 50). Prints nothing |
+| FileChanged | `stale-claude-md-nudge.js` | `CLAUDE.md` | v8 — re-runs the CLAUDE.md nudge for the changed file's directory (matcher `CLAUDE.md`; SessionStart also returns `watchPaths` for the CLAUDE.md it locates). Prints only a `systemMessage` when there is a nudge |
+
+## v8 additions
+
+Claude Code 2.1.296 has 33 hook events (`docs/reference/platform-facts-2026-10.md` §2.2). v8 wires seven of the ten added since the 23-event set: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. Each handler is a small fail-open Node script: timeout of 6 s or less, exit 0 on every path, writes only under `~/.claude/commander/`, no network.
+
+- **Not registered: `WorktreeCreate`, `WorktreeRemove`.** A `WorktreeCreate` command hook *replaces* Claude Code's `git worktree` creation: Claude reads the hook's stdout as the worktree path and fails creation when there is none. A `WorktreeRemove` hook that exits 0 counts as "removed", so Claude skips its own git cleanup. A telemetry-only handler on either event would break `isolation: "worktree"`, `--worktree` and background sessions for every Commander user. Do not add them back unless the handler actually creates and removes worktrees.
+- **Not registered: `MessageDisplay`.** Nothing in Commander needs to rewrite displayed messages.
+- **`watchPaths`.** The SessionStart orchestrator returns the absolute CLAUDE.md paths that `stale-claude-md-nudge.js` checks, and the `FileChanged` group's `CLAUDE.md` matcher watches the working-directory file by name.
+- **`statusMessage`** is set on the slow synchronous lifecycle handlers (SessionStart orchestrator, SessionEnd, PreCompact, PostCompact, SubagentStop). Codex passes it through.
+- **`hooks/lib/emit.mjs`** allows `hookSpecificOutput` only for events that accept it (facts §2.2: every row but the side-effect-only one) and degrades everything else to `systemMessage` / silent output.
+- **Codex** (12 events, facts §3.3) has no `args`, `onFailure`, `if` or `once` and skips `async` handlers, so every command stays in the quoted shell form `node "${CLAUDE_PLUGIN_ROOT}/hooks/x.js"`, nothing sets `onFailure: "block"`, and the mirror runs async handlers synchronously. Codex caps SessionEnd at 3 s, so the SessionEnd handlers use a 3 s timeout. The v8 events above are Claude-only and are dropped from the Codex mirror (`commander/adapters/codex/hook-event-map.json`).
 
 Every `.js` file in this directory is wired — either directly in `hooks.json` or through the SessionStart orchestrator's handler list (`fable-armed-nudge.js`, `voice-injector.js`, plus `_archive/session-start.js`). There are no dormant files.
 

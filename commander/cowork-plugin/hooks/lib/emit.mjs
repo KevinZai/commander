@@ -11,34 +11,41 @@
  * commander/tests/hook-output-contract.test.js.
  */
 
-// The harness validator accepts hookSpecificOutput.hookEventName ONLY from this
-// exact 20-literal union (extracted from CLI 2.1.220's binary) — any other value
-// gets the ENTIRE hook output rejected ("Hook JSON output validation failed"),
-// which is how the PostCompact-class bug shipped (see post-compact-recovery.js).
-// This guard only covers UNION MEMBERSHIP — it cannot know which specific event a
-// hook is currently firing under; handlers still own passing the event they were
-// actually invoked with (matching it exactly is on them, not this guard).
+// hookSpecificOutput.hookEventName must name an event that accepts a
+// hookSpecificOutput block; any other value gets the ENTIRE hook output
+// rejected ("Hook JSON output validation failed"), which is how the
+// PostCompact-class bug shipped (see post-compact-recovery.js).
+// Source: docs/reference/platform-facts-2026-10.md §2.2 (Claude Code 2.1.296,
+// verified 2026-10-13) — every event in its hookSpecificOutput table except the
+// side-effect-only row (Setup, Notification, SessionEnd, PostCompact,
+// InstructionsLoaded, StopFailure, CwdChanged, DirectoryAdded, FileChanged,
+// WorktreeRemove). This guard only covers SET MEMBERSHIP — handlers still own
+// passing the event they were actually invoked with, and the fields they put
+// next to additionalContext must be ones that event accepts.
 export const VALID_HOOKSPECIFIC_EVENTS = new Set([
   'PreToolUse',
-  'UserPromptSubmit',
-  'UserPromptExpansion',
-  'SessionStart',
-  'Setup',
-  'SubagentStart',
+  'PermissionRequest',
+  'PermissionDenied',
   'PostToolUse',
   'PostToolUseFailure',
   'PostToolBatch',
+  'UserPromptSubmit',
+  'UserPromptExpansion',
   'Stop',
   'SubagentStop',
-  'PermissionDenied',
-  'Notification',
-  'PermissionRequest',
+  'SessionStart',
+  'SubagentStart',
+  'PostModelSwitch',
+  'PreModelSwitch',
   'Elicitation',
   'ElicitationResult',
-  'CwdChanged',
-  'FileChanged',
-  'WorktreeCreate',
   'MessageDisplay',
+  'WorktreeCreate',
+  'TaskCreated',
+  'TaskCompleted',
+  'TeammateIdle',
+  'PreCompact',
+  'ConfigChange',
 ]);
 
 /** Message for the USER (transcript). */
