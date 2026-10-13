@@ -3,19 +3,19 @@
   "version": 1,
   "screen": {
     "title": "CCC Domains",
-    "subtitle": "10 domain routers, each dispatching to 7-46 specialist sub-skills."
+    "subtitle": "11 domain routers, each dispatching to 6-45 specialist sub-skills."
   },
   "prompt": "Pick a CCC domain to explore:",
   "choices": [
     {
       "key": "a",
-      "label": "ccc-design (35+ sub-skills)",
+      "label": "ccc-design (41 sub-skills)",
       "description": "UI/UX, animations, polish, responsive, a11y",
       "next": "ccc-design-detail"
     },
     {
       "key": "b",
-      "label": "ccc-marketing (46 sub-skills)",
+      "label": "ccc-marketing (45 sub-skills)",
       "description": "Content, CRO, email, ads, analytics, SEO",
       "next": "ccc-marketing-detail"
     },

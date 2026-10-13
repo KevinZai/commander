@@ -3,6 +3,8 @@ name: ccc-saas
 description: "Route SaaS work to the right specialist sub-skill: scaffolding, auth, database, API, frontend, Stripe billing, webhooks, multi-tenancy, feature flags, metrics and conversion. Use when building, billing or growing a SaaS product."
 allowed-tools:
   - Read
+  - Write
+  - Edit
   - Glob
   - Grep
   - Bash

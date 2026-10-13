@@ -164,14 +164,14 @@ Load ONE CCC domain to get an entire domain. Each has a router that dispatches t
 | Domain | Load This | Skills Inside |
 |--------|-----------|---------------|
 | SEO & Content | `ccc-seo` | 19 skills — technical SEO, AI search, analytics, programmatic SEO |
-| Design & Animation | `ccc-design` | 35+ skills — animations, effects, design systems, Impeccable suite |
+| Design & Animation | `ccc-design` | 41 skills — animations, effects, design systems, Impeccable suite |
 | Testing & QA | `ccc-testing` | 15 skills — TDD, E2E, verification, visual, load testing |
-| Marketing | `ccc-marketing` | 46 skills — content, CRO, channels, growth, sales |
+| Marketing | `ccc-marketing` | 45 skills — content, CRO, channels, growth, sales |
 | SaaS Building | `ccc-saas` | 20 skills — auth, billing, DB, API, frontend, metrics |
 | DevOps & Cloud | `ccc-devops` | 20 skills — CI/CD, Docker, AWS, monitoring, Terraform |
 | Research & Analysis | `ccc-research` | 8 skills — deep research, literature review, competitive analysis, data synthesis |
-| Mobile Development | `ccc-mobile` | 7 skills — iOS, Android, React Native, Flutter, app store optimization |
-| Security & Compliance | `ccc-security` | 9 skills — pen testing, OWASP, supply chain, secrets management, threat modeling |
+| Mobile Development | `ccc-mobile` | 8 skills — iOS, Android, React Native, Flutter, app store optimization |
+| Security & Compliance | `ccc-security` | 8 skills — pen testing, OWASP, supply chain, secrets management, threat modeling |
 | Data & Analytics | `ccc-data` | 8 skills — ETL pipelines, data warehousing, analytics, visualization, ML ops |
 | Design Makeover | `ccc-makeover` | 3 skills — `/xray` project audit + `/makeover` design swarm + report generation |
 
@@ -367,7 +367,7 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | Flag | What it does | Example |
 |------|-------------|---------|
 | `--model <model>` | Set model (overrides config) | `--model haiku` |
-| `--headless` | Run without interactive UI (CI/CD) | `--headless` |
+| `-p`, `--print` | Non-interactive print mode (CI/CD) | `claude -p "..."` |
 | `--output-format json` | JSON output for scripting | `--output-format json` |
 | `--output-format stream-json` | Streaming JSON (token by token) | `--output-format stream-json` |
 | `--add-dir <path>` | Add directory to initial context | `--add-dir ./src` |
@@ -463,9 +463,9 @@ Stop: `Ctrl+C` or the stop button in Cowork Desktop. Avoid looping destructive s
 | `Stop` | When agent stops | Cost tracking, session persistence, sound |
 | `PreCompact` | Before context compaction | Save state snapshot |
 
-### Proactive Hooks (24 Kit-Native)
+### Proactive Hooks (14 Kit-Native)
 
-The kit ships 24 hooks that fire automatically — no prompting required. Disable any hook with its env var.
+The standalone config (`hooks/hooks-standalone.json`) wires 14 kit-native hooks that fire automatically — no prompting required. Disable any hook with its env var.
 
 **PreToolUse (3 hooks)**
 
@@ -475,7 +475,7 @@ The kit ships 24 hooks that fire automatically — no prompting required. Disabl
 | `pre-commit-verify` | TypeScript check before git commit — blocks on tsc errors | `KZ_DISABLE_PRE_COMMIT_VERIFY=1` |
 | `confidence-gate` | Warns on multi-file bash operations (sed -i on globs, find -exec) | `KZ_DISABLE_CONFIDENCE_GATE=1` |
 
-**PostToolUse (6 hooks)**
+**PostToolUse (7 hooks)**
 
 | Hook | What it does | Disable with |
 |------|-------------|-------------|
@@ -508,7 +508,7 @@ The kit ships 24 hooks that fire automatically — no prompting required. Disabl
 
 **Session Coach** was retired 2026-07-10 — its heuristics now feed the plugin suggest engine (`CCC_SUGGEST_MODE` / `CC_COACH_DISABLE=1` still silences the stack-hint suggestions).
 
-CCC ships with 24 kit-native hooks that work standalone via `hooks-standalone.json`.
+CCC ships with 14 kit-native hooks that work standalone via `hooks-standalone.json`.
 
 ---
 
@@ -850,7 +850,7 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 
 ```bash
 # One-shot task, no prompts
-claude --headless -p "run the test suite and report failures"
+claude -p "run the test suite and report failures"
 
 # JSON output for scripting
 claude --output-format json -p "analyze this file" < file.ts | jq '.result'
@@ -859,10 +859,10 @@ claude --output-format json -p "analyze this file" < file.ts | jq '.result'
 claude --output-format stream-json -p "generate this" | process_stream.sh
 
 # Skip all permission prompts (CI only — use with caution)
-claude --dangerously-skip-permissions --headless -p "fix lint errors"
+claude --dangerously-skip-permissions -p "fix lint errors"
 
 # Max turns limit (prevent infinite loops in CI)
-claude --max-turns 20 --headless -p "fix all TypeScript errors"
+claude --max-turns 20 -p "fix all TypeScript errors"
 ```
 
 ### Piping & Shell Integration

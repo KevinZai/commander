@@ -32,7 +32,7 @@ Linear access is opt-in: the Linear connector, or `LINEAR_API_KEY` in the enviro
 
 ### 1. Route
 
-`chat` invokes `$ccc-linear` and stops. `sync` goes to step 4 when the page was published before. Otherwise ask with AskUserQuestion (Codex: a plain-text question):
+`chat` invokes `$ccc-linear` and stops. `sync` goes to step 4 when the page was published before; the first sync in a session asks the step 3.1 consent picker first, and later syncs in the same session are covered by that yes. Otherwise ask with AskUserQuestion (Codex: a plain-text question):
 
 - 🟢 Publish or refresh the board page — a private claude.ai page; asks before uploading
 - Work in chat — `$ccc-linear` to view, pick or create issues

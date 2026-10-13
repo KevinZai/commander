@@ -336,7 +336,7 @@ test('translate.js --agent --verbose emits TOML and decision log', () => {
     `---
 name: reviewer
 description: Reviews code.
-model: claude-sonnet-4-7
+model: claude-sonnet-5-5
 effort: high
 ---
 

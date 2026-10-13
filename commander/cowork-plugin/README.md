@@ -129,7 +129,7 @@ The full, generated table of all 84 skills is in the repository [README](../../R
 | `Setup` | `license-check` | 1 |
 | **TOTAL** | **30 events** | **51 handlers** |
 
-`WorktreeCreate` and `WorktreeRemove` are not registered: a hook on either replaces git's own worktree handling. The Codex mirror carries the 12 events Codex supports.
+`WorktreeCreate` and `WorktreeRemove` are not registered: a hook on either replaces git's own worktree handling. The Codex mirror wires 11 of Codex's 12 events (Interrupt has no Claude source).
 
 ## Connected tools
 

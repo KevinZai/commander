@@ -199,7 +199,7 @@ Commander is a thin PM layer over primitives Claude Code already ships. The **br
 
 ## 🤖 Codex CLI
 
-Commander ships a generated Codex mirror (`commander/cowork-plugin-codex/`, built by `npm run build:codex`) with the same skills, the 22 agents as Codex TOML subagents, and hooks translated to the 12 events Codex supports.
+Commander ships a generated Codex mirror (`commander/cowork-plugin-codex/`, built by `npm run build:codex`) with the same skills, the 22 agents as Codex TOML subagents, and hooks translated to 11 of Codex's 12 events (Interrupt has no Claude source).
 
 - **Install:** `codex plugin marketplace add KevinZai/commander`, then `codex plugin add commander@commander-hub`.
 - **Models:** GPT-6 Astra (`gpt-6-astra`, deep and verification), GPT-6.1 Sol (`gpt-6.1-sol`, the default executor), GPT-6 Sol (`gpt-6-sol`, bounded implementation) and GPT-6 Luna (`gpt-6-luna`, mechanical and bulk work).
@@ -335,7 +335,7 @@ The 11 CCC domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devop
 | Agents and tasks | SubagentStart, SubagentStop, TaskCreated, TaskCompleted, TeammateIdle |
 | Turn and context | Stop, StopFailure, Notification, PreCompact, PostCompact, Elicitation, ElicitationResult |
 
-Handlers guard secrets and protected config, enforce cost ceilings, capture knowledge, feed Mission Control, nudge on stale `CLAUDE.md` files and recover context after compaction. The Codex mirror carries the 12 events Codex supports.
+Handlers guard secrets and protected config, enforce cost ceilings, capture knowledge, feed Mission Control, nudge on stale `CLAUDE.md` files and recover context after compaction. The Codex mirror wires 11 of Codex's 12 events (Interrupt has no Claude source).
 
 ---
 

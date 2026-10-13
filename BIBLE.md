@@ -45,7 +45,7 @@ claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3
 | `CwdChanged` / `DirectoryAdded` | `session-state-sync` | Session state follows the working directory |
 | `FileChanged` | `stale-claude-md-nudge` | Stale-instructions nudge when `CLAUDE.md` changes (watch list seeded at SessionStart) |
 
-`WorktreeCreate` and `WorktreeRemove` are deliberately not registered: a hook on either replaces git's own worktree handling. The Codex mirror carries the 12 events Codex supports.
+`WorktreeCreate` and `WorktreeRemove` are deliberately not registered: a hook on either replaces git's own worktree handling. The Codex mirror wires 11 of Codex's 12 events (Interrupt has no Claude source).
 
 ### Routing
 
@@ -1676,7 +1676,6 @@ claude config list                   # List all config values
 | Flag | What it does |
 |------|-------------|
 | `--model <model>` | Set model (overrides config) |
-| `--headless` | No interactive UI (CI/CD use) |
 | `-p` | Non-interactive print mode (required for CI!) |
 | `--output-format json` | JSON output for scripting |
 | `--json-schema <schema>` | Structured JSON output with schema |
@@ -2652,7 +2651,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 
 - **ECC owns** raw breadth: skills, commands, agents, hook lifecycle.
 - **Commander owns** curation + guidance + memory: click-first `/ccc-*` chip pickers (AskUserQuestion), `/ccc-suggest` routing, brain/hands pattern, The Kevin Z Method.
-- **On top of ECC** Commander adds the 64-workflow front door, `/ccc-suggest` (names ECC when it's the right tool), `/ccc-ecc` for selective skill/agent/hook loading, session memory/compounding, and vendor aggregation (ECC = 1 of 19 vendors, scored by the Smart Orchestrator).
+- **On top of ECC** Commander adds the 84-skill `/ccc-*` front door, six plugin workflows (`/commander:ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate`, `ccc-prompt-audit`, `ccc-release-audit`), `/ccc-suggest` (names ECC when it's the right tool), `/ccc-ecc` for selective skill/agent/hook loading, session memory/compounding, and vendor aggregation (ECC = 1 of 20 vendors, scored by the Smart Orchestrator).
 - **ECC-sourced parts are labeled** under `vendor/everything-claude-code/`; Commander ports a minimal hook/agent set and defers to upstream. Bump the pin with `/ccc-upgrade`.
 
 ### Further Reading
