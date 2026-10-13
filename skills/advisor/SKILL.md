@@ -37,9 +37,9 @@ Both conditions must hold:
 
 🔗 **Check the exact per-executor matrix in [Anthropic's docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool#model-compatibility) before pinning a pair.** That table is deliberately not mirrored here — a copied matrix goes stale silently every time Anthropic ships a model, and a wrong row sends you a 400 at runtime.
 
-⚠️ **`claude-opus-4-8` is NOT a valid advisor for an `claude-opus-5` executor** — it fails the "at least as capable" rule. If you moved your executor to Opus 5, you must also move the advisor.
+⚠️ **An older Opus (for example `claude-opus-4-8`) is NOT a valid advisor for a `claude-opus-5-5` executor** — it fails the "at least as capable" rule. When you move the executor to a newer model, move the advisor too.
 
-📝 Opus 5 / Fable 5 / Mythos 5 advisors return an encrypted `advisor_redacted_result` instead of a plaintext `advisor_result` — round-trip it verbatim, do not attempt to parse it.
+📝 Current advisors (Opus 5.5, Fable 5.1, Mythos 5.1) and their 5.x predecessors return an encrypted `advisor_redacted_result` instead of a plaintext `advisor_result` — round-trip it verbatim, do not attempt to parse it.
 
 ---
 
@@ -52,13 +52,13 @@ curl https://api.anthropic.com/v1/messages \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: advisor-tool-2026-03-01" \
   -d '{
-    "model": "claude-sonnet-5",
+    "model": "claude-sonnet-5-5",
     "max_tokens": 4096,
     "tools": [
       {
         "type": "advisor_20260301",
         "name": "advisor",
-        "model": "claude-opus-5"
+        "model": "claude-opus-5-5"
       }
     ],
     "messages": [
@@ -80,14 +80,14 @@ import anthropic
 client = anthropic.Anthropic()
 
 response = client.beta.messages.create(
-    model="claude-sonnet-5",
+    model="claude-sonnet-5-5",
     max_tokens=4096,
     betas=["advisor-tool-2026-03-01"],
     tools=[
         {
             "type": "advisor_20260301",
             "name": "advisor",
-            "model": "claude-opus-5",
+            "model": "claude-opus-5-5",
         }
     ],
     messages=[
@@ -106,14 +106,14 @@ print(response.content)
 
 ```python
 response = client.beta.messages.create(
-    model="claude-sonnet-5",
+    model="claude-sonnet-5-5",
     max_tokens=4096,
     betas=["advisor-tool-2026-03-01"],
     tools=[
         {
             "type": "advisor_20260301",
             "name": "advisor",
-            "model": "claude-opus-5",
+            "model": "claude-opus-5-5",
             "max_uses": 3,                        # Limit advisor calls per request
             "caching": {
                 "type": "ephemeral",
@@ -140,14 +140,14 @@ import Anthropic from "@anthropic-ai/sdk";
 const client = new Anthropic();
 
 const response = await client.beta.messages.create({
-  model: "claude-sonnet-5",
+  model: "claude-sonnet-5-5",
   max_tokens: 4096,
   betas: ["advisor-tool-2026-03-01"],
   tools: [
     {
       type: "advisor_20260301",
       name: "advisor",
-      model: "claude-opus-5",
+      model: "claude-opus-5-5",
     },
   ],
   messages: [
@@ -166,14 +166,14 @@ console.log(response.content);
 
 ```typescript
 const response = await client.beta.messages.create({
-  model: "claude-sonnet-5",
+  model: "claude-sonnet-5-5",
   max_tokens: 4096,
   betas: ["advisor-tool-2026-03-01"],
   tools: [
     {
       type: "advisor_20260301",
       name: "advisor",
-      model: "claude-opus-5",
+      model: "claude-opus-5-5",
       max_uses: 3,
       caching: {
         type: "ephemeral",
@@ -202,7 +202,7 @@ Caps the number of times the executor can call the advisor in a single request. 
 {
   "type": "advisor_20260301",
   "name": "advisor",
-  "model": "claude-opus-5",
+  "model": "claude-opus-5-5",
   "max_uses": 2
 }
 ```
@@ -217,7 +217,7 @@ Caches the advisor's context so repeated advisor calls within the TTL window reu
 {
   "type": "advisor_20260301",
   "name": "advisor",
-  "model": "claude-opus-5",
+  "model": "claude-opus-5-5",
   "caching": {
     "type": "ephemeral",
     "ttl": "5m"
@@ -278,12 +278,12 @@ Add an `advisorTool` block to any agent's model config:
 {
   "agents": {
     "your-agent-id": {
-      "model": "claude-sonnet-5",
+      "model": "claude-sonnet-5-5",
       "modelConfig": {
         "advisorTool": {
           "type": "advisor_20260301",
           "name": "advisor",
-          "model": "claude-opus-5",
+          "model": "claude-opus-5-5",
           "max_uses": 3,
           "caching": {
             "type": "ephemeral",
@@ -305,12 +305,12 @@ ClaudeSwap (:8082) proxies all Anthropic requests from OpenClaw. You can configu
 ```json
 {
   "inject": {
-    "model_match": "claude-sonnet-5",
+    "model_match": "claude-sonnet-5-5",
     "tools": [
       {
         "type": "advisor_20260301",
         "name": "advisor",
-        "model": "claude-opus-5",
+        "model": "claude-opus-5-5",
         "max_uses": 2
       }
     ],

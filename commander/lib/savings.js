@@ -25,10 +25,10 @@ var path = require('path');
 
 // Pricing mirrors dispatcher.js MODEL_PRICING (keep in sync manually — both ±30% estimates)
 var PRICING = {
-  fable:  { input: 10, output: 50 },
-  opus:   { input: 5,  output: 25 },
-  sonnet: { input: 3,  output: 15 },
-  haiku:  { input: 1,  output: 5  },
+  fable:  { input: 10,  output: 50  },
+  opus:   { input: 4,   output: 20  },
+  sonnet: { input: 2,   output: 10  },
+  haiku:  { input: 0.1, output: 0.5 },
 };
 
 // Baseline is opus (the pre-v6 default model for all dispatches)

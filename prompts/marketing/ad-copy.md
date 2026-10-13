@@ -1,20 +1,20 @@
 ---
 name: ad-copy
 category: marketing
-skills: [ad-creative, marketing-pack, content-strategy]
+skills: [ad-creative, paid-ads, ccc-marketing]
 mode: code
-estimated_tokens: 400
+estimated_tokens: 450
 ---
 
 # Ad Copy Generation
 
-## When to Use
-When creating ad copy for Google Ads, Meta (Facebook/Instagram) Ads, or LinkedIn Ads. This template generates multiple variants optimized for each platform's constraints and best practices.
+## When to use
+Use when writing ad copy for Google Ads, Meta (Facebook/Instagram), LinkedIn, or X. The template produces A/B variants that respect each platform's character limits. It drafts copy only; launching or editing a live campaign is a separate, authorized step.
 
 ## Template
 
 ```
-Generate ad copy for the following product. Create multiple variants for A/B testing, optimized for {{platform}}.
+Generate ad copy for the product below. Produce variants for A/B testing that fit {{platform}} limits.
 
 **Product:**
 {{what_it_is_and_what_it_does}}
@@ -23,73 +23,70 @@ Generate ad copy for the following product. Create multiple variants for A/B tes
 {{who_sees_these_ads — demographics, interests, job titles}}
 
 **Platform:**
-{{Google Search|Google Display|Meta (FB/IG)|LinkedIn|Twitter/X}}
+{{Google Search|Google Display|Meta (FB/IG)|LinkedIn|X}}
 
 **Campaign objective:**
 {{conversions|traffic|awareness|leads}}
 
 **Landing page:**
-{{URL_or_describe_the_landing_page}}
+{{landing_page_URL_or_description}}
 
 **Budget context:**
-{{daily_budget_or_say_unknown}}
+{{daily_budget_or_unknown}}
 
-**Step 1: Messaging angles**
-Identify 3-4 distinct angles to test:
-1. **Pain point** — lead with the problem this solves
-2. **Benefit** — lead with the outcome/transformation
-3. **Social proof** — lead with numbers, testimonials, authority
-4. **Curiosity** — lead with a hook that creates intrigue
+Step 1: Messaging angles
+Pick 3 or 4 distinct angles to test:
+1. Pain point: lead with the problem this solves.
+2. Benefit: lead with the outcome.
+3. Social proof: lead with numbers, testimonials, or authority. Use only proof I supplied or that you can cite; never invent metrics or quotes.
+4. Curiosity: lead with a hook that creates intrigue without misleading.
 
-**Step 2: Generate copy per platform**
+Step 2: Copy per platform
+Google Search, per angle:
+- Headline 1 (max 30 chars): primary value proposition
+- Headline 2 (max 30 chars): supporting point
+- Headline 3 (max 30 chars): call to action
+- Description 1 (max 90 chars): expanded benefit
+- Description 2 (max 90 chars): proof or urgency
+- 4 sitelink extensions: title + description pairs
 
-**If Google Search Ads:**
-For each angle, write:
-- Headline 1 (30 chars max): {{primary_value_prop}}
-- Headline 2 (30 chars max): {{supporting_point}}
-- Headline 3 (30 chars max): {{CTA}}
-- Description 1 (90 chars max): {{expanded_benefit}}
-- Description 2 (90 chars max): {{proof_or_urgency}}
-- Sitelink extensions (4): title + description pairs
-
-**If Meta Ads:**
-For each angle, write:
-- Primary text (125 chars above fold, 2000 max)
-- Headline (40 chars max, appears below image)
-- Description (30 chars max)
+Meta, per angle:
+- Primary text (125 chars before the fold, 2,000 max)
+- Headline (max 40 chars, below the image)
+- Description (max 30 chars)
 - CTA button: {{Shop Now|Learn More|Sign Up|Download|Get Started}}
-- Suggested image/video concept
+- Suggested image or video concept
 
-**If LinkedIn Ads:**
-For each angle, write:
-- Introductory text (150 chars above fold, 600 max)
-- Headline (70 chars max)
-- Description (100 chars max)
+LinkedIn, per angle:
+- Introductory text (150 chars before the fold, 600 max)
+- Headline (max 70 chars)
+- Description (max 100 chars)
 - CTA: {{Learn More|Sign Up|Download|Request Demo}}
 
-**Step 3: Negative keywords / exclusions**
-- Google: list negative keywords to exclude irrelevant traffic
-- Meta/LinkedIn: audience exclusions to avoid waste
+Step 3: Exclusions
+- Google: negative keywords that filter irrelevant traffic.
+- Meta and LinkedIn: audience exclusions that cut waste.
 
-**Step 4: Output**
-Present all variants in a table for easy comparison and selection:
-| Angle | Headline | Description | CTA | Platform constraints met |
+Step 4: Output
+Return every variant in one comparison table with the actual character count of each field, and flag any field over its limit:
+| Angle | Headline (chars) | Description (chars) | CTA | Limits met |
 |---|---|---|---|---|
 ```
 
 ## Tips
-- Use the `ad-creative` skill for visual ad concepts alongside copy
-- Always include character counts — platforms reject over-limit ads silently
-- Test angles before optimizing copy — the right message matters more than perfect wording
+- Pair with the `ad-creative` skill for visual concepts and `paid-ads` for campaign structure.
+- Count characters for every field; platforms truncate or reject over-limit copy.
+- Test angles before polishing wording; the message matters more than the phrasing.
+- Platform limits change. Confirm current limits in the ad platform before launch.
 
 ## Example
 
 ```
-Generate ad copy for the following product. Create multiple variants for A/B testing.
+Generate ad copy for the product below. Produce variants for A/B testing that fit Google Search limits.
 
-**Product:** CC Commander — 450+ skills, hooks, and commands for Claude Code
+**Product:** An open-source plugin that adds planning, review, and shipping workflows to an AI coding assistant
 **Target audience:** Software developers who use AI coding tools (ages 25-45)
 **Platform:** Google Search
-**Campaign objective:** Traffic to GitHub repo (stars + installs)
-**Landing page:** https://kevinzai.github.io/cc-commander
+**Campaign objective:** Traffic to the project's install page
+**Landing page:** https://example.com/install
 ```

@@ -1,291 +1,66 @@
 # CLAUDE.md — CC Commander
 
-## What This Is
+## Product and source of truth
 
-CC Commander — by Kevin Zicherman. Guided AI PM to Master Claude Code Instantly. **Core free forever** — affiliate links + consulting + optional Pro community + GitHub Sponsors. Built on Anthropic's Claude Agent SDK sub-agent architecture — CCC is a PM/orchestration UX layer over that primitive. The Desktop plugin is the primary product — **primary surface: Claude Code Desktop (aka Cowork Desktop)**. **83 plugin skills** (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-tuneup + /ccc-update + /ccc-console; the Cockpit's Browse tab separately displays a 14-domain taxonomy for filtering — a display concept, not a routers count), **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer), **23 lifecycle hooks × 44 handlers** (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup), **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Also a comprehensive Claude Code configuration toolkit + interactive CLI project manager: 467 skills, 11 CCC domains, 83+ commands, 24 hooks, 37 prompt templates, 10 themes, 19 vendor packages, 3 starter templates, real-time agent dashboard, OpenClaw native integration, agent-friendly CLI API, tabbed tmux split mode, status updates, continuous improvement pipeline, modular installer. Built by scanning 200+ articles from the Claude Code community and distilling into one install.
+CC Commander is a PM and orchestration layer over Claude's agent capabilities. The primary product is the Desktop plugin at `commander/cowork-plugin/`; the CLI toolkit and the Codex mirror are additional supported surfaces. Core skills, agents, hooks, mods, workflows and connectors remain free. Revenue comes from disclosed affiliates, consulting, an optional community, and sponsorship; preserve the public product's portability and opt-in integrations.
 
-**Current Release:** v7.4.2 — full-audit release. An 11-agent adversarially-verified sweep of every subsystem, then everything confirmed got fixed: the PostCompact hook no longer emits output the harness rejects on every compaction (`emit.mjs` now guards the real 20-event `hookSpecificOutput` union, and the contract test drives every emitter under its real registered events); Mission Control's roster join now keys on `agent_id` so finished subagents actually show finished (was 78 of 3,337 matched); staleness warnings can actually fire (freshness stamps skip gap-filled all-zero telemetry rows); the Memory tab's "Shown" tile tells the truth; every shipped surface now tells the keyless story (MCP.md, Cursor/Windsurf adapters, and their templates dropped `COMMANDER_LICENSE_KEY`); `/ccc-connect` captures credentials via hidden-input terminal command instead of chat; `/ccc-infra` is scope-clean; `/ccc-tuneup` is clickable from the hub and all 11 domain routers picker on bare invocation; rtk vendor picked up six upstream security fixes alongside 7 routine vendor bumps; root npm audit is 0; and the doc-sync gate stopped comparing the contract against a machine-dependent skill count. Added in v7.4.1: `/ccc-update` and `/ccc-doctor` no longer dead-end on **Desktop-managed (account-synced) installs** — the mode with no marketplace clone and no `installed_plugins.json` entry *by design*. Both now detect three install modes (CLI marketplace / Desktop-managed / dev checkout), read the Desktop copy's real version, fetch latest from GitHub directly, and give mode-correct guidance. Added in v7.4.0: **One Commander.** The four published decks (`/ccc-browse`, `/ccc-mission-control`, `/ccc-usage`, `/ccc-safety`) are now tabs of a single **inline console**, `/ccc-console` (82nd plugin skill): Overview · Usage · Safety · **Memory** · **History** · Launch, rendered through the visualize MCP with a prompt bar that reaches the live session via `sendPrompt(text)`. The security model is the feature — chips are fixed template commands that display exactly what they will send, free text is newline-stripped and capped at 500 chars, and **no telemetry-, memory- or log-derived text ever reaches a `sendPrompt` payload** (anything that can append to a JSONL could otherwise compose a command the user appears to have typed). The four deck skills survive as "publish just this tab" exports on **their existing file paths**, so every bookmarked artifact URL keeps updating in place; `/ccc-console publish` absorbs the Cockpit's URL rather than minting a fifth. **Memory** reads your own claude-mem store read-only, titles only — claude-mem is AGPL and deliberately not bundled, so "not installed" is the normal zero-state, never an error. **History** is 30 days of telemetry Commander already writes (`metrics.jsonl` as the durable backbone, detail counted by filename) — no new collector, and per-message content is neither collected nor claimed. The console **opens itself once at session start** (local-only render; publishing stays consent-gated), off via `/ccc-console off`, `{"autoOpen": false}` in `~/.claude/commander/console.json`, or `CCC_NO_AUTOCONSOLE=1`. Under it all: one renderer and one composed model — the three deck libraries shed a net 1,009 lines of duplicated markup, proven byte-identical against pre-refactor goldens. **Fixed:** a read/write race that let identical telemetry produce different Usage numbers run to run (Mission Control persists `metrics.jsonl`; Usage reads it — the composed model now sequences writer before reader), and hook `timeout` values that were milliseconds in a seconds field, so the anti-hang ceilings had never been in force. `plugin.json` now sets `defaultEnabled: true`. Added in v7.3.2: **Anthropic + Codex CLI only.** Commander no longer routes work to Gemini or any local-inference runtime: the Gemini adapter is gone, executor preference is `claude` → `codex`, and `ccc-research/gemini-fallback` is rewritten as `large-context` (use Opus 5's native 1M window → reduce → chunk-and-synthesize → hand mechanical execution to the Codex CLI). The old skill existed to escape "Claude's 200K limit," a premise Opus 5 retired. The `features/local-llm` page is removed. Added in v7.3.1: **Claude Opus 5 adopted end-to-end**, plus two real bug fixes. The default model pin is now `claude-opus-5` (dateless, no `[1m]` suffix — Opus 5 is 1M context by default *and* max). Effort posture follows Anthropic's Opus 5 guidance: default `high`, escalate to `xhigh` for demanding agentic work, `max` only when justified — replacing the old always-on `xhigh` floor. Delegation gained a size/independence threshold (Opus 5 over-spawns without caps) and the Fable Method's verifier-≠-worker gate is now scoped to substantive work, ranking deterministic checks above a spawned verifier. **Fixed:** `/ccc-doctor` had been failing on correctly-configured repos since v6.0 (it demanded an Opus pin for four agents promoted to Fable 5 in v6.0; a synthetic test fixture drifted with the wrong expectation and hid it — the doctor is now asserted against the real repo), and complexity scores ≥93 emitted an invalid `--effort ultra`, so the *hardest* tasks were the ones failing at dispatch. `skills/advisor` also documented an impossible model pair once the executor moved to Opus 5. Added in v7.3.0: Commander finally notices its own updates — a SessionStart hook (`hooks/update-nudge.js`, 24h-cached, offline-silent) compares the installed version against GitHub `main` and, when newer, spells out the exact fix — marketplace update → plugin update → restart. **`/ccc-update`** (81st plugin skill) is the click-first version of that same walkthrough, and `/ccc-doctor` now diagnoses every stale-install layer (marketplace clone behind `main`, old `cache/<version>` dirs, stale Desktop inline copies, catalog-cache age) and offers — with consent — to enable marketplace auto-update. The Cockpit gained an 8th tab, **Prompts** — a searchable browser across four sources (Claude Code docs library, the CCC library, the repo's prompt templates, a ReadyIQ showcase) with Copy and "Enhance this" actions. Every deck now shows a **data-freshness** stamp ("Data through <timestamp>") and warns when telemetry is stale (>24h). The suggestion engine surfaces update-available and stale-telemetry signals into Mission Control's previously-empty Suggestions panel, keyed per-project so state no longer leaks between repos. **Also fixed:** the Codex mirror was silently dead on every install — it rewrote hooks to a variable Codex never sets — and now carries the correct 10 supported hook events (was 6), strips async handlers Codex would otherwise skip, and documents Codex's hook trust gate. Added in v7.2.0: a shared **Commander decks** switcher across every artifact (so users can see and jump between all of them) plus two new decks — **Usage & Cost** (`/ccc-usage`: burn, savings, cost-by-app) and **Safety** (`/ccc-safety`: blocked/auto-fixed actions + tool-failure hotspots). Added in v7.1.0: an ecosystem **Tools** tab in the Cockpit — open Commander surfaces, install the best MIT-licensed companion apps (Nimbalyst, Usage Monitor, Sniffly…), or generate an artifact dashboard. A full redesign of the Commander Cockpit shipped in v7.0.0 on the real commanderplugin.com coral brand: a filterable skill browser (rows/tiles toggle + real-time filter, replacing the one-skill-domain wall), an 11-strategy multi-select prompt enhancer with a GO button, real per-agent token/cost telemetry (recovered from the subagent transcript, deduped by `message.id`, honest "—" when unavailable), and an honest 14-domain taxonomy (no "core"). **Commander Mission Control**'s Claude+Codex rosters gained a Charts strip (cost/day, agents dispatched/day, tasks completed/week, tool failures/day — zero-dep inline SVG, theme-safe, rendered on both the live dashboard and the snapshot artifact from one shared `charts.js`), a claude-mem **History** panel (opt-in, hidden when claude-mem isn't installed), and a "derived" marker on roster rows synthesized from delegation events (Codex work that has no real start record — dimmed gauges + tooltip, never claims token/cost data it doesn't have) — shipped in v6.8.3. The Commander Cockpit — every tool clickable inside one self-contained artifact: skill/agent browser with job-first search, catalog-grounded idea generator, live prompt enhancer, your own agent analytics (Claude + Codex side by side), an agent-profile manager with edit→export, and a skill-runs logger (42nd handler) so "most-used skill" is real data — shipped in v6.8.2. Claude *and* Codex side-by-side session tracking (`source_app` tagging, Source filter + pills, `sourceApp:name` agent keys) plus the Suggestions panel were added in v6.8.1. Mission Control itself — a visual harness inside Claude Code Desktop (live zero-dep dashboard + never-blocking event feed hook + CSP-safe snapshot artifact) plus a 5-signal proactivity wave — shipped in v6.8.0. Recent additions: /ccc-prompt-fix, claude-code-library, /ccc-spawn, /ccc-broadcast — see CHANGELOG for per-version detail. · npm package `cc-commander@7.4.2` (version tracked in `package.json`)
+Version: read `package.json`. Release history: `CHANGELOG.md`. Product and install guidance: `README.md`. For current skills, agents, hooks, workflows, evals, and connectors, inspect the source directories, the plugin manifest, `commander/contract.json`, and `CONNECTORS.md`; do not copy volatile counts into instructions. The CLI toolkit's ecosystem catalog under `skills/` holds 467 skills; that figure lives in `commander/contract.json` as `ecosystem_skills` and is checked by `bin/doc-sync.js`.
 
-## Session Defaults
+Release-check marker: **8.0.0**; **20 vendor** packages. `scripts/audit-counts.js --check` requires these two literals; keep them synchronized through release validation. Other counts stay in their canonical sources.
 
-- **Model:** Opus 5 (1M context is default and max, no `[1m]` suffix needed) — enforced via `.claude/settings.json`
-- **Mode:** Plan mode by default — SessionStart hook reminds to enter plan mode
-- **Effort:** Anthropic's Opus 5 guidance: start at `high` (the default), drop to `low`/`medium` liberally wherever evals hold quality, step up to `xhigh` only for demanding coding/agentic work, `max` only when justified. Set `effortLevel` in `~/.claude/settings.json`. No project-level pin, so global governs — re-sweep any effort setting carried over from Opus 4.8, don't reuse blindly.
-- **Thinking:** Summaries visible (`showThinkingSummaries: true`). Note: `thinking:{"type":"disabled"}` errors on Opus 5 at `xhigh`/`max` — only valid at `high` or below.
-- **Footer:** Run `node commander/status-line.js` for live session status bar
-- **Version:** Single source of truth is `package.json` — `branding.js` reads it at runtime
-- **Fable 5 = deep mode:** For architecture, planning, migration, or threat-model work, escalate with `/model claude-fable-5[1m]`. Pay for Fable on the thinking, not the typing.
-- **Subagent routing:** Auto-routed by complexity — Haiku → Sonnet → Opus → Fable. Main thread stays Opus until you escalate. Opus 5 delegates more eagerly than 4.8 and over-spawns without explicit caps — delegate to a subagent only for large, genuinely independent, parallelizable work (not things finishable in a handful of tool calls), and keep spawn counts low.
-- **Claude Teams (HARD RULE):** Agent Teams is always on — `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` in `.claude/settings.json` env (and in the global `~/.claude/settings.json`). Multi-agent fan-out (`/ccc-fleet`, dynamic workflows) depends on it. Do not disable.
-- **Motto:** "Pay for Fable on the thinking, not the typing."
-- **Orchestrator/Executor doctrine:** `/ccc-orchestrate` (Fable/Opus plans → GPT-5.6 Sol via `codex` or a Sonnet subagent executes → Fable/Opus verifies), `/ccc-plan-exec` (same idea, Claude-only), `/ccc-handoff` (Matt Pocock-style context-reset — hand off to a fresh chat before quality degrades). Full doctrine: `CLAUDE.md.template` § "Orchestrator / Executor Model". Existing (non-CCC) projects adopt these rules via `/ccc-adopt`.
+Platform facts (model ids, hook events, frontmatter keys, Codex CLI surface) are verified in [docs/reference/platform-facts-2026-10.md](docs/reference/platform-facts-2026-10.md). Every prompt surface follows [docs/PROMPT-STANDARD.md](docs/PROMPT-STANDARD.md). Historical prose is kept in [docs/reference/claude-context-2026-09-05.md](docs/reference/claude-context-2026-09-05.md) for reference only.
 
-## Workflow-First (default)
+## Session behavior
 
-The lead session is a **control plane** — decisions, delegations, and verified conclusions only.
+Start from the user's request. Read relevant source and applicable instructions before editing; a small edit does not require a repository-wide scan. Reuse existing authorization and ask only about material unresolved decisions or required authorization. Do not add greetings, status footers, tracker pulses, or menu prompts as an incidental response to ordinary work.
 
-- **Delegate substantive work:** multi-file, multi-step, research, audit, migration, or repo-wide tasks go through the **Workflow tool** — but only when the work is large, genuinely independent, and parallelizable. Agents read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
-- **Go solo (inline)** for a conversational reply, a single trivial edit, reading the one file you're about to edit, or anything finishable in a handful of tool calls — Opus 5 over-delegates without this cap, so don't spawn a subagent just because a task touches more than one file.
-- **Keep context slim:** reference code as `path:line`, don't re-read files you just edited, route big tool output to disk.
-- **Proactive compaction:** at ~70% context, write/refresh a session handoff doc; at ~85%, compact or hand off rather than risk truncation mid-task.
-- Full doctrine: `commander/cowork-plugin/rules/workflow-first.md`.
+Use the active session model and configured effort; do not silently change settings. Routing by role: `fable` (Claude Fable 5.1) for architecture, migrations, threat models and verification of load-bearing claims; `opus` (Claude Opus 5.5) for implementation, review and orchestration; `sonnet` (Claude Sonnet 5.5) for bounded edits, docs and focused reviews; `haiku` (Claude Haiku 5.5) for classification, routing and extraction. Codex executors: `gpt-6-astra` for deep work and verification, `gpt-6.1-sol` as the default executor, `gpt-6-sol` for bounded implementation, `gpt-6-luna` for mechanical steps. Verify installed CLI and account support before any model override; aliases track the newest model in each line, so prefer them in plugin frontmatter.
 
-## Critical Rule
+Interactive sessions start in auto permission mode unless a settings file says otherwise; plan mode is entered on request or when a material design decision requires it. `/effort ultracode` is its own toggle and does not change the effort level. The `.claude/settings.json` SessionStart hook runs the update checker and emits task-scoped startup guidance; its text preserves the chosen model and keeps footer output conditional on a status or menu request. Markdown does not change permission controls or runtime enforcement.
 
-**Research the codebase before editing. Never change code you haven't read.** Read files before modifying them. Understand the surrounding context. If you're about to edit a function, read the whole file first.
+Keep `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` enabled where `/ccc-fleet` needs it; do not alter runtime settings as an incidental documentation fix. Tool availability is session-specific: use the exposed Workflow or Agent equivalent, or execute sequentially when delegation is unavailable.
 
-## Desktop Plugin (PRIMARY PRODUCT)
+Run `node commander/status-line.js` only for requested session status or a `/ccc` menu flow that needs it.
 
-CC Commander's primary product as of v6.8.2. Claude Cowork Desktop / Claude Code Desktop install:
+## Execution and delegation
 
-**Via GUI (Cowork Desktop / Code Desktop):**
-1. Settings → Plugin Marketplace → **Add from GitHub**
-2. Enter `KevinZai/commander` → Add
-3. Find `commander` in the marketplace → click **Install**
+Carry the authorized task through implementation, validation, and a concrete handoff. Delegate bounded independent work when parallelism or specialist review materially helps: the Agent tool with an explicit `effort`, `isolation: worktree` only when agents mutate files in parallel, the Workflow tool for fan-outs that need adversarial verification, and the plugin's own workflows (`/commander:ccc-audit`, `/commander:ccc-deep-review`, `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`, `/commander:ccc-release-audit`). Give each worker ownership, constraints, acceptance criteria, and the required evidence; touching multiple files alone is not a delegation trigger. Keep small or tightly dependent work in the current thread. Opus 5.5 delegates eagerly; cap spawn counts and verify load-bearing claims with a fresh context.
 
-**Via CLI (Claude Code terminal only — `/plugin` slash commands don't exist in Desktop):**
-```
-/plugin marketplace add KevinZai/commander
-/plugin install commander
-```
+`/ccc-orchestrate` writes a goal file for a Codex or Sonnet executor, then verifies its acceptance criteria. `/ccc-plan-exec` stays within Claude; `/ccc-handoff` and `/ccc-save-session` preserve state before context becomes unreliable; `/ccc-codex` manages the Codex CLI itself. Write a durable handoff for a long task before compaction, preserving decisions, completed work, failures, and next steps.
 
-**Plugin name:** `commander` · **Marketplace:** `commander-hub` at KevinZai/commander
+Use the required isolated worktree for writes, stage only owned files, and preserve unrelated changes. A dirty main checkout is a baseline to protect, not a reason to reset other work. Publishing, deployment, tracker updates, messages, credential changes, and destructive actions require authorization for the actual action.
 
-**v7.4.2:** 83 plugin skills (13 /ccc-* specialist workflows + 11 ccc-* domain routers + 7 channel/CI/ECC/setup skills + diagnostic/meta + vendor-sourced + lifecycle + /ccc-deploy + /ccc-rollback + /ccc-onboard + /ccc-fleet-viz + /ccc-changelog + /ccc-doctor + /ccc-upgrade + /ccc-tuneup + /ccc-orchestrate + /ccc-handoff + /ccc-adopt + /ccc-relay + /ccc-smb-ops + /ccc-broadcast + /ccc-spawn + /ccc-prompt-fix + /ccc-mission-control + /ccc-usage + /ccc-safety + /ccc-update + /ccc-console + /ccc-adhd) + 22 specialist agents + 23 lifecycle hooks × 44 handlers (incl. PermissionRequest + SessionStart orchestrator + 5 ECC hooks ported) + 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect — **core free forever**, sustained by transparent affiliate links in /ccc-connect + Kevin's consulting practice. Hosted MCP is **live** at mcp.commanderplugin.com, free for everyone with a 100-call/mo anti-abuse cap; hosted-infrastructure Pro tier planned later — all content stays free forever.
+## Product architecture
 
-**The 12 /ccc-* specialist workflows (all click-first via AskUserQuestion native picker):**
-- `/ccc` — main hub (6 intents via nested AUQ)
-- `/ccc-start` — first-run onboarding + plan file
-- `/ccc-browse` — searchable catalog of all skills + agents
-- `/ccc-plan` — spec-first feature planning → plan file
-- `/ccc-build` — scaffold projects (web / API / CLI / mobile)
-- `/ccc-review` — branch audit (diff / security / perf / x-ray)
-- `/ccc-ship` — pre-flight checks + release + deploy
-- `/ccc-design` — UI/UX workflow (routes to ccc-design domain)
-- `/ccc-learn` — skill discovery across 11 CCC domains
-- `/ccc-xray` — project health scorecard with fix chips
-- `/ccc-linear` — Linear board integration
-- `/ccc-fleet` — multi-agent parallel orchestration
-- `/ccc-connect` — opt-in MCP connector (Notion/Zapier/Supabase/Slack/GDrive/Figma)
+- Desktop workflows are skills in `commander/cowork-plugin/skills/`, exposed as `/ccc-*`. Do not casually convert them to plugin commands or introduce namespaced UX.
+- Active menus use AskUserQuestion-native pickers. Menu definitions are in `commander/cowork-plugin/menus/`; artifact templates in `lib/` serve the published decks, which follow the Artifact tool contract (title, tokens, dark mode, `db` capability where a page holds records).
+- `commander/cowork-plugin/agents/`, `hooks/`, `rules/`, `mods/`, `workflows/`, `evals/`, and `.mcp.json` hold plugin capabilities and contracts. Hook commands stay in quoted shell form (`node "${CLAUDE_PLUGIN_ROOT}/hooks/x.js"`) so one `hooks.json` mirrors to Codex; WorktreeCreate and WorktreeRemove hooks are never registered because they replace git worktree handling. The HUD mod under `mods/commander-hud/` is observe-only. Connectors beyond the credential-free bundle are opt-in; tool references do not establish account access.
+- `commander/cowork-plugin-codex/` is generated by `scripts/build-codex.js` from the Claude plugin and `commander/adapters/codex/`. Edit canonical source and validate the exact generated result; never hand-patch the generated distribution. The Codex model registry is `commander/adapters/codex/models.js`.
+- CLI: `commander/engine.js`, `tui.js`, `dispatcher.js`, `knowledge.js`, and `plugins.js`. CLI state is under `~/.claude/commander/`.
+- `skills/ccc-*/` are domain routers; load a matching router instead of the whole skill catalog. `commands/`, `prompts/`, `templates/`, and `compatibility/` supply the other toolkit surfaces.
+- Keep personal overlays separate from the public installer. Only `claude-code` and `codex` are first-class telemetry sources; public workflows must not depend on personal paths, credentials, hostnames, or private services.
+- `claude-mem` remains external opt-in, not a bundled vendor: its AGPL license must not be silently folded into the MIT distribution.
 
-**v4.1 (next):** hosted MCP is already live at mcp.commanderplugin.com (free, 100-call/mo anti-abuse cap) — next up is the Commander Hub marketplace + Anthropic Connectors directory submission.
+## Development and checks
 
-Plugin directory: `commander/cowork-plugin/` — CONNECTORS.md documents all 10 connector categories.
+Use existing project patterns. Shell UI sources `lib/terminal-art.sh`; JavaScript hooks use `lib/terminal-art.js`. Preserve `CC_NO_COLOR`, `CC_NO_ANIMATION`, and CI behavior. Port, secret, account, and worktree constraints from the active environment still apply.
 
-### Architecture note (since v7.1.0)
-
-Plugin commands are provided as **SKILLS** (not plugin commands) so they appear as plain `/ccc-*` in the autocomplete (no `commander:` namespace prefix). This is the correct primitive for click-first UX in Cowork Desktop. Menus live in `commander/cowork-plugin/menus/*.json` (root + 6 sub-menus); the template at `commander/cowork-plugin/lib/menu-artifact.html.tpl` and renderer at `commander/cowork-plugin/lib/menu-render.js` are kept for future use if/when Claude Desktop adds interactive-artifact support, but the active UX uses AskUserQuestion-native chip pickers (confirmed working in Cowork Desktop).
-
-## CCC CLI
-
-Interactive CLI that sits ABOVE Claude Code sessions. Manages, dispatches, and tracks AI work.
+Read the relevant scripts in `package.json` before running them. Common checks:
 
 ```bash
-ccc          # Launch interactive mode
-ccc --test   # 27/27 CLI modules validated (bin/kc.js --test)
-ccc --stats  # Quick stats
+node --test commander/tests/paths.test.js
+node --test tests/hooks.test.js
+npm run check:contract
+npm run check:registry
+npm run check:version
+node scripts/audit-counts.js --check
+node bin/doc-sync.js
+npm run docs:sync:check
+node scripts/audit-frontmatter.js --check
+node scripts/add-fable-contract.js --check
+claude plugin validate ./commander/cowork-plugin --strict
 ```
 
-Key components:
-- `commander/engine.js` — Main interactive loop with arrow-key menus
-- `commander/tui.js` — TUI engine (figlet, gradients, 10 themes, spinners)
-- `commander/dispatcher.js` — 14-flag Claude Code dispatch with plan-mode-first
-- `commander/knowledge.js` — Knowledge compounding (learns from every session)
-- `commander/plugins.js` — Auto-detects gstack, CE, Superpowers, sequences them
-- `commander/adventures/*.json` — 14 JSON decision tree flows
-- `commander/cowork-plugin/` — Desktop plugin (83 skills, 22 sub-agent personas, 23 hooks × 44 handlers, 2 credential-free bundled MCP servers per `.mcp.json` + 16 opt-in via `/ccc-connect`)
-- `commander/update-check.js` — Update checker (4h cache, silent on failure, runs at session start)
-- `commander/tests/paths.test.js` — 18 E2E path tests
+Run focused tests and required checks for the changed behavior. `npm test` and `npm run test:ci` are broader suites when scope warrants them. Plugin-source changes need `npm run build:codex` in the isolated checkout followed by generated-output review. `claude plugin eval ./commander/cowork-plugin --case <name> --runs 3` scores a skill's behavior; `npm run check:codex-models` probes the Codex registry against the real CLI and is not part of CI. Do not run the installer, updater, release script, or deployment as a documentation check.
 
-State: `~/.claude/commander/` (never modifies `.claude/`)
-Tests: `node --test commander/tests/paths.test.js`
-
-## Project Structure
-
-```
-├── commander/cowork-plugin/     # Desktop plugin (primary product)
-│   ├── .claude-plugin/plugin.json   # Plugin manifest (schema-compliant)
-│   ├── skills/                  # 83 plugin skills (23 ccc-* workflows + 7 channel/CI/ECC/setup + remaining lifecycle + 2 vendor-sourced + 25 other + /ccc-tuneup + /ccc-update + /ccc-console)
-│   ├── agents/                  # 22 specialist agents (architect, reviewer, builder, designer, security-auditor, typescript-reviewer, python-reviewer, etc.)
-│   ├── hooks/                   # 23 lifecycle hooks (SessionStart [orchestrator], UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, PostCompact, SubagentStop, SubagentStart, PermissionRequest, SessionEnd, Elicitation, ElicitationResult, StopFailure, PostToolUseFailure, PostToolBatch, TaskCreated, TaskCompleted, ConfigChange, UserPromptExpansion, InstructionsLoaded, Setup)
-│   ├── menus/                   # 7 menu JSON trees (root + 6 sub-menus)
-│   ├── lib/                     # Shared artifact scaffold (menu-render.js + template)
-│   ├── .mcp.json                # 2 credential-free bundled MCP server configs (context7, sequential-thinking) — 16 more opt-in via /ccc-connect
-│   ├── CONNECTORS.md            # 10 connector categories
-│   └── rules/                   # 17 persona voice files + common response-style
-├── skills/              # 467 skills organized by category
-│   ├── ccc-*/           # 11 CCC domains (router + sub-skills)
-│   ├── mode-switcher/   # 10 workflow modes
-��   ├── init-decision-tree/  # /ccc-init project wizard
-│   ├── confidence-check/    # Pre-execution confidence assessment
-│   ├── four-question-validation/  # Post-implementation verification
-���   └── */               # Individual skills (SKILL.md each)
-├── commands/            # 83 slash commands (.md files)
-│   └── cc.md            # /cc command center (interactive menu)
-├── prompts/             # 36+ prompt templates across 6 categories
-├── hooks/               # 24 kit-native hooks (JS) + hooks.json + hooks-standalone.json
-├── templates/           # 3 starter templates (nextjs, api, cli)
-├── lib/                 # Terminal art (bash + JS) + statusline.sh
-├── docs/                # Internal docs — audit reports, cheatsheets/, compat/ (marketing site lives in a separate private repo)
-├── kevin/               # Kevin's personal overlay (not installed by default)
-│   ├── install-kevin.sh # Layer Kevin-specific config after public install
-│   ├── CLAUDE.md.kevin  # Kevin's CLAUDE.md (full MCP, OpenClaw)
-│   ├── settings.json.kevin  # Kevin's settings (all MCP servers)
-│   └── hooks/           # Kevin-specific hooks (Paperclip, OpenClaw)
-├── compatibility/       # IDE guides + 4 iTerm2 color profiles (Claude Anthropic, OLED, Matrix)
-├── tests/               # Hook test harness
-├── install.sh           # Interactive installer
-├── install-remote.sh    # One-line remote installer (curl | bash)
-├── uninstall.sh         # Clean removal with backup restore
-├── BIBLE.md             # The Kevin Z Method — 7 chapters + appendices
-├── CHEATSHEET.md        # Daily reference
-├── SKILLS-INDEX.md      # Searchable skill directory
-├── CHANGELOG.md         # Version history
-└── CLAUDE.md.template  # Staff CLAUDE.md template
-```
-
-## Aggregator Ecosystem
-19 vendor submodules in `vendor/`. Smart orchestrator scores tools: capability 50% + stars 15% + recency 15% + user pref 20%.
-Vendor scanner builds capability index across 8-phase pipeline.
-Auto-updates weekly via GitHub Actions.
-
-Key vendors: ECC (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode (17K),
-claude-code-best-practice (26K), repomix (22.8K), Claude HUD (15K), RTK (14.6K),
-Compound Engineering (11.5K), claude-skills (8.6K),
-claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
-claude-code-prompts (142), MengTo/Skills (web design + prompting, 100★).
-
-**Note:** `claude-mem` was previously vendored but was removed — it ships under AGPL-3.0 which is incompatible with CC Commander's MIT license. Users can install `claude-mem` separately via `npm install claude-mem` or `/ccc-connect`; it is treated as an external opt-in MCP, not a bundled vendor.
-
-## Footer Bar
-CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
-
-```
-━━ CCC7.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░▌6%│📅▐██░░▌34%│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯467│📋CC-150│📂~/project
-```
-
-Render this at session start and after major actions. Source: `commander/cockpit.js`.
-
-## Nested Command Menus
-All `/ccc` sub-commands open rich menus with recommendations:
-
-| Command | Menu | What it does |
-|---------|------|-------------|
-| `/ccc` | Main menu | 15 options — build, review, learn, infra, settings |
-| `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
-| `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
-| `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 467 skills by category, preview, try |
-| `/ccc domains` | CCC domains | 11 ccc-* domains |
-| `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
-| `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
-
-Every menu recommends the best next action based on context.
-
-## CCC Domains
-
-| Domain | Sub-Skills | Focus |
-|--------|-----------|-------|
-| `ccc-design` | 41 | UI/UX, animation, responsive, accessibility |
-| `ccc-marketing` | 45 | CRO, email, ads, social, content |
-| `ccc-saas` | 20 | Auth, billing, multi-tenant, schema |
-| `ccc-devops` | 20 | CI/CD, Docker, AWS, monitoring |
-| `ccc-seo` | 20 | Technical SEO, content, Core Web Vitals |
-| `ccc-testing` | 15 | TDD, E2E, coverage, regression |
-| `ccc-security` | 8 | OWASP, pen-test, secrets, hardening |
-| `ccc-data` | 8 | SQL, ETL, analytics, visualization |
-| `ccc-research` | 8 | Competitive, market analysis |
-| `ccc-mobile` | 8 | React Native, Expo, mobile patterns |
-| `ccc-makeover` | 3 | /xray audit + /makeover swarm |
-
-## Current Status
-
-**Version:** 7.4.2 (Desktop-first plugin, Claude Agent SDK sub-agent architecture — see `package.json`)
-
-**Stats:** 467 skills total, 83 plugin skills, 22 sub-agent personas, 23 lifecycle hooks (44 handlers), 2 bundled MCP servers + 16 opt-in, 83 commands, 24 JS hooks, 19 vendors, 10 themes
-
-**Live:**
-- GitHub repo: github.com/KevinZai/commander
-- Marketplace: `commander-hub` — `/plugin marketplace add KevinZai/commander`
-- Landing page: commanderplugin.com
-- One-line install: `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash`
-- Core free forever: all skills, all agents, all hooks, all MCP servers — sustained by affiliate links + Kevin's consulting
-
-## Key Commands
-
-```bash
-./install.sh              # Interactive install (matrix rain, ASCII art, progress)
-./install.sh --dry-run    # Preview without changes
-./install.sh --verify     # Validate existing installation
-./install.sh --force      # Skip confirmation prompts
-./uninstall.sh            # Remove kit components (preserves CLAUDE.md + settings.json)
-ccc --split               # Tabbed tmux mode
-ccc --dispatch "task" --json  # Headless agent dispatch
-ccc --list-skills --json      # Skill catalog for agents
-ccc --status                  # Health check
-```
-
-## Development Notes
-
-- Shell scripts source `lib/terminal-art.sh` for all visual output
-- Hooks use `lib/terminal-art.js` for consistent branding
-- All animations respect `CC_NO_COLOR=1`, `CC_NO_ANIMATION=1`, CI detection
-- OG image generated via `docs/assets/og-image.svg` → PNG conversion
-- CCC domains use router pattern: one SKILL.md dispatches to sub-skill directories
-- Kevin's personal overlay lives in `kevin/` — not installed by the public installer
-- Tests run via `node --test tests/hooks.test.js` (Node.js built-in test runner, 61 tests)
-- 24 kit-native hooks form the "Proactive Automation Suite" — context-guard, auto-checkpoint, cost-alert, confidence-gate, pre-compact, self-verify, openclaw-adapter, status-reporter, openclaw-sync, etc. (session-coach retired 2026-07-10 — folded into the plugin suggest engine)
-- 10 workflow modes via mode-switcher skill — normal, design, saas, marketing, research, writing, night, yolo, unhinged, caveman
-- 36+ prompt templates across 6 categories (coding, planning, design, marketing, devops, meta)
-- Agency Orchestrator and OpenClaw patterns for multi-agent integration
-- Claude Peers integration — multi-instance collaboration with coordinator/swarm/expert/review/research patterns
-- Spawn Manager — `/spawn` command for launching and coordinating multiple Claude Code peers
-- Task Commander — multi-agent orchestration with P0-P10 scoping, 6 DAG workflows, circuit breaker, cost ceiling
-- Contextual Assist — proactive suggestion system with 5 configurable levels
-- Cowork + Dispatch integrations for Claude Desktop autonomous mode and background tasks
-- OpenClaw Bridge + Paperclip Bridge for platform integrations
-- 5 quickstart guides for beginner/frontend/backend/fullstack/mobile developers
-- Vanilla dashboard at `dashboard/` — localhost session inspector (port 4690), reads real `~/.claude/sessions/` data, zero deps, no build step. React app archived to `dashboard/_archive/` (was demo-data only).
-- `lib/config-reader.js` — shared config utility for bible-config.json with env var overrides
-- VS Code snippets at `compatibility/vscode-snippets.json` (20+ snippets)
-- Status line (`lib/statusline.sh`) shows live context gauge, model, cost, tokens, account, rate limit countdown
-- `/ccc-init` checks `~/.claude/sessions/` and offers to resume prior sessions before the wizard
-- 4 iTerm2 color profiles at `compatibility/` (Claude Anthropic, OLED Black, Matrix); legacy `kz-matrix.itermcolors` preserved
-- Theme system with 10 switchable themes
-- OpenClaw native integration with auto-detection, skill sync, bidirectional event forwarding
-- Status update requests for sending progress reports during long sessions
-- Continuous improvement pipeline with daily cron scan and proposal queue
-- Modular installer with 5 installation modes (full, essentials, scripts, dashboard, config-only)
-- Daemon Mode: commander/daemon.js (tick loop), commander/queue.js (task queue), commander/dream.js (knowledge consolidation)
-- Intelligence Layer v1: complexity scoring (dispatcher.js), stack detection (project-importer.js), session learning (knowledge.js), skill filtering (skill-browser.js), smart retry (dispatchWithRetry)
-- Tiered skill loading via `skills/_tiers.json` — essential (~30), recommended (~100), domain (11 routers), full (all 500+)
-- Update checker at `commander/update-check.js` — 4h cache, silent on failure, fires on session start
-- Caveman mode (`caveman` skill) — strips markdown/emojis/prose for ~75% output token savings during iteration
-
-## Ecosystem Context
-
-CCC ships 83 focused `/ccc-*` plugin skills as the curated front door, then routes into 467 CCC ecosystem skills across 11 domains. It is a meta-layer over the broader Claude skill ecosystem — not a replacement for it.
-
-**External ecosystems CCC plays well with:**
-- `anthropics/skills` — official Anthropic skills (Frontend Design, Theme Factory, Spec Writer)
-- `mattpocock/skills` — 15K stars, TypeScript-first (Grill Me, Ubiquitous Language)
-- `skillsmp.com` — 66K+ community marketplace
-
-**Install format alternatives:**
-
-| Method | Command | When to Use |
-|--------|---------|------------|
-| Marketplace (recommended) | `/plugin install commander` | Full plugin with all 83 skills + MCPs + hooks |
-| Full CLI | `curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh \| bash` | CLI mode, non-plugin installs |
-| Cherry-pick | `npx skills@latest add KevinZai/commander/skills/<name>` | Individual skills via the skills CLI |
-
-**When Claude agents load this CLAUDE.md, they should know:**
-- CCC is a meta-layer over the Claude skill ecosystem — curation + guidance + memory, not raw skills
-- 83 `/ccc-*` plugin skills are the curated front door; they route into 467+ deeper skills
-- `CONNECTORS.md` defines 13 tool-agnostic connector categories via `~~category` placeholders — skills are tool-agnostic
-- Everything core free forever: 83 plugin skills, 22 agents, 2 credential-free bundled MCP servers (context7 + sequential-thinking) + 16 opt-in via /ccc-connect, 23 lifecycle hooks × 44 handlers. No feature gating, no paywalls, no license checks.
-- Revenue model: core free forever — 4 levers: (1) transparent affiliate links in /ccc-connect (Supabase, Vercel, Neon, etc.) + (2) Kevin's consulting pipeline (plugin = trust engine → consulting funnel) + (3) optional Pro community ($49/mo Discord) + (4) GitHub Sponsors
-
-## UI Components
-Check `~/clawd/shared/refs/shadcn-ecosystem.md` before building custom. Key: tremor (charts), auto-form (Zod→forms), magicui (animations).
-- **Tech icons:** `developer-icons` (npm) — standard for all projects. Never custom SVGs for tech logos.
+Define observable success before substantial work. Inspect actual output and relevant errors. Stop once appropriate checks pass unless new evidence or unresolved risk warrants another pass. Report what changed, what was verified, and practical limits; do not claim a runtime fix from Markdown changes alone.

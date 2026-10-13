@@ -1,39 +1,51 @@
 ---
 name: ccc-projects
-description: "List known projects and their instinct statistics"
+description: "List the projects continuous-learning-v2 knows about, with per-project instinct and observation counts plus global totals. Use when the user asks which projects have learned instincts or wants instinct statistics."
 command: true
 ---
 
-# Projects Command
+# /ccc-projects — learned-instinct projects
 
-List project registry entries and per-project instinct/observation counts for continuous-learning-v2.
+**CC Commander** · /ccc-projects · every registered project with its instinct and observation counts, plus global totals.
 
-## Implementation
+## Arguments
 
-Run the instinct CLI using the plugin root path:
+None. Any `$ARGUMENTS` text is ignored.
 
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/continuous-learning-v2/scripts/instinct-cli.py" projects
-```
+## What happens
 
-Or if `CLAUDE_PLUGIN_ROOT` is not set (manual installation):
+1. Run the instinct CLI. Use the plugin-root form when `CLAUDE_PLUGIN_ROOT` is set:
 
-```bash
-python3 ~/.claude/skills/continuous-learning-v2/scripts/instinct-cli.py projects
-```
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/continuous-learning-v2/scripts/instinct-cli.py" projects
+   ```
 
-## Usage
+   Otherwise use the manual-install path:
 
-```bash
-/projects
-```
+   ```bash
+   python3 ~/.claude/skills/continuous-learning-v2/scripts/instinct-cli.py projects
+   ```
 
-## What to Do
+   If neither file exists, report that the continuous-learning-v2 skill is not installed and stop. If the CLI exits non-zero, show its stderr and stop.
+2. The CLI reads the registry at `~/.claude/homunculus/projects.json` and prints, for each project (most recently seen first):
+   - name, id, root and remote (when set)
+   - personal and inherited instinct counts
+   - observation event count
+   - last-seen timestamp
 
-1. Read `~/.claude/homunculus/projects.json`
-2. For each project, display:
-   - Project name, id, root, remote
-   - Personal and inherited instinct counts
-   - Observation event count
-   - Last seen timestamp
-3. Also display global instinct totals
+   It ends with global personal and inherited instinct totals.
+3. Present the CLI output as-is. When it prints "No projects registered yet.", say that projects register automatically when continuous-learning-v2 observes work in a git repository; that is not an error.
+4. When several projects share the same instinct ids, point to `/ccc-promote --dry-run` to preview promotion to global scope.
+
+## Done when
+
+The CLI output, or its "No projects registered yet." message, has been shown unaltered.
+
+## Guardrails
+
+- Read-only: never edit `projects.json` or any instinct file from this command.
+- Do not fabricate counts when the CLI fails; report the failure.
+
+## See also
+
+`/ccc-instinct-status` · `/ccc-promote` · `/ccc-evolve`

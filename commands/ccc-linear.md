@@ -1,63 +1,104 @@
 ---
-description: "Open the Linear board, pick issues, create tasks, and manage your project directly from CCC."
+description: "Show the Linear project board by status with a progress bar, pick an issue to start work on, or create a new issue, with every Linear write confirmed first. Use when you want to see or act on your Linear project from the session or the ccc CLI."
 ---
 
-# /ccc-linear — Linear Board
+# /ccc-linear — Linear board
 
-Open your Linear project board directly in CCC. View issues by status, pick one to work on, or create new ones.
-
-## What This Command Does
-
-1. Connects to Linear using your `LINEAR_API_KEY_PERSONAL` env var
-2. Shows your project board: In Progress, Todo, Backlog, Done
-3. Progress bar showing completion percentage
-4. Pick an issue to start working on (auto-assigns, starts session)
-5. Create new issues directly from CCC
-
-## Setup
-
-1. Get a Linear API key: [linear.app/settings/api](https://linear.app/settings/api)
-2. Set it: `export LINEAR_API_KEY_PERSONAL=lin_api_xxxxx`
-3. Run `ccc` > Settings > Linear Setup > Choose your team and project
-4. Done. The board will load automatically.
+**CC Commander** · /ccc-linear · the project board by status, issue pickup and quick issue creation. Linear is opt-in and absent by default.
 
 ## Usage
 
 ```
-/ccc-linear              # Open the board
-ccc > Linear Board       # Same thing via menu
+/ccc-linear              # open the board
+ccc > Linear Board       # same board in the ccc CLI menu
 ```
 
-## Board View
+## What happens
 
-```
-  ─── Linear Board ───────────────────
-  ████████████████░░░░░░ 18/24 done
+1. **Detect the access path.** Run in one Bash call; never print the key:
 
-  In Progress (2)
-    CC-61 Remotion hero video
-    CC-62 README overhaul
+   ```bash
+   test -n "${LINEAR_API_KEY_PERSONAL:-$LINEAR_API_KEY}" && echo "key: set" || echo "key: missing"
+   command -v ccc >/dev/null && echo "ccc: installed" || echo "ccc: missing"
+   ```
 
-  Todo (3)
-    CC-48 Foundation + submodules
-    CC-49 Vendor scanner
+   Then check whether a Linear connector is exposed in this session (load deferred tools with `ToolSearch` query `+linear issues`).
 
-  Backlog (1)
-    CC-50 Showstopper CLI UI
+   - Connector available: use its list, update and create tools for every step.
+   - Key set and `ccc` installed: use the CLI integration in step 2.
+   - Neither: go to "Setup" and stop.
 
-  Done: 18 issues
-```
+2. **Load the board.** With the CLI integration, resolve the install and read the configured project (set in `ccc` > Settings > Linear Setup):
 
-## Actions
+   ```bash
+   CCC_ROOT="$(cd "$(dirname "$(realpath "$(command -v ccc)")")/.." && pwd)"
+   node -e 'const l=require(process.argv[1]+"/commander/integrations/linear");l.getIssuesByStatus().then(g=>console.log(JSON.stringify(Object.fromEntries(Object.entries(g).map(([k,v])=>[k,v.map(i=>({id:i.id,identifier:i.identifier,title:i.title}))])))),e=>{console.error(e.message);process.exit(1)})' "$CCC_ROOT"
+   ```
 
-- **Pick an issue** — assigns to you, moves to In Progress, starts a CCC session
-- **Create issue** — quick title + description, auto-adds to project
-- **Refresh** — reload the board
+   A non-zero exit means no auth or no configured project; report the error text and point to "Setup". Four empty lists with the key set usually means no project is configured; point to Setup step 3. Shell state does not carry between Bash calls, so repeat the `CCC_ROOT=` line at the top of the step 5 and step 6 commands.
 
-## Session Integration
+3. **Render the board** from the fetched data, counts computed from the response:
 
-When you pick an issue and build:
-- CCC creates a session linked to the Linear issue
-- Progress comments auto-posted to the issue
-- Session completion auto-moves issue to Done
-- Cost and duration tracked on the issue
+   ```
+   ─── Linear Board ───────────────────
+   ████████████████░░░░░░ 18/24 done
+
+   In Progress (2)
+     ENG-61 Hero video
+     ENG-62 README overhaul
+   Todo (3)
+     ENG-48 Foundation
+   Backlog (1)
+     ENG-50 CLI UI
+   Done: 18 issues
+   ```
+
+   Show identifiers and titles only, never full descriptions.
+
+4. **Pick an action.** Ask with AskUserQuestion (plain-text question where unavailable):
+   - 🟢 Pick an issue to work on — assigns it to you and moves it to In Progress
+   - Create an issue — title and optional description, added to the configured project
+   - Refresh — reload the board (step 2)
+
+5. **Pick an issue.** Ask with AskUserQuestion: up to 4 issues, In Progress first, the recommended one marked 🟢, each description saying "Assigns to you, moves to In Progress". Then apply the change with the connector's update tool, or the CLI integration:
+
+   ```bash
+   node -e 'const l=require(process.argv[1]+"/commander/integrations/linear");(async()=>{const id=process.argv[2];await l.assignIssueToMe(id);const s=await l.findStateId("started");if(!s)throw new Error("no started state");await l.updateIssue(id,{stateId:s});console.log("ok")})().catch(e=>{console.error(e.message);process.exit(1)})' "$CCC_ROOT" "<issue-id>"
+   ```
+
+   Report `ok` or the error text. Then work from the issue title and description, confirming scope with the user first.
+
+6. **Create an issue.** Ask for the title and optional description in plain chat, show the draft, and ask: 🟢 Create it · Edit title · Cancel. On create, use the connector, or:
+
+   ```bash
+   node -e 'const l=require(process.argv[1]+"/commander/integrations/linear");l.quickCreateIssue(process.argv[2],process.argv[3]).then(i=>console.log(i.identifier+" "+i.url),e=>{console.error(e.message);process.exit(1)})' "$CCC_ROOT" "<title>" "<description>"
+   ```
+
+   Echo the returned identifier and URL.
+
+7. **Verify.** After any write, reload the board (step 2) and confirm the issue shows in its new column, or that the new identifier is listed. Report what the reload shows.
+
+## Session integration (ccc CLI)
+
+When a `ccc` session is started from a picked issue, the CLI links the session to that issue, posts progress and a session summary as comments, moves the issue to Done on completion, and records cost and duration. Those writes happen only for sessions the user starts from an issue in the CLI.
+
+## Setup
+
+1. Create a Linear API key at linear.app/settings/api.
+2. Export it in your shell profile as `LINEAR_API_KEY_PERSONAL` (or `LINEAR_API_KEY`).
+3. Run `ccc`, open Settings > Linear Setup, and choose your team and project.
+4. Run `/ccc-linear` again; the board loads from that project.
+
+With the Commander plugin installed, `/ccc-connect` can add a Linear connector instead, which needs no key.
+
+## Guardrails
+
+- Linear writes (assign, state change, new issue) happen only after the step 5 or step 6 picker answer in this conversation.
+- Never print `LINEAR_API_KEY_PERSONAL`, `LINEAR_API_KEY` or full issue descriptions.
+- Never claim a write succeeded without the step 7 reload.
+
+## See also
+
+- `/ccc-status` — session and project status
+- `/ccc-feature-start` — branch and plan from an issue
+- `/ccc-linear-board` — publish the board as a private page (Commander plugin)

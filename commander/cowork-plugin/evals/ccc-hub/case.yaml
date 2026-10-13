@@ -1,0 +1,28 @@
+schema_version: "1.1"
+name: ccc-hub
+description: The main hub opens from a plain-language request and offers routed choices instead of a typed-letter menu.
+tags: [skill:ccc, hub, picker]
+execution:
+  prompt: Open the CC Commander main menu so I can pick what to work on next.
+  max_turns: 12
+  timeout_seconds: 180
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion]
+graders:
+  - type: tool_used
+    name: hub-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc"'
+  - type: tool_used
+    name: picker-offered
+    tool: AskUserQuestion
+    min: 1
+    arm: both
+  - type: regex
+    name: no-typed-letter-menu
+    pattern: '(reply|type|enter)\s+(with\s+)?[A-D1-4]\b|\b[A-D]\)\s.*\n\s*[A-D]\)\s'
+    flags: i
+    match: not_contains
+  - type: regex
+    name: no-stale-model-names
+    pattern: 'claude-fable-[5]\b|claude-opus-[5]\b|claude-sonnet-[5]\b|claude-haiku-4-[5]|Haiku 4[.]5|\bOpus [5]\b|\bFable [5]\b|\bSonnet [5]\b|gpt-5[.]6|GPT-5[.]6'
+    match: not_contains

@@ -3,7 +3,10 @@
   "title": "More tools",
   "subtitle": "The rest of the CC Commander surface",
   "footer": "Connect apps (/ccc-connect) to unlock Notion, Zapier, Supabase, Slack, Google Drive integrations.",
-  "shortcuts": ["/ccc", "/ccc-browse"],
+  "shortcuts": [
+    "/ccc",
+    "/ccc-browse"
+  ],
   "choices": [
     {
       "id": "plan",
@@ -23,15 +26,22 @@
       "id": "linear",
       "icon": "📊",
       "label": "Linear board",
-      "description": "View, pick, or create issues without leaving Claude.",
+      "description": "View, pick, or create issues without leaving Claude (requires the opt-in Linear connector).",
       "command": "/ccc-linear"
     },
     {
       "id": "fleet",
       "icon": "🚁",
       "label": "Fleet (parallel agents)",
-      "description": "Run multiple Sonnet agents in parallel worktrees — watch the progress cards.",
+      "description": "Run parallel agents in isolated worktrees and watch the progress cards.",
       "command": "/ccc-fleet"
+    },
+    {
+      "id": "codex",
+      "icon": "🤖",
+      "label": "Codex CLI",
+      "description": "Check, update, and configure Codex: models, plugins, MCP, agents, cloud tasks, reviews.",
+      "command": "/ccc-codex"
     },
     {
       "id": "connect",
@@ -44,7 +54,7 @@
       "id": "tuneup",
       "icon": "🔧",
       "label": "Tune-up setup",
-      "description": "Audit + safely optimize your local ~/.claude CC Commander install — version freshness, junk sweep, count drift, settings keys.",
+      "description": "Audit and safely optimize your local Commander install: version freshness, junk sweep, count drift, settings keys.",
       "command": "/ccc-tuneup"
     },
     {

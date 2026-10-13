@@ -1,121 +1,110 @@
 ---
 name: ccc-retro
-description: "Periodic productivity retrospective — shipping summary, metrics, cost tracking, and reflection"
-usage: /retro [week|sprint|month|YYYY-MM-DD..YYYY-MM-DD]
+description: "Generate a retrospective for a period: what shipped, commit and churn metrics, hotspots, cost when a source exists, and reflection questions. Use at the end of a week, sprint or month, or when the user asks for a retro."
+usage: /ccc-retro [week|sprint|month|YYYY-MM-DD..YYYY-MM-DD]
 version: 1.3.0
 ---
 
-# Retro — Productivity Retrospective
-> Inspired by [gstack](https://github.com/garrytan/gstack) by Garry Tan
+# /ccc-retro — productivity retrospective
 
-You are generating a productivity retrospective report for the current project.
+**CC Commander** · /ccc-retro · a scannable report of what shipped in the period, where the churn was, and what to change next.
 
-## Parse Period
+## Arguments
 
-Determine the time range from **{{input}}**:
-- Empty or `week` → last 7 days
-- `sprint` → last 14 days
-- `month` → last 30 days
-- `YYYY-MM-DD..YYYY-MM-DD` → explicit date range
+Parse the period from `$ARGUMENTS`:
 
-Set `$SINCE` and `$UNTIL` accordingly (e.g. `--since="7 days ago"`).
+| Input | Range |
+|---|---|
+| empty or `week` | last 7 days |
+| `sprint` | last 14 days |
+| `month` | last 30 days |
+| `YYYY-MM-DD..YYYY-MM-DD` | explicit range, inclusive |
 
-## Gather Data
+Set `SINCE` and `UNTIL` (for example `SINCE="7 days ago"`, `UNTIL="now"`, or the two dates). Reject any other input with the accepted forms and stop.
 
-Run these in parallel:
+## What happens
 
-### 1. Git History
-```bash
-git log --since="$SINCE" --oneline --stat
-git shortlog -sn --since="$SINCE"
-git log --since="$SINCE" --format="%H" | wc -l
-git diff --stat $(git log --since="$SINCE" --reverse --format="%H" | head -1)^..HEAD 2>/dev/null
+1. **Confirm a repository.** Run `git rev-parse --show-toplevel`; if it fails, say a retro needs a git repository and stop. Record the repo name and `git branch --show-current`.
+2. **Gather git data** (run these in parallel):
+
+   ```bash
+   git log --since="$SINCE" --until="$UNTIL" --oneline --no-merges
+   git rev-list --count --no-merges --since="$SINCE" --until="$UNTIL" HEAD
+   git shortlog -sn --no-merges --since="$SINCE" --until="$UNTIL" HEAD
+   git log --since="$SINCE" --until="$UNTIL" --no-merges --numstat --format="" \
+     | awk '{a+=$1; d+=$2} END {print "added", a+0, "removed", d+0}'
+   git log --since="$SINCE" --until="$UNTIL" --no-merges --name-only --format="" \
+     | sort | uniq -c | sort -rn | head -10
+   git log --since="$SINCE" --until="$UNTIL" --no-merges --name-only --format="" \
+     | awk 'NF' | xargs -n1 dirname | sort | uniq -c | sort -rn | head -5
+   git log --since="$SINCE" --until="$UNTIL" --no-merges --format="%ad" --date=format:%a | sort | uniq -c
+   git log --since="$SINCE" --until="$UNTIL" --no-merges --shortstat --format="%h %s"
+   ```
+
+   If the commit count is 0, report "No commits in this period" with the range and skip to step 5.
+3. **Gather session and cost data**, each optional:
+   - Claude Code transcripts for this project: files under `~/.claude/projects/` whose directory name matches the repo path, modified within the period (`find ~/.claude/projects -name '*.jsonl' -newermt "<start date>"`). Count them as sessions.
+   - Cost: use `/ccc-cost`'s sources. When `ccusage` is installed (opt-in, absent by default; `command -v ccusage`), run `ccusage daily --json --since <YYYYMMDD> --until <YYYYMMDD>` and sum the period. Otherwise write "Session cost data not available for this period."
+4. **Analyze:**
+   - Group commit subjects by conventional-commit type (`feat`, `fix`, `refactor`, then `docs`/`test`/`chore`).
+   - Work distribution: share of commits per type.
+   - Churn: files changed 5 or more times in the period; flag them as possible design issues.
+   - Large changesets: commits touching 10 or more files; note whether they could have been split.
+   - Streaks: days with zero commits and unusually busy days.
+   - Largest commit by lines changed, from the `--shortstat` output.
+5. **Write the report** in the format below, then ask the reflection questions.
+
+## Output format
+
+```text
+RETRO: <period description>
+Project: <repo name> · Branch: <branch> · Period: <start> → <end>
 ```
 
-### 2. Change Hotspots
-```bash
-git log --since="$SINCE" --name-only --format="" | sort | uniq -c | sort -rn | head -10
-git log --since="$SINCE" --name-only --format="" | xargs -I{} dirname {} | sort | uniq -c | sort -rn | head -5
-```
-
-### 3. Session Data
-- Check `~/.claude/sessions/` for session files modified within the period
-- Count total sessions and estimate duration from file timestamps if possible
-- Look for cost data in session metadata (model usage, token counts)
-
-## Generate Report
-
-Output the report using this structure:
-
-```
-RETRO: [period description]
-Project: [repo name]
-Branch: [current branch]
-Period: [start date] → [end date]
-```
-
-### Shipping Summary
+**Shipping summary**
 
 | Metric | Value |
-|--------|-------|
-| Total commits | N |
-| Files changed | N |
-| Lines added | +N |
-| Lines removed | -N |
-| Net LOC | +/-N |
-| Contributors | N |
+|---|---|
+| Commits | <n> |
+| Files changed | <n> |
+| Lines added / removed | +<n> / -<n> |
+| Net lines | <±n> |
+| Contributors | <n> |
 
-**What shipped** — group commits by conventional commit type:
-- **feat:** list key features
-- **fix:** list key fixes
-- **refactor:** list refactors
-- **docs/test/chore:** summarize briefly
+**What shipped** — key `feat:` and `fix:` items, then `refactor:`, then a one-line summary of docs, test and chore work.
 
-### Productivity Metrics
+**Productivity**
 
 | Metric | Value |
-|--------|-------|
-| Avg commits/day | N |
-| Most active day | [day, count] |
-| Largest commit | [hash — summary, +/-N lines] |
+|---|---|
+| Avg commits per day | <n> |
+| Most active day | <day, count> |
+| Largest commit | <hash — subject, ±n lines> |
 
-**Most changed files (top 5):**
-1. `path/to/file` — N changes
-2. ...
+Most changed files (top 5) and most active directories (top 3), each as `path — n changes`.
 
-**Most active directories (top 3):**
-1. `path/` — N changes
-2. ...
+**Cost and usage** — sessions, cost for the period, models reported by the source; or the "not available" line.
 
-### Cost & Usage
+**Patterns and observations** — distribution, churn, large changesets, streaks.
 
-_If session data is available:_
+**Retrospective** — ask the user, in plain text:
 
-| Metric | Value |
-|--------|-------|
-| Sessions | N |
-| Estimated cost | $X.XX |
-| Models used | list |
+1. What shipped that you are most proud of?
+2. What took longer than expected, and why?
+3. What would you do differently next period?
+4. Is tech debt accumulating that needs attention?
 
-_If no session data found, note: "Session cost data not available for this period."_
+Use tables for metrics and bullets for detail. Omit any section whose data is unavailable instead of printing an empty table.
 
-### Patterns & Observations
+## Done when
 
-Analyze and report:
-- **Work distribution:** What percentage was features vs fixes vs refactoring vs docs?
-- **Churn indicators:** Any files changed 5+ times? Flag them as potential design issues.
-- **Large changesets:** Any single commit touching 10+ files? Could it have been split?
-- **Streaks:** Any days with zero commits? Any unusually productive days?
+Every number in the report comes from a command run in this session, and the reflection questions have been asked.
 
-### Retrospective
+## Guardrails
 
-Ask the user these reflection questions:
+- Read-only: no commits, file writes or tracker updates. Saving the retro or posting it anywhere needs the user's request.
+- Do not estimate cost when no cost source answered.
 
-> 1. What shipped that you're most proud of?
-> 2. What took longer than expected? Why?
-> 3. What would you do differently next period?
-> 4. Is there tech debt accumulating that needs attention?
+## See also
 
----
-
-Keep the report scannable. Use tables for metrics, bullet lists for details. Skip any section where data is unavailable rather than showing empty tables.
+`/ccc-cost` · `/ccc-compound` · `/ccc-status` · the `retro` skill (adapted from gstack's retro)

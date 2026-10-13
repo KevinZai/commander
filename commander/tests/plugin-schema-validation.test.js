@@ -167,15 +167,20 @@ test('hooks.json: every command path exists on disk', () => {
 });
 
 test('hooks.json: every event name is a valid Claude Code lifecycle', () => {
-  // Full Claude Code 2026 lifecycle event set (all 23 known events)
+  // Claude Code hook events (33) — docs/reference/platform-facts-2026-10.md §2.2,
+  // CLI 2.1.296, verified 2026-10-13.
   const valid = new Set([
     'SessionStart', 'Setup', 'UserPromptSubmit', 'UserPromptExpansion',
-    'PreToolUse', 'PermissionRequest', 'PostToolUse', 'PostToolUseFailure',
-    'PostToolBatch', 'Notification', 'SubagentStart', 'SubagentStop',
-    'Stop', 'StopFailure', 'SessionEnd', 'PreCompact', 'PostCompact',
-    'ConfigChange', 'Elicitation', 'ElicitationResult',
-    'TaskCreated', 'TaskCompleted', 'InstructionsLoaded',
+    'PreToolUse', 'PermissionRequest', 'PermissionDenied', 'PostToolUse',
+    'PostToolUseFailure', 'PostToolBatch', 'Notification', 'MessageDisplay',
+    'SubagentStart', 'SubagentStop', 'TaskCreated', 'TaskCompleted',
+    'Stop', 'StopFailure', 'TeammateIdle', 'InstructionsLoaded',
+    'ConfigChange', 'CwdChanged', 'DirectoryAdded', 'FileChanged',
+    'WorktreeCreate', 'WorktreeRemove', 'PreCompact', 'PostCompact',
+    'PreModelSwitch', 'PostModelSwitch', 'Elicitation', 'ElicitationResult',
+    'SessionEnd',
   ]);
+  assert.equal(valid.size, 33);
   const events = Object.keys(hooksJson.hooks || {});
   const invalid = events.filter(e => !valid.has(e));
   assert.deepEqual(invalid, [], `Unknown lifecycle events: ${invalid.join(', ')}`);

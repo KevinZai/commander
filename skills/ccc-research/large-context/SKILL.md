@@ -1,10 +1,10 @@
 ---
 name: large-context
-description: "Strategy for work that exceeds a single context window — use Opus 5's native 1M window first, then reduce, then chunk-and-synthesize, then hand execution to the Codex CLI."
+description: "Strategy for work that exceeds a single context window — use the native 1M window of current Claude models first, then reduce, then chunk-and-synthesize, then hand execution to the Codex CLI."
 version: 2.0.0
 category: research
 parent: ccc-research
-tags: [ccc-research, large-context, opus-5, codex]
+tags: [ccc-research, large-context, opus, codex]
 disable-model-invocation: true
 ---
 
@@ -14,7 +14,7 @@ disable-model-invocation: true
 
 Handles work whose input is too big to reason about in one pass — whole codebases, large document sets, long transcripts.
 
-**This replaced `gemini-fallback` in v7.3.2.** That skill existed to escape "Claude's 200K limit" by routing to a third-party 1M-context model. Both halves of that premise are gone: **Claude Opus 5 has a 1M-token context window by default** (it is the default *and* the maximum — no `[1m]` suffix needed), and CC Commander routes to Anthropic models and the Codex CLI only. There is no Gemini path and no local-LLM path.
+**This replaced `gemini-fallback` in v7.3.2.** That skill existed to escape "Claude's 200K limit" by routing to a third-party 1M-context model. Both halves of that premise are gone: **every current Claude model (Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5) has a 1M-token context window** (it is the default *and* the maximum — no `[1m]` suffix needed), and CC Commander routes to Anthropic models and the Codex CLI only. There is no Gemini path and no local-LLM path.
 
 ## Instructions
 
@@ -22,7 +22,7 @@ Work down this ladder. Stop at the first rung that fits — each costs more than
 
 ### 1. Just use the window (default)
 
-Opus 5 gives you 1M tokens. Most "too big" tasks are not actually too big anymore. Measure before engineering around it:
+Opus 5.5 gives you 1M tokens. Most "too big" tasks are not actually too big anymore. Measure before engineering around it:
 
 ```bash
 # rough estimate — chars/4 is close enough to decide
@@ -45,15 +45,17 @@ A 3M-token repo is usually a 200K-token repo plus noise.
 
 Still too big — split on a natural boundary (module, chapter, date range), process each chunk in its own subagent, and have each return **conclusions only**, never raw content. Synthesize the returned findings in the lead context.
 
-Per the Opus 5 delegation rules: fan out only when chunks are genuinely independent, and keep spawn counts low. Three sequential passes beat thirty parallel agents returning file dumps.
+Per the Opus 5.5 delegation rules: fan out only when chunks are genuinely independent, and keep spawn counts low. Three sequential passes beat thirty parallel agents returning file dumps.
 
 ### 4. Hand execution to the Codex CLI
 
 When the job is *mechanical* over a large surface (repo-wide rename, codemod, bulk migration), plan with Claude and let the Codex CLI execute against the plan:
 
 ```bash
-codex exec -m gpt-5.6-sol -c reasoning_effort=high "$(cat plan.md)" < /dev/null
+codex exec -m gpt-6.1-sol -c model_reasoning_effort=high "$(cat plan.md)" < /dev/null
 ```
+
+Use `gpt-6.1-sol` (the Codex default executor) for most plans and `gpt-6-luna` for purely mechanical bulk edits.
 
 Codex runs read-only by default; pass `-s workspace-write` to let it write, and only inside an isolated git worktree on its own branch. Review the diff before merging — the same gate any subagent's work gets.
 

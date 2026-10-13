@@ -261,12 +261,12 @@
       <div class="role-card orch">
         <div class="role-title">🧭 Orchestrator</div>
         <div class="role-models">Plans, writes the Skill.md-shaped goal file, sets acceptance criteria. <b>Never writes final code.</b></div>
-        <div class="role-models"><span class="cmd">Fable 5 (effort: high)</span> — or <span class="cmd">Opus 5</span> as the everyday default</div>
+        <div class="role-models"><span class="cmd">Fable 5.1 (effort: high)</span> — or <span class="cmd">Opus 5.5</span> as the everyday default</div>
       </div>
       <div class="role-card exec">
         <div class="role-title">⚙️ Executor</div>
         <div class="role-models">Implements the plan file exactly. Absorbs the token-heavy file reads/writes/diffs. Does not re-plan.</div>
-        <div class="role-models"><span class="cmd">GPT-5.5 (effort: xhigh)</span> via <span class="cmd">codex</span> — or a <span class="cmd">Sonnet subagent</span></div>
+        <div class="role-models"><span class="cmd">GPT-6.1 Sol (<code>gpt-6.1-sol</code>, effort: xhigh)</span> via <span class="cmd">codex</span> — or a <span class="cmd">Sonnet subagent</span></div>
       </div>
     </div>
     <p style="font-size:8.7px; color:#555;">Why it saves tokens: the expensive model's context stays small (just the plan, not every file it touches) — the fast executor absorbs the file I/O. You pay premium-model tokens only for the reasoning.</p>
@@ -294,8 +294,8 @@
     <h2 class="section">3 · Model Pairing</h2>
     <table class="no-break">
       <tr><th style="width:32%;">Orchestrator</th><th style="width:32%;">Executor</th><th>When</th></tr>
-      <tr><td><span class="cmd">Fable 5</span> (effort: high)</td><td><span class="cmd">GPT-5.5</span> (effort: xhigh) via <span class="cmd">codex</span></td><td>Cross-runtime diversity wanted; codex CLI installed (<code>which codex</code> succeeds)</td></tr>
-      <tr><td><span class="cmd">Opus 5</span> (everyday default)</td><td><span class="cmd">Sonnet subagent</span></td><td>Stay in one vendor; codex not installed, or single-vendor audit trail preferred</td></tr>
+      <tr><td><span class="cmd">Fable 5.1</span> (effort: high)</td><td><span class="cmd">GPT-6.1 Sol</span> (effort: xhigh) via <span class="cmd">codex</span></td><td>Cross-runtime diversity wanted; codex CLI installed (<code>which codex</code> succeeds)</td></tr>
+      <tr><td><span class="cmd">Opus 5.5</span> (everyday default)</td><td><span class="cmd">Sonnet subagent</span></td><td>Stay in one vendor; codex not installed, or single-vendor audit trail preferred</td></tr>
       <tr><td>Sonnet/Haiku (cheap, fast)</td><td><span class="cmd">Opus</span>/<span class="cmd">Fable</span> (capable)</td><td><span class="cmd">/ccc-plan-exec</span>: cheap model drafts the loop structure, capable model executes each step's reasoning-heavy body</td></tr>
     </table>
 
@@ -303,7 +303,7 @@
 
     <div class="cmd-block no-break">
       <span class="cmd-name">/ccc-orchestrate</span> — cross-runtime.
-      <p>Fable/Opus plans → writes a goal file → dispatches GPT-5.5 (via <code>codex</code>) or a Sonnet subagent to execute → verifies the result against the plan's acceptance criteria.</p>
+      <p>Fable/Opus plans → writes a goal file → dispatches GPT-6.1 Sol (via <code>codex</code>) or a Sonnet subagent to execute → verifies the result against the plan's acceptance criteria.</p>
     </div>
 
     <div class="cmd-block no-break">

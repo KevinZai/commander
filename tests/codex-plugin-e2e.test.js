@@ -7,16 +7,12 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 
-const {
-  translateAgent,
-  translateHooks,
-  translateManifest,
-  translateMcp,
-} = require('../commander/adapters/codex/translate.js');
+
+const { resolveClaudeTier } = require('../commander/adapters/codex/models.js');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const SOURCE_PLUGIN_ROOT = path.join(REPO_ROOT, 'commander', 'cowork-plugin');
-const CODEX_PLUGIN_ROOT = path.join(REPO_ROOT, 'commander', 'cowork-plugin-codex');
+const MARKETPLACE_JSON = path.join(REPO_ROOT, '.agents', 'plugins', 'marketplace.json');
 const BUILD_SCRIPT = path.join(REPO_ROOT, 'scripts', 'build-codex.js');
 const REQUIRED_MANIFEST_FIELDS = [
   'name',
@@ -38,13 +34,11 @@ const REQUIRED_AGENT_FIELDS = [
   'name',
   'description',
   'model',
-  'model_reasoning_effort',
+  'sandbox_mode',
   'developer_instructions',
 ];
-// Verified 2026-07-22 against primary Codex docs (learn.chatgpt.com/docs/hooks).
-// Corrects the prior (unverified) list: SessionEnd was wrongly assumed
-// supported; PreCompact/PostCompact/SubagentStart/SubagentStop were wrongly
-// assumed unsupported.
+// Codex hook surface (platform facts §3.3, 12 events). The build may emit any
+// subset; the base five must always be present.
 const BASE_CODEX_HOOK_EVENTS = [
   'SessionStart',
   'UserPromptSubmit',
@@ -59,8 +53,11 @@ const VALID_CODEX_HOOK_EVENTS = new Set([
   'SubagentStop',
   'PreCompact',
   'PostCompact',
+  'SessionEnd',
+  'Interrupt',
 ]);
-const DROPPED_CLAUDE_HOOK_EVENTS = ['Notification', 'SessionEnd', 'PostToolUseFailure'];
+// Claude-only events with no Codex counterpart.
+const DROPPED_CLAUDE_HOOK_EVENTS = ['Notification', 'PostToolUseFailure', 'PostToolBatch', 'StopFailure'];
 const CANONICAL_CCC_SKILLS = [
   'ccc',
   'ccc-agent-writing',
@@ -100,7 +97,7 @@ const CANONICAL_CCC_SKILLS = [
 
 let artifactMemo;
 
-test('Plugin loads in codex CLI', (t) => {
+test('Plugin installs in codex CLI from the repo marketplace', (t) => {
   const artifact = prepareArtifact();
   const codex = findExecutable('codex');
 
@@ -109,50 +106,62 @@ test('Plugin loads in codex CLI', (t) => {
     return;
   }
 
-  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-plugin-home-'));
-  t.after(() => fs.rmSync(tempHome, { force: true, recursive: true }));
+  // Scratch CODEX_HOME and a scratch marketplace root that mirrors the repo
+  // layout (.agents/plugins/marketplace.json + the built mirror at its
+  // source.path), so nothing touches the user's ~/.codex or the committed mirror.
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-plugin-e2e-'));
+  t.after(() => fs.rmSync(scratch, { force: true, recursive: true }));
+  const codexHome = path.join(scratch, 'codex-home');
+  const marketRoot = path.join(scratch, 'market');
+  fs.mkdirSync(codexHome, { recursive: true });
 
-  const pluginTarget = path.join(tempHome, '.codex', 'plugins', 'commander');
-  fs.mkdirSync(path.dirname(pluginTarget), { recursive: true });
-  fs.cpSync(artifact.root, pluginTarget, { recursive: true });
+  const marketplace = readJson(MARKETPLACE_JSON);
+  const entry = marketplace.plugins.find((plugin) => plugin.name === 'commander');
+  assert.ok(entry, 'marketplace.json must list the commander plugin');
+  fs.mkdirSync(path.join(marketRoot, '.agents', 'plugins'), { recursive: true });
+  fs.copyFileSync(MARKETPLACE_JSON, path.join(marketRoot, '.agents', 'plugins', 'marketplace.json'));
+  fs.cpSync(artifact.root, path.join(marketRoot, entry.source.path), { recursive: true });
 
-  const result = spawnSync(codex, ['plugin', 'list'], {
-    cwd: REPO_ROOT,
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      CODEX_HOME: path.join(tempHome, '.codex'),
-      HOME: tempHome,
-    },
-    timeout: 15_000,
-  });
-  const output = `${result.stdout || ''}\n${result.stderr || ''}`;
+  const env = { ...process.env, CODEX_HOME: codexHome };
+  const run = (args) => spawnSync(codex, args, { cwd: marketRoot, encoding: 'utf8', env, timeout: 30_000 });
 
-  if (result.error && result.error.code === 'ETIMEDOUT') {
-    t.skip('codex plugin list timed out in this environment');
+  const added = run(['plugin', 'marketplace', 'add', marketRoot]);
+  const addedOutput = `${added.stdout || ''}\n${added.stderr || ''}`;
+  if (added.error && added.error.code === 'ETIMEDOUT') {
+    t.skip('codex plugin marketplace add timed out in this environment');
     return;
   }
-  if (result.status !== 0 && /unrecognized subcommand 'list'/.test(output)) {
-    t.skip('installed codex CLI does not expose `codex plugin list`');
+  if (added.status !== 0 && /unrecognized subcommand|Operation not permitted|permission denied/i.test(addedOutput)) {
+    t.skip('codex plugin marketplace add is unavailable or sandbox-blocked here');
     return;
   }
-  if (result.status !== 0 && /Operation not permitted|permission denied/i.test(output)) {
-    t.skip('codex plugin list is blocked by sandbox permissions');
-    return;
-  }
+  assert.equal(added.status, 0, formatSpawnFailure('codex plugin marketplace add', added));
 
-  // codex 0.134.0+ reads marketplace snapshots from its own config paths and does
-  // not honour CODEX_HOME / HOME overrides for plugin discovery. When the command
-  // exits 0 but returns no plugins (or only bundled marketplace entries), skip so
-  // the test is env-neutral rather than a false failure.
-  if (result.status === 0 && !/\bcommander\b/i.test(output)) {
-    t.skip('codex plugin list succeeded but does not surface the installed plugin ' +
-      '(CODEX_HOME is not honoured by this codex build — needs marketplace registration)');
-    return;
-  }
+  const installed = run(['plugin', 'add', `commander@${marketplace.name}`, '--json']);
+  assert.equal(installed.status, 0, formatSpawnFailure('codex plugin add', installed));
+  assert.equal(JSON.parse(installed.stdout).pluginId, `commander@${marketplace.name}`);
 
-  assert.equal(result.status, 0, formatSpawnFailure('codex plugin list', result));
-  assert.match(output, /\bcommander\b/i);
+  const listed = run(['plugin', 'list', '--json']);
+  assert.equal(listed.status, 0, formatSpawnFailure('codex plugin list', listed));
+  const plugin = JSON.parse(listed.stdout).installed.find((item) => item.name === 'commander');
+  assert.ok(plugin, 'commander must be listed as installed');
+  assert.equal(plugin.enabled, true);
+  assert.equal(plugin.installPolicy, entry.policy.installation);
+  assert.equal(plugin.authPolicy, entry.policy.authentication);
+});
+
+test('marketplace entry conforms to the Codex marketplace format', () => {
+  const marketplace = readJson(MARKETPLACE_JSON);
+  assert.equal(typeof marketplace.name, 'string');
+  assert.equal(typeof marketplace.interface?.displayName, 'string');
+  for (const plugin of marketplace.plugins) {
+    assert.equal(plugin.source.source, 'local');
+    assert.equal(plugin.source.path, './commander/cowork-plugin-codex');
+    assert.ok(['AVAILABLE', 'INSTALLED_BY_DEFAULT', 'NOT_AVAILABLE'].includes(plugin.policy.installation));
+    assert.equal(plugin.policy.authentication, 'ON_INSTALL');
+    assert.equal(typeof plugin.category, 'string');
+    assert.doesNotMatch(plugin.description, /\b\d+ (skills|agents|hooks|servers)\b/, 'no count literals');
+  }
 });
 
 test('Skills enumerable', (t) => {
@@ -240,8 +249,18 @@ test('Manifest schema validation', () => {
   assert.equal(manifest.mcpServers, './.mcp.json');
   assert.equal(manifest.hooks, './hooks.json');
   assert.deepEqual(manifest.interface.capabilities, ['skills', 'agents', 'hooks', 'mcp']);
+  const openai = manifest.extensions?.['com.openai'];
+  assert.ok(openai, 'manifest must carry extensions["com.openai"]');
+  assert.equal(openai.hooks, './hooks.json');
+  for (const field of ['displayName', 'shortDescription', 'longDescription', 'developerName', 'category', 'capabilities', 'defaultPrompt', 'websiteURL', 'privacyPolicyURL', 'termsOfServiceURL', 'brandColor']) {
+    assert.ok(Object.hasOwn(openai.interface, field), `extensions.com.openai.interface missing ${field}`);
+  }
+  assert.doesNotMatch(openai.interface.shortDescription, /\b\d+ (skills|agents)\b/, 'no count literals');
 
   assert.ok(!fs.existsSync(path.join(artifact.root, '.claude-plugin')), 'artifact must not include .claude-plugin');
+  for (const claudeOnlyDir of ['mods', 'evals', 'workflows']) {
+    assert.ok(!fs.existsSync(path.join(artifact.root, claudeOnlyDir)), `artifact must not include ${claudeOnlyDir}/`);
+  }
   for (const claudeOnlyField of ['claude', 'claudeCode', 'claudePlugin', 'claudeVersion']) {
     assert.ok(!Object.hasOwn(manifest, claudeOnlyField), `manifest contains Claude-only field: ${claudeOnlyField}`);
   }
@@ -302,8 +321,15 @@ test('Agent TOML format', () => {
   });
 
   const architect = parsedAgents.find((agent) => agent.name === 'architect');
-  assert.ok(architect, 'sample must include architect agent for opus model remap coverage');
-  assert.equal(architect.model, 'gpt-5.6-sol');
+  assert.ok(architect, 'sample must include architect agent for model remap coverage');
+  const architectSource = fs.readFileSync(path.join(SOURCE_PLUGIN_ROOT, 'agents', 'architect.md'), 'utf8');
+  const sourceModel = (architectSource.match(/^model:\s*(.+)$/m) || [])[1] || '';
+  assert.equal(architect.model, resolveClaudeTier(sourceModel.trim()));
+  for (const agent of parsedAgents) {
+    assert.ok(['read-only', 'workspace-write'].includes(agent.sandbox_mode), `${agent.name} sandbox_mode`);
+  }
+  const reviewer = parsedAgents.find((agent) => agent.name === 'reviewer');
+  if (reviewer) assert.equal(reviewer.sandbox_mode, 'read-only', 'reviewer cannot write, so it runs read-only');
 });
 
 test('MCP config', () => {
@@ -334,73 +360,23 @@ test('MCP config', () => {
 function prepareArtifact() {
   if (artifactMemo) return artifactMemo;
 
-  if (fs.existsSync(BUILD_SCRIPT)) {
-    const buildResult = spawnSync(process.execPath, [BUILD_SCRIPT], {
-      cwd: REPO_ROOT,
-      encoding: 'utf8',
-      timeout: 120_000,
-    });
-    if (buildResult.status === 0 && fs.existsSync(path.join(CODEX_PLUGIN_ROOT, '.codex-plugin', 'plugin.json'))) {
-      artifactMemo = {
-        root: CODEX_PLUGIN_ROOT,
-        source: 'from-build',
-      };
-      return artifactMemo;
-    }
-  }
+  // Build into a temp dir: tests never write the committed mirror.
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'commander-codex-build-'));
+  process.on('exit', () => fs.rmSync(outDir, { force: true, recursive: true }));
+  const buildResult = spawnSync(process.execPath, [BUILD_SCRIPT, '--out', outDir], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+    timeout: 120_000,
+  });
+  assert.equal(buildResult.status, 0, formatSpawnFailure('build-codex', buildResult));
+  assert.ok(fs.existsSync(path.join(outDir, '.codex-plugin', 'plugin.json')), 'build must emit the manifest');
 
-  if (fs.existsSync(path.join(CODEX_PLUGIN_ROOT, '.codex-plugin', 'plugin.json'))) {
-    artifactMemo = {
-      root: CODEX_PLUGIN_ROOT,
-      source: 'from-build',
-    };
-    return artifactMemo;
-  }
-
-  artifactMemo = createSpecArtifact();
+  artifactMemo = { root: outDir, source: 'from-build' };
   return artifactMemo;
-}
-
-function createSpecArtifact() {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'commander-codex-from-spec-'));
-  const pluginRoot = path.join(tempRoot, 'cowork-plugin-codex');
-
-  fs.mkdirSync(path.join(pluginRoot, '.codex-plugin'), { recursive: true });
-  fs.mkdirSync(path.join(pluginRoot, 'agents'), { recursive: true });
-
-  const claudeManifest = readJson(path.join(SOURCE_PLUGIN_ROOT, '.claude-plugin', 'plugin.json'));
-  writeJson(
-    path.join(pluginRoot, '.codex-plugin', 'plugin.json'),
-    translateManifest(claudeManifest, claudeManifest.version)
-  );
-
-  fs.cpSync(path.join(SOURCE_PLUGIN_ROOT, 'skills'), path.join(pluginRoot, 'skills'), { recursive: true });
-
-  const agentSourceDir = path.join(SOURCE_PLUGIN_ROOT, 'agents');
-  for (const fileName of fs.readdirSync(agentSourceDir).filter((name) => name.endsWith('.md')).sort()) {
-    const mdSource = fs.readFileSync(path.join(agentSourceDir, fileName), 'utf8');
-    const tomlName = `${path.basename(fileName, '.md')}.toml`;
-    fs.writeFileSync(path.join(pluginRoot, 'agents', tomlName), translateAgent(mdSource));
-  }
-
-  const claudeHooks = readJson(path.join(SOURCE_PLUGIN_ROOT, 'hooks', 'hooks.json'));
-  writeJson(path.join(pluginRoot, 'hooks.json'), translateHooks(claudeHooks));
-
-  const claudeMcp = readJson(path.join(SOURCE_PLUGIN_ROOT, '.mcp.json'));
-  writeJson(path.join(pluginRoot, '.mcp.json'), translateMcp(claudeMcp));
-
-  return {
-    root: pluginRoot,
-    source: 'from-spec',
-  };
 }
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-}
-
-function writeJson(filePath, value) {
-  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 function readMcpConfig(pluginRoot) {

@@ -1,50 +1,88 @@
 ---
 name: ccc-onboard
-description: "CC Commander contributor onboarding workflow. Detects project conventions, asks for contributor role, builds a tailored first-hour checklist, starter links, and…"
-model: sonnet
-effort: high
+description: "Contributor first-hour plan for the current repository: reads CLAUDE.md, BIBLE.md and package.json, checks required tools, asks the contributor's role, and returns a five-step checklist plus five real starter resources. Use when someone new joins a repo or types /ccc-onboard."
 allowed-tools:
   - Read
   - Bash
   - WebFetch
   - AskUserQuestion
 argument-hint: "[role: frontend | backend | full-stack | docs | first-pr]"
+model: sonnet
+effort: high
 ---
 
-# /ccc-onboard — New Contributor Onboarding
+# /ccc-onboard — contributor first hour
 
-**CC Commander** · /ccc-onboard · Role → first task → first hour
+**CC Commander** · /ccc-onboard · role → first task → a verified first hour
 
-Use this when a contributor is new to the repository and needs a practical first hour, not a generic tour. Build the guide from the repo’s own instructions and scripts.
+Build the guide from the repository's own instructions and scripts, never from a generic open-source checklist. The skill is read-only: it inspects files and tool versions and returns a plan; it installs, edits and commits nothing.
 
-## Response Shape
+On Codex, AskUserQuestion becomes a plain-text question with the same options, and WebFetch becomes a `curl -sI` reachability check.
 
-Always return these sections:
+## When to use / when not to
 
-1. Brand header:
+- Use when a contributor is new to a repository (any repository, including Commander's own) and needs a practical first hour.
+- Use `/ccc-start` for first-run Commander onboarding, `/ccc-adopt` to add Commander conventions to a project's CLAUDE.md, and `/ccc-xray` for a project health scorecard.
+
+## What happens
+
+### 1. Brand header
 
 ```markdown
 **CC Commander** · /ccc-onboard · Contributor first hour
 ```
 
-2. Repo context:
+### 2. Repo context
 
-Read only the files that exist:
+Read only the files that exist, in this order:
 
-- `CLAUDE.md` for local conventions, required tools, test commands, and workflow rules
-- `BIBLE.md` for product architecture, domain language, and non-negotiable project rules
-- `package.json` for scripts, package manager clues, and workspace structure
-- `README.md` only if the first three do not provide enough starter links
+- `CLAUDE.md` — local conventions, required tools, test commands, workflow rules
+- `BIBLE.md` — product architecture, domain language, non-negotiable project rules
+- `package.json` — scripts, package manager clues, workspace structure
+- `README.md` — only if the first three do not yield enough starter links
 
-Summarize:
+```bash
+ls CLAUDE.md BIBLE.md package.json README.md 2>/dev/null
+git rev-parse --show-toplevel 2>/dev/null
+```
+
+Summarize in one line:
 
 ```markdown
 Repo: <name> · package manager: <npm|bun|pnpm|yarn|unknown> · scripts: <top useful scripts> · primary stack: <detected stack>
 ```
 
-3. Role picker — `AskUserQuestion`
+If none of the four files exist and there is no git root, say so and stop: there is no repo truth to build from.
 
-Never show more than four options in one picker. The first picker covers the three most common code roles plus a "More roles" option; the second picker covers docs and first-PR onboarding.
+### 3. Clone-time validator
+
+Run before writing the checklist. `CLAUDE.md` is the source of truth for required tool versions; also check the common tools:
+
+```bash
+node --version
+bun --version
+npm --version
+git --version
+gh --version
+```
+
+Package manager clues:
+
+```bash
+test -f bun.lockb && echo bun
+test -f bun.lock && echo bun
+test -f pnpm-lock.yaml && echo pnpm
+test -f yarn.lock && echo yarn
+test -f package-lock.json && echo npm
+```
+
+If `CLAUDE.md` names other tools, check those too, for example `python3 --version`, `go version`, `swift --version`, `docker --version`, `op --version`, `vercel --version`, `fly version`, `wrangler --version`.
+
+Report a missing or wrong-version tool as a setup blocker. Do not invent install commands for tools the repo docs do not name; link to the repo docs or the official URL the repo provides.
+
+### 4. Role picker — `AskUserQuestion`
+
+A role passed as the argument skips the picker. Otherwise ask, never more than four options per picker. Put the recommended role first with 🟢 in its label: frontend dependencies only (react, vue, svelte, next) → Frontend; server dependencies only (express, fastify, hono, django, fastapi) → Backend; both → Full-stack.
 
 ```yaml
 question: "What kind of contributor are you onboarding?"
@@ -55,22 +93,22 @@ options:
   - label: "Frontend"
     value: "frontend"
     description: "UI, components, client flows, accessibility, and visual polish."
-    preview: "First task focuses on finding a small UI improvement and validating it locally."
+    preview: "First task: a small UI improvement, validated locally."
   - label: "Backend"
     value: "backend"
     description: "APIs, services, persistence, auth, jobs, and platform integrations."
-    preview: "First task focuses on one safe server-side fix with tests."
+    preview: "First task: one safe server-side fix with tests."
   - label: "Full-stack"
     value: "full-stack"
     description: "End-to-end product change crossing UI and backend."
-    preview: "First task traces one user flow from UI to data boundary."
+    preview: "First task: trace one user flow from UI to data boundary."
   - label: "More roles"
     value: "more-roles"
-    description: "Docs or smallest safe first PR."
+    description: "Docs or the smallest safe first PR."
     preview: "Opens a second picker for non-code or first-contribution paths."
 ```
 
-If the user chooses "More roles", ask:
+If the user picks "More roles", ask a second picker. Check for prior history with `git log --author="$(git config user.email)" -1 --format=%h 2>/dev/null`. Mark First PR with 🟢 when that prints nothing (no prior history in the repo), otherwise mark Docs with 🟢. Put the recommended label first; Back always stays last. The default order (no prior history) is:
 
 ```yaml
 question: "Which onboarding path?"
@@ -78,106 +116,46 @@ header: "CC Commander Onboard"
 multiSelect: false
 autocomplete: true
 options:
+  - label: "🟢 First PR"
+    value: "first-pr"
+    description: "Smallest safe contribution for a brand-new contributor."
+    preview: "First task: a low-risk validation or test improvement with a clean PR path."
   - label: "Docs"
     value: "docs"
     description: "Documentation, examples, guides, changelogs, and contributor notes."
-    preview: "First task updates one stale or missing guide from repo truth."
-  - label: "First PR"
-    value: "first-pr"
-    description: "Smallest safe contribution for a brand-new contributor."
-    preview: "First task is a low-risk validation or test improvement with a clean PR path."
+    preview: "First task: update one stale or missing guide from repo truth."
   - label: "Back"
     value: "back"
     description: "Return to frontend, backend, and full-stack roles."
-    preview: "Choose one of the primary contributor paths instead."
+    preview: "Shows the first picker again."
 ```
 
-## Clone-Time Validator
+### 5. Pick the first task
 
-Run the validator before writing the checklist. Use `CLAUDE.md` as the source of truth for required tool versions, then check common tools:
+Use the role's task shape and suggested scripts in [references/first-task-guides.md](references/first-task-guides.md), tailored by `CLAUDE.md`, `BIBLE.md` and the actual `package.json` scripts. Prefer a task that needs no production credentials. Name the file or directory where it lives.
+
+Run scripts with the detected package manager:
+
+- `bun.lock` or `bun.lockb` → `bun run <script>`
+- `pnpm-lock.yaml` → `pnpm <script>`
+- `yarn.lock` → `yarn <script>`
+- otherwise `npm run <script>` (`npm test` for `test`)
+
+Only name scripts that exist in `package.json` (or commands that `CLAUDE.md` names).
+
+### 6. Verify starter resources
+
+Collect five resources: real files from the repo or official URLs found in repo files. Prefer `CLAUDE.md`, `BIBLE.md`, `README.md`, package scripts, architecture docs, test docs, and the directory holding the first task.
 
 ```bash
-node --version
-bun --version
-npm --version
-git --version
-gh --version
+for f in <path1> <path2> <path3>; do test -e "$f" && echo "ok $f" || echo "missing $f"; done
 ```
 
-Also inspect the package manager clues:
+For each URL, confirm it resolves with WebFetch (one short fetch each); drop and replace any that fail.
 
-```bash
-test -f bun.lockb && echo bun
-test -f bun.lock && echo bun
-test -f pnpm-lock.yaml && echo pnpm
-test -f yarn.lock && echo yarn
-test -f package-lock.json && echo npm
-```
+### 7. Output
 
-If `CLAUDE.md` names additional tools, check those too. Examples: `python3 --version`, `go version`, `swift --version`, `docker --version`, `op --version`, `vercel --version`, `fly version`, `wrangler --version`.
-
-Report missing tools as setup blockers. Do not fabricate install commands for tools not named in repo docs; link to repo docs or official docs when the repo provides a URL.
-
-## First Task Guides
-
-Tailor the first task from `CLAUDE.md`, `BIBLE.md`, and `package.json` scripts. Prefer tasks that can be completed without production credentials.
-
-### Frontend
-
-Good first task shape:
-
-- Find one small UI issue, empty state, accessibility label, copy mismatch, or visual regression.
-- Identify the component or route.
-- Run the relevant dev, lint, test, and visual check scripts from `package.json`.
-- Avoid broad redesigns in the first PR.
-
-Suggested scripts to surface when present: `dev`, `build`, `lint`, `test`, `test:screenshots`, `storybook`, `typecheck`.
-
-### Backend
-
-Good first task shape:
-
-- Pick one narrow API, validation, error handling, or integration test improvement.
-- Trace the request path and data boundary.
-- Add or update a focused test.
-- Run the smallest backend test command first, then the broader suite if needed.
-
-Suggested scripts to surface when present: `test`, `test:api`, `test:integration`, `lint`, `typecheck`, `migrate`, `dev`.
-
-### Full-Stack
-
-Good first task shape:
-
-- Pick a tiny user-visible behavior that crosses UI and service logic.
-- Trace from route/component to API/service to persistence or external boundary.
-- Add one frontend assertion and one backend or integration assertion where the repo supports it.
-- Keep the PR small enough to review in one sitting.
-
-Suggested scripts to surface when present: `dev`, `test`, `test:e2e`, `build`, `lint`, `typecheck`.
-
-### Docs
-
-Good first task shape:
-
-- Fix one stale instruction by reconciling docs with actual scripts or source files.
-- Prefer `CLAUDE.md`, `BIBLE.md`, docs pages, examples, or command references named by the repo.
-- Verify every command in the edited doc or mark it as intentionally not run.
-- Do not update unrelated marketing copy.
-
-Suggested scripts to surface when present: `docs:dev`, `docs:build`, `lint`, `test`, `check:links`.
-
-### First PR
-
-Good first task shape:
-
-- Choose a low-risk validation: one missing test, typo in a developer-facing message, stale script reference, or small diagnostic improvement.
-- Make one cohesive change.
-- Run the narrowest relevant test plus any required repo audit from `CLAUDE.md`.
-- Include a PR summary with what changed and how it was verified.
-
-## Output Contract
-
-For the selected role, output exactly:
+Return exactly this shape for the selected role:
 
 ```markdown
 ## Your First Hour
@@ -197,23 +175,28 @@ For the selected role, output exactly:
 - <link or file path 5>
 ```
 
-The five starter resources must be real files from the repo or official project URLs found in the repo. Prefer `CLAUDE.md`, `BIBLE.md`, `README.md`, package scripts, architecture docs, test docs, and the directory containing the first task.
+Put any setup blockers from step 3 above the checklist as a short list.
 
-## Script Selection Rules
+## Done when
 
-- Use the detected package manager when running scripts.
-- If `bun.lock` or `bun.lockb` exists, prefer `bun run <script>`.
-- If `pnpm-lock.yaml` exists, prefer `pnpm <script>` or `pnpm run <script>`.
-- If `yarn.lock` exists, prefer `yarn <script>`.
-- Otherwise use `npm run <script>` for named scripts and `npm test` for `test`.
+- The checklist has exactly five items and the resources list exactly five entries.
+- Every file path printed `ok` in step 6, and every URL was fetched successfully this turn.
+- Every script named in the checklist exists in `package.json` or is named in `CLAUDE.md`.
 
-## Anti-Patterns
+## Guardrails
 
-- Do not give a generic open source onboarding checklist.
-- Do not invent repo architecture that is not in `CLAUDE.md`, `BIBLE.md`, or source files.
-- Do not suggest a credential-required task for a first PR.
-- Do not output more or fewer than five first-hour checklist items.
-- Do not output more or fewer than five starter resources.
+- Never give a generic open-source onboarding checklist.
+- Never invent architecture that is not in `CLAUDE.md`, `BIBLE.md` or source files.
+- Never suggest a credential-requiring task for a first PR.
+- Never install tools, edit files, create branches or open PRs; this skill only reads and reports.
+- Never output more or fewer than five checklist items or five starter resources.
+
+## See also
+
+- `/ccc-start` — first-run Commander onboarding
+- `/ccc-adopt` — merge Commander conventions into a project's CLAUDE.md
+- `/ccc-xray` — project health scorecard
+- `/ccc-review` — review the first PR before it goes up
 
 ---
 

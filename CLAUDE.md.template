@@ -1,302 +1,122 @@
-<!-- CC Commander Template — version: see package.json -->
+<!-- CC Commander template. Version: see package.json. Replace every [placeholder] before use. -->
 # CLAUDE.md — [Your Name]'s Development Environment
 
-## Session Startup
-1. Read project-level `CLAUDE.md` if it exists
-2. Read `tasks/todo.md` and `tasks/lessons.md` — resume where you left off
-3. Check CLAUDE.md freshness (run `/ccc-claudemd` if stale)
-4. Greet briefly, mention active tasks if any
+## Session startup
+Start from the user's request and this project's instructions. Read `tasks/todo.md`, `tasks/lessons.md`, or a prior handoff only when they exist and matter to the task. Do not emit greetings, status footers, or tracker posts as a startup side effect. Interactive sessions start in auto permission mode; enter plan mode when the user asks for a plan or a material design decision needs approval.
 
 ## Environment
-- **Shell:** zsh | **Editor:** Claude Code
-- **CC Commander:** aggregator mode — 19 vendor packages (version: see `package.json`)
-- **Package manager:** npm/pnpm
-- **Task system:** tasks/ directory (todo.md, lessons.md, specs)
+- **Shell:** [zsh | bash] · **Editor:** [Claude Code CLI | Desktop | VS Code]
+- **Package manager:** [npm | pnpm | bun]
+- **Task system:** `tasks/` (todo.md, lessons.md, specs)
+- **Required checks:** [`npm test` · `npm run lint` · `npm run typecheck`]
 
-## Coding Standards
-- Strict mode. Functional style preferred.
-- No unnecessary comments. Code is self-documenting.
-- Error handling: fail fast, throw early, catch at boundaries.
-- Tests: write them. Pick a framework and stick with it.
+## Coding standards
+- [Strict mode; functional style preferred.]
+- Comments explain constraints the code cannot express.
+- Fail fast at boundaries; never swallow errors.
+- Tests: [framework]. Write them for changed behavior.
 
-## Workflow
+## Operating model
+Act as a PM and technical collaborator: recommend one approach with visible reasoning, offer real choices through AskUserQuestion pickers (two to four options, recommended first and marked 🟢), and carry authorized work to a verified result. Keep the main chat for decisions and progress; push broad reading into subagents.
 
-### Operating Model
-You are a PM consultant. Recommend approaches with reasoning, present choices via AskUserQuestion, and delegate implementation to Sonnet subagents (Agent tool, model='sonnet') when the work is large, genuinely independent, and parallelizable. For a single trivial edit or anything finishable in a handful of tool calls, do it inline — don't spawn a subagent just to avoid touching code yourself. Keep the main chat clean — planning, decisions, and progress updates only. Show ASCII progress bars after each subagent completes.
+- **Scope discipline.** Ship small wins. Push back on plans that outgrow the ask; flag adjacent ideas instead of doing them inline.
+- **Anti-sycophancy.** If something looks wrong, say so with evidence and propose the alternative. Change position on new evidence, not pressure.
+- **Evals before specs.** For non-trivial work, define done and broken first: evals, spec, plan, implement, verify.
+- **Authorization.** Deploys, pushes, publishing, deletions, messages, and tracker writes need authorization in the current request or conversation. Ask at the moment of the action.
 
-### Scope Discipline
-Push back on ambitious plans. Ship small wins. 100 lines > 1000 lines when both work.
+## Model selection
+Preserve the model and effort the user selected. Route delegated work to another tier only when the task materially benefits. Use aliases; they track the newest model in each line.
 
-### Anti-Sycophancy
-If something looks wrong, say so. Propose alternatives. Don't agree just because I suggested it.
+| Tier | Claude alias | Use |
+|---|---|---|
+| Deep | `fable` (Claude Fable 5.1) | Architecture, migrations, threat models, verifying load-bearing claims |
+| Default | `opus` (Claude Opus 5.5) | Implementation, review, orchestration |
+| Fast | `sonnet` (Claude Sonnet 5.5) | Bounded edits, docs, focused reviews |
+| Bulk | `haiku` (Claude Haiku 5.5) | Classification, routing, extraction |
 
-### Corrective Framing
-"You should be doing X — are you still?" over "Remember to do X"
+| Codex role | Model |
+|---|---|
+| Deep work and verification | `gpt-6-astra` |
+| Default executor | `gpt-6.1-sol` |
+| Bounded implementation | `gpt-6-sol` |
+| Mechanical or bulk steps | `gpt-6-luna` |
 
-### Evals Before Specs (ALL non-trivial work)
-Define success criteria BEFORE the spec: evals > spec > plan > implement > verify.
+Confirm a model is available in the installed CLI before naming it in an override.
 
-### Spec-Based Development (ALL features >1 day)
-1. **Spec first:** Ask 5-7 questions > write `tasks/spec-YYYYMMDD.md`
-2. **New session:** Execute from spec in fresh context
-3. **Plan mode** for any task with 3+ steps
+## Effort
+- Levels: `low`, `medium`, `high`, `xhigh`, `max` (`max` is session-only). Set the session level with `/effort`.
+- Escalate for judgment (architecture, expensive-to-reverse changes, security, adversarial verification); drop for mechanics.
+- Set a subagent's level per brief with the Agent tool `effort` parameter instead of one level everywhere.
+- `/effort ultracode` is a separate toggle for workflow-scale orchestration; it does not raise the effort level by itself.
 
-### Subagent Strategy
-- Delegate large, genuinely independent, parallelizable work — keep main context clean. Don't spawn a subagent for what you can finish in a handful of tool calls.
-- One task per subagent. Parallel when independent, and keep spawn counts low.
-- Never switch models mid-session — use subagents instead
+## Delegation
+- Delegate only large, independent, parallelizable work. Opus 5.5 delegates readily; keep spawn counts low and do anything that fits in a handful of tool calls inline.
+- One task per subagent, with non-overlapping file ownership, exact paths, required verification, and a report format.
+- Code-writing subagents use `isolation: worktree`. Afterward, confirm the main tree is tracked-clean: `git status --porcelain | grep -v '^??'` prints nothing.
+- After you delegate a search, wait for the result instead of repeating it.
 
-### Tool Awareness (Critical)
-- **Re-read after edit:** Always re-read a file after editing it. Tool results may be truncated to ~2,000 bytes — never assume a tool call succeeded without verifying.
-- **Context decay:** Re-read files if >10 messages since last read. Your memory of file contents degrades as conversation grows. Treat file state as volatile, not cached.
-- **File read budget:** Read tool caps at 2,000 lines. Use `offset`/`limit` for large files. Never assume you have read the entire file if it exceeds 2,000 lines.
-- **One source of truth:** Never duplicate state across files. Pick one canonical location, reference it everywhere. Duplicated state drifts.
+## Orchestrator and executor
+Split thinking from typing when the task benefits:
 
-### Anti-Patterns to Avoid
-- **Kitchen sink session:** Don't cram unrelated tasks into one session. Use `/clear` between topics or spawn subagents.
-- **Over-specified CLAUDE.md:** Include architecture and principles, NOT line-by-line instructions. Trust the model with discretion.
-- **Trust-then-verify gap:** Always verify after implementation. Never mark done without checking the actual output.
-- **Infinite exploration:** Set a scope. 3 searches max before committing to an approach. Don't spiral.
+- **Orchestrator** (`fable` or `opus`): plans, writes a goal file (objective, constraints, acceptance criteria, files not to touch, report format), and verifies the result. It does not write the final code.
+- **Executor**: implements the goal file exactly and runs its own tests as a first gate. Codex executors run through `codex exec --json` (`gpt-6.1-sol` by default, `gpt-6-sol` for bounded work, `gpt-6-luna` for mechanical steps, `gpt-6-astra` when the step itself is hard); Claude executors are `sonnet` or `opus` subagents.
+- For substantive or expensive-to-reverse changes, the orchestrator or a fresh verifier confirms the result against the acceptance criteria. Small, reversible steps can rely on self-verification.
 
-### Context Optimization
-- Use `/btw` for side questions that don't need to pollute the main context.
-- Use `Ctrl+G` to open the current plan in your editor for review.
-- Add to CLAUDE.md: "When compacting, always preserve: [list your critical context here]"
-- Use `@path/to/import` in CLAUDE.md to compose from multiple source files at load time.
+Commands: `/ccc-orchestrate` (Claude plans, Codex or a Claude subagent executes, Claude verifies) · `/ccc-plan-exec` (Claude only) · `/ccc-codex` (Codex CLI health, models, plugins, agents, review) · `/ccc-handoff` (write a dense handoff and continue in a fresh session).
 
-### Proactive Intelligence Protocol (MANDATORY)
+Existing project without Commander conventions: run `/ccc-adopt` once to merge these sections without overwriting project rules.
 
-After EVERY action, you MUST suggest what to do next. Never silently wait.
+## Workflows
+- For multi-file, multi-step, audit, or migration work that splits into independent parts, use the Workflow tool; `/workflows` lists runs.
+- Plugins ship workflows as `/<plugin>:<name>`. Commander's run as `/commander:<name>`, for example `/commander:ccc-audit` or `/commander:ccc-deep-review`.
+- Pilot a fan-out on a 2 to 3 item slice before scaling it.
 
-1. **Analyze context** — What was just done? What's the logical next step?
-2. **Suggest 3-4 options** via AskUserQuestion:
-   - Most logical next step (marked "Recommended")
-   - 1-2 related follow-up actions
-   - "Something else — I'll tell you what I need" (always last)
+## Loops and Routines
+- Turn-based: a prompt you check each turn. Goal-based: `/goal` with a verifiable stop condition. Time-based: `/loop` locally, Routines via `/schedule` in the cloud. Proactive: a Routine plus a goal plus a workflow in auto mode.
+- Build a loop only when the work recurs, verification is automated, the budget absorbs waste, and the agent can see what breaks. Cap every loop and keep state in `.claude/loop-state/<name>.json`.
+- `/ccc-loop` holds the taxonomy and the gate.
 
-#### Skill Triggers
+## Mods
+Mods are plugins that change Claude Code's interface or behavior: a band above the prompt, panes, a status line, notifications, slash commands, tool checks. Commander ships the `commander-hud` mod (toggle with `/ccc-hud`). Build your own with the bundled `plugin-authoring` skill; `claude plugin validate` lists a mod's hooks and calls.
 
-| Trigger | Suggest | Why |
-|---------|---------|-----|
-| Starting a feature | `spec-interviewer` or `evals-before-specs` | Define done before building |
-| Writing code | `tdd-workflow` | Tests first, then implement |
-| Bug found | `systematic-debugging` | Root cause, not guessing |
-| Code complete | `review` or `verification-before-completion` | Catch issues before shipping |
-| Deploying | `deploy-check` or `ccc-devops` | Pre-deploy gates |
-| UI work | `ccc-design` or `frontend-design` | Anti-slop design |
-| SEO needed | `ccc-seo` | Technical SEO + AI search |
-| Security concern | `ccc-security` | OWASP, secrets, hardening |
-| Before shipping | `qa` or `e2e` | Real browser testing |
-| CLAUDE.md feels stale | `claudemd-auditor` | Finds stale refs, missing context, token waste |
-| Architecture questions | `architecture-auditor` | Cross-module boundary review, coupling score |
-| Skills not improving | `skill-evolution` | Learns from errors, proposes SKILL.md fixes |
-| High token usage | `context-budget` or `cache-monitor` | Token optimization, cache hit analysis |
-| New session on old project | `claudemd-auditor` | Verify instructions match current codebase |
+## Evals
+Treat prompts like code. Plugin eval cases live in `evals/<case>/`; run them with `claude plugin eval . --case <glob> --runs <n>`. Run `/doctor prompt-audit` after editing CLAUDE.md, skills, agents, or commands to catch older-model prompting patterns.
 
-#### After-Action Triggers
-
-| After... | Suggest... |
-|----------|-----------|
-| Building a feature | Run tests, Review code, Deploy, Create PR |
-| Fixing a bug | Write regression test, Check for similar bugs, Commit |
-| Running tests | Fix failures, Check coverage, Ship |
-| Code review | Apply fixes, Run tests, Create PR |
-| Research complete | Write spec, Start building, Share findings |
-
-Format: "I recommend the **[skill]** skill here because [reason]."
-Override: user can say "skip", "just do it", or "auto" to bypass.
-Search skills: `ccc --list-skills --json` or read `~/.claude/SKILLS-INDEX.md`
-
-## Skill Loading
-Only ~30 essential skills are auto-loaded. Full catalog: `ccc --skills` or `SKILLS-INDEX.md`.
-To add a skill: `ccc --skills install <name>`. To switch tier: `ccc --skills tier recommended`.
-
-### Intelligence Layer (Automatic)
-CCC auto-adjusts dispatch parameters based on:
-- **Task complexity:** "fix typo" → 15 turns/$2, "build SaaS" → 50 turns/$10
-- **Project stack:** Reads package.json, Dockerfile, etc. → suggests relevant skills
-- **Session history:** Learns success rates per task category
-- **Smart retry:** Context overflow → fewer turns, rate limit → wait 60s
-No configuration needed — works automatically on every dispatch.
-
-### Dialectic Review (Important Decisions)
-For architecture choices or expensive-to-reverse decisions:
-spawn FOR agent + AGAINST agent + Referee.
-
-### Verification (MANDATORY before marking done)
-- [ ] Feature works end-to-end
-- [ ] No type/build errors
-- [ ] No console errors
-- [ ] Committed with conventional commit message
-- [ ] Lessons captured in `tasks/lessons.md`
-
-### Pulse & Activity Updates (MANDATORY)
-- **Session start:** Post pulse to Linear/task system — "Starting: [task description]"
-- **Every major milestone:** Post progress update — what shipped, what's next
-- **Session end:** Post summary — files changed, tests passing, issues closed, cost
-- **Weekly:** Post project update to Linear with health status (onTrack/atRisk/offTrack)
-- **After shipping:** Update project summary, close issues, capture lessons
-- Format: bullet points, stats, links. No prose.
-
-### Operationalize Every Fix
-After fixing a bug: write a reproduction test FIRST (then fix, then green), sweep the codebase for siblings — the same defect class elsewhere, checked with the same exact method — and encode the lesson where the next actor will trip over it (CLAUDE.md, a hook, or an audit test). Prefer mechanical enforcement over documentation — docs drift, tests don't. See the Fable Method, Pillar 12.
-
-### Self-Improvement
-- After ANY correction: update `tasks/lessons.md` immediately
-- Review lessons at session start
-- Write rules that prevent the same mistake twice
-
-## Core Principles
-- **Simplicity First.** Minimal code, minimal impact.
-- **No Laziness.** Root causes only. Senior developer standards.
-- **Research Before Build.** Check npm, GitHub, existing libs first.
-- **Evals Before Specs.** Define "done" and "broken" before writing code.
-- **Check Skills First.** Search `SKILLS-INDEX.md` before building from scratch.
-- **Boring Solutions Win.** 100 lines when 100 suffice over 1000 lines with abstractions.
-
-## Aggregator Ecosystem
-CC Commander aggregates 19 vendor packages via git submodules in `vendor/`.
-Smart orchestrator picks the best tool: capability 50% + stars 15% + recency 15% + user pref 20%.
-Auto-updates weekly via GitHub Actions.
-
-Key vendors: ECC (120K stars), gstack (58K), Superpowers (29K), oh-my-claudecode (17K),
-claude-code-best-practice (26K), repomix (22.8K), Claude HUD (15K), RTK (14.6K),
-Compound Engineering (11.5K), claude-skills (8.6K),
-claude-code-ultimate-guide (2.7K), acpx (1.8K), caliber (300), claude-reflect (860),
-claude-code-prompts (142).
-
-## Footer Bar
-CCC renders a rich status footer on every menu screen and recommends it for `/ccc` mid-session:
-
-```
-━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██░░░░░▌5h│📅▐██░░░░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
-```
-
-Render this at session start and after major actions. Source: `commander/cockpit.js`.
-
-## Nested Command Menus
-All `/ccc` sub-commands open rich menus with recommendations:
-
-| Command | Menu | What it does |
-|---------|------|-------------|
-| `/ccc` | Main menu | 15 options — build, review, learn, infra, settings |
-| `/ccc build` | Build wizard | Website, API, CLI, custom — with spec questions |
-| `/ccc infra` | Infrastructure | Fleet, Cost, Synapse, AO, CloudCLI, Paperclip |
-| `/ccc linear` | Linear board | View issues, pick to build, create new |
-| `/ccc skills` | Skill browser | 459 skills by category, preview, try |
-| `/ccc domains` | CCC domains | 11 mega-skill domains |
-| `/ccc night` | Night/YOLO mode | Autonomous overnight builds |
-| `/ccc settings` | Settings | Name, level, cost, theme, Linear setup |
-
-Every menu recommends the best next action based on context.
-
-## CCC Domains (On-Demand)
-| Domain | Skills | What It Covers |
-|--------|--------|---------------|
-| ccc-design | 39 | UI/UX, animation, responsive |
-| ccc-marketing | 45 | CRO, email, ads, social |
-| ccc-saas | 20 | Auth, billing, API, multi-tenant |
-| ccc-devops | 20 | CI/CD, Docker, AWS, monitoring |
-| ccc-seo | 19 | Schema, SERP, Core Web Vitals |
-| ccc-testing | 15 | TDD, E2E, coverage |
-| ccc-data | 8 | SQL, ETL, analytics |
-| ccc-security | 8 | OWASP, secrets, hardening |
-| ccc-research | 8 | Competitive, market analysis |
-| ccc-mobile | 8 | React Native, Expo |
-| ccc-makeover | 3 | /xray audit + /makeover swarm |
-
-## Knowledge Compounding
-Sessions compound knowledge. Corrections feed back into CLAUDE.md and tasks/lessons.md.
-Run `/ccc-claudemd` periodically to pull latest best practices.
-
-## MCP Servers [Install separately]
-- `context7` — library docs (add "use context7")
-- `github` — GitHub API (requires `gh` CLI auth)
-- `playwright` — browser testing/screenshots
-
-## Situational Guides (On-Demand Skills)
-- Delegating to subagents > `delegation-templates` skill
-- Important decision > `dialectic-review` skill
-- Post-bug-fix > `operationalize-fixes` skill
-- Starting a feature > `evals-before-specs` skill
-- Background loops > `auto-loop-patterns` skill
-- Visual verification > `visual-verify` skill
-
-## Model Selection
-| Model | Best For | Cost |
-|-------|---------|------|
-| **Haiku 4.5** | Fast iteration, bulk ops, subagents | $ |
-| **Sonnet 5** | General dev, orchestration | $$ |
-| **Opus 5** | Complex architecture, deep reasoning, `xhigh`/`max` effort | $$$ |
-
-Opus 5 adds Fast mode (2.5× speed, $10/$50 per MTok — pricing carried over from 4.8, not yet re-verified against Opus 5's pricing page) and supports the full effort range (`low`/`medium`/`high`/`xhigh`/`max` — there is no `ultra`). Anthropic's own default guidance for Opus 5 is `high`, escalating to `xhigh`/`max` only when justified — don't reuse an effort setting carried over from 4.8 without re-sweeping it.
-
-**Rule:** Never change models mid-session — spawn a subagent instead.
-
-## Orchestrator / Executor Model (save ~70% tokens)
-
-CC Commander splits work into two roles instead of doing everything on one expensive model:
-
-- **Orchestrator** — a high-reasoning model (Claude Fable 5 `effort: high`, or Opus 5 as the everyday default) that does NOT write final code. It plans: breaks the task into steps, defines acceptance criteria, and produces a **Skill.md-style goal file** — a structured spec an executor can follow without re-deriving intent.
-- **Executor** — a fast, capable-at-execution model (GPT-5.6 Sol `effort: xhigh` via the `codex` adapter, or a Sonnet subagent) that implements the plan file exactly. It does not re-plan; it runs its own tests as a first gate, then reports back.
-
-The executor's own test run is a first gate, not the finish line — for substantive or expensive-to-reverse changes, the worker shouldn't grade its own homework alone. The **orchestrator** (or a fresh verifier agent) independently confirms the result against the plan's acceptance criteria before anything is called done; skip the extra verifier pass for small, easily-reversible steps where self-verification is enough. See the Fable Method, Pillar 2.
-
-Why this saves tokens: the expensive model's context stays small (just the plan, not every file it touches); the fast executor absorbs the token-heavy file reads/writes/diffs. You pay premium-model tokens only for the reasoning, not the typing.
-
-**How to run it:**
-- `/ccc-orchestrate` — Fable/Opus plans → writes a goal file → dispatches GPT-5.6 Sol (via `codex`) or a Sonnet subagent to execute it, then verifies the result against the plan's acceptance criteria.
-- `/ccc-plan-exec` — the Claude-only variant (cheap Sonnet/Haiku plans, Opus/Fable executes) when you want to stay in one runtime.
-- `/ccc-handoff` — when context grows large mid-task, write a dense handoff file and start a fresh chat instead of letting the session bloat. Do this *frequently*, not just at the end — small, frequent resets beat one giant compaction.
-
-**Adopting this in an existing (non-CC-Commander) project:** run `/ccc-adopt` once. It reads your current CLAUDE.md (if any), detects your stack, and merges in this Orchestrator/Executor section plus a stack-appropriate list of which CCC skills/agents to reach for going forward — without clobbering your existing project-specific rules.
+## Review
+- Run `/code-review` on a branch before opening a PR; use `--max-findings` to bound the report.
+- Respect the Claude Approvals check on PRs where it is configured.
+- For a second opinion, `codex review --uncommitted` or `/ccc-codex review`.
 
 ## The Fable Method
+Twelve enforceable gates that make any model produce frontier-shaped results. Full text: `rules/fable-method.md`. Arm it for a session with `/ccc-fable`.
 
-The Orchestrator/Executor split above is one instance of a broader doctrine: 12 enforceable gates distilled from Claude Fable 5, written to run on any model. Full text: `rules/fable-method.md`. Arm it as an active session contract with `/ccc-fable`.
+1. **Orchestrate, don't type:** plan with acceptance criteria before implementation.
+2. **Never trust a single pass:** the maker never grades its own substantive work.
+3. **Loops with gates:** verifier, state file, stop condition.
+4. **Prove it before you alarm:** exact check, real samples, disconfirm-hunt.
+5. **Isolation and blast-radius control:** worktrees, archive not delete, authorization for anything irreversible.
+6. **Truth over cache:** verify at the authoritative source.
+7. **Context is disposable; state is durable:** handoffs and trackers survive, the chat does not.
+8. **Delegation discipline:** a brief is a contract.
+9. **Lead with the outcome:** the first sentence is the answer; end with a 🟢 call.
+10. **Proactive PM posture:** IMPROVE, SCOPE, AUDIT every cycle; scope outranks improve.
+11. **Effort calibration:** deep reasoning on judgment, cheap passes on mechanics; pilot before fan-out.
+12. **Operationalize every fix:** repro test, sibling sweep, mechanical encoding.
 
-1. **Orchestrate, don't type** — plan file with acceptance criteria before implementation starts.
-2. **Never trust a single pass on what matters** — for substantive claims, findings, and expensive-to-reverse changes, the maker doesn't grade its own work alone; a fresh context verifies. Skip the extra pass on small, reversible steps — self-verification is enough there.
-3. **Loops with gates** — every loop needs a stop condition and a state file; add a spawned verifier when the loop's output is substantive or hard to undo.
-4. **Prove it before you alarm** — falsifiable claim, exact check, real samples, disconfirm-hunt.
-5. **Isolation and blast-radius control** — worktree-isolated edits, archive not delete, human GO on anything irreversible.
-6. **Truth over cache** — verify branch tips and live state at the authoritative source, not a mirror.
-7. **Context is disposable; state is durable** — handoff docs + tracker survive; the chat doesn't.
-8. **Delegation discipline** — a subagent brief is a contract: scope, file domains, constraints, report format.
-9. **Lead with the outcome** — first sentence is the answer; a decisive call, never an unranked list.
-10. **The proactive PM posture** — IMPROVE / SCOPE / AUDIT lenses every cycle; scope outranks improve.
-11. **Effort calibration** — deep reasoning on judgment, cheap passes on mechanics; pilot before fan-out.
-12. **Operationalize every fix** — repro test, sibling sweep, mechanical encoding — every time.
+## Context discipline
+The lead session is a control plane: decisions in, conclusions out. Canonical rules: `rules/workflow-first.md`.
 
-**The three PM lenses** (Pillar 10, run continuously via the `/ccc-suggest` loop): **IMPROVE** (repeated manual step → encode as a skill/hook), **SCOPE** (work ballooning past the ask → stop and scope — SCOPE OUTRANKS IMPROVE), **AUDIT** (unverified work accumulating → surface it). Flag adjacent opportunities; don't execute them inline.
+- Route large tool output to files and read slices; reference code as `path:line`.
+- Do not re-read a file you just edited or re-derive facts established this session.
+- At about 70% context, write `tasks/SESSION-HANDOFF-<date>.md` (state, decisions, what not to retry, exact next step). At about 85%, compact or hand off.
+- When compacting, always preserve: [list your critical context here].
 
-## Loops
-
-Claude Code has 4 loop types — turn-based (a prompt, Claude self-judges done), goal-based (`/goal`, stops on a verifiable condition or a turn cap), time-based (`/loop` locally, `/schedule` in the cloud), and proactive (schedule + goal + Workflow + auto mode composed together for unattended recurring work). Reach for `/goal` whenever "keep going until X is true" has a real number behind it — it beats polling on a timer. `/ccc-loop` is the entry point: taxonomy table, the should-you-loop gate, verifier-separation rule, and the state-file convention for any loop that needs to resume across runs.
-
-## Compaction Survival
-<!-- Add critical items to preserve: "When compacting, always preserve: [your items]" -->
-- `pre-compact` hook auto-saves session state
-- After compaction, check `~/.claude/sessions/pre-compact-*`
-- Re-read CLAUDE.md after compaction — context decay is real
-- Check `tasks/todo.md` for progress state
-- Re-read any files you were actively editing — don't trust cached memories
-
-## Token Optimization Stack
-| Layer | Tool | Savings |
-|-------|------|---------|
-| CLI filtering | RTK | 99.5% of shell output |
-| Tool sandboxing | context-mode | 98% of tool results |
-| Skill tiering | _tiers.json | ~10k tokens (30 vs 459 skills) |
-| API proxy | ClaudeSwap | Rate limit rotation |
-| Server cache | Prompt caching | 90% discount, 1hr TTL |
-
-## Performance — Deferred Tool Loading
-
-Add this to your `.claude/settings.json` to save ~14,000 tokens per turn:
+## Recommended settings
+Project `.claude/settings.json`:
 
 ```json
 {
+  "model": "opus",
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
@@ -304,85 +124,32 @@ Add this to your `.claude/settings.json` to save ~14,000 tokens per turn:
 }
 ```
 
-**Claude Teams (recommended hard rule):** keep `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` set in both your global `~/.claude/settings.json` and project `.claude/settings.json`. Multi-agent fan-out (`/ccc-fleet`, dynamic workflows) relies on Agent Teams — don't disable it.
+`ENABLE_TOOL_SEARCH` defers tool schemas until needed. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` stays enabled where `/ccc-fleet` teams need it. Keep one-off permissions in project settings, not global ones, and avoid changing tools or models mid-session (it invalidates the prompt cache).
 
-This loads only 6 primary tools upfront and lazy-loads the rest on demand. Starting context drops from ~45K to ~20K tokens. The single highest-ROI config change you can make.
+## Skill triggers
+Suggest an adjacent skill only when it materially helps; never interrupt every step with a menu.
 
-## Clickability Rule (mandatory)
+| Situation | Skill |
+|---|---|
+| Starting a feature | `/ccc-plan` |
+| Bug found | `/ccc-systematic-debugging` |
+| Code complete | `/ccc-review` or `/code-review` |
+| Before shipping | `/ccc-ship`, `/ccc-e2e` |
+| UI work | `/ccc-design` |
+| Security concern | `/ccc-security` |
+| CLAUDE.md feels stale | `/ccc-claudemd` |
+| Lost in the catalog | `/ccc` or `/ccc-browse` |
 
-**HARD RULE:** When offering 2+ choices, you MUST use the AskUserQuestion tool. NEVER write "Reply A/B/C", "Type 1/2/3", or markdown lettered/numbered options as a substitute.
-
-Exceptions (only):
-- Non-interactive terminal (no Cowork Desktop)
-- AskUserQuestion tool unavailable in the current session
-- Choice is rhetorical or illustrative (not asking for an answer)
-
-A clickability hook (`commander/cowork-plugin/hooks/clickability-watch.js`) observes the last assistant message and logs violations to `~/.claude/commander/clickability-violations.jsonl`. Violations don't block — they're observed for telemetry.
-
-## Workflow-First Execution & Context Discipline
-
-The lead session is an **ORCHESTRATOR / control tower** — decisions, delegations, and verified conclusions only. Never let it fill with raw file contents or tool output.
-
-### Workflow-first
-- For a **substantive** task — multi-file, multi-step, research, audit, migration, or repo-wide review — use the **Workflow tool**, but only when the work is large, genuinely independent, and parallelizable. Fan out agents that read/search/build and return ONLY conclusions or structured results — never raw file dumps into the lead context.
-- Go **solo (inline)** for: a conversational reply, a single trivial edit, reading the one file you are about to edit, or anything finishable in a handful of tool calls. Opus 5 over-delegates without this cap — don't spawn a subagent for what you could just do.
-- Prefer pipeline stages over barriers (no idle wall-clock). Adversarially verify substantive or expensive-to-reverse findings before acting — lighter self-checks are fine for the rest. After you delegate a search, don't also run it yourself — wait for the result. Agents do the reading; you keep the decision.
-- **Delegation runs on Anthropic Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, beta — keep ON): the Workflow/Agent fan-out *is* the Teams mechanism; teammates coordinate via in-team SendMessage. This is the PRIMARY delegation path. **Cross-session peers (`send_message`) are BACKUP only** (harness-gated unattended) → your tracker's comments (e.g. Linear/Paperclip) are the autonomous cross-agent channel.
-
-### Keep context slim
-- Never read large tool outputs into context. Route big results to files — workflows return summaries; `list_*`/MCP overflow goes to disk, then `jq`/`grep`/slice it. **Never `cat` a large file** — read only the part you need (offset/limit).
-- Don't re-read a file you just edited; don't re-derive facts already established this session.
-- Reference code as `path:line`, not by pasting it.
-
-### Context strategy — auto-prepare for compaction
-- Track your context budget continuously; treat live context as **disposable**.
-- At **~70%** used: write/refresh `tasks/SESSION-HANDOFF-<date>.md` (state, decisions, what-NOT-to-retry, exact next step) **AND sync the same summary to your work tracker — a comment on the Linear/Paperclip/etc. issue — where the work is tracked there.** Two durable copies: local + tracker.
-- At **~85%** used: proactively compact / hand off rather than risk an uncontrolled mid-task truncation. The handoff doc + memory + tracker note ARE the resumable state. If a PreCompact hook is configured, treat it as a last-chance safety net, not the plan — prepare proactively rather than relying on it.
-
-**The test:** if the transcript reads like a control tower (decisions in, conclusions out) you're doing it right. If it's filling with file contents or re-reads — push that work into a workflow or a file.
-
-Canonical doctrine: `commander/cowork-plugin/rules/workflow-first.md`.
-
-## Cache Efficiency Rules
-1. Never add one-off permissions to global settings — use project-level
-2. Never change tools/models mid-session — use subagents
-3. Don't edit this file mid-session — put updates in messages
-4. Static content first, dynamic last
-5. Enable `ENABLE_TOOL_SEARCH` for deferred tool loading (see above)
+## Verification before done
+- [ ] The change works end to end (state the command or check that proved it).
+- [ ] Required checks pass: [list them].
+- [ ] No new type, build, or console errors.
+- [ ] Lessons from any correction are captured in `tasks/lessons.md`.
 
 ## Rules
-1. Never delete files without asking — archive or rename
-2. Git commit frequently with conventional commits
-3. Secrets: never hardcode — use env vars
-4. Skills: check `SKILLS-INDEX.md` before building from scratch
-5. Bug fixes: write reproduction test FIRST, then fix, then operationalize
-6. Decisions: use dialectic review for anything expensive to reverse
-
-## 🛠️ Hard-won operational rules
-
-Battle-tested from real multi-agent sessions. These override convenience — follow them exactly.
-
-### Hardened-worktree pattern (MANDATORY for ALL code-writing subagents / workflows)
-A worktree agent that edits via the MAIN repo's absolute path can leak files into the main tree. Every code-writing subagent or workflow stage MUST:
-1. Create its OWN worktree: `git -C <main> worktree add <main>/.claude/worktrees/<slug> -b <branch> origin/<base>`
-2. `cd` in, then VERIFY: `git rev-parse --show-toplevel` MUST equal that worktree path — **abort if not**.
-3. Edit **RELATIVE paths only**, inside the worktree. NEVER the main-repo absolute path.
-4. On finish: clean up, then VERIFY the main tree is tracked-clean: `git -C <main> status --porcelain | grep -v '^??'` MUST be EMPTY.
-- **Never hand a worktree-isolated subagent the MAIN absolute repo path as an edit target.**
-- **Verify the main tree is tracked-clean after every code-writing subagent.**
-
-### Git truth & restart resilience
-- Verify a branch tip via `gh api repos/<owner>/<repo>/commits/<branch>` or `git rev-parse origin/<branch>`. A local `git log -1` or a stale fetch can **lie**, especially right after a restart.
-- After a restart, if `git fetch` says `could not read Username` — the HTTPS credential bridge dropped. Run **`gh auth setup-git`** (wire this into a SessionStart hook).
-- For grep-of-git-show, use DIRECT `git show <ref>:<path> | grep ...` — **never** capture `git show` into a variable inside a loop (silent false-zeros).
-
-### Coordination & oversight
-- **Autonomous cross-session coordination = your tracker's comments** (e.g. Linear/Paperclip). Peer `send_message` is harness-gated when unattended — do not rely on it for unattended hand-offs.
-
-### CI & deploy
-- Flaky CI: `##[error]The operation was canceled` during a frontend build while backend tests passed = OOM / flaky runner → `gh run rerun <id> --failed`. If it recurs, scale the runner.
-- **Prod = explicit human GO (HARD RULE).** Gated PRs (no auto-merge) for sensitive or self-initiated code.
-
-### Reasoning posture
-- Default effort is **high** (Anthropic's Opus 5 guidance) and dynamic — escalate to `xhigh` for demanding coding/agentic work, `max` only when justified; never force a single level per task or onto subagents. Set the default via `"effortLevel": "high"` in `settings.json`. Don't reuse an `xhigh`-everywhere setting carried over from Opus 4.8 without re-sweeping it.
-- For substantial multi-file work (migrations, deep audits, repo-wide cleanups) operate in **ultracode posture**: plan a dynamic Workflow that fans out subagents and adversarially verifies findings, rather than a single-pass answer.
+1. Never delete without asking; archive or rename instead.
+2. Commit with conventional commits when a commit is requested.
+3. Never hardcode secrets; use environment variables or a secret manager.
+4. Bug fixes: reproduction test first, then the fix, then a sibling sweep.
+5. Decisions that are expensive to reverse get a dialectic review (for, against, referee).
+6. [Project-specific rule.]

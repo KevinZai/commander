@@ -1,66 +1,69 @@
 ---
-description: "Incrementally fix build and type errors with minimal, safe changes. Detects build system, fixes errors one at a time."
+description: "Fix build and type errors one at a time with the smallest safe change, re-running the build after each fix. Use when a build, compile or type check is failing."
 ---
 
-# Build and Fix
+# /ccc-build-fix — fix the build, one error at a time
 
-Incrementally fix build and type errors with minimal, safe changes.
+**CC Commander** · /ccc-build-fix · detects the build system, fixes errors in dependency order with minimal diffs, and proves the build is green.
 
-## Step 1: Detect Build System
+## What happens
 
-Identify the project's build tool and run the build:
+1. **Detect the build command.** Use the first matching indicator; for Node projects pick the package manager from the lockfile (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, otherwise `npm`).
 
-| Indicator | Build Command |
-|-----------|---------------|
-| `package.json` with `build` script | `npm run build` or `pnpm build` |
-| `tsconfig.json` (TypeScript only) | `npx tsc --noEmit` |
-| `Cargo.toml` | `cargo build 2>&1` |
-| `pom.xml` | `mvn compile` |
-| `build.gradle` | `./gradlew compileJava` |
-| `go.mod` | `go build ./...` |
-| `pyproject.toml` | `python -m py_compile` or `mypy .` |
+   | Indicator | Build command |
+   |---|---|
+   | `package.json` with a `build` script | `npm run build` (or `pnpm build` / `yarn build`) |
+   | `tsconfig.json` only | `npx tsc --noEmit` |
+   | `Cargo.toml` | `cargo build 2>&1` |
+   | `pom.xml` | `mvn compile` |
+   | `build.gradle` | `./gradlew compileJava` |
+   | `go.mod` | `go build ./...` |
+   | `pyproject.toml` | `mypy .` (or `python -m compileall -q .` without mypy) |
 
-## Step 2: Parse and Group Errors
+   If nothing matches, ask the user for the build command.
 
-1. Run the build command and capture stderr
-2. Group errors by file path
-3. Sort by dependency order (fix imports/types before logic errors)
-4. Count total errors for progress tracking
+2. **Run it and group the errors.** Capture stdout and stderr, group errors by file, order them so imports and type definitions come before logic errors, and count the total.
+3. **Fix loop, one error at a time.**
+   1. Read the file around the error (about 10 lines of context).
+   2. Find the root cause: missing import, wrong type, syntax error, bad config.
+   3. Make the smallest edit that resolves it.
+   4. Re-run the build command and confirm the error is gone and no new error appeared.
+   5. Move to the next error.
+4. **Stop and ask** (AskUserQuestion, plain-text question where unavailable) when:
+   - a fix produces more errors than it removes;
+   - the same error survives 3 attempts;
+   - the fix needs an architectural change rather than a build fix;
+   - the error comes from a missing dependency that needs `npm install`, `cargo add` or similar.
 
-## Step 3: Fix Loop (One Error at a Time)
+   Offer: 🟢 Stop here and summarize · Try the larger change I describe · Install the missing dependency (names the exact command).
 
-For each error:
-
-1. **Read the file** — Use Read tool to see error context (10 lines around the error)
-2. **Diagnose** — Identify root cause (missing import, wrong type, syntax error)
-3. **Fix minimally** — Use Edit tool for the smallest change that resolves the error
-4. **Re-run build** — Verify the error is gone and no new errors introduced
-5. **Move to next** — Continue with remaining errors
-
-## Step 4: Guardrails
-
-Stop and ask the user if:
-- A fix introduces **more errors than it resolves**
-- The **same error persists after 3 attempts** (likely a deeper issue)
-- The fix requires **architectural changes** (not just a build fix)
-- Build errors stem from **missing dependencies** (need `npm install`, `cargo add`, etc.)
-
-## Step 5: Summary
-
-Show results:
-- Errors fixed (with file paths)
-- Errors remaining (if any)
-- New errors introduced (should be zero)
-- Suggested next steps for unresolved issues
-
-## Recovery Strategies
+## Recovery strategies
 
 | Situation | Action |
-|-----------|--------|
-| Missing module/import | Check if package is installed; suggest install command |
-| Type mismatch | Read both type definitions; fix the narrower type |
-| Circular dependency | Identify cycle with import graph; suggest extraction |
-| Version conflict | Check `package.json` / `Cargo.toml` for version constraints |
-| Build tool misconfiguration | Read config file; compare with working defaults |
+|---|---|
+| Missing module or import | Check whether the package is installed; propose the install command. |
+| Type mismatch | Read both type definitions; fix the narrower type. |
+| Circular dependency | Trace the import cycle; propose extracting the shared piece. |
+| Version conflict | Read the constraints in `package.json` / `Cargo.toml` and the lockfile. |
+| Build tool misconfiguration | Read the config file and compare it with the tool's defaults. |
 
-Fix one error at a time for safety. Prefer minimal diffs over refactoring.
+## Done when
+
+Run the build command one final time and report its exit code and last lines of output, plus:
+
+- errors fixed, with file paths;
+- errors remaining, if any, with the reason each was left;
+- new errors introduced (expected: zero);
+- next steps for anything unresolved.
+
+`git diff --stat` shows the full set of edits.
+
+## Guardrails
+
+- Minimal diffs only: no refactors, renames or formatting changes beyond what an error requires.
+- Never silence an error with `any`, `@ts-ignore`, `# type: ignore` or disabled checks unless the user picks that option.
+- Never install, upgrade or remove dependencies without the user's choice in this conversation.
+
+## See also
+
+`/ccc-verify` · `/ccc-audit` · `/ccc-debug-session` · `/ccc-tdd`

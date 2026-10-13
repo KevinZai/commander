@@ -1,248 +1,172 @@
 ---
 name: ccc-qa
-description: "QA workflow. Runs unit + integration + E2E tests, coverage delta, edge case enumeration, flaky test quarantine. Delegates to qa-engineer agent."
+description: "QA pass before shipping: detects the framework, runs unit, integration and E2E suites, computes the coverage delta, audits flaky tests and has qa-engineer severity-rate gaps. Use when the user asks for a QA pass, to run all tests, check coverage, find flaky tests or if it is ready to ship."
 allowed-tools:
   - Bash
   - Read
+  - Write
   - Agent
+  - Skill
   - AskUserQuestion
-argument-hint: "[unit | integration | e2e | all | coverage]"
+argument-hint: "[unit | integration | e2e | all | coverage | flaky]"
+model: sonnet
+effort: medium
 ---
 
-# /ccc-qa — Comprehensive QA Workflow
+# /ccc-qa — QA pass before you ship
 
-Full QA pass before shipping. Detects test framework, runs all suites, reports coverage delta, flags edge cases and flaky tests. Delegates analysis to the `qa-engineer` subagent. Never marks QA passed with open 🔴 Critical findings.
+**CC Commander** · /ccc-qa · every suite run, coverage delta, flaky tests and missing edge cases, severity-rated.
 
-## Triggers
+## When to use / when not to
 
-- `/ccc-qa` or `/qa`
-- "QA pass", "run all tests", "test coverage check"
-- "before shipping", "pre-release checks", "is this ready to ship"
-- "check test coverage", "find missing tests"
-- "flaky test", "test suite health"
-- Coming from `/ccc-review` or `/ccc-ship`
+- Use for "QA pass", "run all tests", "check coverage", "find missing tests", "flaky test", "is this ready to ship", or when `/ccc-review` or `/ccc-ship` hands off here.
+- Use `/ccc-testing` first when the project has no tests yet; it scaffolds a suite.
+- Skip it for a single-function fix (write the targeted unit test directly) and for docs- or config-only changes with no testable behavior.
+- Use `/ccc-e2e` for a fanned-out pre-release assessment across isolated worktrees.
 
-## When NOT to Use
+## What happens
 
-- Greenfield project with no tests yet — use `/ccc-testing` to scaffold the test suite first
-- Single-function bug fixes where a targeted unit test is the right move (write it directly)
-- Pure documentation or config-only changes with no testable behavior
+### 1. Detect the framework
 
-## Process
-
-### Step 1 — Detect test framework
-
-Run the following in parallel via `Bash`:
+Run in parallel with Bash; a failing probe means "not this framework":
 
 ```bash
-# Detect JS/TS frameworks
-cat package.json 2>/dev/null | grep -E '"(vitest|jest|playwright|mocha|cypress|jasmine)"' | head -10
-
-# Detect config files
-ls *.config.{ts,js,mjs} vitest.config.* jest.config.* playwright.config.* pytest.ini setup.cfg \
-   go.mod Cargo.toml pom.xml 2>/dev/null
-
-# Detect Python
-python3 -m pytest --collect-only -q 2>/dev/null | tail -5
-
-# Detect Go
-go test ./... -list '.*' 2>/dev/null | head -10
-
-# Detect Rust
-cargo test --no-run 2>/dev/null | tail -5
-
-# Baseline coverage (if previously run)
-cat .ccc/coverage-history.json 2>/dev/null || cat coverage/coverage-summary.json 2>/dev/null | head -30
+grep -E '"(vitest|jest|@playwright/test|mocha|cypress|jasmine)"' package.json 2>/dev/null | head -10
+ls vitest.config.* jest.config.* playwright.config.* pytest.ini setup.cfg pyproject.toml go.mod Cargo.toml pom.xml 2>/dev/null
+python3 -m pytest --collect-only -q 2>/dev/null | tail -3
+cat .ccc/coverage-history.json 2>/dev/null
 ```
 
-**Detection logic:**
-- `vitest.config.*` present → **Vitest** (`npx vitest run --coverage`)
-- `jest.config.*` present or `"jest"` in scripts → **Jest** (`npx jest --coverage`)
-- `playwright.config.*` present → **Playwright** (`npx playwright test`)
-- `pytest.ini` or `setup.cfg [tool:pytest]` → **pytest** (`python3 -m pytest --cov`)
-- `go.mod` present → **Go test** (`go test ./... -cover`)
-- `Cargo.toml` present → **cargo test** (`cargo test 2>&1`)
-- `pom.xml` present → **JUnit via Maven** (`mvn test`)
-- None detected → report to user and offer to scaffold via `/ccc-testing`
+| Evidence | Framework | Run command |
+|---|---|---|
+| `vitest.config.*` or `vitest` dependency | Vitest | `npx vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=text` |
+| `jest.config.*` or `jest` dependency | Jest | `npx jest --coverage --coverageReporters=json-summary --coverageReporters=text` |
+| `playwright.config.*` | Playwright | `npx playwright test --reporter=list` |
+| `pytest.ini`, `[tool:pytest]` in `setup.cfg`, or `[tool.pytest.ini_options]` in `pyproject.toml` | pytest | `python3 -m pytest --cov=. --cov-report=term-missing -q` |
+| `go.mod` | Go | `go test ./... -cover -count=1` |
+| `Cargo.toml` | Rust | `cargo test` |
+| `pom.xml` | JUnit via Maven | `mvn test` |
 
-### Step 2 — Confirm scope
+When `package.json` defines a `test` script, prefer `npm test` for the unit lane and keep the coverage flags above only if the script does not already set them. If nothing is detected, say so and offer `/ccc-testing` to scaffold a suite; stop.
 
-```yaml
-question: "Which test suites should we run?"
-options:
-  - label: "🧪 All suites (unit + integration + E2E)"
-    description: "Full QA pass. Slowest, most thorough. Use before releases."
-  - label: "⚡ Unit + integration only"
-    description: "Skip E2E. Fast — good for mid-session checks."
-  - label: "🎭 E2E only (Playwright / Cypress)"
-    description: "Browser tests only. Requires running dev server."
-  - label: "📊 Coverage report only"
-    description: "No new test run — parse last run's coverage output."
-  - label: "🔁 Flaky test audit (run suite 3×)"
-    description: "Detect non-deterministic tests by running the full suite three times and comparing results."
-```
+### 2. Confirm scope
 
-### Step 3 — Run tests
+An argument (`unit`, `integration`, `e2e`, `all`, `coverage`, `flaky`) skips this picker. Otherwise ask with AskUserQuestion (Codex: a plain-text question):
 
-Execute based on detected framework and confirmed scope. Capture full stdout. Time the run.
+- question: "Which test suites should I run?" · header: "QA scope"
+- 🟢 All suites — unit, integration and E2E; slowest and most thorough, the pre-release pass
+- Unit and integration — skips E2E; a fast mid-session check
+- E2E only — Playwright or Cypress; needs the app reachable
+- Flaky audit — runs the suite three times and flags tests whose result changes
 
-**Vitest (unit + coverage):**
-```bash
-npx vitest run --coverage --reporter=verbose 2>&1 | tail -80
-```
+`coverage` parses the last run's coverage output without running tests (go to step 4).
 
-**Jest:**
-```bash
-npx jest --coverage --forceExit 2>&1 | tail -80
-```
+### 3. Run the suites
 
-**Playwright (E2E):**
-```bash
-# Confirm dev server is running first
-curl -s http://localhost:3000 > /dev/null && echo "server up" || echo "server down"
-npx playwright test --reporter=list 2>&1 | tail -60
-```
-
-**pytest:**
-```bash
-python3 -m pytest --cov=. --cov-report=term-missing -q 2>&1 | tail -60
-```
-
-**Go:**
-```bash
-go test ./... -cover -count=1 2>&1 | tail -40
-```
-
-**Flaky test detection (3-run mode):**
-```bash
-for i in 1 2 3; do
-  echo "=== Run $i ===" && npx vitest run --reporter=json 2>/dev/null | \
-  jq '[.testResults[].assertionResults[] | {name:.fullName, status:.status}]'
-done
-```
-Compare outputs across 3 runs. Any test with differing `status` across runs is flagged as flaky.
-
-### Step 4 — Compute coverage delta
+Run each selected command from step 1 with Bash, capture the full output to a file and time it:
 
 ```bash
-# Store current coverage
 mkdir -p .ccc
-CURRENT=$(cat coverage/coverage-summary.json 2>/dev/null | \
-  jq '{lines: .total.lines.pct, branches: .total.branches.pct, functions: .total.functions.pct}')
-PREV=$(cat .ccc/coverage-history.json 2>/dev/null | jq '.last // {}')
-echo "$CURRENT" > .ccc/coverage-history.json
-echo "Previous: $PREV"
-echo "Current:  $CURRENT"
+start=$(date +%s); <run command> > .ccc/qa-<lane>.log 2>&1; echo "exit=$? seconds=$(( $(date +%s) - start ))"
+tail -80 .ccc/qa-<lane>.log
 ```
 
-Report delta as: `lines: 74% → 82% (+8%)`, `branches: 61% → 65% (+4%)`.
-Flag any regression (delta < 0) as 🟠 High.
+A non-zero exit with failing tests is a finding, not a skill failure. A non-zero exit with no test output (missing dependency, config error) is reported verbatim and stops that lane.
 
-### Step 5 — Delegate to qa-engineer agent
+**E2E precondition.** If `playwright.config.*` has a `webServer` block, Playwright starts the app itself. Otherwise read `baseURL` from the config (default `http://localhost:3000`) and check it:
 
-Pass raw test output + coverage delta to the `qa-engineer` subagent:
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' "<baseURL>"
+```
+
+If it is unreachable, ask the user to start the dev server; never start one yourself.
+
+**Flaky audit (three runs, Vitest or Jest):**
+
+```bash
+mkdir -p .ccc
+for i in 1 2 3; do
+  npx vitest run --reporter=json --outputFile=".ccc/flaky-run-$i.raw.json" >/dev/null 2>&1
+  # Jest: npx jest --json --outputFile=".ccc/flaky-run-$i.raw.json" >/dev/null 2>&1
+  jq '[.testResults[].assertionResults[] | {name: .fullName, status}]' ".ccc/flaky-run-$i.raw.json" > ".ccc/flaky-run-$i.json"
+done
+jq -s 'add | group_by(.name) | map(select((map(.status) | unique | length) > 1)) | map(.[0].name)' .ccc/flaky-run-1.json .ccc/flaky-run-2.json .ccc/flaky-run-3.json
+```
+
+Every name printed is flaky. For other frameworks, run the step 1 command three times with no watch mode (`go test -count=1`, `pytest -rA`) and compare the pass/fail lines. Never use `--watch`.
+
+### 4. Compute the coverage delta
+
+For Vitest and Jest (Istanbul `coverage/coverage-summary.json`):
+
+```bash
+mkdir -p .ccc
+CURRENT=$(jq -c '{lines: .total.lines.pct, branches: .total.branches.pct, functions: .total.functions.pct}' coverage/coverage-summary.json 2>/dev/null)
+PREV=$(jq -c '.last // {}' .ccc/coverage-history.json 2>/dev/null)
+[ -z "$PREV" ] && PREV='{}'
+if [ -n "$CURRENT" ]; then
+  jq -n --argjson last "$CURRENT" --argjson previous "$PREV" '{last: $last, previous: $previous}' > .ccc/coverage-history.json
+fi
+echo "previous: $PREV"; echo "current:  ${CURRENT:-none}"
+```
+
+For pytest, Go and Rust, read the total from the run log (`TOTAL` line, `coverage: N%`) and store it the same way. Report each metric as `lines: 74% → 82% (+8)`. Any negative delta is 🟠 High. With no previous baseline, report the current numbers and say this run is the baseline.
+
+### 5. Delegate the analysis
+
+Dispatch the `qa-engineer` agent with the Agent tool (`effort: "medium"`). If the Agent tool does not list it, use `general-purpose` and make its first instruction "Read `${CLAUDE_PLUGIN_ROOT}/agents/qa-engineer.md` and follow it." Pass the tails of the `.ccc/qa-*.log` files, the flaky list and the delta, with this task:
 
 ```
-You are the qa-engineer persona. Analyze the test output and coverage delta below.
-
-Return a severity-rated QA report with these sections:
-1. Pass/fail counts per suite
-2. Coverage delta (lines, branches, functions)
-3. Flaky tests detected (name + inconsistency description)
-4. Top 5 missing edge cases inferred from failing or absent tests — use this template:
-   - empty input (null / undefined / "")
-   - max boundary (max int, max string length, rate limit)
-   - concurrent access (two writes at same time)
-   - unicode / special chars in user-controlled fields
-   - expired token / stale session at exact boundary second
-5. Severity-rated summary:
-   🔴 Critical — test failure blocks ship
-   🟠 High — coverage regression or flaky test in critical path
+Analyze the test output and coverage delta below. Return a QA report with:
+1. Pass/fail counts per suite.
+2. Coverage delta (lines, branches, functions).
+3. Flaky tests: name and how the result changed across runs.
+4. The five most important missing edge cases, inferred from failing or absent tests,
+   checked against: empty input, max boundary, concurrent access, unicode or special
+   characters in user-controlled fields, expired state at the exact boundary, oversize payloads.
+5. Every finding severity-rated:
+   🔴 Critical — a test failure that blocks ship
+   🟠 High — coverage regression, or a flaky test on a critical path
    🟡 Medium — missing edge case with moderate risk
-   🟢 Low — informational, style, or nit
-
-Keep total output under 300 words. Do not reproduce the full test log.
-
---- TEST OUTPUT ---
-{raw_output}
-
---- COVERAGE DELTA ---
-{delta}
+   🟢 Low — informational or style
+Keep it under 300 words. Quote file:line for each finding. Do not reproduce the full log.
 ```
 
-### Step 6 — Present results and next action
+The edge-case categories and worked examples are in [references/edge-cases.md](references/edge-cases.md).
 
-Render the agent's report. Then:
+### 6. Present results and the next action
 
-```yaml
-question: "QA complete — what's next?"
-options:
-  - label: "🔧 Fix failing tests now"
-    description: "Work through 🔴 and 🟠 findings before shipping."
-  - label: "📝 Write missing edge case tests"
-    description: "Scaffold the missing test cases surfaced by the qa-engineer."
-  - label: "🚀 Ship anyway (log findings)"
-    description: "Only valid if there are no 🔴 Critical findings. Logs report to .ccc/qa-report.md."
-  - label: "📌 File issues to Linear"
-    description: "Create Linear issues for each 🟠+ finding."
-```
+Render the agent's report, then ask with AskUserQuestion. Put 🟢 on "Fix failing tests" when any 🔴 or 🟠 finding exists, otherwise on "Ship with findings logged":
 
-## Edge Case Enumeration Template
+- question: "QA complete — what next?" · header: "Next"
+- 🔧 Fix failing tests — work through 🔴 and 🟠 findings before shipping
+- 📝 Write missing edge-case tests — scaffold the cases the qa-engineer surfaced
+- 🚀 Ship with findings logged — writes `.ccc/qa-report.md` and hands off to `/ccc-ship`; offered only when there are zero 🔴 findings
+- 📌 File issues to Linear — opt-in Linear connector via `/ccc-linear`, one issue per 🟠-or-worse finding; asks before creating anything
 
-When the qa-engineer returns missing edge cases, use this checklist as the base:
+## Done when
 
-| Category      | Example inputs to test |
-|---------------|------------------------|
-| Empty         | `""`, `null`, `undefined`, `[]`, `{}` |
-| Boundary      | `Number.MAX_SAFE_INTEGER`, string of 10,000 chars, 0, -1 |
-| Concurrent    | Two simultaneous writes to the same record |
-| Unicode       | `"тест@example.com"`, emoji in username, RTL string |
-| Expired state | Token at exact TTL boundary, stale session cookie |
-| Overflow      | Payload > server max body size, file > upload limit |
+- Every pass/fail count in the reply is quoted from a run log written in this turn (`ls -l .ccc/qa-*.log`).
+- When coverage ran, `jq . .ccc/coverage-history.json` shows the new `last` values.
+- The verdict is "QA passed" only with zero 🔴 findings; otherwise it is "QA blocked" with the blocking tests named.
+- For "Ship with findings logged", `.ccc/qa-report.md` exists and contains the report.
 
-## Examples
+## Guardrails
 
-### Example 1 — Auth refactor QA
+- Never mark QA passed with an open 🔴 Critical finding, and never offer the ship option while one exists.
+- Never skip the qa-engineer analysis; raw test output alone is not a QA report.
+- Never start a dev server or bind a port; ask the user to start it.
+- Never run suites in watch mode; always single-run (`run`, `-count=1`).
+- Filing tracker issues needs the user's explicit choice in step 6 and the Linear connector; it is absent by default.
 
-```
-/ccc-qa unit
-```
+## See also
 
-Framework detected: Vitest. Output: 187/187 pass, coverage 74% → 82% (+8% on `src/auth/*`).
-qa-engineer flags: missing concurrent session creation test (🟠 High), expired-token-at-boundary test (🟡 Medium).
-Decision chip: user picks "Write missing edge case tests."
+- `/ccc-testing` — testing domain router: TDD, E2E, load and visual testing
+- `/ccc-e2e` — parallel pre-release assessment in isolated worktrees
+- `/ccc-review` — code review before QA
+- `/ccc-ship` — release flow that reads the QA result
 
-### Example 2 — Payment flow QA
-
-```
-/ccc-qa all
-```
-
-Framework detected: Vitest + Playwright. Unit: 204/210 (6 failing). E2E: 12/12. Coverage delta: −3% branches (🟠 regression).
-qa-engineer flags: `POST /checkout` with empty cart returns 500 instead of 400 (🔴 Critical). Blocks ship.
-Decision chip: user picks "Fix failing tests now."
-
-### Example 3 — Migration QA (flaky audit)
-
-```
-/ccc-qa
-# User selects: Flaky test audit (run suite 3×)
-```
-
-Run 1: 145 pass. Run 2: 143 pass (2 fail). Run 3: 145 pass.
-qa-engineer flags `UserSessionManager.test.ts:88` as flaky (🟠 High — race condition in teardown).
-Decision chip: user picks "File issues to Linear."
-
-## Anti-patterns
-
-- Do not mark QA "passed" if there are 🔴 Critical findings
-- Do not skip the qa-engineer agent — raw test output alone is not a QA report
-- Do not run E2E without confirming the dev server is running
-- Do not run the flaky audit with `--watch` mode — always use `run` / `--count=1` for reproducibility
-
-## Attribution
-
-> Adapted from gstack — MIT licensed.
+Adapted from gstack (MIT licensed).
 
 ---
 

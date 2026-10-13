@@ -24,31 +24,33 @@ function resolveOutputDir() {
 
 const OUTPUT_DIR = resolveOutputDir();
 
-// Events not in Codex's 10-event hook surface (SessionStart, SubagentStart,
-// PreToolUse, PermissionRequest, PostToolUse, PreCompact, PostCompact,
-// UserPromptSubmit, SubagentStop, Stop). Verified 2026-07-22 against primary
-// docs (learn.chatgpt.com/docs/hooks) -- see hook-event-map.json for the
-// full per-event table. PreCompact/PostCompact/SubagentStart/SubagentStop
-// used to be listed here as unsupported; they are not -- dropping them was
-// silently killing Mission Control's subagent-start-tracker.js and
-// agent-run-logger.js writers on Codex.
-const HOOK_EVENTS_DROPPED_BY_BUILD = new Set([
-  'SessionEnd',
-  'Notification',
-  'StopFailure',
-  'PostToolUseFailure',
-  'PostToolBatch',
-  'Elicitation',
-  'ElicitationResult',
-  'TaskCreated',
-  'TaskCompleted',
-  'ConfigChange',
-  'UserPromptExpansion',
-  'InstructionsLoaded',
-  'Setup',
-]);
+// The dropped-event set is derived from hook-event-map.json (the single
+// per-event table): an event is kept only when the map names a Codex target.
+// Events the map marks `drop` (or maps to null) are dropped, and events the
+// map does not list at all are dropped with a warning, because Codex has a
+// fixed hook surface and an unmapped Claude event has no verified target.
+const HOOK_EVENT_MAP = JSON.parse(
+  await readFile(path.join(ADAPTER_DIR, 'hook-event-map.json'), 'utf8')
+);
 
-const SUPPORT_DIRS = ['hooks', 'lib', 'menus', 'rules'];
+function hookEventDisposition(event, hookMap = HOOK_EVENT_MAP) {
+  const mapping = hookMap.events?.[event];
+  if (!mapping) return 'unmapped';
+  if (mapping.status === 'drop' || mapping.codex == null) return 'drop';
+  return 'keep';
+}
+
+// Plugin-only Claude surfaces with no Codex equivalent. Never copied into the
+// mirror, even if a later edit adds them to SUPPORT_DIRS.
+const CLAUDE_ONLY_DIRS = new Set(['mods', 'evals', 'workflows']);
+
+const SUPPORT_DIRS = ['hooks', 'lib', 'menus', 'rules', 'scripts'];
+
+for (const dirName of SUPPORT_DIRS) {
+  if (CLAUDE_ONLY_DIRS.has(dirName)) {
+    throw new Error(`SUPPORT_DIRS must not include Claude-only directory ${dirName}/`);
+  }
+}
 
 const translatorModule = await import(
   pathToFileURL(path.join(ADAPTER_DIR, 'translate.js')).href
@@ -65,6 +67,10 @@ const {
   remapModel,
 } = translator;
 
+const { agentMarkdownToToml } = await import(
+  pathToFileURL(path.join(ADAPTER_DIR, 'agents-toml.js')).href
+);
+
 for (const [name, fn] of Object.entries({
   translateManifest,
   translateAgent,
@@ -73,6 +79,7 @@ for (const [name, fn] of Object.entries({
   translateMcp,
   mcpToToml,
   remapModel,
+  agentMarkdownToToml,
 })) {
   if (typeof fn !== 'function') {
     throw new TypeError(`Codex translator export ${name} is not a function`);
@@ -154,6 +161,9 @@ async function buildSkills() {
   let supportFileCount = 0;
 
   for (const relativePath of files) {
+    if (relativePath.split(path.sep).some((part) => CLAUDE_ONLY_DIRS.has(part))) {
+      continue;
+    }
     const inputPath = path.join(sourceSkillsDir, relativePath);
     const outputPath = path.join(outputSkillsDir, relativePath);
 
@@ -175,35 +185,9 @@ async function buildSkills() {
   return skillCount;
 }
 
-function extractSourceModel(markdown) {
-  const match = markdown.match(/^model:\s*(.+)$/m);
-  return match?.[1]?.trim() ?? '';
-}
-
-function ensureTomlMultilineSafety(toml) {
-  const startMarker = 'developer_instructions = """\n';
-  const start = toml.indexOf(startMarker);
-  const end = toml.lastIndexOf('\n"""');
-
-  if (start === -1 || end === -1 || end <= start) {
-    return toml.endsWith('\n') ? toml : `${toml}\n`;
-  }
-
-  const bodyStart = start + startMarker.length;
-  const body = toml.slice(bodyStart, end);
-
-  if (!body.includes('"""')) {
-    return toml.endsWith('\n') ? toml : `${toml}\n`;
-  }
-
-  if (body.includes("'''")) {
-    throw new Error('Agent instructions contain both TOML multiline delimiters');
-  }
-
-  const prefix = toml.slice(0, start);
-  return `${prefix}developer_instructions = '''\n${body}\n'''\n`;
-}
-
+// agents/<name>.md -> agents/<name>.toml (Codex custom-agent format, facts
+// §3.4). The files are valid standalone TOML: `/ccc-codex agents` copies the
+// ones the user picks into ~/.codex/agents/.
 async function buildAgents() {
   const sourceAgentsDir = path.join(SOURCE_DIR, 'agents');
   const outputAgentsDir = path.join(OUTPUT_DIR, 'agents');
@@ -212,15 +196,18 @@ async function buildAgents() {
   );
 
   for (const agentFile of agentFiles) {
-    const sourcePath = path.join(sourceAgentsDir, agentFile);
-    const markdown = await readFile(sourcePath, 'utf8');
-    const translatedAgent = ensureTomlMultilineSafety(translateAgent(markdown));
+    const markdown = await readFile(path.join(sourceAgentsDir, agentFile), 'utf8');
     const agentName = path.basename(agentFile, '.md');
-    const outputPath = path.join(outputAgentsDir, `${agentName}.toml`);
-    const model = remapModel(extractSourceModel(markdown));
+    const result = agentMarkdownToToml(markdown, {
+      fallbackName: agentName,
+      sourcePath: `commander/cowork-plugin/agents/${agentFile}`,
+    });
+    if (result.name !== agentName) {
+      throw new Error(`Agent ${agentFile} declares name "${result.name}"; it must match the file name`);
+    }
 
-    await writeText(outputPath, translatedAgent);
-    console.log(`→ agent ${agentName} translated (${model})`);
+    await writeText(path.join(outputAgentsDir, `${agentName}.toml`), result.toml);
+    console.log(`→ agent ${agentName} translated (${result.model}, ${result.sandboxMode})`);
   }
 
   return agentFiles.length;
@@ -230,8 +217,13 @@ function filterHooksForCodexBuild(claudeHooks) {
   const filteredHooks = { hooks: {} };
 
   for (const [event, handlers] of Object.entries(claudeHooks.hooks ?? {})) {
-    if (HOOK_EVENTS_DROPPED_BY_BUILD.has(event)) {
-      console.log(`⚠ event ${event} dropped`);
+    const disposition = hookEventDisposition(event);
+    if (disposition === 'drop') {
+      console.log(`⚠ event ${event} dropped (hook-event-map: no Codex target)`);
+      continue;
+    }
+    if (disposition === 'unmapped') {
+      console.log(`⚠ event ${event} dropped (not listed in hook-event-map.json)`);
       continue;
     }
 
@@ -294,7 +286,7 @@ async function buildAgentsMd() {
     '## What this directory is',
     '',
     'The Codex-format mirror of the CC Commander plugin: ' +
-      `${contract.plugin_skills} skills (\`skills/*/SKILL.md\`, byte-identical to the ` +
+      `${contract.plugin_skills} skills (\`skills/*/SKILL.md\`, translated from the ` +
       `Claude Code tree), ${contract.specialist_agents} specialist agent personas ` +
       '(`agents/*.toml`), the Codex-supported hook subset (`hooks.json`), and ' +
       `${contract.bundled_mcp_servers} credential-free MCP servers (\`.mcp.json\`).`,
@@ -337,6 +329,9 @@ async function buildAgentsMd() {
 async function buildSupportDirs() {
   for (const dirName of SUPPORT_DIRS) {
     if (dirName === 'hooks') {
+      continue;
+    }
+    if (CLAUDE_ONLY_DIRS.has(dirName)) {
       continue;
     }
 

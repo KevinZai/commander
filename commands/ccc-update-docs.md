@@ -1,74 +1,74 @@
 ---
-description: "Sync documentation with the codebase by generating from source-of-truth files."
+description: "Regenerate the generated parts of project docs (scripts reference, environment variables, contributing guide, runbook) from source-of-truth files and flag stale docs, leaving hand-written prose intact. Use when docs drift from the code or after changing scripts, env vars or deploy steps."
 ---
 
-# Update Documentation
+# /ccc-update-docs — docs generated from the code
 
-Sync documentation with the codebase, generating from source-of-truth files.
+**CC Commander** · /ccc-update-docs · updates only marked, generated sections from source-of-truth files and reports what changed and what is stale.
 
-## Step 1: Identify Sources of Truth
+## Arguments
+
+`$ARGUMENTS` optionally limits the run to `scripts`, `env`, `contributing`, `runbook` or `stale`. Empty runs every step whose source exists.
+
+## Sources of truth
 
 | Source | Generates |
-|--------|-----------|
-| `package.json` scripts | Available commands reference |
-| `.env.example` | Environment variable documentation |
+|---|---|
+| `package.json` scripts, `Makefile`, `Cargo.toml`, `pyproject.toml` | Commands reference |
+| `.env.example`, `.env.template`, `.env.sample` | Environment variable reference |
 | `openapi.yaml` / route files | API endpoint reference |
-| Source code exports | Public API documentation |
-| `Dockerfile` / `docker-compose.yml` | Infrastructure setup docs |
+| Source code exports | Public API reference |
+| `Dockerfile`, `docker-compose.yml` | Infrastructure setup |
 
-## Step 2: Generate Script Reference
-
-1. Read `package.json` (or `Makefile`, `Cargo.toml`, `pyproject.toml`)
-2. Extract all scripts/commands with their descriptions
-3. Generate a reference table:
+Every generated block sits between markers so later runs replace only that block:
 
 ```markdown
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Production build with type checking |
-| `npm test` | Run test suite with coverage |
+<!-- AUTO-GENERATED:scripts -->
+...
+<!-- /AUTO-GENERATED:scripts -->
 ```
 
-## Step 3: Generate Environment Documentation
+## What happens
 
-1. Read `.env.example` (or `.env.template`, `.env.sample`)
-2. Extract all variables with their purposes
-3. Categorize as required vs optional
-4. Document expected format and valid values
+1. **Commands reference.** Read the scripts from the sources above (for Node: `node -e 'console.log(JSON.stringify(require("./package.json").scripts,null,2))'`). Describe each from its command line and any comment, and write a table into the `scripts` block:
 
-```markdown
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string | `postgres://user:pass@host:5432/db` |
-| `LOG_LEVEL` | No | Logging verbosity (default: info) | `debug`, `info`, `warn`, `error` |
-```
+   ```markdown
+   | Command | Description |
+   |---|---|
+   | `npm run dev` | Start the development server with hot reload |
+   | `npm run build` | Production build with type checking |
+   | `npm test` | Run the test suite with coverage |
+   ```
 
-## Step 4: Update Contributing Guide
+2. **Environment reference.** Read the example env file only (never `.env` or `.env.local`). For each variable record required or optional, purpose, format and an example value taken from the example file, never a real value:
 
-Generate or update `docs/CONTRIBUTING.md` with:
-- Development environment setup (prerequisites, install steps)
-- Available scripts and their purposes
-- Testing procedures (how to run, how to write new tests)
-- Code style enforcement (linter, formatter, pre-commit hooks)
-- PR submission checklist
+   ```markdown
+   | Variable | Required | Description | Example |
+   |---|---|---|---|
+   | `DATABASE_URL` | Yes | PostgreSQL connection string | `postgres://user:pass@host:5432/db` |
+   | `LOG_LEVEL` | No | Logging verbosity (default: info) | `debug`, `info`, `warn`, `error` |
+   ```
 
-## Step 5: Update Runbook
+3. **Contributing guide.** Update the generated blocks of `docs/CONTRIBUTING.md`: environment setup (prerequisites, install steps), available scripts, how to run and write tests, code style enforcement (linter, formatter, pre-commit hooks) and the PR checklist.
 
-Generate or update `docs/RUNBOOK.md` with:
-- Deployment procedures (step-by-step)
-- Health check endpoints and monitoring
-- Common issues and their fixes
-- Rollback procedures
-- Alerting and escalation paths
+4. **Runbook.** Update the generated blocks of `docs/RUNBOOK.md`: deployment steps, health check endpoints and monitoring, common issues and fixes, rollback procedure, alerting and escalation paths. Take each from the repo (CI workflows, deploy scripts, health routes); leave a `TODO` rather than invent a step.
 
-## Step 6: Staleness Check
+5. **Staleness check.** For each doc, compare its last commit date with the last commit to the code it describes:
 
-1. Find documentation files not modified in 90+ days
-2. Cross-reference with recent source code changes
-3. Flag potentially outdated docs for manual review
+   ```bash
+   git log -1 --format=%cs -- docs/DEPLOY.md
+   git log -1 --format=%cs -- <related source paths>
+   ```
 
-## Step 7: Show Summary
+   Flag docs untouched for 90 days or more whose related source changed since, for manual review.
+
+## Decision points
+
+Ask with AskUserQuestion (plain-text question where it is unavailable) when a target doc does not exist: 🟢 Skip it and list it in the summary · Create it with generated sections only. Do not create new doc files without this choice or an explicit request.
+
+## Done when
+
+Run `git diff --stat` and report it with the summary:
 
 ```
 Documentation Update
@@ -80,9 +80,14 @@ Skipped:  docs/API.md (no changes detected)
 ──────────────────────────────
 ```
 
-## Rules
+The diff must touch only content inside `AUTO-GENERATED` markers; if it shows other lines changed, revert those lines and report it.
 
-- **Single source of truth**: Always generate from code, never manually edit generated sections
-- **Preserve manual sections**: Only update generated sections; leave hand-written prose intact
-- **Mark generated content**: Use `<!-- AUTO-GENERATED -->` markers around generated sections
-- **Don't create docs unprompted**: Only create new doc files if the command explicitly requests it
+## Guardrails
+
+- Generate from code; never hand-edit inside generated blocks, and never touch prose outside them.
+- Never read or copy values from real env files or secrets into docs.
+- Do not create doc files unprompted.
+
+## See also
+
+`/ccc-update-codemaps` · `/ccc-doc-sync` · `/ccc-docs`

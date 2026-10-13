@@ -4,7 +4,7 @@
   the repo-root scripts/build-cockpit.mjs is a thin spawn shim).
   The generator replaces two markers (shown here without their comment
   wrappers so this doc block doesn't itself count as a marker):
-    BRAND_CSS marker  → brandBaseCss() from commander/cowork-plugin/lib/brand-css.js
+    BRAND_CSS marker  → brandArtifactCss() from commander/cowork-plugin/lib/brand-css.js
                           (the shared commanderplugin.com design system: tokens +
                           terminal/eyebrow/status primitives). Single source of truth.
     COCKPIT_DATA marker → window.__COCKPIT__ = { ...payload }:
@@ -31,8 +31,6 @@
         prompt bodies) and readyiqFunnel is rendered as a standalone card, never a searchable entry.
   Constraints: 100% self-contained when rendered — no external URLs of any kind.
 -->
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Commander Cockpit</title>
 <style>
 /*__BRAND_CSS__*/
@@ -416,7 +414,7 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
       <div class="eyebrow" style="margin-bottom:12px">✏️ Edit profile — <span id="mgr-name"></span></div>
       <div class="selrow">
         <input id="mgr-role" class="in" style="flex:1;min-width:180px" placeholder="Role — e.g. Senior code reviewer">
-        <select id="mgr-model"><option>inherit</option><option>claude-sonnet-5</option><option>claude-opus-5</option><option>claude-haiku-4-5</option></select>
+        <select id="mgr-model"><option>inherit</option><option>fable</option><option>opus</option><option>sonnet</option><option>haiku</option></select>
         <select id="mgr-effort"><option>inherit</option><option>low</option><option>medium</option><option>high</option><option>xhigh</option></select>
       </div>
       <textarea id="mgr-desc" placeholder="What this agent does, when to use it…"></textarea>
@@ -1036,11 +1034,17 @@ footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border
     if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(done, done); }
     else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); done(); }
   });
-  if (window.claude && window.claude.downloads && window.claude.downloads.save) {
-    var dl = $('mgr-download'); dl.hidden = false;
-    dl.addEventListener('click', function () {
-      window.claude.downloads.save({ filename: (editing ? editing.id : 'agent') + '.md', data: profileText() }).catch(function () {});
-    });
+  // Runtime contract: capabilities arrive through claude.use(), never as
+  // window.claude members. null = this view cannot save files; keep it hidden.
+  if (window.claude && typeof window.claude.use === 'function') {
+    window.claude.use('downloads').then(function (downloads) {
+      if (!downloads) return;
+      var dl = $('mgr-download'); dl.hidden = false;
+      dl.addEventListener('click', function () {
+        var text = profileText(); if (!text) return;
+        downloads.save({ filename: (editing ? editing.id : 'agent') + '.md', data: text }).catch(function () {});
+      });
+    }, function () {});
   }
   mgrRender();
 })();

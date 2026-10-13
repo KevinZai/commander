@@ -1,94 +1,106 @@
 ---
 name: ccc-mobile
-description: "CCC domain — complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Compose, testing, ASO, push notifications, and deep linking."
-version: 1.0.0
-category: CCC domain
-brand: Kevin Z's CC Commander
-tags: [CCC domain, mobile, ios, android]
+description: "Route mobile work to one specialist sub-skill: React Native, Flutter, SwiftUI, Jetpack Compose, mobile testing, store optimization, push notifications or deep links. Use when building, testing or shipping an iOS or Android app."
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - AskUserQuestion
+argument-hint: "[react-native | flutter | swiftui | jetpack-compose | testing | aso | push | deep-links]"
+model: inherit
+effort: medium
 ---
 
-# ccc-mobile
+# /ccc-mobile — mobile work, one specialist
 
-> Load ONE skill. Get the entire mobile development domain. From cross-platform frameworks to native iOS/Android to distribution and engagement.
+**CC Commander** · ccc-mobile · picks the mobile sub-skill for the detected platform and intent, then follows it.
 
-## Sub-Skills
+The user's selected model is preserved. Codex: ask each picker as a plain-text question with the same options.
 
-| # | Skill | Command | Description |
-|---|-------|---------|-------------|
-| 1 | react-native | `/react-native` | React Native development patterns, navigation, native modules |
-| 2 | flutter | `/flutter` | Flutter/Dart development, widget architecture, state management |
-| 3 | swiftui | `/swiftui` | SwiftUI development, MVVM patterns, iOS-specific features |
-| 4 | jetpack-compose | `/jetpack-compose` | Jetpack Compose for Android, Material Design 3 |
-| 5 | mobile-testing | `/mobile-testing` | Mobile testing with Detox, Maestro, XCTest, Espresso |
-| 6 | app-store-optimization | `/app-store-optimization` | ASO for App Store and Play Store listings |
-| 7 | push-notifications | `/push-notifications` | Push notification setup with FCM, APNs, OneSignal |
-| 8 | deep-linking | `/deep-linking` | Universal links, app links, deep linking configuration |
+## When to use / when not to
 
-## How To Use
+- Use for native or cross-platform mobile apps, their device tests, store listings, push notifications and deep links.
+- Use `/ccc-build` for web apps, APIs and CLIs, and `/ccc-design` for web UI.
 
-**Step 1:** Tell me what you're building and which platform(s) you're targeting.
+## Sub-skills
 
-**Step 2:** I'll confirm your framework choice, target OS versions, and any constraints before routing to the specialist.
+Each lives at `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` and sets `disable-model-invocation: true`, so it loads only when this router reads it.
 
-**Step 3:** The specialist skill handles the work. You get mobile expertise across the full stack without loading 8 separate skills.
+| Sub-skill | Use for | Not for |
+|---|---|---|
+| `react-native` | React Native and Expo: navigation, native modules, state | Dart or Flutter projects |
+| `flutter` | Flutter and Dart: widget architecture, state management, platform channels | JS-based apps |
+| `swiftui` | SwiftUI on iOS: MVVM, Combine and async/await, Apple platform features | Android |
+| `jetpack-compose` | Compose on Android: Material Design 3, composable architecture | iOS |
+| `mobile-testing` | Detox, Maestro, XCTest, Espresso, CI integration | Building features |
+| `app-store-optimization` | App Store and Play Store keywords, screenshots, descriptions | In-app engagement |
+| `push-notifications` | FCM, APNs, OneSignal, rich notifications | Navigation into the app |
+| `deep-linking` | Universal links, Android App Links, deferred deep links | Messaging users |
 
-## Routing Matrix
+Multi-step campaigns (cross-platform, native iOS, native Android) and the platform selection guide are in [references/campaigns.md](references/campaigns.md).
 
-| Your Intent | Route To | Don't Confuse With |
-|-------------|----------|--------------------|
-| "Build a React Native app" / "RN navigation" / "Expo" | `react-native` | `flutter` (different framework entirely) |
-| "Flutter app" / "Dart widget" / "Riverpod" | `flutter` | `react-native` (JS-based, not Dart) |
-| "SwiftUI view" / "iOS native" / "Combine" | `swiftui` | `jetpack-compose` (Android, not iOS) |
-| "Compose UI" / "Android native" / "Material 3" | `jetpack-compose` | `swiftui` (iOS, not Android) |
-| "Test my app" / "E2E mobile test" / "Detox" | `mobile-testing` | Framework skills (building, not testing) |
-| "App Store listing" / "Play Store optimization" | `app-store-optimization` | `push-notifications` (engagement, not discovery) |
-| "Push notifications" / "FCM" / "APNs" | `push-notifications` | `deep-linking` (navigation, not messaging) |
-| "Deep links" / "Universal links" / "App links" | `deep-linking` | `push-notifications` (messaging, not navigation) |
+## What happens
 
-## Campaign Templates
+1. **Detect the platform.** Run in one Bash call; missing files are not errors:
 
-### Cross-Platform App (React Native)
-1. `react-native` -> scaffold project, navigation, state management
-2. `push-notifications` -> integrate FCM + APNs via React Native Firebase
-3. `deep-linking` -> configure universal links and app links
-4. `mobile-testing` -> set up Detox E2E tests
-5. `app-store-optimization` -> optimize store listings before launch
-6. Deliver: production-ready cross-platform app with notifications, deep linking, and tests
+   ```bash
+   test -f package.json && grep -oE '"(expo|react-native)"' package.json | sort -u
+   test -f pubspec.yaml && echo flutter
+   ls -d *.xcodeproj *.xcworkspace Package.swift 2>/dev/null
+   grep -lE 'androidx\.compose' build.gradle* app/build.gradle* 2>/dev/null
+   ```
 
-### Native iOS App
-1. `swiftui` -> build UI with SwiftUI, implement MVVM architecture
-2. `push-notifications` -> configure APNs and notification handling
-3. `deep-linking` -> set up universal links and custom URL schemes
-4. `mobile-testing` -> write XCTest unit and UI tests
-5. `app-store-optimization` -> optimize App Store listing
-6. Deliver: native iOS app with full notification and deep link support
+   Report one line: `🎯 Platform: Expo | React Native | Flutter | SwiftUI | Jetpack Compose | none detected`.
 
-### Native Android App
-1. `jetpack-compose` -> build UI with Compose, Material Design 3
-2. `push-notifications` -> configure FCM and notification channels
-3. `deep-linking` -> set up Android App Links and intent filters
-4. `mobile-testing` -> write Espresso and Compose UI tests
-5. `app-store-optimization` -> optimize Play Store listing
-6. Deliver: native Android app with Material 3, notifications, and testing
+2. **Route.** An argument or an unambiguous request maps straight to a row in the table above (`testing` → `mobile-testing`, `aso` → `app-store-optimization`, `push` → `push-notifications`, `deep-links` → `deep-linking`). Otherwise go to Decision points.
 
-## Platform Selection Guide
+3. **Load one sub-skill.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` (repo fallback: `skills/ccc-mobile/<sub-skill>/SKILL.md`). If the file is missing, say so and stop; do not improvise its content. Load the next sub-skill only when the current step is done or a campaign calls for it.
 
-```
-Which platform should you target?
-|
-+-- Need iOS + Android from one codebase?
-|   +-- Team knows React/JS? -> react-native
-|   +-- Want best cross-platform performance? -> flutter
-|
-+-- Need native platform experience?
-|   +-- iOS only? -> swiftui
-|   +-- Android only? -> jetpack-compose
-|
-+-- Not sure?
-    +-- Start with react-native if team knows JS/TS
-    +-- Start with flutter if team wants maximum UI control
-```
+4. **Do the work** as the sub-skill directs, confirming target OS versions and constraints it asks about.
 
-## Context Strategy
+5. **Verify.** After any code change, run the platform check and `git status --short`:
 
-This CCC domain uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.
+   | Platform | Check |
+   |---|---|
+   | Expo / React Native | `npx expo-doctor` (Expo) or the project's `npm test` |
+   | Flutter | `flutter analyze` and `flutter test` |
+   | SwiftUI | `xcodebuild -list`, then the project's test scheme with `xcodebuild test` |
+   | Jetpack Compose | `./gradlew assembleDebug` and `./gradlew test` |
+
+   On failure, report the failing output, fix within scope, and rerun.
+
+## Decision points
+
+No argument and no clear intent: ask with AskUserQuestion (header "Mobile"):
+
+- 🟢 Build or extend the app — the sub-skill for the detected platform
+- Test it — `mobile-testing`
+- Ship to the stores — `app-store-optimization`
+- Push or deep links — a follow-up picker with `push-notifications` and `deep-linking`
+
+No platform detected and the user wants a new app: ask with AskUserQuestion (header "Platform"):
+
+- 🟢 React Native — one codebase for both platforms; best when the team knows React
+- Flutter — one codebase with the strongest custom UI and rendering control
+- SwiftUI — iOS only, fully native
+- Jetpack Compose — Android only, fully native
+
+## Done when
+
+- Routing only: the sub-skill file was read and the user knows which one is active.
+- Code changed: the platform check exited 0 in this turn and `git status --short` lists only the intended files; report the actual output.
+
+## Guardrails
+
+- Never submit to the App Store or Play Store, upload builds, or send pushes to real devices without the user's explicit OK at that moment.
+- Never write signing keys, push certificates or API keys into the repo; use the platform's secret store.
+- Never scaffold a new app inside an existing project's root.
+- Load one sub-skill at a time.
+
+## See also
+
+- `/ccc-build` — web apps, APIs and CLIs
+- `/ccc-testing` — test strategy beyond device tests
+- `/ccc-design` — design tokens and visual direction
+- `/ccc-ship` — release flow once the build is green

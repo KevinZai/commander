@@ -1,66 +1,68 @@
 ---
-description: "Multi-model collaborative execution: prototype from plan, Claude refactors, then multi-model audit and delivery."
+description: "Multi-model collaborative execution: get a diff prototype from Codex or Gemini, refactor and apply it, then run a dual-model audit before delivery. Use to run a plan saved by /ccc-multi-plan."
 ---
 
-# Execute - Multi-Model Collaborative Execution
+# /ccc-multi-execute — run a multi-model plan
 
-Multi-model collaborative execution - Get prototype from plan → Claude refactors and implements → Multi-model audit and delivery.
+**CC Commander** · /ccc-multi-execute · a plan implemented by the assistant from model prototypes, audited by two models, verified by tests.
 
-$ARGUMENTS
+## Usage
 
----
+```bash
+# Run a saved plan
+/ccc-multi-execute .claude/plan/feature-name.md
 
-## Core Protocols
-
-- **Language Protocol**: Use **English** when interacting with tools/models, communicate with user in their language
-- **Code Sovereignty**: External models have **zero filesystem write access**, all modifications by Claude
-- **Dirty Prototype Refactoring**: Treat Codex/Gemini Unified Diff as "dirty prototype", must refactor to production-grade code
-- **Stop-Loss Mechanism**: Do not proceed to next phase until current phase output is validated
-- **Prerequisite**: Only execute after user explicitly replies "Y" to `/ccg:plan` output (if missing, must confirm first)
-
----
-
-## Multi-Model Call Specification
-
-**Call Syntax** (parallel: use `run_in_background: true`):
-
+# Run a task already planned in this conversation
+/ccc-multi-execute implement user authentication based on the previous plan
 ```
-# Resume session call (recommended) - Implementation Prototype
-Bash({
-  command: "~/.claude/bin/codeagent-wrapper {{LITE_MODE_FLAG}}--backend <codex|gemini> {{GEMINI_MODEL_FLAG}}resume <SESSION_ID> - \"$PWD\" <<'EOF'
+
+Input: `$ARGUMENTS`.
+
+## Protocols
+
+- Use English with tools and external models; reply to the user in their language.
+- External models never write to the filesystem. The assistant makes every change.
+- Treat each model's unified diff as a rough prototype and refactor it to production quality before applying.
+- Do not start the next phase until the current phase's output is checked.
+- The user's selected session model is preserved.
+
+## Prerequisite: ccg-workflow runtime (opt-in)
+
+This command calls the external `ccg-workflow` runtime, which Commander does not bundle. Check it first:
+
+```bash
+test -x ~/.claude/bin/codeagent-wrapper && ls ~/.claude/.ccg/prompts/codex ~/.claude/.ccg/prompts/gemini
+```
+
+If the check fails, ask with AskUserQuestion (Codex: a plain-text question):
+
+- 🟢 Execute Claude-only — implement the plan with built-in tools and skip prototypes and model audits
+- Install first — point the user to the upstream ccg-workflow installation guide and stop
+- Cancel — stop without changes
+
+## Model calls
+
+Run every wrapper call with Bash, `run_in_background: true` and `timeout: 3600000`. Add any extra flags your ccg-workflow install documents (for example lite mode) before `--backend`. For Gemini, pass `--gemini-model <model>` with the model your install documents, or omit it to use the wrapper default. Prefer `resume <SESSION_ID>` with the id from the plan; start a new session when the plan has none.
+
+Prototype call:
+
+```bash
+~/.claude/bin/codeagent-wrapper --backend <codex|gemini> [--gemini-model <model>] resume <SESSION_ID> - "$PWD" <<'EOF'
 ROLE_FILE: <role prompt path>
 <TASK>
 Requirement: <task description>
 Context: <plan content + target files>
 </TASK>
-OUTPUT: Unified Diff Patch ONLY. Strictly prohibit any actual modifications.
-EOF",
-  run_in_background: true,
-  timeout: 3600000,
-  description: "Brief description"
-})
-
-# New session call - Implementation Prototype
-Bash({
-  command: "~/.claude/bin/codeagent-wrapper {{LITE_MODE_FLAG}}--backend <codex|gemini> {{GEMINI_MODEL_FLAG}}- \"$PWD\" <<'EOF'
-ROLE_FILE: <role prompt path>
-<TASK>
-Requirement: <task description>
-Context: <plan content + target files>
-</TASK>
-OUTPUT: Unified Diff Patch ONLY. Strictly prohibit any actual modifications.
-EOF",
-  run_in_background: true,
-  timeout: 3600000,
-  description: "Brief description"
-})
+OUTPUT: Unified Diff Patch only. Do not modify any files.
+EOF
 ```
 
-**Audit Call Syntax** (Code Review / Audit):
+For a new session, drop `resume <SESSION_ID>`.
 
-```
-Bash({
-  command: "~/.claude/bin/codeagent-wrapper {{LITE_MODE_FLAG}}--backend <codex|gemini> {{GEMINI_MODEL_FLAG}}resume <SESSION_ID> - \"$PWD\" <<'EOF'
+Audit call:
+
+```bash
+~/.claude/bin/codeagent-wrapper --backend <codex|gemini> [--gemini-model <model>] resume <SESSION_ID> - "$PWD" <<'EOF'
 ROLE_FILE: <role prompt path>
 <TASK>
 Scope: Audit the final code changes.
@@ -68,252 +70,115 @@ Inputs:
 - The applied patch (git diff / final unified diff)
 - The touched files (relevant excerpts if needed)
 Constraints:
-- Do NOT modify any files.
-- Do NOT output tool commands that assume filesystem access.
+- Do not modify any files.
+- Do not output tool commands that assume filesystem access.
 </TASK>
 OUTPUT:
 1) A prioritized list of issues (severity, file, rationale)
 2) Concrete fixes; if code changes are needed, include a Unified Diff Patch in a fenced code block.
-EOF",
-  run_in_background: true,
-  timeout: 3600000,
-  description: "Brief description"
-})
+EOF
 ```
 
-**Model Parameter Notes**:
-- `{{GEMINI_MODEL_FLAG}}`: When using `--backend gemini`, replace with `--gemini-model gemini-3-pro-preview` (note trailing space); use empty string for codex
-
-**Role Prompts**:
-
 | Phase | Codex | Gemini |
-|-------|-------|--------|
+|---|---|---|
 | Implementation | `~/.claude/.ccg/prompts/codex/architect.md` | `~/.claude/.ccg/prompts/gemini/frontend.md` |
 | Review | `~/.claude/.ccg/prompts/codex/reviewer.md` | `~/.claude/.ccg/prompts/gemini/reviewer.md` |
 
-**Session Reuse**: If `/ccg:plan` provided SESSION_ID, use `resume <SESSION_ID>` to reuse context.
+Wait for every background call to finish before moving on; the harness reports when each exits. Do not kill a running call. If one reaches its timeout, ask with AskUserQuestion:
 
-**Wait for Background Tasks** (max timeout 600000ms = 10 minutes):
+- 🟢 Keep waiting — poll the call again
+- Stop the call — continue with the other model's result
+- Cancel — end the run here and report what was done
 
-```
-TaskOutput({ task_id: "<task_id>", block: true, timeout: 600000 })
-```
+## Steps
 
-**IMPORTANT**:
-- Must specify `timeout: 600000`, otherwise default 30 seconds will cause premature timeout
-- If still incomplete after 10 minutes, continue polling with `TaskOutput`, **NEVER kill the process**
-- If waiting is skipped due to timeout, **MUST call `AskUserQuestion` to ask user whether to continue waiting or kill task**
+### Phase 0 — Read the plan `[Mode: Prepare]`
 
----
+1. Identify the input: a plan file path (for example `.claude/plan/xxx.md`) or a direct task description.
+2. If it is a path, read it and extract the task type, implementation steps, key files and session ids (`CODEX_SESSION`, `GEMINI_SESSION`).
+3. Confirm before executing when the input is a direct description, the plan lacks session ids or key files, or the user has not approved the plan in this conversation. Ask with AskUserQuestion:
+   - 🟢 Execute this plan — continue to retrieval
+   - Revise the plan first — stop and return to `/ccc-multi-plan`
+   - Cancel — stop without changes
+4. Route by task type:
 
-## Execution Workflow
+   | Task type | Signals | Route |
+   |---|---|---|
+   | Frontend | pages, components, UI, styles, layout | Gemini |
+   | Backend | API, interfaces, database, logic, algorithms | Codex |
+   | Fullstack | both | Codex and Gemini in parallel |
 
-**Execute Task**: $ARGUMENTS
+### Phase 1 — Context `[Mode: Retrieval]`
 
-### Phase 0: Read Plan
+1. With the opt-in ace-tool MCP server connected, call:
 
-`[Mode: Prepare]`
+   ```
+   mcp__ace-tool__search_context({
+     query: "<semantic query covering key files, modules, function names>",
+     project_root_path: "$PWD"
+   })
+   ```
 
-1. **Identify Input Type**:
-   - Plan file path (e.g., `.claude/plan/xxx.md`)
-   - Direct task description
+   Build the query from the plan's Key Files table: entry files, dependency modules, related type definitions. If the results are thin, run one or two more retrievals.
+2. Without ace-tool, use Glob on the Key Files paths (for example `src/components/**/*.tsx`), Grep for key symbols and types, Read for the files found, and the Agent tool with the Explore subagent for wider searches.
+3. Confirm the context is complete for implementation before continuing.
 
-2. **Read Plan Content**:
-   - If plan file path provided, read and parse
-   - Extract: task type, implementation steps, key files, SESSION_ID
+### Phase 2 — Prototype `[Mode: Prototype]`
 
-3. **Pre-Execution Confirmation**:
-   - If input is "direct task description" or plan missing `SESSION_ID` / key files: confirm with user first
-   - If cannot confirm user replied "Y" to plan: must confirm again before proceeding
+- **Frontend → Gemini.** Keep the context under 32k tokens. Use `gemini/frontend.md`; input the plan, retrieved context and target files; request a unified diff only. Gemini's CSS/React/Vue prototype is the visual baseline; ignore its backend logic suggestions. Resume `GEMINI_SESSION` when present.
+- **Backend → Codex.** Use `codex/architect.md`; same inputs; unified diff only. Codex is the authority on backend logic. Resume `CODEX_SESSION` when present.
+- **Fullstack.** Call both in parallel, each on its part, each resuming its own session id (new session if missing). Wait for both.
 
-4. **Task Type Routing**:
+### Phase 3 — Implement `[Mode: Implement]`
 
-   | Task Type | Detection | Route |
-   |-----------|-----------|-------|
-   | **Frontend** | Pages, components, UI, styles, layout | Gemini |
-   | **Backend** | API, interfaces, database, logic, algorithms | Codex |
-   | **Fullstack** | Contains both frontend and backend | Codex ∥ Gemini parallel |
+1. Parse the returned unified diff.
+2. Simulate applying it to the target files: check logical consistency, conflicts and side effects.
+3. Refactor the prototype into readable, maintainable code that follows the project's standards; remove redundancy; add comments only where the code cannot speak for itself.
+4. Keep changes inside the plan's scope and review each for side effects.
+5. Apply the changes with Edit and Write, touching only necessary code.
+6. Run the project's lint, typecheck and test commands for the affected scope (from `package.json`, `Makefile`, `pyproject.toml` or the project `CLAUDE.md`, for example `npm run lint`, `npm run typecheck`, `npm test -- <path>`). Fix any regression before Phase 4.
 
----
+### Phase 4 — Audit and delivery `[Mode: Audit]`
 
-### Phase 1: Quick Context Retrieval
+1. Call both reviewers in parallel, resuming the Phase 2 sessions:
+   - Codex, `codex/reviewer.md`: security, performance, error handling, logic correctness.
+   - Gemini, `gemini/reviewer.md`: accessibility, design consistency, user experience.
 
-`[Mode: Retrieval]`
+   Input for both: the changed diff and the target files.
+2. Synthesize the findings. Backend issues follow Codex; frontend issues follow Gemini. Apply the necessary fixes, rerun the Phase 3 checks, and repeat the audit until the remaining risk is acceptable.
+3. Run `git status --short` and `git diff --stat` and confirm only planned files changed.
+4. Report:
 
-**If ace-tool MCP is available**, use it for quick context retrieval:
+   ```markdown
+   ## Execution Complete
 
-Based on "Key Files" list in plan, call `mcp__ace-tool__search_context`:
+   ### Change Summary
+   | File | Operation | Description |
+   |------|-----------|-------------|
+   | path/to/file.ts | Modified | <description> |
 
-```
-mcp__ace-tool__search_context({
-  query: "<semantic query based on plan content, including key files, modules, function names>",
-  project_root_path: "$PWD"
-})
-```
+   ### Verification
+   - <command>: <actual pass/fail line>
 
-**Retrieval Strategy**:
-- Extract target paths from plan's "Key Files" table
-- Build semantic query covering: entry files, dependency modules, related type definitions
-- If results insufficient, add 1-2 recursive retrievals
+   ### Audit Results
+   - Codex: <passed | N issues, M fixed>
+   - Gemini: <passed | N issues, M fixed>
 
-**If ace-tool MCP is NOT available**, use Claude Code built-in tools as fallback:
-1. **Glob**: Find target files from plan's "Key Files" table (e.g., `Glob("src/components/**/*.tsx")`)
-2. **Grep**: Search for key symbols, function names, type definitions across the codebase
-3. **Read**: Read the discovered files to gather complete context
-4. **Task (Explore agent)**: For broader exploration, use `Task` with `subagent_type: "Explore"`
+   ### Recommendations
+   1. [ ] <suggested test step>
+   2. [ ] <suggested verification step>
+   ```
 
-**After Retrieval**:
-- Organize retrieved code snippets
-- Confirm complete context for implementation
-- Proceed to Phase 3
+## Done when
 
----
+The lint, typecheck and test commands report the actual results shown in the summary, both audits have run (or the user chose to skip one), and `git status --short` shows only planned files.
 
-### Phase 3: Prototype Acquisition
+## Guardrails
 
-`[Mode: Prototype]`
+- External models never write files; their diffs are drafts.
+- Only modify code the plan names; never affect unrelated functionality.
+- No commit, push or deploy unless the user asks for it in this conversation.
 
-**Route Based on Task Type**:
+## See also
 
-#### Route A: Frontend/UI/Styles → Gemini
-
-**Limit**: Context < 32k tokens
-
-1. Call Gemini (use `~/.claude/.ccg/prompts/gemini/frontend.md`)
-2. Input: Plan content + retrieved context + target files
-3. OUTPUT: `Unified Diff Patch ONLY. Strictly prohibit any actual modifications.`
-4. **Gemini is frontend design authority, its CSS/React/Vue prototype is the final visual baseline**
-5. **WARNING**: Ignore Gemini's backend logic suggestions
-6. If plan contains `GEMINI_SESSION`: prefer `resume <GEMINI_SESSION>`
-
-#### Route B: Backend/Logic/Algorithms → Codex
-
-1. Call Codex (use `~/.claude/.ccg/prompts/codex/architect.md`)
-2. Input: Plan content + retrieved context + target files
-3. OUTPUT: `Unified Diff Patch ONLY. Strictly prohibit any actual modifications.`
-4. **Codex is backend logic authority, leverage its logical reasoning and debug capabilities**
-5. If plan contains `CODEX_SESSION`: prefer `resume <CODEX_SESSION>`
-
-#### Route C: Fullstack → Parallel Calls
-
-1. **Parallel Calls** (`run_in_background: true`):
-   - Gemini: Handle frontend part
-   - Codex: Handle backend part
-2. Wait for both models' complete results with `TaskOutput`
-3. Each uses corresponding `SESSION_ID` from plan for `resume` (create new session if missing)
-
-**Follow the `IMPORTANT` instructions in `Multi-Model Call Specification` above**
-
----
-
-### Phase 4: Code Implementation
-
-`[Mode: Implement]`
-
-**Claude as Code Sovereign executes the following steps**:
-
-1. **Read Diff**: Parse Unified Diff Patch returned by Codex/Gemini
-
-2. **Mental Sandbox**:
-   - Simulate applying Diff to target files
-   - Check logical consistency
-   - Identify potential conflicts or side effects
-
-3. **Refactor and Clean**:
-   - Refactor "dirty prototype" to **highly readable, maintainable, enterprise-grade code**
-   - Remove redundant code
-   - Ensure compliance with project's existing code standards
-   - **Do not generate comments/docs unless necessary**, code should be self-explanatory
-
-4. **Minimal Scope**:
-   - Changes limited to requirement scope only
-   - **Mandatory review** for side effects
-   - Make targeted corrections
-
-5. **Apply Changes**:
-   - Use Edit/Write tools to execute actual modifications
-   - **Only modify necessary code**, never affect user's other existing functionality
-
-6. **Self-Verification** (strongly recommended):
-   - Run project's existing lint / typecheck / tests (prioritize minimal related scope)
-   - If failed: fix regressions first, then proceed to Phase 5
-
----
-
-### Phase 5: Audit and Delivery
-
-`[Mode: Audit]`
-
-#### 5.1 Automatic Audit
-
-**After changes take effect, MUST immediately parallel call** Codex and Gemini for Code Review:
-
-1. **Codex Review** (`run_in_background: true`):
-   - ROLE_FILE: `~/.claude/.ccg/prompts/codex/reviewer.md`
-   - Input: Changed Diff + target files
-   - Focus: Security, performance, error handling, logic correctness
-
-2. **Gemini Review** (`run_in_background: true`):
-   - ROLE_FILE: `~/.claude/.ccg/prompts/gemini/reviewer.md`
-   - Input: Changed Diff + target files
-   - Focus: Accessibility, design consistency, user experience
-
-Wait for both models' complete review results with `TaskOutput`. Prefer reusing Phase 3 sessions (`resume <SESSION_ID>`) for context consistency.
-
-#### 5.2 Integrate and Fix
-
-1. Synthesize Codex + Gemini review feedback
-2. Weigh by trust rules: Backend follows Codex, Frontend follows Gemini
-3. Execute necessary fixes
-4. Repeat Phase 5.1 as needed (until risk is acceptable)
-
-#### 5.3 Delivery Confirmation
-
-After audit passes, report to user:
-
-```markdown
-## Execution Complete
-
-### Change Summary
-| File | Operation | Description |
-|------|-----------|-------------|
-| path/to/file.ts | Modified | Description |
-
-### Audit Results
-- Codex: <Passed/Found N issues>
-- Gemini: <Passed/Found N issues>
-
-### Recommendations
-1. [ ] <Suggested test steps>
-2. [ ] <Suggested verification steps>
-```
-
----
-
-## Key Rules
-
-1. **Code Sovereignty** – All file modifications by Claude, external models have zero write access
-2. **Dirty Prototype Refactoring** – Codex/Gemini output treated as draft, must refactor
-3. **Trust Rules** – Backend follows Codex, Frontend follows Gemini
-4. **Minimal Changes** – Only modify necessary code, no side effects
-5. **Mandatory Audit** – Must perform multi-model Code Review after changes
-
----
-
-## Usage
-
-```bash
-# Execute plan file
-/ccg:execute .claude/plan/feature-name.md
-
-# Execute task directly (for plans already discussed in context)
-/ccg:execute implement user authentication based on previous plan
-```
-
----
-
-## Relationship with /ccg:plan
-
-1. `/ccg:plan` generates plan + SESSION_ID
-2. User confirms with "Y"
-3. `/ccg:execute` reads plan, reuses SESSION_ID, executes implementation
+`/ccc-multi-plan` generates the plan and session ids; the user approves it; `/ccc-multi-execute` reads the plan, resumes those sessions and implements. Related: `/ccc-multi-workflow` · `/ccc-verify`

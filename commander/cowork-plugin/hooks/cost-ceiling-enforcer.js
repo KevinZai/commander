@@ -30,12 +30,12 @@ const DEFAULT_CEILING = 10.00; // budget units == 1000 tool calls
 // in ~/.claude/commander/config.json or set CCC_COST_OVERRIDE=1 for the run.
 
 async function main() {
-  let input = {};
   try {
     const chunks = [];
     for await (const chunk of process.stdin) chunks.push(chunk);
     const raw = Buffer.concat(chunks).toString('utf8').trim();
-    if (raw) input = JSON.parse(raw);
+    // Parsed only to fail open on malformed payloads; the ceiling is session-keyed.
+    if (raw) JSON.parse(raw);
   } catch {
       track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
 

@@ -1,0 +1,18 @@
+schema_version: "1.1"
+name: ccc-suggest
+description: The next-step advisor returns concrete next actions for the current project.
+tags: [skill:ccc-suggest, advisor]
+execution:
+  prompt: What should I do next in this project? Ask the CC Commander suggestion advisor.
+  max_turns: 12
+  timeout_seconds: 180
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion]
+graders:
+  - type: tool_used
+    name: suggest-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-suggest"'
+  - type: regex
+    name: offers-next-steps
+    pattern: 'next|suggest|recommend|/ccc-'
+    flags: i

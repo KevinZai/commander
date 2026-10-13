@@ -138,7 +138,7 @@ fly logs --app cc-commander-mcp | grep -E "ERROR|WARN" &
 ## Verification checklist (post-rollback)
 
 - [ ] `npm info cc-commander dist-tags` shows correct `latest` and `beta` versions
-- [ ] `npx cc-commander@latest --version` returns expected version
+- [ ] `ccc --version` (after the installer one-liner) returns the expected version
 - [ ] GitHub Release page shows correct release
 - [ ] Discord `#announcements` notified
 - [ ] Linear incident issue closed with root-cause note

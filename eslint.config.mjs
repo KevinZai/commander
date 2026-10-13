@@ -8,6 +8,7 @@ const testQualityPlugin = require('./eslint-rules/test-quality.cjs');
 export default [
   {
     ignores: [
+      'commander/cowork-plugin/mods/**', // TypeScript mod: validated by `claude plugin validate|test` and tsc, no TS parser here
       'node_modules/**',
       'vendor/**',
       'docs/**',

@@ -1,331 +1,259 @@
 ---
 name: ccc-improve
-description: "Manage the continuous improvement pipeline -- scan, review, approve, and implement improvements to CC Commander"
+description: "Run the continuous-improvement pipeline: scan GitHub and npm for new Claude Code tooling, score proposals, and approve or reject them in a local queue. Use when reviewing ecosystem findings or deciding what to adopt next."
 triggers:
-  - "/improve"
-  - "/improve scan"
-  - "/improve queue"
-  - "/improve approve"
-  - "/improve reject"
-  - "/improve auto"
-  - "/improve status"
+  - "/ccc-improve"
+  - "/ccc-improve scan"
+  - "/ccc-improve queue"
+  - "/ccc-improve approve"
+  - "/ccc-improve reject"
+  - "/ccc-improve auto"
+  - "/ccc-improve status"
 version: 1.3.0
 ---
 
-# /improve -- Continuous Improvement Pipeline
+# /ccc-improve — continuous improvement pipeline
 
-You are the Improvement Pipeline Manager. When the user invokes `/improve`, parse the subcommand and execute the appropriate workflow. If no subcommand is given, show the status dashboard.
+**CC Commander** · /ccc-improve · a scored queue of improvement proposals with approve, reject, and history views.
+
+Parse the subcommand from `$ARGUMENTS` and run the matching section. With no subcommand, show the dashboard.
 
 ## Routing
 
-- `/improve` (no args) -> Show status dashboard
-- `/improve scan` -> Run improvement scan now
-- `/improve scan --manual` -> Prompt user for manual findings (X, HN, Reddit, Discord)
-- `/improve queue` -> Show pending proposals sorted by priority
-- `/improve approve <id>` -> Approve a proposal for implementation
-- `/improve reject <id> <reason>` -> Reject a proposal with reason
-- `/improve auto` -> Toggle auto-approval for low-risk items
-- `/improve status` -> Show full pipeline statistics
-- `/improve implemented` -> Show history of implemented improvements
+| Input | Section |
+|---|---|
+| (none) | Dashboard |
+| `scan` | Scan |
+| `scan --manual` | Manual proposal |
+| `queue` | Queue |
+| `evaluate <id>` (or "evaluate <id>" in chat) | Evaluate |
+| `approve <id>` | Approve |
+| `reject <id> <reason>` | Reject |
+| `auto` | Toggle auto-approval |
+| `status` | Full statistics |
+| `implemented` | Implementation history |
 
-## Status Dashboard (default)
+## Data
 
-When `/improve` is invoked with no arguments, display:
+Queue directory `<queue>`: `$KZ_IMPROVE_QUEUE_DIR` when set, otherwise `~/.claude/improvement-queue/`.
 
-```
-CONTINUOUS IMPROVEMENT PIPELINE  //  CC Commander v2.1.0
-==========================================================
+| File | Contents |
+|---|---|
+| `prop-*.json` | one proposal each; `status` is `pending`, `approved`, `rejected` or `implemented` |
+| `scan-log.json` | scan history: timestamp, findings, new proposals |
+| `approved.json` | implementation queue, sorted by priority (`impact - effort`) |
+| `implemented.json` | shipped proposals |
+| `config.json` | `{ "auto_approve": false }` |
 
-  Pipeline Stats
-  ---------------
-  Pending:      [n] proposals awaiting review
-  Approved:     [n] queued for implementation
-  Rejected:     [n] declined
-  Implemented:  [n] shipped
+If `<queue>` does not exist, say no scan has run yet and suggest `/ccc-improve scan`.
 
-  Last Scan:    [timestamp] ([n] findings)
-  Auto-Approve: [ON/OFF] (documentation + impact <= 2)
+## Dashboard (default)
 
-  Commands
-  ---------
-  /improve scan           Run scan now
-  /improve queue          Review pending proposals
-  /improve approve <id>   Approve a proposal
-  /improve reject <id>    Reject a proposal
-  /improve auto           Toggle auto-approval
-  /improve status         Full statistics
-```
-
-Read proposal files from `~/.claude/improvement-queue/` to compute the stats. Each `.json` file with a `prop-` prefix is a proposal. Count by `status` field: `pending`, `approved`, `rejected`, `implemented`.
-
-Read `~/.claude/improvement-queue/scan-log.json` for the last scan timestamp and findings count.
-
-## [scan] Run Improvement Scan
-
-**Steps:**
-
-1. Run the daily improvement scanner:
-
-```bash
-node ~/.claude/hooks/daily-improvement-scan.js
-```
-
-2. Read the output to determine how many proposals were generated.
-
-3. If proposals were generated, display:
+Read every `prop-*.json`, count by `status`, and read the last entry of `scan-log.json`:
 
 ```
-SCAN COMPLETE
-=============
-  New proposals:  [n]
-  Total findings: [n]
-  Duplicates skipped: [n]
-  Duration: [n]s
+CONTINUOUS IMPROVEMENT PIPELINE
+===============================
+  Pending:      <n> proposals awaiting review
+  Approved:     <n> queued for implementation
+  Rejected:     <n> declined
+  Implemented:  <n> shipped
 
-  Run /improve queue to review pending proposals.
+  Last Scan:    <timestamp> (<n> findings)
+  Auto-Approve: <ON/OFF> (documentation + impact <= 2)
 ```
 
-4. If no proposals were generated: "No new innovations found since last scan. The ecosystem is quiet today."
+Then ask what to do next with AskUserQuestion (plain-text question where unavailable): 🟢 Review the queue · Run a scan now · Full statistics.
 
-### Manual Scan (`/improve scan --manual`)
+## Scan
 
-For findings from sources the automated scanner cannot reach (X threads, Discord tips, HN discussions):
+1. Run the scanner, first path that exists:
 
-1. Ask: "Describe the finding. Include: source URL, what it does, and why it matters for the kit."
+   ```bash
+   node ~/.claude/hooks/daily-improvement-scan.js
+   # repo checkout fallback:
+   node hooks/daily-improvement-scan.js
+   ```
 
-2. Parse the user's description and create a proposal:
+   It searches GitHub and npm for recent Claude Code tooling and writes proposals to `<queue>`. Optional env: `KZ_IMPROVE_MIN_STARS` (default 10), `KZ_IMPROVE_SCAN_DAYS` (default 7), `GITHUB_TOKEN` for higher rate limits. Never print the token. On a non-zero exit, show stderr and stop.
+2. Parse the final line (`Daily scan complete: <n> new proposals (<n> total findings, <n> duplicates skipped) in <n>s`) and display:
 
-```json
-{
-  "id": "prop-[timestamp]-[random]",
-  "timestamp": "[now]",
-  "source": "manual",
-  "url": "[user-provided URL]",
-  "description": "[user-provided description]",
-  "category": "[inferred category]",
-  "impact": 0,
-  "effort": 0,
-  "status": "pending",
-  "approvals": [],
-  "rejections": []
-}
-```
+   ```
+   SCAN COMPLETE
+   =============
+     New proposals:      <n>
+     Total findings:     <n>
+     Duplicates skipped: <n>
+     Duration:           <n>s
+   ```
 
-3. Write the proposal to `~/.claude/improvement-queue/`.
+3. With zero new proposals, say "No new findings since the last scan."
+4. To run it on a schedule, suggest `/schedule` (a Routine) or a system cron entry; set one up only when the user asks.
 
-4. Confirm: "Manual proposal created: [id]. Run `/improve queue` to evaluate it."
+### Manual proposal (`scan --manual`)
 
-## [queue] Show Pending Proposals
+For findings the scanner cannot reach (X threads, Discord tips, HN or Reddit discussions):
 
-**Steps:**
+1. Ask in plain text for the source URL, what it does, and why it matters for this toolkit.
+2. Write `<queue>/prop-<unix-ms>-<4 random hex>.json`:
 
-1. Read all `prop-*.json` files from `~/.claude/improvement-queue/`.
+   ```json
+   {
+     "id": "prop-<unix-ms>-<hex>",
+     "timestamp": "<ISO now>",
+     "source": "manual",
+     "url": "<user-provided URL>",
+     "description": "<user-provided description>",
+     "category": "<inferred category>",
+     "impact": 0,
+     "effort": 0,
+     "status": "pending",
+     "approvals": [],
+     "rejections": []
+   }
+   ```
 
-2. Filter to `status: "pending"` or `status: "approved"` (not yet implemented).
+3. Verify the file parses (`node -e "JSON.parse(require('fs').readFileSync(process.argv[1]))" <file>`), then confirm: "Manual proposal created: <id>. Run `/ccc-improve queue` to evaluate it."
 
-3. For pending proposals (not yet scored): display them grouped by source.
+## Queue
 
-4. For scored proposals: sort by priority (`impact - effort`, descending).
-
-5. Display:
-
-```
-IMPROVEMENT QUEUE
-==================
-
-  PENDING REVIEW ([n])
-  ---------------------
-  [id]  [source]  [category]
-        [description]
-        URL: [url]
-
-  APPROVED — AWAITING IMPLEMENTATION ([n])
-  ------------------------------------------
-  [id]  Priority: [impact-effort]  Impact: [n]/5  Effort: [n]/5
-        [description]
-        Category: [category]
-
-  Actions:
-    To evaluate a pending proposal, say: "evaluate [id]"
-    To approve: /improve approve [id]
-    To reject:  /improve reject [id] [reason]
-```
-
-### Evaluating a Proposal
-
-When the user says "evaluate [id]":
-
-1. Read the proposal file.
-
-2. **Evaluator assessment:** Score the proposal on impact (1-5) and effort (1-5):
-
-   - **Impact:** How many kit users would benefit? Does it close a competitive gap from the competitive scan? Does it align with The Kevin Z Method?
-   - **Effort:** How many files need to change? Does it require new dependencies? How much testing is needed?
-
-3. **Security assessment:** Check for risks:
-
-   - Does it introduce external dependencies?
-   - Does it require new API keys or credentials?
-   - Could it break existing installations?
-   - Is the source license compatible?
-
-4. Update the proposal file with scores and assessment:
-
-```json
-{
-  "impact": 3,
-  "effort": 2,
-  "evaluator_rationale": "Closes a gap identified in competitive scan. Moderate user impact.",
-  "security_assessment": "approve",
-  "security_notes": "No new dependencies. Read-only integration."
-}
-```
-
-5. Display the evaluation and ask: "Approve, reject, or skip?"
-
-6. **Auto-approval check:** If `impact <= 2` and `category == "documentation"` and auto-approve is enabled, automatically approve with note "Auto-approved: low-risk documentation improvement."
-
-## [approve] Approve a Proposal
-
-**Steps:**
-
-1. Parse `[id]` from $ARGUMENTS (everything after "approve").
-
-2. Read the proposal file from `~/.claude/improvement-queue/[id].json`.
-
-3. If not found, check for partial ID match (prefix match against all `prop-*.json` files).
-
-4. Update the proposal:
-
-```json
-{
-  "status": "approved",
-  "approved_at": "[now]",
-  "approvals": ["evaluator", "security"]
-}
-```
-
-5. Add to `~/.claude/improvement-queue/approved.json` (create if not exists — this is the implementation queue sorted by priority).
-
-6. Confirm: "Approved: [id] — [description]. Priority: [impact-effort]. Added to implementation queue."
-
-## [reject] Reject a Proposal
-
-**Steps:**
-
-1. Parse `[id]` and `[reason]` from $ARGUMENTS.
-
-2. If no reason provided, ask: "Why is this being rejected? (1 sentence)"
-
-3. Update the proposal:
-
-```json
-{
-  "status": "rejected",
-  "rejected_at": "[now]",
-  "rejection_reason": "[reason]",
-  "rejections": [{"agent": "user", "reason": "[reason]"}]
-}
-```
-
-4. Confirm: "Rejected: [id] — [reason]"
-
-## [auto] Toggle Auto-Approval
-
-**Steps:**
-
-1. Check current auto-approval state from `~/.claude/improvement-queue/config.json` (create if not exists).
-
-2. Toggle the `auto_approve` boolean.
-
+1. Read every `prop-*.json` with `status` `pending` or `approved`.
+2. Group unscored pending proposals (`impact` 0) by source; sort scored ones by `impact - effort`, descending.
 3. Display:
 
-```
-AUTO-APPROVAL: [ON/OFF]
+   ```
+   IMPROVEMENT QUEUE
+   ==================
+     PENDING REVIEW (<n>)
+     <id>  <source>  <category>
+           <description>
+           URL: <url>
 
-When ON, proposals meeting ALL of these criteria are auto-approved:
-  - Impact score <= 2
-  - Category = "documentation"
-  - Security assessment = "approve"
-  - No new dependencies
+     APPROVED — AWAITING IMPLEMENTATION (<n>)
+     <id>  Priority: <impact-effort>  Impact: <n>/5  Effort: <n>/5
+           <description>
+           Category: <category>
+   ```
 
-All other proposals require manual review.
-```
+4. Ask which pending proposal to evaluate (up to four ids as options, most recent first).
 
-## [status] Full Pipeline Statistics
+## Evaluate
 
-**Steps:**
+1. Read the proposal file. If the id is not an exact match, try a prefix match against `prop-*.json`; if several match, list them and ask.
+2. Score **impact** (1–5): how many toolkit users benefit, whether it fills a real gap in the current skills, commands or hooks, and whether it fits the existing patterns.
+3. Score **effort** (1–5): files to change, new dependencies, testing needed.
+4. Security assessment — answer each:
+   - Does it add external dependencies?
+   - Does it require new API keys or credentials?
+   - Could it break existing installations?
+   - Is the source license compatible with the project's license?
 
-1. Read all proposal files and the scan log.
+   Set `security_assessment` to `approve` or `reject` with notes.
+5. Merge into the proposal file and verify it still parses:
 
-2. Compute and display:
+   ```json
+   {
+     "impact": 3,
+     "effort": 2,
+     "evaluator_rationale": "<one or two sentences>",
+     "security_assessment": "approve",
+     "security_notes": "<one sentence>"
+   }
+   ```
+
+6. Auto-approval: when `config.json` has `auto_approve: true` and the proposal has `category` `documentation`, `impact <= 2`, `security_assessment` `approve`, and no new dependencies, approve it with the note "Auto-approved: low-risk documentation improvement" and skip step 7.
+7. Show the evaluation and ask with AskUserQuestion (plain-text question where unavailable): 🟢 Approve — added to the implementation queue · Reject — asks for a one-sentence reason · Skip — stays pending.
+
+## Approve
+
+1. Parse `<id>` from `$ARGUMENTS`; resolve it as in Evaluate step 1.
+2. Merge into the proposal: `"status": "approved"`, `"approved_at": "<ISO now>"`, `"approvals": ["evaluator", "security"]`.
+3. Add the proposal to `approved.json` (create it as `[]` if missing) and keep that array sorted by `impact - effort`, descending.
+4. Verify both files parse, then confirm: "Approved: <id> — <description>. Priority: <impact-effort>. Added to the implementation queue."
+
+## Reject
+
+1. Parse `<id>` and `<reason>` from `$ARGUMENTS`. With no reason, ask for one sentence.
+2. Merge into the proposal: `"status": "rejected"`, `"rejected_at": "<ISO now>"`, `"rejection_reason": "<reason>"`, and append `{"agent": "user", "reason": "<reason>"}` to `rejections`.
+3. Verify the file parses, then confirm: "Rejected: <id> — <reason>."
+
+## Toggle auto-approval
+
+1. Read `config.json` (create it as `{ "auto_approve": false }` if missing).
+2. Flip `auto_approve`, write it back, and re-read it to confirm the new value.
+3. Display:
+
+   ```
+   AUTO-APPROVAL: <ON/OFF>
+
+   When ON, proposals meeting all of these are auto-approved:
+     - Impact score <= 2
+     - Category = "documentation"
+     - Security assessment = "approve"
+     - No new dependencies
+
+   All other proposals require manual review.
+   ```
+
+## Full statistics (`status`)
+
+Read every proposal and `scan-log.json`, then compute:
 
 ```
 IMPROVEMENT PIPELINE — FULL STATUS
 ====================================
-
   Pipeline Counts
-  ----------------
-  Total proposals:    [n]
-  Pending review:     [n]
-  Approved (queued):  [n]
-  Rejected:           [n]
-  Implemented:        [n]
+    Total proposals:    <n>
+    Pending review:     <n>
+    Approved (queued):  <n>
+    Rejected:           <n>
+    Implemented:        <n>
 
-  By Category
-  ------------
-  new-skill:      [n] pending / [n] approved / [n] rejected
-  skill-upgrade:  [n] pending / [n] approved / [n] rejected
-  new-hook:       [n] pending / [n] approved / [n] rejected
-  new-command:    [n] pending / [n] approved / [n] rejected
-  documentation:  [n] pending / [n] approved / [n] rejected
-  integration:    [n] pending / [n] approved / [n] rejected
-  security-fix:   [n] pending / [n] approved / [n] rejected
+  By Category  (pending / approved / rejected)
+    new-skill, skill-upgrade, new-hook, new-command,
+    documentation, integration, security-fix: <n> / <n> / <n> each
 
   By Source
-  ----------
-  github:          [n]
-  github-release:  [n]
-  npm:             [n]
-  manual:          [n]
+    github, github-release, npm, manual: <n> each
 
   Scan History (last 7 scans)
-  ----------------------------
-  [date]  [findings] findings  [new] new proposals
-  [date]  [findings] findings  [new] new proposals
-  ...
+    <date>  <findings> findings  <new> new proposals
 
-  Auto-Approve: [ON/OFF]
+  Auto-Approve: <ON/OFF>
 
   Implementation Velocity
-  ------------------------
-  Proposals per week (avg): [n]
-  Implementations per week (avg): [n]
-  Avg time to implement: [n] days
+    Proposals per week (avg):        <n>
+    Implementations per week (avg):  <n>
+    Avg time to implement:           <n> days
 ```
 
-## [implemented] Show Implementation History
+Velocity uses `timestamp`, `approved_at` and the implemented date; print `n/a` when there is not enough data.
 
-**Steps:**
+## Implementation history (`implemented`)
 
-1. Read `~/.claude/improvement-queue/implemented.json` (if exists).
-
-2. Display implemented proposals in reverse chronological order:
+Read `implemented.json`. If it is missing or empty, say "No improvements have been implemented yet. Run `/ccc-improve queue` to review pending proposals." Otherwise list newest first:
 
 ```
 IMPLEMENTED IMPROVEMENTS
 ==========================
+  <date>  <id>  <category>
+          <description>
+          Impact: <n>/5  Effort: <n>/5
+          Release: <release recorded on the entry>
 
-  [date]  [id]  [category]
-          [description]
-          Impact: [n]/5  Effort: [n]/5
-          Release: v[version]
-  ---
-  ...
-
-  Total implemented: [n]
+  Total implemented: <n>
 ```
 
-If no implementations yet: "No improvements have been implemented yet. Run `/improve queue` to review pending proposals."
+## Done when
 
-Args: $ARGUMENTS
+The section's output is printed from the files read this turn, and every write was followed by a successful parse of the written file.
+
+## Guardrails
+
+- Writes stay inside `<queue>`. Approving a proposal queues it; implementing it is a separate, explicitly requested task.
+- Never delete proposal files; rejected proposals keep their record.
+- Never print `GITHUB_TOKEN` or any other credential.
+
+## See also
+
+`/ccc-improve-commands` · `/ccc-skill-health` · `/ccc-harness-audit`

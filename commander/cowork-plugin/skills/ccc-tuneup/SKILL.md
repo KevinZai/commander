@@ -1,8 +1,6 @@
 ---
 name: ccc-tuneup
-description: "Audit + safely optimize your local ~/.claude CC Commander setup. Read-only scan by default; backs up + archives (never deletes), asks before fixes. Covers versions, junk, drift, agents, hooks, MCP."
-model: sonnet
-effort: high
+description: "Audit and safely optimize the local Commander setup: version freshness, junk, count drift, superseded agents, hooks, settings keys, MCP staleness and cost settings. Read-only scan first; backs up, archives (never deletes) and asks before any fix. Use when the setup feels cluttered, stale or slow."
 allowed-tools:
   - Read
   - Bash
@@ -10,44 +8,32 @@ allowed-tools:
   - AskUserQuestion
   - mcp__ccd_session__spawn_task
 argument-hint: "[--check | --fix | --aggressive]"
+model: sonnet
+effort: high
 ---
 
-# /ccc-tuneup — Local Setup Optimizer
+# /ccc-tuneup — Safe local setup optimizer
 
-The companion to `/ccc-doctor`. Doctor *diagnoses* (read-only). Tune-up *remediates* — but safely: read-only scan first, backup before any edit, archive (never `rm`) for junk, and an explicit click-to-confirm before anything mutates.
+**CC Commander** · /ccc-tuneup · read-only scan → scorecard → confirm → backup, archive, fix → verify
 
-**CC Commander** · Tune-Up · [Docs](https://commanderplugin.com)
+## When to use / when not to
 
-## Arguments
-- `--check` — read-only audit + scorecard. NO prompt, NO mutation. (Default if the user seems unsure.)
-- `--fix` — audit, then offer safe fixes via AskUserQuestion chips (destructive-leaning items OFF by default).
-- `--aggressive` — same as `--fix` but pre-selects session archival + superseded-agent retirement chips.
-- bare `/ccc-tuneup` — runs the audit, shows the scorecard, then opens the chip picker.
+- Use to clean and tune a local install: archive junk, add missing structural settings keys, retire superseded local agents, fix count drift in a maintainer checkout, and surface cost settings.
+- `/ccc-doctor` diagnoses and stays read-only; this skill remediates, with backups and a confirm step. Use `/ccc-update` to change the plugin version and `/ccc-settings` to change preferences.
+- Arguments:
+  - `--check` — audit and scorecard only. No picker, no mutation. Default when the user seems unsure.
+  - `--fix` — audit, then offer safe fixes; opt-in cleanups start unselected.
+  - `--aggressive` — like `--fix`, with session archival and superseded-agent retirement pre-selected.
+  - no argument — audit, scorecard, then the fix picker.
+- In Codex, ask each picker as a plain-text question with the same options; skip the Desktop-only `spawn_task` suggestion.
 
-## Safety rules (NON-NEGOTIABLE)
+## What happens
 
-- ❌ NEVER `rm` or `trash` anything — junk moves to `~/.claude/commander/tuneup-archive/<UTC-stamp>/`.
-- ✅ Before editing `settings.json` or any `CLAUDE.md`: `cp <file> <file>.backup-$(date +%Y%m%d-%H%M%S)`.
-- ❌ NEVER edit `~/.claude/CLAUDE.md` or any file under `~/.claude/**` — the user's global config may contain plugin-count strings that are NOT ours to rewrite.
-- ❌ NEVER edit a CLAUDE.md unless the `git rev-parse --show-toplevel` of the target file resolves to a cc-commander checkout (verified by: `basename $(git -C <dir> rev-parse --show-toplevel)` = "cc-commander" AND `test -f <root>/scripts/audit-counts.js`). For end-user installs (no git root, or clone under `~/.claude/plugins`), the CLAUDE.md-count row is **DETECT-ONLY** — show the drift, do NOT offer to fix it.
-- ❌ NEVER run `git pull`, `openclaw`/Desktop restarts, or marketplace re-adds — emit them as copy-paste terminal commands.
-- ❌ NEVER mutate the plugin clone's own source files unless running from a verified cc-commander git root.
-- ✅ Every count is computed LIVE from the filesystem and manifests — NEVER hardcode "61 skills" / "23 events" / a version.
-- ✅ Take ALL backups first; apply; on ANY failure restore ALL backups taken this run (ordered rollback).
-- ✅ Re-read each file immediately before each Edit and stat-compare to scan; if changed since scan, skip the fix and report "file changed since scan — skipped".
-- ✅ Keep only the last 3 `*.backup-<ts>` per file; offer to archive older ones into tuneup-archive.
+### 1. Read-only audit
 
-## Step 1 — Read-only audit (one Bash call)
+#### 1a. Resolve the clone root
 
-### 1a. Resolve the clone root
-
-The marketplace clone root is `~/.claude/plugins/marketplaces/commander-hub`
-(that dir has `.git` directly in it — the repo's OWN top-level layout then
-nests the plugin source one level further at `commander/cowork-plugin/`; do
-not add an extra `/commander` segment to the clone root itself, and do not
-substitute `installed_plugins.json`'s `installPath` here — that field points
-into `plugins/cache/<mp>/<plugin>/<version>/`, a differently-shaped,
-already-resolved copy with no repo wrapper).
+The clone root `~/.claude/plugins/marketplaces/commander-hub` holds `.git`; the plugin source is one level further at `commander/cowork-plugin/`. Do not substitute `installed_plugins.json`'s `installPath` here: it points into `plugins/cache/<mp>/<plugin>/<version>/`, a differently shaped copy with no repo wrapper.
 
 ```bash
 CLONE="$HOME/.claude/plugins/marketplaces/commander-hub"
@@ -66,36 +52,17 @@ fi
 echo "CLONE=$CLONE"
 ```
 
-### 1b. Run the side-effect-free probe script
+Shell state does not persist between Bash calls: carry the printed `CLONE` value into each later block (`CLONE='<value>'` as its first line).
+
+#### 1b. Run the probe script
 
 ```bash
 [ "$CLONE" != "n/a" ] && bash "$CLONE/commander/cowork-plugin/skills/ccc-tuneup/lib/tuneup-probes.sh" "$CLONE" || echo "PROBE=n/a"
 ```
 
-The probe emits `KEY=VALUE` lines (all side-effect-free, every field `2>/dev/null || echo n/a`):
+It emits `KEY=VALUE` lines under `SECTION:` markers, every field side-effect-free with an `n/a` fallback. What each key measures and which scorecard row it feeds is in [references/probe-keys.md](references/probe-keys.md). Every count comes from the filesystem and manifests at run time.
 
-| Key | What it measures |
-|-----|-----------------|
-| `JUNK_TEMP` | temp_* dirs in `~/.claude/plugins/marketplaces/` |
-| `JUNK_BAK` | `*.bak` / `*.old` / `*.backup-*` files older than 14d (total count) |
-| `ARCHIVE_DUPES` | hook files in both `hooks/_archive/` AND `hooks/` (exact name intersection) |
-| `STALE_SESSIONS` | `~/.claude/sessions/` files older than 30d (count, for `--aggressive` only) |
-| `LOCAL_AGENT_OVERLAP` | `~/.claude/agents/*.md` basenames that exactly match a plugin agent |
-| `SETTINGS_MISSING_KEYS` | settings.json keys absent from global `~/.claude/settings.json` |
-| `PLUGIN_ENABLED` | whether commander is in `enabledPlugins` (yes/no/missing) |
-| `PLUGIN_DISABLED_INSTALLED` | commander installed-but-disabled flag |
-| `MCP_CONNECT_STALE` | opt-in MCP server entries in settings.json whose configured path/command is missing |
-| `COST_*` | per-key token-spend audit rows: `current\|suggested\|verdict` (verdict ∈ ok/missing/suboptimal) — see 1g |
-| `COST_FLAGGED` | count of non-`ok` cost-settings keys (rollup) |
-| `SKILL_COUNT` | live skill count from `ls skills/ | wc -l` in clone |
-| `AGENT_COUNT` | live agent count from `ls agents/*.md | wc -l` in clone |
-| `EVENT_COUNT` | live hook event count from `jq '.hooks | keys | length' hooks/hooks.json` |
-| `HANDLER_COUNT` | live handler count from `jq '[.hooks[][].hooks // [] | length] | add // 0' hooks/hooks.json` |
-| `VENDOR_COUNT` | live vendor count from `ls vendor/ | wc -l` at repo root (if present) |
-| `INSTALLED_VERSION` | version from `installed_plugins.json` or `plugin.json` |
-| `CACHED_REMOTE_VERSION` | from `~/.claude/commander/update-cache.json` if < 4h old |
-
-### 1c. Consume ccc-doctor diagnostics (shared full-stack checks)
+#### 1c. Consume the shared doctor diagnostics
 
 ```bash
 [ "$CLONE" != "n/a" ] && node -e "
@@ -106,15 +73,15 @@ The probe emits `KEY=VALUE` lines (all side-effect-free, every field `2>/dev/nul
 " 2>/dev/null || echo "diagnostics n/a"
 ```
 
-Use this output for read-only source-tree and settings diagnostics. Keep the probe output as the source of truth for tuneup-specific remediation planning, but surface every `diagnostics.js` row in the scorecard so `/ccc-tuneup --check` covers the same full stack as `/ccc-doctor full`.
+Surface every row in the scorecard so `--check` covers the same full stack as `/ccc-doctor full`. Use the probe output, not these rows, to plan remediation.
 
-### 1d. Semver freshness check (no python3, no require from update-check.js)
+#### 1d. Version freshness
 
 ```bash
 INSTALLED_V="$(node -e "
   try{
     const j=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
-    const k=Object.keys(j.plugins||{}).find(k=>k.startsWith('commander'));
+    const k=Object.keys(j.plugins||{}).find(k=>k.startsWith('commander@'));
     if(k&&j.plugins[k][0])process.stdout.write(j.plugins[k][0].version||'n/a');
     else process.stdout.write('n/a');
   }catch(e){process.stdout.write('n/a');}
@@ -124,18 +91,16 @@ CACHE="$HOME/.claude/commander/update-cache.json"
 CACHED_REMOTE="$(node -e "
   try{
     const d=JSON.parse(require('fs').readFileSync('$CACHE','utf8'));
-    const age=Date.now()-d.timestamp;
-    if(age<14400000) process.stdout.write(d.remoteVersion||'stale');
-    else process.stdout.write('stale');
+    process.stdout.write(Date.now()-d.timestamp<14400000 ? (d.remoteVersion||'stale') : 'stale');
   }catch(e){process.stdout.write('stale');}
 " 2>/dev/null || echo stale)"
 
-# If cache stale, try the update-check runner (self-fetches, silent on failure)
+# Stale cache: the update-check runner self-fetches and is silent on failure.
 if [ "$CACHED_REMOTE" = "stale" ] && [ "$CLONE" != "n/a" ]; then
   CACHED_REMOTE=$(node "$CLONE/commander/update-check.js" --remote-only 2>/dev/null || echo n/a)
 fi
 
-# Inline 3-field semver compare (no semverCompare import — update-check.js has no module.exports)
+# Inline semver compare: update-check.js has no module.exports to import.
 semver_gt() {
   local a="$1" b="$2"
   IFS='.' read -r a1 a2 a3 <<< "${a//[^0-9.]}"
@@ -148,19 +113,15 @@ semver_gt() {
   return 1
 }
 VERSION_STATUS="up-to-date"
-if semver_gt "$CACHED_REMOTE" "$INSTALLED_V" 2>/dev/null; then
-  VERSION_STATUS="update available: $INSTALLED_V → $CACHED_REMOTE"
-fi
+semver_gt "$CACHED_REMOTE" "$INSTALLED_V" 2>/dev/null && VERSION_STATUS="update available: $INSTALLED_V → $CACHED_REMOTE"
 echo "VERSION_STATUS=$VERSION_STATUS"
 ```
 
-### 1e. CLAUDE.md drift check (maintainer-mode only)
+Run this block with `bash` (it uses `<<<` and `local`).
 
-Only run if the following are BOTH true:
-1. `git -C "$CLONE" rev-parse --show-toplevel 2>/dev/null` exits 0
-2. `basename $(git -C "$CLONE" rev-parse --show-toplevel 2>/dev/null)` = `"cc-commander"` AND `test -f "$(git -C "$CLONE" rev-parse --show-toplevel 2>/dev/null)/scripts/audit-counts.js"`
+#### 1e. CLAUDE.md count drift (maintainer mode only)
 
-If either condition fails: mark `CLAUDE_MD_MODE=detect-only` — show drift but DO NOT offer the fix edit.
+Count edits are allowed only from a verified Commander checkout: the git top level's basename is `cc-commander` and it contains `scripts/audit-counts.js`. Otherwise the row is detect-only.
 
 ```bash
 GIT_ROOT=$(git -C "$CLONE" rev-parse --show-toplevel 2>/dev/null || echo "")
@@ -168,141 +129,80 @@ CLAUDE_MD_MODE="detect-only"
 if [ -n "$GIT_ROOT" ] && [ "$(basename "$GIT_ROOT")" = "cc-commander" ] && [ -f "$GIT_ROOT/scripts/audit-counts.js" ]; then
   CLAUDE_MD_MODE="maintainer"
 fi
-echo "CLAUDE_MD_MODE=$CLAUDE_MD_MODE"
+echo "CLAUDE_MD_MODE=$CLAUDE_MD_MODE GIT_ROOT=$GIT_ROOT"
 ```
 
-Then read the `SKILL_COUNT`/`AGENT_COUNT`/`EVENT_COUNT`/`HANDLER_COUNT` from probe output and compare to what the local repo's CLAUDE.md claims using `grep -oP '\d+(?= plugin skills)'` etc. Report drift as `CLAUDE_MD_DRIFT=<description>` or `CLAUDE_MD_DRIFT=none`.
+Compare the probe's `SKILL_COUNT`, `AGENT_COUNT`, `EVENT_COUNT` and `HANDLER_COUNT` with the claims in that repo's `CLAUDE.md` (for example `grep -oE '[0-9]+ plugin skills'`). Record `CLAUDE_MD_DRIFT=<description>` or `CLAUDE_MD_DRIFT=none`.
 
-### 1f. Normalize model strings before comparison
+#### 1f. Normalize model strings
 
-When comparing agent model strings from frontmatter to plugin.json canonical values, strip any `[1m]` / `[128k]` / `[...]` context-suffix and surrounding whitespace before comparing:
+Before comparing an agent's `model:` value with a canonical one, strip context suffixes such as `[1m]`:
 
 ```bash
 normalize_model() { echo "$1" | sed 's/ *\[.*\]$//' | xargs; }
 ```
 
-### 1g. Cost-settings audit (READ-ONLY — surface, suggest, NEVER auto-apply)
+#### 1g. Cost settings (suggest-only)
 
-The `SECTION:COST` probe rows surface high-impact, often-undocumented `settings.json` keys that reduce token spend. This is **detect-and-suggest only** — unlike the `⚙️ Settings keys` row (which *promotes* 3 structural keys on confirm), the cost row NEVER mutates `settings.json`. Each `COST_<KEY>` line is `current|suggested|verdict`:
+Read the `COST_<KEY>` and `COST_FLAGGED` rows. The audited keys, verdict meanings and suggested values are in [references/probe-keys.md](references/probe-keys.md#cost-settings-audit-suggest-only). These are never applied by this skill.
 
-| Key | Why it cuts spend | Suggested |
-|-----|-------------------|-----------|
-| `effortLevel` | Lower effort = fewer thinking tokens on routine turns; `xhigh` ≈ 2× spend | `high` |
-| `autoCompactEnabled` | Caps runaway context growth → fewer overflow re-reads | `true` |
-| `env.MAX_THINKING_TOKENS` | Bounds per-turn reasoning budget (uncapped ≈ 32k/turn) | `10000` |
-| `env.ENABLE_TOOL_SEARCH` | Defers MCP tool schemas — large saver with many connected servers | `1` |
-| `showThinkingSummaries` | Summaries cost fewer output tokens than full thinking | `true` |
-| `cleanupPeriodDays` | Bounds transcript retention → smaller resume/search surface | `30` |
-| `model` | A premium pin (Opus/Fable) on the MAIN thread spends $$$ on routine turns | route routine work to Sonnet/Haiku subagents |
+### 2. Scorecard
 
-Verdict semantics: `ok` = satisfies intent (do not surface); `missing` = key unset; `suboptimal` = set to a higher-spend value. `model` is **detect-only** — surface the cost note when a premium pin exists but NEVER suggest overriding the user's deliberate model choice; just inform.
-
-`∅` in a `current` field means the key is unset. If `COST_FLAGGED=n/a`, the probe could not read settings — render the row ⚪ and move on (never crash).
-
-## Step 2 — Scorecard (one markdown table)
+Print one table. Fill every cell from the probe; a check that could not run is ⏭️, never a crash.
 
 ```
 ### 🔧 Tune-Up Report — <UTC datetime>
 
 | Check | Status | Top finding | Action |
 |-------|--------|-------------|--------|
-| 📦 Version freshness | 🟢/🟡 | installed <X> vs latest <Y> | `git pull` |
-| 🧹 Junk sweep | 🟠 | N temp_* + M stale .bak + K archive dupes | Archive |
-| 📝 CLAUDE.md count drift | 🟠/⚪ | claims "38 handlers", actual 28 | Fix counts (maintainer) / Detect-only |
-| 🤖 Local agent supersession | 🟡 | architect.md → plugin version supersedes | Retire local |
-| 🪝 Hooks coverage | 🟢 | 23/23 events, all handlers resolve | — |
-| 🔌 Plugin enabled | 🟢/🔴 | commander in enabledPlugins | Enable in Settings |
-| 🌐 Opt-in MCP staleness | 🟡 | context7 path missing | Re-run /ccc-connect |
-| ⚙️ Settings keys | 🟡 | showThinkingSummaries absent | Promote 3 keys |
-| 💰 Cost settings | 🟡 | N spend-reducing keys missing/suboptimal (effortLevel=xhigh, …) | Suggest only (copy-paste) |
-| 🗂️ Stale sessions (opt-in) | ⚪ | N files >30d | Archive (--aggressive only) |
+| 📦 Version freshness | 🟢/🟡 | installed <X> vs latest <Y> | Marketplace update (commands below) |
+| 🔄 Junk sweep | 🟢/🟡/🔴 | <JUNK_TEMP> temp_* + <JUNK_BAK> stale backups + <ARCHIVE_DUPES> archive dupes | Archive |
+| 📝 CLAUDE.md count drift | 🟡/⏭️ | claims <N> <thing>, live <M> | Fix counts (maintainer) / detect-only |
+| 🤖 Local agent supersession | 🟢/🟡 | <name>.md superseded by the plugin agent | Retire local (opt-in) |
+| 🔬 Hooks coverage | 🟢/🟡 | <EVENT_COUNT> events · <HANDLER_COUNT> handlers, all scripts resolve | — |
+| 🔐 Plugin enabled | 🟢/🔴 | commander in enabledPlugins | Enable in /plugin or Settings |
+| 🌐 Opt-in MCP staleness | 🟢/🟡 | <server> path missing | Re-run /ccc-connect |
+| 🔧 Settings keys | 🟢/🟡 | <SETTINGS_MISSING_KEYS> | Add missing keys |
+| 💰 Cost settings | 🟢/🟡 | <COST_FLAGGED> keys missing or suboptimal | Suggest only (copy-paste) |
+| ⏳ Stale sessions | ⏭️/🟡 | <STALE_SESSIONS> files older than 30 days | Archive (opt-in) |
+| 🔬 Doctor diagnostics | 🟢/🟡/🔴 | <first non-ok row from 1c> | See /ccc-doctor full |
 
-**🎯 My call: fix <lowest-score row> first — <one-line rationale>.**
+🎯 My call: fix <lowest-scoring row> first — <one-line rationale>.
 ```
 
-Score rubric: 🟢 90-100 · 🟡 70-89 · 🟠 50-69 · 🔴 0-49 · ⚪ n/a (probe failed or check skipped — never crash).
+Rubric: 🟢 90–100 · 🟡 50–89 · 🔴 0–49 · ⏭️ n/a. Do not render rows that passed as if they need fixing.
 
-On `--check`: STOP HERE. Print the table and nothing else.
+When `COST_FLAGGED` is above 0, print the cost detail block under the table on every mode (format in [references/probe-keys.md](references/probe-keys.md#cost-settings-audit-suggest-only)): each non-`ok` key as `key: current → suggested (reason)`, then one copy-paste snippet. For `model`, only inform that a premium main-thread pin makes routine turns costly and that routine work can go to `sonnet` or `haiku` subagents; the user's selected model is preserved.
 
-### Cost-settings detail block (printed under the scorecard on EVERY mode)
+On `--check`, stop after the scorecard.
 
-If `COST_FLAGGED` > 0, print a short read-only detail block listing each non-`ok` `COST_<KEY>` as `key: current → suggested  (reason)`, followed by ONE copy-paste snippet the user can paste into `~/.claude/settings.json` themselves. Example:
+### 3. Confirm fixes
 
-```
-### 💰 Cost settings — suggestions (NOT applied)
-- effortLevel: xhigh → high  (xhigh burns ~2× on routine work)
-- env.MAX_THINKING_TOKENS: unset → 10000  (caps per-turn reasoning spend)
-- env.ENABLE_TOOL_SEARCH: unset → 1  (defer MCP tool schemas — saves heavily with many servers)
+Offer only rows that are 🟡 or 🔴 and safely fixable, using the pickers in Decision points: the scope picker first, then the individual-fix picker if chosen, then the opt-in cleanup picker when superseded agents or stale sessions were found. Offer "Fix CLAUDE.md counts" only when `CLAUDE_MD_MODE=maintainer` and drift was detected. With `--aggressive`, pre-select the opt-in cleanups.
 
-# To apply, paste into ~/.claude/settings.json (review first — these are YOUR cost trade-offs):
-"effortLevel": "high",
-"showThinkingSummaries": true,
-"env": { "MAX_THINKING_TOKENS": "10000", "ENABLE_TOOL_SEARCH": "1" }
-```
+### 4. Apply (transactional: backup, archive, fix)
 
-These are **always suggest-only** — the cost-settings audit NEVER appears as a mutating AskUserQuestion chip and `/ccc-tuneup --fix`/`--aggressive` never edits these keys. For `model`, only inform ("you've pinned <model> on the main thread — routine turns are pricey; consider routing them to Sonnet/Haiku subagents") — never propose overwriting it.
-
-## Step 3 — Confirm fixes (AskUserQuestion)
-
-Only list rows that are 🟡/🟠/🔴 AND safely fixable. Call `AskUserQuestion`:
-
-```
-question: "Which fixes should I apply?"
-header: "Tune-Up"
-multiSelect: true
-options:
-  - label: "⭐ 🌐 All safe fixes"
-    description: "Junk sweep + settings keys (the two always-safe items). No CLAUDE.md edits."
-    preview: "Recommended starting point. Fully reversible."
-  - label: "🧹 Sweep junk → archive"
-    description: "Move temp_* dirs, stale *.bak/*.old, archive-hook dupes to a timestamped archive dir."
-    preview: "Reversible — nothing deleted. Restore from ~/.claude/commander/tuneup-archive/<stamp>/."
-  - label: "⚙️ Add settings keys"
-    description: "Promote showThinkingSummaries + agent-teams + tool-concurrency to the right layer."
-    preview: "Backs up settings.json first. Adds only missing keys, never overwrites yours."
-  - label: "📝 Fix CLAUDE.md counts (maintainer only)"
-    description: "Back up then correct stale count claims to match live filesystem. Only offered when running from verified cc-commander git root."
-    preview: "Backs up every CLAUDE.md first. One Edit per drifted claim. Verifies after each fix."
-  - label: "🤖 Retire superseded local agents"
-    description: "Archive ~/.claude/agents/*.md that the plugin persona strictly supersedes."
-    preview: "OFF by default — moved to archive, not deleted. Plugin version takes over."
-  - label: "🗂️ Archive stale sessions (>30d)"
-    description: "Move old ~/.claude/sessions/ files to tuneup-archive."
-    preview: "OFF by default. --aggressive pre-selects this. Frees clutter; transcripts preserved."
-  - label: "❌ Cancel"
-    description: "Make no changes."
-    preview: "Re-run anytime with /ccc-tuneup."
-```
-
-With `--aggressive`, also pre-select the two OFF-by-default items. The "Fix CLAUDE.md counts" option is only shown when `CLAUDE_MD_MODE=maintainer` AND drift was detected.
-
-## Step 4 — Apply (backup → archive → fix — TRANSACTIONAL)
-
-### Backup phase (ALL backups before ANY edit)
-
-For EVERY file that will be mutated this run, take the backup first:
+**Backups first, for every file this run will mutate:**
 
 ```bash
 TS=$(date +%Y%m%d-%H%M%S)
 cp ~/.claude/settings.json ~/.claude/settings.json.backup-$TS 2>/dev/null
-# For each CLAUDE.md that will be edited (maintainer mode only):
+# Maintainer mode only, for each CLAUDE.md that will be edited:
 cp "$GIT_ROOT/CLAUDE.md" "$GIT_ROOT/CLAUDE.md.backup-$TS" 2>/dev/null
 ```
 
-Record every `*.backup-<TS>` path taken. On ANY failure mid-run: restore all backups in reverse order and abort.
+Record each backup path. On any failure later in the run, restore every backup in reverse order and stop.
 
-### Backup retention
+**Backup retention:** if a source file now has more than 3 `*.backup-*` siblings, ask with the backup-retention picker before moving the oldest into `~/.claude/commander/tuneup-archive/old-backups-$TS/`.
 
-After backups, check how many `*.backup-*` files exist per source file. If any has more than 3, offer to archive the oldest into `~/.claude/commander/tuneup-archive/old-backups-<TS>/`. Never auto-archive without the user's confirmation (this is an AskUserQuestion chip).
-
-### Archive dir
+**Archive dir:**
 
 ```bash
-ARCHIVE="$HOME/.claude/commander/tuneup-archive/$(date +%Y%m%dT%H%M%SZ)"
+ARCHIVE="$HOME/.claude/commander/tuneup-archive/$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$ARCHIVE"
 ```
 
-### Junk sweep (mv, never rm)
+**Junk sweep (move, never delete):**
 
 ```bash
 # temp_* dirs
@@ -310,108 +210,158 @@ for d in "$HOME/.claude/plugins/marketplaces/temp_"*; do
   [ -d "$d" ] && mv "$d" "$ARCHIVE/" && echo "archived: $d"
 done
 
-# Stale .bak/.old files (>14d)
+# Stale .bak/.old files (older than 14 days)
 find "$HOME/.claude" -maxdepth 4 \( -name "*.bak" -o -name "*.old" \) -mtime +14 \
   -not -path "$HOME/.claude/commander/tuneup-archive/*" \
   -exec mv {} "$ARCHIVE/" \; 2>/dev/null
 
-# Archive-hook dupes: names that exist in BOTH hooks/_archive/ AND hooks/
-# (compute intersection at runtime — do NOT use a baked list)
+# Archive-hook dupes: names in BOTH hooks/_archive/ and hooks/, computed at run time
 if [ "$CLONE" != "n/a" ]; then
   HOOKS_DIR="$CLONE/commander/cowork-plugin/hooks"
   if [ -d "$HOOKS_DIR/_archive" ]; then
-    comm -12 \
-      <(ls "$HOOKS_DIR/_archive/" | sort) \
-      <(ls "$HOOKS_DIR/" | grep '\.js$' | sort) | \
-    while read f; do
+    comm -12 <(ls "$HOOKS_DIR/_archive/" | sort) <(ls "$HOOKS_DIR/" | grep '\.js$' | sort) |
+    while read -r f; do
       mv "$HOOKS_DIR/_archive/$f" "$ARCHIVE/" 2>/dev/null && echo "archived dupe: $f"
     done
   fi
 fi
 ```
 
-### Count fixes (maintainer mode only — only when `CLAUDE_MD_MODE=maintainer`)
+**Superseded local agents and stale sessions (opt-in only):** `mv` each selected `~/.claude/agents/<name>.md` or `~/.claude/sessions/` file older than 30 days into `$ARCHIVE/agents/` or `$ARCHIVE/sessions/`, and print each moved path.
 
-For each drifted claim in `$GIT_ROOT/CLAUDE.md`:
+**Count fixes (only when `CLAUDE_MD_MODE=maintainer`):** for each drifted claim in `$GIT_ROOT/CLAUDE.md`:
 
-1. **Re-read the file immediately before editing** + compare mtime to scan-time mtime. If changed: skip and report "file changed since scan — skipped".
-2. Use `Edit` on the EXACT stale token (one Edit per drifted claim):
-   - Replace the number only (e.g., `61 plugin skills` → `62 plugin skills`).
-   - **Verify after each fix**: re-run the same live probe count and assert the edited line now matches it. If mismatch: restore the backup for that file and report failure.
-3. Never edit `~/.claude/**` — only edit files under the verified cc-commander git root.
+1. Re-read the file immediately before editing and compare its mtime with the scan. If it changed, skip and report "file changed since scan — skipped".
+2. Edit the exact stale number only, one Edit per claim.
+3. Re-run the same live count and confirm the edited line matches. On mismatch, restore that file's backup and report the failure.
 
-### Settings keys
-
-Edit `~/.claude/settings.json` (backup already taken). Add ONLY keys that are missing — never overwrite existing values:
+**Settings keys:** Edit `~/.claude/settings.json` (backup already taken) to add only the keys listed in `SETTINGS_MISSING_KEYS` (`showThinkingSummaries`, `env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`, `toolConcurrency`). Never overwrite an existing value. After each edit, confirm the file parses:
 
 ```bash
-# Add showThinkingSummaries if absent
-# Add env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS if absent globally
-# Add toolConcurrency if absent
+node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/settings.json','utf8'));console.log('settings.json: valid JSON')"
 ```
 
-Use `Edit` with surgical key insertion. Verify the file is valid JSON after each edit.
-
-### Version refresh / marketplace re-add (EMIT ONLY — never run)
-
-Marketplace-installed users have no working tree to `git pull` into — the
-clone at `~/.claude/plugins/marketplaces/commander-hub` is Claude Code's own
-cache. The sanctioned sequence is the marketplace-update flow:
+**Version refresh (print only, never run):** a marketplace install has no working tree to `git pull` into. Give the user:
 
 ```
-# To update the plugin — paste into terminal:
+# Update the plugin — paste into a terminal:
 claude plugin marketplace update commander-hub
 claude plugin update commander
-# Then restart Claude Code / Cowork Desktop to apply
+# Then restart Claude Code or Desktop.
 #
-# To stop needing step 1 by hand: set "autoUpdate": true on the
-# "commander-hub" entry in ~/.claude/plugins/known_marketplaces.json
-# (or via the /plugin menu, if offered). /ccc-doctor offers to do this
-# for you with a backup + confirmation.
+# To skip the first command next time, enable autoUpdate for commander-hub:
+# /ccc-doctor offers this with a backup and a confirmation.
 ```
 
-## Step 5 — Verify
+Desktop-managed installs update from Desktop settings instead; see [../ccc-update/references/install-modes.md](../ccc-update/references/install-modes.md#desktop-managed-account-synced).
 
-After all fixes, re-run the probe for ONLY the rows that were changed. Assert each row now reads 🟢. If `CLAUDE_MD_MODE=maintainer` and count edits were made, also run:
+### 5. Verify
+
+Re-run the probe (1b) and report the rows that changed; each should now read 🟢. In maintainer mode after count edits, also run:
 
 ```bash
 node "$GIT_ROOT/scripts/audit-counts.js" --check 2>/dev/null || echo "audit-counts: failed"
 ```
 
-If any fix introduced a regression: restore the matching `*.backup-<TS>` for that file and report it clearly.
+If any fix regressed a row, restore that file's `*.backup-$TS` and report it.
 
-## Step 6 — Report
+### 6. Report
 
 ```
 ## Tune-Up complete
 
-✅ Fixed: <list each fix applied>
-🗂️ Archived (reversible): ~/.claude/commander/tuneup-archive/<stamp>/  (restore: mv <path> back)
-💾 Backups: <each *.backup-stamp path>
-⏭️ You must run by hand: git pull + Desktop restart (version), /ccc-connect re-run (MCP staleness)
+✅ Fixed: <each fix applied, with its verification result>
+🔄 Archived (reversible): ~/.claude/commander/tuneup-archive/<stamp>/  (restore: mv <path> back)
+📝 Backups: <each *.backup-<stamp> path>
+⏭️ For you to run: marketplace update + restart (version), /ccc-connect (MCP staleness)
 ```
 
-For anything heavy/out-of-scope, offer ONE `mcp__ccd_session__spawn_task` chip (e.g. "deep-clean stale sessions older than 90d — review before deleting"). Never auto-spawn.
+For heavy or out-of-scope cleanup (for example sessions older than 90 days that need review before deletion), offer one `mcp__ccd_session__spawn_task` suggestion when that tool is available. Never spawn it automatically.
 
-## Anti-patterns — DO NOT
+## Decision points
 
-- ❌ Mutate anything on `--check`.
-- ❌ `rm` or `trash` — archive only, always.
-- ❌ Edit `~/.claude/**` — the global config is not ours to modify.
-- ❌ Edit `settings.json` or any `CLAUDE.md` without a `*.backup-<stamp>` first.
-- ❌ Hardcode counts/versions — read live, diff against claims.
-- ❌ Reimplement ccc-doctor's source-tree drift detection — consume `lib/diagnostics.js` for the shared full-stack rows.
-- ❌ Use `python3` in probes — pure `jq` + `bash` + `node -e` only.
-- ❌ Run `git pull` / restart Desktop yourself — emit commands.
-- ❌ Render rows for checks that passed as if they need fixing.
-- ❌ Apply any fix without first verifying the result afterward.
-- ❌ Offer CLAUDE.md count edits when running from an end-user install (detect-only).
-- ❌ Compare model strings without normalizing away `[1m]`/`[128k]`/`[...]` context suffixes first.
-- ❌ Auto-apply the 💰 cost-settings keys (effortLevel, MAX_THINKING_TOKENS, ENABLE_TOOL_SEARCH, model, …) — they are read-only suggestions; surface them, emit copy-paste, never edit settings.json for them.
-- ❌ Suggest overriding the user's deliberate `model` pin — for cost-settings `model` is inform-only.
-- ❌ Render `ok`-verdict cost keys as if they need fixing — only surface `missing`/`suboptimal`.
+Scope picker:
 
-**Bottom line:** scan read-only → scorecard → click to confirm → backup + archive + fix → verify → report. Safe by default, reversible by design, always current.
+```yaml
+question: "Which fixes should I apply?"
+header: "Tune-Up"
+multiSelect: false
+options:
+  - label: "🟢 All safe fixes"
+    description: "Junk sweep plus missing settings keys. Fully reversible; no CLAUDE.md edits."
+  - label: "Pick individual fixes"
+    description: "Choose from the safe fixes, including CLAUDE.md counts in a maintainer checkout."
+  - label: "Cancel"
+    description: "No changes. Re-run any time with /ccc-tuneup."
+```
+
+Individual-fix picker (`multiSelect: true`; list only flagged rows, and if the junk sweep is not flagged, mark the first listed fix 🟢):
+
+```yaml
+question: "Pick the fixes to apply."
+header: "Fixes"
+multiSelect: true
+options:
+  - label: "🟢 Sweep junk to archive"
+    description: "Moves temp_* dirs, stale *.bak/*.old and archive-hook dupes into a timestamped archive. Nothing deleted."
+  - label: "Add settings keys"
+    description: "Backs up settings.json, then adds only the missing structural keys."
+  - label: "Fix CLAUDE.md counts"
+    description: "Maintainer checkout only. Backs up, edits each stale number, verifies against the live count."
+```
+
+Opt-in cleanup picker (`multiSelect: true`; pre-selected with `--aggressive`):
+
+```yaml
+question: "Also archive these? Both are off by default."
+header: "Opt-in"
+multiSelect: true
+options:
+  - label: "🟢 Skip both"
+    description: "Archives neither; local agents and sessions stay in place. Ignored if a cleanup below is also selected."
+  - label: "Retire superseded local agents"
+    description: "Moves matching ~/.claude/agents/*.md to the archive; the plugin agent takes over."
+  - label: "Archive stale sessions (older than 30 days)"
+    description: "Moves old ~/.claude/sessions/ files to the archive; transcripts are preserved."
+```
+
+Backup-retention picker:
+
+```yaml
+question: "Some files have more than 3 backups. Archive the oldest?"
+header: "Backups"
+multiSelect: false
+options:
+  - label: "🟢 Archive older backups"
+    description: "Keeps the newest 3 per file; moves the rest to tuneup-archive/old-backups-<stamp>/."
+  - label: "Keep all"
+    description: "No change."
+```
+
+## Done when
+
+- `--check`: the scorecard printed, every row filled or ⏭️, and nothing was mutated.
+- Fix modes: every applied fix has a backup or archive path, Step 5 re-ran the probe and the changed rows are 🟢 (or the backup was restored and reported), and `settings.json` parses after any edit.
+- Maintainer count fixes: `node "$GIT_ROOT/scripts/audit-counts.js" --check` result is reported.
+
+## Guardrails
+
+- Never `rm` or `trash`; junk, agents and sessions move to `~/.claude/commander/tuneup-archive/<UTC-stamp>/`.
+- Back up `settings.json` and any `CLAUDE.md` before editing (`cp <file> <file>.backup-$(date +%Y%m%d-%H%M%S)`); take every backup before the first edit; on any failure restore all of them in reverse order.
+- `settings.json` is the one file under `~/.claude/` this skill edits, and only to add missing keys. Never edit `~/.claude/CLAUDE.md` or other user config; it may contain counts that are not Commander's to rewrite.
+- Edit a `CLAUDE.md` only inside a verified Commander checkout (`CLAUDE_MD_MODE=maintainer`); end-user installs are detect-only. Never edit the plugin clone's source otherwise.
+- Never run `git pull`, app restarts or marketplace re-adds; print them as commands.
+- Never apply the cost settings or override the user's `model` pin; they are suggestions.
+- Re-read each file before each Edit; if it changed since the scan, skip and report.
+- Never hardcode counts or versions; read them live. Probes use `bash`, `jq` and `node -e`, not `python3`.
+- Reuse `ccc-doctor/lib/diagnostics.js` for shared rows instead of reimplementing them.
+
+## See also
+
+- `/ccc-doctor` — read-only diagnostic report
+- `/ccc-update` — update the plugin and verify the runtime
+- `/ccc-settings` — preferences and Claude Code settings
+- `/ccc-connect` — reconnect opt-in MCP servers
 
 ---
 

@@ -38,14 +38,34 @@ test('plugin hooks.json: every timeout is second-scale (Claude Code units)', fun
   });
 });
 
-test('codex mirror hooks.json: every timeout is ms-scale (Codex units)', function () {
-  var rows = collectTimeouts(path.join(ROOT, 'commander', 'cowork-plugin-codex', 'hooks.json'));
-  assert.ok(rows.length > 0, 'expected mirrored handlers');
-  rows.forEach(function (r) {
-    assert.ok(
-      r.timeout >= 1000,
-      'codex handler "' + (r.command || '').slice(0, 60) + '" has timeout ' + r.timeout +
-        ' — the translator must convert source seconds to Codex ms'
-    );
-  });
+// Codex hook `timeout` is also SECONDS (default 600; SessionEnd/Interrupt max
+// 3) per learn.chatgpt.com/docs/hooks and platform facts §3.3. The translator
+// passes seconds through and caps them. Built into a temp dir so the test
+// never writes the committed mirror.
+test('codex mirror hooks.json: every timeout is second-scale within Codex caps', function () {
+  var os = require('node:os');
+  var spawnSync = require('node:child_process').spawnSync;
+  var outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-timeout-units-'));
+  try {
+    var build = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'build-codex.js'), '--out', outDir], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024 * 10,
+    });
+    assert.strictEqual(build.status, 0, build.stderr);
+    var rows = collectTimeouts(path.join(outDir, 'hooks.json'));
+    assert.ok(rows.length > 0, 'expected mirrored handlers');
+    rows.forEach(function (r) {
+      assert.ok(
+        r.timeout >= 1 && r.timeout <= 600,
+        'codex handler "' + (r.command || '').slice(0, 60) + '" has timeout ' + r.timeout +
+          ' — Codex hook timeouts are seconds'
+      );
+      if (r.event === 'SessionEnd' || r.event === 'Interrupt') {
+        assert.ok(r.timeout <= 3, r.event + ' handler timeout ' + r.timeout + 's exceeds the Codex 3s cap');
+      }
+    });
+  } finally {
+    fs.rmSync(outDir, { recursive: true, force: true });
+  }
 });

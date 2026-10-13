@@ -1,105 +1,109 @@
 ---
 name: ccc-doc-sync
-description: "Sync count references and version strings across docs from contract.json + package.json. Run --check in CI to catch drift."
+description: "Sync skill, agent and hook-handler counts and the version string across Commander docs from contract.json and package.json, with a --check drift gate for CI. Use when counts or the version changed, after adding a skill, agent or handler, or when a doc-count check fails."
 allowed-tools:
   - Read
   - Edit
   - Bash
   - Glob
   - Grep
-version: 1.0.0
+  - AskUserQuestion
 argument-hint: "[--check | --apply]"
+model: sonnet
+effort: low
 ---
 
-# $ccc-doc-sync — Doc Count Synchronizer
+# $ccc-doc-sync — One source for counts
 
-Keeps every count reference (`plugin_skills`, `specialist_agents`, `hook_handlers`) and version string in sync across the entire project. One source of truth — never manually edit numbers in docs again.
+**CC Commander** · $ccc-doc-sync · every count and version string in the docs matches the canonical sources
 
-## What it does
+## When to use / when not to
 
-Reads two canonical sources:
-- `commander/contract.json` — `plugin_skills`, `specialist_agents`, `hook_handlers`
-- `package.json` — `version`
-
-Then applies surgical regex replacements across 20+ doc files, updating every occurrence of stale counts. Idempotent — running twice produces the same output.
+- Use inside the Commander repository after a change to `commander/contract.json` (`plugin_skills`, `specialist_agents`, `hook_handlers`) or to `package.json` `version`, or when `npm run docs:sync:check` fails.
+- Do not hand-edit counts in docs; add or fix a pattern in `patterns.json` instead.
+- Not for prose drift in a project's CLAUDE.md; use `$ccc-claudemd`.
+- The script resolves the project root four levels above its own directory, so it runs only from a Commander repository checkout, not from an installed plugin cache.
 
 ## How it works
 
-1. Load values from `contract.json` + `package.json`
-2. Read `patterns.json` — declarative per-file replacement rules
-3. For each file: apply all patterns, compare before/after
-4. `--check`: report drift, exit 1 if any file is stale (CI gate)
-5. `--apply`: write changes, exit 0
-
-The pattern engine uses `${plugin_skills}`, `${specialist_agents}`, `${hook_handlers}`, `${version}` template vars. Adding support for a new file is a JSON edit in `patterns.json` — no code change.
-
-## Files covered
-
-| Category | Files |
+| File | Role |
 |---|---|
-| Root docs | `README.md`, `BIBLE.md`, `CHEATSHEET.md`, `SKILLS-INDEX.md`, `CLAUDE.md` |
-| Plugin manifest | `commander/cowork-plugin/.claude-plugin/plugin.json`, `CONNECTORS.md` |
-| Mintlify docs | `introduction.mdx`, `install.mdx`, `agents.mdx`, `skills.mdx`, `free-vs-pro.mdx`, `install-recovery.mdx` |
-| Site components | `site/components/hero.tsx`, `site/components/skills-showcase.tsx` |
-| Video scenes | `scene-hero.jsx`, `scene-agents.jsx`, `scene-compare.jsx`, `scene-hooks.jsx`, `scene-install.jsx` |
+| `sync.js` | Runner: loads sources, applies patterns, prints drift, sets the exit code. Holds no counts. |
+| `patterns.json` | Declarative per-file regex replacements (the contract). |
+| `commander/contract.json` | Canonical `plugin_skills`, `specialist_agents`, `hook_handlers`. |
+| `package.json` | Canonical `version`. |
 
-## Usage
+Templates use `${plugin_skills}`, `${specialist_agents}`, `${hook_handlers}` and `${version}`; any other variable is an error. The run is idempotent: a second `--apply` changes nothing.
 
-```bash
-# Dry-run — show what would change, exit 1 if drift detected
-node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --check
+## What happens
 
-# Apply changes
-node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --apply
+1. **Confirm the repo root.** Run `git rev-parse --show-toplevel` and check that `commander/contract.json` and `commander/cowork-plugin/skills/ccc-doc-sync/sync.js` exist there. If not, stop and say the skill needs a Commander checkout.
+2. **Show the canonical values.**
+   ```bash
+   node -p "const c=require('./commander/contract.json'),p=require('./package.json');JSON.stringify({plugin_skills:c.plugin_skills,specialist_agents:c.specialist_agents,hook_handlers:c.hook_handlers,version:p.version})"
+   ```
+3. **List covered files** (never quote a fixed list; read it):
+   ```bash
+   node -p "require('./commander/cowork-plugin/skills/ccc-doc-sync/patterns.json').patterns.map(p=>p.file).join('\n')"
+   ```
+4. **Check for drift.**
+   ```bash
+   node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --check   # same as: npm run docs:sync:check
+   ```
+   Exit codes: `0` in sync, `1` drift found (file names printed), `2` regex or file error. On `2`, read the error, fix the pattern or missing path in `patterns.json`, and rerun; do not apply.
+5. **Decide.** If `$ARGUMENTS` is `--check`, report the result and stop. If it is `--apply`, go to step 6. Otherwise, on drift, ask the picker below.
+6. **Apply.**
+   ```bash
+   node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --apply   # same as: npm run docs:sync
+   git diff --stat
+   ```
+   Review the diff: only numbers and version strings should change. If a replacement touched historical text (a dated changelog entry, an old version reference), revert that hunk with Edit and narrow the regex in `patterns.json`.
+7. **Verify** with the commands in Done when.
 
-# Via npm scripts
-npm run docs:sync:check   # CI gate (--check)
-npm run docs:sync         # Apply all changes
-```
+## Decision points
 
-## When to run
+On drift, ask with AskUserQuestion (in Codex, ask the same choices as a plain-text question):
 
-- After bumping `contract.json` plugin_skills count (new skill added)
-- After bumping `contract.json` specialist_agents count (new agent added)
-- After bumping `contract.json` hook_handlers count (new handler added)
-- After running `npm version` (updates package.json version)
-- `docs:sync:check` runs automatically in `prepublishOnly`
+- 🟢 **Apply the sync** — rewrite the drifted files from the canonical values, then show `git diff --stat`.
+- **Show the drift only** — list stale files and stop; nothing is written.
+- **Cancel** — do nothing.
 
-## Exit codes
+## Adding a file
 
-| Code | Meaning |
-|---|---|
-| 0 | All files in sync (--check) or all updates applied (--apply) |
-| 1 | Drift detected (--check mode only) |
-| 2 | Regex or file error |
-
-## Adding a new file
-
-Edit `patterns.json` only — no JS changes needed:
+Edit `patterns.json` only; no code change:
 
 ```json
 {
   "file": "path/to/new-file.md",
   "replacements": [
-    {
-      "regex": "(Some prefix\\s*)\\d+( skills)",
-      "flags": "g",
-      "template": "$1${plugin_skills}$2"
-    }
+    { "regex": "(Some prefix\\s*)\\d+( skills)", "flags": "g", "template": "$1${plugin_skills}$2" }
   ]
 }
 ```
 
-## Architecture
+Anchor every regex on surrounding words so it cannot match version history or unrelated numbers. Rerun step 4 to confirm the new entry parses and matches.
 
-```
-sync.js          runner — args, output, exit codes
-patterns.json    declarative replacements per file (the contract)
-SKILL.md         this file
-```
+## Done when
 
-The `.js` file contains no hardcoded counts. All patterns live in `patterns.json`.
+- `node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --check` exits `0`.
+- The other doc-count gates also pass, because CI runs them separately: `node bin/doc-sync.js` and `node scripts/audit-counts.js --check`. Report each exit code; if one fails, its own message names the file to fix.
+- `git diff --stat` shows only the files the sync touched.
+
+## Guardrails
+
+- Never writes without `--apply` or the 🟢 picker answer; `--check` is read-only.
+- Never invents a count; values come only from `contract.json` and `package.json`.
+- Never rewrites historical version references or changelog entries; narrow the pattern instead.
+- Never commits, pushes or publishes; that needs separate authorization in the conversation.
+
+## See also
+
+- `$ccc-claudemd` — audit a CLAUDE.md against the real tree
+- `$ccc-changelog` — summarize the latest release notes
+- `$ccc-ship` — release pre-flight, which expects these gates green
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

@@ -1,0 +1,1 @@
+{ "name": "commander-hud", "version": "0.1.0", "description": "Commander HUD: Fable state, running agents, tool-call budget and update pill above the prompt", "author": { "name": "CC Commander" } }

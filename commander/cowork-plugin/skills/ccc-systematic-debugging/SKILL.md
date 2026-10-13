@@ -1,6 +1,6 @@
 ---
 name: ccc-systematic-debugging
-description: "Root-cause debugging via the Iron Law: no fix without confirmed root cause. Reproduce → hypothesize → verify → fix. Use when investigating bugs, test failures, or…"
+description: "Root-cause debugging under one law: no fix without a confirmed root cause. Reproduce, compare, hypothesize, then fix once with a failing test first. Use when investigating a bug, a failing or flaky test, or an error of unknown cause."
 allowed-tools:
   - Read
   - Write
@@ -8,108 +8,135 @@ allowed-tools:
   - Bash
   - Grep
   - Glob
+  - Agent
   - AskUserQuestion
-  - TodoWrite
+argument-hint: "[symptom, error message or failing test]"
+model: opus
+effort: high
 ---
 
-# /ccc-systematic-debugging — Root-cause debugging
+# /ccc-systematic-debugging — root cause before fix
 
-## The Iron Law
+**CC Commander** · /ccc-systematic-debugging · a four-phase process that finds the cause, proves it, and fixes it once.
 
 ```
 NO FIX WITHOUT CONFIRMED ROOT CAUSE
 ```
 
-Random fixes waste time and create new bugs. Quick patches mask underlying issues. This skill enforces a four-phase process: **Reproduce → Hypothesize → Verify → Fix.**
+Guess-and-check fixes waste time and create new bugs; quick patches mask the real issue. Complete each phase before starting the next.
 
-For deep dives requiring extended investigation, delegate to the `debugger` persona.
+## When to use / when not to
 
-## The Four Phases
+- Use for any bug, failing or flaky test, crash, wrong output, or error whose cause is not yet proven.
+- Use even when the issue looks simple; the process is fast for simple bugs.
+- Do not use for a known, already-diagnosed change (a typo the user pointed at, a requested refactor). Make that edit directly.
+- For investigations expected to run past ~20 turns, span several systems, or need hypothesis state held across cycles, delegate (see "Decision points").
 
-You MUST complete each phase before the next.
+## What happens
 
-### Phase 1: Root Cause Investigation
+Start from `$ARGUMENTS` (the symptom, error text or failing test). Keep a short hypothesis log in the conversation: hypothesis, evidence, result, per cycle.
 
-**Before attempting ANY fix:**
+### Phase 1 — Root-cause investigation (before any fix)
 
-1. **Read error messages completely** — stack traces, line numbers, error codes. Don't skim.
-2. **Reproduce consistently** — Can you trigger it reliably? If not reproducible, gather more data first.
-3. **Check recent changes** — `git diff`, recent commits, new dependencies, config changes.
-4. **Gather evidence in multi-component systems** — For each component boundary: log what enters, log what exits, verify config propagation. Run once to gather evidence showing WHERE it breaks before analyzing WHY.
-5. **Trace data flow** — Where does the bad value originate? Trace backward through the call stack to the source. Fix at source, not symptom.
+1. **Read the error completely:** full stack trace, line numbers, error codes. Do not skim.
+2. **Reproduce it.** Run the exact failing command and capture the output, for example the single test: `npx vitest run path/to/file.test.ts -t "<name>"`, `pytest path/to/test_x.py::test_name -x`, or `node --test path/to/file.test.js`. If it does not reproduce reliably, gather more data before going on; for flaky failures, run it in a loop (`for i in $(seq 1 20); do <cmd> || break; done`) and record the failure rate.
+3. **Check recent changes:** `git log --oneline -15`, `git diff`, `git diff HEAD~5 --stat`, new dependencies (`git diff HEAD~5 -- package.json package-lock.json pyproject.toml`), config changes. When a known-good commit exists, `git bisect` with the reproduction command finds the change.
+4. **Instrument component boundaries** in multi-component systems: log what enters and exits each boundary and confirm config propagates. Run once to find where it breaks before reasoning about why.
+5. **Trace the bad value backward** through the call stack to where it originates. The fix belongs at the source, not at the symptom.
 
-### Phase 2: Pattern Analysis
+Exit when you can state what is happening and where.
 
-1. **Find working examples** — Locate similar working code in the same codebase.
-2. **Compare against references** — Read reference implementations completely. Don't skim.
-3. **Identify differences** — List every difference, however small.
-4. **Understand dependencies** — What config, environment, state does the broken code assume?
+### Phase 2 — Pattern analysis
 
-### Phase 3: Hypothesis and Testing
+1. **Find working code** in the same codebase that does something similar (`Grep` for the same API, call or config key).
+2. **Read the reference implementation completely.**
+3. **List every difference** between working and broken, however small.
+4. **List the assumptions** the broken code makes about config, environment and state, and check each one.
 
-1. **Form a single hypothesis** — "I think X is the root cause because Y." Write it down.
-2. **Test minimally** — The SMALLEST possible change to test the hypothesis. One variable at a time.
-3. **Verify before continuing** — Worked? → Phase 4. Didn't work? Form new hypothesis. Don't stack fixes.
-4. **When you don't know** — Say so explicitly. Don't pretend. Research more.
+Exit when you can name the difference that matters.
 
-### Phase 4: Implementation
+### Phase 3 — Hypothesis and test
 
-1. **Create a failing test case first** — Simplest possible reproduction. Automated if possible.
-2. **Implement single fix** — Address the root cause. ONE change. No "while I'm here" additions.
-3. **Verify fix** — Test passes? Other tests still passing? Issue actually resolved?
-4. **If fix doesn't work** — Count your attempts. If ≥ 3 failed: STOP, question the architecture.
+1. **Write one hypothesis:** "X is the root cause because Y."
+2. **Test it with the smallest possible change**, one variable at a time, ideally a probe (log line, assertion, isolated input) rather than a fix.
+3. **Confirmed** → Phase 4. **Ruled out** → revert the probe, form a new hypothesis. Never stack changes.
+4. **When you do not know, say so** and gather more evidence instead of guessing.
 
-### When 3+ Fixes Fail: Question the Architecture
+### Phase 4 — Implementation
 
-Each fix revealing a new problem in a different place = architectural issue, not a bug.
+1. **Write the failing test first:** the simplest automated reproduction. Run it and confirm it fails for the hypothesized reason.
+2. **Make one fix** at the root cause. No "while I'm here" changes.
+3. **Verify:** the new test passes, the surrounding suite passes (the project's test command from `package.json`, `pyproject.toml` or the README), and the original reproduction from Phase 1 no longer fails.
+4. **Sweep siblings:** `Grep` for the same pattern elsewhere and report other instances; fix them only if they are in scope.
+5. **Count attempts.** After three failed fixes, stop (see "Decision points").
 
-**STOP and discuss with your human partner before attempting more fixes.**
+## Decision points
 
-## Red Flags — Stop and Return to Phase 1
+**Three or more fixes have failed.** Each fix revealing a new problem somewhere else signals an architectural issue, not a bug. Stop and ask with AskUserQuestion (Codex: ask the same question in plain text):
 
-If you catch yourself thinking any of these, return to Phase 1 immediately:
+```
+question: "Three fixes failed. How should we proceed?"
+header: "Debugging"
+multiSelect: false
+options:
+  - label: "🟢 Step back and review the design"
+    description: "Stop fixing; write up what the failures reveal about the architecture and decide the change together."
+  - label: "Delegate to the debugger agent"
+    description: "A fresh-context agent re-runs the investigation from Phase 1 with the hypothesis log so far."
+  - label: "One more hypothesis, with new evidence"
+    description: "Only if a new observation (not a new guess) has appeared; name it first."
+```
 
-- "Quick fix for now, investigate later"
-- "Just try changing X and see if it works"
-- "Add multiple changes, run tests"
-- "It's probably X, let me fix that"
-- "I don't fully understand but this might work"
-- "One more fix attempt" (when already tried 2+)
+**Long or multi-system investigation.** Offer delegation to the `debugger` agent through the Agent tool. The brief includes: the symptom, the exact reproduction command, the hypothesis log, files in scope, and the return format (root cause with `path:line`, evidence, proposed single fix, regression test). Re-run the agent's reproduction and test yourself before reporting; its report is a claim until checked. Codex: run the same brief with `codex exec`.
 
-## Common Rationalizations
+## Red flags — return to Phase 1
+
+- "Quick fix for now, investigate later."
+- "Just try changing X and see."
+- "Make several changes, then run the tests."
+- "It's probably X; let me fix that."
+- "I don't fully understand, but this might work."
+- "One more fix attempt" after two have already failed.
 
 | Excuse | Reality |
-|--------|---------|
-| "Issue seems simple, don't need process" | Simple bugs have root causes too. Process is fast for simple bugs. |
-| "Emergency, no time for process" | Systematic is FASTER than guess-and-check thrashing. |
-| "I see the problem, let me fix it" | Seeing symptoms ≠ understanding root cause. |
-| "Multiple fixes at once saves time" | Can't isolate what worked. Creates new bugs. |
-| "One more fix attempt" (after 2+ failed) | 3+ failures = architectural problem. |
+|---|---|
+| "Too simple to need the process" | Simple bugs have root causes too; the process is fast for them. |
+| "Emergency, no time" | Systematic work is faster than thrashing. |
+| "I can see the problem" | Seeing the symptom is not understanding the cause. |
+| "Several fixes at once saves time" | You cannot tell which one worked, and you add new bugs. |
 
-## Quick Reference
+## Quick reference
 
-| Phase | Key Question | Must Answer Before Next Phase |
-|-------|-------------|-------------------------------|
-| 1. Root Cause | What is happening and where? | Understand WHAT and WHERE |
-| 2. Pattern | Why is it happening? | Identify the difference from working code |
-| 3. Hypothesis | Is my theory correct? | Hypothesis confirmed or ruled out |
-| 4. Implementation | Did the fix work? | Bug resolved, tests pass |
+| Phase | Question | Exit condition |
+|---|---|---|
+| 1. Root cause | What is happening, and where? | Reproduced, location known |
+| 2. Pattern | Why here and not in working code? | The material difference is named |
+| 3. Hypothesis | Is the theory right? | Confirmed or ruled out by a minimal probe |
+| 4. Implementation | Did the fix work? | Failing test now passes, suite green, reproduction gone |
 
-## Delegation
+## Done when
 
-For extended, multi-hour investigations requiring deep context tracking:
+- The root cause is stated with `path:line` and the evidence that confirmed it.
+- The regression test failed before the fix and passes after it; report both runs' actual output lines.
+- The project's test suite (or the relevant subset, named) passes; report the command and result.
+- `git diff --stat` shows only the fix and its test.
 
-```
-Delegate to: debugger persona
-When: Investigation spans >20 turns, involves multiple systems,
-      or requires holding complex state across hypothesis cycles
-```
+## Guardrails
 
-The `debugger` persona applies the Iron Law automatically and maintains a bug journal with timestamp + hypothesis + evidence + lesson per cycle.
+- No fix before Phase 1 and Phase 3 are complete.
+- One change at a time; revert probes that did not confirm the hypothesis.
+- Never weaken, skip or delete a test to make it pass.
+- Never commit, push or deploy as part of this skill; hand off to `/ccc-ship` or the user.
+- Never report "fixed" from a self-report or a delegated agent's claim without re-running the reproduction.
 
----
+## See also
 
-_Adapted from [superpowers/systematic-debugging](https://github.com/nicholasgasior/superpowers) — MIT licensed._
+- `/ccc-triage` — sort and prioritize several issues before debugging one.
+- `/ccc-testing` — strengthen the suite around the fix.
+- `/ccc-review` — independent review of the fix.
+- `/ccc-xray` — map an unfamiliar codebase before tracing.
+
+Adapted from [obra/superpowers](https://github.com/obra/superpowers) `systematic-debugging` (MIT); the original is vendored at `vendor/superpowers/skills/systematic-debugging/`.
 
 ---
 

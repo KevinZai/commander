@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: ccc-doctor
+description: The doctor runs its diagnostics and reports versions and health instead of guessing.
+tags: [skill:ccc-doctor, diagnostics]
+execution:
+  prompt: Run the CC Commander doctor and tell me whether my install is healthy.
+  max_turns: 20
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion, Bash]
+graders:
+  - type: tool_used
+    name: doctor-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-doctor"'
+  - type: tool_used
+    name: ran-a-diagnostic-command
+    tool: Bash
+    min: 1
+    arm: both
+  - type: regex
+    name: reports-node-or-version
+    pattern: '\bnode\b|version|v\d+\.\d+'
+    flags: i

@@ -1,68 +1,97 @@
 ---
 name: ccc-usage
-description: "Usage & Cost deck: what your agent work costs, and what delegating to cheaper models saved you. A self-contained artifact — burn, savings, cost by app."
+description: "Usage and cost deck: estimated savings from routing to cheaper models, cost per day and cost by app, narrated here or published as a private snapshot page after consent. Use when the user asks what agent work costs, how much was saved, or types /ccc-usage."
 allowed-tools:
   - Read
   - Bash
   - Write
   - AskUserQuestion
-argument-hint: "[open | status]"
+  - Artifact
+argument-hint: "[status | open | snapshot]"
+model: sonnet
+effort: low
 ---
 
-# /ccc-usage — Usage & Cost
+# /ccc-usage — what the work cost
 
-The money deck. CC Commander already logs your model routing to `~/.claude/commander/` — `savings.json` (what delegating to cheaper models saved vs an all-Opus baseline) and `mission-control/metrics.jsonl` (cost per app per day). This turns those into one page: cumulative savings, saved/day + cost/day trends, and a cost-by-app split.
+**CC Commander** · /ccc-usage · estimated savings, spend per day and spend per app from local logs.
 
-> 🔒 Privacy: the numbers are read locally. Publishing the artifact uploads it (dollar figures, per-app split, dates) to your private claude.ai artifact URL — private to your account, but it leaves the machine. Always ask before publishing; never publish automatically.
+Sources: `~/.claude/commander/savings.json` (estimated savings versus an all-Opus baseline) and `~/.claude/commander/mission-control/metrics.jsonl` (cost per app per day). These are estimates from per-model rates, not a bill; say so whenever you quote a number.
 
-> ⚠️ Honesty: these are **estimates** (rough per-model rates vs an all-Opus baseline, not your actual bill). Say so on the page. Never present them as billing.
+## When to use / when not to
 
-## How it routes
+- Use for "what did this cost?", "how much did delegation save?", or a shareable cost page.
+- Use `/ccc-console usage` for the same tab inline beside the other tabs. For an actual bill, use the provider's billing page; this deck only estimates.
 
-On `/ccc-usage` with no argument, open a click-first picker:
+## What happens
 
-```
-AskUserQuestion:
-  question: "Usage & Cost — how do you want it?"
-  options:
-    - 🛰️ Publish the deck — a living Usage & Cost artifact you can keep beside your chat
-    - 🗣️ Plain-English status — narrate the headline numbers here, no jargon
-```
+### 1. Pick the output
 
-`/ccc-usage open` (or `snapshot`) → publish the deck. `/ccc-usage status` → narrate.
+With no argument, ask with AskUserQuestion (Codex: a plain-text question):
 
-**Zero-state:** if `savings.json` and `metrics.jsonl` are both missing/empty, say so plainly — "No cost data logged yet — run some agents (`/ccc-fleet`, `/ccc-spawn`) and this deck fills in." Never render an error for an empty deck.
+- 🟢 Plain-English status — the headline numbers here, nothing leaves the machine
+- Publish the deck — a private claude.ai page; asks before uploading
+- Show it inline — runs `/ccc-console usage`
 
-### 🛰️ Publish the deck
+`status` goes to step 2. `open` or `snapshot` goes to step 3.
 
-**LIVING PATTERN:** always render to the SAME file path (`scratchpad/ccc-usage-live.html`), then republish that same path with the Artifact tool — same path means same URL, so it updates one living page instead of a trail of copies. **Do not change this path** — it is the identity of every bookmark anyone already has for this deck.
+If `savings.json` and `metrics.jsonl` are both missing or empty, say "No cost data logged yet. Run some agents (`/ccc-fleet`, `/ccc-spawn`) and this deck fills in." and stop. That is not an error.
 
-Since v7.4.0 this page is the **Usage tab of the Commander Console**, published on its own — one builder renders every deck and the console, so the numbers can't disagree:
+### 2. Plain-English status
 
 ```bash
-mkdir -p scratchpad
-if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" ]; then
-  node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
-    --surface artifact --tab usage --out scratchpad/ccc-usage-live.html
-else
-  node commander/cowork-plugin/scripts/build-console.mjs \
-    --surface artifact --tab usage --out scratchpad/ccc-usage-live.html
-fi
+node --input-type=module -e "
+const { readUsageModel } = await import('${CLAUDE_PLUGIN_ROOT}/lib/usage-snapshot.js');
+const m = await readUsageModel({});
+console.log(JSON.stringify({ saved: m.totalSavedUsd, dispatches: m.totalDispatches, byApp: m.costByApp }));
+"
 ```
 
-The page is unchanged apart from one added line pointing at `/ccc-console` (the inline all-in-one view).
+Narrate it in two sentences: "You saved about $X by letting cheaper models do N jobs. Most of the spend is <app>." Call the figures estimates.
 
-**First publish this session** → ask before publishing ($ figures leave the machine for your private artifact URL). **Every later run of `/ccc-usage`** → invoking the skill again IS the refresh consent: republish the same file path to the same URL without re-asking. Publish `scratchpad/ccc-usage-live.html` with the Artifact tool (favicon 💰). End with the artifact title + the headline: "$X saved across N dispatches." To refresh later: run `/ccc-usage` again — same URL updates in place; viewers reload.
+### 3. Publish the deck (consent-gated)
 
-### 🗣️ Plain-English status
+1. First publish this session: ask with AskUserQuestion.
+   - Question: "Publish the Usage & Cost deck as a private claude.ai page? Dollar estimates, the per-app split and dates leave this machine."
+   - 🟢 Publish — create or update the private page
+   - Narrate here instead — nothing uploads
+   - Cancel
+   Publish only on an explicit yes. Running `/ccc-usage` again later in this session is the refresh consent.
+2. Build the Usage tab of the console onto this deck's fixed path:
+   ```bash
+   mkdir -p "<scratchpad>"
+   if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" ]; then
+     node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
+       --surface artifact --tab usage --out <scratchpad>/ccc-usage-live.html
+   else
+     node commander/cowork-plugin/scripts/build-console.mjs \
+       --surface artifact --tab usage --out <scratchpad>/ccc-usage-live.html
+   fi
+   ```
+   Exit 0 and `build-console: wrote …` on stderr mean the page is ready. The page carries the Commander decks strip and a line pointing to `/ccc-console`.
+3. Publish with the Artifact tool:
+   - Already published from this path in this session: publish the same `file_path`; omit `icon`.
+   - Otherwise: `action: "list"`, find "Commander Usage & Cost", `action: "read"` its `url`, then publish `file_path` with that `url`. If none exists, publish `file_path` with `icon: "chart"` and `description: "Estimated agent spend, savings from model routing, and cost by app."`.
+   - On Codex or without the Artifact tool: give the user the HTML file path.
+4. Reply with the page title, the URL, and the headline "$X saved across N dispatches (estimate)".
 
-Run `readUsageModel({})` and read `model.totalSavedUsd` / `model.totalDispatches` / `model.costByApp`, then narrate caveman-simple: "You saved about $X by letting cheaper models do N jobs. Most of your spend is <app>." No jargon, no tables.
+## Done when
 
-## The deck also links the others
+- Status: the numbers you narrated came from the step 2 command output in this turn.
+- Publish: the build exited 0 and the Artifact tool returned a URL, which you reported.
 
-The published artifact carries the shared **Commander decks** strip at the top — one click (copy) away from the Cockpit, Mission Control, and Safety decks. Users always know the other decks exist. It also carries one line pointing at `/ccc-console`, the inline console that shows all of these tabs at once (and has a prompt bar, which a published page cannot).
+## Guardrails
 
-> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
+- Never publish without the step 3 consent, and never on a schedule or as a side effect.
+- Never present the figures as billing.
+- Keep the path `<scratchpad>/ccc-usage-live.html`; a new path is a new URL.
+- The published page is a snapshot: it changes only when republished and cannot send prompts into the session.
+
+## See also
+
+- `/ccc-console` — this tab inline, with the prompt bar
+- `/ccc-safety` — what the hooks blocked
+- `/ccc-mission-control` — who is working on what
 
 ---
 

@@ -1,0 +1,139 @@
+{
+  "id": "ccc-domains",
+  "version": 1,
+  "screen": {
+    "title": "CCC Domains",
+    "subtitle": "Archived legacy menu. /ccc-learn owns the domain picker (menus/ccc-learn.json)."
+  },
+  "prompt": "Pick a CCC domain to explore:",
+  "choices": [
+    {
+      "key": "a",
+      "label": "ccc-design",
+      "description": "UI/UX, animations, polish, responsive, a11y",
+      "next": "ccc-design-detail"
+    },
+    {
+      "key": "b",
+      "label": "ccc-marketing",
+      "description": "Content, CRO, email, ads, analytics, SEO",
+      "next": "ccc-marketing-detail"
+    },
+    {
+      "key": "c",
+      "label": "ccc-saas",
+      "description": "Auth, billing, API, database, deploy",
+      "next": "ccc-saas-detail"
+    },
+    {
+      "key": "d",
+      "label": "ccc-testing",
+      "description": "Unit, integration, E2E, load, security",
+      "next": "ccc-testing-detail"
+    },
+    {
+      "key": "e",
+      "label": "ccc-devops",
+      "description": "CI/CD, Docker, AWS, monitoring",
+      "next": "ccc-devops-detail"
+    },
+    {
+      "key": "f",
+      "label": "ccc-seo",
+      "description": "Technical SEO, Core Web Vitals, schema markup",
+      "next": "ccc-seo-detail"
+    },
+    {
+      "key": "g",
+      "label": "ccc-security",
+      "description": "OWASP, pen-test, secrets, hardening",
+      "next": "ccc-security-detail"
+    },
+    {
+      "key": "h",
+      "label": "ccc-research",
+      "description": "Competitive analysis, market research, data",
+      "next": "ccc-research-detail"
+    },
+    {
+      "key": "i",
+      "label": "ccc-mobile",
+      "description": "React Native, Expo, mobile patterns",
+      "next": "ccc-mobile-detail"
+    },
+    {
+      "key": "j",
+      "label": "ccc-data",
+      "description": "SQL, ETL, analytics, visualization",
+      "next": "ccc-data-detail"
+    },
+    {
+      "key": "k",
+      "label": "ccc-makeover",
+      "description": "/xray audit + /makeover swarm",
+      "next": "ccc-makeover-detail"
+    },
+    {
+      "key": "q",
+      "label": "Back",
+      "next": "domains"
+    }
+  ],
+  "subAdventures": {
+    "ccc-design-detail": {
+      "prompt": "Describe what you want to design:",
+      "action": "freeform_build",
+      "context": "Use /ccc-design to: "
+    },
+    "ccc-marketing-detail": {
+      "prompt": "Describe your marketing need:",
+      "action": "freeform_build",
+      "context": "Use /ccc-marketing to: "
+    },
+    "ccc-saas-detail": {
+      "prompt": "Describe your SaaS feature:",
+      "action": "freeform_build",
+      "context": "Use /ccc-saas to: "
+    },
+    "ccc-testing-detail": {
+      "prompt": "What needs testing?",
+      "action": "freeform_build",
+      "context": "Use /ccc-testing to: "
+    },
+    "ccc-devops-detail": {
+      "prompt": "Describe your DevOps need:",
+      "action": "freeform_build",
+      "context": "Use /ccc-devops to: "
+    },
+    "ccc-seo-detail": {
+      "prompt": "Describe your SEO goal:",
+      "action": "freeform_build",
+      "context": "Use /ccc-seo to: "
+    },
+    "ccc-security-detail": {
+      "prompt": "What needs a security review?",
+      "action": "freeform_build",
+      "context": "Use /ccc-security to: "
+    },
+    "ccc-research-detail": {
+      "prompt": "What do you want to research?",
+      "action": "freeform_build",
+      "context": "Use /ccc-research to: "
+    },
+    "ccc-mobile-detail": {
+      "prompt": "Describe your mobile task:",
+      "action": "freeform_build",
+      "context": "Use /ccc-mobile to: "
+    },
+    "ccc-data-detail": {
+      "prompt": "Describe your data task:",
+      "action": "freeform_build",
+      "context": "Use /ccc-data to: "
+    },
+    "ccc-makeover-detail": {
+      "prompt": "Which app or page needs a makeover?",
+      "action": "freeform_build",
+      "context": "Use /ccc-makeover to: "
+    }
+  }
+}

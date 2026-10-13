@@ -1,128 +1,90 @@
 ---
 name: ccc-design
-description: "CCC domain — complete design & animation ecosystem — 35+ skills in one. Animations, visual effects, design systems, landing pages, and the Impeccable polish suite."
-version: 1.0.0
-category: CCC domain
-brand: Kevin Z's CC Commander
+description: "Route design and animation work to the right sub-skill: landing pages, design systems, motion, visual effects, named looks, slides, screenshots and the Impeccable polish suite. Use when the user wants to design, restyle, polish, animate or capture the look of a UI."
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - AskUserQuestion
+argument-hint: "[polish | build | motion | look | slides | screenshots | capture]"
+model: inherit
+effort: medium
 ---
 
-# ccc-design
+# /ccc-design — design work, routed
 
-> Load ONE skill. Get the entire design/animation domain. Built from 30+ proven skills + 5 new ones + 2 grafted from MengTo/Skills (v6.5.0).
+**CC Commander** · ccc-design · one router that loads the design sub-skill, or short chain of them, the job needs.
 
-## Absorbed Skills Manifest
+Each sub-skill lives in its own directory beside this file. Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` (on Codex, the same path relative to this file) and follow it. The user's selected model is preserved.
 
-| # | Original Skill | What It Does | Status |
-|---|----------------|--------------|--------|
-| 1 | `animate` | Purposeful CSS/JS animations — entrance, exit, state transitions | Absorbed |
-| 2 | `svg-animation` | SVG animation — GSAP, Lottie, path morphing, line drawing | Absorbed |
-| 3 | `motion-design` | Motion design — Framer Motion, CSS keyframes, parallax scrolling | Absorbed |
-| 4 | `interactive-visuals` | Interactive effects — cursor trails, hover distortions, physics simulations | Absorbed |
-| 5 | `particle-systems` | Particle effects — Canvas/WebGL confetti, fire, snow, aurora, starfields | Absorbed |
-| 6 | `generative-backgrounds` | Generative art — noise gradients, voronoi, cellular automata, flow fields | Absorbed |
-| 7 | `canvas-design` | Canvas art — visual design in PNG/PDF/SVG via Canvas API | Absorbed |
-| 8 | `webgl-shader` | WebGL/3D — Three.js scenes, GLSL shaders, post-processing effects | Absorbed |
-| 9 | `retro-pixel` | Retro effects — CRT scanlines, 8-bit pixel art, VHS glitch, ASCII art | Absorbed |
-| 10 | `colorize` | Strategic color — palette generation, contrast optimization, color theory application | Absorbed |
-| 11 | `theme-factory` | Themed output — branded slides, docs, reports with consistent visual identity | Absorbed |
-| 12 | `screenshots` | Marketing screenshots — annotated, device-framed product screenshots | Absorbed |
-| 13 | `frontend-design` | Anti-slop design — Anthropic's methodology for clean, professional UI | Absorbed |
-| 14 | `landing-page-builder` | Landing pages — high-converting layouts with hero, features, pricing, CTA | Absorbed |
-| 15 | `frontend-slides` | Presentation animations — slide decks with rich motion and transitions | Absorbed |
-| 16 | `web-artifacts-builder` | HTML artifacts — multi-component standalone HTML pages | Absorbed |
-| 17 | `design-consultation` | Design system proposal — full design system audit and recommendations | Absorbed |
-| 18-36 | **Impeccable Suite** | 19 design polish skills (see below) | Absorbed |
-| 37 | `design-router` | Routes your design task to the right specialist | **NEW** |
-| 38 | `design-context` | Captures brand, palette, animation preferences, performance budget | **NEW** |
-| 39 | `framer-motion-patterns` | Comprehensive Framer Motion — layout animations, gestures, scroll-triggered, stagger | **NEW** |
-| 40 | `gsap-patterns` | GSAP mastery — ScrollTrigger, timeline sequencing, SVG morphing, pinning | **NEW** |
-| 41 | `interactive-landing` | Interactive landing pages — hero animations, scroll narratives, 3D showcases | **NEW** |
-| 42 | `looks` | Named aesthetic look-book — 25 named design-system directions (clean-minimal, dark-glass, skeuomorphic, mesh-gradient, etc.) | **NEW (v6.5.0, MengTo/Skills)** |
-| 43 | `capture` | Design capture — video/HTML/live-page → reusable recreation prompts, robust full-page screenshots | **NEW (v6.5.0, MengTo/Skills)** |
+Codex: ask each picker as a plain-text question with the same options.
 
-### Impeccable Polish Suite (19 skills)
-| Skill | Purpose |
-|-------|---------|
-| `adapt` | Adapt design to different contexts/devices |
-| `arrange` | Layout and spatial arrangement |
-| `audit` | Design quality audit |
-| `bolder` | Make designs more impactful |
-| `clarify` | Improve visual clarity |
-| `critique` | Design critique and feedback |
-| `delight` | Add delightful micro-interactions |
-| `distill` | Simplify and reduce visual noise |
-| `extract` | Extract design patterns |
-| `harden` | Make designs more robust |
-| `normalize` | Normalize inconsistencies |
-| `onboard` | Improve onboarding UX |
-| `optimize` | Optimize design performance |
-| `overdrive` | Push designs to maximum impact |
-| `polish` | Final polish pass |
-| `quieter` | Tone down overwhelming elements |
-| `typeset` | Typography optimization |
+## Sub-skills
 
-**Replaces loading:** animate, svg-animation, motion-design, interactive-visuals, particle-systems, generative-backgrounds, canvas-design, webgl-shader, retro-pixel, colorize, theme-factory, screenshots, frontend-design, landing-page-builder, frontend-slides, web-artifacts-builder, design-consultation, + all 19 Impeccable skills
+| Group | Sub-skills |
+|---|---|
+| Routing and context | `design-router` (intent routing), `design-context` (brand, palette, fonts, motion preferences, performance budget) |
+| Animation and motion | `animate`, `motion-design`, `framer-motion-patterns`, `gsap-patterns`, `svg-animation` |
+| Visual effects | `interactive-visuals`, `particle-systems`, `generative-backgrounds`, `webgl-shader`, `retro-pixel`, `canvas-design` |
+| Pages and systems | `frontend-design`, `landing-page-builder`, `interactive-landing`, `design-consultation`, `colorize`, `theme-factory` |
+| Output | `frontend-slides`, `screenshots`, `web-artifacts-builder` |
+| Look-book and capture | `looks` (named aesthetic directions), `capture` (video, HTML or live page into a reusable design prompt) |
+| Impeccable polish suite | `adapt`, `arrange`, `audit`, `bolder`, `clarify`, `critique`, `delight`, `distill`, `extract`, `harden`, `normalize`, `onboard`, `optimize`, `overdrive`, `polish`, `quieter`, `typeset` |
 
----
+Per-intent routing, "don't confuse with" pairs and the campaign chains: [references/routing.md](references/routing.md).
 
-## Routing Matrix
+## When to use / when not to
 
-| Your Intent | Route To | Don't Confuse With |
-|-------------|----------|--------------------|
-| "Add animations" / "Make it move" | `animate` + `motion-design` | `interactive-visuals` (user-driven) |
-| "Framer Motion animations" | `framer-motion-patterns` | `motion-design` (general motion) |
-| "GSAP / ScrollTrigger" | `gsap-patterns` | `svg-animation` (SVG-specific) |
-| "SVG animation" / "Lottie" | `svg-animation` | `gsap-patterns` (broader GSAP) |
-| "Interactive effects" / "Cursor trails" | `interactive-visuals` | `animate` (non-interactive) |
-| "Particles" / "Confetti" / "Snow" | `particle-systems` | `generative-backgrounds` (static) |
-| "Background effects" / "Noise gradients" | `generative-backgrounds` | `particle-systems` (discrete particles) |
-| "3D" / "WebGL" / "Shaders" | `webgl-shader` | `canvas-design` (2D) |
-| "Retro" / "Pixel art" / "Glitch" | `retro-pixel` | `generative-backgrounds` |
-| "Landing page" / "Hero section" | `landing-page-builder` + `interactive-landing` | `frontend-design` (system, not page) |
-| "Design system" / "Clean UI" | `frontend-design` + `design-consultation` | `landing-page-builder` (single page) |
-| "Polish this" / "Make it better" | Impeccable suite → start with `critique` then `polish` | |
-| "Make it bolder" / "More impact" | `bolder` + `overdrive` | `quieter` (opposite) |
-| "Tone it down" / "Too much" | `quieter` + `distill` | `bolder` (opposite) |
-| "Color palette" / "Colors" | `colorize` | `theme-factory` (broader theming) |
-| "Presentation" / "Slides" | `frontend-slides` + `theme-factory` | `landing-page-builder` |
-| "Product screenshots" | `screenshots` | `canvas-design` (art) |
-| "Give it a [named vibe/aesthetic]" | `looks` | `frontend-design` (system, not a named direction) |
-| "Recreate this video/site as a prompt" | `capture` | `screenshots` (marketing crops, not full-page capture) |
+- Use for new UI, a visual refresh, motion and effects, a design system, a named look, slides, marketing screenshots, or a polish pass before shipping.
+- Use `ccc-makeover` for a whole-project health overhaul, `ccc-mobile` for native mobile UI, `ccc-marketing` for copy and conversion work on a page.
 
----
+## What happens
 
-## Campaign Templates
+1. **Read the project.** Run in one Bash call, silent on failure:
 
-### Stunning Landing Page (Full Stack)
-1. `design-context` → capture brand, colors, fonts, mood
-2. `landing-page-builder` → structure and layout
-3. `interactive-landing` → hero animations, scroll narrative
-4. `framer-motion-patterns` → component transitions
-5. `particle-systems` or `generative-backgrounds` → ambient effects
-6. `colorize` → color harmony check
-7. `polish` → final quality pass
+   ```bash
+   test -f package.json && grep -oE '"(next|react|vue|svelte|astro|tailwindcss|framer-motion|gsap|three)"' package.json | sort -u
+   ls tailwind.config.* DESIGN.md Design.md 2>/dev/null
+   git diff --stat HEAD 2>/dev/null | tail -1
+   ```
 
-### Design System Setup
-1. `design-context` → capture existing brand assets
-2. `frontend-design` → anti-slop methodology
-3. `design-consultation` → system proposal
-4. `colorize` → palette and tokens
-5. `typeset` → typography scale
-6. `normalize` → consistency pass
-7. `harden` → edge case robustness
+   Report one line: `🎨 Stack: <frameworks | none> · design doc <yes | no> · <diff summary | clean>`.
 
-### Visual Effects Showcase
-1. `design-context` → performance budget
-2. `webgl-shader` or `particle-systems` → core effects
-3. `interactive-visuals` → user interaction
-4. `gsap-patterns` → scroll-triggered reveals
-5. `optimize` → performance pass
+2. **Capture context once.** If no design doc exists and the task produces new UI, run `design-context` first so later sub-skills share one brand, palette and performance budget.
 
-### Design Polish Pipeline
-1. `critique` → identify issues
-2. Choose: `bolder`/`overdrive` (more impact) OR `quieter`/`distill` (less noise)
-3. `clarify` → improve readability
-4. `arrange` → fix layout issues
-5. `typeset` → typography refinement
-6. `adapt` → responsive check
-7. `polish` → final pass
+3. **Route.** An argument or a clear intent picks the sub-skill or chain from [references/routing.md](references/routing.md). Otherwise ask with AskUserQuestion (header "Design"), recommended first. Recommend Polish when step 1 shows CSS/JSX/TSX churn or an existing UI; recommend Build when the repo has no UI yet:
+
+   - 🟢 Polish an existing UI — `critique`, then the Impeccable chain ending in `polish`
+   - Build a page or system — `landing-page-builder` + `interactive-landing`, or `frontend-design` + `design-consultation`
+   - Motion and effects — `animate`, `framer-motion-patterns`, `gsap-patterns`, `particle-systems`, `webgl-shader` and the rest of those groups
+   - Something else — a follow-up picker with looks, slides, screenshots and capture
+
+4. **Pick a direction when polishing.** After `critique`, ask with AskUserQuestion (header "Direction"): 🟢 the direction the critique supports (more impact: `bolder` + `overdrive`, or calmer: `quieter` + `distill`) · the other direction · neither, fix the findings only. Never apply `bolder` and `quieter` to the same elements.
+
+5. **Load and run.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` for each step of the chain and follow it. For `looks`, the sub-skill reads the full look spec from `vendor/mengto-skills/` at apply time.
+
+6. **Check performance before shipping motion.** Run `optimize` on any change that adds animation, WebGL or particles; prefer CSS when it achieves the same effect.
+
+7. **Verify.** Run the project's build or typecheck (`npm run build`, or `npx tsc --noEmit` when there is no build script) and `git status --short`. On failure, fix and re-run before reporting.
+
+## Done when
+
+- Code changed: the build or typecheck exited 0 in this turn and `git status --short` lists only the files the task meant to touch.
+- Polish pass: every `critique` finding is reported as fixed or not fixed.
+- A design doc or asset was written: `test -s <file> && echo ok` printed `ok`.
+
+## Guardrails
+
+- Never add motion without a purpose; motion communicates state, it does not decorate.
+- Never overwrite an existing design doc without asking first with a picker.
+- Never port a look's full spec into the project's docs; apply it from the vendor file.
+- Never deploy or publish the result from this skill; deployment and publishing need authorization in this conversation and belong to the deploy workflow.
+
+## See also
+
+- `ccc-makeover` — whole-project audit, fix and re-score
+- `ccc-mobile` — native mobile UI
+- `ccc-marketing` — copy, CRO and launch work around the design

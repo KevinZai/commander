@@ -1,28 +1,33 @@
 ---
 name: ccc-update
-description: "Click-first plugin update walkthrough. Detects installed vs latest version, runs the marketplace-update sequence, reminds you to restart, and verifies the new version + hooks are live."
-model: sonnet
-effort: low
+description: "Update the installed CC Commander plugin: detect the install mode and installed vs latest version, hand over the exact update commands, then verify the installed runtime and hooks after restart. Use when the user asks to update Commander or suspects an outdated install."
 allowed-tools:
   - Bash
+  - Read
   - AskUserQuestion
 argument-hint: ""
+model: sonnet
+effort: low
 ---
 
-# $ccc-update — Update CC Commander
+# $ccc-update — Get onto the latest
 
 **CC Commander** · $ccc-update · Detect → update → restart → verify
 
-The end-user counterpart to `$ccc-doctor` (which also detects staleness, but
-as one row in a bigger diagnostic report) — this skill does ONE thing:
-get the user onto the latest version, correctly, in the fewest steps.
+## When to use / when not to
 
-> Looking for the vendor-submodule updater instead (`vendor/*` git
-> submodules under this repo, maintainer-only)? That's `$ccc-upgrade` — a
-> different tool with a similarly-spelled name. This skill (`$ccc-update`)
-> is for end users updating the installed plugin itself.
+- Use to move an installed Commander plugin to the latest published version.
+- Use after a restart to confirm an update landed.
+- Not for vendor submodules under this repository (maintainer-only): that is `$ccc-upgrade`.
+- Not for a full health report: `$ccc-doctor` also flags staleness, as one row of a larger diagnostic.
 
-## Step 1 — Detect installed vs latest
+In Codex, ask plain-text questions where this skill says AskUserQuestion, and use the Codex path in [references/install-modes.md](references/install-modes.md#codex).
+
+## What happens
+
+### Step 1 — Detect install mode and versions
+
+Run:
 
 ```bash
 CLONE="$HOME/.claude/plugins/marketplaces/commander-hub"
@@ -50,9 +55,8 @@ if [ -f "$INSTALLED_JSON" ]; then
   " 2>/dev/null || echo "n/a")
 fi
 
-# Desktop-managed (account-synced) install: Cowork/Claude Desktop provisions the
-# plugin under Application Support per session — NO marketplace clone and NO
-# installed_plugins.json entry exist in that mode. Detect it and read its version.
+# Desktop-managed install: provisioned per session from the claude.ai account,
+# with no marketplace clone and no installed_plugins.json entry.
 DESKTOP_VERSION="n/a"
 if [ "$CLONE" = "n/a" ] && [ "$INSTALLED_VERSION" = "n/a" ]; then
   DESKTOP_MANIFEST=$(/bin/ls -t "$HOME/Library/Application Support/Claude/"local-agent-mode-sessions/*/*/rpm/plugin_*/.claude-plugin/plugin.json 2>/dev/null | head -50 | while read -r f; do
@@ -66,7 +70,7 @@ if [ "$CLONE" = "n/a" ] && [ "$INSTALLED_VERSION" = "n/a" ]; then
   fi
 fi
 
-# Dev checkout: running inside the cc-commander repo itself (maintainer mode).
+# Dev checkout: running inside the cc-commander repository itself.
 DEV_REPO="n/a"
 if [ -f "package.json" ] && /usr/bin/grep -q '"name": "cc-commander"' package.json 2>/dev/null; then
   DEV_REPO="$(pwd)"
@@ -76,7 +80,7 @@ REMOTE_VERSION="n/a"
 if [ "$CLONE" != "n/a" ]; then
   REMOTE_VERSION=$(node "$CLONE/commander/update-check.js" --remote-only 2>/dev/null || echo "n/a")
 else
-  # No clone to run the checker from — ask GitHub directly (raw manifest on main).
+  # No clone to run the checker from: read the published manifest on main.
   REMOTE_VERSION=$(curl -fsSL --max-time 8 "https://raw.githubusercontent.com/KevinZai/commander/main/commander/cowork-plugin/.claude-plugin/plugin.json" 2>/dev/null | node -e "
     let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const v=JSON.parse(s).version;process.stdout.write(/^\d+\.\d+\.\d+$/.test(v)?v:'n/a');}catch(e){process.stdout.write('n/a');}});
   " 2>/dev/null || echo "n/a")
@@ -89,71 +93,56 @@ echo "DEV_REPO=$DEV_REPO"
 echo "REMOTE_VERSION=$REMOTE_VERSION"
 ```
 
-**Route by install mode — there are three, and only the first uses Step 2:**
+### Step 2 — Route by mode and report
 
-| Mode | Signals | What to do |
-|---|---|---|
-| CLI marketplace | `CLONE` ≠ n/a or `INSTALLED_VERSION` ≠ n/a | Continue to Step 2 (the marketplace-update sequence) |
-| **Desktop-managed** | both n/a, `DESKTOP_VERSION` ≠ n/a | No local clone exists **by design** — the Desktop app provisions the plugin from your claude.ai account. Report `Installed: vDESKTOP_VERSION · Latest: vREMOTE_VERSION`. If behind: update from **Desktop → Settings → Plugin Marketplace** (re-install/update the `commander` entry there), then fully quit (Cmd+Q) and relaunch. If Desktop keeps showing an old version after that, the known fix is: remove the plugin at claude.ai (web) → Cmd+Q → reinstall. Do NOT run the `claude plugin marketplace` CLI sequence — there is no clone for it to update in this mode. |
-| Dev checkout | `DEV_REPO` ≠ n/a (and the others n/a) | You're the maintainer running from the repo: `git pull` + restart the session. Version truth is `package.json`. |
+Report plainly: `Installed: vX.Y.Z · Latest: vA.B.C`, using whichever installed value is set.
 
-If ALL of `INSTALLED_VERSION`, `DESKTOP_VERSION`, `DEV_REPO` are n/a: Commander genuinely isn't installed on this machine — point at the install guide (`/plugin marketplace add KevinZai/commander` or Desktop → Settings → Plugin Marketplace → Add from GitHub) rather than `$ccc-doctor`.
+1. `REMOTE_VERSION` is `n/a`: say GitHub could not be reached (offline or rate-limited) and stop.
+2. Installed equals or is newer than `REMOTE_VERSION`: say the install is already current, run Step 5 to confirm the runtime and hooks, and stop.
+3. Otherwise route by mode:
+   - **CLI marketplace** (`CLONE` or `INSTALLED_VERSION` set): continue to Step 3.
+   - **Desktop-managed** (`DESKTOP_VERSION` set, the others `n/a`): no local clone exists by design. Give the Desktop steps from [references/install-modes.md](references/install-modes.md#desktop-managed-account-synced) and do not run the `claude plugin marketplace` sequence.
+   - **Dev checkout** (`DEV_REPO` set, the others `n/a`): tell the maintainer to `git pull` and restart the session; version truth is `package.json`.
+   - **Not installed** (`INSTALLED_VERSION`, `DESKTOP_VERSION`, `DEV_REPO` all `n/a`): point at the install guide in [references/install-modes.md](references/install-modes.md#not-installed), not `$ccc-doctor`.
 
-Report the result plainly: `Installed: vX.Y.Z · Latest: vA.B.C`.
+### Step 3 — Confirm and hand over the update commands
 
-- If `REMOTE_VERSION` is `n/a`: say you couldn't reach GitHub (offline or
-  rate-limited) and stop — nothing else to do until network is back.
-- If `INSTALLED_VERSION` equals `REMOTE_VERSION` (or is newer): say
-  "You're already on the latest version — nothing to do" and stop.
-- Otherwise, continue to Step 2.
-
-## Step 2 — Confirm and run the update
-
-Call `AskUserQuestion`:
+Call AskUserQuestion:
 
 ```yaml
-question: "Update CC Commander vINSTALLED_VERSION -> vREMOTE_VERSION?"
-header: "CC Commander Update"
+question: "Update CC Commander vINSTALLED_VERSION to vREMOTE_VERSION?"
+header: "Update"
 multiSelect: false
 options:
-  - label: "Update now"
-    description: "Runs the marketplace-update sequence, then tells you to restart."
-    preview: "claude plugin marketplace update commander-hub && claude plugin update commander"
+  - label: "🟢 Update now"
+    description: "You run two /plugin commands, then restart; this skill verifies after."
+    preview: "/plugin marketplace update commander-hub\n/plugin update commander"
   - label: "Not now"
-    description: "Skip — you can run $ccc-update again anytime."
+    description: "Nothing changes; run $ccc-update again anytime."
 ```
 
-On "Update now", tell the user to run these two commands themselves (this
-skill does NOT and cannot invoke `/plugin` commands on your behalf — they
-are Claude Code CLI/Desktop built-ins, not something a skill can shell out
-to):
+On "Update now", give the user these commands to run themselves. A skill cannot invoke `/plugin` built-ins.
 
 ```
 /plugin marketplace update commander-hub
 /plugin update commander
 ```
 
-(CLI-only equivalent, if you're scripting: `claude plugin marketplace update commander-hub && claude plugin update commander`.)
+Scripted CLI equivalent: `claude plugin marketplace update commander-hub && claude plugin update commander`.
 
-## Step 3 — Restart reminder
+### Step 4 — Restart
 
-> ⚠️ **A restart is required.** `/plugin update` stages the new version —
-> it does not hot-swap the running session. Fully quit Claude Code /
-> Cowork Desktop (Cmd+Q, not just closing the window) and reopen, or start
-> a new CLI session.
+Tell the user, every time:
 
-## Step 4 — Verify after restart
+> ⚠️ A restart is required. `/plugin update` stages the new version; it does not hot-swap the running session. Fully quit Claude Code or Desktop (Cmd+Q, not closing the window) and reopen, or start a new CLI session. Then run `$ccc-update` again to verify.
 
-Once the user confirms they've restarted, verify the **installed runtime** —
-NOT the marketplace clone. A successful `marketplace update` with a
-failed/unapplied `plugin update` leaves the clone showing the new version
-while the old runtime keeps running; probing the clone would falsely declare
-victory.
+### Step 5 — Verify the installed runtime
+
+Verify the installed runtime, not the marketplace clone. A successful marketplace refresh with an unapplied plugin update leaves the clone on the new version while the old runtime keeps running.
 
 ```bash
-# The client's own record of what is INSTALLED (authoritative). The cache
-# installPath IS the plugin source directly — no commander/cowork-plugin
-# wrapper like the clone has.
+# installed_plugins.json is the client's authoritative record; its installPath
+# is the plugin source directly (no commander/cowork-plugin wrapper).
 RUNTIME_SRC=$(node -e "
   try {
     const j=JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/plugins/installed_plugins.json','utf8'));
@@ -171,40 +160,42 @@ NEW_VERSION="n/a"
 " 2>/dev/null || echo "n/a")
 echo "NEW_VERSION=$NEW_VERSION"
 
-# Prove the hook chain in the INSTALLED runtime actually runs.
+# Prove the hook chain in the installed runtime runs.
 [ "$RUNTIME_SRC" != "n/a" ] && echo '{}' | node "$RUNTIME_SRC/hooks/session-end.js" | head -c 200
 ```
 
-- `NEW_VERSION` (the installed runtime) should now equal `REMOTE_VERSION`
-  from Step 1. If the CLONE shows the new version but `NEW_VERSION` is still
-  old, say exactly that: the marketplace refreshed but the plugin update
-  didn't apply (or the app wasn't fully restarted) — re-run
-  `claude plugin update commander` and restart again. If it
-  doesn't, the update didn't apply — most likely cause: Desktop wasn't
-  fully quit (a closed window keeps the old process, and the old process
-  keeps the old plugin loaded). Point the user at `install-recovery.mdx`
-  or `$ccc-doctor` for the deeper cache-clearing sequence.
-- The hook pipe-test should print one JSON line (e.g.
-  `{"continue":true,...}`). No output or a crash means the updated clone's
-  hooks aren't wired — again, `$ccc-doctor` is the next step.
+- Desktop-managed mode has no `installed_plugins.json`: re-run Step 1 and compare `DESKTOP_VERSION` to `REMOTE_VERSION` instead.
+- `NEW_VERSION` must equal `REMOTE_VERSION`. If the clone shows the new version but `NEW_VERSION` is old, say exactly that: the marketplace refreshed but the plugin update did not apply, or the app was not fully quit. Next steps are in [references/install-modes.md](references/install-modes.md#update-did-not-apply).
+- The hook pipe-test must print one JSON line, for example `{"continue":true,...}`. No output or a crash means the installed runtime's hooks are not wired; send the user to `$ccc-doctor`.
 
-## Step 5 — Optional: never do this by hand again
+### Step 6 — Optional: turn on auto-update
 
-If the user updates often, offer the one-time `autoUpdate` toggle (same
-consent-gated flow `$ccc-doctor` offers — see that skill for the exact
-backup + edit + verify sequence). Point them there rather than duplicating
-the mutation logic in two places.
+If the user updates often, offer the marketplace `autoUpdate` toggle. Point to `$ccc-doctor`, which owns the consent-gated backup, edit and verify sequence; do not duplicate that mutation here.
 
-## Anti-patterns — DO NOT
+## Decision points
 
-- Never tell the user to `git pull` — there is no working tree in a
-  marketplace install.
-- Never claim to have run `/plugin update` yourself — skills cannot invoke
-  Claude Code CLI built-ins; always hand the exact commands to the user.
-- Never skip the restart reminder — `/plugin update` without a restart is
-  the #1 cause of "I updated but nothing changed" reports.
-- Never claim success from Step 2 alone — verification (Step 4) is what
-  actually confirms the update landed.
+- Step 3: update now (🟢) or not now. Ask only once versions differ, never at the start.
+
+## Done when
+
+- Step 5 printed `NEW_VERSION` equal to `REMOTE_VERSION` (or Step 1 `DESKTOP_VERSION` equal to it in Desktop mode), and
+- the hook pipe-test printed a JSON line,
+- and the skill reported both results verbatim. Otherwise report the mismatch and the next step; do not claim success.
+
+## Guardrails
+
+- Never tell a marketplace or Desktop user to `git pull`; there is no working tree. `git pull` is for the dev checkout only.
+- Never claim to have run `/plugin update`; hand the exact commands to the user.
+- Never skip the restart reminder; an update without a restart is the most common cause of "I updated but nothing changed".
+- Never report success from Step 3 alone; Step 5 is the proof.
+- Never run the `claude plugin marketplace` sequence in Desktop-managed mode.
+- This skill reads local files and the public manifest only; it writes nothing. The `autoUpdate` change belongs to `$ccc-doctor` and needs the user's consent there.
+
+## See also
+
+- `$ccc-doctor` — full install diagnostics, cache recovery, `autoUpdate` toggle
+- `$ccc-upgrade` — maintainer-only vendor submodule updater
+- `$ccc-changelog` — what changed between versions
 
 ---
 

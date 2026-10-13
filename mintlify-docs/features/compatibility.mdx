@@ -14,15 +14,14 @@ CC Commander is built to meet you where you already work. Whether you're a novic
 **Why Cowork first?** It's Anthropic's newest app designed for users who want AI agents to *do* things, not just chat. CC Commander's 82 guided workflows are a perfect match — beginners can type `/ccc-build` and get a complete app scaffold without touching config.
 
 ```
-/plugin marketplace add KevinZai/commander
-/plugin install commander
+/plugin install commander --marketplace KevinZai/commander
 ```
 
 **What you get:**
-- 82 `/ccc-*` slash commands with autocomplete
+- 84 `/ccc-*` plugin skills with autocomplete
 - 22 specialist agents (architect, designer, builder, reviewer, etc.) with persona voices
-- 23 lifecycle hooks (cost warnings, context alerts, auto-save, secret guards)
-- 2 credential-free bundled MCP servers (`context7`, `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Linear, Tavily, GitHub, Slack, and more)
+- 30 lifecycle hooks (cost warnings, context alerts, auto-save, secret guards)
+- 2 credential-free bundled MCP servers (`context7`, `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Linear, Supabase, Slack, Notion and more)
 - Full offline support — works without internet after install
 
 ### Claude Code Desktop (Best for developers)
@@ -30,8 +29,7 @@ CC Commander is built to meet you where you already work. Whether you're a novic
 Same plugin, same skills, same install path. Claude Code is the developer-focused Desktop app; Cowork shares the plugin system so everything works identically.
 
 ```
-/plugin marketplace add KevinZai/commander
-/plugin install commander
+/plugin install commander --marketplace KevinZai/commander
 ```
 
 ### Claude Code CLI (Best for terminal workflows)
@@ -104,9 +102,9 @@ Total month usage: 10/100 calls
 
 | Feature | Cowork Desktop | Code Desktop | Code CLI | Cursor/Windsurf/etc. |
 |---------|:-:|:-:|:-:|:-:|
-| 26 `/ccc-*` slash commands | ✅ | ✅ | ✅ | via agent prompt |
+| 84 `/ccc-*` plugin skills | ✅ | ✅ | ✅ | via agent prompt |
 | 22 specialist agents | ✅ | ✅ | ✅ | via `invoke_agent` tool |
-| Lifecycle hooks (23 events) | ✅ | ✅ | ✅ | ⚠️ MCP-only equivalents |
+| Lifecycle hooks (30 events) | ✅ | ✅ | ✅ | ⚠️ MCP-only equivalents |
 | MCP integrations | ✅ | ✅ | ✅ | host's own MCP support |
 | Airplane-mode (offline) | ✅ | ✅ | ✅ | ❌ requires MCP reachable |
 | Cross-IDE usage counter | via hybrid mode | via hybrid mode | via hybrid mode | ✅ native |

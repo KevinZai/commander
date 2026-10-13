@@ -1,297 +1,99 @@
 ---
-description: "Comprehensive Python code review for PEP 8 compliance, type hints, security, and Pythonic idioms. Invokes the python-reviewer agent."
+description: "Review changed Python code for security, type safety, error handling, idioms and framework pitfalls, with static analysis results and a merge verdict. Use after editing .py files, before committing Python changes, or when reviewing a Python pull request."
 ---
 
-# Python Code Review
+# /ccc-python-review — Python review with a merge verdict
 
-This command invokes the **python-reviewer** agent for comprehensive Python-specific code review.
+**CC Commander** · /ccc-python-review · static analysis plus a `python-reviewer` agent pass, returned as `path:line` findings and an approve, warn or block verdict.
 
-## What This Command Does
+## Arguments
 
-1. **Identify Python Changes**: Find modified `.py` files via `git diff`
-2. **Run Static Analysis**: Execute `ruff`, `mypy`, `pylint`, `black --check`
-3. **Security Scan**: Check for SQL injection, command injection, unsafe deserialization
-4. **Type Safety Review**: Analyze type hints and mypy errors
-5. **Pythonic Code Check**: Verify code follows PEP 8 and Python best practices
-6. **Generate Report**: Categorize issues by severity
+`$ARGUMENTS`: optional paths or a git range (for example `main...HEAD`). Default: uncommitted and staged changes.
 
-## When to Use
+## What happens
 
-Use `/python-review` when:
-- After writing or modifying Python code
-- Before committing Python changes
-- Reviewing pull requests with Python code
-- Onboarding to a new Python codebase
-- Learning Pythonic patterns and idioms
+1. **Find the Python changes.**
 
-## Review Categories
+   ```bash
+   git diff --name-only --diff-filter=ACMR HEAD -- '*.py'
+   git diff --name-only --diff-filter=ACMR <range> -- '*.py'   # when a range was given
+   ```
 
-### CRITICAL (Must Fix)
-- SQL/Command injection vulnerabilities
-- Unsafe eval/exec usage
-- Pickle unsafe deserialization
-- Hardcoded credentials
-- YAML unsafe load
-- Bare except clauses hiding errors
+   Include `pyproject.toml`, `setup.cfg`, `requirements*.txt` and lock files when they changed. If no Python files changed, say so and stop.
+2. **Run static analysis.** Run each tool only when it is installed (`command -v <tool>`) or declared in the project's dev dependencies; prefer the project's own task runner (`make lint`, `tox`, `nox`, `uv run`, `poetry run`) when it defines these checks. Scope to the changed files where the tool allows it.
 
-### HIGH (Should Fix)
-- Missing type hints on public functions
-- Mutable default arguments
-- Swallowing exceptions silently
-- Not using context managers for resources
-- C-style looping instead of comprehensions
-- Using type() instead of isinstance()
-- Race conditions without locks
+   ```bash
+   ruff check <files>
+   ruff format --check <files>      # or: black --check <files>
+   isort --check-only <files>       # only when the project uses isort
+   mypy <files>
+   bandit -q <files>
+   pip-audit                         # dependency audit, when dependencies changed
+   pytest --cov=<package> --cov-report=term-missing   # when tests exist
+   ```
 
-### MEDIUM (Consider)
-- PEP 8 formatting violations
-- Missing docstrings on public functions
-- Print statements instead of logging
-- Inefficient string operations
-- Magic numbers without named constants
-- Not using f-strings for formatting
-- Unnecessary list creation
+   Record pass, fail or not installed for each. Do not install missing tools.
+3. **Delegate the code review.** Call the Agent tool with the `python-reviewer` agent (read-only), passing the changed file list, the diff, the static-analysis output and the detected framework (Django, FastAPI, Flask or none). Ask it to return findings as `path:line` + severity + issue + fix. Codex fallback: run the same review with `codex exec --sandbox read-only` and the same instructions.
+4. **Check the findings.** Open each CRITICAL and HIGH finding at its `path:line` and confirm it against the code before reporting it; drop any the code does not support.
+5. **Report** in the output format below and give the verdict.
 
-## Automated Checks Run
+## Severity guide
 
-```bash
-# Type checking
-mypy .
+| Severity | Examples |
+|---|---|
+| CRITICAL (must fix) | SQL or command injection; `eval`/`exec` on untrusted input; unsafe `pickle` or `yaml.load`; hardcoded credentials; bare `except:` that hides errors |
+| HIGH (should fix) | Missing type hints on public functions; mutable default arguments; exceptions swallowed silently; resources opened without a context manager; `type()` where `isinstance()` is meant; shared state without locks |
+| MEDIUM (consider) | PEP 8 violations; missing docstrings on public functions; `print` instead of logging; string concatenation in loops; magic numbers; non-f-string formatting; needless list materialization; C-style loops where a comprehension is clearer |
 
-# Linting and formatting
-ruff check .
-black --check .
-isort --check-only .
+Framework checks the reviewer applies when detected:
 
-# Security scanning
-bandit -r .
+- **Django** — N+1 queries (`select_related`, `prefetch_related`), model changes without migrations, raw SQL where the ORM works, multi-step writes without `transaction.atomic()`.
+- **FastAPI** — CORS configuration, Pydantic request validation, response models, correct `async`/`await`, dependency injection.
+- **Flask** — app and request context handling, error handlers, blueprint organization, configuration management.
 
-# Dependency audit
-pip-audit
-safety check
+Version-gated syntax: flag features newer than the project's declared minimum Python (`requires-python` in `pyproject.toml`, or `python_requires` in `setup.py`), for example `match` statements and `X | None` unions (3.10+) or the walrus operator and positional-only parameters (3.8+).
 
-# Testing
-pytest --cov=app --cov-report=term-missing
-```
-
-## Example Usage
+## Output format
 
 ```text
-User: /python-review
+# Python review
 
-Agent:
-# Python Code Review Report
+## Files reviewed
+- <path> (modified|added)
 
-## Files Reviewed
-- app/routes/user.py (modified)
-- app/services/auth.py (modified)
+## Static analysis
+- ruff: pass | <n> issues | not installed
+- mypy: ...
+- bandit: ...
 
-## Static Analysis Results
-✓ ruff: No issues
-✓ mypy: No errors
-⚠️ black: 2 files need reformatting
-✓ bandit: No security issues
-
-## Issues Found
-
-[CRITICAL] SQL Injection vulnerability
-File: app/routes/user.py:42
-Issue: User input directly interpolated into SQL query
-```python
-query = f"SELECT * FROM users WHERE id = {user_id}"  # Bad
-```
-Fix: Use parameterized query
-```python
-query = "SELECT * FROM users WHERE id = %s"  # Good
-cursor.execute(query, (user_id,))
-```
-
-[HIGH] Mutable default argument
-File: app/services/auth.py:18
-Issue: Mutable default argument causes shared state
-```python
-def process_items(items=[]):  # Bad
-    items.append("new")
-    return items
-```
-Fix: Use None as default
-```python
-def process_items(items=None):  # Good
-    if items is None:
-        items = []
-    items.append("new")
-    return items
-```
-
-[MEDIUM] Missing type hints
-File: app/services/auth.py:25
-Issue: Public function without type annotations
-```python
-def get_user(user_id):  # Bad
-    return db.find(user_id)
-```
-Fix: Add type hints
-```python
-def get_user(user_id: str) -> Optional[User]:  # Good
-    return db.find(user_id)
-```
-
-[MEDIUM] Not using context manager
-File: app/routes/user.py:55
-Issue: File not closed on exception
-```python
-f = open("config.json")  # Bad
-data = f.read()
-f.close()
-```
-Fix: Use context manager
-```python
-with open("config.json") as f:  # Good
-    data = f.read()
-```
+## Findings
+[CRITICAL] <title>
+<path>:<line> — <issue>
+Fix: <one-line fix, with a short code snippet when it helps>
 
 ## Summary
-- CRITICAL: 1
-- HIGH: 1
-- MEDIUM: 2
-
-Recommendation: ❌ Block merge until CRITICAL issue is fixed
-
-## Formatting Required
-Run: `black app/routes/user.py app/services/auth.py`
+CRITICAL <n> · HIGH <n> · MEDIUM <n>
+Verdict: ✅ approve | ⚠️ warn | ❌ block — <one-line reason>
+Formatting: <exact formatter command for the affected files, if any>
 ```
 
-## Approval Criteria
+## Verdict rules
 
-| Status | Condition |
-|--------|-----------|
-| ✅ Approve | No CRITICAL or HIGH issues |
-| ⚠️ Warning | Only MEDIUM issues (merge with caution) |
-| ❌ Block | CRITICAL or HIGH issues found |
+| Verdict | Condition |
+|---|---|
+| ✅ Approve | No CRITICAL or HIGH findings |
+| ⚠️ Warn | Only MEDIUM findings; merge with caution |
+| ❌ Block | Any CRITICAL or HIGH finding |
 
-## Integration with Other Commands
+## Done when
 
-- Use `/tdd` first to ensure tests pass
-- Use `/code-review` for non-Python specific concerns
-- Use `/python-review` before committing
-- Use `/build-fix` if static analysis tools fail
+Every changed Python file was reviewed, each tool has a recorded result from this run, and every CRITICAL and HIGH finding was confirmed at its `path:line`.
 
-## Framework-Specific Reviews
+## Guardrails
 
-### Django Projects
-The reviewer checks for:
-- N+1 query issues (use `select_related` and `prefetch_related`)
-- Missing migrations for model changes
-- Raw SQL usage when ORM could work
-- Missing `transaction.atomic()` for multi-step operations
+- Read-only: do not edit files, apply formatter fixes or install packages. Print the fix commands instead.
+- Do not report a finding the code does not support.
 
-### FastAPI Projects
-The reviewer checks for:
-- CORS misconfiguration
-- Pydantic models for request validation
-- Response models correctness
-- Proper async/await usage
-- Dependency injection patterns
+## See also
 
-### Flask Projects
-The reviewer checks for:
-- Context management (app context, request context)
-- Proper error handling
-- Blueprint organization
-- Configuration management
-
-## Related
-
-- Agent: `agents/python-reviewer.md`
-- Skills: `skills/python-patterns/`, `skills/python-testing/`
-
-## Common Fixes
-
-### Add Type Hints
-```python
-# Before
-def calculate(x, y):
-    return x + y
-
-# After
-from typing import Union
-
-def calculate(x: Union[int, float], y: Union[int, float]) -> Union[int, float]:
-    return x + y
-```
-
-### Use Context Managers
-```python
-# Before
-f = open("file.txt")
-data = f.read()
-f.close()
-
-# After
-with open("file.txt") as f:
-    data = f.read()
-```
-
-### Use List Comprehensions
-```python
-# Before
-result = []
-for item in items:
-    if item.active:
-        result.append(item.name)
-
-# After
-result = [item.name for item in items if item.active]
-```
-
-### Fix Mutable Defaults
-```python
-# Before
-def append(value, items=[]):
-    items.append(value)
-    return items
-
-# After
-def append(value, items=None):
-    if items is None:
-        items = []
-    items.append(value)
-    return items
-```
-
-### Use f-strings (Python 3.6+)
-```python
-# Before
-name = "Alice"
-greeting = "Hello, " + name + "!"
-greeting2 = "Hello, {}".format(name)
-
-# After
-greeting = f"Hello, {name}!"
-```
-
-### Fix String Concatenation in Loops
-```python
-# Before
-result = ""
-for item in items:
-    result += str(item)
-
-# After
-result = "".join(str(item) for item in items)
-```
-
-## Python Version Compatibility
-
-The reviewer notes when code uses features from newer Python versions:
-
-| Feature | Minimum Python |
-|---------|----------------|
-| Type hints | 3.5+ |
-| f-strings | 3.6+ |
-| Walrus operator (`:=`) | 3.8+ |
-| Position-only parameters | 3.8+ |
-| Match statements | 3.10+ |
-| Type unions (&#96;x &#124; None&#96;) | 3.10+ |
-
-Ensure your project's `pyproject.toml` or `setup.py` specifies the correct minimum Python version.
+`/ccc-code-review` (non-Python concerns) · `/ccc-tdd` · `/ccc-build-fix` · `/ccc-quality-gate`

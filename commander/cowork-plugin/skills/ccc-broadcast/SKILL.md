@@ -1,138 +1,126 @@
 ---
 name: ccc-broadcast
-description: "Relay CC Commander build, deploy, CI, task, and cost signals to your team's chat or email so non-devs see what shipped — read-only, no secrets in payloads."
+description: "Relay build, deploy, CI, task and cost outcomes as short scrubbed summaries to a connected team chat or email, so non-developers see what shipped. Use when the user wants the team, owner or a client told when a deploy, build or run finishes, or types /ccc-broadcast."
 allowed-tools:
   - Read
+  - Write
   - Bash
   - AskUserQuestion
 argument-hint: "[setup | status | test | digest]"
+model: sonnet
+effort: low
+disable-model-invocation: true
 ---
 
-# /ccc-broadcast — Outbound Status Relay
+# /ccc-broadcast — tell the team what shipped
 
-> Placeholders like `~~chat` and `~~email` refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
+**CC Commander** · /ccc-broadcast · plain-language status updates in the chat or inbox a team already reads, with no file contents, diffs or secrets.
 
-Turn "did the deploy work?", "is the site up?", and "did the overnight run finish?" into pushed status updates. `ccc-broadcast` watches the operational signals a CC Commander session already produces — builds, deploys, CI results, task completions, cost/budget alerts — and relays a plain-language summary to the channels a team actually reads (`~~chat`, `~~email`). No dashboards to open, no terminal to babysit.
+`~~chat` and `~~email` mean whatever connector the user enabled through `/ccc-connect` (Slack, Teams or Discord; Gmail or Outlook); see [CONNECTORS.md](../../CONNECTORS.md). Connectors are opt-in and absent by default; log-only mode needs none. This is the outbound counterpart to `/ccc-nightwatch`: nightwatch asks "may I do this?", broadcast reports "here is what happened".
 
-This is the **outbound-status counterpart to `/ccc-nightwatch`** (which relays *approval requests* to your phone). Nightwatch asks "can I do this?"; broadcast tells "here's what happened."
+Configuration lives in `~/.claude/commander/broadcast.json` (shape in [references/messages.md](references/messages.md)). Connector send tools are not pre-approved by this skill, so each send also passes the session's permission check.
 
-## What it does
+Codex: ask pickers as plain-text questions; send through the connector Codex has configured, or stay log-only.
 
-The skill maps CC Commander lifecycle events to a small set of business-legible messages and forwards them through whatever `~~chat` or `~~email` connector is enabled via `/ccc-connect`. Each relay is a short, scrubbed summary — event type, human outcome, and a link if one exists — never file contents, diffs, or secret values. Signals are classified by audience so engineers, owners, and clients each get the right altitude.
+## When to use / when not to
 
-## Triggers
+- Use when someone other than the person at the terminal needs to know a deploy, CI run, overnight task or budget threshold happened.
+- Do not use for solo sessions you are already watching, one-off scripts with no audience, regulated contexts where outbound messages must pass an approved DLP gateway first, or production monitoring (`~~monitoring` owns live health; broadcast reports only what the session produced).
 
-- `/ccc-broadcast`
-- "tell the team when the deploy finishes"
-- "send me a status when the build is done"
-- "broadcast ops updates to Slack"
-- "let the client know when it's live"
-- "team status updates"
-
-## Signal → Audience Matrix
+## Signal → audience
 
 | Signal | Example | Default audience | Channel |
-|--------|---------|------------------|---------|
+|---|---|---|---|
 | 🟢 Ship | Deploy succeeded, site live | Owner + team | `~~chat` |
-| 🧪 CI | Tests green / red on a branch | Team | `~~chat` |
-| ✅ Task done | Overnight run / feature complete | Owner | `~~chat` or `~~email` |
+| 🧪 CI | Tests green or red on a branch | Team | `~~chat` |
+| ✅ Task done | Overnight run or feature complete | Owner | `~~chat` or `~~email` |
 | 💰 Cost | Budget threshold crossed (80% / 100%) | Owner | `~~email` |
-| 🔴 Incident | Deploy failed, error spike | Team (immediate) | `~~chat` |
-| 🗒️ Digest | End-of-day rollup of the above | Owner | `~~email` |
+| 🔴 Incident | Deploy failed, error spike | Team, immediately | `~~chat` |
+| 📊 Digest | Rollup of the above | Owner | `~~email` |
 
-Unclassified signals default to the 🗒️ digest (batched, low-noise).
+Unclassified signals go to the digest. Per-signal overrides live in the config's `audiences` map.
 
-## Architecture
+## What happens
 
-```
-CC Commander session
-       |
-  [lifecycle signals]  ← Stop / TaskCompleted / deploy / CI hooks
-       |
-  [Audience Classifier]
-       |
-  ┌────┴───────────────┐
-  |                     |
-immediate            digest (batched)
-  |                     |
-[Scrubber] — strips file contents, diffs, secrets
-  |                     |
-  └──────── ~~chat / ~~email connector ────────┘
-              (Slack · Teams · Discord · Gmail)
-```
+Route on the argument: `setup`, `status`, `test`, `digest`. No argument: `status` when the config exists, otherwise `setup`.
 
-## Setup
+### setup
 
-### Step 1 — Choose your audience + channel
+1. Detect connectors: check the session's tool list for a chat or email send tool, then run `claude mcp list 2>/dev/null | grep -iE 'slack|teams|discord|gmail|outlook'`.
+2. Ask with AskUserQuestion, question "Where should status updates land?", recommended first and marked 🟢 (Team chat when a chat connector exists, Log-only when none does):
+   - Team chat (`~~chat`) — ships, CI and incidents in the team channel.
+   - Email digest (`~~email`) — one rollup to the owner per digest window.
+   - Both — chat for incidents and ships, email for the digest.
+   - Log-only — no push; relays are recorded in the config's `recent` list only.
+   If the pick needs a connector that is not connected, suggest `/ccc-connect` and save the choice as log-only until it is.
+3. Ask, question "How chatty should it be?":
+   - 🟢 Normal — ships, CI failures, task completions, cost alerts.
+   - Quiet — incidents and the digest only.
+   - Verbose — every signal as it happens.
+4. Ask, question "Confirm each message before it is sent?":
+   - 🟢 Confirm each message — a preview picker before every send.
+   - Send automatically — unattended runs send without asking; the user can switch back with `setup`.
+5. Ask in chat for the channel name or recipient address and the daily budget (optional). Write `~/.claude/commander/broadcast.json`, then `chmod 600` it.
 
-Run `/ccc-broadcast setup` and pick where updates go:
+### status
 
-```
-AskUserQuestion:
-  question: "Where should status updates land?"
-  options:
-    - Team chat (~~chat — Slack / Teams / Discord)
-    - Email digest (~~email — Gmail / Outlook)
-    - Both (chat for incidents, email for the daily digest)
-    - Log-only (no push — just an audit trail)
-```
+Read the config and print: channels, noise level, confirmation mode, audience overrides, digest window, and the last five entries of `recent`. Missing config: "Broadcast is not set up. Run `/ccc-broadcast setup`." and stop.
 
-### Step 2 — Connect a channel
+### test
 
-Broadcast is tool-agnostic. Enable a `~~chat` and/or `~~email` connector once via `/ccc-connect`; broadcast uses whatever is configured there. No channel-specific credentials live in this skill.
+Compose one sample message ("🧪 Broadcast test from CC Commander — no action needed."), run the scrub check below, show the preview, and ask: 🟢 Send the sample · Cancel. Send it to each configured channel with the connector's send tool and record the result.
 
-### Step 3 — Pick a noise level
+### digest (also the immediate relay path)
 
-```
-AskUserQuestion:
-  question: "How chatty should the broadcast be?"
-  options:
-    - Quiet (incidents + daily digest only)
-    - Normal (ships, CI failures, task completions, cost alerts)
-    - Verbose (every signal, real-time)
-```
+1. Gather signals since `lastDigestAt` (default: the last 24 hours), in one Bash call, silent on failure:
 
-### Step 4 — Verify
+   ```bash
+   git log --since="${SINCE:-24 hours ago}" --pretty='%h %s' 2>/dev/null | head -20
+   gh run list --limit 10 --json name,conclusion,headBranch,url,updatedAt 2>/dev/null
+   tail -n 50 ~/.claude/commander/ccc-ci-events.jsonl 2>/dev/null
+   cat ~/.claude/commander/last-test-result.json 2>/dev/null
+   tail -n 200 ~/.claude/commander/mission-control/metrics.jsonl 2>/dev/null
+   ```
 
-```bash
-/ccc-broadcast test   # sends one sample message to each connected channel
-/ccc-broadcast status # shows audience map, noise level, and last 5 relays
-```
+   Add outcomes from the current session (a deploy URL that returned 200, a finished task) when they are known.
+2. Classify each signal with the table above and drop what the noise level excludes. Cost figures from `metrics.jsonl` are estimates; label them so.
+3. Compose one message per audience using the formats in [references/messages.md](references/messages.md): event type, human outcome, optional link. Business-legible, no jargon.
+4. Scrub. Never include file contents, diffs, code, log bodies, environment values or customer data. Then run the check on every payload and block the send on any match:
 
-## Concrete Examples
+   ```bash
+   printf '%s' "$MSG" | grep -nEi '(api[_-]?key|secret|token|password|BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{16,}|ghp_[A-Za-z0-9]{20,}|xox[abp]-|AKIA[0-9A-Z]{16})'
+   ```
 
-**Example 1 — Solo founder, overnight build**
-You kick off an overnight feature build and go to bed. At 2am the run finishes. Broadcast sends one `~~email`: "✅ Checkout flow shipped — 6 files, tests green, deployed to staging. Review: <link>." No terminal, no dashboard.
+   Any output means rewrite the message without that content and run the check again.
+5. Confirm. In "Confirm each message" mode ask: 🟢 Send · Edit the text first · Log only. In "Send automatically" mode, send without asking.
+6. Send with the connected chat or email tool. Append `{at, signal, channel, summary, ok, messageId}` to `recent` (keep the last 20) and set `lastDigestAt`.
 
-**Example 2 — Two-person team, deploy visibility**
-A teammate pushes a fix. CI goes red. Broadcast posts to `~~chat` immediately: "🔴 CI failed on `fix/cart-total` — 2 tests. <link>." When it goes green and deploys, a follow-up: "🟢 Live in production." Nobody had to ask.
+### Unattended relays
 
-**Example 3 — Client-facing digest**
-At 6pm broadcast compiles the day into one `~~email` digest for the business owner: 3 ships, 1 incident (resolved), CI 94% green, spend $4.10 of $10 budget. Business-legible, no jargon, forwardable to a client as-is.
+The skill relays only when it runs. For a recurring digest, run `/loop` with `/ccc-broadcast digest` in a session that has the connector. A Routine (`/schedule`) runs in a cloud session that sees the repository and its connectors but not local `~/.claude/commander/` files, so its digest covers git and CI only. Unattended sends require "Send automatically" in the config; otherwise the run records log-only entries for review.
 
-## Tools Used
+## Done when
 
-- `Read` — inspect broadcast config (audience map, noise level) and recent relay log
-- `Bash` — read lifecycle signals, format payloads, invoke the connected channel
-- `AskUserQuestion` — audience/channel picker and noise-level selection
+Run before reporting, and report the actual result:
 
-## Privacy Note
+- setup: `jq . ~/.claude/commander/broadcast.json` parses and `ls -l ~/.claude/commander/broadcast.json | cut -c1-10` prints `-rw-------`.
+- test or digest: the scrub check printed nothing for every payload, and each send returned a message id or ok from the connector; quote it. A send with no confirmation is reported as not delivered.
+- `recent` gained one entry per message, with `ok` matching the connector result.
 
-Every relay is scrubbed before it leaves the session. Broadcast sends **event type + human-readable outcome + optional link only** — never file contents, diffs, code snippets, env vars, or secret values. Example relay: `"Deploy failed on main — build step, see CI log <link>"` not the log body.
+## Guardrails
 
-## When NOT to Use
+- Never send without the user's choice in this conversation: the preview picker, or "Send automatically" chosen during `setup`.
+- Never put file contents, diffs, code, log bodies, environment values, secrets or customer data in a payload; a payload that fails the scrub check is not sent.
+- Never store connector credentials in `broadcast.json`; connectors own their own auth through `/ccc-connect`.
+- Never poll external infrastructure or claim production health; relay only signals the session and its logs produced.
+- Never message an audience or channel the user did not name during `setup`.
 
-- Solo sessions where you're already watching the terminal — the relay overhead isn't worth it
-- Highly regulated contexts where any outbound relay must route through an approved DLP gateway first
-- One-off scripts with no team audience — there's no one to notify
+## See also
 
-## Limitations
-
-- Requires a `~~chat` or `~~email` connector enabled via `/ccc-connect`; log-only mode works with none
-- Broadcast reflects only signals the session actually emits — it does not poll external infra on its own
-- Digest batching means non-incident updates can lag up to the digest window
-- Audience routing is a default heuristic; per-signal overrides are configured in `~/.claude/commander/broadcast.json`
-- Not a replacement for real monitoring/alerting (`~~monitoring`) — it relays *your session's* outcomes, not production health
+- `/ccc-nightwatch` — approval requests relayed to your phone
+- `/ccc-connect` — enable a `~~chat` or `~~email` connector
+- `/ccc-ci` — CI status and the event log broadcast reads
+- `/ccc-usage` — the cost estimates behind budget alerts
 
 ---
 

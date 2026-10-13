@@ -1,76 +1,76 @@
 ---
-description: "Analyze codebase structure and generate token-lean architecture documentation."
+description: "Scan the codebase and write token-lean architecture codemaps (architecture, backend, frontend, data, dependencies) with a freshness header and a diff report. Use after major features or refactors, or when an agent needs a compact map of the repo."
 ---
 
-# Update Codemaps
+# /ccc-update-codemaps — compact maps of the codebase
 
-Analyze the codebase structure and generate token-lean architecture documentation.
+**CC Commander** · /ccc-update-codemaps · writes short, path-first architecture docs an agent can load cheaply, and reports what changed since the last scan.
 
-## Step 1: Scan Project Structure
+## Arguments
 
-1. Identify the project type (monorepo, single app, library, microservice)
-2. Find all source directories (src/, lib/, app/, packages/)
-3. Map entry points (main.ts, index.ts, app.py, main.go, etc.)
+`$ARGUMENTS` optionally names one codemap (`architecture`, `backend`, `frontend`, `data`, `dependencies`) to regenerate. Empty regenerates all that apply.
 
-## Step 2: Generate Codemaps
+## What happens
 
-Create or update codemaps in `docs/CODEMAPS/` (or `.reports/codemaps/`):
+1. **Scan the structure.**
+   1. Identify the project type: monorepo (`pnpm-workspace.yaml`, `turbo.json`, `packages/`), single app, library or service.
+   2. List source directories: `git ls-files | cut -d/ -f1-2 | sort | uniq -c | sort -rn | head -30`.
+   3. Find entry points (`main.ts`, `index.ts`, `app.py`, `main.go`, `src/main.rs`, the `main`/`bin`/`exports` fields of `package.json`).
 
-| File | Contents |
-|------|----------|
-| `architecture.md` | High-level system diagram, service boundaries, data flow |
-| `backend.md` | API routes, middleware chain, service → repository mapping |
-| `frontend.md` | Page tree, component hierarchy, state management flow |
-| `data.md` | Database tables, relationships, migration history |
-| `dependencies.md` | External services, third-party integrations, shared libraries |
+2. **Choose the output directory.** Use `docs/CODEMAPS/` if it exists, else `.reports/codemaps/` if it exists, else ask with AskUserQuestion (plain-text question where it is unavailable): 🟢 `docs/CODEMAPS/` (committed with the repo) · `.reports/codemaps/` (local reports) · Stop.
 
-### Codemap Format
+3. **Write the codemaps** that apply to this project (skip `frontend.md` for a backend-only repo, and so on):
 
-Each codemap should be token-lean — optimized for AI context consumption:
+   | File | Contents |
+   |---|---|
+   | `architecture.md` | System diagram (ASCII), service boundaries, data flow |
+   | `backend.md` | API routes, middleware chain, service → repository mapping |
+   | `frontend.md` | Page tree, component hierarchy, state management flow |
+   | `data.md` | Tables, relationships, migration history |
+   | `dependencies.md` | External services, third-party integrations, shared libraries |
 
-```markdown
-# Backend Architecture
+   Format: path-first and token-lean, under about 1,000 tokens per file. Use file paths and signatures, not code blocks:
 
-## Routes
-POST /api/users → UserController.create → UserService.create → UserRepo.insert
-GET  /api/users/:id → UserController.get → UserService.findById → UserRepo.findById
+   ```markdown
+   # Backend Architecture
 
-## Key Files
-src/services/user.ts (business logic, 120 lines)
-src/repos/user.ts (database access, 80 lines)
+   ## Routes
+   POST /api/users → UserController.create → UserService.create → UserRepo.insert
+   GET  /api/users/:id → UserController.get → UserService.findById → UserRepo.findById
 
-## Dependencies
-- PostgreSQL (primary data store)
-- Redis (session cache, rate limiting)
-- Stripe (payment processing)
-```
+   ## Key Files
+   src/services/user.ts (business logic, 120 lines)
+   src/repos/user.ts (database access, 80 lines)
 
-## Step 3: Diff Detection
+   ## Dependencies
+   - PostgreSQL (primary data store)
+   - Redis (session cache, rate limiting)
+   ```
 
-1. If previous codemaps exist, calculate the diff percentage
-2. If changes > 30%, show the diff and request user approval before overwriting
-3. If changes <= 30%, update in place
+4. **Check the diff before overwriting.** For each codemap that already exists, compare old and new (`git diff --no-index --stat <old> <new>` against a temporary copy). If more than 30% of lines change, show the diff and ask: 🟢 Overwrite with the new map · Keep the old map · Show the full diff first. At 30% or less, update in place.
 
-## Step 4: Add Metadata
+5. **Add a freshness header** to every codemap, filled from this run:
 
-Add a freshness header to each codemap:
+   ```markdown
+   <!-- Generated: YYYY-MM-DD | Files scanned: N | Token estimate: ~N -->
+   ```
 
-```markdown
-<!-- Generated: 2026-02-11 | Files scanned: 142 | Token estimate: ~800 -->
-```
+6. **Write the analysis report** to `.reports/codemap-diff.txt`:
+   - files added, removed and modified since the last scan (`git log --since=<previous Generated date> --name-status --oneline`);
+   - new dependencies detected;
+   - architecture changes (new routes, services, tables);
+   - docs not modified in 90 days or more (`git log -1 --format=%cs -- <doc>` per doc).
 
-## Step 5: Save Analysis Report
+## Done when
 
-Write a summary to `.reports/codemap-diff.txt`:
-- Files added/removed/modified since last scan
-- New dependencies detected
-- Architecture changes (new routes, new services, etc.)
-- Staleness warnings for docs not updated in 90+ days
+`ls -la <output dir>` shows each codemap with this run's header, `.reports/codemap-diff.txt` exists, and `git status --short` lists exactly the files written. Report those three outputs.
 
-## Tips
+## Guardrails
 
-- Focus on **high-level structure**, not implementation details
-- Prefer **file paths and function signatures** over full code blocks
-- Keep each codemap under **1000 tokens** for efficient context loading
-- Use ASCII diagrams for data flow instead of verbose descriptions
-- Run after major feature additions or refactoring sessions
+- High-level structure only; never paste implementation code or secrets (no values from `.env*`, keys or connection strings).
+- Never overwrite a codemap changed by more than 30% without the user's choice.
+- Write only inside the chosen output directory and `.reports/`.
+
+## See also
+
+`/ccc-update-docs` · `/ccc-doc-sync` · `/ccc-xray`
