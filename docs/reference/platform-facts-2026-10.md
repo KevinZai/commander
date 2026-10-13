@@ -91,14 +91,19 @@ Handler fields: `type` (required); `if` (permission-rule syntax, tool events onl
 | Stop, SubagentStop | top-level `decision: "block"`, `reason`; `additionalContext` |
 | SessionStart | `additionalContext`, `initialUserMessage`, `sessionTitle`, `watchPaths` (absolute paths), `reloadSkills` |
 | SubagentStart, PostModelSwitch | `additionalContext` |
-| PreModelSwitch | `permissionDecision` allow/deny/ask, `permissionDecisionReason` |
+| PreModelSwitch | `permissionDecision` allow/deny/ask (no defer, no additionalContext), `permissionDecisionReason`; `systemMessage` is shown regardless |
 | Elicitation, ElicitationResult | `action` accept/decline/cancel, `content` |
 | MessageDisplay | `displayContent` |
-| WorktreeCreate | `worktreePath` (http); command hooks print the path |
+| CwdChanged, FileChanged | no decision control; top-level `watchPaths` (absolute paths; replaces the dynamic watch list) and `systemMessage` are read, `continue` is discarded |
+| DirectoryAdded | no decision control; `systemMessage` only (delivered to Claude for `slash_command`, debug log for `register_repo_root`) |
 | TaskCreated | top-level `decision: "block"` cancels |
 | TaskCompleted, TeammateIdle | exit 2 or `{continue:false, stopReason}` |
 | PreCompact, ConfigChange | top-level `decision` |
-| Setup, Notification, SessionEnd, PostCompact, InstructionsLoaded, StopFailure, CwdChanged, DirectoryAdded, FileChanged, WorktreeRemove | side effects only (no hookSpecificOutput) |
+| Setup, Notification, SessionEnd, PostCompact, InstructionsLoaded, StopFailure | side effects only (no hookSpecificOutput) |
+| WorktreeCreate | **Not a telemetry hook.** Configuring one *replaces* `git worktree` creation: the hook must create the working copy and print its path (http: `hookSpecificOutput.worktreePath`); "if the hook fails or produces no path, worktree creation fails". Commander never registers one |
+| WorktreeRemove | **Not a telemetry hook.** Exit 0 "counts as removed" and git cleanup is skipped; JSON output is discarded. Commander never registers one |
+
+The FileChanged watcher starts only when something names a file to watch: seed it from a SessionStart or CwdChanged hook that returns `watchPaths`, or a FileChanged group whose matcher names a file.
 
 Shell-form `command` strings must quote `"${CLAUDE_PLUGIN_ROOT}"` (Desktop installs live under a path with a space). Exec form (`args`) avoids the quoting trap but Codex does not support `args`; Commander keeps shell form so one `hooks.json` mirrors to Codex.
 

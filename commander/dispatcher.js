@@ -213,16 +213,17 @@ function scoreComplexity(task, projectDir) {
 /**
  * Model pricing ($/MTok, as of 2026-06-10 — update as Anthropic changes pricing).
  * Accuracy: ±30%. Used for pre-dispatch estimates, not billing.
- * Fable 5 (claude-fable-5): GA 2026-06-09, $10 input / $50 output; adaptive thinking always-on.
- * Opus 5: $5 input / $25 output standard; Fast mode (2.5×): $10 input / $50 output. (pricing carried over from 4.8 — NOT yet verified against Opus 5 pricing page)
- * Haiku 4.5: corrected to $1 input / $5 output (old 0.25/1.25 was Haiku 3.5 pricing).
+ * List prices per MTok on the Claude API, verified 2026-10-13 against the
+ * models overview (docs/reference/platform-facts-2026-10.md §1):
+ * Fable 5.1 $10/$50 · Opus 5.5 $4/$20 · Sonnet 5.5 $2/$10 · Haiku 5.5 $0.10/$0.50.
+ * Fast mode bills roughly 2× the standard rate.
  */
 var MODEL_PRICING = {
   fable: { input: 10, output: 50 },
-  haiku: { input: 1, output: 5 },
-  sonnet: { input: 3, output: 15 },
-  opus: { input: 5, output: 25 },
-  'opus-fast': { input: 10, output: 50 },
+  haiku: { input: 0.1, output: 0.5 },
+  sonnet: { input: 2, output: 10 },
+  opus: { input: 4, output: 20 },
+  'opus-fast': { input: 8, output: 40 },
 };
 
 /**
