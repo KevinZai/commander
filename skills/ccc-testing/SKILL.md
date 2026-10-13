@@ -75,7 +75,7 @@ With no argument and no clear intent, ask with AskUserQuestion (header "Testing"
 - 🟢 Write tests first (TDD) — failing test, then the code that passes it
 - QA pass — find bugs and fix them, or report only
 - E2E tests — Playwright user-flow tests with page objects and CI wiring
-- More… — strategy, visual regression, load testing, regressions, evals (a follow-up picker; 🟢 Test strategy first)
+- More… — a follow-up picker: 🟢 Test strategy · Visual regression · Load testing · More (regressions, evals)
 
 Multi-lane jobs (full strategy, bug fix with tests, pre-release QA, TDD feature build) follow [references/campaigns.md](references/campaigns.md).
 

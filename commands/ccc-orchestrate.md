@@ -23,7 +23,7 @@ description: "Run a sequential multi-agent workflow (feature, bugfix, refactor, 
 | `security <description>` | security-reviewer → code-reviewer → architect |
 | `custom <agents> <description>` | the comma-separated agents, in order |
 
-The agents are defined in `agents/` (`planner.md`, `tdd-guide.md`, `code-reviewer.md`, `security-reviewer.md`, `architect.md`). If `$ARGUMENTS` names no workflow, ask with AskUserQuestion:
+The stage agents resolve, in order, to a project agent in `.claude/agents/<name>.md`, a personal agent in `~/.claude/agents/<name>.md`, or the Commander plugin agents (`commander:product-manager` for planner, `commander:qa-engineer` for tdd-guide, `commander:reviewer` for code-reviewer, `commander:security-auditor` for security-reviewer, `commander:architect` for architect). The Agent tool lists the subagent types available in this session. If `$ARGUMENTS` names no workflow, ask with AskUserQuestion:
 
 - 🟢 feature — full plan, test-first build, quality and security review.
 - bugfix — plan, test-first fix, review.
@@ -35,10 +35,10 @@ The agents are defined in `agents/` (`planner.md`, `tdd-guide.md`, `code-reviewe
 1. Confirm each agent in the chain exists:
 
    ```bash
-   ls agents/<name>.md
+   ls .claude/agents/<name>.md ~/.claude/agents/<name>.md 2>/dev/null
    ```
 
-   Stop and name any missing agent.
+   When neither file exists, use the Commander plugin agent mapped above if the Agent tool lists it; otherwise run the stage as `general-purpose` with the stage's instructions inline and say so in the handoff. Never stop for a missing agent file.
 
 2. For each agent in order, call the Agent tool with the task, the previous handoff (none for the first), and the files in scope. Keep the user's selected model unless they choose otherwise; set Agent `effort` to `high` for planner, architect and security-reviewer stages. Give implementing stages `isolation: worktree` when they write code in parallel with other work.
 

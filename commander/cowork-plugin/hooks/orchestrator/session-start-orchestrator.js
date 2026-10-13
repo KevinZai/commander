@@ -76,7 +76,8 @@ function mergeResponses(responses, watchPaths = []) {
     out.hookSpecificOutput = { hookEventName: 'SessionStart' };
     if (mergedContext) out.hookSpecificOutput.additionalContext = mergedContext;
     // Absolute CLAUDE.md paths for FileChanged (stale-claude-md-nudge.js).
-    if (watchPaths.length) out.hookSpecificOutput.watchPaths = watchPaths;
+    // Codex (PLUGIN_ROOT set) has no FileChanged hook and no watchPaths field.
+    if (watchPaths.length && !process.env.PLUGIN_ROOT) out.hookSpecificOutput.watchPaths = watchPaths;
   }
   if (suppressOutput) out.suppressOutput = true;
   return out;

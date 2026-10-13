@@ -1,7 +1,7 @@
 # CC Commander v8.0.0 — full revamp plan
 
 Date: 2026-10-13 · Tracker: CC-1415 · Branch: `cc-v8-revamp` (worktree
-`~/clawd/.claude/worktrees/cc-v8-revamp`) → pushed to
+`<worktree>`) → pushed to
 `origin/cc-e2e-audit-revamp-2026-08`, PR #90 repurposed as the v8 PR.
 Base: `origin/main` 62f59db (v7.4.2). Planner: Claude Fable 5.1. Workers: Opus 5.5.
 
@@ -70,7 +70,7 @@ TOML subagents, `codex plugin|agents|cloud|remote-control|doctor|update`.
 | C2 | Docs | Opus technical writer | `README.md` (orchestrator applies), `CHANGELOG.md` [8.0.0] draft, `mintlify-docs/*` (new `whats-new-v8.mdx`), `CHEATSHEET.md`, `BIBLE.md`, `SKILLS-INDEX.md`, `commander/cowork-plugin/README.md`, `CONNECTORS.md`, `commander/cowork-plugin/hooks/README.md` consistency | doc-sync gates green; README has one current "What's new" section and the one-step install line |
 | C3 | Adversarial review + Codex audit | Workflow + `codex review` | — | zero unresolved blocker findings |
 | C4 | Release | orchestrator | — | PR #90 merged, `v8.0.0` tagged, GitHub release present |
-| D | Website | separate Opus agent | `~/clawd/projects/commanderplugin-com/**` | live site shows 8.0.0; ticker/panels/releases notes added without rewriting history |
+| D | Website | separate Opus agent | `the marketing-site repository` | live site shows 8.0.0; ticker/panels/releases notes added without rewriting history |
 
 ## Order
 

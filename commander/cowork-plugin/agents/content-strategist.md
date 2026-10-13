@@ -11,8 +11,6 @@ tools:
   - Write
   - WebSearch
   - Bash
-skills:
-  - ccc-content
 maxTurns: 30
 ---
 

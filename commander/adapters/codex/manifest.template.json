@@ -36,17 +36,10 @@
       "mcp"
     ],
     "websiteURL": "https://commanderplugin.com",
-    "defaultPrompt": ["/ccc"],
-    "brandColor": "#7c3aed",
-    "composerIcon": "./assets/marketplace/composer-icon.png",
-    "logo": "./assets/marketplace/logo.png",
-    "screenshots": [
-      "./assets/marketplace/screenshot-1.png",
-      "./assets/marketplace/screenshot-2.png",
-      "./assets/marketplace/screenshot-3.png",
-      "./assets/marketplace/screenshot-4.png",
-      "./assets/marketplace/screenshot-5.png"
+    "defaultPrompt": [
+      "/ccc"
     ],
+    "brandColor": "#7c3aed",
     "privacyPolicyURL": "https://commanderplugin.com/privacy",
     "termsOfServiceURL": "https://commanderplugin.com/terms"
   }

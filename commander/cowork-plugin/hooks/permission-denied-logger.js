@@ -19,6 +19,19 @@ import { emitSilent } from './lib/emit.mjs';
 
 const clip = (v, n) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, n);
 
+// Auto mode tends to deny exactly the commands that carry credentials, so the
+// snippet and the classifier reason are redacted with the same pattern set
+// lib/safety-snapshot.js applies before anything reaches disk.
+const SECRET_PATTERNS = [
+  /sk-[a-zA-Z0-9_-]{8,}/g,
+  /Bearer\s+[A-Za-z0-9._~+\/=-]{8,}/gi,
+  /\b(basic)\s+[A-Za-z0-9+\/]{4,}={0,2}/gi,
+  /\b(gh[pousr]|github_pat)_[A-Za-z0-9_]{8,}/g,
+  /\b(xox[abp]|lin_api|AKIA)[A-Za-z0-9_-]{8,}/g,
+  /(?:api[_-]?key|token|secret|password|passwd|authorization)(\s*[:=]\s*|\s+)[\x27"]?[A-Za-z0-9._~+\/=-]{6,}/gi,
+];
+const redact = (v, n) => SECRET_PATTERNS.reduce((s, re) => s.replace(re, '[redacted]'), clip(v, n));
+
 async function readInput() {
   const chunks = [];
   for await (const c of process.stdin) chunks.push(c);
@@ -41,10 +54,10 @@ function buildRow(input, now = new Date()) {
     toolName,
     source: 'PermissionDenied',
   };
-  if (input.reason) row.reason = clip(input.reason, 160);
+  if (input.reason) row.reason = redact(input.reason, 160);
   if (input.mcp_server) row.mcpServer = clip(input.mcp_server, 64);
   const cmd = input.tool_input?.command;
-  if (toolName === 'Bash' && typeof cmd === 'string') row.commandSnippet = clip(cmd, 120);
+  if (toolName === 'Bash' && typeof cmd === 'string') row.commandSnippet = redact(cmd, 120);
   return row;
 }
 

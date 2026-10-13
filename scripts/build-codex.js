@@ -44,7 +44,7 @@ function hookEventDisposition(event, hookMap = HOOK_EVENT_MAP) {
 // mirror, even if a later edit adds them to SUPPORT_DIRS.
 const CLAUDE_ONLY_DIRS = new Set(['mods', 'evals', 'workflows']);
 
-const SUPPORT_DIRS = ['hooks', 'lib', 'menus', 'rules'];
+const SUPPORT_DIRS = ['hooks', 'lib', 'menus', 'rules', 'scripts'];
 
 for (const dirName of SUPPORT_DIRS) {
   if (CLAUDE_ONLY_DIRS.has(dirName)) {
@@ -286,7 +286,7 @@ async function buildAgentsMd() {
     '## What this directory is',
     '',
     'The Codex-format mirror of the CC Commander plugin: ' +
-      `${contract.plugin_skills} skills (\`skills/*/SKILL.md\`, byte-identical to the ` +
+      `${contract.plugin_skills} skills (\`skills/*/SKILL.md\`, translated from the ` +
       `Claude Code tree), ${contract.specialist_agents} specialist agent personas ` +
       '(`agents/*.toml`), the Codex-supported hook subset (`hooks.json`), and ' +
       `${contract.bundled_mcp_servers} credential-free MCP servers (\`.mcp.json\`).`,

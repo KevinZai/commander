@@ -20,6 +20,10 @@ const SKIP_TESTS = !!(args && args.skipTests)
 const POST_RELEASE = !!(args && args.postRelease)
 const REPO = (args && typeof args.repo === 'string' && args.repo) || 'KevinZai/commander'
 const SITE = (args && typeof args.site === 'string' && args.site) || 'https://commanderplugin.com/'
+// args reach shell commands below, so they are shape-checked first.
+if (VERSION && !/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(String(VERSION))) throw new Error(`args.version must be semver, got ${JSON.stringify(VERSION)}`)
+if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(REPO)) throw new Error(`args.repo must be owner/name, got ${JSON.stringify(REPO)}`)
+if (!/^https:\/\/[A-Za-z0-9.-]+(?::\d+)?\/?$/.test(SITE)) throw new Error(`args.site must be an https origin, got ${JSON.stringify(SITE)}`)
 
 // Built from parts so this file never matches its own stale-model grep. PCRE
 // lookaheads keep current names (claude-opus-5-5, "Opus 5.5") out of the match;

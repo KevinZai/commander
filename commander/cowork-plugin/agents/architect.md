@@ -11,8 +11,6 @@ tools:
   - Glob
   - Grep
   - Bash
-skills:
-  - ccc-plan
 maxTurns: 30
 ---
 

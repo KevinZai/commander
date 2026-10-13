@@ -120,7 +120,7 @@ export function translateManifest(claudeManifest, version, options = {}) {
       .replace('{{VERSION}}', pluginVersion)
       .replace(
         '{{DESCRIPTION}}',
-        claudeManifest.description.replace(/\n/g, ' ').replace(/"/g, '\\"')
+        codexDescription(claudeManifest)
       )
   );
 
@@ -182,6 +182,61 @@ export function remapEffort(effort) {
 }
 
 // hooks.json - event remap with runtime capability filtering.
+// Codex names its tools differently from Claude Code: file edits arrive as
+// `apply_patch` and shell commands as `Bash` (learn.chatgpt.com/docs/hooks,
+// verified 2026-10-13); Read/Glob/Grep, Agent, Skill, AskUserQuestion, Workflow
+// and the other Claude-only tools never fire a Codex tool hook. A matcher that
+// names only Claude tools would silently never match, so it is translated and,
+// when nothing survives, the group is dropped with a log line.
+const CODEX_TOOL_NAME_MAP = Object.freeze({
+  Write: 'apply_patch',
+  Edit: 'apply_patch',
+  MultiEdit: 'apply_patch',
+  NotebookEdit: 'apply_patch',
+  apply_patch: 'apply_patch',
+  Bash: 'Bash',
+});
+const TOOL_MATCHER_EVENTS = new Set(['PreToolUse', 'PostToolUse', 'PermissionRequest']);
+
+export function translateMatcher(matcher) {
+  if (matcher == null || matcher === '' || matcher === '*') return matcher;
+  if (typeof matcher !== 'string') return matcher;
+  // Only plain tool-name alternations are translated; any other regex syntax passes through.
+  if (!/^[A-Za-z_][A-Za-z0-9_]*(\|[A-Za-z_][A-Za-z0-9_]*)*$/.test(matcher)) return matcher;
+  const mapped = [];
+  for (const name of matcher.split('|')) {
+    const codexName = name.startsWith('mcp__') ? name : CODEX_TOOL_NAME_MAP[name];
+    if (codexName && !mapped.includes(codexName)) mapped.push(codexName);
+  }
+  return mapped.length ? mapped.join('|') : null;
+}
+
+function translateMatcherGroups(groups, event, log) {
+  if (!TOOL_MATCHER_EVENTS.has(event) || !Array.isArray(groups)) return groups;
+  const out = [];
+  for (const group of groups) {
+    if (!group || typeof group !== 'object' || !('matcher' in group)) { out.push(group); continue; }
+    const translated = translateMatcher(group.matcher);
+    if (translated === null) {
+      log(`drop ${event} group: matcher "${group.matcher}" names only Claude-only tools`);
+      continue;
+    }
+    if (translated !== group.matcher) log(`matcher ${event} "${group.matcher}" -> "${translated}"`);
+    out.push({ ...group, matcher: translated });
+  }
+  return out;
+}
+
+// The Claude manifest description counts Claude-only surfaces (hook events,
+// the HUD mod, plugin workflows, evals). The Codex manifest describes what the
+// mirror actually ships and keeps only the skill count from the Claude text.
+function codexDescription(claudeManifest) {
+  const m = String(claudeManifest.description || '').match(/(\d+) plugin skills/);
+  const skills = m ? `${m[1]} plugin skills` : 'click-first plugin skills';
+  return (`Guided AI PM for Codex, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), 22 specialist subagents generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 16 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Core free forever — no signup, no card. MIT-licensed.`)
+    .replace(/\n/g, ' ').replace(/"/g, '\\"');
+}
+
 export function translateHooks(claudeHooks, options = {}) {
   const log = createLogger(options.verbose, options.writer);
   const hookMap = options.hookMap || HOOK_MAP;
@@ -203,7 +258,7 @@ export function translateHooks(claudeHooks, options = {}) {
     const mapping = hookMap.events[event];
     if (!mapping) {
       log(`pass hook ${event}: no mapping entry`);
-      out.hooks[event] = translateHookHandlers(handlers, log, event);
+      out.hooks[event] = translateHookHandlers(translateMatcherGroups(handlers, event, log), log, event);
       continue;
     }
     if (mapping.status === 'drop' || mapping.codex === null) {
@@ -218,7 +273,7 @@ export function translateHooks(claudeHooks, options = {}) {
 
     log(`hook ${event} -> ${mapping.codex}`);
     out.hooks[mapping.codex] = (out.hooks[mapping.codex] || []).concat(
-      translateHookHandlers(handlers, log, mapping.codex)
+      translateHookHandlers(translateMatcherGroups(handlers, mapping.codex, log), log, mapping.codex)
     );
   }
 

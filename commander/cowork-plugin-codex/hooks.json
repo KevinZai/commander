@@ -108,7 +108,7 @@
         ]
       },
       {
-        "matcher": "Edit|Write|MultiEdit",
+        "matcher": "apply_patch",
         "hooks": [
           {
             "type": "command",
@@ -118,7 +118,7 @@
         ]
       },
       {
-        "matcher": "Write",
+        "matcher": "apply_patch",
         "hooks": [
           {
             "type": "command",
@@ -155,7 +155,7 @@
         ]
       },
       {
-        "matcher": "Edit|Write|MultiEdit",
+        "matcher": "apply_patch",
         "hooks": [
           {
             "type": "command",

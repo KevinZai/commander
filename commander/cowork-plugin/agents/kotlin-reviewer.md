@@ -14,8 +14,6 @@ tools:
 disallowedTools:
   - Write
   - Edit
-skills:
-  - ccc-code-review
 maxTurns: 25
 ---
 

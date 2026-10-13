@@ -2,7 +2,7 @@
 
 Checked against Codex CLI help output. When a flag here is rejected, run `codex <subcommand> --help` and trust that output.
 
-Global options (any subcommand): `-c key=value` (TOML value override), `--enable <feature>`, `--disable <feature>`. Root only: `-p/--profile <name>`, `-m/--model`, `-s/--sandbox`, `-a/--ask-for-approval`, `-C/--cd`, `--remote <addr>`.
+Global options (any subcommand): `-c key=value` (TOML value override), `--enable <feature>`, `--disable <feature>`. Root and `codex exec`: `-p/--profile <name>`, `-m/--model`, `-s/--sandbox`, `-C/--cd`. Root only: `-a/--ask-for-approval`, `--remote <addr>`.
 
 | Area | Command | Writes state | Notes |
 |---|---|---|---|

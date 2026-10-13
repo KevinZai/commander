@@ -349,7 +349,7 @@ export async function dispatchTool(
     case "commander_status":
       return await getStatus({}, auth);
     case "commander_update":
-      return checkUpdate({});
+      return await checkUpdate({});
     case "commander_init":
       return initProject(args as Parameters<typeof initProject>[0]);
     case "commander_notes_pin":

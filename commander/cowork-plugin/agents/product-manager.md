@@ -11,8 +11,6 @@ tools:
   - Write
   - Bash
   - WebSearch
-skills:
-  - ccc-plan
 maxTurns: 40
 ---
 

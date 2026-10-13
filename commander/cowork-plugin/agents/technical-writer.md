@@ -14,8 +14,6 @@ tools:
   - Grep
 disallowedTools:
   - Bash
-skills:
-  - ccc-doc-sync
 maxTurns: 50
 ---
 

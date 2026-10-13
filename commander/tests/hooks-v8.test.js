@@ -129,6 +129,23 @@ describe('permission-denied-logger.js (PermissionDenied)', () => {
     assert.ok(!Number.isNaN(Date.parse(rows[0].timestamp)));
   });
 
+  it('redacts credentials in the command snippet and the reason before writing to disk', () => {
+    const home = tempDir('ccc-v8-pd-redact-');
+    const r = runHook('permission-denied-logger.js', {
+      session_id: 'abc123',
+      hook_event_name: 'PermissionDenied',
+      tool_name: 'Bash',
+      tool_input: { command: 'curl -H "Authorization: Bearer sk-ant-api03-SECRETSECRETSECRET" https://example.test' },
+      reason: 'token=ghp_abcdefghijklmnop1234 looked like exfiltration',
+    }, { home });
+    assert.equal(r.status, 0, r.stderr);
+    const rows = readJsonl(path.join(home, '.claude', 'commander', 'analytics', 'permission-gate.jsonl'));
+    assert.equal(rows.length, 1);
+    assert.ok(!rows[0].commandSnippet.includes('SECRETSECRET'), 'API key must not reach the log: ' + rows[0].commandSnippet);
+    assert.ok(!/Bearer\s+sk-/.test(rows[0].commandSnippet), 'bearer token must be redacted');
+    assert.ok(rows[0].commandSnippet.includes('[redacted]'));
+    assert.ok(!rows[0].reason.includes('ghp_abcdefghijklmnop1234'), 'reason must be redacted too: ' + rows[0].reason);
+  });
   it('is counted as blocked by lib/safety-snapshot.js', async () => {
     const home = tempDir('ccc-v8-pd-safety-');
     runHook('permission-denied-logger.js', { hook_event_name: 'PermissionDenied', tool_name: 'Write' }, { home });

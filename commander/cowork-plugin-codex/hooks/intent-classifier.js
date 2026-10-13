@@ -31,7 +31,10 @@ function checkFableNudge(prompt) {
     try { mkdirSync(markerDir, { recursive: true }); } catch (_) {}
     try { writeFileSync(markerFile, '', { flag: 'wx' }); } catch (_) { return null; }
 
-    return '🧠 Deep-reasoning session detected — consider /model fable (Fable 5.1, 1M context). CCC routes subagents cost-efficiently either way.';
+    // Codex (PLUGIN_ROOT set) has no `fable` alias; its deep tier is GPT-6 Astra.
+    return process.env.PLUGIN_ROOT
+      ? '🧠 Deep-reasoning session detected — consider /model gpt-6-astra (GPT-6 Astra). CCC routes subagents cost-efficiently either way.'
+      : '🧠 Deep-reasoning session detected — consider /model fable (Fable 5.1, 1M context). CCC routes subagents cost-efficiently either way.';
   } catch (_) {
     return null; // fail-safe: never break the hook
   }
