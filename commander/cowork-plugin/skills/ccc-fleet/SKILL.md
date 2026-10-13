@@ -1,322 +1,175 @@
 ---
 name: ccc-fleet
-description: "Multi-agent orchestration — launch parallel Sonnet agents in git worktrees to fan out, pipeline, or compete on a task. Use when the user types /ccc-fleet, /ccc fleet,…"
+description: "Run parallel agents on one task: fan-out slices in isolated worktrees, a sequential pipeline, a review panel, a background run, or a director-lead-specialist team, then verify and synthesize. Use when the user types /ccc-fleet or wants work split across several agents."
 allowed-tools:
   - Read
   - Write
   - Bash
   - Workflow
   - Agent
+  - Skill
   - AskUserQuestion
-argument-hint: "[fanout | pipeline | review | background | team]"
+argument-hint: "[fanout | pipeline | review | judge | background | team]"
+model: inherit
+effort: high
 ---
 
-# /ccc-fleet — Parallel Agents
+# /ccc-fleet — parallel agents, one synthesis
 
-Launch multiple Sonnet agents in parallel worktrees. Click-first picker selects the pattern.
+**CC Commander** · /ccc-fleet · you pick the pattern, agents do the work in isolation, the coordinator verifies and merges.
 
-> `/ccc-fleet` is the **manual-dispatch sibling** of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): same delegate-the-doing-keep-the-deciding discipline, with you explicitly choosing the fan-out / pipeline / dialectic pattern.
+This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doing, keep the deciding. The engine is the platform's Workflow tool (the bundled workflow runs as `/commander:ccc-fleet`); the Agent tool is the engine for patterns the workflow does not cover and for clients without Workflow.
 
-Promoted from `commands/ccc-parallel.md` (legacy slash command).
+## When to use / when not to
 
-## Response shape (EVERY time)
+- Use when the work splits into independent slices, staged hand-offs, or a decision worth several independent opinions.
+- Use `/ccc-spawn` for one isolated task, `/ccc-relay` for recurring chains of separate sessions, `/ccc-debate` for a multi-lens stress test, `/ccc-migrate` for a pattern-driven codebase migration.
+- Do not use for work that fits in a handful of tool calls; spawn overhead is real.
 
-### 1. Brand header
+## What happens
+
+### 1. Read the context
+
+Run one Bash call:
+
+```bash
+git rev-parse --abbrev-ref HEAD; git worktree list | wc -l; sysctl -n hw.memsize 2>/dev/null || free -b 2>/dev/null | awk '/Mem:/{print $2}'
+```
+
+Set the parallel cap from RAM: under 32 GB → 3, 32–63 GB → 5, 64 GB or more → 6. If detection fails, use 3. Show one line:
+
+> 🚀 Branch `<branch>` · <N> worktrees · <GB> GB RAM · max parallel <cap>
+
+### 2. Pick the pattern
+
+An argument skips this picker (see Arguments). Otherwise call AskUserQuestion (Codex: ask the same question in plain text). Put the best fit first with 🟢: divisible multi-file scope → Fan-out; staged work → Pipeline; a single decision → Review panel; "overnight", "scan" or a large feature → Long-running.
 
 ```
-**CC Commander** · Fleet Orchestrator · [Docs](https://commanderplugin.com)
-```
-
-### 2. Context strip
-
-Detect in parallel via a single Bash call:
-- `git worktree list | wc -l` → active worktrees
-- `git rev-parse --abbrev-ref HEAD` → current branch
-- `sysctl -n hw.memsize 2>/dev/null \|\| free -b 2>/dev/null` → RAM (cap parallelism)
-
-Render:
-> 🚀 Branch: `<branch>` · <N> active worktrees · RAM: <GB> · max parallel: <3-5>
-
-Rule: 16GB → max 3 parallel · 32GB → max 5 · 64GB+ → max 6
-
-### 3. Pattern picker — `AskUserQuestion`
-
-```
-question: "Which pattern?"
+question: "Which fleet pattern?"
 header: "Fleet"
 multiSelect: false
 options:
-  - label: "🌿 Fan-out (same task × 3)"
-    description: "3 agents tackle different slices of one big task."
-    preview: "Best for: 'migrate files A-M, N-Z, update tests'."
-  - label: "🔗 Pipeline (sequential)"
-    description: "Agent 1 → Agent 2 → Agent 3, each waits on the prior."
-    preview: "Best for: 'design → implement → test'."
-  - label: "⚖️ Opposing review (FOR/AGAINST/Referee)"
-    description: "Dialectic — one argues FOR, one AGAINST, Referee synthesizes."
-    preview: "Best for: architecture decisions you'd regret reversing."
-  - label: "🌙 Background long-running task"
-    description: "One agent, backgrounded, reports back when done."
-    preview: "Best for: overnight scans, heavy refactors, large doc generation."
-  - label: "🏢 Team hierarchy (Director→Lead→Specialist)"
-    description: "3-tier cost-optimized: Opus plans, Sonnet builds, Haiku polishes."
-    preview: "Best for: large features needing architecture + implementation + polish."
+  - label: "🟢 🚀 Fan-out"
+    description: "Up to <cap> agents take non-overlapping slices in their own worktrees; each slice is verified independently."
+  - label: "🔄 Pipeline"
+    description: "Stages run in order, each building on the previous stage's report. Not parallel."
+  - label: "🔬 Review panel"
+    description: "Independent opinions on one decision: FOR/AGAINST/Referee, or a judge panel of attempts."
+  - label: "⏳ Long-running"
+    description: "One background agent, or a director → leads → specialists team for a large feature."
 ```
 
-Prepend ⭐ to the best-fit option based on context:
-- Many files changed + divisible scope → ⭐ Fan-out
-- Single architecture question → ⭐ Opposing review
-- "scan" / "overnight" keywords in recent history → ⭐ Background
-- Complex multi-file feature needing architecture + implementation + polish → ⭐ Team hierarchy
+Follow-up pickers:
 
-### Native workflow (Claude Code v2.1.154+)
+- Review panel → `FOR/AGAINST/Referee` (🟢 for a yes/no decision) · `Judge panel` (2–5 independent attempts scored by a referee) · `Multi-lens debate` (hand off to `/ccc-debate`).
+- Long-running → `Background agent` (🟢 for one long task) · `Team hierarchy` (architecture, implementation and polish tiers).
 
-This skill rides Anthropic's native `Workflow` tool (trigger word `workflow`) — it does not re-implement orchestration. The Agent-based flow below is only the fallback for clients without the `Workflow` tool.
+Then ask for the task in plain text (free text, not a picker). For Fan-out, also ask for or propose the slices with a non-overlapping file domain each; for Pipeline, the ordered stages.
 
-If the `Workflow` tool is available, prefer invoking the bundled fleet workflow instead of the Agent-based dispatch below. Map existing picker choices to workflow args:
+### 3. Pre-flight (fail closed)
 
-| Picker choice | Workflow invocation |
-|---------------|---------------------|
-| 🌿 Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 ...", "slice 2 ...", ...] } })` |
-| 🔗 Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 ...", "stage 2 ...", ...] } })` |
-| ⚖️ Opposing review | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+Run before any dispatch:
 
-For **migration jobs** (transforming many files with pattern matching), use the dedicated migration workflow instead:
-
-```js
-Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js",
-  args: { pattern: "<what to find>", transform: "<how to change it>", verify: "<how to confirm>" }
-})
+```bash
+git status --porcelain
+base=$(git rev-parse --verify -q origin/main || git rev-parse --verify -q main); [ -n "$base" ] && git rev-list --left-right --count "$base"...HEAD
+env | cut -d= -f1 | grep -E 'TOKEN|SECRET|KEY|PASSWORD|CREDENTIAL'
+mkdir -p "$HOME/.claude/sessions" && test -w "$HOME/.claude/sessions" && echo sessions-writable
 ```
 
-Background and Team hierarchy picks do not have workflow equivalents — use the Agent-based flow below for those.
+| Check | Pass | On failure |
+|---|---|---|
+| Working tree | `git status --porcelain` empty | Stop. Workers branch from HEAD and would miss uncommitted coordinator edits. Ask the user to commit or stash. |
+| Branch relation | left count (behind) is 0 | Behind or diverged: ask before dispatching. Ahead is fine. |
+| Secret hygiene | no secret-like variable names | Print names only, never values. Ask the user to clear them or approve a redacted environment for workers. |
+| Session state | `sessions-writable` printed | Stop and report the path. |
 
-If `Workflow` is unavailable (older client or tool not allowed), fall back to the Agent-based flow below — leave that flow intact.
+Report the failing check and spawn nothing if any hard check fails.
 
-## Pre-flight (required before dispatch)
+### 4. Echo the plan
 
-Before any `Agent` call, run a single Bash pre-flight and fail closed if a hard check fails:
+Before dispatch, show the arc in two to four lines: pattern, agent count, model and effort per role, and "when all report back I verify, merge through the coordinator, and report". Route roles with [references/model-tiers.md](references/model-tiers.md). Keep the coordinator on the user's selected model unless they choose otherwise.
 
-1. Git clean: `git status --porcelain` must be empty. Do not dispatch workers over uncommitted coordinator edits.
-2. Branch relation: compare `HEAD` with `main` or `origin/main`. Being ahead of main is OK; being behind or diverged requires a user decision before dispatch.
-3. Secret hygiene: inspect only environment variable names for secret-like keys (`TOKEN`, `SECRET`, `KEY`, `PASSWORD`, `CREDENTIAL`). Never print values. If any are present, ask the user to clear them or explicitly approve passing a redacted environment to workers.
-4. Session state writable: ensure `~/.claude/sessions/` exists and is writable (`mkdir -p "$HOME/.claude/sessions" && test -w "$HOME/.claude/sessions"`).
+### 5. Dispatch
 
-If pre-flight fails, report the failing check and do not spawn workers.
+Prefer the Workflow tool for Fan-out, Pipeline and Judge panel. It runs fan-out slices with `isolation: 'worktree'`, verifies each slice with a separate agent prompted to refute, and surfaces failed slices instead of dropping them.
 
-## Fleet runtime contracts
+| Pattern | Workflow call |
+|---|---|
+| Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 …", "slice 2 …"] } })` |
+| Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 …", "stage 2 …"] } })` (2 or more stages) |
+| Judge panel | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+| Pattern migration | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js", args: { pattern: "…", transform: "…", verify: "…" } })` |
 
-Use `commander/cowork-plugin/skills/ccc-fleet/lib/fleet-status.js` for progress and completion artifacts.
+The same workflow runs from the prompt as `/commander:ccc-fleet`; inspect running and finished runs with `/workflows`. Pass at most `<cap>` fan-out slices.
 
-### Worker progress sidebar
+**Pinned fleet.** When the user wants every workflow agent on one model, `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` must already be set in the session environment. Check with `printenv CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`; if it is empty, tell the user how to set it (launch environment or settings `env`) and proceed role-based unless they relaunch. Details: [references/model-tiers.md](references/model-tiers.md).
 
-Emit one JSON line to stdout and append it to `/tmp/ccc-fleet/worker-progress.jsonl` whenever a worker is dispatched, starts, changes status, finishes tests, fails, or completes:
+**Agent-tool dispatch** covers FOR/AGAINST/Referee, Background, Team hierarchy, and every pattern when Workflow is unavailable (Codex: `codex exec --json` workers, one per slice). Rules for every Agent call:
 
-```json
-{"event_kind":"fleet_worker_progress","worker_id":"fleet-1","status":"running","files_changed":["commander/foo.js"],"tests_passing":null,"eta_remaining_ms":120000}
-```
+- `subagent_type: "fleet-worker"` for implementation slices (`general-purpose` when the plugin agent is not registered); `reviewer` or `architect` for review roles.
+- Set `model` and `effort` per role: workers `medium`, specialists `low`, directors and verifiers `high`.
+- Set `isolation: "worktree"` only for agents that write files while other agents or the coordinator also write (fan-out slices, team leads, a background agent that edits code). Sequential pipeline stages and read-only reviewers run without it.
+- Set `run_in_background: true`, and send parallel calls in one message so they start together.
+- Start every writing agent's prompt with: "FIRST: run `git rev-parse --show-toplevel`. It must be your assigned worktree, not the main checkout; abort and report if it is not. Edit relative paths only."
+- Each prompt names the non-overlapping file domain, the check command to run, "do not push, do not force, do not merge", and the report shape: files changed, check run and result, worktree path, branch.
 
-Required schema:
-- `event_kind`: always `"fleet_worker_progress"`
-- `worker_id`: stable worker id
-- `status`: short machine-readable state (`queued`, `running`, `testing`, `passed`, `failed`, `complete`)
-- `files_changed`: array of repo-relative paths
-- `tests_passing`: `true`, `false`, or `null` when unknown
-- `eta_remaining_ms`: non-negative number or `null`
+Per pattern:
 
-### Atomic worker completion
+- **Fan-out (fallback).** One `fleet-worker` per slice, parallel, isolated.
+- **Pipeline (fallback).** Stage 1 runs; when it reports, start stage 2 with stage 1's report as context; and so on. No isolation.
+- **FOR/AGAINST/Referee.** FOR and AGAINST in parallel, read-only, 300 words each, adversarial. When both finish, a Referee with both outputs: "Synthesize, recommend one path in 200 words, no ties." Never run FOR and AGAINST one after the other.
+- **Background.** One agent, isolated if it writes. Tell the user they can keep working and how to check (`git worktree list`). If the task is "keep going until a gate holds" (tests green, CI fixed), run it as a `/goal` loop instead (see `/ccc-loop`); recurring checks belong to `/loop` or `/schedule`.
+- **Team hierarchy.** Phase 1: one Director (`opus` or `fable`, effort `high`, read-only) returns an architecture brief of at most 200 words, file domains for two or three Leads, and a specialist checklist. Phase 2: Leads in parallel (`sonnet`, effort `medium`, isolated), each with the brief and its domain. Phase 3: specialists in parallel (`haiku`, effort `low`) on the Lead worktrees for lint, format, docs and simple tests. Directors plan; they never implement. Never skip Phase 1.
 
-When a worker exits, write `/tmp/ccc-fleet/<id>-complete.json` atomically with:
+### 6. Track progress
 
-```json
-{
-  "worker_id": "fleet-1",
-  "exit_code": 0,
-  "files_written": ["commander/foo.js"],
-  "commit_hash": "abc1234",
-  "branch_pushed": false,
-  "completed_at": "2026-04-26T00:00:00.000Z"
-}
-```
+Emit worker progress events and write a completion marker for every worker that exits, successful or failed, with `lib/fleet-status.js`. Commands, schema and cleanup: [references/runtime-contracts.md](references/runtime-contracts.md). On a long run, post a one-line status every ten or so steps.
 
-The marker is the handoff contract for synthesis. It must exist for successful and failed workers; failed workers use their actual non-zero `exit_code` and preserve any written files.
+### 7. Verify and synthesize
 
-### Failure isolation
+1. Collect each worker's report and completion marker. A failed worker is reported on its own line; it does not stop synthesis of the others.
+2. For Agent-tool fan-out or team runs, start one fresh-context `reviewer` (effort `high`, read-only) over the combined diff, prompted to refute each worker's claim. Workflow fan-out already did this per slice.
+3. Merge worker branches back through the coordinator only. On a conflict, stop and report; never auto-resolve.
+4. Run the project's check command on the merged result and report its real output.
+5. Run the main-tree integrity check: `git status --porcelain | grep -v '^??'` on the main checkout must print nothing. Any tracked change outside the worker branches is a leak; stop and reconcile before reporting.
+6. If every worker succeeded, prune old fleet artifacts (references/runtime-contracts.md). Then invoke `/ccc-fleet-viz` once to render the final tree.
 
-One worker failure must not cancel or roll back other workers. Preserve every worker worktree, branch, diff, status event, and completion marker. The coordinator reports the failed worker separately and continues synthesizing successful workers.
+## Decision points
 
-### Cleanup on success
+- Pattern and sub-pattern (step 2).
+- Branch behind or diverged, or secret-like variables present (step 3): ask with AskUserQuestion, 🟢 "Stop and fix first".
+- Pinned versus role-based models (step 5), only when the user asks for one model or the run is large.
+- Merge conflict (step 7): 🟢 "Stop, show the conflicting files" · "Keep branches unmerged for manual review".
 
-After all dispatched workers complete successfully and the synthesis report is written, prune entries in `/tmp/ccc-fleet/` older than 24 hours via `pruneFleetTmp()`. Do not prune on partial failure; preserve artifacts for diagnosis.
+## Arguments
 
-## Dispatch — Fan-out
+- `/ccc-fleet` → pattern picker.
+- `/ccc-fleet fanout` · `pipeline` · `review` (FOR/AGAINST/Referee) · `judge` · `background` · `team` → skip the picker and ask for the task.
 
-After user picks Fan-out, ask for ONE task description (via a follow-up plain question, NOT AUQ — free text needed).
+## Done when
 
-Then spawn 3 `Agent` calls in a SINGLE tool-call batch with `run_in_background: true`:
+- Every dispatched worker has a report and a completion marker, or is listed as failed with its exit code.
+- Fan-out and team results passed an independent verifier, or are labelled unverified.
+- The project's check command ran on the merged result and its output is quoted.
+- `git status --porcelain | grep -v '^??'` on the main checkout printed nothing.
+- `/ccc-fleet-viz` rendered the run.
 
-Every worker prompt starts with this isolation prefix (Fable Pillar 5 — non-negotiable):
+## Guardrails
 
-> FIRST: `git rev-parse --show-toplevel` must equal `<your-worktree-path>` — abort immediately if it doesn't. Edit RELATIVE paths only, inside your worktree. Never the main repo's absolute path.
+- Never exceed the RAM cap, and never give two parallel writers overlapping files.
+- Workers never push, force-push or merge; the coordinator owns merges, always back through the coordinator, never agent to agent.
+- No `dangerouslyDisableSandbox`, no unscoped permissions, no secret values in prompts or output.
+- Do not dispatch without `run_in_background: true`; it blocks the main thread.
+- Pushing, opening a pull request, or any write to a tracker needs the user's authorization in this conversation, asked with a picker at that moment.
+- Preserve every worktree and artifact after a failure.
 
-Example pseudocode:
-```
-Agent 1: subagent_type=general-purpose, model=sonnet, prompt="FIRST: git rev-parse --show-toplevel must equal .claude/worktrees/slice-1 — abort if not; relative paths only. Slice 1 of: <task>. Work in worktree feat/slice-1. Non-overlapping files: <domain 1>. Report: files changed, tests passing."
-Agent 2: same pattern for Slice 2 / worktree feat/slice-2 / domain 2
-Agent 3: same pattern for Slice 3 / worktree feat/slice-3 / domain 3
-```
+## See also
 
-Return:
-> 🚀 3 agents dispatched. Each has its own worktree + branch. I'll synthesize results when all 3 report back. Use Cmd+click on the progress cards below to steer any individual agent.
-
-## Dispatch — Pipeline
-
-Ask for 3 sequential tasks (free-text follow-ups, one at a time).
-
-Spawn Agent 1 with `run_in_background: true`. When it reports done, spawn Agent 2 with the first agent's output as context. When Agent 2 done, spawn Agent 3.
-
-This is NOT parallel — it's sequential. Echo the pipeline plan up front so user sees the chain.
-
-## Dispatch — Opposing review (dialectic)
-
-Ask for the ONE decision being reviewed (free-text).
-
-Spawn 3 Agents in parallel (single tool-call batch, `run_in_background: true`):
-
-```
-FOR agent: "Argue FOR <decision>. Best-case rationale, evidence, precedents. 300 words max. Adversarial stance."
-AGAINST agent: "Argue AGAINST <decision>. Counter-evidence, risks, alternatives. 300 words max. Adversarial stance."
-Referee agent: WAIT — don't spawn yet. Spawn AFTER both complete with both outputs as input: "Synthesize FOR and AGAINST. Recommend a path. 200 words. No ties."
-```
-
-Return: "⚖️ FOR and AGAINST running. Referee spawns when both complete. I'll post the synthesis."
-
-This mirrors the `dialectic-review` skill pattern — cite it as inspiration.
-
-## Dispatch — Background
-
-Ask for the one task (free-text). Spawn ONE `Agent` with `run_in_background: true` and a long turn budget.
-
-Return:
-> 🌙 Background agent running. You can keep working — I'll surface the result when it completes. Check status: `git worktree list`.
-
-If the background task is really "keep going until a gate holds" (tests green, criteria met, CI fixed), don't hand-roll the retry — run it as a `/goal` loop from the ccc-loop taxonomy, which gives you the convergence gate + iteration cap. Recurring checks on an interval are `/loop` or `/schedule` territory.
-
-## Dispatch — Team hierarchy
-
-The Game Studios pattern (3-tier, cost-optimized orchestration).
-
-After user picks Team hierarchy, ask for ONE feature/task description (free-text).
-
-**Phase 1 — Director (Opus, 1 agent)**
-Spawn ONE Agent with `model=opus`, `run_in_background: true`:
-- "You are the Director. Given task: <task>. Produce: (1) architecture brief (≤200 words), (2) file domain assignments for 2-3 Leads, (3) checklist of Specialist polish tasks. Output as structured markdown."
-
-Wait for Director to complete. Parse its output.
-
-**Phase 2 — Leads (Sonnet, 2-3 agents)**
-Spawn 2-3 `Agent` calls in a SINGLE batch with `model=sonnet`, `run_in_background: true`:
-- Each Lead gets its assigned file domain from the Director's brief
-- Each Lead gets the architecture brief as context
-- Each works in its own worktree branch
-
-Wait for all Leads to complete.
-
-**Phase 3 — Specialists (Haiku, 2-4 agents)**
-Spawn 2-4 `Agent` calls in a SINGLE batch with `model=haiku`, `run_in_background: true`:
-- Tasks from Director's checklist: linting, formatting, docs, simple tests
-- Each operates on the Lead output (same worktrees)
-- Cheap — fire as many as needed
-
-**Synthesis:**
-Coordinator (main thread) merges all worktree branches, runs final verification, reports. Before declaring the run done, the coordinator ALWAYS runs the tracked-clean check: `git status --porcelain | grep -v '^??'` on the main tree must be EMPTY — any tracked change outside the worker branches is a leak; stop and reconcile before reporting.
-
-**Cost model:**
-- Director: ~$0.50-2.00 (1 Opus call, planning only)
-- Leads: ~$0.20-0.80 each (2-3 Sonnet calls, real work)
-- Specialists: ~$0.02-0.10 each (2-4 Haiku calls, polish)
-- Total: ~$1-4 for a complete feature vs $5-15 all-Opus
-
-## Worktree management (automatic)
-
-For every spawn, each Agent gets:
-- Branch: `feat/fleet-<slug>-<n>` or `feat/<task-slug>`
-- Worktree: `.claude/worktrees/<branch-slug>`
-- Non-overlapping file domain (spelled out in the Agent prompt)
-
-Agents CANNOT push — return files + diffs only. User merges to main via the coordinator.
-
-## Safety guards
-
-| Guard | Value |
-|-------|-------|
-| Max parallel agents | 5 (auto-scaled by RAM) |
-| Branch policy | Each agent gets own branch, named deterministically |
-| Merge policy | Always back to main via coordinator — never agent-to-agent |
-| Conflict resolution | Stop + report, never auto-resolve |
-| Background timeout | 60 minutes default, configurable |
-| Cost | Each agent tracks cost independently via Sonnet |
-| Worker isolation | Worker prompt prefix: verify `git rev-parse --show-toplevel` = worktree, abort if not, relative paths only |
-| Main-tree integrity | Coordinator runs `git status --porcelain \| grep -v '^??'` (must be empty) before declaring any run done |
-
-## Argument handling
-
-- `/ccc-fleet fanout` → skip picker, straight to fan-out task prompt
-- `/ccc-fleet pipeline` → pipeline flow
-- `/ccc-fleet review` → opposing-review flow
-- `/ccc-fleet background` → background flow
-- `/ccc-fleet team` → skip picker, straight to team hierarchy flow
-- `/ccc-fleet` bare → show picker
-
-## Anti-patterns — DO NOT
-
-- ❌ Spawn >RAM-safe number of agents (16GB = cap at 3, period)
-- ❌ Give overlapping file domains to parallel agents (merge hell)
-- ❌ Let agents push directly to main (coordinator owns merges)
-- ❌ Skip the "non-overlapping domains" line in each Agent prompt
-- ❌ Run opposing-review synchronously — FOR and AGAINST must be parallel, Referee after
-- ❌ Use `dangerouslyDisableSandbox` or give agents unscoped permissions
-- ❌ Dispatch without `run_in_background: true` — blocks the main thread
-- ❌ Use Director (Opus) for implementation work — Directors plan, Leads build
-- ❌ Skip the Director phase in team hierarchy — Leads without architecture brief produce inconsistent work
-
-## Brand rules
-
-- Emoji-forward fleet cues: 🚀 dispatch, 🌿 fan-out, 🔗 pipeline, ⚖️ dialectic, 🌙 background
-- PM Consultant voice: status check-ins every ~10 steps during long runs
-- Always declare synthesis step up front: "when all 3 complete, I'll merge + report"
-- Hard constraints listed explicitly in every Agent prompt (worktree, no push, no force)
-
-## Tips for the agent executing this skill
-
-1. Whole flow is ≤4 turns: picker → free-text task → dispatch (parallel batch) → progress cards.
-2. Use `run_in_background: true` on EVERY Agent spawn — keeps main thread responsive.
-3. Parallel calls go in a SINGLE tool-call batch (one message, multiple function_calls) — not sequential.
-4. If RAM detection fails, default to 3 parallel (safest for Mac Mini M4 baseline).
-5. Always echo the synthesis plan BEFORE dispatching — user needs to see the full arc.
-6. After all workers report, automatically invoke `/ccc-fleet-viz` to render the final fleet tree.
-
----
-
-## v6.0 Conductor Tiers (selectModelForComplexity)
-
-CC Commander v6.0 introduces a selective-Fable routing ladder driven by `selectModelForComplexity(score)` in `commander/dispatcher.js`. Assign fleet tiers accordingly:
-
-| Role | Model | Score band | When |
-|------|-------|------------|------|
-| **Conductor** (this session) | Fable 5 | 86-100 | Deep orchestration, synthesis, architecture decisions |
-| **Leads** | Opus 5 | 66-85 | Complex implementation slices, multi-file features |
-| **Workers** | Sonnet 5 | 30-65 | Standard feature work, tests, moderate refactors |
-| **Bulk slices** | Haiku 4.5 | 0-29 | Polish, linting, docs, trivial single-file edits |
-
-`selectModelForComplexity(score)` thresholds: ≤29→haiku · 30-65→sonnet · 66-85→opus · 86+→fable.
-
-When assigning agents in any fleet pattern, run `scoreComplexity(sliceDescription)` on each slice and route to the matching model. This keeps conductor sessions on Fable for deep reasoning while bulk work stays cheap on Haiku.
-
----
-
-**Bottom line:** pick pattern → free-text task → parallel batch dispatch → Cmd+click to steer. Synthesis auto-kicks when all report back.
+- `/ccc-spawn` — one isolated session or expert pass.
+- `/ccc-relay` — chains of separate loop sessions.
+- `/ccc-debate` — multi-lens adversarial review.
+- `/ccc-fleet-viz` — the run as a live tree.
 
 ---
 

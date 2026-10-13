@@ -1,127 +1,109 @@
 ---
 name: ccc-devops
-description: "CCC domain — complete DevOps ecosystem — 20 skills in one. Deployments, CI/CD, containers, AWS, monitoring, security, IaC, networking, and runbooks."
-version: 1.0.0
-category: CCC domain
-brand: Kevin Z's CC Commander
+description: "Route DevOps work to the right sub-skill: CI/CD pipelines, zero-downtime deploys, containers, AWS, Terraform, monitoring and alerting, networking, security hardening and runbooks. Use when the user is building, deploying, hardening or observing infrastructure."
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - AskUserQuestion
+argument-hint: "[cicd | deploy | containers | aws | terraform | monitoring | security | network | runbook]"
+model: inherit
+effort: medium
 ---
 
-# ccc-devops
+# /ccc-devops — DevOps work, routed
 
-> Load ONE skill. Get the entire DevOps domain. Built from 15 proven skills + 5 new ones.
+**CC Commander** · ccc-devops · one router that loads the DevOps sub-skill, or short chain of them, the job needs.
 
-## Absorbed Skills Manifest
+Each sub-skill lives in its own directory beside this file. Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` (on Codex, the same path relative to this file) and follow it. Some sub-skills ship helper scripts under their own `scripts/` directory; their SKILL.md names them. The user's selected model is preserved.
 
-| # | Original Skill | What It Does | Status |
-|---|----------------|--------------|--------|
-| 1 | `docker-development` | Docker optimization — Dockerfile multi-stage builds, compose orchestration, layer caching | Absorbed |
-| 2 | `senior-devops` | Full DevOps toolkit — pipeline generation, Terraform scaffolding, deployment management | Absorbed |
-| 3 | `github-actions-security` | GitHub Actions security — secrets management, OIDC, permissions hardening, supply chain defense | Absorbed |
-| 4 | `github-actions-reusable-workflows` | Reusable workflows — composite actions, workflow_call, organization-wide CI templates | Absorbed |
-| 5 | `aws-solution-architect` | AWS architecture — Well-Architected Framework, service selection, cost optimization | Absorbed |
-| 6 | `aws-lambda-best-practices` | Lambda patterns — cold starts, layers, VPC config, concurrency, event source mappings | Absorbed |
-| 7 | `aws-s3-patterns` | S3 patterns — bucket policies, lifecycle rules, replication, presigned URLs, event notifications | Absorbed |
-| 8 | `aws-cloudfront-optimization` | CloudFront — cache behaviors, origin shields, Lambda@Edge, invalidation strategies | Absorbed |
-| 9 | `aws-iam-security` | IAM security — least-privilege policies, role assumption, permission boundaries, SCPs | Absorbed |
-| 10 | `container-security` | Container security — image hardening, vulnerability scanning, runtime policies, secrets management | Absorbed |
-| 11 | `prometheus-configuration` | Prometheus — scrape configs, recording rules, metric collection, service discovery | Absorbed |
-| 12 | `grafana-dashboards` | Grafana — dashboard JSON, panel queries, variables, alerting, provisioning | Absorbed |
-| 13 | `promql-alerting` | PromQL — alert rules, expression evaluation, recording rules, silencing strategies | Absorbed |
-| 14 | `infra-runbook` | Runbooks — incident response procedures, escalation paths, recovery playbooks | Absorbed |
-| 15 | `network-engineer` | Networking — cloud networking, VPCs, service mesh, DNS, load balancing, zero-trust | Absorbed |
-| 16 | `devops-router` | Routes your DevOps task to the right specialist | **NEW** |
-| 17 | `zero-downtime-deploy` | Zero-downtime deployments — blue-green, canary, rolling updates, automated rollback | **NEW** |
-| 18 | `cicd-pipeline-generator` | CI/CD pipeline generation — GitHub Actions, GitLab CI, caching, parallel execution | **NEW** |
-| 19 | `performance-monitoring` | Full-stack monitoring — APM, RUM, Core Web Vitals, profiling, error tracking | **NEW** |
-| 20 | `terraform-patterns` | Terraform mastery — modules, remote state, workspaces, drift detection, cost estimation | **NEW** |
+Codex: ask each picker as a plain-text question with the same options.
 
-**Replaces loading:** docker-development, senior-devops, github-actions-security, github-actions-reusable-workflows, aws-solution-architect, aws-lambda-best-practices, aws-s3-patterns, aws-cloudfront-optimization, aws-iam-security, container-security, prometheus-configuration, grafana-dashboards, promql-alerting, infra-runbook, network-engineer
+## Sub-skills
 
----
+| Group | Sub-skill | Use for |
+|---|---|---|
+| Routing | `devops-router` | Decision tree for requests that match nothing below |
+| Foundation | `senior-devops` | Pipeline setup, infrastructure automation, deployment management across AWS, GCP, Azure |
+| Deployment | `zero-downtime-deploy` | Blue-green, canary, rolling updates, migrations, feature flags, automated rollback |
+| Deployment | `infra-runbook` | Incident diagnosis and recovery runbooks |
+| CI/CD | `cicd-pipeline-generator` | GitHub Actions and GitLab CI pipelines: caching, parallel tests, environments |
+| CI/CD | `github-actions-security` | Secrets, OIDC, permissions hardening, supply-chain defense |
+| CI/CD | `github-actions-reusable-workflows` | `workflow_call`, composite actions, matrix strategies |
+| Containers | `docker-development` | Dockerfile optimization, multi-stage builds, compose |
+| Containers | `container-security` | Image hardening, vulnerability scanning, runtime policy |
+| AWS | `aws-solution-architect` | Architecture and service selection, serverless and IaC templates |
+| AWS | `aws-lambda-best-practices` | Function design, cold starts, layers, VPC, cost |
+| AWS | `aws-s3-patterns` | Bucket design, lifecycle, presigned URLs, replication, encryption |
+| AWS | `aws-cloudfront-optimization` | Cache policies, origin access, Lambda@Edge |
+| AWS | `aws-iam-security` | Least-privilege policies, roles, OIDC, permission boundaries, SCPs |
+| Infrastructure as code | `terraform-patterns` | Modules, remote state, workspaces, drift detection, imports |
+| Monitoring | `prometheus-configuration` | Scrape configs, recording rules, service discovery |
+| Monitoring | `grafana-dashboards` | Dashboard JSON, panels, variables, provisioning |
+| Monitoring | `promql-alerting` | PromQL, alert rules, SLO-based alerting |
+| Monitoring | `performance-monitoring` | APM, RUM, Core Web Vitals, profiling, error tracking |
+| Networking | `network-engineer` | VPCs, DNS, load balancing, service mesh, zero-trust |
 
-## How To Use
+Per-intent routing, "don't confuse with" pairs and campaign chains: [references/routing.md](references/routing.md).
 
-**Step 1:** Tell me what you need. I'll route to the right specialist.
+## When to use / when not to
 
-**Step 2:** If this involves infrastructure, I'll confirm your cloud provider, toolchain, and constraints before proceeding.
+- Use for pipelines, deploy strategy, containers, cloud architecture, Terraform, observability, network design, infrastructure hardening and incident runbooks.
+- Use `ccc-security` for application-level security review, `ccc-testing` for test strategy, `ccc-saas` for application architecture.
 
-**Step 3:** The specialist skill handles the work. You get senior DevOps expertise without loading 15 separate skills.
+## What happens
 
----
+1. **Detect the toolchain.** Run in one Bash call, silent on failure:
 
-## Routing Matrix
+   ```bash
+   ls .github/workflows .gitlab-ci.yml Dockerfile docker-compose.yml compose.yaml serverless.yml template.yaml cdk.json prometheus.yml 2>/dev/null
+   ls *.tf terraform 2>/dev/null | head -5
+   git remote get-url origin 2>/dev/null
+   ```
 
-| Your Intent | Route To | Don't Confuse With |
-|-------------|----------|--------------------|
-| "Deploy with zero downtime" / "Blue-green deploy" | `senior-devops` + `zero-downtime-deploy` | `cicd-pipeline-generator` (build pipeline, not deploy strategy) |
-| "Set up CI/CD" / "GitHub Actions pipeline" | `github-actions-security` + `cicd-pipeline-generator` | `github-actions-reusable-workflows` (reusable templates, not full pipeline) |
-| "Reusable workflow" / "Composite action" | `github-actions-reusable-workflows` | `cicd-pipeline-generator` (project-specific pipeline) |
-| "Containerize" / "Dockerfile" / "Docker Compose" | `docker-development` + `container-security` | `zero-downtime-deploy` (deployment, not containerization) |
-| "Container security" / "Image scanning" | `container-security` | `docker-development` (building, not securing) |
-| "AWS architecture" / "Which AWS services?" | `aws-solution-architect` | Individual AWS skills (service-specific) |
-| "Lambda function" / "Serverless" | `aws-lambda-best-practices` | `aws-solution-architect` (broader architecture) |
-| "S3 bucket" / "Object storage" | `aws-s3-patterns` | `aws-cloudfront-optimization` (CDN, not storage) |
-| "CDN" / "CloudFront" / "Edge caching" | `aws-cloudfront-optimization` | `aws-s3-patterns` (origin, not edge) |
-| "IAM" / "Permissions" / "Roles" | `aws-iam-security` | `github-actions-security` (CI secrets, not IAM) |
-| "Prometheus" / "Metrics collection" | `prometheus-configuration` + `performance-monitoring` | `grafana-dashboards` (visualization, not collection) |
-| "Grafana dashboard" / "Visualize metrics" | `grafana-dashboards` | `prometheus-configuration` (data source, not visualization) |
-| "Alerting" / "PromQL alerts" | `promql-alerting` | `performance-monitoring` (broader monitoring) |
-| "APM" / "Core Web Vitals" / "RUM" | `performance-monitoring` | `prometheus-configuration` (infrastructure metrics, not app performance) |
-| "Incident response" / "Runbook" | `infra-runbook` | `promql-alerting` (alerting, not response) |
-| "Terraform" / "Infrastructure as Code" | `terraform-patterns` + `senior-devops` | `aws-solution-architect` (architecture, not IaC) |
-| "Networking" / "VPC" / "DNS" / "Service mesh" | `network-engineer` | `aws-solution-architect` (broader scope) |
-| "Security audit" / "Harden infrastructure" | `container-security` + `aws-iam-security` + `github-actions-security` | `infra-runbook` (response, not prevention) |
+   Report one line: `🏗️ Toolchain: <CI, containers, IaC, cloud detected | none detected>`.
 
----
+2. **Confirm constraints.** For infrastructure work, confirm the cloud provider, toolchain and environment (dev, staging, production) before proceeding. Ask only for what step 1 did not answer.
 
-## Campaign Templates
+3. **Route.** An argument or a clear intent picks the sub-skill or chain from [references/routing.md](references/routing.md). Otherwise ask with AskUserQuestion (header "DevOps"), recommended first. Recommend CI/CD when step 1 found no pipeline; recommend Containers or cloud when a pipeline exists but no Dockerfile or IaC:
 
-### CI/CD Pipeline Setup
-1. `cicd-pipeline-generator` → scaffold the pipeline (lint, test, build, deploy stages)
-2. `github-actions-security` → harden secrets, pin action versions, configure OIDC
-3. `github-actions-reusable-workflows` → extract reusable components for the org
-4. `docker-development` → optimize container builds with layer caching
-5. `container-security` → scan images in CI, enforce non-root
-6. Deliver: working pipeline with security gates and fast builds
+   - 🟢 CI/CD pipeline — `cicd-pipeline-generator` + `github-actions-security`
+   - Deploy strategy — `zero-downtime-deploy` + `senior-devops`
+   - Containers or cloud infra — `docker-development`, `terraform-patterns`, the AWS sub-skills
+   - Something else — a follow-up picker with monitoring, security hardening, networking and runbooks
 
-### Production Deployment
-1. `zero-downtime-deploy` → choose strategy (blue-green, canary, rolling)
-2. `senior-devops` → orchestrate deployment with rollback support
-3. `docker-development` → production Dockerfile optimization
-4. `aws-solution-architect` → validate infrastructure design
-5. `performance-monitoring` → set up APM and health checks
-6. `infra-runbook` → write rollback and incident procedures
-7. Deliver: production-ready deployment with monitoring and runbooks
+4. **Load and run.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` for each step of the chain and follow it.
 
-### Monitoring Stack
-1. `prometheus-configuration` → configure scrape targets and recording rules
-2. `grafana-dashboards` → build dashboards for infrastructure and application metrics
-3. `promql-alerting` → define alert rules with severity levels and routing
-4. `performance-monitoring` → add APM, RUM, and Core Web Vitals tracking
-5. `infra-runbook` → document alert response procedures
-6. Deliver: complete observability stack from metrics collection to incident response
+5. **Verify locally, without touching live infrastructure.** Run whichever apply to the change, then `git status --short`:
 
-### Security Hardening
-1. `aws-iam-security` → audit and tighten IAM policies, implement least-privilege
-2. `container-security` → harden images, scan vulnerabilities, enforce runtime policies
-3. `github-actions-security` → secure CI/CD pipeline, configure OIDC, remove long-lived credentials
-4. `network-engineer` → implement zero-trust networking, segment VPCs, configure WAF
-5. `infra-runbook` → document security incident response procedures
-6. Deliver: hardened infrastructure with defense-in-depth across all layers
+   ```bash
+   terraform fmt -check && terraform validate      # Terraform
+   terraform plan -out=tfplan                       # only with the user's credentials already configured; never apply
+   docker build -t local-check .                    # Dockerfile
+   command -v actionlint >/dev/null && actionlint   # GitHub Actions
+   promtool check config prometheus.yml             # Prometheus, when promtool is installed
+   ```
 
-### AWS Infrastructure Build
-1. `aws-solution-architect` → design architecture using Well-Architected Framework
-2. `terraform-patterns` → implement infrastructure as code with modular design
-3. `aws-iam-security` → configure least-privilege access
-4. `aws-lambda-best-practices` → optimize serverless components
-5. `aws-s3-patterns` → configure storage with lifecycle and replication
-6. `aws-cloudfront-optimization` → set up CDN with proper cache behaviors
-7. `network-engineer` → configure VPCs, subnets, security groups
-8. Deliver: production AWS environment with IaC, security, and CDN
+   On failure, report the output and fix before continuing. When a tool is not installed, say so instead of claiming the check passed.
 
-### Terraform Module Library
-1. `terraform-patterns` → design module structure with versioning
-2. `aws-solution-architect` → validate architectural decisions
-3. `senior-devops` → integrate with deployment pipeline
-4. `cicd-pipeline-generator` → add terraform plan/apply to CI
-5. Deliver: reusable, versioned Terraform modules with CI integration
+## Done when
+
+- Every validation command that applies to the change ran in this turn and its result is reported.
+- `git status --short` lists only the files the task meant to touch.
+- A plan (`terraform plan`, deploy strategy) is presented as a plan; nothing was applied.
+
+## Guardrails
+
+- Never run `terraform apply`, `kubectl apply`, `helm upgrade`, a cloud CLI write (`aws ... create|delete|put|update`), a deploy, or a push that triggers one without authorization in this conversation; ask with a picker at that step.
+- Never write secrets, keys or tokens into workflow files, Dockerfiles, Terraform or runbooks; use the platform's secret store or OIDC.
+- Never widen IAM permissions, open security groups to `0.0.0.0/0`, or disable branch protection to make something work.
+- Never print environment dumps or secret-bearing output while diagnosing.
+
+## See also
+
+- `ccc-security` — application security review
+- `ccc-testing` — tests the pipeline runs
+- `ccc-saas` — application architecture behind the infrastructure

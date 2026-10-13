@@ -1,54 +1,65 @@
 ---
-name: skill-health
-description: "Show skill portfolio health dashboard with charts and analytics"
+name: ccc-skill-health
+description: "Show a skill health dashboard: 30-day success-rate sparklines, clustered failure reasons, pending amendments and version history per skill. Use when checking which skills are declining or what amendments await review."
 command: true
 ---
 
-# Skill Health Dashboard
+# /ccc-skill-health — which skills are slipping
 
-Shows a comprehensive health dashboard for all skills in the portfolio with success rate sparklines, failure pattern clustering, pending amendments, and version history.
+**CC Commander** · /ccc-skill-health · a dashboard of skill success, failures and pending amendments.
 
-## Implementation
+The dashboard script ships with the Everything Claude Code toolkit (`scripts/skills-health.js`), an opt-in install that is absent by default.
 
-Run the skill health CLI in dashboard mode:
+## Arguments
 
-```bash
-ECC_ROOT="${CLAUDE_PLUGIN_ROOT:-$(node -e "var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(!f.existsSync(p.join(d,q))){try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q))){d=c;break}}}catch(x){}}console.log(d)")}"
-node "$ECC_ROOT/scripts/skills-health.js" --dashboard
-```
+`$ARGUMENTS`:
 
-For a specific panel only:
-
-```bash
-ECC_ROOT="${CLAUDE_PLUGIN_ROOT:-$(node -e "var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(!f.existsSync(p.join(d,q))){try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q))){d=c;break}}}catch(x){}}console.log(d)")}"
-node "$ECC_ROOT/scripts/skills-health.js" --dashboard --panel failures
-```
-
-For machine-readable output:
-
-```bash
-ECC_ROOT="${CLAUDE_PLUGIN_ROOT:-$(node -e "var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(!f.existsSync(p.join(d,q))){try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q))){d=c;break}}}catch(x){}}console.log(d)")}"
-node "$ECC_ROOT/scripts/skills-health.js" --dashboard --json
-```
-
-## Usage
-
-```
-/skill-health                    # Full dashboard view
-/skill-health --panel failures   # Only failure clustering panel
-/skill-health --json             # Machine-readable JSON output
-```
-
-## What to Do
-
-1. Run the skills-health.js script with --dashboard flag
-2. Display the output to the user
-3. If any skills are declining, highlight them and suggest running /evolve
-4. If there are pending amendments, suggest reviewing them
+- empty — full dashboard
+- `--panel failures` — one panel only (any panel name below)
+- `--json` — machine-readable output
 
 ## Panels
 
-- **Success Rate (30d)** — Sparkline charts showing daily success rates per skill
-- **Failure Patterns** — Clustered failure reasons with horizontal bar chart
-- **Pending Amendments** — Amendment proposals awaiting review
-- **Version History** — Timeline of version snapshots per skill
+- **Success rate (30d)** — daily success-rate sparkline per skill
+- **Failure patterns** — clustered failure reasons as a bar chart
+- **Pending amendments** — amendment proposals awaiting review
+- **Version history** — timeline of version snapshots per skill
+
+## What happens
+
+1. Locate the script:
+
+   ```bash
+   for d in "${CLAUDE_PLUGIN_ROOT:-}" "$HOME/.claude" "$HOME"/.claude/plugins/cache/everything-claude-code/*/*; do
+     [ -n "$d" ] && [ -f "$d/scripts/skills-health.js" ] && { echo "$d"; break; }
+   done
+   ```
+
+   If nothing prints, say the dashboard script is not installed and stop.
+
+2. Run it with the printed directory, adding the flags from `$ARGUMENTS`:
+
+   ```bash
+   node "<printed dir>/scripts/skills-health.js" --dashboard [--panel <name>] [--json]
+   ```
+
+   On a non-zero exit, show stderr and stop.
+
+3. Show the output as printed. Do not restate numbers the script did not report.
+
+4. Interpret it in two or three lines:
+   - Name any skill whose success rate is declining, and suggest `/ccc-evolve` to rework it.
+   - If amendments are pending, list them and suggest reviewing each one before it is applied.
+   - If there is no run data yet, say that the dashboard fills in as skills are used.
+
+## Done when
+
+The dashboard (or the requested panel) printed from the script, and every highlighted skill appears in that output.
+
+## Guardrails
+
+- Read-only: never apply an amendment or edit a skill from this command.
+
+## See also
+
+`/ccc-evolve` · `/ccc-rules-distill` · `/ccc-skill-create`

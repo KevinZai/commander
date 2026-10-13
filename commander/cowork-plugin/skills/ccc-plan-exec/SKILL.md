@@ -1,133 +1,150 @@
 ---
 name: ccc-plan-exec
-description: "Write loops, not prompts — a cheap/fast model drafts the plan or loop, a capable model (Opus/Fable) executes each step. Two-phase routing tied to dispatcher complexity tiers."
+description: "Plan cheap, execute capable: a fast model drafts the loop (steps, per-step body, verify condition), a capable model runs each step in an isolated worktree with an independent verifier. Use when work repeats one body over many items, or the user says plan-exec, write a loop, or types /ccc-plan-exec."
 allowed-tools:
   - Read
   - Bash
+  - Agent
   - Workflow
   - AskUserQuestion
+argument-hint: "[\"loop description in quotes\"]"
+model: sonnet
+effort: medium
 ---
 
-# /ccc-plan-exec — Plan Cheap, Execute Capable
+# /ccc-plan-exec — plan cheap, execute capable
 
-Plan-exec splits work into two phases on two models. A **cheap, fast model drafts the plan** — the step list, the loop body, the structure. Then a **capable model (Opus/Fable) executes each step**. You write a *loop*, not a one-shot prompt: the structure is decided once, cheaply, then run N times against the expensive reasoner only where reasoning earns its cost.
+**CC Commander** · /ccc-plan-exec · a repeated job split into a cheap planning pass and capable per-step execution, each step verified before the next.
 
-**CC Commander** · Plan-Exec Mode · [Docs](https://commanderplugin.com)
+The cheap model decides the shape; the capable model does the thinking. This is `rules/workflow-first.md` applied to cost. Background and examples: [references/loops-vs-prompts.md](references/loops-vs-prompts.md).
 
-> Plan-exec is the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`) applied to *cost*: **let the cheap model decide the shape, let the capable model do the thinking.** Motto: "Pay for Fable on the thinking, not the typing."
+## When to use / when not to
 
----
+- Use when the work is the same body repeated over N items: per-file edits, per-module migrations, bulk renames, per-route guards.
+- Use `/ccc-plan` for a one-time feature plan, and just do a single atomic task inline; with no repeating body there is nothing to loop.
+- A loop that must repeat until an external gate holds (tests green) belongs in a gated loop from `/ccc-loop`.
 
-## Write loops, not prompts
+## Tiers
 
-A **prompt** is a one-shot: "do this whole thing." A **loop** is a structure plus a body that repeats: "for each item, do the body." The loop body is small, predictable, and capable-model-worthy. The structure around it — the item list, the order, the guards — is boring scaffolding a cheap model nails for cents.
-
-| | One-shot prompt | Loop (plan-exec) |
-|---|---|---|
-| Who plans | Capable model (wasteful) | Cheap/fast model |
-| Who executes | Capable model | Capable model, per step |
-| Cost shape | Pay expensive for scaffolding + thinking | Pay cheap for scaffolding, expensive only for thinking |
-| Failure mode | Whole run dies, re-pay everything | One step retries, rest survives |
-| Verifiability | Monolithic blob | Step-by-step, each checkable |
-
-If the work decomposes into "the same body, N times," it's a loop. Plan it cheap.
-
-**Terminology:** "loop" here is the plan-exec sense — a repeating per-step body inside one run. The `/ccc-loop` taxonomy names the *session-level* loops (`/loop` interval re-prompts, `/goal` converge-until-gate, `/schedule` cron routines). A plan-exec loop that must repeat until an external gate holds (tests green, criteria met) graduates into a `/goal` loop — use that primitive rather than hand-rolling retries.
-
----
-
-## The two phases
-
-1. **PLAN (cheap/fast)** — a fast model (Sonnet/Haiku tier) drafts the loop: enumerate the steps/items, define the per-step body, set the guard/verify condition, and flag which steps actually need deep reasoning. Output is a structured plan, not code that ships.
-2. **EXECUTE (capable)** — Opus or Fable runs the per-step body against the plan, step by step. The expensive model only touches the parts the plan marked as reasoning-heavy; trivial steps can stay on the cheap model.
-
-The handoff is the plan artifact. The cheap phase never edits production code; the capable phase never re-derives the structure.
-
----
-
-## Tie-in: dispatcher complexity routing
-
-This maps directly onto `commander/dispatcher.js`'s model ladder — `model` plans cheap, `fallback`/escalation executes capable:
+The tiers match `commander/dispatcher.js` (`guided`, `assisted`, `power`, scored by `COMPLEXITY_SIGNALS`). The planning model stays one tier cheaper than the execute model.
 
 | Tier | Plan model | Execute model | Use when |
-|------|-----------|---------------|----------|
-| `guided` | sonnet → haiku | sonnet | Mechanical loops (rename, format, bulk-edit) — cheap planner, cheap executor |
-| `assisted` | sonnet | opus | Mixed loops — cheap plan, capable execution per step |
-| `power` | sonnet/opus | fable → opus | Reasoning-heavy bodies (design per module, hard migrations) — pay Fable on the thinking |
+|---|---|---|---|
+| `guided` | `sonnet` (`haiku` for trivial lists) | `sonnet`, fallback `haiku` | Mechanical: rename, format, bulk edit |
+| `assisted` | `sonnet` | `opus`, fallback `sonnet` | Mixed: cheap plan, capable execution per step |
+| `power` | `sonnet` or `opus` | `fable`, fallback `opus` | Reasoning-heavy bodies: hard migrations, design per module |
 
-The dispatcher already scores complexity via `COMPLEXITY_SIGNALS`. Plan-exec uses that score to pick the **execute** model and lets the **plan** model stay one tier cheaper. Never flip the lead session's model mid-run — delegate the capable phase to a subagent/workflow instead.
+The lead session's model is never switched. Capable work runs in subagents or workflow agents with an explicit `model`, so the user's selected model is preserved.
 
----
+## What happens
 
-## One-off without a session flip
+### 1. Capture the loop
 
-Phrase the request as a loop and CC Commander runs plan-exec for that single task without changing your session model:
+Use the argument as the loop description. If there is none, ask in one plain sentence what the repeated job is and over which items.
 
-- "Plan-exec: for each route file, add the auth guard"
-- "Draft a loop to migrate all `moment()` calls to `dayjs`, then execute it"
-- "Write the plan cheap, run each step on Opus"
+### 2. Pick the tier
 
----
+Ask with the tier picker under Decision points.
 
-## Mode picker
+### 3. Plan phase (cheap)
 
-Call `AskUserQuestion` to let the user choose the execute tier:
+Call `Agent` with `subagent_type: "general-purpose"`, the tier's plan model, `effort: "low"` for `guided` or `"medium"` otherwise, and a prompt that asks for, and only for:
+
+1. The ordered item list (paths or identifiers, discovered with read-only commands).
+2. The per-step body as one instruction template.
+3. The per-step verify condition: a command when it is mechanical (`node --check <file>`, the project's test command, a `grep`), or a reading check otherwise.
+4. A `reasoning: high | low` flag per step.
+
+The plan phase never edits files. If it returns edits or an empty item list, stop and report.
+
+### 4. Confirm
+
+For `power`, for more than about 20 steps, or for "just draft the plan", show the step list with each step's model and verify condition, then ask with the "run it" picker. "Just draft" ends here.
+
+### 5. Isolate (required when the loop writes code)
+
+```bash
+git rev-parse --show-toplevel            # MAIN_ROOT
+git -C "$MAIN_ROOT" status --porcelain > "<scratchpad>/plan-exec-baseline.txt"
+git -C "$MAIN_ROOT" worktree add ".claude/worktrees/<loop-slug>" -b "loop/<loop-slug>"
+```
+
+Every executor's first command is `git rev-parse --show-toplevel`; it must equal the worktree path, or the executor aborts. Executors use relative paths inside the worktree only. Never hand an executor the main checkout's absolute path. If `worktree add` fails (branch exists, dirty index), report the error and stop.
+
+### 6. Execute phase (capable)
+
+- More than a few steps or files: run the loop through the `Workflow` tool so agents return conclusions, not file dumps. Each step is an `agent()` call with `model` set from its `reasoning` flag (`high` → the tier's execute model, `low` → the plan model) and `effort` to match.
+- A handful of steps: call `Agent` per step with the same `model` and `effort` choice.
+- Run steps sequentially when they touch the same files; run independent steps in parallel.
+
+### 7. Verify each step (verifier ≠ worker)
+
+A step's "done" does not advance the loop. A separate check does:
+
+- Mechanical condition: run the command yourself in the worktree and read the exit code.
+- Reading condition: a fresh `Agent` on `haiku` or `sonnet` with `subagent_type: "Explore"`, prompted to refute the step's claim and to default to refuted when unsure.
+
+On failure, retry that step once with the verifier's reason attached; on a second failure, stop the loop and report the step, the reason and the steps already done.
+
+### 8. Final isolation check
+
+```bash
+git -C "$MAIN_ROOT" status --porcelain | diff "<scratchpad>/plan-exec-baseline.txt" -
+git -C ".claude/worktrees/<loop-slug>" diff --stat HEAD
+```
+
+The first command must print nothing (no new changes leaked into the main checkout). The second lists what the loop changed.
+
+Progress card while it runs:
 
 ```
-question: "How should I run the plan-exec loop?"
+📊 Plan-exec running — N steps planned on <plan-model>, executing on <execute-model>.
+Steps flagged reasoning: high use the capable model; the rest stay cheap.
+Each step is verified before the next; a failure retries that step only.
+```
+
+## Decision points
+
+Tier picker (step 2). Put the best match first, marked 🟢: mechanical keywords (rename, format, bulk) → guided; migrate, redesign, architecture or per-module reasoning → power; high risk, large blast radius or "review the plan first" → just draft; otherwise → assisted.
+
+```
+question: "How should I run this plan-exec loop?"
 header: "Plan-Exec"
 multiSelect: false
 options:
-  - label: "⚡ Cheap plan + cheap execute (guided)"
-    description: "Mechanical loop — sonnet/haiku both phases. Bulk renames, formatting, repetitive edits."
-    preview: "Lowest cost. Use when no step needs deep reasoning."
   - label: "🎯 Cheap plan + Opus execute (assisted)"
-    description: "Sonnet drafts the loop, Opus runs each step. The default plan-exec balance."
-    preview: "Pay capable only on execution. Best general choice."
-  - label: "🔥 Cheap plan + Fable execute (power)"
-    description: "Sonnet/Opus drafts, Fable executes reasoning-heavy bodies, opus fallback."
-    preview: "Pay for Fable on the thinking. Hard migrations, design-per-module."
-  - label: "📋 Just draft the plan (no execute yet)"
-    description: "Run only the cheap planning phase. Review the loop before spending on execution."
-    preview: "Returns the step list + per-step body. You approve, then run execute."
+    description: "Sonnet drafts the loop, Opus runs each step. The general default."
+  - label: "🔧 Cheap plan + cheap execute (guided)"
+    description: "Sonnet/Haiku both phases. Lowest cost; for mechanical loops only."
+  - label: "🧠 Cheap plan + Fable execute (power)"
+    description: "Fable on reasoning-heavy steps, Opus fallback. Highest cost per step."
+  - label: "📝 Just draft the plan"
+    description: "Planning phase only. Review the loop before spending on execution."
 ```
 
-Prepend ⭐ to the best match:
-- "rename" / "format" / "bulk" / mechanical keywords → ⭐ guided
-- Mixed work, no strong signal → ⭐ assisted
-- "migrate" / "redesign" / "architecture" / per-module reasoning → ⭐ power
-- "review the plan first" / high-risk / large blast radius → ⭐ just draft
+Run-it picker (step 4): 🟢 Run as planned / Edit the plan first (describe the change) / Cancel.
 
----
+## Done when
 
-## After user picks
+- Every step's verify condition passed, as checked by step 7, or the loop stopped at a named failing step.
+- Step 8's first command printed nothing.
+- The report names the worktree path, the branch `loop/<loop-slug>`, the `diff --stat` summary, and which model ran which steps. Merging the branch is left to the user.
 
-1. **Plan phase** — dispatch the cheap model to produce the structured loop: ordered steps, the per-step body, the verify condition, and a `reasoning: high|low` flag per step.
-2. **Confirm** — for `power` or large loops, show the plan and the per-step model assignment before spending on execution.
-3. **Isolation (mandatory when the loop writes code)** — `git worktree add .claude/worktrees/<loop-slug> -b loop/<loop-slug>` before execution; the execute phase edits ONLY inside that worktree (first action: `git rev-parse --show-toplevel` must equal the worktree path — abort if not; relative paths only). Never hand executors the main repo's absolute path.
-4. **Execute phase** — run each step's body on its assigned model. Route the whole loop through the **Workflow tool** when it's multi-file or multi-step (keep the lead context slim — agents return conclusions, not file dumps). Trivial steps stay cheap; flagged steps escalate to the execute model.
-5. **Per-step verify (verifier ≠ worker)** — the plan's verify condition for each step is checked by an INDEPENDENT verifier, never by the step's executor: a script/command when the condition is mechanical (`node --check`, tests, grep), or a fresh cheap-tier (Haiku/Sonnet Explore) agent when it needs reading. The executor's "step done" claim doesn't advance the loop until the verifier passes it.
-6. **Final isolation check** — before reporting the loop done: `git -C <main-repo> status --porcelain | grep -v '^??'` must be EMPTY (no tracked leaks into the main tree).
+## Guardrails
 
-Report back:
-> 📋 **Plan-exec running** — cheap plan drafted (N steps), executing on `<execute-model>`.
-> Steps marked `reasoning: high` route to the capable model; the rest stay cheap.
-> Each step verifies before the next runs — one failure retries that step, not the whole loop.
+- Never plan and execute on the same expensive model; that is a one-shot prompt.
+- Never let the plan phase write or edit files.
+- Never switch the lead session's model; delegate capable work with an explicit `model`.
+- Never advance past a step without its independent verify.
+- Never run a code-writing loop outside its worktree, and never merge, push or delete the loop branch or worktree; those need the user's explicit go-ahead.
+- On Codex: ask the tier question in plain text, and run steps with `codex exec -m <model> --cd <worktree>` (`gpt-6-luna` for guided, `gpt-6.1-sol` for assisted, `gpt-6-astra` for power) instead of `Agent`/`Workflow`.
 
----
+## See also
 
-## Anti-patterns — DO NOT
-
-- ❌ Plan AND execute on the same expensive model — that's a one-shot prompt, not plan-exec; you re-pay for scaffolding
-- ❌ Let the cheap plan phase write or edit production code — it drafts the loop only; execution is the capable phase's job
-- ❌ Run the whole loop on the capable model when only some steps need reasoning — route per step using the plan's `reasoning` flag
-- ❌ Flip the lead session's model mid-run — delegate the capable phase to a subagent/workflow instead (never switch models mid-session)
-- ❌ Skip the verify condition between steps — a loop with no per-step guard hides failures until the end and re-pays the whole run
-- ❌ Use plan-exec for a genuinely single, atomic task — if there's no repeating body, just do it inline
-
----
-
-**Bottom line:** plan-exec = cheap model writes the loop, capable model runs the steps. Decompose into a repeating body, plan it for cents, and spend Opus/Fable only where the thinking lives.
+- `/ccc-plan` — one-time feature plan with evals
+- `/ccc-loop` — session-level loops: `/loop`, Routines, gated loops
+- `/ccc-fleet` — parallel fan-out with independent verifiers
+- `/ccc-orchestrate` — hand a goal file to a Codex or Sonnet executor
 
 ---
 

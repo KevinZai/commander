@@ -1,301 +1,205 @@
 ---
-name: spawn
-description: "Spawn and manage multiple Claude Code peers for parallel development"
+name: ccc-spawn
+description: "Plan and launch parallel Claude Code peers (quick, team, swarm or domain expert), each on its own branch and worktree with non-overlapping files, then track or stop them. Use when work splits into independent parts that should run in separate sessions."
 triggers:
-  - "/spawn"
-  - "/spawn quick"
-  - "/spawn team"
-  - "/spawn swarm"
-  - "/spawn expert"
-  - "/spawn status"
+  - "/ccc-spawn"
+  - "/ccc-spawn quick"
+  - "/ccc-spawn team"
+  - "/ccc-spawn swarm"
+  - "/ccc-spawn expert"
+  - "/ccc-spawn status"
 ---
 
-# /spawn — Multi-Agent Spawn Manager
+# /ccc-spawn — parallel peers with clear boundaries
 
-You are the Spawn Manager. When the user invokes `/spawn`, parse the subcommand and execute the appropriate workflow. If no subcommand is given, show the interactive menu.
+**CC Commander** · /ccc-spawn · a reviewed spawn plan, ready-to-run peer commands, and a status view of the peers you launched.
+
+## Before you spawn
+
+- Peer messaging uses the claude-peers MCP server (`list_peers`, `send_message`, `check_messages`, `set_summary`). It is opt-in and absent by default. Without it, peers still run, but `status` and `kill` fall back to `git worktree list` and the user closing terminals; say so once.
+- For parallel work inside this session, the built-in route is usually simpler: the Agent tool with `isolation: worktree` for a few bounded tasks, the Workflow tool for scripted fan-out, or `/ccc-fleet`. Offer it when the user has not asked for separate sessions.
+- Codex: launch peers with `codex exec --json --cd <worktree> "<prompt>"` instead of `claude -p`.
+- Peers inherit the user's selected model. Add `--model <alias>` (`fable`, `opus`, `sonnet`, `haiku`) only when the user chooses one for a role.
+- Never quote a dollar estimate without a source. Describe cost as relative (one peer ≈ one session of that size) and point to `/ccc-cost` for actuals.
 
 ## Routing
 
-- `/spawn` (no args) → Show spawn menu
-- `/spawn quick <task>` → Quick Spawn: single fire-and-forget peer
-- `/spawn team <n> <role1> <role2>...` → Team Spawn: N peers with assigned roles
-- `/spawn swarm <goal>` → Swarm Spawn: auto-decompose into optimal peer team
-- `/spawn expert <domain>` → Expert Spawn: domain-specific analysis peer
-- `/spawn status` → Show status of all active peers
-- `/spawn kill` → Send exit messages to all spawned peers
-- `/spawn templates` → Show available spawn templates
+Parse `$ARGUMENTS`:
 
-## Main Menu
+| Form | Flow |
+|---|---|
+| empty | Menu |
+| `quick <task>` | Quick: one self-contained peer |
+| `team <n> <role1> <role2> …` | Team: n peers with assigned roles |
+| `swarm <goal>` | Swarm: decompose the goal into a peer team |
+| `expert <domain>` | Expert: one domain review peer |
+| `status` | Status of active peers and messages |
+| `templates` | Pre-built team compositions |
+| `kill` | Ask every spawned peer to finish and exit |
 
-When `/spawn` is invoked with no arguments, display:
+## Menu
 
-```
-SPAWN MANAGER  //  MULTI-INSTANCE ORCHESTRATION
-================================================
+With no arguments, ask with AskUserQuestion (Codex: a plain-text question):
 
-  [1]  Quick    — Fire-and-forget single peer
-  [2]  Team     — Spawn N peers with roles
-  [3]  Swarm    — Auto-decompose goal into peer team
-  [4]  Expert   — Domain-specific expert peer
-  [5]  Status   — Check active peers
-  [6]  Templates — Pre-built team compositions
-  [7]  Kill     — Send exit to all spawned peers
+- 🟢 Quick — one fire-and-forget peer for a self-contained task
+- Team or swarm — several peers; you name the roles, or the goal is decomposed for you
+- Expert review — one domain expert reviews files you choose
+- Manage — status, templates, or stop peers
 
-  Type a number (1-7) or use: /spawn quick|team|swarm|expert
-```
+For **Team or swarm**, ask next: 🟢 Swarm (decompose my goal) · Team (I name the roles) · Template (start from a pre-built team). For **Manage**, ask: 🟢 Status · Templates · Kill.
 
-Ask the user which option they want. Wait for their response.
+## Safety checks (every spawn)
 
-## [1] Quick Spawn (`/spawn quick <task>`)
+Run these before generating launch commands. If any fails, explain it and ask the user to fix it or explicitly confirm proceeding.
 
-Single peer, no coordination overhead. Fire-and-forget.
+1. Work is committed or checkpointed: `git status --porcelain` is empty, or the user ran `/ccc-checkpoint`.
+2. Total peers (existing from `list_peers` plus new) is at most 8.
+3. File boundaries are non-overlapping across peers.
+4. Branch names are unique and follow `spawn/<goal>/<role>`: `git branch --list 'spawn/<goal>/*'` returns none of them.
+5. The user accepts the relative cost of running that many sessions.
 
-**Steps:**
+## Peer launch command
 
-1. **Parse the task** from $ARGUMENTS (everything after "quick"). If no task provided, ask: "What task should the peer handle?"
-
-2. **Assess the task:**
-   - Is it self-contained? (If it depends on in-progress work in your session, warn the user)
-   - Estimated complexity: simple / medium / complex
-   - Estimated cost: $0.05-0.15 / $0.25-0.50 / $0.50-1.00
-
-3. **Generate the peer launch command** with a fully self-contained prompt:
+Every peer gets its own worktree and a fully self-contained prompt; never assume shared state.
 
 ```bash
-claude --print "[Generated prompt with full context, file paths, expected output format, and instructions to set_summary on startup]" --allowedTools "Edit,Write,Read,Bash,Grep,Glob"
+git worktree add "../<repo>-spawn-<role>" -b "spawn/<goal>/<role>"
+cd "../<repo>-spawn-<role>" && claude -p "<prompt>" --allowedTools "Edit,Write,Read,Bash,Grep,Glob"
 ```
 
-4. **Present to user:**
-   - The generated command (ready to copy-paste)
-   - Where to run it (new terminal tab or pane)
-   - Estimated cost
-   - Expected output location (files, stdout, or branch)
+Each prompt contains:
+
+- ROLE and TASK
+- BRANCH and the worktree path
+- FILE BOUNDARIES: the explicit files and directories this peer owns, and that it must not edit anything else
+- CONTEXT: specs, schemas and API contracts it needs, pasted in full
+- ON START: call `set_summary("<Role>: <task>")` when the claude-peers tools are available
+- WHEN DONE: run the project's tests, commit on its branch, and send a completion message (branch, files changed, test result) to the coordinator with `send_message`
+- OUTPUT: where results go (files, branch, or stdout)
+
+## Quick (`quick <task>`)
+
+1. Take the task from `$ARGUMENTS`. If empty, ask "What task should the peer handle?"
+2. Check it is self-contained. If it depends on uncommitted work in this session, warn and offer to commit or checkpoint first.
+3. Rate complexity (simple, medium, complex) to set expectations.
+4. Run the safety checks, then print the launch command with the generated prompt, where to run it (a new terminal tab or pane), and where the output will appear.
+5. Set your summary when available: `set_summary("Coordinator: spawned quick peer for <task>")`.
+6. Tell the user to track it with `/ccc-spawn status` or `/ccc-peers list`.
+
+## Team (`team <n> <roles…>`)
+
+1. Parse n and the roles. If either is missing, ask for the peer count and the overall goal.
+2. n must be 2 to 8; otherwise explain the limit and ask again.
+3. Plan each peer: role, task, file boundaries, branch `spawn/<goal>/<role>`, relative cost.
+4. Present the plan:
+
+   ```
+   TEAM SPAWN PLAN: <goal>
+   Peers: <n>    Branches: spawn/<goal>/<role>
+
+   | # | Role | Branch | File boundaries | Task |
+   |---|------|--------|-----------------|------|
+   ```
+
+5. Ask with AskUserQuestion: 🟢 Spawn — generate the launch commands · Modify — change roles or boundaries, then re-plan · Cancel — nothing is created.
+6. On Spawn, suggest `/ccc-checkpoint` if the tree is dirty, run the safety checks, create the worktrees, and print one launch command per peer.
+7. Verify with `git worktree list`; every planned branch appears. Report any that failed to create.
+8. Set your summary: `set_summary("Coordinator: managing <n> peers for <goal>")`. Monitor with `list_peers` and `check_messages`, and remind the user that `/ccc-spawn status` shows progress.
 
-5. **Set your own summary** via `set_summary`: "Coordinator: spawned quick peer for [task summary]"
+## Swarm (`swarm <goal>`)
 
-6. **Remind the user:** "Run this in a new terminal. Track the peer anytime with `/spawn status` or `/peers list`."
+1. Take the goal from `$ARGUMENTS`; ask if empty.
+2. Decompose it: independent units of work, the specializations needed, natural file or module boundaries, and the dependency graph.
+3. Apply the heuristics: one independent unit per peer; at most 8 peers; merge units that share files or mutable state; prefer fewer focused peers over many shallow ones; order dependent units into waves.
+4. Present the analysis:
 
-## [2] Team Spawn (`/spawn team <n> <role1> <role2>...`)
+   ```
+   SWARM ANALYSIS: <goal>
+   Independent units: <n>    Recommended peers: <n> (max 8)
 
-Multiple peers with explicit role assignments. You become the coordinator.
+   | # | Role | Scope | Deliverable | Depends on |
+   |---|------|-------|-------------|------------|
 
-**Steps:**
+   Wave 1: peers <ids> (parallel)
+   Wave 2: peers <ids> (after <ids> complete)
+   ```
 
-1. **Parse arguments:** Extract N (peer count) and role names from $ARGUMENTS. If N or roles are missing, ask: "How many peers?" and "What is the overall goal?"
+5. Ask: 🟢 Spawn wave 1 · Modify — re-plan with the user's changes · Cancel.
+6. On Spawn, follow Team from step 6 for the first wave only. Launch a later wave when its dependencies report completion.
+7. Run the swarm with the coordinator protocol in the `spawn-manager` skill (monitoring, failure recovery, merge order).
 
-2. **Validate:** N must be between 2 and 8. If invalid, explain the limit and ask for adjustment.
+## Expert (`expert <domain>`)
 
-3. **Plan the team.** For each peer, define:
-   - Role name (e.g., "Frontend", "Backend", "Tests")
-   - Specific task description
-   - File boundaries (which files/directories this peer owns — non-overlapping)
-   - Branch name: `spawn/{goal}/{role}`
-   - Estimated cost
+1. Take the domain from `$ARGUMENTS`. If it is empty or not in this list, show the list and ask:
 
-4. **Present the spawn plan:**
+   | Domain | Reviews |
+   |---|---|
+   | security | OWASP Top 10, auth, injection, secrets, dependency vulnerabilities |
+   | performance | N+1 queries, memory leaks, bundle size, caching, lazy loading |
+   | design | Component patterns, responsive layout, UX heuristics |
+   | testing | Coverage gaps, edge cases, flaky tests, test architecture |
+   | devops | CI/CD, containers, deployment, monitoring, infrastructure |
+   | database | Schema design, indexes, migrations, query plans |
+   | api | REST/GraphQL design, versioning, pagination, error handling |
+   | accessibility | WCAG 2.2 AA, screen readers, keyboard navigation, ARIA |
 
-```
-TEAM SPAWN PLAN: [goal]
-========================
-Peers: [n]
-Estimated total cost: $[estimate]
-Branch strategy: spawn/[goal]/[role]
+2. Ask which files or modules the expert should review.
+3. Generate the expert prompt: the domain's review criteria, the target paths, read-only instructions, and an output contract — one finding per item with severity (CRITICAL, HIGH, MEDIUM, LOW), `path:line`, the issue, why it matters, and a recommended fix with code. On start, `set_summary("<Domain> expert: reviewing <target>")`; when done, send the findings to the coordinator with `send_message`.
+4. An expert peer is read-only, so it needs no worktree; launch it in the current checkout with `--allowedTools "Read,Grep,Glob"`. Print the command for a new terminal.
+5. Set your summary: `set_summary("Coordinator: spawned <domain> expert to review <target>")`.
 
-| # | Role       | Branch                    | File Boundaries           | Est. Cost |
-|---|------------|---------------------------|---------------------------|-----------|
-| 1 | [role]     | spawn/[goal]/[role]       | [files]                   | $X.XX     |
-| 2 | [role]     | spawn/[goal]/[role]       | [files]                   | $X.XX     |
-...
+## Status (`status`)
 
-Ready to spawn? (y/n)
-```
+1. Call `list_peers` with scope `repo`; if empty, retry with scope `machine`. Without the claude-peers tools, run `git worktree list` and report spawn branches instead.
+2. Call `check_messages`.
+3. Print:
 
-5. **Wait for approval** before proceeding.
+   ```
+   ACTIVE PEERS
+   | ID | Summary | Working directory | Status |
+   |----|---------|-------------------|--------|
+   Total active: <n>
 
-6. **Suggest checkpoint:** "Run `/checkpoint` first to save your current state."
+   PENDING MESSAGES: <n>
+     From: <id> (<summary>)
+     Content: "<first 200 characters>…"
+   ```
 
-7. **Generate launch commands** for each peer. Each peer prompt MUST include:
-   - ROLE and TASK headers
-   - BRANCH name to work on
-   - FILE BOUNDARIES (explicit list of owned files/directories)
-   - WHEN DONE instructions: commit work, send completion message to coordinator via `send_message`
-   - Full relevant context (specs, schemas, API contracts — do NOT assume shared state)
-   - Instruction to call `set_summary` immediately on startup
+4. With no peers, say "No active peers. Use `/ccc-spawn quick`, `team` or `swarm` to create some."
+5. When a pending message asks a question, offer to reply: `/ccc-peers send <id> <message>`. Other actions: `/ccc-peers broadcast <message>`, `/ccc-spawn kill`.
 
-8. **Set your summary** as coordinator: "Coordinator: managing [N] peers for [goal]"
+## Templates (`templates`)
 
-9. **Begin monitoring:** Remind user to run `/spawn status` periodically. Start checking `list_peers` and `check_messages` to track progress.
+| Template | Roles |
+|---|---|
+| Feature team | frontend, backend, tester, plus you as coordinator |
+| Review board | security, performance and correctness reviewers, plus a synthesizer |
+| Research squad | package-registry, GitHub, docs and community researchers, plus a synthesizer |
+| Bug hunt | two reproducers, one fixer, one regression tester |
+| Migration crew | schema, data migrator, rollback tester, verifier |
+| Content factory | three writers, an editor, an SEO optimizer |
 
-## [3] Swarm Spawn (`/spawn swarm <goal>`)
+Ask with AskUserQuestion: 🟢 Feature team · Review board · Bug hunt · Other template (then a second picker with the remaining three). Pre-fill Team from step 3 with the chosen roles, then ask for the specific goal and any changes.
 
-Auto-decompose a goal into the optimal peer team. The coordinator (you) analyzes the goal and determines peer count, roles, and boundaries.
+## Kill (`kill`)
 
-**Steps:**
+1. Call `list_peers` to find active peers.
+2. Ask with AskUserQuestion: 🟢 Ask all <n> peers to finish and exit · Pick peers — choose which ones · Cancel.
+3. Send each chosen peer: "COORDINATOR: Task complete. Finish any in-progress work, commit your changes, and exit."
+4. Call `list_peers` again after a short wait and report "<n> exited, <n> still running".
+5. For peers still running, suggest checking again in a minute or closing their terminals. Leave worktrees and branches in place; removing them is a separate step the user asks for.
 
-1. **Parse the goal** from $ARGUMENTS (everything after "swarm"). If no goal provided, ask.
+## Done when
 
-2. **Analyze the goal** to decompose into independent work units:
-   - How many independent units of work exist?
-   - What specializations are needed (frontend, backend, testing, etc.)?
-   - What are the natural file/module boundaries?
-   - Which units can be parallelized vs. which have dependencies?
+The plan was approved and every planned worktree appears in `git worktree list`, or the status/kill report reflects a fresh `list_peers` (or `git worktree list`) result.
 
-3. **Apply heuristics:**
-   - 1 independent unit = 1 peer (never over-parallelize)
-   - Maximum 8 peers
-   - Merge units that share files or mutable state into one peer
-   - Prefer fewer, more focused peers over many shallow ones
-   - Consider dependency graph — which units can start immediately vs. which must wait
+## Guardrails
 
-4. **Present the swarm analysis:**
+- Never spawn, message or stop peers without the picker confirmation in that flow.
+- Never give two peers overlapping file boundaries or the same branch.
+- Never delete worktrees or branches from this command.
+- Messages to peers are inter-session messages; send only the ones listed in these flows.
 
-```
-SWARM ANALYSIS: [goal]
-=======================
-Independent units: [n]
-Recommended peers: [n] (max 8)
-Estimated total cost: $[estimate]
+## See also
 
-| # | Role       | Scope                     | Deliverable               | Dependencies |
-|---|------------|---------------------------|---------------------------|-------------|
-| 1 | [role]     | [files/module]            | [what they produce]       | None        |
-| 2 | [role]     | [files/module]            | [what they produce]       | None        |
-| 3 | [role]     | [files/module]            | [what they produce]       | Peer 1      |
-...
-
-Spawn order:
-  Wave 1: Peers 1, 2 (parallel — no dependencies)
-  Wave 2: Peer 3 (after Peer 1 completes)
-
-Proceed with swarm? (y/n/modify)
-```
-
-5. **On "modify":** Ask what changes are needed, re-plan, and present again.
-
-6. **On approval:** Follow the Team Spawn flow from step 6 onward, respecting the wave order.
-
-7. **Manage the swarm:** Use the full coordinator protocol from the spawn-manager skill.
-
-## [4] Expert Spawn (`/spawn expert <domain>`)
-
-Spawn a domain-specific expert peer for focused analysis.
-
-**Steps:**
-
-1. **Parse the domain** from $ARGUMENTS (everything after "expert"). If no domain provided, show available domains:
-
-```
-EXPERT DOMAINS
-==============
-  security      — OWASP top 10, auth, injection, secrets, dependency vulns
-  performance   — N+1 queries, memory leaks, bundle size, caching, lazy loading
-  design        — Component patterns, accessibility, responsive, UX heuristics
-  testing       — Coverage gaps, edge cases, flaky tests, test architecture
-  devops        — CI/CD, Docker, deployment, monitoring, infrastructure
-  database      — Schema design, indexes, migrations, query optimization
-  api           — REST/GraphQL design, versioning, pagination, error handling
-  accessibility — WCAG 2.1 AA, screen readers, keyboard nav, ARIA
-
-Type a domain name:
-```
-
-2. **Validate the domain** against the list above. If invalid, show the list and ask again.
-
-3. **Ask what to review:** "What files or modules should the [domain] expert review?"
-
-4. **Generate the expert peer prompt:**
-   - Domain-appropriate analysis framework and review criteria
-   - Target files/modules to review
-   - Severity-based output format: CRITICAL / HIGH / MEDIUM / LOW
-   - For each finding: file, line, issue description, why it matters, recommended fix with code example
-   - Instruction to call `set_summary("[Domain] expert: reviewing [target]")` on startup
-   - Instruction to send structured results to coordinator via `send_message` when done
-
-5. **Present the launch command** for the user to run in a new terminal.
-
-6. **Set your summary:** "Coordinator: spawned [domain] expert to review [target]"
-
-## [5] Status (`/spawn status`)
-
-Show the status of all active peers and pending messages.
-
-**Steps:**
-
-1. Call `list_peers` with scope `repo` (default). If no results, try `machine` scope.
-
-2. Call `check_messages` for any pending communications.
-
-3. Display the dashboard:
-
-```
-ACTIVE PEERS
-=============
-| ID          | Summary                              | CWD                | Status |
-|-------------|--------------------------------------|--------------------|--------|
-| [id]        | [peer's set_summary text]            | [working directory]| Active |
-...
-
-Total active: [n]
-
-PENDING MESSAGES: [n]
-  From: [id] ([summary])
-  Content: "[first 200 chars of message]..."
-  ---
-  ...
-
-Actions:
-  /peers send <id> <message>  — reply to a peer
-  /peers broadcast <message>  — message all peers
-  /spawn kill                 — exit all peers
-```
-
-4. If no peers found: "No active peers found. Use `/spawn quick`, `/spawn team`, or `/spawn swarm` to create peers."
-
-5. If there are pending messages that contain questions, proactively suggest: "Peer [id] appears to have a question. Want to reply?"
-
-## [6] Templates (`/spawn templates`)
-
-Show pre-built spawn templates.
-
-```
-SPAWN TEMPLATES
-================
-  [1]  Feature Team     — 1 frontend + 1 backend + 1 tester + coordinator (4 peers)
-  [2]  Review Board     — 3 reviewers (security/perf/correctness) + synthesizer (4 peers)
-  [3]  Research Squad   — 4 researchers (npm/github/docs/community) + synthesizer (5 peers)
-  [4]  Bug Hunt         — 2 reproducers + 1 fixer + 1 regression tester (4 peers)
-  [5]  Migration Crew   — schema + data migrator + rollback tester + verifier (4 peers)
-  [6]  Content Factory  — 3 writers + editor + SEO optimizer (5 peers)
-
-Type a number to use a template. It pre-fills the Team Spawn flow
-with roles and tasks — you customize for your specific goal.
-```
-
-When selected, pre-fill the Team Spawn flow (step 3 onward) with the template's roles, then ask the user to provide the specific goal and any customizations.
-
-## [7] Kill (`/spawn kill`)
-
-Send exit messages to all spawned peers.
-
-**Steps:**
-
-1. Call `list_peers` to discover all active peers
-2. Confirm: "Found [n] active peers. Send exit message to all? (y/n)"
-3. If confirmed, send each peer: "COORDINATOR: Task complete. Please finish any in-progress work, commit your changes, and exit."
-4. Wait briefly, then call `list_peers` again to verify peers have exited
-5. Report: "[n] peers acknowledged, [n] still running"
-6. If peers remain, suggest checking in a minute or manually closing their terminal tabs
-
-## Safety Checks
-
-Before any spawn operation, verify:
-
-- [ ] Current work is committed or checkpointed
-- [ ] Total peers (existing + new) will not exceed 8
-- [ ] Each peer has non-overlapping file boundaries
-- [ ] Branch names are unique and follow `spawn/{goal}/{role}` convention
-- [ ] Estimated total cost is within acceptable daily budget
-
-If any check fails, warn the user and require explicit confirmation before proceeding.
-
-Args: $ARGUMENTS
+`/ccc-peers` · `/ccc-fleet` · `/ccc-checkpoint` · `/ccc-sessions`

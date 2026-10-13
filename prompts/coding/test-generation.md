@@ -1,7 +1,7 @@
 ---
 name: test-generation
 category: coding
-skills: [tdd-workflow, test-coverage, e2e-testing]
+skills: [tdd-workflow, ccc-test-coverage, e2e-testing]
 mode: code
 estimated_tokens: 500
 ---
@@ -9,12 +9,12 @@ estimated_tokens: 500
 # Test Generation
 
 ## When to Use
-When you have existing code that lacks test coverage and you need to backfill tests. Also useful before refactoring to establish a behavioral baseline.
+Use when existing code lacks tests and coverage needs to be backfilled, or before a refactor to record current behavior as a baseline.
 
 ## Template
 
 ```
-Generate comprehensive tests for the following code. Use the project's existing test framework and patterns.
+Write tests for the code below using the project's existing test framework and conventions.
 
 **Files to test:**
 {{file_paths}}
@@ -22,42 +22,41 @@ Generate comprehensive tests for the following code. Use the project's existing 
 **Test framework:**
 {{vitest|jest|playwright|other — or say "detect from package.json"}}
 
-**Step 1: Analyze**
-- Read the target files with the Read tool
-- Use Glob to find existing test files: `**/*.test.ts`, `**/*.spec.ts`
-- Read 2-3 existing test files to match the project's testing style and conventions
-- Identify all public functions, classes, and exports that need coverage
+Step 1: Analyze.
+- Read the target files with the Read tool.
+- Use Glob to find existing tests, for example `**/*.test.ts` and `**/*.spec.ts`.
+- Read two or three existing test files and match their style and conventions.
+- List every public function, class, and export that needs coverage.
 
-**Step 2: Categorize test cases**
-For each function/method, identify:
-- **Happy path** — normal expected inputs and outputs
-- **Edge cases** — empty inputs, boundary values, null/undefined
-- **Error cases** — invalid inputs, thrown errors, rejected promises
-- **Integration points** — where this code calls other modules (mock boundaries)
+Step 2: Choose test cases.
+For each function or method:
+- Happy path: normal inputs and outputs.
+- Edge cases: empty input, boundary values, null or undefined.
+- Error cases: invalid input, thrown errors, rejected promises.
+- Integration points: calls into other modules, which are the mock boundaries.
 
-**Step 3: Write tests**
-- Follow the project's existing patterns (describe/it nesting, naming conventions)
-- Use descriptive test names that read like specifications: `it("returns empty array when no items match filter")`
-- Mock external dependencies (DB, API calls, file system) — never mock the unit under test
-- Test behavior, not implementation details
-- One assertion per test when possible
+Step 3: Write the tests.
+- Follow the project's patterns (describe/it nesting, naming).
+- Name tests as specifications, for example `it("returns empty array when no items match filter")`.
+- Mock external dependencies (database, network, file system); never mock the unit under test.
+- Test behavior, not implementation details.
+- Keep one behavior per test.
 
-**Step 4: Verify**
-- Run the new tests: `npx vitest run {{test_file}}`
-- All tests should PASS (these are characterization tests of existing behavior)
-- Run coverage: `npx vitest run --coverage` — report the delta
-- If any test fails, the test is wrong (the code is the source of truth for characterization tests)
+Step 4: Verify.
+- Run the new tests, for example `npx vitest run {{test_file}}`.
+- These are characterization tests of current behavior, so they should pass. If one fails, check whether the test is wrong or whether you found a real bug; report a suspected bug instead of changing the code.
+- Run coverage, for example `npx vitest run --coverage`, and report the actual before-and-after numbers.
 ```
 
 ## Tips
-- For coverage targets, check the project's CLAUDE.md — many mandate 80%+
-- Use the `test-coverage` skill to identify the biggest coverage gaps before writing tests
-- Write tests in the same directory as the source file unless the project convention differs
+- Check the project's CLAUDE.md or test config for a required coverage threshold.
+- `/ccc-test-coverage` lists the worst-covered files so you can start with the largest gaps.
+- Put tests next to the source file unless the project uses a separate test directory.
 
 ## Example
 
 ```
-Generate comprehensive tests for the following code. Use the project's existing test framework and patterns.
+Write tests for the code below using the project's existing test framework and conventions.
 
 **Files to test:**
 src/utils/date-helpers.ts, src/utils/currency.ts

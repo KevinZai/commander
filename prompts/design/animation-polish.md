@@ -9,12 +9,12 @@ estimated_tokens: 500
 # Animation Polish
 
 ## When to Use
-When a feature is functionally complete but feels flat. This template adds micro-interactions, transitions, and motion design that make the UI feel polished and responsive.
+Use when a feature works but feels flat. The template adds micro-interactions, transitions and motion that make the UI feel responsive. Skip it for UI that is still changing shape.
 
 ## Template
 
 ```
-Add animation polish to the following UI. The goal is subtle, purposeful motion — not decoration. Every animation must serve a UX purpose.
+Add animation polish to the following UI. Keep motion subtle and purposeful: every animation serves a UX purpose, none is decoration.
 
 **Target:**
 {{file_paths_or_component_names}}
@@ -23,13 +23,13 @@ Add animation polish to the following UI. The goal is subtle, purposeful motion 
 {{Framer Motion|CSS transitions|GSAP|none yet — recommend one}}
 
 **UX principles for motion:**
-- **Feedback** — user actions should have immediate visual response
+- **Feedback** — user actions get an immediate visual response
 - **Orientation** — motion shows where things come from and go to
 - **Focus** — animation draws attention to what matters
 - **Continuity** — transitions connect related states smoothly
 
 **Step 1: Audit current interactions**
-Read the target files and identify every user interaction point:
+Read the target files and list every interaction point:
 - Page/route transitions
 - Component mount/unmount
 - Button clicks and form submissions
@@ -49,28 +49,29 @@ For each interaction, define:
 | ... | ... | ... | ... | ... |
 
 **Step 3: Implement**
-- Add animations using the Edit tool (surgical additions, not rewrites)
-- Keep durations under 400ms (anything longer feels sluggish)
-- Use `ease-out` for entrances, `ease-in` for exits
-- Respect `prefers-reduced-motion` — wrap animations in a media query check
-- Stagger list animations (50ms delay between items)
+- Add animations with the Edit tool: surgical additions, not rewrites.
+- Keep durations under 400ms; longer feels sluggish.
+- Use `ease-out` for entrances and `ease-in` for exits.
+- Respect `prefers-reduced-motion`: wrap animations in a media query check.
+- Stagger list animations by 50ms per item.
 
 **Step 4: Verify**
-- Test with `prefers-reduced-motion: reduce` — should degrade gracefully
-- Verify animations don't cause layout shift (CLS)
-- Check performance — no janky animations (should run at 60fps)
-- Test on mobile — animations should be simpler/faster on mobile
+- Emulate `prefers-reduced-motion: reduce` and confirm motion degrades gracefully.
+- Confirm animations cause no layout shift (CLS).
+- Confirm animations hold 60fps (no jank) in a performance trace.
+- On a mobile viewport, confirm animations are simpler or shorter.
+- Report what you checked and the actual result for each item.
 ```
 
 ## Tips
-- Use the `animate` skill for common animation patterns (fade, slide, scale, stagger)
-- The `delight` skill focuses specifically on micro-interactions that spark joy
-- Less is more — if in doubt, make the animation shorter and subtler
+- The `animate` skill covers common patterns (fade, slide, scale, stagger); `motion-design` covers timing and choreography.
+- The `delight` skill focuses on micro-interactions.
+- When in doubt, make the animation shorter and subtler.
 
 ## Example
 
 ```
-Add animation polish to the following UI. The goal is subtle, purposeful motion — not decoration.
+Add animation polish to the following UI. Keep motion subtle and purposeful: every animation serves a UX purpose, none is decoration.
 
 **Target:**
 src/components/Dashboard/*, src/components/Sidebar/*

@@ -1,88 +1,93 @@
 ---
 name: ccc-testing
-context: fork
-description: "complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testing, and load testing. Default isolation mode for test dispatches:…"
+description: "Testing domain router: picks the lane for TDD, E2E, visual regression, load testing, QA, regression checks, evals or verification and runs test-writing work in an isolated worktree. Use when the user asks to write tests, plan a test strategy, or test, verify or load-test a change."
 allowed-tools:
   - Read
+  - Glob
+  - Skill
+  - Agent
   - AskUserQuestion
+argument-hint: "[tdd | e2e | verify | qa | qa-only | strategy | visual | load | regression | evals | python]"
+model: sonnet
+effort: low
 ---
 
-# ccc-testing
+# /ccc-testing — the right test lane
 
-> Load ONE skill. Get the entire testing domain. 15 skills in one.
+**CC Commander** · /ccc-testing · one entry to the testing domain; routes to the specialist lane and keeps test work out of your working tree.
 
-**Default isolation:** `worktree` — test dispatches run in an isolated worktree to avoid polluting the working tree.
+## When to use / when not to
 
-## What's Inside
+- Use when the request is about writing, planning or running tests and the right specialist is not obvious.
+- Go straight to `/ccc-qa` for a QA pass over an existing suite, and to `/ccc-e2e` for a parallel pre-release assessment.
+- Use `/ccc-systematic-debugging` when a test fails and the cause is unknown.
 
-| Category | Skills |
-|----------|--------|
-| Foundation | testing-router, test-strategy |
-| Unit & TDD | tdd-workflow, plankton-code-quality, python-testing |
-| Integration & E2E | e2e-testing, webapp-testing |
-| Visual & Performance | visual-regression, load-testing |
-| Quality Assurance | qa, qa-only, ai-regression-testing |
-| Verification | verification-loop, verification-before-completion, eval-harness |
+## What happens
 
-> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
+### 1. Match the intent to a lane
 
-## Routing Matrix
+An argument or a clear request picks the lane directly:
 
-| Your Intent | Route To |
-|-------------|----------|
-| "Write tests first" / "TDD" | `tdd-workflow` |
-| "E2E tests" / "Playwright" | `e2e-testing` + `webapp-testing` |
-| "Verify my work" / "Is this done?" | `verification-loop` |
-| "QA this" / "Find bugs and fix" | `qa` |
-| "Find bugs but don't fix" | `qa-only` |
-| "Test strategy" / "What should I test?" | `test-strategy` |
-| "Visual regression" / "Screenshot tests" | `visual-regression` |
-| "Load testing" / "Performance test" | `load-testing` |
-| "Check for regressions" | `ai-regression-testing` |
-| "Build evals" / "Eval-driven" | `eval-harness` |
-| "Python tests" / "pytest" | `python-testing` |
+| Intent | Lane (toolkit sub-skill) | Plugin fallback |
+|---|---|---|
+| "Write tests first", TDD | `tdd-workflow` | Red-green-refactor inline: write the failing test, run it and show the failure, implement, rerun to green |
+| "E2E tests", Playwright | `e2e-testing` + `webapp-testing` | `/ccc-e2e e2e-only` |
+| "Verify my work", "is this done?" | `verification-loop`, then `verification-before-completion` | Run the project's test, lint and build commands and quote each result |
+| "QA this", find and fix bugs | `qa` | `/ccc-qa` |
+| Find bugs, report only | `qa-only` | `/ccc-qa`, stopping at the report |
+| "What should I test?", test strategy | `test-strategy` | `qa-engineer` agent: a strategy with test types, priorities and coverage targets |
+| Visual regression, screenshot tests | `visual-regression` | `/ccc-e2e e2e-only` |
+| Load or performance testing | `load-testing` | `performance-engineer` agent: k6 or Artillery script plus a baseline run plan |
+| "Check for regressions" | `ai-regression-testing` | `/ccc-review quick` on the diff, then `/ccc-qa unit` |
+| Evals, eval-driven development | `eval-harness` | For a Claude Code plugin: `claude plugin eval .` (scaffold with `claude plugin eval init`) |
+| Python tests, pytest | `python-testing` | `/ccc-qa unit` |
+| Code quality while writing | `plankton-code-quality` | `/ccc-review quick` |
 
-## Campaign Templates
+With no argument and no clear intent, ask with AskUserQuestion (Codex: a plain-text question):
 
-### Full Testing Strategy (New Project)
-1. `test-strategy` → analyze project, recommend test types + coverage targets
-2. `tdd-workflow` → set up framework, write first tests
-3. `e2e-testing` → critical user flow tests
-4. `visual-regression` → screenshot baselines
-5. `load-testing` → performance benchmarks
-6. `verification-loop` → verify everything passes
+- question: "What kind of testing?" · header: "Testing"
+- 🟢 Write tests first (TDD) — failing test, then the code that passes it
+- QA pass before release — runs every suite with coverage delta via `/ccc-qa`
+- E2E tests — Playwright user-flow tests with page objects and CI wiring
+- More… — strategy, visual regression, load testing, regressions, evals
 
-### Bug Fix with Tests (TDD Protocol)
-1. `qa` or `qa-only` → identify the bug
-2. `tdd-workflow` → write failing test reproducing the bug
-3. Fix → test goes green
-4. `ai-regression-testing` → check for related regressions
-5. `verification-before-completion` → prove the fix works
+"More…" asks a second picker with those four (🟢 Test strategy first).
 
-### Pre-Release QA
-1. `qa` → full QA pass
-2. `e2e-testing` → run full E2E suite
-3. `visual-regression` → compare against baselines
-4. `load-testing` → stress test under load
-5. `verification-loop` → final sign-off
+### 2. Load the lane
 
-## Scope note
+The sub-skills ship with the CC Commander CLI toolkit, not inside this plugin. Use the first source that exists:
 
-This is the **Desktop plugin entry** for the CCC testing domain. For the CLI/catalog entry, see `skills/ccc-testing/`. Content is kept in sync via the same router contract.
+1. The Skill tool lists the sub-skill name: invoke it with `args: "$ARGUMENTS"`.
+2. Glob finds the toolkit copy: `skills/ccc-testing/<lane>/SKILL.md` in the current repo, or `~/.claude/skills/ccc-testing/<lane>/SKILL.md`. Read it and follow it.
+3. Neither exists: run the plugin fallback from the table.
 
-## When to invoke this skill
+Tell the user in one line which source ran: "Lane `<lane>` via toolkit" or "Lane `<lane>` via plugin fallback `<command>`".
 
-**Example 1**
-- user: write tests for this auth module using TDD
-- assistant: Loads ccc-testing and routes to tdd-workflow — writes failing tests first, then implements to pass them.
+### 3. Isolate test-writing work
 
-**Example 2**
-- user: run a full QA pass before the release
-- assistant: Loads ccc-testing and runs pre-release pipeline: qa → e2e-testing → visual-regression → load-testing → verification-loop.
+When a lane writes or rewrites tests through a subagent, dispatch it with the Agent tool and `isolation: "worktree"` so the user's working tree stays clean, then report the worktree branch and the files it changed for the user to merge. Run in the current tree only when the user asks. Read-only lanes (strategy, qa-only, verify) run in place.
 
-**Example 3**
-- user: set up Playwright E2E tests for our checkout flow
-- assistant: Loads ccc-testing and routes to e2e-testing + webapp-testing with page objects and CI integration.
+Codex: run the lane in a git worktree the user approves (`/worktree`), or with `codex exec --cd <worktree>`.
+
+Multi-lane campaigns (new-project strategy, bug fix with tests, pre-release QA, TDD feature build) and invocation examples are in [references/campaigns.md](references/campaigns.md).
+
+## Done when
+
+- The chosen lane's own completion check ran and its actual output is quoted (test command exit status and pass/fail counts, or the strategy document path).
+- For worktree dispatches, the reply names the worktree branch and its changed files.
+
+## Guardrails
+
+- Never mark a lane done without a test run from this turn; a written test that was never executed is not done.
+- Never write tests into the user's working tree from a subagent unless the user asked for in-place work.
+- Never load the whole testing catalog; load one lane at a time.
+
+## See also
+
+- `/ccc-qa` — run every suite, coverage delta, flaky audit
+- `/ccc-e2e` — parallel pre-release assessment
+- `/ccc-systematic-debugging` — root-cause a failing test
+- `/ccc-review` — review the change the tests cover
 
 ---
 

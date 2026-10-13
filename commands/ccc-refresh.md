@@ -1,125 +1,60 @@
 ---
-description: "[DEPRECATED] Use /ccc-init instead — unified init + refresh command as of v4.0.0-beta.1."
+description: "Deprecated alias for /ccc-init: compare an existing CLAUDE.md with the Commander template and merge missing or updated sections after confirmation, preserving custom ones. Use /ccc-init instead; this alias runs the same refresh path."
 ---
 
-# `/ccc-refresh` — Deprecated Alias
+# /ccc-refresh — deprecated alias for /ccc-init
 
-> ⚠️ **Deprecated in v4.0.0-beta.1.** Use [`/ccc-init`](./init.md) — unified init + refresh that auto-detects whether to scaffold or merge-refresh.
+**CC Commander** · /ccc-refresh · the CLAUDE.md refresh path of [`/ccc-init`](./ccc-init.md), kept for backward compatibility.
 
-This alias is preserved for backward compatibility and will be removed in v5.0. The execution behavior below is identical to the refresh path in `/ccc-init`.
+> ⚠️ Deprecated. Use [`/ccc-init`](./ccc-init.md), which detects whether to scaffold a new CLAUDE.md or refresh an existing one. Print this notice once, then run the steps below; the behavior matches the `/ccc-init` refresh path.
 
----
+## When to use
 
-This command analyzes your existing CLAUDE.md and proposes updates based on the latest CC Commander template.
+- After upgrading Commander.
+- When the `claude-md-staleness` hook reports that CLAUDE.md is missing, its template version is behind the installed Commander version, it has not changed in over 30 days, or key sections (Workflow, Core Principles) are missing.
+- After `/ccc-makeover` on a project.
 
-## What This Command Does
+If CLAUDE.md does not exist, stop and point to `/ccc-init`, which scaffolds it.
 
-1. **Reads** your current `~/.claude/CLAUDE.md` (or project-level CLAUDE.md)
-2. **Compares** H2 sections against the latest CC Commander v2.1.0 template
-3. **Identifies**: missing sections, outdated sections, custom sections
-4. **Proposes** a merge plan showing what would be added/updated
-5. **Preserves** all custom sections you've written
-6. **Applies** changes only after your explicit confirmation
+## What happens
 
-## Merge Strategy
+1. **Read the current file.** Use the project `CLAUDE.md` when present, otherwise `~/.claude/CLAUDE.md`; say which one. Extract the leading HTML version comment (if any), every H2 (`## `) header with its content, and the user's name from the H1 line.
+2. **Read the template.** Read `CLAUDE.md.template` at the root of the Commander checkout the toolkit was installed from (the directory that also holds Commander's `package.json`). If it cannot be found, ask the user for its path in plain text and stop. Parse it into the same H2 structure, and read the installed Commander version from that `package.json`.
+3. **Classify each section** (header match is case-insensitive):
+   - **MATCH** — in both files. Compare content; when the template adds subsections or rules, mark it **UPDATE**.
+   - **MISSING** — in the template only; mark it **ADD**.
+   - **CUSTOM** — in the user's file only; mark it **KEEP** and never touch it.
+4. **Present the merge plan:**
 
-- **Missing sections**: Added from template with `<!-- Added by CC Commander v2.1.0 -->` marker
-- **Outdated sections**: Template version shown side-by-side for comparison
-- **Custom sections**: Left untouched (any H2 not in template is considered custom)
-- **User name**: Preserved from existing file (not overwritten with placeholder)
+   ```text
+   | Action | Section       | Reason                          |
+   |--------|---------------|---------------------------------|
+   | ADD    | <section>     | In template, missing from file  |
+   | UPDATE | <section>     | <what the template adds>        |
+   | KEEP   | <section>     | Custom (not in template)        |
+   ```
 
-## When to Use
+5. **Decide.** Ask with AskUserQuestion (Codex: plain-text question):
+   - 🟢 **Apply all** — add and update the listed sections; custom sections stay as they are.
+   - **Show the diff first** — print each change as a diff block, then ask again.
+   - **Cancel** — change nothing.
+6. **Apply** after "Apply all":
+   - Insert ADD sections with the marker `<!-- Added by CC Commander v<installed version> -->`.
+   - Replace UPDATE sections with the template version, keeping any user lines the template lacks.
+   - Keep the user's name; never replace it with a template placeholder.
+   - Set the top comment to `<!-- CC Commander Template v<installed version> | Generated: <YYYY-MM-DD> -->` so the staleness hook can read it.
+7. **Verify.** Re-read the file and confirm every planned ADD/UPDATE header is present and every KEEP section is byte-identical to before. Show `git diff --stat -- <file>` when the file is tracked.
 
-- After upgrading CC Commander
-- When your CLAUDE.md is >30 days old
-- When CCC staleness hook suggests a refresh
-- After running /makeover on a project
-- Periodically to pick up new best practices
+## Done when
 
-## Auto-Prompt Triggers
+The re-read matches the approved plan and every custom section is unchanged, or the user cancelled and the file is untouched.
 
-The `claude-md-staleness` hook will suggest running this command when:
-- CLAUDE.md is missing entirely
-- Template version is older than installed CC Commander version
-- File hasn't been modified in >30 days
-- Key H2 sections are missing (Workflow, Core Principles, etc.)
+## Guardrails
 
-## Execution Steps
+- Write only after the "Apply all" answer, and only to the one CLAUDE.md named in step 1.
+- Never delete or rewrite a CUSTOM section.
+- Replace `<installed version>` with the value read from `package.json`; never hardcode one.
 
-When invoked, follow this procedure:
+## See also
 
-### Step 1: Read Current State
-
-Read the user's CLAUDE.md. Extract:
-- The HTML version comment (if any) at the top of the file
-- All H2 (`## `) section headers and their content
-- The user's name from the H1 title line
-
-### Step 2: Read Template
-
-Read the CC Commander template at the kit's `CLAUDE.md.template`.
-Parse it into the same H2 section structure.
-
-### Step 3: Classify Sections
-
-For each section, determine its status:
-- **MATCH**: Header exists in both files (case-insensitive match)
-- **MISSING**: In template but not in user's file -> recommend adding
-- **CUSTOM**: In user's file but not in template -> preserve untouched
-
-For MATCH sections, compare content. If the template has significant additions (new subsections, new rules), flag as UPDATE candidate.
-
-### Step 4: Present Merge Plan
-
-Show a summary table:
-
-```
-| Action | Section | Reason |
-|--------|---------|--------|
-| ADD    | Aggregator Ecosystem | New in v2.1.0 |
-| ADD    | CCC Domains | New in v2.1.0 |
-| ADD    | Linear Integration | New in v2.1.0 |
-| ADD    | Knowledge Compounding | New in v2.1.0 |
-| UPDATE | Workflow | 6 new subsections (Anti-Sycophancy, Scope Discipline, etc.) |
-| UPDATE | Core Principles | 2 new principles added |
-| KEEP   | My Custom Section | Custom (not in template) |
-```
-
-### Step 5: Apply After Confirmation
-
-Ask: "Apply these changes? (yes / no / show-diff)"
-
-- **yes**: Apply all proposed changes, update version comment at top
-- **no**: Abort, no changes made
-- **show-diff**: Display full diff blocks for each change, then ask again
-
-After applying, update the version comment to:
-```
-<!-- CC Commander Template v2.1.0 | Generated: YYYY-MM-DD -->
-```
-
-## Example
-
-```
-User: /claude-md:refresh
-
-Claude:
-# CLAUDE.md Refresh Analysis
-
-## Current State
-- File: ~/.claude/CLAUDE.md
-- Template version: v1.3.0
-- Latest template: v2.1.0
-- File age: 45 days
-- Custom sections: 3
-
-## Proposed Changes
-+ [ADD] ## Aggregator Ecosystem — CC Commander v2.0 vendor packages
-+ [ADD] ## CCC Domains — 11 CCC domains, 172+ sub-skills
-+ [ADD] ## Knowledge Compounding — session learning system
-~ [UPDATE] ## Workflow — add Anti-Sycophancy, Scope Discipline, Corrective Framing
-= [KEEP] ## My Custom Rules — unchanged
-= [KEEP] ## Project-Specific Notes — unchanged
-
-Apply these changes? (yes/no/show-diff)
-```
+`/ccc-init` · `/ccc-makeover` · `/ccc-claudemd`

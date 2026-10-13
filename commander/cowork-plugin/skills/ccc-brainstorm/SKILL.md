@@ -1,171 +1,155 @@
 ---
 name: ccc-brainstorm
-description: "Design-first ideation gate. Forces 3 alternatives before any code is written. Triggers AskUserQuestion to pick the path."
+description: "Design-first ideation gate: three parallel agents propose a simple, a scalable and a user-delight approach, rendered as a tradeoff matrix, then you pick a direction. No code is written. Use when the user asks how to build X, which approach to take, is torn between options, or types /ccc-brainstorm."
 allowed-tools:
   - Agent
   - AskUserQuestion
   - Bash
   - Read
-argument-hint: "[feature idea or design question in quotes]"
+argument-hint: "[\"feature idea or design question in quotes\"]"
+model: sonnet
+effort: medium
 ---
 
-# /ccc-brainstorm — Design-First Ideation Gate
+# /ccc-brainstorm — three options before code
 
-Before writing code or specs, generate 3 distinct alternatives. Forces designer-mode thinking and surfaces tradeoffs early. No code is written during this skill — only decisions are made.
+**CC Commander** · /ccc-brainstorm · three distinct approaches, a tradeoff matrix, and one locked decision before any spec or code.
 
-## Triggers
+Adapted from superpowers/brainstorming (MIT licensed).
 
-- `/ccc-brainstorm` or `/brainstorm`
-- "how should I build X"
-- "which approach should I take"
-- "I'm torn between X and Y"
-- "help me decide on [auth / DB / design system / API shape]"
-- "explore options for"
-- "what are my choices for"
+## When to use / when not to
 
-## When NOT to Use
+- Use for "how should I build X", "which approach should I take", "I'm torn between X and Y", "help me decide on auth / DB / design system / API shape", "explore options for", "what are my choices for".
+- Skip for a bug with an obvious fix (`/ccc-review`, or just fix it), a standard pattern with a known answer, a task with one correct answer (`/ccc-plan` directly), or a mid-implementation pivot where switching costs more than the decision is worth.
 
-- Fixing a bug with an obvious solution (use `/ccc-review` or just fix it)
-- Well-known patterns where the answer is already standard (e.g., "how do I add a .env file")
-- Tasks with a single correct answer (use `/ccc-plan` directly)
-- Mid-implementation pivots where switching costs exceed the decision value
+## What happens
 
-## Process
+### 1. Capture the question
 
-### Step 1 — Capture the question
+If an argument was given, it is the topic. Otherwise ask with the topic picker under Decision points; when the user picks a category, ask for the specifics in one plain sentence.
 
-If no argument provided, call `AskUserQuestion`:
+### 2. Gather light context (optional)
 
-```yaml
-question: "What are we brainstorming?"
-options:
-  - label: "🆕 New feature design"
-    description: "You have a feature idea and want to explore approaches before writing any code."
-  - label: "🔀 Choosing between approaches"
-    description: "You have 2–3 candidates and need to compare them rigorously."
-  - label: "🎨 UI/UX decision"
-    description: "Layout, component library, interaction model, visual system."
-  - label: "🏗️ Architecture choice"
-    description: "DB schema, service boundary, auth strategy, data model."
-  - label: "✏️ Free-form — I'll describe it"
-    description: "Type your question in the next prompt."
+When the topic is about the current codebase, read what grounds the options and nothing more:
+
+```bash
+git rev-parse --show-toplevel 2>/dev/null && ls
+cat package.json 2>/dev/null | head -40
 ```
 
-Accept the free-form description as the brainstorm topic.
+Read `CLAUDE.md` or the directly relevant source with `Read`. Summarize the stack in two or three lines for the agents.
 
-### Step 2 — Spawn 3 parallel micro-agents
+### 3. Spawn three agents in parallel
 
-Fire 3 `Agent` calls simultaneously. Each agent receives this base context:
-
-```
-Topic: {user_topic}
-Codebase context: {relevant files or stack, if provided}
-```
-
-**Agent A — Simplest Possible**
-Prompt:
-> "You are evaluating the SIMPLEST possible solution for: {topic}. What is the most direct, boring, fewest-moving-parts approach? No abstractions, no future-proofing. Return: name (5 words max), summary (2–3 sentences), pros (3 bullets), cons (3 bullets), risks (1–2 bullets), reversibility (easy / medium / hard), best_for (one line)."
-
-**Agent B — Scalable / Future-Proof**
-Prompt:
-> "You are evaluating the MOST SCALABLE solution for: {topic}. What would you build if you expected 10× load or scope in 12 months? Return: name (5 words max), summary (2–3 sentences), pros (3 bullets), cons (3 bullets), risks (1–2 bullets), reversibility (easy / medium / hard), best_for (one line)."
-
-**Agent C — User-Delight First**
-Prompt:
-> "You are evaluating the most USER-DELIGHT-FIRST solution for: {topic}. What would a product designer obsessed with developer or end-user experience build, temporarily ignoring infrastructure cost? Return: name (5 words max), summary (2–3 sentences), pros (3 bullets), cons (3 bullets), risks (1–2 bullets), reversibility (easy / medium / hard), best_for (one line)."
-
-All 3 must run before proceeding. Do not short-circuit to one agent.
-
-### Step 3 — Render tradeoff matrix
-
-After all 3 agents return, render this table in chat:
+Send three `Agent` calls in one message (`subagent_type: "general-purpose"`, `model: "sonnet"`, `effort: "medium"`). Each gets:
 
 ```
-| Criterion        | Path A (Simple) | Path B (Scalable) | Path C (Delight) |
-|------------------|-----------------|-------------------|-----------------|
-| Implementation   | [est. hours]    | [est. hours]      | [est. hours]    |
-| Reversibility    | Easy/Med/Hard   | Easy/Med/Hard     | Easy/Med/Hard   |
-| Top pro          | ...             | ...               | ...             |
-| Top con          | ...             | ...               | ...             |
-| Top risk         | ...             | ...               | ...             |
-| Best for         | ...             | ...               | ...             |
+Topic: {topic}
+Codebase context: {stack summary, or "none"}
+Return: name (5 words max), summary (2-3 sentences), pros (3 bullets), cons (3 bullets),
+risks (1-2 bullets), reversibility (easy | medium | hard), est_hours (number), best_for (one line).
 ```
 
-Populate with the agent outputs. This table is reference material — the decision chip is what actually captures the choice.
+Plus the lens:
 
-### Step 4 — Synthesize and present choice
+- **Agent A — simplest possible:** "Propose the most direct, boring, fewest-moving-parts solution. No abstractions, no future-proofing."
+- **Agent B — scalable:** "Propose what you would build expecting 10x load or scope within 12 months."
+- **Agent C — user delight first:** "Propose what a product designer focused on the developer or end-user experience would build, setting infrastructure cost aside for now."
 
-Call `AskUserQuestion`:
+Wait for all three. If one fails or returns an unusable shape, re-run that one agent once; do not proceed with fewer than three.
 
-```yaml
-question: "Three paths explored — which direction resonates?"
-options:
-  - label: "⚡ Path A — [Simple name]"
-    description: "[Agent A 2-sentence summary]"
-  - label: "🚀 Path B — [Scalable name]"
-    description: "[Agent B 2-sentence summary]"
-  - label: "✨ Path C — [Delight-first name]"
-    description: "[Agent C 2-sentence summary]"
-  - label: "🔀 Hybrid — combine elements"
-    description: "Describe which parts to mix in the next message."
-  - label: "🔁 Run again with different constraints"
-    description: "Adjust the lens (cost / speed / risk) and re-brainstorm."
+### 4. Render the tradeoff matrix
+
+```
+| Criterion      | Path A (Simple) | Path B (Scalable) | Path C (Delight) |
+|----------------|-----------------|-------------------|------------------|
+| Implementation | <est_hours> h   | <est_hours> h     | <est_hours> h    |
+| Reversibility  | easy/medium/hard| ...               | ...              |
+| Top pro        | ...             | ...               | ...              |
+| Top con        | ...             | ...               | ...              |
+| Top risk       | ...             | ...               | ...              |
+| Best for       | ...             | ...               | ...              |
 ```
 
-### Step 5 — Lock the direction
+The matrix is reference material; the decision picker captures the choice.
 
-Once the user picks, output exactly:
+### 5. Ask for the direction
+
+Ask with the direction picker under Decision points.
+
+### 6. Lock the decision
+
+Output exactly:
 
 ```
 ## Decision
-**Chosen path:** [name]
-**Key tradeoff accepted:** [one sentence — what you're giving up and why it's worth it]
-**Next step:** [/ccc-plan to write a spec] or [/ccc-build to scaffold]
+**Chosen path:** <name>
+**Key tradeoff accepted:** <one sentence: what is given up and why it is worth it>
+**Next step:** /ccc-plan to write a spec, or /ccc-build to scaffold
 ```
 
-Never write code or create files during this skill.
+Worked examples: [references/examples.md](references/examples.md).
 
-## Examples
+## Decision points
 
-### Example 1 — Choosing an auth strategy
-
-```
-/ccc-brainstorm "auth strategy for a B2B SaaS — do I use Clerk, Auth.js, or roll my own JWT?"
-```
-
-Agent A returns: "Roll your own JWT — dead simple, no vendor lock-in, 4 hours to ship."
-Agent B returns: "Clerk — hosted, scales to SSO/SAML with one SDK call, 30 min to ship."
-Agent C returns: "Clerk + magic links — passwordless UX, branded email, zero friction login."
-
-Matrix surfaces: Clerk is highly reversible (eject any time), Auth.js needs infra, custom JWT is medium-risk.
-
-Decision chip: user picks Path B (Clerk). Output locks: "Chosen: Clerk. Tradeoff: $25/mo vs. zero maintenance overhead. Next: /ccc-plan."
-
-### Example 2 — Picking a database
+Topic picker (step 1, only when no argument). Put the category the conversation suggests first, marked 🟢; default to new feature design:
 
 ```
-/ccc-brainstorm "should this app use Postgres, SQLite, or Turso for a low-traffic personal tool?"
+question: "What are we brainstorming?"
+header: "Brainstorm"
+multiSelect: false
+options:
+  - label: "💡 New feature design"
+    description: "Explore approaches to a feature idea before writing any code."
+  - label: "🏗️ Architecture choice"
+    description: "Schema, service boundary, auth strategy, data model."
+  - label: "🎨 UI/UX decision"
+    description: "Layout, component library, interaction model, visual system."
+  - label: "📊 Choosing between known approaches"
+    description: "You already have 2-3 candidates and want a rigorous comparison."
 ```
 
-Agent A: SQLite — single file, zero ops, works locally and on Fly.io with LiteFS.
-Agent B: Postgres on Supabase — standard, row-level security, growth path.
-Agent C: Turso — edge-replicated SQLite, great DX, fast reads globally.
+The picker's built-in "Other" covers a free-form topic.
 
-Matrix shows SQLite reversibility is easy (file copy = backup), Postgres medium, Turso medium.
-
-### Example 3 — Design system pick
+Direction picker (step 5). Put the path that best fits the user's stated constraints first, marked 🟢, with a one-line reason:
 
 ```
-/ccc-brainstorm "shadcn/ui vs Radix primitives vs Tailwind UI for a dashboard project"
+question: "Three paths explored. Which direction?"
+header: "Direction"
+multiSelect: false
+options:
+  - label: "Path A — <simple name>"
+    description: "<Agent A summary, one line>"
+  - label: "Path B — <scalable name>"
+    description: "<Agent B summary, one line>"
+  - label: "Path C — <delight name>"
+    description: "<Agent C summary, one line>"
+  - label: "🔄 Hybrid or re-run"
+    description: "Mix elements, or re-brainstorm under a different lens (cost, speed, risk)."
 ```
 
-Agent A: shadcn/ui — copy-paste components, no runtime dependency, full ownership.
-Agent B: Radix primitives — headless, accessible, maximum customization control.
-Agent C: Tailwind UI — polished designs, pro license, fastest to ship a good-looking product.
+On "Hybrid or re-run", ask in one plain sentence which parts to combine or which constraint to change, then go to step 6 (hybrid) or step 3 (re-run).
 
-## Attribution
+## Done when
 
-> Adapted from superpowers/brainstorming — MIT licensed.
+- Three agent results were returned and the matrix rendered with all three columns filled.
+- The Decision block was printed with a chosen path and an accepted tradeoff.
+- `git status --porcelain` shows no change made by this skill.
+
+## Guardrails
+
+- Never write code, create files or edit the repository; this skill only decides.
+- Never short-circuit to one or two agents; three distinct lenses are the point.
+- Never present the matrix as the decision; the user's pick is.
+- The agents run on `sonnet`; the user's selected session model is preserved.
+- On Codex: ask the pickers as plain-text questions, and run the three lenses as three `codex exec` calls or sequentially in-thread.
+
+## See also
+
+- `/ccc-plan` — turn the chosen path into a plan with evals
+- `/ccc-debate` — stress-test a chosen design with adversarial lenses
+- `/ccc-research` — gather outside evidence before choosing
+- `/ccc-build` — scaffold once the direction is locked
 
 ---
 

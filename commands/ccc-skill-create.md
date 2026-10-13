@@ -1,174 +1,105 @@
 ---
-name: skill-create
-description: "Analyze local git history to extract coding patterns and generate SKILL.md files. Local version of the Skill Creator GitHub App."
-allowed_tools: ["Bash", "Read", "Write", "Grep", "Glob"]
+name: ccc-skill-create
+description: "Analyze the repository's git history for commit conventions, co-changing files, workflows and test patterns, and generate a SKILL.md (and optional instincts) that teaches them. Use when you want your team's practices captured as a project skill."
+allowed-tools: ["Bash", "Read", "Write", "Grep", "Glob", "AskUserQuestion"]
 ---
 
-# /skill-create - Local Skill Generation
+# /ccc-skill-create — a project skill from git history
 
-Analyze your repository's git history to extract coding patterns and generate SKILL.md files that teach Claude your team's practices.
+**CC Commander** · /ccc-skill-create · a reviewed `SKILL.md` describing how this repository is actually worked on.
 
-## Usage
+## Arguments
 
-```bash
-/skill-create                    # Analyze current repo
-/skill-create --commits 100      # Analyze last 100 commits
-/skill-create --output ./skills  # Custom output directory
-/skill-create --instincts        # Also generate instincts for continuous-learning-v2
-```
+`$ARGUMENTS`:
 
-## What It Does
+| Flag | Meaning |
+|---|---|
+| `--commits <n>` | Commits to analyze (default 200) |
+| `--output <dir>` | Skills directory to write into (default `.claude/skills`) |
+| `--instincts` | Also write instincts for the continuous-learning-v2 system |
 
-1. **Parses Git History** - Analyzes commits, file changes, and patterns
-2. **Detects Patterns** - Identifies recurring workflows and conventions
-3. **Generates SKILL.md** - Creates valid Claude Code skill files
-4. **Optionally Creates Instincts** - For the continuous-learning-v2 system
+## What happens
 
-## Analysis Steps
+1. Confirm a git repository: `git rev-parse --show-toplevel`. If it fails, say so and stop. Use the top-level directory name as `<repo-name>`.
 
-### Step 1: Gather Git Data
+2. Gather history (replace `200` with `--commits`):
 
-```bash
-# Get recent commits with file changes
-git log --oneline -n ${COMMITS:-200} --name-only --pretty=format:"%H|%s|%ad" --date=short
+   ```bash
+   git log -n 200 --name-only --pretty=format:"%H|%s|%ad" --date=short
+   git log -n 200 --name-only --pretty=format: | grep -v '^$' | sort | uniq -c | sort -rn | head -20
+   git log -n 200 --pretty=format:%s | head -50
+   ```
 
-# Get commit frequency by file
-git log --oneline -n 200 --name-only | grep -v "^$" | grep -v "^[a-f0-9]" | sort | uniq -c | sort -rn | head -20
+   If the repository has fewer commits than requested, analyze what exists and report the actual count.
 
-# Get commit message patterns
-git log --oneline -n 200 | cut -d' ' -f2- | head -50
-```
+3. Detect patterns, each backed by evidence from step 2:
 
-### Step 2: Detect Patterns
+   | Pattern | How to detect |
+   |---|---|
+   | Commit conventions | Prefixes in subjects (`feat:`, `fix:`, `chore:`) and the share that follow them |
+   | File co-changes | Files that appear in the same commits repeatedly |
+   | Workflow sequences | Recurring sets of files changed for one kind of task |
+   | Architecture | Folder structure and naming, from `git ls-files` |
+   | Testing | Test file locations, naming, and the framework in the manifest |
 
-Look for these pattern types:
+   Report a pattern only when it recurs; give its count (for example "41 of 50 subjects use conventional prefixes").
 
-| Pattern | Detection Method |
-|---------|-----------------|
-| **Commit conventions** | Regex on commit messages (feat:, fix:, chore:) |
-| **File co-changes** | Files that always change together |
-| **Workflow sequences** | Repeated file change patterns |
-| **Architecture** | Folder structure and naming conventions |
-| **Testing patterns** | Test file locations, naming, coverage |
+4. Draft `<output>/<repo-name>-patterns/SKILL.md` in this shape:
 
-### Step 3: Generate SKILL.md
+   ```markdown
+   ---
+   name: <repo-name>-patterns
+   description: "Coding conventions and workflows used in <repo-name>. Use when writing commits, adding features or tests in this repository."
+   metadata:
+     source: local-git-analysis
+     analyzed_commits: <n>
+   ---
 
-Output format:
+   # <Repo name> patterns
 
-```markdown
----
-name: {repo-name}-patterns
-description: Coding patterns extracted from {repo-name}
-version: 1.0.0
-source: local-git-analysis
-analyzed_commits: {count}
----
+   ## Commit conventions
+   ## Code architecture
+   ## Workflows   (numbered steps per recurring task, with the exact files and commands)
+   ## Testing patterns
+   ```
 
-# {Repo Name} Patterns
+5. With `--instincts`, also draft one instinct per strong pattern in a single file `<output>/<repo-name>-patterns/instincts.yaml`:
 
-## Commit Conventions
-{detected commit message patterns}
+   ```yaml
+   ---
+   id: <repo-name>-commit-convention
+   trigger: "when writing a commit message"
+   confidence: <0.0-1.0, from the observed share>
+   domain: git
+   source: local-repo-analysis
+   ---
+   # Use conventional commits
+   ## Action
+   Prefix commits with feat:, fix:, chore:, docs:, test:, refactor:
+   ## Evidence
+   <n> of <m> analyzed commits follow the format.
+   ```
 
-## Code Architecture
-{detected folder structure and organization}
+6. Show the drafts, then ask with AskUserQuestion (Codex: a plain-text question):
 
-## Workflows
-{detected repeating file change patterns}
+   - 🟢 Write the files — saves the skill (and instincts) to the output directory
+   - Edit first — tell me what to change, then show the drafts again
+   - Print only — nothing is written
 
-## Testing Patterns
-{detected test conventions}
-```
+7. After writing, verify: `ls -la <output>/<repo-name>-patterns/` and read `SKILL.md` back to confirm the frontmatter parses. If instincts were written, point to `/ccc-instinct-import <output>/<repo-name>-patterns/instincts.yaml` to load them.
 
-### Step 4: Generate Instincts (if --instincts)
+For large histories or team sharing, the third-party Skill Creator GitHub App is an opt-in alternative; this command stays local.
 
-For continuous-learning-v2 integration:
+## Done when
 
-```yaml
----
-id: {repo}-commit-convention
-trigger: "when writing a commit message"
-confidence: 0.8
-domain: git
-source: local-repo-analysis
----
+The skill file exists at the reported path with `name` and `description` frontmatter, and every pattern in it cites a count from the analyzed history.
 
-# Use Conventional Commits
+## Guardrails
 
-## Action
-Prefix commits with: feat:, fix:, chore:, docs:, test:, refactor:
+- Never overwrite an existing skill without asking; offer a new name or a diff instead.
+- Never include secrets, emails or personal names from commit metadata in the generated files.
+- Do not commit the generated files; leave them for the user to review.
 
-## Evidence
-- Analyzed {n} commits
-- {percentage}% follow conventional commit format
-```
+## See also
 
-## Example Output
-
-Running `/skill-create` on a TypeScript project might produce:
-
-```markdown
----
-name: my-app-patterns
-description: Coding patterns from my-app repository
-version: 1.0.0
-source: local-git-analysis
-analyzed_commits: 150
----
-
-# My App Patterns
-
-## Commit Conventions
-
-This project uses **conventional commits**:
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `chore:` - Maintenance tasks
-- `docs:` - Documentation updates
-
-## Code Architecture
-
-```
-src/
-├── components/     # React components (PascalCase.tsx)
-├── hooks/          # Custom hooks (use*.ts)
-├── utils/          # Utility functions
-├── types/          # TypeScript type definitions
-└── services/       # API and external services
-```
-
-## Workflows
-
-### Adding a New Component
-1. Create `src/components/ComponentName.tsx`
-2. Add tests in `src/components/__tests__/ComponentName.test.tsx`
-3. Export from `src/components/index.ts`
-
-### Database Migration
-1. Modify `src/db/schema.ts`
-2. Run `pnpm db:generate`
-3. Run `pnpm db:migrate`
-
-## Testing Patterns
-
-- Test files: `__tests__/` directories or `.test.ts` suffix
-- Coverage target: 80%+
-- Framework: Vitest
-```
-
-## GitHub App Integration
-
-For advanced features (10k+ commits, team sharing, auto-PRs), use the [Skill Creator GitHub App](https://github.com/apps/skill-creator):
-
-- Install: [github.com/apps/skill-creator](https://github.com/apps/skill-creator)
-- Comment `/skill-creator analyze` on any issue
-- Receives PR with generated skills
-
-## Related Commands
-
-- `/instinct-import` - Import generated instincts
-- `/instinct-status` - View learned instincts
-- `/evolve` - Cluster instincts into skills/agents
-
----
-
-*Part of [Everything Claude Code](https://github.com/affaan-m/everything-claude-code)*
+`/ccc-instinct-import` · `/ccc-instinct-status` · `/ccc-evolve` · `/ccc-skill-health`

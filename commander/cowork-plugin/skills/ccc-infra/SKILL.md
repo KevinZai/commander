@@ -1,22 +1,32 @@
 ---
 name: ccc-infra
-description: "Dev services status — probe local dev servers + connected MCPs from an optional services.json config. Use when the user says 'infrastructure', 'service status', 'is my dev server up',…"
+description: "Dev services status: probes the local services you declare in an optional services.json, plus Claude MCP connections and Codex CLI health, and recommends the next action. Use when the user asks for infrastructure or service status, whether a dev server is up, or why an MCP is down."
 allowed-tools:
   - Bash
   - Read
+  - Write
   - AskUserQuestion
-argument-hint: "[probe | full]"
+argument-hint: "[probe [service-name] | full]"
+model: haiku
+effort: low
 ---
 
 # /ccc-infra — Dev services status
 
-> **Scope:** this plugin is Claude Code + Codex CLI only. This skill never probes Kevin's (or anyone's) private infrastructure — it reads an OPTIONAL `~/.claude/commander/services.json` the user maintains for their own project, plus a small set of Claude/Codex-relevant local checks. If a user wants their own private stack probed, they add it to `services.json` themselves; this skill ships with zero hardcoded ports or process names for any specific person's setup.
+**CC Commander** · /ccc-infra · a status table for your declared services, Claude MCPs and the Codex CLI.
 
-Probe the services this project actually declares, plus Claude/Codex tooling health, and recommend next actions. Menu sourced from `references/infrastructure.json`.
+Scope is Claude Code and Codex tooling plus whatever the user lists in `~/.claude/commander/services.json`. The skill ships with no hardcoded ports, hosts or process names. Menu actions mirror [references/infrastructure.json](references/infrastructure.json).
 
-## Config format (optional)
+Codex: ask the pickers as plain-text questions.
 
-`~/.claude/commander/services.json` — created by the user, never assumed:
+## When to use / when not to
+
+- Use for "is my dev server up?", "which MCPs are connected?", "is Codex installed?", or a quick health table before starting work.
+- Not for: a failing CI run (`/ccc-ci`), Commander's own install diagnostics (`/ccc-doctor`), or production monitoring and alerting (`/ccc-devops`).
+
+## Config (optional)
+
+`~/.claude/commander/services.json`, written by the user or by step 5 with their answers:
 
 ```json
 {
@@ -27,80 +37,86 @@ Probe the services this project actually declares, plus Claude/Codex tooling hea
 }
 ```
 
-If the file doesn't exist, skip straight to the Claude/Codex checks below — do not invent service names or ports.
+Each entry has a `name` and either an `http(s)` `url` or an integer `port` (1–65535). Skip entries that fail this shape and list them as "invalid entry". No file: skip to the tooling checks; never invent a service.
 
-## Quick Mode (default)
+## What happens
 
-```bash
-test -f ~/.claude/commander/services.json && cat ~/.claude/commander/services.json || echo "no services.json — using Claude/Codex defaults"
-claude mcp list 2>/dev/null || echo "claude mcp: not available"
-command -v codex >/dev/null 2>&1 && codex --version 2>/dev/null || echo "codex: not installed"
-```
+1. **Read the config.**
+   ```bash
+   test -f ~/.claude/commander/services.json && cat ~/.claude/commander/services.json || echo "no services.json"
+   ```
 
-For each entry in `services.json` (if present), probe its `url` (2-second timeout `curl`) or check its `port` is listening (`lsof -iTCP:<port> -sTCP:LISTEN` or equivalent). Never probe a port or process not listed in the user's own config.
+2. **Probe declared services only.** With `probe <name>`, probe just that entry.
+   ```bash
+   jq -r '.services[] | [.name, (.url // ""), ((.port // "") | tostring)] | @tsv' ~/.claude/commander/services.json |
+   while IFS=$'\t' read -r name url port; do
+     if [ -n "$url" ]; then
+       code=$(curl -s -o /dev/null -w '%{http_code}' --proto '=http,https' --max-time 2 "$url"); echo "$name	url	$code"
+     else
+       lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1 && echo "$name	port	LISTEN" || echo "$name	port	DOWN"
+     fi
+   done
+   ```
+   `jq` absent: Read the file and probe each entry with the same `curl` or `lsof` line.
 
-Show a compact status table, then offer 3 actions via AskUserQuestion:
-- "View full status (Power Mode)"
-- "Help me set up services.json"
-- "Back to main menu"
+3. **Check Claude and Codex tooling.**
+   ```bash
+   claude mcp list 2>/dev/null || echo "claude mcp: not available"
+   command -v codex >/dev/null 2>&1 && { codex --version; codex doctor --summary 2>/dev/null; } || echo "codex: not installed"
+   ```
+   `full` (or `--power`) runs `codex doctor --json` instead of `--summary` and reports each failing check.
 
-## Power Mode
+4. **Show the status table** and classify:
+   ```
+   Service       Source           Status         Notes
+   ─────────────────────────────────────────────────────────
+   API           services.json    UP             200
+   Worker        services.json    DOWN           not listening
+   Claude MCPs   claude mcp list  <n> connected  <failed names>
+   Codex CLI     codex doctor     INSTALLED      <version>, <failing checks>
+   ```
+   HTTP 2xx or a listening port: UP. Other HTTP codes: DEGRADED. `000`, not listening, or a missing binary: DOWN or NOT INSTALLED. Fill values from step 2–3 output only.
 
-Full status pass. Activate by passing `--power` or `full` as argument.
+5. **Recommend the next action** with the picker (Decision points), showing only options that apply:
+   - A declared service is DOWN: there is no generic start command. Read the project's `package.json` scripts, `Procfile`, `docker-compose*.yml` or README and suggest the exact start command; run it only on the user's yes.
+   - No `services.json`: ask the user which local services to watch, then Write the file in the shape above and rerun step 2.
+   - An MCP shows failed: tell the user to run `/mcp reconnect all`, or `/ccc-connect` to set one up.
+   - Codex missing and the user wants it: the install is `npm install -g @openai/codex` (global install, ask first), then the user runs `codex login`. Never route an API key through this skill.
 
-### Step 1 — Probe declared + Claude/Codex services
+6. **Connectors (opt-in, absent by default).** If a monitoring connector is connected, pull CPU, memory and error rates for the declared services and link their dashboards. If a CI/CD connector is connected, list recent pipeline runs beside the table; deploying is `/ccc-deploy`, not this skill.
 
-```bash
-# User-declared project services (from services.json), each with a short timeout
-# curl -s --max-time 2 "$URL" && echo "$NAME:ok" || echo "$NAME:down"
+## Decision points
 
-# Claude/Codex tooling (always safe to check — no private infra assumed)
-claude mcp list 2>/dev/null
-command -v codex >/dev/null 2>&1 && codex --version 2>/dev/null || echo "codex: not installed"
-```
+After the quick table (AskUserQuestion, 2–4 options):
+- 🟢 Full status: every entry plus `codex doctor --json` and MCP detail
+- Set up services.json: answer a few questions, the file is written for you
+- Back to `/ccc`: return to the main menu
 
-### Step 2 — Status Table
+When something is down (only the options that apply):
+- 🟢 Find the start command: reads the project's scripts, suggests one
+- Reconnect MCPs: you run `/mcp reconnect all`
+- Install Codex CLI: global npm install after your yes
+- Done
 
-```
-Service          Source              Status     Notes
-──────────────────────────────────────────────────────────
-API              services.json       UP         200 OK
-Worker           services.json       DOWN       Connection refused
-Claude MCPs      claude mcp list     3 connected
-Codex CLI        command -v codex    INSTALLED  v1.2.3
-```
+## Done when
 
-Classify: HTTP 200 (or listening port) → UP. HTTP non-200 → DEGRADED. Connection refused/timeout/missing binary → DOWN or NOT INSTALLED.
+- Every row in the table came from a probe or command run in this turn; nothing is filled from memory.
+- After writing `services.json`, step 2 reran and its result is shown.
+- After a start command ran (on approval), the service was re-probed and its new status reported.
 
-### Step 3 — Down Service Recovery
+## Guardrails
 
-For any `services.json` entry that's DOWN, there is no generic start command — this skill doesn't know how the user runs their own services. Ask them, or suggest checking their project's own README/package.json scripts.
+- Probe only entries in the user's `services.json` and the Claude/Codex checks above; never scan ports or guess process names.
+- Never start, stop or install anything without the user's yes for that exact command.
+- Never print environment values or tokens; `services.json` holds names, URLs and ports only.
+- Timeouts stay at 2 seconds per probe; a slow service reports DOWN, not a hang.
 
-If Codex CLI is missing: `npm install -g @openai/codex` (OAuth login required separately — never route API keys through this skill).
+## See also
 
-### Step 4 — Recommend Next Action
-
-Via AskUserQuestion (contextual — only show options that apply):
-- If any `services.json` entry is DOWN: "Help me figure out how to restart it"
-- If no `services.json` exists: "Help me set one up"
-- If Codex CLI is missing and the user mentioned Codex: "Show me how to install Codex CLI"
-- "Back to main menu"
-
-## If Connectors Available
-
-If **~~monitoring** is connected:
-- Pull live metrics (CPU, memory, error rates) from the monitoring provider for services the user has declared
-- Link directly to dashboards for degraded services
-
-If **~~CI/CD** is connected:
-- Show recent pipeline runs alongside service health
-- Offer to trigger a deployment if services are healthy
-
-## Tips
-
-1. This skill never assumes a specific stack — everything beyond Claude/Codex tooling comes from the user's own `services.json`.
-2. Pass a service name as argument (e.g., `probe API`) to jump directly to that entry's status.
-3. Do not resurrect probes for Fleet Commander, Synapse, AO Dashboard, CloudCLI, Paperclip, OpenClaw, pm2, or TaskMaster here — those are private/personal infra out of the public plugin's Claude+Codex scope (see `feedback_commander_scope_claude_codex` memory note). If a user's own `services.json` happens to list something with those names, that's fine — it's their config, not this skill's assumption.
+- `/ccc-doctor` — Commander install and hook health
+- `/ccc-connect` — set up an MCP connector
+- `/ccc-ci` — CI and deploy failures
+- `/ccc-devops` — monitoring and alerting setup
 
 ---
 

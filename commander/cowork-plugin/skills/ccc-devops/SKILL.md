@@ -1,94 +1,81 @@
 ---
 name: ccc-devops
-context: fork
-description: "complete DevOps ecosystem — 21 skills in one. Deployments, CI/CD, containers, AWS, monitoring, security, IaC, networking, and runbooks."
+description: "DevOps domain router: picks the right specialist for CI/CD pipelines, zero-downtime deploys, Docker and container security, AWS, Terraform, Prometheus/Grafana monitoring, networking and runbooks, then loads it. Use when the user wants to set up, harden or plan infrastructure or delivery."
 allowed-tools:
   - Read
+  - Glob
+  - Grep
+  - Bash
+  - Write
+  - Edit
+  - Agent
   - AskUserQuestion
+argument-hint: "[cicd | deploy | containers | aws | terraform | monitoring | networking | runbook | security]"
+model: sonnet
+effort: medium
 ---
 
-# /ccc-devops — DevOps domain hub
+# /ccc-devops — route to the DevOps specialist
 
-> Load ONE skill. Get the entire DevOps domain. 21 skills in one.
+**CC Commander** · /ccc-devops · one entry point that loads the matching DevOps specialist playbook for the task.
 
-## What's Inside
+The specialist list, routing matrix and multi-step campaigns live in [references/routing.md](references/routing.md). The user's selected model is preserved; the only delegation is the optional `devops-engineer` agent in step 4.
 
-| Category | Skills |
-|----------|--------|
-| Foundation | devops-router, senior-devops |
-| Deployment | zero-downtime-deploy, infra-runbook |
-| CI/CD | cicd-pipeline-generator, github-actions-security, github-actions-reusable-workflows |
-| Containers | docker-development, container-security |
-| AWS | aws-solution-architect, aws-lambda-best-practices, aws-s3-patterns, aws-cloudfront-optimization, aws-iam-security |
-| Monitoring | prometheus-configuration, grafana-dashboards, promql-alerting, performance-monitoring |
-| IaC | terraform-patterns |
-| Networking | network-engineer |
+Codex: ask the pickers as plain-text questions; run step 4 with `codex exec --json` using the specialist playbook as the instructions.
 
-## Routines Integration
+## When to use / when not to
 
-For **scheduled deployments** and automated infra tasks, see: https://code.claude.com/docs/en/scheduled-tasks — ccc-devops skills (especially `cicd-pipeline-generator` and `zero-downtime-deploy`) can be wrapped as scheduled routines for nightly deployments, weekly security scans, or periodic drift detection.
+- Use to design or change a pipeline, deploy strategy, container image, cloud architecture, IaC module, monitoring stack, network layout or incident runbook.
+- Not for: a red CI run right now (`/ccc-ci`), running an actual deploy (`/ccc-deploy`), pre-launch account hardening across Vercel/GitHub/Cloudflare (`/ccc-harden`), or local service status (`/ccc-infra`).
 
-> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
+## What happens
 
-## Routing Matrix
+1. **Map the intent.** Match `$ARGUMENTS` or the user's words against the routing matrix in [references/routing.md](references/routing.md#routing-matrix). A multi-step goal ("set up monitoring end to end", "build our AWS stack") maps to a campaign in [references/routing.md](references/routing.md#campaigns). No clear intent: ask the domain picker (Decision points).
 
-| Your Intent | Route To |
-|-------------|----------|
-| "Deploy with zero downtime" | `zero-downtime-deploy` + `senior-devops` |
-| "Set up CI/CD" / "GitHub Actions" | `cicd-pipeline-generator` + `github-actions-security` |
-| "Reusable workflow" / "Composite action" | `github-actions-reusable-workflows` |
-| "Containerize" / "Dockerfile" | `docker-development` + `container-security` |
-| "AWS architecture" | `aws-solution-architect` |
-| "Lambda function" / "Serverless" | `aws-lambda-best-practices` |
-| "S3 bucket" / "Object storage" | `aws-s3-patterns` |
-| "CDN" / "CloudFront" | `aws-cloudfront-optimization` |
-| "IAM" / "Permissions" | `aws-iam-security` |
-| "Prometheus" / "Metrics" | `prometheus-configuration` + `performance-monitoring` |
-| "Grafana dashboard" | `grafana-dashboards` |
-| "Alerting" / "PromQL" | `promql-alerting` |
-| "APM" / "Core Web Vitals" | `performance-monitoring` |
-| "Incident response" / "Runbook" | `infra-runbook` |
-| "Terraform" / "IaC" | `terraform-patterns` + `senior-devops` |
-| "Networking" / "VPC" / "DNS" | `network-engineer` |
-| "Security audit" / "Harden infra" | `container-security` + `aws-iam-security` + `github-actions-security` |
+2. **Confirm constraints before infrastructure work.** Read what the repo already uses, then confirm cloud provider, toolchain and environment with the user only where the files do not answer it:
+   ```bash
+   ls -d .github/workflows Dockerfile docker-compose*.yml *.tf terraform k8s helm fly.toml vercel.json serverless.yml cdk.json 2>/dev/null
+   ```
 
-## Campaign Templates
+3. **Load the specialist.** Glob for `**/skills/ccc-devops/<specialist>/SKILL.md` (in the Commander repository it is `skills/ccc-devops/<specialist>/SKILL.md`; in an installed CLI toolkit it sits under the toolkit's `skills/` directory) and Read it. Follow that playbook for the task. If no match exists, work from the specialist's one-line scope in [references/routing.md](references/routing.md#specialists) and say the full playbook is not installed. For a campaign, load each specialist in order and finish one step before the next.
 
-### CI/CD Pipeline Setup
-1. `cicd-pipeline-generator` → scaffold lint, test, build, deploy stages
-2. `github-actions-security` → harden secrets, OIDC, pin action versions
-3. `docker-development` → optimize container builds
-4. `container-security` → scan images in CI
+4. **Delegate the build when it is large.** For a change spanning several files or environments, ask the delegation picker. On yes, hand it to the plugin's `devops-engineer` agent with the Agent tool, `effort: "high"`, passing the intent, the constraints from step 2 and the specialist playbook path. The agent returns the change with its preview output, rollback plan and signals to watch.
 
-### Monitoring Stack
-1. `prometheus-configuration` → scrape targets + recording rules
-2. `grafana-dashboards` → infrastructure and application dashboards
-3. `promql-alerting` → alert rules with severity routing
-4. `performance-monitoring` → APM, RUM, Core Web Vitals
-5. `infra-runbook` → alert response procedures
+5. **Verify.** Run the check the change supports and report its actual output: `terraform plan` / `terraform validate`, `docker build`, `actionlint` for workflow files, `promtool check config` / `promtool check rules`, `kubectl apply --dry-run=server`. A missing tool is reported as "not verified: <tool> absent", never as a pass.
 
-### AWS Infrastructure Build
-1. `aws-solution-architect` → Well-Architected Framework design
-2. `terraform-patterns` → IaC with modular design
-3. `aws-iam-security` → least-privilege access
-4. `aws-lambda-best-practices` → serverless optimization
-5. `aws-s3-patterns` → storage + lifecycle
-6. `aws-cloudfront-optimization` → CDN cache behaviors
-7. `network-engineer` → VPCs, subnets, security groups
+6. **Recurring work.** For nightly scans, drift detection or scheduled reports, offer `/schedule` (a Routine) or `/loop` and explain what each run will do. A scheduled deploy changes production on every run; set it up only on the user's explicit yes.
 
-## When to invoke this skill
+## Decision points
 
-**Example 1**
-- user: set up a CI/CD pipeline with GitHub Actions
-- assistant: Loads ccc-devops and routes to cicd-pipeline-generator + github-actions-security for a hardened pipeline with OIDC and pinned action versions.
+Domain picker when the intent is unclear (AskUserQuestion, 2–4 options):
+- 🟢 CI/CD pipeline: scaffold lint, test, build, deploy with hardened Actions
+- Containers: Dockerfile, compose and image scanning
+- Monitoring stack: Prometheus, Grafana, alerting, runbooks
+- More: AWS, Terraform, zero-downtime deploy, networking, incident runbook (asks again)
 
-**Example 2**
-- user: deploy with zero downtime using blue-green strategy
-- assistant: Loads ccc-devops and routes to zero-downtime-deploy + senior-devops with automated rollback configuration.
+Delegation picker for a large change:
+- 🟢 Delegate to `devops-engineer`: returns change, preview and rollback plan
+- Work here step by step: you review each file as it lands
+- Plan only: a written plan, no files changed
 
-**Example 3**
-- user: set up Prometheus and Grafana monitoring
-- assistant: Loads ccc-devops and routes to prometheus-configuration → grafana-dashboards → promql-alerting → infra-runbook pipeline.
+## Done when
+
+- The specialist playbook used is named (or "not installed" stated), and the delivered change lists every file it touched.
+- The step 5 check ran in this turn and its output (or the absent-tool note) is in the report, with the rollback path for any infrastructure change.
+
+## Guardrails
+
+- Never apply to a shared or production environment (`terraform apply`, `kubectl apply`, deploys, IAM or DNS changes) without a picker and an explicit yes for that exact action.
+- Never print, hardcode or commit credentials; use the provider's secret store or OIDC.
+- Load one specialist at a time; do not read the whole specialist tree.
+- Leave a plan, not a half-applied change, when a step fails; report the failing command and output.
+
+## See also
+
+- `/ccc-ci` — diagnose a failing pipeline run
+- `/ccc-deploy` — run the deploy itself
+- `/ccc-harden` — pre-launch hardening across hosting and account settings
+- `/ccc-security` — application security lanes, including CodeQL in CI
 
 ---
 

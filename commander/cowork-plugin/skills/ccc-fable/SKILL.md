@@ -1,8 +1,6 @@
 ---
 name: ccc-fable
-description: "The master switch — arms the full Fable Method: always-on PM loop, verification gates, orchestrator posture; works with any model."
-model: sonnet
-effort: high
+description: "Arm, check, audit or disarm the Fable Method: the PM loop, 12 checkable gates, workflow-first posture and verifier separation, persisted in Commander state. Use when the user says fable on/off/status/audit or wants verification-gated, orchestrated work."
 allowed-tools:
   - Read
   - Bash
@@ -11,106 +9,154 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[on | status | audit | off]"
+model: sonnet
+effort: high
 ---
 
-# /ccc-fable — Arm the Fable Method
+# /ccc-fable — arm the Fable Method
 
-**CC Commander** · /ccc-fable · The operating doctrine distilled from Claude Fable 5, encoded as 12 gates so any model produces Fable-shaped results.
+**CC Commander** · /ccc-fable · a session-wide operating contract of checkable gates, so any model produces verified, orchestrated work.
 
-## What this skill does
+The full doctrine (12 pillars, each with rule, mechanics, gate and failure prevented) lives in [rules/fable-method.md](../../rules/fable-method.md). This skill arms it, records the armed state, reports it, and audits the session against it. The user's selected model is preserved; arming changes posture, not model.
 
-`/ccc-fable` doesn't run a build — it arms a **session-wide operating contract**. Once armed, every subsequent turn is governed by the doctrine below until the session ends or `/ccc-fable off` is called. Full text: `rules/fable-method.md`.
+## When to use / when not to
 
-## Argument routing
+- Use to arm the contract before substantive work (multi-file changes, audits, migrations, research), to check whether it is armed, or to self-audit a session for gate violations.
+- Use `audit` before reporting a load-bearing "done" in a long session.
+- Do not use it to run a build, review or plan. It governs how those run; `/ccc-orchestrate`, `/ccc-review` and `/ccc-plan` do the work.
 
-Ask via AskUserQuestion if no argument is given: **on** (arm the full contract) / **status** (show what's currently armed) / **audit** (self-check for violations) / **off** (disarm, return to default posture).
+## What happens
 
-### `on` (default action)
+### 1. Route the argument
 
-Arm all five layers as the session's operating contract:
+`$ARGUMENTS` selects the action. With no argument, ask with AskUserQuestion (Codex: ask the same question in plain text):
 
-**1. The PM loop** — every work cycle, run the three lenses ambiently (cross-ref `/ccc-suggest loop`):
-- **IMPROVE:** repeated manual step → encode it as a skill or hook.
-- **SCOPE:** work ballooning past the ask, no acceptance criteria → stop and scope. SCOPE OUTRANKS IMPROVE.
-- **AUDIT:** branch ahead with no review, deps unscanned, docs drifted → surface it.
-Flag adjacent opportunities — never execute them inline.
+```
+question: "Fable Method — what do you want to do?"
+header: "Fable"
+multiSelect: false
+options:
+  - label: "🟢 Arm it (on)"
+    description: "Turns on the PM loop, 12 gates, workflow-first posture and verifier separation for this session and records it in state.json."
+  - label: "Show status"
+    description: "Reads state.json and reports armed or off, and since when. Changes nothing."
+  - label: "Audit this session"
+    description: "Checks the current session for gate violations with evidence. Changes nothing."
+  - label: "Disarm (off)"
+    description: "Returns to the default posture and records it in state.json. The doctrine file stays available."
+```
 
-**2. The 12 gates** — the session's operating contract. Each is checkable; if the gate can't be checked, the work isn't done:
+### 2. Record the state (`on` and `off` only)
 
-| # | Gate question |
+The armed flag lives under one key, `fableMethod`, in `~/.claude/commander/state.json`. The Commander HUD mod reads exactly `fableMethod.armed`. Merge that key into the file; never replace the file, because other hooks and the CLI keep their own keys there. Run with `on` or `off` as the trailing argument:
+
+```bash
+node -e 'const fs=require("fs"),path=require("path"),os=require("os");const armed=process.argv[1]==="on";if(!["on","off"].includes(process.argv[1])){console.error("usage: on|off");process.exit(2)}const dir=path.join(os.homedir(),".claude","commander"),p=path.join(dir,"state.json");let s={};try{s=JSON.parse(fs.readFileSync(p,"utf8"))}catch(e){if(e.code!=="ENOENT"){console.error("state.json is unreadable ("+e.message+"); not overwriting it");process.exit(1)}}if(typeof s!=="object"||s===null||Array.isArray(s)){console.error("state.json is not a JSON object; not overwriting it");process.exit(1)}const before=Object.keys(s).filter(k=>k!=="fableMethod").length;s.fableMethod={armed,since:new Date().toISOString()};fs.mkdirSync(dir,{recursive:true});const tmp=p+".tmp-"+process.pid;fs.writeFileSync(tmp,JSON.stringify(s,null,2)+"\n");fs.renameSync(tmp,p);const after=Object.keys(JSON.parse(fs.readFileSync(p,"utf8"))).filter(k=>k!=="fableMethod").length;console.log(JSON.stringify({fableMethod:s.fableMethod,otherKeysPreserved:before===after}))' on
+```
+
+Expected output: `{"fableMethod":{"armed":true,"since":"<ISO>"},"otherKeysPreserved":true}`. If the command exits non-zero, report the error verbatim and do not claim the state changed; a corrupt `state.json` is the user's to repair, so never delete or reset it.
+
+### 3a. `on` — arm the five layers
+
+After the state write succeeds, hold these for every later turn until `/ccc-fable off` or the session ends.
+
+**Layer 1 — the PM loop.** Every work cycle, evaluate three lenses (the same lenses `/ccc-suggest` uses):
+- **SCOPE:** work ballooning past the ask, or no acceptance criteria → stop and scope. SCOPE outranks IMPROVE.
+- **IMPROVE:** a manual step repeated → propose encoding it as a skill, hook or test.
+- **AUDIT:** branch ahead with no review, dependencies unscanned, docs drifted from code → surface it.
+
+Flag adjacent opportunities; never execute them inline.
+
+**Layer 2 — the 12 gates.** Each is a question with a checkable answer. If the gate cannot be checked, the work is not done.
+
+| # | Pillar | Gate question |
+|---|---|---|
+| 1 | Orchestrate, don't type | Is the plan written down with acceptance criteria before implementation started? |
+| 2 | Never trust a single pass | Who verified this, and were they the one who made it? |
+| 3 | Loops with gates | What is the verifier, where is the state file, and what stops this? |
+| 4 | Prove it before you alarm | What is the evidence, and what would disprove it? |
+| 5 | Isolation and blast-radius control | Is the main tree tracked-clean, and did the agent verify its worktree before editing? |
+| 6 | Truth over cache | Is this from the source of truth, or from something that could be stale? |
+| 7 | Context is disposable; state is durable | If this session died now, could a fresh one resume from durable state alone? |
+| 8 | Delegation discipline | Could a competent stranger execute this brief without asking anything? |
+| 9 | Lead with the outcome | Does the first sentence contain the answer? |
+| 10 | Proactive PM posture | Were all three lenses evaluated, and were the flags left un-executed? |
+| 11 | Effort calibration | Did a small pilot validate the approach and its cost before scaling? |
+| 12 | Operationalize every fix | What prevents this class of bug from recurring, and is that prevention mechanical? |
+
+**Layer 3 — proactive prompts.** Raise these from the trigger, without waiting for the user to remember:
+
+| Trigger observed | Prompt to raise |
 |---|---|
-| 1. Orchestrate, don't type | Is the plan written down with acceptance criteria before implementation started? |
-| 2. Never trust a single pass | Who verified this, and were they the one who made it? |
-| 3. Loops with gates | What is the verifier, where is the state file, and what stops this? |
-| 4. Prove it before you alarm | What's the evidence, and what would disprove this? |
-| 5. Isolation and blast-radius control | Is the main tree tracked-clean, and did the agent verify its worktree before editing? |
-| 6. Truth over cache | Is this from the source of truth, or from something that could be stale? |
-| 7. Context is disposable; state is durable | If this session died right now, could a fresh one resume from durable state alone? |
-| 8. Delegation discipline | Could a competent stranger execute this brief without asking me anything? |
-| 9. Lead with the outcome | Does the first sentence contain the answer? |
-| 10. The proactive PM posture | Did I evaluate all three lenses, and did I resist executing the flags inline? |
-| 11. Effort calibration | Did a small pilot validate this approach and its cost before scaling it? |
-| 12. Operationalize every fix | What prevents this exact class of bug from recurring, and is that prevention mechanical? |
+| Multi-file, audit or migration task | "This is workflow-scale: plan file, executor agents, adversarial verify, not a single pass." |
+| Feature request with no acceptance criteria | "Scope first: what does done look like, and what does broken look like?" |
+| Branch ahead of main, no review run | "Unverified work is accumulating: run an independent review pass." |
+| Same fix or check performed twice | "Second occurrence: encode it as a skill, hook or test now." |
+| Recurring task with an automated verifier | "This passes the loop gate: hand it to `/loop`, `/schedule` or `/goal` via `/ccc-loop`." |
+| A loop running without a state file | "Add `.claude/loop-state/<name>.json` before the next tick." |
+| A severe finding about to be reported | "Prove it: exact check, real samples, one honest attempt to disprove, then calibrate severity." |
+| Context at or above ~70% | "Write the handoff now with `/ccc-handoff`: state, decisions, what not to retry, next step." |
+| A subagent reported success | "Re-run the load-bearing check before reporting done." |
+| The user pushes back on a recommendation | "Steel-man their view; change position on new evidence, not on pressure." |
+| About to delete or overwrite anything | "Archive, don't delete. Resolve symlinks first. If you did not create it, ask." |
+| Session ending | "Dense reloadable summary: worked (evidence), failed (why), untried, exact next step." |
 
-**3. The proactive prompt library** — these fire ambiently from the trigger, not from the user remembering:
+**Layer 4 — workflow-first posture.** The lead session is a control plane: decisions, delegations, verified conclusions. Route substantive work (multi-file, multi-step, research, audit, migration) through the Workflow tool or Agent-tool subagents with `isolation: worktree` for code writers; keep only trivial single-file work inline. Mechanics: [rules/workflow-first.md](../../rules/workflow-first.md). Codex: use `codex exec` or `codex cloud exec` for delegated lanes.
 
-| Trigger observed | Proactive prompt |
-|---|---|
-| Multi-file/audit/migration task detected | "This is workflow-scale — orchestrate it: plan file + executor agents + adversarial verify, not a single pass." |
-| Feature request with no acceptance criteria | "Scope first: what does DONE look like, what does BROKEN look like? (evals → spec → plan → implement → verify)" |
-| Branch ahead of main, no review run | "Unverified work is accumulating — run an independent review pass before it grows." |
-| Same fix/check performed twice | "Second occurrence — encode this as a skill/hook/test now so there's never a third." |
-| Task repeats on a schedule + has an automated verifier | "This passes the loop gate — hand off the trigger (`/loop`/`/schedule`) or the stop condition (`/goal`)." |
-| A loop is running without a state file | "This loop can't learn — add `.claude/loop-state/<name>.json` before the next tick." |
-| Scary finding about to ship | "Prove it: exact check, 3 real samples, one honest attempt to disprove. Then calibrate severity to evidence." |
-| Context ≥70% | "Write the handoff now — state, decisions, what NOT to retry, exact next step — while you still remember why." |
-| Subagent reported success | "Trust but verify: re-run the load-bearing check yourself before reporting done." |
-| User pushes back on a recommendation | "Steel-man their view. Change position only on new evidence — never on pressure alone." |
-| About to delete/overwrite anything | "Archive, don't delete. Resolve symlinks first. If you didn't create it, ask." |
-| Session ending | "Dense reloadable summary: worked (evidence) / failed (why) / untried / exact next step." |
+**Layer 5 — verifier separation.** The maker of a finding, fix or claim never grades it. A subagent's self-report is a claim. Before reporting done, re-run the load-bearing check, or dispatch a fresh-context verifier through the Agent tool that is prompted to refute.
 
-**4. Workflow-first orchestration posture** — the lead session is a control plane: decisions, delegations, verified conclusions only. Substantive work (multi-file, multi-step, research, audit, migration) goes through the Workflow tool; solo/inline only for trivial single-file work. Full mechanics: `rules/workflow-first.md`.
+Confirm in one line: "Fable Method armed: 12 gates · PM loop · workflow-first posture · verifier separation. `/ccc-fable audit` to self-check."
 
-**5. Verifier separation, hard-enforced** — the maker of a finding, fix, or claim never grades it. Subagent self-reports are claims, not facts. Re-run the load-bearing check before reporting done.
+### 3b. `status` — read, never write
 
-Confirm armed with a one-line ack: "Fable Method armed: 12 gates · PM loop · workflow-first posture. `/ccc-fable audit` to self-check."
+```bash
+node -e 'const fs=require("fs"),path=require("path"),os=require("os");const p=path.join(os.homedir(),".claude","commander","state.json");let s;try{s=JSON.parse(fs.readFileSync(p,"utf8"))}catch(e){console.log(e.code==="ENOENT"?"no state.json: never armed":"state.json unreadable: "+e.message);process.exit(0)}const f=s&&s.fableMethod;console.log(f&&typeof f==="object"?JSON.stringify(f):"fableMethod not set: never armed")'
+```
 
-### `status`
+Report one of: armed since `<since>` (with the elapsed time), off since `<since>`, or never armed. If the file says armed but nothing this session applied the layers, say both facts plainly: the stored flag persists across sessions, the posture has to be re-applied in each new session with `/ccc-fable on`.
 
-Report which of the 5 layers are currently active this session (PM loop, gates, prompt library, orchestration posture, verifier separation) and how long they've been armed. If never armed this session, say so plainly.
+### 3c. `audit` — find violations with evidence
 
-### `audit`
+Check the current session against these pillars. Each item is a concrete observation, not an impression:
 
-Run a self-check: which pillars is the current session violating right now. Concrete, checkable — not vibes:
+1. **Orchestrate:** a multi-file task in flight with no written plan or acceptance criteria?
+2. **Verify:** a "done" or "fixed" claim in recent turns that nobody independently re-checked?
+3. **Loops:** a loop or repeated retry running without a `.claude/loop-state/<name>.json` file?
+4. **Prove:** a finding with a count or severity label but no method line (the exact command or check)?
+5. **Isolation:** a code-writing subagent editing through the main checkout instead of an isolated worktree? Check with `git -C <path> rev-parse --show-toplevel` and `git worktree list`.
+6. **Truth:** a state-changing decision resting on a cache or log instead of the authoritative source?
+7. **Durable state:** context above ~70% with no handoff written?
+8. **Delegation:** a dispatched brief missing scope, file ownership or report format?
+9. **Operationalize:** a bug fixed this session with no sibling sweep and no mechanical guard?
 
-1. **Pillar 1 (orchestrate):** Is there a multi-file task in flight with no written plan/acceptance criteria?
-2. **Pillar 2 (verify):** Is there a "done" or "fixed" claim in the last few turns that was never independently re-checked?
-3. **Pillar 3 (loops):** Is there a loop or repeated retry running without a `.claude/loop-state/<name>.json` state file?
-4. **Pillar 4 (prove):** Is there a finding with a count or severity label but no method line (the exact command/check used)?
-5. **Pillar 5 (isolation):** Is a code-writing subagent editing via the main repo's absolute path instead of an isolated worktree?
-6. **Pillar 6 (truth):** Is a state-changing decision resting on a local cache/log instead of the authoritative source?
-7. **Pillar 7 (durable state):** Is context above ~70% with no handoff doc written yet?
-8. **Pillar 8 (delegation):** Is there a dispatched subagent brief missing scope, file domain, or report format?
-9. **Pillar 12 (operationalize):** Was a bug fixed in this session without a sibling sweep or mechanical encoding?
+Report as a table: `Pillar | Violation observed | Evidence | Suggested fix`. If nothing is found, say so. Inventing violations to look thorough would itself break pillar 4.
 
-Report findings as a table: `Pillar | Violation observed | Evidence | Suggested fix`. If nothing is found, say so — don't invent violations to look thorough (that itself would violate Pillar 4).
+### 3d. `off` — disarm
 
-### `off`
+After the state write succeeds with `off`, drop the five layers and confirm: "Fable Method disarmed: back to the default posture. Doctrine stays at `rules/fable-method.md`."
 
-Disarm. Confirm: "Fable Method disarmed — back to default posture. Doctrine still available at `rules/fable-method.md`."
+## Done when
 
-## The model-agnostic promise
+- `on` / `off`: the step 2 command printed `"armed":true` or `"armed":false` with `"otherKeysPreserved":true`, and the confirmation line names the action. Report the actual JSON line.
+- `status`: the step 3b command ran and its output is what you reported.
+- `audit`: every row cites evidence from this session (a turn, a command output, a path), or the report says no violations were found.
 
-This skill exists so the methodology survives the model. A frontier model does some of this by instinct; a mid-tier model does none of it by instinct. That's why every pillar above is a **gate** (checkable) rather than a **value** (aspirational) — Sonnet, GPT, or any executor following these gates produces Fable-shaped results. The weaker the model, the more the gates matter. **The method IS the moat.**
+## Guardrails
 
-## Related
+- Never overwrite, reset or delete `~/.claude/commander/state.json`; merge only the `fableMethod` key, and stop on a parse error.
+- Never write state on `status` or `audit`.
+- Never switch the user's model or effort as part of arming; suggest `/model fable` only when the user asks for deep reasoning.
+- Never execute PM-loop flags inline; raise them and let the user choose.
+- Never claim a gate passed without the check that proves it.
 
-- `rules/fable-method.md` — full doctrine, all 12 pillars with Rule/Why/Mechanics/Gate/Failure-prevented
-- `rules/common/reasoning-hygiene.md` — Pillar 4 in full
-- `rules/workflow-first.md` — Pillars 1, 2, 6, 7, 8, 9, 11 as ambient session rules
-- `/ccc-orchestrate` — Pillar 1 implementation (goal file → executor → verify)
-- `/ccc-suggest` — Pillar 10 implementation (the IMPROVE/SCOPE/AUDIT loop)
-- `/ccc-handoff` — Pillar 7 implementation (context-reset before quality degrades)
+## See also
+
+- `/ccc-orchestrate` — pillar 1: goal file, executor, verify.
+- `/ccc-suggest` — pillar 10: the IMPROVE / SCOPE / AUDIT loop as a standing advisor.
+- `/ccc-loop` — pillar 3: loop gate, verifier and state file.
+- `/ccc-handoff` — pillar 7: durable state before context degrades.
+
+Related rules: [rules/fable-method.md](../../rules/fable-method.md), [rules/workflow-first.md](../../rules/workflow-first.md), [rules/common/reasoning-hygiene.md](../../rules/common/reasoning-hygiene.md).
 
 ---
 

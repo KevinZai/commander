@@ -1,112 +1,120 @@
 ---
 name: ccc-openclaw
-description: "OpenClaw platform integration — status, sync, configure, health check, agent management"
-usage: /openclaw [status|sync|configure|health|agents]
+description: "Connect CC Commander to an OpenClaw gateway: status, skill sync, configuration, health check and agent list. Use when you run OpenClaw alongside Claude Code and want the two integrated."
+usage: /ccc-openclaw [status|sync|configure|health|agents]
 version: 1.3.0
 ---
 
-# OpenClaw — Native Platform Integration
+# /ccc-openclaw — OpenClaw integration
 
-Managing OpenClaw integration: **{{input}}**
+**CC Commander** · /ccc-openclaw · integrates Commander with an OpenClaw gateway you already run.
 
-## Subcommands
+Action: **$ARGUMENTS** (default `status`).
 
-### `/openclaw status`
+OpenClaw is an optional third-party agent runtime; the integration is off by default. It is driven by `hooks/openclaw-sync.js` and these environment variables:
 
-Show OpenClaw gateway status and integration overview:
+| Variable | Meaning |
+|---|---|
+| `CC_OPENCLAW_ENABLED=1` | Turns on the SessionStart skill sync |
+| `CC_OPENCLAW_URL` | Gateway base URL (the hook falls back to the gateway's local default) |
+| `CC_OPENCLAW_TIMEOUT` | Request timeout in ms |
 
-1. Probe gateway at configured URL (default: `http://localhost:18789/health`)
-2. Report gateway status, version, uptime
-3. Show connected agents and their status
-4. Show synced skill count
-5. Show active channels
+Start every subcommand by checking `command -v openclaw`. If the CLI is missing, report that and stop.
 
-```
-OPENCLAW STATUS:
-Gateway:   ● Online (v2026.3.24, uptime 4h 23m)
-Agents:    38 registered, 12 active
-Skills:    280 synced from Kit
-Channels:  Discord ● Slack ● Telegram ● WhatsApp ●
-Last sync: 2m ago
-```
+## status
 
-### `/openclaw sync`
+1. Run:
 
-Force synchronization of Kit skills and hooks with OpenClaw:
+   ```bash
+   openclaw gateway status
+   openclaw status
+   echo "sync enabled: ${CC_OPENCLAW_ENABLED:-0}  url: ${CC_OPENCLAW_URL:-default}"
+   ```
 
-1. Discover all skills in `~/.claude/skills/`
-2. Register each with OpenClaw skill registry
-3. Register Kit hooks with OpenClaw webhook system
-4. Sync workflow modes as agent profiles
-5. Report results
+2. Report gateway state and version, connected channels, recent sessions, and whether Commander sync is enabled. Report numbers exactly as the commands print them.
 
-```
-OPENCLAW SYNC:
-Skills:    280 synced (3 new, 1 updated)
-Hooks:     18 registered
-Modes:     9 agent profiles generated
-Duration:  1.2s
-```
+## sync
 
-### `/openclaw configure`
+1. Confirm the gateway answers:
 
-Interactive setup for OpenClaw integration:
+   ```bash
+   openclaw health --json
+   ```
 
-1. **Gateway URL**: Enter URL or accept default (`http://localhost:18789`)
-2. **Auto-sync**: Enable/disable automatic sync on session start
-3. **Event forwarding**: Choose which Kit events to forward to OpenClaw
-4. **Agent binding**: Map Kit modes to specific OpenClaw agents
-5. Save to `bible-config.json`
+2. Run the sync hook once, enabled for this invocation only:
 
-### `/openclaw health`
+   ```bash
+   echo '{}' | CC_OPENCLAW_ENABLED=1 node hooks/openclaw-sync.js
+   ```
 
-Comprehensive health check:
+   The hook discovers skills under `~/.claude/skills/` and posts them to the gateway's Commander webhook. It prints a synced count or "Skill sync failed (gateway may not support registry)".
 
-1. Gateway connectivity and response time
-2. Each channel status (Discord, Slack, Telegram, WhatsApp, BlueBubbles, WebChat)
-3. Agent status (active, idle, error, last activity)
-4. Memory DB health (size, last write, integrity)
-5. Error log (last 5 errors)
-6. Cost report (today's spend, budget remaining)
+3. Report the line the hook printed. A failure line means the gateway did not accept the registration; do not retry in a loop.
 
-```
-OPENCLAW HEALTH CHECK:
-Gateway:    ● OK (12ms response)
-Discord:    ● Connected (5 channels)
-Slack:      ● Connected (3 workspaces)
-Telegram:   ● Connected
-WhatsApp:   ● Connected
-Agents:     38/38 healthy
-Memory:     965MB (OK)
-Errors:     0 in last hour
-Cost today: $2.15 / $10.00 limit
+## configure
+
+Ask each setting with AskUserQuestion, one at a time:
+
+1. Gateway URL:
+   - 🟢 Use the gateway's configured URL — leaves `CC_OPENCLAW_URL` unset.
+   - Custom URL — the user types it; set `CC_OPENCLAW_URL`.
+2. Sync on session start:
+   - 🟢 Enable — sets `CC_OPENCLAW_ENABLED=1`.
+   - Disable — leaves it unset.
+3. Event forwarding (Commander events sent to OpenClaw):
+   - 🟢 None — nothing is forwarded.
+   - Session events only — SessionStart and SessionEnd.
+   - Custom — the user lists events.
+4. Mode binding (Commander modes mapped to OpenClaw agents):
+   - 🟢 Skip — no binding.
+   - Bind now — list agents with `openclaw agents list` and let the user pick per mode.
+
+Save the choices to `~/.claude/bible-config.json` (read by `lib/config-reader.js`). Environment variables go in the user's shell profile or the `env` block of `.claude/settings.json`; show the exact change and get approval before writing it. Verify by printing the saved keys, never secret values:
+
+```bash
+node -e "const c=require(require('os').homedir()+'/.claude/bible-config.json');console.log(Object.keys(c))"
 ```
 
-### `/openclaw agents`
+## health
 
-List and manage OpenClaw agents:
+1. Run:
 
-1. Show all registered agents with status
-2. Filter by workspace, status, model
-3. Show agent details (current task, cost, session duration)
+   ```bash
+   openclaw health --json
+   openclaw doctor --lint
+   openclaw logs --limit 50 --plain
+   ```
 
-```
-OPENCLAW AGENTS:
-  Alfred 🎩    Sonnet  ● active   "Processing inbox"         $0.12
-  Morpheus 💊  Opus    ○ idle     —                          $0.00
-  Neo ⚡       Sonnet  ● active   "Orchestrating batch #42"  $0.34
-  Viper 🐍    Sonnet  ○ idle     —                          $0.00
-  Jarvis 💼   Sonnet  ● active   "MyWiFi API review"        $0.08
-  ...
+2. Report gateway connectivity and response time, each channel's status, agent status, store or memory findings from `doctor --lint`, and the most recent errors from the log. Include cost or budget figures only if the gateway reports them.
 
-  38 agents | 12 active | $2.15 total today
-```
+3. Repairs are not part of this subcommand. Point to `/ccc-openclaw-manage health --fix`.
+
+## agents
+
+1. Run:
+
+   ```bash
+   openclaw agents list
+   openclaw sessions list --all-agents --active 60 --json
+   ```
+
+2. Show each agent with its model and active or idle state. Filter by workspace, status or model when `$ARGUMENTS` names one. Show current task, cost and session duration only where the CLI returns them.
 
 ## Output
 
+```text
+OPENCLAW: <action>
+Gateway:  online | offline
+Synced:   <count printed by the hook, or n/a>
+Status:   OK | ERROR — <exact error>
 ```
-OPENCLAW: {{action}}
-Gateway:  [online/offline]
-Synced:   [skill count]
-Status:   [OK/ERROR — details]
-```
+
+## Guardrails
+
+- Never start, restart or update the gateway, or edit OpenClaw's own config, without explicit approval for that action.
+- Never write agent names, hostnames, ports or tokens from the user's install into files this repository ships.
+- Do not print secret values from config or logs.
+
+## See also
+
+`/ccc-openclaw-manage` · `/ccc-peers` · `/ccc-pm2`

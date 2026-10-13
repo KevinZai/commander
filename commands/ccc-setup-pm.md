@@ -1,80 +1,74 @@
 ---
-description: "Configure your preferred package manager (npm/pnpm/yarn/bun)"
+description: "Detect and set the package manager (npm, pnpm, yarn or bun) that commands and hooks use, for this project or globally. Use when installs run with the wrong package manager or a project switches managers."
 disable-model-invocation: true
 ---
 
-# Package Manager Setup
+# /ccc-setup-pm — pick the package manager
 
-Configure your preferred package manager for this project or globally.
+**CC Commander** · /ccc-setup-pm · one saved package-manager preference, project or global, confirmed by detection.
 
-## Usage
+The setup script ships with the Everything Claude Code toolkit (`scripts/setup-package-manager.js`), an opt-in install that is absent by default.
 
-```bash
-# Detect current package manager
-node scripts/setup-package-manager.js --detect
+## Detection order
 
-# Set global preference
-node scripts/setup-package-manager.js --global pnpm
+The first match wins:
 
-# Set project preference
-node scripts/setup-package-manager.js --project bun
+1. Environment variable `CLAUDE_PACKAGE_MANAGER`
+2. Project config `.claude/package-manager.json`
+3. The `packageManager` field in `package.json` (for example `"pnpm@8.6.0"`)
+4. Lock file: `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml` or `bun.lockb`
+5. Global config `~/.claude/package-manager.json`
+6. Fallback: the first installed of pnpm, bun, yarn, npm
 
-# List available package managers
-node scripts/setup-package-manager.js --list
-```
+Both config files hold `{"packageManager": "<name>"}`.
 
-## Detection Priority
+## What happens
 
-When determining which package manager to use, the following order is checked:
+1. Locate the script:
 
-1. **Environment variable**: `CLAUDE_PACKAGE_MANAGER`
-2. **Project config**: `.claude/package-manager.json`
-3. **package.json**: `packageManager` field
-4. **Lock file**: Presence of package-lock.json, yarn.lock, pnpm-lock.yaml, or bun.lockb
-5. **Global config**: `~/.claude/package-manager.json`
-6. **Fallback**: First available package manager (pnpm > bun > yarn > npm)
+   ```bash
+   for d in "${CLAUDE_PLUGIN_ROOT:-}" "$HOME/.claude" "$HOME"/.claude/plugins/cache/everything-claude-code/*/*; do
+     [ -n "$d" ] && [ -f "$d/scripts/setup-package-manager.js" ] && { echo "$d"; break; }
+   done
+   ```
 
-## Configuration Files
+   Use the printed directory as `ECC_ROOT` in later calls (shell state does not persist). If nothing prints, say the script is not installed, show the config-file format above so the user can write it by hand, and stop.
 
-### Global Configuration
-```json
-// ~/.claude/package-manager.json
-{
-  "packageManager": "pnpm"
-}
-```
+2. Show the current result and what is installed:
 
-### Project Configuration
-```json
-// .claude/package-manager.json
-{
-  "packageManager": "bun"
-}
-```
+   ```bash
+   node "<ECC_ROOT>/scripts/setup-package-manager.js" --detect
+   node "<ECC_ROOT>/scripts/setup-package-manager.js" --list
+   ```
 
-### package.json
-```json
-{
-  "packageManager": "pnpm@8.6.0"
-}
-```
+3. If `$ARGUMENTS` already names a manager and a scope (`--project bun`, `--global pnpm`), go to step 5. Otherwise ask with AskUserQuestion (Codex: a plain-text question) which manager to use, offering the installed ones from `--list`, the detected one first and marked 🟢.
 
-## Environment Variable
+4. Ask for the scope:
 
-Set `CLAUDE_PACKAGE_MANAGER` to override all other detection methods:
+   - 🟢 This project — writes `.claude/package-manager.json`
+   - Global — writes `~/.claude/package-manager.json` for every project without its own setting
+   - Environment only — print the export line and write nothing
 
-```bash
-# Windows (PowerShell)
-$env:CLAUDE_PACKAGE_MANAGER = "pnpm"
+5. Apply it:
 
-# macOS/Linux
-export CLAUDE_PACKAGE_MANAGER=pnpm
-```
+   ```bash
+   node "<ECC_ROOT>/scripts/setup-package-manager.js" --project <name>
+   node "<ECC_ROOT>/scripts/setup-package-manager.js" --global <name>
+   ```
 
-## Run the Detection
+   For environment only, print `export CLAUDE_PACKAGE_MANAGER=<name>` (macOS/Linux) or `$env:CLAUDE_PACKAGE_MANAGER = "<name>"` (PowerShell) for the user to add to their shell profile.
 
-To see current package manager detection results, run:
+6. Verify by running `--detect` again and reporting the manager and the source it came from. If a higher-priority source (the environment variable, or a `packageManager` field) still overrides the new setting, say which one.
 
-```bash
-node scripts/setup-package-manager.js --detect
-```
+## Done when
+
+`--detect` reports the chosen manager, or the report names the higher-priority source that overrides it.
+
+## Guardrails
+
+- Never install a package manager; suggest the install command instead.
+- Never edit `package.json` or delete a lock file as part of this command.
+
+## See also
+
+`/ccc-init` · `/ccc-build-fix`

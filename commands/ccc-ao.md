@@ -1,150 +1,127 @@
 ---
-description: "Composio AO — spawn parallel agents with worktree isolation"
+description: "Spawn, monitor, stop and merge parallel agents in isolated git worktrees through the Composio ao CLI. Use when you want several agents working on one project at once."
 ---
 
-# /ao — Composio Agent Orchestrator
+# /ccc-ao — parallel agents in worktrees
 
-Wraps the `ao` CLI (`@composio/ao`). Spawns parallel agents across projects with git worktree isolation.
+**CC Commander** · /ccc-ao · wraps the `ao` CLI (`@composio/ao`) to run parallel agents, each in its own git worktree.
 
-## When activated:
+Ask every choice with AskUserQuestion (a plain-text question where it is unavailable): 2 to 4 options, recommended first and marked 🟢. The user's selected model and agent runtime are preserved unless they choose otherwise.
 
-Check if `ao` CLI is available:
+## What happens
 
-```bash
-which ao
-```
+1. Check the CLI is installed.
 
-If not found, display:
-
-```
-ao CLI not installed.
-Run: npm i -g @composio/ao
-Then re-invoke /ao once installed.
-```
-
-If found, check the version:
-
-```bash
-ao --version
-```
-
-Then present via AskUserQuestion:
-
-| Option | What it does |
-|--------|-------------|
-| Spawn agents on current project (Recommended) | Ask: how many, what tasks, model selection |
-| Spawn from config file | Read agent-orchestrator.yaml, show configured projects |
-| Check running agents | Run `ao status` — show active sessions |
-| Stop agents | Run `ao stop` — kill running sessions |
-| Something else | Free text |
-
-## Spawn Flow
-
-When user picks "Spawn agents on current project":
-
-1. Ask number of agents via AskUserQuestion:
-   - 2 agents
-   - 3 agents
-   - 5 agents
-   - Custom number
-
-2. Ask model via AskUserQuestion:
-   - Claude (Recommended)
-   - Codex
-   - Aider
-   - OpenCode
-
-3. Ask task assignment strategy via AskUserQuestion:
-   - One shared task (agents collaborate on the same goal)
-   - One task per agent (assign a separate task to each agent)
-   - Auto-split from description (describe overall goal, split automatically)
-
-4. Collect task(s) — one per agent if individual, or one overall goal if auto-split.
-
-5. Run the spawn command:
    ```bash
-   ao spawn --agents [n] --model [model] --task "[task]" --worktree
+   command -v ao && ao --version
    ```
 
-6. Show spawned summary:
+   If `ao` is missing, stop and report: `ao CLI not installed. Install it with: npm i -g @composio/ao, then run /ccc-ao again.` Do not install it yourself.
+
+2. Ask what to do:
+   - 🟢 Spawn agents on this project — choose count, runtime and tasks.
+   - Spawn from a config file — run a saved `agent-orchestrator.yaml`.
+   - Check running agents — `ao status`.
+   - Stop agents — `ao stop`, after confirmation.
+
+   If the user describes something else, handle it with the matching `ao` subcommand (`ao --help`).
+
+## Spawn on this project
+
+1. Ask the agent count: 🟢 2 · 3 · 5 · custom.
+2. Ask the agent runtime: 🟢 Claude · Codex · Aider · OpenCode.
+3. Ask the task strategy:
+   - 🟢 One task per agent — each agent gets its own task.
+   - One shared task — all agents work toward one goal.
+   - Auto-split — the user gives one goal; split it into one task per agent and show the split before spawning.
+4. Collect the task text (one per agent, or one goal).
+5. Spawn. Confirm the flags with `ao spawn --help` if the command is rejected.
+
+   ```bash
+   ao spawn --agents <n> --model <runtime> --task "<task>" --worktree
+   ```
+
+6. Verify with `ao status` and `git worktree list`, then report:
+
    ```
    ao spawn complete
-   Agents: [n] | Model: [model] | Worktree: isolated
-   Task(s):
-     Agent 1: [task]
-     Agent 2: [task]
-     ...
+   Agents: <n> | Runtime: <runtime> | Worktree: isolated
+   Agent 1: <task>
+   Agent 2: <task>
    ```
 
-## Spawn from Config File
+   If `ao status` does not show the new sessions, report the spawn output verbatim instead of claiming success.
 
-When user picks "Spawn from config file":
+## Spawn from a config file
 
-1. Check for config:
+1. Find the config.
+
    ```bash
-   ls agent-orchestrator.yaml 2>/dev/null || ls .ao/config.yaml 2>/dev/null
+   ls agent-orchestrator.yaml .ao/config.yaml 2>/dev/null
    ```
 
-2. If found, read and display the configured projects and agents.
+2. If none exists, say so and offer the spawn-on-this-project flow.
+3. Read the file and list its projects and agents.
+4. Ask which project or config to run.
+5. Run it, then verify with `ao status`.
 
-3. Ask which project/config to run via AskUserQuestion.
-
-4. Run:
    ```bash
-   ao spawn --config [config_file]
+   ao spawn --config <config_file>
    ```
 
-## Check Running Agents
+## Check running agents
 
 ```bash
 ao status
 ```
 
-Display the output formatted as a table. If no agents running: "No active ao sessions."
+Show the result as a table. When nothing is running, report `No active ao sessions.`
 
-## Stop Agents
+## Stop agents
+
+Ask first: 🟢 Keep running · Stop all ao sessions (kills every running session). Only on the second choice run:
 
 ```bash
 ao stop
 ```
 
-Confirm first: "This will kill all running ao sessions. Proceed?"
+Then run `ao status` and report what is still running.
 
-If user confirms, run the command and report result.
+## Merge an agent's worktree
 
-## After every action, suggest next steps via AskUserQuestion:
+1. List worktrees and ask which one to merge.
 
-| Option | Description |
-|--------|-------------|
-| Check agent status | Run `ao status` to see progress |
-| Spawn more agents | Add agents to the current run |
-| View worktrees | `git worktree list` to see isolation state |
-| Merge a worktree | Bring completed agent work back to main branch |
-| Stop all agents | `ao stop` |
-| Back to main menu | Return to /cc or top-level menu |
-| Something else | Free text |
-
-## Worktree Merge Helper
-
-When user picks "Merge a worktree":
-
-1. List worktrees:
    ```bash
    git worktree list
    ```
 
-2. Ask which worktree to merge via AskUserQuestion.
+2. Find the base branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, falling back to `main`) and show the change summary.
 
-3. Show the diff summary:
    ```bash
-   git diff main...[worktree_branch] --stat
+   git diff <base>...<worktree_branch> --stat
    ```
 
-4. Ask: "Merge via PR or direct merge?"
-   - Create PR → run `gh pr create` with relevant context
-   - Direct merge → confirm then `git merge [branch]`
+3. Ask how to land it:
+   - 🟢 Open a pull request — push the branch and run `gh pr create` with a summary of the diff.
+   - Merge directly — `git merge <worktree_branch>` into the current branch.
+   - Not yet — leave the worktree as it is.
+4. Verify: for a PR, print the PR URL from `gh pr view --json url`; for a merge, `git log -1 --oneline` and `git status`.
+5. Offer to remove the merged worktree: 🟢 Keep it · Remove it. Only on the second choice run `git worktree remove <path>`, then `git worktree list` to confirm.
 
-5. After merge, offer to prune the worktree:
-   ```bash
-   git worktree remove [path]
-   ```
+## Next step
+
+After each action, ask: 🟢 Check agent status · Spawn more agents · Merge a worktree · Stop all agents.
+
+## Done when
+
+The last `ao status` (or `git worktree list` / `git log -1` for a merge) output is shown and matches what was reported.
+
+## Guardrails
+
+- Pushing a branch, opening a PR, merging, stopping sessions and removing worktrees each need the user's choice in this conversation, asked at that moment.
+- Never force-push and never merge into the default branch without the user picking that option.
+- Never install `ao` or other global packages.
+
+## See also
+
+`/ccc-spawn` · `/ccc-devfleet` · `/ccc-parallel` · `/ccc-pr`
