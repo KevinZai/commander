@@ -59,13 +59,10 @@ Parse the user's input to determine which mode to run:
 3. `/codex` with no arguments — **Auto-detect:**
    - Check for a diff (with fallback if origin isn't available):
      `git diff origin/<base> --stat 2>/dev/null | tail -1 || git diff <base> --stat 2>/dev/null | tail -1`
-   - If a diff exists, use AskUserQuestion:
-     ```
-     Codex detected changes against the base branch. What should it do?
-     A) Review the diff (code review with pass/fail gate)
-     B) Challenge the diff (adversarial — try to break it)
-     C) Something else — I'll provide a prompt
-     ```
+   - If a diff exists, ask with AskUserQuestion (header "Codex mode"):
+     - 🟢 **Review the diff** — `codex review` with a pass/fail gate (recommended)
+     - **Challenge the diff** — adversarial pass that tries to break it
+     - **Something else** — the user supplies a prompt (consult mode)
    - If no diff, check for plan files scoped to the current project:
      `ls -t ~/.claude/plans/*.md 2>/dev/null | xargs grep -l "$(basename $(pwd))" 2>/dev/null | head -1`
      If no project-scoped match, fall back to: `ls -t ~/.claude/plans/*.md 2>/dev/null | head -1`
@@ -85,16 +82,22 @@ Run Codex code review against the current branch diff.
 TMPERR=$(mktemp /tmp/codex-err-XXXXXX.txt)
 ```
 
-2. Run the review (5-minute timeout):
+2. Run the review (5-minute timeout). Commits on the branch: `--base <base>`.
+Uncommitted work (staged, unstaged and untracked): `--uncommitted`. One commit:
+`--commit <sha>`. The review model is the deep/verify tier, `gpt-6-astra`:
 ```bash
-codex -s read-only review --base <base> -c 'web_search="cached"' 2>"$TMPERR"
+codex review -c 'sandbox_mode="read-only"' -c 'review_model="gpt-6-astra"' -c 'web_search="cached"' --base <base> 2>"$TMPERR"
+codex review -c 'sandbox_mode="read-only"' -c 'review_model="gpt-6-astra"' -c 'web_search="cached"' --uncommitted 2>"$TMPERR"
 ```
 
 Use `timeout: 300000` on the Bash call. If the user provided custom instructions
 (e.g., `/codex review focus on security`), pass them as the prompt argument:
 ```bash
-codex -s read-only review "focus on security" --base <base> -c 'web_search="cached"' 2>"$TMPERR"
+codex review -c 'sandbox_mode="read-only"' -c 'review_model="gpt-6-astra"' -c 'web_search="cached"' --base <base> "focus on security" 2>"$TMPERR"
 ```
+
+For a JSONL event stream or a saved final message, use the headless form:
+`codex exec review --base <base> -m gpt-6-astra --json --output-last-message <file>`.
 
 3. Capture the output. Then parse cost from stderr:
 ```bash
@@ -278,12 +281,9 @@ Ask Codex anything about the codebase. Supports session continuity for follow-up
 cat .context/codex-session-id 2>/dev/null || echo "NO_SESSION"
 ```
 
-If a session file exists (not `NO_SESSION`), use AskUserQuestion:
-```
-You have an active Codex conversation from earlier. Continue it or start fresh?
-A) Continue the conversation (Codex remembers the prior context)
-B) Start a new conversation
-```
+If a session file exists (not `NO_SESSION`), ask with AskUserQuestion (header "Codex session"):
+- 🟢 **Continue the conversation** — Codex keeps the prior context (recommended)
+- **Start a new conversation** — fresh session, prior context dropped
 
 2. Create temp files:
 ```bash
@@ -344,7 +344,7 @@ for line in sys.stdin:
 
 For a **resumed session** (user chose "Continue"):
 ```bash
-codex exec -s read-only resume <session-id> "<prompt>" -c 'web_search="cached"' --json 2>"$TMPERR" | python3 -c "
+codex exec resume <session-id> -c 'sandbox_mode="read-only"' -c 'web_search="cached"' --json "<prompt>" 2>"$TMPERR" | python3 -c "
 <same python streaming parser as above>
 "
 ```
@@ -376,13 +376,22 @@ Session saved — run /codex again to continue this conversation.
 
 ## Model & Reasoning
 
-**Model:** Inherit the configured Codex model; a new release does not automatically change that local setting. Verify the requested model is available before passing a user-specified override through to Codex. Preserve the authenticated OAuth path.
+**Model:** Inherit the configured Codex model unless the user picks one; preserve the authenticated OAuth path. Codex roles (docs/reference/platform-facts-2026-10.md §3.1):
 
-**Reasoning effort:** Inherit the configured effort for bounded reviews. Override it only when the task or user justifies a different supported level; difficult reasoning may benefit from `xhigh` or `max`. Astra does not support `none` or `minimal`. Do not force maximum effort for every mode.
+| Role | Model id |
+|---|---|
+| Deep reasoning, review, verification | `gpt-6-astra` |
+| Default executor (Codex catalog default) | `gpt-6.1-sol` |
+| Bounded implementation | `gpt-6-sol` |
+| Mechanical, high-volume | `gpt-6-luna` |
+
+Pass an override with `-m <id>` on `codex exec` / `codex exec review`, or `-c 'review_model="<id>"'` on `codex review`.
+
+**Reasoning effort:** Inherit the configured `model_reasoning_effort` for bounded reviews. Override only when the task or user justifies it, with `-c 'model_reasoning_effort="xhigh"'`; supported levels are `low`, `medium`, `high`, `xhigh`, `max` and `ultra` (model dependent; `gpt-6-luna` stops at `max`). Do not force maximum effort for every mode.
 
 **Web search:** Examples select cached search with `-c 'web_search="cached"'`. For explicitly requested live research, select `-c 'web_search="live"'` instead. Honor a user request to avoid web access. Do not use the deprecated `web_search_cached` feature flag or claim unverified pricing.
 
-For example, `/codex review -m gpt-6-astra` or `/codex challenge -m gpt-5.6-terra` selects a task-appropriate available model. Place the model option where the installed CLI accepts it; check `codex --help` or the subcommand help if syntax is uncertain.
+For example, `/codex review -m gpt-6-astra` or `/codex challenge -m gpt-6-sol` selects a task-appropriate model. Check `codex <subcommand> --help` if option placement is uncertain.
 
 ---
 

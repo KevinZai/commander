@@ -86,12 +86,33 @@ except (OSError, ValueError, KeyError, TypeError, AttributeError):
 fi
 
 git rev-parse --git-dir >/dev/null 2>&1 || exit 0
-changes=$(git status --porcelain --untracked-files=normal)
-[ -n "$changes" ] || exit 0
 command -v codex >/dev/null 2>&1 || exit 0
 
+# Review model: the deep/verify tier by default (docs/reference/platform-facts-2026-10.md §3.1).
+review_model="${CODEX_REVIEW_MODEL:-gpt-6-astra}"
+case "$review_model" in
+  ''|*[!A-Za-z0-9._-]*) review_model="gpt-6-astra" ;;
+esac
+
+# Target: uncommitted changes first. With a clean tree, CODEX_REVIEW_BASE=<branch>
+# opts in to reviewing the commits this branch adds over that base.
+changes=$(git status --porcelain --untracked-files=normal)
+if [ -n "$changes" ]; then
+  target=(--uncommitted)
+else
+  base="${CODEX_REVIEW_BASE:-}"
+  [ -n "$base" ] || exit 0
+  case "$base" in
+    -*|*..*|*[!A-Za-z0-9._/-]*) exit 0 ;;
+  esac
+  git rev-parse --verify --quiet "$base^{commit}" >/dev/null || exit 0
+  ahead=$(git rev-list --count "$base..HEAD" 2>/dev/null || echo 0)
+  [ "$ahead" -gt 0 ] || exit 0
+  target=(--base "$base")
+fi
+
 unset OPENAI_API_KEY
-if review_output=$(codex review -c 'sandbox_mode="read-only"' --uncommitted 2>&1); then
+if review_output=$(codex review -c 'sandbox_mode="read-only"' -c "review_model=\"$review_model\"" "${target[@]}" 2>&1); then
   message="[Codex review] ${review_output:-Review completed without output.}"
 else
   review_status=$?

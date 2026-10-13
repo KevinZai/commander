@@ -11,6 +11,13 @@ const { pathToFileURL } = require('node:url');
 const ROOT = path.join(__dirname, '..', '..');
 const CODEX_ADAPTER_DIR = path.join(ROOT, 'commander', 'adapters', 'codex');
 
+// Codex hook surface (platform facts §3.3).
+const CODEX_HOOK_EVENTS = [
+  'PreToolUse', 'PermissionRequest', 'PostToolUse', 'PreCompact', 'PostCompact',
+  'UserPromptSubmit', 'SubagentStop', 'Stop', 'SessionStart', 'SubagentStart',
+  'SessionEnd', 'Interrupt',
+];
+
 function adapterUrl(file) {
   return pathToFileURL(path.join(CODEX_ADAPTER_DIR, file)).href;
 }
@@ -50,40 +57,35 @@ test('hooks-detector.js handles missing config.toml gracefully', async () => {
     runCodexVersion: false,
   });
 
-  // Verified 2026-07-22 against primary docs (learn.chatgpt.com/docs/hooks).
-  // Corrects the prior (unverified) list, which wrongly included SessionEnd
-  // and StopFailure and wrongly dropped SubagentStart/SubagentStop/
-  // PreCompact/PostCompact.
-  assert.deepEqual(capabilities, {
-    codexVersion: '0.125.0',
-    supportedEvents: [
-      'SessionStart',
-      'SubagentStart',
-      'PreToolUse',
-      'PermissionRequest',
-      'PostToolUse',
-      'PreCompact',
-      'PostCompact',
-      'UserPromptSubmit',
-      'SubagentStop',
-      'Stop',
-    ],
-    droppedFromClaude: [
-      'SessionEnd',
-      'Notification',
-      'PostToolUseFailure',
-      'PostToolBatch',
-      'StopFailure',
-      'Elicitation',
-      'ElicitationResult',
-      'TaskCreated',
-      'TaskCompleted',
-      'ConfigChange',
-      'UserPromptExpansion',
-      'InstructionsLoaded',
-      'Setup',
-    ],
-  });
+  // Codex hook surface: 12 events (platform facts §3.3).
+  assert.equal(capabilities.codexVersion, '0.125.0');
+  assert.deepEqual([...capabilities.supportedEvents].sort(), [
+    'Interrupt',
+    'PermissionRequest',
+    'PostCompact',
+    'PostToolUse',
+    'PreCompact',
+    'PreToolUse',
+    'SessionEnd',
+    'SessionStart',
+    'Stop',
+    'SubagentStart',
+    'SubagentStop',
+    'UserPromptSubmit',
+  ]);
+
+  // The dropped set is whatever hook-event-map.json marks as having no Codex
+  // target; the detector and the map must agree.
+  const hookMap = JSON.parse(fs.readFileSync(path.join(CODEX_ADAPTER_DIR, 'hook-event-map.json'), 'utf8'));
+  const derivedDrops = Object.entries(hookMap.events)
+    .filter(([, mapping]) => mapping.status === 'drop' || mapping.codex == null)
+    .map(([event]) => event)
+    .sort();
+  assert.deepEqual([...capabilities.droppedFromClaude].sort(), derivedDrops);
+  assert.ok(!capabilities.droppedFromClaude.includes('SessionEnd'), 'SessionEnd is a Codex event now');
+  for (const event of ['Notification', 'PostToolUseFailure', 'StopFailure']) {
+    assert.ok(capabilities.droppedFromClaude.includes(event), `${event} has no Codex counterpart`);
+  }
 });
 
 test('hooks-detector.js fails loud when hook map references unsupported runtime events', async () => {
@@ -120,9 +122,11 @@ Do deep design work.
 `);
 
   assert.match(toml, /name = "architect"/);
-  assert.match(toml, /model = "gpt-5\.6-sol"/);
+  // opus -> default Codex tier (models.js CODEX_ROUTING.default)
+  assert.match(toml, /model = "gpt-6\.1-sol"/);
   assert.match(toml, /model_reasoning_effort = "xhigh"/);
-  assert.match(toml, /sandbox_mode = "workspace-write"/);
+  // Read + Bash only: no write tool, so the Codex agent runs read-only.
+  assert.match(toml, /sandbox_mode = "read-only"/);
 });
 
 test('translateHooks drops Claude-only events and preserves supported Codex events', async () => {
@@ -145,22 +149,10 @@ test('translateHooks drops Claude-only events and preserves supported Codex even
       },
     },
     {
-      // Verified 2026-07-22 capability set (learn.chatgpt.com/docs/hooks):
-      // PreCompact IS supported, Notification is not.
+      // PreCompact is a Codex event; Notification is not.
       capabilities: {
         codexVersion: '0.125.0',
-        supportedEvents: [
-          'SessionStart',
-          'SubagentStart',
-          'PreToolUse',
-          'PermissionRequest',
-          'PostToolUse',
-          'PreCompact',
-          'PostCompact',
-          'UserPromptSubmit',
-          'SubagentStop',
-          'Stop',
-        ],
+        supportedEvents: CODEX_HOOK_EVENTS,
         droppedFromClaude: ['Notification'],
       },
     }
@@ -203,18 +195,7 @@ test('translateHooks strips async:true and clamps the timeout so the handler sti
     {
       capabilities: {
         codexVersion: '0.125.0',
-        supportedEvents: [
-          'SessionStart',
-          'SubagentStart',
-          'PreToolUse',
-          'PermissionRequest',
-          'PostToolUse',
-          'PreCompact',
-          'PostCompact',
-          'UserPromptSubmit',
-          'SubagentStop',
-          'Stop',
-        ],
+        supportedEvents: CODEX_HOOK_EVENTS,
         droppedFromClaude: [],
       },
     }
@@ -222,9 +203,31 @@ test('translateHooks strips async:true and clamps the timeout so the handler sti
 
   const [normalTimeout, longTimeout] = translated.hooks.PostToolUse[0].hooks;
   assert.equal(normalTimeout.async, undefined, 'async flag must be stripped');
-  assert.equal(normalTimeout.timeout, 3000, 'a sane timeout must survive unchanged');
+  // Codex timeouts are seconds; ms-scale source values are converted.
+  assert.equal(normalTimeout.timeout, 3, 'a millisecond-scale 3000 becomes 3 seconds');
   assert.equal(longTimeout.async, undefined, 'async flag must be stripped');
-  assert.ok(longTimeout.timeout < 30000, 'an unreasonably long async timeout must be clamped once synchronous');
+  assert.equal(longTimeout.timeout, 8, 'a long async timeout is clamped once synchronous');
+});
+
+test('translateHooks caps SessionEnd handlers at the Codex 3-second maximum', async () => {
+  const translate = await import(adapterUrl('translate.js'));
+  const translated = translate.translateHooks(
+    {
+      hooks: {
+        SessionEnd: [{ hooks: [{ type: 'command', command: 'node end.js', timeout: 10 }] }],
+        Stop: [{ hooks: [{ type: 'command', command: 'node stop.js', timeout: 10 }] }],
+      },
+    },
+    {
+      capabilities: {
+        codexVersion: '0.162.1',
+        supportedEvents: CODEX_HOOK_EVENTS,
+        droppedFromClaude: [],
+      },
+    }
+  );
+  assert.equal(translated.hooks.SessionEnd[0].hooks[0].timeout, 3);
+  assert.equal(translated.hooks.Stop[0].hooks[0].timeout, 10, 'other events keep their seconds');
 });
 
 test('translateSkill: (a) maps bare /ccc-<name> invocations inside backticks to $ccc-<name>', async () => {
@@ -348,9 +351,10 @@ Review changed code.
   );
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /model = "gpt-5\.6-terra"/);
+  // sonnet -> bounded Codex tier (models.js CODEX_ROUTING.bounded)
+  assert.match(result.stdout, /model = "gpt-6-sol"/);
   assert.match(result.stdout, /model_reasoning_effort = "high"/);
-  assert.match(result.stderr, /\[codex translate\] agent effort high -> high/);
+  assert.match(result.stderr, /\[codex translate\] agent reviewer: model gpt-6-sol, sandbox workspace-write/);
 });
 
 test('translate.js --telemetry-init emits commander-telemetry-init TOML', () => {

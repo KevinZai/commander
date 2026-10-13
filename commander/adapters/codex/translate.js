@@ -12,11 +12,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import {
-  detectCodexHookCapabilities,
-  validateHookMapAgainstCapabilities,
-} from './hooks-detector.js';
-import { getModelEntry } from './models.js';
+import * as hooksDetector from './hooks-detector.js';
+import * as models from './models.js';
+import { agentMarkdownToToml } from './agents-toml.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,12 +33,18 @@ const HOOK_MAP = JSON.parse(
 // need to be absolute in practice. Flagged, not fixed here (out of scope).
 const DEFAULT_TELEMETRY_MODULE = '${CLAUDE_PLUGIN_ROOT}/adapters/codex/telemetry.js';
 const VALID_EFFORTS = new Set(['low', 'medium', 'high', 'xhigh', 'max']);
-// Handlers that were "async": true in the Claude source keep their timeout
-// but never exceed this once translated to a synchronous Codex command hook
-// (Codex parses "async": true but skips those handlers entirely -- see
-// hook-event-map.json's schema_compat.async_handlers). Current source data
-// tops out at 5000ms, well under this; the clamp is a defensive ceiling.
-const MAX_SYNC_HANDLER_TIMEOUT_MS = 8000;
+// Codex hook `timeout` is in SECONDS, like Claude Code (platform facts §3.3;
+// the Codex app-server reports it as `timeoutSec`). Handlers that were
+// "async": true in the Claude source run synchronously on Codex (Codex skips
+// async command handlers), so their timeout is capped. SessionEnd and
+// Interrupt handlers are capped at Codex's 3-second maximum.
+const MAX_SYNC_HANDLER_TIMEOUT_SEC = 8;
+const SHORT_EVENT_TIMEOUT_CAP_SEC =
+  hooksDetector.CODEX_SHORT_TIMEOUT_EVENTS ?? { SessionEnd: 3, Interrupt: 3 };
+// Claude-only handler fields Codex does not accept (facts §3.3).
+const UNSUPPORTED_HANDLER_FIELDS =
+  hooksDetector.CODEX_UNSUPPORTED_HANDLER_FIELDS ?? ['args', 'onFailure', 'if', 'once'];
+const { detectCodexHookCapabilities, validateHookMapAgainstCapabilities } = hooksDetector;
 
 function createLogger(verbose, writer = process.stderr) {
   return (message) => {
@@ -52,83 +56,57 @@ function escapeTomlString(value) {
   return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
-function escapeTomlMultiline(value) {
-  return String(value).replace(/"""/g, '\\"\\"\\"');
-}
-
 // Hook commands keep ${CLAUDE_PLUGIN_ROOT} verbatim -- Codex documents it as
-// a compatibility alias for its native PLUGIN_ROOT (learn.chatgpt.com/docs/hooks,
-// verified 2026-07-22), and the quoted-path form already used throughout
-// hooks.json (`node "${CLAUDE_PLUGIN_ROOT}/hooks/..."`) is already correct
-// for that env var. The only real translation left is stripping "async":
-// true, which Codex parses but silently skips ("asynchronous command hooks
-// aren't supported yet") -- without this, every async handler would be lost
-// with no error. Handlers keep running, now synchronously, so their timeout
-// is clamped to a sane ceiling.
-function translateHookHandlers(handlers, log) {
+// a compatibility alias for its native PLUGIN_ROOT (platform facts §3.3), and
+// the quoted-path form used throughout hooks.json is already correct for it.
+// Translation strips "async": true (Codex parses it but skips the handler) and
+// normalizes timeouts to seconds within the Codex caps.
+function translateHookHandlers(handlers, log, codexEvent) {
   const translated = JSON.parse(JSON.stringify(handlers));
+  const eventCap = SHORT_EVENT_TIMEOUT_CAP_SEC[codexEvent];
   for (const slot of translated) {
     for (const hook of slot.hooks || []) {
-      // Claude Code hook timeouts are SECONDS (docs: "Seconds before canceling",
-      // default 600 — fixed 2026-07-28 after 43 handlers shipped ms-scale values,
-      // i.e. "3000" = 50 minutes). Codex reads ms (verified against Codex hook
-      // docs 2026-07-22), so convert at the boundary. Guard: a value >= 100 is
-      // assumed to already be ms (a stale un-migrated source) and passed through,
-      // so a double conversion can never produce a multi-hour timeout.
-      if (typeof hook.timeout === 'number' && hook.timeout > 0 && hook.timeout < 100) {
-        hook.timeout = hook.timeout * 1000;
+      if (hook.type === 'command' && typeof hook.command !== 'string' && Array.isArray(hook.args)) {
+        throw new Error('Exec-form (args) hook handlers cannot be mirrored to Codex; use a shell-form command');
       }
-      if (hook.async !== true) continue;
-      log(`hook ${hook.command || '(no command)'}: stripped async (Codex skips async command hooks; now runs synchronously)`);
-      delete hook.async;
-      if (typeof hook.timeout === 'number' && hook.timeout > MAX_SYNC_HANDLER_TIMEOUT_MS) {
-        log(`hook ${hook.command}: clamped timeout ${hook.timeout}ms -> ${MAX_SYNC_HANDLER_TIMEOUT_MS}ms`);
-        hook.timeout = MAX_SYNC_HANDLER_TIMEOUT_MS;
+      for (const field of UNSUPPORTED_HANDLER_FIELDS) {
+        if (Object.hasOwn(hook, field)) {
+          log(`hook ${hook.command || '(no command)'}: dropped unsupported field ${field}`);
+          delete hook[field];
+        }
+      }
+      // A value >= 100 is a stale millisecond-scale source value; convert it
+      // to seconds so it can never become a multi-hour timeout.
+      if (typeof hook.timeout === 'number' && hook.timeout >= 100) {
+        const seconds = Math.max(1, Math.ceil(hook.timeout / 1000));
+        log(`hook ${hook.command || '(no command)'}: timeout ${hook.timeout} read as ms -> ${seconds}s`);
+        hook.timeout = seconds;
+      }
+      if (hook.async === true) {
+        log(`hook ${hook.command || '(no command)'}: stripped async (Codex skips async command hooks; now runs synchronously)`);
+        delete hook.async;
+        if (typeof hook.timeout === 'number' && hook.timeout > MAX_SYNC_HANDLER_TIMEOUT_SEC) {
+          log(`hook ${hook.command}: clamped timeout ${hook.timeout}s -> ${MAX_SYNC_HANDLER_TIMEOUT_SEC}s`);
+          hook.timeout = MAX_SYNC_HANDLER_TIMEOUT_SEC;
+        }
+      }
+      if (eventCap && (typeof hook.timeout !== 'number' || hook.timeout > eventCap)) {
+        log(`hook ${hook.command}: ${codexEvent} timeout capped at ${eventCap}s`);
+        hook.timeout = eventCap;
       }
     }
   }
   return translated;
 }
 
-function parseFrontmatter(mdSource) {
-  const fmMatch = mdSource.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  if (!fmMatch) {
-    throw new Error('Agent file missing YAML frontmatter');
-  }
+// Count-free listing copy. Counts drift; the manifest must not carry them.
+const CODEX_SHORT_DESCRIPTION =
+  'Guided AI PM for Codex: plan, build, review and ship workflows, specialist agents, and the Codex-supported hook subset.';
 
-  const [, fm, body] = fmMatch;
-  const fields = {};
-  let currentKey = null;
-
-  for (const line of fm.split('\n')) {
-    const keyMatch = line.match(/^([A-Za-z][\w-]*):\s*(.*)$/);
-    if (keyMatch) {
-      currentKey = keyMatch[1];
-      fields[currentKey] = stripYamlQuotes(keyMatch[2].trim());
-      continue;
-    }
-
-    const listMatch = line.match(/^\s+-\s+(.*)$/);
-    if (listMatch && currentKey) {
-      if (!Array.isArray(fields[currentKey])) fields[currentKey] = [];
-      fields[currentKey].push(stripYamlQuotes(listMatch[1].trim()));
-    }
-  }
-
-  return { fields, body };
-}
-
-function stripYamlQuotes(value) {
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
-  }
-  return value;
-}
-
-// plugin.json (Claude) -> .codex-plugin/plugin.json (Codex)
+// plugin.json (Claude) -> .codex-plugin/plugin.json (Codex overlay).
+// The overlay keeps its top-level `interface` for older Codex builds and also
+// carries `extensions["com.openai"]` (platform facts §3.6) with the same
+// interface plus the hooks path, so either reader finds the listing fields.
 export function translateManifest(claudeManifest, version, options = {}) {
   const log = createLogger(options.verbose, options.writer);
   const tpl = JSON.parse(
@@ -137,7 +115,7 @@ export function translateManifest(claudeManifest, version, options = {}) {
   const pluginVersion = version || claudeManifest.version;
   log(`manifest version ${pluginVersion}`);
 
-  return JSON.parse(
+  const manifest = JSON.parse(
     JSON.stringify(tpl)
       .replace('{{VERSION}}', pluginVersion)
       .replace(
@@ -145,79 +123,52 @@ export function translateManifest(claudeManifest, version, options = {}) {
         claudeManifest.description.replace(/\n/g, ' ').replace(/"/g, '\\"')
       )
   );
+
+  const iface = { ...manifest.interface, shortDescription: CODEX_SHORT_DESCRIPTION };
+  manifest.interface = iface;
+  manifest.extensions = {
+    ...(manifest.extensions || {}),
+    'com.openai': {
+      hooks: manifest.hooks,
+      interface: { ...iface },
+    },
+  };
+  return manifest;
 }
 
-// agents/*.md (YAML frontmatter + body) -> agents/*.toml
+// agents/*.md (YAML frontmatter + body) -> agents/*.toml (Codex custom agent).
+// Delegates to agents-toml.js so the build and this entry point emit the
+// same TOML.
 export function translateAgent(mdSource, options = {}) {
   const log = createLogger(options.verbose, options.writer);
-  const { fields, body } = parseFrontmatter(mdSource);
-  const toml = [];
-
-  if (fields.name) {
-    log(`agent name ${fields.name}`);
-    toml.push(`name = "${escapeTomlString(fields.name)}"`);
-  }
-  if (fields.description) {
-    log(`agent description ${fields.description}`);
-    toml.push(`description = "${escapeTomlString(fields.description)}"`);
-  }
-  if (fields.model) {
-    const model = remapModel(fields.model);
-    log(`agent model ${fields.model} -> ${model}`);
-    toml.push(`model = "${escapeTomlString(model)}"`);
-  }
-  if (fields.effort) {
-    const effort = remapEffort(fields.effort);
-    log(`agent effort ${fields.effort} -> ${effort}`);
-    toml.push(`model_reasoning_effort = "${effort}"`);
-  }
-  if (fields.tools) {
-    const tools = Array.isArray(fields.tools) ? fields.tools.join(', ') : fields.tools;
-    log(`agent tools -> sandbox_mode workspace-write (${tools})`);
-    toml.push(`sandbox_mode = "workspace-write"  # was tools: ${escapeTomlString(tools)}`);
-  }
-  toml.push('');
-  toml.push('developer_instructions = """');
-  toml.push(escapeTomlMultiline(body.trim()));
-  toml.push('"""');
-
-  return toml.join('\n');
+  const result = agentMarkdownToToml(mdSource, options);
+  log(`agent ${result.name}: model ${result.model}, sandbox ${result.sandboxMode}`);
+  return result.toml;
 }
 
-// Codex does not speak Anthropic model IDs. Translate known Claude names to
-// a Codex model id, sourced from the registry in ./models.js so tier
-// assignments and fallback chains live in exactly one place.
-//
-// Tier mapping (registry-backed):
-//   fable, opus -> gpt-5.6-sol   (flagship/deep-reasoning, fallback gpt-5.5)
-//   sonnet      -> gpt-5.6-terra (balanced/default, fallback gpt-5.5)
-//   haiku       -> gpt-5.6-luna  (fast/light, fallback gpt-5.4-mini)
-//   default     -> gpt-5.6-terra
-export function remapModel(claudeModel) {
-  const targetId = resolveTargetModelId(claudeModel);
-  if (targetId === PASSTHROUGH) return claudeModel;
+// Codex does not speak Anthropic model IDs. Claude aliases and ids map by
+// tier through models.js resolveClaudeTier (fable -> deep, opus -> default,
+// sonnet -> bounded, haiku -> bulk; see CODEX_ROUTING). Empty/inherit maps to
+// the registry default. Any other string (a Codex id, a future model) passes
+// through unchanged.
+const CLAUDE_MODEL_PATTERN = /^(fable|opus|sonnet|haiku|inherit|claude-.+)$/i;
 
-  const entry = getModelEntry(targetId);
-  // Every branch below picks its own target id from the registry — if one
-  // ever drifts out of sync with models.js, fail loud instead of silently
-  // emitting an unverified model string.
-  if (!entry) {
+export function remapModel(claudeModel) {
+  const value = typeof claudeModel === 'string' ? claudeModel.trim() : '';
+  if (value && !CLAUDE_MODEL_PATTERN.test(value)) return claudeModel;
+
+  let targetId;
+  if (typeof models.resolveClaudeTier === 'function') {
+    targetId = models.resolveClaudeTier(value);
+  } else if (typeof models.getDefaultModel === 'function') {
+    // models.js predates resolveClaudeTier: every Claude tier collapses to
+    // the registry default rather than emitting an unverified id.
+    targetId = models.getDefaultModel()?.id;
+  }
+  if (!targetId || !models.getModelEntry(targetId)) {
     throw new Error(`remapModel: "${targetId}" is not in the Codex model registry`);
   }
-  return entry.id;
-}
-
-const PASSTHROUGH = Symbol('passthrough');
-
-// Unrecognized Claude model strings (not fable/opus/sonnet/haiku) pass
-// through unchanged — this only classifies Claude names we know how to map.
-function resolveTargetModelId(claudeModel) {
-  if (!claudeModel) return 'gpt-5.6-terra';
-  if (claudeModel.includes('fable')) return 'gpt-5.6-sol';
-  if (claudeModel.includes('opus')) return 'gpt-5.6-sol';
-  if (claudeModel.includes('sonnet')) return 'gpt-5.6-terra';
-  if (claudeModel.includes('haiku')) return 'gpt-5.6-luna';
-  return PASSTHROUGH;
+  return targetId;
 }
 
 export function remapEffort(effort) {
@@ -252,7 +203,7 @@ export function translateHooks(claudeHooks, options = {}) {
     const mapping = hookMap.events[event];
     if (!mapping) {
       log(`pass hook ${event}: no mapping entry`);
-      out.hooks[event] = translateHookHandlers(handlers, log);
+      out.hooks[event] = translateHookHandlers(handlers, log, event);
       continue;
     }
     if (mapping.status === 'drop' || mapping.codex === null) {
@@ -267,7 +218,7 @@ export function translateHooks(claudeHooks, options = {}) {
 
     log(`hook ${event} -> ${mapping.codex}`);
     out.hooks[mapping.codex] = (out.hooks[mapping.codex] || []).concat(
-      translateHookHandlers(handlers, log)
+      translateHookHandlers(handlers, log, mapping.codex)
     );
   }
 
