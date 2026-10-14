@@ -88,7 +88,7 @@ This is the ONLY blocker between current state and hosted MCP going live.
 | # | Action | Where | Linear | Kevin's time |
 |---|--------|-------|--------|-------------|
 | 1 | `npm login` → `npm token create` → save to OP | Terminal + 1Password | — | 2 min |
-| 2 | Update `op://Alfred/s5lmiih75pb4ksxwkpfmkyy7wi/credential` | 1Password | — | 30 sec |
+| 2 | Update `op://<vault>/<npm-token-item>/credential` | 1Password | — | 30 sec |
 | 3 | Create Supabase project at supabase.com | Browser | CC-311 | 3 min |
 | 4 | Run `supabase link --project-ref X` + `supabase db push` | Terminal | CC-311 | 2 min |
 | 5 | `fly auth login` + `fly apps create cc-commander-mcp --org personal` | Terminal | CC-311 | 2 min |
@@ -102,7 +102,7 @@ This is the ONLY blocker between current state and hosted MCP going live.
 
 ### 10 OP Vault items required (CC-311 umbrella)
 
-Path pattern: `op://Alfred/cc-commander-<service>/<field>`
+Path pattern: `op://<vault>/cc-commander-<service>/<field>`
 
 | Item name | Field | Source |
 |-----------|-------|--------|
@@ -261,7 +261,7 @@ Tracked here instead of scattered TODOs:
 
 ## 🚨 Known Issues / Constraints
 
-- **npm token 401** — `op://Alfred/s5lmiih75pb4ksxwkpfmkyy7wi/credential` is expired. Blocks `npm publish`. Refresh required.
+- **npm token 401** — `op://<vault>/<npm-token-item>/credential` is expired. Blocks `npm publish`. Refresh required.
 - **Mac Mini migration complete**, **laptop migration needs re-run** with the fixed symlink (shipped in beta.4):
   ```bash
   curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
