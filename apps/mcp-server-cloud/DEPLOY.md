@@ -17,7 +17,7 @@ fly apps create cc-commander-mcp --org personal
 
 ## 2. Populate 1Password vault
 
-Create these items in your 1Password vault (replace `<vault>` with its name):
+Create these items in your 1Password vault (replace `<vault>` with its name, and `export OP_VAULT=<vault>` before running `scripts/deploy.sh`):
 
 | OP Path | Value |
 |---------|-------|
