@@ -1,20 +1,20 @@
 # Codex Adapter — CC Commander
 
-**Status:** runtime-hardened translator (v0.3) · 2026-07-22
+**Status:** runtime-hardened translator (v0.4) · 2026-10-13
 **Target:** OpenAI Codex CLI + Codex Desktop (macOS / Windows)
 
 ---
 
 ## TL;DR
 
-Codex adopted the **same Agent Skills spec** Anthropic shipped in Dec 2025. CC Commander's plugin is **~90% portable to Codex with mechanical translation**. The skills layer ports 1:1 (plus four small, conservative prose transforms — see below), MCP servers port 1:1, agents are translated from Claude markdown frontmatter to Codex TOML, and hooks are filtered through the verified 10-event Codex hook surface before the generated plugin writes handlers.
+Codex adopted the **same Agent Skills spec** Anthropic shipped in Dec 2025. CC Commander's plugin is **~90% portable to Codex with mechanical translation**. The skills layer ports 1:1 (plus four small, conservative prose transforms — see below), MCP servers port 1:1, agents are translated from Claude markdown frontmatter to Codex TOML, and hooks are filtered through the verified 12-event Codex hook surface (11 of them wired; `Interrupt` has no Claude source) and their tool matchers are translated to Codex tool names before the generated plugin writes handlers.
 
 What does NOT port for free:
 
 - `agents/*.md` (YAML frontmatter, Claude format) → must be translated to `agents/*.toml` (Codex format)
 - `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json` (similar shape, different required fields)
 - Marketplace metadata (`commander-hub` → Codex marketplace JSON catalog)
-- 13 Claude-only hook events with no Codex equivalent (`SessionEnd`, `Notification`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, and the extended-only events — see the capability matrix below)
+- Claude-only hook events with no Codex equivalent (`Notification`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded`, `FileChanged` and the extended-only events — see the capability matrix below)
 - `AskUserQuestion` (Claude-only chip picker — skills get a one-line fallback note instead)
 - The `Workflow(...)` tool (not packaged for Codex — skills get a one-line fallback note instead)
 
@@ -78,8 +78,8 @@ Verified 2026-07-22 against primary Codex docs (learn.chatgpt.com/docs/hooks).
 | Plugin format | `.claude-plugin/plugin.json` | `.codex-plugin/plugin.json` | translate.js ✅ |
 | Skills (SKILL.md) | ✅ | ✅ (identical spec since Dec 2025) | passthrough + 4 conservative prose transforms ✅ |
 | Slash commands | first-class | deprecated → use skills | skip — already skills ✅ |
-| Hooks — supported (10) | `SessionStart`, `SubagentStart`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`, `UserPromptSubmit`, `SubagentStop`, `Stop` | same | hooks-detector.js + translate.js ✅ |
-| Hooks — Claude-only, dropped | `SessionEnd`, `Notification`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup` | ❌ no equivalent | drop on translate ❌ |
+| Hooks — supported (12) | `SessionStart`, `SubagentStart`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`, `UserPromptSubmit`, `SubagentStop`, `Stop`, `SessionEnd` (3 s cap) + Codex-only `Interrupt` | same (verified 2026-10-13) | hooks-detector.js + translate.js ✅ |
+| Hooks — Claude-only, dropped | `Notification`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup`, `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded`, `FileChanged` | ❌ no equivalent | drop on translate ❌ |
 | Hook `"async": true` | ✅ supported | parsed but **skipped** — "asynchronous command hooks aren't supported yet" | stripped on translate; handler still runs, synchronously, with a clamped timeout ⚠️ |
 | Env vars in hook commands | `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA` | native `PLUGIN_ROOT` / `PLUGIN_DATA`, plus `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA` as documented compatibility aliases | kept verbatim — no rewrite ✅ |
 | Sub-agent personas | `agents/*.md` (YAML) | `agents/*.toml` (TOML) | translate.js (md→toml) ⚠️ |

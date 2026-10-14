@@ -704,7 +704,7 @@ describe('readModel — tolerant reading', () => {
       assert.equal(byName.builder.role, 'Builder');
       assert.equal(byName.builder.tasksCompleted, 1);
       assert.equal(byName.builder.currentTask, null);
-      assert.equal(byName.builder.estCostUsd, 0.0156);
+      assert.equal(byName.builder.estCostUsd, 0.0104); // Sonnet 5.5 rates: 2/0.1/10 per MTok
       assert.equal(byName.reviewer.emoji, '🔍');
       assert.equal(byName.reviewer.role, 'Reviewer');
       assert.deepEqual(model.filterOptions, {

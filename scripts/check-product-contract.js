@@ -65,6 +65,7 @@ var TEXT_SURFACES = [
 ];
 
 var JSON_SURFACES = [
+  'package.json',
   'commander/cowork-plugin/.claude-plugin/plugin.json',
   '.claude-plugin/marketplace.json',
   'apps/mcp-server-cloud/package.json',
@@ -822,6 +823,11 @@ function scanJsonSurface(rel, content, contract) {
     compareDirect(findings, rel, 'license', contract.license, marketplacePlugin && marketplacePlugin.license);
   } else if (rel === 'apps/mcp-server-cloud/package.json') {
     compareDirect(findings, rel, 'version', contract.version, json.version);
+  } else if (rel === 'package.json') {
+    // The root manifest carries engine ranges and dependency versions that are
+    // not product versions; only its own version and description are surfaces.
+    compareDirect(findings, rel, 'version', contract.version, json.version);
+    return findings.concat(scanTextSurface(String(json.description || ''), rel, contract));
   }
 
   findings = findings.concat(scanTextSurface(content, rel, contract));
