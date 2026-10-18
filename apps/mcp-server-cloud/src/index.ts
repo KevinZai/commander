@@ -9,7 +9,7 @@ import { authMiddleware } from "./middleware/auth.js";
 import { rateLimitMiddleware } from "./middleware/ratelimit.js";
 import {
   TOOL_NAMES,
-  TOOL_SCHEMAS,
+  buildToolCatalog,
   listSkills,
   getSkill,
   searchSkills,
@@ -177,10 +177,7 @@ app.get("/v1", (c) => {
     name: "CC Commander",
     version: SERVER_VERSION,
     description: getServerTagline(),
-    tools: TOOL_NAMES.map((name) => ({
-      name,
-      ...(TOOL_SCHEMAS[name] as object),
-    })),
+    tools: buildToolCatalog(),
   });
 });
 
@@ -214,7 +211,8 @@ mcp.get("/sse", (c) => {
 // Lightweight runtime check — we avoid adding zod as a runtime dep. Matches the
 // known TOOL_SCHEMAS shape and rejects malformed input fast.
 function validateCallBody(body: unknown):
-  | { ok: true; tool: string; args: Record<string, unknown>; jsonrpcId?: unknown }
+  | { ok: true; kind: "call"; tool: string; args: Record<string, unknown>; jsonrpcId?: unknown }
+  | { ok: true; kind: "list"; jsonrpcId: string | number }
   | { ok: false; error: string } {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return { ok: false, error: "Body must be a JSON object" };
@@ -226,6 +224,13 @@ function validateCallBody(body: unknown):
       return { ok: false, error: "'params' must be an object" };
     }
 
+    if (b.method === "tools/list") {
+      if (typeof b.id !== "string" && !(typeof b.id === "number" && Number.isFinite(b.id))) {
+        return { ok: false, error: "Missing or invalid JSON-RPC 'id' field" };
+      }
+      return { ok: true, kind: "list", jsonrpcId: b.id };
+    }
+
     if (b.method === "tools/call") {
       const p = params as Record<string, unknown>;
       if (typeof p.name !== "string" || p.name.length === 0) {
@@ -235,11 +240,11 @@ function validateCallBody(body: unknown):
       if (typeof rawArgs !== "object" || rawArgs === null || Array.isArray(rawArgs)) {
         return { ok: false, error: "JSON-RPC 'params.arguments' must be an object" };
       }
-      return { ok: true, tool: p.name, args: rawArgs as Record<string, unknown>, jsonrpcId: b.id };
+      return { ok: true, kind: "call", tool: p.name, args: rawArgs as Record<string, unknown>, jsonrpcId: b.id };
     }
 
     if (b.method.startsWith("commander_")) {
-      return { ok: true, tool: b.method, args: params as Record<string, unknown>, jsonrpcId: b.id };
+      return { ok: true, kind: "call", tool: b.method, args: params as Record<string, unknown>, jsonrpcId: b.id };
     }
   }
 
@@ -256,7 +261,7 @@ function validateCallBody(body: unknown):
     }
     args = b.args as Record<string, unknown>;
   }
-  return { ok: true, tool: b.tool, args };
+  return { ok: true, kind: "call", tool: b.tool, args };
 }
 
 // ─── Tool call endpoint ────────────────────────────────────────────────────
@@ -273,6 +278,9 @@ mcp.post("/call", async (c) => {
   const parsed = validateCallBody(rawBody);
   if (!parsed.ok) {
     return c.json({ error: parsed.error }, 400);
+  }
+  if (parsed.kind === "list") {
+    return c.json({ jsonrpc: "2.0", id: parsed.jsonrpcId, result: { tools: buildToolCatalog() } });
   }
   const { tool, args } = parsed;
 

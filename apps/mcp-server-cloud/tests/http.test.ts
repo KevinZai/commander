@@ -20,7 +20,7 @@
  * or 401/400 paths (auth middleware rejects before DB lookup).
  */
 
-import { describe, it, before } from "node:test";
+import { describe, it, before, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import jwt from "jsonwebtoken";
 
@@ -36,6 +36,8 @@ process.env.PORT = "0"; // no real port binding — fetch() drives app directly
 // Dynamic import so env validation runs after we set the vars
 const { app, validateCallBody, dispatchTool } = await import("../src/index.js");
 const { SERVER_VERSION } = await import("../src/lib/version.js");
+const { TOOL_NAMES, TOOL_SCHEMAS } = await import("../src/tools/index.js");
+const { db } = await import("../src/db/client.js");
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
 function mkReq(path: string, init?: RequestInit): Request {
@@ -92,7 +94,7 @@ describe("validateCallBody", () => {
   it("accepts well-formed body", () => {
     const r = validateCallBody({ tool: "commander_status", args: { foo: 1 } });
     assert.equal(r.ok, true);
-    if (r.ok) {
+    if (r.ok && r.kind === "call") {
       assert.equal(r.tool, "commander_status");
       assert.deepEqual(r.args, { foo: 1 });
     }
@@ -101,7 +103,7 @@ describe("validateCallBody", () => {
   it("accepts body with missing args (defaults to {})", () => {
     const r = validateCallBody({ tool: "commander_status" });
     assert.equal(r.ok, true);
-    if (r.ok) assert.deepEqual(r.args, {});
+    if (r.ok && r.kind === "call") assert.deepEqual(r.args, {});
   });
 
   it("accepts JSON-RPC tools/call bodies", () => {
@@ -115,7 +117,7 @@ describe("validateCallBody", () => {
       },
     });
     assert.equal(r.ok, true);
-    if (r.ok) {
+    if (r.ok && r.kind === "call") {
       assert.equal(r.tool, "commander_status");
       assert.deepEqual(r.args, {});
       assert.equal(r.jsonrpcId, "rpc-1");
@@ -356,5 +358,149 @@ describe("graceful shutdown", () => {
   it("registers uncaughtException listener", () => {
     const count = process.listenerCount("uncaughtException");
     assert.ok(count >= 1);
+  });
+});
+
+// Expectations describe handler effects, excluding transport usage accounting.
+const READ_ONLY_TOOLS = [
+  "commander_list_skills", "commander_get_skill", "commander_search",
+  "commander_suggest_for", "commander_invoke_skill", "commander_list_agents",
+  "commander_get_agent", "commander_invoke_agent", "commander_status",
+  "commander_update", "commander_init", "commander_tasks_push",
+  "commander_plan_integrate", "commander_install_skill",
+  "commander_compatibility_check", "commander_session_diagnose", "commander_compose_plan",
+];
+const HINT_KEYS = ["readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"] as const;
+
+function assertAnnotatedCatalog(tools: Array<Record<string, unknown>>) {
+  assert.deepEqual(tools.map((tool) => tool.name), [...TOOL_NAMES]);
+  for (const tool of tools) {
+    assert.deepEqual(Object.keys(tool).sort(), ["annotations", "description", "inputSchema", "name"]);
+    const annotations = tool.annotations as Record<string, unknown>;
+    assert.ok(annotations, `${tool.name} must have nested annotations`);
+    assert.deepEqual(Object.keys(annotations).sort(), [...HINT_KEYS, "title"].sort());
+    assert.equal(typeof annotations.title, "string");
+    assert.ok((annotations.title as string).trim().length > 0);
+    for (const key of HINT_KEYS) assert.equal(typeof annotations[key], "boolean", `${tool.name}.${key}`);
+    const name = tool.name as (typeof TOOL_NAMES)[number];
+    assert.equal(tool.description, TOOL_SCHEMAS[name].description);
+    assert.deepEqual(tool.inputSchema, TOOL_SCHEMAS[name].inputSchema);
+    assert.equal(annotations.readOnlyHint, READ_ONLY_TOOLS.includes(name), name);
+    assert.equal(annotations.destructiveHint, false, name);
+    assert.equal(annotations.idempotentHint, name !== "commander_notes_pin", name);
+    assert.equal(annotations.openWorldHint, name === "commander_update", name);
+  }
+}
+
+// Exercise real auth/rate-limit middleware against in-memory backend doubles.
+function mockCatalogBackends(t: TestContext, callsUsed = 0) {
+  const tables: string[] = [];
+  t.mock.method(globalThis, "fetch", async (input: string | URL | Request, init?: RequestInit) => {
+    assert.match(String(input), /^https:\/\/test\.upstash\.io\//);
+    const commands = JSON.parse(String(init?.body));
+    const result = (command: unknown[]) => ({
+      result: String(command[0]).toLowerCase().startsWith("eval") ? [59, 60] : 1,
+    });
+    return Response.json(Array.isArray(commands[0]) ? commands.map(result) : result(commands));
+  });
+  t.mock.method(db, "from", (table: string) => {
+    tables.push(table);
+    const query = {
+      select() { return query; },
+      eq() { return query; },
+      update() { return query; },
+      async maybeSingle() {
+        return {
+          error: null,
+          data: table === "users"
+            ? { user_id: "catalog-user", tier: "free", license_key: "test-license" }
+            : { calls_used: callsUsed },
+        };
+      },
+    };
+    return query;
+  });
+  t.mock.method(db, "rpc", async (name: string) => ({
+    data: name === "get_effective_cap" ? 1000 : null,
+    error: null,
+  }));
+  return tables;
+}
+
+function rpcRequest(body: unknown, authenticated = true): RequestInit {
+  return {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      ...(authenticated ? {
+        authorization: `Bearer ${jwt.sign({ sub: "catalog-user" }, process.env.JWT_SECRET!)}`,
+      } : {}),
+    },
+    body: JSON.stringify(body),
+  };
+}
+
+describe("tool annotations and JSON-RPC discovery", () => {
+  it("GET /v1 preserves fields and emits all spec-exact nested hints", async () => {
+    const response = await fetchApp("/v1");
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.deepEqual(Object.keys(body).sort(), ["description", "name", "tools", "version"]);
+    assertAnnotatedCatalog(body.tools);
+  });
+
+  it("tools/list returns the same catalog with string and numeric request IDs", async (t) => {
+    const tables = mockCatalogBackends(t);
+    const discovery = await (await fetchApp("/v1")).json();
+    for (const id of ["catalog-1", 0]) {
+      const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id, method: "tools/list" }));
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get("x-commander-calls-cap"), "1000");
+      const body = await response.json();
+      assert.deepEqual(body, { jsonrpc: "2.0", id, result: { tools: discovery.tools } });
+      assertAnnotatedCatalog(body.result.tools);
+    }
+    assert.ok(tables.includes("users"), "auth must still query the user");
+    assert.ok(tables.includes("usage_counters"), "rate limiting must still check usage");
+  });
+
+  it("tools/list still requires authentication", async () => {
+    const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }, false));
+    assert.equal(response.status, 401);
+  });
+
+  it("tools/list still enforces the monthly quota", async (t) => {
+    mockCatalogBackends(t, 1000);
+    const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }));
+    assert.equal(response.status, 429);
+  });
+
+  it("tools/list rejects invalid params and request IDs", async (t) => {
+    mockCatalogBackends(t);
+    for (const params of [null, [], "invalid"]) {
+      const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list", params }));
+      assert.equal(response.status, 400);
+    }
+    for (const id of [undefined, null, {}, false]) {
+      const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id, method: "tools/list" }));
+      assert.equal(response.status, 400);
+    }
+  });
+
+  it("existing tools/call and custom call responses are unchanged", async (t) => {
+    mockCatalogBackends(t);
+    const args = { plan: "- first task\n- second task" };
+    const expected = await dispatchTool("commander_plan_integrate", args, {
+      userId: "catalog-user", tier: "free", licenseKey: "test-license",
+    });
+    const custom = await fetchApp("/v1/call", rpcRequest({ tool: "commander_plan_integrate", args }));
+    assert.equal(custom.status, 200);
+    assert.deepEqual(await custom.json(), { result: expected });
+    const rpc = await fetchApp("/v1/call", rpcRequest({
+      jsonrpc: "2.0", id: "call-1", method: "tools/call",
+      params: { name: "commander_plan_integrate", arguments: args },
+    }));
+    assert.equal(rpc.status, 200);
+    assert.deepEqual(await rpc.json(), { jsonrpc: "2.0", id: "call-1", result: expected });
   });
 });
