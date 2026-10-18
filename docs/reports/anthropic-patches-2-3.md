@@ -12,7 +12,7 @@ Branch: `fix/anthropic-patches-2-3`. Draft PR: [KevinZai/commander#128](https://
 
 The local `ToolAnnotations` type matches the [MCP 2026-07-28 annotation fields](https://modelcontextprotocol.io/specification/2026-07-28/schema#toolannotations). `Record<ToolName, ToolSchema>` requires annotations for every tool, and `Required<ToolAnnotations>` requires the title and all four hints. These are descriptive hints, not permission enforcement. Spec defaults are read-only false, destructive true, idempotent false, and open-world true; every value is explicit here.
 
-The table describes current handler effects. Shared authentication, rate-limit counters, last-seen updates, logs, telemetry, and registry boot/refresh are transport/server bookkeeping, not each tool's domain action. Read-only tools have idempotent true because repeated handler calls do not mutate domain state; their returned values can still vary. A bounded database/memory store is closed-world even though it uses network transport. Generated instructions and URLs do not constitute their execution.
+The table describes current handler effects. Shared authentication, rate-limit counters, last-seen updates, logs, telemetry, and registry boot/refresh are transport/server bookkeeping, not each tool's domain action. Read-only tools have idempotent true because repeated handler calls do not mutate domain state; their returned values can still vary. For the CC-655 r2 audit, any handler network access is open-world, including the managed Supabase database. Generated instructions and URLs do not constitute their execution.
 
 | Tool (`commander_` prefix) | Title | readOnlyHint | destructiveHint | idempotentHint | openWorldHint | Implementation evidence |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -24,10 +24,10 @@ The table describes current handler effects. Shared authentication, rate-limit c
 | list_agents | List agents | true | false | true | false | Reads the in-memory agent registry. |
 | get_agent | Get agent | true | false | true | false | Reads local agent content; returned URLs are not fetched. |
 | invoke_agent | Get agent invocation guide | true | false | true | false | Returns a persona guide; does not execute an agent. |
-| status | Commander status | true | false | true | false | Reads usage/cap from the bounded Commander database. |
+| status | Commander status | true | false | true | true | Reads remote Supabase usage/cap; the cap RPC only selects data. |
 | update | Check for updates | true | false | true | true | Fetches the public GitHub manifest; no installation. |
 | init | Generate project setup | true | false | true | false | Returns templates/commands; no file writes or URL fetches. |
-| notes_pin | Pin note | false | false | false | false | Inserts a new feedback note each time in the bounded memory store. |
+| notes_pin | Pin note | false | false | false | true | Inserts a new remote Supabase feedback row; no overwrite or delete. |
 | tasks_push | Task setup instructions | true | false | true | false | Current setup-only stub; no Linear call or local task write. |
 | plan_integrate | Parse plan tasks | true | false | true | false | Parses text; does not save tasks or call Linear. |
 | install_skill | Generate skill install command | true | false | true | false | Generates a command; never runs shell, clone, or copy. |
@@ -35,7 +35,7 @@ The table describes current handler effects. Shared authentication, rate-limit c
 | session_diagnose | Diagnose session | true | false | true | false | Diagnostics read repository files/settings; no remediation execution. |
 | compose_plan | Compose implementation plan | true | false | true | false | Builds markdown from arguments and static rules. |
 
-Evidence: each handler under [`src/tools/`](../../apps/mcp-server-cloud/src/tools/index.ts) was read, including `skill-source.ts`, registry content loaders, usage SQL, and the diagnostics module. Notable corrections from the earlier proposed mapping: invocation/install tools only return guides/commands; init/tasks_push/plan_integrate do not contact external systems today. Only update fetches an external manifest during invocation. Notes are additive but repeated calls create new rows.
+Evidence: each handler under [`src/tools/`](../../apps/mcp-server-cloud/src/tools/index.ts) was read, including `skill-source.ts`, registry content loaders, usage SQL, and the diagnostics module. Notable corrections from the earlier proposed mapping: invocation/install tools only return guides/commands; init/tasks_push/plan_integrate do not contact external systems today. Update fetches the GitHub manifest; status and notes_pin also make network calls to Supabase. Notes are additive but repeated calls create new rows.
 
 `tools/list` stays behind existing authentication and rate limiting, including quota/feedback gates and usage accounting. Its minimal envelope is `{jsonrpc:"2.0", id, result:{tools:[...]}}`; string and numeric IDs are retained. It does not add a full MCP session/initialization implementation or claim complete protocol conformance. The existing custom call and `tools/call` response envelopes remain unchanged.
 
@@ -61,7 +61,7 @@ Replacing the field on the existing event would be invalid. A follow-up needs a 
 Kevin's manual Cowork Desktop follow-up after an approved implementation: verify a feature-branch force-push prompts with exactly `Force push detected — please confirm`, refusal prevents execution, and main/master destinations remain denied. Use a disposable repository/remote. Cowork Desktop behavior was not tested here.
 
 
-## Validation
+## Initial validation (before r2)
 
 - `npm run typecheck` in `apps/mcp-server-cloud`: **PASS**, exit 0 (TypeScript compiler; no test count).
 - Full app suite, every file in the unchanged npm test script: **70 passed, 0 failed**, exit 0:
@@ -79,3 +79,34 @@ Kevin's manual Cowork Desktop follow-up after an approved implementation: verify
 ## HQ handoff
 
 The local commit is ready for HQ to push and update draft PR #128. The proposed replacement body is [`pr-128-body.md`](pr-128-body.md). No push, merge, deployment, PR edit, or tracker write was performed. No hook files changed. The existing dependency symlink remains untracked. The original checkout was not accessed for edits or commands; only its existing dependency symlink was reused as authorized.
+
+
+## CC-655 r2: handler re-check
+
+Fleet task: `t_7q5nln2ho5`. Starting HEAD: `113b51546958b3e07990eb367841ffbf5d55655c`.
+All 18 handlers listed in `TOOL_NAMES` were traced through `dispatchTool` and their helpers; the table above is the revised audit. Changed only `openWorldHint` from false to true on `commander_status` and `commander_notes_pin`, following this task's explicit network-access rule. No handler overwrites or deletes domain data, so every destructive hint remains false. Titles and idempotent hints remain unchanged.
+
+The five suspected read-only errors are not supported by this implementation:
+
+- `invoke-skill.ts` calls `getSkill` and returns an `invocationGuide`; `invoke-agent.ts` calls `getAgent` and returns a persona guide. Neither dispatches arbitrary actions.
+- `install-skill.ts` resolves local/catalog metadata and returns a shell command with `status: "would-install"` for both dry-run values. It never executes that command.
+- `init.ts` returns template URLs, config, and next steps without writing files or fetching URLs.
+- `tasks-push.ts` always returns `not_configured`. Its misleading "Created task locally" fallback is text only; there is no local write or Linear call. Changing handler behavior/copy is outside this annotation-only task.
+
+Read-only annotations describe the current server handlers. Actions a client might later take after reading returned instructions are separate operations. Shared transport accounting and registry initialization/refresh remain excluded; handler-specific Supabase access is included. The local `get_effective_cap` SQL is `STABLE` and only selects data; `notes_pin` uses plain insert, not upsert. Live database definitions and client auto-approval behavior were not verified.
+
+
+### R2 validation
+
+- Test first: the revised HTTP suite produced **38 passed, 2 failed** before the hint fix. Both discovery tests rejected `commander_status.openWorldHint: false`; the new Supabase transport tests passed.
+- `npm run typecheck` in `apps/mcp-server-cloud`: **PASS**, exit 0.
+- App suite: **72 passed, 0 failed**, exit 0, using Node `v24.22.0`:
+
+  ```sh
+  POSTHOG_API_KEY='' TSX_DISABLE_CACHE=1 node --import tsx --test --test-force-exit tests/integration.test.ts tests/http.test.ts tests/install-skill.test.ts tests/compatibility-check.test.ts tests/session-diagnose.test.ts tests/compose-plan.test.ts
+  ```
+
+- `node --test commander/tests/permission-gate.test.js tests/hooks.test.js`: **81 passed, 0 failed**, exit 0. As in the initial run, the launcher isolated child HOME/TMPDIR and test-worker working directories under the app tests directory with telemetry disabled; temporary fixtures were cleaned up. No hook sources changed.
+- Independent static review covered all 18 handlers and their effect-producing helpers; a contradictory status comment was corrected and no findings remain. `git diff --check` passed.
+- All 18 annotation sets are asserted through both discovery routes. New tests use the real Supabase client with mocked network transport to verify remote status reads and repeated additive note inserts. No production backend, client auto-approval, deployment, or live database schema was tested. The existing update check may read the public GitHub manifest.
+- Local commit only; no push, merge, installs, tracker writes, handler feature changes, or edits outside the three authorized paths. The pre-existing untracked `apps/mcp-server-cloud/node_modules` symlink remains untouched.

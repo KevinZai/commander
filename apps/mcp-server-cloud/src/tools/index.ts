@@ -69,6 +69,7 @@ type ToolSchema = {
 };
 
 // Hints describe handler effects, excluding shared auth/usage/telemetry bookkeeping.
+// Network-backed handlers are open-world, including managed database reads/writes.
 export const TOOL_SCHEMAS: Record<ToolName, ToolSchema> = {
   commander_list_skills: {
     annotations: { title: "List skills", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -169,8 +170,8 @@ export const TOOL_SCHEMAS: Record<ToolName, ToolSchema> = {
     },
   },
   commander_status: {
-    // Reads the bounded Commander usage store; database transport is not open-world interaction.
-    annotations: { title: "Commander status", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    // Reads usage and cap through the Supabase network API; no domain writes.
+    annotations: { title: "Commander status", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     description: "Return the authenticated user's Commander status. Includes server version, license tier, calls used this month, remaining cap, and reset date.",
     inputSchema: { type: "object", properties: {} },
   },
@@ -200,8 +201,8 @@ export const TOOL_SCHEMAS: Record<ToolName, ToolSchema> = {
     },
   },
   commander_notes_pin: {
-    // Inserts a new note on every call; the bounded memory store is additive, not idempotent.
-    annotations: { title: "Pin note", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    // Inserts a new note through Supabase on every call; additive, not idempotent.
+    annotations: { title: "Pin note", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     description: "Save a note to the Commander cross-session knowledge store. Returns confirmation with a preview of the pinned content. Notes persist across sessions for later retrieval.",
     inputSchema: {
       type: "object",

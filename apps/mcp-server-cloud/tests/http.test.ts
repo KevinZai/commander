@@ -370,6 +370,8 @@ const READ_ONLY_TOOLS = [
   "commander_plan_integrate", "commander_install_skill",
   "commander_compatibility_check", "commander_session_diagnose", "commander_compose_plan",
 ];
+// Handler network calls include the managed Supabase backend (CC-655 r2).
+const OPEN_WORLD_TOOLS = ["commander_status", "commander_update", "commander_notes_pin"];
 const HINT_KEYS = ["readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"] as const;
 
 function assertAnnotatedCatalog(tools: Array<Record<string, unknown>>) {
@@ -388,7 +390,7 @@ function assertAnnotatedCatalog(tools: Array<Record<string, unknown>>) {
     assert.equal(annotations.readOnlyHint, READ_ONLY_TOOLS.includes(name), name);
     assert.equal(annotations.destructiveHint, false, name);
     assert.equal(annotations.idempotentHint, name !== "commander_notes_pin", name);
-    assert.equal(annotations.openWorldHint, name === "commander_update", name);
+    assert.equal(annotations.openWorldHint, OPEN_WORLD_TOOLS.includes(name), name);
   }
 }
 
@@ -502,5 +504,54 @@ describe("tool annotations and JSON-RPC discovery", () => {
     }));
     assert.equal(rpc.status, 200);
     assert.deepEqual(await rpc.json(), { jsonrpc: "2.0", id: "call-1", result: expected });
+  });
+});
+
+// Exercise the real Supabase client with only its network transport replaced.
+describe("network-backed tool effects", () => {
+  const auth = { userId: "effect-user", tier: "free" as const, licenseKey: "test-license" };
+
+  it("status reads usage and cap over the network without updating them", async (t) => {
+    const requests: string[] = [];
+    t.mock.method(globalThis, "fetch", async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(String(input));
+      assert.equal(url.origin, "https://test.supabase.co");
+      requests.push(`${init?.method} ${url.pathname}`);
+      if (url.pathname === "/rest/v1/usage_counters") {
+        assert.equal(init?.method, "GET");
+        assert.equal(url.searchParams.get("user_id"), "eq.effect-user");
+        return Response.json([{ calls_used: 7 }]);
+      }
+      assert.equal(url.pathname, "/rest/v1/rpc/get_effective_cap");
+      assert.equal(init?.method, "POST");
+      assert.deepEqual(JSON.parse(String(init?.body)), { p_user_id: auth.userId });
+      return Response.json(1000);
+    });
+
+    const result = await dispatchTool("commander_status", {}, auth) as {
+      usage: { callsUsed: number; cap: number; remaining: number };
+    };
+    assert.equal(result.usage.callsUsed, 7);
+    assert.equal(result.usage.cap, 1000);
+    assert.equal(result.usage.remaining, 993);
+    assert.deepEqual(requests.sort(), ["GET /rest/v1/usage_counters", "POST /rest/v1/rpc/get_effective_cap"]);
+  });
+
+  it("notes_pin inserts a new remote note on each call without overwriting", async (t) => {
+    const inserts: unknown[] = [];
+    t.mock.method(globalThis, "fetch", async (input: string | URL | Request, init?: RequestInit) => {
+      assert.equal(String(input), "https://test.supabase.co/rest/v1/feedback");
+      assert.equal(init?.method, "POST");
+      assert.doesNotMatch(new Headers(init?.headers).get("Prefer") ?? "", /resolution=/);
+      inserts.push(JSON.parse(String(init?.body)));
+      return new Response(null, { status: 201 });
+    });
+
+    for (let call = 0; call < 2; call += 1) {
+      const result = await dispatchTool("commander_notes_pin", { note: "Audit note" }, auth) as { pinned: boolean };
+      assert.equal(result.pinned, true);
+    }
+    const expected = { user_id: auth.userId, category: "note", content: "Audit note", sentiment: "neutral" };
+    assert.deepEqual(inserts, [expected, expected]);
   });
 });
