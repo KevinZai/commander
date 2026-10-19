@@ -26,6 +26,7 @@ export const env = {
   posthogKey: process.env.POSTHOG_API_KEY ?? "",
   metricsAuthToken: process.env.METRICS_AUTH_TOKEN ?? "",
   openaiAppsChallengeToken: process.env.OPENAI_APPS_CHALLENGE_TOKEN ?? "",
+  host: process.env.HOST ?? "0.0.0.0",
   port: parseInt(process.env.PORT ?? "8080", 10),
   nodeEnv: process.env.NODE_ENV ?? "production",
 } as const;
