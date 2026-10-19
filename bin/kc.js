@@ -38,9 +38,22 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --daemon     Start persistent background daemon');
   console.log('  --queue "task"  Add task to daemon queue');
   console.log('  --queue-list Show pending daemon tasks');
+  console.log('  --factory-handoff FILE  Validate JSON and print Fleet code/project intake (no dispatch)');
   console.log('  --daemon-stop  Stop running daemon');
   console.log('  --ingest <url> Evaluate a GitHub repo for inclusion as vendor package');
   console.log('  --help       This help\n');
+  process.exit(0);
+}
+if (args.includes('--factory-handoff')) {
+  try {
+    var inputFile = args[args.indexOf('--factory-handoff') + 1];
+    if (!inputFile || inputFile.startsWith('--')) throw new Error('--factory-handoff requires a JSON file');
+    var handoff = require('../commander/factory-handoff').buildFactoryHandoff(JSON.parse(fs.readFileSync(inputFile, 'utf8')));
+    process.stdout.write(JSON.stringify(handoff, null, 2) + '\n');
+  } catch (error) {
+    process.stderr.write('Factory handoff rejected: ' + error.message + '\n');
+    process.exit(1);
+  }
   process.exit(0);
 }
 if (args.includes('--version')) { var B = require(path.join(__dirname,'..','commander','branding')); console.log(B.product + ' v' + B.version); process.exit(0); }
