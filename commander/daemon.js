@@ -86,13 +86,43 @@ function admit(item, policy, running, now) {
   var quota = checkQuota(policy.quota, now);
   if (quota) return quota;
   var check = require("./dispatcher").checkCostCeiling(item.task, { model: item.model || policy.model, maxTurns: policy.maxTurns }, policy.maxEstimateUsd);
+  if (!check.estimate || typeof check.estimate.estimateHigh !== "number" || !Number.isFinite(check.estimate.estimateHigh) || check.estimate.estimateHigh < 0) return "cost estimate missing or invalid; automatic dispatch requires an estimate";
   if (!check.allowed) return check.message || "estimate exceeds ceiling";
   if (check.estimate && check.estimate.estimateHigh > policy.maxEstimateUsd) return "estimate $" + check.estimate.estimateHigh + " exceeds the $" + policy.maxEstimateUsd + " ceiling";
   return null;
 }
 
-// Settle running queue items whose report reached a terminal status.
+function alive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try { process.kill(pid, 0); return true; }
+  catch (error) { return error.code !== "ESRCH"; }
+}
+
+function abandoned(item) {
+  var remote = item.remote || {};
+  if (remote.exitFile && fs.existsSync(remote.exitFile)) return true;
+  if (remote.stateFile) {
+    try {
+      var state = JSON.parse(fs.readFileSync(remote.stateFile, "utf8"));
+      if (state.sessionId === remote.sessionId && Number.isInteger(state.supervisorPid)) {
+        return !alive(state.supervisorPid) && !alive(state.childPid);
+      }
+    } catch (_) {}
+  }
+  // Allow the supervisor to start and persist its identity. Legacy records use tmux.
+  var age = Date.now() - Date.parse(item.started);
+  if (!Number.isFinite(age) || age < 120000) return false;
+  var session = remote.tmuxSession || remote.job;
+  if (!session) return true; // claimed, but the daemon died before preparing a launch
+  try {
+    childProcess.execFileSync("tmux", ["has-session", "-t", "=" + session], { stdio: "ignore", timeout: 5000 });
+    return false;
+  } catch (error) { return error.status === 1; } // uncertain health stays held
+}
+
+// Settle terminal reports or abandoned launches; failed jobs are never requeued.
 function reconcile() {
+  queue.recoverClaims(Date.now());
   var running = queue.listTasks("running");
   var open = 0;
   running.forEach(function (item) {
@@ -103,6 +133,9 @@ function reconcile() {
     if (match) {
       queue.updateStatus(item.id, match[1] === "done" ? "done" : "failed", match[1] === "done" ? { result: match[2] } : { error: match[1] + ": " + match[2] });
       log("Queue " + item.id + " " + match[1] + ": " + match[2]);
+    } else if (abandoned(item)) {
+      queue.updateStatus(item.id, "failed", { error: "Remote Control supervisor/session exited without a terminal report; inspect before retrying" });
+      log("Queue " + item.id + " failed: abandoned Remote Control launch");
     } else open++;
   });
   return open;
@@ -122,11 +155,18 @@ function tick(config) {
       actions.push({ type: "queue-held", task: next, reason: reason });
     } else {
       try {
-        var handle = require("./remote-session").start(next.task, {
+        if (!queue.claimTask(next.id)) return;
+        require("./remote-session").start(next.task, {
           cwd: next.cwd, model: next.model || policy.model, name: "ccc-queue",
-          maxTurns: policy.maxTurns, wallTimeoutMs: policy.wallTimeoutMs
+          maxTurns: policy.maxTurns, wallTimeoutMs: policy.wallTimeoutMs,
+          beforeLaunch: function (prepared) {
+            var saved = queue.updateStatus(next.id, "running", { remote: {
+              job: prepared.job.job, report: prepared.job.report, sessionId: prepared.job.sessionId,
+              tmuxSession: prepared.job.tmuxSession, exitFile: prepared.exitFile, stateFile: prepared.stateFile
+            } });
+            if (!saved) throw new Error("queue launch metadata could not be persisted");
+          }
         });
-        queue.updateStatus(next.id, "running", { remote: { job: handle.job.job, report: handle.job.report, sessionId: handle.job.sessionId } });
         log("Queue " + next.id + " launched with Remote Control (" + policy.maxTurns + " turns / " + Math.round(policy.wallTimeoutMs / 60000) + " min bounds)");
         actions.push({ type: "queue-launched", task: next });
       } catch (e) {

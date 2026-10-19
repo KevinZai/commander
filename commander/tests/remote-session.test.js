@@ -390,7 +390,8 @@ test('daemon launches an admitted task with RC, 45 minute and turn bounds, then 
   const daemon = require('../daemon');
   const store = [{ id: 'mem-1', task: 'queued small task', domain: 'platform', priority: 1, status: 'pending', cwd: home }];
   const item = store[0];
-  const saved = ['getNext', 'listTasks', 'updateStatus'].map(key => [key, queue[key]]);
+  const saved = ['getNext', 'listTasks', 'updateStatus', 'claimTask'].map(key => [key, queue[key]]);
+  queue.claimTask = id => queue.updateStatus(id, 'running');
   queue.getNext = () => store.find(task => task.status === 'pending') || null;
   queue.listTasks = status => store.filter(task => !status || task.status === status);
   queue.updateStatus = (id, status, extra) => { const task = store.find(entry => entry.id === id); task.status = status; Object.assign(task, extra || {}); return task; };

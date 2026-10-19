@@ -66,12 +66,20 @@ notice. Admission, checked in order, holds the task (never fails it) when:
    required: no quota policy, or a missing, stale, future-dated (over 60 s of
    skew), unparseable snapshot, or a percentage that is not a finite number
    from 0 to 100, holds the task (fails closed);
-4. the pre-dispatch cost estimate exceeds `maxEstimateUsd` (default $5). The
+4. the pre-dispatch cost estimate is missing or invalid (including when the optional
+   cost gate is disabled in config or `CC_COST_GATE=off`), or exceeds `maxEstimateUsd` (default $5). The
    estimate is an admission gate, not a runtime cap.
 
 Admitted tasks launch with Remote Control, `maxTurns` and `wallTimeoutMs`.
 Each tick settles running items from their report status (`done` becomes done;
 `blocked` and `failed` become failed with the report line as the error).
+The daemon atomically claims an item before launch and saves Remote Control
+metadata before starting tmux. Persistence failure prevents launch. Items with an
+exit record or a dead supervisor and child become failed if no terminal report
+exists; they are never automatically requeued. A live orphan child still consumes
+capacity. Missing startup metadata gets a two-minute grace period, then a missing
+tmux session (or an incomplete claim without a session) is settled as failed.
+Uncertain process/session health stays held for inspection.
 
 Metadata uses `~/.claude-remote/jobs/<job>.json` and includes account, model,
 session id, issue, start time, cwd, tmux session and report path. It contains no

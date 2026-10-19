@@ -130,9 +130,10 @@ function start(task, options = {}) {
   const job = { version: 1, maxTurns, wallTimeoutMs, job: jobId, account: accountName(), model: options.model || null, sessionId, linearIssue: options.linearIssue || null, startedAt: new Date().toISOString(), cwd, tmuxSession: options.tmuxTarget || jobId, report };
   const jobFile = path.join(root, jobId + '.json');
   const configFile = path.join(dir, 'launch.json');
-  writeJson(configFile, { binary: require('./claude-finder').resolve(), args, promptFile, cwd, exitFile: path.join(dir, 'exit.json'), configDir: process.env.CLAUDE_CONFIG_DIR || null, sessionId, report, maxTurns, wallTimeoutMs, job: jobId, attribution: Object.fromEntries(ATTRIBUTION_KEYS.filter(key => process.env[key] !== undefined).map(key => [key, process.env[key]])) });
+  writeJson(configFile, { binary: require('./claude-finder').resolve(), args, promptFile, cwd, exitFile: path.join(dir, 'exit.json'), stateFile: path.join(dir, 'state.json'), configDir: process.env.CLAUDE_CONFIG_DIR || null, sessionId, report, maxTurns, wallTimeoutMs, job: jobId, attribution: Object.fromEntries(ATTRIBUTION_KEYS.filter(key => process.env[key] !== undefined).map(key => [key, process.env[key]])) });
   try {
     writeJson(jobFile, job);
+    if (options.beforeLaunch) options.beforeLaunch({ job, jobFile, exitFile: path.join(dir, 'exit.json'), stateFile: path.join(dir, 'state.json') });
     const command = [process.execPath, path.join(__dirname, 'remote-session.js'), '--run', configFile].map(quote).join(' ');
     const tmuxArgs = options.tmuxTarget ? ['split-window', '-h', '-t', options.tmuxTarget, '-c', cwd, command] : ['new-session', '-d', '-s', job.tmuxSession, '-c', cwd, command];
     cp.execFileSync('tmux', tmuxArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
@@ -203,6 +204,7 @@ function run(config) {
   else delete env.CLAUDE_CONFIG_DIR;
   // Start without a task: --remote-control can continue locally after an RC failure.
   const child = cp.spawn(config.binary, config.args, { cwd: config.cwd, env, stdio: 'inherit' });
+  if (config.stateFile) writeJson(config.stateFile, { supervisorPid: process.pid, childPid: child.pid || null, sessionId: config.sessionId });
   let stopped = false;
   // Claude handles terminal Ctrl+C; keep its supervising pane alive.
   process.on('SIGINT', () => {});
