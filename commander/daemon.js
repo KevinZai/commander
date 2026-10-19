@@ -29,7 +29,8 @@ var DEFAULT_POLICY = {
   wallTimeoutMs: 45 * 60 * 1000, // supervisor ends the session at this wall-clock age
   maxRunning: 1,
   model: "sonnet",
-  blockedDomains: [],           // regex strings matched against task text, item.domain and item.tags
+  allowedDomains: ["personal", "platform"], // item.domain or a tag must name one; absent/ambiguous is held
+  blockedDomains: [],           // extra regex strings; the GN/MyWiFi hold below cannot be overridden
   quota: null                   // { file, sessionPctMax, weeklyPctMax, maxAgeSec } fails closed when set
 };
 
@@ -38,25 +39,46 @@ function loadPolicy() {
   catch (_) { return Object.assign({}, DEFAULT_POLICY); }
 }
 
+var QUOTA_CLOCK_SKEW_MS = 60 * 1000;
+
+function validPct(value) { return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100; }
+
+// Fails closed: absent policy, unreadable/stale/future snapshots and non-numeric percentages all hold.
 function checkQuota(quota, now) {
-  if (!quota) return null;
+  if (!quota || typeof quota.file !== "string" || !quota.file) return "no quota policy configured; automatic dispatch requires an explicit quota snapshot";
   try {
     var stat = fs.statSync(quota.file);
+    if (stat.mtimeMs - now > QUOTA_CLOCK_SKEW_MS) return "quota snapshot is future-dated";
     if ((now - stat.mtimeMs) / 1000 > (quota.maxAgeSec || 600)) return "quota snapshot is stale";
     var data = JSON.parse(fs.readFileSync(quota.file, "utf8"));
     if (data.admit === false) return "quota snapshot denies admission";
-    var sessionPct = Number(data.sessionPct), weeklyPct = Number(data.weeklyPct);
-    if (!Number.isFinite(sessionPct) || !Number.isFinite(weeklyPct)) return "quota snapshot lacks session/weekly percentages";
-    if (sessionPct >= (quota.sessionPctMax || 80)) return "session quota " + sessionPct + "% is at or above the limit";
-    if (weeklyPct >= (quota.weeklyPctMax || 90)) return "weekly quota " + weeklyPct + "% is at or above the limit";
+    if (!validPct(data.sessionPct) || !validPct(data.weeklyPct)) return "quota snapshot lacks valid session/weekly percentages (0-100)";
+    if (data.sessionPct >= (quota.sessionPctMax || 80)) return "session quota " + data.sessionPct + "% is at or above the limit";
+    if (data.weeklyPct >= (quota.weeklyPctMax || 90)) return "weekly quota " + data.weeklyPct + "% is at or above the limit";
     return null;
   } catch (_) { return "quota snapshot is missing or unreadable"; }
+}
+
+// Business domains that automatic dispatch must never touch; not configurable.
+var PROTECTED_DOMAIN = /(^|[^a-z0-9])(gn|g\.n\.|guest[\s_-]*networks?|my[\s_-]*wi[\s_-]?fi|mywifi(ke)?)([^a-z0-9]|$)/i;
+
+function domainHold(item, policy) {
+  var tags = Array.isArray(item.tags) ? item.tags : [];
+  var labels = [item.domain].concat(tags).filter(function (v) { return v != null; }).map(String);
+  var text = [item.task, item.title, item.project, item.cwd].concat(labels).filter(function (v) { return v != null; }).join("\n");
+  if (PROTECTED_DOMAIN.test(text)) return "protected GN/MyWiFi business domain; never auto-dispatched";
+  var allowed = (Array.isArray(policy.allowedDomains) ? policy.allowedDomains : []).map(function (v) { return String(v).toLowerCase(); });
+  var matches = labels.filter(function (v) { return allowed.indexOf(v.trim().toLowerCase()) !== -1; });
+  if (!matches.length) return "domain unknown or not in allowedDomains (" + allowed.join(", ") + "); set item.domain or a tag to a permitted scope";
+  return null;
 }
 
 // Returns null when the queued item may launch, otherwise the reason it is held.
 function admit(item, policy, running, now) {
   if (!policy.autoDispatch) return "automatic dispatch is not enabled in " + POLICY_FILE;
   if (running >= policy.maxRunning) return running + " queued job(s) already running";
+  var domain = domainHold(item, policy);
+  if (domain) return domain;
   var hay = [item.task, item.domain].concat(item.tags || []).join("\n");
   for (var i = 0; i < policy.blockedDomains.length; i++) {
     if (new RegExp(policy.blockedDomains[i], "im").test(hay)) return "domain blocked by policy (" + policy.blockedDomains[i] + ")";

@@ -327,15 +327,33 @@ function daemonFixture(t, policy) {
 test('daemon admission holds by default and on estimate, domain and quota gates, and admits a clean task', (t) => {
   const home = daemonFixture(t, { autoDispatch: true });
   const daemon = require('../daemon');
-  const item = { id: 'q1', task: 'small task' };
+  const item = { id: 'q1', task: 'small task', domain: 'platform' };
   const base = daemon.loadPolicy();
-  assert.equal(daemon.admit(item, base, 0, Date.now()), null);
-  assert.match(daemon.admit(item, { ...base, autoDispatch: false }, 0, Date.now()), /not enabled/);
-  assert.match(daemon.admit(item, base, 1, Date.now()), /already running/);
-  assert.match(daemon.admit({ ...item, task: 'fix MyWiFi portal' }, { ...base, blockedDomains: ['mywifi'] }, 0, Date.now()), /domain blocked/);
-  assert.match(daemon.admit({ ...item, tags: ['GN'] }, { ...base, blockedDomains: ['^gn$'] }, 0, Date.now()), /domain blocked/);
-  assert.match(daemon.admit({ ...item, task: 'x'.repeat(400000), model: 'fable' }, { ...base, maxEstimateUsd: 0.5 }, 0, Date.now()), /exceeds|ceiling/);
+  const okQuota = path.join(home, 'ok-quota.json');
+  fs.writeFileSync(okQuota, JSON.stringify({ sessionPct: 1, weeklyPct: 1 }));
+  const withQuota = { ...base, quota: { file: okQuota } };
+  assert.equal(daemon.admit(item, withQuota, 0, Date.now()), null);
+  for (const protectedItem of [
+    { ...item, domain: 'gn' }, { ...item, domain: 'GN' }, { ...item, domain: 'mywifi' }, { ...item, domain: 'MyWiFi-KE' },
+    { ...item, tags: ['platform', 'GN'] }, { ...item, tags: ['my wifi'] }, { ...item, task: 'update the Guest Networks portal' },
+    { ...item, task: 'MyWiFi billing fix' }, { ...item, domain: 'Guest-Networks' }, { ...item, cwd: '/work/mywifi/app' }
+  ]) assert.match(daemon.admit(protectedItem, withQuota, 0, Date.now()), /protected GN\/MyWiFi/, JSON.stringify(protectedItem));
+  // Protected hold survives policy that tries to widen or clear the blocklist.
+  assert.match(daemon.admit({ ...item, domain: 'gn' }, { ...withQuota, blockedDomains: [], allowedDomains: ['gn', 'platform'] }, 0, Date.now()), /protected/);
+  for (const ambiguous of [{ id: 'a', task: 'x' }, { ...item, domain: '' }, { ...item, domain: 'business' }, { ...item, domain: null, tags: [] }])
+    assert.match(daemon.admit(ambiguous, withQuota, 0, Date.now()), /domain unknown/, JSON.stringify(ambiguous));
+  assert.equal(daemon.admit({ ...item, domain: null, tags: ['Personal'] }, withQuota, 0, Date.now()), null);
+  assert.equal(daemon.admit({ id: 'g', task: 'bring gnu tools into the platform scripts', domain: 'platform' }, withQuota, 0, Date.now()), null);
+  assert.match(daemon.admit({ ...item, task: 'rotate staging keys' }, { ...withQuota, blockedDomains: ['staging'] }, 0, Date.now()), /domain blocked/);
+  assert.match(daemon.admit(item, { ...withQuota, autoDispatch: false }, 0, Date.now()), /not enabled/);
+  assert.match(daemon.admit(item, withQuota, 1, Date.now()), /already running/);
+  assert.match(daemon.admit({ ...item, task: 'fix MyWiFi portal' }, { ...withQuota, blockedDomains: ['mywifi'] }, 0, Date.now()), /protected/);
+  assert.match(daemon.admit({ ...item, tags: ['GN'] }, { ...withQuota, blockedDomains: ['^gn$'] }, 0, Date.now()), /protected/);
+  assert.match(daemon.admit({ ...item, task: 'x'.repeat(400000), model: 'fable' }, { ...withQuota, maxEstimateUsd: 0.5 }, 0, Date.now()), /exceeds|ceiling/);
   const quotaFile = path.join(home, 'quota.json');
+  assert.match(daemon.admit(item, { ...base, quota: null }, 0, Date.now()), /no quota policy/);
+  assert.match(daemon.admit(item, base, 0, Date.now()), /no quota policy/);
+  assert.match(daemon.admit(item, { ...base, quota: {} }, 0, Date.now()), /no quota policy/);
   const quota = { file: quotaFile, sessionPctMax: 75, weeklyPctMax: 85, maxAgeSec: 600 };
   assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now()), /missing/);
   fs.writeFileSync(quotaFile, JSON.stringify({ sessionPct: 80, weeklyPct: 10 }));
@@ -345,13 +363,32 @@ test('daemon admission holds by default and on estimate, domain and quota gates,
   fs.writeFileSync(quotaFile, JSON.stringify({ sessionPct: 10, weeklyPct: 10 }));
   assert.equal(daemon.admit(item, { ...base, quota }, 0, Date.now()), null);
   assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now() + 3600 * 1000), /stale/);
+  for (const bad of [null, '', false, true, -1, 101, '5', NaN, [], {}, undefined]) {
+    for (const field of ['sessionPct', 'weeklyPct']) {
+      const snapshot = { sessionPct: 10, weeklyPct: 10 };
+      snapshot[field] = bad;
+      fs.writeFileSync(quotaFile, bad === undefined ? JSON.stringify({ sessionPct: 10, weeklyPct: 10, [field]: undefined }) : JSON.stringify(snapshot));
+      assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now()), /valid session\/weekly|quota/, field + '=' + JSON.stringify(bad));
+      assert.notEqual(daemon.admit(item, { ...base, quota }, 0, Date.now()), null, field + '=' + JSON.stringify(bad));
+    }
+  }
+  fs.writeFileSync(quotaFile, JSON.stringify({ sessionPct: 10, weeklyPct: 10 }));
+  const future = new Date(Date.now() + 3600 * 1000);
+  fs.utimesSync(quotaFile, future, future);
+  assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now()), /future-dated/);
+  const skew = new Date(Date.now() + 10 * 1000);
+  fs.utimesSync(quotaFile, skew, skew);
+  assert.equal(daemon.admit(item, { ...base, quota }, 0, Date.now()), null);
+  fs.writeFileSync(quotaFile, JSON.stringify({ sessionPct: 0, weeklyPct: 100 }));
+  assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now()), /weekly quota/);
 });
 
 test('daemon launches an admitted task with RC, 45 minute and turn bounds, then settles it from its report', (t) => {
-  const home = daemonFixture(t, { autoDispatch: true, maxTurns: 12 });
+  const home = daemonFixture(t, { autoDispatch: true, maxTurns: 12, quota: { file: path.join(temp(), 'q.json') } });
+  fs.writeFileSync(JSON.parse(fs.readFileSync(process.env.CCC_DAEMON_POLICY)).quota.file, JSON.stringify({ sessionPct: 5, weeklyPct: 5 }));
   const queue = require('../queue');
   const daemon = require('../daemon');
-  const store = [{ id: 'mem-1', task: 'queued small task', priority: 1, status: 'pending', cwd: home }];
+  const store = [{ id: 'mem-1', task: 'queued small task', domain: 'platform', priority: 1, status: 'pending', cwd: home }];
   const item = store[0];
   const saved = ['getNext', 'listTasks', 'updateStatus'].map(key => [key, queue[key]]);
   queue.getNext = () => store.find(task => task.status === 'pending') || null;

@@ -57,9 +57,15 @@ path with `CCC_DAEMON_POLICY`). Otherwise queued tasks stay pending with a held
 notice. Admission, checked in order, holds the task (never fails it) when:
 
 1. `maxRunning` (default 1) queued jobs are already running;
-2. the task text, `domain` or `tags` match a `blockedDomains` regex;
-3. a configured `quota` snapshot (`{file, sessionPctMax, weeklyPctMax, maxAgeSec}`)
-   is missing, stale, unparseable or over a limit (fails closed);
+2. domain: any text, `domain`, tag, project or cwd naming GN, Guest Networks or
+   MyWiFi is always held (hard-coded, not overridable by policy); otherwise
+   `item.domain` or a tag must be in `allowedDomains` (default `personal`,
+   `platform`), so an absent or ambiguous domain is held. Extra `blockedDomains`
+   regexes may add holds;
+3. a `quota` snapshot (`{file, sessionPctMax, weeklyPctMax, maxAgeSec}`) is
+   required: no quota policy, or a missing, stale, future-dated (over 60 s of
+   skew), unparseable snapshot, or a percentage that is not a finite number
+   from 0 to 100, holds the task (fails closed);
 4. the pre-dispatch cost estimate exceeds `maxEstimateUsd` (default $5). The
    estimate is an admission gate, not a runtime cap.
 
