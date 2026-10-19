@@ -1,12 +1,12 @@
 # CC Commander Cheatsheet
-> CC Commander v8.0.0 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v8.1.0 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-10-13 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v8.0.0)
+## Desktop Plugin Commands (v8.1.0)
 
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 84 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
 
@@ -1057,7 +1057,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v8.0.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v8.1.0 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1144,7 +1144,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v8.0.0 Quick Reference (CLI)
+## CC Commander v8.1.0 Quick Reference (CLI)
 
 ```bash
 # Launch
