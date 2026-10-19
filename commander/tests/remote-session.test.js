@@ -28,7 +28,8 @@ function withLaunch(fn, output = '') {
 test('interactive arguments enable RC and preserve exact system prompt without print flags', () => {
   const args = remote.interactiveArgs({ model: 'sonnet', systemPrompt: 'a "quote"\nsecond line', resume: 'session-1' });
   assert.deepEqual(args, ['--remote-control', 'ccc', '--resume', 'session-1', '--model', 'sonnet', '--append-system-prompt', 'a "quote"\nsecond line']);
-  for (const option of ['maxTurns', 'maxBudgetUsd', 'jsonSchema', 'outputFormat']) assert.throws(() => remote.interactiveArgs({ [option]: 1 }), /unsupported.*interactive/);
+  assert.deepEqual(remote.interactiveArgs({ maxTurns: 5 }, 's1'), ['--remote-control', 'ccc', '--session-id', 's1']);
+  for (const option of ['maxBudgetUsd', 'jsonSchema', 'outputFormat']) assert.throws(() => remote.interactiveArgs({ [option]: 1 }), /unsupported.*interactive/);
 });
 
 test('launch is a safe tmux argv boundary, preserves long prompts, and registers no content', () => withLaunch((dir, calls) => {
@@ -236,4 +237,151 @@ test('detaching from menu preserves native session and does not mark completion 
   assert.equal(session.cost, null);
   assert.equal(completions, 0);
   assert.equal(successWrites, 0);
+});
+
+function supervise(t, { script, config }) {
+  const dir = temp();
+  const bin = path.join(dir, 'fake-claude.js');
+  fs.writeFileSync(bin, '#!/usr/bin/env node\n' + script);
+  fs.chmodSync(bin, 0o755);
+  const configDir = path.join(dir, 'cfg');
+  fs.mkdirSync(path.join(configDir, 'projects', 'p'), { recursive: true });
+  const launch = Object.assign({ binary: bin, args: [], cwd: dir, exitFile: path.join(dir, 'exit.json'), configDir, sessionId: 'sess-1', report: path.join(dir, 'REPORT.md'), job: 'j', killGraceMs: 500 }, config);
+  const file = path.join(dir, 'launch.json');
+  fs.writeFileSync(file, JSON.stringify(launch));
+  return { dir, launch, file, transcript: path.join(configDir, 'projects', 'p', 'sess-1.jsonl') };
+}
+function runSupervisor(file) {
+  return new Promise(resolve => {
+    const started = Date.now();
+    const child = cp.spawn(process.execPath, [path.resolve(__dirname, '../remote-session.js'), '--run', file], { stdio: 'ignore', env: { ...process.env, TMUX_PANE: '' } });
+    child.on('close', code => resolve({ code, ms: Date.now() - started }));
+  });
+}
+
+test('wall-clock timeout writes a blocked report and terminates the session', async (t) => {
+  const s = supervise(t, { script: 'setInterval(()=>{},1000);', config: { wallTimeoutMs: 400 } });
+  const result = await runSupervisor(s.file);
+  assert.ok(result.ms < 20000);
+  const report = fs.readFileSync(s.launch.report, 'utf8');
+  assert.match(report, /^Status: blocked — Wall-clock limit of 0 seconds|^Status: blocked — Wall-clock limit/);
+  assert.match(report, /session terminated/);
+  assert.ok(fs.existsSync(s.launch.exitFile));
+  assert.equal(JSON.parse(fs.readFileSync(s.launch.exitFile)).signal, 'SIGTERM');
+});
+
+test('a session that ignores SIGTERM is killed after the grace period', async (t) => {
+  const s = supervise(t, { script: "process.on('SIGTERM',()=>{});setInterval(()=>{},1000);", config: { wallTimeoutMs: 300 } });
+  await runSupervisor(s.file);
+  assert.equal(JSON.parse(fs.readFileSync(s.launch.exitFile)).signal, 'SIGKILL');
+});
+
+test('max-turn watchdog terminates the session once distinct assistant turns exceed the limit', async (t) => {
+  const script = "const fs=require('fs');let n=0;const f=process.env.T;setInterval(()=>{n++;fs.appendFileSync(f,JSON.stringify({type:'assistant',message:{id:'m'+n}})+'\\n'+JSON.stringify({type:'user'})+'\\n');},100);";
+  const s = supervise(t, { script, config: { maxTurns: 3, watchdogPollMs: 100 } });
+  process.env.T = s.transcript;
+  try { await runSupervisor(s.file); } finally { delete process.env.T; }
+  const report = fs.readFileSync(s.launch.report, 'utf8');
+  assert.match(report, /^Status: blocked — Turn limit of 3 exceeded/);
+  assert.equal(JSON.parse(fs.readFileSync(s.launch.exitFile)).signal, 'SIGTERM');
+});
+
+test('turn counter ignores duplicate message ids and partial trailing lines', () => {
+  const dir = temp();
+  fs.mkdirSync(path.join(dir, 'projects', 'p'), { recursive: true });
+  const file = path.join(dir, 'projects', 'p', 's.jsonl');
+  const count = remote.createTurnCounter(dir, 's');
+  assert.equal(count(), 0);
+  fs.writeFileSync(file, '{"type":"assistant","message":{"id":"a"}}\n{"type":"assistant","message":{"id":"a"}}\n{"type":"assistant","mess');
+  assert.equal(count(), 1);
+  fs.appendFileSync(file, 'age":{"id":"b"}}\n{"type":"user"}\n');
+  assert.equal(count(), 2);
+});
+
+test('start records bounds and rejects invalid ones before launching', () => withLaunch((dir, calls) => {
+  assert.throws(() => remote.start('task', { cwd: dir, maxTurns: 0 }), /maxTurns/);
+  assert.throws(() => remote.start('task', { cwd: dir, wallTimeoutMs: -1 }), /wallTimeoutMs/);
+  assert.equal(calls.length, 0);
+  const handle = remote.start('task', { cwd: dir, maxTurns: 30, wallTimeoutMs: remote.DEFAULT_WALL_TIMEOUT_MS });
+  const launch = JSON.parse(fs.readFileSync(path.join(dir, 'jobs', handle.job.job, 'launch.json')));
+  assert.equal(launch.maxTurns, 30);
+  assert.equal(launch.wallTimeoutMs, 45 * 60 * 1000);
+  assert.ok(launch.args.includes('--remote-control'));
+}));
+
+function daemonFixture(t, policy) {
+  const home = temp();
+  const oldHome = process.env.HOME;
+  const oldPolicy = process.env.CCC_DAEMON_POLICY;
+  process.env.HOME = home;
+  const file = path.join(home, 'policy.json');
+  fs.writeFileSync(file, JSON.stringify(policy));
+  process.env.CCC_DAEMON_POLICY = file;
+  t.after(() => {
+    if (oldHome === undefined) delete process.env.HOME; else process.env.HOME = oldHome;
+    if (oldPolicy === undefined) delete process.env.CCC_DAEMON_POLICY; else process.env.CCC_DAEMON_POLICY = oldPolicy;
+  });
+  return home;
+}
+
+test('daemon admission holds by default and on estimate, domain and quota gates, and admits a clean task', (t) => {
+  const home = daemonFixture(t, { autoDispatch: true });
+  const daemon = require('../daemon');
+  const item = { id: 'q1', task: 'small task' };
+  const base = daemon.loadPolicy();
+  assert.equal(daemon.admit(item, base, 0, Date.now()), null);
+  assert.match(daemon.admit(item, { ...base, autoDispatch: false }, 0, Date.now()), /not enabled/);
+  assert.match(daemon.admit(item, base, 1, Date.now()), /already running/);
+  assert.match(daemon.admit({ ...item, task: 'fix MyWiFi portal' }, { ...base, blockedDomains: ['mywifi'] }, 0, Date.now()), /domain blocked/);
+  assert.match(daemon.admit({ ...item, tags: ['GN'] }, { ...base, blockedDomains: ['^gn$'] }, 0, Date.now()), /domain blocked/);
+  assert.match(daemon.admit({ ...item, task: 'x'.repeat(400000), model: 'fable' }, { ...base, maxEstimateUsd: 0.5 }, 0, Date.now()), /exceeds|ceiling/);
+  const quotaFile = path.join(home, 'quota.json');
+  const quota = { file: quotaFile, sessionPctMax: 75, weeklyPctMax: 85, maxAgeSec: 600 };
+  assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now()), /missing/);
+  fs.writeFileSync(quotaFile, JSON.stringify({ sessionPct: 80, weeklyPct: 10 }));
+  assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now()), /session quota/);
+  fs.writeFileSync(quotaFile, JSON.stringify({ sessionPct: 10, weeklyPct: 90 }));
+  assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now()), /weekly quota/);
+  fs.writeFileSync(quotaFile, JSON.stringify({ sessionPct: 10, weeklyPct: 10 }));
+  assert.equal(daemon.admit(item, { ...base, quota }, 0, Date.now()), null);
+  assert.match(daemon.admit(item, { ...base, quota }, 0, Date.now() + 3600 * 1000), /stale/);
+});
+
+test('daemon launches an admitted task with RC, 45 minute and turn bounds, then settles it from its report', (t) => {
+  const home = daemonFixture(t, { autoDispatch: true, maxTurns: 12 });
+  const queue = require('../queue');
+  const daemon = require('../daemon');
+  const store = [{ id: 'mem-1', task: 'queued small task', priority: 1, status: 'pending', cwd: home }];
+  const item = store[0];
+  const saved = ['getNext', 'listTasks', 'updateStatus'].map(key => [key, queue[key]]);
+  queue.getNext = () => store.find(task => task.status === 'pending') || null;
+  queue.listTasks = status => store.filter(task => !status || task.status === status);
+  queue.updateStatus = (id, status, extra) => { const task = store.find(entry => entry.id === id); task.status = status; Object.assign(task, extra || {}); return task; };
+  const oldExec = cp.execFileSync;
+  const oldJobs = process.env.CLAUDE_REMOTE_JOBS_DIR;
+  const oldOut = process.stdout.write;
+  const calls = [];
+  process.env.CLAUDE_REMOTE_JOBS_DIR = path.join(home, 'jobs');
+  cp.execFileSync = (command, args) => { calls.push({ command, args }); return ''; };
+  process.stdout.write = () => true;
+  try {
+    const cwd = process.cwd();
+    daemon.tick({ budget: 60000 });
+    const launched = queue.listTasks('running').find(task => task.id === item.id);
+    assert.ok(launched, 'task moved to running');
+    assert.ok(calls.some(call => call.command === 'tmux' && call.args[0] === 'new-session'));
+    const launch = JSON.parse(fs.readFileSync(path.join(home, 'jobs', launched.remote.job, 'launch.json')));
+    assert.ok(launch.args.includes('--remote-control'));
+    assert.equal(launch.maxTurns, 12);
+    assert.equal(launch.wallTimeoutMs, 45 * 60 * 1000);
+    fs.writeFileSync(launched.remote.report, 'Status: done — finished\n');
+    daemon.reconcile();
+    assert.equal(queue.listTasks('done').find(task => task.id === item.id).result, 'finished');
+    assert.equal(cwd, process.cwd());
+  } finally {
+    saved.forEach(([key, fn]) => { queue[key] = fn; });
+    cp.execFileSync = oldExec;
+    process.stdout.write = oldOut;
+    if (oldJobs === undefined) delete process.env.CLAUDE_REMOTE_JOBS_DIR; else process.env.CLAUDE_REMOTE_JOBS_DIR = oldJobs;
+  }
 });

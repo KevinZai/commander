@@ -56,6 +56,7 @@ function updateStatus(id, status, extra) {
     if (extra.result) item.result = extra.result;
     if (extra.cost) item.cost = extra.cost;
     if (extra.error) item.error = extra.error;
+    if (extra.remote) item.remote = extra.remote;
   }
   fs.writeFileSync(fp, JSON.stringify(item, null, 2));
   return item;
