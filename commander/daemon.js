@@ -31,8 +31,25 @@ var DEFAULT_POLICY = {
   model: "sonnet",
   allowedDomains: ["personal", "platform"], // item.domain or a tag must name one; absent/ambiguous is held
   blockedDomains: [],           // extra regex strings; the GN/MyWiFi hold below cannot be overridden
-  quota: null                   // { file, sessionPctMax, weeklyPctMax, maxAgeSec } fails closed when set
+  quota: null,                  // { file, sessionPctMax, weeklyPctMax, maxAgeSec } fails closed when set
+  killGraceMs: 10000            // SIGTERM-to-SIGKILL grace when a session is reaped
 };
+
+// Remote metadata for every job this daemon process launched; reaped on shutdown.
+var launched = {};
+
+var reaping = new Set();
+
+function reap(remoteMeta, why, graceMs) {
+  if (!remoteMeta || !remoteMeta.stateFile) return Promise.resolve(null);
+  var pending = require("./remote-session").stopSession(remoteMeta, { graceMs: graceMs }).then(function (result) {
+    if (result.stopped) log("Reaped " + remoteMeta.job + " (" + why + "): " + result.pids.length + " process(es) signalled" + (result.killed.length ? ", " + result.killed.length + " needed SIGKILL" : ""));
+    return result;
+  }, function (error) { log("Reap " + remoteMeta.job + " failed: " + error.message); return null; });
+  reaping.add(pending);
+  pending.then(function () { reaping.delete(pending); });
+  return pending;
+}
 
 function loadPolicy() {
   try { return Object.assign({}, DEFAULT_POLICY, JSON.parse(fs.readFileSync(process.env.CCC_DAEMON_POLICY || POLICY_FILE, "utf8"))); }
@@ -133,6 +150,10 @@ function reconcile() {
     if (match) {
       queue.updateStatus(item.id, match[1] === "done" ? "done" : "failed", match[1] === "done" ? { result: match[2] } : { error: match[1] + ": " + match[2] });
       log("Queue " + item.id + " " + match[1] + ": " + match[2]);
+      if (item.remote) {
+        delete launched[item.remote.job];
+        reap(item.remote, "report " + match[1], loadPolicy().killGraceMs);
+      }
     } else if (abandoned(item)) {
       queue.updateStatus(item.id, "failed", { error: "Remote Control supervisor/session exited without a terminal report; inspect before retrying" });
       log("Queue " + item.id + " failed: abandoned Remote Control launch");
@@ -158,13 +179,15 @@ function tick(config) {
         if (!queue.claimTask(next.id)) return;
         require("./remote-session").start(next.task, {
           cwd: next.cwd, model: next.model || policy.model, name: "ccc-queue",
-          maxTurns: policy.maxTurns, wallTimeoutMs: policy.wallTimeoutMs,
+          maxTurns: policy.maxTurns, wallTimeoutMs: policy.wallTimeoutMs, reapOnReport: true,
           beforeLaunch: function (prepared) {
-            var saved = queue.updateStatus(next.id, "running", { remote: {
+            var meta = {
               job: prepared.job.job, report: prepared.job.report, sessionId: prepared.job.sessionId,
               tmuxSession: prepared.job.tmuxSession, exitFile: prepared.exitFile, stateFile: prepared.stateFile
-            } });
+            };
+            var saved = queue.updateStatus(next.id, "running", { remote: meta });
             if (!saved) throw new Error("queue launch metadata could not be persisted");
+            launched[meta.job] = Object.assign({ queueId: next.id }, meta);
           }
         });
         log("Queue " + next.id + " launched with Remote Control (" + policy.maxTurns + " turns / " + Math.round(policy.wallTimeoutMs / 60000) + " min bounds)");
@@ -227,13 +250,18 @@ function start(config) {
   // Dream loop
   var dreamTimer = setInterval(function () { try { runDream(); } catch (e) { log("Dream error: " + e.message); } }, config.dreamInterval);
 
-  // Graceful shutdown
+  // Graceful shutdown: stop every session this daemon launched before exiting.
+  var stopping = false;
   function shutdown() {
+    if (stopping) return;
+    stopping = true;
     log("=== CCC Daemon shutting down ===");
     clearInterval(tickTimer);
     clearInterval(dreamTimer);
-    try { fs.unlinkSync(PID_FILE); } catch (_) {}
-    process.exit(0);
+    stopLaunched(loadPolicy().killGraceMs).then(function () {
+      try { fs.unlinkSync(PID_FILE); } catch (_) {}
+      process.exit(0);
+    });
   }
 
   process.on("SIGTERM", shutdown);
@@ -246,6 +274,18 @@ function start(config) {
   process.stdin.resume();
 }
 
+function stopLaunched(graceMs) {
+  var jobs = Object.keys(launched).map(function (key) { return launched[key]; });
+  var inFlight = Array.from(reaping);
+  return Promise.all(inFlight.concat(jobs.map(function (meta) {
+    return reap(meta, "daemon stop", graceMs).then(function (result) {
+      delete launched[meta.job];
+      var item = queue.listTasks("running").find(function (task) { return task.id === meta.queueId; });
+      if (item && result && result.stopped) queue.updateStatus(item.id, "failed", { error: "daemon stopped before the job wrote a terminal report; session terminated" });
+    });
+  })));
+}
+
 function isRunning() {
   try {
     var pid = parseInt(fs.readFileSync(PID_FILE, "utf8").trim());
@@ -256,10 +296,20 @@ function isRunning() {
   }
 }
 
-function stop() {
+// Signals the daemon and waits for it to finish reaping its sessions and exit.
+function stop(options) {
   var pid = isRunning();
   if (!pid) return false;
-  try { process.kill(pid, "SIGTERM"); return true; } catch (_) { return false; }
+  try { process.kill(pid, "SIGTERM"); } catch (_) { return false; }
+  var timeoutMs = (options && options.timeoutMs) || loadPolicy().killGraceMs + 20000;
+  var deadline = Date.now() + timeoutMs;
+  var pause = new Int32Array(new SharedArrayBuffer(4));
+  while (Date.now() < deadline) {
+    try { process.kill(pid, 0); } catch (_) { return true; }
+    Atomics.wait(pause, 0, 0, 200);
+  }
+  console.error("Daemon PID " + pid + " is still shutting down after " + Math.round(timeoutMs / 1000) + "s.");
+  return true;
 }
 
-module.exports = { admit: admit, loadPolicy: loadPolicy, reconcile: reconcile, start: start, isRunning: isRunning, stop: stop, tick: tick, runDream: runDream, log: log };
+module.exports = { stopLaunched: stopLaunched, launched: launched, admit: admit, loadPolicy: loadPolicy, reconcile: reconcile, start: start, isRunning: isRunning, stop: stop, tick: tick, runDream: runDream, log: log };

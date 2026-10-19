@@ -423,3 +423,110 @@ test('daemon launches an admitted task with RC, 45 minute and turn bounds, then 
     if (oldJobs === undefined) delete process.env.CLAUDE_REMOTE_JOBS_DIR; else process.env.CLAUDE_REMOTE_JOBS_DIR = oldJobs;
   }
 });
+
+function waitFor(check, ms = 5000) {
+  const deadline = Date.now() + ms;
+  return new Promise((resolve, reject) => {
+    const poll = () => check() ? resolve() : Date.now() > deadline ? reject(new Error('timed out')) : setTimeout(poll, 50);
+    poll();
+  });
+}
+function pidAlive(pid) { try { process.kill(pid, 0); return true; } catch (_) { return false; } }
+
+test('descendants walks the full process tree from the roots only', () => {
+  const rows = [{ pid: 10, ppid: 1 }, { pid: 11, ppid: 10 }, { pid: 12, ppid: 11 }, { pid: 13, ppid: 1 }, { pid: 14, ppid: 13 }];
+  assert.deepEqual(remote.descendants([10], rows).sort(), [10, 11, 12]);
+  assert.deepEqual(remote.descendants([1, 0, null], rows), []);
+});
+
+test('a done report reaps the session and its whole process tree, SIGKILLing survivors after the grace', async (t) => {
+  const grandchild = "process.on('SIGTERM',()=>{});setInterval(()=>{},1000)";
+  const script = "const cp=require('child_process'),fs=require('fs');const g=cp.spawn(process.execPath,['-e'," + JSON.stringify(grandchild) + "],{stdio:'ignore'});" +
+    "fs.writeFileSync(process.env.G,String(g.pid));setTimeout(()=>fs.writeFileSync(process.env.R,'Status: done — ok\\n'),200);setInterval(()=>{},1000);";
+  const s = supervise(t, { script, config: { reapOnReport: true, reapPollMs: 50, reapSettleMs: 50 } });
+  process.env.G = path.join(s.dir, 'grandchild.pid');
+  process.env.R = s.launch.report;
+  let result;
+  try { result = await runSupervisor(s.file); } finally { delete process.env.G; delete process.env.R; }
+  assert.ok(result.ms < 15000);
+  assert.equal(fs.readFileSync(s.launch.report, 'utf8'), 'Status: done — ok\n');
+  assert.equal(JSON.parse(fs.readFileSync(s.launch.exitFile)).signal, 'SIGTERM');
+  const pid = Number(fs.readFileSync(path.join(s.dir, 'grandchild.pid'), 'utf8'));
+  await waitFor(() => !pidAlive(pid));
+});
+
+test('without reapOnReport a reported session keeps running until another bound fires', async (t) => {
+  const script = "require('fs').writeFileSync(process.env.R,'Status: done — ok\\n');setInterval(()=>{},1000);";
+  const s = supervise(t, { script, config: { wallTimeoutMs: 1500, reapPollMs: 50, reapSettleMs: 0 } });
+  process.env.R = s.launch.report;
+  let result;
+  try { result = await runSupervisor(s.file); } finally { delete process.env.R; }
+  assert.ok(result.ms >= 1400, 'session survived its report until the wall timeout');
+});
+
+test('stopSession ends a matching supervisor and session and refuses a mismatched identity', async (t) => {
+  const s = supervise(t, { script: 'setInterval(()=>{},1000);', config: {} });
+  const job = path.basename(s.dir);
+  const stateFile = path.join(s.dir, 'state.json');
+  Object.assign(s.launch, { job, stateFile, args: ['--session-id', 'sess-1'] });
+  fs.writeFileSync(s.file, JSON.stringify(s.launch));
+  const done = runSupervisor(s.file);
+  await waitFor(() => fs.existsSync(stateFile));
+  const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+  const meta = { job, stateFile, sessionId: 'sess-1', tmuxSession: 'caller-session' };
+  assert.equal((await remote.stopSession({ ...meta, sessionId: 'other' })).stopped, false);
+  assert.ok(pidAlive(state.childPid) && pidAlive(state.supervisorPid));
+  const stopped = await remote.stopSession(meta, { graceMs: 500 });
+  assert.equal(stopped.stopped, true);
+  assert.ok(stopped.pids.includes(state.childPid) && stopped.pids.includes(state.supervisorPid));
+  await done;
+  await waitFor(() => !pidAlive(state.childPid) && !pidAlive(state.supervisorPid));
+  assert.match(fs.readFileSync(s.launch.report, 'utf8'), /^Status: (blocked|failed) — /);
+  assert.equal((await remote.stopSession(meta)).stopped, false);
+});
+
+test('daemon reaps a settled job and stops every session it launched on shutdown', (t) => {
+  const home = daemonFixture(t, { autoDispatch: true, maxRunning: 2, killGraceMs: 25, quota: { file: path.join(temp(), 'q.json') } });
+  fs.writeFileSync(JSON.parse(fs.readFileSync(process.env.CCC_DAEMON_POLICY)).quota.file, JSON.stringify({ sessionPct: 5, weeklyPct: 5 }));
+  const queue = require('../queue');
+  const daemon = require('../daemon');
+  const store = ['mem-a', 'mem-b'].map((id, i) => ({ id, task: 'queued small task', domain: 'platform', priority: i + 1, status: 'pending', cwd: home }));
+  const saved = ['getNext', 'listTasks', 'updateStatus', 'claimTask', 'recoverClaims'].map(key => [key, queue[key]]);
+  queue.claimTask = id => queue.updateStatus(id, 'running');
+  queue.recoverClaims = () => {};
+  queue.getNext = () => store.find(task => task.status === 'pending') || null;
+  queue.listTasks = status => store.filter(task => !status || task.status === status);
+  queue.updateStatus = (id, status, extra) => { const task = store.find(entry => entry.id === id); task.status = status; Object.assign(task, extra || {}); return task; };
+  const oldExec = cp.execFileSync;
+  const oldStop = remote.stopSession;
+  const oldJobs = process.env.CLAUDE_REMOTE_JOBS_DIR;
+  const oldOut = process.stdout.write;
+  const stops = [];
+  process.env.CLAUDE_REMOTE_JOBS_DIR = path.join(home, 'jobs');
+  cp.execFileSync = () => '';
+  remote.stopSession = (meta, options) => { stops.push({ job: meta.job, graceMs: options.graceMs }); return Promise.resolve({ stopped: true, pids: [1], killed: [] }); };
+  process.stdout.write = () => true;
+  t.after(() => {
+    saved.forEach(([key, fn]) => { queue[key] = fn; });
+    cp.execFileSync = oldExec;
+    remote.stopSession = oldStop;
+    process.stdout.write = oldOut;
+    if (oldJobs === undefined) delete process.env.CLAUDE_REMOTE_JOBS_DIR; else process.env.CLAUDE_REMOTE_JOBS_DIR = oldJobs;
+  });
+  daemon.tick({ budget: 60000 });
+  daemon.tick({ budget: 60000 });
+  const [a, b] = store;
+  assert.equal(a.status, 'running');
+  assert.equal(b.status, 'running');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(home, 'jobs', a.remote.job, 'launch.json'))).reapOnReport, true);
+  fs.writeFileSync(a.remote.report, 'Status: done — finished\n');
+  daemon.reconcile();
+  assert.equal(a.status, 'done');
+  assert.deepEqual(stops, [{ job: a.remote.job, graceMs: 25 }]);
+  return daemon.stopLaunched(25).then(() => {
+    assert.deepEqual(stops.map(stop => stop.job), [a.remote.job, b.remote.job]);
+    assert.equal(b.status, 'failed');
+    assert.match(b.error, /daemon stopped/);
+    assert.deepEqual(Object.keys(daemon.launched), []);
+  });
+});

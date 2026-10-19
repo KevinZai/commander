@@ -33,6 +33,7 @@ function interactiveArgs(options = {}, sessionId) {
 const DEFAULT_WALL_TIMEOUT_MS = 45 * 60 * 1000;
 const WATCHDOG_POLL_MS = 5000;
 const KILL_GRACE_MS = 10000;
+const REAP_SETTLE_MS = 3000;
 
 function positiveInt(value, name) {
   if (value == null) return null;
@@ -130,7 +131,7 @@ function start(task, options = {}) {
   const job = { version: 1, maxTurns, wallTimeoutMs, job: jobId, account: accountName(), model: options.model || null, sessionId, linearIssue: options.linearIssue || null, startedAt: new Date().toISOString(), cwd, tmuxSession: options.tmuxTarget || jobId, report };
   const jobFile = path.join(root, jobId + '.json');
   const configFile = path.join(dir, 'launch.json');
-  writeJson(configFile, { binary: require('./claude-finder').resolve(), args, promptFile, cwd, exitFile: path.join(dir, 'exit.json'), stateFile: path.join(dir, 'state.json'), configDir: process.env.CLAUDE_CONFIG_DIR || null, sessionId, report, maxTurns, wallTimeoutMs, job: jobId, attribution: Object.fromEntries(ATTRIBUTION_KEYS.filter(key => process.env[key] !== undefined).map(key => [key, process.env[key]])) });
+  writeJson(configFile, { binary: require('./claude-finder').resolve(), args, promptFile, cwd, exitFile: path.join(dir, 'exit.json'), stateFile: path.join(dir, 'state.json'), configDir: process.env.CLAUDE_CONFIG_DIR || null, sessionId, report, maxTurns, wallTimeoutMs, reapOnReport: options.reapOnReport === true, job: jobId, attribution: Object.fromEntries(ATTRIBUTION_KEYS.filter(key => process.env[key] !== undefined).map(key => [key, process.env[key]])) });
   try {
     writeJson(jobFile, job);
     if (options.beforeLaunch) options.beforeLaunch({ job, jobFile, exitFile: path.join(dir, 'exit.json'), stateFile: path.join(dir, 'state.json') });
@@ -184,6 +185,72 @@ function observe(handle, options = {}) {
   });
 }
 
+// Process-tree reaping. Descendants are snapshotted before signalling because
+// children re-parent to init once their parent dies.
+function processTable() {
+  try {
+    return cp.execFileSync('ps', ['-A', '-o', 'pid=,ppid=,command='], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 })
+      .split('\n').map(line => line.match(/^\s*(\d+)\s+(\d+)\s?(.*)$/)).filter(Boolean)
+      .map(m => ({ pid: Number(m[1]), ppid: Number(m[2]), command: m[3] }));
+  } catch (_) { return []; }
+}
+
+function descendants(roots, rows) {
+  const tree = new Set(roots.filter(pid => Number.isInteger(pid) && pid > 1));
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const row of rows) if (tree.has(row.ppid) && !tree.has(row.pid) && row.pid !== process.pid) { tree.add(row.pid); grew = true; }
+  }
+  return [...tree];
+}
+
+function alive(pid) {
+  try { process.kill(pid, 0); return true; } catch (error) { return error.code === 'EPERM'; }
+}
+
+function signalAll(pids, signal) { for (const pid of pids) { try { process.kill(pid, signal); } catch (_) {} } }
+
+// SIGTERM the whole tree, then SIGKILL whatever survives the grace period.
+function terminateTree(roots, options = {}) {
+  const graceMs = options.graceMs == null ? KILL_GRACE_MS : options.graceMs;
+  const pids = descendants(roots, options.rows || processTable());
+  signalAll(pids, 'SIGTERM');
+  return new Promise(resolve => {
+    const deadline = Date.now() + graceMs;
+    const poll = () => {
+      const left = pids.filter(alive);
+      if (!left.length) return resolve({ pids, killed: [] });
+      if (Date.now() >= deadline) {
+        const killed = [...new Set(left.concat(descendants(left, processTable())))];
+        signalAll(killed, 'SIGKILL');
+        return resolve({ pids, killed });
+      }
+      setTimeout(poll, options.pollMs || 100);
+    };
+    poll();
+  });
+}
+
+// Stop a launched job's supervisor, Claude session and their descendants. Only pids whose
+// command line still names this job (supervisor) or session id (Claude) are signalled.
+async function stopSession(remote, options = {}) {
+  let state;
+  try { state = JSON.parse(fs.readFileSync(remote.stateFile, 'utf8')); } catch (_) { return { stopped: false, reason: 'no supervisor state', pids: [] }; }
+  if (!state || state.sessionId !== remote.sessionId) return { stopped: false, reason: 'supervisor state does not match the session', pids: [] };
+  const rows = processTable();
+  const command = pid => (rows.find(row => row.pid === pid) || {}).command || '';
+  const roots = [];
+  if (Number.isInteger(state.supervisorPid) && command(state.supervisorPid).includes('remote-session.js') && command(state.supervisorPid).includes(remote.job)) roots.push(state.supervisorPid);
+  if (Number.isInteger(state.childPid) && command(state.childPid).includes(remote.sessionId)) roots.push(state.childPid);
+  const result = roots.length ? await terminateTree(roots, { graceMs: options.graceMs, rows }) : { pids: [], killed: [] };
+  // Only the dedicated session this job created; split panes belong to the caller's session.
+  if (remote.tmuxSession && remote.tmuxSession === remote.job) {
+    try { cp.execFileSync('tmux', ['kill-session', '-t', '=' + remote.tmuxSession], { stdio: 'ignore', timeout: 5000 }); } catch (_) {}
+  }
+  return { stopped: roots.length > 0, reason: roots.length ? null : 'session already gone', pids: result.pids, killed: result.killed };
+}
+
 function remoteReady(config, pid) {
   const sessions = path.join(config.configDir || path.join(os.homedir(), '.claude'), 'sessions');
   try {
@@ -225,10 +292,10 @@ function run(config) {
     if (stopped || terminating) return;
     terminating = true;
     reportFailure(config, 'blocked', message);
-    try { child.kill('SIGTERM'); } catch (_) {}
-    const killer = setTimeout(() => { if (!stopped) { try { child.kill('SIGKILL'); } catch (_) {} } }, config.killGraceMs || KILL_GRACE_MS);
-    killer.unref();
+    terminateTree([child.pid], { graceMs: config.killGraceMs || KILL_GRACE_MS });
   };
+  // Stopping the supervisor (daemon stop, tmux kill-session) takes the session down with it.
+  for (const signal of ['SIGTERM', 'SIGHUP']) process.on(signal, () => terminate('Supervisor received ' + signal + '; session terminated'));
   const timers = [];
   if (config.wallTimeoutMs) {
     timers.push(setTimeout(() => terminate('Wall-clock limit of ' + Math.round(config.wallTimeoutMs / 1000) + ' seconds reached; session terminated by the supervisor'), config.wallTimeoutMs));
@@ -240,6 +307,17 @@ function run(config) {
       if (count > config.maxTurns) terminate('Turn limit of ' + config.maxTurns + ' exceeded (' + count + ' assistant turns); session terminated by the supervisor');
     }, config.watchdogPollMs || WATCHDOG_POLL_MS);
     timers.push(watch);
+  }
+  if (config.reapOnReport) {
+    // A settled job must not keep its session: end it shortly after the terminal report lands.
+    const reaper = setInterval(() => {
+      let report = '';
+      try { report = fs.readFileSync(config.report, 'utf8'); } catch (_) { return; }
+      if (!/^Status: (done|blocked|failed) — [^\r\n]+/.test(report)) return;
+      clearInterval(reaper);
+      timers.push(setTimeout(() => terminate('Terminal report written; session reaped'), config.reapSettleMs == null ? REAP_SETTLE_MS : config.reapSettleMs));
+    }, config.reapPollMs || 1000);
+    timers.push(reaper);
   }
   child.on('close', () => timers.forEach(timer => { clearTimeout(timer); clearInterval(timer); }));
   const deadline = Date.now() + 120000;
@@ -269,4 +347,4 @@ function run(config) {
 
 if (require.main === module && process.argv[2] === '--run') run(JSON.parse(fs.readFileSync(process.argv[3], 'utf8')));
 
-module.exports = { start, observe, interactiveArgs, accountName, quote, remoteReady, createTurnCounter, findTranscript, DEFAULT_WALL_TIMEOUT_MS };
+module.exports = { start, observe, interactiveArgs, accountName, quote, remoteReady, createTurnCounter, findTranscript, descendants, processTable, terminateTree, stopSession, DEFAULT_WALL_TIMEOUT_MS, KILL_GRACE_MS };
