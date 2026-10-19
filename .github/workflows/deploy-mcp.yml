@@ -19,8 +19,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-mcp-${{ github.ref }}
-  cancel-in-progress: true
+  group: deploy-commander-production
+  cancel-in-progress: false
 
 jobs:
   verify:

@@ -53,8 +53,26 @@ function searchSkillsBlurb(): string {
   return `Search across ${count} skills — returns ranked matches with relevance scores.`;
 }
 
-export const TOOL_SCHEMAS: Record<ToolName, object> = {
+// MCP 2026-07-28 ToolAnnotations; these are hints, not permission enforcement.
+export type ToolAnnotations = {
+  title?: string;
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  idempotentHint?: boolean;
+  openWorldHint?: boolean;
+};
+
+type ToolSchema = {
+  description: string;
+  inputSchema: { type: "object"; [key: string]: unknown };
+  annotations: Required<ToolAnnotations>;
+};
+
+// Hints describe handler effects, excluding shared auth/usage/telemetry bookkeeping.
+// Network-backed handlers are open-world, including managed database reads/writes.
+export const TOOL_SCHEMAS: Record<ToolName, ToolSchema> = {
   commander_list_skills: {
+    annotations: { title: "List skills", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "List Commander skills with metadata. Returns a paginated catalog including name, domain, tier, and description for each skill. Use this to browse or filter available skills before fetching full content.",
     inputSchema: {
       type: "object",
@@ -67,6 +85,7 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_get_skill: {
+    annotations: { title: "Get skill", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Fetch full SKILL.md content for a named Commander skill. Returns the skill's complete instructions, install hint, and GitHub URL. Loads on demand to avoid token overhead at session start.",
     inputSchema: {
       type: "object",
@@ -77,6 +96,7 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_search: {
+    annotations: { title: "Search skills", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     // Description is registry-derived; resolved on access so the live skill
     // count is reflected in the discovery payload.
     get description() {
@@ -92,6 +112,7 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_suggest_for: {
+    annotations: { title: "Suggest skills", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Recommend Commander skills for a task description. Returns the top 3 to 5 most relevant skills ranked by keyword and domain match, with a usage tip.",
     inputSchema: {
       type: "object",
@@ -102,6 +123,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_invoke_skill: {
+    // Returns instructions only; it does not execute the skill.
+    annotations: { title: "Get skill invocation guide", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Activate a Commander skill by name and return its full instructions. Pass optional context to focus the skill on your current task. Returns the invocation guide the AI should follow.",
     inputSchema: {
       type: "object",
@@ -113,6 +136,7 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_list_agents: {
+    annotations: { title: "List agents", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "List available Commander specialist agents. Returns each agent's name, description, persona tier, and model preference. Filter by tier to see only free or Pro agents.",
     inputSchema: {
       type: "object",
@@ -122,6 +146,7 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_get_agent: {
+    annotations: { title: "Get agent", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Fetch full agent definition for a named Commander specialist. Returns frontmatter, persona voice, and complete instructions. Use before commander_invoke_agent to inspect the agent.",
     inputSchema: {
       type: "object",
@@ -132,6 +157,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_invoke_agent: {
+    // Returns a persona guide only; it does not run an agent.
+    annotations: { title: "Get agent invocation guide", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Activate a Commander specialist agent for a given task. Returns a persona-loaded invocation guide the AI should adopt for the task.",
     inputSchema: {
       type: "object",
@@ -143,14 +170,20 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_status: {
+    // Reads usage and cap through the Supabase network API; no domain writes.
+    annotations: { title: "Commander status", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     description: "Return the authenticated user's Commander status. Includes server version, license tier, calls used this month, remaining cap, and reset date.",
     inputSchema: { type: "object", properties: {} },
   },
   commander_update: {
+    // Fetches the GitHub manifest but never installs or changes versions.
+    annotations: { title: "Check for updates", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     description: "Check whether a newer Commander version is available. Returns the current version, latest version, and a changelog URL if an update exists.",
     inputSchema: { type: "object", properties: {} },
   },
   commander_init: {
+    // Returns templates and commands without writing files or following URLs.
+    annotations: { title: "Generate project setup", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Generate project initialization files for a Commander-powered workflow. Returns template URLs, install commands, and MCP config for the specified project type and IDE.",
     inputSchema: {
       type: "object",
@@ -168,6 +201,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_notes_pin: {
+    // Inserts a new note through Supabase on every call; additive, not idempotent.
+    annotations: { title: "Pin note", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     description: "Save a note to the Commander cross-session knowledge store. Returns confirmation with a preview of the pinned content. Notes persist across sessions for later retrieval.",
     inputSchema: {
       type: "object",
@@ -178,6 +213,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_tasks_push: {
+    // Currently a setup-only stub: no Linear request or local task write occurs.
+    annotations: { title: "Task setup instructions", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Push a task to a connected Linear workspace. Returns setup instructions if Linear is not yet configured. Set COMMANDER_LINEAR_KEY in your environment to enable.",
     inputSchema: {
       type: "object",
@@ -190,6 +227,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_plan_integrate: {
+    // Parses supplied text only; it does not persist tasks or push them to Linear.
+    annotations: { title: "Parse plan tasks", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Parse a markdown or plain-text plan and extract its task list for tracking. Returns the task count, parsed tasks, and a plan preview for confirmation.",
     inputSchema: {
       type: "object",
@@ -201,6 +240,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_install_skill: {
+    // Only generates a command; shell execution and repository cloning are left to the caller.
+    annotations: { title: "Generate skill install command", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Generate a shell command that installs a Commander skill into a target AI environment. The command is idempotent — it reports 'already-present' if the skill is installed. Returns the command string to run locally.",
     inputSchema: {
       type: "object",
@@ -217,6 +258,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_compatibility_check: {
+    // Reads local skill sources and capability maps without calling the mentioned MCPs.
+    annotations: { title: "Check skill compatibility", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Check whether a Commander skill is compatible with a target AI environment. Analyzes the skill's required tools, lifecycle hooks, and MCP dependencies against what the target environment supports. Returns a compatibility report.",
     inputSchema: {
       type: "object",
@@ -232,6 +275,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_session_diagnose: {
+    // The diagnostics module reads files/settings only; remediation text is not executed.
+    annotations: { title: "Diagnose session", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Run Commander's built-in diagnostics and return a structured health report. Checks critical files, hook chain, skill counts, version parity, and more. Returns findings with status, message, and remediation per category.",
     inputSchema: {
       type: "object",
@@ -245,6 +290,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
   commander_compose_plan: {
+    // Builds markdown from supplied text and static rules; no model or tracker call occurs.
+    annotations: { title: "Compose implementation plan", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: "Generate a structured implementation plan from a feature description. Returns a markdown plan with problem statement, evals, phased tasks, recommended skills, risks, and effort estimate (S/M/L/XL).",
     inputSchema: {
       type: "object",
@@ -264,3 +311,8 @@ export const TOOL_SCHEMAS: Record<ToolName, object> = {
     },
   },
 };
+
+// Resolve getters on each discovery request so descriptions stay registry-derived.
+export function buildToolCatalog() {
+  return TOOL_NAMES.map((name) => ({ name, ...TOOL_SCHEMAS[name] }));
+}

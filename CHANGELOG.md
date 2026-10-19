@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.1.0] - 2026-10-18
+
+### Added
+- Explicit MCP tool annotations and JSON-RPC `tools/list` discovery on the existing HTTP call endpoint. Auth, burst and monthly limits, feedback gates, and usage accounting remain in place.
+- MCP cloud typecheck, tests, and build now run on pull requests.
+
+### Fixed
+- Importing the cloud app no longer starts a listening server, allowing the ordinary test command to finish without forced exit. Direct startup remains supported; `HOST` can select a bind address.
+
+### Decision
+- Ship catalog annotations for #128. Keep force-push permission denials unchanged; an interactive PreToolUse confirmation policy requires separate destination-aware and cross-client validation. Annotations are descriptive hints, not permission grants.
+
 ## [8.0.0] - 2026-10-13
 
 Commander 8 is a full revamp for the October 2026 platform. Every prompt
