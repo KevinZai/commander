@@ -28,7 +28,11 @@ function collectActions(adventuresDir) {
   return Array.from(actions).sort();
 }
 
-test('tmux mode menu actions do not crash and fail gracefully', async function() {
+test('tmux mode menu actions do not crash and fail gracefully', async function(t) {
+  var remote = require('../remote-session');
+  var originalRemoteStart = remote.start;
+  remote.start = function() { return { job: { sessionId: 'mock-session' } }; };
+  t.after(function() { remote.start = originalRemoteStart; });
   var tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-tmux-audit-'));
   process.env.HOME = tmpHome;
   process.env.CCC_TMUX_SESSION = 'ci-audit-session';

@@ -6,8 +6,6 @@ var os = require("os");
 var childProcess = require("child_process");
 var queue = require("./queue");
 var dream = require("./dream");
-var dispatcher = require("./dispatcher");
-var knowledge = require("./knowledge");
 
 var LOG_FILE = path.join(os.homedir(), ".claude", "commander", "daemon-log.txt");
 var PID_FILE = path.join(os.homedir(), ".claude", "commander", "daemon.pid");
@@ -27,12 +25,12 @@ function tick(config) {
   var start = Date.now();
   var actions = [];
 
-  // 1. Process task queue
+  // Keep queued work pending: interactive Remote Control cannot enforce this
+  // daemon's existing $5 / 30-turn policy. Changing that policy is a user decision.
   var next = queue.getNext();
   if (next) {
-    log("Queue: processing " + next.id + " — " + next.task.slice(0, 60));
-    queue.updateStatus(next.id, "running");
-    actions.push({ type: "queue", task: next });
+    log("Queue held: interactive Remote Control cannot enforce the daemon's $5 / 30-turn caps. Queued tasks remain pending; decide a compatible policy before automatic dispatch.");
+    actions.push({ type: "queue-held", task: next });
   }
 
   // 2. Check git status
@@ -54,28 +52,6 @@ function tick(config) {
     return;
   }
 
-  // 4. Dispatch queued task if any
-  if (next) {
-    var taskPromise = dispatcher.dispatchWithRetry(next.task, {
-      model: "opus",
-      maxTurns: 30,
-      maxBudgetUsd: 5,
-      bare: true,
-      stream: false,
-    });
-
-    if (typeof taskPromise.then === "function") {
-      taskPromise.then(function (result) {
-        queue.updateStatus(next.id, "done", { result: (result.result || "").slice(0, 500), cost: result.cost_usd || 0 });
-        log("Queue: " + next.id + " completed ($" + (result.cost_usd || 0).toFixed(2) + ")");
-        // Extract knowledge
-        try { knowledge.extractAndStore({ id: next.id, task: next.task, cost: result.cost_usd || 0 }, result.result || ""); } catch (_) {}
-      }).catch(function (err) {
-        queue.updateStatus(next.id, "failed", { error: err.message });
-        log("Queue: " + next.id + " failed — " + err.message);
-      });
-    }
-  }
 
   if (actions.length === 0) {
     log("Tick: nothing to do");
@@ -85,7 +61,7 @@ function tick(config) {
 function runDream() {
   log("Dream: starting consolidation...");
   var result = dream.consolidate();
-  log("Dream: " + result.stats.total + " lessons, " + result.stats.successRate + "% success, $" + result.stats.totalCost + " total cost, " + result.archived + " archived");
+  log("Dream: " + result.stats.total + " lessons, " + result.stats.successRate + "% success, $" + result.stats.totalCost + " measured cost (" + result.stats.unknownCostSessions + " sessions unknown), " + result.archived + " archived");
   if (result.suggestions.length > 0) {
     result.suggestions.forEach(function (s) {
       log("Dream suggestion: " + s.suggestion);

@@ -29,7 +29,7 @@ function extractAndStore(session, result) {
     timestamp: new Date().toISOString(),
     task: session.task || '',
     outcome: session.outcome || 'unknown',
-    cost: session.cost || 0,
+    cost: session.cost == null ? null : session.cost,
     duration: session.duration || 0,
     // Extract keywords from task for future matching
     keywords: extractKeywords(session.task || ''),
@@ -169,7 +169,7 @@ function buildKnowledgePrompt(task) {
   var parts = ['\n\n--- PAST LESSONS (from CC Commander knowledge base) ---'];
   relevant.forEach(function(lesson, i) {
     parts.push('\nLesson ' + (i + 1) + ': ' + lesson.task);
-    parts.push('Outcome: ' + lesson.outcome + ' | Cost: $' + (lesson.cost || 0).toFixed(2));
+    parts.push('Outcome: ' + lesson.outcome + ' | Cost: ' + (lesson.cost == null ? 'unknown' : '$' + lesson.cost.toFixed(2)));
     if (lesson.patterns.techStack.length > 0) {
       parts.push('Tech used: ' + lesson.patterns.techStack.join(', '));
     }
@@ -213,11 +213,12 @@ function getStats() {
   var all = listAll();
   var categories = {};
   var totalCost = 0;
+  var measuredCostSessions = 0;
   all.forEach(function(l) {
     categories[l.category] = (categories[l.category] || 0) + 1;
-    totalCost += l.cost || 0;
+    if (Number.isFinite(l.cost)) { totalCost += l.cost; measuredCostSessions++; }
   });
-  return { total: all.length, categories: categories, totalCost: totalCost };
+  return { total: all.length, categories: categories, totalCost: totalCost, costCoverage: 'measured-only', measuredCostSessions: measuredCostSessions, unknownCostSessions: all.length - measuredCostSessions };
 }
 
 // ─── Extraction Helpers ───────────────────────────────────────────
@@ -295,7 +296,7 @@ function loadAllLessons() {
  * Useful for displaying contextual tips before dispatching a task.
  *
  * @param {string} category - Task category (e.g. 'web', 'api', 'testing')
- * @returns {{ topPatterns: string[], commonErrors: string[], avgCost: number, successRate: number }}
+ * @returns {{ topPatterns: string[], commonErrors: string[], avgCost: number|null, successRate: number }}
  */
 function getInsights(category) {
   var lessons = loadAllLessons();
@@ -308,8 +309,9 @@ function getInsights(category) {
   var successes = relevant.filter(function(l) { return l.outcome === 'success'; });
   var failures  = relevant.filter(function(l) { return l.outcome !== 'success'; });
 
-  var totalCost = relevant.reduce(function(s, l) { return s + (l.cost || 0); }, 0);
-  var avgCost = Math.round((totalCost / relevant.length) * 100) / 100;
+  var measured = relevant.filter(function(l) { return Number.isFinite(l.cost); });
+  var totalCost = measured.reduce(function(s, l) { return s + l.cost; }, 0);
+  var avgCost = measured.length ? Math.round((totalCost / measured.length) * 100) / 100 : null;
   var successRate = Math.round((successes.length / relevant.length) * 100);
 
   // Gather top success patterns (from success sessions, deduplicated)
@@ -334,7 +336,7 @@ function getInsights(category) {
     .sort(function(a, b) { return errorCounts[b] - errorCounts[a]; })
     .slice(0, 5);
 
-  return { topPatterns: topPatterns, commonErrors: commonErrors, avgCost: avgCost, successRate: successRate };
+  return { topPatterns: topPatterns, commonErrors: commonErrors, avgCost: avgCost, successRate: successRate, measuredCostSessions: measured.length, unknownCostSessions: relevant.length - measured.length };
 }
 
 function getModelPreference(category) {
@@ -342,13 +344,16 @@ function getModelPreference(category) {
   var relevant = lessons.filter(function(l) { return l.category === category; });
   if (relevant.length < 3) return null;
   var successes = relevant.filter(function(l) { return l.outcome === 'success'; });
-  var avgCost = successes.length > 0 ? successes.reduce(function(s, l) { return s + (l.cost || 0); }, 0) / successes.length : 0;
+  var measured = successes.filter(function(l) { return Number.isFinite(l.cost); });
+  var avgCost = measured.length ? measured.reduce(function(s, l) { return s + l.cost; }, 0) / measured.length : null;
   var successRate = relevant.length > 0 ? successes.length / relevant.length : 0;
   return {
     category: category,
     sessions: relevant.length,
     successRate: Math.round(successRate * 100),
-    avgCost: Math.round(avgCost * 100) / 100,
+    avgCost: avgCost == null ? null : Math.round(avgCost * 100) / 100,
+    measuredCostSessions: measured.length,
+    unknownCostSessions: successes.length - measured.length,
     suggestion: successRate > 0.8 ? 'High success rate for ' + category + ' tasks' : 'Consider more thorough specs for ' + category + ' tasks',
   };
 }
