@@ -26,18 +26,60 @@ JSON result with `result`, `session_id`, `status`, `report` and `tmux_session`.
 replays and Linear summaries show unknown cost. Knowledge and dream totals count
 only measured records and expose measured/unknown coverage; their averages
 exclude unknown costs. Blocked or failed
-reports and missing reports reject the dispatch. A timeout writes a blocked report
-and leaves the interactive session available. It does not terminate Claude or cap
-spend. The simple menu's Escape/q stops observation; the Claude session remains.
+reports and missing reports reject the dispatch. The CLI observation `--timeout`
+writes a blocked report and leaves the interactive session available; it does
+not terminate Claude. Use the supervised bounds below to end a session. The simple menu's Escape/q stops observation; the Claude session remains.
 Report completion must follow any authorized pingback in the original task.
 
-Print-mode options `--max-turns`, `--budget`, structured JSON schemas and output
-formats are rejected explicitly; they are not silently ignored. Menu launches
-show that dollar/turn caps are unavailable. The existing daemon's $5 cap remains
-in force as a requirement: its jobs remain pending with an actionable held notice,
-because the interactive transport cannot enforce it. Enabling uncapped automatic
-daemon jobs needs a separate decision. The estimate-based admission cost gate
-still applies; an estimate is not a runtime cap.
+Print-mode options `--budget`, structured JSON schemas and output formats are
+rejected explicitly; they are not silently ignored, and dollar caps remain
+unenforceable in this transport. `--max-turns` is supported as a supervised
+bound (see below), not as a Claude flag.
+
+## Bounds for unattended daemon jobs
+
+The runner supervises Claude from its tmux pane. `start()` accepts `maxTurns` and
+`wallTimeoutMs`; both are recorded in `launch.json` and the job metadata.
+
+- Wall-clock timeout: when it elapses the supervisor writes a `blocked` report,
+  sends SIGTERM to Claude and SIGKILL after 10 seconds. The session ends and its
+  tmux pane closes. Daemon jobs default to 45 minutes.
+- Max-turn watchdog: every 5 seconds it counts distinct assistant messages in
+  `<config-dir>/projects/*/<session-id>.jsonl`. Past `maxTurns` it writes a
+  `blocked` report and terminates the session the same way. Daemon default: 30.
+- A terminal report already written by Claude is never overwritten.
+- Manual `ccc --dispatch` sessions set no wall timeout unless the caller passes
+  one, so a finished report still leaves the session open for steering.
+
+`commander/daemon.js` dispatches queued tasks only when
+`~/.claude/commander/daemon-policy.json` sets `"autoDispatch": true` (override
+path with `CCC_DAEMON_POLICY`). Otherwise queued tasks stay pending with a held
+notice. Admission, checked in order, holds the task (never fails it) when:
+
+1. `maxRunning` (default 1) queued jobs are already running;
+2. domain: any text, `domain`, tag, project or cwd naming GN, Guest Networks or
+   MyWiFi is always held (hard-coded, not overridable by policy); otherwise
+   `item.domain` or a tag must be in `allowedDomains` (default `personal`,
+   `platform`), so an absent or ambiguous domain is held. Extra `blockedDomains`
+   regexes may add holds;
+3. a `quota` snapshot (`{file, sessionPctMax, weeklyPctMax, maxAgeSec}`) is
+   required: no quota policy, or a missing, stale, future-dated (over 60 s of
+   skew), unparseable snapshot, or a percentage that is not a finite number
+   from 0 to 100, holds the task (fails closed);
+4. the pre-dispatch cost estimate is missing or invalid (including when the optional
+   cost gate is disabled in config or `CC_COST_GATE=off`), or exceeds `maxEstimateUsd` (default $5). The
+   estimate is an admission gate, not a runtime cap.
+
+Admitted tasks launch with Remote Control, `maxTurns` and `wallTimeoutMs`.
+Each tick settles running items from their report status (`done` becomes done;
+`blocked` and `failed` become failed with the report line as the error).
+The daemon atomically claims an item before launch and saves Remote Control
+metadata before starting tmux. Persistence failure prevents launch. Items with an
+exit record or a dead supervisor and child become failed if no terminal report
+exists; they are never automatically requeued. A live orphan child still consumes
+capacity. Missing startup metadata gets a two-minute grace period, then a missing
+tmux session (or an incomplete claim without a session) is settled as failed.
+Uncertain process/session health stays held for inspection.
 
 Metadata uses `~/.claude-remote/jobs/<job>.json` and includes account, model,
 session id, issue, start time, cwd, tmux session and report path. It contains no

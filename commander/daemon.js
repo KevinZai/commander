@@ -21,16 +21,182 @@ function log(msg) {
   process.stdout.write("  [daemon] " + msg + "\n");
 }
 
+var POLICY_FILE = path.join(os.homedir(), ".claude", "commander", "daemon-policy.json");
+var DEFAULT_POLICY = {
+  autoDispatch: false,          // opt-in: queued work stays pending until a policy file enables it
+  maxEstimateUsd: 5,            // estimate admission ceiling (an estimate, not a runtime cap)
+  maxTurns: 30,                 // watchdog: the supervisor ends the session past this many turns
+  wallTimeoutMs: 45 * 60 * 1000, // supervisor ends the session at this wall-clock age
+  maxRunning: 1,
+  model: "sonnet",
+  allowedDomains: ["personal", "platform"], // item.domain or a tag must name one; absent/ambiguous is held
+  blockedDomains: [],           // extra regex strings; the GN/MyWiFi hold below cannot be overridden
+  quota: null,                  // { file, sessionPctMax, weeklyPctMax, maxAgeSec } fails closed when set
+  killGraceMs: 10000            // SIGTERM-to-SIGKILL grace when a session is reaped
+};
+
+// Remote metadata for every job this daemon process launched; reaped on shutdown.
+var launched = {};
+
+var reaping = new Set();
+
+function reap(remoteMeta, why, graceMs) {
+  if (!remoteMeta || !remoteMeta.stateFile) return Promise.resolve(null);
+  var pending = require("./remote-session").stopSession(remoteMeta, { graceMs: graceMs }).then(function (result) {
+    if (result.stopped) log("Reaped " + remoteMeta.job + " (" + why + "): " + result.pids.length + " process(es) signalled" + (result.killed.length ? ", " + result.killed.length + " needed SIGKILL" : ""));
+    return result;
+  }, function (error) { log("Reap " + remoteMeta.job + " failed: " + error.message); return null; });
+  reaping.add(pending);
+  pending.then(function () { reaping.delete(pending); });
+  return pending;
+}
+
+function loadPolicy() {
+  try { return Object.assign({}, DEFAULT_POLICY, JSON.parse(fs.readFileSync(process.env.CCC_DAEMON_POLICY || POLICY_FILE, "utf8"))); }
+  catch (_) { return Object.assign({}, DEFAULT_POLICY); }
+}
+
+var QUOTA_CLOCK_SKEW_MS = 60 * 1000;
+
+function validPct(value) { return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100; }
+
+// Fails closed: absent policy, unreadable/stale/future snapshots and non-numeric percentages all hold.
+function checkQuota(quota, now) {
+  if (!quota || typeof quota.file !== "string" || !quota.file) return "no quota policy configured; automatic dispatch requires an explicit quota snapshot";
+  try {
+    var stat = fs.statSync(quota.file);
+    if (stat.mtimeMs - now > QUOTA_CLOCK_SKEW_MS) return "quota snapshot is future-dated";
+    if ((now - stat.mtimeMs) / 1000 > (quota.maxAgeSec || 600)) return "quota snapshot is stale";
+    var data = JSON.parse(fs.readFileSync(quota.file, "utf8"));
+    if (data.admit === false) return "quota snapshot denies admission";
+    if (!validPct(data.sessionPct) || !validPct(data.weeklyPct)) return "quota snapshot lacks valid session/weekly percentages (0-100)";
+    if (data.sessionPct >= (quota.sessionPctMax || 80)) return "session quota " + data.sessionPct + "% is at or above the limit";
+    if (data.weeklyPct >= (quota.weeklyPctMax || 90)) return "weekly quota " + data.weeklyPct + "% is at or above the limit";
+    return null;
+  } catch (_) { return "quota snapshot is missing or unreadable"; }
+}
+
+// Business domains that automatic dispatch must never touch; not configurable.
+var PROTECTED_DOMAIN = /(^|[^a-z0-9])(gn|g\.n\.|guest[\s_-]*networks?|my[\s_-]*wi[\s_-]?fi|mywifi(ke)?)([^a-z0-9]|$)/i;
+
+function domainHold(item, policy) {
+  var tags = Array.isArray(item.tags) ? item.tags : [];
+  var labels = [item.domain].concat(tags).filter(function (v) { return v != null; }).map(String);
+  var text = [item.task, item.title, item.project, item.cwd].concat(labels).filter(function (v) { return v != null; }).join("\n");
+  if (PROTECTED_DOMAIN.test(text)) return "protected GN/MyWiFi business domain; never auto-dispatched";
+  var allowed = (Array.isArray(policy.allowedDomains) ? policy.allowedDomains : []).map(function (v) { return String(v).toLowerCase(); });
+  var matches = labels.filter(function (v) { return allowed.indexOf(v.trim().toLowerCase()) !== -1; });
+  if (!matches.length) return "domain unknown or not in allowedDomains (" + allowed.join(", ") + "); set item.domain or a tag to a permitted scope";
+  return null;
+}
+
+// Returns null when the queued item may launch, otherwise the reason it is held.
+function admit(item, policy, running, now) {
+  if (!policy.autoDispatch) return "automatic dispatch is not enabled in " + POLICY_FILE;
+  if (running >= policy.maxRunning) return running + " queued job(s) already running";
+  var domain = domainHold(item, policy);
+  if (domain) return domain;
+  var hay = [item.task, item.domain].concat(item.tags || []).join("\n");
+  for (var i = 0; i < policy.blockedDomains.length; i++) {
+    if (new RegExp(policy.blockedDomains[i], "im").test(hay)) return "domain blocked by policy (" + policy.blockedDomains[i] + ")";
+  }
+  var quota = checkQuota(policy.quota, now);
+  if (quota) return quota;
+  var check = require("./dispatcher").checkCostCeiling(item.task, { model: item.model || policy.model, maxTurns: policy.maxTurns }, policy.maxEstimateUsd);
+  if (!check.estimate || typeof check.estimate.estimateHigh !== "number" || !Number.isFinite(check.estimate.estimateHigh) || check.estimate.estimateHigh < 0) return "cost estimate missing or invalid; automatic dispatch requires an estimate";
+  if (!check.allowed) return check.message || "estimate exceeds ceiling";
+  if (check.estimate && check.estimate.estimateHigh > policy.maxEstimateUsd) return "estimate $" + check.estimate.estimateHigh + " exceeds the $" + policy.maxEstimateUsd + " ceiling";
+  return null;
+}
+
+function alive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try { process.kill(pid, 0); return true; }
+  catch (error) { return error.code !== "ESRCH"; }
+}
+
+function abandoned(item) {
+  var remote = item.remote || {};
+  if (remote.exitFile && fs.existsSync(remote.exitFile)) return true;
+  if (remote.stateFile) {
+    try {
+      var state = JSON.parse(fs.readFileSync(remote.stateFile, "utf8"));
+      if (state.sessionId === remote.sessionId && Number.isInteger(state.supervisorPid)) {
+        return !alive(state.supervisorPid) && !alive(state.childPid);
+      }
+    } catch (_) {}
+  }
+  // Allow the supervisor to start and persist its identity. Legacy records use tmux.
+  var age = Date.now() - Date.parse(item.started);
+  if (!Number.isFinite(age) || age < 120000) return false;
+  var session = remote.tmuxSession || remote.job;
+  if (!session) return true; // claimed, but the daemon died before preparing a launch
+  try {
+    childProcess.execFileSync("tmux", ["has-session", "-t", "=" + session], { stdio: "ignore", timeout: 5000 });
+    return false;
+  } catch (error) { return error.status === 1; } // uncertain health stays held
+}
+
+// Settle terminal reports or abandoned launches; failed jobs are never requeued.
+function reconcile() {
+  queue.recoverClaims(Date.now());
+  var running = queue.listTasks("running");
+  var open = 0;
+  running.forEach(function (item) {
+    var report = item.remote && item.remote.report;
+    var text = "";
+    try { text = report ? fs.readFileSync(report, "utf8") : ""; } catch (_) {}
+    var match = text.match(/^Status: (done|blocked|failed) — ([^\r\n]+)/);
+    if (match) {
+      queue.updateStatus(item.id, match[1] === "done" ? "done" : "failed", match[1] === "done" ? { result: match[2] } : { error: match[1] + ": " + match[2] });
+      log("Queue " + item.id + " " + match[1] + ": " + match[2]);
+      if (item.remote) {
+        delete launched[item.remote.job];
+        reap(item.remote, "report " + match[1], loadPolicy().killGraceMs);
+      }
+    } else if (abandoned(item)) {
+      queue.updateStatus(item.id, "failed", { error: "Remote Control supervisor/session exited without a terminal report; inspect before retrying" });
+      log("Queue " + item.id + " failed: abandoned Remote Control launch");
+    } else open++;
+  });
+  return open;
+}
+
 function tick(config) {
   var start = Date.now();
   var actions = [];
+  var policy = loadPolicy();
+  var running = reconcile();
 
-  // Keep queued work pending: interactive Remote Control cannot enforce this
-  // daemon's existing $5 / 30-turn policy. Changing that policy is a user decision.
   var next = queue.getNext();
   if (next) {
-    log("Queue held: interactive Remote Control cannot enforce the daemon's $5 / 30-turn caps. Queued tasks remain pending; decide a compatible policy before automatic dispatch.");
-    actions.push({ type: "queue-held", task: next });
+    var reason = admit(next, policy, running, Date.now());
+    if (reason) {
+      log("Queue held: " + reason + ". Task " + next.id + " remains pending.");
+      actions.push({ type: "queue-held", task: next, reason: reason });
+    } else {
+      try {
+        if (!queue.claimTask(next.id)) return;
+        require("./remote-session").start(next.task, {
+          cwd: next.cwd, model: next.model || policy.model, name: "ccc-queue",
+          maxTurns: policy.maxTurns, wallTimeoutMs: policy.wallTimeoutMs, reapOnReport: true,
+          beforeLaunch: function (prepared) {
+            var meta = {
+              job: prepared.job.job, report: prepared.job.report, sessionId: prepared.job.sessionId,
+              tmuxSession: prepared.job.tmuxSession, exitFile: prepared.exitFile, stateFile: prepared.stateFile
+            };
+            var saved = queue.updateStatus(next.id, "running", { remote: meta });
+            if (!saved) throw new Error("queue launch metadata could not be persisted");
+            launched[meta.job] = Object.assign({ queueId: next.id }, meta);
+          }
+        });
+        log("Queue " + next.id + " launched with Remote Control (" + policy.maxTurns + " turns / " + Math.round(policy.wallTimeoutMs / 60000) + " min bounds)");
+        actions.push({ type: "queue-launched", task: next });
+      } catch (e) {
+        queue.updateStatus(next.id, "failed", { error: "launch failed: " + e.message });
+        log("Queue " + next.id + " launch failed: " + e.message);
+      }
+    }
   }
 
   // 2. Check git status
@@ -84,13 +250,18 @@ function start(config) {
   // Dream loop
   var dreamTimer = setInterval(function () { try { runDream(); } catch (e) { log("Dream error: " + e.message); } }, config.dreamInterval);
 
-  // Graceful shutdown
+  // Graceful shutdown: stop every session this daemon launched before exiting.
+  var stopping = false;
   function shutdown() {
+    if (stopping) return;
+    stopping = true;
     log("=== CCC Daemon shutting down ===");
     clearInterval(tickTimer);
     clearInterval(dreamTimer);
-    try { fs.unlinkSync(PID_FILE); } catch (_) {}
-    process.exit(0);
+    stopLaunched(loadPolicy().killGraceMs).then(function () {
+      try { fs.unlinkSync(PID_FILE); } catch (_) {}
+      process.exit(0);
+    });
   }
 
   process.on("SIGTERM", shutdown);
@@ -103,6 +274,18 @@ function start(config) {
   process.stdin.resume();
 }
 
+function stopLaunched(graceMs) {
+  var jobs = Object.keys(launched).map(function (key) { return launched[key]; });
+  var inFlight = Array.from(reaping);
+  return Promise.all(inFlight.concat(jobs.map(function (meta) {
+    return reap(meta, "daemon stop", graceMs).then(function (result) {
+      delete launched[meta.job];
+      var item = queue.listTasks("running").find(function (task) { return task.id === meta.queueId; });
+      if (item && result && result.stopped) queue.updateStatus(item.id, "failed", { error: "daemon stopped before the job wrote a terminal report; session terminated" });
+    });
+  })));
+}
+
 function isRunning() {
   try {
     var pid = parseInt(fs.readFileSync(PID_FILE, "utf8").trim());
@@ -113,10 +296,20 @@ function isRunning() {
   }
 }
 
-function stop() {
+// Signals the daemon and waits for it to finish reaping its sessions and exit.
+function stop(options) {
   var pid = isRunning();
   if (!pid) return false;
-  try { process.kill(pid, "SIGTERM"); return true; } catch (_) { return false; }
+  try { process.kill(pid, "SIGTERM"); } catch (_) { return false; }
+  var timeoutMs = (options && options.timeoutMs) || loadPolicy().killGraceMs + 20000;
+  var deadline = Date.now() + timeoutMs;
+  var pause = new Int32Array(new SharedArrayBuffer(4));
+  while (Date.now() < deadline) {
+    try { process.kill(pid, 0); } catch (_) { return true; }
+    Atomics.wait(pause, 0, 0, 200);
+  }
+  console.error("Daemon PID " + pid + " is still shutting down after " + Math.round(timeoutMs / 1000) + "s.");
+  return true;
 }
 
-module.exports = { start: start, isRunning: isRunning, stop: stop, tick: tick, runDream: runDream, log: log };
+module.exports = { stopLaunched: stopLaunched, launched: launched, admit: admit, loadPolicy: loadPolicy, reconcile: reconcile, start: start, isRunning: isRunning, stop: stop, tick: tick, runDream: runDream, log: log };

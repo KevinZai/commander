@@ -368,7 +368,7 @@ function dispatch(task, options) {
   var remote = require('./remote-session');
   // Validate before creating a session or recording an async launch receipt.
   remote.interactiveArgs(options);
-  process.stderr.write('  Interactive Remote Control uses report observation; print-only dollar and turn caps are unavailable.\n');
+  process.stderr.write('  Interactive Remote Control uses report observation; print-only dollar caps are unavailable; --max-turns and wall-clock limits are enforced by the supervisor.\n');
   var handle = remote.start(task, options);
   if (!sync) return { async: true, status: 'running', session_id: handle.job.sessionId, report: handle.job.report, tmux_session: handle.job.tmuxSession };
   if (stream) process.stderr.write('  Remote Control session: ' + handle.job.tmuxSession + '\n  Waiting for report: ' + handle.job.report + '\n');
@@ -411,4 +411,4 @@ function selectModelForComplexity(score) {
   return 'fable';
 }
 
-module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel, estimateDispatchCost: estimateDispatchCost, selectModelForComplexity: selectModelForComplexity, MODEL_PRICING: MODEL_PRICING };
+module.exports = { checkCostCeiling: checkCostCeiling, dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel, estimateDispatchCost: estimateDispatchCost, selectModelForComplexity: selectModelForComplexity, MODEL_PRICING: MODEL_PRICING };
