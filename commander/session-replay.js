@@ -21,7 +21,7 @@ function generateReplay(session) {
   if (!session) return null;
 
   var duration = session.duration ? formatDuration(session.duration) : 'unknown';
-  var cost = session.cost ? '$' + session.cost.toFixed(2) : '$0.00';
+  var cost = session.cost == null ? 'unknown' : '$' + session.cost.toFixed(2);
   var filesCount = (session.filesChanged && session.filesChanged.length) || 0;
   var skillsUsed = (session.skillsUsed && session.skillsUsed.length) || 0;
 

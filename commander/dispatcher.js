@@ -346,17 +346,9 @@ function dispatch(task, options) {
   var sync = options.sync !== undefined ? options.sync : true;
   var maxTurns = options.maxTurns || 30;
   var resume = options.resume;
-  var allowedTools = options.allowedTools;
-  var systemPrompt = options.systemPrompt;
   var cwd = options.cwd;
-  var bare = options.bare !== undefined ? options.bare : true;
-  var jsonSchema = options.jsonSchema;
-  var maxBudgetUsd = options.maxBudgetUsd;
   var effort = options.effort;
   var model = options.model;
-  var fallbackModel = options.fallbackModel !== undefined ? options.fallbackModel : 'sonnet';
-  var worktree = options.worktree;
-  var name = options.name;
   var stream = options.stream !== false;
   var costCeiling = options.costCeiling != null ? parseFloat(options.costCeiling) : null;
 
@@ -372,169 +364,17 @@ function dispatch(task, options) {
     }
   }
 
-  var args = [];
-  if (resume) {
-    args.push('--resume', resume, '--continue');
-  } else {
-    args.push('-p', JSON.stringify(task));
-  }
-
-  // Stream mode: use stream-json for live events. Batch: json for final result only.
-  if (stream && !bare) {
-    args.push('--output-format', 'stream-json', '--verbose');
-  } else {
-    args.push('--output-format', 'json');
-  }
-
-  if (bare) args.push('--bare');
-  if (options.skipPermissions) {
-    args.push('--dangerously-skip-permissions');
-  } else if (options.permissionMode) {
-    args.push('--permission-mode', options.permissionMode);
-  } else {
-    args.push('--permission-mode', 'auto');
-  }
-  if (maxTurns) args.push('--max-turns', String(maxTurns));
-  // resume handled above in args init
-  if (model) args.push('--model', model);
-  if (fallbackModel && fallbackModel !== model) args.push('--fallback-model', fallbackModel);
-  // Only these 5 levels are accepted by the CLI. An out-of-range value (e.g. the
-  // legacy 'ultra') makes the whole dispatch fail, so clamp to the nearest valid
-  // level rather than forwarding garbage — hard tasks must not error out.
-  if (effort) {
-    var VALID_EFFORT = ['low', 'medium', 'high', 'xhigh', 'max'];
-    args.push('--effort', VALID_EFFORT.indexOf(effort) >= 0 ? effort : 'xhigh');
-  }
-  if (maxBudgetUsd) args.push('--max-budget-usd', String(maxBudgetUsd));
-  if (name) args.push('--name', name);
-  if (worktree) args.push('--worktree', worktree);
-  if (jsonSchema) args.push('--json-schema', JSON.stringify(jsonSchema));
-  if (allowedTools && allowedTools.length > 0) args.push('--allowedTools', allowedTools.join(','));
-  if (systemPrompt) args.push('--append-system-prompt', JSON.stringify(systemPrompt));
-
-  var command = 'claude';
-  if (!sync) return { command: command + ' ' + args.join(' '), async: true };
-
-  var env = Object.assign({}, process.env, { CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70' });
-
-  if (stream) {
-    validateCwd(cwd);
-    var childProc = null;
-    var promise = new Promise(function(resolve, reject) {
-      childProc = childProcess.spawn(command, args, {
-        cwd: cwd || process.cwd(),
-        env: env,
-        stdio: ['inherit', 'pipe', 'pipe'],
-      });
-      var proc = childProc;
-
-      var output = '';
-      var lastResult = null;
-
-      proc.stdout.on('data', function(chunk) {
-        var text = chunk.toString();
-        output += text;
-
-        if (!bare) {
-          // stream-json: each line is a JSON event. Parse and display live.
-          text.split('\n').forEach(function(line) {
-            if (!line.trim()) return;
-            try {
-              var evt = JSON.parse(line);
-              if (evt.type === 'assistant' && evt.message && evt.message.content) {
-                evt.message.content.forEach(function(block) {
-                  if (block.type === 'text' && block.text) {
-                    process.stdout.write(block.text);
-                  }
-                  if (block.type === 'tool_use') {
-                    var toolLabel = block.name || 'unknown';
-                    var toolInput = '';
-                    if (block.input) {
-                      if (block.input.command) toolInput = block.input.command.slice(0, 120);
-                      else if (block.input.pattern) toolInput = block.input.pattern;
-                      else if (block.input.file_path) toolInput = block.input.file_path;
-                      else if (block.input.query) toolInput = block.input.query.slice(0, 80);
-                      else if (block.input.url) toolInput = block.input.url.slice(0, 80);
-                    }
-                    process.stdout.write('\n  \x1b[38;5;245m[\u2699 ' + toolLabel + (toolInput ? ': ' + toolInput : '') + ']\x1b[0m\n');
-                  }
-                });
-              }
-              if (evt.type === 'user' && evt.message && evt.message.content) {
-                // Tool results — show abbreviated
-                evt.message.content.forEach(function(block) {
-                  if (block.type === 'tool_result' && block.content) {
-                    var preview = typeof block.content === 'string' ? block.content.slice(0, 150) : '';
-                    if (preview) process.stdout.write('  \x1b[38;5;240m' + preview.replace(/\n/g, ' ') + '\x1b[0m\n');
-                  }
-                });
-              }
-              if (evt.type === 'result') {
-                lastResult = evt;
-              }
-            } catch(_e) {
-              // partial JSON line — buffer could split mid-event, skip
-            }
-          });
-        } else {
-          process.stdout.write(text);
-        }
-      });
-
-      proc.stderr.on('data', function(chunk) {
-        process.stderr.write(chunk.toString());
-      });
-
-      proc.on('close', function(code) {
-        if (code !== 0) {
-          var detail = output.trim().split('\n').slice(-3).join(' ').slice(0, 300);
-          reject(new Error('Claude Code exited with code ' + code + (detail ? ': ' + detail : '')));
-          return;
-        }
-        if (lastResult) {
-          resolve({
-            result: lastResult.result || output.trim(),
-            session_id: lastResult.session_id || null,
-            cost_usd: lastResult.cost_usd || 0,
-          });
-        } else {
-          try {
-            var jsonMatch = output.match(/\{[\s\S]*\}\s*$/);
-            if (jsonMatch) resolve(JSON.parse(jsonMatch[0]));
-            else resolve({ result: output.trim(), session_id: null, cost_usd: 0 });
-          } catch (_e) {
-            resolve({ result: output.trim(), session_id: null, cost_usd: 0 });
-          }
-        }
-      });
-
-      proc.on('error', function(err) {
-        if (err.code === 'ENOENT') {
-          reject(new Error('Claude Code CLI not found. Install it with: npm install -g @anthropic-ai/claude-code'));
-        } else {
-          reject(new Error('Claude Code dispatch failed: ' + err.message));
-        }
-      });
-    });
-    // Attach child process to promise so caller can kill it
-    promise.childProcess = childProc;
-    return promise;
-  }
-
-  // Silent mode (stream=false): batch JSON for background jobs
   validateCwd(cwd);
-  try {
-    var stdout = childProcess.execFileSync(command, args, {
-      encoding: 'utf8', maxBuffer: 50 * 1024 * 1024, timeout: 10 * 60 * 1000,
-      cwd: cwd || process.cwd(), stdio: ['pipe', 'pipe', 'pipe'], env: env,
-    });
-    try { return JSON.parse(stdout); } catch (_e) { return { result: stdout.trim(), session_id: null, cost_usd: 0 }; }
-  } catch (err) {
-    try { childProcess.execSync('which claude', { encoding: 'utf8' }); }
-    catch (_e2) { throw new Error('Claude Code CLI not found. Install: npm i -g @anthropic-ai/claude-code'); }
-    var message = err.stderr ? err.stderr.toString().slice(0, 200) : err.message;
-    throw new Error('Claude Code dispatch failed: ' + message);
-  }
+  var remote = require('./remote-session');
+  // Validate before creating a session or recording an async launch receipt.
+  remote.interactiveArgs(options);
+  process.stderr.write('  Interactive Remote Control uses report observation; print-only dollar and turn caps are unavailable.\n');
+  var handle = remote.start(task, options);
+  if (!sync) return { async: true, status: 'running', session_id: handle.job.sessionId, report: handle.job.report, tmux_session: handle.job.tmuxSession };
+  if (stream) process.stderr.write('  Remote Control session: ' + handle.job.tmuxSession + '\n  Waiting for report: ' + handle.job.report + '\n');
+  var observation = remote.observe(handle, options);
+  observation.remoteSession = handle.job;
+  return observation;
 }
 
 function isClaudeAvailable() {
@@ -545,27 +385,10 @@ function getClaudeVersion() {
   try { return childProcess.execSync('claude --version', { encoding: 'utf8', stdio: 'pipe' }).trim(); } catch (_e) { return null; }
 }
 
-function dispatchWithRetry(task, options, retries) {
-  retries = retries || 0;
-  var maxRetries = 2;
-  var p = dispatch(task, options);
-  if (typeof p.then !== 'function') return p;
-  return p.catch(function(err) {
-    if (retries >= maxRetries) throw err;
-    var msg = (err.message || '').toLowerCase();
-    if (msg.includes('budget') || msg.includes('cost')) throw new Error('Budget exceeded. Use --budget to increase. ' + err.message);
-    if (msg.includes('rate') || msg.includes('429') || msg.includes('limit')) {
-      process.stderr.write('\n  Rate limited. Waiting 60s...\n');
-      return new Promise(function(r) { setTimeout(r, 60000); }).then(function() { return dispatchWithRetry(task, options, retries + 1); });
-    }
-    if (msg.includes('context') || msg.includes('compact') || msg.includes('thrash')) {
-      var reducedOptions = Object.assign({}, options, { maxTurns: Math.round((options.maxTurns || 30) * 0.6) });
-      process.stderr.write('\n  Context issue. Retrying with ' + reducedOptions.maxTurns + ' turns...\n');
-      return dispatchWithRetry(task, reducedOptions, retries + 1);
-    }
-    process.stderr.write('\n  Dispatch failed, retrying (' + (retries + 1) + '/' + maxRetries + ')...\n');
-    return dispatchWithRetry(task, options, retries + 1);
-  });
+function dispatchWithRetry(task, options) {
+  // A persistent session can keep working after its observer fails or detaches.
+  // Relaunching automatically would duplicate the task and any pingbacks.
+  return dispatch(task, options);
 }
 
 /**
