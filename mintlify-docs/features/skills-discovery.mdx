@@ -1,0 +1,39 @@
+---
+title: "Find skills: /ccc-browse"
+description: "/ccc-browse is the canonical place to search and launch CC Commander skills and agents. What it does today, what it does not, and how it relates to the hosted MCP search."
+---
+
+<Warning>
+  **Draft.** Documents existing behavior only. No telemetry is added, and no install counts or ratings exist yet; none are shown or implied.
+</Warning>
+
+## The canonical surface
+
+`/ccc-browse` (skill source: `commander/cowork-plugin/skills/ccc-browse/SKILL.md`) is where users find a Commander skill or agent and run it without retyping a command. It reads counts live from the installed plugin each run, so this page quotes none.
+
+| Option | What you get |
+|---|---|
+| **Commander Cockpit** | The whole catalog as one searchable, private claude.ai page, built by `scripts/build-cockpit.mjs`. Publishing asks for consent first and uploads skill and agent names plus the local usage counts baked into the page. |
+| **Domains / Workflows / Agents** | Pickers, four options at a time with Next and Back, reading names and descriptions from disk. Picking one offers to run it immediately. |
+| **Everything as a table** | One `Type / Name / One-liner` table, with launch-one and keyword filter follow-ups. |
+
+An argument skips the root picker: `/ccc-browse cockpit | domains | workflows | agents | all`.
+
+## Other discovery surfaces
+
+| Surface | Use it when |
+|---|---|
+| `/ccc-learn` | You know the field (design, devops, security) and want that domain router. |
+| `/ccc-suggest` | You want a recommendation, not a catalog. |
+| Hosted MCP `search_skills` / `list_skills` | You are in Cursor, Windsurf, Cline, Continue, Codex or Claude mobile. See [How users browse skills](/features/browse-modes). |
+
+## What it does not do
+
+- **No install counts.** Nothing records how many users installed a skill. The Cockpit's usage figures are local to your machine's own runs.
+- **No ratings.** There is no star or review store.
+- **No user-contributed packs.** The catalog is what ships in the plugin and the ecosystem skills. A creator marketplace ("Commander Hub") is a roadmap idea, not a shipped feature, and there is no `/ccc-hub` skill.
+- **No fabricated popularity.** If a future release adds counts, they must come from an opt-in, disclosed source and say so.
+
+## Decisions left to the owner
+
+Adding install counts or ratings needs a telemetry and privacy decision (what is collected, opt-in or not, where stored) before any code. That is outside this docs slice.
