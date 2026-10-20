@@ -74,6 +74,7 @@ function firstFiniteNullable(...candidates) {
 async function main() {
   try {
     const input = await readStdinJson();
+    const lastMessage = firstString(input.last_assistant_message);
     const usage =
       input.usage && typeof input.usage === 'object' && !Array.isArray(input.usage)
         ? input.usage
@@ -159,6 +160,10 @@ async function main() {
       cacheReadTokens,
       durationMs,
       tokensAvailable,
+      // CC-420: length only (never the text). Present when the CLI delivers
+      // `last_assistant_message` (v2.1.92+); null when absent so old CLIs and
+      // payloads without it still write a valid row (no transcript parse needed).
+      lastMessageChars: lastMessage === null ? null : lastMessage.length,
     };
     track('hook_fired', { hook: 'SubagentStop', handler: 'subagent-stop' });
     const analyticsDir = join(CCC_DIR, 'analytics');

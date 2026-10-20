@@ -206,4 +206,17 @@ describe('subagent-stop.js — stdin-primary cost capture', () => {
     assert.equal(r.rows[0].inputTokens, 42);
     assert.equal(r.rows[0].outputTokens, 7);
   });
+
+  it('records last_assistant_message length when present and null when absent (CC-420)', () => {
+    const present = runHook({ session_id: 's', agent_type: 'x', last_assistant_message: 'done: 3 files changed' });
+    assert.equal(present.rows.at(-1).lastMessageChars, 21);
+    assert.ok(!JSON.stringify(present.rows.at(-1)).includes('3 files changed'), 'message text must not be persisted');
+
+    const absent = runHook({ session_id: 's', agent_type: 'x' });
+    assert.equal(absent.rows.at(-1).lastMessageChars, null);
+    assert.equal(absent.parsed.continue, true);
+
+    const nonString = runHook({ session_id: 's', agent_type: 'x', last_assistant_message: 42 });
+    assert.equal(nonString.rows.at(-1).lastMessageChars, null);
+  });
 });
