@@ -1,0 +1,63 @@
+'use strict';
+
+// Ingestion inbox (review queue) action handlers
+
+function ask(engine, prompt) {
+  if (!engine.rl) { var readline = require('readline'); engine.rl = readline.createInterface({ input: process.stdin, output: process.stdout }); }
+  return engine.ask(prompt);
+}
+
+module.exports = {
+
+  async show_review_inbox(engine, tui, state, choice) {
+    try {
+      var inbox = require('../ingestion/inbox');
+      var pending = inbox.listPending();
+      process.stdout.write('\n' + tui.divider('Review Inbox') + '\n');
+      if (pending.length === 0) {
+        process.stdout.write('  Nothing pending. The weekly discovery scan fills this queue.\n');
+        await ask(engine, '\n  Press Enter...');
+        return { next: 'main-menu' };
+      }
+      process.stdout.write('  ' + pending.length + ' package' + (pending.length === 1 ? '' : 's') + ' pending\n\n');
+      pending.slice(0, 15).forEach(function(i) {
+        process.stdout.write('    ' + tui.dimText(String(i.stars || 0) + '*') + ' ' + i.name + '  ' + tui.dimText((i.description || '').slice(0, 50)) + '\n');
+      });
+    } catch (_e) {
+      try { require('../error-logger').log(_e, 'show_review_inbox'); } catch (_) {}
+      process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n');
+      return { next: 'main-menu' };
+    }
+    return { next: 'review-inbox' };
+  },
+
+  async inbox_review_package(engine, tui, state, choice) {
+    var inbox = require('../ingestion/inbox');
+    try {
+      var pending = inbox.listPending();
+      if (pending.length === 0) { process.stdout.write('\n  Nothing pending.\n'); return { next: 'review-inbox' }; }
+      var idx = await tui.select(pending.map(function(i) { return { label: i.name, description: (i.stars || 0) + '* ' + (i.description || '').slice(0, 60) }; }), 'Pick a package to review:');
+      if (idx < 0) return { next: 'review-inbox' };
+      var item = pending[idx];
+      process.stdout.write('\n  Evaluating ' + item.name + '...\n');
+      var ev = require('../ingestion/evaluator').evaluatePackage(item.url);
+      process.stdout.write('  License: ' + (ev.license || 'unknown') + ' (' + ev.licenseRisk + ')\n');
+      process.stdout.write('  Recommendation: ' + ev.recommendation + ' - ' + ev.reason + '\n');
+      if (ev.overlap.length) process.stdout.write('  Overlaps: ' + ev.overlap.join(', ') + '\n');
+      var answer = (await ask(engine, '\n  [a]ccept, [r]eject, or Enter to skip: ')).trim().toLowerCase();
+      if (answer === 'a') {
+        var res = inbox.accept(item.url);
+        process.stdout.write('\n  Accepted. ' + Object.keys(res.updated).map(function(k) { return k + ': ' + res.updated[k]; }).join(', ') + '\n');
+        await engine.pause(1200);
+      } else if (answer === 'r') {
+        inbox.reject(item.url, ev.reason);
+        process.stdout.write('\n  Rejected.\n');
+        await engine.pause(800);
+      }
+    } catch (_e) {
+      try { require('../error-logger').log(_e, 'inbox_review_package'); } catch (_) {}
+      process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n');
+    }
+    return { next: 'review-inbox' };
+  },
+};
