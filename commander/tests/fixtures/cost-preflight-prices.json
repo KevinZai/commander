@@ -1,0 +1,12 @@
+{
+  "_note": "Fixture prices (USD per million tokens) for tests only; not live provider pricing.",
+  "tiers": {
+    "opus-xhigh":  { "label": "Opus xhigh",  "inPerM": 15, "outPerM": 75, "quality": 100 },
+    "sonnet-high": { "label": "Sonnet high", "inPerM": 3,  "outPerM": 15, "quality": 80 },
+    "haiku":       { "label": "Haiku",       "inPerM": 0.8, "outPerM": 4, "quality": 65 }
+  },
+  "hybrid": { "plan": "opus-xhigh", "exec": "sonnet-high", "planShare": 0.2, "quality": 95 },
+  "complexity": { "low": 0.5, "medium": 1, "high": 2 },
+  "outputRatio": 0.25,
+  "tokensPerFile": 4000
+}
