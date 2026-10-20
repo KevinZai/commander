@@ -202,3 +202,15 @@ Marketplace: `<repo>/.agents/plugins/marketplace.json` (legacy-compatible `.clau
 | `codex mcp-server` | removed; `codex app-server` |
 | Ultracode "forces xhigh" | `/effort ultracode` is a separate toggle (2.1.284) |
 | Plan mode as the default posture | auto permission mode is the interactive default (2.1.284); plan mode on request |
+
+## Claude interactive Remote Control — verified 2026-10-19
+
+Sources: https://code.claude.com/docs/en/remote-control and
+https://code.claude.com/docs/en/cli-reference; installed CLI 2.1.303 help.
+`claude --remote-control [name]` starts an interactive session. The user setting
+`remoteControlAtStartup: true` enables it by default. Pro, Max, Team and Enterprise
+subscription logins qualify; Team/Enterprise Owners must enable Remote Control.
+API keys and third-party API endpoints do not qualify. `--max-budget-usd` is
+print-only. Commander uses interactive tmux and report observation, with native
+session registration required before prompt injection. See
+[the dispatch contract](claude-remote-control.md).

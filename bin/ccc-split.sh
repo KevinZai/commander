@@ -28,8 +28,10 @@ if [ "$CCC_TMUX_SESSION" = "$SESSION_NAME" ]; then
   exec node "$CCC_BIN" --simple
 fi
 
-# Kill old session if exists
-tmux kill-session -t "$SESSION_NAME" 2>/dev/null
+# Reuse the existing session so open Claude panes remain available for steering.
+if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+  exec tmux attach-session -t "$SESSION_NAME"
+fi
 
 # Create session — single window, menu starts in first pane
 tmux new-session -d -s "$SESSION_NAME" -x "$(tput cols)" -y "$(tput lines)"

@@ -29,7 +29,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --repair     Fix corrupt state');
   console.log('  --simple     Menu-only mode (no tmux split)');
   console.log('  --update     Pull latest + reinstall');
-  console.log('  --dispatch   Headless: ccc --dispatch "task" [--json --model X --max-turns N --budget N --cwd PATH]');
+  console.log('  --dispatch   Remote Control: ccc --dispatch "task" [--json --model X --cwd PATH --report PATH --timeout SECONDS]');
   console.log('  --list-skills  List all skills (add --json for JSON)');
   console.log('  --skills       Manage installed skills (list, available, install, remove, tier)');
   console.log('  --list-sessions  Session history (add --json for JSON)');
@@ -475,11 +475,15 @@ if (args.includes('--dispatch')) {
   if (!task || task.startsWith('--')) { console.error('Usage: ccc --dispatch "task"'); process.exit(1); }
   var jm = args.includes('--json');
   var md = args.includes('--model') ? args[args.indexOf('--model') + 1] : undefined;
-  var mt = args.includes('--max-turns') ? parseInt(args[args.indexOf('--max-turns') + 1]) : 30;
+  var mt = args.includes('--max-turns') ? parseInt(args[args.indexOf('--max-turns') + 1]) : undefined;
   var bg = args.includes('--budget') ? parseFloat(args[args.indexOf('--budget') + 1]) : undefined;
   var cw = args.includes('--cwd') ? args[args.indexOf('--cwd') + 1] : undefined;
+  var rp = args.includes('--report') ? args[args.indexOf('--report') + 1] : undefined;
+  var waitMs = args.includes('--timeout') ? Number(args[args.indexOf('--timeout') + 1]) * 1000 : undefined;
   var d = require(path.join(__dirname,'..','commander','dispatcher'));
-  var result = d.dispatch(task, { model: md, maxTurns: mt, maxBudgetUsd: bg, cwd: cw, bare: true, stream: false });
+  var result;
+  try { result = d.dispatch(task, { model: md, maxTurns: mt, maxBudgetUsd: bg, cwd: cw, report: rp, timeoutMs: waitMs, stream: false }); }
+  catch (e) { if (jm) console.log(JSON.stringify({error:e.message})); else console.error('Error: '+e.message); process.exit(1); }
   if (result && typeof result.then === 'function') {
     result
       .then(function(r) { if (jm) console.log(JSON.stringify(r)); else console.log(r.result || 'Done'); process.exit(0); })
