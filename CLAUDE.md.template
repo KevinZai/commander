@@ -103,6 +103,21 @@ Twelve enforceable gates that make any model produce frontier-shaped results. Fu
 11. **Effort calibration:** deep reasoning on judgment, cheap passes on mechanics; pilot before fan-out.
 12. **Operationalize every fix:** repro test, sibling sweep, mechanical encoding.
 
+## Confidence
+HARD RULE: after writing or changing code, end every significant response with a Confidence section. Tests verify behavior; this surfaces model uncertainty, the confidently-wrong failure that tests miss. Be honest: below 60% is a red flag, 85% and above is green.
+
+```
+🎯 Confidence: 87% (high)
+⚠️ Low-confidence zones:
+   - src/auth.ts:42 — unsure if this handles the null case
+💡 What I'd double-check:
+   - The session refresh flow (not tested)
+```
+
+- Bands: high 85-100, medium 60-84, low 0-59.
+- List every low-confidence zone as `path:line — reason`; write `none` when there are none.
+- Skip the section for trivial answers (a single-line edit, a lookup).
+
 ## Context discipline
 The lead session is a control plane: decisions in, conclusions out. Canonical rules: `rules/workflow-first.md`.
 
