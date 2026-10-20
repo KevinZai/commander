@@ -152,7 +152,7 @@ async function syncSession(session, outcome) {
     if (outcome === 'success' || outcome === 'error') {
       if (!session.linearIssueId) return null;
       var duration = session.duration ? Math.round(session.duration / 60) + 'm' : 'unknown';
-      var cost = session.cost ? '$' + session.cost.toFixed(2) : '$0.00';
+      var cost = session.cost == null ? 'unknown' : '$' + session.cost.toFixed(2);
       var body = '**Session ' + outcome + '**\nDuration: ' + duration + '\nCost: ' + cost;
       if (session.filesChanged && session.filesChanged.length > 0) {
         body += '\nFiles: ' + session.filesChanged.length;
@@ -233,7 +233,7 @@ async function postProjectUpdate(title, body) {
 async function postSessionSummary(session) {
   if (!session) return null;
   var duration = session.duration ? Math.round(session.duration / 60) + 'm' : '?';
-  var cost = session.cost ? '$' + session.cost.toFixed(2) : '$0';
+  var cost = session.cost == null ? 'unknown' : '$' + session.cost.toFixed(2);
   var files = (session.filesChanged && session.filesChanged.length) || 0;
   var title = 'Session: ' + (session.task || 'Untitled').slice(0, 60);
   var body = '## Session Complete\x0a\x0a';

@@ -30,91 +30,15 @@ function inSplitMode() {
 // Dispatch counter for naming panes
 var dispatchCounter = 0;
 
-function tmuxDispatch(task, resumeSessionId) {
-  try {
-    var cp = require('child_process');
-    var crypto = require('crypto');
-    var claudeBin = require('./claude-finder').resolve();
-
-    // Pre-dispatch auth check: verify Claude Code can authenticate
-    try {
-      var authCheck = cp.execFileSync(claudeBin, ['-p', 'reply with OK', '--max-turns', '1', '--output-format', 'text'], {
-        encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 15000
-      });
-    } catch(authErr) {
-      var errMsg = String(authErr.stderr || authErr.message || '');
-      if (errMsg.indexOf('authentication') !== -1 || errMsg.indexOf('401') !== -1 || errMsg.indexOf('login') !== -1) {
-        process.stdout.write('\n  \x1b[31mAuth error: Claude Code credentials are invalid or expired.\x1b[0m\n');
-        process.stdout.write('  Run \x1b[1mclaude /login\x1b[0m to re-authenticate, then try again.\n\n');
-        return null;
-      }
-    }
-
-    var sessionName = process.env.CCC_TMUX_SESSION || 'ccc';
-    var sessionId = resumeSessionId || crypto.randomUUID();
-    dispatchCounter++;
-    var paneTitle = 'claude-' + dispatchCounter;
-
-    // Count current panes
-    var paneCount = 1;
-    try {
-      paneCount = parseInt(cp.execFileSync('tmux', ['display-message', '-p', '-t', sessionName, '#{window_panes}'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim(), 10) || 1;
-    } catch(_e) {}
-
-    // Create pane
-    if (paneCount === 1) {
-      cp.execFileSync('tmux', ['split-window', '-h', '-t', sessionName, '-l', '75%'], { stdio: 'pipe' });
-    } else {
-      var lastPane = paneCount - 1;
-      cp.execFileSync('tmux', ['select-pane', '-t', sessionName + ':.' + lastPane], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['split-window', '-h', '-t', sessionName], { stdio: 'pipe' });
-    }
-
-    // Set pane title
-    cp.execFileSync('tmux', ['select-pane', '-T', paneTitle], { stdio: 'pipe' });
-
-    // Launch Claude with session persistence
-    // Validate sessionId: strict allowlist to prevent shell injection
-    if (!/^[a-zA-Z0-9._:-]+$/.test(sessionId)) {
-      sessionId = crypto.randomUUID(); // replace tainted ID with safe one
-    }
-    if (resumeSessionId) {
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', claudeBin + ' --resume ' + sessionId + ' --continue'], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-    } else {
-      // Start interactive Claude, then send task as user input after a brief pause
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', claudeBin + ' --session-id ' + sessionId], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-      // Wait for Claude Code to be ready (poll for prompt, up to 8s)
-      var ready = false;
-      for (var attempt = 0; attempt < 16; attempt++) {
-        try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500); } catch(e) { /* noop */ }
-        try {
-          var paneContent = cp.execFileSync('tmux', ['capture-pane', '-t', sessionName, '-p'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-          if (paneContent.indexOf('>') !== -1 || paneContent.indexOf('╭') !== -1) {
-            ready = true;
-            break;
-          }
-        } catch(_e) {}
-      }
-      if (!ready) { try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000); } catch(e) { /* noop */ } }
-      // Sanitize task: strip control chars, limit length
-      var safeTask = String(task || '').replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 4000);
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', safeTask], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-    }
-
-    // Return focus to menu pane
-    cp.execFileSync('tmux', ['select-pane', '-t', sessionName + ':.0'], { stdio: 'pipe' });
-
-    // Rebalance layout
-    try {
-      cp.execFileSync('tmux', ['select-layout', '-t', sessionName, 'main-vertical'], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['resize-pane', '-t', sessionName + ':.0', '-x', '35'], { stdio: 'pipe' });
-    } catch(_e) {}
-
-    return sessionId;
-  } catch(_e) { return null; }
+function tmuxDispatch(task, resumeSessionId, options) {
+  var remote = require('./remote-session');
+  var handle = remote.start(task || 'Continue the previous task and report the outcome.', {
+    resume: resumeSessionId,
+    tmuxTarget: process.env.CCC_TMUX_SESSION || 'ccc',
+    name: 'ccc-pane-' + (++dispatchCounter),
+    ...(options || {})
+  });
+  return handle.job.sessionId;
 }
 
 var cockpit = require('./cockpit');
@@ -124,10 +48,10 @@ var S = tui.S;
 function cancellableDispatch(dispatchPromise, label) {
   return new Promise(function(resolve, reject) {
     var cancelled = false;
-    var proc = dispatchPromise.childProcess;
+    var remoteJob = dispatchPromise.remoteSession;
 
     // Show cancel hint
-    process.stdout.write('  \x1b[38;5;240mPress Escape or q to cancel\x1b[0m\n\n');
+    process.stdout.write('  \x1b[38;5;240mPress Escape or q to stop waiting (Claude stays available in tmux)\x1b[0m\n\n');
 
     // Listen for cancel keys (raw mode)
     var wasRaw = process.stdin.isRaw;
@@ -141,11 +65,8 @@ function cancellableDispatch(dispatchPromise, label) {
           process.stdin.removeListener('data', onKey);
           if (process.stdin.isTTY) process.stdin.setRawMode(wasRaw || false);
           process.stdin.pause();
-          if (proc) {
-            try { proc.kill('SIGTERM'); } catch(_) {}
-          }
-          process.stdout.write('\n\n  \x1b[38;5;208mCancelled: ' + (label || 'task') + '\x1b[0m\n');
-          resolve({ result: 'Cancelled by user', session_id: null, cost_usd: 0, cancelled: true });
+          process.stdout.write('\n\n  \x1b[38;5;208mStopped waiting: ' + (label || 'task') + '\x1b[0m\n');
+          resolve({ result: 'Stopped waiting; interactive session remains available', session_id: remoteJob ? remoteJob.sessionId : null, cost_usd: null, cancelled: true, detached: true });
         }
       };
       process.stdin.on('data', onKey);
@@ -579,31 +500,31 @@ class KitCommander {
 
       if (inSplitMode()) {
         // Split mode: launch interactive Claude Code session the user can take over
-        var claudeSessionId = tmuxDispatch(fullTask);
+        var claudeSessionId = tmuxDispatch(fullTask, null, { model: defaults.model, effort: defaults.effort, linearIssue: (state.getSession(session.id) || {}).linearIssueIdentifier || null });
         if (claudeSessionId) {
-          state.updateSession(session.id, { claudeSessionId: claudeSessionId });
+          state.updateSession(session.id, { claudeSessionId: claudeSessionId, cost: null });
         }
         process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
         process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
-        state.completeSession(session.id, 'dispatched');
+        state.updateSession(session.id, { status: 'active', outcome: 'dispatched' });
       } else {
-        // Simple mode: run headless with streaming output
-        process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
-        process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
+        // Simple mode: observe a report from the interactive Remote Control session
+        process.stdout.write('\x0a  ' + tui.dimText('Claude is working in tmux with Remote Control. Waiting for its report.') + '\x0a');
+        process.stdout.write(tui.divider('Claude Report') + '\x0a\x0a');
         var dispatchP = d.dispatchWithRetry(fullTask, {
-          stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
-          model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
+          stream: true, effort: defaults.effort,
+          model: defaults.model,
           fallbackModel: "sonnet", bare: false,
-          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+          name: d.generateSessionName(fullTask), linearIssue: (state.getSession(session.id) || {}).linearIssueIdentifier || null, systemPrompt: sysPrompt
         });
         var result = await cancellableDispatch(dispatchP, fullTask.slice(0, 60));
-        if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
-        state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
+        if (result.detached) { state.updateSession(session.id, { claudeSessionId: result.session_id, status: 'active', outcome: 'detached', cost: null }); } else if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
+        state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd == null ? null : result.cost_usd });
         state.completeSession(session.id, 'success');
         }
-        try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
+        if (!result.detached && !result.cancelled) try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:null}, result.result || ""); } catch(_e) {}
       }
-      if (!inSplitMode()) {
+      if (!inSplitMode() && !result.detached && !result.cancelled) {
         // Only show completion UI in simple mode (split mode: Claude handles it in right pane)
         try {
           var linearDone = require("./integrations/linear");
@@ -660,31 +581,31 @@ class KitCommander {
 
       if (inSplitMode()) {
         // Split mode: launch interactive Claude Code session the user can take over
-        var claudeSessionId = tmuxDispatch(fullTask);
+        var claudeSessionId = tmuxDispatch(fullTask, null, { model: defaults.model, effort: defaults.effort, linearIssue: (state.getSession(session.id) || {}).linearIssueIdentifier || null });
         if (claudeSessionId) {
-          state.updateSession(session.id, { claudeSessionId: claudeSessionId });
+          state.updateSession(session.id, { claudeSessionId: claudeSessionId, cost: null });
         }
         process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
         process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
-        state.completeSession(session.id, 'dispatched');
+        state.updateSession(session.id, { status: 'active', outcome: 'dispatched' });
       } else {
-        // Simple mode: run headless with streaming output
-        process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
-        process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
+        // Simple mode: observe a report from the interactive Remote Control session
+        process.stdout.write('\x0a  ' + tui.dimText('Claude is working in tmux with Remote Control. Waiting for its report.') + '\x0a');
+        process.stdout.write(tui.divider('Claude Report') + '\x0a\x0a');
         var dispatchP = d.dispatchWithRetry(fullTask, {
-          stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
-          model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
+          stream: true, effort: defaults.effort,
+          model: defaults.model,
           fallbackModel: "sonnet", bare: false,
-          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+          name: d.generateSessionName(fullTask), linearIssue: (state.getSession(session.id) || {}).linearIssueIdentifier || null, systemPrompt: sysPrompt
         });
         var result = await cancellableDispatch(dispatchP, fullTask.slice(0, 60));
-        if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
-        state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
+        if (result.detached) { state.updateSession(session.id, { claudeSessionId: result.session_id, status: 'active', outcome: 'detached', cost: null }); } else if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
+        state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd == null ? null : result.cost_usd });
         state.completeSession(session.id, 'success');
         }
-        try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:0}, result.result || ""); } catch(_e) {}
+        if (!result.detached && !result.cancelled) try { var knowledge2 = require("./knowledge"); knowledge2.extractAndStore(state.getSession(session.id) || {task:fullTask,cost:null}, result.result || ""); } catch(_e) {}
       }
-      if (!inSplitMode()) {
+      if (!inSplitMode() && !result.detached && !result.cancelled) {
         try { var linearDone = require("./integrations/linear"); var doneSession = state.getSession(session.id); if (doneSession) linearDone.syncSession(doneSession, "success").catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'linear-issue-done'); } catch(_) {} }
         tmuxStatus('BUILD COMPLETE');
         try { require('fs').writeFileSync(require('path').join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'COMPLETE: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
@@ -728,13 +649,13 @@ class KitCommander {
       process.stdout.write('\x0a' + tui.divider('Resuming Session') + '\x0a\x0a');
       process.stdout.write('  ' + tui.dimText('Task: ' + (session.task || 'unknown').slice(0, 120)) + '\x0a');
       if (inSplitMode() && session.claudeSessionId) {
-        tmuxDispatch(null, session.claudeSessionId);
+        tmuxDispatch(null, session.claudeSessionId, { linearIssue: session.linearIssueIdentifier || null });
         process.stdout.write('  ' + tui.boldText('Resumed in Claude pane \u2192', tui.getTheme().primary) + '\x0a');
         process.stdout.write('  ' + tui.dimText('Session resumed in pane. Ctrl+A \u2192 to switch.') + '\x0a');
       } else {
-        process.stdout.write('  ' + tui.dimText('Claude is working \u2014 live output below.') + '\x0a\x0a');
-        var result = await d.dispatch('Continue: ' + session.task, { stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort, fallbackModel: 'sonnet', bare: false, resume: session.claudeSessionId || undefined });
-        state.updateSession(session.id, { cost: (session.cost || 0) + (result.cost_usd || 0) });
+        process.stdout.write('  ' + tui.dimText('Claude is working in tmux; waiting for its report.') + '\x0a\x0a');
+        var result = await d.dispatch('Continue: ' + session.task, { stream: true, effort: defaults.effort, fallbackModel: 'sonnet', bare: false, linearIssue: session.linearIssueIdentifier || null, resume: session.claudeSessionId || undefined });
+        state.updateSession(session.id, { cost: session.cost == null || result.cost_usd == null ? null : session.cost + result.cost_usd });
         tmuxStatus('RESUME COMPLETE \u2714');
         process.stdout.write(tui.celebrate('Progress made!'));
       }
@@ -817,7 +738,7 @@ class KitCommander {
     var durationSec = Number(safe.duration);
     var duration = Number.isFinite(durationSec) && durationSec > 0 ? Math.round(durationSec / 60) + 'm' : 'ongoing';
     var costNum = Number(safe.cost);
-    var cost = Number.isFinite(costNum) ? '$' + costNum.toFixed(2) : '$0.00';
+    var cost = safe.cost == null ? 'unknown' : Number.isFinite(costNum) ? '$' + costNum.toFixed(2) : 'unknown';
     var status = typeof safe.status === 'string' ? safe.status : 'active';
     var task = typeof safe.task === 'string' && safe.task.trim() ? safe.task : 'Untitled';
     var startDate = new Date(safe.startTime);
@@ -920,9 +841,9 @@ class KitCommander {
         tmuxStatus("YOLO Cycle " + cycle + "/" + maxCycles + " started");
         sp.stop(true);
         process.stdout.write("\x0a" + tui.divider("YOLO Cycle " + cycle + "/" + maxCycles + (cycle === 1 ? " \u2014 Building" : " \u2014 Improving")) + "\x0a\x0a");
-        process.stdout.write("  " + tui.dimText("Live output below. Watch file: ~/.claude/commander/yolo-status.txt") + "\x0a\x0a");
-        var result = await d.dispatch(prompt, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opus", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: false, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
-        state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
+        process.stdout.write("  " + tui.dimText("Interactive Remote Control; dollar/turn caps unavailable. Watch file: ~/.claude/commander/yolo-status.txt") + "\x0a\x0a");
+        var result = await d.dispatch(prompt, { stream: true, effort: cycle === 1 ? "high" : "medium", model: "opus", permissionMode: "plan", fallbackModel: "sonnet", bare: false, name: d.generateSessionName("yolo-" + cycle + "-" + task), linearIssue: (state.getSession(session.id) || {}).linearIssueIdentifier || null, systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
+        state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd == null ? null : result.cost_usd });
         state.completeSession(session.id, "success");
         knowledge.extractAndStore(state.getSession(session.id) || session, result.result || "");
         try { var yoloDone = require("./integrations/linear"); var yoloDoneSession = state.getSession(session.id); if (yoloDoneSession) yoloDone.syncSession(yoloDoneSession, "success").catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'yolo-linear-done'); } catch(_) {} }

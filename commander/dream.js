@@ -59,7 +59,8 @@ function consolidate() {
 
   // Stats
   var successCount = lessons.filter(function (l) { return l.outcome === "success"; }).length;
-  var totalCost = lessons.reduce(function (s, l) { return s + (l.cost || 0); }, 0);
+  var measured = lessons.filter(function(l) { return Number.isFinite(l.cost); });
+  var totalCost = measured.reduce(function (s, l) { return s + l.cost; }, 0);
 
   return {
     suggestions: suggestions,
@@ -68,6 +69,9 @@ function consolidate() {
       total: lessons.length,
       successRate: lessons.length > 0 ? Math.round((successCount / lessons.length) * 100) : 0,
       totalCost: Math.round(totalCost * 100) / 100,
+      costCoverage: "measured-only",
+      measuredCostSessions: measured.length,
+      unknownCostSessions: lessons.length - measured.length,
       categories: Object.keys(categories).length,
     },
   };

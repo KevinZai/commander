@@ -198,7 +198,8 @@ test('renderSession handles malformed session fields safely', function() {
   });
   assert.ok(typeof rendered === 'string');
   assert.ok(rendered.includes('Untitled'));
-  assert.ok(rendered.includes('$0.00'));
+  assert.ok(rendered.includes('Cost: unknown'));
+  assert.ok(engine.renderSession({ cost: null }).includes('Cost: unknown'));
   assert.ok(rendered.includes('Unknown date'));
 });
 
