@@ -36,6 +36,12 @@
             ]
           },
           {
+            "group": "The Bible",
+            "pages": [
+              "bible/chapter-1-genesis"
+            ]
+          },
+          {
             "group": "Desktop Plugin (v8.0.0)",
             "pages": [
               "plugin/install",

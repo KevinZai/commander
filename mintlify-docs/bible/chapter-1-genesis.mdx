@@ -1,0 +1,123 @@
+---
+title: "Chapter 1: Genesis"
+sidebarTitle: "1. Genesis"
+description: "Starting a New Project: brief the contractor, set up the COMP files, and write a lean CLAUDE.md."
+icon: "seedling"
+---
+
+<Note>
+  Draft slice of the Bible-on-Mintlify rollout (CC-325). Source of truth is [BIBLE.md](https://github.com/KevinZai/commander/blob/main/BIBLE.md), Stage 1. Roughly a 4 minute read.
+</Note>
+
+## Mindset
+You're briefing a brilliant contractor who knows nothing about your project yet. The more complete your brief, the less time you waste in corrections. Invest 20 minutes upfront to save 10 hours later.
+
+Stock Claude Code starts every session with amnesia. CC Commander doesn't. Before you type a single prompt, the Intelligence Layer has already read your `package.json`, scored the complexity of what you're about to build, and pre-ranked the skills most likely to help. See [Intelligence Layer](/features/intelligence-layer).
+
+## Three-Stage Mastery Path
+
+Track your progression from beginner to power user using this framework (from @aakashgupta on X):
+
+| Stage | Focus | Outcomes |
+|-------|-------|----------|
+| **1. Fundamentals** | Models, prompting, context windows, cost management | Can write effective prompts; understand model behavior |
+| **2. Agent Patterns** | Delegation, sub-agents, lifecycle hooks, CLAUDE.md, project setup | Can architect multi-step workflows; build reusable agents |
+| **3. OpenClaw-Level Orchestration** | Multi-agent fleets, autonomous loops, production deploys, observability | Can manage teams of agents; handle complex enterprise patterns |
+
+Each CCC domain (ccc-design, ccc-seo, ccc-saas, etc.) fits into Stage 2-3. Mastery is domain expertise + agent patterns combined.
+
+## Quick Start (3 paths)
+
+| Path | You Use | Command |
+|------|---------|---------|
+| **CLI** | `claude` in terminal | the installer one-liner from the README → `ccc` |
+| **Slash commands only** | Claude Code sessions | `curl ... \| bash` → `/ccc` in any session |
+| **Desktop plugin** | Claude Desktop | `/plugin marketplace add KevinZai/commander` |
+
+Arrow keys to navigate. No commands to memorize. The Intelligence Layer handles model selection, budget, and skill routing automatically.
+
+## Key Commands
+
+```bash
+# Step 1: Initialize project context
+/ccc-init                    # Creates CLAUDE.md with project overview
+/ccc-plan                    # Spec interview — Claude asks 5–7 questions
+
+# Step 2: Set up the COMP system (4 files every project needs)
+```
+
+## The COMP System (from @GriffinHilly)
+Every project gets exactly 4 files:
+
+| File | What goes here | Who reads it |
+|------|---------------|--------------|
+| `CLAUDE.md` | How the AI should behave | Claude every session |
+| `ORIENT.md` | What a human needs to know to work here | New team members |
+| `MEMORY.md` | Accumulated decisions, gotchas, context | Claude + humans |
+| `PLAN.md` | Roadmap, progress, next steps | Claude + humans |
+
+Separate behavioral instructions from orientation from accumulated knowledge from direction. Each has different audience and update frequency.
+
+## CLAUDE.md Quick-Start Template
+
+```markdown
+# CLAUDE.md — [Project Name]
+
+## Stack
+- Framework: [Next.js 15 / Laravel 11 / Vue 3]
+- Language: [TypeScript / PHP]
+- Database: [PostgreSQL]
+- Testing: [Vitest / PHPUnit]
+
+## Build & Test
+- Dev: `npm run dev` | Build: `npm run build` | Test: `npm test`
+
+## Rules
+- Never change unrelated code
+- Always write tests before implementing
+- Commit after each milestone
+
+## Active Tasks
+See `tasks/todo.md`
+```
+
+## Kickoff Workflow
+
+```
+1. /ccc-init → generates baseline CLAUDE.md
+2. /ccc-plan → spec interview → spec saved to tasks/spec-YYYYMMDD.md
+3. New session with spec as context
+4. Execute against spec
+5. /ccc-verify after each milestone
+```
+
+## CLAUDE.md Gotchas
+
+- **Don't edit mid-session** — invalidates the cache (costs more tokens)
+- **Start lean** — add instructions only when you catch yourself repeating them
+- **Static content first** — improves cache hit rate
+- **Use `#` shortcut** — type `# always use TypeScript strict mode` → adds to CLAUDE.md automatically
+- **Progressive Disclosure** — keep CLAUDE.md lean; trigger rules like "when X, read guide Y" (guides load on demand)
+
+## Path-Specific Rules (Power Move)
+
+Instead of one bloated CLAUDE.md, use `.claude/rules/` with YAML frontmatter:
+
+```yaml
+# .claude/rules/testing.md
+---
+paths: ["**/*.test.tsx", "**/*.spec.ts"]
+---
+# Testing Rules
+- Always use describe/it blocks
+- Mock external dependencies
+- Test edge cases first
+```
+
+This loads **only** when editing matching files. Saves tokens. Works across the entire codebase regardless of directory depth.
+
+---
+
+<Card title="Next: Chapter 2, Foundations" icon="arrow-right" href="https://commanderplugin.com/bible.html#stage-2-daily-development-loop">
+  The Daily Development Loop. Chapter 2 moves to this site in the next slice; until then it opens on the canonical Bible.
+</Card>
