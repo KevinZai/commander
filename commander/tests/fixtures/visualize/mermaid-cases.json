@@ -1,0 +1,9 @@
+[
+  {"name":"architecture-flowchart","request":{"type":"mermaid","input":{"source":"flowchart LR\n  A[Hook] --> B[Core]","title":"Architecture"}},"response":{"ok":true,"type":"mermaid","format":"mermaid","code":"flowchart LR\n  A[Hook] --> B[Core]","title":"Architecture","diagram":"flowchart"}},
+  {"name":"flow-sequence","request":{"type":"mermaid","input":{"source":"sequenceDiagram\n  User->>Commander: ask"}},"response":{"ok":true,"type":"mermaid","format":"mermaid","code":"sequenceDiagram\n  User->>Commander: ask","diagram":"sequenceDiagram"}},
+  {"name":"db-schema-er","request":{"type":"mermaid","input":{"source":"erDiagram\n  USER ||--o{ SESSION : has"}},"response":{"ok":true,"type":"mermaid","format":"mermaid","code":"erDiagram\n  USER ||--o{ SESSION : has","diagram":"erDiagram"}},
+  {"name":"err-unsupported-type","request":{"type":"playwright","input":{"source":"x"}},"response":{"ok":false,"error":{"code":"unsupported_type","message":"Only type \"mermaid\" is supported."}}},
+  {"name":"err-empty-source","request":{"type":"mermaid","input":{"source":"   "}},"response":{"ok":false,"error":{"code":"empty_source","message":"input.source is empty."}}},
+  {"name":"err-unsupported-diagram","request":{"type":"mermaid","input":{"source":"pie title X\n  \"a\": 1"}},"response":{"ok":false,"error":{"code":"unsupported_diagram","message":"Diagram must start with flowchart, graph, sequenceDiagram or erDiagram."}}},
+  {"name":"err-render-unavailable","request":{"type":"mermaid","input":{"source":"graph TD\n  A-->B","render":"image"}},"response":{"ok":false,"error":{"code":"render_unavailable","message":"Image rendering is not available yet; use render \"code\"."}}}
+]
