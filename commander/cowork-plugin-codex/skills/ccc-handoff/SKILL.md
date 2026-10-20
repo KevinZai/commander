@@ -27,6 +27,11 @@ Use it:
 - Mid-way through a long orchestration run (`$ccc-orchestrate`, `$ccc-plan-exec`, a Workflow run). Long multi-step executor loops degrade context fastest; do not wait for the run to finish.
 - At the end of a work session. This overlaps `$ccc-save-session`; session end is one trigger among many here.
 
+Context thresholds (percent of the window used), shared with `rules/fable-method.md` and `rules/workflow-first.md`:
+
+- About 70%: write or refresh a handoff now. Do not wait for a stopping point.
+- About 85%: compact or hand off (`$ccc-handoff`) rather than risk a mid-task truncation.
+
 If the question is "hand off now or wait", hand off now. Frequent handoffs are cheap; degraded output is not.
 
 Do not use it to summarize for a human reader (use `$ccc-standup`) or to compact in place. This skill ends the current chat's working life.
@@ -70,6 +75,8 @@ Build the filename `<date>-<short-id>-session.tmp` from that date and a short-id
 - has no uppercase letters, underscores or spaces.
 
 Valid: `abc123de`, `handoff-mid-orch1`. Invalid: `ABC123de` (uppercase), `short` (under 8), `test_id1` (underscore). If `$ARGUMENTS` names a topic, derive the short-id from it (for example `auth-refactor`).
+
+Keep two durable copies so the state survives losing one: the session file below, plus a second copy outside the chat. The second copy is `tasks/SESSION-HANDOFF-<date>.md` in the repository when the project keeps a `tasks/` directory, or a tracker post when the current request authorizes tracker writes. Write the second copy only with that authorization; otherwise say "second copy: not written" in the final output.
 
 Every invocation gets its own file. Never append to an earlier handoff, even one from this same session. Confirm the target does not exist yet:
 
@@ -142,8 +149,9 @@ None. The skill does not ask before writing: it always creates a new file under 
 - Never write a shorter or lossier file because handoffs are frequent. Every section is required every time.
 - Never continue working in the same chat after writing the file "to finish one more thing".
 - Never overwrite or append to an existing session file.
+- Never drop the "What Did NOT Work" section: it is the what-not-to-retry record the next session depends on.
 - Never write secrets, tokens or credential values into the file; name the variable or secret reference instead.
-- Writes only inside `~/.claude/sessions/`. It does not commit, push, post, or update trackers.
+- Writes the session file inside `~/.claude/sessions/`. The optional second copy (see step 2) goes to `tasks/` or a tracker only under the current request's authorization. It does not commit, push, or post on its own.
 
 ## See also
 

@@ -1,0 +1,133 @@
+---
+title: "The Kevin Z Method"
+description: "Build types, the orchestrator/executor model, CCC domains, automatic checklists and the 12-gate Fable Method. Bible chapter."
+sidebarTitle: "Chapter: The Kevin Z Method"
+---
+
+<Note>
+  Rendered copy of the "The Kevin Z Method" section of the canonical [BIBLE.md](https://github.com/KevinZai/cc-commander/blob/main/BIBLE.md). Edit the source, not this page.
+</Note>
+
+
+> Run `/ccc-init` to get this automatically configured. The decision tree asks these questions and sets up your project.
+
+## Build Type Selection
+
+Before touching ANY code, answer one question: **What kind of build is this?**
+
+| Build Type | Time | Approach | Model | CCC Domains |
+|------------|------|----------|-------|----------------|
+| **QUICK** | &lt;4 hours | Direct execute, ship fast | Sonnet | Stack-specific only |
+| **DEEP** | 1-5 days | Spec-first, TDD, subagents | Opus | mega-\{domain\} + ccc-testing |
+| **SAAS** | 1-4 weeks | Full lifecycle: scaffold→auth→billing→ship | Opus | ccc-saas + ccc-seo + ccc-testing + ccc-devops |
+| **OVERNIGHT** | 6-12h autonomous | Checkpoints, error recovery | Opus | overnight-runner + domain skills |
+| **ARCHITECTURE / THREAT-MODEL / MIGRATION** | Any | Deep reasoning, multi-angle analysis | Fable 5.1 | `/model fable` — escalation tier only |
+
+## Orchestrator / Executor Model
+
+This is the Kevin Z way to spend model budget: **pay for Fable on the thinking, not the typing.**
+
+Use a high-reasoning orchestrator for ambiguity, judgment, and acceptance criteria. Use a cheaper execution runtime for the token-heavy reads, writes, diffs, and test loops.
+
+| Role | Job | Default Tool |
+|------|-----|--------------|
+| **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5.1 `effort: high`, or Opus 5.5 |
+| **Executor** | Implements the goal file exactly, runs its own tests as a first gate, and reports evidence — the orchestrator (or a fresh verifier) independently confirms. It does not re-plan. | The Codex CLI executor (GPT-6.1 Sol, or GPT-6 Astra for deep work) via `codex`, or a Sonnet subagent |
+| **Verifier** | Re-reads the goal file and checks every acceptance criterion before calling the work done. | Same Fable/Opus orchestrator |
+
+Run `/ccc-orchestrate` when the work is big enough that planning and execution should be split. The orchestrator writes the goal file, dispatches the Codex CLI executor (GPT-6.1 Sol) through the `codex` adapter or a Sonnet subagent, then verifies against the checklist. If one criterion fails, re-dispatch only that gap.
+
+Run `/ccc-handoff` frequently. Context quality decays as the window fills; the fix is not one giant compaction at the end. Write a dense handoff file, start a fresh chat, and resume from the saved state while the problem is still crisp.
+
+Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges the Orchestrator/Executor doctrine into that project's `CLAUDE.md` inside a marked block, preserves local rules, detects the stack, and prints the CCC skills/agents worth using there.
+
+## CCC Domains (Load ONE, Get Everything)
+
+| CCC Domain | Skills Inside | What It Covers |
+|------------|--------------|----------------|
+| `ccc-seo` | 19 | Technical SEO, AI search, content strategy, analytics, programmatic SEO |
+| `ccc-design` | 41 | Animations, visual effects, design systems, landing pages, Impeccable polish suite |
+| `ccc-testing` | 15 | TDD, E2E, verification, QA, regression, visual testing, load testing |
+| `ccc-marketing` | 45 | Content, CRO, channels, growth, intelligence, sales |
+| `ccc-saas` | 20 | Auth, billing, database, API, frontend stack, metrics, CRO |
+| `ccc-devops` | 20 | CI/CD, containers, AWS, monitoring, zero-downtime deploy, Terraform |
+| `ccc-research` | 8 | Deep research, literature review, competitive analysis, data synthesis |
+| `ccc-mobile` | 8 | iOS, Android, React Native, Flutter, Expo, app store optimization |
+| `ccc-security` | 8 | Pen testing, OWASP, supply chain, secrets management, threat modeling |
+| `ccc-data` | 8 | ETL pipelines, data warehousing, analytics, visualization, ML ops |
+| `ccc-makeover` | 3 | `/xray` project audit + `/makeover` design swarm + report generation |
+
+## Automatic Checklists
+
+### Quick Build
+- [ ] Build the thing
+- [ ] `/ccc-verify` — works end-to-end
+- [ ] `git commit` — conventional commit
+- [ ] Ship
+
+### Deep Build
+- [ ] `/ccc-init` — deep build, skills loaded
+- [ ] `/ccc-plan` — spec interview complete
+- [ ] New session with spec
+- [ ] TDD: write failing tests first
+- [ ] Implement until tests pass
+- [ ] `/ccc-code-review`
+- [ ] `/ccc-verify` — full verification
+- [ ] `operationalize-fixes` if bugs found
+- [ ] `/ccc-pr` — create draft PR
+
+### SaaS Build
+- [ ] `/ccc-init` — SaaS build, template selected
+- [ ] Scaffold from starter template
+- [ ] Auth (better-auth)
+- [ ] Database schema (drizzle-neon)
+- [ ] Core features via spec-driven sessions
+- [ ] Billing (stripe-subscriptions)
+- [ ] Dashboard + analytics
+- [ ] SEO (ccc-seo)
+- [ ] E2E tests (ccc-testing)
+- [ ] Deploy (ccc-devops)
+
+### Overnight Build
+- [ ] `/ccc-init` — overnight build configured
+- [ ] Define batch tasks + error strategy
+- [ ] Set checkpoint frequency
+- [ ] Launch with `overnight-runner`
+- [ ] Review checkpoints in morning
+
+---
+
+## The Fable Method
+
+> **Distilled from Claude Fable, written to run on any model.** Frontier-model results come from the *system around the model*, not just raw capability. Every instinct that makes Fable reliable — refusing a single pass, isolating blast radius, verifying against ground truth, treating context as disposable, operating like a PM instead of a typist — can be externalized as a gate any model can follow. Arm it with `/ccc-fable on`. Full text: `commander/cowork-plugin/rules/fable-method.md`.
+
+**The one-line version:** *judgment as process.* When the model is weaker, the process must be stronger.
+
+**The 12 pillars, as gates (checkable), not values (aspirational):**
+
+| # | Pillar | Gate question |
+|---|--------|----------------|
+| 1 | Orchestrate, don't type | Is the plan written down with acceptance criteria before implementation started? |
+| 2 | Never trust a single pass | Who verified this, and were they the one who made it? |
+| 3 | Loops with gates | What is the verifier, where is the state file, and what stops this? |
+| 4 | Prove it before you alarm | What's the evidence, and what would disprove this? |
+| 5 | Isolation and blast-radius control | Is the main tree tracked-clean, and did the agent verify its worktree before editing? |
+| 6 | Truth over cache | Is this from the source of truth, or from something that could be stale? |
+| 7 | Context is disposable; state is durable | If this session died right now, could a fresh one resume from durable state alone? |
+| 8 | Delegation discipline | Could a competent stranger execute this brief without asking me anything? |
+| 9 | Lead with the outcome | Does the first sentence contain the answer? |
+| 10 | The proactive PM posture | Did I evaluate IMPROVE/SCOPE/AUDIT, and did I resist executing the flags inline? |
+| 11 | Effort calibration | Did a small pilot validate this approach and its cost before scaling it? |
+| 12 | Operationalize every fix | What prevents this exact class of bug from recurring, and is that prevention mechanical? |
+
+**Model-agnostic promise:** a frontier model does some of this by instinct; a mid-tier model does none of it by instinct. That's why every pillar is a gate rather than a value — Sonnet, GPT, or any executor following these gates produces Fable-shaped results. The weaker the model, the more the gates matter. **The method IS the moat.**
+
+**Related:** `/ccc-fable` (arms the doctrine as a session contract) · `rules/workflow-first.md` (Pillars 1, 2, 6, 7, 8, 9, 11 as ambient session rules) · `rules/common/reasoning-hygiene.md` (Pillar 4 in full) · `/ccc-orchestrate` (Pillar 1 implementation) · `/ccc-suggest` (Pillar 10 implementation).
+
+---
+
+## Keep reading
+
+- [Bible overview](/bible) — the full guide and table of contents
+- [The 7 Golden Rules](/methodology/the-kevin-z-method) — the short methodology page
+- [Cheatsheet](/methodology/cheatsheet) — quick reference
