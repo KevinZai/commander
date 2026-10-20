@@ -1,0 +1,59 @@
+---
+title: "Multi-model support"
+description: "What CC Commander runs on today: every Claude model through Claude Code, Claude through the cloud providers and LLM gateways, and OpenAI GPT-6 through the Codex CLI mirror and /ccc-orchestrate. What it does not do."
+---
+
+<Warning>
+  **Draft.** This page is evidence-checked against the sources listed under [Sources](#sources). It changes no configuration. Pin versions and dates are as fetched on 2026-10-20; re-check before publishing.
+</Warning>
+
+CC Commander is a PM and orchestration layer. It does not host a model; it runs on whatever the host CLI runs. Two hosts are supported, and each has its own model set.
+
+## What works today
+
+| You want | Route | Status |
+|---|---|---|
+| Any current Claude model | Claude Code `/model` or the aliases `fable`, `opus`, `sonnet`, `haiku`, `inherit`, or a full id such as `claude-opus-5-5`. Plugin agents and skills name aliases in frontmatter, so they track the newest model per line. | Supported |
+| Claude on Bedrock, Vertex or Foundry | Claude Code's provider integrations. Commander does not change them. | Supported by Claude Code |
+| Claude through an organization LLM gateway | `ANTHROPIC_BASE_URL` plus a gateway credential, per Claude Code's [gateway docs](https://code.claude.com/docs/en/llm-gateway). | Supported by Claude Code, for Claude models |
+| OpenAI GPT-6 family | The Codex CLI. Install the generated Codex mirror (`codex plugin marketplace add KevinZai/commander`) and Commander's skills and agents run there with models from `commander/adapters/codex/models.js`. | Supported |
+| GPT-6 as a worker under a Claude session | `/ccc-orchestrate` writes a goal file and runs it with `codex exec -m <id>`, then the Claude session verifies each acceptance criterion. | Supported; needs the Codex CLI installed |
+
+### Codex model routing
+
+From `commander/adapters/codex/models.js` (registry verified against the live CLI on 2026-10-13):
+
+| Role | Model id |
+|---|---|
+| Deep work, verification | `gpt-6-astra` |
+| Default executor | `gpt-6.1-sol` |
+| Bounded implementation | `gpt-6-sol` |
+| Mechanical, bulk | `gpt-6-luna` |
+
+Each entry names a fallback in the registry. Run `npm run check:codex-models` in a repository checkout to probe your own Codex account; availability differs per account.
+
+## What does not work
+
+- **Non-Claude models behind `ANTHROPIC_BASE_URL`.** Claude Code's gateway documentation states that Anthropic "doesn't support routing Claude Code to non-Claude models through any gateway." Pointing Claude Code at Portkey or OpenRouter for Claude models is a gateway setup; pointing it at GPT or Gemini is outside what Claude Code supports, and Commander does not test or promise it.
+- **Gemini and local models (Ollama, Llama).** Nothing in the Commander plugin, the Codex adapter or the model registry routes to them. No skill, agent or script references them (searched `commander/cowork-plugin/skills`, `commander/adapters`, `mintlify-docs`, `README.md`). Say "not supported", not "possible with some setup".
+- **Mixing vendors inside one session.** A session runs one host. Cross-vendor work is a hand-off (`/ccc-orchestrate`, `/ccc-codex`), not a model switch.
+- **Subscription billing through a gateway.** Per Claude Code's docs, an active gateway credential replaces the claude.ai subscription for those requests and they are billed per token.
+
+## Positioning
+
+Accurate framing: "Commander runs on Claude Code and on the Codex CLI. Use Claude models, Claude through your cloud or gateway, or GPT-6 through Codex." Avoid "use any model"; it is not true today.
+
+## Sources
+
+| Claim | Source |
+|---|---|
+| Claude aliases and ids | `docs/reference/platform-facts-2026-10.md` §1 (line 34) |
+| Gateway support is Claude-only | https://code.claude.com/docs/en/llm-gateway (fetched 2026-10-20) |
+| Codex ids, roles, fallbacks | `commander/adapters/codex/models.js` |
+| Orchestrate executors | `commander/cowork-plugin/skills/ccc-orchestrate/SKILL.md` (Executors table) |
+| Codex mirror install | `mintlify-docs/features/codex-compatibility.mdx` |
+
+## Not decided here
+
+- Whether to add a Gemini or local-model executor to `/ccc-orchestrate`. That is a product decision and a registry change, outside this docs slice.
+- Whether to wire this page into `mintlify-docs/docs.json` navigation (left out so the draft stays unpublished).
