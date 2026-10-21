@@ -24,4 +24,4 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`. Follow 
 3. Include the validation that actually ran and its result, plus known limits.
 4. Push with `-u` when the branch needs an upstream, and only when pushing is authorized.
 
-For the steps before git (planning, tests, review), see [development-workflow.md](./development-workflow.md).
+For the steps before git (planning, tests, review), see [development-workflow.md](./development-workflow.md). For ticket, branch, role-tier, and post-back rules, see [build-process.md](./build-process.md).
