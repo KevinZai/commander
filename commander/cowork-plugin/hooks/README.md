@@ -73,6 +73,8 @@ Claude Code 2.1.296 has 33 hook events (`docs/reference/platform-facts-2026-10.m
 
 Every `.js` file in this directory is wired — either directly in `hooks.json` or through the SessionStart orchestrator's handler list (`fable-armed-nudge.js`, `voice-injector.js`, plus `_archive/session-start.js`). There are no dormant files.
 
+> **`_archive/` is a historical name, not a status.** `hooks/_archive/session-start.js` is a live handler: the SessionStart orchestrator loads it first (state init, session and knowledge counts, the version banner), and `permission-denied.js` beside it is archived. Do not delete or rename the directory without moving the orchestrator's `file:` entry, the tests that import it and the Codex mirror together. Its version banner reads `.claude-plugin/plugin.json` (two levels up from `_archive/`) and falls back to `unknown`, not a number.
+
 ## 🔁 Adding a new handler to `hooks.json`
 
 1. Add a new matcher/hook block under the right event in `hooks.json`:
