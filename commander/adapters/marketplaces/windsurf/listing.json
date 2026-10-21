@@ -1,0 +1,43 @@
+{
+  "platform": "windsurf",
+  "platformName": "Windsurf",
+  "status": "prepared-not-submitted",
+  "submissionSurface": "Windsurf MCP directory (Cascade MCP store)",
+  "submissionUrl": "https://docs.windsurf.com/windsurf/cascade/mcp",
+  "submissionUrlVerified": false,
+  "listing": {
+    "name": "CC Commander",
+    "slug": "cc-commander",
+    "version": "from package.json",
+    "description": "PM and orchestration layer over Claude agent capabilities: skills, agents, hooks and workflows. This listing ships only the credential-free MCP bundle (context7 docs lookup and sequential-thinking).",
+    "categories": [
+      "developer-tools",
+      "documentation",
+      "reasoning"
+    ],
+    "license": "MIT",
+    "author": "Kevin Zicherman",
+    "repository": "https://github.com/KevinZai/commander"
+  },
+  "install": {
+    "configLocation": "~/.codeium/windsurf/mcp_config.json",
+    "mcpServers": {
+      "context7": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@upstash/context7-mcp"
+        ]
+      },
+      "sequential-thinking": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      }
+    },
+    "requiresCredentials": false
+  },
+  "disclosure": "CC Commander core is free. Revenue comes from disclosed affiliates, consulting, an optional community and sponsorship. This listing contains no affiliate links. See mintlify-docs/affiliate-disclosure.mdx."
+}

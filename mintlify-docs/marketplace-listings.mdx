@@ -1,0 +1,21 @@
+---
+title: "Marketplace Listings"
+description: "Status of CC Commander listings for Cursor, Windsurf, Cline and Continue.dev"
+---
+
+# Marketplace Listings
+
+CC Commander can be cross-listed in editor MCP directories. The listing metadata is prepared in the repository under `commander/adapters/marketplaces/<platform>/listing.json`. **Nothing has been submitted to any platform.**
+
+Each listing ships only the credential-free MCP bundle from `commander/cowork-plugin/.mcp.json` (context7 and sequential-thinking). It is MIT licensed and contains no affiliate links. See the [affiliate disclosure](/affiliate-disclosure).
+
+| Platform | Status | Submission surface | Process note |
+|----------|--------|--------------------|--------------|
+| Cursor | Prepared, NOT submitted | MCP directory / plugin listing | Unverified: follow the current Cursor MCP docs at cursor.com/docs/context/mcp. |
+| Windsurf | Prepared, NOT submitted | Cascade MCP directory | Unverified: follow docs.windsurf.com/windsurf/cascade/mcp. |
+| Cline | Prepared, NOT submitted | MCP Marketplace repository | Unverified: understood to be a GitHub issue on cline/mcp-marketplace with the repo URL and a logo. Confirm before filing. |
+| Continue.dev | Prepared, NOT submitted | Continue Hub | Unverified: confirm the current Hub publishing flow at hub.continue.dev. |
+
+The submission URLs and processes above were not verified against live platform pages when this was written (`submissionUrlVerified` is `false` in each listing). Check each platform's current requirements before submitting, and have the maintainer approve every submission.
+
+The version in each listing is read from `package.json` at submission time. A test, `commander/tests/marketplace-listings.test.js`, checks required fields, the MCP bundle match, and the absence of secrets and personal paths.
