@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "disclosure": "Some links are affiliate links: CC Commander may earn a commission if you sign up, at no cost to you. Nothing is signed up or connected for you. Details: https://docs.commanderplugin.com/affiliate-disclosure",
+  "disclosureUrl": "https://docs.commanderplugin.com/affiliate-disclosure",
+  "_refCodes": "refCode is null until a real affiliate code is issued for that partner. Set it here only; the resolver never reads codes from anywhere else and never invents one. A null refCode yields a plain UTM-tagged link with no referral attribution.",
+  "partners": {
+    "supabase": { "name": "Supabase", "role": "Postgres, auth and storage", "signupUrl": "https://supabase.com", "affiliate": true, "refParam": "via", "refCode": null },
+    "vercel": { "name": "Vercel", "role": "Hosting and previews", "signupUrl": "https://vercel.com", "affiliate": true, "refParam": "ref", "refCode": null },
+    "neon": { "name": "Neon", "role": "Serverless Postgres", "signupUrl": "https://neon.tech", "affiliate": true, "refParam": "ref", "refCode": null },
+    "resend": { "name": "Resend", "role": "Transactional email", "signupUrl": "https://resend.com", "affiliate": true, "refParam": "via", "refCode": null },
+    "upstash": { "name": "Upstash", "role": "Serverless Redis and queues", "signupUrl": "https://upstash.com", "affiliate": true, "refParam": "utm_source", "refCode": null },
+    "fly": { "name": "Fly.io", "role": "Docker app hosting", "signupUrl": "https://fly.io", "affiliate": true, "refParam": "via", "refCode": null },
+    "railway": { "name": "Railway", "role": "App and database hosting", "signupUrl": "https://railway.app", "affiliate": true, "refParam": "referralCode", "refCode": null },
+    "sentry": { "name": "Sentry", "role": "Error and performance monitoring", "signupUrl": "https://sentry.io", "affiliate": true, "refParam": "utm_source", "refCode": null },
+    "cloudflare": { "name": "Cloudflare", "role": "Workers, Pages, R2 and D1", "signupUrl": "https://www.cloudflare.com", "affiliate": true, "refParam": "ref", "refCode": null },
+    "browserbase": { "name": "Browserbase", "role": "Remote headless browsers", "signupUrl": "https://www.browserbase.com", "affiliate": true, "refParam": "ref", "refCode": null },
+    "stripe": { "name": "Stripe", "role": "Payments and subscriptions", "signupUrl": "https://stripe.com", "affiliate": false },
+    "github": { "name": "GitHub", "role": "Source hosting and CI", "signupUrl": "https://github.com", "affiliate": false },
+    "postgres": { "name": "PostgreSQL", "role": "Self-hosted database", "signupUrl": "https://www.postgresql.org", "affiliate": false }
+  },
+  "groups": {
+    "web": { "label": "Web and SaaS apps" },
+    "api": { "label": "APIs and backends" },
+    "edge": { "label": "Edge, AI and self-hosted" }
+  },
+  "stacks": [
+    { "id": "nextjs-supabase-vercel", "group": "web", "label": "Next.js + Supabase + Vercel", "summary": "Full-stack React app with managed Postgres and auth.", "services": ["supabase", "vercel"] },
+    { "id": "nextjs-neon-vercel", "group": "web", "label": "Next.js + Neon + Vercel", "summary": "Next.js with serverless Postgres and transactional email.", "services": ["neon", "vercel", "resend"] },
+    { "id": "saas-stripe", "group": "web", "label": "SaaS starter (Supabase, Vercel, Stripe)", "summary": "Subscription SaaS with billing, email and error tracking.", "services": ["supabase", "vercel", "stripe", "resend", "sentry"] },
+    { "id": "bun-postgres-fly", "group": "api", "label": "Bun + Postgres + Fly.io", "summary": "Bun API in a container with serverless Postgres.", "services": ["fly", "neon"] },
+    { "id": "python-fastapi-fly", "group": "api", "label": "Python FastAPI + Fly.io", "summary": "FastAPI service with Postgres and error monitoring.", "services": ["fly", "neon", "sentry"] },
+    { "id": "node-railway-upstash", "group": "api", "label": "Node + Railway + Upstash", "summary": "Node API with managed hosting and serverless Redis.", "services": ["railway", "upstash"] },
+    { "id": "cloudflare-workers", "group": "edge", "label": "Cloudflare Workers + D1", "summary": "Edge-first app on Workers with D1 and error tracking.", "services": ["cloudflare", "sentry"] },
+    { "id": "ai-agent-browserbase", "group": "edge", "label": "AI agent (Browserbase + Vercel + Supabase)", "summary": "Browser-driving agent with a hosted app and storage.", "services": ["browserbase", "vercel", "supabase"] },
+    { "id": "api-upstash-vercel", "group": "edge", "label": "Serverless API (Vercel + Upstash)", "summary": "Functions on Vercel with Redis for cache and queues.", "services": ["vercel", "upstash"] },
+    { "id": "self-hosted-postgres", "group": "edge", "label": "Self-hosted (Postgres + GitHub)", "summary": "No paid partners: your own Postgres and GitHub. No affiliate links.", "services": ["postgres", "github"] }
+  ]
+}

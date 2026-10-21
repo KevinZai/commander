@@ -138,29 +138,34 @@ options:
 
 For either answer-first option, run the command in step "4. Write the state" of `${CLAUDE_PLUGIN_ROOT}/skills/ccc-adhd/SKILL.md`: pass `on` for "Answer-first output" and `stack` for "Answer-first, compressed too" (only `stack` sets `stackCaveman: true`). On a non-zero exit, report the error and do not claim the mode changed. On success, confirm in one line: "Answer-first mode on — the fix leads from here." Otherwise write nothing.
 
-**Connect your stack (affiliate-supported, opt-in).** Ask once with `multiSelect: true`. Skip is the 🟢 default; no partner is recommended over another. If Skip is picked alongside a partner, treat the partner picks as the answer:
+**Bring your stack (affiliate-supported, opt-in, skippable).** Ask once, after the plan file. The templates live in `${CLAUDE_PLUGIN_ROOT}/lib/stack-templates.json` and links are built only by `${CLAUDE_PLUGIN_ROOT}/lib/stack-links.mjs`; never type a signup URL, referral code or partner list from memory. Skip is the 🟢 default and no stack or partner is recommended over another. Say once before the first picker: "Optional. Some links are affiliate links (marked [aff]); we may earn a commission at no cost to you. Nothing is signed up or connected for you. Details: https://docs.commanderplugin.com/affiliate-disclosure"
+
+1. Group picker (single select). The group labels come from `groups` in the template file:
 
 ```yaml
-question: "Want to connect your stack? (optional — skip if you prefer)"
-header: "CC Commander — Connect your tools"
-multiSelect: true
+question: "What stack are you on? (optional — skip if you prefer)"
+header: "CC Commander — Your stack"
+multiSelect: false
 options:
   - label: "🟢 ⏭️ Skip for now"
-    description: "Connect nothing now; run /ccc-connect whenever you are ready."
+    description: "No links; run /ccc-connect whenever you are ready."
     preview: "No change."
-  - label: "Supabase — managed Postgres and auth"
-    description: "Database-as-a-service with built-in authentication and real-time."
-    preview: "[Sign up free](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=supabase-auth)"
-  - label: "Vercel — deployment and serverless"
-    description: "Deploy the app in one step. Fits Next.js and Node."
-    preview: "[Sign up free](https://vercel.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=vercel-deploy)"
-  - label: "Cloudflare — edge network and workers"
-    description: "Global CDN, edge functions, and real-time messaging."
-    preview: "[Sign up free](https://www.cloudflare.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=cloudflare-edge)"
+  - label: "Web and SaaS apps"
+    description: "Next.js with Supabase or Neon, Vercel, and a SaaS starter."
+    preview: "Opens a short list of web stacks."
+  - label: "APIs and backends"
+    description: "Bun, FastAPI or Node on Fly.io or Railway."
+    preview: "Opens a short list of API stacks."
+  - label: "Edge, AI and self-hosted"
+    description: "Cloudflare Workers, an AI agent, serverless, or no paid partners."
+    preview: "Opens a short list of edge and self-hosted stacks."
 ```
 
-If any are picked: "Those are partner sign-up links. Connect each one later with `/ccc-connect`." If skipped: "No problem — connect tools anytime via `/ccc-connect`." Nothing is signed up or connected from here.
+2. Stack picker (single select, up to four). Run `node "${CLAUDE_PLUGIN_ROOT}/lib/stack-links.mjs" list` (tab-separated id, group, label), keep the rows whose group matches the pick, and offer them as options with the label as the option label. Add no default and no recommendation.
 
+3. Show the links. Run `node "${CLAUDE_PLUGIN_ROOT}/lib/stack-links.mjs" <stack-id>` and show its output as-is: the disclosure line first when any link is affiliate, `[aff]` on affiliate links, plain links for the rest. Offer the user a subset with a `multiSelect: true` picker of the stack's services when they ask for fewer; re-run the command with a comma-separated service list as the second argument. Then: "Connect each one later with `/ccc-connect`." If a script exits non-zero, report its error line and show no link.
+
+If Skip is picked: "No problem — connect tools anytime via `/ccc-connect`." Write nothing, store nothing and track nothing from this step; links are only displayed after the user picks a stack.
 Close the tour once with the funding note in [references/sustain.md](references/sustain.md), never as a paywall and never blocking flow.
 
 Session tip, once: run `/ccc-save-session` before closing a working session and `/ccc-resume-session` at the start of the next one.
@@ -197,7 +202,7 @@ Expect `onboarding marked complete`, then reply: "✅ Onboarding complete. Next 
 - Never render a numbered or typed-letter menu; pickers only.
 - Never dump HTML expecting it to render; Desktop shows it as code.
 - Never mention the legacy `ccc` npm CLI or its modes; this audience is the plugin.
-- Never sign the user up for a partner, connect a service, or write anything beyond the plan file, `output-mode.json` (on opt-in) and `state.json`.
+- Never sign the user up for a partner, connect a service, invent a referral code, hide the affiliate disclosure, or write anything beyond the plan file, `output-mode.json` (on opt-in) and `state.json`.
 
 ## See also
 
