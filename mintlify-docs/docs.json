@@ -75,6 +75,7 @@
             "group": "Core Features",
             "pages": [
               "features/compatibility",
+              "features/autocomplete",
               "features/browse-modes",
               "features/token-optimization",
               "features/intelligence-layer",

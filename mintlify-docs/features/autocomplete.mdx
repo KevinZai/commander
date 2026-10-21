@@ -1,0 +1,27 @@
+---
+title: "Autocomplete — Codeium coexistence"
+description: "CC Commander does not ship tab-complete. Editor autocomplete such as Codeium (now Windsurf) runs beside Commander without any integration."
+---
+
+# ⌨️ Autocomplete
+
+CC Commander is an orchestration layer over Claude's agent capabilities. It does not provide inline tab-complete (fill-in-the-middle) suggestions, and it does not ship an autocomplete MCP server.
+
+## Using Codeium alongside Commander
+
+Inline autocomplete is an editor feature. A Codeium extension (Codeium is now Windsurf) works in the editor, while Commander runs in Claude Code or Claude Cowork Desktop. The two do not share state, and Commander does not need to be configured for either.
+
+| Concern | Handled by |
+|---|---|
+| Inline tab-complete in the editor | Your editor's autocomplete extension (for example Codeium) |
+| Multi-step work: plan, build, review, ship | CC Commander skills in Claude Code or Claude Desktop |
+
+Nothing in Commander requires, installs or calls Codeium. Account sign-up and licensing for any autocomplete tool are yours to manage.
+
+## Windsurf users
+
+Windsurf reads Commander's rules and MCP config through its own files. See [Compatibility](/features/compatibility) and `commander/adapters/windsurf/README.md`.
+
+## Status
+
+Autocomplete is a documentation-only slice: no integration code, bundled install or MCP server is planned here. A native FIM provider remains a separate option to evaluate after launch.
