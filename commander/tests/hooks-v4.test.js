@@ -157,7 +157,7 @@ describe('elicitation-result-handler.js', () => {
 describe('post-compact-recovery.js', () => {
   it('returns continue:true when no session file exists', () => {
     const r = runHook('post-compact-recovery.js', { session_id: 'test-compact' }, {
-      HOME: os.tmpdir(), // no session file in tmpdir
+      HOME: DEFAULT_TEST_HOME, // no session file in tmpdir
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
@@ -206,7 +206,7 @@ describe('post-compact-recovery.js', () => {
       input: 'INVALID',
       encoding: 'utf-8',
       timeout: 5000,
-      env: { ...process.env, HOME: os.tmpdir() },
+      env: { ...process.env, HOME: DEFAULT_TEST_HOME },
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
@@ -214,7 +214,7 @@ describe('post-compact-recovery.js', () => {
   });
 
   it('does not make network calls (MCP_DISABLED=1)', () => {
-    const r = runHook('post-compact-recovery.js', {}, { MCP_DISABLED: '1', HOME: os.tmpdir() });
+    const r = runHook('post-compact-recovery.js', {}, { MCP_DISABLED: '1', HOME: DEFAULT_TEST_HOME });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
@@ -277,7 +277,7 @@ describe('cost-ceiling-enforcer.js', () => {
     const r = runHook('cost-ceiling-enforcer.js', {
       tool_name: 'Bash',
       tool_input: { command: 'ls' },
-    }, { HOME: os.tmpdir() });
+    }, { HOME: DEFAULT_TEST_HOME });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
@@ -343,7 +343,7 @@ describe('cost-ceiling-enforcer.js', () => {
       input: '!!!',
       encoding: 'utf-8',
       timeout: 5000,
-      env: { ...process.env, HOME: os.tmpdir() },
+      env: { ...process.env, HOME: DEFAULT_TEST_HOME },
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
@@ -351,7 +351,7 @@ describe('cost-ceiling-enforcer.js', () => {
   });
 
   it('does not make network calls (MCP_DISABLED=1)', () => {
-    const r = runHook('cost-ceiling-enforcer.js', {}, { MCP_DISABLED: '1', HOME: os.tmpdir() });
+    const r = runHook('cost-ceiling-enforcer.js', {}, { MCP_DISABLED: '1', HOME: DEFAULT_TEST_HOME });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
@@ -403,7 +403,7 @@ describe('context-warning.js', () => {
       input: 'bad input',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: DEFAULT_TEST_HOME, USERPROFILE: DEFAULT_TEST_HOME },
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
@@ -613,7 +613,7 @@ describe('secret-leak-guard.js', () => {
       input: '{bad json}',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: DEFAULT_TEST_HOME, USERPROFILE: DEFAULT_TEST_HOME },
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
@@ -656,13 +656,37 @@ describe('hooks work with MCP_DISABLED=1 (airplane mode)', () => {
         MCP_DISABLED: '1',
         CC_COACH_DISABLE: '1',
         CC_NUDGE_DISABLE: '1',
-        HOME: os.tmpdir(),
+        HOME: DEFAULT_TEST_HOME,
       });
       assert.equal(r.exitCode, 0, `${hook} should exit 0`);
       assert.ok(r.parsed, `${hook} should output valid JSON`);
       assert.ok(typeof r.parsed.continue === 'boolean', `${hook} should have continue field`);
     });
   }
+});
+
+// ---- Fixture-pollution regression (CC-1383) ----
+
+describe('hooks-v4 HOME isolation', () => {
+  const realLog = path.join(os.homedir(), '.claude', 'commander', 'subagent-runs.jsonl');
+  const size = (p) => (fs.existsSync(p) ? fs.statSync(p).size : 0);
+
+  it('subagent-start-tracker rows land in the isolated HOME, never the real one', () => {
+    const before = size(realLog);
+    const name = `pollution-probe-${process.pid}`;
+    const r = runHook('subagent-start-tracker.js', { agent_name: name, prompt: 'probe' });
+    assert.equal(r.exitCode, 0);
+    assert.equal(size(realLog), before, 'real ~/.claude/commander/subagent-runs.jsonl must not grow');
+    const isolated = path.join(DEFAULT_TEST_HOME, '.claude', 'commander', 'subagent-runs.jsonl');
+    assert.ok(!fs.existsSync(realLog) || !fs.readFileSync(realLog, 'utf-8').includes(name));
+    assert.ok(fs.existsSync(isolated), 'row should be written under the isolated HOME');
+  });
+
+  it('no test env in this file leaves HOME pointing at the real home or os.tmpdir()', () => {
+    const src = fs.readFileSync(__filename, 'utf-8');
+    assert.ok(!/HOME:\s*os\.tmpdir\(\)/.test(src.replace(/assert\.ok\(!\/HOME[^\n]*\n/, '')), 'use DEFAULT_TEST_HOME');
+    assert.ok(!/env:\s*process\.env,/.test(src.replace(/assert\.ok\(!\/env[^\n]*\n/, '')), 'spawn with an isolated env');
+  });
 });
 
 // ---- File Existence ----
