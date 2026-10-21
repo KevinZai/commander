@@ -1,0 +1,35 @@
+<!-- Optional below-fold newsletter CTA for commanderplugin.com/bible.html (CC-764 slice 1).
+     DRAFT, inert until wired: replace {{NEWSLETTER_ACTION_URL}} with the provider form endpoint
+     (Buttondown/ConvertKit). The Bible itself stays ungated; nothing here blocks reading.
+     Paste after the Bible content, before the page footer. Tested by tests/newsletter-cta.test.js. -->
+<section class="nl-cta" aria-labelledby="nl-cta-title">
+  <style>
+    .nl-cta { --nl-bg:#f6f7f9; --nl-fg:#14171c; --nl-muted:#4a5260; --nl-accent:#0b5cd5; --nl-accent-fg:#ffffff;
+      max-width:40rem; margin:3rem auto; padding:1.5rem; border:1px solid #c9ced6; border-radius:.75rem;
+      background:var(--nl-bg); color:var(--nl-fg); font:inherit; }
+    .nl-cta h2 { margin:0 0 .5rem; font-size:1.25rem; }
+    .nl-cta p { margin:0 0 1rem; color:var(--nl-muted); }
+    .nl-cta__row { display:flex; flex-wrap:wrap; gap:.75rem; }
+    .nl-cta input[type="email"] { flex:1 1 14rem; min-height:44px; padding:.5rem .75rem; font:inherit;
+      color:var(--nl-fg); background:#fff; border:1px solid #6b7280; border-radius:.5rem; }
+    .nl-cta button { min-height:44px; padding:.5rem 1.25rem; font:inherit; font-weight:600; cursor:pointer;
+      color:var(--nl-accent-fg); background:var(--nl-accent); border:0; border-radius:.5rem; }
+    .nl-cta input:focus-visible, .nl-cta button:focus-visible { outline:3px solid var(--nl-accent); outline-offset:2px; }
+    .nl-cta label { display:block; margin-bottom:.25rem; font-weight:600; }
+    .nl-cta__note { margin:.75rem 0 0; font-size:.875rem; }
+    @media (prefers-color-scheme: dark) {
+      .nl-cta { --nl-bg:#161a21; --nl-fg:#f1f3f6; --nl-muted:#b4bbc7; --nl-accent:#7db0ff; --nl-accent-fg:#0a0d12; border-color:#3a414d; }
+      .nl-cta input[type="email"] { background:#0f1217; border-color:#8b93a1; }
+    }
+  </style>
+  <h2 id="nl-cta-title">Get the weekly digest</h2>
+  <p id="nl-cta-desc">New skills, agent updates, and Claude Code wins. No spam. Optional: the Bible stays free to read without signing up.</p>
+  <form method="post" action="{{NEWSLETTER_ACTION_URL}}" aria-describedby="nl-cta-desc">
+    <label for="nl-cta-email">Email address</label>
+    <div class="nl-cta__row">
+      <input id="nl-cta-email" name="email" type="email" autocomplete="email" required>
+      <button type="submit">Subscribe</button>
+    </div>
+    <p class="nl-cta__note" id="nl-cta-status" role="status" aria-live="polite">Unsubscribe any time.</p>
+  </form>
+</section>
