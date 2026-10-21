@@ -150,6 +150,8 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 | **Cross-runtime** | ✅ Claude Code + Codex + hosted MCP | ❌ IDE-locked | ⚠️ IDE-locked |
 | **Pricing** | ✅ Core free forever — no signup, no card, no gates | ⚠️ Tiered | ✅ BYOK free |
 
+**Use it with Cursor, not instead of it.** Cursor is an editor: fast inline edits, tab completion and a codebase-aware chat where you are already looking at the code. Commander is the workflow layer around the agent: planning before code, specialist reviewers, verified multi-agent runs and hooks that guard the session. Keep Cursor for the typing, and point its MCP client at Commander's hosted endpoint (see the table above) when you want the same skills, plans and reviews there. The two cover different jobs, so most teams run both.
+
 - 🖱️ **Click-first UX** — every menu is a native `AskUserQuestion` chip picker. No numbered menus, no ASCII prompts.
 - 🧠 **`/ccc-suggest`** — reads project state (stack, branch, recent commits, open todos, recent errors) and returns **one starred next step** with reasoning, naming another plugin when it fits better.
 - 🧭 **Orchestrator / executor** — `/ccc-orchestrate` has Fable or Opus write a goal file, then Codex (GPT-6 Astra, GPT-6.1 Sol or GPT-6 Luna), Codex Cloud or a Sonnet subagent executes it, and the orchestrator verifies the acceptance criteria. *Pay for Fable on the thinking, not the typing.*
