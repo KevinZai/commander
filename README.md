@@ -35,7 +35,7 @@
 
 **[Kevin Zicherman](https://kevinz.ai)** · **[@kzic](https://x.com/kzic)** · Built from 200+ community sources · Aggregates 20 vendor packages
 
-**[What's new](#-whats-new-in-800)** · **[Install](#-install)** · **[The 84 skills](#the-84-plugin-skills)** · **[Codex](#-codex-cli)** · **[Browse Skills](SKILLS-INDEX.md)** · **[BIBLE](BIBLE.md)** · **[Cheatsheet](CHEATSHEET.md)** · **[Changelog](CHANGELOG.md)**
+**[What's new](#-whats-new-in-800)** · **[Install](#-install)** · **[The 84 skills](#the-84-plugin-skills)** · **[Codex](#-codex-cli)** · **[Browse Skills](SKILLS-INDEX.md)** · **[BIBLE](BIBLE.md)** · **[Cheatsheet](CHEATSHEET.md)** · **[Changelog](CHANGELOG.md)** · **[Subscribe to releases](https://github.com/KevinZai/commander/releases.atom)**
 
 ### 🎯 Who it's for
 

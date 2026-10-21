@@ -9,6 +9,7 @@ import { PricingTable } from "@/components/pricing-table";
 import { InstallSection } from "@/components/install-section";
 import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 
 export default function HomePage() {
   return (
@@ -24,6 +25,7 @@ export default function HomePage() {
         <SkillsShowcase />
         <PricingTable />
         <InstallSection />
+        <NewsletterSignup />
       </main>
       <Footer />
     </>

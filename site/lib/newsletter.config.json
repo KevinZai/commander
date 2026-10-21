@@ -1,0 +1,4 @@
+{
+  "_note": "The ONE value that turns newsletter capture on: set formAction to the provider's form POST URL (Buttondown, ConvertKit/Kit or Substack). While empty, every newsletter form is hidden and nothing posts anywhere. After changing it run: node scripts/build-newsletter-snippet.js --apply",
+  "formAction": ""
+}
