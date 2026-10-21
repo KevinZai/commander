@@ -1,0 +1,54 @@
+{
+  "$comment": "DRAFT (CC-766 slice 1). Registry metadata for third-party marketplace cross-listing. Not submitted anywhere. Values marked verify_before_submit must be re-checked against the live endpoint and each marketplace's current submission rules.",
+  "schema_version": "0.1-draft",
+  "name": "cc-commander",
+  "display_name": "CC Commander",
+  "version_source": "package.json",
+  "summary": "PM and orchestration layer for Claude agents: skill discovery, workflow routing and specialist agent personas, served as MCP tools.",
+  "description": "CC Commander exposes its skill catalog, specialist agents and workflow routing through one remote MCP server. Ask for the right workflow for a task, lazy-load a skill, or fetch an agent persona. Free, MIT licensed, no license key; the hosted endpoint has an anti-abuse call cap and the client falls back to the local catalog.",
+  "license": "MIT",
+  "homepage": "https://commanderplugin.com",
+  "repository": "https://github.com/KevinZai/commander",
+  "issues": "https://github.com/KevinZai/commander/issues",
+  "author": { "name": "Kevin Zicherman", "url": "https://kevinz.ai" },
+  "categories": ["developer-tools", "agent-orchestration", "productivity"],
+  "keywords": ["mcp", "skills", "agents", "workflow", "orchestration", "claude"],
+  "server": {
+    "transport": "sse",
+    "url": "https://mcp.commanderplugin.com/v1/sse",
+    "auth": "UNVERIFIED (docs say none; live probe returned 401)",
+    "verify_before_submit": "adapter READMEs say /v1/sse is the 'W7 deploy target'; commander/mcp-server/README.md says hosted GA is 'planned'; contract.json says hosted_mcp_status=live. Observed 2026-10-21: unauthenticated HEAD returned HTTP 401, which contradicts auth=none and the no-key install docs. Reconcile first."
+  },
+  "tools": [
+    "commander_suggest_for",
+    "commander_search",
+    "commander_list_skills",
+    "commander_get_skill",
+    "commander_invoke_skill",
+    "commander_list_agents",
+    "commander_get_agent"
+  ],
+  "targets": {
+    "cursor": {
+      "listing_type": "marketplace-plugin (MCP + rules)",
+      "adapter_path": "commander/adapters/cursor/",
+      "config_template": "commander/adapters/cursor/cursor-mcp-config.template.json",
+      "rules_template": "commander/adapters/cursor/cursorrules.template",
+      "install_guide": "commander/adapters/cursor/install.md",
+      "submission": "UNKNOWN - package format and submission path not documented in repo; research needed",
+      "status": "draft"
+    },
+    "windsurf": {
+      "listing_type": "MCP directory entry",
+      "adapter_path": "commander/adapters/windsurf/",
+      "config_template": "commander/adapters/windsurf/windsurf-mcp-config.template.json",
+      "rules_template": "commander/adapters/windsurf/windsurfrules.template",
+      "install_guide": "commander/adapters/windsurf/install.md",
+      "submission": "UNKNOWN - submission path not documented in repo; research needed",
+      "status": "draft"
+    }
+  },
+  "claims_scope": "MCP-immediate only. No native Cursor/Windsurf package, hooks or persona projection exists; do not claim parity with the Claude/Codex plugins.",
+  "assets_needed": ["icon-512.png", "screenshots (install.md has placeholders)", "short demo gif"],
+  "disclosure": "Core skills stay free; revenue is disclosed affiliates/consulting/community/sponsorship."
+}
