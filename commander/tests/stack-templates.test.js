@@ -1,3 +1,6 @@
+/* eslint-disable test-quality/no-unscoped-service-test --
+ * Reads static template JSON only; no service client, no tenant concept.
+ */
 'use strict';
 
 const { describe, it } = require('node:test');
