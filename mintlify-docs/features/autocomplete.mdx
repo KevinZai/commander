@@ -1,0 +1,55 @@
+---
+title: "Autocomplete"
+description: "CC Commander does not ship tab-complete. Pair it with a dedicated inline-completion provider such as Windsurf (formerly Codeium) and keep Commander for planning, review and orchestration."
+---
+
+## What Commander does and does not do
+
+CC Commander is a PM and orchestration layer over Claude's agent capabilities. It plans, delegates, reviews and verifies. It does **not** provide keystroke-level inline completion (ghost text as you type). That job belongs to an editor-side completion provider, and the two work well side by side.
+
+| Job | Tool |
+|-----|------|
+| Inline "tab" completion while you type | A completion provider in your editor (this page) |
+| Spec, plan, multi-agent build, review, ship | CC Commander (`/ccc`, `/ccc-plan`, `/ccc-review`) |
+
+<Note>
+  Slash-command autocomplete inside Claude Code is a separate, built-in feature and is unaffected by anything on this page.
+</Note>
+
+## Pairing with Windsurf (formerly Codeium)
+
+Codeium rebranded to Windsurf. The Codeium editor extensions and the Windsurf editor both provide inline completion, which Windsurf markets as Tab.
+
+1. Install the Windsurf editor, or the Windsurf/Codeium extension for your existing editor (VS Code, JetBrains and others), from the official source at [windsurf.com](https://windsurf.com).
+2. Sign in with your own account. CC Commander never creates accounts or handles your credentials.
+3. Keep using Claude Code with the Commander plugin in the terminal or Desktop app for planning and review.
+4. Optional: point Windsurf at the hosted Commander MCP endpoint so its agent can browse the skill catalog. See [Browse modes](/features/browse-modes).
+
+```json
+{
+  "mcpServers": {
+    "cc-commander": {
+      "url": "https://mcp.commanderplugin.com/sse"
+    }
+  }
+}
+```
+
+The config file location differs by editor; check your editor's MCP settings.
+
+## Free tier notes (verify before relying on them)
+
+<Warning>
+  The following comes from third-party 2026 review sites, not from Windsurf's official pricing page. Vendors change plans often (reports cite a restructure in March 2026). Confirm current limits at [windsurf.com](https://windsurf.com) before you plan around them.
+</Warning>
+
+- **Reported:** Tab completions are unmetered on the free plan. Agent chat and premium models draw from a limited quota.
+- **Reported:** paid plans start around $20 per month. Teams pricing is inconsistent across sources and is **unverified**.
+
+## Hosted MCP usage
+
+Autocomplete from a third-party provider does not use Commander's hosted MCP calls. Only calls your MCP client sends to `mcp.commanderplugin.com` count toward the free tier of 1,000 calls per month. Local skills are unlimited.
+
+## Other providers
+
+Any inline-completion provider works the same way, because Commander does not touch the editor's completion path. Choose by privacy posture, cost and editor support. Commander recommends none commercially and takes no affiliate revenue from this page.

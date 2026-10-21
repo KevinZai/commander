@@ -76,6 +76,7 @@
             "pages": [
               "features/compatibility",
               "features/browse-modes",
+              "features/autocomplete",
               "features/token-optimization",
               "features/intelligence-layer",
               "features/skill-tiers",

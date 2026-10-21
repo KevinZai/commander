@@ -46,6 +46,8 @@
 | 🤖 **A Codex user** | The same plugin through the Codex marketplace, plus `/ccc-codex` to manage the Codex CLI from Claude. |
 | 🔧 **In Cursor / Windsurf / Cline / Continue** | One hosted MCP endpoint unlocks the 467-skill catalog in your IDE of choice. |
 
+> 🆓 **Free tier:** Local skills, agents and hooks are unlimited and free. The hosted MCP endpoint is free for **1,000 calls per month** per account (burst limit 60 requests per minute).
+
 ---
 
 ## ⭐ Install

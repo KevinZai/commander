@@ -167,6 +167,14 @@ Render one markdown block the user can paste as-is. Lead with the update status 
 | Bundled MCP servers | <MCP_SERVERS> |
 | Sessions (count / latest) | <SESSION_COUNT> / <LATEST_SESSION> |
 
+Hosted MCP free tier (add this line under the table only when its data exists):
+
+```
+Hosted MCP calls: [#########-----------] 450 / 1000 used this month (550 left, resets 2026-11-01)
+```
+
+The probe has no local source for this number, so never estimate it. Build the line only from a hosted `commander_status` result (`usage.callsUsed`, `usage.cap`, `usage.remaining`, `usage.resetDate`) or the `X-Commander-Calls-Used` and `X-Commander-Calls-Cap` headers that are already in this session, for example because the user pasted them or the hosted MCP is connected and `commander_status` was already called. Do not make a hosted call just to fill the line. Draw 20 cells with `round(used / cap * 20)` filled. With no usage data, omit the line or print `Hosted MCP calls: shown only when a usage endpoint is configured`. The free-tier cap is 1,000 hosted calls per month; local skills are unlimited and not counted.
+
 ### Checklist
 - [ ] Plugin source found (INSTALL_MODE is not `not-found`)
 - [ ] No temp_* dirs
@@ -317,7 +325,7 @@ options:
 ## Guardrails
 
 - Read-only except the `autoUpdate` toggle, which requires the picker answer, a prior backup, and a post-write check. Repair commands are printed for the user, never run.
-- Never test MCP connectivity; list server names only.
+- Never test MCP connectivity; list server names only. The hosted-calls bar uses data already in the session and never triggers a hosted call.
 - Never hardcode the plugin version; read it from `plugin.json` and `installed_plugins.json`.
 - Never tell a marketplace-installed user to `git pull`; the remediation is the `claude plugin marketplace update` and `claude plugin update` pair plus a restart.
 - Never collapse the clone root (`marketplaces/commander-hub`, has `.git`) and the plugin source (`$CLONE/commander/cowork-plugin`, has `.claude-plugin/plugin.json`) into one path.

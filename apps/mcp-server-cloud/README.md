@@ -95,7 +95,7 @@ License key is issued on beta signup at `commanderplugin.com/beta`.
 ## Rate Limits
 
 - Burst: 60 requests/minute
-- Monthly: 1,000 calls (free tier), 2,000 if 2+ surveys answered, 500 if 3+ skips
+- Monthly: 1,000 hosted MCP calls on the free tier (local skills are unlimited), 2,000 if 2+ surveys answered, 500 if 3+ skips; Pro is 100,000. Enforced server-side by `src/middleware/ratelimit.ts` and the `get_effective_cap` RPC; every response carries `X-Commander-Calls-Used` and `X-Commander-Calls-Cap`.
 
 ## Local Dev
 
