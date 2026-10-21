@@ -1,0 +1,67 @@
+---
+title: "Bring Your Own Key (BYOK)"
+description: "What runs locally, which credentials Commander reads, and which calls still touch the hosted MCP endpoint. Draft: documents only what the code verifies."
+---
+
+<Warning>
+  **Draft.** This page records what the repository shows today. It does not describe a BYOK tier, a call quota, or a hosted-MCP bypass, because none of them exists in code. Claims are tagged with the file that backs them.
+</Warning>
+
+## Short answer
+
+- The core plugin (skills, agents, hooks, workflows) runs **locally** inside your Claude Code or Codex session. There is no license check and no call cap in the plugin. See [Why CC Commander](/why-ccc) and the FAQ.
+- Commander does not route model calls. Claude Code (or Codex) makes them with whatever credential **you** configured there: a Claude subscription login, or your own API key.
+- Commander has **no BYOK switch**. Setting `ANTHROPIC_API_KEY` changes how Claude Code authenticates. It does not turn a Commander feature on or off.
+
+## What runs locally
+
+| Surface | Where it runs | Evidence |
+|---|---|---|
+| Desktop plugin skills, agents, hooks | Your Claude session, from `commander/cowork-plugin/` | Hooks are local `node` scripts in `hooks/hooks.json`; the license hook is an explicit no-op (`hooks/README.md`) |
+| Bundled MCP servers | Local `npx` stdio processes: `context7` and `sequential-thinking` | `commander/cowork-plugin/.mcp.json` |
+| CLI toolkit MCP server | Local stdio server, no network required | `commander/mcp-server/README.md` ("Local vs Hosted") |
+| `/ccc-doctor` | Read-only probe; its only network call is the version check | `skills/ccc-doctor/SKILL.md` |
+
+## Credentials Commander reads
+
+| Variable | What reads it | What it does |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | `commander/cockpit.js`, `commander/status-line.js` | Display only. The cockpit labels the auth mode `key`, and the status line shows the **last 3 characters**. Nothing is sent anywhere. |
+| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY` | `commander/doctor.js` (CLI toolkit auth check) | Reported as a **failed check** when set ("OAuth collision risk", "Codex OAuth incompatibility"). |
+| `COMMANDER_LICENSE` | `commander/mcp-server` (local beta) | Documented as `free` by default. The Desktop plugin has no license gate. |
+
+<Warning>
+  The CLI toolkit's auth check treats a set `ANTHROPIC_API_KEY` as a problem, not as a supported configuration. If you run on your own key, expect that row to fail. It is a documentation and diagnostic gap, not a block on using Commander. Changing it is a code change outside this page.
+</Warning>
+
+Placeholders to use in your own shell (never paste a real key into a file in the repo):
+
+```bash
+export ANTHROPIC_API_KEY="<your-anthropic-key>"   # read by Claude Code, not by Commander logic
+```
+
+## Which calls still use the hosted MCP
+
+None of the plugin's own skills, agents or hooks call the hosted endpoint. The hosted MCP (`https://mcp.commanderplugin.com`) is used only when **you** point an MCP client at it, for example Cursor, Windsurf, Cline or Continue (README, install table).
+
+What the repository states about it:
+
+- It uses `/v1` plus SSE with a static Bearer key (`compatibility/chatgpt-work.md`, section 5).
+- The local MCP server README lists "Hosted GA" with API-key auth and server-side license validation as **planned**.
+
+What the repository does **not** show: a 100-call free cap, a counter, or any rule that a user's own Anthropic key lifts or bypasses hosted-MCP limits. Hosted-server code is not in this repo. Do not assume unlimited hosted calls from a BYOK setup. To avoid the hosted endpoint entirely, use the local plugin or the local MCP server.
+
+## Billing
+
+Commander does not meter or bill model usage. Who pays is decided by your Claude Code credential: a Claude plan, or per-token API billing on your own key. Consult Anthropic for billing terms. Hosted-infrastructure pricing is described only as "planned" in [vs Aider](/compare/vs-aider).
+
+## Check your setup
+
+Run `/ccc-doctor` for install, MCP and hook health. It does not currently report which credential mode you are on. A BYOK-specific diagnostic would be new code and is not part of this page.
+
+## Related
+
+- [Codex compatibility](/features/codex-compatibility): running Commander under the Codex CLI with its own auth.
+- [vs Aider](/compare/vs-aider): the BYOK and multi-model comparison.
+- [Token optimization](/features/token-optimization): reducing what you spend on any credential.
+- [FAQ](/faq) and [Troubleshooting](/troubleshooting).
