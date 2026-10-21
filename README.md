@@ -134,6 +134,8 @@ Commander 8 is a full revamp for the October 2026 platform: every prompt rewritt
 
 **Earlier releases** — the Commander Console, update self-detection, the Cockpit, Mission Control, the Fable Method and everything before — are in [CHANGELOG.md](CHANGELOG.md).
 
+**🔔 Follow releases.** On GitHub, choose **Watch → Custom → Releases** on [KevinZai/commander](https://github.com/KevinZai/commander) to get a notification for each new version, or add the [releases feed](https://github.com/KevinZai/commander/releases.atom) to any RSS reader. Run `/ccc-changelog` inside Claude Code for a digest of the latest release.
+
 ---
 
 ## 🎯 Why CC Commander
