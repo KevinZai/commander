@@ -1,0 +1,43 @@
+{
+  "_comment": "Known, intentional CLI/Plugin differences consumed by scripts/check-parity.js (CC-365). Every entry needs a reason. The checker is a ratchet: an entry that stops being true is reported as stale so this file cannot silently rot. Do not add an entry to make a check pass without a decision recorded in PLAN.md.",
+  "versions": {
+    "independent_manifests": {
+      "commander/cowork-plugin/mods/commander-hud/.claude-plugin/plugin.json": "HUD mod is versioned independently of the product (observe-only mod).",
+      "dashboard/package.json": "Separate app with its own release cadence.",
+      "extension/package.json": "Browser extension, own release cadence.",
+      "extensions/cloudcli/manifest.json": "Cloud CLI extension manifest, own release cadence.",
+      "extensions/vscode/package.json": "VS Code extension, own release cadence.",
+      "vscode-extension/package.json": "VS Code extension, own release cadence.",
+      "site/package.json": "Marketing site package, not shipped with the product."
+    }
+  },
+  "skills": {
+    "cli_only_reason": "The CLI ecosystem catalog under skills/ (467 skills per commander/contract.json) is a different surface from the Desktop plugin tree; CLAUDE.md states they are intentionally different.",
+    "plugin_only_reason": "Plugin skills in commander/cowork-plugin/skills/ are Desktop /ccc-* workflows and are not part of the CLI ecosystem catalog.",
+    "diverged_shared": {
+      "ccc-data": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-design": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-devops": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-makeover": "Exists in both trees as separate, differently-written copies.",
+      "ccc-marketing": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-mobile": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-research": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-saas": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-security": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-seo": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-smb-ops": "Domain router exists in both trees as separate, differently-written copies.",
+      "ccc-testing": "Domain router exists in both trees as separate, differently-written copies."
+    }
+  },
+  "hooks": {
+    "external_script_registries": {
+      "hooks/hooks.json": "Kit overlay for installs that also have the ECC plugin; its scripts/hooks/* targets live in that external plugin, not in this repo."
+    },
+    "codex_dropped_events": {},
+    "registry_roles": {
+      "hooks/hooks-standalone.json": "CLI standalone installs (install.sh copies it to ~/.claude/hooks/hooks.json); runs hooks/*.js.",
+      "commander/cowork-plugin/hooks/hooks.json": "Desktop plugin registry (canonical); runs commander/cowork-plugin/hooks/*.js.",
+      "commander/cowork-plugin-codex/hooks.json": "Generated from the plugin registry by scripts/build-codex.js; never hand-edited."
+    }
+  }
+}

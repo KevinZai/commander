@@ -319,6 +319,26 @@ Audited 2026-04-21. Documents where each data type actually comes from in CLI vs
 
 3. **Hook registries diverged (P3):** CLI hooks (`hooks/` + `hooks.json`) and plugin hooks (`cowork-plugin/hooks/` + `plugin.json`) are separate. A fix to a shared hook behavior (e.g. cost-tracker) must be applied twice. Fix: evaluate whether plugin hooks can import from the kit's `hooks/` dir or share a common `lib/hooks/` module.
 
+### CC-365 Re-audit (2026-10-20, v8.1.0) and Parity Checklist
+
+The 2026-04-21 numbers above are historical. Current state, measured by `node scripts/check-parity.js` (read-only; `npm run check:parity`):
+
+- **Versions:** `package.json` is the declared source. `plugin.json`, both `marketplace.json` files (top-level and `plugins[commander]`), `contract.json` and the generated Codex `plugin.json` all equal it, and `commander/branding.js` derives the CLI version from `package.json`. The copies are still written by `scripts/bump-version.js`, not generated at read time.
+- **Skills:** plugin tree 84 skill dirs; CLI tree 197 top-level dirs (`ccc --list-skills --json` reports more because it recurses one level and also scans `~/.claude/skills` and `./.claude/skills`). 12 names exist in both (`ccc-data`, `ccc-design`, `ccc-devops`, `ccc-makeover`, `ccc-marketing`, `ccc-mobile`, `ccc-research`, `ccc-saas`, `ccc-security`, `ccc-seo`, `ccc-smb-ops`, `ccc-testing`) and all 12 are separately written copies with different SKILL.md content. 72 are plugin-only and 185 are CLI-only.
+- **Hooks:** four registries. Plugin `hooks.json` (30 events / 51 handlers, canonical), Codex `hooks.json` (generated, 11 events / 32 handlers), `hooks/hooks-standalone.json` (4 events / 15 handlers, what `install.sh` installs) and `hooks/hooks.json` (kit overlay for ECC installs, whose `scripts/hooks/*` targets are external). `context-guard.js` and `pre-compact.js` exist in both `hooks/` and the plugin hooks dir as diverged copies.
+
+Checklist (ticked only where a command verifies it):
+
+- [x] A single version source is declared and every manifest matches it today (`npm run check:version`, `npm run check:parity`)
+- [x] The CLI derives its version from `package.json` rather than hardcoding one (`check:parity`, branding.js check)
+- [x] A read-only parity checker reports version drift, skill-set differences and hook-registry drift, with an allowlist of intentional differences (`scripts/check-parity.js`, `scripts/parity-allowlist.json`, `commander/tests/check-parity.test.js`)
+- [x] Every script referenced by the plugin and standalone hook registries exists, and the generated Codex registry matches the plugin registry apart from events Codex cannot run (`check:parity`)
+- [ ] Manifest versions are generated from `package.json` instead of copied by `bump-version.js` (needs a decision: Claude plugin manifests require a literal version field)
+- [ ] Plugin skill dir and CLI skill dir come from one source or are generated (the 12 shared routers are diverged copies; consolidating them is a content merge, not a mechanical change)
+- [ ] `ccc --list-skills --json` and the plugin skill list are identical sets (not true and not currently intended: the CLI catalog and the plugin tree are separate surfaces, and the CLI list is machine-dependent)
+- [ ] Hook registries (`hooks.json`, `hooks-standalone.json`) are unified or auto-generated (they target different runtimes and script trees)
+- [ ] The diverged duplicate hook scripts (`context-guard.js`, `pre-compact.js`) are reconciled
+
 ---
 
 ## 📝 How to update this file
