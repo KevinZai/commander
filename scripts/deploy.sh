@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # CC Commander v4.0.0 Beta — deploy script
 # Reads ALL secrets from 1Password (no .env files, ever).
-# Kevin populates op:// items before running this (see tasks/kevin-handback-checklist.md CC-311).
+# Populate the op:// items in your 1Password vault first (apps/mcp-server-cloud/DEPLOY.md) and export OP_VAULT=<vault>.
 
 set -euo pipefail
 
@@ -18,16 +18,17 @@ command -v op    >/dev/null || err "1Password CLI (op) not found. brew install -
 command -v fly   >/dev/null || err "Fly CLI not found. brew install flyctl"
 command -v vercel>/dev/null || warn "Vercel CLI missing — site deploy will be skipped. brew install vercel-cli"
 op whoami        >/dev/null 2>&1 || err "Not signed in to 1Password. Run: op signin"
+[ -n "${OP_VAULT:-}" ] || err "OP_VAULT is not set. export OP_VAULT=<the 1Password vault holding the cc-commander-* items>"
 
-# Verify required OP vault items exist (see CC-311)
+# Verify required OP vault items exist
 REQUIRED=(
-  "op://Alfred/cc-commander-supabase/url"
-  "op://Alfred/cc-commander-supabase/anon-key"
-  "op://Alfred/cc-commander-supabase/service-role-key"
-  "op://Alfred/cc-commander-resend/api-key"
-  "op://Alfred/cc-commander-upstash/url"
-  "op://Alfred/cc-commander-upstash/token"
-  "op://Alfred/cc-commander-jwt/secret"
+  "op://${OP_VAULT}/cc-commander-supabase/url"
+  "op://${OP_VAULT}/cc-commander-supabase/anon-key"
+  "op://${OP_VAULT}/cc-commander-supabase/service-role-key"
+  "op://${OP_VAULT}/cc-commander-resend/api-key"
+  "op://${OP_VAULT}/cc-commander-upstash/url"
+  "op://${OP_VAULT}/cc-commander-upstash/token"
+  "op://${OP_VAULT}/cc-commander-jwt/secret"
 )
 for ref in "${REQUIRED[@]}"; do
   op read "$ref" >/dev/null 2>&1 || err "OP item missing: $ref"

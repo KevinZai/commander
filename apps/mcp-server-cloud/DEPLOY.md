@@ -10,35 +10,35 @@
 fly apps create cc-commander-mcp --org personal
 
 # Create Supabase project (manual — https://supabase.com/dashboard)
-# Run the schema from db/schema.sql (not included here — request from Kevin CC-311)
+# Run the schema from db/schema.sql (kept out of the public tree — request it from the maintainer)
 
 # Create Upstash Redis (manual — https://console.upstash.com)
 ```
 
 ## 2. Populate 1Password vault
 
-Create these items in the **Alfred** vault:
+Create these items in your 1Password vault (replace `<vault>` with its name, and `export OP_VAULT=<vault>` before running `scripts/deploy.sh`):
 
 | OP Path | Value |
 |---------|-------|
-| `op://Alfred/cc-commander-supabase/url` | Supabase project URL |
-| `op://Alfred/cc-commander-supabase/service-role-key` | Supabase service_role key |
-| `op://Alfred/cc-commander-upstash/url` | Upstash REST URL |
-| `op://Alfred/cc-commander-upstash/token` | Upstash REST token |
-| `op://Alfred/cc-commander-jwt/secret` | `openssl rand -hex 32` (≥32 chars) |
-| `op://Alfred/cc-commander-posthog/api-key` | (optional) PostHog project key |
-| `op://Alfred/cc-commander-fly/api-token` | `fly tokens create deploy` |
+| `op://<vault>/cc-commander-supabase/url` | Supabase project URL |
+| `op://<vault>/cc-commander-supabase/service-role-key` | Supabase service_role key |
+| `op://<vault>/cc-commander-upstash/url` | Upstash REST URL |
+| `op://<vault>/cc-commander-upstash/token` | Upstash REST token |
+| `op://<vault>/cc-commander-jwt/secret` | `openssl rand -hex 32` (≥32 chars) |
+| `op://<vault>/cc-commander-posthog/api-key` | (optional) PostHog project key |
+| `op://<vault>/cc-commander-fly/api-token` | `fly tokens create deploy` |
 
 ## 3. Push secrets to Fly.io
 
 ```bash
 fly secrets set \
-  SUPABASE_URL="$(op read op://Alfred/cc-commander-supabase/url)" \
-  SUPABASE_SERVICE_ROLE_KEY="$(op read op://Alfred/cc-commander-supabase/service-role-key)" \
-  UPSTASH_REDIS_REST_URL="$(op read op://Alfred/cc-commander-upstash/url)" \
-  UPSTASH_REDIS_REST_TOKEN="$(op read op://Alfred/cc-commander-upstash/token)" \
-  JWT_SECRET="$(op read op://Alfred/cc-commander-jwt/secret)" \
-  POSTHOG_API_KEY="$(op read op://Alfred/cc-commander-posthog/api-key)" \
+  SUPABASE_URL="$(op read op://<vault>/cc-commander-supabase/url)" \
+  SUPABASE_SERVICE_ROLE_KEY="$(op read op://<vault>/cc-commander-supabase/service-role-key)" \
+  UPSTASH_REDIS_REST_URL="$(op read op://<vault>/cc-commander-upstash/url)" \
+  UPSTASH_REDIS_REST_TOKEN="$(op read op://<vault>/cc-commander-upstash/token)" \
+  JWT_SECRET="$(op read op://<vault>/cc-commander-jwt/secret)" \
+  POSTHOG_API_KEY="$(op read op://<vault>/cc-commander-posthog/api-key)" \
   --app cc-commander-mcp
 ```
 

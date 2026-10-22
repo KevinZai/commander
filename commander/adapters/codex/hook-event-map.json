@@ -74,7 +74,7 @@
       "codex": null,
       "status": "drop",
       "verified": "2026-07-22",
-      "note": "Not in Codex's 10-event hook surface."
+      "note": "Not in Codex's 12-event hook surface (verified 2026-10-13)."
     },
     "PostToolBatch": {
       "codex": null,

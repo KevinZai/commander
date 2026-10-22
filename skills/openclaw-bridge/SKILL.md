@@ -9,22 +9,21 @@ disable-model-invocation: true
 
 # OpenClaw Bridge
 
-> Connect CC Commander to the OpenClaw agent orchestration platform. Map skills, translate hooks, generate agent profiles, synchronize config, and hand off sessions between Claude Code and 38+ OpenClaw agents.
+> Connect CC Commander to the OpenClaw agent orchestration platform. Map skills, translate hooks, generate agent profiles, synchronize config, and hand off sessions between Claude Code and your OpenClaw agents.
 
 ## What OpenClaw Is
 
-OpenClaw is a personal AI assistant platform running on Mac Mini M4. It operates a single WebSocket + HTTP gateway on **port 18789**, orchestrating 38+ specialized agents across 12 workspaces. Each agent has its own model, channel bindings, tools, skills, and memory.
+OpenClaw is an open-source personal agent orchestration platform. One gateway process (WebSocket + HTTP, port 18789 by default) runs a set of agents, each with its own model, channel bindings, tools, skills and memory, organized into workspaces.
 
-**Architecture:**
-- **Gateway:** Single Node.js process (launchd-managed) at `http://localhost:18789`
-- **Config:** `~/.openclaw/openclaw.json` (JSON5, ~139KB) — source of truth for all agents, channels, models, tools
-- **Agent state:** `~/.openclaw/agents/{agentId}/sessions/` (JSONL transcripts)
-- **Skills:** `~/.openclaw/skills/` (120+ installed) + per-workspace `skills/` dirs
-- **Memory:** `~/.openclaw/memory/` (per-agent SQLite) + `~/.openclaw/lcm.db` (long-context memory)
-- **Workspaces:** `~/clawd/workspaces/{name}/` with standard files (SOUL.md, AGENTS.md, TOOLS.md, IDENTITY.md, USER.md)
+**Layout (defaults from the OpenClaw docs; yours may differ):**
+- **Gateway:** a single Node.js process at `http://localhost:<gateway-port>`
+- **Config:** `~/.openclaw/openclaw.json` (JSON5) — source of truth for agents, channels, models and tools
+- **Agent state:** `~/.openclaw/agents/<agentId>/sessions/` (JSONL transcripts)
+- **Skills:** `~/.openclaw/skills/` plus per-workspace `skills/` directories
+- **Memory:** `~/.openclaw/memory/` (per-agent) and the long-context memory database
+- **Workspaces:** one directory per workspace with the standard files (`SOUL.md`, `AGENTS.md`, `TOOLS.md`, `IDENTITY.md`, `USER.md`)
 
-**Key agents:** Alfred (personal assistant), Morpheus (architect), Neo (orchestrator), Viper (trading), Jarvis (GN platform), Codex/Gemini/Claude (dev), Cleo (home).
-
+Read your own `openclaw.json` for the real agent list; this skill never assumes particular agents, hostnames or ports.
 ## When to Use This Skill
 
 - Deploying a CC Commander skill as an OpenClaw skill
@@ -282,7 +281,7 @@ Generate a complete OpenClaw workspace directory from CC Commander configuration
 ### Output: Workspace Files
 
 ```
-~/clawd/workspaces/my-project/
+<workspaces-root>/my-project/
 ├── SOUL.md          # Persona, tone, boundaries
 ├── AGENTS.md        # Operating instructions, workflows
 ├── TOOLS.md         # Available tools and scripts
@@ -302,7 +301,7 @@ Generate a complete OpenClaw workspace directory from CC Commander configuration
 4. Generate AGENTS.md with standard sections: Channel-Aware Mode, Hard Rules, Session Start, Core Loop, Memory Protocol, Inter-Agent Announce
 5. Generate TOOLS.md from aggregated tool list
 6. Generate IDENTITY.md from agent metadata
-7. Copy USER.md from `~/clawd/workspaces/architecture/USER.md`
+7. Copy USER.md from `<workspaces-root>/architecture/USER.md`
 8. Create HEARTBEAT.md with default check-in schedule
 9. Create CRITICAL.md with fleet-wide hard rules
 10. Create `memory/` directory
@@ -346,7 +345,7 @@ openclaw sessions send --agent "$targetAgent" --file /tmp/handoff.json
 When an OpenClaw agent needs Claude Code to take over:
 
 1. Agent posts handoff context to `#comms-log` channel
-2. Agent writes session summary to `~/clawd/workspaces/{workspace}/memory/handoff-{date}.md`
+2. Agent writes session summary to `<workspaces-root>/{workspace}/memory/handoff-{date}.md`
 3. Claude Code user runs `/ccc-resume-session` or reads the handoff file directly
 
 ### Handoff Protocol
@@ -389,7 +388,7 @@ Synchronize session memory between CC Commander sessions (`~/.claude/sessions/`)
 
 ### Sync Rules
 
-1. **CC Commander to OpenClaw:** On `/ccc-save-session`, extract tagged entries and append to `~/clawd/workspaces/{workspace}/memory/{date}.md`
+1. **CC Commander to OpenClaw:** On `/ccc-save-session`, extract tagged entries and append to `<workspaces-root>/{workspace}/memory/{date}.md`
 2. **OpenClaw to CC Commander:** On `/ccc-resume-session`, scan recent OpenClaw memory files for `[HANDOFF]` and `[DECISION]` tags relevant to current project
 3. **Conflict resolution:** OpenClaw memory is append-only. CC Commander sessions are snapshots. No destructive merges. Both sources are additive.
 4. **Tag mapping:**
@@ -449,13 +448,13 @@ CC Commander CCC domains map to OpenClaw workspaces and agent specializations.
 | CC Commander CCC Domain | OpenClaw Workspace | Primary Agent | Model |
 |-------------------------|--------------------|---------------|-------|
 | `ccc-devops` | `dev` | Codex | Sonnet |
-| `ccc-security` | `architecture` | Morpheus | Opus |
+| `ccc-security` | `architecture` | your architect agent | Opus |
 | `ccc-testing` | `dev` | Codex | Sonnet |
 | `ccc-design` | `dev` | Pixel (worker) | Sonnet |
-| `ccc-marketing` | `main` | Alfred | Sonnet |
+| `ccc-marketing` | `main` | your assistant agent | Sonnet |
 | `ccc-saas` | `dev` | Codex | Sonnet |
-| `ccc-seo` | `main` | Alfred | Sonnet |
-| `ccc-research` | `architecture` | Morpheus | Opus |
+| `ccc-seo` | `main` | your assistant agent | Sonnet |
+| `ccc-research` | `architecture` | your architect agent | Opus |
 | `ccc-data` | `dev` | Codex | Sonnet |
 | `ccc-mobile` | `dev` | Codex | Sonnet |
 
@@ -590,7 +589,7 @@ Fix: Regenerate manifest, ensure no trailing commas in JSON
 ```
 Symptom: Decisions made in Claude Code not visible to OpenClaw agents
 Debug: Check ~/.claude/sessions/ for recent session files
-  Check ~/clawd/workspaces/{workspace}/memory/ for today's file
+  Check <workspaces-root>/{workspace}/memory/ for today's file
 Fix: Run /ccc-save-session in Claude Code, then verify memory file was written
   Manual fallback: copy relevant entries to memory file
 ```

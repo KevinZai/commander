@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-HEADROOM_RTK="/Users/ai/Library/Application Support/Headroom/headroom/bin/rtk"
-HEADROOM_PYTHON="/Users/ai/Library/Application Support/Headroom/headroom/runtime/venv/bin/python3"
+# Headroom installs under the user's Application Support; HEADROOM_HOME overrides it.
+HEADROOM_HOME="${HEADROOM_HOME:-$HOME/Library/Application Support/Headroom}"
+HEADROOM_RTK="$HEADROOM_HOME/headroom/bin/rtk"
+HEADROOM_PYTHON="$HEADROOM_HOME/headroom/runtime/venv/bin/python3"
 
 if [ ! -x "$HEADROOM_RTK" ] || [ ! -x "$HEADROOM_PYTHON" ]; then
   exit 0

@@ -67,8 +67,11 @@ function updateUser(patch) {
 
 function getUserLevel(state) {
   if (!state) state = loadState();
-  const sessions = state.user.sessionsCompleted || 0;
-  const explicit = state.user.level;
+  // Plugin hooks write a state.json without the CLI's `user` block (onboarding
+  // flags only), so a missing user must read as a brand-new guided user.
+  const user = (state && state.user) || {};
+  const sessions = user.sessionsCompleted || 0;
+  const explicit = user.level;
   if (explicit === 'power') return 'power';
   if (sessions >= 20) return 'power';
   if (sessions >= 5) return 'assisted';
