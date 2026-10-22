@@ -333,11 +333,37 @@ Checklist (ticked only where a command verifies it):
 - [x] The CLI derives its version from `package.json` rather than hardcoding one (`check:parity`, branding.js check)
 - [x] A read-only parity checker reports version drift, skill-set differences and hook-registry drift, with an allowlist of intentional differences (`scripts/check-parity.js`, `scripts/parity-allowlist.json`, `commander/tests/check-parity.test.js`)
 - [x] Every script referenced by the plugin and standalone hook registries exists, and the generated Codex registry matches the plugin registry apart from events Codex cannot run (`check:parity`)
-- [ ] Manifest versions are generated from `package.json` instead of copied by `bump-version.js` (needs a decision: Claude plugin manifests require a literal version field)
-- [ ] Plugin skill dir and CLI skill dir come from one source or are generated (the 12 shared routers are diverged copies; consolidating them is a content merge, not a mechanical change)
+- [x] Manifest versions: **accepted end state (decision A, Kevin).** `check:parity` is the ratchet; copies stay written by `bump-version.js` because Claude plugin manifests require a literal version field. Drift fails `check:parity --check`.
+- [x] Plugin skill dir and CLI skill dir: **accepted end state (decision A, Kevin).** The 12 shared routers stay separate copies; each records a canonical side and reason in `scripts/parity-allowlist.json` (table below) and `check:parity` prints it. Merging content is out of scope.
 - [ ] `ccc --list-skills --json` and the plugin skill list are identical sets (not true and not currently intended: the CLI catalog and the plugin tree are separate surfaces, and the CLI list is machine-dependent)
-- [ ] Hook registries (`hooks.json`, `hooks-standalone.json`) are unified or auto-generated (they target different runtimes and script trees)
-- [ ] The diverged duplicate hook scripts (`context-guard.js`, `pre-compact.js`) are reconciled
+- [x] Hook registries (`hooks.json`, `hooks-standalone.json`): **accepted end state (decision A, Kevin).** They target different runtimes and script trees; `check:parity` verifies script existence and Codex sync instead of unifying them.
+- [x] The diverged duplicate hook scripts (`context-guard.js`, `pre-compact.js`): reconciled as **pinned, canonical = plugin** rather than byte-identical (see below). `check:parity` and `commander/tests/check-parity.test.js` fail if either copy changes without a deliberate pin update.
+
+**Canonical copy per diverged `ccc-*` router** (recorded in `scripts/parity-allowlist.json` under `skills.diverged_shared`, printed by `node scripts/check-parity.js`). Reason for all 12: the plugin copy ships to Desktop users through the marketplace and is what the `/ccc-*` command runs; the CLI copy is a separate catalog variant and is not merged.
+
+| Router | Canonical | Other copy |
+|---|---|---|
+| `ccc-data` | plugin | `skills/ccc-data` (CLI catalog variant) |
+| `ccc-design` | plugin | `skills/ccc-design` |
+| `ccc-devops` | plugin | `skills/ccc-devops` |
+| `ccc-makeover` | plugin | `skills/ccc-makeover` |
+| `ccc-marketing` | plugin | `skills/ccc-marketing` |
+| `ccc-mobile` | plugin | `skills/ccc-mobile` |
+| `ccc-research` | plugin | `skills/ccc-research` |
+| `ccc-saas` | plugin | `skills/ccc-saas` |
+| `ccc-security` | plugin | `skills/ccc-security` |
+| `ccc-seo` | plugin | `skills/ccc-seo` |
+| `ccc-smb-ops` | plugin | `skills/ccc-smb-ops` |
+| `ccc-testing` | plugin | `skills/ccc-testing` |
+
+**Diverged hook scripts** (`hooks.diverged_scripts`, content-pinned with sha256 for both copies):
+
+| Script | Canonical | Why not byte-identical or a re-export |
+|---|---|---|
+| `context-guard.js` | plugin (`commander/cowork-plugin/hooks/`) | Plugin copy is an ESM `UserPromptSubmit` hook with transcript-based 70/85/95% thresholds and imports `../lib` and `./lib`. `hooks/context-guard.js` is a self-contained CJS `PostToolUse` call counter. |
+| `pre-compact.js` | plugin (`commander/cowork-plugin/hooks/`) | Plugin copy is ESM, writes `~/.claude/commander/handoff-<session>.json` and imports `../lib` and `./suggest-ticker.js`. `hooks/pre-compact.js` is self-contained CJS, writes `~/.claude/sessions/pre-compact-*.md`, and is covered by `tests/hooks.test.js`. |
+
+Both are different hooks in practice (different events, output files and module systems), not stale duplicates. `install.sh` copies `hooks/*.js` flat into `~/.claude/hooks/` with no `lib/`, and `hooks/` has no `"type": "module"`, so copying the plugin file there would break standalone installs, and a thin re-export cannot resolve the plugin tree from the installed location. To change either copy: edit it, decide whether the other needs the same change, then update its `pinned_sha256` (the `check:parity` finding prints the new hash).
 
 ---
 

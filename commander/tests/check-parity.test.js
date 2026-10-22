@@ -21,7 +21,7 @@ function write(root, rel, content) {
 
 const ALLOW = {
   skills: { diverged_shared: {} },
-  hooks: { external_script_registries: { 'hooks/hooks.json': 'ecc' }, codex_dropped_events: {} },
+  hooks: { external_script_registries: { 'hooks/hooks.json': 'ecc' }, codex_dropped_events: {}, diverged_scripts: {} },
   versions: { independent_manifests: {} },
 };
 
@@ -110,11 +110,43 @@ test('diverged shared skill fails unless allowlisted; allowlist goes stale when 
   const root = fixture((r) => write(r, 'skills/ccc-a/SKILL.md', 'different'));
   assert.ok(runParity(root).findings.some((f) => /ccc-a/.test(f)));
 
-  write(root, 'scripts/parity-allowlist.json', Object.assign({}, ALLOW, { skills: { diverged_shared: { 'ccc-a': 'known' } } }));
+  write(root, 'scripts/parity-allowlist.json', Object.assign({}, ALLOW, {
+    skills: { diverged_shared: { 'ccc-a': { canonical: 'plugin', reason: 'known' } } },
+  }));
   assert.deepStrictEqual(runParity(root).findings, []);
 
   write(root, 'skills/ccc-a/SKILL.md', 'a');
   assert.ok(runParity(root).warnings.some((w) => /stale allowlist entry ccc-a/.test(w)));
+});
+
+test('diverged skill allowlist entry must name a canonical side and a reason', () => {
+  const root = fixture((r) => write(r, 'skills/ccc-a/SKILL.md', 'different'));
+  const withEntry = (entry) => write(root, 'scripts/parity-allowlist.json',
+    Object.assign({}, ALLOW, { skills: { diverged_shared: { 'ccc-a': entry } } }));
+
+  // legacy bare-string entry has no canonical side
+  withEntry('known');
+  assert.ok(runParity(root).findings.some((f) => /ccc-a.*canonical/.test(f)));
+  withEntry({ canonical: 'both', reason: 'x' });
+  assert.ok(runParity(root).findings.some((f) => /ccc-a.*canonical/.test(f)));
+  withEntry({ canonical: 'cli' });
+  assert.ok(runParity(root).findings.some((f) => /ccc-a.*reason/.test(f)));
+
+  withEntry({ canonical: 'cli', reason: 'cli copy is the maintained one' });
+  const r = runParity(root);
+  assert.deepStrictEqual(r.findings, []);
+  assert.deepStrictEqual(r.skills.canonical, { 'ccc-a': { side: 'cli', reason: 'cli copy is the maintained one' } });
+});
+
+test('report prints the canonical side of every diverged skill router', () => {
+  const root = fixture((r) => {
+    write(r, 'skills/ccc-a/SKILL.md', 'different');
+    write(r, 'scripts/parity-allowlist.json', Object.assign({}, ALLOW, {
+      skills: { diverged_shared: { 'ccc-a': { canonical: 'plugin', reason: 'ships in the Desktop plugin' } } },
+    }));
+  });
+  const out = require(SCRIPT).render(runParity(root));
+  assert.match(out, /ccc-a\s+canonical: plugin\s+ships in the Desktop plugin/);
 });
 
 test('plugin-only and CLI-only skills are reported but not failures', () => {
@@ -161,4 +193,78 @@ test('codex registry dropping an event is allowed only when allowlisted', () => 
 test('missing registry file is a hard finding', () => {
   const root = fixture((r) => fs.rmSync(path.join(r, 'hooks', 'hooks-standalone.json')));
   assert.ok(runParity(root).findings.some((f) => /hooks-standalone\.json is missing/.test(f)));
+});
+
+// ─── diverged hook scripts: canonical side + pinned content ──────────────────
+
+const sha256 = (txt) => require('crypto').createHash('sha256').update(txt).digest('hex');
+
+function hookFixture(cliBody, pluginBody, entry) {
+  return fixture((r) => {
+    write(r, 'hooks/one.js', cliBody);
+    write(r, 'hooks/hooks-standalone.json', { hooks: { PreToolUse: hook('node ~/.claude/hooks/one.js') } });
+    write(r, 'commander/cowork-plugin/hooks/one.js', pluginBody);
+    const allow = JSON.parse(JSON.stringify(ALLOW));
+    if (entry) allow.hooks.diverged_scripts = { 'one.js': entry };
+    write(r, 'scripts/parity-allowlist.json', allow);
+  });
+}
+
+test('same-named hook script with different content is a hard finding unless allowlisted', () => {
+  const root = hookFixture('cli', 'plugin');
+  assert.ok(runParity(root).findings.some((f) => /one\.js.*diverged.*not allowlisted/.test(f)));
+});
+
+test('identical same-named hook scripts are clean and an allowlist entry for them is stale', () => {
+  assert.deepStrictEqual(runParity(hookFixture('same', 'same')).findings, []);
+  const root = hookFixture('same', 'same', {
+    canonical: 'plugin', reason: 'r', pinned_sha256: { cli: sha256('same'), plugin: sha256('same') },
+  });
+  assert.ok(runParity(root).warnings.some((w) => /stale allowlist entry hooks\.diverged_scripts\.one\.js/.test(w)));
+});
+
+test('allowlisted diverged hook must name a canonical side, a reason and pins for both copies', () => {
+  const pins = { cli: sha256('cli'), plugin: sha256('plugin') };
+  const f = (entry) => runParity(hookFixture('cli', 'plugin', entry)).findings.join('\n');
+  assert.match(f({ reason: 'r', pinned_sha256: pins }), /one\.js.*canonical/);
+  assert.match(f({ canonical: 'plugin', pinned_sha256: pins }), /one\.js.*reason/);
+  assert.match(f({ canonical: 'plugin', reason: 'r' }), /one\.js.*pinned_sha256/);
+  assert.strictEqual(f({ canonical: 'plugin', reason: 'r', pinned_sha256: pins }), '');
+});
+
+test('editing either diverged hook copy without updating the pin is a hard finding', () => {
+  const entry = { canonical: 'plugin', reason: 'r', pinned_sha256: { cli: sha256('cli'), plugin: sha256('plugin') } };
+  const root = hookFixture('cli', 'plugin', entry);
+  assert.deepStrictEqual(runParity(root).findings, []);
+
+  write(root, 'hooks/one.js', 'cli edited');
+  const a = runParity(root).findings.join('\n');
+  assert.match(a, /one\.js.*cli copy changed/);
+  assert.doesNotMatch(a, /plugin copy changed/);
+
+  write(root, 'hooks/one.js', 'cli');
+  write(root, 'commander/cowork-plugin/hooks/one.js', 'plugin edited');
+  const b = runParity(root).findings.join('\n');
+  assert.match(b, /one\.js.*plugin copy changed/);
+  assert.match(b, new RegExp(sha256('plugin edited')));
+});
+
+test('real repo: context-guard.js and pre-compact.js are pinned diverged copies with a canonical side', () => {
+  const r = runParity(REPO);
+  const allow = JSON.parse(fs.readFileSync(path.join(REPO, 'scripts', 'parity-allowlist.json'), 'utf8'));
+  for (const name of ['context-guard.js', 'pre-compact.js']) {
+    const e = allow.hooks.diverged_scripts[name];
+    assert.ok(e && ['cli', 'plugin'].includes(e.canonical) && e.reason, name + ' needs canonical + reason');
+    const row = r.hooks.shared_script_names.find((x) => x.script === name);
+    assert.ok(row && row.identical === false && row.canonical === e.canonical, name);
+  }
+});
+
+test('real repo: every diverged skill router records a canonical side and reason', () => {
+  const r = runParity(REPO);
+  assert.strictEqual(r.skills.diverged_shared.length, 12);
+  for (const n of r.skills.diverged_shared) {
+    const c = r.skills.canonical[n];
+    assert.ok(c && ['cli', 'plugin'].includes(c.side) && c.reason, n);
+  }
 });

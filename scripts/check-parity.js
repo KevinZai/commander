@@ -15,6 +15,10 @@
  * the checker is a ratchet: anything NOT allowlisted fails, and an allowlist entry
  * that is no longer true is reported as stale.
  *
+ * Diverged shared skills and diverged same-named hook scripts are the accepted end
+ * state (CC-365 option A): each must record which side is canonical and why. Hook
+ * script copies are also content-pinned (sha256) so neither can change unnoticed.
+ *
  * Usage:
  *   node scripts/check-parity.js            # human report, always exits 0
  *   node scripts/check-parity.js --json     # machine-readable report
@@ -139,6 +143,17 @@ function topLevelSkillDirs(dir) {
   return out.sort();
 }
 
+const SIDES = ['cli', 'plugin'];
+
+// An allowlisted divergence must say which side is canonical and why.
+function canonicalProblems(entry) {
+  const out = [];
+  const e = entry && typeof entry === 'object' ? entry : {};
+  if (!SIDES.includes(e.canonical)) out.push('canonical side (must be one of: ' + SIDES.join(', ') + ')');
+  if (typeof e.reason !== 'string' || !e.reason.trim()) out.push('reason');
+  return out;
+}
+
 function checkSkills(root, allow) {
   const pluginDir = path.join(root, 'commander', 'cowork-plugin', 'skills');
   const cliDir = path.join(root, 'skills');
@@ -175,8 +190,16 @@ function checkSkills(root, allow) {
     warnings: [],
   };
 
+  result.canonical = {};
   for (const n of diverged) {
-    if (!allowDiverged[n]) result.findings.push('skill diverged copy not allowlisted: ' + n + ' exists in both trees with different SKILL.md');
+    if (!allowDiverged[n]) {
+      result.findings.push('skill diverged copy not allowlisted: ' + n + ' exists in both trees with different SKILL.md');
+      continue;
+    }
+    const e = allowDiverged[n];
+    const problems = canonicalProblems(e);
+    for (const x of problems) result.findings.push('skills: allowlist entry ' + n + ' has no valid ' + x);
+    if (!problems.length) result.canonical[n] = { side: e.canonical, reason: e.reason };
   }
   for (const n of Object.keys(allowDiverged)) {
     if (!diverged.includes(n)) {
@@ -296,15 +319,50 @@ function checkHooks(root, allow) {
     }
   }
 
-  // Informational: hook scripts of the same name that exist in both CLI and plugin registries.
+  // Hook scripts of the same name in the CLI (hooks/) and plugin registries. They target different
+  // runtimes (flat CJS install vs ESM plugin tree with lib/), so byte-identity is not required, but a
+  // divergence must be allowlisted with a canonical side and pinned so neither copy drifts unnoticed.
+  const divergedAllow = allowH.diverged_scripts || {};
+  result.diverged_scripts = {};
+  result.shared_script_names = [];
   if (flat.standalone && flat.plugin) {
     const names = (events) => new Set([].concat(...Object.keys(events).map((ev) => events[ev].map(scriptRef).filter(Boolean))).map((r) => path.basename(r)));
     const a = names(flat.standalone);
     const b = names(flat.plugin);
     for (const n of a) {
       if (!b.has(n)) continue;
-      const same = sha(path.join(root, 'hooks', n)) === sha(path.join(root, 'commander', 'cowork-plugin', 'hooks', n));
-      result.shared_script_names.push({ script: n, identical: same });
+      const cliSha = sha(path.join(root, 'hooks', n));
+      const pluginSha = sha(path.join(root, 'commander', 'cowork-plugin', 'hooks', n));
+      const identical = cliSha !== null && cliSha === pluginSha;
+      const e = divergedAllow[n];
+      const row = { script: n, identical };
+      if (!identical) {
+        if (!e) {
+          result.findings.push('hooks: ' + n + ' exists in the CLI and plugin hook registries as diverged copies and is not allowlisted (hooks.diverged_scripts)');
+        } else {
+          for (const x of canonicalProblems(e)) result.findings.push('hooks: allowlist entry ' + n + ' has no valid ' + x);
+          if (SIDES.includes(e.canonical)) row.canonical = e.canonical;
+          const pins = e.pinned_sha256 || {};
+          if (!pins.cli || !pins.plugin) {
+            result.findings.push('hooks: allowlist entry ' + n + ' needs pinned_sha256.cli and pinned_sha256.plugin');
+          } else {
+            const copies = [['cli', 'hooks/' + n, cliSha], ['plugin', 'commander/cowork-plugin/hooks/' + n, pluginSha]];
+            for (const c of copies) {
+              if (c[2] !== pins[c[0]]) {
+                result.findings.push('hooks: ' + n + ' ' + c[0] + ' copy changed (' + c[1] + ' sha256 ' + c[2] + ', pinned ' + pins[c[0]] +
+                  '); canonical is ' + e.canonical + ', so review whether the other copy needs the same change, then update hooks.diverged_scripts.' + n + '.pinned_sha256.' + c[0]);
+              }
+            }
+            result.diverged_scripts[n] = { canonical: e.canonical, reason: e.reason };
+          }
+        }
+      } else if (e) {
+        result.warnings.push('hooks: stale allowlist entry hooks.diverged_scripts.' + n + ' (copies are now identical)');
+      }
+      result.shared_script_names.push(row);
+    }
+    for (const n of Object.keys(divergedAllow)) {
+      if (!a.has(n) || !b.has(n)) result.warnings.push('hooks: stale allowlist entry hooks.diverged_scripts.' + n + ' (no longer in both registries)');
     }
   }
   return result;
@@ -335,6 +393,12 @@ function render(report) {
   out.push('   shared & identical: ' + s.identical_shared.length + ' | shared & diverged: ' + s.diverged_shared.length +
     (s.diverged_shared.length ? ' (' + s.diverged_shared.join(', ') + ')' : ''));
   out.push('   sets identical: ' + s.sets_identical + '  (not expected; see allowlist reasons)');
+  const names = Object.keys(s.canonical || {});
+  if (names.length) {
+    const w = Math.max.apply(null, names.map((n) => n.length));
+    out.push('   canonical copy per diverged router:');
+    for (const n of names) out.push('     ' + n.padEnd(w) + '  canonical: ' + s.canonical[n].side + '  ' + s.canonical[n].reason);
+  }
   const h = report.hooks;
   out.push('', '3. Hook registries');
   for (const k of Object.keys(h.registries)) {
@@ -343,7 +407,7 @@ function render(report) {
       (Array.isArray(e.missing_scripts) ? (e.missing_scripts.length ? e.missing_scripts.length + ' missing' : 'all ' + e.script_refs + ' present') : e.script_refs) : ': UNREADABLE'));
   }
   if (h.codex_dropped_events && h.codex_dropped_events.length) out.push('   Codex registry drops events: ' + h.codex_dropped_events.join(', '));
-  for (const x of h.shared_script_names) out.push('   same script name in CLI + plugin registries: ' + x.script + (x.identical ? ' (identical)' : ' (DIVERGED copies)'));
+  for (const x of h.shared_script_names) out.push('   same script name in CLI + plugin registries: ' + x.script + (x.identical ? ' (identical)' : ' (DIVERGED copies, canonical: ' + (x.canonical || 'UNDECLARED') + ', pinned)'));
   if (report.warnings.length) { out.push('', 'Warnings'); report.warnings.forEach((w) => out.push('   - ' + w)); }
   out.push('', report.ok ? 'RESULT: no hard parity findings' : 'RESULT: ' + report.findings.length + ' hard finding(s)');
   report.findings.forEach((f) => out.push('   ! ' + f));
