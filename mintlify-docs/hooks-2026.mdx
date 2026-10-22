@@ -1,10 +1,10 @@
 ---
 title: "Hooks 2026 — 30 Events"
-description: "Commander registers 30 Claude Code lifecycle hook events with 51 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
+description: "Commander registers 30 Claude Code lifecycle hook events with 52 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
 ---
 
 <Note>
-  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 51 handlers**. Existing handlers are unchanged.
+  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 52 handlers**. Existing handlers are unchanged.
 </Note>
 
 ## Full hook registry (current)
@@ -25,7 +25,7 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 | `PermissionDenied` | 1 | `permission-denied-logger.js` | **New in v8.** Records auto-mode denials in the same journal `permission-gate.js` writes, so `/ccc-safety` counts them as blocked. Never asks for a retry |
 | `PreModelSwitch` | 1 | `model-switch-logger.js` | **New in v8.** Logs the requested switch. Never returns a decision, so your own or managed policy wins |
 | `PostModelSwitch` | 1 | `model-switch-logger.js` | **New in v8.** Logs the switch and adds one line naming Commander's routing tiers; your chosen model is kept |
-| `Stop` | 2 | `suggest-lightweight.js`, `clickability-watch.js` | End-of-turn suggestion pass and clickability telemetry |
+| `Stop` | 3 | `suggest-lightweight.js`, `clickability-watch.js`, `intent-classifier.js` | End-of-turn suggestion pass, clickability telemetry, and the "what next" menu after a skill ran |
 | `StopFailure` | 1 | `stop-failure-handler.js` | Log unhandled errors on session close |
 | `Notification` | 1 | `fleet-notify.js` | Append fleet completion events to `notifications.jsonl` |
 | `PreCompact` | 1 | `pre-compact.js` | Snapshot state before compaction |
@@ -44,7 +44,7 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 | `DirectoryAdded` | 1 | `session-state-sync.js` | **New in v8.** Records directories added to the session |
 | `Setup` | 1 | `license-check.js` | One-time initialization slot (an explicit no-op — core is free forever) |
 
-**Total: 30 events · 51 handlers**
+**Total: 30 events · 52 handlers**
 
 ## Events Commander deliberately leaves alone
 

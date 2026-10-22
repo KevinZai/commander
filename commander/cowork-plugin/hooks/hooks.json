@@ -229,6 +229,11 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/clickability-watch.js\"",
             "timeout": 2
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js\"",
+            "timeout": 3
           }
         ]
       }
