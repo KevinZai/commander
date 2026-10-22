@@ -19,7 +19,7 @@ const STANDARD = (args && typeof args.standard === 'string' && args.standard) ||
 const MAX_FILES = Math.max(1, Math.min(2000, (args && args.maxFiles) || 400))
 
 const CHECKS = [
-  { id: 'frontmatter', rule: 'Frontmatter parses as YAML. For a skill, `name` equals its directory name; for an agent, `name` equals the file basename. `description` is present. `model`, when present, is an alias (haiku, sonnet, opus, fable, inherit), never a dated or full id. `effort` is set. Every tool the body tells the model to call appears in `allowed-tools` (skills) or `tools` (agents).' },
+  { id: 'frontmatter', rule: 'Frontmatter parses as YAML. For a skill, `name` equals its directory name; for an agent, `name` equals the file basename. `description` is present. `model`, when present, is an alias (haiku, sonnet, opus, fable, inherit), never a dated or full id. `effort` is set. For agents, every tool the body tells the model to call appears in `tools`. For skills, `allowed-tools` is a no-prompt permission grant (unlisted tools stay callable): a model-invocable skill must not grant bare `Bash`, `Write` or `Edit`.' },
   { id: 'line-limit', rule: 'A SKILL.md is under 400 lines; an agent file is under 120 lines. Count with `wc -l`.' },
   { id: 'stale-model', rule: 'No stale model name. Run: grep -nE "Fable [5]\\b|Opus [5]\\b|Sonnet [5]\\b|Haiku 4[.]5|claude-fable-[5]\\b|claude-opus-[5]\\b|claude-sonnet-[5]\\b|claude-haiku-4-[5]|GPT-5[.]|gpt-5[.]|Ter[r]a" <file>, and flag a bare "Sol" that is not "gpt-6-sol", "gpt-6.1-sol", or "GPT-6".' },
   { id: 'count-version-literal', rule: 'No count or version literal in the body. Run: grep -nE "\\b[0-9]{2,3} (skills|agents|handlers|hooks)\\b|v?7\\.[0-9]\\.[0-9]" <file>.' },
