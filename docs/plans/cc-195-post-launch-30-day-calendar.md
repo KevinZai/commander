@@ -9,7 +9,7 @@ The Linear ticket was written for v2.2.0; the current release is in `package.jso
 
 | Gate | Meaning | Who clears it |
 |---|---|---|
-| G0 Draft | Copy and assets exist locally in `marketing/CONTENT/` | Author |
+| G0 Draft | Copy and assets exist locally in `docs/plans/` | Author |
 | G1 Facts | Every claim, metric and screenshot checked against the repo or real telemetry; comparisons carry a method note | Reviewer (not the author) |
 | G2 Disclosure | Affiliate links, sponsorships and AGPL/opt-in notes are disclosed per the product rules | Reviewer |
 | G3 Owner OK | Kevin approves the exact text, channel and time | Kevin |
