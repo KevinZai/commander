@@ -1,0 +1,2370 @@
+{
+  "schema": 1,
+  "generatedBy": "scripts/build-routes.js",
+  "counts": {
+    "skill": 76,
+    "agent": 22,
+    "domain-router": 8
+  },
+  "routes": [
+    {
+      "name": "architect",
+      "kind": "agent",
+      "description": "System design, trade-offs, migrations and technology choices grounded in the codebase",
+      "when_to_use": "Use when a change crosses boundaries, is hard to reverse, or needs a design first.",
+      "triggers": [
+        "architect",
+        "change crosses boundaries",
+        "is hard to reverse",
+        "needs a design first"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "builder",
+      "kind": "agent",
+      "description": "Implements a scoped feature or fix test-first with the smallest passing change, verified by the project's checks",
+      "when_to_use": "Use when the design is settled and code needs writing.",
+      "triggers": [
+        "builder"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "ccc",
+      "kind": "skill",
+      "description": "Commander's click-first home: reads the project context, then routes to build, review, ship or the More menu (plan, x-ray, Codex CLI, fleet, connectors, plugin audit workflows) in one or two clicks",
+      "when_to_use": "Use when the user types /ccc, opens the Commander menu, or asks where to start.",
+      "triggers": [
+        "/ccc",
+        "ccc",
+        "opens the commander menu",
+        "asks where to start"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-browse",
+        "ccc-cheatsheet",
+        "ccc-more",
+        "ccc-plan",
+        "ccc-xray"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-adhd",
+      "kind": "skill",
+      "description": "Answer-first output: the fix, then command, then file:line, context last. Toggle on, off or status; stacks with caveman. Based on ayghri/i-have-adhd (MIT)",
+      "when_to_use": "Use when the user wants the answer first.",
+      "triggers": [
+        "/ccc-adhd",
+        "ccc-adhd",
+        "answer first"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-console",
+        "ccc-start",
+        "ccc-settings"
+      ],
+      "tier": "light",
+      "priority": 1
+    },
+    {
+      "name": "ccc-adopt",
+      "kind": "skill",
+      "description": "Merge Commander's orchestrator/executor section and a stack-tailored skill and agent list into an existing project's CLAUDE.md as a delimited, re-runnable block, with backup and diff approval first",
+      "when_to_use": "Use when adopting Commander conventions in a repo you already have.",
+      "triggers": [
+        "/ccc-adopt",
+        "ccc-adopt"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-onboard",
+        "ccc-tuneup",
+        "ccc-claudemd",
+        "ccc-orchestrate",
+        "ccc-plan-exec"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-agent-writing",
+      "kind": "skill",
+      "description": "Draft a spec, PRD, PR description, README section, runbook or technical doc that a reader can act on without a follow-up question: named reader, answer first, typed structure, self-test",
+      "when_to_use": "Use when the user says write a spec, draft a PRD, write the PR description, or document this.",
+      "triggers": [
+        "/ccc-agent-writing",
+        "ccc-agent-writing",
+        "write a spec",
+        "draft a prd",
+        "write the pr description",
+        "document this"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-content",
+        "ccc-plan",
+        "ccc-changelog",
+        "ccc-ship",
+        "ccc-linear"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-brainstorm",
+      "kind": "skill",
+      "description": "Design-first ideation gate: three parallel agents propose a simple, a scalable and a user-delight approach, rendered as a tradeoff matrix, then you pick a direction. No code is written",
+      "when_to_use": "Use when the user asks how to build X, which approach to take, is torn between options, or types /ccc-brainstorm.",
+      "triggers": [
+        "/ccc-brainstorm",
+        "ccc-brainstorm",
+        "how to build x",
+        "which approach to take",
+        "is torn between options",
+        "types /ccc-brainstorm"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-review",
+        "ccc-plan",
+        "ccc-build",
+        "ccc-debate",
+        "ccc-research"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-broadcast",
+      "kind": "skill",
+      "description": "Relay build, deploy, CI, task and cost outcomes as short scrubbed summaries to a connected team chat or email, so non-developers see what shipped",
+      "when_to_use": "Use when the user wants the team, owner or a client told when a deploy, build or run finishes, or types /ccc-broadcast.",
+      "triggers": [
+        "/ccc-broadcast",
+        "ccc-broadcast",
+        "team",
+        "owner",
+        "client told when a deploy",
+        "build",
+        "run finishes",
+        "types /ccc-broadcast"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-connect",
+        "ccc-nightwatch",
+        "ccc-ci",
+        "ccc-usage"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-browse",
+      "kind": "skill",
+      "description": "Browse every CC Commander skill, agent and domain: publish the searchable Cockpit catalog page after consent, or drill in four at a time with pickers and launch one",
+      "when_to_use": "Use when the user asks what Commander can do, wants the catalog, or types /ccc-browse.",
+      "triggers": [
+        "/ccc-browse",
+        "ccc-browse",
+        "what commander can do",
+        "wants the catalog",
+        "types /ccc-browse"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-console",
+        "ccc-suggest",
+        "ccc-start"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-build",
+      "kind": "skill",
+      "description": "Scaffold a new web app, API or CLI from a three-question spec interview, built by a background agent and verified before it is called ready",
+      "when_to_use": "Use when the user wants to build something new, start a project, create an app, or types /ccc-build.",
+      "triggers": [
+        "/ccc-build",
+        "ccc-build",
+        "build something new",
+        "start a project",
+        "create an app",
+        "types /ccc-build"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-mobile",
+        "ccc-plan",
+        "ccc-design",
+        "ccc-review",
+        "ccc-ship"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-changelog",
+      "kind": "skill",
+      "description": "Summarize what changed in the latest CC Commander release, or a named version, from CHANGELOG.md in a short scan-friendly digest",
+      "when_to_use": "Use when asking what's new, what changed, show the changelog, release notes, or after the SessionStart update nudge.",
+      "triggers": [
+        "/ccc-changelog",
+        "ccc-changelog",
+        "asking what's new",
+        "what changed",
+        "show the changelog",
+        "release notes",
+        "after the sessionstart update nudge"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-update",
+        "ccc-browse",
+        "ccc-doctor"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-cheatsheet",
+      "kind": "skill",
+      "description": "Live map of Commander: reads the installed plugin's skills, workflows, menus, agents, hooks and MCP servers from disk and renders a Mermaid flow plus a navigator picker, with an optional HTML export",
+      "when_to_use": "Use when the user types /ccc-cheatsheet or asks for a command map or everything Commander offers.",
+      "triggers": [
+        "/ccc-cheatsheet",
+        "ccc-cheatsheet",
+        "asks for a command map",
+        "everything commander offers"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-browse",
+        "ccc-more",
+        "ccc-build",
+        "ccc-review",
+        "ccc-learn"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-ci",
+      "kind": "skill",
+      "description": "Diagnose CI and deploy failures: pull the failing run's log, classify the cause, propose a fix, and follow runs with /loop or a Routine; optional signed-webhook push mode",
+      "when_to_use": "Use when CI is red, a deploy failed, a prod approval waits, or the user wants pipeline events in the session.",
+      "triggers": [
+        "/ccc-ci",
+        "ccc-ci",
+        "ci is red",
+        "deploy failed",
+        "prod approval waits",
+        "pipeline events in the session"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-devops",
+        "ccc-deploy-check",
+        "ccc-doctor",
+        "ccc-systematic-debugging",
+        "ccc-nightwatch"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-claudemd",
+      "kind": "skill",
+      "description": "Audit a project CLAUDE.md against the real codebase for stale paths, dead commands, missing context and token waste, then apply fixes only after picker approval",
+      "when_to_use": "Use when asking to audit, clean up or optimize CLAUDE.md or project instructions, or when the suggest engine flags it as stale.",
+      "triggers": [
+        "/ccc-claudemd",
+        "ccc-claudemd",
+        "asking to audit",
+        "clean up",
+        "optimize claude.md",
+        "project instructions"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-adopt",
+        "ccc-memory",
+        "ccc-prompt-fix",
+        "ccc-doc-sync"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-code-review",
+      "kind": "skill",
+      "description": "Alias for /ccc-review: forwards a code, PR or diff review request with its arguments to the canonical review workflow",
+      "when_to_use": "Use when the user types /ccc-code-review or asks to review code, a PR, a file or a diff by this name.",
+      "triggers": [
+        "/ccc-code-review",
+        "ccc-code-review",
+        "/ccc-review",
+        "asks to review code",
+        "file",
+        "diff by this name"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-review",
+        "ccc-qa"
+      ],
+      "tier": "light",
+      "priority": 1
+    },
+    {
+      "name": "ccc-codex",
+      "kind": "skill",
+      "description": "Manage the OpenAI Codex CLI: doctor, models, plugins, MCP servers, custom agents, cloud tasks, remote control, reviews, updates, import and config, backing up config first",
+      "when_to_use": "Use when the user asks to check, set up or manage Codex.",
+      "triggers": [
+        "/ccc-codex",
+        "ccc-codex",
+        "check",
+        "set up",
+        "manage codex"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-orchestrate",
+        "ccc-settings",
+        "ccc-doctor",
+        "ccc-review"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-connect",
+      "kind": "skill",
+      "description": "Opt-in connector wizard with affiliate disclosure: pick a service (Supabase, Linear, Vercel, Sentry, Notion, Slack, Stripe, research tools and more) and wire it as a plugin with userConfig, an OAuth MCP or a keyed MCP without secrets in chat",
+      "when_to_use": "Use when connecting an MCP server or service.",
+      "triggers": [
+        "/ccc-connect",
+        "ccc-connect",
+        "connecting an mcp server",
+        "service"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-doctor",
+        "ccc-linear",
+        "ccc-build",
+        "ccc-xray"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-console",
+      "kind": "skill",
+      "description": "Open the Commander Console inline (agents, usage, safety, memory, history, launch chips, prompt bar) or publish one tab as a private snapshot page after consent",
+      "when_to_use": "Use when the user asks what is going on, wants the console, or types /ccc-console.",
+      "triggers": [
+        "/ccc-console",
+        "ccc-console",
+        "what is going on",
+        "wants the console",
+        "types /ccc-console"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-mission-control",
+        "ccc-browse",
+        "ccc-suggest",
+        "ccc-spawn",
+        "ccc-doctor"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-content",
+      "kind": "skill",
+      "description": "Draft blog posts, social threads, email campaigns, landing-page copy and docs in three questions, with an optional brief, review and scheduling pipeline",
+      "when_to_use": "Use when the user asks to write a post, thread, newsletter, email campaign or marketing copy, repurpose a URL, or types /ccc-content.",
+      "triggers": [
+        "/ccc-content",
+        "ccc-content",
+        "write a post",
+        "thread",
+        "newsletter",
+        "email campaign",
+        "marketing copy",
+        "repurpose a url",
+        "types /ccc-content"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-connect",
+        "ccc-marketing",
+        "ccc-seo",
+        "ccc-broadcast"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-data",
+      "kind": "domain-router",
+      "description": "Route data work to the right method: ETL/ELT pipelines, SQL optimization, charts and dashboards, machine learning, data quality, product analytics, scheduled reports, or vector search",
+      "when_to_use": "Use when the user is building, querying, validating or visualizing data, or types /ccc-data.",
+      "triggers": [
+        "/ccc-data",
+        "ccc-data",
+        "building",
+        "querying",
+        "validating",
+        "visualizing data",
+        "types /ccc-data"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-research",
+        "ccc-saas",
+        "ccc-smb-ops",
+        "ccc-testing",
+        "ccc-loop"
+      ],
+      "tier": "standard",
+      "priority": 2
+    },
+    {
+      "name": "ccc-debate",
+      "kind": "skill",
+      "description": "Adversarial multi-agent debate: lens agents (security, performance, architecture, product, contrarian) argue and cross-examine one design, plan or diff, then a judge rules ship, revise or block",
+      "when_to_use": "Use when a decision is costly to reverse, a diff touches auth or billing, or the user types /ccc-debate.",
+      "triggers": [
+        "/ccc-debate",
+        "ccc-debate",
+        "decision is costly to reverse",
+        "diff touches auth",
+        "billing"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-fleet",
+        "ccc-review",
+        "ccc-brainstorm",
+        "ccc-plan"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-deploy",
+      "kind": "skill",
+      "description": "Deploy the current build to Vercel, Fly.io, Cloudflare, GitHub Pages, npm, or a package deploy script, verify the live URL, and draft post-deploy notes",
+      "when_to_use": "Use when a build is ready to go live or the user says deploy, push to production, or publish the package.",
+      "triggers": [
+        "/ccc-deploy",
+        "ccc-deploy",
+        "build is ready to go live",
+        "deploy",
+        "push to production",
+        "publish the package"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-deploy-check",
+        "ccc-ship",
+        "ccc-rollback",
+        "ccc-connect"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-deploy-check",
+      "kind": "skill",
+      "description": "Pre-deploy readiness gate: tests, build, debug logs, secrets, TODOs, lockfile and destructive-migration checks with a GO, CAUTION or NO-GO verdict, plus risk and rollback plan in power mode",
+      "when_to_use": "Use when asking ready to ship, should I deploy, is it safe, deploy check, or pre-deploy.",
+      "triggers": [
+        "/ccc-deploy-check",
+        "ccc-deploy-check",
+        "asking ready to ship",
+        "should i deploy",
+        "is it safe",
+        "deploy check",
+        "pre-deploy"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-deploy",
+        "ccc-ship",
+        "ccc-rollback",
+        "ccc-security"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-design",
+      "kind": "domain-router",
+      "description": "Route design work to the right method: landing page, component system, Impeccable polish pass, Figma to code, chat UI, Design.md capture or screenshot to interactive UI",
+      "when_to_use": "Use when the user wants to design, restyle, polish or animate a UI, or types /ccc-design.",
+      "triggers": [
+        "/ccc-design",
+        "ccc-design",
+        "design",
+        "restyle",
+        "polish",
+        "animate a ui",
+        "types /ccc-design"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-build",
+        "ccc-mobile",
+        "ccc-makeover",
+        "ccc-connect",
+        "ccc-deploy"
+      ],
+      "tier": "standard",
+      "priority": 2
+    },
+    {
+      "name": "ccc-devops",
+      "kind": "domain-router",
+      "description": "DevOps domain router: picks the right specialist for CI/CD pipelines, zero-downtime deploys, Docker and container security, AWS, Terraform, Prometheus/Grafana monitoring, networking and runbooks, then loads it",
+      "when_to_use": "Use when the user wants to set up, harden or plan infrastructure or delivery.",
+      "triggers": [
+        "/ccc-devops",
+        "ccc-devops",
+        "set up",
+        "harden",
+        "plan infrastructure",
+        "delivery"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-ci",
+        "ccc-deploy",
+        "ccc-harden",
+        "ccc-infra",
+        "ccc-security"
+      ],
+      "tier": "standard",
+      "priority": 2
+    },
+    {
+      "name": "ccc-doc-sync",
+      "kind": "skill",
+      "description": "Sync skill, agent and hook-handler counts and the version string across Commander docs from contract.json and package.json, with a --check drift gate for CI",
+      "when_to_use": "Use when counts or the version changed, after adding a skill, agent or handler, or when a doc-count check fails.",
+      "triggers": [
+        "/ccc-doc-sync",
+        "ccc-doc-sync",
+        "counts",
+        "version changed",
+        "after adding a skill",
+        "agent",
+        "handler",
+        "when a doc-count check fails"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-claudemd",
+        "ccc-changelog",
+        "ccc-ship"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-doctor",
+      "kind": "skill",
+      "description": "Paste-ready Commander health report: install mode, installed vs latest version, clone and cache state, settings, MCP servers, plugin validate and details, mods, Codex doctor, optional source drift checks",
+      "when_to_use": "Use when Commander misbehaves, after an update, or before filing a support issue.",
+      "triggers": [
+        "/ccc-doctor",
+        "ccc-doctor",
+        "commander misbehaves",
+        "after an update",
+        "before filing a support issue"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-update",
+        "ccc-tuneup",
+        "ccc-upgrade",
+        "ccc-settings"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-domains",
+      "kind": "skill",
+      "description": "Alias for /ccc-learn: opens the domain picker to browse and load a skill domain such as design, marketing, SaaS, testing, DevOps or security",
+      "when_to_use": "Use when the user types /ccc-domains, says 'domain skills' or 'show categories', or asks which skills exist for a field.",
+      "triggers": [
+        "/ccc-domains",
+        "ccc-domains",
+        "domain skills",
+        "show categories",
+        "/ccc-learn",
+        "says 'domain skills'",
+        "'show categories'"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-learn",
+        "ccc-browse",
+        "ccc-cheatsheet"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-e2e",
+      "kind": "skill",
+      "description": "Pre-release assessment that fans out via /ccc-fleet into up to three isolated workers (QA audit, unit tests, Playwright E2E) running /ccc-testing lanes, then writes a severity-ranked PASS or FAIL verdict",
+      "when_to_use": "Use when about to tag a release, after a large merge, or asking is this ready.",
+      "triggers": [
+        "/ccc-e2e",
+        "ccc-e2e",
+        "/ccc-fleet",
+        "/ccc-testing",
+        "about to tag a release",
+        "after a large merge",
+        "asking is this ready"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-fleet",
+        "ccc-testing",
+        "ccc-review",
+        "ccc-ship",
+        "ccc-qa"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-ecc",
+      "kind": "skill",
+      "description": "Selective ECC loader: pick one Everything Claude Code skill, agent or hook from the vendored checkout and symlink or copy only that component into ~/.claude, with a backup, never the full harness",
+      "when_to_use": "Use when the user wants a single ECC component without installing ECC.",
+      "triggers": [
+        "/ccc-ecc",
+        "ccc-ecc",
+        "single ecc component without installing ecc"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-upgrade",
+        "ccc-suggest",
+        "ccc-settings"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-fable",
+      "kind": "skill",
+      "description": "Arm, check, audit or disarm the Fable Method: the PM loop, 12 checkable gates, workflow-first posture and verifier separation, persisted in Commander state",
+      "when_to_use": "Use when the user says fable on/off/status/audit or wants verification-gated, orchestrated work.",
+      "triggers": [
+        "/ccc-fable",
+        "ccc-fable",
+        "fable on/off/status/audit",
+        "wants verification-gated",
+        "orchestrated work"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-orchestrate",
+        "ccc-review",
+        "ccc-plan",
+        "ccc-suggest",
+        "ccc-loop"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-fleet",
+      "kind": "skill",
+      "description": "Run parallel agents on one task: fan-out slices in isolated worktrees, a sequential pipeline, a review panel, a background run, or a director-lead-specialist team, then verify and synthesize",
+      "when_to_use": "Use when the user types /ccc-fleet or wants work split across several agents.",
+      "triggers": [
+        "/ccc-fleet",
+        "ccc-fleet",
+        "wants work split across several agents"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-spawn",
+        "ccc-relay",
+        "ccc-debate",
+        "ccc-loop",
+        "ccc-fleet-viz"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-fleet-viz",
+      "kind": "skill",
+      "description": "Show a /ccc-fleet run as a live tree of workers (done, running, failed, waiting) with branches and a Mermaid diagram, refreshing until every worker finishes",
+      "when_to_use": "Use when the user asks for fleet progress, types /ccc-fleet-viz, or a /ccc-fleet run completes.",
+      "triggers": [
+        "/ccc-fleet-viz",
+        "ccc-fleet-viz",
+        "/ccc-fleet",
+        "fleet progress",
+        "types /ccc-fleet-viz"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-fleet",
+        "ccc-mission-control",
+        "ccc-console"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-handoff",
+      "kind": "skill",
+      "description": "Write a dense handoff file and tell the user to resume in a new chat before a long context degrades output quality",
+      "when_to_use": "Use when a chunk of work is done, the topic is about to switch, the model starts forgetting context, or a long orchestration run is mid-flight.",
+      "triggers": [
+        "/ccc-handoff",
+        "ccc-handoff",
+        "chunk of work is done",
+        "topic is about to switch",
+        "model starts forgetting context",
+        "long orchestration run is mid-flight"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-orchestrate",
+        "ccc-plan-exec",
+        "ccc-save-session",
+        "ccc-standup",
+        "ccc-resume-session"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-harden",
+      "kind": "skill",
+      "description": "Pre-launch production hardening audit across hosting, GitHub, error tracking, analytics, payments, secrets/PII headers and Cloudflare. Read-only by default; per-pillar fixes only with approval. Findings stay local",
+      "when_to_use": "Use when preparing a launch or security review, or after config changes.",
+      "triggers": [
+        "/ccc-harden",
+        "ccc-harden",
+        "preparing a launch",
+        "security review",
+        "after config changes"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-security",
+        "ccc-deploy-check",
+        "ccc-doctor",
+        "ccc-deploy"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-hermes",
+      "kind": "skill",
+      "description": "Optional bridge between Claude Code and a local Hermes agent gateway: chat channels can wake a Claude Code session, and Claude Code can post progress or accept escalations over MCP",
+      "when_to_use": "Use when the user runs a Hermes gateway and wants channel triggers, progress posts or hand-offs.",
+      "triggers": [
+        "/ccc-hermes",
+        "ccc-hermes",
+        "progress posts",
+        "hand-offs"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-connect",
+        "ccc-relay",
+        "ccc-mission-control"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-infra",
+      "kind": "skill",
+      "description": "Dev services status: probes the local services you declare in an optional services.json, plus Claude MCP connections and Codex CLI health, and recommends the next action",
+      "when_to_use": "Use when the user asks for infrastructure or service status, whether a dev server is up, or why an MCP is down.",
+      "triggers": [
+        "/ccc-infra",
+        "ccc-infra",
+        "infrastructure",
+        "service status",
+        "whether a dev server is up",
+        "why an mcp is down"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-ci",
+        "ccc-doctor",
+        "ccc-devops",
+        "ccc-connect",
+        "ccc-deploy"
+      ],
+      "tier": "light",
+      "priority": 1
+    },
+    {
+      "name": "ccc-knowledge",
+      "kind": "skill",
+      "description": "Search, browse and add lessons in the local CC Commander knowledge base: recent lessons, topic search, category view, stats and file-edit captures",
+      "when_to_use": "Use when the user asks what we learned, wants past lessons, the knowledge base, or types /ccc-knowledge.",
+      "triggers": [
+        "/ccc-knowledge",
+        "ccc-knowledge",
+        "what we learned",
+        "wants past lessons",
+        "knowledge base",
+        "types /ccc-knowledge"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-recall",
+        "ccc-memory",
+        "ccc-learn",
+        "ccc-handoff"
+      ],
+      "tier": "light",
+      "priority": 1
+    },
+    {
+      "name": "ccc-learn",
+      "kind": "skill",
+      "description": "Pick a CC Commander skill domain in one click (design, marketing, SaaS, DevOps, SEO, testing, security, data and more) and hand off to that domain's router skill",
+      "when_to_use": "Use when the user asks what skills exist, wants the skill catalog, says learn or browse domains, or types /ccc-learn.",
+      "triggers": [
+        "/ccc-learn",
+        "ccc-learn",
+        "what skills exist",
+        "wants the skill catalog",
+        "says learn",
+        "browse domains",
+        "types /ccc-learn"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-browse",
+        "ccc-domains",
+        "ccc-knowledge"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-linear",
+      "kind": "skill",
+      "description": "View your open Linear issues, pick one to work on (moves it to In Progress and creates a branch), create a new issue, or see a board overview, all from pickers",
+      "when_to_use": "Use when the user types /ccc-linear, asks for their Linear issues or tickets, or wants to start work from a ticket.",
+      "triggers": [
+        "/ccc-linear",
+        "ccc-linear",
+        "asks for their linear issues",
+        "tickets"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-linear-board",
+        "ccc-tasks",
+        "ccc-connect",
+        "ccc-standup"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-linear-board",
+      "kind": "skill",
+      "description": "Publish a team's Linear issues as a private Kanban page whose cards update in place from a shared data store, or hand off to /ccc-linear to view, pick or create issues in chat",
+      "when_to_use": "Use when the user asks for a Linear board page, a sprint board to share, or types /ccc-linear-board.",
+      "triggers": [
+        "/ccc-linear-board",
+        "ccc-linear-board",
+        "/ccc-linear",
+        "linear board page",
+        "sprint board to share",
+        "types /ccc-linear-board"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-linear",
+        "ccc-connect",
+        "ccc-mission-control"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-loop",
+      "kind": "skill",
+      "description": "Pick the right loop primitive (turn, /goal, /loop interval or self-paced, ScheduleWakeup, Routines via /schedule), gate it, give it an independent verifier and a state file",
+      "when_to_use": "Use when the user wants recurring, polling, run-until-done or unattended agent work.",
+      "triggers": [
+        "/ccc-loop",
+        "ccc-loop",
+        "recurring",
+        "polling",
+        "run-until-done",
+        "unattended agent work"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-deploy",
+        "ccc-rollback",
+        "ccc-ship",
+        "ccc-relay",
+        "ccc-review"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-makeover",
+      "kind": "skill",
+      "description": "Score project health with /ccc-xray, apply the top recommendations one at a time with your OK, and show a before/after report card",
+      "when_to_use": "Use when the user asks for a health check, wants the top issues fixed automatically, asks for a project score or report card, or types /ccc-makeover.",
+      "triggers": [
+        "/ccc-makeover",
+        "ccc-makeover",
+        "/ccc-xray",
+        "health check",
+        "wants the top issues fixed automatically",
+        "asks for a project score",
+        "report card",
+        "types /ccc-makeover"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-xray",
+        "ccc-code-review",
+        "ccc-design",
+        "ccc-ship",
+        "ccc-testing"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-marketing",
+      "kind": "domain-router",
+      "description": "Route marketing work to the right specialist method: brand context, content, conversion optimization, email and ads, growth experiments, competitor intelligence, pricing and launches",
+      "when_to_use": "Use when the user asks for marketing help, CRO, a campaign or launch plan, or types /ccc-marketing.",
+      "triggers": [
+        "/ccc-marketing",
+        "ccc-marketing",
+        "marketing help",
+        "campaign",
+        "launch plan",
+        "types /ccc-marketing"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-content",
+        "ccc-seo",
+        "ccc-design",
+        "ccc-research"
+      ],
+      "tier": "standard",
+      "priority": 2
+    },
+    {
+      "name": "ccc-memory",
+      "kind": "skill",
+      "description": "Keep durable project memory in two tiers: CLAUDE.md for always-loaded facts and a memory/ directory of dated notes, decisions, gotchas and preferences loaded on demand",
+      "when_to_use": "Use when recording a decision, root cause, correction or preference future sessions must keep.",
+      "triggers": [
+        "/ccc-memory",
+        "ccc-memory",
+        "recording a decision",
+        "root cause",
+        "correction",
+        "preference future sessions must keep"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-save-session",
+        "ccc-recall",
+        "ccc-claudemd",
+        "ccc-knowledge"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-mission-control",
+      "kind": "skill",
+      "description": "Agent mission control: who is working on what, as a local live dashboard, a plain-English status, suggestion triage, or a private snapshot page whose task board updates in place",
+      "when_to_use": "Use when the user asks what agents are doing, wants a status board, or types /ccc-mission-control.",
+      "triggers": [
+        "/ccc-mission-control",
+        "ccc-mission-control",
+        "what agents are doing",
+        "wants a status board",
+        "types /ccc-mission-control"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-fleet",
+        "ccc-spawn",
+        "ccc-fleet-viz",
+        "ccc-suggest",
+        "ccc-console"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-mobile",
+      "kind": "domain-router",
+      "description": "Route mobile work to the right method: React Native/Expo, Flutter, SwiftUI or Jetpack Compose builds, mobile testing, app store optimization, push notifications and deep links, or start a new app",
+      "when_to_use": "Use when the user is building, testing or shipping an iOS or Android app, or types /ccc-mobile.",
+      "triggers": [
+        "/ccc-mobile",
+        "ccc-mobile",
+        "building",
+        "testing",
+        "shipping an ios",
+        "android app",
+        "types /ccc-mobile"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-build",
+        "ccc-design",
+        "ccc-testing",
+        "ccc-ship"
+      ],
+      "tier": "standard",
+      "priority": 2
+    },
+    {
+      "name": "ccc-more",
+      "kind": "skill",
+      "description": "Commander's second-page menu: plan, x-ray, Codex CLI management, fleet, Linear, connectors, tune-up, catalog browse and the plugin audit workflows, one click each",
+      "when_to_use": "Use when the user picks More tools in /ccc, types /ccc-more, or asks what else Commander can do.",
+      "triggers": [
+        "/ccc-more",
+        "ccc-more",
+        "user picks more tools in /ccc",
+        "types /ccc-more",
+        "asks what else commander can do"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-browse",
+        "ccc-cheatsheet",
+        "ccc-fleet",
+        "ccc-connect",
+        "ccc-codex"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-night-mode",
+      "kind": "skill",
+      "description": "Spec-first autonomous build that runs overnight or immediately in multi-cycle build and independent-review loops, checkpointing status each cycle and stopping at a budget",
+      "when_to_use": "Use when the user says night mode, yolo mode, overnight build, or build while I sleep.",
+      "triggers": [
+        "/ccc-night-mode",
+        "ccc-night-mode",
+        "night mode",
+        "yolo mode",
+        "overnight build",
+        "build while i sleep"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-loop",
+        "ccc-ship",
+        "ccc-nightwatch",
+        "ccc-yolo-setup",
+        "ccc-review"
+      ],
+      "tier": "heavy",
+      "priority": 1
+    },
+    {
+      "name": "ccc-nightwatch",
+      "kind": "skill",
+      "description": "Remote permission relay for unattended runs: risk-classify each tool call, auto-allow reads, send risky calls to your phone via Telegram or Discord for a tap, hard-deny destructive ones",
+      "when_to_use": "Use when the user wants to approve from phone, remote YOLO, or run overnight with a safety leash.",
+      "triggers": [
+        "/ccc-nightwatch",
+        "ccc-nightwatch",
+        "approve from phone",
+        "remote yolo",
+        "run overnight with a safety leash"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-night-mode",
+        "ccc-broadcast",
+        "ccc-loop",
+        "ccc-yolo-setup",
+        "ccc-safety"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-onboard",
+      "kind": "skill",
+      "description": "Contributor first-hour plan for the current repository: reads CLAUDE.md, BIBLE.md and package.json, checks required tools, asks the contributor's role, and returns a five-step checklist plus five real starter resources",
+      "when_to_use": "Use when someone new joins a repo or types /ccc-onboard.",
+      "triggers": [
+        "/ccc-onboard",
+        "ccc-onboard",
+        "someone new joins a repo",
+        "types /ccc-onboard"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-start",
+        "ccc-adopt",
+        "ccc-xray",
+        "ccc-review"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-orchestrate",
+      "kind": "skill",
+      "description": "Write a goal file, run it on a separate executor (Codex GPT-6 or a Sonnet subagent) in an isolated worktree, then verify every acceptance criterion",
+      "when_to_use": "Use when a task benefits from a different executor and independent verification.",
+      "triggers": [
+        "/ccc-orchestrate",
+        "ccc-orchestrate"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-plan-exec",
+        "ccc-codex",
+        "ccc-loop",
+        "ccc-handoff"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-plan",
+      "kind": "skill",
+      "description": "Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals, via a short spec interview and a background planner agent that writes to the session plan path",
+      "when_to_use": "Use when the user wants to plan a feature, scope work before coding, or types /ccc-plan.",
+      "triggers": [
+        "/ccc-plan",
+        "ccc-plan",
+        "plan a feature",
+        "scope work before coding",
+        "types /ccc-plan"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-brainstorm",
+        "ccc-plan-exec",
+        "ccc-review",
+        "ccc-build",
+        "ccc-linear"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-plan-exec",
+      "kind": "skill",
+      "description": "Plan cheap, execute capable: a fast model drafts the loop (steps, per-step body, verify condition), a capable model runs each step in an isolated worktree with an independent verifier",
+      "when_to_use": "Use when work repeats one body over many items, or the user says plan-exec, write a loop, or types /ccc-plan-exec.",
+      "triggers": [
+        "/ccc-plan-exec",
+        "ccc-plan-exec",
+        "plan-exec",
+        "write a loop",
+        "types /ccc-plan-exec"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-plan",
+        "ccc-loop",
+        "ccc-fleet",
+        "ccc-orchestrate"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-prompt-fix",
+      "kind": "skill",
+      "description": "Diagnose a prompt against the six prompt-quality patterns and return a tighter rewrite with the reason for each change, a 0-6 score, or the best matching prompt from the Commander prompt library",
+      "when_to_use": "Use when the user asks to fix, sharpen, improve or score a prompt, or wants a prompt for a task.",
+      "triggers": [
+        "/ccc-prompt-fix",
+        "ccc-prompt-fix",
+        "sharpen",
+        "improve",
+        "score a prompt",
+        "wants a prompt for a task"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-suggest",
+        "ccc-claudemd",
+        "ccc-memory",
+        "ccc-agent-writing"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-qa",
+      "kind": "skill",
+      "description": "QA pass before shipping: detects the framework, runs unit, integration and E2E suites, computes the coverage delta, audits flaky tests and has qa-engineer severity-rate gaps",
+      "when_to_use": "Use when the user asks for a QA pass, to run all tests, check coverage, find flaky tests or if it is ready to ship.",
+      "triggers": [
+        "/ccc-qa",
+        "ccc-qa",
+        "qa pass",
+        "run all tests",
+        "check coverage",
+        "find flaky tests",
+        "if it is ready to ship"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-review",
+        "ccc-ship",
+        "ccc-testing",
+        "ccc-e2e",
+        "ccc-linear"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-recall",
+      "kind": "skill",
+      "description": "Search past saved sessions and curated memory notes for an earlier fix, decision or file, and answer with the source file and date cited",
+      "when_to_use": "Use when asking didn't we solve this before, what did we decide about X, or when a bug first appeared.",
+      "triggers": [
+        "/ccc-recall",
+        "ccc-recall",
+        "asking didn't we solve this before",
+        "what did we decide about x",
+        "when a bug first appeared"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-memory",
+        "ccc-save-session",
+        "ccc-research",
+        "ccc-handoff",
+        "ccc-connect"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-relay",
+      "kind": "skill",
+      "description": "Chain independent loop sessions (spec, build, review, then a human-gated merge) that hand off through a durable state file, tracker status or reaction, each link separately gated and verified",
+      "when_to_use": "Use when the user types /ccc-relay, wants the Finn Loop, or wants auto-chained loops.",
+      "triggers": [
+        "/ccc-relay",
+        "ccc-relay",
+        "wants the finn loop",
+        "wants auto-chained loops"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-loop",
+        "ccc-fleet",
+        "ccc-spawn",
+        "ccc-plan",
+        "ccc-build"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-research",
+      "kind": "skill",
+      "description": "Research before you build: cited multi-source research, spec interviews, cross-model review, literature reviews, competitive and trend analysis, and large-document or large-codebase ingestion",
+      "when_to_use": "Use when the user wants options compared, prior art found, a spec defined, or something too big summarized.",
+      "triggers": [
+        "/ccc-research",
+        "ccc-research",
+        "options compared",
+        "prior art found",
+        "spec defined",
+        "something too big summarized"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-brainstorm",
+        "ccc-debate",
+        "ccc-plan",
+        "ccc-data",
+        "ccc-build"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-resume-session",
+      "kind": "skill",
+      "description": "Load a saved session file from ~/.claude/sessions/ (latest, by date, or by path), read it fully, and brief project, state, what not to retry, blockers and next step before touching anything",
+      "when_to_use": "Use when resuming work, continuing where you left off, or after a fresh session.",
+      "triggers": [
+        "/ccc-resume-session",
+        "ccc-resume-session",
+        "resuming work",
+        "continuing where you left off",
+        "after a fresh session"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-save-session",
+        "ccc-handoff",
+        "ccc-recall",
+        "ccc-session"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-review",
+      "kind": "skill",
+      "description": "Audit the current branch, security posture, performance hot paths or the whole project; routes to /commander:ccc-deep-review, built-in /code-review or a specialist agent and writes a severity-rated report to tasks/reviews/",
+      "when_to_use": "Use when the user asks for a code review, PR review, audit or /ccc-review.",
+      "triggers": [
+        "/ccc-review",
+        "ccc-review",
+        "code review",
+        "pr review",
+        "audit"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-xray",
+        "ccc-qa",
+        "ccc-security",
+        "ccc-ship"
+      ],
+      "tier": "heavy",
+      "priority": 1
+    },
+    {
+      "name": "ccc-rollback",
+      "kind": "skill",
+      "description": "Roll production back by picking a known-good commit or tag, creating atomic git revert commits, pushing them, redeploying through the /ccc-deploy runners, and verifying health",
+      "when_to_use": "Use when a deploy is bad, production is broken, or the user asks to revert or roll back a release.",
+      "triggers": [
+        "/ccc-rollback",
+        "ccc-rollback",
+        "/ccc-deploy",
+        "deploy is bad",
+        "production is broken",
+        "revert",
+        "roll back a release"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-ship",
+        "ccc-deploy",
+        "ccc-connect",
+        "ccc-deploy-check",
+        "ccc-systematic-debugging"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-saas",
+      "kind": "domain-router",
+      "description": "Route SaaS work to the right method: scaffold, auth, database, API, frontend, Stripe billing, webhooks, multi-tenancy, feature flags, metrics and conversion",
+      "when_to_use": "Use when the user is building, billing or growing a SaaS product, or types /ccc-saas.",
+      "triggers": [
+        "/ccc-saas",
+        "ccc-saas",
+        "building",
+        "billing",
+        "growing a saas product",
+        "types /ccc-saas"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-build",
+        "ccc-design",
+        "ccc-marketing",
+        "ccc-data",
+        "ccc-deploy"
+      ],
+      "tier": "standard",
+      "priority": 2
+    },
+    {
+      "name": "ccc-safety",
+      "kind": "skill",
+      "description": "Safety deck: dangerous actions Commander's hooks blocked, auto-fixes applied, and the tools that fail most, narrated here or published as a private snapshot page after consent",
+      "when_to_use": "Use when the user asks what the guardrails caught, why tools fail, or types /ccc-safety.",
+      "triggers": [
+        "/ccc-safety",
+        "ccc-safety",
+        "what the guardrails caught",
+        "why tools fail",
+        "types /ccc-safety"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-console",
+        "ccc-doctor",
+        "ccc-usage"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-save-session",
+      "kind": "skill",
+      "description": "Compress the current session into a dense reloadable file in ~/.claude/sessions/: decisions, files touched, what worked, what failed and why, open questions, exact next step",
+      "when_to_use": "Use when ending a session, nearing context limits, or saying save this session.",
+      "triggers": [
+        "/ccc-save-session",
+        "ccc-save-session",
+        "ending a session",
+        "nearing context limits",
+        "saying save this session"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-resume-session",
+        "ccc-handoff",
+        "ccc-memory",
+        "ccc-recall"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-security",
+      "kind": "skill",
+      "description": "Application security hub: built-in /security-review plus lanes for OWASP Top 10, secrets, dependency CVEs, prompt-injection defense, CodeQL CI, variant analysis and incident response",
+      "when_to_use": "Use when asked to audit security, scan for secrets or vulnerable packages, harden an AI app, or handle a breach.",
+      "triggers": [
+        "/ccc-security",
+        "ccc-security",
+        "asked to audit security",
+        "scan for secrets",
+        "vulnerable packages",
+        "harden an ai app",
+        "handle a breach"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-harden",
+        "ccc-code-review",
+        "ccc-safety",
+        "ccc-ci"
+      ],
+      "tier": "heavy",
+      "priority": 1
+    },
+    {
+      "name": "ccc-seo",
+      "kind": "domain-router",
+      "description": "Route SEO work to the right method: technical audit and fixes, AI search optimization (AEO, GEO, LLMO), content clusters and briefs, analytics, programmatic pages, backlinks and social previews",
+      "when_to_use": "Use when the user asks to audit or improve SEO, rank in AI answers, plan SEO content, or types /ccc-seo.",
+      "triggers": [
+        "/ccc-seo",
+        "ccc-seo",
+        "audit",
+        "improve seo",
+        "rank in ai answers",
+        "plan seo content",
+        "types /ccc-seo"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-marketing",
+        "ccc-content",
+        "ccc-design",
+        "ccc-deploy",
+        "ccc-browse"
+      ],
+      "tier": "standard",
+      "priority": 2
+    },
+    {
+      "name": "ccc-session",
+      "kind": "skill",
+      "description": "Alias that routes session work to the canonical skills: save the current session with /ccc-save-session, or reload a saved one with /ccc-resume-session",
+      "when_to_use": "Use when the user says resume session, continue where I left off, save this session, or types /ccc-session.",
+      "triggers": [
+        "/ccc-session",
+        "ccc-session",
+        "/ccc-save-session",
+        "/ccc-resume-session",
+        "resume session",
+        "continue where i left off",
+        "save this session",
+        "types /ccc-session"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-save-session",
+        "ccc-resume-session",
+        "ccc-handoff"
+      ],
+      "tier": "light",
+      "priority": 1
+    },
+    {
+      "name": "ccc-settings",
+      "kind": "skill",
+      "description": "Settings hub: Commander preferences (name, level, cost ceiling, theme, animations, launch mode, Linear, reset) plus Claude Code permission mode, effort, model restrictions and workflow size, each written with a backup",
+      "when_to_use": "Use when the user says settings, configure, change theme, set effort, auto mode.",
+      "triggers": [
+        "/ccc-settings",
+        "ccc-settings",
+        "settings",
+        "configure",
+        "change theme",
+        "set effort",
+        "auto mode"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-tuneup",
+        "ccc-yolo-setup",
+        "ccc-doctor",
+        "ccc-linear"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-ship",
+      "kind": "skill",
+      "description": "Ship menu: run a parallel pre-flight matrix with a GO, CAUTION or NO-GO scorecard, cut a tagged release with changelog, deploy to a platform, or roll back the last deploy, each gated by a picker",
+      "when_to_use": "Use when the user says ship it, pre-flight, cut a release, tag a version, or roll back.",
+      "triggers": [
+        "/ccc-ship",
+        "ccc-ship",
+        "ship it",
+        "pre-flight",
+        "cut a release",
+        "tag a version",
+        "roll back"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-deploy-check",
+        "ccc-deploy",
+        "ccc-rollback",
+        "ccc-review"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-smb-ops",
+      "kind": "skill",
+      "description": "Small-business back office from a bank CSV or a typed list: 13-week cash-flow forecast, invoicing and AR chasing, payroll planning, CRM cleanup, expense tracking, and a Monday owner brief",
+      "when_to_use": "Use when an owner asks about cash, unpaid invoices, payroll, contacts, spending, or the weekly picture.",
+      "triggers": [
+        "/ccc-smb-ops",
+        "ccc-smb-ops",
+        "owner asks about cash",
+        "unpaid invoices",
+        "payroll",
+        "contacts",
+        "spending",
+        "weekly picture"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-data",
+        "ccc-saas",
+        "ccc-marketing",
+        "ccc-standup",
+        "ccc-loop"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-spawn",
+      "kind": "skill",
+      "description": "Spin self-contained work off on demand: a background subagent, a separate session (Cowork spawn_task chip or CLI /spawn peer), or an independent expert pass; routes fan-outs to /ccc-fleet and chains to /ccc-relay",
+      "when_to_use": "Use when the user types /ccc-spawn or wants a task done outside this thread.",
+      "triggers": [
+        "/ccc-spawn",
+        "ccc-spawn",
+        "/ccc-fleet",
+        "/ccc-relay"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-fleet",
+        "ccc-relay",
+        "ccc-review",
+        "ccc-handoff"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-standup",
+      "kind": "skill",
+      "description": "Write a yesterday / today / blockers standup from your commits, PRs, tracker issues and Commander session notes, or from rough notes you type",
+      "when_to_use": "Use when the user asks for a standup, daily update, morning check-in, what did I do yesterday, or a team update.",
+      "triggers": [
+        "/ccc-standup",
+        "ccc-standup",
+        "standup",
+        "daily update",
+        "morning check-in",
+        "what did i do yesterday",
+        "team update"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-save-session",
+        "ccc-changelog",
+        "ccc-linear",
+        "ccc-tasks"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-start",
+      "kind": "skill",
+      "description": "First-run Commander onboarding: detects the setup live, offers new-project, import, tour or skip pickers, writes a start plan file and marks onboarding complete",
+      "when_to_use": "Use when the user just installed Commander, types /ccc-start, or asks how to get started.",
+      "triggers": [
+        "/ccc-start",
+        "ccc-start",
+        "user just installed commander",
+        "types /ccc-start",
+        "asks how to get started"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-onboard",
+        "ccc-adopt",
+        "ccc-connect",
+        "ccc-update",
+        "ccc-build"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-suggest",
+      "kind": "skill",
+      "description": "Reads project state and recent activity, then recommends one next /ccc-* workflow, skill or plugin with named reasons and picker alternatives; also runs as a standing PM loop",
+      "when_to_use": "Use when the user asks what next, which tool to use, or is stuck.",
+      "triggers": [
+        "/ccc-suggest",
+        "ccc-suggest",
+        "what next",
+        "which tool to use",
+        "is stuck"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-plan",
+        "ccc-review",
+        "ccc-design",
+        "ccc-loop",
+        "ccc-security"
+      ],
+      "tier": "heavy",
+      "priority": 1
+    },
+    {
+      "name": "ccc-systematic-debugging",
+      "kind": "skill",
+      "description": "Root-cause debugging under one law: no fix without a confirmed root cause. Reproduce, compare, hypothesize, then fix once with a failing test first",
+      "when_to_use": "Use when investigating a bug, a failing or flaky test, or an error of unknown cause.",
+      "triggers": [
+        "/ccc-systematic-debugging",
+        "ccc-systematic-debugging",
+        "investigating a bug",
+        "failing",
+        "flaky test",
+        "error of unknown cause"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-ship",
+        "ccc-triage",
+        "ccc-testing",
+        "ccc-review",
+        "ccc-xray"
+      ],
+      "tier": "heavy",
+      "priority": 1
+    },
+    {
+      "name": "ccc-tasks",
+      "kind": "skill",
+      "description": "Track work in one markdown file, tasks/todo.md, with checkboxes, P0-P3 priorities and status marks; no database, service or sync",
+      "when_to_use": "Use when the user asks for a todo list, wants to track personal or side-session tasks, or types /ccc-tasks.",
+      "triggers": [
+        "/ccc-tasks",
+        "ccc-tasks",
+        "todo list",
+        "wants to track personal",
+        "side-session tasks",
+        "types /ccc-tasks"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-linear",
+        "ccc-standup",
+        "ccc-save-session"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-testing",
+      "kind": "domain-router",
+      "description": "Testing domain router: picks the lane for TDD, E2E, visual regression, load testing, QA, regression checks, evals or verification and runs test-writing work in an isolated worktree",
+      "when_to_use": "Use when the user asks to write tests, plan a test strategy, or test, verify or load-test a change.",
+      "triggers": [
+        "/ccc-testing",
+        "ccc-testing",
+        "write tests",
+        "plan a test strategy",
+        "test",
+        "verify",
+        "load-test a change"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-qa",
+        "ccc-e2e",
+        "ccc-systematic-debugging",
+        "ccc-review"
+      ],
+      "tier": "standard",
+      "priority": 2
+    },
+    {
+      "name": "ccc-triage",
+      "kind": "skill",
+      "description": "Triage a GitHub repo's open issues and PRs with the gh CLI: flag stale, unlabeled and CI-failing items, propose labels and next actions, apply labels one confirmed item at a time, or summarize the backlog",
+      "when_to_use": "Use when a maintainer asks to triage issues or PRs, label the backlog, or wants a digest.",
+      "triggers": [
+        "/ccc-triage",
+        "ccc-triage",
+        "maintainer asks to triage issues",
+        "label the backlog",
+        "wants a digest"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-code-review",
+        "ccc-linear",
+        "ccc-codex",
+        "ccc-ci"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-tuneup",
+      "kind": "skill",
+      "description": "Audit and safely optimize the local Commander setup: version freshness, junk, count drift, superseded agents, hooks, settings keys, MCP staleness and cost settings. Read-only scan first; backs up, archives (never deletes) and asks before any fix",
+      "when_to_use": "Use when the setup feels cluttered, stale or slow.",
+      "triggers": [
+        "/ccc-tuneup",
+        "ccc-tuneup",
+        "setup feels cluttered",
+        "stale",
+        "slow"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-doctor",
+        "ccc-update",
+        "ccc-settings",
+        "ccc-connect"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-ultracode",
+      "kind": "skill",
+      "description": "Run deep, multi-agent work as adversarially verified workflows: repo audits, branch reviews, migrations, fleets. Explains the /effort ultracode toggle and launches the bundled Commander workflows",
+      "when_to_use": "Use when the user types /ccc-ultracode or wants depth over speed on repo-wide work.",
+      "triggers": [
+        "/ccc-ultracode",
+        "ccc-ultracode"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-fleet",
+        "ccc-orchestrate",
+        "ccc-review",
+        "ccc-xray"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-update",
+      "kind": "skill",
+      "description": "Update the installed CC Commander plugin: detect the install mode and installed vs latest version, hand over the exact update commands, then verify the installed runtime and hooks after restart",
+      "when_to_use": "Use when the user asks to update Commander or suspects an outdated install.",
+      "triggers": [
+        "/ccc-update",
+        "ccc-update",
+        "update commander",
+        "suspects an outdated install"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-upgrade",
+        "ccc-doctor",
+        "ccc-changelog"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-upgrade",
+      "kind": "skill",
+      "description": "Maintainer-only vendor submodule updater: audits every submodule under vendor/ against upstream, shows commits and files behind, then updates the picked ones one at a time with audit checks and one commit each",
+      "when_to_use": "Use when asked to update vendors, refresh submodules or check vendor drift.",
+      "triggers": [
+        "/ccc-upgrade",
+        "ccc-upgrade",
+        "asked to update vendors",
+        "refresh submodules",
+        "check vendor drift"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-update",
+        "ccc-doctor",
+        "ccc-changelog",
+        "ccc-ship"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-usage",
+      "kind": "skill",
+      "description": "Usage and cost deck: estimated savings from routing to cheaper models, cost per day and cost by app, narrated here or published as a private snapshot page after consent",
+      "when_to_use": "Use when the user asks what agent work costs, how much was saved, or types /ccc-usage.",
+      "triggers": [
+        "/ccc-usage",
+        "ccc-usage",
+        "what agent work costs",
+        "how much was saved",
+        "types /ccc-usage"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-console",
+        "ccc-fleet",
+        "ccc-spawn",
+        "ccc-safety",
+        "ccc-mission-control"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-xray",
+      "kind": "skill",
+      "description": "Project health scorecard: scans the current repo for quality, docs, tests, deps, security, performance, CI, session cost and plugin context cost, then returns 0-100 scores with one fix-first call",
+      "when_to_use": "Use when asked for a health check, repo audit, x-ray or token-cost inventory.",
+      "triggers": [
+        "/ccc-xray",
+        "ccc-xray",
+        "asked for a health check",
+        "repo audit",
+        "x-ray",
+        "token-cost inventory"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-code-review",
+        "ccc-security",
+        "ccc-review",
+        "ccc-makeover",
+        "ccc-usage"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "ccc-yolo-setup",
+      "kind": "skill",
+      "description": "Cut approval prompts safely: keep auto permission mode, add a vetted read-only allowlist plus secret deny rules, back up settings, and set bypassPermissions only with explicit consent",
+      "when_to_use": "Use when the user says yolo setup, reduce prompts, fewer approvals, or skip permissions.",
+      "triggers": [
+        "/ccc-yolo-setup",
+        "ccc-yolo-setup",
+        "yolo setup",
+        "reduce prompts",
+        "fewer approvals",
+        "skip permissions"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [
+        "ccc-safety",
+        "ccc-nightwatch",
+        "ccc-night-mode",
+        "ccc-settings"
+      ],
+      "tier": "standard",
+      "priority": 1
+    },
+    {
+      "name": "content-strategist",
+      "kind": "agent",
+      "description": "Content strategy and draft copy for a named reader: plans, posts, landing pages, emails, social. Drafts only",
+      "when_to_use": "Use to plan, draft, edit or audit content.",
+      "triggers": [
+        "content-strategist",
+        "plan",
+        "draft",
+        "edit",
+        "audit content"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "standard",
+      "priority": 0
+    },
+    {
+      "name": "csharp-reviewer",
+      "kind": "agent",
+      "description": "Read-only C#/.NET review: async/await, IDisposable, LINQ, nullable types, DI lifetimes, security",
+      "when_to_use": "Use when a diff touches .cs or .csproj files.",
+      "triggers": [
+        "csharp-reviewer",
+        "diff touches .cs",
+        ".csproj files"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "data-analyst",
+      "kind": "agent",
+      "description": "Read-only data analysis with sample sizes, confidence, chart specs and reproducible queries",
+      "when_to_use": "Use when a question needs an answer from data or a metric moved.",
+      "triggers": [
+        "data-analyst",
+        "question needs an answer from data",
+        "metric moved"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "debugger",
+      "kind": "agent",
+      "description": "Root-cause debugging: reproduce, confirm the cause with evidence, apply a minimal fix and prove it with a regression test. Use for bugs, flaky tests or errors of unknown cause",
+      "when_to_use": "",
+      "triggers": [
+        "debugger"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "designer",
+      "kind": "agent",
+      "description": "UI/UX design and frontend implementation on the existing design system, WCAG AA, checked across widths",
+      "when_to_use": "Use to build, polish or critique an interface.",
+      "triggers": [
+        "designer",
+        "build",
+        "polish",
+        "critique an interface"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "devops-engineer",
+      "kind": "agent",
+      "description": "CI/CD, containers, IaC, deploys and monitoring, each with a preview and rollback plan",
+      "when_to_use": "Use to set up or fix CI, write Dockerfiles or Terraform, or plan a deploy.",
+      "triggers": [
+        "devops-engineer",
+        "set up",
+        "fix ci",
+        "write dockerfiles",
+        "terraform",
+        "plan a deploy"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "fleet-worker",
+      "kind": "agent",
+      "description": "Parallel worker for one scoped fleet task: stays in its files, runs the named checks, returns a structured report",
+      "when_to_use": "Use when /ccc-fleet or an orchestrator fans out work.",
+      "triggers": [
+        "fleet-worker",
+        "/ccc-fleet",
+        "orchestrator fans out work"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "standard",
+      "priority": 0
+    },
+    {
+      "name": "go-reviewer",
+      "kind": "agent",
+      "description": "Read-only Go review: goroutine and channel safety, errors, context propagation, idioms, security",
+      "when_to_use": "Use when a diff touches .go code or go.mod.",
+      "triggers": [
+        "go-reviewer",
+        "diff touches .go code",
+        "go.mod"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "java-reviewer",
+      "kind": "agent",
+      "description": "Read-only Java review: null safety, resources, Spring pitfalls, concurrency, security",
+      "when_to_use": "Use when a diff touches .java code, pom.xml or build.gradle.",
+      "triggers": [
+        "java-reviewer",
+        "diff touches .java code",
+        "pom.xml",
+        "build.gradle"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "kotlin-reviewer",
+      "kind": "agent",
+      "description": "Read-only Kotlin review: null safety, coroutines, idioms, Android lifecycle and security",
+      "when_to_use": "Use when a diff touches .kt or .kts code.",
+      "triggers": [
+        "kotlin-reviewer",
+        "diff touches .kt",
+        ".kts code"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "performance-engineer",
+      "kind": "agent",
+      "description": "Read-only performance audit: hot paths, measured or estimated cost, and fixes ranked by impact and effort",
+      "when_to_use": "Use when something is slow or a budget regressed.",
+      "triggers": [
+        "performance-engineer",
+        "something is slow",
+        "budget regressed"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "product-manager",
+      "kind": "agent",
+      "description": "Feature scoping, PRDs, user stories with testable acceptance criteria, metrics and prioritization",
+      "when_to_use": "Use to turn an idea into a buildable spec or to order a backlog.",
+      "triggers": [
+        "product-manager",
+        "order a backlog"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "python-reviewer",
+      "kind": "agent",
+      "description": "Read-only Python review: type hints, async, idioms, pytest quality and security. Returns path:line findings",
+      "when_to_use": "Use when a diff touches .py code or packaging.",
+      "triggers": [
+        "python-reviewer",
+        "diff touches .py code",
+        "packaging"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "qa-engineer",
+      "kind": "agent",
+      "description": "Adversarial QA in an isolated worktree: breaking-case tests, coverage delta and reproducible bug reports",
+      "when_to_use": "Use to test a feature, close coverage gaps or verify a fix.",
+      "triggers": [
+        "qa-engineer",
+        "test a feature",
+        "close coverage gaps",
+        "verify a fix"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "researcher",
+      "kind": "agent",
+      "description": "Sourced research with dated citations and observed/inferred/speculative labels, ending in recommendations",
+      "when_to_use": "Use when a decision depends on facts not yet in hand.",
+      "triggers": [
+        "researcher"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "reviewer",
+      "kind": "agent",
+      "description": "Read-only review of a diff or PR for correctness, security, performance and maintainability. Returns path:line findings and a verdict",
+      "when_to_use": "Use before merging a change.",
+      "triggers": [
+        "reviewer",
+        "merging a change"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "rust-reviewer",
+      "kind": "agent",
+      "description": "Read-only Rust review: ownership, unsafe soundness, async/Tokio, error handling, clippy idioms, security",
+      "when_to_use": "Use when a diff touches .rs code or Cargo.toml.",
+      "triggers": [
+        "rust-reviewer",
+        "diff touches .rs code",
+        "cargo.toml"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "security-auditor",
+      "kind": "agent",
+      "description": "Read-only security audit: OWASP/CWE-mapped findings with exploit path, fix and verification",
+      "when_to_use": "Use when code touches untrusted input, auth, secrets or dependencies.",
+      "triggers": [
+        "security-auditor",
+        "code touches untrusted input",
+        "auth",
+        "secrets",
+        "dependencies"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    },
+    {
+      "name": "technical-writer",
+      "kind": "agent",
+      "description": "Developer docs written from the code: READMEs, API references, guides, architecture overviews, changelogs",
+      "when_to_use": "Use when docs are missing, stale or hard to follow.",
+      "triggers": [
+        "technical-writer",
+        "docs are missing",
+        "stale",
+        "hard to follow"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "standard",
+      "priority": 0
+    },
+    {
+      "name": "typescript-reviewer",
+      "kind": "agent",
+      "description": "Read-only TypeScript/JavaScript review: type safety, async, ESM/CJS, runtime boundaries, security",
+      "when_to_use": "Use when a diff touches .ts, .tsx, .js or .mjs code.",
+      "triggers": [
+        "typescript-reviewer",
+        "diff touches .ts",
+        ".tsx",
+        ".mjs code"
+      ],
+      "intentPatterns": [],
+      "negatives": [],
+      "next": [],
+      "tier": "heavy",
+      "priority": 0
+    }
+  ]
+}
