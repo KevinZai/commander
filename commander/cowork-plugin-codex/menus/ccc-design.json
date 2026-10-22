@@ -2,8 +2,11 @@
   "id": "ccc-design",
   "title": "Design",
   "subtitle": "UI/UX workflow — routes into the ccc-design skill domain",
-  "footer": "The ccc-design skill loads 35+ sub-skills on demand — animation, responsive, accessibility, polish.",
-  "shortcuts": ["/ccc", "/ccc-build"],
+  "footer": "The ccc-design domain loads its sub-skills on demand: animation, responsive layout, accessibility, polish.",
+  "shortcuts": [
+    "/ccc",
+    "/ccc-build"
+  ],
   "choices": [
     {
       "id": "landing",

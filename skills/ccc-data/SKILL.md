@@ -1,109 +1,89 @@
 ---
 name: ccc-data
-description: "CCC domain — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine learning, data quality, analytics, reporting, and vector search."
-version: 1.0.0
-category: CCC domain
-brand: Kevin Z's CC Commander
-tags: [CCC domain, data, analytics, ml]
+description: "Route data work to the right sub-skill: ETL/ELT pipelines, SQL tuning, charts and dashboards, machine learning, data quality, product analytics, scheduled reports or vector search. Use when the user is building, querying, validating, modeling or visualizing data."
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - AskUserQuestion
+argument-hint: "[pipeline | sql | viz | ml | quality | analytics | reporting | vector]"
+model: inherit
+effort: medium
 ---
 
-# ccc-data
+# /ccc-data — data work, routed
 
-> Load ONE skill. Get the entire data domain. From pipeline design to ML models to dashboards and vector search.
+**CC Commander** · ccc-data · one router that loads the single data sub-skill the job needs.
 
-## Sub-Skills
+Each sub-skill lives in its own directory beside this file and sets `disable-model-invocation: true`, so it loads only when this router reads it. Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` (on Codex, the same path relative to this file) and follow it. The user's selected model is preserved.
 
-| # | Skill | Command | Description |
-|---|-------|---------|-------------|
-| 1 | data-pipeline | `/data-pipeline` | Design ETL/ELT pipelines with Airflow, dbt, Dagster |
-| 2 | sql-optimization | `/sql-optimization` | Optimize SQL queries, indexes, and execution plans |
-| 3 | data-visualization | `/data-visualization` | Create charts and dashboards with D3, Chart.js, Tremor, Recharts |
-| 4 | machine-learning | `/machine-learning` | ML model development with scikit-learn, PyTorch, TensorFlow |
-| 5 | data-quality | `/data-quality` | Data validation, schema enforcement, quality monitoring |
-| 6 | analytics-setup | `/analytics-setup` | Analytics implementation with PostHog, Mixpanel, GA4 |
-| 7 | reporting | `/reporting` | Automated report generation and scheduling |
-| 8 | vector-search | `/vector-search` | Vector database setup and semantic search with Pinecone, pgvector, Qdrant |
+Codex: ask each picker as a plain-text question with the same options.
 
-## How To Use
+## Sub-skills
 
-**Step 1:** Tell me what data problem you're solving — pipeline, query, visualization, ML, or analytics.
+| Sub-skill | Use for |
+|---|---|
+| `data-pipeline` | ETL/ELT pipelines with Airflow, dbt, Dagster |
+| `sql-optimization` | Query plans, indexes and rewrites for PostgreSQL, MySQL and cloud warehouses |
+| `data-visualization` | Charts and dashboards with D3, Chart.js, Tremor, Recharts |
+| `machine-learning` | Data prep, model selection, training, evaluation and deployment (scikit-learn, PyTorch, TensorFlow) |
+| `data-quality` | Validation, schema enforcement, freshness and anomaly monitoring |
+| `analytics-setup` | Product analytics with PostHog, Mixpanel or GA4: events, funnels, cohorts |
+| `reporting` | Scheduled reports: PDF, email digests, Slack summaries, exports |
+| `vector-search` | Vector databases and semantic search with Pinecone, pgvector, Qdrant |
 
-**Step 2:** I'll confirm your data stack, volume expectations, and output requirements before routing.
+Intent signals, "don't confuse with" pairs, multi-step campaigns and the stack-selection tree: [references/routing.md](references/routing.md).
 
-**Step 3:** The specialist skill handles the work. You get full data engineering and science coverage without loading 8 separate skills.
+## When to use / when not to
 
-## Routing Matrix
+- Use for pipelines, warehouse and query work, dashboards, ML models, data validation, analytics instrumentation, recurring reports and embeddings.
+- Use `ccc-saas` for application schema design, `ccc-research` for summarizing large documents, `ccc-testing` for test strategy beyond data checks.
 
-| Your Intent | Route To | Don't Confuse With |
-|-------------|----------|--------------------|
-| "Build an ETL pipeline" / "Move data from A to B" / "dbt" | `data-pipeline` | `data-quality` (validation, not movement) |
-| "This query is slow" / "Optimize my SQL" / "Add indexes" | `sql-optimization` | `data-pipeline` (data movement, not query tuning) |
-| "Build a dashboard" / "Chart this data" / "D3 visualization" | `data-visualization` | `reporting` (scheduled docs, not interactive charts) |
-| "Train a model" / "ML prediction" / "Classification" | `machine-learning` | `analytics-setup` (tracking, not prediction) |
-| "Validate my data" / "Schema enforcement" / "Data freshness" | `data-quality` | `data-pipeline` (movement, not validation) |
-| "Set up PostHog" / "Track user events" / "GA4" | `analytics-setup` | `data-visualization` (display, not collection) |
-| "Weekly report" / "Automated PDF report" / "Scheduled digest" | `reporting` | `data-visualization` (interactive, not scheduled) |
-| "Semantic search" / "Vector embeddings" / "pgvector" | `vector-search` | `machine-learning` (broader ML, not search-specific) |
+## What happens
 
-## Campaign Templates
+1. **Detect the stack.** Run in one Bash call, silent on failure:
 
-### Analytics Platform
-1. `analytics-setup` -> implement event tracking (PostHog, Mixpanel, or GA4)
-2. `data-pipeline` -> set up ETL to move analytics data to warehouse
-3. `data-quality` -> validate incoming event data and enforce schemas
-4. `data-visualization` -> build dashboards for key metrics
-5. `reporting` -> schedule automated weekly/monthly reports
-6. Deliver: complete analytics platform from event capture to automated reporting
+   ```bash
+   ls dbt_project.yml dags airflow.cfg dagster.yaml requirements.txt pyproject.toml 2>/dev/null
+   test -f package.json && grep -oE '"(posthog-js|mixpanel-browser|recharts|chart\.js|d3|@tremor/react|@pinecone-database/pinecone|@qdrant/js-client-rest|pg|prisma|drizzle-orm)"' package.json | sort -u
+   grep -lE 'pgvector|scikit-learn|torch|tensorflow|pandas|polars' requirements.txt pyproject.toml 2>/dev/null
+   ```
 
-### Data Warehouse Build
-1. `data-pipeline` -> design ETL/ELT pipelines with dbt transformations
-2. `sql-optimization` -> optimize warehouse queries and materialized views
-3. `data-quality` -> implement data contracts and quality monitoring
-4. `data-visualization` -> build executive dashboards
-5. `reporting` -> automate stakeholder reports
-6. Deliver: production data warehouse with optimized queries, quality gates, and dashboards
+   Report one line: `📊 Stack: <tools detected | none detected>`.
 
-### ML Feature Pipeline
-1. `data-pipeline` -> build feature engineering pipeline
-2. `data-quality` -> validate feature data integrity and distributions
-3. `machine-learning` -> train and evaluate models
-4. `sql-optimization` -> optimize feature store queries
-5. `vector-search` -> set up embedding storage if using embeddings
-6. Deliver: ML pipeline from raw data to trained model with quality gates
+2. **Route.** An argument or a clear intent picks the sub-skill from the table above. A request that spans several sub-skills follows the matching campaign in [references/routing.md](references/routing.md), one sub-skill per step. Otherwise ask with AskUserQuestion (header "Data"), recommended first:
 
-### Semantic Search System
-1. `vector-search` -> set up vector database (Pinecone, pgvector, or Qdrant)
-2. `data-pipeline` -> build embedding generation and indexing pipeline
-3. `data-quality` -> monitor embedding quality and index freshness
-4. `sql-optimization` -> optimize hybrid search queries (vector + SQL filters)
-5. Deliver: production semantic search with automated indexing and quality monitoring
+   - 🟢 Build or fix a pipeline — `data-pipeline`
+   - Speed up queries — `sql-optimization`
+   - Chart or dashboard — `data-visualization`
+   - Something else — a follow-up picker with the four closest of ML, data quality, analytics, reporting and vector search
 
-## Data Stack Selection
+3. **Confirm the constraints.** Before work starts, confirm the data stack, expected volume and the output format (code, SQL, file, dashboard). Ask only for what step 1 did not answer.
 
-```
-What's your data stack?
-|
-+-- Need a data warehouse?
-|   +-- Already on Postgres? -> pgvector + dbt
-|   +-- Enterprise scale? -> Snowflake/BigQuery + dbt
-|   +-- Cost-sensitive? -> DuckDB + dbt
-|
-+-- Need analytics?
-|   +-- Open source + self-hosted? -> PostHog
-|   +-- Product analytics focus? -> Mixpanel
-|   +-- Marketing analytics? -> GA4
-|
-+-- Need ML?
-|   +-- Tabular data? -> scikit-learn
-|   +-- Deep learning? -> PyTorch
-|   +-- Production ML? -> PyTorch + ONNX
-|
-+-- Need vector search?
-    +-- Already on Postgres? -> pgvector
-    +-- Managed service? -> Pinecone
-    +-- Self-hosted + performant? -> Qdrant
-```
+4. **Look before changing.** Sample large files instead of reading them whole (`head -n 50 <file>`). For query work, capture the current plan first (`EXPLAIN (ANALYZE, BUFFERS)` on PostgreSQL, `EXPLAIN ANALYZE` on MySQL) against a non-production database and keep it for the comparison.
 
-## Context Strategy
+5. **Load and run the sub-skill.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` and follow it.
 
-This CCC domain uses on-demand loading. Sub-skills have `disable-model-invocation: true` so they only load when explicitly invoked, keeping your context lean.
+6. **Verify.** When code or SQL changed, run the project's check (`dbt build --select <model>`, `pytest`, or `npm test`), re-run the captured plan for query work, then `git status --short`. On failure, report the output and fix before continuing.
+
+## Done when
+
+- Routing only: the sub-skill file was read in this turn and the user knows which one ran.
+- Code or SQL changed: the check command exited 0 in this turn and its output is reported; query work reports the before/after plan cost or timing.
+- A file output (dashboard, report): `test -s <file> && echo ok` printed `ok`.
+
+## Guardrails
+
+- Never run `DROP`, `TRUNCATE`, `DELETE` without `WHERE`, a backfill or a migration against a production database; propose it and let the user run it.
+- Never create indexes on a production table without the user's OK at that moment.
+- Never write warehouse credentials, API keys or connection strings into the repo or a report.
+- Never send a report, publish a dashboard or create a schedule without authorization in this conversation; ask with a picker at that step.
+
+## See also
+
+- `ccc-saas` — application schema and SaaS analytics
+- `ccc-research` — large documents and comparative research
+- `ccc-testing` — regression tests for pipelines and queries

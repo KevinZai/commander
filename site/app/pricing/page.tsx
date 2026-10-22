@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 const FAQ = [
   {
     q: "Is the plugin really free?",
-    a: "Yes — free forever. All 60+ skills, 22 sub-agents, 9 lifecycle hooks, and the hosted MCP server (100 free calls/mo anti-abuse cap). MIT-licensed, fork-able. No card, no telemetry of you, no upsell wall.",
+    a: "Yes — free forever. All 84 skills, 22 sub-agents, 30 lifecycle hooks, and the hosted MCP server (100 free calls/mo anti-abuse cap). MIT-licensed, fork-able. No card, no telemetry of you, no upsell wall.",
   },
   {
     q: "Why is Pro on a waitlist instead of buyable?",
@@ -68,7 +68,7 @@ export default function PricingPage() {
               </span>
             </h1>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-              The plugin core is free forever — all 60+ skills, all 22 agents, all 9 hooks, plus the hosted MCP server with 100 free calls/mo. Pro and Lifetime show what we'd build <em>if</em> enough developers want it. No card, no commitment — just drop your email if you'd pay.
+              The plugin core is free forever — all 84 skills, all 22 agents, all 30 hooks, plus the hosted MCP server with 100 free calls/mo. Pro and Lifetime show what we'd build <em>if</em> enough developers want it. No card, no commitment — just drop your email if you'd pay.
             </p>
           </div>
         </section>

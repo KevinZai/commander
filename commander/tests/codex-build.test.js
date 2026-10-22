@@ -19,7 +19,16 @@ const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(TEST_DIR, '..', '..');
 const SOURCE_DIR = path.join(ROOT_DIR, 'commander', 'cowork-plugin');
 const PACKAGE_JSON = await readJson(path.join(ROOT_DIR, 'package.json'));
-const PRODUCT_CONTRACT = await readJson(path.join(ROOT_DIR, 'commander', 'contract.json'));
+const HOOK_EVENT_MAP = await readJson(path.join(ROOT_DIR, 'commander', 'adapters', 'codex', 'hook-event-map.json'));
+const { resolveClaudeTier } = await import(
+  new URL('../adapters/codex/models.js', import.meta.url).href
+);
+// Codex hook surface (platform facts §3.3).
+const CODEX_HOOK_EVENTS = new Set([
+  'PreToolUse', 'PermissionRequest', 'PostToolUse', 'PreCompact', 'PostCompact',
+  'UserPromptSubmit', 'SubagentStop', 'Stop', 'SessionStart', 'SubagentStart',
+  'SessionEnd', 'Interrupt',
+]);
 
 async function runBuild(outputDir) {
   await execFileAsync(process.execPath, ['scripts/build-codex.js', '--out', outputDir], {
@@ -100,6 +109,19 @@ test('codex plugin build artifact', async (t) => {
       'hooks',
       'mcp',
     ]);
+    const openai = manifest.extensions?.['com.openai'];
+    assert.ok(openai, 'overlay carries extensions["com.openai"]');
+    assert.equal(openai.hooks, './hooks.json');
+    assert.equal(openai.interface.displayName, 'CC Commander');
+    assert.doesNotMatch(openai.interface.shortDescription, /\b\d+ (skills|agents)\b/);
+  });
+
+  await t.test('never copies Claude-only mods/, evals/ or workflows/', async () => {
+    const files = await listFiles(OUTPUT_DIR);
+    const offenders = files.filter((file) =>
+      file.split(path.sep).some((part) => ['mods', 'evals', 'workflows'].includes(part))
+    );
+    assert.deepEqual(offenders, []);
   });
 
   await t.test('keeps CLAUDE_PLUGIN_ROOT verbatim and never emits CODEX_PLUGIN_ROOT', async () => {
@@ -110,7 +132,9 @@ test('codex plugin build artifact', async (t) => {
       .filter((file) => path.basename(file) === 'SKILL.md')
       .sort();
 
-    assert.equal(sourceSkillFiles.length, PRODUCT_CONTRACT.plugin_skills);
+    // Skill-count parity with contract.json is the contract gate's job
+    // (npm run check:contract); this test pins source/mirror parity.
+    assert.ok(sourceSkillFiles.length > 0);
     assert.deepEqual(outputSkillFiles, sourceSkillFiles);
 
     let skillsReferencingPluginRoot = 0;
@@ -193,45 +217,84 @@ test('codex plugin build artifact', async (t) => {
     assert.ok(askUserQuestionSkills >= 40, `expected many skills to reference AskUserQuestion, got ${askUserQuestionSkills}`);
   });
 
-  await t.test('translates all 22 agents to TOML', async () => {
+  await t.test('translates every agent to Codex custom-agent TOML', async () => {
     const sourceAgents = (await listFiles(path.join(SOURCE_DIR, 'agents')))
       .filter((file) => file.endsWith('.md'));
     const outputAgents = (await listFiles(path.join(OUTPUT_DIR, 'agents')))
       .filter((file) => file.endsWith('.toml'));
 
-    assert.equal(sourceAgents.length, 22);
-    assert.equal(outputAgents.length, 22);
-    assert.ok(outputAgents.includes('architect.toml'));
-
-    const architect = await readFile(
-      path.join(OUTPUT_DIR, 'agents', 'architect.toml'),
-      'utf8'
+    assert.ok(sourceAgents.length > 0);
+    assert.deepEqual(
+      outputAgents.sort(),
+      sourceAgents.map((file) => file.replace(/\.md$/, '.toml')).sort()
     );
-    assert.match(architect, /^name = "architect"/m);
-    assert.match(architect, /^model = "gpt-5\.6-sol"/m);
-    assert.match(architect, /^developer_instructions = /m);
+
+    for (const agentFile of sourceAgents) {
+      const source = await readFile(path.join(SOURCE_DIR, 'agents', agentFile), 'utf8');
+      const toml = await readFile(
+        path.join(OUTPUT_DIR, 'agents', agentFile.replace(/\.md$/, '.toml')),
+        'utf8'
+      );
+      const name = path.basename(agentFile, '.md');
+      const frontmatter = source.split(/^---$/m)[1] ?? '';
+      const sourceModel = (frontmatter.match(/^model:\s*(.+)$/m) || [])[1]?.trim() ?? '';
+      const listOf = (key) => {
+        const block = (frontmatter.match(new RegExp(`^${key}:\\n((?:[ \\t]+-[ \\t]+.+\\n?)+)`, 'm')) || [])[1] ?? '';
+        return [...block.matchAll(/-\s+(\S+)/g)].map((m) => m[1]);
+      };
+      const tools = listOf('tools');
+      const disallowed = new Set(listOf('disallowedTools'));
+      const writeTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
+      const canWrite = tools.length === 0
+        ? !writeTools.every((tool) => disallowed.has(tool))
+        : tools.some((tool) => writeTools.includes(tool) && !disallowed.has(tool));
+      const expectedModel = resolveClaudeTier(sourceModel);
+
+      assert.match(toml, new RegExp(`^name = "${name}"$`, 'm'), `${name} name`);
+      assert.match(toml, /^description = "/m, `${name} description`);
+      assert.ok(toml.includes(`\nmodel = "${expectedModel}"\n`), `${name} model should be ${expectedModel}`);
+      assert.ok(
+        toml.includes(`\nsandbox_mode = "${canWrite ? 'workspace-write' : 'read-only'}"\n`),
+        `${name} sandbox_mode`
+      );
+      assert.ok(toml.includes('\ndeveloper_instructions = """\n'), `${name} developer_instructions`);
+    }
   });
 
-  await t.test('emits exactly the 10 Codex-supported hook events', async () => {
+  await t.test('keeps exactly the hook events hook-event-map.json maps to Codex', async () => {
+    const sourceHooks = await readJson(path.join(SOURCE_DIR, 'hooks', 'hooks.json'));
     const hooks = await readJson(path.join(OUTPUT_DIR, 'hooks.json'));
     const eventNames = Object.keys(hooks.hooks).sort();
 
-    // Verified 2026-07-22 against primary docs (learn.chatgpt.com/docs/hooks).
-    // Corrects the prior 6-event list, which wrongly dropped PreCompact,
-    // PostCompact, SubagentStart, and SubagentStop.
-    assert.deepEqual(eventNames, [
-      'PermissionRequest',
-      'PostCompact',
-      'PostToolUse',
-      'PreCompact',
-      'PreToolUse',
-      'SessionStart',
-      'Stop',
-      'SubagentStart',
-      'SubagentStop',
-      'UserPromptSubmit',
-    ]);
-    assert.equal(eventNames.length, 10);
+    const expected = [...new Set(
+      Object.keys(sourceHooks.hooks)
+        .map((event) => HOOK_EVENT_MAP.events[event])
+        .filter((mapping) => mapping && mapping.status !== 'drop' && mapping.codex != null)
+        .map((mapping) => mapping.codex)
+    )].sort();
+
+    assert.deepEqual(eventNames, expected);
+    for (const event of eventNames) {
+      assert.ok(CODEX_HOOK_EVENTS.has(event), `${event} is not a Codex hook event`);
+    }
+    for (const event of ['Notification', 'PostToolUseFailure', 'StopFailure']) {
+      assert.ok(!eventNames.includes(event), `${event} must be dropped`);
+    }
+  });
+
+  await t.test('emits hook timeouts in seconds within the Codex caps', async () => {
+    const hooks = await readJson(path.join(OUTPUT_DIR, 'hooks.json'));
+    for (const [event, groups] of Object.entries(hooks.hooks)) {
+      for (const group of groups) {
+        for (const hook of group.hooks ?? []) {
+          if (typeof hook.timeout !== 'number') continue;
+          assert.ok(hook.timeout >= 1 && hook.timeout <= 600, `${event} timeout ${hook.timeout}s`);
+          if (event === 'SessionEnd' || event === 'Interrupt') {
+            assert.ok(hook.timeout <= 3, `${event} timeout must be <= 3s, got ${hook.timeout}`);
+          }
+        }
+      }
+    }
   });
 
   await t.test('never emits async:true and never emits CODEX_PLUGIN_ROOT', async () => {

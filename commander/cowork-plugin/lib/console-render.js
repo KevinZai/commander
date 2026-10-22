@@ -41,7 +41,7 @@
  * Zero dependencies (beyond this plugin's own lib/), ESM, pure.
  * Core free forever — no license check, no tier gating.
  */
-import { brandBaseCss } from './brand-css.js';
+import { brandArtifactCss, brandBaseCss } from './brand-css.js';
 import { aggregateDaily, aggregateWeekly, barStrip, sparkline } from './charts.js';
 import { deckStripCss, deckStripHtml } from './deck-switcher.js';
 
@@ -453,19 +453,143 @@ const CONSOLE_BANNER_HTML = `<aside class="console-banner" aria-label="Commander
 <p>🎛️ Part of <strong>Commander Console</strong> — run <code>/ccc-console</code> for the all-in-one view.</p>
 </aside>`;
 
+// Artifact page contract (v8). The Artifact tool wraps a published file in its
+// own doctype/head/body skeleton, scans the first 8 KB for <title>, and expects
+// every color as a token with the dark-mode guards, an explicit body
+// background, a >= 16px side gutter set once with padding-inline, and no
+// horizontal page scroll. OFF by default for the same reason as the banner: the
+// legacy entry points and the Phase 0 goldens stay byte-identical, and
+// scripts/build-console.mjs (the only publish path) opts in.
+const ARTIFACT_LAYOUT_CSS = `
+*,*::before,*::after{box-sizing:border-box;}
+body{margin:0;padding-inline:16px;padding-block:16px 32px;background:var(--bg);color:var(--text);overflow-wrap:anywhere;}
+.mc-shell,.uc-shell,.sf-shell{margin:0 auto;max-width:1080px;}
+svg,img{max-width:100%;height:auto;}
+main section,main .col,main .chart-card,main .agent-card{min-width:0;}
+@media (max-width:560px){.mc,.uc,.safety{padding:14px 12px 28px;}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+`;
+
+// Live task board (opt-in, Mission Control only). The page still ships the
+// baked board as its resting frame; when the viewer can run `db`, rows in the
+// shared `tasks` collection (written by the publishing session through
+// ArtifactData, never by viewers) replace it. Every value is set with
+// textContent, so a task subject can never become markup.
+const LIVE_TASKS_CSS = `
+.mc .live-note{margin:0 0 8px;font-size:.8rem;color:var(--mc-muted);}
+`;
+
+const LIVE_TASKS_SCRIPT = `<script>
+(function () {
+  var host = document.querySelector('[data-live="tasks"]');
+  if (!host || !window.claude || typeof window.claude.use !== 'function') return;
+  var COLS = [['inProgress', 'In progress', 'st-running'], ['waiting', 'Waiting', 'st-waiting'], ['done', 'Done', 'st-done']];
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = String(text);
+    return node;
+  }
+  function render(rows, stamp) {
+    var board = el('div', 'board');
+    COLS.forEach(function (col) {
+      var items = rows.filter(function (row) { return (row.bucket || 'waiting') === col[0]; }).slice(0, 30);
+      var column = el('div', 'col');
+      column.appendChild(el('h3', null, col[1] + ' \u00b7 ' + items.length));
+      if (!items.length) column.appendChild(el('p', 'zero', 'none'));
+      items.forEach(function (row) {
+        var card = el('div', 'card');
+        card.appendChild(el('span', 'badge ' + col[2], col[1].toLowerCase()));
+        card.appendChild(document.createTextNode(' ' + String(row.title || row.id || 'task')));
+        if (row.ts) card.appendChild(el('span', 'when', String(row.ts).slice(0, 16).replace('T', ' ')));
+        column.appendChild(card);
+      });
+      board.appendChild(column);
+    });
+    var note = el('p', 'live-note', 'Live task board \u00b7 ' + rows.length + ' task' + (rows.length === 1 ? '' : 's') + (stamp ? ' \u00b7 synced ' + stamp : ''));
+    host.replaceChildren(note, board);
+  }
+  // The baked snapshot stays only while the store has never delivered rows
+  // (no sync yet, or the db is unavailable). Once live rows have rendered, an
+  // empty snapshot means every task was removed and the board must say so.
+  var seenLive = false;
+  window.claude.use('db').then(function (db) {
+    if (!db) return;
+    db.collection('tasks').orderBy('ts', 'desc').limit(200).onSnapshot(function (snap) {
+      if (snap.empty && !seenLive) return;
+      seenLive = true;
+      var rows = snap.empty ? [] : snap.docs.map(function (doc) { var data = doc.data() || {}; data.id = doc.id; return data; });
+      var stamp = rows.reduce(function (max, row) { return row.syncedAt && row.syncedAt > max ? row.syncedAt : max; }, '');
+      render(rows, stamp ? String(stamp).slice(0, 16).replace('T', ' ') : '');
+    }, function () {});
+  }, function () {});
+})();
+</script>`;
+
+const DOC_ID_UNSAFE = /[^A-Za-z0-9_\-.~:@+]/g;
+
+function taskDocId(taskId, used) {
+  let base = `t-${String(taskId).replace(DOC_ID_UNSAFE, '-')}`.slice(0, 180);
+  let id = base;
+  for (let n = 2; used.has(id); n += 1) id = `${base}-${n}`;
+  used.add(id);
+  return id;
+}
+
+/**
+ * Rows for the live task board: one ArtifactData document per task in the
+ * shared `tasks` collection. Newest first, capped at one batch (50 writes).
+ *
+ * @param {object} model  the Mission Control model (see readModel())
+ * @param {{now?: string|number|Date}} [opts]
+ * @returns {{collection: 'tasks', syncedAt: string|null, rows: {doc_id: string, data: object}[]}}
+ */
+function buildTaskRows(model, { now } = {}) {
+  const source = model && typeof model === 'object' ? model : {};
+  const tasks = Array.isArray(source.tasks) ? source.tasks : [];
+  const nowMs = nowMsFor(source, { now });
+  const syncedAt = Number.isFinite(nowMs) ? new Date(nowMs).toISOString() : null;
+  const used = new Set();
+  const rows = tasks.slice(0, 50).map((task) => {
+    const tsMs = toMs(task.ts);
+    return {
+      doc_id: taskDocId(task.task_id ?? task.title ?? 'task', used),
+      data: {
+        title: String(task.title ?? task.task_id ?? 'task').slice(0, 300),
+        status: task.status == null ? null : String(task.status).slice(0, 60),
+        bucket: taskBucket(task.status),
+        ts: Number.isFinite(tsMs) ? new Date(tsMs).toISOString() : null,
+        syncedAt,
+      },
+    };
+  });
+  return { collection: 'tasks', syncedAt, rows };
+}
+
 /**
  * Wrap one tab's sections in the shared deck page.
  *
  * @param {object} model  the tab's model (see the matching read*Model())
  * @param {{tab: string, surface?: 'widget'|'artifact', now?: string|number|Date,
- *          consoleBanner?: boolean}} opts
- * @returns {string} a self-contained, script-free HTML fragment
+ *          consoleBanner?: boolean, artifactContract?: boolean, liveTasks?: boolean}} opts
+ *   artifactContract: emit the Artifact page-contract shape (title first, no
+ *     charset meta, guarded theme tokens, 16px gutter). liveTasks (overview
+ *     only, requires artifactContract): add the db-backed task board script.
+ * @returns {string} a self-contained HTML fragment; script-free unless liveTasks
  */
-function buildDeckHtml(model, { tab, surface = 'artifact', now, consoleBanner = false } = {}) {
+function buildDeckHtml(
+  model,
+  { tab, surface = 'artifact', now, consoleBanner = false, artifactContract = false, liveTasks = false } = {}
+) {
   const chrome = Object.hasOwn(TAB_CHROME, tab) ? TAB_CHROME[tab] : null;
   if (!chrome) throw new Error(`buildDeckHtml: unknown tab "${tab}"`);
   if (surface !== 'artifact') {
     throw new Error(`buildDeckHtml: surface "${surface}" is not implemented yet (Phase 1)`);
+  }
+  const contract = artifactContract === true;
+  const live = liveTasks === true;
+  if (live && (!contract || tab !== 'mission-control')) {
+    throw new Error('buildDeckHtml: liveTasks needs artifactContract and the mission-control tab');
   }
 
   const source = model && typeof model === 'object' ? model : {};
@@ -478,21 +602,36 @@ function buildDeckHtml(model, { tab, surface = 'artifact', now, consoleBanner = 
   // 'artifact' here — the check documents the intent for when it can't be.)
   const banner = consoleBanner === true && surface === 'artifact';
 
-  return `<meta charset="utf-8">
+  let body = TAB_RENDERERS[tab](source, { surface, now });
+  if (live) {
+    body = body.replace(
+      /<section aria-label="Task board">\n<h2>📋 Tasks<\/h2>\n([\s\S]*?)\n<\/section>/,
+      (_match, inner) =>
+        `<section aria-label="Task board">\n<h2>📋 Tasks</h2>\n<div data-live="tasks">${inner}</div>\n</section>`
+    );
+  }
+
+  const head = contract
+    ? `<title>${chrome.title}</title>
+<style>${brandArtifactCss()}${deckStripCss()}${chrome.css}${ARTIFACT_LAYOUT_CSS}${live ? LIVE_TASKS_CSS : ''}${banner ? CONSOLE_BANNER_CSS : ''}</style>`
+    : `<meta charset="utf-8">
 <title>${chrome.title}</title>
-<style>${brandBaseCss()}${deckStripCss()}${chrome.css}${banner ? CONSOLE_BANNER_CSS : ''}</style>
+<style>${brandBaseCss()}${deckStripCss()}${chrome.css}${banner ? CONSOLE_BANNER_CSS : ''}</style>`;
+  const kind = live ? 'Snapshot with a live task board' : 'Static snapshot';
+
+  return `${head}
 ${renderTerminalChromeOpen(chrome)}
 <main class="${chrome.mainClass}">
 ${deckStripHtml(tab, { interactive: false })}
 <header>
 <h1>${chrome.heading}</h1>
-<p class="stamp">Static snapshot${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}${dataThroughLine}</p>
+<p class="stamp">${contract ? kind : 'Static snapshot'}${Number.isFinite(nowMs) ? ` · ${esc(stamp(nowMs))}` : ''}${dataThroughLine}</p>
 </header>
 ${banner ? `${CONSOLE_BANNER_HTML}\n` : ''}${renderStalenessBanner(dataThroughMs, nowMs, chrome.staleThresholdMs)}
-${TAB_RENDERERS[tab](source, { surface, now })}
+${body}
 <footer>🔒 ${chrome.sourceNote || 'Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.'}</footer>
 </main>
-${TERMINAL_CHROME_CLOSE}`;
+${TERMINAL_CHROME_CLOSE}${live ? `\n${LIVE_TASKS_SCRIPT}` : ''}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1341,6 +1480,7 @@ ${renderHistoryErrorsNote(errors)}
 
 export {
   buildDeckHtml,
+  buildTaskRows,
   // esc is exported for ./console-widget.js: the widget renders its own compact
   // fragments, but every surface must escape model-derived text with the SAME
   // function — a second copy is a second place for an escaping bug to hide.

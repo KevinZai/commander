@@ -1,36 +1,32 @@
 ---
 title: "Lifecycle Hooks"
-description: "23 hook events with 44 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
+description: "30 hook events with 51 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
 ---
 
-CC Commander registers **23 lifecycle hook events** with **44 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
+CC Commander registers **30 lifecycle hook events** with **51 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
 
 <Note>
-  **v5.1.0 expanded from 9 to 23 events.** Existing hooks are unchanged. One correctness fix: `session-save` moved from `Stop` → `SessionEnd`. See [Hooks 2026](/hooks-2026) for the full updated registry including all 14 new events.
+  **v8.0.0 wired seven new events** — `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged` — taking the registry from 23 to 30 events. Existing handlers are unchanged. See [Hooks 2026](/hooks-2026) for the full per-handler registry.
 </Note>
 
-All hooks use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and fail gracefully — if a hook errors, the session continues uninterrupted.
+Every command uses a quoted `"${CLAUDE_PLUGIN_ROOT}"` for portable path resolution (Desktop installs live under a path with a space). Telemetry handlers fail open — if one errors, the session continues uninterrupted.
 
-<Note>
-  **v5.1.0:** `SessionStart` now uses a single-process orchestrator (`session-start-orchestrator.js`) that runs all 4 session-start handlers in one Node.js process, saving ~300ms of cold-start overhead per session. The 16-handler count is unchanged — the orchestrator is a performance optimization, not a feature reduction.
-</Note>
+## Hook registry (core events)
 
-## Hook Registry (core events)
-
-This is the original core-event subset, kept for quick reference. **See [Hooks 2026](/hooks-2026) for the complete, current registry — all 23 events and 44 handlers.**
+The most important events, for quick reference. **See [Hooks 2026](/hooks-2026) for all 30 events and 51 handlers.**
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
-| `SessionStart` | 4 (via orchestrator) | `session-start-orchestrator.js` → `session-start.js`, `stale-claude-md-nudge.js`, `post-compact-recovery.js`, `suggest-ticker.js` | Seed state, warn on stale CLAUDE.md, restore post-compact context, surface ambient next-step suggestion |
-| `UserPromptSubmit` | 4 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `user-prompt-submit.js` | Ambient suggestion tick; match prompt against skill catalog; warn at 80%/95% context; generic prompt dispatcher |
-| `PreToolUse` | 3 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js` | Accumulate session cost; block calls over ceiling; scan args for leaked secrets |
-| `PostToolUse` | 1 | `knowledge-capture.js` | Capture file-touch observations to knowledge directory |
-| `Stop` | 2 | `session-save.js`, `session-end.js` | Auto-save active session JSON; persist session summary to knowledge |
-| `Notification` | 1 | `fleet-notify.js` | Append fleet agent completion events to `notifications.jsonl` |
-| `PreCompact` | 1 | `pre-compact.js` | Block compaction if session is mid-critical-task |
-| `SubagentStop` | 1 | `subagent-stop.js` | Track subagent cost aggregation per session |
+| `SessionStart` | 5 | `session-start-orchestrator.js` (one process for session-start, the stale-CLAUDE.md nudge, post-compact recovery and the Fable-armed nudge), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed state, watch `CLAUDE.md` for changes, restore post-compact context, update nudge |
+| `UserPromptSubmit` | 6 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick, skill routing, context warnings, skill-run telemetry |
+| `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js`, `doc-file-warning.js`, `git-push-reminder.js` | Tool-call budget, ceiling, leaked-secret scan, config protection, pre-push reminder |
+| `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js`, `pr-link-notify.js` | Knowledge capture, Mission Control feed, `console.log` warning, PR links |
+| `PermissionDenied` | 1 | `permission-denied-logger.js` | Auto-mode denials reach `/ccc-safety` |
+| `Stop` | 2 | `suggest-lightweight.js`, `clickability-watch.js` | End-of-turn suggestion and clickability telemetry |
+| `SessionEnd` | 2 | `session-save.js`, `session-end.js` | Save the session and its summary |
+| `SubagentStop` | 2 | `subagent-stop.js`, `agent-run-logger.js` | Subagent cost roll-up and agent-run log |
 
-The remaining 15 events (`SessionEnd`, `PostCompact`, `SubagentStart`, `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `PermissionRequest`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup`) are documented in the [full registry](/hooks-2026).
+`WorktreeCreate` and `WorktreeRemove` are deliberately not registered: a hook there replaces git's own worktree handling. The Codex mirror carries the handlers for the 12 events Codex supports.
 
 ## State Layout
 
@@ -53,7 +49,7 @@ All hook state lives in `~/.claude/commander/` (CCC's own namespace — never to
 ```
 
 <Note>
-  **Privacy:** Hook state (config, session data, fleet logs) is stored locally at `~/.claude/commander/`. Hooks do send anonymous usage telemetry (event name, hook name, OS, plugin version) unless you opt out with `CCC_TELEMETRY=0` or `~/.commander/config.json → {"telemetry": false}`. No prompts, file contents, or paths are ever transmitted. See [privacy policy](/privacy) for the full breakdown.
+  **Privacy:** Hook state (config, session data, fleet logs) is stored locally at `~/.claude/commander/`. Hooks do send anonymous usage telemetry (event name, hook name, OS, plugin version) unless you opt out with `CCC_TELEMETRY=0` or `~/.commander/config.json → {"telemetry": false}`. No prompts, file contents, or paths are ever transmitted.
 </Note>
 
 ## Disabling Individual Hooks
@@ -77,8 +73,8 @@ Hooks are JavaScript files executed natively by Claude Code's hook runtime. They
 
 1. Receive the event context as JSON on stdin
 2. Run their logic (typically 10-50ms)
-3. Return `{"continue": true}` or `{"continue": false, "reason": "..."}` on stdout
+3. Print nothing, or JSON with the fields that event accepts (for example `permissionDecision` on `PreToolUse`)
 
-A `{"continue": false}` return from `PreToolUse` blocks the tool call. All other hooks are informational — they can't block the session flow. This is by design: hooks should enhance, never gate.
+Only the guards on `PreToolUse` and `PermissionRequest` can deny a tool call. Everything else is informational. This is by design: hooks should enhance, never gate.
 
-See [Architecture](/architecture) for how hooks fit into the full data flow. See [Hooks 2026](/hooks-2026) for the complete v5.1.0 registry with all 23 events and 44 handlers.
+See [Architecture](/architecture) for how hooks fit into the full data flow. See [Hooks 2026](/hooks-2026) for the complete registry of all 30 events and 51 handlers.

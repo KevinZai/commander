@@ -11,8 +11,8 @@
  * Estimated savings: ~150ms × 2 spawns avoided = ~300ms per session start
  * (Node.js cold start dominates; actual handler logic is sub-millisecond).
  *
- * Status: SCAFFOLD ONLY — not active until hooks.json is flipped.
- * See ./README.md for activation steps + rollback.
+ * Status: LIVE — registered as the first SessionStart handler in hooks.json.
+ * See ./README.md for current wiring + rollback.
  */
 import { track } from '../../lib/telemetry.mjs';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +20,6 @@ import { dirname, join } from 'node:path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const HOOKS_DIR = join(__dirname, '..');
 
 async function readStdin() {
   const chunks = [];
@@ -41,8 +40,11 @@ async function readStdin() {
  *    act on what the user was told (both-channels delivery).
  *  - suppressOutput is true only if ALL handlers requested it AND there is
  *    nothing user-facing to show.
+ *  - watchPaths (absolute CLAUDE.md paths from stale-claude-md-nudge.js's
+ *    claudeMdWatchPaths) ride in hookSpecificOutput so FileChanged re-runs the
+ *    nudge when a located CLAUDE.md changes.
  */
-function mergeResponses(responses) {
+function mergeResponses(responses, watchPaths = []) {
   let continueFlag = true;
   let stopReason;
   const messages = [];
@@ -70,11 +72,12 @@ function mergeResponses(responses) {
   if (!continueFlag && stopReason) out.stopReason = stopReason;
   if (messages.length) out.systemMessage = messages.join(' · ');
   const mergedContext = [...contexts, ...messages].join('\n\n');
-  if (mergedContext) {
-    out.hookSpecificOutput = {
-      hookEventName: 'SessionStart',
-      additionalContext: mergedContext,
-    };
+  if (mergedContext || watchPaths.length) {
+    out.hookSpecificOutput = { hookEventName: 'SessionStart' };
+    if (mergedContext) out.hookSpecificOutput.additionalContext = mergedContext;
+    // Absolute CLAUDE.md paths for FileChanged (stale-claude-md-nudge.js).
+    // Codex (PLUGIN_ROOT set) has no FileChanged hook and no watchPaths field.
+    if (watchPaths.length && !process.env.PLUGIN_ROOT) out.hookSpecificOutput.watchPaths = watchPaths;
   }
   if (suppressOutput) out.suppressOutput = true;
   return out;
@@ -116,7 +119,15 @@ async function main() {
     }
   }
 
-  const merged = shortCircuit ? shortCircuit : mergeResponses(responses);
+  let watchPaths = [];
+  try {
+    const nudge = await import(join(__dirname, '../stale-claude-md-nudge.js'));
+    if (typeof nudge.claudeMdWatchPaths === 'function') watchPaths = nudge.claudeMdWatchPaths(process.cwd());
+  } catch {
+    watchPaths = [];
+  }
+
+  const merged = shortCircuit ? shortCircuit : mergeResponses(responses, watchPaths);
   const elapsed = Date.now() - t0;
 
   if (process.env.CCC_ORCH_VERBOSE === '1' || process.env.CCC_ORCH_TIMING === '1') {

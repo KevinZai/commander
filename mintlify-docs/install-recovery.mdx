@@ -50,8 +50,7 @@ rm -rf ~/.claude/plugins/marketplaces/commander-hub
 Reopen Claude Code Desktop, then in a new session:
 
 ```
-/plugin marketplace add KevinZai/commander
-/plugin install commander
+/plugin install commander --marketplace KevinZai/commander
 ```
 
 **Step 4 — Enable marketplace auto-update (prevents future stale-cache issues)**
@@ -98,13 +97,13 @@ Run these in a new session after the full reinstall:
 /ccc
 ```
 
-You should see the main CC Commander menu with chip pickers for Plan / Build / Review / Ship / Learn / Fleet.
+You should see the main CC Commander menu with chip pickers for Build / Review / Ship / More.
 
 ```
 /ccc-doctor
 ```
 
-Should report green on all checks: manifest valid, hooks wired, MCP servers reachable, skill count matches expected (83 skills / 22 agents / 23 hooks × 44 handlers / 2 bundled MCPs). `/ccc-doctor` also now diagnoses stale-install layers — a marketplace clone behind `main`, old `cache/<version>` dirs, stale Desktop inline copies, or an aged catalog cache — and offers to enable marketplace auto-update.
+Should report green on all checks: manifest valid, hooks wired, MCP servers reachable, skill count matches expected (84 skills / 22 agents / 30 hooks × 51 handlers / 2 bundled MCPs). `/ccc-doctor` also now diagnoses stale-install layers — a marketplace clone behind `main`, old `cache/<version>` dirs, stale Desktop inline copies, or an aged catalog cache — and offers to enable marketplace auto-update.
 
 ## Orphan `.claude-plugin` bug
 

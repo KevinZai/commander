@@ -429,10 +429,23 @@ function checkBundledMcpServers(root) {
 
 // --- 4. Sub-agent model pin check -------------------------------------------
 
-// These 4 were promoted to Fable 5 in v6.0 — they are NOT Opus-pinned.
-var EXPECTED_FABLE_AGENTS = ['architect', 'security-auditor', 'debugger', 'product-manager'];
-var EXPECTED_SONNET_PINNED = ['designer', 'researcher', 'reviewer'];
-var LEGACY_ALIASES = ['opus', 'sonnet', 'haiku'];
+// v8 routing table (commander/tests/agent-personas.test.js pins the same):
+// aliases track the newest model in each line, so an alias or the current
+// full id is correct; an older pinned id is an upgrade candidate.
+var EXPECTED_FABLE_AGENTS = ['architect', 'security-auditor'];
+var EXPECTED_SONNET_AGENTS = ['technical-writer', 'content-strategist', 'fleet-worker'];
+var ACCEPTED_MODELS = {
+  fable: ['fable', 'claude-fable-5-1'],
+  opus: ['opus', 'claude-opus-5-5'],
+  sonnet: ['sonnet', 'claude-sonnet-5-5'],
+};
+var LEGACY_MODEL_IDS = /^claude-(fable-5|opus-5|sonnet-5|haiku-4-5|opus-4-\d|sonnet-4-\d)$/;
+
+function expectedTierFor(name) {
+  if (EXPECTED_FABLE_AGENTS.indexOf(name) >= 0) return 'fable';
+  if (EXPECTED_SONNET_AGENTS.indexOf(name) >= 0) return 'sonnet';
+  return 'opus';
+}
 
 function readAgentModel(filePath) {
   var content = safeRead(filePath);
@@ -460,18 +473,17 @@ function checkAgentModels(root) {
       problems.push(name + ': missing model field');
       continue;
     }
-    if (EXPECTED_FABLE_AGENTS.indexOf(name) >= 0 && model !== 'claude-fable-5') {
-      problems.push(name + ': expected claude-fable-5, got ' + model);
-    }
-    if (EXPECTED_SONNET_PINNED.indexOf(name) >= 0 && model !== 'claude-sonnet-5') {
-      problems.push(name + ': expected claude-sonnet-5, got ' + model);
+    if (LEGACY_MODEL_IDS.test(model)) continue; // reported below as an upgrade candidate
+    var tier = expectedTierFor(name);
+    if (ACCEPTED_MODELS[tier].indexOf(model) < 0) {
+      problems.push(name + ': expected ' + tier + ' (' + ACCEPTED_MODELS[tier].join(' or ') + '), got ' + model);
     }
   }
-  // Upgrade candidates: any agent on a legacy alias instead of explicit pin
+  // Upgrade candidates: any agent still pinned to a superseded model id
   var upgradeCandidates = [];
   rows.forEach(function (r) {
     var parts = r.split('=');
-    if (LEGACY_ALIASES.indexOf(parts[1]) >= 0) {
+    if (LEGACY_MODEL_IDS.test(parts[1])) {
       upgradeCandidates.push(parts[0]);
     }
   });
@@ -479,15 +491,15 @@ function checkAgentModels(root) {
   if (problems.length > 0) {
     return fail(
       'agent-models',
-      'Agent model pin issues: ' + problems.join('; '),
-      'Update agent frontmatter `model:` field to the explicit version.'
+      'Agent model routing issues: ' + problems.join('; '),
+      'Set each agent frontmatter `model:` to its v8 alias (fable, opus or sonnet).'
     );
   }
   if (upgradeCandidates.length > 0) {
     return warn(
       'agent-models',
       'Upgrade candidates on legacy aliases: ' + upgradeCandidates.join(', '),
-      'Pin to explicit model strings (e.g. claude-sonnet-5) for stable behavior.'
+      'Use the v8 alias (sonnet, opus, fable) or the current id (e.g. claude-sonnet-5-5); superseded ids drift as models retire.'
     );
   }
   return ok('agent-models', 'All ' + files.length + ' agents on explicit model pins');

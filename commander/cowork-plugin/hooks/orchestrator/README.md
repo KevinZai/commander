@@ -1,14 +1,14 @@
 # Hook Chain Orchestrator (CC-414)
 
-**Status:** SCAFFOLD — inactive until orchestrator manually flips `hooks.json`.
+**Status:** LIVE — the orchestrator is the first SessionStart entry in `hooks.json`, merging 5 handlers into one process (current handler list: `hooks/README.md`).
 
 ## Why this exists
 
-`hooks.json` registers multiple `.js` files for the same lifecycle event. SessionStart currently spawns **3** separate `node` processes (session-start.js + stale-claude-md-nudge.js + post-compact-recovery.js).
+`hooks.json` registers multiple `.js` files for the same lifecycle event. Before the merge, SessionStart spawned **3** separate `node` processes (session-start.js + stale-claude-md-nudge.js + post-compact-recovery.js); the orchestrator has since grown to run **5** merged handlers (see `hooks/README.md` for the current list).
 
 Each Node.js cold start costs ~50–200ms. On SessionStart, that's ~300–600ms of redundant spin-up before any handler logic runs. Multiplied across multiple sessions per workday, that's noticeable latency every time Claude Code wakes.
 
-The orchestrator replaces those 3 spawns with **one** process that imports each handler as a function and aggregates their outputs.
+The orchestrator replaced those spawns with **one** process that imports each handler as a function and aggregates their outputs.
 
 ## How it works
 
@@ -26,46 +26,38 @@ The orchestrator replaces those 3 spawns with **one** process that imports each 
 ```
 hooks/
 ├── orchestrator/
-│   ├── session-start-orchestrator.js   ← single-process entry
+│   ├── session-start-orchestrator.js   ← single-process entry (LIVE)
 │   └── README.md                        ← this file
-├── session-start.js              ← exports run(); also has main() for backward compat
+├── _archive/session-start.js     ← exports run(); orchestrator-only (archived from hooks root)
 ├── stale-claude-md-nudge.js      ← exports run(); also has main() for backward compat
-└── post-compact-recovery.js      ← exports run(); also has main() for backward compat
+├── post-compact-recovery.js      ← exports run(); also has main() for backward compat
+├── fable-armed-nudge.js          ← exports run(); merged in a later wave
+└── voice-injector.js             ← exports run(); merged in a later wave
 ```
 
 Each individual hook file still works standalone (`node hooks/session-start.js` is unchanged). The `run()` export is opt-in for orchestrator use.
 
-## Activation steps
+## Current wiring (live)
 
-When ready to flip the merge live:
-
-1. Edit `commander/cowork-plugin/hooks/hooks.json` SessionStart array. Replace the 3 entries with **one**:
+The orchestrator is the **first** entry in `hooks.json`'s SessionStart array, followed by `license-check.js`, `git-truth.js`, `update-nudge.js`, and `console-autopen.js` as separate handlers:
 
    ```json
-   "SessionStart": [
-     {
-       "hooks": [
-         {
-           "type": "command",
-           "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js",
-           "timeout": 15000
-         }
-       ]
-     }
-   ]
+   {
+     "type": "command",
+     "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js\"",
+     "timeout": 15
+   }
    ```
 
-   **Increase the timeout** (e.g. 15000ms) — the orchestrator runs all 3 handlers serially in one process, so its ceiling is the sum of the originals.
+   ⚠️ `timeout` is **SECONDS**, not milliseconds — a past bug shipped ms values in this field so the ceilings never applied (fixed in v7.4.1). The live entry uses `15`. Note the quotes around `${CLAUDE_PLUGIN_ROOT}` — unquoted, the spaced Desktop install path word-splits and the hook dies.
 
-2. Smoke test:
+Smoke test:
    ```bash
    echo '{}' | node commander/cowork-plugin/hooks/orchestrator/session-start-orchestrator.js
    # → expect: { "continue": true, ... } JSON one-liner
    ```
 
-3. Optionally set `CCC_ORCH_TIMING=1` or `CCC_ORCH_VERBOSE=1` in the environment to log elapsed time and per-handler tracebacks to stderr.
-
-4. Bump plugin version, ship, monitor.
+Optionally set `CCC_ORCH_TIMING=1` or `CCC_ORCH_VERBOSE=1` in the environment to log elapsed time and per-handler tracebacks to stderr.
 
 ## Risk
 
@@ -81,10 +73,10 @@ Revert `hooks.json` SessionStart back to the multi-handler form (the pre-merge v
 
 Other events with multiple handlers can adopt the same pattern:
 
-| Event | Handler count | Estimated savings |
+| Event | Handler count (today) | Estimated savings |
 |---|---|---|
-| `UserPromptSubmit` | 4 | ~450ms |
-| `PreToolUse` | 3 | ~300ms |
+| `UserPromptSubmit` | 6 | ~500ms+ |
+| `PreToolUse` | 6 | ~500ms+ |
 | `Stop` | 2 | ~200ms |
 
 Each gets its own orchestrator file under `hooks/orchestrator/<event>-orchestrator.js`.

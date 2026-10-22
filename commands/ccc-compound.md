@@ -1,123 +1,110 @@
 ---
 name: ccc-compound
-description: "Post-task learning capture — extract patterns, corrections, and decisions to compound productivity"
-usage: /compound [review|prune]
+description: "Capture the patterns, corrections and decisions from the work just done into tasks/lessons.md, or review and prune existing lessons. Use after finishing a task or when the user says compound, lessons or retro."
+usage: /ccc-compound [review|prune]
 version: 1.3.0
 ---
 
-# Compound — Post-Task Learning Capture
-> Inspired by [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) by Every.to
+# /ccc-compound — persist what this task taught
 
-Each unit of work makes the next one slightly cheaper. Extract the signal, persist it, move on.
+**CC Commander** · /ccc-compound · post-task learning capture so the next task starts cheaper. Pattern credit: [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin).
 
-**Argument:** `{{input}}`
+## Arguments
 
-- No argument = capture learnings from the current session
-- `review` = display all accumulated lessons without adding new ones
-- `prune` = review lessons and remove outdated or irrelevant entries
+`$ARGUMENTS`:
 
----
+- empty — capture learnings from the current session (default flow below)
+- `review` — show accumulated lessons; change nothing
+- `prune` — propose outdated lessons for removal; delete only after confirmation
 
 ## If `review`
 
-Read `tasks/lessons.md` and `~/.claude/learned-skills/` contents. Display a summary:
+1. Read `tasks/lessons.md` and list `~/.claude/learned-skills/` (either may be absent; say so).
+2. Print:
 
-```
-COMPOUND REVIEW
+   ```
+   COMPOUND REVIEW
+   Lessons:        <n> entries across <m> dates
+   Learned skills: <k> files
+   <lessons grouped by date, most recent first>
+   ```
 
-Lessons: X entries across Y categories
-Learned Skills: Z entries
-
-[grouped list of lessons by date, most recent first]
-```
-
-Stop here. Do not extract or persist anything.
+3. Stop. Do not extract or write anything.
 
 ## If `prune`
 
-Read `tasks/lessons.md`. For each entry, evaluate whether it is still relevant given the current codebase and project CLAUDE.md. Present entries to remove with rationale, then ask for confirmation before deleting.
+1. Read `tasks/lessons.md`, the project `CLAUDE.md` and the files each lesson names.
+2. For each entry, decide whether it still applies to the current code. List the stale ones with a one-line reason each.
+3. Ask with AskUserQuestion (Codex: a plain-text question):
+   - 🟢 Remove the listed entries — edits `tasks/lessons.md`
+   - Pick entries one by one — confirm each before removing
+   - Keep everything — no change
+4. After editing, run `git diff --stat -- tasks/lessons.md` and report the removed line count. Stop.
 
-Stop here after pruning.
+## Default: capture learnings
 
----
+1. Review what just happened. Run in parallel:
 
-## Default: Capture Learnings
+   ```bash
+   git log --oneline -10
+   git diff --stat HEAD~3
+   ```
 
-### 1. Review What Just Happened
+   If `HEAD~3` does not exist (new repo), use `git diff --stat` against the first commit or the working tree. Then scan the conversation for decisions made, corrections received and patterns discovered.
 
-Run in parallel:
-- `git log --oneline -10` — recent commits
-- `git diff --stat HEAD~3` — recent file changes
+2. Extract learnings into three groups; skip any group with nothing meaningful:
 
-Then review the conversation context for decisions made, corrections received, and patterns discovered.
+   - **Patterns:** code patterns that worked (architecture, data flow, API design), tool or library usage worth repeating, efficient workflow sequences.
+   - **Corrections:** what went wrong and its root cause, the fix, and how to prevent the class of error.
+   - **Decisions:** what was decided and why, alternatives rejected, constraints that drove it.
 
-### 2. Extract Learnings
+3. Persist. Append to `tasks/lessons.md` (create it if missing):
 
-Organize into three categories:
+   ```
+   ## YYYY-MM-DD — <session summary>
 
-**Patterns Discovered:**
-- Code patterns that worked well (architecture, data flow, API design)
-- Effective tool or library usage worth repeating
-- Workflow sequences that were efficient
+   ### Patterns
+   - <pattern>
 
-**Mistakes & Corrections:**
-- What went wrong and the root cause
-- What the fix was
-- How to prevent this class of error in the future
+   ### Corrections
+   - <mistake> -> <fix> -> <prevention rule>
 
-**Decisions & Rationale:**
-- Key decisions made and WHY (not just what)
-- Alternatives considered and rejected
-- Constraints that drove the decision
+   ### Decisions
+   - <decision>: <rationale>
+   ```
 
-Skip any category with nothing meaningful to report.
+   - A broadly reusable pattern: propose the exact line to add to the project `CLAUDE.md`; do not edit it without the user's yes.
+   - A correction that exposes a missing rule: propose the specific rule text.
+   - Check `~/.claude/learned-skills/` and propose a new learned-skill entry when one fits.
 
-### 3. Persist
+4. Verify the write: `git diff --stat -- tasks/lessons.md` (or `tail -n 20 tasks/lessons.md` when the file is untracked) shows the new entry.
 
-- Append actionable entries to `tasks/lessons.md` (create the file if it does not exist). Use the format:
-  ```
-  ## YYYY-MM-DD — [session summary]
+5. Compute the compound score from the files, not from memory:
+   - Lessons: count of `- ` items under `### ` headings in `tasks/lessons.md`
+   - Learned skills: file count in `~/.claude/learned-skills/`
+   - Trend: `New` if the file was created now, `Growing` if entries were added this session, `Stale` if it was last modified more than 7 days ago
 
-  ### Patterns
-  - [pattern]
+6. Output:
 
-  ### Corrections
-  - [mistake] -> [fix] -> [prevention rule]
+   ```
+   COMPOUND REPORT
+   Session:      <what was built or fixed, one line>
+   Patterns:     <items>
+   Corrections:  <mistake> -> <fix> -> <prevention rule>
+   Decisions:    <decision>: <rationale>
+   Persisted to: tasks/lessons.md (<n> new entries)
+   Suggestions:  <CLAUDE.md or rule additions, or "None">
+   Compound score: <lessons> lessons | <skills> learned skills | <trend>
+   ```
 
-  ### Decisions
-  - [decision]: [rationale]
-  ```
-- If a pattern is broadly reusable, suggest adding it to the project CLAUDE.md.
-- If a correction reveals a gap in existing rules, suggest a specific new rule.
-- Check `~/.claude/learned-skills/` and suggest new learned skill entries if appropriate.
+Keep the pass short: capture the signal and skip the noise.
 
-### 4. Compound Score
+## Guardrails
 
-Calculate:
-- **Lessons:** count entries in `tasks/lessons.md` (count `### ` headings or `-` items under them)
-- **Learned Skills:** count files in `~/.claude/learned-skills/`
-- **Trend:** "Growing" if new entries were added this session, "Stale" if `tasks/lessons.md` was last modified >7 days ago, "New" if the file was just created
+- Write only `tasks/lessons.md`; changes to `CLAUDE.md`, rules or learned skills are proposals until the user approves them.
+- `prune` never deletes without the step 3 confirmation.
+- Never record secrets, tokens or customer data in a lesson.
 
-### 5. Output
+## See also
 
-```
-COMPOUND REPORT
-
-Session: [what was built/fixed, one line]
-
-Patterns:
-- [pattern 1]
-- [pattern 2]
-
-Corrections:
-- [mistake] -> [fix] -> [prevention rule]
-
-Decisions:
-- [decision]: [rationale]
-
-Persisted to: tasks/lessons.md (X new entries)
-Suggestions: [any CLAUDE.md or rule additions, or "None"]
-Compound Score: X lessons | Y learned skills | Trend
-```
-
-Keep this fast. Capture the signal, skip the noise. 30 seconds, not 10 minutes.
+`/ccc-learn` · `/ccc-knowledge` · `/ccc-handoff`

@@ -66,7 +66,7 @@ class PipelineStage:
     system_prompt: str
     input_key: str      # what to take from state
     output_key: str     # what to write to state
-    model: str = "claude-3-5-sonnet-20241022"
+    model: str = "claude-sonnet-5-5"
     max_tokens: int = 2048
 
 class SequentialPipeline:
@@ -131,7 +131,7 @@ import asyncio
 import anthropic
 from typing import Any
 
-async def run_agent(client, task_name: str, system: str, user: str, model: str = "claude-3-5-sonnet-20241022") -> dict:
+async def run_agent(client, task_name: str, system: str, user: str, model: str = "claude-sonnet-5-5") -> dict:
     """Single async agent call"""
     loop = asyncio.get_event_loop()
     
@@ -184,7 +184,7 @@ async def parallel_research(competitors: list[str], research_type: str) -> dict:
         task_name="synthesizer",
         system="You are a strategic analyst. Synthesize competitor research into a concise comparison matrix and strategic recommendations.",
         user=f"Synthesize these competitor analyses:\n\n{combined_research}",
-        model="claude-3-5-sonnet-20241022",
+        model="claude-sonnet-5-5",
     )
     
     return {
@@ -239,7 +239,7 @@ class HierarchicalOrchestrator:
     def run(self, user_request: str) -> str:
         # 1. Orchestrator creates plan
         plan_response = self.client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-5-5",
             max_tokens=1024,
             system=ORCHESTRATOR_SYSTEM,
             messages=[{"role": "user", "content": user_request}],
@@ -254,7 +254,7 @@ class HierarchicalOrchestrator:
             specialist = SPECIALIST_SYSTEMS[subtask["agent"]]
             
             result = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-5-5",
                 max_tokens=2048,
                 system=specialist,
                 messages=[{"role": "user", "content": f"{context}\n\nTask: {subtask['task']}"}],
@@ -264,7 +264,7 @@ class HierarchicalOrchestrator:
         # 3. Final synthesis
         all_results = "\n\n".join([f"### {k}\n{v}" for k, v in results.items()])
         synthesis = self.client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-5-5",
             max_tokens=2048,
             system="Synthesize the specialist outputs into a coherent final response.",
             messages=[{"role": "user", "content": f"Original request: {user_request}\n\nSpecialist outputs:\n{all_results}"}],
@@ -368,7 +368,7 @@ def with_retry(max_attempts=3, backoff_seconds=2, fallback_model=None):
         return wrapper
     return decorator
 
-@with_retry(max_attempts=3, fallback_model="claude-3-haiku-20240307")
+@with_retry(max_attempts=3, fallback_model="claude-haiku-5-5")
 def call_agent(model, system, user):
     ...
 ```
@@ -382,7 +382,7 @@ def call_agent(model, system, user):
 # Rule: never let any step consume more than 60% of remaining budget
 
 CONTEXT_LIMITS = {
-    "claude-3-5-sonnet-20241022": 200_000,
+    "claude-sonnet-5-5": 1_000_000,
     "gpt-4o": 128_000,
 }
 

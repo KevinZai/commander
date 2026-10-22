@@ -100,7 +100,7 @@ test('joins a start and stop record into one done agent', async () => {
     role: 'Reviewer',
     currentTask: null,
     tasksCompleted: 1,
-    estCostUsd: 0.0088,
+    estCostUsd: 0.0059,
   });
 });
 
@@ -126,7 +126,7 @@ test('roster heartbeat uses known personas, unknown fallback, tasks, and token c
   assert.equal(reviewer.role, 'Reviewer');
   assert.equal(reviewer.currentTask, 'session task');
   assert.equal(reviewer.tasksCompleted, 2);
-  assert.equal(reviewer.estCostUsd, 0.0088);
+  assert.equal(reviewer.estCostUsd, 0.0059);
 
   const unknown = model.agents.find((agent) => agent.name === 'mystery-agent');
   assert.equal(unknown.emoji, '🤖');

@@ -170,7 +170,7 @@ function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
   const cacheRead = safeTokens(cacheReadTokens);
   if (input === 0 && output === 0 && cacheRead === 0) return null;
   // Sonnet-rate est ($/M): new input 3, cache-read 0.3 (≈0.1×), output 15.
-  return Number(((input * 3 + cacheRead * 0.3 + output * 15) / 1_000_000).toFixed(4));
+  return Number(((input * 2 + cacheRead * 0.1 + output * 10) / 1_000_000).toFixed(4));
 }
 
 // The start writer logs agent_name:null when it can't find a name (~97% of real

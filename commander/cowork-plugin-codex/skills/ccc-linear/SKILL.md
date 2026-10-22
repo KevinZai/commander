@@ -1,178 +1,195 @@
 ---
 name: ccc-linear
-description: "Linear board integration — view open issues, pick one to work on, or create new tickets without leaving Claude. Use when the user types $ccc-linear, /ccc linear, says…"
+description: "View your open Linear issues, pick one to work on (moves it to In Progress and creates a branch), create a new issue, or see a board overview, all from pickers. Use when the user types $ccc-linear, asks for their Linear issues or tickets, or wants to start work from a ticket."
 allowed-tools:
   - Read
-  - Write
   - Bash
   - Grep
+  - ToolSearch
   - AskUserQuestion
 argument-hint: "[view | pick | create | board]"
+model: sonnet
+effort: medium
+disable-model-invocation: true
 ---
 
-# $ccc-linear — Linear Board
+# $ccc-linear — Linear issues in chat
 
-View your board, pick an issue, or create a new one — all click-first.
+**CC Commander** · $ccc-linear · see, pick, create and summarize Linear issues without leaving the session
 
-Promoted from `commands/ccc-linear.md` (legacy slash command).
+## When to use / when not to
 
-## Response shape (EVERY time)
+- Use to list your open issues, start work on one (state change plus branch), file a new issue, or get a quick board roll-up.
+- For a shareable Kanban page that refreshes in place, use `$ccc-linear-board`.
+- For personal tracking without a service, use `$ccc-tasks`.
+- Linear is opt-in and absent by default. In Codex, ask each picker below as a plain-text question with the same options.
 
-### 1. Brand header
+## What happens
 
+### 1. Detect the access path
+
+Run in one Bash call from the repo root; never print the key:
+
+```bash
+grep -Eo '\b[A-Z][A-Z0-9]{1,4}-[0-9]+\b' CLAUDE.md 2>/dev/null | head -1
+test -d .linear && echo "linear-config: present" || echo "linear-config: none"
+test -n "$LINEAR_API_KEY" && echo "key: set" || echo "key: missing"
 ```
-**CC Commander** · Linear Integration · [Docs](https://commanderplugin.com)
+
+Then check whether a Linear connector is available in this session. Connector tool names vary by install (for example `mcp__linear__list_issues`, or a claude.ai Linear connector's `list_issues`). In Claude Code, deferred connector tools appear by name only; load them with `ToolSearch` query `+linear issues`.
+
+Render one line:
+
+```markdown
+Team: `<detected key prefix or unknown>` · connector: <connected | not connected> · key: <set | missing>
 ```
 
-### 2. Context strip
+- Connector available: use the connector tools for every step.
+- Key set, no connector: use the GraphQL calls in [references/linear-api.md](references/linear-api.md).
+- Neither: go to "Not connected" below and stop.
 
-Detect in parallel via a single Bash call:
-- Check CLAUDE.md for a Linear team reference (grep "team" or "CC-")
-- Check for `.linear/` config file in repo root
-- `env | grep -c LINEAR_API_KEY` → is the key set?
-- Check if any `mcp__linear__*` tool is available (Linear MCP connected?)
+### 2. Resolve the team
 
-Render:
-> 🎟️ Team: `<detected team or 'unknown'>` · MCP: <connected | not connected> · key: <set | missing>
-
-If MCP not connected AND no API key: add line — "→ Run `$ccc-connect` to wire Linear first."
+On first use in a session, list teams (connector `list_teams`, or the `teams` query in the reference) and cache the team id. Never hardcode a team slug. If the detected key prefix matches one team, use it; if several teams exist and none matches, ask with AskUserQuestion (up to 4 teams, the most recently active first and marked 🟢).
 
 ### 3. Action picker — `AskUserQuestion`
 
-```
-question: "What do you want to do?"
+Skip this picker when `$ARGUMENTS` is `view`, `pick`, `create` or `board`; run that action directly.
+
+```yaml
+question: "What do you want to do in Linear?"
 header: "Linear"
 multiSelect: false
 options:
-  - label: "📋 View my open issues"
-    description: "Top 10 issues assigned to you, grouped by status."
-    preview: "(per-context: 'You have N in progress, M in todo')"
-  - label: "🎯 Pick one to work on"
-    description: "Grab the top issue, create a branch, start."
-    preview: "Recommended — goes from ticket → branch in one click."
-  - label: "✨ Create a new issue"
-    description: "Quick title + description, auto-add to project."
-    preview: "For ideas that shouldn't live in your head."
-  - label: "🗺️ Board overview"
-    description: "Columns: In Progress / Todo / Backlog / Done. Progress bar."
-    preview: "Best for standups and status updates."
+  - label: "🟢 Pick one to work on"
+    description: "Moves the chosen issue to In Progress and creates its branch."
+    preview: "Ticket to branch in one step. Writes one state change to Linear."
+  - label: "View my open issues"
+    description: "Up to 10 issues assigned to you, grouped by status. Read-only."
+  - label: "Create a new issue"
+    description: "Pick a kind, give a title, confirm, and it is filed in the team."
+  - label: "Board overview"
+    description: "Counts per column and a progress bar for the team. Read-only."
 ```
 
-Prepend ⭐ to "Pick one to work on" unless user has zero open issues — then default to "Create a new issue".
+If the user has zero open issues, put "🟢 Create a new issue" first instead and drop the mark from "Pick one to work on".
 
-## Handle the selection
+### 4a. View my open issues
 
-### View my open issues
+1. List issues with assignee = me and state type in (`started`, `unstarted`), at most 10 per call.
+2. Render titles and identifiers only, never full descriptions:
 
-Use `mcp__linear__list_issues` (via `mcp__83782f74-...__list_issues` naming in tool ids). Filter by assignee=me, state.type in ("started", "unstarted").
+   ```markdown
+   ### My open issues
 
-Render:
-```
-### 🎟️ My open issues
+   **🔄 In Progress (2)**
+   - ENG-61 · <title>
+   - ENG-62 · <title>
 
-**🔄 In Progress (2)**
-- CC-61 · Remotion hero video
-- CC-62 · README overhaul
+   **⏳ Todo (3)**
+   - ENG-48 · <title>
+   ```
 
-**📋 Todo (3)**
-- CC-48 · Foundation + submodules
-- CC-49 · Vendor scanner
-- CC-50 · Showstopper CLI UI
-```
+3. Give one recommendation with its reason (for example, the in-progress issue that blocks a release), then offer the step 4b issue picker.
 
-Append a second `AskUserQuestion` picker: "Pick one to work on?" with up to 4 issues.
+### 4b. Pick one to work on
 
-### Pick one to work on
+1. List up to 4 issues, In Progress first, then Todo.
+2. Ask with AskUserQuestion: one option per issue (`<ID> · <title>`), the recommended one first and marked 🟢, each description saying "Moves to In Progress, creates branch `<branch>`".
+3. Check the tree before branching:
 
-1. List top 4 issues (In Progress first, then Todo) via Linear MCP
-2. Second `AskUserQuestion` with those 4 as options
-3. On pick:
-   - Move issue to "In Progress" via `mcp__linear__save_issue`
-   - Create branch: `git checkout -b cc-<number>-<slug>`
-   - Echo plan: "Branch `cc-<number>-<slug>` created. I'll work from the issue description — confirm scope?"
+   ```bash
+   git status --short
+   git rev-parse --abbrev-ref HEAD
+   ```
 
-### Create a new issue
+   Uncommitted changes present: ask "🟢 Stop — I'll commit or stash first" or "Branch anyway (changes carry over)". Do not continue without an answer.
+4. Move the issue to the team's `started` state (connector `save_issue` / update tool, or `issueUpdate` in the reference). Read the response; on failure, report the error and stop before branching.
+5. Create the branch from the issue identifier, lowercased, plus a short slug of the title:
 
-First `AskUserQuestion`: "What kind?"
-- 🐛 Bug — pre-fills type="Bug"
-- ✨ Feature — pre-fills type="Feature"
-- 🧹 Chore — pre-fills type="Chore"
-- 📝 Spike / investigation — pre-fills type="Spike"
+   ```bash
+   git switch -c <team-key>-<number>-<slug>
+   ```
 
-Then ask for title: AskUserQuestion does not support free-text input. Use a chat prompt as fallback for free-text fields (e.g. "Reply with the issue title"). After title received, create via `mcp__linear__save_issue` and echo the issue URL. For all multi-choice fields elsewhere in this skill, use AskUserQuestion.
+   Example: `ENG-62 README overhaul` becomes `eng-62-readme-overhaul`. Follow the project's own branch convention if its CLAUDE.md names one. If the branch exists, `git switch <branch>` instead.
+6. Echo: "Branch `<branch>` created and `<ID>` is In Progress. I'll work from the issue description — confirm the scope?"
 
-### Board overview
+### 4c. Create a new issue
 
-Fetch all issues for the team, group by state.type, render:
-```
-### 🗺️ Board — <team-name>
+1. Ask with AskUserQuestion: "What kind?" Put the kind inferred from the user's request first and mark it 🟢; with no signal, the default order is below. The kind maps to a team label of that name if one exists; never create a label silently.
+
+   ```yaml
+   question: "What kind of issue?"
+   header: "Kind"
+   multiSelect: false
+   options:
+     - label: "🟢 Feature"
+       description: "New or changed behavior. Applies the Feature label if the team has one."
+     - label: "Bug"
+       description: "Something broken. Applies the Bug label if the team has one."
+     - label: "Chore"
+       description: "Maintenance with no user-visible change. Applies the Chore label if present."
+     - label: "Spike / investigation"
+       description: "Time-boxed research that ends in a finding, not shipped code."
+   ```
+2. Ask in plain chat for the title and an optional one-paragraph description. AskUserQuestion has no free-text field.
+3. Show the draft (team, label, title, description) and ask: "🟢 Create it", "Edit title", "Cancel".
+4. On create, call the connector's save/create issue tool (or `issueCreate`) with `teamId` passed explicitly. Echo the returned identifier and URL.
+
+### 4d. Board overview
+
+Fetch the team's issues (connector list, or the board query in the reference), group by state type, and render:
+
+```markdown
+### Board — <team name>
 
 ████████████████░░░░░░ 18/24 done (75%)
 
-**🔄 In Progress (2)** · **📋 Todo (3)** · **📦 Backlog (1)** · **✅ Done (18)**
+**🔄 In Progress (2)** · **⏳ Todo (3)** · **📦 Backlog (1)** · **✅ Done (18)**
 ```
 
-## Graceful fallback — Linear MCP not connected
+For a shareable page version, point to `$ccc-linear-board`.
 
-If no `mcp__linear__*` tools available AND no `LINEAR_API_KEY` env var:
+### Not connected
 
-Render:
-```
+```markdown
 ### ⚠️ Linear not connected
 
-Two setup paths:
-1. **Recommended:** run `$ccc-connect` → pick Productivity → pick Linear (one-click OAuth)
-2. **Manual:** `export LINEAR_API_KEY_PERSONAL=lin_api_xxxxx` then retry
-
-Get a key at https://linear.app/settings/api.
+1. Recommended: run `$ccc-connect`, pick Productivity, then Linear (OAuth).
+2. Manual: set `LINEAR_API_KEY` in your shell (key from linear.app/settings/api), then run `$ccc-linear` again. If you keep the key as `LINEAR_API_KEY_PERSONAL`, run `export LINEAR_API_KEY="$LINEAR_API_KEY_PERSONAL"` first.
 ```
 
-Offer one `AskUserQuestion`:
-- "🔌 Run $ccc-connect now"
-- "📖 Show manual setup"
-- "⏭️ Skip for now"
+Ask with AskUserQuestion: "🟢 Run $ccc-connect now", "Show manual setup", "Skip for now".
 
-## Session integration (when picking an issue to work on)
+## Decision points
 
-After branch creation, echo these as a footer:
-> 📌 Linked to <ISSUE-ID> · branch `cc-<number>-<slug>` · progress will auto-post via Stop hook
+- Step 2 team picker (only when ambiguous).
+- Step 3 action picker.
+- Step 4b issue picker and the dirty-tree check.
+- Step 4c kind picker and the create confirmation.
 
-This matches CC Commander branch convention (`cc-{number}-{slug}`) from project CLAUDE.md.
+## Done when
 
-## Argument handling
+- View / board: the rendered list came from a real fetch in this turn, with counts that match the response.
+- Pick: the Linear response shows the issue in the started state, and `git rev-parse --abbrev-ref HEAD` prints the new branch.
+- Create: the tool returned an identifier and URL, shown to the user.
+- On any failure, the report names the failed call and its error text.
 
-- `$ccc-linear view` → skip picker, run "View my open issues"
-- `$ccc-linear pick` → skip picker, run "Pick one to work on"
-- `$ccc-linear create` → skip picker, run "Create a new issue"
-- `$ccc-linear board` → skip picker, run "Board overview"
-- `$ccc-linear` bare → show the picker
+## Guardrails
 
-## Anti-patterns — DO NOT
+- Linear writes (state changes, new issues) need the user's choice in this conversation: the pick picker and the create confirmation are that authorization. Never write to Linear outside them.
+- Never create a branch before the state change succeeds; the two must stay consistent.
+- Never fetch more than 10 issues per list call in view or pick; page if more are needed.
+- Never print full issue descriptions or `LINEAR_API_KEY`.
+- Never create issues without an explicit `teamId`, and never create labels silently.
+- Never offer a typed-number menu; every choice is a picker.
 
-- ❌ Render a numbered list and ask user to type a number — click-first only
-- ❌ Proceed if MCP isn't connected AND no API key — always offer `$ccc-connect` fallback
-- ❌ Create a branch WITHOUT moving the issue to In Progress first (state stays inconsistent)
-- ❌ Fetch more than 10 issues per `list_issues` call — pagination exists for a reason
-- ❌ Output the full issue description — show title + ID only, user can click through
-- ❌ Create issues without a team ID — always pass `teamId` explicitly
+## See also
 
-## Brand rules
-
-- Emoji-forward Linear cue: 🎟️ for issues, 🔄 In Progress, 📋 Todo, ✅ Done
-- ⭐ marks the recommended option in every picker
-- PM Consultant voice: "my call: work on CC-62 first — it's blocking release"
-- Match CCC branch naming: `cc-{number}-{slug}` always
-
-## Tips for the agent executing this skill
-
-1. Whole flow is ≤3 turns: header+picker → user clicks → MCP fetch → render + sub-picker if needed.
-2. Cache team ID from first fetch — don't re-list teams every call.
-3. If MCP returns 0 issues: skip straight to "Create a new issue" and offer it.
-4. Never hardcode team slugs — read from `mcp__linear__list_teams` on first use.
-
----
-
-**Bottom line:** context → pick intent → MCP call → render → optional sub-pick. User clicks. Branch created. Work starts.
+- `$ccc-linear-board` — publish the team's board as a private page
+- `$ccc-tasks` — markdown tracking with no service
+- `$ccc-standup` — standup from commits and tracker activity
+- `$ccc-connect` — connect Linear
 
 ---
 

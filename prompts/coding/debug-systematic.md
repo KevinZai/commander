@@ -9,12 +9,12 @@ estimated_tokens: 600
 # Systematic Debugging
 
 ## When to Use
-When you hit a bug that isn't immediately obvious. This template enforces a structured approach: reproduce, isolate, identify root cause, fix, and verify.
+Use when a bug's cause is not obvious from the first read. The template enforces one sequence: reproduce, isolate, confirm the root cause, fix with a failing test first, sweep, verify.
 
 ## Template
 
 ```
-Debug this issue systematically. Do NOT guess-and-check. Follow this exact sequence:
+Debug this issue in the sequence below. Do not change code until Step 3 has identified the root cause.
 
 **Symptom:**
 {{what_is_happening_vs_what_should_happen}}
@@ -25,44 +25,44 @@ Debug this issue systematically. Do NOT guess-and-check. Follow this exact seque
 **Relevant files:**
 {{file_paths_or_say_unknown}}
 
-**Step 1: Reproduce**
-- If reproduction steps are unknown, use Grep and Glob to find relevant code
-- Read the code paths involved and trace the data flow
-- Create a minimal reproduction (test file or script)
+Step 1: Reproduce.
+- If the reproduction steps are unknown, use Grep and Glob to find the code involved.
+- Read the code paths and trace the data flow.
+- Create a minimal reproduction (a test file or script) and run it to confirm the failure.
 
-**Step 2: Isolate**
-- Binary search the problem space: which layer is broken?
-- Check inputs/outputs at each boundary (API → service → DB)
-- Use Bash to run targeted tests: `npx vitest run {{test_file}} --reporter=verbose`
+Step 2: Isolate.
+- Narrow the problem by halving the search space: which layer is broken?
+- Check inputs and outputs at each boundary (API, service, database).
+- Run targeted tests with the project's runner, for example `npx vitest run {{test_file}} --reporter=verbose`.
 
-**Step 3: Root cause**
-- Identify the EXACT line(s) where behavior diverges from expectation
-- Explain WHY it's broken, not just WHERE
+Step 3: Identify the root cause.
+- Name the exact lines where behavior diverges from expectation.
+- Explain why they are wrong, not only where they are.
 
-**Step 4: Fix**
-- Write a failing test FIRST that captures the bug
-- Implement the minimal fix (no drive-by refactors)
-- Run the test — confirm it passes
+Step 4: Fix.
+- Write a test that captures the bug and confirm it fails for that reason.
+- Implement the smallest fix; no unrelated refactors.
+- Run the test and confirm it passes.
 
-**Step 5: Sweep**
-- Use Grep to find similar patterns elsewhere in the codebase
-- If the same bug class exists elsewhere, fix those too
+Step 5: Sweep.
+- Use Grep to find the same pattern elsewhere in the codebase.
+- Fix other instances of the same bug class, or list them if they are out of scope.
 
-**Step 6: Verify**
-- Run the full test suite: `npx vitest run`
-- Run type check: `npx tsc --noEmit`
-- Confirm no regressions
+Step 6: Verify.
+- Run the full test suite, for example `npx vitest run`.
+- Run the type check, for example `npx tsc --noEmit`.
+- Report the actual results and any regression.
 ```
 
 ## Tips
-- Resist the urge to start editing immediately — reading and tracing comes first
-- The `investigate` skill automates step 1-2 with multi-file tracing
-- Always write the reproduction test before the fix — it proves the fix works
+- Read and trace before editing; most wasted debugging time comes from fixing a guessed cause.
+- The `investigate` skill automates Steps 1 and 2 with multi-file tracing; `/ccc-systematic-debugging` runs the full sequence.
+- Write the reproduction test before the fix; it is the evidence that the fix works.
 
 ## Example
 
 ```
-Debug this issue systematically. Do NOT guess-and-check. Follow this exact sequence:
+Debug this issue in the sequence below. Do not change code until Step 3 has identified the root cause.
 
 **Symptom:**
 Users see a 401 error after exactly 1 hour, even though refresh tokens should extend the session. Expected: seamless token refresh. Actual: hard logout at the 1-hour mark.

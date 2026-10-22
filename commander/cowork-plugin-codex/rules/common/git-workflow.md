@@ -1,24 +1,27 @@
 # Git Workflow
 
-## Commit Message Format
+## Commit messages
+
 ```
 <type>: <description>
 
-<optional body>
+<optional body explaining why>
 ```
 
-Types: feat, fix, refactor, docs, test, chore, perf, ci
+Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`. Follow the project's attribution policy for trailers.
 
-Note: Attribution disabled globally via ~/.claude/settings.json.
+## Before any write
 
-## Pull Request Workflow
+- Confirm the repository root, branch, base, and working-tree state (`git status`).
+- Write in a dedicated worktree for delegated or parallel work (`rules/fable-method.md` Pillar 5).
+- Stage named paths only; never blanket-stage a shared or dirty tree.
+- Never bypass hooks (`--no-verify`) and never force-push the main branch.
 
-When creating PRs:
-1. Analyze full commit history (not just latest commit)
-2. Use `git diff [base-branch]...HEAD` to see all changes
-3. Draft comprehensive PR summary
-4. Include test plan with TODOs
-5. Push with `-u` flag if new branch
+## Pull requests
 
-> For the full development process (planning, TDD, code review) before git operations,
-> see [development-workflow.md](./development-workflow.md).
+1. Read the full history and diff against the verified base: `git diff <base>...HEAD`.
+2. Describe the final behavior for a reviewer who has no conversation context.
+3. Include the validation that actually ran and its result, plus known limits.
+4. Push with `-u` when the branch needs an upstream, and only when pushing is authorized.
+
+For the steps before git (planning, tests, review), see [development-workflow.md](./development-workflow.md).

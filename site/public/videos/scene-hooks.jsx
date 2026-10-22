@@ -58,7 +58,7 @@ const HooksScene = () => (
             Every move, <span style={{color:'#FF6B47'}}>hooked.</span>
           </div>
           <div style={{ marginTop:18, fontSize:24, color:'#A8A8A0' }}>
-            9 events. 44 handlers. Zero noise.
+            30 events. 51 handlers. Zero noise.
           </div>
         </div>
       )}

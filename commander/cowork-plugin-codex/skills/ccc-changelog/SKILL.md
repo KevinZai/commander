@@ -1,71 +1,83 @@
 ---
 name: ccc-changelog
-description: "Show what changed in the latest CC Commander update. Reads CHANGELOG.md and renders the most-recent version section in a digestible summary. Use when the user types…"
+description: "Summarize what changed in the latest CC Commander release, or a named version, from CHANGELOG.md in a short scan-friendly digest. Use when asking what's new, what changed, show the changelog, release notes, or after the SessionStart update nudge."
 model: sonnet
 effort: medium
 allowed-tools:
   - Read
   - Bash
+  - AskUserQuestion
 argument-hint: "[version]"
 ---
 
-# $ccc-changelog — What's New
+# $ccc-changelog — What's new, briefly
 
-Reads `CHANGELOG.md` at the repo root and surfaces the most-recent version section in a scan-friendly summary. Works whether invoked directly or triggered by the SessionStart version-transition nudge.
+**CC Commander** · $ccc-changelog · the latest release notes in thirty lines or fewer
 
-## Steps (always in this order)
+## When to use / when not to
 
-### 1. Locate CHANGELOG.md
+- Use when the user asks what changed, or after the SessionStart hook's version-transition nudge points here.
+- Pass a version (`$ccc-changelog 8.0.0`) to summarize that release instead of the newest.
+- Not for updating the plugin; use `$ccc-update`. Not for writing changelog entries; release tooling owns that.
 
-Read `${CLAUDE_PLUGIN_ROOT}/../../CHANGELOG.md` via the Read tool.
+## What happens
 
-If that fails, try `Bash`: `find ~ -name CHANGELOG.md -path "*/cc-commander/*" 2>/dev/null | head -1` and read the result.
+1. **Locate CHANGELOG.md.** Try, in order, and use the first that exists:
+   1. Read `${CLAUDE_PLUGIN_ROOT}/../../CHANGELOG.md` (repository layout).
+   2. Run `test -f "$(git rev-parse --show-toplevel 2>/dev/null)/CHANGELOG.md" && test -f "$(git rev-parse --show-toplevel)/commander/contract.json" && echo "$(git rev-parse --show-toplevel)/CHANGELOG.md"` (working inside a Commander checkout).
+   3. Run `find "$HOME/.claude/plugins" -maxdepth 6 -name CHANGELOG.md -path "*commander*" 2>/dev/null | head -1` (installed plugin cache).
 
-If no CHANGELOG.md is found: output a friendly message — "CHANGELOG.md not found. Visit https://commanderplugin.com for release notes." and exit.
+   If none is found, say: "CHANGELOG.md not found. Release notes are at https://commanderplugin.com." and stop.
+2. **List release headers.** `grep -n '^## \[' <path> | head -20`. Each header looks like `## [<version>] — <date> — <headline>`.
+3. **Pick the section.** With no argument, take the first header. With `$ARGUMENTS`, take the header that contains that version string; if none matches, ask the picker below. The section runs from its header up to, not including, the next `## [` header. Read only that line range.
+4. **Render the digest** in exactly this shape:
+   ```
+   ## CC Commander [VERSION] — [DATE]
 
-### 2. Extract the most-recent version section
+   **[Headline from the header if present, else the first sentence of the first paragraph]**
 
-Parse the file to find the first `## [` header (e.g. `## [4.0.0-beta.11] — 2026-04-23 — ...`). Extract everything from that line up to (but not including) the next `## [` header. That is the "current release block".
+   [Changes grouped by the section's ### sub-headers]
 
-If an argument (version string) was passed, instead find the section whose header contains that version string.
+   ---
+   Full notes: CHANGELOG.md
+   ```
+   Grouping rules:
+   - Keep each `###` sub-header (for example `### Security`, `### Tests`, `### New skills`) as a bold label.
+   - Under each label, at most 5 bullets, each one fact in 15 words or fewer.
+   - More than 5 items: append `…and N more — see CHANGELOG.md`.
+   - Skip labels with no bullets left.
+   - At most 30 lines below the header.
+5. **Footer.** End with: ``Run `/ccc` to get started or `$ccc-browse` to explore every plugin skill.``
 
-### 3. Render a digestible summary
+## Decision points
 
-Output in this exact structure:
+When the requested version has no section, ask with AskUserQuestion (in Codex, a plain-text question), using real headers from step 2:
 
-```
-## CC Commander [VERSION] — [DATE]
+- 🟢 **Latest release (`<first header version>`)** — summarize the newest section.
+- **`<closest matching version>`** — summarize the nearest version string found (offer up to two).
+- **Cancel** — stop without output.
 
-**[HEADLINE from changelog section if present, else first sentence of first paragraph]**
+## Done when
 
-[CHANGES — grouped by emoji category, max 5 bullets per category, ≤15 words each]
+- The version and date in the digest header match the chosen `## [` line in CHANGELOG.md.
+- The digest is 30 lines or fewer below its header and ends with the footer line.
 
----
-Full notes: CHANGELOG.md
-```
+## Guardrails
 
-**Grouping rules:**
-- Scan the block for sub-headers (e.g. `### Security`, `### Tests`, `### UX`, `### New skills`) — preserve those as bold labels.
-- Under each label, output at most 5 bullet points, each compressed to the single most important fact.
-- If a section has more than 5 items, append: `…and N more — see CHANGELOG.md`.
-- Skip sections with zero bullets after filtering.
-- Maximum total output: 30 lines (not counting the header).
+- Read-only: never edits CHANGELOG.md or any other file.
+- Never dumps the raw file; always summarize.
+- Never cuts a sentence mid-way; compress instead.
+- Bullets only, no numbered lists, no sign-off line.
+- Never invents changes that are not in the chosen section.
 
-### 4. Footer
+## See also
 
-Always end with:
-
-```
-Run `/ccc` to get started or `$ccc-browse` to explore all 48 skills.
-```
-
-## Anti-patterns
-
-- Never dump the raw CHANGELOG.md — always summarize.
-- Never truncate mid-sentence — compress, don't cut.
-- No numbered lists — bullets only.
-- No "Let me know if..." sign-offs.
+- `$ccc-update` — update Commander and see what changed between versions
+- `$ccc-doctor` — check the install after an update
+- `$ccc-browse` — explore the skills
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

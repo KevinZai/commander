@@ -28,18 +28,17 @@ Same 467+ skills. Different UX glue.
 
 ## Native plugin (Claude Code)
 
-When you `/plugin install commander` in Claude Code, the plugin manifest registers:
-- **83 plugin skills** as plain `/ccc-*` slash commands (no namespace prefix) — all core free forever
+When you `/plugin install commander --marketplace KevinZai/commander` in Claude Code, the plugin manifest registers:
+- **84 plugin skills** as plain `/ccc-*` slash commands (no namespace prefix) — all core free forever
 - **22 specialist agents** available via the Agent tool (architect, security-auditor, builder, reviewer, etc.)
-- **23 lifecycle hooks × 44 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
-- **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Tavily, GitHub, Supabase, Figma, Linear, etc.)
+- **30 lifecycle hooks × 51 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionDenied, model switches, Stop, compaction, subagents and more)
+- **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Linear, Supabase, Vercel, Slack, Notion, Sentry and more)
 
 **Pros:** tab-completion, instant discovery, deep Claude Code integration, offline-capable, lifecycle hooks.
 **Cons:** Claude Code only — can't use in Cursor, Windsurf, etc.
 
 ```bash
-/plugin marketplace add KevinZai/commander
-/plugin install commander
+/plugin install commander --marketplace KevinZai/commander
 # Type /ccc-  to see the full slash menu
 ```
 
@@ -98,14 +97,14 @@ Claude Code users can install the plugin **and** point at the hosted MCP. Benefi
 
 To enable hybrid on Claude Code:
 ```bash
-/plugin install commander   # already done? you're ready
-# then add the MCP endpoint to .claude/mcp.json once mcp.commanderplugin.com is live
+/plugin install commander --marketplace KevinZai/commander   # already done? you're ready
+# then add the MCP endpoint (mcp.commanderplugin.com) to .claude/mcp.json
 ```
 
 ## What does NOT work in MCP that works in plugin
 
 - **Autocomplete UI** — MCP has no way to inject `/slash` commands into a non-plugin client's command palette. The agent has to surface skills in prose when asked.
-- **Lifecycle hooks** — plugin has 23 hook events (SessionStart, PreToolUse, PostCompact, etc.). MCP is request/response — no "run when session starts" primitive in most clients yet. When [Anthropic ships PostCompact and Elicitation events on MCP](https://modelcontextprotocol.io/specification), we'll bridge them.
+- **Lifecycle hooks** — plugin has 30 hook events (SessionStart, PreToolUse, PostCompact, etc.). MCP is request/response — no "run when session starts" primitive in most clients yet. When [Anthropic ships PostCompact and Elicitation events on MCP](https://modelcontextprotocol.io/specification), we'll bridge them.
 
 ## What does NOT work in plugin that works in MCP
 

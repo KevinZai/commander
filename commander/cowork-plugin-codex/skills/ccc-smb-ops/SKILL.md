@@ -1,81 +1,91 @@
 ---
 name: ccc-smb-ops
-context: fork
-description: "Small-business operations — 6 skills in one: 13-week cash-flow forecast, invoicing + AR chasing, payroll planning, CRM hygiene, expense tracking, and a weekly owner brief."
+description: "Small-business back office from a bank CSV or a typed list: 13-week cash-flow forecast, invoicing and AR chasing, payroll planning, CRM cleanup, expense tracking, and a Monday owner brief. Use when an owner asks about cash, unpaid invoices, payroll, contacts, spending, or the weekly picture."
 allowed-tools:
   - Read
+  - Write
+  - Bash
+  - Glob
+  - Skill
   - AskUserQuestion
+argument-hint: "[cash | invoices | payroll | crm | expenses | brief]"
+model: inherit
+effort: medium
 ---
 
-# $ccc-smb-ops — Small-business operations hub
+# $ccc-smb-ops — small-business operations, routed
 
-> Load ONE skill. Get the entire back-office operations domain for a small business. 6 skills in one — plain-language checklists and templates for the owner who runs the shop, not the accountant.
+**CC Commander** · $ccc-smb-ops · plain-language checklists, forecasts and templates for the owner who runs the shop, not the accountant.
 
-**Integration note:** These skills are tool-agnostic. Everything works from a plain bank/card CSV export, an invoice list, or a typed-out set of numbers — no accounting or CRM software required. They organize and forecast; they do not move money, file taxes, or give regulated financial advice.
+Sub-skills (`cash-flow-forecast`, `invoicing-ar`, `payroll-planning`, `crm-hygiene`, `expense-tracking`, `weekly-owner-brief`) ship with the Commander CLI toolkit. Invoke one with the Skill tool when it is listed in this session; otherwise apply the method in [references/routing.md](references/routing.md). The user's selected model is preserved.
 
-## Sub-Skills
+Everything works from a plain bank or card CSV export, an invoice list, or typed-out numbers; no accounting or CRM software is required. These skills organize and forecast. They do not move money, file taxes, or give regulated financial, tax or legal advice.
 
-| # | Skill | Focus |
-|---|-------|-------|
-| 1 | cash-flow-forecast | 13-week rolling cash-flow forecast from bank + AR/AP; find the cash trough |
-| 2 | invoicing-ar | Generate clean invoices; chase unpaid ones with a dunning ladder + AR aging |
-| 3 | payroll-planning | Plan each run, tax-withholding checklist, fully-loaded headcount cost model |
-| 4 | crm-hygiene | Dedup contacts, sweep stale leads, standardize fields, review the pipeline |
-| 5 | expense-tracking | Categorize spend, receipt-capture workflow, budget vs. actual |
-| 6 | weekly-owner-brief | Monday one-pager: cash, AR aging, pipeline, and the top 3 actions |
+Codex: ask pickers as plain-text questions.
 
-> **No expressed intent?** Present the top 3 sub-skills + "More…" as an AskUserQuestion picker (≤4 options).
+## When to use / when not to
 
-## Routing Matrix
+- Use for owner-level operations: "will I make payroll", "who owes me", "what will a hire cost", "clean up my contacts", "where did the money go", "give me the Monday picture".
+- Use `$ccc-data` for warehouse pipelines and dashboards, `$ccc-saas` (`saas-metrics-coach`) for SaaS metrics such as MRR and churn, `$ccc-marketing` for campaigns.
 
-| Your Intent | Route To |
-|-------------|----------|
-| "Will I make payroll?" / "Cash forecast" / "Runway" | `cash-flow-forecast` |
-| "Send an invoice" / "Chase who owes me" / "Follow up on unpaid" | `invoicing-ar` |
-| "Run payroll" / "What will a hire cost" / "Withholding" | `payroll-planning` |
-| "Clean up my contacts" / "Dead leads" / "Pipeline review" | `crm-hygiene` |
-| "Where did the money go" / "Categorize expenses" / "Budget vs actual" | `expense-tracking` |
-| "Give me the Monday picture" / "Owner update" / "Weekly summary" | `weekly-owner-brief` |
+## What happens
 
-## Protocol
+### 1. Route by intent, or ask
 
-1. **Confirm what records the owner has on hand** (bank export, invoice list, receipts, contact list) before routing — everything works from a CSV or a typed list.
-2. Route to the specialist sub-skill for the job; each delivers a checklist or fill-in template.
-3. `weekly-owner-brief` runs every Monday and pulls from the other five — start there when the owner just wants "the picture."
-4. Keep cash, AR, and spending reconciled across skills — if two disagree, find the discrepancy before acting.
-5. Never move money, send messages, or file anything automatically — deliver the plan for the owner to approve.
+An argument or a clear intent routes straight to the sub-skill in [references/routing.md](references/routing.md). A multi-step job (month-end close, cash is tight, a hiring decision) follows the matching campaign in that file. When the owner just wants "the picture", start with `weekly-owner-brief`, which pulls from the other five.
 
-## Campaign Templates
+Otherwise ask with AskUserQuestion (header "Back office"), recommended first:
 
-### Month-End Close (90-minute version)
-1. `expense-tracking` → categorize the month, reconcile receipts
-2. `invoicing-ar` → bill un-invoiced work, refresh AR aging
-3. `cash-flow-forecast` → roll the 13-week view forward with real balances
-4. `weekly-owner-brief` → the summary the owner actually reads
+- 🟢 Monday owner brief — cash, AR aging, pipeline and the top 3 actions on one page
+- Cash forecast — 13-week view and the week cash runs lowest
+- Get paid — invoices, AR aging and a polite dunning ladder
+- More — payroll, expenses or CRM cleanup (a follow-up picker with those three)
 
-### Get-Paid Sprint (cash is tight)
-1. `invoicing-ar` → AR aging report, fire the dunning ladder on 30+ days late
-2. `cash-flow-forecast` → model base vs. downside to see if payroll clears
-3. `expense-tracking` → flag discretionary spend to pause
+### 2. Confirm the records on hand
 
-### New-Hire Decision
-1. `payroll-planning` → fully-loaded cost of the role
-2. `cash-flow-forecast` → drop it into the 13-week view, check the trough
-3. `weekly-owner-brief` → frame the go / no-go with numbers attached
+Before any numbers, ask what the owner has (bank export, invoice list, receipts, contact list, payroll dates) and where it is. Read files with Read; for a CSV, check its shape first:
 
-## When to invoke this skill
+```bash
+head -n 5 "<file>.csv"; wc -l < "<file>.csv"
+```
 
-**Example 1**
-- user: will I be able to make payroll next month?
-- assistant: Loads ccc-smb-ops and routes to cash-flow-forecast to build the 13-week view and find the trough on the payroll date.
+Work on a copy of any record list; never edit the owner's only copy. When a number is missing, ask for it or mark it as an estimate; never invent balances, rates or tax amounts.
 
-**Example 2**
-- user: three customers still haven't paid me — help me chase them
-- assistant: Loads ccc-smb-ops and routes to invoicing-ar for the AR aging report and the dunning ladder.
+### 3. Do the work
 
-**Example 3**
-- user: give me a quick Monday summary of where the business stands
-- assistant: Loads ccc-smb-ops and routes to weekly-owner-brief, pulling cash, AR aging, and pipeline into a one-pager with the top 3 actions.
+Follow the routed sub-skill. Each one delivers a checklist or fill-in template. Write the result to a dated Markdown file the owner chooses (default `./ops/<topic>-<YYYY-MM-DD>.md`) with Write.
+
+Keep cash, AR and spending reconciled across skills. If two disagree (the forecast's AR total and the AR aging total, for example), find the discrepancy and show it before recommending any action.
+
+### 4. Check the arithmetic
+
+For any table with totals, recompute it from the source rows with a one-off script rather than trusting mental math, for example the forecast rule closing = opening + cash in − cash out:
+
+```bash
+python3 -c "import csv,sys; r=list(csv.DictReader(open(sys.argv[1]))); print(sum(float(x['amount']) for x in r))" "<file>.csv"
+```
+
+Report the recomputed totals beside the ones in the deliverable.
+
+## Done when
+
+- The deliverable file exists (`test -s <file> && echo ok` printed `ok`) and its path is reported.
+- Every total in it was recomputed in step 4 and matches, or the mismatch is shown to the owner.
+- Estimates and missing inputs are labeled as such, and the actions list names who does what by when.
+
+## Guardrails
+
+- Never move money, pay a bill, run payroll, send an invoice or reminder, message a customer, or file anything. Draft it for the owner to approve and send.
+- Never give tax-deductibility, withholding-rate or legal conclusions; point to a licensed accountant or the payroll provider for actual rates and filings.
+- Bank exports, payroll and contact lists contain personal and financial data: keep them local, never commit them to git, never publish them or paste them into an external service.
+- Archive, do not delete, contacts and records during CRM cleanup.
+
+## See also
+
+- `$ccc-data` — analytics pipelines and dashboards
+- `$ccc-saas` — SaaS metrics and billing systems
+- `$ccc-standup` — a recurring personal status summary
+- `$ccc-loop` — repeat the Monday brief on a schedule
 
 ---
 

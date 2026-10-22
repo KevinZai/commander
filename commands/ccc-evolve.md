@@ -1,129 +1,89 @@
 ---
 name: ccc-evolve
-description: "Analyze instincts and suggest or generate evolved structures"
+description: "Cluster learned instincts into candidate commands, skills, and agents, and optionally generate those files. Use when instincts have accumulated and you want to promote repeated patterns into reusable structures."
 command: true
 ---
 
-# Evolve Command
+# /ccc-evolve — turn instincts into structures
 
-## Implementation
+**CC Commander** · /ccc-evolve · evolution candidates from your project and global instincts, with optional generated files.
 
-Run the instinct CLI using the plugin root path:
+## Arguments
 
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/continuous-learning-v2/scripts/instinct-cli.py" evolve [--generate]
-```
+`$ARGUMENTS`:
 
-Or if `CLAUDE_PLUGIN_ROOT` is not set (manual installation):
+- empty — analyze all instincts and print candidates
+- `--generate` — also write the candidate files under `evolved/{skills,commands,agents}`
 
-```bash
-python3 ~/.claude/skills/continuous-learning-v2/scripts/instinct-cli.py evolve [--generate]
-```
+## What happens
 
-Analyzes instincts and clusters related ones into higher-level structures:
-- **Commands**: When instincts describe user-invoked actions
-- **Skills**: When instincts describe auto-triggered behaviors
-- **Agents**: When instincts describe complex, multi-step processes
+1. Run the instinct CLI. Use the plugin-root form when `CLAUDE_PLUGIN_ROOT` is set:
 
-## Usage
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/continuous-learning-v2/scripts/instinct-cli.py" evolve [--generate]
+   ```
 
-```
-/evolve                    # Analyze all instincts and suggest evolutions
-/evolve --generate         # Also generate files under evolved/{skills,commands,agents}
-```
+   Otherwise use the manual-install path:
 
-## Evolution Rules
+   ```bash
+   python3 ~/.claude/skills/continuous-learning-v2/scripts/instinct-cli.py evolve [--generate]
+   ```
 
-### → Command (User-Invoked)
-When instincts describe actions a user would explicitly request:
-- Multiple instincts about "when user asks to..."
-- Instincts with triggers like "when creating a new X"
-- Instincts that follow a repeatable sequence
+   If neither file exists, report that the continuous-learning-v2 skill is not installed and stop. If the CLI exits non-zero, show its stderr and stop.
+2. The CLI detects the current project, reads project and global instincts (project wins on id conflicts), groups them by trigger and domain, and identifies:
+   - **Skill candidates** — trigger clusters with 2 or more instincts
+   - **Command candidates** — high-confidence workflow instincts
+   - **Agent candidates** — larger, high-confidence clusters
+   - **Promotion candidates** — project instincts worth moving to global scope
+3. Present the CLI output as-is, then add a short interpretation using the evolution rules below. Do not invent candidates the CLI did not report.
+4. With `--generate`, the CLI writes files to:
+   - project scope: `~/.claude/homunculus/projects/<project-id>/evolved/`
+   - global fallback: `~/.claude/homunculus/evolved/`
 
-Example:
-- `new-table-step1`: "when adding a database table, create migration"
-- `new-table-step2`: "when adding a database table, update schema"
-- `new-table-step3`: "when adding a database table, regenerate types"
+   Verify with `ls -R` on the directory the CLI reported and list each generated file. Tell the user the files are drafts to review before copying into `~/.claude/commands/`, `~/.claude/skills/` or `~/.claude/agents/`.
+5. When the output shows promotion candidates, point to `/ccc-promote`.
 
-→ Creates: **new-table** command
+## Evolution rules
 
-### → Skill (Auto-Triggered)
-When instincts describe behaviors that should happen automatically:
-- Pattern-matching triggers
-- Error handling responses
-- Code style enforcement
+| Becomes | When the instincts describe | Example cluster | Result |
+|---|---|---|---|
+| Command (user-invoked) | Actions a user explicitly requests; "when creating a new X"; a repeatable sequence | `new-table-step1..3`: create migration, update schema, regenerate types | `new-table` command |
+| Skill (auto-triggered) | Pattern-matching triggers, error-handling responses, style enforcement | `prefer-functional`, `use-immutable`, `avoid-classes` | `functional-patterns` skill |
+| Agent (needs depth or isolation) | Multi-step processes such as debugging, refactoring sequences, research | `debug-step1..4`: check logs, isolate, reproduce, verify with test | `debugger` agent |
 
-Example:
-- `prefer-functional`: "when writing functions, prefer functional style"
-- `use-immutable`: "when modifying state, use immutable patterns"
-- `avoid-classes`: "when designing modules, avoid class-based design"
-
-→ Creates: `functional-patterns` skill
-
-### → Agent (Needs Depth/Isolation)
-When instincts describe complex, multi-step processes that benefit from isolation:
-- Debugging workflows
-- Refactoring sequences
-- Research tasks
-
-Example:
-- `debug-step1`: "when debugging, first check logs"
-- `debug-step2`: "when debugging, isolate the failing component"
-- `debug-step3`: "when debugging, create minimal reproduction"
-- `debug-step4`: "when debugging, verify fix with test"
-
-→ Creates: **debugger** agent
-
-## What to Do
-
-1. Detect current project context
-2. Read project + global instincts (project takes precedence on ID conflicts)
-3. Group instincts by trigger/domain patterns
-4. Identify:
-   - Skill candidates (trigger clusters with 2+ instincts)
-   - Command candidates (high-confidence workflow instincts)
-   - Agent candidates (larger, high-confidence clusters)
-5. Show promotion candidates (project -> global) when applicable
-6. If `--generate` is passed, write files to:
-   - Project scope: `~/.claude/homunculus/projects/<project-id>/evolved/`
-   - Global fallback: `~/.claude/homunculus/evolved/`
-
-## Output Format
+## Output format
 
 ```
 ============================================================
-  EVOLVE ANALYSIS - 12 instincts
-  Project: my-app (a1b2c3d4e5f6)
-  Project-scoped: 8 | Global: 4
+  EVOLVE ANALYSIS - <n> instincts
+  Project: <project-name> (<project-id>)
+  Project-scoped: <n> | Global: <n>
 ============================================================
 
-High confidence instincts (>=80%): 5
+High confidence instincts (>=80%): <n>
 
 ## SKILL CANDIDATES
 1. Cluster: "adding tests"
-   Instincts: 3
-   Avg confidence: 82%
+   Instincts: <n>
+   Avg confidence: <n>%
    Domains: testing
    Scopes: project
 
-## COMMAND CANDIDATES (2)
+## COMMAND CANDIDATES (<n>)
   /adding-tests
     From: test-first-workflow [project]
-    Confidence: 84%
+    Confidence: <n>%
 
-## AGENT CANDIDATES (1)
+## AGENT CANDIDATES (<n>)
   adding-tests-agent
-    Covers 3 instincts
-    Avg confidence: 82%
+    Covers <n> instincts
+    Avg confidence: <n>%
 ```
 
-## Flags
+## Generated file formats
 
-- `--generate`: Generate evolved files in addition to analysis output
+Command:
 
-## Generated File Format
-
-### Command
 ```markdown
 ---
 name: new-table
@@ -141,10 +101,10 @@ evolved_from:
 
 ## Steps
 1. ...
-2. ...
 ```
 
-### Skill
+Skill:
+
 ```markdown
 ---
 name: functional-patterns
@@ -160,7 +120,8 @@ evolved_from:
 [Generated content based on clustered instincts]
 ```
 
-### Agent
+Agent:
+
 ```markdown
 ---
 name: debugger
@@ -176,3 +137,18 @@ evolved_from:
 
 [Generated content based on clustered instincts]
 ```
+
+The agent `model:` is an alias (`haiku`, `sonnet`, `opus`, `fable`, `inherit`); pick the tier the work needs, never a dated model id.
+
+## Done when
+
+The CLI output has been shown; with `--generate`, the listed files exist on disk per the `ls -R` check.
+
+## Guardrails
+
+- Writes happen only with `--generate`, and only under `~/.claude/homunculus/`.
+- Never copy generated files into active command, skill or agent directories without the user asking.
+
+## See also
+
+`/ccc-instinct-status` · `/ccc-promote` · `/ccc-skill-create` · `/ccc-learn-eval`

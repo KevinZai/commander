@@ -1,48 +1,41 @@
 # Coding Style
 
-## Immutability (CRITICAL)
+Follow the repository's existing conventions first. These defaults apply where the project is silent.
 
-ALWAYS create new objects, NEVER mutate existing ones:
+## Immutability
+
+Prefer returning a new value over mutating shared state:
 
 ```
-// Pseudocode
-WRONG:  modify(original, field, value) → changes original in-place
-CORRECT: update(original, field, value) → returns new copy with change
+avoid:  modify(original, field, value)   // changes original in place
+prefer: update(original, field, value)   // returns a new copy
 ```
 
-Rationale: Immutable data prevents hidden side effects, makes debugging easier, and enables safe concurrency.
+Local mutation is fine when ownership is clear and the framework expects it.
 
-## File Organization
+## File organization
 
-MANY SMALL FILES > FEW LARGE FILES:
-- High cohesion, low coupling
-- 200-400 lines typical, 800 max
-- Extract utilities from large modules
-- Organize by feature/domain, not by type
+- High cohesion, low coupling; organize by feature or domain, not by type.
+- Prefer several focused files over one large one. Split when a file mixes responsibilities, not at a fixed line count.
+- Extract utilities only when two or more callers need them.
 
-## Error Handling
+## Error handling
 
-ALWAYS handle errors comprehensively:
-- Handle errors explicitly at every level
-- Provide user-friendly error messages in UI-facing code
-- Log detailed error context on the server side
-- Never silently swallow errors
+- Handle errors where you can add recovery or useful context; preserve the cause.
+- User-facing messages are clear and leak nothing internal. Detailed context goes to server-side logs, never secrets.
+- Never swallow an error silently.
 
-## Input Validation
+## Input validation
 
-ALWAYS validate at system boundaries:
-- Validate all user input before processing
-- Use schema-based validation where available
-- Fail fast with clear error messages
-- Never trust external data (API responses, user input, file content)
+- Validate every untrusted input at the system boundary (user input, API responses, file content).
+- Use the project's schema validator where one exists.
+- Fail fast with a clear message.
 
-## Code Quality Checklist
+## Before marking code complete
 
-Before marking work complete:
-- [ ] Code is readable and well-named
-- [ ] Functions are small (<50 lines)
-- [ ] Files are focused (<800 lines)
-- [ ] No deep nesting (>4 levels)
-- [ ] Proper error handling
-- [ ] No hardcoded values (use constants or config)
-- [ ] No mutation (immutable patterns used)
+- [ ] Names are readable; functions do one thing.
+- [ ] No deep nesting (more than four levels is a smell).
+- [ ] Errors are handled at the right level.
+- [ ] No hardcoded values that belong in constants or config.
+- [ ] No unrelated reformatting in the diff.
+- [ ] Comments explain constraints the code cannot express, not what the code does.

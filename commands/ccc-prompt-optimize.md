@@ -1,38 +1,44 @@
 ---
-description: "Analyze a draft prompt and output an optimized, ECC-enriched version ready to paste and run. Does NOT execute the task — outputs advisory analysis only."
+description: "Analyze a draft prompt and return an optimized, copy-ready version with the matching skills, commands, agents and model tier. Advisory only: never executes the task. Use when the user wants a prompt improved before running it."
 ---
 
-# /prompt-optimize
+# /ccc-prompt-optimize — sharpen a prompt before running it
 
-Analyze and optimize the following prompt for maximum ECC leverage.
+**CC Commander** · /ccc-prompt-optimize · a diagnosis, the components to use, and a Full and Quick version of the prompt, ready to paste into a new session.
 
-## Your Task
+## Input
 
-Apply the **prompt-optimizer** skill to the user's input below. Follow the 6-phase analysis pipeline:
+`$ARGUMENTS` is the draft prompt. If it is empty, ask the user for the prompt in plain text and stop until they provide it.
 
-0. **Project Detection** — Read CLAUDE.md, detect tech stack from project files (package.json, go.mod, pyproject.toml, etc.)
-1. **Intent Detection** — Classify the task type (new feature, bug fix, refactor, research, testing, review, documentation, infrastructure, design)
-2. **Scope Assessment** — Evaluate complexity (TRIVIAL / LOW / MEDIUM / HIGH / EPIC), using codebase size as signal if detected
-3. **ECC Component Matching** — Map to specific skills, commands, agents, and model tier
-4. **Missing Context Detection** — Identify gaps. If 3+ critical items missing, ask the user to clarify before generating
-5. **Workflow & Model** — Determine lifecycle position, recommend model tier, and split into multiple prompts if HIGH/EPIC
+## What happens
 
-## Output Requirements
+1. **Load the method.** If the vendored `prompt-optimizer` skill is available (`vendor/everything-claude-code/skills/prompt-optimizer/SKILL.md` in a repo checkout), read it and use its Output Format. Otherwise follow the pipeline below as written.
+2. **Project detection.** Read the project `CLAUDE.md` when present and detect the stack from manifest files (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, and similar). Use the file count from `git ls-files | wc -l` as the codebase-size signal.
+3. **Intent.** Classify the task: new feature, bug fix, refactor, research, testing, review, documentation, infrastructure, or design.
+4. **Scope.** Rate it TRIVIAL, LOW, MEDIUM, HIGH or EPIC, using codebase size as one signal.
+5. **Component matching.** Map the task to the skills, commands and agents that exist in this install (check `commands/`, the plugin `skills/` and `agents/` directories rather than recalling names). Name skills as skills ("use the blueprint skill"), never as slash commands; only real commands get a `/` prefix.
+6. **Missing context.** List the gaps (acceptance criteria, target files, constraints, environment). When three or more critical items are missing, ask the user to fill them before generating, in plain text, and stop.
+7. **Workflow and model.** Place the task in the lifecycle (plan, build, verify, ship). Recommend a tier by alias only where it changes the outcome: `fable` for architecture, migrations and threat models; `opus` for implementation and review; `sonnet` for bounded edits and docs; `haiku` for classification and extraction. State that the user's selected model stays in effect unless they choose otherwise. Split HIGH and EPIC work into a sequence of prompts.
 
-- Present diagnosis, recommended ECC components, and an optimized prompt using the Output Format from the prompt-optimizer skill
-- Provide both **Full Version** (detailed) and **Quick Version** (compact, varied by intent type)
-- Respond in the same language as the user's input
-- The optimized prompt must be complete and ready to copy-paste into a new session
-- End with a footer offering adjustment or a clear next step for starting a separate execution request
+## Output
 
-## CRITICAL
+Respond in the language of the user's input, in this order:
 
-Do NOT execute the user's task. Output ONLY the analysis and optimized prompt.
-If the user asks for direct execution, explain that `/prompt-optimize` only produces advisory output and tell them to start a normal task request instead.
+1. **Diagnosis** — intent, scope, stack, and the missing context found.
+2. **Recommended components** — skills, commands, agents and model tier, each with one line on why.
+3. **Full version** — the detailed optimized prompt, complete enough to paste into a fresh session without this conversation.
+4. **Quick version** — a compact variant shaped for the intent type.
+5. **Next step** — one line: adjust the prompt, or start a separate task request with the chosen version.
 
-Note: `blueprint` is a **skill**, not a slash command. Write "Use the blueprint skill"
-instead of presenting it as a `/...` command.
+## Done when
 
-## User Input
+Both versions are complete and self-contained, and every component named was confirmed to exist in this install.
 
-$ARGUMENTS
+## Guardrails
+
+- Do not execute the user's task, edit files or run state-changing commands. If the user asks for execution, say that this command only produces advisory output and that they should start a normal task request with the optimized prompt.
+- Do not name a model id, command or skill that is not present in this install.
+
+## See also
+
+`/ccc-prompt-fix` · `/ccc-plan` · `/ccc-model-route`

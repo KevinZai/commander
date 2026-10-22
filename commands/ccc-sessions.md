@@ -1,333 +1,175 @@
 ---
-description: "Manage Claude Code session history, aliases, and session metadata."
+description: "List, load, inspect and alias saved Claude Code sessions in ~/.claude/sessions/, with branch and worktree per session. Use when the user wants to find an earlier session, name one, or tell parallel worktree runs apart."
 ---
 
-# Sessions Command
+# /ccc-sessions — find and name saved sessions
 
-Manage Claude Code session history - list, load, alias, and edit sessions stored in `~/.claude/sessions/`.
+**CC Commander** · /ccc-sessions · saved-session history with dates, branches, worktrees and aliases.
 
-## Usage
-
-`/sessions [list|load|alias|info|help] [options]`
-
-## Actions
-
-### List Sessions
-
-Display all sessions with metadata, filtering, and pagination.
-
-Use `/sessions info` when you need operator-surface context for a swarm: branch, worktree path, and session recency.
-
-```bash
-/sessions                              # List all sessions (default)
-/sessions list                         # Same as above
-/sessions list --limit 10              # Show 10 sessions
-/sessions list --date 2026-02-01       # Filter by date
-/sessions list --search abc            # Search by session ID
-```
-
-**Script:**
-```bash
-node -e "
-const sm = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager');
-const aa = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
-const path = require('path');
-
-const result = sm.getAllSessions({ limit: 20 });
-const aliases = aa.listAliases();
-const aliasMap = {};
-for (const a of aliases) aliasMap[a.sessionPath] = a.name;
-
-console.log('Sessions (showing ' + result.sessions.length + ' of ' + result.total + '):');
-console.log('');
-console.log('ID        Date        Time     Branch       Worktree           Alias');
-console.log('────────────────────────────────────────────────────────────────────');
-
-for (const s of result.sessions) {
-  const alias = aliasMap[s.filename] || '';
-  const metadata = sm.parseSessionMetadata(sm.getSessionContent(s.sessionPath));
-  const id = s.shortId === 'no-id' ? '(none)' : s.shortId.slice(0, 8);
-  const time = s.modifiedTime.toTimeString().slice(0, 5);
-  const branch = (metadata.branch || '-').slice(0, 12);
-  const worktree = metadata.worktree ? path.basename(metadata.worktree).slice(0, 18) : '-';
-
-  console.log(id.padEnd(8) + ' ' + s.date + '  ' + time + '   ' + branch.padEnd(12) + ' ' + worktree.padEnd(18) + ' ' + alias);
-}
-"
-```
-
-### Load Session
-
-Load and display a session's content (by ID or alias).
-
-```bash
-/sessions load <id|alias>             # Load session
-/sessions load 2026-02-01             # By date (for no-id sessions)
-/sessions load a1b2c3d4               # By short ID
-/sessions load my-alias               # By alias name
-```
-
-**Script:**
-```bash
-node -e "
-const sm = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager');
-const aa = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
-const id = process.argv[1];
-
-// First try to resolve as alias
-const resolved = aa.resolveAlias(id);
-const sessionId = resolved ? resolved.sessionPath : id;
-
-const session = sm.getSessionById(sessionId, true);
-if (!session) {
-  console.log('Session not found: ' + id);
-  process.exit(1);
-}
-
-const stats = sm.getSessionStats(session.sessionPath);
-const size = sm.getSessionSize(session.sessionPath);
-const aliases = aa.getAliasesForSession(session.filename);
-
-console.log('Session: ' + session.filename);
-console.log('Path: ~/.claude/sessions/' + session.filename);
-console.log('');
-console.log('Statistics:');
-console.log('  Lines: ' + stats.lineCount);
-console.log('  Total items: ' + stats.totalItems);
-console.log('  Completed: ' + stats.completedItems);
-console.log('  In progress: ' + stats.inProgressItems);
-console.log('  Size: ' + size);
-console.log('');
-
-if (aliases.length > 0) {
-  console.log('Aliases: ' + aliases.map(a => a.name).join(', '));
-  console.log('');
-}
-
-if (session.metadata.title) {
-  console.log('Title: ' + session.metadata.title);
-  console.log('');
-}
-
-if (session.metadata.started) {
-  console.log('Started: ' + session.metadata.started);
-}
-
-if (session.metadata.lastUpdated) {
-  console.log('Last Updated: ' + session.metadata.lastUpdated);
-}
-
-if (session.metadata.project) {
-  console.log('Project: ' + session.metadata.project);
-}
-
-if (session.metadata.branch) {
-  console.log('Branch: ' + session.metadata.branch);
-}
-
-if (session.metadata.worktree) {
-  console.log('Worktree: ' + session.metadata.worktree);
-}
-" "$ARGUMENTS"
-```
-
-### Create Alias
-
-Create a memorable alias for a session.
-
-```bash
-/sessions alias <id> <name>           # Create alias
-/sessions alias 2026-02-01 today-work # Create alias named "today-work"
-```
-
-**Script:**
-```bash
-node -e "
-const sm = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager');
-const aa = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
-
-const sessionId = process.argv[1];
-const aliasName = process.argv[2];
-
-if (!sessionId || !aliasName) {
-  console.log('Usage: /sessions alias <id> <name>');
-  process.exit(1);
-}
-
-// Get session filename
-const session = sm.getSessionById(sessionId);
-if (!session) {
-  console.log('Session not found: ' + sessionId);
-  process.exit(1);
-}
-
-const result = aa.setAlias(aliasName, session.filename);
-if (result.success) {
-  console.log('✓ Alias created: ' + aliasName + ' → ' + session.filename);
-} else {
-  console.log('✗ Error: ' + result.error);
-  process.exit(1);
-}
-" "$ARGUMENTS"
-```
-
-### Remove Alias
-
-Delete an existing alias.
-
-```bash
-/sessions alias --remove <name>        # Remove alias
-/sessions unalias <name>               # Same as above
-```
-
-**Script:**
-```bash
-node -e "
-const aa = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
-
-const aliasName = process.argv[1];
-if (!aliasName) {
-  console.log('Usage: /sessions alias --remove <name>');
-  process.exit(1);
-}
-
-const result = aa.deleteAlias(aliasName);
-if (result.success) {
-  console.log('✓ Alias removed: ' + aliasName);
-} else {
-  console.log('✗ Error: ' + result.error);
-  process.exit(1);
-}
-" "$ARGUMENTS"
-```
-
-### Session Info
-
-Show detailed information about a session.
-
-```bash
-/sessions info <id|alias>              # Show session details
-```
-
-**Script:**
-```bash
-node -e "
-const sm = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager');
-const aa = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
-
-const id = process.argv[1];
-const resolved = aa.resolveAlias(id);
-const sessionId = resolved ? resolved.sessionPath : id;
-
-const session = sm.getSessionById(sessionId, true);
-if (!session) {
-  console.log('Session not found: ' + id);
-  process.exit(1);
-}
-
-const stats = sm.getSessionStats(session.sessionPath);
-const size = sm.getSessionSize(session.sessionPath);
-const aliases = aa.getAliasesForSession(session.filename);
-
-console.log('Session Information');
-console.log('════════════════════');
-console.log('ID:          ' + (session.shortId === 'no-id' ? '(none)' : session.shortId));
-console.log('Filename:    ' + session.filename);
-console.log('Date:        ' + session.date);
-console.log('Modified:    ' + session.modifiedTime.toISOString().slice(0, 19).replace('T', ' '));
-console.log('Project:     ' + (session.metadata.project || '-'));
-console.log('Branch:      ' + (session.metadata.branch || '-'));
-console.log('Worktree:    ' + (session.metadata.worktree || '-'));
-console.log('');
-console.log('Content:');
-console.log('  Lines:         ' + stats.lineCount);
-console.log('  Total items:   ' + stats.totalItems);
-console.log('  Completed:     ' + stats.completedItems);
-console.log('  In progress:   ' + stats.inProgressItems);
-console.log('  Size:          ' + size);
-if (aliases.length > 0) {
-  console.log('Aliases:     ' + aliases.map(a => a.name).join(', '));
-}
-" "$ARGUMENTS"
-```
-
-### List Aliases
-
-Show all session aliases.
-
-```bash
-/sessions aliases                      # List all aliases
-```
-
-**Script:**
-```bash
-node -e "
-const aa = require((()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(h,'.claude'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'plugins','cache','everything-claude-code');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
-
-const aliases = aa.listAliases();
-console.log('Session Aliases (' + aliases.length + '):');
-console.log('');
-
-if (aliases.length === 0) {
-  console.log('No aliases found.');
-} else {
-  console.log('Name          Session File                    Title');
-  console.log('─────────────────────────────────────────────────────────────');
-  for (const a of aliases) {
-    const name = a.name.padEnd(12);
-    const file = (a.sessionPath.length > 30 ? a.sessionPath.slice(0, 27) + '...' : a.sessionPath).padEnd(30);
-    const title = a.title || '';
-    console.log(name + ' ' + file + ' ' + title);
-  }
-}
-"
-```
-
-## Operator Notes
-
-- Session files persist `Project`, `Branch`, and `Worktree` in the header so `/sessions info` can disambiguate parallel tmux/worktree runs.
-- For command-center style monitoring, combine `/sessions info`, `git diff --stat`, and the cost metrics emitted by `scripts/hooks/cost-tracker.js`.
+Sessions are markdown files in `~/.claude/sessions/`; aliases live in `~/.claude/session-aliases.json`. The scripts below use the session library that ships with the Everything Claude Code toolkit (`scripts/lib/session-manager.js` and `scripts/lib/session-aliases.js`), an opt-in install that is absent by default.
 
 ## Arguments
 
-$ARGUMENTS:
-- `list [options]` - List sessions
-  - `--limit <n>` - Max sessions to show (default: 50)
-  - `--date <YYYY-MM-DD>` - Filter by date
-  - `--search <pattern>` - Search in session ID
-- `load <id|alias>` - Load session content
-- `alias <id> <name>` - Create alias for session
-- `alias --remove <name>` - Remove alias
-- `unalias <name>` - Same as `--remove`
-- `info <id|alias>` - Show session statistics
-- `aliases` - List all aliases
-- `help` - Show this help
+`$ARGUMENTS`:
+
+| Form | Does |
+|---|---|
+| empty, or `list [--limit <n>] [--date <YYYY-MM-DD>] [--search <pattern>]` | List sessions (default limit 20) |
+| `load <id\|alias\|date>` | Show a session's metadata and content |
+| `info <id\|alias>` | Show detailed statistics for a session |
+| `alias <id> <name>` | Create an alias |
+| `alias --remove <name>` or `unalias <name>` | Remove an alias |
+| `aliases` | List all aliases |
+| `help` | Print this table |
+
+Session ids can be shortened; the first 4 to 8 characters are usually unique. Sessions without an id are addressed by date.
+
+## What happens
+
+1. Locate the session library. Run:
+
+   ```bash
+   for d in "${CLAUDE_PLUGIN_ROOT:-}" "$HOME/.claude" "$HOME"/.claude/plugins/cache/everything-claude-code/*/*; do
+     [ -n "$d" ] && [ -f "$d/scripts/lib/session-manager.js" ] && { echo "$d"; break; }
+   done
+   ```
+
+   The printed directory is `ECC_ROOT` for every script below; pass it inline as `ECC_ROOT="<printed path>"` because shell state does not persist between calls. If nothing prints, say "The session library is not installed" and stop.
+
+2. Parse `$ARGUMENTS` into the subcommand and its values, then run the matching script from the sections below, passing each value as its own quoted argument. On a non-zero exit, show the script's message and stop.
+
+3. Show the output as printed. For `load`, also read the session file at the printed path with the Read tool and summarise its content: title, completed and in-progress items, and the last recorded next step.
+
+4. For `alias`, `alias --remove` and `unalias`, verify by running the `aliases` script and confirming the name is present or gone.
+
+### list
+
+```bash
+ECC_ROOT="<path>" node -e '
+const sm = require(process.env.ECC_ROOT + "/scripts/lib/session-manager");
+const aa = require(process.env.ECC_ROOT + "/scripts/lib/session-aliases");
+const path = require("path");
+const args = process.argv.slice(1);
+const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : undefined; };
+const result = sm.getAllSessions({ limit: Number(opt("--limit")) || 20, date: opt("--date"), search: opt("--search") });
+const aliasMap = {};
+for (const a of aa.listAliases()) aliasMap[a.sessionPath] = a.name;
+console.log("Sessions (showing " + result.sessions.length + " of " + result.total + "):\n");
+console.log("ID        Date        Time     Branch       Worktree           Alias");
+for (const s of result.sessions) {
+  const m = sm.parseSessionMetadata(sm.getSessionContent(s.sessionPath));
+  const id = s.shortId === "no-id" ? "(none)" : s.shortId.slice(0, 8);
+  const time = s.modifiedTime.toTimeString().slice(0, 5);
+  const branch = (m.branch || "-").slice(0, 12);
+  const wt = m.worktree ? path.basename(m.worktree).slice(0, 18) : "-";
+  console.log(id.padEnd(8) + " " + s.date + "  " + time + "   " + branch.padEnd(12) + " " + wt.padEnd(18) + " " + (aliasMap[s.filename] || ""));
+}
+' [--limit <n>] [--date <YYYY-MM-DD>] [--search <pattern>]
+```
+
+If the library ignores `date` or `search`, filter the printed rows yourself and say so.
+
+### load and info
+
+Both resolve an alias first, then print the session's metadata and statistics. `info` adds the id, filename and modified time.
+
+```bash
+ECC_ROOT="<path>" node -e '
+const sm = require(process.env.ECC_ROOT + "/scripts/lib/session-manager");
+const aa = require(process.env.ECC_ROOT + "/scripts/lib/session-aliases");
+const id = process.argv[1];
+if (!id) { console.log("Usage: /ccc-sessions load|info <id|alias>"); process.exit(1); }
+const resolved = aa.resolveAlias(id);
+const session = sm.getSessionById(resolved ? resolved.sessionPath : id, true);
+if (!session) { console.log("Session not found: " + id); process.exit(1); }
+const st = sm.getSessionStats(session.sessionPath);
+const md = session.metadata;
+const aliases = aa.getAliasesForSession(session.filename).map(a => a.name);
+console.log("Session:      " + session.filename);
+console.log("Path:         ~/.claude/sessions/" + session.filename);
+console.log("ID:           " + (session.shortId === "no-id" ? "(none)" : session.shortId));
+console.log("Date:         " + session.date);
+console.log("Modified:     " + session.modifiedTime.toISOString().slice(0, 19).replace("T", " "));
+if (md.title) console.log("Title:        " + md.title);
+if (md.started) console.log("Started:      " + md.started);
+if (md.lastUpdated) console.log("Last updated: " + md.lastUpdated);
+console.log("Project:      " + (md.project || "-"));
+console.log("Branch:       " + (md.branch || "-"));
+console.log("Worktree:     " + (md.worktree || "-"));
+console.log("Lines: " + st.lineCount + "  Items: " + st.totalItems + "  Completed: " + st.completedItems + "  In progress: " + st.inProgressItems + "  Size: " + sm.getSessionSize(session.sessionPath));
+if (aliases.length) console.log("Aliases:      " + aliases.join(", "));
+' "<id|alias>"
+```
+
+### alias
+
+```bash
+ECC_ROOT="<path>" node -e '
+const sm = require(process.env.ECC_ROOT + "/scripts/lib/session-manager");
+const aa = require(process.env.ECC_ROOT + "/scripts/lib/session-aliases");
+const [sessionId, aliasName] = process.argv.slice(1);
+if (!sessionId || !aliasName) { console.log("Usage: /ccc-sessions alias <id> <name>"); process.exit(1); }
+const session = sm.getSessionById(sessionId);
+if (!session) { console.log("Session not found: " + sessionId); process.exit(1); }
+const r = aa.setAlias(aliasName, session.filename);
+if (!r.success) { console.log("Error: " + r.error); process.exit(1); }
+console.log("Alias created: " + aliasName + " -> " + session.filename);
+' "<id>" "<name>"
+```
+
+### alias --remove and unalias
+
+```bash
+ECC_ROOT="<path>" node -e '
+const aa = require(process.env.ECC_ROOT + "/scripts/lib/session-aliases");
+const name = process.argv[1];
+if (!name) { console.log("Usage: /ccc-sessions unalias <name>"); process.exit(1); }
+const r = aa.deleteAlias(name);
+if (!r.success) { console.log("Error: " + r.error); process.exit(1); }
+console.log("Alias removed: " + name);
+' "<name>"
+```
+
+### aliases
+
+```bash
+ECC_ROOT="<path>" node -e '
+const aa = require(process.env.ECC_ROOT + "/scripts/lib/session-aliases");
+const list = aa.listAliases();
+console.log("Session aliases (" + list.length + "):\n");
+if (!list.length) { console.log("No aliases found."); process.exit(0); }
+console.log("Name          Session file                    Title");
+for (const a of list) {
+  const file = a.sessionPath.length > 30 ? a.sessionPath.slice(0, 27) + "..." : a.sessionPath;
+  console.log(a.name.padEnd(12) + "  " + file.padEnd(30) + "  " + (a.title || ""));
+}
+'
+```
 
 ## Examples
 
-```bash
-# List all sessions
-/sessions list
-
-# Create an alias for today's session
-/sessions alias 2026-02-01 today
-
-# Load session by alias
-/sessions load today
-
-# Show session info
-/sessions info today
-
-# Remove alias
-/sessions alias --remove today
-
-# List all aliases
-/sessions aliases
+```
+/ccc-sessions list --limit 10
+/ccc-sessions alias 2026-02-01 today
+/ccc-sessions load today
+/ccc-sessions info today
+/ccc-sessions unalias today
 ```
 
-## Notes
+## Operator notes
 
-- Sessions are stored as markdown files in `~/.claude/sessions/`
-- Aliases are stored in `~/.claude/session-aliases.json`
-- Session IDs can be shortened (first 4-8 characters usually unique enough)
-- Use aliases for frequently referenced sessions
+- Session headers record `Project`, `Branch` and `Worktree`, so `info` tells parallel tmux or worktree runs apart.
+- For a command-center view of parallel work, combine `/ccc-sessions info`, `git diff --stat` in each worktree, and `/ccc-cost`.
+
+## Done when
+
+The requested listing or session details printed from the library, or an alias change was confirmed by the `aliases` listing.
+
+## Guardrails
+
+- Only alias commands write, and only to `~/.claude/session-aliases.json`. Never edit or delete session files.
+- Never print secrets that appear in a session's content; summarise around them.
+
+## See also
+
+`/ccc-checkpoint` · `/ccc-cost` · `/ccc-spawn`

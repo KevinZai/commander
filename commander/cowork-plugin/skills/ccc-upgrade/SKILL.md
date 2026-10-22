@@ -1,63 +1,43 @@
 ---
 name: ccc-upgrade
-description: "Audit and update vendor submodules. Lists every submodule under vendor/, fetches latest, reports per-submodule current/latest commits and changed file counts, prompts…"
-model: sonnet
-effort: medium
+description: "Maintainer-only vendor submodule updater: audits every submodule under vendor/ against upstream, shows commits and files behind, then updates the picked ones one at a time with audit checks and one commit each. Use when asked to update vendors, refresh submodules or check vendor drift."
 allowed-tools:
   - Read
   - Bash
-  - Edit
-  - WebSearch
-argument-hint: "[--all | --check]"
+  - AskUserQuestion
+argument-hint: "[--check | --all]"
+model: sonnet
+effort: medium
+disable-model-invocation: true
 ---
 
-# /ccc-upgrade — Vendor Submodule Updater
+# /ccc-upgrade — Vendor submodule updater
 
-> 🔎 **Looking to update the CC Commander plugin itself** (not this repo's
-> vendor submodules)? That's `/ccc-update` — a different, end-user-facing
-> tool with a similarly-spelled name. This skill is maintainer-only.
+**CC Commander** · /ccc-upgrade · audit vendor/ → pick → update, check, commit one at a time
 
-> ⚠️ **Run only from the CC Commander repo root.** Verify `pwd` ends in `/cc-commander` (or your fork's name) and `ls .claude-plugin/marketplace.json` succeeds. Running this skill in the wrong cwd would touch unrelated submodules.
+## When to use / when not to
 
-Interactive workflow that audits the 19+ vendor submodules under `vendor/`, surfaces what changed upstream, lets the user pick which to update via AskUserQuestion, then runs the update + test + commit cycle one submodule at a time.
+- Use inside the Commander repository to audit and update the submodules under `vendor/`. Trigger phrases: "update vendors", "refresh submodules", "pull latest vendor changes", "sync the ecosystem", "are any vendors out of date", "check vendor drift".
+- Not for updating the installed Commander plugin: that is `/ccc-update`, an end-user tool with a similar name.
+- Not a read-only diagnostic like `/ccc-doctor`: this skill writes local commits, one per submodule, after the user picks.
+- Arguments: `--check` audits only (fetch, table, stop); `--all` skips the picker and updates every submodule with an update available.
+- The scheduled workflow `.github/workflows/vendor-update.yml` runs the same audit unattended; this skill is the human-in-the-loop variant.
+- In Codex, ask each picker as a plain-text question with the same options.
 
-Similar in spirit to `/ccc-doctor` (read-only diagnostic) — this one writes (commits per submodule) but only after explicit user approval.
+## What happens
 
-## When to fire
+### 1. Confirm the repository root
 
-User types `/ccc-upgrade`, or says any of:
-- "update vendors"
-- "refresh submodules"
-- "pull latest vendor changes"
-- "sync the ecosystem"
-- "are any vendors out of date"
-- "check vendor drift"
-
-Args:
-- `--check` — read-only audit (no fetch, no update, no commit)
-- `--all` — skip the picker and update every submodule with available updates
-
-## Steps (always in this order)
-
-### 1. Locate the repo root + sanity check
-
-Resolve repo root via `git rev-parse --show-toplevel`. If that fails, output: "Not in a git repo — /ccc-upgrade only works inside the cc-commander checkout." and exit.
-
-Before proceeding, verify you are at the cc-commander repo root:
 ```bash
-# Guard: must be at the cc-commander repo root
-if [ ! -f ".claude-plugin/marketplace.json" ]; then
-  echo "❌ Not at cc-commander repo root. Refusing to update vendor submodules."
-  exit 1
-fi
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "Not in a git repo — /ccc-upgrade only works inside the Commander checkout."; exit 1; }
+cd "$ROOT"
+[ -f ".claude-plugin/marketplace.json" ] || { echo "❌ Not at the Commander repo root. Refusing to update vendor submodules."; exit 1; }
+[ -d vendor ] || { echo "No vendor/ directory at repo root — nothing to upgrade."; exit 1; }
+git status --short -- vendor
+echo "ROOT=$ROOT"
 ```
-If the guard fails, output the error message and exit.
 
-Verify `vendor/` exists:
-```bash
-test -d vendor || echo "no-vendor-dir"
-```
-If missing, output: "No vendor/ directory at repo root — nothing to upgrade." and exit.
+Stop and report the printed message if any guard fails. Running in the wrong directory would touch unrelated submodules. Carry `ROOT` into later Bash calls (`cd '<ROOT>'` as their first line); shell state does not persist between calls.
 
 ### 2. List submodules
 
@@ -65,145 +45,164 @@ If missing, output: "No vendor/ directory at repo root — nothing to upgrade." 
 git submodule status
 ```
 
-Parse each line: format is ` <sha> <path> (<ref>)` or `-<sha> <path>` (uninitialized) or `+<sha> <path>` (local-modified).
+Each line is ` <sha> <path> (<ref>)`; a `-` prefix means uninitialized and a `+` prefix means the checked-out commit differs from the recorded one (local changes).
 
-Skip uninitialized (`-` prefix) entries — flag them in the report so user can `git submodule update --init <path>` separately.
+- `-` entries: skip them and list them in the report with `git submodule update --init <path>` as the user's next step.
+- `+` entries: warn first ("vendor/X has uncommitted local changes; commit or stash before continuing") and exclude them from updates, even with `--all`. Never overwrite local work.
 
-### 3. Per-submodule scan
+### 3. Scan each initialized submodule
 
-For each initialised submodule, gather:
+Scans are independent, so run them in parallel Bash calls or one loop. Per submodule:
 
 ```bash
-cd vendor/<name>
-CURRENT_SHA=$(git rev-parse --short HEAD)
-git fetch --quiet origin 2>/dev/null || git fetch --quiet
-DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo main)
-LATEST_SHA=$(git rev-parse --short "origin/$DEFAULT_BRANCH" 2>/dev/null || echo unknown)
-CHANGED_FILES=$(git diff --name-only "$CURRENT_SHA..$LATEST_SHA" 2>/dev/null | wc -l | tr -d ' ')
-COMMITS_BEHIND=$(git rev-list --count "$CURRENT_SHA..$LATEST_SHA" 2>/dev/null || echo 0)
-cd -
+S=vendor/<name>
+CURRENT_SHA=$(git -C "$S" rev-parse --short HEAD)
+git -C "$S" fetch --quiet origin 2>/dev/null || git -C "$S" fetch --quiet 2>/dev/null
+DEFAULT_BRANCH=$(git -C "$S" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'); [ -z "$DEFAULT_BRANCH" ] && DEFAULT_BRANCH=main
+LATEST_SHA=$(git -C "$S" rev-parse --short "origin/$DEFAULT_BRANCH" 2>/dev/null || echo unknown)
+CHANGED_FILES=$(git -C "$S" diff --name-only "$CURRENT_SHA..$LATEST_SHA" 2>/dev/null | wc -l | tr -d ' ')
+COMMITS_BEHIND=$(git -C "$S" rev-list --count "$CURRENT_SHA..$LATEST_SHA" 2>/dev/null || echo 0)
+echo "$S $CURRENT_SHA $LATEST_SHA $COMMITS_BEHIND $CHANGED_FILES"
 ```
 
-Use `Bash` in a single call per submodule. Handle missing remotes gracefully — output `unknown` rather than failing.
+A missing remote prints `unknown`; report it, do not fail the run. `LATEST_SHA == CURRENT_SHA` means up to date.
 
-If a submodule has `LATEST_SHA == CURRENT_SHA`, mark it ✅ up-to-date and skip from the picker.
-
-Optional star count: if available offline, use cached info; do not block on `WebSearch` for stars — it's nice-to-have, not required. Skip the star column when unknown.
+Star counts are optional polish: add the column only when they are already available locally (for example a cached lookup); this skill does not fetch them, so omit the column otherwise.
 
 ### 4. Render the audit table
+
+Show every submodule, including up-to-date ones:
 
 ```
 ## Vendor submodule audit — <UTC timestamp>
 
 | # | Submodule | Current | Latest | Δ commits | Δ files | Status |
 |---|-----------|---------|--------|-----------|---------|--------|
-| 1 | acpx | abc1234 | def5678 | 12 | 27 | 🔄 update available |
-| 2 | repomix | aaa1111 | aaa1111 | 0 | 0 | ✅ up to date |
-| ... | ... | ... | ... | ... | ... | ... |
+| 1 | <name> | <sha> | <sha> | <n> | <n> | 🔄 update available |
+| 2 | <name> | <sha> | <sha> | 0 | 0 | ✅ up to date |
 
-**Summary:** N submodules · M with updates · K up-to-date
+**Summary:** <N> submodules · <M> with updates · <K> up to date · <U> uninitialized · <L> with local changes
 ```
 
-Always show every submodule, even up-to-date ones (transparency).
+On `--check`, stop here. The fetch already ran and is read-only; nothing else changes.
 
-### 5. Stop here on `--check`
+### 5. Pick what to update
 
-If invoked with `--check`, print the table and exit. No fetch (already done — that's fine, fetch is read-only), no prompt, no update.
+With `--all`, select every update-eligible submodule and skip to Step 6. If no submodule is eligible, report the table and stop. Otherwise ask the scope picker in Decision points. For "Choose submodules": when exactly one submodule is eligible, skip the selection picker and treat that one as chosen; when two or more are eligible, ask the selection picker, three submodules per page ordered by commits behind, plus the leading "All listed on this page" option. Selecting that option chooses every submodule on the page, whatever else is ticked.
 
-### 6. Ask which to update (skip on `--all`)
+### 6. Update each selected submodule, sequentially
 
-If at least one submodule has updates, fire AskUserQuestion with a multi-select chip list:
-
-```
-Question: "Pick the submodules to update. Selected ones will be rebased to latest and committed individually."
-Options:
-  - acpx (12 commits, 27 files)
-  - everything-claude-code (3 commits, 8 files)
-  - ... (one chip per submodule with available updates)
-  - 🌐 All available
-  - ❌ Cancel
-```
-
-If user picks "All available", treat as every update-eligible submodule. If "Cancel", exit with no changes.
-
-On `--all`, skip the picker — auto-select every update-eligible submodule.
-
-### 7. Update each selected submodule
-
-For each chosen submodule, in sequence (NOT parallel — one commit at a time):
+One at a time, never in parallel, because each produces its own commit:
 
 ```bash
 OLD_SHA=$(git -C vendor/<name> rev-parse --short HEAD)
 git submodule update --remote --rebase vendor/<name>
 NEW_SHA=$(git -C vendor/<name> rev-parse --short HEAD)
+echo "<name> $OLD_SHA -> $NEW_SHA"
 ```
 
-If the rebase fails (conflicts, detached state, etc.), abort that submodule, log the failure, and continue to the next. Never `--force`.
+If the update fails (conflict, detached state), reset that submodule to its recorded commit with `git submodule update vendor/<name>`, log the failure, and continue with the next. Never use `--force`.
 
-### 8. Verify tests still pass
+### 7. Check before committing
 
-After each successful submodule update — BEFORE committing — run a fast smoke test:
+After each successful update, before committing:
 
 ```bash
 node scripts/audit-frontmatter.js --check
 node scripts/audit-counts.js --check
 ```
 
-If either fails, roll back that one submodule:
+These cover the registry and count drift that vendor updates can affect; the full `npm test` belongs to PR review, not each submodule.
+
+If either fails, roll that submodule back and confirm it:
+
 ```bash
-git checkout -- vendor/<name>
+git submodule update vendor/<name>
+[ "$(git -C vendor/<name> rev-parse --short HEAD)" = "$OLD_SHA" ] && echo "rolled back <name> to $OLD_SHA"
 ```
-and report the failure. Do NOT continue with other submodules until the user resolves.
 
-If both pass, proceed to commit step.
+Report the failure and stop processing further submodules until the user resolves it.
 
-(Avoid running the full `npm test` per submodule — too slow. The audits cover the registry/count drift surface that vendor updates can affect. Full `npm test` happens at PR review time, not per-submodule.)
-
-### 9. Commit one chore(vendor) per submodule
+### 8. Commit one `chore(vendor)` per submodule
 
 ```bash
 git add vendor/<name>
-git commit -m "chore(vendor): update <name> <OLD_SHA>..<NEW_SHA>"
+git commit -m "chore(vendor): update <name> $OLD_SHA..$NEW_SHA"
+git log --oneline -1
 ```
 
-Commit message format MUST be exact: `chore(vendor): update <submodule-name> <old-sha>..<new-sha>` — lowercase, two dots between SHAs, no trailing period.
+The message format is exact: `chore(vendor): update <submodule-name> <old-sha>..<new-sha>`, lowercase, two dots between the SHAs, no trailing period. Stage only that submodule path.
 
-### 10. Final summary
+### 9. Final summary
 
 ```
 ## Vendor upgrade complete
 
-✅ Updated: N submodules
-  - acpx: abc1234 → def5678 (12 commits)
-  - repomix: aaa1111 → bbb2222 (5 commits)
+✅ Updated: <N> submodules
+  - <name>: <old> → <new> (<n> commits)
 
-⚠️ Skipped: M submodules
-  - foo: rebase conflict — manual resolution required
+⚠️ Skipped: <M> submodules
+  - <name>: <reason, e.g. rebase conflict — manual resolution required>
 
-❌ Test failures rolled back: K submodules
+❌ Check failures rolled back: <K> submodules
 
 Next steps:
-- Review the new commits with `git log --oneline -<N>`
-- Push when ready: `git push`
-- Open a PR if the changes are non-trivial (any submodule with >50 changed files)
+- Review: git log --oneline -<N>
+- Push when ready: git push
+- Open a PR when any submodule changed more than 50 files
 ```
 
-## Anti-patterns — DO NOT
+## Decision points
 
-- Never `git push` automatically — let the user push.
-- Never `--force` a rebase. If it fails, skip and report.
-- Never bundle multiple submodules into one commit — one submodule per commit (atomic, revertable, bisectable).
-- Never run the full `npm test` per submodule — use the targeted audits in step 8.
-- Never silently skip a failed submodule — always log it in the final summary.
-- Never write WebSearch results into the report unless they were already obtained quickly — star counts are optional polish, not blocking.
-- Never modify `.gitmodules` — the workflow is just a wrapper around `git submodule update --remote`.
+Scope picker:
 
-## Tips
+```yaml
+question: "<M> vendor submodules have updates. Which should I update?"
+header: "Vendors"
+multiSelect: false
+options:
+  - label: "🟢 All available"
+    description: "Updates every eligible submodule in sequence, with checks and one commit each."
+  - label: "Choose submodules"
+    description: "Pick from the list, three per page."
+  - label: "Cancel"
+    description: "No updates; the audit table stays as the result."
+```
 
-1. The scan in step 3 can be parallelised across submodules (independent `git fetch` calls). Updates in step 7 must be sequential (commit ordering matters).
-2. If the user has uncommitted vendor changes (the `+` prefix in `git submodule status`), warn them up front: "Vendor X has uncommitted local changes. Stash or commit before continuing." Then exit unless they pass `--all` (in which case still skip that submodule, never trample local work).
-3. The weekly cron at `.github/workflows/vendor-update.yml` runs the same audit unattended. Skill is the human-in-the-loop variant.
-4. Star counts (when fetched) come from `vendor/<name>/.git/config` URL → GitHub API. Do not block on this. Cache results in `~/.claude/commander/vendor-stars.json` if you implement it later.
+Selection picker (`multiSelect: true`, asked only when two or more submodules are eligible). Each page has the all option first plus up to three submodules, so 2 to 4 options:
+
+```yaml
+question: "Pick the submodules to update (page <p> of <n>)."
+header: "Pick"
+multiSelect: true
+options:
+  - label: "🟢 All listed on this page"
+    description: "Updates every submodule on this page in sequence, one commit each."
+  - label: "<name>"
+    description: "<commits> commits, <files> files behind upstream."
+  # one option per eligible submodule on this page, at most three
+```
+
+## Done when
+
+- `--check`: the audit table printed for every submodule and the working tree is unchanged (`git status --short` shows nothing new).
+- Updates: each updated submodule passed both audit checks and has exactly one `chore(vendor)` commit (`git log --oneline -<N>`); each failed one was rolled back to `OLD_SHA` and is listed in the summary.
+
+## Guardrails
+
+- Run only from the Commander repository root (Step 1 guard).
+- Never `git push`; the user pushes.
+- Never `--force` an update; skip and report instead.
+- One submodule per commit: atomic, revertable, bisectable.
+- Never edit `.gitmodules`; this skill wraps `git submodule update --remote`.
+- Never trample a submodule with local changes, and never skip a failure silently; every skip appears in the summary.
+
+## See also
+
+- `/ccc-update` — update the installed Commander plugin
+- `/ccc-doctor` — read-only health report, including vendor-count drift in `full` mode
+- `/ccc-changelog` — summarize what the vendor updates changed
+- `/ccc-ship` — release flow once the vendor commits are reviewed
 
 ---
 

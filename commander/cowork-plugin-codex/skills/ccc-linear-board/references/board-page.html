@@ -1,0 +1,131 @@
+<title>Commander Linear Board</title>
+<style>
+/* Layout: one header strip, then state columns that wrap to a single column on phones. */
+:root {
+  --bg: #F6F7F9;
+  --surface: #FFFFFF;
+  --ink: #16181D;
+  --ink-dim: #5B6170;
+  --line: #DDE1E8;
+  --accent: #4C5BD4;
+  --started: #C27C0E;
+  --done: #2F8A57;
+  --canceled: #8A8F99;
+  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-id: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111318; --surface: #1A1D24; --ink: #E9EBF0; --ink-dim: #9AA1B0; --line: #2C313B;
+    --accent: #8F9BFF; --started: #E8A840; --done: #5CC08A; --canceled: #7B818C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111318; --surface: #1A1D24; --ink: #E9EBF0; --ink-dim: #9AA1B0; --line: #2C313B;
+  --accent: #8F9BFF; --started: #E8A840; --done: #5CC08A; --canceled: #7B818C;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding-inline: 16px; padding-block: 20px 40px; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--font-ui); }
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+h1 { margin: 0; font-size: 1.35rem; text-wrap: balance; }
+.meta { color: var(--ink-dim); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; align-items: start; }
+.col { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 8px; }
+.col h2 { margin: 0; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); display: flex; justify-content: space-between; }
+.col[data-kind="started"] h2 { color: var(--started); }
+.col[data-kind="completed"] h2 { color: var(--done); }
+.card { border-top: 1px solid var(--line); padding-top: 8px; display: grid; gap: 2px; overflow-wrap: anywhere; }
+.card:first-of-type { border-top: 0; padding-top: 0; }
+.card .id { font-family: var(--font-id); font-size: .78rem; color: var(--ink-dim); }
+.card a { color: var(--accent); text-decoration: none; }
+.card a:hover, .card a:focus-visible { text-decoration: underline; }
+.card .sub { font-size: .8rem; color: var(--ink-dim); }
+.pri { font-size: .72rem; font-weight: 600; color: var(--started); }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; padding: 20px; color: var(--ink-dim); max-width: 60ch; }
+.empty code { font-family: var(--font-id); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+<div class="wrap">
+  <header>
+    <h1 id="board-title">Linear board</h1>
+    <span class="meta" id="board-meta">Waiting for the board's data store…</span>
+  </header>
+  <div class="empty" id="board-empty">
+    No issues synced yet. In Claude, run <code>/ccc-linear-board</code> to load this board's issues. The board is read-only here; changes are made in Linear and synced in.
+  </div>
+  <div class="board" id="board" hidden></div>
+</div>
+<script>
+(function () {
+  var COLUMNS = [
+    ['backlog', 'Backlog'], ['unstarted', 'To do'], ['started', 'In progress'],
+    ['completed', 'Done'], ['canceled', 'Canceled']
+  ];
+  var PRIORITY = { 1: 'Urgent', 2: 'High', 3: 'Medium', 4: 'Low' };
+  var board = document.getElementById('board');
+  var empty = document.getElementById('board-empty');
+  var meta = document.getElementById('board-meta');
+  var title = document.getElementById('board-title');
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = String(text);
+    return node;
+  }
+  function safeUrl(value) {
+    return typeof value === 'string' && /^https:\/\/linear\.app\//.test(value) ? value : null;
+  }
+  function render(issues) {
+    if (!issues.length) { board.hidden = true; empty.hidden = false; return; }
+    board.replaceChildren();
+    COLUMNS.forEach(function (col) {
+      var items = issues.filter(function (i) { return (i.stateType || 'unstarted') === col[0]; });
+      if (!items.length && (col[0] === 'canceled' || col[0] === 'backlog')) return;
+      var column = el('section', 'col');
+      column.dataset.kind = col[0];
+      var head = el('h2');
+      head.appendChild(el('span', null, col[1]));
+      head.appendChild(el('span', null, items.length));
+      column.appendChild(head);
+      items.forEach(function (issue) {
+        var card = el('article', 'card');
+        card.appendChild(el('span', 'id', issue.identifier || ''));
+        var href = safeUrl(issue.url);
+        if (href) {
+          var link = el('a', null, issue.title || issue.identifier || 'Untitled');
+          link.href = href; link.target = '_blank'; link.rel = 'noopener';
+          card.appendChild(link);
+        } else {
+          card.appendChild(el('span', null, issue.title || issue.identifier || 'Untitled'));
+        }
+        var bits = [issue.state, issue.project].filter(Boolean).join(' · ');
+        if (bits) card.appendChild(el('span', 'sub', bits));
+        if (PRIORITY[issue.priority]) card.appendChild(el('span', 'pri', PRIORITY[issue.priority]));
+        column.appendChild(card);
+      });
+      board.appendChild(column);
+    });
+    empty.hidden = true; board.hidden = false;
+  }
+  if (!window.claude || typeof window.claude.use !== 'function') {
+    meta.textContent = 'Open this page on claude.ai to see the board.';
+    return;
+  }
+  window.claude.use('db').then(function (db) {
+    if (!db) { meta.textContent = 'This view cannot open the board’s data store. Sign in to claude.ai to see it.'; return; }
+    meta.textContent = 'Loading…';
+    db.doc('meta/board').onSnapshot(function (snap) {
+      var data = snap.exists ? snap.data() : null;
+      if (!data) { meta.textContent = 'Not synced yet'; return; }
+      if (data.team) title.textContent = String(data.team) + ' board';
+      meta.textContent = data.syncedAt ? 'Synced ' + String(data.syncedAt).slice(0, 16).replace('T', ' ') + ' UTC' : 'Synced';
+    }, function () { meta.textContent = 'The board’s data store is unavailable right now.'; });
+    db.collection('issues').orderBy('updatedAt', 'desc').limit(500).onSnapshot(function (snap) {
+      render(snap.docs.map(function (d) { var v = d.data() || {}; v.id = d.id; return v; }));
+    }, function () { meta.textContent = 'The board’s data store is unavailable right now.'; });
+  }, function () { meta.textContent = 'This view cannot open the board’s data store.'; });
+})();
+</script>

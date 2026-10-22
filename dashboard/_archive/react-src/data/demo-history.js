@@ -1,5 +1,5 @@
 const AGENTS = [
-  { name: 'Alfred', model: 'claude-sonnet-4-6', role: 'coordinator' },
+  { name: 'Atlas', model: 'claude-sonnet-4-6', role: 'coordinator' },
   { name: 'Morpheus', model: 'claude-opus-4-6', role: 'architect' },
   { name: 'Neo', model: 'claude-sonnet-4-6', role: 'orchestrator' },
   { name: 'Codex', model: 'claude-sonnet-4-6', role: 'developer' },

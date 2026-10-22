@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: ccc-codex
+description: Codex CLI management routes a setup check and names only current Codex models.
+tags: [skill:ccc-codex, codex]
+execution:
+  prompt: Use CC Commander to check my Codex CLI setup and tell me which Codex models it can route to.
+  max_turns: 15
+  timeout_seconds: 240
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion, Bash(codex:*)]
+graders:
+  - type: tool_used
+    name: codex-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-codex"'
+  - type: regex
+    name: mentions-codex
+    pattern: 'codex'
+    flags: i
+  - type: regex
+    name: names-current-codex-family
+    pattern: 'gpt-6|not installed|not found'
+    flags: i
+  - type: regex
+    name: no-stale-model-names
+    pattern: 'claude-fable-[5]\b|claude-opus-[5]\b|claude-sonnet-[5]\b|claude-haiku-4-[5]|Haiku 4[.]5|\bOpus [5]\b|\bFable [5]\b|\bSonnet [5]\b|gpt-5[.]6|GPT-5[.]6'
+    match: not_contains

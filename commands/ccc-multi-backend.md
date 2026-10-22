@@ -1,162 +1,109 @@
 ---
-description: "Backend-focused multi-model workflow: Research → Plan → Execute → Review, Codex-led."
+description: "Backend-focused multi-model workflow (research, ideation, plan, execute, optimize, review) with Codex as the backend authority. Use for API design, algorithms, database work and business logic."
 ---
 
-# Backend - Backend-Focused Development
+# /ccc-multi-backend — Codex-led backend workflow
 
-Backend-focused workflow (Research → Ideation → Plan → Execute → Optimize → Review), Codex-led.
+**CC Commander** · /ccc-multi-backend · a backend change planned and reviewed with Codex, written by the assistant.
 
 ## Usage
 
 ```bash
-/backend <backend task description>
+/ccc-multi-backend <backend task description>
 ```
 
-## Context
+Task: `$ARGUMENTS`. If it is empty, ask the user for the backend task before starting.
 
-- Backend task: $ARGUMENTS
-- Codex-led, Gemini for auxiliary reference
-- Applicable: API design, algorithm implementation, database optimization, business logic
+Roles:
 
-## Your Role
+- **Codex** — backend logic and algorithms; its backend opinions are authoritative.
+- **Gemini** — frontend perspective; treat its backend opinions as reference only.
+- **The assistant** — orchestration, planning, every file write, and delivery. External models never write to the filesystem.
 
-You are the **Backend Orchestrator**, coordinating multi-model collaboration for server-side tasks (Research → Ideation → Plan → Execute → Optimize → Review).
+The user's selected session model is preserved. Codex runs on the model set in the user's Codex config; Commander's default executor is `gpt-6.1-sol` and `gpt-6-astra` suits the review pass.
 
-**Collaborative Models**:
-- **Codex** – Backend logic, algorithms (**Backend authority, trustworthy**)
-- **Gemini** – Frontend perspective (**Backend opinions for reference only**)
-- **Claude (self)** – Orchestration, planning, execution, delivery
+## Prerequisite: ccg-workflow runtime (opt-in)
 
----
+This command calls the external `ccg-workflow` runtime, which Commander does not bundle. Check it first:
 
-## Multi-Model Call Specification
-
-**Call Syntax**:
-
+```bash
+test -x ~/.claude/bin/codeagent-wrapper && ls ~/.claude/.ccg/prompts/codex
 ```
-# New session call
-Bash({
-  command: "~/.claude/bin/codeagent-wrapper {{LITE_MODE_FLAG}}--backend codex - \"$PWD\" <<'EOF'
+
+If the check fails, ask with AskUserQuestion (Codex: a plain-text question):
+
+- 🟢 Run Claude-only — continue with built-in tools and skip the Codex calls (use `/ccc-plan` for planning)
+- Install first — point the user to the upstream ccg-workflow installation guide and stop
+- Cancel — stop without changes
+
+## Codex call
+
+Run every wrapper call with Bash, `run_in_background: true` and `timeout: 3600000`. Add any extra flags your ccg-workflow install documents (for example lite mode) before `--backend`.
+
+```bash
+# New session
+~/.claude/bin/codeagent-wrapper --backend codex - "$PWD" <<'EOF'
 ROLE_FILE: <role prompt path>
 <TASK>
-Requirement: <enhanced requirement (or $ARGUMENTS if not enhanced)>
+Requirement: <enhanced requirement, or the original task>
 Context: <project context and analysis from previous phases>
 </TASK>
-OUTPUT: Expected output format
-EOF",
-  run_in_background: false,
-  timeout: 3600000,
-  description: "Brief description"
-})
+OUTPUT: <expected output format>
+EOF
 
-# Resume session call
-Bash({
-  command: "~/.claude/bin/codeagent-wrapper {{LITE_MODE_FLAG}}--backend codex resume <SESSION_ID> - \"$PWD\" <<'EOF'
-ROLE_FILE: <role prompt path>
-<TASK>
-Requirement: <enhanced requirement (or $ARGUMENTS if not enhanced)>
-Context: <project context and analysis from previous phases>
-</TASK>
-OUTPUT: Expected output format
-EOF",
-  run_in_background: false,
-  timeout: 3600000,
-  description: "Brief description"
-})
+# Resume an existing session
+~/.claude/bin/codeagent-wrapper --backend codex resume <SESSION_ID> - "$PWD" <<'EOF'
+...same body...
+EOF
 ```
 
-**Role Prompts**:
-
-| Phase | Codex |
-|-------|-------|
+| Phase | Role prompt |
+|---|---|
 | Analysis | `~/.claude/.ccg/prompts/codex/analyzer.md` |
 | Planning | `~/.claude/.ccg/prompts/codex/architect.md` |
 | Review | `~/.claude/.ccg/prompts/codex/reviewer.md` |
 
-**Session Reuse**: Each call returns `SESSION_ID: xxx`, use `resume xxx` for subsequent phases. Save `CODEX_SESSION` in Phase 2, use `resume` in Phases 3 and 5.
+Each call prints `SESSION_ID: <id>`. Save it as `CODEX_SESSION` in Phase 2 and pass `resume <CODEX_SESSION>` in Phases 3 and 5.
 
----
+Wait for the background call to finish before moving on; the harness reports when it exits. Do not kill a running call. If it reaches its timeout, ask with AskUserQuestion:
 
-## Communication Guidelines
+- 🟢 Keep waiting — poll the call again
+- Stop the call — continue Claude-only for this phase
+- Cancel — end the workflow here
 
-1. Start responses with mode label `[Mode: X]`, initial is `[Mode: Research]`
-2. Follow strict sequence: `Research → Ideation → Plan → Execute → Optimize → Review`
-3. Use `AskUserQuestion` tool for user interaction when needed (e.g., confirmation/selection/approval)
+## Steps
 
----
+Start each response with a mode label (`[Mode: Research]`, `[Mode: Ideation]`, and so on) and follow the phases in order.
 
-## Core Workflow
+0. `[Mode: Prepare]` Optional prompt enhancement. If the opt-in ace-tool MCP server is connected, call `mcp__ace-tool__enhance_prompt` and use its result as the requirement for every later Codex call. Otherwise use `$ARGUMENTS` as is.
+1. `[Mode: Research]` Gather context.
+   - If ace-tool is connected, call `mcp__ace-tool__search_context` for existing APIs, data models and service architecture. Otherwise use Glob for files, Grep for symbols and APIs, Read for context, and the Agent tool with the Explore subagent for wider exploration.
+   - Score requirement completeness from 0 to 10. At 7 or above, continue. Below 7, stop and ask the user the questions that close the gaps.
+2. `[Mode: Ideation]` Call Codex with the analyzer role. Output: technical feasibility, at least two solutions, risk assessment. Save `CODEX_SESSION`. Present the solutions with AskUserQuestion, recommended one first and marked 🟢, each with a one-line trade-off.
+3. `[Mode: Plan]` Call Codex with the architect role and `resume <CODEX_SESSION>`. Requirement: the chosen solution. Output: file structure, function and class design, dependencies. Synthesize the plan, then ask:
+   - 🟢 Approve and save — write the plan to `.claude/plan/<task-name>.md` and implement
+   - Revise — adjust the plan from the user's feedback and ask again
+   - Stop — keep the plan in the conversation only
+4. `[Mode: Execute]` Implement the approved plan with Edit and Write. Follow the project's existing code standards and handle errors, input validation and performance at each boundary you touch. Change only what the plan names.
+5. `[Mode: Optimize]` Call Codex with the reviewer role and `resume <CODEX_SESSION>`. Context: `git diff`. Output: security, performance, error-handling and API-compliance issues. Present the issues, then ask:
+   - 🟢 Apply the fixes — make the listed changes
+   - Apply selected — the user names which issues to fix
+   - Skip — record the issues and continue to review
+6. `[Mode: Review]` Final check.
+   - Compare the result against the plan, item by item.
+   - Run the project's test command (from `package.json`, `Makefile`, `pyproject.toml` or the project `CLAUDE.md`, for example `npm test`, `pytest`, `go test ./...`) and its typecheck or lint command if one exists.
+   - Run `git status --short` and `git diff --stat` and confirm only planned files changed.
 
-### Phase 0: Prompt Enhancement (Optional)
+## Done when
 
-`[Mode: Prepare]` - If ace-tool MCP available, call `mcp__ace-tool__enhance_prompt`, **replace original $ARGUMENTS with enhanced result for subsequent Codex calls**. If unavailable, use `$ARGUMENTS` as-is.
+The plan items are complete, the test command's actual pass/fail line is reported, and `git status --short` shows only planned files. Report remaining issues and recommendations.
 
-### Phase 1: Research
+## Guardrails
 
-`[Mode: Research]` - Understand requirements and gather context
+- External models get read-only context; the assistant makes every file change.
+- Codex is authoritative for backend decisions; Gemini's backend input is reference only.
+- No commit, push or deploy unless the user asks for it in this conversation.
 
-1. **Code Retrieval** (if ace-tool MCP available): Call `mcp__ace-tool__search_context` to retrieve existing APIs, data models, service architecture. If unavailable, use built-in tools: `Glob` for file discovery, `Grep` for symbol/API search, `Read` for context gathering, `Task` (Explore agent) for deeper exploration.
-2. Requirement completeness score (0-10): >=7 continue, <7 stop and supplement
+## See also
 
-### Phase 2: Ideation
-
-`[Mode: Ideation]` - Codex-led analysis
-
-**MUST call Codex** (follow call specification above):
-- ROLE_FILE: `~/.claude/.ccg/prompts/codex/analyzer.md`
-- Requirement: Enhanced requirement (or $ARGUMENTS if not enhanced)
-- Context: Project context from Phase 1
-- OUTPUT: Technical feasibility analysis, recommended solutions (at least 2), risk assessment
-
-**Save SESSION_ID** (`CODEX_SESSION`) for subsequent phase reuse.
-
-Output solutions (at least 2), wait for user selection.
-
-### Phase 3: Planning
-
-`[Mode: Plan]` - Codex-led planning
-
-**MUST call Codex** (use `resume <CODEX_SESSION>` to reuse session):
-- ROLE_FILE: `~/.claude/.ccg/prompts/codex/architect.md`
-- Requirement: User's selected solution
-- Context: Analysis results from Phase 2
-- OUTPUT: File structure, function/class design, dependency relationships
-
-Claude synthesizes plan, save to `.claude/plan/task-name.md` after user approval.
-
-### Phase 4: Implementation
-
-`[Mode: Execute]` - Code development
-
-- Strictly follow approved plan
-- Follow existing project code standards
-- Ensure error handling, security, performance optimization
-
-### Phase 5: Optimization
-
-`[Mode: Optimize]` - Codex-led review
-
-**MUST call Codex** (follow call specification above):
-- ROLE_FILE: `~/.claude/.ccg/prompts/codex/reviewer.md`
-- Requirement: Review the following backend code changes
-- Context: git diff or code content
-- OUTPUT: Security, performance, error handling, API compliance issues list
-
-Integrate review feedback, execute optimization after user confirmation.
-
-### Phase 6: Quality Review
-
-`[Mode: Review]` - Final evaluation
-
-- Check completion against plan
-- Run tests to verify functionality
-- Report issues and recommendations
-
----
-
-## Key Rules
-
-1. **Codex backend opinions are trustworthy**
-2. **Gemini backend opinions for reference only**
-3. External models have **zero filesystem write access**
-4. Claude handles all code writes and file operations
+`/ccc-multi-frontend` · `/ccc-multi-workflow` · `/ccc-multi-plan` · `/ccc-multi-execute`

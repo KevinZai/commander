@@ -1,20 +1,25 @@
 export const meta = {
   name: 'ccc-migrate',
-  description: 'CC Commander codebase migration — discover every site matching a pattern, transform each in an isolated worktree, verify the change holds.',
-  whenToUse: 'Large mechanical migrations across many files (API rename, framework bump, import rewrite). Each file is transformed + verified independently.',
+  description: 'Codebase migration: discover every matching site, transform each in its own worktree, and verify each change with an independent skeptic.',
+  whenToUse: 'Large mechanical migrations across many files (API rename, framework bump, import rewrite). Each site is transformed and verified independently.',
   phases: [
     { title: 'Discover', detail: 'find every site that needs the change' },
-    { title: 'Migrate', detail: 'transform each site' },
-    { title: 'Verify', detail: 'independent refute-framed verifier per changed file' },
+    { title: 'Migrate', detail: 'transform each site in an isolated worktree' },
+    { title: 'Verify', detail: 'a fresh skeptic tries to refute each change' },
   ],
 }
 
-// args (required): { pattern: string (what to find), transform: string (how to change it), verify?: string (how to confirm) }
+// args (required):
+//   pattern: string     what to find
+//   transform: string   how to change each site
+//   verify?: string     how to confirm a site (default: the file parses and its tests pass)
+//   maxSites?: number   sites migrated in this run (default 200, max 1000); the rest are returned as remaining
 if (!args || !args.pattern || !args.transform) {
-  throw new Error('ccc-migrate requires args: { pattern, transform, verify? }')
+  throw new Error('ccc-migrate requires args: { pattern, transform, verify?, maxSites? }')
 }
 const { pattern, transform } = args
-const VERIFY = args.verify || 'the file still parses and existing tests for it pass'
+const VERIFY = args.verify || 'the file still parses and the existing tests that cover it pass'
+const MAX_SITES = Math.max(1, Math.min(1000, args.maxSites || 200))
 
 const SITES_SCHEMA = {
   type: 'object',
@@ -34,54 +39,65 @@ const SITES_SCHEMA = {
   },
 }
 
-const RESULT_SCHEMA = {
+const WORKER_SCHEMA = {
   type: 'object',
-  required: ['file', 'changed', 'verified'],
+  required: ['file', 'changed'],
   properties: {
     file: { type: 'string' },
     changed: { type: 'boolean' },
-    verified: { type: 'boolean' },
+    worktree: { type: 'string', description: 'absolute path from git rev-parse --show-toplevel' },
+    branch: { type: 'string' },
     note: { type: 'string' },
+  },
+}
+
+const VERDICT_SCHEMA = {
+  type: 'object',
+  required: ['refuted', 'reason'],
+  properties: {
+    refuted: { type: 'boolean', description: 'true unless the change was confirmed present and correct' },
+    reason: { type: 'string' },
   },
 }
 
 phase('Discover')
 const discovery = await agent(
-  `Find EVERY site in this repo that matches: ${pattern}. Search exhaustively (grep by content, by symbol, by import). Return the full list — do not cap it. Exclude vendor/ and node_modules/.`,
-  { label: 'discover', phase: 'Discover', schema: SITES_SCHEMA, agentType: 'Explore' }
+  `Find every site in this repository that matches: ${pattern}\n` +
+  'Search by content, by symbol, and by import, then merge the lists. Return every site; do not cap the list. Exclude vendor/ and node_modules/.',
+  { label: 'discover', phase: 'Discover', schema: SITES_SCHEMA, agentType: 'Explore', effort: 'medium' }
 )
-const sites = (discovery && discovery.sites) || []
-log(`Discovered ${sites.length} sites to migrate`)
-if (!sites.length) return { pattern, sites: 0, migrated: [], note: 'no sites matched the pattern' }
+if (!discovery) throw new Error('ccc-migrate: discovery agent failed; nothing migrated')
+const allSites = discovery.sites || []
+if (!allSites.length) return { pattern, sites: 0, ok: 0, results: [], note: 'no sites matched the pattern' }
+const sites = allSites.slice(0, MAX_SITES)
+const remaining = allSites.slice(MAX_SITES)
+log(`Discovered ${allSites.length} sites; migrating ${sites.length}` + (remaining.length ? `, ${remaining.length} returned as remaining (raise maxSites to include them)` : ''))
 
-// Each site is transformed in its OWN worktree (parallel-safe — no cross-file conflicts).
-// The worker reports changed/unchanged only — verification belongs to an INDEPENDENT
-// agent below (Fable Pillar 2: the worker never grades its own work).
-const migrated = await parallel(sites.map(s => () =>
-  agent(
-    `In file "${s.file}", apply this transform: ${transform}\nReport whether you changed the file. If the transform does not apply cleanly, leave the file unchanged and report changed=false with a note. Do NOT self-certify correctness — an independent verifier checks your work.`,
-    { label: `migrate:${s.file}`, phase: 'Migrate', schema: RESULT_SCHEMA, isolation: 'worktree' }
-  ).catch(() => ({ file: s.file, changed: false, verified: false, note: 'agent error' }))
-))
+// Workers edit files concurrently, so each gets its own worktree. The worker reports
+// where its change lives; a separate agent verifies it there.
+const results = await pipeline(
+  sites,
+  (s) => agent(
+    `In file "${s.file}", apply this transform: ${transform}\n` +
+    'If it does not apply cleanly, leave the file unchanged and report changed=false with a note. ' +
+    'Report the worktree path (`git rev-parse --show-toplevel`) and branch. Do not grade your own work; an independent verifier checks it.',
+    { label: `migrate:${s.file}`, phase: 'Migrate', schema: WORKER_SCHEMA, isolation: 'worktree', effort: 'medium' }
+  ).then(r => r || { file: s.file, changed: false, note: 'worker failed' }),
+  (r) => {
+    if (!r.changed) return { ...r, verified: false, verifierNote: 'not changed' }
+    return agent(
+      `You did not make this change. In worktree "${r.worktree || '(unknown)'}" on branch "${r.branch || '(unknown)'}", file "${r.file}", a worker claims it applied: ${transform}\n` +
+      `Try to refute the claim: confirm the transform landed, check that ${VERIFY}, and look for collateral damage (broken imports, syntax, adjacent behavior). ` +
+      'If the worktree is missing or you cannot confirm the change, answer refuted=true.',
+      { label: `verify:${r.file}`, phase: 'Verify', schema: VERDICT_SCHEMA, agentType: 'Explore', effort: 'high' }
+    ).then(v => ({ ...r, verified: !!v && v.refuted === false, verifierNote: v ? v.reason : 'verifier failed; treated as unverified' }))
+  }
+)
 
-const workerResults = migrated.filter(Boolean)
-const changed = workerResults.filter(r => r.changed)
-const skipped = workerResults.filter(r => !r.changed)
+const rows = results.map((r, i) => r || { file: sites[i].file, changed: false, verified: false, note: 'stage threw' })
+const ok = rows.filter(r => r.changed && r.verified)
+const failed = rows.filter(r => r.changed && !r.verified)
+const skipped = rows.filter(r => !r.changed)
+log(`Migrated ${ok.length}/${sites.length}: ${failed.length} failed verification, ${skipped.length} unchanged`)
 
-phase('Verify')
-// Verifier ≠ worker: a FRESH refute-framed agent per changed file. verified stays
-// false unless the verifier affirmatively confirms — never trust worker self-reports.
-const verified = await parallel(changed.map(r => () =>
-  agent(
-    `You are an independent verifier — you did NOT make this change. In file "${r.file}", a worker claims to have applied: ${transform}\nActively try to REFUTE that claim: check the transform actually landed, check ${VERIFY}, and look for collateral damage (broken imports, syntax, adjacent behavior). Report verified=true ONLY if you affirmatively confirmed the change is present and correct.`,
-    { label: `verify:${r.file}`, phase: 'Verify', schema: RESULT_SCHEMA, agentType: 'Explore' }
-  ).then(v => ({ ...r, verified: v && v.verified === true, verifierNote: v && v.note }))
-   .catch(() => ({ ...r, verified: false, verifierNote: 'verifier error — treated as unverified' }))
-))
-
-const results = [...verified, ...skipped.map(r => ({ ...r, verified: false }))]
-const ok = verified.filter(r => r.verified)
-const failed = verified.filter(r => !r.verified)
-log(`Migrated ${ok.length}/${sites.length} (${failed.length} failed independent verify, ${skipped.length} skipped)`)
-
-return { pattern, transform, sites: sites.length, ok: ok.length, failed, skipped, results }
+return { pattern, transform, sites: allSites.length, attempted: sites.length, ok: ok.length, failed, skipped, remaining, results: rows }

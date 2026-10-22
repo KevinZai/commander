@@ -310,7 +310,7 @@ function shouldRun(lastState) {
  * Note: suggest-ticker is currently UserPromptSubmit, not SessionStart, but
  * exposing run() lets a future orchestrator wave merge it too.
  */
-export async function run({ input = {}, env = process.env, cwd = process.cwd() } = {}) {
+export async function run({ input = {}, env: _env, cwd: _cwd } = {}) {
   return main(input);
 }
 
