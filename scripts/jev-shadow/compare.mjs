@@ -1,7 +1,7 @@
 // CC-1594 Jev shadow harness: offline comparison of a judge against incumbent decisions.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { normalizeEvent } from './record.mjs';
+import { normalizeEvent, redact } from './record.mjs';
 
 export const DEFAULT_USD_PER_MTOK = 0.042;
 
@@ -34,7 +34,9 @@ export function compare(rows, judge = stubJudge, { usdPerMTok = DEFAULT_USD_PER_
   let unsafeAllows = 0;
   let incumbentDenies = 0;
   let denyAgree = 0;
-  for (const row of rows) {
+  for (const raw of rows) {
+    // Defense in depth: never trust that rows were already normalized; the judge and every output see redacted input.
+    const row = { ...raw, input: redact(raw.input) };
     const j = String(judge(row));
     const inc = row.incumbentDecision;
     const k = (perKind[row.kind] ??= { total: 0, agree: 0, rate: 0 });
@@ -65,7 +67,7 @@ export function compare(rows, judge = stubJudge, { usdPerMTok = DEFAULT_USD_PER_
 
 export function loadEvents(text) {
   return text.split('\n').filter((l) => l.trim()).map((l, i) => {
-    try { return normalizeEvent(JSON.parse(l)); } catch (e) { throw new Error(`line ${i + 1}: ${e.message}`); }
+    try { return normalizeEvent(JSON.parse(l)); } catch (e) { throw new Error(`line ${i + 1}: ${redact(e.message)}`); }
   });
 }
 
@@ -85,7 +87,7 @@ export function renderReport(r) {
   }
   out.push('## Disagreements', '');
   if (!r.disagreements.length) out.push('None.');
-  for (const d of r.disagreements) out.push(`- [${d.kind}] ${d.ts} incumbent=${d.incumbent} judge=${d.judge}: ${d.input.replace(/\n/g, ' ').slice(0, 120)}`);
+  for (const d of r.disagreements) out.push(`- [${d.kind}] ${d.ts} incumbent=${d.incumbent} judge=${d.judge}: ${redact(d.input).replace(/\n/g, ' ').slice(0, 120)}`);
   return out.join('\n') + '\n';
 }
 

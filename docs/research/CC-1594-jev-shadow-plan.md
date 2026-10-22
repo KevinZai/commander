@@ -14,7 +14,7 @@ Decide whether Jev (TypeSafe's non-generative typed decision model, about $0.042
 | route | model/agent routing (lane, tier, subagent pick) | task text | target name (e.g. haiku, reviewer, opus) |
 | loop | loop/repeat detection | tool + args + repeat count | continue, break |
 
-Rows are produced by `normalizeEvent` in `scripts/jev-shadow/record.mjs` and stored as JSONL: `{ts, kind, input, incumbentDecision}`. `redact` masks `sk-`, `ghp_`, `lin_api_`, Bearer tokens and emails before anything is written. Logs stay local and never leave the machine in slice 1.
+Rows are produced by `normalizeEvent` in `scripts/jev-shadow/record.mjs` and stored as JSONL: `{ts, kind, input, incumbentDecision}`. `redact` masks the following before anything is written (and `compare`/`renderReport` re-apply it to every row they handle, so raw rows cannot leak into a report either): AWS access keys (`AKIA`/`ASIA`), Stripe keys (`sk_live_`, `sk_test_`, `rk_live_`, `rk_test_`), Slack tokens (`xoxa-`/`xoxb-`/`xoxp-`/`xoxr-`/`xoxs-`), GitHub tokens (`ghp_`/`gho_`/`ghu_`/`ghs_`/`ghr_` and `github_pat_`), `sk-` API keys, `lin_api_`, npm tokens (`npm_`), JWTs (`eyJ...`), `Authorization: Basic` credentials, Bearer tokens, PEM private-key blocks (an unterminated block is masked to the end of the string), emails, and a generic catch-all for `key|token|secret|password|passwd|api_key|api-key` followed by `=` or `:` and a value (quoted values included). Error messages that echo a rejected `kind`, `ts` or a malformed input line are redacted too. Logs stay local and never leave the machine in slice 1.
 
 ## Sample target
 
