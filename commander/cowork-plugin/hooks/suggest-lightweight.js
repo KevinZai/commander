@@ -33,24 +33,46 @@
 import { track } from '../lib/telemetry.mjs';
 import { emitUser, emitSilent } from './lib/emit.mjs';
 import { computeConfidence } from './lib/confidence.mjs';
+import { resolveCwd, projectDir } from './suggest-ticker.js';
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
 import crypto from 'node:crypto';
 
-const HOME = process.env.HOME || process.env.USERPROFILE || os.homedir();
-const CCC_DIR = path.join(HOME, '.claude', 'commander');
-const STATE_FILE = path.join(CCC_DIR, 'project-state.json');
-const LAST_SUGGESTION_FILE = path.join(CCC_DIR, 'last-suggestion.json');
+
+// Per-project state keying (codex finding 10, CC-1386 W4 item 1) — see the
+// matching comment block in suggest-ticker.js. project-state.json,
+// last-suggestion.json, and suggest-dismissed.json all moved from a flat
+// CCC_DIR file (shared/leaked across every repo) to
+// ~/.claude/commander/projects/<slug>/, slug derived from cwd (payload.cwd
+// first, process.cwd() fallback — resolveCwd/projectDir imported from
+// suggest-ticker.js so both hooks share one hashing implementation). Legacy
+// flat files are never read as a fallback and never deleted.
+function stateFileFor(cwd) { return path.join(projectDir(cwd), 'project-state.json'); }
+function lastSuggestionFileFor(cwd) { return path.join(projectDir(cwd), 'last-suggestion.json'); }
+function dismissedFileFor(cwd) { return path.join(projectDir(cwd), 'suggest-dismissed.json'); }
 
 const IDEMPOTENCY_WINDOW_MS = 60_000; // 60 seconds
+const DISMISSED_AFTER_SHOWS = 2; // ignored twice → stop repeating
+const DISMISSED_TTL_MS = 7 * 24 * 60 * 60 * 1000; // decay so nothing is banned forever
+
+function emitFailOpen({ exit = false } = {}) {
+  try {
+    process.stdout.write(JSON.stringify(emitSilent()) + '\n');
+  } catch {
+    // stdout failures cannot be recovered from
+  }
+  if (exit) process.exit(0);
+  process.exitCode = 0;
+}
 
 // Hard timeout guard — exits cleanly rather than hanging the hook chain
 const timeout = setTimeout(() => {
+  try {
     track('hook_fired', { hook: 'Stop', handler: 'suggest-lightweight' });
-
-  process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
-  process.exit(0);
+  } catch {
+    // telemetry must never block the hook chain
+  }
+  emitFailOpen({ exit: true });
 }, 2000);
 timeout.unref(); // don't prevent normal exit
 
@@ -77,9 +99,9 @@ function writeJson(filePath, data) {
   }
 }
 
-function stateMtime() {
+function stateMtime(stateFile) {
   try {
-    return fs.statSync(STATE_FILE).mtimeMs;
+    return fs.statSync(stateFile).mtimeMs;
   } catch {
     return 0;
   }
@@ -93,6 +115,46 @@ function makeHash(mtime, turnCount) {
     .slice(0, 16);
 }
 
+function normalizeState(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const recommendation = raw.lastRecommendation;
+  const normalizedRecommendation =
+    recommendation &&
+    typeof recommendation === 'object' &&
+    !Array.isArray(recommendation)
+      ? {
+          ...recommendation,
+          skill:
+            typeof recommendation.skill === 'string'
+              ? recommendation.skill
+              : '',
+        }
+      : undefined;
+  return {
+    ...raw,
+    lastRecommendation: normalizedRecommendation,
+    lastSkill: typeof raw.lastSkill === 'string' ? raw.lastSkill : '',
+    recommendedLevel:
+      typeof raw.recommendedLevel === 'string' ||
+      typeof raw.recommendedLevel === 'number'
+        ? raw.recommendedLevel
+        : undefined,
+  };
+}
+
+function normalizeSuggestions(value) {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (suggestion) =>
+      suggestion &&
+      typeof suggestion === 'object' &&
+      typeof suggestion.skill === 'string' &&
+      suggestion.skill &&
+      typeof suggestion.reason === 'string' &&
+      suggestion.reason
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Turn counter (stored in last-suggestion.json)
 // ---------------------------------------------------------------------------
@@ -101,6 +163,60 @@ function getTurnCount(lastSuggestion) {
   return (lastSuggestion && typeof lastSuggestion.turnCount === 'number')
     ? lastSuggestion.turnCount
     : 0;
+}
+
+// ---------------------------------------------------------------------------
+// Dismissed tracking (proactivity wave — mirrors suggest-ticker's seen-file
+// anti-nag pattern): a suggestion rendered twice without engagement stops
+// repeating. Per-project state file (see dismissedFileFor, above):
+//   { "/ccc-ship": { shows: 2, ts: 1699999999999 }, ... }
+// Entries decay after 7 days. Fail-open — malformed state reads as empty.
+// ---------------------------------------------------------------------------
+
+function readDismissed(dismissedFile) {
+  try {
+    const raw = readJson(dismissedFile);
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    const now = Date.now();
+    const out = {};
+    for (const [skill, entry] of Object.entries(raw)) {
+      if (!entry || typeof entry !== 'object') continue;
+      const shows = Number(entry.shows);
+      const ts = Number(entry.ts);
+      if (!Number.isFinite(shows) || shows <= 0) continue;
+      if (Number.isFinite(ts) && now - ts > DISMISSED_TTL_MS) continue; // decayed
+      out[skill] = { shows, ts: Number.isFinite(ts) ? ts : now };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function filterDismissed(suggestions, dismissed) {
+  try {
+    return suggestions.filter(s => {
+      const entry = s && dismissed[s.skill];
+      return !entry || entry.shows < DISMISSED_AFTER_SHOWS;
+    });
+  } catch {
+    return suggestions;
+  }
+}
+
+function recordShown(suggestions, dismissed, dismissedFile) {
+  try {
+    const now = Date.now();
+    const next = { ...dismissed };
+    for (const s of suggestions) {
+      if (!s || typeof s.skill !== 'string' || !s.skill) continue;
+      const prev = next[s.skill];
+      next[s.skill] = { shows: (prev ? prev.shows : 0) + 1, ts: now };
+    }
+    writeJson(dismissedFile, next);
+  } catch {
+    // non-fatal
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -176,8 +292,22 @@ function renderBoxedCard(suggestions, confidence) {
 // Main
 // ---------------------------------------------------------------------------
 
-function main() {
+/** Read the hook's stdin JSON payload — same contract as suggest-ticker.js. */
+async function readStdinPayload() {
+  try {
+    let input = '';
+    for await (const chunk of process.stdin) input += chunk;
+    if (input.trim()) return JSON.parse(input);
+  } catch { /* fail-open — empty payload just means cwd falls back */ }
+  return {};
+}
+
+function main(payload = {}) {
   const mode = getMode();
+  const cwd = resolveCwd(payload);
+  const stateFile = stateFileFor(cwd);
+  const lastSuggestionFile = lastSuggestionFileFor(cwd);
+  const dismissedFile = dismissedFileFor(cwd);
 
   // Silent mode — fast exit
   if (mode === 'off') {
@@ -186,20 +316,20 @@ function main() {
   }
 
   // Read project state — missing file = graceful no-op
-  const state = readJson(STATE_FILE);
+  const state = normalizeState(readJson(stateFile));
   if (!state) {
     process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
   }
 
   // Load last-suggestion state
-  const lastSuggestion = readJson(LAST_SUGGESTION_FILE);
+  const lastSuggestion = readJson(lastSuggestionFile);
   const newTurnCount = getTurnCount(lastSuggestion) + 1;
 
   // Mode-based render gate
   if (!shouldRenderForMode(mode, newTurnCount)) {
     // Still write the updated turn count so every-N counting stays accurate
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       ...(lastSuggestion || {}),
       turnCount: newTurnCount,
     });
@@ -208,12 +338,12 @@ function main() {
   }
 
   // Idempotency check (smart + always modes)
-  const mtime = stateMtime();
+  const mtime = stateMtime(stateFile);
   const hash = makeHash(mtime, Math.floor(Date.now() / IDEMPOTENCY_WINDOW_MS));
 
   if (lastSuggestion && lastSuggestion.hash === hash) {
     // Same hash within the 60s window — skip
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       ...lastSuggestion,
       turnCount: newTurnCount,
     });
@@ -221,16 +351,34 @@ function main() {
     return;
   }
 
-  // Confidence calculation — shared engine (lib/confidence.mjs)
+  // Confidence calculation — shared engine (lib/confidence.mjs), merged with
+  // the ticker's own signals (update-available / stale-telemetry) persisted
+  // on state.tickerSuggestions by suggest-ticker.js — same involvement/
+  // dismissal machinery, no separate render path needed for them.
   const minConfidence = parseFloat(
     process.env.CCC_SUGGEST_MIN_CONFIDENCE || '0.8'
   );
-  const { confidence, suggestions } = computeConfidence(state);
+  const computed = computeConfidence(state);
+  const baseConfidence =
+    typeof computed.confidence === 'number' && Number.isFinite(computed.confidence)
+      ? computed.confidence
+      : 0;
+  const tickerSuggestions = normalizeSuggestions(state.tickerSuggestions);
+  const tickerConfidence = tickerSuggestions.reduce(
+    (max, s) => Math.max(max, Number.isFinite(Number(s.confidence)) ? Number(s.confidence) : 0),
+    0
+  );
+  const confidence = Math.max(baseConfidence, tickerConfidence);
+  const suggestions = normalizeSuggestions(computed.suggestions).concat(tickerSuggestions);
   const level = getLevel(state);
+
+  // Dismissed[] anti-nag: drop suggestions the user has ignored twice.
+  const dismissed = readDismissed(dismissedFile);
+  const visibleSuggestions = filterDismissed(suggestions, dismissed);
 
   // Smart mode: gate on confidence
   if (mode === 'smart' && confidence < minConfidence) {
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       hash,
       timestamp: Date.now(),
       turnCount: newTurnCount,
@@ -241,9 +389,9 @@ function main() {
     return;
   }
 
-  // No suggestions → nothing to render regardless of mode/level
-  if (suggestions.length === 0) {
-    writeJson(LAST_SUGGESTION_FILE, {
+  // No suggestions (after the dismissed filter) → nothing to render
+  if (visibleSuggestions.length === 0) {
+    writeJson(lastSuggestionFile, {
       hash,
       timestamp: Date.now(),
       turnCount: newTurnCount,
@@ -256,14 +404,14 @@ function main() {
 
   // Level 1 (passive): record the suggestion for /ccc-suggest but render nothing
   if (level <= 1) {
-    writeJson(LAST_SUGGESTION_FILE, {
+    writeJson(lastSuggestionFile, {
       hash,
       timestamp: Date.now(),
       turnCount: newTurnCount,
       rendered: false,
       level,
       confidence,
-      suggestions,
+      suggestions: visibleSuggestions,
     });
     process.stdout.write(JSON.stringify(emitSilent()) + '\n');
     return;
@@ -271,20 +419,31 @@ function main() {
 
   // Level 2 (gentle) → bottom one-liner block · Level 3+ (assertive) → boxed card
   const output = level >= 3
-    ? renderBoxedCard(suggestions, confidence)
-    : renderSuggestions(suggestions);
+    ? renderBoxedCard(visibleSuggestions, confidence)
+    : renderSuggestions(visibleSuggestions);
 
-  writeJson(LAST_SUGGESTION_FILE, {
+  writeJson(lastSuggestionFile, {
     hash,
     timestamp: Date.now(),
     turnCount: newTurnCount,
     rendered: true,
     level,
     confidence,
-    suggestions,
+    suggestions: visibleSuggestions,
   });
+
+  // Rendered = shown to the user — bump the ignored-counter for each skill.
+  recordShown(visibleSuggestions, dismissed, dismissedFile);
 
   process.stdout.write(JSON.stringify(emitUser(output.trimEnd())) + '\n');
 }
 
-main();
+(async () => {
+  try {
+    const payload = await readStdinPayload();
+    main(payload);
+  } catch {
+    clearTimeout(timeout);
+    emitFailOpen();
+  }
+})();

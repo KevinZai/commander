@@ -1,76 +1,63 @@
 ---
 name: ccc-triage
-description: "GitHub issue/PR triage for plugin maintainers — list, label, and summarize issues + PRs via gh CLI. Can delegate deep triage to an agent or Codex."
+description: "Triage a GitHub repo's open issues and PRs with the gh CLI: flag stale, unlabeled and CI-failing items, propose labels and next actions, apply labels one confirmed item at a time, or summarize the backlog. Use when a maintainer asks to triage issues or PRs, label the backlog, or wants a digest."
 allowed-tools:
   - Read
   - Bash
   - Agent
   - Workflow
   - AskUserQuestion
+argument-hint: "[issues | prs | label | summary]"
+model: sonnet
+effort: medium
+disable-model-invocation: true
 ---
 
-# /ccc-triage — GitHub Issue & PR Triage
+# $ccc-triage — GitHub issue and PR triage
 
-Maintainer-grade triage for the plugin's GitHub repo. Uses the **`gh` CLI** to list, label, and summarize open issues and pull requests — and can hand off deep, per-item triage to a Sonnet agent or Codex when the backlog is large.
+**CC Commander** · $ccc-triage · read with `gh`, decide in the lead session, delegate deep reads, confirm every write
 
-**CC Commander** · Maintainer Tools · [Docs](https://commanderplugin.com)
+Triage follows the workflow-first doctrine in [../../rules/workflow-first.md](../../rules/workflow-first.md): the lead session decides labels and priorities; bulk reading and per-item analysis are delegated.
 
-> Triage follows the workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): the lead session decides labels and priorities; bulk reading and per-item analysis are delegated.
+## When to use / when not to
 
----
+- Use on a repo you maintain to sort open issues, decide PR direction, apply a label taxonomy, or get a one-screen digest.
+- For reviewing one PR's code in depth, use `$ccc-code-review`.
+- For tracker issues in Linear, use `$ccc-linear`.
+- In Codex, ask each picker below as a plain-text question with the same options, and replace Agent/Workflow delegation with `codex exec` per batch.
 
-## What this does
+## What happens
 
-Four click-first actions, each backed by `gh`:
+### 1. Check prerequisites
 
-1. **Triage issues** — list open issues, surface stale/unlabeled/needs-info, propose a label + priority per item.
-2. **Triage PRs** — list open PRs, flag draft/conflicting/CI-failing/stale, propose merge-or-close direction.
-3. **Auto-label** — apply a consistent label taxonomy (bug/feat/docs/question/good-first-issue) across untriaged items.
-4. **Summarize backlog** — one-screen digest: counts by label, oldest items, no-response items, ready-to-merge PRs.
-
----
-
-## Prerequisites
-
-- `gh` authenticated: run `gh auth status`. If not logged in, the user runs `gh auth login` (browser, interactive).
-- A repo context: this skill targets the current repo (`gh` infers `owner/repo` from the cwd's git remote). Confirm with `gh repo view --json nameWithOwner -q .nameWithOwner` before acting.
-
----
-
-## Picker
-
-Call `AskUserQuestion` so the user picks the triage action:
-
+```bash
+gh auth status
+gh repo view --json nameWithOwner -q .nameWithOwner
 ```
+
+- `gh auth status` fails: tell the user to run `gh auth login` (interactive, browser) and stop.
+- Show the `nameWithOwner` and confirm it is the intended repo before any query; a worktree may point at a fork.
+
+### 2. Action picker — `AskUserQuestion`
+
+Skip when `$ARGUMENTS` is `issues`, `prs`, `label` or `summary`. Otherwise put the best match first and mark it 🟢: "pr", "pull request" or "merge" → Triage PRs; "label", "categorize" or "tag" → Auto-label; "summary", "digest", "overview" or "how many" → Summarize backlog; otherwise Triage issues.
+
+```yaml
 question: "What do you want to triage?"
 header: "Triage"
 multiSelect: false
 options:
-  - label: "🐛 Triage issues"
-    description: "List open issues, flag stale/unlabeled/needs-info, propose a label + priority each."
-    preview: "gh issue list --state open --json number,title,labels,createdAt,comments"
-  - label: "🔀 Triage PRs"
-    description: "List open PRs, flag draft/conflicting/CI-failing/stale, propose merge-or-close."
-    preview: "gh pr list --state open --json number,title,isDraft,mergeable,statusCheckRollup"
-  - label: "🏷️ Auto-label"
-    description: "Apply a consistent label taxonomy across untriaged items. Confirms before each write."
-    preview: "gh issue edit <n> --add-label <label> (one confirm per item)."
-  - label: "📊 Summarize backlog"
-    description: "One-screen digest: counts by label, oldest items, no-response items, ready PRs."
-    preview: "Read-only roll-up. No writes."
+  - label: "🟢 Triage issues"
+    description: "Flag stale, unlabeled and needs-info issues; propose a label and priority each. Read-only."
+  - label: "Triage PRs"
+    description: "Flag draft, conflicting, CI-failing and stale PRs; propose merge or close. Read-only."
+  - label: "Auto-label"
+    description: "Apply the label taxonomy to untriaged items, one confirmed write at a time."
+  - label: "Summarize backlog"
+    description: "Counts by label, oldest items, no-response items, ready PRs. Read-only."
 ```
 
-Prepend ⭐ to the best match:
-- "pr" / "pull request" / "merge" keywords → ⭐ Triage PRs
-- "label" / "categorize" / "tag" keywords → ⭐ Auto-label
-- "summary" / "digest" / "overview" / "how many" keywords → ⭐ Summarize backlog
-- otherwise → ⭐ Triage issues
-
----
-
-## After user picks
-
-**Confirm the repo first**, then run the matching read query. Examples:
+### 3. Run the read query
 
 ```bash
 # Triage issues
@@ -81,22 +68,43 @@ gh issue list --state open --limit 50 \
 gh pr list --state open --limit 50 \
   --json number,title,isDraft,mergeable,reviewDecision,statusCheckRollup,updatedAt
 
-# Summarize backlog (counts)
-gh issue list --state open --json labels -q '[.[].labels[].name] | group_by(.) | map({label: .[0], n: length})'
+# Summarize backlog: counts by label
+gh issue list --state open --limit 200 --json labels \
+  -q '[.[].labels[].name] | group_by(.) | map({label: .[0], n: length})'
 ```
 
-Present findings as a table: `# · title · age · signals · 🟢 proposed action`. For **auto-label**, propose the full set, then apply one item at a time with an explicit confirm before each write (`gh issue edit <n> --add-label <label>`).
+Signals: stale = no update in 30 days; unlabeled = empty `labels`; needs-info = last comment from a maintainer asking a question; PR blocked = `isDraft`, `mergeable` is `CONFLICTING`, or a failing check in `statusCheckRollup`; ready = approved, mergeable, checks green.
 
-### Delegate deep triage when the backlog is large
+Present a table: `# · title · age · signals · 🟢 proposed action`. The summary adds counts by label, the five oldest items, items with zero comments, and ready-to-merge PRs.
 
-If there are **15+ open items** or the user wants per-item analysis (reproduction assessment, dup detection, root-cause hints), delegate instead of reading every thread into the lead context:
+### 4. Delegate deep triage when the backlog is large
 
-- **Agent:** dispatch a Sonnet `Agent` (or a `Workflow` fanout) that reads each issue/PR thread, classifies it, and returns ONLY a structured table — never raw thread dumps.
-- **Codex:** for a tough technical PR, pass the diff to Codex for an independent second-opinion review (see the `codex` skill). Codex reads, you decide.
+With 15 or more open items, or when the user wants per-item analysis (reproduction assessment, duplicate detection, root-cause hints), do not read every thread into the lead context:
 
-Report back which items need a maintainer decision vs which were auto-classified.
+- **Agent:** dispatch an `Agent` with `model: "sonnet"` (or a `Workflow` fan-out, one agent per batch of about 10 items) that runs `gh issue view <n> --comments` / `gh pr view <n> --comments`, classifies each item, and returns only a table: `number · type · label · priority · duplicate-of · needs maintainer decision (yes/no) · one-line reason`. Never return raw thread text.
+- **Codex second opinion** for a hard technical PR:
 
----
+  ```bash
+  gh pr diff <n> > "<scratchpad>/pr-<n>.diff"
+  codex exec --sandbox read-only --skip-git-repo-check -m gpt-6-astra \
+    "Review the unified diff in <scratchpad>/pr-<n>.diff. Report findings as path:line, severity, fix."
+  ```
+
+  Codex reads, the lead decides. See `$ccc-codex` for setup.
+
+Report which items need a maintainer decision and which were auto-classified. The user's selected session model is preserved; only delegated agents use the tier named here.
+
+### 5. Apply labels (Auto-label only)
+
+1. Propose the full set as a table: `# · title · current labels · proposed label`.
+2. For each item, ask with AskUserQuestion: "🟢 Apply `<label>` to #<n>", "Use a different label", "Skip #<n>". Then run:
+
+   ```bash
+   gh issue edit <n> --add-label <label>      # issues
+   gh pr edit <n> --add-label <label>         # pull requests
+   ```
+
+3. A label missing from the repo (`gh label list --limit 100`): ask before `gh label create <name>`; never create one silently.
 
 ## Label taxonomy (default)
 
@@ -105,27 +113,34 @@ Report back which items need a maintainer decision vs which were auto-classified
 | `bug` | Reproducible defect |
 | `feat` | New capability request |
 | `docs` | Documentation gap |
-| `question` | Needs-info / support, not a defect |
+| `question` | Needs info or support, not a defect |
 | `good-first-issue` | Small, well-scoped, newcomer-friendly |
 | `wontfix` | Out of scope — propose, never auto-apply |
 
-Create a missing label with `gh label create <name>` only after confirming with the user.
+Use the repo's existing labels when they cover the same meaning; propose new ones rather than inventing names per item.
 
----
+## Done when
 
-## Anti-patterns — DO NOT
+- Read actions: the table came from a `gh` query run in this turn, and its row count matches the query output.
+- Auto-label: for every applied item, `gh issue view <n> --json labels -q '.labels[].name'` (or `gh pr view`) shows the new label; the reply lists applied, skipped and failed items.
 
-- ❌ Close, merge, or apply `wontfix` automatically — every destructive or judgment-laden write needs explicit user confirmation
-- ❌ Read every issue/PR thread into the lead context — delegate per-item analysis to an agent/Workflow and return only conclusions
-- ❌ Act on a repo without first confirming `nameWithOwner` — you may be in the wrong worktree
-- ❌ Assume `gh` is authenticated — check `gh auth status` and stop if it fails
-- ❌ Invent label names per-item — use the taxonomy table; propose new labels, don't silently create them
-- ❌ Bulk-edit issues in one command without per-item confirmation — one mistaken label sweep is hard to undo
+## Guardrails
 
----
+- Every write to GitHub (labels, label creation) needs the per-item confirmation in step 5; this is the authorization, asked at the moment of the write.
+- Never close, merge, or apply `wontfix` from this skill; propose them for the maintainer to do.
+- Never bulk-edit several items in one command.
+- Never act before confirming `nameWithOwner` and `gh auth status`.
+- Never read every thread into the lead context; delegate and return conclusions only.
 
-**Bottom line:** triage = read with `gh`, decide in the lead, delegate the deep reads, confirm every write.
+## See also
+
+- `$ccc-code-review` — in-depth review of one PR
+- `$ccc-codex` — Codex setup and second-opinion reviews
+- `$ccc-linear` — triage in Linear instead of GitHub
+- `$ccc-ci` — fix the failing checks found here
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

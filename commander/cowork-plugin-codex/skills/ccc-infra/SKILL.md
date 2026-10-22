@@ -1,109 +1,125 @@
 ---
 name: ccc-infra
-description: "Infrastructure probe — manage Fleet Commander, Synapse, Cost tracking, CloudCLI, AO, Paperclip, TaskMaster. Use when the user says 'infrastructure', 'fleet', 'cost',…"
+description: "Dev services status: probes the local services you declare in an optional services.json, plus Claude MCP connections and Codex CLI health, and recommends the next action. Use when the user asks for infrastructure or service status, whether a dev server is up, or why an MCP is down."
 allowed-tools:
   - Bash
   - Read
+  - Write
   - AskUserQuestion
-argument-hint: "[probe | fleet | paperclip | cost | taskmaster]"
+argument-hint: "[probe [service-name] | full]"
+model: haiku
+effort: low
 ---
 
-# /ccc-infra — Infrastructure probe
+# $ccc-infra — Dev services status
 
-> Placeholders like ~~monitoring refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
+**CC Commander** · $ccc-infra · a status table for your declared services, Claude MCPs and the Codex CLI.
 
-Probe all local CC Commander infrastructure services, report their status, and recommend next actions. Menu sourced from `references/infrastructure.json`.
+Scope is Claude Code and Codex tooling plus whatever the user lists in `~/.claude/commander/services.json`. The skill ships with no hardcoded ports, hosts or process names. Menu actions mirror [references/infrastructure.json](references/infrastructure.json).
 
-## Quick Mode (default)
+Codex: ask the pickers as plain-text questions.
 
-Run a fast port scan and present a status summary with recommended action:
+## When to use / when not to
 
-```bash
-curl -s --max-time 2 http://localhost:4680/api/status && echo "fleet:ok" || echo "fleet:down"
-curl -s --max-time 2 http://localhost:3100/api/health && echo "paperclip:ok" || echo "paperclip:down"
-curl -s --max-time 2 http://localhost:18789/health && echo "openclaw:ok" || echo "openclaw:down"
-pm2 list --no-color 2>/dev/null | grep -E 'online|stopped|errored' | head -10
+- Use for "is my dev server up?", "which MCPs are connected?", "is Codex installed?", or a quick health table before starting work.
+- Not for: a failing CI run (`$ccc-ci`), Commander's own install diagnostics (`$ccc-doctor`), or production monitoring and alerting (`$ccc-devops`).
+
+## Config (optional)
+
+`~/.claude/commander/services.json`, written by the user or by step 5 with their answers:
+
+```json
+{
+  "services": [
+    { "name": "API", "url": "http://localhost:3000/health" },
+    { "name": "Worker", "port": 8080 }
+  ]
+}
 ```
 
-Show a compact status table, then offer 3 actions via AskUserQuestion:
-- "View full infrastructure menu"
-- "Start a stopped service"
-- "Back to main menu"
+Each entry has a `name` and either an `http(s)` `url` or an integer `port` (1–65535). Skip entries that fail this shape and list them as "invalid entry". No file: skip to the tooling checks; never invent a service.
 
-## Power Mode
+## What happens
 
-Full infrastructure menu from `references/infrastructure.json`. Activate by passing `--power` or `full` as argument.
+1. **Read the config.**
+   ```bash
+   test -f ~/.claude/commander/services.json && cat ~/.claude/commander/services.json || echo "no services.json"
+   ```
 
-### Step 1 — Probe All Services
+2. **Probe declared services only.** With `probe <name>`, probe just that entry.
+   ```bash
+   jq -r '.services[] | [.name, (.url // ""), ((.port // "") | tostring)] | @tsv' ~/.claude/commander/services.json |
+   while IFS=$'\t' read -r name url port; do
+     if [ -n "$url" ]; then
+       code=$(curl -s -o /dev/null -w '%{http_code}' --proto '=http,https' --max-time 2 "$url"); echo "$name	url	$code"
+     else
+       lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1 && echo "$name	port	LISTEN" || echo "$name	port	DOWN"
+     fi
+   done
+   ```
+   `jq` absent: Read the file and probe each entry with the same `curl` or `lsof` line.
 
-Run these Bash commands (2-second timeout so dead services don't hang):
+3. **Check Claude and Codex tooling.**
+   ```bash
+   claude mcp list 2>/dev/null || echo "claude mcp: not available"
+   command -v codex >/dev/null 2>&1 && { codex --version; codex doctor --summary 2>/dev/null; } || echo "codex: not installed"
+   ```
+   `full` (or `--power`) runs `codex doctor --json` instead of `--summary` and reports each failing check.
 
-```bash
-curl -s --max-time 2 http://localhost:4680/api/status && echo "fleet:ok" || echo "fleet:down"
-curl -s --max-time 2 http://localhost:4682/api/status && echo "synapse:ok" || echo "synapse:down"
-curl -s --max-time 2 http://localhost:3005/api/status && echo "ao:ok" || echo "ao:down"
-curl -s --max-time 2 http://localhost:4681/api/status && echo "cloudcli:ok" || echo "cloudcli:down"
-curl -s --max-time 2 http://localhost:3100/api/health && echo "paperclip:ok" || echo "paperclip:down"
-curl -s --max-time 2 http://localhost:18789/health && echo "openclaw:ok" || echo "openclaw:down"
-which task-master && task-master --version 2>/dev/null || echo "task-master: not installed"
-```
+4. **Show the status table** and classify:
+   ```
+   Service       Source           Status         Notes
+   ─────────────────────────────────────────────────────────
+   API           services.json    UP             200
+   Worker        services.json    DOWN           not listening
+   Claude MCPs   claude mcp list  <n> connected  <failed names>
+   Codex CLI     codex doctor     INSTALLED      <version>, <failing checks>
+   ```
+   HTTP 2xx or a listening port: UP. Other HTTP codes: DEGRADED. `000`, not listening, or a missing binary: DOWN or NOT INSTALLED. Fill values from step 2–3 output only.
 
-### Step 2 — Status Table
+5. **Recommend the next action** with the picker (Decision points), showing only options that apply:
+   - A declared service is DOWN: there is no generic start command. Read the project's `package.json` scripts, `Procfile`, `docker-compose*.yml` or README and suggest the exact start command; run it only on the user's yes.
+   - No `services.json`: ask the user which local services to watch, then Write the file in the shape above and rerun step 2.
+   - An MCP shows failed: tell the user to run `/mcp reconnect all`, or `$ccc-connect` to set one up.
+   - Codex missing and the user wants it: the install is `npm install -g @openai/codex` (global install, ask first), then the user runs `codex login`. Never route an API key through this skill.
 
-```
-Service          Port   Status     Notes
-─────────────────────────────────────────────
-Fleet Commander  4680   UP         v1.2.3
-Synapse          4682   DOWN       Connection refused
-AO Dashboard     3005   UP         $2.34 today
-CloudCLI         4681   DEGRADED   HTTP 503
-Paperclip        3100   UP         12 open tasks
-OpenClaw         18789  UP         38 agents active
-TaskMaster       CLI    INSTALLED  v0.43.1
-```
+6. **Connectors (opt-in, absent by default).** If a monitoring connector is connected, pull CPU, memory and error rates for the declared services and link their dashboards. If a CI/CD connector is connected, list recent pipeline runs beside the table; deploying is `$ccc-deploy`, not this skill.
 
-Classify: HTTP 200 with valid JSON → UP. HTTP non-200 → DEGRADED. Connection refused/timeout → DOWN.
+## Decision points
 
-### Step 3 — Down Service Recovery
+After the quick table (AskUserQuestion, 2–4 options):
+- 🟢 Full status: every entry plus `codex doctor --json` and MCP detail
+- Set up services.json: answer a few questions, the file is written for you
+- Back to `/ccc`: return to the main menu
 
-| Service | Start Command |
-|---------|--------------|
-| Fleet Commander | `pm2 start fleet-commander` |
-| Synapse | `pm2 start synapse` |
-| AO Dashboard | `pm2 start ao-dashboard` |
-| CloudCLI | `pm2 start cloudcli` |
-| Paperclip | `pm2 start paperclip` |
-| OpenClaw | `openclaw gateway status` — do NOT restart without explicit user approval |
-| TaskMaster | `npm install -g task-master-ai` |
+When something is down (only the options that apply):
+- 🟢 Find the start command: reads the project's scripts, suggests one
+- Reconnect MCPs: you run `/mcp reconnect all`
+- Install Codex CLI: global npm install after your yes
+- Done
 
-If ALL services are DOWN: run `pm2 list` to see managed processes, suggest `pm2 start all`.
+## Done when
 
-### Step 4 — Recommend Next Action
+- Every row in the table came from a probe or command run in this turn; nothing is filled from memory.
+- After writing `services.json`, step 2 reran and its result is shown.
+- After a start command ran (on approval), the service was re-probed and its new status reported.
 
-Via AskUserQuestion (contextual — only show options for what's running):
-- If Paperclip is UP: "Open Paperclip task board"
-- If Fleet Commander is UP: "View agent fleet status"
-- If any service is DOWN: "Start [service name]"
-- "Check full pm2 process list" (`pm2 list`)
-- "Back to main menu"
+## Guardrails
 
-## If Connectors Available
+- Probe only entries in the user's `services.json` and the Claude/Codex checks above; never scan ports or guess process names.
+- Never start, stop or install anything without the user's yes for that exact command.
+- Never print environment values or tokens; `services.json` holds names, URLs and ports only.
+- Timeouts stay at 2 seconds per probe; a slow service reports DOWN, not a hang.
 
-If **~~monitoring** is connected:
-- Pull live metrics (CPU, memory, error rates) from the monitoring provider
-- Show alert counts alongside service status
-- Link directly to dashboards for degraded services
+## See also
 
-If **~~CI/CD** is connected:
-- Show recent pipeline runs alongside service health
-- Offer to trigger a deployment if services are healthy
-
-## Tips
-
-1. OpenClaw must never be restarted without explicit user approval — the skill enforces this.
-2. Pass a service name as argument (e.g., `paperclip`) to jump directly to that service's status.
-3. TaskMaster status is checked via CLI — MCP tools (`get_tasks`, `next_task`) are used when the MCP server is available.
+- `$ccc-doctor` — Commander install and hook health
+- `$ccc-connect` — set up an MCP connector
+- `$ccc-ci` — CI and deploy failures
+- `$ccc-devops` — monitoring and alerting setup
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

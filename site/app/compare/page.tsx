@@ -53,7 +53,7 @@ const PHILOSOPHY = [
   },
   {
     title: "How to pick.",
-    body: "If you want a one-click install that activates 60 skills + 22 agents + a hosted MCP with zero credit card friction, install CC Commander. If you need GitHub App automation across private repos, install ECC alongside it. If you want a focused, principle-first TDD/PRD workflow, install Pocock's skills directly. They compose — pick whatever helps.",
+    body: "If you want a one-click install that activates 84 skills + 22 agents + a hosted MCP with zero credit card friction, install CC Commander. If you need GitHub App automation across private repos, install ECC alongside it. If you want a focused, principle-first TDD/PRD workflow, install Pocock's skills directly. They compose — pick whatever helps.",
   },
 ];
 
@@ -125,7 +125,7 @@ export default function ComparePage() {
           <section className="border-t border-zinc-900 pt-12 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Try CC Commander</h2>
             <p className="text-zinc-400 mb-8 max-w-2xl mx-auto">
-              30-second install. No card. All 60 skills, 22 agents, and the hosted MCP free tier are yours immediately.
+              30-second install. No card. All 84 skills, 22 agents, and the hosted MCP free tier are yours immediately.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a

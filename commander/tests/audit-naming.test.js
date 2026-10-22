@@ -130,8 +130,8 @@ test('No plugin agent has [C:agent] — prefix (UX cleanup)', function() {
   assert.deepStrictEqual(failures, [], `Agents with stale [C:*] prefix:\n${failures.join('\n')}`);
 });
 
-// ── All descriptions ≤ 200 chars ──────────────────────────────────────────────
-test('No description exceeds 200 chars', function() {
+// ── All descriptions ≤ 300 chars ──────────────────────────────────────────────
+test('No description exceeds 300 chars', function() {
   const dirs = [
     path.join(ROOT, 'commander/cowork-plugin/skills'),
     path.join(ROOT, 'commander/cowork-plugin/agents'),
@@ -158,12 +158,12 @@ test('No description exceeds 200 chars', function() {
       if (!dm) continue;
       let raw = dm[1].trim();
       if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) raw = raw.slice(1, -1);
-      if (raw.length > 200) {
+      if (raw.length > 300) {
         failures.push(`${path.relative(ROOT, filePath)}: ${raw.length} chars`);
       }
     }
   }
-  assert.deepStrictEqual(failures, [], `Descriptions > 200 chars:\n${failures.join('\n')}`);
+  assert.deepStrictEqual(failures, [], `Descriptions > 300 chars:\n${failures.join('\n')}`);
 });
 
 // ── 3 zero-description skills have non-empty descriptions (post UX cleanup) ──

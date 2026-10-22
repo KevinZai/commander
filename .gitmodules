@@ -28,6 +28,7 @@
 [submodule "vendor/rtk"]
 	path = vendor/rtk
 	url = https://github.com/rtk-ai/rtk.git
+	branch = master
 [submodule "vendor/acpx"]
 	path = vendor/acpx
 	url = https://github.com/openclaw/acpx.git
@@ -46,6 +47,7 @@
 [submodule "vendor/graphify"]
 	path = vendor/graphify
 	url = https://github.com/safishamsi/graphify.git
+	branch = v8
 [submodule "vendor/ui-ux-pro-max-skill"]
 	path = vendor/ui-ux-pro-max-skill
 	url = https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git
@@ -55,3 +57,7 @@
 [submodule "vendor/mengto-skills"]
 	path = vendor/mengto-skills
 	url = https://github.com/MengTo/Skills
+[submodule "vendor/claude-code-playground"]
+	path = vendor/claude-code-playground
+	url = https://github.com/anthropics/claude-code-playground.git
+	branch = main

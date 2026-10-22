@@ -1,156 +1,163 @@
 ---
 name: ccc
-description: "CC Commander main hub — click-first menu that detects your project context and routes to 12 specialist workflows (plan, build, review, ship, design, learn, xray,…"
+description: "Commander's click-first home: reads the project context, then routes to build, review, ship or the More menu (plan, x-ray, Codex CLI, fleet, connectors, plugin audit workflows) in one or two clicks. Use when the user types /ccc, opens the Commander menu, or asks where to start."
 allowed-tools:
   - Read
-  - Write
-  - Edit
   - Bash
   - Glob
   - Grep
-  - Agent
+  - Skill
   - AskUserQuestion
-  - TodoWrite
-argument-hint: "[intent keyword: build | review | ship | design | learn | more]"
+argument-hint: "[build | review | ship | design | learn | more | plan | xray | codex | fleet | workflows]"
+model: sonnet
+effort: low
 ---
 
-# /ccc — CC Commander Hub
+# /ccc — one click to the right workflow
 
-Click-first entry point to the whole CC Commander surface (60 ccc-* skills, 22 specialist agents, 2 credential-free bundled MCP servers + 16 opt-in via /ccc-connect). The user types `/ccc` and gets a native visual picker — no typing, no menus.
+**CC Commander** · /ccc · a banner, a one-line context strip, and a four-option picker that dispatches to the matching `$ccc-*` skill.
 
-> **Workflow-first.** CC Commander delegates substantive work to the Workflow tool / fleet; the lead session stays a thin control plane (conclusions in, file-dumps out). See `../../rules/workflow-first.md`.
+The hub is a thin control plane: it detects context, offers a choice, and hands off. Substantive work runs in the target skill or a plugin workflow (see [workflow-first](../../rules/workflow-first.md)). The user's selected model is preserved; the hub never switches models.
 
-## Response shape (EVERY time)
+## When to use / when not to
 
-Output exactly four sections in order: **0) onboarding gate, 1) ASCII hero banner, 2) context strip, 3) picker (AskUserQuestion), 4) dispatch on selection**. Sections 1-3 are rendered up front; section 4 fires after the user clicks.
+- Use for "open Commander", "what can I do here?", "where do I start?", or a bare `/ccc`.
+- Use the argument form (`/ccc review`, `/ccc codex`) when the user already named the intent; the hub skips the picker.
+- Do not use for the full catalog: that is `$ccc-browse` (searchable) or `$ccc-cheatsheet` (live map).
 
-### 0. Onboarding gate (MANDATORY first check)
+## What happens
 
-Run this bash check at the very top of the skill execution:
+### 1. Onboarding gate
+
+Run first:
 
 ```bash
-STATE=~/.claude/commander/state.json
+STATE="$HOME/.claude/commander/state.json"
 if [ ! -f "$STATE" ] || ! grep -q '"onboardingCompleted": *true' "$STATE" 2>/dev/null; then
   echo "ONBOARDING_NEEDED"
 fi
 ```
 
-If output contains `ONBOARDING_NEEDED`, respond with ONLY this (no picker, no context strip):
+- Output contains `ONBOARDING_NEEDED`: reply with one line, "Welcome to CC Commander. First run, so starting the guided setup.", invoke the `ccc-start` skill with the Skill tool, and stop. Do not show the hub picker on first run.
+- Otherwise continue to step 2.
+- Bash unavailable: skip the gate and continue; do not guess onboarding state.
 
-> 👋 Welcome to CC Commander — first time? Let me walk you through the basics.
->
-> *Dispatching `/ccc-start`…*
+### 2. Argument shortcut
 
-Then dispatch the `ccc-start` skill immediately. Do NOT show the main `/ccc` picker on first run.
+If `$ARGUMENTS` matches a row below, invoke that skill with the Skill tool and stop. Do not render the banner or picker.
 
-If state.json shows `onboardingCompleted: true`, skip this step and proceed to step 1.
+| Argument | Skill |
+|---|---|
+| `build` · `review` · `ship` · `design` · `learn` | `ccc-build` · `ccc-review` · `ccc-ship` · `ccc-design` · `ccc-learn` |
+| `more` | `ccc-more` |
+| `plan` · `xray` · `linear` · `fleet` · `connect` · `tuneup` · `browse` | `ccc-more` with the same argument (it dispatches directly) |
+| `codex` | `ccc-codex` (Codex CLI: doctor, models, plugins, mcp, agents, cloud, remote, review, update, import, config) |
+| `workflows` · `audit` · `deep-review` · `migrate` · `prompt-audit` · `release-audit` | `ccc-more` with the same argument (plugin workflows page) |
+| `cheatsheet` · `start` · `doctor` · `update` | `ccc-cheatsheet` · `ccc-start` · `ccc-doctor` · `ccc-update` |
 
-### 1. ASCII hero (read banner.txt + interpolate version)
+Any other argument: keep it, continue to step 3, and echo it in the context strip as "You said: `<arg>` — pick the closest intent."
 
-Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Render in a fenced code block (` ```text ... ``` `), NO trailing prose on the same block.
+### 3. Banner
 
-This replaces the markdown one-liner header.
+Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` and `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`. Replace `{{VERSION}}` with the manifest `version`. Render the banner alone in a ```` ```text ```` block. Never type a version from memory.
 
-### 2. Context strip (one paragraph, markdown)
+### 4. Context strip
 
-Detect project context with **four quick reads** (cheap, silent on failure):
-- `git rev-parse --abbrev-ref HEAD` → current branch
-- Presence of `CLAUDE.md` in CWD → project recognition
-- Presence of `tasks/todo.md` → active work
-- `ls -t ~/.claude/sessions/*.tmp 2>/dev/null | head -1` → recent session
+Run the probes in one Bash call; each is silent on failure:
 
-Render a one-line summary:
-> 🧭 Context: `<branch>` · project: `<name from CLAUDE.md first line or CWD basename>` · <N> open tasks · last session: <age>
+```bash
+git rev-parse --abbrev-ref HEAD 2>/dev/null
+git status --porcelain 2>/dev/null | wc -l | tr -d ' '
+BASE=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null || echo main); git rev-list --count "$BASE"..HEAD 2>/dev/null
+test -f CLAUDE.md && head -1 CLAUDE.md
+test -f tasks/todo.md && grep -c '^- \[ \]' tasks/todo.md
+ls -t "$HOME"/.claude/sessions/*.tmp 2>/dev/null | head -1
+ls "$HOME/.claude/skills" 2>/dev/null | wc -l | tr -d ' '
+claude mcp list 2>/dev/null | grep -c '^  '
+```
 
-If no context detected (not in a project): "🧭 No project detected — pick an intent below, I'll set one up."
+Render one line:
 
-### 3. The picker — `AskUserQuestion` with 4 intents
+> 🎯 Branch `<branch>` · project `<CLAUDE.md first line or directory name>` · <n> open tasks · last session <age> · <x> user skills · <y> MCPs connected
 
-**Never render a numbered list, never tell the user to "type a number".** Always call `AskUserQuestion` with these 4 options. The `preview` field gets rich context per option.
+Drop any field whose probe printed nothing. No git repo and no `CLAUDE.md`: "🎯 No project detected — pick an intent and Commander sets one up." Bash unavailable: use Glob for `CLAUDE.md` and `tasks/todo.md` and render what it finds.
+
+### 5. Picker
+
+Call AskUserQuestion once (Codex: ask the same four choices as a plain-text question and accept the name). Four options, the recommended one first and marked 🟢, each `preview` one line of context from step 4:
 
 ```
 question: "What's the move?"
 header: "CC Commander"
 multiSelect: false
 options:
-  - label: "🔨 Build something"
-    description: "Scaffold a project or feature — web, API, CLI, mobile."
-    preview: "(per-context note — see rules below)"
-  - label: "🔍 Review my work"
-    description: "Audit current branch, security, perf, or run full x-ray."
-    preview: "(per-context note)"
+  - label: "🏗️ Build something"
+    description: "Scaffold a project or feature: web, API, CLI, mobile."
+  - label: "🔬 Review my work"
+    description: "Review the branch, security or performance, or run a full x-ray."
   - label: "🚀 Ship it"
-    description: "Pre-flight checks + deploy. Tests, tag, push, release."
-    preview: "(per-context note)"
-  - label: "⋯ More tools"
-    description: "Plan, design, learn, x-ray, Linear, fleet, connect apps."
-    preview: "27 more skills — click to expand"
+    description: "Pre-flight checks, then tag, push, release or deploy, each confirmed."
+  - label: "⏭️ More tools"
+    description: "Plan, x-ray, Codex CLI, fleet, Linear, connectors, plugin workflows."
 ```
 
-**Recommendation logic** (prepend ⭐ to the label of ONE option based on context):
-- Branch has uncommitted changes + recent diff → ⭐ "Review my work"
-- Tests green + branch ahead of main → ⭐ "Ship it"
-- Empty repo OR no CLAUDE.md → ⭐ "Build something"
-- Session recent and file changes in `tasks/` → context-specific preview text
+Recommendation, first match wins (move that option to the top and prefix 🟢):
 
-### 4. Handle the selection
+1. No git repo, an empty repo, or no `CLAUDE.md` → Build.
+2. Uncommitted changes in the working tree → Review.
+3. Clean tree and commits ahead of the base branch → Ship.
+4. Otherwise → Review in a git repo, Build outside one.
 
-Based on user pick, invoke the matching skill. Do NOT prompt again; dispatch immediately:
+Give the recommended option's `preview` a "Recommended because …" line.
 
-- **Build** → invoke `ccc-build` skill
-- **Review** → invoke `ccc-review` skill
-- **Ship** → invoke `ccc-ship` skill
-- **More** → invoke `ccc-more` skill (which presents the second-page picker)
+### 6. Dispatch
 
-Each target skill handles its own sub-picker. Never unroll all 27+ options in one `/ccc` call — that's anti-pattern (burns context, overwhelming UX).
+Invoke the picked skill with the Skill tool immediately; do not ask again.
 
-## Anti-patterns — DO NOT do these
+| Pick | Skill |
+|---|---|
+| Build something | `ccc-build` |
+| Review my work | `ccc-review` |
+| Ship it | `ccc-ship` |
+| More tools | `ccc-more` |
 
-- ❌ Render a numbered list "1. Build, 2. Review, ..." and tell the user to type a number
-- ❌ Output raw HTML in fenced code blocks expecting it to render as an interactive artifact — Cowork Desktop shows HTML as literal code
-- ❌ Render more than 4 options in a single `AskUserQuestion` — not supported (max 4)
-- ❌ Load `references/main-menu.json` and dump 18 options — nested flow is required
-- ❌ Reference legacy `/commander:ccc` namespace — the plugin now ships `/ccc` as a plain skill
+Say one line before the hand-off, for example "Loading `ccc-build` — one more click picks web, API, CLI or mobile." The target skill owns its own picker and its menu file in `${CLAUDE_PLUGIN_ROOT}/menus/`.
 
-## Dispatching after selection
+## What sits behind More tools
 
-When the user picks an option, use the `SendMessage` pattern by invoking the target skill inline. Example for "Build":
+`$ccc-more` carries the long tail, so the hub stays at four options:
 
-> Loading the build workflow — `ccc-build` routes you to web / API / CLI / mobile / from-spec with one more click.
+- `$ccc-plan`, `$ccc-xray`, `$ccc-linear` (opt-in Linear connector), `$ccc-fleet`, `$ccc-connect`, `$ccc-tuneup`, `$ccc-browse`.
+- `$ccc-codex` — Codex CLI management: doctor, models, plugins, mcp, agents, cloud, remote, review, update, import, config.
+- Plugin workflows, run through the Workflow tool: `/commander:ccc-audit`, `/commander:ccc-deep-review`, `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`, `/commander:ccc-release-audit`. What each returns, its arguments and its fallback are in [plugin-workflows.md](../ccc-more/references/plugin-workflows.md).
 
-Then proceed as if the user had invoked `/ccc-build` directly. Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for its options and call `AskUserQuestion` with them.
+`references/main-menu.json` and `references/build-something.json` beside this file are the CLI menu trees; the Desktop hub does not load them.
 
-## When user passes an argument
+## Done when
 
-If `/ccc build` → skip the root picker, invoke `ccc-build` directly.
-If `/ccc review` / `ship` / `design` / `more` → same.
-If `/ccc <anything else>` → show the root picker with the argument echoed in the context strip: "🧭 You said: `<arg>` — picking an intent below to route you."
+- First run: `ccc-start` was invoked and no picker was shown.
+- Argument path: the mapped skill was invoked in this turn.
+- Picker path: one AskUserQuestion call with exactly four options, one marked 🟢, and the pick dispatched to its skill.
+- The version in the banner came from `plugin.json` read in this turn.
 
-## Plugin detection (for context strip)
+## Guardrails
 
-Scan quickly (parallel Bash calls with timeouts):
-- `ls ~/.claude/skills/ | wc -l` — skill count
-- `claude mcp list 2>/dev/null | grep -c '^  '` — connected MCPs
+- Never render a numbered or lettered menu or ask the user to type a number; the choice is always AskUserQuestion (or the plain-text Codex fallback).
+- Never put more than four options in one picker or unroll the catalog here.
+- Never hardcode a version, skill count, agent count or connector count; read them or leave them out.
+- Never output raw HTML expecting it to render as an interactive menu; Desktop shows it as code.
+- Never mention the npm `ccc` CLI binary in this flow; the audience is the plugin.
+- The hub itself changes no state. If the banner version is older than the user expects, say "⚠️ Plugin v<x> loaded — run `$ccc-update` to check for a newer release" rather than guessing.
 
-If either >0, include in context strip: "🧰 X skills · Y MCPs connected".
+## See also
 
-## Brand rules
-
-- **Always read `VERSION` from plugin.json** — never hardcode.
-- **Emoji-forward, concise** (PM Consultant voice): decision up front, reasoning terse. Use the semantic emoji palette from `rules/common/response-style.md` (🎯 focus · 💡 idea · 🟢 approve · 🟡 caution · 🔴 block · ⏭️ next) — emoji are anchors, not decoration; recommendations close with **🟢 my call** + one-line rationale.
-- **Never mention the CLI (`ccc` npm binary)** in `/ccc` flow — this is the Desktop-plugin audience.
-- **Recommended option** gets ⭐ and a one-line "Recommended because …" in its preview field.
-
-## Tips for the agent executing this skill
-
-1. The whole flow is ≤4 Claude turns: banner+picker → user clicks → dispatch → target skill runs. Don't overthink.
-2. If Cowork Desktop caches the marketplace and the version strip shows an old version, that's a client cache issue — not our problem. Note it in the context strip: "⚠️ Plugin v<X> detected; latest on GitHub is <Y> — click Update in marketplace".
-3. For `ls` / `git` / file-check operations, run in parallel in a single Bash call (`cmd1 && cmd2 && cmd3`) to save turns.
-
----
-
-**Bottom line:** three elements — header, context, picker — in that order. User clicks. We route. No typing, no text menus, ever.
+- `$ccc-more` — the second-page menu and plugin workflows
+- `$ccc-start` — first-run onboarding
+- `$ccc-cheatsheet` — live map of every skill and workflow
+- `$ccc-browse` — searchable catalog
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

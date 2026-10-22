@@ -85,12 +85,19 @@ function candidatePaths(skillName: string): string[] {
 
   const explicitPath = normalized.endsWith("/SKILL.md") ? [normalized] : [];
 
+  // A bare name such as "build" also resolves to the plugin skill /ccc-build,
+  // which is how users refer to plugin workflows in the hosted tools.
+  const pluginAlias = normalized.startsWith("ccc-") || normalized.includes("/")
+    ? []
+    : [`commander/cowork-plugin/skills/ccc-${normalized}/SKILL.md`];
+
   return [
     ...registryMatches,
     ...staticMatches,
     ...explicitPath,
     `skills/${normalized}/SKILL.md`,
     `commander/cowork-plugin/skills/${normalized}/SKILL.md`,
+    ...pluginAlias,
   ];
 }
 

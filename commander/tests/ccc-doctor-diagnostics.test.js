@@ -112,15 +112,15 @@ function buildGoodFixture() {
       ['---', 'name: ' + name, 'description: Test agent', 'model: ' + model, '---', '', '# Body'].join('\n')
     );
   }
-  agent('architect', 'claude-opus-4-8');
-  agent('security-auditor', 'claude-opus-4-8');
-  agent('debugger', 'claude-opus-4-8');
-  agent('product-manager', 'claude-opus-4-8');
-  agent('designer', 'claude-sonnet-5');
-  agent('researcher', 'claude-sonnet-5');
-  agent('reviewer', 'claude-sonnet-5');
-  agent('builder', 'claude-sonnet-5');
-  agent('qa-engineer', 'claude-sonnet-5');
+  agent('architect', 'fable');
+  agent('security-auditor', 'claude-fable-5-1');
+  agent('debugger', 'opus');
+  agent('product-manager', 'opus');
+  agent('designer', 'claude-opus-5-5');
+  agent('researcher', 'opus');
+  agent('reviewer', 'opus');
+  agent('builder', 'opus');
+  agent('technical-writer', 'sonnet');
   // Audit scripts (empty stubs are enough — we only check existence)
   writeFile(root, 'scripts/audit-frontmatter.js', '// stub\n');
   writeFile(root, 'scripts/audit-counts.js', '// stub\n');
@@ -365,7 +365,22 @@ test('checkAgentModels: ok when expected pinning matches', function () {
   assert.strictEqual(r.status, 'ok', r.message);
 });
 
-test('checkAgentModels: fail when architect not pinned to opus 4.7', function () {
+// Regression guard: for ~2 releases the fixture and the expectation drifted together
+// (agents were promoted to claude-fable-5 in v6.0, but this check still demanded an
+// Opus pin), so every fixture test stayed green while /ccc-doctor failed on the real,
+// healthy repo. A synthetic fixture can never again mask that — assert against the
+// ACTUAL repo, which is the thing users' doctor runs actually inspect.
+test('checkAgentModels: ok against the REAL repo (not a fixture)', function () {
+  var repoRoot = path.resolve(__dirname, '..', '..');
+  var r = diag.checkAgentModels(repoRoot);
+  assert.strictEqual(
+    r.status,
+    'ok',
+    'ccc-doctor must pass on this repo as shipped. Got: ' + r.message
+  );
+});
+
+test('checkAgentModels: fail when architect is on the wrong tier (opus instead of fable)', function () {
   var root = buildGoodFixture();
   writeFile(
     root,
@@ -377,12 +392,12 @@ test('checkAgentModels: fail when architect not pinned to opus 4.7', function ()
   assert.ok(r.message.includes('architect'));
 });
 
-test('checkAgentModels: warn for legacy aliases on optional agents', function () {
+test('checkAgentModels: warn for a superseded pinned model id', function () {
   var root = buildGoodFixture();
   writeFile(
     root,
     'commander/cowork-plugin/agents/builder.md',
-    ['---', 'name: builder', 'description: Test', 'model: sonnet', '---'].join('\n')
+    ['---', 'name: builder', 'description: Test', 'model: claude-opus-5', '---'].join('\n')
   );
   var r = diag.checkAgentModels(root);
   assert.strictEqual(r.status, 'warn');

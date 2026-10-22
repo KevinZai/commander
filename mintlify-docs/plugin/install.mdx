@@ -1,9 +1,9 @@
 ---
 title: "Plugin Installation"
-description: "Install CCC as a Claude Code Desktop plugin in two commands."
+description: "Install CC Commander as a Claude Code plugin in one command, or from the Desktop marketplace without a terminal."
 ---
 
-CC Commander v6.6.0 ships as a native Claude Code Desktop plugin. No npm install required.
+CC Commander v8.1.0 ships as a native Claude Code Desktop plugin. No npm install required.
 
 ## Install
 
@@ -34,15 +34,14 @@ The primary install path — works in Claude Code Desktop and Cowork Desktop wit
 `/plugin` commands are only available in the Claude Code terminal — not in the Desktop chat interface.
 
 <Steps>
-  <Step title="Add the marketplace">
+  <Step title="Install (Claude Code 2.1.292+)">
     ```
-    /plugin marketplace add KevinZai/commander
+    /plugin install commander --marketplace KevinZai/commander
     ```
+    One step: it adds the `commander-hub` marketplace and installs the plugin. On older builds, run `/plugin marketplace add KevinZai/commander` first, then `/plugin install commander`.
   </Step>
-  <Step title="Install the plugin">
-    ```
-    /plugin install commander
-    ```
+  <Step title="Restart">
+    Start a new session (or fully quit and reopen Desktop) so the hooks, agents and the HUD mod load.
   </Step>
   <Step title="Verify">
     ```
@@ -50,6 +49,15 @@ The primary install path — works in Claude Code Desktop and Cowork Desktop wit
     ```
   </Step>
 </Steps>
+
+### Codex CLI
+
+```bash
+codex plugin marketplace add KevinZai/commander
+codex plugin add commander@commander-hub
+```
+
+Review the plugin's hooks with `/hooks` inside Codex; Codex leaves plugin hooks untrusted until you do. See [Codex Compatibility](/features/codex-compatibility).
 
 ## Verify
 
@@ -59,7 +67,7 @@ After install:
 /ccc
 ```
 
-Expected: the hub opens with 6 intent chips (Build, Review, Ship, Design, Learn, More). All 72 skills active. Zero config required.
+Expected: the hub opens with four chips (Build, Review, Ship, More). All 84 skills active. Zero config required.
 
 ## First Commands
 
@@ -78,9 +86,19 @@ Expected: the hub opens with 6 intent chips (Build, Review, Ship, Design, Learn,
   </Card>
 </CardGroup>
 
+## Staying up to date
+
+By default you'll refresh manually — see the [Upgrade guide](/plugin/upgrade)
+for the exact two-command sequence. To have new releases fetched in the
+background automatically, set `"autoUpdate": true` on the `commander-hub`
+entry in `~/.claude/plugins/known_marketplaces.json` (or run `/ccc-doctor`,
+which offers to do this for you). Even with auto-update on, `/plugin update
+commander` + a restart is still what applies the new version to your
+running session.
+
 ## Core Free Forever
 
-All 72 plugin skills, 22 specialist agents, 23 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors are core free forever. No credit card, no feature gating. Visit [commanderplugin.com](https://commanderplugin.com) for details.
+All 84 plugin skills, 22 specialist agents, 30 lifecycle hooks, 2 bundled MCP servers, and 16 opt-in connectors are core free forever. No credit card, no feature gating. Visit [commanderplugin.com](https://commanderplugin.com) for details.
 
 ## Uninstall
 
@@ -94,7 +112,7 @@ This removes the plugin. Your Claude Code settings and CLAUDE.md files are not a
 
 <AccordionGroup>
   <Accordion title="Plugin not found in marketplace">
-    Make sure you ran `/plugin marketplace add KevinZai/commander` first. The marketplace must be registered before `/plugin install commander` will work.
+    Use the one-step form `/plugin install commander --marketplace KevinZai/commander` (Claude Code 2.1.292+). On older builds, run `/plugin marketplace add KevinZai/commander` first: the marketplace must be registered before `/plugin install commander` will work.
   </Accordion>
   <Accordion title="/ccc command not recognized">
     Try restarting your Claude Code session after install. The plugin registers commands at session start.

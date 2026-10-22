@@ -1,7 +1,7 @@
 ---
 name: api-design
 category: coding
-skills: [api-design, backend-patterns, schema-design]
+skills: [api-design, backend-patterns, database-designer]
 mode: plan
 estimated_tokens: 600
 ---
@@ -9,12 +9,12 @@ estimated_tokens: 600
 # API Design
 
 ## When to Use
-When designing new REST or GraphQL API endpoints from scratch. Use this before writing any implementation code to ensure the contract is solid.
+Use before writing implementation code for new REST or GraphQL endpoints, so the contract is reviewed and approved first. Skip it for a one-line change to an existing endpoint.
 
 ## Template
 
 ```
-Design the API for the following feature. Define the contract first — implementation comes after approval.
+Design the API for the feature below. Produce the contract only; do not write implementation code until I approve it.
 
 **Feature:**
 {{what_the_feature_does}}
@@ -28,50 +28,49 @@ Design the API for the following feature. Define the contract first — implemen
 **Consumers:**
 {{who_calls_this — web app, mobile app, third-party, internal service}}
 
-**Step 1: Resource modeling**
-- Identify the core resources (nouns) involved
-- Define relationships between resources (1:1, 1:N, N:N)
-- Determine which fields are required vs optional
-- Establish naming conventions (camelCase, snake_case)
+Step 1: Model the resources.
+- List the core resources (nouns) and their relationships (1:1, 1:N, N:N).
+- Mark each field required or optional.
+- Follow the naming convention already used in this codebase (camelCase or snake_case); read an existing route or schema to confirm it.
 
-**Step 2: Endpoint design**
-For each endpoint, specify:
-- **Method + Path:** `POST /api/v1/{{resource}}`
-- **Request body:** JSON schema with types and validation rules
-- **Response body:** JSON schema with envelope format
-- **Status codes:** all possible codes (200, 201, 400, 401, 403, 404, 409, 422, 500)
-- **Auth:** required role/scope
-- **Rate limit:** requests per window
+Step 2: Define each endpoint.
+- Method and path, for example `POST /api/v1/{{resource}}`.
+- Request body: JSON schema with types and validation rules.
+- Response body: JSON schema, using the response envelope the project already uses.
+- Status codes: every code the endpoint can return (200, 201, 400, 401, 403, 404, 409, 422, 500).
+- Auth: required role or scope.
+- Rate limit: requests per window.
 
-**Step 3: Validation rules**
-- Input validation schema (Zod, JSON Schema, or equivalent)
-- Business rule validation (e.g., "cannot delete if has active subscriptions")
-- Error response format (consistent across all endpoints)
+Step 3: Specify validation.
+- Input validation schema (Zod, JSON Schema, or the project's equivalent).
+- Business rules, for example "cannot delete while it has active subscriptions".
+- One error response format shared by every endpoint.
 
-**Step 4: Edge cases**
-- Pagination strategy (cursor vs offset)
-- Filtering and sorting parameters
-- Bulk operations (if applicable)
-- Idempotency (for POST/PUT — idempotency keys?)
-- Versioning strategy
+Step 4: Resolve edge cases.
+- Pagination (cursor or offset) and why.
+- Filtering and sorting parameters.
+- Bulk operations, if needed.
+- Idempotency for POST and PUT (idempotency keys or not).
+- Versioning strategy.
 
-**Step 5: Output**
-Write the API spec as:
-1. A markdown table of all endpoints
-2. TypeScript request/response types
-3. Example curl commands for each endpoint
-4. Zod validation schemas (if TypeScript project)
+Step 5: Write the spec.
+1. A markdown table of every endpoint.
+2. TypeScript request and response types.
+3. One example curl command per endpoint.
+4. Zod validation schemas, if the project uses TypeScript.
+
+End with the open questions that need my decision before implementation starts.
 ```
 
 ## Tips
-- Use the `api-design` skill for automated API pattern validation
-- Always version your API from day one (`/api/v1/`) even if you think you won't need it
-- Design the error responses as carefully as the success responses
+- Pair with the `api-design` skill to check the contract against common API patterns.
+- Version the API from the first release (`/api/v1/`); adding a version later breaks existing consumers.
+- Design error responses as carefully as success responses; clients depend on both.
 
 ## Example
 
 ```
-Design the API for the following feature. Define the contract first — implementation comes after approval.
+Design the API for the feature below. Produce the contract only; do not write implementation code until I approve it.
 
 **Feature:**
 Team invitation system — users can invite others by email, invitees accept/decline, admins can revoke pending invitations.

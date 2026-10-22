@@ -1,93 +1,121 @@
 ---
 name: ccc-standup
-description: "Generate a standup update from recent activity. Use when: 'standup', 'daily update', 'what did I do', 'morning check-in', 'yesterday today blockers', 'team update',…"
+description: "Write a yesterday / today / blockers standup from your commits, PRs, tracker issues and Commander session notes, or from rough notes you type. Use when the user asks for a standup, daily update, morning check-in, what did I do yesterday, or a team update."
 allowed-tools:
   - Read
-  - Write
-  - Edit
   - Bash
   - Glob
   - Grep
-  - Agent
   - AskUserQuestion
-argument-hint: "[yesterday | today | blockers]"
+argument-hint: "[yesterday | today | blockers | --power]"
+model: sonnet
+effort: low
 ---
 
-# /ccc-standup — Standup generator
+# /ccc-standup — Standup from real activity
 
-> Placeholders like ~~source control refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
+**CC Commander** · /ccc-standup · a three-section standup in about 30 seconds
 
-Generate a standup update by pulling together recent activity across your tools. Standalone mode asks what you did. Connected mode pulls commits, issues, and PRs automatically.
+> Placeholders like ~~source control refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md). Every connector is opt-in; the skill works with none.
 
-## Quick Mode (default)
+## When to use / when not to
 
-**If connectors are available**, pull automatically and skip to output.
+- Use each morning, before a team sync, or to recap the last working day.
+- For a session handoff rather than a team update, use `/ccc-save-session`.
+- For a sprint or release summary, use `/ccc-changelog`.
+- In Codex, ask each picker below as a plain-text question with the same options.
 
-**Standalone**, ask one question:
-"What did you work on? (rough notes are fine — I'll structure them)"
+## What happens
 
-Then generate the standup in the standard format below.
+### 1. Pick the mode
 
-Optionally ask: "Any blockers?" — and incorporate the answer.
+- Default is **quick mode**: three short sections.
+- `--power` or `detailed` in `$ARGUMENTS`: **power mode** adds blocker severity, owner and suggested resolution, plus metrics (PRs merged, issues closed, lines changed).
+- `yesterday`, `today` or `blockers`: render only that section.
 
-## Power Mode
+### 2. Pull activity
 
-Activate by passing `--power` or `detailed`.
+Run in one Bash call; missing tools or directories are not errors. Use `--since="3 days ago"` on a Monday.
 
-Full standup with:
-- Yesterday: commits, PRs reviewed/merged, issues closed
-- Today: planned work tied to open issues
-- Blockers: with severity, owner, and suggested resolution
-- Metrics: PRs merged, issues closed, lines changed (from ~~source control)
-
-## Auto-Pull Sources
-
-When tools are connected, gather from:
-
-1. **Git history** — `git log --since="yesterday" --oneline --author="$(git config user.email)"`
-2. **Session history** — check `~/.claude/commander/sessions/` for yesterday's session summaries
-3. **Knowledge base** — check `~/.claude/commander/knowledge/` for recent learnings
-
-## If Connectors Available
-
-If **~~source control** is connected:
-- Pull commits from the last 24 hours (current user only)
-- List PRs opened, reviewed, or merged
-- Show CI/build status for active PRs
-
-If **~~project tracker** is connected:
-- Pull issues moved to "In Progress" or "Done" since yesterday
-- Show upcoming sprint items for "Today" section
-- Flag any overdue issues as blockers
-
-If **~~chat** is connected:
-- Scan for threads where your response is needed
-- Include any team decisions made in chat as context
-- Offer to post the standup directly to the team channel
-
-## Output Format
-
-```markdown
-## Standup — [Date]
-
-### Yesterday
-- [Completed item — CC-42: Added OAuth support (merged PR #87)]
-- [Completed item]
-
-### Today
-- [Planned item — CC-45: Fix webhook retry logic]
-- [Planned item]
-
-### Blockers
-- [Blocker: API rate limiting on the payments provider — needs CC-48 resolved first]
+```bash
+git log --since="yesterday" --oneline --author="$(git config user.email)" 2>/dev/null
+git log --since="yesterday" --shortstat --author="$(git config user.email)" 2>/dev/null | tail -5
+ls -t ~/.claude/commander/sessions/ 2>/dev/null | head -3
+ls -t ~/.claude/commander/knowledge/*.json 2>/dev/null | head -3
 ```
 
-## Tips
+Read the newest session summaries and knowledge entries with Read when they are from the last working day.
 
-1. **Run it every morning** — open CC Commander, type `/standup`, done in 30 seconds.
-2. **Rough notes work** — "fixed the login bug, reviewed sarah's PR, fought with docker all day" is enough input.
-3. **Post to chat** — with ~~chat connected, share to Slack/Discord/Teams without copy-pasting.
-4. **Blockers are gold** — surface them explicitly; they're the most valuable part of a standup.
+If **~~source control** is GitHub and `gh auth status` succeeds:
+
+```bash
+gh pr list --author "@me" --state all --limit 10 --json number,title,state,mergedAt,updatedAt
+gh pr list --search "reviewed-by:@me" --state all --limit 10 --json number,title,updatedAt
+gh pr list --author "@me" --state open --limit 10 --json number,title,statusCheckRollup
+```
+
+Keep only items updated since the window start; the last command gives CI status for active PRs.
+
+If **~~project tracker** is connected: issues you moved to In Progress or Done since the window start, upcoming sprint items for Today, and overdue issues as blockers.
+
+If **~~chat** is connected: threads awaiting your reply, and team decisions made there, as context only.
+
+### 3. Fall back to notes
+
+No activity found, or nothing connected: ask in plain chat, "What did you work on? Rough notes are fine — I'll structure them." Then ask "Any blockers?" and fold the answer in. AskUserQuestion has no free-text field, so both are plain questions.
+
+### 4. Render
+
+```markdown
+## Standup — <date>
+
+### Yesterday
+- ENG-42: Added OAuth support (merged PR #87)
+- Reviewed PR #91 (webhook retries)
+
+### Today
+- ENG-45: Fix webhook retry logic
+
+### Blockers
+- Payments API rate limit — needs ENG-48 resolved first
+```
+
+Power mode adds, per blocker, `severity · owner · suggested resolution`, and a final `### Metrics` line from the step 2 output. Every item traces to a source in step 2 or the user's notes; never invent work.
+
+### 5. Share — `AskUserQuestion`
+
+Ask only when ~~chat is connected:
+
+```yaml
+question: "Where should this standup go?"
+header: "Standup"
+multiSelect: false
+options:
+  - label: "🟢 Keep it here"
+    description: "Nothing leaves the session; copy it yourself."
+  - label: "Post to the team channel"
+    description: "Sends this exact text to the channel you name, via the chat connector."
+```
+
+Post only on that explicit choice, then report the channel and the message link or id the connector returned.
+
+## Done when
+
+- The standup is rendered, each item backed by a step 2 source or the user's notes, and any post shows the connector's returned message id or link.
+
+## Guardrails
+
+- Posting to chat or updating a tracker needs the user's choice in this conversation (step 5); never post by default.
+- Never include other people's private messages verbatim; summarize decisions only.
+- Never invent commits, PRs or issues to fill a section; an empty section says "Nothing logged."
+- Read-only on git: no commits, pushes or branch changes.
+
+## See also
+
+- `/ccc-linear` — the issues behind Today
+- `/ccc-tasks` — markdown task list as a standup source
+- `/ccc-save-session` — session handoff instead of a team update
+- `/ccc-changelog` — release-level summary
 
 ---
 

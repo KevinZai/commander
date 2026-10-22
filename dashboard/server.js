@@ -5,14 +5,29 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { buildMissionModel, filterEventsAfter } from './lib/mission-model.js';
+import { defaultDbPath as defaultHistoryDbPath, readHistory } from './lib/history.js';
+import { brandBaseCss } from '../commander/cowork-plugin/lib/brand-css.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = 4690;
 const DEFAULT_SESSIONS_DIR = path.join(os.homedir(), '.claude', 'sessions');
+const DEFAULT_COMMANDER_DIR = path.join(os.homedir(), '.claude', 'commander');
+const DEFAULT_HISTORY_DB_PATH = defaultHistoryDbPath();
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PACKAGE_PATH = path.join(__dirname, 'package.json');
+// charts.js (Item 3) lives in commander/cowork-plugin/lib/ — not
+// dashboard/public/ or dashboard/lib/ — because the SAME file is
+// imported directly by commander/cowork-plugin/lib/mission-control-
+// snapshot.js (the plugin ships without dashboard/, so a file it needs
+// must live in its own lib/ tree; see charts.js's own doc comment).
+// This route serves that one canonical file to the browser so the live
+// board's client-side script can `import` it too — one module, two
+// runtimes, never a duplicate to drift.
+const CHARTS_JS_PATH = path.join(__dirname, '..', 'commander', 'cowork-plugin', 'lib', 'charts.js');
 
 function readVersion() {
   try {
@@ -131,6 +146,8 @@ async function readSessionFile(sessionsDir, filename) {
 
 function createServer(options = {}) {
   const sessionsDir = options.sessionsDir || DEFAULT_SESSIONS_DIR;
+  const commanderDir = options.commanderDir || DEFAULT_COMMANDER_DIR;
+  const historyDbPath = options.historyDbPath || DEFAULT_HISTORY_DB_PATH;
   const startedAt = process.hrtime.bigint();
 
   return http.createServer(async (req, res) => {
@@ -163,6 +180,97 @@ function createServer(options = {}) {
 
       if (url.pathname === '/style.css') {
         await sendFile(res, path.join(PUBLIC_DIR, 'style.css'), 'text/css; charset=utf-8');
+        return;
+      }
+
+      if (url.pathname === '/mission-control' || url.pathname === '/mission-control.html') {
+        await sendFile(
+          res,
+          path.join(PUBLIC_DIR, 'mission-control.html'),
+          'text/html; charset=utf-8'
+        );
+        return;
+      }
+
+      if (url.pathname === '/mission-control.js') {
+        await sendFile(
+          res,
+          path.join(PUBLIC_DIR, 'mission-control.js'),
+          'text/javascript; charset=utf-8'
+        );
+        return;
+      }
+
+      if (url.pathname === '/mission-control-brand.css') {
+        // Shared CCC brand tokens + primitives (brand-css.js), the same source
+        // the artifact snapshot inlines — one design system, two surfaces.
+        send(res, 200, brandBaseCss(), { 'Content-Type': 'text/css; charset=utf-8' });
+        return;
+      }
+
+      if (url.pathname === '/mission-control.css') {
+        await sendFile(
+          res,
+          path.join(PUBLIC_DIR, 'mission-control.css'),
+          'text/css; charset=utf-8'
+        );
+        return;
+      }
+
+      if (url.pathname === '/charts.js') {
+        await sendFile(res, CHARTS_JS_PATH, 'text/javascript; charset=utf-8');
+        return;
+      }
+
+      if (url.pathname === '/api/mission') {
+        sendJson(res, 200, await buildMissionModel({ baseDir: commanderDir }));
+        return;
+      }
+
+      if (url.pathname === '/api/mission/filter-options') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, model.filterOptions);
+        return;
+      }
+
+      if (url.pathname === '/api/mission/events') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, {
+          events: filterEventsAfter(model.events, url.searchParams.get('after')),
+          generatedAt: model.generatedAt,
+        });
+        return;
+      }
+
+      if (url.pathname === '/api/suggestions') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, { suggestions: model.suggestions });
+        return;
+      }
+
+      if (url.pathname === '/api/metrics') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, { metrics: model.metrics, generatedAt: model.generatedAt });
+        return;
+      }
+
+      if (url.pathname === '/api/top-skills') {
+        const model = await buildMissionModel({ baseDir: commanderDir });
+        sendJson(res, 200, { topSkills: model.topSkills, generatedAt: model.generatedAt });
+        return;
+      }
+
+      if (url.pathname === '/api/history') {
+        // Opt-in: readHistory() itself returns [] when claude-mem isn't
+        // installed (missing DB) or node:sqlite isn't available — the
+        // panel hides entirely on an empty list, no separate flag needed.
+        const afterParam = url.searchParams.get('after');
+        const after = afterParam !== null ? Number(afterParam) : undefined;
+        const history = await readHistory({
+          dbPath: historyDbPath,
+          after: Number.isFinite(after) ? after : undefined,
+        });
+        sendJson(res, 200, { history, generatedAt: new Date().toISOString() });
         return;
       }
 
@@ -243,6 +351,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export {
+  DEFAULT_COMMANDER_DIR,
+  DEFAULT_HISTORY_DB_PATH,
   DEFAULT_PORT,
   DEFAULT_SESSIONS_DIR,
   HOST,
@@ -253,4 +363,3 @@ export {
   readSessionFile,
   startServer,
 };
-

@@ -38,6 +38,7 @@ export const env = {
   oauthResourceUrl: process.env.OAUTH_RESOURCE_URL ?? "",
   // Expected `aud` claim; defaults to the resource URL.
   oauthAudience: process.env.OAUTH_AUDIENCE ?? "",
+  host: process.env.HOST ?? "0.0.0.0",
   port: parseInt(process.env.PORT ?? "8080", 10),
   nodeEnv: process.env.NODE_ENV ?? "production",
 } as const;

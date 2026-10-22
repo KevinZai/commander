@@ -1,15 +1,15 @@
 ---
 title: "How users browse skills — Plugin vs MCP"
-description: "Two ways to access 502+ CC Commander skills — native plugin slash commands in Claude Code vs. MCP tool calls in Cursor, Windsurf, Cline, Continue, Codex, and Claude mobile."
+description: "Two ways to access 467+ CC Commander skills — native plugin slash commands in Claude Code (including the v7 Commander Cockpit browse experience) vs. MCP tool calls in Cursor, Windsurf, Cline, Continue, Codex, and Claude mobile."
 ---
 
 # 🎭 How users browse skills
 
 CC Commander ships **two parallel discovery surfaces**. They serve the same skill catalog but are shaped by what each client supports.
 
-<Warning>
-  **Beta v5.1.0 reality check:** the hosted MCP server is scaffolded but not yet deployed. Today's plugin install works in Claude Code; MCP access for Cursor/Windsurf/etc. activates when `mcp.commanderplugin.com` goes live post-deploy.
-</Warning>
+<Note>
+  **Current status:** the hosted MCP server at `mcp.commanderplugin.com` is live. Plugin install works in Claude Code today; MCP access for Cursor/Windsurf/Cline/Continue/Codex/Claude mobile is available now via the hosted endpoint below.
+</Note>
 
 ## The split in one sentence
 
@@ -20,7 +20,7 @@ CC Commander ships **two parallel discovery surfaces**. They serve the same skil
 | **Claude Code CLI (terminal)** | `ccc` interactive TUI + slash commands in CC sessions | CLI binary + plugin |
 | **Cursor / Windsurf / Cline / Continue / Codex / Claude mobile** | Agent calls `list_skills` / `search_skills` / `suggest_skill` on the user's behalf | Hosted MCP server at `mcp.commanderplugin.com` |
 
-Same 500+ skills. Different UX glue.
+Same 467+ skills. Different UX glue.
 
 <Info>
   **New to AI coding agents?** Start with **Claude Cowork Desktop** — it's designed for novice users and CC Commander's guided workflows are perfect for learning by doing. The plugin install is identical to Claude Code Desktop; Cowork just surfaces agent coordination more prominently in its UI.
@@ -28,24 +28,33 @@ Same 500+ skills. Different UX glue.
 
 ## Native plugin (Claude Code)
 
-When you `/plugin install commander` in Claude Code, the plugin manifest registers:
-- **72 plugin skills** as plain `/ccc-*` slash commands (no namespace prefix) — all core free forever
+When you `/plugin install commander --marketplace KevinZai/commander` in Claude Code, the plugin manifest registers:
+- **84 plugin skills** as plain `/ccc-*` slash commands (no namespace prefix) — all core free forever
 - **22 specialist agents** available via the Agent tool (architect, security-auditor, builder, reviewer, etc.)
-- **23 lifecycle hooks × 39 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop)
-- **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Tavily, GitHub, Supabase, Figma, Linear, etc.)
+- **30 lifecycle hooks × 51 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionDenied, model switches, Stop, compaction, subagents and more)
+- **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Linear, Supabase, Vercel, Slack, Notion, Sentry and more)
 
 **Pros:** tab-completion, instant discovery, deep Claude Code integration, offline-capable, lifecycle hooks.
 **Cons:** Claude Code only — can't use in Cursor, Windsurf, etc.
 
 ```bash
-/plugin marketplace add KevinZai/commander
-/plugin install commander
+/plugin install commander --marketplace KevinZai/commander
 # Type /ccc-  to see the full slash menu
 ```
 
+### The v7 Browse experience — `/ccc-browse` and the Commander Cockpit
+
+Since v7.0.0, `/ccc-browse` is a scannable skill LIST built for finding a skill fast, not a wall of one-skill "domains":
+
+- **Rows / tiles toggle** — switch layouts; your choice is persisted across sessions.
+- **Live filter** — real-time filtering on name, purpose, or domain as you type, plus compact domain-filter chips (`all · 533`, `marketing · 46` … `general · 257`).
+- **Copy-on-click** — clicking a whole row copies the command instead of requiring a precise click target.
+- **Honest taxonomy** — the Cockpit's browse taxonomy has **14 real display domains**: plugin `/ccc-*` commands collapse into one **commands** front-door group (not ~78 one-skill "domains"), ungrouped ecosystem skills route to an honest **general** bucket (sorted last), and domain routers living in `skills/ccc-X/` are grouped as `ccc-X`. No misleading "core" catch-all. (This 14-domain browse taxonomy is a Cockpit display concept — distinct from the 11 canonical CCC domain routers documented in [Plugin Skills](/plugin/skills).)
+- **🎛️ Open the Commander Cockpit** — the same picker's top option publishes the full catalog as a self-contained, clickable artifact (skill/agent browser, prompt enhancer, agent analytics, Tools tab), carrying the shared **Commander decks** switcher to jump to Mission Control, Usage & Cost, or Safety.
+
 ## Hosted MCP server (every other AI IDE)
 
-Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.commanderplugin.com`. The same 459+ skill catalog becomes available through **13 MCP tools**:
+Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.commanderplugin.com`. The same 467+ skill catalog becomes available through **13 MCP tools**:
 
 | Tool | What the agent does with it |
 |------|----------------------------|
@@ -63,7 +72,7 @@ Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any
 | `list_hooks` | Inspect lifecycle hook configuration |
 | `get_connector` | Fetch MCP integration details |
 
-**Pros:** works in any MCP-capable client, zero install on user's machine, lazy-loads skills (only the ones invoked hit the wire), cross-IDE identity (same license key, same usage counter, same feedback history).
+**Pros:** works in any MCP-capable client, zero install on user's machine, lazy-loads skills (only the ones invoked hit the wire), no license key or account required — just point at the URL.
 **Cons:** requires network round-trip, no slash-command autocomplete (agent-mediated only), no lifecycle hooks (MCP is request/response).
 
 ```json
@@ -71,8 +80,7 @@ Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse",
-      "headers": { "Authorization": "Bearer YOUR_LICENSE_KEY" }
+      "url": "https://mcp.commanderplugin.com/sse"
     }
   }
 }
@@ -82,21 +90,21 @@ Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any
 
 Claude Code users can install the plugin **and** point at the hosted MCP. Benefits:
 
-1. **Lazy-load 459+ deeper skills** without bloating the plugin manifest — e.g. `ccc-marketing` plugin skill routes to one of 45 marketing sub-skills via MCP, loaded on demand.
-2. **Cross-session usage counter** — your 1000 beta calls/mo travel with you if you switch IDEs.
+1. **Lazy-load 467+ deeper skills** without bloating the plugin manifest — e.g. `ccc-marketing` plugin skill routes to one of 45 marketing sub-skills via MCP, loaded on demand.
+2. **Cross-session usage counter** — the same 100-call/month anti-abuse cap applies wherever you call the hosted MCP from.
 3. **Unified feedback history** — surveys you've filled out in Claude Code count in Cursor.
 4. **Preserve muscle memory** — `/ccc-design` still works. Under the hood it queries the MCP. From your perspective nothing changes.
 
 To enable hybrid on Claude Code:
 ```bash
-/plugin install commander   # already done? you're ready
-# then add the MCP endpoint to .claude/mcp.json once mcp.commanderplugin.com is live
+/plugin install commander --marketplace KevinZai/commander   # already done? you're ready
+# then add the MCP endpoint (mcp.commanderplugin.com) to .claude/mcp.json
 ```
 
 ## What does NOT work in MCP that works in plugin
 
 - **Autocomplete UI** — MCP has no way to inject `/slash` commands into a non-plugin client's command palette. The agent has to surface skills in prose when asked.
-- **Lifecycle hooks** — plugin has 23 hook events (SessionStart, PreToolUse, PostCompact, etc.). MCP is request/response — no "run when session starts" primitive in most clients yet. When [Anthropic ships PostCompact and Elicitation events on MCP](https://modelcontextprotocol.io/specification), we'll bridge them.
+- **Lifecycle hooks** — plugin has 30 hook events (SessionStart, PreToolUse, PostCompact, etc.). MCP is request/response — no "run when session starts" primitive in most clients yet. When [Anthropic ships PostCompact and Elicitation events on MCP](https://modelcontextprotocol.io/specification), we'll bridge them.
 
 ## What does NOT work in plugin that works in MCP
 

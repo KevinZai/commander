@@ -1,167 +1,141 @@
 ---
 name: ccc-debate
-description: "Adversarial multi-agent debate (antfooding): fan out N agents that argue and critique a design or diff from distinct lenses until issues resolve, then synthesize a verdict."
+description: "Adversarial multi-agent debate: lens agents (security, performance, architecture, product, contrarian) argue and cross-examine one design, plan or diff, then a judge rules ship, revise or block. Use when a decision is costly to reverse, a diff touches auth or billing, or the user types /ccc-debate."
 allowed-tools:
   - Read
   - Bash
   - Workflow
+  - Agent
+  - Skill
   - AskUserQuestion
+argument-hint: "[path to design doc or plan | diff | \"question in quotes\"]"
+model: sonnet
+effort: medium
 ---
 
-# /ccc-debate — Adversarial Multi-Agent Debate (Antfooding)
+# /ccc-debate — stress-test before reality does
 
-Debate mode pits **N agents against each other** on a single design, plan, or diff. Each argues from a distinct lens (security, performance, maintainability, product, contrarian), critiques the others' positions, and the strongest objections survive. A judge synthesizes a single ruled verdict. This is **antfooding** — you stress-test your own work by adversarially eating it before reality does.
+**CC Commander** · /ccc-debate · surviving objections and a 🟢 ship / 🟡 revise / 🔴 block verdict on one design, plan or diff, without the transcript in your context.
 
-**CC Commander** · Debate Mode · [Docs](https://commanderplugin.com)
+Lens agents argue; the judge rules; the user decides. This is the dialectic form of `rules/workflow-first.md`: delegate the arguing, keep the ruling.
 
-> Debate is the dialectic expression of the canonical workflow-first doctrine (`commander/cowork-plugin/rules/workflow-first.md`): **delegate the arguing, keep the ruling.** Built on the Workflow tool + `dialectic-review` + `/ccc-fleet` `mode: "debate"`.
+## When to use / when not to
 
----
+- Use for expensive-to-reverse design or architecture calls, diffs where a silent flaw is costly (auth, billing, migrations), plans worth testing from for/against angles before locking, and "am I missing something?" checks on a spec.
+- Skip for routine edits, single-file fixes, obvious answers, or work where speed beats rigor. Without a concrete target (a doc, a plan, a diff) there is nothing to argue.
+- Token spend is lenses × rounds. Scope to one target; default to 3 lenses and 2 rounds.
 
-## What debate is
+## What happens
 
-`/ccc-debate` runs a structured adversarial loop:
+### 1. Resolve the target
 
-1. **Fan out lenses** — Claude spawns one agent per lens via the Workflow tool. Each independently reads the target and produces its strongest argument + objections.
-2. **Cross-examine** — agents critique each other's positions. Weak claims get torn down; survivors are the real issues. (Adversarial verification per workflow-first §1.)
-3. **Iterate until resolved** — rounds repeat until no new material objection survives, or a round cap is hit.
-4. **Synthesize** — a judge agent rules: blocking issues, accepted tradeoffs, and a 🟢/🟡/🔴 verdict — conclusions only, no raw transcript dumped into your context.
+- A path argument: confirm it exists with `test -f <path>` and read it.
+- `diff`, or no argument inside a repo with changes: run `git diff --stat HEAD` and use the uncommitted diff as the target.
+- A quoted question: use it, and ask in one plain sentence for the doc or diff it refers to if none is obvious.
+- Nothing resolvable: say so and stop; never debate the whole repository.
 
-You keep the deciding. The agents do the arguing.
+Write the target as one sentence for the workflow, for example `the uncommitted diff in this repository (git diff HEAD), focusing on src/auth/` or `the design doc at docs/billing-v2.md`.
 
----
+### 2. Pick lenses and intensity
 
-## When to use debate
+Ask the two pickers under Decision points. The contrarian lens is always included. Lens names passed on: `security`, `performance`, `architecture`, `product`, `contrarian`.
 
-**Use for:**
-- Expensive-to-reverse design or architecture decisions
-- A diff or PR where silent flaws would be costly (auth, billing, migrations)
-- Plans worth stress-testing from FOR / AGAINST / Referee angles before committing
-- "Am I missing something?" gut-checks on a spec you're about to lock
-
-**Skip for:**
-- Routine edits, single-file fixes, or anything with an obvious answer
-- Work where speed beats rigor — debate spends multiple agent passes
-- Cases where you have no clear target (no design doc, no diff) to argue about
-
-**Token caution:** N lenses × M rounds multiplies token spend fast. **Scope tight** — debate a single design doc or one diff, not the whole repo. Default to 3 lenses, 2 rounds.
-
----
-
-## One-off without flipping the session
-
-Include the word **`workflow`** in your prompt to run a single debate without changing session mode. Examples:
-- "Debate this auth design as a workflow"
-- "workflow: have agents argue both sides of this migration plan"
-- "Run an adversarial debate workflow on the current diff"
-
----
-
-## Requires CC v2.1.154+
-
-The Workflow tool ships in Claude Code v2.1.154 and later. On older clients, fall back to `/ccc-fleet` `mode: "judge"` for a weaker fan-out/synthesize shape (manual dispatch, no lens customization or cross-examination), or the `dialectic-review` skill for a single FOR/AGAINST/Referee pass. Check: `claude --version`.
-
----
-
-## Lens picker
-
-Call `AskUserQuestion` to let the user choose the debate's lenses (multiSelect):
-
-```
-question: "Which lenses should argue this?"
-header: "Debate"
-multiSelect: true
-options:
-  - label: "🔐 Security adversary"
-    description: "Assumes hostile input. Hunts auth gaps, injection, trust-boundary breaks."
-    preview: "Maps to the security-auditor persona. Best for diffs touching auth/data."
-  - label: "⚡ Performance adversary"
-    description: "Attacks hot paths, N+1s, tail latency, and scale assumptions."
-    preview: "Maps to performance-engineer. Best when the design makes scale claims."
-  - label: "🏗️ Architecture adversary"
-    description: "Challenges boundaries, coupling, reversibility, and YAGNI violations."
-    preview: "Maps to architect. Best for expensive-to-reverse design calls."
-  - label: "🎯 Product adversary"
-    description: "Questions the user value, the metric, and scope creep."
-    preview: "Maps to product-manager. Best for feature/spec debates."
-  - label: "🐉 Contrarian (devil's advocate)"
-    description: "Pure FOR/AGAINST devil's advocate — argues the unpopular side hard."
-    preview: "Maps to dialectic-review. Always include for a real stress-test."
-```
-
-Then ask scope + rounds via a second `AskUserQuestion`:
-
-```
-question: "How hard should I push this debate?"
-header: "Intensity"
-multiSelect: false
-options:
-  - label: "🥊 Quick (3 lenses, 2 rounds)"
-    description: "Fast adversarial pass. Default — good for most diffs and plans."
-  - label: "🥋 Deep (5 lenses, 3 rounds)"
-    description: "Full antfooding. For high-stakes, hard-to-reverse decisions only."
-    preview: "Meaningfully higher token spend. Scope to one target first."
-```
-
-Prepend ⭐ to the best match:
-- Diff touches auth/billing/data → ⭐ Security adversary
-- Design makes scale/latency claims → ⭐ Performance adversary
-- Expensive-to-reverse architecture call → ⭐ Architecture adversary
-- Always recommend including 🐉 Contrarian
-
----
-
-## After the user picks
-
-Dispatch the debate as a workflow. `ccc-fleet.workflow.js` has a dedicated `mode: "debate"` that actually implements the lens fan-out + cross-examination rounds (distinct from plain `mode: "judge"`, which is single-round N-independent-attempts with hardcoded angles — no cross-examination, no custom lenses):
+### 3. Run the debate
 
 ```js
 Workflow({
   scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js",
   args: {
     mode: "debate",
-    task: "Adversarially debate <target: the design doc, plan, or diff>.",
+    task: "Adversarially debate <target sentence from step 1>.",
     lenses: ["security", "performance", "contrarian"],
     rounds: 2
   }
 })
 ```
 
-`lenses` and `rounds` are both honored: round 1 has each lens argue independently (blind to the others); rounds 2+ have every lens cross-examine the others' prior-round positions (concede, sharpen, or withdraw); a final judge pass rules only on objections that survived cross-examination.
+`mode: "debate"` is the only mode with custom lenses and cross-examination: round 1 has each lens argue blind; rounds 2 and later have each lens cross-examine the others' prior positions (concede, sharpen or withdraw); the judge rules only on objections that survived. `rounds` is clamped to 1 to 3. `mode: "judge"` is a different thing (independent attempts with fixed angles, no cross-examination); do not substitute it.
 
-If `ccc-fleet.workflow.js` is unavailable, fall back to `ccc-fleet` `mode: "judge"` (weaker — no lens customization or cross-examination) or the `dialectic-review` skill for a single FOR/AGAINST/Referee round.
+Post the progress card and do not block on the run:
 
-Report back with a progress card — do not block while the debate runs:
-> 🥊 **Debate running** — `<N> lenses × <M> rounds`. Agents argue and cross-examine async.
-> Only surviving objections + a 🟢/🟡/🔴 verdict reach you — the transcript stays out of your context.
-> ⚠️ Token spend scales with lenses × rounds. Scope kept tight.
+```
+🔄 Debate running — <N> lenses × <M> rounds. Agents argue and cross-examine in the workflow.
+Only surviving objections and a verdict come back here.
+⚠️ Token spend scales with lenses × rounds.
+```
 
----
+### 4. Fallback when the Workflow tool is not exposed
 
-## What you get back
+1. Round 1: one `Agent` call per lens in a single message (`subagent_type: "general-purpose"`, `effort: "medium"`), each told its lens and the target, blind to the others.
+2. Rounds 2 to M: one `Agent` call per lens with all prior positions, told to concede, sharpen or withdraw.
+3. Judge: one `Agent` call (`effort: "high"`) that lists surviving blocking objections, accepted tradeoffs, and ship / revise / block with a one-line rationale, discarding anything conceded or withdrawn.
 
-A synthesized ruling — conclusions only:
-- 🔴 **Blocking issues** — objections that survived cross-examination, with `path:line` citations
-- 🟡 **Accepted tradeoffs** — known costs the design deliberately takes
-- 🟢/🟡/🔴 **Verdict** — ship / revise / block, with one-line rationale
+Keep the lens transcripts out of the main thread; relay only the judge's output. For a single for/against/referee pass instead, invoke the `dialectic-review` skill with `Skill` when it is installed (it ships with the CLI toolkit, not the plugin). On Codex: ask the pickers in plain text and run each lens as a `codex exec` call, then a judge call.
 
-Act on the ruling. The agents' raw back-and-forth never lands in your lead context (workflow-first §2).
+### 5. Report the ruling
 
----
+The workflow returns `{ mode, lenses, rounds, judged }`, where `judged` has `verdict` (`ship` | `revise` | `block`), `blocking[]`, `tradeoffs[]` and `rationale`. Relay:
 
-## Anti-patterns — DO NOT
+- 🔴 **Blocking issues** — each surviving objection, with `path:line` where given
+- 🟡 **Accepted tradeoffs** — costs the design takes on deliberately
+- **Verdict** — 🟢 ship / 🟡 revise / 🔴 block, with the one-line rationale
 
-- ❌ Run debate without a concrete target (a design doc, plan, or diff) — there's nothing to argue
-- ❌ Dump the full agent transcript into lead context — relay only the synthesized verdict
-- ❌ Spawn 5 lenses × 3 rounds on a trivial change — match intensity to stakes
-- ❌ Debate the whole repo — scope to one design or one diff first
-- ❌ Invent a Workflow API — always use `Workflow({ scriptPath, args })` exactly
-- ❌ Block the user while the debate runs — emit the progress card and let it run async
-- ❌ Skip the contrarian lens — without a devil's advocate it's not a real stress-test
+Then ask with the follow-up picker.
 
----
+## Decision points
 
-**Bottom line:** debate = N adversarial lenses × cross-examination × a judged verdict. Antfood your design before reality does. Scope tight, push hard, keep the ruling.
+Lens picker (step 2, `multiSelect: true`). Put the lenses that match the target first and mark them 🟢: auth, billing or data in the diff → security; scale or latency claims → performance; expensive-to-reverse structure → architecture; feature or spec debates → product. Recommend two.
+
+```
+question: "Which lenses should argue this? The contrarian lens is always added."
+header: "Debate lenses"
+multiSelect: true
+options:
+  - label: "🔐 Security"
+    description: "Assumes hostile input; hunts auth gaps, injection, trust-boundary breaks."
+  - label: "📊 Performance"
+    description: "Attacks hot paths, N+1 queries, tail latency and scale assumptions."
+  - label: "🏗️ Architecture"
+    description: "Challenges boundaries, coupling, reversibility and needless abstraction."
+  - label: "🎯 Product"
+    description: "Questions the user value, the success metric and scope creep."
+```
+
+Intensity picker (step 2):
+
+```
+question: "How hard should this debate push?"
+header: "Intensity"
+multiSelect: false
+options:
+  - label: "🟢 Quick — 2 rounds"
+    description: "The default for most diffs and plans."
+  - label: "Deep — 3 rounds"
+    description: "Full stress-test for high-stakes, hard-to-reverse decisions. Noticeably more tokens."
+```
+
+Follow-up picker (step 5): 🟢 Fix the blocking issues now (for revise or block) / Re-debate after changes / Accept the ruling and continue / Show one lens's final position.
+
+## Done when
+
+- The workflow (or the fallback judge) returned a verdict of `ship`, `revise` or `block`. If `judged` is `null` or missing, report that the judge did not return and offer to re-run; never invent a verdict.
+- The report lists every `blocking` item, the `tradeoffs`, and the verdict with its rationale.
+
+## Guardrails
+
+- Never run without a concrete target, and never on the whole repository.
+- Never paste the lens transcripts into the main thread; relay the ruling only.
+- Never drop the contrarian lens; without it this is not a stress-test.
+- Never invent a Workflow API; call `Workflow({ scriptPath, args })` exactly as above.
+- Never edit files from this skill; fixes happen after the user picks them in the follow-up.
+- Workflow agents use their default model unless `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` is set; the user's selected session model is preserved.
+
+## See also
+
+- `/ccc-fleet` — fan-out, pipeline and judge-panel modes of the same workflow
+- `/ccc-review` — standard code review of a diff
+- `/ccc-brainstorm` — generate options before debating one
+- `/ccc-plan` — write the plan worth debating
 
 ---
 

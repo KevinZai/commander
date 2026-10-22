@@ -39,6 +39,9 @@ jobs:
       - name: Verify version parity
         run: node scripts/check-version-parity.js --check
 
+      - name: Cross-surface manifest compatibility (Claude / Codex / ChatGPT)
+        run: node scripts/check-compat.js
+
       - name: Audit frontmatter
         run: node scripts/audit-frontmatter.js --check
 

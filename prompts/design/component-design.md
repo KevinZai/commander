@@ -9,12 +9,12 @@ estimated_tokens: 600
 # Component Design
 
 ## When to Use
-When building a reusable UI component that needs to handle multiple variants, states, and accessibility requirements. Use this for anything beyond a trivial one-off element.
+Use when building a reusable UI component that must handle variants, states and accessibility. Skip it for a trivial one-off element.
 
 ## Template
 
 ```
-Design and implement a reusable {{component_name}} component with proper variants, states, and accessibility.
+Design and implement a reusable {{component_name}} component with variants, states and accessibility.
 
 **Component:**
 {{component_name}} — {{what_it_does}}
@@ -26,7 +26,7 @@ Design and implement a reusable {{component_name}} component with proper variant
 {{Tailwind|CSS Modules|styled-components|shadcn/ui variant system}}
 
 **Step 1: API design**
-Define the component's props interface before writing any JSX:
+Define the props interface before writing any markup:
 - Required props (data the component cannot function without)
 - Optional props with sensible defaults
 - Variant props (size, color, style variations)
@@ -34,10 +34,10 @@ Define the component's props interface before writing any JSX:
 - Composition props (children, slots, render props)
 - Accessibility props (aria-label, role, id)
 
-Output as a TypeScript interface.
+Output it as a TypeScript interface.
 
 **Step 2: State analysis**
-Enumerate all visual states:
+Enumerate every visual state:
 - **Default** — resting state
 - **Hover** — mouse over
 - **Focus** — keyboard focus (visible focus ring)
@@ -56,32 +56,33 @@ Define the variant matrix:
 | Style | solid, outline, ghost | fill vs border vs transparent |
 
 **Step 4: Implementation**
-- Build the component with all variants and states
-- Use `cva` (class-variance-authority) or equivalent for variant management
-- Implement keyboard navigation (Tab, Enter, Escape, Arrow keys as needed)
-- Add ARIA attributes for screen readers
-- Export TypeScript types alongside the component
+- Build the component with every variant and state.
+- Manage variants with `cva` (class-variance-authority) or the project's equivalent.
+- Implement keyboard navigation (Tab, Enter, Escape, arrow keys as needed).
+- Add ARIA attributes for screen readers.
+- Export the TypeScript types alongside the component.
 
 **Step 5: Verify**
-- Render every combination of variant x state
-- Test keyboard navigation
-- Check color contrast ratios (WCAG AA minimum)
-- Verify the component works in both light and dark mode
-- Write a Storybook story or visual test if the project uses them
+- Render every variant x state combination.
+- Test keyboard navigation end to end.
+- Check color contrast ratios against WCAG AA.
+- Confirm the component works in light and dark mode.
+- Add a Storybook story or visual test if the project uses them, and run the project's test command.
+- Report each check and its actual result.
 ```
 
 ## Tips
-- Use the `shadcn-ui` skill to check if a similar component already exists in shadcn
-- The `frontend-patterns` skill provides compound component and composition patterns
-- Always start with the TypeScript interface — it forces you to think about the API before the visuals
+- Use the `shadcn-ui` skill to check whether shadcn already ships a similar component.
+- The `frontend-patterns` skill covers compound-component and composition patterns.
+- Start with the TypeScript interface; it forces API decisions before visual ones.
 
 ## Example
 
 ```
-Design and implement a reusable DataTable component with proper variants, states, and accessibility.
+Design and implement a reusable DataTable component with variants, states and accessibility.
 
 **Component:**
-DataTable — a sortable, filterable, paginated table for displaying structured data
+DataTable — a sortable, filterable, paginated table for structured data
 
 **Framework:** React (Next.js app router)
 **Styling:** Tailwind + shadcn/ui variant system (using cva)

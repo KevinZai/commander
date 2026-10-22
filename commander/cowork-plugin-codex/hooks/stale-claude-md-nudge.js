@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 /**
  * stale-claude-md-nudge.js
- * Hook: InstructionsLoaded (standalone CLI) + SessionStart (via orchestrator run() export)
+ * Hook: InstructionsLoaded + FileChanged (standalone CLI) + SessionStart (via orchestrator run() export)
  *
  * Dual-mode: exports run({input,env,cwd}) for the SessionStart orchestrator,
- * and runs standalone via CLI tail when invoked directly (InstructionsLoaded hook).
+ * and runs standalone via CLI tail when invoked directly (InstructionsLoaded
+ * and FileChanged hooks). Also exports claudeMdWatchPaths(cwd), which the
+ * orchestrator returns as SessionStart `watchPaths` so FileChanged fires for
+ * the CLAUDE.md files this nudge checks.
+ *
+ * FileChanged mode (matcher `CLAUDE.md`): re-runs the check for the directory
+ * of the changed file (`file_path`). Prints nothing unless there is a nudge to
+ * show — FileChanged reads only `systemMessage` and `watchPaths`.
  *
  * Two branches:
  *   1. Missing CLAUDE.md in a git repo that clearly contains code →
@@ -17,7 +24,7 @@
  */
 import { stat, mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname, basename, isAbsolute } from 'node:path';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -52,11 +59,25 @@ async function onceOnlyToday(env, cwd) {
 }
 
 /**
+ * Absolute CLAUDE.md paths this nudge checks for `cwd` that exist right now.
+ * Returned by the SessionStart orchestrator as hookSpecificOutput.watchPaths.
+ */
+export function claudeMdWatchPaths(cwd = process.cwd()) {
+  try {
+    if (typeof cwd !== 'string' || !isAbsolute(cwd)) return [];
+    const candidate = join(cwd, 'CLAUDE.md');
+    return existsSync(candidate) ? [candidate] : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Pure-function entry for orchestrator (CC-414).
  * Accepts pre-parsed stdin via opts.input (orchestrator parses once and forwards).
  * Returns the JSON output object instead of writing to stdout.
  */
-export async function run({ input = {}, env = process.env, cwd = process.cwd() } = {}) {
+export async function run({ input: _input, env = process.env, cwd = process.cwd() } = {}) {
   if (env.CC_NUDGE_DISABLE === '1') return { continue: true };
   try {
     const claudeMdPath = join(cwd, 'CLAUDE.md');
@@ -88,6 +109,17 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const chunks = []; for await (const c of process.stdin) chunks.push(c);
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     let input = {}; try { if (raw) input = JSON.parse(raw); } catch {}
+    if (!input || typeof input !== 'object') input = {};
+    if (input.hook_event_name === 'FileChanged') {
+      const changed = typeof input.file_path === 'string' ? input.file_path : '';
+      if (!isAbsolute(changed) || basename(changed) !== 'CLAUDE.md') return;
+      let res; try { res = await run({ input, env: process.env, cwd: dirname(changed) }); }
+      catch { res = null; }
+      if (res && typeof res.systemMessage === 'string') {
+        process.stdout.write(JSON.stringify({ systemMessage: res.systemMessage }) + '\n');
+      }
+      return;
+    }
     let res; try { res = await run({ input, env: process.env, cwd: process.cwd() }); }
     catch { res = { continue: true, suppressOutput: true }; }
     process.stdout.write(JSON.stringify(res || { continue: true }) + '\n');

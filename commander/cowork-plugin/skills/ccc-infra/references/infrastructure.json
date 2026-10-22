@@ -1,59 +1,35 @@
 {
   "id": "infrastructure",
-  "version": 2,
+  "version": 3,
   "screen": {
-    "title": "Infrastructure & Fleet",
-    "subtitle": "Manage your agent fleet, monitor costs, and track observability"
+    "title": "Dev Services Status",
+    "subtitle": "Probe services declared in your own services.json, plus Claude/Codex tooling health"
   },
-  "prompt": "Infrastructure Tools",
+  "prompt": "What do you want to check?",
   "choices": [
     {
       "key": "a",
-      "label": "Fleet Commander",
-      "description": "Launch and manage parallel agent teams",
-      "action": "fleet_commander"
+      "label": "View full status (Power Mode)",
+      "description": "Probe every services.json entry plus Claude MCPs and Codex CLI",
+      "action": "full_status"
     },
     {
       "key": "b",
-      "label": "Cost Dashboard",
-      "description": "Real-time spending across all sessions",
-      "action": "cost_dashboard"
+      "label": "Help me set up services.json",
+      "description": "Create ~/.claude/commander/services.json with your project's own local services",
+      "action": "setup_services_json"
     },
     {
       "key": "c",
-      "label": "Synapse Observability",
-      "description": "What are my agents doing right now?",
-      "action": "synapse_observe"
+      "label": "Check Claude MCP connections",
+      "description": "claude mcp list — what's connected right now",
+      "action": "claude_mcp_status"
     },
     {
       "key": "d",
-      "label": "Composio AO",
-      "description": "Spawn parallel agents with worktree isolation",
-      "action": "ao_spawn"
-    },
-    {
-      "key": "e",
-      "label": "CloudCLI",
-      "description": "Open web terminal for mobile access",
-      "action": "cloudcli_open"
-    },
-    {
-      "key": "f",
-      "label": "Paperclip Tasks",
-      "description": "Pick up next issue from task queue",
-      "action": "paperclip_pickup"
-    },
-    {
-      "key": "h",
-      "label": "TaskMaster",
-      "description": "PRD parsing, task decomposition, complexity analysis",
-      "action": "taskmaster_status"
-    },
-    {
-      "key": "i",
-      "label": "Detect services",
-      "description": "Scan ports and CLIs \u2014 see what\u2019s running",
-      "action": "detect_services"
+      "label": "Check Codex CLI",
+      "description": "Is the codex binary installed and authenticated?",
+      "action": "codex_status"
     },
     {
       "key": "j",

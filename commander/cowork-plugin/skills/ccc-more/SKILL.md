@@ -1,135 +1,177 @@
 ---
 name: ccc-more
-description: "CC Commander second-page menu — click-first access to plan, x-ray, Linear, fleet, connect, and catalog browse. Use when the user types /ccc-more, picks 'More tools'…"
+description: "Commander's second-page menu: plan, x-ray, Codex CLI management, fleet, Linear, connectors, tune-up, catalog browse and the plugin audit workflows, one click each. Use when the user picks More tools in /ccc, types /ccc-more, or asks what else Commander can do."
 allowed-tools:
   - Read
-  - Write
-  - Edit
   - Bash
   - Glob
-  - Grep
-  - Agent
+  - Skill
+  - Workflow
   - AskUserQuestion
-argument-hint: "[intent: plan | xray | linear | fleet | connect | browse]"
+argument-hint: "[plan | xray | codex | fleet | linear | connect | tuneup | browse | workflows | audit | deep-review | migrate | prompt-audit | release-audit | back]"
+model: sonnet
+effort: low
 ---
 
-# /ccc-more — Second-page tools menu
+# /ccc-more — the rest of Commander
 
-Click-first picker for the CC Commander surface area that's NOT build/review/ship/design/learn. Plan, x-ray, Linear, fleet, connect, browse — one click each, cascade for the long tail.
+**CC Commander** · /ccc-more · cascading pickers for everything that is not build, review or ship, including Codex CLI management and the plugin workflows.
 
-## Response shape (EVERY time)
+Choices come from `${CLAUDE_PLUGIN_ROOT}/menus/ccc-more.json` plus the plugin workflows in `${CLAUDE_PLUGIN_ROOT}/workflows/`. If the menu file lists a tool this page does not, add it to the page with a free slot or say it exists; never drop it silently.
 
-### 1. Brand header (one line)
+## When to use / when not to
+
+- Use after "More tools" in `/ccc`, for `/ccc-more`, or for "what else can Commander do?".
+- Use the argument form (`/ccc-more codex`) to skip every picker.
+- Do not use for a searchable catalog (`/ccc-browse`) or a live map of every skill (`/ccc-cheatsheet`).
+
+## What happens
+
+### 1. Argument shortcut
+
+If `$ARGUMENTS` names a tool, dispatch it with step 5's table and stop. Accepted: `plan`, `xray`, `codex`, `fleet`, `linear`, `connect`, `tuneup`, `browse`, `workflows`, `audit`, `deep-review`, `migrate`, `prompt-audit`, `release-audit`, `back`.
+
+### 2. Header and context strip
+
+Render one header line:
 
 ```
-**CC Commander · More** · 7 tools · [all commands](https://commanderplugin.com/commands)
+**CC Commander · More** · [all commands](https://commanderplugin.com/commands)
 ```
 
-### 2. Context strip (one line)
+Probe in one Bash call (each silent on failure):
 
-Parallel Bash probe (silent on failure):
-- `test -f tasks/todo.md && wc -l tasks/todo.md` — open tasks
-- `git rev-parse --abbrev-ref HEAD 2>/dev/null` — branch
-- `claude mcp list 2>/dev/null | grep -c '^  '` — connected MCPs
-- `test -f .linear/config.json && echo linear-ok` — Linear wired
+```bash
+git rev-parse --abbrev-ref HEAD 2>/dev/null
+git ls-files 2>/dev/null | wc -l | tr -d ' '
+test -f CLAUDE.md && echo has-claude-md
+test -f tasks/todo.md && grep -c '^- \[ \]' tasks/todo.md
+git worktree list 2>/dev/null | wc -l | tr -d ' '
+git status --porcelain 2>/dev/null | head -1 | grep -q . && echo dirty
+git rev-list --count @{upstream}..HEAD 2>/dev/null
+claude mcp list 2>/dev/null | grep -ci linear
+test -f .linear/config.json && echo linear-config
+command -v codex >/dev/null 2>&1 && echo codex-installed
+{ test -f AGENTS.md || test -d .codex; } && echo codex-project
+```
 
-Render:
-> 🧭 Branch `<name>` · <N> open tasks · <M> MCPs connected · Linear: `<connected | not set up>`
+Render one line:
 
-If barely any context: "🧭 Empty-ish project — Plan a feature or run X-ray to get signal."
+> 🎯 Branch `<branch>` · <n> open tasks · Linear `<connected | not set up>` · Codex `<installed | not installed>`
 
-### 3. The picker — `AskUserQuestion` page 1
+Little context: "🎯 Empty-ish project — plan a feature or run an x-ray to get signal."
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-more.json` once. Use its `choices`. **Max 4 options** — 3 headline tools + "Even more…".
+### 3. Page 1 picker
+
+AskUserQuestion, four options, recommended first with 🟢 (Codex: the same choices as a plain-text question):
 
 ```
 question: "Which tool?"
 header: "CC Commander · More"
 multiSelect: false
 options:
-  - label: "📋 Plan a feature"
-    description: "Spec interview → implementation plan file → review checkpoint."
-    preview: "Invokes ccc-plan. Asks 5-7 targeted questions — writes to the session plan file (shows in Desktop Plan pane)."
-  - label: "🩻 Project x-ray"
-    description: "Scorecard across code, docs, tests, deps, CI — actionable findings."
-    preview: "Invokes ccc-xray. Reads repo, returns report card + remediation steps."
-  - label: "📊 Linear board"
-    description: "View, pick, or create issues without leaving Claude."
-    preview: "Invokes ccc-linear. Requires Linear MCP; will prompt /ccc-connect if missing."
-  - label: "⋯ Even more…"
-    description: "Fleet, connect apps, browse catalog."
-    preview: "3 more tools — click to cascade."
+  - label: "📝 Plan a feature"
+    description: "Spec interview, implementation plan file, review checkpoint."
+  - label: "🔬 Project x-ray"
+    description: "Scorecard across code, docs, tests, deps and CI with fixes."
+  - label: "⌨️ Codex CLI"
+    description: "Doctor, models, plugins, MCP, agents, cloud, remote, review, update, import, config."
+  - label: "⏭️ Even more…"
+    description: "Fleet, Linear, connectors, plugin workflows, tune-up, catalog."
 ```
 
-**Recommendation logic** (prepend ⭐ to ONE option):
-- No `tasks/` dir and no `CLAUDE.md` → ⭐ "Plan a feature"
-- Repo >500 files or messy tests → ⭐ "Project x-ray"
-- Linear MCP connected + current branch matches `cc-<num>-*` → ⭐ "Linear board"
-- Nothing special → ⭐ "Plan a feature"
+Recommendation, first match wins:
 
-### 4. Handle the selection (page 1)
+1. Linear connected (either Linear probe printed) and the branch looks like an issue branch (`<letters>-<digits>-…`) → 🟢 Linear board. Put Linear in Codex's slot on page 1 and Codex in Linear's slot on page 2.
+2. No `tasks/todo.md` and no `CLAUDE.md` → 🟢 Plan a feature.
+3. More than 500 tracked files → 🟢 Project x-ray.
+4. `codex-installed` and `codex-project` both printed → 🟢 Codex CLI.
+5. Otherwise → 🟢 Plan a feature.
 
-Dispatch immediately — no re-prompting:
+### 4. Cascade pages
 
-- **Plan a feature** → invoke `ccc-plan` skill.
-- **Project x-ray** → invoke `ccc-xray` skill.
-- **Linear board** → check MCP list for `linear`. If missing, suggest `/ccc-connect linear` first. If present, invoke `ccc-linear`.
-- **Even more…** → cascade to page 2 below.
+"Even more…" on page 1 opens page 2; "Even more…" on page 2 opens page 3. Each is one AskUserQuestion call with four options.
 
-### 5. Second AUQ (only if "Even more…" picked)
+Page 2 — header "CC Commander · More · 2":
+
+- 🤖 Fleet (parallel agents) — parallel agents in isolated worktrees with progress cards
+- 📊 Linear board — view, pick or create issues (opt-in Linear connector)
+- 🌐 Connect apps — enable Notion, Zapier, Supabase, Slack, Google Drive and other connectors
+- ⏭️ Even more… — plugin workflows, tune-up, catalog
+
+Page 2 🟢, first match wins: more than one worktree or at least one open task → Fleet; Linear connected and still on this page → Linear board; otherwise → Connect apps.
+
+Page 3 — header "CC Commander · More · 3":
+
+- 🧪 Plugin workflows — audit, deep review, release audit, fleet, migrate, prompt audit
+- 🔧 Tune-up setup — audit and safely optimize the local Commander install; read-only by default
+- 📦 Browse catalog — searchable grid of every `/ccc-*` command and installed skill
+- 🔄 Back to /ccc — return to the hub
+
+Page 3 🟢: Plugin workflows.
+
+Plugin workflows page — header "Plugin workflows" (details: [plugin-workflows.md](references/plugin-workflows.md)):
+
+- 📊 Repo audit — `/commander:ccc-audit`: scorecard per dimension, findings verified
+- 🔬 Deep branch review — `/commander:ccc-deep-review`: diff against the base ref, findings refuted or confirmed
+- ✅ Release audit — `/commander:ccc-release-audit`: every release gate, go or no-go (Commander repository only)
+- ⏭️ More workflows — `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`
+
+Plugin workflows page 🟢: `dirty` printed or a non-zero commits-ahead count → Deep branch review; otherwise → Repo audit.
+
+"More workflows" opens one last picker with those three (Fleet run, Migrate, Prompt audit); 🟢 Fleet run.
+
+### 5. Dispatch
+
+Dispatch immediately on a pick; do not ask again.
+
+| Pick or argument | Action |
+|---|---|
+| Plan · `plan` | Skill `ccc-plan` |
+| X-ray · `xray` | Skill `ccc-xray` |
+| Codex CLI · `codex` | Skill `ccc-codex` |
+| Fleet · `fleet` | Skill `ccc-fleet` |
+| Linear · `linear` | Linear connected: Skill `ccc-linear`. Not connected: picker "🟢 Connect Linear now (`/ccc-connect linear`)" / "Back to More"; never call Linear tools that are absent |
+| Connect · `connect` | Skill `ccc-connect` |
+| Tune-up · `tuneup` | Skill `ccc-tuneup` |
+| Browse · `browse` | Skill `ccc-browse` |
+| Plugin workflows · `workflows` | Plugin workflows page |
+| Back · `back` | Skill `ccc` |
+| Repo audit · `audit` | Workflow `ccc-audit` with `args: { target: "." }`; on a repo with more than 500 tracked files, first ask "🟢 Whole repo" / "One directory" and pass the directory as `target` |
+| Deep review · `deep-review` | Workflow `ccc-deep-review` with `args: { base: "<origin/HEAD short name, else main>" }` |
+| Release audit · `release-audit` | Only when `commander/contract.json` and `scripts/build-codex.js` exist in the working directory: Workflow `ccc-release-audit` with `args: {}`. Elsewhere, say it audits the Commander repository and does not apply here |
+| Prompt audit · `prompt-audit` | Same repository check, then Workflow `ccc-prompt-audit` with `args: {}` |
+| Fleet run · Migrate · `migrate` | Skill `ccc-fleet`; it collects `mode`/`tasks` or `pattern`/`transform` and starts `ccc-fleet` or `ccc-migrate` |
+
+Run a workflow as:
 
 ```
-question: "The rest."
-header: "CC Commander · More · Page 2"
-multiSelect: false
-options:
-  - label: "🚁 Fleet (parallel agents)"
-    description: "Run multiple Sonnet agents in parallel worktrees — watch the progress cards."
-    preview: "Invokes ccc-fleet. Spawns worktree per agent, non-overlapping file domains."
-  - label: "🔌 Connect apps"
-    description: "Enable Notion, Zapier, Supabase, Slack, Google Drive, and more MCPs."
-    preview: "Invokes ccc-connect. Browses connector categories + runs OAuth."
-  - label: "🔎 Browse catalog"
-    description: "Searchable grid of every /ccc-* command and every installed skill."
-    preview: "Invokes ccc-browse. Filters by domain, status, recency."
-  - label: "🏠 Back to main"
-    description: "Return to /ccc."
-    preview: "Invokes ccc skill (root picker)."
+Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/<name>.workflow.js", args: { … } })
 ```
 
-### 6. Handle the selection (page 2)
+Say one line first: "Starting `/commander:<name>` — parallel agents, one verified result back here." Without the Workflow tool (Codex, older clients), run the fallback skill from [plugin-workflows.md](references/plugin-workflows.md) and say which one.
 
-- **Fleet** → invoke `ccc-fleet` skill.
-- **Connect apps** → invoke `ccc-connect` skill.
-- **Browse catalog** → invoke `ccc-browse` skill.
-- **Back to main** → invoke `ccc` skill.
+## Done when
 
-### 7. Argument handling
+- Argument path: the mapped skill or workflow was invoked in this turn.
+- Picker path: every picker had at most four options with exactly one 🟢, and the final pick was dispatched.
+- Workflow path: the Workflow tool returned, and you reported its verdict or the error it raised, not a summary from memory.
 
-If the user passed an argument (`/ccc-more fleet`), skip both AUQs and invoke directly. Accept: `plan` / `xray` / `linear` / `fleet` / `connect` / `browse`.
+## Guardrails
 
-## Anti-patterns — DO NOT
+- Never put more than four options in one picker, render a numbered list, or ask the user to type a number.
+- Never call Linear or another connector's tools without confirming the connector is present; Linear and every connector are opt-in.
+- Never run `ccc-release-audit` or `ccc-prompt-audit` outside the Commander repository.
+- Workflows report; they never commit, tag, push or publish from this menu. Any follow-up write goes through its own skill and its own confirmation.
+- Never re-introduce Commander or repeat the hub banner; the user came from `/ccc`.
+- The session model is preserved; workflows use their own routing unless `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` is set.
 
-- ❌ Render all 7 options in one AUQ (max 4)
-- ❌ Show a numbered list and ask the user to type a number
-- ❌ Invoke Linear without checking MCP presence — prompts fail silently
-- ❌ Skip the cascade — page 2 is how the long tail surfaces
-- ❌ Redundantly re-introduce CC Commander — the user already clicked through from /ccc
+## See also
 
-## When to invoke this skill
-
-- user: what else can CCC do?
-- assistant: Loads ccc-more, renders the 4-option picker with ⭐ on the contextual best pick.
-
-- user: plan out this feature before I build it
-- assistant: Loads ccc-more with `plan` argument, skips picker, invokes ccc-plan directly.
-
-- user: I need parallel agents for this refactor
-- assistant: Loads ccc-more with `fleet` argument, skips both AUQs, invokes ccc-fleet directly.
-
----
-
-**Bottom line:** 4 options on page 1, cascade to 3 more on page 2. Arguments bypass everything. Every pick dispatches inline to the named skill — no intermediate text menus.
+- `/ccc` — the hub
+- `/ccc-codex` — Codex CLI management
+- `/ccc-fleet` — guided multi-agent runs
+- `/ccc-browse` — searchable catalog
 
 ---
 

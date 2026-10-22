@@ -1,6 +1,6 @@
 ---
 name: mode-switcher
-description: Switch between optimized workflow modes — design, saas, marketing, research, writing, night, yolo, unhinged, caveman, normal
+description: Switch between optimized workflow modes — design, saas, marketing, research, writing, night, yolo, unhinged, caveman, adhd, normal
 tags: [mode, workflow, configuration]
 ---
 
@@ -45,6 +45,7 @@ Or reference naturally in conversation: "switch to design mode", "go yolo", "ent
 | 8 | **yolo** | user's choice | autoAccept | Max speed. Skip confirmations. Hooks as safety net. Minimal explanation. |
 | 9 | **unhinged** | all CCC domains | autoAccept | YOLO + max creativity. Bold architecture. Aggressive refactoring. Comprehensive testing. |
 | 10 | **caveman** | — | acceptEdits | Token-saving mode. ~75% less output tokens. Three levels: lite/full/ultra. Code stays normal. |
+| 11 | **adhd** | — | acceptEdits | Answer-first output. Fix, then command, then file:line — context last. Based on ayghri/i-have-adhd (MIT). Stacks with caveman. |
 
 ---
 
@@ -99,6 +100,12 @@ Everything YOLO offers plus maximum creative freedom. All CCC domains loaded. Cl
 Ultra-compressed output mode. Strips articles, filler, pleasantries, and hedging from all prose responses. Technical content — code blocks, error messages, exact terms — is untouched. Three intensity levels: lite (no fluff, grammar intact), full (fragments, no articles), ultra (telegraphic, abbreviations, arrow notation). Stacks with any other mode.
 
 **When to use:** Long debugging sessions, architecture discussions, any work where explanation volume is high and you want to cut output costs by ~65-75%. Deactivate with `/caveman off`.
+
+### adhd (answer-first output)
+
+Reorders every response so the fix leads and the reasoning follows: answer/command/file:line first, context last. This is a **priority reorder**, not a compression mode — full accuracy stays, only the order changes. Based on `ayghri/i-have-adhd` (MIT). Stacks with caveman: caveman governs length, adhd governs order — together the fix comes first, in the fewest words. Full contract: `commander/cowork-plugin/skills/ccc-adhd/SKILL.md`. Toggle with `/ccc-adhd on|off|status`, or say "stop adhd mode".
+
+**When to use:** You want the fix first, every time, without asking — beginners especially benefit since the answer is always the first line. Debugging loops where "what do I run right now" matters more than narrative.
 
 ---
 

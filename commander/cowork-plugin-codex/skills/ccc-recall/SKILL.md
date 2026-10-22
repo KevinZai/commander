@@ -1,84 +1,109 @@
 ---
 name: ccc-recall
-description: "Search across all past Claude Code sessions — find when you solved a similar problem, what decision you made last quarter, which file you were editing the day before…"
+description: "Search past saved sessions and curated memory notes for an earlier fix, decision or file, and answer with the source file and date cited. Use when asking didn't we solve this before, what did we decide about X, or when a bug first appeared."
+allowed-tools:
+  - Bash
+  - Read
+  - Skill
+  - AskUserQuestion
+argument-hint: "[question or keywords] [--since YYYY-MM-DD]"
 model: sonnet
 effort: medium
 ---
 
-# /ccc-recall — Cross-Session Memory Search
+# $ccc-recall — Cross-session memory search
 
-Your past sessions are a goldmine. This skill indexes it.
+**CC Commander** · $ccc-recall · an answer from your own past sessions and notes, with the file and date that prove it.
 
-> **Optional integration:** If you have `claude-mem` (a separate AGPL-licensed
-> tool by @thedotmack) installed via `npm install claude-mem`, `/ccc-recall`
-> will use it for vector search across sessions. **CC Commander does NOT
-> bundle claude-mem** — install separately or skip; CCC's built-in grep +
-> file-based recall works without it.
+On Codex, AskUserQuestion becomes a plain-text question and skills are invoked as `$ccc-memory`.
 
-## When to use
+> **Optional integration:** claude-mem is a separate AGPL-licensed tool by @thedotmack. CC Commander does not bundle it; it is absent by default. The built-in grep layers below work without it.
 
-- "Didn't we solve this last month?" — search instead of re-solving
-- "What did I decide about {auth provider / db vendor / testing lib}?" — pull the decision
-- "When did {bug} first appear?" — find the session it landed in
-- "Which file had that specific comment about the edge case?" — grep across sessions
+## When to use / when not to
 
-## Not for
+- Use for "didn't we solve this last month?", "what did I decide about the auth provider / database / test library?", "when did this bug first appear?", or "which session had that comment about the edge case?".
+- Not for the current session's state: use `$ccc-memory` (curated) or `$ccc-save-session` (snapshot).
+- Not for code search across the repository: use the Grep tool directly.
+- Not for library documentation: use the context7 MCP server or `$ccc-research`.
 
-- Current session state — that's `/ccc-memory` (curated) or `/ccc-save-session` (snapshot)
-- Code search across the repo — use `Grep` tool directly
-- Documentation lookup — use `context7` MCP or `/ccc-docs`
+## What happens
 
-## Three-layer lookup
+1. **Parse the question.** Extract two or three keywords plus any time window ("last month", "since the release") and turn the window into a `YYYY-MM-DD` start date. Session filenames begin with their date, so a window filters by name.
 
-Run them in order of fastest-first:
+2. **Layer 1 — saved session files** (`~/.claude/sessions/*.tmp`, written by `$ccc-save-session` and `$ccc-handoff`):
 
-### Layer 1 — Session transcripts (`~/.claude/sessions/*.tmp`)
+   ```bash
+   grep -il -- "<keyword>" "$HOME"/.claude/sessions/*.tmp 2>/dev/null | sort -r | head -5
+   ```
 
-File-based. Fast grep:
-```bash
-grep -l "${keyword}" ~/.claude/sessions/*.tmp | head -5
+   With a window, append `| awk -F/ -v since=<YYYY-MM-DD> '$NF >= since'` before `head`. One to five hits → Read the newest, focusing on "Decisions Made", "What WORKED" and "What Did NOT Work", and answer. No hits → step 3.
+
+3. **Layer 2 — curated memory notes** (from `$ccc-memory`), higher signal than session files:
+
+   ```bash
+   grep -rin -- "<keyword>" memory/ tasks/memory/ 2>/dev/null | head -20
+   ```
+
+   Hits → Read the matching notes and answer. No hits → step 4.
+
+4. **Layer 3 — broad full-text search.** Grep is literal, so search each keyword and two or three synonyms (for example "SSE", "server-sent", "websocket") with context across every session and archived note:
+
+   ```bash
+   grep -rin -C 2 --include='*.tmp' --include='*.md' -- "<keyword-or-synonym>" "$HOME"/.claude/sessions/ 2>/dev/null | head -60
+   ```
+
+   If claude-mem's search tool is exposed in this session, query it here as well; it is not pre-approved by this skill and runs under the session's normal permission prompts. Confirm the tool is present before calling it.
+
+5. **Answer with citations.** Every claim names its source file and date so the user can verify it. Nothing found in any layer → say so, list the keywords and layers searched, and suggest other keywords. Never answer from model memory.
+
+6. **Offer to save the recall** when it answers a question likely to recur, using the decision below. On the 🟢 option, invoke the `ccc-memory` skill with `add`, then verify the write and report the actual output:
+
+   ```bash
+   ls -l memory/decisions/<slug>.md && head -20 memory/decisions/<slug>.md
+   ```
+
+   A missing file or a body without the cited source means the save failed; say so instead of reporting it saved.
+
+## Decision points
+
+```yaml
+question: "Save this answer as a memory note so the next lookup is instant?"
+header: "CC Commander — Recall"
+multiSelect: false
+options:
+  - label: "🟢 Save as a decision note"
+    description: "Run $ccc-memory add and write memory/decisions/<slug>.md with the cited source."
+  - label: "No, done"
+    description: "Keep the answer in this conversation only."
 ```
-Returns session files whose summary mentions the keyword. Each is a structured save from `/ccc-save-session` with sections for What Worked / Didn't Work / Decisions.
-
-### Layer 2 — `memory/` curated notes
-
-If project has a `memory/` dir (from `/ccc-memory`):
-```bash
-grep -rn "${keyword}" memory/
-```
-Higher signal than transcripts — you curated these specifically because they mattered.
-
-### Layer 3 — Full-text search across all sessions
-
-If you need deeper semantic matches beyond Layer 1-2, search the full session corpus with glob:
-```bash
-grep -rn "${keyword}" ~/.claude/sessions/ --include="*.tmp" --include="*.md"
-```
-This indexes all session transcripts and archived notes. Best for semantic matches ("the time we debated SSE vs WebSocket") vs literal keyword, using native grep with context flags.
-
-## Process
-
-1. **Parse the question** — extract 2-3 keywords + time window ("last month", "Q4", "since shipping v4")
-2. **Run Layer 1 grep** — if 1-5 hits, read the most recent, answer
-3. **If no hits, Layer 2** — curated notes
-4. **If still no hits, Layer 3** — full-text grep across all sessions
-5. **Summarize findings** — always cite the source file + date so Kevin can verify
-6. **Offer to save the recall** — if this turned out to be a common question, suggest `/ccc-memory` entry for next time
 
 ## Example
 
-User: "What did we decide about the MCP bundling split?"
+User: "What did we decide about bundling MCP servers?"
 
-1. Layer 1 grep for "mcp bundling" in `~/.claude/sessions/*.tmp` → finds `2026-04-23-commander-blitz-session.tmp`
-2. Read that file's "Decisions" section
-3. Answer: "On 2026-04-23 during the post-beta.10 hardening review, R1/R5/R8 flagged 9 auto-bundled MCPs as install-day failure. Decision: trim to 2 credential-free (context7 + sequential-thinking), move rest to opt-in via /ccc-connect. Shipped in commit 3cba64d."
-4. Offer: "This would make a good `/ccc-memory` entry as `memory/decisions/mcp-bundling.md` — want me to write it?"
+1. Layer 1 grep for `mcp` and `bundl` finds `2026-04-23-commander-blitz-session.tmp`.
+2. Read its "Decisions Made" section.
+3. Answer: "On 2026-04-23 (source: `~/.claude/sessions/2026-04-23-commander-blitz-session.tmp`) the decision was to bundle only credential-free MCP servers and make the rest opt-in through $ccc-connect, because servers that need credentials failed on install day."
+4. Offer to save it as `memory/decisions/mcp-bundling.md`.
 
-## Depends on
+## Done when
 
-- `~/.claude/sessions/` directory (created by `/ccc-save-session`)
-- Optional: `memory/` in project root (created by `/ccc-memory`)
-- Native bash grep (no external dependencies)
+- The answer cites at least one source file and date, or the report names every keyword and layer searched with no match.
+- The save offer was made when the question is likely to recur.
+- If the user chose to save, the note exists and its path and the `ls -l` / `head -20` output were shown.
+
+## Guardrails
+
+- Read-only: never edit, move or delete a session file or memory note. Saving happens only through `$ccc-memory` after the user picks it, and is confirmed by the step 6 check before it is reported as saved.
+- Never present a guess as a recalled fact; uncited claims are not answers.
+- Never quote secrets or credential values found in old files; name the variable instead.
+
+## See also
+
+- `$ccc-memory` — write the curated notes Layer 2 searches
+- `$ccc-resume-session` — load one past session in full
+- `$ccc-save-session` — create the files Layer 1 searches
+- `$ccc-knowledge` — browse past lessons by category
 
 ---
 
@@ -87,3 +112,5 @@ User: "What did we decide about the MCP bundling split?"
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

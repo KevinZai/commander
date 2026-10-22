@@ -1,6 +1,6 @@
 ---
 name: aaio
-description: Agentic AI Optimization — make websites crawlable, citable, and usable by AI agents and browser automation. Use when building or auditing web projects for AI discoverability, implementing robots.txt AI bot policies, adding JSON-LD structured data, creating markdown twin routes, building accessibility trees for agent UX, or optimizing content structure for AI citation. Triggers on: AI SEO, AAIO, agentic optimization, AI discoverability, llms.txt, markdown twins, agent-ready, AI crawlers, structured data audit, schema.org, AI bot policy.
+description: "Agentic AI Optimization — make websites crawlable, citable, and usable by AI agents and browser automation. Use when building or auditing web projects for AI discoverability, implementing robots.txt AI bot policies, adding JSON-LD structured data, creating markdown twin routes, building accessibility trees for agent UX, or optimizing content structure for AI citation. Triggers on: AI SEO, AAIO, agentic optimization, AI discoverability, llms.txt, markdown twins, agent-ready, AI crawlers, structured data audit, schema.org, AI bot policy."
 ---
 
 # Agentic AI Optimization (AAIO)

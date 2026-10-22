@@ -1,9 +1,9 @@
 ---
 title: "Plugin Skills"
-description: "72 skills shipped with the CC Commander plugin (v6.6.0). 13 /ccc-* specialist workflows + 6 channel/CI/ECC skills + 11 CCC domains + Orchestrator/Executor skills + 2 diagnostic/meta + 2 vendor-sourced + session management + lifecycle skills + memory/task/recall + deploy/fleet/onboard skills."
+description: "84 skills shipped with the CC Commander plugin (v8.1.0): click-first /ccc-* workflows, 11 CCC domain routers, orchestrator/executor skills including /ccc-codex, diagnostics, session, memory, deploy, fleet and deck skills."
 ---
 
-CC Commander v6.6.0 ships **72 plugin skills** across eight groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+CC Commander v8.1.0 ships **84 plugin skills** across nine groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
 
 ## Group 1 — 13 /ccc-* Specialist Workflows
 
@@ -13,29 +13,29 @@ Click-first workflows. Each opens an interactive picker (AskUserQuestion native 
 |-------|---------|--------------|
 | `/ccc` | `/ccc` or "open commander" | Main hub — detects project context, routes to the right specialist workflow via nested picker |
 | `/ccc-start` | `/ccc-start` or "get started with ccc" | First-run onboarding — creates plan file, explains the plugin, surfaces your first win |
-| `/ccc-browse` | `/ccc-browse` or "browse skills" | Searchable catalog of all 459+ skills and 22 agents — filter by domain, keyword, or tier |
+| `/ccc-browse` | `/ccc-browse` or "browse skills" | Searchable catalog of all 467+ skills and 22 agents — filter by domain, keyword, or tier |
 | `/ccc-plan` | `/ccc-plan` or "plan a feature" | Spec-first planning — 5-question interview → `tasks/spec-YYYYMMDD.md` → ready to build |
 | `/ccc-build` | `/ccc-build` or "build something" | Guided build wizard — web app, API, CLI, or mobile. Dispatches the builder agent with spec |
 | `/ccc-review` | `/ccc-review` or "review my code" | Branch audit — diff review, security pass, performance check, or full x-ray. Uses reviewer agent |
 | `/ccc-ship` | `/ccc-ship` or "ship this" | Pre-flight checks + release + deploy. 22-point gate: TypeScript, tests, secrets, env vars |
-| `/ccc-design` | `/ccc-design` or "design this" | UI/UX workflow — routes to ccc-design domain (39 skills: animations, systems, accessibility) |
+| `/ccc-design` | `/ccc-design` or "design this" | UI/UX workflow — routes to ccc-design domain (41 skills: animations, systems, accessibility) |
 | `/ccc-learn` | `/ccc-learn` or "teach me" | Skill discovery across all 11 CCC domains — explains what's available and when to use each |
 | `/ccc-xray` | `/ccc-xray` or "audit my project" | Project health scorecard — surfaces issues as fix chips you can click to resolve |
 | `/ccc-linear` | `/ccc-linear` or "show my board" | Linear board integration — view issues, pick one to build, create new issues, sync status |
 | `/ccc-fleet` | `/ccc-fleet` or "run in parallel" | Multi-agent orchestration — launch, route, monitor, and kill parallel agent workers |
 | `/ccc-connect` | `/ccc-connect` or "connect my tools" | Opt-in MCP connector — Notion, Zapier, Supabase, Slack, Google Drive, Figma, and more |
 
-## Group 2 — 14 ccc-* Domain Routers
+## Group 2 — 11 ccc-* Domain Routers
 
-Load ONE domain skill to get an entire specialty. Each router matches your intent and dispatches to the right sub-skill.
+Load ONE domain skill to get an entire specialty. Each router matches your intent and dispatches to the right sub-skill. (The Commander Cockpit's Browse tab additionally displays a **14-domain taxonomy** for filtering — it splits `commands`, `general`, and a few finer-grained buckets out of these same 11 routers for browsing purposes. The 11 routers below are the canonical CCC domains. As of v7.3.0 the Cockpit also has an 8th tab, **Prompts** — a searchable browser across the Claude Code docs library, the CCC library, repo templates, and a ReadyIQ showcase, with Copy and "Enhance this" actions.)
 
 | Skill | Skills Inside | What it covers |
 |-------|--------------|----------------|
-| `ccc-design` | 39 | UI/UX, animations, visual effects, design systems, accessibility, landing pages |
+| `ccc-design` | 41 | UI/UX, animations, visual effects, design systems, accessibility, landing pages |
 | `ccc-marketing` | 45 | CRO, email campaigns, ads, social content, growth, sales copy |
-| `ccc-saas` | 21 | Auth, billing, multi-tenant DB, API patterns, frontend stack, SaaS metrics |
-| `ccc-devops` | 21 | CI/CD, Docker, AWS, Terraform, monitoring, zero-downtime deploys |
-| `ccc-seo` | 20 | Technical SEO, Core Web Vitals, schema markup, AI search, programmatic SEO |
+| `ccc-saas` | 20 | Auth, billing, multi-tenant DB, API patterns, frontend stack, SaaS metrics |
+| `ccc-devops` | 20 | CI/CD, Docker, AWS, Terraform, monitoring, zero-downtime deploys |
+| `ccc-seo` | 19 | Technical SEO, Core Web Vitals, schema markup, AI search, programmatic SEO |
 | `ccc-testing` | 15 | TDD, E2E (Playwright), visual testing, load testing, coverage audits |
 | `ccc-data` | 8 | SQL, ETL pipelines, data warehousing, analytics, visualization, ML ops |
 | `ccc-security` | 8 | OWASP audits, pen testing, secrets management, supply chain, threat modeling |
@@ -72,7 +72,10 @@ Added in v5.0.0 and v5.0.0.
 | `/ccc-resume-session` | `/ccc-resume-session` or "resume session", "pick up where I left off" | Resume a previously saved session — lists recent saves, pick one to restore context |
 | `/ccc-handoff` | `/ccc-handoff` or "handoff session", "fresh chat" | Proactive context reset — writes a dense handoff file and tells you to start a fresh chat before context quality decays |
 | `/ccc-changelog` | `/ccc-changelog` or "what changed", "what is new" | Renders the latest CHANGELOG.md section. Fires automatically on version-transition via SessionStart nudge (beta.11) |
-| `/ccc-doctor` | `/ccc-doctor` or "diagnose plugin" | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component (beta.11) |
+| `/ccc-doctor` | `/ccc-doctor` or "diagnose plugin" | Plugin diagnostic — audits hooks, MCPs, permissions, frontmatter, test status. Reports green/yellow/red per component (beta.11). As of v7.3.0 also diagnoses stale-install layers (marketplace clone behind `main`, old cache dirs, stale Desktop copies) and can enable marketplace auto-update. |
+| `/ccc-update` | `/ccc-update` or "update commander", "check for updates" | Click-first update walkthrough — detect installed vs. latest, run the update sequence, restart, verify version + hooks are live. See [`/ccc-update`](/plugin/skills/ccc-update) (as of v8.0.0). |
+| `/ccc-console` | `/ccc-console` or "open the console", "what's going on" | The Commander Console — one inline widget with agents, usage, safety, memory and history, plus a prompt bar wired to this session. Chips send fixed commands only; publishing a snapshot is separate and consent-gated (v7.4.0). |
+| `/ccc-adhd` | `/ccc-adhd` or "answer-first mode", "stop burying the fix" | Answer-first output — every response leads with the fix, then the command, then the file:line, context last. Ported from `ayghri/i-have-adhd` (MIT). Toggle `on`/`off`/`status`; stacks with `caveman` (v7.5.0). |
 
 ## Group 6 — Memory / Task / Recall (MIT-ported from community)
 
@@ -103,10 +106,25 @@ The plan/execute split: high-reasoning models write goal files and verify; execu
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
-| `/ccc-orchestrate` | `/ccc-orchestrate` or "orchestrate this", "goal file executor" | Cross-runtime Orchestrator/Executor — Fable/Opus writes a Skill.md-style goal file, GPT-5.5 via `codex` or Sonnet executes, orchestrator verifies acceptance criteria |
+| `/ccc-orchestrate` | `/ccc-orchestrate` or "orchestrate this", "goal file executor" | Cross-runtime Orchestrator/Executor — Fable/Opus writes a Skill.md-style goal file, the Codex CLI executor (GPT-6.1 Sol, `gpt-6.1-sol`) or Sonnet executes, orchestrator verifies acceptance criteria |
 | `/ccc-adopt` | `/ccc-adopt` or "adopt commander", "add ccc doctrine" | Bring the Orchestrator/Executor doctrine into an existing project — merge a marked `CLAUDE.md` block without clobbering local rules |
+| `/ccc-relay` | `/ccc-relay` or "cross-session loop", "spec build review chain" | Cross-session loop chaining — chains independent gated spec → build → review sessions with a durable handoff baton; merge stays human-approved (v6.7.0) |
+| `/ccc-smb-ops` | `/ccc-smb-ops` or "small business ops", "invoicing", "cash flow" | Small-business-operations domain (router + 6 sub-skills): invoicing/AR, cash-flow forecast, expense tracking, payroll planning, CRM hygiene, weekly owner brief (v6.7.0) |
+| `/ccc-broadcast` | `/ccc-broadcast` or "status updates", "tell the team when it ships" | Outbound status relay — pushes scrubbed build/deploy/CI/task/cost signals to team chat or email via `/ccc-connect`; the outbound counterpart to `/ccc-nightwatch` (v6.7.1) |
+| `/ccc-spawn` | `/ccc-spawn` or "spawn a session", "spin this off" | Click-first spawn hub — spin isolated work into its own session (spawn_task chip in Cowork, `/spawn` peer in CLI); routes to `/ccc-fleet` or `/ccc-relay` (v6.7.2) |
+| `/ccc-codex` | `/ccc-codex` or "manage codex", "codex doctor" | **New in v8.0.0.** Manage the OpenAI Codex CLI from Claude — doctor, models, plugins and marketplaces, MCP servers, custom agents (installs Commander's TOML agents into `~/.codex/agents/`), Codex Cloud tasks, remote control, `codex review`, `codex update`, `/import` guidance and `config.toml` edits. Every write asks first, backs up the file and verifies with `codex doctor --json` |
+| `/ccc-prompt-fix` | `/ccc-prompt-fix` or "fix my prompt", "sharpen this prompt" | Auto prompt fixer — diagnoses a prompt against the 6 quality patterns, returns a tighter rewrite with the reasoning, suggests the matching library prompt (v6.7.3) |
 
-## All 72 at a Glance
+## Group 9 — Decks
+
+Self-contained artifacts that turn data CCC already logs into a page. Every deck carries a shared decks switcher strip so you can jump between them.
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-usage` | `/ccc-usage` or "what am I spending", "show my savings" | Usage & Cost deck — burn, estimated savings vs. an all-Opus baseline (honest, not a bill), saved/day + cost/day trends, cost-by-app split. See [`/ccc-usage`](/plugin/skills/ccc-usage). |
+| `/ccc-safety` | `/ccc-safety` or "what did commander block", "safety report" | Safety deck — blocked/auto-fixed/approved action outcomes, redacted tool-failure hotspots. See [`/ccc-safety`](/plugin/skills/ccc-safety). |
+
+## All 84 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -154,7 +172,23 @@ The plan/execute split: high-reasoning models write goal files and verify; execu
 | 42 | `/ccc-handoff` | Proactive fresh-chat handoff |
 | 43 | `/ccc-orchestrate` | Cross-runtime Orchestrator/Executor |
 | 44 | `/ccc-adopt` | Existing-project doctrine adoption |
-| 45–70 | `ccc-design`, `ccc-fleet`, `ccc-linear` double-counted + supporting skills (build, code-review, content, deploy-check, domains, fleet, infra, knowledge, linear-board, night-mode, research, session, settings, standup, brainstorm, qa, loop, hermes, nightwatch, ci, yolo-setup, ecc, ultracode, debate, triage, doc-sync, harden) + aux | Includes specialist/domain double-purposes and aux skills. See `/ccc-browse` in Desktop for the live, filterable catalog. |
+| 45–68 | Supporting skills — code-review, content, deploy-check, domains, infra, knowledge, linear-board, night-mode, session, settings, standup, brainstorm, qa, loop, hermes, nightwatch, ci, yolo-setup, ecc, ultracode, debate, triage, doc-sync, harden | Aux and lifecycle-adjacent skills. See `/ccc-browse` in Desktop for the live, filterable catalog. |
+| 69 | `/ccc-relay` | Cross-session gated loop chaining (v6.7.0) |
+| 70 | `ccc-smb-ops` | Small-business-operations router + 6 sub-skills (v6.7.0) |
+| 71 | `/ccc-broadcast` | Scrubbed outbound status relay (v6.7.1) |
+| 72 | `/ccc-spawn` | Click-first isolated-session hub (v6.7.2) |
+| 73 | `/ccc-prompt-fix` | Prompt diagnosis + tighter rewrite (v6.7.3) |
+| 74 | `/ccc-mission-control` | Live agent dashboard — Claude + Codex rosters, Charts strip, claude-mem History panel |
+| 75 | `/ccc-claudemd` | CLAUDE.md drift audit with AUQ-gated fixes |
+| 76 | `/ccc-fable` | Arms the Fable Method — 12-gate session contract |
+| 77 | `/ccc-more` | Overflow menu for less-frequent workflows |
+| 78 | `/ccc-plan-exec` | Claude-only plan → execute → verify split |
+| 79 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app (v7.2.0) |
+| 80 | `/ccc-safety` | Safety deck — blocked/auto-fixed actions + tool-failure hotspots (v7.2.0) |
+| 81 | `/ccc-update` | Click-first update walkthrough — detect, update, restart, verify (v7.3.0) |
+| 82 | `/ccc-console` | Inline console widget — agents, usage, safety, memory, history and a prompt bar that reaches the live session (v7.4.0) |
+| 83 | `/ccc-adhd` | Answer-first output — fix, then command, then file:line, context last. Ported from `ayghri/i-have-adhd` (MIT) |
+| 84 | `/ccc-codex` | Codex CLI management — doctor, models, plugins, MCP, agents, cloud, review, update, config (introduced in v8.0.0) |
 | — | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2) |
 
 [Pricing — Core Free Forever →](/plugin/free-vs-pro)

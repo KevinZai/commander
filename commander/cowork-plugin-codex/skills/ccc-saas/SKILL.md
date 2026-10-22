@@ -1,78 +1,99 @@
 ---
 name: ccc-saas
-context: fork
-description: "complete SaaS development ecosystem — 21 skills in one. Scaffold, authenticate, bill, ship, and grow a production SaaS from zero to revenue."
+description: "Route SaaS work to the right method: scaffold, auth, database, API, frontend, Stripe billing, webhooks, multi-tenancy, feature flags, metrics and conversion. Use when the user is building, billing or growing a SaaS product, or types $ccc-saas."
 allowed-tools:
   - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - Skill
+  - AskUserQuestion
+argument-hint: "[new | auth | db | api | ui | billing | webhooks | tenant | flags | metrics | cro]"
+model: inherit
+effort: medium
 ---
 
-# /ccc-saas — SaaS domain hub
+# $ccc-saas — SaaS work, routed
 
-> Load ONE skill. Get the entire SaaS stack. 21 skills from scaffold to scale.
+**CC Commander** · $ccc-saas · the right SaaS method for the job, from scaffold to revenue.
 
-## What's Inside
+SaaS sub-skills (`saas-router`, `saas-scaffolder`, `better-auth`, `database-designer`, `drizzle-neon`, `api-design`, `backend-patterns`, `fastify-api`, `nextjs-app-router`, `shadcn-ui`, `tailwind-v4`, `stripe-subscriptions`, `billing-automation`, `webhook-patterns`, `multi-tenant`, `feature-flags`, `saas-metrics-coach`, `signup-flow-cro`, `paywall-upgrade-cro`, `form-cro`) ship with the Commander CLI toolkit. Invoke one with the Skill tool when it is listed in this session; otherwise apply the focus in [references/routing.md](references/routing.md). The user's selected model is preserved.
 
-| Area | Skills |
-|------|--------|
-| Routing & Scaffold | saas-router, saas-scaffolder |
-| Auth & Users | better-auth (email/password, OAuth, RBAC, 2FA, magic links) |
-| Database | database-designer, drizzle-neon |
-| API | api-design, backend-patterns, fastify-api |
-| Frontend | nextjs-app-router, shadcn-ui, tailwind-v4 |
-| Billing | stripe-subscriptions, billing-automation |
-| Growth | saas-metrics-coach, signup-flow-cro, paywall-upgrade-cro, form-cro |
-| Advanced | multi-tenant, webhook-patterns, feature-flags |
+Codex: ask pickers as plain-text questions.
 
-## Routing Matrix
+## When to use / when not to
 
-| Your Intent | Route To |
-|-------------|----------|
-| "Scaffold a new SaaS" | `saas-scaffolder` |
-| "Set up auth" / "Add login" | `better-auth` |
-| "Add billing" / "Stripe setup" | `stripe-subscriptions` + `billing-automation` |
-| "Design my database" | `database-designer` + `drizzle-neon` |
-| "Build the frontend" / "UI" | `nextjs-app-router` + `shadcn-ui` + `tailwind-v4` |
-| "Build an API" | `api-design` + `fastify-api` + `backend-patterns` |
-| "Track MRR" / "Churn analysis" | `saas-metrics-coach` |
-| "Improve signup conversion" | `signup-flow-cro` |
-| "Pricing page" / "Trial conversion" | `paywall-upgrade-cro` |
-| "Multi-tenant" / "B2B SaaS" | `multi-tenant` |
-| "Webhooks" | `webhook-patterns` |
-| "Feature flags" / "Gradual rollout" | `feature-flags` |
+- Use for a multi-user product with accounts, billing or tenants: new SaaS, adding auth or Stripe, schema and API design, upgrade and signup conversion, SaaS metrics.
+- Use `$ccc-build` for a plain web app, API or CLI without SaaS concerns, `$ccc-design` for visual direction, `$ccc-marketing` for acquisition beyond the product funnel, `$ccc-data` for warehouse and analytics pipelines.
 
-## Campaign Templates
+## What happens
 
-### Greenfield SaaS (Zero to MVP)
-1. `saas-scaffolder` → generate project from starter template
-2. `database-designer` + `drizzle-neon` → schema design
-3. `better-auth` → authentication + authorization
-4. `nextjs-app-router` + `shadcn-ui` + `tailwind-v4` → UI shell
-5. `api-design` + `backend-patterns` → API layer
-6. `stripe-subscriptions` + `billing-automation` → billing
-7. `webhook-patterns` → event handling
-8. `signup-flow-cro` → optimize onboarding
+### 1. Detect the stack
 
-### Growth Phase
-1. `saas-metrics-coach` → baseline MRR, churn, LTV, CAC
-2. `signup-flow-cro` → audit signup funnel
-3. `paywall-upgrade-cro` → pricing page + trial-to-paid
-4. `feature-flags` → gradual rollouts + A/B tests
-5. `multi-tenant` → B2B/team plan expansion
+Run in one Bash call, silent on failure:
 
-## When to invoke this skill
+```bash
+test -f package.json && grep -oE '"(next|fastify|express|drizzle-orm|@neondatabase/serverless|prisma|better-auth|next-auth|@clerk/nextjs|stripe|tailwindcss|posthog-js|launchdarkly-node-server-sdk)"' package.json | sort -u
+ls drizzle.config.* components.json prisma/schema.prisma 2>/dev/null
+```
 
-**Example 1**
-- user: start a new SaaS project with auth and Stripe billing
-- assistant: Loads ccc-saas and runs saas-scaffolder → better-auth → stripe-subscriptions pipeline.
+Render one line:
 
-**Example 2**
-- user: add multi-tenant support to my existing app
-- assistant: Loads ccc-saas and routes to multi-tenant skill for schema-per-tenant or RLS pattern selection.
+> 🏗️ Stack: `<tools detected | none detected>`
 
-**Example 3**
-- user: improve my trial-to-paid conversion rate
-- assistant: Loads ccc-saas and routes to paywall-upgrade-cro + feature-flags for plan-gated feature exposure and pricing page optimization.
+### 2. Route by intent, or ask
+
+An argument or a clear intent routes straight to the sub-skill(s) in [references/routing.md](references/routing.md). `new`, or no codebase with a build request, goes to step 3. A request that spans several areas (zero to MVP, add billing, growth) follows the matching campaign in that file, one sub-skill per step, and confirms the sequence with the user before the first write.
+
+Otherwise ask with AskUserQuestion (header "SaaS"), recommended first:
+
+- 🟢 Add or fix a core feature — auth, database, API or UI for the detected stack
+- Billing — `stripe-subscriptions` + `billing-automation` (checkout, portal, webhooks, dunning)
+- Grow — `saas-metrics-coach`, `signup-flow-cro`, `paywall-upgrade-cro`
+- More — multi-tenancy, webhooks, feature flags or form conversion (a follow-up picker)
+
+### 3. New SaaS
+
+Follow `saas-scaffolder` (default starter: Next.js App Router, shadcn/ui, Tailwind v4, Drizzle with Neon Postgres, Better Auth, Stripe). Ask for a product name, derive `<slug>`, and confirm with AskUserQuestion (🟢 Create it · Change the stack · Cancel) before running anything, since it downloads packages. Create the project in a sub-directory, never inside an existing project's root. Write `.env.example` with placeholder names only; real values go in the gitignored `.env.local`.
+
+Check: `cd <slug> && npm run build` (or the starter's typecheck script).
+
+### 4. Do the work
+
+Follow the routed sub-skill. After any code change, run the project's own checks in one Bash call and report them:
+
+```bash
+npm run -s typecheck 2>/dev/null || npx tsc --noEmit; npm test --silent; git status --short
+```
+
+Billing and webhooks: verify with Stripe test mode only, using `stripe listen --forward-to localhost:<port>/api/webhooks/stripe` and `stripe trigger checkout.session.completed` when the Stripe CLI is installed. Confirm the handler verifies the signature against the raw body.
+
+## Done when
+
+- Routing only: the sub-skill was invoked or its guidance applied, and the user knows which one.
+- New SaaS: `<slug>/` exists and its build or typecheck exited 0 in this turn; report its output.
+- Code changed: typecheck and tests exited 0 and `git status --short` lists only the intended files.
+- Billing or webhooks changed: a test-mode event reached the handler and returned 2xx, or the user is told exactly which step could not run here.
+
+## Guardrails
+
+- Never use live Stripe keys, create live products or prices, issue refunds, or change a live subscription; test mode only unless the user authorizes a specific live action at that moment.
+- Never write secrets (Stripe keys, auth secrets, database URLs) into tracked files; `.env.example` holds names only.
+- Never run a database migration against production; generate it, show it, and let the user apply it.
+- Never deploy, publish a pricing page, or email users from this skill; hand off to `$ccc-deploy` or `$ccc-ship` with authorization.
+- Multi-tenant changes: every tenant-scoped query filters by tenant id or relies on row-level security; flag any query that does neither.
+
+## See also
+
+- `$ccc-build` — non-SaaS apps, APIs and CLIs
+- `$ccc-security` — auth and tenant-isolation review
+- `$ccc-deploy` — ship the app once checks are green
+- `$ccc-marketing` — acquisition and launch beyond the product funnel
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

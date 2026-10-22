@@ -1,0 +1,780 @@
+{
+  "source": "skills/claude-code-library/PROMPT-LIBRARY.md + COURSE.md",
+  "compiledAt": "2026-07-22T05:03:48.973Z",
+  "attribution": "CC Commander field-tested prompt library — adapted from Anthropic’s Claude Code prompt library",
+  "prompts": [
+    {
+      "id": "get-oriented-in-a-new-repository",
+      "sdlc": "discover",
+      "cat": "Onboard",
+      "roles": [],
+      "needs": null,
+      "prompt": "give me an overview of this codebase: architecture, key directories, and how the pieces connect",
+      "context": null,
+      "title": "Get oriented in a new repository",
+      "why": "describe what you want to know, not which files to read — Claude explores and summarizes how it fits together.",
+      "makeItStick": "run `/init` to write a `CLAUDE.md` so Claude remembers this every session."
+    },
+    {
+      "id": "explain-unfamiliar-code",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [],
+      "needs": null,
+      "prompt": "explain what src/scheduler/queue.ts does and how data flows through it. write it up as an HTML page with a diagram, then open it in my browser",
+      "context": null,
+      "title": "Explain unfamiliar code",
+      "why": "name the file and say what output format you want (diagram, bullets, whatever fits how you learn).",
+      "makeItStick": "set an output style so Claude always explains in your preferred format."
+    },
+    {
+      "id": "find-where-something-happens",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [],
+      "needs": null,
+      "prompt": "where do we validate uploaded file types?",
+      "context": null,
+      "title": "Find where something happens",
+      "why": "search by behavior, not filename — works even when you don't know the file name or directory.",
+      "makeItStick": null
+    },
+    {
+      "id": "check-what-breaks-before-you-delete",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [],
+      "needs": null,
+      "prompt": "what would break if I deleted the retryWithBackoff helper?",
+      "context": null,
+      "title": "Check what breaks before you delete",
+      "why": "ask before you remove anything; the list of callers tells you whether it's a one-line cleanup or a coordinated change.",
+      "makeItStick": null
+    },
+    {
+      "id": "trace-how-code-evolved",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [],
+      "needs": null,
+      "prompt": "look through the commit history of internal/auth/session.go and summarize how it evolved and why",
+      "context": null,
+      "title": "Trace how code evolved",
+      "why": "point at commit history when the question is",
+      "makeItStick": null
+    },
+    {
+      "id": "scope-a-change-before-you-start",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [
+        "pm",
+        "design"
+      ],
+      "needs": null,
+      "prompt": "which files would I need to touch to add a dark mode toggle to settings?",
+      "context": null,
+      "title": "Scope a change before you start",
+      "why": "size the work before committing it to a roadmap — the file list reveals one-component vs. cross-cutting.",
+      "makeItStick": null
+    },
+    {
+      "id": "ask-the-codebase-a-product-question",
+      "sdlc": "discover",
+      "cat": "Understand",
+      "roles": [
+        "pm"
+      ],
+      "needs": null,
+      "prompt": "I am a PM. walk me through what happens when a user clicks Export to PDF, from the UI down to the result",
+      "context": null,
+      "title": "Ask the codebase a product question",
+      "why": "state your role so the answer is pitched at the right level; Claude explains what the product actually does from source.",
+      "makeItStick": null
+    },
+    {
+      "id": "plan-a-multi-file-change-before-touching-code",
+      "sdlc": "design",
+      "cat": "Plan",
+      "roles": [],
+      "needs": null,
+      "prompt": "plan how to refactor the payment module to support multiple currencies. list the files you would change, but don't edit anything yet",
+      "context": null,
+      "title": "Plan a multi-file change before touching code",
+      "why": "\"don't edit yet\" separates exploration from changes so you see the approach first. Shift+Tab enters plan mode to make this the default.",
+      "makeItStick": null
+    },
+    {
+      "id": "draft-a-spec-by-interview",
+      "sdlc": "design",
+      "cat": "Plan",
+      "roles": [
+        "pm"
+      ],
+      "needs": null,
+      "prompt": "I want to build per-workspace rate limits. interview me about implementation, UX, edge cases, and tradeoffs until we have covered everything, then write the spec to SPEC.md",
+      "context": null,
+      "title": "Draft a spec by interview",
+      "why": "ask to be interviewed instead of writing the spec yourself — Claude surfaces things you hadn't considered.",
+      "makeItStick": "save your interview questions as a `/spec` skill."
+    },
+    {
+      "id": "turn-a-meeting-into-tickets",
+      "sdlc": "design",
+      "cat": "Plan",
+      "roles": [],
+      "needs": "issue tracker via MCP",
+      "prompt": "read @meeting-notes.md and write up the action items, then create a Linear ticket for each with acceptance criteria",
+      "context": null,
+      "title": "Turn a meeting into tickets",
+      "why": "skip the transcription step — Claude pulls action items and writes them straight into your tracker via MCP.",
+      "makeItStick": "save as a `/tickets` skill."
+    },
+    {
+      "id": "map-edge-cases-before-building",
+      "sdlc": "design",
+      "cat": "Plan",
+      "roles": [
+        "design",
+        "pm"
+      ],
+      "needs": null,
+      "prompt": "list the error states, empty states, and edge cases for the file upload flow that the design needs to cover",
+      "context": null,
+      "title": "Map edge cases before building",
+      "why": "ask for what's missing, not what's there — the states a happy-path design tends to skip.",
+      "makeItStick": null
+    },
+    {
+      "id": "turn-a-mockup-into-a-working-prototype",
+      "sdlc": "design",
+      "cat": "Prototype",
+      "roles": [
+        "design",
+        "pm",
+        "marketing"
+      ],
+      "needs": null,
+      "prompt": "here is a mockup. build a working prototype I can click through, matching the layout and states shown",
+      "context": "paste/drag/@-mention your mockup image, then:",
+      "title": "Turn a mockup into a working prototype",
+      "why": "a clickable prototype answers questions a static mockup can't — hand working code to engineering.",
+      "makeItStick": null
+    },
+    {
+      "id": "implement-from-a-screenshot-and-self-check",
+      "sdlc": "design",
+      "cat": "Prototype",
+      "roles": [],
+      "needs": "browser/screenshot tool",
+      "prompt": "implement this design, then take a screenshot of the result, compare it to the original, and fix any differences",
+      "context": "paste your design image, then:",
+      "title": "Implement from a screenshot and self-check",
+      "why": "gives Claude a verification loop — it renders, compares, and iterates without you pointing out each gap.",
+      "makeItStick": "use `/goal` to keep it iterating until the screenshots match."
+    },
+    {
+      "id": "follow-an-existing-pattern",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [],
+      "needs": null,
+      "prompt": "look at how the GitHub webhook handler is implemented to understand the pattern, then build a Stripe webhook handler the same way",
+      "context": null,
+      "title": "Follow an existing pattern",
+      "why": "point at code you already like — without a reference Claude defaults to generic best practices; with one it matches your conventions.",
+      "makeItStick": "have Claude write the pattern into `CLAUDE.md`."
+    },
+    {
+      "id": "generate-docs-for-undocumented-code",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [
+        "docs"
+      ],
+      "needs": null,
+      "prompt": "find the public functions in src/auth/ without JSDoc comments and add them, matching the style already used in the file",
+      "context": null,
+      "title": "Generate docs for undocumented code",
+      "why": "name the scope and format; Claude matches the existing comment style.",
+      "makeItStick": null
+    },
+    {
+      "id": "add-a-small-well-defined-feature",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [],
+      "needs": null,
+      "prompt": "add a /health endpoint that returns the app version and uptime",
+      "context": null,
+      "title": "Add a small, well-defined feature",
+      "why": "state inputs and outputs, not how to build it — Claude finds where similar code lives and adds yours alongside.",
+      "makeItStick": null
+    },
+    {
+      "id": "build-a-small-internal-tool-from-scratch",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [
+        "pm",
+        "design",
+        "marketing",
+        "docs"
+      ],
+      "needs": null,
+      "prompt": "create a drag-and-drop Kanban board with three columns using HTML, CSS, and vanilla JavaScript, then open it in my browser",
+      "context": null,
+      "title": "Build a small internal tool from scratch",
+      "why": "no project, framework, or build step needed — describe the tool and see it working immediately.",
+      "makeItStick": null
+    },
+    {
+      "id": "work-an-issue-end-to-end",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [],
+      "needs": "gh CLI",
+      "prompt": "read issue #312, implement the fix, and run the tests",
+      "context": null,
+      "title": "Work an issue end to end",
+      "why": "give the issue number, not a summary — Claude reads the full ticket so requirements you'd forget come through, and it validates before reporting.",
+      "makeItStick": null
+    },
+    {
+      "id": "find-and-update-copy-across-the-codebase",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [
+        "design",
+        "docs",
+        "marketing"
+      ],
+      "needs": null,
+      "prompt": "find every place we say \"Sign up free\" or a close variant, show me each one in context, then update them all to \"Start free trial\". leave tests and the changelog alone",
+      "context": null,
+      "title": "Find and update copy across the codebase",
+      "why": "ask for variants and say what to skip — catches phrasings a literal search misses, leaves fixtures/history alone.",
+      "makeItStick": null
+    },
+    {
+      "id": "draft-a-document-from-past-examples",
+      "sdlc": "build",
+      "cat": "Implement",
+      "roles": [
+        "docs",
+        "marketing",
+        "pm"
+      ],
+      "needs": null,
+      "prompt": "read the privacy impact assessments in legal/pia/ to learn the structure and voice, then draft a new one for the new analytics integration",
+      "context": null,
+      "title": "Draft a document from past examples",
+      "why": "point at a folder of finished work instead of describing your style — the first draft reads like one of yours.",
+      "makeItStick": "save the voice as a skill."
+    },
+    {
+      "id": "write-tests-run-them-fix-failures",
+      "sdlc": "build",
+      "cat": "Test",
+      "roles": [],
+      "needs": null,
+      "prompt": "write tests for app/parsers/feed.py, run them, and fix any failures",
+      "context": null,
+      "title": "Write tests, run them, fix failures",
+      "why": "ask for write + run + fix together so Claude iterates without stopping for instructions.",
+      "makeItStick": "run `/init` so Claude learns your test command."
+    },
+    {
+      "id": "drive-implementation-from-tests",
+      "sdlc": "build",
+      "cat": "Test",
+      "roles": [],
+      "needs": null,
+      "prompt": "write tests for the password reset flow first, then implement it until they pass",
+      "context": null,
+      "title": "Drive implementation from tests",
+      "why": "TDD — the tests define \"done\" and Claude iterates until they pass.",
+      "makeItStick": null
+    },
+    {
+      "id": "fill-gaps-from-a-coverage-report",
+      "sdlc": "build",
+      "cat": "Test",
+      "roles": [],
+      "needs": null,
+      "prompt": "read coverage/coverage-summary.json and add tests for the lowest-covered files until each is above 80%",
+      "context": null,
+      "title": "Fill gaps from a coverage report",
+      "why": "point at the actual coverage numbers instead of guessing what's untested.",
+      "makeItStick": "set as a `/goal` so it keeps writing tests until coverage hits the target."
+    },
+    {
+      "id": "migrate-a-pattern-across-the-codebase",
+      "sdlc": "build",
+      "cat": "Refactor",
+      "roles": [],
+      "needs": null,
+      "prompt": "migrate everything from the old logging API to the structured logger: identify every place that needs to change, then make the changes",
+      "context": null,
+      "title": "Migrate a pattern across the codebase",
+      "why": "describe old → new and ask Claude to identify every call site first, so nothing is missed.",
+      "makeItStick": null
+    },
+    {
+      "id": "port-code-to-another-language",
+      "sdlc": "build",
+      "cat": "Refactor",
+      "roles": [],
+      "needs": null,
+      "prompt": "port this Python module to Rust, keeping the same public API and test behavior",
+      "context": null,
+      "title": "Port code to another language",
+      "why": "say what to preserve, not just the target language — naming the contract gives Claude something to check the port against.",
+      "makeItStick": null
+    },
+    {
+      "id": "optimize-against-a-measurable-target",
+      "sdlc": "build",
+      "cat": "Refactor",
+      "roles": [
+        "data"
+      ],
+      "needs": null,
+      "prompt": "optimize the search query to bring p95 latency from 2s down to under 500ms",
+      "context": null,
+      "title": "Optimize against a measurable target",
+      "why": "stating metric + target gives a clear definition of done.",
+      "makeItStick": "set as a `/goal` so it keeps measuring until it hits the number."
+    },
+    {
+      "id": "fix-a-precise-visual-bug",
+      "sdlc": "build",
+      "cat": "Refactor",
+      "roles": [
+        "design"
+      ],
+      "needs": null,
+      "prompt": "the login button extends 20px beyond the card border on mobile. fix it.",
+      "context": null,
+      "title": "Fix a precise visual bug",
+      "why": "precise visual feedback (element, measurement, viewport) gets a precise fix.",
+      "makeItStick": "add a preview tool so Claude screenshots and verifies."
+    },
+    {
+      "id": "review-your-changes-before-you-commit",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [],
+      "needs": null,
+      "prompt": "review my uncommitted changes and flag anything that looks risky before I commit",
+      "context": null,
+      "title": "Review your changes before you commit",
+      "why": "Claude reads the changed files in full, not just diff lines, so it spots issues a quick self-review misses.",
+      "makeItStick": "run `/code-review` for the same check in one command."
+    },
+    {
+      "id": "review-a-pull-request",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [],
+      "needs": "gh CLI",
+      "prompt": "review PR #247 and summarize what changed, then list any concerns",
+      "context": null,
+      "title": "Review a pull request",
+      "why": "Claude reviews with the whole codebase in context, not just the diff.",
+      "makeItStick": "turn on Code Review for every PR."
+    },
+    {
+      "id": "review-infrastructure-changes-before-applying",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [
+        "security",
+        "ops"
+      ],
+      "needs": null,
+      "prompt": "what is this going to do, and is anything here going to cause problems?",
+      "context": "paste your Terraform plan output, then:",
+      "title": "Review infrastructure changes before applying",
+      "why": "plan output is dense — pasting it gets a plain-language summary before you apply.",
+      "makeItStick": null
+    },
+    {
+      "id": "run-a-security-review-with-a-subagent",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [
+        "security"
+      ],
+      "needs": null,
+      "prompt": "use a subagent to review src/api/ for security issues and report what it finds",
+      "context": null,
+      "title": "Run a security review with a subagent",
+      "why": "a subagent runs the audit in its own context and reports a summary, so a long review doesn't fill your main session.",
+      "makeItStick": "set up a dedicated security-review subagent."
+    },
+    {
+      "id": "catch-issues-before-formal-review",
+      "sdlc": "build",
+      "cat": "Review",
+      "roles": [
+        "marketing",
+        "docs"
+      ],
+      "needs": null,
+      "prompt": "review launch-post.md for unsupported claims, missing attributions, and brand-guideline issues and list anything I should fix before it goes to legal",
+      "context": null,
+      "title": "Catch issues before formal review",
+      "why": "get a focused first pass before a human spends time on it.",
+      "makeItStick": "capture your review checklist as a team skill."
+    },
+    {
+      "id": "course-correct-a-wrong-approach",
+      "sdlc": "build",
+      "cat": "Steer",
+      "roles": [],
+      "needs": null,
+      "prompt": "that is not right: the function signature needs to stay backward-compatible. try a different approach",
+      "context": null,
+      "title": "Course-correct a wrong approach",
+      "why": "name the constraint Claude missed, not just that it's wrong — a specific reason beats \"guess again.\"",
+      "makeItStick": "`Esc Esc` to rewind code + conversation so the retry starts clean."
+    },
+    {
+      "id": "narrow-the-scope-of-a-change",
+      "sdlc": "build",
+      "cat": "Steer",
+      "roles": [],
+      "needs": null,
+      "prompt": "that is too much. keep only the changes to the validation logic in src/forms/ and undo your other edits",
+      "context": null,
+      "title": "Narrow the scope of a change",
+      "why": "when the direction is right but the change went too broad, keep part of it instead of rewinding everything.",
+      "makeItStick": null
+    },
+    {
+      "id": "turn-a-correction-into-a-rule",
+      "sdlc": "build",
+      "cat": "Steer",
+      "roles": [],
+      "needs": null,
+      "prompt": "you keep using default exports when this project uses named exports. add a rule to CLAUDE.md so this stops happening",
+      "context": null,
+      "title": "Turn a correction into a rule",
+      "why": "a chat correction isn't shared; a `CLAUDE.md` rule is read at the start of every session (and shared once committed).",
+      "makeItStick": "open `/memory` to review what Claude wrote."
+    },
+    {
+      "id": "resolve-merge-conflicts",
+      "sdlc": "ship",
+      "cat": "Git",
+      "roles": [],
+      "needs": null,
+      "prompt": "resolve the merge conflicts in this branch and explain what you kept from each side",
+      "context": null,
+      "title": "Resolve merge conflicts",
+      "why": "say what state you want, not which markers to keep — asking for the reasoning makes the merge reviewable.",
+      "makeItStick": null
+    },
+    {
+      "id": "commit-with-a-generated-message",
+      "sdlc": "ship",
+      "cat": "Git",
+      "roles": [],
+      "needs": null,
+      "prompt": "commit these changes with a message that summarizes what I did",
+      "context": null,
+      "title": "Commit with a generated message",
+      "why": "Claude derives the message from the diff and matches your repo's existing commit style.",
+      "makeItStick": null
+    },
+    {
+      "id": "open-a-pull-request-from-a-ticket",
+      "sdlc": "ship",
+      "cat": "Git",
+      "roles": [],
+      "needs": "issue tracker via MCP",
+      "prompt": "find the Linear ticket about the login timeout and open a PR that implements it",
+      "context": null,
+      "title": "Open a pull request from a ticket",
+      "why": "one prompt reads the spec, makes the change, and opens the PR — no context switch between tracker, editor, and GitHub.",
+      "makeItStick": null
+    },
+    {
+      "id": "draft-release-notes-from-git-history",
+      "sdlc": "ship",
+      "cat": "Release",
+      "roles": [
+        "pm",
+        "docs",
+        "marketing"
+      ],
+      "needs": null,
+      "prompt": "compare v2.3.0 to v2.4.0 and draft release notes grouped by feature, fix, and breaking change",
+      "context": null,
+      "title": "Draft release notes from git history",
+      "why": "give two reference points and the structure — Claude reads the commit log between them.",
+      "makeItStick": "save as a `/changelog` skill."
+    },
+    {
+      "id": "write-a-ci-workflow",
+      "sdlc": "ship",
+      "cat": "Release",
+      "roles": [
+        "ops"
+      ],
+      "needs": null,
+      "prompt": "write a GitHub Actions workflow that runs the tests and deploys to staging on every push to main",
+      "context": null,
+      "title": "Write a CI workflow",
+      "why": "describe when it runs and what it does; the YAML is generated, matched to your build/test commands.",
+      "makeItStick": null
+    },
+    {
+      "id": "find-and-fix-a-failing-test",
+      "sdlc": "operate",
+      "cat": "Debug",
+      "roles": [],
+      "needs": null,
+      "prompt": "the UserAuth test is failing, find out why and fix it",
+      "context": null,
+      "title": "Find and fix a failing test",
+      "why": "describe the symptom — you don't need to know which file is broken; Claude runs the test, traces into source, and fixes.",
+      "makeItStick": null
+    },
+    {
+      "id": "investigate-a-reported-error",
+      "sdlc": "operate",
+      "cat": "Debug",
+      "roles": [
+        "ops"
+      ],
+      "needs": null,
+      "prompt": "users are seeing 500 errors on /api/settings. investigate and tell me what is going on",
+      "context": null,
+      "title": "Investigate a reported error",
+      "why": "describe symptom + location; Claude reads the relevant path and traces likely causes.",
+      "makeItStick": "put a deeplink in your runbook that opens Claude with this pre-filled."
+    },
+    {
+      "id": "fix-a-build-error-at-the-root",
+      "sdlc": "operate",
+      "cat": "Debug",
+      "roles": [
+        "ops"
+      ],
+      "needs": null,
+      "prompt": "fix the root cause and verify the build succeeds",
+      "context": "paste the build error, then:",
+      "title": "Fix a build error at the root",
+      "why": "asking for root cause + verification prevents surface patches that just suppress the error.",
+      "makeItStick": null
+    },
+    {
+      "id": "investigate-a-production-incident",
+      "sdlc": "operate",
+      "cat": "Incident",
+      "roles": [
+        "ops",
+        "security"
+      ],
+      "needs": null,
+      "prompt": "the checkout endpoint started returning 500s an hour ago. check the logs, recent deploys, and config changes, then tell me the most likely cause",
+      "context": null,
+      "title": "Investigate a production incident",
+      "why": "list the evidence sources to correlate, not the steps to take — Claude reads logs, git history, and config together.",
+      "makeItStick": "connect Sentry/log store via MCP."
+    },
+    {
+      "id": "diagnose-from-a-console-screenshot",
+      "sdlc": "operate",
+      "cat": "Incident",
+      "roles": [
+        "ops",
+        "data"
+      ],
+      "needs": null,
+      "prompt": "walk me through why this pod is failing and give me the exact commands to fix it",
+      "context": "paste a screenshot of the console, then:",
+      "title": "Diagnose from a console screenshot",
+      "why": "cloud consoles show the problem but not the fix — Claude translates the dashboard into kubectl/gcloud/aws commands.",
+      "makeItStick": null
+    },
+    {
+      "id": "query-logs-in-plain-english",
+      "sdlc": "operate",
+      "cat": "Incident",
+      "roles": [],
+      "needs": "data/log store via MCP",
+      "prompt": "show me all failed logins for the auth service over the past 24 hours. write the query, run it, and tell me what stands out",
+      "context": null,
+      "title": "Query logs in plain English",
+      "why": "ask the question instead of writing SQL — Claude builds the query, runs it, and shows both query and result.",
+      "makeItStick": null
+    },
+    {
+      "id": "analyze-a-data-file",
+      "sdlc": "operate",
+      "cat": "Data",
+      "roles": [
+        "data",
+        "pm",
+        "marketing"
+      ],
+      "needs": null,
+      "prompt": "read @reports/q1-signups.csv, summarize the key patterns, and write the results to an HTML page with charts, then open it in my browser",
+      "context": null,
+      "title": "Analyze a data file",
+      "why": "a one-off question doesn't need a one-off script — point at a file and Claude reads it directly.",
+      "makeItStick": "connect the data source via MCP instead of exporting files."
+    },
+    {
+      "id": "generate-variations-from-performance-data",
+      "sdlc": "operate",
+      "cat": "Data",
+      "roles": [
+        "marketing",
+        "data"
+      ],
+      "needs": null,
+      "prompt": "read @ads-performance.csv, find the underperforming headlines, and generate 20 new variations that stay under 90 characters",
+      "context": null,
+      "title": "Generate variations from performance data",
+      "why": "state the constraint up front so generation stays within the limit.",
+      "makeItStick": "connect the ad platform via MCP."
+    },
+    {
+      "id": "turn-a-recurring-task-into-a-skill",
+      "sdlc": "operate",
+      "cat": "Automate",
+      "roles": [],
+      "needs": null,
+      "prompt": "create a /ship skill for this project that runs the linter and tests, then drafts a commit message",
+      "context": null,
+      "title": "Turn a recurring task into a skill",
+      "why": "name the steps once, reuse them as a command — Claude writes a skill anyone on your team can run.",
+      "makeItStick": null
+    },
+    {
+      "id": "add-a-hook-for-repeat-behavior",
+      "sdlc": "operate",
+      "cat": "Automate",
+      "roles": [],
+      "needs": null,
+      "prompt": "write a hook that runs prettier after every edit to a .ts or .tsx file",
+      "context": null,
+      "title": "Add a hook for repeat behavior",
+      "why": "hooks make a behavior automatic instead of something you must remember to ask for.",
+      "makeItStick": null
+    },
+    {
+      "id": "connect-a-tool-with-mcp",
+      "sdlc": "operate",
+      "cat": "Automate",
+      "roles": [],
+      "needs": null,
+      "prompt": "set up the Sentry MCP server so you can read my error reports directly",
+      "context": null,
+      "title": "Connect a tool with MCP",
+      "why": "connect the source once instead of pasting data every session.",
+      "makeItStick": null
+    },
+    {
+      "id": "capture-what-to-remember-for-next-time",
+      "sdlc": "operate",
+      "cat": "Automate",
+      "roles": [
+        "pm",
+        "docs"
+      ],
+      "needs": null,
+      "prompt": "summarize what we did this session and suggest what to add to CLAUDE.md",
+      "context": null,
+      "title": "Capture what to remember for next time",
+      "why": "Claude knows what it had to figure out this session and proposes `CLAUDE.md` entries so the next session starts with that context.",
+      "makeItStick": null
+    }
+  ],
+  "patterns": [
+    {
+      "id": "describe-the-outcome-not-the-steps",
+      "title": "Describe the outcome, not the steps.",
+      "why": "Say what you want; let Claude find the files.",
+      "example": "add rate limiting to the public API and make sure existing tests still pass"
+    },
+    {
+      "id": "give-it-a-way-to-check-its-own-work",
+      "title": "Give it a way to check its own work.",
+      "why": "Ask for run/test/compare/verify in the same prompt so it iterates instead of stopping.",
+      "example": "write the migration, run it against the dev database, and confirm the schema matches"
+    },
+    {
+      "id": "point-at-a-reference",
+      "title": "Point at a reference.",
+      "why": "Name an existing file/test/pattern to match.",
+      "example": "add a settings page that follows the same layout as the profile page"
+    },
+    {
+      "id": "state-the-measurable-target",
+      "title": "State the measurable target.",
+      "why": "Give the metric and threshold so \"done\" is unambiguous.",
+      "example": "get the bundle size under 200KB and show me what you removed"
+    },
+    {
+      "id": "give-it-the-artifact",
+      "title": "Give it the artifact.",
+      "why": "Paste errors/logs/screenshots or `@`-mention files instead of describing them.",
+      "example": "why is the build failing? @build.log"
+    },
+    {
+      "id": "say-how-you-want-the-answer",
+      "title": "Say how you want the answer.",
+      "why": "Name format, length, or audience.",
+      "example": "explain how the payment retry logic works as an HTML page with a diagram, then open it in my browser"
+    }
+  ],
+  "modules": [
+    {
+      "id": "module-0",
+      "number": 0,
+      "title": "Orientation: how Claude Code actually works",
+      "objective": "understand the agentic loop and why it changes how you work."
+    },
+    {
+      "id": "module-1",
+      "number": 1,
+      "title": "The core loop: verify + explore-plan-code",
+      "objective": "run the fundamental Claude Code workflow with a closing verification loop."
+    },
+    {
+      "id": "module-2",
+      "number": 2,
+      "title": "Prompting for precision",
+      "objective": "write prompts that need fewer corrections."
+    },
+    {
+      "id": "module-3",
+      "number": 3,
+      "title": "Configure your environment (the force multiplier)",
+      "objective": "set up CLAUDE.md, permissions, and extensions so every future session is better."
+    },
+    {
+      "id": "module-4",
+      "number": 4,
+      "title": "Communicate effectively + manage the session",
+      "objective": "steer Claude and keep context clean over long work."
+    },
+    {
+      "id": "module-5",
+      "number": 5,
+      "title": "Automate + scale (one human, many Claudes)",
+      "objective": "multiply output with non-interactive mode and parallel sessions."
+    },
+    {
+      "id": "module-6",
+      "number": 6,
+      "title": "Avoid failure patterns + develop intuition",
+      "objective": "recognize the five common failures early, and know when to break the rules."
+    }
+  ]
+}

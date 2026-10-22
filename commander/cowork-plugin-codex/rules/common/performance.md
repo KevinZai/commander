@@ -1,57 +1,44 @@
-# Performance Optimization
+# Model Routing, Effort, and Context
 
-## Model Selection Strategy
+The user's selected model and effort are preserved. The tiers below say where delegated work is routed when a different tier materially helps; they never force a session switch. Use aliases in frontmatter and the Agent tool; aliases track the newest model in each line.
 
-**Haiku 4.5** (90% of Sonnet capability, 3x cost savings):
-- Lightweight agents with frequent invocation
-- Pair programming and code generation
-- Worker agents in multi-agent systems
+## Model tiers
 
-**Sonnet 5** (Best coding model):
-- Main development work
-- Orchestrating multi-agent workflows
-- Complex coding tasks
+| Tier | Claude alias | Use |
+|---|---|---|
+| Deep | `fable` (Claude Fable 5.1) | Architecture, migrations, threat models, verification of load-bearing claims |
+| Default | `opus` (Claude Opus 5.5) | Implementation, review, orchestration |
+| Fast | `sonnet` (Claude Sonnet 5.5) | Bounded edits, docs, routers, focused reviews |
+| Bulk | `haiku` (Claude Haiku 5.5) | Classification, routing, extraction, hook-side summaries |
 
-**Opus 4.8** (Deepest reasoning):
-- Complex architectural decisions
-- Maximum reasoning requirements
-- Research and analysis tasks
+| Codex role | Model |
+|---|---|
+| Deep work and verification | `gpt-6-astra` |
+| Default executor | `gpt-6.1-sol` |
+| Bounded implementation | `gpt-6-sol` |
+| Mechanical or bulk steps | `gpt-6-luna` |
 
-**Fable 5** sits above Opus for judgment-heavy work — architecture, threat models, migrations, adversarial verification. Pay for Fable on the thinking, not the typing: use it to plan and verify, not to type. See `rules/fable-method.md` Pillar 11.
+Pay deep-tier rates for thinking, not typing: plan and verify on `fable` or `opus`, execute on a cheaper tier (`rules/fable-method.md` Pillars 1 and 11). Verify a model is available in the current CLI before naming it in an override.
 
-## Context Window Management
+## Effort
 
-Avoid last 20% of context window for:
-- Large-scale refactoring
-- Feature implementation spanning multiple files
-- Debugging complex interactions
+- Levels: `low`, `medium`, `high`, `xhigh`, `max`. `max` applies to the session only and is not saved as a default.
+- Set the session level with `/effort`. Set a subagent's level with the Agent tool `effort` parameter or the agent's `effort:` frontmatter, matched to the brief.
+- Escalate for judgment: architecture, anything expensive to reverse, security-sensitive changes, adversarial verification. Drop for mechanics: formatting, renames, well-specified single-file edits.
+- `/effort ultracode` is its own toggle for workflow-scale orchestration; it does not raise the effort level by itself.
+- Thinking is adaptive on current models; there is no budget to tune for routine work.
 
-Lower context sensitivity tasks:
-- Single-file edits
-- Independent utility creation
-- Documentation updates
-- Simple bug fixes
+## Context window
 
-## Extended Thinking + Plan Mode
+Current models have a 1M-token window, but quality still degrades as context fills with tool output.
 
-Extended thinking is enabled by default, reserving up to 31,999 tokens for internal reasoning.
+- Keep large-scale refactors and multi-file features out of a nearly full context; hand off first (`/ccc-handoff`).
+- Single-file edits, documentation, and small fixes tolerate a fuller context.
+- Prompt-cache hits are cheap; avoid changing tools, models, or the system prompt mid-session, which invalidates the cache.
 
-Control extended thinking via:
-- **Toggle**: Option+T (macOS) / Alt+T (Windows/Linux)
-- **Config**: Set `alwaysThinkingEnabled` in `~/.claude/settings.json`
-- **Budget cap**: `export MAX_THINKING_TOKENS=10000`
-- **Verbose mode**: Ctrl+O to see thinking output
+## Build failures
 
-For complex tasks requiring deep reasoning:
-1. Ensure extended thinking is enabled (on by default)
-2. Enable **Plan Mode** for structured approach
-3. Use multiple critique rounds for thorough analysis
-4. Use split role sub-agents for diverse perspectives
-
-## Build Troubleshooting
-
-If build fails:
-1. Use **build-error-resolver** agent
-2. Analyze error messages
-3. Fix incrementally
-4. Verify after each fix
+1. Read the first real error, not the last line.
+2. Reproduce with the narrowest command.
+3. Fix incrementally and re-run after each fix.
+4. Hand a stubborn failure to a focused agent with the exact command and error output.

@@ -1,70 +1,100 @@
 ---
 name: ccc-makeover
-context: fork
-description: "design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm, and report card scoring. Wraps /ultrareview (v2.1.111 native)…"
+description: "Score project health with /ccc-xray, apply the top recommendations one at a time with your OK, and show a before/after report card. Use when the user asks for a health check, wants the top issues fixed automatically, asks for a project score or report card, or types /ccc-makeover."
 allowed-tools:
   - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - Skill
+  - AskUserQuestion
+argument-hint: "[xray | makeover | report-card] [--dry-run] [--auto] [--max N] [--category CAT]"
+model: inherit
+effort: medium
 ---
 
-# /ccc-makeover — Project makeover hub
+# /ccc-makeover — audit, fix, re-score
 
-> Load ONE skill. Get the full project makeover pipeline. Audit → score → fix in one pass.
+**CC Commander** · /ccc-makeover · X-Ray score, approved fixes in impact order, and a before/after report card.
 
-**Built on `/ultrareview`** (v2.1.111 native) — the `xray` sub-skill wraps `/ultrareview` for deep multi-dimensional analysis, extending it with the CCC scoring framework.
+`/ccc-xray` owns the scan, its dimensions and its scoring rubric; this skill does not redefine them. The user's selected model is preserved.
 
-## Sub-Skills
+Codex: invoke `$ccc-xray` and ask each picker as a plain-text question.
 
-| Sub-Skill | Focus |
-|-----------|-------|
-| `xray` | Full project health scan — 6 dimensions, 0-100 score, maturity level (1-5), prioritized recommendations |
-| `makeover` | Auto-apply top xray recommendations — runs xray first, applies fixes, tracks score delta |
-| `report-card` | Health reporting — formatted score card with per-dimension bars and improvement history |
+## When to use / when not to
 
-## Health Dimensions (xray)
+- Use on an unfamiliar codebase, before a release, after a sprint to measure improvement, or when someone asks "how healthy is this codebase?".
+- Use `/ccc-xray` alone for a read-only score, `/ccc-code-review` (or `/code-review ultra`) for a line-level review, `/ccc-design` for a visual refresh.
 
-1. **Security** — vulnerability exposure, secrets, dependency health
-2. **Testing** — coverage, test quality, CI integration
-3. **DevOps** — deployment, monitoring, incident readiness
-4. **Code Quality** — complexity, duplication, tech debt
-5. **Documentation** — coverage, accuracy, onboarding clarity
-6. **Performance** — bundle size, query efficiency, load times
+## What happens
 
-## Routing Matrix
+### 1. Pick the mode
 
-| Your Intent | Route To |
-|-------------|----------|
-| "Audit my project" / "Health check" | `xray` |
-| "Fix the top issues automatically" | `makeover` (runs xray first) |
-| "Show my score" / "Report card" | `report-card` |
+An argument (`xray`, `makeover`, `report-card`) or a clear intent selects the mode. Otherwise ask with AskUserQuestion (header "Makeover"):
 
-## Standard Makeover Flow
+- 🟢 X-Ray scan — score the project; nothing changes
+- Makeover — scan, then fix the top recommendations one at a time with your OK
+- Report card — current scores, maturity level and history from earlier makeovers
 
-1. `xray` → scan and score across 6 dimensions
-2. Review prioritized recommendations (P0–P3)
-3. `makeover` → auto-applies P0 and P1 recommendations in order
-4. `report-card` → before/after score comparison
-5. Repeat each sprint — score should trend up
+### 2. X-Ray
 
-## When to Use
+Invoke the `ccc-xray` skill with the Skill tool. Use its scorecard as-is: per-dimension 0–100 scores, its health bands and its fix-first rule.
 
-- Starting work on an unfamiliar codebase
-- Before a production release — catch gaps before they ship
-- After a sprint — measure improvement over time
-- When the team asks "how healthy is our codebase?"
+### 3. Makeover
 
-## When to invoke this skill
+1. **Baseline.** Invoke `ccc-xray` with the full scope (or the `--category` focus). Record the overall score and each dimension score.
+2. **Pick targets.** Take the critical rows, then the needs-attention rows, ordered by `/ccc-xray`'s fix-first rule (security first, then CI when nothing deploys, then lowest score). Keep at most `--max N` (default 5). With `--category CAT`, keep only that dimension.
+3. **Dry run.** With `--dry-run`, list the targets with their recommended fix and stop.
+4. **Apply, one at a time.** For each target ask with AskUserQuestion:
+   - 🟢 Apply — run the recommended skill or targeted fix
+   - Skip — move to the next target
+   - Stop — end the makeover and go to step 6
+   Skip the question only when the user passed `--auto` in this request.
+5. **Check each fix.** After every applied target, run the project's test command (`npm test`, `pnpm test`, `pytest`, `go test ./...` or `cargo test`, whichever the repo uses) and `git status --short`. On a failure, stop and ask:
+   - 🟢 Fix it — make a targeted fix and re-run the tests
+   - Keep the changes and stop — report the failure as open
+   - Revert this target — `git restore` the files it touched (asks for confirmation first, since it discards those edits)
+6. **Re-score.** Invoke `ccc-xray` again with the same scope. Compute the delta per dimension and overall from the two scorecards, not from memory.
+7. **Record.** Write `tasks/makeover-<YYYYMMDD>.md`: baseline and final scores, maturity level before and after, each target as applied / skipped / failed, and the test commands run with their results.
 
-**Example 1**
-- user: audit this project and tell me what's wrong
-- assistant: Loads ccc-makeover and runs xray — 6-dimension health scan with 0-100 score, maturity level 1-5, and prioritized skill recommendations.
+### 4. Report card
 
-**Example 2**
-- user: automatically fix the top issues in this codebase
-- assistant: Loads ccc-makeover and runs makeover — xray first, then auto-applies highest-impact recommendations in order with before/after score delta.
+1. Use this session's latest `/ccc-xray` scorecard; if there is none, invoke `ccc-xray` with the quick scope.
+2. Read every `tasks/makeover-*.md` (`ls tasks/makeover-*.md 2>/dev/null`) for history.
+3. Render one bar per dimension, ten blocks per 100 points (`███████░░░ 72`), the overall score, the maturity level, and a history row per earlier makeover (date, before → after).
 
-**Example 3**
-- user: show me a health score report card for this project
-- assistant: Loads ccc-makeover and runs report-card — formatted score card with per-dimension bars, maturity level, and improvement history.
+Maturity level from the overall score:
+
+| Overall | Level |
+|---|---|
+| 90–100 | 5 · Optimizing |
+| 80–89 | 4 · Measured |
+| 60–79 | 3 · Defined |
+| 40–59 | 2 · Managed |
+| 0–39 | 1 · Initial |
+
+## Done when
+
+- X-Ray: the scorecard came from `ccc-xray` in this turn.
+- Makeover: the final scorecard came from a re-scan in this turn, every applied target has a recorded test result, and `tasks/makeover-<YYYYMMDD>.md` exists (`ls -la tasks/makeover-<YYYYMMDD>.md`).
+- Report card: every number shown traces to a scorecard or a `tasks/makeover-*.md` file.
+
+## Guardrails
+
+- Never apply a fix without the step 3.4 picker unless `--auto` was passed in this request.
+- Never report a score improvement without the step 3.6 re-scan.
+- Never continue past a failing test run without the user's choice.
+- Never commit, push, or open a PR; hand off to `/ccc-ship` when the user wants that.
+- Never discard edits without an explicit confirmation.
+
+## See also
+
+- `/ccc-xray` — the scanner and rubric this skill builds on
+- `/ccc-code-review` — line-level review of the changes
+- `/ccc-testing` — fill the test gaps the scan finds
+- `/ccc-ship` — release once the score is where you want it
 
 ---
 

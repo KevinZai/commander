@@ -1,6 +1,6 @@
 ---
 name: ccc-build
-description: "Build something new — web app, API, CLI, or mobile. Guided spec interview routes to the right template, then scaffolds. Use when: 'build something', 'new project', 'create app'."
+description: "Scaffold a new web app, API or CLI from a three-question spec interview, built by a background agent and verified before it is called ready. Use when the user wants to build something new, start a project, create an app, or types $ccc-build."
 allowed-tools:
   - Read
   - Write
@@ -9,187 +9,164 @@ allowed-tools:
   - Glob
   - Grep
   - Agent
+  - Skill
   - AskUserQuestion
-  - TodoWrite
   - mcp__ccd_session__mark_chapter
-argument-hint: "[template: web-app | api | cli | mobile | spec]"
+argument-hint: "[web-app | api | cli | mobile | spec | status | free-form idea]"
+model: inherit
+effort: medium
 ---
 
-# /ccc-build — Scaffold a project
+# $ccc-build — scaffold, verify, hand over
 
-Click-first build flow. Four templates, one spec interview, one background agent. User clicks a tile, answers 3 questions, walks away — the scaffold lands in their worktree while they wait.
+**CC Commander** · $ccc-build · a template pick, three spec questions, a background scaffold and a lead-verified result.
 
-## Response shape (EVERY time)
+The lead session is the control plane: it interviews, dispatches and verifies. A background agent does the multi-file writing (`rules/workflow-first.md`). The user's selected model is preserved for the lead; only the scaffold agent is routed to `sonnet`.
 
-Output exactly these three sections in order:
+Codex: ask each picker as a plain-text question, run the scaffold inline or with `codex exec --json`, and skip session markers.
 
-### 1. Brand header (one line, markdown)
+## When to use / when not to
 
+- Use for a new web app, API, CLI, or an idea that needs a spec before code.
+- Use `$ccc-mobile` for mobile apps and `$ccc-plan` for a feature inside an existing codebase; this skill routes there.
+- Use `$ccc-design` for a landing page or UI polish on an existing project.
+
+## Arguments
+
+| Invocation | Behavior |
+|---|---|
+| `$ccc-build` | Context strip, template picker, full flow |
+| `$ccc-build web-app` / `api` / `cli` | Skip the picker, start at Q1 |
+| `$ccc-build mobile` | Invoke the `ccc-mobile` skill; do not scaffold here |
+| `$ccc-build spec` | Invoke the `ccc-plan` skill |
+| `$ccc-build status` | Step 7 only |
+| `$ccc-build <anything else>` | Treat the text as a free-form spec: echo it back, skip templates, start at Q1 |
+
+## What happens
+
+### 1. Context strip
+
+Run in one Bash call, silent on failure:
+
+```bash
+git rev-parse --abbrev-ref HEAD 2>/dev/null
+ls -1 | head -20
+test -f package.json && head -20 package.json
+test -f pnpm-lock.yaml && echo pnpm
 ```
-**CC Commander** · /ccc-build · Scaffold a project or feature
-```
-
-### 2. Context strip (one paragraph)
-
-Detect target location with **three quick reads** (parallel Bash, silent on failure):
-- `git rev-parse --abbrev-ref HEAD` → branch
-- `ls -1 | head -20` → repo inventory (empty repo? existing project?)
-- `test -f package.json && cat package.json | head -5` → detect existing stack
 
 Render one line:
-> 🧭 Target: `<cwd basename>` · branch: `<branch>` · <empty repo | Node project | Python project | other>
 
-If an existing project is detected, add a gentle note: "I'll scaffold into a sub-directory so I don't clobber your current code."
+> 🎯 Target: `<cwd basename>` · branch `<branch>` · <empty repo | Node project | Python project | other>
 
-### 3. The picker — `AskUserQuestion` with 4 templates
+If the directory already holds a project, add: "I'll scaffold into a sub-directory so existing code is untouched."
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for canonical option data. Surface exactly 4 of the 5 non-back choices (drop "mobile" if the user's stack is backend-only; otherwise keep web-app / api / cli / mobile).
+### 2. Template picker
 
-```
-question: "What are we building?"
-header: "CC Commander Build"
-multiSelect: false
-options:
-  - label: "🌐 Web app"
-    description: "Next.js + Tailwind + shadcn/ui — SSR, auth, Stripe-ready."
-    preview: "Best for: product sites, dashboards, SaaS frontends. 3-question spec → 2-4 min scaffold."
-  - label: "🔌 API / backend"
-    description: "TypeScript Fastify or Hono, Postgres via Supabase, zero-boilerplate."
-    preview: "Best for: REST or GraphQL backends, webhook handlers, internal services."
-  - label: "⌨️ CLI tool"
-    description: "Node + commander, figlet banner, test scaffold, publish-ready."
-    preview: "Best for: dev tooling, scripts, publish-to-npm utilities."
-  - label: "📝 From a spec"
-    description: "Describe the idea in plain English — spec interview → plan → build."
-    preview: "Best for: anything that doesn't fit a template. Routes through ccc-plan first."
-```
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for the canonical labels and descriptions. Ask with AskUserQuestion (header "CC Commander Build", question "What are we building?", single select). Offer four options, recommended first and marked 🟢:
 
-**Recommendation logic** (prepend ⭐ to ONE label):
-- Empty repo → ⭐ "Web app" (most common first-project)
-- Existing Next.js / React → ⭐ "From a spec" (additive, not scaffold)
-- `package.json` with `type: module` + no framework → ⭐ "CLI tool"
+- 🌐 Web app — Next.js + Tailwind + shadcn/ui; SSR, auth, Stripe-ready. For product sites, dashboards, SaaS frontends.
+- 🔧 API / backend — TypeScript Fastify or Hono, Postgres via Supabase. For REST/GraphQL, webhooks, internal services.
+- ⌨️ CLI tool — Node + commander, test scaffold, publish-ready. For dev tooling and scripts.
+- 📝 From a spec — describe the idea in plain English; routes through `ccc-plan` first.
 
-## Step 2 — Spec interview (after template pick)
+Recommendation:
 
-Reuse the pattern from `skills/ccc-build/SKILL.md` — **3 questions, one at a time**, via separate `AskUserQuestion` calls. Do NOT batch them; each answer informs the next preview text.
+- Empty repo → 🟢 Web app.
+- Existing Next.js or React project → 🟢 From a spec (additive work, not a scaffold).
+- `package.json` with `"type": "module"` and no framework → 🟢 CLI tool.
+- Otherwise → 🟢 Web app.
 
-**Q1 — Outcome goal:**
-- A: "Works end-to-end — click-through demo"
-- B: "Solid foundation — architecture first, features later"
-- C: "Quick prototype — prove the concept"
+A mobile request typed into the free-text answer routes to `ccc-mobile`. "From a spec" routes to `ccc-plan`.
 
-**Q2 — Tech preferences:**
-- A: "Pick what's best for the job"
-- B: "Popular/mainstream stack"
-- C: "Keep it simple — minimal deps"
+### 3. Spec interview
 
-**Q3 — Thoroughness:**
-- A: "Just the basics"
-- B: "Include tests (unit + integration)"
-- C: "Production-ready (errors, logging, CI, docs)"
+Ask three questions, one AskUserQuestion call each, so each answer shapes the next description. Never batch them.
 
-After Q3, print a one-paragraph spec back to the user for confirmation:
+- Q1 Outcome: 🟢 Works end-to-end (click-through demo) · Solid foundation (architecture first) · Quick prototype (prove the concept).
+- Q2 Stack: 🟢 Pick what's best for the job · Popular/mainstream stack · Keep it simple (minimal dependencies).
+- Q3 Thoroughness: 🟢 Include tests (unit + integration) · Just the basics · Production-ready (errors, logging, CI, docs).
 
-> 🧭 **Spec:** `<template>` using `<stack from Q2>`, thoroughness `<Q3>`. Target outcome: `<Q1>`. **Reply 'go' to scaffold, or edit the spec first.**
+Derive `<slug>` from the template and Q1 (kebab-case, unique in the cwd). Print the spec back:
 
-## Session markers
+> 📝 Spec: `<template>` using `<stack from Q2>`, thoroughness `<Q3>`, outcome `<Q1>`, output `./<slug>/`.
 
-Call `mcp__ccd_session__mark_chapter` at these phase transitions:
+Then confirm with AskUserQuestion:
 
-| Trigger | title | summary |
-|---------|-------|---------|
-| After user confirms spec (before dispatching agent) | `"Spec drafted"` | `"<template> spec confirmed — scaffolding queued"` |
-| Immediately after `Agent` tool call fires (background dispatch) | `"Scaffold generating"` | `"Sonnet agent scaffolding <template> in background"` |
-| Only after the **Verify scaffold** step (Step 5) passes | `"Scaffold ready"` | `"<slug>/ scaffold complete — <file-count> files created, verified"` |
+- 🟢 Scaffold it — dispatch the background agent now
+- Edit the spec — re-ask the question the user names
+- Cancel — nothing is written
 
-No `spawn_task` chips for build — scaffold blockers are reported in the agent's structured return and surfaced inline.
+### 4. Dispatch the background agent
 
-## Step 3 — Dispatch background agent
-
-> 🏗️ Multi-file scaffold work is delegated workflow-first per `commander/cowork-plugin/rules/workflow-first.md` — the lead session stays a control plane; agents do the building.
-
-On user 'go', invoke the `Agent` tool with:
+On "Scaffold it", call `mcp__ccd_session__mark_chapter` (title "Spec drafted", summary "<template> spec confirmed — scaffolding queued") when the tool is available, then call the Agent tool:
 
 - `subagent_type: general-purpose`
-- `model: sonnet`
+- `model: sonnet`, `effort: medium`
 - `run_in_background: true`
 - `description: "Scaffold <template> project per spec"`
-- `prompt:` the full confirmed spec + explicit instructions:
-  - Use `pnpm` if repo root has `pnpm-lock.yaml`, else `npm`
-  - Scaffold into `./<slug>/` sub-directory (never clobber existing files)
-  - Write a `README.md` with 3 run commands
-  - Create `tasks/spec-<YYYYMMDD>-<slug>.md` capturing the spec + agent run ID
-  - Return a structured report: `{ status, files_created, next_commands, blockers }`
+- `prompt`: the confirmed spec plus these instructions:
+  - Use `pnpm` if the repo root has `pnpm-lock.yaml`, else `npm`.
+  - Write only inside `./<slug>/`; never modify files outside it.
+  - Write `<slug>/README.md` with the install, run and test commands.
+  - Write `tasks/spec-<YYYYMMDD>-<slug>.md` with the spec and the agent id.
+  - Return JSON: `{ "status", "files_created", "next_commands", "blockers" }`.
 
-## Step 4 — Return progress card to user
+Right after the call returns, mark chapter "Scaffold generating" ("Sonnet agent scaffolding <template> in background").
 
-After the background agent is dispatched, emit ONE short card:
+### 5. Progress card
 
-> 🚀 **Scaffolding in background** — agent ID `<id>`, ETA ~2–4 min.
-> 📂 Output will land in `./<slug>/`. Spec saved to `tasks/spec-<YYYYMMDD>-<slug>.md`.
-> 💡 Come back with `/ccc-build status` or just open the folder. I'll ping when done.
+Emit one short card:
 
-Then emit the recommended stack section (vary stack by template type):
+> 🚀 Scaffolding in background — agent `<id>`.
+> 📦 Output: `./<slug>/` · spec: `tasks/spec-<YYYYMMDD>-<slug>.md`.
+> 💡 You'll get the result here when the agent finishes, or run `$ccc-build status`.
 
-### 🧰 Recommended stack (affiliate-supported · earns CC Commander a small commission)
+Then show the recommended stack for the chosen template from [references/recommended-stack.md](references/recommended-stack.md), with its affiliate disclosure line.
 
-**For web-app / SaaS templates:**
-- 💾 **[Supabase](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=supabase-saas-scaffold)** — Postgres + auth + storage. Free tier covers most projects.
-- 🌐 **[Vercel](https://vercel.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=vercel-deploy-saas)** — Best Next.js hosting. Free tier ample.
-- ⚡ **[Upstash](https://upstash.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=upstash-redis-queue)** — Serverless Redis/Kafka. Pay only for what you use.
+### 6. Verify the scaffold (required before "Scaffold ready")
 
-**For API / backend templates:**
-- 💾 **[Supabase](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=supabase-api-postgres)** — Postgres + auto-generated REST API. Free tier sufficient.
-- 🌐 **[Vercel](https://vercel.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=vercel-deploy-api)** — Serverless functions. Easy scaling.
-- ⚡ **[Upstash](https://upstash.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-build&utm_content=upstash-queue-tasks)** — Job queue + rate limiting for async workloads.
+The agent's report is a claim. When it completes, the lead verifies independently:
 
-**For CLI tools:**
-- 📦 **[npm](https://npm.org)** — Publish your CLI to the registry.
-- 🚀 **[GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)** — Host binaries and auto-downloads.
+1. `ls -R <slug> | head -100` — every path in `files_created` exists.
+2. Run the README's install and build/start commands, for example `cd <slug> && npm install && npm run build`. Each must exit 0.
+3. If Q3 chose tests or production-ready, run the generated test command (for example `cd <slug> && npm test`) and record pass/fail counts.
+4. `git status --short` — changes are confined to `<slug>/` and `tasks/`.
 
-[View all partner integrations →](./affiliate-disclosure.mdx)
+All pass: mark chapter "Scaffold ready" ("<slug>/ scaffold complete — <N> files created, verified") and report the commands run with their results.
 
-## Step 5 — Verify scaffold (MANDATORY before "Scaffold ready")
+Any failure: do not mark ready. Report the exact command and its output, then ask with AskUserQuestion:
 
-The scaffolding agent's completion report is a **claim, not a verdict** (verifier ≠ worker). Before emitting the `"Scaffold ready"` marker, the LEAD session independently verifies:
+- 🟢 Fix it — apply a targeted fix and re-run step 6
+- Re-scaffold — dispatch step 4 again with the failure appended to the prompt
+- Abandon — leave the files for inspection; nothing else changes
 
-1. `ls <slug>/` — the reported files actually exist (compare against `files_created`)
-2. Run the README's run commands (install + start/build) — they must exit clean
-3. Run the generated tests (if Q3 chose B or C) — record pass/fail counts
+### 7. Status
 
-If ANY check fails: do NOT mark "Scaffold ready". Report the failure with the exact command + output, and offer via AskUserQuestion: [🔧 Fix it, 🔁 Re-scaffold, ❌ Abandon]. Only a lead-verified scaffold gets the ready marker.
+For `$ccc-build status`: read the newest `tasks/spec-*.md`, report whether its agent has returned, and if it has, whether step 6 ran and what it found. If step 6 has not run, run it now.
 
-## Anti-patterns — DO NOT do these
+## Done when
 
-- ❌ Render a numbered list "1. Web app, 2. API, ..." — always `AskUserQuestion`
-- ❌ Batch all 3 spec questions into one AUQ — one at a time, preview text compounds
-- ❌ Block the UI by running the scaffold inline — ALWAYS `run_in_background: true`
-- ❌ Scaffold into the CWD root if the repo is non-empty — always a sub-directory
-- ❌ Offer more than 4 templates in the root picker — AUQ max is 4
-- ❌ Forget to write the spec file — every scaffold gets a spec artifact
-- ❌ Emit "Scaffold ready" from the agent's self-report alone — Step 5 verify is mandatory
+- `./<slug>/` exists, the README commands and (when chosen) the tests exited 0 in this turn, and `git status --short` shows changes only in `<slug>/` and `tasks/`.
+- `tasks/spec-<YYYYMMDD>-<slug>.md` exists so `$ccc-review` and `$ccc-ship` can find the spec.
 
-## Argument handling
+## Guardrails
 
-- `/ccc-build` → root picker + full flow
-- `/ccc-build web-app` → skip picker, jump to Q1 of spec interview
-- `/ccc-build api` → same, for API
-- `/ccc-build cli` → same, for CLI
-- `/ccc-build mobile` → route to `ccc-mobile` skill, don't try to scaffold here
-- `/ccc-build spec` → route to `ccc-plan` skill
-- `/ccc-build <anything else>` → treat as a free-form spec; skip templates, jump to Q1 with the arg echoed back
+- Never scaffold into the repo root when it is non-empty; always a sub-directory.
+- Never run the scaffold inline in the lead session when the Agent tool is available; the user should not wait.
+- Never emit "Scaffold ready" from the agent's self-report alone.
+- Never publish packages, push, or deploy from this skill; `$ccc-ship` and `$ccc-deploy` own those and ask first.
+- Never render the templates or questions as a typed list; use pickers with at most four options.
 
-## Brand rules
+## See also
 
-- Emoji-forward, concise — PM Consultant voice
-- Spec confirmation uses 🧭, dispatch uses 🚀, blockers use ⚠️
-- Never mention the CLI — this is the Desktop-plugin flow
-- Always write `tasks/spec-<YYYYMMDD>-<slug>.md` so Review / Ship can find it later
-
----
-
-**Bottom line:** four tiles → three questions → one background agent → one progress card. User never waits. Never types a number.
+- `$ccc-plan` — spec and plan for work that does not fit a template
+- `$ccc-mobile` — mobile apps
+- `$ccc-design` — landing pages and UI polish
+- `$ccc-ship` — release the verified result
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

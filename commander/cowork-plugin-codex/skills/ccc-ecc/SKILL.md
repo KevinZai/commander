@@ -1,119 +1,122 @@
 ---
 name: ccc-ecc
-description: "Selective ECC loader: pick one Everything Claude Code skill, agent, or hook and link/copy it into ~/.claude without installing the full ECC harness."
+description: "Selective ECC loader: pick one Everything Claude Code skill, agent or hook from the vendored checkout and symlink or copy only that component into ~/.claude, with a backup, never the full harness. Use when the user wants a single ECC component without installing ECC."
 allowed-tools:
   - Read
   - Bash
   - AskUserQuestion
+argument-hint: "[skill | agent | hook | list]"
+model: sonnet
+effort: medium
+disable-model-invocation: true
 ---
 
-# /ccc-ecc — Selective ECC Loader
+# $ccc-ecc — one ECC component, nothing else
 
-Load one specific **Everything Claude Code (ECC)** component into `~/.claude/` without copying the whole ECC harness.
+**CC Commander** · $ccc-ecc · installs a single Everything Claude Code (ECC) skill, agent or hook into `~/.claude/` from the pinned vendor checkout.
 
-ECC source lives at `vendor/everything-claude-code/`. This is a click-first picker: choose a skill, agent, or hook; then symlink or copy only that component.
+## When to use / when not to
 
-## Safety model
+- Use when the user wants one ECC skill, agent or hook (for example a reviewer agent or a single hook script) without ECC's installer, settings, commands or rules.
+- Do not use to install or update the whole ECC harness, to change `settings.json`, or to edit ECC itself. For refreshing vendor checkouts use `$ccc-upgrade`.
 
-- Prefer **symlink** so updates follow the pinned ECC vendor checkout.
-- Offer **copy** for an editable local snapshot.
-- Back up before replacing anything under `~/.claude/`.
-- Never install ECC settings, commands, or the full harness.
+ECC is vendored as a git submodule at `vendor/everything-claude-code/` (upstream `affaan-m/everything-claude-code`). Its components live in `skills/<name>/SKILL.md`, `agents/<name>.md` and `scripts/hooks/<name>.js` (hook wiring is declared in its `hooks/hooks.json`).
 
-## Steps
+## What happens
 
-### 1. Locate ECC
+1. **Locate ECC.** From a CC Commander checkout:
 
-```bash
-git rev-parse --show-toplevel
-test -d vendor/everything-claude-code && echo ok || echo missing
-```
+   ```bash
+   ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+   for c in "$ROOT/vendor/everything-claude-code" "${CLAUDE_PLUGIN_ROOT}/../../vendor/everything-claude-code"; do
+     [ -d "$c/skills" ] && { ECC="$(cd "$c" && pwd)"; break; }
+   done
+   echo "${ECC:-missing}"
+   ```
 
-If missing, stop with:
+   If it prints `missing`, stop: "ECC vendor checkout not found at `vendor/everything-claude-code/`. Run `git submodule update --init vendor/everything-claude-code` in a CC Commander checkout, or `$ccc-upgrade`." Plugin installs from a marketplace do not carry `vendor/`, so this skill needs a repo checkout.
 
-> ECC vendor checkout not found at `vendor/everything-claude-code/`. Run `/ccc-upgrade` or initialize submodules first.
+2. **Ask the component type** with the type picker (an argument of `skill`, `agent`, `hook` or `list` skips it).
 
-### 2. Ask what to do
+3. **Inventory candidates.**
 
-```
-question: "What ECC component do you want to load?"
-header: "ECC"
-multiSelect: false
-options:
-  - label: "Load a skill"
-  - label: "Load an agent"
-  - label: "Load a hook"
-  - label: "List available ECC components"
-```
+   ```bash
+   find "$ECC" \( -path '*/node_modules' -o -path '*/.git' -o -path '*/dist' -o -path '*/build' \) -prune -o \
+     \( -path "$ECC/skills/*/SKILL.md" -o -path "$ECC/agents/*.md" -o -path "$ECC/scripts/hooks/*.js" -o -path "$ECC/scripts/hooks/*.sh" \) -print
+   ```
 
-### 3. Inventory candidates
+   Classify `skills/<name>/SKILL.md` as skills, `agents/*.md` as agents, `scripts/hooks/*.{js,sh}` as hooks. Read counts from this output; never quote a remembered count. For "List available ECC components", render grouped markdown tables (name, relative path) and stop.
 
-```bash
-ECC="vendor/everything-claude-code"
-find "$ECC" \( -path '*/node_modules/*' -o -path '*/.git/*' -o -path '*/dist/*' -o -path '*/build/*' \) -prune -o \
-  \( -path '*/skills/*/SKILL.md' -o -path '*/agents/*.md' -o -path '*/hooks/*.js' -o -path '*/hooks/*.sh' \) -print
-```
+4. **Pick one component with a cascade, never a typed-name table.** A picker holds at most four options.
+   - **Level 1, category.** When more than four candidates match: if they group by directory prefix, offer up to three buckets plus "More categories…"; otherwise split alphabetically into about four buckets of `ceil(N/4)` computed from the real names. Never hardcode letter ranges such as "A–F"; they skew on real names. Each option's description is "<N> components".
+   - **Level 2, component.** Four or fewer left: offer them directly (label = component name, description = path relative to the ECC root). Still more than four: repeat Level 1 on that subset.
+   - **Typed filter, last resort only.** If two cascades still leave a bucket with more than 16 candidates, ask for a substring, then present the matches as a picker (cascading again if needed). Never ask for an exact name or path as the first move.
 
-Classify `skills/<name>/SKILL.md` as skills, `agents/*.md` as agents, and `hooks/*.{js,sh}` as hooks. If the user chose "List available", render grouped markdown tables and stop.
+5. **Ask symlink or copy** with the mode picker.
+   - Hooks that load sibling modules must be symlinked: check with `grep -lE "require\(['\"]\.\./|from ['\"]\.\./" "$SRC"`. A match means a copy would break the hook; offer Symlink and Cancel only, and say why.
 
-### 4. Ask which component
+6. **Map the destination.**
 
-```
-question: "Pick one ECC <skill|agent|hook> to load."
-header: "Pick"
-options:
-  - label: "<component-name>"
-    description: "<relative path under vendor/everything-claude-code>"
-```
+   | Component | Source | Destination |
+   |---|---|---|
+   | Skill | `$ECC/skills/<name>/` (whole directory, so its references and scripts come along) | `~/.claude/skills/<name>/` |
+   | Agent | `$ECC/agents/<name>.md` | `~/.claude/agents/<name>.md` |
+   | Hook | `$ECC/scripts/hooks/<name>.js` or `.sh` | `~/.claude/hooks/<name>.js` or `.sh` |
 
-If there are too many options for a picker, show a numbered table and ask for the exact name or relative path.
+   ```bash
+   mkdir -p "$(dirname "$DEST")"
+   test -e "$DEST" -o -L "$DEST" && echo exists || echo free
+   ```
 
-### 5. Ask symlink or copy
+   If it exists, ask the conflict picker. On "Replace with backup": `mv "$DEST" "$DEST.backup-$(date +%Y%m%d-%H%M%S)"`.
 
-```
-question: "Install this ECC component as a symlink or a copy?"
-header: "Mode"
-options:
-  - label: "Symlink (recommended)"
-  - label: "Copy"
-  - label: "Cancel"
-```
+7. **Install.**
 
-### 6. Map destination
+   ```bash
+   # Symlink mode (SRC is absolute, so the link survives a cwd change)
+   ln -s "$SRC" "$DEST"
+   # Copy mode
+   cp -R "$SRC" "$DEST"
+   ```
 
-- Skill `skills/<name>/SKILL.md` → `~/.claude/skills/<name>/SKILL.md`
-- Agent `<name>.md` → `~/.claude/agents/<name>.md`
-- Hook `<name>.js|sh` → `~/.claude/hooks/<name>.js|sh`
+8. **Verify and report.**
 
-```bash
-mkdir -p "$DEST_DIR"
-```
+   ```bash
+   ls -ld "$DEST"; [ -L "$DEST" ] && readlink "$DEST"
+   [ -d "$DEST" ] && test -f "$DEST/SKILL.md" && echo "skill ok"
+   ```
 
-If the destination exists, ask: "Keep existing" or "Replace with backup". On backup, move the existing target to `.backup-YYYYMMDD-HHMMSS` before installing.
+   Report source, destination, mode, the backup path if one was made, and the next step: a skill or agent loads in the next session; a hook is only a file until the user registers it in their own `settings.json` hooks block (point them at ECC's `hooks/hooks.json` entry for that script as the reference shape).
 
-### 7. Install + verify
+## Decision points
 
-```bash
-# Symlink mode
-ln -s "$ABS_SOURCE" "$DEST"
+- **Type** (header "ECC"): 🟢 **Load a skill** (most ECC value is here) · **Load an agent** · **Load a hook** (file only; wiring stays manual) · **List available ECC components** (read-only).
+- **Mode** (header "Mode"): 🟢 **Symlink** (follows the pinned vendor checkout on every submodule update) · **Copy** (editable snapshot that no longer updates) · **Cancel**.
+- **Conflict** (header "Exists"): 🟢 **Keep existing** (nothing changes) · **Replace with backup** (moves the current file aside first).
 
-# Copy mode
-cp -R "$ABS_SOURCE" "$DEST"
+In Codex or any surface without `AskUserQuestion`, ask the same choices as one plain-text question.
 
-# Verify
-test -e "$DEST" && ls -l "$DEST"
-```
+## Done when
 
-Report the source, destination, mode, and whether a backup was made.
+- `ls -ld "$DEST"` shows the component, and for symlinks `readlink` points inside `vendor/everything-claude-code/`.
+- A skill destination contains `SKILL.md`.
+- The report names source, destination, mode and any backup.
 
-## Anti-patterns — DO NOT
+## Guardrails
 
-- Do not copy the full ECC harness, command tree, or settings into `~/.claude/`.
-- Do not overwrite existing local skills, agents, or hooks without a backup and confirmation.
-- Do not edit files under `vendor/everything-claude-code/`.
-- Do not install unknown binary files or dependency folders.
-- Do not add ECC hooks to settings automatically; install the file and tell the user where it landed.
+- Installing into `~/.claude/` changes the user's configuration; do it only for the component the user picked in this conversation.
+- Never copy the full ECC harness, its command tree, rules, `settings.json` or installer output into `~/.claude/`.
+- Never overwrite an existing skill, agent or hook without the conflict picker and a backup.
+- Never edit files under `vendor/everything-claude-code/`.
+- Never install binaries, `node_modules` or dependency folders, and never run ECC's `install.sh`.
+- Never register an ECC hook in settings automatically.
 
----
+## See also
+
+- `$ccc-upgrade` — refresh vendor checkouts, including ECC.
+- `$ccc-suggest` — find a skill or plugin for the task at hand.
+- `$ccc-settings` — inspect and edit Claude Code settings, including hooks.
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

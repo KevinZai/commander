@@ -1,222 +1,205 @@
 ---
 name: ccc-review
-description: "audit current branch, security posture, performance hotpaths, or run full project x-ray. Spawns the matching specialist agent in the background; findings land at…"
+description: "Audit the current branch, security posture, performance hot paths or the whole project; routes to /commander:ccc-deep-review, built-in /code-review or a specialist agent and writes a severity-rated report to tasks/reviews/. Use when the user asks for a code review, PR review, audit or $ccc-review."
 allowed-tools:
   - Read
   - Write
-  - Edit
   - Bash
   - Glob
   - Grep
+  - Skill
   - Workflow
   - Agent
   - AskUserQuestion
   - TodoWrite
+  - ReportFindings
   - mcp__ccd_session__spawn_task
   - mcp__ccd_session__mark_chapter
-argument-hint: "[audit type: diff | security | perf | xray]"
+argument-hint: "[diff | quick | ultra | security | perf | xray | free-form question]"
+model: opus
+effort: medium
 ---
 
-# /ccc-review — Audit your work
+# $ccc-review — audit before you ship
 
-Click-first review flow. Four audit types, one specialist agent per pick, one scorecard artifact. User picks the lens, the agent works in the background, the markdown report lands in `tasks/reviews/`.
+**CC Commander** · $ccc-review · one audit lens, verified findings, one report in `tasks/reviews/`.
 
-> Broad reviews/audits run **workflow-first** — fan out by dimension, adversarially verify findings before acting. See `commander/cowork-plugin/rules/workflow-first.md`.
+Broad reviews run workflow-first: fan out by dimension, then adversarially verify every finding before it is reported (`rules/workflow-first.md`). The user's selected model is preserved; agents use their own frontmatter tier.
 
-## Session markers
+## When to use / when not to
 
-- At the START of review (after user picks an audit type): call `mcp__ccd_session__mark_chapter` with `title: "Code review: <branch>"` and `summary: "<audit-type> audit on <branch>"`.
-- At COMPLETION (when the agent reports back or findings are surfaced): call `mcp__ccd_session__mark_chapter` with `title: "Review complete"` and `summary: "<N> findings — <blocker-count> blocking"`.
+- Use before opening or merging a PR, after a risky change, or when the user asks "is this safe / fast / correct?".
+- Use `$ccc-xray` for a whole-project health scorecard (this skill routes there for the x-ray lens).
+- Use `$ccc-qa` to run test suites and coverage; this skill reads code, it does not run the suite.
+- Use `$ccc-security` for a dedicated security programme (threat model, hardening); the security lens here is a scoped audit.
 
-## Sidebar chips (spawn_task)
+## What happens
 
-**Refute before chips (Agent fallback only — the workflows already verify):** when findings came from the Agent-based flow, dispatch ONE fresh refute agent before any chip fires: "Adversarially verify these findings — try to REFUTE each. Default verdict PLAUSIBLE unless you confirm it from the actual code (then CONFIRMED); drop anything you refute." Only CONFIRMED 🔴/🟠 findings become chips; PLAUSIBLE ones stay as markdown bullets marked for manual confirmation.
+### 1. Read the review context
 
-After findings are verified, spawn ONE `mcp__ccd_session__spawn_task` chip per **confirmed 🔴 Critical** or **🟠 High** blocker — each chip is a self-contained action for a fresh session:
+Run these in parallel with Bash; treat a failure as "unknown", not an error:
 
-- `title`: imperative phrase under 60 chars (e.g., `"Fix SQL injection in src/auth.ts:42"`)
-- `prompt`: self-contained — include file path, line number, issue summary, CWE/OWASP reference if applicable, and suggested fix direction. The spawned session has no memory of this conversation.
-- `tldr`: 1-2 sentences plain English, no code blocks.
-
-**For 🟡 Medium and ℹ️ Nit findings:** surface via markdown bullets + `TodoWrite` only — NOT spawn_task chips. Chips are for blockers that warrant a dedicated fix session.
-
-## Response shape (EVERY time)
-
-Output exactly these three sections in order:
-
-### 1. Brand header (one line, markdown)
-
-```
-**CC Commander** · /ccc-review · Audit before you ship
+```bash
+git rev-parse --abbrev-ref HEAD
+git rev-list --count main..HEAD 2>/dev/null
+git diff --shortstat main..HEAD 2>/dev/null
+git status --porcelain 2>/dev/null | wc -l
+test -d .github/workflows && echo yes || echo no
 ```
 
-### 2. Context strip (one paragraph)
-
-Detect review context with **four quick reads** (parallel Bash, silent on failure):
-- `git rev-parse --abbrev-ref HEAD` → current branch
-- `git rev-list --count main..HEAD 2>/dev/null` → commits ahead of main
-- `git diff --shortstat main..HEAD 2>/dev/null` → diff size
-- `test -d .github/workflows && echo yes` → CI presence
+If the default branch is not `main` (`git symbolic-ref --short refs/remotes/origin/HEAD` names another), use that as `<base>` everywhere below.
 
 Render one line:
-> 🧭 Branch: `<branch>` · <N> commits ahead of main · <X> files / <Y> lines changed · CI: `<yes/no>`
 
-If no diff detected: "🧭 No diff vs main — I'll audit the whole project instead (xray recommended)."
+> 🧭 Branch `<branch>` · `<N>` commits ahead of `<base>` · `<X>` files / `<Y>` lines changed · CI `<yes|no>`
 
-### 3. The picker — `AskUserQuestion` with 4 audit types
+With no diff and no uncommitted changes: "🧭 No diff vs `<base>` — the whole-project x-ray fits best."
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-review.json` for canonical option data. Surface the 4 non-back choices.
+### 2. Pick the lens
 
-```
-question: "What should I audit?"
-header: "CC Commander Review"
-multiSelect: false
-options:
-  - label: "📊 Review current branch"
-    description: "Diff vs main — PR-quality summary before you open a PR."
-    preview: "<N> commits · <X> lines · reviewer agent does a full 4-dimension pass."
-  - label: "🔐 Security audit"
-    description: "OWASP Top 10 + secrets + dependency audit. Severity-rated report."
-    preview: "security-auditor agent. Catches injection, auth flaws, exposed secrets, vulnerable deps."
-  - label: "⚡ Performance"
-    description: "Hot-path scan, bundle size, N+1 queries, flame-graph pointers."
-    preview: "performance-engineer agent. Flags hot paths, unbounded queries, resource leaks."
-  - label: "🩻 Full project x-ray"
-    description: "Health scorecard across code, docs, tests, deps, CI."
-    preview: "Routes to ccc-xray — full health pass, not just the diff."
-```
+An argument skips this picker (see Arguments). Otherwise read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-review.json` for the option data and ask with AskUserQuestion (Codex: a plain-text question listing the same four):
 
-**Recommendation logic** (prepend ⭐ to ONE label):
-- Branch ahead of main + uncommitted changes → ⭐ "Review current branch"
-- `package.json` touched in diff → ⭐ "Security audit" (new deps = supply-chain risk)
-- SQL / ORM files in diff → ⭐ "Security audit"
-- Empty diff → ⭐ "Full project x-ray"
-- Hot-path files (`*/api/*`, `*/routes/*`, `*/hot/*`) in diff → ⭐ "Performance"
+- question: "What should I audit?" · header: "Review" · multiSelect: false
+- 📊 Review current branch — diff vs `<base>`, PR-quality findings before you open a PR
+- 🔐 Security audit — OWASP Top 10, secrets, dependency audit, severity-rated
+- ⚡ Performance — hot paths, N+1 queries, unbounded work, bundle size
+- 🩻 Full project x-ray — health scorecard across code, docs, tests, deps, CI
 
-### Native workflow (Claude Code v2.1.154+)
+Put the recommended option first and mark it 🟢:
 
-If the `Workflow` tool is available, prefer invoking the bundled deep-review workflow for the **"Review current branch"** audit type instead of the Agent-based flow:
+| Signal from step 1 | 🟢 option |
+|---|---|
+| Commits ahead of `<base>` or uncommitted changes | Review current branch |
+| `package.json`, a lockfile, or SQL/ORM files in the diff | Security audit |
+| `*/api/*`, `*/routes/*` or other request-path files in the diff | Performance |
+| Empty diff | Full project x-ray |
+
+### 3. Pick the engine (branch review only)
+
+Ask with AskUserQuestion:
+
+- question: "Which review should run on this branch?" · header: "Engine"
+- 🟢 Commander deep review — `/commander:ccc-deep-review`: four weighted dimensions, every finding refuted or confirmed, report written to `tasks/reviews/`
+- Built-in /code-review — Claude Code's native review of the diff; fastest, findings reported in the session
+- /code-review ultra — multi-agent cloud review; you type it yourself, it runs outside this session
+
+For `/code-review ultra`, reply with the exact command to type (`/code-review ultra`) and stop: this skill never triggers a cloud review on the user's behalf.
+
+### 4. Mark the chapter
+
+When the session exposes `mcp__ccd_session__mark_chapter`, call it with `title: "Code review: <branch>"` and `summary: "<lens> audit on <branch>"`. Skip silently when absent.
+
+### 5. Run the audit
+
+Create the report directory first: `mkdir -p tasks/reviews`.
+
+**Branch review, deep engine.** Run the plugin workflow `/commander:ccc-deep-review` with the Workflow tool:
 
 ```js
 Workflow({
   scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-deep-review.workflow.js",
-  args: { base: "main" }
+  args: { base: "<base>" }
 })
 ```
 
-The workflow reviews the diff across 4 weighted dimensions (security 35%, performance 25%, correctness 25%, maintainability 15%), adversarially verifies each finding, and returns only confirmed issues — reducing false positives before they reach you.
+It reviews security 35%, correctness 25%, performance 25%, maintainability 15%, and returns only verified findings with a verdict.
 
-For the **Security** and **Performance** audit types, route through the bundled audit workflow — it already supports scoped dimensions with REFUTE-framed verification of every finding:
+**Branch review, built-in engine.** Invoke the built-in review with the Skill tool: `skill: "code-review"`, `args: "--max-findings all"` (a number caps the list). Carry its verdicts into the report in step 7; a finding it returns without a verdict is PLAUSIBLE.
+
+**Security audit.**
 
 ```js
-// Security audit
 Workflow({
   scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
   args: { dimensions: ["security", "deps"] }
 })
+```
 
-// Performance audit
+**Performance audit.**
+
+```js
 Workflow({
   scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-audit.workflow.js",
   args: { dimensions: ["performance"] }
 })
 ```
 
-Only **Full x-ray** stays on its own route (`ccc-xray` skill).
+**Full project x-ray.** Say "Loading `$ccc-xray` — full health scorecard across code, docs, tests, deps, CI." and continue as if the user had invoked `$ccc-xray`. Stop here.
 
-If `Workflow` is unavailable (older client or tool not allowed), fall back to the Agent-based flow below — leave that flow intact.
+**Fallback when Workflow is unavailable** (older client or tool not allowed). Dispatch one specialist with the Agent tool, `run_in_background: true`, `effort: "high"`:
 
-## Step 2 — Dispatch matching specialist agent
+| Lens | Agent | Task |
+|---|---|---|
+| Branch | `reviewer` | Four-dimension review (security 35 / performance 25 / correctness 25 / maintainability 15) of `git diff <base>...HEAD`; severity-grouped findings with `file:line` and a one-line fix |
+| Security | `security-auditor` | OWASP Top 10 sweep of the diff, or the whole codebase when there is no diff: secrets in source, injection, XSS, authn/authz, insecure deserialization, SSRF, path traversal; run `npm audit` or `pip-audit` when the manifest exists; CWE ids |
+| Performance | `performance-engineer` | N+1 queries, quadratic work in hot paths, unbounded loops or queries, missing indexes, leaks; bundle size when `.next/`, `dist/` or `build/` exists; label each impact estimated or measured |
 
-On user pick, immediately dispatch the right agent in background. **Never block the UI.**
+If the Agent tool does not list the plugin agent, use `general-purpose` and make its first instruction "Read `${CLAUDE_PLUGIN_ROOT}/agents/<agent>.md` and follow it." Each agent returns findings as JSON (`title`, `severity`, `file`, `line`, `evidence`, `fix`) and writes nothing.
 
-**"Review current branch" (diff):**
-- `Agent` tool, `subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`
-- Agent: invoke `reviewer` persona (see `commander/cowork-plugin/agents/reviewer.md`)
-- Prompt: "Run the 4-dimension review (Security 35% / Performance 25% / Correctness 25% / Maintainability 15%) on `git diff main..HEAD`. Write findings to `tasks/reviews/ccc-review-<YYYYMMDD>-diff.md`. Group by severity (Critical / High / Medium / Low / Nit). Include file:line citations + suggested fixes. Return the artifact path + blocker count."
+Then emit one progress card and wait for the completion notification:
 
-**"Security audit":**
-- Same background pattern, invoke `security-auditor` persona (`agents/security-auditor.md`)
-- Prompt: "Run OWASP Top 10 sweep on the diff (or whole codebase if no diff). Check: secrets in source, SQL injection, XSS, auth/authz flaws, insecure deserialization, SSRF, path traversal. Also run `npm audit` / `pip audit` if applicable. Severity-rate (🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low / ℹ️ Info) with CWE IDs. Write findings to `tasks/reviews/ccc-review-<YYYYMMDD>-security.md`."
+> 🔍 Audit running in the background — `<lens>` on `<branch>`. Findings land at `tasks/reviews/ccc-review-<YYYYMMDD>-<lens>.md`.
 
-**"Performance":**
-- Same pattern, invoke `performance-engineer` persona (`agents/performance-engineer.md`)
-- Prompt: "Hot-path audit. Scan for: N+1 queries, O(n²) in hot paths, unbounded loops/queries, missing indexes, resource leaks, bundle bloat. If `.next/`, `dist/`, or `build/` exists, check bundle size. Write findings to `tasks/reviews/ccc-review-<YYYYMMDD>-perf.md`. Flag estimated vs measured impact explicitly."
+When it returns, dispatch one fresh refute agent (verifier ≠ worker): "Adversarially verify these findings. Try to refute each from the actual code. Mark CONFIRMED only when the code proves it; otherwise PLAUSIBLE; drop anything you refute." The workflows already verify, so skip this pass for them.
 
-**"Full project x-ray":**
-- Route to the `ccc-xray` skill — do NOT spawn the agent here. Emit: "Loading x-ray workflow — `ccc-xray` runs a full health scorecard across code, docs, tests, deps, CI."
-- Then behave as if the user had invoked `/ccc-xray` directly.
+Codex: replace the workflow with `codex review --base <base>` (or `codex review --uncommitted` when nothing is committed yet) for the branch lens, and `codex exec --json` with the agent task above for the security and performance lenses.
 
-## Step 3 — Return progress card to user
+### 6. Report findings
 
-After dispatching the agent, emit ONE short card:
+- When the harness offers `ReportFindings`, call it once with every surviving finding ranked most-severe first: `file`, `line`, `summary`, `short_summary`, `failure_scenario`, `category`, `verdict` (`CONFIRMED` or `PLAUSIBLE`). Do not also print the findings as text; the reply carries counts and the report path.
+- Otherwise list them in the reply grouped by severity (🔴 Critical, 🟠 High, 🟡 Medium, 🟢 Low, ℹ️ Nit), each as `path:line` — issue — verdict — fix.
 
-> 🔍 **Audit running in background** — `<audit-type>` on `<branch>`, agent ID `<id>`, ETA ~1–3 min.
-> 📂 Findings will land at `tasks/reviews/ccc-review-<YYYYMMDD>-<type>.md`.
-> 💡 Come back with `/ccc-review status` — I'll report blocker count + artifact path when done.
+### 7. Write the report
 
-## Anti-patterns — DO NOT do these
+Write `tasks/reviews/ccc-review-<YYYYMMDD>-<lens>.md` using [references/output-format.md](references/output-format.md). Never overwrite an earlier report; append `-2`, `-3` for a second run the same day. `$ccc-ship` reads this directory.
 
-- ❌ Run the review inline — ALWAYS `run_in_background: true`
-- ❌ Write findings to stdout only — every review produces a markdown artifact
-- ❌ Use a single agent for all audit types — each has a specialist persona
-- ❌ Skip severity grouping — reviewers MUST rate Critical / High / Medium / Low / Nit
-- ❌ Offer more than 4 audit types in the picker
-- ❌ Forget `tasks/reviews/` directory — create it if missing (Bash `mkdir -p`)
+### 8. Turn blockers into actions
 
-## Argument handling
+- For each CONFIRMED 🔴 Critical or 🟠 High finding, when `mcp__ccd_session__spawn_task` is exposed, spawn one chip: `title` an imperative under 60 characters (`Fix SQL injection in src/auth.ts:42`); `prompt` self-contained with path, line, issue, CWE/OWASP id when relevant, and fix direction (the new session has no memory of this one); `tldr` one or two plain sentences.
+- PLAUSIBLE blockers stay in the report marked "confirm before acting"; they never become chips.
+- 🟡 Medium, 🟢 Low and ℹ️ Nit findings go to TodoWrite only.
+- Without spawn_task (CLI, Codex), list the blocker fixes as numbered next actions in the report.
 
-- `/ccc-review` → root picker
-- `/ccc-review diff` → skip picker, dispatch reviewer agent immediately
-- `/ccc-review security` → skip picker, dispatch security-auditor
-- `/ccc-review perf` → skip picker, dispatch performance-engineer
-- `/ccc-review xray` → route to `ccc-xray` skill
-- `/ccc-review <anything else>` → treat as free-form audit question; confirm scope with one AUQ, then dispatch reviewer
+Close the chapter: `mark_chapter` with `title: "Review complete"`, `summary: "<N> findings — <B> blocking"`.
 
-## Artifact format (every review writes this)
+## Arguments
 
-```markdown
-# CCC Review — <type> — <YYYY-MM-DD>
+| Argument | Action |
+|---|---|
+| none | Steps 1–8 with both pickers |
+| `diff` | Branch lens, deep engine; skip both pickers |
+| `quick` | Branch lens, built-in `/code-review` |
+| `ultra` | Reply with `/code-review ultra` for the user to type; stop |
+| `security` / `perf` | That lens; skip the picker |
+| `xray` | Route to `$ccc-xray` |
+| `status` | Report the newest file in `tasks/reviews/`: lens, finding count, blocker count, path |
+| anything else | Free-form audit question: confirm scope with one AskUserQuestion (🟢 branch diff · whole repo · a named path), then run the branch lens on that scope |
 
-**Branch:** <branch> · **Base:** main · **Diff:** <X> files / <Y> lines
-**Agent:** <persona> · **Duration:** <Nm Ns>
+## Done when
 
-## Summary
-- <total findings> findings — <blocker count> blocking
-- Overall verdict: Approve / Request Changes / Needs Discussion
-- Overall risk: Low / Medium / High
+- The report file exists: `ls -l tasks/reviews/ccc-review-<YYYYMMDD>-<lens>*.md` prints it (skipped only for `ultra` and `xray`).
+- Every finding in it carries a verdict, and its counts match what step 6 reported.
+- The reply states lens, branch, total findings, blocking count and the report path.
 
-## Findings
+## Guardrails
 
-Every finding carries a verification verdict: **CONFIRMED** (independently verified against the actual code) or **PLAUSIBLE** (reported but not yet reproduced — verify before acting).
+- Never edit source code during a review; fixes happen in the spawned or follow-up session.
+- Never trigger `/code-review ultra` or any cloud review for the user; it is user-initiated.
+- Never report an unverified finding as CONFIRMED, and never turn a PLAUSIBLE one into a chip.
+- Never offer more than four lenses in the picker, and never delete earlier reports.
+- Run long audits in the background (workflow or `run_in_background: true`); never block the session on an inline sweep.
 
-### 🔴 Critical (N)
-- `file:line` — `<issue>` — **Verdict:** `CONFIRMED|PLAUSIBLE` — **Fix:** `<suggested fix>` — **Why:** `<rationale>`
+## See also
 
-### 🟠 High (N)
-...
-
-### 🟡 Medium (N)
-...
-
-### ℹ️ Nits (N)
-...
-
-## Next actions
-1. ...
-```
-
-## Brand rules
-
-- Emoji-forward — 🔍 for audit, 🔴🟠🟡🟢 for severity, ✅ for approve, ❌ for block
-- One artifact per audit — never delete previous reviews (keep history)
-- Never mention the CLI — Desktop-plugin flow
-- Always write to `tasks/reviews/` — Ship flow reads from there
-
----
-
-**Bottom line:** four audit tiles → matching specialist agent → one markdown artifact. User never waits, findings always traceable.
+- `$ccc-xray` — whole-project health scorecard
+- `$ccc-qa` — run the suites, coverage delta, flaky tests
+- `$ccc-security` — deeper security work
+- `$ccc-ship` — reads `tasks/reviews/` before release
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)
+
+> (The Workflow(...) tool is not available on Codex — run the steps sequentially.)

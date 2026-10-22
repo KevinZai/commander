@@ -1,112 +1,86 @@
 ---
 name: ccc-marketing
-brand: Kevin Z's CC Commander
-description: "CCC domain — 46-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channels, growth, intelligence, and sales — plus influencer outreach, Product Hunt launch, and SEO content production. Foundation context system + orchestration router. 27 Python tools (all stdlib-only). Works with Claude Code, Codex CLI, and OpenClaw."
-version: 3.0.0
-author: Kevin Z
+description: "Route marketing work to the right sub-skill: content, SEO and AI search, conversion optimization, email and paid channels, growth loops, competitive intelligence, pricing and launches, with stdlib-only Python scoring tools. Use when the user needs marketing strategy, copy, SEO, CRO or campaign help."
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - AskUserQuestion
+argument-hint: "[content | seo | cro | channels | growth | intel | launch | pricing]"
+model: inherit
+effort: medium
 license: MIT
-tags:
-  - marketing
-  - seo
-  - content
-  - copywriting
-  - cro
-  - analytics
-  - ai-seo
-  - influencer
-  - product-hunt
-  - content-production
-agents:
-  - claude-code
-  - codex-cli
-  - openclaw
 ---
 
-# ccc-marketing
+# /ccc-marketing — marketing work, routed
 
-> Load ONE skill. Get the entire marketing domain. 46 skills in one.
+**CC Commander** · ccc-marketing · one router over the marketing pods, a shared context file, and scoring tools that need no installs.
 
-46 production-ready marketing skills organized into 7 specialist pods with a context foundation and orchestration layer.
+Each sub-skill lives in its own directory beside this file. Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` (on Codex, the same path relative to this file) and follow it. `marketing-ops` is the in-domain router: its routing matrix, cross-domain hand-offs and campaign sequences are canonical, so this file does not repeat them. The user's selected model is preserved.
 
-## Quick Start
+Codex: ask each picker as a plain-text question; to start headless, run `codex exec "Read skills/ccc-marketing/marketing-ops/SKILL.md, then <task>"` from the repository root.
 
-### Claude Code
-```
-/read marketing-skill/marketing-ops/SKILL.md
-```
-The router will direct you to the right specialist skill.
+## Sub-skills
 
-### Codex CLI
-```bash
-codex --full-auto "Read marketing-skill/marketing-ops/SKILL.md, then help me write a blog post about [topic]"
-```
+| Pod | Sub-skills |
+|---|---|
+| Foundation | `marketing-context` (brand voice, audience, competitors; every other sub-skill reads it), `marketing-ops` (router and campaign orchestration) |
+| Content | `content-strategy`, `content-production`, `copywriting`, `copy-editing`, `content-humanizer`, `social-content`, `marketing-ideas`, `content-creator` (deprecated; redirects to `content-production` or `content-strategy`) |
+| SEO | `seo-audit`, `ai-seo`, `schema-markup`, `site-architecture`, `programmatic-seo`, `seo-content-production` |
+| CRO | `page-cro`, `form-cro`, `signup-flow-cro`, `onboarding-cro`, `popup-cro`, `paywall-upgrade-cro` |
+| Channels | `email-sequence`, `cold-email`, `paid-ads`, `ad-creative`, `social-media-manager`, `influencer-outreach`, `marketing-demand-acquisition` |
+| Growth | `ab-test-setup`, `referral-program`, `free-tool-strategy`, `churn-prevention` |
+| Intelligence | `campaign-analytics`, `analytics-tracking`, `competitor-alternatives`, `marketing-psychology`, `social-media-analyzer` |
+| Sales and GTM | `pricing-strategy`, `launch-strategy`, `product-hunt-launch`, `marketing-strategy-pmm` |
+| Standalone | `app-store-optimization`, `brand-guidelines`, `prompt-engineer-toolkit` |
 
-### OpenClaw
-Skills are auto-discovered from the repository. Ask your agent for marketing help — it routes via `marketing-ops`.
+Python tools by sub-skill, with usage: [references/tools.md](references/tools.md).
 
-## Architecture
+## When to use / when not to
 
-```
-marketing-skill/
-├── marketing-context/     ← Foundation: brand voice, audience, goals
-├── marketing-ops/         ← Router: dispatches to the right skill
-│
-├── Content Pod (8)        ← Strategy → Production → Editing → Social
-├── SEO Pod (5)            ← Traditional + AI SEO + Schema + Architecture
-├── CRO Pod (6)            ← Pages, Forms, Signup, Onboarding, Popups, Paywall
-├── Channels Pod (5)       ← Email, Ads, Cold Email, Ad Creative, Social Mgmt
-├── Growth Pod (4)         ← A/B Testing, Referrals, Free Tools, Churn
-├── Intelligence Pod (4)   ← Competitors, Psychology, Analytics, Campaigns
-└── Sales & GTM Pod (2)    ← Pricing, Launch Strategy
-```
+- Use for content plans and production, page and funnel conversion, SEO and AI-search visibility, email and paid campaigns, referral and retention programs, competitor pages, pricing and launches.
+- Use `ccc-seo` for a site-wide technical SEO workflow, `ccc-design` for the visual build of a page, `ccc-data` for analytics pipelines and dashboards.
 
-## First-Time Setup
+## What happens
 
-Run `marketing-context` to create your `marketing-context.md` file. Every other skill reads this for brand voice, audience personas, and competitive landscape. Do this once — it makes everything better.
+1. **Load context.** Run `ls .agents/marketing-context.md marketing-context.md .claude/product-marketing-context.md 2>/dev/null`. Read the first file found. When none exists and the task is more than a one-off edit, ask with AskUserQuestion (header "Context"): 🟢 Create it first with `marketing-context` (one guided interview, reused by every sub-skill) · Skip and use only what is in this conversation.
 
-## Pod Overview
+2. **Route.** An argument or a clear intent picks the sub-skill from the table above, using the routing matrix in `marketing-ops/SKILL.md` to separate near neighbours (copywriting vs copy-editing, email-sequence vs cold-email, page-cro vs form-cro). A multi-skill campaign follows the matching sequence in `marketing-ops/SKILL.md`. Otherwise ask with AskUserQuestion (header "Marketing"), recommended first:
 
-| Pod | Skills | Python Tools | Key Capabilities |
-|-----|--------|-------------|-----------------|
-| **Foundation** | 2 | 2 | Brand context capture, skill routing |
-| **Content** | 8 | 5 | Strategy → production → editing → humanization |
-| **SEO** | 5 | 2 | Technical SEO, AI SEO (AEO/GEO), schema, architecture |
-| **CRO** | 6 | 0 | Page, form, signup, onboarding, popup, paywall optimization |
-| **Channels** | 5 | 2 | Email sequences, paid ads, cold email, ad creative |
-| **Growth** | 4 | 2 | A/B testing, referral programs, free tools, churn prevention |
-| **Intelligence** | 4 | 4 | Competitor analysis, marketing psychology, analytics, campaigns |
-| **Sales & GTM** | 2 | 1 | Pricing strategy, launch planning |
-| **Standalone** | 4 | 9 | ASO, brand guidelines, PMM strategy, prompt engineering |
-| **New in v3** | 3 | 0 | Influencer outreach, Product Hunt launch, SEO content production |
+   - 🟢 Content — plan, write, edit or humanize content (`content-strategy`, `content-production`, `copywriting`)
+   - SEO and AI search — audits, AI citation, schema, site structure (`seo-audit`, `ai-seo`)
+   - Conversion — pages, forms, signup, onboarding, popups, paywalls (the CRO pod)
+   - Something else — a follow-up picker with channels, growth, intelligence, and pricing and launch
 
-## Python Tools (27 scripts)
+3. **Load and run.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` and follow it. Write deliverables to files the user can review (for example `marketing/<topic>.md`), not only to chat.
 
-All scripts are stdlib-only (zero pip installs), CLI-first with JSON output, and include embedded sample data for demo mode.
+4. **Score the output when a tool exists.** Run the matching script from [references/tools.md](references/tools.md), for example:
 
-```bash
-# Content scoring
-python3 marketing-skill/content-production/scripts/content_scorer.py article.md
+   ```bash
+   python3 "${CLAUDE_SKILL_DIR}/content-production/scripts/content_scorer.py" marketing/post.md
+   python3 "${CLAUDE_SKILL_DIR}/content-humanizer/scripts/humanizer_scorer.py" marketing/post.md
+   ```
 
-# AI writing detection
-python3 marketing-skill/content-humanizer/scripts/humanizer_scorer.py draft.md
+   Report the score it prints. When a score is below the sub-skill's bar, revise and re-run once before reporting.
 
-# Brand voice analysis
-python3 marketing-skill/content-production/scripts/brand_voice_analyzer.py copy.txt
+## Done when
 
-# Ad copy validation
-python3 marketing-skill/ad-creative/scripts/ad_copy_validator.py ads.json
+- Routing only: the sub-skill file was read in this turn and the user knows which one ran.
+- A deliverable was written: `test -s <file> && echo ok` printed `ok`, and any scoring script that applies ran in this turn with its result reported.
+- A context file was created: `python3 "${CLAUDE_SKILL_DIR}/marketing-context/scripts/context_validator.py" <file>` ran and its score is reported.
 
-# Pricing scenario modeling
-python3 marketing-skill/pricing-strategy/scripts/pricing_modeler.py
+## Guardrails
 
-# Tracking plan generation
-python3 marketing-skill/analytics-tracking/scripts/tracking_plan_generator.py
-```
+- Never post, send, schedule or publish content, email a prospect or influencer, or change ad spend without authorization in this conversation; ask with a picker at that step.
+- Never invent statistics, testimonials, reviews, customer names or competitor claims; mark anything unverified for the user to confirm.
+- Never put customer personal data into prompts, scripts or committed files.
+- Never route new work to `content-creator`; it is deprecated.
 
-## Unique Features
+## See also
 
-- **AI SEO (AEO/GEO/LLMO)** — Optimize for AI citation, not just ranking
-- **Content Humanizer** — Detect and fix AI writing patterns with scoring
-- **Context Foundation** — One brand context file feeds all 42 skills
-- **Orchestration Router** — Smart routing by keyword + complexity scoring
-- **Zero Dependencies** — All Python tools use stdlib only
+- `ccc-seo` — site-wide SEO workflow
+- `ccc-design` — landing page and visual build
+- `ccc-data` — analytics pipelines and dashboards

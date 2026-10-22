@@ -11,18 +11,17 @@ CC Commander is built to meet you where you already work. Whether you're a novic
 
 ### Claude Cowork Desktop ⭐ (Best for novices)
 
-**Why Cowork first?** It's Anthropic's newest app designed for users who want AI agents to *do* things, not just chat. CC Commander's 26 guided workflows are a perfect match — beginners can type `/ccc-build` and get a complete app scaffold without touching config.
+**Why Cowork first?** It's Anthropic's newest app designed for users who want AI agents to *do* things, not just chat. CC Commander's 82 guided workflows are a perfect match — beginners can type `/ccc-build` and get a complete app scaffold without touching config.
 
 ```
-/plugin marketplace add KevinZai/commander
-/plugin install commander
+/plugin install commander --marketplace KevinZai/commander
 ```
 
 **What you get:**
-- 26 `/ccc-*` slash commands with autocomplete
+- 84 `/ccc-*` plugin skills with autocomplete
 - 22 specialist agents (architect, designer, builder, reviewer, etc.) with persona voices
-- 23 lifecycle hooks (cost warnings, context alerts, auto-save, secret guards)
-- 5 pre-wired MCP integrations (Linear, Tavily, Context7, GitHub, Slack)
+- 30 lifecycle hooks (cost warnings, context alerts, auto-save, secret guards)
+- 2 credential-free bundled MCP servers (`context7`, `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Linear, Supabase, Slack, Notion and more)
 - Full offline support — works without internet after install
 
 ### Claude Code Desktop (Best for developers)
@@ -30,8 +29,7 @@ CC Commander is built to meet you where you already work. Whether you're a novic
 Same plugin, same skills, same install path. Claude Code is the developer-focused Desktop app; Cowork shares the plugin system so everything works identically.
 
 ```
-/plugin marketplace add KevinZai/commander
-/plugin install commander
+/plugin install commander --marketplace KevinZai/commander
 ```
 
 ### Claude Code CLI (Best for terminal workflows)
@@ -50,15 +48,14 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## 🔌 MCP clients (hosted server)
 
-For any AI IDE that supports Model Context Protocol. Point at `mcp.commanderplugin.com` with your license key:
+For any AI IDE that supports Model Context Protocol. Point at `mcp.commanderplugin.com` — no license key required, just a 100-call/month anti-abuse cap:
 
 ```json
 // Example: ~/.cursor/mcp.json
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse",
-      "headers": { "Authorization": "Bearer YOUR_LICENSE_KEY" }
+      "url": "https://mcp.commanderplugin.com/sse"
     }
   }
 }
@@ -86,28 +83,28 @@ Coming soon — MCP support rolling out in Anthropic's mobile + desktop apps dur
 
 **All MCP clients get:**
 - 13 tools: `list_skills`, `search_skills`, `get_skill`, `suggest_skill`, `list_agents`, `get_agent`, `list_modes`, `enter_mode`, `get_status`, `send_feedback`, `get_session_time`, `list_hooks`, `get_connector`
-- Cross-IDE usage counter (same 1000 calls/mo counts across all your editors)
-- Unified feedback history (surveys you complete in one client count everywhere)
+- No account or license key required — just point at the URL
+- A shared 100-call/month anti-abuse cap (not a paywall)
 - Live skill updates — no reinstall needed when we ship improvements
 
 ## 🔄 Mix and match
 
-Power users can install the plugin in Cowork/Claude Code Desktop AND point Cursor at the hosted MCP. Your license key travels:
+Power users can install the plugin in Cowork/Claude Code Desktop AND point Cursor at the hosted MCP. The 100-call/month anti-abuse cap applies no matter which client you're calling from:
 
 ```
 Monday:     /ccc-build in Claude Code Desktop   (uses 5 calls)
 Tuesday:    search_skills in Cursor              (uses 3 calls)
 Wednesday:  /ccc-review on mobile                 (uses 2 calls)
-Total month usage: 10/1000 calls — all synced
+Total month usage: 10/100 calls
 ```
 
 ## 📊 Feature matrix by client
 
 | Feature | Cowork Desktop | Code Desktop | Code CLI | Cursor/Windsurf/etc. |
 |---------|:-:|:-:|:-:|:-:|
-| 26 `/ccc-*` slash commands | ✅ | ✅ | ✅ | via agent prompt |
+| 84 `/ccc-*` plugin skills | ✅ | ✅ | ✅ | via agent prompt |
 | 22 specialist agents | ✅ | ✅ | ✅ | via `invoke_agent` tool |
-| Lifecycle hooks (9 events) | ✅ | ✅ | ✅ | ⚠️ MCP-only equivalents |
+| Lifecycle hooks (30 events) | ✅ | ✅ | ✅ | ⚠️ MCP-only equivalents |
 | MCP integrations | ✅ | ✅ | ✅ | host's own MCP support |
 | Airplane-mode (offline) | ✅ | ✅ | ✅ | ❌ requires MCP reachable |
 | Cross-IDE usage counter | via hybrid mode | via hybrid mode | via hybrid mode | ✅ native |

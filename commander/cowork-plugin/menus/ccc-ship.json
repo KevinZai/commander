@@ -3,7 +3,10 @@
   "title": "Ship",
   "subtitle": "Pre-flight checks → tag → push → deploy",
   "footer": "Every check is a clickable card. Green = go, yellow = caution, red = blocker. Fix reds before shipping.",
-  "shortcuts": ["/ccc", "/ccc-review"],
+  "shortcuts": [
+    "/ccc",
+    "/ccc-review"
+  ],
   "choices": [
     {
       "id": "preflight",
@@ -12,6 +15,13 @@
       "description": "Tests, lint, typecheck, secrets, airplane-mode. One click, full matrix.",
       "command": "/ccc-ship preflight",
       "recommended": true
+    },
+    {
+      "id": "codex-review",
+      "icon": "🔬",
+      "label": "Codex second opinion",
+      "description": "Independent review of uncommitted changes by Codex before you ship.",
+      "command": "/ccc-codex review"
     },
     {
       "id": "release",

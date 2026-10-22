@@ -1,158 +1,143 @@
 ---
 name: ccc-nightwatch
-description: "Remote YOLO control. Approve/deny tool use from your phone via Telegram/Discord while Claude runs overnight. Auto-classifies risk: reads auto-allow, rm/deploy ask human."
+description: "Remote permission relay for unattended runs: risk-classify each tool call, auto-allow reads, send risky calls to your phone via Telegram or Discord for a tap, hard-deny destructive ones. Use when the user wants to approve from phone, remote YOLO, or run overnight with a safety leash."
 allowed-tools:
   - Read
   - Bash
   - AskUserQuestion
 argument-hint: "[setup | status | test]"
+model: sonnet
+effort: medium
+disable-model-invocation: true
 ---
 
-# /ccc-nightwatch — Remote YOLO Control
+# $ccc-nightwatch — remote permission relay
 
-Run Claude Code autonomously overnight. Approve or deny tool use from your phone via Telegram or Discord. A PreToolUse hook intercepts every tool call, classifies it by risk, and either auto-allows, asks you, or hard-blocks — no sitting at the terminal required.
+**CC Commander** · $ccc-nightwatch · approve or deny an unattended session's risky tool calls from your phone, with destructive calls blocked outright.
 
-## What it does
+A permission hook intercepts tool calls during an unattended run (`$ccc-night-mode`, a `/loop`), scores each against the risk matrix, and either auto-allows it, asks you on Telegram or Discord, or hard-blocks it. Your tap routes back into the session and Claude continues. Full design (hook placement, diagram, examples, limits): [references/relay-design.md](references/relay-design.md).
 
-Nightwatch installs a PreToolUse permission hook that intercepts tool calls during `/ccc night` (YOLO mode). Each call is scored against the risk matrix. Low-risk ops (reads, searches) proceed silently. Medium-risk ops (file writes, installs) send a phone notification and wait for your tap. High-risk ops (destructive commands, force pushes) are hard-blocked and alert you immediately. Your response routes back into the session within 2–5 seconds, and Claude continues.
+## When to use / when not to
 
-## Triggers
+- Use for long unattended runs where some writes need a human yes but nobody is at the terminal.
+- Do not use for short interactive sessions (under about 30 minutes) or single-file fixes; watch the terminal instead.
+- Do not use for ideation work; Nightwatch is for execution.
+- For outbound status (what shipped) rather than inbound approvals, use `$ccc-broadcast`.
 
-- `/ccc-nightwatch`
-- "I want to run Claude Code overnight"
-- "approve from phone"
-- "remote YOLO"
-- "autonomous with safety leash"
-- "let it run, I'll check from my phone"
+## Risk matrix
 
-## Risk Classification Matrix
+| Risk | Examples | Action |
+|---|---|---|
+| 🟢 Auto-allow | Read, Glob, Grep, LS, `cat`, `git status`, `git log` | Proceed silently; logged |
+| 🟡 Ask human | Edit, Write, package installs, `git commit`, `git push` to a non-main branch | Phone notification, wait for the tap, resume |
+| 🔴 Always-deny | `rm -rf`, `git push --force` to main, `DROP TABLE`, secret-exfiltration patterns | Hard block and immediate alert |
 
-| Risk Level | Examples | Action |
-|-----------|----------|--------|
-| 🟢 Auto-allow | Read, Glob, Grep, LS, cat, git status, git log | Proceed silently — logged |
-| 🟡 Ask human | Edit, Write, Bash (npm/yarn/pnpm install), git commit, git push (non-main) | Push phone notify → await tap → resume |
-| 🔴 Always-deny | rm -rf, git push --force to main, DROP TABLE, secret exfil patterns | Hard block + immediate alert |
+Unclassified tools default to 🟡. No answer before the timeout counts as deny.
 
-Unclassified tools default to 🟡 Ask human.
+## What happens
 
-## Architecture
+### 1. Check what this build ships
 
-```
-Claude Code (YOLO mode)
-       |
-  [PreToolUse hook]  ← hooks/nightwatch-relay.js
-       |
-  [Risk Classifier]
-       |
-  ┌────┴────────────────────┐
-  |                          |
-🟢 Auto-allow            🟡 Ask human          🔴 Always-deny
-  |                          |                       |
-proceed silently     [Notifier]               block + alert
-  |                   /     \
-  |            Telegram    Discord
-  |              bot        webhook
-  |                \       /
-  |            user taps ✅/❌
-  |                   |
-  └──────────────[Resume session]
-                      |
-               tool call proceeds
-               (or blocked on ❌)
-```
-
-## Setup
-
-### Step 1 — Choose your channel
-
-Run `/ccc-nightwatch` and pick your channel:
-
-```
-AskUserQuestion:
-  question: "Which phone channel?"
-  options:
-    - Telegram bot (recommended — instant, private)
-    - Discord webhook (easier setup)
-    - Skip (log-only mode — no phone, just audit trail)
-```
-
-### Step 2a — Telegram setup
+`status` runs this step and stops.
 
 ```bash
-# 1. Create bot via @BotFather on Telegram → get token
-# 2. Set env var
-export CCC_NIGHTWATCH_TG_TOKEN="7123456789:AABBcc..."
-export CCC_NIGHTWATCH_TG_CHAT_ID="123456789"   # your personal chat ID
+test -f "${CLAUDE_PLUGIN_ROOT}/hooks/nightwatch-relay.js" && echo "relay: bundled" || echo "relay: not bundled"
+grep -l nightwatch "${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json" ~/.claude/settings.json .claude/settings.json 2>/dev/null || echo "relay: not registered"
+env | grep -c '^CCC_NIGHTWATCH_' || true
+```
 
-# 3. Test it
+The last line counts configured variables without printing their values. Report exactly what was found. If the relay hook is not bundled or not registered, say so plainly: channel setup and testing below still work, but tool calls will not be relayed. Offer the safe alternatives: run in auto permission mode (the interactive default, which denies risky calls on its own and logs them through the plugin's PermissionDenied logger), or drive the session from a phone with Claude Code's Remote Control. Never claim a relay is active without this check passing.
+
+### 2. Choose the channel
+
+Ask with AskUserQuestion (Codex: plain-text question):
+
+```
+question: "Which phone channel should approvals use?"
+header: "Channel"
+options:
+  - label: "🟢 Telegram bot"
+    description: "Instant and private. Needs a bot token from @BotFather (a few minutes, once)."
+  - label: "Discord webhook"
+    description: "Easier setup. Webhook-only mode approves by reaction; inline buttons need a bot."
+  - label: "Log-only"
+    description: "No phone. Every decision is written to the audit log for the morning."
+```
+
+### 3a. Telegram setup
+
+The user creates a bot with @BotFather, then sets the variables in their shell profile or secret manager. Never paste a token into the chat and never echo it.
+
+```bash
+export CCC_NIGHTWATCH_TG_TOKEN="<bot token from BotFather>"
+export CCC_NIGHTWATCH_TG_CHAT_ID="<your chat id>"
+```
+
+To find the chat id, the user sends their bot one message, then:
+
+```bash
+curl -s "https://api.telegram.org/bot$CCC_NIGHTWATCH_TG_TOKEN/getUpdates" | grep -o '"chat":{"id":-\{0,1\}[0-9]*' | head -1
+```
+
+Test (`setup` and `test` both run this):
+
+```bash
 curl -s "https://api.telegram.org/bot$CCC_NIGHTWATCH_TG_TOKEN/sendMessage" \
-  -d "chat_id=$CCC_NIGHTWATCH_TG_CHAT_ID&text=Nightwatch+online+✅"
+  -d "chat_id=$CCC_NIGHTWATCH_TG_CHAT_ID" -d "text=Nightwatch online ✅" | grep -o '"ok":[a-z]*'
 ```
 
-Get your chat ID: message @userinfobot on Telegram.
+Expect `"ok":true`. On `"ok":false`, check the token and that the user messaged the bot first.
 
-### Step 2b — Discord setup
+### 3b. Discord setup
+
+Server Settings → Integrations → Webhooks → New Webhook → Copy URL, then in the shell profile:
 
 ```bash
-# 1. Server Settings → Integrations → Webhooks → New Webhook → Copy URL
-export CCC_NIGHTWATCH_DISCORD_URL="https://discord.com/api/webhooks/..."
-
-# 2. Test it
-curl -s -X POST "$CCC_NIGHTWATCH_DISCORD_URL" \
-  -H "Content-Type: application/json" \
-  -d '{"content":"Nightwatch online ✅"}'
+export CCC_NIGHTWATCH_DISCORD_URL="<webhook url>"
 ```
 
-### Step 3 — Register the PreToolUse hook
-
-Nightwatch registers its hook automatically on first run. Verify:
+Test:
 
 ```bash
-cat ~/.claude/settings.json | grep nightwatch
-# → "hooks/nightwatch-relay.js"
+curl -s -o /dev/null -w "%{http_code}\n" -X POST "$CCC_NIGHTWATCH_DISCORD_URL" \
+  -H "Content-Type: application/json" -d '{"content":"Nightwatch online ✅"}'
 ```
 
-Then launch autonomous mode:
+Expect `204`. Any other code: re-copy the webhook URL.
 
-```bash
-/ccc night   # activates YOLO + Nightwatch relay
-```
+Sending a test message posts to the user's channel; run it only after they picked that channel in step 2.
 
-## Concrete Examples
+### 4. Launch the unattended run
 
-**Example 1 — Long refactor, 12 npm installs**
-You kick off a dependency upgrade at 11pm. Nightwatch auto-allows all `Read` and `Glob` calls (silent). 12 `npm install` calls → 12 Telegram taps (all 🟡). 3 `git commit` calls → 3 taps. You approve from bed, Claude finishes by 2am.
+With the channel tested and step 1 showing the relay registered, start the run with `$ccc-night-mode` (or a `/loop` via `$ccc-loop`). Keep the session in auto permission mode; Nightwatch does not need and never sets `bypassPermissions`.
 
-**Example 2 — Overnight CI fix loop**
-Tests fail. Claude fixes, commits, pushes to a feature branch (🟡 — you approve), CI re-runs. Nightwatch blocks any attempt to `git push --force` to `main` (🔴 — hard deny + alert). By morning, CI is green on the feature branch waiting for your PR merge.
+## Privacy
 
-**Example 3 — Mid-stream AskUserQuestion relay**
-Claude hits an ambiguous decision mid-codebase migration and calls `AskUserQuestion`. Nightwatch intercepts, formats the question + options as a Telegram message with inline buttons. You tap your choice. Claude resumes with your answer — no terminal required.
+Relayed messages carry the tool name and an argument summary only: no file contents, secret values or code. Example: `Write file: src/auth/login.ts (42 lines) — allow?`.
 
-## Tools Used
+## Done when
 
-- `Read` — inspect hook config and env vars
-- `Bash` — send curl webhooks, verify token setup, test channel connectivity
-- `AskUserQuestion` — channel picker and setup confirmation
+- Step 1's status lines are reported verbatim (bundled / registered / variable count).
+- The chosen channel's test returned `"ok":true` (Telegram) or `204` (Discord), or log-only was chosen.
+- The user knows whether tool calls will actually be relayed, and where the audit trail is: `~/.claude/commander/nightwatch.log` and `~/.claude/commander/analytics/permission-gate.jsonl`.
 
-## Privacy Note
+## Guardrails
 
-Message content is scrubbed before relay. Nightwatch sends **tool name + argument summary only** — no file contents, no secret values, no code snippets. Example relay: `"Write file: src/auth/login.ts (42 lines) — allow?"` not the file content.
+- Never print, log or commit a token or webhook URL; check them by count or by test result only.
+- Never claim the relay is intercepting calls unless step 1 found it bundled and registered.
+- Never set `bypassPermissions`; that needs explicit consent through `$ccc-yolo-setup`.
+- Never relay file contents, diffs or secrets to a phone channel.
+- Timeouts and unreachable channels deny; they never allow.
 
-## When NOT to Use
+## See also
 
-- Short interactive sessions (< 30 min) — just watch the terminal
-- Quick single-file fixes — YOLO mode overhead not worth it
-- Sessions where you need continuous creative input — Nightwatch is for execution, not ideation
-
-## Limitations
-
-- Requires phone connectivity at relay time (offline = auto-deny on timeout)
-- Approval latency: 2–5s per 🟡 call (network round-trip)
-- Telegram bot requires a token registered with @BotFather — 2 min one-time setup
-- Discord inline buttons (✅/❌) require a bot with interactions enabled; webhook-only mode falls back to reaction-based approval
-- Not a substitute for reviewing the session log after — always audit `~/.claude/commander/nightwatch.log`
+- `$ccc-night-mode` — the overnight build Nightwatch guards.
+- `$ccc-yolo-setup` — permission mode and safe allowlists.
+- `$ccc-safety` — review permission decisions after the run.
+- `$ccc-broadcast` — outbound status to a team channel.
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

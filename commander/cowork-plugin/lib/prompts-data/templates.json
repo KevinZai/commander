@@ -1,0 +1,660 @@
+{
+  "source": "prompts/ (repo template tree)",
+  "compiledAt": "2026-07-22T05:04:18.502Z",
+  "attribution": "CC Commander prompt templates",
+  "entries": [
+    {
+      "id": "api-design",
+      "category": "coding",
+      "title": "API Design",
+      "whenToUse": "When designing new REST or GraphQL API endpoints from scratch. Use this before writing any implementation code to ensure the contract is solid.",
+      "prompt": "Design the API for the following feature. Define the contract first — implementation comes after approval.\n\n**Feature:**\n{{what_the_feature_does}}\n\n**API style:**\n{{REST|GraphQL|both}}\n\n**Auth model:**\n{{JWT|API key|OAuth|session — or describe your auth setup}}\n\n**Consumers:**\n{{who_calls_this — web app, mobile app, third-party, internal service}}\n\n**Step 1: Resource modeling**\n- Identify the core resources (nouns) involved\n- Define relationships between resources (1:1, 1:N, N:N)\n- Determine which fields are required vs optional\n- Establish naming conventions (camelCase, snake_case)\n\n**Step 2: Endpoint design**\nFor each endpoint, specify:\n- **Method + Path:** `POST /api/v1/{{resource}}`\n- **Request body:** JSON schema with types and validation rules\n- **Response body:** JSON schema with envelope format\n- **Status codes:** all possible codes (200, 201, 400, 401, 403, 404, 409, 422, 500)\n- **Auth:** required role/scope\n- **Rate limit:** requests per window\n\n**Step 3: Validation rules**\n- Input validation schema (Zod, JSON Schema, or equivalent)\n- Business rule validation (e.g., \"cannot delete if has active subscriptions\")\n- Error response format (consistent across all endpoints)\n\n**Step 4: Edge cases**\n- Pagination strategy (cursor vs offset)\n- Filtering and sorting parameters\n- Bulk operations (if applicable)\n- Idempotency (for POST/PUT — idempotency keys?)\n- Versioning strategy\n\n**Step 5: Output**\nWrite the API spec as:\n1. A markdown table of all endpoints\n2. TypeScript request/response types\n3. Example curl commands for each endpoint\n4. Zod validation schemas (if TypeScript project)",
+      "tips": [
+        "Use the `api-design` skill for automated API pattern validation",
+        "Always version your API from day one (`/api/v1/`) even if you think you won't need it",
+        "Design the error responses as carefully as the success responses"
+      ],
+      "skills": [
+        "api-design",
+        "backend-patterns",
+        "schema-design"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "code-review",
+      "category": "coding",
+      "title": "Code Review",
+      "whenToUse": "When you need a thorough review of code changes before committing or merging. Best used after completing a feature or fix, before the PR stage.",
+      "prompt": "Review the following code changes with senior engineer standards. Use Glob and Read to examine the files, then provide findings organized by severity.\n\n**Files to review:**\n{{file_paths_or_glob_pattern}}\n\n**Context:**\n{{what_the_code_does_and_why_it_was_changed}}\n\n**Review checklist:**\n1. **Correctness** — Does the logic do what it claims? Edge cases?\n2. **Security** — Input validation, injection, auth gaps, secret exposure\n3. **Performance** — O(n) analysis, unnecessary re-renders, N+1 queries\n4. **Immutability** — Any mutations of existing objects/arrays?\n5. **Error handling** — Are errors caught at boundaries? User-friendly messages?\n6. **Types** — TypeScript strictness, `any` usage, missing generics\n7. **Tests** — Coverage gaps, missing edge case tests\n8. **Naming** — Are functions/variables self-documenting?\n9. **File size** — Any files exceeding 400 lines that should be split?\n\nFor each finding, output:\n- **Severity:** CRITICAL / HIGH / MEDIUM / LOW\n- **File:Line:** exact location\n- **Issue:** what's wrong\n- **Fix:** concrete code suggestion\n\nAfter the review, run `npx tsc --noEmit` to catch type errors I may have missed.",
+      "tips": [
+        "Pair with the `code-review` skill for automated multi-perspective analysis",
+        "For large changesets, use `git diff --stat` first to prioritize high-risk files",
+        "Spawn a subagent for security-specific review using the `security-audit` skill"
+      ],
+      "skills": [
+        "code-review",
+        "security-audit",
+        "quality-gate"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "debug-systematic",
+      "category": "coding",
+      "title": "Systematic Debugging",
+      "whenToUse": "When you hit a bug that isn't immediately obvious. This template enforces a structured approach: reproduce, isolate, identify root cause, fix, and verify.",
+      "prompt": "Debug this issue systematically. Do NOT guess-and-check. Follow this exact sequence:\n\n**Symptom:**\n{{what_is_happening_vs_what_should_happen}}\n\n**Reproduction steps:**\n{{steps_to_reproduce_or_say_unknown}}\n\n**Relevant files:**\n{{file_paths_or_say_unknown}}\n\n**Step 1: Reproduce**\n- If reproduction steps are unknown, use Grep and Glob to find relevant code\n- Read the code paths involved and trace the data flow\n- Create a minimal reproduction (test file or script)\n\n**Step 2: Isolate**\n- Binary search the problem space: which layer is broken?\n- Check inputs/outputs at each boundary (API → service → DB)\n- Use Bash to run targeted tests: `npx vitest run {{test_file}} --reporter=verbose`\n\n**Step 3: Root cause**\n- Identify the EXACT line(s) where behavior diverges from expectation\n- Explain WHY it's broken, not just WHERE\n\n**Step 4: Fix**\n- Write a failing test FIRST that captures the bug\n- Implement the minimal fix (no drive-by refactors)\n- Run the test — confirm it passes\n\n**Step 5: Sweep**\n- Use Grep to find similar patterns elsewhere in the codebase\n- If the same bug class exists elsewhere, fix those too\n\n**Step 6: Verify**\n- Run the full test suite: `npx vitest run`\n- Run type check: `npx tsc --noEmit`\n- Confirm no regressions",
+      "tips": [
+        "Resist the urge to start editing immediately — reading and tracing comes first",
+        "The `investigate` skill automates step 1-2 with multi-file tracing",
+        "Always write the reproduction test before the fix — it proves the fix works"
+      ],
+      "skills": [
+        "systematic-debugging",
+        "investigate",
+        "tdd-workflow"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "documentation",
+      "category": "coding",
+      "title": "Auto-Generate Documentation",
+      "whenToUse": "When code exists but documentation is missing or outdated. This template generates docs from the actual code, not from assumptions.",
+      "prompt": "Generate documentation for the following code by reading the source. Do NOT hallucinate APIs — only document what exists.\n\n**Target:**\n{{file_paths_or_module_to_document}}\n\n**Doc format:**\n{{JSDoc inline|README|API reference markdown|all of the above}}\n\n**Step 1: Inventory**\n- Use Glob to find all files in the target: `{{glob_pattern}}`\n- Read each file with the Read tool\n- Build a list of all exports: functions, classes, types, constants\n- Note which are public API vs internal implementation\n\n**Step 2: Generate docs**\nFor each public export:\n- **Description:** one sentence explaining what it does\n- **Parameters:** name, type, description, required/optional, default value\n- **Return value:** type and description\n- **Throws:** what errors can be thrown and when\n- **Example:** minimal usage example (must be valid code)\n\n**Step 3: Write docs**\n- If JSDoc: add inline comments directly above each export using the Edit tool\n- If README: write a module README.md with the full API reference\n- If API reference: generate a structured markdown doc\n\n**Step 4: Verify**\n- Run `npx tsc --noEmit` to ensure JSDoc additions didn't break types\n- Ensure every public export has documentation\n- Ensure no documentation references non-existent functions or parameters",
+      "tips": [
+        "Use the `update-docs` skill to keep docs in sync with code changes over time",
+        "JSDoc inline is the most maintainable — it lives next to the code it documents",
+        "For large modules, generate a table of contents at the top of the doc"
+      ],
+      "skills": [
+        "update-docs",
+        "docs"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "optimize-performance",
+      "category": "coding",
+      "title": "Performance Optimization",
+      "whenToUse": "When you have a measurable performance problem — slow page loads, high memory usage, laggy interactions, slow API responses. Do NOT optimize prematurely; use this when you have evidence of a problem.",
+      "prompt": "Analyze and optimize the performance of the following code. Every optimization must be measured — no speculative changes.\n\n**Problem area:**\n{{file_paths_or_description}}\n\n**Symptom:**\n{{what_is_slow — e.g., API response takes 3s, page load is 8s, memory grows to 2GB}}\n\n**Target:**\n{{desired_performance — e.g., API response under 200ms, page load under 2s}}\n\n**Phase 1: Profile**\n- Read the relevant code paths with the Read tool\n- Identify the hot path (the code that runs for every request/render/operation)\n- Look for these common patterns with Grep:\n  - N+1 queries: loops containing DB/API calls\n  - Unnecessary re-computation: missing memoization\n  - Large payloads: over-fetching data\n  - Synchronous blocking: heavy computation on main thread\n  - Memory leaks: growing arrays, unclosed listeners, circular references\n\n**Phase 2: Measure baseline**\n- If backend: add timing instrumentation or use `console.time`/`console.timeEnd`\n- If frontend: check bundle size with `npx next build` or equivalent\n- If DB: run `EXPLAIN ANALYZE` on slow queries\n- Record exact numbers — these are the baseline\n\n**Phase 3: Identify top 3 bottlenecks**\n- Rank by impact (biggest time savings first)\n- For each: explain WHY it's slow and WHAT the fix is\n- Estimate the expected improvement for each fix\n\n**Phase 4: Optimize (one at a time)**\n- Implement fix #1 → measure → record improvement\n- Implement fix #2 → measure → record improvement\n- Implement fix #3 → measure → record improvement\n- After each fix, run the test suite to verify no regressions\n\n**Phase 5: Report**\nPresent a table:\n| Optimization | Before | After | Improvement |\n|---|---|---|---|\n| Fix 1 | Xms | Yms | Z% |\n| Fix 2 | Xms | Yms | Z% |\n| Fix 3 | Xms | Yms | Z% |\n| **Total** | **Xms** | **Yms** | **Z%** |",
+      "tips": [
+        "Use the `benchmark` skill to set up automated performance measurement",
+        "The `optimize` skill handles common optimization patterns automatically",
+        "Profile before you optimize — intuition about bottlenecks is often wrong"
+      ],
+      "skills": [
+        "optimize",
+        "benchmark",
+        "systematic-debugging"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "refactor-safe",
+      "category": "coding",
+      "title": "Safe Refactoring",
+      "whenToUse": "When refactoring existing code that has (or should have) tests. This template ensures you preserve behavior while improving structure, with rollback safety at each step.",
+      "prompt": "Refactor the following code safely. Behavior must be preserved — this is a structural improvement, not a feature change.\n\n**Target:**\n{{file_paths_or_module_to_refactor}}\n\n**Goal:**\n{{what_structural_improvement — e.g., extract module, reduce complexity, remove duplication}}\n\n**Constraints:**\n- {{any_constraints — e.g., cannot change public API, must stay backward compatible}}\n\n**Phase 1: Baseline**\n- Read all target files with the Read tool\n- Run existing tests: `npx vitest run {{relevant_test_pattern}}`\n- Run type check: `npx tsc --noEmit`\n- Record pass/fail counts as the baseline\n\n**Phase 2: Plan**\n- List every change you intend to make BEFORE making any edits\n- For each change, state: what moves where, what gets renamed, what gets extracted\n- Identify risk points where behavior could accidentally change\n- Create a git checkpoint: `git stash` or `git commit -m \"chore: pre-refactor checkpoint\"`\n\n**Phase 3: Execute (incremental)**\n- Make ONE structural change at a time\n- After each change, run tests and type check\n- If any test breaks, STOP and revert that single change — do not push forward\n- Use the Edit tool for surgical changes (not Write for full rewrites)\n\n**Phase 4: Verify**\n- All original tests pass (same count as baseline)\n- No new TypeScript errors\n- No files exceed 400 lines\n- No functions exceed 50 lines\n- Run `npx vitest run --coverage` — coverage must not decrease\n\n**Phase 5: Cleanup**\n- Remove any dead imports or unused code introduced by the refactor\n- Verify the git diff tells a clean story (reviewable in one pass)",
+      "tips": [
+        "Use the `refactor-clean` skill to automate dead code detection after refactoring",
+        "If tests don't exist yet, write characterization tests first (use `test-generation` template)",
+        "Prefer many small commits over one monolithic refactor commit"
+      ],
+      "skills": [
+        "refactor-clean",
+        "code-review",
+        "tdd-workflow"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "schema-design",
+      "category": "coding",
+      "title": "Database Schema Design",
+      "whenToUse": "When designing a new database schema or extending an existing one. Use this before writing any migration code to get the structure right.",
+      "prompt": "Design the database schema for the following feature. Optimize for the actual query patterns, not theoretical normalization.\n\n**Feature:**\n{{what_the_feature_stores_and_retrieves}}\n\n**Database:**\n{{PostgreSQL|MySQL|SQLite|MongoDB — or say \"recommend one\"}}\n\n**ORM/Query builder:**\n{{Drizzle|Prisma|Knex|TypeORM|raw SQL — or say \"recommend one\"}}\n\n**Expected scale:**\n{{rough_numbers — rows, reads_per_second, writes_per_second}}\n\n**Step 1: Entity identification**\n- List all entities (tables/collections) needed\n- Define the primary key strategy (UUID, auto-increment, CUID)\n- Map relationships: 1:1, 1:N, N:N (with junction tables)\n- Identify which fields need timestamps (created_at, updated_at, deleted_at)\n\n**Step 2: Column design**\nFor each table:\n- Column name, type, nullable, default, constraints\n- Which columns are indexed (and why — what query does this index serve?)\n- Foreign key constraints with ON DELETE behavior (CASCADE, SET NULL, RESTRICT)\n- Check constraints for data integrity\n\n**Step 3: Query pattern analysis**\n- List the top 5 most frequent queries this schema will serve\n- For each: which tables are joined? Which columns are in WHERE/ORDER BY?\n- Design indexes to support these queries\n- Identify potential N+1 query risks\n\n**Step 4: Migration plan**\n- If extending existing schema: what's the migration sequence?\n- Can migrations run with zero downtime? (no table locks on large tables)\n- Rollback strategy for each migration step\n- Data backfill needed?\n\n**Step 5: Output**\n- SQL CREATE TABLE statements (or ORM schema definition)\n- Migration file(s) in the project's migration format\n- Seed data for development/testing\n- TypeScript types that mirror the schema",
+      "tips": [
+        "Use the `database-designer` skill for automated schema analysis",
+        "Always add soft delete (deleted_at) unless you have a strong reason not to",
+        "Design for your read patterns, not your write patterns — reads dominate"
+      ],
+      "skills": [
+        "database-designer",
+        "database-migrations",
+        "backend-patterns"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "security-audit",
+      "category": "coding",
+      "title": "Security Audit",
+      "whenToUse": "When you need to scan a codebase for security vulnerabilities before a release, after adding auth features, or as a periodic security review. This is a code-level audit, not infrastructure.",
+      "prompt": "Perform a security audit of this codebase. Find vulnerabilities, not style issues. Every finding must include a concrete exploit scenario and fix.\n\n**Scope:**\n{{file_paths_or_glob_pattern_or_entire_project}}\n\n**Stack:**\n{{e.g., Next.js + Prisma + PostgreSQL, or Express + MongoDB}}\n\n**Auth system:**\n{{describe_auth — JWT, sessions, OAuth, API keys}}\n\n**Check 1: Authentication & Authorization**\n- Use Grep to find all route handlers / API endpoints\n- Verify every endpoint checks authentication\n- Verify authorization (role checks) on mutation endpoints\n- Check for privilege escalation (can user A access user B's data?)\n- Review token handling (storage, expiry, rotation, invalidation)\n\n**Check 2: Injection**\n- SQL injection: search for string concatenation in queries (not parameterized)\n- XSS: search for `dangerouslySetInnerHTML`, unescaped user content in templates\n- Command injection: search for `exec`, `spawn`, `eval` with user input\n- Path traversal: search for file operations with user-controlled paths\n\n**Check 3: Data Exposure**\n- Use Grep to find all API response serialization — are sensitive fields filtered?\n- Check error messages for stack traces, DB schemas, internal paths\n- Search for hardcoded secrets: API keys, passwords, tokens in source code\n- Check `.env.example` — does it accidentally contain real values?\n- Verify `.gitignore` covers all secret files\n\n**Check 4: Input Validation**\n- Find all request body parsers — is input validated before use?\n- Check file upload handling (size limits, type validation, storage location)\n- Verify rate limiting on auth endpoints (login, register, password reset)\n- Check for mass assignment (accepting arbitrary fields from request body)\n\n**Check 5: Dependencies**\n- Run `npm audit` or equivalent\n- Check for known vulnerable package versions\n- Review dependency count — minimize attack surface\n\n**Check 6: Configuration**\n- CORS configuration — is it overly permissive (`*`)?\n- Cookie settings — HttpOnly, Secure, SameSite flags\n- HTTPS enforcement\n- Security headers (CSP, HSTS, X-Frame-Options)\n\n**Output format:**\nFor each finding:\n| Field | Value |\n|---|---|\n| **Severity** | CRITICAL / HIGH / MEDIUM / LOW |\n| **Category** | Auth / Injection / Exposure / Validation / Config |\n| **Location** | file:line |\n| **Exploit scenario** | How an attacker would use this |\n| **Fix** | Specific code change |",
+      "tips": [
+        "Use the `harden` skill to auto-fix common security issues after the audit",
+        "The `pentest-checklist` skill provides a structured penetration testing workflow",
+        "Run this audit before every major release, not just once"
+      ],
+      "skills": [
+        "harden",
+        "pentest-checklist",
+        "guard"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "test-generation",
+      "category": "coding",
+      "title": "Test Generation",
+      "whenToUse": "When you have existing code that lacks test coverage and you need to backfill tests. Also useful before refactoring to establish a behavioral baseline.",
+      "prompt": "Generate comprehensive tests for the following code. Use the project's existing test framework and patterns.\n\n**Files to test:**\n{{file_paths}}\n\n**Test framework:**\n{{vitest|jest|playwright|other — or say \"detect from package.json\"}}\n\n**Step 1: Analyze**\n- Read the target files with the Read tool\n- Use Glob to find existing test files: `**/*.test.ts`, `**/*.spec.ts`\n- Read 2-3 existing test files to match the project's testing style and conventions\n- Identify all public functions, classes, and exports that need coverage\n\n**Step 2: Categorize test cases**\nFor each function/method, identify:\n- **Happy path** — normal expected inputs and outputs\n- **Edge cases** — empty inputs, boundary values, null/undefined\n- **Error cases** — invalid inputs, thrown errors, rejected promises\n- **Integration points** — where this code calls other modules (mock boundaries)\n\n**Step 3: Write tests**\n- Follow the project's existing patterns (describe/it nesting, naming conventions)\n- Use descriptive test names that read like specifications: `it(\"returns empty array when no items match filter\")`\n- Mock external dependencies (DB, API calls, file system) — never mock the unit under test\n- Test behavior, not implementation details\n- One assertion per test when possible\n\n**Step 4: Verify**\n- Run the new tests: `npx vitest run {{test_file}}`\n- All tests should PASS (these are characterization tests of existing behavior)\n- Run coverage: `npx vitest run --coverage` — report the delta\n- If any test fails, the test is wrong (the code is the source of truth for characterization tests)",
+      "tips": [
+        "For coverage targets, check the project's CLAUDE.md — many mandate 80%+",
+        "Use the `test-coverage` skill to identify the biggest coverage gaps before writing tests",
+        "Write tests in the same directory as the source file unless the project convention differs"
+      ],
+      "skills": [
+        "tdd-workflow",
+        "test-coverage",
+        "e2e-testing"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "typescript-strict",
+      "category": "coding",
+      "title": "TypeScript Strict Mode Migration",
+      "whenToUse": "When migrating an existing TypeScript project to strict mode, or tightening a loosely typed codebase. This is a multi-session effort for large projects — this template handles incremental migration.",
+      "prompt": "Migrate this project to TypeScript strict mode incrementally. Zero runtime behavior changes — types only.\n\n**Project root:**\n{{project_root_path}}\n\n**Current tsconfig strict settings:**\n{{paste_current_strict_flags_or_say_unknown}}\n\n**Phase 1: Assess**\n- Read `tsconfig.json` with the Read tool\n- Run `npx tsc --noEmit 2>&1 | wc -l` to count current errors\n- Run `npx tsc --noEmit --strict 2>&1 | head -100` to preview strict mode errors\n- Use Grep to count `any` usage: search for `: any` and `as any` across the codebase\n- Categorize errors by type:\n  - `strictNullChecks` violations (null/undefined not handled)\n  - `noImplicitAny` violations (missing type annotations)\n  - `strictPropertyInitialization` violations (class properties)\n  - `strictFunctionTypes` violations (callback variance)\n\n**Phase 2: Plan migration order**\nEnable flags incrementally (each should result in a passing build before the next):\n1. `noImplicitReturns` (easiest, usually few errors)\n2. `noFallthroughCasesInSwitch`\n3. `noImplicitAny` (medium effort)\n4. `strictNullChecks` (highest effort, most impactful)\n5. `strictFunctionTypes`\n6. `strictPropertyInitialization`\n7. `strictBindCallApply`\n8. Finally: `\"strict\": true` (enables all at once)\n\n**Phase 3: Execute per-flag**\nFor each flag:\n1. Enable the flag in tsconfig.json\n2. Run `npx tsc --noEmit` to see all new errors\n3. Fix errors file-by-file using the Edit tool\n4. Prefer narrowing (type guards, nullish coalescing) over `as` casts\n5. NEVER add `// @ts-ignore` or `as any` to suppress errors\n6. Run tests after each file to verify no runtime changes\n7. Commit: `git commit -m \"chore: enable {{flag}} strict check\"`\n\n**Phase 4: Cleanup**\n- Use Grep to find remaining `as any` — each one needs justification or replacement\n- Find remaining `// @ts-expect-error` — document why each is necessary\n- Run full test suite: `npx vitest run`\n- Run `npx tsc --noEmit` — must be zero errors\n\n**Phase 5: Lock it down**\n- Ensure `\"strict\": true` is in tsconfig.json\n- Add `npx tsc --noEmit` to the CI pipeline / pre-commit hook",
+      "tips": [
+        "For large codebases (500+ errors), migrate one directory at a time using `tsconfig` path includes",
+        "The `quality-gate` skill can enforce zero type errors as a gate before commits",
+        "Track progress with a simple count: errors remaining per flag"
+      ],
+      "skills": [
+        "coding-standards",
+        "refactor-clean",
+        "quality-gate"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "animation-polish",
+      "category": "design",
+      "title": "Animation Polish",
+      "whenToUse": "When a feature is functionally complete but feels flat. This template adds micro-interactions, transitions, and motion design that make the UI feel polished and responsive.",
+      "prompt": "Add animation polish to the following UI. The goal is subtle, purposeful motion — not decoration. Every animation must serve a UX purpose.\n\n**Target:**\n{{file_paths_or_component_names}}\n\n**Animation library:**\n{{Framer Motion|CSS transitions|GSAP|none yet — recommend one}}\n\n**UX principles for motion:**\n- **Feedback** — user actions should have immediate visual response\n- **Orientation** — motion shows where things come from and go to\n- **Focus** — animation draws attention to what matters\n- **Continuity** — transitions connect related states smoothly\n\n**Step 1: Audit current interactions**\nRead the target files and identify every user interaction point:\n- Page/route transitions\n- Component mount/unmount\n- Button clicks and form submissions\n- Data loading states\n- Error/success states\n- Hover and focus states\n- Scroll-triggered reveals\n- List item additions/removals\n\n**Step 2: Design motion**\nFor each interaction, define:\n| Interaction | Animation | Duration | Easing | Purpose |\n|---|---|---|---|---|\n| Page enter | Fade + slide up | 300ms | ease-out | Orientation |\n| Button click | Scale 0.97 → 1.0 | 150ms | ease-in-out | Feedback |\n| List item add | Slide in + fade | 200ms | ease-out | Continuity |\n| ... | ... | ... | ... | ... |\n\n**Step 3: Implement**\n- Add animations using the Edit tool (surgical additions, not rewrites)\n- Keep durations under 400ms (anything longer feels sluggish)\n- Use `ease-out` for entrances, `ease-in` for exits\n- Respect `prefers-reduced-motion` — wrap animations in a media query check\n- Stagger list animations (50ms delay between items)\n\n**Step 4: Verify**\n- Test with `prefers-reduced-motion: reduce` — should degrade gracefully\n- Verify animations don't cause layout shift (CLS)\n- Check performance — no janky animations (should run at 60fps)\n- Test on mobile — animations should be simpler/faster on mobile",
+      "tips": [
+        "Use the `animate` skill for common animation patterns (fade, slide, scale, stagger)",
+        "The `delight` skill focuses specifically on micro-interactions that spark joy",
+        "Less is more — if in doubt, make the animation shorter and subtler"
+      ],
+      "skills": [
+        "animate",
+        "motion-design",
+        "delight"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "component-design",
+      "category": "design",
+      "title": "Component Design",
+      "whenToUse": "When building a reusable UI component that needs to handle multiple variants, states, and accessibility requirements. Use this for anything beyond a trivial one-off element.",
+      "prompt": "Design and implement a reusable {{component_name}} component with proper variants, states, and accessibility.\n\n**Component:**\n{{component_name}} — {{what_it_does}}\n\n**Framework:**\n{{React|Vue|Svelte — or detect from project}}\n\n**Styling:**\n{{Tailwind|CSS Modules|styled-components|shadcn/ui variant system}}\n\n**Step 1: API design**\nDefine the component's props interface before writing any JSX:\n- Required props (data the component cannot function without)\n- Optional props with sensible defaults\n- Variant props (size, color, style variations)\n- Event handler props (onClick, onChange, onSubmit)\n- Composition props (children, slots, render props)\n- Accessibility props (aria-label, role, id)\n\nOutput as a TypeScript interface.\n\n**Step 2: State analysis**\nEnumerate all visual states:\n- **Default** — resting state\n- **Hover** — mouse over\n- **Focus** — keyboard focus (visible focus ring)\n- **Active** — being clicked/pressed\n- **Disabled** — not interactive\n- **Loading** — async operation in progress\n- **Error** — validation or operation failed\n- **Empty** — no data to display\n\n**Step 3: Variants**\nDefine the variant matrix:\n| Variant | Values | Visual difference |\n|---|---|---|\n| Size | sm, md, lg | padding, font-size, icon-size |\n| Color | default, primary, destructive | background, text, border colors |\n| Style | solid, outline, ghost | fill vs border vs transparent |\n\n**Step 4: Implementation**\n- Build the component with all variants and states\n- Use `cva` (class-variance-authority) or equivalent for variant management\n- Implement keyboard navigation (Tab, Enter, Escape, Arrow keys as needed)\n- Add ARIA attributes for screen readers\n- Export TypeScript types alongside the component\n\n**Step 5: Verify**\n- Render every combination of variant x state\n- Test keyboard navigation\n- Check color contrast ratios (WCAG AA minimum)\n- Verify the component works in both light and dark mode\n- Write a Storybook story or visual test if the project uses them",
+      "tips": [
+        "Use the `shadcn-ui` skill to check if a similar component already exists in shadcn",
+        "The `frontend-patterns` skill provides compound component and composition patterns",
+        "Always start with the TypeScript interface — it forces you to think about the API before the visuals"
+      ],
+      "skills": [
+        "shadcn-ui",
+        "frontend-patterns",
+        "frontend-design"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "design-system",
+      "category": "design",
+      "title": "Design System Setup",
+      "whenToUse": "When starting a new project that needs consistent design, or when an existing project has inconsistent styling and needs a formal design system. This establishes tokens, components, and patterns from scratch.",
+      "prompt": "Set up a design system for this project. Define tokens, build primitives, and establish patterns that ensure visual consistency across the entire application.\n\n**Project:**\n{{project_path_or_description}}\n\n**Framework:**\n{{React + Tailwind|Vue + CSS|other}}\n\n**Existing brand:**\n{{brand_colors_and_fonts_if_any — or say \"create from scratch\"}}\n\n**Step 1: Design tokens**\nDefine the foundational values:\n\n**Colors:**\n- Primary (brand color + shades: 50-950)\n- Secondary (complementary + shades)\n- Neutral (gray scale for text, borders, backgrounds)\n- Semantic: success (green), warning (amber), error (red), info (blue)\n- Each color needs: foreground (text on that background) paired\n\n**Typography:**\n- Font families: heading, body, mono\n- Size scale: xs, sm, base, lg, xl, 2xl, 3xl, 4xl\n- Weight scale: normal (400), medium (500), semibold (600), bold (700)\n- Line height: tight (1.25), normal (1.5), relaxed (1.75)\n\n**Spacing:**\n- Scale: 0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24 (in 4px increments)\n- Use consistently for padding, margin, gap\n\n**Border radius:**\n- none, sm, md, lg, xl, full\n\n**Shadows:**\n- sm, md, lg, xl (for elevation hierarchy)\n\n**Step 2: Implement tokens**\n- If Tailwind: extend `tailwind.config.ts` with custom theme values\n- If CSS: create CSS custom properties in a `tokens.css` file\n- Create a `theme.ts` file that exports all tokens as typed constants\n- Support dark mode (define both light and dark token values)\n\n**Step 3: Primitive components**\nBuild the base components every project needs:\n1. **Button** — primary, secondary, outline, ghost, destructive + sizes\n2. **Input** — text, email, password, number + error state\n3. **Typography** — h1-h6, p, span, small, code\n4. **Card** — container with header, body, footer slots\n5. **Badge** — status indicators with semantic colors\n6. **Avatar** — image with fallback initials\n\nEach primitive should:\n- Accept a `className` prop for extension\n- Use `cva` or equivalent for variant management\n- Export TypeScript props interface\n- Include proper ARIA attributes\n\n**Step 4: Layout components**\n- **Container** — max-width wrapper with responsive padding\n- **Stack** — vertical spacing (gap control)\n- **Row** — horizontal layout with alignment options\n- **Grid** — responsive grid with column control\n\n**Step 5: Documentation**\nCreate a style guide page or Storybook that shows:\n- All color swatches (light + dark)\n- Typography scale\n- All component variants\n- Spacing examples",
+      "tips": [
+        "Use the `shadcn-ui` skill to bootstrap with shadcn's component library as a foundation",
+        "The `brand-guidelines` skill can generate a full brand guide from minimal input",
+        "Start with tokens + 3 primitives, then add components as needed — don't build a full library upfront"
+      ],
+      "skills": [
+        "shadcn-ui",
+        "brand-guidelines",
+        "frontend-patterns"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "landing-page",
+      "category": "design",
+      "title": "Landing Page Design",
+      "whenToUse": "When building a new landing page from scratch or redesigning an existing one. This template covers both design decisions and implementation, producing a working page.",
+      "prompt": "Design and build a landing page for the following product/feature. The page should convert visitors into {{desired_action}}.\n\n**Product:**\n{{what_the_product_does_in_one_sentence}}\n\n**Target audience:**\n{{who_visits_this_page — developers, marketers, founders, etc.}}\n\n**Desired action:**\n{{CTA — sign up, download, book demo, join waitlist}}\n\n**Tone:**\n{{professional|playful|technical|minimal|bold — pick one or describe}}\n\n**Design system:**\n{{Tailwind + shadcn/ui|custom CSS|other — or say \"recommend one\"}}\n\n**Step 1: Content structure**\nPlan the sections (top to bottom):\n1. **Hero** — headline, subheadline, CTA, hero image/demo\n2. **Social proof** — logos, testimonials, stats\n3. **Problem** — the pain point this product solves\n4. **Solution** — how the product solves it (features, screenshots)\n5. **How it works** — 3-step process or visual walkthrough\n6. **Features** — detailed feature grid with icons\n7. **Pricing** — if applicable\n8. **FAQ** — address objections\n9. **Final CTA** — repeat the main call to action\n10. **Footer** — links, legal, social\n\nWrite the copy for each section before coding.\n\n**Step 2: Visual design decisions**\n- Color palette (primary, secondary, accent, neutrals)\n- Typography (heading font, body font, sizes)\n- Spacing system (consistent padding/margin scale)\n- Animation approach (subtle entrances, scroll-triggered, or static)\n- Mobile-first responsive breakpoints\n\n**Step 3: Build**\n- Create the page component(s)\n- Implement responsive design (mobile, tablet, desktop)\n- Add micro-interactions (hover states, scroll animations)\n- Optimize images (lazy loading, proper formats)\n- Ensure accessibility (semantic HTML, color contrast, keyboard nav)\n\n**Step 4: Verify**\n- Test on mobile viewport (375px)\n- Test on tablet viewport (768px)\n- Test on desktop viewport (1440px)\n- Check Lighthouse score (target: 90+ performance)\n- Verify all links and CTAs work",
+      "tips": [
+        "Use the `landing-page-builder` skill for automated scaffold generation",
+        "Check `shadcn-ui` skill for pre-built component blocks (hero sections, feature grids, pricing tables)",
+        "The `frontend-design` skill handles responsive layout patterns"
+      ],
+      "skills": [
+        "landing-page-builder",
+        "frontend-design",
+        "shadcn-ui"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "responsive-audit",
+      "category": "design",
+      "title": "Responsive Design Audit",
+      "whenToUse": "When you need to verify that a page or set of components works across all device sizes. Run this before launch or after major layout changes.",
+      "prompt": "Audit the responsive design of the following pages/components. Find layout breaks, overflow issues, and touch-target problems.\n\n**Target:**\n{{URLs_or_file_paths}}\n\n**Breakpoints to test:**\n- 320px (small mobile — iPhone SE)\n- 375px (standard mobile — iPhone 14)\n- 768px (tablet — iPad)\n- 1024px (small desktop / landscape tablet)\n- 1440px (standard desktop)\n- 1920px (large desktop)\n\n**Step 1: Read the code**\n- Use Glob to find all layout-related files (layouts, pages, grid components)\n- Read the CSS/Tailwind classes — look for:\n  - Fixed widths that don't flex (`w-[800px]` instead of `max-w-`)\n  - Missing responsive prefixes (`md:`, `lg:`)\n  - Absolute positioning that could break on resize\n  - Text that could overflow containers\n  - Images without `max-w-full` or responsive sizing\n\n**Step 2: Static analysis**\nUse Grep to scan for common responsive issues:\n- `overflow-x: hidden` on body (often hides horizontal scroll bugs)\n- Fixed pixel values for widths (search for `width:.*px` in CSS)\n- Missing viewport meta tag\n- Touch targets under 44x44px (buttons, links)\n- Font sizes under 16px on mobile (causes iOS zoom on input focus)\n\n**Step 3: Per-breakpoint check**\nFor each breakpoint, verify:\n- [ ] No horizontal scroll\n- [ ] All text is readable without zooming\n- [ ] Navigation is accessible (hamburger menu on mobile?)\n- [ ] Images fit their containers\n- [ ] Tables have a mobile strategy (scroll, stack, or hide columns)\n- [ ] Modals/dialogs fit the viewport\n- [ ] Touch targets are at least 44x44px\n- [ ] Spacing feels appropriate (not too cramped, not too empty)\n\n**Step 4: Report**\n| Issue | Breakpoint | Location | Severity | Fix |\n|---|---|---|---|---|\n| Horizontal overflow | 320px | Hero section | HIGH | Add `overflow-hidden` + `max-w-full` on image |\n| ... | ... | ... | ... | ... |\n\n**Step 5: Fix**\nImplement fixes using the Edit tool, starting with HIGH severity issues.\nAfter each fix, verify it doesn't break other breakpoints.",
+      "tips": [
+        "Use the `screenshots` skill to capture visual evidence at each breakpoint",
+        "The Playwright MCP can automate viewport testing with actual screenshots",
+        "Test real content lengths, not lorem ipsum — long titles and names break layouts"
+      ],
+      "skills": [
+        "frontend-design",
+        "screenshots",
+        "accessibility-compliance"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "ci-cd-pipeline",
+      "category": "devops",
+      "title": "CI/CD Pipeline Design",
+      "whenToUse": "When setting up continuous integration and deployment from scratch, or when the existing pipeline needs a major overhaul. This template produces working pipeline configuration files.",
+      "prompt": "Design and implement a CI/CD pipeline for this project. The pipeline must be fast, reliable, and secure.\n\n**Project:**\n{{project_path}}\n\n**Stack:**\n{{e.g., Next.js + PostgreSQL, Python FastAPI, Go microservice}}\n\n**Hosting/Deploy target:**\n{{Vercel|AWS|Railway|Fly.io|self-hosted|other}}\n\n**CI platform:**\n{{GitHub Actions|GitLab CI|other — or say \"recommend one\"}}\n\n**Current state:**\n{{no CI exists|basic CI exists but incomplete|full CI needs optimization}}\n\n**Step 1: Pipeline design**\nDesign the pipeline stages:",
+      "tips": [
+        "Use the `github-actions-reusable-workflows` skill for DRY workflow patterns",
+        "The `setup-deploy` skill handles common deployment configurations",
+        "Keep total pipeline time under 10 minutes — developers won't wait longer"
+      ],
+      "skills": [
+        "github-actions-reusable-workflows",
+        "setup-deploy",
+        "senior-devops"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "deploy-strategy",
+      "category": "devops",
+      "title": "Deployment Strategy",
+      "whenToUse": "When choosing and implementing a deployment strategy for a production service. Use this when moving beyond manual deploys to something that supports zero-downtime releases and safe rollbacks.",
+      "prompt": "Design a deployment strategy for this service. Prioritize zero-downtime deploys with fast rollback.\n\n**Service:**\n{{what_the_service_does}}\n\n**Infrastructure:**\n{{AWS|GCP|Vercel|Railway|Fly.io|Kubernetes|bare metal}}\n\n**Current deploy process:**\n{{describe — e.g., \"git push to main triggers Vercel deploy\" or \"manual SSH + restart\"}}\n\n**Traffic volume:**\n{{requests_per_second_or_daily_users}}\n\n**Acceptable risk tolerance:**\n{{low — financial/healthcare|medium — SaaS product|high — internal tool}}\n\n**Step 1: Strategy selection**\nEvaluate and recommend one:\n\n| Strategy | Zero-downtime | Rollback speed | Complexity | Best for |\n|---|---|---|---|---|\n| **Rolling** | Yes | Medium (redeploy) | Low | Stateless services, small teams |\n| **Blue-green** | Yes | Instant (DNS/LB swap) | Medium | Critical services, fast rollback need |\n| **Canary** | Yes | Fast (route shift) | High | High-traffic services, gradual validation |\n| **Feature flags** | N/A | Instant (toggle) | Medium | Feature-level control, A/B testing |\n| **Recreate** | No | Slow (redeploy) | Low | Dev/staging only |\n\n**Step 2: Implementation plan**\nFor the chosen strategy:\n\n**Infrastructure setup:**\n- Load balancer configuration\n- Health check endpoints (what they check, timeout, threshold)\n- DNS / routing configuration\n- Artifact storage (Docker registry, S3, etc.)\n\n**Deploy process:**\n1. Build artifact (Docker image, binary, bundle)\n2. Run smoke tests against the artifact\n3. Deploy to target environment\n4. Run health checks\n5. Shift traffic (gradually or all-at-once)\n6. Monitor error rates and latency\n7. Complete or rollback\n\n**Rollback process:**\n1. Detect failure (automated or manual)\n2. Revert traffic to previous version\n3. Investigate root cause\n4. Fix and re-deploy\n\n**Step 3: Automation**\n- CI/CD integration (link to `ci-cd-pipeline` template)\n- Automated health checks post-deploy\n- Automated rollback triggers (error rate > X%, latency > Yms)\n- Notification on deploy success/failure\n\n**Step 4: Verification checklist**\n- [ ] Deploy to staging mirrors production process exactly\n- [ ] Rollback tested and confirmed working\n- [ ] Health checks cover critical paths (not just `/health` returning 200)\n- [ ] Monitoring dashboards show deploy markers\n- [ ] Team knows how to trigger manual rollback\n- [ ] Deploy runbook documented",
+      "tips": [
+        "Use the `canary` skill for gradual rollout implementation",
+        "The `setup-deploy` skill automates common deployment configurations",
+        "Start with rolling deploys — upgrade to blue-green or canary only when traffic justifies the complexity"
+      ],
+      "skills": [
+        "setup-deploy",
+        "senior-devops",
+        "canary"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "docker-setup",
+      "category": "devops",
+      "title": "Docker Containerization",
+      "whenToUse": "When containerizing an application for the first time, or when optimizing an existing Docker setup for smaller images, faster builds, or better security.",
+      "prompt": "Containerize this application with Docker. Optimize for small image size, fast builds, and security.\n\n**Application:**\n{{project_path}}\n\n**Stack:**\n{{e.g., Node.js 20, Python 3.12, Go 1.22}}\n\n**What needs containerizing:**\n{{web app|API server|worker process|full stack with DB}}\n\n**Current Docker state:**\n{{none|basic Dockerfile exists|full docker-compose exists}}\n\n**Step 1: Analyze the application**\n- Read package.json / requirements.txt / go.mod to understand dependencies\n- Identify the build step and runtime entry point\n- Determine required environment variables\n- Check for file system dependencies (uploads, temp files, logs)\n- Identify ports that need exposing\n\n**Step 2: Write the Dockerfile**\nFollow these best practices:\n- **Multi-stage build:** separate build stage from runtime stage\n- **Base image:** use slim/alpine variants (e.g., `node:20-alpine`, `python:3.12-slim`)\n- **Layer caching:** copy dependency files first, install, THEN copy source code\n- **Non-root user:** create and switch to a non-root user\n- **Health check:** add HEALTHCHECK instruction\n- **.dockerignore:** create to exclude node_modules, .git, .env, test files\n- **No secrets in image:** use build args or runtime env vars only",
+      "tips": [
+        "Use the `docker-development` skill for local development container setup",
+        "The `container-security` skill audits Dockerfiles for security issues",
+        "Pin exact versions in FROM (e.g., `node:20.11.1-alpine3.19`), not just major tags"
+      ],
+      "skills": [
+        "docker-development",
+        "container-security",
+        "senior-devops"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "incident-response",
+      "category": "devops",
+      "title": "Incident Response Playbook",
+      "whenToUse": "When you need to create an incident response playbook before an outage happens, or when documenting the response process after an incident. Having this ready is the difference between a 10-minute recovery and a 2-hour panic.",
+      "prompt": "Create an incident response playbook for this service. It should be usable by any on-call engineer at 3am without prior context.\n\n**Service:**\n{{what_the_service_does}}\n\n**Architecture:**\n{{brief_description — e.g., \"Next.js on Vercel, API on AWS ECS, PostgreSQL on RDS, Redis on ElastiCache\"}}\n\n**Team size:**\n{{number_of_engineers_who_could_be_on_call}}\n\n**Step 1: Severity definitions**\n\n| Severity | Impact | Response time | Who's paged |\n|---|---|---|---|\n| **SEV1 — Critical** | Service fully down, data loss risk | Immediate | All engineers + leadership |\n| **SEV2 — Major** | Core feature broken, workaround exists | 15 minutes | On-call engineer + lead |\n| **SEV3 — Minor** | Non-core feature degraded | 1 hour | On-call engineer |\n| **SEV4 — Low** | Cosmetic issue, no user impact | Next business day | Ticket created |\n\n**Step 2: First responder checklist (0-5 minutes)**\nWhen paged:\n- [ ] Acknowledge the alert\n- [ ] Open monitoring dashboard: {{dashboard_url}}\n- [ ] Determine severity level\n- [ ] Start incident channel (Slack/Discord) with naming: `inc-YYYY-MM-DD-{{brief_description}}`\n- [ ] Post initial status: \"Investigating {{symptom}}, severity {{level}}\"\n\n**Step 3: Diagnosis runbook**\nFor each common failure mode:\n\n**Service unreachable:**\n1. Check: is the service running? `{{health_check_command}}`\n2. Check: DNS resolution working? `dig {{domain}}`\n3. Check: load balancer healthy targets? `{{lb_check_command}}`\n4. Check: recent deploys? `{{deploy_log_command}}`\n5. Check: upstream dependencies? `{{dependency_check}}`\n\n**High error rate:**\n1. Check: error logs `{{log_command}}`\n2. Check: recent code changes `git log --oneline -10`\n3. Check: database connectivity\n4. Check: third-party API status pages\n5. Check: resource exhaustion (CPU, memory, connections)\n\n**High latency:**\n1. Check: database query performance\n2. Check: cache hit rates\n3. Check: connection pool exhaustion\n4. Check: resource saturation (CPU, memory)\n5. Check: external dependency latency\n\n**Step 4: Mitigation actions**\n| Action | Command | When to use |\n|---|---|---|\n| Rollback deploy | `{{rollback_command}}` | Bad deploy identified |\n| Scale up | `{{scale_command}}` | Traffic spike / resource exhaustion |\n| Restart service | `{{restart_command}}` | Memory leak / stuck process |\n| Failover DB | `{{failover_command}}` | Primary DB unresponsive |\n| Enable maintenance mode | `{{maintenance_command}}` | Need time to fix safely |\n\n**Step 5: Post-incident**\nAfter resolution:\n- [ ] Post all-clear with summary in incident channel\n- [ ] Update status page\n- [ ] Schedule post-mortem within 48 hours\n- [ ] Write post-mortem doc:\n  - Timeline of events\n  - Root cause analysis (5 Whys)\n  - Impact assessment (duration, affected users, data impact)\n  - Action items to prevent recurrence\n  - What went well / what could improve\n\n**Step 6: Output**\nSave the playbook to `docs/incident-response.md` and link it from the project's CLAUDE.md and README.",
+      "tips": [
+        "Use the `infra-runbook` skill to auto-generate runbooks from infrastructure code",
+        "The `senior-devops` skill provides expert-level infrastructure guidance",
+        "Test this playbook with a tabletop exercise — walk through a scenario before a real incident"
+      ],
+      "skills": [
+        "infra-runbook",
+        "senior-devops",
+        "harden"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "monitoring-setup",
+      "category": "devops",
+      "title": "Monitoring and Alerting Setup",
+      "whenToUse": "When setting up observability for a production service — metrics, logging, tracing, and alerting. Use this before you need it (not after the first outage).",
+      "prompt": "Set up monitoring and alerting for this service. Cover the four pillars: metrics, logs, traces, and alerts.\n\n**Service:**\n{{what_the_service_does}}\n\n**Infrastructure:**\n{{where_it_runs — AWS, GCP, Vercel, self-hosted}}\n\n**Current observability:**\n{{none|basic logging|partial monitoring — describe what exists}}\n\n**Monitoring stack:**\n{{Datadog|Grafana+Prometheus|New Relic|CloudWatch|other — or say \"recommend one\"}}\n\n**Step 1: Define SLIs and SLOs**\n| Service Level Indicator | Target SLO | Measurement |\n|---|---|---|\n| Availability | 99.9% (8.7h downtime/year) | Successful responses / total requests |\n| Latency (p50) | < 100ms | Histogram of response times |\n| Latency (p99) | < 500ms | Histogram of response times |\n| Error rate | < 0.1% | 5xx responses / total responses |\n| Throughput | > X req/sec | Requests per second |\n\n**Step 2: Metrics instrumentation**\nAdd instrumentation for:\n\n**Application metrics:**\n- Request count (by endpoint, method, status code)\n- Request duration (histogram, by endpoint)\n- Active connections / concurrent requests\n- Queue depth (if async processing)\n- Cache hit/miss ratio\n- Business metrics (signups, conversions, revenue events)\n\n**Infrastructure metrics:**\n- CPU utilization\n- Memory usage\n- Disk I/O and space\n- Network throughput\n- Container restarts\n\n**Database metrics:**\n- Query duration (by query type)\n- Connection pool utilization\n- Slow query count\n- Replication lag\n\n**Step 3: Logging setup**\n- Structured JSON logging (not plain text)\n- Log levels: ERROR (pages someone), WARN (investigate soon), INFO (audit trail), DEBUG (local only)\n- Required fields per log: timestamp, level, service, request_id, user_id (if auth'd), message\n- Log aggregation to centralized system\n- Log retention policy (30 days hot, 90 days cold)\n\n**Step 4: Alerting rules**\n| Alert | Condition | Severity | Action |\n|---|---|---|---|\n| Service down | 0 successful health checks for 2m | CRITICAL | Page on-call |\n| High error rate | > 1% 5xx for 5m | HIGH | Page on-call |\n| High latency | p99 > 2s for 10m | HIGH | Notify channel |\n| High CPU | > 80% for 15m | MEDIUM | Notify channel |\n| High memory | > 85% for 10m | MEDIUM | Notify channel |\n| Disk space | > 90% used | HIGH | Notify channel |\n| SSL expiry | < 14 days | MEDIUM | Notify channel |\n\n**Step 5: Dashboards**\nCreate dashboards for:\n1. **Overview** — Golden signals (latency, traffic, errors, saturation)\n2. **API endpoints** — per-endpoint latency and error rates\n3. **Infrastructure** — CPU, memory, disk, network per instance\n4. **Business** — signups, active users, revenue (if applicable)\n\n**Step 6: Verify**\n- Trigger each alert type intentionally and verify it fires\n- Verify dashboards show real data\n- Test that logs appear in the aggregation system\n- Document runbook for each alert: what it means, how to investigate, how to fix",
+      "tips": [
+        "Use the `grafana-dashboards` skill for automated Grafana dashboard generation",
+        "The `promql-alerting` skill writes PromQL alert rules",
+        "Start with the golden signals (latency, traffic, errors, saturation) before adding custom metrics"
+      ],
+      "skills": [
+        "metrics-dashboard",
+        "grafana-dashboards",
+        "promql-alerting"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "ad-copy",
+      "category": "marketing",
+      "title": "Ad Copy Generation",
+      "whenToUse": "When creating ad copy for Google Ads, Meta (Facebook/Instagram) Ads, or LinkedIn Ads. This template generates multiple variants optimized for each platform's constraints and best practices.",
+      "prompt": "Generate ad copy for the following product. Create multiple variants for A/B testing, optimized for {{platform}}.\n\n**Product:**\n{{what_it_is_and_what_it_does}}\n\n**Target audience:**\n{{who_sees_these_ads — demographics, interests, job titles}}\n\n**Platform:**\n{{Google Search|Google Display|Meta (FB/IG)|LinkedIn|Twitter/X}}\n\n**Campaign objective:**\n{{conversions|traffic|awareness|leads}}\n\n**Landing page:**\n{{URL_or_describe_the_landing_page}}\n\n**Budget context:**\n{{daily_budget_or_say_unknown}}\n\n**Step 1: Messaging angles**\nIdentify 3-4 distinct angles to test:\n1. **Pain point** — lead with the problem this solves\n2. **Benefit** — lead with the outcome/transformation\n3. **Social proof** — lead with numbers, testimonials, authority\n4. **Curiosity** — lead with a hook that creates intrigue\n\n**Step 2: Generate copy per platform**\n\n**If Google Search Ads:**\nFor each angle, write:\n- Headline 1 (30 chars max): {{primary_value_prop}}\n- Headline 2 (30 chars max): {{supporting_point}}\n- Headline 3 (30 chars max): {{CTA}}\n- Description 1 (90 chars max): {{expanded_benefit}}\n- Description 2 (90 chars max): {{proof_or_urgency}}\n- Sitelink extensions (4): title + description pairs\n\n**If Meta Ads:**\nFor each angle, write:\n- Primary text (125 chars above fold, 2000 max)\n- Headline (40 chars max, appears below image)\n- Description (30 chars max)\n- CTA button: {{Shop Now|Learn More|Sign Up|Download|Get Started}}\n- Suggested image/video concept\n\n**If LinkedIn Ads:**\nFor each angle, write:\n- Introductory text (150 chars above fold, 600 max)\n- Headline (70 chars max)\n- Description (100 chars max)\n- CTA: {{Learn More|Sign Up|Download|Request Demo}}\n\n**Step 3: Negative keywords / exclusions**\n- Google: list negative keywords to exclude irrelevant traffic\n- Meta/LinkedIn: audience exclusions to avoid waste\n\n**Step 4: Output**\nPresent all variants in a table for easy comparison and selection:\n| Angle | Headline | Description | CTA | Platform constraints met |\n|---|---|---|---|---|",
+      "tips": [
+        "Use the `ad-creative` skill for visual ad concepts alongside copy",
+        "Always include character counts — platforms reject over-limit ads silently",
+        "Test angles before optimizing copy — the right message matters more than perfect wording"
+      ],
+      "skills": [
+        "ad-creative",
+        "marketing-pack",
+        "content-strategy"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "competitor-analysis",
+      "category": "marketing",
+      "title": "Competitor Analysis",
+      "whenToUse": "When you need to understand the competitive landscape before launching a product, feature, or marketing campaign. This template produces a structured analysis you can act on.",
+      "prompt": "Analyze the competitive landscape for the following product/feature. Produce actionable insights, not just a list of competitors.\n\n**Our product:**\n{{what_we_do}}\n\n**Our positioning:**\n{{how_we_describe_ourselves}}\n\n**Known competitors:**\n{{list_known_competitors — or say \"identify them for me\"}}\n\n**Step 1: Identify competitors**\nResearch and categorize:\n- **Direct competitors** — solve the same problem for the same audience\n- **Indirect competitors** — solve the same problem differently, or a related problem\n- **Potential competitors** — adjacent products that could enter our space\n\nFor each, find:\n- Website URL\n- Pricing model and price points\n- Key features\n- Target audience\n- Company size / funding (if public)\n\n**Step 2: Feature matrix**\nCreate a comparison table:\n\n| Feature | Us | Competitor A | Competitor B | Competitor C |\n|---|---|---|---|---|\n| Feature 1 | Y/N/Partial | Y/N/Partial | ... | ... |\n| Feature 2 | ... | ... | ... | ... |\n| Pricing | $X/mo | $Y/mo | ... | ... |\n| Free tier | Y/N | Y/N | ... | ... |\n\n**Step 3: Positioning analysis**\nFor each competitor:\n- **Messaging:** What do they say on their homepage hero? What pain do they lead with?\n- **Differentiation:** What do they claim makes them unique?\n- **Weaknesses:** Where do users complain? (check G2, Product Hunt, Reddit, Twitter)\n- **Strengths:** What do users praise?\n\n**Step 4: Gap analysis**\n- Features we have that they don't (our advantages)\n- Features they have that we don't (our gaps)\n- Underserved segments (audiences nobody is targeting well)\n- Pricing gaps (price points nobody occupies)\n\n**Step 5: Strategic recommendations**\nBased on the analysis:\n1. **Positioning statement:** How should we position against this landscape?\n2. **Key differentiators:** Top 3 things that make us different\n3. **Feature priorities:** What should we build next based on competitive gaps?\n4. **Messaging angles:** Headlines and copy that exploit competitor weaknesses\n5. **Content opportunities:** Topics competitors aren't covering well\n\n**Output:**\nSave as a structured markdown document with all tables and recommendations.",
+      "tips": [
+        "Use the `competitor-alternatives` skill for automated competitive intelligence",
+        "Pair with the `content-strategy` skill to turn gaps into content calendar items",
+        "Update this analysis quarterly — the landscape changes fast"
+      ],
+      "skills": [
+        "competitor-alternatives",
+        "business-analytics",
+        "content-strategy"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "email-campaign",
+      "category": "marketing",
+      "title": "Email Campaign Design",
+      "whenToUse": "When designing an email campaign — welcome sequence, product launch, re-engagement, or nurture flow. This template covers strategy, copy, and technical implementation.",
+      "prompt": "Design an email campaign for the following goal. Include strategy, copy for each email, and technical setup.\n\n**Campaign goal:**\n{{what_the_campaign_should_achieve — signups, activations, upsells, re-engagement}}\n\n**Audience:**\n{{who_receives_these_emails — new signups, trial users, churned users, etc.}}\n\n**Email platform:**\n{{SendGrid|Resend|Postmark|Mailchimp|other — or say \"recommend one\"}}\n\n**Trigger:**\n{{what_triggers_the_sequence — signup, trial start, inactivity, purchase}}\n\n**Step 1: Sequence design**\nPlan the email flow:\n\n| # | Timing | Subject | Goal | CTA |\n|---|---|---|---|---|\n| 1 | Day 0 | Welcome to {{product}} | Confirm signup, set expectations | Get started |\n| 2 | Day 1 | {{value_prop_1}} | Educate on key feature | Try it |\n| 3 | Day 3 | {{value_prop_2}} | Show social proof | See examples |\n| 4 | Day 7 | {{urgency}} | Drive action before trial ends | Upgrade |\n| 5 | Day 14 | {{last_chance}} | Final push or feedback request | Upgrade / Give feedback |\n\n**Step 2: Write each email**\nFor each email in the sequence:\n- **Subject line:** Under 50 characters, no spam trigger words (3 A/B variants)\n- **Preview text:** Complements subject, under 90 characters\n- **Body:** Scannable (short paragraphs, bullet points, bold key phrases)\n- **CTA:** Single, clear call-to-action button\n- **Tone:** {{conversational|professional|friendly}} — consistent across the sequence\n\n**Step 3: Personalization**\n- Use `{{first_name}}` where natural (not forced)\n- Segment by behavior: different paths for active vs inactive users\n- Dynamic content blocks based on user's plan/usage\n\n**Step 4: Technical setup**\n- Email HTML templates (responsive, dark mode compatible)\n- Automation trigger configuration\n- Unsubscribe handling and CAN-SPAM compliance\n- Tracking: open rate, click rate, conversion per email\n- A/B test setup for subject lines\n\n**Step 5: Output**\nFor each email, produce:\n1. Subject line (3 variants for A/B testing)\n2. Preview text\n3. Plain text version\n4. HTML version (if requested)\n5. Send timing and trigger conditions",
+      "tips": [
+        "Use the `email-systems` skill for SendGrid/Resend API integration",
+        "The `email-capture` skill handles signup form and list management",
+        "Keep emails short — under 200 words for transactional, under 500 for content"
+      ],
+      "skills": [
+        "email-systems",
+        "email-capture",
+        "content-strategy"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "seo-content",
+      "category": "marketing",
+      "title": "SEO Content Creation",
+      "whenToUse": "When creating content that needs to rank in search engines. This template covers keyword research, content structure, and on-page SEO optimization — all executable within Claude Code.",
+      "prompt": "Create SEO-optimized content for the following topic. The content must be genuinely useful (not keyword-stuffed) while hitting all on-page SEO requirements.\n\n**Topic:**\n{{what_the_content_is_about}}\n\n**Target keyword:**\n{{primary_keyword}}\n\n**Secondary keywords:**\n{{keyword_2, keyword_3, keyword_4 — or say \"research for me\"}}\n\n**Content type:**\n{{blog post|landing page|documentation|comparison page}}\n\n**Target word count:**\n{{1500|2500|4000 — or say \"recommend based on SERP analysis\"}}\n\n**Step 1: Keyword analysis**\n- Use Grep to check existing content for keyword cannibalization\n- Identify search intent: informational, navigational, transactional, or commercial\n- Determine content format that matches intent (how-to, listicle, comparison, guide)\n\n**Step 2: Content structure**\nBuild the outline:\n- **Title (H1):** Include primary keyword, under 60 characters\n- **Meta description:** 150-160 characters, includes keyword, has a CTA\n- **URL slug:** short, keyword-rich, hyphenated\n- **H2 sections:** each targets a subtopic or secondary keyword\n- **H3 subsections:** break down complex H2s\n- FAQ section (targets featured snippet / People Also Ask)\n\n**Step 3: Write content**\n- Write for humans first, search engines second\n- Include the primary keyword in: title, first paragraph, one H2, meta description\n- Use secondary keywords naturally throughout (not forced)\n- Add internal links to {{number}} related pages\n- Include external links to authoritative sources\n- Write alt text for all images\n- Use short paragraphs (2-3 sentences max)\n- Include a clear CTA\n\n**Step 4: Technical SEO**\n- Add structured data (JSON-LD) if applicable:\n  - Article schema for blog posts\n  - FAQ schema for FAQ sections\n  - HowTo schema for tutorials\n  - Product schema for product pages\n- Ensure heading hierarchy is correct (one H1, sequential H2/H3)\n- Add canonical URL\n- Set Open Graph and Twitter Card meta tags\n\n**Step 5: Output**\nWrite the content as a markdown file, plus a frontmatter block with all SEO metadata:",
+      "tips": [
+        "Use the `ai-seo` skill for AI search optimization (LLM-friendly structured content)",
+        "The `seo-content-brief` skill generates a full content brief before writing",
+        "Check existing site content first to avoid cannibalization"
+      ],
+      "skills": [
+        "seo-content-brief",
+        "ai-seo",
+        "content-strategy"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "social-media",
+      "category": "marketing",
+      "title": "Social Media Content Strategy",
+      "whenToUse": "When you need a structured social media content plan — not individual posts, but a strategy with themes, cadence, and a content calendar. Use this for planning, then execute individual posts from the calendar.",
+      "prompt": "Create a social media content strategy for the following product/brand. Focus on {{primary_platform}} with supporting content for {{secondary_platforms}}.\n\n**Product/Brand:**\n{{what_it_is}}\n\n**Target audience:**\n{{who_we_want_to_reach — role, interests, pain points}}\n\n**Primary platform:**\n{{Twitter/X|LinkedIn|Reddit|Instagram|TikTok}}\n\n**Secondary platforms:**\n{{list_others}}\n\n**Current presence:**\n{{describe_current_following_and_activity — or say \"starting from zero\"}}\n\n**Goals:**\n{{awareness|engagement|traffic|conversions — pick 1-2 primary goals}}\n\n**Step 1: Content pillars**\nDefine 4-5 content themes that rotate:\n1. **Educational** — teach something valuable (tutorials, tips, how-tos)\n2. **Behind the scenes** — development process, decisions, challenges\n3. **Social proof** — user stories, testimonials, metrics, case studies\n4. **Community** — engage with followers, respond to trends, reshare\n5. **Product** — announcements, features, demos (max 20% of content)\n\n**Step 2: Content formats per platform**\n| Platform | Best formats | Frequency | Best times |\n|---|---|---|---|\n| Twitter/X | Threads, hot takes, code snippets | 5-7x/week | 9am, 12pm, 5pm ET |\n| LinkedIn | Long-form posts, carousels | 3-4x/week | 8am, 12pm ET |\n| Reddit | Detailed answers, Show HN style | 2-3x/week | varies by subreddit |\n\n**Step 3: Content calendar (2-week sample)**\n| Day | Platform | Pillar | Topic | Format | Hook |\n|---|---|---|---|---|---|\n| Mon | Twitter | Educational | ... | Thread | ... |\n| Tue | LinkedIn | Behind scenes | ... | Post | ... |\n| Wed | Twitter | Community | ... | Poll | ... |\n| ... | ... | ... | ... | ... | ... |\n\n**Step 4: Engagement playbook**\n- How to respond to comments (tone, speed)\n- How to handle negative feedback\n- Which conversations to join (relevant hashtags, communities)\n- Influencers and accounts to build relationships with\n\n**Step 5: Metrics to track**\n| Metric | Target | Measurement |\n|---|---|---|\n| Follower growth | X%/month | Weekly check |\n| Engagement rate | X% | Per post |\n| Click-through rate | X% | Per link post |\n| Conversions | X/month | Attribution tracking |",
+      "tips": [
+        "Use the `content-strategy` skill for long-term content planning",
+        "The `marketing-pack` skill generates assets (images, copy) for individual posts",
+        "Consistency beats virality — a steady cadence outperforms sporadic bursts"
+      ],
+      "skills": [
+        "content-strategy",
+        "social-integration",
+        "marketing-pack"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "cost-optimize",
+      "category": "meta",
+      "title": "Cost Optimization",
+      "whenToUse": "When a Claude Code session is getting expensive (approaching budget limits), when planning a long-running task, or when you want to establish cost-efficient habits for daily use.",
+      "prompt": "Optimize the cost of this Claude Code workflow. Reduce token usage and model costs without sacrificing output quality.\n\n**Current situation:**\n{{describe — e.g., \"session costs are hitting $2+\", \"overnight run exceeded budget\", \"daily usage is $X\"}}\n\n**Budget target:**\n{{desired_cost_per_session_or_per_day}}\n\n**Step 1: Audit current usage**\nIdentify where tokens are being spent:\n\n| Activity | Token impact | Frequency | Cost weight |\n|---|---|---|---|\n| Reading large files | HIGH | Often | **Major** |\n| Writing full files (vs Edit) | HIGH | Sometimes | **Major** |\n| Broad glob/grep searches | MEDIUM | Often | **Moderate** |\n| Verbose tool output | MEDIUM | Always | **Moderate** |\n| Re-reading unchanged files | MEDIUM | Sometimes | **Moderate** |\n| Extended thinking on simple tasks | LOW | Sometimes | **Minor** |\n\n**Step 2: Model routing**\nMatch tasks to the most cost-efficient model:\n\n| Task type | Recommended model | Cost tier |\n|---|---|---|\n| Simple edits, formatting | Haiku | $ |\n| Standard development | Sonnet | $$ |\n| Architecture decisions | Opus | $$$ |\n| Parallel subagent work | Haiku | $ |\n| Code review (non-critical) | Sonnet | $$ |\n| Security audit | Opus or Sonnet | $$-$$$ |\n\n**Step 3: Token reduction techniques**\nApply these patterns:\n- **Use Edit over Write** — sends only the diff, not the full file\n- **Read specific line ranges** — `Read(file, offset, limit)` instead of entire files\n- **Targeted grep** — narrow glob patterns (`src/api/*.ts` not `**/*.ts`)\n- **Avoid re-reading** — don't read a file you just wrote\n- **Compact before overflow** — use `strategic-compact` skill before context window fills\n- **One subagent per task** — don't reuse bloated contexts\n\n**Step 4: Session architecture**\nStructure long tasks for cost efficiency:\n1. **Plan session** (Opus, 10 min) — architecture decisions, write the plan\n2. **Execute session** (Sonnet/Haiku, hours) — follow the plan mechanically\n3. **Review session** (Sonnet, 15 min) — verify quality, catch issues\n\nThis avoids paying Opus rates for mechanical work.\n\n**Step 5: Monitoring**\n- Track cost per session using the status line cost display\n- Set alerts at 80% of budget (`KZ_COST_ALERT_THRESHOLD`)\n- Review weekly cost trends\n- Identify and eliminate wasteful patterns\n\n**Output:**\nList the top 5 cost savings with estimated impact:\n| Change | Estimated savings | Effort |\n|---|---|---|\n| ... | ... | ... |",
+      "tips": [
+        "Use the `model-route` skill for automated model selection based on task complexity",
+        "The `context-budget` skill monitors and manages context window usage",
+        "The `strategic-compact` skill preserves key context while reducing window usage"
+      ],
+      "skills": [
+        "model-route",
+        "context-budget",
+        "strategic-compact"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "mode-switch",
+      "category": "meta",
+      "title": "Mode Switching Workflow",
+      "whenToUse": "When transitioning between different types of work within a session — from planning to coding, from coding to review, or from exploration to focused execution. Each mode has different tool usage patterns and quality expectations.",
+      "prompt": "Switch to {{target_mode}} mode for the following task. Adjust tool usage, verification level, and pacing accordingly.\n\n**Current mode:**\n{{what_you_were_doing}}\n\n**Target mode:**\n{{plan|code|review|explore|ship}}\n\n**Task:**\n{{what_needs_to_be_done_in_this_mode}}\n\n**Mode definitions:**\n\n### Plan Mode\n- **Purpose:** Think before acting. Design before building.\n- **Tools:** Read, Glob, Grep (for exploration). No Write/Edit.\n- **Output:** Structured plan document with phases and checkpoints\n- **Pacing:** Slow and deliberate. Consider alternatives.\n- **Verification:** Plan review before proceeding to code mode\n- **Trigger skill:** `/plan`\n\n### Code Mode\n- **Purpose:** Implement a known plan. Build features, fix bugs.\n- **Tools:** All tools. Edit preferred over Write for existing files.\n- **Output:** Working code, passing tests\n- **Pacing:** Steady. One change at a time, verify after each.\n- **Verification:** Tests pass, types check, no console errors\n- **Trigger skill:** Default mode\n\n### Review Mode\n- **Purpose:** Find issues in existing code. Quality assurance.\n- **Tools:** Read, Grep, Glob (for analysis). Bash for test runs.\n- **Output:** Findings with severity, location, and fix suggestions\n- **Pacing:** Thorough. Check every file in scope.\n- **Verification:** All findings have concrete evidence\n- **Trigger skill:** `/code-review`\n\n### Explore Mode\n- **Purpose:** Understand unfamiliar code. Research before planning.\n- **Tools:** Glob, Grep, Read extensively. Bash for running things.\n- **Output:** Mental model of the system, documented in notes\n- **Pacing:** Curious. Follow dependencies, read broadly.\n- **Verification:** Can explain the system's architecture\n- **Trigger skill:** `/investigate`\n\n### Ship Mode\n- **Purpose:** Get to production. Final verification and deploy.\n- **Tools:** Bash (for testing, building, deploying). Read for verification.\n- **Output:** Deployed, verified, documented\n- **Pacing:** Focused. Checklist-driven. No new features.\n- **Verification:** E2E tests pass, deploy health checks pass\n- **Trigger skills:** `/verify`, `/ship`\n\n### Careful Mode\n- **Purpose:** High-stakes changes. Extra verification at every step.\n- **Tools:** All, but with confirmation before each destructive action\n- **Output:** Small, verified changes with rollback points\n- **Pacing:** Very slow. One change, verify, commit, repeat.\n- **Verification:** After EVERY change, not just at the end\n- **Trigger skill:** `/careful`\n\n### Overdrive Mode\n- **Purpose:** Maximum speed for well-understood tasks. Trust the plan.\n- **Tools:** All. Batch multiple changes before verification.\n- **Output:** Rapid progress through mechanical work\n- **Pacing:** Fast. Verify at milestones, not every step.\n- **Verification:** At phase boundaries only\n- **Trigger skill:** `/overdrive`\n\n**Switch now to {{target_mode}} mode and begin: {{task}}**",
+      "tips": [
+        "Use the `plan` skill to enter plan mode with structured reasoning",
+        "The `careful` skill activates extra verification for high-stakes changes",
+        "The `overdrive` skill enables maximum throughput for mechanical tasks",
+        "Mode switches are mental — they change how you use tools, not which tools are available"
+      ],
+      "skills": [
+        "plan",
+        "careful",
+        "overdrive"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "overnight-runner",
+      "category": "meta",
+      "title": "Overnight Runner Setup",
+      "whenToUse": "When you have a large, well-defined task that can run autonomously while you sleep. The key is structured setup: clear goals, checkpoints, and guardrails so the agent can work unsupervised for hours.",
+      "prompt": "Set up an overnight autonomous task that can run for {{duration}} without human input. The task must be safe to run unsupervised.\n\n**Task:**\n{{what_needs_to_be_done}}\n\n**Expected duration:**\n{{4-8 hours}}\n\n**Success criteria:**\n{{how_to_know_the_task_completed_successfully}}\n\n**Failure modes to guard against:**\n{{what_could_go_wrong — infinite loops, wrong files, runaway costs}}\n\n**Step 1: Pre-flight checks**\nBefore starting the autonomous run:\n- [ ] Task is well-defined with clear boundaries (not open-ended exploration)\n- [ ] All required files and dependencies are available\n- [ ] No human decisions needed during execution\n- [ ] No destructive operations (delete, force push, production deploys)\n- [ ] Cost estimate is within budget (check model pricing)\n- [ ] Git state is clean (`git status` shows no uncommitted changes)\n\n**Step 2: Context preparation**\nPrepare the context that will guide the autonomous session:\n\nWrite a `tasks/overnight-{{date}}.md` file with:",
+      "tips": [
+        "Use the `overnight-runner` skill for automated overnight session management",
+        "The `delegation-templates` skill provides structured formats for autonomous task dispatch",
+        "Start with small overnight tasks (4 hours) before attempting 8-hour runs",
+        "Always have a clean git state so you can easily revert if the overnight run goes sideways"
+      ],
+      "skills": [
+        "overnight-runner",
+        "delegation-templates",
+        "strategic-compact"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "parallel-research",
+      "category": "meta",
+      "title": "Parallel Research",
+      "whenToUse": "When you need to research a broad topic quickly by dispatching multiple subagents to investigate different angles simultaneously. Use this for technology evaluations, vendor comparisons, or any research that can be parallelized.",
+      "prompt": "Research the following topic using parallel subagents. Each agent investigates one angle independently, then results are synthesized.\n\n**Research question:**\n{{the_question_to_answer}}\n\n**Context:**\n{{why_this_research_matters, what_decision_it_will_inform}}\n\n**Step 1: Define research angles**\nBreak the question into 3-5 independent research threads:\n\n| Agent | Angle | Key questions | Sources to check |\n|---|---|---|---|\n| Agent 1 | {{angle_1}} | {{questions}} | {{where_to_look}} |\n| Agent 2 | {{angle_2}} | {{questions}} | {{where_to_look}} |\n| Agent 3 | {{angle_3}} | {{questions}} | {{where_to_look}} |\n| Agent 4 | {{angle_4}} | {{questions}} | {{where_to_look}} |\n\n**Step 2: Dispatch subagents**\nFor each research angle, spawn a subagent with this brief:",
+      "tips": [
+        "Use the `dispatching-parallel-agents` skill for structured subagent dispatch",
+        "The `dialectic-review` skill is ideal for binary decisions (spawn FOR + AGAINST agents)",
+        "Keep each subagent's scope narrow — broad scopes produce shallow results"
+      ],
+      "skills": [
+        "delegation-templates",
+        "dispatching-parallel-agents",
+        "dialectic-review"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "session-handoff",
+      "category": "meta",
+      "title": "Session Handoff",
+      "whenToUse": "When you need to transfer context from one Claude Code session to another — typically because you're running low on context window, switching tasks, or handing off to a different model. This template captures everything the next session needs to continue seamlessly.",
+      "prompt": "Prepare a session handoff document so a fresh Claude Code session can continue this work without losing context.\n\n**What we've been working on:**\n{{brief_description_of_the_task}}\n\n**Step 1: Capture current state**\nCreate a handoff document at `tasks/handoff-{{date}}.md` with:",
+      "tips": [
+        "Use the `save-session` and `resume-session` skills for automated session persistence",
+        "The `strategic-compact` skill condenses context before compaction events",
+        "Always commit or stash changes before handoff — a dirty working tree makes resume harder"
+      ],
+      "skills": [
+        "save-session",
+        "resume-session",
+        "strategic-compact"
+      ],
+      "mode": "code"
+    },
+    {
+      "id": "task-commander",
+      "category": "meta",
+      "title": "Task Commander Session",
+      "whenToUse": "When you have a task that benefits from multi-agent orchestration — typically P3+ scope involving multiple files, domains, or expertise areas. Task Commander manages agent dispatch, cost tracking, verification gates, and failure recovery.",
+      "prompt": "```\nYou are the Task Commander for this project.\n\nCurrent project: {{project_name}}\nTask scope: {{scope}} (P0-P10)\nAvailable agents: {{agents}}\nCost ceiling: {{cost_ceiling}}",
+      "tips": [
+        "For P0-P2 tasks, skip Task Commander entirely — just do the work directly",
+        "Start with the `confidence-check` skill before dispatching P6+ workflows",
+        "Use `delegation-templates` skill for structured agent prompts",
+        "The `agency-orchestrator` skill has ready-to-use YAML workflows",
+        "Set `KZ_COST_CEILING` env var to override the default ceiling per session",
+        "Night mode (`/cc mode night`) enables fully autonomous Task Commander execution"
+      ],
+      "skills": [
+        "task-commander",
+        "agency-orchestrator",
+        "delegation-templates",
+        "confidence-check"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "architecture-decision",
+      "category": "planning",
+      "title": "Architecture Decision Record (ADR)",
+      "whenToUse": "When making a technical decision that is expensive to reverse: choosing a database, auth provider, framework, deployment strategy, or API architecture. This template produces a formal ADR with pro/con analysis.",
+      "prompt": "Help me make the following architecture decision. Produce a formal ADR with rigorous analysis — no hand-waving.\n\n**Decision to make:**\n{{what_needs_to_be_decided}}\n\n**Context:**\n{{current_system_state, constraints, team_size, timeline}}\n\n**Options under consideration:**\n1. {{option_a}}\n2. {{option_b}}\n3. {{option_c — optional}}\n\n**Evaluation framework:**\nFor each option, analyze:\n\n1. **Fit** — How well does it solve the stated problem?\n2. **Complexity** — What's the implementation and operational burden?\n3. **Cost** — Licensing, infrastructure, engineering time\n4. **Scalability** — Does it work at 10x current scale?\n5. **Lock-in** — How hard is it to switch away later?\n6. **Team familiarity** — Does the team know this tech?\n7. **Ecosystem** — Community, docs, third-party integrations\n8. **Risk** — What could go wrong? How bad is the worst case?\n\n**Decision matrix:**\n| Criterion | Weight | Option A | Option B | Option C |\n|---|---|---|---|---|\n| Fit | 25% | score | score | score |\n| Complexity | 15% | score | score | score |\n| Cost | 15% | score | score | score |\n| Scalability | 15% | score | score | score |\n| Lock-in | 10% | score | score | score |\n| Familiarity | 10% | score | score | score |\n| Ecosystem | 5% | score | score | score |\n| Risk | 5% | score | score | score |\n| **Weighted Total** | | **X** | **X** | **X** |\n\nScore each 1-5 (1=poor, 5=excellent).\n\n**Output ADR format:**",
+      "tips": [
+        "Use the `dialectic-review` skill for decisions with high reversal cost",
+        "Number your ADRs sequentially and store them in `docs/adr/` or `tasks/adr/`",
+        "Revisit ADRs quarterly — decisions may need updating as context changes"
+      ],
+      "skills": [
+        "dialectic-review",
+        "plan",
+        "architect"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "feature-plan",
+      "category": "planning",
+      "title": "Feature Implementation Plan",
+      "whenToUse": "After a spec is approved and before coding begins. This template breaks a feature into phased implementation steps with clear milestones and verification at each stage.",
+      "prompt": "Create a detailed implementation plan for the following feature. Break it into phases that can each be completed and verified independently.\n\n**Feature:**\n{{feature_name_and_summary}}\n\n**Spec:**\n{{link_to_spec_or_paste_key_requirements}}\n\n**Current codebase:**\n{{brief_description_of_existing_architecture — or say \"use Glob/Read to explore\"}}\n\n**Constraints:**\n- {{timeline}}\n- {{team_size_or_solo}}\n- {{any_technical_constraints}}\n\n**Step 1: Codebase exploration**\n- Use Glob to understand the project structure\n- Read key files: entry point, router, config, existing similar features\n- Identify the exact files that will need to change\n- List any new files that need to be created\n\n**Step 2: Dependency analysis**\n- What existing modules does this feature depend on?\n- Does anything need to be built first? (schemas, types, utilities)\n- Are there any external packages to install?\n- Check package.json — any version conflicts?\n\n**Step 3: Phase breakdown**\nCreate 3-5 phases, each independently shippable:\n\nFor each phase:\n- **Goal:** what this phase delivers\n- **Files:** which files to create/modify\n- **Implementation steps:** numbered, specific, atomic\n- **Verification:** how to prove this phase works (test command, manual test, screenshot)\n- **Estimated effort:** hours\n- **Dependencies:** which phases must complete first\n\n**Step 4: Risk identification**\n- What's the riskiest part of this plan?\n- What could block progress?\n- Where might the estimate be wrong?\n- What's the rollback plan if phase N fails?\n\n**Step 5: Output**\nWrite the plan to `tasks/plan-{{feature_slug}}.md` with:\n- [ ] Phase 1: {{title}} — {{estimated_hours}}h\n  - [ ] Step 1.1\n  - [ ] Step 1.2\n- [ ] Phase 2: {{title}} — {{estimated_hours}}h\n  - [ ] Step 2.1\n  - ...\n\nMark phases with dependencies clearly.",
+      "tips": [
+        "Use the `plan` skill to enter plan mode for structured multi-step reasoning",
+        "The `executing-plans` skill helps track progress through a saved plan",
+        "Each phase should be committable — if you stop after any phase, the code should be in a working state"
+      ],
+      "skills": [
+        "plan",
+        "writing-plans",
+        "executing-plans"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "migration-plan",
+      "category": "planning",
+      "title": "Migration Plan",
+      "whenToUse": "When migrating a database schema, API version, framework, or any system component where data integrity and zero-downtime are critical. This template enforces a rollback-safe approach.",
+      "prompt": "Create a migration plan with zero data loss and minimal downtime. Every step must be reversible.\n\n**What is being migrated:**\n{{e.g., database schema change, API v1 to v2, framework upgrade, service extraction}}\n\n**Current state:**\n{{describe_the_current_system}}\n\n**Target state:**\n{{describe_the_desired_end_state}}\n\n**Data at risk:**\n{{how_much_data, how_critical — e.g., \"5M user records, production financial data\"}}\n\n**Downtime tolerance:**\n{{zero|seconds|minutes|hours — and maintenance window if any}}\n\n**Phase 1: Assessment**\n- Read the current schema/code with the Read tool\n- Identify all consumers of the thing being migrated (use Grep to find all references)\n- List every breaking change between current and target state\n- Estimate data volume affected\n\n**Phase 2: Strategy selection**\nChoose and justify one:\n- **Expand-contract** (add new, migrate, remove old) — safest for schema changes\n- **Blue-green** — run old and new in parallel, switch traffic\n- **Strangler fig** — incrementally replace old with new\n- **Big bang** — scheduled downtime, migrate everything at once (last resort)\n\n**Phase 3: Step-by-step plan**\nFor each step:\n1. **Action:** exactly what happens (SQL statement, code change, config change)\n2. **Verification:** how to confirm it worked\n3. **Rollback:** exact command to undo this step\n4. **Duration:** estimated time\n5. **Risk:** what could go wrong\n\n**Phase 4: Testing**\n- Write the migration as a script that can run against a test database\n- Test the migration on a copy of production data\n- Test the rollback on the migrated test data\n- Verify application works against both old and new schema (during transition)\n\n**Phase 5: Execution checklist**\n- [ ] Backup taken and verified\n- [ ] Migration tested on staging with production-scale data\n- [ ] Rollback tested and confirmed working\n- [ ] Monitoring dashboards open\n- [ ] Communication sent to affected parties\n- [ ] Execute migration\n- [ ] Run verification queries\n- [ ] Monitor error rates for 30 minutes\n- [ ] Mark migration complete (or roll back)\n\n**Phase 6: Cleanup (after success)**\n- Remove backward-compatibility code\n- Drop old columns/tables (after grace period)\n- Update documentation\n- Archive migration scripts",
+      "tips": [
+        "Use the `careful` skill to slow down and double-check each step before executing",
+        "The `database-migrations` skill handles common migration patterns automatically",
+        "Never drop a column and add a column in the same migration — always expand first, contract later"
+      ],
+      "skills": [
+        "database-migrations",
+        "plan",
+        "careful"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "spec-interview",
+      "category": "planning",
+      "title": "Spec Interview",
+      "whenToUse": "Before building any feature that takes more than a day. This template generates the 5-7 clarifying questions that prevent building the wrong thing. Run this before writing any code or spec.",
+      "prompt": "I want to build the following feature. Before I write any code, interview me with 5-7 targeted questions to create a solid spec.\n\n**Feature idea:**\n{{brief_description_of_what_you_want_to_build}}\n\n**Context:**\n{{existing_system_it_integrates_with, if any}}\n\n**User:**\n{{who_is_the_end_user}}\n\n**Interview framework:**\nAsk me questions in these categories (5-7 total, skip categories that don't apply):\n\n1. **Scope boundaries** — What is explicitly OUT of scope for v1?\n2. **Success criteria** — What does \"done\" look like? How do we measure success?\n3. **Failure modes** — What does \"broken\" look like? What must never happen?\n4. **Edge cases** — What unusual inputs or states must be handled?\n5. **Dependencies** — What existing systems does this touch? What could block us?\n6. **User flow** — Walk me through the happy path step by step. What triggers this?\n7. **Data model** — What data is created, read, updated, deleted?\n\nAfter I answer all questions, produce a spec document with:\n- **Summary:** 2-3 sentences\n- **Requirements:** numbered list (MUST, SHOULD, COULD)\n- **Non-goals:** explicit exclusions\n- **Acceptance criteria:** testable statements\n- **Technical approach:** high-level architecture (1 paragraph)\n- **Estimated effort:** T-shirt size (S/M/L/XL) with justification\n\nSave the spec to `tasks/spec-{{date}}.md` if the tasks directory exists.",
+      "tips": [
+        "Use the `evals-before-specs` skill to define success/failure criteria before the interview",
+        "The `spec-interviewer` skill automates this entire flow as an interactive session",
+        "Always answer the questions honestly — vague answers produce vague specs"
+      ],
+      "skills": [
+        "spec-interviewer",
+        "evals-before-specs",
+        "plan"
+      ],
+      "mode": "plan"
+    },
+    {
+      "id": "tech-debt-assessment",
+      "category": "planning",
+      "title": "Technical Debt Assessment",
+      "whenToUse": "When you need to evaluate the health of a codebase, prioritize cleanup work, or justify refactoring time to stakeholders. Run this quarterly or before major feature work.",
+      "prompt": "Assess the technical debt in this codebase. Quantify it, categorize it, and produce a prioritized cleanup plan.\n\n**Project:**\n{{project_root_path}}\n\n**Stack:**\n{{e.g., Next.js + Prisma + PostgreSQL}}\n\n**Phase 1: Automated scans**\nRun these and report findings:\n- `npx tsc --noEmit 2>&1 | wc -l` — TypeScript errors count\n- `npx vitest run --coverage` — test coverage percentage\n- Use Grep to count:\n  - `// TODO` and `// FIXME` comments\n  - `any` type usage (`: any`, `as any`)\n  - `// @ts-ignore` and `// @ts-expect-error` suppressions\n  - `eslint-disable` comments\n  - `console.log` statements (should be replaced with proper logging)\n- Use Glob to find files over 400 lines: check file sizes across `src/**/*.ts`\n\n**Phase 2: Structural analysis**\n- Read the project structure with Glob\n- Identify circular dependencies (imports that form cycles)\n- Find duplicated code (similar patterns in multiple files)\n- Check for dead code (exports with zero importers)\n- Review the dependency tree — outdated packages, unnecessary dependencies\n\n**Phase 3: Categorize debt**\nGroup findings into:\n\n| Category | Description | Count | Severity |\n|---|---|---|---|\n| **Type safety** | `any` usage, ts-ignore, missing types | X | HIGH |\n| **Test coverage** | Untested modules, missing edge cases | X | HIGH |\n| **Code quality** | Large files, deep nesting, duplication | X | MEDIUM |\n| **Dead code** | Unused exports, unreachable branches | X | LOW |\n| **Dependencies** | Outdated packages, security advisories | X | MEDIUM |\n| **Documentation** | Missing docs, outdated comments | X | LOW |\n\n**Phase 4: Prioritized cleanup plan**\nRank by: (impact on development velocity) x (effort to fix)\n\n| Priority | Item | Category | Effort | Impact | Suggested Sprint |\n|---|---|---|---|---|---|\n| 1 | ... | ... | S/M/L | HIGH/MED/LOW | ... |\n| 2 | ... | ... | S/M/L | HIGH/MED/LOW | ... |\n| ... | ... | ... | ... | ... | ... |\n\n**Phase 5: Metrics to track**\nDefine health metrics to measure over time:\n- TypeScript error count (target: 0)\n- Test coverage percentage (target: 80%+)\n- `any` count (target: decreasing)\n- Average file size (target: under 400 lines)\n- Dependency age (target: no package >6 months behind)",
+      "tips": [
+        "Use the `audit` skill for a quick automated health check",
+        "The `refactor-clean` skill can fix many low-hanging items automatically",
+        "Present the assessment to stakeholders as a \"debt budget\" — X% of sprint time for cleanup"
+      ],
+      "skills": [
+        "audit",
+        "refactor-clean",
+        "quality-gate"
+      ],
+      "mode": "plan"
+    }
+  ]
+}

@@ -62,3 +62,23 @@ test('ccc-doctor SKILL.md model is sonnet and effort is medium', function () {
   assert.ok(frontmatter.includes('model: sonnet'), 'model must be sonnet');
   assert.ok(frontmatter.includes('effort: medium'), 'effort must be medium');
 });
+
+test('ccc-doctor runtime verification NEVER falls back to the clone (gate round-2 repro pin)', function () {
+  const content = fs.readFileSync(SKILL_PATH, 'utf8');
+  // The post-update verify must probe the INSTALLED runtime only. A
+  // `RUNTIME_SRC="$PLUGIN_SRC"` fallback would "verify" the marketplace
+  // clone — which a marketplace refresh updates even when the plugin update
+  // failed — and falsely report the new version as running.
+  assert.ok(
+    !content.includes('RUNTIME_SRC="$PLUGIN_SRC"'),
+    'clone fallback reintroduced into runtime verification'
+  );
+  assert.ok(
+    content.includes('RUNTIME_SRC="n/a"'),
+    'missing honest n/a path for absent installed-runtime record'
+  );
+  assert.ok(
+    /installed_plugins\.json/.test(content),
+    'runtime verification must read installed_plugins.json'
+  );
+});

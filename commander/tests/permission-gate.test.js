@@ -14,6 +14,8 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const HOOK_PATH = path.join(
@@ -158,6 +160,80 @@ describe('permission-gate: reject autofix write without CCC_AUTOFIX_APPROVED', (
     // Write outside /ccc-review should pass through
     assert.equal(r.exitCode, 0, 'Non-autofix Write should be approved');
     assert.equal(r.parsed?.continue, true);
+  });
+});
+
+// ============================================================================
+// Case 2b (v7.3.0, W2+/codex 13): CCC_AUTOFIX_APPROVED=1 logs a distinct
+// 'approved-autofix' decision — not the generic 'approved' — so Safety's
+// "auto-fixed" bucket (safety-snapshot.js's classifyDecision) has a real
+// signal. Uses an isolated HOME so the log file is deterministic to read.
+// ============================================================================
+describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
+  function makeHome() {
+    return fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-permission-gate-'));
+  }
+
+  function readGateLog(home) {
+    const logPath = path.join(home, '.claude', 'commander', 'analytics', 'permission-gate.jsonl');
+    const raw = fs.readFileSync(logPath, 'utf8');
+    return raw
+      .split('\n')
+      .filter((line) => line.trim())
+      .map((line) => JSON.parse(line));
+  }
+
+  it('logs decision:"approved-autofix" (not "approved") when CCC_AUTOFIX_APPROVED=1 allows an autofix write', () => {
+    const home = makeHome();
+    const r = runGate(
+      {
+        tool_name: 'Write',
+        tool_input: { file_path: '/tmp/foo.js', content: 'fixed' },
+        session_id: 'test-session-autofix-log',
+        context: { skill: '/ccc-review', phase: 'autofix' },
+      },
+      { HOME: home, CCC_AUTOFIX_APPROVED: '1' }
+    );
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.parsed?.continue, true);
+
+    const entries = readGateLog(home);
+    assert.equal(entries.length, 1);
+    assert.equal(entries[0].decision, 'approved-autofix');
+    assert.equal(entries[0].toolName, 'Write');
+    assert.equal(entries[0].sessionId, 'test-session-autofix-log');
+  });
+
+  it('a denied autofix (no CCC_AUTOFIX_APPROVED) still logs "rejected-autofix", unchanged', () => {
+    const home = makeHome();
+    runGate(
+      {
+        tool_name: 'Write',
+        tool_input: { file_path: '/tmp/foo.js', content: 'fixed' },
+        context: { skill: '/ccc-review', phase: 'autofix' },
+      },
+      { HOME: home, CCC_AUTOFIX_APPROVED: '' }
+    );
+
+    const entries = readGateLog(home);
+    assert.equal(entries.length, 1);
+    assert.equal(entries[0].decision, 'rejected-autofix');
+  });
+
+  it('a normal (non-autofix) approval still logs the generic "approved" decision, unchanged', () => {
+    const home = makeHome();
+    runGate(
+      {
+        tool_name: 'Bash',
+        tool_input: { command: 'npm test' },
+        session_id: 'test-session-generic-approve',
+      },
+      { HOME: home }
+    );
+
+    const entries = readGateLog(home);
+    assert.equal(entries.length, 1);
+    assert.equal(entries[0].decision, 'approved');
   });
 });
 

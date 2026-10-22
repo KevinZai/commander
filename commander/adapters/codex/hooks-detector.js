@@ -7,29 +7,83 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-export const CODEX_HOOK_EVENTS_0125 = Object.freeze([
+// Verified 2026-10-13 against docs/reference/platform-facts-2026-10.md §3.3
+// (Codex CLI 0.162.1). Codex supports exactly these 12 hook events. The
+// 2026-07-22 list had 10; Codex has since added SessionEnd and Interrupt.
+// Interrupt has no Claude Code equivalent (see CODEX_ONLY_HOOK_EVENTS and the
+// codex_only section of hook-event-map.json).
+//
+// Handler fields Codex understands: type (command | mcp_tool), command,
+// commandWindows, timeout, async (parsed but SKIPPED, so async handlers must
+// translate to synchronous), matcher, statusMessage, additionalContextLimit,
+// server/tool/input. Codex has no args, onFailure, if or once.
+export const CODEX_HOOK_EVENTS_VERIFIED_20261013 = Object.freeze([
   'SessionStart',
-  'SessionEnd',
-  'UserPromptSubmit',
-  'Stop',
-  'StopFailure',
+  'SubagentStart',
   'PreToolUse',
-  'PostToolUse',
   'PermissionRequest',
-]);
-
-export const CODEX_HOOK_EVENTS_LEGACY = Object.freeze([
-  'SessionStart',
-  'UserPromptSubmit',
-  'Stop',
-  'PreToolUse',
   'PostToolUse',
+  'PreCompact',
+  'PostCompact',
+  'UserPromptSubmit',
+  'SubagentStop',
+  'Stop',
+  'SessionEnd',
+  'Interrupt',
 ]);
 
+// Back-compat aliases -- existing callers import these names. Both now point
+// at the current verified set.
+export const CODEX_HOOK_EVENTS_VERIFIED_20260722 = CODEX_HOOK_EVENTS_VERIFIED_20261013;
+export const CODEX_HOOK_EVENTS_0125 = CODEX_HOOK_EVENTS_VERIFIED_20261013;
+
+// Codex events with no Claude Code counterpart; nothing in a Claude
+// hooks.json translates to them.
+export const CODEX_ONLY_HOOK_EVENTS = Object.freeze(['Interrupt']);
+
+// Handler fields Codex does not support. Commander's hooks.json never uses
+// them, so it mirrors to Codex unchanged.
+export const CODEX_UNSUPPORTED_HANDLER_FIELDS = Object.freeze(['args', 'onFailure', 'if', 'once']);
+
+// Handler fields that pass through translation unchanged.
+export const CODEX_PASSTHROUGH_HANDLER_FIELDS = Object.freeze([
+  'type',
+  'command',
+  'commandWindows',
+  'timeout',
+  'matcher',
+  'statusMessage',
+  'additionalContextLimit',
+]);
+
+// Codex caps SessionEnd and Interrupt handler timeouts (default 1 s, max 3 s).
+export const CODEX_SHORT_TIMEOUT_EVENTS = Object.freeze({ SessionEnd: 3, Interrupt: 3 });
+
+// Claude Code hook events with no Codex equivalent. Distinct from events that
+// map 1:1 -- see hook-event-map.json for the full per-event mapping table.
 export const CLAUDE_EVENTS_DROPPED_BY_CODEX = Object.freeze([
   'Notification',
-  'PreCompact',
-  'SubagentStop',
+  'PostToolUseFailure',
+  'PostToolBatch',
+  'StopFailure',
+  'Elicitation',
+  'ElicitationResult',
+  'TaskCreated',
+  'TaskCompleted',
+  'ConfigChange',
+  'UserPromptExpansion',
+  'InstructionsLoaded',
+  'Setup',
+  'PermissionDenied',
+  'MessageDisplay',
+  'TeammateIdle',
+  'CwdChanged',
+  'DirectoryAdded',
+  'FileChanged',
+  'WorktreeCreate',
+  'WorktreeRemove',
+  'PreModelSwitch',
+  'PostModelSwitch',
 ]);
 
 export function codexConfigPath(homeDir = os.homedir()) {
@@ -88,12 +142,14 @@ export function compareVersions(left, right) {
   return 0;
 }
 
-export function supportedEventsForVersion(codexVersion) {
-  if (!codexVersion) return [...CODEX_HOOK_EVENTS_0125];
-  if (compareVersions(codexVersion, '0.125.0') >= 0) {
-    return [...CODEX_HOOK_EVENTS_0125];
-  }
-  return [...CODEX_HOOK_EVENTS_LEGACY];
+export function supportedEventsForVersion(_codexVersion) {
+  // No version threshold is documented for hook-event support (re-checked
+  // 2026-10-13 against platform facts §3.3) -- the
+  // prior version-gated split (a lesser "legacy" set below some Codex
+  // version) was an unverified guess. Return the verified set
+  // unconditionally; the codexVersion parameter is kept for API
+  // compatibility and future use if a real threshold is ever documented.
+  return [...CODEX_HOOK_EVENTS_VERIFIED_20261013];
 }
 
 export function detectCodexHookCapabilities(options = {}) {
@@ -106,6 +162,7 @@ export function detectCodexHookCapabilities(options = {}) {
     codexVersion,
     supportedEvents: supportedEventsForVersion(codexVersion),
     droppedFromClaude: [...CLAUDE_EVENTS_DROPPED_BY_CODEX],
+    codexOnlyEvents: [...CODEX_ONLY_HOOK_EVENTS],
   };
 }
 

@@ -1,11 +1,32 @@
 ---
 title: "MCP Integrations"
-description: "2 pre-configured MCP servers. Less than 5% of Claude users have ONE. CCC ships with 9."
+description: "2 credential-free bundled MCP servers ship in .mcp.json. 16 more connect in one click via /ccc-connect. Less than 5% of Claude users have even ONE — CCC ships with 18 available."
 ---
 
-CCC ships `.mcp.json` with **2 pre-configured MCP servers** so Claude can reach out of the chat window and into the tools where your work actually lives.
+CCC ships `.mcp.json` with **2 credential-free bundled MCP servers** so Claude can reach extra reasoning and live library docs with zero setup. **16 more connect opt-in via `/ccc-connect`** — nothing else touches your credentials until you ask.
 
-## Pre-configured servers
+## Bundled (2, credential-free, zero setup)
+
+<CardGroup cols={2}>
+  <Card title="Context7" icon="book">
+    `~~library docs` — stdio
+
+    `npx -y @upstash/context7-mcp`
+
+    Live, current docs for Next.js, React, Supabase, and thousands more. No hallucinated APIs.
+  </Card>
+  <Card title="Sequential Thinking" icon="brain">
+    `~~reasoning` — stdio
+
+    `npx -y @modelcontextprotocol/server-sequential-thinking`
+
+    Extra reasoning primitive for complex multi-step problems. Helps Claude break down and track long chains of thought.
+  </Card>
+</CardGroup>
+
+## Opt-in via `/ccc-connect` (16 total — a sample)
+
+These are **not** bundled in `.mcp.json` — they connect only when you run `/ccc-connect` and approve them.
 
 <CardGroup cols={2}>
   <Card title="Linear" icon="list-check">
@@ -57,21 +78,9 @@ CCC ships `.mcp.json` with **2 pre-configured MCP servers** so Claude can reach 
 
     Real-time web search. Not blue links — AI-ready structured data.
   </Card>
-  <Card title="Context7" icon="book">
-    `~~library docs` — stdio
-
-    `npx -y @upstash/context7-mcp`
-
-    Live, current docs for Next.js, React, Supabase, and thousands more. No hallucinated APIs.
-  </Card>
-  <Card title="Sequential Thinking" icon="brain">
-    `~~reasoning` — stdio
-
-    `npx -y @modelcontextprotocol/server-sequential-thinking`
-
-    Extra reasoning primitive for complex multi-step problems. Helps Claude break down and track long chains of thought.
-  </Card>
 </CardGroup>
+
+See [`/ccc-connect`](/plugin/skills) for the rest of the 16 opt-in connectors (Supabase, Figma, Playwright, Notion, claude-mem, Exa, Firecrawl, Zapier, Vercel, Neon, Fly.io, Upstash, and more) — pick what your project needs.
 
 ## The `~~category` placeholder pattern
 

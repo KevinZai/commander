@@ -1,190 +1,126 @@
 ---
 name: ccc-save-session
-description: "Compress the current Claude Code session into a dense reloadable summary — key decisions, files modified, what worked, what did NOT work, open questions, exact next step."
+description: "Compress the current session into a dense reloadable file in ~/.claude/sessions/: decisions, files touched, what worked, what failed and why, open questions, exact next step. Use when ending a session, nearing context limits, or saying save this session."
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Skill
+  - AskUserQuestion
+argument-hint: "[optional topic or short-id]"
 model: sonnet
 effort: medium
 ---
 
-# /ccc-save-session — Save Session State
+# $ccc-save-session — Save session state
 
-Capture everything that happened in this session — what was built, what worked, what failed, what is left — and write it to a dated file so the next session can pick up exactly where this one left off.
+**CC Commander** · $ccc-save-session · one dated file the next session loads with `$ccc-resume-session` and continues from without re-deriving anything.
 
-## When to Use
+On Codex, AskUserQuestion becomes a plain-text question and skills are invoked as `$ccc-memory`.
 
-- End of a work session before closing Claude Code
-- Before hitting context limits (run this first, then start a fresh session)
-- After solving a complex problem you want to remember
-- Any time you need to hand off context to a future session
+## When to use / when not to
 
-## Process
+- Use at the end of a work session, before context limits (save first, then start a fresh session), after solving a hard problem, or whenever context must pass to a future session.
+- Use `$ccc-handoff` instead when the goal is to leave this chat now and continue in a fresh one; it writes the same format and ends with that instruction.
+- Use `$ccc-memory` for a durable project fact or decision that should outlive this one session.
 
-### Step 1: Gather context
+## What happens
 
-Before writing the file, collect:
+1. **Gather context.** Run, in the project directory:
 
-- Read all files modified during this session (use git diff or recall from conversation)
-- Review what was discussed, attempted, and decided
-- Note any errors encountered and how they were resolved (or not)
-- Check current test/build status if relevant
+   ```bash
+   git status --short
+   git diff --stat
+   git log --oneline -10
+   ```
 
-### Step 2: Create the sessions folder if it does not exist
+   If `git` fails because the directory is not a repository, skip these and list touched files from the conversation. Then review what was discussed, attempted and decided; note every error hit and whether it was resolved. Record the test/build result already observed this session with the command that produced it; if none was observed, write "not run this session" rather than claiming a status.
 
-```bash
-mkdir -p ~/.claude/sessions
+2. **Resolve the file path.**
+
+   ```bash
+   mkdir -p "$HOME/.claude/sessions" && echo "$HOME/.claude/sessions" && date +%F
+   ```
+
+   Build `~/.claude/sessions/YYYY-MM-DD-<short-id>-session.tmp` from today's date and a short-id that:
+
+   - uses only lowercase `a-z`, digits `0-9` and hyphens `-`;
+   - is at least 8 characters;
+   - has no uppercase letters, underscores or spaces.
+
+   Valid: `abc123de`, `frontend-worktree-1`. Invalid: `ABC123de` (uppercase), `short` (under 8), `test_id1` (underscore). Full example: `2024-01-15-abc123de-session.tmp`. If `$ARGUMENTS` names a topic, derive the short-id from it (for example `auth-refactor`).
+
+   Each session gets its own file. Confirm the target is free:
+
+   ```bash
+   test ! -e "$HOME/.claude/sessions/<date>-<short-id>-session.tmp" && echo free
+   ```
+
+   No `free` → change the short-id and check again.
+
+3. **Write the file** with the Write tool at the absolute path (expand `$HOME`; the tool does not expand `~`). Use the full template in [references/session-template.md](references/session-template.md). Required sections, in order:
+
+   - `What We Are Building` — enough context for someone with zero memory of the session.
+   - `What WORKED (with evidence)` — only confirmed items, each with its evidence; anything unproven goes to "Not Tried Yet".
+   - `What Did NOT Work (and why)` — the most important section: every failed approach with the exact reason or error, so the next session does not retry it.
+   - `What Has NOT Been Tried Yet`
+   - `Current State of Files` — every touched file as Done / In Progress / Broken / Not Started.
+   - `Decisions Made` — each with its reason, so settled choices are not relitigated.
+   - `Blockers and Open Questions`
+   - `Exact Next Step` — precise enough that resuming needs no thought; name any in-flight Workflow run, Routine or `/loop` and how to inspect it (`/workflows`, `/schedule`).
+   - `Environment and Setup Notes` — optional; env var names only, never values.
+
+   Write "Nothing yet" or "N/A" for a genuinely empty section; never drop one. On a mid-session save, record what is known so far and mark in-progress items clearly.
+
+4. **Verify the file.**
+
+   ```bash
+   f="$HOME/.claude/sessions/<date>-<short-id>-session.tmp"
+   [[ "$(basename "$f")" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]{8,}-session\.tmp$ ]] && test -s "$f" && echo name-ok
+   grep -cE '^## (What We Are Building|What WORKED|What Did NOT Work|What Has NOT Been Tried Yet|Current State of Files|Decisions Made|Blockers and Open Questions|Exact Next Step)' "$f"
+   ```
+
+   Expect `name-ok` and a count of `8`. A lower count → add the missing sections and rerun. A name failure → rename to a valid short-id and rerun.
+
+5. **Show the file.** Print its full contents, then `Session saved to <resolved path>`, then ask the decision below. Apply any corrections with Edit and rerun step 4.
+
+## Decision points
+
+```yaml
+question: "Does this session file look accurate?"
+header: "CC Commander — Save session"
+multiSelect: false
+options:
+  - label: "🟢 Looks right — done"
+    description: "Keep the file as written; load it next time with $ccc-resume-session."
+  - label: "Correct or add something"
+    description: "Tell me what to change; I edit the file and re-verify it."
+  - label: "Also record a durable decision"
+    description: "Run $ccc-memory to keep a decision or gotcha beyond this session."
 ```
 
-### Step 3: Write the session file
+## Done when
 
-Create `~/.claude/sessions/YYYY-MM-DD-<short-id>-session.tmp`, using today's actual date and a short-id that satisfies these rules:
+- Step 4 printed `name-ok` and a section count of `8` after the last edit.
+- The full contents and the resolved path were shown, and the user picked an option or asked for no changes.
 
-- Allowed characters: lowercase `a-z`, digits `0-9`, hyphens `-`
-- Minimum length: 8 characters
-- No uppercase letters, no underscores, no spaces
+## Guardrails
 
-Valid examples: `abc123de`, `frontend-worktree-1`
-Invalid examples: `ABC123de` (uppercase), `short` (under 8 chars), `test_id1` (underscore)
+- Never append to or overwrite an earlier session file; every save is a new file.
+- Never list an item under "What WORKED" without the evidence that proves it.
+- Never write secrets, tokens or credential values into the file; name the variable or secret reference instead.
+- Writes only inside `~/.claude/sessions/`. It does not commit, push, post, or update trackers.
 
-Full valid filename example: `2024-01-15-abc123de-session.tmp`
+## See also
 
-### Step 4: Populate all sections
-
-Write every section honestly. Do not omit any section — write "Nothing yet" or "N/A" if a section genuinely has no content. An incomplete file is worse than an honest empty section.
-
-### Step 5: Show the file to the user
-
-After writing, display the full contents and ask:
-
-```
-Session saved to [actual resolved path to the session file]
-
-Does this look accurate? Anything to correct or add before we close?
-```
-
-Wait for confirmation. Make edits if requested.
-
----
-
-## Session File Format
-
-```markdown
-# Session: YYYY-MM-DD
-
-**Started:** [approximate time if known]
-**Last Updated:** [current time]
-**Project:** [project name or path]
-**Topic:** [one-line summary of what this session was about]
-
----
-
-## What We Are Building
-
-[1-3 paragraphs describing the feature, bug fix, or task. Include enough
-context that someone with zero memory of this session can understand the goal.
-Include: what it does, why it is needed, how it fits into the larger system.]
-
----
-
-## What WORKED (with evidence)
-
-[List only things that are confirmed working. For each item include WHY you
-know it works — test passed, ran in browser, Postman returned 200, etc.
-Without evidence, move it to "Not Tried Yet" instead.]
-
-- **[thing that works]** — confirmed by: [specific evidence]
-
-If nothing is confirmed working yet: "Nothing confirmed working yet — all approaches still in progress or untested."
-
----
-
-## What Did NOT Work (and why)
-
-[This is the most important section. List every approach tried that failed.
-For each failure write the EXACT reason so the next session does not retry it.
-Be specific: "threw X error because Y" is useful. "did not work" is not.]
-
-- **[approach tried]** — failed because: [exact reason / error message]
-
-If nothing failed: "No failed approaches yet."
-
----
-
-## What Has NOT Been Tried Yet
-
-[Approaches that seem promising but have not been attempted. Ideas from the
-conversation. Alternative solutions worth exploring.]
-
-- [approach / idea]
-
-If nothing is queued: "No specific untried approaches identified."
-
----
-
-## Current State of Files
-
-[Every file touched this session. Be precise about what state each file is in.]
-
-| File              | Status         | Notes                      |
-| ----------------- | -------------- | -------------------------- |
-| `path/to/file.ts` | Done           | [what it does]             |
-| `path/to/file.ts` | In Progress    | [what is done, what is left] |
-| `path/to/file.ts` | Broken         | [what is wrong]            |
-| `path/to/file.ts` | Not Started    | [planned but not touched]  |
-
-If no files were touched: "No files modified this session."
-
----
-
-## Decisions Made
-
-[Architecture choices, tradeoffs accepted, approaches chosen and why.
-These prevent the next session from relitigating settled decisions.]
-
-- **[decision]** — reason: [why this was chosen over alternatives]
-
-If no significant decisions: "No major decisions made this session."
-
----
-
-## Blockers and Open Questions
-
-[Anything unresolved that the next session needs to address or investigate.
-Questions that came up but were not answered. External dependencies waiting on.]
-
-- [blocker / open question]
-
-If none: "No active blockers."
-
----
-
-## Exact Next Step
-
-[If known: The single most important thing to do when resuming. Be precise
-enough that resuming requires zero thinking about where to start.]
-
-[If not known: "Next step not determined — review 'What Has NOT Been Tried Yet'
-and 'Blockers' sections to decide on direction before starting."]
-
----
-
-## Environment and Setup Notes
-
-[Only fill this if relevant — commands needed to run the project, env vars
-required, services that need to be running, etc. Skip if standard setup.]
-
-[If none: omit this section entirely.]
-```
-
----
-
-## Notes
-
-- Each session gets its own file — never append to a previous session's file
-- The "What Did NOT Work" section is the most critical — future sessions will blindly retry failed approaches without it
-- If the user asks to save mid-session, save what is known so far and mark in-progress items clearly
-- The file is meant to be read by Claude at the start of the next session via `/ccc-resume-session`
-- Use the canonical global session store: `~/.claude/sessions/`
-- Prefer the short-id filename form for any new session file to avoid same-day collisions
+- `$ccc-resume-session` — load this file in the next session and brief before working
+- `$ccc-handoff` — same format, ends by moving work to a fresh chat
+- `$ccc-memory` — durable project memory beyond one session
+- `$ccc-recall` — search past session files
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

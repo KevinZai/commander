@@ -1,25 +1,80 @@
 ---
-title: "Upgrade to v6.6.0 Beta"
-description: "Upgrade an existing CC Commander plugin install to v6.6.0 in Claude Code Desktop, Claude Code CLI, or npm."
+title: "Upgrade to v8.1.0"
+description: "Upgrade an existing CC Commander plugin install to v8.1.0 in Claude Code Desktop, Claude Code CLI, or npm."
 ---
 
-# ⬆️ Upgrade to v6.6.0 Beta
+# ⬆️ Upgrade to v8.1.0
 
-You already have CC Commander installed? Here's how to pick up v6.6.0 with zero drama.
+You already have CC Commander installed? Here's how to pick up v8.1.0 with zero drama.
+
+<Warning>
+  Third-party plugin marketplaces do **not** auto-refresh by default. If you
+  only run `/plugin update commander`, it updates against whatever your
+  **local marketplace clone** last synced — which can be weeks stale. Run
+  the marketplace refresh first, every time.
+</Warning>
 
 ## Claude Code Desktop / CLI (plugin)
 
 ```
+/plugin marketplace update commander-hub
 /plugin update commander
 ```
 
-That's the whole thing. The marketplace serves the latest version from `main` — once the v6.6.0 release lands, your next `/plugin update` pulls it.
+Step 1 refreshes the local marketplace clone from `KevinZai/commander`'s
+`main` branch. Step 2 then actually updates the installed plugin — it can
+only pull a version that step 1 just fetched.
+
+**CLI one-liner** (same two steps):
+
+```bash
+claude plugin marketplace update commander-hub && claude plugin update commander
+```
+
+<Note>
+  **Restart required.** `/plugin update` stages the new version — it does
+  not hot-swap the running session. Fully quit Claude Code / Cowork Desktop
+  (Cmd+Q, not just closing the window — the menu-bar process must exit) and
+  reopen, or start a new CLI session.
+</Note>
+
+### Skip step 1 next time (auto-update)
+
+Third-party marketplaces support an opt-in auto-refresh flag. Set
+`"autoUpdate": true` on the `commander-hub` entry in
+`~/.claude/plugins/known_marketplaces.json`:
+
+```json
+{
+  "commander-hub": {
+    "source": { "source": "github", "repo": "KevinZai/commander" },
+    "installLocation": "~/.claude/plugins/marketplaces/commander-hub",
+    "autoUpdate": true
+  }
+}
+```
+
+Preserve every other key already in that entry — only add `autoUpdate`.
+Or run `/ccc-doctor`, which offers to do this for you (backs up the file
+first, asks for confirmation, verifies the write). Some Claude Code builds
+also expose this as a toggle in the `/plugin` interactive menu — check
+there first if you'd rather not hand-edit JSON.
+
+With `autoUpdate: true`, the marketplace clone still refreshes in the
+background rather than instantly — `/plugin update commander` (step 2, plus
+the restart) still applies it.
+
+### Click-first walkthrough
+
+Prefer not to run commands by hand? `/ccc-update` detects your installed
+vs. latest version, runs both commands for you to confirm, reminds you to
+restart, and verifies the new version + hooks are actually live afterward.
 
 ### Verify the upgrade
 
 ```
 /plugin list | grep commander
-# should show: commander  v6.6.0  Kevin Zicherman
+# should show the latest version (currently v8.1.0), Kevin Zicherman
 ```
 
 Or in a fresh Claude Code session:
@@ -28,34 +83,41 @@ Or in a fresh Claude Code session:
 /ccc-settings
 ```
 
-The settings menu header reports the installed version.
+The settings menu header reports the installed version. You can also run `/ccc-doctor` — it validates the plugin manifest and reports drift against expected canonical counts.
 
 ### What changes for you
 
-| Surface | Before (v6.6.0) | After (v6.6.0) |
+The 8.1.0 release adds descriptive MCP tool annotations, JSON-RPC catalog discovery,
+and cloud test/startup fixes. Existing force-push denials remain unchanged.
+The table below includes the v8 platform changes for users upgrading from v7.
+
+| Surface | Before (v7.4.2) | Now (v8.1.0) |
 |---------|-----------------|----------------------|
-| Plugin skills | 15 free + 2 pro | 24 free + 2 pro (11 CCC domain routers now free) |
-| Agents | 10 domain specialists | 15 with persona voice system (added content-strategist, data-analyst, performance-engineer, product-manager, technical-writer) |
-| Hooks | 6 lifecycle events | 9 lifecycle events |
-| Rules shipped with plugin | none | 10 voice files + 17 personas at `rules/common/` + `rules/personas/` |
-| Commands | `/ccc-refresh` (canonical) | `/ccc-init` (canonical); `/ccc-refresh` kept as deprecated alias |
-| Publisher | "Kevin Z" | "Kevin Zicherman" (canonical) |
-| Status bar | Opus 4.6 default | Opus 4.7 default + session time remaining + cost gauge + cache hit % |
+| Plugin skills | 83 | 84 (new: `/ccc-codex`) |
+| Agents | 22 specialist personas | 22, on model aliases (`fable`, `opus`, `sonnet`) |
+| Hooks | 23 lifecycle events / 44 handlers | 30 lifecycle events / 51 handlers |
+| Plugin workflows | 4 | 6, runnable as `/commander:<name>` |
+| Plugin evals | — | 8 `claude plugin eval` cases |
+| Mods | — | Commander HUD (Claude Code 2.1.287+) |
+| Models | Previous Claude and Codex generations, partly pinned ids | Opus 5.5, Fable 5.1, Sonnet 5.5, Haiku 5.5; GPT-6 family on Codex |
+| Bundled MCP servers | 2 credential-free + 16 opt-in | 2 credential-free + 16 opt-in (unchanged) |
+| Ecosystem skills | 467 | 467 (unchanged) |
+
+If you pinned old model ids in your own `~/.claude/settings.json` or agent files, `/ccc-doctor` flags superseded ids as upgrade candidates; Commander's own files now use aliases.
 
 Your `~/.claude/commander/` state files, knowledge base, and learned-skills directory are preserved. No data migration needed.
 
-## npm CLI
+## CLI toolkit
 
 ```bash
-npm i -g cc-commander@6.6.0
-# or: npm i -g cc-commander@next (if we tag the dist-tag)
-ccc --version   # should show 6.6.0
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+ccc --version   # should show the latest version (currently 8.1.0)
 ```
 
 Re-run the post-install verify:
 
 ```bash
-ccc --test      # should print 208/208 tests passing
+ccc --test      # runs the full test suite
 ccc --status    # shows plugin + cli + vendor + tests + integrations
 ```
 
@@ -68,7 +130,7 @@ cd ~/path/to/commander   # or wherever you cloned
 git pull origin main
 git submodule update --init --recursive   # pick up vendor updates
 npm install
-npm test                 # 208/208
+npm test
 ```
 
 Or the one-liner reinstall:
@@ -82,20 +144,24 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 If something breaks (please file an issue first):
 
 ```
-/plugin update commander --version 6.6.0
+/plugin update commander --version 7.4.2
 # or
-npm i -g cc-commander@6.6.0
+git clone --branch v7.4.2 https://github.com/KevinZai/commander && cd commander && ./install.sh
 ```
 
 ## After the upgrade
 
-Optional but recommended: run `/ccc-init` to refresh your project `CLAUDE.md` against the new v4 template (22-emoji palette, 10 Core Principles, 4 HARD RULES). Custom sections are preserved.
+Optional but recommended: run `/ccc-tuneup` to audit your local `~/.claude` setup (versions, drift, superseded agents, hooks coverage) or `/ccc-claudemd` to refresh your project `CLAUDE.md` against current conventions. Custom sections are preserved.
 
-## Known issues in v6.6.0
+## Try what's new
 
-- Hosted MCP endpoint at `mcp.commanderplugin.com` is not live yet — deploy pending Kevin's infrastructure provisioning. Plugin-side UX is unaffected.
-- 135 eslint warnings exist in the codebase (tech-debt, not new regressions). `--max-warnings 140` is temporarily enforced. Will be fixed in beta.2.
-- Full marketing site pivot is deferred — homepage + pricing are shipping; other pages (/beta, /dashboard, /compatibility, /faq) are stubs.
+```
+/ccc-codex                    # manage the Codex CLI from Claude
+/commander:ccc-release-audit  # run every release gate, go or no-go
+/ccc-hud                      # toggle the HUD band (Claude Code 2.1.287+)
+```
+
+Full notes: [What's new in v8](/whats-new-v8).
 
 ## Questions
 

@@ -1,124 +1,147 @@
 ---
 name: ccc-resume-session
-description: "Load the last saved session file from ~/.claude/sessions/ and orient fully before doing any work. Reads the complete file, formats a structured briefing (project,…"
+description: "Load a saved session file from ~/.claude/sessions/ (latest, by date, or by path), read it fully, and brief project, state, what not to retry, blockers and next step before touching anything. Use when resuming work, continuing where you left off, or after a fresh session."
+allowed-tools:
+  - Read
+  - Bash
+  - AskUserQuestion
+argument-hint: "[YYYY-MM-DD | path/to/YYYY-MM-DD-short-id-session.tmp]"
 model: sonnet
 effort: medium
 ---
 
-# /ccc-resume-session — Resume Session State
+# $ccc-resume-session — Resume session state
 
-Load the last saved session state and orient fully before doing any work.
-This skill is the counterpart to `/ccc-save-session`.
+**CC Commander** · $ccc-resume-session · a fixed-format briefing from the last saved session, then a picker; no work starts until the user chooses.
 
-## When to Use
+Counterpart to `$ccc-save-session` and `$ccc-handoff`, which write the files this skill reads. On Codex, AskUserQuestion becomes a plain-text question.
 
-- Starting a new session to continue work from a previous day
-- After starting a fresh session due to context limits
-- When handing off a session file from another source (provide the file path as argument)
-- Any time you have a session file and want Claude to fully absorb it before proceeding
+## When to use / when not to
+
+- Use when starting a session that continues earlier work, after restarting for context limits, or when handed a session file from another source (pass its path).
+- Use `$ccc-recall` instead to search across many past sessions for one fact; this skill loads one session in full.
 
 ## Usage
 
 ```
-/ccc-resume-session                                                      # loads most recent file in ~/.claude/sessions/
-/ccc-resume-session 2024-01-15                                           # loads most recent session for that date
-/ccc-resume-session ~/.claude/sessions/2024-01-15-session.tmp           # loads a specific legacy-format file
-/ccc-resume-session ~/.claude/sessions/2024-01-15-abc123de-session.tmp  # loads a current short-id session file
+$ccc-resume-session                                                      # most recent file in ~/.claude/sessions/
+$ccc-resume-session 2024-01-15                                           # most recent session for that date
+$ccc-resume-session ~/.claude/sessions/2024-01-15-session.tmp           # a legacy-format file
+$ccc-resume-session ~/.claude/sessions/2024-01-15-abc123de-session.tmp  # a current short-id file
 ```
 
-## Process
+## What happens
 
-### Step 1: Find the session file
+1. **Find the session file** from `$ARGUMENTS`:
 
-If no argument provided:
+   - No argument → most recently modified session file:
 
-1. Check `~/.claude/sessions/`
-2. Pick the most recently modified `*-session.tmp` file
-3. If the folder does not exist or has no matching files, tell the user:
+     ```bash
+     ls -t "$HOME"/.claude/sessions/*-session.tmp 2>/dev/null | head -1
+     ```
+
+   - A date (`YYYY-MM-DD`) → most recently modified file for that date, legacy or short-id form:
+
+     ```bash
+     ls -t "$HOME"/.claude/sessions/"$ARGUMENTS"*-session.tmp 2>/dev/null | head -1
+     ```
+
+   - A path → use it directly; check it with `test -f "<path>" && echo found`.
+
+   Empty output or no `found` → print the message below and stop.
+
    ```
    No session files found in ~/.claude/sessions/
-   Run /ccc-save-session at the end of a session to create one.
+   Run $ccc-save-session at the end of a session to create one.
    ```
-   Then stop.
 
-If an argument is provided:
+   For a date or path that does not match, name what was searched and stop.
 
-- If it looks like a date (`YYYY-MM-DD`), search `~/.claude/sessions/` for files matching that date and load the most recently modified variant
-- If it looks like a file path, read that file directly
-- If not found, report clearly and stop
+2. **Read the entire file** with Read. Do not summarize before the whole file is read. If it is empty or has none of the expected `## ` sections, report "Session file found but appears empty or unreadable. You may need to create a new one with $ccc-save-session." and stop.
 
-### Step 2: Read the entire session file
+3. **Check drift.**
 
-Read the complete file. Do not summarize yet.
+   - Age in days:
 
-### Step 3: Confirm understanding
+     ```bash
+     f="<resolved path>"; echo $(( ( $(date +%s) - $(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f") ) / 86400 ))
+     ```
 
-Respond with a structured briefing in this exact format:
+     Over 7 → add to the briefing: "This session is from N days ago (threshold: 7 days). Things may have changed."
+   - Missing files: for each path in "Current State of Files", run `test -e "<path>" || echo "missing: <path>"` from the project root, and list each miss as "`<path>` referenced in session but not found on disk."
 
+4. **Brief** in exactly this format. Never skip a section; write "None" when empty. "WHAT NOT TO RETRY" is always shown.
+
+   ```
+   SESSION LOADED: [actual resolved path to the file]
+   ════════════════════════════════════════════════
+
+   PROJECT: [project name / topic from file]
+
+   WHAT WE'RE BUILDING:
+   [2-3 sentence summary in your own words]
+
+   CURRENT STATE:
+   Working: [count] items confirmed
+   In Progress: [list files that are in progress]
+   Not Started: [list planned but untouched]
+
+   WHAT NOT TO RETRY:
+   [every failed approach with its reason]
+
+   OPEN QUESTIONS / BLOCKERS:
+   [any blockers or unanswered questions]
+
+   NEXT STEP:
+   [exact next step if defined in the file]
+   [if not defined: "No next step defined — recommend reviewing 'What Has NOT Been Tried Yet' together before starting"]
+
+   [age and missing-file notes from step 3, if any]
+   ════════════════════════════════════════════════
+   ```
+
+5. **Ask, then wait.** Ask the decision below. Do not start work or touch any file before the user answers. On "Continue", carry out the exact next step from the file. On any other answer, follow the user's direction.
+
+## Decision points
+
+When the file defines a next step:
+
+```yaml
+question: "Where do you want to start?"
+header: "CC Commander — Resume"
+multiSelect: false
+options:
+  - label: "🟢 Continue with the next step"
+    description: "Carry out the 'Exact Next Step' from the session file now."
+  - label: "Review blockers first"
+    description: "Work through open questions before any change."
+  - label: "Start somewhere else"
+    description: "Tell me the task; the briefing stays as context."
 ```
-SESSION LOADED: [actual resolved path to the file]
-════════════════════════════════════════════════
 
-PROJECT: [project name / topic from file]
+When it does not, offer up to three items from "What Has NOT Been Tried Yet" (the most promising first, marked 🟢) plus "Start somewhere else".
 
-WHAT WE'RE BUILDING:
-[2-3 sentence summary in your own words]
+## Done when
 
-CURRENT STATE:
-Working: [count] items confirmed
-In Progress: [list files that are in progress]
-Not Started: [list planned but untouched]
+- The resolved path was printed in the briefing, every briefing section is present, and step 3's age and missing-file checks ran.
+- The picker was asked and no file was changed before the user answered.
 
-WHAT NOT TO RETRY:
-[list every failed approach with its reason — this is critical]
+## Guardrails
 
-OPEN QUESTIONS / BLOCKERS:
-[list any blockers or unanswered questions]
+- Never modify, rename or delete the session file; it is a read-only record.
+- Never start work automatically, even when the next step is obvious.
+- Never fill a briefing section from memory; every line comes from the file just read.
+- Reads only. It does not commit, push, post, or update trackers.
 
-NEXT STEP:
-[exact next step if defined in the file]
-[if not defined: "No next step defined — recommend reviewing 'What Has NOT Been Tried Yet' together before starting"]
+## See also
 
-════════════════════════════════════════════════
-Ready to continue. What would you like to do?
-```
-
-### Step 4: Wait for the user
-
-Do NOT start working automatically. Do NOT touch any files. Wait for the user to say what to do next.
-
-If the next step is clearly defined in the session file and the user says "continue" or "yes" or similar — proceed with that exact next step.
-
-If no next step is defined — ask the user where to start, and optionally suggest an approach from the "What Has NOT Been Tried Yet" section.
-
----
-
-## Edge Cases
-
-**Multiple sessions for the same date:**
-Load the most recently modified matching file for that date, regardless of filename format (legacy or short-id).
-
-**Session file references files that no longer exist:**
-Note this during the briefing — "Path/to/file.ts referenced in session but not found on disk."
-
-**Session file is from more than 7 days ago:**
-Note the gap — "This session is from N days ago (threshold: 7 days). Things may have changed." — then proceed normally.
-
-**User provides a file path directly (e.g., forwarded from a teammate):**
-Read it and follow the same briefing process — the format is the same regardless of source.
-
-**Session file is empty or malformed:**
-Report: "Session file found but appears empty or unreadable. You may need to create a new one with /ccc-save-session."
-
----
-
-## Notes
-
-- Never modify the session file when loading it — it is a read-only historical record
-- The briefing format is fixed — do not skip sections even if they are empty
-- "What Not To Retry" must always be shown, even if it just says "None" — it is too important to miss
-- After resuming, the user may want to run `/ccc-save-session` again at the end of the new session to create a new dated file
+- `$ccc-save-session` — write the file this skill loads; run it again at the end of the new session
+- `$ccc-handoff` — mid-task handoff in the same format
+- `$ccc-session` — picker that routes to save, resume or history
+- `$ccc-recall` — search across past sessions
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

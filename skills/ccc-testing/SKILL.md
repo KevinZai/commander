@@ -1,87 +1,119 @@
 ---
 name: ccc-testing
-description: "CCC domain — complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testing, and load testing."
-version: 1.0.0
-category: CCC domain
-brand: Kevin Z's CC Commander
+description: "Testing domain router: picks the lane for TDD, E2E, visual regression, load testing, QA, regression checks, evals, Python tests or verification, and runs test-writing work in an isolated worktree. Use when the user asks to write, plan, run or verify tests."
+allowed-tools:
+  - Read
+  - Glob
+  - Bash
+  - Agent
+  - AskUserQuestion
+argument-hint: "[tdd | e2e | verify | qa | qa-only | strategy | visual | load | regression | evals | python | quality]"
+model: inherit
+effort: medium
 ---
 
-# ccc-testing
+# /ccc-testing — the right test lane
 
-> Load ONE skill. Get the entire testing domain. Built from 11 proven skills + 4 new ones.
+**CC Commander** · /ccc-testing · one entry to the testing domain; routes to one specialist sub-skill in this directory and keeps test-writing work out of the user's working tree.
 
-## Absorbed Skills Manifest
+The user's selected model is preserved. Codex: ask pickers as plain-text questions.
 
-| # | Original Skill | What It Does | Status |
-|---|----------------|--------------|--------|
-| 1 | `e2e-testing` | Playwright end-to-end testing — page objects, fixtures, assertions, CI setup | Absorbed |
-| 2 | `webapp-testing` | Playwright for local web apps — dev server integration, visual testing | Absorbed |
-| 3 | `tdd-workflow` | Test-driven development — red/green/refactor cycle, coverage tracking | Absorbed |
-| 4 | `verification-loop` | Comprehensive verification — multi-step validation before marking done | Absorbed |
-| 5 | `verification-before-completion` | Proof-of-work verification — evidence that changes work correctly | Absorbed |
-| 6 | `ai-regression-testing` | AI-assisted regression — detect regressions using AI analysis of test results | Absorbed |
-| 7 | `eval-harness` | Eval-driven development — build evals first, then implement to pass them | Absorbed |
-| 8 | `qa` | Full QA pass — find bugs, fix them, commit fixes | Absorbed |
-| 9 | `qa-only` | Report-only QA — find and report bugs without fixing them | Absorbed |
-| 10 | `plankton-code-quality` | Write-time quality — catch issues as code is written, not after | Absorbed |
-| 11 | `python-testing` | Python testing — pytest, fixtures, mocking, TDD for Python projects | Absorbed |
-| 12 | `testing-router` | Routes your testing task to the right specialist | **NEW** |
-| 13 | `test-strategy` | Generates a complete testing strategy for any project | **NEW** |
-| 14 | `visual-regression` | Visual regression testing — screenshot comparison, Percy, Chromatic | **NEW** |
-| 15 | `load-testing` | Load testing — k6/Artillery scripts, performance benchmarks, stress testing | **NEW** |
+## When to use / when not to
 
-**Replaces loading:** e2e-testing, webapp-testing, tdd-workflow, verification-loop, verification-before-completion, ai-regression-testing, eval-harness, qa, qa-only, plankton-code-quality, python-testing
+- Use when the request is about writing, planning, running or verifying tests and the right specialist is not obvious.
+- Use `/ccc-qa` for a QA pass over an existing suite, `/ccc-e2e` for a parallel pre-release assessment, and `/ccc-systematic-debugging` when a test fails and the cause is unknown.
 
----
+## Sub-skills
 
-## Routing Matrix
+Each lives at `<dir>/SKILL.md` beside this file. Load one at a time.
 
-| Your Intent | Route To | Don't Confuse With |
-|-------------|----------|--------------------|
-| "Write tests first" / "TDD" | `tdd-workflow` | `qa` (testing existing code) |
-| "E2E tests" / "Playwright" | `e2e-testing` + `webapp-testing` | `tdd-workflow` (unit level) |
-| "Verify my work" / "Is this done?" | `verification-loop` | `qa` (broader scope) |
-| "QA this" / "Find bugs" | `qa` (fix) or `qa-only` (report) | `verification-loop` (did I do this right?) |
-| "Test strategy" / "What should I test?" | `test-strategy` | `tdd-workflow` (how to test) |
-| "Visual regression" / "Screenshot tests" | `visual-regression` | `e2e-testing` (functional) |
-| "Load testing" / "Performance test" | `load-testing` | `visual-regression` (visual) |
+| Directory | Use for |
+|---|---|
+| `testing-router/` | Decision tree when the intent is unclear |
+| `test-strategy/` | Testing strategy for a project: test types, priorities, coverage targets |
+| `tdd-workflow/` | Red-green-refactor for new features, bug fixes and refactors |
+| `e2e-testing/` | Playwright E2E: page objects, fixtures, config, CI, flaky-test handling |
+| `webapp-testing/` | Playwright against a local dev server; `scripts/with_server.py` manages server lifecycle |
+| `visual-regression/` | Screenshot comparison, Percy, Chromatic, baseline management |
+| `load-testing/` | k6 or Artillery scripts, thresholds, bottleneck analysis |
+| `qa/` | Find bugs, fix them in source with atomic commits, re-verify |
+| `qa-only/` | Find and report bugs without changing code |
+| `ai-regression-testing/` | Regression checks where the same model wrote and reviews the code |
+| `eval-harness/` | Eval-driven development: write evals first, implement to pass them |
+| `python-testing/` | pytest, fixtures, mocking, parametrization, coverage |
+| `plankton-code-quality/` | Write-time formatting and linting through PostToolUse hooks |
+| `verification-loop/` | Multi-step validation before marking work done |
+| `verification-before-completion/` | Evidence before any "done", "fixed" or "passing" claim |
+
+Keep this table matched to the directory: `ls -d "${CLAUDE_SKILL_DIR}"/*/` (repo fallback `ls -d skills/ccc-testing/*/`).
+
+## What happens
+
+### 1. Pick the lane
+
+An argument or a clear request routes directly:
+
+| Intent | Route to | Not to be confused with |
+|---|---|---|
+| "Write tests first", TDD | `tdd-workflow` | `qa` (testing existing code) |
+| "E2E tests", Playwright | `e2e-testing` + `webapp-testing` | `tdd-workflow` (unit level) |
+| "Verify my work", "is this done?" | `verification-loop`, then `verification-before-completion` | `qa` (broader scope) |
+| "QA this", find and fix bugs | `qa` | `verification-loop` (did I do this right?) |
+| Find bugs, report only | `qa-only` | `qa` (changes code) |
+| "What should I test?", test strategy | `test-strategy` | `tdd-workflow` (how to test) |
+| Visual regression, screenshot tests | `visual-regression` | `e2e-testing` (functional) |
+| Load or performance testing | `load-testing` | `visual-regression` (visual) |
 | "Check for regressions" | `ai-regression-testing` | `visual-regression` (visual only) |
-| "Build evals" / "Eval-driven" | `eval-harness` | `tdd-workflow` (code tests, not evals) |
-| "Python tests" / "pytest" | `python-testing` | `tdd-workflow` (language-agnostic) |
-| "Code quality while writing" | `plankton-code-quality` | `qa` (post-hoc) |
+| Build evals, eval-driven | `eval-harness` | `tdd-workflow` (code tests, not evals) |
+| Python tests, pytest | `python-testing` | `tdd-workflow` (language-agnostic) |
+| Code quality while writing | `plankton-code-quality` | `qa` (after the fact) |
 
----
+For a Claude Code plugin, the eval lane also has the platform runner: `claude plugin eval .` (scaffold with `claude plugin eval init`).
 
-## Campaign Templates
+With no argument and no clear intent, ask with AskUserQuestion (header "Testing"):
 
-### Full Testing Strategy
-1. `test-strategy` → analyze project, recommend test types and coverage targets
-2. `tdd-workflow` → set up test framework, write first tests
-3. `e2e-testing` → critical user flow tests
-4. `visual-regression` → screenshot baselines
-5. `load-testing` → performance benchmarks
-6. `verification-loop` → verify everything passes
+- 🟢 Write tests first (TDD) — failing test, then the code that passes it
+- QA pass — find bugs and fix them, or report only
+- E2E tests — Playwright user-flow tests with page objects and CI wiring
+- More… — a follow-up picker: 🟢 Test strategy · Visual regression · Load testing · More (regressions, evals)
 
-### Bug Fix with Tests
-1. `qa` or `qa-only` → identify the bug
-2. `tdd-workflow` → write failing test reproducing the bug
-3. Fix the bug → test goes green
-4. `ai-regression-testing` → check for related regressions
-5. `verification-before-completion` → prove the fix works
+Multi-lane jobs (full strategy, bug fix with tests, pre-release QA, TDD feature build) follow [references/campaigns.md](references/campaigns.md).
 
-### Pre-Release QA
-1. `qa` → full QA pass
-2. `e2e-testing` → run full E2E suite
-3. `visual-regression` → compare against baselines
-4. `load-testing` → stress test under load
-5. `verification-loop` → final sign-off
+### 2. Find the test command
 
-## Scope note
+Before a lane writes or runs tests, read the project's own test entry point and name it:
 
-This is the **CLI catalog entry** for the CCC testing domain. For the Desktop plugin entry, see `commander/cowork-plugin/skills/ccc-testing/`. Both dispatch to the same sub-skills.
+```bash
+test -f package.json && node -e "console.log(require('./package.json').scripts||{})"; ls pytest.ini pyproject.toml playwright.config.* k6*.js 2>/dev/null
+```
 
-### TDD Feature Build
-1. `test-strategy` → what to test for this feature
-2. `tdd-workflow` → red/green/refactor loop
-3. `e2e-testing` → user flow test
-4. `verification-before-completion` → prove it works
+Use the command the project defines. When none exists, the lane's setup step adds one and says so.
+
+### 3. Run the lane, isolated when it writes
+
+Read `<lane>/SKILL.md` and follow it. Tell the user in one line which lane ran.
+
+When a lane writes or rewrites tests through a subagent, dispatch it with the Agent tool and `isolation: "worktree"`, then report the worktree branch and the files it changed for the user to merge. Run in the current tree only when the user asks. Read-only lanes (`test-strategy`, `qa-only`, `verification-loop`, `verification-before-completion`) run in place.
+
+Codex: run a writing lane in a git worktree the user approves, or with `codex exec --cd <worktree>`.
+
+## Done when
+
+- The lane's test command ran this turn and its exit status and pass/fail counts are quoted, or, for `test-strategy`, the strategy document path is reported.
+- A new regression test was shown failing before the fix and passing after it.
+- For worktree dispatches, the reply names the worktree branch and its changed files; `git -C <worktree> status --short` output is quoted.
+
+## Guardrails
+
+- Never mark a lane done without a test run from this turn; a written test that was never executed is not done.
+- `qa` commits each fix and `plankton-code-quality` clones a third-party repo and copies hook configuration into `.claude/settings.json`: ask with a picker before either commits, stashes, clones or changes hook settings, and never push.
+- Never write tests into the user's working tree from a subagent unless the user asked for in-place work.
+- Never weaken an assertion or skip a test to turn a run green; report the failure instead.
+- Never load every sub-skill at once.
+
+## See also
+
+- `/ccc-qa` — run every suite, coverage delta, flaky audit
+- `/ccc-e2e` — parallel pre-release assessment
+- `/ccc-systematic-debugging` — root-cause a failing test
+- `/ccc-review` — review the change the tests cover

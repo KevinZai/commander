@@ -1125,13 +1125,13 @@ Save this summary — it goes into the PR body in Step 8.
 5. Compose each commit message:
    - First line: `<type>: <summary>` (type = feat/fix/chore/refactor/docs)
    - Body: brief description of what this commit contains
-   - Only the **final commit** (VERSION + CHANGELOG) gets the version tag and co-author trailer:
+   - Only the **final commit** (VERSION + CHANGELOG) gets the version tag and, if the project uses AI attribution, a co-author trailer. Omit the trailer entirely if the project has attribution disabled:
 
 ```bash
 git commit -m "$(cat <<'EOF'
 chore: bump version and changelog (vX.Y.Z.W)
 
-Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```

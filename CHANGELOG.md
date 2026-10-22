@@ -1,6 +1,553 @@
 # Changelog
 
+## [8.1.0] - 2026-10-18
+
+### Added
+- Explicit MCP tool annotations and JSON-RPC `tools/list` discovery on the existing HTTP call endpoint. Auth, burst and monthly limits, feedback gates, and usage accounting remain in place.
+- MCP cloud typecheck, tests, and build now run on pull requests.
+
+### Fixed
+- Importing the cloud app no longer starts a listening server, allowing the ordinary test command to finish without forced exit. Direct startup remains supported; `HOST` can select a bind address.
+
+### Decision
+- Ship catalog annotations for #128. Keep force-push permission denials unchanged; an interactive PreToolUse confirmation policy requires separate destination-aware and cross-client validation. Annotations are descriptive hints, not permission grants.
+
+## [8.0.0] - 2026-10-13
+
+Commander 8 is a full revamp for the October 2026 platform. Every prompt
+surface was rewritten to one standard and adversarially verified file by
+file; every model reference moved to the Claude 5.5 generation and the GPT-6
+family; the plugin gained a mod, distributable workflows, an eval suite and
+the hook events Claude Code added since August; Codex CLI management became a
+first-class skill. Planned by Claude Fable 5.1, built by Opus 5.5 workers in
+nine parallel lanes plus a 195-file rewrite fan-out.
+
+### Added
+- **`/ccc-codex` — Codex CLI management from Claude.** doctor, models,
+  plugins and marketplaces, MCP servers, subagents (installs the generated
+  TOML agents into `~/.codex/agents/`), Codex Cloud tasks, remote control,
+  `codex review`, `codex update`, `/import` guidance and `config.toml`
+  editing. Every config write asks first, backs up the file and verifies with
+  `codex doctor --json`.
+- **Commander HUD mod** (`mods/commander-hud/`): a Claude Mod that draws a band
+  above the prompt with the Fable Method state, running agents, the session's
+  tool-call budget and an update pill, plus a `/ccc-hud` command that runs
+  without a model turn. Observe-only: no tool approval, no model calls, no
+  network, reads only `~/.claude/commander/`. Requires Claude Code 2.1.287+
+  (Desktop 2.1.286+); hooks-only elsewhere. See `docs/MODS.md`.
+- **Plugin workflows.** Six dynamic workflows ship as `/commander:<name>`:
+  `ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate` (modernized:
+  pipeline by default, verifiers told to refute, worktree verification fixed)
+  and the new `ccc-prompt-audit` and `ccc-release-audit`.
+- **Plugin evals.** Eight `claude plugin eval` cases (hub, plan, review,
+  doctor, fable, update, suggest, codex) under `evals/`, runnable with
+  `claude plugin eval ./commander/cowork-plugin --case <name> --runs 3`.
+- **Seven new hook events wired** (30 events, 51 handlers): PermissionDenied
+  (auto-mode denials reach `/ccc-safety`), PreModelSwitch and PostModelSwitch
+  (routing telemetry and a tier reminder), TeammateIdle (fleet telemetry),
+  CwdChanged and DirectoryAdded (session state), FileChanged on `CLAUDE.md`
+  (stale-instructions nudge, seeded by SessionStart `watchPaths`).
+  WorktreeCreate and WorktreeRemove are deliberately not registered: a hook
+  there replaces git worktree handling.
+- **Codex subagent mirror.** `scripts/build-codex.js` emits valid TOML agents
+  from the plugin's agent files with models resolved through the registry.
+- **Verified platform facts** (`docs/reference/platform-facts-2026-10.md`) and
+  the **prompt standard** (`docs/PROMPT-STANDARD.md`) every surface follows.
+- **Vendor:** `anthropics/claude-code-playground` (sample mods, Apache-2.0).
+
+### Changed
+- **Models.** Claude routing by alias: `fable` (Fable 5.1) deep, `opus`
+  (Opus 5.5) default, `sonnet` (Sonnet 5.5) fast, `haiku` (Haiku 5.5) bulk.
+  Codex registry rebuilt on `gpt-6-astra` (deep), `gpt-6.1-sol` (default),
+  `gpt-6-sol` (bounded), `gpt-6-luna` (bulk), every id probed live on
+  2026-10-13; `gpt-5.6-*` kept as fallbacks, `gpt-5.5` marked retiring
+  (2026-10-14), `gpt-5.4` and `gpt-5.4-mini` removed. Cost tables use the
+  verified list prices (Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5
+  $0.10/$0.50, Fable 5.1 $10/$50). The Claude API catalog in the `claude-api`
+  skill is rebuilt.
+- **Every prompt rewritten.** All plugin skills, the 22 agents and 15
+  personas, the rules, menus, `CLAUDE.md.template`, `AGENTS.md`, the toolkit
+  commands, the domain routers and the prompt templates follow the v8
+  standard: procedure-first, AskUserQuestion pickers, done-when checks,
+  guardrails, no counts or versions in bodies, no stale model names, long
+  tables moved to `references/`. Each file was checked by a fresh-context
+  verifier against the standard's checklist.
+- **Agents** use aliases and the current subagent frontmatter (`skills`
+  preloads, `disallowedTools` for read-only reviewers, no platform-ignored
+  fields); architect and security-auditor run on Fable 5.1.
+- **Decks** describe the Artifact tool as it is today; snapshot pages meet the
+  artifact-design contract; `ccc-mission-control` and `ccc-linear-board`
+  declare the `db` capability and sync rows through ArtifactData instead of
+  republishing. The Linear board is a read-only Kanban page.
+- **`/ccc-orchestrate`** executes on `gpt-6-astra`, `gpt-6.1-sol`,
+  `gpt-6-luna`, Codex Cloud or a Sonnet subagent via
+  `codex exec --json --output-last-message`.
+- **Codex mirror** derives dropped hook events from `hook-event-map.json`
+  (12 Codex events; SessionEnd kept, Interrupt has no Claude source), ships
+  hook timeouts in seconds with the 3 s SessionEnd cap, adds the
+  `com.openai` interface extension and never copies `mods/`, `evals/` or
+  `workflows/`. The marketplace entry uses the current source/policy/category
+  schema.
+- **Rules.** `fable-method.md` keeps the 12 pillars on current primitives;
+  `workflow-first.md` links instead of restating; settings templates use the
+  `opus` alias and auto permission mode.
+- **Vendors** refreshed to upstream heads (superpowers v7.0.0, rtk v0.51.0,
+  claude-hud security fix); zero license changes.
+- `/ccc-doctor` checks agent routing by alias and flags superseded pinned
+  ids as upgrade candidates; the naming audit allows 300-character
+  descriptions.
+
+### Fixed
+- `ccc-migrate` verified the main tree instead of each change's worktree.
+- `ccc-fleet` pipeline mode discarded edits between stages by isolating each
+  stage in a fresh worktree.
+- The Codex agent export produced invalid TOML for agent bodies containing a
+  backslash.
+- `/ccc-doctor` rejected agents on current model ids.
+
+## [7.4.2] - 2026-08-01
+
+Full end-to-end audit release. An 11-agent adversarially-verified audit swept every
+subsystem (hooks, console, vendors, dependencies, docs, click-first UX, tests);
+every confirmed finding shipped across PRs #89, #91, #92, and this integration pass.
+
+### Fixed
+- **PostCompact hook output was rejected by Claude Code on every compaction.**
+  `hookSpecificOutput.hookEventName` only accepts a 20-event union (verified
+  against the CLI 2.1.220 validator itself — the 6-event list in the error
+  message is stale display text), and `PostCompact` isn't in it, so the plugin's
+  re-orientation hook failed schema validation every time context compacted.
+  The hook now emits `systemMessage` only; `emit.mjs` gained a
+  `VALID_HOOKSPECIFIC_EVENTS` guard that degrades any non-union event to a
+  schema-valid shape, killing the bug class; and the hook-output contract test
+  now drives every emitter under its REAL registered events and pins the union
+  (reverting the guard makes the suite fail — proven, not assumed).
+- **Mission Control marked ~98% of finished subagents as still working.** The
+  start writer logged `agent_name: null`, the stop writer floored to
+  `"unknown"`, and the roster join required strict name equality — 78 of 3,337
+  live start rows ever matched. Both writers now log `agent_id`, the join keys
+  on it first, and a normalized-name + session/time fallback keeps the ~3,400
+  pre-fix telemetry rows joining too (mirrored in the dashboard's model).
+- **The "Data through …" staleness warning could never fire.** The history
+  reader stamped freshness from gap-filled all-zero metrics rows (which the
+  pipeline persists daily, including "today"). Freshness now counts only rows
+  with actual activity; chart continuity keeps the zero days.
+- **Memory tab claimed "Shown 20" while rendering 3 rows.** The tile now
+  reports the rendered count with a "+N more" pointer, with a test pinning
+  tile == rendered rows.
+- **Redaction gaps (M1/L1/L2):** flattened `-Users-<name>-…` project-dir paths
+  now fold to `<home>`; History skill names pass through the redactor;
+  console auto-open dedupes by day when no session id is present.
+- **`bin/doc-sync.js` compared the contract against a machine-dependent
+  count.** `listSkills()` also scans `~/.claude/skills`, so a dev machine with
+  personal skills installed over-reported (522 vs the repo's 467) and nearly
+  drove a wrong contract bump. The gate now counts the repo tree only.
+
+### Changed
+- **Keyless everywhere, for real.** `MCP.md`, the Cursor/Windsurf adapter
+  guides, their config templates, and `mcp-config.example.json` still
+  instructed users to obtain a `COMMANDER_LICENSE_KEY` — contradicting the
+  keyless 100-call/mo model documented everywhere else. Every shipped surface
+  now tells one story: no account, no key, free cap, silent local fallback.
+- **Click-first gaps closed** (from the beginner-UX audit): `/ccc-tuneup` is
+  now actually reachable by chips from the hub; all 11 domain routers present
+  a picker on bare invocation; the hub computes its counts instead of
+  hardcoding stale ones; `/ccc-settings` respects the 4-chip max; `/ccc-ecc`
+  lost its numbered-table fallback; `/ccc-connect` credentials are captured
+  via a hidden-input terminal command (stdin → `JSON.stringify`, never argv,
+  never chat) instead of being pasted into the transcript; `/ccc-infra` no
+  longer references any private infrastructure.
+- **Vendor refresh with one security bump:** rtk picked up 6 upstream
+  `fix(security)` commits (v0.44.2 — history DB / tee logs / audit log now
+  owner-only), plus routine bumps for compound-engineering, graphify (its
+  default branch is `v8` — noted for refresh tooling), claude-code-ultimate-guide,
+  repomix (tip-only, spanning the sandbox feature *and* its fixes),
+  everything-claude-code, ui-ux-pro-max, superpowers. 10 of 19 vendors were
+  already current; zero license changes across all 19.
+- **Dependency wave:** root audit → 0 vulnerabilities; site/ 19 → 12
+  advisories via posthog-js/next bumps + `ws`/`sharp` overrides (the 2
+  remaining highs are pinned inside Next's own bundled deps); Remotion
+  packages re-aligned on one exact version; the archived dashboard React
+  app's stale lockfile no longer produces phantom audit findings.
+- **Docs truth pass:** the shipped plugin README said 72 skills / 39 handlers
+  (real: 82 / 44), eight surfaces still said "GPT-5.5", the live upgrade guide
+  was pinned to v7.3.0, and the version gate gained detection for every one of
+  those blind-spot patterns (table-cell counts, "total handlers" phrasing,
+  the plugin README surface, upgrade-guide currency) — report-only, with the
+  patch scope unchanged.
+
+## [7.4.1] - 2026-07-29
+
+### Fixed
+- **`/ccc-update` and `/ccc-doctor` dead-ended on Desktop-managed installs.** Claude
+  Desktop (Cowork) provisions the plugin from your claude.ai account under
+  Application Support — no marketplace clone and no `installed_plugins.json` entry
+  exist in that mode *by design*. Both skills treated that healthy state as "not
+  installed" and either stopped or gave CLI-marketplace advice that cannot work
+  there. They now detect three install modes (CLI marketplace / Desktop-managed /
+  dev checkout), read the Desktop copy's real version, fetch the latest from
+  GitHub directly when no clone exists, and give mode-correct update guidance.
+  First-party repro: the maintainer's own dev box.
+
+## [7.4.0] - 2026-07-28
+
+### Added
+- **`/ccc-console` — One Commander.** The four published decks (`/ccc-browse`,
+  `/ccc-mission-control`, `/ccc-usage`, `/ccc-safety`) were four separate pages with
+  four URLs. `/ccc-console` is one **inline widget** — Overview · Usage · Safety ·
+  Memory · History · Launch — rendered through the visualize MCP, with a prompt bar
+  that reaches the live session via `sendPrompt(text)`. 82nd plugin skill.
+- **The prompt bar's security model is the feature, not a detail.** Chips send fixed
+  template commands only, and display the exact command before the click; free text is
+  newline-stripped and capped at 500 characters; **no telemetry-, memory- or
+  log-derived text ever reaches a `sendPrompt` payload**, because anything that can
+  append to a JSONL under `~/.claude/commander/` could otherwise compose a command the
+  user appears to have typed. All model text renders through `esc()`. The allowlist
+  test retypes the chip list deliberately, so editing a chip is a reviewed change.
+- **Memory tab** — reads *your own* claude-mem store (`~/.claude-mem/`), read-only,
+  titles only (`id / project / type / title / created_at_epoch`; never `text`,
+  `facts` or `narrative`), redacted and capped. claude-mem is AGPL-3.0 and Commander
+  is MIT, so it is **not bundled**: "not installed" is the normal zero-state — one
+  quiet card, never an error, never a nag.
+- **History tab** — the last 30 days from telemetry Commander already writes. No new
+  collector: `mission-control/metrics.jsonl` is the durable per-day backbone (it
+  survives the detail logs' 10MB rotation), and `skill-runs.jsonl`, `tasks.jsonl`,
+  `agent-runs.jsonl`, `subagent-runs.jsonl` and the `sessions/` stubs supply recent
+  detail, counted by filename only. Per-message content is not collected and is not
+  claimed.
+- **Auto-open** — a SessionStart handler (`hooks/console-autopen.js`, async, 44th
+  handler) asks the model to render the console widget once at the top of a session.
+  Local-only: it never publishes, and publishing stays consent-gated. It stays silent
+  on CI, on resume/compact re-fires, on a session it has already nudged, and on a
+  machine with no telemetry at all. Off switches: `/ccc-console off`,
+  `{"autoOpen": false}` in `~/.claude/commander/console.json`, or
+  `CCC_NO_AUTOCONSOLE=1`.
+- `defaultEnabled: true` in `plugin.json` — Commander is active on install rather than
+  needing to be switched on (field supported by Claude Code ≥ 2.1.154).
+
+### Changed
+- **The four deck skills are now "publish just this tab" exports of the console.**
+  `/ccc-mission-control`, `/ccc-usage` and `/ccc-safety` publish through
+  `scripts/build-console.mjs --surface artifact --tab <tab>` instead of each inlining
+  its own builder. **Every existing artifact URL keeps updating in place**: an
+  artifact URL is its scratchpad file path, so all three keep publishing to the paths
+  they always used, and a test pins those paths as literals. Each published page gains
+  one line pointing at `/ccc-console`.
+- `/ccc-console publish` writes to the **Cockpit's** existing path
+  (`commander-cockpit.html`) rather than minting a fifth Commander URL. The Cockpit
+  builder is untouched — its heavy client-side tabs (Enhance, Prompts, Ideas, Agent
+  manager) stay artifact-side where a full-width page works; the widget's Launch tab
+  is the compact one-click version.
+- **Extraction refactor.** Mission Control, Usage & Cost and Safety each owned a full
+  copy of the same page shell *and* its own section markup. `lib/console-render.js`
+  now owns all of it and `lib/console-model.js` composes the existing readers; the
+  three deck libraries keep their signatures as one-line delegations and shed the
+  duplicated render code (net −1,009 lines across the three). Proof that the
+  extraction changed nothing: 3 decks × 3 cases compared **byte-for-byte** against
+  goldens generated from the pre-extraction renderers, which are deliberately never
+  regenerated.
+
+### Fixed
+- **A read/write race between the Usage and Mission Control readers.** Mission
+  Control's `readModel()` recomputes and persists `mission-control/metrics.jsonl`,
+  which the Usage reader then reads for its cost-by-app split. Run concurrently, Usage
+  saw the file before *or* after that write depending on scheduling, so identical
+  telemetry produced different numbers run to run. The composed model now sequences
+  the writer ahead of its readers.
+- **Hook timeouts were milliseconds in a seconds field** (#83). Claude Code's hook
+  `timeout` is seconds, so the shipped `3000` meant 50 minutes and `15000` over four
+  hours — the anti-hang ceilings had never actually been in force. All handlers
+  converted; the Codex mirror reads milliseconds, so the translator now converts at
+  the boundary, and a test pins the convention at both ends.
+
+## [7.3.2] - 2026-07-28
+
+### Changed
+- **Anthropic + Codex CLI only.** Commander no longer routes work to Gemini or to any
+  local-inference runtime. The Gemini adapter is removed and the executor preference
+  order is now `claude` → `codex`. This is a deliberate product constraint: it keeps
+  behaviour predictable and every documented workflow reproducible on a stock install.
+- **`ccc-research/gemini-fallback` → `ccc-research/large-context`.** The old skill
+  existed to escape "Claude's 200K limit" by routing to a third-party 1M-context
+  model. Both halves of that premise are gone — Opus 5 is 1M by default — so it is
+  rewritten as a ladder: use the window, reduce the input, chunk-and-synthesize, then
+  hand mechanical execution to the Codex CLI.
+- `ccc-hermes` no longer documents a `gemini --yolo` escalation for Codex write tasks;
+  it points at `-s workspace-write` inside an isolated worktree, or Claude Code.
+- `service-detector` still *detects* a local Ollama for status display, but now carries
+  an explicit note that Commander never routes work to it.
+- Removed the `features/local-llm` documentation page and its nav entry.
+- README's roadmap row promoted: the Codex native plugin runtime ships today (generated
+  by `npm run build:codex`); the Gemini runtime row is gone.
+
+## [7.3.1] - 2026-07-28
+
+### Fixed
+- **`/ccc-doctor` failed on correctly-configured repos** — its `agent-models` check
+  demanded an Opus pin for `architect`, `security-auditor`, `debugger` and
+  `product-manager`, but those four were promoted to `claude-fable-5` back in v6.0.
+  Anyone running the doctor on a healthy install got a red `fail`. It went unnoticed
+  since v6.0 because the test used a synthetic fixture that drifted alongside
+  the wrong expectation — so the suite stayed green while the real check was broken.
+  Fixed, and the doctor is now additionally asserted against the **real repo**, not
+  just a fixture, so fixture drift alone can no longer hide a failing check.
+- **The hardest tasks failed at dispatch** — complexity scores ≥93 produced
+  `--effort ultra`, which is not a valid level (`low|medium|high|xhigh|max`). Mapped
+  to `max`, and unknown values now clamp to `xhigh` instead of being forwarded to the
+  CLI. `/ccc-doctor` also validates `effortLevel` now and flags typos.
+- **`skills/advisor` documented an invalid model pair** — per Anthropic's advisor-tool
+  docs the advisor must be Sonnet 4.6+ *and* at least as capable as the executor, so
+  `claude-opus-4-8` is not a valid advisor for an `claude-opus-5` executor. The old
+  "the advisor is always Opus 4.8" line would have had users build a 400-erroring
+  request. Replaced with the real compatibility matrix.
+
+### Changed
+- **Claude Opus 5 adopted end-to-end.** Default model pin is now `claude-opus-5` —
+  dateless, and with no `[1m]` suffix, because Opus 5 is 1M context as both default
+  and maximum, making the suffix redundant.
+- **Effort posture follows Anthropic's Opus 5 guidance**: default `high`, escalate to
+  `xhigh` for demanding coding/agentic work, `max` only when justified. This replaces
+  the previous always-on `xhigh` floor.
+- **Delegation now has a size threshold.** Opus 5 delegates more eagerly than 4.8 and
+  over-spawns without explicit caps, so the doctrine across `CLAUDE.md`,
+  `CLAUDE.md.template`, `workflow-first.md`, `agents.md` and `delegation-templates`
+  now requires work to be large, genuinely independent and parallelizable before it
+  gets delegated — and keeps spawn counts low.
+- **Fable Method Pillar 2 scoped.** Opus 5 self-verifies more readily, so the
+  verifier-≠-worker gate now explicitly targets substantive claims, findings and
+  expensive-to-reverse changes, and ranks deterministic verification (tests, gates,
+  diffs) above a spawned verifier. No gates were removed.
+- **`skills/claude-api` swept to Opus 5** — 19 files changed, 95 lines referencing
+  `claude-opus-4-8` removed. Opus 4.8 is *not* deprecated, so it keeps its alias and
+  moves to an explicit Legacy table.
+- Main-response length ceiling added to `response-style.md`, since Opus 5 is more
+  verbose by default.
+
+## [7.3.0] - 2026-07-22
+
+### Added
+- **Update self-detection** (`hooks/update-nudge.js`) — Commander finally notices its
+  own updates: a SessionStart hook (24h-cached, offline-silent) compares the installed
+  version against GitHub `main` and, when newer, tells you the exact fix —
+  `/plugin marketplace update commander-hub` → `/plugin update commander` → restart.
+  Third-party marketplaces have auto-update **off by default**, so nothing else was
+  ever going to tell you.
+- **`/ccc-update`** (81st plugin skill) — click-first walkthrough: detect installed vs
+  latest → run the two update commands → restart → verify the version and that hooks
+  are alive. `/ccc-doctor` also now diagnoses every stale-install layer (marketplace
+  clone behind origin, old `cache/<version>` dirs, Desktop inline copies, catalog-cache
+  age) and offers — with consent — to enable marketplace auto-update.
+- **Cockpit "Prompts" tab** (8th tab) — a navigable, searchable prompt browser:
+  the Claude Code docs prompt library (52 prompts, with attribution + a refresh
+  script), the CCC library (52 field-tested prompts + 6 quality patterns + course
+  modules), the repo's 36 prompt templates, and a ReadyIQ agent showcase. Filter by
+  source / SDLC phase / category, copy any prompt, or send it straight into the
+  Enhance tab with one click.
+- **Deck freshness honesty** — every deck now shows "**Data through** <timestamp>"
+  (the newest source row) beside the render stamp, and warns when telemetry is >24h
+  stale ("hooks may not be running — run /ccc-doctor"). Rebuilding a deck from
+  months-old data can no longer masquerade as fresh.
+- **Proactive moments** — the suggestion engine now surfaces update-available and
+  stale-telemetry signals, writes real entries to Mission Control's Suggestions panel
+  (previously it had no producer and sat permanently empty), and keys all its state
+  per-project (suggestions and dismissals no longer leak between repositories).
+- Safety's "auto-fixed" metric is now real: the permission gate logs
+  `approved-autofix` when an autofix write is actually approved.
+
+### Fixed
+- **The Codex mirror actually works now.** The translator rewrote every hook and
+  skill to `${CODEX_PLUGIN_ROOT}` — a variable Codex never sets (it provides
+  `PLUGIN_ROOT`/`PLUGIN_DATA` and honours `CLAUDE_PLUGIN_ROOT` for compatibility) —
+  so **every mirrored hook has been dead on every Codex install to date**. Also:
+  4 supported events were wrongly dropped (SubagentStart/Stop, Pre/PostCompact — the
+  mirror now carries 10), `async` handlers (which Codex silently skips) are stripped,
+  and the docs now cover Codex's hook **trust gate**.
+- `/ccc-usage` now triggers the canonical metrics recompute instead of reading a
+  stale rollup, and honestly labels the savings hero when `savings.json` isn't being
+  fed (it is only written by CLI dispatches today).
+- The Cockpit builder now ships **inside** the plugin
+  (`cowork-plugin/scripts/build-cockpit.mjs`) — marketplace installs previously could
+  not regenerate the Cockpit at all (the builder lived outside the packaged directory).
+- Deck refresh friction: re-running a deck skill republishes the same URL without
+  re-asking (invoking the skill is the consent); docs updated — the published update
+  sequence (`/plugin update` alone) could never deliver an update, and two doc pages
+  invented settings that don't exist.
+- `update-check.js` is a real module now (no side-effect `main()` corrupting MCP
+  stdio; `--remote-only` implemented; remediation text no longer tells marketplace
+  users to `git pull` a maintainer path). `check-version-parity` now gates 9 version
+  surfaces (was 4); release CI runs `check-compat`.
+
+## [7.2.0] - 2026-07-20
+
+### Added
+- **Commander decks switcher** — a shared top strip (`lib/deck-switcher.js`) now
+  rides every Commander artifact (Cockpit, Mission Control, and the two new decks),
+  listing all of them as chips with the current one highlighted, so users can see
+  every artifact exists and jump between them. Interactive (copy-to-open) on the
+  Cockpit; static (command shown) on the no-`<script>` snapshot decks. One shared
+  module, theme-safe via brand tokens.
+- **Usage & Cost deck** (`/ccc-usage`, `lib/usage-snapshot.js`) — a self-contained
+  artifact from data CCC already logs: cumulative **savings** ("$X saved across N
+  dispatches", honestly labelled an estimate vs an all-Opus baseline), saved/day +
+  cost/day trends, and a **cost-by-app** split (Claude vs Codex).
+- **Safety deck** (`/ccc-safety`, `lib/safety-snapshot.js`) — dangerous actions
+  **blocked**, **auto-fixed**, and approved (from `permission-gate.jsonl`), plus a
+  Sniffly-style **tool-failure hotspots** breakdown (top tools + normalised, secret-
+  redacted error signatures from `tool-failures.jsonl`).
+
+### Fixed
+- **Every plugin hook was broken on macOS Claude Code Desktop** — all 42 hook
+  commands used an unquoted `${CLAUDE_PLUGIN_ROOT}`, and Desktop installs under
+  `~/Library/Application Support/…`, so the space word-split the path and every
+  hook died on startup. All 42 commands are now quoted. If Commander's dashboards,
+  telemetry, or suggestions looked empty or frozen on Desktop, **this was why —
+  updating to ≥7.2.0 fixes it** (your data starts flowing again from the moment
+  the new hooks run).
+- Emoji mojibake in the snapshot artifacts — Mission Control, Usage, and Safety
+  fragments now declare `<meta charset="utf-8">` (the Cockpit already did), so
+  emoji render correctly when served standalone, not just inside the Artifact wrapper.
+
+## [7.1.0] - 2026-07-20
+
+### Added
+- **Cockpit Tools tab** — a 7th tab that turns the Cockpit into an ecosystem
+  launcher, surfacing everything that pairs with Commander as clickable cards:
+  - **Commander surfaces** to open (`/ccc-mission-control`, `/ccc-fleet-viz`,
+    `/ccc-xray`, `/ccc-doctor`).
+  - **Companion apps** — the best MIT-licensed tools to install alongside
+    Commander (Nimbalyst, Claude Code Usage Monitor, Claude Control, Sniffly,
+    tmux session manager), licenses verified via the GitHub API. These are links
+    (copied to the clipboard, never an external `href`), not bundled code — per
+    the "interop, don't rebuild" principle; AGPL tools are deliberately excluded.
+  - **Artifact recipes** — copy-a-prompt cards (before/after sales arcade,
+    standup/status board, PR walkthrough) that have Claude build a live dashboard.
+  Self-contained and CSP-safe; companion URLs never leak into an external href.
+
+## [7.0.0] - 2026-07-20
+
+The Commander Cockpit becomes a real product: the commanderplugin.com terminal
+brand end-to-end, a browse experience built for finding a skill fast, a genuinely
+usable prompt enhancer, and — under the hood — agent telemetry that reports real
+numbers or an honest "—", never a fabricated zero.
+
+### Added
+- **Filterable skill browser** — Browse is now a scannable skill LIST with a
+  **rows / tiles toggle** (persisted) instead of a wall of one-skill "domains".
+  Compact domain-filter chips (`all · 533`, `marketing · 46` … `general · 257`)
+  + real-time filter on name / purpose / domain; whole-row click copies the
+  command. Render is capped and single-line so the list stays snappy, with the
+  filter (not an endless scroll) doing the navigation.
+- **Multi-select prompt enhancer** — the enhance tab is now **11 improvement
+  strategies as multi-select chips** (outcome, self-check, reference, target,
+  deliverable, format, role, constraints, context, plan-first, example) with a
+  ✓ "already covered" hint, `select all` / `what's missing` / `clear`, and a
+  clear **GO** that appends the chosen directives to your prompt to copy into
+  Claude Code.
+- **Real per-agent token & cost telemetry** — a new `hooks/lib/transcript-usage.mjs`
+  recovers real input/output tokens + duration from the transcript each
+  `SubagentStop` points to (the payload itself carries none), keyed by
+  `message.id` so streaming rows are never double-counted; `cache_read` tokens
+  are recovered and priced into cost (≈0.1× rate) without inflating the token
+  headline. Agent names come from the real `agent_type` field.
+
+### Changed
+- **Brand** — Cockpit, Mission Control, dashboard, and both websites are unified
+  on the real commanderplugin.com palette (coral `#FF6B47` / tan / near-black,
+  Inter + JetBrains Mono) via one shared `brand-css.js`.
+- **Honest telemetry contract** — when token data was never captured (the legacy
+  case), tiles render `— unavailable` and per-agent tokens/cost render `— tok` /
+  `$—` rather than a measured-looking `0` / `$0.00`.
+- **Skill taxonomy** — plugin `/ccc-*` commands collapse into one **commands**
+  front-door group (was ~78 one-skill "domains"); ungrouped ecosystem skills go
+  to an honest **general** bucket (sorted last), and domain routers living in
+  `skills/ccc-X/` are grouped as `ccc-X`. 14 real domains, no misleading "core".
+
+### Fixed
+- Light-theme muted text now meets WCAG AA contrast (was 3.2:1).
+- Prompt-metadata, task, and SubagentStop loggers read the stdin payload (not
+  absent env vars); negative/garbage usage values are clamped, never recorded as
+  measured.
+
+## [6.8.3] - 2026-07-17
+
+### Added
+- **Mission Control Charts strip** — zero-dependency inline-SVG `sparkline`/`barStrip` builders (`commander/cowork-plugin/lib/charts.js`) render cost/day, agents dispatched/day, tasks completed/week, and tool failures/day. One canonical module renders BOTH the live dashboard (served client-side at `GET /charts.js`) and the CSP-safe snapshot artifact (server-rendered, no `<script>`) — theme-safe via `currentColor`/CSS vars, clean zero-state (flat baseline + "no data yet") instead of a broken axis or NaN path.
+- **`metrics.jsonl` daily rollup** (`commander/cowork-plugin/lib/metrics.js`) — per-`(date, source_app)` cost/agents/tasks/failures/sessions, `cost_usd` sourced from `ccusage claude daily --json` / `ccusage codex daily --json` (Claude + Codex only), gap-filled across the window so charts never draw a misleading flat line, latest-wins on re-run.
+- **Complete Claude + Codex roster** — Codex Desktop's hook surface drops `SubagentStart`/`SubagentStop`/`TaskCreated`/`TaskCompleted` (verified against `scripts/build-codex.js`'s `HOOK_EVENTS_DROPPED_BY_BUILD`), so Codex work showed up in the Live Feed but never the Agent Roster. `deriveRosterFromDelegations()` synthesizes a roster row from `events.jsonl`'s delegation entries for any source with no real start record — marked `derived: true`, shown with a dimmed "inferred" badge + tooltip (never claims token/cost data that isn't real), and never duplicates a row that already has a real start record.
+- **claude-mem History panel** (`dashboard/lib/history.js`, `GET /api/history`) — a read-only timeline over `~/.claude-mem/claude-mem.db` via `node:sqlite`, cursored on the existing `created_at_epoch` index, titles-only (never raw prompt/facts/narrative). Opt-in: the panel hides entirely when claude-mem isn't installed.
+- **`topSkills` contract** (`commander/cowork-plugin/lib/top-skills.js`, `GET /api/top-skills`) — `{skill, runs7d, runs30d, bySource}` rows from `skill-runs.jsonl` (the same file Cockpit's v6.8.2 skill-runs logger writes), sorted by `runs7d` desc, capped at 10.
+- In-memory TTL cache (Item 6, ported from Agent HQ v4) — the base model caches 2s (matching the dashboard's poll interval), metrics/topSkills cache 30s, so N concurrent pollers share one read instead of each re-scanning every log / re-shelling out to `ccusage`.
+
+## [6.8.2] - 2026-07-16
+
+### Added
+- **Commander Cockpit** — every Commander tool, clickable, inside one artifact. Published from `/ccc-browse` → "🎛️ Open the Commander Cockpit": a self-contained, CSP-safe page with five tabs —
+  - 🧭 **Browse**: all 78 plugin + 467 ecosystem skills and 22 agents embedded, instant search, domain chips, a "what are you trying to accomplish?" job-first row, and copy-to-run on every card.
+  - 💡 **Ideas**: catalog-grounded next-move generator (project × goal), every suggestion a real skill with a copy button.
+  - ✨ **Enhance a prompt**: the 6 prompt-quality patterns as a live checklist — paste a prompt, watch the diagnosis, copy the sharpened rewrite.
+  - 📊 **Analytics**: your own machine's agent runs, tokens, est. cost, 14-day activity sparkline, top agents (Claude and Codex side by side via `source_app`), delegation flows, skill launches.
+  - 👥 **Agents**: the roster as a manager — per-agent run stats, edit a profile in-page, copy it out (or save it with the `downloads` capability) and tell Claude to apply it.
+  - Generator: `scripts/build-cockpit.mjs` (zero-dep, count-guarded against contract.json); republish to the same path for a living page.
+- **skill-runs logger** (UserPromptSubmit, 42nd hook handler) — records which skills you actually launch (`~/.claude/commander/skill-runs.jsonl`, slash-command name only, never prompt content, `source_app`-tagged, built-in CLI commands excluded) — powers the Cockpit's per-skill analytics.
+
+## [6.8.1] - 2026-07-16
+
+### Added
+- **Mission Control multi-source groundwork** — the dashboard, snapshot artifact, and read model now track which app produced each run: `sourceApp`-tagged agents/events, a Source filter + colored pill on the Live Feed and agent roster, and an `agent_key` (`sourceApp:name`) so two sources can never collide on a shared agent name.
+- **Suggestions panel** — a 5th "who's working on what" panel: the proactive ideas queue (`~/.claude/commander/mission-control/suggestions.jsonl`) with status chips (new/promoted/dismissed) on the live dashboard and a plain list on the snapshot artifact, plus a `GET /api/suggestions` endpoint and a "Review & promote suggestions" conversational flow in `/ccc-mission-control`.
+- **Codex sessions identify themselves** — the feed hook detects at runtime whether Claude Code or Codex Desktop spawned it (via `CODEX_PLUGIN_ROOT`) and stamps `source_app` accordingly, so the new Source filter separates Claude and Codex work instead of labelling everything `claude-code`.
+
+### Fixed
+- Telemetry writer hooks (`agent-run-logger`, `subagent-start-tracker`) now read the Claude Code hook STDIN payload as the primary source for agent name/session/status/duration/tokens instead of unpopulated env vars; prompt text stored by `subagent-start-tracker` is now redacted and capped.
+- `mission-model.js`'s timestamp parsing now accepts numeric epoch-ms the same way the snapshot library already did, so both readers agree on event ordering.
+- `events.jsonl` entries carrying an optional `id` are now deduped on read (first occurrence wins) — guards against the cowork + codex plugin mirrors double-appending the same event.
+
+## [6.8.0] - 2026-07-16
+
+### Added
+- **Commander Mission Control** — a visual harness inside Claude Code Desktop. See who's working on what, delegation and data flow, and a plain-English status of every agent — built for non-coders managing coding agents. plugin_skills 77 → 78.
+  - **/ccc-mission-control** (plugin skill) — click-first hub: open the live dashboard in the Desktop side pane, publish a self-contained snapshot artifact, get a plain-English status, or stop the server.
+  - **Live dashboard** (`dashboard/public/mission-control.html`, zero-dep, port 4690) — agent roster with per-agent emoji/role/status/duration/tokens/est-cost heartbeat, delegation flow graph (SVG), task board, live event feed with filters, and an ⚠️ amber **awaiting-permission** state so unattended fleets never stall silently.
+  - **mission-control-feed hook** (PostToolUse + PermissionRequest, async, never-blocking) — captures delegation, cross-agent messages, workflow launches, task lifecycle, and permission requests to `~/.claude/commander/mission-control/events.jsonl` (source-app tagged, 10MB rotation, prompt-privacy truncation). 40th and 41st hook handlers (one file, two lifecycle registrations).
+  - **Snapshot artifact mode** (`lib/mission-control-snapshot.js`) — CSP-safe single-file HTML; republish to the same URL for a living status page you can check from your phone.
+- **Proactivity wave** — 5 new ambient signals in the suggestion engine: multiple-agents→mission-control, measurable-goal→/ccc-loop, vague-prompt→/ccc-prompt-fix, repeated-tool-failures→systematic debugging, and dismissed-suggestion tracking ported to the default path (ignored suggestions stop repeating).
+
+### Changed
+- `task-tracker` hook now records `subject` and `session_id` alongside existing fields (backward-compatible).
+- `dashboard/server.js` gains `/api/mission` and `/api/mission/events?after=<iso>` endpoints (127.0.0.1 bind unchanged).
+
+## [6.7.3] - 2026-07-14
+
+### Added
+- **/ccc-prompt-fix** — the auto prompt fixer (plugin skill). Diagnoses a user prompt against the 6 prompt-quality patterns (outcome-not-steps, self-check, reference, measurable target, artifact, answer-format), returns a tightened rewrite with per-pattern reasoning, and suggests the matching library prompt. Modes: fix / last / for-a-task / score. plugin_skills 76 to 77.
+- **claude-code-library** — integrated the Claude Code prompt library into the ecosystem (`skills/claude-code-library`): 52 copy-paste prompts across Discover, Design, Build, Ship, Operate + a 7-module best-practices course, adapted from Anthropic's published docs. ecosystem_skills to 467. This is the ground-truth `/ccc-prompt-fix` reads from.
+
+## [6.7.2] - 2026-07-14
+
+### Added
+- **/ccc-spawn** — click-first spawn hub (plugin skill). Spin isolated work into its own session on demand: a spawn_task chip in Cowork Desktop, a /spawn peer in the CLI; routes to /ccc-fleet (parallel) or /ccc-relay (cross-session). The manual, click-first counterpart to the automatic isolation-spawn nudge in suggest-ticker. plugin_skills 75 → 76.
+
+## [6.7.1] - 2026-07-14
+
+### Added
+- **/ccc-broadcast** — outbound-status relay skill. Pushes CC Commander build/deploy/CI/task/cost signals to a team's `~~chat`/`~~email` (via /ccc-connect) so non-devs see what shipped without watching a terminal. Read-only, scrubbed (event + outcome + link only, never file contents/diffs/secrets), audience-classified. The outbound counterpart to /ccc-nightwatch (inbound approvals). plugin_skills 74 → 75.
+
 All notable changes to CC Commander will be documented in this file.
+
+## [6.7.0] — 2026-07-13
+
+**ccc-relay + ccc-smb-ops** — two new front-door capabilities: cross-session loop chaining and a small-business-operations domain.
+
+### Added
+
+- **`/ccc-relay` — cross-session loop chaining (plugin skill)** — composes a `spec → build → review → merge` relay of *independent*, individually-gated loop sessions. Each link runs with fresh context and passes a durable `handoff` baton (state file / Linear / a 🚀 reaction) to the next; per-link gates, worktree isolation, and a human merge gate cap the blast radius. Composes `ccc-loop` (each link), `ccc-fleet` (parallelism within a link), and `/spawn` (launch the next) rather than re-implementing them.
+- **`ccc-smb-ops` — small-business-operations domain** — one ecosystem router (`skills/ccc-smb-ops/`) + 6 sub-skills (invoicing & AR, cash-flow forecast, expense tracking, payroll planning, CRM hygiene, weekly owner brief) + a plugin router (`commander/cowork-plugin/skills/ccc-smb-ops/`). Owner-facing operations, not just code.
+- Fable contract footers on every new plugin `SKILL.md` via `scripts/add-fable-contract.js`.
+
+### Changed
+
+- Plugin skill count 73 → 75; ecosystem skill count (`skills/` tree) 459 → 466; total catalog 531 → 541 (75 plugin + 466 ecosystem).
+- Version 6.6.0 → 6.7.0 across `package.json`, `commander/cowork-plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `apps/mcp-server-cloud/package.json` (+ lockfile), and `commander/contract.json`; codex mirror rebuilt via `npm run build:codex`; product-contract + doc-sync surfaces re-synced.
 
 ## [6.6.0] — 2026-07-10
 

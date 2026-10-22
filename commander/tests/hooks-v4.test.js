@@ -8,7 +8,7 @@
 
 'use strict';
 
-const { describe, it, before } = require('node:test');
+const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { execSync, spawnSync } = require('node:child_process');
 const path = require('node:path');
@@ -17,11 +17,31 @@ const fs = require('node:fs');
 
 const HOOKS_DIR = path.join(__dirname, '..', 'cowork-plugin', 'hooks');
 
+// Isolated HOME for every runHook() call by default — several hooks here
+// (subagent-start-tracker.js, elicitation-logger.js, elicitation-result-
+// handler.js) append to real ~/.claude/commander/*.jsonl files when HOME
+// isn't overridden. Without this, every test run pollutes the user's live
+// telemetry with fake "builder"/"researcher" rows (found 2026-07-17: 3,780
+// of 3,964 subagent-runs.jsonl rows were test fixtures dating to 05-28).
+// A call site can still opt into a specific HOME via envOverrides — it wins
+// because it's spread last.
+const DEFAULT_TEST_HOME = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'ccc-hooks-v4-test-home-')
+);
+after(() => {
+  fs.rmSync(DEFAULT_TEST_HOME, { recursive: true, force: true });
+});
+
 // Helper: run a hook with JSON stdin, return { exitCode, output, parsed }
 function runHook(hookFile, inputObj, envOverrides = {}) {
   const hookPath = path.join(HOOKS_DIR, hookFile);
   const input = JSON.stringify(inputObj || {});
-  const env = { ...process.env, ...envOverrides };
+  const env = {
+    ...process.env,
+    HOME: DEFAULT_TEST_HOME,
+    USERPROFILE: DEFAULT_TEST_HOME,
+    ...envOverrides,
+  };
 
   // Use spawnSync so we can capture both stdout and stderr cleanly
   const result = spawnSync('node', [hookPath], {
@@ -69,7 +89,7 @@ describe('elicitation-logger.js', () => {
       input: 'not json at all !!!',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: DEFAULT_TEST_HOME, USERPROFILE: DEFAULT_TEST_HOME },
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
@@ -118,7 +138,7 @@ describe('elicitation-result-handler.js', () => {
       input: '{{bad json}}',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: DEFAULT_TEST_HOME, USERPROFILE: DEFAULT_TEST_HOME },
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
@@ -236,7 +256,7 @@ describe('subagent-start-tracker.js', () => {
       input: 'not-json',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: DEFAULT_TEST_HOME, USERPROFILE: DEFAULT_TEST_HOME },
     });
     assert.equal(result.status, 0);
     const parsed = JSON.parse(result.stdout.trim());
@@ -406,7 +426,7 @@ describe('stale-claude-md-nudge.js', () => {
       input: '{}',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: tmpDir, USERPROFILE: tmpDir },
       cwd: tmpDir,
     });
     assert.equal(result.status, 0);
@@ -424,7 +444,7 @@ describe('stale-claude-md-nudge.js', () => {
       input: '{}',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: tmpDir, USERPROFILE: tmpDir },
       cwd: tmpDir,
     });
     assert.equal(result.status, 0);
@@ -488,7 +508,7 @@ describe('stale-claude-md-nudge.js', () => {
       input: 'NOT JSON',
       encoding: 'utf-8',
       timeout: 5000,
-      env: process.env,
+      env: { ...process.env, HOME: tmpDir, USERPROFILE: tmpDir },
       cwd: tmpDir,
     });
     assert.equal(result.status, 0);
@@ -585,6 +605,29 @@ describe('secret-leak-guard.js', () => {
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+  });
+
+  it('allows full git commit SHAs that contain ac + 32 hex (not a Twilio SID)', () => {
+    const sha = '3f' + 'ac' + '0123456789abcdef0123456789abcdef' + '1234';
+    assert.equal(sha.length, 40);
+    for (const command of [`git show ${sha}`, `git push origin ${sha}:refs/heads/x`, `echo NEW HEAD: ${sha}`]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true, command);
+    }
+    const digest = 'ac' + 'f'.repeat(62);
+    const r = runHook('secret-leak-guard.js', { tool_name: 'Write', tool_input: { file_path: '/tmp/x', content: `sha256: ${digest}\n` } });
+    assert.equal(r.parsed?.continue, true, 'sha256 digest allowed');
+  });
+
+  it('still blocks a real-shaped Twilio Account SID, even next to a SHA', () => {
+    const sid = 'AC' + '0123456789abcdef0123456789abcdef';
+    const sha = 'ac' + '0123456789abcdef0123456789abcdef' + '123456';
+    for (const command of [`curl -u ${sid}:x https://api.twilio.com`, `git show ${sha} && echo ${sid}`]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.parsed?.continue, false, command);
+      assert.match(r.parsed?.stopReason || '', /Twilio/);
+    }
   });
 
   it('returns continue:true on malformed input', () => {

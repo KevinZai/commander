@@ -1,8 +1,6 @@
 ---
 name: ccc-adopt
-description: "Bring the CC Commander Orchestrator/Executor doctrine into an EXISTING project. Detects stack, merges a delimited CLAUDE.md section (never clobbers), and tailors a skill/agent pointer list."
-model: sonnet
-effort: high
+description: "Merge Commander's orchestrator/executor section and a stack-tailored skill and agent list into an existing project's CLAUDE.md as a delimited, re-runnable block, with backup and diff approval first. Use when adopting Commander conventions in a repo you already have."
 allowed-tools:
   - Read
   - Bash
@@ -10,148 +8,142 @@ allowed-tools:
   - Write
   - AskUserQuestion
 argument-hint: "[--check]"
+model: sonnet
+effort: high
 ---
 
-# /ccc-adopt — Bring CCC Doctrine Into an Existing Project
+# $ccc-adopt — Commander conventions, your repo
 
-**CC Commander** · /ccc-adopt · Adopt Orchestrator/Executor in your own repo
+**CC Commander** · $ccc-adopt · one delimited CLAUDE.md block plus skill pointers for your stack, never a clobber.
 
-## Not to be confused with
+Runs inside any project other than Commander's own. It adds Commander's orchestrator/executor section and a stack-tailored pointer list to that project's `CLAUDE.md`, between markers so a re-run replaces the block instead of duplicating it.
 
-- **`/ccc-onboard`** — onboards a new *contributor* INTO the cc-commander repo itself (this repo).
-- **`/ccc-tuneup`** — tunes up the user's local `~/.claude` CC Commander *install* (plugin freshness, junk, settings).
-- **`/ccc-adopt` (this skill)** — runs INSIDE ANY OTHER PROJECT (yours, not cc-commander) and adds CCC's Orchestrator/Executor doctrine plus a tailored skill/agent pointer list to that project's own `CLAUDE.md`.
+On Codex, AskUserQuestion becomes a plain-text question with the same options; every other step is identical.
 
-If the current working directory's git root is `cc-commander` itself, stop and point the user at `/ccc-onboard` or `/ccc-tuneup` instead — this skill is for adopting CCC doctrine into a *different* codebase.
+## When to use / when not to
 
-## Safety rules (NON-NEGOTIABLE)
-
-- ❌ NEVER `rm` or `trash` anything.
-- ✅ Before ANY write to `CLAUDE.md`: `cp CLAUDE.md CLAUDE.md.backup-$(date +%Y%m%d-%H%M%S)`.
-- ❌ NEVER overwrite an existing `CLAUDE.md` wholesale — only append/replace the clearly delimited CCC block.
-- ❌ NEVER run outside a confirmed git repo without asking first (`git rev-parse --show-toplevel` must succeed, or the user must explicitly confirm working in a non-git directory).
-- ✅ Always show a diff preview via `AskUserQuestion` before writing anything.
-- ❌ NEVER silently create a `CLAUDE.md` that doesn't exist — offer via `AskUserQuestion` first.
-- ✅ Re-run safe: detect an existing `<!-- CCC:orchestrator-executor:start -->` marker and replace in place — never duplicate the block.
+- Use once per existing project, and again after the stack changes (the re-run replaces the block in place).
+- Use `$ccc-onboard` to onboard a contributor to a repository (including Commander's own), `$ccc-tuneup` to tune the local Commander install under `~/.claude`, and `$ccc-claudemd` to rewrite a whole CLAUDE.md.
 
 ## Arguments
 
-- `--check` — read-only: detect stack + existing CLAUDE.md + marker state, print the plan, do NOT write anything.
-- bare `/ccc-adopt` — detect, preview the diff via chips, write on confirm.
+- `--check` — read-only: detect stack, CLAUDE.md and marker state, print the plan from step 4, write nothing.
+- No argument — detect, preview the diff, write on approval.
 
-## Step 1 — Detect
+## What happens
+
+Shell state does not persist between Bash calls: start each later command with `ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)` and use the literal backup path printed in step 6.
+
+### 1. Detect
 
 ```bash
-IS_GIT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
-echo "GIT_ROOT=${IS_GIT:-n/a}"
+GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+ROOT="${GIT_ROOT:-$PWD}"
+echo "GIT_ROOT=${GIT_ROOT:-n/a}"
+echo "HAS_CLAUDE_MD=$([ -f "$ROOT/CLAUDE.md" ] && echo yes || echo no)"
+echo "HAS_MARKER=$(grep -q 'CCC:orchestrator-executor:start' "$ROOT/CLAUDE.md" 2>/dev/null && echo yes || echo no)"
 
-HAS_CLAUDE_MD=$([ -f "CLAUDE.md" ] && echo yes || echo no)
-HAS_MARKER=$(grep -l "CCC:orchestrator-executor:start" CLAUDE.md 2>/dev/null && echo yes || echo no)
-echo "HAS_CLAUDE_MD=$HAS_CLAUDE_MD"
-echo "HAS_MARKER=$HAS_MARKER"
+# Stack signals
+test -f "$ROOT/package.json" && echo "STACK=node" && grep -o '"\(react\|next\|vue\|nuxt\|express\|fastify\|hono\)"' "$ROOT/package.json" 2>/dev/null
+test -f "$ROOT/pyproject.toml" -o -f "$ROOT/requirements.txt" && echo "STACK=python"
+test -f "$ROOT/Cargo.toml" && echo "STACK=rust"
+test -f "$ROOT/go.mod" && echo "STACK=go"
+test -f "$ROOT/Gemfile" && echo "STACK=ruby"
+test -f "$ROOT/composer.json" && echo "STACK=php"
+test -f "$ROOT/pom.xml" -o -f "$ROOT/build.gradle" && echo "STACK=jvm"
+test -d "$ROOT/.github/workflows" && echo "SIGNAL=ci"
+ls "$ROOT"/app.json "$ROOT"/Podfile "$ROOT"/*.xcodeproj 2>/dev/null | head -1 | sed 's/^/SIGNAL=mobile /'
 
-# Stack detection — same style as ccc-onboard's clone-time validator
-test -f package.json && echo "STACK=node" && grep -o '"\(react\|next\|vue\|nuxt\|express\|fastify\|hono\)"' package.json 2>/dev/null
-test -f pyproject.toml -o -f requirements.txt && echo "STACK=python"
-test -f Cargo.toml && echo "STACK=rust"
-test -f go.mod && echo "STACK=go"
-test -f Gemfile && echo "STACK=ruby"
-test -f composer.json && echo "STACK=php"
-test -f pom.xml -o -f build.gradle && echo "STACK=jvm"
+# Package manager
+test -f "$ROOT/bun.lockb" -o -f "$ROOT/bun.lock" && echo "PM=bun"
+test -f "$ROOT/pnpm-lock.yaml" && echo "PM=pnpm"
+test -f "$ROOT/yarn.lock" && echo "PM=yarn"
+test -f "$ROOT/package-lock.json" && echo "PM=npm"
 
-# Package manager clues (mirrors ccc-onboard)
-test -f bun.lockb -o -f bun.lock && echo "PM=bun"
-test -f pnpm-lock.yaml && echo "PM=pnpm"
-test -f yarn.lock && echo "PM=yarn"
-test -f package-lock.json && echo "PM=npm"
+# Commander's own repo?
+{ [ "$(basename "$ROOT")" = "cc-commander" ] || [ -f "$ROOT/scripts/audit-counts.js" ] || [ -f "$ROOT/commander/cowork-plugin/.claude-plugin/plugin.json" ]; } && echo "SELF=yes"
 ```
 
-If `GIT_ROOT` resolves and `basename "$GIT_ROOT"` is `cc-commander` (or `test -f "$GIT_ROOT/scripts/audit-counts.js"` exists) — STOP. This is the cc-commander repo itself; redirect to `/ccc-onboard` or `/ccc-tuneup` instead of proceeding.
+- `SELF=yes` → stop. This is Commander's own repository; point to `$ccc-onboard` or `$ccc-tuneup`.
+- `GIT_ROOT=n/a` → ask before touching any file:
 
-If `IS_GIT` is empty (not a git repo), ask via `AskUserQuestion` whether to continue anyway before touching any file.
+  ```yaml
+  question: "This directory is not a git repo. Continue anyway?"
+  header: "CCC Adopt"
+  multiSelect: false
+  options:
+    - label: "🟢 Cancel"
+      description: "Make no changes; run $ccc-adopt from inside the project's repo."
+    - label: "Continue here"
+      description: "Use the current directory as the project root. The backup is the only undo."
+  ```
 
-Read `CLAUDE.md` in full if `HAS_CLAUDE_MD=yes` — never assume it's empty or absent without checking.
+- `HAS_CLAUDE_MD=yes` → Read `CLAUDE.md` in full before planning. Never assume its content.
 
-## Step 2 — Merge plan (no CLAUDE.md yet)
+### 2. Plan the merge
 
-If `HAS_CLAUDE_MD=no`, ask first — never silently create the file:
+- `HAS_CLAUDE_MD=no` → ask; never create the file silently:
 
-```yaml
-question: "No CLAUDE.md found in this project. Create one?"
-header: "CCC Adopt"
-multiSelect: false
-options:
-  - label: "Create minimal CLAUDE.md"
-    value: "create"
-    description: "New file with just a title + the CCC Orchestrator/Executor section."
-    preview: "Smallest possible file — you add project-specific rules later."
-  - label: "Cancel"
-    value: "cancel"
-    description: "Don't create anything."
-    preview: "Re-run /ccc-adopt anytime once you have a CLAUDE.md."
-```
+  ```yaml
+  question: "No CLAUDE.md found in this project. Create one?"
+  header: "CCC Adopt"
+  multiSelect: false
+  options:
+    - label: "🟢 Create minimal CLAUDE.md"
+      description: "New file with a title, the orchestrator/executor section and the skill pointers."
+      preview: "Smallest possible file — add project-specific rules later."
+    - label: "Cancel"
+      description: "Create nothing. Re-run $ccc-adopt once you have a CLAUDE.md."
+  ```
 
-If `HAS_MARKER=yes`, this is a re-run — plan an in-place replace of the existing block (between the start/end markers), not an append.
+- `HAS_MARKER=yes` → re-run: replace the content between the markers in place.
+- Otherwise → append the block at the end of the file, preserving everything above it.
 
-## Step 3 — The doctrine block (verbatim — do not paraphrase)
+### 3. The block (verbatim)
 
-This exact content must be inserted, wrapped in the delimiter comments below. It must match the copy in `CLAUDE.md.template` at the cc-commander repo root — do not alter wording, headers, or command names.
+Insert exactly this, markers included. Its body is the `## Orchestrator and executor` section of `CLAUDE.md.template` at the Commander repository root; keep the two identical and do not paraphrase.
 
 ```markdown
 <!-- CCC:orchestrator-executor:start -->
-## Orchestrator / Executor Model (save ~70% tokens)
+## Orchestrator and executor
+Split thinking from typing when the task benefits:
 
-CC Commander splits work into two roles instead of doing everything on one expensive model:
+- **Orchestrator** (`fable` or `opus`): plans, writes a goal file (objective, constraints, acceptance criteria, files not to touch, report format), and verifies the result. It does not write the final code.
+- **Executor**: implements the goal file exactly and runs its own tests as a first gate. Codex executors run through `codex exec --json` (`gpt-6.1-sol` by default, `gpt-6-sol` for bounded work, `gpt-6-luna` for mechanical steps, `gpt-6-astra` when the step itself is hard); Claude executors are `sonnet` or `opus` subagents.
+- For substantive or expensive-to-reverse changes, the orchestrator or a fresh verifier confirms the result against the acceptance criteria. Small, reversible steps can rely on self-verification.
 
-- **Orchestrator** — a high-reasoning model (Claude Fable 5 `effort: high`, or Opus 4.8 as the everyday default) that does NOT write final code. It plans: breaks the task into steps, defines acceptance criteria, and produces a **Skill.md-style goal file** — a structured spec an executor can follow without re-deriving intent.
-- **Executor** — a fast, capable-at-execution model (GPT-5.5 `effort: xhigh` via the `codex` adapter, or a Sonnet subagent) that implements the plan file exactly. It does not re-plan; it runs its own tests as a first gate, then reports back.
+Commands: `$ccc-orchestrate` (Claude plans, Codex or a Claude subagent executes, Claude verifies) · `$ccc-plan-exec` (Claude only) · `$ccc-codex` (Codex CLI health, models, plugins, agents, review) · `$ccc-handoff` (write a dense handoff and continue in a fresh session).
 
-The executor's own test run is a first gate, not the finish line — the worker never grades its own homework. The **orchestrator** (or a fresh verifier agent) independently confirms the result against the plan's acceptance criteria before anything is called done. See the Fable Method, Pillar 2.
-
-Why this saves tokens: the expensive model's context stays small (just the plan, not every file it touches); the fast executor absorbs the token-heavy file reads/writes/diffs. You pay premium-model tokens only for the reasoning, not the typing.
-
-**How to run it:**
-- `/ccc-orchestrate` — Fable/Opus plans → writes a goal file → dispatches GPT-5.5 (via `codex`) or a Sonnet subagent to execute it, then verifies the result against the plan's acceptance criteria.
-- `/ccc-plan-exec` — the Claude-only variant (cheap Sonnet/Haiku plans, Opus/Fable executes) when you want to stay in one runtime.
-- `/ccc-handoff` — when context grows large mid-task, write a dense handoff file and start a fresh chat instead of letting the session bloat. Do this *frequently*, not just at the end — small, frequent resets beat one giant compaction.
-
-**Adopting this in an existing (non-CC-Commander) project:** run `/ccc-adopt` once. It reads your current CLAUDE.md (if any), detects your stack, and merges in this Orchestrator/Executor section plus a stack-appropriate list of which CCC skills/agents to reach for going forward — without clobbering your existing project-specific rules.
+Existing project without Commander conventions: run `$ccc-adopt` once to merge these sections without overwriting project rules.
 <!-- CCC:orchestrator-executor:end -->
 ```
 
-## Step 4 — Stack-appropriate skill/agent pointer list
+### 4. Skill and agent pointers
 
-After the doctrine block, always append this fixed core list, then a tailored list based on detected stack. Do not dump the full 67-skill catalog — pick what's actually relevant.
+After the block, add the core five plus the rows that match step 1's signals. Never paste the whole catalog.
 
-**Always include (every stack):**
-- `/ccc-orchestrate` — plan/execute split for any multi-step task
-- `/ccc-plan-exec` — Claude-only orchestrator/executor variant
-- `/ccc-handoff` — context-growth session handoff
-- `/ccc-xray` — project health scorecard
-- `/ccc-review` — branch/diff audit
+Core (every stack): `$ccc-orchestrate` (plan/execute split) · `$ccc-plan-exec` (Claude-only variant) · `$ccc-handoff` (context-growth handoff) · `$ccc-xray` (health scorecard) · `$ccc-review` (branch and diff audit).
 
-**Stack-tailored additions (pick relevant rows only):**
-
-| Detected stack signal | Add these pointers |
+| Signal | Add |
 |---|---|
-| `next`/`react`/`vue`/`nuxt` in package.json | `ccc-design` (UI/UX), `designer` agent, `/ccc-e2e` |
-| `express`/`fastify`/`hono`/generic Node API | `ccc-saas` (auth/billing/multi-tenant), `security-auditor` agent, `ccc-devops` |
-| `pyproject.toml`/`requirements.txt` | `python-reviewer` agent, `ccc-testing`, `ccc-data` if data/ETL signals present |
-| `Cargo.toml` | `rust-reviewer` agent, `performance-engineer` persona |
-| `go.mod` | `go-reviewer` agent, `ccc-devops` |
-| `pom.xml`/`build.gradle` | `java-reviewer` or `kotlin-reviewer` agent depending on source dirs |
-| `composer.json` | `ccc-security`, `builder` agent (Laravel patterns if `artisan` present) |
-| No package manifest / plain CLI or script repo | `builder` agent, `qa-engineer` agent, `ccc-devops` |
-| `.github/workflows/` present | `ccc-ci` |
-| Mobile signals (`app.json`, `Podfile`, `*.xcodeproj`) | `ccc-mobile` |
+| `next`, `react`, `vue`, `nuxt` in package.json | `$ccc-design`, `designer` agent, `$ccc-e2e` |
+| `express`, `fastify`, `hono`, or another Node API | `$ccc-saas`, `security-auditor` agent, `$ccc-devops` |
+| `pyproject.toml` or `requirements.txt` | `python-reviewer` agent, `$ccc-testing`, `$ccc-data` when data or ETL signals are present |
+| `Cargo.toml` | `rust-reviewer` agent, `performance-engineer` agent |
+| `go.mod` | `go-reviewer` agent, `$ccc-devops` |
+| `pom.xml` or `build.gradle` | `java-reviewer` or `kotlin-reviewer` agent, by source directories |
+| `composer.json` | `$ccc-security`, `builder` agent (Laravel patterns when `artisan` exists) |
+| No package manifest (plain CLI or scripts) | `builder` agent, `qa-engineer` agent, `$ccc-devops` |
+| `SIGNAL=ci` | `$ccc-ci` |
+| `SIGNAL=mobile` | `$ccc-mobile` |
 
-Print the tailored result as:
+Render it as:
 
 ```markdown
 ## Recommended CCC skills for this project
 
 Always:
-- /ccc-orchestrate · /ccc-plan-exec · /ccc-handoff · /ccc-xray · /ccc-review
+- $ccc-orchestrate · $ccc-plan-exec · $ccc-handoff · $ccc-xray · $ccc-review
 
 For this stack (<detected stack>):
 - <pointer 1> — <one-line why>
@@ -159,75 +151,82 @@ For this stack (<detected stack>):
 - <pointer 3> — <one-line why>
 ```
 
-## Step 5 — Diff preview + confirm (AskUserQuestion)
+With `--check`, print the detection summary, the merge plan from step 2 and this list, then stop. Never reach step 5.
 
-Before writing anything, show the exact diff (new file, appended block, or in-place replace) and ask:
+### 5. Diff preview and approval
+
+Show the exact change (new file, appended block, or in-place replacement), then ask:
 
 ```yaml
-question: "Apply the CCC Orchestrator/Executor section to CLAUDE.md?"
+question: "Apply the CCC orchestrator/executor section to CLAUDE.md?"
 header: "CCC Adopt"
 multiSelect: false
 options:
-  - label: "Apply"
-    value: "apply"
-    description: "Backup CLAUDE.md, then write the delimited block + skill pointers shown above."
-    preview: "Reversible — CLAUDE.md.backup-<timestamp> is kept alongside the edited file."
+  - label: "🟢 Apply"
+    description: "Back up CLAUDE.md, then write the delimited block and the skill pointers shown above."
+    preview: "Reversible — CLAUDE.md.backup-<timestamp> stays beside the edited file."
   - label: "Show full diff first"
-    value: "diff"
-    description: "Print the complete before/after before deciding."
-    preview: "No changes made yet."
+    description: "Print the complete before and after, then ask again. No changes yet."
   - label: "Cancel"
-    value: "cancel"
-    description: "Make no changes."
-    preview: "Re-run /ccc-adopt anytime."
+    description: "Make no changes. Re-run $ccc-adopt anytime."
 ```
 
-On `--check`: stop after Step 4's printed plan — never reach this prompt, never write.
-
-## Step 6 — Backup then write
+### 6. Back up, then write
 
 ```bash
-[ -f CLAUDE.md ] && cp CLAUDE.md CLAUDE.md.backup-$(date +%Y%m%d-%H%M%S)
+[ -f "$ROOT/CLAUDE.md" ] && BACKUP="$ROOT/CLAUDE.md.backup-$(date +%Y%m%d-%H%M%S)" && cp "$ROOT/CLAUDE.md" "$BACKUP" && echo "BACKUP=$BACKUP"
 ```
 
-- **New file:** `Write` a minimal `CLAUDE.md` with a one-line title + the doctrine block + skill pointer list.
-- **Existing file, no marker:** `Edit`/append the doctrine block + skill pointer list at the end of the file, preserving everything already there.
-- **Existing file, marker present (re-run):** `Edit` to replace only the content between `<!-- CCC:orchestrator-executor:start -->` and `<!-- CCC:orchestrator-executor:end -->` — leave the skill-pointer list and every other section untouched, then re-append a fresh skill-pointer list only if the detected stack changed.
+- New file → Write a minimal `CLAUDE.md`: a one-line `# <project name>` title, the block, the pointer list.
+- Existing file, no marker → Edit to append the block and the pointer list at the end.
+- Existing file, marker present → Edit only the text between `<!-- CCC:orchestrator-executor:start -->` and `<!-- CCC:orchestrator-executor:end -->`. Leave the pointer list and every other section alone; replace the pointer list only when the detected stack changed.
 
-After writing, verify the file is still valid markdown (no truncation) and that the marker pair appears exactly once:
+### 7. Verify
 
 ```bash
-grep -c "CCC:orchestrator-executor:start" CLAUDE.md
-grep -c "CCC:orchestrator-executor:end" CLAUDE.md
+grep -c "CCC:orchestrator-executor:start" "$ROOT/CLAUDE.md"
+grep -c "CCC:orchestrator-executor:end" "$ROOT/CLAUDE.md"
+tail -5 "$ROOT/CLAUDE.md"
 ```
 
-Both must equal `1`. If not, restore from the backup and report the failure.
+Both counts must be `1` and the tail must show the end of the content you wrote (no truncation). On any failure, restore with `cp "$BACKUP" "$ROOT/CLAUDE.md"`, rerun the two counts to confirm the original is back, and report the failure.
 
-## Step 7 — Report
+### 8. Report
 
-```
+```markdown
 ## CCC Adopt complete
 
-✅ CLAUDE.md updated: <new file | appended | in-place replaced>
-💾 Backup: CLAUDE.md.backup-<timestamp>
+✅ CLAUDE.md updated: <new file | appended | replaced in place>
+💾 Backup: <BACKUP path, or "none — new file">
 🎯 Stack detected: <stack> (<package manager>)
-📌 Skill pointers added: <count> stack-specific + 5 universal
-⏭️ Next: try /ccc-orchestrate on your next multi-step task
+📌 Skill pointers: the core five + <n> for this stack
+⏭️ Next: try $ccc-orchestrate on your next multi-step task
 ```
 
-## Anti-patterns — DO NOT
+## Done when
 
-- ❌ Duplicate the marker block on a second run — detect `CCC:orchestrator-executor:start` and replace in place instead.
-- ❌ Assume every project wants every CCC skill — tailor the pointer list to detected stack signals only.
-- ❌ Silently create a `CLAUDE.md` without confirmation.
-- ❌ Overwrite unrelated sections of an existing `CLAUDE.md`.
-- ❌ Paraphrase the Orchestrator/Executor doctrine text — it must match `CLAUDE.md.template` verbatim.
-- ❌ Run destructive operations (`rm`/`trash`) — this skill only ever adds a backup file and an edit.
-- ❌ Proceed in a non-git directory without asking first.
-- ❌ Run this skill against the cc-commander repo itself — redirect to `/ccc-onboard` or `/ccc-tuneup`.
+- Step 7 printed `1` and `1`, and the reported backup path exists (`test -f "$BACKUP"`), or the user cancelled and nothing was written.
+- With `--check`: no Write or Edit call and no backup were made this run.
 
-**Bottom line:** detect stack + existing CLAUDE.md → merge doctrine into a delimited, replaceable block → tailor skill pointers to the stack → backup → confirm via chips → write → verify markers are singular.
+## Guardrails
+
+- Never `rm` or `trash` anything; the only new file is the backup.
+- Never write before the step 5 approval, and never create a `CLAUDE.md` without the step 2 approval.
+- Never overwrite an existing `CLAUDE.md` wholesale or touch sections outside the markers and the pointer list.
+- Never duplicate the marker block; a re-run replaces it in place.
+- Never paraphrase the block; it mirrors `CLAUDE.md.template`.
+- Never run against Commander's own repository or, without asking, outside a git repo.
+- Never commit, push or open a PR; the user reviews and commits the change.
+
+## See also
+
+- `$ccc-orchestrate` — the plan, execute, verify loop this block describes
+- `$ccc-claudemd` — audit or rewrite a whole CLAUDE.md
+- `$ccc-onboard` — first-hour plan for a new contributor
+- `$ccc-start` — first-run onboarding, which routes imports here
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

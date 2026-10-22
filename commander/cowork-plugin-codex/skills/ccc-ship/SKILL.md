@@ -1,6 +1,6 @@
 ---
 name: ccc-ship
-description: "pre-flight checks, cut a release, deploy to a platform, or rollback safely. Runs the test matrix in parallel and reports a checkbox scorecard; orchestrates version…"
+description: "Ship menu: run a parallel pre-flight matrix with a GO, CAUTION or NO-GO scorecard, cut a tagged release with changelog, deploy to a platform, or roll back the last deploy, each gated by a picker. Use when the user says ship it, pre-flight, cut a release, tag a version, or roll back."
 allowed-tools:
   - Read
   - Write
@@ -8,215 +8,222 @@ allowed-tools:
   - Bash
   - Glob
   - Grep
-  - Agent
+  - WebFetch
   - AskUserQuestion
-  - TodoWrite
   - mcp__ccd_session__spawn_task
   - mcp__ccd_session__mark_chapter
 argument-hint: "[action: preflight | release | deploy | rollback]"
+model: sonnet
+effort: high
+disable-model-invocation: true
 ---
 
-# /ccc-ship — Pre-flight + deploy
+# $ccc-ship — Pre-flight, tag, deploy
 
-Click-first ship flow. Four actions, one test matrix, one release pipeline, one deploy path. User picks the action, the matrix (or agent) runs, results surface as a checkbox scorecard.
+**CC Commander** · $ccc-ship · pre-flight → tag → deploy, with rollback one pick away
 
-## Session markers
+## When to use / when not to
 
-Call `mcp__ccd_session__mark_chapter` at these phase transitions:
+- Use for the whole ship path: check readiness, cut a release, deploy, or undo the last deploy.
+- Use `$ccc-deploy-check` for a deeper readiness gate with a rollback plan, `$ccc-deploy` for the deploy alone, and `$ccc-rollback` to revert commits and redeploy.
+- Desktop session tools (`mcp__ccd_session__mark_chapter`, `mcp__ccd_session__spawn_task`) are used when present and skipped silently otherwise. In Codex, ask pickers as plain-text questions with the same options and list failures as next steps instead of chips.
 
-| Trigger | title | summary |
-|---------|-------|---------|
-| User picks "Pre-flight check" (before matrix runs) | `"Ship preflight: <branch>"` | `"Running preflight matrix on <branch>"` |
-| After test matrix completes | `"Tests: <pass>/<total>"` | `"<pass>/<total> tests passing; <N> gates remaining"` |
-| All gates evaluated, before presenting verdict | `"Preflight complete"` | `"Verdict: <GO|CAUTION|NO-GO> — <blocker-count> blockers"` |
-| After release tag is pushed | `"Release tagged <version>"` | `"v<version> tagged and pushed to GitHub"` |
+## What happens
 
-## Sidebar chips (spawn_task)
+### 1. Read ship readiness
 
-After the preflight verdict, IF any gate fails (tests red, security findings, build fail, unclean diff), spawn ONE `mcp__ccd_session__spawn_task` chip per failure:
+Run in one Bash call, silent on failure:
 
-- `title`: actionable imperative under 60 chars (e.g., `"Fix 3 failing tests before ship"` or `"Resolve doc-sync: README still references v3.2.0"`)
-- `prompt`: self-contained — include the exact gate that failed, the error output or file:line if available, and the fix direction. The spawned session has no memory of this conversation.
-- `tldr`: 1-2 sentences plain English explaining what broke and what to do.
-
-Chips fire after the preflight scorecard is rendered — never before.
-
-## Response shape (EVERY time)
-
-Output exactly these three sections in order:
-
-### 1. Brand header (one line, markdown)
-
+```bash
+git rev-parse --abbrev-ref HEAD
+git status --porcelain | wc -l
+git rev-list --count main..HEAD 2>/dev/null
+test -f package.json && node -p "require('./package.json').version"
+test -f .github/workflows/ci.yml && echo yes
+ls -t tasks/ship/preflight-*.md 2>/dev/null | head -1
 ```
-**CC Commander** · /ccc-ship · Pre-flight → tag → deploy
-```
-
-### 2. Context strip (one paragraph)
-
-Detect ship readiness with **five quick reads** (parallel Bash, silent on failure):
-- `git rev-parse --abbrev-ref HEAD` → branch
-- `git status --porcelain | wc -l` → uncommitted changes
-- `git rev-list --count main..HEAD 2>/dev/null` → commits ahead of main
-- `test -f package.json && node -p "require('./package.json').version"` → current version
-- `test -f .github/workflows/ci.yml && echo yes` → CI configured
 
 Render one line:
-> 🧭 Branch: `<branch>` · <N> commits ahead · <X> uncommitted · current version: `<ver>` · CI: `<yes/no>`
 
-If uncommitted changes > 0: "⚠️ Uncommitted changes detected — commit or stash before shipping."
+> 📊 Branch: `<branch>` · <N> commits ahead · <X> uncommitted · current version: `<ver>` · CI: `<yes/no>`
 
-### 3. The picker — `AskUserQuestion` with 4 ship actions
+If uncommitted changes > 0, add: "⚠️ Uncommitted changes detected — commit or stash before shipping."
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-ship.json` for canonical option data. Surface the 4 non-back choices.
+### 2. Route
 
-```
+| `$ARGUMENTS` | Go to |
+|---|---|
+| empty | step 3 picker |
+| `preflight` | step 4 |
+| `release` | step 5 |
+| `deploy` | step 6 |
+| `rollback` | step 7 |
+| anything else | echo it in the readiness line, then step 3 |
+
+### 3. Ship picker
+
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-ship.json` for the action labels and descriptions. Ask with AskUserQuestion, at most four options, the recommended one first with 🟢:
+
+```yaml
 question: "What are we shipping?"
-header: "CC Commander Ship"
+header: "Ship"
 multiSelect: false
 options:
-  - label: "✈️ Pre-flight check"
-    description: "Tests, lint, typecheck, secrets, airplane-mode. One click, full matrix."
-    preview: "6-check parallel matrix. Results as ✓/✗ scorecard. ~30-90s."
-  - label: "📦 Cut a release"
+  - label: "Pre-flight check"
+    description: "Tests, lint, typecheck, secrets, airplane mode. One click, full matrix."
+    preview: "Six-check parallel matrix. Results as a checkbox scorecard."
+  - label: "Cut a release"
     description: "Bump version, write changelog, tag, push, create GitHub release."
-    preview: "Patch by default. Prompts for bump type + release notes source."
-  - label: "🚀 Deploy"
-    description: "Vercel / Fly.io / Cloudflare — pick target, run deploy script."
-    preview: "Prompts for platform. Invokes platform's deploy script, not inline."
-  - label: "↩️ Rollback"
-    description: "Revert latest deploy + restore previous version. Idempotent."
-    preview: "Last deploy only. Prompts for confirmation."
+    preview: "Patch by default. Asks for bump type and release-notes source."
+  - label: "Deploy"
+    description: "Vercel, Fly.io, Cloudflare and more — pick target, run its deploy."
+    preview: "Uses the $ccc-deploy runners and health check."
+  - label: "Rollback"
+    description: "Restore the previous platform build. Asks for confirmation."
+    preview: "Last deploy only. Platform command or git revert."
 ```
 
-**Recommendation logic** (prepend ⭐ to ONE label):
-- Clean branch + commits ahead of main + CI green → ⭐ "Pre-flight check"
-- Preflight recently passed (last review artifact < 15 min old, blockers = 0) → ⭐ "Cut a release"
-- Version bumped + tag exists but no deploy since → ⭐ "Deploy"
-- Last deploy within 1h AND user mentions "revert" / "broken" in args → ⭐ "Rollback"
+Recommendation (pick one):
 
-## Step 2 — Dispatch the chosen action
+- Preflight artifact from step 1 is under 15 minutes old with 0 blockers → 🟢 Cut a release
+- Version bumped and tag exists, no deploy since → 🟢 Deploy
+- Last deploy within an hour and the arguments mention "revert" or "broken" → 🟢 Rollback
+- Otherwise → 🟢 Pre-flight check
 
-### Action A: "Pre-flight check"
+The menu's "Codex second opinion" entry is offered after pre-flight (step 4), not in this picker.
 
-Run a **parallel Bash matrix** (single Bash call with `&` + `wait`), each probe captured to a temp file. Auto-detect which commands to run — missing tools = ⚪ skip, not ✗ fail.
+### 4. Pre-flight check
 
-Matrix (all parallel):
-- `npm test` / `pnpm test` / `vitest run` — tests
-- `npm run lint` / `eslint .` — lint
-- `npx tsc --noEmit` — typecheck
-- Airplane mode: `grep -rE "fetch\(|axios\.|http\.(get|post)" src/ | grep -vE "localhost|127\.0\.0\.1"` — flag unexpected external calls
-- Audit counts: if `bin/audit-counts` exists, run it — else skip
-- Doc sync: `grep -c "v<ver>" README.md CHANGELOG.md` vs `package.json` version — catch stale version refs
+Mark the chapter: `mcp__ccd_session__mark_chapter` with title `Ship preflight: <branch>`, summary `Running preflight matrix on <branch>`.
 
-**Report as a markdown checklist (NOT a numbered list):**
+Run the matrix in one Bash call, each probe in the background with output captured to its own temp file, then `wait`. Detect which tools exist; a missing tool is ⏭️ skip, never ❌.
+
+| Probe | Command (first that applies) |
+|---|---|
+| Tests | `npm test` · `pnpm test` · `npx vitest run` |
+| Lint | `npm run lint` · `npx eslint .` |
+| Typecheck | `npx tsc --noEmit` (only with a `tsconfig.json`) |
+| Airplane mode | the grep below — flags unexpected external calls |
+| Audit counts | `bin/audit-counts` or `node scripts/audit-counts.js --check` if present, else skip |
+| Doc sync | `grep -c "v<ver>" README.md CHANGELOG.md` against the `package.json` version — catches stale version refs |
+
+```bash
+grep -rnE "fetch\(|axios\.|http\.(get|post)" src/ | grep -vE "localhost|127\.0\.0\.1"
+```
+
+After the matrix, mark the chapter `Tests: <pass>/<total>` with summary `<pass>/<total> tests passing; <N> gates remaining`.
+
+Report as a checkbox list, never a numbered list:
 
 ```markdown
-## ✈️ Pre-flight — <branch> — <HH:MM>
+## 🧪 Pre-flight — <branch> — <HH:MM>
 
-- [x] ✓ Tests — 187/187 pass (vitest, 12.3s)
-- [x] ✓ Lint — 0 errors, 2 warnings (eslint)
-- [x] ✓ Typecheck — clean (tsc --noEmit)
-- [ ] ✗ Airplane mode — 1 unexpected external call in `src/api/sync.ts:42`
-- [x] ✓ Audit counts — 500/500 match
-- [ ] ⚠️ Doc sync — README references v3.2.0, package.json is v3.3.0
+- [x] ✅ Tests — <pass>/<total> pass (<runner>, <seconds>s)
+- [x] ✅ Lint — 0 errors, <n> warnings
+- [x] ✅ Typecheck — clean
+- [ ] ❌ Airplane mode — 1 unexpected external call in `src/api/sync.ts:42`
+- [x] ⏭️ Audit counts — skipped, no script
+- [ ] ⚠️ Doc sync — README references an older version than package.json
 
-**Verdict:** 🟡 CAUTION — 1 blocker (airplane mode) + 1 warning (doc sync). Fix before shipping.
+**Verdict:** 🟡 CAUTION — 1 blocker, 1 warning. Fix before shipping.
 ```
 
-Verdict rules: all ✓ → 🟢 GO · any ⚠️ → 🟡 CAUTION · any ✗ → 🔴 NO-GO.
+Verdict: all ✅ or ⏭️ → 🟢 GO · any ⚠️ → 🟡 CAUTION · any ❌ → 🔴 NO-GO. Mark the chapter `Preflight complete`, summary `Verdict: <GO|CAUTION|NO-GO> — <blocker-count> blockers`.
 
-### Action B: "Cut a release"
+Write the scorecard, verdict and blocker list to `tasks/ship/preflight-<YYYYMMDD>-<HHMM>.md` (create `tasks/ship/` if needed) so step 5 can reference it. Confirm with `test -s <path>`.
 
-Two AUQs back-to-back:
+After the scorecard is rendered, for each failed gate call `mcp__ccd_session__spawn_task` once:
 
-**AUQ-1 — Bump type:**
-- "Patch (bug fixes only)" — default
-- "Minor (new features, backward-compatible)"
-- "Major (breaking changes)"
+- `title`: imperative, under 60 characters ("Fix 3 failing tests before ship")
+- `prompt`: self-contained — the gate, the error output or `file:line`, and the fix direction; the new session has no memory of this one
+- `tldr`: one or two plain sentences on what broke and what to do
 
-**AUQ-2 — Release notes source:**
-- "Auto-generated from commits (conventional commits → groups)"
-- "I'll write them in a sec"
-- "Use CHANGELOG.md as-is"
+If `codex` is installed (`command -v codex`), offer one picker: "🟢 Continue" or "Codex second opinion" (runs `codex review --uncommitted`, read-only, and lists its findings beside the scorecard).
 
-Then execute (via Bash, sequentially, with confirmation before push):
-1. Bump version in `package.json` (+ `plugin.json` if present)
-2. Prepend new section to `CHANGELOG.md` (or write auto-generated from commits)
-3. `git add` the changed files
-4. Create a commit: `chore(release): v<new-version>` (no AI attribution per project rules)
-5. Create an annotated tag: `git tag -a v<new-version> -m "<version> — <date>"`
-6. **STOP and prompt user** before `git push --tags` — never auto-push
-7. After user confirms push: `gh release create v<new-version> --notes-file <notes-source>`
+### 5. Cut a release
 
-Report back:
-> 📦 **Released v<version>** · tag pushed · [GitHub release](<url>) · CHANGELOG updated
-> 💡 Next: `/ccc-ship deploy` to push it live.
+Ask two pickers in sequence:
 
-### Action C: "Deploy"
+- Bump type: "🟢 Patch (bug fixes only)", "Minor (new features, backward-compatible)", "Major (breaking changes)".
+- Release notes: "🟢 Auto-generate from commits (conventional commits grouped by type)", "I'll write them now", "Use CHANGELOG.md as-is".
 
-One AUQ for platform:
-- "Vercel (Next.js, static sites)"
-- "Fly.io (backend services, Dockerfile apps)"
-- "Cloudflare (Workers, Pages)"
-- "Other (I'll run the script)"
+If the latest preflight verdict is 🔴 NO-GO or older than the last commit, say so before continuing.
 
-On pick, **invoke the platform's deploy script** — do NOT roll a custom deploy inline:
-- Vercel → `vercel deploy --prod` (check for `vercel.json`)
-- Fly.io → `fly deploy` (check for `fly.toml`; remind to run through `op run --` if secrets in 1Password)
-- Cloudflare → route to the `cloudflare-deploy` skill
-- Other → emit a runbook checklist + stop (don't auto-execute)
+Then, in order:
 
-Report deploy URL + health-check command after completion.
+1. Bump `version` in `package.json` with Edit, and in `.claude-plugin/plugin.json` or `plugin.json` if present.
+2. Prepend the new section to `CHANGELOG.md` (auto-generated: `git log --oneline <last-tag>..HEAD`, grouped by conventional-commit type). Write the release notes to `tasks/ship/release-notes-v<new>.md`.
+3. Stage only the changed files: `git add package.json CHANGELOG.md <plugin.json if changed>`.
+4. Commit: `git commit -m "chore(release): v<new>"`, following the repository's commit convention without adding AI attribution trailers.
+5. Tag: `git tag -a v<new> -m "v<new> — <date>"`.
+6. Stop and ask: "🟢 Push commit and tag now" or "Keep local — I'll push later". Never push without this answer.
+7. On push: `git push origin <branch> && git push origin v<new>` (the single tag, not `--tags`, so stray local tags stay local).
+8. Ask again before the public release: "🟢 Create the GitHub release" or "Skip". On yes: `gh release create v<new> --notes-file tasks/ship/release-notes-v<new>.md`.
 
-### Action D: "Rollback"
+Verify and mark the chapter `Release tagged v<new>`, summary `v<new> tagged and pushed`:
 
-Before anything, emit a ⚠️ confirmation AUQ:
-- "Yes — roll back the last deploy"
-- "No — cancel"
+```bash
+git ls-remote --tags origin v<new>
+gh release view v<new> --json url --jq .url
+```
 
-On yes, detect the last deploy and run the platform's rollback:
-- Vercel → `vercel rollback`
-- Fly.io → `fly releases rollback`
-- Cloudflare → `wrangler rollback`
-- If platform unknown: emit a runbook with `git revert <sha> && <deploy command>` + STOP.
+Report:
 
-Report: previous version restored + ETA + health-check command.
+> 📦 **Released v<new>** · tag pushed · [GitHub release](<url>) · CHANGELOG updated
+> 💡 Next: `$ccc-ship deploy` to put it live.
 
-## Anti-patterns — DO NOT do these
+### 6. Deploy
 
-- ❌ Run the full test matrix sequentially — ALWAYS parallel with `&` + `wait`
-- ❌ Report preflight results as a numbered list — ALWAYS checkbox markdown
-- ❌ Auto-push tags without explicit user confirmation — git push is user-gated
-- ❌ Roll a custom deploy pipeline — always invoke the platform's script
-- ❌ Skip the rollback confirmation — destructive op, always AUQ first
-- ❌ Commit with AI attribution trailers — project rule, no `Co-Authored-By` lines
-- ❌ Offer more than 4 ship actions in the picker
+Run the `$ccc-deploy` procedure in this session (it is user-invoked only, so do not call it through the Skill tool): read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-deploy/SKILL.md` and follow its steps 1 to 5, using [../ccc-deploy/references/platform-runners.md](../ccc-deploy/references/platform-runners.md) for the commands. Its platform picker covers Vercel, Fly.io, Cloudflare (or the `cloudflare-deploy` skill), GitHub Pages, npm, and package scripts. For an unrecognized platform, print a runbook checklist and stop without executing it.
 
-## Argument handling
+Report the deploy URL, the `Health: PASS|FAIL` line, and the health-check command the user can rerun.
 
-- `/ccc-ship` → root picker
-- `/ccc-ship preflight` → skip picker, run matrix immediately
-- `/ccc-ship release` → skip picker, jump to bump-type AUQ
-- `/ccc-ship deploy` → skip picker, jump to platform AUQ
-- `/ccc-ship rollback` → skip picker, jump to confirmation AUQ
-- `/ccc-ship <anything else>` → echo arg in context strip + show root picker
+### 7. Rollback
 
-## Artifact format
+Ask first with AskUserQuestion:
 
-Every preflight writes `tasks/ship/preflight-<YYYYMMDD>-<HHMM>.md` with the verdict, matrix, and blocker list so Release can reference it later.
+```yaml
+question: "Roll back the last deploy?"
+header: "Rollback"
+multiSelect: false
+options:
+  - label: "🟢 Platform rollback"
+    description: "Restore the previous build on the platform. No git change; fastest."
+  - label: "Revert in git and redeploy"
+    description: "Hand off to $ccc-rollback: revert commits, push, redeploy, verify."
+  - label: "Cancel"
+    description: "Nothing changes."
+```
 
-## Brand rules
+On platform rollback, detect the platform as in `$ccc-deploy` step 1 and run its command from the platform-rollback table in [../ccc-deploy/references/platform-runners.md](../ccc-deploy/references/platform-runners.md#platform-rollback-no-git-change): `vercel rollback`, `fly releases rollback`, or `wrangler rollback`. If the platform is unknown, print the runbook `git revert <sha> && <deploy command>` and stop.
 
-- Checkbox markdown for preflight — NEVER numbered lists
-- 🟢/🟡/🔴 verdict badges — consistent across preflight, review, and ship
-- Never auto-push — git push is a user gate
-- Never auto-rollback — rollback is a user gate (AUQ confirmation first)
-- Never mention the CLI — Desktop-plugin flow
+Verify by fetching the production URL with WebFetch, and report: version restored, health result, and the health-check command. On "Revert in git", tell the user to run `$ccc-rollback` (it is user-invoked only).
 
----
+## Done when
 
-**Bottom line:** four ship tiles → parallel matrix OR gated release/deploy/rollback → checkbox scorecard. Destructive ops always gated by AUQ.
+- Pre-flight: the scorecard and verdict are shown and `test -s tasks/ship/preflight-<stamp>.md` succeeded.
+- Release: `git ls-remote --tags origin v<new>` returned the tag (or the user chose to keep it local, and that is reported).
+- Deploy and rollback: a `Health: PASS|FAIL` line from a real fetch was printed.
+
+## Guardrails
+
+- Pushing, creating a GitHub release, deploying and rolling back each need the user's authorization in this conversation; ask with a picker at that step, never at the start.
+- Never run the pre-flight matrix sequentially; never report it as a numbered list.
+- Never auto-push tags or auto-rollback.
+- Never roll a custom deploy pipeline; use the platform's own command or script.
+- Never add AI attribution trailers to release commits.
+- Never offer more than four ship actions in one picker.
+- Run every command here through Bash; do not send the user to a separate terminal.
+
+## See also
+
+- `$ccc-deploy-check` — readiness gate with risk assessment and rollback plan
+- `$ccc-deploy` — deploy runners and health check
+- `$ccc-rollback` — git revert and redeploy
+- `$ccc-review` — code review before shipping
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

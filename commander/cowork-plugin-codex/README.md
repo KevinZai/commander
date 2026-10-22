@@ -2,7 +2,7 @@
 
 **Purpose:** Codex CLI–compatible version of `commander/cowork-plugin/`. Lets users install CC Commander via Codex's plugin system instead of Claude Code's.
 
-**Maintained as a parallel mirror** — every change to `commander/cowork-plugin/skills/` or `commander/cowork-plugin/agents/` must be replicated here. The two trees stay in lockstep by convention + the doc-sync gate in CI.
+**Generated, never hand-edited** — `scripts/build-codex.js` (`npm run build:codex`) regenerates this tree from `commander/cowork-plugin/` plus `commander/adapters/codex/`. Make every change in the Claude plugin source and rebuild; edits made here are overwritten. This README is the one file the build preserves.
 
 ---
 
@@ -18,62 +18,19 @@
 | Banner | `commander/cowork-plugin/lib/banner.txt` | `commander/cowork-plugin-codex/lib/banner.txt` |
 | Rules / personas | `commander/cowork-plugin/rules/personas/*.md` | `commander/cowork-plugin-codex/rules/personas/*.md` |
 
-## 🔁 Sync workflow
+## 🔁 Change workflow
 
-### When you add or modify a SKILL
+1. Edit the source: `commander/cowork-plugin/` (skills, agents, hooks, lib) or the Codex overlays in `commander/adapters/codex/`.
+2. Rebuild the mirror:
 
-```bash
-# 1. Make the change in the source tree
-vim commander/cowork-plugin/skills/ccc-newskill/SKILL.md
+   ```bash
+   npm run build:codex
+   ```
 
-# 2. Mirror to codex tree
-cp -r commander/cowork-plugin/skills/ccc-newskill \
-      commander/cowork-plugin-codex/skills/ccc-newskill
+   The build converts each Markdown agent to Codex TOML, translates hook registrations to the Codex events it supports, and copies skills and hook scripts. It wipes and rewrites this tree on every run (only this README survives).
+3. Review the generated diff under `commander/cowork-plugin-codex/` and commit it with the source change.
 
-# 3. Run audits to catch drift
-node commander/scripts/audit-naming.js --check
-node scripts/check-product-contract.js
-```
-
-### When you add or modify an AGENT
-
-Agent files differ in format between the two trees:
-
-| Format | Claude Code (source) | Codex (mirror) |
-|--------|---------------------|----------------|
-| Extension | `.md` | `.toml` |
-| Frontmatter | YAML (`---` delimited) | TOML (`[key]` sections) |
-| Body | Markdown | Same Markdown body — appended after TOML config |
-
-Mirror map (already in place for 22 personas):
-```
-commander/cowork-plugin/agents/architect.md
-   ↕
-commander/cowork-plugin-codex/agents/architect.toml
-```
-
-When updating an agent's persona, edit BOTH files and keep the markdown body in sync.
-
-### When you modify a HOOK
-
-Hook files are identical JS in both trees — just `cp`:
-
-```bash
-cp commander/cowork-plugin/hooks/<hook>.js \
-   commander/cowork-plugin-codex/hooks/<hook>.js
-```
-
-Shared lib path (`../lib/telemetry.mjs`) resolves identically in both contexts. No changes needed.
-
-## 🤖 Future automation
-
-A sync script at `scripts/sync-codex-mirror.mjs` could automate this in one command. Not built yet — manual mirror is the current pattern because:
-
-1. Agent format diff (Markdown → TOML) requires conversion logic that's been changing
-2. Codex-specific frontmatter fields (sandbox_mode, model_reasoning_effort) need preservation
-3. Manual review at sync time catches accidental cross-platform regressions
-
-**If/when the script lands:** invoke `node scripts/sync-codex-mirror.mjs` after every change. Spec is in `tasks/spec-codex-sync.md` (not yet authored — open ticket CC-859).
+Never copy files into this tree by hand or edit generated files here: the next build discards the change.
 
 ## ✅ Verification
 

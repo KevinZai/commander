@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "How CC Commander works: brain/hands separation, 22 specialist sub-agents, 23 lifecycle hooks, and the Claude Agent SDK pattern underneath."
+description: "How CC Commander works: brain/hands separation, 22 specialist sub-agents, 30 lifecycle hooks, six plugin workflows, the HUD mod, and the Claude Agent SDK pattern underneath."
 ---
 
 ## Brain / Hands
@@ -10,88 +10,68 @@ CC Commander follows a **brain/hands** separation pattern built on Anthropic's C
 - **Brain (Claude):** The main Claude Code session reads project context, routes intent, and makes decisions
 - **Hands (CC Commander):** Skills, hooks, and sub-agent personas execute the work — scoped, specialized, and disposable
 
-When you invoke `/ccc-review`, Claude isn't guessing how to do a code review. It loads the `reviewer` persona (Sonnet, read-only tools, structured severity format) and delegates. When it finishes, the persona is gone. The next task starts fresh.
+When you invoke `/ccc-review`, Claude isn't guessing how to do a code review. It loads the `reviewer` persona (`opus` alias, read-only tools, structured severity format) and delegates. When it finishes, the persona is gone. The next task starts fresh.
 
 This keeps context clean, prevents drift, and means each specialist operates at full capacity instead of a generalist stretched thin.
 
 ## Built on the Claude Agent SDK
 
-CC Commander's sub-agent architecture follows the same pattern Anthropic describes in their [Claude Agent SDK](https://docs.anthropic.com/en/docs/about-claude/models). Each plugin skill is a lightweight orchestration layer that:
+CC Commander's sub-agent architecture follows the same pattern Anthropic describes in their [Claude Agent SDK](https://code.claude.com/docs/en/sub-agents). Each plugin skill is a lightweight orchestration layer that:
 
 1. Reads project state (git diff, file structure, active tasks)
 2. Selects the right specialist persona
-3. Delegates with a scoped tool allowlist and turn budget
+3. Delegates with a scoped tool allowlist, model alias and effort level
 4. Returns structured output to the main session
 
 The plugin itself requires no external server, no API key, and no network call. It runs fully offline via the plugin manifest — the Claude Agent SDK pattern is implemented as skill files and hook scripts that Claude Code executes natively.
 
 ## 22 Specialist Sub-Agent Personas
 
-Each persona has a fixed model tier, tool allowlist, turn budget, and voice system (see `rules/personas/` in the plugin). They're invoked automatically by skills or on demand via `/ccc-browse`.
+Each agent declares a model **alias** and an effort level in its frontmatter, so it tracks the newest model in its line. Skills invoke them automatically; browse them with `/ccc-browse`.
 
-| # | Persona | Model | Core responsibility |
-|---|---------|-------|-------------------|
-| 1 | `architect` | Opus | System design, tradeoff analysis, irreversibility assessment |
-| 2 | `reviewer` | Sonnet | Code review across security / perf / correctness / maintainability |
-| 3 | `builder` | Sonnet | Feature implementation, TDD, scaffolding |
-| 4 | `security-auditor` | Opus | OWASP audits, threat modeling, adversarial review |
-| 5 | `debugger` | Opus | Root-cause investigation (Iron Law: no fix without confirmed root cause) |
-| 6 | `designer` | Sonnet | UI/UX critique, accessibility, visual hierarchy |
-| 7 | `qa-engineer` | Sonnet | Edge-case hunting, test coverage audit, breaking-case enumeration |
-| 8 | `devops-engineer` | Sonnet | Deploy planning, rollback specs, monitoring setup |
-| 9 | `data-analyst` | Sonnet | Signal extraction, visualization, statistical honesty |
-| 10 | `content-strategist` | Sonnet | Brand voice, messaging, copy variants |
-| 11 | `product-manager` | Opus | User stories, acceptance criteria, priority sequencing |
-| 12 | `performance-engineer` | Sonnet | Hotpath identification, p99 benchmarking, optimization |
-| 13 | `researcher` | Sonnet | Deep research, competitive analysis, citation management |
-| 14 | `technical-writer` | Sonnet | Documentation, API reference, clarity audits |
-| 15 | `fleet-worker` | Sonnet | Parallel batch work, scoped execution in fleet mode |
-| 16 | `typescript-reviewer` | Sonnet | TypeScript-specific review: strict mode, async correctness, ESM/CJS, ReDoS, idiomatic patterns |
-| 17 | `python-reviewer` | Sonnet | Python-specific review: PEP 8, type hints, async/await, pytest, security, idiomatic patterns |
+| Tier | Agents |
+|---|---|
+| `fable` (Fable 5.1), effort `xhigh` | `architect`, `security-auditor` |
+| `opus` (Opus 5.5), effort `high` | `builder`, `reviewer`, `debugger`, `designer`, `qa-engineer`, `devops-engineer`, `data-analyst`, `product-manager`, `performance-engineer`, `researcher`, and the `typescript`, `python`, `go`, `rust`, `java`, `kotlin` and `csharp` reviewers |
+| `sonnet` (Sonnet 5.5), effort `medium` | `technical-writer`, `content-strategist`, `fleet-worker` |
 
-Opus personas are used for tasks that require deep reasoning chains (architecture, security, debugging). Sonnet handles everything else at lower cost and higher speed.
+Read-only reviewers use `disallowedTools` so they cannot edit. Fable is reserved for work where a wrong call is expensive: architecture, threat models, and verification of load-bearing claims. See [Agents](/plugin/agents) for each persona.
 
-## 23 Lifecycle Hooks / 39 Handlers
+## 30 Lifecycle Hooks / 51 Handlers
 
-Hooks fire automatically around Claude Code sessions. v5.1.0 expanded the system from 9 to 23 events. Each hook event can have multiple handlers.
+Hooks fire automatically around Claude Code sessions; each event can have several handlers. The main groups:
 
-**Core events:**
+| Group | Events |
+|---|---|
+| Session | `SessionStart`, `Setup`, `SessionEnd`, `InstructionsLoaded`, `ConfigChange`, `CwdChanged`, `DirectoryAdded`, `FileChanged` |
+| Prompt | `UserPromptSubmit`, `UserPromptExpansion` |
+| Tools and permissions | `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PostToolBatch`, `PermissionRequest`, `PermissionDenied` |
+| Model | `PreModelSwitch`, `PostModelSwitch` |
+| Agents and tasks | `SubagentStart`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `TeammateIdle` |
+| Turn and context | `Stop`, `StopFailure`, `Notification`, `PreCompact`, `PostCompact`, `Elicitation`, `ElicitationResult` |
 
-| Event | Handlers | What fires |
-|-------|----------|-----------|
-| `SessionStart` | 4 | Load context, stale CLAUDE.md nudge, post-compact recovery, ambient suggestion |
-| `SessionEnd` | 2 | Session save + summary (moved from `Stop` in v5.1.0 — correctness fix) |
-| `UserPromptSubmit` | 4 | Intent classifier, context budget check, suggest ticker, prompt logger |
-| `PreToolUse` | 3 | Cost tracker + cost ceiling + secret leak guard |
-| `PostToolUse` | 3 | Knowledge capture + quality gate + auto-format |
-| `Stop` | 1 | Legacy cleanup |
-| `Notification` | 1 | Fleet agent completion log |
-| `PreCompact` | 1 | State save before context compaction |
-| `PostCompact` | 1 | Context restoration hints |
-| `SubagentStart` | 1 | Spawn time tracking |
-| `SubagentStop` | 1 | Sub-agent cost aggregation |
-| `PermissionRequest` | 1 | Nightwatch mobile relay |
-| `TaskCreated` | 1 | Background workflow/task start |
-| `TaskCompleted` | 1 | Background workflow/task finish |
+Telemetry handlers fail open — if one errors, the session continues. Hook state lives in `~/.claude/commander/` and never touches other `.claude/` contents. `WorktreeCreate` and `WorktreeRemove` are deliberately not registered, because a hook there replaces git's own worktree handling. See [Hooks 2026](/hooks-2026) for the per-handler registry.
 
-9 additional events added in v5.1.0: `StopFailure`, `PostToolUseFailure`, `PostToolBatch`, `Elicitation`, `ElicitationResult`, `ConfigChange`, `UserPromptExpansion`, `InstructionsLoaded`, `Setup`.
+## Plugin workflows
 
-All hooks fail gracefully — if a hook errors, the session continues. Hook state lives in `~/.claude/commander/` and never touches other `.claude/` contents. See [Hooks 2026](/hooks-2026) for the full registry.
+Skills that need many agents use the second execution path: **dynamic workflows**. A workflow is a script the Workflow tool runs in the background, spawning agents concurrently and having fresh agents refute each finding before it is reported.
 
-## Dynamic Workflows (Research Preview)
-
-v5.1.0 adds a second execution path for skills that need parallel subagents: **dynamic workflows**. A workflow is a JS file the runtime executes in the background, spawning many subagents concurrently and merging their findings.
-
-CC Commander ships 4 bundled workflows:
+Commander ships six, each runnable as `/commander:<name>`:
 
 | Workflow | Used by |
 |----------|---------|
 | `ccc-audit` | `/ccc-xray` |
 | `ccc-deep-review` | `/ccc-review` |
-| `ccc-migrate` | `/ccc-build` migrate mode |
+| `ccc-migrate` | `/ccc-ultracode` migrations |
 | `ccc-fleet` | `/ccc-fleet` |
+| `ccc-prompt-audit` | `/ccc-more` |
+| `ccc-release-audit` | `/ccc-more` |
 
-Requires Claude Code v2.1.154+. Skills fall back to standard `Agent()` dispatch on older clients. See [Dynamic Workflows](/dynamic-workflows) for the developer reference.
+See [Dynamic Workflows](/dynamic-workflows) for the developer reference.
+
+## The Commander HUD mod
+
+On Claude Code 2.1.287+ (Desktop 2.1.286+), the plugin's mod draws a band above the prompt with the Fable Method state, running agents, the session's tool-call budget and an update pill; `/ccc-hud` toggles it without a model turn. It is observe-only: no tool approval, no model calls, no network, and it reads only `~/.claude/commander/`. Elsewhere Commander runs hooks-only.
 
 ## Data Flow
 
@@ -119,7 +99,7 @@ Main session resumes with result
 SessionEnd hook (session saved)
 ```
 
-**Workflow path (Claude Code v2.1.154+):**
+**Workflow path:**
 
 ```
 Skill invoked (e.g. /ccc-xray)
@@ -128,9 +108,9 @@ TaskCreated hook fires
     ↓
 Workflow script launched in background
     ↓
-N subagents spawn in parallel (each a Sonnet reviewer)
+N agents spawn in parallel (one per dimension or slice)
     ↓
-Findings merged + cross-validated
+A fresh agent tries to refute each finding
     ↓
 TaskCompleted hook fires
     ↓
@@ -139,6 +119,6 @@ Structured result returned to main session
 
 ## Offline-First
 
-The entire plugin works without any network connection. Skills, personas, and hooks are plain markdown + JavaScript files executed natively by Claude Code. The optional `.mcp.json` adds 9 external integrations (Linear, GitHub, Slack, sequential-thinking, etc.) but they are additive — the plugin is fully functional without them.
+The entire plugin works without any network connection. Skills, personas, and hooks are plain markdown + JavaScript files executed natively by Claude Code. The bundled `.mcp.json` adds 2 credential-free servers (`context7`, `sequential-thinking`); 16 more external integrations (Linear, GitHub, Slack, etc.) connect separately, opt-in via `/ccc-connect` — none of them are required, the plugin is fully functional without any of them.
 
 See [vs aider.chat](/compare/vs-aider) for a direct positioning comparison.

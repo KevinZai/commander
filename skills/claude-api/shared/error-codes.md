@@ -75,11 +75,11 @@ This file documents HTTP error codes returned by the Claude API, their common ca
 
 **Causes:**
 
-- Typo in model ID (e.g., `claude-sonnet-4.6` instead of `claude-sonnet-4-6`)
+- Typo in model ID (e.g., `claude-haiku-5.5` instead of `claude-haiku-5-5`)
 - Using deprecated model ID
 - Invalid API endpoint
 
-**Fix:** Use exact model IDs from the models documentation. You can use aliases (e.g., `claude-opus-4-8`).
+**Fix:** Use exact model IDs from the models documentation. You can use aliases (e.g., `claude-opus-5-5`).
 
 ---
 
@@ -161,7 +161,7 @@ thinking: budget_tokens=10000, max_tokens=16000
 | Mistake                         | Error            | Fix                                                     |
 | ------------------------------- | ---------------- | ------------------------------------------------------- |
 | `budget_tokens` >= `max_tokens` | 400              | Ensure `budget_tokens` < `max_tokens`                   |
-| Typo in model ID                | 404              | Use valid model ID like `claude-opus-4-8`               |
+| Typo in model ID                | 404              | Use valid model ID like `claude-opus-5-5`               |
 | First message is `assistant`    | 400              | First message must be `user`                            |
 | Consecutive same-role messages  | 400              | Alternate `user` and `assistant`                        |
 | API key in code                 | 401 (leaked key) | Use environment variable                                |

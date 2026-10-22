@@ -53,7 +53,7 @@ test('MCP adapter directories have README, install guide, and config templates',
   }
 });
 
-test('MCP adapter config templates point at hosted Commander MCP without hardcoded secrets', function() {
+test('MCP adapter config templates point at hosted Commander MCP and are keyless', function() {
   for (var adapter of MCP_ADAPTERS) {
     var files = listAdapterFiles(adapter).filter(function(fileName) {
       return fileName.endsWith('-mcp-config.template.json');
@@ -68,7 +68,10 @@ test('MCP adapter config templates point at hosted Commander MCP without hardcod
     var server = parsed.mcpServers['cc-commander'];
     var endpoint = server.url || server.serverUrl;
     assert.strictEqual(endpoint, 'https://mcp.commanderplugin.com/v1/sse');
-    assert.strictEqual(server.headers.Authorization, 'Bearer ${env:COMMANDER_LICENSE_KEY}');
+    // Keyless model (v7.4.2): the hosted endpoint is free with an anti-abuse
+    // cap — no Authorization header, no license key, in any shipped config.
+    assert.strictEqual(server.headers, undefined, adapter + ' template must not send auth headers');
+    assert.ok(!/LICENSE_KEY|Authorization/i.test(raw), adapter + ' template must be keyless');
   }
 });
 

@@ -12,7 +12,7 @@ export const STATS = {
   author: "Kevin Z",
   site: "kevinz.ai",
   github: "github.com/KevinZai/commander",
-  installCmd: "npm install -g cc-commander",
+  installCmd: "curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash",
 };
 
 export const DOMAINS = [

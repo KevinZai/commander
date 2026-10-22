@@ -144,9 +144,9 @@ Verified as of 2026-07-10:
 
 | Surface | Install path | What you get |
 |---------|-------------|--------------|
-| **Claude Cowork / Code Desktop** | Settings → Plugin Marketplace → Add from GitHub → `KevinZai/commander` → Install | Full plugin: 72 skills, 22 agents, 23 hooks × 39 handlers, 2 bundled MCPs |
+| **Claude Cowork / Code Desktop** | Settings → Plugin Marketplace → Add from GitHub → `KevinZai/commander` → Install | Full plugin: 84 skills, 22 agents, 30 hooks × 51 handlers, 2 bundled MCPs |
 | **Claude Code CLI** | `/plugin marketplace add KevinZai/commander` → `/plugin install commander` | Same as Desktop |
-| **Codex CLI** | `git clone https://github.com/KevinZai/commander && codex plugin marketplace add commander` (uses `.agents/plugins/marketplace.json`), or cherry-pick skills into `~/.agents/skills/` | 72 skills (byte-identical), 22 TOML agents, 6 hook events (Codex-supported subset), 2 MCPs, AGENTS.md |
+| **Codex CLI** | `codex plugin marketplace add KevinZai/commander` then `codex plugin add commander@commander-hub`, or cherry-pick skills into `~/.agents/skills/` | 84 skills, 22 TOML agents, hooks on the 12 Codex events, 2 MCPs, AGENTS.md |
 | **ChatGPT Work / Codex desktop app** | Same local marketplace (restart the desktop app after `marketplace add`), or — once **G3** clears — install "commander" from the universal plugin directory | Plugin skills + connectors surfaced inside ChatGPT Work |
 | **ChatGPT Work custom connector (workspace)** | **G2 code complete** (pending deploy + issuer config) — once deployed: Developer mode → Settings → Plugins → ＋ → enter `https://mcp.commanderplugin.com/mcp` | 18 `commander_*` tools (skill catalog, plan composer, diagnostics) inside ChatGPT Work |
 

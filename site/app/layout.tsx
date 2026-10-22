@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: "%s · CC Commander",
   },
   description:
-    "The guided AI PM for Claude Code. 60 plugin skills, 22 specialist agents, 9 lifecycle hooks, 2 bundled MCP + 16 opt-in connectors. One install, zero config.",
+    "The guided AI PM for Claude Code. 84 plugin skills, 22 specialist agents, 30 lifecycle hooks, 2 bundled MCP + 16 opt-in connectors. One install, zero config.",
   metadataBase: new URL("https://commanderplugin.com"),
   icons: {
     icon: [
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CC Commander — Master Claude Code instantly",
     description:
-      "60 plugin skills · 22 specialist agents · 9 lifecycle hooks · 2 bundled MCP + 16 opt-in. One install, zero config.",
+      "84 plugin skills · 22 specialist agents · 30 lifecycle hooks · 2 bundled MCP + 16 opt-in. One install, zero config.",
     url: "https://commanderplugin.com",
     siteName: "CC Commander",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CC Commander — Master Claude Code instantly",
     description:
-      "60 plugin skills · 22 specialist agents · 9 lifecycle hooks · 2 bundled MCP + 16 opt-in.",
+      "84 plugin skills · 22 specialist agents · 30 lifecycle hooks · 2 bundled MCP + 16 opt-in.",
     site: "@commanderplugin",
     creator: "@commanderplugin",
     images: ["/og-image.png"],

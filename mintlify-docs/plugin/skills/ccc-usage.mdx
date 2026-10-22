@@ -1,0 +1,60 @@
+---
+title: "/ccc-usage"
+description: "Usage & Cost deck: what your agent work costs, and what delegating to cheaper models saved you. Burn, estimated savings vs. an all-Opus baseline, and a cost-by-app split — as a self-contained artifact."
+---
+
+`/ccc-usage` reads the model-routing data CC Commander already logs to `~/.claude/commander/` — `savings.json` (what delegating to cheaper models saved vs. an all-Opus baseline) and `mission-control/metrics.jsonl` (cost per app per day) — and turns it into one page: cumulative savings, saved/day and cost/day trends, and a cost-by-app split. New in v7.2.0.
+
+## Trigger
+
+```
+/ccc-usage
+/ccc-usage open
+/ccc-usage status
+```
+
+Also activates on: "what am I spending", "show my savings", "usage and cost", "cost by app"
+
+## What it does
+
+<Steps>
+  <Step title="Pick a format">
+    No argument opens a click-first `AskUserQuestion` picker: **🛰️ Publish the deck** (a living artifact) or **🗣️ Plain-English status** (narrated inline, no jargon). `/ccc-usage open` (or `snapshot`) skips straight to publishing; `/ccc-usage status` skips straight to narration.
+  </Step>
+  <Step title="Read the local model">
+    Loads `readUsageModel()` from the plugin's `lib/usage-snapshot.js` — pulls `savings.json` and `mission-control/metrics.jsonl` locally. Nothing leaves the machine at this step.
+  </Step>
+  <Step title="Publish (if chosen)">
+    Renders `buildUsageHtml()` to the same living path (`scratchpad/ccc-usage-live.html`) every time, then republishes that path with the Artifact tool — same path, same URL, one page that updates instead of a trail of copies. **Always asks before publishing.**
+  </Step>
+  <Step title="Or narrate (if chosen)">
+    Reads `model.totalSavedUsd`, `model.totalDispatches`, and `model.costByApp`, then narrates caveman-simple: "You saved about $X by letting cheaper models do N jobs. Most of your spend is `<app>`." No tables, no jargon.
+  </Step>
+</Steps>
+
+## What's on the deck
+
+- **Estimated savings** — what routing to cheaper models saved vs. an all-Opus baseline. Labeled as an estimate, never presented as a real bill.
+- **Saved/day + cost/day trends** — the burn and the savings, side by side over time.
+- **Cost by app** — which project or app is driving spend.
+- **Commander decks switcher** — the same shared strip that appears on every Commander artifact (Cockpit, Mission Control, Safety, Usage & Cost), so you're always one click away from the others.
+
+<Warning>
+  These numbers are **estimates** — rough per-model rates vs. an all-Opus baseline, not your actual invoice. The deck labels them as estimates. Never treat `/ccc-usage` output as a billing statement.
+</Warning>
+
+## Zero-state
+
+If `savings.json` and `metrics.jsonl` are both missing or empty, the skill says so plainly: "No cost data logged yet — run some agents (`/ccc-fleet`, `/ccc-spawn`) and this deck fills in." It never renders an error for an empty deck.
+
+## Privacy
+
+<Note>
+  The read step is local-only. Publishing uploads the rendered artifact (dollar figures, per-app split, dates) to your private claude.ai artifact URL — private to your account, but it does leave the machine. The skill always asks before publishing and never publishes automatically.
+</Note>
+
+## Notes
+
+- Backed by `commander/cowork-plugin/lib/usage-snapshot.js` — `readUsageModel()` + `buildUsageHtml()`.
+- Favicon: 💰.
+- Companion deck: [`/ccc-safety`](/plugin/skills/ccc-safety) — blocked/auto-fixed actions and tool-failure hotspots.

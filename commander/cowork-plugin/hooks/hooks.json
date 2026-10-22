@@ -5,18 +5,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js",
-            "timeout": 15000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js\"",
+            "timeout": 15,
+            "statusMessage": "Commander: loading session context"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js",
-            "timeout": 10000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js\"",
+            "timeout": 10
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/git-truth.js",
-            "timeout": 6000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/git-truth.js\"",
+            "timeout": 6
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/update-nudge.js\"",
+            "timeout": 6,
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/console-autopen.js\"",
+            "timeout": 5,
+            "async": true
           }
         ]
       }
@@ -26,13 +39,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-save.js",
-            "timeout": 10000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-save.js\"",
+            "timeout": 3,
+            "statusMessage": "Commander: saving session"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/session-end.js",
-            "timeout": 10000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-end.js\"",
+            "timeout": 3,
+            "statusMessage": "Commander: writing session summary"
           }
         ]
       }
@@ -42,28 +57,34 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/suggest-ticker.js",
-            "timeout": 2000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/suggest-ticker.js\"",
+            "timeout": 2
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js\"",
+            "timeout": 5
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/context-warning.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-warning.js\"",
+            "timeout": 3
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/context-guard.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-guard.js\"",
+            "timeout": 3
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.js\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/skill-runs-logger.js\"",
+            "timeout": 3,
+            "async": true
           }
         ]
       }
@@ -73,8 +94,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/prompt-expansion-guard.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt-expansion-guard.js\"",
+            "timeout": 3
           }
         ]
       }
@@ -85,19 +106,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js",
-            "timeout": 3000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js\"",
+            "timeout": 3,
             "async": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js\"",
+            "timeout": 3
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/secret-leak-guard.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/secret-leak-guard.js\"",
+            "timeout": 5
           }
         ]
       },
@@ -106,8 +127,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/config-protection.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/config-protection.js\"",
+            "timeout": 3
           }
         ]
       },
@@ -116,8 +137,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/doc-file-warning.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/doc-file-warning.js\"",
+            "timeout": 3
           }
         ]
       },
@@ -126,8 +147,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/git-push-reminder.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/git-push-reminder.js\"",
+            "timeout": 3
           }
         ]
       }
@@ -138,8 +159,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-capture.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-capture.js\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/mission-control-feed.js\"",
+            "timeout": 3,
+            "async": true
           }
         ]
       },
@@ -148,8 +175,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/console-log-warn.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/console-log-warn.js\"",
+            "timeout": 5
           }
         ]
       },
@@ -158,8 +185,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pr-link-notify.js",
-            "timeout": 3000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/pr-link-notify.js\"",
+            "timeout": 3,
             "async": true
           }
         ]
@@ -171,8 +198,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-failure-logger.js",
-            "timeout": 3000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-failure-logger.js\"",
+            "timeout": 3,
             "async": true
           }
         ]
@@ -183,8 +210,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-capture.js",
-            "timeout": 5000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-capture.js\"",
+            "timeout": 5,
             "async": true
           }
         ]
@@ -195,13 +222,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/suggest-lightweight.js",
-            "timeout": 2000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/suggest-lightweight.js\"",
+            "timeout": 2
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/clickability-watch.js",
-            "timeout": 1500
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/clickability-watch.js\"",
+            "timeout": 2
           }
         ]
       }
@@ -211,8 +238,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop-failure-handler.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-failure-handler.js\"",
+            "timeout": 3
           }
         ]
       }
@@ -222,8 +249,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/fleet-notify.js",
-            "timeout": 5000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/fleet-notify.js\"",
+            "timeout": 5,
             "async": true
           }
         ]
@@ -234,8 +261,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.js\"",
+            "timeout": 5,
+            "statusMessage": "Commander: checkpointing before compaction"
           }
         ]
       }
@@ -245,8 +273,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post-compact-recovery.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/post-compact-recovery.js\"",
+            "timeout": 5,
+            "statusMessage": "Commander: restoring context after compaction"
           }
         ]
       }
@@ -256,8 +285,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start-tracker.js",
-            "timeout": 3000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start-tracker.js\"",
+            "timeout": 3,
             "async": true
           }
         ]
@@ -268,13 +297,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.js\"",
+            "timeout": 5,
+            "statusMessage": "Commander: recording subagent result"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/agent-run-logger.js",
-            "timeout": 5000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/agent-run-logger.js\"",
+            "timeout": 5,
             "async": true
           }
         ]
@@ -285,8 +315,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/permission-gate.js",
-            "timeout": 5000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/permission-gate.js\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/mission-control-feed.js\"",
+            "timeout": 3,
+            "async": true
           }
         ]
       }
@@ -296,8 +332,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-logger.js",
-            "timeout": 3000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-logger.js\"",
+            "timeout": 3,
             "async": true
           }
         ]
@@ -308,8 +344,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-result-handler.js",
-            "timeout": 3000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/elicitation-result-handler.js\"",
+            "timeout": 3,
             "async": true
           }
         ]
@@ -320,8 +356,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/task-tracker.js",
-            "timeout": 3000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/task-tracker.js\"",
+            "timeout": 3,
             "async": true
           }
         ]
@@ -332,8 +368,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/task-tracker.js",
-            "timeout": 3000,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/task-tracker.js\"",
+            "timeout": 3,
             "async": true
           }
         ]
@@ -344,8 +380,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/config-protection.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/config-protection.js\"",
+            "timeout": 3
           }
         ]
       }
@@ -355,8 +391,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js",
-            "timeout": 3000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js\"",
+            "timeout": 3
           }
         ]
       }
@@ -366,8 +402,86 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js",
-            "timeout": 10000
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/permission-denied-logger.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PreModelSwitch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/model-switch-logger.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostModelSwitch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/model-switch-logger.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/fleet-telemetry.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "CwdChanged": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-state-sync.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "DirectoryAdded": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-state-sync.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "FileChanged": [
+      {
+        "matcher": "CLAUDE.md",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js\"",
+            "timeout": 3
           }
         ]
       }

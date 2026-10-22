@@ -1,0 +1,370 @@
+<meta charset="utf-8">
+<title>Commander Mission Control</title>
+<style>:root {
+  --bg: #0F0F0F;
+  --bg-raised: #141414;
+  --bg-card: #181818;
+  --bg-terminal: #141414;
+  --border: rgba(245, 245, 240, 0.08);
+  --border-strong: rgba(245, 245, 240, 0.14);
+  --border-strongest: rgba(245, 245, 240, 0.22);
+  --border-glow: rgba(255, 107, 71, 0.22);
+  --text: #F5F5F0;
+  --text-dim: #A8A8A0;
+  --text-muted: #6E6E68;
+  --primary: #FF6B47;
+  --primary-dim: #FF7A59;
+  --primary-glow: rgba(255, 107, 71, 0.13);
+  --accent: #D4A574;
+  --accent-dim: #C29257;
+  --red: #FF5F56;
+  --yellow: #E6C76B;
+  --green-dot: #6BCF7F;
+  --term-cyan: #7FD4D4;
+  --accent-2: #D4A574;
+  --gradient-brand: linear-gradient(135deg, #FF6B47, #D4A574);
+  --gradient-rainbow: linear-gradient(90deg, #ff0080, #ff8c00, #ffff00, #00ff80, #00c8ff, #8000ff, #ff0080);
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --radius-card: 10px;
+  --radius-small: 6px;
+  --radius-pill: 100px;
+  --shadow-card: 0 10px 34px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+  --bg: #0F0F0F;
+  --bg-raised: #141414;
+  --bg-card: #181818;
+  --bg-terminal: #141414;
+  --border: rgba(245, 245, 240, 0.08);
+  --border-strong: rgba(245, 245, 240, 0.14);
+  --border-strongest: rgba(245, 245, 240, 0.22);
+  --border-glow: rgba(255, 107, 71, 0.22);
+  --text: #F5F5F0;
+  --text-dim: #A8A8A0;
+  --text-muted: #6E6E68;
+  --primary: #FF6B47;
+  --primary-dim: #FF7A59;
+  --primary-glow: rgba(255, 107, 71, 0.13);
+  --accent: #D4A574;
+  --accent-dim: #C29257;
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+  --bg: #F7F6F1;
+  --bg-raised: #FBFAF6;
+  --bg-card: #FFFFFF;
+  --bg-terminal: #F1EFE8;
+  --border: rgba(26, 26, 20, 0.10);
+  --border-strong: rgba(26, 26, 20, 0.16);
+  --border-strongest: rgba(26, 26, 20, 0.24);
+  --border-glow: rgba(214, 74, 42, 0.18);
+  --text: #1A1A16;
+  --text-dim: #5A5A50;
+  --text-muted: #6B6B60;
+  --primary: #D64A2A;
+  --primary-dim: #B33C20;
+  --primary-glow: rgba(214, 74, 42, 0.10);
+  --accent: #9A6E38;
+  --accent-dim: #7E5A2C;
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #F7F6F1;
+  --bg-raised: #FBFAF6;
+  --bg-card: #FFFFFF;
+  --bg-terminal: #F1EFE8;
+  --border: rgba(26, 26, 20, 0.10);
+  --border-strong: rgba(26, 26, 20, 0.16);
+  --border-strongest: rgba(26, 26, 20, 0.24);
+  --border-glow: rgba(214, 74, 42, 0.18);
+  --text: #1A1A16;
+  --text-dim: #5A5A50;
+  --text-muted: #6B6B60;
+  --primary: #D64A2A;
+  --primary-dim: #B33C20;
+  --primary-glow: rgba(214, 74, 42, 0.10);
+  --accent: #9A6E38;
+  --accent-dim: #7E5A2C;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0F0F0F;
+  --bg-raised: #141414;
+  --bg-card: #181818;
+  --bg-terminal: #141414;
+  --border: rgba(245, 245, 240, 0.08);
+  --border-strong: rgba(245, 245, 240, 0.14);
+  --border-strongest: rgba(245, 245, 240, 0.22);
+  --border-glow: rgba(255, 107, 71, 0.22);
+  --text: #F5F5F0;
+  --text-dim: #A8A8A0;
+  --text-muted: #6E6E68;
+  --primary: #FF6B47;
+  --primary-dim: #FF7A59;
+  --primary-glow: rgba(255, 107, 71, 0.13);
+  --accent: #D4A574;
+  --accent-dim: #C29257;
+  color-scheme: dark;
+}
+
+.terminal-chrome {
+  background: var(--bg-terminal);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.013);
+  border-bottom: 1px solid var(--border);
+}
+
+.terminal-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.terminal-dot.red { background: var(--red); }
+.terminal-dot.yellow { background: var(--yellow); }
+.terminal-dot.green { background: var(--green-dot); }
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--primary);
+}
+
+.brand-gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.status-running { color: var(--primary); }
+.status-done { color: var(--green-dot); }
+.status-failed { color: var(--red); }
+.status-waiting,
+.status-awaiting { color: var(--yellow); }
+
+.deck-strip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 0 16px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
+.deck-strip .ds-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); margin-right: 4px; display: inline-flex; align-items: center; gap: 8px; }
+.deck-strip .ds-label::before { content: ""; width: 16px; height: 1px; background: var(--primary); display: inline-block; }
+.deck-chip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 12px; padding: 6px 11px; border-radius: var(--radius-small, 6px); border: 1px solid var(--border-strong, var(--border)); background: var(--bg-card, transparent); color: var(--text-dim); cursor: pointer; transition: border-color .14s, background .14s, color .14s, transform .12s; text-decoration: none; }
+.deck-chip:hover { border-color: var(--primary); color: var(--text); transform: translateY(-1px); }
+.deck-chip .dc-cmd { color: var(--text-muted); font-size: 11px; }
+.deck-chip.current { border-color: var(--primary); background: var(--primary-glow, rgba(255,107,71,.10)); color: var(--text); cursor: default; }
+.deck-chip.current:hover { transform: none; }
+.deck-chip.static { cursor: default; }
+.deck-chip.static:hover { transform: none; border-color: var(--border-strong, var(--border)); color: var(--text-dim); }
+
+:root{
+  --mc-bg:var(--bg);--mc-card:var(--bg-card);--mc-fg:var(--text);--mc-muted:var(--text-dim);
+  --mc-line:var(--border);--mc-accent:var(--primary);
+  --mc-run:var(--accent);--mc-run-bg:color-mix(in srgb,var(--accent) 18%,transparent);
+  --mc-ok:var(--green-dot);--mc-ok-bg:color-mix(in srgb,var(--green-dot) 16%,transparent);
+  --mc-err:var(--red);--mc-err-bg:color-mix(in srgb,var(--red) 16%,transparent);
+  --mc-wait:var(--yellow);--mc-wait-bg:color-mix(in srgb,var(--yellow) 18%,transparent);
+}
+body{margin:0;background:var(--mc-bg);color:var(--mc-fg);}
+.mc-shell{max-width:1080px;margin:20px auto 40px;}
+.mc-shell .terminal-title{letter-spacing:0.03em;}
+.mc{padding:20px 16px 40px;
+  font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color:var(--mc-fg);}
+.mc *{box-sizing:border-box;}
+.mc h1{font-size:1.45rem;margin:0 0 2px;}
+.mc h2{font-size:1.02rem;margin:0 0 10px;}
+.mc .stamp{color:var(--mc-muted);margin:0 0 18px;font-size:.86rem;}
+.mc section{background:var(--mc-card);border:1px solid var(--mc-line);
+  border-radius:12px;padding:16px;margin-bottom:16px;}
+.mc .summary-text{font-size:1.06rem;margin:0 0 10px;}
+.mc .chips{display:flex;flex-wrap:wrap;gap:8px;}
+.mc .chip{border:1px solid var(--mc-line);border-radius:999px;
+  padding:2px 10px;font-size:.8rem;color:var(--mc-muted);white-space:nowrap;}
+.mc .badge{display:inline-block;border-radius:999px;padding:1px 9px;
+  font-size:.78rem;font-weight:600;white-space:nowrap;}
+.mc .src{display:inline-block;border:1px solid var(--mc-line);border-radius:999px;
+  padding:0 8px;font-size:.72rem;font-weight:600;color:var(--mc-muted);
+  background:var(--mc-line);white-space:nowrap;}
+.mc .src-claude-code{color:var(--mc-accent);border-color:var(--mc-accent);
+  background:color-mix(in srgb,var(--mc-accent) 16%,transparent);}
+.mc .st-running{color:var(--mc-run);background:var(--mc-run-bg);}
+.mc .st-done{color:var(--mc-ok);background:var(--mc-ok-bg);}
+.mc .st-failed{color:var(--mc-err);background:var(--mc-err-bg);}
+.mc .st-stale{color:var(--mc-muted);background:var(--mc-line);}
+.mc .st-waiting,.mc .st-awaiting{color:var(--mc-wait);background:var(--mc-wait-bg);}
+.mc .permission-banner{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
+.mc .permission-banner h2{color:var(--mc-wait);}
+.mc .permission-banner p{margin:8px 0 0;}
+.mc .permission-banner li{border-color:color-mix(in srgb,var(--mc-wait) 30%,transparent);}
+.mc .stale-banner{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
+.mc .stale-banner p{margin:0;color:var(--mc-wait);font-size:.9rem;}
+.mc .scroll{overflow-x:auto;}
+.mc table{border-collapse:collapse;width:100%;font-size:.9rem;}
+.mc th{text-align:left;color:var(--mc-muted);font-weight:600;
+  border-bottom:1px solid var(--mc-line);padding:6px 12px 6px 0;white-space:nowrap;}
+.mc td{border-bottom:1px solid var(--mc-line);padding:7px 12px 7px 0;
+  vertical-align:top;}
+.mc tr:last-child td{border-bottom:none;}
+.mc .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84rem;}
+.mc .muted{color:var(--mc-muted);}
+.mc .zero{color:var(--mc-muted);margin:0;}
+.mc .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
+.mc .chart-card{border:1px solid var(--mc-line);border-radius:10px;padding:10px 12px 8px;min-width:0;}
+.mc .chart-card h3{margin:0 0 6px;font-size:.8rem;font-weight:600;color:var(--mc-muted);}
+.mc .mc-chart{display:block;width:100%;height:auto;color:var(--mc-accent);}
+.mc .agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
+.mc .agent-card{border:1px solid var(--mc-line);border-radius:10px;padding:12px;min-width:0;}
+.mc .agent-card.is-awaiting{border-color:var(--mc-wait);background:var(--mc-wait-bg);}
+.mc .agent-card.is-stale{color:var(--mc-muted);opacity:.68;}
+.mc .agent-card.is-derived{opacity:.82;}
+.mc .agent-card.is-derived .agent-meta{opacity:.55;}
+.mc .derived-badge{display:inline-block;border:1px dashed var(--mc-line);border-radius:999px;
+  padding:0 7px;font-size:.68rem;color:var(--mc-muted);margin-left:4px;cursor:help;white-space:nowrap;}
+.mc .agent-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.mc .agent-name{display:flex;gap:9px;align-items:flex-start;min-width:0;}
+.mc .agent-emoji{font-size:1.35rem;line-height:1.2;}
+.mc .agent-role,.mc .agent-task,.mc .agent-meta{color:var(--mc-muted);font-size:.82rem;}
+.mc .agent-task{margin:10px 0;color:var(--mc-fg);overflow-wrap:anywhere;}
+.mc .agent-meta{display:flex;flex-wrap:wrap;gap:5px 12px;}
+.mc .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.mc .col{border:1px solid var(--mc-line);border-radius:10px;padding:10px;min-width:0;}
+.mc .col h3{margin:0 0 8px;font-size:.86rem;color:var(--mc-muted);}
+.mc .card{border:1px solid var(--mc-line);border-radius:8px;padding:8px 10px;
+  margin-bottom:8px;font-size:.9rem;overflow-wrap:anywhere;}
+.mc .card:last-child{margin-bottom:0;}
+.mc .card .when{display:block;font-size:.78rem;color:var(--mc-muted);margin-top:2px;}
+.mc ul,.mc ol{margin:0;padding-left:0;list-style:none;}
+.mc li{padding:6px 0;border-bottom:1px solid var(--mc-line);overflow-wrap:anywhere;}
+.mc li:last-child{border-bottom:none;}
+.mc .arrow{color:var(--mc-accent);font-weight:700;}
+.mc footer{color:var(--mc-muted);font-size:.82rem;text-align:center;}
+@media (max-width:560px){.mc{padding:16px 10px 32px;}.mc section{padding:12px;}}
+</style>
+<div class="terminal-chrome mc-shell">
+<div class="terminal-header">
+<span class="terminal-dot red" aria-hidden="true"></span><span class="terminal-dot yellow" aria-hidden="true"></span><span class="terminal-dot green" aria-hidden="true"></span>
+<span class="terminal-title">commander &middot; mission-control</span>
+</div>
+<main class="mc">
+<nav class="deck-strip" aria-label="Commander decks"><span class="ds-label">Commander decks</span><span class="deck-chip static" title="type /ccc-browse in Claude to open Cockpit"><span aria-hidden="true">🎛️</span> Cockpit <span class="dc-cmd">/ccc-browse</span></span><span class="deck-chip current" title="you are here"><span aria-hidden="true">🖥️</span> Mission Control</span><span class="deck-chip static" title="type /ccc-usage in Claude to open Usage &amp; Cost"><span aria-hidden="true">💰</span> Usage &amp; Cost <span class="dc-cmd">/ccc-usage</span></span><span class="deck-chip static" title="type /ccc-safety in Claude to open Safety"><span aria-hidden="true">🛡️</span> Safety <span class="dc-cmd">/ccc-safety</span></span></nav>
+<header>
+<h1>🎛️ Commander Mission Control</h1>
+<p class="stamp">Static snapshot · 2026-07-16 12:00 UTC</p>
+</header>
+
+<section class="permission-banner" aria-label="Awaiting permission">
+<h2>⚠ Waiting for your approval</h2>
+<ul><li><strong>Approve snapshot publish</strong> · session <span class="mono">s2</span> <span class="muted">· 2m ago</span></li></ul>
+<p><strong>Switch to that session to approve.</strong></p>
+</section>
+
+<section aria-label="Summary">
+<p class="summary-text">⚠ 1 agent waiting for your approval — Approve snapshot publish. 3 tasks: 1 in progress, 1 done, 1 waiting.</p>
+<div class="chips"><span class="chip">🤖 3 agents</span><span class="chip">🔄 0 working</span><span class="chip">⚠ 1 awaiting approval</span><span class="chip">✅ 1 finished</span><span class="chip">❌ 1 failed</span><span class="chip">📋 3 tasks</span><span class="chip">⏳ 1 in progress</span><span class="chip">🕐 1 waiting</span><span class="chip">🏁 1 done</span></div>
+</section>
+<section aria-label="Trends">
+<h2>📈 Trends</h2>
+<div class="chart-grid"><div class="chart-card"><h3>💰 Cost / day (30d)</h3><svg class="mc-chart mc-chart-spark" viewBox="0 0 240 56" width="240" height="56" preserveAspectRatio="none" role="img" aria-label="Cost per day, last 30 days — no data yet"><line x1="4" y1="52" x2="236" y2="52" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="3,3"/><text x="120" y="28" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="currentColor" fill-opacity="0.55">no data yet</text></svg></div><div class="chart-card"><h3>🤖 Agents dispatched / day (30d)</h3><svg class="mc-chart mc-chart-spark" viewBox="0 0 240 56" width="240" height="56" preserveAspectRatio="none" role="img" aria-label="Agents dispatched per day, last 30 days — no data yet"><line x1="4" y1="52" x2="236" y2="52" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="3,3"/><text x="120" y="28" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="currentColor" fill-opacity="0.55">no data yet</text></svg></div><div class="chart-card"><h3>📋 Tasks completed / week (8w)</h3><svg class="mc-chart mc-chart-bars" viewBox="0 0 240 56" width="240" height="56" preserveAspectRatio="none" role="img" aria-label="Tasks completed per week, last 8 weeks — no data yet"><line x1="4" y1="52" x2="236" y2="52" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="3,3"/><text x="120" y="28" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="currentColor" fill-opacity="0.55">no data yet</text></svg></div><div class="chart-card"><h3>⚠ Tool failures / day (30d)</h3><svg class="mc-chart mc-chart-spark" viewBox="0 0 240 56" width="240" height="56" preserveAspectRatio="none" role="img" aria-label="Tool failures per day, last 30 days — no data yet"><line x1="4" y1="52" x2="236" y2="52" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="3,3"/><text x="120" y="28" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="currentColor" fill-opacity="0.55">no data yet</text></svg></div></div>
+</section>
+<section aria-label="Agent roster">
+<h2>🤖 Agents</h2>
+<div class="agent-grid"><article class="agent-card is-awaiting">
+<div class="agent-head">
+<div class="agent-name"><span class="agent-emoji" aria-hidden="true">🔍</span><div><strong>reviewer</strong><div class="agent-role">Reviewer · <span class="src src-claude-code">claude-code</span></div></div></div>
+<span class="badge st-awaiting">⚠ awaiting approval</span>
+</div>
+<p class="agent-task"><strong>Current task:</strong> Review CSP changes</p>
+<div class="agent-meta">
+<span>2 tasks completed</span>
+<span>Est. cost: <span class="mono">$0.0042</span></span>
+<span>Started: 1h ago</span>
+<span>Took: <span class="mono">—</span></span>
+<span>Model: <span class="mono">sonnet</span></span>
+</div>
+</article><article class="agent-card">
+<div class="agent-head">
+<div class="agent-name"><span class="agent-emoji" aria-hidden="true">🔨</span><div><strong>builder</strong><div class="agent-role">Builder · <span class="src src-claude-code">claude-code</span></div></div></div>
+<span class="badge st-done">finished</span>
+</div>
+<p class="agent-task"><strong>Current task:</strong> No current task</p>
+<div class="agent-meta">
+<span>3 tasks completed</span>
+<span>Est. cost: <span class="mono">$0.0156</span></span>
+<span>Started: 2h ago</span>
+<span>Took: <span class="mono">5m</span></span>
+<span>Model: <span class="mono">haiku</span></span>
+</div>
+</article><article class="agent-card">
+<div class="agent-head">
+<div class="agent-name"><span class="agent-emoji" aria-hidden="true">🤖</span><div><strong>&lt;script&gt;alert(1)&lt;/script&gt;</strong><div class="agent-role">Agent · <span class="src src-claude-code">claude-code</span></div></div></div>
+<span class="badge st-failed">hit a problem</span>
+</div>
+<p class="agent-task"><strong>Current task:</strong> Probe &lt;unsafe&gt; markup</p>
+<div class="agent-meta">
+<span>0 tasks completed</span>
+<span>Est. cost: <span class="mono">$0.0001</span></span>
+<span>Started: —</span>
+<span>Took: <span class="mono">1m</span></span>
+<span>Model: <span class="mono">—</span></span>
+</div>
+</article></div>
+</section>
+<section aria-label="Task board">
+<h2>📋 Tasks</h2>
+<div class="board"><div class="col"><h3>In progress · 1</h3><div class="card"><span class="badge st-running">in progress</span> Ship v6.8.0<span class="when">2h ago</span></div></div><div class="col"><h3>Waiting · 1</h3><div class="card"><span class="badge st-waiting">waiting</span> Plan the launch<span class="when">3h ago</span></div></div><div class="col"><h3>Done · 1</h3><div class="card"><span class="badge st-done">done</span> Write the docs<span class="when">1h ago</span></div></div></div>
+</section>
+<section aria-label="Delegation flow">
+<h2>🔀 Delegation flow</h2>
+<ul><li><span class="mono">sess-main</span> <span class="arrow">→</span> <strong>reviewer</strong> <span class="chip">delegation</span> <span class="muted">1h ago</span></li></ul>
+</section>
+<section aria-label="Latest activity">
+<h2>🕐 Latest activity</h2>
+<ol><li><span class="muted mono">1h ago</span> <span class="src src-claude-code">claude-code</span> reviewer started working (sonnet)</li><li><span class="muted mono">2h ago</span> <span class="src src-claude-code">claude-code</span> builder finished after 5m — see https://example.com/run/1</li></ol>
+</section>
+<section aria-label="Suggestions">
+<h2>💡 Suggestions</h2>
+<p class="zero">No suggestions yet — agents surface ideas here as they notice them.</p>
+</section>
+<footer>🔒 Built from local logs in ~/.claude/commander. If published, the displayed data leaves this machine for your private artifact URL.</footer>
+</main>
+</div>

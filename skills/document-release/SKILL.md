@@ -514,13 +514,13 @@ committing.
 **Commit:**
 
 1. Stage modified documentation files by name (never `git add -A` or `git add .`).
-2. Create a single commit:
+2. Create a single commit. Omit the co-author trailer entirely if the project has AI attribution disabled:
 
 ```bash
 git commit -m "$(cat <<'EOF'
 docs: update project documentation for vX.Y.Z.W
 
-Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```

@@ -1,314 +1,182 @@
 ---
 name: ccc-deploy
-description: "CC Commander actual deployment workflow. Detects Vercel, Fly.io, Cloudflare, GitHub Pages, or npm deploy targets, asks for the deploy destination, runs the platform…"
-model: sonnet
-effort: high
+description: "Deploy the current build to Vercel, Fly.io, Cloudflare, GitHub Pages, npm, or a package deploy script, verify the live URL, and draft post-deploy notes. Use when a build is ready to go live or the user says deploy, push to production, or publish the package."
 allowed-tools:
   - Read
   - Bash
   - WebFetch
   - AskUserQuestion
 argument-hint: "[platform: vercel | fly | cloudflare | github-pages | npm]"
+model: sonnet
+effort: high
+disable-model-invocation: true
 ---
 
-# /ccc-deploy — Actual Deploy Workflow
+# $ccc-deploy — Deploy and verify live
 
-**CC Commander** · /ccc-deploy · Detect target → deploy → verify → announce
+**CC Commander** · $ccc-deploy · detect target → deploy → verify health → draft comms
 
-Use this when the user is ready to push a build live. This is distinct from `/ccc-ship` and `/ccc-deploy-check`: `/ccc-ship` handles pre-flight and release tagging, `/ccc-deploy-check` is a readiness gate, and `/ccc-deploy` runs the real deploy.
+## When to use / when not to
 
-## Response Shape
+- Use when the user is ready to push a build live.
+- Use `$ccc-deploy-check` for a readiness gate before deploying, `$ccc-ship release` to bump the version and tag, and `$ccc-rollback` to undo a bad deploy.
+- In Codex, ask each picker below as a plain-text question with the same options.
 
-Always return these sections:
+## What happens
 
-1. Brand header:
+### 1. Detect deploy targets
 
-```markdown
-**CC Commander** · /ccc-deploy · Actual deployment
-```
-
-2. Detection summary:
-
-Read the repository root and report detected deploy targets from:
+Read the repository root. A target is detected by:
 
 - `package.json` scripts: `deploy`, `deploy:prod`, `deploy:production`, `pages:deploy`, `wrangler:deploy`, `vercel:deploy`, `fly:deploy`, `publish`, `release`
 - `fly.toml` → Fly.io
-- `vercel.json` or a `vercel` package/script → Vercel
-- `wrangler.toml`, `wrangler.json`, or `wrangler.jsonc` → Cloudflare
-- `.github/workflows/deploy.yml`, `.github/workflows/deploy.yaml`, `.github/workflows/pages.yml`, or `.github/workflows/pages.yaml` → GitHub Pages or workflow deploy
-- `package.json` `publishConfig`, `bin`, or `files` plus a `prepublishOnly` script → npm package publish candidate
+- `vercel.json`, a `vercel` script or dependency → Vercel
+- `wrangler.toml`, `wrangler.json` or `wrangler.jsonc` → Cloudflare
+- `.github/workflows/deploy.yml`, `.github/workflows/deploy.yaml`, `.github/workflows/pages.yml` or `.github/workflows/pages.yaml` → GitHub Pages or a workflow deploy
+- `package.json` `publishConfig`, `bin` or `files` plus a `prepublishOnly` script → npm publish candidate
 
-Use parallel Bash reads where possible and keep failures non-fatal:
+Run the reads in one Bash call; a missing file is not an error:
 
 ```bash
-test -f package.json && node -e "const p=require('./package.json'); console.log(JSON.stringify({scripts:p.scripts||{}, publishConfig:p.publishConfig||null, bin:p.bin||null, files:p.files||null}, null, 2))"
-test -f fly.toml && echo fly.toml
-test -f vercel.json && echo vercel.json
-test -f wrangler.toml && echo wrangler.toml
+test -f package.json && node -e "const p=require('./package.json'); console.log(JSON.stringify({name:p.name, version:p.version, scripts:p.scripts||{}, publishConfig:p.publishConfig||null, bin:p.bin||null, files:p.files||null}, null, 2))"
+for f in fly.toml vercel.json wrangler.toml wrangler.json wrangler.jsonc; do test -f "$f" && echo "$f"; done
 find .github/workflows -maxdepth 1 -type f \( -name 'deploy.yml' -o -name 'deploy.yaml' -o -name 'pages.yml' -o -name 'pages.yaml' \) 2>/dev/null
 ```
 
-3. Platform picker — `AskUserQuestion`
+Report the detected targets in one line. If `$ARGUMENTS` names a platform, skip step 2 and use it.
 
-Build the options from the detection summary, put detected targets first, and enable autocomplete for the user to override. If exactly one strong target is detected, mark that label with `⭐`. Never show more than four options in a single `AskUserQuestion`; use the second picker below for lower-confidence targets.
+### 2. Platform picker — `AskUserQuestion`
+
+Build the options from step 1. Each picker below has exactly one 🟢 option, listed first: the strongest detected target in that picker. In the first picker, if the only detected targets are in the second picker, "More deployment targets" is the 🟢 option. Show at most four options; less common targets go in the second picker. The examples assume Vercel and GitHub Pages were detected.
 
 ```yaml
 question: "Where should I deploy?"
-header: "CC Commander Deploy"
+header: "Deploy"
 multiSelect: false
 autocomplete: true
 options:
-  - label: "Vercel production"
-    value: "vercel"
+  - label: "🟢 Vercel production"
     description: "Detected from vercel.json or Vercel scripts. Runs vercel deploy --prod."
     preview: "Deploys the current branch to Vercel production and verifies the returned URL."
   - label: "Fly.io"
-    value: "fly"
     description: "Detected from fly.toml. Runs fly deploy."
     preview: "Streams deploy logs, checks release status, then verifies the app URL."
   - label: "Cloudflare"
-    value: "cloudflare"
     description: "Detected from wrangler config or Cloudflare deploy scripts."
-    preview: "Runs wrangler or npm Cloudflare deploy command, then verifies the Worker or Pages URL."
+    preview: "Runs the wrangler or npm Cloudflare deploy command, then verifies the Worker or Pages URL."
   - label: "More deployment targets"
-    value: "more-targets"
-    description: "GitHub Pages, npm publish, or custom package deploy scripts."
+    description: "GitHub Pages, npm publish, or a custom package deploy script."
     preview: "Opens one more picker with less common deploy targets."
 ```
 
-If the user chooses "More deployment targets", ask:
+On "More deployment targets", show the second picker. Mark its strongest detected target 🟢 and list it first; if none of its targets was detected, mark the first target option 🟢. "Back" is never the 🟢 option.
 
 ```yaml
 question: "Which deploy target?"
-header: "CC Commander Deploy"
+header: "Deploy"
 multiSelect: false
 autocomplete: true
 options:
-  - label: "GitHub Pages"
-    value: "github-pages"
+  - label: "🟢 GitHub Pages"
     description: "Detected from GitHub Pages workflow files."
     preview: "Dispatches or watches the deploy workflow and verifies the Pages URL."
   - label: "npm publish"
-    value: "npm"
     description: "Detected from package publish metadata."
-    preview: "Publishes the package after package metadata and auth checks."
+    preview: "Publishes the package after auth and pack checks."
   - label: "Custom npm deploy script"
-    value: "npm-script"
     description: "Detected from package.json deploy scripts."
     preview: "Runs the chosen npm deploy script and verifies the configured health URL."
   - label: "Back"
-    value: "back"
     description: "Return to the primary deploy target picker."
     preview: "Choose Vercel, Fly.io, or Cloudflare instead."
 ```
 
-If no target is detected, show the same picker without a star and include a short note: "No deploy target was obvious from the repo; pick the platform to use."
+If nothing was detected, still mark one option 🟢: the first option of the first picker ("Vercel production"). Say: "No deploy target was obvious from the repo; 🟢 is a default, not a detection. Pick the platform to use."
 
-## Deployment Runners
-
-Before any deploy command:
-
-- Confirm the git branch with `git rev-parse --abbrev-ref HEAD`.
-- Show dirty state from `git status --short`.
-- If dirty state is non-empty, warn clearly and ask the user whether to continue before deploying.
-- Prefer package manager scripts when they are explicit production deploy scripts. Otherwise use the platform command below.
-- Never fabricate secrets. If a command needs credentials, state the missing credential and stop.
-
-### Vercel
-
-Use when selected or detected via `vercel.json`, Vercel scripts, or Vercel dependency.
-
-Run:
+### 3. Pre-deploy gate
 
 ```bash
-vercel deploy --prod
+git rev-parse --abbrev-ref HEAD
+git status --short
+git log --oneline -1
 ```
 
-Watch:
+- If `git status --short` is non-empty, ask with AskUserQuestion: "🟢 Stop — commit or stash first" (nothing is deployed) or "Deploy with uncommitted changes" (the live build will not match any commit).
+- If the platform came from `$ARGUMENTS` (no picker was shown), confirm once: "🟢 Deploy `<branch>` to `<platform>` now" or "Cancel". A pick in step 2 is the authorization; do not ask twice.
+- Never fabricate a secret. If the deploy needs a credential that is missing, name it and stop.
 
-```bash
-vercel inspect <deployment-url>
-vercel logs <deployment-url>
-```
+### 4. Run the platform runner
 
-Verify health:
+Open [references/platform-runners.md](references/platform-runners.md) and run the section for the chosen platform: its run command, then its watch commands.
 
-- Parse the deploy URL from command output.
-- Fetch the deploy URL with `WebFetch`.
-- If the repo defines `HEALTHCHECK_URL`, `NEXT_PUBLIC_SITE_URL`, `SITE_URL`, or `APP_URL` in safe local config examples, verify that URL too.
-- PASS requires an HTTP success response and no obvious platform error page text.
+| Target | Run | Watch |
+|---|---|---|
+| Vercel | `vercel deploy --prod` | `vercel inspect <url>`, `vercel logs <url>` |
+| Fly.io | `fly deploy` | `fly status`, `fly releases --limit 3`, `fly logs --no-tail` |
+| Cloudflare | `npm run deploy` if present, else `wrangler deploy` or `wrangler pages deploy <dir>` | `wrangler deployments list`, `wrangler tail` |
+| GitHub Pages | `gh workflow run <workflow-file>` | `gh run list --workflow <workflow-file> --limit 5`, `gh run watch <run-id>` |
+| npm publish | `npm whoami`, `npm pack --dry-run`, then `npm publish --access public` | `npm view <package-name> version` |
+| Custom script | `npm run <deploy-script>` | the script's own output |
 
-### Fly.io
+Capture the deploy URL, run id, release id and commit sha from the output.
 
-Use when selected or detected via `fly.toml`.
+### 5. Verify health
 
-Run:
+A zero exit code is not a successful deploy. Verify:
 
-```bash
-fly deploy
-```
+1. Fetch the deploy URL with WebFetch, plus any health URL named in safe example config (`HEALTHCHECK_URL`, `NEXT_PUBLIC_SITE_URL`, `SITE_URL`, `APP_URL`).
+2. PASS requires an HTTP success response and no platform error page text ("404: NOT_FOUND", "Application error", "Worker threw exception").
+3. For npm, PASS requires `npm view <package-name> version` to equal `package.json` `version`.
+4. Report one line: `Health: PASS|FAIL · <url> · <status> · <timestamp>`.
 
-Watch:
+### 6. Draft post-deploy comms
 
-```bash
-fly status
-fly releases --limit 3
-fly logs --no-tail
-```
-
-Verify health:
-
-- Derive the app name from `fly.toml` or `fly status`.
-- Fetch `https://<app-name>.fly.dev` with `WebFetch` when no explicit health URL exists.
-- If secrets are managed through 1Password, tell the user to rerun through `op run -- fly deploy` instead of printing secret values.
-
-### Cloudflare
-
-Use when selected or detected via `wrangler.toml`, `wrangler.json`, `wrangler.jsonc`, or Cloudflare scripts.
-
-Prefer an explicit script if present:
-
-```bash
-npm run deploy
-npm run deploy:prod
-npm run wrangler:deploy
-```
-
-Otherwise run:
-
-```bash
-wrangler deploy
-```
-
-For Pages projects, run:
-
-```bash
-wrangler pages deploy <build-output-dir>
-```
-
-Watch:
-
-```bash
-wrangler deployments list
-wrangler tail
-```
-
-Verify health:
-
-- Fetch the Worker or Pages URL emitted by Wrangler with `WebFetch`.
-- If the Cloudflare project is better served by the dedicated Cloudflare deployment workflow, hand off to `cloudflare-deploy` and preserve the selected target context.
-
-### GitHub Pages
-
-Use when selected or detected via `.github/workflows/deploy.yml`, `.github/workflows/deploy.yaml`, `.github/workflows/pages.yml`, or `.github/workflows/pages.yaml`.
-
-Run:
-
-```bash
-gh workflow run deploy.yml
-```
-
-If the workflow file is named differently, use that exact filename. If the workflow is triggered by push only, push the already committed release branch and then watch it.
-
-Watch:
-
-```bash
-gh run list --workflow <workflow-file> --limit 5
-gh run watch <run-id>
-gh run view <run-id> --log-failed
-```
-
-Verify health:
-
-- Derive the Pages URL from repository metadata when possible.
-- Otherwise ask for the URL and fetch it with `WebFetch`.
-
-### npm Publish
-
-Use when selected or detected from publish metadata. This is a release deploy, not a web deploy.
-
-Run checks first:
-
-```bash
-npm whoami
-npm pack --dry-run
-npm publish --access public
-```
-
-Watch:
-
-```bash
-npm view <package-name> version
-npm view <package-name> dist-tags --json
-```
-
-Verify:
-
-- Confirm the published version matches `package.json`.
-- Fetch the npm package page with `WebFetch` if the package is public.
-
-### Custom npm Deploy Script
-
-Use the exact script selected from `package.json`.
-
-Run:
-
-```bash
-npm run <deploy-script>
-```
-
-Watch and verify using any URL printed by the script, `SITE_URL`, `APP_URL`, or a user-provided health URL.
-
-## Post-Deploy Comms
-
-After a verified deploy, emit a concise post-deploy message the user can send:
+After a PASS, print a message the user can send:
 
 ```markdown
 Deploy complete: <project> to <platform>
 - Version or commit: <sha-or-version>
 - URL: <deploy-url>
 - Health check: PASS at <timestamp>
-- Rollback: /ccc-rollback
+- Rollback: $ccc-rollback
 ```
 
-If Discord or Slack is configured through `/ccc-connect`, offer to post the comms there. Do not invent channel names; use configured connector context or ask the user.
+If a Slack or Discord connector is configured through `$ccc-connect`, ask with AskUserQuestion: "🟢 Keep it here" or "Post to <configured channel>". Use only a channel from configured connector context; never invent one.
 
-## Post-Deploy Recommended Services
+After the comms, you may show one short list from [references/partner-services.md](references/partner-services.md) for the deployed platform, with its disclosure link.
 
-After successful deploy, suggest complementary services based on deploy platform:
+## Failure mode
 
-**For Vercel deploys:**
-- 🔔 **[Upstash](https://upstash.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-deploy&utm_content=upstash-monitoring)** — Add Redis cache, job queues, or rate limiting.
-- 📊 **[PostHog](https://posthog.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-deploy&utm_content=posthog-analytics)** — Product analytics and feature flags.
+When the deploy, a watch command or the health check fails:
 
-**For Fly.io deploys:**
-- 💾 **[Supabase](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-deploy&utm_content=supabase-fly-postgres)** — Connect a managed Postgres database.
-- ⚡ **[Upstash](https://upstash.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-deploy&utm_content=upstash-fly-redis)** — Redis for caching and sessions.
+1. Show the exact failing command and the relevant error lines.
+2. Say which case it is: failed before release, released but unhealthy, or could not be verified.
+3. Keep the deploy URL, run id, release id and commit sha.
+4. For released-but-unhealthy, offer `$ccc-rollback` (git revert and redeploy) or the platform rollback in [references/platform-runners.md](references/platform-runners.md#platform-rollback-no-git-change).
+5. Retry once only for a transient network or platform-status error. Never loop.
 
-**For Cloudflare deploys:**
-- 🔗 **[Cloudflare R2](https://www.cloudflare.com/products/r2/)** — Object storage for large files.
-- ⚡ **[Upstash](https://upstash.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-deploy&utm_content=upstash-cloudflare-redis)** — Redis + Kafka serverless.
+## Done when
 
-[Explore all partner tools →](./affiliate-disclosure.mdx)
+- The deploy command finished and step 5 printed `Health: PASS` from a real fetch, or
+- the failure report from "Failure mode" was printed with the failing command and its case.
 
-## Failure Mode
+## Guardrails
 
-When a deploy command, log watch, or health check fails:
+- Deploying, publishing to npm, and posting comms each need the user's authorization in this conversation; ask at the moment of the action, as in steps 3 and 6.
+- Never claim success from an exit code alone; never skip step 5.
+- Never print secrets or `.env` values; never fabricate credentials.
+- Never roll a custom deploy pipeline when the platform or package script exists.
+- Never run `$ccc-ship` from here; this skill is the deploy step.
 
-1. Surface the exact failing command and the relevant error lines.
-2. State whether the deploy likely failed before release, released but unhealthy, or could not be verified.
-3. Preserve the deploy URL, run id, release id, and commit sha if available.
-4. Suggest `/ccc-rollback` for released-but-bad deploys.
-5. Do not keep retrying indefinitely. One retry is acceptable only for transient network or platform status errors.
+## See also
 
-## Anti-Patterns
-
-- Do not run `/ccc-ship`; this skill is the actual deploy step.
-- Do not skip health verification.
-- Do not claim success from a zero exit code alone.
-- Do not print secrets or `.env` values.
-- Do not post Slack or Discord comms without user confirmation.
+- `$ccc-deploy-check` — readiness gate before a deploy
+- `$ccc-ship` — pre-flight, release tagging, and the ship menu
+- `$ccc-rollback` — revert commits and redeploy
+- `$ccc-connect` — configure Slack or Discord for comms
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
-import { readFile, appendFile, mkdir } from 'node:fs/promises';
+import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 

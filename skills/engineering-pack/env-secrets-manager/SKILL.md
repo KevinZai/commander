@@ -1,3 +1,8 @@
+---
+name: env-secrets-manager
+description: Audit environment configuration and secret handling, maintain safe secret-injection workflows, and prepare scoped remediation for verified exposure.
+---
+
 # Env & Secrets Manager
 
 **Tier:** POWERFUL
@@ -326,7 +331,7 @@ check() {
 
   if [ -n "$matches" ]; then
     echo "SECRET DETECTED [$label]:"
-    echo "$matches" | head -5
+    echo "Matching staged additions found; inspect them privately without copying values into logs."
     FAIL=1
   fi
 }
@@ -372,8 +377,8 @@ if [ $FAIL -eq 1 ]; then
   echo ""
   echo "BLOCKED: Secrets detected in staged changes."
   echo "Remove secrets before committing. Use environment variables instead."
-  echo "If this is a false positive, add it to .secretsignore or use:"
-  echo "  git commit --no-verify  (only if you're 100% certain it's safe)"
+  echo "For a verified false positive, review a narrowly scoped scanner allowlist entry."
+  echo "Rerun the hook after the correction; do not bypass repository hooks."
   exit 1
 fi
 

@@ -29,3 +29,7 @@ If you ever want to build a React UI layer on top of real data:
 
 The component designs (AgentCard, CostChart, SkillRadar, SpawnTree, ActivityHeatmap, etc.)
 are a useful UI reference for v0.2 vanilla enhancements.
+
+`package-lock.json.react-app` is the lockfile of this archived React app, moved here
+2026-08-01 so `npm audit` on `dashboard/` reflects the real zero-dep vanilla server —
+CC-1397.

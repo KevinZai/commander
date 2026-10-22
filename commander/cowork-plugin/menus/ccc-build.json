@@ -2,8 +2,12 @@
   "id": "ccc-build",
   "title": "Build",
   "subtitle": "Pick a template — spawn a side-chat agent on selection",
-  "footer": "Each tile kicks off a background Sonnet agent in its own side chat. Watch progress, steer when needed.",
-  "shortcuts": ["/ccc", "/ccc-start", "/ccc-browse"],
+  "footer": "Each tile starts a background agent in its own side chat. Watch progress and steer when needed.",
+  "shortcuts": [
+    "/ccc",
+    "/ccc-start",
+    "/ccc-browse"
+  ],
   "choices": [
     {
       "id": "web-app",

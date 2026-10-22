@@ -103,26 +103,26 @@ test('getDefaultsForLevel: guided tier model is sonnet (cost right-sized from op
   assert.strictEqual(r.model, 'sonnet', 'guided tier should use sonnet, got ' + r.model);
 });
 
-test('estimateDispatchCost: modelKey is fable for claude-fable-5', function() {
-  var r = dispatcher.estimateDispatchCost('build a saas app', { model: 'claude-fable-5', maxTurns: 30 });
+test('estimateDispatchCost: modelKey is fable for claude-fable-5-1', function() {
+  var r = dispatcher.estimateDispatchCost('build a saas app', { model: 'claude-fable-5-1', maxTurns: 30 });
   assert.strictEqual(r.modelKey, 'fable', 'expected modelKey fable, got ' + r.modelKey);
 });
 
-test('estimateDispatchCost: fable pricing is higher than opus (10/50 vs 5/25 $/MTok)', function() {
-  var fable = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-fable-5', maxTurns: 30 });
-  var opus = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-opus-4-8', maxTurns: 30 });
+test('estimateDispatchCost: fable pricing is higher than opus (10/50 vs 4/20 $/MTok)', function() {
+  var fable = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-fable-5-1', maxTurns: 30 });
+  var opus = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-opus-5-5', maxTurns: 30 });
   assert.ok(fable.estimateHigh > opus.estimateHigh, 'fable cost should exceed opus at same turns');
 });
 
-test('estimateDispatchCost: haiku pricing corrected to $1/$5 per MTok (not old 0.25/1.25)', function() {
-  var haiku = dispatcher.estimateDispatchCost('fix a typo', { model: 'claude-haiku-4-5', maxTurns: 10 });
-  var opus = dispatcher.estimateDispatchCost('fix a typo', { model: 'claude-opus-4-8', maxTurns: 10 });
-  // haiku should be cheaper than opus but the ratio should now be 1/5 vs 5/25 = 1/5x (not 0.25/5 = 0.05x)
+test('estimateDispatchCost: haiku 5.5 pricing is $0.10/$0.50 per MTok (40x cheaper than opus 5.5)', function() {
+  var haiku = dispatcher.estimateDispatchCost('fix a typo', { model: 'claude-haiku-5-5', maxTurns: 10 });
+  var opus = dispatcher.estimateDispatchCost('fix a typo', { model: 'claude-opus-5-5', maxTurns: 10 });
   assert.strictEqual(haiku.modelKey, 'haiku');
   assert.ok(haiku.estimateHigh < opus.estimateHigh, 'haiku should still be cheaper than opus');
-  // At updated pricing haiku ($1/$5) is 5x cheaper than opus ($5/$25) not 20x cheaper (old 0.25/1.25)
-  // Just verify the estimate is finite and positive
   assert.ok(haiku.estimateHigh > 0, 'haiku estimate should be positive');
+  // Same token estimate on both sides, so the ratio tracks the 1/40 price ratio;
+  // estimates are rounded to cents, so assert the order of magnitude only.
+  assert.ok(haiku.estimateHigh < opus.estimateHigh / 10, 'haiku should be at least 10x cheaper than opus');
 });
 
 test('isClaudeAvailable: returns boolean', function() {

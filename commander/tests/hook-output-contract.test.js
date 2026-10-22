@@ -55,6 +55,10 @@ function listHookFiles() {
 
 const HOOK_FILES = listHookFiles();
 
+// Side-effect-only handlers that must print NOTHING (TeammateIdle,
+// CwdChanged, DirectoryAdded): an empty stdout is their contract.
+const SILENT_HOOKS = new Set(['fleet-telemetry.js', 'session-state-sync.js']);
+
 const SYNTHETIC_PAYLOAD = JSON.stringify({
   session_id: 'contract-test',
   hook_event_name: 'ContractTest',
@@ -99,6 +103,10 @@ describe('hook output contract — runtime (documented fields only)', () => {
       assert.equal(r.status, 0, `${name} must exit 0. stderr: ${r.stderr}`);
 
       const lines = (r.stdout || '').trim().split('\n').filter(Boolean);
+      if (SILENT_HOOKS.has(name)) {
+        assert.equal(lines.length, 0, `${name} is side-effect only and must print nothing`);
+        return;
+      }
       assert.ok(lines.length > 0, `${name} must print a JSON response`);
 
       for (const line of lines) {
@@ -117,6 +125,161 @@ describe('hook output contract — runtime (documented fields only)', () => {
         }
       }
     });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// C. Allowlist: hookSpecificOutput.hookEventName must be harness-valid
+// ---------------------------------------------------------------------------
+// hookSpecificOutput.hookEventName must name an event that accepts a
+// hookSpecificOutput block (platform-facts-2026-10.md §2.2, CLI 2.1.296,
+// verified 2026-10-13: every row except the side-effect-only one) AND must
+// equal the event the hook actually fired under. Suite A drives every hook
+// with a fake event name ('ContractTest') and only whitelists TOP-LEVEL keys —
+// which is exactly how the PostCompact bug shipped green. This section closes
+// that gap: the list below is a deliberate DUPLICATE of emit.mjs's export (a
+// pin — if either side changes, the set-equality test forces a conscious update).
+
+const VALID_HOOKSPECIFIC_EVENTS = new Set([
+  'PreToolUse',
+  'PermissionRequest',
+  'PermissionDenied',
+  'PostToolUse',
+  'PostToolUseFailure',
+  'PostToolBatch',
+  'UserPromptSubmit',
+  'UserPromptExpansion',
+  'Stop',
+  'SubagentStop',
+  'SessionStart',
+  'SubagentStart',
+  'PostModelSwitch',
+  'PreModelSwitch',
+  'Elicitation',
+  'ElicitationResult',
+  'MessageDisplay',
+  'WorktreeCreate',
+  'TaskCreated',
+  'TaskCompleted',
+  'TeammateIdle',
+  'PreCompact',
+  'ConfigChange',
+]);
+
+// Side-effect-only events (no hookSpecificOutput accepted).
+const SIDE_EFFECT_ONLY_EVENTS = [
+  'Setup', 'Notification', 'SessionEnd', 'PostCompact', 'InstructionsLoaded',
+  'StopFailure', 'CwdChanged', 'DirectoryAdded', 'FileChanged', 'WorktreeRemove',
+];
+
+// file basename -> Set of hooks.json events it is registered under.
+function registeredEventsByFile() {
+  const cfg = JSON.parse(fs.readFileSync(path.join(HOOKS_DIR, 'hooks.json'), 'utf-8'));
+  const map = new Map();
+  for (const [event, matchers] of Object.entries(cfg.hooks || {})) {
+    for (const matcher of matchers) {
+      for (const h of matcher.hooks || []) {
+        const m = /hooks\/([\w.-]+\.js)/.exec(h.command || '');
+        if (!m) continue;
+        if (!map.has(m[1])) map.set(m[1], new Set());
+        map.get(m[1]).add(event);
+      }
+    }
+  }
+  return map;
+}
+
+describe('hook output contract — hookSpecificOutput allowlist (C)', () => {
+  it('emit.mjs VALID_HOOKSPECIFIC_EVENTS matches the pinned harness union exactly', async () => {
+    const emit = await import(path.join(HOOKS_DIR, 'lib', 'emit.mjs'));
+    assert.ok(emit.VALID_HOOKSPECIFIC_EVENTS instanceof Set, 'emit.mjs must export VALID_HOOKSPECIFIC_EVENTS');
+    assert.deepEqual(
+      [...emit.VALID_HOOKSPECIFIC_EVENTS].sort(),
+      [...VALID_HOOKSPECIFIC_EVENTS].sort(),
+      'emit.mjs allowlist drifted from the pinned harness union — update BOTH deliberately'
+    );
+  });
+
+  it('allowlist + side-effect-only events cover all 33 Claude Code events, disjointly', () => {
+    const all = [...VALID_HOOKSPECIFIC_EVENTS, ...SIDE_EFFECT_ONLY_EVENTS];
+    assert.equal(new Set(all).size, 33);
+    for (const e of SIDE_EFFECT_ONLY_EVENTS) assert.ok(!VALID_HOOKSPECIFIC_EVENTS.has(e), e);
+  });
+
+  it('emitModel degrades for every side-effect-only event', async () => {
+    const emit = await import(path.join(HOOKS_DIR, 'lib', 'emit.mjs'));
+    for (const e of SIDE_EFFECT_ONLY_EVENTS) {
+      assert.ok(!('hookSpecificOutput' in emit.emitModel(e, 'ctx')), `${e} must degrade`);
+    }
+  });
+
+  it('emitBoth degrades to systemMessage-only for a non-union event (PostCompact)', async () => {
+    const emit = await import(path.join(HOOKS_DIR, 'lib', 'emit.mjs'));
+    const out = emit.emitBoth('PostCompact', 'msg');
+    assert.equal(out.systemMessage, 'msg');
+    assert.ok(!('hookSpecificOutput' in out), 'PostCompact has no valid hookSpecificOutput variant — must degrade');
+    const model = emit.emitModel('PostCompact', 'ctx');
+    assert.ok(!('hookSpecificOutput' in model), 'emitModel must degrade to silent for non-union events');
+    const ok = emit.emitBoth('SessionStart', 'msg');
+    assert.equal(ok.hookSpecificOutput.hookEventName, 'SessionStart', 'valid events must pass through unchanged');
+  });
+
+  it('post-compact-recovery emits NO hookSpecificOutput under its real event (PostCompact)', () => {
+    const file = path.join(HOOKS_DIR, 'post-compact-recovery.js');
+    const r = spawnSync('node', [file], {
+      input: JSON.stringify({ session_id: 'contract-test', hook_event_name: 'PostCompact' }),
+      encoding: 'utf-8',
+      timeout: 15000,
+      env: { ...process.env, HOME: TMP_HOME, USERPROFILE: TMP_HOME, MCP_DISABLED: '1' },
+    });
+    assert.equal(r.status, 0);
+    const parsed = JSON.parse((r.stdout || '').trim().split('\n').filter(Boolean).pop());
+    assert.ok(!('hookSpecificOutput' in parsed), 'PostCompact output must be systemMessage-only (harness rejects the rest)');
+    assert.ok(parsed.systemMessage, 'the re-orientation message must still reach the user');
+  });
+
+  // Runtime sweep: every handler that CAN emit hookSpecificOutput, driven under
+  // each event hooks.json actually registers it for. Handlers that never touch
+  // hookSpecificOutput are already covered by suite A.
+  const canEmit = (file) => /emitModel|emitBoth|hookSpecificOutput/.test(fs.readFileSync(file, 'utf-8'));
+  const registry = registeredEventsByFile();
+  for (const file of HOOK_FILES) {
+    if (!canEmit(file)) continue;
+    const base = path.basename(file);
+    const events = registry.get(base);
+    if (!events) continue; // orchestrator-wired (not standalone-registered) — covered via orchestrator run
+    for (const event of events) {
+      it(`${base} under ${event}: any hookSpecificOutput uses a valid, matching hookEventName`, () => {
+        const r = spawnSync('node', [file], {
+          input: JSON.stringify({
+            session_id: 'contract-test',
+            hook_event_name: event,
+            tool_name: 'Read',
+            tool_input: { file_path: '/tmp/contract-test.txt' },
+            prompt: 'contract-test prompt',
+          }),
+          encoding: 'utf-8',
+          timeout: 15000,
+          env: { ...process.env, HOME: TMP_HOME, USERPROFILE: TMP_HOME, MCP_DISABLED: '1', CLAUDE_SESSION_ID: 'contract-test' },
+        });
+        assert.equal(r.status, 0, `${base} must exit 0 under ${event}. stderr: ${r.stderr}`);
+        for (const line of (r.stdout || '').trim().split('\n').filter(Boolean)) {
+          let parsed;
+          try { parsed = JSON.parse(line); } catch { continue; }
+          if (!parsed.hookSpecificOutput) continue;
+          const name = parsed.hookSpecificOutput.hookEventName;
+          assert.ok(
+            VALID_HOOKSPECIFIC_EVENTS.has(name),
+            `${base} emitted hookSpecificOutput.hookEventName "${name}" — not in the harness union; the ENTIRE output would be rejected`
+          );
+          assert.equal(
+            name,
+            event,
+            `${base} emitted hookEventName "${name}" while firing under ${event} — the harness rejects mismatches`
+          );
+        }
+      });
+    }
   }
 });
 

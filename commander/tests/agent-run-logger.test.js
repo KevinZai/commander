@@ -25,7 +25,7 @@ const AGENTS_DIR = path.join(
 const TMP_HOME = path.join(os.tmpdir(), 'ccc-agent-logger-test-' + process.pid);
 const LOG_FILE = path.join(TMP_HOME, '.claude', 'commander', 'agent-runs.jsonl');
 
-function runHook(envOverrides = {}) {
+function runHook(envOverrides = {}, stdinPayload = {}) {
   const env = {
     ...process.env,
     HOME: TMP_HOME,
@@ -34,7 +34,8 @@ function runHook(envOverrides = {}) {
   };
 
   const result = spawnSync('node', [HOOK_PATH], {
-    input: JSON.stringify({}),
+    input:
+      typeof stdinPayload === 'string' ? stdinPayload : JSON.stringify(stdinPayload),
     encoding: 'utf-8',
     timeout: 6000,
     env,
@@ -76,6 +77,37 @@ beforeEach(() => {
   if (fs.existsSync(LOG_FILE)) {
     fs.unlinkSync(LOG_FILE);
   }
+});
+
+describe('agent-run-logger.js — rotation', () => {
+  it('does not overwrite an existing archive when rotating twice in one day', () => {
+    const dir = path.dirname(LOG_FILE);
+    const archivesBefore = fs
+      .readdirSync(dir)
+      .filter((f) => f.startsWith('agent-runs.') && f !== 'agent-runs.jsonl');
+    for (const f of archivesBefore) fs.unlinkSync(path.join(dir, f));
+
+    // Two rotations in the same calendar day: a date-only archive name makes the
+    // second rename clobber the first, losing the whole first archive.
+    const oversized = 'x'.repeat(10 * 1024 * 1024 + 1);
+    for (const marker of ['first-archive', 'second-archive']) {
+      fs.writeFileSync(LOG_FILE, JSON.stringify({ marker }) + '\n' + oversized);
+      runHook({ CLAUDE_AGENT_NAME: 'architect', CLAUDE_SESSION_ID: 'rot' });
+    }
+
+    const archives = fs
+      .readdirSync(dir)
+      .filter((f) => f.startsWith('agent-runs.') && f !== 'agent-runs.jsonl');
+    assert.equal(archives.length, 2, 'both same-day archives should survive');
+
+    const markers = archives
+      .map((f) => fs.readFileSync(path.join(dir, f), 'utf8').split('\n')[0])
+      .map((line) => JSON.parse(line).marker)
+      .sort();
+    assert.deepEqual(markers, ['first-archive', 'second-archive']);
+
+    for (const f of archives) fs.unlinkSync(path.join(dir, f));
+  });
 });
 
 describe('agent-run-logger.js — basic logging', () => {
@@ -129,17 +161,48 @@ describe('agent-run-logger.js — basic logging', () => {
     assert.equal(entry.status, 'max_turns');
   });
 
-  it('handles missing env vars with defaults', () => {
+  it('records honest null tokens (not a fabricated 0) when no data is anywhere', () => {
     runHook({});
     const lines = readLogLines();
     assert.equal(lines.length, 1);
     const entry = lines[0];
     assert.equal(entry.agent, 'unknown');
     assert.equal(entry.sessionId, 'unknown');
-    assert.equal(entry.inputTokens, 0);
-    assert.equal(entry.outputTokens, 0);
-    assert.equal(entry.durationMs, 0);
+    // Honesty contract: no payload / transcript / env token data → null, so the
+    // UI shows "— · telemetry unavailable" instead of a measured-looking zero.
+    assert.equal(entry.inputTokens, null);
+    assert.equal(entry.outputTokens, null);
+    assert.equal(entry.durationMs, null);
+    assert.equal(entry.tokensAvailable, false);
     assert.equal(entry.status, 'completed');
+  });
+
+  it('recovers real tokens from transcript_path when the payload omits them', () => {
+    const tPath = path.join(TMP_HOME, 'agent-transcript.jsonl');
+    fs.mkdirSync(path.dirname(tPath), { recursive: true });
+    const lines = [
+      {
+        type: 'assistant',
+        timestamp: '2026-07-20T00:00:00.000Z',
+        message: { usage: { input_tokens: 40, cache_creation_input_tokens: 60, output_tokens: 30 } },
+      },
+      {
+        type: 'assistant',
+        timestamp: '2026-07-20T00:00:02.000Z',
+        message: { usage: { input_tokens: 10, cache_read_input_tokens: 5000, output_tokens: 70 } },
+      },
+    ]
+      .map((o) => JSON.stringify(o))
+      .join('\n');
+    fs.writeFileSync(tPath, lines);
+
+    runHook({}, { agent_type: 'commander:reviewer', transcript_path: tPath });
+    const entry = readLogLines().at(-1);
+    assert.equal(entry.agent, 'commander:reviewer');
+    assert.equal(entry.inputTokens, 110); // (40+60) + (10+0)
+    assert.equal(entry.outputTokens, 100); // 30 + 70
+    assert.equal(entry.durationMs, 2000);
+    assert.equal(entry.tokensAvailable, true);
   });
 
   it('appends multiple runs to the same file', () => {
@@ -188,28 +251,117 @@ describe('agent-run-logger.js — log rotation', () => {
   });
 });
 
+describe('agent-run-logger.js — stdin is the primary source (Iron Law fix, CC-1378)', () => {
+  it('reads agent name, session id, status, duration, and tokens from top-level stdin fields', () => {
+    runHook({}, {
+      agent_name: 'reviewer',
+      session_id: 'sess-stdin-1',
+      status: 'end_turn',
+      duration_ms: 4200,
+      input_tokens: 900,
+      output_tokens: 210,
+    });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 1);
+    const entry = lines[0];
+    assert.equal(entry.agent, 'reviewer');
+    assert.equal(entry.sessionId, 'sess-stdin-1');
+    assert.equal(entry.status, 'end_turn');
+    assert.equal(entry.durationMs, 4200);
+    assert.equal(entry.inputTokens, 900);
+    assert.equal(entry.outputTokens, 210);
+  });
+
+  it('probes nested subagent/agent/usage field paths defensively', () => {
+    runHook({}, {
+      subagent_type: 'builder',
+      session_id: 'sess-stdin-2',
+      subagent: { status: 'completed' },
+      usage: { input_tokens: 500, output_tokens: 75 },
+      duration_ms: 6000,
+    });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 1);
+    const entry = lines[0];
+    assert.equal(entry.agent, 'builder');
+    assert.equal(entry.sessionId, 'sess-stdin-2');
+    assert.equal(entry.status, 'completed');
+    assert.equal(entry.inputTokens, 500);
+    assert.equal(entry.outputTokens, 75);
+    assert.equal(entry.durationMs, 6000);
+  });
+
+  it('stdin values win over env vars when both are present', () => {
+    runHook(
+      { CLAUDE_AGENT_NAME: 'env-agent', CLAUDE_SESSION_ID: 'env-sess' },
+      { agent_name: 'stdin-agent', session_id: 'stdin-sess' }
+    );
+
+    const lines = readLogLines();
+    const entry = lines[0];
+    assert.equal(entry.agent, 'stdin-agent');
+    assert.equal(entry.sessionId, 'stdin-sess');
+  });
+
+  it('falls back to env vars when stdin has no matching fields, then to defaults', () => {
+    runHook({ CLAUDE_SUBAGENT_NAME: 'debugger' }, { unrelated: true });
+
+    const lines = readLogLines();
+    const entry = lines[0];
+    assert.equal(entry.agent, 'debugger');
+    assert.equal(entry.sessionId, 'unknown');
+    assert.equal(entry.status, 'completed');
+  });
+
+  it('fails open (0 tokens, unknown agent) when stdin exceeds the 256KB cap', () => {
+    const hugePrompt = 'x'.repeat(300 * 1024);
+    runHook({}, { agent_name: 'oversized', prompt: hugePrompt });
+
+    const lines = readLogLines();
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0].agent, 'unknown');
+  });
+});
+
 describe('agent-run-logger.js — agent coverage', () => {
-  it('all 17 agent files have a hooks: field in frontmatter', () => {
+  // Plugin subagents ignore a frontmatter `hooks:` field (platform-facts §2.3),
+  // so coverage comes from the plugin-level SubagentStop registration in
+  // hooks.json, which fires for every agent. v8 agents therefore carry no
+  // `hooks:` field at all (docs/PROMPT-STANDARD.md §2).
+  it('hooks.json registers agent-run-logger.js on SubagentStop for every agent', () => {
+    const hooksJson = JSON.parse(
+      fs.readFileSync(path.join(AGENTS_DIR, '..', 'hooks', 'hooks.json'), 'utf8')
+    );
+    const groups = (hooksJson.hooks && hooksJson.hooks.SubagentStop) || [];
+    const commands = groups.flatMap(g => (g.hooks || []).map(h => h.command || ''));
+    assert.ok(
+      commands.some(c => c.includes('agent-run-logger.js')),
+      'SubagentStop must run hooks/agent-run-logger.js at the plugin level'
+    );
+    const matchers = groups.filter(g => (g.hooks || []).some(h => (h.command || '').includes('agent-run-logger.js')));
+    assert.ok(
+      matchers.every(g => !g.matcher || g.matcher === '*'),
+      'the agent-run-logger SubagentStop group must not be narrowed by a matcher'
+    );
+
     const agentFiles = fs
       .readdirSync(AGENTS_DIR)
       .filter(f => f.endsWith('.md') && !f.endsWith('.backup-20260424'));
-
     assert.ok(agentFiles.length >= 15, `Expected at least 15 agents, got ${agentFiles.length}`);
 
-    const missing = [];
+    const stale = [];
     for (const file of agentFiles) {
       const content = fs.readFileSync(path.join(AGENTS_DIR, file), 'utf8');
       const fmEnd = content.indexOf('---', 3);
       const fm = fmEnd > 3 ? content.slice(3, fmEnd) : '';
-      if (!fm.includes('hooks:')) {
-        missing.push(file);
-      }
+      if (/^hooks:/m.test(fm)) stale.push(file);
     }
-
     assert.deepEqual(
-      missing,
+      stale,
       [],
-      `The following agents are missing hooks: field: ${missing.join(', ')}`
+      `These agents still carry a frontmatter hooks: field the platform ignores: ${stale.join(', ')}`
     );
   });
 

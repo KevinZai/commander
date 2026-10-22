@@ -1,10 +1,9 @@
 ---
 name: ccc-plan
-description: "Feature planning flow for CC Commander. Runs a structured 3-5 question spec interview, then delegates to the planner agent in the background to write an…"
+description: "Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals, via a short spec interview and a background planner agent that writes to the session plan path. Use when the user wants to plan a feature, scope work before coding, or types $ccc-plan."
 allowed-tools:
   - Read
   - Write
-  - Edit
   - Bash
   - Glob
   - Grep
@@ -12,300 +11,174 @@ allowed-tools:
   - AskUserQuestion
   - EnterPlanMode
   - ExitPlanMode
-  - mcp__ccd_session__mark_chapter
   - TodoWrite
-argument-hint: "[new | bug | refactor | linear | <idea in quotes>]"
+  - mcp__ccd_session__mark_chapter
+  - mcp__linear__list_issues
+argument-hint: "[new | bug | refactor | linear | \"idea in quotes\"]"
+model: sonnet
+effort: medium
 ---
 
-# /ccc-plan — Feature Planning Flow
+# $ccc-plan — spec before any code
 
-User has an idea. Job: turn it into a structured plan file before any code gets written. We cascade through a spec interview, then fire the `planner` agent in the background to produce the plan at the **session-bound path** returned by `EnterPlanMode` — so it renders in Claude Code Desktop's native Plan pane. Return a one-line summary + path.
+**CC Commander** · $ccc-plan · a plan file with success and failure evals, shown in the Desktop Plan pane before anything is built.
 
-This is the "evals before specs before code" gate. Every multi-day feature routes through here.
+This is the evals-before-specs-before-code gate. Plan mode is entered here because the user asked for a plan; it is not the session's default posture.
 
-## Step 0 — Detect and enter plan mode (ALWAYS first)
+## When to use / when not to
 
-Before showing any UI, determine the session plan file path:
+- Use for multi-step features, non-trivial bug fixes, refactors, or turning a tracker issue into scoped work.
+- Use `$ccc-brainstorm` first when the approach itself is undecided. Use `$ccc-plan-exec` when the work is the same body repeated over many items. Skip planning for a one-line fix.
 
-**If "Plan File Info" block is present in the system-reminder context** (Desktop already activated plan mode for this session, surfacing a path like `~/.claude/plans/<whimsy-name>.md`):
-- Capture that path as `PLAN_PATH`
-- Do NOT call `EnterPlanMode` again — it is already active
+## What happens
 
-**If NO "Plan File Info" block is detected:**
-- Call the `EnterPlanMode` tool — this switches the session into plan mode
-- `EnterPlanMode` returns the session-bound path (e.g., `~/.claude/plans/spirited-oak-forest.md`)
-- Capture that returned path as `PLAN_PATH`
+### 1. Resolve `PLAN_PATH` (always first)
 
-`PLAN_PATH` is the canonical write target for the rest of this skill. Do not write to any other path under `~/.claude/plans/`.
+- If the system context contains a "Plan File Info" block, plan mode is already active: capture that path as `PLAN_PATH` and do not call `EnterPlanMode`.
+- Otherwise call `EnterPlanMode` and capture the path it returns as `PLAN_PATH`.
+- If `EnterPlanMode` is not available (Codex, or a context without plan mode), set `PLAN_PATH` to `~/.claude/plans/ccc-<YYYY-MM-DD>-<slug>.md` and tell the user the Desktop Plan pane may not pick it up.
 
-> **Why this matters:** Desktop's native Plan pane only reads the session-bound path it created. Writing to a fixed `~/.claude/plans/ccc-<date>-<slug>.md` path produces a plan the pane cannot find — it shows "no plan yet" even after the skill runs.
+`PLAN_PATH` is the only write target under `~/.claude/plans/`. The Plan pane reads only the session-bound path it created; a self-chosen fixed filename shows "no plan yet".
 
-## Step 1 — Mark chapter
+### 2. Mark the chapter
 
-Call `mcp__ccd_session__mark_chapter` with:
-- `title`: `"Feature planning"`
-- `summary`: one-line summary of what the user wants to plan (infer from any argument passed, or use "Structured feature plan" if unknown yet)
+Call `mcp__ccd_session__mark_chapter` with `title: "Feature planning"` and a one-line `summary` inferred from the argument ("Structured feature plan" if none). Skip silently if the tool is not exposed.
 
-## Response shape (EVERY time, after steps 0-1)
+### 3. Header and context strip
 
-Output exactly these three sections in order:
-
-### 1. Brand header (one line, markdown)
+Read the version from `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json` (never hardcode it) and print:
 
 ```
 **CC Commander** · v{VERSION} · Planner · spec-first, plan-before-code
 ```
 
-Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
+Gather context in one Bash call:
 
-### 2. Context strip (one paragraph, markdown)
+```bash
+ls ~/.claude/plans/ 2>/dev/null | wc -l
+git rev-parse --abbrev-ref HEAD 2>/dev/null
+ls tasks/todo.md 2>/dev/null
+git log --oneline -5 2>/dev/null
+```
 
-Detect planning context with a single parallel Bash call:
-- `ls ~/.claude/plans/ 2>/dev/null | wc -l` → prior plans
-- `git rev-parse --abbrev-ref HEAD 2>/dev/null` → current branch
-- `ls tasks/todo.md 2>/dev/null` → active task list
-- `git log --oneline -5 2>/dev/null` → recent activity
+Render one line: `🎯 Planner: branch <branch> · <N> prior plans · tasks/todo.md: <present|absent> · last commit: <age>`. Outside a repo: `🎯 No repo detected — the plan goes to the session plan path only.`
 
-Render:
+### 4. Pick the plan type
 
-> 🧭 Planner: branch `<branch>` · `<N>` prior plans · tasks/todo.md: `<present|absent>` · last commit: `<age>`
+Skip this step when the argument is a quoted idea: treat it as a new feature and go to step 5. When the argument is `new`, `bug`, `refactor` or `linear`, take that path directly.
 
-If no project context: "🧭 No repo detected — planning will write to session plan path only."
+Otherwise ask with the picker under Decision points.
 
-### 3. The picker — `AskUserQuestion` with 4 paths
+### 5. Run the interview
 
-**Never render a numbered list. Never ask the user to type anything but free-form answers inside AskUserQuestion follow-ups.** Call `AskUserQuestion`:
+Ask the question set for the chosen path from [references/interview.md](references/interview.md): 3 to 5 `AskUserQuestion` calls, one at a time, at most 4 options each. Keep it tight; the planner fills in detail.
+
+### 6. Delegate to the planner agent
+
+Call the `Agent` tool with `subagent_type: "general-purpose"`, `model: "sonnet"`, `effort: "medium"`, and a prompt that contains:
+
+1. The interview answers as a structured brief, and the exact `PLAN_PATH`.
+2. Read the relevant files first (`CLAUDE.md`, `package.json`, the source the plan touches).
+3. Write the plan in the shape of [references/plan-template.md](references/plan-template.md) to `PLAN_PATH` and nowhere else. First line: `<!-- generated by $ccc-plan · <ISO timestamp> -->`.
+4. Plan execution workflow-first: substantive steps go to agents or workflows (`rules/workflow-first.md`), each phase checked by someone other than its worker.
+5. Return only a one-line summary.
+
+While it runs, say: `🔄 Planner agent drafting your plan — usually under a minute.` Do not draft the plan in the main thread.
+
+### 7. Verify the file, then hand off to the Plan pane
+
+Run the Done-when checks below. Then:
+
+1. Call `mcp__ccd_session__mark_chapter` with `title: "Plan drafted — pending approval"` and the agent's summary.
+2. Call `ExitPlanMode`. Writing the file alone does not activate the Plan pane; this call does. Call it even if the user dismisses early.
+3. Reply:
+
+```
+✅ Plan written to the session plan path (open in the Desktop Plan pane)
+   <one-line summary from the agent>
+
+Approve, modify or reject it from the Plan pane.
+```
+
+### 8. Optional project copy
+
+Ask with the "project copy" picker. On yes:
+
+```bash
+mkdir -p tasks/plans
+cp "$PLAN_PATH" "tasks/plans/<slug>.md"
+test -s "tasks/plans/<slug>.md" && echo copied
+```
+
+`<slug>` is a kebab-case summary of 6 to 8 words. Report `📝 Project copy saved to tasks/plans/<slug>.md`. The copy is for git history and sharing; `PLAN_PATH` stays the source the Plan pane reads.
+
+### 9. Seed the todo list
+
+Call `TodoWrite` with the plan's Phase 1 steps, all `pending`.
+
+### 10. Next step
+
+Ask with the "next step" picker.
+
+## Decision points
+
+Plan type (step 4). Put the recommended option first, marked 🟢:
+
+- 🟢 when recent commits start with `fix:`/`bug:` or show test failures → "Plan a bug fix"; after `$ccc-review` findings → "Refactor existing code"; on a branch with an issue-key prefix and the Linear connector exposed → "Build from a Linear issue"; otherwise → "New feature from a description".
 
 ```
 question: "What kind of plan are we writing?"
-header: "CC Commander planner"
+header: "Planner"
 multiSelect: false
 options:
   - label: "💡 New feature from a description"
-    description: "You describe the idea — we interview, then produce a full implementation plan."
-    preview: "5 clarifying questions → planner agent → plan file. ~3-5 minutes."
-  - label: "🐛 Plan a bug fix"
-    description: "Bug-focused plan — reproduction, hypothesis, fix scope, regression tests, operationalization."
-    preview: "Uses debugger + planner agents. Iron Law: no fix without root cause."
-  - label: "♻️ Refactor existing code"
-    description: "Refactor plan with before/after contracts, test-first safety net, incremental steps."
-    preview: "Reads the code first, then plans. Safer for big changes."
-  - label: "📌 Build from a Linear issue"
-    description: "Pull a CC- issue — we turn the title + description into a scoped plan with acceptance criteria."
-    preview: "Pulls via the linear MCP. Writes CC-<N> into the plan slug."
+    description: "You describe the idea; a 5-question interview, then a full implementation plan."
+  - label: "🔧 Plan a bug fix"
+    description: "Reproduction, root cause, fix scope, regression tests. No fix step before a confirmed cause."
+  - label: "🏗️ Refactor existing code"
+    description: "Reads the code first; before/after contracts, test-first safety net, incremental steps."
+  - label: "📝 Build from a Linear issue"
+    description: "Turns an issue's title and description into a scoped plan. Needs the opt-in Linear connector."
 ```
 
-**Recommendation logic** (⭐):
-- Argument is quoted text → treat as "New feature" description, skip picker, jump to interview
-- Recent commits show test failures OR "fix:" / "bug:" prefix → ⭐ "Plan a bug fix"
-- User came from `/ccc-review` with findings → ⭐ "Refactor existing code"
-- Linear MCP connected + CC- branch prefix → ⭐ "Build from a Linear issue"
-- Otherwise → ⭐ "New feature from a description"
+Project copy (step 8):
 
-## Handle the selection — spec interview cascade
+- 🟢 No — the session copy is enough
+- Yes — copy to `tasks/plans/<slug>.md` for git history and team sharing
 
-Each path runs 3-5 `AskUserQuestion` calls in sequence, each with ≤4 options. User always has a free-form "Other — let me type it" option when the answer doesn't fit.
+Next step (step 10), 🟢 first:
 
-### New feature path (5 questions)
+- 🟢 Start building — `$ccc-build <type>` (or `$ccc-plan-exec` when the plan is one body repeated per item)
+- Show the plan here in chat
+- File it as a Linear issue — hands off to `$ccc-linear`, which asks before writing
+- Done for now
 
-1. **"What's the user problem?"** — Saving time / Earning revenue / Removing friction / Other (type)
-2. **"Who's the primary user?"** — Solo dev / Team of 2-10 / Enterprise / Public/consumer
-3. **"What's the scope?"** — Prototype (1 day) / MVP (1 week) / Production (1 month) / Unsure
-4. **"What does done look like?"** — Demo-able / First paying user / Tests green + deployed / Other
-5. **"What's the biggest risk?"** — Tech unknowns / Scope creep / Integration pain / User adoption
+## Done when
 
-### Bug fix path (4 questions)
+- `head -1 "$PLAN_PATH"` prints the `<!-- generated by $ccc-plan` trace line.
+- `grep -c '^## Evals' "$PLAN_PATH"` prints `2` (both success and failure evals present). If either check fails, send the planner one correction pass; if it still fails, report the gap instead of calling the plan done.
+- `ExitPlanMode` was called, and the reply named the plan's one-line summary.
+- If a project copy was requested, the `test -s` check printed `copied`.
 
-1. **"Can you reproduce it?"** — Yes every time / Sometimes / Once / Not yet
-2. **"Where does it manifest?"** — UI / API / Background job / Data layer
-3. **"What's the blast radius?"** — Single user / Cohort / All users / Unknown
-4. **"Root cause confidence?"** — Known / Strong hypothesis / Weak hypothesis / No idea
+## Guardrails
 
-### Refactor path (4 questions)
+- Never write a plan to any path under `~/.claude/plans/` other than `PLAN_PATH`, and never paste the full spec into chat instead of writing the file.
+- Never write or edit product code from this skill; it ends at an approved plan.
+- Never ask questions as a numbered list for the user to type answers to; every choice is an `AskUserQuestion` picker (Codex: a plain-text question).
+- Never skip the evals sections. "What does done look like" is required.
+- Never write to Linear or another tracker from here. Filing an issue goes through `$ccc-linear`, which asks for authorization at that moment.
+- Never treat Linear as present: it is an opt-in connector, absent by default; fall back to a pasted description.
+- The planner runs on `sonnet`; the user's selected session model is preserved.
 
-1. **"What area are we refactoring?"** — One file / One module / Cross-cutting / Full app
-2. **"Why now?"** — Performance / Maintainability / New requirement / Technical debt
-3. **"Test coverage today?"** — >80% / 40-80% / <40% / Unknown
-4. **"Backward compat required?"** — Full / Partial / Breaking OK / Internal only
+## See also
 
-### Linear issue path (3 questions)
-
-1. **"Which issue?"** — cascade list from `mcp__linear__list_issues` (4 most recent open, plus "Other — paste ID")
-2. **"Any new context since ticket was filed?"** — None / Yes (free form) / Skip
-3. **"Scope change from the ticket?"** — Same scope / Narrower / Broader / Unclear
-
-## After the interview — delegate to planner agent
-
-Invoke the `planner` subagent via the Agent tool with:
-- **model:** sonnet (fast, adequate for planning)
-- **subagent_type:** general-purpose (or named `planner` if registered)
-- **prompt:** Bundle the interview answers into a structured brief. Instruct the agent to:
-  1. Read any relevant existing files (CLAUDE.md, package.json, relevant source)
-  2. Produce a plan using the template below
-  3. Write it to `PLAN_PATH` (the session-bound path from Step 0) — NOT to any fixed `ccc-<date>-<slug>.md` path
-  4. First line of plan file must be the trace comment: `<!-- generated by /ccc-plan · <ISO timestamp> -->`
-  5. Note that executing this plan should be workflow-first — delegate substantive steps to agents/workflows per `commander/cowork-plugin/rules/workflow-first.md`
-  6. Return ONLY: one-line summary
-
-While the agent runs, show a progress note in the main thread: "🔄 planner agent drafting your plan — 30-60 seconds..."
-
-## Plan file template (agent output format)
-
-The planner agent writes markdown in this shape:
-
-```markdown
-<!-- generated by /ccc-plan · <ISO 8601 timestamp> -->
-# <Feature title>
-
-**Date:** <YYYY-MM-DD>
-**Path:** <new | bug | refactor | linear>
-**Branch:** <current branch or "none">
-**Linear:** <CC-N or "none">
-
-## Problem statement
-
-<2-3 sentences, plain English.>
-
-## Evals — what does done look like?
-
-- [ ] <concrete verifiable criterion>
-- [ ] <concrete verifiable criterion>
-- [ ] <concrete verifiable criterion>
-
-## Evals — what does broken look like?
-
-- <failure mode 1>
-- <failure mode 2>
-
-## Plan
-
-### Phase 1 — <name>
-- [ ] <step> (est. <time>)
-- [ ] <step> (est. <time>)
-
-### Phase 2 — <name>
-- [ ] <step>
-
-### Phase 3 — <name>
-- [ ] <step>
-
-## Recommended agents
-
-- **<agent>** — <why>
-- **<agent>** — <why>
-
-## Risks
-
-| Risk | Likelihood | Mitigation |
-|------|------------|------------|
-| <risk> | H/M/L | <one-line> |
-
-## Next command
-
-```
-/ccc-build <type>  # or /ccc-review or /ccc-ship
-```
-
----
-
-Generated by `/ccc-plan` — <timestamp>
-```
-
-## Mark chapter "Plan drafted"
-
-After the planner agent returns, call `mcp__ccd_session__mark_chapter` with:
-- `title`: `"Plan drafted — pending approval"`
-- `summary`: the one-line summary returned by the planner agent
-
-## Signal Desktop — ExitPlanMode
-
-Call the `ExitPlanMode` tool. This signals Claude Code Desktop that the plan is ready for review. The native Plan pane then surfaces the plan and presents approve/modify/reject UI.
-
-> **Why ExitPlanMode is required:** Writing the file alone is not enough. The Plan pane only activates after `ExitPlanMode` is called. Skipping this call means the user sees "no plan yet" even though the file was written correctly.
-
-## Final response in the main thread
-
-After ExitPlanMode returns:
-
-```
-✅ Plan written to the session plan path (visible in the Desktop Plan pane)
-   <one-line summary from the agent>
-
-The Plan pane is now active — approve, modify, or reject from there.
-Next: `/ccc-build <type>` to start, or review the plan first.
-```
-
-Then offer one more `AskUserQuestion`:
-
-```
-- "🔨 Start building now (go to /ccc-build)"
-- "👀 Show me the plan in chat"
-- "📌 File this to Linear as a new issue"
-- "↩️ Done for now"
-```
-
-## Optional — Save project-local copy
-
-After ExitPlanMode, ask:
-
-```
-AskUserQuestion:
-  question: "Save a copy to tasks/plans/<slug>.md for git tracking?"
-  options:
-    - label: "✅ Yes — save a project copy"
-      description: "Copies the plan to tasks/plans/<slug>.md. Good for git history + team sharing."
-    - label: "⏭️ No — session copy is enough"
-      description: "Skip. The session plan path is already written."
-```
-
-If yes:
-1. Derive `<slug>` as kebab-case summary of the feature (6-8 words max)
-2. Run `mkdir -p tasks/plans/` via Bash
-3. Copy `PLAN_PATH` → `tasks/plans/<slug>.md`
-4. Confirm: "📄 Project copy saved to `tasks/plans/<slug>.md`"
-
-This is a second artifact — not a replacement for `PLAN_PATH`. The Desktop Plan pane reads `PLAN_PATH`; the project copy is for git history and team sharing.
-
-## TodoWrite — Phase 1 tasks
-
-After the flow completes (with or without the optional copy), call `TodoWrite` with the Phase 1 tasks extracted from the plan. Mark them all as `pending`. This seeds the session todo list so the user can track progress immediately.
-
-## Anti-patterns — DO NOT do these
-
-- ❌ Dump a 500-line markdown spec in the chat — always write to file
-- ❌ Render numbered lists of questions and ask user to type answers — always AskUserQuestion
-- ❌ Output HTML artifacts expecting Cowork Desktop to render them
-- ❌ Block on the planner agent — fire it and let the user see progress
-- ❌ Write the plan in the foreground — delegate to subagent for clean context
-- ❌ Skip the eval section — "what does done look like" is non-negotiable
-- ❌ Reference legacy CLI planning — no `ccc --plan` or `ccc build --spec` commands
-- ❌ Write plan to `~/.claude/plans/ccc-<date>-<slug>.md` (fixed name). Use the session-bound path from `EnterPlanMode` instead — Desktop's Plan pane only reads the path it created, not fixed filenames.
-- ❌ Skip `ExitPlanMode`. Writing the file alone does NOT trigger the Plan pane. The tool call is required to signal Desktop that the plan is ready for review.
-
-## Brand rules
-
-- **Always read `VERSION` from plugin.json** — never hardcode.
-- **Plan files always go to `PLAN_PATH`** (session-bound from EnterPlanMode) — never to a fixed `ccc-<date>` path.
-- **Slug kebab-case, 6-8 words max** — for optional project-local copy only.
-- **Every plan has evals section** — both success and failure criteria.
-- **Emoji-forward, PM Consultant voice** — decision up front, reasoning terse.
-- **Trace comment first line** — `<!-- generated by /ccc-plan · <ISO timestamp> -->` for auditability.
-
-## Tips for the agent executing this skill
-
-1. **Step 0 is non-negotiable** — always detect or enter plan mode before anything else. `PLAN_PATH` must be set before the planner agent runs.
-2. The interview is 3-5 turns. Keep questions tight — the planner agent fills in detail.
-3. Pass the full `PLAN_PATH` to the planner subagent in the prompt. The agent must write to that exact path, not construct its own.
-4. If `EnterPlanMode` fails (tool not available in this context), fall back: write to `~/.claude/plans/ccc-$(date +%Y-%m-%d)-<slug>.md` and note in the response that the Desktop Plan pane may not detect it automatically.
-5. If the Linear path is picked and MCP isn't connected, fall back: ask the user to paste the issue title + description free-form.
-6. If the user passes a quoted idea as argument (e.g. `/ccc-plan "magic link auth"`), skip the picker AND question 1 — use that as the problem statement and start at question 2.
-7. Pass `model: sonnet` to the Agent tool — opus is overkill for plan synthesis.
-8. Always call `ExitPlanMode` after writing — even if the user dismisses early. The Plan pane only activates on the tool call.
-
----
-
-**Bottom line:** detect/enter plan mode → mark chapter → 4-path picker → 3-5 cascading questions → planner agent writes plan to session path → mark chapter "drafted" → ExitPlanMode triggers Desktop Plan pane → optional project copy → TodoWrite phase 1 tasks. User never sees a wall of spec in chat; it's always an artifact surfaced in the native Plan pane.
+- `$ccc-brainstorm` — compare three approaches before planning
+- `$ccc-plan-exec` — plan a repeated loop cheaply, execute it on a capable model
+- `$ccc-build` — scaffold from the approved plan
+- `$ccc-debate` — stress-test a high-stakes plan with adversarial lenses
 
 ---
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
+
+> (On Codex, present these options as a numbered list and ask the user to reply with a number — AskUserQuestion is Claude-only.)

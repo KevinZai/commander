@@ -202,7 +202,7 @@ function renderCockpitFooter(data) {
   parts.push(dim('\u2501\u2501 ') + col('CCC' + B.version, t.primary));
 
   // Model
-  parts.push('\u{1F525}' + col(data.model || 'Opus4.8', t.primary));
+  parts.push('\u{1F525}' + col(data.model || 'Opus5', t.primary));
 
   // Auth source + key hint
   var authSrc = detectAuthSource();

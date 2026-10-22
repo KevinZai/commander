@@ -1,176 +1,176 @@
 ---
 name: ccc-orchestrate
-description: "Cross-runtime Orchestrator/Executor — Fable/Opus writes a goal file, GPT-5.6 Sol (codex) or a Sonnet subagent executes it, Fable/Opus verifies against acceptance criteria before reporting done."
+description: "Write a goal file, run it on a separate executor (Codex GPT-6 or a Sonnet subagent) in an isolated worktree, then verify every acceptance criterion. Use when a task benefits from a different executor and independent verification."
 allowed-tools:
   - Read
   - Bash
   - Write
-  - Workflow
+  - Agent
   - AskUserQuestion
+argument-hint: "[task description | path to an existing goal file]"
+model: inherit
+effort: high
 ---
 
-# /ccc-orchestrate — Cross-Runtime Orchestrator/Executor
+# /ccc-orchestrate — plan, delegate, verify
 
-Orchestrate splits work across **two different model runtimes**, not just two tiers of the same one. A capable model (**Fable 5** or **Opus 4.8** — the calling session, i.e. "you") compresses a fuzzy request into a tight, testable **goal file**. Execution then happens **outside this runtime entirely** — on **GPT-5.6 Sol via the `codex` CLI**, or on a **Sonnet subagent** if codex isn't available. The orchestrator never writes production code itself.
+**CC Commander** · /ccc-orchestrate · a goal file with testable criteria, executed elsewhere, verified here
 
-**CC Commander** · Cross-Runtime Orchestrate · [Docs](https://commanderplugin.com)
+The orchestrator is the calling session (the `fable` or `opus` tier, whichever the user runs; the selected model is preserved). It writes the goal file and verifies the result. It does not write production code in this mode. The executor is a separate runtime that reads the goal file as its whole brief.
 
-> This is `/ccc-plan-exec` generalized past Claude-only: instead of plan (cheap Claude) → execute (capable Claude), it's plan (Fable/Opus) → execute (a *different runtime* — GPT-5.6 or Sonnet). The goal file is the interface between the two systems, so it has to have real teeth.
+## When to use / when not to
 
----
+- Use when the request is fuzzy enough that compressing it into a spec pays off, and an independent executor plus a checklist-based verification adds confidence.
+- Use when the user asks for Codex to do the implementation, or for a cross-vendor second pair of hands.
+- Do not use for a one-line edit; do it inline.
+- Do not use when the user wants to stay in one vendor and one session; use `/ccc-plan-exec`.
 
-## Why cross-runtime
+## Executors
 
-Fable/Opus is expensive per token but excellent at compressing a fuzzy request into a tight, unambiguous spec. GPT-5.6 Sol at high/xhigh reasoning is a strong, comparatively cheaper implementer for well-specified work. The split only pays for itself if the goal file is genuinely load-bearing — vague or hand-wavy acceptance criteria collapse the whole advantage, because the orchestrator ends up re-explaining the task on every re-dispatch anyway. Write the goal file as if the executor has zero conversational context, because on the codex path it does.
+| Executor id | Runs on | Use for |
+|---|---|---|
+| `codex-gpt-6-astra` | `codex exec -m gpt-6-astra` | deep work: migrations, tricky concurrency, security-sensitive changes |
+| `codex-gpt-6.1-sol` | `codex exec -m gpt-6.1-sol` | default implementation executor |
+| `codex-gpt-6-luna` | `codex exec -m gpt-6-luna` | mechanical, high-volume edits with exact steps |
+| `codex-cloud` | `codex cloud exec --env <id>` | long tasks that should run off this machine; needs a Codex Cloud environment and a pushed branch |
+| `sonnet-subagent` | Agent tool, `model: sonnet` | stays inside Claude; use when Codex is absent or a single-vendor trail is wanted |
 
-**Model guidance (GPT-5.6 family, `commander/adapters/codex/models.js`):** default the executor to **Sol** for real implementation work (deep dev — flagship reasoning). Drop to **Terra** for balanced, well-specified tasks where Sol's extra reasoning wouldn't change the output. Reserve **Luna** for cheap, mechanical steps (renames, boilerplate, formatting) inside a larger loop — never for the primary executor role.
+Honor an executor the user already named. Otherwise pick from task difficulty. Offer Codex executors only after step 1 confirms the CLI.
 
----
+## What happens
 
-## The two roles
+1. **Check the runtimes.**
+   ```bash
+   command -v codex && codex --version
+   codex doctor --json --summary
+   ```
+   Look for `"overallStatus"` and the `auth.credentials` check. If `codex` is missing or auth fails, drop the Codex executors and say once: "Codex CLI unavailable (`command -v codex` failed or auth not configured); executing with a Sonnet subagent." `/ccc-codex doctor` explains failures.
 
-1. **Orchestrator (Fable 5, effort high, or Opus 4.8 — this session)** — reads the request, asks clarifying questions if the scope is fuzzy, and writes a structured **goal file** to disk. Never edits production code in this mode.
-2. **Executor (GPT-5.6 Sol via codex, or Sonnet subagent)** — reads the goal file verbatim as its entire brief and implements it. Does not re-plan, re-scope, or renegotiate the acceptance criteria.
+2. **Clarify scope** only if a material decision is open (target behavior, files in scope, test command). Otherwise infer from the request and the repository.
 
-The orchestrator resumes after execution to **verify against the goal file's done-when checklist**, not to re-review the diff from scratch.
+3. **Write the goal file** to the session scratchpad directory if one exists, else `/tmp/ccc-orchestrate/<slug>.md`:
 
----
+   ```markdown
+   ---
+   goal: <slug>
+   created: <ISO date>
+   orchestrator: <calling session model id>
+   executor: codex-gpt-6-astra | codex-gpt-6.1-sol | codex-gpt-6-luna | codex-cloud | sonnet-subagent
+   worktree: <absolute worktree path from step 5>
+   ---
 
-## The goal file
+   # Goal: <one-line outcome>
 
-A Skill.md-shaped markdown spec saved to a scratch path — use the session's scratchpad directory if available, else `/tmp/ccc-orchestrate/<slug>.md`.
+   ## Context
+   <the minimum the executor needs>
 
-```markdown
----
-goal: <slug>
-created: <ISO date>
-orchestrator: fable-5 | opus-4.8
-executor: codex-gpt-5.6-sol | codex-gpt-5.6-terra | codex-gpt-5.6-luna | sonnet-subagent
----
+   ## Steps
+   0. Run `git rev-parse --show-toplevel`; it must print the worktree path above. Stop if it does not.
+   1. <concrete, ordered step>
 
-# Goal: <one-line outcome>
+   ## Files in scope
+   - path/to/file — <what changes>
 
-## Context
-<the minimum the executor needs — no more>
+   ## Files explicitly out of scope
+   - path/to/other — <why it must not change>
 
-## Steps
-1. <concrete, ordered step>
-2. <concrete, ordered step>
-...
+   ## Done-when (acceptance criteria)
+   - [ ] <checkable by reading the diff or running a command>
+   - [ ] Tests green: `<exact command>`
 
-## Files in scope
-- path/to/file.ts — <what changes>
+   ## Explicitly NOT required
+   - <tempting but out of scope>
 
-## Files explicitly out of scope
-- path/to/other.ts — <why it must not change>
+   ## Report
+   End with: files changed, commands run with their exit codes, any criterion you could not meet and why.
+   ```
 
-## Done-when (acceptance criteria)
-- [ ] <testable, verifiable condition>
-- [ ] <testable, verifiable condition>
-- [ ] `npx tsc --noEmit` passes (if TS project)
-- [ ] Tests green: `<exact command>`
+   Every criterion must be checkable by a diff read or a command. "Code is cleaner" is not a criterion.
 
-## Explicitly NOT required
-- <anything that might look tempting but is out of scope>
-```
+4. **Pick the executor** when the choice is still open. Ask with AskUserQuestion (header "Executor"); on Codex, ask the same options as a numbered plain-text question:
+   - 🟢 **Codex GPT-6.1 Sol** — default executor; different runtime, different failure modes
+   - **Codex GPT-6 Astra** — deepest Codex model; slower and costlier
+   - **Codex GPT-6 Luna** — mechanical edits with exact steps
+   - **Sonnet subagent** — stays in Claude; no Codex needed
 
-Each acceptance-criteria line must be checkable by reading a diff or running a command — not a vibe. "Code is cleaner" is not a criterion. "`grep -c 'TODO' src/foo.ts` returns 0" is.
+   Offer `codex-cloud` only when the user asks for cloud execution or `codex cloud list --json` shows an environment.
 
----
+5. **Isolate.** Record the main checkout state, then create the worktree:
+   ```bash
+   mkdir -p /tmp/ccc-orchestrate
+   git status --porcelain > /tmp/ccc-orchestrate/<slug>.pre-status
+   git worktree add .claude/worktrees/<slug> -b goal/<slug>
+   git -C .claude/worktrees/<slug> rev-parse --show-toplevel
+   ```
+   The last command must print the worktree path. Never give the executor the main checkout as an edit root.
 
-## Executor picker
+6. **Execute.**
 
-Check codex availability before offering it:
+   Local Codex (`codex-gpt-6-astra`, `codex-gpt-6.1-sol`, `codex-gpt-6-luna`):
+   ```bash
+   codex exec --json --output-last-message /tmp/ccc-orchestrate/<slug>.result.md \
+     --sandbox workspace-write --cd "<worktree>" -m <model-id> - \
+     < /tmp/ccc-orchestrate/<slug>.md > /tmp/ccc-orchestrate/<slug>.events.jsonl
+   ```
+   Use a Bash timeout that fits the task (up to 600000 ms in the foreground; run longer tasks in the background and poll). The final report is in `<slug>.result.md`; `<slug>.events.jsonl` holds the event stream (`item.completed` items of type `command_execution` show what ran). Do not add `--dangerously-bypass-approvals-and-sandbox`, API-key auth, or `danger-full-access`.
 
-```bash
-which codex
-```
+   Codex Cloud (`codex-cloud`): the branch must exist on the remote, and pushing needs the user's authorization in this conversation.
+   ```bash
+   codex cloud exec --env <ENV_ID> --branch goal/<slug> "$(cat /tmp/ccc-orchestrate/<slug>.md)"
+   codex cloud list --json --env <ENV_ID> --limit 5
+   codex cloud status <TASK_ID>
+   codex cloud diff <TASK_ID>
+   ```
+   When the task finishes, apply its diff inside the worktree only: `cd "<worktree>" && codex cloud apply <TASK_ID>`.
 
-Call `AskUserQuestion`:
+   Sonnet subagent: call the Agent tool with `model: "sonnet"` and the goal file's full text as the prompt, adding one line that names the worktree as the only edit root. Add nothing else; the goal file carries the context.
 
-```
-question: "Who should execute the goal file?"
-header: "Orchestrate Executor"
-multiSelect: false
-options:
-  - label: "🤖 GPT-5.6 Sol via codex (recommended if installed)"
-    description: "Shells out to the codex CLI with model=gpt-5.6-sol — flagship deep-reasoning tier. Different runtime, different failure modes than Claude — good adversarial diversity."
-    preview: "Only offered when `which codex` succeeds. Terra/Luna available for lighter steps — see model guidance above."
-  - label: "🎯 Sonnet subagent"
-    description: "Stays in-Claude. Use when codex isn't installed, or you want a single-vendor audit trail."
-    preview: "Dispatched via Workflow/Agent, model=sonnet, goal file as its full prompt."
-```
+7. **Verify** (the orchestrator, not the executor). Read the diff and run each criterion's command:
+   ```bash
+   git -C "<worktree>" status --short
+   git -C "<worktree>" diff
+   ```
+   - Every box true: report done.
+   - A box unmet: re-dispatch with only that gap. For local Codex, continue the same session from the worktree so the executor keeps its context:
+     ```bash
+     cd "<worktree>" && codex exec resume --last -c 'sandbox_mode="workspace-write"' --json \
+       --output-last-message /tmp/ccc-orchestrate/<slug>.result.md \
+       "Criterion 3 is unmet: <exact failure>. Fix only that."
+     ```
+     For the Sonnet path, send the gap to a fresh Agent call. Do not rewrite the goal file and do not let the executor decide what "close enough" means.
+   - For a convergence loop with an iteration cap, run the verify cycle as a `/goal` loop (see `/ccc-loop`).
+   - For a load-bearing change, add an independent read-only review: `cd "<worktree>" && codex review --uncommitted`, or a fresh-context reviewer agent. A verifier is never the executor that produced the change.
 
-If `which codex` fails, don't show the codex option — just note in your response: "codex CLI not found (`which codex` failed) — executing via Sonnet subagent instead."
+8. **Isolation check.** Compare the main checkout with the recorded state:
+   ```bash
+   git status --porcelain | diff /tmp/ccc-orchestrate/<slug>.pre-status - && echo "main checkout unchanged"
+   ```
+   Any new line is an executor leak: report it and investigate; never reset unrelated work.
 
----
+## Decision points
 
-## Isolation (MANDATORY before any executor dispatch)
+- Executor choice (step 4), only when the user has not named one.
+- Merging the worktree branch into the user's branch, pushing, or opening a PR: ask with AskUserQuestion (header "Next step"): 🟢 **Leave the branch for review** — nothing leaves this machine / **Merge locally** — fast-forward into the current branch / **Open a PR** — pushes `goal/<slug>`.
 
-The executor never touches the main tree directly (Fable Pillar 5). Before dispatching codex or the Sonnet subagent:
+## Done when
 
-```bash
-git worktree add .claude/worktrees/<goal-slug> -b goal/<goal-slug>
-```
+The report states the goal file path, the executor, and `N/M criteria met` with the command output that proves each one, plus the isolation-check result:
 
-- Run the executor with **cwd = that worktree** (codex: spawn with the worktree as working directory; Sonnet: state the worktree path as the only edit root in the prompt).
-- The goal file's first step for the executor is always: `git rev-parse --show-toplevel` must equal the worktree path — **abort if not**. Relative paths only from there.
-- Never hand the executor the main repo's absolute path as an edit target.
+> Orchestrate: goal file `<path>`, executed by `<executor id>` in `<worktree>`. Done-when N/M. Main checkout unchanged: yes/no.
 
----
+## Guardrails
 
-## Execute phase
-
-**Codex path** — build args via the real adapter interface in `commander/adapters/codex.js` (`adapter.buildArgs(prompt, opts)`), do not invent flags it doesn't expose:
-
-```js
-const codex = require('./commander/adapters/codex.js');
-const args = codex.buildArgs(goalFileContents, { model: 'gpt-5.6-sol', approval: 'full-auto' });
-```
-
-`buildArgs` currently supports `model`, `approval`, `allowedTools`, `quiet` — there is **no documented reasoning-effort flag** in this adapter today. If xhigh reasoning on codex is needed, that's a TODO to add to `commander/adapters/codex.js`, not a flag to guess at. Pass the goal file's full contents as `prompt`.
-
-**Sonnet path** — dispatch through the Workflow tool's agent equivalent, `model: sonnet`, with the goal file's contents as the entire prompt. No additional framing — the goal file already has context, steps, and scope.
-
----
-
-## Verify phase (mandatory)
-
-Back in the orchestrator session, read the executor's diff/output and check it line-by-line against the goal file's done-when checklist:
-
-- ✅ All boxes checkable and true → report done.
-- ❌ Any box unmet → **re-dispatch the executor with the specific gap only** ("criterion 3 unmet: tests still fail on X — fix that, do not touch anything else"). Do not re-plan the whole goal file and do not let the executor decide what "close enough" means.
-- 🧹 **Isolation check (always):** `git -C <main-repo> status --porcelain | grep -v '^??'` must be EMPTY — the executor's work lives only in its worktree branch. Any tracked change in the main tree is a leak; stop and reconcile before reporting done.
-
-If the goal needs repeated re-dispatch until criteria hold (a convergence loop, not a one-shot), run the verify cycle as a `/goal` loop from the ccc-loop taxonomy — it gives you the gate + iteration cap for free instead of hand-rolled retries.
-
-Report back:
-> 🧭 **Orchestrate: goal file at `<path>`, executed by `<codex-gpt-5.6-sol|codex-gpt-5.6-terra|codex-gpt-5.6-luna|sonnet-subagent>`.**
-> Done-when: N/M criteria met.
-> <if gaps: re-dispatching with the specific gap · if clean: ✅ all criteria verified>
-
----
+- The orchestrator never edits production files in this mode; the executor works only inside the worktree.
+- No sandbox bypass flags, no API-key auth switch, no `danger-full-access`.
+- Pushing a branch (needed for `codex-cloud`), merging, and opening PRs each need the user's authorization in this conversation.
+- Never claim a criterion is met from the executor's report alone; run the command.
+- Do not invent CLI flags; check `codex exec --help` when unsure.
 
 ## See also
 
-- `/ccc-plan-exec` — same idea, Claude-only (cheap Claude plans, capable Claude executes). Use that when you want to stay in one vendor.
-- `/ccc-handoff` — use if the orchestration spans enough turns that context grows large; write a handoff doc before compacting rather than losing the goal file's state.
-
----
-
-## Anti-patterns — DO NOT
-
-- ❌ Let the executor re-plan or renegotiate the goal file — it executes the steps as written; scope changes go back through the orchestrator
-- ❌ Skip the acceptance-criteria verification step — "the executor said it's done" is not verification; read the diff against the checklist yourself
-- ❌ Invent a codex CLI flag (like a reasoning-effort flag) that isn't in `commander/adapters/codex.js` — check the adapter first, file a TODO if it's missing
-- ❌ Use this for a single trivial edit — the goal-file overhead only pays off when there's real ambiguity to compress; for a one-liner, just do it inline
-- ❌ Re-plan from scratch on a failed verification — re-dispatch with the specific unmet criterion, not a fresh goal file
-- ❌ Offer the codex executor option without confirming `which codex` succeeds first
-
----
-
-**Bottom line:** orchestrator (Fable/Opus) compresses fuzzy intent into a goal file with teeth; executor (GPT-5.6 Sol via codex, or Sonnet) implements it in a different runtime; orchestrator verifies against the checklist before calling it done. Pay for Fable/Opus on the thinking, not the typing — and don't let the typing runtime decide what "done" means.
-
----
+- `/ccc-codex` — Codex CLI health, models, cloud environments and reviews
+- `/ccc-plan-exec` — the same split, Claude-only
+- `/ccc-loop` — `/goal` convergence loops with gates
+- `/ccc-handoff` — durable state when the orchestration outlives the context window
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`
