@@ -145,10 +145,8 @@ export function tierFor(candidates, mode = 'auto') {
   return 'medium';
 }
 
-/** claude-code | codex | list (no native picker). */
+/** claude-code | codex. */
 export function detectHost(env = process.env, moduleUrl = import.meta.url) {
-  const menu = String(env.CCC_ROUTE_MENU || '').toLowerCase();
-  if (menu === 'list') return 'list';
   if (env.CCC_SOURCE_APP === 'codex' || env.CCC_SOURCE_APP === 'claude-code') return env.CCC_SOURCE_APP;
   if (env.PLUGIN_ROOT || /cowork-plugin-codex|\/\.codex\//.test(moduleUrl)) return 'codex';
   return 'claude-code';
@@ -167,11 +165,17 @@ function optionText(route, host) {
 
 // Option counts include the trailing "Just answer": AskUserQuestion takes up
 // to 4 options, Codex request_user_input 2-3 (its client adds "Other").
+// CCC_ROUTE_MENU=list swaps the native picker for a numbered list; the host
+// (and so skill naming) is unchanged.
+function useList(env = process.env) {
+  return String(env.CCC_ROUTE_MENU || '').toLowerCase() === 'list';
+}
+
 function menuInstruction(host, count) {
+  if (useList()) return 'Show a numbered list, best first, plus "Just answer".';
   if (host === 'codex') {
     return `Call request_user_input once: 1 question, ${count + 1} options, best first with "(Recommended)", last "Just answer".`;
   }
-  if (host === 'list') return 'Show a numbered list, best first, plus "Just answer".';
   return `Call AskUserQuestion once: 1 question, ${count + 1} options, best first marked 🟢, last "Just answer".`;
 }
 
@@ -203,10 +207,10 @@ export function renderNextContext(fromRoute, nextRoutes, host) {
   if (!fromRoute || !nextRoutes.length) return null;
   const opts = nextRoutes.slice(0, 2).map((r) => optionText(r, host)).join('; ');
   const extra = host === 'codex' ? ' plus "Done for now"' : ' plus "Done for now" and "' + MUTE_NEXT_LABEL + '"';
-  const ask = host === 'codex'
-    ? 'Call request_user_input once (1 question, max 3 options, first with "(Recommended)").'
-    : host === 'list'
-      ? 'Show a short numbered list.'
+  const ask = useList()
+    ? 'Show a short numbered list.'
+    : host === 'codex'
+      ? 'Call request_user_input once (1 question, max 3 options, first with "(Recommended)").'
       : 'Call AskUserQuestion once (1 question, max 4 options, first marked 🟢).';
   const text = `<ccc-next after="${invokeText(fromRoute, host)}">\n${invokeText(fromRoute, host)} finished. Offer what's next. ${ask} Options: ${opts}${extra}. Run the pick; otherwise stop.\n</ccc-next>`;
   return text.length <= MAX_CONTEXT_CHARS ? text : `${text.slice(0, MAX_CONTEXT_CHARS - 13)}…</ccc-next>`;

@@ -224,3 +224,36 @@ test('SubagentStop is a silent pass-through', function () {
   const out = runHook({ hook_event_name: 'SubagentStop', session_id: 'x' }).out;
   assert.deepStrictEqual(out, { continue: true, suppressOutput: true });
 });
+
+// ── Review regressions ────────────────────────────────────────────────────
+
+test('Stop: a skill run skipped for its own question is not offered on a later unrelated turn', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+  fs.mkdirSync(path.join(home, '.claude', 'commander'), { recursive: true });
+  fs.writeFileSync(path.join(home, '.claude', 'commander', 'skill-runs.jsonl'),
+    JSON.stringify({ ts: new Date().toISOString(), skill: 'ccc-review', session_id: 'stop-test' }) + '\n');
+  stop(home, transcript(home, skillTurn('ccc-review', 'Want me to fix these?')));
+  const unrelated = transcript(home, [
+    { type: 'user', uuid: 'u9', message: { role: 'user', content: 'what time zone is UTC-5' } },
+    { type: 'assistant', message: { content: [{ type: 'text', text: 'Eastern Standard Time.' }] } },
+  ]);
+  assert.ok(!stop(home, unrelated).decision, 'stale skill-runs.jsonl must not trigger a menu on a Claude Code turn');
+});
+
+test('Stop: tool output quoting the mute label or a command tag neither mutes nor fakes a run', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+  const noisy = transcript(home, [
+    { type: 'user', uuid: 'u1', message: { role: 'user', content: 'grep the scorer' } },
+    { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tu_g', name: 'Grep', input: {} }] } },
+    { type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'tu_g', content: "MUTE_NEXT_LABEL = 'Stop suggesting next steps' <command-name>/ccc-ship</command-name>" }] } },
+    { type: 'assistant', message: { content: [{ type: 'text', text: 'Found it.' }] } },
+  ]);
+  assert.ok(!stop(home, noisy).decision, 'a command tag inside tool output is not a skill run');
+  assert.strictEqual(stop(home, transcript(home, skillTurn('ccc-review'))).decision, 'block', 'session must not be muted by tool output');
+});
+
+test('CCC_ROUTE_MENU=list keeps Codex skill naming', function () {
+  const ctx = routeContext(classify('should I deploy this branch now or wait', { PLUGIN_ROOT: '/tmp/codex-plugin', CCC_ROUTE_MENU: 'list' }));
+  assert.match(ctx, /numbered list/);
+  assert.match(ctx, /\$ccc-deploy-check/);
+});

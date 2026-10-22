@@ -39,7 +39,7 @@ import {
   MUTE_NEXT_LABEL,
 } from './lib/route-scorer.mjs';
 import { join } from 'node:path';
-import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync, openSync, readSync, fstatSync, closeSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync, openSync, readSync, fstatSync, closeSync, renameSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { homedir } from 'node:os';
 
 // Deep-reasoning signals for Fable escalation nudge
@@ -99,9 +99,28 @@ function saveState(sessionId, state) {
   try {
     const file = stateFile(sessionId);
     mkdirSync(join(file, '..'), { recursive: true });
-    writeFileSync(file, JSON.stringify(state));
+    // Write-then-rename: an overlapping hook never reads a truncated file.
+    const tmp = `${file}.${process.pid}.tmp`;
+    writeFileSync(tmp, JSON.stringify(state));
+    renameSync(tmp, file);
   } catch {
     // state is best-effort
+  }
+}
+
+const STATE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Session state is only useful while a session is live; drop week-old files.
+function pruneState() {
+  try {
+    const dir = join(commanderDir(), 'route-state');
+    const cutoff = Date.now() - STATE_TTL_MS;
+    for (const name of readdirSync(dir)) {
+      const file = join(dir, name);
+      if (statSync(file).mtimeMs < cutoff) unlinkSync(file);
+    }
+  } catch {
+    // pruning is best-effort
   }
 }
 
@@ -204,18 +223,23 @@ function scanTurn(transcriptText) {
   }
 
   const ran = [];
+  const askIds = new Set();
   let muted = false;
   let lastAssistantText = '';
+  const claudeFormat = turn.some((e) => (e.type === 'user' || e.type === 'assistant') && e.message);
   for (const entry of turn) {
     const content = entry.message && entry.message.content;
     if (entry.type === 'user') {
-      const text = textOf(content);
-      const cmd = text.match(/<command-name>\s*([^<\s]+)\s*<\/command-name>/);
+      // Slash commands appear in the user's own text, never inside tool output.
+      const plain = typeof content === 'string' ? content : Array.isArray(content) ? textOf(content.filter((b) => b && b.type === 'text')) : '';
+      const cmd = plain.match(/<command-name>\s*([^<\s]+)\s*<\/command-name>/);
       if (cmd && skillIdFrom(cmd[1])) ran.push({ id: skillIdFrom(cmd[1]), key: entry.uuid || cmd[1] });
-      if (Array.isArray(content) && content.some((b) => b && b.type === 'tool_result' && textOf([b]).includes(MUTE_NEXT_LABEL))) muted = true;
+      // Mute only from the answer to an AskUserQuestion asked in this turn.
+      if (Array.isArray(content) && content.some((b) => b && b.type === 'tool_result' && askIds.has(b.tool_use_id) && textOf([b]).includes(MUTE_NEXT_LABEL))) muted = true;
     }
     if (entry.type === 'assistant' && Array.isArray(content)) {
       for (const block of content) {
+        if (block && block.type === 'tool_use' && block.name === 'AskUserQuestion') askIds.add(block.id);
         if (block && block.type === 'tool_use' && block.name === 'Skill') {
           const id = skillIdFrom(block.input && (block.input.skill || block.input.command));
           if (id) ran.push({ id, key: block.id || id });
@@ -229,7 +253,7 @@ function scanTurn(transcriptText) {
       if (text.trim()) lastAssistantText = text.trim();
     }
   }
-  return { ran, muted, lastAssistantText };
+  return { ran, muted, lastAssistantText, claudeFormat };
 }
 
 // Codex (no Claude transcript format): fall back to skill-runs.jsonl, which
@@ -256,8 +280,10 @@ function handleStop(data) {
   if ((data.hook_event_name || 'Stop') !== 'Stop') return emitSilent();
   const sessionId = data.session_id;
   const state = loadState(sessionId);
-  const turn = data.transcript_path ? scanTurn(readTail(data.transcript_path)) : { ran: [], muted: false, lastAssistantText: '' };
-  const ran = turn.ran.length ? turn.ran : recentSkillRuns(sessionId, state.lastNextAt);
+  const turn = data.transcript_path ? scanTurn(readTail(data.transcript_path)) : { ran: [], muted: false, lastAssistantText: '', claudeFormat: false };
+  // Claude Code transcripts are authoritative for this turn; the skill-runs
+  // log is only for hosts whose transcript we cannot read (Codex).
+  const ran = turn.claudeFormat ? turn.ran : recentSkillRuns(sessionId, state.lastNextAt);
   const next = { ...state };
   const host = detectHost();
 
@@ -274,7 +300,11 @@ function handleStop(data) {
   if (enabled && !data.stop_hook_active && !next.muteNext && ran.length) {
     const last = ran[ran.length - 1];
     const alreadyAsking = /\?\s*$/.test(turn.lastAssistantText);
-    if (last.key !== state.lastNextKey && !alreadyAsking) {
+    if (last.key !== state.lastNextKey && alreadyAsking) {
+      // The skill ended on its own question: consume this run without offering.
+      next.lastNextKey = last.key;
+      next.lastNextAt = new Date().toISOString();
+    } else if (last.key !== state.lastNextKey) {
       const routes = loadRoutes();
       const from = routes.find((r) => r.id === last.id);
       const options = from ? from.next.map((id) => routes.find((r) => r.id === id)).filter(Boolean) : [];
@@ -288,6 +318,7 @@ function handleStop(data) {
     }
   }
   saveState(sessionId, next);
+  pruneState();
   return output;
 }
 
