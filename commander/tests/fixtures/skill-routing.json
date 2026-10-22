@@ -1,0 +1,387 @@
+{
+  "description": "Labelled routing prompts for the offline skill-routing gate (CC-2063). expect = skill name, array of acceptable names, or \"none\". Add a row for every new skill and for every real misroute.",
+  "prompts": [
+    {
+      "prompt": "Review my current branch before I open a pull request",
+      "expect": "ccc-review"
+    },
+    {
+      "prompt": "Can you do a PR review of this diff and give me severity-rated findings",
+      "expect": "ccc-review"
+    },
+    {
+      "prompt": "Audit this repo for OWASP issues and vulnerable packages",
+      "expect": "ccc-security"
+    },
+    {
+      "prompt": "Scan the project for leaked secrets and vulnerable dependencies",
+      "expect": "ccc-security"
+    },
+    {
+      "prompt": "Is this ready to ship? Run a pre-flight and give me GO or NO-GO",
+      "expect": "ccc-ship"
+    },
+    {
+      "prompt": "Cut a tagged release with a changelog",
+      "expect": "ccc-ship"
+    },
+    {
+      "prompt": "Deploy the current build to Vercel and verify the live URL",
+      "expect": "ccc-deploy"
+    },
+    {
+      "prompt": "Production is broken after the last deploy, roll it back",
+      "expect": "ccc-rollback"
+    },
+    {
+      "prompt": "Plan this feature before coding and write a reviewed plan file",
+      "expect": "ccc-plan"
+    },
+    {
+      "prompt": "Scope the work for this refactor into a plan with evals",
+      "expect": "ccc-plan"
+    },
+    {
+      "prompt": "What did Commander change in the latest release? Show the release notes",
+      "expect": "ccc-changelog"
+    },
+    {
+      "prompt": "Update the installed CC Commander plugin to the latest version",
+      "expect": "ccc-update"
+    },
+    {
+      "prompt": "Commander misbehaves after an update, give me a health report to paste in an issue",
+      "expect": "ccc-doctor"
+    },
+    {
+      "prompt": "Give me a project health scorecard with fix-first recommendation",
+      "expect": "ccc-xray"
+    },
+    {
+      "prompt": "How much did my agent work cost and how much did routing save",
+      "expect": "ccc-usage"
+    },
+    {
+      "prompt": "Compare three approaches before we build this and show a tradeoff matrix",
+      "expect": "ccc-brainstorm"
+    },
+    {
+      "prompt": "Argue both sides of this design with security and performance lenses and rule ship or block",
+      "expect": "ccc-debate"
+    },
+    {
+      "prompt": "Debug this flaky failing test, find the root cause before fixing",
+      "expect": "ccc-systematic-debugging"
+    },
+    {
+      "prompt": "Track my todo list in a markdown file with priorities",
+      "expect": "ccc-tasks"
+    },
+    {
+      "prompt": "Write a standup of what I did yesterday from my commits and PRs",
+      "expect": "ccc-standup"
+    },
+    {
+      "prompt": "Save this session to a file for later",
+      "expect": [
+        "ccc-save-session",
+        "ccc-session"
+      ]
+    },
+    {
+      "prompt": "Load my saved session and continue where I left off",
+      "expect": [
+        "ccc-resume-session",
+        "ccc-session"
+      ]
+    },
+    {
+      "prompt": "Did we solve this before? Search past sessions for the earlier fix",
+      "expect": "ccc-recall"
+    },
+    {
+      "prompt": "Write a handoff file because the context is getting too long",
+      "expect": "ccc-handoff"
+    },
+    {
+      "prompt": "Show me my open Linear issues and pick one to work on",
+      "expect": "ccc-linear"
+    },
+    {
+      "prompt": "Publish a Linear Kanban board page my team can share",
+      "expect": "ccc-linear-board"
+    },
+    {
+      "prompt": "Manage the Codex CLI: check models, plugins and config",
+      "expect": "ccc-codex"
+    },
+    {
+      "prompt": "Triage the open GitHub issues and PRs, flag stale and unlabeled ones",
+      "expect": "ccc-triage"
+    },
+    {
+      "prompt": "Update the vendor submodules from upstream",
+      "expect": "ccc-upgrade"
+    },
+    {
+      "prompt": "Reduce approval prompts safely with a read-only allowlist and secret deny rules",
+      "expect": "ccc-yolo-setup"
+    },
+    {
+      "prompt": "Run an overnight spec-first autonomous build with review loops and a budget",
+      "expect": "ccc-night-mode"
+    },
+    {
+      "prompt": "Approve risky tool calls from my phone through Telegram while the agent runs unattended",
+      "expect": "ccc-nightwatch"
+    },
+    {
+      "prompt": "Wire up a Supabase connector with OAuth and no secrets in chat",
+      "expect": "ccc-connect"
+    },
+    {
+      "prompt": "Tell the team in chat when a deploy or build finishes",
+      "expect": "ccc-broadcast"
+    },
+    {
+      "prompt": "Scaffold a new web app and API from a short spec interview",
+      "expect": "ccc-build"
+    },
+    {
+      "prompt": "Write a blog post and email campaign for the launch",
+      "expect": "ccc-content"
+    },
+    {
+      "prompt": "Improve our SEO with a technical audit and AI search optimization",
+      "expect": "ccc-seo"
+    },
+    {
+      "prompt": "Optimize this SQL query and build an ETL pipeline",
+      "expect": "ccc-data"
+    },
+    {
+      "prompt": "Build a landing page and polish the UI design",
+      "expect": "ccc-design"
+    },
+    {
+      "prompt": "Set up a CI/CD pipeline with Docker and Terraform",
+      "expect": "ccc-devops"
+    },
+    {
+      "prompt": "Build a React Native app for iOS and Android",
+      "expect": "ccc-mobile"
+    },
+    {
+      "prompt": "Add Stripe billing and multi-tenant auth to my SaaS",
+      "expect": "ccc-saas"
+    },
+    {
+      "prompt": "Plan a marketing launch with conversion optimization and pricing",
+      "expect": "ccc-marketing"
+    },
+    {
+      "prompt": "Run the QA pass: all test suites, coverage delta and flaky tests",
+      "expect": "ccc-qa"
+    },
+    {
+      "prompt": "Write tests with TDD and plan a visual regression strategy",
+      "expect": "ccc-testing"
+    },
+    {
+      "prompt": "Pre-release end to end assessment with Playwright and a PASS or FAIL verdict",
+      "expect": "ccc-e2e"
+    },
+    {
+      "prompt": "Check if CI is red and diagnose why the deploy failed",
+      "expect": "ccc-ci"
+    },
+    {
+      "prompt": "Pre-launch production hardening audit of hosting, headers and Cloudflare",
+      "expect": "ccc-harden"
+    },
+    {
+      "prompt": "What guardrails did the hooks block and which tools fail most",
+      "expect": "ccc-safety"
+    },
+    {
+      "prompt": "Open the console to see agents, usage and memory",
+      "expect": "ccc-console"
+    },
+    {
+      "prompt": "Who is working on what right now, agent mission control status board",
+      "expect": "ccc-mission-control"
+    },
+    {
+      "prompt": "Run a fan-out fleet of parallel workers with independent verifiers",
+      "expect": "ccc-fleet"
+    },
+    {
+      "prompt": "Run the deep multi-agent verified workflow on this repo with ultracode",
+      "expect": "ccc-ultracode"
+    },
+    {
+      "prompt": "What should I do next? I am stuck, recommend one workflow",
+      "expect": "ccc-suggest"
+    },
+    {
+      "prompt": "Browse the catalog of everything Commander can do",
+      "expect": "ccc-browse"
+    },
+    {
+      "prompt": "Audit my CLAUDE.md for stale paths and dead commands",
+      "expect": "ccc-claudemd"
+    },
+    {
+      "prompt": "Record this decision and root cause as durable project memory",
+      "expect": "ccc-memory"
+    },
+    {
+      "prompt": "Search the knowledge base for lessons we learned",
+      "expect": "ccc-knowledge"
+    },
+    {
+      "prompt": "Sharpen and score this prompt with a tighter rewrite",
+      "expect": "ccc-prompt-fix"
+    },
+    {
+      "prompt": "Write a spec and PRD a reader can act on without follow-up questions",
+      "expect": "ccc-agent-writing"
+    },
+    {
+      "prompt": "Do cited multi-source research and compare options before we build",
+      "expect": "ccc-research"
+    },
+    {
+      "prompt": "Give me a Commander settings change: set effort and permission mode",
+      "expect": "ccc-settings"
+    },
+    {
+      "prompt": "Tune up my local Commander setup and fix count drift and stale hooks",
+      "expect": "ccc-tuneup"
+    },
+    {
+      "prompt": "Spin this task off to a background subagent in a separate session",
+      "expect": "ccc-spawn"
+    },
+    {
+      "prompt": "Chain loop sessions spec, build, review with a human gated merge",
+      "expect": "ccc-relay"
+    },
+    {
+      "prompt": "Set up a recurring polling loop with a state file and verifier",
+      "expect": "ccc-loop"
+    },
+    {
+      "prompt": "Arm the Fable Method and audit the twelve gates",
+      "expect": "ccc-fable"
+    },
+    {
+      "prompt": "Sync doc counts and version string across docs from contract.json",
+      "expect": "ccc-doc-sync"
+    },
+    {
+      "prompt": "New contributor first hour plan for this repository",
+      "expect": "ccc-onboard"
+    },
+    {
+      "prompt": "Write a goal file and run it on a Codex executor then verify acceptance criteria",
+      "expect": "ccc-orchestrate"
+    },
+    {
+      "prompt": "What is the capital of France?",
+      "expect": "none"
+    },
+    {
+      "prompt": "Write a haiku about autumn leaves",
+      "expect": "none"
+    },
+    {
+      "prompt": "Explain how a binary search tree works",
+      "expect": "none"
+    },
+    {
+      "prompt": "Convert this temperature from Fahrenheit to Celsius",
+      "expect": "none"
+    },
+    {
+      "prompt": "Translate \"good morning\" into Spanish",
+      "expect": "none"
+    },
+    {
+      "prompt": "What is the difference between TCP and UDP?",
+      "expect": "none"
+    },
+    {
+      "prompt": "Tell me a joke about cats",
+      "expect": "none"
+    },
+    {
+      "prompt": "Summarize the plot of Romeo and Juliet",
+      "expect": "none"
+    },
+    {
+      "prompt": "Rename this variable from foo to count in this function",
+      "expect": "none"
+    },
+    {
+      "prompt": "Fix the typo on line 12 of this file",
+      "expect": "none"
+    },
+    {
+      "prompt": "How do I reverse a string in Python?",
+      "expect": "none"
+    },
+    {
+      "prompt": "What time zone is Tokyo in?",
+      "expect": "none"
+    },
+    {
+      "prompt": "Give me a recipe for banana bread",
+      "expect": "none"
+    },
+    {
+      "prompt": "Explain what a closure is in JavaScript",
+      "expect": "none"
+    },
+    {
+      "prompt": "Add a comment above this function describing its parameters",
+      "expect": "none"
+    },
+    {
+      "prompt": "What does the git rebase command do?",
+      "expect": "none"
+    },
+    {
+      "prompt": "Write a regex that matches US phone numbers",
+      "expect": "none"
+    },
+    {
+      "prompt": "How many ounces are in a pound?",
+      "expect": "none"
+    },
+    {
+      "prompt": "Thanks, that looks great",
+      "expect": "none"
+    },
+    {
+      "prompt": "Who wrote Pride and Prejudice?",
+      "expect": "none"
+    },
+    {
+      "prompt": "Sort this list of numbers in descending order",
+      "expect": "none"
+    },
+    {
+      "prompt": "Explain the difference between let and const",
+      "expect": "none"
+    },
+    {
+      "prompt": "What is a good name for a pet goldfish?",
+      "expect": "none"
+    },
+    {
+      "prompt": "Format this JSON with two-space indentation",
+      "expect": "none"
+    }
+  ]
+}
