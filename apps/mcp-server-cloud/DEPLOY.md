@@ -42,8 +42,9 @@ fly secrets set \
   METRICS_AUTH_TOKEN="$(op read op://<vault>/cc-commander-metrics/token)" \
   --app commander-mcp
 
-# Public, non-secret: canonical /mcp resource for RFC 9728 metadata. Without it the
-# metadata derives the origin from the request, which is http:// behind Fly's proxy.
+# Public, non-secret: canonical /mcp resource for RFC 9728 metadata and the default
+# OAuth `aud`. Without it they derive from the request's public origin (X-Forwarded-Proto
+# aware), so each host advertises itself; set it to pin one canonical resource.
 fly secrets set OAUTH_RESOURCE_URL=https://commander-mcp.fly.dev/mcp --app commander-mcp
 ```
 
@@ -74,7 +75,7 @@ Two workflows deploy to the same app (they share the `deploy-commander-productio
 | `deploy-mcp.yml` (Deploy MCP Cloud) | push to `main` under `apps/mcp-server-cloud/**`; `workflow_dispatch` with `deploy=true` | `flyctl deploy --remote-only` after typecheck, tests and build |
 | `deploy.yml` (Deploy (v4 Beta)) | push to `main` under `apps/mcp-server-cloud/**`, `site/**`, `supabase/**`; `workflow_dispatch` | `flyctl deploy --strategy canary`, then the `site` Vercel job |
 
-A `site/**`-only merge therefore also redeploys the MCP app via `deploy.yml`. The `deploy-site` job fails until the Vercel IDs are configured; that failure does not affect the MCP deploy.
+`deploy.yml` runs its `deploy-mcp` job only when the push changed `apps/mcp-server-cloud/**` (or on manual dispatch), so `site/**`-only merges no longer redeploy the MCP app. A push that touches the app is deployed by both workflows, one after the other. The `deploy-site` job fails until the Vercel IDs are configured; that failure does not affect the MCP deploy.
 
 Watch logs during a release:
 
