@@ -1,4 +1,8 @@
 'use strict';
+/* eslint-disable test-quality/no-unscoped-service-test --
+ * Reads static stack-template JSON only; "supabase" is a partner name in the
+ * link data, not a mocked service client, so there is no tenant to scope.
+ */
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
