@@ -14,15 +14,21 @@ const DEFAULT_DISCLAIMER =
   'informational purposes only. It is not a guarantee of security or fitness for purpose, ' +
   'and absence of a finding is not proof of absence of a defect.';
 
+const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
+
 /** Escape a value for inline Markdown. Non-strings are stringified; null/undefined -> ''. */
 export function escapeMd(value) {
   if (value === null || value === undefined) return '';
   return String(value)
-    .replace(/\r?\n+/g, ' ')
-    .replace(/[\\`*_{}\[\]()<>#+!|~]/g, (c) => (c === '<' ? '&lt;' : c === '>' ? '&gt;' : `\\${c}`))
+    .replace(/[\r\n\u2028\u2029\u0085]+/g, ' ')
+    // Defang bare URLs so a report never carries a live link (http -> hxxp, https -> hxxps).
+    .replace(/\b(h)tt(ps?:\/\/)/gi, '$1xx$2')
+    .replace(/[&\\`*_{}\[\]()<>#+!|~]/g, (c) => ENTITIES[c] ?? `\\${c}`)
     .trim();
 }
 
+// Only plain-object items count; null, scalars and nested arrays in a list are skipped.
+const objs = (v) => (Array.isArray(v) ? v.filter((x) => x !== null && typeof x === 'object' && !Array.isArray(x)) : []);
 const has = (v) => (Array.isArray(v) ? v.length > 0 : v !== null && v !== undefined && v !== '');
 const orNA = (v) => (has(v) ? escapeMd(v) : NOT_ASSESSED);
 const bullets = (items) => items.map((i) => `- ${escapeMd(i)}`).join('\n');
@@ -39,32 +45,36 @@ function executiveSummary(s) {
 }
 
 function scorecard(sc) {
-  if (!has(sc) || !has(sc.categories)) return NOT_ASSESSED;
+  const cats = objs(sc?.categories);
+  if (!cats.length) return NOT_ASSESSED;
   const overall = has(sc.overall) ? `**Overall score:** ${escapeMd(sc.overall)} / 100\n\n` : '';
-  return overall + table(['Category', 'Score', 'Notes'], sc.categories.map((c) => [c.name, has(c.score) ? `${c.score}/100` : null, c.notes]));
+  return overall + table(['Category', 'Score', 'Notes'], cats.map((c) => [c.name, has(c.score) ? `${c.score}/100` : null, c.notes]));
 }
 
 function hardening(h) {
-  if (!has(h) || !has(h.pillars)) return NOT_ASSESSED;
-  return table(['#', 'Pillar', 'Status', 'Findings'], h.pillars.map((p, i) => [p.id ?? i + 1, p.name, p.status, p.findings]));
+  const pillars = objs(h?.pillars);
+  if (!pillars.length) return NOT_ASSESSED;
+  return table(['#', 'Pillar', 'Status', 'Findings'], pillars.map((p, i) => [p.id ?? i + 1, p.name, p.status, p.findings]));
 }
 
 function xray(x) {
-  if (!has(x) || !has(x.dimensions)) return NOT_ASSESSED;
+  const dims = objs(x?.dimensions);
+  if (!dims.length) return NOT_ASSESSED;
   const fix = has(x.fixFirst) ? `\n\n**Fix first:** ${escapeMd(x.fixFirst)}` : '';
-  return table(['Dimension', 'Score', 'Notes'], x.dimensions.map((d) => [d.name, has(d.score) ? `${d.score}/100` : null, d.notes])) + fix;
+  return table(['Dimension', 'Score', 'Notes'], dims.map((d) => [d.name, has(d.score) ? `${d.score}/100` : null, d.notes])) + fix;
 }
 
 function reviewFindings(r) {
-  if (!has(r) || !has(r.findings)) return NOT_ASSESSED;
+  const findings = objs(r?.findings);
+  if (!findings.length) return NOT_ASSESSED;
   const out = [];
   for (const sev of SEVERITIES) {
-    const group = r.findings.filter((f) => String(f.severity).toLowerCase() === sev);
+    const group = findings.filter((f) => String(f.severity).toLowerCase() === sev);
     if (!group.length) continue;
     out.push(`### ${sev[0].toUpperCase()}${sev.slice(1)} (${group.length})`);
     out.push(group.map((f) => `- **${orNA(f.title)}**${has(f.location) ? ` (${escapeMd(f.location)})` : ''}: ${orNA(f.detail)}`).join('\n'));
   }
-  const unknown = r.findings.filter((f) => !SEVERITIES.includes(String(f.severity).toLowerCase()));
+  const unknown = findings.filter((f) => !SEVERITIES.includes(String(f.severity).toLowerCase()));
   if (unknown.length) {
     out.push(`### Unrated (${unknown.length})`);
     out.push(unknown.map((f) => `- **${orNA(f.title)}**: ${orNA(f.detail)}`).join('\n'));
@@ -73,8 +83,9 @@ function reviewFindings(r) {
 }
 
 function fixes(list) {
-  if (!has(list)) return NOT_ASSESSED;
-  return list
+  const items = objs(list);
+  if (!items.length) return NOT_ASSESSED;
+  return items
     .map((f, i) => `${i + 1}. **${orNA(f.title)}** (${orNA(f.priority)}, effort: ${orNA(f.effort)})${has(f.detail) ? ` - ${escapeMd(f.detail)}` : ''}`)
     .join('\n');
 }
@@ -98,5 +109,5 @@ export function renderAuditReport(data = {}, template = readFileSync(TEMPLATE_PA
     disclaimer: has(d.disclaimer) ? escapeMd(d.disclaimer) : DEFAULT_DISCLAIMER,
   };
   // Single pass: substituted values are never re-scanned for placeholders.
-  return template.replace(/\{\{(\w+)\}\}/g, (m, k) => (k in values ? values[k] : m));
+  return template.replace(/\{\{(\w+)\}\}/g, (m, k) => (Object.hasOwn(values, k) ? values[k] : m));
 }

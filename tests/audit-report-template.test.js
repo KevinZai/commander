@@ -48,5 +48,69 @@ test('values are Markdown-escaped and cannot inject placeholders or tables', asy
   });
   assert.match(out, /\\# Evil \\\*Corp\\\* \\\{\\\{repo\\\}\\\}/);
   assert.match(out, /a \\\| b c/);
-  assert.match(out, /\\\[x\\\]\\\(http:\/\/e\\\)/);
+  assert.match(out, /\\\[x\\\]\\\(hxxp:\/\/e\\\)/);
+});
+
+test('escapeMd collapses every line terminator including lone CR, NEL, LS and PS', async () => {
+  const { escapeMd } = await load();
+  for (const nl of ['\r', '\n', '\r\n', '\u0085', '\u2028', '\u2029']) {
+    assert.equal(escapeMd(`a${nl}b`), 'a b', JSON.stringify(nl));
+  }
+  assert.equal(escapeMd('a\r\r\n\nb'), 'a b');
+});
+
+test('malformed section shapes render _Not assessed_ instead of throwing', async () => {
+  const { renderAuditReport } = await load();
+  const bad = [
+    { fixes: 'abc' },
+    { fixes: [null] },
+    { fixes: [null, 5, 'x'] },
+    { hardening: { pillars: 'abc' } },
+    { hardening: { pillars: [null] } },
+    { review: { findings: [null] } },
+    { review: { findings: 'abc' } },
+    { scorecard: { categories: 'abc' } },
+    { scorecard: { categories: [null, 3] } },
+    { xray: { dimensions: 'abc' } },
+    { xray: { dimensions: [null] } },
+  ];
+  for (const d of bad) {
+    let out;
+    assert.doesNotThrow(() => { out = renderAuditReport(d); }, JSON.stringify(d));
+    assert.match(out, /_Not assessed_/);
+  }
+  const out = renderAuditReport({ fixes: 'abc', hardening: { pillars: 'abc' }, review: { findings: [null] } });
+  assert.match(out, /## 3\. Hardening pillars[^\n]*\n\n_Not assessed_/);
+  assert.match(out, /## 5\. Review findings by severity[^\n]*\n\n_Not assessed_/);
+  assert.match(out, /## 6\. Prioritized fixes[^\n]*\n\n_Not assessed_/);
+});
+
+test('null items are skipped while valid siblings still render', async () => {
+  const { renderAuditReport } = await load();
+  const out = renderAuditReport({ fixes: [null, { title: 'Patch it', priority: 'P1', effort: '2h' }], review: { findings: [null, { severity: 'high', title: 'T', detail: 'D' }] } });
+  assert.match(out, /1\. \*\*Patch it\*\* \(P1, effort: 2h\)/);
+  assert.match(out, /### High \(1\)/);
+});
+
+test('ampersands are escaped without double-escaping angle brackets', async () => {
+  const { escapeMd } = await load();
+  assert.equal(escapeMd('a & b'), 'a &amp; b');
+  assert.equal(escapeMd('&lt;'), '&amp;lt;');
+  assert.equal(escapeMd('<b>&'), '&lt;b&gt;&amp;');
+});
+
+test('bare URLs are defanged to hxxp/hxxps', async () => {
+  const { escapeMd, renderAuditReport } = await load();
+  assert.equal(escapeMd('see http://evil.test/x'), 'see hxxp://evil.test/x');
+  assert.equal(escapeMd('see https://evil.test/x'), 'see hxxps://evil.test/x');
+  assert.equal(escapeMd('HTTPS://EVIL.TEST'), 'HxxPS://EVIL.TEST');
+  const out = renderAuditReport({ ...fixture, client: 'go to https://evil.test/phish now' });
+  assert.doesNotMatch(out, /https?:\/\/evil\.test/);
+  assert.match(out, /hxxps:\/\/evil\.test\/phish/);
+});
+
+test('placeholder lookup ignores inherited Object.prototype keys', async () => {
+  const { renderAuditReport } = await load();
+  const out = renderAuditReport({}, 'a {{constructor}} b {{toString}} c {{__proto__}} d {{repo}}');
+  assert.equal(out, 'a {{constructor}} b {{toString}} c {{__proto__}} d _Not assessed_');
 });
