@@ -1,8 +1,15 @@
 import { db } from "./client.js";
 import { logger } from "../lib/logger.js";
 
+// Pure month-key derivation — exported for tests (monthly counter "reset" is
+// implicit: usage_counters rows are keyed by (user_id, month), so a new month
+// key starts a fresh counter at 0).
+export function monthKey(date: Date = new Date()): string {
+  return date.toISOString().slice(0, 7); // 'YYYY-MM'
+}
+
 function currentMonth(): string {
-  return new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+  return monthKey();
 }
 
 export async function getEffectiveCap(userId: string): Promise<number> {
