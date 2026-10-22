@@ -96,6 +96,25 @@ export function emitBoth(hookEventName, message, modelContext, extra = {}) {
   };
 }
 
+/**
+ * Deny ONE PreToolUse call. The turn continues: Claude sees the reason and can
+ * adjust, the user sees it too. `continue: false` would instead halt the whole
+ * turn and never tell Claude why (code.claude.com/docs/en/hooks#pretooluse-decision-control).
+ */
+export function emitDeny(reason, extra = {}) {
+  return {
+    continue: true,
+    suppressOutput: false,
+    systemMessage: String(reason),
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: String(reason),
+    },
+    ...extra,
+  };
+}
+
 /** Silent pass-through — nothing rendered, nothing injected. */
 export function emitSilent(extra = {}) {
   return { continue: true, suppressOutput: true, ...extra };

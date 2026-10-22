@@ -12,7 +12,7 @@
  * Never crashes the session — fail open on any error.
  */
 import { track } from '../lib/telemetry.mjs';
-import { emitUser, emitSilent } from './lib/emit.mjs';
+import { emitUser, emitSilent, emitDeny } from './lib/emit.mjs';
 import path from 'node:path';
 
 const PROTECTED_FILES = new Set([
@@ -105,7 +105,7 @@ async function main() {
         `Fix the source code to satisfy linter/formatter rules instead of weakening ` +
         `the config. If this is a legitimate config change, disable the ` +
         `config-protection hook temporarily or commit the change manually.`;
-      process.stdout.write(JSON.stringify({ continue: false, stopReason }) + '\n');
+      process.stdout.write(JSON.stringify(emitDeny(stopReason)) + '\n');
       return;
     }
 

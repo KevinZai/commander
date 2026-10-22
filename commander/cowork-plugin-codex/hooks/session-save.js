@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
+import { readStdinJson, sessionKey } from './lib/session-key.mjs';
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -8,12 +9,11 @@ import { randomBytes } from 'node:crypto';
 
 const SESSIONS_DIR = join(process.env.HOME, '.claude', 'commander', 'sessions');
 const ACTIVE_FILE = join(SESSIONS_DIR, 'active-session.json');
-// Session-keyed tool-call budget file (see cost-tracker.js)
-const SESSION_KEY = (process.env.CLAUDE_SESSION_ID || 'default').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'default';
-const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
 
 async function main() {
   try {
+    // Session-keyed tool-call budget file (see cost-tracker.js)
+    const COST_FILE = join(SESSIONS_DIR, `active-cost-${sessionKey(await readStdinJson())}.json`);
     if (!existsSync(SESSIONS_DIR)) await mkdir(SESSIONS_DIR, { recursive: true });
 
     let session = {};
