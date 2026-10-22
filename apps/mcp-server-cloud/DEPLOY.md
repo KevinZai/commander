@@ -1,13 +1,13 @@
 # Deploy — CC Commander MCP Cloud
 
-**Target:** Fly.io, app `cc-commander-mcp`, region `iad`.
+**Target:** Fly.io, app `commander-mcp` (matches `fly.toml`), region `iad`. Public hosts: `https://commander-mcp.fly.dev` and `https://mcp.commanderplugin.com` (same machine).
 **Prereqs:** `flyctl`, `op` (1Password CLI), `gh` (optional). You need one person's approval before first deploy.
 
 ## 1. Provision infra (one-time)
 
 ```bash
 # Create the Fly app
-fly apps create cc-commander-mcp --org personal
+fly apps create commander-mcp --org personal
 
 # Create Supabase project (manual — https://supabase.com/dashboard)
 # Run the schema from db/schema.sql (kept out of the public tree — request it from the maintainer)
@@ -17,7 +17,7 @@ fly apps create cc-commander-mcp --org personal
 
 ## 2. Populate 1Password vault
 
-Create these items in your 1Password vault (replace `<vault>` with its name, and `export OP_VAULT=<vault>` before running `scripts/deploy.sh`):
+Create these items in your 1Password vault (replace `<vault>` with its name):
 
 | OP Path | Value |
 |---------|-------|
@@ -39,8 +39,16 @@ fly secrets set \
   UPSTASH_REDIS_REST_TOKEN="$(op read op://<vault>/cc-commander-upstash/token)" \
   JWT_SECRET="$(op read op://<vault>/cc-commander-jwt/secret)" \
   POSTHOG_API_KEY="$(op read op://<vault>/cc-commander-posthog/api-key)" \
-  --app cc-commander-mcp
+  METRICS_AUTH_TOKEN="$(op read op://<vault>/cc-commander-metrics/token)" \
+  --app commander-mcp
+
+# Public, non-secret: canonical /mcp resource for RFC 9728 metadata and the default
+# OAuth `aud`. Without it they derive from the request's public origin (X-Forwarded-Proto
+# aware), so each host advertises itself; set it to pin one canonical resource.
+fly secrets set OAUTH_RESOURCE_URL=https://commander-mcp.fly.dev/mcp --app commander-mcp
 ```
+
+`fly secrets set` restarts the machines, which is a release: smoke afterwards (§6). OAuth issuer, Stripe and paywall variables are listed in `PAYWALL.md` and stay unset until monetization is armed.
 
 ## 4. Pre-deploy checks (must all pass)
 
@@ -48,42 +56,65 @@ fly secrets set \
 cd apps/mcp-server-cloud
 npm ci
 npm run typecheck             # zero TS errors
-node --import tsx --test tests/integration.test.ts   # all tests pass
+npm test                      # full app suite
 npm run build                 # clean dist/
 ```
 
 ## 5. Deploy
 
+Deploys run from GitHub Actions; a push to `main` that touches `apps/mcp-server-cloud/**` deploys automatically. Before merging, tag the current production commit so rollback has a target:
+
 ```bash
-fly deploy --app cc-commander-mcp --strategy canary
+git tag rollback/<name> <current-prod-sha> && git push origin refs/tags/rollback/<name>
 ```
 
-Canary routes 10% traffic to the new machine for ~5 min. Watch:
+Two workflows deploy to the same app (they share the `deploy-commander-production` concurrency group):
+
+| Workflow | Triggers | Deploy step |
+|---|---|---|
+| `deploy-mcp.yml` (Deploy MCP Cloud) | push to `main` under `apps/mcp-server-cloud/**`; `workflow_dispatch` with `deploy=true` | `flyctl deploy --remote-only` after typecheck, tests and build |
+| `deploy.yml` (Deploy (v4 Beta)) | push to `main` under `apps/mcp-server-cloud/**`, `site/**`, `supabase/**`; `workflow_dispatch` | `flyctl deploy --strategy canary`, then the `site` Vercel job |
+
+`deploy.yml` runs its `deploy-mcp` job only when the push changed `apps/mcp-server-cloud/**` (or on manual dispatch), so `site/**`-only merges no longer redeploy the MCP app. A push that touches the app is deployed by both workflows, one after the other. The `deploy-site` job fails until the Vercel IDs are configured; that failure does not affect the MCP deploy.
+
+Watch logs during a release:
 
 ```bash
-fly logs --app cc-commander-mcp | grep -E "ERROR|FATAL"
+fly logs --app commander-mcp | grep -E "ERROR|FATAL"
 ```
 
 ## 6. Post-deploy smoke test
 
 ```bash
-./scripts/smoke.sh https://cc-commander-mcp.fly.dev
+./scripts/smoke.sh https://commander-mcp.fly.dev            # no credentials needed
+./scripts/smoke.sh https://commander-mcp.fly.dev "$TOKEN"   # adds authenticated /v1/call checks
 ```
 
-Expected output: 6/6 green.
+Expected output without a token: `14 passed, 0 failed` (one skip). The smoke covers `/health`, `/v1`, `/v1/call` auth, `/metrics` (401: protected by `METRICS_AUTH_TOKEN`), the OAuth protected-resource metadata (must advertise `https`), and the `/mcp` streamable-HTTP 401 challenge. Exit status is the failure count.
 
 ## 7. Rollback (if needed)
 
+Redeploy the rollback tag through the same workflow (no local Fly login needed):
+
 ```bash
-fly releases --app cc-commander-mcp
-fly releases rollback <version> --app cc-commander-mcp
-# ETA: < 90s
+gh workflow run deploy-mcp.yml -R KevinZai/commander --ref rollback/<name> -f deploy=true
+./scripts/smoke.sh https://commander-mcp.fly.dev --pre-mcp   # if the tag predates /mcp (CC-1365)
 ```
+
+With a Fly token, a previous image can be redeployed directly:
+
+```bash
+fly releases --app commander-mcp --image
+fly deploy --app commander-mcp --image registry.fly.io/commander-mcp:<deployment-tag>
+```
+
+To revert only a secret change: `fly secrets unset <NAME> --app commander-mcp`.
 
 ## Blast radius
 
 - **Health:** `/health` is unauthenticated — page OK to expose.
-- **Metrics:** `/metrics` is unauthenticated — **protect with Fly.io private network** or add bearer check before exposing to public internet.
+- **Metrics:** `/metrics` requires `METRICS_AUTH_TOKEN` as a bearer token when that secret is set (it is in production; unauthenticated requests get 401).
+- **MCP:** `/mcp` requires a bearer token (a license JWT; OAuth tokens once `OAUTH_ISSUER_URL` is set). Unauthenticated → 401 with a `resource_metadata` challenge.
 - **Tool calls:** All require JWT bearer token. Invalid/expired → 401. Over-cap → 429.
 - **Free tier DoS budget:** 60 req/min burst × 1,000 req/mo = worst-case 60K req/day/user.
 
@@ -91,7 +122,7 @@ fly releases rollback <version> --app cc-commander-mcp
 
 - **SLI/SLO:** p95 latency on `/v1/call` < 500ms; error rate < 1%.
 - **Alert channels:** Fly email + PostHog event `mcp_error`.
-- **Grafana:** scrape `/metrics` at 10s interval.
+- **Grafana:** scrape `/metrics` at 10s interval with `Authorization: Bearer $METRICS_AUTH_TOKEN`.
 
 ## TODO(v4.1)
 
