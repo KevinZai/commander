@@ -235,3 +235,14 @@ test('orchestrator handler outputs all aggregate (session-start contribution pre
   const activeFile = path.join(home, '.claude', 'commander', 'sessions', 'active-session.json');
   assert.ok(fs.existsSync(activeFile), 'session-start handler should have created active-session.json');
 });
+
+test('session-start records the real plugin version, not the 4.0.0 fallback', () => {
+  const home = mkHome();
+  const r = runOrch({ home });
+  assert.equal(r.exitCode, 0);
+  const pluginJson = JSON.parse(fs.readFileSync(
+    path.join(__dirname, '..', 'cowork-plugin', '.claude-plugin', 'plugin.json'), 'utf8'
+  ));
+  const state = JSON.parse(fs.readFileSync(path.join(home, '.claude', 'commander', 'state.json'), 'utf8'));
+  assert.equal(state.installedVersion, pluginJson.version);
+});

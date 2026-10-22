@@ -13,9 +13,10 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const PKG_JSON = join(import.meta.dirname, '..', '..', '..', 'package.json');
+// This file lives in hooks/_archive/, so the plugin root is two levels up (paths predate the move into _archive/).
+const PKG_JSON = join(import.meta.dirname, '..', '..', '..', '..', 'package.json');
 
-const PLUGIN_JSON = join(import.meta.dirname, '..', '.claude-plugin', 'plugin.json');
+const PLUGIN_JSON = join(import.meta.dirname, '..', '..', '.claude-plugin', 'plugin.json');
 
 /**
  * Pure-function entry for orchestrator (CC-414 hook chain merge).
