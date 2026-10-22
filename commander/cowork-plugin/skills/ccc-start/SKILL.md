@@ -73,7 +73,7 @@ Never render a numbered list or ask the user to type a number. Call AskUserQuest
 
 ```yaml
 question: "How do you want to start?"
-header: "CC Commander onboarding"
+header: "Onboarding"
 multiSelect: false
 options:
   - label: "🟢 🚀 Set up a new project"
@@ -119,7 +119,7 @@ Write the plan file (step 6), run step 7, then invoke the `ccc-build` skill with
 
 ```yaml
 question: "Want answer-first output? (optional — skip if you prefer)"
-header: "CC Commander — Output style"
+header: "Output style"
 multiSelect: false
 options:
   - label: "🟢 🎯 Answer-first output"
@@ -142,7 +142,7 @@ For either answer-first option, run the command in step "4. Write the state" of 
 
 ```yaml
 question: "Want to connect your stack? (optional — skip if you prefer)"
-header: "CC Commander — Connect your tools"
+header: "Connect"
 multiSelect: true
 options:
   - label: "🟢 ⏭️ Skip for now"

@@ -69,7 +69,7 @@ Skip the picker when intent is already clear:
 | A screenshot or mockup is attached, `screenshot` | Sub-flow C |
 | Named look, motion, particles, slides and other specific asks | the route in [references/routing.md](references/routing.md) |
 
-Otherwise read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-design.json` once and ask with AskUserQuestion (header "CC Commander · Design", question "What design work?"), using its four non-back choices. Put the recommended option first, marked 🟢:
+Otherwise read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-design.json` once and ask with AskUserQuestion (header "Design", question "What design work?"), using its four non-back choices. Put the recommended option first, marked 🟢:
 
 - 🚀 Landing page — hero, social proof, CTA stack; built by the `designer` agent in the background.
 - 🏗️ Component system — shadcn-style library with tokens and variants.

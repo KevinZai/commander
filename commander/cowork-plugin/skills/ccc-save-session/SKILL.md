@@ -89,7 +89,7 @@ On Codex, AskUserQuestion becomes a plain-text question and skills are invoked a
 
 ```yaml
 question: "Does this session file look accurate?"
-header: "CC Commander — Save session"
+header: "Save session"
 multiSelect: false
 options:
   - label: "🟢 Looks right — done"

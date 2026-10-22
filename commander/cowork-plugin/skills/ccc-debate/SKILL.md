@@ -88,7 +88,7 @@ Lens picker (step 2, `multiSelect: true`). Put the lenses that match the target 
 
 ```
 question: "Which lenses should argue this? The contrarian lens is always added."
-header: "Debate lenses"
+header: "Lenses"
 multiSelect: true
 options:
   - label: "🔐 Security"

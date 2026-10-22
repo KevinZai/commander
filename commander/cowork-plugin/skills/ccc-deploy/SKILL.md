@@ -53,7 +53,6 @@ Build the options from step 1. Each picker below has exactly one 🟢 option, li
 question: "Where should I deploy?"
 header: "Deploy"
 multiSelect: false
-autocomplete: true
 options:
   - label: "🟢 Vercel production"
     description: "Detected from vercel.json or Vercel scripts. Runs vercel deploy --prod."
@@ -75,7 +74,6 @@ On "More deployment targets", show the second picker. Mark its strongest detecte
 question: "Which deploy target?"
 header: "Deploy"
 multiSelect: false
-autocomplete: true
 options:
   - label: "🟢 GitHub Pages"
     description: "Detected from GitHub Pages workflow files."

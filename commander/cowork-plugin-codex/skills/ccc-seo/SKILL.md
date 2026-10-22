@@ -51,7 +51,7 @@ If `seo-context.md` exists, Read it before routed work. If the user gives a live
 
 When the request or argument names the job, route straight to it with the intent table in [references/routing.md](references/routing.md) and skip the picker.
 
-Otherwise ask with AskUserQuestion (header "CC Commander · SEO", question "What SEO work?"). Put the recommended option first, marked 🟢:
+Otherwise ask with AskUserQuestion (header "SEO", question "What SEO work?"). Put the recommended option first, marked 🟢:
 
 - 🔧 Technical audit and fix — meta tags, sitemap, robots, canonicals, Core Web Vitals, internal links. Recommended when step 1 shows no sitemap or no robots file.
 - 🤖 AI search optimization — structure content for direct answers and LLM citations, AI-crawler rules, JSON-LD, markdown twins.

@@ -52,7 +52,9 @@ test('ccc-deploy body has the AskUserQuestion platform picker block', function (
 
   assert.ok(content.includes('Platform picker — `AskUserQuestion`'), 'Body must label the platform picker');
   assert.ok(content.includes('question: "Where should I deploy?"'), 'Picker must ask for deploy target');
-  assert.ok(content.includes('autocomplete: true'), 'Picker must support autocomplete from detection');
+  // AskUserQuestion schema: question, header, options (label, description, preview), multiSelect.
+  // Free text is built in, so `autocomplete` and option `value` are not fields.
+  assert.ok(!/^\s*autocomplete:/m.test(content), 'Picker must not use the non-schema autocomplete field');
   ['Vercel production', 'Fly.io', 'Cloudflare', 'GitHub Pages', 'npm publish'].forEach(function (label) {
     assert.ok(content.includes(label), 'Picker must include ' + label);
   });

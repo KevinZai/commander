@@ -86,7 +86,7 @@ Type (step 1):
 
 ```
 question: "What are we writing?"
-header: "Agent writing"
+header: "Writing"
 multiSelect: false
 options:
   - label: "🟢 📝 Spec or PRD"
