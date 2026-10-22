@@ -4,7 +4,7 @@
 
 module.exports = {
 
-  async fleet_commander(engine, tui, state, choice) {
+  async fleet_commander(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n' + tui.divider('Fleet Commander') + '\n');
       var cp = require('child_process');
@@ -30,7 +30,7 @@ module.exports = {
     return { next: 'infrastructure' };
   },
 
-  async cost_dashboard(engine, tui, state, choice) {
+  async cost_dashboard(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n' + tui.divider('Cost Dashboard') + '\n');
       var cp = require('child_process');
@@ -57,7 +57,7 @@ module.exports = {
     return { next: 'infrastructure' };
   },
 
-  async synapse_observe(engine, tui, state, choice) {
+  async synapse_observe(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n' + tui.divider('Synapse Observability') + '\n');
       var cp = require('child_process');
@@ -79,7 +79,7 @@ module.exports = {
     return { next: 'infrastructure' };
   },
 
-  async ao_spawn(engine, tui, state, choice) {
+  async ao_spawn(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n' + tui.divider('Composio AO') + '\n');
       var cp = require('child_process');
@@ -97,7 +97,7 @@ module.exports = {
     return { next: 'infrastructure' };
   },
 
-  async cloudcli_open(engine, tui, state, choice) {
+  async cloudcli_open(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n' + tui.divider('CloudCLI') + '\n');
       var cp = require('child_process');
@@ -116,7 +116,7 @@ module.exports = {
     return { next: 'infrastructure' };
   },
 
-  async paperclip_pickup(engine, tui, state, choice) {
+  async paperclip_pickup(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n' + tui.divider('Paperclip Tasks') + '\n');
       var cp = require('child_process');
@@ -134,7 +134,7 @@ module.exports = {
   },
 
 
-  async taskmaster_status(engine, tui, state, choice) {
+  async taskmaster_status(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n' + tui.divider('TaskMaster') + '\n');
       var cp = require('child_process');
@@ -154,11 +154,11 @@ module.exports = {
     return { next: 'infrastructure' };
   },
 
-  async back(engine, tui, state, choice) {
+  async back(_engine, _tui, _state, _choice) {
     return { next: 'main-menu' };
   },
 
-  async detect_services(engine, tui, state, choice) {
+  async detect_services(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n' + tui.divider('Service Detection') + '\n\n');
       var detector = require('../service-detector');
@@ -176,7 +176,7 @@ module.exports = {
     return { next: 'main-menu' };
   },
 
-  async open_project(engine, tui, state, choice) {
+  async open_project(engine, tui, _state, _choice) {
     try {
       var pi = require('../project-importer');
       var stateModule = require('../state');

@@ -4,7 +4,7 @@
 
 module.exports = {
 
-  async resume_session(engine, tui, state, choice) {
+  async resume_session(engine, tui, state, _choice) {
     try {
       var active = state.getActiveSession();
       if (!active) { process.stdout.write('\n  No active session found.\n'); await engine.pause(1500); return { next: 'main-menu' }; }
@@ -16,7 +16,7 @@ module.exports = {
     return { next: 'main-menu' };
   },
 
-  async show_session_summary(engine, tui, state, choice) {
+  async show_session_summary(engine, tui, state, _choice) {
     try {
       var active2 = state.getActiveSession();
       if (active2) { process.stdout.write('\n' + engine.renderSession(active2) + '\n'); }
@@ -30,7 +30,7 @@ module.exports = {
     return { next: 'continue-work' };
   },
 
-  async resume_with_summary(engine, tui, state, choice) {
+  async resume_with_summary(engine, tui, state, _choice) {
     try {
       var act = state.getActiveSession();
       if (act) { state.completeSession(act.id, 'restarted'); await engine.executeBuild('Continue: ' + act.task); }
@@ -67,12 +67,12 @@ module.exports = {
     return { next: 'check-stats' };
   },
 
-  async pick_session_to_resume(engine, tui, state, choice) {
+  async pick_session_to_resume(engine, _tui, _state, _choice) {
     try { return await engine.pickSessionToResume(); }
     catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('../error-logger').log(_e, 'pick_session_to_resume'); } catch(_) {} return { next: 'main-menu' }; }
   },
 
-  async pick_session_details(engine, tui, state, choice) {
+  async pick_session_details(engine, _tui, _state, _choice) {
     try { return await engine.pickSessionDetails(); }
     catch(_e) { process.stdout.write('\x0a  Error: ' + (_e.message || 'Unknown error') + '\x0a'); try { require('../error-logger').log(_e, 'pick_session_details'); } catch(_) {} return { next: 'main-menu' }; }
   },
