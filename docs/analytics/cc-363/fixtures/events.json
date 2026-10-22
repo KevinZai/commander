@@ -1,0 +1,10 @@
+[
+ {"distinct_id":"fixture-a","event":"cli_skill_invoked","timestamp":"2026-09-01T10:00:00Z"},
+ {"distinct_id":"fixture-a","event":"skill_invoked","timestamp":"2026-09-08T10:00:00Z"},
+ {"distinct_id":"fixture-a","event":"cli_skill_invoked","timestamp":"2026-09-22T10:00:00Z"},
+ {"distinct_id":"fixture-b","event":"cli_skill_invoked","timestamp":"2026-09-02T10:00:00Z"},
+ {"distinct_id":"fixture-b","event":"cli_skill_invoked","timestamp":"2026-09-30T10:00:00Z"},
+ {"distinct_id":"fixture-c","event":"session_ended","timestamp":"2026-09-09T10:00:00Z"},
+ {"distinct_id":"fixture-c","event":"cli_skill_invoked","timestamp":"2026-09-16T10:00:00Z"},
+ {"distinct_id":"fixture-d","event":"hook_fired","timestamp":"2026-09-03T10:00:00Z"}
+]

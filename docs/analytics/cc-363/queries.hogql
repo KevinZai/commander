@@ -1,0 +1,34 @@
+-- DRAFT, not executed. CC-363 slice 1.
+
+-- Q1: WAU, distinct devices with >=1 skill invocation per week
+SELECT toStartOfWeek(timestamp) AS week, count(DISTINCT distinct_id) AS wau
+FROM events
+WHERE event IN ('skill_invoked', 'cli_skill_invoked')
+  AND timestamp >= now() - INTERVAL 12 WEEK
+GROUP BY week
+ORDER BY week;
+
+-- Q2: 4-week retention. Cohort = week of first-ever whitelisted event (PROXY for install;
+-- no install event exists). Return = any skill invocation N weeks later.
+WITH first_seen AS (
+  SELECT distinct_id, toStartOfWeek(min(timestamp)) AS cohort_week
+  FROM events
+  WHERE event IN ('plugin_session_started', 'session_ended', 'cli_command_executed',
+                  'skill_invoked', 'cli_skill_invoked', 'hook_fired')
+  GROUP BY distinct_id
+),
+activity AS (
+  SELECT DISTINCT distinct_id, toStartOfWeek(timestamp) AS active_week
+  FROM events
+  WHERE event IN ('skill_invoked', 'cli_skill_invoked')
+)
+SELECT f.cohort_week AS cohort_week,
+       count(DISTINCT f.distinct_id) AS cohort_size,
+       countIf(DISTINCT a.distinct_id, dateDiff('week', f.cohort_week, a.active_week) = 1) AS week1,
+       countIf(DISTINCT a.distinct_id, dateDiff('week', f.cohort_week, a.active_week) = 2) AS week2,
+       countIf(DISTINCT a.distinct_id, dateDiff('week', f.cohort_week, a.active_week) = 3) AS week3,
+       countIf(DISTINCT a.distinct_id, dateDiff('week', f.cohort_week, a.active_week) = 4) AS week4
+FROM first_seen f
+LEFT JOIN activity a ON a.distinct_id = f.distinct_id
+GROUP BY cohort_week
+ORDER BY cohort_week;
