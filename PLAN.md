@@ -319,6 +319,52 @@ Audited 2026-04-21. Documents where each data type actually comes from in CLI vs
 
 3. **Hook registries diverged (P3):** CLI hooks (`hooks/` + `hooks.json`) and plugin hooks (`cowork-plugin/hooks/` + `plugin.json`) are separate. A fix to a shared hook behavior (e.g. cost-tracker) must be applied twice. Fix: evaluate whether plugin hooks can import from the kit's `hooks/` dir or share a common `lib/hooks/` module.
 
+### CC-365 Re-audit (2026-10-20, v8.1.0) and Parity Checklist
+
+The 2026-04-21 numbers above are historical. Current state, measured by `node scripts/check-parity.js` (read-only; `npm run check:parity`):
+
+- **Versions:** `package.json` is the declared source. `plugin.json`, both `marketplace.json` files (top-level and `plugins[commander]`), `contract.json` and the generated Codex `plugin.json` all equal it, and `commander/branding.js` derives the CLI version from `package.json`. The copies are still written by `scripts/bump-version.js`, not generated at read time.
+- **Skills:** plugin tree 84 skill dirs; CLI tree 197 top-level dirs (`ccc --list-skills --json` reports more because it recurses one level and also scans `~/.claude/skills` and `./.claude/skills`). 12 names exist in both (`ccc-data`, `ccc-design`, `ccc-devops`, `ccc-makeover`, `ccc-marketing`, `ccc-mobile`, `ccc-research`, `ccc-saas`, `ccc-security`, `ccc-seo`, `ccc-smb-ops`, `ccc-testing`) and all 12 are separately written copies with different SKILL.md content. 72 are plugin-only and 185 are CLI-only.
+- **Hooks:** four registries. Plugin `hooks.json` (30 events / 51 handlers, canonical), Codex `hooks.json` (generated, 11 events / 32 handlers), `hooks/hooks-standalone.json` (4 events / 15 handlers, what `install.sh` installs) and `hooks/hooks.json` (kit overlay for ECC installs, whose `scripts/hooks/*` targets are external). `context-guard.js` and `pre-compact.js` exist in both `hooks/` and the plugin hooks dir as diverged copies.
+
+Checklist (ticked only where a command verifies it):
+
+- [x] A single version source is declared and every manifest matches it today (`npm run check:version`, `npm run check:parity`)
+- [x] The CLI derives its version from `package.json` rather than hardcoding one (`check:parity`, branding.js check)
+- [x] A read-only parity checker reports version drift, skill-set differences and hook-registry drift, with an allowlist of intentional differences (`scripts/check-parity.js`, `scripts/parity-allowlist.json`, `commander/tests/check-parity.test.js`)
+- [x] Every script referenced by the plugin and standalone hook registries exists, and the generated Codex registry matches the plugin registry apart from events Codex cannot run (`check:parity`)
+- [x] Manifest versions: **accepted end state (decision A, Kevin).** `check:parity` is the ratchet; copies stay written by `bump-version.js` because Claude plugin manifests require a literal version field. Drift fails `check:parity --check`.
+- [x] Plugin skill dir and CLI skill dir: **accepted end state (decision A, Kevin).** The 12 shared routers stay separate copies; each records a canonical side and reason in `scripts/parity-allowlist.json` (table below) and `check:parity` prints it. Merging content is out of scope.
+- [ ] `ccc --list-skills --json` and the plugin skill list are identical sets (not true and not currently intended: the CLI catalog and the plugin tree are separate surfaces, and the CLI list is machine-dependent)
+- [x] Hook registries (`hooks.json`, `hooks-standalone.json`): **accepted end state (decision A, Kevin).** They target different runtimes and script trees; `check:parity` verifies script existence and Codex sync instead of unifying them.
+- [x] The diverged duplicate hook scripts (`context-guard.js`, `pre-compact.js`): reconciled as **pinned, canonical = plugin** rather than byte-identical (see below). `check:parity` and `commander/tests/check-parity.test.js` fail if either copy changes without a deliberate pin update.
+
+**Canonical copy per diverged `ccc-*` router** (recorded in `scripts/parity-allowlist.json` under `skills.diverged_shared`, printed by `node scripts/check-parity.js`). Reason for all 12: the plugin copy ships to Desktop users through the marketplace and is what the `/ccc-*` command runs; the CLI copy is a separate catalog variant and is not merged.
+
+| Router | Canonical | Other copy |
+|---|---|---|
+| `ccc-data` | plugin | `skills/ccc-data` (CLI catalog variant) |
+| `ccc-design` | plugin | `skills/ccc-design` |
+| `ccc-devops` | plugin | `skills/ccc-devops` |
+| `ccc-makeover` | plugin | `skills/ccc-makeover` |
+| `ccc-marketing` | plugin | `skills/ccc-marketing` |
+| `ccc-mobile` | plugin | `skills/ccc-mobile` |
+| `ccc-research` | plugin | `skills/ccc-research` |
+| `ccc-saas` | plugin | `skills/ccc-saas` |
+| `ccc-security` | plugin | `skills/ccc-security` |
+| `ccc-seo` | plugin | `skills/ccc-seo` |
+| `ccc-smb-ops` | plugin | `skills/ccc-smb-ops` |
+| `ccc-testing` | plugin | `skills/ccc-testing` |
+
+**Diverged hook scripts** (`hooks.diverged_scripts`, content-pinned with sha256 for both copies):
+
+| Script | Canonical | Why not byte-identical or a re-export |
+|---|---|---|
+| `context-guard.js` | plugin (`commander/cowork-plugin/hooks/`) | Plugin copy is an ESM `UserPromptSubmit` hook with transcript-based 70/85/95% thresholds and imports `../lib` and `./lib`. `hooks/context-guard.js` is a self-contained CJS `PostToolUse` call counter. |
+| `pre-compact.js` | plugin (`commander/cowork-plugin/hooks/`) | Plugin copy is ESM, writes `~/.claude/commander/handoff-<session>.json` and imports `../lib` and `./suggest-ticker.js`. `hooks/pre-compact.js` is self-contained CJS, writes `~/.claude/sessions/pre-compact-*.md`, and is covered by `tests/hooks.test.js`. |
+
+Both are different hooks in practice (different events, output files and module systems), not stale duplicates. `install.sh` copies `hooks/*.js` flat into `~/.claude/hooks/` with no `lib/`, and `hooks/` has no `"type": "module"`, so copying the plugin file there would break standalone installs, and a thin re-export cannot resolve the plugin tree from the installed location. To change either copy: edit it, decide whether the other needs the same change, then update its `pinned_sha256` (the `check:parity` finding prints the new hash).
+
 ---
 
 ## 📝 How to update this file

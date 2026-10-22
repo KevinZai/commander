@@ -1,0 +1,97 @@
+{
+  "_comment": "Known, intentional CLI/Plugin differences consumed by scripts/check-parity.js (CC-365). Every entry needs a reason. The checker is a ratchet: an entry that stops being true is reported as stale so this file cannot silently rot. Do not add an entry to make a check pass without a decision recorded in PLAN.md.",
+  "versions": {
+    "independent_manifests": {
+      "commander/cowork-plugin/mods/commander-hud/.claude-plugin/plugin.json": "HUD mod is versioned independently of the product (observe-only mod).",
+      "dashboard/package.json": "Separate app with its own release cadence.",
+      "extension/package.json": "Browser extension, own release cadence.",
+      "extensions/cloudcli/manifest.json": "Cloud CLI extension manifest, own release cadence.",
+      "extensions/vscode/package.json": "VS Code extension, own release cadence.",
+      "vscode-extension/package.json": "VS Code extension, own release cadence.",
+      "site/package.json": "Marketing site package, not shipped with the product."
+    }
+  },
+  "skills": {
+    "cli_only_reason": "The CLI ecosystem catalog under skills/ (467 skills per commander/contract.json) is a different surface from the Desktop plugin tree; CLAUDE.md states they are intentionally different.",
+    "plugin_only_reason": "Plugin skills in commander/cowork-plugin/skills/ are Desktop /ccc-* workflows and are not part of the CLI ecosystem catalog.",
+    "diverged_shared": {
+      "ccc-data": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-data; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-design": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-design; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-devops": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-devops; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-makeover": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-makeover; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-marketing": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-marketing; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-mobile": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-mobile; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-research": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-research; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-saas": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-saas; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-security": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-security; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-seo": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-seo; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-smb-ops": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-smb-ops; CLI copy is a separate catalog variant, not merged."
+      },
+      "ccc-testing": {
+        "canonical": "plugin",
+        "reason": "Ships in the Desktop plugin as /ccc-testing; CLI copy is a separate catalog variant, not merged."
+      }
+    }
+  },
+  "hooks": {
+    "external_script_registries": {
+      "hooks/hooks.json": "Kit overlay for installs that also have the ECC plugin; its scripts/hooks/* targets live in that external plugin, not in this repo."
+    },
+    "codex_dropped_events": {},
+    "diverged_scripts": {
+      "context-guard.js": {
+        "canonical": "plugin",
+        "reason": "Plugin copy is the maintained hook (ESM, UserPromptSubmit, transcript-based 70/85/95% thresholds, needs ../lib and ./lib). The CLI copy is a self-contained CJS PostToolUse call counter; install.sh copies hooks/*.js flat into ~/.claude/hooks with no lib/, so the plugin file cannot be dropped in or re-exported there.",
+        "pinned_sha256": {
+          "cli": "81220e023ff5629859970ff05a0851448e3769185c03d7de9016a1db0f9e1c32",
+          "plugin": "fa32e55185b4ac9c5f4940ab81d532ccb2eec5d12e7500b65bde8eb20a9fbbe7"
+        }
+      },
+      "pre-compact.js": {
+        "canonical": "plugin",
+        "reason": "Plugin copy is the maintained hook (ESM, writes ~/.claude/commander/handoff-<session>.json, imports ../lib and ./suggest-ticker.js). The CLI copy is a self-contained CJS hook writing ~/.claude/sessions/pre-compact-*.md that tests/hooks.test.js covers; the flat standalone install cannot resolve the plugin imports.",
+        "pinned_sha256": {
+          "cli": "557ce61a211beaa3d5af24281899b58f3da041b0126559f7e431a92ee0bf8e59",
+          "plugin": "048910cea2b2a13854a2088c5dba77a6d97f0bfd48eec944b7eb30f2d4a61420"
+        }
+      }
+    },
+    "registry_roles": {
+      "hooks/hooks-standalone.json": "CLI standalone installs (install.sh copies it to ~/.claude/hooks/hooks.json); runs hooks/*.js.",
+      "commander/cowork-plugin/hooks/hooks.json": "Desktop plugin registry (canonical); runs commander/cowork-plugin/hooks/*.js.",
+      "commander/cowork-plugin-codex/hooks.json": "Generated from the plugin registry by scripts/build-codex.js; never hand-edited."
+    }
+  }
+}
