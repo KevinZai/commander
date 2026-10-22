@@ -13,7 +13,7 @@ function getStats() {
 
 module.exports = {
 
-  async show_stats(engine, tui, state, choice) {
+  async show_stats(engine, tui, _state, _choice) {
     try {
       var s = getStats().getStats ? getStats().getStats() : {};
       var streak = getStats().getStreak ? getStats().getStreak() : { current: 0 };
@@ -43,7 +43,7 @@ module.exports = {
     return { next: 'check-stats' };
   },
 
-  async show_achievements(engine, tui, state, choice) {
+  async show_achievements(engine, tui, _state, _choice) {
     var t = tui.getTheme();
     try {
       var achs = getStats().getAchievements ? getStats().getAchievements() : [];

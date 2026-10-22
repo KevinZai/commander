@@ -10,24 +10,33 @@
 --   baseline             = 1000 calls/mo
 --   surveys_answered >=2 → +1000  (2000 cap)
 --   survey_skip_streak >=3 → -500 (500 cap)
--- Tier 'pro': 100000 calls/mo flat.
+-- Tiers 'pro' and 'founders': 100000 calls/mo flat.
+--
+-- This file is the FRESH-INSTALL end-state. Existing databases upgrade via
+-- migrations/002_paywall_tiers.sql (tier domain + stripe columns + founders
+-- cap parity). The armed 100-call/mo free cap is app-side (lib/paywall.ts),
+-- gated by env CCC_PAYWALL_ARMED — no schema dependency.
 
 create extension if not exists "pgcrypto";
 
 -- ─── users ──────────────────────────────────────────────────────────────────
 create table if not exists public.users (
-  user_id              uuid primary key default gen_random_uuid(),
-  email                text unique,
-  created_at           timestamptz not null default now(),
-  tier                 text not null default 'free' check (tier in ('free','pro')),
-  license_key          text unique,
-  survey_skip_streak   integer not null default 0 check (survey_skip_streak >= 0),
-  surveys_answered     integer not null default 0 check (surveys_answered >= 0),
-  last_seen_at         timestamptz
+  user_id                 uuid primary key default gen_random_uuid(),
+  email                   text unique,
+  created_at              timestamptz not null default now(),
+  tier                    text not null default 'free' check (tier in ('free','pro','founders')),
+  license_key             text unique,
+  survey_skip_streak      integer not null default 0 check (survey_skip_streak >= 0),
+  surveys_answered        integer not null default 0 check (surveys_answered >= 0),
+  last_seen_at            timestamptz,
+  -- Dark paywall plumbing (migration 002) — set by POST /webhooks/stripe.
+  stripe_customer_id      text unique,
+  stripe_subscription_id  text
 );
 
 create index if not exists users_license_key_idx on public.users (license_key) where license_key is not null;
 create index if not exists users_tier_idx on public.users (tier);
+create index if not exists users_stripe_customer_idx on public.users (stripe_customer_id) where stripe_customer_id is not null;
 
 -- ─── usage_counters ─────────────────────────────────────────────────────────
 create table if not exists public.usage_counters (
@@ -59,7 +68,7 @@ begin
     return 1000;
   end if;
 
-  if u.tier = 'pro' then
+  if u.tier in ('pro', 'founders') then
     return 100000;
   end if;
 

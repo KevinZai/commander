@@ -32,8 +32,34 @@ jobs:
       - name: Registry drift
         run: node scripts/build-from-registry.js --check
 
+  # Site-only pushes must not redeploy the MCP app. Push diffs decide; a
+  # manual dispatch or an undiffable push (new ref, missing base) deploys.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      mcp: ${{ steps.diff.outputs.mcp }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          mcp=true
+          if [ "$EVENT" = push ] && [ -n "$BEFORE" ] && ! [[ "$BEFORE" =~ ^0+$ ]] \
+             && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            if ! git diff --name-only "$BEFORE" "$SHA" | grep -q '^apps/mcp-server-cloud/'; then
+              mcp=false
+            fi
+          fi
+          echo "mcp=$mcp" >> "$GITHUB_OUTPUT"
+          echo "MCP deploy: $mcp"
+
   deploy-mcp:
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.mcp == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
