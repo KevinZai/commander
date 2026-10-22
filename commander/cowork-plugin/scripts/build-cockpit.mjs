@@ -27,7 +27,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readTopSkills } from '../lib/top-skills.js';
-import { brandBaseCss } from '../lib/brand-css.js';
+import { brandArtifactCss } from '../lib/brand-css.js';
 import { deckStripHtml, deckStripCss } from '../lib/deck-switcher.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -1090,7 +1090,7 @@ async function buildDocument() {
   if (deckMarkerCount !== 1) throw new Error(`Expected exactly one Cockpit deck-strip marker; found ${deckMarkerCount}`);
   const json = JSON.stringify(payload).replace(/<\/script/gi, '<\\/script');
   const output = template
-    .replace(BRAND_MARKER, brandBaseCss() + deckStripCss())
+    .replace(BRAND_MARKER, brandArtifactCss() + deckStripCss())
     .replace(DECK_MARKER, deckStripHtml('cockpit', { interactive: true }))
     .replace(DATA_MARKER, `window.__COCKPIT__ = ${json};`);
   assertSelfContained(output);

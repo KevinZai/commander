@@ -27,7 +27,7 @@ import { emitUser } from './lib/emit.mjs';
  * Pure-function entry for orchestrator (CC-414).
  * Returns the JSON output object instead of writing to stdout.
  */
-export async function run({ input = {}, env = process.env, cwd = process.cwd() } = {}) {
+export async function run({ input: _input, env = process.env, cwd: _cwd } = {}) {
   const HOME = env.HOME || env.USERPROFILE || '/tmp';
   const cccDir = join(HOME, '.claude', 'commander');
   const sessionFile = join(cccDir, 'sessions', 'active-session.json');

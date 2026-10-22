@@ -1,66 +1,98 @@
 ---
 name: ccc-safety
-description: "Safety deck: what Commander's hooks caught for you — dangerous actions blocked, auto-fixes applied, and where your tools fail most. A self-contained artifact."
+description: "Safety deck: dangerous actions Commander's hooks blocked, auto-fixes applied, and the tools that fail most, narrated here or published as a private snapshot page after consent. Use when the user asks what the guardrails caught, why tools fail, or types /ccc-safety."
 allowed-tools:
   - Read
   - Bash
   - Write
   - AskUserQuestion
-argument-hint: "[open | status]"
+  - Artifact
+argument-hint: "[status | open | snapshot]"
+model: sonnet
+effort: low
 ---
 
-# /ccc-safety — Safety
+# /ccc-safety — what the guardrails caught
 
-The guardrails deck. CC Commander's hooks already journal every permission decision (`~/.claude/commander/analytics/permission-gate.jsonl`) and every tool failure (`~/.claude/commander/tool-failures.jsonl`). This turns them into one page: how many dangerous actions got blocked, how many were auto-fixed, and which tools/errors trip you up most (a Sniffly-style breakdown).
+**CC Commander** · /ccc-safety · blocked actions, auto-fixes and failure hotspots from local logs.
 
-> 🔒 Privacy: read locally. Publishing uploads the artifact (counts, tool names, redacted error signatures) to your private claude.ai artifact URL — private to your account, but it leaves the machine. Always ask before publishing; never publish automatically. Error text is redacted (sk-/Bearer/token patterns → [redacted]) before it ever reaches the page.
+Sources: `~/.claude/commander/analytics/permission-gate.jsonl` (every permission decision) and `~/.claude/commander/tool-failures.jsonl` (every tool failure). Error text is redacted (`sk-`, `Bearer`, token patterns become `[redacted]`) before it reaches any output.
 
-## How it routes
+## When to use / when not to
 
-On `/ccc-safety` with no argument, open a click-first picker:
+- Use for "what did the hooks stop?", "why does Bash keep failing?", or a shareable guardrail page.
+- Use `/ccc-console safety` for the same tab inline; `/ccc-doctor` when hooks seem not to be running at all.
 
-```
-AskUserQuestion:
-  question: "Safety — how do you want it?"
-  options:
-    - 🛰️ Publish the deck — a living Safety artifact: blocked actions, auto-fixes, failure hotspots
-    - 🗣️ Plain-English status — narrate the headline numbers here, no jargon
-```
+## What happens
 
-`/ccc-safety open` (or `snapshot`) → publish the deck. `/ccc-safety status` → narrate.
+### 1. Pick the output
 
-**Zero-state:** if `permission-gate.jsonl` and `tool-failures.jsonl` are both missing/empty, say so plainly — "No guardrail activity logged yet — the hooks fill this in as you work." Never render an error for an empty deck.
+With no argument, ask with AskUserQuestion (Codex: a plain-text question):
 
-### 🛰️ Publish the deck
+- 🟢 Plain-English status — the headline numbers here, nothing leaves the machine
+- Publish the deck — a private claude.ai page; asks before uploading
+- Show it inline — runs `/ccc-console safety`
 
-**LIVING PATTERN:** always render to the SAME file path (`scratchpad/ccc-safety-live.html`), then republish that same path with the Artifact tool — same path, same URL, one living page. **Do not change this path** — it is the identity of every bookmark anyone already has for this deck.
+`status` goes to step 2. `open` or `snapshot` goes to step 3.
 
-Since v7.4.0 this page is the **Safety tab of the Commander Console**, published on its own — one builder renders every deck and the console, so the numbers can't disagree:
+If both logs are missing or empty, say "No guardrail activity logged yet. The hooks fill this in as you work." and stop. That is not an error.
+
+### 2. Plain-English status
 
 ```bash
-mkdir -p scratchpad
-if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" ]; then
-  node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
-    --surface artifact --tab safety --out scratchpad/ccc-safety-live.html
-else
-  node commander/cowork-plugin/scripts/build-console.mjs \
-    --surface artifact --tab safety --out scratchpad/ccc-safety-live.html
-fi
+node --input-type=module -e "
+const { readSafetyModel } = await import('${CLAUDE_PLUGIN_ROOT}/lib/safety-snapshot.js');
+const m = await readSafetyModel({});
+console.log(JSON.stringify({ decisions: m.decisions.counts, failures: m.toolFailures.total, byTool: m.toolFailures.byTool.slice(0, 3) }));
+"
 ```
 
-The page is unchanged apart from one added line pointing at `/ccc-console` (the inline all-in-one view).
+Narrate it in two sentences: "Commander stopped N risky actions and auto-fixed M. Bash fails most, usually on timeouts." Sum the `blocked` kinds for N and the `autofixed` kind for M.
 
-**First publish this session** → ask before publishing (counts, tool names, redacted error signatures leave the machine for your private artifact URL). **Every later run of `/ccc-safety`** → invoking the skill again IS the refresh consent: republish the same file path to the same URL without re-asking. Publish `scratchpad/ccc-safety-live.html` with the Artifact tool (favicon 🛡️). End with the artifact title + the headline: "blocked N dangerous actions, auto-fixed M." To refresh later: run `/ccc-safety` again — same URL updates in place; viewers reload.
+### 3. Publish the deck (consent-gated)
 
-### 🗣️ Plain-English status
+1. First publish this session: ask with AskUserQuestion.
+   - Question: "Publish the Safety deck as a private claude.ai page? Decision counts, tool names and redacted error signatures leave this machine."
+   - 🟢 Publish — create or update the private page
+   - Narrate here instead — nothing uploads
+   - Cancel
+   Publish only on an explicit yes. Running `/ccc-safety` again later in this session is the refresh consent.
+2. Build the Safety tab of the console onto this deck's fixed path:
+   ```bash
+   mkdir -p "<scratchpad>"
+   if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" ]; then
+     node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
+       --surface artifact --tab safety --out <scratchpad>/ccc-safety-live.html
+   else
+     node commander/cowork-plugin/scripts/build-console.mjs \
+       --surface artifact --tab safety --out <scratchpad>/ccc-safety-live.html
+   fi
+   ```
+   Exit 0 and `build-console: wrote …` on stderr mean the page is ready. The page carries the Commander decks strip and a line pointing to `/ccc-console`.
+3. Publish with the Artifact tool:
+   - Already published from this path in this session: publish the same `file_path`; omit `icon`.
+   - Otherwise: `action: "list"`, find "Commander Safety", `action: "read"` its `url`, then publish `file_path` with that `url`. If none exists, publish `file_path` with `icon: "shield"` and `description: "Actions Commander's hooks blocked or auto-fixed, and where tools fail most."`.
+   - On Codex or without the Artifact tool: give the user the HTML file path.
+4. Reply with the page title, the URL, and the headline "blocked N risky actions, auto-fixed M".
 
-Run `readSafetyModel({})` and read the decision counts + top failing tool, then narrate caveman-simple: "Commander stopped N risky actions and quietly fixed M. Your Bash commands fail most — usually timeouts." No jargon.
+## Done when
 
-## The deck also links the others
+- Status: the numbers you narrated came from the step 2 command output in this turn.
+- Publish: the build exited 0 and the Artifact tool returned a URL, which you reported.
 
-The published artifact carries the shared **Commander decks** strip at the top — one click (copy) away from the Cockpit, Mission Control, and Usage & Cost decks. Users always know the other decks exist. It also carries one line pointing at `/ccc-console`, the inline console that shows all of these tabs at once (and has a prompt bar, which a published page cannot).
+## Guardrails
 
-> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
+- Never publish without the step 3 consent, and never on a schedule or as a side effect.
+- Never quote unredacted error text; use the model's redacted samples only.
+- Keep the path `<scratchpad>/ccc-safety-live.html`; a new path is a new URL.
+- The published page is a snapshot: it changes only when republished and cannot send prompts into the session.
+- On Codex, failure hotspots can be thin: they are fed by Claude-side hooks.
+
+## See also
+
+- `/ccc-console` — this tab inline, with the prompt bar
+- `/ccc-usage` — what the work cost
+- `/ccc-doctor` — verify the hooks are wired
 
 ---
 

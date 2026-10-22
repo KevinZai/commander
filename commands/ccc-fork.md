@@ -1,183 +1,100 @@
 ---
-description: "Fork the current session for parallel exploration -- try multiple approaches, merge the best."
+description: "Fork the current work into isolated git worktrees to try several approaches side by side, compare them on measured results, and merge the winner. Use when choosing between implementations, attempting a risky refactor, or testing competing bug theories."
 ---
 
-# Explore Fork
+# /ccc-fork — explore approaches in parallel
 
-Split your current Claude Code session into parallel branches to explore multiple implementation approaches simultaneously. Try different solutions, compare results, and merge the best one back.
+**CC Commander** · /ccc-fork · isolated forks per approach, a measured comparison, and one clean merge.
 
-## Usage
+Each fork is a branch `explore/<id>` checked out in its own worktree at `../<repo>-<id>`, created from the current commit. The main checkout is never modified until you merge.
 
-```bash
-/branch                          # Fork current session into a new branch
-/branch "try hooks approach"     # Fork with a description
-/branch list                     # Show all active forks
-/branch merge <id>               # Merge a fork back into main session
-/branch discard <id>             # Discard a fork
-```
+## Arguments
 
-## How It Works
+`$ARGUMENTS`:
 
-### Fork a Session
+- `"<description>"` or empty — create a fork (empty: ask for a short description in plain text)
+- `list` — show active forks
+- `compare` — measured comparison of active forks
+- `merge <id>` — merge a fork into the branch you started from
+- `discard <id>` — remove a fork's worktree and branch
 
-```
-/branch "approach A: use context API"
+## What happens
 
-Forked session.
-  Fork ID: fork-a1b2c3
-  Description: approach A: use context API
-  Base commit: abc1234
-  Branch: explore/fork-a1b2c3
+### Create
 
-You're now in the fork. Changes here don't affect the main session.
-Use /branch return to go back to the main session.
-```
+1. Run `git status --porcelain`. If the tree is dirty, ask whether to commit first or fork from `HEAD` without the uncommitted changes; forks never carry uncommitted work.
+2. Count active forks with `git branch --list 'explore/*'`. At five, stop and ask the user to merge or discard one first.
+3. Set `<id>` to `fork-` plus six random hex characters, `<base>` to `git rev-parse --abbrev-ref HEAD`, and `<repo>` to the basename of `git rev-parse --show-toplevel`.
+4. Create and label the fork:
 
-### Resume with --fork-session
+   ```bash
+   git worktree add "../<repo>-<id>" -b "explore/<id>"
+   git config "branch.explore/<id>.description" "<description>"
+   git config "branch.explore/<id>.forkbase" "<base>"
+   ```
 
-```bash
-# From the CLI, fork an existing session
-claude --resume --fork-session
+5. Verify with `git -C "../<repo>-<id>" rev-parse --abbrev-ref HEAD` (prints `explore/<id>`), then report the fork id, description, base commit (`git rev-parse --short HEAD`), branch and worktree path.
+6. Ask how to work the fork with AskUserQuestion (plain-text question where unavailable):
+   - 🟢 Work it here — the assistant edits and runs commands only inside `../<repo>-<id>` until you say to return.
+   - Parallel agent — spawn one Agent per approach with `isolation: worktree`; each implements, runs the tests, and reports back. The user's selected model is preserved unless they choose another.
+   - Separate session — run `claude --continue --fork-session` in a second terminal to copy this conversation into a new session, then `cd ../<repo>-<id>` there. This forks the conversation only; the worktree isolates the files.
 
-# This creates a new session with the full context of the previous one
-# but on a new git branch, so changes are isolated
-```
+### list
 
-### Explore Multiple Approaches
+Run `git worktree list` and, for each `explore/*` branch, print the id, description (`git config branch.explore/<id>.description`), commit count (`git rev-list --count <forkbase>..explore/<id>`), and last test result if one was recorded this session.
 
-```
-# Main session: working on state management
+### compare
 
-/branch "approach A: React Context"
-# ... implement with Context API ...
-# ... run tests ...
-/branch return
+1. For each active fork, collect only measured values:
+   - lines changed: `git diff --stat <forkbase>...explore/<id>`
+   - tests: run the project's test command (`npm test`, `pytest`, `go test ./...`, `cargo test`) inside the fork's worktree and record passed/total
+   - any metric the user named for this exploration (bundle size, benchmark, render time), with the exact command used
+2. Print a table with one column per fork. Leave a cell as `not measured` rather than estimating it.
 
-/branch "approach B: Zustand"
-# ... implement with Zustand ...
-# ... run tests ...
-/branch return
+   ```
+   | Metric        | fork-a1b2c3 (Context) | fork-d4e5f6 (Zustand) |
+   |---------------|-----------------------|-----------------------|
+   | Lines changed | +142 / -20            | +98 / -15             |
+   | Tests passing | 42/42                 | 41/42                 |
+   ```
 
-/branch "approach C: Jotai"
-# ... implement with Jotai ...
-# ... run tests ...
-/branch return
+3. Give one recommendation with the deciding measurement.
 
-/branch list
-# fork-a1b2c3: approach A: React Context (3 commits, tests passing)
-# fork-d4e5f6: approach B: Zustand (2 commits, tests passing)
-# fork-g7h8i9: approach C: Jotai (4 commits, 1 test failing)
+### merge <id>
 
-/branch merge fork-d4e5f6
-# Merged "approach B: Zustand" into main session.
-# Discarding other forks...
-```
+1. Run the tests in the fork's worktree. If they fail, report it and ask before continuing.
+2. Ask with AskUserQuestion (plain-text question where unavailable):
+   - 🟢 Merge commit — `git merge --no-ff explore/<id>` on `<forkbase>`; keeps the fork's history.
+   - Squash — `git merge --squash explore/<id>` then a single commit you approve.
+   - Cancel.
+3. Verify: run the test command in the main checkout and `git log --oneline -5`; report both.
+4. Summarize decisions and lessons from the fork in `tasks/lessons.md` if that file exists.
+5. Ask whether to discard the merged fork and any other active forks (each uses the discard flow below).
 
-## Use Cases
+### discard <id>
 
-### Architecture Exploration
+1. Show what will be lost: `git log --oneline <forkbase>..explore/<id>` and `git -C "../<repo>-<id>" status --porcelain`.
+2. Ask with AskUserQuestion (plain-text question where unavailable): 🟢 Keep the fork — nothing changes · Discard — runs `git worktree remove "../<repo>-<id>"` and `git branch -D "explore/<id>"`; unmerged commits are lost.
+3. On discard, verify with `git worktree list` and `git branch --list "explore/<id>"` (prints nothing).
 
-Compare different architectural approaches before committing:
+## Use cases
 
-```
-"I need to implement caching. Fork three approaches:
-1. In-memory with Map
-2. Redis
-3. SQLite
+- **Architecture exploration** — "Fork three caching approaches (in-memory Map, Redis, SQLite); implement, benchmark, report numbers; I'll merge the winner."
+- **Risky refactor** — fork, attempt it, merge if green, discard if not; the main checkout is untouched either way.
+- **A/B implementation** — two UI designs in two forks; capture a screenshot from each and compare.
+- **Bug theories** — one fork per theory (race condition in auth, stale cache in middleware); merge the one that reproduces and fixes the bug.
 
-Each fork: implement, benchmark, and report performance numbers.
-I'll merge the winner."
-```
+## Done when
 
-### Risky Refactoring
+The subcommand's verification command has run and its output matches: the new branch exists, the comparison table holds only measured values, the merged branch's tests have run, or the discarded branch is gone.
 
-Try a big refactor without risk:
+## Guardrails
 
-```
-/branch "aggressive refactor: flatten all modules"
+- Never edit the main checkout while working a fork.
+- Never discard a fork, delete a branch, or merge without the user's pick.
+- Never push fork branches.
+- Give forks descriptive names ("approach A: hooks", not "fork 1") and merge or discard them within the session so they do not drift.
 
-# If it works → /branch merge
-# If it breaks → /branch discard
-# Main session is untouched either way
-```
+## See also
 
-### A/B Implementation
-
-Try two UI designs simultaneously:
-
-```
-/branch "design A: sidebar navigation"
-# ... build it, screenshot it ...
-/branch return
-
-/branch "design B: top navigation"
-# ... build it, screenshot it ...
-/branch return
-
-# Compare screenshots, merge the better one
-```
-
-### Bug Fix Investigation
-
-When the root cause is unclear, explore multiple theories:
-
-```
-/branch "theory: race condition in auth"
-# ... investigate, add logging, test ...
-/branch return
-
-/branch "theory: stale cache in middleware"
-# ... investigate, clear cache, test ...
-/branch return
-
-# Merge whichever theory found the bug
-```
-
-## Under the Hood
-
-Each fork creates:
-1. A new git branch from the current commit
-2. A new Claude Code session with the full conversation context
-3. Isolated file changes (via git worktree or branch)
-
-Merging:
-1. Cherry-picks or merges the fork branch into the main branch
-2. Transfers any session context (lessons learned, decisions made)
-3. Cleans up the fork branch
-
-Discarding:
-1. Deletes the fork branch
-2. Cleans up the session
-3. No changes to the main branch
-
-## Comparison Table
-
-When multiple forks are active, request a comparison:
-
-```
-/branch compare
-
-| Metric         | Fork A (Context) | Fork B (Zustand) | Fork C (Jotai) |
-|----------------|-------------------|-------------------|-----------------|
-| Lines of code  | 142               | 98                | 110             |
-| Bundle size    | +2.1KB            | +3.8KB            | +1.2KB          |
-| Tests passing  | 42/42             | 42/42             | 41/42           |
-| Performance    | 12ms render       | 8ms render        | 9ms render      |
-| Complexity     | Medium            | Low               | Low             |
-```
-
-## Safety
-
-- Forks are isolated git branches -- no risk of polluting main
-- Each fork has its own commit history
-- Discarding a fork leaves zero trace in the main branch
-- Maximum 5 active forks per session (context limit)
-- Forks auto-expire after 24 hours if not merged or discarded
-
-## Tips
-
-- Fork early, fork often -- it's cheap and the undo is free
-- Give descriptive names to forks ("approach A: hooks" not "fork 1")
-- Run tests in each fork to get objective comparison data
-- Use `/branch compare` before merging to make data-driven decisions
-- Don't let forks drift too far -- merge or discard within the same session
+`/ccc-parallel` · `/ccc-checkpoint` · `/ccc-multi-plan` · `/ccc-verify`

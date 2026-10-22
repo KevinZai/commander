@@ -1,11 +1,11 @@
 ---
-title: "Upgrade to v7.4.2"
-description: "Upgrade an existing CC Commander plugin install to v7.4.2 in Claude Code Desktop, Claude Code CLI, or npm."
+title: "Upgrade to v8.1.0"
+description: "Upgrade an existing CC Commander plugin install to v8.1.0 in Claude Code Desktop, Claude Code CLI, or npm."
 ---
 
-# ⬆️ Upgrade to v7.4.2
+# ⬆️ Upgrade to v8.1.0
 
-You already have CC Commander installed? Here's how to pick up v7.4.2 with zero drama.
+You already have CC Commander installed? Here's how to pick up v8.1.0 with zero drama.
 
 <Warning>
   Third-party plugin marketplaces do **not** auto-refresh by default. If you
@@ -74,7 +74,7 @@ restart, and verifies the new version + hooks are actually live afterward.
 
 ```
 /plugin list | grep commander
-# should show the latest version (currently v7.4.2), Kevin Zicherman
+# should show the latest version (currently v8.1.0), Kevin Zicherman
 ```
 
 Or in a fresh Claude Code session:
@@ -87,24 +87,31 @@ The settings menu header reports the installed version. You can also run `/ccc-d
 
 ### What changes for you
 
-| Surface | Before (v7.4.1) | Now (v7.4.2) |
+The 8.1.0 release adds descriptive MCP tool annotations, JSON-RPC catalog discovery,
+and cloud test/startup fixes. Existing force-push denials remain unchanged.
+The table below includes the v8 platform changes for users upgrading from v7.
+
+| Surface | Before (v7.4.2) | Now (v8.1.0) |
 |---------|-----------------|----------------------|
-| Plugin skills | 82 | 82 (unchanged) |
-| Agents | 22 specialist personas | 22 (unchanged) |
-| Hooks | 23 lifecycle events / 44 handlers | 23 lifecycle events / 44 handlers (unchanged) |
+| Plugin skills | 83 | 84 (new: `/ccc-codex`) |
+| Agents | 22 specialist personas | 22, on model aliases (`fable`, `opus`, `sonnet`) |
+| Hooks | 23 lifecycle events / 44 handlers | 30 lifecycle events / 51 handlers |
+| Plugin workflows | 4 | 6, runnable as `/commander:<name>` |
+| Plugin evals | — | 8 `claude plugin eval` cases |
+| Mods | — | Commander HUD (Claude Code 2.1.287+) |
+| Models | Previous Claude and Codex generations, partly pinned ids | Opus 5.5, Fable 5.1, Sonnet 5.5, Haiku 5.5; GPT-6 family on Codex |
 | Bundled MCP servers | 2 credential-free + 16 opt-in | 2 credential-free + 16 opt-in (unchanged) |
-| Compaction hook | Emitted output Claude Code rejected on every `/compact` ("Hook JSON output validation failed") | Schema-valid on every event — the emit layer now guards the real 20-event union |
-| Mission Control roster | ~98% of finished subagents stayed "working" forever | Finished agents show finished — the roster joins on `agent_id` |
-| Hosted MCP docs | Some shipped guides still asked for a license key | Keyless everywhere: no account, no key, free 100-call/mo cap |
 | Ecosystem skills | 467 | 467 (unchanged) |
+
+If you pinned old model ids in your own `~/.claude/settings.json` or agent files, `/ccc-doctor` flags superseded ids as upgrade candidates; Commander's own files now use aliases.
 
 Your `~/.claude/commander/` state files, knowledge base, and learned-skills directory are preserved. No data migration needed.
 
-## npm CLI
+## CLI toolkit
 
 ```bash
-npm i -g cc-commander@latest
-ccc --version   # should show the latest version (currently 7.4.2)
+curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+ccc --version   # should show the latest version (currently 8.1.0)
 ```
 
 Re-run the post-install verify:
@@ -137,9 +144,9 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 If something breaks (please file an issue first):
 
 ```
-/plugin update commander --version 7.4.0
+/plugin update commander --version 7.4.2
 # or
-npm i -g cc-commander@7.4.0
+git clone --branch v7.4.2 https://github.com/KevinZai/commander && cd commander && ./install.sh
 ```
 
 ## After the upgrade
@@ -149,13 +156,12 @@ Optional but recommended: run `/ccc-tuneup` to audit your local `~/.claude` setu
 ## Try what's new
 
 ```
-/ccc-update   # now detects Desktop-managed (account-synced) installs correctly
-/ccc-doctor   # now gives mode-correct guidance instead of dead-ending on Desktop-managed installs
+/ccc-codex                    # manage the Codex CLI from Claude
+/commander:ccc-release-audit  # run every release gate, go or no-go
+/ccc-hud                      # toggle the HUD band (Claude Code 2.1.287+)
 ```
 
-If you're on Claude Desktop (Cowork) with no marketplace clone, `/ccc-update` and `/ccc-doctor` used to treat that healthy state as "not installed." Both now read the Desktop copy's real version and fetch the latest from GitHub directly.
-
-Also worth a look: `/ccc-console` — **One Commander** — a single inline widget (Overview · Usage · Safety · Memory · History · Launch) that replaces jumping between four separate published decks.
+Full notes: [What's new in v8](/whats-new-v8).
 
 ## Questions
 

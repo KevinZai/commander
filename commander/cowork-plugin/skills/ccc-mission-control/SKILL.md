@@ -1,172 +1,149 @@
 ---
 name: ccc-mission-control
-description: "Agent mission control: live dashboard, delegation flow, snapshots, and plain-English status."
+description: "Agent mission control: who is working on what, as a local live dashboard, a plain-English status, suggestion triage, or a private snapshot page whose task board updates in place. Use when the user asks what agents are doing, wants a status board, or types /ccc-mission-control."
 allowed-tools:
   - Read
   - Bash
   - Write
   - AskUserQuestion
-argument-hint: "[open | snapshot | status | suggestions | stop]"
+  - Artifact
+  - ArtifactData
+argument-hint: "[open | snapshot | sync | status | suggestions | stop]"
+model: sonnet
+effort: medium
 ---
 
-# /ccc-mission-control — Mission Control
+# /ccc-mission-control — who is working on what
 
-One board that answers "**who's working on what?**" without reading a single log line. Every CC Commander session already journals its agent runs, tasks, and delegations to `~/.claude/commander/` (`subagent-runs.jsonl`, `agent-runs.jsonl`, `tasks.jsonl`, `mission-control/events.jsonl`). Mission control turns those logs into a picture a non-coder can read: agent roster, task board, delegation flow, and a plain-English summary.
+**CC Commander** · /ccc-mission-control · agent roster, task board, hand-offs and suggestions from local logs.
 
-> 🔒 Privacy: everything runs locally by default — the live dashboard binds to 127.0.0.1 and no data leaves your machine. The one exception is the optional 📤 snapshot artifact: publishing uploads the snapshot (agent names, task subjects, timings) to your private claude.ai artifact URL — it starts private to your account, but treat it as leaving the machine. The skill always asks before publishing, and never publishes automatically.
+Sources, all under `~/.claude/commander/`: `subagent-runs.jsonl`, `agent-runs.jsonl`, `tasks.jsonl`, `mission-control/events.jsonl`, `mission-control/suggestions.jsonl`. Everything is read locally; only the snapshot page leaves the machine, after consent.
 
-## How it routes
+## When to use / when not to
 
-On `/ccc-mission-control` with no argument, open a click-first picker:
+- Use before interrupting running work, after `/ccc-fleet` or `/ccc-spawn` fan-out, or for a status a non-coder can read.
+- Use `/ccc-fleet-viz` for one fleet run's tree, `/ccc-suggest` for advice, `/ccc-console` for the compact all-tabs view.
 
-```
-AskUserQuestion:
-  question: "Mission control — how do you want to see your agents?"
-  options:
-    - 🖥️ Open live dashboard — auto-refreshing panel that sits beside your chat
-    - 🛰️ Publish snapshot artifact — a living status page you can keep or share
-    - 🗣️ Plain-English status — narrate it right here, zero jargon
-    - 💡 Review & promote suggestions — triage the ideas agents have surfaced
-    - ⏹️ Stop dashboard — shut the local server down
-```
+## What happens
 
-Explicit sub-commands skip the picker: `/ccc-mission-control open`, `/ccc-mission-control snapshot`, `/ccc-mission-control status`, `/ccc-mission-control suggestions`, `/ccc-mission-control stop`.
+### 1. Pick the view
 
-**Zero-state:** if the logs are empty or missing, say so plainly and point forward — "No agents yet — spawn one with `/ccc-spawn` (or fan out with `/ccc-fleet`) and this board lights up." Never render an error for an empty board.
+With no argument, ask with AskUserQuestion (Codex: a plain-text question):
 
-### 🖥️ Open live dashboard ("sits on the left side" mode)
+- 🟢 Plain-English status — narrate it here; nothing leaves the machine
+- Open the live dashboard — a local page beside the chat at 127.0.0.1
+- Publish or refresh the snapshot page — a private claude.ai page; asks before uploading
+- Review suggestions — triage the ideas agents surfaced
 
-1. **Check whether the dashboard is already up:**
-   ```bash
-   curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4690/
-   ```
-2. **If not `200`, start it** — run `node dashboard/server.js` as a **background task** from the CC Commander repo root. Finding that root:
-   - Working inside the CCC repo → use the current checkout.
-   - Installed via marketplace → the plugin lives in the marketplace cache; the repo checkout is at `${CLAUDE_PLUGIN_ROOT}/../..` — verify `dashboard/server.js` exists there before launching.
-   - No `dashboard/server.js` anywhere → **fall back to snapshot mode** (next section) instead of failing.
-3. **Open the Browser pane** at `http://127.0.0.1:4690/mission-control.html` (`preview_start {url}`). The panel docks beside the chat and keeps itself fresh while you keep working.
+Arguments skip the picker: `status` (step 2), `open` (step 3), `snapshot` (step 4), `sync` (step 5), `suggestions` (step 6), `stop` (step 7).
 
-### 🛰️ Publish snapshot artifact
+If every log is missing or empty, say "No agents yet. Spawn one with `/ccc-spawn` (or fan out with `/ccc-fleet`) and this board lights up." and stop. That is not an error.
 
-**LIVING PATTERN:** always render to the same file path, `scratchpad/mission-control-live.html`, then republish that same path with the Artifact tool. Same path means the same URL, so each republish updates one living status page instead of creating a trail of stale copies. **Do not change this path** — it is the identity of every bookmark anyone already has for this deck.
-
-Since v7.4.0 this page is the **Overview tab of the Commander Console**, published on its own. One builder renders every deck and the console, so the numbers can't disagree:
+### 2. Plain-English status
 
 ```bash
-mkdir -p scratchpad
-if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" ]; then
-  node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
-    --surface artifact --tab overview --out scratchpad/mission-control-live.html
-else
-  node commander/cowork-plugin/scripts/build-console.mjs \
-    --surface artifact --tab overview --out scratchpad/mission-control-live.html
-fi
+node --input-type=module -e "
+const { readModel } = await import('${CLAUDE_PLUGIN_ROOT}/lib/mission-control-snapshot.js');
+const m = await readModel({});
+console.log(JSON.stringify({ summary: m.summary, awaiting: m.awaitingPermission, agents: m.agents.slice(0, 8), tasks: m.tasks.length }));
+"
 ```
 
-The page is unchanged apart from one added line pointing at `/ccc-console` (the inline all-in-one view, with a prompt bar this static page can't have).
+If `awaiting` is non-empty, lead with it: name each waiting session and tell the user to switch to it to approve. Then narrate in plain words ("helper", "hand-off", "finished", "hit a problem"), never "subagent", "JSONL", "session_id" or token counts unless asked. Fill every value from the output; never echo placeholders.
 
-Then publish that same file with the **Artifact** tool using favicon `🎛️` and stable title **"Commander Mission Control"**.
+### 3. Live local dashboard
 
-**Confirm before the FIRST publish only:** before the first Artifact publish this session, use `AskUserQuestion` to tell the user that agent names, task subjects, and timings will leave the machine for their private claude.ai artifact URL. Publish only after an explicit confirmation. Never publish automatically.
+1. `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4690/` — `200` means it is up; skip to item 3.
+2. Otherwise start `node dashboard/server.js` as a background task from the CC Commander repo root: the current checkout when working in the repo, or `${CLAUDE_PLUGIN_ROOT}/../..` when that directory contains `dashboard/server.js`. If no `dashboard/server.js` exists, say so and offer step 4 instead.
+3. Open `http://127.0.0.1:4690/mission-control.html` in the Browser pane when this session has one; otherwise give the user the URL. The server binds to 127.0.0.1 only, and the page refreshes itself.
 
-**🔄 Refresh snapshot:** rebuild the model → rewrite `scratchpad/mission-control-live.html` → republish that same file. The URL stays the same. **Invoking `/ccc-mission-control` again IS the refresh consent** — republish without re-asking; the first-publish confirmation above already covered what leaves the machine. If new session IDs appeared since the last published snapshot, mention it in passing (not as a fresh ask). To refresh later: run `/ccc-mission-control` again — same URL updates in place; viewers reload.
+### 4. Publish the snapshot page (consent-gated)
 
-> **On Codex:** some panels may be empty on Codex today — Safety's failure hotspots, Mission Control's agent roster, and Usage's savings hero are fed from Claude-only hooks right now. A follow-up workstream wires the matching Codex telemetry.
+The page is the console's Overview tab with a live task board: the rest of the page is a snapshot, and the task board reads rows from the artifact's shared `db` store, so task changes reach viewers without republishing.
 
-**📱 Check from your phone:** open the published URL there and revisit it after each refresh.
-
-The artifact is a snapshot that updates on republish, not a self-refreshing page; strict CSP forbids live fetch.
-
-The page is strict-CSP-safe: inline CSS, inline data, no scripts, no external URLs.
-
-> **Honest note on surfaces:** artifact publishing is verified in Claude Code Desktop; Cowork support varies by build. If the Artifact tool isn't available, fall back to sending the HTML file to the user (SendUserFile) — it renders standalone in any browser.
-
-### 🗣️ Plain-English status
-
-For non-coders, or when a panel is overkill. Read the JSONL logs (or run `readModel` from the snapshot library and use its `summary`), then narrate — caveman-simple, no jargon:
-
-If `awaitingPermission` is non-empty, say that **first**. Name each waiting session and tell the user to switch to that session to approve.
-
-> **Right now:** 2 helpers working — *reviewer* has been at it 12 minutes, *builder* just started. **Earlier today:** 3 helpers finished fine, 1 hit a problem (*auditor* — timed out). **Tasks:** 2 in progress, 4 done, 1 waiting. **Hand-offs:** your main session delegated work to *reviewer* 12 minutes ago.
-
-Rules: never say "subagent", "JSONL", "session_id", or token counts unless asked. Say "helper", "hand-off", "finished", "hit a problem".
-
-### 💡 Review & promote suggestions
-
-Agents can drop a proactive "you might want to do X" idea into `~/.claude/commander/mission-control/suggestions.jsonl` (see `lib/suggestions.js`). This flow triages that queue.
-
-1. **Read the queue:** run `readModel({})` from the snapshot library (or read `model.suggestions` off the live dashboard's `/api/suggestions`) and pull `model.suggestions`, newest `status: "new"` first.
-2. **Zero-state:** if there are no `new` suggestions, say so plainly — "Nothing waiting for review right now." — and stop.
-3. **Triage in batches of up to 4** with a click-first picker per item:
-   ```
-   AskUserQuestion:
-     question: "<idea text> — from <from>. <evidence, if any>."
-     options:
-       - ✅ Promote — create a tracked ticket for this
-       - ⏭️ Skip for now — leave it as "new", ask again later
-       - 🗑️ Dismiss — this isn't worth tracking
-   ```
-4. **On promote:** create the ticket with whatever tracker the session already has access to — the Linear MCP if it's connected, otherwise a `curl` GraphQL call against `$LINEAR_API_KEY` if the user has that configured. Use the suggestion's `proposed_ticket.title`/`project`/`priority` as the starting draft, but confirm the title with the user before creating anything (never publish external tickets silently). If no tracker is available, say so and offer to just dismiss or leave it as `new`.
-
-   Once the ticket exists, append the status line with a `node -e` one-liner against the shared writer lib (never write the JSONL by hand):
+1. First publish this session: ask with AskUserQuestion.
+   - Question: "Publish Mission Control as a private claude.ai page? Agent names, task subjects and timings leave this machine, and task rows are kept in the page's private data store."
+   - 🟢 Publish — create or update the private page
+   - Narrate here instead — nothing uploads
+   - Cancel
+   Publish only on an explicit yes. Running `/ccc-mission-control` again later in this session is the refresh consent.
+2. Build the page and the task rows:
    ```bash
-   node -e "
-   import('${CLAUDE_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
-     appendStatus({ id: '<suggestion-id>', status: 'promoted', promoted_ticket: { id: '<ticket-id>', title: '<ticket-title>', url: '<ticket-url>' }, by: 'mission-control' }, {})
-   );
+   mkdir -p "<scratchpad>"
+   if [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" ]; then
+     node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" \
+       --surface artifact --tab overview --db --out <scratchpad>/mission-control-live.html \
+       --emit-rows <scratchpad>/mission-control-tasks.json
+   else
+     node commander/cowork-plugin/scripts/build-console.mjs \
+       --surface artifact --tab overview --db --out <scratchpad>/mission-control-live.html \
+       --emit-rows <scratchpad>/mission-control-tasks.json
+   fi
+   ```
+   stderr ends with `wrote N task rows` and `wrote …/mission-control-live.html`. The page ships the current board as its resting frame, so it reads correctly even where the store is unavailable.
+3. Publish with the Artifact tool, always with the same capabilities (viewers read, only editors and the owner write):
+   ```json
+   {"db": {"rules": [{"path": "", "read": "view", "write": "admin"}]}}
+   ```
+   - Already published from this path in this session: publish the same `file_path` with those `capabilities`; omit `icon`.
+   - Otherwise: `action: "list"`, find "Commander Mission Control", `action: "read"` its `url`, then publish `file_path` with that `url` and the `capabilities`. If none exists, publish `file_path`, the `capabilities`, `icon: "dashboard"` and `description: "Which agents ran, what they are working on, and the hand-offs between them."`.
+   - On Codex or without the Artifact tool: give the user the HTML file path; the baked board is complete without the store.
+4. Seed the task rows: step 5.
+5. Reply with the page title, the URL, and one line from the summary.
+
+### 5. Sync the task board (no republish)
+
+Use this after step 4, and on `/ccc-mission-control sync` whenever tasks changed but the rest of the snapshot can wait.
+
+1. Rebuild the rows (same command as step 4.2; the page file is rewritten but not republished).
+2. Read `<scratchpad>/mission-control-tasks.json`: `{ "collection": "tasks", "rows": [{ "doc_id", "data" }] }`, newest first, at most 50.
+3. `ArtifactData` `action: "list"`, `collection: "tasks"`, `query: {"limit": 1000}` on the page's `url`, to learn each existing document's `version`.
+4. `ArtifactData` `action: "batch"` with up to 50 `writes` per call: `{"op": "set", "collection": "tasks", "doc_id", "data", "if_version"}` for every row (`if_version` only when that `doc_id` already exists), then `{"op": "delete", …, "if_version"}` for listed documents whose id is not in the new rows. If a pinned write fails, re-list and redo that batch once.
+5. Verify with one more `list` of `tasks`: the count equals the row count. Report "Task board synced: N tasks" and say open viewers update on their own.
+
+### 6. Review suggestions
+
+1. Read the queue: `readModel({})` as in step 2, then `model.suggestions`, newest `status: "new"` first. None: say "Nothing waiting for review right now." and stop.
+2. For each, up to four per round, ask with AskUserQuestion: "<idea> — from <from>. <evidence>."
+   - 🟢 Skip for now — leave it as new
+   - Promote — create a tracked ticket
+   - Dismiss — not worth tracking
+3. Promote: use the tracker this session already has (the Linear connector if connected, otherwise `$LINEAR_API_KEY` with the Linear GraphQL API). Draft from `proposed_ticket`, confirm the title with the user, then create it. No tracker: say so and offer skip or dismiss.
+4. Record the outcome through the shared writer, never by editing the JSONL:
+   ```bash
+   node --input-type=module -e "
+   const { appendStatus } = await import('${CLAUDE_PLUGIN_ROOT}/lib/suggestions.js');
+   await appendStatus({ id: '<suggestion-id>', status: 'promoted', promoted_ticket: { id: '<ticket-id>', title: '<title>', url: '<url>' }, by: 'mission-control' }, {});
    "
    ```
-5. **On dismiss:** append the same way with `status: 'dismissed'`:
-   ```bash
-   node -e "
-   import('${CLAUDE_PLUGIN_ROOT}/lib/suggestions.js').then(({ appendStatus }) =>
-     appendStatus({ id: '<suggestion-id>', status: 'dismissed', by: 'mission-control' }, {})
-   );
-   "
-   ```
-6. **On skip:** do nothing — it stays `status: "new"` and resurfaces next time this flow runs.
-7. **Report back** a one-line tally: how many promoted, dismissed, and skipped.
+   For a dismissal use `status: 'dismissed'` without `promoted_ticket`. Skip writes nothing.
+5. Report the tally: promoted, dismissed, skipped.
 
-Both the live dashboard and the published snapshot show the same queue (a 💡 Suggestions panel — status chips new/promoted/dismissed on the dashboard, a plain list with status badges on the snapshot) so you can review from either surface; this flow is for triaging it conversationally instead of clicking through the panel.
+### 7. Stop the dashboard
 
-### ⏹️ Stop dashboard
+`pgrep -f 'node .*dashboard/server\.js'`, then `kill <pid>` (SIGTERM, never `-9` first, only that process). Confirm what stopped, or that nothing was running.
 
-Find the server and stop it politely — SIGTERM, never `-9` first, and only the dashboard process:
+## Done when
 
-```bash
-pgrep -f 'node .*dashboard/server\.js'
-kill <pid>
-```
+- Status: every number came from the step 2 output in this turn.
+- Dashboard: the step 3 curl returns `200`.
+- Publish: the Artifact tool returned a URL, and step 5's verification list matched the row count.
+- Suggestions: each promoted or dismissed id has a new status line in `mission-control/suggestions.jsonl`.
 
-Confirm to the user what was stopped (or that nothing was running).
+## Guardrails
 
-## When you'd reach for it
+- Never publish without the step 4 consent, and never on a schedule or as a side effect.
+- Never create a ticket without confirming its title with the user.
+- Keep the path `<scratchpad>/mission-control-live.html`; a new path is a new URL.
+- The published page cannot send prompts into the session, and viewers cannot change tasks on it; only this skill writes the rows.
+- The board only sees work journaled by Commander's hooks. On Codex the agent roster can be thin.
 
-- "What are my agents doing right now?" — before interrupting anything.
-- After `/ccc-fleet` or `/ccc-spawn` kicked off parallel work and you want one board instead of scrollback.
-- A non-coder (or future you) needs a status they can actually read — snapshot it.
-- End of day: publish a snapshot as the durable "what happened" record.
+## See also
 
-## When NOT to use
-
-- Mid-`/ccc-fleet` run when you want the fleet-specific tree — that's `/ccc-fleet-viz`.
-- You want *advice* on what to do next — that's `/ccc-suggest`; mission control only reports.
-- Nothing has ever run on this machine — there's nothing to show yet (spawn first).
-
-## Limitations
-
-- The board only sees work journaled by the plugin's hooks — agents run without CC Commander installed leave no trace here.
-- The live dashboard needs a repo checkout with `dashboard/` present; marketplace-cache installs without it get snapshot mode (fully offline, still complete).
-- The living artifact updates when you republish the same file; open the live dashboard for continuous updates.
-- `agent-runs.jsonl` rotates at 10MB; the board reads the current file, so ancient history ages out.
-
-## Related
-
-- `/ccc-console` — the same Overview plus Usage, Safety, Memory and History in one inline panel, with a prompt bar
-- `/ccc-spawn` — put new work on the board (isolated sessions)
-- `/ccc-fleet` — parallel agent fan-out (mission control watches it)
-- `/ccc-relay` — chained spec → build → review sessions
-- `/ccc-suggest` — the "what next" advisor that reads the same signals
+- `/ccc-console` — the same Overview with the other tabs, inline
+- `/ccc-fleet-viz` — one fleet run as a tree
+- `/ccc-spawn`, `/ccc-fleet` — put work on the board
+- `/ccc-suggest` — what to do next
 
 ---
 

@@ -1,354 +1,164 @@
 ---
 name: ccc-connect
-description: "Opt-in MCP connector setup — click-connect Notion, Slack, GitHub, Supabase, Figma, Linear, Vercel, Neon, Fly.io, Upstash, Sentry, Stripe, Browserbase, Postgres,…"
+description: "Opt-in connector wizard with affiliate disclosure: pick a service (Supabase, Linear, Vercel, Sentry, Notion, Slack, Stripe, research tools and more) and wire it as a plugin with userConfig, an OAuth MCP or a keyed MCP without secrets in chat. Use when connecting an MCP server or service."
 allowed-tools:
   - Read
-  - Write
   - Bash
   - AskUserQuestion
 argument-hint: "[tasks | backend | hosting | cache | knowledge | comms | observability | billing | automation | agent-harness | email | research | productivity | dev | design]"
+model: sonnet
+effort: medium
+disable-model-invocation: true
 ---
 
-# /ccc-connect — MCP Connector Wizard
+# /ccc-connect — wire one connector safely
 
-Click-to-connect opt-in MCP servers. Never auto-installs — always user-initiated.
+**CC Commander** · /ccc-connect · click through category and connector, then wire it through the current Claude Code primitive with no secret ever entering the transcript.
 
-## Affiliate disclosure (ALWAYS show at top of every /ccc-connect response)
+Show this disclosure at the top of every /ccc-connect response:
 
 ```
-💸 Some links below are affiliate — CCC may earn a commission at no cost to you.
+💰 Some links below are affiliate — CCC may earn a commission at no cost to you.
 [Disclosure](https://docs.commanderplugin.com/affiliate-disclosure)
 ```
 
-## Response shape (EVERY time)
+## When to use / when not to
 
-### 1. Brand header
+- Use when the user wants a service connected: a database, host, tracker, chat, observability, billing, email, research or automation tool. Everything here is opt-in and absent by default; Commander bundles only credential-free servers.
+- Do not use to change Commander's bundled `.mcp.json`, to debug an already-installed server (`/ccc-doctor`), or for Linear workflows once connected (`/ccc-linear`).
 
-```
-**CC Commander** · Connector Wizard · [Docs](https://commanderplugin.com)
-```
+## What happens
 
-### 2. Context strip
+1. **Context strip.** One Bash call (the last two lines report the project signals the pickers use):
 
-Detect currently-connected MCPs in parallel via a single Bash call:
-- `claude mcp list 2>/dev/null | grep -c '^  ' || echo 0` → count
-- `claude mcp list 2>/dev/null | awk '{print $1}' | tr '\n' ',' || echo "none"` → names
+   ```bash
+   claude mcp list 2>/dev/null
+   claude plugin list --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).filter(p=>p.enabled).map(p=>p.id).join(", ")||"none")}catch{console.log("none")}})'
+   node -e 'try{const p=require("./package.json");const d={...p.dependencies,...p.devDependencies};console.log("signals:",["stripe","react","next"].filter(k=>d[k]).join(", ")||"none")}catch{console.log("signals: none")}'
+   test -f prisma/schema.prisma && echo "signals: prisma" || true
+   ```
 
-Render:
-> 🔌 Currently connected: <count> MCPs · <comma-list or 'none yet'>
+   Render `Connected: <MCP names> · plugins: <ids>`, or "Nothing wired yet — pick a category below." Never print server env values.
 
-If none connected: "🔌 No MCPs wired up — pick a category below and I'll walk you through."
+2. **Category picker** (cascade; see Decision points). An argument skips straight to its level. Every level has a stated 🟢 default; the project signals listed under Decision points can move it.
 
-### 3. Category picker — `AskUserQuestion`
+3. **Connector picker.** Show the connectors for the chosen category. A category with one connector skips this picker and confirms the choice in one line.
 
-```
-question: "Which category?"
-header: "Connect"
-multiSelect: false
-options:
-  - label: "📋 Tasks"
-    description: "Linear — first-class CC Commander integration."
-    preview: "Best for: issue tracking, sprint planning, CC-* task routing."
-  - label: "🗄️ Backend"
-    description: "Supabase (first-class), Neon, Postgres — databases for shipped apps."
-    preview: "Best for: SaaS backends, auth, schema inspection. ⭐ Supabase default."
-  - label: "🚀 Hosting"
-    description: "Vercel, Fly.io, Cloudflare — deploy and edge."
-    preview: "Best for: web deploys, Docker services, Workers + R2."
-  - label: "⚡ Cache / Queue"
-    description: "Upstash — Redis + Kafka serverless."
-    preview: "Best for: rate limiting, job queues, session storage."
-  - label: "📚 Knowledge"
-    description: "Notion — pages, databases, comments."
-    preview: "Best for: docs, wikis, team knowledge bases."
-  - label: "💬 Comms"
-    description: "Slack, Discord — team and community channels."
-    preview: "Best for: team workflows, Pro community, notifications."
-  - label: "🚨 Observability"
-    description: "Sentry — errors, performance, releases."
-    preview: "Best for: monitoring shipped apps, alerting on regressions."
-  - label: "💳 Billing"
-    description: "Stripe — payments for SaaS."
-    preview: "Best for: subscription management, payment links, invoices."
-  - label: "🤖 Automation"
-    description: "Browserbase, Playwright, Zapier, n8n — browser + workflows."
-    preview: "Best for: remote headless browsers, cross-app automation."
-  - label: "🧬 Agent harness"
-    description: "acpx — bring-your-own agent harness for headless agent-to-agent runs."
-    preview: "Best for: parallel/background CC sessions, crash-resilient agent dispatch."
-  - label: "✉️ Email"
-    description: "Resend, AgentMail — transactional and agent-native email."
-    preview: "Best for: SaaS emails, agent inbox workflows."
-  - label: "🔬 Research"
-    description: "Tavily, Firecrawl, Exa, Context7 — web search + scraping."
-    preview: "Best for: deep research, competitive analysis, live docs."
-  - label: "🎨 Design & Automation"
-    description: "Figma, Zapier, n8n — design sync + cross-app workflows."
-    preview: "Best for: design handoff, automated triggers."
-```
+4. **Account check.** Ask once whether the user already has an account and key for the service; if not, give the signup or keys URL (the affiliate link for `[aff]` rows) and wait.
 
-Prepend ⭐ based on project context:
-- `package.json` has React/Next → ⭐ Design & Automation (Figma often useful)
-- `prisma/schema.prisma` exists → ⭐ Backend (Supabase common)
-- `package.json` has stripe → ⭐ Billing
-- Otherwise → ⭐ Research (broadest utility)
+5. **Choose the wiring path.** Open [references/connectors.md](references/connectors.md) for the connector's row, then check for a plugin:
 
-## Second-level picker (after category pick)
+   ```bash
+   claude plugin list --available --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{for (const p of (JSON.parse(s).available||[])) if (p.name===process.argv[1]) console.log(p.pluginId)})' <connector-name>
+   ```
 
-Each category opens a SECOND `AskUserQuestion` with specific connectors.
+   Prefer, in order: **P** a Claude Code plugin (it carries its own MCP config and `userConfig`); **H** a remote HTTP MCP with OAuth; **S** a stdio MCP with a key captured by the user's own terminal. acpx is none of these; follow its section in the reference.
 
-### Tasks
-```
-options:
-  - 🎟️ Linear — issues, projects, cycles (first-class CCC integration)
-```
+6. **Authorize the change.** Ask the install picker before the assistant runs any `claude plugin install` or `claude mcp add`; both change the user's Claude Code configuration. Path S wiring is run by the user, so it needs only the credential picker.
 
-### Backend
-```
-options:
-  - ⭐ Supabase [aff] — FIRST-CLASS backend: auth, DB, storage, edge funcs. Also ships as a Codex plugin.
-  - 🐘 Neon [aff] — Postgres serverless (lighter for small projects)
-  - 🗄️ Postgres — direct DB query/schema inspection (bring your own)
-```
+7. **Wire it.**
+   - **P — plugin with userConfig.** Run `claude plugin install <pluginId> --config <key>=<value>` for non-secret options only (repeat `--config`; fixed-choice `options` are validated). Then `claude plugin configure <plugin> --json` and report only which option names are unset. Secret options are entered by the user in the `/plugin` configure flow or with the `--values-stdin` template in the reference. A plugin with no options usually authenticates by OAuth in `/mcp`.
+   - **H — OAuth MCP.** Run `claude mcp add --transport http <name> <url>`, then the user runs `claude mcp login <name>` (or authenticates from `/mcp`). No credential file is written.
+   - **S — keyed MCP.** The user captures the secret in their own terminal with the command below, clicks Done, then runs the wiring command from the reference (it reads the file inside `$(...)`, so the value never appears in a command line).
 
-> **⭐ Supabase is the default backend for `/ccc-build` SaaS scaffolds.** It now also ships as a **Codex plugin**, so the same Supabase setup works whether you run inside Claude Code or OpenAI Codex. Always prepend ⭐ to the Supabase option and recommend it first for any new backend. [aff] = affiliate row — saving the credential earns CCC a commission at no cost to the user; always disclose this on install (see Brand rules).
+   Credential capture (Path S), filled in with `<name>`, `<Connector>` and `<kind>` (`oauth` or `api-key`):
 
-### Hosting
-```
-options:
-  - ▲ Vercel [aff] — web deploys, preview URLs, edge functions
-  - 🪁 Fly.io [aff] — Docker services, global deploys
-  - ☁️ Cloudflare [aff] — Workers, Pages, R2, D1
-```
+   ```bash
+   mkdir -p ~/.claude/commander/connections && chmod 700 ~/.claude/commander/connections && \
+   read -s -p "Paste your <Connector> credential (input hidden, nothing echoed): " CCC_SECRET && echo && \
+   printf '%s' "$CCC_SECRET" | node -e 'const fs=require("fs");let s="";process.stdin.on("data",d=>s+=d).on("end",()=>fs.writeFileSync(process.env.HOME+"/.claude/commander/connections/<name>.json",JSON.stringify({name:"<name>",kind:"<kind>",credential:s,createdAt:new Date().toISOString(),tier:"free"},null,2)+"\n"))' && \
+   chmod 600 ~/.claude/commander/connections/<name>.json && \
+   unset CCC_SECRET && \
+   echo "Saved ~/.claude/commander/connections/<name>.json (chmod 600)."
+   ```
 
-### Cache / Queue
-```
-options:
-  - 🚀 Upstash [aff] — Redis + Kafka serverless
-```
+   `read -s` hides the input and keeps the secret out of shell history; the value reaches `node` on stdin and is written with `JSON.stringify`, so quotes, backslashes or newlines cannot corrupt the file. The assistant shows the command and waits; it never runs it and never asks for the value back. If the user cannot finish now (an OAuth callback is pending), they run it later and click Done in a later session; never write a placeholder file.
 
-### Knowledge
-```
-options:
-  - 📝 Notion — pages, databases, comments
-```
+8. **Verify.**
 
-### Comms
-```
-options:
-  - 💬 Slack — channels, DMs, threads
-  - 🎮 Discord — Pro community + team server
-```
+   ```bash
+   claude mcp get <name> 2>/dev/null || claude mcp list 2>/dev/null | grep -i '<name>'
+   claude plugin list --json 2>/dev/null | grep -i '"<plugin>@'     # Path P only
+   ```
 
-### Observability
-```
-options:
-  - 🚨 Sentry [aff] — errors, performance, releases
-```
+   On success: "✅ <Connector> connected. Run `/mcp reconnect all` (or restart the session) to load its tools." Add the connector's rate-limit note when the vendor documents one. If `claude mcp add` or `claude plugin install` fails, show the raw command for the user to run and the error; do not retry blindly.
 
-### Billing
-```
-options:
-  - 💳 Stripe — payments, subscriptions, invoices
-```
+9. **Next.** Ask the follow-up picker.
 
-### Automation
-```
-options:
-  - 🌐 Browserbase [aff] — remote headless browsers
-  - 🎭 Playwright — local browser automation
-  - 🔗 Zapier — 5000+ app actions
-  - 🧩 n8n — self-hosted workflows
-```
+## Decision points
 
-### Agent harness
-```
-options:
-  - 🧬 acpx — bring-your-own agent harness (headless ACP CLI for agent-to-agent runs)
-```
+All pickers are `AskUserQuestion`, single select, two to four options, the 🟢 recommended option listed first, each option with a one-line consequence. In Codex or any surface without it, ask the same options as one plain-text question. A picker with a single possible option is skipped and its choice confirmed in one line.
 
-> **acpx is the bring-your-own-agent-harness layer.** It is NOT an MCP server — it's a headless ACP (Agent Client Protocol) CLI that lets CC Commander drive background, parallel, and crash-resilient agent sessions (`acpx prompt|exec|sessions`). Use it when a workflow needs to fan out work to other agent harnesses instead of staying in one Claude session. Install: `npm install -g acpx` (then `acpx --help`). No credential capture or `claude mcp add` step — wiring is via the `acpx` / `acpx-patterns` skills, not the MCP config. See "acpx — agent harness" below.
+**Category picker, level 1** (header "Connect"), default order:
 
-### Email
-```
-options:
-  - 📨 Resend [aff] — transactional email for SaaS
-  - 📬 AgentMail — agent-native inbox
-```
+- 🟢 **🔬 Research & observe** — opens Research, Observability (broadest utility).
+- **🏗️ Build & ship** — opens Backend, Hosting, Cache / Queue, Billing.
+- **🌐 Team & comms** — opens Tasks, Knowledge, Comms, Email.
+- **🤖 Automate & design** — opens Automation, Design, Agent harness.
 
-### Research
-```
-options:
-  - 🌐 Tavily — AI-optimized web search
-  - 🔥 Firecrawl — clean web scraping + markdown
-  - 🔭 Exa — neural search for dev content
-  - 📡 Context7 — live library docs
-```
+Project signals from step 1 move the 🟢 to another group, which is then listed first: `prisma/schema.prisma`, a new SaaS, or `stripe` in `package.json` → Build & ship; React or Next in `package.json` → Automate & design. No signal keeps the default.
 
-### Design & Automation
-```
-options:
-  - 🎨 Figma — files, components, comments
-  - 🔗 Zapier — 5000+ app actions
-  - 🧩 n8n — self-hosted workflows
-  - 🎭 Playwright — browser automation
-```
+**Level 2, categories per group** (header "Category"; 🟢 option first):
 
-## Credential capture (per connector)
+| Group | Options |
+|---|---|
+| Research & observe | 🟢 Research — search, scraping, docs · Observability — errors and performance |
+| Build & ship | 🟢 Backend — database, auth, storage · Hosting — deploys and previews · Cache / Queue — Redis and Kafka · Billing — payments |
+| Team & comms | 🟢 Tasks — issues and projects · Knowledge — pages and databases · Comms — channels and threads · Email — sending and inboxes |
+| Automate & design | 🟢 Automation — browsers and app actions · Design — files and components · Agent harness — external agent CLI |
 
-**Never paste secrets into chat — they land in the session transcript.** The agent's Bash tool must never be the thing that reads or types the secret either — anything the agent runs is also transcript-visible. Instead, the user runs ONE terminal command **themselves**, in their own shell, that prompts for the value with hidden input and writes it straight to disk. The agent never sees the credential.
+With `stripe` in `package.json`, Billing takes the 🟢 in Build & ship and is listed first.
 
-After user picks a specific connector, echo the command template below (with `<name>` and `<kind>` filled in for that connector), then wait for a "Done" click — do not ask the user to paste anything back.
+**Level 3, connectors per category** (header "Connector"; 🟢 option first; one-connector categories skip the picker):
 
-### Command template (OAuth callback tokens AND API keys — same mechanism)
+| Category | Connector options |
+|---|---|
+| Backend | 🟢 Supabase [aff] — first-class backend: auth, DB, storage, edge functions; also ships as a Codex plugin · Neon [aff] — serverless Postgres · Postgres — bring your own database |
+| Hosting | 🟢 Vercel [aff] — web deploys, previews · Fly.io [aff] — Docker services · Cloudflare [aff] — Workers, Pages, R2, D1 |
+| Cache / Queue | Upstash [aff] — serverless Redis and Kafka (only option) |
+| Billing | Stripe — payments, subscriptions, invoices (only option) |
+| Tasks | 🟢 Linear — issues, projects, cycles (first-class Commander integration) · GitHub — issues and PRs |
+| Knowledge | Notion — pages, databases, comments (only option) |
+| Comms | 🟢 Slack — channels, threads · Discord — community server |
+| Email | 🟢 Resend [aff] — transactional email · AgentMail — agent-native inbox |
+| Research | 🟢 Tavily — web search · Firecrawl — scraping to markdown · Exa — neural search · Context7 — live library docs (already bundled; nothing to wire) |
+| Observability | Sentry [aff] — errors, performance, releases (only option) |
+| Automation | 🟢 Playwright — local browser automation, no credential · Browserbase [aff] — remote headless browsers · Zapier — app actions · n8n — self-hosted workflows |
+| Design | Figma — files, components, comments (only option) |
+| Agent harness | acpx — bring-your-own agent harness; install-only, no MCP wiring (only option) |
 
-```bash
-mkdir -p ~/.claude/commander/connections && \
-read -s -p "Paste your <Connector> credential (input hidden, nothing echoed): " CCC_SECRET && echo && \
-printf '%s' "$CCC_SECRET" | node -e 'const fs=require("fs");let s="";process.stdin.on("data",d=>s+=d).on("end",()=>fs.writeFileSync(process.env.HOME+"/.claude/commander/connections/<name>.json",JSON.stringify({name:"<name>",kind:"<oauth|api-key>",credential:s,createdAt:new Date().toISOString(),tier:"free"},null,2)+"\n"))' && \
-chmod 600 ~/.claude/commander/connections/<name>.json && \
-unset CCC_SECRET && \
-echo "Saved ~/.claude/commander/connections/<name>.json (chmod 600)."
-```
+Supabase is the default backend for `/ccc-build` SaaS scaffolds: always list it first with 🟢 in Backend.
 
-`read -s` hides the input from the terminal and — unlike `export TOKEN=...` — never lands in shell history, because it's a `read` prompt, not a command line containing the secret. The value reaches `node` on **stdin** and is written via `JSON.stringify`, so credentials containing quotes, backslashes, or newlines cannot corrupt the JSON file.
+**Arguments:** a category name (`tasks`, `backend`, `hosting`, `cache`, `knowledge`, `comms`, `observability`, `billing`, `automation`, `agent-harness`, `email`, `research`, `design`) opens its level-3 picker; `productivity` opens a level-2 picker with 🟢 Tasks, Knowledge, Comms; `dev` opens a level-2 picker with 🟢 Backend, Hosting, Observability, Billing; no argument opens level 1.
 
-### OAuth connectors (GitHub, Slack, Notion, Linear, Google Drive, Figma, Discord)
+**Install picker** (header "Install"): 🟢 **Install now** (runs the one install command shown) · **Show the command only** (the user runs it) · **Cancel**.
 
-Echo:
-> 🔐 <Connector> uses OAuth. Visit this URL to authorize: https://<auth-url> — copy the callback token, then run this in your terminal (I'll never see the value):
->
-> ```bash
-> <command template above, kind=oauth>
-> ```
->
-> Click **Done** below once it's saved.
+**Credential picker** (Path S, header "Credential"): 🟢 **Done — saved** (continue to wiring) · **Cancel**.
 
-Offer an `AskUserQuestion` with a single "Done" option (plus "Cancel") — do not proceed to the MCP-wiring step until the user confirms.
+**Follow-up picker** (header "Next"): 🟢 **Connect another** · **Show everything connected** · **Done**.
 
-### API-key connectors (Tavily, Firecrawl, Exa, Supabase, Cloudflare, Sentry, Zapier, n8n, Stripe, Resend, Upstash, Neon, Browserbase, AgentMail, Postgres)
+## Done when
 
-Echo:
-> 🔑 <Connector> uses an API key.
-> 1. Get one at https://<keys-url>
-> 2. Run this in your terminal (I'll never see the value):
->
-> ```bash
-> <command template above, kind=api-key>
-> ```
->
-> Click **Done** below once it's saved.
+- `claude mcp get <name>` (or `claude mcp list`) shows the server, or `claude plugin list --json` shows the plugin enabled, and the result was reported as observed.
+- For Path S, `ls -l ~/.claude/commander/connections/<name>.json` shows `-rw-------`.
+- The user was told how to load the new tools (`/mcp reconnect all` or a restart).
 
-Offer an `AskUserQuestion` with a single "Done" option (plus "Cancel") — do not proceed to the MCP-wiring step until the user confirms.
+## Guardrails
 
-## Writing the config (after the user clicks "Done")
+- Installing a plugin or MCP server changes the user's configuration: only on a click in this conversation, never automatically.
+- Never ask for, accept, echo or log a secret in chat, and never run a command that contains one. If a user pastes a secret anyway, tell them to rotate it.
+- Never pass a secret with `--config` or `-e KEY=value` in a command the assistant runs; secrets go through `/plugin` configure, `--values-stdin` from the user's terminal, OAuth, or the capture file.
+- Never write a secret into a git-tracked file or a project `.mcp.json`; reference `${ENV_VAR}` there instead.
+- Never use a command marked TBD; link the vendor's official docs.
+- Never treat acpx as an MCP server: no `claude mcp add acpx`, no acpx credential file.
+- Always show the affiliate disclosure before an `[aff]` connector is installed.
+- Suggest at most five new servers in one session; each adds tools to load. `/ccc-xray context` measures plugin cost.
 
-The secret file is **already written** — the user's own terminal command from the credential-capture step above created `~/.claude/commander/connections/<name>.json` (chmod 600) directly. Do not re-write it, and do not ask the user to repeat the value; the only remaining step is wiring the MCP entry.
+## See also
 
-### MCP config (wire into Claude Code)
-
-Run: `claude mcp add <name> -- <command> <args>` — the exact command depends on the connector:
-
-| Connector | Install command template |
-|-----------|--------------------------|
-| GitHub | `claude mcp add github -- npx @modelcontextprotocol/server-github` (env `GITHUB_TOKEN`) |
-| Notion | `claude mcp add notion -- npx @notionhq/mcp` (env `NOTION_API_KEY`) |
-| Linear | `claude mcp add linear -- npx @linear/mcp-server` (env `LINEAR_API_KEY`) |
-| Supabase | `claude mcp add supabase -- npx -y @supabase/mcp-server-supabase` (env `SUPABASE_URL`, `SUPABASE_KEY`) |
-| Neon | `claude mcp add neon -- npx -y @neondatabase/mcp-server-neon` (env `NEON_API_KEY`) |
-| Postgres | `claude mcp add postgres -- npx -y @modelcontextprotocol/server-postgres` (env `DATABASE_URL`) |
-| Vercel | `claude mcp add vercel -- npx @vercel/mcp` (env `VERCEL_TOKEN`) — verify before Pro launch |
-| Fly.io | TBD — verify before Pro launch |
-| Cloudflare | `claude mcp add cloudflare -- npx @cloudflare/mcp-server-cloudflare` (env `CLOUDFLARE_API_TOKEN`) |
-| Upstash | `claude mcp add upstash -- npx -y @upstash/mcp-server` (env `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`) |
-| Sentry | `claude mcp add sentry -- npx @sentry/mcp-server` (env `SENTRY_AUTH_TOKEN`) — verify before Pro launch |
-| Stripe | `claude mcp add stripe -- npx @stripe/mcp-server` (env `STRIPE_SECRET_KEY`) — verify before Pro launch |
-| Browserbase | `claude mcp add browserbase -- npx -y @browserbasehq/mcp` (env `BROWSERBASE_API_KEY`) |
-| Resend | TBD — verify before Pro launch |
-| AgentMail | TBD — verify before Pro launch |
-| Figma | `claude mcp add figma -- npx @figma/mcp` (env `FIGMA_TOKEN`) |
-| Tavily | `claude mcp add tavily -- npx @tavily/mcp` (env `TAVILY_API_KEY`) |
-| Firecrawl | `claude mcp add firecrawl -- npx @firecrawl/mcp` (env `FIRECRAWL_API_KEY`) |
-| Exa | `claude mcp add exa -- npx @exa/mcp` (env `EXA_API_KEY`) |
-| Slack | Official Slack MCP (env `SLACK_BOT_TOKEN`) — verify before Pro launch |
-| Discord | Community MCP — verify before Pro launch |
-
-Set env vars via the `--env` flag or ask user to export in shell profile.
-
-## acpx — agent harness (special case, NOT an MCP)
-
-acpx is the **bring-your-own agent-harness** layer. It does not get a credential file or a `claude mcp add` step — it's a globally-installed CLI that CC Commander shells out to for headless agent-to-agent runs.
-
-Flow when the user picks acpx:
-1. Check install: `command -v acpx >/dev/null && acpx --version || echo "not installed"`.
-2. If missing, echo: `npm install -g acpx` and tell the user to run it.
-3. Confirm by name only, then point them at the deeper skills:
-   > ✅ acpx ready — your bring-your-own agent harness. Use the `acpx` skill for prompt/exec/sessions, or `acpx-patterns` for background / parallel / crash-resilient session recipes.
-4. Do NOT write a `~/.claude/commander/connections/acpx.json` file and do NOT add an MCP entry — acpx is driven by skills, not MCP config.
-
-## Verification
-
-After install:
-1. Run `claude mcp list` to confirm it shows up
-2. Render:
-   > ✅ <Connector> connected. Restart your Claude session to pick up the new tools.
-3. Offer follow-up: `AskUserQuestion` — "Connect another?" with yes/no/show-all-connected options.
-
-## Argument handling
-
-- `/ccc-connect tasks` → skip picker, straight to Tasks sub-picker
-- `/ccc-connect backend` → Backend sub-picker (Supabase / Neon / Postgres)
-- `/ccc-connect hosting` → Hosting sub-picker (Vercel / Fly.io / Cloudflare)
-- `/ccc-connect cache` → Cache/Queue sub-picker
-- `/ccc-connect knowledge` → Knowledge sub-picker
-- `/ccc-connect comms` → Comms sub-picker (Slack / Discord)
-- `/ccc-connect observability` → Observability sub-picker
-- `/ccc-connect billing` → Billing sub-picker
-- `/ccc-connect automation` → Automation sub-picker
-- `/ccc-connect agent-harness` → Agent harness sub-picker (acpx — install-only, no MCP wiring)
-- `/ccc-connect email` → Email sub-picker (Resend / AgentMail)
-- `/ccc-connect research` → Research sub-picker (Tavily / Firecrawl / Exa / Context7)
-- `/ccc-connect productivity` → opens Tasks + Knowledge + Comms options
-- `/ccc-connect dev` → opens Backend + Hosting + Observability + Billing options
-- `/ccc-connect design` → Design & Automation sub-picker
-- `/ccc-connect` bare → top-level category picker
-
-## Anti-patterns — DO NOT
-
-- ❌ Install an MCP without user-initiated click — always opt-in
-- ❌ Write credentials to a file that isn't `chmod 600`
-- ❌ Hardcode API keys in MCP config — use env vars or Claude's secret storage
-- ❌ Proceed without confirming the user has the account/key (ask explicitly)
-- ❌ Skip the "restart your session" reminder — MCPs only load at session start
-- ❌ Write secrets to git-tracked files — `.claude/commander/connections/` must be gitignored
-- ❌ Ignore connector-specific rate limits — document them in the "after install" message
-- ❌ Connect >5 MCPs in one session — each adds tools to load, slows startup
-- ❌ Use install commands marked "TBD" — tell user to check the official docs instead
-- ❌ Recommend a backend without prepending ⭐ to Supabase — it's the first-class default
-- ❌ Install an affiliate connector (e.g. Supabase) without showing the affiliate disclosure
-- ❌ Treat acpx like an MCP — never `claude mcp add acpx` and never write an acpx credential file; it's `npm install -g acpx` + the acpx skills only
-
-## Brand rules
-
-- Emoji per connector category: 📋 tasks, 🗄️ backend, 🚀 hosting, ⚡ cache, 📚 knowledge, 💬 comms, 🚨 observability, 💳 billing, 🤖 automation, ✉️ email, 🔬 research, 🎨 design
-- PM Consultant voice: "my call: Supabase first for SaaS — broadest backend utility"
-- Always echo the exact shell command user can paste — never vague
-- Secrets handling: NEVER echo the token back after saving — confirm by name only
-- Affiliate disclosure: rows marked ✅ in CONNECTORS.md may earn CCC a commission — always mention this when installing an affiliate connector
-
-## Tips for the agent executing this skill
-
-1. Whole flow is ≤5 turns: category → connector → credential ask → save + install → verify.
-2. Create `~/.claude/commander/connections/` directory if it doesn't exist (mkdir -p + chmod 700 on the dir).
-3. If `claude mcp add` fails (not installed, wrong version), echo the raw command and tell user to run it manually.
-4. The terminal command is async by design — if the user can't finish the OAuth authorization mid-session, tell them to run the command whenever they have the callback token and click "Done" in a later session; don't write a placeholder credential file.
-5. NEVER log or echo the token after capture — confirm by connector name only.
-6. For connectors marked "TBD — verify before Pro launch", link to the official docs page rather than guessing a command.
-
----
-
-**Bottom line:** category → connector → credential → save (chmod 600) → `claude mcp add` → verify. User clicks at each step. Nothing auto-installs.
-
----
+- `/ccc-linear` — Linear workflows once connected.
+- `/ccc-build` — SaaS scaffolds that default to Supabase.
+- `/ccc-doctor` — diagnose a server that fails to start.
+- `/ccc-xray` — `context` scope inventories each plugin's token cost.
 
 > ⚙️ **Fable contract:** plan before build · verifier ≠ worker · prove before alarm · loops need gates · leave durable state — `rules/fable-method.md`

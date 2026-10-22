@@ -1,52 +1,33 @@
-# Agent Orchestration
+# Agent Selection
 
-## Available Agents
+Which CC Commander agent to reach for. How to brief, isolate, and verify a delegated agent is defined once in `rules/fable-method.md` (Pillars 2, 5, 8); when to delegate at all is in `rules/workflow-first.md`.
 
-Located in `~/.claude/agents/`:
+## Plugin agents
 
-| Agent | Purpose | When to Use |
-|-------|---------|-------------|
-| planner | Implementation planning | Complex features, refactoring |
-| architect | System design | Architectural decisions |
-| tdd-guide | Test-driven development | New features, bug fixes |
-| code-reviewer | Code review | After writing code |
-| security-reviewer | Security analysis | Before commits |
-| build-error-resolver | Fix build errors | When build fails |
-| e2e-runner | E2E testing | Critical user flows |
-| refactor-cleaner | Dead code cleanup | Code maintenance |
-| doc-updater | Documentation | Updating docs |
+The plugin ships its agents in `commander/cowork-plugin/agents/`. Read that directory for the current set; each agent's frontmatter names its model tier and tools.
 
-## Immediate Agent Usage
+| Need | Agent |
+|---|---|
+| System design, trade-offs, technology selection | `architect` |
+| Feature implementation against a plan | `builder` |
+| Root-cause debugging | `debugger` |
+| Code review (general) | `reviewer`; language-specific `*-reviewer` agents for TypeScript, Python, Go, Rust, Java, Kotlin, C# |
+| Security audit, threat model | `security-auditor` |
+| Test suites, coverage, edge cases | `qa-engineer` |
+| CI/CD, infrastructure, deploys | `devops-engineer` |
+| Hot paths and profiling (read-only) | `performance-engineer` |
+| UI/UX design and frontend polish | `designer` |
+| Research and competitive analysis | `researcher` |
+| Data exploration and analysis | `data-analyst` |
+| Specs, PRDs, user stories | `product-manager` |
+| Documentation | `technical-writer` |
+| Marketing and content | `content-strategist` |
+| One scoped item in a parallel batch | `fleet-worker` |
 
-No user prompt needed:
-1. Complex feature requests - Use **planner** agent
-2. Code just written/modified - Use **code-reviewer** agent
-3. Bug fix or new feature - Use **tdd-guide** agent
-4. Architectural decision - Use **architect** agent
+## Choosing well
 
-## Parallel Task Execution
-
-Use parallel Task execution for independent operations — but only when the combined work is large enough to be worth the spawn overhead. Opus 5 over-delegates without this check; a handful of tool calls done inline beats three agents spun up to do the same thing.
-
-```markdown
-# GOOD: Parallel execution (large, genuinely independent work)
-Launch 3 agents in parallel:
-1. Agent 1: Security analysis of auth module
-2. Agent 2: Performance review of cache system
-3. Agent 3: Type checking of utilities
-
-# BAD: Sequential when unnecessary
-First agent 1, then agent 2, then agent 3
-
-# ALSO BAD: spawning agents for what fits in a handful of tool calls
-Don't launch a subagent to read one file and fix a typo.
-```
-
-## Multi-Perspective Analysis
-
-For complex problems, use split role sub-agents:
-- Factual reviewer
-- Senior engineer
-- Security expert
-- Consistency reviewer
-- Redundancy checker
+- Prefer the narrowest agent that owns the task. A language reviewer beats the general reviewer when the diff is one language.
+- Read-only agents (`performance-engineer`, `researcher`, `data-analyst`) are safe to run in parallel with a writer; writers need non-overlapping file domains.
+- Use a verifier that did not do the work: `reviewer` or `security-auditor` checks `builder` output, never `builder` itself.
+- For an important or expensive-to-reverse decision, run a dialectic: one agent argues for, one against, and a referee (often the orchestrator) decides with a 🟢 call.
+- Agent availability is session-specific. Confirm the agent is exposed before relying on it; fall back to inline work or `codex exec --json` when it is not.

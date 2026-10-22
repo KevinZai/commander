@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: ccc-update
+description: The update walkthrough checks installed versus latest and does not claim an update it did not run.
+tags: [skill:ccc-update, update]
+execution:
+  prompt: Is my CC Commander plugin up to date? Check, but do not install anything yet.
+  max_turns: 15
+  timeout_seconds: 240
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion]
+graders:
+  - type: tool_used
+    name: update-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-update"'
+  - type: regex
+    name: mentions-version-or-update
+    pattern: 'version|up to date|update available|latest'
+    flags: i
+  - type: regex
+    name: no-claimed-install
+    pattern: '(successfully|now) (updated|installed)'
+    flags: i
+    match: not_contains

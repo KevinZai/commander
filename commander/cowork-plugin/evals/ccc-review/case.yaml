@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: ccc-review
+description: The review flow routes a pre-PR review request and reports on the branch diff (an empty sandbox repo has no diff).
+tags: [skill:ccc-review, review]
+execution:
+  prompt: Review my current branch with CC Commander before I open a pull request.
+  max_turns: 15
+  timeout_seconds: 240
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion, Bash(git:*)]
+graders:
+  - type: tool_used
+    name: review-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-review"'
+  - type: regex
+    name: talks-about-diff-or-findings
+    pattern: 'diff|finding|branch|no changes|nothing to review|commit'
+    flags: i
+  - type: regex
+    name: no-fake-approval
+    pattern: 'LGTM|looks good to merge|approved for merge'
+    flags: i
+    match: not_contains

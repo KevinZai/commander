@@ -1,113 +1,95 @@
 ---
 name: ccc-claudemd
-description: "Audit the project CLAUDE.md against the codebase — stale paths, dead commands, token waste — fixes applied only after AskUserQuestion approval. Use when: 'audit claude md', 'optimize instructions'."
+description: "Audit a project CLAUDE.md against the real codebase for stale paths, dead commands, missing context and token waste, then apply fixes only after picker approval. Use when asking to audit, clean up or optimize CLAUDE.md or project instructions, or when the suggest engine flags it as stale."
 allowed-tools:
   - Read
+  - Write
+  - Edit
   - Bash
   - Glob
   - Grep
-  - Edit
   - AskUserQuestion
 argument-hint: "[check | fix | report]"
+model: sonnet
+effort: medium
 ---
 
-# $ccc-claudemd — CLAUDE.md Auditor
+# $ccc-claudemd — Keep instructions honest
 
-Compares the project's CLAUDE.md instructions against the real state of the codebase and proposes concrete fixes. **Nothing is edited without explicit AskUserQuestion approval** — the permission ask is native to this flow.
+**CC Commander** · $ccc-claudemd · a verified audit of CLAUDE.md, and edits only after you approve them
 
-**CC Commander** · $ccc-claudemd · Keep your instructions honest
+## When to use / when not to
 
-> The ambient suggest engine recommends this skill when `claudeMdAgeDays > 30` (from the per-project state at `~/.claude/commander/projects/<slug>/project-state.json` — locate it with `ls -d ~/.claude/commander/projects/$(basename "$PWD")-*`; the flat pre-v7.3.0 path is no longer written). If the project has NO CLAUDE.md at all, route to `$ccc-adopt` instead — it owns the create flow (diff preview → approval → backup → delimited write).
+- Use when CLAUDE.md may have drifted from the tree. The suggest engine recommends this skill when `claudeMdAgeDays` exceeds 30, read from the per-project state at `~/.claude/commander/projects/<slug>/project-state.json` (find it with `ls -d ~/.claude/commander/projects/$(basename "$PWD")-*`).
+- No CLAUDE.md at all: route to `$ccc-adopt`, which owns the create flow (diff preview, approval, backup, delimited write). This skill never creates one.
+- For older-model prompting patterns across CLAUDE.md, skills, agents and commands, the user can also run `/doctor prompt-audit` in Claude Code; this skill checks factual drift against the tree.
+- `$ARGUMENTS`: `check` runs steps 1–3 and prints findings; `report` also writes the report file; `fix` runs the full flow including the approval picker. No argument means `fix`.
 
-## What It Checks
+## What it checks
 
-### 1. Stale References
-- File paths mentioned in CLAUDE.md that no longer exist
-- Commands referenced that aren't in package.json scripts (or Makefile/justfile targets)
-- Dependencies mentioned that aren't in package.json / pyproject.toml / Cargo.toml
-- Tool/framework references that don't match installed versions
-- Counts and version strings that drifted from reality (prove before alarm — verify each against the live tree before flagging)
+1. **Stale references.** Paths that no longer exist; commands missing from `package.json` scripts, Makefile or justfile targets; dependencies absent from `package.json`, `pyproject.toml` or `Cargo.toml`; framework references that do not match installed versions; counts and version strings that drifted.
+2. **Missing context.** Undocumented key directories (`src/`, `lib/`, `tests/`); unmentioned package scripts; environment variables used in code but not documented (names only, never values); configured MCP servers not referenced; git hooks or CI workflows not mentioned.
+3. **Cache order.** Static content first and dynamic last; frequently used paths near the top; file under 500 lines; duplicate instructions.
+4. **Token efficiency.** Verbose instructions that can be condensed; commented-out or TODO sections; path listings that a glob covers; long example blocks.
 
-### 2. Missing Context
-- Key directories not documented (src/, lib/, tests/)
-- Package.json scripts not mentioned
-- Environment variables used in code but not documented
-- MCP servers configured but not referenced
-- Git hooks or CI workflows not mentioned
+## What happens
 
-### 3. Cache Optimization
-- Is static content first, dynamic last? (cache-friendly ordering)
-- Are frequently-referenced paths at the top?
-- Is the file under 500 lines? (diminishing returns above this)
-- Are there duplicate instructions that waste tokens?
+1. **Read CLAUDE.md** at the project root in full. If it does not exist, stop and offer `$ccc-adopt` with AskUserQuestion (🟢 Run $ccc-adopt · Cancel).
+2. **Scan the codebase** in one Bash call, silent on failure:
+   ```bash
+   ls -la package.json tsconfig.json pyproject.toml Cargo.toml Makefile justfile Dockerfile docker-compose.yml 2>/dev/null
+   ls -d src/ lib/ tests/ app/ pages/ components/ .github/workflows/ .husky/ 2>/dev/null
+   node -e "console.log(Object.keys(require('./package.json').scripts||{}).join(', '))" 2>/dev/null
+   node -e "const p=require('./package.json');console.log(Object.keys({...p.dependencies,...p.devDependencies}).join(', '))" 2>/dev/null
+   ls .env* 2>/dev/null   # names only; never read or print .env contents
+   wc -l CLAUDE.md
+   ```
+3. **Cross-reference.** For each claim in CLAUDE.md, run the check that proves it: `test -e <path>` for paths, the scripts list for commands, Grep for symbols and env-var names. Mark each finding **CONFIRMED** (check ran and failed, with the command) or **INFERRED** (likely, not proven, for example "probably renamed to X"). Drop anything you did not check. Skip historical sections (changelogs, dated decisions); only current-state claims are in scope.
+4. **Report.** Print a markdown summary with four groups (stale references, missing context, cache order, token savings) and, per finding, its evidence line and status. Estimate token savings as removed characters divided by 4 and say that is the method.
+5. **Approval gate.** Ask the picker below. Never edit before an answer that allows it.
+6. **Apply.** If CLAUDE.md is not tracked by git (`git ls-files --error-unmatch CLAUDE.md` fails), first copy it to `CLAUDE.md.bak-<YYYYMMDD>`. In walk-through mode, ask one AskUserQuestion per fix showing the exact before and after (🟢 Apply · Skip · Stop), then Edit. In apply-all mode, Edit only CONFIRMED findings.
+7. **Report the result** with the checks in Done when.
 
-### 4. Token Efficiency
-- Verbose instructions that could be condensed
-- Commented-out or TODO sections wasting context
-- Redundant path listings that could use glob patterns
-- Long example blocks that could be shortened
-
-## Process
-
-### Step 1: Read CLAUDE.md
-Read the project's CLAUDE.md file completely. If it doesn't exist, stop and offer `$ccc-adopt` via AskUserQuestion — do not create one here.
-
-### Step 2: Scan Codebase
-Use Glob and Bash to check (one parallel Bash call, silent on failure):
-```bash
-# Files that exist
-ls -la package.json tsconfig.json .env* Dockerfile docker-compose.yml
-# Package scripts
-node -e "console.log(Object.keys(require('./package.json').scripts || {}).join(', '))"
-# Key directories
-ls -d src/ lib/ tests/ app/ pages/ components/ 2>/dev/null
-# Installed deps
-node -e "var p=require('./package.json'); console.log(Object.keys({...p.dependencies,...p.devDependencies}).join(', '))"
-```
-
-### Step 3: Cross-Reference
-For each instruction in CLAUDE.md:
-- Does the referenced file/path exist?
-- Does the referenced command work?
-- Is the information current?
-
-Only report a finding you actually verified against the tree (run the check, don't pattern-match). Distinguish **observed** ("path missing, confirmed via ls") from **inferred** ("probably renamed").
-
-### Step 4: Report + approval gate (AskUserQuestion — MANDATORY before any edit)
-
-Present the audit summary as markdown (stale references / missing context / cache optimization / token savings estimate, each finding with its evidence), then ask via `AskUserQuestion`:
+## Decision points
 
 ```
-question: "CLAUDE.md audit found <N> issues (~<T> tokens/session wasted). How should I proceed?"
-header: "CLAUDE.md Auditor"
+question: "CLAUDE.md audit found N issues (about T tokens per session). How should I proceed?"
+header: "CLAUDE.md"
 multiSelect: false
 options:
-  - label: "🔍 Show me each fix first"
-    description: "Walk through every proposed edit one at a time — approve or skip each."
-    preview: "Safest. One AskUserQuestion per fix, with the exact before/after diff."
-  - label: "✅ Apply all safe fixes"
-    description: "Apply the verified stale-reference removals and dead-command fixes in one pass."
-    preview: "Only findings marked CONFIRMED. A summary diff is shown after."
-  - label: "📄 Export report only"
-    description: "Write the audit to tasks/reviews/claudemd-audit-<YYYYMMDD>.md — no edits."
-    preview: "Zero writes to CLAUDE.md."
+  - label: "🟢 Show me each fix first"
+    description: "One approval per edit, with the exact before and after. Safest."
+  - label: "✅ Apply all confirmed fixes"
+    description: "Edits only CONFIRMED findings in one pass; a summary diff follows."
+  - label: "📝 Export report only"
+    description: "Writes tasks/reviews/claudemd-audit-YYYYMMDD.md. Zero edits to CLAUDE.md."
   - label: "❌ Cancel"
     description: "Do nothing."
 ```
 
-**Never edit CLAUDE.md without one of the first two answers.** In "show me each" mode, every Edit is preceded by its own approval chip. After edits land, re-read the file and show the final line-count + token-savings delta.
+In Codex, ask the same four choices as a plain-text question and wait for the answer.
 
-## Anti-patterns — DO NOT
+## Done when
 
-- ❌ Edit CLAUDE.md before the AskUserQuestion approval gate — the permission ask is the whole point
-- ❌ Flag a "stale" reference you didn't verify against the live tree (no scary counts without a method line)
-- ❌ Create a CLAUDE.md when none exists — that's `$ccc-adopt`'s job
-- ❌ Rewrite historical sections (changelogs, dated decisions) — only current-state claims are in scope
-- ❌ Render fixes as a numbered "type 1/2/3" list — AskUserQuestion chips only
+- After edits: CLAUDE.md is re-read, and `wc -l CLAUDE.md` plus `git diff --stat CLAUDE.md` (or a diff against the backup) are shown with the before and after line counts and the token delta.
+- After export: `test -f tasks/reviews/claudemd-audit-<YYYYMMDD>.md` succeeds (create `tasks/reviews/` if missing) and the path is printed.
+- Every reported finding carries its evidence line and CONFIRMED or INFERRED status.
 
----
+## Guardrails
 
-**Bottom line:** read → scan → cross-reference → report → **ask** → fix. Your CLAUDE.md stays honest, and it never changes without your click.
+- Never edits CLAUDE.md before the approval picker returns "Show me each fix first" or "Apply all confirmed fixes".
+- Never flags a stale reference it did not verify against the live tree; every count in the report states its method.
+- Never creates a CLAUDE.md; that is `$ccc-adopt`.
+- Never rewrites historical sections.
+- Never reads or prints secret values; environment variables are reported by name only.
+- Never commits or pushes; that needs separate authorization.
+
+## See also
+
+- `$ccc-adopt` — create a CLAUDE.md for a project that has none
+- `$ccc-memory` — decide what belongs in CLAUDE.md versus other memory tiers
+- `$ccc-prompt-fix` — tighten a single prompt
+- `$ccc-doc-sync` — count and version drift in Commander's own docs
 
 ---
 

@@ -1,106 +1,149 @@
 export const meta = {
   name: 'ccc-fleet',
-  description: 'CC Commander parallel fleet — fan-out (slices in parallel), pipeline (sequential stages), judge (N independent attempts scored by a panel), or debate (adversarial multi-lens cross-examination).',
-  whenToUse: 'General multi-agent orchestration. mode=fanout for divisible work, pipeline for staged work, judge for a high-stakes decision worth several attempts, debate for stress-testing a design/diff from distinct adversarial lenses.',
+  description: 'Parallel fleet: fan-out slices with independent verifiers, sequential stage chains, a judge panel of independent attempts, or a multi-lens adversarial debate.',
+  whenToUse: 'General multi-agent orchestration. mode=fanout for divisible work, pipeline for staged work, judge for a high-stakes decision worth several attempts, debate for stress-testing a design or diff.',
   phases: [
     { title: 'Fleet', detail: 'dispatch the chosen pattern' },
-    { title: 'Synthesize', detail: 'merge / score the results' },
+    { title: 'Synthesize', detail: 'verify, score, or judge the results' },
   ],
 }
 
-// args (required): { mode: 'fanout'|'pipeline'|'judge'|'debate', tasks: string[] (fanout/pipeline) | task: string (judge/debate), attempts?: number, lenses?: string[] (debate), rounds?: number (debate) }
-if (!args || !args.mode) throw new Error("ccc-fleet requires args: { mode, tasks|task }")
+// args (required):
+//   mode: 'fanout' | 'pipeline' | 'judge' | 'debate'
+//   tasks?: string[]    fanout: non-overlapping slices; pipeline: ordered stages (2 or more)
+//   task?: string       judge and debate: the question or artifact under review
+//   attempts?: number   judge: independent attempts, 2-5 (default 3)
+//   lenses?: string[]   debate: lenses (default security, performance, contrarian)
+//   rounds?: number     debate: cross-examination rounds, 1-3 (default 2)
+if (!args || !args.mode) throw new Error('ccc-fleet requires args: { mode, tasks | task }')
 const mode = args.mode
+const asText = (r) => (typeof r === 'string' ? r : JSON.stringify(r))
+
+const SLICE_VERDICT = {
+  type: 'object',
+  required: ['refuted', 'reason'],
+  properties: {
+    refuted: { type: 'boolean', description: 'true unless the claimed change was confirmed in the files and tests' },
+    reason: { type: 'string' },
+  },
+}
 
 phase('Fleet')
 
 if (mode === 'fanout') {
-  const tasks = args.tasks || []
+  const tasks = Array.isArray(args.tasks) ? args.tasks : []
   if (!tasks.length) throw new Error('fanout requires args.tasks: string[]')
-  log(`Fan-out: ${tasks.length} parallel slices`)
-  // Failed slices are SURFACED, never silently dropped — SKILL.md promises this.
-  const results = await parallel(tasks.map((t, i) => () =>
-    agent(`Slice ${i + 1} of a fan-out job. Work ONLY on this slice (non-overlapping with the others): ${t}. Report files changed. Do NOT self-certify — an independent verifier checks your slice.`,
-      { label: `slice-${i + 1}`, phase: 'Fleet', isolation: 'worktree' })
-      .then(r => ({ slice: i + 1, task: t, result: r }))
-      .catch(err => ({ slice: i + 1, task: t, failed: true, error: (err && err.message) || String(err) }))
-  ))
-
-  phase('Synthesize')
-  // Verifier ≠ worker: fresh refute-framed agent per completed slice before synthesis.
-  const verified = await parallel(results.map(r => () => {
-    if (r.failed) return Promise.resolve(r)
-    return agent(
-      `You are an independent verifier — you did NOT do this work. A fan-out slice claims to have completed: ${r.task}\nSlice report:\n${typeof r.result === 'string' ? r.result : JSON.stringify(r.result)}\nActively try to REFUTE the claim: check the reported files actually changed as described and run/inspect the relevant tests. Report verified plus a one-line verdict.`,
-      { label: `verify-slice-${r.slice}`, phase: 'Synthesize', agentType: 'Explore' }
-    ).then(v => ({ ...r, verification: typeof v === 'string' ? v : JSON.stringify(v) }))
-     .catch(() => ({ ...r, verification: 'verifier error — treat slice as unverified' }))
-  }))
-  const failed = verified.filter(r => r.failed)
-  if (failed.length) log(`⚠️ ${failed.length}/${tasks.length} slices failed — surfaced in results`)
-  return { mode, slices: tasks.length, failed: failed.length, results: verified }
+  log(`Fan-out: ${tasks.length} slices, each verified as soon as it finishes`)
+  // Slices mutate files concurrently, so each runs in its own worktree.
+  // Failed slices are surfaced in the result, never dropped.
+  const results = await pipeline(
+    tasks,
+    (t, _item, i) => agent(
+      `Slice ${i + 1} of ${tasks.length}. Work only on this slice; other agents own the rest: ${t}\n` +
+      'Report the worktree path (`git rev-parse --show-toplevel`), the branch, every file you changed, and the check you ran. ' +
+      'Do not grade your own work; an independent verifier checks it.',
+      { label: `slice-${i + 1}`, phase: 'Fleet', isolation: 'worktree', effort: 'medium' }
+    ).then(r => (r === null ? { slice: i + 1, task: t, failed: true, error: 'agent returned no result' } : { slice: i + 1, task: t, result: asText(r) })),
+    (r) => {
+      if (r.failed) return r
+      return agent(
+        `You did not do this work. A fan-out slice claims it completed: ${r.task}\nSlice report:\n${r.result}\n` +
+        'Try to refute the claim: open the reported worktree, confirm each file changed as described, and run the relevant tests. ' +
+        'If anything is missing or you cannot confirm it, answer refuted=true.',
+        { label: `verify-slice-${r.slice}`, phase: 'Synthesize', schema: SLICE_VERDICT, effort: 'high' }
+      ).then(v => ({ ...r, verified: !!v && v.refuted === false, verification: v ? v.reason : 'verifier failed; slice unverified' }))
+    }
+  )
+  const rows = results.map((r, i) => r || { slice: i + 1, task: tasks[i], failed: true, error: 'stage threw' })
+  const failed = rows.filter(r => r.failed)
+  const unverified = rows.filter(r => !r.failed && !r.verified)
+  if (failed.length) log(`${failed.length}/${tasks.length} slices failed; surfaced in results`)
+  if (unverified.length) log(`${unverified.length}/${tasks.length} slices did not survive verification`)
+  return { mode, slices: tasks.length, failed: failed.length, unverified: unverified.length, results: rows }
 }
 
 if (mode === 'pipeline') {
-  const stages = args.tasks || []
-  if (stages.length < 2) throw new Error('pipeline requires args.tasks: string[] (>=2 stages)')
-  log(`Pipeline: ${stages.length} sequential stages`)
+  const stages = Array.isArray(args.tasks) ? args.tasks : []
+  if (stages.length < 2) throw new Error('pipeline requires args.tasks: string[] with 2 or more stages')
+  log(`Pipeline: ${stages.length} sequential stages in the current tree`)
+  // Stages run one after another and build on each other's edits, so no worktree isolation.
   let carry = ''
   const out = []
   for (let i = 0; i < stages.length; i++) {
-    const r = await agent(`Pipeline stage ${i + 1}/${stages.length}: ${stages[i]}${carry ? `\n\nPrior stage output:\n${carry}` : ''}`,
-      { label: `stage-${i + 1}`, phase: 'Fleet', isolation: 'worktree' })
-    carry = typeof r === 'string' ? r : JSON.stringify(r)
+    const r = await agent(
+      `Pipeline stage ${i + 1} of ${stages.length}: ${stages[i]}` +
+      (carry ? `\n\nPrevious stage report:\n${carry}` : '') +
+      '\n\nReport what you changed and the check you ran.',
+      { label: `stage-${i + 1}`, phase: 'Fleet', effort: 'medium' }
+    )
+    if (r === null) {
+      log(`Stage ${i + 1} failed; stages ${i + 2}-${stages.length} not run`)
+      out.push({ stage: i + 1, failed: true })
+      return { mode, stages: stages.length, completed: i, out }
+    }
+    carry = asText(r)
     out.push({ stage: i + 1, result: r })
   }
-  return { mode, stages: stages.length, out }
+  phase('Synthesize')
+  const check = await agent(
+    `You did not do this work. A ${stages.length}-stage pipeline claims it completed:\n` +
+    stages.map((s, i) => `${i + 1}. ${s}`).join('\n') + `\n\nFinal stage report:\n${carry}\n` +
+    'Try to refute that every stage landed: inspect the changed files and run the relevant tests. If you cannot confirm it, answer refuted=true.',
+    { label: 'verify-pipeline', phase: 'Synthesize', schema: SLICE_VERDICT, effort: 'high' }
+  )
+  return { mode, stages: stages.length, completed: stages.length, verified: !!check && check.refuted === false, verification: check ? check.reason : 'verifier failed', out }
 }
 
 if (mode === 'judge') {
   const task = args.task
   if (!task) throw new Error('judge requires args.task: string')
   const N = Math.max(2, Math.min(5, args.attempts || 3))
-  const ANGLES = ['MVP-first / simplest thing that works', 'risk-first / what could go wrong', 'user-first / best end-to-end experience', 'performance-first', 'maintainability-first']
+  const ANGLES = ['MVP-first: the simplest thing that works', 'risk-first: what could go wrong', 'user-first: the best end-to-end experience', 'performance-first', 'maintainability-first']
   log(`Judge panel: ${N} independent attempts`)
+  // Barrier: the referee compares every attempt side by side.
   const attempts = await parallel(Array.from({ length: N }, (_, i) => () =>
-    agent(`Propose an approach to: ${task}. Lens: ${ANGLES[i % ANGLES.length]}. Be concrete and concise.`,
-      { label: `attempt-${i + 1}`, phase: 'Fleet' }).catch(() => null)
+    agent(`Propose an approach to: ${task}\nLens: ${ANGLES[i % ANGLES.length]}. Be concrete and brief.`,
+      { label: `attempt-${i + 1}`, phase: 'Fleet', effort: 'medium' })
   ))
   const valid = attempts.filter(Boolean)
+  if (valid.length < N) log(`${N - valid.length}/${N} attempts failed; judging ${valid.length}`)
+  if (!valid.length) return { mode, attempts: 0, judged: null }
   phase('Synthesize')
   const VERDICT = { type: 'object', required: ['winner', 'rationale'], properties: { winner: { type: 'number' }, rationale: { type: 'string' }, synthesis: { type: 'string' } } }
   const judged = await agent(
-    `You are the referee. Here are ${valid.length} independent approaches to "${task}":\n` +
-    valid.map((a, i) => `\n--- Attempt ${i + 1} ---\n${typeof a === 'string' ? a : JSON.stringify(a)}`).join('\n') +
-    `\n\nPick the strongest (winner = its 1-based index), explain why, and write a synthesis that grafts the best ideas from the runners-up.`,
-    { label: 'referee', phase: 'Synthesize', schema: VERDICT })
+    `You are the referee. ${valid.length} independent approaches to "${task}":\n` +
+    valid.map((a, i) => `\n--- Attempt ${i + 1} ---\n${asText(a)}`).join('\n') +
+    '\n\nFor each attempt, name its weakest assumption first. Then pick the strongest (winner = 1-based index), explain why, and write a synthesis that grafts the best ideas from the runners-up.',
+    { label: 'referee', phase: 'Synthesize', schema: VERDICT, effort: 'high' })
   return { mode, attempts: valid.length, judged }
 }
 
 if (mode === 'debate') {
   const task = args.task
   if (!task) throw new Error('debate requires args.task: string')
-  const lenses = (args.lenses && args.lenses.length) ? args.lenses : ['security', 'performance', 'contrarian']
+  const lenses = (Array.isArray(args.lenses) && args.lenses.length) ? args.lenses : ['security', 'performance', 'contrarian']
   const rounds = Math.max(1, Math.min(3, args.rounds || 2))
-  log(`Debate: ${lenses.length} lenses × ${rounds} round(s)`)
+  log(`Debate: ${lenses.length} lenses x ${rounds} round(s)`)
 
-  // Round 1: each lens argues independently, blind to the others.
-  let positions = await parallel(lenses.map((lens, i) => () =>
+  // Round 1: each lens argues blind to the others.
+  let positions = await parallel(lenses.map(lens => () =>
     agent(
-      `Adversarially argue about: ${task}\nYour lens: ${lens}. Take the strongest position from this lens — concrete objections, risks, or requirements it implies. Be specific (cite file:line where relevant). This is round 1 of ${rounds} — you have not seen the other lenses' arguments yet.`,
-      { label: `${lens}-r1`, phase: 'Fleet' }
-    ).then(r => ({ lens, text: typeof r === 'string' ? r : JSON.stringify(r) })).catch(() => ({ lens, text: '(no response)' }))
+      `Argue adversarially about: ${task}\nYour lens: ${lens}. Take the strongest position from this lens: concrete objections, risks, or requirements, citing path:line where relevant. ` +
+      `Round 1 of ${rounds}; you have not seen the other lenses.`,
+      { label: `${lens}-r1`, phase: 'Fleet', effort: 'medium' }
+    ).then(r => ({ lens, text: r === null ? '(no response)' : asText(r) }))
   ))
 
-  // Rounds 2..N: cross-examine — each lens sees every other lens's prior-round position and
-  // either concedes, sharpens its objection, or rebuts. Weak claims should die here.
+  // Rounds 2..N need every lens's previous position, so each round is a barrier.
   for (let round = 2; round <= rounds; round++) {
     const summary = positions.map(p => `--- ${p.lens} (round ${round - 1}) ---\n${p.text}`).join('\n\n')
+    const prior = positions
     positions = await parallel(lenses.map((lens, i) => () =>
       agent(
-        `You are the ${lens} lens in an adversarial debate about: ${task}\n\nAll lenses' round ${round - 1} positions:\n${summary}\n\nCross-examine the OTHER lenses' positions from your ${lens} viewpoint. For each: concede if it's actually stronger than your objection, sharpen your own objection if it survives scrutiny, or explicitly withdraw a weak claim. Round ${round} of ${rounds}.`,
-        { label: `${lens}-r${round}`, phase: 'Fleet' }
-      ).then(r => ({ lens, text: typeof r === 'string' ? r : JSON.stringify(r) })).catch(() => ({ lens, text: positions[i]?.text || '(no response)' }))
+        `You are the ${lens} lens in an adversarial debate about: ${task}\n\nRound ${round - 1} positions:\n${summary}\n\n` +
+        `Cross-examine the other lenses from your ${lens} viewpoint. Concede where their point is stronger, sharpen objections that survive, and withdraw weak claims explicitly. Round ${round} of ${rounds}.`,
+        { label: `${lens}-r${round}`, phase: 'Fleet', effort: 'medium' }
+      ).then(r => ({ lens, text: r === null ? (prior[i] && prior[i].text) || '(no response)' : asText(r) }))
     ))
   }
 
@@ -115,12 +158,13 @@ if (mode === 'debate') {
       rationale: { type: 'string' },
     },
   }
-  const finalPositions = positions.map(p => `--- ${p.lens} (final position) ---\n${p.text}`).join('\n\n')
+  const finalPositions = positions.map(p => `--- ${p.lens} (final) ---\n${p.text}`).join('\n\n')
   const judged = await agent(
-    `You are the judge for an adversarial debate about: ${task}\n\nFinal positions after ${rounds} round(s) of cross-examination:\n${finalPositions}\n\nRule: which objections SURVIVED cross-examination (blocking issues, cite file:line where given), which are accepted tradeoffs, and a ship/revise/block verdict with a one-line rationale. Only report objections that actually survived — discard anything a lens conceded or withdrew.`,
-    { label: 'judge', phase: 'Synthesize', schema: VERDICT }
+    `You judge an adversarial debate about: ${task}\n\nFinal positions after ${rounds} round(s):\n${finalPositions}\n\n` +
+    'List the objections that survived cross-examination (blocking, with path:line where given), the accepted tradeoffs, and a ship, revise, or block verdict with a one-line rationale. Discard anything a lens conceded or withdrew.',
+    { label: 'judge', phase: 'Synthesize', schema: VERDICT, effort: 'high' }
   )
   return { mode, lenses, rounds, judged }
 }
 
-throw new Error(`unknown mode: ${mode} (expected fanout|pipeline|judge|debate)`)
+throw new Error(`unknown mode: ${mode} (expected fanout | pipeline | judge | debate)`)

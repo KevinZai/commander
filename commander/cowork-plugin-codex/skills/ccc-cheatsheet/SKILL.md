@@ -1,171 +1,133 @@
 ---
 name: ccc-cheatsheet
-description: "CC Commander interactive discovery tool. Renders a live flow diagram of every $ccc-* workflow by reading the plugin directly as single source of truth. Use when the…"
+description: "Live map of Commander: reads the installed plugin's skills, workflows, menus, agents, hooks and MCP servers from disk and renders a Mermaid flow plus a navigator picker, with an optional HTML export. Use when the user types $ccc-cheatsheet or asks for a command map or everything Commander offers."
 allowed-tools:
   - Read
   - Bash
   - Glob
   - Grep
+  - Write
+  - Skill
   - AskUserQuestion
-# Bash retained: cheatsheet scans filesystem live for counts (ls/wc) + parallel JSON reads
-# via single bash call — it's documented in the "Tips for execution" section.
-argument-hint: "[workflow name to drill into: plan | build | review | ship | design | learn | xray | linear | fleet | connect | start | browse]"
+  - Artifact
+argument-hint: "[skill or workflow name to drill into, e.g. plan | codex | fleet | audit] [--html]"
+model: sonnet
+effort: low
 ---
 
-# $ccc-cheatsheet — Interactive Discovery Tool
+# $ccc-cheatsheet — the live Commander map
 
-Live, always-in-sync visual reference for the entire CC Commander plugin surface. Reads the plugin directly — no hardcoded skill list, no stale counts. Renders a Mermaid flow diagram (which Claude Desktop natively renders inline) + an AskUserQuestion navigator to drill into any workflow.
+**CC Commander** · $ccc-cheatsheet · a flow diagram and skill index built from the plugin directory in this turn, never from a remembered list.
 
-This is the single-source-of-truth discovery primitive. Every time the plugin adds or removes a skill, this cheatsheet updates automatically — no doc maintenance needed.
+The filesystem is the only source. Skill names come from `${CLAUDE_PLUGIN_ROOT}/skills/*/`, descriptions from each SKILL.md frontmatter, the tree from `${CLAUDE_PLUGIN_ROOT}/menus/*.json`, and plugin workflows from `${CLAUDE_PLUGIN_ROOT}/workflows/*.workflow.js`. When a skill is added or removed, the map changes with it.
 
-## Response shape
+## When to use / when not to
 
-Four sections in order:
+- Use for "show me everything", "what commands are there?", "map of Commander", or a drill-down on one workflow (`$ccc-cheatsheet codex`).
+- Use `$ccc-browse` for a searchable, filterable catalog and `/ccc` to start working.
+- Do not quote counts from `CLAUDE.md`, the README, the banner or memory; they drift.
 
-### 1. Brand header
+## What happens
+
+### 1. Read the inventory
+
+Run in one Bash call. `R` falls back to the repository path when the plugin root is unset:
+
+```bash
+R="${CLAUDE_PLUGIN_ROOT:-commander/cowork-plugin}"
+node -e 'console.log("version\t" + require(process.argv[1] + "/.claude-plugin/plugin.json").version)' "$R"
+for d in "$R"/skills/*/; do
+  f="${d}SKILL.md"; [ -f "$f" ] || continue
+  desc=$(sed -n 's/^description: *//p' "$f" | head -1 | sed 's/^"//; s/"$//' | cut -c1-90)
+  printf 'skill\t%s\t%s\n' "$(basename "$d")" "$desc"
+done
+for w in "$R"/workflows/*.workflow.js; do [ -f "$w" ] && printf 'workflow\t/commander:%s\n' "$(basename "$w" .workflow.js)"; done
+for m in "$R"/menus/*.json; do [ -f "$m" ] && printf 'menu\t%s\n' "$(basename "$m" .json)"; done
+printf 'agents\t%s\n' "$(ls "$R"/agents/*.md 2>/dev/null | wc -l | tr -d ' ')"
+node -e 'const fs=require("fs"),R=process.argv[1];const n=(p,k)=>{try{const j=JSON.parse(fs.readFileSync(R+p,"utf8"));return Object.keys(k?j[k]||{}:j).length}catch{return "—"}};console.log("hookEvents\t"+n("/hooks/hooks.json","hooks"));console.log("mcpServers\t"+n("/.mcp.json","mcpServers"))' "$R"
+```
+
+Each output row is tab-separated: `version`, one `skill` row per skill directory (name, truncated description), one `workflow` row per plugin workflow, one `menu` row per menu file, then `agents`, `hookEvents`, `mcpServers`. A failed probe prints nothing or `—`; keep going and show `—`.
+
+### 2. Header and stats
 
 ```
-**CC Commander** · v{VERSION} · Interactive Cheatsheet · [docs/plugin.md](../../docs/plugin.md)
+**CC Commander** · v<version> · Cheatsheet
 ```
 
-Read `VERSION` from `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`.
+> 📦 <skill rows> skills (<rows starting with ccc-> `$ccc-*` workflows) · <workflow rows> plugin workflows · <agents> agents · <hookEvents> hook events · <mcpServers> bundled MCP servers · <menu rows> menu trees
 
-### 2. Live stats line
+Every number is a count of step 1's rows from this turn. Link the plugin overview once: [README](../../README.md).
 
-Compute by scanning plugin directories:
+### 3. Argument drill-down (skip when no argument)
 
-- **Skills:** `ls ${CLAUDE_PLUGIN_ROOT}/skills | wc -l` total; `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/ccc-* | wc -l` specialist workflows
-- **Agents:** `ls ${CLAUDE_PLUGIN_ROOT}/agents/*.md | wc -l`
-- **Hooks:** count events in `${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json` → `.hooks` object
-- **MCPs:** count keys in `${CLAUDE_PLUGIN_ROOT}/.mcp.json` → `.mcpServers` if present, else count entries in `${CLAUDE_PLUGIN_ROOT}/MCP.md` headings
-- **Menu trees:** `ls ${CLAUDE_PLUGIN_ROOT}/menus/*.json | wc -l`
+- `$ARGUMENTS` is `--html` or `export`: go to step 7.
+- Otherwise resolve it against step 1: `plan` → `ccc-plan`, `ccc-plan` → `ccc-plan`, `audit` → `/commander:ccc-audit`. No match: say "No skill or workflow named `<arg>` in this plugin" and continue with the full map.
+- Skill match: Read `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md`. Render its `description` and `argument-hint` verbatim, then a small Mermaid tree from `menus/<name>.json` when that file exists, otherwise from the skill's `##` and `###` headings. Then go to step 6.
+- Workflow match: Read the workflow file's `meta` block and render its `description` and `whenToUse` verbatim, plus how to run it (`/commander:<name>`, or `$ccc-more workflows`). Then go to step 6.
 
-Render:
+### 4. Build the diagram
 
-> 🧰 **{N} skills** ({M} `$ccc-*` workflows) · **{agents} agents** · **{hooks} lifecycle hooks** · **{mcps} MCP servers** · **{menus} menu trees**
+Read every menu file listed in step 1 (one Read per file, or one `cat` in Bash). Build one Mermaid `graph TD` block following [diagram-template.md](references/diagram-template.md): root choices become intents, each menu's choices become leaves, and the workflow rows become leaves under a `plugin workflows` node. A menu file that fails to parse is left out and noted: "⚠️ `ccc-<id>.json` — parse error, omitted." Run the template's validity checks before output; if unsure, simplify the diagram rather than ship a broken block.
 
-### 3. The Mermaid flow diagram
+### 5. Skill index
 
-Claude Desktop renders inline ```mermaid code blocks as SVG diagrams. This is the interactive visual primitive.
+Under the diagram, list every skill row from step 1 that the diagram does not show, as one comma-separated line of `/name` entries headed "Also installed:". Together, the diagram and this line cover every skill directory. Use names exactly as listed; never add one that step 1 did not print.
 
-Output this exact structure, with real names discovered from the plugin:
+### 6. Navigator picker
 
-````
-```mermaid
-graph TD
-    START([/ccc]) --> INTENT{Pick an intent}
-    INTENT -->|🔨| BUILD[/ccc-build]
-    INTENT -->|🔍| REVIEW[/ccc-review]
-    INTENT -->|🚀| SHIP[/ccc-ship]
-    INTENT -->|🎨| DESIGN[/ccc-design]
-    INTENT -->|📚| LEARN[/ccc-learn]
-    INTENT -->|⋯| MORE[/ccc-more]
-
-    BUILD --> B1[web-app]
-    BUILD --> B2[api]
-    BUILD --> B3[cli]
-    BUILD --> B4[mobile]
-    BUILD --> B5[from spec → $ccc-plan]
-
-    REVIEW --> R1[diff vs main]
-    REVIEW --> R2[security OWASP]
-    REVIEW --> R3[performance]
-    REVIEW --> R4[full x-ray → $ccc-xray]
-
-    SHIP --> S1[preflight]
-    SHIP --> S2[release]
-    SHIP --> S3[deploy]
-    SHIP --> S4[rollback]
-
-    DESIGN --> D1[landing]
-    DESIGN --> D2[components]
-    DESIGN --> D3[polish]
-    DESIGN --> D4[figma→code]
-
-    LEARN --> L1[design]
-    LEARN --> L2[marketing]
-    LEARN --> L3[saas]
-    LEARN --> L4[more domains]
-
-    MORE --> M1[/ccc-plan]
-    MORE --> M2[/ccc-xray]
-    MORE --> M3[/ccc-linear]
-    MORE --> M4[/ccc-fleet]
-    MORE --> M5[/ccc-connect]
-    MORE --> M6[/ccc-browse]
-
-    classDef entry fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef workflow fill:#1e3a8a,color:#fff,stroke:#1e40af
-    classDef leaf fill:#0f172a,color:#cbd5e1,stroke:#334155
-    class START entry
-    class BUILD,REVIEW,SHIP,DESIGN,LEARN,MORE workflow
-    class B1,B2,B3,B4,B5,R1,R2,R3,R4,S1,S2,S3,S4,D1,D2,D3,D4,L1,L2,L3,L4,M1,M2,M3,M4,M5,M6 leaf
-```
-````
-
-**Before rendering:** verify the tree against actual menu JSONs. Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-root.json`, `ccc-build.json`, `ccc-review.json`, `ccc-ship.json`, `ccc-design.json`, `ccc-learn.json`, `ccc-more.json`. If any menu has added / removed options, update the Mermaid to match. The diagram MUST reflect the real plugin state.
-
-### 4. Navigator picker
-
-Use `AskUserQuestion` with these options:
+AskUserQuestion (Codex: the same choices as a plain-text question):
 
 ```
-question: "Drill into a workflow?"
+question: "Where next?"
 header: "Navigate"
 multiSelect: false
 options:
-  - label: "🔨 Build — web/API/CLI/mobile"
-    description: "Scaffold a new project or feature. Cascades into spec interview."
-    preview: "Next click: pick project type → 3-question spec → background agent spawns"
-  - label: "🔍 Review — diff/security/perf/x-ray"
-    description: "Audit the current branch. Writes findings to tasks/reviews/."
-    preview: "Next click: pick audit type → specialist agent runs in background"
-  - label: "🗺️ Show me everything"
-    description: "Open $ccc-browse — filterable catalog of all 60 plugin skills + 22 agents."
-    preview: "Cascades: Domains (11) / Workflows (13) / Agents (17) / Full grid"
-  - label: "👋 Skip — I've got this"
-    description: "Close the cheatsheet, return to whatever I was doing."
-    preview: "No action — acknowledge and exit."
+  - label: "🟢 📦 Show me everything"
+    description: "Open $ccc-browse: searchable grid of every skill, workflow and agent."
+  - label: "🏗️ Build"
+    description: "Open $ccc-build: pick web, API, CLI or mobile, then a short spec."
+  - label: "🔬 Review"
+    description: "Open $ccc-review: branch, security, performance or full x-ray."
+  - label: "⏭️ Done"
+    description: "Close the cheatsheet and return to the current task."
 ```
 
-On pick, dispatch to the named skill. Don't ask again.
+On a pick, invoke `ccc-browse`, `ccc-build` or `ccc-review` with the Skill tool, or stop on Done. Do not ask again.
 
-## If user passes an argument
+### 7. HTML export (only on `--html`, `export`, or an explicit request)
 
-If `$ccc-cheatsheet plan` → skip the picker, show the Mermaid + drill directly into `ccc-plan` details. Render a mini-tree for just that workflow (read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-<arg>/SKILL.md` + the corresponding menu JSON).
+1. Target is `docs/cheatsheet.html` in the current project. If it exists, ask "🟢 Overwrite `docs/cheatsheet.html`" / "Write `docs/cheatsheet-new.html` instead" / "Cancel".
+2. Render one HTML fragment per menu from step 1:
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT:-commander/cowork-plugin}/lib/menu-render.js" <menu-id>
+   ```
+3. Write a standalone page with the Write tool: `<!doctype html>`, a `<title>`, the header and stats from step 2, the Mermaid source in a `<pre>` block, a table of every skill row (name and description), and the menu fragments.
+4. Verify: `test -s docs/cheatsheet.html && echo ok`. Report the path only after `ok`.
+5. Offer sharing with AskUserQuestion: "🟢 Keep it local" / "Publish as a private claude.ai page". Publish only on an explicit yes, with the Artifact tool (`icon: "map"`), following that tool's page contract. On Codex or without the Artifact tool, give the file path.
 
-Same for: `build`, `review`, `ship`, `design`, `learn`, `xray`, `linear`, `fleet`, `connect`, `start`, `browse`.
+## Done when
 
-## Special: generate a static HTML export
+- The stats line, diagram nodes and skill index all come from step 1 and the menu files read in this turn.
+- Every skill directory from step 1 appears either in the diagram or in "Also installed:".
+- The Mermaid block passed the template's validity checks.
+- Export: `test -s` printed `ok` for the written file, and a published page has a URL from the Artifact tool.
 
-If user says "export" or passes `--html`, render the same diagram + tables as standalone HTML (using the `menu-render.js` helper if useful) and save to `docs/cheatsheet.html`. This becomes embeddable in the marketing site hero, Notion, or Slack — anywhere a PNG/SVG of the command tree would be useful.
+## Guardrails
 
-## Anti-patterns
+- Never hardcode a skill list, a count or a version; scan the plugin in this turn.
+- Never paraphrase a description in a drill-down; quote the frontmatter.
+- Never render the catalog as a numbered list or ask the user to type a number; the map is the diagram and the choice is the picker.
+- Skills are plain `$ccc-*` commands; only plugin workflows use the `/commander:<name>` form. Never invent a `/ccc:x` form.
+- Write only the export file chosen in step 7. Never publish without the step 7 consent.
+- Keep the response short: header, stats, diagram, index, picker.
 
-- ❌ Hardcode a skill list — ALWAYS scan the plugin dir, that's the point of this tool
-- ❌ Paraphrase descriptions — read directly from SKILL.md frontmatter so descriptions stay canonical
-- ❌ Output a numbered list of commands — use the Mermaid diagram, that's the visual
-- ❌ Include legacy `/ccc:X` or `/commander:ccc` namespace — the plugin now ships plain `$ccc-*`
-- ❌ Show counts from CLAUDE.md or README — those drift; always count from the filesystem
+## See also
 
-## Brand rules
-
-- **Live, not cached.** Every invocation re-reads the plugin. Kevin's principle: single source of truth = the filesystem.
-- **Click-first.** Mermaid + AskUserQuestion. No typing, no menus.
-- **Emoji-forward.** Match the PM Consultant voice. Recommended tiles get ⭐.
-- **Always link to docs/plugin.md** at the top for users who want more depth.
-
-## Tips for the agent executing this skill
-
-1. Read 3–5 files in parallel via a single Bash call (`cat a b c | head -1000`) to save turns.
-2. If a menu JSON is malformed, skip it gracefully and note in the output ("⚠️ `ccc-X.json` — parse error, omitted from diagram").
-3. The Mermaid diagram must be valid — test before output. A broken Mermaid block ruins the whole response. If unsure, simplify.
-4. For the stats line: if a command fails (e.g. `.mcp.json` doesn't exist), substitute "—" and keep going. Never block the response on missing data.
-5. Keep the response SHORT. Users hit this for quick discovery, not a wall of text. Four sections, Mermaid is the star.
-
----
-
-**Bottom line:** this skill is the always-fresh, Kevin-Z-Method-compliant visual map of CC Commander. Every time the plugin grows, the cheatsheet grows with it — zero maintenance.
+- `$ccc-browse` — searchable catalog
+- `/ccc` — the hub
+- `$ccc-more` — the second-page menu and plugin workflows
+- `$ccc-learn` — skill domains
 
 ---
 

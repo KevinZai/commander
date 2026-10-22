@@ -7,15 +7,17 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-// Verified 2026-07-22 against primary Codex docs (learn.chatgpt.com/docs/hooks).
-// Codex supports exactly these 10 hook events. This replaces an earlier,
-// unverified list (CODEX_HOOK_EVENTS_0125 below, kept only as an alias for
-// callers that still import that name) which wrongly included SessionEnd
-// and StopFailure and wrongly omitted SubagentStart, SubagentStop,
-// PreCompact, and PostCompact. No version threshold is documented for hook
-// support, so supportedEventsForVersion() no longer branches on version --
-// see the comment there.
-export const CODEX_HOOK_EVENTS_VERIFIED_20260722 = Object.freeze([
+// Verified 2026-10-13 against docs/reference/platform-facts-2026-10.md §3.3
+// (Codex CLI 0.162.1). Codex supports exactly these 12 hook events. The
+// 2026-07-22 list had 10; Codex has since added SessionEnd and Interrupt.
+// Interrupt has no Claude Code equivalent (see CODEX_ONLY_HOOK_EVENTS and the
+// codex_only section of hook-event-map.json).
+//
+// Handler fields Codex understands: type (command | mcp_tool), command,
+// commandWindows, timeout, async (parsed but SKIPPED, so async handlers must
+// translate to synchronous), matcher, statusMessage, additionalContextLimit,
+// server/tool/input. Codex has no args, onFailure, if or once.
+export const CODEX_HOOK_EVENTS_VERIFIED_20261013 = Object.freeze([
   'SessionStart',
   'SubagentStart',
   'PreToolUse',
@@ -26,16 +28,40 @@ export const CODEX_HOOK_EVENTS_VERIFIED_20260722 = Object.freeze([
   'UserPromptSubmit',
   'SubagentStop',
   'Stop',
+  'SessionEnd',
+  'Interrupt',
 ]);
 
-// Back-compat alias -- some callers may still import this name.
-export const CODEX_HOOK_EVENTS_0125 = CODEX_HOOK_EVENTS_VERIFIED_20260722;
+// Back-compat aliases -- existing callers import these names. Both now point
+// at the current verified set.
+export const CODEX_HOOK_EVENTS_VERIFIED_20260722 = CODEX_HOOK_EVENTS_VERIFIED_20261013;
+export const CODEX_HOOK_EVENTS_0125 = CODEX_HOOK_EVENTS_VERIFIED_20261013;
 
-// Claude Code hook events with no Codex equivalent (Codex's 10-event surface
-// has no matching event at all). Distinct from events that map 1:1 -- see
-// hook-event-map.json for the full per-event mapping table.
+// Codex events with no Claude Code counterpart; nothing in a Claude
+// hooks.json translates to them.
+export const CODEX_ONLY_HOOK_EVENTS = Object.freeze(['Interrupt']);
+
+// Handler fields Codex does not support. Commander's hooks.json never uses
+// them, so it mirrors to Codex unchanged.
+export const CODEX_UNSUPPORTED_HANDLER_FIELDS = Object.freeze(['args', 'onFailure', 'if', 'once']);
+
+// Handler fields that pass through translation unchanged.
+export const CODEX_PASSTHROUGH_HANDLER_FIELDS = Object.freeze([
+  'type',
+  'command',
+  'commandWindows',
+  'timeout',
+  'matcher',
+  'statusMessage',
+  'additionalContextLimit',
+]);
+
+// Codex caps SessionEnd and Interrupt handler timeouts (default 1 s, max 3 s).
+export const CODEX_SHORT_TIMEOUT_EVENTS = Object.freeze({ SessionEnd: 3, Interrupt: 3 });
+
+// Claude Code hook events with no Codex equivalent. Distinct from events that
+// map 1:1 -- see hook-event-map.json for the full per-event mapping table.
 export const CLAUDE_EVENTS_DROPPED_BY_CODEX = Object.freeze([
-  'SessionEnd',
   'Notification',
   'PostToolUseFailure',
   'PostToolBatch',
@@ -48,6 +74,16 @@ export const CLAUDE_EVENTS_DROPPED_BY_CODEX = Object.freeze([
   'UserPromptExpansion',
   'InstructionsLoaded',
   'Setup',
+  'PermissionDenied',
+  'MessageDisplay',
+  'TeammateIdle',
+  'CwdChanged',
+  'DirectoryAdded',
+  'FileChanged',
+  'WorktreeCreate',
+  'WorktreeRemove',
+  'PreModelSwitch',
+  'PostModelSwitch',
 ]);
 
 export function codexConfigPath(homeDir = os.homedir()) {
@@ -107,13 +143,13 @@ export function compareVersions(left, right) {
 }
 
 export function supportedEventsForVersion(_codexVersion) {
-  // No version threshold is documented for hook-event support as of the
-  // 2026-07-22 verification against learn.chatgpt.com/docs/hooks -- the
+  // No version threshold is documented for hook-event support (re-checked
+  // 2026-10-13 against platform facts §3.3) -- the
   // prior version-gated split (a lesser "legacy" set below some Codex
   // version) was an unverified guess. Return the verified set
   // unconditionally; the codexVersion parameter is kept for API
   // compatibility and future use if a real threshold is ever documented.
-  return [...CODEX_HOOK_EVENTS_VERIFIED_20260722];
+  return [...CODEX_HOOK_EVENTS_VERIFIED_20261013];
 }
 
 export function detectCodexHookCapabilities(options = {}) {
@@ -126,6 +162,7 @@ export function detectCodexHookCapabilities(options = {}) {
     codexVersion,
     supportedEvents: supportedEventsForVersion(codexVersion),
     droppedFromClaude: [...CLAUDE_EVENTS_DROPPED_BY_CODEX],
+    codexOnlyEvents: [...CODEX_ONLY_HOOK_EVENTS],
   };
 }
 

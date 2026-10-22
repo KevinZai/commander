@@ -1,92 +1,97 @@
 ---
-description: "Orchestrate parallel Claude Code agents via Claude DevFleet — plan projects from natural language, dispatch agents in isolated worktrees, monitor progress, and read…"
+description: "Plan a project into dependent missions and run parallel Claude Code agents in isolated worktrees through the DevFleet MCP server, then read each mission's report. Use when the user wants DevFleet orchestration."
 ---
 
-# DevFleet — Multi-Agent Orchestration
+# /ccc-devfleet — parallel agents via DevFleet
 
-Orchestrate parallel Claude Code agents via Claude DevFleet. Each agent runs in an isolated git worktree with full tooling.
+**CC Commander** · /ccc-devfleet · a mission DAG from a plain-language brief, run by parallel agents in their own git worktrees.
 
-Requires the DevFleet MCP server: `claude mcp add devfleet --transport http http://localhost:18801/mcp`
+DevFleet is an opt-in third-party MCP server, absent by default. Its tools appear as `mcp__devfleet__*`. If they are not exposed in this session, say so, give the install line from DevFleet's own docs (its default is `claude mcp add devfleet --transport http http://localhost:18801/mcp`), and offer `/ccc-fleet` or the Agent tool with `isolation: worktree` as the built-in alternative.
 
 ## Flow
 
 ```
-User describes project
-  → plan_project(prompt) → mission DAG with dependencies
-  → Show plan, get approval
-  → dispatch_mission(M1) → Agent spawns in worktree
-  → M1 completes → auto-merge → M2 auto-dispatches (depends_on M1)
-  → M2 completes → auto-merge
-  → get_report(M2) → files_changed, what_done, errors, next_steps
-  → Report summary to user
+brief -> plan_project -> show plan -> user approves
+      -> dispatch_mission(first) -> agent works in its worktree -> auto-merge
+      -> dependents auto-dispatch -> ... -> get_report(each) -> summary
 ```
 
-## Workflow
+## What happens
 
-1. **Plan the project** from the user's description:
+1. Plan the project from the user's brief:
 
-```
-mcp__devfleet__plan_project(prompt="<user's description>")
-```
+   ```
+   mcp__devfleet__plan_project(prompt="<user's description>")
+   ```
 
-This returns a project with chained missions. Show the user:
-- Project name and ID
-- Each mission: title, type, dependencies
-- The dependency DAG (which missions block which)
+   Show the project name and id, each mission's title, type and id, and the dependency DAG (which missions block which).
 
-2. **Wait for user approval** before dispatching. Show the plan clearly.
+2. Ask with AskUserQuestion (Codex: a plain-text question) before anything runs, unless the user already said to go ahead:
 
-3. **Dispatch the first mission** (the one with empty `depends_on`):
+   - 🟢 Dispatch the plan — starts the first mission; dependents follow automatically
+   - Edit the plan — adjust missions with `create_mission` / `cancel_mission`, then show it again
+   - Cancel — nothing is dispatched
 
-```
-mcp__devfleet__dispatch_mission(mission_id="<first_mission_id>")
-```
+3. Dispatch the mission with an empty `depends_on`:
 
-The remaining missions auto-dispatch as their dependencies complete (because `plan_project` creates them with `auto_dispatch=true`). When manually creating missions with `create_mission`, you must explicitly set `auto_dispatch=true` for this behavior.
+   ```
+   mcp__devfleet__dispatch_mission(mission_id="<first_mission_id>")
+   ```
 
-4. **Monitor progress** — check what's running:
+   Missions from `plan_project` carry `auto_dispatch=true`, so the rest start as their dependencies finish. Missions added by hand with `create_mission` need `auto_dispatch=true` set explicitly for the same behavior.
 
-```
-mcp__devfleet__get_dashboard()
-```
+4. Monitor progress:
 
-Or check a specific mission:
+   ```
+   mcp__devfleet__get_dashboard()
+   mcp__devfleet__get_mission_status(mission_id="<id>")
+   ```
 
-```
-mcp__devfleet__get_mission_status(mission_id="<id>")
-```
+   Poll `get_mission_status` for long missions so the user sees progress; use `wait_for_mission` only for short ones. Report mission titles and ids with each status.
 
-Prefer polling with `get_mission_status` over `wait_for_mission` for long-running missions, so the user sees progress updates.
+5. Read the report of every mission that reached a terminal state:
 
-5. **Read the report** for each completed mission:
+   ```
+   mcp__devfleet__get_report(mission_id="<mission_id>")
+   ```
 
-```
-mcp__devfleet__get_report(mission_id="<mission_id>")
-```
+   Reports contain `files_changed`, `what_done`, `what_open`, `what_tested`, `what_untested`, `next_steps`, `errors_encountered`.
 
-Call this for every mission that reached a terminal state. Reports contain: files_changed, what_done, what_open, what_tested, what_untested, next_steps, errors_encountered.
+6. Verify the merged result in the target repo before reporting success:
 
-## All Available Tools
+   ```bash
+   git log --oneline -10
+   git status --short
+   ```
+
+   Then run the project's test command (from `package.json`, `Makefile` or the project `CLAUDE.md`). Report the real result, plus any mission whose changes stayed on its worktree branch because of a merge conflict.
+
+## Tools
 
 | Tool | Purpose |
-|------|---------|
-| `plan_project(prompt)` | AI breaks description into chained missions with `auto_dispatch=true` |
-| `create_project(name, path?, description?)` | Create a project manually, returns `project_id` |
-| `create_mission(project_id, title, prompt, depends_on?, auto_dispatch?)` | Add a mission. `depends_on` is a list of mission ID strings. |
+|---|---|
+| `plan_project(prompt)` | Break a brief into chained missions with `auto_dispatch=true` |
+| `create_project(name, path?, description?)` | Create a project by hand; returns `project_id` |
+| `create_mission(project_id, title, prompt, depends_on?, auto_dispatch?)` | Add a mission; `depends_on` is a list of mission id strings |
 | `dispatch_mission(mission_id, model?, max_turns?)` | Start an agent |
 | `cancel_mission(mission_id)` | Stop a running agent |
-| `wait_for_mission(mission_id, timeout_seconds?)` | Block until done (prefer polling for long tasks) |
+| `wait_for_mission(mission_id, timeout_seconds?)` | Block until done (prefer polling for long work) |
 | `get_mission_status(mission_id)` | Check progress without blocking |
-| `get_report(mission_id)` | Read structured report |
-| `get_dashboard()` | System overview |
+| `get_report(mission_id)` | Read the structured report |
+| `get_dashboard()` | System overview and free slots |
 | `list_projects()` | Browse projects |
 | `list_missions(project_id, status?)` | List missions |
 
-## Guidelines
+When passing `model` to `dispatch_mission`, use an alias (`opus` for implementation, `sonnet` for bounded edits, `haiku` for mechanical work). Without one, DevFleet's configured default applies; the user's selected model is preserved unless they choose otherwise.
 
-- Always confirm the plan before dispatching unless the user said "go ahead"
-- Include mission titles and IDs when reporting status
-- If a mission fails, read its report to understand errors before retrying
-- Agent concurrency is configurable (default: 3). Excess missions queue and auto-dispatch as slots free up. Check `get_dashboard()` for slot availability.
-- Dependencies form a DAG — never create circular dependencies
-- Each agent auto-merges its worktree on completion. If a merge conflict occurs, the changes remain on the worktree branch for manual resolution.
+## Guardrails
+
+- Dispatch only after the step 2 approval or an explicit "go ahead".
+- Dependencies form a DAG; never create a circular dependency.
+- When a mission fails, read its report before retrying it.
+- Concurrency is configurable (default 3); extra missions queue and start as slots free up. Check `get_dashboard()` for slots.
+- Each agent auto-merges its worktree on completion. On a merge conflict the changes stay on the worktree branch; report the branch for manual resolution and never force a merge.
+
+## See also
+
+`/ccc-fleet` · `/ccc-spawn` · `/ccc-orchestrate`

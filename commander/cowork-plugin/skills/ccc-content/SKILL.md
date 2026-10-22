@@ -1,6 +1,6 @@
 ---
 name: ccc-content
-description: "Create content — blog posts, social media, emails, marketing copy, or docs. Use when: 'create content', 'write post', 'blog', 'social media', 'email campaign',…"
+description: "Draft blog posts, social threads, email campaigns, landing-page copy and docs in three questions, with an optional brief, review and scheduling pipeline. Use when the user asks to write a post, thread, newsletter, email campaign or marketing copy, repurpose a URL, or types /ccc-content."
 allowed-tools:
   - Read
   - Write
@@ -9,135 +9,109 @@ allowed-tools:
   - Glob
   - Grep
   - Agent
+  - WebFetch
   - AskUserQuestion
-argument-hint: "<content type and topic>"
+argument-hint: "[blog | social | email | landing | docs] [topic] [--power]"
+model: inherit
+effort: medium
 ---
 
-# /ccc-content — Content creation
+# /ccc-content — draft it in three questions
 
-> Placeholders like ~~social media and ~~email refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
+**CC Commander** · /ccc-content · a ready-to-edit draft in the conversation; Power Mode adds a brief, a fresh-context review, variations and optional scheduling.
 
-Create any type of content — from a single tweet to a full email sequence. Quick Mode produces a draft in under 3 questions. Power Mode runs the full pipeline: draft → review → schedule.
+The user's selected model is preserved. Placeholders such as `~~social media`, `~~email` and `~~files` mean whatever connector the user enabled through `/ccc-connect`; see [CONNECTORS.md](../../CONNECTORS.md). Every connector is opt-in and absent by default.
 
-## Quick Mode (default)
+Codex: ask each picker as a plain-text question with the same options, and run the review pass inline when the Agent tool is unavailable.
 
-Ask three questions — use `AskUserQuestion` for Questions 1 and 3 (chip pickers). Question 2 is free-text (topic is inherently open-ended).
+## When to use / when not to
 
-**Question 1 — Content type:**
+- Use for one piece of content or a small set: a blog post, a thread or LinkedIn post, an email or short sequence, landing-page copy, a doc page, or repurposing a pasted URL.
+- Use `/ccc-marketing` for strategy, positioning, CRO or a multi-channel campaign, `/ccc-seo` for keyword briefs and technical SEO, and `/ccc-broadcast` for automated team status updates.
 
-Use `AskUserQuestion` with these chips (max 4; "Something else" covers remaining types):
-```
-question: "What kind of content are we creating?"
-options:
-  - label: "📝 Blog post or article"
-    description: "Long-form — tutorial, opinion, how-to, case study."
-  - label: "📱 Social media posts"
-    description: "Twitter/X thread, LinkedIn post, Instagram caption."
-  - label: "📧 Email campaign or newsletter"
-    description: "Drip sequence, announcement, nurture, transactional."
-  - label: "💼 Something else"
-    description: "Marketing copy, landing page, docs, ads — describe in chat."
+## What happens
+
+### 1. Context strip
+
+Run in one Bash call, silent on failure, so drafts match the existing voice:
+
+```bash
+ls marketing-context.md .agents/marketing-context.md Design.md 2>/dev/null
+ls content blog posts docs 2>/dev/null | head -5
 ```
 
-If user picks "Something else", ask one follow-up in chat: "Describe what you need — I'll produce it."
+If a marketing context file exists, Read it and apply its voice, audience and banned phrases. If `~~files` is connected, offer to pull a brand voice doc or style guide from it.
 
-**Question 2 — Topic (free-text — open-ended by nature):**
-Ask in chat: "What's this about? One sentence is enough."
+### 2. Quick Mode (default)
 
-**Question 3 — Audience:**
+Skip any question the argument already answers. Ask at most three:
 
-Use `AskUserQuestion` with these chips:
-```
-question: "Who is this for?"
-options:
-  - label: "👩‍💻 Developers"
-    description: "Engineers, technical founders, devtools users."
-  - label: "🚀 Founders / executives"
-    description: "Decision-makers, C-suite, startup founders."
-  - label: "🛒 Consumers"
-    description: "End users, general public, non-technical audience."
-  - label: "🏢 Internal team"
-    description: "Colleagues, employees, internal stakeholders."
-```
+**Question 1 — Content type.** AskUserQuestion, header "CC Commander · Content", question "What kind of content are we creating?". Put the best match for the request first, marked 🟢 (default: blog post; a pasted URL means social repurposing):
 
-Draft the content immediately. For social posts, generate platform-specific variations.
+- 📝 Blog post or article — long form: tutorial, opinion, how-to, case study.
+- 🌐 Social posts — X thread, LinkedIn post, Instagram caption, with per-platform variants.
+- 🎯 Email campaign or newsletter — announcement, nurture, drip sequence, transactional.
+- 🔧 Something else — landing page, docs, ads or other copy; described in chat.
 
-## Power Mode
+On "Something else", ask once in chat: "Describe what you need; I'll produce it."
 
-Activate by passing `--power` or `detailed`.
+**Question 2 — Topic.** Free text in chat: "What's this about? One sentence is enough." If the user pasted a URL, fetch it with WebFetch and use it as the source instead of asking.
 
-Full content pipeline:
-1. **Brief** — target audience, tone, CTA, keywords, word count
-2. **Draft** — full content with formatting
-3. **Review pass** — clarity, tone consistency, CTA strength
-4. **Variations** — A/B options for headlines and CTAs
-5. **Schedule** — via ~~social media or ~~email connectors
+**Question 3 — Audience.** AskUserQuestion, question "Who is this for?", recommended first and marked 🟢 (from the marketing context when present; otherwise Developers):
 
-## Content Templates
+- Developers — engineers, technical founders, devtools users.
+- Founders and executives — decision-makers and budget owners.
+- Consumers — end users and a non-technical public.
+- Internal team — colleagues and stakeholders.
 
-### Blog Post
-```
-- Hook (problem or surprising stat)
-- Context (why this matters now)
-- Main sections (H2s with substance)
-- Practical takeaways
-- CTA
-Target: 800-2000 words
-```
+Then draft immediately using the matching structure in [references/templates.md](references/templates.md). For social, produce one variant per platform. Offer two or three headline or hook options.
 
-### Twitter/X Thread
-```
-- Tweet 1: Hook (bold claim or question)
-- Tweets 2-8: One point per tweet, concrete
-- Tweet 9: Summary
-- Tweet 10: CTA
-Format: each tweet ≤280 chars, emoji optional
-```
+### 3. Power Mode (`--power` or "detailed")
 
-### Email Campaign
-```
-Subject line (A/B options)
-Preview text
-Body: hook → value → proof → CTA
-Unsubscribe footer
-```
+1. **Brief** — state audience, tone, CTA, keywords and target length in five lines; confirm or adjust in chat.
+2. **Draft** — the full piece with formatting, from the template.
+3. **Review pass** — call the Agent tool (`description: "Review content draft"`, `effort: medium`) with the brief and the draft, asking it to refute clarity, tone consistency, factual claims and CTA strength and to return a numbered list of fixes. The drafter is not the reviewer. Apply the fixes it supports with evidence.
+4. **Variations** — A/B options for headline, hook and CTA.
+5. **Save** — Write the final draft to `output/content/YYYY-MM-DD-<slug>.md` in the project (use `output/<brand>/content/` when the project already keeps per-brand folders).
+6. **Schedule or draft in a connector (optional)** — see step 4.
 
-### Landing Page Copy
-```
-Hero headline + subheadline
-3 value props (feature → benefit → proof)
-Social proof section
-FAQ
-CTA section
-```
+### 4. Connectors (only when connected)
 
-## If Connectors Available
+Check the session's tool list for a `~~social media`, `~~email` or `~~files` connector before offering any of these. Nothing leaves the conversation without the picker below, asked at the moment of the write and per item:
 
-If **~~social media** is connected (Typefully):
-- After drafting, offer to schedule the post via Typefully
-- Set optimal posting time based on your audience
-- Track engagement after posting
+AskUserQuestion, question "Send this draft to <connector>?":
 
-If **~~files** (Google Drive) is connected:
-- Pull existing brand voice docs, style guides, or content calendars
-- Reference prior content for consistency
-- Save drafts directly to Drive folders
+- 🟢 Keep it here — no external write; the draft stays in the conversation and the saved file.
+- Save as a draft in <connector> — Typefully/Buffer draft, Gmail draft or Drive file; nothing is published or sent.
+- Schedule it — queue for a time the user names; the connector publishes or sends then.
 
-If **~~email** is connected (Gmail):
-- Draft email campaigns directly as Gmail drafts
-- Preview rendering before send
-- Schedule send time
+- `~~social media`: create the draft or scheduled post; suggest a posting time from the audience; afterwards, read engagement through the connector when it exposes analytics.
+- `~~email`: create the campaign as an email draft and show the rendered preview before any scheduled send.
+- `~~files`: save the draft to the folder the user names; reference earlier content there for consistency.
 
-## Output
+## Done when
 
-Content is written directly to the conversation for immediate review and editing. In Power Mode, also saved to `output/<business-unit>/content/YYYY-MM-DD-<slug>.md`.
+Run before reporting, and report the actual result:
 
-## Tips
+- Draft delivered in the conversation, matching the chosen type and audience.
+- Social: every post is within its platform limit. When a file was saved, check X posts with `awk 'length > 280 {print NR": "length}' <file>` and report any line it prints.
+- Power Mode: `wc -w output/content/<file>.md` is within the brief's target range, and each reviewer fix is listed as applied or declined with a reason.
+- Connector write: the connector returned a draft or schedule id; quote it. No id means it did not happen; say so.
 
-1. **Give a URL for repurposing** — paste a blog post URL and ask for 5 tweet variations; it works.
-2. **Specify tone** — "casual and direct" vs. "professional and formal" makes a big difference.
-3. **Request variations** — always ask for 2-3 headline options; pick your favorite.
-4. **Schedule beats manual** — with ~~social media connected, schedule a week of posts in one session.
+## Guardrails
+
+- Never publish, schedule, send or upload without the per-item picker in step 4 and the user's choice in this conversation.
+- Never invent statistics, quotes, customer names or results; mark any claim that needs a source as `[source needed]`.
+- Never copy a fetched URL's text verbatim beyond short quotes; repurpose, attribute and link.
+- Never put credentials, private customer data or internal-only details into public copy.
+- Never overwrite an existing file in `output/` without asking; write a new dated file instead.
+
+## See also
+
+- `/ccc-marketing` — strategy, CRO, campaigns and launches
+- `/ccc-seo` — keyword briefs, content clusters and technical SEO
+- `/ccc-connect` — enable `~~social media`, `~~email` or `~~files`
+- `/ccc-broadcast` — automated status updates to a team channel
 
 ---
 

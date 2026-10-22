@@ -1,59 +1,76 @@
 ---
-description: "TaskMaster — structured PRD→task decomposition, complexity analysis, and implementation pipeline. Paid tier project planning engine."
+description: "Turn a PRD into a dependency-ordered task list with the TaskMaster CLI, score complexity, expand tasks into subtasks, and work through them one at a time. Use when planning a multi-task project from a requirements doc or asking what to work on next."
 ---
 
-# /tm — TaskMaster Project Planning
+# /ccc-tm — PRD to tracked tasks
 
-TaskMaster CLI (`task-master`, v0.43.1) provides structured project planning that complements `/plan`:
-- `/plan` = quick planning, 1-3 steps, immediate action
-- `/tm` = full PRD parse → complexity analysis → task expansion → implementation tracking
+**CC Commander** · /ccc-tm · drives the opt-in `task-master` CLI from PRD parsing through implementation tracking.
 
-## When activated:
+## When to use / when not to
 
-Check if task-master CLI is available: `which task-master`
-If not found: "TaskMaster not installed. Run: npm i -g task-master-ai"
+- `/ccc-plan` is for quick planning of a few steps with immediate action.
+- `/ccc-tm` is for a full project: parse a PRD, analyze complexity, expand tasks, track status across sessions in the project's TaskMaster files.
 
-If found, present via AskUserQuestion:
+## What happens
 
-| Option | What it does |
-|--------|-------------|
-| Parse a PRD into tasks (Recommended) | Feed a requirements doc → get structured task list with dependencies |
-| Analyze task complexity | Score tasks by complexity, identify high-risk items |
-| Expand a task into subtasks | Break a large task into implementable pieces |
-| Get next task to work on | Find the highest-priority unblocked task |
-| View all tasks | List tasks with status, priority, dependencies |
-| Auto-implement tasks | Let TaskMaster drive implementation autonomously |
-| Project status | Overview of progress, blockers, completion % |
-| Something else | Free text |
+1. **Check the CLI.** Run `command -v task-master && task-master --version`. If it is missing, tell the user TaskMaster is an optional third-party tool (`npm i -g task-master-ai`) and stop; do not install it without their choice. If the project has no TaskMaster structure yet, offer `task-master init`.
+2. **Confirm subcommand names** with `task-master --help` when a command below errors; the CLI changes between releases.
+3. **Pick the action** with AskUserQuestion (plain-text question where it is unavailable). Show four at a time:
+   - 🟢 Parse a PRD into tasks: structured task list with dependencies.
+   - Get the next task: highest-priority unblocked task.
+   - Analyze complexity: scores tasks and flags the ones to break down.
+   - Expand a task: subtasks for one large task.
 
-### Parse PRD Flow
+   The second page offers: View all tasks · Work through tasks in order · Project status · Something else.
 
-1. Ask: "Paste the PRD or describe what you're building"
-2. Run: `task-master parse-prd` with the input
-3. Show generated tasks with dependencies
-4. Ask: "Want to start implementing? I'll pick the first unblocked task."
+## Flows
 
-### Next Task → Paperclip Flow
+### Parse a PRD
 
-When user picks "Get next task":
-1. Run: `task-master next-task` to find highest-priority unblocked task
-2. Display the task with subtasks and dependencies
-3. Ask via AskUserQuestion:
-   - "Start building this task (Recommended)" — dispatch to subagent
-   - "Create Paperclip issue for this" — POST to Paperclip API at localhost:3110
-   - "Skip to next task"
-   - "Something else"
+1. Ask for the PRD file path, or for pasted text; save pasted text to a file in the project (for example `.taskmaster/docs/prd.txt`) and confirm the path.
+2. Run `task-master parse-prd --input=<file>` (add `--num-tasks=<n>` if the user names a count).
+3. Run `task-master list --with-subtasks` and show the tasks with dependencies.
+4. Ask: 🟢 Start the first unblocked task · Analyze complexity first · Stop here.
 
-### Auto-Implement Flow
+### Next task
 
-1. Run: `task-master auto-implement-tasks`
-2. Monitor progress, show completion bars
-3. After each task: update status, suggest next
+1. Run `task-master next`, then `task-master show <id>` for its subtasks and dependencies.
+2. Ask: 🟢 Start building this task (delegate to a subagent with the task text as its brief) · Create a tracker issue for it (only when a tracker connector such as Linear is configured; it is absent by default) · Skip to the following task · Something else.
 
-### Complexity Analysis
+### Analyze complexity
 
-1. Run: `task-master analyze-complexity`
-2. Show complexity report with risk scores
-3. Recommend: high-complexity tasks should be broken down first
+1. Run `task-master analyze-complexity` (add `--research` only if the user asks; it calls a research model).
+2. Run `task-master complexity-report` and show the scores.
+3. Recommend expanding high-complexity tasks before starting them: `task-master expand --id=<id>`.
 
-### After every action, suggest next steps via AskUserQuestion with the Proactive Intelligence Protocol.
+### Expand a task
+
+Run `task-master expand --id=<id>` (or `task-master expand --all` for every pending task after the user confirms), then `task-master show <id>`.
+
+### View all tasks and project status
+
+`task-master list` (`all` or `--with-subtasks` for detail, `--ready` for unblocked work). Summarize done / in-progress / pending / blocked counts from that output.
+
+### Work through tasks in order
+
+TaskMaster has no autonomous implementation command; the assistant runs the loop:
+
+1. `task-master next` → `task-master set-status <id> in-progress`.
+2. Implement the task, then run the project's test command and report the result.
+3. On a green result, `task-master set-status <id> done`; on failure, leave it `in-progress` and report.
+4. Ask before each new task: 🟢 Continue with the next task · Stop here.
+
+## Done when
+
+After any status-changing step, run `task-master list` and report the changed task ids and their new status. After implementation, report the actual test command output.
+
+## Guardrails
+
+- Do not install TaskMaster or run `--research` without the user's choice.
+- Never `remove-task` or `clear-subtasks` without explicit confirmation of the ids.
+- Creating tracker issues or posting anywhere needs authorization in the current conversation and an opt-in connector; ask at that moment.
+- `parse-prd` and `analyze-complexity` call the AI model configured in TaskMaster (`task-master models`), which may bill the user's own provider key; say so before the first call.
+
+## See also
+
+`/ccc-plan` · `/ccc-tasks` · `/ccc-linear` · `/ccc-spawn`

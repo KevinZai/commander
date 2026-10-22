@@ -1,11 +1,13 @@
 {
-  "_permissionsNote": "WebFetch is unscoped because Bash(curl:*) already allows unrestricted HTTP. Scoping WebFetch while allowing curl creates a false sense of security.",
+  "model": "opus",
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/lib/statusline.sh",
+    "command": "\"$HOME/.claude/lib/statusline.sh\"",
     "padding": 1
   },
   "env": {
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "NODE_OPTIONS": "--max-old-space-size=4096"
   },
   "permissions": {
@@ -52,7 +54,7 @@
       "Bash(git push --force:*)",
       "Bash(git reset --hard:*)"
     ],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "auto"
   },
   "extraKnownMarketplaces": {
     "commander-hub": {
@@ -68,7 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay /System/Library/Sounds/Blow.aiff"
+            "command": "command -v afplay >/dev/null 2>&1 && afplay \"/System/Library/Sounds/Blow.aiff\" || true"
           }
         ]
       }

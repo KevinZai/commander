@@ -1,34 +1,45 @@
 ---
 name: ccc-improve-commands
-description: "Audit and improve the slash command library — prune stale commands, identify gaps, enhance existing ones"
-usage: /improve-commands
+description: "Audit the slash command library: inventory every command, grade quality, find missing categories, and apply approved updates, additions, and archivals. Use when the command library feels stale, duplicated, or incomplete."
+usage: /ccc-improve-commands
 version: 1.3.0
 ---
 
-# Improve Commands — Command Library Audit
+# /ccc-improve-commands — command library audit
 
-Perform a comprehensive audit of all slash commands in `~/.claude/commands/`.
+**CC Commander** · /ccc-improve-commands · a prioritized report of commands to update, add, and archive, then the approved fixes.
 
-## Step 1: Inventory
+Target: `~/.claude/commands/`. If `$ARGUMENTS` names another directory (for example `.claude/commands`), audit that instead.
 
-List all command files with:
-- File name
-- Description (from frontmatter)
-- Last modified date
-- Line count (complexity indicator)
+## What happens
 
-## Step 2: Quality Check
+### 1. Inventory
 
-For each command, evaluate:
-- **Clarity**: Is the description clear? Does the name match what it does?
-- **Completeness**: Does it cover all steps needed?
-- **Output format**: Does it define a structured output?
-- **Edge cases**: Does it handle when things go wrong?
-- **Freshness**: Is it still relevant to current workflows?
+Run:
 
-## Step 3: Gap Analysis
+```bash
+for f in ~/.claude/commands/*.md ~/.claude/commands/**/*.md; do
+  [ -f "$f" ] || continue
+  printf '%s\t%s\t%s\n' "$f" "$(date -r "$f" +%Y-%m-%d)" "$(wc -l < "$f")"
+done
+```
 
-Check if these essential categories are covered:
+For each file record the name, the `description` from its frontmatter, last-modified date, and line count (a complexity signal). Skip `archive/`.
+
+### 2. Quality check
+
+1. If the Claude Code CLI is available, run `/doctor prompt-audit` and fold its findings for commands into this report.
+2. Grade each command on:
+   - **Clarity** — the description says what it does; the name matches the behavior
+   - **Completeness** — every step needed is present, with exact commands
+   - **Output format** — a defined, structured output
+   - **Edge cases** — what happens when a step fails
+   - **Freshness** — still relevant to current workflows; no stale model names, version literals, or typed-letter menus
+
+### 3. Gap analysis
+
+Mark each category covered or missing:
+
 - [ ] Code review / quality gate
 - [ ] Testing (generation, TDD, coverage)
 - [ ] Deployment (check, deploy, rollback)
@@ -40,35 +51,50 @@ Check if these essential categories are covered:
 - [ ] Team coordination (peers, spawn, status)
 - [ ] Project setup (init, configure)
 
-## Step 4: Recommendations
-
-Output a prioritized list:
+### 4. Recommendations
 
 ```
 COMMAND AUDIT REPORT
 
-Total commands: [count]
-Healthy: [count]
-Needs update: [count]
-Stale (remove): [count]
-Missing (create): [count]
+Total commands: <n>
+Healthy: <n>
+Needs update: <n>
+Stale (archive): <n>
+Missing (create): <n>
 
 UPDATES NEEDED:
-1. [command] — [what to fix]
-2. ...
+1. <command> — <what to fix>
 
 COMMANDS TO ADD:
-1. [name] — [what it would do]
-2. ...
+1. <name> — <what it would do>
 
-COMMANDS TO REMOVE:
-1. [name] — [why it's stale]
-2. ...
+COMMANDS TO ARCHIVE:
+1. <name> — <why it is stale>
 ```
 
-## Step 5: Auto-Fix (if approved)
+Counts come from the inventory in step 1, not estimates.
 
-For each recommended change, ask for confirmation before:
-- Updating command content
-- Creating new command files
-- Archiving stale commands (move to `commands/archive/`)
+### 5. Apply approved changes
+
+For each recommendation, ask with AskUserQuestion (plain-text question where unavailable), batching up to four related items per question:
+
+- 🟢 Apply — show the diff or new file content first, then write it
+- Skip — leave it for later
+- Edit first — the user adjusts the proposal before it is applied
+
+Archival moves the file to `~/.claude/commands/archive/` (`mkdir -p` first, then `mv`); nothing is deleted.
+
+Verify: re-run the step 1 inventory and report the before and after totals, plus each file changed.
+
+## Done when
+
+The report has been printed from the actual inventory, and every applied change shows in the re-run inventory.
+
+## Guardrails
+
+- No file is written, created or moved without an Apply pick for that item.
+- Stale commands are archived, never deleted.
+
+## See also
+
+`/ccc-skill-health` · `/ccc-improve` · `/ccc-harness-audit` · `/ccc-skill-create`

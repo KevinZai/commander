@@ -1,80 +1,83 @@
 ---
-description: "CC Commander init — scaffold or refresh project CLAUDE.md, tasks/, and lessons.md from the latest v4.0 template. Preserves custom sections."
+description: "Scaffold or refresh a project's CLAUDE.md, tasks/, lessons.md and .claude/settings.json from the CC Commander template, preserving custom sections. Use when starting a project or when CLAUDE.md is missing, stale, or behind the template."
 ---
 
-# `/ccc-init` — Project Initialization + Refresh
+# /ccc-init — project init and refresh
 
-One command for both **new projects** and **existing stale CLAUDE.md refreshes**. Replaces `/ccc-refresh` (kept as deprecated alias).
+**CC Commander** · /ccc-init · one command that scaffolds a new project or merge-refreshes an existing CLAUDE.md, applied only after you approve the plan.
 
-## What this does
+`/ccc-refresh` is a deprecated alias for the refresh path of this command.
 
-1. Detects current project state:
-   - **No CLAUDE.md** → scaffold from `CLAUDE.md.template`
-   - **CLAUDE.md older than 30 days OR template version mismatch** → refresh proposal
-   - **CLAUDE.md current** → report healthy + offer optional sections
-2. Creates `tasks/` directory + `tasks/lessons.md` if missing
-3. Creates `.claude/settings.json` scaffold if missing (project-scoped permissions)
-4. Shows a merge plan with ADD / UPDATE / KEEP / CUSTOM classifications
-5. Applies only after explicit confirmation
-6. Updates version comment to: `<!-- CC Commander Template v4.0.0-beta.1 | Generated: YYYY-MM-DD -->`
+## What happens
 
-## Scaffold paths (new project)
+1. Locate the template: `CLAUDE.md.template` at the root of the CC Commander install or checkout. Read the installed version from that install's `package.json` (`node -p "require('./package.json').version"` run in that directory). If the template is not found, ask the user for its path and stop until it is given.
+2. Detect the project state from the repository root (`git rev-parse --show-toplevel`, or the current directory outside git):
+   - **No `CLAUDE.md`** → scaffold.
+   - **`CLAUDE.md` unmodified for more than 30 days** (`date -r CLAUDE.md`), **or** its header comment records a version different from the installed one → refresh.
+   - **Otherwise** → report healthy and offer the optional template sections it lacks.
+3. Check the companions: `tasks/`, `tasks/todo.md`, `tasks/lessons.md`, `.claude/settings.json`.
+4. Build the merge plan:
+   - **Scaffold**: the full layout below.
+   - **Refresh**: compare H2 sections of `CLAUDE.md` with the template:
+     - **MATCH** — header in both, bodies equal → keep
+     - **UPDATE** — header in both, bodies differ → side-by-side proposal
+     - **MISSING** — in the template only → add, marked `<!-- Added by CC Commander <installed version> -->`
+     - **CUSTOM** — in the user's file only → preserved untouched
+   - Preserve the user's name and every filled-in placeholder; never reintroduce `[placeholder]` text over real content.
+5. Show the plan:
+
+   ```
+   # Project Initialization
+
+   ## State detected
+   - CLAUDE.md: present, header <recorded version> → <installed version> available
+   - tasks/lessons.md: missing
+   - .claude/settings.json: missing
+   - Last modified: <n> days ago
+
+   ## Proposed actions
+   + [SCAFFOLD] tasks/lessons.md
+   + [SCAFFOLD] .claude/settings.json (project permissions scaffold)
+   ~ [REFRESH]  CLAUDE.md — <n> new H2 sections, <n> updated
+   = [KEEP]     "My Custom Rules" section (untouched)
+   ```
+
+6. Ask with AskUserQuestion (plain-text question where unavailable):
+   - 🟢 Apply — write every proposed change
+   - Show diff first — print the full diff, then ask again
+   - Pick sections — choose which UPDATE and MISSING sections to apply
+   - Cancel — nothing is written
+7. On Apply, write the changes and set the first line of `CLAUDE.md` to `<!-- CC Commander template | Version: <installed version> | Generated: <YYYY-MM-DD> -->`.
+8. Verify: `head -1 CLAUDE.md`, `ls tasks/ .claude/settings.json`, and `git diff --stat` inside git. Confirm `.claude/settings.json` parses with `node -e "JSON.parse(require('fs').readFileSync('.claude/settings.json'))"`. Report the results.
+
+## Scaffold layout (new project)
 
 ```
 project-root/
-├── CLAUDE.md              # from CLAUDE.md.template
+├── CLAUDE.md              # from CLAUDE.md.template, placeholders listed for the user to fill
 ├── tasks/
 │   ├── todo.md            # stub
-│   └── lessons.md         # empty header
+│   └── lessons.md         # header only
 └── .claude/
-    └── settings.json      # project-level scaffold
+    └── settings.json      # {"permissions": {"allow": [], "deny": []}}
 ```
 
-## Refresh strategy (existing project)
+Never overwrite an existing companion file; only create missing ones.
 
-Same H2-section merge behavior as legacy `/ccc-refresh`:
-- **MATCH** — header exists in both, compare bodies
-- **MISSING** — in template but not user's → recommend adding with `<!-- Added by CC Commander v4.0.0-beta.1 -->`
-- **CUSTOM** — user has it, template doesn't → preserved untouched
-- **UPDATE** — content drift → side-by-side proposal
+## Startup nudge
 
-## Auto-prompt triggers
+The plugin's `stale-claude-md-nudge` hook nudges toward `/ccc-adopt` when a code repository has no `CLAUDE.md`, and toward `/ccc-adopt --check` when `CLAUDE.md` has been untouched for more than 30 days. Set `CC_NUDGE_DISABLE=1` to silence it.
 
-The `session-start` hook proactively nudges when:
-- CLAUDE.md missing entirely
-- Template version older than installed CC Commander
-- File unmodified >30 days
-- Key H2 sections missing (Workflow, Core Principles, Rules)
+## Done when
 
-Override via `CC_NUDGE_DISABLE=1`.
+The verification in step 8 ran and its output matches the applied plan, or the user cancelled and no file changed.
 
-## Deprecated alias
+## Guardrails
 
-`/ccc-refresh` is preserved as a deprecated alias — calling it emits a deprecation notice, then executes `/ccc-init` refresh behavior.
+- Nothing is written before the Apply pick.
+- CUSTOM sections and user-filled content are never modified or removed.
+- No commit or push; the user reviews `git diff` and commits.
 
-## Example
+## See also
 
-```
-User: /ccc-init
-
-CC Commander:
-# Project Initialization
-
-## State detected
-- CLAUDE.md: present, v2.1.0 → v4.0.0-beta.1 available
-- tasks/lessons.md: missing
-- .claude/settings.json: missing
-- Last modified: 47 days ago
-
-## Proposed actions
-+ [SCAFFOLD] tasks/lessons.md
-+ [SCAFFOLD] .claude/settings.json (project permissions scaffold)
-~ [REFRESH]  CLAUDE.md — 6 new H2 sections, 4 updated
-= [KEEP]     "My Custom Rules" section (untouched)
-
-Apply? (yes / no / show-diff)
-```
-
-## Rationale
-
-Unifying `/ccc-init` with `/ccc-refresh` removes a common source of user confusion: "do I init or refresh?" Answer: always `/ccc-init` — the command figures out which it is.
+`/ccc-refresh` · `/ccc-adopt` · `/ccc-claudemd` · `/ccc-feature-start`

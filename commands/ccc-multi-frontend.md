@@ -1,162 +1,110 @@
 ---
-description: "Frontend-focused multi-model workflow: Research → Plan → Execute → Review, Gemini-led."
+description: "Frontend-focused multi-model workflow (research, ideation, plan, execute, optimize, review) with Gemini as the UI authority. Use for components, responsive layout, UI animation and style work."
 ---
 
-# Frontend - Frontend-Focused Development
+# /ccc-multi-frontend — Gemini-led frontend workflow
 
-Frontend-focused workflow (Research → Ideation → Plan → Execute → Optimize → Review), Gemini-led.
+**CC Commander** · /ccc-multi-frontend · a UI change planned and reviewed with Gemini, written by the assistant.
 
 ## Usage
 
 ```bash
-/frontend <UI task description>
+/ccc-multi-frontend <UI task description>
 ```
 
-## Context
+Task: `$ARGUMENTS`. If it is empty, ask the user for the UI task before starting.
 
-- Frontend task: $ARGUMENTS
-- Gemini-led, Codex for auxiliary reference
-- Applicable: Component design, responsive layout, UI animations, style optimization
+Roles:
 
-## Your Role
+- **Gemini** — frontend UI and UX; its frontend opinions are authoritative.
+- **Codex** — backend perspective; treat its frontend opinions as reference only.
+- **The assistant** — orchestration, planning, every file write, and delivery. External models never write to the filesystem.
 
-You are the **Frontend Orchestrator**, coordinating multi-model collaboration for UI/UX tasks (Research → Ideation → Plan → Execute → Optimize → Review).
+The user's selected session model is preserved.
 
-**Collaborative Models**:
-- **Gemini** – Frontend UI/UX (**Frontend authority, trustworthy**)
-- **Codex** – Backend perspective (**Frontend opinions for reference only**)
-- **Claude (self)** – Orchestration, planning, execution, delivery
+## Prerequisite: ccg-workflow runtime (opt-in)
 
----
+This command calls the external `ccg-workflow` runtime, which Commander does not bundle. Check it first:
 
-## Multi-Model Call Specification
-
-**Call Syntax**:
-
+```bash
+test -x ~/.claude/bin/codeagent-wrapper && ls ~/.claude/.ccg/prompts/gemini
 ```
-# New session call
-Bash({
-  command: "~/.claude/bin/codeagent-wrapper {{LITE_MODE_FLAG}}--backend gemini --gemini-model gemini-3-pro-preview - \"$PWD\" <<'EOF'
+
+If the check fails, ask with AskUserQuestion (Codex: a plain-text question):
+
+- 🟢 Run Claude-only — continue with built-in tools and skip the Gemini calls (use `/ccc-plan` for planning)
+- Install first — point the user to the upstream ccg-workflow installation guide and stop
+- Cancel — stop without changes
+
+## Gemini call
+
+Run every wrapper call with Bash, `run_in_background: true` and `timeout: 3600000`. Add any extra flags your ccg-workflow install documents (for example lite mode) before `--backend`. Pass `--gemini-model <model>` with the Gemini model your install documents, or omit it to use the wrapper default.
+
+```bash
+# New session
+~/.claude/bin/codeagent-wrapper --backend gemini --gemini-model <model> - "$PWD" <<'EOF'
 ROLE_FILE: <role prompt path>
 <TASK>
-Requirement: <enhanced requirement (or $ARGUMENTS if not enhanced)>
+Requirement: <enhanced requirement, or the original task>
 Context: <project context and analysis from previous phases>
 </TASK>
-OUTPUT: Expected output format
-EOF",
-  run_in_background: false,
-  timeout: 3600000,
-  description: "Brief description"
-})
+OUTPUT: <expected output format>
+EOF
 
-# Resume session call
-Bash({
-  command: "~/.claude/bin/codeagent-wrapper {{LITE_MODE_FLAG}}--backend gemini --gemini-model gemini-3-pro-preview resume <SESSION_ID> - \"$PWD\" <<'EOF'
-ROLE_FILE: <role prompt path>
-<TASK>
-Requirement: <enhanced requirement (or $ARGUMENTS if not enhanced)>
-Context: <project context and analysis from previous phases>
-</TASK>
-OUTPUT: Expected output format
-EOF",
-  run_in_background: false,
-  timeout: 3600000,
-  description: "Brief description"
-})
+# Resume an existing session
+~/.claude/bin/codeagent-wrapper --backend gemini --gemini-model <model> resume <SESSION_ID> - "$PWD" <<'EOF'
+...same body...
+EOF
 ```
 
-**Role Prompts**:
-
-| Phase | Gemini |
-|-------|--------|
+| Phase | Role prompt |
+|---|---|
 | Analysis | `~/.claude/.ccg/prompts/gemini/analyzer.md` |
 | Planning | `~/.claude/.ccg/prompts/gemini/architect.md` |
 | Review | `~/.claude/.ccg/prompts/gemini/reviewer.md` |
 
-**Session Reuse**: Each call returns `SESSION_ID: xxx`, use `resume xxx` for subsequent phases. Save `GEMINI_SESSION` in Phase 2, use `resume` in Phases 3 and 5.
+Each call prints `SESSION_ID: <id>`. Save it as `GEMINI_SESSION` in Phase 2 and pass `resume <GEMINI_SESSION>` in Phases 3 and 5.
 
----
+Wait for the background call to finish before moving on; the harness reports when it exits. Do not kill a running call. If it reaches its timeout, ask with AskUserQuestion:
 
-## Communication Guidelines
+- 🟢 Keep waiting — poll the call again
+- Stop the call — continue Claude-only for this phase
+- Cancel — end the workflow here
 
-1. Start responses with mode label `[Mode: X]`, initial is `[Mode: Research]`
-2. Follow strict sequence: `Research → Ideation → Plan → Execute → Optimize → Review`
-3. Use `AskUserQuestion` tool for user interaction when needed (e.g., confirmation/selection/approval)
+## Steps
 
----
+Start each response with a mode label (`[Mode: Research]`, `[Mode: Ideation]`, and so on) and follow the phases in order.
 
-## Core Workflow
+0. `[Mode: Prepare]` Optional prompt enhancement. If the opt-in ace-tool MCP server is connected, call `mcp__ace-tool__enhance_prompt` and use its result as the requirement for every later Gemini call. Otherwise use `$ARGUMENTS` as is.
+1. `[Mode: Research]` Gather context.
+   - If ace-tool is connected, call `mcp__ace-tool__search_context` for existing components, styles and the design system. Otherwise use Glob for files, Grep for components and styles, Read for context, and the Agent tool with the Explore subagent for wider exploration.
+   - Score requirement completeness from 0 to 10. At 7 or above, continue. Below 7, stop and ask the user the questions that close the gaps.
+2. `[Mode: Ideation]` Call Gemini with the analyzer role. Output: UI feasibility, at least two solutions, UX evaluation. Save `GEMINI_SESSION`. Present the solutions with AskUserQuestion, recommended one first and marked 🟢, each with a one-line trade-off.
+3. `[Mode: Plan]` Call Gemini with the architect role and `resume <GEMINI_SESSION>`. Requirement: the chosen solution. Output: component structure, UI flow, styling approach. Synthesize the plan, then ask:
+   - 🟢 Approve and save — write the plan to `.claude/plan/<task-name>.md` and implement
+   - Revise — adjust the plan from the user's feedback and ask again
+   - Stop — keep the plan in the conversation only
+4. `[Mode: Execute]` Implement the approved plan with Edit and Write. Follow the project's design system and code standards; keep the result responsive and accessible. Change only what the plan names.
+5. `[Mode: Optimize]` Call Gemini with the reviewer role and `resume <GEMINI_SESSION>`. Context: `git diff`. Output: accessibility, responsiveness, performance and design-consistency issues. Present the issues, then ask:
+   - 🟢 Apply the fixes — make the listed changes
+   - Apply selected — the user names which issues to fix
+   - Skip — record the issues and continue to review
+6. `[Mode: Review]` Final check.
+   - Compare the result against the plan, item by item.
+   - Run the project's test, typecheck and lint commands (from `package.json` or the project `CLAUDE.md`, for example `npm test`, `npm run typecheck`, `npm run lint`).
+   - Check responsiveness and accessibility: run the project's browser or accessibility tests if it has them; otherwise open the changed views at phone and desktop widths with the installed browser tooling and list what was checked.
+   - Run `git status --short` and `git diff --stat` and confirm only planned files changed.
 
-### Phase 0: Prompt Enhancement (Optional)
+## Done when
 
-`[Mode: Prepare]` - If ace-tool MCP available, call `mcp__ace-tool__enhance_prompt`, **replace original $ARGUMENTS with enhanced result for subsequent Gemini calls**. If unavailable, use `$ARGUMENTS` as-is.
+The plan items are complete, the actual results of the test and lint commands and the responsive/accessibility check are reported, and `git status --short` shows only planned files.
 
-### Phase 1: Research
+## Guardrails
 
-`[Mode: Research]` - Understand requirements and gather context
+- External models get read-only context; the assistant makes every file change.
+- Gemini is authoritative for frontend decisions; Codex's frontend input is reference only.
+- No commit, push or deploy unless the user asks for it in this conversation.
 
-1. **Code Retrieval** (if ace-tool MCP available): Call `mcp__ace-tool__search_context` to retrieve existing components, styles, design system. If unavailable, use built-in tools: `Glob` for file discovery, `Grep` for component/style search, `Read` for context gathering, `Task` (Explore agent) for deeper exploration.
-2. Requirement completeness score (0-10): >=7 continue, <7 stop and supplement
+## See also
 
-### Phase 2: Ideation
-
-`[Mode: Ideation]` - Gemini-led analysis
-
-**MUST call Gemini** (follow call specification above):
-- ROLE_FILE: `~/.claude/.ccg/prompts/gemini/analyzer.md`
-- Requirement: Enhanced requirement (or $ARGUMENTS if not enhanced)
-- Context: Project context from Phase 1
-- OUTPUT: UI feasibility analysis, recommended solutions (at least 2), UX evaluation
-
-**Save SESSION_ID** (`GEMINI_SESSION`) for subsequent phase reuse.
-
-Output solutions (at least 2), wait for user selection.
-
-### Phase 3: Planning
-
-`[Mode: Plan]` - Gemini-led planning
-
-**MUST call Gemini** (use `resume <GEMINI_SESSION>` to reuse session):
-- ROLE_FILE: `~/.claude/.ccg/prompts/gemini/architect.md`
-- Requirement: User's selected solution
-- Context: Analysis results from Phase 2
-- OUTPUT: Component structure, UI flow, styling approach
-
-Claude synthesizes plan, save to `.claude/plan/task-name.md` after user approval.
-
-### Phase 4: Implementation
-
-`[Mode: Execute]` - Code development
-
-- Strictly follow approved plan
-- Follow existing project design system and code standards
-- Ensure responsiveness, accessibility
-
-### Phase 5: Optimization
-
-`[Mode: Optimize]` - Gemini-led review
-
-**MUST call Gemini** (follow call specification above):
-- ROLE_FILE: `~/.claude/.ccg/prompts/gemini/reviewer.md`
-- Requirement: Review the following frontend code changes
-- Context: git diff or code content
-- OUTPUT: Accessibility, responsiveness, performance, design consistency issues list
-
-Integrate review feedback, execute optimization after user confirmation.
-
-### Phase 6: Quality Review
-
-`[Mode: Review]` - Final evaluation
-
-- Check completion against plan
-- Verify responsiveness and accessibility
-- Report issues and recommendations
-
----
-
-## Key Rules
-
-1. **Gemini frontend opinions are trustworthy**
-2. **Codex frontend opinions for reference only**
-3. External models have **zero filesystem write access**
-4. Claude handles all code writes and file operations
+`/ccc-multi-backend` · `/ccc-multi-workflow` · `/ccc-multi-plan` · `/ccc-multi-execute`

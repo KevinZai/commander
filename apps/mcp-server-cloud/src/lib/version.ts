@@ -1,3 +1,5 @@
-// Single source of truth for the server's advertised version.
-// Keep in sync with package.json on every release.
-export const SERVER_VERSION = "4.1.0-beta.2";
+import { createRequire } from "node:module";
+
+// src/lib and dist/lib resolve the same package manifest, including in Docker.
+const require = createRequire(import.meta.url);
+export const SERVER_VERSION: string = require("../../package.json").version;

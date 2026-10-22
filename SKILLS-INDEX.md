@@ -1,8 +1,8 @@
 # Skills Index — Quick Reference
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
-> Last verified: 2026-07-20 (203 top-level directories, 195 top-level SKILL.md, 467 total SKILL.md, 3 starter templates)
+> Last verified: 2026-10-13 (202 top-level directories, 195 top-level SKILL.md, 467 total SKILL.md, 3 starter templates)
 
-> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 83 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage`, `ccc-safety`, and `ccc-update` below), see [BIBLE.md](BIBLE.md#the-83-plugin-skills) or `/plugin/skills` in the Mintlify docs.
+> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 84 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage`, `ccc-safety`, and `ccc-update` below), see [README.md](README.md#the-84-plugin-skills), [BIBLE.md](BIBLE.md#the-84-plugin-skills) or `/plugin/skills` in the Mintlify docs.
 
 ---
 
@@ -34,21 +34,20 @@
 | `canary` | Post-deploy canary monitoring. Watches the live app for console errors, |
 | `caveman` | Ultra-compressed communication mode. Cuts ~75% of output tokens by speaking like caveman |
 | `cc-plugin-registry` | Reports all installed plugins, vendor packages, phase coverage, conflicts, and scoring |
-| `ccc-data` | CCC domain — complete data ecosystem — 8 skills in one. Data pipelines, SQL optimization, visualization, machine ... |
-| `ccc-design` | CCC domain — complete design & animation ecosystem — 35+ skills in one. Animations, visual effects, design system... |
-| `ccc-devops` | CCC domain — complete DevOps ecosystem — 20 skills in one. Deployments, CI/CD, containers, AWS, monitoring, secur... |
-| `ccc-makeover` | CCC domain — design refresh and project health overhaul — 3 skills in one. X-Ray audit, automated makeover swarm,... |
-| `ccc-marketing` | CCC domain — 46-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channe... |
-| `ccc-marketing` | CCC domain — 46-skill marketing division for AI coding agents. 7 specialist pods covering content, SEO, CRO, channe... |
-| `ccc-mobile` | CCC domain — complete mobile development ecosystem — 8 skills in one. React Native, Flutter, SwiftUI, Jetpack Com... |
-| `ccc-openclaw-coordination` | Cross-agent coordination between CCC and OpenClaw fleet |
-| `ccc-research` | CCC domain — complete research ecosystem — 8 skills in one. Deep research, spec interviews, cross-model review, l... |
-| `ccc-saas` | CCC domain — complete SaaS development ecosystem -- 20 skills in one. Scaffold, authenticate, bill, ship, and grow ... |
+| `ccc-data` | Route data work to the right sub-skill: ETL/ELT pipelines, SQL tuning, charts and dashboards, machine learning, data ... |
+| `ccc-design` | Route design and animation work to the right sub-skill: landing pages, design systems, motion, visual effects, named ... |
+| `ccc-devops` | Route DevOps work to the right sub-skill: CI/CD pipelines, zero-downtime deploys, containers, AWS, Terraform, monitor... |
+| `ccc-makeover` | Score project health with an X-Ray scan, apply the top recommendations one at a time with the user's OK, and show a b... |
+| `ccc-marketing` | Route marketing work to the right sub-skill: content, SEO and AI search, conversion optimization, email and paid chan... |
+| `ccc-mobile` | Route mobile work to one specialist sub-skill: React Native, Flutter, SwiftUI, Jetpack Compose, mobile testing, store... |
+| `ccc-openclaw-coordination` | Hand tasks from a Claude Code session to agents on an OpenClaw gateway, get their replies inline, and confirm deliver... |
+| `ccc-research` | Route research work to one specialist sub-skill: deep research, spec interviews, cross-model review, literature revie... |
+| `ccc-saas` | Route SaaS work to the right specialist sub-skill: scaffolding, auth, database, API, frontend, Stripe billing, webhoo... |
 | `ccc-safety` | Plugin skill (Commander deck) — Safety deck: blocked/auto-fixed/approved action outcomes + redacted tool-failure hot... |
-| `ccc-security` | CCC domain — complete security ecosystem — 8 skills in one. Security audits, prompt injection defense, dependency... |
-| `ccc-seo` | Complete SEO ecosystem — 20 skills. Technical SEO, AI search optimization, content strategy, analytics, and program... |
-| `ccc-smb-ops` | CCC domain — complete small-business-operations ecosystem — 6 skills in one. 13-week cash-flow forecasting, invoi... |
-| `ccc-testing` | CCC domain — complete testing ecosystem — 15 skills in one. TDD, E2E, verification, QA, regression, visual testin... |
+| `ccc-security` | Route application security work to one specialist sub-skill: security audit, prompt-injection defense, dependency aud... |
+| `ccc-seo` | SEO domain router: technical SEO, AI search optimization, content strategy and briefs, rankings, backlinks, site stru... |
+| `ccc-smb-ops` | Small-business back office from a bank CSV or a typed list: 13-week cash-flow forecast, invoicing and AR chasing, pay... |
+| `ccc-testing` | Testing domain router: picks the lane for TDD, E2E, visual regression, load testing, QA, regression checks, evals, Py... |
 | `ccc-update` | Plugin skill — click-first update walkthrough: detect installed vs. latest, run marketplace + plugin update, restar... |
 | `ccc-usage` | Plugin skill (Commander deck) — Usage & Cost deck: burn, estimated savings vs. an all-Opus baseline, saved/day + cos... |
 | `chat-widget` | Build a real-time support chat system with a floating widget for users and an admin dashboard for support staff. Use ... |

@@ -141,38 +141,9 @@ function sharedBlock() {
   --shadow-card: ${SHARED.shadowCard};`;
 }
 
-function brandBaseCss() {
-  return `:root {
-${varBlock(DARK)}
-${sharedBlock()}
-  color-scheme: dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-${varBlock(DARK)}
-    color-scheme: dark;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-${varBlock(LIGHT)}
-    color-scheme: light;
-  }
-}
-
-:root[data-theme="light"] {
-${varBlock(LIGHT)}
-  color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-${varBlock(DARK)}
-  color-scheme: dark;
-}
-
-.terminal-chrome {
+// Shared component primitives (terminal chrome, eyebrow, status colors). Both
+// theme wrappers below emit exactly this text after their token blocks.
+const COMPONENT_CSS = `.terminal-chrome {
   background: var(--bg-terminal);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
@@ -240,6 +211,69 @@ ${varBlock(DARK)}
 .status-waiting,
 .status-awaiting { color: var(--yellow); }
 `;
+
+function brandBaseCss() {
+  return `:root {
+${varBlock(DARK)}
+${sharedBlock()}
+  color-scheme: dark;
 }
 
-export { BRAND_TOKENS, brandBaseCss };
+@media (prefers-color-scheme: dark) {
+  :root {
+${varBlock(DARK)}
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+${varBlock(LIGHT)}
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+${varBlock(LIGHT)}
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+${varBlock(DARK)}
+  color-scheme: dark;
+}
+
+${COMPONENT_CSS}`;
+}
+
+/**
+ * brandArtifactCss() — the same palette and primitives in the shape the
+ * Artifact page contract asks for: dark-first tokens on bare `:root`, the
+ * light palette under `(prefers-color-scheme: light)` guarded by
+ * `:root:not([data-theme="dark"])`, and again under `:root[data-theme="light"]`,
+ * so an explicit viewer choice wins in both directions. brandBaseCss() stays
+ * byte-identical for the dashboard, the Cockpit goldens and the legacy decks.
+ */
+function brandArtifactCss() {
+  return `:root {
+${varBlock(DARK)}
+${sharedBlock()}
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+${varBlock(LIGHT)}
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+${varBlock(LIGHT)}
+  color-scheme: light;
+}
+
+${COMPONENT_CSS}`;
+}
+
+export { BRAND_TOKENS, brandArtifactCss, brandBaseCss };

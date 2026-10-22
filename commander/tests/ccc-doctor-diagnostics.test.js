@@ -112,15 +112,15 @@ function buildGoodFixture() {
       ['---', 'name: ' + name, 'description: Test agent', 'model: ' + model, '---', '', '# Body'].join('\n')
     );
   }
-  agent('architect', 'claude-fable-5');
-  agent('security-auditor', 'claude-fable-5');
-  agent('debugger', 'claude-fable-5');
-  agent('product-manager', 'claude-fable-5');
-  agent('designer', 'claude-sonnet-5');
-  agent('researcher', 'claude-sonnet-5');
-  agent('reviewer', 'claude-sonnet-5');
-  agent('builder', 'claude-sonnet-5');
-  agent('qa-engineer', 'claude-sonnet-5');
+  agent('architect', 'fable');
+  agent('security-auditor', 'claude-fable-5-1');
+  agent('debugger', 'opus');
+  agent('product-manager', 'opus');
+  agent('designer', 'claude-opus-5-5');
+  agent('researcher', 'opus');
+  agent('reviewer', 'opus');
+  agent('builder', 'opus');
+  agent('technical-writer', 'sonnet');
   // Audit scripts (empty stubs are enough — we only check existence)
   writeFile(root, 'scripts/audit-frontmatter.js', '// stub\n');
   writeFile(root, 'scripts/audit-counts.js', '// stub\n');
@@ -380,7 +380,7 @@ test('checkAgentModels: ok against the REAL repo (not a fixture)', function () {
   );
 });
 
-test('checkAgentModels: fail when architect not pinned to opus 4.7', function () {
+test('checkAgentModels: fail when architect is on the wrong tier (opus instead of fable)', function () {
   var root = buildGoodFixture();
   writeFile(
     root,
@@ -392,12 +392,12 @@ test('checkAgentModels: fail when architect not pinned to opus 4.7', function ()
   assert.ok(r.message.includes('architect'));
 });
 
-test('checkAgentModels: warn for legacy aliases on optional agents', function () {
+test('checkAgentModels: warn for a superseded pinned model id', function () {
   var root = buildGoodFixture();
   writeFile(
     root,
     'commander/cowork-plugin/agents/builder.md',
-    ['---', 'name: builder', 'description: Test', 'model: sonnet', '---'].join('\n')
+    ['---', 'name: builder', 'description: Test', 'model: claude-opus-5', '---'].join('\n')
   );
   var r = diag.checkAgentModels(root);
   assert.strictEqual(r.status, 'warn');

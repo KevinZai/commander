@@ -1,29 +1,28 @@
-# Testing Requirements
+# Testing
 
-## Minimum Test Coverage: 80%
+Verify the observable behavior the change affects and run the repository's required checks. Choose unit, integration, or end-to-end tests by the boundary and the failure risk; not every change needs all three.
 
-Test Types (ALL required):
-1. **Unit Tests** - Individual functions, utilities, components
-2. **Integration Tests** - API endpoints, database operations
-3. **E2E Tests** - Critical user flows (framework chosen per language)
+## Coverage
 
-## Test-Driven Development
+Keep the project's own coverage threshold. Do not impose a universal percentage, and do not add tests that only mirror implementation details or reversible documentation and configuration edits.
 
-MANDATORY workflow:
-1. Write test first (RED)
-2. Run test - it should FAIL
-3. Write minimal implementation (GREEN)
-4. Run test - it should PASS
-5. Refactor (IMPROVE)
-6. Verify coverage (80%+)
+## Test-first
 
-## Troubleshooting Test Failures
+Write the test first when the project requires it, the user asks, or a regression needs reproducing:
 
-1. Use **tdd-guide** agent
-2. Check test isolation
-3. Verify mocks are correct
-4. Fix implementation, not tests (unless tests are wrong)
+1. Write the test.
+2. Run it and confirm it fails for the intended reason.
+3. Write the minimal implementation.
+4. Run it and confirm it passes.
+5. Refactor with the test green.
 
-## Agent Support
+## When tests fail
 
-- **tdd-guide** - Use PROACTIVELY for new features, enforces write-tests-first
+1. Read the actual output; isolate the failing test.
+2. Check fixtures, mocks, and test isolation.
+3. Fix the implementation. Change a test only when its assumption is wrong, never to hide a defect.
+4. Re-run the affected tests, then broaden only if new failures or unresolved risk justify it.
+
+## Reporting
+
+Report what ran, what passed, what failed, and what remains unverified. A skipped check is reported as skipped. Use `qa-engineer` or `/ccc-testing` for larger suites and `/ccc-e2e` for browser flows.

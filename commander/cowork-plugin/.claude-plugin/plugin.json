@@ -1,8 +1,8 @@
 {
   "name": "commander",
   "displayName": "Commander",
-  "version": "7.4.2",
-  "description": "Guided AI PM for Claude Code, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. 83 plugin skills (click-first /ccc-* workflows), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 23 lifecycle hooks × 44 handlers, 2 bundled MCP servers + 16 opt-in. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Core free forever — no signup, no card. MIT-licensed.",
+  "version": "8.1.0",
+  "description": "Guided AI PM for Claude Code, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. 84 plugin skills (click-first /ccc-* workflows, incl. /ccc-codex for the Codex CLI), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 30 lifecycle hooks × 51 handlers, a Commander HUD mod, 6 distributable workflows, 8 plugin evals, 2 bundled MCP servers + 16 opt-in. Built for Claude Opus 5.5 / Fable 5.1 and Codex GPT-6. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Core free forever — no signup, no card. MIT-licensed.",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
@@ -28,6 +28,18 @@
     "hosted",
     "beta",
     "cursor",
-    "windsurf"
-  ]
+    "windsurf",
+    "codex",
+    "mods",
+    "workflows",
+    "evals",
+    "fable-method"
+  ],
+  "hooks": [
+    "./mods/commander-hud/hooks/hooks.json"
+  ],
+  "documentationUrl": "https://docs.commanderplugin.com",
+  "supportUrl": "https://github.com/KevinZai/commander/issues",
+  "privacyPolicyUrl": "https://commanderplugin.com/privacy",
+  "termsOfServiceUrl": "https://commanderplugin.com/terms"
 }

@@ -306,7 +306,7 @@ test('ask-bridge: callAppServer completes handshake with mock App Server', async
 
   const spec = bridge.validateSpec({
     question: 'Pick model:',
-    options: [{ label: 'gpt-5.5' }, { label: 'gpt-5.4' }],
+    options: [{ label: 'gpt-6.1-sol' }, { label: 'gpt-6-luna' }],
   });
 
   // Create PassThroughs that act as the "App Server" pipe.
@@ -335,7 +335,7 @@ test('ask-bridge: callAppServer completes handshake with mock App Server', async
         JSON.stringify({
           jsonrpc: '2.0',
           id: msg.id,
-          result: { answers: [{ selected: 'gpt-5.4' }] },
+          result: { answers: [{ selected: 'gpt-6-luna' }] },
         }) + '\n'
       );
       // Close serverToClient after responding so callAppServer's readline can end.
@@ -345,7 +345,7 @@ test('ask-bridge: callAppServer completes handshake with mock App Server', async
 
   const result = await bridge.callAppServer(spec, clientToServer, serverToClient);
 
-  assert.equal(result.selected, 'gpt-5.4');
+  assert.equal(result.selected, 'gpt-6-luna');
   assert.equal(serverLines.length, 2);
   assert.equal(serverLines[0].method, 'initialize');
   assert.equal(serverLines[1].method, 'tool/requestUserInput');

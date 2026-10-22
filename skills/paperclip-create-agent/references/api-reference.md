@@ -37,7 +37,7 @@ Request body matches agent create shape:
   "adapterType": "claude_local",
   "adapterConfig": {
     "cwd": "/absolute/path",
-    "model": "claude-sonnet-5",
+    "model": "claude-sonnet-5-5",
     "promptTemplate": "You are CTO..."
   },
   "runtimeConfig": {

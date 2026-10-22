@@ -24,6 +24,7 @@
             "group": "Getting Started",
             "pages": [
               "introduction",
+              "whats-new-v8",
               "whats-new-v7",
               "whats-new-v6",
               "whats-new-v5",
@@ -35,7 +36,7 @@
             ]
           },
           {
-            "group": "Desktop Plugin (v7.3.0)",
+            "group": "Desktop Plugin (v8.0.0)",
             "pages": [
               "plugin/install",
               "plugin/upgrade",
@@ -64,7 +65,7 @@
             ]
           },
           {
-            "group": "v5.0.0 Features",
+            "group": "Workflows & Effort",
             "pages": [
               "dynamic-workflows",
               "ultracode"

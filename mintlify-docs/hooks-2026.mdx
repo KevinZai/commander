@@ -1,67 +1,71 @@
 ---
-title: "Hooks 2026 — 23 Events"
-description: "v5.1.0 expanded the hook system from 9 to 23 lifecycle events and nearly doubled the handler count. Full registry, new events, and migration notes."
+title: "Hooks 2026 — 30 Events"
+description: "Commander registers 30 Claude Code lifecycle hook events with 51 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
 ---
 
 <Note>
-  **v5.1.0 change.** The hook system expanded from 9 events to 23. Existing hooks continue to work unchanged. The new events are additive. One breaking change: `session-save` moved from `Stop` to `SessionEnd` (correctness fix — see [Migration Notes](#migration-notes)).
+  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 51 handlers**. Existing handlers are unchanged.
 </Note>
 
-## Full Hook Registry (current)
+## Full hook registry (current)
 
-Rebuilt from the plugin's `hooks.json` — the per-event handler counts below sum to the canonical total.
+Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/hooks/hooks.json); the per-event handler counts sum to the canonical total.
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
-| `SessionStart` | 5 | `session-start-orchestrator.js` (single-process orchestrator running the session-start, stale-CLAUDE.md-nudge, post-compact-recovery, fable-armed-nudge, and voice-injector scripts), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed state, stale CLAUDE.md nudge, post-compact recovery, git credential refresh (opt-in), update nudge, console auto-open (v7.4.0) |
-| `SessionEnd` | 2 | `session-save.js`, `session-end.js` | Persist session JSON + write summary to knowledge dir |
+| `SessionStart` | 5 | `session-start-orchestrator.js` (one process running session-start, the stale-CLAUDE.md nudge, post-compact recovery and the Fable-armed nudge), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed session state, return `watchPaths` for the project's `CLAUDE.md` files, post-compact recovery, git credential refresh (opt-in), update nudge, console auto-open |
+| `SessionEnd` | 2 | `session-save.js`, `session-end.js` | Persist the session and write a summary to the knowledge directory |
 | `UserPromptSubmit` | 6 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick, skill routing, context budget warnings, prompt logging, skill-run telemetry |
 | `UserPromptExpansion` | 1 | `prompt-expansion-guard.js` | Pass-through guard for expanded prompt templates |
-| `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js` (Edit/Write), `doc-file-warning.js` (Write), `git-push-reminder.js` (Bash) | Accumulate cost, block over ceiling, scan args for leaked secrets, protect config files, warn on scratch markdown, pre-push reminder |
-| `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js` (Edit/Write), `pr-link-notify.js` (Bash) | Capture file-touch observations, feed Mission Control, warn on console.log, surface new PR links |
-| `PostToolUseFailure` | 1 | `post-tool-failure-logger.js` | Log failed tool calls to session telemetry |
+| `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js` (Edit/Write), `doc-file-warning.js` (Write), `git-push-reminder.js` (Bash) | Accumulate cost, block over the ceiling, scan arguments for leaked secrets, protect config files, warn on scratch markdown, pre-push reminder |
+| `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js` (Edit/Write), `pr-link-notify.js` (Bash) | Capture file-touch observations, feed Mission Control, warn on `console.log`, surface new PR links |
+| `PostToolUseFailure` | 1 | `post-tool-failure-logger.js` | Log failed tool calls for `/ccc-safety` |
 | `PostToolBatch` | 1 | `knowledge-capture.js` | Batch-level knowledge capture after multi-tool sequences |
-| `Stop` | 2 | `suggest-lightweight.js`, `clickability-watch.js` | End-of-turn suggestion pass + clickability telemetry (session-save moved to SessionEnd in v5.1.0) |
+| `PermissionRequest` | 2 | `permission-gate.js`, `mission-control-feed.js` | Permission relay and Mission Control event feed |
+| `PermissionDenied` | 1 | `permission-denied-logger.js` | **New in v8.** Records auto-mode denials in the same journal `permission-gate.js` writes, so `/ccc-safety` counts them as blocked. Never asks for a retry |
+| `PreModelSwitch` | 1 | `model-switch-logger.js` | **New in v8.** Logs the requested switch. Never returns a decision, so your own or managed policy wins |
+| `PostModelSwitch` | 1 | `model-switch-logger.js` | **New in v8.** Logs the switch and adds one line naming Commander's routing tiers; your chosen model is kept |
+| `Stop` | 2 | `suggest-lightweight.js`, `clickability-watch.js` | End-of-turn suggestion pass and clickability telemetry |
 | `StopFailure` | 1 | `stop-failure-handler.js` | Log unhandled errors on session close |
-| `Notification` | 1 | `fleet-notify.js` | Append fleet agent completion events to `notifications.jsonl` |
-| `PreCompact` | 1 | `pre-compact.js` | Block compaction if session is mid-critical-task |
-| `PostCompact` | 1 | `post-compact-recovery.js` | Restore context hints after compaction completes |
+| `Notification` | 1 | `fleet-notify.js` | Append fleet completion events to `notifications.jsonl` |
+| `PreCompact` | 1 | `pre-compact.js` | Snapshot state before compaction |
+| `PostCompact` | 1 | `post-compact-recovery.js` | Restore context hints after compaction |
 | `SubagentStart` | 1 | `subagent-start-tracker.js` | Track subagent spawn for cost aggregation |
-| `SubagentStop` | 2 | `subagent-stop.js`, `agent-run-logger.js` | Aggregate subagent cost back into parent session + log agent runs for Mission Control |
-| `PermissionRequest` | 2 | `permission-gate.js`, `mission-control-feed.js` | Permission relay (Codex Desktop) + Mission Control event feed |
-| `Elicitation` | 1 | `elicitation-logger.js` | Log clarification requests to session metadata |
-| `ElicitationResult` | 1 | `elicitation-result-handler.js` | Capture user clarification responses |
+| `SubagentStop` | 2 | `subagent-stop.js`, `agent-run-logger.js` | Roll subagent cost into the parent session and log agent runs for Mission Control |
 | `TaskCreated` | 1 | `task-tracker.js` | Log background task start (workflows, fleet agents) |
-| `TaskCompleted` | 1 | `task-tracker.js` | Log background task completion + duration |
-| `ConfigChange` | 1 | `config-protection.js` | Warn if protected config changes during an active session |
-| `InstructionsLoaded` | 1 | `stale-claude-md-nudge.js` | Warn when a stale project CLAUDE.md is loaded |
-| `Setup` | 1 | `license-check.js` | One-time initialization slot when plugin first installs (explicit no-op — core is free forever) |
+| `TaskCompleted` | 1 | `task-tracker.js` | Log background task completion and duration |
+| `TeammateIdle` | 1 | `fleet-telemetry.js` | **New in v8.** Fleet telemetry when an agent-team teammate goes idle. Observe-only: it never keeps a teammate working or stops it |
+| `Elicitation` | 1 | `elicitation-logger.js` | Log clarification requests |
+| `ElicitationResult` | 1 | `elicitation-result-handler.js` | Capture clarification responses |
+| `ConfigChange` | 1 | `config-protection.js` | Warn when protected config changes mid-session |
+| `InstructionsLoaded` | 1 | `stale-claude-md-nudge.js` | Warn when a stale project `CLAUDE.md` is loaded |
+| `FileChanged` | 1 | `stale-claude-md-nudge.js` (matcher `CLAUDE.md`) | **New in v8.** Re-checks a `CLAUDE.md` when it changes on disk. The watcher is seeded by the SessionStart `watchPaths` |
+| `CwdChanged` | 1 | `session-state-sync.js` | **New in v8.** Keeps `active-session.json` pointed at the current working directory |
+| `DirectoryAdded` | 1 | `session-state-sync.js` | **New in v8.** Records directories added to the session |
+| `Setup` | 1 | `license-check.js` | One-time initialization slot (an explicit no-op — core is free forever) |
 
-**Total: 23 events · 44 handlers**
+**Total: 30 events · 51 handlers**
 
-## New vs Existing Events
+## Events Commander deliberately leaves alone
 
-**Existing events (unchanged from v4.x):**
+Claude Code exposes three events beyond the 30 Commander registers. Each is skipped on purpose:
 
-`SessionStart` · `UserPromptSubmit` · `PreToolUse` · `PostToolUse` · `Stop` · `Notification` · `PreCompact` · `SubagentStop` · `PermissionRequest`
+- **`WorktreeCreate`** is not a telemetry hook. Registering one *replaces* git worktree creation: the hook itself must create the working copy and print its path, and if it fails or prints nothing, worktree creation fails. A plugin that only wanted to observe would break `/ccc-fleet`, `isolation: worktree` subagents and every workflow that runs in a worktree.
+- **`WorktreeRemove`** has the same shape: exit 0 counts as "removed" and git's own cleanup is skipped, so an observing hook would leak worktrees.
+- **`MessageDisplay`** rewrites what is shown for a message. Commander has nothing to change there.
 
-**New in v5.1.0:**
+## Codex mirror: 12 events
 
-`SessionEnd` · `PostCompact` · `SubagentStart` · `StopFailure` · `PostToolUseFailure` · `PostToolBatch` · `Elicitation` · `ElicitationResult` · `TaskCreated` · `TaskCompleted` · `ConfigChange` · `UserPromptExpansion` · `InstructionsLoaded` · `Setup`
+The generated Codex plugin (`commander/cowork-plugin-codex/`) carries the handlers for the 12 events Codex CLI supports: `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`, `UserPromptSubmit`, `SubagentStart`, `SubagentStop`, `Stop`, `SessionStart`, `SessionEnd` and `Interrupt`. Events Codex lacks are dropped by `scripts/build-codex.js` using `hook-event-map.json`. Timeouts ship in seconds, `SessionEnd` is capped at Codex's 3-second limit, and `Interrupt` has no Claude source, so no handler is mapped to it. Codex treats plugin hooks as untrusted until you review them with `/hooks`.
 
-## Migration Notes
+## Handler conventions
 
-### `session-save` moved from `Stop` → `SessionEnd`
+- **Shell form, quoted root.** Every command is `node "${CLAUDE_PLUGIN_ROOT}/hooks/<script>.js"`. The quotes matter: Desktop installs live under a path with a space. Shell form (rather than `args`) keeps one `hooks.json` that also mirrors to Codex.
+- **Fail-open.** Telemetry handlers always exit 0 and never block. Only the guards (`secret-leak-guard.js`, `config-protection.js`, `cost-ceiling-enforcer.js`, `permission-gate.js`) can deny a tool call.
+- **Async where nothing waits.** Writers such as `mission-control-feed.js`, `task-tracker.js`, `fleet-notify.js` and `update-nudge.js` run with `"async": true`.
+- **Local writes only.** Every handler writes under `~/.claude/commander/`.
 
-In v4.x, `session-save.js` was registered under the `Stop` event. This was a bug: `Stop` fires before Claude Code fully closes the session, which could cause race conditions with file writes.
-
-In v5.1.0, `session-save.js` is registered under `SessionEnd` — the correct event for session persistence.
-
-**If you have custom hooks registered on `Stop` that depend on session state being present**, move them to `SessionEnd`.
-
-**All plugin hooks are automatically updated** — no action required unless you have project-level custom hooks that read from `~/.claude/commander/sessions/active-session.json` on `Stop`.
-
-## Disabling Individual Hooks
+## Disabling individual hooks
 
 To disable a hook event without uninstalling the plugin:
 
@@ -76,41 +80,43 @@ To disable a hook event without uninstalling the plugin:
 }
 ```
 
-Disabling an event disables all its handlers.
+Disabling an event disables all its handlers. Run `/hooks` inside Claude Code to see every configured hook by event.
 
-## State Layout
+## State layout
 
-Hook state lives in `~/.claude/commander/` — never touches other `.claude/` contents:
+Hook state lives in `~/.claude/commander/` and never touches other `.claude/` contents:
 
 ```
 ~/.claude/commander/
 ├── sessions/
-│   ├── active-session.json       # current session (created on SessionStart)
+│   ├── active-session.json       # current session (SessionStart, CwdChanged, DirectoryAdded)
 │   ├── active-cost.json          # incremented on each PreToolUse
 │   └── YYYY-MM-DD-{hash}.json    # archived on SessionEnd
+├── analytics/
+│   └── permission-gate.jsonl     # permission decisions + auto-mode denials (PermissionDenied)
 ├── knowledge/
 │   ├── auto-captures.jsonl       # file-touch observations (PostToolUse)
 │   └── {timestamp}.json          # manual lessons via /ccc-knowledge
 ├── fleet/
-│   └── notifications.jsonl       # fleet task completion log (TaskCompleted)
+│   ├── notifications.jsonl       # fleet task completion log
+│   └── teammates.jsonl           # teammate idle events (TeammateIdle)
+├── model-switches.jsonl          # PreModelSwitch / PostModelSwitch
 ├── tasks/
-│   └── active-tasks.json         # in-flight background tasks (TaskCreated/TaskCompleted)
-├── pre-compact/
-│   └── YYYY-MM-DD-{hash}.json    # state before compaction (PreCompact)
-├── post-compact/
-│   └── hints.json                # context restoration hints (PostCompact)
+│   └── active-tasks.json         # in-flight background tasks
+├── pre-compact/                  # state before compaction (PreCompact)
+├── post-compact/                 # context restoration hints (PostCompact)
 └── config.json                   # user settings
 ```
 
-## Execution Model
+## Execution model
 
-Hooks are JavaScript files executed natively by Claude Code's hook runtime:
+Hooks are Node scripts run by Claude Code's hook runtime:
 
-1. Receive event context as JSON on stdin
-2. Run logic (typically 5–50ms)
-3. Return `{"continue": true}` or `{"continue": false, "reason": "..."}` on stdout
+1. Receive the event context as JSON on stdin.
+2. Run their logic (typically 5–50 ms).
+3. Print nothing, or a JSON object with the fields that event accepts (for example `hookSpecificOutput.additionalContext`, `permissionDecision` on `PreToolUse`, `systemMessage` on `FileChanged`).
 
-`{"continue": false}` from `PreToolUse` blocks the tool call. All other hooks are informational. Handlers flagged `"async": true` in `hooks.json` — the telemetry and notification writers such as `mission-control-feed.js`, `task-tracker.js`, `fleet-notify.js`, and `update-nudge.js` — fire without waiting for a return value.
+`PreModelSwitch` handlers are kept fast on purpose: a `PreModelSwitch` hook that times out blocks the switch.
 
 ## Privacy
 
@@ -118,15 +124,15 @@ Hooks store state locally at `~/.claude/commander/`. Anonymous event telemetry (
 
 ```bash
 # Opt out of telemetry
-echo '{"telemetry": false}' > ~/.claude/commander/config.json
+mkdir -p ~/.commander && echo '{"telemetry": false}' > ~/.commander/config.json
 # or
 CCC_TELEMETRY=0 claude
 ```
 
-No prompts, file contents, or paths are ever transmitted. See [Privacy Policy](/privacy) for details.
+No prompts, file contents or paths are ever transmitted.
 
-## See Also
+## See also
 
+- [Plugin hooks overview](/plugin/hooks)
 - [Dynamic Workflows](/dynamic-workflows) — `TaskCreated` / `TaskCompleted` fire around workflow execution
-- [Ultracode](/ultracode) — uses `xhigh` effort + workflow hooks
-- [What's New in v5.1.0](/whats-new-v5) — full release notes
+- [What's new in v8](/whats-new-v8) — full release notes

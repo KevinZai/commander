@@ -326,27 +326,42 @@ describe('agent-run-logger.js — stdin is the primary source (Iron Law fix, CC-
 });
 
 describe('agent-run-logger.js — agent coverage', () => {
-  it('all 17 agent files have a hooks: field in frontmatter', () => {
+  // Plugin subagents ignore a frontmatter `hooks:` field (platform-facts §2.3),
+  // so coverage comes from the plugin-level SubagentStop registration in
+  // hooks.json, which fires for every agent. v8 agents therefore carry no
+  // `hooks:` field at all (docs/PROMPT-STANDARD.md §2).
+  it('hooks.json registers agent-run-logger.js on SubagentStop for every agent', () => {
+    const hooksJson = JSON.parse(
+      fs.readFileSync(path.join(AGENTS_DIR, '..', 'hooks', 'hooks.json'), 'utf8')
+    );
+    const groups = (hooksJson.hooks && hooksJson.hooks.SubagentStop) || [];
+    const commands = groups.flatMap(g => (g.hooks || []).map(h => h.command || ''));
+    assert.ok(
+      commands.some(c => c.includes('agent-run-logger.js')),
+      'SubagentStop must run hooks/agent-run-logger.js at the plugin level'
+    );
+    const matchers = groups.filter(g => (g.hooks || []).some(h => (h.command || '').includes('agent-run-logger.js')));
+    assert.ok(
+      matchers.every(g => !g.matcher || g.matcher === '*'),
+      'the agent-run-logger SubagentStop group must not be narrowed by a matcher'
+    );
+
     const agentFiles = fs
       .readdirSync(AGENTS_DIR)
       .filter(f => f.endsWith('.md') && !f.endsWith('.backup-20260424'));
-
     assert.ok(agentFiles.length >= 15, `Expected at least 15 agents, got ${agentFiles.length}`);
 
-    const missing = [];
+    const stale = [];
     for (const file of agentFiles) {
       const content = fs.readFileSync(path.join(AGENTS_DIR, file), 'utf8');
       const fmEnd = content.indexOf('---', 3);
       const fm = fmEnd > 3 ? content.slice(3, fmEnd) : '';
-      if (!fm.includes('hooks:')) {
-        missing.push(file);
-      }
+      if (/^hooks:/m.test(fm)) stale.push(file);
     }
-
     assert.deepEqual(
-      missing,
+      stale,
       [],
-      `The following agents are missing hooks: field: ${missing.join(', ')}`
+      `These agents still carry a frontmatter hooks: field the platform ignores: ${stale.join(', ')}`
     );
   });
 

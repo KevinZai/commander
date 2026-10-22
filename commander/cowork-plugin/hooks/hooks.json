@@ -6,7 +6,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js\"",
-            "timeout": 15
+            "timeout": 15,
+            "statusMessage": "Commander: loading session context"
           },
           {
             "type": "command",
@@ -39,12 +40,14 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-save.js\"",
-            "timeout": 10
+            "timeout": 3,
+            "statusMessage": "Commander: saving session"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-end.js\"",
-            "timeout": 10
+            "timeout": 3,
+            "statusMessage": "Commander: writing session summary"
           }
         ]
       }
@@ -259,7 +262,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "statusMessage": "Commander: checkpointing before compaction"
           }
         ]
       }
@@ -270,7 +274,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/post-compact-recovery.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "statusMessage": "Commander: restoring context after compaction"
           }
         ]
       }
@@ -293,7 +298,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "statusMessage": "Commander: recording subagent result"
           },
           {
             "type": "command",
@@ -398,6 +404,84 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js\"",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/permission-denied-logger.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PreModelSwitch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/model-switch-logger.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostModelSwitch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/model-switch-logger.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/fleet-telemetry.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "CwdChanged": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-state-sync.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "DirectoryAdded": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-state-sync.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "FileChanged": [
+      {
+        "matcher": "CLAUDE.md",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js\"",
+            "timeout": 3
           }
         ]
       }

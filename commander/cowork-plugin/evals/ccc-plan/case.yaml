@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: ccc-plan
+description: The planning flow starts from a feature idea and produces spec questions or a plan with checkable acceptance criteria.
+tags: [skill:ccc-plan, planning]
+execution:
+  prompt: Use CC Commander to plan this feature - add a dark-mode toggle to the settings page of a small web app. Keep it short.
+  max_turns: 15
+  timeout_seconds: 240
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion]
+graders:
+  - type: tool_used
+    name: plan-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-plan"'
+  - type: regex
+    name: mentions-acceptance-or-questions
+    pattern: 'acceptance criteria|success criteria|done when|\?'
+    flags: i
+  - type: llm
+    name: plan-is-concrete
+    weight: 1
+    criteria: |
+      Pass if the reply does at least one of these: (a) asks one to five specific scoping questions about the dark-mode toggle (for example persistence, default theme, system preference), or (b) gives a numbered plan whose steps name concrete work and at least one observable acceptance check. Fail if it only restates the request, gives generic advice with no steps or questions, or claims files were written without showing them.

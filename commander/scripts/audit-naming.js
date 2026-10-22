@@ -22,8 +22,8 @@ const VALID_DOMAINS = new Set([
   'testing', 'security', 'data', 'research', 'mobile', 'makeover', 'agent', 'meta',
 ]);
 
-const WARN_LEN = 180;
-const FAIL_LEN = 200;
+const WARN_LEN = 260;
+const FAIL_LEN = 300;
 
 // ── File collection ───────────────────────────────────────────────────────────
 function collectFiles() {

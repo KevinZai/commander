@@ -1,260 +1,173 @@
 ---
 name: ccc-start
-description: "First-run onboarding for CC Commander. Detects setup, introduces the 22 specialist agent personas, and drafts a personalized start plan. Use when the user types…"
+description: "First-run Commander onboarding: detects the setup live, offers new-project, import, tour or skip pickers, writes a start plan file and marks onboarding complete. Use when the user just installed Commander, types $ccc-start, or asks how to get started."
 allowed-tools:
   - Read
   - Write
-  - Edit
   - Bash
-  - Glob
-  - Grep
-  - Agent
+  - Skill
   - AskUserQuestion
-  - EnterPlanMode
   - ExitPlanMode
 argument-hint: "[new | existing | tour | skip]"
+model: sonnet
+effort: low
 ---
 
-# $ccc-start — First-Run Onboarding
+# $ccc-start — oriented in ninety seconds
 
-This is the welcome mat. User installed CC Commander, and the Desktop app routed them here. Goal: make them feel oriented in under 90 seconds, give them a real artifact (a plan file) to anchor the next session, and never force them to type a number.
+**CC Commander** · $ccc-start · a live setup summary, one picker, and a start plan file you can open.
 
-## Response shape (EVERY time)
+The whole flow is at most six turns: banner, context and picker; the user's pick; up to three follow-up pickers; the plan file; the hand-off. The plan file is the proof that onboarding landed. The user's selected model and permission mode are preserved.
 
-Output exactly these three sections in order:
+On Codex, AskUserQuestion becomes a plain-text question with the same options, skills are invoked as `$ccc-<name>`, and ExitPlanMode is skipped.
 
-### 1. ASCII hero (read banner.txt + interpolate version)
+## When to use / when not to
 
-Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` via Read tool. Replace `{{VERSION}}` with the version string from `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`. Render in a fenced code block.
+- Use on first install, when `/ccc` routes here because onboarding is not complete, or when the user asks how to start.
+- Use `/ccc` for the main hub once onboarding is done, `$ccc-onboard` to onboard a contributor to a repository, and `$ccc-adopt` to merge Commander conventions into an existing project's CLAUDE.md.
 
-After the banner, add a single welcome line:
+## What happens
+
+### 1. Arguments
+
+- `skip` → run step 8 (mark complete), then invoke the `ccc` skill. No picker.
+- `new` / `existing` / `tour` → run steps 2 and 3, skip the step 4 picker, and go to the matching branch in step 5.
+- No argument → steps 2 to 4.
+
+### 2. Banner
+
+Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` and `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`. Replace `{{VERSION}}` in the banner with the manifest's `version` and render it in a fenced code block. Never write the version from memory. Then one line:
+
 > **Welcome to CC Commander** — let's get you oriented in under 90 seconds.
 
-### 2. Context strip (one paragraph, markdown)
+### 3. Context strip
 
-Detect setup with **parallel checks** (one Bash call, chained with `&&`, silent on failure). Never hardcode counts — compute them live, same as the VERSION read:
-- `ls ~/.claude/plugins/*/plugin.json 2>/dev/null | wc -l` → other plugins installed
-- `ls ~/.claude/plans/ 2>/dev/null | wc -l` → prior plans
-- `git rev-parse --show-toplevel 2>/dev/null` → inside a repo?
-- `ls ${CLAUDE_PLUGIN_ROOT}/agents/*.md 2>/dev/null | wc -l` → agents available
-- `ls -d ${CLAUDE_PLUGIN_ROOT}/skills/*/ 2>/dev/null | wc -l` → plugin skills
-- `node -e "console.log(Object.keys(require('${CLAUDE_PLUGIN_ROOT}/.mcp.json').mcpServers||{}).length)" 2>/dev/null` → bundled MCPs
+Run every check in one Bash call. Each one is silent on failure, and every count is computed here, never typed:
 
-Render a one-line summary:
-
-> 🧭 Setup: `<N>` plugins installed · `<M>` existing plans · repo: `<name or "none">` · agents available: `<computed>` · MCPs: `<computed>` bundled (16 opt-in via $ccc-connect)
-
-If first-time (no plugins, no plans, no repo): "🧭 Fresh install — let's set you up in under 2 minutes."
-
-### 3. The picker — `AskUserQuestion` with 4 intents
-
-**Never render a numbered list. Never tell the user to type a number.** Call `AskUserQuestion` with exactly these four options. Prepend ⭐ to the recommended one based on context (logic below).
-
+```bash
+echo "plugins=$(ls ~/.claude/plugins/*/plugin.json 2>/dev/null | wc -l | tr -d ' ')"
+echo "plans=$(ls ~/.claude/plans/ 2>/dev/null | wc -l | tr -d ' ')"
+echo "repo=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)"
+echo "claude_md=$(test -f CLAUDE.md && echo yes || echo no)"
+echo "code=$(ls package.json pyproject.toml requirements.txt Cargo.toml go.mod Gemfile composer.json pom.xml build.gradle 2>/dev/null | tr '\n' ' ')"
+echo "agents=$(ls "${CLAUDE_PLUGIN_ROOT}"/agents/*.md 2>/dev/null | wc -l | tr -d ' ')"
+echo "skills=$(ls -d "${CLAUDE_PLUGIN_ROOT}"/skills/*/ 2>/dev/null | wc -l | tr -d ' ')"
+echo "mcps=$(node -e "console.log(Object.keys(require(process.argv[1]).mcpServers||{}).length)" "${CLAUDE_PLUGIN_ROOT}/.mcp.json" 2>/dev/null || echo 0)"
 ```
+
+Render one line from the output:
+
+> 🎯 Setup: `<plugins>` plugins installed · `<plans>` existing plans · repo: `<repo or "none">` · agents available: `<agents>` · skills: `<skills>` · MCPs: `<mcps>` bundled (more opt-in via $ccc-connect)
+
+If there are no plugins, no plans and no repo, render instead: "🎯 Fresh install — let's set you up in under 2 minutes."
+
+For update status, point to `$ccc-update`; do not compare versions over the network here.
+
+### 4. Intent picker
+
+Never render a numbered list or ask the user to type a number. Call AskUserQuestion with these four options. Exactly one option carries 🟢 and it goes first. The YAML below shows the no-repo case; when the strip says otherwise, move the matching option to the top and move the 🟢 to it:
+
+- Repo with code files (`code` non-empty) and `claude_md=no` → recommend "Import existing project".
+- No repo → recommend "Set up a new project".
+- Repo with `claude_md=yes` → recommend "Just show me around".
+
+```yaml
 question: "How do you want to start?"
 header: "CC Commander onboarding"
 multiSelect: false
 options:
-  - label: "🚀 Set up a new project"
-    description: "Blank canvas — we scaffold a web app, API, CLI, or mobile app and write the first plan file together."
-    preview: "Routes to $ccc-build after a 3-question spec interview. ~90 seconds."
+  - label: "🟢 🚀 Set up a new project"
+    description: "Blank canvas — scaffold a web app, API, CLI, or mobile app and write the first plan file together."
+    preview: "Three quick questions, then $ccc-build scaffolds. About 90 seconds."
   - label: "📦 Import existing project"
-    description: "Point us at your repo — we scan, write CLAUDE.md, and recommend the right agents for your stack."
-    preview: "Runs stack detection + writes a personalized plan to ~/.claude/plans/."
-  - label: "🗺️ Just show me around"
-    description: "Quick tour of the specialist agent personas, plugin skills, and bundled MCP servers (use the live counts from the context strip). No commitment."
-    preview: "Routes to $ccc-browse — browse agents and skills by category."
+    description: "Scan this repo, merge Commander conventions into CLAUDE.md, and recommend agents for the stack."
+    preview: "Runs $ccc-adopt (diff preview and approval first), then writes a start plan."
+  - label: "💡 Just show me around"
+    description: "Tour the agents, plugin skills and bundled MCP servers (live counts from the strip). No commitment."
+    preview: "Routes to $ccc-browse."
   - label: "⏭️ Skip — I know what I'm doing"
     description: "Drop me at the main /ccc hub. No onboarding."
     preview: "Jumps straight to the top-level picker."
 ```
 
-**Recommendation logic** (⭐ on ONE option):
-- Inside a git repo with code files but no `CLAUDE.md` → ⭐ "Import existing project"
-- Fresh install, no repo detected → ⭐ "Set up a new project"
-- Repo exists AND has CLAUDE.md → ⭐ "Just show me around"
-- Argument `skip` passed → skip the picker, route straight to `/ccc`
+### 5. Handle the selection
 
-## Handle the selection
+**New project.** Ask three AskUserQuestion pickers, one at a time, four options each. The first option listed is the default: put it first and prefix its label with 🟢; the other options carry no 🟢:
 
-### New project → spec interview → plan file
+1. "What are you building?" → 🟢 Web app / API / CLI / Mobile
+2. "Who's the audience?" → 🟢 Solo or team / SMB / Enterprise / Public
+3. "What's the first milestone?" → 🟢 MVP demo / First paying user / Open-source launch / Internal tool
 
-Cascade via `AskUserQuestion` (3 quick questions, ≤4 options each):
+Write the plan file (step 6), run step 7, then invoke the `ccc-build` skill with the matching template argument (`web-app`, `api`, `cli`, or `mobile`). Run step 8 before handing over.
 
-1. "What are you building?" → Web app / API / CLI / Mobile
-2. "Who's the audience?" → Solo/team / SMB / Enterprise / Public
-3. "What's the first milestone?" → MVP demo / First paying user / Open-source launch / Internal tool
+**Import existing.** Invoke the `ccc-adopt` skill. It owns every CLAUDE.md write: diff preview, approval picker, backup, delimited block. Never write CLAUDE.md from this skill. When adopt finishes (applied or cancelled), use its detected stack to write the plan file (step 6), run steps 7 and 8, and return a one-line summary plus the plan path.
 
-Then write the plan file:
-1. Check the system-reminder for a "Plan File Info" block — if present, use that path.
-2. If no plan mode is active: call `EnterPlanMode` and use the path it returns.
-3. Write the plan to the resolved path containing:
-   - Project type, audience, milestone
-   - 3 recommended agents from the live roster (see matrix below; count from the context strip)
-   - Next 3 concrete steps
-   - The `$ccc-build-<type>` command to run next
-4. Call `ExitPlanMode` to surface the plan in the Desktop Plan pane.
+**Show around.** Run step 8, then invoke the `ccc-browse` skill. It handles category pickers from there.
 
-Finally: invoke `ccc-build` skill to scaffold.
+**Skip.** Run step 8, then invoke the `ccc` skill with no wrapping text.
 
-### Import existing → scan + plan
+### 6. Write the start plan
 
-Parallel Bash scan:
-- `ls package.json pyproject.toml Cargo.toml go.mod 2>/dev/null` → stack
-- `git log --oneline | head -5` → activity signal
-- `grep -l "CLAUDE.md" . 2>/dev/null` → already configured?
+1. If the system reminder carries a plan-mode "Plan File Info" block, write to that path and call ExitPlanMode afterwards so the plan appears in the Desktop Plan pane.
+2. Otherwise run `mkdir -p ~/.claude/plans` and Write `~/.claude/plans/ccc-start-<YYYY-MM-DD>.md`. Do not enter plan mode just to write this file.
+3. Fill the template in [references/start-plan-template.md](references/start-plan-template.md). Pick three agents with [references/agent-matrix.md](references/agent-matrix.md), checked against the live files in `${CLAUDE_PLUGIN_ROOT}/agents/`.
+4. Confirm the file exists: `test -s "<path>" && echo ok`.
 
-Then route through the `$ccc-adopt` skill — it already does the safe CLAUDE.md flow (diff preview → AskUserQuestion approval → backup → delimited write). Never freeform-write CLAUDE.md from an architect brief here; adopt owns that surface. After adopt completes, write the start plan (recommended agents + next 3 steps) via EnterPlanMode → write → ExitPlanMode.
+### 7. Optional follow-ups (non-blocking, after the plan file)
 
-Return: one-line summary + path to the plan.
+**Answer-first output.** Ask once (this step runs on the new and import paths only). Answer-first is the 🟢 recommendation.
 
-### Show around → browse
-
-Invoke `ccc-browse` skill inline. User picks a category, we cascade.
-
-### Skip → main hub
-
-Invoke `ccc` skill inline. No wrapping text — the next picker does the work.
-
-## The 22 agents (for reference when recommending)
-
-Read `${CLAUDE_PLUGIN_ROOT}/agents/` if you need the live frontmatter. Baseline matrix:
-
-| Persona | Best for |
-|---------|---------|
-| 🏗️ architect | System design, tech selection, refactoring strategy |
-| 🔨 builder | TDD implementation, feature work, bug fixes |
-| 🐛 debugger | Root-cause investigation, Iron Law enforced |
-| 🔍 reviewer | PR review, severity-rated findings |
-| 🧪 qa-engineer | Test suites, coverage, edge cases |
-| 🔐 security-auditor | OWASP audits, CVE mapping, remediation |
-| ⚡ performance-engineer | Hot-path profiling, N+1, bundle size |
-| 🎨 designer | UI/UX, frontend implementation, anti-slop |
-| 🚀 devops-engineer | CI/CD, deploys, infra, monitoring |
-| 🎯 product-manager | PRDs, user stories, Linear issues |
-| 📝 technical-writer | Docs, READMEs, API reference |
-| 🔬 researcher | Competitive, market, lit review |
-| 📊 data-analyst | Cohort analysis, insights, viz specs |
-| ✍️ content-strategist | Editorial calendars, content pillars |
-| ⚙️ fleet-worker | Parallel batch work (migrations, sweeps) |
-| 🔷 typescript-reviewer | TypeScript-specific code review, type safety |
-| 🐍 python-reviewer | Python-specific code review, idioms, packaging |
-| 🐹 go-reviewer | Go-specific code review, concurrency, error handling |
-| 🦀 rust-reviewer | Rust-specific code review, ownership, unsafe audit |
-| ☕ java-reviewer | Java-specific code review, JVM patterns, Spring |
-| 🟣 kotlin-reviewer | Kotlin-specific code review, coroutines, Android |
-| 🟦 csharp-reviewer | C#-specific code review, .NET patterns, async |
-
-Pick **3** based on context signal (e.g. Next.js repo → designer + builder + qa-engineer).
-
-## Anti-patterns — DO NOT do these
-
-- ❌ Render a numbered list "1. New project, 2. Existing, ..." — always use AskUserQuestion
-- ❌ Dump HTML fenced blocks expecting artifact rendering — Cowork Desktop shows them as code
-- ❌ Tell the user to "type the number" — pickers only
-- ❌ Reference the legacy CLI (`ccc` npm binary) — this is the Desktop plugin audience
-- ❌ Hardcode VERSION — always read from plugin.json
-- ❌ Hardcode agent/skill/MCP counts — compute them live from the plugin directory (context strip checks)
-
-## Brand rules
-
-- **Always read `VERSION` from plugin.json** — the marketplace sometimes caches; if plugin.json has `<installed-version>` and GitHub has newer, surface that in the context strip.
-- **Emoji-forward, concise** — PM Consultant voice, decision up front.
-- **The plan file is the artifact** — every onboarding flow ends with a real file the user can open.
-- **Never mention legacy CLI modes** — `ccc --interactive`, `ccc --split`, etc. are out of scope here.
-
-## Plan file template
-
-When writing the plan file (path from `EnterPlanMode` or existing session plan path):
-
-```markdown
-# CC Commander Start Plan — <date>
-
-**User path:** <new | existing | tour | skip>
-**Project:** <name or "unnamed">
-**Stack detected:** <list or "none">
-**Recommended agents:** <3 agents with one-line why each>
-
-## Next 3 steps
-
-1. [ ] <concrete action with $ccc-<command>>
-2. [ ] <concrete action>
-3. [ ] <concrete action>
-
-## Quick links
-
-- `/ccc` — main hub
-- `$ccc-browse` — browse all skills + agents
-- `$ccc-plan` — write a feature plan
-- [CC Commander docs](https://commanderplugin.com)
-
----
-
-Written by `$ccc-start` on <timestamp>.
-```
-
-## L. Optional: Answer-first output mode
-
-After the plan file is written, offer a one-time optional output-style toggle. NON-BLOCKING — user can skip. Recommend it (⭐) when the user's path was "new" or "existing" (beginners benefit most); no star needed on "tour"/"skip".
-
-```
+```yaml
 question: "Want answer-first output? (optional — skip if you prefer)"
 header: "CC Commander — Output style"
 multiSelect: false
 options:
-  - label: "⚡ Answer-first output"
-    description: "Great for beginners — the fix is always the first line. Command and file:line follow, context last."
+  - label: "🟢 🎯 Answer-first output"
+    description: "The fix is always the first line; command and file:line follow, context last."
     preview: "Based on ayghri/i-have-adhd (MIT). Writes {\"adhd\": true} to ~/.claude/commander/output-mode.json. Toggle anytime with $ccc-adhd off."
   - label: "📝 Keep the normal style"
-    description: "Standard CCC voice — context and reasoning woven in, not just answer-first."
-    preview: "No change — default behavior."
-  - label: "⚡ + 🗿 Answer-first, compressed too"
-    description: "Answer-first ordering AND ~75% fewer output tokens (stacks with caveman mode)."
+    description: "Standard Commander voice — context and reasoning woven in."
+    preview: "No change."
+  - label: "📦 Answer-first, compressed too"
+    description: "Answer-first ordering and far fewer output tokens (stacks with caveman mode)."
     preview: "Writes {\"adhd\": true, \"stackCaveman\": true}."
   - label: "⏭️ Decide later"
-    description: "Skip for now — run $ccc-adhd anytime to turn it on."
+    description: "Run $ccc-adhd anytime to turn it on."
     preview: "No change."
 ```
 
-If the user picks either answer-first option, run the write from `ccc-adhd/SKILL.md`'s "State persistence" section (set `stackCaveman: true` only for the third option), then confirm in one line: "Answer-first mode on — the fix leads from here." Otherwise, no write, no comment needed beyond moving on.
+For either answer-first option, run the command in step "4. Write the state" of `${CLAUDE_PLUGIN_ROOT}/skills/ccc-adhd/SKILL.md`: pass `on` for "Answer-first output" and `stack` for "Answer-first, compressed too" (only `stack` sets `stackCaveman: true`). On a non-zero exit, report the error and do not claim the mode changed. On success, confirm in one line: "Answer-first mode on — the fix leads from here." Otherwise write nothing.
 
-## M. Optional: Connect your stack (affiliate-supported)
+**Connect your stack (affiliate-supported, opt-in).** Ask once with `multiSelect: true`. Skip is the 🟢 default; no partner is recommended over another. If Skip is picked alongside a partner, treat the partner picks as the answer:
 
-After the plan file is written, offer a one-time optional "stack connection" step. This is NON-BLOCKING — user can skip.
-
-Render:
-
-```
+```yaml
 question: "Want to connect your stack? (optional — skip if you prefer)"
 header: "CC Commander — Connect your tools"
 multiSelect: true
 options:
-  - label: "💾 Supabase — managed Postgres + auth"
+  - label: "🟢 ⏭️ Skip for now"
+    description: "Connect nothing now; run $ccc-connect whenever you are ready."
+    preview: "No change."
+  - label: "Supabase — managed Postgres and auth"
     description: "Database-as-a-service with built-in authentication and real-time."
     preview: "[Sign up free](https://supabase.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=supabase-auth)"
-  - label: "🌐 Vercel — deployment + serverless"
-    description: "Deploy your app with one click. Perfect for Next.js + Node."
+  - label: "Vercel — deployment and serverless"
+    description: "Deploy the app in one step. Fits Next.js and Node."
     preview: "[Sign up free](https://vercel.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=vercel-deploy)"
-  - label: "🔗 Cloudflare — edge network + workers"
-    description: "Fast global CDN, edge functions, and real-time messaging."
+  - label: "Cloudflare — edge network and workers"
+    description: "Global CDN, edge functions, and real-time messaging."
     preview: "[Sign up free](https://www.cloudflare.com?utm_source=ccc&utm_medium=plugin&utm_campaign=ccc-start&utm_content=cloudflare-edge)"
 ```
 
-If the user selects any, render a brief confirmation:
+If any are picked: "Those are partner sign-up links. Connect each one later with `$ccc-connect`." If skipped: "No problem — connect tools anytime via `$ccc-connect`." Nothing is signed up or connected from here.
 
-> ✨ Great! Click those links to sign up. We'll remember you chose these partners.
+Close the tour once with the funding note in [references/sustain.md](references/sustain.md), never as a paywall and never blocking flow.
 
-Then move on to the "Mark onboarding complete" step.
+Session tip, once: run `$ccc-save-session` before closing a working session and `$ccc-resume-session` at the start of the next one.
 
-If the user skips this step, render:
+### 8. Mark onboarding complete (on every path)
 
-> No problem — you can connect tools anytime via `$ccc-connect`.
-
-Then move on to the "Mark onboarding complete" step.
-
-## N. Mark onboarding complete (MANDATORY last step)
-
-After the tour concludes (user has answered all questions, plan file written), run this bash command to flip the onboarding flag. This ensures the user is never shown `$ccc-start` again unless they reset state.
+Run this on every path, including skip and tour, before handing over to another skill. The `/ccc` gate reads the flag.
 
 ```bash
 node -e "
@@ -269,38 +182,29 @@ node -e "
 "
 ```
 
-Reply to the user with a one-line confirmation:
-> ✅ Onboarding complete. Next time you run `/ccc`, you go straight to the main menu.
+Expect `onboarding marked complete`, then reply: "✅ Onboarding complete. Next time you run `/ccc`, you go straight to the main menu." If the command fails, report the error and do not claim completion.
 
-## Session Persistence
+## Done when
 
-**Tip:** Run `$ccc-save-session` before closing a working session to capture state. Then `$ccc-resume-session` at the start of your next one to pick up instantly. Both are built into CC Commander — no extra install needed.
+- The context strip numbers came from the step 3 output in this turn.
+- New and import paths: `test -s "<plan path>"` printed `ok`, and the path was reported.
+- Step 8 printed `onboarding marked complete`.
 
-## How CC Commander is sustained (mention near the end of the tour)
+## Guardrails
 
-CC Commander's core is **free forever** — all skills, all agents, all hooks, all bundled MCP servers. No feature gating, no paywalls, no license checks. The MIT-licensed plugin code stays open-source. A hosted-infrastructure Pro tier is planned later (hosted MCP only) — all content stays free forever. The project is sustained by four transparent levers:
+- Never write CLAUDE.md here; `$ccc-adopt` owns that surface.
+- Never hardcode a version or an agent, skill or MCP count; compute them in step 3.
+- Never render a numbered or typed-letter menu; pickers only.
+- Never dump HTML expecting it to render; Desktop shows it as code.
+- Never mention the legacy `ccc` npm CLI or its modes; this audience is the plugin.
+- Never sign the user up for a partner, connect a service, or write anything beyond the plan file, `output-mode.json` (on opt-in) and `state.json`.
 
-| Lever | What it is | Where |
-|-------|-----------|-------|
-| **Affiliate links** | Transparent partner links in $ccc-connect and scaffolds (Supabase, Vercel, Neon, …) | `$ccc-connect` |
-| **Hire Kevin** | Teams shipping AI features who need senior help | kevinz.ai/consulting |
-| **Pro community (optional)** | $49/mo Discord — community, not features; the plugin stays fully free | commanderplugin.com |
-| **GitHub Sponsors + star** | Fund or boost the project directly | github.com/sponsors/KevinZai · github.com/KevinZai/commander |
+## See also
 
-Mention this **once** during the tour close — never as a paywall, never blocking flow. There is no paid feature tier: every user gets everything.
-
-## Tips for the agent executing this skill
-
-1. Whole flow is ≤6 turns: header+context+picker → user clicks → cascade questions → write plan → dispatch. Don't overthink.
-2. If the user passes `skip` as argument, bypass the picker entirely and invoke `ccc`.
-3. If the user passes `new` / `existing` / `tour`, skip the picker and route to the matching branch.
-4. Parallelize all Bash context detection into a single call — saves ~3 turns.
-5. If `~/.claude/plans/` doesn't exist, create it with `mkdir -p` before Write.
-6. Always run step N (mark onboarding complete) as the final action — even if the user picks "Skip". The gate in `/ccc` checks this flag.
-
----
-
-**Bottom line:** header → context → 4-option picker → cascade → plan file → mark complete. The plan file is proof the onboarding landed. User never types a number.
+- `/ccc` — main hub
+- `$ccc-browse` — every skill and agent by category
+- `$ccc-adopt` — merge Commander conventions into an existing project
+- `$ccc-build` — scaffold a new project
 
 ---
 

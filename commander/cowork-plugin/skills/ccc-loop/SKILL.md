@@ -1,163 +1,151 @@
 ---
 name: ccc-loop
-description: "Loop taxonomy hub — turn/goal/time/proactive loops, /goal + /loop + /schedule guidance, the should-loop gate, verifier-separation, and state-file conventions for recurring agent work."
+description: "Pick the right loop primitive (turn, /goal, /loop interval or self-paced, ScheduleWakeup, Routines via /schedule), gate it, give it an independent verifier and a state file. Use when the user wants recurring, polling, run-until-done or unattended agent work."
+allowed-tools:
+  - Read
+  - Write
+  - Bash
+  - Skill
+  - Agent
+  - ScheduleWakeup
+  - AskUserQuestion
+argument-hint: "[goal | interval | self-paced | routine | gate <idea>]"
+model: sonnet
+effort: medium
 ---
 
-# /ccc-loop — Loop Integration Guide
+# /ccc-loop — pick the right loop
 
-Claude Code has **four loop primitives**, not one. This skill is the entry point for all of them — pick the right primitive before you reach for `/loop` by habit.
+**CC Commander** · /ccc-loop · the loop taxonomy hub: one gate before building a loop, a verifier that is not the worker, and a state file so a resumed loop does not repeat itself.
 
-## The 4 loop types
+Claude Code has several loop primitives. Choose one deliberately instead of reaching for `/loop` by habit.
 
-| Type | Trigger | Stop criteria | CC Commander primitive | Best for |
+## When to use / when not to
+
+- Use when work should repeat: poll a system, iterate until a measurable condition holds, or run on a cadence while nobody watches.
+- Do not loop destructive operations (`/ccc-deploy`, `/ccc-rollback`, deletions); route them through `/ccc-ship`'s gate.
+- Do not loop skills that write files without idempotency guards; repeated writes accumulate.
+- One-off work that a single good prompt finishes is turn-based: run the skill directly.
+- To chain separate loop sessions (spec → build → review → merge), use `/ccc-relay`.
+
+## The loop types
+
+| Type | Trigger | Stops when | Primitive | Best for |
 |---|---|---|---|---|
-| **Turn-based** | A user prompt | Claude judges "done" itself | Just run the skill directly; encode your manual verification steps as a `SKILL.md` so Claude can self-check | Short one-off tasks |
-| **Goal-based** | A manual prompt, real-time | Goal achieved OR max turns reached — an evaluator model checks your condition each time Claude tries to stop | `/goal` | Tasks with a verifiable exit criterion (test count, score threshold, build passing) |
-| **Time-based** | An interval | You cancel it, or the work completes (PR merged, queue empty) | `/loop` (local) + `/schedule` (cloud) | Recurring work, polling external systems |
-| **Proactive** | An event or schedule, no human in real time | Each task exits on its own goal; the routine runs until you turn it off | `/schedule` (heartbeat) + `/goal` (define done) + dynamic Workflow (orchestrate) + auto mode (no confirmation stops) | Recurring streams of well-defined work — bug triage, migrations, dependency upgrades |
+| Turn-based | A user prompt | Claude judges the task done | Run the skill; encode manual checks in its `SKILL.md` | Short one-off tasks |
+| Goal-based | A prompt, in real time | The goal is met or the turn cap hits; an evaluator checks the condition on every stop attempt | `/goal` | Work with a verifiable exit (test count, score, build passing) |
+| Interval | A fixed interval | You cancel it, or the work completes | `/loop 5m <prompt>` (local session) | Active monitoring while you are at the keyboard |
+| Self-paced / dynamic | The model picks the next wake-up each iteration | Same as interval | `/loop <prompt>` with no interval, which schedules each next tick with `ScheduleWakeup` | Polling whose right cadence depends on what the last check found (CI ETA, queue depth) |
+| Routine | A cron schedule or a one-time time, in the cloud | You turn the Routine off | `/schedule` (Routines) | Recurring or unattended work that must survive the laptop closing |
+| Proactive | An event or schedule, no human in real time | Each task exits on its own goal | Routine heartbeat + `/goal` for done + a Workflow to orchestrate + auto permission mode | Streams of well-defined work: triage, migrations, dependency upgrades |
 
-Deterministic, quantitative checks beat vague ones for every type above — "tests pass" and "score ≥ 90" are checkable; "looks good" is not.
+Deterministic checks beat vague ones for every type: "`npm test` exits 0" and "score ≥ 90" are checkable; "looks good" is not.
 
-## Should this be a loop? (gate before you build one)
+## What happens
 
-All four must be true, or the loop costs more than it returns:
+### 1. Run the should-loop gate
 
-1. **Recurs at least weekly** — a one-time job is better served by one good prompt.
-2. **Verification is automated** — a test suite, type checker, linter, or build that can fail the work without a human in the room. No automated check means you're back to reading every diff — the exact job the loop was supposed to remove.
-3. **Your token budget absorbs the waste** — loops re-read context, retry, explore. That burns tokens whether the run ships anything or not.
-4. **The agent has real tools** — logs, a reproduction environment, the ability to run what it writes and see what breaks. Without that, the loop iterates blind.
+All four must hold, or the loop costs more than it returns:
 
-**Worked example — PR Babysitter passes all 4:** recurs constantly (every push), CI is the automated verifier, cost is capped by the interval + turn limit, and it has real `gh`/`git` tools to act on what it finds. **Counter-example — "keep polishing this landing page copy" fails #2:** there's no automated verifier for "better copy," so it's a turn-based task with a human reviewing each pass, not a loop.
+1. **Recurs at least weekly.** A one-time job is better served by one good prompt.
+2. **Verification is automated.** A test suite, type checker, linter or build can fail the work without a human. Without one you are back to reading every diff.
+3. **The token budget absorbs the waste.** Loops re-read context, retry and explore whether or not a run ships anything.
+4. **The agent has real tools.** Logs, a reproduction environment, the ability to run what it writes. Without them the loop iterates blind.
 
-## `/goal` — deterministic stop conditions
+State which of the four pass. If any fails, say which one and recommend the turn-based alternative. Worked pass/fail examples: [references/loop-patterns.md](references/loop-patterns.md).
 
-**Claude Code v2.1.139+.**
+### 2. Pick the primitive
 
-```
-/goal <what "done" looks like> [, stop after N tries]
-```
-
-The key mechanic: when you define success criteria up front, Claude doesn't self-judge "good enough" — an evaluator model checks your condition every time Claude tries to stop, and sends it back if unmet. Deterministic criteria (test pass count, score threshold, exact command output) work far better than subjective ones.
-
-**One load-bearing constraint:** the evaluator does not run commands or read files itself — it judges only what Claude has already surfaced in the conversation. So the condition must state the check, not just the goal, so the proof lands in the transcript (e.g. "`npm test` exits 0", not just "tests pass"). A good condition names one measurable end state, states the check that proves it, and bounds runtime with a turn or time clause ("...or stop after 20 turns").
-
-**Worked examples using CCC skills as the target:**
+Ask with AskUserQuestion (Codex: ask the same question in plain text):
 
 ```
-/goal run /ccc-review until there are zero 🔴 Critical or 🟠 High findings, stop after 5 passes
+question: "How should this loop run?"
+header: "Loop type"
+options:
+  - label: "🟢 /goal — run until a measurable condition holds"
+    description: "Best when done is a number or exit code. An evaluator checks it every time Claude tries to stop."
+  - label: "/loop on an interval"
+    description: "Runs in this session every N minutes. Stops when the session closes."
+  - label: "/loop self-paced"
+    description: "The model picks each next wake-up with ScheduleWakeup. Good when the right cadence varies."
+  - label: "Routine via /schedule"
+    description: "Cloud run on a cron or a one-time time. Survives the laptop closing. Creates a Routine on your account."
 ```
 
-```
-/goal get the /ccc-xray health score to 90 or above, stop after 5 tries
-```
+Recommend `/goal` first whenever "done" can be stated as a number or a command result.
 
-Both have a number to check against — "zero blockers," "score ≥ 90" — so the evaluator has something unambiguous to grade, not a vibe.
+### 3. Write the stop condition
 
-## `/loop` and `/schedule` — time-based
+- **`/goal`.** Give the user the exact line to type: `/goal <measurable end state, and the check that proves it>, stop after N tries`. The evaluator does not run commands or read files; it judges only what is already in the transcript. So the condition must name the check (for example "`npm test` exits 0", not "tests pass") so the proof lands in the conversation. Examples:
+  ```
+  /goal run /ccc-review until there are zero 🔴 Critical or 🟠 High findings, stop after 5 passes
+  /goal get the /ccc-xray health score to 90 or above, stop after 5 tries
+  ```
+- **`/loop`.** Invoke the built-in `loop` skill with the Skill tool, passing `[interval] <prompt-or-skill>`; `interval` is a duration such as `5m`, `30m`, `1h`, or omitted for self-paced. Each iteration's prompt states its own exit ("stop when the PR is merged or CI is red twice").
+- **Self-paced inside one task.** When the next check time depends on this iteration's result, call `ScheduleWakeup` with the delay you chose and the reason. Confirm the tool is exposed in this runtime first; if it is not (Codex included), fall back to `/loop` with a fixed interval or a `codex exec` rerun.
+- **Routine.** Invoke the built-in `schedule` skill with the Skill tool to create, list, update or run a Routine (recurring cron or one-time run). Each firing starts fresh, so its prompt must be standalone and name the state file from step 5. Routines can publish private artifacts without asking; say so when proposing one.
 
-```
-/loop [interval] <prompt-or-skill>
-```
+### 4. Separate the verifier from the worker
 
-- `interval` — optional duration: `5m`, `30m`, `1h`. Omit to let Claude self-pace.
-- Runs on your machine — closing it stops it. Interrupt anytime with `Ctrl+C` or the stop button in Cowork Desktop.
+The agent that does the work must not grade it. Otherwise the loop is an agent agreeing with itself on repeat.
 
-**Graduate to `/schedule`** when the work should survive your laptop closing — anything genuinely recurring (nightly checks, weekly scans) belongs in the cloud, not tied to a local session. `/loop` is for active monitoring while you're at the keyboard; `/schedule` is the heartbeat for proactive loops that run unattended.
+- Spawn a second agent with the Agent tool for the check step, in fresh context and prompted to refute (for example a `builder` fixes, a `reviewer` from `commander/cowork-plugin/agents/reviewer.md` grades). Codex: run the check with `codex exec` or `codex review --uncommitted`.
+- Or route the check through `/ccc-review` or the built-in `/code-review`.
+- When a result fails the bar, encode the fix into a skill or check so later iterations do not repeat it.
 
-`ccc-night-mode`'s 8-hour scheduled overnight run is a good default for a **one-off** overnight build. For anything that should recur on its own cadence indefinitely, `/schedule` is the right primitive — see `ccc-night-mode`/`ccc-nightwatch` for the local unattended-build and remote-approval patterns respectively.
+### 5. Leave durable state
 
-## Common /loop + CCC patterns
+A loop that must resume across runs writes `.claude/loop-state/<loop-name>.json` (`iteration`, `lastRun`, `attempted`, `stopCondition`, `history`). Full shape and prior art: [references/loop-patterns.md](references/loop-patterns.md).
 
-| Loop command | What it does | Best for |
-|---|---|---|
-| `/loop 5m /ccc-doctor` | Plugin health check every 5 min | Monitoring during active dev |
-| `/loop /ccc-review` | Self-paced branch audit, iterates until clean | Continuous code quality |
-| `/loop /ccc-suggest` | Always-on PM — improve/scope/audit lenses each tick, state-file-backed anti-nag | Ambient project intelligence during long sessions |
-| `/loop 30m /ccc-tasks` | Task list refresh on a half-hour cadence | Long work sessions |
-| `/loop /ccc-changelog` | Polls until a new release appears | Watching upstream deps |
-| `/loop 1h /ccc-xray` | Periodic project health scorecard | Background quality gate |
-| `/goal run /ccc-review until zero blocking findings, stop after 5 passes` | Deterministic stop instead of polling — no interval to guess at | Cleanup passes where "done" is a real number, not a schedule |
-| `/goal get /ccc-xray score to 90+, stop after 5 tries` | Same — quality gate expressed as a threshold, not a timer | Health-score-driven fix loops |
-| `/schedule nightly /ccc-devops security-scan` | Cloud routine, survives laptop close | Recurring infra/security checks (see `ccc-devops` § Routines Integration) |
-
-Reach for `/goal` instead of `/loop` whenever "keep going until X is true" has a real number behind X — polling every 5 minutes to check if a score crossed 90 is strictly worse than an evaluator that checks the exact condition each pass.
-
-## The verifier-separation rule (non-negotiable)
-
-**The agent that does the work must not be the agent that grades it.** Without a real, independent check, you don't have a loop — you have an agent agreeing with itself on repeat.
-
-Apply this in CCC with either:
-- The **Agent tool** — spawn a *second* agent/persona for the check step (fresh context, not anchored on the first agent's reasoning). E.g. a `builder` persona writes the fix, a `reviewer` persona (see `commander/cowork-plugin/agents/reviewer.md`) grades it independently.
-- The **`/code-review` skill** or `/ccc-review` — route the verification step through a dedicated review pass instead of letting the implementer self-certify.
-
-When an individual result fails the bar, don't just fix that instance — encode the fix into a skill or check so future iterations of the loop don't repeat it.
-
-## State-file convention
-
-Any CCC loop skill that needs to resume across runs (not just self-pace within one session) should write a state file at:
-
-```
-.claude/loop-state/<loop-name>.json
+```bash
+mkdir -p .claude/loop-state
 ```
 
-```json
-{
-  "iteration": 3,
-  "lastRun": "2026-07-06T14:32:00Z",
-  "attempted": ["fix-1", "fix-2"],
-  "stopCondition": "zero blocking findings",
-  "history": [
-    { "iteration": 1, "result": "2 blockers found", "ts": "..." },
-    { "iteration": 2, "result": "1 blocker found", "ts": "..." }
-  ]
-}
+Write the file with the Write tool, then validate it:
+
+```bash
+node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); console.log("state ok")' .claude/loop-state/<loop-name>.json
 ```
 
-Without this, each pass repeats the same mistake because it doesn't know what was already tried — the state file is what lets a resumed loop pick up where it left off instead of starting from zero.
+On a parse error, fix the JSON and rerun before starting the loop.
 
-**Prior art already in this repo (pattern to follow, not to edit here):**
-- `skills/desktop-preview-loop` writes `.preview-loop.json` to persist project config across preview-loop runs.
-- `ccc-night-mode` writes progress to `~/.claude/commander/yolo-status.txt` after each cycle.
+### 6. Start it and report
 
-New loop-capable skills should prefer the `.claude/loop-state/<loop-name>.json` shape above over inventing a new ad-hoc file per skill.
-
-## Relay — cross-session chaining
-
-Everything above loops *inside* one session. To chain *separate* loop sessions — a spec loop that hands to a build loop that hands to a review loop, each independently gated, each launching the next automatically — see **`ccc-relay`** (the "Finn Loop" pattern). A relay extends the `.claude/loop-state/<name>.json` shape here with a `{ phase, next, signal, handoff }` block, passes the baton through a durable mailbox (state file, Linear status, or a 🚀 reaction), and requires the full should-loop gate plus verifier-separation on *every* link — because fresh context per link is exactly what makes the downstream review a real verifier. Reach for `/ccc-relay` when the whole `spec → build → review → merge` arc should run as auto-handing-off sessions instead of one session iterating.
-
-## Managing token usage
-
-- **Pilot before a big fan-out** — dynamic Workflows can spawn hundreds of agents. Test on a small slice first.
-- **Use scripts for deterministic checks** — a test runner or linter is cheaper than re-deriving the same verification via reasoning every pass.
-- **Match interval to actual change frequency** — don't poll a thing more often than it changes.
-- **Review spend** — `/usage` breaks down cost by skill/subagent/MCP; `/goal` with no args shows turns + tokens so far; `/workflows` shows each agent's token usage and lets you stop one mid-run.
-- **Right-size the primitive** — small tasks don't need a multi-agent loop; use the cheapest model that can do the job.
-
-## When NOT to use any loop primitive
-
-Fails the should-you-loop gate above, OR:
-- Destructive operations (`/ccc-deploy`, `/ccc-rollback`) — use the `/ccc-ship` gate instead, never a bare loop
-- Skills that write files without idempotency guards — repeated writes will accumulate
-- One-off tasks where a single good prompt (turn-based) already gets you there
+Start the chosen primitive (or hand the user the `/goal` line), then report: primitive, interval or schedule, stop condition, cap, verifier, state-file path, and how to stop it.
 
 ## Stopping a loop
 
-- **Cowork Desktop:** click the stop button in the loop tag at the bottom of the UI
-- **Terminal:** `Ctrl+C`
-- **`/goal`:** met condition clears it automatically; `/goal clear` removes it early (aliases: stop, cancel)
-- **`/schedule`:** cancel the routine from wherever it's managed (cloud dashboard / CLI)
+- Cowork Desktop: the stop button in the loop tag at the bottom of the window.
+- Terminal: `Ctrl+C`.
+- `/goal`: clears itself when met; `/goal clear` (aliases `stop`, `cancel`) removes it early.
+- Routines: turn the Routine off or delete it through the `schedule` skill or wherever Routines are managed.
 
-## Status-line indicator
+## Status and quiet mode
 
-CCC's status-line shows `🔁` when `CLAUDE_LOOP_ACTIVE` is set by the runtime, so you can see at a glance that a loop is running.
+- The Commander status line shows `🔁` while the runtime sets `CLAUDE_LOOP_ACTIVE`.
+- During tight monitor loops, set `CCC_SUGGEST_MODE=off` to suppress between-turn suggestion output.
+- Spend: `/usage`, `/goal` with no arguments, and `/workflows`. More cost guidance: [references/loop-patterns.md](references/loop-patterns.md).
 
-## Tip
+## Done when
 
-Pair `/loop` with `/ccc-suggest` off (`CCC_SUGGEST_MODE=off`) during tight monitor loops to suppress between-turn suggestion output.
+- The gate result is stated (four checks, pass or fail each).
+- The loop has a measurable stop condition with a cap, a named verifier that is not the worker, and, if it resumes across runs, a state file that printed `state ok`.
+- The loop was started (loop or Routine reported back), or the user received the exact `/goal` line, or the user chose not to loop.
 
----
+## Guardrails
 
-**Bottom line:** four loop types, one gate before you build any of them, a verifier that isn't the same agent as the worker, and a state file so a resumed loop doesn't repeat itself. `/goal` for "keep going until X is true," `/loop` for "keep going every N minutes while I'm here," `/schedule` for "keep going forever, even after I close my laptop."
+- Never loop deploys, rollbacks, deletions, publishing or money-moving actions.
+- Never let the worker certify its own output.
+- Creating a Routine, posting to a tracker or chat, and pushing each need the user's authorization in this conversation, asked with a picker at that moment.
+- Never poll faster than the watched thing changes.
+- Preserve the user's selected model; change the tier only when they choose to.
+
+## See also
+
+- `/ccc-relay` — chain separate loop sessions with gated hand-offs.
+- `/ccc-night-mode` — one-off overnight build with per-cycle checkpoints.
+- `/ccc-nightwatch` — approve permission prompts remotely while a loop runs.
+- `/ccc-fleet` — parallel workers inside one step.
 
 ---
 

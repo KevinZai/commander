@@ -26,7 +26,7 @@ message_batch = client.messages.batches.create(
         Request(
             custom_id="request-1",
             params=MessageCreateParamsNonStreaming(
-                model="claude-opus-5",
+                model="claude-opus-5-5",
                 max_tokens=1024,
                 messages=[{"role": "user", "content": "Summarize climate change impacts"}]
             )
@@ -34,7 +34,7 @@ message_batch = client.messages.batches.create(
         Request(
             custom_id="request-2",
             params=MessageCreateParamsNonStreaming(
-                model="claude-opus-5",
+                model="claude-opus-5-5",
                 max_tokens=1024,
                 messages=[{"role": "user", "content": "Explain quantum computing basics"}]
             )
@@ -115,7 +115,7 @@ message_batch = client.messages.batches.create(
         Request(
             custom_id=f"analysis-{i}",
             params=MessageCreateParamsNonStreaming(
-                model="claude-opus-5",
+                model="claude-opus-5-5",
                 max_tokens=1024,
                 system=shared_system,
                 messages=[{"role": "user", "content": question}]
@@ -149,7 +149,7 @@ requests = [
     Request(
         custom_id=f"classify-{i}",
         params=MessageCreateParamsNonStreaming(
-            model="claude-haiku-4-5",
+            model="claude-haiku-5-5",
             max_tokens=50,
             messages=[{
                 "role": "user",

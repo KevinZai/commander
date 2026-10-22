@@ -1,69 +1,68 @@
 ---
 name: ccc-fleet-viz
-description: "Live CC Commander fleet visualization. Use when the user types /ccc-fleet-viz, asks to see agent fleet progress, or after any /ccc-fleet run finishes so the final…"
-model: sonnet
-effort: medium
+description: "Show a /ccc-fleet run as a live tree of workers (done, running, failed, waiting) with branches and a Mermaid diagram, refreshing until every worker finishes. Use when the user asks for fleet progress, types /ccc-fleet-viz, or a /ccc-fleet run completes."
 allowed-tools:
   - Read
   - Bash
   - Glob
+model: sonnet
+effort: low
+argument-hint: "[--watch | --state-dir=PATH]"
 ---
 
-# /ccc-fleet-viz — Live Fleet Tree
+# /ccc-fleet-viz — the fleet as a tree
 
-Triggered by user typing `/ccc-fleet-viz` or automatically at the end of any `/ccc-fleet` run.
+**CC Commander** · /ccc-fleet-viz · one tree per fleet run: each worker, its branch, and where it is stuck.
 
-## Inputs
+This skill renders in the chat only. It publishes nothing and reads only local state.
 
-Read:
-- `/tmp/ccc-fleet/*-status.json`
-- `/tmp/ccc-fleet/*-complete.json`
-- `/tmp/ccc-fleet/worker-progress.jsonl` when present
-- `git worktree list --porcelain`
-- `commander/tests/*` when present
+## When to use / when not to
 
-Malformed state markers must be skipped without aborting the visualization.
+- Use during or right after a `/ccc-fleet` run. `/ccc-fleet` calls it once when synthesis completes.
+- Use `/ccc-mission-control` for every agent on the machine, not just one fleet run.
 
-## Render
+## What happens
 
-Run the helper from the repo root:
+1. Run the renderer from the repository root:
+   ```bash
+   if [ -f "${CLAUDE_PLUGIN_ROOT}/skills/ccc-fleet-viz/lib/render-fleet-tree.js" ]; then
+     node "${CLAUDE_PLUGIN_ROOT}/skills/ccc-fleet-viz/lib/render-fleet-tree.js" --watch
+   else
+     node commander/cowork-plugin/skills/ccc-fleet-viz/lib/render-fleet-tree.js --watch
+   fi
+   ```
+   Without `--watch` it prints one snapshot and exits. `--state-dir=PATH` reads markers from another directory.
+2. It reads `/tmp/ccc-fleet/*-status.json`, `/tmp/ccc-fleet/*-complete.json`, `/tmp/ccc-fleet/worker-progress.jsonl` when present, and `git worktree list --porcelain`. Malformed markers are skipped, not fatal.
+3. stdout is an ASCII tree followed by a fenced `mermaid` `graph TD` block. While any worker is `running`, `waiting` or `unknown`, it refreshes every 2 seconds; when all are `done` or `failed`, it prints the final snapshot and exits.
+4. Show the final tree and the Mermaid block in your reply (the Mermaid block renders as a diagram in the chat), then one line per failed worker with its reason.
 
-```bash
-node commander/cowork-plugin/skills/ccc-fleet-viz/lib/render-fleet-tree.js --watch
-```
-
-The helper prints:
-1. A live ASCII tree to stdout.
-2. A fenced Mermaid `graph TD` block immediately after it, so Desktop can render the fleet inline.
-
-While any worker is `running`, `waiting`, or `unknown`, the helper refreshes every 2 seconds. When all workers are `done` or `failed`, it prints the final snapshot and exits.
-
-## Expected Shape
+Expected shape:
 
 ```text
-/ccc-fleet (orchestrator) — 6 workers, 3 done, 2 running, 1 failed
-├── ✅ W1 build        → claude/codex-w1-build @ 0019f10
-├── ✅ W2 marketing    → claude/codex-w2-marketing @ a0a3cb8
-├── 🔄 W3 imagery      → 3/6 images generated, ETA ~4min
-├── 🔄 W4 mcp          → 18 tools registered, tests in flight
-├── ❌ W5 improvements → blocked: merge conflict
-└── ⏳ W6 e2e          → waiting on W1
+/ccc-fleet (orchestrator) — 4 workers, 2 done, 1 running, 1 failed
+├── ✅ W1 build        → fleet/w1-build @ 0019f10
+├── ✅ W2 docs         → fleet/w2-docs @ a0a3cb8
+├── 🔄 W3 tests        → 18 of 40 passing
+└── ❌ W4 migrate      → blocked: merge conflict
 ```
 
-```mermaid
-graph TD
-  fleet["/ccc-fleet orchestrator"]
-  fleet --> w1["W1 build ✅"]
-  fleet --> w2["W2 marketing ✅"]
-  fleet --> w3["W3 imagery 🔄"]
-  fleet --> w4["W4 mcp 🔄"]
-  fleet --> w5["W5 improvements ❌"]
-  fleet --> w6["W6 e2e ⏳"]
-```
+No markers at all: say "No fleet run found in /tmp/ccc-fleet. Start one with `/ccc-fleet`." and stop.
 
-## Final Step From /ccc-fleet
+## Done when
 
-When `/ccc-fleet` synthesis is complete, invoke this skill once to render the final fleet tree. Do not reimplement the renderer in `/ccc-fleet`; keep the rendering path centralized here.
+- The renderer exited 0 and the reply contains its final tree and Mermaid block, or the no-run message.
+
+## Guardrails
+
+- Never reimplement the renderer in `/ccc-fleet` or in the reply; this script is the one rendering path.
+- Never edit, delete or "fix" marker files; report them.
+- The output stays in this chat. If the user wants a shareable page, point to `/ccc-mission-control`, which publishes after consent.
+
+## See also
+
+- `/ccc-fleet` — start a parallel run
+- `/ccc-mission-control` — every agent on the machine
+- `/ccc-console` — the all-tabs inline view
 
 ---
 

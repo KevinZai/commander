@@ -15,7 +15,7 @@ Structured templates for subagent delegation. Every dispatch includes a mandator
 1. **Mandatory report format.** Empty fields = visible signal. Validate before accepting.
 2. **Verification scaled to stakes.** For substantive claims/findings or expensive-to-reverse changes: "Your output will be reviewed by a separate agent." For small, easily-reversible work, the agent's own self-check is enough — don't add a redundant verifier pass.
 3. **Escalation as safe default.** BLOCKED > wrong. Reporting uncertainty = success.
-4. **Delegate only when it's worth it.** Large, genuinely independent, parallelizable work goes to a subagent. Anything finishable in a handful of tool calls, do inline — Opus 5 over-delegates without this check.
+4. **Delegate only when it's worth it.** Large, genuinely independent, parallelizable work goes to a subagent. Anything finishable in a handful of tool calls, do inline — Opus-class models over-delegate without this check.
 
 ## Model Selection Matrix
 

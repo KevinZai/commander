@@ -55,6 +55,10 @@ function listHookFiles() {
 
 const HOOK_FILES = listHookFiles();
 
+// Side-effect-only handlers that must print NOTHING (TeammateIdle,
+// CwdChanged, DirectoryAdded): an empty stdout is their contract.
+const SILENT_HOOKS = new Set(['fleet-telemetry.js', 'session-state-sync.js']);
+
 const SYNTHETIC_PAYLOAD = JSON.stringify({
   session_id: 'contract-test',
   hook_event_name: 'ContractTest',
@@ -99,6 +103,10 @@ describe('hook output contract — runtime (documented fields only)', () => {
       assert.equal(r.status, 0, `${name} must exit 0. stderr: ${r.stderr}`);
 
       const lines = (r.stdout || '').trim().split('\n').filter(Boolean);
+      if (SILENT_HOOKS.has(name)) {
+        assert.equal(lines.length, 0, `${name} is side-effect only and must print nothing`);
+        return;
+      }
       assert.ok(lines.length > 0, `${name} must print a JSON response`);
 
       for (const line of lines) {
@@ -123,36 +131,46 @@ describe('hook output contract — runtime (documented fields only)', () => {
 // ---------------------------------------------------------------------------
 // C. Allowlist: hookSpecificOutput.hookEventName must be harness-valid
 // ---------------------------------------------------------------------------
-// The harness validator accepts hookSpecificOutput.hookEventName ONLY from a
-// 20-literal union (extracted from CLI 2.1.220) AND requires it to equal the
-// event the hook actually fired under. Suite A drives every hook with a fake
-// event name ('ContractTest') and only whitelists TOP-LEVEL keys — which is
-// exactly how the PostCompact bug shipped green. This section closes that gap:
-// the list below is a deliberate DUPLICATE of emit.mjs's export (a pin — if
-// either side changes, the set-equality test forces a conscious update).
+// hookSpecificOutput.hookEventName must name an event that accepts a
+// hookSpecificOutput block (platform-facts-2026-10.md §2.2, CLI 2.1.296,
+// verified 2026-10-13: every row except the side-effect-only one) AND must
+// equal the event the hook actually fired under. Suite A drives every hook
+// with a fake event name ('ContractTest') and only whitelists TOP-LEVEL keys —
+// which is exactly how the PostCompact bug shipped green. This section closes
+// that gap: the list below is a deliberate DUPLICATE of emit.mjs's export (a
+// pin — if either side changes, the set-equality test forces a conscious update).
 
 const VALID_HOOKSPECIFIC_EVENTS = new Set([
   'PreToolUse',
-  'UserPromptSubmit',
-  'UserPromptExpansion',
-  'SessionStart',
-  'Setup',
-  'SubagentStart',
+  'PermissionRequest',
+  'PermissionDenied',
   'PostToolUse',
   'PostToolUseFailure',
   'PostToolBatch',
+  'UserPromptSubmit',
+  'UserPromptExpansion',
   'Stop',
   'SubagentStop',
-  'PermissionDenied',
-  'Notification',
-  'PermissionRequest',
+  'SessionStart',
+  'SubagentStart',
+  'PostModelSwitch',
+  'PreModelSwitch',
   'Elicitation',
   'ElicitationResult',
-  'CwdChanged',
-  'FileChanged',
-  'WorktreeCreate',
   'MessageDisplay',
+  'WorktreeCreate',
+  'TaskCreated',
+  'TaskCompleted',
+  'TeammateIdle',
+  'PreCompact',
+  'ConfigChange',
 ]);
+
+// Side-effect-only events (no hookSpecificOutput accepted).
+const SIDE_EFFECT_ONLY_EVENTS = [
+  'Setup', 'Notification', 'SessionEnd', 'PostCompact', 'InstructionsLoaded',
+  'StopFailure', 'CwdChanged', 'DirectoryAdded', 'FileChanged', 'WorktreeRemove',
+];
 
 // file basename -> Set of hooks.json events it is registered under.
 function registeredEventsByFile() {
@@ -180,6 +198,19 @@ describe('hook output contract — hookSpecificOutput allowlist (C)', () => {
       [...VALID_HOOKSPECIFIC_EVENTS].sort(),
       'emit.mjs allowlist drifted from the pinned harness union — update BOTH deliberately'
     );
+  });
+
+  it('allowlist + side-effect-only events cover all 33 Claude Code events, disjointly', () => {
+    const all = [...VALID_HOOKSPECIFIC_EVENTS, ...SIDE_EFFECT_ONLY_EVENTS];
+    assert.equal(new Set(all).size, 33);
+    for (const e of SIDE_EFFECT_ONLY_EVENTS) assert.ok(!VALID_HOOKSPECIFIC_EVENTS.has(e), e);
+  });
+
+  it('emitModel degrades for every side-effect-only event', async () => {
+    const emit = await import(path.join(HOOKS_DIR, 'lib', 'emit.mjs'));
+    for (const e of SIDE_EFFECT_ONLY_EVENTS) {
+      assert.ok(!('hookSpecificOutput' in emit.emitModel(e, 'ctx')), `${e} must degrade`);
+    }
   });
 
   it('emitBoth degrades to systemMessage-only for a non-union event (PostCompact)', async () => {

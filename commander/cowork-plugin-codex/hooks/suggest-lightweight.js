@@ -36,11 +36,8 @@ import { computeConfidence } from './lib/confidence.mjs';
 import { resolveCwd, projectDir } from './suggest-ticker.js';
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
 import crypto from 'node:crypto';
 
-const HOME = process.env.HOME || process.env.USERPROFILE || os.homedir();
-const CCC_DIR = path.join(HOME, '.claude', 'commander');
 
 // Per-project state keying (codex finding 10, CC-1386 W4 item 1) — see the
 // matching comment block in suggest-ticker.js. project-state.json,

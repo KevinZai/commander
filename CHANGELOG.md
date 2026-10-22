@@ -1,5 +1,110 @@
 # Changelog
 
+## [8.1.0] - 2026-10-18
+
+### Added
+- Explicit MCP tool annotations and JSON-RPC `tools/list` discovery on the existing HTTP call endpoint. Auth, burst and monthly limits, feedback gates, and usage accounting remain in place.
+- MCP cloud typecheck, tests, and build now run on pull requests.
+
+### Fixed
+- Importing the cloud app no longer starts a listening server, allowing the ordinary test command to finish without forced exit. Direct startup remains supported; `HOST` can select a bind address.
+
+### Decision
+- Ship catalog annotations for #128. Keep force-push permission denials unchanged; an interactive PreToolUse confirmation policy requires separate destination-aware and cross-client validation. Annotations are descriptive hints, not permission grants.
+
+## [8.0.0] - 2026-10-13
+
+Commander 8 is a full revamp for the October 2026 platform. Every prompt
+surface was rewritten to one standard and adversarially verified file by
+file; every model reference moved to the Claude 5.5 generation and the GPT-6
+family; the plugin gained a mod, distributable workflows, an eval suite and
+the hook events Claude Code added since August; Codex CLI management became a
+first-class skill. Planned by Claude Fable 5.1, built by Opus 5.5 workers in
+nine parallel lanes plus a 195-file rewrite fan-out.
+
+### Added
+- **`/ccc-codex` — Codex CLI management from Claude.** doctor, models,
+  plugins and marketplaces, MCP servers, subagents (installs the generated
+  TOML agents into `~/.codex/agents/`), Codex Cloud tasks, remote control,
+  `codex review`, `codex update`, `/import` guidance and `config.toml`
+  editing. Every config write asks first, backs up the file and verifies with
+  `codex doctor --json`.
+- **Commander HUD mod** (`mods/commander-hud/`): a Claude Mod that draws a band
+  above the prompt with the Fable Method state, running agents, the session's
+  tool-call budget and an update pill, plus a `/ccc-hud` command that runs
+  without a model turn. Observe-only: no tool approval, no model calls, no
+  network, reads only `~/.claude/commander/`. Requires Claude Code 2.1.287+
+  (Desktop 2.1.286+); hooks-only elsewhere. See `docs/MODS.md`.
+- **Plugin workflows.** Six dynamic workflows ship as `/commander:<name>`:
+  `ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate` (modernized:
+  pipeline by default, verifiers told to refute, worktree verification fixed)
+  and the new `ccc-prompt-audit` and `ccc-release-audit`.
+- **Plugin evals.** Eight `claude plugin eval` cases (hub, plan, review,
+  doctor, fable, update, suggest, codex) under `evals/`, runnable with
+  `claude plugin eval ./commander/cowork-plugin --case <name> --runs 3`.
+- **Seven new hook events wired** (30 events, 51 handlers): PermissionDenied
+  (auto-mode denials reach `/ccc-safety`), PreModelSwitch and PostModelSwitch
+  (routing telemetry and a tier reminder), TeammateIdle (fleet telemetry),
+  CwdChanged and DirectoryAdded (session state), FileChanged on `CLAUDE.md`
+  (stale-instructions nudge, seeded by SessionStart `watchPaths`).
+  WorktreeCreate and WorktreeRemove are deliberately not registered: a hook
+  there replaces git worktree handling.
+- **Codex subagent mirror.** `scripts/build-codex.js` emits valid TOML agents
+  from the plugin's agent files with models resolved through the registry.
+- **Verified platform facts** (`docs/reference/platform-facts-2026-10.md`) and
+  the **prompt standard** (`docs/PROMPT-STANDARD.md`) every surface follows.
+- **Vendor:** `anthropics/claude-code-playground` (sample mods, Apache-2.0).
+
+### Changed
+- **Models.** Claude routing by alias: `fable` (Fable 5.1) deep, `opus`
+  (Opus 5.5) default, `sonnet` (Sonnet 5.5) fast, `haiku` (Haiku 5.5) bulk.
+  Codex registry rebuilt on `gpt-6-astra` (deep), `gpt-6.1-sol` (default),
+  `gpt-6-sol` (bounded), `gpt-6-luna` (bulk), every id probed live on
+  2026-10-13; `gpt-5.6-*` kept as fallbacks, `gpt-5.5` marked retiring
+  (2026-10-14), `gpt-5.4` and `gpt-5.4-mini` removed. Cost tables use the
+  verified list prices (Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5
+  $0.10/$0.50, Fable 5.1 $10/$50). The Claude API catalog in the `claude-api`
+  skill is rebuilt.
+- **Every prompt rewritten.** All plugin skills, the 22 agents and 15
+  personas, the rules, menus, `CLAUDE.md.template`, `AGENTS.md`, the toolkit
+  commands, the domain routers and the prompt templates follow the v8
+  standard: procedure-first, AskUserQuestion pickers, done-when checks,
+  guardrails, no counts or versions in bodies, no stale model names, long
+  tables moved to `references/`. Each file was checked by a fresh-context
+  verifier against the standard's checklist.
+- **Agents** use aliases and the current subagent frontmatter (`skills`
+  preloads, `disallowedTools` for read-only reviewers, no platform-ignored
+  fields); architect and security-auditor run on Fable 5.1.
+- **Decks** describe the Artifact tool as it is today; snapshot pages meet the
+  artifact-design contract; `ccc-mission-control` and `ccc-linear-board`
+  declare the `db` capability and sync rows through ArtifactData instead of
+  republishing. The Linear board is a read-only Kanban page.
+- **`/ccc-orchestrate`** executes on `gpt-6-astra`, `gpt-6.1-sol`,
+  `gpt-6-luna`, Codex Cloud or a Sonnet subagent via
+  `codex exec --json --output-last-message`.
+- **Codex mirror** derives dropped hook events from `hook-event-map.json`
+  (12 Codex events; SessionEnd kept, Interrupt has no Claude source), ships
+  hook timeouts in seconds with the 3 s SessionEnd cap, adds the
+  `com.openai` interface extension and never copies `mods/`, `evals/` or
+  `workflows/`. The marketplace entry uses the current source/policy/category
+  schema.
+- **Rules.** `fable-method.md` keeps the 12 pillars on current primitives;
+  `workflow-first.md` links instead of restating; settings templates use the
+  `opus` alias and auto permission mode.
+- **Vendors** refreshed to upstream heads (superpowers v7.0.0, rtk v0.51.0,
+  claude-hud security fix); zero license changes.
+- `/ccc-doctor` checks agent routing by alias and flags superseded pinned
+  ids as upgrade candidates; the naming audit allows 300-character
+  descriptions.
+
+### Fixed
+- `ccc-migrate` verified the main tree instead of each change's worktree.
+- `ccc-fleet` pipeline mode discarded edits between stages by isolating each
+  stage in a fresh worktree.
+- The Codex agent export produced invalid TOML for agent bodies containing a
+  backslash.
+- `/ccc-doctor` rejected agents on current model ids.
+
 ## [7.4.2] - 2026-08-01
 
 Full end-to-end audit release. An 11-agent adversarially-verified audit swept every

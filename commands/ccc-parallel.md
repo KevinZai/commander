@@ -1,228 +1,157 @@
 ---
-description: "Launch multiple Claude Code agents in parallel git worktrees for concurrent development."
+description: "Run several Claude Code agents at once, each in its own git worktree and branch, then merge the results through one coordinator. Use when you have independent tasks to develop concurrently."
 ---
 
-# Parallel Agents
+# /ccc-parallel — parallel agents in git worktrees
 
-Run multiple Claude Code instances simultaneously, each in its own git worktree, working on independent tasks. Merge results when all agents complete.
+**CC Commander** · /ccc-parallel · launches independent agents on separate branches and merges their work when they finish.
 
 ## Usage
 
-```bash
-/parallel-agents                    # Interactive setup
-/parallel-agents 3 "task prompt"   # Launch 3 agents with same task
+```text
+/ccc-parallel                     # interactive setup
+/ccc-parallel 3 "<task prompt>"   # three agents on the same task
 ```
 
-## How It Works
+`$ARGUMENTS`: optional agent count and task prompt.
 
-### Git Worktrees
+Each agent gets a git worktree: a separate working directory that shares the repository history but has its own branch and file state. Each agent can read and write its own files, cannot see the others' uncommitted changes, and runs its own tests.
 
-Each agent gets its own git worktree -- a separate working directory that shares the same git history but has its own branch and file state.
-
-```bash
-# Claude Code creates worktrees automatically
-claude -w                    # Launch in a new worktree
-claude -w feat/auth          # Launch in worktree on feat/auth branch
-```
-
-### Parallel Execution
-
-```
+```text
 Main session (coordinator)
-     |
-     +--> Worktree 1 (agent-1): feat/add-auth
-     |      Independent branch, full file access
-     |
-     +--> Worktree 2 (agent-2): feat/add-dashboard
-     |      Independent branch, full file access
-     |
-     +--> Worktree 3 (agent-3): feat/add-api-tests
-            Independent branch, full file access
+  ├── worktree 1 → feat/add-auth
+  ├── worktree 2 → feat/add-dashboard
+  └── worktree 3 → feat/add-api-tests
 ```
 
-Each agent:
-- Has its own branch
-- Has its own working directory
-- Can read/write files independently
-- Cannot see other agents' uncommitted changes
-- Runs its own tests and verification
+## What happens
 
-## Quick Start
+1. Confirm the starting point:
 
-### Launch Parallel Agents
+   ```bash
+   git rev-parse --show-toplevel
+   git status --short
+   git branch --show-current
+   ```
 
-```bash
-# Method 1: From the CLI
-claude -w feat/auth &
-claude -w feat/dashboard &
-claude -w feat/api-tests &
+   If the tree is dirty, say so; worktrees branch from the committed HEAD, so uncommitted changes are not visible to the agents.
 
-# Method 2: Using /parallel-agents command
-/parallel-agents
+2. Collect the plan. If `$ARGUMENTS` lacks a count or tasks, ask with AskUserQuestion:
 
-# Interactive prompt:
-# How many agents? 3
-# Agent 1 task: Implement auth module with JWT
-# Agent 2 task: Build dashboard with charts
-# Agent 3 task: Write API integration tests
-```
+   - 🟢 2 agents — easiest to merge and review.
+   - 3 agents — more throughput, more merge work.
+   - 4 or 5 agents — only for clearly independent tasks.
 
-### Monitor Progress
+   Then ask for one task and one branch name per agent. Use descriptive branch names so `git worktree list` tells agents apart.
 
-```bash
-# Check all worktrees
-git worktree list
+3. Check independence: list the files or directories each task will touch. If two tasks touch the same files, tell the user and suggest running them in sequence instead.
 
-# Check agent status (if using Claude Peers)
-/peers status
-```
+4. Launch. Pick the mechanism with AskUserQuestion:
 
-### Merge Results
+   - 🟢 In-session subagents — parallel Agent tool calls with `isolation: worktree`; results return to this session.
+   - Separate terminals — the user runs one `claude -w <branch>` per agent (add `--tmux` for a tmux session per worktree).
+   - Workflow tool — one run with `parallel()` where the Workflow tool is available.
 
-```bash
-# After all agents complete:
-git checkout main
-git merge feat/auth
-git merge feat/dashboard
-git merge feat/api-tests
-```
+   Separate-terminal form:
 
-## Use Cases
+   ```bash
+   claude -w feat/auth
+   claude -w feat/dashboard
+   claude -w feat/api-tests
+   ```
 
-### Feature Parallelism
+   Keep the user's selected model for every agent unless they choose otherwise.
 
-Work on 3 independent features at once:
+5. Monitor:
 
-```
-Agent 1: "Implement user authentication with JWT, bcrypt, refresh tokens"
-Agent 2: "Build the analytics dashboard with chart.js and real-time data"
-Agent 3: "Write comprehensive API tests for all endpoints"
-```
+   ```bash
+   git worktree list
+   git -C <worktree-path> log --oneline -5
+   ```
 
-All three features are independent -- no merge conflicts expected.
+   With the optional Claude Peers MCP server, `/ccc-peers status` shows each agent's summary and messages.
 
-### Divide and Conquer
+6. Merge, after every agent reports done and its tests pass. Ask with AskUserQuestion before merging:
 
-Split a large task into independent pieces:
+   - 🟢 Merge commits (`--no-ff`) — keeps each branch traceable.
+   - Rebase then merge — for branches that may conflict.
+   - Squash — one commit per branch.
+   - Not now — leave the branches for review.
 
-```
-Agent 1: "Migrate files A-M from CJS to ESM"
-Agent 2: "Migrate files N-Z from CJS to ESM"
-Agent 3: "Update all test files to use ESM imports"
-```
+   Independent features:
 
-### Competitive Implementation
+   ```bash
+   git checkout main
+   git merge --no-ff feat/auth
+   git merge --no-ff feat/dashboard
+   git merge --no-ff feat/api-tests
+   ```
 
-Same task, different approaches -- pick the best:
+   Possible conflicts: merge the most foundational branch first, then rebase the next one onto the updated main.
 
-```
-Agent 1: "Implement caching layer using Redis"
-Agent 2: "Implement caching layer using SQLite"
-Agent 3: "Implement caching layer using in-memory LRU"
-```
+   ```bash
+   git checkout main && git merge feat/auth
+   git checkout feat/dashboard && git rebase main
+   # resolve conflicts, then:
+   git checkout main && git merge feat/dashboard
+   ```
 
-### Review and Implement
+   Squash:
 
-One agent codes while another reviews:
+   ```bash
+   git checkout main
+   git merge --squash feat/auth
+   git commit -m "feat: add authentication module"
+   ```
 
-```
-Agent 1: "Implement the payment processing module"
-Agent 2: "Review agent 1's code as it's committed, post review comments"
-```
+   On a conflict, stop and report the conflicting files; never auto-resolve.
 
-## Merge Strategy
+7. Verify the merged result with the project's full test command (read it from `package.json` or the project's CLAUDE.md) and report the actual result:
 
-### Independent Features (No Conflicts Expected)
+   ```bash
+   git status --short
+   git log --oneline -10
+   ```
 
-```bash
-git checkout main
-git merge --no-ff feat/auth       # merge commit for traceability
-git merge --no-ff feat/dashboard
-git merge --no-ff feat/api-tests
-```
+8. Clean up after the merge, with the user's approval:
 
-### Potentially Conflicting Changes
+   ```bash
+   git worktree remove <worktree-path>
+   git worktree prune
+   ```
 
-```bash
-git checkout main
-git merge feat/auth               # merge first (most foundational)
+## Use cases
 
-# If conflict with feat/dashboard:
-git checkout feat/dashboard
-git rebase main                   # rebase onto updated main
-# Resolve conflicts
-git checkout main
-git merge feat/dashboard
-```
+| Pattern | Example tasks |
+|---|---|
+| Feature parallelism | auth module; analytics dashboard; API test suite |
+| Divide and conquer | migrate files A–M to ESM; files N–Z; update test imports |
+| Competitive implementation | the same cache layer on Redis, SQLite and in-memory LRU; keep the best |
+| Implement and review | one agent builds the payment module; another reviews each commit |
 
-### Squash Merge (Clean History)
-
-```bash
-git checkout main
-git merge --squash feat/auth
-git commit -m "feat: add authentication module"
-```
-
-## Claude Peers Integration
-
-When using Claude Peers MCP, agents can communicate:
-
-```bash
-# Agent 1 notifies agent 2 that the API types are ready
-/peers send agent-2 "API types committed at abc1234. You can import them now."
-
-# Agent 2 receives and acts on the message
-# "Got it. Pulling types from abc1234 and updating dashboard."
-```
-
-### Coordination Patterns
+## Coordination patterns
 
 | Pattern | Description |
 |---|---|
-| **Independent** | No communication needed. Agents work in isolation. |
-| **Pipeline** | Agent 1 completes, notifies agent 2, which starts. |
-| **Coordinator** | Main session dispatches and collects results. |
-| **Swarm** | All agents work on the same codebase, communicating frequently. |
+| Independent | No communication; agents work in isolation |
+| Pipeline | Agent 1 finishes and notifies agent 2, which then starts |
+| Coordinator | The main session dispatches tasks and collects results |
+| Swarm | Agents share a codebase and message each other often |
 
-## Worktree Management
+For pipeline or swarm work, the optional Claude Peers MCP server lets agents message each other, for example `/ccc-peers send <id> "API types committed at <sha>; import them now."`.
 
-```bash
-# List all worktrees
-git worktree list
+## Limits
 
-# Remove a worktree (after merge)
-git worktree remove .claude/worktrees/feat-auth
+- At most five parallel agents by default. Each one is a Claude Code process, a concurrent API session and a worktree on disk; reduce the count on machines with less memory.
+- Each agent works only on its own branch; all merges go through the coordinator.
+- Each agent's cost is tracked separately; report them together at the end.
 
-# Prune stale worktrees
-git worktree prune
-```
+## Guardrails
 
-## Safety Guards
+- Never merge, push, delete a branch or remove a worktree without the user's approval at that step.
+- Parallelize only independent tasks; shared file edits cause merge conflicts.
+- Never force-push or rewrite main.
 
-| Guard | Value |
-|---|---|
-| Max parallel agents | 5 (system resources) |
-| Branch policy | Each agent gets its own branch |
-| Merge policy | Always merge to main via coordinator |
-| Conflict resolution | Stop and report; never auto-resolve |
-| Cost tracking | Each agent tracks its own cost independently |
-| Cleanup | Worktrees auto-removed after merge or 24h |
+## See also
 
-## Resource Considerations
-
-Each parallel agent consumes:
-- ~1 Claude Code process (CPU + memory)
-- ~1 API session (concurrent API calls)
-- ~1 git worktree (disk space, typically small)
-
-On a Mac Mini M4 with 16GB RAM: comfortable with 3-4 parallel agents.
-On a machine with 32GB+ RAM: up to 5-6 parallel agents.
-
-## Tips
-
-- Only parallelize truly independent tasks -- shared file modifications cause merge conflicts
-- Use descriptive branch names so you can tell agents apart in `git worktree list`
-- Start with 2 agents if you're new to parallel workflows, then scale up
-- Use Claude Peers for agent-to-agent coordination on dependent tasks
-- Always verify the merged result (run full test suite after all merges)
-- Clean up worktrees after merging -- stale worktrees waste disk space
+`/ccc-orchestrate` · `/ccc-peers` · `/ccc-pr`

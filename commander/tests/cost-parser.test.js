@@ -55,11 +55,11 @@ Usage by model:
 test('single-model session with no cache fields → zeros, no crash', async () => {
   const input = `Total cost: $0.42
 Usage by model:
-    claude-haiku-4-5:  10.0k input, 2.0k output ($0.42)`;
+    claude-haiku-5-5:  10.0k input, 2.0k output ($0.42)`;
 
   const r = parseCostOutput(input);
   assert.equal(r.totalUsd, 0.42);
-  const m = r.models['claude-haiku-4-5'];
+  const m = r.models['claude-haiku-5-5'];
   assert.ok(m, 'haiku row parsed');
   assert.equal(m.input, 10000);
   assert.equal(m.output, 2000);

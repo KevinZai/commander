@@ -8,8 +8,8 @@ Hooks are lifecycle scripts that run automatically during Claude Code sessions. 
 
 | File | For | Hooks |
 |------|-----|-------|
-| `hooks.json` | Users with ECC installed | 34 hooks (15 kit-native + 19 ECC-inherited via `CLAUDE_PLUGIN_ROOT`) |
-| `hooks-standalone.json` | Users WITHOUT ECC | 14 kit-native hooks only (session-coach retired 2026-07-10 — folded into the plugin suggest engine) |
+| `hooks.json` | Users with ECC installed | 28 handlers across 7 events (2 kit-native — `context-rot-monitor`, `status-checkin` — plus 26 ECC-inherited via `CLAUDE_PLUGIN_ROOT`) |
+| `hooks-standalone.json` | Users WITHOUT ECC | 15 handlers: 14 kit-native hooks plus the Stop sound (session-coach retired 2026-07-10 — folded into the plugin suggest engine) |
 
 ## Kit-Native Hooks (15)
 
