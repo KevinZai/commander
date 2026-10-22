@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-prod
+  group: deploy-commander-production
   cancel-in-progress: false
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy MCP cloud (canary)
         working-directory: apps/mcp-server-cloud
-        run: flyctl deploy --strategy canary --app cc-commander-mcp --remote-only
+        run: flyctl deploy --strategy canary --app commander-mcp --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - name: Wait for healthcheck
@@ -62,18 +62,28 @@ jobs:
         with: { node-version: '24' }
       - uses: pnpm/action-setup@v4
         with: { version: 10 }
+      - name: Require explicit Vercel production target
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          : "${VERCEL_ORG_ID:?Set the verified Vercel organization ID before deploying this site}"
+          : "${VERCEL_PROJECT_ID:?Set the verified Vercel project ID before deploying this site}"
+          : "${VERCEL_TOKEN:?Set the Vercel deployment token}"
       - name: Install site deps
         working-directory: site
         run: pnpm install --frozen-lockfile
       - name: Deploy to Vercel
         working-directory: site
         run: |
-          npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-          npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+          npx --yes vercel@56.2.1 pull --yes --environment=production
+          npx --yes vercel@56.2.1 build --prod
+          npx --yes vercel@56.2.1 deploy --prebuilt --prod
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
   post-deploy-smoke:
     needs: [deploy-mcp, deploy-site]

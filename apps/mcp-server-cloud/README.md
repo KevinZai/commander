@@ -140,12 +140,12 @@ Set or update runtime secrets:
 
 ```bash
 fly secrets set \
-  SUPABASE_URL="$(op read op://Alfred/cc-commander-supabase/url)" \
-  SUPABASE_SERVICE_ROLE_KEY="$(op read op://Alfred/cc-commander-supabase/service-role-key)" \
-  UPSTASH_REDIS_REST_URL="$(op read op://Alfred/cc-commander-upstash/url)" \
-  UPSTASH_REDIS_REST_TOKEN="$(op read op://Alfred/cc-commander-upstash/token)" \
-  JWT_SECRET="$(op read op://Alfred/cc-commander-jwt/secret)" \
-  POSTHOG_API_KEY="$(op read op://Alfred/cc-commander-posthog/api-key)" \
+  SUPABASE_URL="$(op read op://<vault>/cc-commander-supabase/url)" \
+  SUPABASE_SERVICE_ROLE_KEY="$(op read op://<vault>/cc-commander-supabase/service-role-key)" \
+  UPSTASH_REDIS_REST_URL="$(op read op://<vault>/cc-commander-upstash/url)" \
+  UPSTASH_REDIS_REST_TOKEN="$(op read op://<vault>/cc-commander-upstash/token)" \
+  JWT_SECRET="$(op read op://<vault>/cc-commander-jwt/secret)" \
+  POSTHOG_API_KEY="$(op read op://<vault>/cc-commander-posthog/api-key)" \
   --app commander-mcp
 ```
 
@@ -184,10 +184,10 @@ fly releases rollback <version> --app commander-mcp
 
 | OP Path | What It Is |
 |---------|-----------|
-| `op://Alfred/cc-commander-supabase/url` | Supabase project URL |
-| `op://Alfred/cc-commander-supabase/service-role-key` | Supabase service role key |
-| `op://Alfred/cc-commander-upstash/url` | Upstash Redis REST URL |
-| `op://Alfred/cc-commander-upstash/token` | Upstash Redis REST token |
-| `op://Alfred/cc-commander-jwt/secret` | JWT signing secret (min 32 chars) |
-| `op://Alfred/cc-commander-posthog/api-key` | PostHog project API key |
-| `op://Alfred/cc-commander-fly/api-token` | Fly.io deploy token |
+| `op://<vault>/cc-commander-supabase/url` | Supabase project URL |
+| `op://<vault>/cc-commander-supabase/service-role-key` | Supabase service role key |
+| `op://<vault>/cc-commander-upstash/url` | Upstash Redis REST URL |
+| `op://<vault>/cc-commander-upstash/token` | Upstash Redis REST token |
+| `op://<vault>/cc-commander-jwt/secret` | JWT signing secret (min 32 chars) |
+| `op://<vault>/cc-commander-posthog/api-key` | PostHog project API key |
+| `op://<vault>/cc-commander-fly/api-token` | Fly.io deploy token |
