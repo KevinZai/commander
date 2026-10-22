@@ -10,11 +10,13 @@
 // per RFC 9728 §5.1 so MCP clients can discover the authorization server.
 
 import type { Context, Next } from "hono";
+import { env } from "../lib/env.js";
+import { metadataOrigin, requestPublicOrigin } from "../lib/public-origin.js";
 import { resolveLicenseToken } from "../middleware/auth.js";
 import { oauthConfigured, resolveOAuthSubject, verifyOAuthAccessToken } from "./oauth.js";
 
 function challenge(c: Context, description: string, errorCode?: string): Response {
-  const origin = new URL(c.req.url).origin;
+  const origin = metadataOrigin(c.req.url, c.req.header("X-Forwarded-Proto"), env.oauthResourceUrl);
   const metadataUrl = `${origin}/.well-known/oauth-protected-resource`;
   const parts = ['Bearer realm="cc-commander"'];
   if (errorCode) {
@@ -49,8 +51,7 @@ export async function mcpAuthMiddleware(c: Context, next: Next): Promise<Respons
 
   // 2. External OAuth issuer token (when configured).
   if (oauthConfigured()) {
-    const origin = new URL(c.req.url).origin;
-    const payload = await verifyOAuthAccessToken(token, origin);
+    const payload = await verifyOAuthAccessToken(token, requestPublicOrigin(c));
     if (payload) {
       const auth = await resolveOAuthSubject(payload);
       if (auth) {

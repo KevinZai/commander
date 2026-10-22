@@ -39,6 +39,7 @@ import { captureEvent } from "./lib/posthog.js";
 import { eventsRouter } from "./routes/events.js";
 import { createStripeWebhookApp } from "./routes/stripe-webhook.js";
 import { mcpAuthMiddleware } from "./mcp/auth-middleware.js";
+import { requestPublicOrigin } from "./lib/public-origin.js";
 import { createMcpTransportApp } from "./mcp/transport.js";
 
 declare module "hono" {
@@ -397,7 +398,7 @@ app.route("/v1", mcp);
 // for authorization-code + PKCE. Served at both the bare well-known path and
 // the path-suffixed variant (RFC 9728 §3 for resources with path components).
 function protectedResourceMetadata(c: Context) {
-  const origin = new URL(c.req.url).origin;
+  const origin = requestPublicOrigin(c);
   const body: Record<string, unknown> = {
     resource: env.oauthResourceUrl || `${origin}/mcp`,
     bearer_methods_supported: ["header"],
