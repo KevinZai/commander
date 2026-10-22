@@ -30,7 +30,7 @@ const TIERS: Tier[] = [
     features: [
       "All 84 plugin skills (every /ccc-* workflow + /ccc-ultracode)",
       "All 22 specialist sub-agent personas",
-      "All 23 lifecycle hooks (38 handlers)",
+      "All 30 lifecycle hooks (51 handlers)",
       "2 credential-free bundled MCP servers + 16 opt-in",
       "100 hosted MCP calls/month (free anti-abuse cap)",
       "Community support via GitHub Discussions",
