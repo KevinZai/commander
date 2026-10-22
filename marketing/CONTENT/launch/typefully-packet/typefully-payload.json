@@ -1,0 +1,24 @@
+{
+  "_note": "Local draft only. Not sent. Kevin must approve before any Typefully draft is created.",
+  "x_thread": {
+    "platform": "x",
+    "draft": true,
+    "publish_at": null,
+    "posts": [
+      "CC Commander v8.1.0: a guided AI PM layer for Claude Code, Cowork Desktop and Codex. Core stays free forever. One plugin, one install. 🧭",
+      "Type `/ccc` and pick Build, Review or Ship. No prompt-catalog digging. `/ccc-suggest` reads your repo and recommends the next step.",
+      "What ships: 84 skills, 22 specialist agents (architect, reviewer, debugger, designer and more), lifecycle hooks, a HUD mod, six workflows and eight plugin evals.",
+      "The PM pattern: a planner stays in control while focused agents build, review and audit. Findings get adversarially verified before they reach you.",
+      "It runs where you work: Claude Code Desktop, the CLI, the Codex CLI, and any MCP-capable IDE.",
+      "Honest caveat: Codex lacks some Claude hook events, so a few hooks are remapped or dropped. Skills, agents and workflows still work.",
+      "Install in Claude Code:\n`/plugin install commander --marketplace KevinZai/commander`",
+      "Repo, MIT licensed: https://github.com/KevinZai/commander\nFeedback welcome. Disclosure: some integrations use affiliate links."
+    ]
+  },
+  "linkedin": {
+    "platform": "linkedin",
+    "draft": true,
+    "publish_at": null,
+    "text": "I just shipped CC Commander v8.1.0, an open-source PM layer for Claude Code, Cowork Desktop and Codex.\n\nThe problem: AI coding agents are powerful but leave you managing prompts instead of projects.\n\nWhat it does:\n- `/ccc` gives a click-first menu: Build, Review, Ship\n- 84 skills and 22 specialist agents, with a planner coordinating focused builders and reviewers\n- Workflows where every finding is adversarially verified before it reaches you\n- Works in Claude Code Desktop, the CLI, Codex and MCP-capable IDEs\n\nCore is free and MIT licensed. One caveat: Codex lacks some Claude hook events, so a few hooks are remapped.\n\nInstall: /plugin install commander --marketplace KevinZai/commander\nRepo: https://github.com/KevinZai/commander\n\nWhat would you want a PM layer for agents to do first?"
+  }
+}
