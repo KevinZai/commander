@@ -4,7 +4,7 @@ status: DRAFT (local file only; not published, scheduled or sent)
 ticket: CC-322 (slice 1 of the 20-post "How We Built CC Commander" play)
 audience: Claude Code developers who have installed it and are not yet productive with it
 sources:
-  - /Users/ai/clawd/output/dev/cc-commander-strategy-2026-04-17/18-master-narrative.md (spine, Kevin's voice)
+  - 18-master-narrative.md from the April 2026 strategy notes (spine, Kevin's voice; internal, not in this repo)
   - .../00-session-overview.md, 03-pricing-monetization.md, 19-launch-tagline-positioning.md
   - commander/contract.json and package.json (current facts, v8.1.0)
   - CLAUDE.md (current product architecture and revenue model)
