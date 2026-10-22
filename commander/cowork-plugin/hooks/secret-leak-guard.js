@@ -43,6 +43,21 @@ function isAllowlisted(text, allowlist) {
   return allowlist.some(term => text.includes(term));
 }
 
+// allowlistRegex: case-sensitive token patterns (full git SHAs, sha256 digests) blanked out before scanning.
+// The scan below is case-insensitive, so a lowercase 40-hex commit SHA containing "ac" + 32 hex matched the
+// Twilio SID pattern and stalled lanes on every git command. Only the matched token is removed.
+function stripAllowlistedTokens(text, allowlistRegex) {
+  let out = text;
+  for (const source of allowlistRegex || []) {
+    try {
+      out = out.replace(new RegExp(source, 'g'), ' ');
+    } catch {
+      // Invalid regex in config — skip it
+    }
+  }
+  return out;
+}
+
 async function main() {
   let input = {};
   try {
@@ -77,7 +92,7 @@ async function main() {
     }
 
     const toolInput = input.tool_input || input.input || {};
-    const textToScan = extractTextFromInput(toolInput);
+    const textToScan = stripAllowlistedTokens(extractTextFromInput(toolInput), patternsConfig.allowlistRegex);
 
     if (!textToScan) {
       process.stdout.write(JSON.stringify({ continue: true }) + '\n');
