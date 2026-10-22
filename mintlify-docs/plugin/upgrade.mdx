@@ -1,11 +1,11 @@
 ---
-title: "Upgrade to v8.0.0"
-description: "Upgrade an existing CC Commander plugin install to v8.0.0 in Claude Code Desktop, Claude Code CLI, or npm."
+title: "Upgrade to v8.1.0"
+description: "Upgrade an existing CC Commander plugin install to v8.1.0 in Claude Code Desktop, Claude Code CLI, or npm."
 ---
 
-# ⬆️ Upgrade to v8.0.0
+# ⬆️ Upgrade to v8.1.0
 
-You already have CC Commander installed? Here's how to pick up v8.0.0 with zero drama.
+You already have CC Commander installed? Here's how to pick up v8.1.0 with zero drama.
 
 <Warning>
   Third-party plugin marketplaces do **not** auto-refresh by default. If you
@@ -74,7 +74,7 @@ restart, and verifies the new version + hooks are actually live afterward.
 
 ```
 /plugin list | grep commander
-# should show the latest version (currently v8.0.0), Kevin Zicherman
+# should show the latest version (currently v8.1.0), Kevin Zicherman
 ```
 
 Or in a fresh Claude Code session:
@@ -87,7 +87,11 @@ The settings menu header reports the installed version. You can also run `/ccc-d
 
 ### What changes for you
 
-| Surface | Before (v7.4.2) | Now (v8.0.0) |
+The 8.1.0 release adds descriptive MCP tool annotations, JSON-RPC catalog discovery,
+and cloud test/startup fixes. Existing force-push denials remain unchanged.
+The table below includes the v8 platform changes for users upgrading from v7.
+
+| Surface | Before (v7.4.2) | Now (v8.1.0) |
 |---------|-----------------|----------------------|
 | Plugin skills | 83 | 84 (new: `/ccc-codex`) |
 | Agents | 22 specialist personas | 22, on model aliases (`fable`, `opus`, `sonnet`) |
@@ -107,7 +111,7 @@ Your `~/.claude/commander/` state files, knowledge base, and learned-skills dire
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
-ccc --version   # should show the latest version (currently 8.0.0)
+ccc --version   # should show the latest version (currently 8.1.0)
 ```
 
 Re-run the post-install verify:
