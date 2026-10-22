@@ -130,8 +130,8 @@ fly logs --app cc-commander-mcp | grep -E "ERROR|WARN" &
 | 1 | Check `#incidents` in Discord — may already be triaged |
 | 2 | Open a Linear issue: `CC / Infra & Tooling` with `[INCIDENT]` prefix |
 | 3 | Email kevin@kevinz.ai with subject `[CC Commander INCIDENT] <short description>` |
-| 4 | For npm-auth issues: check `op://Alfred/npm-publish-token` in 1Password |
-| 5 | For Fly.io auth: `fly auth login` or `op://Alfred/fly-io-token` |
+| 4 | For npm-auth issues: check `op://<vault>/npm-publish-token` in 1Password |
+| 5 | For Fly.io auth: `fly auth login` or `op://<vault>/fly-io-token` |
 
 ---
 

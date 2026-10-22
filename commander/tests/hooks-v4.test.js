@@ -607,6 +607,29 @@ describe('secret-leak-guard.js', () => {
     assert.equal(r.parsed?.continue, true);
   });
 
+  it('allows full git commit SHAs that contain ac + 32 hex (not a Twilio SID)', () => {
+    const sha = '3f' + 'ac' + '0123456789abcdef0123456789abcdef' + '1234';
+    assert.equal(sha.length, 40);
+    for (const command of [`git show ${sha}`, `git push origin ${sha}:refs/heads/x`, `echo NEW HEAD: ${sha}`]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true, command);
+    }
+    const digest = 'ac' + 'f'.repeat(62);
+    const r = runHook('secret-leak-guard.js', { tool_name: 'Write', tool_input: { file_path: '/tmp/x', content: `sha256: ${digest}\n` } });
+    assert.equal(r.parsed?.continue, true, 'sha256 digest allowed');
+  });
+
+  it('still blocks a real-shaped Twilio Account SID, even next to a SHA', () => {
+    const sid = 'AC' + '0123456789abcdef0123456789abcdef';
+    const sha = 'ac' + '0123456789abcdef0123456789abcdef' + '123456';
+    for (const command of [`curl -u ${sid}:x https://api.twilio.com`, `git show ${sha} && echo ${sid}`]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.parsed?.continue, false, command);
+      assert.match(r.parsed?.stopReason || '', /Twilio/);
+    }
+  });
+
   it('returns continue:true on malformed input', () => {
     const hookPath = path.join(HOOKS_DIR, 'secret-leak-guard.js');
     const result = spawnSync('node', [hookPath], {
