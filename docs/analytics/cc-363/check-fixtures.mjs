@@ -18,4 +18,4 @@ for (const [id, c] of Object.entries(first)) {
 }
 console.log(JSON.stringify(out, null, 1));
 const c0 = Object.values(out.cohorts)[0];
-if (c0.size !== 3 || c0.w1 !== 2) { console.error('unexpected fixture result'); process.exit(1); }
+if (c0.size !== 3 || c0.w1 !== 1 || c0.w2 !== 0 || c0.w3 !== 1 || c0.w4 !== 1) { console.error('unexpected fixture result'); process.exit(1); }
