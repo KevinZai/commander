@@ -12,6 +12,7 @@ Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached pl
 - **claude-api skill:** reflects removed sampling params and rejected `budget_tokens` (#225).
 - **Hooks:** the SessionStart banner shows the right version, there is no "Context compacted" notice on a fresh start, and audit routes to `/ccc-xray` (#213). Session state is keyed on stdin `session_id`, and tool calls are denied instead of halting the session (#193).
 - **Skills:** AskUserQuestion pickers fit the tool schema (#194). `allowed-tools` is treated as a no-prompt grant, and bare Bash/Write/Edit grants are ratcheted (#195).
+- **Workflows:** the `ccc-fleet` workflow is renamed to `ccc-fleet-run` so the `ccc-fleet` skill is reachable again, and a new test catches duplicate command names (#228).
 - **Agents:** use documented subagent colors (#192).
 - **Marketplace:** passes `claude plugin validate --strict` with plain listing text (#191).
 - **Hosted MCP:** HTTPS `resource_metadata` and `aud` work behind Fly's proxy, and the official smoke test plus DEPLOY.md match production (#196, #199). Adds streamable-HTTP and OAuth resource-server plumbing (#44).
@@ -22,7 +23,7 @@ Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached pl
 - **Tests and docs:** the bump-version test runs against a temp copy (#210). The suite passes from paths containing a space (#211). The Mintlify docs path is fixed (#212). The lint baseline is down from 186 to 96 (#197). Dependency bumps: #110, #113, #118, #119, #121-#125.
 
 ### Pending at draft time
-- #228 (rename the `ccc-fleet` workflow to `ccc-fleet-run`), #229 and #233 (escape literal `$N` in skills) were still open when this entry was written. Rebase and add them here once they merge.
+- #229 and #233 (escape literal `$N` in skills) were still open when this entry was written. Add them here once they merge.
 
 ## [8.1.0] - 2026-10-18
 
