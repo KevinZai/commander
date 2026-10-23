@@ -28,6 +28,16 @@ import { emitUser } from './lib/emit.mjs';
  * Returns the JSON output object instead of writing to stdout.
  */
 export async function run({ input: _input, env = process.env, cwd: _cwd } = {}) {
+  // On the SessionStart path the orchestrator passes the SessionStart payload,
+  // whose `source` is startup | resume | clear | compact. Only `compact` means
+  // we are actually coming back from a compaction; a fresh startup must not
+  // print "Context compacted" (#209). The standalone PostCompact hook has no
+  // SessionStart source, so it always emits.
+  const input = _input && typeof _input === 'object' ? _input : {};
+  const isSessionStart = input.hook_event_name === 'SessionStart' || typeof input.source === 'string';
+  if (isSessionStart && input.source !== 'compact') {
+    return { continue: true, suppressOutput: true };
+  }
   const HOME = env.HOME || env.USERPROFILE || '/tmp';
   const cccDir = join(HOME, '.claude', 'commander');
   const sessionFile = join(cccDir, 'sessions', 'active-session.json');

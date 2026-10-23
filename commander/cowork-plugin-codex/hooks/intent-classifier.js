@@ -45,7 +45,10 @@ const SKILL_PATTERNS = [
   { skill: '/ccc-standup', patterns: ['standup', 'daily', 'what did i do', 'morning'], label: 'Daily standup' },
   { skill: '/ccc-code-review', patterns: ['review', 'pr review', 'check changes', 'diff'], label: 'Code review' },
   { skill: '/ccc-deploy-check', patterns: ['deploy', 'ship', 'release', 'production'], label: 'Deploy check' },
-  { skill: '/ccc-research', patterns: ['research', 'analyze', 'competitive', 'audit'], label: 'Research' },
+  // 'audit' is a repo health check (ccc-xray: "Use when asked for a health check, repo audit, x-ray"),
+  // not research (#209). Listed before /ccc-research so "audit" never falls through to it.
+  { skill: '/ccc-xray', patterns: ['audit', 'x-ray', 'xray'], label: 'Project audit / x-ray' },
+  { skill: '/ccc-research', patterns: ['research', 'analyze', 'competitive'], label: 'Research' },
   { skill: '/ccc-fleet', patterns: ['fleet', 'parallel', 'swarm', 'multi-agent'], label: 'Fleet management' },
   { skill: '/ccc-linear-board', patterns: ['linear', 'issues', 'tickets', 'backlog'], label: 'Linear board' },
   { skill: '/ccc-content', patterns: ['blog', 'post', 'content', 'social media', 'email'], label: 'Content creation' },
