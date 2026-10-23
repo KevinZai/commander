@@ -13,6 +13,7 @@ Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached pl
 - **Hooks:** the SessionStart banner shows the right version, there is no "Context compacted" notice on a fresh start, and audit routes to `/ccc-xray` (#213). Session state is keyed on stdin `session_id`, and tool calls are denied instead of halting the session (#193).
 - **Skills:** AskUserQuestion pickers fit the tool schema (#194). `allowed-tools` is treated as a no-prompt grant, and bare Bash/Write/Edit grants are ratcheted (#195).
 - **Workflows:** the `ccc-fleet` workflow is renamed to `ccc-fleet-run` so the `ccc-fleet` skill is reachable again, and a new test catches duplicate command names (#228).
+- **Skills:** literal `$N` in plugin and toolkit skills is escaped so slash-command arguments are not substituted into example text (#229, #233).
 - **Agents:** use documented subagent colors (#192).
 - **Marketplace:** passes `claude plugin validate --strict` with plain listing text (#191).
 - **Hosted MCP:** HTTPS `resource_metadata` and `aud` work behind Fly's proxy, and the official smoke test plus DEPLOY.md match production (#196, #199). Adds streamable-HTTP and OAuth resource-server plumbing (#44).
@@ -21,9 +22,6 @@ Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached pl
 - `settings.json.template` declares the Claude Code settings `$schema` (#235).
 - **Deploy and CI:** site deploy is skipped until Vercel secrets exist and only changed targets deploy (#203). The duplicated changes job is removed (#218). Post-deploy smoke probes retry 6 x 10s to ride out Fly machine swaps (#219). MCP deploy is skipped on site-only pushes (#198). Draft PRs are skipped and superseded runs cancelled (#206).
 - **Tests and docs:** the bump-version test runs against a temp copy (#210). The suite passes from paths containing a space (#211). The Mintlify docs path is fixed (#212). The lint baseline is down from 186 to 96 (#197). Dependency bumps: #110, #113, #118, #119, #121-#125.
-
-### Pending at draft time
-- #229 and #233 (escape literal `$N` in skills) were still open when this entry was written. Add them here once they merge.
 
 ## [8.1.0] - 2026-10-18
 
