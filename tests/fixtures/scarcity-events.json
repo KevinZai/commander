@@ -1,0 +1,13 @@
+{
+  "_note": "Synthetic events only. No real orders, customers or billing data.",
+  "basic": [
+    { "id": "evt_1", "type": "order_created", "orderId": "ord_a" },
+    { "id": "evt_2", "type": "order_created", "orderId": "ord_b" },
+    { "id": "evt_3", "type": "order_refunded", "orderId": "ord_a" }
+  ],
+  "outOfOrder": [
+    { "id": "evt_r", "type": "order_refunded", "orderId": "ord_x" },
+    { "id": "evt_c", "type": "order_created", "orderId": "ord_x" },
+    { "id": "evt_d", "type": "order_created", "orderId": "ord_y" }
+  ]
+}
