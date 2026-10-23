@@ -169,7 +169,7 @@ function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
   const output = safeTokens(outputTokens);
   const cacheRead = safeTokens(cacheReadTokens);
   if (input === 0 && output === 0 && cacheRead === 0) return null;
-  // Sonnet-rate est ($/M): new input 3, cache-read 0.3 (≈0.1×), output 15.
+  // Sonnet 5.5-rate est ($/M): new input 2, cache-read 0.1, output 10.
   return Number(((input * 2 + cacheRead * 0.1 + output * 10) / 1_000_000).toFixed(4));
 }
 

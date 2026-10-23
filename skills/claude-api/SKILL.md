@@ -235,6 +235,7 @@ Live documentation URLs are in `shared/live-sources.md`.
 
 - Don't truncate inputs when passing files or content to the API. If the content is too long to fit in the context window, notify the user and discuss options (chunking, summarization, etc.) rather than silently truncating.
 - **Current-model thinking:** Use `thinking: {type: "adaptive"}` on Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5 — do NOT use `budget_tokens`. For older models, `budget_tokens` must be less than `max_tokens` (minimum 1024). This will throw an error if you get it wrong.
+- **Sampling parameters removed:** Don't send `temperature`, `top_p` or `top_k`. API version `2026-10-21` returns a 400 for any of them on every model, and earlier versions reject non-default values on Claude 4.7 and later. Steer output with prompting instead.
 - **Prefill removed:** Assistant message prefills (last-assistant-turn prefills) return a 400 error on recent Opus models, including Opus 5.5. Use structured outputs (`output_config.format`) or system prompt instructions to control response format instead.
 - **128K output tokens:** Every current model supports up to 128K `max_tokens`, but the SDKs require streaming for large `max_tokens` to avoid HTTP timeouts. Use `.stream()` with `.get_final_message()` / `.finalMessage()`.
 - **Tool call JSON parsing:** Recent models may produce different JSON string escaping in tool call `input` fields (e.g., Unicode or forward-slash escaping). Always parse tool inputs with `json.loads()` / `JSON.parse()` — never do raw string matching on the serialized input.

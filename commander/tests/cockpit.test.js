@@ -256,7 +256,7 @@ test('analytics aggregates local JSONL activity into the documented payload shap
     emoji: '🔨',
     runs: 2,
     tokens: 3300,
-    costUsd: 0.0135,
+    costUsd: 0.009, // Sonnet 5.5 rates: (3000*2 + 300*10) / 1e6
     avgMs: 2000,
   });
   assert.deepStrictEqual(analytics.topAgents.map(function(agent) { return agent.name; }), ['builder', 'reviewer']);
@@ -473,7 +473,7 @@ test('telemetry tiles and topAgents render real numbers once a run carries posit
   t.after(function() { fs.rmSync(home, { recursive: true, force: true }); });
   writeJsonl(home, 'agent-runs.jsonl', [
     { ts: ago(0), agent: 'ghost', durationMs: 500, inputTokens: 0, outputTokens: 0 },
-    { ts: ago(0, 5), agent: 'ghost', durationMs: 1500, inputTokens: 1000, outputTokens: 200 },
+    { ts: ago(0, 5), agent: 'ghost', durationMs: 1500, inputTokens: 1000, outputTokens: 1000 },
   ]);
 
   var result = runGenerator(home);
@@ -482,12 +482,13 @@ test('telemetry tiles and topAgents render real numbers once a run carries posit
   var tiles = Object.fromEntries(analytics.tiles.map(function(tile) { return [tile.label, tile.value]; }));
   var ghost = analytics.topAgents.find(function(agent) { return agent.name === 'ghost'; });
 
-  assert.strictEqual(tiles['Tokens (7d)'], '1k');
+  assert.strictEqual(tiles['Tokens (7d)'], '2k');
   assert.strictEqual(tiles['Est cost (7d)'], '$0.01 est');
   assert.strictEqual(ghost.runs, 2);
-  assert.strictEqual(ghost.tokens, 1200);
+  assert.strictEqual(ghost.tokens, 2000);
   assert.ok(ghost.tokens > 0);
-  assert.strictEqual(ghost.costUsd, 0.006);
+  // Sonnet 5.5 rates: (1000*2 + 1000*10) / 1e6
+  assert.strictEqual(ghost.costUsd, 0.012);
 });
 
 test('cache_read tokens are priced into cost but not folded into the token headline', function(t) {
@@ -504,8 +505,8 @@ test('cache_read tokens are priced into cost but not folded into the token headl
 
   // tokens headline = 100 + 50 (cache_read excluded)
   assert.strictEqual(cacher.tokens, 150);
-  // cost = (100*3 + 100000*0.3 + 50*15) / 1e6 = (300 + 30000 + 750)/1e6 = 0.03105
-  assert.strictEqual(cacher.costUsd, 0.0311);
+  // cost = (100*2 + 100000*0.1 + 50*10) / 1e6 = (200 + 10000 + 500)/1e6 = 0.0107
+  assert.strictEqual(cacher.costUsd, 0.0107);
   assert.ok(cacher.costUsd > 0, 'cache-heavy run must not price to $0');
 });
 
