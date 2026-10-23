@@ -16,11 +16,35 @@
 -- rows need a decision from Kevin (map them or move them to a separate column)
 -- before this can be applied. DO NOT APPLY without Kevin's sign-off.
 
-DO $$
+-- Idempotent: if public.users.user_id is already uuid (e.g. the live commander-mcp
+-- project, whose schema came from apps/mcp-server-cloud/src/db/schema.sql), the
+-- whole migration is a no-op (NOTICE only, nothing dropped or altered). Any FK
+-- column still TEXT in that case is reported as a WARNING for a human to look at.
+
+DO $mig$
 DECLARE
   bad INT;
+  users_type TEXT;
+  leftover TEXT;
   uuid_re CONSTANT TEXT := '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$';
 BEGIN
+  SELECT data_type INTO users_type FROM information_schema.columns
+   WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'user_id';
+  IF users_type IS NULL THEN
+    RAISE EXCEPTION 'users_user_id_uuid: public.users.user_id not found';
+  END IF;
+  IF users_type = 'uuid' THEN
+    SELECT string_agg(table_name || '.user_id=' || data_type, ', ') INTO leftover
+      FROM information_schema.columns
+     WHERE table_schema = 'public' AND column_name = 'user_id'
+       AND table_name IN ('surveys', 'usage_counters', 'feedback') AND data_type <> 'uuid';
+    IF leftover IS NOT NULL THEN
+      RAISE WARNING 'users_user_id_uuid: users.user_id is uuid but % still not uuid; left unchanged', leftover;
+    END IF;
+    RAISE NOTICE 'users_user_id_uuid: public.users.user_id is already uuid; no-op';
+    RETURN;
+  END IF;
+
   SELECT
       (SELECT COUNT(*) FROM users          WHERE user_id !~ uuid_re)
     + (SELECT COUNT(*) FROM surveys        WHERE user_id !~ uuid_re)
@@ -30,75 +54,74 @@ BEGIN
   IF bad > 0 THEN
     RAISE EXCEPTION 'users_user_id_uuid: % row(s) have a user_id that is not a uuid; migrate or remove them first', bad;
   END IF;
+  -- 1. Policies and the helper reference user_id as TEXT; drop them first
+  --    (Postgres refuses to change the type of a column used in a policy).
+  DROP POLICY IF EXISTS "users_select_own"    ON users;
+  DROP POLICY IF EXISTS "users_update_own"    ON users;
+  DROP POLICY IF EXISTS "surveys_select_own"  ON surveys;
+  DROP POLICY IF EXISTS "usage_select_own"    ON usage_counters;
+  DROP POLICY IF EXISTS "feedback_select_own" ON feedback;
+  DROP FUNCTION IF EXISTS get_effective_cap(TEXT);
+
+  -- 2. FKs must go before the referenced PK changes type.
+  ALTER TABLE surveys        DROP CONSTRAINT IF EXISTS surveys_user_id_fkey;
+  ALTER TABLE usage_counters DROP CONSTRAINT IF EXISTS usage_counters_user_id_fkey;
+  ALTER TABLE feedback       DROP CONSTRAINT IF EXISTS feedback_user_id_fkey;
+
+  -- 3. TEXT -> UUID (guarded above, so the casts cannot fail on data).
+  ALTER TABLE users          ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+  ALTER TABLE users          ALTER COLUMN user_id SET DEFAULT gen_random_uuid();
+  ALTER TABLE surveys        ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+  ALTER TABLE usage_counters ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+  ALTER TABLE feedback       ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+
+  ALTER TABLE surveys        ADD CONSTRAINT surveys_user_id_fkey
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
+  ALTER TABLE usage_counters ADD CONSTRAINT usage_counters_user_id_fkey
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
+  ALTER TABLE feedback       ADD CONSTRAINT feedback_user_id_fkey
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
+
+  -- 4. Same policies as beta_v4, now comparing uuid to uuid (no ::text casts).
+  CREATE POLICY "users_select_own" ON users
+    FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+
+  CREATE POLICY "users_update_own" ON users
+    FOR UPDATE USING (auth.uid() = user_id OR auth.role() = 'service_role');
+
+  CREATE POLICY "surveys_select_own" ON surveys
+    FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+
+  CREATE POLICY "usage_select_own" ON usage_counters
+    FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+
+  CREATE POLICY "feedback_select_own" ON feedback
+    FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+
+  -- 5. Helper: same body as beta_v4, uuid parameter (matches the app's RPC calls).
+  CREATE OR REPLACE FUNCTION get_effective_cap(p_user_id UUID)
+  RETURNS INT LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $fn$
+  DECLARE
+    v_skip_streak INT;
+    v_month_answers INT;
+  BEGIN
+    SELECT survey_skip_streak INTO v_skip_streak FROM users WHERE user_id = p_user_id;
+
+    IF v_skip_streak >= 3 THEN
+      RETURN 500;
+    END IF;
+
+    SELECT COUNT(*) INTO v_month_answers
+    FROM surveys
+    WHERE user_id = p_user_id
+      AND answered_at >= DATE_TRUNC('month', NOW());
+
+    IF v_month_answers >= 2 THEN
+      RETURN 2000;
+    END IF;
+
+    RETURN 1000;
+  END;
+  $fn$;
 END
-$$;
-
--- 1. Policies and the helper reference user_id as TEXT; drop them first
---    (Postgres refuses to change the type of a column used in a policy).
-DROP POLICY IF EXISTS "users_select_own"    ON users;
-DROP POLICY IF EXISTS "users_update_own"    ON users;
-DROP POLICY IF EXISTS "surveys_select_own"  ON surveys;
-DROP POLICY IF EXISTS "usage_select_own"    ON usage_counters;
-DROP POLICY IF EXISTS "feedback_select_own" ON feedback;
-DROP FUNCTION IF EXISTS get_effective_cap(TEXT);
-
--- 2. FKs must go before the referenced PK changes type.
-ALTER TABLE surveys        DROP CONSTRAINT IF EXISTS surveys_user_id_fkey;
-ALTER TABLE usage_counters DROP CONSTRAINT IF EXISTS usage_counters_user_id_fkey;
-ALTER TABLE feedback       DROP CONSTRAINT IF EXISTS feedback_user_id_fkey;
-
--- 3. TEXT -> UUID (guarded above, so the casts cannot fail on data).
-ALTER TABLE users          ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
-ALTER TABLE users          ALTER COLUMN user_id SET DEFAULT gen_random_uuid();
-ALTER TABLE surveys        ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
-ALTER TABLE usage_counters ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
-ALTER TABLE feedback       ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
-
-ALTER TABLE surveys        ADD CONSTRAINT surveys_user_id_fkey
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
-ALTER TABLE usage_counters ADD CONSTRAINT usage_counters_user_id_fkey
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
-ALTER TABLE feedback       ADD CONSTRAINT feedback_user_id_fkey
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
-
--- 4. Same policies as beta_v4, now comparing uuid to uuid (no ::text casts).
-CREATE POLICY "users_select_own" ON users
-  FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
-
-CREATE POLICY "users_update_own" ON users
-  FOR UPDATE USING (auth.uid() = user_id OR auth.role() = 'service_role');
-
-CREATE POLICY "surveys_select_own" ON surveys
-  FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
-
-CREATE POLICY "usage_select_own" ON usage_counters
-  FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
-
-CREATE POLICY "feedback_select_own" ON feedback
-  FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
-
--- 5. Helper: same body as beta_v4, uuid parameter (matches the app's RPC calls).
-CREATE OR REPLACE FUNCTION get_effective_cap(p_user_id UUID)
-RETURNS INT LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE
-  v_skip_streak INT;
-  v_month_answers INT;
-BEGIN
-  SELECT survey_skip_streak INTO v_skip_streak FROM users WHERE user_id = p_user_id;
-
-  IF v_skip_streak >= 3 THEN
-    RETURN 500;
-  END IF;
-
-  SELECT COUNT(*) INTO v_month_answers
-  FROM surveys
-  WHERE user_id = p_user_id
-    AND answered_at >= DATE_TRUNC('month', NOW());
-
-  IF v_month_answers >= 2 THEN
-    RETURN 2000;
-  END IF;
-
-  RETURN 1000;
-END;
-$$;
+$mig$;
