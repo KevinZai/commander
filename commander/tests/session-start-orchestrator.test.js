@@ -235,3 +235,43 @@ test('orchestrator handler outputs all aggregate (session-start contribution pre
   const activeFile = path.join(home, '.claude', 'commander', 'sessions', 'active-session.json');
   assert.ok(fs.existsSync(activeFile), 'session-start handler should have created active-session.json');
 });
+
+// CC-2041 — the banner version must come from plugin.json, not the stale 4.0.0 fallback.
+// The handler lives in hooks/_archive/, so its relative paths are one level deeper than hooks/.
+test('session-start handler banner reports the plugin.json version (not the 4.0.0 fallback)', async () => {
+  const home = mkHome();
+  // Seed state so the handler takes the steady-state path (first run returns a welcome banner)
+  const cccDir = path.join(home, '.claude', 'commander');
+  fs.mkdirSync(cccDir, { recursive: true });
+  fs.writeFileSync(path.join(cccDir, 'state.json'), JSON.stringify({ onboardingCompleted: true }));
+  const pluginVersion = JSON.parse(fs.readFileSync(
+    path.join(__dirname, '..', 'cowork-plugin', '.claude-plugin', 'plugin.json'), 'utf8'
+  )).version;
+  const handler = path.join(__dirname, '..', 'cowork-plugin', 'hooks', '_archive', 'session-start.js');
+  const { run } = await import(require('node:url').pathToFileURL(handler).href);
+  const out = await run({ home });
+  assert.ok(out.status.startsWith(`CCC ${pluginVersion} |`), 'banner was: ' + out.status);
+  assert.doesNotMatch(out.status, /CCC 4\.0\.0/);
+});
+
+test('session-start handler reads the Codex mirror manifest and the version nudge ignores unknown', async () => {
+  const home = mkHome();
+  const cccDir = path.join(home, '.claude', 'commander');
+  fs.mkdirSync(cccDir, { recursive: true });
+  fs.writeFileSync(path.join(cccDir, 'state.json'), JSON.stringify({ onboardingCompleted: true, last_seen_version: '8.1.0' }));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-mirror-'));
+  fs.mkdirSync(path.join(root, 'hooks', '_archive'), { recursive: true });
+  fs.mkdirSync(path.join(root, '.codex-plugin'));
+  const src = path.join(__dirname, '..', 'cowork-plugin', 'hooks', '_archive', 'session-start.js');
+  const dst = path.join(root, 'hooks', '_archive', 'session-start.js');
+  fs.copyFileSync(src, dst);
+  const load = () => import(require('node:url').pathToFileURL(dst).href + '?t=' + Math.random());
+  // no manifest anywhere: banner says unknown, no "updated to" nudge, state keeps its real version
+  let out = await (await load()).run({ home });
+  assert.match(out.status, /^CCC unknown \|/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(cccDir, 'state.json'), 'utf8')).last_seen_version, '8.1.0');
+  // Codex manifest only
+  fs.writeFileSync(path.join(root, '.codex-plugin', 'plugin.json'), JSON.stringify({ version: '8.1.0' }));
+  out = await (await load()).run({ home });
+  assert.match(out.status, /^CCC 8\.1\.0 \|/);
+});

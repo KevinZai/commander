@@ -91,6 +91,7 @@ async function main() {
 
   // Sequence: session-start (state init must run first) → stale-claude-md → post-compact
   // NOTE: session-start remains in _archive/ (orchestrator-compatible, no live twin).
+  // _archive/session-start.js is LIVE code despite the directory name; see hooks/README.md.
   // stale-claude-md-nudge and post-compact-recovery are dual-mode files that live in
   // hooks/ — they export run() for the orchestrator AND run standalone via CLI tail
   // (InstructionsLoaded and PostCompact hooks respectively).

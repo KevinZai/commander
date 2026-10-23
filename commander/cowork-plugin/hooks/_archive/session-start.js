@@ -13,9 +13,21 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const PKG_JSON = join(import.meta.dirname, '..', '..', '..', 'package.json');
+const PKG_JSON = join(import.meta.dirname, '..', '..', '..', '..', 'package.json');
 
-const PLUGIN_JSON = join(import.meta.dirname, '..', '.claude-plugin', 'plugin.json');
+// Claude plugins ship .claude-plugin/, the generated Codex mirror ships .codex-plugin/.
+const PLUGIN_JSONS = ['.claude-plugin', '.codex-plugin']
+  .map((d) => join(import.meta.dirname, '..', '..', d, 'plugin.json'));
+
+async function readPluginVersion() {
+  for (const file of PLUGIN_JSONS) {
+    try {
+      const v = JSON.parse(await readFile(file, 'utf8')).version;
+      if (v) return v;
+    } catch {}
+  }
+  return null;
+}
 
 /**
  * Pure-function entry for orchestrator (CC-414 hook chain merge).
@@ -35,11 +47,7 @@ export async function run({ home, cwd: _cwd } = {}) {
       if (!existsSync(dir)) await mkdir(dir, { recursive: true });
     }
 
-    let pluginVersion = '4.0.0';
-    try {
-      const pluginJson = JSON.parse(await readFile(PLUGIN_JSON, 'utf8'));
-      pluginVersion = pluginJson.version || pluginVersion;
-    } catch {}
+    const pluginVersion = (await readPluginVersion()) || 'unknown';
 
     let packageVersion = pluginVersion;
     try {
@@ -54,7 +62,7 @@ export async function run({ home, cwd: _cwd } = {}) {
           onboardingCompleted: false,
           firstRunAt: new Date().toISOString(),
           installedVersion: pluginVersion,
-          last_seen_version: packageVersion,
+          last_seen_version: packageVersion === 'unknown' ? null : packageVersion,
         }, null, 2));
       } catch {}
     }
@@ -71,11 +79,11 @@ export async function run({ home, cwd: _cwd } = {}) {
       const state = JSON.parse(await readFile(STATE_FILE, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
       const lastSeen = state.last_seen_version;
-      if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {
+      if (!isFirstRun && packageVersion !== 'unknown' && lastSeen && lastSeen !== packageVersion) {
         versionTransition = true;
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
-      } else if (!isFirstRun && !lastSeen) {
+      } else if (!isFirstRun && packageVersion !== 'unknown' && !lastSeen) {
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
       }
@@ -135,11 +143,7 @@ async function main() {
     }
 
     // Read plugin version
-    let pluginVersion = '4.0.0';
-    try {
-      const pluginJson = JSON.parse(await readFile(PLUGIN_JSON, 'utf8'));
-      pluginVersion = pluginJson.version || pluginVersion;
-    } catch {}
+    const pluginVersion = (await readPluginVersion()) || 'unknown';
 
     // Read current package version (authoritative source for version transitions)
     let packageVersion = pluginVersion;
@@ -156,7 +160,7 @@ async function main() {
           onboardingCompleted: false,
           firstRunAt: new Date().toISOString(),
           installedVersion: pluginVersion,
-          last_seen_version: packageVersion,
+          last_seen_version: packageVersion === 'unknown' ? null : packageVersion,
         }, null, 2));
       } catch {}
     }
@@ -174,12 +178,12 @@ async function main() {
       const state = JSON.parse(await readFile(STATE_FILE, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
       const lastSeen = state.last_seen_version;
-      if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {
+      if (!isFirstRun && packageVersion !== 'unknown' && lastSeen && lastSeen !== packageVersion) {
         versionTransition = true;
         // Update last_seen_version so nudge only fires once per upgrade
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
-      } else if (!isFirstRun && !lastSeen) {
+      } else if (!isFirstRun && packageVersion !== 'unknown' && !lastSeen) {
         // Backfill field for existing installs — treat as no transition
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
