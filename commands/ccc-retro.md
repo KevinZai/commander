@@ -32,7 +32,7 @@ Set `SINCE` and `UNTIL` (for example `SINCE="7 days ago"`, `UNTIL="now"`, or the
    git rev-list --count --no-merges --since="$SINCE" --until="$UNTIL" HEAD
    git shortlog -sn --no-merges --since="$SINCE" --until="$UNTIL" HEAD
    git log --since="$SINCE" --until="$UNTIL" --no-merges --numstat --format="" \
-     | awk '{a+=$1; d+=$2} END {print "added", a+0, "removed", d+0}'
+     | awk '{a+=\$1; d+=\$2} END {print "added", a+0, "removed", d+0}'
    git log --since="$SINCE" --until="$UNTIL" --no-merges --name-only --format="" \
      | sort | uniq -c | sort -rn | head -10
    git log --since="$SINCE" --until="$UNTIL" --no-merges --name-only --format="" \

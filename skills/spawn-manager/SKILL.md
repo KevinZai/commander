@@ -340,10 +340,10 @@ Multi-peer workflows multiply your API spend. Track aggressively.
 
 | Task Complexity | Estimated Tokens per Peer | Estimated Cost per Peer |
 |----------------|--------------------------|------------------------|
-| Simple (single file edit, focused task) | 10-30K | $0.05-0.15 |
-| Medium (multi-file feature, some research) | 50-100K | $0.25-0.50 |
-| Complex (architecture, many files, decisions) | 100-200K | $0.50-1.00 |
-| Research (reading many files, web search) | 150-300K | $0.75-1.50 |
+| Simple (single file edit, focused task) | 10-30K | \$0.05-0.15 |
+| Medium (multi-file feature, some research) | 50-100K | \$0.25-0.50 |
+| Complex (architecture, many files, decisions) | 100-200K | \$0.50-1.00 |
+| Research (reading many files, web search) | 150-300K | \$0.75-1.50 |
 
 Multiply per-peer cost by peer count. Add 20% for coordinator overhead. Set a ceiling before starting.
 

@@ -119,7 +119,7 @@ Preserve the user's selected model wherever they chose one.
 
 ### 5. Watch the budget
 
-- Default ceiling $10 per run, split across cycles; reviewer runs count against the cycle budget.
+- Default ceiling \$10 per run, split across cycles; reviewer runs count against the cycle budget.
 - At 70% of the ceiling, pause and ask with AskUserQuestion: 🟢 "Stop now and commit what's done" / "Continue to the ceiling".
 - Check real spend with `/usage` after each Agent call. Where the `ccc` CLI is installed, `ccc --stats` prints a Cost line.
 - The plugin's cost-ceiling-enforcer hook also blocks after a tool-call budget (default 10.00 units = 1,000 calls; `costCeiling` in `~/.claude/commander/config.json`; `CCC_COST_OVERRIDE=1` overrides). It counts activity, not dollars.

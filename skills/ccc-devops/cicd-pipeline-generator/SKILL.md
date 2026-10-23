@@ -166,7 +166,7 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          COVERAGE=$(npx c8 report --reporter=text-summary | grep 'Lines' | awk '{print $3}' | tr -d '%')
+          COVERAGE=$(npx c8 report --reporter=text-summary | grep 'Lines' | awk '{print \$3}' | tr -d '%')
           echo "Coverage: ${COVERAGE}%"
           if (( $(echo "$COVERAGE < 80" | bc -l) )); then
             echo "Coverage ${COVERAGE}% is below 80% threshold"
