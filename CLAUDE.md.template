@@ -140,6 +140,9 @@ Suggest an adjacent skill only when it materially helps; never interrupt every s
 | CLAUDE.md feels stale | `/ccc-claudemd` |
 | Lost in the catalog | `/ccc` or `/ccc-browse` |
 
+## Build process
+Follow `rules/common/build-process.md`: one ticket, one branch, one draft PR. `fable` designs, `opus` manages and audits, `sonnet` builds, `haiku` does mechanical work. Escalate a failed ticket `sonnet` → `sonnet` → `opus` → `fable` → the owner. Every run posts its FINAL STATUS as a comment on its PR (a draft PR if none; the tracking issue for doc-only work), and its report includes that `github.com` URL.
+
 ## Verification before done
 - [ ] The change works end to end (state the command or check that proved it).
 - [ ] Required checks pass: [list them].
