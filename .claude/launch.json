@@ -27,8 +27,8 @@
     },
     {
       "name": "mintlify-docs (docs.commanderplugin.com preview)",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["mintlify", "dev"],
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd mintlify-docs && npx mintlify dev --port 3001"],
       "port": 3001
     },
     {
