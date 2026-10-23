@@ -774,12 +774,12 @@ function hasTokenData(entry) {
   );
 }
 
-// Rough Sonnet-rate estimate ($/M): new input 3, cache-read 0.3 (≈0.1×), output 15.
+// Rough Sonnet 5.5-rate estimate ($/M): new input 2, cache-read 0.1, output 10.
 // cache_read is priced (a cache-heavy run costs real money) but is NOT folded
 // into the token headline, where cross-turn re-reads would inflate the count.
 function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
   return Number(
-    ((safeMetric(inputTokens) * 3 + safeMetric(cacheReadTokens) * 0.3 + safeMetric(outputTokens) * 15) / 1_000_000).toFixed(4)
+    ((safeMetric(inputTokens) * 2 + safeMetric(cacheReadTokens) * 0.1 + safeMetric(outputTokens) * 10) / 1_000_000).toFixed(4)
   );
 }
 
