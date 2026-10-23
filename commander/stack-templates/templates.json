@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "templates": [
+    {
+      "id": "nextjs-supabase-vercel",
+      "label": "Next.js + Supabase + Vercel",
+      "services": [
+        {
+          "role": "frontend",
+          "name": "Next.js",
+          "connector": null
+        },
+        {
+          "role": "backend",
+          "name": "Supabase",
+          "connector": "supabase"
+        },
+        {
+          "role": "hosting",
+          "name": "Vercel",
+          "connector": "vercel"
+        }
+      ]
+    },
+    {
+      "id": "bun-postgres-fly",
+      "label": "Bun + Postgres + Fly",
+      "services": [
+        {
+          "role": "backend",
+          "name": "Bun",
+          "connector": null
+        },
+        {
+          "role": "database",
+          "name": "Postgres",
+          "connector": "postgres"
+        },
+        {
+          "role": "hosting",
+          "name": "Fly.io",
+          "connector": "flyio"
+        }
+      ]
+    },
+    {
+      "id": "nextjs-neon-vercel",
+      "label": "Next.js + Neon + Vercel",
+      "services": [
+        {
+          "role": "frontend",
+          "name": "Next.js",
+          "connector": null
+        },
+        {
+          "role": "database",
+          "name": "Neon",
+          "connector": "neon"
+        },
+        {
+          "role": "hosting",
+          "name": "Vercel",
+          "connector": "vercel"
+        }
+      ]
+    },
+    {
+      "id": "sveltekit-supabase-cloudflare",
+      "label": "SvelteKit + Supabase + Cloudflare",
+      "services": [
+        {
+          "role": "frontend",
+          "name": "SvelteKit",
+          "connector": null
+        },
+        {
+          "role": "backend",
+          "name": "Supabase",
+          "connector": "supabase"
+        },
+        {
+          "role": "hosting",
+          "name": "Cloudflare",
+          "connector": "cloudflare"
+        }
+      ]
+    },
+    {
+      "id": "remix-neon-fly",
+      "label": "Remix + Neon + Fly",
+      "services": [
+        {
+          "role": "frontend",
+          "name": "Remix",
+          "connector": null
+        },
+        {
+          "role": "database",
+          "name": "Neon",
+          "connector": "neon"
+        },
+        {
+          "role": "hosting",
+          "name": "Fly.io",
+          "connector": "flyio"
+        }
+      ]
+    },
+    {
+      "id": "astro-cloudflare",
+      "label": "Astro + Cloudflare",
+      "services": [
+        {
+          "role": "frontend",
+          "name": "Astro",
+          "connector": null
+        },
+        {
+          "role": "hosting",
+          "name": "Cloudflare",
+          "connector": "cloudflare"
+        }
+      ]
+    },
+    {
+      "id": "nextjs-supabase-stripe",
+      "label": "Next.js + Supabase + Stripe",
+      "services": [
+        {
+          "role": "frontend",
+          "name": "Next.js",
+          "connector": null
+        },
+        {
+          "role": "backend",
+          "name": "Supabase",
+          "connector": "supabase"
+        },
+        {
+          "role": "payments",
+          "name": "Stripe",
+          "connector": "stripe"
+        },
+        {
+          "role": "hosting",
+          "name": "Vercel",
+          "connector": "vercel"
+        }
+      ]
+    },
+    {
+      "id": "node-upstash-vercel",
+      "label": "Node API + Upstash + Vercel",
+      "services": [
+        {
+          "role": "backend",
+          "name": "Node API",
+          "connector": null
+        },
+        {
+          "role": "cache",
+          "name": "Upstash",
+          "connector": "upstash"
+        },
+        {
+          "role": "hosting",
+          "name": "Vercel",
+          "connector": "vercel"
+        }
+      ]
+    },
+    {
+      "id": "nextjs-resend-sentry",
+      "label": "Next.js + Resend + Sentry",
+      "services": [
+        {
+          "role": "frontend",
+          "name": "Next.js",
+          "connector": null
+        },
+        {
+          "role": "email",
+          "name": "Resend",
+          "connector": "resend"
+        },
+        {
+          "role": "observability",
+          "name": "Sentry",
+          "connector": "sentry"
+        },
+        {
+          "role": "hosting",
+          "name": "Vercel",
+          "connector": "vercel"
+        }
+      ]
+    },
+    {
+      "id": "python-postgres-fly",
+      "label": "FastAPI + Postgres + Fly",
+      "services": [
+        {
+          "role": "backend",
+          "name": "FastAPI",
+          "connector": null
+        },
+        {
+          "role": "database",
+          "name": "Postgres",
+          "connector": "postgres"
+        },
+        {
+          "role": "hosting",
+          "name": "Fly.io",
+          "connector": "flyio"
+        }
+      ]
+    },
+    {
+      "id": "other",
+      "label": "Something else",
+      "services": [
+        {
+          "role": "other",
+          "name": "Custom stack",
+          "connector": null
+        }
+      ]
+    }
+  ]
+}
