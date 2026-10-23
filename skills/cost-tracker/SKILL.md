@@ -38,9 +38,9 @@ Then present via AskUserQuestion:
 
 ### Budget Alert
 
-If daily cost > $5, show warning:
+If daily cost > \$5, show warning:
 ```
-⚠️  Daily spend: $[amount] (threshold: $5.00)
+⚠️  Daily spend: $[amount] (threshold: \$5.00)
 ```
 
 ### After every action, suggest next steps via AskUserQuestion.

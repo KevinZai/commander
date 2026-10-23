@@ -80,7 +80,7 @@ Takes any plan — roadmap, GTM, hiring, fundraising — and finds what breaks f
 Reversibility test. 10/10/10 framework. Stakeholder impact mapping. Communication planning. For decisions with no good answer — only less bad ones. See `skills/hard-call/SKILL.md`
 
 ### `/em:stress-test <assumption>`
-"$5B market." "$2M ARR by December." "3-year moat." Every plan is built on assumptions. Surfaces counter-evidence, models the downside, proposes the hedge. See `skills/stress-test/SKILL.md`
+"\$5B market." "\$2M ARR by December." "3-year moat." Every plan is built on assumptions. Surfaces counter-evidence, models the downside, proposes the hedge. See `skills/stress-test/SKILL.md`
 
 ### `/em:postmortem <event>`
 Lost deal. Failed feature. Missed quarter. No blame sessions, no whitewash. 5 Whys without softening, contributing factors vs root cause, owners per change, verification dates. See `skills/postmortem/SKILL.md`

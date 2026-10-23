@@ -66,7 +66,7 @@ CC Kit Status Update — 2:30 PM
 ━━━━━━━━━━━━━━━━━━━━
 Task: Refactoring auth module
 Progress: 65% (Phase 4/6)
-Duration: 45m | Cost: $0.82
+Duration: 45m | Cost: \$0.82
 Tools: 127 calls (Edit: 45, Read: 38, Bash: 24)
 Next: Integration tests
 ```
@@ -87,7 +87,7 @@ Completed:
   ○ Phase 6: Documentation
 
 Session Stats:
-  Duration: 45m | Cost: $0.82 | Context: 62%
+  Duration: 45m | Cost: \$0.82 | Context: 62%
   Tools: 127 calls | Files modified: 8 | Tests: 12 passing
 
 Recent Activity:
@@ -102,7 +102,7 @@ CC Kit — Task Complete ✓
 ━━━━━━━━━━━━━━━━━━━━
 Task: Refactoring auth module
 Result: SUCCESS
-Duration: 1h 12m | Cost: $1.45
+Duration: 1h 12m | Cost: \$1.45
 Files: 12 modified, 3 created
 Tests: 24 passing, 0 failing
 Commit: feat: implement JWT token refresh with auto-renewal
@@ -117,7 +117,7 @@ Status: BLOCKED
 Error: Build failed — TypeScript error in src/auth/types.ts:42
 Details: Type 'string' is not assignable to type 'TokenPayload'
 Action: Needs manual review
-Duration: 52m | Cost: $1.12
+Duration: 52m | Cost: \$1.12
 ```
 
 ## Integration
