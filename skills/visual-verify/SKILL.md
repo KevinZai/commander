@@ -166,7 +166,7 @@ Visual verify is one step in the broader `/verify` command:
 |---|---|
 | Max iterations | 5 (prevents infinite fix loops) |
 | Timeout per screenshot | 30 seconds |
-| Cost ceiling | $2.00 per verification session |
+| Cost ceiling | \$2.00 per verification session |
 | Escalation | After 3 failed fixes for the same issue, stop and report |
 | Destructive actions | Never deletes files; only modifies source code |
 
@@ -194,7 +194,7 @@ Visual verify is one step in the broader `/verify` command:
 
 [visual-verify] PASSED -- all checks clean after 3 iterations
   Total fixes: 3
-  Cost: $0.62
+  Cost: \$0.62
 ```
 
 ## Viewport Presets

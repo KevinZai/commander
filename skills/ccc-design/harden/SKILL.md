@@ -134,7 +134,7 @@ new Intl.DateTimeFormat('de-DE').format(date); // 15.1.2024
 new Intl.NumberFormat('en-US', { 
   style: 'currency', 
   currency: 'USD' 
-}).format(1234.56); // $1,234.56
+}).format(1234.56); // \$1,234.56
 ```
 
 **Pluralization**:

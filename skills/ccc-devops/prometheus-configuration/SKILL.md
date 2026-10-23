@@ -145,7 +145,7 @@ scrape_configs:
       - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
         action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
-        replacement: $1:$2
+        replacement: \$1:\$2
         target_label: __address__
       - source_labels: [__meta_kubernetes_namespace]
         action: replace

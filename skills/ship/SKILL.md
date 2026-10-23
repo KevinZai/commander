@@ -614,9 +614,9 @@ If multiple suites need to run, run them sequentially (each needs a test lane). 
 **Tier reference (for context — /ship always uses `full`):**
 | Tier | When | Speed (cached) | Cost |
 |------|------|----------------|------|
-| `fast` (Haiku) | Dev iteration, smoke tests | ~5s (14x faster) | ~$0.07/run |
-| `standard` (Sonnet) | Default dev, `bin/test-lane --eval` | ~17s (4x faster) | ~$0.37/run |
-| `full` (Opus persona) | **`/ship` and pre-merge** | ~72s (baseline) | ~$1.27/run |
+| `fast` (Haiku) | Dev iteration, smoke tests | ~5s (14x faster) | ~\$0.07/run |
+| `standard` (Sonnet) | Default dev, `bin/test-lane --eval` | ~17s (4x faster) | ~\$0.37/run |
+| `full` (Opus persona) | **`/ship` and pre-merge** | ~72s (baseline) | ~\$1.27/run |
 
 ---
 

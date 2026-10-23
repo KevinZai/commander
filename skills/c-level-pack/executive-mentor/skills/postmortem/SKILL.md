@@ -31,7 +31,7 @@ Before analysis: describe exactly what happened.
 - When was the gap first visible?
 - What was the impact (financial, operational, reputational)?
 
-Precision matters. "We missed Q3 revenue" is not precise enough. "We closed $420K in new ARR vs $680K target — a $260K miss driven primarily by three deals that slipped to Q4 and one deal that was lost to a competitor" is precise.
+Precision matters. "We missed Q3 revenue" is not precise enough. "We closed \$420K in new ARR vs \$680K target — a \$260K miss driven primarily by three deals that slipped to Q4 and one deal that was lost to a competitor" is precise.
 
 ### Step 2: The 5 Whys — Done Properly
 
