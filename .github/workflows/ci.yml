@@ -79,6 +79,9 @@ jobs:
       - name: Run hook tests
         run: node --test tests/hooks.test.js
 
+      - name: Run safety snapshot tests
+        run: node --test commander/tests/safety-snapshot.test.js
+
       - name: Run path tests
         run: node --test commander/tests/paths.test.js
 
