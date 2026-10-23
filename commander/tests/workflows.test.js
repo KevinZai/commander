@@ -14,7 +14,7 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..', '..');
 const WF_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'workflows');
 const FILES = fs.readdirSync(WF_DIR).filter(f => f.endsWith('.workflow.js')).sort();
-const EXPECTED = ['ccc-audit', 'ccc-deep-review', 'ccc-fleet', 'ccc-migrate', 'ccc-prompt-audit', 'ccc-release-audit'];
+const EXPECTED = ['ccc-audit', 'ccc-deep-review', 'ccc-fleet-run', 'ccc-migrate', 'ccc-prompt-audit', 'ccc-release-audit'];
 const EFFORTS = new Set(['low', 'medium', 'high', 'xhigh', 'max']);
 const HOOKS = ['agent', 'parallel', 'pipeline', 'phase', 'log', 'args', 'budget', 'workflow'];
 const AsyncFunction = (async () => {}).constructor;
@@ -148,7 +148,7 @@ for (const file of FILES) {
 const STUB_ARGS = {
   'ccc-audit': [undefined, { target: 'src', dimensions: ['security', 'docs'] }],
   'ccc-deep-review': [undefined, { base: 'origin/main' }],
-  'ccc-fleet': [
+  'ccc-fleet-run': [
     { mode: 'fanout', tasks: ['a', 'b'] },
     { mode: 'pipeline', tasks: ['a', 'b'] },
     { mode: 'judge', task: 'x', attempts: 2 },
@@ -173,8 +173,8 @@ for (const [name, argSets] of Object.entries(STUB_ARGS)) {
   });
 }
 
-test('ccc-fleet and ccc-migrate reject missing args', async () => {
-  for (const name of ['ccc-fleet', 'ccc-migrate']) {
+test('ccc-fleet-run and ccc-migrate reject missing args', async () => {
+  for (const name of ['ccc-fleet-run', 'ccc-migrate']) {
     const src = fs.readFileSync(path.join(WF_DIR, `${name}.workflow.js`), 'utf8');
     await assert.rejects(() => runStubbed(src, undefined), /requires args/);
   }

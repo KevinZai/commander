@@ -18,7 +18,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 |---|---|
 | `/ccc-codex` | Manage the Codex CLI from Claude: `doctor`, models, plugins and marketplaces, MCP servers, Commander agents as Codex TOML subagents, Codex Cloud, remote control, `codex review`, `codex update`, `config.toml` (every write asked, backed up, verified with `codex doctor --json`) |
 | Commander HUD mod | Band above the prompt: Fable state · running agents · tool-call budget · update pill. `/ccc-hud`, `/ccc-hud on`, `/ccc-hud off`, `/ccc-hud status` — runs without a model turn. Claude Code 2.1.287+ (Desktop 2.1.286+) |
-| Plugin workflows | `/commander:ccc-audit` · `/commander:ccc-deep-review` · `/commander:ccc-fleet` · `/commander:ccc-migrate` · `/commander:ccc-prompt-audit` · `/commander:ccc-release-audit` |
+| Plugin workflows | `/commander:ccc-audit` · `/commander:ccc-deep-review` · `/commander:ccc-fleet-run` · `/commander:ccc-migrate` · `/commander:ccc-prompt-audit` · `/commander:ccc-release-audit` |
 | Plugin evals | `claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3` (cases: hub, plan, review, doctor, fable, update, suggest, codex) |
 | New hook events | PermissionDenied · PreModelSwitch · PostModelSwitch · TeammateIdle · CwdChanged · DirectoryAdded · FileChanged (`CLAUDE.md`). WorktreeCreate/WorktreeRemove deliberately unregistered — a hook there replaces git worktree handling |
 | Routing | `fable` (Fable 5.1) deep · `opus` (Opus 5.5) default · `sonnet` (Sonnet 5.5) fast · `haiku` (Haiku 5.5) bulk; Codex: `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6-sol` · `gpt-6-luna` |
@@ -132,7 +132,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 | `ccc-audit` | `/ccc-xray` | Repo health audit, every finding verified |
 | `ccc-deep-review` | `/ccc-review` | Four-dimension branch review, severity-grouped verdict |
 | `ccc-migrate` | `/ccc-ultracode` | Per-site worktree transforms, each change independently verified |
-| `ccc-fleet` | `/ccc-fleet` | Fan-out / pipeline / judge / debate |
+| `ccc-fleet-run` | `/ccc-fleet` | Fan-out / pipeline / judge / debate |
 | `ccc-prompt-audit` | `/ccc-ultracode` | Skills and agents vs. the prompt standard |
 | `ccc-release-audit` | `/ccc-ultracode` | Every release gate → go or no-go |
 
