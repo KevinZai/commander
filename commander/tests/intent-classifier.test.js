@@ -67,3 +67,26 @@ test('control: "write a for loop in python" produces no skill suggestion', funct
   assert.strictEqual(r.suppressOutput, true, 'expected suppressOutput=true on no match');
   assert.ok(!r.systemMessage, 'expected no status field on no match, got: ' + JSON.stringify(r));
 });
+
+// #209: the Fable E2E prompt "audit this repo" must suggest the repo health
+// check (/ccc-xray), never a review skill. Pinned for both the Claude Code
+// plugin and the generated Codex plugin copy of the hook.
+test('routes the exact prompt "audit this repo" to /ccc-xray, not a review skill', function () {
+  const hooks = [
+    HOOK,
+    path.join(__dirname, '..', 'cowork-plugin-codex', 'hooks', 'intent-classifier.js'),
+  ];
+  for (const hook of hooks) {
+    const result = spawnSync(process.execPath, [hook], {
+      input: JSON.stringify({ prompt: 'audit this repo' }),
+      encoding: 'utf8',
+      timeout: 5000,
+      env: { ...process.env, HOME: os.tmpdir(), USERPROFILE: os.tmpdir() },
+    });
+    assert.strictEqual(result.status, 0, hook + ': classifier should exit 0');
+    const msg = JSON.parse(result.stdout.trim()).systemMessage || '';
+    assert.ok(msg.includes('CCC suggests: /ccc-xray '), hook + ': expected /ccc-xray, got: ' + msg);
+    assert.ok(!msg.includes('ccc-review'), hook + ': must not suggest ccc-review, got: ' + msg);
+    assert.ok(!msg.includes('ccc-code-review'), hook + ': must not suggest ccc-code-review, got: ' + msg);
+  }
+});
