@@ -13,9 +13,18 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const PKG_JSON = join(import.meta.dirname, '..', '..', '..', 'package.json');
+// This file lives in hooks/_archive/, so the plugin root is two levels up and
+// the repo root four. The old paths (one/three levels up) predate the move to
+// _archive/ and never resolved, so the banner fell back to 'CCC 4.0.0' (#209).
+const PLUGIN_ROOT = join(import.meta.dirname, '..', '..');
+const PKG_JSON = join(PLUGIN_ROOT, '..', '..', 'package.json');
 
-const PLUGIN_JSON = join(import.meta.dirname, '..', '.claude-plugin', 'plugin.json');
+// Claude plugin ships .claude-plugin/plugin.json; the generated Codex build
+// (cowork-plugin-codex) ships .codex-plugin/plugin.json instead.
+const PLUGIN_JSON = [
+  join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json'),
+  join(PLUGIN_ROOT, '.codex-plugin', 'plugin.json'),
+].find((p) => existsSync(p)) || join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json');
 
 /**
  * Pure-function entry for orchestrator (CC-414 hook chain merge).
@@ -35,7 +44,7 @@ export async function run({ home, cwd: _cwd } = {}) {
       if (!existsSync(dir)) await mkdir(dir, { recursive: true });
     }
 
-    let pluginVersion = '4.0.0';
+    let pluginVersion = 'unknown';
     try {
       const pluginJson = JSON.parse(await readFile(PLUGIN_JSON, 'utf8'));
       pluginVersion = pluginJson.version || pluginVersion;
@@ -135,7 +144,7 @@ async function main() {
     }
 
     // Read plugin version
-    let pluginVersion = '4.0.0';
+    let pluginVersion = 'unknown';
     try {
       const pluginJson = JSON.parse(await readFile(PLUGIN_JSON, 'utf8'));
       pluginVersion = pluginJson.version || pluginVersion;
