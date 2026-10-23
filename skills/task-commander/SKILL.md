@@ -328,11 +328,11 @@ Every workflow has a cost ceiling. Exceeding it triggers a pause and human revie
 
 | Workflow Type | Default Ceiling | Override Env Var |
 |--------------|----------------|-----------------|
-| P0-P2 quick fixes | $0.50 | `TC_COST_CEILING` |
-| P3-P5 standard features | $2.00 | `TC_COST_CEILING` |
-| P6-P8 complex features | $5.00 | `TC_COST_CEILING` |
-| P9-P10 major workflows | $10.00 | `TC_COST_CEILING` |
-| Overnight batch | $15.00 | `TC_COST_CEILING` |
+| P0-P2 quick fixes | \$0.50 | `TC_COST_CEILING` |
+| P3-P5 standard features | \$2.00 | `TC_COST_CEILING` |
+| P6-P8 complex features | \$5.00 | `TC_COST_CEILING` |
+| P9-P10 major workflows | \$10.00 | `TC_COST_CEILING` |
+| Overnight batch | \$15.00 | `TC_COST_CEILING` |
 
 ### Cost Tracking Protocol
 
@@ -346,14 +346,14 @@ Every workflow has a cost ceiling. Exceeding it triggers a pause and human revie
 
 | Agent Type | Model | Typical Cost/Task | Notes |
 |------------|-------|-------------------|-------|
-| Planner | Opus | $0.30-0.80 | Large context for planning |
-| Builder | Sonnet | $0.15-0.50 | Varies by implementation size |
-| Tester | Sonnet | $0.10-0.30 | Test generation is focused |
-| Reviewer | Opus | $0.20-0.60 | Deep analysis of code |
-| Researcher | Sonnet | $0.10-0.40 | Search-heavy tasks |
-| Worker | Haiku | $0.02-0.10 | Mechanical tasks |
-| Codex | Codex | $0.00 | Free tier |
-| Ollama | Local | $0.00 | Free, local inference |
+| Planner | Opus | \$0.30-0.80 | Large context for planning |
+| Builder | Sonnet | \$0.15-0.50 | Varies by implementation size |
+| Tester | Sonnet | \$0.10-0.30 | Test generation is focused |
+| Reviewer | Opus | \$0.20-0.60 | Deep analysis of code |
+| Researcher | Sonnet | \$0.10-0.40 | Search-heavy tasks |
+| Worker | Haiku | \$0.02-0.10 | Mechanical tasks |
+| Codex | Codex | \$0.00 | Free tier |
+| Ollama | Local | \$0.00 | Free, local inference |
 
 ### Cost Optimization Strategies
 
@@ -542,8 +542,8 @@ Task Commander provides structured status reports at configurable intervals and 
 ### DAG Progress
 | Step | Agent | Status | Duration | Cost | Notes |
 |------|-------|--------|----------|------|-------|
-| plan | planner (opus) | COMPLETE | 3m | $0.45 | |
-| scaffold | builder (codex) | RUNNING | 2m | $0.12 | 65% est. |
+| plan | planner (opus) | COMPLETE | 3m | \$0.45 | |
+| scaffold | builder (codex) | RUNNING | 2m | \$0.12 | 65% est. |
 | implement | builder (sonnet) | PENDING | - | - | waiting on scaffold |
 | test | tester (haiku) | PENDING | - | - | waiting on implement |
 | review | reviewer (opus) | PENDING | - | - | waiting on implement + test |

@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'ccc-fleet',
+  name: 'ccc-fleet-run',
   description: 'Parallel fleet: fan-out slices with independent verifiers, sequential stage chains, a judge panel of independent attempts, or a multi-lens adversarial debate.',
   whenToUse: 'General multi-agent orchestration. mode=fanout for divisible work, pipeline for staged work, judge for a high-stakes decision worth several attempts, debate for stress-testing a design or diff.',
   phases: [
@@ -15,7 +15,7 @@ export const meta = {
 //   attempts?: number   judge: independent attempts, 2-5 (default 3)
 //   lenses?: string[]   debate: lenses (default security, performance, contrarian)
 //   rounds?: number     debate: cross-examination rounds, 1-3 (default 2)
-if (!args || !args.mode) throw new Error('ccc-fleet requires args: { mode, tasks | task }')
+if (!args || !args.mode) throw new Error('ccc-fleet-run requires args: { mode, tasks | task }')
 const mode = args.mode
 const asText = (r) => (typeof r === 'string' ? r : JSON.stringify(r))
 

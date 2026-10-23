@@ -337,7 +337,7 @@ Breaking Changes: None detected
 
 1. SQL Injection risk in src/db/users.ts:42
    Raw string interpolation in WHERE clause.
-   Fix: db.query("SELECT * WHERE id = $1", [userId])
+   Fix: db.query("SELECT * WHERE id = \$1", [userId])
 
 --- SHOULD FIX (Non-blocking) ---
 

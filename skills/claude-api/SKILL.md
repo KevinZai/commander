@@ -134,10 +134,10 @@ Everything goes through `POST /v1/messages`. Tools and output constraints are fe
 
 | Model             | Model ID            | Context | Input $/1M | Output $/1M |
 | ----------------- | ------------------- | ------- | ---------- | ----------- |
-| Claude Fable 5.1  | `claude-fable-5-1`  | 1M      | $10.00     | $50.00      |
-| Claude Opus 5.5   | `claude-opus-5-5`   | 1M      | $4.00      | $20.00      |
-| Claude Sonnet 5.5 | `claude-sonnet-5-5` | 1M      | $2.00      | $10.00      |
-| Claude Haiku 5.5  | `claude-haiku-5-5`  | 1M      | from $0.10 | from $0.50  |
+| Claude Fable 5.1  | `claude-fable-5-1`  | 1M      | \$10.00     | \$50.00      |
+| Claude Opus 5.5   | `claude-opus-5-5`   | 1M      | \$4.00      | \$20.00      |
+| Claude Sonnet 5.5 | `claude-sonnet-5-5` | 1M      | \$2.00      | \$10.00      |
+| Claude Haiku 5.5  | `claude-haiku-5-5`  | 1M      | from \$0.10 | from \$0.50  |
 
 **ALWAYS use `claude-opus-5-5` unless the user explicitly names a different model.** Do not switch to another model unless the user says so (for example "use sonnet", "use haiku", or "use fable"). Never downgrade for cost — that's the user's decision, not yours. Legacy models listed in `shared/models.md` are still served and valid if the user explicitly asks for them, but are not the default recommendation.
 
@@ -235,6 +235,7 @@ Live documentation URLs are in `shared/live-sources.md`.
 
 - Don't truncate inputs when passing files or content to the API. If the content is too long to fit in the context window, notify the user and discuss options (chunking, summarization, etc.) rather than silently truncating.
 - **Current-model thinking:** Use `thinking: {type: "adaptive"}` on Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5 — do NOT use `budget_tokens`. For older models, `budget_tokens` must be less than `max_tokens` (minimum 1024). This will throw an error if you get it wrong.
+- **Sampling parameters removed:** Don't send `temperature`, `top_p` or `top_k`. API version `2026-10-21` returns a 400 for any of them on every model, and earlier versions reject non-default values on Claude 4.7 and later. Steer output with prompting instead.
 - **Prefill removed:** Assistant message prefills (last-assistant-turn prefills) return a 400 error on recent Opus models, including Opus 5.5. Use structured outputs (`output_config.format`) or system prompt instructions to control response format instead.
 - **128K output tokens:** Every current model supports up to 128K `max_tokens`, but the SDKs require streaming for large `max_tokens` to avoid HTTP timeouts. Use `.stream()` with `.get_final_message()` / `.finalMessage()`.
 - **Tool call JSON parsing:** Recent models may produce different JSON string escaping in tool call `input` fields (e.g., Unicode or forward-slash escaping). Always parse tool inputs with `json.loads()` / `JSON.parse()` — never do raw string matching on the serialized input.

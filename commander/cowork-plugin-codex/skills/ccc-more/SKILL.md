@@ -115,7 +115,7 @@ Plugin workflows page — header "Workflows" (details: [plugin-workflows.md](ref
 - 📊 Repo audit — `/commander:ccc-audit`: scorecard per dimension, findings verified
 - 🔬 Deep branch review — `/commander:ccc-deep-review`: diff against the base ref, findings refuted or confirmed
 - ✅ Release audit — `/commander:ccc-release-audit`: every release gate, go or no-go (Commander repository only)
-- ⏭️ More workflows — `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`
+- ⏭️ More workflows — `/commander:ccc-fleet-run`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`
 
 Plugin workflows page 🟢: `dirty` printed or a non-zero commits-ahead count → Deep branch review; otherwise → Repo audit.
 
@@ -141,7 +141,7 @@ Dispatch immediately on a pick; do not ask again.
 | Deep review · `deep-review` | Workflow `ccc-deep-review` with `args: { base: "<origin/HEAD short name, else main>" }` |
 | Release audit · `release-audit` | Only when `commander/contract.json` and `scripts/build-codex.js` exist in the working directory: Workflow `ccc-release-audit` with `args: {}`. Elsewhere, say it audits the Commander repository and does not apply here |
 | Prompt audit · `prompt-audit` | Same repository check, then Workflow `ccc-prompt-audit` with `args: {}` |
-| Fleet run · Migrate · `migrate` | Skill `ccc-fleet`; it collects `mode`/`tasks` or `pattern`/`transform` and starts `ccc-fleet` or `ccc-migrate` |
+| Fleet run · Migrate · `migrate` | Skill `ccc-fleet`; it collects `mode`/`tasks` or `pattern`/`transform` and starts workflow `ccc-fleet-run` or `ccc-migrate` |
 
 Run a workflow as:
 
