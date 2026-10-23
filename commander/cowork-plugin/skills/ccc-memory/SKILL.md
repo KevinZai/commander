@@ -91,7 +91,7 @@ No argument:
 
 ```yaml
 question: "What do you want to do with project memory?"
-header: "CC Commander — Memory"
+header: "Memory"
 multiSelect: false
 options:
   - label: "🟢 Add a note"
@@ -108,7 +108,7 @@ Kind of note for `add`:
 
 ```yaml
 question: "What kind of note is this?"
-header: "CC Commander — Memory note"
+header: "Memory note"
 multiSelect: false
 options:
   - label: "🟢 Dated learning"
@@ -123,7 +123,7 @@ Before applying a consolidation:
 
 ```yaml
 question: "Apply this consolidation?"
-header: "CC Commander — Consolidate"
+header: "Consolidate"
 multiSelect: false
 options:
   - label: "🟢 Apply as shown"

@@ -24,7 +24,7 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[subcommand | --flag]"
 model: sonnet          # alias only: haiku | sonnet | opus | fable | inherit
-effort: medium         # low | medium | high | xhigh (max is session-only)
+effort: medium         # low | medium | high | xhigh | max (levels depend on the model)
 disable-model-invocation: true   # ONLY for side-effecting workflows (deploy, ship, rollback, publish, yolo)
 ---
 
@@ -46,7 +46,7 @@ Rules:
 2. **Body under 400 lines** (hard platform limit is 500). Reference tables, long checklists and examples move to `references/*.md` beside the skill and are linked by relative path. The first 5,000 tokens must carry the whole operating procedure, because compaction re-attaches only that much.
 3. **Lead with the procedure, not the pitch.** No marketing paragraphs, no "Why this matters" essays, no competitor comparisons inside skills. One header line names the product; the rest is instruction.
 4. **Numbered steps with exact commands.** Each step says what to run (fenced command, with the plugin-root form `node "${CLAUDE_PLUGIN_ROOT}/…"` and the repo fallback where the skill needs a script), what output to look for, and what to do on failure. Never "run the tests" without naming the command.
-5. **Choices are AskUserQuestion pickers.** 2 to 4 options, the recommended one first and marked 🟢, each with a one-line consequence. Never a typed-letter menu ("Reply A/B/C"), never a table pretending to be a menu.
+5. **Choices are AskUserQuestion pickers.** 2 to 4 options, the recommended one first and marked 🟢, each with a one-line consequence. `header` is at most 12 characters ("Memory", "More (2/3)"; branding goes in the question text). Options use only `label`, `description` and, where a visual comparison helps, `preview`; free text is built in, so never add `autocomplete`, `value` or a hand-made "Other". Never a typed-letter menu ("Reply A/B/C"), never a table pretending to be a menu.
 6. **Counts and versions are never literals.** Say "every plugin skill" or read `commander/contract.json`; never write "82 skills" or "v7.4.2" inside a skill body. Historical release notes belong in `CHANGELOG.md`, not in skills.
 7. **Models by role, not by nostalgia.** Name the tier (`fable`/`opus`/`sonnet`/`haiku`; Codex `gpt-6-astra`/`gpt-6.1-sol`/`gpt-6-sol`/`gpt-6-luna`) only where the skill actually routes work. State that the user's selected model is preserved unless they choose otherwise. No "Opus 5", "Fable 5", "GPT-5.6", "Sol/Terra", "Haiku 4.5" anywhere.
 8. **Verification before "done".** Every skill that changes state ends with the check it runs (test command, `git status`, curl of the live URL, `claude plugin validate`) and reports the actual result. A self-report is a claim; load-bearing claims get a fresh-context verifier (Fable Method pillar 2).

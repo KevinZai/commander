@@ -33,7 +33,7 @@ On Codex, AskUserQuestion becomes a plain-text question and skills are invoked a
 
      ```yaml
      question: "What do you want to do with this session?"
-     header: "CC Commander — Session"
+     header: "Session"
      multiSelect: false
      options:
        - label: "🟢 Resume the last session"

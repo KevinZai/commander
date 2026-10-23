@@ -52,7 +52,9 @@ test('ccc-rollback body has the AskUserQuestion rollback target picker block', f
 
   assert.ok(content.includes('Rollback target picker — `AskUserQuestion`'), 'Body must label the rollback target picker');
   assert.ok(content.includes('question: "What should I roll back to?"'), 'Picker must ask for rollback target');
-  assert.ok(content.includes('autocomplete: true'), 'Picker must support autocomplete from tags or commits');
+  // AskUserQuestion schema: question, header, options (label, description, preview), multiSelect.
+  // Free text is built in, so `autocomplete` and option `value` are not fields.
+  assert.ok(!/^\s*autocomplete:/m.test(content), 'Picker must not use the non-schema autocomplete field');
   ['Last good commit', 'Specific tag', 'N versions back'].forEach(function (label) {
     assert.ok(content.includes(label), 'Picker must include ' + label);
   });

@@ -63,7 +63,7 @@ If the directory already holds a project, add: "I'll scaffold into a sub-directo
 
 ### 2. Template picker
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for the canonical labels and descriptions. Ask with AskUserQuestion (header "CC Commander Build", question "What are we building?", single select). Offer four options, recommended first and marked 🟢:
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for the canonical labels and descriptions. Ask with AskUserQuestion (header "Build", question "What are we building?", single select). Offer four options, recommended first and marked 🟢:
 
 - 🌐 Web app — Next.js + Tailwind + shadcn/ui; SSR, auth, Stripe-ready. For product sites, dashboards, SaaS frontends.
 - 🔧 API / backend — TypeScript Fastify or Hono, Postgres via Supabase. For REST/GraphQL, webhooks, internal services.

@@ -67,7 +67,7 @@ AskUserQuestion, four options, recommended first with 🟢 (Codex: the same choi
 
 ```
 question: "Which tool?"
-header: "CC Commander · More"
+header: "More"
 multiSelect: false
 options:
   - label: "📝 Plan a feature"
@@ -92,7 +92,7 @@ Recommendation, first match wins:
 
 "Even more…" on page 1 opens page 2; "Even more…" on page 2 opens page 3. Each is one AskUserQuestion call with four options.
 
-Page 2 — header "CC Commander · More · 2":
+Page 2 — header "More (2/3)":
 
 - 🤖 Fleet (parallel agents) — parallel agents in isolated worktrees with progress cards
 - 📊 Linear board — view, pick or create issues (opt-in Linear connector)
@@ -101,7 +101,7 @@ Page 2 — header "CC Commander · More · 2":
 
 Page 2 🟢, first match wins: more than one worktree or at least one open task → Fleet; Linear connected and still on this page → Linear board; otherwise → Connect apps.
 
-Page 3 — header "CC Commander · More · 3":
+Page 3 — header "More (3/3)":
 
 - 🧪 Plugin workflows — audit, deep review, release audit, fleet, migrate, prompt audit
 - 🔧 Tune-up setup — audit and safely optimize the local Commander install; read-only by default
@@ -110,7 +110,7 @@ Page 3 — header "CC Commander · More · 3":
 
 Page 3 🟢: Plugin workflows.
 
-Plugin workflows page — header "Plugin workflows" (details: [plugin-workflows.md](references/plugin-workflows.md)):
+Plugin workflows page — header "Workflows" (details: [plugin-workflows.md](references/plugin-workflows.md)):
 
 - 📊 Repo audit — `/commander:ccc-audit`: scorecard per dimension, findings verified
 - 🔬 Deep branch review — `/commander:ccc-deep-review`: diff against the base ref, findings refuted or confirmed

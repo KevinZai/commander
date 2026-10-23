@@ -97,7 +97,7 @@ Root picker (reorder so the 🟢 option from step 3 is first):
 
 ```
 question: "Which domain?"
-header: "CC Commander · Learn"
+header: "Learn"
 multiSelect: false
 options:
   - label: "🟢 🎨 Design"
@@ -114,7 +114,7 @@ Second picker:
 
 ```
 question: "Which domain?"
-header: "CC Commander · Learn · More"
+header: "Learn (2/3)"
 multiSelect: false
 options:
   - label: "🟢 DevOps"
@@ -131,7 +131,7 @@ Third picker:
 
 ```
 question: "Which one?"
-header: "CC Commander · Learn · Advanced"
+header: "Advanced"
 multiSelect: false
 options:
   - label: "🟢 🔐 Security"

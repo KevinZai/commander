@@ -52,7 +52,9 @@ test('ccc-onboard body has the AskUserQuestion role picker block', function () {
 
   assert.ok(content.includes('Role picker — `AskUserQuestion`'), 'Body must label the role picker');
   assert.ok(content.includes('question: "What kind of contributor are you onboarding?"'), 'Picker must ask for role');
-  assert.ok(content.includes('autocomplete: true'), 'Picker must support autocomplete');
+  // AskUserQuestion schema: question, header, options (label, description, preview), multiSelect.
+  // Free text is built in, so `autocomplete` and option `value` are not fields.
+  assert.ok(!/^\s*autocomplete:/m.test(content), 'Picker must not use the non-schema autocomplete field');
   ['Frontend', 'Backend', 'Full-stack', 'Docs', 'First PR'].forEach(function (label) {
     assert.ok(content.includes(label), 'Picker must include ' + label);
   });

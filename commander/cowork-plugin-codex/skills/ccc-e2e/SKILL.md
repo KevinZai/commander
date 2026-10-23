@@ -117,7 +117,7 @@ For `$ccc-e2e status`: report which workers have returned and which are still ru
 
 ```
 question: "What scope should I assess?"
-header: "CC Commander E2E"
+header: "E2E"
 multiSelect: false
 options:
   - label: "🔬 Full assessment (QA + Unit-TDD + E2E)"

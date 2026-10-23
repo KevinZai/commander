@@ -68,7 +68,7 @@ On Codex, AskUserQuestion becomes a plain-text question and skills are invoked a
 
 ```yaml
 question: "Save this answer as a memory note so the next lookup is instant?"
-header: "CC Commander — Recall"
+header: "Recall"
 multiSelect: false
 options:
   - label: "🟢 Save as a decision note"
