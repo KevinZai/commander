@@ -41,7 +41,7 @@ graph TD
 
     WF --> W1["/commander:ccc-audit"]
     WF --> W2["/commander:ccc-deep-review"]
-    WF --> W3["/commander:ccc-fleet"]
+    WF --> W3["/commander:ccc-fleet-run"]
     WF --> W4["/commander:ccc-migrate"]
     WF --> W5["/commander:ccc-prompt-audit"]
     WF --> W6["/commander:ccc-release-audit"]

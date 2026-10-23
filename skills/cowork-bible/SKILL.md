@@ -110,7 +110,7 @@ Load these skills on demand:
   "task": "Read tasks/todo.md. For each in-progress task: check git log for recent commits, check test results, identify blockers. Write standup summary to output/standups/{date}.md. Format: What was done, what is planned, what is blocked.",
   "plugins": ["filesystem", "terminal"],
   "maxDuration": "10m",
-  "costLimit": "$0.50"
+  "costLimit": "\$0.50"
 }
 ```
 
@@ -123,7 +123,7 @@ Load these skills on demand:
   "task": "Run git log --since='1 week ago' --oneline. For each significant commit, review the diff for: security issues, code quality, missing tests. Write review to output/reviews/week-{date}.md using the receiving-code-review skill format.",
   "plugins": ["filesystem", "terminal"],
   "maxDuration": "30m",
-  "costLimit": "$2.00"
+  "costLimit": "\$2.00"
 }
 ```
 
@@ -136,7 +136,7 @@ Load these skills on demand:
   "task": "Follow the overnight-runner skill pattern. Read tasks/build-queue.json. For each item: checkout branch, run tests, build, record results. Write checkpoint after each item. On completion, write summary to output/builds/{date}.md.",
   "plugins": ["filesystem", "terminal"],
   "maxDuration": "4h",
-  "costLimit": "$5.00",
+  "costLimit": "\$5.00",
   "retry": {
     "maxAttempts": 3,
     "backoffMinutes": 30
@@ -153,7 +153,7 @@ Load these skills on demand:
   "task": "Run npm audit and npm outdated for all projects in the monorepo. Cross-reference with known CVEs. Write report to output/deps/{date}.md with severity ratings and upgrade recommendations.",
   "plugins": ["filesystem", "terminal"],
   "maxDuration": "20m",
-  "costLimit": "$1.00"
+  "costLimit": "\$1.00"
 }
 ```
 
@@ -166,7 +166,7 @@ Load these skills on demand:
   "task": "Read tasks/content-queue.json. For each content brief: research topic, generate draft following brand-guidelines skill, write to output/content/drafts/{slug}.md. Mark item complete in queue. Use human-gate pattern for items marked 'review-required'.",
   "plugins": ["filesystem", "terminal", "browser"],
   "maxDuration": "45m",
-  "costLimit": "$3.00"
+  "costLimit": "\$3.00"
 }
 ```
 
@@ -325,7 +325,7 @@ Never include secrets in Cowork task descriptions or session configs. Use:
   "task": "Read tasks/todo.md. Pick the next 'todo' item. Create a feature branch, implement the feature following CLAUDE.md standards, write tests, run the test suite, commit with conventional commit message. Update tasks/todo.md to mark complete.",
   "plugins": ["filesystem", "terminal"],
   "maxDuration": "30m",
-  "costLimit": "$2.00"
+  "costLimit": "\$2.00"
 }
 ```
 
@@ -338,7 +338,7 @@ Never include secrets in Cowork task descriptions or session configs. Use:
   "task": "Execute the full CI pipeline: lint, typecheck, test, build, generate docs. If all pass, create a git tag. If any fail, write failure report to output/pipeline/{date}.md and set tasks/pipeline-status.json to 'failed'.",
   "plugins": ["filesystem", "terminal", "browser"],
   "maxDuration": "1h",
-  "costLimit": "$3.00",
+  "costLimit": "\$3.00",
   "retry": {
     "maxAttempts": 2,
     "backoffMinutes": 5
