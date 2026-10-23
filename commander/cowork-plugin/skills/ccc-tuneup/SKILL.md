@@ -102,7 +102,7 @@ fi
 
 # Inline semver compare: update-check.js has no module.exports to import.
 semver_gt() {
-  local a="$1" b="$2"
+  local a="\$1" b="\$2"
   IFS='.' read -r a1 a2 a3 <<< "${a//[^0-9.]}"
   IFS='.' read -r b1 b2 b3 <<< "${b//[^0-9.]}"
   [ "${a1:-0}" -gt "${b1:-0}" ] && return 0
@@ -139,7 +139,7 @@ Compare the probe's `SKILL_COUNT`, `AGENT_COUNT`, `EVENT_COUNT` and `HANDLER_COU
 Before comparing an agent's `model:` value with a canonical one, strip context suffixes such as `[1m]`:
 
 ```bash
-normalize_model() { echo "$1" | sed 's/ *\[.*\]$//' | xargs; }
+normalize_model() { echo "\$1" | sed 's/ *\[.*\]$//' | xargs; }
 ```
 
 #### 1g. Cost settings (suggest-only)

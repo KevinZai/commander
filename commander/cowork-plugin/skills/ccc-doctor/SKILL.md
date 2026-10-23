@@ -30,8 +30,8 @@ Run the block below in a single Bash call. It runs under `bash` regardless of th
 
 ```bash
 bash -s <<'PROBE'
-J() { node -e 'try{const j=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));const v=process.argv[2].split(".").reduce((o,k)=>o==null?o:o[k],j);process.stdout.write(v==null?"n/a":String(v))}catch(e){process.stdout.write("n/a")}' "$1" "$2" 2>/dev/null || echo n/a; }
-has() { command -v "$1" >/dev/null 2>&1; }
+J() { node -e 'try{const j=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));const v=process.argv[2].split(".").reduce((o,k)=>o==null?o:o[k],j);process.stdout.write(v==null?"n/a":String(v))}catch(e){process.stdout.write("n/a")}' "\$1" "\$2" 2>/dev/null || echo n/a; }
+has() { command -v "\$1" >/dev/null 2>&1; }
 P="$HOME/.claude/plugins"
 
 # Clone root (has .git) and plugin source (has .claude-plugin/plugin.json) are
@@ -93,7 +93,7 @@ AUTOUPDATE_FLAG=$(node -e 'try{const m=JSON.parse(require("fs").readFileSync(pro
 # Claude Code platform checks (absent CLI is normal for Desktop-managed installs).
 CLAUDE_VER=n/a; VALIDATE=n/a; DETAILS=n/a; MOD_SUPPORT=n/a
 if has claude; then
-  CLAUDE_VER=$(claude --version 2>/dev/null | head -1 | awk '{print $1}')
+  CLAUDE_VER=$(claude --version 2>/dev/null | head -1 | awk '{print \$1}')
   if [ "$PLUGIN_SRC" != "n/a" ]; then
     VALIDATE_OUT=$(claude plugin validate --strict "$PLUGIN_SRC" 2>&1); RC=$?
     [ $RC -eq 0 ] && VALIDATE=pass || VALIDATE="fail (exit $RC)"
