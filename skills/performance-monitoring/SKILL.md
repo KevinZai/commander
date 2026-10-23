@@ -181,8 +181,8 @@ alerts:
 | Budget | Stack | Setup Time |
 |--------|-------|-----------|
 | Free | Sentry (free tier) + web-vitals + Lighthouse CI | 2 hours |
-| $50/mo | Sentry Pro + Vercel Analytics + Checkly | 4 hours |
-| $200/mo | Datadog APM + RUM + Synthetics | 1 day |
+| \$50/mo | Sentry Pro + Vercel Analytics + Checkly | 4 hours |
+| \$200/mo | Datadog APM + RUM + Synthetics | 1 day |
 | Enterprise | Datadog + PagerDuty + custom dashboards | 1 week |
 
 ## Checklist

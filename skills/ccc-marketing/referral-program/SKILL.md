@@ -131,7 +131,7 @@ Reward must be fast and clear. Delayed rewards break the loop.
 
 - Confirm reward eligibility as soon as referral signs up (not when they pay)
 - Notify the referrer immediately — don't wait until month-end
-- Status visible in dashboard ("2 friends joined — you've earned $40")
+- Status visible in dashboard ("2 friends joined — you've earned \$40")
 
 ---
 
@@ -149,12 +149,12 @@ Reward must be fast and clear. Delayed rewards break the loop.
 
 | Type | Best For | Examples |
 |------|----------|---------|
-| Account credit | SaaS / subscription | "Get $20 credit" |
+| Account credit | SaaS / subscription | "Get \$20 credit" |
 | Discount | Ecommerce / usage-based | "Get 1 month free" |
-| Cash | High LTV, B2C | "$50 per referral" |
+| Cash | High LTV, B2C | "\$50 per referral" |
 | Feature unlock | Freemium | "Unlock advanced analytics" |
 | Status / recognition | Community / loyalty | "Ambassador status, exclusive badge" |
-| Charity donation | Enterprise / mission-driven | "$25 to a cause you choose" |
+| Charity donation | Enterprise / mission-driven | "\$25 to a cause you choose" |
 
 **Sizing rule:** Reward should be ≥10% of first month's value for account credit. For cash, cap at 30% of first payment. Run `scripts/referral_roi_calculator.py` to model reward sizing against your LTV and CAC.
 
@@ -162,9 +162,9 @@ Reward must be fast and clear. Delayed rewards break the loop.
 When you want referrers to go from 1 referral to 10:
 
 ```
-1 referral  → $20 credit
-3 referrals → $75 credit (25/referral) + bonus feature
-10 referrals → $300 cash + ambassador status
+1 referral  → \$20 credit
+3 referrals → \$75 credit (25/referral) + bonus feature
+10 referrals → \$300 cash + ambassador status
 ```
 
 Keep tiers simple. Three levels maximum. Each tier should feel meaningfully better, not just slightly better.

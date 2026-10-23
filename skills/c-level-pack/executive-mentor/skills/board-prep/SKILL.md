@@ -63,7 +63,7 @@ For every item on the agenda, generate the adversarial version of the question.
 - "Is the team the right team for this stage?"
 
 *Competition:*
-- "Competitor Y just raised $50M. How does that change your position?"
+- "Competitor Y just raised \$50M. How does that change your position?"
 - "If they copy your best feature in 90 days, what's your moat?"
 
 ### Phase 3: Build the Narrative

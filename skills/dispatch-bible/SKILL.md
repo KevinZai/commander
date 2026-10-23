@@ -123,7 +123,7 @@ Set mode in the task description:
 claude --headless --max-turns 100 \
   "Mode: night. Follow overnight-runner patterns.
    Read tasks/batch-queue.json and process all items.
-   Budget: up to $5.00. Retry on rate limits (30min backoff, 5 attempts max)."
+   Budget: up to \$5.00. Retry on rate limits (30min backoff, 5 attempts max)."
 ```
 
 ### 3. Skill Chaining
@@ -395,11 +395,11 @@ Rough cost per operation (for budget planning):
 
 | Operation | Estimated Cost | Notes |
 |---|---|---|
-| Read file | ~$0.001 | Depends on file size |
-| Write file | ~$0.002 | Includes confirmation |
-| Bash command | ~$0.003 | Depends on output size |
-| Complex analysis | ~$0.01-0.05 | Depends on reasoning depth |
-| Full test suite | ~$0.10-0.50 | Depends on test count |
+| Read file | ~\$0.001 | Depends on file size |
+| Write file | ~\$0.002 | Includes confirmation |
+| Bash command | ~\$0.003 | Depends on output size |
+| Complex analysis | ~\$0.01-0.05 | Depends on reasoning depth |
+| Full test suite | ~\$0.10-0.50 | Depends on test count |
 
 ### Cost Tracking Script
 

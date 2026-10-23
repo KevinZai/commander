@@ -321,9 +321,9 @@ Provider's [PRODUCT NAME] ("Software") subject to this Agreement.
 
 | Tier | Monthly ARR Referred | Commission |
 |------|---------------------|------------|
-| Bronze | < $10,000 | [X]% |
-| Silver | $10,000-$50,000 | [X]% |
-| Gold | > $50,000 | [X]% |
+| Bronze | < \$10,000 | [X]% |
+| Silver | \$10,000-\$50,000 | [X]% |
+| Gold | > \$50,000 | [X]% |
 
 Payout: Net-30 after month close, minimum $[500] threshold.
 
@@ -408,7 +408,7 @@ Data transfers outside EEA covered by: [ ] SCCs  [ ] Adequacy Decision  [ ] BCRs
 
 ## Best Practices
 
-- Use **milestone payments** over net-30 for projects >$10K - reduces cash flow risk
+- Use **milestone payments** over net-30 for projects >\$10K - reduces cash flow risk
 - For EU/DACH: always check if a DPA is needed (any personal data = yes)
 - For DACH: include a **Schriftformklausel** (written form clause) explicitly
 - Add a **force majeure** clause for anything over 3 months

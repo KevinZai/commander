@@ -118,7 +118,7 @@ See `templates/battlecard-template.md`
 This is the highest-signal competitive data you have. Most companies do it too rarely.
 
 **When to interview:**
-- Every lost deal >$50K ACV
+- Every lost deal >\$50K ACV
 - Every churn >6 months tenure
 - Every competitive win (learn why — it may not be what you think)
 
@@ -184,7 +184,7 @@ This is the highest-signal competitive data you have. Most companies do it too r
 | Competitor's win rate >50% in your core segment | Fundamental positioning problem, not sales problem |
 | Same objection from 5+ deals: "competitor has X" | Feature gap that's real, not just optics |
 | Competitor hired 10 engineers in your domain | Major product investment incoming |
-| Competitor raised >$20M and targets your ICP | 12-month runway for them to compete hard |
+| Competitor raised >\$20M and targets your ICP | 12-month runway for them to compete hard |
 | Prospects evaluate you to justify competitor decision | You're the "check box" — fix perception or segment |
 
 ## Integration with C-Suite Roles
