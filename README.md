@@ -124,7 +124,7 @@ Commander 8 is a full revamp for the October 2026 platform: every prompt rewritt
 
 - 🤖 **`/ccc-codex` — manage the Codex CLI from Claude.** Doctor, models, plugins and marketplaces, MCP servers, custom agents (installs the generated TOML agents into `~/.codex/agents/`), Codex Cloud tasks, remote control, `codex review`, `codex update`, `/import` guidance and `config.toml` editing. Every config write asks first, backs the file up and verifies with `codex doctor --json`.
 - 📟 **Commander HUD mod.** A band above the prompt shows the Fable Method state, running agents, the session's tool-call budget and an update pill; `/ccc-hud` toggles it without a model turn. Observe-only: no tool approval, no model calls, no network. Needs Claude Code 2.1.287+ (Desktop 2.1.286+); elsewhere Commander runs hooks-only. See [docs/MODS.md](docs/MODS.md).
-- 🧩 **Plugin workflows.** Six dynamic workflows ship as `/commander:<name>`: `ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate` and the new `ccc-prompt-audit` and `ccc-release-audit`.
+- 🧩 **Plugin workflows.** Six dynamic workflows ship as `/commander:<name>`: `ccc-audit`, `ccc-deep-review`, `ccc-fleet-run`, `ccc-migrate` and the new `ccc-prompt-audit` and `ccc-release-audit`.
 - 🧪 **Plugin evals.** Eight `claude plugin eval` cases (hub, plan, review, doctor, fable, update, suggest, codex) under `evals/`.
 - 🪝 **Seven new hook events** — 30 lifecycle hooks, 51 handlers: PermissionDenied, PreModelSwitch, PostModelSwitch, TeammateIdle, CwdChanged, DirectoryAdded and FileChanged on `CLAUDE.md`. WorktreeCreate and WorktreeRemove are deliberately not registered: a hook there replaces git's own worktree handling.
 - 🧠 **Current models by alias.** `fable` (Fable 5.1) deep, `opus` (Opus 5.5) default, `sonnet` (Sonnet 5.5) fast, `haiku` (Haiku 5.5) bulk. Codex routes to GPT-6 Astra, GPT-6.1 Sol, GPT-6 Sol and GPT-6 Luna.
@@ -217,7 +217,7 @@ Dynamic workflows are scripts the Workflow tool runs in the background, spawning
 | `ccc-audit` | `/commander:ccc-audit` · `/ccc-xray` | Repo health audit — one finder per dimension, every finding verified, scored scorecard |
 | `ccc-deep-review` | `/commander:ccc-deep-review` · `/ccc-review` | Branch review over four weighted dimensions, severity-grouped verdict |
 | `ccc-migrate` | `/commander:ccc-migrate` | Discover every site, transform each in its own worktree, verify each change with an independent skeptic |
-| `ccc-fleet` | `/commander:ccc-fleet` · `/ccc-fleet` | Fan-out, pipeline, judge panel or multi-lens debate |
+| `ccc-fleet-run` | `/commander:ccc-fleet-run` · `/ccc-fleet` | Fan-out, pipeline, judge panel or multi-lens debate |
 | `ccc-prompt-audit` | `/commander:ccc-prompt-audit` | Checks every skill and agent against the prompt standard |
 | `ccc-release-audit` | `/commander:ccc-release-audit` | Runs every release gate and returns go or no-go with blockers |
 

@@ -356,9 +356,22 @@ function appendWorkflowNote(text) {
   return `${withTrailingNewline}${WORKFLOW_NOTE}`;
 }
 
+// (e) Claude Code substitutes `$N` / `$ARGUMENTS` in skill bodies with the
+// invocation's arguments, so the Claude source writes literal shell and awk
+// positionals as `\$1` (the documented escape; Claude Code strips the
+// backslash). Codex does not run that substitution on skills, so the
+// backslash would reach the shell: restore the plain `$N` for Codex.
+const ESCAPED_ARG_PLACEHOLDER = /(?<!\\)\\\$(?=\d|ARGUMENTS)/g;
+
+export function unescapeArgPlaceholders(text) {
+  if (typeof text !== 'string') return text;
+  return text.replace(ESCAPED_ARG_PLACEHOLDER, '$$');
+}
+
 export function translateSkill(skillMd) {
   if (typeof skillMd !== 'string') return skillMd;
   let out = skillMd;
+  out = unescapeArgPlaceholders(out);
   out = rewriteCcInvocations(out);
   out = rewriteOwnManifestPath(out);
   out = appendAskUserQuestionNote(out);

@@ -129,7 +129,7 @@ Say one line before the hand-off, for example "Loading `ccc-build` — one more 
 
 - `/ccc-plan`, `/ccc-xray`, `/ccc-linear` (opt-in Linear connector), `/ccc-fleet`, `/ccc-connect`, `/ccc-tuneup`, `/ccc-browse`.
 - `/ccc-codex` — Codex CLI management: doctor, models, plugins, mcp, agents, cloud, remote, review, update, import, config.
-- Plugin workflows, run through the Workflow tool: `/commander:ccc-audit`, `/commander:ccc-deep-review`, `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`, `/commander:ccc-release-audit`. What each returns, its arguments and its fallback are in [plugin-workflows.md](../ccc-more/references/plugin-workflows.md).
+- Plugin workflows, run through the Workflow tool: `/commander:ccc-audit`, `/commander:ccc-deep-review`, `/commander:ccc-fleet-run`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`, `/commander:ccc-release-audit`. What each returns, its arguments and its fallback are in [plugin-workflows.md](../ccc-more/references/plugin-workflows.md).
 
 `references/main-menu.json` and `references/build-something.json` beside this file are the CLI menu trees; the Desktop hub does not load them.
 

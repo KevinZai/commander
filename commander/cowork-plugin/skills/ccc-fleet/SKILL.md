@@ -18,7 +18,7 @@ effort: high
 
 **CC Commander** · /ccc-fleet · you pick the pattern, agents do the work in isolation, the coordinator verifies and merges.
 
-This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doing, keep the deciding. The engine is the platform's Workflow tool (the bundled workflow runs as `/commander:ccc-fleet`); the Agent tool is the engine for patterns the workflow does not cover and for clients without Workflow.
+This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doing, keep the deciding. The engine is the platform's Workflow tool (the bundled workflow runs as `/commander:ccc-fleet-run`); the Agent tool is the engine for patterns the workflow does not cover and for clients without Workflow.
 
 ## When to use / when not to
 
@@ -33,7 +33,7 @@ This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doin
 Run one Bash call:
 
 ```bash
-git rev-parse --abbrev-ref HEAD; git worktree list | wc -l; sysctl -n hw.memsize 2>/dev/null || free -b 2>/dev/null | awk '/Mem:/{print $2}'
+git rev-parse --abbrev-ref HEAD; git worktree list | wc -l; sysctl -n hw.memsize 2>/dev/null || free -b 2>/dev/null | awk '/Mem:/{print \$2}'
 ```
 
 Set the parallel cap from RAM: under 32 GB → 3, 32–63 GB → 5, 64 GB or more → 6. If detection fails, use 3. Show one line:
@@ -96,12 +96,12 @@ Prefer the Workflow tool for Fan-out, Pipeline and Judge panel. It runs fan-out 
 
 | Pattern | Workflow call |
 |---|---|
-| Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 …", "slice 2 …"] } })` |
-| Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 …", "stage 2 …"] } })` (2 or more stages) |
-| Judge panel | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+| Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "fanout", tasks: ["slice 1 …", "slice 2 …"] } })` |
+| Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 …", "stage 2 …"] } })` (2 or more stages) |
+| Judge panel | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
 | Pattern migration | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js", args: { pattern: "…", transform: "…", verify: "…" } })` |
 
-The same workflow runs from the prompt as `/commander:ccc-fleet`; inspect running and finished runs with `/workflows`. Pass at most `<cap>` fan-out slices.
+The same workflow runs from the prompt as `/commander:ccc-fleet-run`; inspect running and finished runs with `/workflows`. Pass at most `<cap>` fan-out slices.
 
 **Pinned fleet.** When the user wants every workflow agent on one model, `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` must already be set in the session environment. Check with `printenv CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`; if it is empty, tell the user how to set it (launch environment or settings `env`) and proceed role-based unless they relaunch. Details: [references/model-tiers.md](references/model-tiers.md).
 

@@ -43,7 +43,7 @@ Every figure here is an estimate computed from token counts and per-model rates,
 
    Omit a row or section the source does not provide rather than filling it with zeros.
 
-3. Budget alert. Read the daily threshold from `~/.claude/commander/cost-budget.json` (`{"dailyUsd": <number>}`); default to $5.00 when the file is absent. If today's spend exceeds it, print:
+3. Budget alert. Read the daily threshold from `~/.claude/commander/cost-budget.json` (`{"dailyUsd": <number>}`); default to \$5.00 when the file is absent. If today's spend exceeds it, print:
 
    ```
    ⚠️ Daily spend: $<amount> (threshold: $<threshold>)

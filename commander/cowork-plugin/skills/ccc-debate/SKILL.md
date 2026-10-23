@@ -44,7 +44,7 @@ Ask the two pickers under Decision points. The contrarian lens is always include
 
 ```js
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js",
   args: {
     mode: "debate",
     task: "Adversarially debate <target sentence from step 1>.",
