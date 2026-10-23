@@ -1,0 +1,41 @@
+{
+  "repo": "acme/storefront",
+  "client": "Acme Inc.",
+  "date": "2026-10-22",
+  "auditor": "CC Commander",
+  "commit": "e4f8492c",
+  "executiveSummary": "The storefront is in good shape overall, with two high-severity issues in secrets handling and CI that should be fixed before launch.",
+  "scorecard": {
+    "overall": 72,
+    "categories": [
+      { "name": "Security", "score": 61, "notes": "Missing CSP header; one leaked test key" },
+      { "name": "Tests", "score": 80, "notes": "Good unit coverage, no e2e" },
+      { "name": "CI", "score": 70, "notes": "No dependency audit step" }
+    ]
+  },
+  "hardening": {
+    "pillars": [
+      { "id": 1, "name": "Vercel", "status": "Pass", "findings": "Deploy protection enabled" },
+      { "id": 3, "name": "GitHub org", "status": "Warn", "findings": "No CODEOWNERS" },
+      { "id": 10, "name": "Secrets & PII", "status": "Fail", "findings": "Test API key committed in .env.example" }
+    ]
+  },
+  "xray": {
+    "dimensions": [
+      { "name": "Docs", "score": 75, "notes": "README current" },
+      { "name": "Dependencies", "score": 68, "notes": "6 outdated majors" }
+    ],
+    "fixFirst": "Rotate and remove the committed API key."
+  },
+  "review": {
+    "findings": [
+      { "severity": "high", "title": "Committed API key", "location": ".env.example:4", "detail": "Rotate the key and add gitleaks to CI." },
+      { "severity": "medium", "title": "No rate limiting", "location": "app/api/checkout/route.ts", "detail": "Add per-IP limits." },
+      { "severity": "low", "title": "Unused dependency", "location": "package.json", "detail": "Remove left-pad." }
+    ]
+  },
+  "fixes": [
+    { "title": "Rotate committed API key", "priority": "P0", "effort": "1h", "detail": "Then purge from git history." },
+    { "title": "Add CSP header", "priority": "P1", "effort": "2h" }
+  ]
+}
