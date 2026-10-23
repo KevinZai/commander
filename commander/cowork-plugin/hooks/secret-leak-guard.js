@@ -8,6 +8,7 @@
  * Never crashes the session — fail open on any error.
  */
 import { track } from '../lib/telemetry.mjs';
+import { emitDeny } from './lib/emit.mjs';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -127,10 +128,7 @@ async function main() {
     const stopReason = `CCC SECRET GUARD: Possible secret detected in ${toolName} input — ${labels}. ` +
       `Use env vars or 1Password. False positive? Add to allowlist in secret-patterns.json.`;
 
-    process.stdout.write(JSON.stringify({
-      continue: false,
-      stopReason,
-    }) + '\n');
+    process.stdout.write(JSON.stringify(emitDeny(stopReason)) + '\n');
   } catch {
     // Fail open — never block session on error
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');

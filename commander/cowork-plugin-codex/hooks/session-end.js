@@ -10,6 +10,7 @@
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
+import { readStdinJson } from './lib/session-key.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -18,7 +19,8 @@ const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
 
 async function main() {
   try {
-    const sessionId = process.env.CLAUDE_SESSION_ID || `session-${Date.now()}`;
+    const input = await readStdinJson();
+    const sessionId = input.session_id || process.env.CLAUDE_SESSION_ID || `session-${Date.now()}`;
     const activeSessionFile = join(CCC_DIR, 'sessions', 'active-session.json');
 
     let sessionData = {};
