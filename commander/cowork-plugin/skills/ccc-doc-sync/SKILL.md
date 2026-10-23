@@ -76,7 +76,7 @@ Edit `patterns.json` only; no code change:
 {
   "file": "path/to/new-file.md",
   "replacements": [
-    { "regex": "(Some prefix\\s*)\\d+( skills)", "flags": "g", "template": "$1${plugin_skills}$2" }
+    { "regex": "(Some prefix\\s*)\\d+( skills)", "flags": "g", "template": "\$1${plugin_skills}\$2" }
   ]
 }
 ```
