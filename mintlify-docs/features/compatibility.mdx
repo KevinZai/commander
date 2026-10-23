@@ -48,14 +48,17 @@ curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-rem
 
 ## 🔌 MCP clients (hosted server)
 
-For any AI IDE that supports Model Context Protocol. Point at `mcp.commanderplugin.com` — no license key required, just a 100-call/month anti-abuse cap:
+For any AI IDE that supports Model Context Protocol. Point at `https://mcp.commanderplugin.com/mcp` (MCP Streamable HTTP) and send a CC Commander access token as `Authorization: Bearer <token>`. Requests without a token get `401`. The server publishes RFC 9728 protected-resource metadata but no authorization server yet, so OAuth sign-in isn't available. Self-serve token issuance isn't live yet either; until it is, use the plugin's local catalog.
 
 ```json
 // Example: ~/.cursor/mcp.json
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse"
+      "url": "https://mcp.commanderplugin.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:COMMANDER_TOKEN}"
+      }
     }
   }
 }
@@ -67,7 +70,7 @@ Equivalent config for:
 `~/.cursor/mcp.json` — same shape as above
 
 ### Windsurf
-`~/.codeium/windsurf/mcp_config.json`
+`~/.codeium/windsurf/mcp_config.json`. Use `serverUrl` instead of `url`; `headers` is the same
 
 ### Cline
 VS Code command palette → `Cline: Open MCP Servers Config`
