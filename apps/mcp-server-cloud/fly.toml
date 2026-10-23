@@ -47,6 +47,10 @@ kill_timeout = "10s"
 [env]
   PORT = "8080"
   NODE_ENV = "production"
+  # Public, non-secret: canonical /mcp resource id for RFC 9728 metadata, the
+  # WWW-Authenticate resource_metadata origin, and the default OAuth `aud`.
+  # A Fly secret with the same name OVERRIDES this value; see DEPLOY.md §3.
+  OAUTH_RESOURCE_URL = "https://mcp.commanderplugin.com/mcp"
 
 [deploy]
   release_command = "node -e 'console.log(\"deploy check: ok\")'"
