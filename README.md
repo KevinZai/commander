@@ -112,7 +112,7 @@ More: [Upgrade guide](https://commanderplugin.com/plugin/upgrade) · [Install re
 | **Claude Code Desktop / Cowork Desktop** ⭐ | Shipping (primary) | Settings → Plugin Marketplace → Add from GitHub: `KevinZai/commander` |
 | **Claude Code CLI** | Shipping | `/plugin install commander --marketplace KevinZai/commander` |
 | **Codex CLI and the ChatGPT desktop app** | Shipping (native plugin mirror) | `codex plugin marketplace add KevinZai/commander` |
-| **Cursor / Windsurf / Cline / Continue** | Shipping (hosted MCP) | Point the MCP client at `mcp.commanderplugin.com` |
+| **Cursor / Windsurf / Cline / Continue** | Shipping (hosted MCP) | Point the MCP client at `https://mcp.commanderplugin.com/mcp` (Streamable HTTP, `Authorization: Bearer <token>`) |
 
 One brand: **Commander**. One repo: `KevinZai/commander`. The plugin name is `commander` everywhere.
 
