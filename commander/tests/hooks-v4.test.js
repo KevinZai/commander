@@ -610,6 +610,25 @@ describe('secret-leak-guard.js', () => {
     assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
+  it('an allowlisted placeholder elsewhere in the input does not exempt a real key', () => {
+    const realKey = 'sk-ant-api03-' + 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLM';
+    for (const content of [
+      `STRIPE_KEY=REPLACE_ME\nANTHROPIC_API_KEY=${realKey}\n`,
+      `const testKey = "sk_test_example";\nconst key = "${realKey}";\n`,
+    ]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Write', tool_input: { file_path: '/tmp/.env', content } });
+      assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', content);
+    }
+  });
+
+  it('scans PowerShell commands like Bash', () => {
+    const r = runHook('secret-leak-guard.js', {
+      tool_name: 'PowerShell',
+      tool_input: { command: '$env:GH_TOKEN = "' + ['ghp', 'A'.repeat(36)].join('_') + '"' },
+    });
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
+  });
+
   it('allows full git commit SHAs that contain ac + 32 hex (not a Twilio SID)', () => {
     const sha = '3f' + 'ac' + '0123456789abcdef0123456789abcdef' + '1234';
     assert.equal(sha.length, 40);
