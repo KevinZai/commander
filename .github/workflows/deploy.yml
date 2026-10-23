@@ -142,7 +142,19 @@ jobs:
     if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && (needs.deploy-mcp.result == 'success' || needs.deploy-site.result == 'success') }}
     runs-on: ubuntu-latest
     steps:
+      # Retry to ride out a Fly machine swap right after a canary deploy
+      # (seen on #211: one 5s timeout, healthy again ~10s later). 6 tries x 10s.
       - name: Site probe
-        run: curl -fsS --max-time 5 https://commanderplugin.com > /dev/null
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 5 https://commanderplugin.com > /dev/null; then exit 0; fi
+            echo "site probe attempt $i failed; retrying in 10s"; sleep 10
+          done
+          exit 1
       - name: MCP health probe
-        run: curl -fsS --max-time 5 https://mcp.commanderplugin.com/health > /dev/null
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 5 https://mcp.commanderplugin.com/health > /dev/null; then exit 0; fi
+            echo "MCP health attempt $i failed; retrying in 10s"; sleep 10
+          done
+          exit 1
