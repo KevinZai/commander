@@ -434,5 +434,5 @@ def truncate_to_budget(text: str, token_budget: int, chars_per_token: float = 4.
 - **Context bleed** — passing entire previous output to every step; summarize or extract only what's needed
 - **No timeout** — a stuck agent blocks the whole pipeline; always set max_tokens and wall-clock timeouts
 - **Silent failures** — agent returns plausible but wrong output; add validation steps for critical paths
-- **Ignoring cost** — 10 parallel Opus calls is $0.50 per workflow; model selection is a cost decision
+- **Ignoring cost** — 10 parallel Opus calls is \$0.50 per workflow; model selection is a cost decision
 - **Over-orchestration** — if a single prompt can do it, it should; only add agents when genuinely needed

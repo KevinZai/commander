@@ -103,17 +103,17 @@ utm_term={keyword}         // [paid search only]
 
 | Channel | Best For | CAC Range | Series A Priority |
 |---------|----------|-----------|-------------------|
-| LinkedIn Ads | B2B, Enterprise, ABM | $150-400 | High |
-| Google Search | High-intent, BOFU | $80-250 | High |
-| Google Display | Retargeting | $50-150 | Medium |
-| Meta Ads | SMB, visual products | $60-200 | Medium |
+| LinkedIn Ads | B2B, Enterprise, ABM | \$150-400 | High |
+| Google Search | High-intent, BOFU | \$80-250 | High |
+| Google Display | Retargeting | \$50-150 | Medium |
+| Meta Ads | SMB, visual products | \$60-200 | Medium |
 
 ### LinkedIn Ads Setup
 
 1. Create campaign group for initiative
 2. Structure: Awareness → Consideration → Conversion campaigns
 3. Target: Director+, 50-5000 employees, relevant industries
-4. Start $50/day per campaign
+4. Start \$50/day per campaign
 5. Scale 20% weekly if CAC < target
 6. **Validation:** LinkedIn Insight Tag firing on all pages
 
@@ -126,15 +126,15 @@ utm_term={keyword}         // [paid search only]
 5. Start Manual CPC, switch to Target CPA after 50+ conversions
 6. **Validation:** Conversion tracking firing, search terms reviewed weekly
 
-### Budget Allocation (Series A, $40k/month)
+### Budget Allocation (Series A, \$40k/month)
 
 | Channel | Budget | Expected SQLs |
 |---------|--------|---------------|
-| LinkedIn | $15k | 10 |
-| Google Search | $12k | 20 |
-| Google Display | $5k | 5 |
-| Meta | $5k | 8 |
-| Partnerships | $3k | 5 |
+| LinkedIn | \$15k | 10 |
+| Google Search | \$12k | 20 |
+| Google Display | \$5k | 5 |
+| Meta | \$5k | 8 |
+| Partnerships | \$3k | 5 |
 
 See [campaign-templates.md](references/campaign-templates.md) for detailed structures.
 
@@ -238,7 +238,7 @@ See [international-playbooks.md](references/international-playbooks.md) for regi
 | MQLs | Weekly target |
 | SQLs | Weekly target |
 | MQL→SQL Rate | >15% |
-| Blended CAC | <$300 |
+| Blended CAC | <\$300 |
 | Pipeline Velocity | <60 days |
 
 See [attribution-guide.md](references/attribution-guide.md) for detailed setup.
@@ -281,7 +281,7 @@ See [hubspot-workflows.md](references/hubspot-workflows.md) for workflow templat
 |--------|----------|---------------|-----|-------|
 | CTR | 0.4-0.9% | 2-5% | 1-3% | 15-25% |
 | CVR | 1-3% | 3-7% | 2-5% | 2-5% |
-| CAC | $150-400 | $80-250 | $50-150 | $20-80 |
+| CAC | \$150-400 | \$80-250 | \$50-150 | \$20-80 |
 | MQL→SQL | 10-20% | 15-25% | 12-22% | 8-15% |
 
 ---
@@ -294,7 +294,7 @@ See [hubspot-workflows.md](references/hubspot-workflows.md) for workflow templat
 Required:
 ✅ Job title: Director+ or budget authority
 ✅ Company size: 50-5000 employees
-✅ Budget: $10k+ annual
+✅ Budget: \$10k+ annual
 ✅ Timeline: Buying within 90 days
 ✅ Engagement: Demo requested or high-intent action
 ```

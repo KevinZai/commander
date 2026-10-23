@@ -54,7 +54,7 @@ Codex runs the generated mirror in `commander/cowork-plugin-codex/`; review its 
 
 - **`/ccc-codex`** — manage the Codex CLI from Claude: doctor, models, plugins and marketplaces, MCP servers, Commander agents as Codex TOML subagents, Codex Cloud tasks, remote control, `codex review`, `codex update`, `config.toml`. Every config write asks first, backs up and verifies with `codex doctor --json`.
 - **Commander HUD mod** — a band above the prompt with the Fable Method state, running agents, the session's tool-call budget and an update pill; `/ccc-hud` toggles it without a model turn. Observe-only. Needs Claude Code 2.1.287+ (Desktop 2.1.286+). See `docs/MODS.md` in the repository.
-- **Plugin workflows** — `ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate`, `ccc-prompt-audit`, `ccc-release-audit`.
+- **Plugin workflows** — `ccc-audit`, `ccc-deep-review`, `ccc-fleet-run`, `ccc-migrate`, `ccc-prompt-audit`, `ccc-release-audit`.
 - **Plugin evals** — `claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3`; cases: hub, plan, review, doctor, fable, update, suggest, codex.
 - **Seven new hook events** — PermissionDenied, PreModelSwitch, PostModelSwitch, TeammateIdle, CwdChanged, DirectoryAdded, FileChanged. WorktreeCreate and WorktreeRemove are deliberately not registered.
 - **Models by alias** — `fable` (Fable 5.1), `opus` (Opus 5.5), `sonnet` (Sonnet 5.5), `haiku` (Haiku 5.5); Codex on `gpt-6-astra`, `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`.
