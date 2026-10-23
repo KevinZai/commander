@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-22T10:59:38.382Z",
+  "generated_at": "2026-10-23T10:53:15.581Z",
   "totals": {
-    "hook_fires": 12,
+    "hook_fires": 14,
     "sessions": 0,
     "agents_dispatched": 0,
     "skill_invocations": 0,
@@ -16,6 +16,10 @@
     },
     {
       "name": "PostToolUse",
+      "count": 2
+    },
+    {
+      "name": "Stop",
       "count": 1
     },
     {
