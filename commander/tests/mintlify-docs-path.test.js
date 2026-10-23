@@ -46,3 +46,15 @@ test('.claude/launch.json Mintlify preview runs from mintlify-docs/', function (
     assert.ok(cmd.includes('mintlify-docs') || (c.cwd || '').includes('mintlify-docs'), c.name + ' must run from mintlify-docs/: ' + cmd);
   }
 });
+
+test('.claude/launch.json entries do not need a POSIX shell (Windows)', function () {
+  const p = path.join(ROOT, '.claude', 'launch.json');
+  if (!fs.existsSync(p)) return;
+  const cfg = JSON.parse(fs.readFileSync(p, 'utf8'));
+  for (const c of cfg.configurations || []) {
+    const exe = path.basename(String(c.runtimeExecutable || '')).toLowerCase();
+    assert.ok(!['sh', 'bash', 'zsh', 'cmd', 'cmd.exe'].includes(exe), c.name + ' must not run through ' + exe + ' (not portable across macOS/Linux/Windows); use cwd instead');
+    const args = (c.runtimeArgs || []).join(' ');
+    assert.ok(!/&&|\bcd\s/.test(args), c.name + ' must not chain shell commands in runtimeArgs: ' + args);
+  }
+});
