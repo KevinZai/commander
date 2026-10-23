@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 # Superseded PR runs are cancelled; main runs never are (Actions budget audit 2026-10-22, CP-GIT-008).
 concurrency:
