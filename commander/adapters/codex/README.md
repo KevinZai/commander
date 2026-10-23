@@ -130,7 +130,7 @@ No version threshold is documented for hook-event support, so `supportedEventsFo
 
 Hook commands are deep-cloned during translation. `${CLAUDE_PLUGIN_ROOT}` is kept verbatim (see the "Correction" note above). The one real transform is stripping `"async": true` — Codex parses it but silently skips the handler ("asynchronous command hooks aren't supported yet"), so translation removes the flag and clamps the timeout so the handler still runs, now synchronously.
 
-**Hook trust gate:** installing or enabling this plugin does not automatically trust its hooks. Codex skips plugin-bundled hooks until the user reviews and trusts the current hook definition — there is no adapter-side workaround; this is a one-time manual step on the Codex side after install.
+**Hook trust gate:** installing or enabling this plugin does not automatically trust its hooks. Codex skips plugin-bundled hooks until the user reviews and trusts the current hook definition — there is no adapter-side workaround; this is a one-time manual step on the Codex side after install. Contract and onboarding steps: [docs/reference/dual-host-hooks.md](../../../docs/reference/dual-host-hooks.md).
 
 ---
 
