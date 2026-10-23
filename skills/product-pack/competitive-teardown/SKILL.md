@@ -226,7 +226,7 @@ for t in tweets:
 | [Yours] | Per-seat | $X | $Y | Custom | 14 days |
 | [Comp A] | Usage-based | $X | $Y | Custom | 30 days |
 | [Comp B] | Flat rate | $X | - | Custom | No |
-| [Comp C] | Freemium | $0 | $Y | Custom | Freemium |
+| [Comp C] | Freemium | \$0 | $Y | Custom | Freemium |
 
 ### Pricing Intelligence
 - **Price leader:** [Competitor] at $X/mo for comparable features

@@ -61,7 +61,7 @@ Restate the question in one sentence, the depth (overview, detailed, exhaustive)
 - **Large inputs** (`data-ingestion`, `large-context`): measure first, since current Claude models have a 1M-token window:
 
   ```bash
-  find "<path>" -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -exec cat {} + | wc -c | awk '{print int($1/4)" est. tokens"}'
+  find "<path>" -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -exec cat {} + | wc -c | awk '{print int(\$1/4)" est. tokens"}'
   ```
 
   Under roughly 800K estimated tokens, read it directly. Above that, reduce (filter with `rg -l`, drop generated and vendored files), then chunk on semantic boundaries with one subagent per chunk returning conclusions only. Mechanical work over a large surface goes to `codex exec -m gpt-6.1-sol` inside an isolated worktree, with the diff reviewed before merge. State what was dropped.

@@ -14,7 +14,7 @@ metadata:
 
 # CRO Advisor
 
-Revenue frameworks for building predictable, scalable revenue engines — from $1M ARR to $100M and beyond.
+Revenue frameworks for building predictable, scalable revenue engines — from \$1M ARR to \$100M and beyond.
 
 ## Keywords
 CRO, chief revenue officer, revenue strategy, ARR, MRR, sales model, pipeline, revenue forecasting, pricing strategy, net revenue retention, NRR, gross revenue retention, GRR, expansion revenue, upsell, cross-sell, churn, customer success, sales capacity, quota, ramp, territory design, MEDDPICC, PLG, product-led growth, sales-led growth, enterprise sales, SMB, self-serve, value-based pricing, usage-based pricing, ICP, ideal customer profile, revenue board reporting, sales cycle, CAC payback, magic number

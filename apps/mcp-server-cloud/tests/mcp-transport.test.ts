@@ -29,9 +29,10 @@ process.env.OAUTH_ISSUER_URL = "https://issuer.example.com";
 
 const { app } = await import("../src/index.js");
 const { createMcpTransportApp } = await import("../src/mcp/transport.js");
-const { TOOL_NAMES } = await import("../src/tools/index.js");
+const { TOOL_NAMES, TOOL_SCHEMAS } = await import("../src/tools/index.js");
 const { publicOrigin, metadataOrigin } = await import("../src/lib/public-origin.js");
 import type { AuthContext } from "../src/middleware/auth.js";
+import type { ToolName } from "../src/tools/index.js";
 
 const MCP_HEADERS = {
   "Content-Type": "application/json",
@@ -218,6 +219,21 @@ describe("streamable-HTTP handshake (stateless)", () => {
     assert.deepEqual(new Set(names), new Set(TOOL_NAMES));
     for (const tool of body.result.tools) {
       assert.ok(tool.inputSchema, `tool ${tool.name} missing inputSchema`);
+    }
+  });
+
+  it("tools/list carries each tool's annotations and title", async () => {
+    const { harness } = makeHarness();
+    const res = await postMcp(harness, rpc("tools/list", undefined, 2));
+    const body = (await res.json()) as {
+      result: { tools: { name: ToolName; title?: string; annotations?: Record<string, unknown> }[] };
+    };
+    for (const tool of body.result.tools) {
+      const expected = TOOL_SCHEMAS[tool.name].annotations;
+      assert.deepEqual(tool.annotations, expected, `tool ${tool.name} annotations`);
+      assert.equal(tool.title, expected.title, `tool ${tool.name} title`);
+      assert.equal(typeof tool.annotations?.readOnlyHint, "boolean");
+      assert.equal(typeof tool.annotations?.idempotentHint, "boolean");
     }
   });
 

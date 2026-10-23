@@ -28,19 +28,19 @@ End-to-end influencer marketing skill — from finding the right creators to mea
 
 | Tier | Followers | Typical CPM | Best For |
 |------|-----------|-------------|----------|
-| **Nano** | 1K-10K | $5-25 | Hyper-niche, high trust, local markets |
-| **Micro** | 10K-100K | $25-75 | Engaged communities, authentic endorsements |
-| **Mid-Tier** | 100K-500K | $75-250 | Broader reach with decent engagement |
-| **Macro** | 500K-1M | $250-750 | Mass awareness, established credibility |
-| **Mega** | 1M+ | $750-2,500+ | Maximum reach, celebrity status |
+| **Nano** | 1K-10K | \$5-25 | Hyper-niche, high trust, local markets |
+| **Micro** | 10K-100K | \$25-75 | Engaged communities, authentic endorsements |
+| **Mid-Tier** | 100K-500K | \$75-250 | Broader reach with decent engagement |
+| **Macro** | 500K-1M | \$250-750 | Mass awareness, established credibility |
+| **Mega** | 1M+ | \$750-2,500+ | Maximum reach, celebrity status |
 
 ### Tier Selection Framework
 
-Choose nano/micro when: budget is under $5K, product is niche, authenticity matters more than reach, you need high engagement rates (3-8%).
+Choose nano/micro when: budget is under \$5K, product is niche, authenticity matters more than reach, you need high engagement rates (3-8%).
 
-Choose mid-tier when: budget is $5K-25K, you need a balance of reach and engagement, category has established creator ecosystem.
+Choose mid-tier when: budget is \$5K-25K, you need a balance of reach and engagement, category has established creator ecosystem.
 
-Choose macro/mega when: budget exceeds $25K, goal is pure awareness, product has mass-market appeal, you need press amplification.
+Choose macro/mega when: budget exceeds \$25K, goal is pure awareness, product has mass-market appeal, you need press amplification.
 
 ## Identification Process
 
