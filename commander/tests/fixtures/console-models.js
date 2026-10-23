@@ -28,6 +28,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { readHistoryModel } from '../../cowork-plugin/lib/history-reader.js';
 import { readSafetyModel } from '../../cowork-plugin/lib/safety-snapshot.js';
@@ -526,6 +527,6 @@ export async function historyCases() {
 }
 
 export const GOLDEN_DIR = path.join(
-  path.dirname(new URL(import.meta.url).pathname),
+  path.dirname(fileURLToPath(import.meta.url)),
   'console-goldens'
 );
