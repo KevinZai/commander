@@ -66,3 +66,5 @@ node --test tests/hooks.test.js               # after hook changes
 ## Completion
 
 Define the deliverable and acceptance criteria for substantial work, carry it through implementation and checks, and report what changed, what ran, what passed or failed, and what remains unverified. Planning-only and review-only requests end with the plan or review.
+
+CI process ([CP-GIT-007/008](https://github.com/kzicherman/clawd/blob/main/shared/coordinator/control-plane/rules.yaml)): full local suite + lint green before push; one push per ticket; drafts skip CI; never rerun red CI; batch 4–6 tickets per session.
