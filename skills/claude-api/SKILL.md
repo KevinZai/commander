@@ -134,10 +134,10 @@ Everything goes through `POST /v1/messages`. Tools and output constraints are fe
 
 | Model             | Model ID            | Context | Input $/1M | Output $/1M |
 | ----------------- | ------------------- | ------- | ---------- | ----------- |
-| Claude Fable 5.1  | `claude-fable-5-1`  | 1M      | $10.00     | $50.00      |
-| Claude Opus 5.5   | `claude-opus-5-5`   | 1M      | $4.00      | $20.00      |
-| Claude Sonnet 5.5 | `claude-sonnet-5-5` | 1M      | $2.00      | $10.00      |
-| Claude Haiku 5.5  | `claude-haiku-5-5`  | 1M      | from $0.10 | from $0.50  |
+| Claude Fable 5.1  | `claude-fable-5-1`  | 1M      | \$10.00     | \$50.00      |
+| Claude Opus 5.5   | `claude-opus-5-5`   | 1M      | \$4.00      | \$20.00      |
+| Claude Sonnet 5.5 | `claude-sonnet-5-5` | 1M      | \$2.00      | \$10.00      |
+| Claude Haiku 5.5  | `claude-haiku-5-5`  | 1M      | from \$0.10 | from \$0.50  |
 
 **ALWAYS use `claude-opus-5-5` unless the user explicitly names a different model.** Do not switch to another model unless the user says so (for example "use sonnet", "use haiku", or "use fable"). Never downgrade for cost — that's the user's decision, not yours. Legacy models listed in `shared/models.md` are still served and valid if the user explicitly asks for them, but are not the default recommendation.
 

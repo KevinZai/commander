@@ -33,7 +33,7 @@ This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doin
 Run one Bash call:
 
 ```bash
-git rev-parse --abbrev-ref HEAD; git worktree list | wc -l; sysctl -n hw.memsize 2>/dev/null || free -b 2>/dev/null | awk '/Mem:/{print $2}'
+git rev-parse --abbrev-ref HEAD; git worktree list | wc -l; sysctl -n hw.memsize 2>/dev/null || free -b 2>/dev/null | awk '/Mem:/{print \$2}'
 ```
 
 Set the parallel cap from RAM: under 32 GB → 3, 32–63 GB → 5, 64 GB or more → 6. If detection fails, use 3. Show one line:

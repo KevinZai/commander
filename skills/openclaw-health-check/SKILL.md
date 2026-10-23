@@ -58,15 +58,15 @@ for f in ~/.openclaw/agents/*/sessions/*.jsonl; do
 done
 echo "Estimated today: \$$total"
 ```
-Flag: daily > $8, weekly > $30
+Flag: daily > \$8, weekly > \$30
 
 ### 5. Cron Health
 Use the cron tool to list jobs, check for consecutiveErrors > 0.
 
 ### 6. Memory/Disk
 ```bash
-df -h /System/Volumes/Data | tail -1 | awk '{print "Disk: " $3 " used / " $4 " free (" $5 " used)"}'
-du -sh ~/.openclaw/ 2>/dev/null | awk '{print "OpenClaw data: " $1}'
+df -h /System/Volumes/Data | tail -1 | awk '{print "Disk: " \$3 " used / " \$4 " free (" \$5 " used)"}'
+du -sh ~/.openclaw/ 2>/dev/null | awk '{print "OpenClaw data: " \$1}'
 ```
 Flag: disk > 90% or OpenClaw data > 5GB
 
@@ -103,7 +103,7 @@ done
 ### Costs
 - Today: $X.XX
 - This week: $XX.XX
-- Budget: $100/month
+- Budget: \$100/month
 
 ### Cron Jobs
 | Job | Last Run | Errors | Status |
