@@ -14,7 +14,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
   /ccc-doctor
   ```
 
-  It validates the plugin manifest, checks hook wiring, probes MCP servers, and reports drift between expected counts (84 skills / 22 agents / 30 hooks × 51 handlers / 2 bundled MCPs) and what's actually loaded.
+  It validates the plugin manifest, checks hook wiring, probes MCP servers, and reports drift between expected counts (84 skills / 22 agents / 30 hooks × 52 handlers / 2 bundled MCPs) and what's actually loaded.
 </Tip>
 
 ## Install issues
@@ -191,7 +191,7 @@ Then Cmd+Q, reopen, and reinstall:
 
 **Fix:**
 
-1. `/ccc-doctor` reports hook registration status for all 30 events × 51 handlers.
+1. `/ccc-doctor` reports hook registration status for all 30 events × 52 handlers.
 2. Check `~/.claude/commander/state.json` exists. If missing, the SessionStart hook can't persist context.
 3. Confirm hooks aren't disabled: `echo $CCC_SUGGEST_DISABLE` and `echo $CC_COACH_DISABLE` should be empty for ambient suggestions to fire.
 
@@ -228,7 +228,7 @@ Restart the session. The SessionStart hook will populate the file on next launch
 
 **Fix:**
 
-1. Confirm Node.js 20+: `node --version`.
+1. Confirm Node.js 20.19.x or later in the 20.x line, or Node.js 22.12.0+: `node --version`.
 2. Manually test the server: `npx -y @upstash/context7-mcp` should print a JSON-RPC handshake then idle.
 3. Restart the Claude Code session — MCP servers respawn at session start.
 

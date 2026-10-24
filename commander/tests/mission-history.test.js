@@ -6,7 +6,7 @@
 //
 // This file intentionally does NOT import node:sqlite directly at the
 // top level — some environments genuinely lack it (dashboard/
-// package.json's engines floor is node>=20; node:sqlite shipped
+// package.json supports Node 20.19+ in the 20.x line; node:sqlite shipped
 // experimentally from 22.5). Fixture creation is skipped (not failed)
 // when node:sqlite isn't available in the CURRENT runtime, mirroring
 // how readHistory() itself degrades.

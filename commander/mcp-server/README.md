@@ -1,6 +1,6 @@
 # CC Commander MCP Server
 
-Local MCP server for CC Commander v4.0 Beta. Implements MCP stdio transport (JSON-RPC 2.0 over stdin/stdout). No external dependencies — runs with Node.js >= 18.
+Local MCP server for CC Commander v4.0 Beta. Implements MCP stdio transport (JSON-RPC 2.0 over stdin/stdout). No external dependencies. Use the package's supported Node.js range: 20.19.x or later in the 20.x line, or 22.12.0+.
 
 ## Quick Start
 
@@ -54,7 +54,7 @@ index.js                → translator.js → MCP content blocks
 
 This is the **local beta** build. No network required. Skills served from `skills/` directory.
 
-**Hosted GA** (planned): `https://mcp.commanderplugin.com/v1` with API key auth, server-side license validation, and PostHog analytics.
+**Hosted:** `https://mcp.commanderplugin.com/mcp` (MCP Streamable HTTP) with Bearer-token auth (CC Commander license JWT), server-side validation, and PostHog analytics. See `commander/cowork-plugin/MCP.md`.
 
 ## Environment Variables
 

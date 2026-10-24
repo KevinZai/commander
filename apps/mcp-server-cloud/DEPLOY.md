@@ -41,12 +41,31 @@ fly secrets set \
   POSTHOG_API_KEY="$(op read op://<vault>/cc-commander-posthog/api-key)" \
   METRICS_AUTH_TOKEN="$(op read op://<vault>/cc-commander-metrics/token)" \
   --app commander-mcp
-
-# Public, non-secret: canonical /mcp resource for RFC 9728 metadata and the default
-# OAuth `aud`. Without it they derive from the request's public origin (X-Forwarded-Proto
-# aware), so each host advertises itself; set it to pin one canonical resource.
-fly secrets set OAUTH_RESOURCE_URL=https://commander-mcp.fly.dev/mcp --app commander-mcp
 ```
+
+`OAUTH_RESOURCE_URL` is public and non-secret, so it lives in `fly.toml` `[env]`
+(not in `fly secrets`): `https://mcp.commanderplugin.com/mcp`. It is the canonical
+/mcp resource for RFC 9728 metadata, the origin of the `WWW-Authenticate`
+`resource_metadata` challenge, and the default OAuth `aud`. Without it they derive
+from the request's public origin (X-Forwarded-Proto aware), so each host would
+advertise itself.
+
+A Fly secret with the same name **overrides** `[env]`. An earlier version of this
+runbook set `OAUTH_RESOURCE_URL=https://commander-mcp.fly.dev/mcp` as a secret,
+and production still advertises that resource. Check before relying on `fly.toml`:
+
+```bash
+fly secrets list --app commander-mcp | grep OAUTH_RESOURCE_URL   # names/digests only
+curl -s https://mcp.commanderplugin.com/.well-known/oauth-protected-resource
+```
+
+If the secret is listed, the `fly.toml` value only takes effect after
+`fly secrets unset OAUTH_RESOURCE_URL --app commander-mcp`, which restarts the
+machines (a release). That is a prod change: Kevin approves and runs it, then
+smoke (§6). Expected after: `"resource":"https://mcp.commanderplugin.com/mcp"` and a
+`resource_metadata="https://mcp.commanderplugin.com/.well-known/oauth-protected-resource"`
+challenge on an unauthenticated `POST /mcp`. If an OAuth issuer is configured later,
+its tokens must carry `aud=https://mcp.commanderplugin.com/mcp` (or set `OAUTH_AUDIENCE`).
 
 `fly secrets set` restarts the machines, which is a release: smoke afterwards (§6). OAuth issuer, Stripe and paywall variables are listed in `PAYWALL.md` and stay unset until monetization is armed.
 

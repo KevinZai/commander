@@ -36,7 +36,8 @@ export function initProject(args: InitProjectArgs) {
     installCommand: `/plugin marketplace add KevinZai/commander && /plugin install commander`,
     mcpConfig: {
       commander: {
-        url: "https://mcp.commanderplugin.com/sse",
+        type: "http",
+        url: "https://mcp.commanderplugin.com/mcp",
         headers: { Authorization: "Bearer ${COMMANDER_TOKEN}" },
       },
     },

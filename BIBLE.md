@@ -5,7 +5,7 @@
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
-> **Latest: v8.1.1** is a fix release: a secret scan that cannot be silently disabled, session state keyed on the real session id, skill pickers that fit the tool schema, correct installer config dir and Sonnet 5.5 cost pricing. v8.1.0 added MCP catalog annotations and reliable cloud test startup. The October 2026 revamp remains included: `/ccc-codex` manages the Codex CLI from Claude, the Commander HUD mod draws a status band above the prompt, six plugin workflows ship as `/commander:<name>`, eight plugin evals guard the core skills, seven new hook events are wired (30 events, 51 handlers), and every model reference moved to the Claude 5.5 generation and the GPT-6 family. See [What's New in v8](#whats-new-in-v8). Earlier releases are in [CHANGELOG.md](CHANGELOG.md).
+> **Latest: v8.1.1** is a fix release: a secret scan that cannot be silently disabled, session state keyed on the real session id, skill pickers that fit the tool schema, correct installer config dir and Sonnet 5.5 cost pricing. v8.1.0 added MCP catalog annotations and reliable cloud test startup. The October 2026 revamp remains included: `/ccc-codex` manages the Codex CLI from Claude, the Commander HUD mod draws a status band above the prompt, six plugin workflows ship as `/commander:<name>`, eight plugin evals guard the core skills, seven new hook events are wired (30 events, 52 handlers), and every model reference moved to the Claude 5.5 generation and the GPT-6 family. See [What's New in v8](#whats-new-in-v8). Earlier releases are in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -35,7 +35,7 @@ claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3
 
 ### New hook events
 
-30 lifecycle hooks, 51 handlers. New in v8:
+30 lifecycle hooks, 52 handlers. New in v8:
 
 | Event | Handler | What it does |
 |---|---|---|
@@ -494,7 +494,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 
 **Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
-**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 30 lifecycle hooks × 51 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, PermissionDenied, PreModelSwitch, Stop, PreCompact, SubagentStop, TeammateIdle, FileChanged, SessionEnd, and more). Plus the Commander HUD mod, 6 plugin workflows (`/commander:<name>`) and 8 plugin evals.
+**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 30 lifecycle hooks × 52 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, PermissionDenied, PreModelSwitch, Stop, PreCompact, SubagentStop, TeammateIdle, FileChanged, SessionEnd, and more). Plus the Commander HUD mod, 6 plugin workflows (`/commander:<name>`) and 8 plugin evals.
 
 ---
 
@@ -2725,7 +2725,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v8.1.1* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 84 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (51 handlers), the Commander HUD mod, 6 plugin workflows and 8 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
+> *v8.1.1* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 84 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (52 handlers), the Commander HUD mod, 6 plugin workflows and 8 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2784,7 +2784,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 84 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (51 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 84 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (52 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 

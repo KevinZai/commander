@@ -13,7 +13,7 @@ description: "Commander 8 is a full revamp for the October 2026 platform: /ccc-c
 |---|---|
 | Plugin skills | 84 (new: `/ccc-codex`) |
 | Specialist agents | 22, on model aliases |
-| Lifecycle hooks | 30 events × 51 handlers (7 new events) |
+| Lifecycle hooks | 30 events × 52 handlers (7 new events) |
 | Plugin workflows | 6, run as `/commander:<name>` |
 | Plugin evals | 8 `claude plugin eval` cases |
 | Mods | 1 (Commander HUD) |
@@ -56,7 +56,7 @@ claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3
 
 ## Seven new hook events
 
-The registry grows from 23 to **30 events · 51 handlers**:
+The registry grows from 23 to **30 events · 52 handlers**:
 
 - **PermissionDenied** — auto-mode denials reach `/ccc-safety`.
 - **PreModelSwitch / PostModelSwitch** — routing telemetry and a one-line tier reminder; your model choice is never overridden.

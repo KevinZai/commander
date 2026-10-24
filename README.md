@@ -13,11 +13,11 @@
 /plugin install commander --marketplace KevinZai/commander
 ```
 
-**What you get:** 84 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer and more) · 30 lifecycle hooks × 51 handlers · the Commander HUD mod · 6 plugin workflows · 8 plugin evals · 2 bundled MCP servers + 16 opt-in · 467 ecosystem skills across 11 CCC domains · 20 vendor packages · Core free forever.
+**What you get:** 84 click-first `/ccc-*` plugin skills · 22 specialist sub-agents (architect, reviewer, debugger, designer and more) · 30 lifecycle hooks × 52 handlers · the Commander HUD mod · 6 plugin workflows · 8 plugin evals · 2 bundled MCP servers + 16 opt-in · 467 ecosystem skills across 11 CCC domains · 20 vendor packages · Core free forever.
 
 <img src="docs/assets/hero.gif" alt="CC Commander v8.1.1 — Claude Code Desktop plugin demo" width="100%">
 
-> **Primary surface: Claude Code Desktop (aka Cowork Desktop).** All 84 plugin skills, 22 agents, 30 lifecycle hooks (51 handlers) and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed. Cowork Desktop and Claude Code Desktop are the same app in two UI modes; the plugin works identically in both.
+> **Primary surface: Claude Code Desktop (aka Cowork Desktop).** All 84 plugin skills, 22 agents, 30 lifecycle hooks (52 handlers) and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically — no terminal needed. Cowork Desktop and Claude Code Desktop are the same app in two UI modes; the plugin works identically in both.
 
 [![GitHub stars](https://img.shields.io/github/stars/KevinZai/commander?style=for-the-badge&logo=github&color=FFD43B)](https://github.com/KevinZai/commander/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) [![Twitter Follow](https://img.shields.io/twitter/follow/kzic?style=social)](https://twitter.com/kzic) [![Skills](https://img.shields.io/badge/551_Total_Skills-4F46E5?style=for-the-badge)](./SKILLS-INDEX.md) [![Plugin Skills](https://img.shields.io/badge/84_Plugin_Skills-10B981?style=for-the-badge)](./commander/cowork-plugin/README.md) [![Clients](https://img.shields.io/badge/Desktop%20%2B%20CLI%20%2B%20Codex%20%2B%20Cursor-7C3AED?style=for-the-badge)](#-one-plugin-every-agent) [![v8.1.1](https://img.shields.io/badge/v8.1.1-4F46E5?style=for-the-badge)](./CHANGELOG.md)
 
@@ -49,6 +49,8 @@
 ---
 
 ## ⭐ Install
+
+Local hooks and the CLI require Node.js 20.19.x or later in the 20.x line, or Node.js 22.12.0+. See the [runtime requirements](docs/reference/node-runtime.md) for dependency and CI evidence.
 
 ### Claude Code Desktop / Cowork Desktop (no terminal)
 
@@ -112,7 +114,7 @@ More: [Upgrade guide](https://commanderplugin.com/plugin/upgrade) · [Install re
 | **Claude Code Desktop / Cowork Desktop** ⭐ | Shipping (primary) | Settings → Plugin Marketplace → Add from GitHub: `KevinZai/commander` |
 | **Claude Code CLI** | Shipping | `/plugin install commander --marketplace KevinZai/commander` |
 | **Codex CLI and the ChatGPT desktop app** | Shipping (native plugin mirror) | `codex plugin marketplace add KevinZai/commander` |
-| **Cursor / Windsurf / Cline / Continue** | Shipping (hosted MCP) | Point the MCP client at `mcp.commanderplugin.com` |
+| **Cursor / Windsurf / Cline / Continue** | Shipping (hosted MCP) | Point the MCP client at `https://mcp.commanderplugin.com/mcp` (Streamable HTTP, `Authorization: Bearer <token>`) |
 
 One brand: **Commander**. One repo: `KevinZai/commander`. The plugin name is `commander` everywhere.
 
@@ -126,7 +128,7 @@ Commander 8 is a full revamp for the October 2026 platform: every prompt rewritt
 - 📟 **Commander HUD mod.** A band above the prompt shows the Fable Method state, running agents, the session's tool-call budget and an update pill; `/ccc-hud` toggles it without a model turn. Observe-only: no tool approval, no model calls, no network. Needs Claude Code 2.1.287+ (Desktop 2.1.286+); elsewhere Commander runs hooks-only. See [docs/MODS.md](docs/MODS.md).
 - 🧩 **Plugin workflows.** Six dynamic workflows ship as `/commander:<name>`: `ccc-audit`, `ccc-deep-review`, `ccc-fleet-run`, `ccc-migrate` and the new `ccc-prompt-audit` and `ccc-release-audit`.
 - 🧪 **Plugin evals.** Eight `claude plugin eval` cases (hub, plan, review, doctor, fable, update, suggest, codex) under `evals/`.
-- 🪝 **Seven new hook events** — 30 lifecycle hooks, 51 handlers: PermissionDenied, PreModelSwitch, PostModelSwitch, TeammateIdle, CwdChanged, DirectoryAdded and FileChanged on `CLAUDE.md`. WorktreeCreate and WorktreeRemove are deliberately not registered: a hook there replaces git's own worktree handling.
+- 🪝 **Seven new hook events** — 30 lifecycle hooks, 52 handlers: PermissionDenied, PreModelSwitch, PostModelSwitch, TeammateIdle, CwdChanged, DirectoryAdded and FileChanged on `CLAUDE.md`. WorktreeCreate and WorktreeRemove are deliberately not registered: a hook there replaces git's own worktree handling.
 - 🧠 **Current models by alias.** `fable` (Fable 5.1) deep, `opus` (Opus 5.5) default, `sonnet` (Sonnet 5.5) fast, `haiku` (Haiku 5.5) bulk. Codex routes to GPT-6 Astra, GPT-6.1 Sol, GPT-6 Sol and GPT-6 Luna.
 - ✍️ **Every prompt rewritten.** Skills, agents, personas, rules, menus and templates follow the [v8 prompt standard](docs/PROMPT-STANDARD.md): procedure-first, AskUserQuestion pickers, done-when checks, guardrails, no counts or versions in bodies.
 - 🗂️ **Artifacts as they are today.** Decks use the current Artifact tool; Mission Control and the Linear board sync rows through the artifact database instead of republishing.
@@ -142,7 +144,7 @@ Stock Claude Code is a blank terminal with amnesia. Every other plugin solves on
 
 | Moat | CC Commander | Cursor / Windsurf / Copilot | OSS (Cline / Continue / Aider) |
 |------|--------------|----------------------------|-------------------------------|
-| **Lifecycle hooks (30 × 51 handlers)** | ✅ Session, prompt, tool, permission, model-switch, compaction, subagent and task events | ❌ None | ❌ None |
+| **Lifecycle hooks (30 × 52 handlers)** | ✅ Session, prompt, tool, permission, model-switch, compaction, subagent and task events | ❌ None | ❌ None |
 | **22 specialist agent personas** | ✅ Architect, security-auditor, language reviewers, designer, debugger… | ❌ None ship pre-built | ❌ None ship pre-built |
 | **Verified workflows** | ✅ Six plugin workflows; every finding refuted or confirmed by a fresh agent | ❌ | ❌ |
 | **18 MCP servers (2 bundled + 16 opt-in)** | ✅ Zero-config bundle; Linear, Supabase, Vercel, Notion, Slack, Sentry, Stripe, Cloudflare… opt-in | ⚠️ Manual setup | ⚠️ Manual setup |
@@ -179,7 +181,7 @@ Commander is a thin PM layer over primitives Claude Code already ships. The **br
 | **Skills** | 84 `/ccc-*` skills with `model` and `effort` frontmatter; long tables live in `references/` |
 | **Subagents + Agent `effort`** | 22 agents on aliases (`fable` for architect and security-auditor, `opus` by default, `sonnet` for writers and fleet workers); skills pass an effort level per dispatch |
 | **Workflow tool** | Six plugin workflows run as `/commander:<name>`; `/effort ultracode` turns any substantial task into a planned workflow |
-| **Hooks** | 30 lifecycle hooks with 51 handlers, shell-form and mirrored to Codex |
+| **Hooks** | 30 lifecycle hooks with 52 handlers, shell-form and mirrored to Codex |
 | **Mods** | The Commander HUD band and `/ccc-hud` command |
 | **Plugin evals** | Eight `claude plugin eval` cases guard the core skills' behavior |
 | **Routines and `/loop`** | `/ccc-loop`, `/ccc-ci` and `/ccc-nightwatch` schedule follow-ups instead of busy-waiting |
@@ -324,7 +326,7 @@ The 11 CCC domain routers (`ccc-design`, `ccc-marketing`, `ccc-saas`, `ccc-devop
 
 ## 🪝 Lifecycle hooks
 
-30 lifecycle hooks × 51 handlers, registered in [`hooks/hooks.json`](commander/cowork-plugin/hooks/hooks.json):
+30 lifecycle hooks × 52 handlers, registered in [`hooks/hooks.json`](commander/cowork-plugin/hooks/hooks.json):
 
 | Group | Events |
 |---|---|

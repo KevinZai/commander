@@ -1,0 +1,439 @@
+{
+  "_comment": "Routing overlay merged with skill/agent frontmatter by scripts/build-routes.js into commander/cowork-plugin/hooks/lib/ccc-routes.json. strong = distinctive whole-word phrases (+0.6, enough for a menu alone); triggers = supporting phrases (+0.35 multi-word, +0.25 single word, never enough alone); patterns = request-shaped intent regex (+0.6, case-insensitive; topic mentions belong in strong/triggers); negatives = regex that removes the route; paths = file names/extensions mentioned in the prompt (+0.2); requirePath = score only when a path matches; next = the 'what next' graph read by the Stop handler; exclude = never route. A menu needs 0.55; auto-run needs an intent pattern hit plus 0.8 with a 0.25 lead. Edit this file, run `npm run build:routes`, then `node --test commander/tests/route-eval.test.js`.",
+  "skills": {
+    "ccc": {
+      "strong": ["commander menu", "open commander"]
+    },
+    "ccc-adhd": {
+      "strong": ["adhd mode", "answer first mode"]
+    },
+    "ccc-adopt": {
+      "strong": ["adopt commander", "commander conventions"],
+      "next": ["ccc-claudemd"]
+    },
+    "ccc-agent-writing": {
+      "strong": ["draft a prd", "write a prd", "write a spec for", "write the pr description", "write a runbook"],
+      "triggers": ["pr description", "runbook", "spec"],
+      "patterns": ["\\b(write|draft)\\s+(the\\s+|a\\s+)?(pr|pull request)\\s+(description|body)\\b", "\\b(write|draft)\\s+(a|an|the)\\s+(prd|spec|runbook)\\s+for\\b"],
+      "next": ["ccc-review", "ccc-plan"]
+    },
+    "ccc-brainstorm": {
+      "strong": ["brainstorm", "torn between", "tradeoff matrix"],
+      "triggers": ["which approach", "approaches", "options"],
+      "patterns": ["\\bhow (should|would) (i|we) (architect|approach)\\b", "\\bwhich (approach|option|way) (should|is better|is best)\\b"],
+      "negatives": ["\\bbrainstorm(ing)? (session|table|column|field|model)\\b"],
+      "next": ["ccc-plan", "ccc-build"]
+    },
+    "ccc-broadcast": {
+      "strong": ["announce the deploy", "tell the team it shipped"]
+    },
+    "ccc-browse": {
+      "strong": ["skill catalog", "browse commander skills", "what can commander do"]
+    },
+    "ccc-build": {
+      "strong": ["scaffold a new", "start a new project"],
+      "triggers": ["scaffold", "new project"],
+      "patterns": ["\\b(build|create|make|scaffold|spin up|start)\\s+(me\\s+)?(a|an)\\s+(new\\s+)?([\\w.-]+\\s+){0,2}(app|cli|website|web app|saas|api|service|tool|project)(?=\\s+(for|with|that|to|in|using|which|where)\\b|\\s*[,.!?]|\\s*$)"],
+      "negatives": ["\\b(react native|flutter|swiftui|jetpack|ios|android|mobile)\\b", "\\bbuild\\s+(is\\s+)?(fail|broken|red|error)", "\\b(fix|debug)\\b"],
+      "next": ["ccc-testing", "ccc-review", "ccc-deploy-check"]
+    },
+    "ccc-changelog": {
+      "strong": ["changelog", "release notes for", "what's new in commander", "what's new in the latest", "whats new in the latest"],
+      "patterns": ["\\bwhat'?s new in\\s+(the\\s+latest\\s+)?(commander|ccc)\\b", "\\b(show|read|summarize)\\s+(me\\s+)?(the\\s+)?(commander\\s+)?(changelog|release notes)(\\s+for\\s+(commander\\s+)?v?\\d|[.!?]*$)"],
+      "triggers": ["release notes", "what's new", "what changed", "latest release", "commander"],
+      "negatives": ["\\bwhat changed (in|between) (this|my|the|v\\d)\\b.*\\b(file|diff|branch|function|method)\\b", "\\bgit diff\\b", "\\b(link|footer|page|section)\\b"],
+      "next": ["ccc-update"]
+    },
+    "ccc-cheatsheet": {
+      "strong": ["commander cheatsheet", "commander cheat sheet", "command map"]
+    },
+    "ccc-ci": {
+      "strong": ["ci is red", "ci failing", "ci failed", "pipeline failed", "github actions failed", "actions run failed"],
+      "triggers": ["ci", "pipeline", "github actions"],
+      "patterns": ["\\bwhy (did|is) (the\\s+)?(ci|pipeline|workflow|github actions?) (fail|failing|red)\\b", "\\b(ci|pipeline|workflow|github actions?)\\b.{0,40}\\bwhy (did|does) it fail\\b", "\\b(debug|diagnose|investigate|fix)\\s+(the\\s+|our\\s+)?(failing\\s+|failed\\s+|broken\\s+)?(ci|pipeline|workflow|github actions?)\\b"],
+      "paths": [".github/workflows"],
+      "next": ["ccc-systematic-debugging", "ccc-testing"]
+    },
+    "ccc-claudemd": {
+      "strong": ["audit claude.md", "clean up claude.md", "stale claude.md", "optimize claude.md"],
+      "patterns": ["\\b(audit|clean up|cleanup|optimi[sz]e|trim)\\s+(my\\s+|the\\s+|our\\s+)?claude\\.md\\b"]
+    },
+    "ccc-code-review": { "exclude": true },
+    "ccc-codex": {
+      "strong": ["codex cli", "set up codex", "codex doctor", "codex config"]
+    },
+    "ccc-connect": {
+      "strong": ["connector wizard", "add an mcp server", "connect an mcp server"],
+      "patterns": ["\\b(connect|wire up|hook up)\\s+(my\\s+|the\\s+)?(linear|supabase|vercel|sentry|notion|slack|stripe)\\s+(to|with|into)\\s+(commander|claude|codex|this session)\\b"]
+    },
+    "ccc-console": {
+      "strong": ["commander console", "open the console"]
+    },
+    "ccc-content": {
+      "strong": ["blog post", "linkedin post", "twitter thread", "x thread", "newsletter", "email campaign", "marketing copy", "landing page copy"],
+      "patterns": ["\\b(write|draft)\\s+(me\\s+)?(a|an|the|this week's|our)\\s+(blog|post|thread|newsletter|tweet|article|announcement)\\b"],
+      "negatives": ["\\bpost\\s+request\\b", "\\bhttp post\\b", "\\bpost endpoint\\b", "\\b(field|column|model|table|schema|component|endpoint|route)\\b"],
+      "next": ["ccc-seo", "ccc-marketing"]
+    },
+    "ccc-data": {
+      "strong": ["etl pipeline", "elt pipeline", "data pipeline", "vector search", "data quality checks"],
+      "patterns": ["\\b(optimi[sz]e|speed up|tune)\\s+(this\\s+|my\\s+|the\\s+)?(sql|query|queries)\\b", "\\b(build|create|set up)\\s+(an?\\s+|the\\s+)?(etl|elt|data)\\s+pipeline\\b"],
+      "triggers": ["sql", "bigquery", "warehouse"]
+    },
+    "ccc-debate": {
+      "strong": ["devil's advocate", "stress-test this design", "stress test this design", "debate this"],
+      "patterns": ["\\b(debate|stress[- ]test)\\s+(this|the|my|our)\\s+(design|plan|approach|proposal)\\b"]
+    },
+    "ccc-deploy-check": {
+      "strong": ["ready to deploy", "ready to ship", "should i deploy", "safe to deploy", "deploy check", "pre-deploy", "predeploy"],
+      "patterns": ["\\b(is|are)\\s+(this|it|we|the branch)\\s+(ready|safe)\\s+to\\s+(ship|deploy|release|go live)\\b", "\\bcan (i|we) (ship|deploy) (this|it) (now|yet|today)\\b"],
+      "next": ["ccc-ship", "ccc-deploy", "ccc-qa"]
+    },
+    "ccc-deploy": {
+      "strong": ["push to production", "publish the package", "deploy to vercel", "deploy to fly", "deploy to cloudflare"],
+      "patterns": ["\\bdeploy\\s+(this|it|the app|the site)\\s+(to|on)\\s+(vercel|fly|fly\\.io|cloudflare|netlify|github pages|production|prod)\\b"],
+      "negatives": ["\\b(ready|safe)\\s+to\\s+deploy\\b", "\\bshould (i|we) deploy\\b", "\\bdeploy (failed|is failing|broke|key)\\b"],
+      "next": ["ccc-broadcast", "ccc-changelog"]
+    },
+    "ccc-design": {
+      "strong": ["polish the ui", "restyle", "figma to code", "redesign the ui", "landing page design"],
+      "triggers": ["design system", "component system", "ui"],
+      "patterns": ["\\b(design|restyle|polish|redesign|animate)\\s+(the\\s+|my\\s+|a\\s+|this\\s+)?([\\w-]+\\s+){0,2}(ui|landing page|homepage|page|component|screen)\\b"],
+      "negatives": ["\\bsystem design\\b", "\\b(api|database|schema|db) design\\b", "\\bdesign the (database|schema|api)\\b"],
+      "next": ["ccc-review", "ccc-testing"]
+    },
+    "ccc-devops": {
+      "strong": ["ci/cd pipeline", "zero-downtime deploy", "helm chart", "terraform"],
+      "triggers": ["dockerfile", "kubernetes", "prometheus", "grafana", "docker"],
+      "patterns": ["\\b(set up|setup|write|harden)\\s+(a\\s+|the\\s+|our\\s+)?(ci/cd|ci pipeline|dockerfile|terraform|k8s|kubernetes)\\b"],
+      "paths": ["Dockerfile", "docker-compose.yml"],
+      "negatives": ["\\b(ci|pipeline|build)\\s+(is\\s+)?(red|failing|failed|broken)\\b"],
+      "next": ["ccc-deploy-check", "ccc-security"]
+    },
+    "ccc-doc-sync": {
+      "strong": ["doc sync", "doc-count check", "sync the doc counts"]
+    },
+    "ccc-doctor": {
+      "strong": ["commander doctor", "plugin health", "is my plugin ok", "diagnose commander"],
+      "patterns": ["\\b(diagnose|check|fix)\\s+(my\\s+|the\\s+)?(commander|ccc|plugin health)\\b"],
+      "next": ["ccc-update", "ccc-tuneup"]
+    },
+    "ccc-domains": { "exclude": true },
+    "ccc-e2e": {
+      "strong": ["pre-release assessment", "is this release ready"],
+      "next": ["ccc-ship"]
+    },
+    "ccc-ecc": {
+      "strong": ["everything claude code", "ecc component"]
+    },
+    "ccc-fable": {
+      "strong": ["fable method", "fable on", "fable off", "fable status", "fable audit"]
+    },
+    "ccc-fleet-viz": {
+      "strong": ["fleet progress", "fleet tree"]
+    },
+    "ccc-fleet": {
+      "strong": ["parallel agents", "multiple agents", "multi-agent", "split across agents"],
+      "triggers": ["fan out", "swarm", "in parallel"],
+      "patterns": ["\\b(run|use|spin up|launch)\\s+(\\d+\\s+|several\\s+|multiple\\s+)?(parallel\\s+)?(agents|workers)\\b", "\\bfan out\\s+.{1,40}\\s+across\\s+(multiple|several|\\d+)\\s+agents\\b"],
+      "negatives": ["\\bexplain\\b"],
+      "next": ["ccc-fleet-viz", "ccc-review"]
+    },
+    "ccc-handoff": {
+      "strong": ["write a handoff", "context is getting long"],
+      "patterns": ["\\b(write|create|draft)\\s+(a|the)\\s+handoff\\b"],
+      "triggers": ["handoff", "new chat"]
+    },
+    "ccc-harden": {
+      "strong": ["harden for launch", "production hardening", "pre-launch audit"],
+      "patterns": ["\\bharden\\s+(this\\s+|the app\\s+|the site\\s+)?for launch\\b"],
+      "next": ["ccc-deploy-check"]
+    },
+    "ccc-hermes": {
+      "strong": ["hermes gateway"]
+    },
+    "ccc-infra": {
+      "strong": ["is the dev server up", "why is the mcp down", "infra status", "service status"]
+    },
+    "ccc-knowledge": {
+      "strong": ["commander knowledge base", "what have we learned", "past lessons"]
+    },
+    "ccc-learn": {
+      "strong": ["skill domains", "which skills exist"]
+    },
+    "ccc-linear-board": {
+      "strong": ["linear board", "sprint board"],
+      "patterns": ["\\b(publish|open|show)\\s+(a|the|my|our)\\s+linear board\\b"],
+      "triggers": ["kanban", "publish"],
+      "next": ["ccc-linear"]
+    },
+    "ccc-linear": {
+      "strong": ["linear issues", "linear tickets", "my linear issues"],
+      "patterns": ["\\bstart (work|working) (on|from) (a|the|this|my) (linear\\s+)?(ticket|issue)\\b"],
+      "negatives": ["\\b(board|kanban)\\b"],
+      "next": ["ccc-plan", "ccc-build"]
+    },
+    "ccc-loop": {
+      "strong": ["run until done", "keep checking every"],
+      "patterns": ["\\b(check|run|poll)\\b.{0,40}\\bevery\\s+\\d+\\s*(m|min|mins|minutes|h|hours)\\b", "\\bevery\\s+\\d+\\s*(m|min|mins|minutes|h|hours)\\b.{0,40}\\b(check|poll)\\b"],
+      "negatives": ["\\bcron\\b"]
+    },
+    "ccc-makeover": {
+      "strong": ["project makeover", "report card", "fix the top issues"],
+      "next": ["ccc-review"]
+    },
+    "ccc-marketing": {
+      "strong": ["marketing plan", "launch plan", "growth experiment", "conversion rate optimization", "cro audit"],
+      "triggers": ["marketing", "competitor"],
+      "next": ["ccc-content", "ccc-seo"]
+    },
+    "ccc-memory": {
+      "strong": ["save to memory", "record this decision"],
+      "patterns": ["^\\s*remember (this|that)\\s*[:,-]", "\\b(record|save)\\s+(that|this)\\s+(decision|gotcha|for next time)\\b"]
+    },
+    "ccc-mission-control": {
+      "strong": ["mission control", "what are the agents doing", "who is working on what"],
+      "patterns": ["\\b(open|show|launch)\\s+(the\\s+)?mission control\\b"]
+    },
+    "ccc-mobile": {
+      "strong": ["react native", "jetpack compose", "app store optimization"],
+      "triggers": ["flutter", "swiftui", "expo", "ios", "android"],
+      "patterns": ["\\b(build|create|make|start)\\b.{0,30}\\b(react native|flutter|expo|swiftui|ios|android|mobile)\\b.{0,30}\\bapp\\b"],
+      "negatives": ["\\bicon\\b"],
+      "next": ["ccc-testing", "ccc-review"]
+    },
+    "ccc-more": {
+      "strong": ["more commander tools"]
+    },
+    "ccc-night-mode": {
+      "strong": ["night mode", "yolo mode", "overnight build", "while i sleep"],
+      "next": ["ccc-review"]
+    },
+    "ccc-nightwatch": {
+      "strong": ["approve from my phone", "approve from phone", "remote yolo", "safety leash"]
+    },
+    "ccc-onboard": {
+      "strong": ["onboard me", "new to this repo", "contributor onboarding"],
+      "next": ["ccc-plan"]
+    },
+    "ccc-orchestrate": {
+      "strong": ["goal file", "different executor", "codex executor"],
+      "next": ["ccc-review"]
+    },
+    "ccc-plan-exec": {
+      "strong": ["plan-exec", "plan exec"],
+      "next": ["ccc-review"]
+    },
+    "ccc-plan": {
+      "strong": ["implementation plan", "plan this feature", "plan the feature", "plan a feature"],
+      "triggers": ["before we write any code", "plan", "scope"],
+      "patterns": ["\\b(plan|scope)\\s+(out\\s+)?(this|the|a|my|our)\\s+([\\w-]+\\s+){0,2}(feature|refactor|migration|work|change|project|epic|ticket|issue)\\b", "\\bmake (a|an) (implementation\\s+)?plan for\\b", "\\bi (want|need)\\s+(a|an)\\s+(implementation\\s+)?plan\\s+for\\b"],
+      "negatives": ["\\bmeal plan\\b", "\\b(pricing|data|phone|marketing|launch) plan\\b", "\\bplan (name|type|id|tier|field|column)\\b"],
+      "next": ["ccc-build", "ccc-testing", "ccc-orchestrate"]
+    },
+    "ccc-prompt-fix": {
+      "strong": ["fix my prompt", "improve this prompt", "sharpen this prompt", "score this prompt"],
+      "patterns": ["\\b(fix|improve|sharpen|score|rewrite|tighten)\\s+(my|this|the)\\s+(system\\s+)?prompt\\b"],
+      "negatives": ["\\b(command|shell|bash|zsh) prompt\\b"]
+    },
+    "ccc-qa": {
+      "strong": ["qa pass", "run all the tests", "run all tests", "coverage delta", "find flaky tests"],
+      "patterns": ["\\b(run|execute)\\s+all\\s+(the\\s+)?tests\\b", "\\b(do|run|perform)\\s+(a\\s+)?qa pass\\b"],
+      "triggers": ["check coverage", "coverage", "before i ship"],
+      "next": ["ccc-review", "ccc-deploy-check"]
+    },
+    "ccc-recall": {
+      "strong": ["didn't we solve", "did we solve this", "did i solve this", "what did we decide", "prior session"],
+      "patterns": ["\\b(have|did)\\s+(we|i)\\s+(already\\s+)?(solve|fix|hit|see)\\s+(this|that)\\b.{0,30}\\b(before|last time|already)\\b"]
+    },
+    "ccc-relay": {
+      "strong": ["finn loop", "auto-chained loops"]
+    },
+    "ccc-research": {
+      "strong": ["prior art", "competitive analysis", "literature review", "market research"],
+      "triggers": ["research", "compare"],
+      "patterns": ["\\b(research|investigate)\\s+(the\\s+)?(best|options|alternatives|libraries|tools|approaches)\\b", "^\\s*compare\\s+[\\w.-]+\\s+(vs\\.?|versus)\\s+[\\w.-]+", "\\b(research|investigate)\\s+(the\\s+)?competitive landscape\\b", "\\b(do|conduct|perform)\\s+(some\\s+|a\\s+)?(market research|competitive analysis|literature review)\\s+(on|for|about)\\b"],
+      "negatives": ["\\bresearch (field|column|paper|table|model)\\b", "\\b(field|column|model)\\b"],
+      "next": ["ccc-plan", "ccc-brainstorm"]
+    },
+    "ccc-resume-session": {
+      "strong": ["resume session", "where i left off", "where we left off", "load my last session"]
+    },
+    "ccc-review": {
+      "strong": ["code review", "pr review", "review my code", "review this pr", "review my changes", "review the branch"],
+      "triggers": ["review", "before i open the pr"],
+      "patterns": ["\\breview\\s+(my|this|the|our)\\s+(code|changes|diff|pr|pull request|branch|commit|commits)\\b", "\\b(do|run|perform|i need|i want)\\s+(a|an|the)\\s+(code|pr|pull request)\\s+review\\b(?!\\s+(bot|feedback|comment|process|guide))", "\\bgive\\s+(my|this|the|our)\\s+(code|changes|diff|pr|branch)\\s+a\\s+(code\\s+)?review\\b"],
+      "negatives": ["\\bpreview\\b", "\\b(movie|book|product|performance)\\s+review\\b", "\\breview (count|score|stars|field|column|model|table)\\b", "\\breviewers?\\b"],
+      "next": ["ccc-qa", "ccc-deploy-check", "ccc-ship"]
+    },
+    "ccc-rollback": {
+      "strong": ["revert the release", "revert the deploy", "production is broken", "prod is down", "bad deploy"],
+      "triggers": ["roll back", "rollback"],
+      "patterns": ["\\b(roll|revert)\\s*(back)?\\s+(the\\s+)?(last\\s+)?(deploy|deployment|release|production)\\b"],
+      "negatives": ["\\b(edit|change|commit|migration)\\b"],
+      "next": ["ccc-systematic-debugging"]
+    },
+    "ccc-saas": {
+      "strong": ["stripe billing", "multi-tenancy", "multi-tenant", "subscription billing"],
+      "patterns": ["\\b(add|implement|set up)\\s+(stripe billing|subscription billing|multi-tenancy)\\b"],
+      "triggers": ["saas", "feature flags"],
+      "next": ["ccc-build", "ccc-security"]
+    },
+    "ccc-safety": {
+      "strong": ["what did the guardrails catch", "safety deck"]
+    },
+    "ccc-save-session": {
+      "strong": ["save this session", "save the session"]
+    },
+    "ccc-security": {
+      "strong": ["security audit", "owasp", "scan for secrets", "vulnerable packages", "dependency cves", "prompt injection defense"],
+      "triggers": ["vulnerabilities", "cves", "secrets"],
+      "patterns": ["\\b(audit|scan|check)\\s+(of\\s+)?(the\\s+|my\\s+|our\\s+|this\\s+)?([\\w-]+\\s+){0,2}(for\\s+)?(security|vulnerabilit(y|ies)|cves?|secrets)\\b", "\\bis (this|it|my app) secure\\b"],
+      "negatives": ["\\bsecurity headers?\\b", "\\bfix the security issue\\b"],
+      "next": ["ccc-harden", "ccc-review"]
+    },
+    "ccc-seo": {
+      "strong": ["seo audit", "rank in ai answers", "ai search optimization"],
+      "triggers": ["seo", "backlinks", "meta descriptions"],
+      "patterns": ["\\b(improve|audit|fix)\\s+(our|my|the)\\s+seo\\b", "\\b(run|do|perform)\\s+(an?\\s+)?seo audit\\s+(on|for|of)\\b"],
+      "negatives": ["\\btitle tag\\b"],
+      "next": ["ccc-content"]
+    },
+    "ccc-session": { "exclude": true },
+    "ccc-settings": {
+      "strong": ["commander settings", "cost ceiling"]
+    },
+    "ccc-ship": {
+      "strong": ["ship it", "cut a release", "tag a version", "tag a release"],
+      "triggers": ["pre-flight", "preflight"],
+      "patterns": ["\\b(cut|tag)\\s+(a\\s+|the\\s+)?(new\\s+)?(release|version|v?\\d+\\.\\d+(\\.\\d+)?)\\b(?!\\s+(date|notes|column|field))"],
+      "next": ["ccc-changelog", "ccc-broadcast", "ccc-standup"]
+    },
+    "ccc-smb-ops": {
+      "strong": ["cash flow forecast", "cash-flow forecast", "unpaid invoices", "bank csv", "owner brief"],
+      "patterns": ["\\b(forecast|project)\\s+cash flow\\b", "\\b(chase|collect)\\s+(the\\s+)?unpaid invoices\\b"],
+      "triggers": ["payroll", "invoices", "cash flow"]
+    },
+    "ccc-spawn": {
+      "strong": ["spin this off", "run this in the background", "background agent"]
+    },
+    "ccc-standup": {
+      "strong": ["what did i do yesterday", "daily update", "morning check-in"],
+      "triggers": ["standup", "stand-up", "yesterday"],
+      "patterns": ["\\b(write|draft|do|generate)\\s+(my|a|the|today's)\\s+(standup|stand-up|daily update)\\b", "\\bwhat did (i|we) do yesterday\\b.*\\b(standup|daily update)\\b"],
+      "negatives": ["\\bbot\\b"],
+      "next": ["ccc-tasks", "ccc-linear"]
+    },
+    "ccc-start": {
+      "strong": ["get started with commander", "just installed commander"]
+    },
+    "ccc-suggest": {
+      "strong": ["what should i do next", "which tool should i use", "i'm stuck", "im stuck"],
+      "patterns": ["\\bwhat should (i|we) do next\\b", "\\bwhich tool should (i|we) use\\b"]
+    },
+    "ccc-systematic-debugging": {
+      "strong": ["root cause", "debug this", "track down the bug"],
+      "triggers": ["flaky", "keeps failing", "crash"],
+      "patterns": ["\\b(debug|investigate|diagnose|track down|figure out)\\s+(this|the|a|why)\\b.{0,60}\\b(bug|error|crash|failure|failing|exception|regression|broken)\\b", "^\\s*why (is|does|did)\\s+.{0,40}\\b(fail|failing|crash|crashes|crashing|throw|throws|break|breaks|broken)\\b", "\\b(find|investigate|diagnose)\\s+(the\\s+)?root cause\\s+of\\b"],
+      "negatives": ["\\b(ci|pipeline)\\s+(is\\s+)?(red|failing|failed)\\b", "\\bcommander\\b", "\\badd a retry\\b"],
+      "next": ["ccc-testing", "ccc-review"]
+    },
+    "ccc-tasks": {
+      "strong": ["my todo list", "my to-do list", "my task list"],
+      "triggers": ["todo list", "tasks"],
+      "patterns": ["\\badd\\s+.{1,40}\\s+to\\s+(my|the)\\s+(todo|to-do|task)\\s+list\\b", "\\b(show|open|list)\\s+(my|the)\\s+(todo|to-do|task)\\s+list\\b"]
+    },
+    "ccc-testing": {
+      "strong": ["test strategy", "visual regression", "load test"],
+      "triggers": ["tdd", "e2e", "tests", "unit tests"],
+      "patterns": ["\\b(write|add|create|generate)\\s+(some\\s+|more\\s+)?(unit\\s+|integration\\s+|e2e\\s+|playwright\\s+)?tests?\\s+(for|to cover)\\b", "\\b(set up|create|design)\\s+(a|the|our)\\s+test strategy\\b"],
+      "negatives": ["\\btest (email|message|post|account)\\b", "\\bhow do i\\b", "\\badd a retry\\b"],
+      "next": ["ccc-qa", "ccc-review"]
+    },
+    "ccc-triage": {
+      "strong": ["triage issues", "triage the backlog", "triage prs", "label the backlog"]
+    },
+    "ccc-tuneup": {
+      "strong": ["tune up commander", "commander tuneup", "setup feels slow", "setup feels cluttered"]
+    },
+    "ccc-ultracode": {
+      "strong": ["ultracode", "depth over speed"]
+    },
+    "ccc-update": {
+      "strong": ["update commander", "upgrade commander", "outdated commander"],
+      "next": ["ccc-changelog", "ccc-doctor"]
+    },
+    "ccc-upgrade": {
+      "strong": ["update vendors", "upgrade vendors", "refresh submodules", "vendor drift"]
+    },
+    "ccc-usage": {
+      "strong": ["usage deck", "how much did i spend", "agent cost", "how much was saved"],
+      "patterns": ["\\bhow much (did|have) (i|we) (spend|spent)\\s+on\\s+(agent|claude|codex)\\b"]
+    },
+    "ccc-xray": {
+      "strong": ["x-ray of this repo", "x-ray the repo", "repo audit", "health scorecard", "token-cost inventory"],
+      "patterns": ["\\b(audit|x-ray|xray)\\s+(this|the|my|our|whole|entire)\\s+(repo|repository|codebase|project)\\b", "\\b(run|do|perform|give me)\\s+(a\\s+|an\\s+|the\\s+)?(full\\s+)?(audit|x-ray|xray|health[- ]check)\\s+(of|on)\\s+(this|the|my|our|whole|entire)\\s+(repo|repository|codebase|project)\\b", "\\b(run|do|perform)\\s+(a\\s+|the\\s+)?(repo|repository|codebase|project)\\s+(health[- ]check|audit|check-?up)\\b", "^(repo|repository|codebase|project)\\s+(audit|health[- ]check|check-?up)\\s+please[.!?]*$"],
+      "triggers": ["x-ray", "xray", "health check"],
+      "negatives": ["\\bhealth check endpoint\\b", "\\b/health\\b", "\\bplugin health\\b", "\\bimage\\b", "\\b(for\\s+)?(security|vulnerabilit(y|ies)|cves?|secrets)\\b"],
+      "next": ["ccc-makeover", "ccc-review"]
+    },
+    "ccc-yolo-setup": {
+      "strong": ["yolo setup", "too many permission prompts", "fewer approvals", "skip permissions"]
+    }
+  },
+  "agents": {
+    "builder": { "exclude": true },
+    "content-strategist": { "exclude": true },
+    "fleet-worker": { "exclude": true },
+    "architect": {
+      "strong": ["architecture review"],
+      "triggers": ["system design", "architecture"],
+      "patterns": ["\\b(design|architect)\\s+(the\\s+|a\\s+)?(system|architecture|data model|database schema)\\s+for\\b"]
+    },
+    "debugger": {
+      "triggers": ["root cause", "debug this"]
+    },
+    "security-auditor": {
+      "strong": ["threat model"],
+      "triggers": ["security audit", "owasp"]
+    },
+    "performance-engineer": {
+      "strong": ["performance audit", "latency regression", "hot path"],
+      "triggers": ["slow", "performance"],
+      "patterns": ["^\\s*why is\\s+.{0,40}\\s+(so\\s+)?slow\\b", "\\b(profile|speed up)\\s+(this|the|my)\\s+(app|page|endpoint|query|function|build)\\b"]
+    },
+    "researcher": {
+      "triggers": ["research", "prior art"]
+    },
+    "technical-writer": {
+      "strong": ["write the readme", "write an api reference", "architecture overview"]
+    },
+    "product-manager": {
+      "strong": ["user stories", "acceptance criteria"],
+      "triggers": ["prd"]
+    },
+    "qa-engineer": {
+      "triggers": ["qa pass", "coverage gaps"]
+    },
+    "data-analyst": {
+      "strong": ["which metric moved", "analyze this data"]
+    },
+    "designer": {
+      "strong": ["wcag", "accessibility pass"],
+      "triggers": ["polish the ui"]
+    },
+    "devops-engineer": {
+      "triggers": ["dockerfile", "terraform"]
+    },
+    "reviewer": {
+      "triggers": ["code review", "review this pr"]
+    },
+    "go-reviewer": { "paths": [".go", "go.mod"], "triggers": ["review this", "code review", "review"], "requirePath": true },
+    "rust-reviewer": { "paths": [".rs", "Cargo.toml"], "triggers": ["review this", "code review", "review"], "requirePath": true },
+    "python-reviewer": { "paths": [".py", "pyproject.toml"], "triggers": ["review this", "code review", "review"], "requirePath": true },
+    "typescript-reviewer": { "paths": [".ts", ".tsx"], "triggers": ["review this", "code review", "review"], "requirePath": true },
+    "java-reviewer": { "paths": [".java", "pom.xml"], "triggers": ["review this", "code review", "review"], "requirePath": true },
+    "kotlin-reviewer": { "paths": [".kt", ".kts"], "triggers": ["review this", "code review", "review"], "requirePath": true },
+    "csharp-reviewer": { "paths": [".cs", ".csproj"], "triggers": ["review this", "code review", "review"], "requirePath": true }
+  }
+}

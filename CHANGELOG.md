@@ -4,6 +4,9 @@
 
 Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached plugin only when that string changes. Every 8.1.0 install has therefore stayed on the 2026-10-18 build, and none of the fixes merged since then reached `claude plugin update`. This version carries them.
 
+### Added
+- **Auto-routing:** prompts are scored against a route registry generated from 81 plugin skills and 19 agents. A `<ccc-route>` block in the model context sets the tier: high runs the skill, medium asks with one picker, low stays silent. A Stop-hook what-next menu offers the next step after a skill runs, with `CCC_ROUTE_MODE`, `CCC_ROUTE_NEXT` and `CCC_ROUTE_MENU` to tune or turn it off. The UserPromptSubmit classifier now also runs on Stop (30 events, 52 handlers). Node floor is `^20.19.0 || >=22.12.0` (#188).
+
 ### Fixed
 - **Secret scan:** one allowlisted placeholder no longer disables the whole scan (#222). Full git SHAs and sha256 digests are no longer flagged as Twilio SIDs (#181). The scan fails closed when its patterns cannot load (#157).
 - **Installer:** uses `CLAUDE_CONFIG_DIR`, not `XDG_CONFIG_HOME`, as the Claude dir (#221).
