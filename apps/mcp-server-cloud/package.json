@@ -1,6 +1,6 @@
 {
   "name": "cc-commander-mcp-cloud",
-  "version": "8.1.2",
+  "version": "8.1.3",
   "description": "CC Commander hosted MCP server — 84 plugin skills, 22 agents, 30 lifecycle hooks (52 handlers), 2 credential-free bundled MCPs + 16 opt-in, 467 ecosystem skills",
   "private": true,
   "type": "module",
