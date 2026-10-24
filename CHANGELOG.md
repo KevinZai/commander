@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **Status line:** the 🔑 lane hint keeps up to 16 characters (was 12), so `~/.claude-guestnetworks` shows `guestnetworks` in full.
+
 ## [8.1.2] - 2026-10-24
 
 Status-line fix release. Bumps the pinned plugin version so `claude plugin update` picks up the fixes below.

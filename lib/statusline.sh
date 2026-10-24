@@ -271,9 +271,9 @@ ccc_lane_from_config_dir() {
   case "$base" in
     .claude) printf 'pri'; return 0 ;;
     .claude-?*)
-      # Keep the hint terminal-safe: printable name characters only, max 12.
+      # Keep the hint terminal-safe: printable name characters only, max 16.
       lane=$(printf '%s' "${base#.claude-}" | LC_ALL=C tr -cd 'A-Za-z0-9._-')
-      lane="${lane:0:12}"
+      lane="${lane:0:16}"
       [ -n "$lane" ] && printf '%s' "$lane"
       return 0 ;;
   esac
