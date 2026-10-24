@@ -357,10 +357,11 @@ CC_LABEL="CC"
 # ── Extras (only if present) ──────────────────────────────────────────────
 PROJ_SHORT=$(basename "$PROJECT")
 # Lane-aware: skills and Commander state come from the session's config dir.
-SKILL_COUNT=$(ls -d "$CCC_CONFIG_DIR/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
+SKILL_COUNT=$(ls -d "$CCC_PLUGIN_CFG_DIR/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
 
 LINEAR_TICKET=""
-STATE_FILE="$CCC_CONFIG_DIR/commander/state.json"
+# commander state follows the lane resolver (commander/lib/lane.js): CCC_CONFIG_DIR, then CLAUDE_CONFIG_DIR, then ~/.claude
+STATE_FILE="${CCC_CONFIG_DIR:-$CCC_PLUGIN_CFG_DIR}/commander/state.json"
 [ -f "$STATE_FILE" ] && LINEAR_TICKET=$(jq -r '.activeSession.linearIssueIdentifier // empty' "$STATE_FILE" 2>/dev/null)
 
 EXTRAS=""
