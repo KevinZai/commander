@@ -4,6 +4,7 @@
 
 ### Fixed
 - **Hooks:** plugin hooks keep their state per lane in `<config dir>/commander` (`CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) through one resolver, `lib/lane-state.js`, so parallel lanes no longer write one shared `~/.claude/commander`. User settings (`config.json`, `console.json`, `state.json`) and the Console/Usage/Safety readers fall back to the legacy copy until the lane has its own. Nothing is migrated (CC-2098).
+- **Doctor:** the hook-chain check counts the handlers the SessionStart orchestrator imports (`fable-armed-nudge.js`, `voice-injector.js`, `_archive/session-start.js`) as registered, so `ccc doctor` no longer reports a false critical. Archived handlers are scanned too and must be registered or allowlisted (CC-2099).
 
 ## [8.1.2] - 2026-10-24
 

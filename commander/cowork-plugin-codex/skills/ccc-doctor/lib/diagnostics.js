@@ -186,7 +186,8 @@ function checkLicenseCleanup(root) {
 // --- 2. Hook-chain health ---------------------------------------------------
 
 // Files that may live in hooks/ but aren't in hooks.json (acceptable dormant utilities).
-var DORMANT_HOOK_ALLOWLIST = ['README.md'];
+// _archive/permission-denied.js: superseded by permission-denied-logger.js; kept, never run.
+var DORMANT_HOOK_ALLOWLIST = ['README.md', '_archive/permission-denied.js'];
 
 var ORCHESTRATOR_REL = path.join('orchestrator', 'session-start-orchestrator.js');
 
@@ -243,18 +244,27 @@ function findSharedStateWriters(hooksDir) {
   }).sort();
 }
 
-function checkHookChain(root) {
-  var hooksDir = path.join(root, 'commander', 'cowork-plugin', 'hooks');
+/**
+ * Hook-chain facts for one plugin hooks dir. A handler is registered when
+ * hooks.json runs it or the SessionStart orchestrator imports it.
+ * Returns {loadable, manifestPath, registered[], unregistered[], missing[],
+ * legacyRequire[], noEsm[]} with paths relative to hooksDir. loadable is false
+ * when hooks.json is missing or unparseable.
+ */
+function hookChainReport(hooksDir) {
   var manifestPath = path.join(hooksDir, 'hooks.json');
   var manifest = safeJson(manifestPath);
-  if (!manifest || !manifest.hooks) {
-    return fail(
-      'hook-chain',
-      'hooks.json missing or unparseable at ' + manifestPath,
-      'Restore hooks.json from a known-good commit.'
-    );
-  }
-  // Collect referenced .js paths from manifest
+  var report = {
+    loadable: !!(manifest && manifest.hooks),
+    manifestPath: manifestPath,
+    registered: [],
+    unregistered: [],
+    missing: [],
+    legacyRequire: [],
+    noEsm: [],
+  };
+  if (!report.loadable) return report;
+
   var referenced = new Set();
   Object.keys(manifest.hooks).forEach(function (event) {
     var groups = manifest.hooks[event] || [];
@@ -265,39 +275,56 @@ function checkHookChain(root) {
       });
     });
   });
+  // Handlers the orchestrator imports run on SessionStart without their own hooks.json entry.
+  if (referenced.has(ORCHESTRATOR_REL.split(path.sep).join('/'))) {
+    orchestratorHandlers(hooksDir).forEach(function (rel) { referenced.add(rel); });
+  }
 
-  var problems = [];
-  // Each referenced file exists + uses ESM import (not require)
   referenced.forEach(function (rel) {
     var p = path.join(hooksDir, rel);
     if (!exists(p)) {
-      problems.push('missing: ' + rel);
+      report.missing.push(rel);
       return;
     }
-    var content = safeRead(p) || '';
-    // Strip block + line comments before scanning so prose mentions don't trigger.
-    var stripped = content
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
-    if (/^\s*(?:const|var|let)\s+[\w{},\s]+\s*=\s*require\s*\(/m.test(stripped)) {
-      problems.push('legacy require(): ' + rel);
-    }
-    if (!/^\s*import\s+/m.test(stripped)) {
-      problems.push('no ESM import: ' + rel);
-    }
+    // Strip comments before scanning so prose mentions don't trigger.
+    var stripped = stripComments(safeRead(p) || '');
+    if (/^\s*(?:const|var|let)\s+[\w{},\s]+\s*=\s*require\s*\(/m.test(stripped)) report.legacyRequire.push(rel);
+    if (!/^\s*import\s+/m.test(stripped)) report.noEsm.push(rel);
   });
+  report.registered = Array.from(referenced).filter(function (rel) {
+    return report.missing.indexOf(rel) === -1;
+  }).sort();
 
-  // Unregistered .js files in hooks/ that aren't in dormant allowlist
-  var onDisk = listFiles(hooksDir, '.js');
-  var unregistered = onDisk.filter(function (f) {
+  // Shipped handler files (hooks/*.js and hooks/_archive/*.js) nothing registers.
+  var onDisk = listFiles(hooksDir, '.js')
+    .concat(listFiles(path.join(hooksDir, '_archive'), '.js').map(function (f) { return '_archive/' + f; }));
+  report.unregistered = onDisk.filter(function (f) {
     return !referenced.has(f) && DORMANT_HOOK_ALLOWLIST.indexOf(f) === -1;
-  });
-  if (unregistered.length > 0) {
-    problems.push('unregistered: ' + unregistered.join(', '));
+  }).sort();
+  return report;
+}
+
+function checkHookChain(root) {
+  var hooksDir = path.join(root, 'commander', 'cowork-plugin', 'hooks');
+  var report = hookChainReport(hooksDir);
+  if (!report.loadable) {
+    return fail(
+      'hook-chain',
+      'hooks.json missing or unparseable at ' + report.manifestPath,
+      'Restore hooks.json from a known-good commit.'
+    );
+  }
+
+  var problems = []
+    .concat(report.missing.map(function (rel) { return 'missing: ' + rel; }))
+    .concat(report.legacyRequire.map(function (rel) { return 'legacy require(): ' + rel; }))
+    .concat(report.noEsm.map(function (rel) { return 'no ESM import: ' + rel; }));
+  if (report.unregistered.length > 0) {
+    problems.push('unregistered: ' + report.unregistered.join(', '));
   }
 
   if (problems.length === 0) {
-    return ok('hook-chain', 'All ' + referenced.size + ' referenced hooks present + ESM');
+    return ok('hook-chain', 'All ' + report.registered.length + ' referenced hooks present + ESM');
   }
   return fail(
     'hook-chain',
@@ -689,6 +716,8 @@ module.exports = {
   checkEffortDefault: checkEffortDefault,
   checkLicenseCleanup: checkLicenseCleanup,
   checkHookChain: checkHookChain,
+  hookChainReport: hookChainReport,
+  DORMANT_HOOK_ALLOWLIST: DORMANT_HOOK_ALLOWLIST,
   orchestratorHandlers: orchestratorHandlers,
   findSharedStateWriters: findSharedStateWriters,
   checkMcpAvailability: checkMcpAvailability,

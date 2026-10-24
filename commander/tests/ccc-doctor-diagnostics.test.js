@@ -253,6 +253,89 @@ test('checkHookChain: fail when unregistered .js file present', function () {
   assert.ok(r.message.includes('orphan.js'));
 });
 
+// CC-2099: SessionStart handlers the orchestrator imports are registered too.
+
+function addOrchestrator(root, handlerFiles) {
+  var manifestPath = path.join(root, 'commander/cowork-plugin/hooks/hooks.json');
+  var manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.hooks.SessionStart[0].hooks.push({
+    type: 'command',
+    command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js"',
+  });
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  var list = handlerFiles.map(function (f) { return "  { name: 'x', file: '../" + f + "' },"; }).join('\n');
+  writeFile(
+    root,
+    'commander/cowork-plugin/hooks/orchestrator/session-start-orchestrator.js',
+    "import { join } from 'node:path';\n// { file: '../commented-out.js' }\nconst handlers = [\n" + list + "\n];\n"
+  );
+}
+
+test('checkHookChain: a handler the orchestrator imports counts as registered', function () {
+  var root = buildGoodFixture();
+  addOrchestrator(root, ['nudge.js', '_archive/legacy-start.js']);
+  writeFile(root, 'commander/cowork-plugin/hooks/nudge.js', "import { a } from 'node:fs';\n");
+  writeFile(root, 'commander/cowork-plugin/hooks/_archive/legacy-start.js', "import { a } from 'node:fs';\n");
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'ok', r.message);
+  var report = diag.hookChainReport(path.join(root, 'commander/cowork-plugin/hooks'));
+  assert.ok(report.registered.includes('nudge.js'));
+  assert.ok(report.registered.includes('_archive/legacy-start.js'));
+});
+
+test('checkHookChain: fail when an orchestrator handler is missing on disk', function () {
+  var root = buildGoodFixture();
+  addOrchestrator(root, ['gone.js']);
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.ok(r.message.includes('missing: gone.js'), r.message);
+});
+
+test('checkHookChain: orchestrator handlers do not count when the orchestrator is not registered', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'commander/cowork-plugin/hooks/orchestrator/session-start-orchestrator.js', "import x from 'y';\nconst h = [{ file: '../nudge.js' }];\n");
+  writeFile(root, 'commander/cowork-plugin/hooks/nudge.js', "import { a } from 'node:fs';\n");
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.ok(r.message.includes('unregistered: nudge.js'), r.message);
+});
+
+test('checkHookChain: an unregistered _archive handler fails unless allowlisted', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'commander/cowork-plugin/hooks/_archive/stray.js', "import x from 'y';\n");
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.ok(r.message.includes('_archive/stray.js'), r.message);
+  writeFile(root, 'commander/cowork-plugin/hooks/_archive/stray.js', '');
+  fs.renameSync(
+    path.join(root, 'commander/cowork-plugin/hooks/_archive/stray.js'),
+    path.join(root, 'commander/cowork-plugin/hooks/_archive/permission-denied.js')
+  );
+  assert.strictEqual(diag.checkHookChain(root).status, 'ok');
+});
+
+test('every shipped hook file is registered or explicitly allowlisted', function () {
+  var hooksDir = path.join(__dirname, '..', 'cowork-plugin', 'hooks');
+  var report = diag.hookChainReport(hooksDir);
+  assert.strictEqual(report.loadable, true);
+  assert.deepStrictEqual(report.unregistered, []);
+  assert.deepStrictEqual(report.missing, []);
+  assert.ok(report.registered.includes('fable-armed-nudge.js'));
+  assert.ok(report.registered.includes('voice-injector.js'));
+  diag.DORMANT_HOOK_ALLOWLIST.forEach(function (rel) {
+    if (rel.endsWith('.js')) assert.ok(fs.existsSync(path.join(hooksDir, rel)), 'allowlisted ' + rel + ' exists');
+  });
+});
+
+test('ccc doctor on a fresh copy of the shipped hooks: hook chain ok (0 critical)', function () {
+  var root = buildGoodFixture();
+  var hooksDir = path.join(root, 'commander/cowork-plugin/hooks');
+  fs.rmSync(hooksDir, { recursive: true, force: true });
+  fs.cpSync(path.join(__dirname, '..', 'cowork-plugin', 'hooks'), hooksDir, { recursive: true });
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'ok', r.message);
+});
+
 // --- 3. mcp-availability ----------------------------------------------------
 
 test('checkMcpAvailability: ok with 2 bundled + 16 connectors', function () {
