@@ -84,7 +84,9 @@ function statePath(name, env) {
  */
 function readable(name, env) {
   var own = statePath(name, env);
-  if (fs.existsSync(own)) return own;
+  // Fall back to the legacy copy only when the lane copy is absent. Any other error (EACCES, ENOTDIR) keeps the lane
+  // path so the caller's read fails and pause controls such as fleet-hold.json fail closed.
+  try { fs.statSync(own); return own; } catch (e) { if (e.code !== 'ENOENT') return own; }
   var legacy = path.join(legacyStateDir(env), name);
   return fs.existsSync(legacy) ? legacy : own;
 }

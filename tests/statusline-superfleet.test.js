@@ -107,6 +107,11 @@ test('CCC_STATUSLINE_SF=off hides it; guestnetworks shows lane ai5', { skip: !HA
   assert.match(segment(f, { SF_RUN_DIR: f.run, CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-guestnetworks') }).seg, /^ai5 /);
 });
 
+test('CCC_CONFIG_DIR wins over CLAUDE_CONFIG_DIR, as in resolveLane()', { skip: !HAS_JQ }, (t) => {
+  const f = fixture(t);
+  assert.match(segment(f, { SF_RUN_DIR: f.run, CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-ai1'), CCC_CONFIG_DIR: path.join(f.home, '.claude-ai3') }).seg, /^ai3 /);
+});
+
 test('segment render time is bounded and cached', { skip: !HAS_JQ }, (t) => {
   const f = fixture(t);
   writeUsage(f, new Date().toISOString(), 5);

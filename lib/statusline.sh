@@ -324,14 +324,14 @@ fi
 
 # ── CCC version ───────────────────────────────────────────────────────────
 CCC_VER=""
-CCC_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-if [ -f "$CCC_CONFIG_DIR/plugins/installed_plugins.json" ]; then
+CCC_PLUGIN_CFG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+if [ -f "$CCC_PLUGIN_CFG_DIR/plugins/installed_plugins.json" ]; then
   CCC_PLUGIN_ENTRY=$(jq -c --arg project "$PROJECT_DIR" '
     [.plugins | to_entries[] | select(.key | test("^commander@")) | .value[] | objects] |
     (map(select(.scope == "project" and .projectPath == $project))[0] //
      map(select(.scope == "user"))[0] //
      map(select((.projectPath // $project) == $project))[0]) // empty
-  ' "$CCC_CONFIG_DIR/plugins/installed_plugins.json" 2>/dev/null)
+  ' "$CCC_PLUGIN_CFG_DIR/plugins/installed_plugins.json" 2>/dev/null)
   if [ -n "$CCC_PLUGIN_ENTRY" ]; then
     CCC_INSTALL_PATH=$(printf '%s\n' "$CCC_PLUGIN_ENTRY" | jq -r '.installPath // empty' 2>/dev/null)
     if [ -n "$CCC_INSTALL_PATH" ] && [ -f "$CCC_INSTALL_PATH/.claude-plugin/plugin.json" ]; then

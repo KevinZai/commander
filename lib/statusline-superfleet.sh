@@ -95,7 +95,7 @@ ccc_sf_segment() {
   local run lane cache_dir cache now line stamp seg
   run=$(ccc_sf_run_dir "${1-}")
   [ -n "$run" ] || return
-  lane=$(ccc_sf_lane "${CLAUDE_CONFIG_DIR:-}")
+  lane=$(ccc_sf_lane "${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-}}")   # same precedence as commander/lib/lane.js resolveLane()
   cache_dir="${TMPDIR:-/tmp}"; cache_dir="${cache_dir%/}/ccc-sf-$(id -u)"
   cache="$cache_dir/$(printf '%s|%s' "$run" "$lane" | cksum | cut -d' ' -f1)"
   now=$(date +%s)

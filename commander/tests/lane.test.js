@@ -79,6 +79,23 @@ function runStateWriter(env, marker, n) {
   return childProcess.spawn(process.execPath, ['-e', script], { env: env, stdio: 'ignore' });
 }
 
+test('readable() keeps the lane path on access errors so fleet-hold.json fails closed', { skip: process.getuid && process.getuid() === 0 }, function() {
+  var home = tmp('ccc lane eacces ');
+  var env = { HOME: home, CLAUDE_CONFIG_DIR: path.join(home, '.claude-ai3') };
+  var legacy = path.join(home, '.claude', 'commander');
+  var own = path.join(home, '.claude-ai3', 'commander');
+  fs.mkdirSync(legacy, { recursive: true });
+  fs.mkdirSync(own, { recursive: true });
+  fs.writeFileSync(path.join(legacy, 'fleet-hold.json'), '{"hold":false}');
+  fs.writeFileSync(path.join(own, 'fleet-hold.json'), '{"hold":true}');
+  fs.chmodSync(own, 0);
+  try {
+    assert.strictEqual(lane.readable('fleet-hold.json', env), path.join(own, 'fleet-hold.json'));
+    var hold = require('../lib/next').readHold(env, Date.now());
+    assert.ok(hold && hold.action === 'hold', 'unreadable lane hold must fail closed: ' + JSON.stringify(hold));
+  } finally { fs.chmodSync(own, 0o755); }
+});
+
 test('two lanes writing state concurrently do not clobber each other', async function() {
   var home = tmp('ccc lane race ');
   var base = Object.assign({}, process.env, { HOME: home });
