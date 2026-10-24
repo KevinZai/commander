@@ -366,6 +366,15 @@ EXTRAS=""
 [ -n "$LINEAR_TICKET" ] && EXTRAS+=" ${D}│${N} 📋 ${W}${LINEAR_TICKET}${N}"
 [ -n "$AGENT" ] && EXTRAS+=" ${D}│${N} ⚡ ${TC}${AGENT}${N}"
 
+# ── Superfleet segment (own flag: CCC_STATUSLINE_SF=off) ──────────────────
+SF_SEG=""
+SF_LIB="$(cd "$(dirname "$0")" && pwd)/statusline-superfleet.sh"
+if [ "${CCC_STATUSLINE_SF:-on}" != "off" ] && [ -f "$SF_LIB" ] && { [ -n "${SF_RUN_DIR:-}" ] || [ -n "${SF_RUNS_ROOT:-}" ]; }; then
+  # shellcheck source=statusline-superfleet.sh
+  . "$SF_LIB"
+  SF_SEG=$(ccc_sf_segment "$(printf '%s' "$INPUT" | jq -r '.session_id // empty' 2>/dev/null)")
+fi
+
 # ── Output ────────────────────────────────────────────────────────────────
 OUT="${D}━━${N} $(rainbow_gradient "$CC_LABEL")"
 OUT+=" ${D}│${N} ${STATUS_EMOJI}${TC}${MODEL_SHORT}${N}"
@@ -378,4 +387,5 @@ OUT+=" ${D}│${N} ⏰ ${D}${DUR_FMT}${N}"
 [ "$SKILL_COUNT" -gt 0 ] 2>/dev/null && OUT+=" ${D}│${N} 🎯 ${M}${SKILL_COUNT}${N}"
 OUT+="${EXTRAS}"
 OUT+=" ${D}│${N} 📂 ${GR}${PROJ_SHORT}${N}"
+[ -n "$SF_SEG" ] && OUT+=" ${D}│${N} 🚀 ${W}${SF_SEG}${N}"
 echo -e "$OUT"

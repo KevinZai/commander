@@ -88,3 +88,18 @@ To audit another machine, run the same command there with its own checkout: `ccc
 - **Timing:** `fleet-hold.json` in the lane state dir, or the legacy `~/.claude/commander/`, controls timing. `{"hold":true,"reason":…}` gives `action: "hold"`. `{"until":"<ISO>","reason":…}` gives `action: "defer"` with `when` set to that time. An unreadable or malformed hold file fails closed as a hold.
 - **Exit codes:** 0 answered, 2 bad input (not a JSON object, or more than 64 KB), 3 no usable commander plugin on the lane.
 - **Read-only:** it never dispatches, writes or makes network calls.
+
+## Status line segment (Superfleet runs)
+
+`lib/statusline-superfleet.sh` (sourced by `lib/statusline.sh`) adds `🚀 ai4 SF-CCC-20261024 3/7 CC-2093 5h:6%` when a session runs inside a Superfleet run dir:
+
+| Env | Meaning |
+|---|---|
+| `SF_RUN_DIR` | The run dir. It needs an `ITEMS.tsv` with columns `item, commit, state, …`. |
+| `SF_RUNS_ROOT` | Alternative to `SF_RUN_DIR`: the parent of the run dirs. The matching run dir is the one whose `SESSION_ID` file holds the session's id. |
+| `CCC_LANE_USAGE_FILE` | A `lane-usage-cli.json`-shaped file. The segment shows the lane's `session` window as `5h:N%`. A reading older than 30 minutes, or no reading at all, shows `5h:?`. |
+| `CCC_STATUSLINE_SF=off` | Hides the segment. |
+
+- **Progress:** `done` and `skipped` rows count as finished. The current ticket is the first `wip` row; if there is none, the first row that is not done, skipped or blocked.
+- **Batch key:** the `Batch key:` line in `BRIEF.md`, shortened to 16 characters. Without that line, the run dir name is used.
+- **Cost:** the segment is read-only and offline. Its output is cached for 15 seconds under `$TMPDIR`.
