@@ -4,6 +4,7 @@
 
 ### Fixed
 - **Status line:** reads the CCC version from the installed plugin's `plugin.json` instead of a toolkit checkout, so it no longer shows a stale version.
+- **Status line:** the 🔑 hint shows the lane from the `CLAUDE_CONFIG_DIR` basename (`~/.claude-ai1` → `ai1`, any `.claude-<lane>`), and `pri` when it is unset or plain `.claude`. Other config dir names keep the ClaudeSwap / API-key-tail fallback.
 
 ## [8.1.1] - 2026-10-23
 
