@@ -126,6 +126,24 @@ To audit another machine, run the same command there with its own checkout: `ccc
 - **Batch key:** the `Batch key:` line in `BRIEF.md`, shortened to 16 characters. Without that line, the run dir name is used.
 - **Cost:** the segment is read-only and offline. Its output is cached for 15 seconds under `$TMPDIR`.
 
+### Rolling the status line out (`ccc statusline sync`)
+
+`claude plugin update` does not touch the status line. `install.sh` copies `lib/statusline*.sh` into a config dir once, and each lane's `settings.json` runs that copy. `ccc statusline sync` shows which lanes run an old copy:
+
+```bash
+ccc statusline sync                 # dry run: every lane, changes nothing
+ccc statusline sync --lane ai4      # one lane (lane name or config dir name)
+ccc statusline sync --json          # {schema: 1, source_dir, applied, in_sync, targets[]}
+ccc statusline sync --apply         # archive, then copy
+```
+
+- **Source:** `statusline.sh` and `statusline-superfleet.sh` in the `lib/` of the checkout `ccc` runs from.
+- **Target:** the dir of the `statusline.sh` that the lane's `statusLine.command` runs, else `<config dir>/lib`. Lanes that run the same file (all lanes that point at `~/.claude/lib/statusline.sh`) are one target. Quoted paths with spaces are understood. A lane with no status line configured, or a `statusLine.command` that runs something other than `statusline.sh`, is skipped. Unknown arguments (including `--lane=X`) exit 2 before anything is written. An unreadable or malformed `settings.json` is a warning that counts as drift (exit 1), and `--apply` leaves that lane alone.
+- **Per file:** `same`, `differs` (with `+added/-removed` lines), `missing`, `unreadable`, or after `--apply` `copied` or `apply_failed`.
+- **`--apply`:** copies each `differs` or `missing` file. It first copies the old file to `<config dir>/commander/archive/<timestamp>/<dir>/`, under the config dir that owns the target. Nothing is deleted.
+- **Exit codes:** 0 in sync (or applied cleanly), 1 drift remains or a copy failed, 2 bad arguments or an unknown lane.
+- Lanes do not run `--apply` themselves. The coordinator runs it once with the release.
+
 ## Fleet routing hook
 
 The UserPromptSubmit classifier (`hooks/intent-classifier.js` with `hooks/lib/fleet-intent.mjs`) recognizes Fleet control-plane requests: launching a lane, Superfleet or `SF-<KEY>` batch status, a lane sweep, finishing a Superfleet batch, lane usage or headroom, and what's running on the fleet. It answers with a `<ccc-fleet-route>` block that names the claude-fleet skill, the read-only `fleet` commands and the `ccc checkin` line.

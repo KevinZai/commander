@@ -36,6 +36,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --list-sessions  Session history (add --json for JSON)');
   console.log('  --status     Health check (JSON: version, skills, vendors)');
   console.log('  checkin      Fleet check-in: versions, drift, lane, health (--json, --no-cli)');
+  console.log('  statusline sync  Diff each lane\'s status line with this checkout (--lane X, --apply, --json, --home DIR)');
   console.log('  next         Fleet what-next for a job (JSON on stdin or --kind/--tags/--title; --json)');
   console.log('  --template   Print the latest CLAUDE.md template (pipe to file)');
   console.log('  --daemon     Start persistent background daemon');
@@ -60,6 +61,33 @@ if (args[0] === 'checkin' || args.includes('--checkin')) {
   var ciResult = ci.buildCheckin({ root: path.resolve(__dirname, '..'), cli: !args.includes('--no-cli') });
   console.log(args.includes('--json') ? JSON.stringify(ciResult, null, 2) : ci.summaryLine(ciResult));
   process.exit(ci.exitCode(ciResult));
+}
+// Agent API: statusline sync (dry run unless --apply; docs/FLEET-CHECKIN.md)
+if (args[0] === 'statusline') {
+  var ss = require(path.join(__dirname,'..','commander','lib','statusline-sync'));
+  var ssOpt = function(flag) {
+    var i = args.indexOf(flag);
+    if (i < 0) return undefined;
+    if (!args[i + 1] || args[i + 1].indexOf('--') === 0) { process.stderr.write('ccc statusline sync: ' + flag + ' needs a value\n'); process.exit(2); }
+    return args[i + 1];
+  };
+  var ssUsage = 'usage: ccc statusline sync [--lane X] [--apply] [--json] [--home DIR]\n';
+  if (args[1] !== 'sync') { process.stderr.write(ssUsage); process.exit(2); }
+  // Reject anything unrecognised (e.g. --lane=ai4) before any write, so a typo never widens --apply to every lane.
+  for (var ssI = 2; ssI < args.length; ssI++) {
+    if (args[ssI] === '--lane' || args[ssI] === '--home') { ssI++; continue; }
+    if (args[ssI] !== '--apply' && args[ssI] !== '--json') { process.stderr.write('ccc statusline sync: unknown argument ' + args[ssI] + '\n' + ssUsage); process.exit(2); }
+  }
+  var ssHome = ssOpt('--home') || process.env.HOME;
+  try {
+    var ssResult = ss.plan({ home: ssHome, lane: ssOpt('--lane') });
+    if (args.includes('--apply')) ss.apply(ssResult);
+    console.log(args.includes('--json') ? JSON.stringify(ssResult, null, 2) : ss.render(ssResult, ssHome));
+    process.exit(ss.exitCode(ssResult));
+  } catch (e) {
+    process.stderr.write('ccc statusline sync: ' + e.message + '\n');
+    process.exit(e.exitCode || 1);
+  }
 }
 if (args.includes('--simple')) { /* handled below — skip split, go to engine */ }
 if (args.includes('--update')) {
