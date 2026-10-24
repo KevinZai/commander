@@ -180,6 +180,8 @@ echo "INSTALLED_VERSION=$INSTALLED_VERSION"
 
 # Cached remote version (< 4h old)
 CACHE="$CCC_STATE/update-cache.json"
+# commander/update-check.js writes the shared ~/.claude/commander cache; read it when this lane has no copy
+[ -f "$CACHE" ] || CACHE="$HOME/.claude/commander/update-cache.json"
 CACHED_REMOTE_VERSION=$(node -e "
   try {
     const fs=require('fs');

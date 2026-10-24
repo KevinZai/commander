@@ -27,7 +27,7 @@ to `n/a`.
 | `HANDLER_COUNT` | `jq '[.hooks[][].hooks // [] \| length] \| add // 0' hooks/hooks.json` | 📝 drift, 🔬 Hooks coverage |
 | `VENDOR_COUNT` | `vendor/` directory count at the repo root, when present | 📝 CLAUDE.md count drift |
 | `INSTALLED_VERSION` | From `installed_plugins.json`, else `plugin.json` | 📦 Version freshness |
-| `CACHED_REMOTE_VERSION` | From `<config dir>/commander/update-cache.json` when under 4 hours old | 📦 Version freshness |
+| `CACHED_REMOTE_VERSION` | From `<config dir>/commander/update-cache.json` (else the shared `~/.claude/commander/update-cache.json` that `commander/update-check.js` writes) when under 4 hours old | 📦 Version freshness |
 | `CLAUDE_MD_MODE` | `maintainer` or `detect-only` (SKILL.md Step 1e repeats the check) | 📝 CLAUDE.md count drift |
 
 ## Cost-settings audit (suggest-only)

@@ -42,13 +42,16 @@ All modes use this one command. Replace `MODE` with `recent`, `search`, `categor
 node -e '
 const fs=require("fs"),path=require("path"),os=require("os");
 const dir=path.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||path.join(os.homedir(),".claude"),"commander","knowledge");
+const legacy=path.join(os.homedir(),".claude","commander","knowledge");
+const dirs=path.resolve(dir)===path.resolve(legacy)?[dir]:[dir,legacy];
 const [mode="recent",arg=""]=process.argv.slice(1);
-let names=[];try{names=fs.readdirSync(dir)}catch{console.log("EMPTY dir-missing");process.exit(0)}
+const src={};for(const d of dirs){let n=[];try{n=fs.readdirSync(d)}catch{continue}for(const f of n)if(!(f in src))src[f]=d}
+const names=Object.keys(src);if(!names.length&&!dirs.some(d=>fs.existsSync(d))){console.log("EMPTY dir-missing");process.exit(0)}
 const L=[];for(const f of names){if(!f.endsWith(".json")||f.startsWith("session-"))continue;
-  try{const l=JSON.parse(fs.readFileSync(path.join(dir,f),"utf8"));if(l&&l.timestamp)L.push(Object.assign({file:f},l))}catch{}}
+  try{const l=JSON.parse(fs.readFileSync(path.join(src[f],f),"utf8"));if(l&&l.timestamp)L.push(Object.assign({file:f},l))}catch{}}
 L.sort((a,b)=>String(b.timestamp).localeCompare(String(a.timestamp)));
 const sessions=names.filter(f=>f.startsWith("session-")).length;
-let captures=0;try{captures=fs.readFileSync(path.join(dir,"auto-captures.jsonl"),"utf8").split("\n").filter(Boolean).length}catch{}
+let captures=0;for(const d of dirs){try{captures+=fs.readFileSync(path.join(d,"auto-captures.jsonl"),"utf8").split("\n").filter(Boolean).length}catch{}}
 if(mode==="stats"){const by=k=>L.reduce((m,l)=>{const v=l[k]||"unknown";m[v]=(m[v]||0)+1;return m},{});
   console.log(JSON.stringify({lessons:L.length,outcome:by("outcome"),category:by("category"),sessions,captures}));process.exit(0)}
 if(!L.length){console.log("EMPTY lessons=0 sessions="+sessions+" captures="+captures);process.exit(0)}
@@ -171,7 +174,7 @@ Sync (before any connector write): 🟢 "Keep local only" · "Sync these lessons
 
 ## Guardrails
 
-- Read only `<config dir>/commander/knowledge/`. Never print `auto-captures.jsonl` lines wholesale, since they hold local file paths; report counts.
+- Read only `<config dir>/commander/knowledge/`, plus the pre-lane `~/.claude/commander/knowledge/` (read-only; a lane copy of the same file wins). Write only to `<config dir>/commander/knowledge/`. Never print `auto-captures.jsonl` lines wholesale, since they hold local file paths; report counts.
 - Write only new `kl-*.json` files; never edit or delete existing lessons, session stubs or captures.
 - Never push to a knowledge base, drive or tracker without the sync picker's approval in this conversation.
 - Codex: ask each picker as a plain-text question with the same options.

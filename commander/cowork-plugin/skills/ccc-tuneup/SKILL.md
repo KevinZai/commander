@@ -89,6 +89,8 @@ INSTALLED_V="$(node -e "
 
 CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
 CACHE="$CCC_STATE/update-cache.json"
+# commander/update-check.js writes the shared ~/.claude/commander cache; read it when this lane has no copy
+[ -f "$CACHE" ] || CACHE="$HOME/.claude/commander/update-cache.json"
 CACHED_REMOTE="$(node -e "
   try{
     const d=JSON.parse(require('fs').readFileSync('$CACHE','utf8'));
