@@ -51,7 +51,7 @@ If a context file exists, Read it before any routed work; every sub-skill depend
 
 When the request already names the job, route straight to it with the intent table in [references/routing.md](references/routing.md) and skip the picker.
 
-Otherwise ask with AskUserQuestion (header "CC Commander · Marketing", question "What marketing work?"). Put the recommended option first, marked 🟢:
+Otherwise ask with AskUserQuestion (header "Marketing", question "What marketing work?"). Put the recommended option first, marked 🟢:
 
 - 🧠 Set up brand context — a guided interview that writes `marketing-context.md`; every other method reads it. Recommend first when step 1 found no context file.
 - 📝 Content — plan, produce, edit and humanize content.

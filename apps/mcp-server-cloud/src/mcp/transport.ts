@@ -14,7 +14,7 @@ import { Hono } from "hono";
 import { StreamableHTTPTransport } from "@hono/mcp";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { TOOL_NAMES, TOOL_SCHEMAS, type ToolName } from "../tools/index.js";
+import { TOOL_NAMES, TOOL_SCHEMAS, type ToolAnnotations, type ToolName } from "../tools/index.js";
 import type { AuthContext } from "../middleware/auth.js";
 import { SERVER_VERSION } from "../lib/version.js";
 import { logger } from "../lib/logger.js";
@@ -29,13 +29,27 @@ export type McpTransportDeps = {
   captureEvent?: (userId: string, event: string, props: Record<string, unknown>) => void;
 };
 
-function toolList(): { name: string; description?: string; inputSchema: object }[] {
+// Annotations ride along on tools/list: clients use readOnlyHint/idempotentHint
+// to decide, e.g., whether a failed HTTP tool call is safe to retry.
+function toolList(): {
+  name: string;
+  title?: string;
+  description?: string;
+  inputSchema: object;
+  annotations?: ToolAnnotations;
+}[] {
   return TOOL_NAMES.map((name) => {
-    const schema = TOOL_SCHEMAS[name] as { description?: string; inputSchema?: object };
+    const schema = TOOL_SCHEMAS[name] as {
+      description?: string;
+      inputSchema?: object;
+      annotations?: ToolAnnotations;
+    };
     return {
       name,
+      title: schema.annotations?.title,
       description: schema.description,
       inputSchema: schema.inputSchema ?? { type: "object" },
+      annotations: schema.annotations,
     };
   });
 }

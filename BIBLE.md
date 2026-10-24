@@ -23,7 +23,7 @@ A Claude Mod (`commander/cowork-plugin/mods/commander-hud/`) draws one line abov
 
 ### Plugin workflows
 
-Six dynamic workflows ship in the plugin and run as `/commander:<name>`: `ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate`, `ccc-prompt-audit` and `ccc-release-audit`. Each fans out agents and has a fresh agent confirm or refute every finding before it reaches you.
+Six dynamic workflows ship in the plugin and run as `/commander:<name>`: `ccc-audit`, `ccc-deep-review`, `ccc-fleet-run`, `ccc-migrate`, `ccc-prompt-audit` and `ccc-release-audit`. Each fans out agents and has a fresh agent confirm or refute every finding before it reaches you.
 
 ### Plugin evals
 
@@ -1654,7 +1654,7 @@ CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash
 | `/ccc-update` | Click-first update walkthrough — detect installed vs. latest, update, restart, verify hooks |
 | `/ccc-codex` | Manage the Codex CLI from Claude — doctor, models, plugins, MCP, agents, cloud, review, update |
 
-The six bundled dynamic workflows also run directly as `/commander:ccc-audit`, `/commander:ccc-deep-review`, `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit` and `/commander:ccc-release-audit`.
+The six bundled dynamic workflows also run directly as `/commander:ccc-audit`, `/commander:ccc-deep-review`, `/commander:ccc-fleet-run`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit` and `/commander:ccc-release-audit`.
 
 Pick one and the plugin handles it — no service ports, no persistent process. For CLI-only power-user commands (fleet dispatch, AO worker pool, cost dashboard), see the [CLI-Only Commands appendix](#cli-only-commands-cli-power-user) below.
 
@@ -2575,7 +2575,7 @@ CC Commander ships 6 plugin workflows in `commander/cowork-plugin/workflows/`. E
 | `ccc-audit` | `/ccc-xray` | Repo health audit — one finder per dimension, every finding verified, scored scorecard |
 | `ccc-deep-review` | `/ccc-review` | Branch review over four weighted dimensions, severity-grouped verdict |
 | `ccc-migrate` | `/ccc-ultracode` | Discover every site, transform each in its own worktree, verify each change independently |
-| `ccc-fleet` | `/ccc-fleet` | Fan-out, sequential pipeline, judge panel or multi-lens debate |
+| `ccc-fleet-run` | `/ccc-fleet` | Fan-out, sequential pipeline, judge panel or multi-lens debate |
 | `ccc-prompt-audit` | `/ccc-ultracode` | Check every skill and agent against the prompt standard |
 | `ccc-release-audit` | `/ccc-ultracode` | Run every release gate, return go or no-go with blockers |
 
@@ -2651,7 +2651,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 
 - **ECC owns** raw breadth: skills, commands, agents, hook lifecycle.
 - **Commander owns** curation + guidance + memory: click-first `/ccc-*` chip pickers (AskUserQuestion), `/ccc-suggest` routing, brain/hands pattern, The Kevin Z Method.
-- **On top of ECC** Commander adds the 84-skill `/ccc-*` front door, six plugin workflows (`/commander:ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate`, `ccc-prompt-audit`, `ccc-release-audit`), `/ccc-suggest` (names ECC when it's the right tool), `/ccc-ecc` for selective skill/agent/hook loading, session memory/compounding, and vendor aggregation (ECC = 1 of 20 vendors, scored by the Smart Orchestrator).
+- **On top of ECC** Commander adds the 84-skill `/ccc-*` front door, six plugin workflows (`/commander:ccc-audit`, `ccc-deep-review`, `ccc-fleet-run`, `ccc-migrate`, `ccc-prompt-audit`, `ccc-release-audit`), `/ccc-suggest` (names ECC when it's the right tool), `/ccc-ecc` for selective skill/agent/hook loading, session memory/compounding, and vendor aggregation (ECC = 1 of 20 vendors, scored by the Smart Orchestrator).
 - **ECC-sourced parts are labeled** under `vendor/everything-claude-code/`; Commander ports a minimal hook/agent set and defers to upstream. Bump the pin with `/ccc-upgrade`.
 
 ### Further Reading

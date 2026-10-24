@@ -29,8 +29,10 @@ process.env.OAUTH_ISSUER_URL = "https://issuer.example.com";
 
 const { app } = await import("../src/index.js");
 const { createMcpTransportApp } = await import("../src/mcp/transport.js");
-const { TOOL_NAMES } = await import("../src/tools/index.js");
+const { TOOL_NAMES, TOOL_SCHEMAS } = await import("../src/tools/index.js");
+const { publicOrigin, metadataOrigin } = await import("../src/lib/public-origin.js");
 import type { AuthContext } from "../src/middleware/auth.js";
+import type { ToolName } from "../src/tools/index.js";
 
 const MCP_HEADERS = {
   "Content-Type": "application/json",
@@ -111,6 +113,49 @@ describe("/mcp auth challenges", () => {
   });
 });
 
+// Behind Fly's proxy the app sees http; clients connected over https.
+describe("public origin behind a TLS-terminating proxy", () => {
+  it("advertises an https resource when X-Forwarded-Proto is https", async () => {
+    const res = await app.fetch(
+      new Request("http://test/.well-known/oauth-protected-resource", {
+        headers: { "X-Forwarded-Proto": "https" },
+      })
+    );
+    const body = (await res.json()) as Record<string, unknown>;
+    assert.equal(body.resource, "https://test/mcp");
+  });
+
+  it("points the 401 challenge's resource_metadata at https", async () => {
+    const res = await app.fetch(
+      new Request("http://test/mcp", {
+        method: "POST",
+        headers: { ...MCP_HEADERS, "X-Forwarded-Proto": "https" },
+        body: rpc("initialize"),
+      })
+    );
+    assert.equal(res.status, 401);
+    assert.match(
+      res.headers.get("WWW-Authenticate") ?? "",
+      /resource_metadata="https:\/\/test\/\.well-known\/oauth-protected-resource"/
+    );
+  });
+
+  it("publicOrigin: first forwarded hop wins; unknown schemes are ignored", () => {
+    assert.equal(publicOrigin("http://h.example/mcp", "https, http"), "https://h.example");
+    assert.equal(publicOrigin("http://h.example/mcp", "HTTPS"), "https://h.example");
+    assert.equal(publicOrigin("http://h.example/mcp", "javascript"), "http://h.example");
+    assert.equal(publicOrigin("http://h.example/mcp", null), "http://h.example");
+  });
+
+  it("metadataOrigin: OAUTH_RESOURCE_URL's origin wins so challenge and metadata agree", () => {
+    assert.equal(
+      metadataOrigin("http://mcp.alias.example/mcp", "https", "https://canonical.example/mcp"),
+      "https://canonical.example"
+    );
+    assert.equal(metadataOrigin("http://h.example/mcp", "https", ""), "https://h.example");
+  });
+});
+
 // ─── 2. MCP handshake (standalone harness, fake auth + dispatch) ──────────
 const FAKE_AUTH: AuthContext = {
   userId: "8a68e2f2-0000-4000-8000-00000000abcd",
@@ -174,6 +219,21 @@ describe("streamable-HTTP handshake (stateless)", () => {
     assert.deepEqual(new Set(names), new Set(TOOL_NAMES));
     for (const tool of body.result.tools) {
       assert.ok(tool.inputSchema, `tool ${tool.name} missing inputSchema`);
+    }
+  });
+
+  it("tools/list carries each tool's annotations and title", async () => {
+    const { harness } = makeHarness();
+    const res = await postMcp(harness, rpc("tools/list", undefined, 2));
+    const body = (await res.json()) as {
+      result: { tools: { name: ToolName; title?: string; annotations?: Record<string, unknown> }[] };
+    };
+    for (const tool of body.result.tools) {
+      const expected = TOOL_SCHEMAS[tool.name].annotations;
+      assert.deepEqual(tool.annotations, expected, `tool ${tool.name} annotations`);
+      assert.equal(tool.title, expected.title, `tool ${tool.name} title`);
+      assert.equal(typeof tool.annotations?.readOnlyHint, "boolean");
+      assert.equal(typeof tool.annotations?.idempotentHint, "boolean");
     }
   });
 

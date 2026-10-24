@@ -16,6 +16,7 @@
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
+import { sessionKey } from './lib/session-key.mjs';
 // project-state.json / last-suggestion.json moved to per-project dirs in the
 // v7.3.0 suggest migration — reuse the writer's own slug/path helpers so this
 // reader can never drift from where suggest-ticker.js actually writes.
@@ -25,7 +26,6 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
-const SESSION_KEY = (process.env.CLAUDE_SESSION_ID || 'default').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'default';
 
 function gitBranch(cwd = process.cwd()) {
   try {
@@ -56,6 +56,7 @@ async function main() {
       if (raw) payload = JSON.parse(raw);
     } catch {}
     const cwd = resolveCwd(payload);
+    const SESSION_KEY = sessionKey(payload);
 
     // Gather cheap, local state — every piece is optional.
     const branch = gitBranch(cwd);

@@ -1,5 +1,6 @@
 {
   "name": "commander-hub",
+  "description": "Commander marketplace: the Commander plugin for Claude Code, a guided AI PM with click-first /ccc-* workflows, specialist subagents and lifecycle hooks.",
   "owner": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
@@ -9,7 +10,7 @@
       "name": "commander",
       "displayName": "Commander",
       "source": "./commander/cowork-plugin",
-      "description": "CC Commander — Guided AI PM for Claude Code, running on **The Fable Method** (12 enforceable gates so any model produces Fable-shaped results). Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer). **84 plugin skills** incl `/ccc-codex` (Codex CLI management), a Commander HUD mod, 6 distributable workflows, 8 plugin evals, **17 click-first `/ccc-*` workflows** + `/ccc-save-session` + `/ccc-resume-session` + `/ccc-e2e` + `/ccc-memory` + `/ccc-tasks` + `/ccc-recall` + `/ccc-fleet-viz` + `/ccc-changelog` + `/ccc-doctor` + `/ccc-upgrade` + `/ccc-deploy` + `/ccc-rollback` + `/ccc-onboard`. **30 lifecycle hooks × 52 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, Stop, Notification, PreCompact, SubagentStop). **2 credential-free bundled MCP servers** (context7 + sequential-thinking) + 16 opt-in via /ccc-connect. Native Plan pane integration (EnterPlanMode + ExitPlanMode), spawn_task sidebar chips, mark_chapter session nav. 467+ skills across 11 CCC domains. Built for Claude Opus 5.5 / Fable 5.1 and Codex GPT-6. Works in Claude Code Desktop, Cowork Desktop, CLI, Cursor, Windsurf, Cline, Continue, Codex. **Free for now.**",
+      "description": "Guided AI PM for Claude Code: click-first /ccc-* workflows to plan, build, review and ship, /ccc-save-session and /ccc-resume-session, specialist subagents, lifecycle hooks and bundled MCP servers.",
       "version": "8.1.0",
       "category": "development",
       "license": "MIT",

@@ -13,35 +13,37 @@
  *
  * Config: ~/.claude/commander/config.json { "costCeiling": 5.00 } (budget
  * units — 5.00 == 500 tool calls). Default ceiling: 10.00 (1000 calls).
- * State is keyed by CLAUDE_SESSION_ID (shared with cost-tracker.js).
+ * State is keyed by the stdin session_id (shared with cost-tracker.js).
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
+import { sessionKey } from './lib/session-key.mjs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
 const CONFIG_FILE = join(CCC_DIR, 'config.json');
-const SESSION_KEY = (process.env.CLAUDE_SESSION_ID || 'default').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'default';
-const COST_FILE = join(CCC_DIR, 'sessions', `active-cost-${SESSION_KEY}.json`);
 
 const DEFAULT_CEILING = 10.00; // budget units == 1000 tool calls
 // /loop note: rapid /loop iterations burn tool calls fast — raise costCeiling
 // in ~/.claude/commander/config.json or set CCC_COST_OVERRIDE=1 for the run.
 
 async function main() {
+  let input = {};
   try {
     const chunks = [];
     for await (const chunk of process.stdin) chunks.push(chunk);
     const raw = Buffer.concat(chunks).toString('utf8').trim();
-    // Parsed only to fail open on malformed payloads; the ceiling is session-keyed.
-    if (raw) JSON.parse(raw);
+    // Malformed payloads fail open; session_id keys the shared budget file.
+    if (raw) input = JSON.parse(raw);
   } catch {
       track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
 
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }
+
+  const COST_FILE = join(CCC_DIR, 'sessions', `active-cost-${sessionKey(input)}.json`);
 
   try {
     // Explicit override — always allow, stay silent

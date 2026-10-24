@@ -86,24 +86,19 @@ A role passed as the argument skips the picker. Otherwise ask, never more than f
 
 ```yaml
 question: "What kind of contributor are you onboarding?"
-header: "CC Commander Onboard"
+header: "Onboarding"
 multiSelect: false
-autocomplete: true
 options:
   - label: "Frontend"
-    value: "frontend"
     description: "UI, components, client flows, accessibility, and visual polish."
     preview: "First task: a small UI improvement, validated locally."
   - label: "Backend"
-    value: "backend"
     description: "APIs, services, persistence, auth, jobs, and platform integrations."
     preview: "First task: one safe server-side fix with tests."
   - label: "Full-stack"
-    value: "full-stack"
     description: "End-to-end product change crossing UI and backend."
     preview: "First task: trace one user flow from UI to data boundary."
   - label: "More roles"
-    value: "more-roles"
     description: "Docs or the smallest safe first PR."
     preview: "Opens a second picker for non-code or first-contribution paths."
 ```
@@ -112,20 +107,16 @@ If the user picks "More roles", ask a second picker. Check for prior history wit
 
 ```yaml
 question: "Which onboarding path?"
-header: "CC Commander Onboard"
+header: "Onboarding"
 multiSelect: false
-autocomplete: true
 options:
   - label: "🟢 First PR"
-    value: "first-pr"
     description: "Smallest safe contribution for a brand-new contributor."
     preview: "First task: a low-risk validation or test improvement with a clean PR path."
   - label: "Docs"
-    value: "docs"
     description: "Documentation, examples, guides, changelogs, and contributor notes."
     preview: "First task: update one stale or missing guide from repo truth."
   - label: "Back"
-    value: "back"
     description: "Return to frontend, backend, and full-stack roles."
     preview: "Shows the first picker again."
 ```

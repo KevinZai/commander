@@ -83,7 +83,7 @@ Each also runs from the prompt as `/commander:<name>`.
 | `ccc-audit` | `{ target, dimensions, maxPerDimension }` | Dimensions: quality, security, performance, deps, tests, docs, ci. Read-only. |
 | `ccc-deep-review` | `{ base, maxPerDimension }` | Security 35, correctness 25, performance 25, maintainability 15. Read-only. |
 | `ccc-migrate` | `{ pattern, transform, verify, maxSites }` | Each site in its own worktree with an independent verifier. Writes files. |
-| `ccc-fleet` | `{ mode: "fanout" \| "pipeline" \| "judge" \| "debate", tasks \| task, attempts, lenses, rounds }` | See `/ccc-fleet` for pattern choice. |
+| `ccc-fleet-run` | `{ mode: "fanout" \| "pipeline" \| "judge" \| "debate", tasks \| task, attempts, lenses, rounds }` | See `/ccc-fleet` for pattern choice. |
 | `ccc-prompt-audit` | `{ root, standard, paths, maxFiles }` | Prompt-standard check of plugin skills and agents. Commander repository only. Read-only. |
 | `ccc-release-audit` | `{ version, skipTests, postRelease }` | Release gates and doc/count/manifest agreement. Commander repository only. Does not commit, tag, push or publish. |
 

@@ -31,7 +31,7 @@ If not found, inform the user:
 
 ## Step 1: Determine App URL
 
-If `$1` is provided, use it as the app URL.
+If `\$1` is provided, use it as the app URL.
 
 If no URL is provided:
 1. Check if a dev server is likely running by looking for `package.json` scripts

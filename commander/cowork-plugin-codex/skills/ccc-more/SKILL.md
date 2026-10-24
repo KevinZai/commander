@@ -67,7 +67,7 @@ AskUserQuestion, four options, recommended first with 🟢 (Codex: the same choi
 
 ```
 question: "Which tool?"
-header: "CC Commander · More"
+header: "More"
 multiSelect: false
 options:
   - label: "📝 Plan a feature"
@@ -92,7 +92,7 @@ Recommendation, first match wins:
 
 "Even more…" on page 1 opens page 2; "Even more…" on page 2 opens page 3. Each is one AskUserQuestion call with four options.
 
-Page 2 — header "CC Commander · More · 2":
+Page 2 — header "More (2/3)":
 
 - 🤖 Fleet (parallel agents) — parallel agents in isolated worktrees with progress cards
 - 📊 Linear board — view, pick or create issues (opt-in Linear connector)
@@ -101,7 +101,7 @@ Page 2 — header "CC Commander · More · 2":
 
 Page 2 🟢, first match wins: more than one worktree or at least one open task → Fleet; Linear connected and still on this page → Linear board; otherwise → Connect apps.
 
-Page 3 — header "CC Commander · More · 3":
+Page 3 — header "More (3/3)":
 
 - 🧪 Plugin workflows — audit, deep review, release audit, fleet, migrate, prompt audit
 - 🔧 Tune-up setup — audit and safely optimize the local Commander install; read-only by default
@@ -110,12 +110,12 @@ Page 3 — header "CC Commander · More · 3":
 
 Page 3 🟢: Plugin workflows.
 
-Plugin workflows page — header "Plugin workflows" (details: [plugin-workflows.md](references/plugin-workflows.md)):
+Plugin workflows page — header "Workflows" (details: [plugin-workflows.md](references/plugin-workflows.md)):
 
 - 📊 Repo audit — `/commander:ccc-audit`: scorecard per dimension, findings verified
 - 🔬 Deep branch review — `/commander:ccc-deep-review`: diff against the base ref, findings refuted or confirmed
 - ✅ Release audit — `/commander:ccc-release-audit`: every release gate, go or no-go (Commander repository only)
-- ⏭️ More workflows — `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`
+- ⏭️ More workflows — `/commander:ccc-fleet-run`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`
 
 Plugin workflows page 🟢: `dirty` printed or a non-zero commits-ahead count → Deep branch review; otherwise → Repo audit.
 
@@ -141,7 +141,7 @@ Dispatch immediately on a pick; do not ask again.
 | Deep review · `deep-review` | Workflow `ccc-deep-review` with `args: { base: "<origin/HEAD short name, else main>" }` |
 | Release audit · `release-audit` | Only when `commander/contract.json` and `scripts/build-codex.js` exist in the working directory: Workflow `ccc-release-audit` with `args: {}`. Elsewhere, say it audits the Commander repository and does not apply here |
 | Prompt audit · `prompt-audit` | Same repository check, then Workflow `ccc-prompt-audit` with `args: {}` |
-| Fleet run · Migrate · `migrate` | Skill `ccc-fleet`; it collects `mode`/`tasks` or `pattern`/`transform` and starts `ccc-fleet` or `ccc-migrate` |
+| Fleet run · Migrate · `migrate` | Skill `ccc-fleet`; it collects `mode`/`tasks` or `pattern`/`transform` and starts workflow `ccc-fleet-run` or `ccc-migrate` |
 
 Run a workflow as:
 

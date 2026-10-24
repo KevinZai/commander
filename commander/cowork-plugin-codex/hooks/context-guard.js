@@ -19,6 +19,7 @@
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
+import { sessionKey } from './lib/session-key.mjs';
 import { estimateContextPct } from './lib/context-estimate.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -149,7 +150,7 @@ async function main() {
 
     // Read idempotency state
     const state = await readState();
-    const sessionId = process.env.CLAUDE_SESSION_ID || 'default';
+    const sessionId = sessionKey(input);
     const sessionState = state[sessionId] || {};
 
     // Pick the most urgent unfired threshold

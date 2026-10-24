@@ -4,7 +4,7 @@
 
 module.exports = {
 
-  async show_linear(engine, tui, state, choice) {
+  async show_linear(engine, tui, _state, _choice) {
     try {
       var linearMod = require('../integrations/linear');
       var conn = await linearMod.checkConnection();
@@ -22,7 +22,7 @@ module.exports = {
     return { next: 'settings' };
   },
 
-  async linear_setup(engine, tui, state, choice) {
+  async linear_setup(engine, tui, _state, _choice) {
     try {
       var setupLinear = require('../integrations/linear');
       var setupConn = await setupLinear.checkConnection();
@@ -52,7 +52,7 @@ module.exports = {
     return { next: 'settings' };
   },
 
-  async show_linear_board(engine, tui, state, choice) {
+  async show_linear_board(engine, tui, _state, _choice) {
     try {
       var boardLinear = require('../integrations/linear');
       var boardConn = await boardLinear.checkConnection();
@@ -84,7 +84,7 @@ module.exports = {
     return { next: 'linear-board' };
   },
 
-  async linear_create_issue(engine, tui, state, choice) {
+  async linear_create_issue(engine, tui, _state, _choice) {
     try {
       if (!engine.rl) { var readline = require('readline'); engine.rl = readline.createInterface({ input: process.stdin, output: process.stdout }); }
       var issueTitle = await engine.ask('  Issue title: ');
@@ -100,7 +100,7 @@ module.exports = {
     return { next: 'linear-board' };
   },
 
-  async linear_pick_issue(engine, tui, state, choice) {
+  async linear_pick_issue(engine, tui, _state, _choice) {
     try {
       var pickLinear = require('../integrations/linear');
       var pickGrouped = await pickLinear.getIssuesByStatus();

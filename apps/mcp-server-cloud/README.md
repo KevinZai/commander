@@ -6,7 +6,9 @@ Hosted MCP server for CC Commander v4.0 Beta. Serves MCP tools with auth, rate l
 
 - `GET /health` — Health check (no auth)
 - `GET /v1` — MCP server capabilities
-- `GET /v1/sse` — SSE transport (requires Bearer token)
+- `POST|GET /mcp` — MCP Streamable HTTP transport, the endpoint MCP clients should use (requires a Bearer token; a `401` carries an RFC 9728 `resource_metadata` challenge)
+- `GET /.well-known/oauth-protected-resource` (and `/mcp` suffix) — RFC 9728 protected-resource metadata (no auth). It lists `authorization_servers` only when `OAUTH_ISSUER_URL` is set
+- `GET /v1/sse` — legacy SSE transport (requires Bearer token)
 - `POST /v1/call` — Tool call (requires Bearer token)
 
 ## Tools

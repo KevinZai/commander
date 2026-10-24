@@ -108,7 +108,7 @@ When the file defines a next step:
 
 ```yaml
 question: "Where do you want to start?"
-header: "CC Commander — Resume"
+header: "Resume"
 multiSelect: false
 options:
   - label: "🟢 Continue with the next step"

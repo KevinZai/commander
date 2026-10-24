@@ -5,6 +5,7 @@ import { spawn } from "node:child_process";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 type SmokeTool = {
   name: string;
@@ -31,7 +32,7 @@ type JsonRpcResponse = {
   error?: unknown;
 };
 
-const PACKAGE_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FIXTURE_PATH = path.join(PACKAGE_ROOT, "tests/fixtures/sample-inputs.json");
 const EXPECTED_TOOL_COUNT = 18;
 

@@ -4,7 +4,12 @@
 var fs = require('fs');
 var path = require('path');
 
-var ROOT = path.join(__dirname, '..');
+// BUMP_VERSION_ROOT lets tests run the script against a temp copy of the
+// manifests instead of the real checkout (see #209: the old test rewrote the
+// real marketplace.json while parallel tests were reading it).
+var ROOT = process.env.BUMP_VERSION_ROOT
+  ? path.resolve(process.env.BUMP_VERSION_ROOT)
+  : path.join(__dirname, '..');
 
 var version = process.argv[2];
 if (!version) {

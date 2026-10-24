@@ -12,12 +12,12 @@
     "mcpEndpoint": {
       "type": "string",
       "format": "uri",
-      "default": "https://mcp.commanderplugin.com/sse",
+      "default": "https://mcp.commanderplugin.com/mcp",
       "description": "URL of the CC Commander MCP server. Overridden by CCC_MCP_URL environment variable."
     },
     "mcpLicenseKey": {
       "type": "string",
-      "description": "License key for authentication with the MCP server. Sent as Bearer token in Authorization header."
+      "description": "CC Commander access token (license JWT). Sent as a Bearer token in the Authorization header. The hosted /mcp endpoint rejects requests without one (401)."
     },
     "mcpFallbackTimeout": {
       "type": "number",

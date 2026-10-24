@@ -534,6 +534,7 @@ describe('secret-leak-guard.js', () => {
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('returns continue:true for non-scanned tool (Read)', () => {
@@ -543,6 +544,7 @@ describe('secret-leak-guard.js', () => {
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('blocks Write with AWS access key', () => {
@@ -554,9 +556,9 @@ describe('secret-leak-guard.js', () => {
       },
     });
     assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, false);
-    assert.ok(typeof r.parsed?.stopReason === 'string');
-    assert.ok(r.parsed.stopReason.includes('AWS') || r.parsed.stopReason.includes('secret'));
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
+    assert.ok(typeof r.parsed?.hookSpecificOutput?.permissionDecisionReason === 'string');
+    assert.ok(r.parsed.hookSpecificOutput.permissionDecisionReason.includes('AWS') || r.parsed.hookSpecificOutput.permissionDecisionReason.includes('secret'));
   });
 
   it('blocks Bash command with Stripe live key', () => {
@@ -566,7 +568,7 @@ describe('secret-leak-guard.js', () => {
       tool_input: { command: 'curl -H "Authorization: Bearer ' + ['sk', 'live', 'F'.repeat(24)].join('_') + '" https://api.stripe.com' },
     });
     assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('blocks Write with Anthropic API key', () => {
@@ -578,7 +580,7 @@ describe('secret-leak-guard.js', () => {
       },
     });
     assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('blocks Write with GitHub PAT', () => {
@@ -592,7 +594,7 @@ describe('secret-leak-guard.js', () => {
       },
     });
     assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('allows Write with allowlisted test token', () => {
@@ -605,6 +607,26 @@ describe('secret-leak-guard.js', () => {
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
+  });
+
+  it('an allowlisted placeholder elsewhere in the input does not exempt a real key', () => {
+    const realKey = 'sk-ant-api03-' + 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLM';
+    for (const content of [
+      `STRIPE_KEY=REPLACE_ME\nANTHROPIC_API_KEY=${realKey}\n`,
+      `const testKey = "sk_test_example";\nconst key = "${realKey}";\n`,
+    ]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Write', tool_input: { file_path: '/tmp/.env', content } });
+      assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', content);
+    }
+  });
+
+  it('scans PowerShell commands like Bash', () => {
+    const r = runHook('secret-leak-guard.js', {
+      tool_name: 'PowerShell',
+      tool_input: { command: '$env:GH_TOKEN = "' + ['ghp', 'A'.repeat(36)].join('_') + '"' },
+    });
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('allows full git commit SHAs that contain ac + 32 hex (not a Twilio SID)', () => {
@@ -614,10 +636,12 @@ describe('secret-leak-guard.js', () => {
       const r = runHook('secret-leak-guard.js', { tool_name: 'Bash', tool_input: { command } });
       assert.equal(r.exitCode, 0);
       assert.equal(r.parsed?.continue, true, command);
+      assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', command);
     }
     const digest = 'ac' + 'f'.repeat(62);
     const r = runHook('secret-leak-guard.js', { tool_name: 'Write', tool_input: { file_path: '/tmp/x', content: `sha256: ${digest}\n` } });
     assert.equal(r.parsed?.continue, true, 'sha256 digest allowed');
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', 'sha256 digest allowed');
   });
 
   it('still blocks a real-shaped Twilio Account SID, even next to a SHA', () => {
@@ -625,8 +649,8 @@ describe('secret-leak-guard.js', () => {
     const sha = 'ac' + '0123456789abcdef0123456789abcdef' + '123456';
     for (const command of [`curl -u ${sid}:x https://api.twilio.com`, `git show ${sha} && echo ${sid}`]) {
       const r = runHook('secret-leak-guard.js', { tool_name: 'Bash', tool_input: { command } });
-      assert.equal(r.parsed?.continue, false, command);
-      assert.match(r.parsed?.stopReason || '', /Twilio/);
+      assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', command);
+      assert.match(r.parsed?.hookSpecificOutput?.permissionDecisionReason || '', /Twilio/);
     }
   });
 
@@ -647,6 +671,7 @@ describe('secret-leak-guard.js', () => {
     const r = runHook('secret-leak-guard.js', {});
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('does not make network calls (MCP_DISABLED=1)', () => {
@@ -656,6 +681,7 @@ describe('secret-leak-guard.js', () => {
     }, { MCP_DISABLED: '1' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 });
 
