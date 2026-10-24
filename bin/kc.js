@@ -36,6 +36,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --list-sessions  Session history (add --json for JSON)');
   console.log('  --status     Health check (JSON: version, skills, vendors)');
   console.log('  checkin      Fleet check-in: versions, drift, lane, health (--json, --no-cli)');
+  console.log('  next         Fleet what-next for a job (JSON on stdin or --kind/--tags/--title; --json)');
   console.log('  --template   Print the latest CLAUDE.md template (pipe to file)');
   console.log('  --daemon     Start persistent background daemon');
   console.log('  --queue "task"  Add task to daemon queue');
@@ -102,6 +103,25 @@ if (args.includes('--stats')) {
   console.log('  Cost:         $' + (s.totalCost||0).toFixed(2));
   console.log('  Level:        ' + st2.getUserLevel(cs) + '\n');
   process.exit(0);
+}
+// Agent API: next (Fleet "what next"; job JSON on stdin or --kind/--tags/--title; docs/FLEET-CHECKIN.md)
+if (args[0] === 'next' || args.includes('--next')) {
+  dispatching = true;
+  var nx = require(path.join(__dirname,'..','commander','lib','next'));
+  var nxEmit = function(r) {
+    console.log(args.includes('--json') ? JSON.stringify(r) : r.action + ' ' + r.when + ' ' + r.skill + ' (' + r.reason + ')');
+    process.exit(0);
+  };
+  var nxFail = function(e) { process.stderr.write('ccc next: ' + e.message + '\n'); process.exit(e.exitCode || 1); };
+  var nxJob = nx.jobFromArgs(args);
+  if (nxJob || process.stdin.isTTY) {
+    nx.next({ job: nxJob || {} }).then(nxEmit, nxFail);
+  } else {
+    var nxInput = '';
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', function(c) { nxInput += c; if (nxInput.length > 65536) nxFail({ message: 'input too large', exitCode: 2 }); });
+    process.stdin.on('end', function() { nx.next({ input: nxInput }).then(nxEmit, nxFail); });
+  }
 }
 // `ccc doctor` is the same as `ccc --doctor` (it used to open the menu).
 if (args[0] === 'doctor') args.push('--doctor');

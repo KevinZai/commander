@@ -75,3 +75,16 @@ The human line has this shape:
 It is read-only and never starts `claude`. It exits 1 when any dir has a gap. `--json` returns `{schema: 1, host, home, latest, ok, instances[]}`. Without `--json` it prints a Markdown table you can paste into a Fleet issue.
 
 To audit another machine, run the same command there with its own checkout: `ccc doctor --instances` (or `node <checkout>/bin/kc.js doctor --instances --json`).
+
+## What next (`ccc next --json`)
+
+`ccc next` takes one job and answers what to run and when. Pass the job as JSON on stdin (`{"kind","tags","title","description"}`) or with `--kind`, `--tags a,b` and `--title`. The output is one JSON line, a drop-in for the fleet#328 `bin/ccc-next` stopgap (set `dispatchGate.ccc.command` to `["ccc","next","--json"]`):
+
+```json
+{"schema":1,"action":"proceed","when":"now","skill":"/ccc-security","reason":"CCC 8.1.2: registry high match 0.95 -> /ccc-security","version":"8.1.2","source":"ccc-next","tier":"high","score":0.95,"route_source":"installed","candidates":[{"skill":"/ccc-security","score":0.95}]}
+```
+
+- **Skill:** `title`, `description` and `tags` are scored against the #188 routing registry (`hooks/lib/ccc-routes.json`) of the lane's installed plugin. If that plugin has no registry, the checkout's registry is used (`route_source: "checkout"`). Only skills the installed plugin actually has can be returned. With no medium or high match, the fallback is the first tag in the map, then the kind (`code`, `research`, `review`, `docs`, `other`), then `/ccc`.
+- **Timing:** `fleet-hold.json` in the lane state dir, or the legacy `~/.claude/commander/`, controls timing. `{"hold":true,"reason":…}` gives `action: "hold"`. `{"until":"<ISO>","reason":…}` gives `action: "defer"` with `when` set to that time. An unreadable or malformed hold file fails closed as a hold.
+- **Exit codes:** 0 answered, 2 bad input (not a JSON object, or more than 64 KB), 3 no usable commander plugin on the lane.
+- **Read-only:** it never dispatches, writes or makes network calls.
