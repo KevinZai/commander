@@ -271,9 +271,9 @@ ccc_lane_from_config_dir() {
   case "$base" in
     .claude) printf 'pri'; return 0 ;;
     .claude-?*)
-      # Keep the hint terminal-safe: printable name characters only, max 12.
+      # Keep the hint terminal-safe: printable name characters only, max 16.
       lane=$(printf '%s' "${base#.claude-}" | LC_ALL=C tr -cd 'A-Za-z0-9._-')
-      lane="${lane:0:12}"
+      lane="${lane:0:16}"
       [ -n "$lane" ] && printf '%s' "$lane"
       return 0 ;;
   esac
@@ -356,10 +356,12 @@ CC_LABEL="CC"
 
 # ── Extras (only if present) ──────────────────────────────────────────────
 PROJ_SHORT=$(basename "$PROJECT")
-SKILL_COUNT=$(ls -d "$HOME/.claude/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
+# Lane-aware: skills and Commander state come from the session's config dir.
+SKILL_COUNT=$(ls -d "$CCC_PLUGIN_CFG_DIR/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
 
 LINEAR_TICKET=""
-STATE_FILE="$HOME/.claude/commander/state.json"
+# commander state follows the lane resolver (commander/lib/lane.js): CCC_CONFIG_DIR, then CLAUDE_CONFIG_DIR, then ~/.claude
+STATE_FILE="${CCC_CONFIG_DIR:-$CCC_PLUGIN_CFG_DIR}/commander/state.json"
 [ -f "$STATE_FILE" ] && LINEAR_TICKET=$(jq -r '.activeSession.linearIssueIdentifier // empty' "$STATE_FILE" 2>/dev/null)
 
 EXTRAS=""

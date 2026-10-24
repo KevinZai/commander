@@ -12,6 +12,11 @@
 - **Check-in:** `ccc checkin --json` gains an additive `hooks` block (schema stays 1): registered count, unregistered files, missing handlers and hooks that write the shared `~/.claude/commander`. Registration gaps and shared-state writers are warnings (exit 0); a hook chain that cannot load blocks (exit 1). See `docs/FLEET-CHECKIN.md` (CC-2102).
 - **Status line:** `ccc statusline sync [--lane X] [--apply] [--json]` compares each lane's live `statusline.sh` and `statusline-superfleet.sh` with the checkout's `lib/` copies. It is a dry run by default; `--apply` archives the old file to `<config dir>/commander/archive/<timestamp>/` before it copies, and never deletes (CC-2103).
 
+### Changed
+- **Status line:** with `CLAUDE_CONFIG_DIR` unset, the 🔑 hint shows `pri` (the primary lane) instead of the ClaudeSwap account or API-key tail. This is intended since 8.1.2; the ClaudeSwap and key-tail fallbacks now apply only to config dir names that are not `.claude` or `.claude-<lane>`.
+- **Status line:** the 🎯 skill count and 📋 Linear ticket read `${CLAUDE_CONFIG_DIR:-~/.claude}/skills` and `.../commander/state.json`, so a lane session shows its own skills and active ticket instead of the primary lane's.
+- **Status line:** the 🔑 lane hint keeps up to 16 characters (was 12), so `~/.claude-guestnetworks` shows `guestnetworks` in full.
+
 ## [8.1.2] - 2026-10-24
 
 Status-line fix release. Bumps the pinned plugin version so `claude plugin update` picks up the fixes below.
