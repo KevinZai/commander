@@ -105,7 +105,7 @@ On "Yes", back up and set `defaultMode` in the project-local file only, never gl
 
 ## Audit trail
 
-The plugin's hooks log permission decisions and auto-mode denials to `~/.claude/commander/analytics/permission-gate.jsonl`; review them with `/ccc-safety`. Calls that match an allowlist entry are approved by Claude Code itself and are not logged one by one.
+The plugin's hooks log permission decisions and auto-mode denials to `<config dir>/commander/analytics/permission-gate.jsonl` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`); review them with `/ccc-safety`. Calls that match an allowlist entry are approved by Claude Code itself and are not logged one by one.
 
 ## Reverse it
 

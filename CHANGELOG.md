@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Hooks:** plugin hooks keep their state per lane in `<config dir>/commander` (`CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) through one resolver, `lib/lane-state.js`, so parallel lanes no longer write one shared `~/.claude/commander`. User settings (`config.json`, `console.json`, `state.json`) and the Console/Usage/Safety readers fall back to the legacy copy until the lane has its own. Nothing is migrated (CC-2098).
+- **Doctor:** the hook-chain check counts the handlers the SessionStart orchestrator imports (`fable-armed-nudge.js`, `voice-injector.js`, `_archive/session-start.js`) as registered, so `ccc doctor` no longer reports a false critical. Archived handlers are scanned too and must be registered or allowlisted (CC-2099).
+- **Doctor:** the mcp-availability check reported "connector count drift — found 0" after the CONNECTORS.md heading was renamed. Doctor and `ccc checkin --json` (new additive `connectors` block) now share one counter for the catalog and for the lane's configured MCP servers (user, local and project scope). A missing table or malformed config is reported as unknown, never 0 (CC-2100).
+- **CLI menu:** with a non-TTY stdin, `ccc` printed menu separators as `undefined` entries and lettered items by position. Separators are now blank lines, each entry uses its declared key (`o`, `b`, `c`, … `/`, `q`), and a typed key maps back to that entry (CC-2101).
+
+### Added
+- **Check-in:** `ccc checkin --json` gains an additive `hooks` block (schema stays 1): registered count, unregistered files, missing handlers and hooks that write the shared `~/.claude/commander`. Registration gaps and shared-state writers are warnings (exit 0); a hook chain that cannot load blocks (exit 1). See `docs/FLEET-CHECKIN.md` (CC-2102).
+- **Status line:** `ccc statusline sync [--lane X] [--apply] [--json]` compares each lane's live `statusline.sh` and `statusline-superfleet.sh` with the checkout's `lib/` copies. It is a dry run by default; `--apply` archives the old file to `<config dir>/commander/archive/<timestamp>/` before it copies, and never deletes (CC-2103).
+
 ### Changed
 - **Status line:** with `CLAUDE_CONFIG_DIR` unset, the 🔑 hint shows `pri` (the primary lane) instead of the ClaudeSwap account or API-key tail. This is intended since 8.1.2; the ClaudeSwap and key-tail fallbacks now apply only to config dir names that are not `.claude` or `.claude-<lane>`.
 - **Status line:** the 🎯 skill count and 📋 Linear ticket read `${CLAUDE_CONFIG_DIR:-~/.claude}/skills` and `.../commander/state.json`, so a lane session shows its own skills and active ticket instead of the primary lane's.

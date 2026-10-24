@@ -32,7 +32,9 @@ The hub is a thin control plane: it detects context, offers a choice, and hands 
 Run first:
 
 ```bash
-STATE="$HOME/.claude/commander/state.json"
+# Lane state dir: CCC_CONFIG_DIR, then CLAUDE_CONFIG_DIR, then ~/.claude; the legacy copy until the lane has its own.
+STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander/state.json"
+[ -e "$STATE" ] || STATE="$HOME/.claude/commander/state.json"
 if [ ! -f "$STATE" ] || ! grep -q '"onboardingCompleted": *true' "$STATE" 2>/dev/null; then
   echo "ONBOARDING_NEEDED"
 fi

@@ -2,7 +2,9 @@
 
 Reference for SKILL.md `setup` and `digest`.
 
-## Config: `~/.claude/commander/broadcast.json`
+## Config: `<config dir>/commander/broadcast.json`
+
+The config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`.
 
 ```json
 {

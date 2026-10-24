@@ -20,10 +20,11 @@ import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import os from 'node:os';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || os.homedir();
-const CCC_DIR = path.join(HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const VIOLATIONS_FILE = path.join(CCC_DIR, 'clickability-violations.jsonl');
 
 // Hard timeout — never hang the hook chain

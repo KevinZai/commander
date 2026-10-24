@@ -46,7 +46,7 @@ After the credential file exists (saved by the capture template in the skill), t
 
 ```bash
 claude mcp add <name> -s user \
-  -e <ENV_VAR>="$(node -p 'require(process.env.HOME + "/.claude/commander/connections/<name>.json").credential')" \
+  -e <ENV_VAR>="$(node -p 'const p=require("path"),o=require("os"),n="<name>.json",l=p.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||p.join(o.homedir(),".claude"),"commander","connections",n),g=p.join(o.homedir(),".claude","commander","connections",n);require(require("fs").existsSync(l)?l:g).credential')" \
   -- <command> <args>
 ```
 
@@ -92,4 +92,4 @@ acpx is a headless ACP (Agent Client Protocol) CLI that Commander shells out to 
 1. Check: `command -v acpx >/dev/null && acpx --version || echo "not installed"`.
 2. If missing, show `npm install -g acpx` for the user to run.
 3. Confirm by name and point to the `acpx` skill (prompt, exec, sessions) and `acpx-patterns` (background, parallel, crash-resilient recipes).
-4. Never write `~/.claude/commander/connections/acpx.json` and never add an MCP entry for it.
+4. Never write `<config dir>/commander/connections/acpx.json` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) and never add an MCP entry for it.

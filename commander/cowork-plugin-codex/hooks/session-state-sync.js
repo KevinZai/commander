@@ -14,7 +14,7 @@
  */
 import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
-import { homedir } from 'node:os';
+import { stateDir } from '../lib/lane-state.js';
 
 const MAX_DIRECTORIES = 50;
 const clip = (v, n) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, n);
@@ -30,7 +30,7 @@ async function main() {
   const event = input.hook_event_name;
   if (event !== 'CwdChanged' && event !== 'DirectoryAdded') return;
 
-  const dir = join(process.env.HOME || homedir(), '.claude', 'commander', 'sessions');
+  const dir = join(stateDir(), 'sessions');
   const file = join(dir, 'active-session.json');
   let state = {};
   try {
