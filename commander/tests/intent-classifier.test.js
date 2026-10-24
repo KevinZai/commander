@@ -26,7 +26,7 @@ function runHook(payload, env = {}) {
     input: JSON.stringify(payload),
     encoding: 'utf8',
     timeout: 5000,
-    env: { ...cleanEnv, HOME: home, USERPROFILE: home, ...env },
+    env: { ...cleanEnv, HOME: home, USERPROFILE: home, CCC_TELEMETRY: '0', ...env },
   });
   assert.strictEqual(result.status, 0, 'classifier should exit 0');
   return { out: JSON.parse(result.stdout.trim()), home };
@@ -54,6 +54,35 @@ test('high tier: clear winner tells the model to run the skill and say so', func
   assert.match(ctx, /tier="high"/);
   assert.match(ctx, /Skill commander:ccc-review/);
   assert.match(ctx, /one line/);
+});
+
+test('repo audit requests suggest ccc-xray without ccc-research', function () {
+  for (const prompt of ['audit this repo', 'audit the codebase', 'do a full audit of the codebase', 'run a repo health check', 'give me a health check of this repo']) {
+    const ctx = routeContext(classify(prompt));
+    assert.match(ctx, /<ccc-route/);
+    assert.match(ctx, /\/ccc-xray/);
+    assert.doesNotMatch(ctx, /\/ccc-research/);
+  }
+});
+
+test('security-qualified audits still suggest ccc-security', function () {
+  for (const prompt of ['audit this repo for security', 'audit the codebase for security', 'do a full audit of the codebase for security', 'run a security audit please']) {
+    const ctx = routeContext(classify(prompt));
+    assert.match(ctx, /candidates="\/ccc-security /);
+    assert.doesNotMatch(ctx, /\/ccc-xray|\/ccc-research/);
+  }
+});
+
+test('topic mentions and requests to edit related artifacts never auto-run a skill', function () {
+  for (const prompt of [
+    "what's new in the latest react release",
+    'explain how code review works at google',
+    'the code review bot keeps timing out',
+    'address the code review feedback on my PR',
+    'update the implementation plan doc with the new dates',
+  ]) {
+    assert.doesNotMatch(routeContext(classify(prompt)) || '', /tier="high"/, prompt);
+  }
 });
 
 test('medium tier: AskUserQuestion menu with recommended first and "Just answer"', function () {
@@ -226,6 +255,24 @@ test('SubagentStop is a silent pass-through', function () {
 });
 
 // ── Review regressions ────────────────────────────────────────────────────
+
+test('Stop: Codex fallback only accepts runs belonging to the current session', function () {
+  for (const runSession of [undefined, 'another-session', 'codex1']) {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+    const dir = path.join(home, '.claude', 'commander');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'skill-runs.jsonl'), JSON.stringify({
+      ts: new Date().toISOString(), skill: 'ccc-plan', session_id: runSession,
+    }) + '\n');
+    const out = runHook({ hook_event_name: 'Stop', session_id: 'codex1' }, { HOME: home, CCC_SOURCE_APP: 'codex' }).out;
+    if (runSession === 'codex1') {
+      assert.strictEqual(out.decision, 'block');
+      assert.match(out.reason, /<ccc-next after="\$ccc-plan">/);
+    } else {
+      assert.ok(!out.decision, 'must ignore run from session ' + runSession);
+    }
+  }
+});
 
 test('Stop: a skill run skipped for its own question is not offered on a later unrelated turn', function () {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));

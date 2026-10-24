@@ -57,7 +57,7 @@
     "url": "https://github.com/KevinZai/commander/issues"
   },
   "engines": {
-    "node": ">=8.1.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
     "figlet": "^1.11.0"

@@ -1,6 +1,6 @@
 # CC Commander MCP Server
 
-Local MCP server for CC Commander v4.0 Beta. Implements MCP stdio transport (JSON-RPC 2.0 over stdin/stdout). No external dependencies — runs with Node.js >= 18.
+Local MCP server for CC Commander v4.0 Beta. Implements MCP stdio transport (JSON-RPC 2.0 over stdin/stdout). No external dependencies. Use the package's supported Node.js range: 20.19.x or later in the 20.x line, or 22.12.0+.
 
 ## Quick Start
 

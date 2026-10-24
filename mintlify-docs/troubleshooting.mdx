@@ -228,7 +228,7 @@ Restart the session. The SessionStart hook will populate the file on next launch
 
 **Fix:**
 
-1. Confirm Node.js 20+: `node --version`.
+1. Confirm Node.js 20.19.x or later in the 20.x line, or Node.js 22.12.0+: `node --version`.
 2. Manually test the server: `npx -y @upstash/context7-mcp` should print a JSON-RPC handshake then idle.
 3. Restart the Claude Code session — MCP servers respawn at session start.
 

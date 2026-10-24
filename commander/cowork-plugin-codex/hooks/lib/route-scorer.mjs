@@ -14,7 +14,7 @@
  *   description phrase            +0.25
  *   path/file mention             +0.20
  *   negative pattern              route removed
- * Tiers: high  = top >= 0.8 and a 0.25 lead over the runner-up
+ * Tiers: high  = intent pattern hit, top >= 0.8, 0.25 lead over runner-up
  *        medium = top >= 0.55 (one generic keyword alone never fires)
  *        low   = silent
  */
@@ -122,7 +122,7 @@ export function scoreRoutes(prompt, routes = loadRoutes()) {
     for (const t of route._triggers) if (t.re.test(text)) score += t.weight;
     for (const re of route._desc) if (re.test(text)) score += WEIGHTS.desc;
     for (const re of route._paths) if (re.test(text)) score += WEIGHTS.path;
-    if (score > 0) candidates.push({ route, score: Math.min(1, Math.round(score * 100) / 100) });
+    if (score > 0) candidates.push({ route, score: Math.min(1, Math.round(score * 100) / 100), patternHits });
   }
   // Skills before agents on ties (a skill is the cheaper, in-thread path).
   candidates.sort((a, b) => b.score - a.score || (a.route.kind === 'skill' ? -1 : 1) - (b.route.kind === 'skill' ? -1 : 1));
@@ -140,8 +140,10 @@ export function tierFor(candidates, mode = 'auto') {
   const [top, second] = candidates;
   if (top.score < MEDIUM_THRESHOLD) return 'low';
   const clearWinner = top.score >= HIGH_THRESHOLD && top.score - (second ? second.score : 0) >= HIGH_MARGIN;
+  // Topic scores alone cannot authorize an auto-run. Curated patterns must
+  // express a request to do this skill's job, not merely name its subject.
   // Manual (disable-model-invocation) skills and agents never auto-run.
-  if (clearWinner && mode === 'auto' && top.route.kind === 'skill' && !top.route.manual) return 'high';
+  if (clearWinner && top.patternHits > 0 && mode === 'auto' && top.route.kind === 'skill' && !top.route.manual) return 'high';
   return 'medium';
 }
 

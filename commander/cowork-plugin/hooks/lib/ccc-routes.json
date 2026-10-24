@@ -77,7 +77,8 @@
         "spec"
       ],
       "patterns": [
-        "\\b(write|draft)\\s+(the\\s+|a\\s+)?(pr|pull request)\\s+(description|body)\\b"
+        "\\b(write|draft)\\s+(the\\s+|a\\s+)?(pr|pull request)\\s+(description|body)\\b",
+        "\\b(write|draft)\\s+(a|an|the)\\s+(prd|spec|runbook)\\s+for\\b"
       ],
       "negatives": [],
       "paths": [],
@@ -212,7 +213,10 @@
         "latest release",
         "commander"
       ],
-      "patterns": [],
+      "patterns": [
+        "\\bwhat'?s new in\\s+(the\\s+latest\\s+)?(commander|ccc)\\b",
+        "\\b(show|read|summarize)\\s+(me\\s+)?(the\\s+)?(commander\\s+)?(changelog|release notes)(\\s+for\\s+(commander\\s+)?v?\\d|[.!?]*$)"
+      ],
       "negatives": [
         "\\bwhat changed (in|between) (this|my|the|v\\d)\\b.*\\b(file|diff|branch|function|method)\\b",
         "\\bgit diff\\b",
@@ -258,10 +262,15 @@
         "github actions failed",
         "actions run failed"
       ],
-      "triggers": [],
+      "triggers": [
+        "ci",
+        "pipeline",
+        "github actions"
+      ],
       "patterns": [
-        "\\b(ci|pipeline|workflow run|github actions?)\\s+(is\\s+|are\\s+)?(red|failing|failed|broken)\\b",
-        "\\bwhy (did|is) (the\\s+)?(ci|pipeline|workflow) (fail|failing|red)\\b"
+        "\\bwhy (did|is) (the\\s+)?(ci|pipeline|workflow|github actions?) (fail|failing|red)\\b",
+        "\\b(ci|pipeline|workflow|github actions?)\\b.{0,40}\\bwhy (did|does) it fail\\b",
+        "\\b(debug|diagnose|investigate|fix)\\s+(the\\s+|our\\s+)?(failing\\s+|failed\\s+|broken\\s+)?(ci|pipeline|workflow|github actions?)\\b"
       ],
       "negatives": [],
       "paths": [
@@ -408,7 +417,8 @@
         "warehouse"
       ],
       "patterns": [
-        "\\b(optimi[sz]e|speed up|tune)\\s+(this\\s+|my\\s+|the\\s+)?(sql|query|queries)\\b"
+        "\\b(optimi[sz]e|speed up|tune)\\s+(this\\s+|my\\s+|the\\s+)?(sql|query|queries)\\b",
+        "\\b(build|create|set up)\\s+(an?\\s+|the\\s+)?(etl|elt|data)\\s+pipeline\\b"
       ],
       "negatives": [],
       "paths": [],
@@ -429,7 +439,9 @@
         "debate this"
       ],
       "triggers": [],
-      "patterns": [],
+      "patterns": [
+        "\\b(debate|stress[- ]test)\\s+(this|the|my|our)\\s+(design|plan|approach|proposal)\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -602,7 +614,7 @@
       ],
       "triggers": [],
       "patterns": [
-        "\\b(commander|ccc|the plugin)\\s+(is\\s+)?(broken|not working|misbehaving|acting up)\\b"
+        "\\b(diagnose|check|fix)\\s+(my\\s+|the\\s+)?(commander|ccc|plugin health)\\b"
       ],
       "negatives": [],
       "paths": [],
@@ -692,7 +704,8 @@
         "in parallel"
       ],
       "patterns": [
-        "\\b(run|use|spin up|launch)\\s+(\\d+\\s+|several\\s+|multiple\\s+)?(parallel\\s+)?(agents|workers)\\b"
+        "\\b(run|use|spin up|launch)\\s+(\\d+\\s+|several\\s+|multiple\\s+)?(parallel\\s+)?(agents|workers)\\b",
+        "\\bfan out\\s+.{1,40}\\s+across\\s+(multiple|several|\\d+)\\s+agents\\b"
       ],
       "negatives": [
         "\\bexplain\\b"
@@ -737,7 +750,9 @@
         "handoff",
         "new chat"
       ],
-      "patterns": [],
+      "patterns": [
+        "\\b(write|create|draft)\\s+(a|the)\\s+handoff\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -756,7 +771,9 @@
         "pre-launch audit"
       ],
       "triggers": [],
-      "patterns": [],
+      "patterns": [
+        "\\bharden\\s+(this\\s+|the app\\s+|the site\\s+)?for launch\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -881,7 +898,9 @@
         "kanban",
         "publish"
       ],
-      "patterns": [],
+      "patterns": [
+        "\\b(publish|open|show)\\s+(a|the|my|our)\\s+linear board\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -994,7 +1013,9 @@
         "who is working on what"
       ],
       "triggers": [],
-      "patterns": [],
+      "patterns": [
+        "\\b(open|show|launch)\\s+(the\\s+)?mission control\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -1158,7 +1179,8 @@
       ],
       "patterns": [
         "\\b(plan|scope)\\s+(out\\s+)?(this|the|a|my|our)\\s+([\\w-]+\\s+){0,2}(feature|refactor|migration|work|change|project|epic|ticket|issue)\\b",
-        "\\bmake (a|an) (implementation\\s+)?plan for\\b"
+        "\\bmake (a|an) (implementation\\s+)?plan for\\b",
+        "\\bi (want|need)\\s+(a|an)\\s+(implementation\\s+)?plan\\s+for\\b"
       ],
       "negatives": [
         "\\bmeal plan\\b",
@@ -1238,7 +1260,10 @@
         "coverage",
         "before i ship"
       ],
-      "patterns": [],
+      "patterns": [
+        "\\b(run|execute)\\s+all\\s+(the\\s+)?tests\\b",
+        "\\b(do|run|perform)\\s+(a\\s+)?qa pass\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -1307,7 +1332,9 @@
       ],
       "patterns": [
         "\\b(research|investigate)\\s+(the\\s+)?(best|options|alternatives|libraries|tools|approaches)\\b",
-        "^\\s*compare\\s+[\\w.-]+\\s+(vs\\.?|versus)\\s+[\\w.-]+"
+        "^\\s*compare\\s+[\\w.-]+\\s+(vs\\.?|versus)\\s+[\\w.-]+",
+        "\\b(research|investigate)\\s+(the\\s+)?competitive landscape\\b",
+        "\\b(do|conduct|perform)\\s+(some\\s+|a\\s+)?(market research|competitive analysis|literature review)\\s+(on|for|about)\\b"
       ],
       "negatives": [
         "\\bresearch (field|column|paper|table|model)\\b",
@@ -1360,7 +1387,9 @@
         "before i open the pr"
       ],
       "patterns": [
-        "\\breview\\s+(my|this|the|our)\\s+(code|changes|diff|pr|pull request|branch|commit|commits)\\b"
+        "\\breview\\s+(my|this|the|our)\\s+(code|changes|diff|pr|pull request|branch|commit|commits)\\b",
+        "\\b(do|run|perform|i need|i want)\\s+(a|an|the)\\s+(code|pr|pull request)\\s+review\\b(?!\\s+(bot|feedback|comment|process|guide))",
+        "\\bgive\\s+(my|this|the|our)\\s+(code|changes|diff|pr|branch)\\s+a\\s+(code\\s+)?review\\b"
       ],
       "negatives": [
         "\\bpreview\\b",
@@ -1423,7 +1452,9 @@
         "saas",
         "feature flags"
       ],
-      "patterns": [],
+      "patterns": [
+        "\\b(add|implement|set up)\\s+(stripe billing|subscription billing|multi-tenancy)\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -1489,7 +1520,7 @@
         "secrets"
       ],
       "patterns": [
-        "\\b(audit|scan|check)\\s+(the\\s+|my\\s+|our\\s+|this\\s+)?([\\w-]+\\s+){0,2}(for\\s+)?(security|vulnerabilit(y|ies)|cves?|secrets)\\b",
+        "\\b(audit|scan|check)\\s+(of\\s+)?(the\\s+|my\\s+|our\\s+|this\\s+)?([\\w-]+\\s+){0,2}(for\\s+)?(security|vulnerabilit(y|ies)|cves?|secrets)\\b",
         "\\bis (this|it|my app) secure\\b"
       ],
       "negatives": [
@@ -1521,7 +1552,8 @@
         "meta descriptions"
       ],
       "patterns": [
-        "\\b(improve|audit|fix)\\s+(our|my|the)\\s+seo\\b"
+        "\\b(improve|audit|fix)\\s+(our|my|the)\\s+seo\\b",
+        "\\b(run|do|perform)\\s+(an?\\s+)?seo audit\\s+(on|for|of)\\b"
       ],
       "negatives": [
         "\\btitle tag\\b"
@@ -1607,7 +1639,10 @@
         "invoices",
         "cash flow"
       ],
-      "patterns": [],
+      "patterns": [
+        "\\b(forecast|project)\\s+cash flow\\b",
+        "\\b(chase|collect)\\s+(the\\s+)?unpaid invoices\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -1650,7 +1685,8 @@
         "yesterday"
       ],
       "patterns": [
-        "\\b(write|draft|do|generate)\\s+(my|a|the|today's)\\s+(standup|stand-up|daily update)\\b"
+        "\\b(write|draft|do|generate)\\s+(my|a|the|today's)\\s+(standup|stand-up|daily update)\\b",
+        "\\bwhat did (i|we) do yesterday\\b.*\\b(standup|daily update)\\b"
       ],
       "negatives": [
         "\\bbot\\b"
@@ -1694,7 +1730,10 @@
         "im stuck"
       ],
       "triggers": [],
-      "patterns": [],
+      "patterns": [
+        "\\bwhat should (i|we) do next\\b",
+        "\\bwhich tool should (i|we) use\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -1719,7 +1758,8 @@
       ],
       "patterns": [
         "\\b(debug|investigate|diagnose|track down|figure out)\\s+(this|the|a|why)\\b.{0,60}\\b(bug|error|crash|failure|failing|exception|regression|broken)\\b",
-        "^\\s*why (is|does|did)\\s+.{0,40}\\b(fail|failing|crash|crashes|crashing|throw|throws|break|breaks|broken)\\b"
+        "^\\s*why (is|does|did)\\s+.{0,40}\\b(fail|failing|crash|crashes|crashing|throw|throws|break|breaks|broken)\\b",
+        "\\b(find|investigate|diagnose)\\s+(the\\s+)?root cause\\s+of\\b"
       ],
       "negatives": [
         "\\b(ci|pipeline)\\s+(is\\s+)?(red|failing|failed)\\b",
@@ -1750,7 +1790,8 @@
         "tasks"
       ],
       "patterns": [
-        "\\badd\\s+.{1,40}\\s+to\\s+(my|the)\\s+(todo|to-do|task)\\s+list\\b"
+        "\\badd\\s+.{1,40}\\s+to\\s+(my|the)\\s+(todo|to-do|task)\\s+list\\b",
+        "\\b(show|open|list)\\s+(my|the)\\s+(todo|to-do|task)\\s+list\\b"
       ],
       "negatives": [],
       "paths": [],
@@ -1776,7 +1817,8 @@
         "unit tests"
       ],
       "patterns": [
-        "\\b(write|add|create|generate)\\s+(some\\s+|more\\s+)?(unit\\s+|integration\\s+|e2e\\s+|playwright\\s+)?tests?\\s+(for|to cover)\\b"
+        "\\b(write|add|create|generate)\\s+(some\\s+|more\\s+)?(unit\\s+|integration\\s+|e2e\\s+|playwright\\s+)?tests?\\s+(for|to cover)\\b",
+        "\\b(set up|create|design)\\s+(a|the|our)\\s+test strategy\\b"
       ],
       "negatives": [
         "\\btest (email|message|post|account)\\b",
@@ -1904,7 +1946,9 @@
         "how much was saved"
       ],
       "triggers": [],
-      "patterns": [],
+      "patterns": [
+        "\\bhow much (did|have) (i|we) (spend|spent)\\s+on\\s+(agent|claude|codex)\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -1929,12 +1973,18 @@
         "xray",
         "health check"
       ],
-      "patterns": [],
+      "patterns": [
+        "\\b(audit|x-ray|xray)\\s+(this|the|my|our|whole|entire)\\s+(repo|repository|codebase|project)\\b",
+        "\\b(run|do|perform|give me)\\s+(a\\s+|an\\s+|the\\s+)?(full\\s+)?(audit|x-ray|xray|health[- ]check)\\s+(of|on)\\s+(this|the|my|our|whole|entire)\\s+(repo|repository|codebase|project)\\b",
+        "\\b(run|do|perform)\\s+(a\\s+|the\\s+)?(repo|repository|codebase|project)\\s+(health[- ]check|audit|check-?up)\\b",
+        "^(repo|repository|codebase|project)\\s+(audit|health[- ]check|check-?up)\\s+please[.!?]*$"
+      ],
       "negatives": [
         "\\bhealth check endpoint\\b",
         "\\b/health\\b",
         "\\bplugin health\\b",
-        "\\bimage\\b"
+        "\\bimage\\b",
+        "\\b(for\\s+)?(security|vulnerabilit(y|ies)|cves?|secrets)\\b"
       ],
       "paths": [],
       "requirePath": false,
@@ -1985,36 +2035,6 @@
       "patterns": [
         "\\b(design|architect)\\s+(the\\s+|a\\s+)?(system|architecture|data model|database schema)\\s+for\\b"
       ],
-      "negatives": [],
-      "paths": [],
-      "requirePath": false,
-      "next": [],
-      "descTriggers": []
-    },
-    {
-      "id": "agent:builder",
-      "kind": "agent",
-      "invoke": "builder",
-      "label": "Implements a scoped feature or fix…",
-      "manual": false,
-      "strong": [],
-      "triggers": [],
-      "patterns": [],
-      "negatives": [],
-      "paths": [],
-      "requirePath": false,
-      "next": [],
-      "descTriggers": []
-    },
-    {
-      "id": "agent:content-strategist",
-      "kind": "agent",
-      "invoke": "content-strategist",
-      "label": "Content strategy and draft copy for a named…",
-      "manual": false,
-      "strong": [],
-      "triggers": [],
-      "patterns": [],
       "negatives": [],
       "paths": [],
       "requirePath": false,
@@ -2110,21 +2130,6 @@
         "dockerfile",
         "terraform"
       ],
-      "patterns": [],
-      "negatives": [],
-      "paths": [],
-      "requirePath": false,
-      "next": [],
-      "descTriggers": []
-    },
-    {
-      "id": "agent:fleet-worker",
-      "kind": "agent",
-      "invoke": "fleet-worker",
-      "label": "Parallel worker for one scoped fleet task",
-      "manual": false,
-      "strong": [],
-      "triggers": [],
       "patterns": [],
       "negatives": [],
       "paths": [],

@@ -17,6 +17,8 @@
  * menu (top-level decision:block + reason, which both hosts accept). At most
  * once per skill run, never while stop_hook_active, never after the user
  * picked "Stop suggesting next steps" this session.
+ * decision:block costs an extra model turn for each offered menu, including
+ * chained skill runs and headless sessions. CCC_ROUTE_NEXT=off opts out.
  *
  * Env: CCC_ROUTE_MODE=off|suggest|auto (default auto; suggest never auto-runs)
  *      CCC_ROUTE_NEXT=off disables only the Stop menu
@@ -133,6 +135,9 @@ function logRouteEvent(entry) {
     // telemetry is best-effort
   }
   try {
+    // Network delivery normally never starts in this short-lived hook: track
+    // batches below ten events behind a 5s unref'd timer. This is lifecycle-
+    // dependent, not a no-network guarantee; route-events.jsonl is local.
     track(`route_${entry.event}`, { route: entry.route, score: entry.score, tier: entry.tier, accepted: entry.accepted, host: entry.host });
   } catch {
     // telemetry must never block the hook chain
@@ -266,7 +271,7 @@ function recentSkillRuns(sessionId, sinceIso) {
     for (const line of text) {
       try {
         const run = JSON.parse(line);
-        if (sessionId && run.session_id && run.session_id !== sessionId) continue;
+        if (sessionId && run.session_id !== sessionId) continue;
         if (Date.parse(run.ts) > since && skillIdFrom(run.skill)) runs.push({ id: skillIdFrom(run.skill), key: run.ts });
       } catch {}
     }

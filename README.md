@@ -50,6 +50,8 @@
 
 ## ⭐ Install
 
+Local hooks and the CLI require Node.js 20.19.x or later in the 20.x line, or Node.js 22.12.0+. See the [runtime requirements](docs/reference/node-runtime.md) for dependency and CI evidence.
+
 ### Claude Code Desktop / Cowork Desktop (no terminal)
 
 1. Open **Settings → Plugin Marketplace**
