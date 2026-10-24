@@ -41,7 +41,7 @@ function registry(f, plugins) {
   writeJson(path.join(f.config, 'plugins', 'installed_plugins.json'), { version: 2, plugins });
 }
 
-function runStatusline(f, env = {}) {
+function runStatusline(f, env = {}, workspace = { current_dir: f.project, project_dir: f.project }) {
   const result = spawnSync('bash', ['lib/statusline.sh'], {
     cwd: f.toolkit,
     env: { PATH: process.env.PATH, HOME: f.home, CLAUDE_CONFIG_DIR: f.config, LC_ALL: 'C', ...env },
@@ -51,7 +51,7 @@ function runStatusline(f, env = {}) {
       session_id: 'statusline-version-test',
       cwd: f.project,
       model: { id: 'test-model', display_name: 'Claude' },
-      workspace: { current_dir: f.project, project_dir: f.project },
+      workspace,
       cost: { total_cost_usd: 1.25, total_duration_ms: 300_000 },
       context_window: { used_percentage: 42, total_input_tokens: 12_000, total_output_tokens: 1600 },
       rate_limits: { five_hour: { used_percentage: 12 }, seven_day: { used_percentage: 25 } },
@@ -107,6 +107,27 @@ test('first Commander entry is used when no project or user scope matches', (t) 
   });
 
   assert.match(runStatusline(f), /^━━ CCC9\.4\.2\s/);
+});
+
+test('project scope matches project_dir when the session is in a subdirectory', (t) => {
+  const f = fixture(t);
+  registry(f, { 'commander@commander-hub': [
+    plugin(f, '9.4.2', 'user'),
+    plugin(f, '9.5.1', 'project', f.project),
+  ] });
+
+  const workspace = { current_dir: path.join(f.project, 'src'), project_dir: f.project };
+  assert.match(runStatusline(f, {}, workspace), /^━━ CCC9\.5\.1\s/);
+});
+
+test('installs that belong only to another project are not used', (t) => {
+  const f = fixture(t);
+  registry(f, { 'commander@commander-hub': [
+    plugin(f, '9.5.1', 'project', path.join(f.home, 'other project')),
+    plugin(f, '9.6.1', 'local', path.join(f.home, 'other project')),
+  ] });
+
+  assert.match(runStatusline(f), /^━━ CCC8\.0\s/);
 });
 
 for (const manifest of ['missing', 'malformed']) {

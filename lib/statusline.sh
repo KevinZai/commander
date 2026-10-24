@@ -79,6 +79,7 @@ eval "$(echo "$INPUT" | jq -r '
   "OUT_TOK=\(.context_window.total_output_tokens // 0)",
   "DURATION=\(.cost.total_duration_ms // 0)",
   "PROJECT='\''\(.workspace.current_dir // "?")'\''",
+  "PROJECT_DIR='\''\(.workspace.project_dir // .workspace.current_dir // "")'\''",
   "AGENT='\''\(.agent.name // "")'\''",
   "RATE_5H_RESET=\(.rate_limits.five_hour.resets_at // "")",
   "RATE_7D_RESET=\(.rate_limits.seven_day.resets_at // "")",
@@ -325,10 +326,11 @@ fi
 CCC_VER=""
 CCC_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 if [ -f "$CCC_CONFIG_DIR/plugins/installed_plugins.json" ]; then
-  CCC_PLUGIN_ENTRY=$(jq -c --arg project "$PROJECT" '
+  CCC_PLUGIN_ENTRY=$(jq -c --arg project "$PROJECT_DIR" '
     [.plugins | to_entries[] | select(.key | test("^commander@")) | .value[] | objects] |
     (map(select(.scope == "project" and .projectPath == $project))[0] //
-     map(select(.scope == "user"))[0] // .[0]) // empty
+     map(select(.scope == "user"))[0] //
+     map(select((.projectPath // $project) == $project))[0]) // empty
   ' "$CCC_CONFIG_DIR/plugins/installed_plugins.json" 2>/dev/null)
   if [ -n "$CCC_PLUGIN_ENTRY" ]; then
     CCC_INSTALL_PATH=$(printf '%s\n' "$CCC_PLUGIN_ENTRY" | jq -r '.installPath // empty' 2>/dev/null)
