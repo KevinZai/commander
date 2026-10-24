@@ -1,5 +1,31 @@
 # Changelog
 
+## [8.1.1] - 2026-10-23
+
+Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached plugin only when that string changes. Every 8.1.0 install has therefore stayed on the 2026-10-18 build, and none of the fixes merged since then reached `claude plugin update`. This version carries them.
+
+### Added
+- **Auto-routing:** prompts are scored against a route registry generated from 81 plugin skills and 19 agents. A `<ccc-route>` block in the model context sets the tier: high runs the skill, medium asks with one picker, low stays silent. A Stop-hook what-next menu offers the next step after a skill runs, with `CCC_ROUTE_MODE`, `CCC_ROUTE_NEXT` and `CCC_ROUTE_MENU` to tune or turn it off. The UserPromptSubmit classifier now also runs on Stop (30 events, 52 handlers). Node floor is `^20.19.0 || >=22.12.0` (#188).
+
+### Fixed
+- **Secret scan:** one allowlisted placeholder no longer disables the whole scan (#222). Full git SHAs and sha256 digests are no longer flagged as Twilio SIDs (#181). The scan fails closed when its patterns cannot load (#157).
+- **Installer:** uses `CLAUDE_CONFIG_DIR`, not `XDG_CONFIG_HOME`, as the Claude dir (#221).
+- **Cockpit:** prices the cost estimate at Sonnet 5.5 rates (#220).
+- **Evals:** the no-stale-model-names grader no longer rejects current model names (#226).
+- **claude-api skill:** reflects removed sampling params and rejected `budget_tokens` (#225).
+- **Hooks:** the SessionStart banner shows the right version, there is no "Context compacted" notice on a fresh start, and audit routes to `/ccc-xray` (#213). Session state is keyed on stdin `session_id`, and tool calls are denied instead of halting the session (#193).
+- **Skills:** AskUserQuestion pickers fit the tool schema (#194). `allowed-tools` is treated as a no-prompt grant, and bare Bash/Write/Edit grants are ratcheted (#195).
+- **Workflows:** the `ccc-fleet` workflow is renamed to `ccc-fleet-run` so the `ccc-fleet` skill is reachable again, and a new test catches duplicate command names (#228).
+- **Skills:** literal `$N` in plugin and toolkit skills is escaped so slash-command arguments are not substituted into example text (#229, #233).
+- **Agents:** use documented subagent colors (#192).
+- **Marketplace:** passes `claude plugin validate --strict` with plain listing text (#191).
+- **Hosted MCP:** HTTPS `resource_metadata` and `aud` work behind Fly's proxy, and the official smoke test plus DEPLOY.md match production (#196, #199). Adds streamable-HTTP and OAuth resource-server plumbing (#44).
+
+### Changed
+- `settings.json.template` declares the Claude Code settings `$schema` (#235).
+- **Deploy and CI:** site deploy is skipped until Vercel secrets exist and only changed targets deploy (#203). The duplicated changes job is removed (#218). Post-deploy smoke probes retry 6 x 10s to ride out Fly machine swaps (#219). MCP deploy is skipped on site-only pushes (#198). Draft PRs are skipped and superseded runs cancelled (#206).
+- **Tests and docs:** the bump-version test runs against a temp copy (#210). The suite passes from paths containing a space (#211). The Mintlify docs path is fixed (#212). The lint baseline is down from 186 to 96 (#197). Dependency bumps: #110, #113, #118, #119, #121-#125.
+
 ## [8.1.0] - 2026-10-18
 
 ### Added
