@@ -24,6 +24,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --test       Validate all modules');
   console.log('  --stats      Quick stats');
   console.log('  --doctor     Full-stack diagnostics');
+  console.log('  doctor --instances  Audit CCC in every ~/.claude* config dir (--json, --home DIR)');
   console.log('  --tuneup     Read-only tuneup diagnostics');
   console.log('  --savings    Estimated savings vs all-Opus baseline (today / month / all-time)');
   console.log('  --repair     Fix corrupt state');
@@ -101,6 +102,16 @@ if (args.includes('--stats')) {
   console.log('  Cost:         $' + (s.totalCost||0).toFixed(2));
   console.log('  Level:        ' + st2.getUserLevel(cs) + '\n');
   process.exit(0);
+}
+// `ccc doctor` is the same as `ccc --doctor` (it used to open the menu).
+if (args[0] === 'doctor') args.push('--doctor');
+// Agent API: doctor --instances (read-only audit of every Claude config dir in HOME or --home)
+if (args.includes('--doctor') && args.includes('--instances')) {
+  var inst = require(path.join(__dirname,'..','commander','lib','instances'));
+  var homeIdx = args.indexOf('--home');
+  var instResult = inst.auditInstances({ root: path.resolve(__dirname, '..'), home: homeIdx >= 0 ? args[homeIdx + 1] : undefined });
+  console.log(args.includes('--json') ? JSON.stringify(instResult, null, 2) : inst.renderTable(instResult));
+  process.exit(instResult.ok ? 0 : 1);
 }
 if (args.includes('--doctor') || args.includes('--tuneup')) {
   var doc = require(path.join(__dirname, '..', 'commander', 'doctor'));

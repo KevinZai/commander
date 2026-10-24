@@ -61,3 +61,17 @@ The human line has this shape:
 
 - **Superfleet Step 0:** run `ccc checkin` and record the line in `STATUS.md`. A non-zero exit means CCC is red. Record it and continue, unless you are the CCC lane.
 - **Dispatch gate** (fleet#328): call `ccc checkin --json --no-cli` with the lane's `CLAUDE_CONFIG_DIR`. Exit 3 means `ccc_unavailable`. Store the object on the card as `task.ccc.checkin`.
+
+## Instance audit (`ccc doctor --instances`)
+
+`ccc doctor --instances` audits every Claude config dir in `$HOME` (or `--home DIR`). A config dir is `~/.claude` or `~/.claude-<lane>` that contains `plugins/` or `projects/`. For each dir it reports:
+
+- the lane;
+- the installed commander version against `latest` (the version in this checkout's `package.json`);
+- whether the plugin is enabled in that dir's `settings.json`;
+- whether the plugin cache has `hooks/hooks.json`;
+- local `skills/ccc*` copies that are real directories rather than symlinks, because these shadow the plugin.
+
+It is read-only and never starts `claude`. It exits 1 when any dir has a gap. `--json` returns `{schema: 1, host, home, latest, ok, instances[]}`. Without `--json` it prints a Markdown table you can paste into a Fleet issue.
+
+To audit another machine, run the same command there with its own checkout: `ccc doctor --instances` (or `node <checkout>/bin/kc.js doctor --instances --json`).
