@@ -16,7 +16,7 @@ effort: low
 
 **CC Commander** · /ccc-safety · blocked actions, auto-fixes and failure hotspots from local logs.
 
-Sources: `~/.claude/commander/analytics/permission-gate.jsonl` (every permission decision) and `~/.claude/commander/tool-failures.jsonl` (every tool failure). Error text is redacted (`sk-`, `Bearer`, token patterns become `[redacted]`) before it reaches any output.
+Sources: `<config dir>/commander/analytics/permission-gate.jsonl` (`~/.claude/commander/analytics/permission-gate.jsonl` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) (every permission decision) and `<config dir>/commander/tool-failures.jsonl` (every tool failure). Error text is redacted (`sk-`, `Bearer`, token patterns become `[redacted]`) before it reaches any output.
 
 ## When to use / when not to
 

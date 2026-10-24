@@ -16,7 +16,7 @@ effort: low
 
 **CC Commander** · /ccc-usage · estimated savings, spend per day and spend per app from local logs.
 
-Sources: `~/.claude/commander/savings.json` (estimated savings versus an all-Opus baseline) and `~/.claude/commander/mission-control/metrics.jsonl` (cost per app per day). These are estimates from per-model rates, not a bill; say so whenever you quote a number.
+Sources: `<config dir>/commander/savings.json` (`~/.claude/commander/savings.json` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) (estimated savings versus an all-Opus baseline) and `<config dir>/commander/mission-control/metrics.jsonl` (cost per app per day). These are estimates from per-model rates, not a bill; say so whenever you quote a number.
 
 ## When to use / when not to
 

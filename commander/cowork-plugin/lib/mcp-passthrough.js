@@ -22,7 +22,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const LOG_DIR = path.join(os.homedir(), '.claude', 'commander', 'logs');
+const LOG_DIR = path.join(require('./lane-state').stateDir(), 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'passthrough.jsonl');
 
 const DEFAULT_TIMEOUT_MS = 2000;

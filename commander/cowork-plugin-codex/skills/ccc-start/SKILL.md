@@ -171,12 +171,13 @@ Run this on every path, including skip and tour, before handing over to another 
 
 ```bash
 node -e "
-  const fs=require('fs'); const os=require('os');
-  const p=os.homedir()+'/.claude/commander/state.json';
-  let s={}; try{s=JSON.parse(fs.readFileSync(p,'utf8'));}catch(e){}
+  const fs=require('fs'); const os=require('os'); const path=require('path');
+  const dir=path.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||path.join(os.homedir(),'.claude'),'commander');
+  const p=path.join(dir,'state.json'); const legacy=path.join(os.homedir(),'.claude','commander','state.json');
+  let s={}; try{s=JSON.parse(fs.readFileSync(fs.existsSync(p)?p:legacy,'utf8'));}catch(e){}
   s.onboardingCompleted=true;
   s.completedAt=new Date().toISOString();
-  fs.mkdirSync(os.homedir()+'/.claude/commander',{recursive:true});
+  fs.mkdirSync(dir,{recursive:true});
   fs.writeFileSync(p,JSON.stringify(s,null,2));
   console.log('onboarding marked complete');
 "

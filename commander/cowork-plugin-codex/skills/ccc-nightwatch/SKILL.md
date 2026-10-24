@@ -119,7 +119,7 @@ Relayed messages carry the tool name and an argument summary only: no file conte
 
 - Step 1's status lines are reported verbatim (bundled / registered / variable count).
 - The chosen channel's test returned `"ok":true` (Telegram) or `204` (Discord), or log-only was chosen.
-- The user knows whether tool calls will actually be relayed, and where the audit trail is: `~/.claude/commander/nightwatch.log` and `~/.claude/commander/analytics/permission-gate.jsonl`.
+- The user knows whether tool calls will actually be relayed, and where the audit trail is: `<config dir>/commander/nightwatch.log` and `<config dir>/commander/analytics/permission-gate.jsonl` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`).
 
 ## Guardrails
 

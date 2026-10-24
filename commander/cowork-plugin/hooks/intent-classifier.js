@@ -48,8 +48,8 @@ import {
 } from './lib/route-scorer.mjs';
 import { fleetRouteEnabled, matchFleetIntent, fleetTools, checkinLine, renderFleetContext } from './lib/fleet-intent.mjs';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync, openSync, readSync, fstatSync, closeSync, renameSync, readdirSync, statSync, unlinkSync } from 'node:fs';
-import { homedir } from 'node:os';
 
 // Deep-reasoning signals for Fable escalation nudge
 const FABLE_SIGNALS = [
@@ -59,7 +59,7 @@ const FABLE_SIGNALS = [
 const FABLE_PLANNING_VERBS = ['design', 'architect', 'plan', 'migrate', 'refactor', 'model'];
 
 function commanderDir() {
-  return join(process.env.HOME || process.env.USERPROFILE || homedir(), '.claude', 'commander');
+  return stateDir();
 }
 
 function checkFableNudge(prompt) {

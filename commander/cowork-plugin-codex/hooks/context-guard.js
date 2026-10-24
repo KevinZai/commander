@@ -23,9 +23,10 @@ import { sessionKey } from './lib/session-key.mjs';
 import { estimateContextPct } from './lib/context-estimate.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readablePath, stateDir } from '../lib/lane-state.js';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
-const CCC_DIR = join(HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const STATE_FILE = join(CCC_DIR, 'state.json');
 const SESSIONS_DIR = join(HOME, '.claude', 'sessions');
 
@@ -55,7 +56,8 @@ const THRESHOLDS = [
 
 async function readState() {
   try {
-    const raw = await readFile(STATE_FILE, 'utf8');
+    // state.json also holds the user's CCC state: read the legacy copy until the lane has its own.
+    const raw = await readFile(readablePath('state.json'), 'utf8');
     return JSON.parse(raw);
   } catch {
     return {};

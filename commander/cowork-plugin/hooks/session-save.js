@@ -4,10 +4,11 @@ import { emitUser } from './lib/emit.mjs';
 import { readStdinJson, sessionKey } from './lib/session-key.mjs';
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 
-const SESSIONS_DIR = join(process.env.HOME, '.claude', 'commander', 'sessions');
+const SESSIONS_DIR = join(stateDir(), 'sessions');
 const ACTIVE_FILE = join(SESSIONS_DIR, 'active-session.json');
 
 async function main() {

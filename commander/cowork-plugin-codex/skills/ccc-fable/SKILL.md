@@ -48,10 +48,10 @@ options:
 
 ### 2. Record the state (`on` and `off` only)
 
-The armed flag lives under one key, `fableMethod`, in `~/.claude/commander/state.json`. The Commander HUD mod reads exactly `fableMethod.armed`. Merge that key into the file; never replace the file, because other hooks and the CLI keep their own keys there. Run with `on` or `off` as the trailing argument:
+The armed flag lives under one key, `fableMethod`, in the lane's `state.json`: `<config dir>/commander/state.json`, where the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`. Until the lane has its own copy, the command reads `~/.claude/commander/state.json` and writes the merged result to the lane. The Commander HUD mod reads exactly `fableMethod.armed`. Merge that key into the file; never replace the file, because other hooks and the CLI keep their own keys there. Run with `on` or `off` as the trailing argument:
 
 ```bash
-node -e 'const fs=require("fs"),path=require("path"),os=require("os");const armed=process.argv[1]==="on";if(!["on","off"].includes(process.argv[1])){console.error("usage: on|off");process.exit(2)}const dir=path.join(os.homedir(),".claude","commander"),p=path.join(dir,"state.json");let s={};try{s=JSON.parse(fs.readFileSync(p,"utf8"))}catch(e){if(e.code!=="ENOENT"){console.error("state.json is unreadable ("+e.message+"); not overwriting it");process.exit(1)}}if(typeof s!=="object"||s===null||Array.isArray(s)){console.error("state.json is not a JSON object; not overwriting it");process.exit(1)}const before=Object.keys(s).filter(k=>k!=="fableMethod").length;s.fableMethod={armed,since:new Date().toISOString()};fs.mkdirSync(dir,{recursive:true});const tmp=p+".tmp-"+process.pid;fs.writeFileSync(tmp,JSON.stringify(s,null,2)+"\n");fs.renameSync(tmp,p);const after=Object.keys(JSON.parse(fs.readFileSync(p,"utf8"))).filter(k=>k!=="fableMethod").length;console.log(JSON.stringify({fableMethod:s.fableMethod,otherKeysPreserved:before===after}))' on
+node -e 'const fs=require("fs"),path=require("path"),os=require("os");const armed=process.argv[1]==="on";if(!["on","off"].includes(process.argv[1])){console.error("usage: on|off");process.exit(2)}const dir=path.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||path.join(os.homedir(),".claude"),"commander"),p=path.join(dir,"state.json"),legacy=path.join(os.homedir(),".claude","commander","state.json");let s={};try{s=JSON.parse(fs.readFileSync(fs.existsSync(p)?p:legacy,"utf8"))}catch(e){if(e.code!=="ENOENT"){console.error("state.json is unreadable ("+e.message+"); not overwriting it");process.exit(1)}}if(typeof s!=="object"||s===null||Array.isArray(s)){console.error("state.json is not a JSON object; not overwriting it");process.exit(1)}const before=Object.keys(s).filter(k=>k!=="fableMethod").length;s.fableMethod={armed,since:new Date().toISOString()};fs.mkdirSync(dir,{recursive:true});const tmp=p+".tmp-"+process.pid;fs.writeFileSync(tmp,JSON.stringify(s,null,2)+"\n");fs.renameSync(tmp,p);const after=Object.keys(JSON.parse(fs.readFileSync(p,"utf8"))).filter(k=>k!=="fableMethod").length;console.log(JSON.stringify({fableMethod:s.fableMethod,otherKeysPreserved:before===after}))' on
 ```
 
 Expected output: `{"fableMethod":{"armed":true,"since":"<ISO>"},"otherKeysPreserved":true}`. If the command exits non-zero, report the error verbatim and do not claim the state changed; a corrupt `state.json` is the user's to repair, so never delete or reset it.
@@ -110,7 +110,7 @@ Confirm in one line: "Fable Method armed: 12 gates · PM loop · workflow-first 
 ### 3b. `status` — read, never write
 
 ```bash
-node -e 'const fs=require("fs"),path=require("path"),os=require("os");const p=path.join(os.homedir(),".claude","commander","state.json");let s;try{s=JSON.parse(fs.readFileSync(p,"utf8"))}catch(e){console.log(e.code==="ENOENT"?"no state.json: never armed":"state.json unreadable: "+e.message);process.exit(0)}const f=s&&s.fableMethod;console.log(f&&typeof f==="object"?JSON.stringify(f):"fableMethod not set: never armed")'
+node -e 'const fs=require("fs"),path=require("path"),os=require("os");const lane=path.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||path.join(os.homedir(),".claude"),"commander","state.json"),p=fs.existsSync(lane)?lane:path.join(os.homedir(),".claude","commander","state.json");let s;try{s=JSON.parse(fs.readFileSync(p,"utf8"))}catch(e){console.log(e.code==="ENOENT"?"no state.json: never armed":"state.json unreadable: "+e.message);process.exit(0)}const f=s&&s.fableMethod;console.log(f&&typeof f==="object"?JSON.stringify(f):"fableMethod not set: never armed")'
 ```
 
 Report one of: armed since `<since>` (with the elapsed time), off since `<since>`, or never armed. If the file says armed but nothing this session applied the layers, say both facts plainly: the stored flag persists across sessions, the posture has to be re-applied in each new session with `$ccc-fable on`.
@@ -143,7 +143,7 @@ After the state write succeeds with `off`, drop the five layers and confirm: "Fa
 
 ## Guardrails
 
-- Never overwrite, reset or delete `~/.claude/commander/state.json`; merge only the `fableMethod` key, and stop on a parse error.
+- Never overwrite, reset or delete `state.json` (the lane's or `~/.claude/commander/state.json`); merge only the `fableMethod` key, and stop on a parse error.
 - Never write state on `status` or `audit`.
 - Never switch the user's model or effort as part of arming; suggest `/model fable` only when the user asks for deep reasoning.
 - Never execute PM-loop flags inline; raise them and let the user choose.

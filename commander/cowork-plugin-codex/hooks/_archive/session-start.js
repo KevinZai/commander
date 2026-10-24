@@ -10,6 +10,7 @@
  */
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readablePath, stateDir } from '../../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -33,10 +34,13 @@ const PLUGIN_JSON = [
  */
 export async function run({ home, cwd: _cwd } = {}) {
   const HOME = home || process.env.HOME;
-  const CCC_DIR = join(HOME, '.claude', 'commander');
+  const laneEnv = home ? { ...process.env, HOME: home } : process.env;
+  const CCC_DIR = stateDir(laneEnv);
   const SESSIONS_DIR = join(CCC_DIR, 'sessions');
   const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
   const STATE_FILE = join(CCC_DIR, 'state.json');
+  // Read the legacy ~/.claude/commander/state.json until this lane has its own copy.
+  const STATE_SRC = readablePath('state.json', laneEnv);
   const CLAUDE_SESSIONS_DIR = join(HOME, '.claude', 'sessions');
 
   try {
@@ -56,7 +60,7 @@ export async function run({ home, cwd: _cwd } = {}) {
       packageVersion = pkgJson.version || packageVersion;
     } catch {}
 
-    const isFirstRun = !existsSync(STATE_FILE);
+    const isFirstRun = !existsSync(STATE_SRC);
     if (isFirstRun) {
       try {
         await writeFile(STATE_FILE, JSON.stringify({
@@ -77,7 +81,7 @@ export async function run({ home, cwd: _cwd } = {}) {
     let onboardingCompleted = false;
     let versionTransition = false;
     try {
-      const state = JSON.parse(await readFile(STATE_FILE, 'utf8'));
+      const state = JSON.parse(await readFile(STATE_SRC, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
       const lastSeen = state.last_seen_version;
       if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {
@@ -131,10 +135,11 @@ export async function run({ home, cwd: _cwd } = {}) {
   }
 }
 
-const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const SESSIONS_DIR = join(CCC_DIR, 'sessions');
 const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
 const STATE_FILE = join(CCC_DIR, 'state.json');
+const STATE_SRC = readablePath('state.json');
 const CLAUDE_SESSIONS_DIR = join(process.env.HOME, '.claude', 'sessions');
 
 async function main() {
@@ -158,7 +163,7 @@ async function main() {
     } catch {}
 
     // Seed state.json on first run (idempotent — never clobber existing state)
-    const isFirstRun = !existsSync(STATE_FILE);
+    const isFirstRun = !existsSync(STATE_SRC);
     if (isFirstRun) {
       try {
         await writeFile(STATE_FILE, JSON.stringify({
@@ -180,7 +185,7 @@ async function main() {
     let onboardingCompleted = false;
     let versionTransition = false;
     try {
-      const state = JSON.parse(await readFile(STATE_FILE, 'utf8'));
+      const state = JSON.parse(await readFile(STATE_SRC, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
       const lastSeen = state.last_seen_version;
       if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {

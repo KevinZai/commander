@@ -27,10 +27,10 @@ import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir, stat, rename } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { readTranscriptUsage } from './lib/transcript-usage.mjs';
 
-const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
-const CCC_DIR = join(HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const LOG_FILE = join(CCC_DIR, 'agent-runs.jsonl');
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 const STDIN_MAX_BYTES = 256 * 1024;

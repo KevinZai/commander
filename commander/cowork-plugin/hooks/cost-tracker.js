@@ -17,9 +17,10 @@ import { emitUser, emitSilent } from './lib/emit.mjs';
 import { readStdinJson, sessionKey } from './lib/session-key.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 
-const SESSIONS_DIR = join(process.env.HOME, '.claude', 'commander', 'sessions');
+const SESSIONS_DIR = join(stateDir(), 'sessions');
 
 // Budget-unit conversion: 1 tool call == $0.01 budget unit. NOT real dollars.
 const UNIT_PER_CALL = 0.01;

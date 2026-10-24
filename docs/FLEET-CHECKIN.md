@@ -21,7 +21,7 @@ The lane comes from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`
 | Code | Meaning | What Fleet should do |
 |---|---|---|
 | 0 | Healthy. Warnings are allowed. | Proceed. |
-| 1 | A blocking check failed, for example the plugin is disabled. | Fail closed and keep the job queued. |
+| 1 | A blocking check failed, for example the plugin is disabled or its hook chain cannot load. | Fail closed and keep the job queued. |
 | 3 | No usable commander plugin: no record, a missing cache dir, or a cache without a readable `.claude-plugin/plugin.json` and `skills/ccc/SKILL.md`. | Fail closed (CCC is down on this lane). |
 
 ## JSON (schema 1)
@@ -37,6 +37,8 @@ The lane comes from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`
   "cli_version": "2.1.309",
   "drift": [],
   "lane": { "name": "ai4", "account": "ai4", "config_dir": "/Users/me/.claude-ai4", "state_dir": "/Users/me/.claude-ai4/commander", "source": "CLAUDE_CONFIG_DIR", "known": true },
+  "hooks": { "status": "ok", "hooks_dir": "/Users/me/.claude-ai4/plugins/cache/commander-hub/commander/8.1.3/hooks", "loadable": true, "registered": 46, "unregistered": [], "missing": [], "legacy_require": [], "no_esm_import": [], "shared_state_writers": [] },
+  "connectors": { "catalog": 16, "configured": { "user": 2, "local": 0, "project": 0, "total": 2 } },
   "health": { "ok": true, "checks": [ { "id": "plugin_installed", "status": "ok", "blocking": false, "message": "commander@commander-hub 8.1.2" } ] },
   "next": []
 }
@@ -50,9 +52,29 @@ The lane comes from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`
 | `cli_version` | `claude --version`, or `null` when skipped or unavailable. |
 | `drift[]` | `{kind, message, fix, …}`. Kinds: `checkout_behind_plugin`, `plugin_behind_checkout`, `plugin_record_stale`, `cli_below_floor` (below 2.1.304, the MCP Tasks floor). |
 | `lane` | `name` is `pri` for `~/.claude`, `<name>` for `~/.claude-<name>`, `ai5` for `~/.claude-guestnetworks`, and `custom` for any other dir name (`known: false`). |
-| `health.checks[]` | `{id, status: ok/warn/fail/skip, blocking, message}`. The ids are `plugin_installed`, `plugin_enabled`, `ccc_checkout`, `claude_cli` and `lane`. Only `fail` can block. |
+| `hooks` | Hook health of the lane's installed plugin, computed with the same functions as `ccc doctor`'s hook-chain check. `null` when no usable plugin is installed. See below. |
+| `connectors` | `catalog`: rows in the installed plugin's `CONNECTORS.md` opt-in MCP table. `configured`: MCP servers set up for this lane by scope: `user` (top-level `mcpServers` in `<config dir>/.claude.json`, or `~/.claude.json` for the default dir), `local` (that file's `projects[<cwd>]`) and `project` (`<cwd>/.mcp.json`). Counts come from the same functions as `ccc doctor`'s mcp-availability check. A missing table or a malformed config is `null` (unknown), never `0`, and makes `total` `null`. Informational: it never blocks. |
+| `health.checks[]` | `{id, status: ok/warn/fail/skip, blocking, message}`. The ids are `plugin_installed`, `plugin_enabled`, `ccc_checkout`, `claude_cli`, `hooks` and `lane`. Only `fail` can block. |
 | `plugin_enabled` | Fails unless `enabledPlugins["commander@commander-hub"]` is `true` after Claude Code's precedence: the lane's `settings.json`, then the project's `.claude/settings.json`, then `.claude/settings.local.json` (the project is the cwd). An unreadable settings file also fails. |
 | `next[]` | Suggested fix commands, in order. Fleet shows them; it never runs them. |
+
+### `hooks` block
+
+A handler is registered when `hooks/hooks.json` runs it or the SessionStart orchestrator imports it.
+
+| Field | Meaning |
+|---|---|
+| `status` | `ok`; `warn` when any of `unregistered`, `no_esm_import` or `shared_state_writers` is non-empty; `fail` when `loadable` is false or `missing` or `legacy_require` is non-empty. |
+| `hooks_dir` | The installed plugin's `hooks/` dir that was inspected. |
+| `loadable` | `false` when `hooks.json` is missing or is not valid JSON. |
+| `registered` | Count of registered handler files that exist. |
+| `unregistered[]` | Shipped `hooks/*.js` and `hooks/_archive/*.js` files that nothing registers and that are not allowlisted. Warning. |
+| `missing[]` | Registered handlers whose file is missing. Blocking. |
+| `legacy_require[]` | Registered handlers that call `require()`; they cannot load as ESM. Blocking. |
+| `no_esm_import[]` | Registered handlers with no `import`. Warning. |
+| `shared_state_writers[]` | Hook files that build the shared `~/.claude/commander` path instead of the lane state dir, so parallel lanes would write one file. Releases up to 8.1.2 report about 33; they warn but do not block. |
+
+The `hooks` check (`health.checks[]`) is `warn` or `fail` to match. A `fail` adds `claude plugin install commander@commander-hub` to `next`. Fleet's dispatch gate proceeds on `warn` (exit 0) and fails closed on `fail` (exit 1).
 
 The human line has this shape:
 `CCC check-in OK: ccc 8.1.2, plugin 8.1.2, claude 2.1.309, lane ai4, 0 warnings`
@@ -103,6 +125,24 @@ To audit another machine, run the same command there with its own checkout: `ccc
 - **Progress:** `done` and `skipped` rows count as finished. The current ticket is the first `wip` row; if there is none, the first row that is not done, skipped or blocked.
 - **Batch key:** the `Batch key:` line in `BRIEF.md`, shortened to 16 characters. Without that line, the run dir name is used.
 - **Cost:** the segment is read-only and offline. Its output is cached for 15 seconds under `$TMPDIR`.
+
+### Rolling the status line out (`ccc statusline sync`)
+
+`claude plugin update` does not touch the status line. `install.sh` copies `lib/statusline*.sh` into a config dir once, and each lane's `settings.json` runs that copy. `ccc statusline sync` shows which lanes run an old copy:
+
+```bash
+ccc statusline sync                 # dry run: every lane, changes nothing
+ccc statusline sync --lane ai4      # one lane (lane name or config dir name)
+ccc statusline sync --json          # {schema: 1, source_dir, applied, in_sync, targets[]}
+ccc statusline sync --apply         # archive, then copy
+```
+
+- **Source:** `statusline.sh` and `statusline-superfleet.sh` in the `lib/` of the checkout `ccc` runs from.
+- **Target:** the dir of the `statusline.sh` that the lane's `statusLine.command` runs, else `<config dir>/lib`. Lanes that run the same file (all lanes that point at `~/.claude/lib/statusline.sh`) are one target. Quoted paths with spaces are understood. A lane with no status line configured, or a `statusLine.command` that runs something other than `statusline.sh`, is skipped. Unknown arguments (including `--lane=X`) exit 2 before anything is written. An unreadable or malformed `settings.json` is a warning that counts as drift (exit 1), and `--apply` leaves that lane alone.
+- **Per file:** `same`, `differs` (with `+added/-removed` lines), `missing`, `unreadable`, or after `--apply` `copied` or `apply_failed`.
+- **`--apply`:** copies each `differs` or `missing` file. It first copies the old file to `<config dir>/commander/archive/<timestamp>/<dir>/`, under the config dir that owns the target. Nothing is deleted.
+- **Exit codes:** 0 in sync (or applied cleanly), 1 drift remains or a copy failed, 2 bad arguments or an unknown lane.
+- Lanes do not run `--apply` themselves. The coordinator runs it once with the release.
 
 ## Fleet routing hook
 
