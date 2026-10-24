@@ -17,6 +17,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -35,6 +36,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -53,6 +55,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-claudemd"
       ],
@@ -83,6 +86,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review",
         "ccc-plan"
@@ -119,6 +123,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-plan",
         "ccc-build"
@@ -140,6 +145,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -159,6 +165,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -186,6 +193,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-testing",
         "ccc-review",
@@ -224,6 +232,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-update"
       ],
@@ -245,6 +254,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -277,6 +287,7 @@
         ".github/workflows"
       ],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-systematic-debugging",
         "ccc-testing"
@@ -302,6 +313,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -322,6 +334,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -343,6 +356,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -361,6 +375,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -392,6 +407,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-seo",
         "ccc-marketing"
@@ -423,6 +439,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -445,6 +462,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -472,6 +490,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-broadcast",
         "ccc-changelog"
@@ -504,6 +523,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-ship",
         "ccc-deploy",
@@ -539,6 +559,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review",
         "ccc-testing"
@@ -575,6 +596,7 @@
         "docker-compose.yml"
       ],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-deploy-check",
         "ccc-security"
@@ -597,6 +619,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -619,6 +642,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-update",
         "ccc-tuneup"
@@ -640,6 +664,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-ship"
       ],
@@ -660,6 +685,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -681,6 +707,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": [
         "orchestrated work"
@@ -712,6 +739,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-fleet-viz",
         "ccc-review"
@@ -733,6 +761,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -756,6 +785,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -777,6 +807,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-deploy-check"
       ],
@@ -796,6 +827,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -816,6 +848,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -835,6 +868,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -853,6 +887,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": [
         "browse domains"
@@ -878,6 +913,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-plan",
         "ccc-build"
@@ -904,6 +940,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-linear"
       ],
@@ -929,6 +966,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -948,6 +986,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review"
       ],
@@ -974,6 +1013,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-content",
         "ccc-seo"
@@ -998,6 +1038,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1019,6 +1060,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1048,6 +1090,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -1068,6 +1111,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1088,6 +1132,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review"
       ],
@@ -1115,6 +1160,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1134,6 +1180,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-plan"
       ],
@@ -1155,6 +1202,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review"
       ],
@@ -1189,6 +1237,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-build",
         "ccc-testing",
@@ -1211,6 +1260,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review"
       ],
@@ -1239,6 +1289,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1267,6 +1318,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review",
         "ccc-deploy-check"
@@ -1293,6 +1345,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1311,6 +1364,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1342,6 +1396,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-plan",
         "ccc-brainstorm"
@@ -1365,6 +1420,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1399,6 +1455,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-qa",
         "ccc-deploy-check",
@@ -1431,6 +1488,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-systematic-debugging"
       ],
@@ -1458,6 +1516,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-build",
         "ccc-security"
@@ -1479,6 +1538,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1497,6 +1557,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1529,6 +1590,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-harden",
         "ccc-review"
@@ -1560,6 +1622,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-content"
       ],
@@ -1580,6 +1643,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": [
         "auto mode",
@@ -1609,6 +1673,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-changelog",
         "ccc-broadcast",
@@ -1646,6 +1711,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1665,6 +1731,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1693,6 +1760,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-tasks",
         "ccc-linear"
@@ -1714,6 +1782,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1737,6 +1806,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1768,6 +1838,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -1796,6 +1867,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1827,6 +1899,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-qa",
         "ccc-review"
@@ -1850,6 +1923,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1870,6 +1944,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1888,6 +1963,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1907,6 +1983,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-changelog",
         "ccc-doctor"
@@ -1930,6 +2007,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1952,6 +2030,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1988,6 +2067,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-makeover",
         "ccc-review"
@@ -2011,6 +2091,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": [
         "fewer approvals",
@@ -2038,6 +2119,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2060,6 +2142,7 @@
         ".csproj"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2078,6 +2161,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2096,6 +2180,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2116,6 +2201,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2134,6 +2220,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2156,6 +2243,7 @@
         "go.mod"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2178,6 +2266,7 @@
         "pom.xml"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2200,6 +2289,7 @@
         ".kts"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2225,6 +2315,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2245,6 +2336,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2267,6 +2359,7 @@
         "pyproject.toml"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2285,6 +2378,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2303,6 +2397,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2321,6 +2416,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2343,6 +2439,7 @@
         "Cargo.toml"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2363,6 +2460,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2382,6 +2480,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2404,6 +2503,7 @@
         ".tsx"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     }

@@ -14,6 +14,7 @@
  *   description phrase            +0.25
  *   path/file mention             +0.20
  *   negative pattern              route removed
+ * Ties sort by route priority (route-hints.json, default 0), then skill first.
  * Tiers: high  = intent pattern hit, top >= 0.8, 0.25 lead over runner-up
  *        medium = top >= 0.55 (one generic keyword alone never fires)
  *        low   = silent
@@ -124,8 +125,10 @@ export function scoreRoutes(prompt, routes = loadRoutes()) {
     for (const re of route._paths) if (re.test(text)) score += WEIGHTS.path;
     if (score > 0) candidates.push({ route, score: Math.min(1, Math.round(score * 100) / 100), patternHits });
   }
-  // Skills before agents on ties (a skill is the cheaper, in-thread path).
-  candidates.sort((a, b) => b.score - a.score || (a.route.kind === 'skill' ? -1 : 1) - (b.route.kind === 'skill' ? -1 : 1));
+  // Ties: higher route-hints priority first, then skills before agents (a
+  // skill is the cheaper, in-thread path).
+  const kindRank = (c) => (c.route.kind === 'skill' ? 0 : 1);
+  candidates.sort((a, b) => b.score - a.score || (b.route.priority || 0) - (a.route.priority || 0) || kindRank(a) - kindRank(b));
   return candidates;
 }
 

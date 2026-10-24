@@ -10,6 +10,7 @@
 
 ### Added
 - **Check-in:** `ccc checkin --json` gains an additive `hooks` block (schema stays 1): registered count, unregistered files, missing handlers and hooks that write the shared `~/.claude/commander`. Registration gaps and shared-state writers are warnings (exit 0); a hook chain that cannot load blocks (exit 1). See `docs/FLEET-CHECKIN.md` (CC-2102).
+- **Auto-routing:** `route-hints.json` takes an integer `priority` that breaks score ties (higher first, default 0; then skills before agents). `npm run build:routes` now fails, naming the route, when a routable skill or agent has no trigger, pattern, path or "Use when … says" phrase, so a route that can never fire is caught at build time (CC-2060).
 - **Status line:** `ccc statusline sync [--lane X] [--apply] [--json]` compares each lane's live `statusline.sh` and `statusline-superfleet.sh` with the checkout's `lib/` copies. It is a dry run by default; `--apply` archives the old file to `<config dir>/commander/archive/<timestamp>/` before it copies, and never deletes (CC-2103).
 
 ## [8.1.2] - 2026-10-24

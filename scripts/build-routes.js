@@ -27,6 +27,7 @@ const SKILLS_DIR = path.join(PLUGIN, 'skills');
 const AGENTS_DIR = path.join(PLUGIN, 'agents');
 const HINTS_FILE = path.join(ROOT, 'commander', 'core', 'route-hints.json');
 const OUT_FILE = path.join(PLUGIN, 'hooks', 'lib', 'ccc-routes.json');
+const DEFAULT_SOURCES = { skillsDir: SKILLS_DIR, agentsDir: AGENTS_DIR, hintsFile: HINTS_FILE };
 
 function readFrontmatter(file) {
   const text = fs.readFileSync(file, 'utf8');
@@ -83,6 +84,17 @@ function validateRegexes(id, list) {
   }
 }
 
+function priorityOf(id, hint) {
+  if (hint.priority === undefined) return 0;
+  if (!Number.isInteger(hint.priority)) throw new Error(`route ${id}: priority must be an integer, got ${JSON.stringify(hint.priority)}`);
+  return hint.priority;
+}
+
+// A route with no signal can never score, so it would never be offered.
+function hasSignal(entry) {
+  return ['strong', 'triggers', 'patterns', 'descTriggers', 'paths'].some((k) => entry[k].length > 0);
+}
+
 function buildEntry({ id, kind, name, fm, hint }) {
   const description = fm.description || '';
   const entry = {
@@ -97,6 +109,7 @@ function buildEntry({ id, kind, name, fm, hint }) {
     negatives: hint.negatives || [],
     paths: hint.paths || [],
     requirePath: Boolean(hint.requirePath),
+    priority: priorityOf(id, hint),
     next: hint.next || [],
     descTriggers: descTriggersFrom(description),
   };
@@ -105,19 +118,20 @@ function buildEntry({ id, kind, name, fm, hint }) {
   return entry;
 }
 
-function build() {
-  const hints = JSON.parse(fs.readFileSync(HINTS_FILE, 'utf8'));
+function build(sources = DEFAULT_SOURCES) {
+  const { skillsDir, agentsDir, hintsFile } = { ...DEFAULT_SOURCES, ...sources };
+  const hints = JSON.parse(fs.readFileSync(hintsFile, 'utf8'));
   const skillHints = hints.skills || {};
   const agentHints = hints.agents || {};
   const routes = [];
 
   const skillNames = fs
-    .readdirSync(SKILLS_DIR, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && fs.existsSync(path.join(SKILLS_DIR, d.name, 'SKILL.md')))
+    .readdirSync(skillsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(skillsDir, d.name, 'SKILL.md')))
     .map((d) => d.name)
     .sort();
   for (const name of skillNames) {
-    const fm = readFrontmatter(path.join(SKILLS_DIR, name, 'SKILL.md'));
+    const fm = readFrontmatter(path.join(skillsDir, name, 'SKILL.md'));
     const hint = skillHints[name] || {};
     // Aliases forward to a canonical skill; routing to them only adds interference.
     if (hint.exclude || /^Alias\b/i.test(fm.description || '')) continue;
@@ -125,12 +139,12 @@ function build() {
   }
 
   const agentNames = fs
-    .readdirSync(AGENTS_DIR)
+    .readdirSync(agentsDir)
     .filter((f) => f.endsWith('.md'))
     .map((f) => f.slice(0, -3))
     .sort();
   for (const name of agentNames) {
-    const fm = readFrontmatter(path.join(AGENTS_DIR, `${name}.md`));
+    const fm = readFrontmatter(path.join(agentsDir, `${name}.md`));
     const hint = agentHints[name] || {};
     if (hint.exclude) continue;
     routes.push(buildEntry({ id: `agent:${name}`, kind: 'agent', name, fm, hint }));
@@ -142,6 +156,10 @@ function build() {
   }
   for (const name of Object.keys(agentHints)) {
     if (!agentNames.includes(name)) throw new Error(`route-hints.json names unknown agent ${name}`);
+  }
+  const silent = routes.filter((r) => !hasSignal(r)).map((r) => r.id);
+  if (silent.length) {
+    throw new Error(`routes with no trigger, pattern, path or "Use when ... says" phrase can never fire: ${silent.join(', ')}. Add hints in route-hints.json or set "exclude": true`);
   }
   for (const route of routes) {
     for (const next of route.next) {
