@@ -43,7 +43,14 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --help       This help\n');
   process.exit(0);
 }
-if (args.includes('--version')) { var B = require(path.join(__dirname,'..','commander','branding')); console.log(B.product + ' v' + B.version); process.exit(0); }
+if (args.includes('--version')) {
+  var B = require(path.join(__dirname,'..','commander','branding'));
+  var rel = require(path.join(__dirname,'..','commander','lib','release-info'));
+  var vr = rel.versionReport(B.product, rel.resolveRelease({ root: path.resolve(__dirname, '..') }));
+  console.log(vr.line);
+  vr.warnings.forEach(function(w) { console.error(w); });
+  process.exit(0);
+}
 if (args.includes('--simple')) { /* handled below — skip split, go to engine */ }
 if (args.includes('--update')) {
   var { execSync } = require('child_process');
