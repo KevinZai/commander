@@ -123,6 +123,21 @@ fly logs --app cc-commander-mcp | grep -E "ERROR|WARN" &
 
 ---
 
+## Scenario 4 — `ccc` checkout behind the installed plugin
+
+A `ccc` shim that execs a git checkout's `bin/kc.js` reports that checkout's version, while Claude Code loads the plugin from its own cache. `ccc --version` prints both, for the config dir in `CCC_CONFIG_DIR` or `CLAUDE_CONFIG_DIR` (default `~/.claude`), and warns on stderr when the checkout is older:
+
+```text
+Claude Code Commander v8.1.1 (installed plugin v8.1.2)
+warning: ccc checkout 8.1.1 is behind the installed plugin 8.1.2. Update: on a clean main: git -C "<checkout>" fetch origin main && git -C "<checkout>" merge --ff-only origin/main
+```
+
+An npm install (no `.git`) suggests `npm update -g cc-commander` instead.
+
+Fast-forward only a clean checkout on `main` (`git status --short` empty, `git fetch origin main` first). If it has local changes or another branch, leave it and record the drift instead.
+
+---
+
 ## Contact chain
 
 | Step | Action |

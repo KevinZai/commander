@@ -77,6 +77,7 @@
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -93,6 +94,17 @@ const SAVINGS_STALE_MS = 7 * 24 * 60 * 60 * 1000; // savings-source honesty note
 function defaultBaseDir() {
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
   return path.join(home, '.claude', 'commander');
+}
+
+// The CLI writes savings.json per lane (<config dir>/commander, commander/lib/lane.js:
+// CCC_CONFIG_DIR > CLAUDE_CONFIG_DIR). Prefer that copy; fall back to the shared one.
+function defaultSavingsFile(root) {
+  const configDir = process.env.CCC_CONFIG_DIR || process.env.CLAUDE_CONFIG_DIR;
+  if (configDir) {
+    const laneFile = path.join(path.resolve(configDir), 'commander', 'savings.json');
+    if (existsSync(laneFile)) return laneFile;
+  }
+  return path.join(root, 'savings.json');
 }
 
 function toMs(value) {
@@ -217,7 +229,7 @@ async function readUsageModel({ baseDir, now, recompute = true, metricsRunner } 
   }
 
   const [savingsRaw, metricsRawRows] = await Promise.all([
-    readSavingsJson(path.join(root, 'savings.json')),
+    readSavingsJson(baseDir ? path.join(root, 'savings.json') : defaultSavingsFile(root)),
     readJsonl(path.join(root, 'mission-control', 'metrics.jsonl')),
   ]);
   const metricsRows = latestByDateSource(metricsRawRows);
