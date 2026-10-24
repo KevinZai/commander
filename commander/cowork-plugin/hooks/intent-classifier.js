@@ -20,7 +20,13 @@
  * decision:block costs an extra model turn for each offered menu, including
  * chained skill runs and headless sessions. CCC_ROUTE_NEXT=off opts out.
  *
+ * Fleet control-plane prompts (launch a lane, batch status, lane sweep, what's
+ * running on the fleet) get a <ccc-fleet-route> block instead: the Fleet skill,
+ * its read-only commands and the `ccc checkin` line (hooks/lib/fleet-intent.mjs).
+ *
  * Env: CCC_ROUTE_MODE=off|suggest|auto (default auto; suggest never auto-runs)
+ *      CCC_FLEET_ROUTE=on|off Fleet routing (default: on only when the
+ *        claude-fleet skill is installed)
  *      CCC_ROUTE_NEXT=off disables only the Stop menu
  *      CCC_ROUTE_MENU=list forces a numbered list instead of a native picker
  *
@@ -40,6 +46,7 @@ import {
   renderNextContext,
   MUTE_NEXT_LABEL,
 } from './lib/route-scorer.mjs';
+import { fleetRouteEnabled, matchFleetIntent, fleetTools, checkinLine, renderFleetContext } from './lib/fleet-intent.mjs';
 import { join } from 'node:path';
 import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync, openSync, readSync, fstatSync, closeSync, renameSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -161,6 +168,12 @@ function handlePrompt(data) {
     if (MUTE_PROMPT.test(rawPrompt)) {
       const state = loadState(data.session_id);
       saveState(data.session_id, { ...state, muteNext: true });
+    } else if (matchFleetIntent(rawPrompt) && fleetRouteEnabled()) {
+      // Fleet control-plane requests go to the Fleet skill, never dispatched from here.
+      const intent = matchFleetIntent(rawPrompt);
+      const tools = fleetTools();
+      context = renderFleetContext(intent, tools, tools.cli || tools.skill ? checkinLine() : null, mode);
+      logRouteEvent({ event: 'offered', route: `fleet:${intent.id}`, score: 1, tier: 'fleet', host, session_id: data.session_id || null });
     } else {
       const candidates = scoreRoutes(rawPrompt, loadRoutes());
       const tier = tierFor(candidates, mode);

@@ -103,3 +103,12 @@ To audit another machine, run the same command there with its own checkout: `ccc
 - **Progress:** `done` and `skipped` rows count as finished. The current ticket is the first `wip` row; if there is none, the first row that is not done, skipped or blocked.
 - **Batch key:** the `Batch key:` line in `BRIEF.md`, shortened to 16 characters. Without that line, the run dir name is used.
 - **Cost:** the segment is read-only and offline. Its output is cached for 15 seconds under `$TMPDIR`.
+
+## Fleet routing hook
+
+The UserPromptSubmit classifier (`hooks/intent-classifier.js` with `hooks/lib/fleet-intent.mjs`) recognizes Fleet control-plane requests: launching a lane, Superfleet or `SF-<KEY>` batch status, a lane sweep, finishing a Superfleet batch, lane usage or headroom, and what's running on the fleet. It answers with a `<ccc-fleet-route>` block that names the claude-fleet skill, the read-only `fleet` commands and the `ccc checkin` line.
+
+- **CCC prompts stay in CCC:** local parallel-agent prompts (parallel, subagents, fan-out, worktrees) keep normal CCC routing, including `/ccc-fleet`. A generic "batch" or "account" never counts as a Fleet request.
+- **Opt-in:** Fleet routing is on when the claude-fleet skill is installed (Claude: `<config dir>/skills`, `.claude/skills`; Codex: `.agents/skills`, `~/.agents/skills`, `/etc/codex/skills`), or when `CCC_FLEET_ROUTE=on`. `CCC_FLEET_ROUTE=off` turns it off. Opted in without any Fleet tools, the block says so in one line.
+- **Suggest mode:** `CCC_ROUTE_MODE=suggest` offers the skill and asks before using it. `CCC_ROUTE_MODE=off` disables all routing.
+- **Never acts:** the hook never launches, stops or messages a lane. Its only subprocess is `ccc checkin --no-cli`, capped at 3 seconds, and output that is not a check-in line is dropped.
