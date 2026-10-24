@@ -13,8 +13,9 @@ import { emitUser } from './lib/emit.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 
-const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
 
 async function main() {

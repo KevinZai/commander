@@ -17,7 +17,7 @@ effort: medium
 
 **CC Commander** · $ccc-mission-control · agent roster, task board, hand-offs and suggestions from local logs.
 
-Sources, all under `~/.claude/commander/`: `subagent-runs.jsonl`, `agent-runs.jsonl`, `tasks.jsonl`, `mission-control/events.jsonl`, `mission-control/suggestions.jsonl`. Everything is read locally; only the snapshot page leaves the machine, after consent.
+Sources, all under `<config dir>/commander/` (`~/.claude/commander/` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`): `subagent-runs.jsonl`, `agent-runs.jsonl`, `tasks.jsonl`, `mission-control/events.jsonl`, `mission-control/suggestions.jsonl`. Everything is read locally; only the snapshot page leaves the machine, after consent.
 
 ## When to use / when not to
 

@@ -19,13 +19,10 @@
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { readTranscriptUsage } from './lib/transcript-usage.mjs';
 
-const CCC_DIR = join(
-  process.env.HOME || process.env.USERPROFILE || '/tmp',
-  '.claude',
-  'commander'
-);
+const CCC_DIR = stateDir();
 const STDIN_MAX_BYTES = 256 * 1024;
 
 async function readStdinJson() {

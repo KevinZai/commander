@@ -18,7 +18,7 @@ disable-model-invocation: true
 
 `~~chat` and `~~email` mean whatever connector the user enabled through `$ccc-connect` (Slack, Teams or Discord; Gmail or Outlook); see [CONNECTORS.md](../../CONNECTORS.md). Connectors are opt-in and absent by default; log-only mode needs none. This is the outbound counterpart to `$ccc-nightwatch`: nightwatch asks "may I do this?", broadcast reports "here is what happened".
 
-Configuration lives in `~/.claude/commander/broadcast.json` (shape in [references/messages.md](references/messages.md)). Connector send tools are not pre-approved by this skill, so each send also passes the session's permission check.
+Configuration lives in `<config dir>/commander/broadcast.json` (`~/.claude/commander/broadcast.json` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`; until the lane has its own copy, read the `~/.claude/commander/broadcast.json` copy; setup writes to the lane) (shape in [references/messages.md](references/messages.md)). Connector send tools are not pre-approved by this skill, so each send also passes the session's permission check.
 
 Codex: ask pickers as plain-text questions; send through the connector Codex has configured, or stay log-only.
 
@@ -60,7 +60,7 @@ Route on the argument: `setup`, `status`, `test`, `digest`. No argument: `status
 4. Ask, question "Confirm each message before it is sent?":
    - 🟢 Confirm each message — a preview picker before every send.
    - Send automatically — unattended runs send without asking; the user can switch back with `setup`.
-5. Ask in chat for the channel name or recipient address and the daily budget (optional). Write `~/.claude/commander/broadcast.json`, then `chmod 600` it.
+5. Ask in chat for the channel name or recipient address and the daily budget (optional). Write `<config dir>/commander/broadcast.json`, then `chmod 600` it.
 
 ### status
 
@@ -77,9 +77,10 @@ Compose one sample message ("🧪 Broadcast test from CC Commander — no action
    ```bash
    git log --since="${SINCE:-24 hours ago}" --pretty='%h %s' 2>/dev/null | head -20
    gh run list --limit 10 --json name,conclusion,headBranch,url,updatedAt 2>/dev/null
-   tail -n 50 ~/.claude/commander/ccc-ci-events.jsonl 2>/dev/null
-   cat ~/.claude/commander/last-test-result.json 2>/dev/null
-   tail -n 200 ~/.claude/commander/mission-control/metrics.jsonl 2>/dev/null
+   CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+   tail -n 50 "$CCC_STATE/ccc-ci-events.jsonl" 2>/dev/null
+   cat "$CCC_STATE/last-test-result.json" 2>/dev/null
+   tail -n 200 "$CCC_STATE/mission-control/metrics.jsonl" 2>/dev/null
    ```
 
    Add outcomes from the current session (a deploy URL that returned 200, a finished task) when they are known.
@@ -97,13 +98,13 @@ Compose one sample message ("🧪 Broadcast test from CC Commander — no action
 
 ### Unattended relays
 
-The skill relays only when it runs. For a recurring digest, run `/loop` with `$ccc-broadcast digest` in a session that has the connector. A Routine (`/schedule`) runs in a cloud session that sees the repository and its connectors but not local `~/.claude/commander/` files, so its digest covers git and CI only. Unattended sends require "Send automatically" in the config; otherwise the run records log-only entries for review.
+The skill relays only when it runs. For a recurring digest, run `/loop` with `$ccc-broadcast digest` in a session that has the connector. A Routine (`/schedule`) runs in a cloud session that sees the repository and its connectors but not local `<config dir>/commander/` files, so its digest covers git and CI only. Unattended sends require "Send automatically" in the config; otherwise the run records log-only entries for review.
 
 ## Done when
 
 Run before reporting, and report the actual result:
 
-- setup: `jq . ~/.claude/commander/broadcast.json` parses and `ls -l ~/.claude/commander/broadcast.json | cut -c1-10` prints `-rw-------`.
+- setup: `jq . "$CCC_STATE/broadcast.json"` parses and `ls -l "$CCC_STATE/broadcast.json" | cut -c1-10` prints `-rw-------`.
 - test or digest: the scrub check printed nothing for every payload, and each send returned a message id or ok from the connector; quote it. A send with no confirmation is reported as not delivered.
 - `recent` gained one entry per message, with `ok` matching the connector result.
 

@@ -12,6 +12,7 @@ import { existsSync, statSync } from 'node:fs';
 import { delimiter, join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { homedir } from 'node:os';
+import { configDir as laneConfigDir } from '../../lib/lane-state.js';
 import { normalizePrompt } from './route-scorer.mjs';
 
 // Order matters: the first match wins (actions before status questions).
@@ -91,9 +92,8 @@ function onPath(bin, env) {
  */
 export function fleetTools(env = process.env, cwd = process.cwd()) {
   const home = env.HOME || homedir();
-  const configDir = env.CCC_CONFIG_DIR || env.CLAUDE_CONFIG_DIR || join(home, '.claude');
   const skillDirs = [
-    join(resolve(configDir), 'skills'),
+    join(laneConfigDir(env), 'skills'),
     join(resolve(cwd), '.claude', 'skills'),
     join(resolve(cwd), '.agents', 'skills'),
     join(home, '.agents', 'skills'),

@@ -36,6 +36,7 @@
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 
 function denyDecision(message) {
   return {
@@ -46,7 +47,7 @@ function denyDecision(message) {
   };
 }
 
-const CCC_DIR = join(process.env.HOME || '/tmp', '.claude', 'commander');
+const CCC_DIR = stateDir();
 
 // Tools that are always read-only — auto-approve
 const READ_ONLY_TOOLS = new Set([

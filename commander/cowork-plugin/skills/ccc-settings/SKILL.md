@@ -19,7 +19,7 @@ effort: low
 
 ## When to use / when not to
 
-- Use to change Commander preferences in `~/.claude/commander/config.json`, or the Claude Code settings this skill covers in user (`~/.claude/settings.json`) or project (`.claude/settings.json`) settings: permission mode, effort, model restrictions, workflow size.
+- Use to change Commander preferences in `<config dir>/commander/config.json` (`~/.claude/commander/config.json` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`; until the lane has its own copy, read the `~/.claude/commander/config.json` copy and write to the lane), or the Claude Code settings this skill covers in user (`~/.claude/settings.json`) or project (`.claude/settings.json`) settings: permission mode, effort, model restrictions, workflow size.
 - Not for switching the current model: that is `/model` in the session, and the user's selected model is preserved.
 - Not for cleanup or missing structural keys: `/ccc-tuneup`. Not for unattended permission setups: `/ccc-yolo-setup`.
 - `$ARGUMENTS` jumps straight to one setting (`theme`, `effort`, `mode`, …); `linear` runs only the Linear flow; `--power` (or `all`) opens the full menu.
@@ -30,7 +30,9 @@ effort: low
 ### 1. Read current values
 
 ```bash
-cat ~/.claude/commander/config.json 2>/dev/null || echo '{}'
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+CFG="$CCC_STATE/config.json"; [ -e "$CFG" ] || CFG="$HOME/.claude/commander/config.json"
+cat "$CFG" 2>/dev/null || echo '{}'
 node -e '
 const fs=require("fs"),p=require("path");
 const files={user:p.join(process.env.HOME,".claude/settings.json"),project:".claude/settings.json"};
@@ -45,7 +47,7 @@ Unset values print as missing; treat them as platform defaults (auto permission 
 
 Skip when `$ARGUMENTS` names a setting. Otherwise ask the top picker in Decision points. Below it print: `Or say "back" to return to /ccc.`
 
-### 3. Commander preferences (`~/.claude/commander/config.json`)
+### 3. Commander preferences (`<config dir>/commander/config.json`)
 
 Ask the preferences page-1 picker in Decision points; "More…" opens the page-2 picker, and its "Back" returns to page 1. Entries marked CLI-only configure the `ccc` terminal binary and have no effect in Claude Code Desktop or Cowork; show them anyway and say so. The menu definition used by the CLI is [references/settings.json](references/settings.json).
 
@@ -77,10 +79,11 @@ File shape (placeholders, not real values):
 Show the proposed change as `key: old → new` and confirm before writing. Then back up and write the whole object with Write, preserving every key you did not change:
 
 ```bash
-cp ~/.claude/commander/config.json ~/.claude/commander/config.json.backup-$(date +%Y%m%d-%H%M%S) 2>/dev/null; mkdir -p ~/.claude/commander
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+cp "$CCC_STATE/config.json" "$CCC_STATE/config.json.backup-$(date +%Y%m%d-%H%M%S)" 2>/dev/null; mkdir -p "$CCC_STATE"
 ```
 
-Verify with `node -e "console.log(JSON.parse(require('fs').readFileSync(process.env.HOME+'/.claude/commander/config.json','utf8')).<key>)"` and report the value read back.
+Verify with `node -e "const p=require('path');console.log(JSON.parse(require('fs').readFileSync(p.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||p.join(require('os').homedir(),'.claude'),'commander','config.json'),'utf8')).<key>)"` and report the value read back.
 
 **Linear setup** (opt-in, absent by default):
 
@@ -94,7 +97,7 @@ Verify with `node -e "console.log(JSON.parse(require('fs').readFileSync(process.
 1. "Archive, then reset": move whichever of `sessions/` and `knowledge/` exist into a UTC-stamped archive. A missing folder is skipped and reported; if neither exists, report that there is nothing to reset and stop.
 
    ```bash
-   base="$HOME/.claude/commander"; stamp=$(date -u +%Y%m%dT%H%M%SZ); dest="$base/reset-archive/$stamp"
+   base="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"; stamp=$(date -u +%Y%m%dT%H%M%SZ); dest="$base/reset-archive/$stamp"
    if [ ! -d "$base/sessions" ] && [ ! -d "$base/knowledge" ]; then echo "nothing to reset"; else
      mkdir -p "$dest" || { echo "cannot create $dest"; exit 1; }
      for d in sessions knowledge; do
@@ -105,8 +108,8 @@ Verify with `node -e "console.log(JSON.parse(require('fs').readFileSync(process.
    ```
 
    Look for each existing folder listed under the archive path and absent from `ls "$base"`. On a failed move, stop and report it; nothing has been deleted.
-2. "Delete permanently": run `rm -rf ~/.claude/commander/sessions/ ~/.claude/commander/knowledge/` (a missing folder is not an error).
-3. Verify with `ls ~/.claude/commander/` and report what remains, plus the archive path when archived.
+2. "Delete permanently": run `rm -rf "$base/sessions/" "$base/knowledge/"` (with `base` set as in the archive block) (a missing folder is not an error).
+3. Verify with `ls "$base"` and report what remains, plus the archive path when archived.
 
 ### 4. Claude Code settings (user or project `settings.json`)
 
@@ -226,7 +229,7 @@ header: "Reset"
 multiSelect: false
 options:
   - label: "🟢 Archive, then reset"
-    description: "Moves both folders to ~/.claude/commander/reset-archive/<stamp>/; reversible."
+    description: "Moves both folders to <config dir>/commander/reset-archive/<stamp>/; reversible."
   - label: "Delete permanently"
     description: "Removes both folders; cannot be undone."
   - label: "Cancel"
@@ -237,7 +240,7 @@ options:
 
 - The chosen value was read back from the file it was written to and reported (`key = value`).
 - Each write has a backup path reported, or the file did not exist before.
-- For reset, `ls ~/.claude/commander/` shows the folders gone (and the archive path when archived).
+- For reset, `ls "$base"` shows the folders gone (and the archive path when archived).
 
 ## Guardrails
 

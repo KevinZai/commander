@@ -33,12 +33,13 @@ import { computeConfidence } from './lib/confidence.mjs';
 import { appendSuggestion, readSuggestions } from '../lib/suggestions.js';
 import fs from 'node:fs';
 import path from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const STATE_DIR = path.join(os.homedir(), '.claude', 'commander');
+const STATE_DIR = stateDir();
 const LOG_FILE = path.join(STATE_DIR, 'suggest-log.jsonl');
 const TEST_CACHE_FILE = path.join(STATE_DIR, 'last-test-result.json');
 const VIOLATIONS_FILE = path.join(STATE_DIR, 'clickability-violations.jsonl');

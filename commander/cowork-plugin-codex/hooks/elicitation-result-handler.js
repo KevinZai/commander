@@ -7,9 +7,9 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 
-const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
-const LOG_DIR = path.join(HOME, '.claude', 'commander');
+const LOG_DIR = stateDir();
 const LOG_FILE = path.join(LOG_DIR, 'elicitation.jsonl');
 
 async function main() {

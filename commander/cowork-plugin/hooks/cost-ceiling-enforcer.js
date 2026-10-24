@@ -20,9 +20,10 @@ import { emitUser } from './lib/emit.mjs';
 import { sessionKey } from './lib/session-key.mjs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readablePath, stateDir } from '../lib/lane-state.js';
 
-const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
-const CONFIG_FILE = join(CCC_DIR, 'config.json');
+const CCC_DIR = stateDir();
+const CONFIG_FILE = readablePath('config.json');
 
 const DEFAULT_CEILING = 10.00; // budget units == 1000 tool calls
 // /loop note: rapid /loop iterations burn tool calls fast — raise costCeiling

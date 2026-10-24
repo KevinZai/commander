@@ -64,12 +64,13 @@ Show this disclosure at the top of every $ccc-connect response:
    Credential capture (Path S), filled in with `<name>`, `<Connector>` and `<kind>` (`oauth` or `api-key`):
 
    ```bash
-   mkdir -p ~/.claude/commander/connections && chmod 700 ~/.claude/commander/connections && \
+   CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander" && \
+   mkdir -p "$CCC_STATE/connections" && chmod 700 "$CCC_STATE/connections" && \
    read -s -p "Paste your <Connector> credential (input hidden, nothing echoed): " CCC_SECRET && echo && \
-   printf '%s' "$CCC_SECRET" | node -e 'const fs=require("fs");let s="";process.stdin.on("data",d=>s+=d).on("end",()=>fs.writeFileSync(process.env.HOME+"/.claude/commander/connections/<name>.json",JSON.stringify({name:"<name>",kind:"<kind>",credential:s,createdAt:new Date().toISOString(),tier:"free"},null,2)+"\n"))' && \
-   chmod 600 ~/.claude/commander/connections/<name>.json && \
+   printf '%s' "$CCC_SECRET" | node -e 'const fs=require("fs");let s="";process.stdin.on("data",d=>s+=d).on("end",()=>fs.writeFileSync(process.argv[1],JSON.stringify({name:"<name>",kind:"<kind>",credential:s,createdAt:new Date().toISOString(),tier:"free"},null,2)+"\n"))' "$CCC_STATE/connections/<name>.json" && \
+   chmod 600 "$CCC_STATE/connections/<name>.json" && \
    unset CCC_SECRET && \
-   echo "Saved ~/.claude/commander/connections/<name>.json (chmod 600)."
+   echo "Saved $CCC_STATE/connections/<name>.json (chmod 600)."
    ```
 
    `read -s` hides the input and keeps the secret out of shell history; the value reaches `node` on stdin and is written with `JSON.stringify`, so quotes, backslashes or newlines cannot corrupt the file. The assistant shows the command and waits; it never runs it and never asks for the value back. If the user cannot finish now (an OAuth callback is pending), they run it later and click Done in a later session; never write a placeholder file.
@@ -140,7 +141,7 @@ Supabase is the default backend for `$ccc-build` SaaS scaffolds: always list it 
 ## Done when
 
 - `claude mcp get <name>` (or `claude mcp list`) shows the server, or `claude plugin list --json` shows the plugin enabled, and the result was reported as observed.
-- For Path S, `ls -l ~/.claude/commander/connections/<name>.json` shows `-rw-------`.
+- For Path S, `ls -l "${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander/connections/<name>.json"` shows `-rw-------`.
 - The user was told how to load the new tools (`/mcp reconnect all` or a restart).
 
 ## Guardrails

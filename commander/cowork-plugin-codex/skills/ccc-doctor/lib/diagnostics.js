@@ -188,6 +188,61 @@ function checkLicenseCleanup(root) {
 // Files that may live in hooks/ but aren't in hooks.json (acceptable dormant utilities).
 var DORMANT_HOOK_ALLOWLIST = ['README.md'];
 
+var ORCHESTRATOR_REL = path.join('orchestrator', 'session-start-orchestrator.js');
+
+function stripComments(content) {
+  return content
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+}
+
+/**
+ * Handlers the SessionStart orchestrator imports ({ file: '../x.js' } entries),
+ * as paths relative to hooksDir ('fable-armed-nudge.js', '_archive/session-start.js').
+ */
+function orchestratorHandlers(hooksDir) {
+  var content = safeRead(path.join(hooksDir, ORCHESTRATOR_REL));
+  if (!content) return [];
+  var orchestratorDir = path.dirname(path.join(hooksDir, ORCHESTRATOR_REL));
+  var out = [];
+  var re = /\bfile:\s*['"]([^'"]+\.js)['"]/g;
+  var m;
+  var body = stripComments(content);
+  while ((m = re.exec(body)) !== null) {
+    out.push(path.relative(hooksDir, path.resolve(orchestratorDir, m[1])).split(path.sep).join('/'));
+  }
+  return out;
+}
+
+// A literal ~/.claude/commander path: join(..., '.claude', 'commander') or a
+// "<home>/.claude/commander" string. Hooks must use lib/lane-state.js instead.
+var SHARED_STATE_PATTERNS = [
+  /['"`]\.claude['"`]\s*,\s*['"`]commander['"`]/,
+  /\$\{[^}]*\}\/\.claude\/commander/,
+  /['"`]\/\.claude\/commander/,
+];
+
+/**
+ * Live hook code that builds the shared ~/.claude/commander path instead of the
+ * lane state dir: hooks/*.js, hooks/lib/*.mjs, the orchestrator and the
+ * _archive handlers it still imports. Returns sorted relative paths.
+ */
+function findSharedStateWriters(hooksDir) {
+  var files = listFiles(hooksDir, '.js')
+    .concat(listFiles(path.join(hooksDir, 'lib'), '.mjs').map(function (f) { return 'lib/' + f; }))
+    .concat(listFiles(path.join(hooksDir, 'orchestrator'), '.js').map(function (f) { return 'orchestrator/' + f; }))
+    .concat(orchestratorHandlers(hooksDir));
+  var seen = {};
+  return files.filter(function (rel) {
+    if (seen[rel]) return false;
+    seen[rel] = true;
+    var content = safeRead(path.join(hooksDir, rel));
+    if (!content) return false;
+    var code = stripComments(content);
+    return SHARED_STATE_PATTERNS.some(function (re) { return re.test(code); });
+  }).sort();
+}
+
 function checkHookChain(root) {
   var hooksDir = path.join(root, 'commander', 'cowork-plugin', 'hooks');
   var manifestPath = path.join(hooksDir, 'hooks.json');
@@ -634,6 +689,8 @@ module.exports = {
   checkEffortDefault: checkEffortDefault,
   checkLicenseCleanup: checkLicenseCleanup,
   checkHookChain: checkHookChain,
+  orchestratorHandlers: orchestratorHandlers,
+  findSharedStateWriters: findSharedStateWriters,
   checkMcpAvailability: checkMcpAvailability,
   checkContractIntegrity: checkContractIntegrity,
   checkVendorSubmodules: checkVendorSubmodules,

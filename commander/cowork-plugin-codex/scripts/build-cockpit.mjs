@@ -27,6 +27,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readTopSkills } from '../lib/top-skills.js';
+import { readablePath, readableStateDir } from '../lib/lane-state.js';
 import { brandArtifactCss } from '../lib/brand-css.js';
 import { deckStripHtml, deckStripCss } from '../lib/deck-switcher.js';
 
@@ -560,13 +561,12 @@ function readPluginVersion() {
 }
 
 // Linear board is a PRIVATE, opt-in surface: the Cockpit bakes whatever the
-// user's own Linear connector cached to ~/.claude/commander/linear-board.json
+// user's own Linear connector cached to <lane state dir>/linear-board.json
 // at generate time (never a network call at view time). Absent file → the tab
 // renders a "connect Linear" empty state. Shape:
 //   { connected, board, tickets:[{id,title,state,stateKind,project,updated,stale}] }
 function readLinearBoard() {
-  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
-  const file = path.join(home, '.claude', 'commander', 'linear-board.json');
+  const file = readablePath('linear-board.json');
   const str = (v) => (typeof v === 'string' ? v : '');
   try {
     const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -969,8 +969,7 @@ function computeTelemetryFreshness(baseDir, nowMs) {
 }
 
 async function buildAnalytics() {
-  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
-  const baseDir = path.join(home, '.claude', 'commander');
+  const baseDir = readableStateDir();
   const sources = {
     agentRuns: readJsonl(path.join(baseDir, 'agent-runs.jsonl')),
     subagentRuns: readJsonl(path.join(baseDir, 'subagent-runs.jsonl')),
@@ -1053,8 +1052,7 @@ async function buildDocument() {
   const skills = mergeSkills(pluginSkills, ecosystemSkills);
   const agents = buildAgents();
 
-  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
-  const baseDir = path.join(home, '.claude', 'commander');
+  const baseDir = readableStateDir();
   const nowMs = Date.now();
   const freshness = computeTelemetryFreshness(baseDir, nowMs);
 

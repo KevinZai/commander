@@ -4,9 +4,9 @@
 
 var fs = require('fs');
 var path = require('path');
-var os = require('os');
 
-var KNOWLEDGE_DIR = path.join(os.homedir(), '.claude', 'commander', 'knowledge');
+// Same lane dir the plugin's session-end / knowledge-capture hooks write.
+var KNOWLEDGE_DIR = path.join(require('./lib/lane').resolveLane().stateDir, 'knowledge');
 
 function ensureDir() {
   if (!fs.existsSync(KNOWLEDGE_DIR)) fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true });

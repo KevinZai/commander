@@ -1,6 +1,6 @@
 # /ccc-ci push mode — signed webhook receiver
 
-Push mode is optional. The plugin ships no running service: on `/ccc-ci init` the assistant writes the small receiver below into `~/.claude/commander/`, and starts it only after the user approves binding the port. Verified events are appended to `~/.claude/commander/ccc-ci-events.jsonl`, which `/ccc-ci status` reads.
+Push mode is optional. The plugin ships no running service: on `/ccc-ci init` the assistant writes the small receiver below into `<config dir>/commander/` (`~/.claude/commander/` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`), and starts it only after the user approves binding the port. Verified events are appended to `<config dir>/commander/ccc-ci-events.jsonl`, which `/ccc-ci status` reads.
 
 ```
 CI provider (GitHub Actions / Vercel / Railway)
@@ -12,7 +12,7 @@ optional tunnel (cloudflared / ngrok)  ── public URL, approved per run
       │  signature check (HMAC-SHA256 ours, HMAC-SHA1 Vercel)
       ├── fail → 401, logged to stderr, dropped
       ▼
-~/.claude/commander/ccc-ci-events.jsonl  ──►  /ccc-ci status → steps 3–6
+<config dir>/commander/ccc-ci-events.jsonl  ──►  /ccc-ci status → steps 3–6
 ```
 
 ## 1. Port check (ask before binding)
@@ -27,21 +27,23 @@ lsof -nP -iTCP:"$PORT" -sTCP:LISTEN 2>/dev/null && echo "port $PORT is in use; p
 ## 2. Shared secret (never printed)
 
 ```bash
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
 umask 077
-mkdir -p ~/.claude/commander
-test -s ~/.claude/commander/ccc-ci.secret || openssl rand -hex 32 > ~/.claude/commander/ccc-ci.secret
-ls -l ~/.claude/commander/ccc-ci.secret   # expect -rw-------
+mkdir -p "$CCC_STATE"
+test -s "$CCC_STATE/ccc-ci.secret" || openssl rand -hex 32 > "$CCC_STATE/ccc-ci.secret"
+ls -l "$CCC_STATE/ccc-ci.secret"   # expect -rw-------
 ```
 
-`--rotate`: delete nothing; overwrite with `openssl rand -hex 32 > ~/.claude/commander/ccc-ci.secret`, then repeat step 5 for every provider. To store it in GitHub without displaying it (writes a repository secret, so ask first):
+`--rotate`: delete nothing; overwrite with `openssl rand -hex 32 > "$CCC_STATE/ccc-ci.secret"` (`CCC_STATE` as defined in the step 2 block), then repeat step 5 for every provider. To store it in GitHub without displaying it (writes a repository secret, so ask first):
 
 ```bash
-gh secret set CCC_SECRET < ~/.claude/commander/ccc-ci.secret
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+gh secret set CCC_SECRET < "$CCC_STATE/ccc-ci.secret"
 ```
 
 ## 3. Receiver file
 
-Write this to `~/.claude/commander/ccc-ci-receiver.mjs`. It binds loopback only, caps bodies at 1 MB, compares signatures in constant time, and accepts only the event names in the skill's Events table.
+Write this to `<config dir>/commander/ccc-ci-receiver.mjs`. It binds loopback only, caps bodies at 1 MB, compares signatures in constant time, and accepts only the event names in the skill's Events table.
 
 ```js
 // ccc-ci-receiver.mjs: loopback-only, HMAC-verified CI event sink
@@ -51,7 +53,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const dir = path.join(os.homedir(), '.claude', 'commander');
+const dir = path.join(process.env.CCC_CONFIG_DIR || process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'), 'commander');
 const port = Number(process.env.CCC_CI_PORT || 7891);
 const secret = fs.readFileSync(path.join(dir, 'ccc-ci.secret'), 'utf8').trim();
 const vercelSecret = process.env.CCC_VERCEL_SECRET || '';
@@ -96,7 +98,8 @@ http.createServer((req, res) => {
 Start it after the picker's yes. As a background Bash command it stops at the background time limit (30 minutes by default); for a long session tell the user to run the same command in their own terminal.
 
 ```bash
-CCC_CI_PORT="$PORT" node ~/.claude/commander/ccc-ci-receiver.mjs
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+CCC_CI_PORT="$PORT" node "$CCC_STATE/ccc-ci-receiver.mjs"
 ```
 
 Vercel signs with its own webhook secret: the user exports it as `CCC_VERCEL_SECRET` in the shell that starts the receiver. Never write it into the file.
@@ -150,8 +153,9 @@ Signs in Node so the secret never reaches a command line:
 
 ```bash
 node -e '
-const fs = require("fs"), os = require("os"), crypto = require("crypto"), http = require("http");
-const secret = fs.readFileSync(os.homedir() + "/.claude/commander/ccc-ci.secret", "utf8").trim();
+const fs = require("fs"), os = require("os"), path = require("path"), crypto = require("crypto"), http = require("http");
+const dir = path.join(process.env.CCC_CONFIG_DIR || process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude"), "commander");
+const secret = fs.readFileSync(path.join(dir, "ccc-ci.secret"), "utf8").trim();
 const body = JSON.stringify({ event: process.argv[1], ref: "refs/heads/ccc-ci-test", run_url: null });
 const sig = crypto.createHmac("sha256", secret).update(body).digest("hex");
 const req = http.request({ host: "127.0.0.1", port: Number(process.env.CCC_CI_PORT || 7891), method: "POST",
@@ -159,7 +163,7 @@ const req = http.request({ host: "127.0.0.1", port: Number(process.env.CCC_CI_PO
 req.on("error", (e) => { console.error("receiver not reachable:", e.message); process.exit(1); });
 req.end(body);
 ' deploy_failed
-tail -n 1 ~/.claude/commander/ccc-ci-events.jsonl
+tail -n 1 "${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander/ccc-ci-events.jsonl"
 ```
 
 Expect `status 204` and a matching last line. `401` means the secret differs from the receiver's; `202` means the event name is not in the Events table.

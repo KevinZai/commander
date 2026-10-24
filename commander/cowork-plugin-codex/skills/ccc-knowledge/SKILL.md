@@ -13,7 +13,7 @@ effort: low
 
 # $ccc-knowledge — search what we learned
 
-**CC Commander** · $ccc-knowledge · past lessons from `~/.claude/commander/knowledge/`, searchable in one step.
+**CC Commander** · $ccc-knowledge · past lessons from `<config dir>/commander/knowledge/` (`~/.claude/commander/knowledge/` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`), searchable in one step.
 
 > Placeholders like ~~knowledge base refer to connected tools. See [CONNECTORS.md](../../CONNECTORS.md).
 
@@ -41,7 +41,7 @@ All modes use this one command. Replace `MODE` with `recent`, `search`, `categor
 ```bash
 node -e '
 const fs=require("fs"),path=require("path"),os=require("os");
-const dir=path.join(os.homedir(),".claude","commander","knowledge");
+const dir=path.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||path.join(os.homedir(),".claude"),"commander","knowledge");
 const [mode="recent",arg=""]=process.argv.slice(1);
 let names=[];try{names=fs.readdirSync(dir)}catch{console.log("EMPTY dir-missing");process.exit(0)}
 const L=[];for(const f of names){if(!f.endsWith(".json")||f.startsWith("session-"))continue;
@@ -121,7 +121,7 @@ Reads need no extra approval. Every push, upload or tracker write asks with the 
 1. Ask in plain text for the task and what worked or failed, unless the conversation already states them.
 2. Ask the outcome with the outcome picker.
 3. Set `category` with the CLI's rules, first match wins: website/landing/frontend/react/next/html/css/ui/ux → `web`; api/backend/server/rest/graphql/endpoint/database → `api`; cli/script/tool/automation/bash → `cli`; blog/article/content/writing/post/copy → `content`; social/twitter/linkedin/instagram/thread → `social`; email/campaign/newsletter/sequence → `email`; research/analysis/competitive/market/audit/seo → `research`; test/testing/e2e/unit/integration/qa → `testing`; deploy/ci/cd/docker/aws/infrastructure → `devops`; fix/bug/debug/error/issue/broken → `bugfix`; otherwise `general`.
-4. Get the id and timestamp with `node -e 'console.log("kl-"+Date.now(), new Date().toISOString())'`, then Write `~/.claude/commander/knowledge/<id>.json` (create the directory with `mkdir -p` first if step 1 printed `dir-missing`):
+4. Get the id and timestamp with `node -e 'console.log("kl-"+Date.now(), new Date().toISOString())'`, then Write `<config dir>/commander/knowledge/<id>.json` (create the directory with `mkdir -p` first if step 1 printed `dir-missing`):
 
 ```json
 {
@@ -171,7 +171,7 @@ Sync (before any connector write): 🟢 "Keep local only" · "Sync these lessons
 
 ## Guardrails
 
-- Read only `~/.claude/commander/knowledge/`. Never print `auto-captures.jsonl` lines wholesale, since they hold local file paths; report counts.
+- Read only `<config dir>/commander/knowledge/`. Never print `auto-captures.jsonl` lines wholesale, since they hold local file paths; report counts.
 - Write only new `kl-*.json` files; never edit or delete existing lessons, session stubs or captures.
 - Never push to a knowledge base, drive or tracker without the sync picker's approval in this conversation.
 - Codex: ask each picker as a plain-text question with the same options.

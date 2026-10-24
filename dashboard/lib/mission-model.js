@@ -2,7 +2,7 @@
  * mission-model.js
  * Unified read model for Commander Mission Control.
  *
- * Merges the plugin hook logs under ~/.claude/commander/ into one
+ * Merges the plugin hook logs under the lane state dir (~/.claude/commander/ by default) into one
  * dashboard-ready snapshot: agents (start/stop joined, PLUS derived
  * roster rows synthesized from delegation events for sources that never
  * get a real start record — see deriveRosterFromDelegations below),
@@ -43,11 +43,11 @@
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 
 import { getMetrics } from '../../commander/cowork-plugin/lib/metrics.js';
 import { readTopSkills } from '../../commander/cowork-plugin/lib/top-skills.js';
+import { readableStateDir, stateDir } from '../../commander/cowork-plugin/lib/lane-state.js';
 
 const AGENT_CAP = 200;
 const TASK_CAP = 100;
@@ -100,7 +100,7 @@ function personaFor(sourceApp, name) {
 }
 
 function defaultBaseDir() {
-  return path.join(os.homedir(), '.claude', 'commander');
+  return readableStateDir();
 }
 
 function parseTs(value) {
@@ -864,9 +864,9 @@ async function computeBaseModel({ baseDir, now }) {
 // metrics/topSkills are computed independently of the base model above —
 // see the module doc comment (Item 6) for why they get their own,
 // longer-lived cache entry instead of riding the 2s base-model TTL.
-async function computeSlowFields({ baseDir, now, metricsDays }) {
+async function computeSlowFields({ baseDir, writeDir, now, metricsDays }) {
   const [metrics, topSkills] = await Promise.all([
-    getMetrics({ baseDir, now, days: metricsDays }).catch(() => []),
+    getMetrics({ baseDir, writeDir, now, days: metricsDays }).catch(() => []),
     readTopSkills({ baseDir, now }).catch(() => []),
   ]);
   return { metrics, topSkills };
@@ -914,8 +914,11 @@ async function buildMissionModel({
   cacheTtlMs = MODEL_CACHE_TTL_MS,
   slowFieldTtlMs = SLOW_FIELD_CACHE_TTL_MS,
   metricsDays,
+  writeDir,
 } = {}) {
   const root = baseDir || defaultBaseDir();
+  // Metrics persist to the lane even when reads fall back to the legacy dir.
+  const persistDir = writeDir || baseDir || stateDir();
 
   const [base, slow] = await Promise.all([
     cache
@@ -923,9 +926,9 @@ async function buildMissionModel({
       : computeBaseModel({ baseDir: root, now }),
     cache
       ? cached(slowFieldCache, root, slowFieldTtlMs, () =>
-          computeSlowFields({ baseDir: root, now, metricsDays })
+          computeSlowFields({ baseDir: root, writeDir: persistDir, now, metricsDays })
         )
-      : computeSlowFields({ baseDir: root, now, metricsDays }),
+      : computeSlowFields({ baseDir: root, writeDir: persistDir, now, metricsDays }),
   ]);
 
   return { ...base, ...slow };

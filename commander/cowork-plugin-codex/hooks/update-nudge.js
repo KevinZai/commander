@@ -17,8 +17,8 @@
  */
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { fileURLToPath } from 'node:url';
-import { homedir } from 'node:os';
 import { emitModel, emitSilent } from './lib/emit.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -69,8 +69,7 @@ function resolvePluginRoot(env) {
 }
 
 function cacheFilePath(env) {
-  const home = env.HOME || env.USERPROFILE || homedir();
-  return join(home, '.claude', 'commander', 'update-nudge.json');
+  return join(stateDir(env), 'update-nudge.json');
 }
 
 async function readLocalVersion(env) {

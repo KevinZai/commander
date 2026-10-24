@@ -55,8 +55,8 @@
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { readableStateDir, stateDir } from './lane-state.js';
 
 // formatDuration/taskBucket live in ./console-render.js (they format and
 // classify for display) — imported rather than re-declared here, and re-exported
@@ -114,8 +114,7 @@ function personaFor(sourceApp, name) {
 }
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
 }
 
 function toMs(value) {
@@ -830,7 +829,7 @@ async function readModel({ baseDir, now } = {}) {
   const suggestions = latestSuggestions(suggestionEntries);
   const summary = summarize(agents, tasks, nowMs, awaitingPermission, suggestions);
   const [metrics, topSkills] = await Promise.all([
-    getMetrics({ baseDir: root, now: nowMs }).catch(() => []),
+    getMetrics({ baseDir: root, writeDir: baseDir || stateDir(), now: nowMs }).catch(() => []),
     readTopSkills({ baseDir: root, now: nowMs }).catch(() => []),
   ]);
 

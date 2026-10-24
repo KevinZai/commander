@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- **Hooks:** plugin hooks keep their state per lane in `<config dir>/commander` (`CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) through one resolver, `lib/lane-state.js`, so parallel lanes no longer write one shared `~/.claude/commander`. User settings (`config.json`, `console.json`, `state.json`) and the Console/Usage/Safety readers fall back to the legacy copy until the lane has its own. Nothing is migrated (CC-2098).
+
 ## [8.1.2] - 2026-10-24
 
 Status-line fix release. Bumps the pinned plugin version so `claude plugin update` picks up the fixes below.

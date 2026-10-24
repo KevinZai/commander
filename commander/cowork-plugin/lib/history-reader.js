@@ -41,8 +41,8 @@
  * read-only. Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { readableStateDir } from './lane-state.js';
 
 import { redactedSample } from './safety-snapshot.js';
 
@@ -59,8 +59,7 @@ const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const SESSION_FILE = /^(\d{4}-\d{2}-\d{2})-[^/]+\.json$/;
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
 }
 
 function toMs(value) {

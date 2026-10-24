@@ -87,7 +87,8 @@ INSTALLED_V="$(node -e "
   }catch(e){process.stdout.write('n/a');}
 " 2>/dev/null || echo n/a)"
 
-CACHE="$HOME/.claude/commander/update-cache.json"
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+CACHE="$CCC_STATE/update-cache.json"
 CACHED_REMOTE="$(node -e "
   try{
     const d=JSON.parse(require('fs').readFileSync('$CACHE','utf8'));
@@ -193,12 +194,13 @@ cp "$GIT_ROOT/CLAUDE.md" "$GIT_ROOT/CLAUDE.md.backup-$TS" 2>/dev/null
 
 Record each backup path. On any failure later in the run, restore every backup in reverse order and stop.
 
-**Backup retention:** if a source file now has more than 3 `*.backup-*` siblings, ask with the backup-retention picker before moving the oldest into `~/.claude/commander/tuneup-archive/old-backups-$TS/`.
+**Backup retention:** if a source file now has more than 3 `*.backup-*` siblings, ask with the backup-retention picker before moving the oldest into `<config dir>/commander/tuneup-archive/old-backups-$TS/` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`).
 
 **Archive dir:**
 
 ```bash
-ARCHIVE="$HOME/.claude/commander/tuneup-archive/$(date -u +%Y%m%dT%H%M%SZ)"
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+ARCHIVE="$CCC_STATE/tuneup-archive/$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$ARCHIVE"
 ```
 
@@ -212,7 +214,7 @@ done
 
 # Stale .bak/.old files (older than 14 days)
 find "$HOME/.claude" -maxdepth 4 \( -name "*.bak" -o -name "*.old" \) -mtime +14 \
-  -not -path "$HOME/.claude/commander/tuneup-archive/*" \
+  -not -path "$CCC_STATE/tuneup-archive/*" -not -path "$HOME/.claude/commander/tuneup-archive/*" \
   -exec mv {} "$ARCHIVE/" \; 2>/dev/null
 
 # Archive-hook dupes: names in BOTH hooks/_archive/ and hooks/, computed at run time
@@ -271,7 +273,7 @@ If any fix regressed a row, restore that file's `*.backup-$TS` and report it.
 ## Tune-Up complete
 
 ✅ Fixed: <each fix applied, with its verification result>
-🔄 Archived (reversible): ~/.claude/commander/tuneup-archive/<stamp>/  (restore: mv <path> back)
+🔄 Archived (reversible): <config dir>/commander/tuneup-archive/<stamp>/  (restore: mv <path> back)
 📝 Backups: <each *.backup-<stamp> path>
 ⏭️ For you to run: marketplace update + restart (version), /ccc-connect (MCP staleness)
 ```
@@ -346,7 +348,7 @@ options:
 
 ## Guardrails
 
-- Never `rm` or `trash`; junk, agents and sessions move to `~/.claude/commander/tuneup-archive/<UTC-stamp>/`.
+- Never `rm` or `trash`; junk, agents and sessions move to `<config dir>/commander/tuneup-archive/<UTC-stamp>/`.
 - Back up `settings.json` and any `CLAUDE.md` before editing (`cp <file> <file>.backup-$(date +%Y%m%d-%H%M%S)`); take every backup before the first edit; on any failure restore all of them in reverse order.
 - `settings.json` is the one file under `~/.claude/` this skill edits, and only to add missing keys. Never edit `~/.claude/CLAUDE.md` or other user config; it may contain counts that are not Commander's to rewrite.
 - Edit a `CLAUDE.md` only inside a verified Commander checkout (`CLAUDE_MD_MODE=maintainer`); end-user installs are detect-only. Never edit the plugin clone's source otherwise.

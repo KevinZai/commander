@@ -40,8 +40,9 @@ Run in one Bash call; missing tools or directories are not errors. Use `--since=
 ```bash
 git log --since="yesterday" --oneline --author="$(git config user.email)" 2>/dev/null
 git log --since="yesterday" --shortstat --author="$(git config user.email)" 2>/dev/null | tail -5
-ls -t ~/.claude/commander/sessions/ 2>/dev/null | head -3
-ls -t ~/.claude/commander/knowledge/*.json 2>/dev/null | head -3
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+ls -t "$CCC_STATE"/sessions/ 2>/dev/null | head -3
+ls -t "$CCC_STATE"/knowledge/*.json 2>/dev/null | head -3
 ```
 
 Read the newest session summaries and knowledge entries with Read when they are from the last working day.

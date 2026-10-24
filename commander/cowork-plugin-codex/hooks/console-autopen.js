@@ -33,7 +33,7 @@
 import { readFile, mkdir, stat, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { homedir } from 'node:os';
+import { readablePath, readableStateDir, stateDir } from '../lib/lane-state.js';
 import { emitModel, emitSilent } from './lib/emit.mjs';
 
 // Sources that mean "a session is beginning". `resume` and `compact` re-fire
@@ -73,8 +73,7 @@ const NUDGE = [
 ].join(' ');
 
 function commanderDir(env) {
-  const home = env.HOME || env.USERPROFILE || homedir();
-  return join(home, '.claude', 'commander');
+  return stateDir(env);
 }
 
 function isDisabled(env) {
@@ -91,7 +90,7 @@ function isCi(env) {
 /** ~/.claude/commander/console.json — {"autoOpen": false} is the documented off switch. */
 async function autoOpenEnabled(env) {
   try {
-    const raw = await readFile(join(commanderDir(env), 'console.json'), 'utf8');
+    const raw = await readFile(readablePath('console.json', env), 'utf8');
     const parsed = JSON.parse(raw);
     return parsed?.autoOpen !== false;
   } catch {
@@ -103,7 +102,7 @@ async function autoOpenEnabled(env) {
 }
 
 async function hasTelemetry(env) {
-  const base = commanderDir(env);
+  const base = readableStateDir(env);
   for (const relative of TELEMETRY_FILES) {
     try {
       const info = await stat(join(base, relative));

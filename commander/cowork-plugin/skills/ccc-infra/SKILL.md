@@ -15,7 +15,7 @@ effort: low
 
 **CC Commander** · /ccc-infra · a status table for your declared services, Claude MCPs and the Codex CLI.
 
-Scope is Claude Code and Codex tooling plus whatever the user lists in `~/.claude/commander/services.json`. The skill ships with no hardcoded ports, hosts or process names. Menu actions mirror [references/infrastructure.json](references/infrastructure.json).
+Scope is Claude Code and Codex tooling plus whatever the user lists in `<config dir>/commander/services.json` (`~/.claude/commander/services.json` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`; until the lane has its own copy, read the `~/.claude/commander/` copy and write to the lane). The skill ships with no hardcoded ports, hosts or process names. Menu actions mirror [references/infrastructure.json](references/infrastructure.json).
 
 Codex: ask the pickers as plain-text questions.
 
@@ -26,7 +26,7 @@ Codex: ask the pickers as plain-text questions.
 
 ## Config (optional)
 
-`~/.claude/commander/services.json`, written by the user or by step 5 with their answers:
+`<config dir>/commander/services.json`, written by the user or by step 5 with their answers:
 
 ```json
 {
@@ -43,12 +43,14 @@ Each entry has a `name` and either an `http(s)` `url` or an integer `port` (1–
 
 1. **Read the config.**
    ```bash
-   test -f ~/.claude/commander/services.json && cat ~/.claude/commander/services.json || echo "no services.json"
+   CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"; SVC="$CCC_STATE/services.json"; [ -e "$SVC" ] || SVC="$HOME/.claude/commander/services.json"
+   test -f "$SVC" && cat "$SVC" || echo "no services.json"
    ```
 
 2. **Probe declared services only.** With `probe <name>`, probe just that entry.
    ```bash
-   jq -r '.services[] | [.name, (.url // ""), ((.port // "") | tostring)] | @tsv' ~/.claude/commander/services.json |
+   CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"; SVC="$CCC_STATE/services.json"; [ -e "$SVC" ] || SVC="$HOME/.claude/commander/services.json"
+   jq -r '.services[] | [.name, (.url // ""), ((.port // "") | tostring)] | @tsv' "$SVC" |
    while IFS=$'\t' read -r name url port; do
      if [ -n "$url" ]; then
        code=$(curl -s -o /dev/null -w '%{http_code}' --proto '=http,https' --max-time 2 "$url"); echo "$name	url	$code"
