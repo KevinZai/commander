@@ -34,6 +34,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --skills       Manage installed skills (list, available, install, remove, tier)');
   console.log('  --list-sessions  Session history (add --json for JSON)');
   console.log('  --status     Health check (JSON: version, skills, vendors)');
+  console.log('  checkin      Fleet check-in: versions, drift, lane, health (--json, --no-cli)');
   console.log('  --template   Print the latest CLAUDE.md template (pipe to file)');
   console.log('  --daemon     Start persistent background daemon');
   console.log('  --queue "task"  Add task to daemon queue');
@@ -50,6 +51,13 @@ if (args.includes('--version')) {
   console.log(vr.line);
   vr.warnings.forEach(function(w) { console.error(w); });
   process.exit(0);
+}
+// Agent API: checkin (Fleet check-in gate; docs/FLEET-CHECKIN.md)
+if (args[0] === 'checkin' || args.includes('--checkin')) {
+  var ci = require(path.join(__dirname,'..','commander','lib','checkin'));
+  var ciResult = ci.buildCheckin({ root: path.resolve(__dirname, '..'), cli: !args.includes('--no-cli') });
+  console.log(args.includes('--json') ? JSON.stringify(ciResult, null, 2) : ci.summaryLine(ciResult));
+  process.exit(ci.exitCode(ciResult));
 }
 if (args.includes('--simple')) { /* handled below — skip split, go to engine */ }
 if (args.includes('--update')) {

@@ -22,6 +22,10 @@ function readJson(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (_e) { return null; }
 }
 
+function isReadableFile(file) {
+  try { fs.accessSync(file, fs.constants.R_OK); return fs.statSync(file).isFile(); } catch (_e) { return false; }
+}
+
 /** Numeric semver compare: 1 if a > b, -1 if a < b, 0 if equal or unparseable. */
 function compareVersions(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return 0;
@@ -98,7 +102,7 @@ function installedPlugin(configDir, projectDir) {
   Object.keys(plugins).forEach(function(key) {
     if (!PLUGIN_KEY_RE.test(key)) return;
     var v = plugins[key];
-    (Array.isArray(v) ? v : [v]).forEach(function(e) { if (e && typeof e === 'object') entries.push(e); });
+    (Array.isArray(v) ? v : [v]).forEach(function(e) { if (e && typeof e === 'object') entries.push(Object.assign({ _key: key }, e)); });
   });
   if (entries.length === 0) return null;
   var project = projectDir ? path.resolve(projectDir) : null;
@@ -109,15 +113,19 @@ function installedPlugin(configDir, projectDir) {
     entries.filter(function(e) { return !e.projectPath || e.projectPath === project; })[0];
   if (!pick) return null;
   var version = pick.version || null;
+  var manifest = null;
   if (pick.installPath) {
-    var manifest = readJson(path.join(pick.installPath, '.claude-plugin', 'plugin.json'));
+    manifest = readJson(path.join(pick.installPath, '.claude-plugin', 'plugin.json'));
     if (manifest && typeof manifest.version === 'string') version = manifest.version;
   }
   return {
+    id: pick._key,
     version: version,
     sha: pick.gitCommitSha || null,
     installPath: pick.installPath || null,
     installed: !!(pick.installPath && fs.existsSync(pick.installPath)),
+    // usable = a readable manifest and the /ccc hub skill in the cache dir
+    usable: !!(manifest && pick.installPath && isReadableFile(path.join(pick.installPath, 'skills', 'ccc', 'SKILL.md'))),
     scope: pick.scope || null,
   };
 }
