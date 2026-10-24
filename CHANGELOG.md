@@ -1,5 +1,14 @@
 # Changelog
 
+## [8.1.2] - 2026-10-24
+
+Status-line fix release. Bumps the pinned plugin version so `claude plugin update` picks up the fixes below.
+
+### Fixed
+- **Status line:** reads the CCC version from the installed plugin's `plugin.json` instead of a toolkit checkout, so it no longer shows a stale version.
+- **Status line:** the 🔑 hint shows the lane from the `CLAUDE_CONFIG_DIR` basename (`~/.claude-ai1` → `ai1`, any `.claude-<lane>`), and `pri` when it is unset or plain `.claude`. Other config dir names keep the ClaudeSwap / API-key-tail fallback.
+- **Status line:** a project-scoped install matches the session's `project_dir`, so subdirectories still show it, and an install that belongs only to another project is never shown.
+
 ## [8.1.1] - 2026-10-23
 
 Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached plugin only when that string changes. Every 8.1.0 install has therefore stayed on the 2026-10-18 build, and none of the fixes merged since then reached `claude plugin update`. This version carries them.

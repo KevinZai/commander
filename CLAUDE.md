@@ -6,7 +6,7 @@ CC Commander is a PM and orchestration layer over Claude's agent capabilities. T
 
 Version: read `package.json`. Release history: `CHANGELOG.md`. Product and install guidance: `README.md`. For current skills, agents, hooks, workflows, evals, and connectors, inspect the source directories, the plugin manifest, `commander/contract.json`, and `CONNECTORS.md`; do not copy volatile counts into instructions. The CLI toolkit's ecosystem catalog under `skills/` holds 467 skills; that figure lives in `commander/contract.json` as `ecosystem_skills` and is checked by `bin/doc-sync.js`.
 
-Release-check marker: **8.1.1**; **20 vendor** packages. `scripts/audit-counts.js --check` requires these two literals; keep them synchronized through release validation. Other counts stay in their canonical sources.
+Release-check marker: **8.1.2**; **20 vendor** packages. `scripts/audit-counts.js --check` requires these two literals; keep them synchronized through release validation. Other counts stay in their canonical sources.
 
 Platform facts (model ids, hook events, frontmatter keys, Codex CLI surface) are verified in [docs/reference/platform-facts-2026-10.md](docs/reference/platform-facts-2026-10.md). Every prompt surface follows [docs/PROMPT-STANDARD.md](docs/PROMPT-STANDARD.md). Historical prose is kept in [docs/reference/claude-context-2026-09-05.md](docs/reference/claude-context-2026-09-05.md) for reference only.
 

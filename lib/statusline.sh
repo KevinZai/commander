@@ -79,6 +79,7 @@ eval "$(echo "$INPUT" | jq -r '
   "OUT_TOK=\(.context_window.total_output_tokens // 0)",
   "DURATION=\(.cost.total_duration_ms // 0)",
   "PROJECT='\''\(.workspace.current_dir // "?")'\''",
+  "PROJECT_DIR='\''\(.workspace.project_dir // .workspace.current_dir // "")'\''",
   "AGENT='\''\(.agent.name // "")'\''",
   "RATE_5H_RESET=\(.rate_limits.five_hour.resets_at // "")",
   "RATE_7D_RESET=\(.rate_limits.seven_day.resets_at // "")",
@@ -257,10 +258,30 @@ else
   STATUS_EMOJI=""
 fi
 
-# ── API key hint (active account or key tail) ────────────────────────────
-KEY_HINT=""
+# ── API key hint (lane, active account or key tail) ──────────────────────
+# Lane comes from the CLAUDE_CONFIG_DIR basename: ".claude-<lane>" shows
+# <lane> (e.g. ~/.claude-ai1 -> ai1); unset or a plain ".claude" dir is the
+# primary lane ("pri"). Any other config dir name keeps the older fallbacks
+# (ClaudeSwap account, API key tail, n/a).
+ccc_lane_from_config_dir() {
+  local dir="${1-}" base lane
+  if [ -z "$dir" ]; then printf 'pri'; return 0; fi
+  while [ "${#dir}" -gt 1 ] && [ "${dir%/}" != "$dir" ]; do dir="${dir%/}"; done
+  base="${dir##*/}"
+  case "$base" in
+    .claude) printf 'pri'; return 0 ;;
+    .claude-?*)
+      # Keep the hint terminal-safe: printable name characters only, max 12.
+      lane=$(printf '%s' "${base#.claude-}" | LC_ALL=C tr -cd 'A-Za-z0-9._-')
+      lane="${lane:0:12}"
+      [ -n "$lane" ] && printf '%s' "$lane"
+      return 0 ;;
+  esac
+  return 0
+}
+KEY_HINT="$(ccc_lane_from_config_dir "${CLAUDE_CONFIG_DIR:-}")"
 SWAP_STATE_FILE="$HOME/.config/claudeswap-state.json"
-if [ -f "$SWAP_STATE_FILE" ]; then
+if [ -z "$KEY_HINT" ] && [ -f "$SWAP_STATE_FILE" ]; then
   # Show active ClaudeSwap account name (short form)
   SWAP_ACTIVE=$(jq -r '.accounts | to_entries | sort_by(.value.last_used) | last | .key // empty' "$SWAP_STATE_FILE" 2>/dev/null)
   if [ -n "$SWAP_ACTIVE" ]; then
@@ -303,8 +324,28 @@ fi
 
 # ── CCC version ───────────────────────────────────────────────────────────
 CCC_VER=""
-PKG_FILE="$HOME/clawd/projects/cc-commander/package.json"
-[ -f "$PKG_FILE" ] && CCC_VER=$(jq -r '.version // empty' "$PKG_FILE" 2>/dev/null)
+CCC_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+if [ -f "$CCC_CONFIG_DIR/plugins/installed_plugins.json" ]; then
+  CCC_PLUGIN_ENTRY=$(jq -c --arg project "$PROJECT_DIR" '
+    [.plugins | to_entries[] | select(.key | test("^commander@")) | .value[] | objects] |
+    (map(select(.scope == "project" and .projectPath == $project))[0] //
+     map(select(.scope == "user"))[0] //
+     map(select((.projectPath // $project) == $project))[0]) // empty
+  ' "$CCC_CONFIG_DIR/plugins/installed_plugins.json" 2>/dev/null)
+  if [ -n "$CCC_PLUGIN_ENTRY" ]; then
+    CCC_INSTALL_PATH=$(printf '%s\n' "$CCC_PLUGIN_ENTRY" | jq -r '.installPath // empty' 2>/dev/null)
+    if [ -n "$CCC_INSTALL_PATH" ] && [ -f "$CCC_INSTALL_PATH/.claude-plugin/plugin.json" ]; then
+      CCC_VER=$(jq -r '.version // empty' "$CCC_INSTALL_PATH/.claude-plugin/plugin.json" 2>/dev/null)
+    fi
+    if [ -z "$CCC_VER" ]; then
+      CCC_VER=$(printf '%s\n' "$CCC_PLUGIN_ENTRY" | jq -r '.version // empty' 2>/dev/null)
+    fi
+  fi
+fi
+if [ -z "$CCC_VER" ]; then
+  PKG_FILE="$HOME/clawd/projects/cc-commander/package.json"
+  [ -f "$PKG_FILE" ] && CCC_VER=$(jq -r '.version // empty' "$PKG_FILE" 2>/dev/null)
+fi
 if [ -z "$CCC_VER" ]; then
   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
   PKG_FILE="$(dirname "$SCRIPT_DIR")/package.json"
