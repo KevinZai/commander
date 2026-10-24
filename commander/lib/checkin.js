@@ -16,6 +16,7 @@ var childProcess = require('child_process');
 
 var lane = require('./lane');
 var release = require('./release-info');
+var diagnostics = require('../cowork-plugin/skills/ccc-doctor/lib/diagnostics');
 
 var SCHEMA = 1;
 // MCP Tasks need Claude Code 2.1.304+ (CC-2091 findings).
@@ -66,6 +67,44 @@ function claudeCliVersion(env) {
   } catch (_e) {
     return null;
   }
+}
+
+/**
+ * Hook health for the lane's installed plugin, from the same functions
+ * `ccc doctor` uses.
+ * status: ok | warn (unregistered files, shared-state writers, a handler
+ * without an ESM import) | fail (hooks.json missing or unparseable, a
+ * registered handler missing, or a legacy require() that cannot load as ESM).
+ */
+function hooksHealth(plugin) {
+  var dir = path.join(plugin.installPath, 'hooks');
+  var report = diagnostics.hookChainReport(dir);
+  var writers = report.loadable ? diagnostics.findSharedStateWriters(dir) : [];
+  var status = 'ok';
+  if (!report.loadable || report.missing.length || report.legacyRequire.length) status = 'fail';
+  else if (report.unregistered.length || writers.length || report.noEsm.length) status = 'warn';
+  return {
+    status: status,
+    hooks_dir: dir,
+    loadable: report.loadable,
+    registered: report.registered.length,
+    unregistered: report.unregistered,
+    missing: report.missing,
+    legacy_require: report.legacyRequire,
+    no_esm_import: report.noEsm,
+    shared_state_writers: writers,
+  };
+}
+
+function hooksMessage(h) {
+  if (!h.loadable) return 'hooks.json missing, unparseable or malformed in ' + h.hooks_dir;
+  var parts = [];
+  if (h.missing.length) parts.push('missing handlers: ' + h.missing.join(', '));
+  if (h.legacy_require.length) parts.push('require() in ESM handlers: ' + h.legacy_require.join(', '));
+  if (h.unregistered.length) parts.push('unregistered: ' + h.unregistered.join(', '));
+  if (h.no_esm_import.length) parts.push('no ESM import: ' + h.no_esm_import.join(', '));
+  if (h.shared_state_writers.length) parts.push(h.shared_state_writers.length + ' hook(s) write the shared ~/.claude/commander instead of the lane dir');
+  return parts.length ? parts.join('; ') : h.registered + ' handlers registered';
 }
 
 function check(id, status, message, blocking) {
@@ -135,6 +174,14 @@ function buildCheckin(opts) {
     checks.push(check('claude_cli', 'ok', 'claude ' + cliVersion));
   }
 
+  var hooks = rel.plugin && rel.plugin.usable ? hooksHealth(rel.plugin) : null;
+  if (!hooks) {
+    checks.push(check('hooks', 'skip', 'no usable plugin to inspect'));
+  } else {
+    checks.push(check('hooks', hooks.status, hooksMessage(hooks), true));
+    if (hooks.status === 'fail') next.push('claude plugin install ' + pluginId);
+  }
+
   checks.push(ln.known
     ? check('lane', 'ok', 'lane ' + ln.lane + ' (' + ln.source + ')')
     : check('lane', 'warn', 'config dir ' + ln.configDir + ' is not .claude or .claude-<lane>; lane "custom"'));
@@ -157,6 +204,7 @@ function buildCheckin(opts) {
       source: ln.source,
       known: ln.known,
     },
+    hooks: hooks,
     health: { ok: !blocking, checks: checks },
     next: next,
   };

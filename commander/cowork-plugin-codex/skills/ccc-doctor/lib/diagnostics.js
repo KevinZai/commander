@@ -251,11 +251,26 @@ function findSharedStateWriters(hooksDir) {
  * legacyRequire[], noEsm[]} with paths relative to hooksDir. loadable is false
  * when hooks.json is missing or unparseable.
  */
+// hooks.json shape Claude Code loads: {hooks: {<event>: [{hooks: [{command}]}]}}.
+function wellFormedManifest(manifest) {
+  if (!manifest || typeof manifest.hooks !== 'object' || manifest.hooks === null || Array.isArray(manifest.hooks)) return false;
+  return Object.keys(manifest.hooks).every(function (event) {
+    var groups = manifest.hooks[event];
+    return Array.isArray(groups) && groups.every(function (g) {
+      return g && typeof g === 'object' && Array.isArray(g.hooks) && g.hooks.every(function (h) {
+        if (!h || typeof h !== 'object' || typeof h.type !== 'string') return false;
+        // A command handler needs a non-empty command string; other handler types carry their own fields.
+        return h.type !== 'command' || (typeof h.command === 'string' && h.command.trim() !== '');
+      });
+    });
+  });
+}
+
 function hookChainReport(hooksDir) {
   var manifestPath = path.join(hooksDir, 'hooks.json');
   var manifest = safeJson(manifestPath);
   var report = {
-    loadable: !!(manifest && manifest.hooks),
+    loadable: wellFormedManifest(manifest),
     manifestPath: manifestPath,
     registered: [],
     unregistered: [],
@@ -310,7 +325,7 @@ function checkHookChain(root) {
   if (!report.loadable) {
     return fail(
       'hook-chain',
-      'hooks.json missing or unparseable at ' + report.manifestPath,
+      'hooks.json missing, unparseable or malformed at ' + report.manifestPath,
       'Restore hooks.json from a known-good commit.'
     );
   }

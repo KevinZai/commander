@@ -29,12 +29,25 @@ function laneDir(name, v, settings) {
     writeJson(path.join(install, '.claude-plugin', 'plugin.json'), { version: v });
     fs.mkdirSync(path.join(install, 'skills', 'ccc'), { recursive: true });
     fs.writeFileSync(path.join(install, 'skills', 'ccc', 'SKILL.md'), '---\nname: ccc\n---\n');
+    writeHooks(install);
     writeJson(path.join(dir, 'plugins', 'installed_plugins.json'), {
       version: 2, plugins: { 'commander@commander-hub': [{ scope: 'user', version: v, installPath: install, gitCommitSha: 'f'.repeat(40) }] },
     });
   }
   writeJson(path.join(dir, 'settings.json'), settings || { enabledPlugins: { 'commander@commander-hub': true } });
   return { home: home, dir: dir, env: { HOME: home, CLAUDE_CONFIG_DIR: dir } };
+}
+
+/** A minimal clean hooks dir: one registered ESM handler that uses the lane resolver. */
+function writeHooks(install) {
+  writeJson(path.join(install, 'hooks', 'hooks.json'), {
+    hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/start.js"' }] }] },
+  });
+  fs.writeFileSync(path.join(install, 'hooks', 'start.js'), "import { stateDir } from '../lib/lane-state.js';\n");
+}
+
+function pluginHooks(l) {
+  return path.join(l.dir, 'plugins', 'cache', 'commander-hub', 'commander', '8.1.2', 'hooks');
 }
 
 function checkout(version) {
@@ -46,7 +59,7 @@ function checkout(version) {
 test('schema 1 snapshot: keys, types and lane block', function() {
   var l = laneDir('ai4', '8.1.2');
   var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cliVersion: '2.1.309', now: '2026-10-24T14:00:00Z' });
-  assert.deepStrictEqual(Object.keys(r), ['schema', 'generated_at', 'ccc_version', 'ccc_sha', 'plugin_version', 'plugin_sha', 'cli_version', 'drift', 'lane', 'health', 'next']);
+  assert.deepStrictEqual(Object.keys(r), ['schema', 'generated_at', 'ccc_version', 'ccc_sha', 'plugin_version', 'plugin_sha', 'cli_version', 'drift', 'lane', 'hooks', 'health', 'next']);
   assert.strictEqual(r.schema, 1);
   assert.strictEqual(r.generated_at, '2026-10-24T14:00:00.000Z');
   assert.deepStrictEqual([r.ccc_version, r.plugin_version, r.cli_version], ['8.1.2', '8.1.2', '2.1.309']);
@@ -54,7 +67,9 @@ test('schema 1 snapshot: keys, types and lane block', function() {
   assert.deepStrictEqual([r.lane.name, r.lane.account, r.lane.source, r.lane.known], ['ai4', 'ai4', 'CLAUDE_CONFIG_DIR', true]);
   assert.strictEqual(r.health.ok, true);
   assert.deepStrictEqual(r.health.checks.map(function(c) { return c.id + ':' + c.status; }),
-    ['plugin_installed:ok', 'plugin_enabled:ok', 'ccc_checkout:ok', 'claude_cli:ok', 'lane:ok']);
+    ['plugin_installed:ok', 'plugin_enabled:ok', 'ccc_checkout:ok', 'claude_cli:ok', 'hooks:ok', 'lane:ok']);
+  assert.deepStrictEqual(Object.keys(r.hooks), ['status', 'hooks_dir', 'loadable', 'registered', 'unregistered', 'missing', 'legacy_require', 'no_esm_import', 'shared_state_writers']);
+  assert.deepStrictEqual([r.hooks.status, r.hooks.registered, r.hooks.unregistered, r.hooks.shared_state_writers], ['ok', 1, [], []]);
   r.health.checks.forEach(function(c) { assert.deepStrictEqual(Object.keys(c), ['id', 'status', 'blocking', 'message']); });
   assert.deepStrictEqual(r.drift, []);
   assert.deepStrictEqual(r.next, []);
@@ -187,4 +202,79 @@ test('a commander install from another marketplace is checked under its own key'
   var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cli: false });
   assert.strictEqual(r.health.ok, true);
   assert.strictEqual(r.health.checks[0].message, 'commander@other-hub 8.1.2');
+});
+
+// CC-2102: hook health for Fleet's dispatch gate.
+
+test('hooks: unregistered files and shared-state writers warn but do not block', function() {
+  var l = laneDir('ai1', '8.1.2');
+  fs.writeFileSync(path.join(pluginHooks(l), 'stray.js'), "import x from 'y';\n");
+  fs.writeFileSync(path.join(pluginHooks(l), 'start.js'), "import { join } from 'node:path';\nconst D = join(process.env.HOME, '.claude', 'commander');\n");
+  var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cliVersion: '2.1.309' });
+  assert.strictEqual(r.hooks.status, 'warn');
+  assert.deepStrictEqual(r.hooks.unregistered, ['stray.js']);
+  assert.deepStrictEqual(r.hooks.shared_state_writers, ['start.js']);
+  var c = r.health.checks.filter(function(x) { return x.id === 'hooks'; })[0];
+  assert.deepStrictEqual([c.status, c.blocking], ['warn', false]);
+  assert.match(c.message, /unregistered: stray\.js/);
+  assert.match(c.message, /1 hook\(s\) write the shared/);
+  assert.strictEqual(r.health.ok, true);
+  assert.strictEqual(checkin.exitCode(r), 0);
+  assert.match(checkin.summaryLine(r), /1 warning \(hooks\)$/);
+});
+
+test('hooks: a hook chain that cannot load blocks with exit 1', function() {
+  var l = laneDir('ai2', '8.1.2');
+  fs.writeFileSync(path.join(pluginHooks(l), 'hooks.json'), '{not json');
+  var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cliVersion: '2.1.309' });
+  assert.strictEqual(r.hooks.status, 'fail');
+  assert.strictEqual(r.hooks.loadable, false);
+  var c = r.health.checks.filter(function(x) { return x.id === 'hooks'; })[0];
+  assert.deepStrictEqual([c.status, c.blocking], ['fail', true]);
+  assert.strictEqual(r.health.ok, false);
+  assert.strictEqual(checkin.exitCode(r), 1);
+  assert.ok(r.next.indexOf('claude plugin install commander@commander-hub') >= 0);
+});
+
+test('hooks: a registered handler missing on disk blocks', function() {
+  var l = laneDir('ai3', '8.1.2');
+  fs.renameSync(path.join(pluginHooks(l), 'start.js'), path.join(pluginHooks(l), 'start.js.off'));
+  var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cli: false });
+  assert.deepStrictEqual(r.hooks.missing, ['start.js']);
+  assert.strictEqual(checkin.exitCode(r), 1);
+});
+
+test('hooks: skipped (null) when no plugin is installed; exit stays 3', function() {
+  var l = laneDir('ai4', null);
+  var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cli: false });
+  assert.strictEqual(r.hooks, null);
+  assert.strictEqual(r.health.checks.filter(function(x) { return x.id === 'hooks'; })[0].status, 'skip');
+  assert.strictEqual(checkin.exitCode(r), 3);
+});
+
+test('hooks: checkin and doctor agree on the shipped hooks', function() {
+  var diag = require('../cowork-plugin/skills/ccc-doctor/lib/diagnostics');
+  var l = laneDir('ai1', '8.1.2');
+  fs.rmSync(pluginHooks(l), { recursive: true, force: true });
+  fs.cpSync(path.join(__dirname, '..', 'cowork-plugin', 'hooks'), pluginHooks(l), { recursive: true });
+  var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cli: false });
+  var report = diag.hookChainReport(path.join(__dirname, '..', 'cowork-plugin', 'hooks'));
+  assert.strictEqual(r.hooks.status, 'ok');
+  assert.strictEqual(r.hooks.registered, report.registered.length);
+  assert.deepStrictEqual(r.hooks.shared_state_writers, []);
+});
+
+test('hooks: a malformed hooks.json shape is a blocking failure, not a crash', function() {
+  [{ hooks: { SessionStart: {} } }, { hooks: [] }, { hooks: { SessionStart: [{ hooks: 'x' }] } }, { hooks: { SessionStart: [null] } },
+    { hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 42 }] }] } },
+    { hooks: { SessionStart: [{ hooks: [{ type: 'command' }] }] } },
+    { hooks: { SessionStart: [{ hooks: [{ type: 'command', command: '  ' }] }] } },
+    { hooks: { SessionStart: [{ hooks: [{ command: 'node x.js' }] }] } },
+    { hooks: { SessionStart: [{ matcher: 'x' }] } }].forEach(function(manifest) {
+    var l = laneDir('ai2', '8.1.2');
+    writeJson(path.join(pluginHooks(l), 'hooks.json'), manifest);
+    var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cli: false });
+    assert.strictEqual(r.hooks.loadable, false, JSON.stringify(manifest));
+    assert.strictEqual(checkin.exitCode(r), 1);
+  });
 });
