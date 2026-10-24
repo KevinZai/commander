@@ -38,6 +38,7 @@ The lane comes from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`
   "drift": [],
   "lane": { "name": "ai4", "account": "ai4", "config_dir": "/Users/me/.claude-ai4", "state_dir": "/Users/me/.claude-ai4/commander", "source": "CLAUDE_CONFIG_DIR", "known": true },
   "hooks": { "status": "ok", "hooks_dir": "/Users/me/.claude-ai4/plugins/cache/commander-hub/commander/8.1.3/hooks", "loadable": true, "registered": 46, "unregistered": [], "missing": [], "legacy_require": [], "no_esm_import": [], "shared_state_writers": [] },
+  "connectors": { "catalog": 16, "configured": { "user": 2, "local": 0, "project": 0, "total": 2 } },
   "health": { "ok": true, "checks": [ { "id": "plugin_installed", "status": "ok", "blocking": false, "message": "commander@commander-hub 8.1.2" } ] },
   "next": []
 }
@@ -52,6 +53,7 @@ The lane comes from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`
 | `drift[]` | `{kind, message, fix, …}`. Kinds: `checkout_behind_plugin`, `plugin_behind_checkout`, `plugin_record_stale`, `cli_below_floor` (below 2.1.304, the MCP Tasks floor). |
 | `lane` | `name` is `pri` for `~/.claude`, `<name>` for `~/.claude-<name>`, `ai5` for `~/.claude-guestnetworks`, and `custom` for any other dir name (`known: false`). |
 | `hooks` | Hook health of the lane's installed plugin, computed with the same functions as `ccc doctor`'s hook-chain check. `null` when no usable plugin is installed. See below. |
+| `connectors` | `catalog`: rows in the installed plugin's `CONNECTORS.md` opt-in MCP table. `configured`: MCP servers set up for this lane by scope: `user` (top-level `mcpServers` in `<config dir>/.claude.json`, or `~/.claude.json` for the default dir), `local` (that file's `projects[<cwd>]`) and `project` (`<cwd>/.mcp.json`). Counts come from the same functions as `ccc doctor`'s mcp-availability check. A missing table or a malformed config is `null` (unknown), never `0`, and makes `total` `null`. Informational: it never blocks. |
 | `health.checks[]` | `{id, status: ok/warn/fail/skip, blocking, message}`. The ids are `plugin_installed`, `plugin_enabled`, `ccc_checkout`, `claude_cli`, `hooks` and `lane`. Only `fail` can block. |
 | `plugin_enabled` | Fails unless `enabledPlugins["commander@commander-hub"]` is `true` after Claude Code's precedence: the lane's `settings.json`, then the project's `.claude/settings.json`, then `.claude/settings.local.json` (the project is the cwd). An unreadable settings file also fails. |
 | `next[]` | Suggested fix commands, in order. Fleet shows them; it never runs them. |

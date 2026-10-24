@@ -59,7 +59,7 @@ function checkout(version) {
 test('schema 1 snapshot: keys, types and lane block', function() {
   var l = laneDir('ai4', '8.1.2');
   var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cliVersion: '2.1.309', now: '2026-10-24T14:00:00Z' });
-  assert.deepStrictEqual(Object.keys(r), ['schema', 'generated_at', 'ccc_version', 'ccc_sha', 'plugin_version', 'plugin_sha', 'cli_version', 'drift', 'lane', 'hooks', 'health', 'next']);
+  assert.deepStrictEqual(Object.keys(r), ['schema', 'generated_at', 'ccc_version', 'ccc_sha', 'plugin_version', 'plugin_sha', 'cli_version', 'drift', 'lane', 'hooks', 'connectors', 'health', 'next']);
   assert.strictEqual(r.schema, 1);
   assert.strictEqual(r.generated_at, '2026-10-24T14:00:00.000Z');
   assert.deepStrictEqual([r.ccc_version, r.plugin_version, r.cli_version], ['8.1.2', '8.1.2', '2.1.309']);

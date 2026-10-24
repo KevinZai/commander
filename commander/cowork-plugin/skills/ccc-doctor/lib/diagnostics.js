@@ -11,6 +11,7 @@
 'use strict';
 
 var fs = require('fs');
+var os = require('os');
 var path = require('path');
 
 // --- helpers ----------------------------------------------------------------
@@ -353,7 +354,95 @@ function checkHookChain(root) {
 var EXPECTED_MCP_SERVERS = ['context7', 'sequential-thinking'];
 var EXPECTED_CONNECTOR_COUNT = 16;
 
-function checkMcpAvailability(root) {
+// --- Connector counts: one source for `ccc doctor` and `ccc checkin` --------
+
+/**
+ * Rows in the opt-in MCP catalog table (the table whose header starts with
+ * "| MCP |") in CONNECTORS.md text. null when the text or the table is missing,
+ * so a renamed heading or a broken table reads as unknown, never as 0.
+ */
+function countCatalogConnectors(markdown) {
+  if (typeof markdown !== 'string') return null;
+  var lines = markdown.split('\n').map(function (l) { return l.trim(); });
+  var head = -1;
+  for (var i = 0; i < lines.length; i++) {
+    if (/^\|\s*MCP\s*\|/i.test(lines[i])) { head = i; break; }
+  }
+  if (head < 0 || !/^\|[-:\s|]+\|$/.test(lines[head + 1] || '')) return null;
+  var n = 0;
+  for (var j = head + 2; j < lines.length && lines[j].charAt(0) === '|'; j++) n++;
+  return n;
+}
+
+/** Claude Code's user config file for a lane: <config dir>/.claude.json, or ~/.claude.json for the default dir. */
+function claudeUserConfigFile(env) {
+  env = env || process.env;
+  var dir = env.CCC_CONFIG_DIR || env.CLAUDE_CONFIG_DIR;
+  return dir ? path.join(path.resolve(dir), '.claude.json') : path.join(env.HOME || os.homedir(), '.claude.json');
+}
+
+function isPlainObject(v) {
+  return !!v && typeof v === 'object' && !Array.isArray(v);
+}
+
+// Server count of an {mcpServers} holder: 0 when the holder or its mcpServers
+// is absent, null when either is present but not an object.
+function serverCount(holder) {
+  if (holder === undefined) return 0;
+  if (!isPlainObject(holder)) return null;
+  if (holder.mcpServers === undefined) return 0;
+  var m = holder.mcpServers;
+  return m && typeof m === 'object' && !Array.isArray(m) ? Object.keys(m).length : null;
+}
+
+// {state: 'absent'|'bad'|'ok', json}
+function readConfig(file) {
+  var raw;
+  try { raw = fs.readFileSync(file, 'utf8'); } catch (e) { return { state: e.code === 'ENOENT' ? 'absent' : 'bad' }; }
+  try {
+    var json = JSON.parse(raw);
+    return json && typeof json === 'object' && !Array.isArray(json) ? { state: 'ok', json: json } : { state: 'bad' };
+  } catch (_) { return { state: 'bad' }; }
+}
+
+/**
+ * MCP servers configured for a lane, by Claude Code scope: user (top-level
+ * mcpServers in the lane's .claude.json), local (that file's projects[cwd])
+ * and project (<cwd>/.mcp.json). A missing file counts 0; an unreadable or
+ * malformed one is null (unknown), and then total is null too.
+ * opts: {env, cwd}. Only names are counted; values are never read out.
+ */
+function countConfiguredConnectors(opts) {
+  opts = opts || {};
+  var env = opts.env || process.env;
+  var cwd = path.resolve(opts.cwd || process.cwd());
+  var userFile = claudeUserConfigFile(env);
+  var user = readConfig(userFile);
+  var project = readConfig(path.join(cwd, '.mcp.json'));
+  var counts = {
+    user: user.state === 'bad' ? null : user.state === 'absent' ? 0 : serverCount(user.json),
+    local: user.state === 'bad' ? null : user.state === 'absent' ? 0
+      : user.json.projects === undefined ? 0
+        : isPlainObject(user.json.projects) ? serverCount(user.json.projects[cwd]) : null,
+    project: project.state === 'bad' ? null : project.state === 'absent' ? 0 : serverCount(project.json),
+  };
+  var known = counts.user !== null && counts.local !== null && counts.project !== null;
+  return {
+    user: counts.user,
+    local: counts.local,
+    project: counts.project,
+    total: known ? counts.user + counts.local + counts.project : null,
+    user_file: userFile,
+  };
+}
+
+function describeConfigured(c) {
+  var part = function (n) { return n === null ? 'unknown' : String(n); };
+  return 'configured: ' + part(c.total) + ' (user ' + part(c.user) + ', local ' + part(c.local) + ', project ' + part(c.project) + ')';
+}
+
+function checkMcpAvailability(root, options) {
+  options = options || {};
   var mcpPath = path.join(root, 'commander', 'cowork-plugin', '.mcp.json');
   var mcp = safeJson(mcpPath);
   if (!mcp || !mcp.mcpServers) {
@@ -368,48 +457,29 @@ function checkMcpAvailability(root) {
   var driftMcp = names.length !== expected.length ||
     names.some(function (n, i) { return n !== expected[i]; });
 
-  // Count opt-in connectors in CONNECTORS.md MCP catalog
-  var connectorsPath = path.join(root, 'commander', 'cowork-plugin', 'CONNECTORS.md');
-  var connectors = safeRead(connectorsPath);
-  var connectorRows = 0;
-  var driftConnectors = false;
-  if (connectors) {
-    // Find the "Recommended MCP Servers" table and count data rows
-    var idx = connectors.indexOf('Recommended MCP Servers');
-    if (idx >= 0) {
-      var section = connectors.slice(idx);
-      var lines = section.split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        // Skip header + separator + non-table lines
-        if (!line.startsWith('|')) continue;
-        if (/^\|\s*MCP\s*\|/i.test(line)) continue;
-        if (/^\|[-\s|]+\|$/.test(line)) continue;
-        connectorRows++;
-      }
-    }
-    driftConnectors = connectorRows !== EXPECTED_CONNECTOR_COUNT;
-  } else {
-    driftConnectors = true;
-  }
+  var catalog = countCatalogConnectors(safeRead(path.join(root, 'commander', 'cowork-plugin', 'CONNECTORS.md')));
+  var configured = countConfiguredConnectors({ env: options.env, cwd: options.cwd });
+  var summary = 'opt-in connectors: ' + (catalog === null ? 'unknown' : catalog) + ' · ' + describeConfigured(configured);
 
-  if (!driftMcp && !driftConnectors) {
-    return ok(
-      'mcp-availability',
-      'Bundled MCP: ' + names.join(', ') + ' · opt-in connectors: ' + connectorRows
-    );
-  }
   var msgs = [];
   if (driftMcp) {
     msgs.push('bundled MCP drift — found [' + names.join(',') + '], expected [' + expected.join(',') + ']');
   }
-  if (driftConnectors) {
-    msgs.push('connector count drift — found ' + connectorRows + ', expected ' + EXPECTED_CONNECTOR_COUNT);
+  if (catalog === null) {
+    msgs.push('connector catalog unknown — no "| MCP |" table in CONNECTORS.md');
+  } else if (catalog !== EXPECTED_CONNECTOR_COUNT) {
+    msgs.push('connector count drift — found ' + catalog + ', expected ' + EXPECTED_CONNECTOR_COUNT);
+  }
+  if (configured.total === null) {
+    msgs.push('configured MCP servers unknown — ' + configured.user_file + ' or .mcp.json is unreadable or malformed');
+  }
+  if (msgs.length === 0) {
+    return ok('mcp-availability', 'Bundled MCP: ' + names.join(', ') + ' · ' + summary);
   }
   return warn(
     'mcp-availability',
-    msgs.join('; '),
-    'Reconcile .mcp.json or CONNECTORS.md with canonical claim (2 bundled + ' + EXPECTED_CONNECTOR_COUNT + ' opt-in).'
+    msgs.join('; ') + ' (' + summary + ')',
+    'Reconcile .mcp.json or CONNECTORS.md with canonical claim (2 bundled + ' + EXPECTED_CONNECTOR_COUNT + ' opt-in), and fix any malformed MCP config.'
   );
 }
 
@@ -713,7 +783,7 @@ function runDiagnostics(root, options) {
     checkEffortDefault(r, options),
     checkLicenseCleanup(r),
     checkHookChain(r),
-    checkMcpAvailability(r),
+    checkMcpAvailability(r, options),
     checkContractIntegrity(r),
     checkVendorSubmodules(r),
     checkBundledMcpServers(r),
@@ -736,6 +806,9 @@ module.exports = {
   orchestratorHandlers: orchestratorHandlers,
   findSharedStateWriters: findSharedStateWriters,
   checkMcpAvailability: checkMcpAvailability,
+  countCatalogConnectors: countCatalogConnectors,
+  countConfiguredConnectors: countConfiguredConnectors,
+  claudeUserConfigFile: claudeUserConfigFile,
   checkContractIntegrity: checkContractIntegrity,
   checkVendorSubmodules: checkVendorSubmodules,
   checkBundledMcpServers: checkBundledMcpServers,

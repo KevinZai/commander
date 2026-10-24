@@ -107,6 +107,23 @@ function hooksMessage(h) {
   return parts.length ? parts.join('; ') : h.registered + ' handlers registered';
 }
 
+/**
+ * Connector counts from the doctor's functions: the installed plugin's
+ * CONNECTORS.md catalog and the MCP servers configured for this lane and cwd.
+ * Unknown (missing table, malformed config) is null, never 0.
+ */
+function connectorCounts(plugin, env, cwd) {
+  var text = null;
+  if (plugin && plugin.usable) {
+    try { text = fs.readFileSync(path.join(plugin.installPath, 'CONNECTORS.md'), 'utf8'); } catch (_e) { text = null; }
+  }
+  var configured = diagnostics.countConfiguredConnectors({ env: env, cwd: cwd });
+  return {
+    catalog: diagnostics.countCatalogConnectors(text),
+    configured: { user: configured.user, local: configured.local, project: configured.project, total: configured.total },
+  };
+}
+
 function check(id, status, message, blocking) {
   return { id: id, status: status, blocking: !!blocking && status === 'fail', message: message };
 }
@@ -205,6 +222,7 @@ function buildCheckin(opts) {
       known: ln.known,
     },
     hooks: hooks,
+    connectors: connectorCounts(rel.plugin, env, opts.cwd || process.cwd()),
     health: { ok: !blocking, checks: checks },
     next: next,
   };

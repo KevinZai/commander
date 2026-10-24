@@ -340,7 +340,7 @@ test('ccc doctor on a fresh copy of the shipped hooks: hook chain ok (0 critical
 
 test('checkMcpAvailability: ok with 2 bundled + 16 connectors', function () {
   var root = buildGoodFixture();
-  var r = diag.checkMcpAvailability(root);
+  var r = diag.checkMcpAvailability(root, { env: { HOME: path.join(root, 'home') }, cwd: root });
   assert.strictEqual(r.status, 'ok', r.message);
 });
 
@@ -357,7 +357,7 @@ test('checkMcpAvailability: warn when extra MCP server bundled', function () {
       },
     })
   );
-  var r = diag.checkMcpAvailability(root);
+  var r = diag.checkMcpAvailability(root, { env: { HOME: path.join(root, 'home') }, cwd: root });
   assert.strictEqual(r.status, 'warn');
   assert.ok(r.message.includes('drift'));
 });
@@ -378,7 +378,7 @@ test('checkMcpAvailability: warn when connector count drifts', function () {
       rows.join('\n'),
     ].join('\n')
   );
-  var r = diag.checkMcpAvailability(root);
+  var r = diag.checkMcpAvailability(root, { env: { HOME: path.join(root, 'home') }, cwd: root });
   assert.strictEqual(r.status, 'warn');
   assert.ok(r.message.includes('connector count drift'));
 });
