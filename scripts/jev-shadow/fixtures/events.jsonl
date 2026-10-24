@@ -1,0 +1,13 @@
+{"ts":"2026-10-22T09:00:00Z","kind":"permission","input":"Bash: npm test","incumbentDecision":"allow"}
+{"ts":"2026-10-22T09:01:00Z","kind":"permission","input":"Bash: rm -rf /tmp/build","incumbentDecision":"deny"}
+{"ts":"2026-10-22T09:02:00Z","kind":"permission","input":"Bash: git push --force origin main","incumbentDecision":"deny"}
+{"ts":"2026-10-22T09:03:00Z","kind":"permission","input":"Read: .env","incumbentDecision":"deny"}
+{"ts":"2026-10-22T09:04:00Z","kind":"permission","input":"Bash: curl -H 'Authorization: Bearer abcdef1234567890' https://x.io","incumbentDecision":"deny"}
+{"ts":"2026-10-22T09:05:00Z","kind":"permission","input":"Edit: lib/foo.js by dev@example.com","incumbentDecision":"allow"}
+{"ts":"2026-10-22T09:06:00Z","kind":"route","input":"write unit tests for parser","incumbentDecision":"test-runner"}
+{"ts":"2026-10-22T09:07:00Z","kind":"route","input":"review the diff for PR 12","incumbentDecision":"reviewer"}
+{"ts":"2026-10-22T09:08:00Z","kind":"route","input":"fix a typo in README","incumbentDecision":"haiku"}
+{"ts":"2026-10-22T09:09:00Z","kind":"route","input":"design the billing schema","incumbentDecision":"opus"}
+{"ts":"2026-10-22T09:10:00Z","kind":"loop","input":"Edit lib/a.js x4 identical","incumbentDecision":"break"}
+{"ts":"2026-10-22T09:11:00Z","kind":"loop","input":"Read lib/b.js x1","incumbentDecision":"continue"}
+{"ts":"2026-10-22T09:12:00Z","kind":"loop","input":"Bash npm test x2 then fix","incumbentDecision":"continue"}
