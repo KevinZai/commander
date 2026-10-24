@@ -6,7 +6,29 @@ var fs = require('fs');
 var path = require('path');
 
 // Same lane dir the plugin's session-end / knowledge-capture hooks write.
-var KNOWLEDGE_DIR = path.join(require('./lib/lane').resolveLane().stateDir, 'knowledge');
+var lane = require('./lib/lane');
+var KNOWLEDGE_DIR = path.join(lane.resolveLane().stateDir, 'knowledge');
+// Lessons collected before lanes live in the shared ~/.claude/commander/knowledge. Writes go to the lane only; reads
+// also include that legacy dir (read-only, never migrated or moved) so a non-default lane keeps its existing lessons.
+var LEGACY_KNOWLEDGE_DIR = path.join(lane.legacyStateDir(), 'knowledge');
+
+/** Lesson file paths from the lane dir plus the legacy dir; a lane copy wins over a legacy file with the same name. */
+function lessonFiles() {
+  var seen = {};
+  var out = [];
+  var dirs = [KNOWLEDGE_DIR];
+  if (path.resolve(LEGACY_KNOWLEDGE_DIR) !== path.resolve(KNOWLEDGE_DIR)) dirs.push(LEGACY_KNOWLEDGE_DIR);
+  dirs.forEach(function(dir) {
+    var names;
+    try { names = fs.readdirSync(dir); } catch (_e) { return; }
+    names.forEach(function(f) {
+      if (!f.endsWith('.json') || seen[f]) return;
+      seen[f] = true;
+      out.push(path.join(dir, f));
+    });
+  });
+  return out;
+}
 
 function ensureDir() {
   if (!fs.existsSync(KNOWLEDGE_DIR)) fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true });
@@ -192,16 +214,14 @@ function buildKnowledgePrompt(task) {
  * @returns {Array}
  */
 function listAll() {
-  ensureDir();
   try {
-    return fs.readdirSync(KNOWLEDGE_DIR)
-      .filter(function(f) { return f.endsWith('.json'); })
+    return lessonFiles()
       .map(function(f) {
-        try { return JSON.parse(fs.readFileSync(path.join(KNOWLEDGE_DIR, f), 'utf8')); }
+        try { return JSON.parse(fs.readFileSync(f, 'utf8')); }
         catch (_e) { return null; }
       })
       .filter(Boolean)
-      .sort(function(a, b) { return b.timestamp.localeCompare(a.timestamp); });
+      .sort(function(a, b) { return String(b.timestamp || '').localeCompare(String(a.timestamp || '')); });
   } catch (_e) { return []; }
 }
 
@@ -280,12 +300,9 @@ function extractSuccesses(text) {
 }
 
 function loadAllLessons() {
-  var dir = KNOWLEDGE_DIR;
-  if (!fs.existsSync(dir)) return [];
-  var files = fs.readdirSync(dir).filter(function(f) { return f.endsWith('.json'); });
   var lessons = [];
-  files.forEach(function(f) {
-    try { lessons.push(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))); } catch(_) {}
+  lessonFiles().forEach(function(f) {
+    try { lessons.push(JSON.parse(fs.readFileSync(f, 'utf8'))); } catch(_) {}
   });
   return lessons;
 }
@@ -354,7 +371,7 @@ function getModelPreference(category) {
 }
 
 module.exports = { getModelPreference: getModelPreference, loadAllLessons: loadAllLessons,
-  KNOWLEDGE_DIR: KNOWLEDGE_DIR,
+  KNOWLEDGE_DIR: KNOWLEDGE_DIR, LEGACY_KNOWLEDGE_DIR: LEGACY_KNOWLEDGE_DIR,
   extractAndStore: extractAndStore,
   searchRelevant: searchRelevant,
   buildKnowledgePrompt: buildKnowledgePrompt,

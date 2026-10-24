@@ -179,3 +179,35 @@ test('readUsageModel recomputes metrics into the lane while reading the legacy f
   assert.ok(fs.existsSync(path.join(home, '.claude-ai1', 'commander', 'mission-control', 'metrics.jsonl')), 'metrics persisted to the lane');
   assert.equal(fs.existsSync(path.join(legacy, 'mission-control', 'metrics.jsonl')), false, 'legacy dir not written');
 });
+
+test('knowledge: a non-default lane still reads legacy lessons; writes stay in the lane; lane copy wins', (t) => {
+  const home = tmpHome(t);
+  const legacyK = path.join(home, '.claude', 'commander', 'knowledge');
+  fs.mkdirSync(legacyK, { recursive: true });
+  fs.writeFileSync(path.join(legacyK, 'kl-1.json'), JSON.stringify({ id: 'kl-1', timestamp: '2026-10-01T00:00:00Z', task: 'old', category: 'web', keywords: ['react'] }));
+  fs.writeFileSync(path.join(legacyK, 'kl-2.json'), JSON.stringify({ id: 'kl-2', timestamp: '2026-10-02T00:00:00Z', task: 'legacy-copy', category: 'api' }));
+  const laneK = path.join(home, '.claude-ai1', 'commander', 'knowledge');
+  fs.mkdirSync(laneK, { recursive: true });
+  fs.writeFileSync(path.join(laneK, 'kl-2.json'), JSON.stringify({ id: 'kl-2', timestamp: '2026-10-02T00:00:00Z', task: 'lane-copy', category: 'api' }));
+  const saved = { HOME: process.env.HOME, CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR };
+  process.env.HOME = home;
+  process.env.CLAUDE_CONFIG_DIR = path.join(home, '.claude-ai1');
+  const modPath = require.resolve('../knowledge.js');
+  delete require.cache[modPath];
+  t.after(() => {
+    delete require.cache[modPath];
+    process.env.HOME = saved.HOME;
+    if (saved.CLAUDE_CONFIG_DIR === undefined) delete process.env.CLAUDE_CONFIG_DIR;
+    else process.env.CLAUDE_CONFIG_DIR = saved.CLAUDE_CONFIG_DIR;
+  });
+  const knowledge = require('../knowledge.js');
+  assert.equal(knowledge.KNOWLEDGE_DIR, laneK);
+  const all = knowledge.listAll();
+  assert.deepEqual(all.map((l) => l.id).sort(), ['kl-1', 'kl-2']);
+  assert.equal(all.find((l) => l.id === 'kl-2').task, 'lane-copy', 'lane copy wins over legacy');
+  assert.equal(knowledge.loadAllLessons().length, 2);
+  const saved2 = knowledge.extractAndStore({ id: 's1', task: 'build a react page' }, 'done');
+  assert.ok(fs.existsSync(path.join(laneK, saved2.id + '.json')), 'new lesson written to the lane');
+  assert.equal(fs.existsSync(path.join(legacyK, saved2.id + '.json')), false, 'legacy dir not written');
+  assert.deepEqual(fs.readdirSync(legacyK).sort(), ['kl-1.json', 'kl-2.json'], 'legacy lessons untouched');
+});
