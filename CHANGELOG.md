@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Changed
+- **Status line:** with `CLAUDE_CONFIG_DIR` unset, the 🔑 hint shows `pri` (the primary lane) instead of the ClaudeSwap account or API-key tail. This is intended since 8.1.2; the ClaudeSwap and key-tail fallbacks now apply only to config dir names that are not `.claude` or `.claude-<lane>`.
+- **Status line:** the 🎯 skill count and 📋 Linear ticket read `${CLAUDE_CONFIG_DIR:-~/.claude}/skills` and `.../commander/state.json`, so a lane session shows its own skills and active ticket instead of the primary lane's.
 - **Status line:** the 🔑 lane hint keeps up to 16 characters (was 12), so `~/.claude-guestnetworks` shows `guestnetworks` in full.
 
 ## [8.1.2] - 2026-10-24

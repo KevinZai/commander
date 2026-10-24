@@ -356,10 +356,11 @@ CC_LABEL="CC"
 
 # ── Extras (only if present) ──────────────────────────────────────────────
 PROJ_SHORT=$(basename "$PROJECT")
-SKILL_COUNT=$(ls -d "$HOME/.claude/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
+# Lane-aware: skills and Commander state come from the session's config dir.
+SKILL_COUNT=$(ls -d "$CCC_CONFIG_DIR/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
 
 LINEAR_TICKET=""
-STATE_FILE="$HOME/.claude/commander/state.json"
+STATE_FILE="$CCC_CONFIG_DIR/commander/state.json"
 [ -f "$STATE_FILE" ] && LINEAR_TICKET=$(jq -r '.activeSession.linearIssueIdentifier // empty' "$STATE_FILE" 2>/dev/null)
 
 EXTRAS=""
