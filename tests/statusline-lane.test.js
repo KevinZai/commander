@@ -95,12 +95,19 @@ test('relative .claude-<lane> paths work', (t) => {
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: '.claude-ai4' }), 'ai4');
 });
 
-test('odd lane names are sanitized to safe characters and capped at 12', (t) => {
+test('odd lane names are sanitized to safe characters and capped at 16', (t) => {
   const f = fixture(t);
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-My Lane!') }), 'MyLane');
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-team.v2_x-1') }), 'team.v2_x-1');
-  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-abcdefghijklmnopq') }), 'abcdefghijkl');
+  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-abcdefghijklmnopq') }), 'abcdefghijklmnop');
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-\u001b[31mred') }), '31mred');
+});
+
+test('lane names up to 16 characters show in full (guestnetworks)', (t) => {
+  const f = fixture(t);
+  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-guestnetworks') }), 'guestnetworks');
+  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-abcdefghijklmnop') }), 'abcdefghijklmnop');
+  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-abcdefghijklmnopQ') }), 'abcdefghijklmnop');
 });
 
 test('only the basename matters: a .claude-<lane> parent does not leak', (t) => {
