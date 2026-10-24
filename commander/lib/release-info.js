@@ -14,7 +14,6 @@
  */
 
 var fs = require('fs');
-var os = require('os');
 var path = require('path');
 
 var PLUGIN_KEY_RE = /^commander@/;
@@ -83,9 +82,7 @@ function checkoutInfo(root) {
 
 /** Claude config dir the CLI is serving: CCC_CONFIG_DIR > CLAUDE_CONFIG_DIR > ~/.claude. */
 function configDirFrom(env) {
-  env = env || process.env;
-  var dir = env.CCC_CONFIG_DIR || env.CLAUDE_CONFIG_DIR;
-  return dir ? path.resolve(dir) : path.join(env.HOME || os.homedir(), '.claude');
+  return require('./lane').resolveLane(env).configDir;
 }
 
 /**

@@ -1,9 +1,8 @@
 'use strict';
 var fs = require('fs');
 var path = require('path');
-var os = require('os');
 
-var LOG_DIR = path.join(os.homedir(), '.claude', 'commander');
+var LOG_DIR = require('./lib/lane').resolveLane().stateDir;
 var LOG_FILE = path.join(LOG_DIR, 'errors.log');
 var MAX_SIZE = 1024 * 1024; // 1MB max
 
