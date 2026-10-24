@@ -132,10 +132,20 @@ export function scoreRoutes(prompt, routes = loadRoutes()) {
   return candidates;
 }
 
-/** Route mode from CCC_ROUTE_MODE: off | suggest | auto (default). */
-export function routeMode(env = process.env) {
-  const mode = String(env.CCC_ROUTE_MODE || 'auto').toLowerCase();
-  return ['off', 'suggest', 'auto'].includes(mode) ? mode : 'auto';
+const ROUTE_MODES = ['off', 'suggest', 'auto'];
+
+function validMode(value) {
+  const mode = String(value || '').trim().toLowerCase();
+  return ROUTE_MODES.includes(mode) ? mode : null;
+}
+
+/**
+ * Route mode: off | suggest | auto. A valid CCC_ROUTE_MODE wins, then the
+ * lane's saved `routeMode` preference (config.json, set by /ccc-settings),
+ * then auto. Unknown values are ignored.
+ */
+export function routeMode(env = process.env, saved = null) {
+  return validMode(env.CCC_ROUTE_MODE) || validMode(saved) || 'auto';
 }
 
 export function tierFor(candidates, mode = 'auto') {

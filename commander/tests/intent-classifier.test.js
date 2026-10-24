@@ -125,6 +125,70 @@ test('CCC_ROUTE_MODE=suggest never auto-runs: high becomes a menu', function () 
   assert.match(ctx, /AskUserQuestion/);
 });
 
+function laneWithConfig(config) {
+  const lane = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-lane-'));
+  fs.mkdirSync(path.join(lane, 'commander'));
+  fs.writeFileSync(path.join(lane, 'commander', 'config.json'), typeof config === 'string' ? config : JSON.stringify(config));
+  return lane;
+}
+
+const REVIEW_PROMPT = 'please do a code review, review my changes';
+
+test('saved routeMode=off in the lane config silences routing and the next menu', function () {
+  const lane = laneWithConfig({ name: 'x', routeMode: 'off' });
+  const r = classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: lane });
+  assert.strictEqual(r.suppressOutput, true);
+  assert.ok(!r.hookSpecificOutput);
+  const transcript = path.join(lane, 't.jsonl');
+  fs.writeFileSync(transcript, [
+    JSON.stringify({ type: 'user', message: { content: 'build me an app' } }),
+    JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tu1', name: 'Skill', input: { skill: 'commander:ccc-build' } }, { type: 'text', text: 'Done.' }] } }),
+  ].join('\n'));
+  const stop = runHook({ hook_event_name: 'Stop', session_id: 'test', transcript_path: transcript }, { CLAUDE_CONFIG_DIR: lane }).out;
+  assert.ok(!stop.decision);
+});
+
+test('saved routeMode=suggest turns a high-tier match into a menu', function () {
+  const ctx = routeContext(classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: laneWithConfig({ routeMode: 'suggest' }) }));
+  assert.match(ctx, /tier="medium"/);
+});
+
+test('CCC_ROUTE_MODE overrides the saved routeMode both ways', function () {
+  const off = laneWithConfig({ routeMode: 'off' });
+  assert.match(routeContext(classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: off, CCC_ROUTE_MODE: 'auto' })), /tier="high"/);
+  const auto = laneWithConfig({ routeMode: 'auto' });
+  assert.ok(!classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: auto, CCC_ROUTE_MODE: 'off' }).hookSpecificOutput);
+});
+
+test('unknown or unreadable saved routeMode falls back to auto', function () {
+  for (const config of [{ routeMode: 'sometimes' }, { routeMode: 3 }, '{not json', '[]']) {
+    assert.match(routeContext(classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: laneWithConfig(config) })), /tier="high"/, JSON.stringify(config));
+  }
+});
+
+test('a junk CCC_ROUTE_MODE keeps the saved routeMode', function () {
+  const r = classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: laneWithConfig({ routeMode: 'off' }), CCC_ROUTE_MODE: 'loud' });
+  assert.ok(!r.hookSpecificOutput);
+});
+
+test('the lane config wins over the legacy ~/.claude copy, which is read until the lane has one', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-route-'));
+  fs.mkdirSync(path.join(home, '.claude', 'commander'), { recursive: true });
+  fs.writeFileSync(path.join(home, '.claude', 'commander', 'config.json'), JSON.stringify({ routeMode: 'off' }));
+  const freshLane = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-lane-'));
+  assert.ok(!classify(REVIEW_PROMPT, { HOME: home, CLAUDE_CONFIG_DIR: freshLane }).hookSpecificOutput);
+  const ownLane = laneWithConfig({ routeMode: 'auto' });
+  assert.match(routeContext(classify(REVIEW_PROMPT, { HOME: home, CLAUDE_CONFIG_DIR: ownLane })), /tier="high"/);
+});
+
+test('routeMode(): env, then saved preference, then auto', async function () {
+  const { routeMode } = await import(path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'lib', 'route-scorer.mjs'));
+  assert.strictEqual(routeMode({}, null), 'auto');
+  assert.strictEqual(routeMode({}, ' Suggest '), 'suggest');
+  assert.strictEqual(routeMode({ CCC_ROUTE_MODE: 'OFF' }, 'auto'), 'off');
+  assert.strictEqual(routeMode({ CCC_ROUTE_MODE: 'nope' }, 'nope'), 'auto');
+});
+
 test('explicit /ccc-* and $ccc-* prompts are not routed', function () {
   for (const prompt of ['/ccc-review quick', '$ccc-plan add invites', '/commander:ccc-review']) {
     const r = classify(prompt);

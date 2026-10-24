@@ -301,7 +301,9 @@
     },
     "ccc-session": { "exclude": true },
     "ccc-settings": {
-      "strong": ["commander settings", "cost ceiling"]
+      "strong": ["commander settings", "cost ceiling"],
+      "triggers": ["auto-routing"],
+      "patterns": ["\\b(turn|switch|shut)\\s+(off|on)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b", "\\b(disable|enable|stop)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b"]
     },
     "ccc-ship": {
       "strong": ["ship it", "cut a release", "tag a version", "tag a release"],

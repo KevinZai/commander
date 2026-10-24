@@ -1,12 +1,12 @@
 ---
 name: ccc-settings
-description: "Settings hub: Commander preferences (name, level, cost ceiling, theme, animations, launch mode, Linear, reset) plus Claude Code permission mode, effort, model restrictions and workflow size, each written with a backup. Use when the user says settings, configure, change theme, set effort, auto mode."
+description: "Settings hub: Commander preferences (name, level, cost ceiling, auto-routing, theme, animations, launch mode, Linear, reset) plus Claude Code permission mode, effort, models and workflow size, written with a backup. Use when the user says settings, configure, change theme, set effort, auto mode."
 allowed-tools:
   - Read
   - Write
   - Bash
   - AskUserQuestion
-argument-hint: "[name | level | cost | theme | animations | launch | linear | reset | mode | effort | models | workflows | --power]"
+argument-hint: "[name | level | cost | routing | theme | animations | launch | linear | reset | mode | effort | models | workflows | --power]"
 model: sonnet
 effort: low
 ---
@@ -49,7 +49,7 @@ Skip when `$ARGUMENTS` names a setting. Otherwise ask the top picker in Decision
 
 ### 3. Commander preferences (`<config dir>/commander/config.json`)
 
-Ask the preferences page-1 picker in Decision points; "More…" opens the page-2 picker, and its "Back" returns to page 1. Entries marked CLI-only configure the `ccc` terminal binary and have no effect in Claude Code Desktop or Cowork; show them anyway and say so. The menu definition used by the CLI is [references/settings.json](references/settings.json).
+Ask the preferences page-1 picker in Decision points; "More…" opens the page-2 picker, and "Other" with "back" returns to page 1. Entries marked CLI-only configure the `ccc` terminal binary and have no effect in Claude Code Desktop or Cowork; show them anyway and say so. The menu definition used by the CLI is [references/settings.json](references/settings.json).
 
 For each setting, ask as below. Value pickers list the 🟢 option first; put the current value in its description.
 
@@ -58,6 +58,7 @@ For each setting, ask as below. Value pickers list the 🟢 option first; put th
 | Display name | "What name should I use?" | `name` |
 | Experience level | Picker: 🟢 intermediate (balanced detail) / beginner (more explanation, more confirmations) / expert (terse, fewer confirmations). Affects verbosity, auto-confirm thresholds, suggested skill complexity | `level` |
 | Cost ceiling | "Max budget per dispatch (USD)?" Validate a positive number. Default 10. The night-mode hard ceiling is separate | `costCeiling` |
+| Auto-routing | Picker: 🟢 auto (clear matches run the skill, close ones show a menu; default) / suggest (always a menu, never auto-runs) / off (no routing and no what-next menu). Read by the routing hook from the next prompt on; a `CCC_ROUTE_MODE` environment variable overrides it, so mention it when set | `routeMode` |
 | Theme (CLI-only) | Picker: 🟢 Claude Anthropic (default) / OLED Black / Matrix / Surprise me. Apply with `ccc --theme <name>` when available, else it takes effect on the next `ccc` launch | `theme` |
 | Animations (CLI-only) | Picker: 🟢 enable (default) / disable (for slow terminals, screen readers or CI). Disabling also means `CC_NO_ANIMATION=1` in the shell profile; print the line for the user to add | `animations` |
 | Launch mode (CLI-only) | Picker: 🟢 simple (single pane, default) / advanced (tabbed tmux split, `ccc --split`) | `launchMode` |
@@ -69,6 +70,7 @@ File shape (placeholders, not real values):
   "name": "<display name>",
   "level": "expert",
   "costCeiling": 10,
+  "routeMode": "auto",
   "theme": "claude-anthropic",
   "animations": true,
   "launchMode": "simple",
@@ -166,29 +168,29 @@ multiSelect: false
 options:
   - label: "🟢 Experience level"
     description: "Currently: <level>; changes verbosity and suggestions everywhere."
-  - label: "Display name"
-    description: "Currently: <name>"
+  - label: "Auto-routing"
+    description: "Currently: <routeMode or auto>; auto, suggest (menu only) or off."
   - label: "Cost ceiling"
     description: "Currently: $<costCeiling> per dispatch."
   - label: "More…"
-    description: "Theme, animations, launch mode (CLI-only)."
+    description: "Display name, then theme, animations, launch mode (CLI-only)."
 ```
 
 Commander preferences, page 2 (after "More…"):
 
 ```yaml
-question: "Which CLI preference? These affect only the ccc terminal binary."
+question: "Which other preference? Theme, animations and launch mode affect only the ccc terminal binary."
 header: "Preferences"
 multiSelect: false
 options:
-  - label: "🟢 Theme"
+  - label: "🟢 Display name"
+    description: "Currently: <name>"
+  - label: "Theme"
     description: "Currently: <theme>; applies with ccc --theme or on next launch."
   - label: "Animations"
     description: "Currently: <animations>; disabling also needs CC_NO_ANIMATION=1."
   - label: "Launch mode"
     description: "Currently: <launchMode>; simple single pane or tmux split."
-  - label: "Back"
-    description: "Return to page 1; no change."
 ```
 
 Claude Code settings:

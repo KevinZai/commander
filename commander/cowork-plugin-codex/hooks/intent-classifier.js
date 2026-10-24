@@ -24,7 +24,8 @@
  * running on the fleet) get a <ccc-fleet-route> block instead: the Fleet skill,
  * its read-only commands and the `ccc checkin` line (hooks/lib/fleet-intent.mjs).
  *
- * Env: CCC_ROUTE_MODE=off|suggest|auto (default auto; suggest never auto-runs)
+ * Env: CCC_ROUTE_MODE=off|suggest|auto (default auto; suggest never auto-runs;
+ *        overrides the lane's saved `routeMode` in <config dir>/commander/config.json)
  *      CCC_FLEET_ROUTE=on|off Fleet routing (default: on only when the
  *        claude-fleet skill is installed)
  *      CCC_ROUTE_NEXT=off disables only the Stop menu
@@ -48,7 +49,7 @@ import {
 } from './lib/route-scorer.mjs';
 import { fleetRouteEnabled, matchFleetIntent, fleetTools, checkinLine, renderFleetContext } from './lib/fleet-intent.mjs';
 import { join } from 'node:path';
-import { stateDir } from '../lib/lane-state.js';
+import { stateDir, readablePath } from '../lib/lane-state.js';
 import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync, openSync, readSync, fstatSync, closeSync, renameSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 
 // Deep-reasoning signals for Fable escalation nudge
@@ -60,6 +61,16 @@ const FABLE_PLANNING_VERBS = ['design', 'architect', 'plan', 'migrate', 'refacto
 
 function commanderDir() {
   return stateDir();
+}
+
+// The user's saved routing preference (/ccc-settings → config.json routeMode).
+function savedRouteMode() {
+  try {
+    const config = JSON.parse(readFileSync(readablePath('config.json'), 'utf8'));
+    return config && typeof config.routeMode === 'string' ? config.routeMode : null;
+  } catch {
+    return null;
+  }
 }
 
 function checkFableNudge(prompt) {
@@ -161,7 +172,7 @@ function handlePrompt(data) {
 
   const fableNudge = checkFableNudge(rawPrompt);
   const host = detectHost();
-  const mode = routeMode();
+  const mode = routeMode(process.env, savedRouteMode());
   let context = null;
 
   if (mode !== 'off' && !skipReason(rawPrompt, data)) {
@@ -314,7 +325,7 @@ function handleStop(data) {
   if (turn.muted) next.muteNext = true;
 
   let output = emitSilent();
-  const enabled = routeMode() !== 'off' && String(process.env.CCC_ROUTE_NEXT || '').toLowerCase() !== 'off';
+  const enabled = routeMode(process.env, savedRouteMode()) !== 'off' && String(process.env.CCC_ROUTE_NEXT || '').toLowerCase() !== 'off';
   if (enabled && !data.stop_hook_active && !next.muteNext && ran.length) {
     const last = ran[ran.length - 1];
     const alreadyAsking = /\?\s*$/.test(turn.lastAssistantText);

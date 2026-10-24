@@ -1638,8 +1638,13 @@
         "commander settings",
         "cost ceiling"
       ],
-      "triggers": [],
-      "patterns": [],
+      "triggers": [
+        "auto-routing"
+      ],
+      "patterns": [
+        "\\b(turn|switch|shut)\\s+(off|on)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b",
+        "\\b(disable|enable|stop)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,

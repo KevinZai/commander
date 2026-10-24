@@ -2,6 +2,9 @@
   "_comment": "Labelled routing eval for commander/tests/route-eval.test.js. expect = route id (skill name, or agent:<name>) or \"none\". Gates: recall >= 90% on labelled prompts (expected route is top and tier is medium or high); maxTier: medium allows a menu or silence for topic mentions (excluded from request recall); minTier: high pins explicit auto-run requests; 0 false triggers (a none prompt surfaces anything, or a labelled prompt surfaces a different top route).",
   "cases": [
     { "prompt": "audit this repo", "expect": "ccc-xray" },
+    { "prompt": "turn off auto-routing", "expect": "ccc-settings", "minTier": "high" },
+    { "prompt": "please disable the commander auto routing for now", "expect": "ccc-settings" },
+    { "prompt": "how does the routing table in our express app work", "expect": "none" },
     { "prompt": "audit the codebase", "expect": "ccc-xray" },
     { "prompt": "do a full audit of the codebase", "expect": "ccc-xray" },
     { "prompt": "run a repo health check", "expect": "ccc-xray" },
