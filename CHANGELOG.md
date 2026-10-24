@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- **Status line:** reads the CCC version from the installed plugin's `plugin.json` instead of a toolkit checkout, so it no longer shows a stale version.
+
 ## [8.1.1] - 2026-10-23
 
 Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached plugin only when that string changes. Every 8.1.0 install has therefore stayed on the 2026-10-18 build, and none of the fixes merged since then reached `claude plugin update`. This version carries them.

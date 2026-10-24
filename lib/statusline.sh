@@ -303,8 +303,27 @@ fi
 
 # ── CCC version ───────────────────────────────────────────────────────────
 CCC_VER=""
-PKG_FILE="$HOME/clawd/projects/cc-commander/package.json"
-[ -f "$PKG_FILE" ] && CCC_VER=$(jq -r '.version // empty' "$PKG_FILE" 2>/dev/null)
+CCC_CONFIG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+if [ -f "$CCC_CONFIG_DIR/plugins/installed_plugins.json" ]; then
+  CCC_PLUGIN_ENTRY=$(jq -c --arg project "$PROJECT" '
+    [.plugins | to_entries[] | select(.key | test("^commander@")) | .value[] | objects] |
+    (map(select(.scope == "project" and .projectPath == $project))[0] //
+     map(select(.scope == "user"))[0] // .[0]) // empty
+  ' "$CCC_CONFIG_DIR/plugins/installed_plugins.json" 2>/dev/null)
+  if [ -n "$CCC_PLUGIN_ENTRY" ]; then
+    CCC_INSTALL_PATH=$(printf '%s\n' "$CCC_PLUGIN_ENTRY" | jq -r '.installPath // empty' 2>/dev/null)
+    if [ -n "$CCC_INSTALL_PATH" ] && [ -f "$CCC_INSTALL_PATH/.claude-plugin/plugin.json" ]; then
+      CCC_VER=$(jq -r '.version // empty' "$CCC_INSTALL_PATH/.claude-plugin/plugin.json" 2>/dev/null)
+    fi
+    if [ -z "$CCC_VER" ]; then
+      CCC_VER=$(printf '%s\n' "$CCC_PLUGIN_ENTRY" | jq -r '.version // empty' 2>/dev/null)
+    fi
+  fi
+fi
+if [ -z "$CCC_VER" ]; then
+  PKG_FILE="$HOME/clawd/projects/cc-commander/package.json"
+  [ -f "$PKG_FILE" ] && CCC_VER=$(jq -r '.version // empty' "$PKG_FILE" 2>/dev/null)
+fi
 if [ -z "$CCC_VER" ]; then
   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
   PKG_FILE="$(dirname "$SCRIPT_DIR")/package.json"
