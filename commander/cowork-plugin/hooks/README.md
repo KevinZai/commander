@@ -109,3 +109,7 @@ tail -1 ~/.claude/commander/fleet/notifications.jsonl
 ```
 
 Each hook prints a single-line JSON response to stdout. See individual files for response schemas.
+
+### Routing eval
+
+`npm run eval:routes` runs the labelled prompts in `commander/tests/fixtures/routing-prompts.json` through the routing scorer and fails on recall below 90%, any false trigger, any wrong-route fire or auto-run, an explicit request (`minTier: "high"`) that only gets a suggestion, or a route that never fires. It is offline and part of `npm run test:ci`. Re-run it after editing `commander/core/route-hints.json` or a skill or agent description, and after a model upgrade. Pass `--json` for a machine-readable report, or `--fixtures <file>` for another labelled set. How the model acts on the `<ccc-route>` block is not covered by this eval and needs a live check.
