@@ -17,7 +17,7 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 | `SessionEnd` | 2 | `session-save.js`, `session-end.js` | Persist the session and write a summary to the knowledge directory |
 | `UserPromptSubmit` | 6 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick, skill routing, context budget warnings, prompt logging, skill-run telemetry |
 | `UserPromptExpansion` | 1 | `prompt-expansion-guard.js` | Pass-through guard for expanded prompt templates |
-| `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js` (Edit/Write), `doc-file-warning.js` (Write), `git-push-reminder.js` (Bash) | Accumulate cost, block over the ceiling, scan arguments for leaked secrets, protect config files, warn on scratch markdown, pre-push reminder |
+| `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js` (Edit/Write), `doc-file-warning.js` (Write), `git-push-reminder.js` (Bash) | Accumulate cost, deny with a reason over the tool-call ceiling (off unless `CCC_COST_CEILING` or `costCeiling` in the lane config is set), scan arguments for leaked secrets, protect config files, warn on scratch markdown, pre-push reminder |
 | `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js` (Edit/Write), `pr-link-notify.js` (Bash) | Capture file-touch observations, feed Mission Control, warn on `console.log`, surface new PR links |
 | `PostToolUseFailure` | 1 | `post-tool-failure-logger.js` | Log failed tool calls for `/ccc-safety` |
 | `PostToolBatch` | 1 | `knowledge-capture.js` | Batch-level knowledge capture after multi-tool sequences |
@@ -35,8 +35,8 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 | `TaskCreated` | 1 | `task-tracker.js` | Log background task start (workflows, fleet agents) |
 | `TaskCompleted` | 1 | `task-tracker.js` | Log background task completion and duration |
 | `TeammateIdle` | 1 | `fleet-telemetry.js` | **New in v8.** Fleet telemetry when an agent-team teammate goes idle. Observe-only: it never keeps a teammate working or stops it |
-| `Elicitation` | 1 | `elicitation-logger.js` | Log clarification requests |
-| `ElicitationResult` | 1 | `elicitation-result-handler.js` | Capture clarification responses |
+| `Elicitation` | 1 | `elicitation-logger.js` | Log MCP elicitation requests: `mcp_server_name`, `mode`, `elicitation_id`, `session_id`; absent fields are omitted, the message, URL and requested schema are never logged |
+| `ElicitationResult` | 1 | `elicitation-result-handler.js` | Log the user's `action` on an elicitation (with `mcp_server_name`, `mode`, `elicitation_id`); the response content is never logged |
 | `ConfigChange` | 1 | `config-protection.js` | Warn when protected config changes mid-session |
 | `InstructionsLoaded` | 1 | `stale-claude-md-nudge.js` | Warn when a stale project `CLAUDE.md` is loaded |
 | `FileChanged` | 1 | `stale-claude-md-nudge.js` (matcher `CLAUDE.md`) | **New in v8.** Re-checks a `CLAUDE.md` when it changes on disk. The watcher is seeded by the SessionStart `watchPaths` |
@@ -125,11 +125,19 @@ Hooks store state locally at `~/.claude/commander/`. Anonymous event telemetry (
 ```bash
 # Opt in to telemetry
 CCC_TELEMETRY=1 claude
+# Opt in to the CI status lookup (gh run list with your own gh login)
+CCC_CI_TICKER=1 claude
 # Block every outbound call (telemetry, update check, CI lookup)
 CCC_OFFLINE=1 claude
 ```
 
-No prompts, file contents or paths are ever transmitted.
+No prompts, file contents or paths are ever transmitted. The session-start update check (a GET of the public `plugin.json` on GitHub) is the only call on by default. `ccc doctor` prints the current mode. Opted-in events go to the hosted server at `mcp.commanderplugin.com`, a separate service covered by the [privacy policy](https://commanderplugin.com/privacy).
+
+## Defaults worth knowing
+
+- **Cost ceiling:** `cost-ceiling-enforcer.js` is off unless `CCC_COST_CEILING=<units>` or `costCeiling` in the lane config is set (`0` or `off` disables it). When it trips it returns a `PreToolUse` deny with a readable reason and names the lane config file it read.
+- **Voice layer:** `voice-injector.js` emits nothing unless `CCC_VOICE=1` or `"voice": true` is set in `~/.commander/config.json`.
+- **Lanes:** `commander/lib/lane.js` is the one lane resolver (`CCC_CONFIG_DIR` > `CLAUDE_CONFIG_DIR` > `~/.claude`). Aliases come from its default table (`guestnetworks` → `ai5`) overlaid by `lanes.aliases` in `~/.commander/config.json`; the status line and `ccc doctor --instances` read the same table.
 
 ## See also
 

@@ -20,14 +20,32 @@
 // root catalog count. A bare "N skills" is a whole-catalog claim only when
 // N >= SUBSET_SKILL_CEILING (or written "N+"); smaller bare counts describe a
 // subset (a domain pack, an audit finding) and are not checked.
+//
+// "N model-visible" / "Claude sees N" must equal the plugin skills without
+// `disable-model-invocation: true`, and "N on demand" the ones with it.
+// The retired method name (Fable + Method, and the "Fable" + "-shaped" tagline)
+// is reported as a `wording` mismatch; the current name is "the Commander Method".
 
 const fs = require('node:fs');
 const path = require('node:path');
 
 const SURFACES = [
   'README.md',
+  'BIBLE.md',
+  'CHEATSHEET.md',
+  'SKILLS-INDEX.md',
   'NAMING.md',
   'CONTRIBUTING.md',
+  'RUNBOOK.md',
+  'SECURITY.md',
+  'PRIVACY.html',
+  'AGENTS.md',
+  'CLAUDE.md.template',
+  '.claude-plugin/marketplace.json',
+  '.agents/plugins/marketplace.json',
+  'commander/cowork-plugin/.claude-plugin/plugin.json',
+  'commander/cowork-plugin/rules/fable-method.md',
+  'commander/cowork-plugin-codex/.codex-plugin/plugin.json',
   'bin/kc.js',
   'commander/plugins.js',
   'commander/core/registry.yaml',
@@ -43,7 +61,7 @@ const SURFACES = [
 ];
 
 const SUBSET_SKILL_CEILING = 50;
-const RULE_NAMES = ['skills', 'agents', 'hooks', 'handlers', 'bundled MCP', 'version'];
+const RULE_NAMES = ['skills', 'visible skills', 'on-demand skills', 'agents', 'hooks', 'handlers', 'bundled MCP', 'version', 'wording'];
 const ALLOWLIST_FILE = path.join('scripts', 'parity-allowlist.json');
 const PLUGIN_DIR = path.join('commander', 'cowork-plugin');
 const SKIP_DIRS = new Set(['node_modules', '.git']);
@@ -87,6 +105,18 @@ function countNamed(dir, name) {
   return n;
 }
 
+// A skill is hidden from the model when its frontmatter sets
+// disable-model-invocation: true (it stays user-invocable from the / menu).
+function countHiddenSkills(dir) {
+  let n = 0;
+  walk(dir, (f) => {
+    if (path.basename(f) !== 'SKILL.md') return;
+    const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(fs.readFileSync(f, 'utf8'));
+    if (fm && /^disable-model-invocation:\s*["']?true["']?\s*$/m.test(fm[1])) n++;
+  });
+  return n;
+}
+
 function deriveTruth(root) {
   const plugin = path.join(root, PLUGIN_DIR);
   const pkg = readJson(path.join(root, 'package.json'));
@@ -104,12 +134,15 @@ function deriveTruth(root) {
   const agents = fs.existsSync(agentsDir) ? fs.readdirSync(agentsDir).filter((f) => f.endsWith('.md')).length : 0;
 
   const pluginSkills = countNamed(path.join(plugin, 'skills'), 'SKILL.md');
+  const hiddenSkills = countHiddenSkills(path.join(plugin, 'skills'));
   const ecosystemSkills = countNamed(path.join(root, 'skills'), 'SKILL.md');
 
   return {
     version: pkg.version,
     major: pkg.version.split('.')[0],
     pluginSkills,
+    visibleSkills: pluginSkills - hiddenSkills,
+    hiddenSkills,
     ecosystemSkills,
     totalSkills: pluginSkills + ecosystemSkills,
     agents,
@@ -215,6 +248,17 @@ function claimRules(truth) {
       label: (m) => ((m[3] || '').trim().toLowerCase() || 'bare') + ' skills',
     },
     {
+      what: 'visible skills',
+      re: /(?<![\w.,])(\d{1,3})\s+(?:core\s+\+\s+menu\s+)?(?:skills\s+)?(?:are\s+)?model-visible\b|\bClaude\s+sees\s+(?:only\s+)?(\d{1,3})\b/gi,
+      expected: () => [truth.visibleSkills],
+      value: (m) => Number(m[1] || m[2]),
+    },
+    {
+      what: 'on-demand skills',
+      re: /(?<![\w.,])(\d{1,3})\s+(?:skills\s+)?(?:load\s+|loaded\s+|are\s+)?on[- ]demand\b/gi,
+      expected: () => [truth.hiddenSkills],
+    },
+    {
       what: 'agents',
       re: /(?<![\w.])(\d{1,4})\+?\s+(?:specialist\s+)?(?:sub-?)?agents\b/gi,
       expected: () => [truth.agents],
@@ -233,6 +277,12 @@ function claimRules(truth) {
       what: 'bundled MCP',
       re: /(?<![\w.])(\d{1,2})\s+(?:credential-free\s+)?bundled(?=\s*(?:\+|MCPs?\b|servers\b))/gi,
       expected: () => [truth.bundledMcp],
+    },
+    {
+      what: 'wording',
+      re: /\bFable(?: Method|-shaped)\b/g,
+      expected: () => ['the Commander Method'],
+      value: (m) => m[0],
     },
     {
       what: 'version',
@@ -300,7 +350,8 @@ function main() {
   }
   const { truth, files, mismatches } = result;
   const summary = 'v' + truth.version + ', ' + truth.pluginSkills + ' plugin skills, ' +
-    truth.ecosystemSkills + ' ecosystem skills, ' + truth.agents + ' agents, ' +
+    truth.ecosystemSkills + ' ecosystem skills, ' + truth.visibleSkills + ' model-visible + ' +
+    truth.hiddenSkills + ' on demand, ' + truth.agents + ' agents, ' +
     truth.hookEvents + ' hook events, ' + truth.handlers + ' handlers, ' +
     truth.bundledMcp + ' bundled MCP';
   if (mismatches.length) {

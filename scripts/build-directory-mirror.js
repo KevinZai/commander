@@ -104,7 +104,7 @@ export function buildDescription({ skills, agents, hooks }) {
     `CC Commander adds a guided PM layer to Claude Code: ${skills} \`/ccc-*\` workflows, ` +
     `${agents} specialist agents and ${hooks} lifecycle hooks that route each prompt to the right ` +
     'skill or agent and end every step with a short multiple-choice next-step menu. ' +
-    'It loads on demand (about 1.6k tokens at session start), shows 5-hour and 7-day usage limits ' +
+    'It loads most skills on demand (about 3k tokens at session start, down from 6.7k), shows 5-hour and 7-day usage limits ' +
     'in the status line, and keeps a local knowledge base of lessons. MIT, free, source readable.'
   );
 }

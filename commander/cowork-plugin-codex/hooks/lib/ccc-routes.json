@@ -667,7 +667,7 @@
       "id": "ccc-fable",
       "kind": "skill",
       "invoke": "/ccc-fable",
-      "label": "Arm, check, audit or disarm the Fable Method",
+      "label": "Arm, check, audit or disarm the Commander Method",
       "manual": true,
       "strong": [
         "fable method",

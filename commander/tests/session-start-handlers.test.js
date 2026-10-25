@@ -16,7 +16,7 @@ test('fable-armed-nudge: run() emits the user-visible reminder', async () => {
   const { run } = await load('fable-armed-nudge.js');
   const r = await run({ env: {} });
   assert.equal(r.continue, true);
-  assert.match(r.systemMessage, /Fable Method armed/);
+  assert.match(r.systemMessage, /Commander Method armed/);
 });
 
 test('fable-armed-nudge: CCC_FABLE_NUDGE_DISABLE=1 silences it', async () => {

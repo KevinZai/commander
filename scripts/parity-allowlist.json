@@ -33,6 +33,17 @@
     { "file": "mintlify-docs/plugin/upgrade.mdx", "match": "The 8.1.2 release", "what": "version", "reason": "Upgrade notes list each prior release." },
     { "file": "mintlify-docs/plugin/upgrade.mdx", "match": "23 lifecycle events / 44 handlers", "reason": "Before/after table for the 8.0.0 upgrade." },
     { "file": "mintlify-docs/quickstart.mdx", "match": "**v8.0.0:** Commander routes by model alias", "what": "version", "reason": "Release that introduced alias routing." },
-    { "file": "mintlify-docs/quickstart.mdx", "match": "What's New in v8.0.0", "what": "version", "reason": "Card title linking the 8.0.0 release notes." }
+    { "file": "mintlify-docs/quickstart.mdx", "match": "What's New in v8.0.0", "what": "version", "reason": "Card title linking the 8.0.0 release notes." },
+
+    { "file": "BIBLE.md", "match": "Claude Code has 500+ skills", "what": "skills", "reason": "Figure for the wider Claude Code ecosystem, not Commander." },
+    { "file": "BIBLE.md", "match": "500+ skills. 50+ plugins.", "what": "skills", "reason": "Figure for the wider Claude Code ecosystem, not Commander." },
+    { "file": "BIBLE.md", "match": "v8.1.0 added MCP catalog annotations", "what": "version", "reason": "Release history in the 'Latest' note." },
+    { "file": "BIBLE.md", "match": "Introduced in 8.0.0 (2026-10-13)", "what": "version", "reason": "Release that introduced the v8 feature set." },
+    { "file": "BIBLE.md", "match": "The original 4 hooks", "what": "hooks", "reason": "CLI toolkit history (standalone hooks), not plugin hook events." },
+    { "file": "BIBLE.md", "match": "ECC is the **harness**", "reason": "Competitor (ECC) figures." },
+    { "file": "CHEATSHEET.md", "match": " hooks)**", "what": "hooks", "reason": "Per-event subsets of the CLI toolkit's standalone hooks (hooks-standalone.json)." },
+    { "file": "CHEATSHEET.md", "match": "spawns 2 subagents", "what": "agents", "reason": "Example dialogue." },
+    { "file": "CHEATSHEET.md", "match": "--skills=recommended", "what": "skills", "reason": "Install tier size, a subset of the catalog." },
+    { "file": "RUNBOOK.md", "match": "8.1.1", "what": "version", "reason": "Illustrative ccc --version output for a checkout behind the installed plugin." }
   ]
 }

@@ -15,14 +15,16 @@ function write(root, rel, content) {
   fs.writeFileSync(file, content);
 }
 
-// A tree whose disk truth is: v8.2.0, 2 plugin skills, 3 ecosystem skills,
-// 1 agent, 2 hook events, 3 handlers, 1 bundled MCP server.
+// A tree whose disk truth is: v8.2.0, 2 plugin skills (1 model-visible,
+// 1 on demand), 3 ecosystem skills, 1 agent, 2 hook events, 3 handlers,
+// 1 bundled MCP server.
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc parity '));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   write(root, 'package.json', JSON.stringify({ name: 'fixture', version: '8.2.0' }));
   const plugin = 'commander/cowork-plugin';
-  for (const s of ['ccc-a', 'ccc-b']) write(root, plugin + '/skills/' + s + '/SKILL.md', '---\nname: ' + s + '\n---\n');
+  write(root, plugin + '/skills/ccc-a/SKILL.md', '---\nname: ccc-a\n---\n');
+  write(root, plugin + '/skills/ccc-b/SKILL.md', '---\nname: ccc-b\ndisable-model-invocation: true\n---\n');
   for (const s of ['x', 'y', 'z']) write(root, 'skills/' + s + '/SKILL.md', '---\nname: ' + s + '\n---\n');
   write(root, plugin + '/agents/builder.md', '# builder\n');
   write(root, plugin + '/agents/README.txt', 'not an agent\n');
@@ -52,7 +54,7 @@ function runCheck(root) {
 test('passes when every surface matches the filesystem', (t) => {
   const r = runCheck(fixture(t));
   assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /OK, 2 files consistent with disk \(v8\.2\.0, 2 plugin skills, 3 ecosystem skills, 1 agents, 2 hook events, 3 handlers, 1 bundled MCP\)/);
+  assert.match(r.stdout, /OK, 2 files consistent with disk \(v8\.2\.0, 2 plugin skills, 3 ecosystem skills, 1 model-visible \+ 1 on demand, 1 agents, 2 hook events, 3 handlers, 1 bundled MCP\)/);
 });
 
 test('fails with file:line on injected count drift', (t) => {
@@ -159,4 +161,24 @@ test('rejects an allowlist entry without a reason', (t) => {
   const r = runCheck(root);
   assert.equal(r.status, 2);
   assert.match(r.stderr, /entry 0 needs string "file" and a non-empty "reason"/);
+});
+
+test('checks model-visible and on-demand skill counts against frontmatter', (t) => {
+  const root = fixture(t);
+  write(root, 'docs/loading.md', 'Claude sees 1 skill; 1 loads on demand.\nNow 5 model-visible and 9 on demand.\n');
+  const r = runCheck(root);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /2 mismatch\(es\)/);
+  assert.match(r.stderr, /docs\/loading\.md:2 {2}visible skills "5 model-visible" expected 1/);
+  assert.match(r.stderr, /docs\/loading\.md:2 {2}on-demand skills "9 on demand" expected 1/);
+});
+
+test('reports the retired method name as a wording mismatch', (t) => {
+  const root = fixture(t);
+  const retired = 'Fable' + ' Method';
+  write(root, 'docs/method.md', 'Arm the ' + retired + ' with /ccc-fable; see rules/fable-method.md.\n');
+  const r = runCheck(root);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /1 mismatch\(es\)/);
+  assert.match(r.stderr, /docs\/method\.md:1 {2}wording "Fable[ ]Method" expected the Commander Method/);
 });

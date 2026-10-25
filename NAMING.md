@@ -122,11 +122,12 @@ node scripts/check-product-contract.js
    ```yaml
    ---
    name: ccc-<name>
-   description: "..."   # ≤200 chars, NO [C:*] prefix
-   model: sonnet        # or opus / haiku
+   description: "..."   # ≤150 chars if model-visible, NO [C:*] prefix
+   disable-model-invocation: true   # unless it joins the model-visible set
    ---
    ```
-4. Mirror to codex adapter: `commander/cowork-plugin-codex/skills/ccc-<name>/SKILL.md`
+   Do not add `model:` or `effort:`; skills keep the user's session model.
+4. Regenerate the Codex mirror: `npm run build:codex` (never edit `commander/cowork-plugin-codex/` by hand)
 5. Run `node commander/scripts/audit-naming.js --check`
 6. Run `node bin/doc-sync.js`
 7. Commit + PR
