@@ -168,3 +168,18 @@ test('a shell payload in the ClaudeSwap utilization fields is coerced, not evalu
   const out = stripVTControlCharacters(result.stdout);
   assert.ok(out.includes('Opus') && out.includes('⏱ 0%') && out.includes('📅 50%'), out);
 });
+
+test('percentages above 100 render capped at 100% (context, 5h and 7d)', { skip: SKIP }, (t) => {
+  const f = fixture(t);
+  const result = run(f, {
+    ...SAMPLE,
+    context_window: { ...SAMPLE.context_window, used_percentage: 250 },
+    rate_limits: { five_hour: { used_percentage: 180 }, seven_day: { used_percentage: 4000 } },
+  });
+  assert.strictEqual(result.status, 0, result.stderr);
+  const plain = stripVTControlCharacters(result.stdout);
+  assert.match(plain, /🧠 100%/);
+  assert.match(plain, /⏱ 100%/);
+  assert.match(plain, /📅 100%/);
+  assert.doesNotMatch(plain, /\b(250|180|4000)%/);
+});

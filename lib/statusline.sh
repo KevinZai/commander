@@ -205,6 +205,7 @@ mini_bar() {
 
 # ── Context bar (10 chars wide) ───────────────────────────────────────────
 CTX_INT=${CTX_PCT%.*}; CTX_INT=${CTX_INT:-0}
+[ "$CTX_INT" -gt 100 ] 2>/dev/null && CTX_INT=100
 
 heat_color() {
   local pct=$1
@@ -345,6 +346,7 @@ if [ "$RATE_5H_REJECTED" = "1" ]; then
   RATE_STR="⏱ ${H5}REJ${N}"
 elif [ -n "$RATE_5H" ]; then
   R5=${RATE_5H%.*}; R5=${R5:-0}
+  [ "$R5" -gt 100 ] 2>/dev/null && R5=100
   R5_REM=$(fmt_remaining "$RATE_5H_RESET")
   if [ "$R5" -ge 80 ] 2>/dev/null; then R5C="${H5}"; elif [ "$R5" -ge 50 ] 2>/dev/null; then R5C="${H4}"; else R5C="${M}"; fi
   RATE_STR="⏱ ${R5C}${R5}%${N}"
@@ -356,6 +358,7 @@ if [ "$RATE_7D_REJECTED" = "1" ]; then
   RATE_STR+="📅 ${H5}REJ${N}"
 elif [ -n "$RATE_7D" ]; then
   R7=${RATE_7D%.*}; R7=${R7:-0}
+  [ "$R7" -gt 100 ] 2>/dev/null && R7=100
   R7_REM=$(fmt_remaining "$RATE_7D_RESET")
   [ -n "$RATE_STR" ] && RATE_STR+=" "
   if [ "$R7" -ge 80 ] 2>/dev/null; then R7C="${H5}"; elif [ "$R7" -ge 50 ] 2>/dev/null; then R7C="${H4}"; else R7C="${M}"; fi
