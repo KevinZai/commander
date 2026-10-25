@@ -158,7 +158,7 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
 
       <section class="s">
         <h2>Anonymous usage telemetry from the plugin and CLI</h2>
-        <p><strong>Off by default (opt-in).</strong> The plugin and CLI send nothing unless you turn usage events on with <code>CCC_TELEMETRY=1</code> in your shell or <code>"telemetry": true</code> in <code>~/.commander/config.json</code>. If you opt in, anonymous usage events tell us which features are valuable.</p>
+        <p><strong>Off by default (opt-in).</strong> The plugin and CLI send nothing unless you turn usage events on with <code>CCC_TELEMETRY=1</code> in your shell (<code>1</code>, <code>true</code>, <code>yes</code> or <code>on</code>, any case) or <code>"telemetry": true</code> in <code>~/.commander/config.json</code>. If you opt in, anonymous usage events tell us which features are valuable.</p>
         <div class="note">
           <strong>What we collect:</strong>
           <ul style="margin-top: 0;">
@@ -179,7 +179,7 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
         </div>
         <div class="note">
           <strong>Where it goes:</strong> <code>https://mcp.commanderplugin.com/v1/events</code>, falling back to <code>https://commander-mcp.fly.dev/v1/events</code>.<br>
-          <strong>How to turn it off again:</strong> unset <code>CCC_TELEMETRY</code> or set it to <code>0</code> (an explicit off that beats the config file), or set <code>"telemetry": false</code> in <code>~/.commander/config.json</code>. <code>CCC_OFFLINE=1</code> (or <code>"offline": true</code>) blocks every outbound call from the plugin, including telemetry, the update check and the CI status lookup. A missing or unreadable config file counts as off.
+          <strong>How to turn it off again:</strong> unset <code>CCC_TELEMETRY</code> or set it to <code>0</code>, <code>false</code>, <code>no</code> or <code>off</code> (an explicit off that beats the config file), or set <code>"telemetry": false</code> in <code>~/.commander/config.json</code>. <code>CCC_OFFLINE=1</code> (or <code>"offline": true</code>) blocks every outbound call from the plugin, including telemetry, the update check and the CI status lookup. A missing or unreadable config file counts as off.
         </div>
         <p>Opted-in events go only to the hosted server named above. That server is a separate service from the plugin; how it processes and shares event data is covered by the hosted MCP section above and the third-party list below. Events are treated as anonymous (no personal data, no IP logging) and used for aggregate reports such as "X% of users invoke skill Y" and "hook Z fires most often in scenario W."</p>
       </section>

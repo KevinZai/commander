@@ -148,9 +148,9 @@ Commander runs locally: hooks, skills and state live on your machine, and no cre
 
 | Call | Default | Control |
 |------|---------|---------|
-| Anonymous usage events (anon id, hook/skill names, timings) to `mcp.commanderplugin.com`, fallback `commander-mcp.fly.dev` | Off | Opt in with `CCC_TELEMETRY=1` or `"telemetry": true` in `~/.commander/config.json`; `CCC_TELEMETRY=0` forces off |
-| Update check at session start (GET of the public `plugin.json` on GitHub) | On | `CCC_OFFLINE=1` disables it |
-| CI status lookup via your own `gh` login (`gh run list`) | Off | Opt in with `CCC_CI_TICKER=1` |
+| Anonymous usage events (anon id, hook/skill names, timings) to `mcp.commanderplugin.com`, fallback `commander-mcp.fly.dev` | Off | Opt in with `CCC_TELEMETRY=1` or `"telemetry": true` in `~/.commander/config.json`; `CCC_TELEMETRY=0` forces off (all three variables accept `1`/`true`/`yes`/`on` and `0`/`false`/`no`/`off`, any case) |
+| Update check at session start (GET of the public `plugin.json` on GitHub) | On | `CCC_OFFLINE=1` (or `true`/`yes`/`on`) disables it |
+| CI status lookup via your own `gh` login (`gh run list`) | Off | Opt in with `CCC_CI_TICKER=1` (or `true`/`yes`/`on`) |
 | Bundled MCP servers (`context7`, `sequential-thinking`) start through `npx -y`, which fetches each package from the npm registry when Claude Code first launches it (servers start with the session, not on first use) | On | Remove the server from `.mcp.json` |
 | Bundled Context7 MCP queries `context7.com` | Only when used | Remove the server from `.mcp.json` |
 

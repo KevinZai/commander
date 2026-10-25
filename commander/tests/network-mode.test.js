@@ -74,7 +74,45 @@ describe('lib/network-mode.js switches', () => {
 
   it('CI ticker only with CCC_CI_TICKER=1', () => {
     assert.equal(nm.isCiTickerEnabled({ HOME: makeHome(), CCC_CI_TICKER: '1' }), true);
-    assert.equal(nm.isCiTickerEnabled({ HOME: makeHome(), CCC_CI_TICKER: 'true' }), false);
+    assert.equal(nm.isCiTickerEnabled({ HOME: makeHome(), CCC_CI_TICKER: 'maybe' }), false);
+  });
+
+  const ON = ['1', 'true', 'yes', 'on', 'TRUE', 'Yes', 'ON', ' on '];
+  const OFF = ['0', 'false', 'no', 'off', 'FALSE', 'No', 'OFF'];
+  const UNKNOWN = ['', 'maybe', '2', 'enabled'];
+
+  it('CCC_TELEMETRY accepts 1/true/yes/on and 0/false/no/off, case-insensitive', () => {
+    for (const v of ON) {
+      assert.equal(nm.isTelemetryEnabled({ HOME: makeHome(), CCC_TELEMETRY: v }), true, v);
+    }
+    for (const v of OFF) {
+      assert.equal(nm.isTelemetryEnabled({ HOME: makeHome({ telemetry: true }), CCC_TELEMETRY: v }), false, v);
+    }
+    for (const v of UNKNOWN) {
+      assert.equal(nm.isTelemetryEnabled({ HOME: makeHome(), CCC_TELEMETRY: v }), false, v);
+      assert.equal(nm.isTelemetryEnabled({ HOME: makeHome({ telemetry: true }), CCC_TELEMETRY: v }), true, v);
+    }
+  });
+
+  it('CCC_OFFLINE accepts 1/true/yes/on and 0/false/no/off, case-insensitive', () => {
+    for (const v of ON) {
+      assert.equal(nm.isOffline({ HOME: makeHome(), CCC_OFFLINE: v }), true, v);
+      assert.equal(nm.isTelemetryEnabled({ HOME: makeHome(), CCC_OFFLINE: v, CCC_TELEMETRY: '1' }), false, v);
+    }
+    for (const v of [...OFF, ...UNKNOWN]) {
+      assert.equal(nm.isOffline({ HOME: makeHome(), CCC_OFFLINE: v }), false, v);
+    }
+    assert.equal(nm.isOffline({ HOME: makeHome({ offline: true }), CCC_OFFLINE: 'false' }), true);
+  });
+
+  it('CCC_CI_TICKER accepts 1/true/yes/on and 0/false/no/off, case-insensitive', () => {
+    for (const v of ON) {
+      assert.equal(nm.isCiTickerEnabled({ HOME: makeHome(), CCC_CI_TICKER: v }), true, v);
+      assert.equal(nm.isCiTickerEnabled({ HOME: makeHome(), CCC_CI_TICKER: v, CCC_OFFLINE: 'yes' }), false, v);
+    }
+    for (const v of [...OFF, ...UNKNOWN]) {
+      assert.equal(nm.isCiTickerEnabled({ HOME: makeHome(), CCC_CI_TICKER: v }), false, v);
+    }
   });
 
   it('options.homeDir overrides HOME', () => {

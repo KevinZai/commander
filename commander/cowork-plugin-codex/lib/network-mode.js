@@ -3,6 +3,13 @@
  * Network mode: the one place that decides whether Commander may reach the
  * network. Every outbound call in hooks/ and lib/ asks this module first.
  *
+ * Accepted env values (case-insensitive, same for all three variables):
+ *   on:  "1", "true", "yes", "on"
+ *   off: "0", "false", "no", "off"
+ * Anything else (unset, empty, "maybe") is unset: the config file, then the
+ * default, decides. CCC_TELEMETRY off beats the config file. CCC_OFFLINE off
+ * does not override "offline": true in the config (the safe side wins).
+ *
  *   CCC_OFFLINE=1 (or "offline": true in ~/.commander/config.json)
  *     short-circuits every outbound call: telemetry, the SessionStart update
  *     check and the CI ticker's `gh run list`.
@@ -41,24 +48,33 @@ function readConfig(env, options) {
   }
 }
 
+/** true / false for a recognised on / off spelling, undefined otherwise. */
+function envFlag(value) {
+  if (typeof value !== 'string') return undefined;
+  var v = value.trim().toLowerCase();
+  if (v === '1' || v === 'true' || v === 'yes' || v === 'on') return true;
+  if (v === '0' || v === 'false' || v === 'no' || v === 'off') return false;
+  return undefined;
+}
+
 function isOffline(env, options) {
   var e = env || process.env;
-  if (e.CCC_OFFLINE === '1') return true;
+  if (envFlag(e.CCC_OFFLINE) === true) return true;
   return readConfig(e, options).offline === true;
 }
 
 function isTelemetryEnabled(env, options) {
   var e = env || process.env;
   if (isOffline(e, options)) return false;
-  if (e.CCC_TELEMETRY === '0') return false;
-  if (e.CCC_TELEMETRY === '1') return true;
+  var flag = envFlag(e.CCC_TELEMETRY);
+  if (flag !== undefined) return flag;
   return readConfig(e, options).telemetry === true;
 }
 
 function isCiTickerEnabled(env, options) {
   var e = env || process.env;
   if (isOffline(e, options)) return false;
-  return e.CCC_CI_TICKER === '1';
+  return envFlag(e.CCC_CI_TICKER) === true;
 }
 
 /** { telemetry, offline, ciTicker } booleans for `ccc doctor`. */
@@ -72,6 +88,7 @@ function networkMode(env, options) {
 }
 
 exports.configFile = configFile;
+exports.envFlag = envFlag;
 exports.readConfig = readConfig;
 exports.isOffline = isOffline;
 exports.isTelemetryEnabled = isTelemetryEnabled;

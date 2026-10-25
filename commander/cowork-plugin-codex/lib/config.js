@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { envFlag } from './network-mode.js';
 
 const CONFIG_DIR = path.join(os.homedir(), '.commander');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
@@ -51,9 +52,9 @@ export function writeConfig(config) {
 // Telemetry is opt-in: CCC_OFFLINE=1 or offline:true wins, CCC_TELEMETRY=0/1
 // beats the config file, otherwise only telemetry:true enables it.
 export function isTelemetryEnabled() {
-  if (process.env.CCC_OFFLINE === '1') return false;
-  if (process.env.CCC_TELEMETRY === '0') return false;
-  if (process.env.CCC_TELEMETRY === '1') return true;
+  if (envFlag(process.env.CCC_OFFLINE) === true) return false;
+  const flag = envFlag(process.env.CCC_TELEMETRY);
+  if (flag !== undefined) return flag;
   const config = readConfig();
   if (config.offline === true) return false;
   return config.telemetry === true;
