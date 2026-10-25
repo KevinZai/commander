@@ -11,6 +11,7 @@ allowed-tools:
 argument-hint: "[design | marketing | saas | testing | devops | seo | security | research | mobile | data | makeover]"
 model: sonnet
 effort: low
+disable-model-invocation: true
 ---
 
 # $ccc-domains — alias for $ccc-learn

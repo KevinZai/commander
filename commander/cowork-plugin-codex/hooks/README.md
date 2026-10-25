@@ -8,7 +8,7 @@ Handler counts per event, rebuilt from `hooks.json`. A handler = one command ent
 
 | Event | Handler file | Matcher | Purpose |
 |------|------|------|------|
-| SessionStart | `orchestrator/session-start-orchestrator.js` | — | Single-process orchestrator — runs `_archive/session-start.js` (seed state.json, version-transition nudge, first-run welcome), `stale-claude-md-nudge.js`, `post-compact-recovery.js`, `fable-armed-nudge.js`, and `voice-injector.js` via one Node spawn. Returns `watchPaths` for the CLAUDE.md files it locates |
+| SessionStart | `orchestrator/session-start-orchestrator.js` | — | Single-process orchestrator — runs `_archive/session-start.js` (seed state.json, version-transition nudge, first-run welcome), `stale-claude-md-nudge.js`, `post-compact-recovery.js`, `fable-armed-nudge.js`, and `voice-injector.js` (opt-in: `CCC_VOICE=1` or `"voice": true` in config.json) via one Node spawn. Returns `watchPaths` for the CLAUDE.md files it locates |
 | SessionStart | `license-check.js` | — | Explicit no-op kept as an anti-paywall tripwire — core is free forever |
 | SessionStart | `git-truth.js` | — | Pillar 6 (truth over cache): opt-in best-effort `gh auth setup-git` refresh. Silent no-op unless `CCC_GIT_TRUTH=1` — swallows all errors, never blocks a session |
 | SessionStart | `update-nudge.js` (async) | — | Compares installed plugin version against GitHub `main` (24h cache, offline-silent) and spells out the marketplace-update fix when newer |

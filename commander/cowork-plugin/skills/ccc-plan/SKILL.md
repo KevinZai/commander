@@ -1,6 +1,6 @@
 ---
 name: ccc-plan
-description: "Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals, via a short spec interview and a background planner agent that writes to the session plan path. Use when the user wants to plan a feature, scope work before coding, or types /ccc-plan."
+description: "Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals before coding. Use to plan a feature or scope work."
 allowed-tools:
   - Read
   - Write

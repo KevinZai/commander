@@ -3,15 +3,20 @@
  * voice-injector.js
  * Hook: SessionStart (via the session-start orchestrator handler list)
  *
- * Injects a ~20-line condensation of the CCC PM-consultant voice —
- * the semantic emoji palette + the "🟢 my call" convention — as
- * additionalContext for the MODEL. Invisible to the user; shapes every
- * response of the session. Full doctrine: rules/common/response-style.md.
+ * Opt-in (CC-2112): injects a ~20-line condensation of the CCC PM-consultant
+ * voice — the semantic emoji palette + the "🟢 my call" convention — as
+ * additionalContext for the MODEL. Off by default: it costs ~370 tokens every
+ * session and overrides users' own style rules. Full doctrine:
+ * rules/common/response-style.md.
  *
- * Disable with CCC_VOICE_DISABLE=1. Always fail-open.
+ * Enable with CCC_VOICE=1, or "voice": true in ~/.claude/commander/config.json
+ * (the lane's config dir). CCC_VOICE_DISABLE=1 or CCC_VOICE=0 always wins.
+ * Always fail-open.
  */
 import { emitModel } from './lib/emit.mjs';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
+import { readablePath } from '../lib/lane-state.js';
 
 const VOICE_CONTEXT = [
   'CC Commander voice (condensed from rules/common/response-style.md):',
@@ -32,12 +37,23 @@ const VOICE_CONTEXT = [
   '- When offering 2+ choices, use AskUserQuestion chips — never "Reply A/B/C" text lists.',
 ].join('\n');
 
+/** True only when the user opted in via CCC_VOICE=1 or config `voice: true`. */
+export function voiceEnabled(env = process.env) {
+  if (env.CCC_VOICE_DISABLE === '1' || env.CCC_VOICE === '0') return false;
+  if (env.CCC_VOICE === '1') return true;
+  try {
+    return JSON.parse(readFileSync(readablePath('config.json', env), 'utf8')).voice === true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Pure-function entry for orchestrator (CC-414).
  */
 export async function run({ input = {}, env = process.env } = {}) {
   try {
-    if (env.CCC_VOICE_DISABLE === '1') return { continue: true };
+    if (!voiceEnabled(env)) return { continue: true };
     const hookEventName = input.hook_event_name || 'SessionStart';
     return emitModel(hookEventName, VOICE_CONTEXT);
   } catch {

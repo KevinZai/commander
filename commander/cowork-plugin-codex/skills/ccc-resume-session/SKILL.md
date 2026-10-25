@@ -8,6 +8,7 @@ allowed-tools:
 argument-hint: "[YYYY-MM-DD | path/to/YYYY-MM-DD-short-id-session.tmp]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-resume-session — Resume session state

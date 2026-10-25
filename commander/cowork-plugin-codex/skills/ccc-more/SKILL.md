@@ -1,6 +1,6 @@
 ---
 name: ccc-more
-description: "Commander's second-page menu: plan, x-ray, Codex CLI management, fleet, Linear, connectors, tune-up, catalog browse and the plugin audit workflows, one click each. Use when the user picks More tools in /ccc, types $ccc-more, or asks what else Commander can do."
+description: "Commander's second-page menu: plan, x-ray, Codex, fleet, Linear, connectors, tune-up, catalog and audit workflows. Use when the user picks More tools."
 allowed-tools:
   - Read
   - Bash
@@ -129,10 +129,10 @@ Dispatch immediately on a pick; do not ask again.
 |---|---|
 | Plan · `plan` | Skill `ccc-plan` |
 | X-ray · `xray` | Skill `ccc-xray` |
-| Codex CLI · `codex` | Skill `ccc-codex` |
+| Codex CLI · `codex` | `$ccc-codex` is user-invoked only: tell the user to type `$ccc-codex` |
 | Fleet · `fleet` | Skill `ccc-fleet` |
-| Linear · `linear` | Linear connected: Skill `ccc-linear`. Not connected: picker "🟢 Connect Linear now (`$ccc-connect linear`)" / "Back to More"; never call Linear tools that are absent |
-| Connect · `connect` | Skill `ccc-connect` |
+| Linear · `linear` | `$ccc-linear` is user-invoked only. Linear connected: tell the user to type `$ccc-linear`. Not connected: tell the user to type `$ccc-connect linear` first; never call Linear tools that are absent |
+| Connect · `connect` | `$ccc-connect` is user-invoked only: tell the user to type `$ccc-connect` |
 | Tune-up · `tuneup` | Skill `ccc-tuneup` |
 | Browse · `browse` | Skill `ccc-browse` |
 | Plugin workflows · `workflows` | Plugin workflows page |

@@ -1,6 +1,6 @@
 ---
 name: ccc-review
-description: "Audit the current branch, security posture, performance hot paths or the whole project; routes to /commander:ccc-deep-review, built-in /code-review or a specialist agent and writes a severity-rated report to tasks/reviews/. Use when the user asks for a code review, PR review, audit or /ccc-review."
+description: "Code review of the current branch or PR, or a security, performance or whole-project audit, with a severity-rated report. Use for PR review."
 allowed-tools:
   - Read
   - Write

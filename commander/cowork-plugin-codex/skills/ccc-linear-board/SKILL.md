@@ -13,6 +13,7 @@ allowed-tools:
 argument-hint: "[team-key | sync | chat]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-linear-board — the board as a page

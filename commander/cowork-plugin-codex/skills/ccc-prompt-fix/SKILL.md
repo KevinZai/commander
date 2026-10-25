@@ -9,6 +9,7 @@ allowed-tools:
 argument-hint: "[<your prompt> | last | for <task> | score <prompt>]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-prompt-fix — a sharper prompt, with reasons

@@ -10,6 +10,7 @@ allowed-tools:
 argument-hint: "[isolated | fleet | relay | expert | status]"
 model: sonnet
 effort: low
+disable-model-invocation: true
 ---
 
 # $ccc-spawn — spawn hub

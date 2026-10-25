@@ -1,6 +1,6 @@
 ---
 name: ccc-adopt
-description: "Merge Commander's orchestrator/executor section and a stack-tailored skill and agent list into an existing project's CLAUDE.md as a delimited, re-runnable block, with backup and diff approval first. Use when adopting Commander conventions in a repo you already have."
+description: "Merge Commander conventions and a stack-tailored skill and agent list into an existing CLAUDE.md, with backup and diff approval first."
 allowed-tools:
   - Read
   - Bash

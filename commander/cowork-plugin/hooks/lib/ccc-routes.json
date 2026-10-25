@@ -6,7 +6,7 @@
       "id": "ccc",
       "kind": "skill",
       "invoke": "/ccc",
-      "label": "Commander's click-first home",
+      "label": "Commander home",
       "manual": false,
       "strong": [
         "commander menu",
@@ -25,7 +25,7 @@
       "kind": "skill",
       "invoke": "/ccc-adhd",
       "label": "Answer-first output",
-      "manual": false,
+      "manual": true,
       "strong": [
         "adhd mode",
         "answer first mode"
@@ -42,7 +42,7 @@
       "id": "ccc-adopt",
       "kind": "skill",
       "invoke": "/ccc-adopt",
-      "label": "Merge Commander's orchestrator/executor…",
+      "label": "Merge Commander conventions and a…",
       "manual": false,
       "strong": [
         "adopt commander",
@@ -63,7 +63,7 @@
       "kind": "skill",
       "invoke": "/ccc-agent-writing",
       "label": "Draft a spec, PRD, PR description, README…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "draft a prd",
         "write a prd",
@@ -99,7 +99,7 @@
       "kind": "skill",
       "invoke": "/ccc-brainstorm",
       "label": "Design-first ideation gate",
-      "manual": false,
+      "manual": true,
       "strong": [
         "brainstorm",
         "torn between",
@@ -147,7 +147,7 @@
       "id": "ccc-browse",
       "kind": "skill",
       "invoke": "/ccc-browse",
-      "label": "Browse every CC Commander skill, agent and…",
+      "label": "Browse every Commander skill, agent and domain",
       "manual": false,
       "strong": [
         "skill catalog",
@@ -198,7 +198,7 @@
       "kind": "skill",
       "invoke": "/ccc-changelog",
       "label": "Summarize what changed in the latest CC…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "changelog",
         "release notes for",
@@ -233,7 +233,7 @@
       "id": "ccc-cheatsheet",
       "kind": "skill",
       "invoke": "/ccc-cheatsheet",
-      "label": "Live map of Commander",
+      "label": "Live map of the installed Commander",
       "manual": false,
       "strong": [
         "commander cheatsheet",
@@ -253,7 +253,7 @@
       "kind": "skill",
       "invoke": "/ccc-ci",
       "label": "Diagnose CI and deploy failures",
-      "manual": false,
+      "manual": true,
       "strong": [
         "ci is red",
         "ci failing",
@@ -288,7 +288,7 @@
       "kind": "skill",
       "invoke": "/ccc-claudemd",
       "label": "Audit a project CLAUDE.md against the real…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "audit claude.md",
         "clean up claude.md",
@@ -351,7 +351,7 @@
       "kind": "skill",
       "invoke": "/ccc-console",
       "label": "Open the Commander Console inline",
-      "manual": false,
+      "manual": true,
       "strong": [
         "commander console",
         "open the console"
@@ -369,7 +369,7 @@
       "kind": "skill",
       "invoke": "/ccc-content",
       "label": "Draft blog posts, social threads, email…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "blog post",
         "linkedin post",
@@ -402,7 +402,7 @@
       "id": "ccc-data",
       "kind": "skill",
       "invoke": "/ccc-data",
-      "label": "Route data work to the right method",
+      "label": "Data router",
       "manual": false,
       "strong": [
         "etl pipeline",
@@ -431,7 +431,7 @@
       "kind": "skill",
       "invoke": "/ccc-debate",
       "label": "Adversarial multi-agent debate",
-      "manual": false,
+      "manual": true,
       "strong": [
         "devil's advocate",
         "stress-test this design",
@@ -486,7 +486,7 @@
       "kind": "skill",
       "invoke": "/ccc-deploy-check",
       "label": "Pre-deploy readiness gate",
-      "manual": false,
+      "manual": true,
       "strong": [
         "ready to deploy",
         "ready to ship",
@@ -515,7 +515,7 @@
       "id": "ccc-design",
       "kind": "skill",
       "invoke": "/ccc-design",
-      "label": "Route design work to the right method",
+      "label": "UI design",
       "manual": false,
       "strong": [
         "polish the ui",
@@ -549,7 +549,7 @@
       "id": "ccc-devops",
       "kind": "skill",
       "invoke": "/ccc-devops",
-      "label": "DevOps domain router",
+      "label": "DevOps router",
       "manual": false,
       "strong": [
         "ci/cd pipeline",
@@ -586,7 +586,7 @@
       "kind": "skill",
       "invoke": "/ccc-doc-sync",
       "label": "Sync skill, agent and hook-handler counts…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "doc sync",
         "doc-count check",
@@ -630,7 +630,7 @@
       "kind": "skill",
       "invoke": "/ccc-e2e",
       "label": "Pre-release assessment that fans out via…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "pre-release assessment",
         "is this release ready"
@@ -668,7 +668,7 @@
       "kind": "skill",
       "invoke": "/ccc-fable",
       "label": "Arm, check, audit or disarm the Fable Method",
-      "manual": false,
+      "manual": true,
       "strong": [
         "fable method",
         "fable on",
@@ -722,7 +722,7 @@
       "id": "ccc-fleet-viz",
       "kind": "skill",
       "invoke": "/ccc-fleet-viz",
-      "label": "Show a /ccc-fleet run as a live tree of workers",
+      "label": "Show a /ccc-fleet run as a live tree of…",
       "manual": false,
       "strong": [
         "fleet progress",
@@ -741,7 +741,7 @@
       "kind": "skill",
       "invoke": "/ccc-handoff",
       "label": "Write a dense handoff file and tell the user…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "write a handoff",
         "context is getting long"
@@ -764,7 +764,7 @@
       "kind": "skill",
       "invoke": "/ccc-harden",
       "label": "Pre-launch production hardening audit across…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "harden for launch",
         "production hardening",
@@ -804,7 +804,7 @@
       "kind": "skill",
       "invoke": "/ccc-infra",
       "label": "Dev services status",
-      "manual": false,
+      "manual": true,
       "strong": [
         "is the dev server up",
         "why is the mcp down",
@@ -824,7 +824,7 @@
       "kind": "skill",
       "invoke": "/ccc-knowledge",
       "label": "Search, browse and add lessons in the local…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "commander knowledge base",
         "what have we learned",
@@ -842,7 +842,7 @@
       "id": "ccc-learn",
       "kind": "skill",
       "invoke": "/ccc-learn",
-      "label": "Pick a CC Commander skill domain in one click",
+      "label": "Pick a Commander skill domain",
       "manual": false,
       "strong": [
         "skill domains",
@@ -854,9 +854,7 @@
       "paths": [],
       "requirePath": false,
       "next": [],
-      "descTriggers": [
-        "browse domains"
-      ]
+      "descTriggers": []
     },
     {
       "id": "ccc-linear",
@@ -889,7 +887,7 @@
       "kind": "skill",
       "invoke": "/ccc-linear-board",
       "label": "Publish a team's Linear issues as a private…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "linear board",
         "sprint board"
@@ -914,7 +912,7 @@
       "kind": "skill",
       "invoke": "/ccc-loop",
       "label": "Pick the right loop primitive",
-      "manual": false,
+      "manual": true,
       "strong": [
         "run until done",
         "keep checking every"
@@ -957,7 +955,7 @@
       "id": "ccc-marketing",
       "kind": "skill",
       "invoke": "/ccc-marketing",
-      "label": "Route marketing work to the right specialist…",
+      "label": "Marketing router",
       "manual": false,
       "strong": [
         "marketing plan",
@@ -985,7 +983,7 @@
       "kind": "skill",
       "invoke": "/ccc-memory",
       "label": "Keep durable project memory in two tiers",
-      "manual": false,
+      "manual": true,
       "strong": [
         "save to memory",
         "record this decision"
@@ -1006,7 +1004,7 @@
       "kind": "skill",
       "invoke": "/ccc-mission-control",
       "label": "Agent mission control",
-      "manual": false,
+      "manual": true,
       "strong": [
         "mission control",
         "what are the agents doing",
@@ -1026,7 +1024,7 @@
       "id": "ccc-mobile",
       "kind": "skill",
       "invoke": "/ccc-mobile",
-      "label": "Route mobile work to the right method",
+      "label": "Mobile router",
       "manual": false,
       "strong": [
         "react native",
@@ -1123,7 +1121,7 @@
       "kind": "skill",
       "invoke": "/ccc-onboard",
       "label": "Contributor first-hour plan for the current…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "onboard me",
         "new to this repo",
@@ -1144,7 +1142,7 @@
       "kind": "skill",
       "invoke": "/ccc-orchestrate",
       "label": "Write a goal file, run it on a separate executor",
-      "manual": false,
+      "manual": true,
       "strong": [
         "goal file",
         "different executor",
@@ -1201,7 +1199,7 @@
       "kind": "skill",
       "invoke": "/ccc-plan-exec",
       "label": "Plan cheap, execute capable",
-      "manual": false,
+      "manual": true,
       "strong": [
         "plan-exec",
         "plan exec"
@@ -1223,7 +1221,7 @@
       "kind": "skill",
       "invoke": "/ccc-prompt-fix",
       "label": "Diagnose a prompt against the six…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "fix my prompt",
         "improve this prompt",
@@ -1246,7 +1244,7 @@
       "id": "ccc-qa",
       "kind": "skill",
       "invoke": "/ccc-qa",
-      "label": "QA pass before shipping",
+      "label": "Pre-ship QA pass",
       "manual": false,
       "strong": [
         "qa pass",
@@ -1278,7 +1276,7 @@
       "kind": "skill",
       "invoke": "/ccc-recall",
       "label": "Search past saved sessions and curated…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "didn't we solve",
         "did we solve this",
@@ -1301,7 +1299,7 @@
       "kind": "skill",
       "invoke": "/ccc-relay",
       "label": "Chain independent loop sessions",
-      "manual": false,
+      "manual": true,
       "strong": [
         "finn loop",
         "auto-chained loops"
@@ -1318,7 +1316,7 @@
       "id": "ccc-research",
       "kind": "skill",
       "invoke": "/ccc-research",
-      "label": "Research before you build",
+      "label": "Cited multi-source research before building",
       "manual": false,
       "strong": [
         "prior art",
@@ -1353,7 +1351,7 @@
       "kind": "skill",
       "invoke": "/ccc-resume-session",
       "label": "Load a saved session file from…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "resume session",
         "where i left off",
@@ -1372,7 +1370,7 @@
       "id": "ccc-review",
       "kind": "skill",
       "invoke": "/ccc-review",
-      "label": "Audit the current branch, security posture,…",
+      "label": "Code review of the current branch or PR, or…",
       "manual": false,
       "strong": [
         "code review",
@@ -1440,7 +1438,7 @@
       "id": "ccc-saas",
       "kind": "skill",
       "invoke": "/ccc-saas",
-      "label": "Route SaaS work to the right method",
+      "label": "SaaS router",
       "manual": false,
       "strong": [
         "stripe billing",
@@ -1469,7 +1467,7 @@
       "kind": "skill",
       "invoke": "/ccc-safety",
       "label": "Safety deck",
-      "manual": false,
+      "manual": true,
       "strong": [
         "what did the guardrails catch",
         "safety deck"
@@ -1486,7 +1484,7 @@
       "id": "ccc-save-session",
       "kind": "skill",
       "invoke": "/ccc-save-session",
-      "label": "Compress the current session into a dense…",
+      "label": "Save the session to a reloadable file",
       "manual": false,
       "strong": [
         "save this session",
@@ -1504,7 +1502,7 @@
       "id": "ccc-security",
       "kind": "skill",
       "invoke": "/ccc-security",
-      "label": "Application security hub",
+      "label": "Security audit",
       "manual": false,
       "strong": [
         "security audit",
@@ -1539,7 +1537,7 @@
       "id": "ccc-seo",
       "kind": "skill",
       "invoke": "/ccc-seo",
-      "label": "Route SEO work to the right method",
+      "label": "SEO router",
       "manual": false,
       "strong": [
         "seo audit",
@@ -1570,7 +1568,7 @@
       "kind": "skill",
       "invoke": "/ccc-settings",
       "label": "Settings hub",
-      "manual": false,
+      "manual": true,
       "strong": [
         "commander settings",
         "cost ceiling"
@@ -1626,7 +1624,7 @@
       "kind": "skill",
       "invoke": "/ccc-smb-ops",
       "label": "Small-business back office from a bank CSV…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "cash flow forecast",
         "cash-flow forecast",
@@ -1654,7 +1652,7 @@
       "kind": "skill",
       "invoke": "/ccc-spawn",
       "label": "Spin self-contained work off on demand",
-      "manual": false,
+      "manual": true,
       "strong": [
         "spin this off",
         "run this in the background",
@@ -1673,7 +1671,7 @@
       "kind": "skill",
       "invoke": "/ccc-standup",
       "label": "Write a yesterday / today / blockers standup…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "what did i do yesterday",
         "daily update",
@@ -1721,7 +1719,7 @@
       "id": "ccc-suggest",
       "kind": "skill",
       "invoke": "/ccc-suggest",
-      "label": "Reads project state and recent activity,…",
+      "label": "Recommends the one next /ccc-* skill or…",
       "manual": false,
       "strong": [
         "what should i do next",
@@ -1744,7 +1742,7 @@
       "id": "ccc-systematic-debugging",
       "kind": "skill",
       "invoke": "/ccc-systematic-debugging",
-      "label": "Root-cause debugging under one law",
+      "label": "Root-cause debugging",
       "manual": false,
       "strong": [
         "root cause",
@@ -1779,7 +1777,7 @@
       "kind": "skill",
       "invoke": "/ccc-tasks",
       "label": "Track work in one markdown file,…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "my todo list",
         "my to-do list",
@@ -1803,7 +1801,7 @@
       "id": "ccc-testing",
       "kind": "skill",
       "invoke": "/ccc-testing",
-      "label": "Testing domain router",
+      "label": "Write or plan tests",
       "manual": false,
       "strong": [
         "test strategy",
@@ -1878,7 +1876,7 @@
       "kind": "skill",
       "invoke": "/ccc-ultracode",
       "label": "Run deep, multi-agent work as adversarially…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "ultracode",
         "depth over speed"
@@ -1895,7 +1893,7 @@
       "id": "ccc-update",
       "kind": "skill",
       "invoke": "/ccc-update",
-      "label": "Update the installed CC Commander plugin",
+      "label": "Update the installed Commander plugin",
       "manual": false,
       "strong": [
         "update commander",
@@ -1938,7 +1936,7 @@
       "kind": "skill",
       "invoke": "/ccc-usage",
       "label": "Usage and cost deck",
-      "manual": false,
+      "manual": true,
       "strong": [
         "usage deck",
         "how much did i spend",

@@ -11,6 +11,7 @@ allowed-tools:
 argument-hint: "[path to design doc or plan | diff | \"question in quotes\"]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-debate — stress-test before reality does

@@ -9,6 +9,7 @@ allowed-tools:
 argument-hint: "[name | level | cost | theme | animations | launch | linear | reset | mode | effort | models | workflows | --power]"
 model: sonnet
 effort: low
+disable-model-invocation: true
 ---
 
 # $ccc-settings — Commander and Claude Code settings

@@ -1,6 +1,6 @@
 ---
 name: ccc-start
-description: "First-run Commander onboarding: detects the setup live, offers new-project, import, tour or skip pickers, writes a start plan file and marks onboarding complete. Use when the user just installed Commander, types /ccc-start, or asks how to get started."
+description: "First-run Commander onboarding: detects the setup, offers new project, import, tour or skip, writes a start plan. Use just after install."
 allowed-tools:
   - Read
   - Write

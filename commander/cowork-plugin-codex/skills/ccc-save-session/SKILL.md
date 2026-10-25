@@ -1,6 +1,6 @@
 ---
 name: ccc-save-session
-description: "Compress the current session into a dense reloadable file in ~/.claude/sessions/: decisions, files touched, what worked, what failed and why, open questions, exact next step. Use when ending a session, nearing context limits, or saying save this session."
+description: "Save the session to a reloadable file: decisions, files, failures and why, exact next step. Use when ending a session or near context limits."
 allowed-tools:
   - Read
   - Write

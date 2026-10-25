@@ -12,6 +12,7 @@ allowed-tools:
 argument-hint: "[goal | interval | self-paced | routine | gate <idea>]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-loop — pick the right loop

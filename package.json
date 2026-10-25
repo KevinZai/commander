@@ -71,6 +71,8 @@
     "build:directory-mirror": "node scripts/build-directory-mirror.js",
     "build:routes": "node scripts/build-routes.js",
     "check:routes": "node scripts/build-routes.js --check",
+    "measure:listing": "node scripts/measure-listing.js",
+    "check:listing": "node scripts/measure-listing.js --check --json",
     "check:codex-models": "node scripts/check-codex-models.js",
     "mcp:dev": "node commander/mcp-server/index.js",
     "mcp:cloud:dev": "cd apps/mcp-server-cloud && npm run dev",

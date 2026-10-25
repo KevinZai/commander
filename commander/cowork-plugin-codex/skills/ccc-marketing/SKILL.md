@@ -1,6 +1,6 @@
 ---
 name: ccc-marketing
-description: "Route marketing work to the right specialist method: brand context, content, conversion optimization, email and ads, growth experiments, competitor intelligence, pricing and launches. Use when the user asks for marketing help, CRO, a campaign or launch plan, or types $ccc-marketing."
+description: "Marketing router: brand context, content, CRO, email and ads, growth experiments, competitor intel, pricing, launches. Use for marketing campaigns."
 allowed-tools:
   - Read
   - Write

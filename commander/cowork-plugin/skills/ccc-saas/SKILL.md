@@ -1,6 +1,6 @@
 ---
 name: ccc-saas
-description: "Route SaaS work to the right method: scaffold, auth, database, API, frontend, Stripe billing, webhooks, multi-tenancy, feature flags, metrics and conversion. Use when the user is building, billing or growing a SaaS product, or types /ccc-saas."
+description: "SaaS router: scaffold, auth, database, API, frontend, Stripe billing, webhooks, multi-tenancy, feature flags, metrics. Use to build or bill a SaaS."
 allowed-tools:
   - Read
   - Write

@@ -1,6 +1,6 @@
 ---
 name: ccc-browse
-description: "Browse every CC Commander skill, agent and domain: publish the searchable Cockpit catalog page after consent, or drill in four at a time with pickers and launch one. Use when the user asks what Commander can do, wants the catalog, or types $ccc-browse."
+description: "Browse every Commander skill, agent and domain: a searchable catalog or pickers four at a time, then launch one. Use when asked what Commander can do."
 allowed-tools:
   - Read
   - Glob
@@ -89,7 +89,7 @@ One markdown table sorted by name: `| Type | Name | One-liner |`, built from the
 
 ### 6. Dispatch a pick
 
-Read the picked skill's `SKILL.md` frontmatter (or the agent's `.md`), say in one sentence what will happen, then run it in place: invoke the skill, or delegate with the Agent tool for an agent after asking for the task. The user never has to retype a command.
+Read the picked skill's `SKILL.md` frontmatter (or the agent's `.md`), say in one sentence what will happen, then run it in place: invoke the skill, or delegate with the Agent tool for an agent after asking for the task. A skill with `disable-model-invocation: true` can't be invoked by Claude: tell the user to type its `/` command instead. Otherwise the user never has to retype a command.
 
 ## Done when
 

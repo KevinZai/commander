@@ -1,6 +1,6 @@
 ---
 name: ccc-testing
-description: "Testing domain router: picks the lane for TDD, E2E, visual regression, load testing, QA, regression checks, evals or verification and runs test-writing work in an isolated worktree. Use when the user asks to write tests, plan a test strategy, or test, verify or load-test a change."
+description: "Write or plan tests: TDD, E2E, visual, load, regression, evals and verification, in an isolated worktree. Use to add tests or a test strategy."
 allowed-tools:
   - Bash
   - Read

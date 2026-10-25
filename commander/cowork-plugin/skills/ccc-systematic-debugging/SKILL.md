@@ -1,6 +1,6 @@
 ---
 name: ccc-systematic-debugging
-description: "Root-cause debugging under one law: no fix without a confirmed root cause. Reproduce, compare, hypothesize, then fix once with a failing test first. Use when investigating a bug, a failing or flaky test, or an error of unknown cause."
+description: "Root-cause debugging: reproduce, hypothesize, then fix once with a failing test first. Use for a bug, a failing or flaky test, or an unknown error."
 allowed-tools:
   - Read
   - Write

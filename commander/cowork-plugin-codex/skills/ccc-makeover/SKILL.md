@@ -1,6 +1,6 @@
 ---
 name: ccc-makeover
-description: "Score project health with $ccc-xray, apply the top recommendations one at a time with your OK, and show a before/after report card. Use when the user asks for a health check, wants the top issues fixed automatically, asks for a project score or report card, or types $ccc-makeover."
+description: "Score project health with $ccc-xray, apply the top fixes one at a time with your OK, and show a before/after report card. Use to fix top issues."
 allowed-tools:
   - Read
   - Write

@@ -16,6 +16,7 @@ allowed-tools:
   - mcp__ccd_session__spawn_task
   - mcp__ccd_session__mark_chapter
 argument-hint: "[full | qa-unit | e2e-only | quick | status]"
+disable-model-invocation: true
 ---
 
 # /ccc-e2e — Full-surface confidence before shipping

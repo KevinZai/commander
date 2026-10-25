@@ -11,6 +11,7 @@ allowed-tools:
 argument-hint: "[audit | fix <pillar> | pillar <name> | setup]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-harden — Production hardening audit

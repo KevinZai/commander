@@ -14,6 +14,7 @@ allowed-tools:
 argument-hint: "[blog | social | email | landing | docs] [topic] [--power]"
 model: inherit
 effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-content — draft it in three questions

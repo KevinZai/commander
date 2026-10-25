@@ -9,6 +9,7 @@ allowed-tools:
 argument-hint: "[\"feature idea or design question in quotes\"]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-brainstorm — three options before code

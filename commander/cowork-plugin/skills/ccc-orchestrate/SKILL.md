@@ -10,6 +10,7 @@ allowed-tools:
 argument-hint: "[task description | path to an existing goal file]"
 model: inherit
 effort: high
+disable-model-invocation: true
 ---
 
 # /ccc-orchestrate — plan, delegate, verify

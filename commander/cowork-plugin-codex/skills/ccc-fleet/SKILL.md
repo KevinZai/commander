@@ -1,6 +1,6 @@
 ---
 name: ccc-fleet
-description: "Run parallel agents on one task: fan-out slices in isolated worktrees, a sequential pipeline, a review panel, a background run, or a director-lead-specialist team, then verify and synthesize. Use when the user types $ccc-fleet or wants work split across several agents."
+description: "Run parallel agents on one task: worktree fan-out, pipeline, review panel, background run or team, then verify. Use to split work across agents."
 allowed-tools:
   - Read
   - Write

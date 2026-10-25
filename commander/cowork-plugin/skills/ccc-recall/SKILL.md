@@ -9,6 +9,7 @@ allowed-tools:
 argument-hint: "[question or keywords] [--since YYYY-MM-DD]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-recall — Cross-session memory search

@@ -1,6 +1,6 @@
 ---
 name: ccc-devops
-description: "DevOps domain router: picks the right specialist for CI/CD pipelines, zero-downtime deploys, Docker and container security, AWS, Terraform, Prometheus/Grafana monitoring, networking and runbooks, then loads it. Use when the user wants to set up, harden or plan infrastructure or delivery."
+description: "DevOps router: CI/CD, zero-downtime deploys, Docker, AWS, Terraform, monitoring, networking, runbooks. Use to set up, harden or plan infrastructure."
 allowed-tools:
   - Read
   - Glob

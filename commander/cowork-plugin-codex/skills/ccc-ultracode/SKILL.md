@@ -10,6 +10,7 @@ allowed-tools:
 argument-hint: "[audit | review | migrate | fleet | prompt-audit | release-audit]"
 model: inherit
 effort: high
+disable-model-invocation: true
 ---
 
 # $ccc-ultracode — depth over speed

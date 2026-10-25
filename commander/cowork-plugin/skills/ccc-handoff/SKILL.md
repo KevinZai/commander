@@ -9,6 +9,7 @@ allowed-tools:
 argument-hint: "[optional topic or short-id]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-handoff — Hand off to a fresh session

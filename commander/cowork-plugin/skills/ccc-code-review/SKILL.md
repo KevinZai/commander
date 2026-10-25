@@ -6,6 +6,7 @@ allowed-tools:
 argument-hint: "[PR URL | file path | diff | any /ccc-review argument]"
 model: haiku
 effort: low
+disable-model-invocation: true
 ---
 
 # /ccc-code-review — alias for /ccc-review

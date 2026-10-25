@@ -1,6 +1,6 @@
 ---
 name: ccc-qa
-description: "QA pass before shipping: detects the framework, runs unit, integration and E2E suites, computes the coverage delta, audits flaky tests and has qa-engineer severity-rate gaps. Use when the user asks for a QA pass, to run all tests, check coverage, find flaky tests or if it is ready to ship."
+description: "Pre-ship QA pass: runs unit, integration and E2E suites, coverage delta and a flaky-test audit. Use to run all tests or check ship readiness."
 allowed-tools:
   - Bash
   - Read

@@ -8,6 +8,7 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[version]"
+disable-model-invocation: true
 ---
 
 # $ccc-changelog — What's new, briefly

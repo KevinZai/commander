@@ -1,6 +1,6 @@
 ---
 name: ccc-tuneup
-description: "Audit and safely optimize the local Commander setup: version freshness, junk, count drift, superseded agents, hooks, settings keys, MCP staleness and cost settings. Read-only scan first; backs up, archives (never deletes) and asks before any fix. Use when the setup feels cluttered, stale or slow."
+description: "Audit and safely optimize the local Commander setup: versions, junk, count drift, hooks, settings, MCP, cost. Read-only first; asks before any fix."
 allowed-tools:
   - Read
   - Bash
@@ -148,6 +148,8 @@ normalize_model() { echo "$1" | sed 's/ *\[.*\]$//' | xargs; }
 #### 1g. Cost settings (suggest-only)
 
 Read the `COST_<KEY>` and `COST_FLAGGED` rows. The audited keys, verdict meanings and suggested values are in [references/probe-keys.md](references/probe-keys.md#cost-settings-audit-suggest-only). These are never applied by this skill.
+
+When the user asks about context cost or skill-listing truncation, explain the `skillOverrides` `"name-only"` middle ground and its plugin-skill limit from [references/probe-keys.md](references/probe-keys.md#skill-listing-budget-inform-only); never write it.
 
 ### 2. Scorecard
 

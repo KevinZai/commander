@@ -1,6 +1,6 @@
 ---
 name: ccc-research
-description: "Research before you build: cited multi-source research, spec interviews, cross-model review, literature reviews, competitive and trend analysis, and large-document or large-codebase ingestion. Use when the user wants options compared, prior art found, a spec defined, or something too big summarized."
+description: "Cited multi-source research before building: compare options, find prior art, define a spec, or summarize large docs or codebases."
 allowed-tools:
   - Read
   - Write

@@ -1,6 +1,6 @@
 ---
 name: ccc-learn
-description: "Pick a CC Commander skill domain in one click (design, marketing, SaaS, DevOps, SEO, testing, security, data and more) and hand off to that domain's router skill. Use when the user asks what skills exist, wants the skill catalog, says learn or browse domains, or types /ccc-learn."
+description: "Pick a Commander skill domain (design, marketing, SaaS, DevOps, SEO, testing, security, data) and hand off to its router. Use to explore domains."
 allowed-tools:
   - Read
   - Bash

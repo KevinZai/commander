@@ -11,6 +11,7 @@ allowed-tools:
 argument-hint: "[on | status | audit | off]"
 model: sonnet
 effort: high
+disable-model-invocation: true
 ---
 
 # $ccc-fable — arm the Fable Method

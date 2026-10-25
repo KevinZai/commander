@@ -10,6 +10,7 @@ allowed-tools:
 argument-hint: "[yesterday | today | blockers | --power]"
 model: sonnet
 effort: low
+disable-model-invocation: true
 ---
 
 # $ccc-standup — Standup from real activity

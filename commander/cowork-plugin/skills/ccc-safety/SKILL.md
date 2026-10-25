@@ -10,6 +10,7 @@ allowed-tools:
 argument-hint: "[status | open | snapshot]"
 model: sonnet
 effort: low
+disable-model-invocation: true
 ---
 
 # /ccc-safety — what the guardrails caught

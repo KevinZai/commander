@@ -11,6 +11,7 @@ allowed-tools:
 argument-hint: "[open | snapshot | sync | status | suggestions | stop]"
 model: sonnet
 effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-mission-control — who is working on what
