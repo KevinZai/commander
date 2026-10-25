@@ -38,7 +38,7 @@ Codex: ask pickers as plain-text questions; send through the connector Codex has
 | 🔴 Incident | Deploy failed, error spike | Team, immediately | `~~chat` |
 | 📊 Digest | Rollup of the above | Owner | `~~email` |
 
-Unclassified signals go to the digest. Per-signal overrides live in the config's `audiences` map.
+Unclassified signals go to the digest. Per-signal overrides live in the config's `audiences` map. When the config sets `opsChannel`, every signal goes to that one channel instead (one global ops channel); incidents still go out at once.
 
 ## What happens
 
@@ -60,7 +60,7 @@ Route on the argument: `setup`, `status`, `test`, `digest`. No argument: `status
 4. Ask, question "Confirm each message before it is sent?":
    - 🟢 Confirm each message — a preview picker before every send.
    - Send automatically — unattended runs send without asking; the user can switch back with `setup`.
-5. Ask in chat for the channel name or recipient address and the daily budget (optional). Write `<config dir>/commander/broadcast.json`, then `chmod 600` it.
+5. Ask in chat for the channel name or recipient address, whether every signal should go to one ops channel (sets `opsChannel`; optional), and the daily budget (optional). Use only a channel that already exists; never create one. Write `<config dir>/commander/broadcast.json`, then `chmod 600` it.
 
 ### status
 
@@ -68,7 +68,7 @@ Read the config and print: channels, noise level, confirmation mode, audience ov
 
 ### test
 
-Compose one sample message ("🧪 Broadcast test from CC Commander — no action needed."), run the scrub check below, show the preview, and ask: 🟢 Send the sample · Cancel. Send it to each configured channel with the connector's send tool and record the result.
+Compose one sample message ("🧪 Broadcast test from CC Commander — no action needed."), run the scrub check below, show the preview, and ask: 🟢 Send the sample · Cancel. Send it with the connector's send tool and record the result: when the config sets `opsChannel`, send only to the route that `node "${CLAUDE_PLUGIN_ROOT}/lib/broadcast-route.js" route ship` returns (none when it says `log`); otherwise send to each configured channel.
 
 ### digest (also the immediate relay path)
 
@@ -85,7 +85,13 @@ Compose one sample message ("🧪 Broadcast test from CC Commander — no action
 
    Add outcomes from the current session (a deploy URL that returned 200, a finished task) when they are known.
 2. Classify each signal with the table above and drop what the noise level excludes. Cost figures from `metrics.jsonl` are estimates; label them so.
-3. Compose one message per audience using the formats in [references/messages.md](references/messages.md): event type, human outcome, optional link. Business-legible, no jargon.
+3. Route each signal, then compose one message per route using the formats in [references/messages.md](references/messages.md): event type, human outcome, optional link. Business-legible, no jargon.
+
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/lib/broadcast-route.js" route "$SIGNAL"   # {channel, target, audience, immediate, via}
+   ```
+
+   `channel: "log"` means record only; with no config file (a Routine in the cloud) every route is log-only. Exit 2 means the config is invalid or holds a credential: report the message and stop.
 4. Scrub. Never include file contents, diffs, code, log bodies, environment values or customer data. Then run the check on every payload and block the send on any match:
 
    ```bash
@@ -94,7 +100,15 @@ Compose one sample message ("🧪 Broadcast test from CC Commander — no action
 
    Any output means rewrite the message without that content and run the check again.
 5. Confirm. In "Confirm each message" mode ask: 🟢 Send · Edit the text first · Log only. In "Send automatically" mode, send without asking.
-6. Send with the connected chat or email tool. Append `{at, signal, channel, summary, ok, messageId}` to `recent` (keep the last 20) and set `lastDigestAt`.
+6. Skip a message already delivered in this digest window:
+
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/lib/broadcast-route.js" dedup "$SIGNAL" "$SUMMARY" --scope "$SCOPE"   # {key, duplicate}
+   ```
+
+   `$SCOPE` is the repository name plus the event's own id (CI run id, commit sha or deploy URL), so the same summary from another repo or run still sends.
+
+   Send the rest with the connected chat or email tool. Append `{at, signal, channel, summary, key, ok, messageId}` to `recent` (keep the last 20), with `ok: true` only when the connector returned a message id, and set `lastDigestAt`.
 
 ### Unattended relays
 
