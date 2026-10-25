@@ -136,7 +136,7 @@ Each variable accepts `1`, `true`, `yes` or `on` to turn it on and `0`, `false`,
 ## Defaults worth knowing
 
 - **Cost ceiling:** `cost-ceiling-enforcer.js` is off unless `CCC_COST_CEILING=<units>` or `costCeiling` in the lane config is set (`0` or `off` disables it). When it trips it returns a `PreToolUse` deny with a readable reason and names the lane config file it read.
-- **Voice layer:** `voice-injector.js` emits nothing unless `CCC_VOICE=1` or `"voice": true` is set in `~/.commander/config.json`.
+- **Voice layer:** `voice-injector.js` emits nothing unless the env var `CCC_VOICE` is `1`, `true`, `yes` or `on`, or `"voice": true` is set in the lane config file `<config dir>/commander/config.json` (`~/.claude/commander/config.json` for the default lane). `CCC_VOICE_DISABLE=1` or `CCC_VOICE=0` turns it off.
 - **Lanes:** `commander/lib/lane.js` is the one lane resolver (`CCC_CONFIG_DIR` > `CLAUDE_CONFIG_DIR` > `~/.claude`). Aliases come from its default table (`guestnetworks` → `ai5`) overlaid by `lanes.aliases` in `~/.commander/config.json`; the status line and `ccc doctor --instances` read the same table.
 
 ## See also

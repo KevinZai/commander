@@ -55,3 +55,19 @@ test('voice-injector: CCC_VOICE_DISABLE=1 wins over CCC_VOICE=1', async () => {
   const { run } = await load('voice-injector.js');
   assert.deepEqual(await run({ input: {}, env: { HOME: emptyHome(), CCC_VOICE: '1', CCC_VOICE_DISABLE: '1' } }), { continue: true });
 });
+
+// Same spellings as CCC_OFFLINE / CCC_TELEMETRY (shared envFlag).
+for (const on of ['1', 'true', 'TRUE', 'yes', 'on']) {
+  test(`voice-injector: CCC_VOICE=${on} opts in`, async () => {
+    const { run } = await load('voice-injector.js');
+    const r = await run({ input: { hook_event_name: 'SessionStart' }, env: { HOME: emptyHome(), CCC_VOICE: on } });
+    assert.match(r.hookSpecificOutput.additionalContext, /CC Commander voice/);
+  });
+}
+
+test('voice-injector: CCC_VOICE=false/off/no and an unknown value stay silent; DISABLE=true wins', async () => {
+  const { run } = await load('voice-injector.js');
+  for (const env of [{ CCC_VOICE: 'false' }, { CCC_VOICE: 'off' }, { CCC_VOICE: 'no' }, { CCC_VOICE: 'maybe' }, { CCC_VOICE: 'on', CCC_VOICE_DISABLE: 'true' }]) {
+    assert.deepEqual(await run({ input: {}, env: { HOME: emptyHome(), ...env } }), { continue: true }, JSON.stringify(env));
+  }
+});

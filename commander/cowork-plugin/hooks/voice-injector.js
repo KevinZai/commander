@@ -9,14 +9,15 @@
  * session and overrides users' own style rules. Full doctrine:
  * rules/common/response-style.md.
  *
- * Enable with CCC_VOICE=1, or "voice": true in ~/.claude/commander/config.json
- * (the lane's config dir). CCC_VOICE_DISABLE=1 or CCC_VOICE=0 always wins.
+ * Enable with CCC_VOICE=1 (or true/yes/on), or "voice": true in ~/.claude/commander/config.json
+ * (the lane's config dir). CCC_VOICE_DISABLE=1 or CCC_VOICE=0 (or false/no/off) always wins.
  * Always fail-open.
  */
 import { emitModel } from './lib/emit.mjs';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { readablePath } from '../lib/lane-state.js';
+import { envFlag } from '../lib/network-mode.js';
 
 const VOICE_CONTEXT = [
   'CC Commander voice (condensed from rules/common/response-style.md):',
@@ -37,10 +38,10 @@ const VOICE_CONTEXT = [
   '- When offering 2+ choices, use AskUserQuestion chips — never "Reply A/B/C" text lists.',
 ].join('\n');
 
-/** True only when the user opted in via CCC_VOICE=1 or config `voice: true`. */
+/** True only when the user opted in via CCC_VOICE (1/true/yes/on) or config `voice: true`. */
 export function voiceEnabled(env = process.env) {
-  if (env.CCC_VOICE_DISABLE === '1' || env.CCC_VOICE === '0') return false;
-  if (env.CCC_VOICE === '1') return true;
+  if (envFlag(env.CCC_VOICE_DISABLE) === true || envFlag(env.CCC_VOICE) === false) return false;
+  if (envFlag(env.CCC_VOICE) === true) return true;
   try {
     return JSON.parse(readFileSync(readablePath('config.json', env), 'utf8')).voice === true;
   } catch {

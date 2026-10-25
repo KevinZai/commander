@@ -168,6 +168,9 @@ const IDENTITY_REWRITES = [
   [/commander@commander-hub/g, 'cc-commander@claude-community'],
   [/commander-hub\/commander(?!\/cowork-plugin)(?![\w-])/g, 'claude-community/cc-commander'],
   [/\/plugin marketplace add KevinZai\/commander/g, '/plugin marketplace add anthropics/claude-plugins-community'],
+  // Desktop install steps: the listing is installed from the directory, not by adding the monorepo.
+  [/Add from GitHub → `KevinZai\/commander`/g, 'browse the directory for `cc-commander`'],
+  [/Add Marketplace → `KevinZai\/commander`/g, 'browse the directory for `cc-commander`'],
   [/(?<![\w-])commander-hub(?![\w-])/g, 'claude-community'],
   [/(?<![\w-])commander@/g, 'cc-commander@'],
   [/startsWith\((['"])commander\1\)/g, 'startsWith($1cc-commander$1)'],
@@ -302,18 +305,26 @@ async function populateMirror(targetDir) {
 export async function buildDirectoryMirror(outArg = null) {
   const outDir = outArg ? await assertSafeOutDir(outArg) : null;
   const stagingDir = await mkdtemp(path.join(tmpdir(), 'cc-commander-mirror-'));
-  const { counts, warnings } = await populateMirror(stagingDir);
-  if (!outDir) return { outDir: stagingDir, counts, warnings };
-
-  // Only a marked dir is ever cleared; assertSafeOutDir already refused the rest.
-  if (existsSync(path.join(outDir, MARKER_FILE))) {
-    for (const entry of await readdir(outDir)) {
-      await rm(path.join(outDir, entry), { recursive: true, force: true });
+  // Only this mkdtemp dir is removed on failure; --out is never touched here.
+  let keepStaging = false;
+  try {
+    const { counts, warnings } = await populateMirror(stagingDir);
+    if (!outDir) {
+      keepStaging = true; // the caller receives the staging dir as the build output
+      return { outDir: stagingDir, counts, warnings };
     }
+
+    // Only a marked dir is ever cleared; assertSafeOutDir already refused the rest.
+    if (existsSync(path.join(outDir, MARKER_FILE))) {
+      for (const entry of await readdir(outDir)) {
+        await rm(path.join(outDir, entry), { recursive: true, force: true });
+      }
+    }
+    await cp(stagingDir, outDir, { recursive: true });
+    return { outDir, counts, warnings };
+  } finally {
+    if (!keepStaging) await rm(stagingDir, { recursive: true, force: true }); // staging carries the marker
   }
-  await cp(stagingDir, outDir, { recursive: true });
-  await rm(stagingDir, { recursive: true, force: true }); // staging carries the marker
-  return { outDir, counts, warnings };
 }
 
 async function summarize(outDir) {

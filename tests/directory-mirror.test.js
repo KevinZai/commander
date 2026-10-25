@@ -262,6 +262,14 @@ test('runtime install identity resolves to cc-commander@claude-community', () =>
   const hits = readTree(outDir).filter((file) => nonCodexLines(file).some((line) => stale.test(line)));
   assert.deepEqual(hits.map((f) => f.rel), []);
 
+  // Desktop/Code install steps must name the directory listing, never add the monorepo marketplace.
+  const addMonorepo = /(add from github|add marketplace|marketplace add)\W*`?KevinZai\/commander/i;
+  const addHits = readTree(outDir).filter((file) => nonCodexLines(file).some((line) => addMonorepo.test(line)));
+  assert.deepEqual(addHits.map((f) => f.rel), []);
+  for (const rel of ['skills/ccc-update/references/install-modes.md', 'skills/ccc-doctor/references/fixes.md']) {
+    assert.match(fs.readFileSync(path.join(outDir, rel), 'utf8'), /browse the directory for `cc-commander`/, rel);
+  }
+
   const nudge = fs.readFileSync(path.join(outDir, 'hooks', 'update-nudge.js'), 'utf8');
   assert.match(nudge, /const MARKETPLACE = 'claude-community';/);
   assert.match(nudge, /const PLUGIN_ID = 'cc-commander';/);
@@ -296,4 +304,35 @@ test('runtime install identity resolves to cc-commander@claude-community', () =>
 test('Codex surfaces keep the monorepo identity', () => {
   const codexSkill = fs.readFileSync(path.join(outDir, 'skills', 'ccc-codex', 'SKILL.md'), 'utf8');
   assert.match(codexSkill, /codex plugin add commander@commander-hub/);
+});
+
+// A failed build removes the staging dir it created (and nothing else); a good --out build leaves none.
+test('staging temp dir is removed when the build fails and after a successful --out build', (t) => {
+  if (typeof process.getuid === 'function' && process.getuid() === 0) return t.skip('root ignores directory permissions');
+  const tmpRoot = tempDir('tmproot');
+  const out = tempDir('cleanup-out');
+  const stagingLeft = () => fs.readdirSync(tmpRoot).filter((name) => name.startsWith('cc-commander-mirror-'));
+  const build = () =>
+    spawnSync(process.execPath, [BUILD_SCRIPT, '--out', out], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: path.dirname(process.execPath), TMPDIR: tmpRoot },
+    });
+  try {
+    const ok = build();
+    assert.equal(ok.status, 0, ok.stderr);
+    assert.deepEqual(stagingLeft(), [], 'successful --out build leaves no staging dir');
+
+    // The marked out dir is cleared before publishing; a read-only one makes that step fail.
+    fs.chmodSync(out, 0o555);
+    const failed = build();
+    assert.notEqual(failed.status, 0, 'build into a read-only marked dir must fail');
+    assert.match(failed.stderr, /build-directory-mirror failed/);
+    assert.deepEqual(stagingLeft(), [], 'failed build removed its own staging dir');
+    assert.ok(fs.existsSync(out), '--out itself is never removed');
+  } finally {
+    fs.chmodSync(out, 0o755);
+    fs.rmSync(out, { recursive: true, force: true });
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  }
 });
