@@ -70,22 +70,25 @@ if ! command -v jq &>/dev/null; then
 fi
 
 # ── Parse fields (single jq call for performance) ─────────────────────────
+# Every value goes through @sh so statusLine strings reach the shell as data:
+# a quote in a directory, model or agent name must never run code.
 eval "$(echo "$INPUT" | jq -r '
-  "CTX_PCT=\(.context_window.used_percentage // 0)",
-  "MODEL_ID='\''\(.model.id // "")'\''",
-  "MODEL='\''\(.model.display_name // "unknown")'\''",
-  "COST=\(.cost.total_cost_usd // 0)",
-  "IN_TOK=\(.context_window.total_input_tokens // 0)",
-  "OUT_TOK=\(.context_window.total_output_tokens // 0)",
-  "DURATION=\(.cost.total_duration_ms // 0)",
-  "PROJECT='\''\(.workspace.current_dir // "?")'\''",
-  "PROJECT_DIR='\''\(.workspace.project_dir // .workspace.current_dir // "")'\''",
-  "AGENT='\''\(.agent.name // "")'\''",
-  "RATE_5H_RESET=\(.rate_limits.five_hour.resets_at // "")",
-  "RATE_7D_RESET=\(.rate_limits.seven_day.resets_at // "")",
-  "RATE_5H=\(.rate_limits.five_hour.used_percentage // "")",
-  "RATE_7D=\(.rate_limits.seven_day.used_percentage // "")",
-  "TOOL_USE='\''\(.tool_use.name // "")'\'';"
+  def sh: if type == "string" or type == "number" or type == "boolean" then tostring else "" end | @sh;
+  "CTX_PCT=\(.context_window.used_percentage // 0 | sh)",
+  "MODEL_ID=\(.model.id // "" | sh)",
+  "MODEL=\(.model.display_name // "unknown" | sh)",
+  "COST=\(.cost.total_cost_usd // 0 | sh)",
+  "IN_TOK=\(.context_window.total_input_tokens // 0 | sh)",
+  "OUT_TOK=\(.context_window.total_output_tokens // 0 | sh)",
+  "DURATION=\(.cost.total_duration_ms // 0 | sh)",
+  "PROJECT=\(.workspace.current_dir // "?" | sh)",
+  "PROJECT_DIR=\(.workspace.project_dir // .workspace.current_dir // "" | sh)",
+  "AGENT=\(.agent.name // "" | sh)",
+  "RATE_5H_RESET=\(.rate_limits.five_hour.resets_at // "" | sh)",
+  "RATE_7D_RESET=\(.rate_limits.seven_day.resets_at // "" | sh)",
+  "RATE_5H=\(.rate_limits.five_hour.used_percentage // "" | sh)",
+  "RATE_7D=\(.rate_limits.seven_day.used_percentage // "" | sh)",
+  "TOOL_USE=\(.tool_use.name // "" | sh)"
 ' 2>/dev/null)"
 
 # ── ClaudeSwap failover for rate limits ───────────────────────────────────
@@ -100,13 +103,14 @@ if [ -z "$RATE_5H" ] || [ -z "$RATE_7D" ]; then
     ACTIVE_ACCT=$(jq -r '.accounts | to_entries | sort_by(.value.last_used) | last | .key' "$SWAP_STATE" 2>/dev/null)
     if [ -n "$ACTIVE_ACCT" ] && [ "$ACTIVE_ACCT" != "null" ]; then
       eval "$(jq -r --arg a "$ACTIVE_ACCT" '
+        def sh: if type == "string" or type == "number" or type == "boolean" then tostring else "" end | @sh;
         .accounts[$a] // {} |
-        "ACCT_5H_STATUS=\(.five_hour_status // "")",
-        "ACCT_7D_STATUS=\(.seven_day_status // "")",
-        "ACCT_5H_UTIL=\(.five_hour_utilization // "")",
-        "ACCT_7D_UTIL=\(.seven_day_utilization // "")",
-        "SWAP_5H_RESET=\(.five_hour_reset // "")",
-        "SWAP_7D_RESET=\(.seven_day_reset // "")"
+        "ACCT_5H_STATUS=\(.five_hour_status // "" | sh)",
+        "ACCT_7D_STATUS=\(.seven_day_status // "" | sh)",
+        "ACCT_5H_UTIL=\(.five_hour_utilization // "" | sh)",
+        "ACCT_7D_UTIL=\(.seven_day_utilization // "" | sh)",
+        "SWAP_5H_RESET=\(.five_hour_reset // "" | sh)",
+        "SWAP_7D_RESET=\(.seven_day_reset // "" | sh)"
       ' "$SWAP_STATE" 2>/dev/null)"
 
       # Staleness check: if reset timestamp is in the past, data is stale

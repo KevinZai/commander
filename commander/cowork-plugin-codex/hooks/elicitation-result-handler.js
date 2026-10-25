@@ -2,8 +2,8 @@
 /**
  * elicitation-result-handler.js
  * Hook: ElicitationResult
- * Handles matched/cancelled/declined elicitation results.
- * Logs outcome best-effort. Never blocks — always exits 0 with {continue:true}.
+ * Logs the user's response (accept/decline/cancel, the documented top-level
+ * `action`) best-effort. `content` holds the form values and is not logged. Never blocks — always exits 0 with {continue:true}.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,16 +25,14 @@ async function main() {
   }
 
   try {
-    const result = input.result || {};
-    const action = result.matched ? 'matched'
-      : result.cancelled ? 'cancelled'
-      : result.action === 'cancel' ? 'cancelled'
-      : result.action === 'decline' ? 'declined'
-      : 'unknown';
+    const action = ['accept', 'decline', 'cancel'].includes(input.action) ? input.action : 'unknown';
 
     const entry = {
       ts: new Date().toISOString(),
-      request_id: input.request_id || null,
+      event: 'ElicitationResult',
+      mcp_server_name: input.mcp_server_name || null,
+      mode: input.mode || null,
+      elicitation_id: input.elicitation_id || null,
       action,
     };
     fs.mkdirSync(LOG_DIR, { recursive: true });

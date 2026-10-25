@@ -2,7 +2,9 @@
 /**
  * elicitation-logger.js
  * Hook: Elicitation
- * Logs elicitation request_id, prompt, and type for session observability.
+ * Logs which MCP server asked, the mode and the elicitation id, using the
+ * documented input fields. The message, url and schema are not logged: they
+ * can carry credentials.
  * Never blocks — always exits 0 with {continue:true}.
  */
 import fs from 'node:fs';
@@ -27,9 +29,10 @@ async function main() {
   try {
     const entry = {
       ts: new Date().toISOString(),
-      request_id: input.request_id || null,
-      prompt: input.prompt || null,
-      type: input.type || null,
+      event: 'Elicitation',
+      mcp_server_name: input.mcp_server_name || null,
+      mode: input.mode || null,
+      elicitation_id: input.elicitation_id || null,
     };
     fs.mkdirSync(LOG_DIR, { recursive: true });
     fs.appendFileSync(LOG_FILE, JSON.stringify(entry) + '\n');

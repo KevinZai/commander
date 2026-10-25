@@ -103,6 +103,66 @@ describe('elicitation-logger.js', () => {
   });
 });
 
+// ---- elicitation log rows (FLT-187 / audit H2) ----
+// Inputs are the documented samples (code.claude.com/docs/en/hooks,
+// "Elicitation input" and "ElicitationResult input"). The log keeps routing
+// fields only: never `message`, `url`, `requested_schema` or `content`,
+// which can carry credentials.
+
+describe('elicitation log rows use the documented fields', () => {
+  function logRows(hookFile, input) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-elicitation-'));
+    try {
+      const r = runHook(hookFile, input, { CCC_CONFIG_DIR: dir, CLAUDE_CONFIG_DIR: dir });
+      assert.equal(r.parsed?.continue, true);
+      const file = path.join(dir, 'commander', 'elicitation.jsonl');
+      return fs.readFileSync(file, 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }
+  const common = { session_id: 'abc123', cwd: '/tmp', mcp_server_name: 'my-mcp-server' };
+
+  it('Elicitation logs server, mode and id, never the message or url', () => {
+    const [row] = logRows('elicitation-logger.js', {
+      ...common,
+      hook_event_name: 'Elicitation',
+      message: 'Please provide your credentials',
+      mode: 'url',
+      url: 'https://auth.example.com/login?token=SECRET',
+      elicitation_id: 'el-1',
+      requested_schema: { type: 'object' },
+    });
+    assert.deepEqual(
+      { event: row.event, mcp_server_name: row.mcp_server_name, mode: row.mode, elicitation_id: row.elicitation_id },
+      { event: 'Elicitation', mcp_server_name: 'my-mcp-server', mode: 'url', elicitation_id: 'el-1' }
+    );
+    assert.doesNotMatch(JSON.stringify(row), /credentials|SECRET|auth\.example|requested_schema/);
+  });
+
+  it('ElicitationResult maps the top-level action and never logs content', () => {
+    for (const action of ['accept', 'decline', 'cancel']) {
+      const [row] = logRows('elicitation-result-handler.js', {
+        ...common,
+        hook_event_name: 'ElicitationResult',
+        action,
+        content: { username: 'alice', password: 'hunter2' },
+        mode: 'form',
+      });
+      assert.equal(row.event, 'ElicitationResult');
+      assert.equal(row.action, action);
+      assert.equal(row.mcp_server_name, 'my-mcp-server');
+      assert.equal(row.mode, 'form');
+      assert.doesNotMatch(JSON.stringify(row), /alice|hunter2|content/);
+    }
+  });
+
+  it('an unknown or missing action is logged as unknown', () => {
+    assert.equal(logRows('elicitation-result-handler.js', { ...common, action: 'explode' })[0].action, 'unknown');
+    assert.equal(logRows('elicitation-result-handler.js', {})[0].action, 'unknown');
+  });
+});
+
 // ---- elicitation-result-handler.js ----
 
 describe('elicitation-result-handler.js', () => {
