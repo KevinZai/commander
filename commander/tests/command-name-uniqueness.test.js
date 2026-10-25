@@ -93,3 +93,45 @@ test('no command name is claimed by more than one skill, command, workflow or mo
     'each /commander:<name> must have exactly one owner'
   );
 });
+
+// A slash command named in user-facing text must exist (CC-296): the hook
+// nudges and the BIBLE workflow table are what a first test-drive follows.
+// Tags such as `</ccc-route>` and paths such as `lib/ccc-routes.json` are not
+// commands, so a `/` preceded by a word character, `.`, `/`, `<` or `-` is skipped.
+const SLASH_REF = /(?<![\w./<-])\/(ccc(?:-[a-z0-9]+)*)\b/g;
+
+function danglingRefs(text, known) {
+  return [...new Set([...text.matchAll(SLASH_REF)].map((m) => m[1]))].filter((n) => !known.has(n));
+}
+
+test('every /ccc-* command a shipped hook prints resolves to a plugin command', () => {
+  const known = new Set(collectClaims().map((c) => c.name));
+  const hooksDir = path.join(PLUGIN, 'hooks');
+  const files = walk(hooksDir, (n) => /\.(m?js)$/.test(n)).filter(
+    (f) => !path.relative(hooksDir, f).startsWith('_archive' + path.sep)
+  );
+  assert.ok(files.length > 10, 'hook scan found too few files');
+  const missing = files.flatMap((f) =>
+    danglingRefs(fs.readFileSync(f, 'utf8'), known).map((n) => `${path.relative(PLUGIN, f)}: /${n}`)
+  );
+  assert.deepStrictEqual(missing, [], 'hook text names a command that does not exist');
+});
+
+test('every command in the BIBLE "Plugin Workflows" table resolves to a plugin command', () => {
+  const known = new Set(collectClaims().map((c) => c.name));
+  const bible = fs.readFileSync(path.resolve(__dirname, '..', '..', 'BIBLE.md'), 'utf8');
+  const section = bible.match(/### [^\n]*Plugin Workflows[^\n]*\n([\s\S]*?)(?=\n### |\n## )/);
+  assert.ok(section, 'BIBLE.md "Plugin Workflows" section not found');
+  const rows = section[1].split('\n').filter((l) => /^\| `\/ccc/.test(l));
+  assert.ok(rows.length >= 5, 'Plugin Workflows table has too few rows');
+  assert.deepStrictEqual(danglingRefs(rows.join('\n'), known), [], 'BIBLE lists a command that does not exist');
+});
+
+test('the dangling-ref scan skips tags and paths but catches a bad command', () => {
+  const known = new Set(['ccc', 'ccc-build']);
+  assert.deepStrictEqual(
+    danglingRefs('run /ccc or /ccc-build; see hooks/lib/ccc-routes.json and </ccc-route>', known),
+    []
+  );
+  assert.deepStrictEqual(danglingRefs('try /ccc-nope next', known), ['ccc-nope']);
+});

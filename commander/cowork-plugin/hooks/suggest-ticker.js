@@ -830,7 +830,7 @@ export function maybeProactivityWave(promptText, payload = {}) {
     const cooled = !seen || !Number.isFinite(seen.ts) || Date.now() - seen.ts >= TOOL_FAILURE_COOLDOWN_MS;
     if (cooled && countRecentToolFailures() >= 3) {
       return {
-        note: '🐛 Several tool calls failing — /ccc-debug or a systematic-debugging pass beats retrying.',
+        note: '🐛 Several tool calls failing — a /ccc-systematic-debugging pass beats retrying.',
         record: () => recordNudge(TOOL_FAILURES_SEEN_FILE),
       };
     }
