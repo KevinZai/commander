@@ -26,7 +26,6 @@ Create these items in your 1Password vault (replace `<vault>` with its name):
 | `op://<vault>/cc-commander-upstash/url` | Upstash REST URL |
 | `op://<vault>/cc-commander-upstash/token` | Upstash REST token |
 | `op://<vault>/cc-commander-jwt/secret` | `openssl rand -hex 32` (≥32 chars) |
-| `op://<vault>/cc-commander-posthog/api-key` | (optional) PostHog project key |
 | `op://<vault>/cc-commander-fly/api-token` | `fly tokens create deploy` |
 
 ## 3. Push secrets to Fly.io
@@ -38,10 +37,11 @@ fly secrets set \
   UPSTASH_REDIS_REST_URL="$(op read op://<vault>/cc-commander-upstash/url)" \
   UPSTASH_REDIS_REST_TOKEN="$(op read op://<vault>/cc-commander-upstash/token)" \
   JWT_SECRET="$(op read op://<vault>/cc-commander-jwt/secret)" \
-  POSTHOG_API_KEY="$(op read op://<vault>/cc-commander-posthog/api-key)" \
   METRICS_AUTH_TOKEN="$(op read op://<vault>/cc-commander-metrics/token)" \
   --app commander-mcp
 ```
+
+The server no longer reads `POSTHOG_API_KEY` (CC-2119 removed the analytics SDK). If an older deploy set it, remove the stale secret with `fly secrets unset POSTHOG_API_KEY --app commander-mcp`.
 
 `OAUTH_RESOURCE_URL` is public and non-secret, so it lives in `fly.toml` `[env]`
 (not in `fly secrets`): `https://mcp.commanderplugin.com/mcp`. It is the canonical
@@ -140,7 +140,7 @@ To revert only a secret change: `fly secrets unset <NAME> --app commander-mcp`.
 ## Monitoring
 
 - **SLI/SLO:** p95 latency on `/v1/call` < 500ms; error rate < 1%.
-- **Alert channels:** Fly email + PostHog event `mcp_error`.
+- **Alert channels:** Fly email.
 - **Grafana:** scrape `/metrics` at 10s interval with `Authorization: Bearer $METRICS_AUTH_TOKEN`.
 
 ## TODO(v4.1)

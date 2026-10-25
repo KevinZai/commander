@@ -4,7 +4,6 @@ import { Redis } from "@upstash/redis";
 import { env } from "../lib/env.js";
 import { getCallsUsed, getEffectiveCap, incrementCallCount, touchLastSeen } from "../db/usage.js";
 import { logger } from "../lib/logger.js";
-import { captureEvent } from "../lib/posthog.js";
 import { applyPaywallCap, isPaidTier, isPaywallArmed } from "../lib/paywall.js";
 
 const redis = new Redis({
@@ -61,7 +60,6 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
   c.header("X-Commander-Burst-Remaining", String(burstRemaining));
 
   if (!burstOk) {
-    captureEvent(userId, "mcp_quota_hit", { kind: "burst", callsUsed, cap });
     return c.json(
       {
         error: "Rate limit exceeded — slow down",
@@ -76,7 +74,6 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
 
   if (callsUsed >= cap) {
     logger.info({ userId, callsUsed, cap }, "Monthly cap exceeded");
-    captureEvent(userId, "mcp_quota_hit", { kind: "monthly_cap", callsUsed, cap });
     return c.json(
       {
         error: "Monthly call limit reached",
@@ -100,7 +97,6 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
   if (callNumber % 20 === 0) {
     const pendingFeedback = await checkFeedbackPending(userId);
     if (pendingFeedback) {
-      captureEvent(userId, "mcp_quota_hit", { kind: "feedback_gate", callNumber });
       return c.json(
         {
           error: "Survey required",

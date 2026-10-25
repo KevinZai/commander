@@ -150,7 +150,7 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
         <h2>What we collect when you use the hosted MCP server</h2>
         <ul>
           <li><strong>GitHub user identifier</strong> after OAuth login. We use this to identify your account, enforce per-user rate limits, and link usage to your tier.</li>
-          <li><strong>Tool name + latency + success/failure</strong> on every call you make to the hosted MCP. We log <em>that</em> a tool ran, not <em>what</em> the tool produced. <strong>Tool calls (<code>/v1/call</code>) are processed server-side and transiently</strong> — the server receives and dispatches your tool arguments to fulfill the request, but we do <strong>not</strong> store, log, or retain tool inputs after the response is sent. Tool inputs are never sent to PostHog or any analytics system. The hosted MCP is stateless: no per-user tool history, no input persistence.</li>
+          <li><strong>Tool name + latency + success/failure</strong> on every call you make to the hosted MCP. We log <em>that</em> a tool ran, not <em>what</em> the tool produced. <strong>Tool calls (<code>/v1/call</code>) are processed server-side and transiently</strong> — the server receives and dispatches your tool arguments to fulfill the request, but we do <strong>not</strong> store, log, or retain tool inputs after the response is sent. Tool inputs are never sent to any analytics system or third party, and the hosted MCP runs no analytics SDK. The hosted MCP is stateless: no per-user tool history, no input persistence.</li>
           <li><strong>Monthly call count + rate-limit window.</strong> Stored in Supabase + Upstash Redis. Used for the 100-calls/mo free tier cap and the burst protection (60 calls/min).</li>
           <li><strong>Hashed IP</strong> (SHA-256) — used for anonymous rate-limit dedup on unauthenticated requests. We never store the raw IP.</li>
         </ul>
@@ -181,14 +181,14 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
           <strong>Where it goes:</strong> <code>https://mcp.commanderplugin.com/v1/events</code>, falling back to <code>https://commander-mcp.fly.dev/v1/events</code>.<br>
           <strong>How to turn it off again:</strong> unset <code>CCC_TELEMETRY</code> or set it to <code>0</code>, <code>false</code>, <code>no</code> or <code>off</code> (an explicit off that beats the config file), or set <code>"telemetry": false</code> in <code>~/.commander/config.json</code>. <code>CCC_OFFLINE=1</code> (or <code>"offline": true</code>) blocks every outbound call from the plugin, including telemetry, the update check and the CI status lookup. A missing or unreadable config file counts as off.
         </div>
-        <p>Opted-in events go only to the hosted server named above. That server is a separate service from the plugin; how it processes and shares event data is covered by the hosted MCP section above and the third-party list below. Events are treated as anonymous (no personal data, no IP logging) and used for aggregate reports such as "X% of users invoke skill Y" and "hook Z fires most often in scenario W."</p>
+        <p>Opted-in events go only to the hosted server named above. Today that server validates each batch, drops any property whose key looks sensitive, and then <strong>discards the events</strong>: they are not written to a database or to logs, and they are not forwarded to any third party. The server keeps only two running totals (batches received and events discarded) with no device ID or event details attached; the totals reset whenever the server restarts. To enforce the per-device rate limit (100 batches per hour), the server holds your anonymous device ID in memory for up to one hour, then drops it. <strong>Retention of event contents: none.</strong> If we ever start storing or analyzing these events, we will update this page before that change ships.</p>
       </section>
 
       <section class="s">
         <h2>Third parties we share data with</h2>
         <ul>
           <li><strong>Plausible (EU)</strong> — site analytics, cookieless. <a href="https://plausible.io/privacy" rel="noopener">Plausible's privacy policy</a></li>
-          <li><strong>PostHog (US)</strong> — server-side event capture. SOC 2 Type II. <a href="https://posthog.com/privacy" rel="noopener">PostHog's privacy policy</a></li>
+          <li><strong>PostHog (US)</strong> — page-view and click analytics on <code>commanderplugin.com</code> only. The plugin, the CLI and the hosted MCP server send nothing to PostHog. <a href="https://posthog.com/privacy" rel="noopener">PostHog's privacy policy</a></li>
           <li><strong>Supabase (US)</strong> — Postgres database for users, waitlist, usage counters. SOC 2 Type II. <a href="https://supabase.com/privacy" rel="noopener">Supabase's privacy policy</a></li>
           <li><strong>Upstash (Global)</strong> — Redis for rate limiting. SOC 2. <a href="https://upstash.com/static/trust/privacy.pdf" rel="noopener">Upstash's privacy policy</a></li>
           <li><strong>Fly.io (US)</strong> — hosts <code>mcp.commanderplugin.com</code>. <a href="https://fly.io/legal/privacy-policy/" rel="noopener">Fly.io's privacy policy</a></li>
@@ -202,7 +202,7 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
         <h2>Cookies and tracking</h2>
         <p>We use exactly two categories of cookies / local storage:</p>
         <div class="note">
-          <strong>1. PostHog analytics cookie</strong> — a random ID stored in <code>localStorage</code> plus a first-party cookie to deduplicate page views. We do not enable PostHog session replay.
+          <strong>1. PostHog analytics cookie</strong> (on <code>commanderplugin.com</code> only) — a random ID stored in <code>localStorage</code> plus a first-party cookie to deduplicate page views. We do not enable PostHog session replay.
         </div>
         <div class="note">
           <strong>2. Auth.js session cookie</strong> — set when you sign in via GitHub OAuth to use the hosted MCP. Standard secure <code>httpOnly</code> cookie. Lasts the duration of your session.
