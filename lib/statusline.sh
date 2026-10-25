@@ -77,21 +77,29 @@ for _v in CTX_PCT MODEL_ID MODEL COST IN_TOK OUT_TOK DURATION \
   PROJECT PROJECT_DIR AGENT RATE_5H_RESET RATE_7D_RESET RATE_5H RATE_7D TOOL_USE; do
   IFS= read -r -d '' "$_v"
 done < <(echo "$INPUT" | jq -j '
+  # Numeric fields reach bash arithmetic ($(( )), printf %d, bc), which would
+  # run "a[$(cmd)]" as code. Coerce here so a non-numeric, NaN, infinite or
+  # negative value becomes 0 and only a plain number is ever emitted.
+  def nn: (tonumber? // 0) | if (isnan or isinfinite or . < 0) then 0
+    elif . > 1e15 then 1e15 else . + 0 end;
+  def int: nn | floor;
+  # Rate limits: absent/empty stays "" (means "unavailable", ClaudeSwap fallback).
+  def rate: if . == null or . == "" then "" else int end;
   [
-    (.context_window.used_percentage // 0),
+    (.context_window.used_percentage | int),
     (.model.id // ""),
     (.model.display_name // "unknown"),
-    (.cost.total_cost_usd // 0),
-    (.context_window.total_input_tokens // 0),
-    (.context_window.total_output_tokens // 0),
-    (.cost.total_duration_ms // 0),
+    (.cost.total_cost_usd | nn),
+    (.context_window.total_input_tokens | int),
+    (.context_window.total_output_tokens | int),
+    (.cost.total_duration_ms | int),
     (.workspace.current_dir // "?"),
     (.workspace.project_dir // .workspace.current_dir // ""),
     (.agent.name // ""),
     (.rate_limits.five_hour.resets_at // ""),
     (.rate_limits.seven_day.resets_at // ""),
-    (.rate_limits.five_hour.used_percentage // ""),
-    (.rate_limits.seven_day.used_percentage // ""),
+    (.rate_limits.five_hour.used_percentage | rate),
+    (.rate_limits.seven_day.used_percentage | rate),
     (.tool_use.name // "")
   ] | .[] | (tostring | split("\u0000")[0] // "") + "\u0000"
 ' 2>/dev/null)
@@ -115,8 +123,8 @@ if [ -z "$RATE_5H" ] || [ -z "$RATE_7D" ]; then
         [
           (.five_hour_status // ""),
           (.seven_day_status // ""),
-          (.five_hour_utilization // ""),
-          (.seven_day_utilization // ""),
+          (.five_hour_utilization | (if . == null or . == "" then "" else (tonumber? // 0 | if (isnan or isinfinite or . < 0 or . > 1e6) then 0 else . + 0 end) end)),
+          (.seven_day_utilization | (if . == null or . == "" then "" else (tonumber? // 0 | if (isnan or isinfinite or . < 0 or . > 1e6) then 0 else . + 0 end) end)),
           (.five_hour_reset // ""),
           (.seven_day_reset // "")
         ] | .[] | (tostring | split("\u0000")[0] // "") + "\u0000"

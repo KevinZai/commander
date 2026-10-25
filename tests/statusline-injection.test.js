@@ -116,3 +116,55 @@ test('unit-separator and tab characters inside values do not shift other fields'
   assert.ok(out.includes('builder'), out);
   assert.ok(out.includes('📂 a\u001fb\tc'), out);
 });
+
+// Verify-1 F2: numeric fields reach bash arithmetic, so a string such as
+// "a[$(cmd)]" must be coerced to 0 by jq before it gets there.
+const NUMERIC_FIELDS = [
+  ['context_window.used_percentage', (v) => ({ context_window: { used_percentage: v } })],
+  ['cost.total_cost_usd', (v) => ({ cost: { total_cost_usd: v } })],
+  ['context_window.total_input_tokens', (v) => ({ context_window: { total_input_tokens: v } })],
+  ['context_window.total_output_tokens', (v) => ({ context_window: { total_output_tokens: v } })],
+  ['cost.total_duration_ms', (v) => ({ cost: { total_duration_ms: v } })],
+  ['rate_limits.five_hour.used_percentage', (v) => ({ rate_limits: { five_hour: { used_percentage: v } } })],
+  ['rate_limits.seven_day.used_percentage', (v) => ({ rate_limits: { seven_day: { used_percentage: v } } })],
+];
+
+for (const [field, make] of NUMERIC_FIELDS) {
+  test(`a shell payload in numeric field ${field} is coerced, not evaluated`, { skip: SKIP }, (t) => {
+    const f = fixture(t);
+    const canary = path.join(f.sandbox, 'PWNED');
+    const result = run(f, { model: { display_name: 'Opus' }, ...make(`a[$(touch '${canary}')]`) });
+    assert.strictEqual(result.status, 0, result.stderr);
+    assert.deepStrictEqual(fs.readdirSync(f.sandbox), [], 'payload must not execute');
+    assert.ok(stripVTControlCharacters(result.stdout).includes('Opus'), result.stdout);
+    assert.ok(!result.stderr.includes('syntax error'), result.stderr);
+  });
+
+  for (const odd of ['1e309', '-0', 'NaN', 'Infinity', '1e-7', '-5']) {
+    test(`numeric field ${field} = ${JSON.stringify(odd)} renders without error`, { skip: SKIP }, (t) => {
+      const f = fixture(t);
+      const result = run(f, { model: { display_name: 'Opus' }, ...make(odd) });
+      assert.strictEqual(result.status, 0, result.stderr);
+      assert.strictEqual(result.stderr, '');
+      assert.deepStrictEqual(fs.readdirSync(f.sandbox), []);
+      const out = stripVTControlCharacters(result.stdout);
+      assert.ok(out.includes('Opus') && out.includes('🧠'), out);
+      assert.ok(!/-\d|e\+|NaN|Infinity/.test(out.replace(/Op.*?│/, '')), out);
+    });
+  }
+}
+
+test('a shell payload in the ClaudeSwap utilization fields is coerced, not evaluated', { skip: SKIP }, (t) => {
+  const f = fixture(t);
+  const canary = path.join(f.sandbox, 'PWNED');
+  const swap = path.join(f.home, '.config', 'claudeswap-state.json');
+  fs.mkdirSync(path.dirname(swap), { recursive: true });
+  fs.writeFileSync(swap, JSON.stringify({
+    accounts: { a: { last_used: 1, five_hour_utilization: `a[$(touch '${canary}')]`, seven_day_utilization: '0.5' } },
+  }));
+  const result = run(f, { model: { display_name: 'Opus' } });
+  assert.strictEqual(result.status, 0, result.stderr);
+  assert.deepStrictEqual(fs.readdirSync(f.sandbox), []);
+  const out = stripVTControlCharacters(result.stdout);
+  assert.ok(out.includes('Opus') && out.includes('⏱ 0%') && out.includes('📅 50%'), out);
+});
