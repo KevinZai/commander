@@ -15,8 +15,9 @@
  *
  * Stop — after a skill actually ran this turn, offers its next[] steps as a
  * menu (top-level decision:block + reason, which both hosts accept). At most
- * once per skill run, never while stop_hook_active, never after the user
- * picked "Stop suggesting next steps" this session.
+ * once per skill run and once per cooldown (a run inside it is dropped, not
+ * deferred), never while stop_hook_active, never after the user picked
+ * "Stop suggesting next steps" this session.
  * decision:block costs an extra model turn for each offered menu, including
  * chained skill runs and headless sessions. CCC_ROUTE_NEXT=off opts out.
  *
@@ -29,6 +30,8 @@
  *      CCC_FLEET_ROUTE=on|off Fleet routing (default: on only when the
  *        claude-fleet skill is installed)
  *      CCC_ROUTE_NEXT=off disables only the Stop menu
+ *      CCC_ROUTE_NEXT_COOLDOWN_MIN minutes between Stop menus in a session
+ *        (default 10; 0 offers after every skill run)
  *      CCC_ROUTE_MENU=list forces a numbered list instead of a native picker
  *
  * Telemetry is content-free: route id, score, tier, accepted. Prompts are
@@ -305,6 +308,19 @@ function recentSkillRuns(sessionId, sinceIso) {
   }
 }
 
+const NEXT_COOLDOWN_MIN = 10;
+
+function nextCooldownMs(env = process.env) {
+  const raw = String(env.CCC_ROUTE_NEXT_COOLDOWN_MIN ?? '').trim();
+  const minutes = raw === '' ? NaN : Number(raw);
+  return (Number.isFinite(minutes) && minutes >= 0 ? minutes : NEXT_COOLDOWN_MIN) * 60 * 1000;
+}
+
+function coolingDown(lastOfferAt) {
+  const elapsed = Date.now() - Date.parse(lastOfferAt);
+  return elapsed >= 0 && elapsed < nextCooldownMs();
+}
+
 function handleStop(data) {
   if ((data.hook_event_name || 'Stop') !== 'Stop') return emitSilent();
   const sessionId = data.session_id;
@@ -329,8 +345,9 @@ function handleStop(data) {
   if (enabled && !data.stop_hook_active && !next.muteNext && ran.length) {
     const last = ran[ran.length - 1];
     const alreadyAsking = /\?\s*$/.test(turn.lastAssistantText);
-    if (last.key !== state.lastNextKey && alreadyAsking) {
-      // The skill ended on its own question: consume this run without offering.
+    if (last.key !== state.lastNextKey && (alreadyAsking || coolingDown(state.lastOfferAt))) {
+      // The skill ended on its own question, or a menu was offered recently:
+      // consume this run without offering. Only an offer starts the cooldown.
       next.lastNextKey = last.key;
       next.lastNextAt = new Date().toISOString();
     } else if (last.key !== state.lastNextKey) {
@@ -342,6 +359,7 @@ function handleStop(data) {
         output = { ...emitSilent(), decision: 'block', reason };
         next.lastNextKey = last.key;
         next.lastNextAt = new Date().toISOString();
+        next.lastOfferAt = next.lastNextAt;
         logRouteEvent({ event: 'next_offered', route: from.id, host, session_id: sessionId || null });
       }
     }
