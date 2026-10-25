@@ -578,10 +578,10 @@ test('checkCriticalFiles: fail when LICENSE missing', function () {
 
 // --- runDiagnostics ---------------------------------------------------------
 
-test('runDiagnostics: returns 13 results with required shape', function () {
+test('runDiagnostics: returns 14 results with required shape', function () {
   var root = buildGoodFixture();
   var results = diag.runDiagnostics(root, diagnosticsOptions(root));
-  assert.strictEqual(results.length, 13);
+  assert.strictEqual(results.length, 14);
   for (var i = 0; i < results.length; i++) {
     var r = results[i];
     assert.ok(r.category, 'result needs category');
@@ -597,7 +597,7 @@ test('runDiagnostics: all categories ok on canonical fixture', function () {
   assert.strictEqual(nonOk.length, 0, 'expected all ok, got: ' + JSON.stringify(nonOk));
 });
 
-test('runDiagnostics: covers all 13 expected categories', function () {
+test('runDiagnostics: covers all 14 expected categories', function () {
   var root = buildGoodFixture();
   var results = diag.runDiagnostics(root, diagnosticsOptions(root));
   var categories = results.map(function (r) { return r.category; }).sort();
@@ -612,9 +612,25 @@ test('runDiagnostics: covers all 13 expected categories', function () {
     'hook-chain',
     'license-cleanup',
     'mcp-availability',
+    'network-mode',
     'test-suite',
     'vendor-submodules',
     'version-parity',
   ];
   assert.deepStrictEqual(categories, expected);
+});
+
+// --- network mode -----------------------------------------------------------
+
+test('checkNetworkMode: reports telemetry, offline and ci-ticker state', function () {
+  var root = buildGoodFixture();
+  var home = path.join(root, 'home');
+  var r = diag.checkNetworkMode(root, { homeDir: home, env: {} });
+  assert.strictEqual(r.status, 'ok');
+  assert.strictEqual(r.message, 'telemetry off · offline off · ci-ticker off');
+  r = diag.checkNetworkMode(root, { homeDir: home, env: { CCC_TELEMETRY: '1', CCC_CI_TICKER: '1' } });
+  assert.strictEqual(r.message, 'telemetry on · offline off · ci-ticker on');
+  writeFile(home, '.commander/config.json', JSON.stringify({ offline: true }));
+  r = diag.checkNetworkMode(root, { homeDir: home, env: { CCC_TELEMETRY: '1', CCC_CI_TICKER: '1' } });
+  assert.strictEqual(r.message, 'telemetry off · offline on · ci-ticker off');
 });

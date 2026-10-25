@@ -120,13 +120,13 @@ Hooks are Node scripts run by Claude Code's hook runtime:
 
 ## Privacy
 
-Hooks store state locally at `~/.claude/commander/`. Anonymous event telemetry (event name, hook name, OS, plugin version) is sent unless you opt out:
+Hooks store state locally at `~/.claude/commander/`. Anonymous event telemetry (event name, hook name, OS, plugin version) is off by default and sent only if you opt in:
 
 ```bash
-# Opt out of telemetry
-mkdir -p ~/.commander && echo '{"telemetry": false}' > ~/.commander/config.json
-# or
-CCC_TELEMETRY=0 claude
+# Opt in to telemetry
+CCC_TELEMETRY=1 claude
+# Block every outbound call (telemetry, update check, CI lookup)
+CCC_OFFLINE=1 claude
 ```
 
 No prompts, file contents or paths are ever transmitted.

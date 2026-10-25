@@ -142,6 +142,19 @@ The full, generated table of all 84 skills is in the repository [README](../../R
 
 `WorktreeCreate` and `WorktreeRemove` are not registered: a hook on either replaces git's own worktree handling. The Codex mirror wires 11 of Codex's 12 events (Interrupt has no Claude source).
 
+## Data & network
+
+Commander runs locally: hooks, skills and state live on your machine, and no credentials are read. Outbound calls:
+
+| Call | Default | Control |
+|------|---------|---------|
+| Anonymous usage events (anon id, hook/skill names, timings) to `mcp.commanderplugin.com`, fallback `commander-mcp.fly.dev` | Off | Opt in with `CCC_TELEMETRY=1` or `"telemetry": true` in `~/.commander/config.json`; `CCC_TELEMETRY=0` forces off |
+| Update check at session start (GET of the public `plugin.json` on GitHub) | On | `CCC_OFFLINE=1` disables it |
+| CI status lookup via your own `gh` login (`gh run list`) | Off | Opt in with `CCC_CI_TICKER=1` |
+| Bundled Context7 MCP queries `context7.com` | Only when used | Remove the server from `.mcp.json` |
+
+`CCC_OFFLINE=1` (or `"offline": true` in `~/.commander/config.json`) blocks every call above that Commander makes itself, and makes `ccusage` use cached pricing. `ccc doctor` prints the current mode. `"disableAllHooks": true` in `settings.json` turns every hook off.
+
 ## Connected tools
 
 `.mcp.json` bundles two credential-free servers — `context7` (library docs) and `sequential-thinking`. Everything else is opt-in via `/ccc-connect` with your own credentials: Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Google Drive, Supabase, Figma, Playwright, Notion and more. Skills use `~~category` placeholders (for example `~~project tracker`) for whatever tool you connect. See [CONNECTORS.md](CONNECTORS.md) and [MCP.md](MCP.md).

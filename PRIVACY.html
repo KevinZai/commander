@@ -117,7 +117,7 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
   <div class="wrap">
     <article>
       <div class="hdr">
-        <p class="eyebrow">Effective 2026-05-13</p>
+        <p class="eyebrow">Effective 2026-10-25</p>
         <h1>Privacy</h1>
         <p class="lede">What CC Commander collects, why, and how to opt out. Plain language. No dark patterns. No retargeting.</p>
       </div>
@@ -158,14 +158,14 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
 
       <section class="s">
         <h2>Anonymous usage telemetry from the plugin and CLI</h2>
-        <p><strong>Enabled by default.</strong> When you use the CC Commander plugin or CLI, we collect anonymous usage events to understand which features are valuable and prioritize improvements.</p>
+        <p><strong>Off by default (opt-in).</strong> The plugin and CLI send nothing unless you turn usage events on with <code>CCC_TELEMETRY=1</code> in your shell or <code>"telemetry": true</code> in <code>~/.commander/config.json</code>. If you opt in, anonymous usage events tell us which features are valuable.</p>
         <div class="note">
           <strong>What we collect:</strong>
           <ul style="margin-top: 0;">
             <li>Event name (e.g., <code>hook_fired</code>, <code>skill_invoked</code>, <code>agent_dispatched</code>)</li>
             <li>Anonymous device ID (UUID generated once and stored locally in <code>~/.commander/anon-id</code>)</li>
             <li>Your OS, Node.js version, plugin version</li>
-            <li>Basic counts and non-sensitive metadata (which hook ran, which skill was invoked)</li>
+            <li>Hook and skill names (which hook ran, which skill was invoked), timings and success/failure</li>
           </ul>
         </div>
         <div class="note">
@@ -178,9 +178,10 @@ footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:64px}
           </ul>
         </div>
         <div class="note">
-          <strong>How to opt out:</strong> Either set <code>CCC_TELEMETRY=0</code> in your shell before launching Claude Code, or edit <code>~/.commander/config.json</code> and set <code>"telemetry": false</code>. No restart required.
+          <strong>Where it goes:</strong> <code>https://mcp.commanderplugin.com/v1/events</code>, falling back to <code>https://commander-mcp.fly.dev/v1/events</code>.<br>
+          <strong>How to turn it off again:</strong> unset <code>CCC_TELEMETRY</code> or set it to <code>0</code> (an explicit off that beats the config file), or set <code>"telemetry": false</code> in <code>~/.commander/config.json</code>. <code>CCC_OFFLINE=1</code> (or <code>"offline": true</code>) blocks every outbound call from the plugin, including telemetry, the update check and the CI status lookup. A missing or unreadable config file counts as off.
         </div>
-        <p>All telemetry events are sent to PostHog and treated as anonymous (no personal data, no IP logging). We use this data to build aggregate reports: "X% of users invoke skill Y" and "hook Z fires most often in scenario W." These reports help us ship features people actually want.</p>
+        <p>Opted-in events are forwarded by our server to PostHog and treated as anonymous (no personal data, no IP logging). We use this data to build aggregate reports: "X% of users invoke skill Y" and "hook Z fires most often in scenario W." These reports help us ship features people actually want.</p>
       </section>
 
       <section class="s">

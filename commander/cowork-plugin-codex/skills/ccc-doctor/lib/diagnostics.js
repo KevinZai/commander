@@ -774,6 +774,24 @@ function checkCriticalFiles(root) {
   );
 }
 
+// --- Network mode -----------------------------------------------------------
+
+/**
+ * Informational: which outbound switches are on (lib/network-mode.js reads
+ * CCC_TELEMETRY / CCC_OFFLINE / CCC_CI_TICKER and ~/.commander/config.json).
+ * options.env and options.homeDir let tests pin both.
+ */
+function checkNetworkMode(root, options) {
+  var networkMode = require('../../../lib/network-mode').networkMode;
+  var env = options && options.env ? options.env : process.env;
+  var mode = networkMode(env, { homeDir: options && options.homeDir });
+  var onOff = function (b) { return b ? 'on' : 'off'; };
+  return ok(
+    'network-mode',
+    'telemetry ' + onOff(mode.telemetry) + ' · offline ' + onOff(mode.offline) + ' · ci-ticker ' + onOff(mode.ciTicker)
+  );
+}
+
 // --- runner -----------------------------------------------------------------
 
 function runDiagnostics(root, options) {
@@ -792,6 +810,7 @@ function runDiagnostics(root, options) {
     checkDisplayName(r),
     checkVersionParity(r),
     checkCriticalFiles(r),
+    checkNetworkMode(r, options),
   ];
 }
 
@@ -817,6 +836,7 @@ module.exports = {
   checkDisplayName: checkDisplayName,
   checkVersionParity: checkVersionParity,
   checkCriticalFiles: checkCriticalFiles,
+  checkNetworkMode: checkNetworkMode,
   EXPECTED_MCP_SERVERS: EXPECTED_MCP_SERVERS,
   EXPECTED_CONNECTOR_COUNT: EXPECTED_CONNECTOR_COUNT,
 };

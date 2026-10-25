@@ -9,7 +9,7 @@ const CONFIG_DIR = path.join(os.homedir(), '.commander');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 const DEFAULT_CONFIG = {
-  telemetry: true,
+  telemetry: false,
   version: '1',
 };
 
@@ -48,15 +48,15 @@ export function writeConfig(config) {
   }
 }
 
-// Check if telemetry is enabled (checks env var first, then config file)
+// Telemetry is opt-in: CCC_OFFLINE=1 or offline:true wins, CCC_TELEMETRY=0/1
+// beats the config file, otherwise only telemetry:true enables it.
 export function isTelemetryEnabled() {
-  // Env var has highest priority
-  if (process.env.CCC_TELEMETRY === '0') {
-    return false;
-  }
-
+  if (process.env.CCC_OFFLINE === '1') return false;
+  if (process.env.CCC_TELEMETRY === '0') return false;
+  if (process.env.CCC_TELEMETRY === '1') return true;
   const config = readConfig();
-  return config.telemetry !== false;
+  if (config.offline === true) return false;
+  return config.telemetry === true;
 }
 
 // Disable telemetry
