@@ -81,7 +81,7 @@ codex plugin marketplace add KevinZai/commander
 codex plugin add commander@commander-hub
 ```
 
-Codex treats plugin hooks as untrusted until you review them with `/hooks` inside Codex. See [Codex CLI](#-codex-cli) below.
+Codex treats plugin hooks as untrusted until you review them with `/hooks` inside Codex; the one-time steps are in [dual-host hooks](docs/reference/dual-host-hooks.md#codex-one-time-hook-trust). See [Codex CLI](#-codex-cli) below.
 
 ### Full toolkit + `ccc` binary (optional)
 
