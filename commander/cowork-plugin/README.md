@@ -37,6 +37,17 @@ Codex runs the generated mirror in `commander/cowork-plugin-codex/`; review its 
 
 **Update:** `claude plugin marketplace update commander-hub && claude plugin update commander`, then restart. `/ccc-update` walks through it; `/ccc-doctor` diagnoses stale installs.
 
+## Example prompts
+
+```
+/ccc what should I do first in this repo?
+/ccc-review review this branch against main before I open the PR
+/ccc-plan turn this Linear issue into a plan with acceptance criteria
+/ccc-doctor
+```
+
+`/ccc` reads the project and recommends one next step; `/ccc-review` runs the deep-review workflow on the current branch; `/ccc-plan` interviews you and writes a reviewed plan file; `/ccc-doctor` diagnoses the install.
+
 ## What's in the plugin
 
 | Directory | Contents |
@@ -154,6 +165,14 @@ claude plugin eval ./commander/cowork-plugin --case ccc-hub --runs 3
 ```
 
 Plugin skills follow `docs/PROMPT-STANDARD.md` in the repository. After adding a skill, re-render the README table with `node scripts/render-skill-table.js --write README.md` from the repository root.
+
+## Privacy
+
+Commander's privacy policy is at [commanderplugin.com/privacy](https://commanderplugin.com/privacy); it describes what the plugin stores locally and what, if anything, leaves your machine.
+
+## Support
+
+Report bugs and ask questions in [GitHub issues](https://github.com/KevinZai/commander/issues).
 
 ## Attribution
 

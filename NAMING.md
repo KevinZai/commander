@@ -101,7 +101,7 @@ Two scripts gate naming compliance:
 | Script | What it checks |
 |--------|---------------|
 | `commander/scripts/audit-naming.js` | Plugin skills + agents + commands · description length ≤200 · no stale `[C:domain]` prefix · no `/ccc:` colon form (with documented exceptions) |
-| `scripts/check-product-contract.js` | Canonical counts (60 skills, 22 agents, 9 hooks, etc.) · pricing model · cross-platform compat |
+| `scripts/check-product-contract.js` | Canonical counts (84 skills, 22 agents, 30 hooks, etc.) · pricing model · cross-platform compat |
 
 Both run on CI (`.github/workflows/ci.yml`). A PR that breaks naming compliance fails the build.
 

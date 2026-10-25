@@ -3,7 +3,7 @@ set -euo pipefail
 REPO="KevinZai/commander"
 
 # Description
-gh repo edit "$REPO" --description "Claude Code Desktop plugin · 60 skills + 22 sub-agents + 9 hooks + 2 bundled MCP · Guided AI PM for devs. Free for now."
+gh repo edit "$REPO" --description "Claude Code Desktop plugin · 84 skills + 22 sub-agents + 30 hooks + 2 bundled MCP · Guided AI PM for devs. Free for now."
 
 # Homepage
 gh repo edit "$REPO" --homepage "https://kevinzai.github.io/cc-commander"

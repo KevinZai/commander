@@ -144,7 +144,7 @@ test('ccc --version prints the installed plugin and warns on stderr when behind'
     env: Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: cfg, CCC_CONFIG_DIR: '' }),
   });
   assert.strictEqual(r.status, 0);
-  assert.strictEqual(r.stdout.trim(), 'Claude Code Commander v' + PKG_VERSION + ' (installed plugin v999.0.0)');
+  assert.strictEqual(r.stdout.trim(), 'CC Commander v' + PKG_VERSION + ' (installed plugin v999.0.0)');
   assert.match(r.stderr, /is behind the installed plugin 999\.0\.0/);
 });
 

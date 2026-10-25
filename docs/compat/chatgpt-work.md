@@ -13,7 +13,7 @@ CC Commander already targets or now targets with this compat layer:
 | # | Surface | Format | CCC status |
 |---|---------|--------|-----------|
 | 1 | **Plugins** | `.codex-plugin/plugin.json` package (skills + hooks + MCP + apps) | ✅ Shipping — `commander/cowork-plugin-codex/` mirror, now with local marketplace + AGENTS.md |
-| 2 | **Skills** | `SKILL.md` (Agent Skills open standard) in `.agents/skills/` | ✅ Shipping — 72 plugin skills are format-compatible |
+| 2 | **Skills** | `SKILL.md` (Agent Skills open standard) in `.agents/skills/` | ✅ Shipping — 84 plugin skills are format-compatible |
 | 3 | **AGENTS.md** | Markdown instruction chain, 32 KiB default cap | ✅ Shipping — emitted by `npm run build:codex` into the mirror root |
 | 4 | **MCP connectors / Apps SDK** | Remote MCP server (`streamable_http` at a public `/mcp` URL) | 🟡 Partial — local stdio MCP works in Codex CLI today; hosted `/mcp` transport + OAuth **code complete** (gap G2 — pending deploy + issuer config) |
 
@@ -144,7 +144,7 @@ Verified as of 2026-07-10:
 
 | Surface | Install path | What you get |
 |---------|-------------|--------------|
-| **Claude Cowork / Code Desktop** | Settings → Plugin Marketplace → Add from GitHub → `KevinZai/commander` → Install | Full plugin: 84 skills, 22 agents, 30 hooks × 51 handlers, 2 bundled MCPs |
+| **Claude Cowork / Code Desktop** | Settings → Plugin Marketplace → Add from GitHub → `KevinZai/commander` → Install | Full plugin: 84 skills, 22 agents, 30 hooks × 52 handlers, 2 bundled MCPs |
 | **Claude Code CLI** | `/plugin marketplace add KevinZai/commander` → `/plugin install commander` | Same as Desktop |
 | **Codex CLI** | `codex plugin marketplace add KevinZai/commander` then `codex plugin add commander@commander-hub`, or cherry-pick skills into `~/.agents/skills/` | 84 skills, 22 TOML agents, hooks on the 12 Codex events, 2 MCPs, AGENTS.md |
 | **ChatGPT Work / Codex desktop app** | Same local marketplace (restart the desktop app after `marketplace add`), or — once **G3** clears — install "commander" from the universal plugin directory | Plugin skills + connectors surfaced inside ChatGPT Work |
