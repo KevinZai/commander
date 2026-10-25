@@ -153,11 +153,11 @@ For a shareable page version, point to `$ccc-linear-board`.
 ```markdown
 ### ⚠️ Linear not connected
 
-1. Recommended: run `$ccc-connect`, pick Productivity, then Linear (OAuth).
+1. Recommended: type `$ccc-connect`, pick Productivity, then Linear (OAuth).
 2. Manual: set `LINEAR_API_KEY` in your shell (key from linear.app/settings/api), then run `$ccc-linear` again. If you keep the key as `LINEAR_API_KEY_PERSONAL`, run `export LINEAR_API_KEY="$LINEAR_API_KEY_PERSONAL"` first.
 ```
 
-Ask with AskUserQuestion: "🟢 Run $ccc-connect now", "Show manual setup", "Skip for now".
+Ask with AskUserQuestion: "🟢 Type $ccc-connect now", "Show manual setup", "Skip for now".
 
 ## Decision points
 

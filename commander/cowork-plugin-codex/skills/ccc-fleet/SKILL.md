@@ -60,7 +60,7 @@ options:
 
 Follow-up pickers:
 
-- Review panel → `FOR/AGAINST/Referee` (🟢 for a yes/no decision) · `Judge panel` (2–5 independent attempts scored by a referee) · `Multi-lens debate` (hand off to `$ccc-debate`).
+- Review panel → `FOR/AGAINST/Referee` (🟢 for a yes/no decision) · `Judge panel` (2–5 independent attempts scored by a referee) · `Multi-lens debate` (ask the user to type `$ccc-debate`; it is not invocable from here).
 - Long-running → `Background agent` (🟢 for one long task) · `Team hierarchy` (architecture, implementation and polish tiers).
 
 Then ask for the task in plain text (free text, not a picker). For Fan-out, also ask for or propose the slices with a non-overlapping file domain each; for Pipeline, the ordered stages.

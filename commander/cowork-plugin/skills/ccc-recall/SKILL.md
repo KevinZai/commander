@@ -71,7 +71,7 @@ header: "Recall"
 multiSelect: false
 options:
   - label: "🟢 Save as a decision note"
-    description: "Run /ccc-memory add and write memory/decisions/<slug>.md with the cited source."
+    description: "Ask the user to type /ccc-memory add, and write memory/decisions/<slug>.md with the cited source."
   - label: "No, done"
     description: "Keep the answer in this conversation only."
 ```

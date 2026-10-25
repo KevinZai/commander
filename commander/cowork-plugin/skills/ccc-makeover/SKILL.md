@@ -85,7 +85,7 @@ Maturity level from the overall score:
 - Never apply a fix without the step 3.4 picker unless `--auto` was passed in this request.
 - Never report a score improvement without the step 3.6 re-scan.
 - Never continue past a failing test run without the user's choice.
-- Never commit, push, or open a PR; hand off to `/ccc-ship` when the user wants that.
+- Never commit, push, or open a PR; when the user wants that, ask them to type `/ccc-ship` (it is not invocable from here).
 - Never discard edits without an explicit confirmation.
 
 ## See also

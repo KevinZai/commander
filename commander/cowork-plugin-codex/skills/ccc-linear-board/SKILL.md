@@ -1,6 +1,6 @@
 ---
 name: ccc-linear-board
-description: "Publish a team's Linear issues as a private Kanban page whose cards update in place from a shared data store, or hand off to $ccc-linear to view, pick or create issues in chat. Use when the user asks for a Linear board page, a sprint board to share, or types $ccc-linear-board."
+description: "Publish a team's Linear issues as a private Kanban page whose cards update in place from a shared data store, or ask the user to type $ccc-linear to view, pick or create issues in chat. Use when the user asks for a Linear board page, a sprint board to share, or types $ccc-linear-board."
 allowed-tools:
   - Read
   - Write
@@ -40,7 +40,7 @@ Linear access is opt-in: the Linear connector, or `LINEAR_API_KEY` in the enviro
 ### 2. Find the team and the access path
 
 - Team key: the argument, else a `CC-`-style key in the project's CLAUDE.md, else ask the user.
-- Access: a Linear connector tool for listing issues if one is loaded in this session; else `test -n "$LINEAR_API_KEY" && echo key-set`. Neither: say "Linear isn't connected. Run `$ccc-connect` to add it." and stop. Never print the key.
+- Access: a Linear connector tool for listing issues if one is loaded in this session; else `test -n "$LINEAR_API_KEY" && echo key-set`. Neither: say "Linear isn't connected. Type `$ccc-connect` to add it." and stop. Never print the key.
 
 ### 3. Publish the page (consent-gated)
 

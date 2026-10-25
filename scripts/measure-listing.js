@@ -203,16 +203,50 @@ function dispatchTargets(source, names, self) {
   return found;
 }
 
+// A hidden skill is a typed command: it is not invocable from inside a skill.
+// A hand-off to one ("hand off to", "delegate to", "open", "run", "invoke" then
+// the name, a few words apart) must therefore say that the user types it, in
+// the same sentence.
+const HANDOFF_BEFORE_REF = /(?:\bhands?[ -]off|\bhanded off|\bdelegat\w*|\bopen(?![-\w])|\bruns?|\binvok\w*)\b[^`.;,(]{0,25}$/i;
+const TYPED_WORD = /\btyped?\b/i;
+const SKILL_REF = /(?:`\/?(?:commander:)?|(?<![\w\/.-])\/(?:commander:)?|\bcommander:)(ccc(?:-[a-z0-9]+)*)(?=[`\s"'.,;:)]|$)/g;
+
+/** [{ target, line }] for hand-off sentences naming a hidden skill without "type"/"typed". */
+function untypedHandoffs(source, hidden, self) {
+  const found = [];
+  String(source).split('\n').forEach((line, i) => {
+    for (const sentence of line.split(/(?<=[.!?;])\s+|\s[—–]\s/)) {
+      if (TYPED_WORD.test(sentence)) continue;
+      for (const m of sentence.matchAll(SKILL_REF)) {
+        const target = m[1];
+        if (target === self || !hidden.has(target)) continue;
+        if (HANDOFF_BEFORE_REF.test(sentence.slice(0, m.index)) && !found.some((f) => f.target === target && f.line === i + 1)) {
+          found.push({ target, line: i + 1 });
+        }
+      }
+    }
+  });
+  return found;
+}
+
 /** Dispatch edges from every skill, and the ones that reach a hidden skill. */
 function dispatchCheck(pluginDir, visible, hidden) {
   const names = new Set([...visible, ...hidden]);
+  const hiddenNames = new Set(hidden);
   const edges = [];
+  const untyped = [];
   for (const name of [...visible, ...hidden].sort()) {
     const file = path.join(pluginDir, 'skills', name, 'SKILL.md');
-    for (const d of dispatchTargets(fs.readFileSync(file, 'utf8'), names, name)) edges.push({ from: name, to: d.target, line: d.line });
+    const source = fs.readFileSync(file, 'utf8');
+    for (const d of dispatchTargets(source, names, name)) edges.push({ from: name, to: d.target, line: d.line });
+    for (const d of untypedHandoffs(source, hiddenNames, name)) untyped.push(`${name}:${d.line} -> ${d.target}`);
   }
   const hiddenSet = new Set(hidden);
-  return { edges: edges.length, toHidden: edges.filter((e) => hiddenSet.has(e.to)).map((e) => `${e.from}:${e.line} -> ${e.to}`) };
+  return {
+    edges: edges.length,
+    toHidden: edges.filter((e) => hiddenSet.has(e.to)).map((e) => `${e.from}:${e.line} -> ${e.to}`),
+    untypedHandoffs: untyped,
+  };
 }
 
 function block(entries, counter) {
@@ -274,6 +308,7 @@ function renderTable(r) {
     `Skill listing: ${fmt(r.listing.chars)} of ${fmt(r.budgetChars)} chars (${r.listing.pctOfBudget}%) — ${verdict}.`,
     `Hidden skills (disable-model-invocation): ${r.skills.hidden}. Tokens: ${r.tokenMethod}.`,
     `Skill-tool dispatches between skills: ${r.dispatch.edges}; to hidden skills: ${r.dispatch.toHidden.length ? r.dispatch.toHidden.join(', ') : 'none'}.`,
+    `Hand-offs to hidden skills without "type": ${r.dispatch.untypedHandoffs.length ? r.dispatch.untypedHandoffs.join(', ') : 'none'}.`,
   ].join('\n');
 }
 
@@ -296,12 +331,12 @@ function main(argv = process.argv.slice(2)) {
   const result = measure({ pluginDir, budget });
   const json = JSON.stringify(result, null, 2);
   console.log(argv.includes('--json') ? json : `${renderTable(result)}\n\n${json}`);
-  if (argv.includes('--check') && (!result.listing.fits || result.dispatch.toHidden.length)) {
-    console.error('measure-listing: FAIL (listing over budget or a skill dispatches to a hidden one)');
+  if (argv.includes('--check') && (!result.listing.fits || result.dispatch.toHidden.length || result.dispatch.untypedHandoffs.length)) {
+    console.error('measure-listing: FAIL (listing over budget, a skill dispatches to a hidden one, or a hand-off to a hidden skill does not tell the user to type it)');
     process.exit(1);
   }
 }
 
 if (require.main === module) main();
 
-module.exports = { parseFrontmatter, workflowMeta, dispatchTargets, measure, renderTable, MAX_ENTRY_CHARS };
+module.exports = { parseFrontmatter, workflowMeta, dispatchTargets, untypedHandoffs, measure, renderTable, MAX_ENTRY_CHARS };

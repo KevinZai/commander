@@ -51,7 +51,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `/ccc-knowledge` | Search, browse and add lessons in the local CC Commander knowledge base: recent lessons, topic search, category view, stats and file-edit captures. | on demand |
 | `/ccc-learn` | Pick a Commander skill domain (design, marketing, SaaS, DevOps, SEO, testing, security, data) and hand off to its router. | visible |
 | `/ccc-linear` | View your open Linear issues, pick one to work on (moves it to In Progress and creates a branch), create a new issue, or see a board overview, all from pickers. | on demand |
-| `/ccc-linear-board` | Publish a team's Linear issues as a private Kanban page whose cards update in place from a shared data store, or hand off to /ccc-linear to view, pick or… | on demand |
+| `/ccc-linear-board` | Publish a team's Linear issues as a private Kanban page whose cards update in place from a shared data store, or ask the user to type /ccc-linear to view,… | on demand |
 | `/ccc-loop` | Pick the right loop primitive (turn, /goal, /loop interval or self-paced, ScheduleWakeup, Routines via /schedule), gate it, give it an independent verifier… | on demand |
 | `/ccc-makeover` | Score project health with /ccc-xray, apply the top fixes one at a time with your OK, and show a before/after report card. | visible |
 | `/ccc-marketing` | Marketing router: brand context, content, CRO, email and ads, growth experiments, competitor intel, pricing, launches. | visible |

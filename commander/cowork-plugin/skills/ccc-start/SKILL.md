@@ -130,7 +130,7 @@ options:
     description: "Answer-first ordering and far fewer output tokens (stacks with caveman mode)."
     preview: "Writes {\"adhd\": true, \"stackCaveman\": true}."
   - label: "⏭️ Decide later"
-    description: "Run /ccc-adhd anytime to turn it on."
+    description: "Type /ccc-adhd anytime to turn it on."
     preview: "No change."
 ```
 
@@ -144,7 +144,7 @@ header: "Connect"
 multiSelect: true
 options:
   - label: "🟢 ⏭️ Skip for now"
-    description: "Connect nothing now; run /ccc-connect whenever you are ready."
+    description: "Connect nothing now; type /ccc-connect whenever you are ready."
     preview: "No change."
   - label: "Supabase — managed Postgres and auth"
     description: "Database-as-a-service with built-in authentication and real-time."

@@ -13,7 +13,7 @@ const { spawnSync } = require('node:child_process');
 
 const ROOT = path.join(__dirname, '..', '..');
 const SCRIPT = path.join(ROOT, 'scripts', 'measure-listing.js');
-const { measure, parseFrontmatter, dispatchTargets, MAX_ENTRY_CHARS } = require(SCRIPT);
+const { measure, parseFrontmatter, dispatchTargets, untypedHandoffs, MAX_ENTRY_CHARS } = require(SCRIPT);
 
 const CORE = [
   'ccc', 'ccc-build', 'ccc-design', 'ccc-plan', 'ccc-qa', 'ccc-research', 'ccc-review',
@@ -94,6 +94,48 @@ test('measure: dispatches from hidden skills to hidden skills fail the check', (
   assert.equal(check.status, 1);
 });
 
+test('untypedHandoffs: a hand-off to a hidden skill must say "type" in the same sentence', () => {
+  const hidden = new Set(['ccc-ship', 'ccc-memory']);
+  const bad = [
+    'Hands off to `/ccc-ship` when ready.',
+    'Then hand off to /ccc-ship.',
+    'Delegate to `/ccc-memory` for the write.',
+    'Open `/ccc-ship` and continue.',
+    'Run `/ccc-memory` next.',
+    'Invoke `commander:ccc-ship` here.',
+    'It types nothing. Hand off to `/ccc-ship`.',
+  ];
+  for (const line of bad) {
+    assert.equal(untypedHandoffs(`---\nname: ccc-a\n---\n${line}`, hidden, 'ccc-a').length, 1, line);
+  }
+  const good = [
+    'Ask the user to type `/ccc-ship` (it is not invocable from here).',
+    'Hand off to `/ccc-memory`: the user must type it.',
+    'Hand off to a visible skill `/ccc-plan`.',
+    'Run `/ccc-plan` first.',
+    'A failing CI run (`/ccc-ship`) is out of scope.',
+    'Open-ended work goes to `/ccc-memory`.',
+    'Run `/ccc-ship` as a typed command.',
+  ];
+  for (const line of good) {
+    assert.deepEqual(untypedHandoffs(line, hidden, 'ccc-a'), [], line);
+  }
+  assert.deepEqual(untypedHandoffs('Hand off to `/ccc-ship`.', hidden, 'ccc-ship'), []);
+});
+
+test('measure: an untyped hand-off to a hidden skill fails the check, a typed one passes', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-listing-handoff-'));
+  const hiddenFm = (n) => `---\nname: ${n}\ndescription: "X."\ndisable-model-invocation: true\n---\n`;
+  write(path.join(dir, 'skills', 'ccc-target', 'SKILL.md'), `${hiddenFm('ccc-target')}Body.\n`);
+  write(path.join(dir, 'skills', 'ccc-src', 'SKILL.md'), `${hiddenFm('ccc-src')}Hand off to \`/ccc-target\` afterwards.\n`);
+  const r = measure({ pluginDir: dir, counter: charCounter });
+  assert.deepEqual(r.dispatch.untypedHandoffs, ['ccc-src:6 -> ccc-target']);
+  assert.equal(spawnSync(process.execPath, [SCRIPT, '--check', '--json', '--plugin', dir], { encoding: 'utf8' }).status, 1);
+  write(path.join(dir, 'skills', 'ccc-src', 'SKILL.md'), `${hiddenFm('ccc-src')}Ask the user to type \`/ccc-target\` (it is not invocable from here).\n`);
+  assert.deepEqual(measure({ pluginDir: dir, counter: charCounter }).dispatch.untypedHandoffs, []);
+  assert.equal(spawnSync(process.execPath, [SCRIPT, '--check', '--json', '--plugin', dir], { encoding: 'utf8' }).status, 0);
+});
+
 const SKILLS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'skills');
 const readSkill = (name) => fs.readFileSync(path.join(SKILLS_DIR, name, 'SKILL.md'), 'utf8');
 
@@ -133,6 +175,7 @@ test('plugin: model-visible skills = 12 core + every Skill-tool dispatch target,
 test('plugin: no skill dispatches to a hidden one; listing fits 8,000 chars', () => {
   const r = measure({ counter: charCounter });
   assert.deepEqual(r.dispatch.toHidden, []);
+  assert.deepEqual(r.dispatch.untypedHandoffs, []);
   assert.ok(r.listing.fits, `skill listing is ${r.listing.chars} chars`);
   const check = spawnSync(process.execPath, [SCRIPT, '--check', '--json'], { encoding: 'utf8' });
   assert.equal(check.status, 0, check.stderr);

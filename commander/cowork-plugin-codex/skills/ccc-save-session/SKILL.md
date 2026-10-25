@@ -95,7 +95,7 @@ options:
   - label: "Correct or add something"
     description: "Tell me what to change; I edit the file and re-verify it."
   - label: "Also record a durable decision"
-    description: "Run $ccc-memory to keep a decision or gotcha beyond this session."
+    description: "Ask the user to type $ccc-memory to keep a decision or gotcha beyond this session."
 ```
 
 ## Done when

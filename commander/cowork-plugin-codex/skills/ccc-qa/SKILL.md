@@ -139,7 +139,7 @@ Render the agent's report, then ask with AskUserQuestion. Put 🟢 on "Fix faili
 - question: "QA complete — what next?" · header: "Next"
 - 🔧 Fix failing tests — work through 🔴 and 🟠 findings before shipping
 - 📝 Write missing edge-case tests — scaffold the cases the qa-engineer surfaced
-- 🚀 Ship with findings logged — writes `.ccc/qa-report.md` and hands off to `$ccc-ship`; offered only when there are zero 🔴 findings
+- 🚀 Ship with findings logged — writes `.ccc/qa-report.md` and asks the user to type `$ccc-ship` (it is not invocable from here); offered only when there are zero 🔴 findings
 - 📌 File issues to Linear — opt-in Linear connector via `$ccc-linear`, one issue per 🟠-or-worse finding; asks before creating anything
 
 ## Done when

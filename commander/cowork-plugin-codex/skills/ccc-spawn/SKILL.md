@@ -39,7 +39,7 @@ options:
   - label: "🚀 Parallel fleet"
     description: "Fan out across independent files or units at once (hands off to $ccc-fleet)."
   - label: "🔄 Cross-session relay"
-    description: "Chain spec → build → review as hand-off sessions (hands off to $ccc-relay)."
+    description: "Chain spec → build → review as hand-off sessions (ask the user to type $ccc-relay)."
   - label: "🔬 Expert pass"
     description: "One independent reviewer (security, performance, design, …) prompted to refute."
 ```

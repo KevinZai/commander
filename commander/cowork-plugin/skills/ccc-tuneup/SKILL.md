@@ -164,7 +164,7 @@ Print one table. Fill every cell from the probe; a check that could not run is �
 | 🤖 Local agent supersession | 🟢/🟡 | <name>.md superseded by the plugin agent | Retire local (opt-in) |
 | 🔬 Hooks coverage | 🟢/🟡 | <EVENT_COUNT> events · <HANDLER_COUNT> handlers, all scripts resolve | — |
 | 🔐 Plugin enabled | 🟢/🔴 | commander in enabledPlugins | Enable in /plugin or Settings |
-| 🌐 Opt-in MCP staleness | 🟢/🟡 | <server> path missing | Re-run /ccc-connect |
+| 🌐 Opt-in MCP staleness | 🟢/🟡 | <server> path missing | Type /ccc-connect again |
 | 🔧 Settings keys | 🟢/🟡 | <SETTINGS_MISSING_KEYS> | Add missing keys |
 | 💰 Cost settings | 🟢/🟡 | <COST_FLAGGED> keys missing or suboptimal | Suggest only (copy-paste) |
 | ⏳ Stale sessions | ⏭️/🟡 | <STALE_SESSIONS> files older than 30 days | Archive (opt-in) |

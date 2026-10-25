@@ -81,7 +81,7 @@ Billing and webhooks: verify with Stripe test mode only, using `stripe listen --
 - Never use live Stripe keys, create live products or prices, issue refunds, or change a live subscription; test mode only unless the user authorizes a specific live action at that moment.
 - Never write secrets (Stripe keys, auth secrets, database URLs) into tracked files; `.env.example` holds names only.
 - Never run a database migration against production; generate it, show it, and let the user apply it.
-- Never deploy, publish a pricing page, or email users from this skill; hand off to `/ccc-deploy` or `/ccc-ship` with authorization.
+- Never deploy, publish a pricing page, or email users from this skill; once the user authorizes it, ask them to type `/ccc-deploy` or `/ccc-ship` (neither is invocable from here).
 - Multi-tenant changes: every tenant-scoped query filters by tenant id or relies on row-level security; flag any query that does neither.
 
 ## See also

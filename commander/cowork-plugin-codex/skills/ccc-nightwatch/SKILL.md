@@ -107,7 +107,7 @@ Sending a test message posts to the user's channel; run it only after they picke
 
 ### 4. Launch the unattended run
 
-With the channel tested and step 1 showing the relay registered, start the run with `$ccc-night-mode` (or a `/loop` via `$ccc-loop`). Keep the session in auto permission mode; Nightwatch does not need and never sets `bypassPermissions`.
+With the channel tested and step 1 showing the relay registered, start the run: type `$ccc-night-mode` (or a `/loop` via `$ccc-loop`). Keep the session in auto permission mode; Nightwatch does not need and never sets `bypassPermissions`.
 
 ## Privacy
 

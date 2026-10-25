@@ -50,7 +50,7 @@ options:
   - label: "YOLO Mode"
     description: "Spec now; the build starts immediately in auto permission mode with no further check-ins."
   - label: "Monitor & Maintain"
-    description: "Recurring watch loop (CI, builds, tests). Hands off to $ccc-loop."
+    description: "Recurring watch loop (CI, builds, tests). Ask the user to type $ccc-loop."
   - label: "Cancel"
     description: "Back to the main menu. Nothing runs."
 ```

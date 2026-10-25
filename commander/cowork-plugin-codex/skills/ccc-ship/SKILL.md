@@ -172,7 +172,7 @@ Report:
 
 ### 6. Deploy
 
-Run the `$ccc-deploy` procedure in this session (it is user-invoked only, so do not call it through the Skill tool): read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-deploy/SKILL.md` and follow its steps 1 to 5, using [../ccc-deploy/references/platform-runners.md](../ccc-deploy/references/platform-runners.md) for the commands. Its platform picker covers Vercel, Fly.io, Cloudflare (or the `cloudflare-deploy` skill), GitHub Pages, npm, and package scripts. For an unrecognized platform, print a runbook checklist and stop without executing it.
+Follow the `$ccc-deploy` procedure in this session (it is user-invoked only, so do not call it through the Skill tool): read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-deploy/SKILL.md` and follow its steps 1 to 5, using [../ccc-deploy/references/platform-runners.md](../ccc-deploy/references/platform-runners.md) for the commands. Its platform picker covers Vercel, Fly.io, Cloudflare (or the `cloudflare-deploy` skill), GitHub Pages, npm, and package scripts. For an unrecognized platform, print a runbook checklist and stop without executing it.
 
 Report the deploy URL, the `Health: PASS|FAIL` line, and the health-check command the user can rerun.
 
@@ -188,14 +188,14 @@ options:
   - label: "🟢 Platform rollback"
     description: "Restore the previous build on the platform. No git change; fastest."
   - label: "Revert in git and redeploy"
-    description: "Hand off to $ccc-rollback: revert commits, push, redeploy, verify."
+    description: "Ask the user to type $ccc-rollback: revert commits, push, redeploy, verify."
   - label: "Cancel"
     description: "Nothing changes."
 ```
 
 On platform rollback, detect the platform as in `$ccc-deploy` step 1 and run its command from the platform-rollback table in [../ccc-deploy/references/platform-runners.md](../ccc-deploy/references/platform-runners.md#platform-rollback-no-git-change): `vercel rollback`, `fly releases rollback`, or `wrangler rollback`. If the platform is unknown, print the runbook `git revert <sha> && <deploy command>` and stop.
 
-Verify by fetching the production URL with WebFetch, and report: version restored, health result, and the health-check command. On "Revert in git", tell the user to run `$ccc-rollback` (it is user-invoked only).
+Verify by fetching the production URL with WebFetch, and report: version restored, health result, and the health-check command. On "Revert in git", tell the user to type `$ccc-rollback` (it is user-invoked only).
 
 ## Done when
 

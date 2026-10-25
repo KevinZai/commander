@@ -148,7 +148,7 @@ Next step (step 10), 🟢 first:
 
 - 🟢 Start building — `$ccc-build <type>` (or `$ccc-plan-exec` when the plan is one body repeated per item)
 - Show the plan here in chat
-- File it as a Linear issue — hands off to `$ccc-linear`, which asks before writing
+- File it as a Linear issue — ask the user to type `$ccc-linear` (it is not invocable from here); it asks before writing
 - Done for now
 
 ## Done when
