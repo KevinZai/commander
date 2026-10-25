@@ -70,23 +70,31 @@ if ! command -v jq &>/dev/null; then
 fi
 
 # ── Parse fields (single jq call for performance) ─────────────────────────
-eval "$(echo "$INPUT" | jq -r '
-  "CTX_PCT=\(.context_window.used_percentage // 0)",
-  "MODEL_ID='\''\(.model.id // "")'\''",
-  "MODEL='\''\(.model.display_name // "unknown")'\''",
-  "COST=\(.cost.total_cost_usd // 0)",
-  "IN_TOK=\(.context_window.total_input_tokens // 0)",
-  "OUT_TOK=\(.context_window.total_output_tokens // 0)",
-  "DURATION=\(.cost.total_duration_ms // 0)",
-  "PROJECT='\''\(.workspace.current_dir // "?")'\''",
-  "PROJECT_DIR='\''\(.workspace.project_dir // .workspace.current_dir // "")'\''",
-  "AGENT='\''\(.agent.name // "")'\''",
-  "RATE_5H_RESET=\(.rate_limits.five_hour.resets_at // "")",
-  "RATE_7D_RESET=\(.rate_limits.seven_day.resets_at // "")",
-  "RATE_5H=\(.rate_limits.five_hour.used_percentage // "")",
-  "RATE_7D=\(.rate_limits.seven_day.used_percentage // "")",
-  "TOOL_USE='\''\(.tool_use.name // "")'\'';"
-' 2>/dev/null)"
+# Each field is emitted NUL-terminated and read positionally with `read -d ''`,
+# never eval'd: string fields (cwd, model name, ...) are untrusted. NUL cannot
+# occur in a bash variable, so no field value can shift later assignments.
+for _v in CTX_PCT MODEL_ID MODEL COST IN_TOK OUT_TOK DURATION \
+  PROJECT PROJECT_DIR AGENT RATE_5H_RESET RATE_7D_RESET RATE_5H RATE_7D TOOL_USE; do
+  IFS= read -r -d '' "$_v"
+done < <(echo "$INPUT" | jq -j '
+  [
+    (.context_window.used_percentage // 0),
+    (.model.id // ""),
+    (.model.display_name // "unknown"),
+    (.cost.total_cost_usd // 0),
+    (.context_window.total_input_tokens // 0),
+    (.context_window.total_output_tokens // 0),
+    (.cost.total_duration_ms // 0),
+    (.workspace.current_dir // "?"),
+    (.workspace.project_dir // .workspace.current_dir // ""),
+    (.agent.name // ""),
+    (.rate_limits.five_hour.resets_at // ""),
+    (.rate_limits.seven_day.resets_at // ""),
+    (.rate_limits.five_hour.used_percentage // ""),
+    (.rate_limits.seven_day.used_percentage // ""),
+    (.tool_use.name // "")
+  ] | .[] | (tostring | split("\u0000")[0] // "") + "\u0000"
+' 2>/dev/null)
 
 # ── ClaudeSwap failover for rate limits ───────────────────────────────────
 RATE_5H_REJECTED=0
@@ -99,15 +107,20 @@ if [ -z "$RATE_5H" ] || [ -z "$RATE_7D" ]; then
   if [ -f "$SWAP_STATE" ]; then
     ACTIVE_ACCT=$(jq -r '.accounts | to_entries | sort_by(.value.last_used) | last | .key' "$SWAP_STATE" 2>/dev/null)
     if [ -n "$ACTIVE_ACCT" ] && [ "$ACTIVE_ACCT" != "null" ]; then
-      eval "$(jq -r --arg a "$ACTIVE_ACCT" '
+      for _v in ACCT_5H_STATUS ACCT_7D_STATUS ACCT_5H_UTIL ACCT_7D_UTIL \
+        SWAP_5H_RESET SWAP_7D_RESET; do
+        IFS= read -r -d '' "$_v"
+      done < <(jq -j --arg a "$ACTIVE_ACCT" '
         .accounts[$a] // {} |
-        "ACCT_5H_STATUS=\(.five_hour_status // "")",
-        "ACCT_7D_STATUS=\(.seven_day_status // "")",
-        "ACCT_5H_UTIL=\(.five_hour_utilization // "")",
-        "ACCT_7D_UTIL=\(.seven_day_utilization // "")",
-        "SWAP_5H_RESET=\(.five_hour_reset // "")",
-        "SWAP_7D_RESET=\(.seven_day_reset // "")"
-      ' "$SWAP_STATE" 2>/dev/null)"
+        [
+          (.five_hour_status // ""),
+          (.seven_day_status // ""),
+          (.five_hour_utilization // ""),
+          (.seven_day_utilization // ""),
+          (.five_hour_reset // ""),
+          (.seven_day_reset // "")
+        ] | .[] | (tostring | split("\u0000")[0] // "") + "\u0000"
+      ' "$SWAP_STATE" 2>/dev/null)
 
       # Staleness check: if reset timestamp is in the past, data is stale
       NOW_EPOCH=$(date +%s)
