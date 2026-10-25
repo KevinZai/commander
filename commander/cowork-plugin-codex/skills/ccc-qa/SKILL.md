@@ -9,8 +9,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[unit | integration | e2e | all | coverage | flaky]"
-model: sonnet
-effort: medium
 ---
 
 # $ccc-qa — QA pass before you ship

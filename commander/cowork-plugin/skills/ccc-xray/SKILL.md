@@ -10,8 +10,6 @@ allowed-tools:
   - AskUserQuestion
   - mcp__ccd_session__spawn_task
 argument-hint: "[quick | full | security | deps | perf | cost | context]"
-model: sonnet
-effort: medium
 ---
 
 # /ccc-xray — scan, score, fix first

@@ -8,8 +8,6 @@ allowed-tools:
   - Write
   - AskUserQuestion
 argument-hint: "[--check]"
-model: sonnet
-effort: high
 ---
 
 # /ccc-adopt — Commander conventions, your repo

@@ -9,8 +9,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[build | review | ship | design | learn | more | plan | xray | codex | fleet | workflows]"
-model: sonnet
-effort: low
 ---
 
 # /ccc — one click to the right workflow

@@ -7,8 +7,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[platform: vercel | fly | cloudflare | github-pages | npm]"
-model: sonnet
-effort: high
 disable-model-invocation: true
 ---
 

@@ -14,7 +14,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[deep | spec | review | literature | compare | ingest | trends | large]"
 model: inherit
-effort: high
 ---
 
 # $ccc-research — research, routed

@@ -7,8 +7,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[design | marketing | saas | devops | seo | testing | security | data | research | mobile | makeover | all]"
-model: sonnet
-effort: low
 ---
 
 # /ccc-learn — one click to a domain

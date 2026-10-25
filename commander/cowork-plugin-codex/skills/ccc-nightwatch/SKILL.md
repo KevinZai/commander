@@ -6,8 +6,6 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[setup | status | test]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

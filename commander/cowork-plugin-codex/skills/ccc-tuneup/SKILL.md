@@ -8,8 +8,6 @@ allowed-tools:
   - AskUserQuestion
   - mcp__ccd_session__spawn_task
 argument-hint: "[--check | --fix | --aggressive]"
-model: sonnet
-effort: high
 ---
 
 # $ccc-tuneup — Safe local setup optimizer

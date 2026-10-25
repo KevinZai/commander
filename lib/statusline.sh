@@ -272,10 +272,30 @@ else
 fi
 
 # ── API key hint (lane, active account or key tail) ──────────────────────
-# Lane comes from the CLAUDE_CONFIG_DIR basename: ".claude-<lane>" shows
-# <lane> (e.g. ~/.claude-ai1 -> ai1); unset or a plain ".claude" dir is the
-# primary lane ("pri"). Any other config dir name keeps the older fallbacks
-# (ClaudeSwap account, API key tail, n/a).
+# Lane comes from the CCC_CONFIG_DIR / CLAUDE_CONFIG_DIR basename, the same
+# rules as commander/lib/lane.js resolveLane() (tests/statusline-lane.test.js
+# keeps them in step): ".claude-<suffix>" shows the suffix after aliases
+# (~/.claude-ai1 -> ai1, ~/.claude-guestnetworks -> ai5); unset or a plain
+# ".claude" dir is the primary lane ("pri"). Any other config dir name keeps
+# the older fallbacks (ClaudeSwap account, API key tail, n/a).
+
+# Lane name for a sanitized dir suffix: lanes.aliases in ~/.commander/config.json,
+# else the default aliases (lane.js DEFAULT_ALIASES), else the suffix itself.
+ccc_lane_alias() {
+  local name="${1-}" cfg="$HOME/.commander/config.json" out=""
+  if [ -f "$cfg" ] && command -v jq >/dev/null 2>&1; then
+    out=$(jq -r --arg n "$name" '(.lanes.aliases? // {}) | if type == "object" then (.[$n] // "" | if type == "string" then . else "" end) else "" end' "$cfg" 2>/dev/null)
+    out=$(printf '%s' "$out" | LC_ALL=C tr -cd 'A-Za-z0-9._-')
+    out="${out:0:16}"
+  fi
+  if [ -z "$out" ]; then
+    case "$name" in
+      guestnetworks) out='ai5' ;;
+    esac
+  fi
+  printf '%s' "${out:-$name}"
+}
+
 ccc_lane_from_config_dir() {
   local dir="${1-}" base lane
   if [ -z "$dir" ]; then printf 'pri'; return 0; fi
@@ -287,12 +307,12 @@ ccc_lane_from_config_dir() {
       # Keep the hint terminal-safe: printable name characters only, max 16.
       lane=$(printf '%s' "${base#.claude-}" | LC_ALL=C tr -cd 'A-Za-z0-9._-')
       lane="${lane:0:16}"
-      [ -n "$lane" ] && printf '%s' "$lane"
+      [ -n "$lane" ] && ccc_lane_alias "$lane"
       return 0 ;;
   esac
   return 0
 }
-KEY_HINT="$(ccc_lane_from_config_dir "${CLAUDE_CONFIG_DIR:-}")"
+KEY_HINT="$(ccc_lane_from_config_dir "${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-}}")"
 SWAP_STATE_FILE="$HOME/.config/claudeswap-state.json"
 if [ -z "$KEY_HINT" ] && [ -f "$SWAP_STATE_FILE" ]; then
   # Show active ClaudeSwap account name (short form)

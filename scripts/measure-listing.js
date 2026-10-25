@@ -24,7 +24,7 @@
  *   node scripts/measure-listing.js --json          # JSON only
  *   node scripts/measure-listing.js --plugin <dir> --budget 8000
  *   node scripts/measure-listing.js --check         # exit 1 if over budget or
- *                                                   # a visible skill dispatches to a hidden one
+ *                                                   # any skill dispatches to a hidden one
  */
 'use strict';
 
@@ -165,7 +165,8 @@ function tokenCounter() {
 
 // ── Skill-to-skill dispatch ───────────────────────────────────────────────
 // Claude Code blocks a Skill-tool call to a disable-model-invocation skill, so
-// a model-visible skill must never dispatch to a hidden one. A dispatch is a
+// no skill, visible or hidden (a user-typed skill still runs as the model),
+// may dispatch to a hidden one. A dispatch is a
 // backticked plugin skill name on a line that invokes it (Skill tool, invoke,
 // dispatch, "Skill `x`"), or in a table introduced by such a line. Typed
 // handoffs ("user-invoked only, so do not call it through the Skill tool")
@@ -175,7 +176,7 @@ const TYPED_HANDOFF = /through the Skill tool|user-invoked only|tell the user to
 
 function skillRefs(line, names, self) {
   const out = [];
-  for (const m of line.matchAll(/`\/?(?:commander:)?(ccc(?:-[a-z0-9]+)*)[`\s]/g)) {
+  for (const m of line.matchAll(/(?:`\/?(?:commander:)?|\bcommander:)(ccc(?:-[a-z0-9]+)*)(?=[`\s"'])/g)) {
     if (names.has(m[1]) && m[1] !== self && !out.includes(m[1])) out.push(m[1]);
   }
   return out;
@@ -202,11 +203,11 @@ function dispatchTargets(source, names, self) {
   return found;
 }
 
-/** Dispatch edges from model-visible skills, and the ones that reach a hidden skill. */
+/** Dispatch edges from every skill, and the ones that reach a hidden skill. */
 function dispatchCheck(pluginDir, visible, hidden) {
   const names = new Set([...visible, ...hidden]);
   const edges = [];
-  for (const name of visible) {
+  for (const name of [...visible, ...hidden].sort()) {
     const file = path.join(pluginDir, 'skills', name, 'SKILL.md');
     for (const d of dispatchTargets(fs.readFileSync(file, 'utf8'), names, name)) edges.push({ from: name, to: d.target, line: d.line });
   }
@@ -272,7 +273,7 @@ function renderTable(r) {
     '',
     `Skill listing: ${fmt(r.listing.chars)} of ${fmt(r.budgetChars)} chars (${r.listing.pctOfBudget}%) — ${verdict}.`,
     `Hidden skills (disable-model-invocation): ${r.skills.hidden}. Tokens: ${r.tokenMethod}.`,
-    `Skill-tool dispatches from visible skills: ${r.dispatch.edges}; to hidden skills: ${r.dispatch.toHidden.length ? r.dispatch.toHidden.join(', ') : 'none'}.`,
+    `Skill-tool dispatches between skills: ${r.dispatch.edges}; to hidden skills: ${r.dispatch.toHidden.length ? r.dispatch.toHidden.join(', ') : 'none'}.`,
   ].join('\n');
 }
 
@@ -296,7 +297,7 @@ function main(argv = process.argv.slice(2)) {
   const json = JSON.stringify(result, null, 2);
   console.log(argv.includes('--json') ? json : `${renderTable(result)}\n\n${json}`);
   if (argv.includes('--check') && (!result.listing.fits || result.dispatch.toHidden.length)) {
-    console.error('measure-listing: FAIL (listing over budget or a visible skill dispatches to a hidden one)');
+    console.error('measure-listing: FAIL (listing over budget or a skill dispatches to a hidden one)');
     process.exit(1);
   }
 }

@@ -9,8 +9,6 @@ allowed-tools:
   - Artifact
   - mcp__visualize__show_widget
 argument-hint: "[open | overview | usage | safety | memory | history | launch | refresh | publish [tab] | on | off]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

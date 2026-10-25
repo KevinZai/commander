@@ -10,8 +10,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[loop | loop status | loop stop | --history | --tune | --level=N --force | <situation in plain English>]"
-model: opus
-effort: medium
 ---
 
 # /ccc-suggest — the next best move

@@ -10,7 +10,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[cash | invoices | payroll | crm | expenses | brief]"
 model: inherit
-effort: medium
 disable-model-invocation: true
 ---
 

@@ -7,8 +7,6 @@ allowed-tools:
   - Write
   - AskUserQuestion
 argument-hint: "[<your prompt> | last | for <task> | score <prompt>]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

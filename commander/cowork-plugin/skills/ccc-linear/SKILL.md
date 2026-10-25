@@ -8,8 +8,6 @@ allowed-tools:
   - ToolSearch
   - AskUserQuestion
 argument-hint: "[view | pick | create | board]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

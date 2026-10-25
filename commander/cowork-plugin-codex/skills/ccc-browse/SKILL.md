@@ -10,8 +10,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[cockpit | domains | workflows | agents | all]"
-model: sonnet
-effort: low
 ---
 
 # $ccc-browse — the Commander catalog

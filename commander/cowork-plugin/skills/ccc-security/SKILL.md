@@ -12,8 +12,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[audit | owasp | secrets | deps | ai | codeql | variants | incident | baseline | release-gate]"
-model: opus
-effort: high
 ---
 
 # /ccc-security — Find, prove, fix vulnerabilities

@@ -15,8 +15,6 @@ allowed-tools:
   - mcp__ccd_session__mark_chapter
   - mcp__linear__list_issues
 argument-hint: "[new | bug | refactor | linear | \"idea in quotes\"]"
-model: sonnet
-effort: medium
 ---
 
 # $ccc-plan — spec before any code

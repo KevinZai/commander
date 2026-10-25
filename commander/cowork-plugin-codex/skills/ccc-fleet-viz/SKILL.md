@@ -5,8 +5,6 @@ allowed-tools:
   - Read
   - Bash
   - Glob
-model: sonnet
-effort: low
 argument-hint: "[--watch | --state-dir=PATH]"
 ---
 

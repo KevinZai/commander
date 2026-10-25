@@ -9,8 +9,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[new <chain-name> | status <chain-name> | stop <chain-name>]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

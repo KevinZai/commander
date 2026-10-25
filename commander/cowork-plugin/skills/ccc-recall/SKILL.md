@@ -7,8 +7,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[question or keywords] [--since YYYY-MM-DD]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 
@@ -57,7 +55,7 @@ On Codex, AskUserQuestion becomes a plain-text question and skills are invoked a
 
 5. **Answer with citations.** Every claim names its source file and date so the user can verify it. Nothing found in any layer → say so, list the keywords and layers searched, and suggest other keywords. Never answer from model memory.
 
-6. **Offer to save the recall** when it answers a question likely to recur, using the decision below. On the 🟢 option, invoke the `ccc-memory` skill with `add`, then verify the write and report the actual output:
+6. **Offer to save the recall** when it answers a question likely to recur, using the decision below. On the 🟢 option, tell the user to type `/ccc-memory add <the recall>` (user-invoked only), then once it has run verify the write and report the actual output:
 
    ```bash
    ls -l memory/decisions/<slug>.md && head -20 memory/decisions/<slug>.md

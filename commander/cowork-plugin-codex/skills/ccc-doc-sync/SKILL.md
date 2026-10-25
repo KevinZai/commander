@@ -9,8 +9,6 @@ allowed-tools:
   - Grep
   - AskUserQuestion
 argument-hint: "[--check | --apply]"
-model: sonnet
-effort: low
 disable-model-invocation: true
 ---
 

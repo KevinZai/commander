@@ -7,8 +7,6 @@ allowed-tools:
   - Write
   - AskUserQuestion
 argument-hint: "[search <topic> | recent | stats | category <name> | add]"
-model: haiku
-effort: low
 disable-model-invocation: true
 ---
 

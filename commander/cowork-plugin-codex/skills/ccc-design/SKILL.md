@@ -17,7 +17,6 @@ allowed-tools:
   - mcp__figma
 argument-hint: "[landing | components | polish | figma | chat | design-md | screenshot]"
 model: inherit
-effort: medium
 ---
 
 # $ccc-design — pick the design job

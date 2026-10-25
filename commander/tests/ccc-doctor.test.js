@@ -20,7 +20,7 @@ test('ccc-doctor SKILL.md exists', function () {
   assert.ok(fs.existsSync(SKILL_PATH), 'Expected ' + SKILL_PATH + ' to exist');
 });
 
-test('ccc-doctor SKILL.md frontmatter has required keys — name, description, model', function () {
+test('ccc-doctor SKILL.md frontmatter has required keys — name, description', function () {
   const content = fs.readFileSync(SKILL_PATH, 'utf8');
 
   assert.ok(content.startsWith('---'), 'SKILL.md must begin with --- frontmatter delimiter');
@@ -31,7 +31,7 @@ test('ccc-doctor SKILL.md frontmatter has required keys — name, description, m
 
   assert.ok(frontmatter.includes('name:'), 'Frontmatter must have "name:" key');
   assert.ok(frontmatter.includes('description:'), 'Frontmatter must have "description:" key');
-  assert.ok(frontmatter.includes('model:'), 'Frontmatter must have "model:" key');
+  assert.ok(!/^model:/m.test(frontmatter), 'no model pin: a skill keeps the session model (CC-2115)');
 });
 
 test('ccc-doctor SKILL.md description is under 500 chars and contains no angle brackets', function () {
@@ -55,12 +55,12 @@ test('ccc-doctor SKILL.md body mentions diagnostic or doctor', function () {
   assert.ok(hasKeyword, 'SKILL.md body must mention "diagnostic" or "doctor"');
 });
 
-test('ccc-doctor SKILL.md model is sonnet and effort is medium', function () {
+test('ccc-doctor SKILL.md pins no model or effort (CC-2115)', function () {
   const content = fs.readFileSync(SKILL_PATH, 'utf8');
   const endIdx = content.indexOf('---', 3);
   const frontmatter = content.slice(3, endIdx);
-  assert.ok(frontmatter.includes('model: sonnet'), 'model must be sonnet');
-  assert.ok(frontmatter.includes('effort: medium'), 'effort must be medium');
+  assert.ok(!/^model:/m.test(frontmatter), 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.ok(!/^effort:/m.test(frontmatter), 'no effort pin: a skill keeps the session effort (CC-2115)');
 });
 
 test('ccc-doctor runtime verification NEVER falls back to the clone (gate round-2 repro pin)', function () {

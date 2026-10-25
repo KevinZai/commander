@@ -8,6 +8,11 @@
  *
  * Nothing is written and no `claude` process is started. Dirs with neither
  * plugins/ nor projects/ are not Claude instances and are skipped.
+ *
+ * One row per lane name (lib/lane.js resolves names and aliases): when an
+ * alias (.claude-guestnetworks -> ai5) and a plain dir (.claude-ai5) give the
+ * same name, the aliased dir is the lane and the plain dir is listed under
+ * `shadowed` instead of being audited as a second row.
  */
 
 var fs = require('fs');
@@ -99,6 +104,32 @@ function auditInstance(dir, home, latest) {
   };
 }
 
+/**
+ * Split instance dirs into one dir per lane name and the dirs it shadows.
+ * The aliased dir wins a name clash; otherwise the first dir (sorted) wins.
+ * Unknown ("custom") lanes never clash.
+ */
+function uniqueLanes(dirs, home) {
+  var keep = [];
+  var shadowed = [];
+  var byLane = {};
+  dirs.forEach(function(d) {
+    var ln = lane.resolveLane({ HOME: home, CLAUDE_CONFIG_DIR: d });
+    var prev = ln.known ? byLane[ln.lane] : null;
+    if (!prev) {
+      if (ln.known) byLane[ln.lane] = { dir: d, aliased: ln.aliased };
+      keep.push(d);
+    } else if (ln.aliased && !prev.aliased) {
+      keep[keep.indexOf(prev.dir)] = d;
+      shadowed.push({ lane: ln.lane, config_dir: prev.dir, by: d });
+      byLane[ln.lane] = { dir: d, aliased: true };
+    } else {
+      shadowed.push({ lane: ln.lane, config_dir: d, by: prev.dir });
+    }
+  });
+  return { dirs: keep, shadowed: shadowed };
+}
+
 /** opts: {home, root}. latest = the checkout's package.json version. */
 function auditInstances(opts) {
   opts = opts || {};
@@ -106,9 +137,12 @@ function auditInstances(opts) {
   var root = opts.root || path.resolve(__dirname, '..', '..');
   var latest = release.checkoutInfo(root).version;
   var instances = [];
+  var shadowed = [];
   var error = null;
   try {
-    instances = listInstanceDirs(home).map(function(d) { return auditInstance(d, home, latest); });
+    var lanes = uniqueLanes(listInstanceDirs(home), home);
+    shadowed = lanes.shadowed;
+    instances = lanes.dirs.map(function(d) { return auditInstance(d, home, latest); });
   } catch (e) {
     error = 'cannot read ' + home + ': ' + e.code;
   }
@@ -120,6 +154,7 @@ function auditInstances(opts) {
     ok: !error && instances.every(function(i) { return i.status === 'ok'; }),
     error: error,
     instances: instances,
+    shadowed: shadowed,
   };
 }
 
@@ -140,6 +175,10 @@ function renderTable(result) {
       i.status === 'ok' ? 'ok' : 'GAP: ' + i.gaps.join('; '),
     ].join(' | ') + ' |');
   });
+  var tilde = function(p) { return '`' + p.replace(result.home, '~') + '`'; };
+  (result.shadowed || []).forEach(function(s) {
+    lines.push('', 'note: ' + tilde(s.config_dir) + ' not audited: lane ' + s.lane + ' is ' + tilde(s.by) + ' (lanes.aliases in ~/.commander/config.json)');
+  });
   if (result.error) lines.push('', 'ERROR: ' + result.error);
   lines.push('');
   lines.push('latest ' + (result.latest || '?') + ' · ' + result.instances.length + ' instances · ' +
@@ -153,5 +192,6 @@ module.exports = {
   staleSkillCopies: staleSkillCopies,
   auditInstance: auditInstance,
   auditInstances: auditInstances,
+  uniqueLanes: uniqueLanes,
   renderTable: renderTable,
 };

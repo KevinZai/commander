@@ -11,7 +11,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[fanout | pipeline | review | judge | background | team]"
 model: inherit
-effort: high
 ---
 
 # /ccc-fleet — parallel agents, one synthesis

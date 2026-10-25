@@ -13,7 +13,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[pipeline | sql | viz | ml | quality | analytics | reporting | vector]"
 model: inherit
-effort: medium
 ---
 
 # $ccc-data — data work, routed

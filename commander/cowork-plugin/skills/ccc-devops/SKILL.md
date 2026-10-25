@@ -11,8 +11,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[cicd | deploy | containers | aws | terraform | monitoring | networking | runbook | security]"
-model: sonnet
-effort: medium
 ---
 
 # /ccc-devops — route to the DevOps specialist

@@ -12,7 +12,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[new | auth | db | api | ui | billing | webhooks | tenant | flags | metrics | cro]"
 model: inherit
-effort: medium
 ---
 
 # $ccc-saas — SaaS work, routed

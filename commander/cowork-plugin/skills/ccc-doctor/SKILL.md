@@ -6,8 +6,6 @@ allowed-tools:
   - Read
   - AskUserQuestion
 argument-hint: "[quick | full]"
-model: sonnet
-effort: medium
 ---
 
 # /ccc-doctor — Diagnose the Commander install

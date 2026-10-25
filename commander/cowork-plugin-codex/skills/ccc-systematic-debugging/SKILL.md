@@ -11,8 +11,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[symptom, error message or failing test]"
-model: opus
-effort: high
 ---
 
 # $ccc-systematic-debugging — root cause before fix

@@ -8,8 +8,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[on | off | status]"
-model: haiku
-effort: low
 disable-model-invocation: true
 ---
 

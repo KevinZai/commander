@@ -9,8 +9,6 @@ allowed-tools:
   - Workflow
   - AskUserQuestion
 argument-hint: "[plan | xray | codex | fleet | linear | connect | tuneup | browse | workflows | audit | deep-review | migrate | prompt-audit | release-audit | back]"
-model: sonnet
-effort: low
 ---
 
 # /ccc-more — the rest of Commander

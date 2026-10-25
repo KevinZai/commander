@@ -1,8 +1,6 @@
 ---
 name: ccc-changelog
 description: "Summarize what changed in the latest CC Commander release, or a named version, from CHANGELOG.md in a short scan-friendly digest. Use when asking what's new, what changed, show the changelog, release notes, or after the SessionStart update nudge."
-model: sonnet
-effort: medium
 allowed-tools:
   - Read
   - Bash

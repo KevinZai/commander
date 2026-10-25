@@ -11,8 +11,6 @@ allowed-tools:
   - AskUserQuestion
   - Artifact
 argument-hint: "[skill or workflow name to drill into, e.g. plan | codex | fleet | audit] [--html]"
-model: sonnet
-effort: low
 ---
 
 # $ccc-cheatsheet — the live Commander map

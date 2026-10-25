@@ -13,8 +13,6 @@ allowed-tools:
   - mcp__ccd_session__spawn_task
   - mcp__ccd_session__mark_chapter
 argument-hint: "[action: preflight | release | deploy | rollback]"
-model: sonnet
-effort: high
 disable-model-invocation: true
 ---
 

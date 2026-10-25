@@ -12,8 +12,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[what you want, in plain words]"
-model: sonnet
-effort: medium
 ---
 
 # /ccc-marketing — route the marketing job

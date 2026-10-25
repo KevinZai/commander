@@ -1,14 +1,12 @@
 ---
 name: ccc-resume-session
-description: "Load a saved session file from ~/.claude/sessions/ (latest, by date, or by path), read it fully, and brief project, state, what not to retry, blockers and next step before touching anything. Use when resuming work, continuing where you left off, or after a fresh session."
+description: "Resume a saved session file: read it fully, then brief state, blockers and next step before any work. Use when continuing earlier work."
 allowed-tools:
   - Read
-  - Bash
+  - Bash(ls -t *)
+  - Bash(test *)
   - AskUserQuestion
 argument-hint: "[YYYY-MM-DD | path/to/YYYY-MM-DD-short-id-session.tmp]"
-model: sonnet
-effort: medium
-disable-model-invocation: true
 ---
 
 # $ccc-resume-session — Resume session state

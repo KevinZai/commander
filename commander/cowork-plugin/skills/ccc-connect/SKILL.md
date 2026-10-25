@@ -6,8 +6,6 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[tasks | backend | hosting | cache | knowledge | comms | observability | billing | automation | agent-harness | email | research | productivity | dev | design]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

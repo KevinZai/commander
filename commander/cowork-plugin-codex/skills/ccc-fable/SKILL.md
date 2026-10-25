@@ -9,8 +9,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[on | status | audit | off]"
-model: sonnet
-effort: high
 disable-model-invocation: true
 ---
 

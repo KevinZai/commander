@@ -14,7 +14,6 @@ allowed-tools:
   - mcp__ccd_session__mark_chapter
 argument-hint: "[web-app | api | cli | mobile | spec | status | free-form idea]"
 model: inherit
-effort: medium
 ---
 
 # /ccc-build — scaffold, verify, hand over

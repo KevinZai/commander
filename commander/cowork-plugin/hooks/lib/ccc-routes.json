@@ -1350,8 +1350,8 @@
       "id": "ccc-resume-session",
       "kind": "skill",
       "invoke": "/ccc-resume-session",
-      "label": "Load a saved session file from…",
-      "manual": true,
+      "label": "Resume a saved session file",
+      "manual": false,
       "strong": [
         "resume session",
         "where i left off",

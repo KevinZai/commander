@@ -7,8 +7,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[role: frontend | backend | full-stack | docs | first-pr]"
-model: sonnet
-effort: high
 disable-model-invocation: true
 ---
 

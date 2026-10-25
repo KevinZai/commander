@@ -78,16 +78,36 @@ test('dispatchTargets: Skill-tool lines and dispatch tables count, typed handoff
     '`/ccc-e` is user-invoked only: tell the user to type `/ccc-e`.',
   ].join('\n');
   assert.deepEqual(dispatchTargets(src, names, 'ccc-a'), [{ target: 'ccc-b', line: 4 }, { target: 'ccc-c', line: 9 }]);
+  const quoted = ['---', 'name: ccc-a', '---', 'Invoke it with the Skill tool: `skill: "commander:ccc-d"`.'].join('\n');
+  assert.deepEqual(dispatchTargets(quoted, names, 'ccc-a'), [{ target: 'ccc-d', line: 4 }]);
+});
+
+// CC-2115: a hidden (user-typed) skill runs as the model too, so its Skill-tool
+// call to another hidden skill is blocked just the same.
+test('measure: dispatches from hidden skills to hidden skills fail the check', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-listing-hidden-'));
+  write(path.join(dir, 'skills', 'ccc-alias', 'SKILL.md'), '---\nname: ccc-alias\ndescription: "Alias."\ndisable-model-invocation: true\n---\nInvoke the `ccc-target` skill with the Skill tool.\n');
+  write(path.join(dir, 'skills', 'ccc-target', 'SKILL.md'), '---\nname: ccc-target\ndescription: "Target."\ndisable-model-invocation: true\n---\nBody.\n');
+  const r = measure({ pluginDir: dir, counter: charCounter });
+  assert.deepEqual(r.dispatch.toHidden, ['ccc-alias:6 -> ccc-target']);
+  const check = spawnSync(process.execPath, [SCRIPT, '--check', '--json', '--plugin', dir], { encoding: 'utf8' });
+  assert.equal(check.status, 1);
 });
 
 const SKILLS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'skills');
 const readSkill = (name) => fs.readFileSync(path.join(SKILLS_DIR, name, 'SKILL.md'), 'utf8');
 
+// Visible = the core skills plus every skill any skill (visible or hidden)
+// dispatches through the Skill tool, transitively.
 function dispatchClosure() {
-  const names = new Set(fs.readdirSync(SKILLS_DIR).filter((n) => fs.existsSync(path.join(SKILLS_DIR, n, 'SKILL.md'))));
+  const all = fs.readdirSync(SKILLS_DIR).filter((n) => fs.existsSync(path.join(SKILLS_DIR, n, 'SKILL.md')));
+  const names = new Set(all);
   const typedOnly = new Set(['ccc-ship']);
   const seen = new Set(CORE);
-  const queue = [...CORE];
+  for (const name of all) {
+    for (const { target } of dispatchTargets(readSkill(name), names, name)) if (!typedOnly.has(target)) seen.add(target);
+  }
+  const queue = [...seen];
   while (queue.length) {
     const name = queue.shift();
     for (const { target } of dispatchTargets(readSkill(name), names, name)) {
@@ -97,7 +117,7 @@ function dispatchClosure() {
   return [...seen].sort();
 }
 
-test('plugin: model-visible skills = 12 core + their transitive Skill-tool dispatch targets', () => {
+test('plugin: model-visible skills = 12 core + every Skill-tool dispatch target, transitively', () => {
   const visible = fs.readdirSync(SKILLS_DIR).filter((name) => {
     const file = path.join(SKILLS_DIR, name, 'SKILL.md');
     return fs.existsSync(file) && parseFrontmatter(fs.readFileSync(file, 'utf8'))['disable-model-invocation'] !== 'true';
@@ -110,7 +130,7 @@ test('plugin: model-visible skills = 12 core + their transitive Skill-tool dispa
   }
 });
 
-test('plugin: no visible skill dispatches to a hidden one; listing fits 8,000 chars', () => {
+test('plugin: no skill dispatches to a hidden one; listing fits 8,000 chars', () => {
   const r = measure({ counter: charCounter });
   assert.deepEqual(r.dispatch.toHidden, []);
   assert.ok(r.listing.fits, `skill listing is ${r.listing.chars} chars`);

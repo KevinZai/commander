@@ -12,7 +12,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[xray | makeover | report-card] [--dry-run] [--auto] [--max N] [--category CAT]"
 model: inherit
-effort: medium
 ---
 
 # $ccc-makeover — audit, fix, re-score

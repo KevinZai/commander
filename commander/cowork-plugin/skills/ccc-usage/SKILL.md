@@ -8,8 +8,6 @@ allowed-tools:
   - AskUserQuestion
   - Artifact
 argument-hint: "[status | open | snapshot]"
-model: sonnet
-effort: low
 disable-model-invocation: true
 ---
 

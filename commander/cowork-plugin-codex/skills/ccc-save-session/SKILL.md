@@ -9,8 +9,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[optional topic or short-id]"
-model: sonnet
-effort: medium
 ---
 
 # $ccc-save-session — Save session state

@@ -6,8 +6,6 @@ allowed-tools:
   - Read
   - AskUserQuestion
 argument-hint: ""
-model: sonnet
-effort: low
 ---
 
 # /ccc-update — Get onto the latest

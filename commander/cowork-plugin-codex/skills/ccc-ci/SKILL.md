@@ -11,8 +11,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[status | diagnose [run-id] | watch [run-id] | init [--port N] [--tunnel] [--rotate] | test <event>]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

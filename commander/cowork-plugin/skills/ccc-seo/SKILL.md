@@ -12,8 +12,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[audit | ai-search | content | more, or plain words]"
-model: sonnet
-effort: medium
 ---
 
 # /ccc-seo — route the SEO job

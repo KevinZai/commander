@@ -4,8 +4,6 @@ description: "Alias for /ccc-review: forwards a code, PR or diff review request 
 allowed-tools:
   - Skill
 argument-hint: "[PR URL | file path | diff | any /ccc-review argument]"
-model: haiku
-effort: low
 disable-model-invocation: true
 ---
 

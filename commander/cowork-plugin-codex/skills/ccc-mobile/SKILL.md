@@ -12,7 +12,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[new | react-native | flutter | swiftui | jetpack-compose | testing | aso | push | deep-links]"
 model: inherit
-effort: medium
 ---
 
 # $ccc-mobile — mobile work, routed

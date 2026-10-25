@@ -16,8 +16,6 @@ allowed-tools:
   - mcp__ccd_session__spawn_task
   - mcp__ccd_session__mark_chapter
 argument-hint: "[diff | quick | ultra | security | perf | xray | free-form question]"
-model: opus
-effort: medium
 ---
 
 # $ccc-review — audit before you ship

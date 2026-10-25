@@ -9,8 +9,6 @@ allowed-tools:
   - AskUserQuestion
   - ExitPlanMode
 argument-hint: "[new | existing | tour | skip]"
-model: sonnet
-effort: low
 ---
 
 # $ccc-start — oriented in ninety seconds

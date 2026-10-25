@@ -9,7 +9,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[audit | review | migrate | fleet | prompt-audit | release-audit]"
 model: inherit
-effort: high
 disable-model-invocation: true
 ---
 
@@ -100,7 +99,7 @@ Relay the workflow's verdict: verified findings as `path:line`, severity and fix
 
 ## Fallback
 
-Without the Workflow tool (older client, tool not allowed, usage limit), keep the shape and swap the engine: `/ccc-fleet` with Agent-tool dispatch, or `codex exec --json` workers via `/ccc-orchestrate`. Codex has no `/effort ultracode`; its nearest equivalent is `model_reasoning_effort = "ultra"` where the model supports it (Ultra uses subagents).
+Without the Workflow tool (older client, tool not allowed, usage limit), keep the shape and swap the engine: `/ccc-fleet` with Agent-tool dispatch, or `codex exec --json` workers (tell the user to type `/ccc-orchestrate`; it is user-invoked only). Codex has no `/effort ultracode`; its nearest equivalent is `model_reasoning_effort = "ultra"` where the model supports it (Ultra uses subagents).
 
 ## Done when
 

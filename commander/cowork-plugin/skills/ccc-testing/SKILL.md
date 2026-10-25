@@ -9,8 +9,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[tdd | e2e | verify | qa | qa-only | strategy | visual | load | regression | evals | python]"
-model: sonnet
-effort: low
 ---
 
 # /ccc-testing — the right test lane

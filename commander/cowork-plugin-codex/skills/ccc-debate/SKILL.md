@@ -9,8 +9,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[path to design doc or plan | diff | \"question in quotes\"]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 
