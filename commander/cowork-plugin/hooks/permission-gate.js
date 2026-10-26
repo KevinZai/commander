@@ -64,7 +64,9 @@ const DANGEROUS_PATTERNS = [
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options
   // (-C/-c <v>, --x[=v]) may sit before `push`, so a commit message that mentions a force push is not denied.
-  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s(?:--force\b|-[a-zA-Z]*f[a-zA-Z]*\b|\+\S)/,
+  // Remote deletes deny too: :ref, --delete/-d, --mirror, --prune; a refspec may be quoted ("+main", +'main', ':main').
+  // A bare `:` (matching branches, quoted or followed by a separator) is not a delete.
+  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:force|delete|mirror|prune)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
   /git\s+clean\s+-[fdx]/,
   /chmod\s+-R\s+777/,
   /:\s*>\s*\/etc\//,       // truncate system files
@@ -87,7 +89,8 @@ function isAutofixWrite(toolName, context) {
 function isDangerousCommand(toolInput) {
   const cmd = toolInput?.command || toolInput?.cmd || '';
   if (typeof cmd !== 'string') return false;
-  return DANGEROUS_PATTERNS.some(pat => pat.test(cmd));
+  const joined = cmd.replace(/\\\r?\n/g, '');   // the shell drops a backslash-newline: `+\<newline>main` is `+main`
+  return DANGEROUS_PATTERNS.some(pat => pat.test(joined));
 }
 
 async function logDecision(entry) {
