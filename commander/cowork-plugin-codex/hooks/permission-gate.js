@@ -66,7 +66,8 @@ const DANGEROUS_PATTERNS = [
   // (-C/-c <v>, --x[=v]) may sit before `push`, so a commit message that mentions a force push is not denied.
   // Remote deletes deny too: :ref, --delete/-d, --mirror, --prune; a refspec may be quoted ("+main", +'main', ':main').
   // A bare `:` (matching branches, quoted or followed by a separator) is not a delete.
-  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:force|delete|mirror|prune)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
+  // git takes any unambiguous prefix of a long option (--forc, --dele), so prefixes of those four deny too.
+  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:fo(?:r(?:ce?)?)?|de(?:l(?:e(?:te?)?)?)?|mi(?:r(?:r(?:or?)?)?)?|pr(?:u(?:ne?)?)?)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
   /git\s+clean\s+-[fdx]/,
   /chmod\s+-R\s+777/,
   /:\s*>\s*\/etc\//,       // truncate system files
