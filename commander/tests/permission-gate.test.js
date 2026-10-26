@@ -358,7 +358,19 @@ describe('permission-gate: dangerous operations → always reject', () => {
     // Codex r5: a substitution inside ${IFS<op>...} still runs
     "unset IFS; echo ${IFS:-$(git pu''sh -f origin main)}", 'echo ${IFS:-`git push origin --dele main`}', 'git${IFS:-$(echo)}push${IFS#x}-f',
     // Codex r6: ${x:+word} (and the others) can also expand to nothing
-    "unset x; git pu''sh origin --force${x:+suffix}", 'git push origin --forc${y:+e}', 'git push -${x:-f} origin main', 'git push ${x:?}-f origin main', 'git push origin ${x-}+main', 'git push origin ${x:-$(echo -f)}y']) {
+    "unset x; git pu''sh origin --force${x:+suffix}", 'git push origin --forc${y:+e}', 'git push -${x:-f} origin main', 'git push ${x:?}-f origin main', 'git push origin ${x-}+main', 'git push origin ${x:-$(echo -f)}y',
+    // verifier r2 on #258: substitutions inside a word or as a global option value, nested/plain/pattern parameters, short globals, $"", NUL
+    'git -C "$(git rev-parse --show-toplevel)" push -f', 'git -C $(git rev-parse --show-toplevel) push --force origin main', 'git -C `pwd` push -f',
+    'git push ${x:-${y}}-f', 'git push -$(true)f', 'git push -`true`f', 'git push origin {-f,$(echo x)}',
+    'git -p push --force origin main', 'git -P push -f', 'git -h push -f',
+    'git push origin main $"-f"', "git push $'\\0'-f", "git push $'\\x00'-f origin main",
+    'git push ${x%%a}-f', 'git push ${x:0:1}-f', 'git push ${!x}-f', 'git push ${#x}${y}-f',
+    // Codex r9: replacement text reaches the command line
+    "x=a; git pu''sh origin ${x/a/ -f} main", 'git push origin ${x//a/+main}', 'git push origin ${x/#/:}main',
+    // Codex r10: bash ends a $'...' word at a NUL
+    "git push $'--delete\\x00suffix' origin main", "git push $'-f\\0x' origin main", "git push origin $'+main\\x00junk'",
+    // Codex r11: nested expansions have mixed outcomes, so git push next to one is denied outright
+    "unset x y; z=; git pu''sh origin ${x:-${y} ${z-a}-f} main", 'git push origin ${x:-$(echo main)}', 'git push origin ${x:-`echo main`}']) {
     it(`denies obfuscated push: ${JSON.stringify(command)}`, () => {
       const r = runGate({ tool_name: 'Bash', tool_input: { command } });
       assert.equal(r.exitCode, 0);
@@ -367,7 +379,8 @@ describe('permission-gate: dangerous operations → always reject', () => {
   }
 
   for (const command of ['git push origin $(git branch --show-current)', 'git push origin "$(git rev-parse --abbrev-ref HEAD)"', 'git push -u origin `git branch --show-current`', 'git push origin "\\+main"', 'git commit -m "Fix push \\-f detection"', "git commit -m 'push \\+main is a force push'", 'echo "$(git push --dry-run origin main)"', 'git push origin feat\\-x',
-    'git push origin {main,dev}', 'git push origin ${BRANCH:-main}', 'git push origin feat${SUFFIX:+-x}', 'git push -u ${REMOTE:-origin} ${BRANCH:=main}', 'git -C "/Volumes/Extreme Pro/dev/x" push origin main',
+    'git push origin {main,dev}', 'git push origin ${BRANCH:-main}', 'git push origin feat${SUFFIX:+-x}', 'git push -u ${REMOTE:-origin} ${BRANCH:=main}',
+    'git -C "$(git rev-parse --show-toplevel)" push origin main', 'git -p push origin main', 'git push origin ${BRANCH} ${x%%-*}', 'git -C "/Volumes/Extreme Pro/dev/x" push origin main',
     // Codex r3: quoted or escaped braces are literal for bash (braces and commas are valid in branch names)
     'git push origin "{+,}main"', "git push origin '{:,}main'", 'git push origin \\{+,\\}main', 'git push origin "-{f,}"x']) {
     it(`approves non-force git after unquoting: ${JSON.stringify(command)}`, () => {

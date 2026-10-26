@@ -63,11 +63,11 @@ const DANGEROUS_PATTERNS = [
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options
-  // (-C/-c <v>, --x[=v]) may sit before `push`, so a commit message that mentions a force push is not denied.
+  // (-C/-c <v>, a lone -p/-P/-h..., --x[=v]) may sit before `push`, so a commit message that mentions a force push is not denied.
   // Remote deletes deny too: :ref, --delete/-d, --mirror, --prune; a refspec may be quoted ("+main", +'main', ':main').
   // A bare `:` (matching branches, quoted or followed by a separator) is not a delete.
   // git takes any unambiguous prefix of a long option (--forc, --dele), so prefixes of those four deny too.
-  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:fo(?:r(?:ce?)?)?|de(?:l(?:e(?:te?)?)?)?|mi(?:r(?:r(?:or?)?)?)?|pr(?:u(?:ne?)?)?)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
+  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:fo(?:r(?:ce?)?)?|de(?:l(?:e(?:te?)?)?)?|mi(?:r(?:r(?:or?)?)?)?|pr(?:u(?:ne?)?)?)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
   /git\s+clean\s+-[fdx]/,
   /chmod\s+-R\s+777/,
   /:\s*>\s*\/etc\//,       // truncate system files
@@ -102,9 +102,11 @@ function ansiC(body) {
   });
 }
 
+const NESTED_EXPANSION = /\$\{[^}]*(?:\$\{|\$\(|`)/;
+const GIT_PUSH = /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b/;
 const QUOTED_BRACE = { '{': '\uE000', ',': '\uE001', '}': '\uE002' };
 
-function shellView(cmd, { glue = false, params = 'unset' } = {}) {
+function shellView(cmd, { glue = false, params = 'unset', subs = 'text' } = {}) {
   // glue: whitespace that the shell keeps inside one word (quoted or escaped) becomes `_`, so `-C "a b" push` keeps -C's value one word.
   // Quoted or escaped { , } are literal for bash, so they become private-use characters that expandBraces() leaves alone.
   const lit = (t) => { const kept = t.replace(/[{,}]/g, (b) => QUOTED_BRACE[b]); return glue ? kept.replace(/\s/g, '_') : kept; };
@@ -124,15 +126,34 @@ function shellView(cmd, { glue = false, params = 'unset' } = {}) {
       const keep = params === 'word' || (params === 'unset' && '-='.includes(param[1]));
       stack.push({ kind: 'param', keep, parens: 0, from: out.length }); i += param[0].length - 1; continue;
     }
+    // a plain ${x} / ${#x} / ${!x} is an unknown value, and so are ${x%%pat}, ${x:0:1}, ${!x}...: what they hold is a pattern, not output
+    const plain = /^\$\{[!#]?[A-Za-z_][A-Za-z0-9_]*\}/.exec(cmd.slice(i));
+    if (plain) { out += subs === 'stub' ? '_' : ''; i += plain[0].length - 1; continue; }
+    const pattern = /^\$\{[!#]?[A-Za-z_][A-Za-z0-9_]*/.exec(cmd.slice(i));
+    if (pattern) { stack.push({ kind: 'param', unknown: true, parens: 0, from: out.length }); i += pattern[0].length - 1; continue; }
     if (top.kind === 'param' && c === '}') {
       const p = stack.pop();
-      if (p.ifs) { bodies.push(out.slice(p.from)); out = out.slice(0, p.from) + ' '; } else if (!p.keep) out = out.slice(0, p.from);
+      if (p.ifs) { bodies.push(out.slice(p.from)); out = out.slice(0, p.from) + ' '; }
+      else if (p.unknown) {   // params word puts a ${x/pat/rep} replacement in place: ${x/a/ -f} can put -f on the command line
+        const body = out.slice(p.from); bodies.push(body);
+        const rep = params === 'word' ? (/^\/[/#%]?[^/]*\/([\s\S]*)$/.exec(body)?.[1] ?? body) : (subs === 'stub' ? '_' : '');
+        out = out.slice(0, p.from) + rep;
+      }
+      else if (!p.keep) out = out.slice(0, p.from);
       continue;
     }
-    // a substitution's output is unknown and may be empty ($(true):main is :main), so its text stands in between spaces. That denies
-    // "$(git rev-parse HEAD)":ref too: fail closed, the user runs it by hand
-    if (c === '$' && next === '(' && cmd[i + 2] !== '(') { out += ' '; stack.push({ kind: 'sub', parens: 0, from: out.length }); i++; continue; }
-    if (c === '`') { if (top.kind === 'bt') { bodies.push(out.slice(stack.pop().from)); out += ' '; } else { out += ' '; stack.push({ kind: 'bt', parens: 0, from: out.length }); } continue; }
+    // a substitution's output is unknown and may be empty ($(true):main is :main). subs picks a stand-in: text (its text between spaces),
+    // empty (nothing: -$(true)f is -f) or stub (one word: -C "$(...)" push). Its body is always checked on its own. Fail closed: this
+    // also denies "$(git rev-parse HEAD)":ref; the user runs it by hand
+    if ((c === '$' && next === '(' && cmd[i + 2] !== '(') || (c === '`' && top.kind !== 'bt')) {
+      if (subs === 'text') out += ' ';
+      stack.push({ kind: c === '`' ? 'bt' : 'sub', parens: 0, from: out.length }); if (c === '$') i++; continue;
+    }
+    if (c === '`' || (top.kind === 'sub' && c === ')' && !top.parens)) {
+      const body = out.slice(stack.pop().from); bodies.push(body);
+      if (subs === 'text') out += ' '; else out = out.slice(0, out.length - body.length) + (subs === 'stub' ? '_' : '');
+      continue;
+    }
     if (top.kind === 'dq') {
       if (c === '"') { stack.pop(); continue; }
       if (c === '\\' && next !== undefined && '$`"\\\n'.includes(next)) { if (next !== '\n') out += lit(next); i++; continue; }
@@ -142,11 +163,12 @@ function shellView(cmd, { glue = false, params = 'unset' } = {}) {
     if (c === "'") { const end = cmd.indexOf("'", i + 1); const stop = end === -1 ? cmd.length : end; out += lit(cmd.slice(i + 1, stop)); i = stop; continue; }
     if (c === '$' && next === "'") {
       let j = i + 2; while (j < cmd.length && cmd[j] !== "'") j += cmd[j] === '\\' ? 2 : 1;
-      out += lit(ansiC(cmd.slice(i + 2, Math.min(j, cmd.length)))); i = j; continue;
+      out += lit(ansiC(cmd.slice(i + 2, Math.min(j, cmd.length))).split('\0')[0]); i = j; continue;   // bash ends a $'...' word at a NUL
     }
     if (c === '"') { stack.push({ kind: 'dq', parens: 0 }); continue; }
+    if (c === '$' && next === '"') continue;   // $"..." (locale quoting) is a double-quoted string
     if (top.kind === 'sub' && c === '(') top.parens++;
-    if (top.kind === 'sub' && c === ')') { if (top.parens) top.parens--; else { bodies.push(out.slice(stack.pop().from)); out += ' '; continue; } }
+    if (top.kind === 'sub' && c === ')') top.parens--;
     out += c;
   }
   return [out, ...bodies];
@@ -169,8 +191,13 @@ function isDangerousCommand(toolInput) {
   const joined = cmd.replace(/\\\r?\n/g, '');   // the shell drops a backslash-newline: `+\<newline>main` is `+main`
   if (DANGEROUS_PATTERNS.some(pat => pat.test(joined))) return true;   // raw first: nothing denied before shellView is allowed now
   let views;
-  try { views = [false, true].flatMap(glue => ['unset', 'word', 'empty'].flatMap(params => shellView(joined, { glue, params }))).map(expandBraces); } catch { return false; }   // a view that cannot be built never overrides the raw check above
-  return views.some(view => DANGEROUS_PATTERNS.some(pat => pat.test(view)));
+  const modes = [];
+  for (const glue of [false, true]) for (const params of ['unset', 'word', 'empty']) for (const subs of ['text', 'empty', 'stub']) modes.push({ glue, params, subs });
+  try { views = modes.flatMap(m => shellView(joined, m)).map(v => expandBraces(v.replace(/\0/g, ''))); } catch { return false; }   // a view that cannot be built never overrides the raw check above
+  if (views.some(view => DANGEROUS_PATTERNS.some(pat => pat.test(view)))) return true;
+  // A nested expansion inside ${...} has mixed outcomes the views above do not enumerate (Codex r11: ${x:-${y} ${z-a}-f}), so a
+  // command that runs git push next to one is denied outright: fail closed, the user runs it by hand
+  return NESTED_EXPANSION.test(joined) && views.some(view => GIT_PUSH.test(view));
 }
 
 async function logDecision(entry) {
