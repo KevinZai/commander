@@ -102,32 +102,65 @@ function ansiC(body) {
   });
 }
 
-function shellView(cmd) {
+const QUOTED_BRACE = { '{': '\uE000', ',': '\uE001', '}': '\uE002' };
+
+function shellView(cmd, { glue = false, params = 'unset' } = {}) {
+  // glue: whitespace that the shell keeps inside one word (quoted or escaped) becomes `_`, so `-C "a b" push` keeps -C's value one word.
+  // Quoted or escaped { , } are literal for bash, so they become private-use characters that expandBraces() leaves alone.
+  const lit = (t) => { const kept = t.replace(/[{,}]/g, (b) => QUOTED_BRACE[b]); return glue ? kept.replace(/\s/g, '_') : kept; };
   let out = '';
-  const stack = [{ kind: 'top', parens: 0 }];   // top | sub ($(...)) | bt (`...`) | dq ("...")
+  const bodies = [];   // each substitution's text on its own: bash runs it whatever text follows it
+  const stack = [{ kind: 'top', parens: 0 }];   // top | sub ($(...)) | bt (`...`) | dq ("...") | param (${x:-word})
   for (let i = 0; i < cmd.length; i++) {
     const c = cmd[i]; const next = cmd[i + 1]; const top = stack[stack.length - 1];
     const ifs = /^\$(?:\{IFS\}|IFS(?![A-Za-z0-9_]))/.exec(cmd.slice(i));
     if (ifs) { out += ' '; i += ifs[0].length - 1; continue; }
-    if (c === '$' && next === '(' && cmd[i + 2] !== '(') { stack.push({ kind: 'sub', parens: 0 }); out += ' '; i++; continue; }
-    if (c === '`') { if (top.kind === 'bt') stack.pop(); else stack.push({ kind: 'bt', parens: 0 }); out += ' '; continue; }
+    // ${IFS<op>...} (${IFS%?}, ${IFS:-...}) is a separator in the view; what it holds is still checked on its own as a body
+    if (/^\$\{IFS[^A-Za-z0-9_}]/.test(cmd.slice(i))) { out += ' '; stack.push({ kind: 'param', ifs: true, parens: 0, from: out.length }); i += 5; continue; }
+    // ${x:-word} and friends expand to word or to nothing. params picks the outcome: unset (what an unset x gives: - and = give word,
+    // + and ? nothing), word (always word) or empty (always nothing); isDangerousCommand checks all three
+    const param = /^\$\{[A-Za-z_][A-Za-z0-9_]*:?([-=+?])/.exec(cmd.slice(i));
+    if (param) {
+      const keep = params === 'word' || (params === 'unset' && '-='.includes(param[1]));
+      stack.push({ kind: 'param', keep, parens: 0, from: out.length }); i += param[0].length - 1; continue;
+    }
+    if (top.kind === 'param' && c === '}') {
+      const p = stack.pop();
+      if (p.ifs) { bodies.push(out.slice(p.from)); out = out.slice(0, p.from) + ' '; } else if (!p.keep) out = out.slice(0, p.from);
+      continue;
+    }
+    // a substitution's output is unknown and may be empty ($(true):main is :main), so its text stands in between spaces. That denies
+    // "$(git rev-parse HEAD)":ref too: fail closed, the user runs it by hand
+    if (c === '$' && next === '(' && cmd[i + 2] !== '(') { out += ' '; stack.push({ kind: 'sub', parens: 0, from: out.length }); i++; continue; }
+    if (c === '`') { if (top.kind === 'bt') { bodies.push(out.slice(stack.pop().from)); out += ' '; } else { out += ' '; stack.push({ kind: 'bt', parens: 0, from: out.length }); } continue; }
     if (top.kind === 'dq') {
       if (c === '"') { stack.pop(); continue; }
-      if (c === '\\' && next !== undefined && '$`"\\\n'.includes(next)) { if (next !== '\n') out += next; i++; continue; }
-      out += c; continue;
+      if (c === '\\' && next !== undefined && '$`"\\\n'.includes(next)) { if (next !== '\n') out += lit(next); i++; continue; }
+      out += lit(c); continue;
     }
-    if (c === '\\') { if (next !== undefined && next !== '\n') out += next; i++; continue; }
-    if (c === "'") { const end = cmd.indexOf("'", i + 1); const stop = end === -1 ? cmd.length : end; out += cmd.slice(i + 1, stop); i = stop; continue; }
+    if (c === '\\') { if (next !== undefined && next !== '\n') out += lit(next); i++; continue; }
+    if (c === "'") { const end = cmd.indexOf("'", i + 1); const stop = end === -1 ? cmd.length : end; out += lit(cmd.slice(i + 1, stop)); i = stop; continue; }
     if (c === '$' && next === "'") {
       let j = i + 2; while (j < cmd.length && cmd[j] !== "'") j += cmd[j] === '\\' ? 2 : 1;
-      out += ansiC(cmd.slice(i + 2, Math.min(j, cmd.length))); i = j; continue;
+      out += lit(ansiC(cmd.slice(i + 2, Math.min(j, cmd.length)))); i = j; continue;
     }
     if (c === '"') { stack.push({ kind: 'dq', parens: 0 }); continue; }
     if (top.kind === 'sub' && c === '(') top.parens++;
-    if (top.kind === 'sub' && c === ')') { if (top.parens) top.parens--; else { stack.pop(); out += ' '; continue; } }
+    if (top.kind === 'sub' && c === ')') { if (top.parens) top.parens--; else { bodies.push(out.slice(stack.pop().from)); out += ' '; continue; } }
     out += c;
   }
-  return out;
+  return [out, ...bodies];
+}
+
+// Brace expansion: pre{a,b}post is the words preabpost... (`{--force,}`, `-{f,}`, `{+,}main`); inner braces first, bounded.
+function expandBraces(view) {
+  if (!view.includes('{')) return view;
+  for (let n = 0; n < 32 && view.length < 20000; n++) {
+    const next = view.replace(/(?<![^\s{,])([^\s{}]*)\{([^{}\s]*,[^{}\s]*)\}(\S*)/, (m, pre, alts, post) => alts.split(',').map(a => pre + a + post).join(' '));
+    if (next === view) break;
+    view = next;
+  }
+  return view;
 }
 
 function isDangerousCommand(toolInput) {
@@ -135,9 +168,9 @@ function isDangerousCommand(toolInput) {
   if (typeof cmd !== 'string') return false;
   const joined = cmd.replace(/\\\r?\n/g, '');   // the shell drops a backslash-newline: `+\<newline>main` is `+main`
   if (DANGEROUS_PATTERNS.some(pat => pat.test(joined))) return true;   // raw first: nothing denied before shellView is allowed now
-  let view;
-  try { view = shellView(joined); } catch { return false; }   // a view that cannot be built never overrides the raw check above
-  return DANGEROUS_PATTERNS.some(pat => pat.test(view));
+  let views;
+  try { views = [false, true].flatMap(glue => ['unset', 'word', 'empty'].flatMap(params => shellView(joined, { glue, params }))).map(expandBraces); } catch { return false; }   // a view that cannot be built never overrides the raw check above
+  return views.some(view => DANGEROUS_PATTERNS.some(pat => pat.test(view)));
 }
 
 async function logDecision(entry) {
