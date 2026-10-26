@@ -67,7 +67,7 @@ export async function run({ home, cwd: _cwd } = {}) {
           onboardingCompleted: false,
           firstRunAt: new Date().toISOString(),
           installedVersion: pluginVersion,
-          last_seen_version: packageVersion,
+          last_seen_version: packageVersion === 'unknown' ? null : packageVersion,
         }, null, 2));
       } catch {}
     }
@@ -84,11 +84,12 @@ export async function run({ home, cwd: _cwd } = {}) {
       const state = JSON.parse(await readFile(STATE_SRC, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
       const lastSeen = state.last_seen_version;
-      if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {
+      // 'unknown' (no manifest found) is no signal: no nudge, never stored as last_seen_version.
+      if (!isFirstRun && packageVersion !== 'unknown' && lastSeen && lastSeen !== packageVersion) {
         versionTransition = true;
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
-      } else if (!isFirstRun && !lastSeen) {
+      } else if (!isFirstRun && packageVersion !== 'unknown' && !lastSeen) {
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
       }
@@ -170,7 +171,7 @@ async function main() {
           onboardingCompleted: false,
           firstRunAt: new Date().toISOString(),
           installedVersion: pluginVersion,
-          last_seen_version: packageVersion,
+          last_seen_version: packageVersion === 'unknown' ? null : packageVersion,
         }, null, 2));
       } catch {}
     }
@@ -188,12 +189,13 @@ async function main() {
       const state = JSON.parse(await readFile(STATE_SRC, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
       const lastSeen = state.last_seen_version;
-      if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {
+      // 'unknown' (no manifest found) is no signal: no nudge, never stored as last_seen_version.
+      if (!isFirstRun && packageVersion !== 'unknown' && lastSeen && lastSeen !== packageVersion) {
         versionTransition = true;
         // Update last_seen_version so nudge only fires once per upgrade
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
-      } else if (!isFirstRun && !lastSeen) {
+      } else if (!isFirstRun && packageVersion !== 'unknown' && !lastSeen) {
         // Backfill field for existing installs — treat as no transition
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
