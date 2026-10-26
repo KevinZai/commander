@@ -7,8 +7,6 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[setup | status | test | digest]"
-model: sonnet
-effort: low
 disable-model-invocation: true
 ---
 

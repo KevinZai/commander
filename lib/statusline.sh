@@ -70,26 +70,39 @@ if ! command -v jq &>/dev/null; then
 fi
 
 # ── Parse fields (single jq call for performance) ─────────────────────────
-# Every value goes through @sh so statusLine strings reach the shell as data:
-# a quote in a directory, model or agent name must never run code.
-eval "$(echo "$INPUT" | jq -r '
-  def sh: if type == "string" or type == "number" or type == "boolean" then tostring else "" end | @sh;
-  "CTX_PCT=\(.context_window.used_percentage // 0 | sh)",
-  "MODEL_ID=\(.model.id // "" | sh)",
-  "MODEL=\(.model.display_name // "unknown" | sh)",
-  "COST=\(.cost.total_cost_usd // 0 | sh)",
-  "IN_TOK=\(.context_window.total_input_tokens // 0 | sh)",
-  "OUT_TOK=\(.context_window.total_output_tokens // 0 | sh)",
-  "DURATION=\(.cost.total_duration_ms // 0 | sh)",
-  "PROJECT=\(.workspace.current_dir // "?" | sh)",
-  "PROJECT_DIR=\(.workspace.project_dir // .workspace.current_dir // "" | sh)",
-  "AGENT=\(.agent.name // "" | sh)",
-  "RATE_5H_RESET=\(.rate_limits.five_hour.resets_at // "" | sh)",
-  "RATE_7D_RESET=\(.rate_limits.seven_day.resets_at // "" | sh)",
-  "RATE_5H=\(.rate_limits.five_hour.used_percentage // "" | sh)",
-  "RATE_7D=\(.rate_limits.seven_day.used_percentage // "" | sh)",
-  "TOOL_USE=\(.tool_use.name // "" | sh)"
-' 2>/dev/null)"
+# Each field is emitted NUL-terminated and read positionally with `read -d ''`,
+# never eval'd: string fields (cwd, model name, ...) are untrusted. NUL cannot
+# occur in a bash variable, so no field value can shift later assignments.
+for _v in CTX_PCT MODEL_ID MODEL COST IN_TOK OUT_TOK DURATION \
+  PROJECT PROJECT_DIR AGENT RATE_5H_RESET RATE_7D_RESET RATE_5H RATE_7D TOOL_USE; do
+  IFS= read -r -d '' "$_v"
+done < <(echo "$INPUT" | jq -j '
+  # Numeric fields reach bash arithmetic ($(( )), printf %d, bc), which would
+  # run "a[$(cmd)]" as code. Coerce here so a non-numeric, NaN, infinite or
+  # negative value becomes 0 and only a plain number is ever emitted.
+  def nn: (tonumber? // 0) | if (isnan or isinfinite or . < 0) then 0
+    elif . > 1e15 then 1e15 else . + 0 end;
+  def int: nn | floor;
+  # Rate limits: absent/empty stays "" (means "unavailable", ClaudeSwap fallback).
+  def rate: if . == null or . == "" then "" else int end;
+  [
+    (.context_window.used_percentage | int),
+    (.model.id // ""),
+    (.model.display_name // "unknown"),
+    (.cost.total_cost_usd | nn),
+    (.context_window.total_input_tokens | int),
+    (.context_window.total_output_tokens | int),
+    (.cost.total_duration_ms | int),
+    (.workspace.current_dir // "?"),
+    (.workspace.project_dir // .workspace.current_dir // ""),
+    (.agent.name // ""),
+    (.rate_limits.five_hour.resets_at // ""),
+    (.rate_limits.seven_day.resets_at // ""),
+    (.rate_limits.five_hour.used_percentage | rate),
+    (.rate_limits.seven_day.used_percentage | rate),
+    (.tool_use.name // "")
+  ] | .[] | (tostring | split("\u0000")[0] // "") + "\u0000"
+' 2>/dev/null)
 
 # ── ClaudeSwap failover for rate limits ───────────────────────────────────
 RATE_5H_REJECTED=0
@@ -102,16 +115,20 @@ if [ -z "$RATE_5H" ] || [ -z "$RATE_7D" ]; then
   if [ -f "$SWAP_STATE" ]; then
     ACTIVE_ACCT=$(jq -r '.accounts | to_entries | sort_by(.value.last_used) | last | .key' "$SWAP_STATE" 2>/dev/null)
     if [ -n "$ACTIVE_ACCT" ] && [ "$ACTIVE_ACCT" != "null" ]; then
-      eval "$(jq -r --arg a "$ACTIVE_ACCT" '
-        def sh: if type == "string" or type == "number" or type == "boolean" then tostring else "" end | @sh;
+      for _v in ACCT_5H_STATUS ACCT_7D_STATUS ACCT_5H_UTIL ACCT_7D_UTIL \
+        SWAP_5H_RESET SWAP_7D_RESET; do
+        IFS= read -r -d '' "$_v"
+      done < <(jq -j --arg a "$ACTIVE_ACCT" '
         .accounts[$a] // {} |
-        "ACCT_5H_STATUS=\(.five_hour_status // "" | sh)",
-        "ACCT_7D_STATUS=\(.seven_day_status // "" | sh)",
-        "ACCT_5H_UTIL=\(.five_hour_utilization // "" | sh)",
-        "ACCT_7D_UTIL=\(.seven_day_utilization // "" | sh)",
-        "SWAP_5H_RESET=\(.five_hour_reset // "" | sh)",
-        "SWAP_7D_RESET=\(.seven_day_reset // "" | sh)"
-      ' "$SWAP_STATE" 2>/dev/null)"
+        [
+          (.five_hour_status // ""),
+          (.seven_day_status // ""),
+          (.five_hour_utilization | (if . == null or . == "" then "" else (tonumber? // 0 | if (isnan or isinfinite or . < 0 or . > 1e6) then 0 else . + 0 end) end)),
+          (.seven_day_utilization | (if . == null or . == "" then "" else (tonumber? // 0 | if (isnan or isinfinite or . < 0 or . > 1e6) then 0 else . + 0 end) end)),
+          (.five_hour_reset // ""),
+          (.seven_day_reset // "")
+        ] | .[] | (tostring | split("\u0000")[0] // "") + "\u0000"
+      ' "$SWAP_STATE" 2>/dev/null)
 
       # Staleness check: if reset timestamp is in the past, data is stale
       NOW_EPOCH=$(date +%s)
@@ -188,6 +205,7 @@ mini_bar() {
 
 # ── Context bar (10 chars wide) ───────────────────────────────────────────
 CTX_INT=${CTX_PCT%.*}; CTX_INT=${CTX_INT:-0}
+[ "$CTX_INT" -gt 100 ] 2>/dev/null && CTX_INT=100
 
 heat_color() {
   local pct=$1
@@ -263,10 +281,30 @@ else
 fi
 
 # ── API key hint (lane, active account or key tail) ──────────────────────
-# Lane comes from the CLAUDE_CONFIG_DIR basename: ".claude-<lane>" shows
-# <lane> (e.g. ~/.claude-ai1 -> ai1); unset or a plain ".claude" dir is the
-# primary lane ("pri"). Any other config dir name keeps the older fallbacks
-# (ClaudeSwap account, API key tail, n/a).
+# Lane comes from the CCC_CONFIG_DIR / CLAUDE_CONFIG_DIR basename, the same
+# rules as commander/lib/lane.js resolveLane() (tests/statusline-lane.test.js
+# keeps them in step): ".claude-<suffix>" shows the suffix after aliases
+# (~/.claude-ai1 -> ai1, ~/.claude-guestnetworks -> ai5); unset or a plain
+# ".claude" dir is the primary lane ("pri"). Any other config dir name keeps
+# the older fallbacks (ClaudeSwap account, API key tail, n/a).
+
+# Lane name for a sanitized dir suffix: lanes.aliases in ~/.commander/config.json,
+# else the default aliases (lane.js DEFAULT_ALIASES), else the suffix itself.
+ccc_lane_alias() {
+  local name="${1-}" cfg="$HOME/.commander/config.json" out=""
+  if [ -f "$cfg" ] && command -v jq >/dev/null 2>&1; then
+    out=$(jq -r --arg n "$name" '(.lanes.aliases? // {}) | if type == "object" then (.[$n] // "" | if type == "string" then . else "" end) else "" end' "$cfg" 2>/dev/null)
+    out=$(printf '%s' "$out" | LC_ALL=C tr -cd 'A-Za-z0-9._-')
+    out="${out:0:16}"
+  fi
+  if [ -z "$out" ]; then
+    case "$name" in
+      guestnetworks) out='ai5' ;;
+    esac
+  fi
+  printf '%s' "${out:-$name}"
+}
+
 ccc_lane_from_config_dir() {
   local dir="${1-}" base lane
   if [ -z "$dir" ]; then printf 'pri'; return 0; fi
@@ -278,12 +316,12 @@ ccc_lane_from_config_dir() {
       # Keep the hint terminal-safe: printable name characters only, max 16.
       lane=$(printf '%s' "${base#.claude-}" | LC_ALL=C tr -cd 'A-Za-z0-9._-')
       lane="${lane:0:16}"
-      [ -n "$lane" ] && printf '%s' "$lane"
+      [ -n "$lane" ] && ccc_lane_alias "$lane"
       return 0 ;;
   esac
   return 0
 }
-KEY_HINT="$(ccc_lane_from_config_dir "${CLAUDE_CONFIG_DIR:-}")"
+KEY_HINT="$(ccc_lane_from_config_dir "${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-}}")"
 SWAP_STATE_FILE="$HOME/.config/claudeswap-state.json"
 if [ -z "$KEY_HINT" ] && [ -f "$SWAP_STATE_FILE" ]; then
   # Show active ClaudeSwap account name (short form)
@@ -308,6 +346,7 @@ if [ "$RATE_5H_REJECTED" = "1" ]; then
   RATE_STR="⏱ ${H5}REJ${N}"
 elif [ -n "$RATE_5H" ]; then
   R5=${RATE_5H%.*}; R5=${R5:-0}
+  [ "$R5" -gt 100 ] 2>/dev/null && R5=100
   R5_REM=$(fmt_remaining "$RATE_5H_RESET")
   if [ "$R5" -ge 80 ] 2>/dev/null; then R5C="${H5}"; elif [ "$R5" -ge 50 ] 2>/dev/null; then R5C="${H4}"; else R5C="${M}"; fi
   RATE_STR="⏱ ${R5C}${R5}%${N}"
@@ -319,6 +358,7 @@ if [ "$RATE_7D_REJECTED" = "1" ]; then
   RATE_STR+="📅 ${H5}REJ${N}"
 elif [ -n "$RATE_7D" ]; then
   R7=${RATE_7D%.*}; R7=${R7:-0}
+  [ "$R7" -gt 100 ] 2>/dev/null && R7=100
   R7_REM=$(fmt_remaining "$RATE_7D_RESET")
   [ -n "$RATE_STR" ] && RATE_STR+=" "
   if [ "$R7" -ge 80 ] 2>/dev/null; then R7C="${H5}"; elif [ "$R7" -ge 50 ] 2>/dev/null; then R7C="${H4}"; else R7C="${M}"; fi

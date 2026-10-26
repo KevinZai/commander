@@ -17,9 +17,19 @@
 
 One click-first skill for the whole Codex surface: `codex doctor`, model selection, plugins and marketplaces, MCP servers, installing Commander's agents as Codex TOML subagents in `~/.codex/agents/`, Codex Cloud tasks, remote control, `codex review`, `codex update`, `/import` guidance and `config.toml` edits. Every config write asks first, backs the file up and verifies with `codex doctor --json`.
 
+### Load on demand and safe defaults
+
+- **Claude sees 32 of the 84 plugin skills.** The 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open are model-visible; the other 52 load on demand (`disable-model-invocation: true`). Type `/ccc-<name>` to open any of them; when a prompt matches one, the router offers it in a menu instead of invoking it. The skill listing dropped from 22,643 chars (283% of the 8,000-char budget, truncated) to 7,266 chars (90.8%); `npm run measure:listing` re-measures it and `npm run check:listing` fails the build if it goes over budget.
+- **Skills keep your model.** No plugin skill pins `model:` or `effort:` any more, so the model and effort you picked stay in force; agents keep their own aliases when a skill delegates.
+- **Telemetry is opt-in.** Nothing is sent unless you set `CCC_TELEMETRY=1` (or `"telemetry": true` in `~/.commander/config.json`). `CCC_OFFLINE=1` (or `"offline": true`) blocks every call Commander makes itself: telemetry, the session-start update check and the CI ticker. The CI status lookup through your own `gh` login is opt-in with `CCC_CI_TICKER=1`. `ccc doctor` prints the current mode. The hosted server at `mcp.commanderplugin.com` is a separate service described in the [privacy policy](https://commanderplugin.com/privacy).
+- **Cost ceiling off by default.** `cost-ceiling-enforcer` only counts tool calls when `CCC_COST_CEILING=<units>` or `costCeiling` in the lane config is set (`0` or `off` disables it). When it trips it denies the tool call with a readable reason and names the lane config file it read.
+- **Voice layer opt-in.** `voice-injector` adds nothing at session start unless `CCC_VOICE=1` or `"voice": true` is set.
+- **One lane resolver.** `commander/lib/lane.js` resolves the lane (`CCC_CONFIG_DIR` > `CLAUDE_CONFIG_DIR` > `~/.claude`) with aliases from `DEFAULT_ALIASES` (`guestnetworks` → `ai5`) overlaid by `lanes.aliases` in `~/.commander/config.json`; the status line and `ccc doctor --instances` use the same table.
+- **Elicitation hooks log documented fields.** `elicitation-logger` and `elicitation-result-handler` record `mcp_server_name`, `mode`, `elicitation_id`, `action` and `session_id`, omit absent fields, and never log the message, URL, requested schema or content.
+
 ### The Commander HUD mod
 
-A Claude Mod (`commander/cowork-plugin/mods/commander-hud/`) draws one line above the prompt: Fable Method state, running agents, the session's tool-call budget and an update pill. `/ccc-hud` toggles it (`on`, `off`, `status`) without starting a model turn. It only observes — no tool, permission or prompt hooks, no model calls, no network — and reads only `~/.claude/commander/`. Needs Claude Code 2.1.287+ (Desktop 2.1.286+); older clients ignore it. Details: [docs/MODS.md](docs/MODS.md).
+A Claude Mod (`commander/cowork-plugin/mods/commander-hud/`) draws one line above the prompt: Commander Method state, running agents, the session's tool-call budget and an update pill. `/ccc-hud` toggles it (`on`, `off`, `status`) without starting a model turn. It only observes — no tool, permission or prompt hooks, no model calls, no network — and reads only `~/.claude/commander/`. Needs Claude Code 2.1.287+ (Desktop 2.1.286+); older clients ignore it. Details: [docs/MODS.md](docs/MODS.md).
 
 ### Plugin workflows
 
@@ -64,10 +74,10 @@ Agents name an alias, never a pinned id, so they track the newest model in each 
 
 ### The Commandments
 - [Golden Rules](#golden-rules) — The 7 non-negotiable principles
-- [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists, The Fable Method (12 pillars)
+- [The Kevin Z Method](#the-kevin-z-method) — Build types, CCC domains, checklists, the Commander Method (12 pillars)
 - [The Loop Taxonomy](#the-loop-taxonomy) — 4 loop primitives, `/goal`/`/loop`/`/schedule`, verifier-separation, state files
 - [The Intelligence Layer](#the-intelligence-layer) — How `/ccc-suggest` kills info-paralysis (3 reasoning tiers + always-on PM loop)
-- [What's New in v8](#whats-new-in-v8) — `/ccc-codex`, the HUD mod, plugin workflows, evals, new hook events, routing
+- [What's New in v8](#whats-new-in-v8) — `/ccc-codex`, the HUD mod, plugin workflows, evals, new hook events, routing, load on demand and safe defaults
 - [The 84 Plugin Skills](#the-84-plugin-skills) — The curated plugin surface
 
 ### The Chapters
@@ -87,12 +97,12 @@ Agents name an alias, never a pinned id, so they track the newest model in each 
 - [Commands Reference](#commands-reference)
 - [Tools Reference](#tools-reference)
 - [Prompt Templates](#prompt-templates)
-- [The 45 Tips — Quick Reference](#the-45-tips--quick-reference)
+- [The 45 Tips — Quick Reference](#the-45-tips--quick-reference-ykdojo)
 - [Power Combos](#power-combos) *(advanced only — full table in CHEATSHEET)*
 - [Workflow Modes](#workflow-modes) *(10 modes)*
-- [Prompt Library](#prompt-library-1) *(36+ templates)*
+- [Prompt Library](#prompt-library) *(36+ templates)*
 - [Integrations](#integrations) *(Agency Orchestrator + OpenClaw)*
-- [Proactive Automation Suite](#proactive-automation-suite-v11) *(24 kit-native hooks)*
+- [Proactive Automation Suite](#proactive-automation-suite) *(24 kit-native hooks)*
 - [Settings Reference](#settings-reference)
 - [Appendix A: Model Selection](#model-selection)
 - [Appendix B: Contributor Credits](#contributor-credits)
@@ -204,9 +214,9 @@ Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges th
 
 ---
 
-### The Fable Method
+### The Commander Method
 
-> **Distilled from Claude Fable, written to run on any model.** Frontier-model results come from the *system around the model*, not just raw capability. Every instinct that makes Fable reliable — refusing a single pass, isolating blast radius, verifying against ground truth, treating context as disposable, operating like a PM instead of a typist — can be externalized as a gate any model can follow. Arm it with `/ccc-fable on`. Full text: `commander/cowork-plugin/rules/fable-method.md`.
+> **Distilled from frontier-model practice, written to run on any model.** Frontier-model results come from the *system around the model*, not just raw capability. Every instinct that makes a frontier model reliable — refusing a single pass, isolating blast radius, verifying against ground truth, treating context as disposable, operating like a PM instead of a typist — can be externalized as a gate any model can follow. Arm it with `/ccc-fable on`. Full text: `commander/cowork-plugin/rules/fable-method.md`.
 
 **The one-line version:** *judgment as process.* When the model is weaker, the process must be stronger.
 
@@ -227,7 +237,7 @@ Run `/ccc-adopt` once inside any existing non-CC-Commander project. It merges th
 | 11 | Effort calibration | Did a small pilot validate this approach and its cost before scaling it? |
 | 12 | Operationalize every fix | What prevents this exact class of bug from recurring, and is that prevention mechanical? |
 
-**Model-agnostic promise:** a frontier model does some of this by instinct; a mid-tier model does none of it by instinct. That's why every pillar is a gate rather than a value — Sonnet, GPT, or any executor following these gates produces Fable-shaped results. The weaker the model, the more the gates matter. **The method IS the moat.**
+**Model-agnostic promise:** a frontier model does some of this by instinct; a mid-tier model does none of it by instinct. That's why every pillar is a gate rather than a value — Sonnet, GPT, or any executor following these gates produces frontier-shaped results. The weaker the model, the more the gates matter. **The method IS the moat.**
 
 **Related:** `/ccc-fable` (arms the doctrine as a session contract) · `rules/workflow-first.md` (Pillars 1, 2, 6, 7, 8, 9, 11 as ambient session rules) · `rules/common/reasoning-hygiene.md` (Pillar 4 in full) · `/ccc-orchestrate` (Pillar 1 implementation) · `/ccc-suggest` (Pillar 10 implementation).
 
@@ -387,7 +397,7 @@ One starred move. Reasoning. Alternatives. Named plugins. No paralysis.
 | 3 | **Assertive** | Boxed recommendation card at the top with confidence + alternatives | Blockers present (failed CI, security alerts, drift) |
 | 4 | **Autopilot** | Runs the top read-only recommendation after a 5-second countdown | Never auto-activates — opt-in only via `CCC_SUGGEST_LEVEL=4` |
 
-Every pass — explicit invocation and ambient tick alike — runs **three PM lenses** before ranking anything else, framed by Fable Method Pillar 10:
+Every pass — explicit invocation and ambient tick alike — runs **three PM lenses** before ranking anything else, framed by Commander Method Pillar 10:
 
 1. **IMPROVE** — what skill/hook could make things better right now? Same fix twice → propose encoding it.
 2. **SCOPE** — is the current work properly defined? No plan file or ballooning scope → flag it. **SCOPE outranks IMPROVE.**
@@ -435,7 +445,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 | `ccc-domains` | Browse and activate the 11 canonical CCC domains |
 | `ccc-e2e` | Isolated unit, QA, and Playwright release assessment |
 | `ccc-ecc` | Selective Everything Claude Code component loader |
-| `ccc-fable` | Arm the model-agnostic Fable Method session contract |
+| `ccc-fable` | Arm the model-agnostic Commander Method session contract |
 | `ccc-fleet` | Worktree-isolated multi-agent orchestration |
 | `ccc-fleet-viz` | Live agent fleet progress and cost view |
 | `ccc-handoff` | Dense context-reset handoff for a fresh chat |
@@ -2588,7 +2598,7 @@ Ultracode is its own toggle: `/effort ultracode on` makes Claude plan a verified
 "audit auth as a workflow"   # one task, no toggle
 ```
 
-**Cost note:** a workflow spawns many agents; a full-repo audit can cost ten to fifty times a single pass. Scope to a path first. The `cost-ceiling-enforcer.js` hook still applies. Check spend with `/ccc-usage`.
+**Cost note:** a workflow spawns many agents; a full-repo audit can cost ten to fifty times a single pass. Scope to a path first. The `cost-ceiling-enforcer.js` hook caps tool calls only when you set `CCC_COST_CEILING` (off by default). Check spend with `/ccc-usage`.
 
 **Cost optimization tips:**
 - Use Haiku for 90% of subagent work (3x savings, 90% of Sonnet capability)
@@ -2713,7 +2723,7 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 | 21 | `kotlin-reviewer` | `opus` | Idiomatic Kotlin, coroutines, Android patterns, null safety |
 | 22 | `csharp-reviewer` | `opus` | .NET patterns, async/await, LINQ, IDisposable compliance |
 
-Models are aliases: `fable` (Fable 5.1) for `architect` and `security-auditor`, where deep multi-angle reasoning is the bottleneck; `sonnet` (Sonnet 5.5) for `content-strategist`, `technical-writer` and `fleet-worker`, where the work is bounded and well specified; `opus` (Opus 5.5) for everything else. Read-only reviewers carry `disallowedTools` so they cannot edit. The routing follows the Fable Method's Pillar 11 (effort calibration).
+Models are aliases: `fable` (Fable 5.1) for `architect` and `security-auditor`, where deep multi-angle reasoning is the bottleneck; `sonnet` (Sonnet 5.5) for `content-strategist`, `technical-writer` and `fleet-worker`, where the work is bounded and well specified; `opus` (Opus 5.5) for everything else. Read-only reviewers carry `disallowedTools` so they cannot edit. The routing follows the Commander Method's Pillar 11 (effort calibration).
 
 ### What This Means for Users
 
@@ -3180,7 +3190,7 @@ CCC skills are fully compatible with this format. Cherry-pick individual skills 
 
 CCC does not replace these skills. It organizes and orchestrates them.
 
-- **Curation:** 500+ skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
+- **Curation:** the 467 ecosystem skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
 - **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
 - **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 16 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
 - **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (41 skills) behaves like a single expert, not 41 separate prompts.
