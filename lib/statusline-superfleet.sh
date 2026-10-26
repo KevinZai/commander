@@ -19,18 +19,12 @@ CCC_SF_MAX_KEY=16
 CCC_SF_STALE_SECS=1800
 CCC_SF_CACHE_SECS=15
 
-# Lane name from a config dir: .claude-<name> -> name, .claude-guestnetworks -> ai5,
-# .claude or unset -> pri (same rules as commander/lib/lane.js).
+# Lane name from a config dir: statusline.sh's ccc_lane_from_config_dir (the
+# commander/lib/lane.js rules, aliases included); "custom" for other names.
 ccc_sf_lane() {
-  local dir="${1-}" base
-  [ -z "$dir" ] && { printf 'pri'; return; }
-  dir="${dir%/}"; base="${dir##*/}"
-  case "$base" in
-    .claude) printf 'pri' ;;
-    .claude-guestnetworks) printf 'ai5' ;;
-    .claude-?*) printf '%s' "${base#.claude-}" | LC_ALL=C tr -cd 'A-Za-z0-9._-' | cut -c1-16 ;;
-    *) printf 'custom' ;;
-  esac
+  local lane
+  lane=$(ccc_lane_from_config_dir "${1-}")
+  printf '%s' "${lane:-custom}"
 }
 
 # Run dir for this session (stdout), or nothing.

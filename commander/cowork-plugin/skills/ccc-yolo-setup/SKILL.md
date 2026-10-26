@@ -7,8 +7,6 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[conservative | balanced | aggressive-safe | revert]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

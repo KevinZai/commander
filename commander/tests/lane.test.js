@@ -184,3 +184,42 @@ test('VS Code extension reads the lane state.json first, legacy otherwise', func
   fs.writeFileSync(path.join(home, '.claude-ai2', 'commander', 'state.json'), '{}');
   assert.strictEqual(run().stdout, path.join(home, '.claude-ai2', 'commander', 'state.json'));
 });
+
+// CC-2115 (AUDIT M1): one lane resolver. Aliases map a config dir suffix
+// (.claude-<suffix>) to a lane name; defaults {guestnetworks: ai5}, overlaid by
+// ~/.commander/config.json lanes.aliases.
+function homeWithAliases(aliases) {
+  var home = tmp('ccc lane alias ');
+  if (aliases !== undefined) {
+    fs.mkdirSync(path.join(home, '.commander'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.commander', 'config.json'), typeof aliases === 'string' ? aliases : JSON.stringify({ lanes: { aliases: aliases } }));
+  }
+  return home;
+}
+
+test('default aliases: guestnetworks -> ai5 with no config file', function() {
+  assert.deepStrictEqual(lane.DEFAULT_ALIASES, { guestnetworks: 'ai5' });
+  var home = homeWithAliases();
+  var r = lane.resolveLane({ HOME: home, CLAUDE_CONFIG_DIR: path.join(home, '.claude-guestnetworks') });
+  assert.deepStrictEqual([r.lane, r.account, r.aliased], ['ai5', 'guestnetworks', true]);
+  var plain = lane.resolveLane({ HOME: home, CLAUDE_CONFIG_DIR: path.join(home, '.claude-ai5') });
+  assert.deepStrictEqual([plain.lane, plain.account, plain.aliased], ['ai5', 'ai5', false]);
+  assert.deepStrictEqual(lane.laneAliases({ HOME: home }), { guestnetworks: 'ai5' });
+});
+
+test('config lanes.aliases adds aliases, overrides a default, and values are sanitized', function() {
+  var home = homeWithAliases({ mywifi: 'mw', guestnetworks: 'guestnetworks', odd: 'a$b c', bad: 7, '__proto__': 'x' });
+  var env = function(dir) { return { HOME: home, CLAUDE_CONFIG_DIR: path.join(home, dir) }; };
+  assert.strictEqual(lane.resolveLane(env('.claude-mywifi')).lane, 'mw');
+  assert.strictEqual(lane.resolveLane(env('.claude-guestnetworks')).lane, 'guestnetworks', 'config can undo a default alias');
+  assert.strictEqual(lane.resolveLane(env('.claude-odd')).lane, 'abc');
+  assert.strictEqual(lane.resolveLane(env('.claude-bad')).lane, 'bad', 'non-string alias ignored');
+  assert.strictEqual(lane.resolveLane(env('.claude-constructor')).lane, 'constructor', 'no prototype keys');
+});
+
+test('unreadable or malformed config keeps the default aliases', function() {
+  ['not json', JSON.stringify({ lanes: 'x' }), JSON.stringify({ lanes: { aliases: ['a'] } }), 'null'].forEach(function(raw) {
+    var home = homeWithAliases(raw);
+    assert.strictEqual(lane.resolveLane({ HOME: home, CLAUDE_CONFIG_DIR: path.join(home, '.claude-guestnetworks') }).lane, 'ai5', raw);
+  });
+});

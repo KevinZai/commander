@@ -8,8 +8,7 @@ allowed-tools:
   - AskUserQuestion
   - Artifact
 argument-hint: "[status | open | snapshot]"
-model: sonnet
-effort: low
+disable-model-invocation: true
 ---
 
 # /ccc-usage — what the work cost
@@ -31,7 +30,7 @@ With no argument, ask with AskUserQuestion (Codex: a plain-text question):
 
 - 🟢 Plain-English status — the headline numbers here, nothing leaves the machine
 - Publish the deck — a private claude.ai page; asks before uploading
-- Show it inline — runs `/ccc-console usage`
+- Show it inline — ask the user to type `/ccc-console usage`
 
 `status` goes to step 2. `open` or `snapshot` goes to step 3.
 

@@ -158,3 +158,32 @@ test('an unreadable skills dir is a gap, a missing one is clean', { skip: proces
     fs.chmodSync(path.join(dir, 'skills'), 0o755);
   }
 });
+
+// CC-2115 (AUDIT M1): a real ~/.claude-ai5 and the guestnetworks -> ai5 alias
+// used to give two "ai5" rows. The alias names the lane's config dir, so the
+// plain dir is reported as shadowed, not audited as a second ai5.
+test('one row per lane: an aliased dir shadows a plain dir with the same lane name', function() {
+  var home = tmp('ccc inst dup ');
+  addInstance(home, '.claude-ai5', {});
+  addInstance(home, '.claude-guestnetworks', { version: '8.1.2', enabled: true });
+  var r = instances.auditInstances({ home: home, root: root('8.1.2') });
+  var ai5 = r.instances.filter(function(i) { return i.lane === 'ai5'; });
+  assert.strictEqual(ai5.length, 1, JSON.stringify(r.instances));
+  assert.strictEqual(path.basename(ai5[0].config_dir), '.claude-guestnetworks');
+  assert.deepStrictEqual(r.shadowed, [{ lane: 'ai5', config_dir: path.join(home, '.claude-ai5'), by: path.join(home, '.claude-guestnetworks') }]);
+  assert.strictEqual(r.ok, true, 'a shadowed leftover dir is not a gap');
+  var table = instances.renderTable(r);
+  assert.strictEqual((table.match(/^\| ai5 \|/gm) || []).length, 1, table);
+  assert.match(table, /`~\/\.claude-ai5` not audited: lane ai5 is `~\/\.claude-guestnetworks`/);
+  assert.match(table, /1 instances · 0 with gaps/);
+});
+
+test('aliases come from <home>/.commander/config.json lanes.aliases', function() {
+  var home = tmp('ccc inst alias cfg ');
+  addInstance(home, '.claude-mywifi', {});
+  addInstance(home, '.claude-guestnetworks', {});
+  writeJson(path.join(home, '.commander', 'config.json'), { lanes: { aliases: { mywifi: 'mw', guestnetworks: 'guestnetworks' } } });
+  var r = instances.auditInstances({ home: home, root: root('8.1.2') });
+  assert.deepStrictEqual(r.instances.map(function(i) { return i.lane; }).sort(), ['guestnetworks', 'mw']);
+  assert.deepStrictEqual(r.shadowed, []);
+});

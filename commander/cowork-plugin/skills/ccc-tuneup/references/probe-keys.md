@@ -65,6 +65,30 @@ Example detail block printed under the scorecard when `COST_FLAGGED` is above 0:
 "env": { "MAX_THINKING_TOKENS": "10000", "ENABLE_TOOL_SEARCH": "1" }
 ```
 
+### Skill listing budget (inform only)
+
+Claude Code lists every model-invocable skill's name and description at session
+start, within a budget of 1% of the context window (8,000 chars on a 200k
+model). On overflow it drops descriptions, least-used skills first. Commander
+keeps its 12 core skills, and the menus they open, model-visible; the rest set
+`disable-model-invocation: true`, so they cost nothing until typed (`/ccc-*`), picked from `/ccc-more` or
+`/ccc-browse`, or offered by the router. `npm run measure:listing` in the
+Commander repo prints the listing cost.
+
+Middle ground, `skillOverrides` with `"name-only"`: the skill stays listed by
+name, without its description, and stays in the `/` menu. It applies to your
+personal and project skills, so use it to free budget for other skills:
+
+```json
+"skillOverrides": { "my-legacy-skill": "name-only", "old-deploy": "user-invocable-only" }
+```
+
+Per the docs, plugin skills are not affected by `skillOverrides`, so an entry
+such as `"commander:ccc-xray": "name-only"` changes nothing; manage plugins
+through `/plugin`. For plugin skills, `skillListingMaxDescChars` caps each
+description and `skillListingBudgetFraction` (or `SLASH_COMMAND_TOOL_CHAR_BUDGET`)
+raises the budget. Source: https://code.claude.com/docs/en/skills#override-skill-visibility-from-settings.
+
 ## Scorecard rubric
 
 🟢 90–100 · 🟡 50–89 · 🔴 0–49 · ⏭️ n/a (probe failed or check skipped; never crash).

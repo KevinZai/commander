@@ -1,0 +1,73 @@
+# Publishes the standalone `cc-commander` plugin tree (DIRECTORY.md, CC-2114) to
+# KevinZai/cc-commander-plugin on every v* tag.
+#
+# Kevin-only setup, before the first run:
+#   1. Create the PUBLIC repo KevinZai/cc-commander-plugin with a `main` branch
+#      (one initial commit, e.g. a placeholder README).
+#   2. Add a repository secret MIRROR_PUSH_TOKEN to KevinZai/commander: a
+#      fine-grained token with Contents: read/write on cc-commander-plugin only.
+# Until the secret exists the publish job prints a notice and exits 0.
+#
+# History policy: the mirror is updated with a normal fast-forward commit per
+# tag. No force-push, no orphan commits.
+
+name: Publish directory mirror
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and push cc-commander mirror
+    runs-on: ubuntu-latest
+    env:
+      MIRROR_REPO: KevinZai/cc-commander-plugin
+      MIRROR_PUSH_TOKEN: ${{ secrets.MIRROR_PUSH_TOKEN }}
+    steps:
+      - name: Check mirror token
+        id: token
+        run: |
+          if [ -z "$MIRROR_PUSH_TOKEN" ]; then
+            echo "::notice::MIRROR_PUSH_TOKEN is not set; skipping mirror publish. Kevin must create $MIRROR_REPO and add the secret."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.present == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.present == 'true'
+        with:
+          node-version: '22'
+
+      - name: Build mirror tree
+        if: steps.token.outputs.present == 'true'
+        run: node scripts/build-directory-mirror.js --out "$RUNNER_TEMP/mirror"
+
+      - name: Push mirror to main
+        if: steps.token.outputs.present == 'true'
+        run: |
+          set -euo pipefail
+          git clone --branch main "https://x-access-token:${MIRROR_PUSH_TOKEN}@github.com/${MIRROR_REPO}.git" "$RUNNER_TEMP/clone"
+          cd "$RUNNER_TEMP/clone"
+          # Replace the tree: remove every tracked file, then copy the build in (dotfiles included).
+          git rm -r -q --ignore-unmatch .
+          cp -a "$RUNNER_TEMP/mirror/." .
+          rm -f .cc-commander-mirror  # builder marker, not part of the published tree
+          git add -A
+          if git diff --cached --quiet; then
+            echo "::notice::Mirror already up to date; nothing to push."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Mirror KevinZai/commander ${GITHUB_REF_NAME} (${GITHUB_SHA::8})"
+          git push origin main

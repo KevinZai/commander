@@ -6,7 +6,7 @@
  * Dual-mode: exports run({input,env,cwd}) for the SessionStart orchestrator,
  * and runs standalone via CLI tail when invoked directly.
  *
- * Emits a one-line reminder that the Fable Method doctrine is available and
+ * Emits a one-line reminder that the Commander Method doctrine is available and
  * how to self-check it. Always fail-open — never blocks the session start.
  * Respects CCC_FABLE_NUDGE_DISABLE=1.
  */
@@ -20,7 +20,7 @@ import { emitUser } from './lib/emit.mjs';
 export async function run({ env = process.env } = {}) {
   if (env.CCC_FABLE_NUDGE_DISABLE === '1') return { continue: true };
   try {
-    return emitUser('Fable Method armed: 12 gates · rules/fable-method.md · /ccc-fable audit to self-check');
+    return emitUser('Commander Method armed: 12 gates · rules/fable-method.md · /ccc-fable audit to self-check');
   } catch {
     return { continue: true };
   }

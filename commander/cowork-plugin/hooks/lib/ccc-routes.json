@@ -6,7 +6,7 @@
       "id": "ccc",
       "kind": "skill",
       "invoke": "/ccc",
-      "label": "Commander's click-first home",
+      "label": "Commander home",
       "manual": false,
       "strong": [
         "commander menu",
@@ -17,6 +17,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -25,7 +26,7 @@
       "kind": "skill",
       "invoke": "/ccc-adhd",
       "label": "Answer-first output",
-      "manual": false,
+      "manual": true,
       "strong": [
         "adhd mode",
         "answer first mode"
@@ -35,6 +36,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -42,7 +44,7 @@
       "id": "ccc-adopt",
       "kind": "skill",
       "invoke": "/ccc-adopt",
-      "label": "Merge Commander's orchestrator/executor…",
+      "label": "Merge Commander conventions and a…",
       "manual": false,
       "strong": [
         "adopt commander",
@@ -53,6 +55,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-claudemd"
       ],
@@ -63,7 +66,7 @@
       "kind": "skill",
       "invoke": "/ccc-agent-writing",
       "label": "Draft a spec, PRD, PR description, README…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "draft a prd",
         "write a prd",
@@ -83,6 +86,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review",
         "ccc-plan"
@@ -99,7 +103,7 @@
       "kind": "skill",
       "invoke": "/ccc-brainstorm",
       "label": "Design-first ideation gate",
-      "manual": false,
+      "manual": true,
       "strong": [
         "brainstorm",
         "torn between",
@@ -119,6 +123,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-plan",
         "ccc-build"
@@ -140,6 +145,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -147,7 +153,7 @@
       "id": "ccc-browse",
       "kind": "skill",
       "invoke": "/ccc-browse",
-      "label": "Browse every CC Commander skill, agent and…",
+      "label": "Browse every Commander skill, agent and domain",
       "manual": false,
       "strong": [
         "skill catalog",
@@ -159,6 +165,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -186,6 +193,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-testing",
         "ccc-review",
@@ -198,7 +206,7 @@
       "kind": "skill",
       "invoke": "/ccc-changelog",
       "label": "Summarize what changed in the latest CC…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "changelog",
         "release notes for",
@@ -224,6 +232,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-update"
       ],
@@ -233,7 +242,7 @@
       "id": "ccc-cheatsheet",
       "kind": "skill",
       "invoke": "/ccc-cheatsheet",
-      "label": "Live map of Commander",
+      "label": "Live map of the installed Commander",
       "manual": false,
       "strong": [
         "commander cheatsheet",
@@ -245,6 +254,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -253,7 +263,7 @@
       "kind": "skill",
       "invoke": "/ccc-ci",
       "label": "Diagnose CI and deploy failures",
-      "manual": false,
+      "manual": true,
       "strong": [
         "ci is red",
         "ci failing",
@@ -277,6 +287,7 @@
         ".github/workflows"
       ],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-systematic-debugging",
         "ccc-testing"
@@ -288,7 +299,7 @@
       "kind": "skill",
       "invoke": "/ccc-claudemd",
       "label": "Audit a project CLAUDE.md against the real…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "audit claude.md",
         "clean up claude.md",
@@ -302,6 +313,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -322,6 +334,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -343,6 +356,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -351,7 +365,7 @@
       "kind": "skill",
       "invoke": "/ccc-console",
       "label": "Open the Commander Console inline",
-      "manual": false,
+      "manual": true,
       "strong": [
         "commander console",
         "open the console"
@@ -361,6 +375,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -369,7 +384,7 @@
       "kind": "skill",
       "invoke": "/ccc-content",
       "label": "Draft blog posts, social threads, email…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "blog post",
         "linkedin post",
@@ -392,6 +407,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-seo",
         "ccc-marketing"
@@ -402,7 +418,7 @@
       "id": "ccc-data",
       "kind": "skill",
       "invoke": "/ccc-data",
-      "label": "Route data work to the right method",
+      "label": "Data router",
       "manual": false,
       "strong": [
         "etl pipeline",
@@ -423,6 +439,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -431,7 +448,7 @@
       "kind": "skill",
       "invoke": "/ccc-debate",
       "label": "Adversarial multi-agent debate",
-      "manual": false,
+      "manual": true,
       "strong": [
         "devil's advocate",
         "stress-test this design",
@@ -445,6 +462,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -472,6 +490,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-broadcast",
         "ccc-changelog"
@@ -486,7 +505,7 @@
       "kind": "skill",
       "invoke": "/ccc-deploy-check",
       "label": "Pre-deploy readiness gate",
-      "manual": false,
+      "manual": true,
       "strong": [
         "ready to deploy",
         "ready to ship",
@@ -504,6 +523,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-ship",
         "ccc-deploy",
@@ -515,7 +535,7 @@
       "id": "ccc-design",
       "kind": "skill",
       "invoke": "/ccc-design",
-      "label": "Route design work to the right method",
+      "label": "UI design",
       "manual": false,
       "strong": [
         "polish the ui",
@@ -539,6 +559,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review",
         "ccc-testing"
@@ -549,7 +570,7 @@
       "id": "ccc-devops",
       "kind": "skill",
       "invoke": "/ccc-devops",
-      "label": "DevOps domain router",
+      "label": "DevOps router",
       "manual": false,
       "strong": [
         "ci/cd pipeline",
@@ -575,6 +596,7 @@
         "docker-compose.yml"
       ],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-deploy-check",
         "ccc-security"
@@ -586,7 +608,7 @@
       "kind": "skill",
       "invoke": "/ccc-doc-sync",
       "label": "Sync skill, agent and hook-handler counts…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "doc sync",
         "doc-count check",
@@ -597,6 +619,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -619,6 +642,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-update",
         "ccc-tuneup"
@@ -630,7 +654,7 @@
       "kind": "skill",
       "invoke": "/ccc-e2e",
       "label": "Pre-release assessment that fans out via…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "pre-release assessment",
         "is this release ready"
@@ -640,6 +664,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-ship"
       ],
@@ -660,6 +685,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -667,8 +693,8 @@
       "id": "ccc-fable",
       "kind": "skill",
       "invoke": "/ccc-fable",
-      "label": "Arm, check, audit or disarm the Fable Method",
-      "manual": false,
+      "label": "Arm, check, audit or disarm the Commander Method",
+      "manual": true,
       "strong": [
         "fable method",
         "fable on",
@@ -681,6 +707,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": [
         "orchestrated work"
@@ -712,6 +739,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-fleet-viz",
         "ccc-review"
@@ -722,7 +750,7 @@
       "id": "ccc-fleet-viz",
       "kind": "skill",
       "invoke": "/ccc-fleet-viz",
-      "label": "Show a /ccc-fleet run as a live tree of workers",
+      "label": "Show a /ccc-fleet run as a live tree of…",
       "manual": false,
       "strong": [
         "fleet progress",
@@ -733,6 +761,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -741,7 +770,7 @@
       "kind": "skill",
       "invoke": "/ccc-handoff",
       "label": "Write a dense handoff file and tell the user…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "write a handoff",
         "context is getting long"
@@ -756,6 +785,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -764,7 +794,7 @@
       "kind": "skill",
       "invoke": "/ccc-harden",
       "label": "Pre-launch production hardening audit across…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "harden for launch",
         "production hardening",
@@ -777,6 +807,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-deploy-check"
       ],
@@ -796,6 +827,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -804,7 +836,7 @@
       "kind": "skill",
       "invoke": "/ccc-infra",
       "label": "Dev services status",
-      "manual": false,
+      "manual": true,
       "strong": [
         "is the dev server up",
         "why is the mcp down",
@@ -816,6 +848,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -824,7 +857,7 @@
       "kind": "skill",
       "invoke": "/ccc-knowledge",
       "label": "Search, browse and add lessons in the local…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "commander knowledge base",
         "what have we learned",
@@ -835,6 +868,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -842,7 +876,7 @@
       "id": "ccc-learn",
       "kind": "skill",
       "invoke": "/ccc-learn",
-      "label": "Pick a CC Commander skill domain in one click",
+      "label": "Pick a Commander skill domain",
       "manual": false,
       "strong": [
         "skill domains",
@@ -853,10 +887,9 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
-      "descTriggers": [
-        "browse domains"
-      ]
+      "descTriggers": []
     },
     {
       "id": "ccc-linear",
@@ -878,6 +911,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-plan",
         "ccc-build"
@@ -889,7 +923,7 @@
       "kind": "skill",
       "invoke": "/ccc-linear-board",
       "label": "Publish a team's Linear issues as a private…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "linear board",
         "sprint board"
@@ -904,6 +938,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-linear"
       ],
@@ -914,7 +949,7 @@
       "kind": "skill",
       "invoke": "/ccc-loop",
       "label": "Pick the right loop primitive",
-      "manual": false,
+      "manual": true,
       "strong": [
         "run until done",
         "keep checking every"
@@ -929,6 +964,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -948,6 +984,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review"
       ],
@@ -957,7 +994,7 @@
       "id": "ccc-marketing",
       "kind": "skill",
       "invoke": "/ccc-marketing",
-      "label": "Route marketing work to the right specialist…",
+      "label": "Marketing router",
       "manual": false,
       "strong": [
         "marketing plan",
@@ -974,6 +1011,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-content",
         "ccc-seo"
@@ -985,7 +1023,7 @@
       "kind": "skill",
       "invoke": "/ccc-memory",
       "label": "Keep durable project memory in two tiers",
-      "manual": false,
+      "manual": true,
       "strong": [
         "save to memory",
         "record this decision"
@@ -998,6 +1036,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1006,7 +1045,7 @@
       "kind": "skill",
       "invoke": "/ccc-mission-control",
       "label": "Agent mission control",
-      "manual": false,
+      "manual": true,
       "strong": [
         "mission control",
         "what are the agents doing",
@@ -1019,6 +1058,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1026,7 +1066,7 @@
       "id": "ccc-mobile",
       "kind": "skill",
       "invoke": "/ccc-mobile",
-      "label": "Route mobile work to the right method",
+      "label": "Mobile router",
       "manual": false,
       "strong": [
         "react native",
@@ -1048,6 +1088,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -1068,6 +1109,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1088,6 +1130,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review"
       ],
@@ -1115,6 +1158,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1123,7 +1167,7 @@
       "kind": "skill",
       "invoke": "/ccc-onboard",
       "label": "Contributor first-hour plan for the current…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "onboard me",
         "new to this repo",
@@ -1134,6 +1178,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-plan"
       ],
@@ -1144,7 +1189,7 @@
       "kind": "skill",
       "invoke": "/ccc-orchestrate",
       "label": "Write a goal file, run it on a separate executor",
-      "manual": false,
+      "manual": true,
       "strong": [
         "goal file",
         "different executor",
@@ -1155,6 +1200,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review"
       ],
@@ -1189,6 +1235,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-build",
         "ccc-testing",
@@ -1201,7 +1248,7 @@
       "kind": "skill",
       "invoke": "/ccc-plan-exec",
       "label": "Plan cheap, execute capable",
-      "manual": false,
+      "manual": true,
       "strong": [
         "plan-exec",
         "plan exec"
@@ -1211,6 +1258,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review"
       ],
@@ -1223,7 +1271,7 @@
       "kind": "skill",
       "invoke": "/ccc-prompt-fix",
       "label": "Diagnose a prompt against the six…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "fix my prompt",
         "improve this prompt",
@@ -1239,6 +1287,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1246,7 +1295,7 @@
       "id": "ccc-qa",
       "kind": "skill",
       "invoke": "/ccc-qa",
-      "label": "QA pass before shipping",
+      "label": "Pre-ship QA pass",
       "manual": false,
       "strong": [
         "qa pass",
@@ -1267,6 +1316,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-review",
         "ccc-deploy-check"
@@ -1278,7 +1328,7 @@
       "kind": "skill",
       "invoke": "/ccc-recall",
       "label": "Search past saved sessions and curated…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "didn't we solve",
         "did we solve this",
@@ -1293,6 +1343,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1301,7 +1352,7 @@
       "kind": "skill",
       "invoke": "/ccc-relay",
       "label": "Chain independent loop sessions",
-      "manual": false,
+      "manual": true,
       "strong": [
         "finn loop",
         "auto-chained loops"
@@ -1311,6 +1362,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1318,7 +1370,7 @@
       "id": "ccc-research",
       "kind": "skill",
       "invoke": "/ccc-research",
-      "label": "Research before you build",
+      "label": "Cited multi-source research before building",
       "manual": false,
       "strong": [
         "prior art",
@@ -1342,6 +1394,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-plan",
         "ccc-brainstorm"
@@ -1352,7 +1405,7 @@
       "id": "ccc-resume-session",
       "kind": "skill",
       "invoke": "/ccc-resume-session",
-      "label": "Load a saved session file from…",
+      "label": "Resume a saved session file",
       "manual": false,
       "strong": [
         "resume session",
@@ -1365,6 +1418,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1372,7 +1426,7 @@
       "id": "ccc-review",
       "kind": "skill",
       "invoke": "/ccc-review",
-      "label": "Audit the current branch, security posture,…",
+      "label": "Code review of the current branch or PR, or…",
       "manual": false,
       "strong": [
         "code review",
@@ -1399,6 +1453,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-qa",
         "ccc-deploy-check",
@@ -1431,6 +1486,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-systematic-debugging"
       ],
@@ -1440,7 +1496,7 @@
       "id": "ccc-saas",
       "kind": "skill",
       "invoke": "/ccc-saas",
-      "label": "Route SaaS work to the right method",
+      "label": "SaaS router",
       "manual": false,
       "strong": [
         "stripe billing",
@@ -1458,6 +1514,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-build",
         "ccc-security"
@@ -1469,7 +1526,7 @@
       "kind": "skill",
       "invoke": "/ccc-safety",
       "label": "Safety deck",
-      "manual": false,
+      "manual": true,
       "strong": [
         "what did the guardrails catch",
         "safety deck"
@@ -1479,6 +1536,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1486,7 +1544,7 @@
       "id": "ccc-save-session",
       "kind": "skill",
       "invoke": "/ccc-save-session",
-      "label": "Compress the current session into a dense…",
+      "label": "Save the session to a reloadable file",
       "manual": false,
       "strong": [
         "save this session",
@@ -1497,6 +1555,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1504,7 +1563,7 @@
       "id": "ccc-security",
       "kind": "skill",
       "invoke": "/ccc-security",
-      "label": "Application security hub",
+      "label": "Security audit",
       "manual": false,
       "strong": [
         "security audit",
@@ -1529,6 +1588,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-harden",
         "ccc-review"
@@ -1539,7 +1599,7 @@
       "id": "ccc-seo",
       "kind": "skill",
       "invoke": "/ccc-seo",
-      "label": "Route SEO work to the right method",
+      "label": "SEO router",
       "manual": false,
       "strong": [
         "seo audit",
@@ -1560,6 +1620,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-content"
       ],
@@ -1570,16 +1631,22 @@
       "kind": "skill",
       "invoke": "/ccc-settings",
       "label": "Settings hub",
-      "manual": false,
+      "manual": true,
       "strong": [
         "commander settings",
         "cost ceiling"
       ],
-      "triggers": [],
-      "patterns": [],
+      "triggers": [
+        "auto-routing"
+      ],
+      "patterns": [
+        "\\b(turn|switch|shut)\\s+(off|on)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b",
+        "\\b(disable|enable|stop)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b"
+      ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": [
         "auto mode",
@@ -1609,6 +1676,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-changelog",
         "ccc-broadcast",
@@ -1626,7 +1694,7 @@
       "kind": "skill",
       "invoke": "/ccc-smb-ops",
       "label": "Small-business back office from a bank CSV…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "cash flow forecast",
         "cash-flow forecast",
@@ -1646,6 +1714,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1654,7 +1723,7 @@
       "kind": "skill",
       "invoke": "/ccc-spawn",
       "label": "Spin self-contained work off on demand",
-      "manual": false,
+      "manual": true,
       "strong": [
         "spin this off",
         "run this in the background",
@@ -1665,6 +1734,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1673,7 +1743,7 @@
       "kind": "skill",
       "invoke": "/ccc-standup",
       "label": "Write a yesterday / today / blockers standup…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "what did i do yesterday",
         "daily update",
@@ -1693,6 +1763,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-tasks",
         "ccc-linear"
@@ -1714,6 +1785,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1721,7 +1793,7 @@
       "id": "ccc-suggest",
       "kind": "skill",
       "invoke": "/ccc-suggest",
-      "label": "Reads project state and recent activity,…",
+      "label": "Recommends the one next /ccc-* skill or…",
       "manual": false,
       "strong": [
         "what should i do next",
@@ -1737,6 +1809,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1744,7 +1817,7 @@
       "id": "ccc-systematic-debugging",
       "kind": "skill",
       "invoke": "/ccc-systematic-debugging",
-      "label": "Root-cause debugging under one law",
+      "label": "Root-cause debugging",
       "manual": false,
       "strong": [
         "root cause",
@@ -1768,6 +1841,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -1779,7 +1853,7 @@
       "kind": "skill",
       "invoke": "/ccc-tasks",
       "label": "Track work in one markdown file,…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "my todo list",
         "my to-do list",
@@ -1796,6 +1870,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1803,7 +1878,7 @@
       "id": "ccc-testing",
       "kind": "skill",
       "invoke": "/ccc-testing",
-      "label": "Testing domain router",
+      "label": "Write or plan tests",
       "manual": false,
       "strong": [
         "test strategy",
@@ -1827,6 +1902,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-qa",
         "ccc-review"
@@ -1850,6 +1926,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1870,6 +1947,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1878,7 +1956,7 @@
       "kind": "skill",
       "invoke": "/ccc-ultracode",
       "label": "Run deep, multi-agent work as adversarially…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "ultracode",
         "depth over speed"
@@ -1888,6 +1966,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1895,7 +1974,7 @@
       "id": "ccc-update",
       "kind": "skill",
       "invoke": "/ccc-update",
-      "label": "Update the installed CC Commander plugin",
+      "label": "Update the installed Commander plugin",
       "manual": false,
       "strong": [
         "update commander",
@@ -1907,6 +1986,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-changelog",
         "ccc-doctor"
@@ -1930,6 +2010,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1938,7 +2019,7 @@
       "kind": "skill",
       "invoke": "/ccc-usage",
       "label": "Usage and cost deck",
-      "manual": false,
+      "manual": true,
       "strong": [
         "usage deck",
         "how much did i spend",
@@ -1952,6 +2033,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -1988,6 +2070,7 @@
       ],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [
         "ccc-makeover",
         "ccc-review"
@@ -2011,6 +2094,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": [
         "fewer approvals",
@@ -2038,6 +2122,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2060,6 +2145,7 @@
         ".csproj"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2078,6 +2164,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2096,6 +2183,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2116,6 +2204,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2134,6 +2223,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2156,6 +2246,7 @@
         "go.mod"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2178,6 +2269,7 @@
         "pom.xml"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2200,6 +2292,7 @@
         ".kts"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2225,6 +2318,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2245,6 +2339,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2267,6 +2362,7 @@
         "pyproject.toml"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2285,6 +2381,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2303,6 +2400,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2321,6 +2419,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2343,6 +2442,7 @@
         "Cargo.toml"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2363,6 +2463,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2382,6 +2483,7 @@
       "negatives": [],
       "paths": [],
       "requirePath": false,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     },
@@ -2404,6 +2506,7 @@
         ".tsx"
       ],
       "requirePath": true,
+      "priority": 0,
       "next": [],
       "descTriggers": []
     }

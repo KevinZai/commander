@@ -56,6 +56,7 @@ import { spawn } from 'node:child_process';
 import { access, appendFile, mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { readableStateDir, stateDir } from './lane-state.js';
+import { isOffline } from './network-mode.js';
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB — same rotation threshold as suggestions.js
 const MAX_JSONL_LINES = 5000; // Item 6 bounded-scan cap, per source file
@@ -252,8 +253,12 @@ function cachedRunCcusage(args) {
   return promise;
 }
 
+// ccusage fetches model pricing from the network unless --offline is passed;
+// CCC_OFFLINE=1 makes it use its cached pricing instead.
 async function fetchCcusageDaily(subcommand, sinceYYYYMMDD, runner) {
-  const raw = await runner([subcommand, 'daily', '--json', '--since', sinceYYYYMMDD]);
+  const args = [subcommand, 'daily', '--json', '--since', sinceYYYYMMDD];
+  if (isOffline(process.env)) args.push('--offline');
+  const raw = await runner(args);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);

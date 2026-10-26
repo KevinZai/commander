@@ -1,6 +1,6 @@
 # Contributing to CC Commander
 
-Thanks for your interest. CC Commander runs **three paid plans** (Starter, Pro, Lifetime) with Starter **free during early access** while we ship. Plugin code is MIT-licensed and contribution is open regardless of tier — issues, PRs, and ideas all welcome.
+Thanks for your interest. Plugin code is MIT-licensed; issues, PRs and ideas are all welcome.
 
 ## Quick start
 
@@ -8,7 +8,7 @@ Thanks for your interest. CC Commander runs **three paid plans** (Starter, Pro, 
 git clone https://github.com/KevinZai/commander.git cc-commander
 cd cc-commander
 npm install
-npm test                     # 127 tests across 14 suites
+npm test                     # full local suite
 node commander/engine.js     # launch the CLI
 ```
 
@@ -17,9 +17,9 @@ node commander/engine.js     # launch the CLI
 ```
 .
 ├── commander/cowork-plugin/   ← the Desktop plugin (primary product)
-│   ├── skills/                ← 61 plugin skills
+│   ├── skills/                ← 84 plugin skills
 │   ├── agents/                ← 22 specialist agent personas
-│   └── hooks/                 ← 9 lifecycle hooks (24 handlers)
+│   └── hooks/                 ← 30 lifecycle hooks (52 handlers)
 ├── apps/mcp-server-cloud/     ← hosted MCP backend (v4.1)
 ├── site/                      ← commanderplugin.com (Next.js)
 ├── mintlify-docs/             ← docs.commanderplugin.com
@@ -36,11 +36,12 @@ node commander/engine.js     # launch the CLI
 
 ## Adding a new skill
 
-1. Create `commander/cowork-plugin/skills/<your-skill>/SKILL.md` with valid YAML frontmatter (see existing skills for the schema)
+1. Create `commander/cowork-plugin/skills/<your-skill>/SKILL.md` following [docs/PROMPT-STANDARD.md](docs/PROMPT-STANDARD.md): no `model:`/`effort:` pin, and `disable-model-invocation: true` unless the skill joins the model-visible set (the 12 core skills plus the skills their menus open)
 2. Bump `commander/contract.json` `plugin_skills` count
-3. Run `npm test` — `contract.test.js` will verify the count matches
-4. Add a row to `SKILLS-INDEX.md`
-5. PR
+3. Re-render the skill table: `node scripts/render-skill-table.js --write SKILLS-INDEX.md`
+4. Run `npm test`, `npm run check:parity` (counts from disk) and `npm run check:listing` (listing budget, no dispatch to an on-demand skill)
+5. Regenerate the Codex mirror: `npm run build:codex`
+6. PR
 
 ## Adding a new specialist agent
 
@@ -52,7 +53,7 @@ node commander/engine.js     # launch the CLI
 ## Adding a hook handler
 
 1. Create `commander/cowork-plugin/hooks/<handler>.js`
-2. Wire it in `commander/cowork-plugin/hooks.json` under the right lifecycle event
+2. Wire it in `commander/cowork-plugin/hooks/hooks.json` under the right lifecycle event
 3. Add a smoke test in `tests/hooks.test.js`
 4. Bump `commander/contract.json` `hook_handlers` count
 5. PR
@@ -60,10 +61,11 @@ node commander/engine.js     # launch the CLI
 ## Running tests
 
 ```bash
-npm test                                        # full suite (127 tests)
+npm test                                        # full suite
 node --test commander/tests/<file>.test.js      # single suite
 node --test commander/tests/contract.test.js    # count parity check
 node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --check  # doc drift check
+npm run check:parity                            # every count/version claim vs disk
 ```
 
 ## Style
@@ -75,9 +77,9 @@ node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --check  # doc drift ch
 
 ## What we don't merge
 
-- PRs that paywall existing Starter features (skills/agents/hooks shipped today stay free in Starter forever)
+- PRs that paywall existing skills, agents or hooks
 - PRs that add license-key gating to plugin **core** (Pro features can gate; the plugin is MIT and stays open)
-- PRs that add **new** telemetry event types without updating the [privacy policy](/privacy) and opt-out docs
+- PRs that add **new** telemetry event types without updating the [privacy policy](https://commanderplugin.com/privacy) and the README "Data & network" section (telemetry stays opt-in)
 - PRs without tests for new behavior
 - Drive-by formatting churn unrelated to the change
 - Vendored dependencies as full source copies (use git submodules under `vendor/`)

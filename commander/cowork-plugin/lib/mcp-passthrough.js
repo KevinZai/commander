@@ -91,9 +91,10 @@ function readMcpConfig() {
 
 /**
  * Returns true if MCP is configured and not explicitly disabled.
- * Checks env var MCP_DISABLED=1 first, then .claude/mcp.json.
+ * Checks CCC_OFFLINE / MCP_DISABLED=1 first, then .claude/mcp.json.
  */
 function isEnabled() {
+  if (require('./network-mode').isOffline(process.env)) return false;
   if (process.env.MCP_DISABLED === '1') return false;
   if (process.env.MCP_ENABLED === '0') return false;
   const cfg = readMcpConfig();

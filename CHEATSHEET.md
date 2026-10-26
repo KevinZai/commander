@@ -59,7 +59,7 @@ codex plugin add commander@commander-hub
 | `/ccc-ultracode` | Explains `/effort ultracode` and launches a bundled workflow |
 | `/ccc-fleet` | Parallel agents in git worktrees — fan-out, pipeline, judge, debate |
 | `/ccc-console` | Inline console — Overview · Usage · Safety · Memory · History · Launch |
-| `/ccc-fable` | Arm the Fable Method — `on` / `status` / `audit` / `off` |
+| `/ccc-fable` | Arm the Commander Method — `on` / `status` / `audit` / `off` |
 | `/ccc-handoff` | Dense handoff file, then a fresh chat before quality decays |
 | `/ccc-adopt` | Merge the Orchestrator/Executor block into another repo's `CLAUDE.md` |
 | `/ccc-claudemd` | Audit `CLAUDE.md` against the codebase, picker-approved fixes only |
@@ -71,7 +71,7 @@ codex plugin add commander@commander-hub
 | `/ccc-usage` · `/ccc-safety` | Usage & Cost and Safety decks |
 | `/ccc-domains` | Browse the 11 CCC domains |
 
-> 🧠 **The Fable Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
+> 🧠 **The Commander Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
 ### Sub-agent personas (22)
 
@@ -153,7 +153,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 
 ### vs aider
 
-Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 22 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aiderchat--positioning)
+Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 22 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](https://docs.commanderplugin.com/compare/vs-aider)
 
 ---
 

@@ -17,7 +17,7 @@ CC Commander is a PM and orchestration layer for Claude Code and Codex. The prim
 | `commander/cowork-plugin/skills/<name>/SKILL.md` | Plugin skills (`/ccc-*`) |
 | `commander/cowork-plugin/agents/*.md` | Plugin subagents |
 | `commander/cowork-plugin/hooks/` | `hooks.json` and handler scripts |
-| `commander/cowork-plugin/rules/` | Fable Method, workflow rules, common rules, personas |
+| `commander/cowork-plugin/rules/` | Commander Method (`fable-method.md`), workflow rules, common rules, personas |
 | `commander/cowork-plugin/workflows/` | Plugin workflows (`/commander:<name>`) |
 | `commander/cowork-plugin/mods/` | Claude Code mods |
 | `commander/adapters/codex/` | Codex translation layer used by the build |

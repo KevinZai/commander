@@ -74,7 +74,7 @@ Commander's skills also pass an effort level per dispatch through the Agent tool
 
 A workflow spawns many agents; a full-repo audit can cost ten to fifty times a single pass. Scope to a path first.
 
-Commander's `cost-ceiling-enforcer.js` hook tracks a session **tool-call budget** (an activity metric, not dollars). The default ceiling is `10.00` budget units (1,000 tool calls): the first crossing warns, and the next tool call is blocked unless `CCC_COST_OVERRIDE=1` is set. Raise it in `~/.claude/commander/config.json`:
+Commander's `cost-ceiling-enforcer.js` hook tracks a session **tool-call budget** (an activity metric, not dollars). It is off by default. Turn it on with `CCC_COST_CEILING=<units>` (1.00 = 100 tool calls; `0` or `off` turns it back off) or `costCeiling` in `<config dir>/commander/config.json` (`~/.claude/commander/config.json` for the default lane). Once set, the first crossing warns and each later tool call is denied with the reason, unless `CCC_COST_OVERRIDE=1` is set:
 
 ```json
 {

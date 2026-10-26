@@ -1,8 +1,9 @@
 'use strict';
 
-// Lane hint in the status line (🔑 segment): derived from the CLAUDE_CONFIG_DIR
-// basename. ".claude-<lane>" shows <lane>; unset or plain ".claude" shows "pri";
-// other names keep the ClaudeSwap / API-key-tail / n/a fallbacks.
+// Lane hint in the status line (🔑 segment): derived from the CCC_CONFIG_DIR /
+// CLAUDE_CONFIG_DIR basename. ".claude-<lane>" shows <lane> after aliases;
+// unset or plain ".claude" shows "pri"; other names keep the ClaudeSwap /
+// API-key-tail / n/a fallbacks. Lane names must match commander/lib/lane.js.
 
 const { test } = require('node:test');
 const assert = require('node:assert');
@@ -13,6 +14,7 @@ const path = require('node:path');
 const { stripVTControlCharacters } = require('node:util');
 
 const STATUSLINE = path.join(__dirname, '..', 'lib', 'statusline.sh');
+const lane = require('../commander/lib/lane');
 // Fixture only: the status line shows the last 3 characters of the key.
 const FAKE_KEY = 'x'.repeat(16) + 'xyz';
 const HAS_JQ = spawnSync('jq', ['--version']).status === 0;
@@ -103,9 +105,9 @@ test('odd lane names are sanitized to safe characters and capped at 16', (t) => 
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-\u001b[31mred') }), '31mred');
 });
 
-test('lane names up to 16 characters show in full (guestnetworks)', (t) => {
+test('lane names up to 16 characters show in full', (t) => {
   const f = fixture(t);
-  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-guestnetworks') }), 'guestnetworks');
+  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-guestnetwork') }), 'guestnetwork');
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-abcdefghijklmnop') }), 'abcdefghijklmnop');
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-abcdefghijklmnopQ') }), 'abcdefghijklmnop');
 });
@@ -133,4 +135,37 @@ test('a lane wins over the global ClaudeSwap state; odd names still use it', { s
   fs.writeFileSync(swap, JSON.stringify({ accounts: { 'max-secondary': { last_used: 2 }, 'max-primary': { last_used: 1 } } }));
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-ai1') }), 'ai1');
   assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, 'claude config') }), 'sec');
+});
+
+// CC-2115 (AUDIT M1): the status line shows the same lane name as resolveLane().
+test('default aliases match lane.js: guestnetworks shows ai5', (t) => {
+  const f = fixture(t);
+  for (const suffix of Object.keys(lane.DEFAULT_ALIASES)) {
+    const env = { HOME: f.home, CLAUDE_CONFIG_DIR: path.join(f.home, `.claude-${suffix}`) };
+    assert.strictEqual(keyHint(f, env), lane.resolveLane(env).lane, suffix);
+  }
+  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-guestnetworks') }), 'ai5');
+});
+
+test('config lanes.aliases is honoured the same way as lane.js', { skip: !HAS_JQ && 'jq not on PATH' }, (t) => {
+  const f = fixture(t);
+  fs.mkdirSync(path.join(f.home, '.commander'));
+  fs.writeFileSync(path.join(f.home, '.commander', 'config.json'), JSON.stringify({
+    lanes: { aliases: { mywifi: 'mw', guestnetworks: 'guestnetworks', odd: 'a$b c', bad: 7 } },
+  }));
+  for (const suffix of ['mywifi', 'guestnetworks', 'odd', 'bad', 'ai1']) {
+    const env = { HOME: f.home, CLAUDE_CONFIG_DIR: path.join(f.home, `.claude-${suffix}`) };
+    assert.strictEqual(keyHint(f, env), lane.resolveLane(env).lane, suffix);
+  }
+  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-mywifi') }), 'mw');
+  fs.writeFileSync(path.join(f.home, '.commander', 'config.json'), 'not json');
+  assert.strictEqual(keyHint(f, { CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-guestnetworks') }), 'ai5', 'malformed config keeps defaults');
+});
+
+test('CCC_CONFIG_DIR wins over CLAUDE_CONFIG_DIR, as in resolveLane()', (t) => {
+  const f = fixture(t);
+  assert.strictEqual(keyHint(f, {
+    CLAUDE_CONFIG_DIR: path.join(f.home, '.claude-ai1'),
+    CCC_CONFIG_DIR: path.join(f.home, '.claude-ai3'),
+  }), 'ai3');
 });

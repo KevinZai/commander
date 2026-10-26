@@ -1,6 +1,6 @@
 ---
 name: ccc-security
-description: "Application security hub: built-in /security-review plus lanes for OWASP Top 10, secrets, dependency CVEs, prompt-injection defense, CodeQL CI, variant analysis and incident response. Use when asked to audit security, scan for secrets or vulnerable packages, harden an AI app, or handle a breach."
+description: "Security audit: OWASP Top 10, secrets, dependency CVEs, prompt-injection defense, CodeQL, incident response. Use for any security check."
 allowed-tools:
   - Read
   - Grep
@@ -12,8 +12,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[audit | owasp | secrets | deps | ai | codeql | variants | incident | baseline | release-gate]"
-model: opus
-effort: high
 ---
 
 # /ccc-security — Find, prove, fix vulnerabilities
