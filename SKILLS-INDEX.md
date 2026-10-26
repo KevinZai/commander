@@ -79,7 +79,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `/ccc-security` | Security audit: OWASP Top 10, secrets, dependency CVEs, prompt-injection defense, CodeQL, incident response. | visible |
 | `/ccc-seo` | SEO router: technical audit and fixes, AI search optimization, content clusters, analytics, programmatic pages, backlinks. | visible |
 | `/ccc-session` | Alias that routes session work to the canonical skills: save the current session with /ccc-save-session, or reload a saved one with /ccc-resume-session. | on demand |
-| `/ccc-settings` | Settings hub: Commander preferences (name, level, cost ceiling, theme, animations, launch mode, Linear, reset) plus Claude Code permission mode, effort, model… | on demand |
+| `/ccc-settings` | Settings hub: Commander preferences (name, level, cost ceiling, auto-routing, theme, animations, launch mode, Linear, reset) plus Claude Code permission mode,… | on demand |
 | `/ccc-ship` | Ship menu: run a parallel pre-flight matrix with a GO, CAUTION or NO-GO scorecard, cut a tagged release with changelog, deploy to a platform, or roll back the… | on demand |
 | `/ccc-smb-ops` | Small-business back office from a bank CSV or a typed list: 13-week cash-flow forecast, invoicing and AR chasing, payroll planning, CRM cleanup, expense… | on demand |
 | `/ccc-spawn` | Spin self-contained work off on demand: a background subagent, a separate session (Cowork spawn_task chip or CLI /spawn peer), or an independent expert pass;… | on demand |

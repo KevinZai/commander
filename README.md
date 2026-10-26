@@ -43,6 +43,8 @@ codex plugin marketplace add KevinZai/commander
 codex plugin add commander@commander-hub
 ```
 
+Codex treats plugin hooks as untrusted until you review them with `/hooks` inside Codex; the one-time steps are in [dual-host hooks](docs/reference/dual-host-hooks.md#codex-one-time-hook-trust).
+
 Once the Anthropic plugin directory lists it, the same plugin installs as `cc-commander@claude-community`.
 
 Update with `claude plugin marketplace update commander-hub && claude plugin update commander`, then restart. `/ccc-update` walks through it and `/ccc-doctor` diagnoses stale installs.

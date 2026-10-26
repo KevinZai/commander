@@ -4,7 +4,8 @@
 // through the same scorer the UserPromptSubmit hook uses.
 // Gates (SPEC (e) #5): recall >= 90%, zero false triggers — a "none" prompt
 // must stay silent and a labelled prompt must never surface a different top
-// route. Re-run after editing route-hints.json or any skill description.
+// route. Re-run after editing route-hints.json or any skill description;
+// `npm run eval:routes` (scripts/route-eval.js) prints the same gates as a report.
 
 const test = require('node:test');
 const assert = require('node:assert');
@@ -108,4 +109,84 @@ test('every next[] edge points at a routable skill', async () => {
   const routes = s.loadRoutes();
   const ids = new Set(routes.map((r) => r.id));
   for (const r of routes) for (const n of r.next) assert.ok(ids.has(n), `${r.id} -> ${n}`);
+});
+
+// ── scripts/route-eval.js: the one command to re-run the gates (CC-2063) ──
+
+const fs = require('node:fs');
+const os = require('node:os');
+const EVAL = path.join(ROOT, 'scripts', 'route-eval.js');
+const { evaluate: runEval } = require(EVAL);
+const REGISTRY = path.join(ROOT, 'commander', 'cowork-plugin', 'hooks', 'lib', 'ccc-routes.json');
+
+function tmpFile(name, data) {
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-route-eval-')), name);
+  fs.writeFileSync(file, JSON.stringify(data));
+  return file;
+}
+
+test('route-eval CLI passes on the checked-in set and prints every gate', () => {
+  const r = spawnSync(process.execPath, [EVAL], { encoding: 'utf8' });
+  assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /recall \d+\.\d%, false triggers 0, interference 0, wrong auto-runs 0, missed auto-runs 0, silent routes 0/);
+  assert.match(r.stdout, /routing gates pass/);
+});
+
+test('route-eval --json reports the same counts the gates use', () => {
+  const r = spawnSync(process.execPath, [EVAL, '--json'], { encoding: 'utf8' });
+  assert.strictEqual(r.status, 0, r.stderr);
+  const report = JSON.parse(r.stdout);
+  assert.strictEqual(report.pass, true);
+  assert.strictEqual(report.cases, CASES.length);
+  assert.ok(report.recall >= 0.9);
+  for (const key of ['falseTriggers', 'interference', 'wrongAutoRuns', 'missedAutoRuns', 'silentRoutes', 'failures']) assert.deepStrictEqual(report[key], [], key);
+});
+
+test('route-eval catches trigger drift: a route stripped of its hints loses recall', async () => {
+  const s = await import(SCORER);
+  const data = JSON.parse(fs.readFileSync(REGISTRY, 'utf8'));
+  for (const r of data.routes) if (r.id === 'ccc-review') Object.assign(r, { strong: [], triggers: [], patterns: [], descTriggers: [] });
+  const report = await runEval(CASES, s.loadRoutes(tmpFile('ccc-routes.json', data)));
+  assert.ok(report.misses.some((m) => m.expect === 'ccc-review'));
+  assert.ok(report.recall >= 0.9, 'aggregate recall alone would not catch this');
+  assert.deepStrictEqual(report.silentRoutes, ['ccc-review']);
+  assert.strictEqual(report.pass, false);
+});
+
+test('route-eval fails when minTier "high" prompts drop to a suggestion', async () => {
+  const s = await import(SCORER);
+  const data = JSON.parse(fs.readFileSync(REGISTRY, 'utf8'));
+  for (const r of data.routes) r.manual = true;
+  const report = await runEval(CASES, s.loadRoutes(tmpFile('ccc-routes.json', data)));
+  assert.ok(report.recall >= 0.9, 'medium-tier hits still count toward recall');
+  assert.strictEqual(report.missedAutoRuns.length, CASES.filter((c) => c.minTier === 'high').length);
+  assert.ok(report.failures.some((f) => /missed auto-run/.test(f)));
+  assert.strictEqual(report.pass, false);
+});
+
+test('route-eval counts a firing "none" prompt as a false trigger and a wrong top route as interference', async () => {
+  const report = await runEval([
+    { prompt: 'please review my changes', expect: 'none' },
+    { prompt: 'please review my changes', expect: 'ccc-plan' },
+  ]);
+  assert.strictEqual(report.falseTriggers.length, 1);
+  assert.strictEqual(report.interference.length, 1);
+  assert.strictEqual(report.wrongAutoRuns.length, 1);
+  assert.strictEqual(report.pass, false);
+});
+
+test('route-eval exits 1 on a failing set and 2 on a malformed one', () => {
+  const failing = tmpFile('cases.json', { cases: [{ prompt: 'please review my changes', expect: 'none' }] });
+  const r = spawnSync(process.execPath, [EVAL, '--fixtures', failing], { encoding: 'utf8' });
+  assert.strictEqual(r.status, 1);
+  assert.match(r.stdout, /falseTriggers: expected none, got ccc-review/);
+  const malformed = spawnSync(process.execPath, [EVAL, '--fixtures', tmpFile('bad.json', { prompts: [] })], { encoding: 'utf8' });
+  assert.strictEqual(malformed.status, 2);
+  assert.strictEqual(spawnSync(process.execPath, [EVAL, '--bogus'], { encoding: 'utf8' }).status, 2);
+});
+
+test('route-eval flags a case that expects a route missing from the registry', async () => {
+  const report = await runEval([{ prompt: 'please review my changes', expect: 'ccc-not-a-skill' }]);
+  assert.strictEqual(report.unknown.length, 1);
+  assert.strictEqual(report.pass, false);
 });
