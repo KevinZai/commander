@@ -103,6 +103,9 @@ jobs:
       - name: Run vendor + orchestrator tests
         run: node --test commander/tests/vendor-scanner.test.js commander/tests/orchestrator.test.js
 
+      - name: Codex mirror matches build:codex
+        run: node --test commander/tests/codex-mirror-drift.test.js
+
       - name: Verify no secrets
         run: |
           if grep -rn 'sk-[a-zA-Z0-9]\{20\}\|ghp_[a-zA-Z0-9]\{36\}' --include='*.js' --include='*.json' --include='*.md' --exclude-dir=vendor --exclude-dir=node_modules .; then
