@@ -378,6 +378,24 @@ describe('permission-gate: dangerous operations → always reject', () => {
     });
   }
 
+  // CC-654 global options (#258 verifier r3): git also takes --config-env, --attr-source, --shallow-file and --super-prefix
+  // with a separate value, so the value is not a subcommand and `push` after it is still the push
+  for (const command of ['git --config-env x=HOME push -f origin main', 'git --attr-source HEAD push -f origin main', 'git --shallow-file x push --force origin main', 'git --super-prefix x/ push origin +main', 'git --config-env x=HOME --attr-source HEAD push --delete origin feat', 'git -C repo --config-env x=HOME push -f', 'git --git-dir .git --attr-source HEAD push origin :main']) {
+    it(`denies force push after a separate-value global option: ${command}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    });
+  }
+
+  for (const command of ['git --config-env x=HOME push origin main', 'git --attr-source HEAD push -u origin feat', 'git --config-env=x=HOME push origin main']) {
+    it(`approves plain push after a separate-value global option: ${command}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true);
+    });
+  }
+
   for (const command of ['git push origin $(git branch --show-current)', 'git push origin "$(git rev-parse --abbrev-ref HEAD)"', 'git push -u origin `git branch --show-current`', 'git push origin "\\+main"', 'git commit -m "Fix push \\-f detection"', "git commit -m 'push \\+main is a force push'", 'echo "$(git push --dry-run origin main)"', 'git push origin feat\\-x',
     'git push origin {main,dev}', 'git push origin ${BRANCH:-main}', 'git push origin feat${SUFFIX:+-x}', 'git push -u ${REMOTE:-origin} ${BRANCH:=main}',
     'git -C "$(git rev-parse --show-toplevel)" push origin main', 'git -p push origin main', 'git push origin ${BRANCH} ${x%%-*}', 'git -C "/Volumes/Extreme Pro/dev/x" push origin main',

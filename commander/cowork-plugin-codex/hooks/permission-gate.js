@@ -63,11 +63,11 @@ const DANGEROUS_PATTERNS = [
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options
-  // (-C/-c <v>, a lone -p/-P/-h..., --x[=v]) may sit before `push`, so a commit message that mentions a force push is not denied.
+  // (-C/-c <v>, --git-dir/--config-env/--attr-source... <v>, a lone -p/-P/-h..., --x[=v]) may sit before `push`, so a commit message that mentions a force push is not denied.
   // Remote deletes deny too: :ref, --delete/-d, --mirror, --prune; a refspec may be quoted ("+main", +'main', ':main').
   // A bare `:` (matching branches, quoted or followed by a separator) is not a delete.
   // git takes any unambiguous prefix of a long option (--forc, --dele), so prefixes of those four deny too.
-  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:fo(?:r(?:ce?)?)?|de(?:l(?:e(?:te?)?)?)?|mi(?:r(?:r(?:or?)?)?)?|pr(?:u(?:ne?)?)?)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
+  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-dir|work-tree|namespace|config-env|attr-source|shallow-file|super-prefix)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:fo(?:r(?:ce?)?)?|de(?:l(?:e(?:te?)?)?)?|mi(?:r(?:r(?:or?)?)?)?|pr(?:u(?:ne?)?)?)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
   /git\s+clean\s+-[fdx]/,
   /chmod\s+-R\s+777/,
   /:\s*>\s*\/etc\//,       // truncate system files
@@ -103,7 +103,7 @@ function ansiC(body) {
 }
 
 const NESTED_EXPANSION = /\$\{[^}]*(?:\$\{|\$\(|`)/;
-const GIT_PUSH = /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b/;
+const GIT_PUSH = /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-dir|work-tree|namespace|config-env|attr-source|shallow-file|super-prefix)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b/;
 const QUOTED_BRACE = { '{': '\uE000', ',': '\uE001', '}': '\uE002' };
 
 function shellView(cmd, { glue = false, params = 'unset', subs = 'text' } = {}) {
