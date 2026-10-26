@@ -9,8 +9,7 @@ allowed-tools:
   - Artifact
   - mcp__visualize__show_widget
 argument-hint: "[open | overview | usage | safety | memory | history | launch | refresh | publish [tab] | on | off]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-console — one panel, two surfaces
@@ -64,7 +63,7 @@ Call the visualize MCP's `show_widget` with the stdout as `widget_code` and a sn
 If `show_widget` is not available in this session (including Codex), say so in one line and offer, with AskUserQuestion (Codex: a plain-text question):
 
 - 🟢 Publish a snapshot of this tab — a private page; asks before anything leaves the machine
-- Plain-English status here — runs `$ccc-mission-control status`
+- Plain-English status here — ask the user to type `$ccc-mission-control status`
 - Skip
 
 Never imitate the widget with a markdown table.

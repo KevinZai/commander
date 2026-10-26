@@ -6,8 +6,6 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[--check | --all]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

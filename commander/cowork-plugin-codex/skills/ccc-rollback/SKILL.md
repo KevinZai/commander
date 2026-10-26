@@ -7,8 +7,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[target: last-good | tag | n-back]"
-model: sonnet
-effort: high
 disable-model-invocation: true
 ---
 

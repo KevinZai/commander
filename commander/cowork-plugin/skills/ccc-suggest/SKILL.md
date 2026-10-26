@@ -1,6 +1,6 @@
 ---
 name: ccc-suggest
-description: "Reads project state and recent activity, then recommends one next /ccc-* workflow, skill or plugin with named reasons and picker alternatives; also runs as a standing PM loop. Use when the user asks what next, which tool to use, or is stuck."
+description: "Recommends the one next /ccc-* skill or workflow from project state, with reasons and alternatives. Use when asked what next or when stuck."
 allowed-tools:
   - Read
   - Bash
@@ -10,8 +10,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[loop | loop status | loop stop | --history | --tune | --level=N --force | <situation in plain English>]"
-model: opus
-effort: medium
 ---
 
 # /ccc-suggest — the next best move
@@ -147,7 +145,7 @@ options:
     description: "Opens /ccc-browse with the full skill picker."
 ```
 
-On a pick, invoke the chosen skill with the Skill tool. Append one JSON line to `<config dir>/commander/suggest-log.jsonl` only if the file already exists (the ticker owns its creation):
+On a pick, invoke the chosen skill with the Skill tool; if its frontmatter has `disable-model-invocation: true`, tell the user to type its `/` command instead. Append one JSON line to `<config dir>/commander/suggest-log.jsonl` only if the file already exists (the ticker owns its creation):
 
 ```bash
 CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"

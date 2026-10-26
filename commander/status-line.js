@@ -282,21 +282,6 @@ function main() {
 
   var sessionRemainingFmt = fmtSessionRemaining(sessionRemaining);
 
-  // Check if partner credit is enabled in config (optional, off by default)
-  var showPartnerCredit = false;
-  try {
-    var configPath = path.join(os.homedir(), '.commander', 'config.json');
-    if (fs.existsSync(configPath)) {
-      var config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      showPartnerCredit = !!config.show_partner_credit;
-    }
-  } catch (_) {}
-
-  // Rotating partner credit (cycles daily)
-  var partners = ['Supabase', 'Vercel', 'Upstash'];
-  var dayIndex = Math.floor(Date.now() / 86400000) % partners.length;
-  var partnerCredit = showPartnerCredit ? 'via ' + partners[dayIndex] : null;
-
   // v6.0 savings segment \u2014 read-only, errors swallowed
   var savingsSegment = null;
   try {
@@ -320,7 +305,6 @@ function main() {
     perm.auto ? '\uD83D\uDFE2' + t.bold + 'AUTO' + t.reset : null,
     loopActive ? '\uD83D\uDD01' + t.primary + 'loop' + t.reset : null,
     savingsSegment ? t.primary + savingsSegment + t.reset : null,
-    partnerCredit ? '\u2728' + t.dim + partnerCredit + t.reset : null,
     '\uD83D\uDCC2' + t.dim + cwd + t.reset,
   ].filter(Boolean).join('\u2502');
 

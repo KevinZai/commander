@@ -1,6 +1,6 @@
 ---
 name: ccc-build
-description: "Scaffold a new web app, API or CLI from a three-question spec interview, built by a background agent and verified before it is called ready. Use when the user wants to build something new, start a project, create an app, or types $ccc-build."
+description: "Scaffold a new web app, API or CLI from a three-question spec, built by a background agent and verified. Use to start a new project or app."
 allowed-tools:
   - Read
   - Write
@@ -14,7 +14,6 @@ allowed-tools:
   - mcp__ccd_session__mark_chapter
 argument-hint: "[web-app | api | cli | mobile | spec | status | free-form idea]"
 model: inherit
-effort: medium
 ---
 
 # $ccc-build — scaffold, verify, hand over

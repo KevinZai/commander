@@ -10,8 +10,7 @@ allowed-tools:
   - Grep
   - AskUserQuestion
 argument-hint: "[check | fix | report]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-claudemd — Keep instructions honest

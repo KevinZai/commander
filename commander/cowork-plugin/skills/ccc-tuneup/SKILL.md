@@ -1,6 +1,6 @@
 ---
 name: ccc-tuneup
-description: "Audit and safely optimize the local Commander setup: version freshness, junk, count drift, superseded agents, hooks, settings keys, MCP staleness and cost settings. Read-only scan first; backs up, archives (never deletes) and asks before any fix. Use when the setup feels cluttered, stale or slow."
+description: "Audit and safely optimize the local Commander setup: versions, junk, count drift, hooks, settings, MCP, cost. Read-only first; asks before any fix."
 allowed-tools:
   - Read
   - Bash
@@ -8,8 +8,6 @@ allowed-tools:
   - AskUserQuestion
   - mcp__ccd_session__spawn_task
 argument-hint: "[--check | --fix | --aggressive]"
-model: sonnet
-effort: high
 ---
 
 # /ccc-tuneup — Safe local setup optimizer
@@ -149,6 +147,8 @@ normalize_model() { echo "\$1" | sed 's/ *\[.*\]$//' | xargs; }
 
 Read the `COST_<KEY>` and `COST_FLAGGED` rows. The audited keys, verdict meanings and suggested values are in [references/probe-keys.md](references/probe-keys.md#cost-settings-audit-suggest-only). These are never applied by this skill.
 
+When the user asks about context cost or skill-listing truncation, explain the `skillOverrides` `"name-only"` middle ground and its plugin-skill limit from [references/probe-keys.md](references/probe-keys.md#skill-listing-budget-inform-only); never write it.
+
 ### 2. Scorecard
 
 Print one table. Fill every cell from the probe; a check that could not run is ⏭️, never a crash.
@@ -164,7 +164,7 @@ Print one table. Fill every cell from the probe; a check that could not run is �
 | 🤖 Local agent supersession | 🟢/🟡 | <name>.md superseded by the plugin agent | Retire local (opt-in) |
 | 🔬 Hooks coverage | 🟢/🟡 | <EVENT_COUNT> events · <HANDLER_COUNT> handlers, all scripts resolve | — |
 | 🔐 Plugin enabled | 🟢/🔴 | commander in enabledPlugins | Enable in /plugin or Settings |
-| 🌐 Opt-in MCP staleness | 🟢/🟡 | <server> path missing | Re-run /ccc-connect |
+| 🌐 Opt-in MCP staleness | 🟢/🟡 | <server> path missing | Type /ccc-connect again |
 | 🔧 Settings keys | 🟢/🟡 | <SETTINGS_MISSING_KEYS> | Add missing keys |
 | 💰 Cost settings | 🟢/🟡 | <COST_FLAGGED> keys missing or suboptimal | Suggest only (copy-paste) |
 | ⏳ Stale sessions | ⏭️/🟡 | <STALE_SESSIONS> files older than 30 days | Archive (opt-in) |

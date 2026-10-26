@@ -1,6 +1,6 @@
 ---
 name: ccc-start
-description: "First-run Commander onboarding: detects the setup live, offers new-project, import, tour or skip pickers, writes a start plan file and marks onboarding complete. Use when the user just installed Commander, types /ccc-start, or asks how to get started."
+description: "First-run Commander onboarding: detects the setup, offers new project, import, tour or skip, writes a start plan. Use just after install."
 allowed-tools:
   - Read
   - Write
@@ -9,8 +9,6 @@ allowed-tools:
   - AskUserQuestion
   - ExitPlanMode
 argument-hint: "[new | existing | tour | skip]"
-model: sonnet
-effort: low
 ---
 
 # /ccc-start — oriented in ninety seconds
@@ -132,7 +130,7 @@ options:
     description: "Answer-first ordering and far fewer output tokens (stacks with caveman mode)."
     preview: "Writes {\"adhd\": true, \"stackCaveman\": true}."
   - label: "⏭️ Decide later"
-    description: "Run /ccc-adhd anytime to turn it on."
+    description: "Type /ccc-adhd anytime to turn it on."
     preview: "No change."
 ```
 
@@ -146,7 +144,7 @@ header: "Connect"
 multiSelect: true
 options:
   - label: "🟢 ⏭️ Skip for now"
-    description: "Connect nothing now; run /ccc-connect whenever you are ready."
+    description: "Connect nothing now; type /ccc-connect whenever you are ready."
     preview: "No change."
   - label: "Supabase — managed Postgres and auth"
     description: "Database-as-a-service with built-in authentication and real-time."

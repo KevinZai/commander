@@ -2,7 +2,11 @@
 /**
  * elicitation-result-handler.js
  * Hook: ElicitationResult
- * Handles matched/cancelled/declined elicitation results.
+ * Logs the user's answer to an MCP elicitation (accept/decline/cancel).
+ * Documented input (code.claude.com/docs/en/hooks#elicitationresult-input):
+ * mcp_server_name, action, and optional mode, elicitation_id, content.
+ * content holds the submitted values (possibly credentials) and is never
+ * logged; absent optional fields are omitted.
  * Logs outcome best-effort. Never blocks — always exits 0 with {continue:true}.
  */
 import fs from 'node:fs';
@@ -11,6 +15,8 @@ import { stateDir } from '../lib/lane-state.js';
 
 const LOG_DIR = stateDir();
 const LOG_FILE = path.join(LOG_DIR, 'elicitation.jsonl');
+const LOGGED_FIELDS = ['session_id', 'mcp_server_name', 'mode', 'elicitation_id'];
+const ACTIONS = new Set(['accept', 'decline', 'cancel']);
 
 async function main() {
   let input = {};
@@ -25,18 +31,11 @@ async function main() {
   }
 
   try {
-    const result = input.result || {};
-    const action = result.matched ? 'matched'
-      : result.cancelled ? 'cancelled'
-      : result.action === 'cancel' ? 'cancelled'
-      : result.action === 'decline' ? 'declined'
-      : 'unknown';
-
-    const entry = {
-      ts: new Date().toISOString(),
-      request_id: input.request_id || null,
-      action,
-    };
+    const entry = { ts: new Date().toISOString(), event: 'ElicitationResult' };
+    if (ACTIONS.has(input.action)) entry.action = input.action;
+    for (const k of LOGGED_FIELDS) {
+      if (typeof input[k] === 'string' && input[k]) entry[k] = input[k];
+    }
     fs.mkdirSync(LOG_DIR, { recursive: true });
     fs.appendFileSync(LOG_FILE, JSON.stringify(entry) + '\n');
   } catch {

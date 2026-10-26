@@ -7,8 +7,7 @@ allowed-tools:
   - Write
   - AskUserQuestion
 argument-hint: "[probe [service-name] | full]"
-model: haiku
-effort: low
+disable-model-invocation: true
 ---
 
 # /ccc-infra — Dev services status

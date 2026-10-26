@@ -93,6 +93,26 @@ test('medium tier: AskUserQuestion menu with recommended first and "Just answer"
   assert.match(ctx, /Just answer/);
 });
 
+// CC-2112: hidden (disable-model-invocation) skills are offered, never invoked.
+test('hidden-skill match: AskUserQuestion offer, no direct Skill invocation', function () {
+  const ctx = routeContext(classify('write my standup for today'));
+  assert.match(ctx, /tier="medium"/);
+  assert.match(ctx, /Hidden skill/);
+  assert.match(ctx, /AskUserQuestion once/);
+  assert.match(ctx, /🟢 first/);
+  assert.match(ctx, /Just answer/);
+  assert.match(ctx, /\/ccc-standup: [^;]*\*/);
+  assert.match(ctx, /never invoke it/);
+  assert.doesNotMatch(ctx, /invoke Skill commander:/);
+});
+
+test('visible-skill match keeps the direct Skill instruction', function () {
+  const ctx = routeContext(classify('plan this feature before we write any code: team invites'));
+  assert.match(ctx, /tier="high"/);
+  assert.match(ctx, /invoke Skill commander:ccc-plan now/);
+  assert.doesNotMatch(ctx, /Hidden skill/);
+});
+
 test('Codex host (PLUGIN_ROOT set) uses request_user_input and $ccc-* names', function () {
   const ctx = routeContext(classify('should I deploy this branch now or wait', { PLUGIN_ROOT: '/tmp/codex-plugin' }));
   assert.match(ctx, /request_user_input/);

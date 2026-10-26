@@ -58,7 +58,7 @@ var KNOWN_PACKAGES = {
     author: 'Community',
     repo: 'github.com/example/ecc',
     stars: '100K',
-    description: '19 lifecycle hooks, developer profiles, agent definitions',
+    description: '30 lifecycle hooks, developer profiles, agent definitions',
     skills: {
       'configure-ecc': { phase: 'execute', description: 'Configure ECC profiles' },
       'harness-audit': { phase: 'review', description: 'Audit harness configuration' },

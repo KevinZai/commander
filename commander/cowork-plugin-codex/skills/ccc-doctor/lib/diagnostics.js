@@ -100,28 +100,44 @@ function fail(category, message, remediation) {
 
 // --- 0. Claude settings -----------------------------------------------------
 
+// The running lane's settings.json: <config dir>/settings.json with the
+// CCC_CONFIG_DIR > CLAUDE_CONFIG_DIR > ~/.claude precedence of lib/lane-state.js.
+// options.env and options.homeDir let tests pin both.
 function settingsPathFromOptions(options) {
+  var env = options && options.env ? options.env : process.env;
+  var homeDir = options && options.homeDir ? options.homeDir : env.HOME || process.env.HOME;
+  var configDir = require('../../../lib/lane-state').configDir({
+    CCC_CONFIG_DIR: env.CCC_CONFIG_DIR,
+    CLAUDE_CONFIG_DIR: env.CLAUDE_CONFIG_DIR,
+    HOME: homeDir || '',
+  });
+  return path.join(configDir, 'settings.json');
+}
+
+/** A settings path for messages: ~ for the home dir. */
+function shownPath(p, options) {
   var homeDir = options && options.homeDir ? options.homeDir : process.env.HOME;
-  return path.join(homeDir || '', '.claude', 'settings.json');
+  return homeDir && p.indexOf(homeDir + path.sep) === 0 ? '~' + p.slice(homeDir.length) : p;
 }
 
 function checkClaudeTeamsFlag(root, options) {
   var settingsPath = settingsPathFromOptions(options);
+  var shown = shownPath(settingsPath, options);
   var settings = safeJson(settingsPath);
   if (!settings) {
     return warn(
       'claude-teams-flag',
-      'Could not read ~/.claude/settings.json; CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS not verified',
-      'Set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS to "1" in ~/.claude/settings.json.'
+      'Could not read ' + shown + '; CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS not verified',
+      'Set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS to "1" in ' + shown + '.'
     );
   }
   var env = settings.env || {};
   if (env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS === '1') {
-    return ok('claude-teams-flag', 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in ~/.claude/settings.json');
+    return ok('claude-teams-flag', 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in ' + shown);
   }
   return warn(
     'claude-teams-flag',
-    'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS is not "1" in ~/.claude/settings.json',
+    'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS is not "1" in ' + shown,
     'Set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS to "1" for multi-agent fan-out.'
   );
 }
@@ -130,24 +146,25 @@ var VALID_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max'];
 
 function checkEffortDefault(root, options) {
   var settingsPath = settingsPathFromOptions(options);
+  var shown = shownPath(settingsPath, options);
   var settings = safeJson(settingsPath);
   if (!settings) {
     return warn(
       'effort-default',
-      'Could not read ~/.claude/settings.json; effortLevel inherits harness default'
+      'Could not read ' + shown + '; effortLevel inherits harness default'
     );
   }
   if (settings.effortLevel) {
     if (VALID_EFFORT_LEVELS.indexOf(settings.effortLevel) === -1) {
       return warn(
         'effort-default',
-        'effortLevel=' + settings.effortLevel + ' in ~/.claude/settings.json is not a valid level',
-        'Valid levels are: ' + VALID_EFFORT_LEVELS.join(', ') + '. Fix the typo or invalid value in ~/.claude/settings.json.'
+        'effortLevel=' + settings.effortLevel + ' in ' + shown + ' is not a valid level',
+        'Valid levels are: ' + VALID_EFFORT_LEVELS.join(', ') + '. Fix the typo or invalid value in ' + shown + '.'
       );
     }
-    return ok('effort-default', 'effortLevel=' + settings.effortLevel + ' in ~/.claude/settings.json');
+    return ok('effort-default', 'effortLevel=' + settings.effortLevel + ' in ' + shown);
   }
-  return ok('effort-default', 'effortLevel absent in ~/.claude/settings.json; inherits harness default');
+  return ok('effort-default', 'effortLevel absent in ' + shown + '; inherits harness default');
 }
 
 // --- 1. License-tier cleanup verification -----------------------------------
@@ -774,6 +791,24 @@ function checkCriticalFiles(root) {
   );
 }
 
+// --- Network mode -----------------------------------------------------------
+
+/**
+ * Informational: which outbound switches are on (lib/network-mode.js reads
+ * CCC_TELEMETRY / CCC_OFFLINE / CCC_CI_TICKER and ~/.commander/config.json).
+ * options.env and options.homeDir let tests pin both.
+ */
+function checkNetworkMode(root, options) {
+  var networkMode = require('../../../lib/network-mode').networkMode;
+  var env = options && options.env ? options.env : process.env;
+  var mode = networkMode(env, { homeDir: options && options.homeDir });
+  var onOff = function (b) { return b ? 'on' : 'off'; };
+  return ok(
+    'network-mode',
+    'telemetry ' + onOff(mode.telemetry) + ' · offline ' + onOff(mode.offline) + ' · ci-ticker ' + onOff(mode.ciTicker)
+  );
+}
+
 // --- runner -----------------------------------------------------------------
 
 function runDiagnostics(root, options) {
@@ -792,6 +827,7 @@ function runDiagnostics(root, options) {
     checkDisplayName(r),
     checkVersionParity(r),
     checkCriticalFiles(r),
+    checkNetworkMode(r, options),
   ];
 }
 
@@ -817,6 +853,7 @@ module.exports = {
   checkDisplayName: checkDisplayName,
   checkVersionParity: checkVersionParity,
   checkCriticalFiles: checkCriticalFiles,
+  checkNetworkMode: checkNetworkMode,
   EXPECTED_MCP_SERVERS: EXPECTED_MCP_SERVERS,
   EXPECTED_CONNECTOR_COUNT: EXPECTED_CONNECTOR_COUNT,
 };
