@@ -1714,8 +1714,6 @@ hooks:
     path: commander/cowork-plugin/hooks/console-log-warn.js
   - id: context-guard
     path: commander/cowork-plugin/hooks/context-guard.js
-  - id: context-warning
-    path: commander/cowork-plugin/hooks/context-warning.js
   - id: cost-ceiling-enforcer
     path: commander/cowork-plugin/hooks/cost-ceiling-enforcer.js
   - id: cost-tracker

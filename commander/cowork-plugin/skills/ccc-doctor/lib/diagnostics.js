@@ -205,7 +205,8 @@ function checkLicenseCleanup(root) {
 
 // Files that may live in hooks/ but aren't in hooks.json (acceptable dormant utilities).
 // _archive/permission-denied.js: superseded by permission-denied-logger.js; kept, never run.
-var DORMANT_HOOK_ALLOWLIST = ['README.md', '_archive/permission-denied.js'];
+// _archive/context-warning.js: folded into context-guard.js (CC-1357); kept, never run.
+var DORMANT_HOOK_ALLOWLIST = ['README.md', '_archive/permission-denied.js', '_archive/context-warning.js'];
 
 var ORCHESTRATOR_REL = path.join('orchestrator', 'session-start-orchestrator.js');
 

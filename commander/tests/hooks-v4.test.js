@@ -465,17 +465,17 @@ describe('cost-ceiling-enforcer.js', () => {
   });
 });
 
-// ---- context-warning.js ----
+// ---- context-guard.js (absorbed context-warning.js, CC-1357) ----
 
-describe('context-warning.js', () => {
+describe('context-guard.js as the UserPromptSubmit context hook', () => {
   it('returns continue:true when no context info available', () => {
-    const r = runHook('context-warning.js', { prompt: 'hello' });
+    const r = runHook('context-guard.js', { prompt: 'hello' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
 
   it('emits warning when context is at 5% remaining (95% used)', () => {
-    const r = runHook('context-warning.js', { prompt: 'hello' }, {
+    const r = runHook('context-guard.js', { prompt: 'hello' }, {
       CLAUDE_CONTEXT_USED_PCT: '95',
     });
     assert.equal(r.exitCode, 0);
@@ -487,16 +487,16 @@ describe('context-warning.js', () => {
   });
 
   it('emits warning when context is at 30% remaining (70% used)', () => {
-    const r = runHook('context-warning.js', { prompt: 'hello' }, {
+    const r = runHook('context-guard.js', { prompt: 'hello' }, {
       CLAUDE_CONTEXT_USED_PCT: '70',
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
 
-  it('respects CC_COACH_DISABLE=1', () => {
-    const r = runHook('context-warning.js', { prompt: 'hello' }, {
-      CC_COACH_DISABLE: '1',
+  it('respects CC_CONTEXT_GUARD_DISABLE=1', () => {
+    const r = runHook('context-guard.js', { prompt: 'hello' }, {
+      CC_CONTEXT_GUARD_DISABLE: '1',
       CLAUDE_CONTEXT_USED_PCT: '95',
     });
     assert.equal(r.exitCode, 0);
@@ -506,7 +506,7 @@ describe('context-warning.js', () => {
   });
 
   it('returns continue:true on malformed input', () => {
-    const hookPath = path.join(HOOKS_DIR, 'context-warning.js');
+    const hookPath = path.join(HOOKS_DIR, 'context-guard.js');
     const result = spawnSync('node', [hookPath], {
       input: 'bad input',
       encoding: 'utf-8',
@@ -519,7 +519,7 @@ describe('context-warning.js', () => {
   });
 
   it('does not make network calls (MCP_DISABLED=1)', () => {
-    const r = runHook('context-warning.js', {}, { MCP_DISABLED: '1' });
+    const r = runHook('context-guard.js', {}, { MCP_DISABLED: '1' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
@@ -802,7 +802,7 @@ describe('hooks work with MCP_DISABLED=1 (airplane mode)', () => {
     'post-compact-recovery.js',
     'subagent-start-tracker.js',
     'cost-ceiling-enforcer.js',
-    'context-warning.js',
+    'context-guard.js',
     'stale-claude-md-nudge.js',
     'secret-leak-guard.js',
   ];
@@ -831,7 +831,7 @@ describe('v4 hook files exist', () => {
     'post-compact-recovery.js',
     'subagent-start-tracker.js',
     'cost-ceiling-enforcer.js',
-    'context-warning.js',
+    'context-guard.js',
     'stale-claude-md-nudge.js',
     'secret-leak-guard.js',
   ];
@@ -854,7 +854,7 @@ describe('v4 hook syntax', () => {
       'post-compact-recovery.js',
       'subagent-start-tracker.js',
       'cost-ceiling-enforcer.js',
-      'context-warning.js',
+      'context-guard.js',
       'stale-claude-md-nudge.js',
       'secret-leak-guard.js',
     ];

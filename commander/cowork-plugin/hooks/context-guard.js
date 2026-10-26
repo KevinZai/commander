@@ -3,8 +3,11 @@
  * context-guard.js
  * Hook: UserPromptSubmit
  *
- * Proactively warns at context usage thresholds with idempotent state tracking.
- * Thresholds (% USED): 70% → gentle nudge, 85% → strong warning, 95% → auto-save.
+ * The one CCC context-budget hook (context-warning.js was folded in, CC-1357).
+ * Warns once per tier per session; the tiers re-arm after usage drops below
+ * 70% (for example after /compact).
+ * Thresholds (% USED): 70% → write the handoff doc, 85% → hand off now,
+ * 90% → finish the step and hand off, 95% → auto-save.
  *
  * Env vars:
  *   CC_CONTEXT_GUARD_DISABLE=1  — disables all nudges
@@ -35,21 +38,28 @@ const THRESHOLDS = [
     pct: 95,
     key: 'context_95',
     label: '🔴 Context at 95%',
-    msg: 'Auto-save firing — state written to ~/.claude/sessions/ for /resume-session.',
+    msg: 'Auto-save firing — state written to ~/.claude/sessions/ for /ccc-resume-session.',
     autoSave: true,
+  },
+  {
+    pct: 90,
+    key: 'context_90',
+    label: '🟠 Context at 90%',
+    msg: 'Finish the current step, then /ccc-handoff and continue in a new chat.',
+    autoSave: false,
   },
   {
     pct: 85,
     key: 'context_85',
     label: '⚠️ Context at 85%',
-    msg: 'Strongly recommend /save-session now — another long task may compact mid-flight.',
+    msg: 'Hand off now: /ccc-handoff (or /ccc-save-session) — another long task may compact mid-flight.',
     autoSave: false,
   },
   {
     pct: 70,
     key: 'context_70',
     label: '📊 Context at 70%',
-    msg: 'Run /save-session if you want a clean handoff later.',
+    msg: 'Good time to write the handoff doc with /ccc-handoff while what worked, what failed and the next step are fresh.',
     autoSave: false,
   },
 ];
@@ -86,17 +96,16 @@ async function writeAutoSave(usedPct, sessionId) {
     ts: now.toISOString(),
     sessionId: sessionId || 'unknown',
     contextUsedPct: usedPct,
-    note: 'Auto-saved by context-guard at 95% threshold. Use /resume-session to reload.',
+    note: 'Auto-saved by context-guard at 95% threshold. Use /ccc-resume-session to reload.',
   };
   await writeFile(fname, JSON.stringify(payload, null, 2));
   return fname;
 }
 
 async function main() {
+  track('hook_fired', { hook: 'UserPromptSubmit', handler: 'context-guard' });
   // Disable check
   if (process.env.CC_CONTEXT_GUARD_DISABLE === '1') {
-      track('hook_fired', { hook: 'PreToolUse', handler: 'context-guard' });
-
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }
@@ -137,11 +146,18 @@ async function main() {
     }
 
     if (fired.length === 0) {
+      // Below every tier (e.g. after /compact): re-arm this session's tiers.
+      const state = await readState();
+      const sessionId = sessionKey(input);
+      if (state[sessionId] && THRESHOLDS.some((t) => state[sessionId][t.key])) {
+        for (const t of THRESHOLDS) delete state[sessionId][t.key];
+        await writeState(state);
+      }
       // Check custom threshold
       if (customWarnThreshold > 0 && usedPct >= customWarnThreshold) {
         process.stdout.write(
           JSON.stringify(
-            emitUser(`📊 Context at ${usedPct.toFixed(0)}% (custom threshold ${customWarnThreshold}%) — consider /save-session`)
+            emitUser(`📊 Context at ${usedPct.toFixed(0)}% (custom threshold ${customWarnThreshold}%) — consider /ccc-handoff`)
           ) + '\n'
         );
       } else {
@@ -183,7 +199,7 @@ async function main() {
         const savedPath = await writeAutoSave(usedPct, sessionId);
         statusMsg += ` [Saved: ${savedPath}]`;
       } catch {
-        statusMsg += ' [Auto-save failed — run /save-session manually]';
+        statusMsg += ' [Auto-save failed — run /ccc-save-session manually]';
       }
     }
 
