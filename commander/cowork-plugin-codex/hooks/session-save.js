@@ -14,7 +14,8 @@ const ACTIVE_FILE = join(SESSIONS_DIR, 'active-session.json');
 async function main() {
   try {
     // Session-keyed tool-call budget file (see cost-tracker.js)
-    const COST_FILE = join(SESSIONS_DIR, `active-cost-${sessionKey(await readStdinJson())}.json`);
+    const key = sessionKey(await readStdinJson());
+    const COST_FILE = join(SESSIONS_DIR, `active-cost-${key}.json`);
     if (!existsSync(SESSIONS_DIR)) await mkdir(SESSIONS_DIR, { recursive: true });
 
     let session = {};
@@ -32,8 +33,11 @@ async function main() {
     const shortId = randomBytes(4).toString('hex');
     const filename = `${dateStr}-${shortId}.json`;
 
+    // sessionId lets session-end (same SessionEnd event, run in parallel) find
+    // this archive after active-session.json is gone (CC-1360 F14).
     const summary = {
       ...session,
+      sessionId: key,
       status: 'complete',
       completedAt: now.toISOString(),
       toolCalls: costData.toolCalls,
