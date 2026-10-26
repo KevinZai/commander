@@ -1645,12 +1645,9 @@ CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash
 | `/ccc-build` | Spec-first feature build with clarification questions |
 | `/ccc-review` | Pre-landing code review with severity ratings |
 | `/ccc-ship` | Tests → changelog → commit → PR pipeline |
-| `/ccc-verify` | Four-question verification before marking done |
 | `/ccc-plan` | Multi-step plan with risk + rollback |
-| `/ccc-debug` | Root-cause investigation (Iron Law workflow) |
+| `/ccc-systematic-debugging` | Root-cause investigation (Iron Law workflow) |
 | `/ccc-learn` | Extract reusable patterns from the session |
-| `/ccc-spike` | Timeboxed exploration with AskUserQuestion confirm |
-| `/ccc-spike-confirm` | Close-the-loop on a spike result |
 | `/ccc-research` | Structured competitive / market research |
 | `/ccc-design` | Route into the 41-skill design domain |
 | `/ccc-deploy` | Pre-deploy GO/CAUTION/NO-GO gate |
