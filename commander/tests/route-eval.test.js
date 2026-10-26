@@ -69,10 +69,14 @@ test('high tier (auto-run) only ever fires the expected skill', async () => {
   }
 });
 
-test('explicit high-tier requests keep auto-running the expected skill', async () => {
+// Hidden (disable-model-invocation) skills never auto-run: an explicit request
+// for one becomes a medium-tier offer with that skill on top (CC-2112).
+test('explicit high-tier requests auto-run a visible skill and offer a hidden one', async () => {
+  const s = await import(SCORER);
+  const manual = new Set(s.loadRoutes().filter((r) => r.manual).map((r) => r.id));
   const { results } = await evaluate();
   for (const r of results.filter((x) => x.minTier === 'high')) {
-    assert.strictEqual(r.tier, 'high', `lost high tier for "${r.prompt}"`);
+    assert.strictEqual(r.tier, manual.has(r.expect) ? 'medium' : 'high', `wrong tier for "${r.prompt}"`);
     assert.strictEqual(r.top, r.expect);
   }
 });

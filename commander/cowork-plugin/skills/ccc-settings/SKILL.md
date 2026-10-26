@@ -7,8 +7,7 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[name | level | cost | routing | theme | animations | launch | linear | reset | mode | effort | models | workflows | --power]"
-model: sonnet
-effort: low
+disable-model-invocation: true
 ---
 
 # /ccc-settings — Commander and Claude Code settings
@@ -57,7 +56,7 @@ For each setting, ask as below. Value pickers list the 🟢 option first; put th
 |---|---|---|
 | Display name | "What name should I use?" | `name` |
 | Experience level | Picker: 🟢 intermediate (balanced detail) / beginner (more explanation, more confirmations) / expert (terse, fewer confirmations). Affects verbosity, auto-confirm thresholds, suggested skill complexity | `level` |
-| Cost ceiling | "Max budget per dispatch (USD)?" Validate a positive number. Default 10. The night-mode hard ceiling is separate | `costCeiling` |
+| Cost ceiling | Picker: 🟢 off (no ceiling; remove the key) / 5 (500 tool calls) / 10 (1,000 tool calls) / a custom positive number. It is a session tool-call budget for the cost-ceiling-enforcer hook, not dollars: 1.00 = 100 tool calls. Past it the hook warns once, then denies each tool call with the reason until the ceiling is raised or removed, `CCC_COST_OVERRIDE=1` is set, or a new session starts. There is no default: unset means off, so never write `costCeiling` unless the user picks a number. `CCC_COST_CEILING` in the environment wins over this key. The night-mode hard ceiling is separate | `costCeiling` |
 | Auto-routing | Picker: 🟢 auto (clear matches run the skill, close ones show a menu; default) / suggest (always a menu, never auto-runs) / off (no routing and no what-next menu). Read by the routing hook from the next prompt on; a `CCC_ROUTE_MODE` environment variable overrides it, so mention it when set | `routeMode` |
 | Theme (CLI-only) | Picker: 🟢 Claude Anthropic (default) / OLED Black / Matrix / Surprise me. Apply with `ccc --theme <name>` when available, else it takes effect on the next `ccc` launch | `theme` |
 | Animations (CLI-only) | Picker: 🟢 enable (default) / disable (for slow terminals, screen readers or CI). Disabling also means `CC_NO_ANIMATION=1` in the shell profile; print the line for the user to add | `animations` |
@@ -69,7 +68,6 @@ File shape (placeholders, not real values):
 {
   "name": "<display name>",
   "level": "expert",
-  "costCeiling": 10,
   "routeMode": "auto",
   "theme": "claude-anthropic",
   "animations": true,
@@ -77,6 +75,8 @@ File shape (placeholders, not real values):
   "linear": { "teamId": "<team key>", "projectId": "<project slug>" }
 }
 ```
+
+`costCeiling` is present only when the user set one.
 
 Show the proposed change as `key: old → new` and confirm before writing. Then back up and write the whole object with Write, preserving every key you did not change:
 
@@ -150,7 +150,7 @@ header: "Settings"
 multiSelect: false
 options:
   - label: "🟢 Commander preferences"
-    description: "Recommended start: touches only Commander's own config.json. Currently: <name> · <level> · $<costCeiling>."
+    description: "Recommended start: touches only Commander's own config.json. Currently: <name> · <level> · cost ceiling <costCeiling or off>."
   - label: "Claude Code settings"
     description: "Permission mode, effort, model restrictions, workflow size."
   - label: "Linear setup"
@@ -171,7 +171,7 @@ options:
   - label: "Auto-routing"
     description: "Currently: <routeMode or auto>; auto, suggest (menu only) or off."
   - label: "Cost ceiling"
-    description: "Currently: $<costCeiling> per dispatch."
+    description: "Currently: <costCeiling> (= N tool calls) or off. A session tool-call budget, not dollars."
   - label: "More…"
     description: "Display name, then theme, animations, launch mode (CLI-only)."
 ```

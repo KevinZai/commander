@@ -1,12 +1,12 @@
 # CC Commander Cheatsheet
-> CC Commander v8.1.2 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v8.1.3 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-10-13 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v8.1.2)
+## Desktop Plugin Commands (v8.1.3)
 
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 84 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
 
@@ -59,7 +59,7 @@ codex plugin add commander@commander-hub
 | `/ccc-ultracode` | Explains `/effort ultracode` and launches a bundled workflow |
 | `/ccc-fleet` | Parallel agents in git worktrees — fan-out, pipeline, judge, debate |
 | `/ccc-console` | Inline console — Overview · Usage · Safety · Memory · History · Launch |
-| `/ccc-fable` | Arm the Fable Method — `on` / `status` / `audit` / `off` |
+| `/ccc-fable` | Arm the Commander Method — `on` / `status` / `audit` / `off` |
 | `/ccc-handoff` | Dense handoff file, then a fresh chat before quality decays |
 | `/ccc-adopt` | Merge the Orchestrator/Executor block into another repo's `CLAUDE.md` |
 | `/ccc-claudemd` | Audit `CLAUDE.md` against the codebase, picker-approved fixes only |
@@ -71,7 +71,7 @@ codex plugin add commander@commander-hub
 | `/ccc-usage` · `/ccc-safety` | Usage & Cost and Safety decks |
 | `/ccc-domains` | Browse the 11 CCC domains |
 
-> 🧠 **The Fable Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
+> 🧠 **The Commander Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
 ### Sub-agent personas (22)
 
@@ -153,7 +153,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 
 ### vs aider
 
-Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 22 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aiderchat--positioning)
+Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 22 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](https://docs.commanderplugin.com/compare/vs-aider)
 
 ---
 
@@ -1057,7 +1057,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v8.1.2 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v8.1.3 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1144,7 +1144,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v8.1.2 Quick Reference (CLI)
+## CC Commander v8.1.3 Quick Reference (CLI)
 
 ```bash
 # Launch

@@ -1,6 +1,6 @@
 ---
 name: ccc-cheatsheet
-description: "Live map of Commander: reads the installed plugin's skills, workflows, menus, agents, hooks and MCP servers from disk and renders a Mermaid flow plus a navigator picker, with an optional HTML export. Use when the user types $ccc-cheatsheet or asks for a command map or everything Commander offers."
+description: "Live map of the installed Commander: skills, workflows, menus, agents, hooks and MCP servers as a Mermaid flow with a picker. Use for a command map."
 allowed-tools:
   - Read
   - Bash
@@ -11,8 +11,6 @@ allowed-tools:
   - AskUserQuestion
   - Artifact
 argument-hint: "[skill or workflow name to drill into, e.g. plan | codex | fleet | audit] [--html]"
-model: sonnet
-effort: low
 ---
 
 # $ccc-cheatsheet — the live Commander map

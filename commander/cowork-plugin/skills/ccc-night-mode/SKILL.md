@@ -12,8 +12,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[night | yolo | status | cancel | --power]"
-model: opus
-effort: high
 disable-model-invocation: true
 ---
 
@@ -52,12 +50,12 @@ options:
   - label: "YOLO Mode"
     description: "Spec now; the build starts immediately in auto permission mode with no further check-ins."
   - label: "Monitor & Maintain"
-    description: "Recurring watch loop (CI, builds, tests). Hands off to /ccc-loop."
+    description: "Recurring watch loop (CI, builds, tests). Ask the user to type /ccc-loop."
   - label: "Cancel"
     description: "Back to the main menu. Nothing runs."
 ```
 
-Monitor & Maintain: invoke `/ccc-loop` with the chosen watch target and stop here.
+Monitor & Maintain: `/ccc-loop` is user-invoked only, so tell the user to type `/ccc-loop <watch target>` with the chosen target and stop here.
 
 ### 2. Run the spec interview
 
@@ -124,7 +122,7 @@ Preserve the user's selected model wherever they chose one.
 - Default ceiling \$10 per run, split across cycles; reviewer runs count against the cycle budget.
 - At 70% of the ceiling, pause and ask with AskUserQuestion: 🟢 "Stop now and commit what's done" / "Continue to the ceiling".
 - Check real spend with `/usage` after each Agent call. Where the `ccc` CLI is installed, `ccc --stats` prints a Cost line.
-- The plugin's cost-ceiling-enforcer hook also blocks after a tool-call budget (default 10.00 units = 1,000 calls; `costCeiling` in `<config dir>/commander/config.json`; `CCC_COST_OVERRIDE=1` overrides). It counts activity, not dollars.
+- The plugin's cost-ceiling-enforcer hook can also deny tool calls past a tool-call budget. It is off unless `CCC_COST_CEILING=<units>` or `costCeiling` in `<config dir>/commander/config.json` sets one (1.00 units = 100 calls); `CCC_COST_OVERRIDE=1` overrides. It counts activity, not dollars.
 
 ### 6. Post-build checklist
 

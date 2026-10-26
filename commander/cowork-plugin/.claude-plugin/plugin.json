@@ -1,8 +1,8 @@
 {
   "name": "commander",
   "displayName": "Commander",
-  "version": "8.1.2",
-  "description": "Guided AI PM for Claude Code, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. 84 plugin skills (click-first /ccc-* workflows, incl. /ccc-codex for the Codex CLI), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 30 lifecycle hooks × 52 handlers, a Commander HUD mod, 6 distributable workflows, 8 plugin evals, 2 bundled MCP servers + 16 opt-in. Built for Claude Opus 5.5 / Fable 5.1 and Codex GPT-6. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. Core free forever — no signup, no card. MIT-licensed.",
+  "version": "8.1.3",
+  "description": "Guided AI PM for Claude Code, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). 84 plugin skills (click-first /ccc-* workflows, incl. /ccc-codex for the Codex CLI; 32 model-visible, the rest load on demand), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 30 lifecycle hooks × 52 handlers, a Commander HUD mod, 6 distributable workflows, 8 plugin evals, 2 bundled MCP servers + 16 opt-in. Telemetry is off unless you opt in. Built for Claude Opus 5.5 / Fable 5.1 and Codex GPT-6. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. MIT-licensed.",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
@@ -30,7 +30,7 @@
     "mods",
     "workflows",
     "evals",
-    "fable-method"
+    "commander-method"
   ],
   "hooks": [
     "./mods/commander-hud/hooks/hooks.json"

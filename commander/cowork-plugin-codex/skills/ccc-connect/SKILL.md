@@ -6,8 +6,6 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[tasks | backend | hosting | cache | knowledge | comms | observability | billing | automation | agent-harness | email | research | productivity | dev | design]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 
@@ -110,25 +108,25 @@ Project signals from step 1 move the 🟢 to another group, which is then listed
 
 With `stripe` in `package.json`, Billing takes the 🟢 in Build & ship and is listed first.
 
-**Level 3, connectors per category** (header "Connector"; 🟢 option first; one-connector categories skip the picker):
+**Level 3, connectors per category** (header "Connector"; connectors in alphabetical order, none pre-selected; one-connector categories skip the picker):
 
 | Category | Connector options |
 |---|---|
-| Backend | 🟢 Supabase [aff] — first-class backend: auth, DB, storage, edge functions; also ships as a Codex plugin · Neon [aff] — serverless Postgres · Postgres — bring your own database |
-| Hosting | 🟢 Vercel [aff] — web deploys, previews · Fly.io [aff] — Docker services · Cloudflare [aff] — Workers, Pages, R2, D1 |
+| Backend | Neon [aff] — serverless Postgres · Postgres — bring your own database · Supabase [aff] — auth, DB, storage, edge functions; also ships as a Codex plugin |
+| Hosting | Cloudflare [aff] — Workers, Pages, R2, D1 · Fly.io [aff] — Docker services · Vercel [aff] — web deploys, previews |
 | Cache / Queue | Upstash [aff] — serverless Redis and Kafka (only option) |
 | Billing | Stripe — payments, subscriptions, invoices (only option) |
-| Tasks | 🟢 Linear — issues, projects, cycles (first-class Commander integration) · GitHub — issues and PRs |
+| Tasks | GitHub — issues and PRs · Linear — issues, projects, cycles (first-class Commander integration) |
 | Knowledge | Notion — pages, databases, comments (only option) |
-| Comms | 🟢 Slack — channels, threads · Discord — community server |
-| Email | 🟢 Resend [aff] — transactional email · AgentMail — agent-native inbox |
-| Research | 🟢 Tavily — web search · Firecrawl — scraping to markdown · Exa — neural search · Context7 — live library docs (already bundled; nothing to wire) |
+| Comms | Discord — community server · Slack — channels, threads |
+| Email | AgentMail — agent-native inbox · Resend [aff] — transactional email |
+| Research | Context7 — live library docs (already bundled; nothing to wire) · Exa — neural search · Firecrawl — scraping to markdown · Tavily — web search |
 | Observability | Sentry [aff] — errors, performance, releases (only option) |
-| Automation | 🟢 Playwright — local browser automation, no credential · Browserbase [aff] — remote headless browsers · Zapier — app actions · n8n — self-hosted workflows |
+| Automation | Browserbase [aff] — remote headless browsers · n8n — self-hosted workflows · Playwright — local browser automation, no credential · Zapier — app actions |
 | Design | Figma — files, components, comments (only option) |
 | Agent harness | acpx — bring-your-own agent harness; install-only, no MCP wiring (only option) |
 
-Supabase is the default backend for `$ccc-build` SaaS scaffolds: always list it first with 🟢 in Backend.
+No connector is pre-selected. Mark one 🟢 only when step 1 shows it already in use (an installed plugin or MCP server, or its package in `package.json`). Affiliate status never changes the order or the 🟢.
 
 **Arguments:** a category name (`tasks`, `backend`, `hosting`, `cache`, `knowledge`, `comms`, `observability`, `billing`, `automation`, `agent-harness`, `email`, `research`, `design`) opens its level-3 picker; `productivity` opens a level-2 picker with 🟢 Tasks, Knowledge, Comms; `dev` opens a level-2 picker with 🟢 Backend, Hosting, Observability, Billing; no argument opens level 1.
 

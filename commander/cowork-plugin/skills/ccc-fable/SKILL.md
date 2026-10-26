@@ -1,6 +1,6 @@
 ---
 name: ccc-fable
-description: "Arm, check, audit or disarm the Fable Method: the PM loop, 12 checkable gates, workflow-first posture and verifier separation, persisted in Commander state. Use when the user says fable on/off/status/audit or wants verification-gated, orchestrated work."
+description: "Arm, check, audit or disarm the Commander Method: the PM loop, 12 checkable gates, workflow-first posture and verifier separation, persisted in Commander state. Use when the user says fable on/off/status/audit or wants verification-gated, orchestrated work."
 allowed-tools:
   - Read
   - Bash
@@ -9,11 +9,10 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[on | status | audit | off]"
-model: sonnet
-effort: high
+disable-model-invocation: true
 ---
 
-# /ccc-fable — arm the Fable Method
+# /ccc-fable — arm the Commander Method
 
 **CC Commander** · /ccc-fable · a session-wide operating contract of checkable gates, so any model produces verified, orchestrated work.
 
@@ -32,8 +31,8 @@ The full doctrine (12 pillars, each with rule, mechanics, gate and failure preve
 `$ARGUMENTS` selects the action. With no argument, ask with AskUserQuestion (Codex: ask the same question in plain text):
 
 ```
-question: "Fable Method — what do you want to do?"
-header: "Fable"
+question: "Commander Method — what do you want to do?"
+header: "Method"
 multiSelect: false
 options:
   - label: "🟢 Arm it (on)"
@@ -105,7 +104,7 @@ Flag adjacent opportunities; never execute them inline.
 
 **Layer 5 — verifier separation.** The maker of a finding, fix or claim never grades it. A subagent's self-report is a claim. Before reporting done, re-run the load-bearing check, or dispatch a fresh-context verifier through the Agent tool that is prompted to refute.
 
-Confirm in one line: "Fable Method armed: 12 gates · PM loop · workflow-first posture · verifier separation. `/ccc-fable audit` to self-check."
+Confirm in one line: "Commander Method armed: 12 gates · PM loop · workflow-first posture · verifier separation. `/ccc-fable audit` to self-check."
 
 ### 3b. `status` — read, never write
 
@@ -133,7 +132,7 @@ Report as a table: `Pillar | Violation observed | Evidence | Suggested fix`. If 
 
 ### 3d. `off` — disarm
 
-After the state write succeeds with `off`, drop the five layers and confirm: "Fable Method disarmed: back to the default posture. Doctrine stays at `rules/fable-method.md`."
+After the state write succeeds with `off`, drop the five layers and confirm: "Commander Method disarmed: back to the default posture. Doctrine stays at `rules/fable-method.md`."
 
 ## Done when
 

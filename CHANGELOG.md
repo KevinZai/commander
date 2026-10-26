@@ -1,14 +1,21 @@
 # Changelog
 
-## [Unreleased]
+## [8.1.3] - 2026-10-24
+
+Lane release. Bumps the pinned plugin version so `claude plugin update` picks up the Fleet check-in contract, per-lane state and the doctor and status-line fixes below (#241, #242, #240).
 
 ### Fixed
+- **CLI:** `~/bin/ccc` resolves the installed release and warns when the checkout drifts from the installed plugin (CC-2089). The lane hold file fails closed on access errors, and the Superfleet status-line segment honors `CCC_CONFIG_DIR` (#241).
 - **Hooks:** plugin hooks keep their state per lane in `<config dir>/commander` (`CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) through one resolver, `lib/lane-state.js`, so parallel lanes no longer write one shared `~/.claude/commander`. User settings (`config.json`, `console.json`, `state.json`) and the Console/Usage/Safety readers fall back to the legacy copy until the lane has its own. Nothing is migrated (CC-2098).
 - **Doctor:** the hook-chain check counts the handlers the SessionStart orchestrator imports (`fable-armed-nudge.js`, `voice-injector.js`, `_archive/session-start.js`) as registered, so `ccc doctor` no longer reports a false critical. Archived handlers are scanned too and must be registered or allowlisted (CC-2099).
 - **Doctor:** the mcp-availability check reported "connector count drift — found 0" after the CONNECTORS.md heading was renamed. Doctor and `ccc checkin --json` (new additive `connectors` block) now share one counter for the catalog and for the lane's configured MCP servers (user, local and project scope). A missing table or malformed config is reported as unknown, never 0 (CC-2100).
 - **CLI menu:** with a non-TTY stdin, `ccc` printed menu separators as `undefined` entries and lettered items by position. Separators are now blank lines, each entry uses its declared key (`o`, `b`, `c`, … `/`, `q`), and a typed key maps back to that entry (CC-2101).
 
 ### Added
+- **Fleet check-in:** `ccc checkin --json` reports CCC, plugin and Claude Code versions, the lane and health checks for the Fleet dispatch gate (see `docs/FLEET-CHECKIN.md`), and `ccc next --json` returns the next routed step (#241).
+- **Lanes:** CCC resolves the lane from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`, keeps per-lane state in `<config dir>/commander` and reads the legacy shared copy until a lane has its own. `ccc doctor --instances` lists every lane install (#241).
+- **Status line:** a Superfleet segment shows the lane, batch key, done/total, current ticket and lane usage (`CCC_STATUSLINE_SF=off` hides it) (#241).
+- **Routing:** a Fleet intent hook routes Fleet requests to the fleet skill; it never dispatches on its own (#241).
 - **Check-in:** `ccc checkin --json` gains an additive `hooks` block (schema stays 1): registered count, unregistered files, missing handlers and hooks that write the shared `~/.claude/commander`. Registration gaps and shared-state writers are warnings (exit 0); a hook chain that cannot load blocks (exit 1). See `docs/FLEET-CHECKIN.md` (CC-2102).
 - **Auto-routing:** `route-hints.json` takes an integer `priority` that breaks score ties (higher first, default 0; then skills before agents). `npm run build:routes` now fails, naming the route, when a routable skill or agent has no trigger, pattern, path or "Use when … says" phrase, so a route that can never fire is caught at build time (CC-2060).
 - **Auto-routing:** the routing mode can be saved per lane: `/ccc-settings` → Auto-routing writes `routeMode` (`auto`, `suggest` or `off`) to `<config dir>/commander/config.json`, and both the prompt router and the what-next menu read it. A valid `CCC_ROUTE_MODE` still wins; unknown values fall back to `auto` (CC-2061).
@@ -16,6 +23,12 @@
 - **Auto-routing:** the what-next menu after a skill run has a per-session cooldown: at most one menu every 10 minutes (`CCC_ROUTE_NEXT_COOLDOWN_MIN`, `0` offers after every run). A skill run inside the cooldown is dropped, not saved for later, and a run that ends on its own question does not start the cooldown (CC-2062).
 - **Codex:** `docs/reference/dual-host-hooks.md` documents the hook contract shared by Claude Code and Codex (command form, plugin root, events, output fields, host detection, menus) and the one-time `/hooks` trust step Codex users need before hooks fire; linked from the README and the Codex adapter README. `commander/tests/dual-host-hooks.test.js` checks that both hosts register the routing hook on UserPromptSubmit and Stop, that the mirrored hook files are byte-identical and that host detection holds (CC-2064).
 - **Status line:** `ccc statusline sync [--lane X] [--apply] [--json]` compares each lane's live `statusline.sh` and `statusline-superfleet.sh` with the checkout's `lib/` copies. It is a dry run by default; `--apply` archives the old file to `<config dir>/commander/archive/<timestamp>/` before it copies, and never deletes (CC-2103).
+
+### Changed
+- **Doctor:** plain `ccc doctor` now runs the diagnostics (#241).
+- **Status line:** with `CLAUDE_CONFIG_DIR` unset, the 🔑 hint shows `pri` (the primary lane) instead of the ClaudeSwap account or API-key tail. This is intended since 8.1.2; the ClaudeSwap and key-tail fallbacks now apply only to config dir names that are not `.claude` or `.claude-<lane>`.
+- **Status line:** the 🎯 skill count and 📋 Linear ticket read `${CLAUDE_CONFIG_DIR:-~/.claude}/skills` and `.../commander/state.json`, so a lane session shows its own skills and active ticket instead of the primary lane's.
+- **Status line:** the 🔑 lane hint keeps up to 16 characters (was 12), so `~/.claude-guestnetworks` shows `guestnetworks` in full.
 
 ## [8.1.2] - 2026-10-24
 

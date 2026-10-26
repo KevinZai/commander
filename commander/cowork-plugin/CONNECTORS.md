@@ -34,34 +34,34 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable each wit
 
 ## 🔌 The 16 opt-in MCP servers
 
-> CC Commander bundles **2 credential-free MCP servers** (`context7` + `sequential-thinking`) so the plugin works immediately on install with zero API keys. Everything below is **opt-in** via `/ccc-connect` — users enable per-MCP with their own credentials. No shared keys, no lock-in, no silent failures on install day. Anonymous usage telemetry is opt-out via `CCC_TELEMETRY=0`.
+> CC Commander bundles **2 credential-free MCP servers** (`context7` + `sequential-thinking`) so the plugin works immediately on install with zero API keys. Everything below is **opt-in** via `/ccc-connect` — users enable per-MCP with their own credentials. No shared keys, no lock-in, no silent failures on install day. Anonymous usage telemetry is off unless you opt in with `CCC_TELEMETRY=1`; `CCC_OFFLINE=1` blocks every outbound call (see the plugin README, "Data & network").
 
 | MCP | Category | Why it matters | Affiliate? | Install |
 |-----|----------|----------------|------------|---------|
-| Linear | Tasks | First-class CC Commander integration (`/ccc-linear`, `/ccc-linear-board`) | No | Official Linear MCP |
-| **Supabase** ⭐ | Backend (first-class) | **Default backend** for `/ccc-build` SaaS — auth, DB, storage, edge funcs. Also ships as a **Codex plugin**, so the same setup works in Claude Code *and* OpenAI Codex. | ✅ | `npx -y @supabase/mcp-server-supabase` |
-| Vercel | Hosting | Matches `/ccc-build` web scaffold | ✅ | Official Vercel MCP |
-| Neon | Database | Postgres serverless, lighter than Supabase for tiny projects | ✅ | `npx -y @neondatabase/mcp-server-neon` |
-| Fly.io | Hosting | Services + Docker; matches `/ccc-devops` | ✅ | Unverified — `/ccc-connect` links the official docs |
-| Upstash | Cache/Queue | Redis + Kafka serverless | ✅ | `npx -y @upstash/mcp-server` |
-| Notion | Knowledge | Docs workflow; official MCP | No | Official Notion MCP |
-| Slack | Comms | Team workflows; official MCP | No | Official Slack MCP |
-| Discord | Comms | Pro community lives here | No | Community MCP |
-| Sentry | Observability | Error tracking for shipped apps | ✅ | Sentry MCP (official) |
-| Stripe | Billing | `/ccc-build` SaaS needs this | ✅ | Stripe MCP (official) |
-| Browserbase | Automation | Remote headless browsers beyond Playwright | ✅ | `npx -y @browserbasehq/mcp` |
-| Postgres | Database | Direct DB query/schema inspection | No | `npx -y @modelcontextprotocol/server-postgres` |
-| Cloudflare | Edge | Workers + R2 + D1 | ✅ | Cloudflare MCP |
-| Resend | Email | Transactional email for SaaS | ✅ | Unverified — `/ccc-connect` links the official docs |
 | AgentMail | Email | Agent-native inbox (new) | No | AgentMail MCP |
+| Browserbase | Automation | Remote headless browsers beyond Playwright | ✅ | `npx -y @browserbasehq/mcp` |
+| Cloudflare | Edge | Workers + R2 + D1 | ✅ | Cloudflare MCP |
+| Discord | Comms | Pro community lives here | No | Community MCP |
+| Fly.io | Hosting | Services + Docker; matches `/ccc-devops` | ✅ | Unverified — `/ccc-connect` links the official docs |
+| Linear | Tasks | First-class CC Commander integration (`/ccc-linear`, `/ccc-linear-board`) | No | Official Linear MCP |
+| Neon | Database | Postgres serverless, lighter than Supabase for tiny projects | ✅ | `npx -y @neondatabase/mcp-server-neon` |
+| Notion | Knowledge | Docs workflow; official MCP | No | Official Notion MCP |
+| Postgres | Database | Direct DB query/schema inspection | No | `npx -y @modelcontextprotocol/server-postgres` |
+| Resend | Email | Transactional email for SaaS | ✅ | Unverified — `/ccc-connect` links the official docs |
+| Sentry | Observability | Error tracking for shipped apps | ✅ | Sentry MCP (official) |
+| Slack | Comms | Team workflows; official MCP | No | Official Slack MCP |
+| Stripe | Billing | `/ccc-build` SaaS needs this | ✅ | Stripe MCP (official) |
+| Supabase | Backend | Auth, DB, storage, edge funcs in one MCP. Also ships as a **Codex plugin**, so the same setup works in Claude Code *and* OpenAI Codex. | ✅ | `npx -y @supabase/mcp-server-supabase` |
+| Upstash | Cache/Queue | Redis + Kafka serverless | ✅ | `npx -y @upstash/mcp-server` |
+| Vercel | Hosting | Matches `/ccc-build` web scaffold | ✅ | Official Vercel MCP |
 
-## ⭐ Supabase — first-class backend
+## Supabase — backend connector
 
-Supabase is the **default, first-class backend connector** in CC Commander. When `/ccc-build` scaffolds a SaaS, or a user picks the Backend category in `/ccc-connect`, Supabase is recommended first.
+Supabase is one of three Backend options in `/ccc-connect` (Neon, Postgres, Supabase, listed alphabetically). No backend is pre-selected.
 
-- **Why first-class:** auth + Postgres + storage + edge functions in one MCP — covers the whole backend surface a shipped SaaS needs, so it's the broadest single connector.
+- **What it covers:** auth + Postgres + storage + edge functions in one MCP.
 - **Codex plugin too:** Supabase now also ships as an **OpenAI Codex plugin**. The same Supabase project and credentials work whether you drive it from Claude Code (via the MCP above) or from Codex (via the plugin) — no separate setup.
-- **Affiliate (✅):** the Supabase row is an affiliate link. Signing up via `/ccc-connect` may earn CC Commander a commission at no cost to you. This funds maintenance of the MIT-licensed core and never changes the recommendation — Supabase is recommended on merit. A non-affiliate alternative (Neon, or bring-your-own Postgres) is always surfaced alongside it.
+- **Affiliate (✅):** the Supabase row is an affiliate link. Signing up via `/ccc-connect` may earn CC Commander a commission at no cost to you. This funds maintenance of the MIT-licensed core and never changes the order or the default. A non-affiliate alternative (bring-your-own Postgres) is always surfaced alongside it.
 - **Install:** `/ccc-connect backend` → Supabase for the click-through flow (it prefers a Claude Code plugin when one is listed, otherwise wires `npx -y @supabase/mcp-server-supabase` with `SUPABASE_URL` and `SUPABASE_KEY` without putting the secret on the command line).
 
 ## 🧬 acpx — bring-your-own agent harness

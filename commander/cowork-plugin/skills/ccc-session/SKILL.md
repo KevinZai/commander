@@ -6,8 +6,7 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[resume | review | history | save | export]"
-model: haiku
-effort: low
+disable-model-invocation: true
 ---
 
 # /ccc-session — save or resume, routed

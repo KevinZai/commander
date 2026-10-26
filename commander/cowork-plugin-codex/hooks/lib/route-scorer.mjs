@@ -209,6 +209,14 @@ export function renderRouteContext(candidates, tier, host) {
     const top = top3[0].route;
     const how = host === 'codex' ? `use the ${top.id} skill` : `invoke Skill commander:${top.id}`;
     body = `Clear match: ${how} now (${top.label}). Say so in one line first. Skip it if the user only wants a quick answer.`;
+  } else if (top3[0].route.manual) {
+    // Hidden (disable-model-invocation) skill: the host blocks Skill calls to
+    // it, so offer it with the alternatives instead of invoking it (CC-2112).
+    // Kept short: paid on every matching prompt (one option ~65 tokens).
+    const shown = top3.slice(0, host === 'codex' ? 2 : 3);
+    const opts = shown.map((c) => `${invokeText(c.route, host)}: ${c.route.label}${c.route.manual ? '*' : ''}`).join('; ');
+    const ask = host === 'claude-code' && !useList() ? 'Offer via AskUserQuestion once, 🟢 first, last "Just answer":' : `${menuInstruction(host, shown.length)} Options:`;
+    body = `Hidden skill. ${ask} ${opts}. *User types it; never invoke it.`;
   } else {
     const shown = top3.slice(0, host === 'codex' ? 2 : 3);
     const opts = shown.map((c) => optionText(c.route, host)).join('; ');

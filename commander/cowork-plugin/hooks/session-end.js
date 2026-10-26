@@ -9,7 +9,6 @@
  * Core free forever — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
-import { emitUser } from './lib/emit.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -53,14 +52,7 @@ async function main() {
 
     track('hook_fired', { hook: 'Stop', handler: 'session-end' });
 
-    // Partner credit rotation (cycles daily across Supabase, Vercel, Upstash)
-    const partners = ['Supabase', 'Vercel', 'Upstash'];
-    const dayIndex = Math.floor(Date.now() / 86400000) % partners.length;
-    const partner = partners[dayIndex];
-
-    console.log(JSON.stringify(emitUser(
-      `✨ Powered by ${partner} · cc Vercel · cc Upstash · /docs/powered-by`
-    )));
+    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }

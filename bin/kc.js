@@ -18,7 +18,7 @@ process.on('unhandledRejection', function(reason) { _fatalHandler(reason instanc
 
 
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('\n  CC Commander — 450+ skills. One command. Your AI work, managed by AI.\n');
+  console.log('\n  CC Commander — 467 skills. One command. Your AI work, managed by AI.\n');
   console.log('  Usage:  ccc\n');
   console.log('  --version    Show version');
   console.log('  --test       Validate all modules');
@@ -48,9 +48,8 @@ if (args.includes('--help') || args.includes('-h')) {
   process.exit(0);
 }
 if (args.includes('--version')) {
-  var B = require(path.join(__dirname,'..','commander','branding'));
   var rel = require(path.join(__dirname,'..','commander','lib','release-info'));
-  var vr = rel.versionReport(B.product, rel.resolveRelease({ root: path.resolve(__dirname, '..') }));
+  var vr = rel.versionReport('CC Commander', rel.resolveRelease({ root: path.resolve(__dirname, '..') }));
   console.log(vr.line);
   vr.warnings.forEach(function(w) { console.error(w); });
   process.exit(0);
