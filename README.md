@@ -6,9 +6,9 @@
 
 A guided AI project manager for Claude Code. `/ccc` reads your project, recommends one next step and offers the alternatives as a click-first menu. Specialist agents do the work; lifecycle hooks keep state, guard secrets and check results.
 
-[![v8.1.3](https://img.shields.io/badge/v8.1.3-4F46E5?style=for-the-badge)](./CHANGELOG.md) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![v8.1.4](https://img.shields.io/badge/v8.1.4-4F46E5?style=for-the-badge)](./CHANGELOG.md) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-| What ships in v8.1.3 | Count |
+| What ships in v8.1.4 | Count |
 |---|---|
 | Plugin skills (`/ccc-*`) | 84: 32 model-visible, 52 on demand |
 | Specialist agents | 22 |

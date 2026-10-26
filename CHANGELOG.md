@@ -1,5 +1,35 @@
 # Changelog
 
+## [8.1.4] - 2026-10-26
+
+Release for the CCC-HQ batch (#246), finished auto-routing (#247) and the Hermes CCC batch (#245). Bumps the pinned plugin version so `claude plugin update` picks these up.
+
+### Security
+- **Status line:** the status line no longer `eval`s Claude Code's JSON. Fields are parsed positionally and numbers coerced, so a quote, `$()` or backtick in a directory, model or agent name can no longer run shell code (CC-2110, H1).
+- **Elicitation hooks:** the Elicitation and ElicitationResult hooks log only the documented identifiers (MCP server, mode, elicitation id, action) and never the message, URL, schema or submitted content, which can carry credentials (CC-2115, H2).
+
+### Changed
+- **Load on demand:** 32 skills stay model-visible and 52 load on demand (`disable-model-invocation`), cutting the skill listing from about 22.6k to 7.3k characters. The router offers hidden skills as a menu the user types, and `npm run measure:listing` / `check:listing` guard the budget (CC-2112).
+- **Network and telemetry:** telemetry is opt-in and off by default. `CCC_OFFLINE=1` blocks every outbound call, and the CI ticker's `gh` lookup runs only with `CCC_CI_TICKER=1`. All outbound calls go through `lib/network-mode.js` (CC-2111).
+- **Defaults:** the cost ceiling is off unless set, and when set it denies with a reason. 72 `model:` and 84 `effort:` frontmatter pins were removed so skills inherit the session's model (CC-2115).
+- **Hosted MCP server:** `posthog-node` is removed. `/v1/events` validates, rate-limits, acknowledges and discards events, with `/metrics` counters (CC-2119).
+- **Docs:** README, BIBLE, CHEATSHEET and mintlify use generated counts. `check:parity` keeps 105+ files consistent. There is a plugin icon, and the README has example prompts, privacy and support (CC-2113, CC-2117).
+
+### Added
+- **Directory mirror:** a publisher builds the `cc-commander` directory mirror, triggered by a tag. It stays dormant until the mirror repo and secret exist (CC-2114).
+- **Auto-routing:** `route-hints.json` takes an integer `priority` that breaks score ties (higher first, default 0; then skills before agents). `npm run build:routes` now fails, naming the route, when a routable skill or agent has no trigger, pattern, path or "Use when … says" phrase, so a route that can never fire is caught at build time (CC-2060).
+- **Auto-routing:** the routing mode can be saved per lane: `/ccc-settings` → Auto-routing writes `routeMode` (`auto`, `suggest` or `off`) to `<config dir>/commander/config.json`, and both the prompt router and the what-next menu read it. A valid `CCC_ROUTE_MODE` still wins; unknown values fall back to `auto` (CC-2061).
+- **Auto-routing:** `npm run eval:routes` (`scripts/route-eval.js`) runs the routing eval as one command and reports recall, false triggers, wrong-route fires, wrong auto-runs, explicit requests that no longer auto-run and routes that never fire, with `--json` and `--fixtures <file>`. A route with labelled prompts that fires on none of them now fails, even when aggregate recall is still 90% or higher. `npm run test:ci` runs the registry freshness check, the eval and the routing tests (CC-2063).
+- **Auto-routing:** the what-next menu after a skill run has a per-session cooldown: at most one menu every 10 minutes (`CCC_ROUTE_NEXT_COOLDOWN_MIN`, `0` offers after every run). A skill run inside the cooldown is dropped, not saved for later, and a run that ends on its own question does not start the cooldown (CC-2062).
+- **Codex:** `docs/reference/dual-host-hooks.md` documents the hook contract shared by Claude Code and Codex (command form, plugin root, events, output fields, host detection, menus) and the one-time `/hooks` trust step Codex users need before hooks fire; linked from the README and the Codex adapter README. `commander/tests/dual-host-hooks.test.js` checks that both hosts register the routing hook on UserPromptSubmit and Stop, that the mirrored hook files are byte-identical and that host detection holds (CC-2064).
+- **Broadcast:** `/ccc-broadcast` can send every signal to one ops channel (`opsChannel`). Incidents stay immediate, `lib/broadcast-route.js` adds dedup keys and message-id receipts, and the router refuses credential fields (CC-1598).
+- **Specialists:** a read-only specialist resolver maps a name to its canonical agent or persona profile with provenance. It is off unless `CCC_SPECIALIST_RESOLVER=1` (CC-1998).
+- **Docs:** `docs/reports/2026-10-25-ccc-best-practice-audit.md` is a cited best-practice audit of the CCC-HQ findings (FLT-187).
+
+### Fixed
+- **Command names:** the suggest-ticker nudge and the BIBLE workflow table no longer name nonexistent commands (`/ccc-debug`, `/ccc-verify`, `/ccc-spike*`). A test fails when hook text names a missing command (CC-296).
+- **MCP pins:** bundled MCP server versions are pinned (CC-2106).
+
 ## [8.1.3] - 2026-10-24
 
 Lane release. Bumps the pinned plugin version so `claude plugin update` picks up the Fleet check-in contract, per-lane state and the doctor and status-line fixes below (#241, #242, #240).
@@ -17,11 +47,6 @@ Lane release. Bumps the pinned plugin version so `claude plugin update` picks up
 - **Status line:** a Superfleet segment shows the lane, batch key, done/total, current ticket and lane usage (`CCC_STATUSLINE_SF=off` hides it) (#241).
 - **Routing:** a Fleet intent hook routes Fleet requests to the fleet skill; it never dispatches on its own (#241).
 - **Check-in:** `ccc checkin --json` gains an additive `hooks` block (schema stays 1): registered count, unregistered files, missing handlers and hooks that write the shared `~/.claude/commander`. Registration gaps and shared-state writers are warnings (exit 0); a hook chain that cannot load blocks (exit 1). See `docs/FLEET-CHECKIN.md` (CC-2102).
-- **Auto-routing:** `route-hints.json` takes an integer `priority` that breaks score ties (higher first, default 0; then skills before agents). `npm run build:routes` now fails, naming the route, when a routable skill or agent has no trigger, pattern, path or "Use when … says" phrase, so a route that can never fire is caught at build time (CC-2060).
-- **Auto-routing:** the routing mode can be saved per lane: `/ccc-settings` → Auto-routing writes `routeMode` (`auto`, `suggest` or `off`) to `<config dir>/commander/config.json`, and both the prompt router and the what-next menu read it. A valid `CCC_ROUTE_MODE` still wins; unknown values fall back to `auto` (CC-2061).
-- **Auto-routing:** `npm run eval:routes` (`scripts/route-eval.js`) runs the routing eval as one command and reports recall, false triggers, wrong-route fires, wrong auto-runs, explicit requests that no longer auto-run and routes that never fire, with `--json` and `--fixtures <file>`. A route with labelled prompts that fires on none of them now fails, even when aggregate recall is still 90% or higher. `npm run test:ci` runs the registry freshness check, the eval and the routing tests (CC-2063).
-- **Auto-routing:** the what-next menu after a skill run has a per-session cooldown: at most one menu every 10 minutes (`CCC_ROUTE_NEXT_COOLDOWN_MIN`, `0` offers after every run). A skill run inside the cooldown is dropped, not saved for later, and a run that ends on its own question does not start the cooldown (CC-2062).
-- **Codex:** `docs/reference/dual-host-hooks.md` documents the hook contract shared by Claude Code and Codex (command form, plugin root, events, output fields, host detection, menus) and the one-time `/hooks` trust step Codex users need before hooks fire; linked from the README and the Codex adapter README. `commander/tests/dual-host-hooks.test.js` checks that both hosts register the routing hook on UserPromptSubmit and Stop, that the mirrored hook files are byte-identical and that host detection holds (CC-2064).
 - **Status line:** `ccc statusline sync [--lane X] [--apply] [--json]` compares each lane's live `statusline.sh` and `statusline-superfleet.sh` with the checkout's `lib/` copies. It is a dry run by default; `--apply` archives the old file to `<config dir>/commander/archive/<timestamp>/` before it copies, and never deletes (CC-2103).
 
 ### Changed

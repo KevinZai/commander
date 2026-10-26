@@ -1,7 +1,7 @@
 {
   "name": "commander",
   "displayName": "CC Commander",
-  "version": "8.1.3",
+  "version": "8.1.4",
   "description": "Guided AI PM for Codex, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). 84 plugin skills (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), 22 specialist subagents generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 16 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Telemetry is off unless you opt in. MIT-licensed.",
   "author": {
     "name": "Kevin Zicherman",

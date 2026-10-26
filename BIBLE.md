@@ -1,11 +1,11 @@
 # CC Commander — by Kevin Zicherman
-> Updated: 2026-10-24 | Version: 8.1.3 (see package.json) | Non-coder friendly. Practical examples throughout.
+> Updated: 2026-10-26 | Version: 8.1.4 (see package.json) | Non-coder friendly. Practical examples throughout.
 > Sources: 200+ best practices distilled from: ykdojo 45 tips · hooeem Claude Certified Architect Guide · aiedge_ Skills 2.0 Guide · dr_cintas Cowork Complete Guide · MichLieben Vibe Marketing ($7M B2B) · coreyganim Cowork Plugins Guide · GriffinHilly Weekly Loop/COMP System · bekacru Agent Auth Protocol · SuperClaude Framework · chddaniel Mobile Dev · Trail of Bits · Anthropic Official Docs
 
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
-> **Latest: v8.1.3** makes CCC lane-aware: `ccc checkin --json` for the Fleet dispatch gate, per-lane state in `<config dir>/commander`, a green `ccc doctor` hook chain and a Superfleet status-line segment. The previous release fixed the status line: it reads the CCC version from the installed plugin and shows the lane from `CLAUDE_CONFIG_DIR`. The previous fix release brought a secret scan that cannot be silently disabled, session state keyed on the real session id, skill pickers that fit the tool schema, correct installer config dir and Sonnet 5.5 cost pricing. v8.1.0 added MCP catalog annotations and reliable cloud test startup. The October 2026 revamp remains included: `/ccc-codex` manages the Codex CLI from Claude, the Commander HUD mod draws a status band above the prompt, six plugin workflows ship as `/commander:<name>`, eight plugin evals guard the core skills, seven new hook events are wired (30 events, 52 handlers), and every model reference moved to the Claude 5.5 generation and the GPT-6 family. See [What's New in v8](#whats-new-in-v8). Earlier releases are in [CHANGELOG.md](CHANGELOG.md).
+> **Latest: v8.1.4** loads most skills on demand (32 model-visible, 52 on demand), turns telemetry and outbound lookups off by default, closes the status-line injection hole, adds saved auto-routing modes with an offline routing eval, and adds a one-channel `/ccc-broadcast` option. v8.1.3 made CCC lane-aware: `ccc checkin --json` for the Fleet dispatch gate, per-lane state in `<config dir>/commander`, a green `ccc doctor` hook chain and a Superfleet status-line segment. The release before it fixed the status line: it reads the CCC version from the installed plugin and shows the lane from `CLAUDE_CONFIG_DIR`. The previous fix release brought a secret scan that cannot be silently disabled, session state keyed on the real session id, skill pickers that fit the tool schema, correct installer config dir and Sonnet 5.5 cost pricing. v8.1.0 added MCP catalog annotations and reliable cloud test startup. The October 2026 revamp remains included: `/ccc-codex` manages the Codex CLI from Claude, the Commander HUD mod draws a status band above the prompt, six plugin workflows ship as `/commander:<name>`, eight plugin evals guard the core skills, seven new hook events are wired (30 events, 52 handlers), and every model reference moved to the Claude 5.5 generation and the GPT-6 family. See [What's New in v8](#whats-new-in-v8). Earlier releases are in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -89,7 +89,7 @@ Agents name an alias, never a pinned id, so they track the newest model in each 
 - [Chapter 6: Autonomy](#stage-6-long-running--autonomous-work) — Long-Running & Autonomous Work
 
 ### The Appendices
-- [CC Commander](#cc-commander) *(v8.1.3 — Desktop plugin + CLI, Desktop-first)*
+- [CC Commander](#cc-commander) *(v8.1.4 — Desktop plugin + CLI, Desktop-first)*
 - [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
@@ -1636,7 +1636,7 @@ My tools: [list tools/APIs]."
 | `/permissions` | Manage approved commands | Security audit |
 | `/schedule` | Schedule a Cowork task | Cowork mode autopilot |
 
-### 🛠️ Plugin Workflows (v8.1.3)
+### 🛠️ Plugin Workflows (v8.1.4)
 
 CC Commander is now a Claude Code plugin. The primary UX is plain `/ccc-*` slash commands with a native AskUserQuestion chip picker. The plugin ships 84 skills; these core workflow shortcuts require no menu traversal:
 
@@ -2681,7 +2681,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 ---
 ## Built on Claude Agent SDK
 
-> *v8.1.3* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
+> *v8.1.4* — CC Commander's sub-agent architecture is built on the brain/hands pattern described in Anthropic's Claude Agent SDK.
 
 ### Brain / Hands
 
@@ -2732,7 +2732,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v8.1.3* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 84 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (52 handlers), the Commander HUD mod, 6 plugin workflows and 8 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
+> *v8.1.4* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 84 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (52 handlers), the Commander HUD mod, 6 plugin workflows and 8 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2946,7 +2946,7 @@ Data analysis, data visualization, SQL queries, statistical analysis, explore da
 
 ## Intelligence Layer Deep Dive
 
-> *Appendix: v8.1.3 — How CCC thinks before it acts.*
+> *Appendix: v8.1.4 — How CCC thinks before it acts.*
 
 CC Commander's Intelligence Layer is four modules that run silently on every dispatch. Together they answer the question: **"What's the right way to handle this task right now?"**
 
