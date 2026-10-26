@@ -87,11 +87,57 @@ function isAutofixWrite(toolName, context) {
   return skill.includes('ccc-review') || phase === 'autofix';
 }
 
+// CC-654: the shell removes quotes and escapes and runs substitutions before git sees its arguments, so `\+main`,
+// --\force, -''f, $'\x2df', $(echo -f), `echo -f` and git${IFS}push all reach git as a force push. shellView() is a
+// rough unquote pass: quotes and escapes go as the shell would drop them, $'...' escapes are decoded, $(...) and
+// backticks become their text between spaces, and $IFS / ${IFS} become a space. Plain variables ($F) stay unknown.
+const ANSI_C = { a: '\x07', b: '\b', e: '\x1b', E: '\x1b', f: '\f', n: '\n', r: '\r', t: '\t', v: '\v' };
+
+function ansiC(body) {
+  return body.replace(/\\(x[0-9a-fA-F]{1,2}|u[0-9a-fA-F]{1,4}|U[0-9a-fA-F]{1,8}|[0-7]{1,3}|c.|.)/gs, (m, e) => {
+    if (/^[xuU][0-9a-fA-F]/.test(e)) { const cp = parseInt(e.slice(1), 16); return cp <= 0x10ffff ? String.fromCodePoint(cp) : ''; }
+    if (/^[0-7]/.test(e)) return String.fromCharCode(parseInt(e, 8) & 0xff);
+    if (e[0] === 'c') return String.fromCharCode(e.charCodeAt(1) & 0x1f);
+    return ANSI_C[e] ?? ('\\\'"?'.includes(e) ? e : `\\${e}`);   // bash keeps the backslash of an unknown escape ($'\x' is \x)
+  });
+}
+
+function shellView(cmd) {
+  let out = '';
+  const stack = [{ kind: 'top', parens: 0 }];   // top | sub ($(...)) | bt (`...`) | dq ("...")
+  for (let i = 0; i < cmd.length; i++) {
+    const c = cmd[i]; const next = cmd[i + 1]; const top = stack[stack.length - 1];
+    const ifs = /^\$(?:\{IFS\}|IFS(?![A-Za-z0-9_]))/.exec(cmd.slice(i));
+    if (ifs) { out += ' '; i += ifs[0].length - 1; continue; }
+    if (c === '$' && next === '(' && cmd[i + 2] !== '(') { stack.push({ kind: 'sub', parens: 0 }); out += ' '; i++; continue; }
+    if (c === '`') { if (top.kind === 'bt') stack.pop(); else stack.push({ kind: 'bt', parens: 0 }); out += ' '; continue; }
+    if (top.kind === 'dq') {
+      if (c === '"') { stack.pop(); continue; }
+      if (c === '\\' && next !== undefined && '$`"\\\n'.includes(next)) { if (next !== '\n') out += next; i++; continue; }
+      out += c; continue;
+    }
+    if (c === '\\') { if (next !== undefined && next !== '\n') out += next; i++; continue; }
+    if (c === "'") { const end = cmd.indexOf("'", i + 1); const stop = end === -1 ? cmd.length : end; out += cmd.slice(i + 1, stop); i = stop; continue; }
+    if (c === '$' && next === "'") {
+      let j = i + 2; while (j < cmd.length && cmd[j] !== "'") j += cmd[j] === '\\' ? 2 : 1;
+      out += ansiC(cmd.slice(i + 2, Math.min(j, cmd.length))); i = j; continue;
+    }
+    if (c === '"') { stack.push({ kind: 'dq', parens: 0 }); continue; }
+    if (top.kind === 'sub' && c === '(') top.parens++;
+    if (top.kind === 'sub' && c === ')') { if (top.parens) top.parens--; else { stack.pop(); out += ' '; continue; } }
+    out += c;
+  }
+  return out;
+}
+
 function isDangerousCommand(toolInput) {
   const cmd = toolInput?.command || toolInput?.cmd || '';
   if (typeof cmd !== 'string') return false;
   const joined = cmd.replace(/\\\r?\n/g, '');   // the shell drops a backslash-newline: `+\<newline>main` is `+main`
-  return DANGEROUS_PATTERNS.some(pat => pat.test(joined));
+  if (DANGEROUS_PATTERNS.some(pat => pat.test(joined))) return true;   // raw first: nothing denied before shellView is allowed now
+  let view;
+  try { view = shellView(joined); } catch { return false; }   // a view that cannot be built never overrides the raw check above
+  return DANGEROUS_PATTERNS.some(pat => pat.test(view));
 }
 
 async function logDecision(entry) {

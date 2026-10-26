@@ -344,6 +344,24 @@ describe('permission-gate: dangerous operations → always reject', () => {
     });
   }
 
+  // CC-654 shell tokenize (#257 verifier r2): the shell strips escapes and quotes and runs substitutions before git sees its
+  // arguments, so `\+main`, `--\force`, $(echo -f), `echo -f`, $'-f' and ${IFS} as a separator are force pushes too
+  for (const command of ['git push origin \\+main', 'git push origin \\:main', 'git push --\\force origin main', 'git push -\\f origin main', 'g\\it push -f origin main', 'git pu\\sh --delete origin feat', 'git push $(echo -f) origin main', 'git push origin $(printf +main)', 'git push `echo --force` origin main', 'git push "$(echo --force)" origin main', 'git push $(echo $(echo -f)) origin main', 'git${IFS}push${IFS}-f origin main', 'git$IFS"push"$IFS-f', "git push $'-f' origin main", "git push $'\\x2df' origin main", "git push origin $'\\053main'", 'git push origin ""+main', "git push -''f origin main", 'git push --f""orce origin main', 'git push origin +ma\\\nin', ": $'\\x'; git push --force origin main", ": $'\\u'; git push -f origin main", ": $'\\U110000'; git push origin +main", "git push $'\\x' -f origin main", "git push origin $'\\x2b'main"]) {
+    it(`denies obfuscated push: ${JSON.stringify(command)}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    });
+  }
+
+  for (const command of ['git push origin $(git branch --show-current)', 'git push origin "$(git rev-parse --abbrev-ref HEAD)"', 'git push -u origin `git branch --show-current`', 'git push origin "\\+main"', 'git commit -m "Fix push \\-f detection"', "git commit -m 'push \\+main is a force push'", 'echo "$(git push --dry-run origin main)"', 'git push origin feat\\-x']) {
+    it(`approves non-force git after unquoting: ${JSON.stringify(command)}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true);
+    });
+  }
+
   for (const command of ['git push origin main', 'git push -u origin feature-f', 'git push --follow-tags origin main', 'git push origin feat-x', 'git status && echo -f', 'git commit -m "Fix push -f detection"', 'git log --grep="push --force"', 'git push origin main:main', 'git push origin HEAD:refs/heads/feat', 'git push --dry-run origin main', 'git push -u origin feat-d', 'git push origin feature-delete', 'git push origin main\necho -f', 'git push origin ":"', "git push origin ':'", 'git push origin :', 'git push origin :; echo done', 'git push origin :&& echo ok', 'git push --progress origin main', 'git push --no-force-with-lease origin main']) {
     it(`approves non-force git: ${command}`, () => {
       const r = runGate({ tool_name: 'Bash', tool_input: { command } });
