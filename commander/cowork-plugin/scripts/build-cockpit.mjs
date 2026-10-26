@@ -28,6 +28,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readTopSkills } from '../lib/top-skills.js';
 import { readablePath, readableStateDir } from '../lib/lane-state.js';
+import { withoutInternalRuns } from '../lib/agent-runs.js';
 import { brandArtifactCss } from '../lib/brand-css.js';
 import { deckStripHtml, deckStripCss } from '../lib/deck-switcher.js';
 
@@ -733,8 +734,9 @@ function readJsonl(filePath) {
   let raw;
   try {
     raw = fs.readFileSync(filePath, 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    // A missing file is empty; any other failure means the rows are unknown (agent-runs.js).
+    return Object.assign([], { incomplete: error?.code !== 'ENOENT' });
   }
 
   const entries = [];
@@ -970,9 +972,11 @@ function computeTelemetryFreshness(baseDir, nowMs) {
 
 async function buildAnalytics() {
   const baseDir = readableStateDir();
+  const subagentRuns = readJsonl(path.join(baseDir, 'subagent-runs.jsonl'));
   const sources = {
-    agentRuns: readJsonl(path.join(baseDir, 'agent-runs.jsonl')),
-    subagentRuns: readJsonl(path.join(baseDir, 'subagent-runs.jsonl')),
+    // Claude Code's internal agents are not dispatches (CC-2120).
+    agentRuns: withoutInternalRuns(readJsonl(path.join(baseDir, 'agent-runs.jsonl')), subagentRuns),
+    subagentRuns,
     tasks: readJsonl(path.join(baseDir, 'tasks.jsonl')),
     events: readJsonl(path.join(baseDir, 'mission-control', 'events.jsonl')),
   };
