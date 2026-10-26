@@ -35,6 +35,9 @@ let batchQueue = [];
 let batchTimer = null;
 const BATCH_SIZE = 10;
 const BATCH_TIMEOUT_MS = 5000;
+// One deadline for the whole endpoint chain, so a flush on exit cannot hold a
+// hook past its timeout. fetch() has no `timeout` option; it needs a signal.
+const SEND_TIMEOUT_MS = 2500;
 
 const VERSION = getVersion();
 const OS = process.platform;
@@ -125,6 +128,8 @@ async function sendBatch(events) {
     })),
   };
 
+  const signal = AbortSignal.timeout(SEND_TIMEOUT_MS);
+
   // Try each endpoint in sequence (fallback chain)
   for (const endpoint of MCP_ENDPOINTS) {
     try {
@@ -134,7 +139,7 @@ async function sendBatch(events) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-        timeout: 5000,
+        signal,
       });
 
       if (response.ok) {
@@ -219,13 +224,13 @@ export function track(eventName, properties = {}) {
 }
 
 // ─── Cleanup on process exit ──────────────────────────────────────────────────
-// Ensure pending events are flushed before exit
-process.on('exit', () => {
-  if (batchQueue.length > 0) {
-    // Synchronous flush not possible here — rely on async flush above
-    // Events may be lost if process exits immediately, but that's acceptable
-    // for telemetry (non-critical data)
-  }
+// Short-lived hook processes finish before the unref'd batch timer fires, so
+// flush what is queued when the event loop drains. The pending send keeps the
+// process alive until it settles or SEND_TIMEOUT_MS passes (CC-2121). Only an
+// opted-in process ever has a queue. process.exit() skips beforeExit, so an
+// explicit exit still drops the queue.
+process.on('beforeExit', () => {
+  if (batchQueue.length > 0) flushBatch();
 });
 
 process.on('SIGTERM', () => {

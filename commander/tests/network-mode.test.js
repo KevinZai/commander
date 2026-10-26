@@ -163,6 +163,38 @@ describe('telemetry.mjs is opt-in', () => {
   });
 });
 
+// CC-2121: a hook process tracks one event and ends before the unref'd 5 s
+// batch timer. The queue must still be sent when the event loop drains.
+function telemetryOnExit(env) {
+  const url = pathToFileURL(path.join(PLUGIN, 'lib', 'telemetry.mjs')).href;
+  const script = [
+    'globalThis.fetch = async (u, o) => {',
+    "  process.stdout.write(JSON.stringify({ n: JSON.parse(o.body).events.length, signal: o.signal instanceof AbortSignal }) + '\\n');",
+    '  return { ok: true };',
+    '};',
+    `const t = await import(${JSON.stringify(url)});`,
+    "t.track('hook_fired', { hook: 'Stop', handler: 'test' });",
+  ].join('\n');
+  const started = Date.now();
+  const r = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    env: cleanEnv(env), encoding: 'utf8', timeout: 15000,
+  });
+  assert.equal(r.status, 0, r.stderr);
+  return { sends: r.stdout.trim().split('\n').filter(Boolean).map((l) => JSON.parse(l)), ms: Date.now() - started };
+}
+
+describe('telemetry.mjs flushes when a short-lived process ends (CC-2121)', () => {
+  it('sends the queued event once, with an abort signal, without waiting for the batch timer', () => {
+    const { sends, ms } = telemetryOnExit({ HOME: makeHome(), CCC_TELEMETRY: '1' });
+    assert.deepEqual(sends, [{ n: 1, signal: true }]);
+    assert.ok(ms < 4500, `exited in ${ms} ms`);
+  });
+
+  it('sends nothing on exit when telemetry is off', () => {
+    assert.deepEqual(telemetryOnExit({ HOME: makeHome() }).sends, []);
+  });
+});
+
 describe('update-nudge.js honours CCC_OFFLINE', () => {
   let run;
   before(async () => {
