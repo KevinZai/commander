@@ -42,7 +42,7 @@ Handler counts per event, rebuilt from `hooks.json`. A handler = one command ent
 | PreCompact | `pre-compact.js` | — | Block compaction if session is mid-critical-task |
 | PostCompact | `post-compact-recovery.js` | — | Restore session context after a compaction cycle (also runs at SessionStart via the orchestrator) |
 | SubagentStart | `subagent-start-tracker.js` (async) | — | Logs sub-agent dispatch info (name, prompt, model, session) for observability |
-| SubagentStop | `subagent-stop.js` | — | Track subagent cost aggregation per session |
+| SubagentStop | `subagent-stop.js` | — | Track subagent cost aggregation per session; warn (never block) when the main tree has tracked changes (`CCC_TRACKED_CLEAN_WARN=0` turns it off) |
 | SubagentStop | `agent-run-logger.js` (async) | — | Logs completed agent runs for Mission Control roster telemetry |
 | PermissionRequest | `permission-gate.js` | — | Permission-prompt relay (Codex Desktop only) |
 | PermissionRequest | `mission-control-feed.js` (async) | — | Append permission events to the Mission Control event feed |

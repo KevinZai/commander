@@ -14,9 +14,15 @@
  * marks the row honestly instead of writing a fabricated 0 (this is why
  * historical rows were unknown/0 — the data was never in the payload).
  *
+ * Fable method F9: after the row is written, warn (never block) when the
+ * session's main tree has tracked changes (`git status --porcelain`, untracked
+ * files ignored), so a subagent that edited outside its worktree is noticed.
+ * Set CCC_TRACKED_CLEAN_WARN=0 to turn the warning off.
+ *
  * Core free forever — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
+import { execFileSync } from 'node:child_process';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
@@ -66,6 +72,31 @@ function firstFiniteNullable(...candidates) {
     if (Number.isFinite(num)) return num;
   }
   return null;
+}
+
+// Tracked (not untracked) changes in cwd's git tree; [] when cwd is not a
+// repo, git is missing or slow. Bounded well under the 5 s hook timeout.
+function trackedChanges(cwd) {
+  try {
+    const out = execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], {
+      cwd,
+      encoding: 'utf8',
+      timeout: 1500,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return out.split('\n').filter((line) => line.trim());
+  } catch {
+    return [];
+  }
+}
+
+function trackedCleanWarning(input) {
+  if (process.env.CCC_TRACKED_CLEAN_WARN === '0') return null;
+  const cwd = firstString(input.cwd) || process.cwd();
+  const changed = trackedChanges(cwd);
+  if (!changed.length) return null;
+  const n = changed.length;
+  return `Commander: the main tree has ${n} tracked change${n === 1 ? '' : 's'} after this subagent (git status --porcelain). Check the subagent stayed in its own worktree before you continue (fable-method: tracked-clean check).`;
 }
 
 async function main() {
@@ -165,7 +196,14 @@ async function main() {
       JSON.stringify(entry) + '\n'
     );
 
-    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+    const warning = trackedCleanWarning(input);
+    console.log(
+      JSON.stringify(
+        warning
+          ? { continue: true, suppressOutput: true, systemMessage: warning }
+          : { continue: true, suppressOutput: true }
+      )
+    );
   } catch {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
   }
