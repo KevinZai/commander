@@ -33,7 +33,6 @@ const PLUGIN_JSON = [
  * Caller may pass { home, cwd } overrides; defaults read from process.env / process.cwd().
  */
 export async function run({ home, cwd: _cwd } = {}) {
-  const HOME = home || process.env.HOME;
   const laneEnv = home ? { ...process.env, HOME: home } : process.env;
   const CCC_DIR = stateDir(laneEnv);
   const SESSIONS_DIR = join(CCC_DIR, 'sessions');
@@ -41,7 +40,6 @@ export async function run({ home, cwd: _cwd } = {}) {
   const STATE_FILE = join(CCC_DIR, 'state.json');
   // Read the legacy ~/.claude/commander/state.json until this lane has its own copy.
   const STATE_SRC = readablePath('state.json', laneEnv);
-  const CLAUDE_SESSIONS_DIR = join(HOME, '.claude', 'sessions');
 
   try {
     for (const dir of [CCC_DIR, SESSIONS_DIR, KNOWLEDGE_DIR]) {
@@ -94,14 +92,6 @@ export async function run({ home, cwd: _cwd } = {}) {
       }
     } catch {}
 
-    let isFirstSession = false;
-    try {
-      const claudeSessions = await readdir(CLAUDE_SESSIONS_DIR).catch(() => []);
-      isFirstSession = claudeSessions.length === 0;
-    } catch {
-      isFirstSession = true;
-    }
-
     const activeFile = join(SESSIONS_DIR, 'active-session.json');
     try {
       await writeFile(activeFile, JSON.stringify({
@@ -110,10 +100,13 @@ export async function run({ home, cwd: _cwd } = {}) {
       }, null, 2));
     } catch {}
 
-    if (!onboardingCompleted && isFirstSession) {
+    // First run = CCC's own state.json did not exist before this session, not
+    // an empty ~/.claude/sessions (anyone who used Claude Code before
+    // installing CCC never saw the welcome; CC-1360 F24).
+    if (!onboardingCompleted && isFirstRun) {
       return {
         continue: true,
-        suppressOutput: true,
+        suppressOutput: false,
         status: '👋 Welcome to CC Commander! Run /ccc-start for a 60-second tour.',
       };
     }
@@ -140,7 +133,6 @@ const SESSIONS_DIR = join(CCC_DIR, 'sessions');
 const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
 const STATE_FILE = join(CCC_DIR, 'state.json');
 const STATE_SRC = readablePath('state.json');
-const CLAUDE_SESSIONS_DIR = join(process.env.HOME, '.claude', 'sessions');
 
 async function main() {
   try {
@@ -201,14 +193,6 @@ async function main() {
     } catch {}
 
     // Detect if this is the user's first-ever Claude session (no prior session history)
-    let isFirstSession = false;
-    try {
-      const claudeSessions = await readdir(CLAUDE_SESSIONS_DIR).catch(() => []);
-      isFirstSession = claudeSessions.length === 0;
-    } catch {
-      isFirstSession = true;
-    }
-
     const activeFile = join(SESSIONS_DIR, 'active-session.json');
     try {
       await writeFile(activeFile, JSON.stringify({
@@ -217,11 +201,11 @@ async function main() {
       }, null, 2));
     } catch {}
 
-    // Auto-prompt /ccc-start on first session when onboarding not yet completed
-    if (!onboardingCompleted && isFirstSession) {
+    // Auto-prompt /ccc-start on CCC's first run when onboarding is not completed
+    if (!onboardingCompleted && isFirstRun) {
       console.log(JSON.stringify({
         continue: true,
-        suppressOutput: true,
+        suppressOutput: false,
         status: '👋 Welcome to CC Commander! Run /ccc-start for a 60-second tour.',
       }));
       return;
