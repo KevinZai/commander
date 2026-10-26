@@ -12,8 +12,8 @@ import assert from "node:assert/strict";
 process.env.SUPABASE_URL = "https://test.supabase.co";
 process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-role-key";
 process.env.UPSTASH_REDIS_REST_URL = "https://test.upstash.io";
-process.env.UPSTASH_REDIS_REST_TOKEN = "test-redis-token";
-process.env.JWT_SECRET = "test-jwt-secret-min-32-characters-long";
+process.env.UPSTASH_REDIS_REST_TOKEN = "test-redis-token"; // cp-secret-ok: test-only fixture
+process.env.JWT_SECRET = "test-jwt-secret-min-32-characters-long"; // cp-secret-ok: test-only fixture
 process.env.NODE_ENV = "test";
 
 const { Hono } = await import("hono");
