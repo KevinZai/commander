@@ -2,15 +2,17 @@
 # ============================================================================
 # CC Commander — Superfleet status line segment (sourced by statusline.sh)
 # ============================================================================
-# Prints "<lane> <batch key> <done>/<total> <current ticket> 5h:<pct>%" when the
-# session runs inside a Superfleet run dir, and nothing otherwise:
-#   ai4 SF-CCC-20261024 3/7 CC-2093 5h:6%
+# Prints "<lane> <batch key> <done>/<total> <current ticket> 5h:<pct>% 7d:<pct>%"
+# when the session runs inside a Superfleet run dir, and nothing otherwise:
+#   ai4 SF-CCC-20261024 3/7 CC-2093 5h:6% 7d:21%
 #
 # Run dir: $SF_RUN_DIR, or the dir under $SF_RUNS_ROOT whose SESSION_ID file
 # holds this session's id. It must contain ITEMS.tsv (item, commit, state, ...).
 # Batch key: "Batch key: <KEY>" in BRIEF.md, else the run dir name (max 16).
-# Usage: $CCC_LANE_USAGE_FILE (lane-usage-cli.json shape); a reading older than
-# 30 minutes, or no reading for the lane, shows "5h:?".
+# Usage: $CCC_LANE_USAGE_FILE, else ~/.commander/lane-usage.json (Fleet writes
+# it; shape {<lane>: {fetchedAt, windows[]}}, see commander/lib/lane-usage.js).
+# 5h is the session window, 7d the highest weekly window (weekly, weekly:<model>).
+# A reading older than 30 minutes, or no reading for the lane, shows "5h:? 7d:?".
 # Read-only and offline; output is cached for 15 s per run dir in $TMPDIR.
 # Opt out with CCC_STATUSLINE_SF=off.
 # ============================================================================
@@ -44,21 +46,28 @@ ccc_sf_run_dir() {
   done
 }
 
-# "5h:<pct>%" for a lane from the usage file, "5h:?" when stale or missing,
-# nothing when no usage file is configured.
+# "5h:<pct>% 7d:<pct>%" for a lane from the usage file; "?" for a value that is
+# stale or missing. Nothing when $CCC_LANE_USAGE_FILE is unset and the default
+# file does not exist (no Fleet writer on this host).
 ccc_sf_usage() {
   local lane="$1" file="${CCC_LANE_USAGE_FILE:-}" now="${2:-$(date +%s)}" out
-  [ -n "$file" ] || return
-  [ -f "$file" ] || { printf '5h:?'; return; }
+  if [ -z "$file" ]; then
+    file="${HOME:-}/.commander/lane-usage.json"
+    [ -n "${HOME:-}" ] && [ -f "$file" ] || return
+  fi
+  [ -f "$file" ] || { printf '5h:? 7d:?'; return; }
   out=$(jq -r --arg lane "$lane" --argjson now "$now" --argjson stale "$CCC_SF_STALE_SECS" '
+    def pct: if . == null then "?" else "\(floor)%" end;
     .[$lane] as $l
-    | if ($l | type) != "object" then "5h:?"
+    | if ($l | type) != "object" then "5h:? 7d:?"
       else (($l.fetchedAt // "") | sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | (try fromdateiso8601 catch null)) as $t
-      | ([$l.windows[]? | select(.id == "session" or .kind == "session") | .percent][0]) as $p
-      | if $t == null or ($now - $t) > $stale or $p == null then "5h:?"
-        else "5h:\($p | floor)%" end
+      | [$l.windows[]? | select(type == "object" and (.percent | type) == "number")] as $w
+      | ([$w[] | select(.id == "session" or .kind == "session") | .percent][0]) as $p
+      | ([$w[] | select((.id // "" | tostring | startswith("weekly")) or (.kind // "" | tostring | startswith("weekly"))) | .percent] | max) as $wk
+      | if $t == null or ($now - $t) > $stale then "5h:? 7d:?"
+        else "5h:\($p | pct) 7d:\($wk | pct)" end
       end' "$file" 2>/dev/null)
-  printf '%s' "${out:-5h:?}"
+  printf '%s' "${out:-5h:? 7d:?}"
 }
 
 # The segment text for a run dir (uncached).
