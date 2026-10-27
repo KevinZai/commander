@@ -7,7 +7,8 @@
  * Contract (schema 1) is documented in docs/FLEET-CHECKIN.md. Exit codes:
  * 0 ok (warnings allowed), 1 a blocking check failed, 3 no commander plugin.
  * No network calls and no writes; the only subprocess is `claude --version`
- * (skippable with --no-cli).
+ * (skippable with --no-cli). The lane's usage comes from Fleet's usage file
+ * (lane-usage.js); it is informational and never changes the exit code.
  */
 
 var fs = require('fs');
@@ -15,6 +16,7 @@ var path = require('path');
 var childProcess = require('child_process');
 
 var lane = require('./lane');
+var laneUsage = require('./lane-usage');
 var release = require('./release-info');
 var diagnostics = require('../cowork-plugin/skills/ccc-doctor/lib/diagnostics');
 
@@ -204,6 +206,7 @@ function buildCheckin(opts) {
     : check('lane', 'warn', 'config dir ' + ln.configDir + ' is not .claude or .claude-<lane>; lane "custom"'));
 
   var blocking = checks.some(function(c) { return c.blocking; });
+  var usage = laneUsage.readLaneUsage(ln.lane, { env: env, now: opts.now });
   return {
     schema: SCHEMA,
     generated_at: (opts.now ? new Date(opts.now) : new Date()).toISOString(),
@@ -223,6 +226,9 @@ function buildCheckin(opts) {
     },
     hooks: hooks,
     connectors: connectorCounts(rel.plugin, env, opts.cwd || process.cwd()),
+    usage: usage.usage,
+    usage_reason: usage.reason,
+    usage_file: usage.file,
     health: { ok: !blocking, checks: checks },
     next: next,
   };
@@ -252,12 +258,18 @@ function summaryLine(result) {
   return head + parts.join(', ') + ', ' + tail;
 }
 
+/** The human usage line printed under the summary line. */
+function usageLine(result) {
+  return laneUsage.usageLine(result.lane.name, result.usage, result.usage_reason, result.usage_file);
+}
+
 module.exports = {
   SCHEMA: SCHEMA,
   CLI_FLOOR: CLI_FLOOR,
   buildCheckin: buildCheckin,
   exitCode: exitCode,
   summaryLine: summaryLine,
+  usageLine: usageLine,
   claudeCliVersion: claudeCliVersion,
   effectiveEnablement: effectiveEnablement,
 };

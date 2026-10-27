@@ -4,6 +4,8 @@
 // Tests that need a lane set these explicitly in the child env.
 delete process.env.CCC_CONFIG_DIR;
 delete process.env.CLAUDE_CONFIG_DIR;
+// Fleet's per-lane usage file (CC-2122) is read from here; tests set their own.
+delete process.env.CCC_LANE_USAGE_FILE;
 // Network switches (CC-2111) from the developer's shell would change hook
 // behavior under test; tests that need one set it in the child env.
 delete process.env.CCC_OFFLINE;

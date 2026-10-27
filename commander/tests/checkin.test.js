@@ -59,7 +59,7 @@ function checkout(version) {
 test('schema 1 snapshot: keys, types and lane block', function() {
   var l = laneDir('ai4', '8.1.2');
   var r = checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cliVersion: '2.1.309', now: '2026-10-24T14:00:00Z' });
-  assert.deepStrictEqual(Object.keys(r), ['schema', 'generated_at', 'ccc_version', 'ccc_sha', 'plugin_version', 'plugin_sha', 'cli_version', 'drift', 'lane', 'hooks', 'connectors', 'health', 'next']);
+  assert.deepStrictEqual(Object.keys(r), ['schema', 'generated_at', 'ccc_version', 'ccc_sha', 'plugin_version', 'plugin_sha', 'cli_version', 'drift', 'lane', 'hooks', 'connectors', 'usage', 'usage_reason', 'usage_file', 'health', 'next']);
   assert.strictEqual(r.schema, 1);
   assert.strictEqual(r.generated_at, '2026-10-24T14:00:00.000Z');
   assert.deepStrictEqual([r.ccc_version, r.plugin_version, r.cli_version], ['8.1.2', '8.1.2', '2.1.309']);
@@ -142,8 +142,10 @@ test('ccc checkin --json via the CLI: stub claude binary, JSON on stdout, exit 0
   assert.deepStrictEqual(fs.readdirSync(l.dir).sort(), before, 'check-in is read-only');
   var line = childProcess.spawnSync(process.execPath, [KC, 'checkin', '--no-cli'], { cwd: l.home, env: env, encoding: 'utf8' });
   assert.strictEqual(line.status, 0);
-  assert.strictEqual(line.stdout.trim().split('\n').length, 1);
-  assert.match(line.stdout, /^CCC check-in OK: ccc \S+, plugin \S+, claude \?, lane ai4, 0 warnings$/m);
+  var lines = line.stdout.trim().split('\n');
+  assert.strictEqual(lines.length, 2);
+  assert.match(lines[0], /^CCC check-in OK: ccc \S+, plugin \S+, claude \?, lane ai4, 0 warnings$/);
+  assert.strictEqual(lines[1], 'usage ai4: none (missing ' + path.join(l.home, '.commander', 'lane-usage.json') + ')');
 });
 
 test('ccc checkin exits 3 when the lane has no plugin', function() {
@@ -277,4 +279,125 @@ test('hooks: a malformed hooks.json shape is a blocking failure, not a crash', f
     assert.strictEqual(r.hooks.loadable, false, JSON.stringify(manifest));
     assert.strictEqual(checkin.exitCode(r), 1);
   });
+});
+
+// CC-2122: the usage block for the resolved lane, read from Fleet's usage file.
+// Every fixture is a temp HOME; the real ~/.commander is never read.
+
+var NOW = '2026-10-27T04:00:00Z';
+
+function usageFixture(lane, content) {
+  var l = laneDir(lane, '8.1.2');
+  var file = path.join(l.home, 'usage', 'lane usage.json');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  if (content !== undefined) fs.writeFileSync(file, typeof content === 'string' ? content : JSON.stringify(content));
+  l.env.CCC_LANE_USAGE_FILE = file;
+  l.file = file;
+  return l;
+}
+
+function run(l) {
+  return checkin.buildCheckin({ root: checkout('8.1.2'), env: l.env, cwd: l.home, cli: false, now: NOW });
+}
+
+var WINDOWS = [
+  { id: 'session', kind: 'session', label: '5-hour', percent: 16, resetsAt: '2026-10-27T06:59:00Z' },
+  { id: 'weekly:fable', kind: 'weekly_scoped', percent: 21.5, resets_at: '2026-10-30T00:59:00Z' },
+  { id: 'weekly', kind: 'weekly', percent: 9 },
+];
+
+test('usage: the resolved lane\'s block, normalized windows, exit code unchanged', function() {
+  var l = usageFixture('ai4', { ai4: { fetchedAt: '2026-10-27T03:57:00.123456Z', windows: WINDOWS }, ai1: { fetchedAt: NOW, windows: [] } });
+  var r = run(l);
+  assert.deepStrictEqual(r.usage, {
+    lane: 'ai4',
+    fetched_at: '2026-10-27T03:57:00.123456Z',
+    age_seconds: 179,
+    stale: false,
+    five_hour: 16,
+    seven_day: 21.5,
+    windows: [
+      { id: 'session', kind: 'session', percent: 16, resets_at: '2026-10-27T06:59:00Z' },
+      { id: 'weekly:fable', kind: 'weekly_scoped', percent: 21.5, resets_at: '2026-10-30T00:59:00Z' },
+      { id: 'weekly', kind: 'weekly', percent: 9, resets_at: null },
+    ],
+  });
+  assert.strictEqual(r.usage_reason, null);
+  assert.strictEqual(r.usage_file, l.file);
+  assert.strictEqual(checkin.exitCode(r), 0);
+  assert.ok(!r.health.checks.some(function(c) { return c.id === 'usage'; }), 'usage is informational, not a check');
+  assert.strictEqual(checkin.usageLine(r), 'usage ai4: 5h 16%, 7d 21% (fetched 2m ago)');
+});
+
+test('usage: a reading older than 30 minutes keeps its numbers and sets stale', function() {
+  var l = usageFixture('ai4', { ai4: { fetchedAt: '2026-10-27T03:29:00Z', windows: WINDOWS } });
+  var r = run(l);
+  assert.strictEqual(r.usage.stale, true);
+  assert.strictEqual(r.usage.age_seconds, 31 * 60);
+  assert.deepStrictEqual([r.usage.five_hour, r.usage.seven_day], [16, 21.5]);
+  assert.strictEqual(checkin.usageLine(r), 'usage ai4: 5h 16%, 7d 21% (STALE, fetched 31m ago)');
+  // Exactly 30 minutes is still fresh; a missing or unparseable fetchedAt is stale.
+  writeJson(l.file, { ai4: { fetchedAt: '2026-10-27T03:30:00Z', windows: WINDOWS } });
+  assert.strictEqual(run(l).usage.stale, false);
+  writeJson(l.file, { ai4: { fetchedAt: 'yesterday', windows: WINDOWS } });
+  assert.deepStrictEqual([run(l).usage.stale, run(l).usage.age_seconds], [true, null]);
+  writeJson(l.file, { ai4: { windows: WINDOWS } });
+  assert.strictEqual(run(l).usage.stale, true);
+});
+
+test('usage: missing file is usage null with reason "missing"', function() {
+  var l = usageFixture('ai4');
+  var r = run(l);
+  assert.deepStrictEqual([r.usage, r.usage_reason, r.usage_file], [null, 'missing', l.file]);
+  assert.strictEqual(checkin.exitCode(r), 0);
+  assert.strictEqual(checkin.usageLine(r), 'usage ai4: none (missing ' + l.file + ')');
+});
+
+test('usage: malformed file or lane entry is usage null with reason "malformed"; check-in never crashes', function() {
+  ['{"ai4": ', '[]', 'null', '42', JSON.stringify({ ai4: 'x' }), JSON.stringify({ ai4: { fetchedAt: NOW } }), JSON.stringify({ ai4: { fetchedAt: NOW, windows: {} } })]
+    .forEach(function(text) {
+      var r = run(usageFixture('ai4', text));
+      assert.deepStrictEqual([r.usage, r.usage_reason], [null, 'malformed'], text);
+      assert.strictEqual(checkin.exitCode(r), 0);
+    });
+  // Junk window entries are dropped or nulled, not fatal.
+  var r = run(usageFixture('ai4', { ai4: { fetchedAt: NOW, windows: [null, 'x', { id: 'session', percent: 'high' }, { id: 'weekly', percent: 50 }] } }));
+  assert.deepStrictEqual([r.usage.five_hour, r.usage.seven_day, r.usage.windows.length], [null, 50, 2]);
+  assert.strictEqual(checkin.usageLine(r), 'usage ai4: 5h ?, 7d 50% (fetched 0s ago)');
+});
+
+test('usage: lane absent from the file is usage null with reason "lane_absent"', function() {
+  var r = run(usageFixture('ai2', { ai4: { fetchedAt: NOW, windows: WINDOWS } }));
+  assert.deepStrictEqual([r.usage, r.usage_reason], [null, 'lane_absent']);
+  assert.strictEqual(checkin.usageLine(r), 'usage ai2: none (lane_absent ' + r.usage_file + ')');
+});
+
+test('usage: the lane is the resolved one (CCC_CONFIG_DIR wins; guestnetworks reads ai5)', function() {
+  var l = usageFixture('ai1', { ai3: { fetchedAt: NOW, windows: [{ id: 'session', percent: 33 }] }, ai5: { fetchedAt: NOW, windows: [{ id: 'session', percent: 55 }] } });
+  l.env.CCC_CONFIG_DIR = path.join(l.home, '.claude-ai3');
+  assert.strictEqual(run(l).usage.five_hour, 33);
+  delete l.env.CCC_CONFIG_DIR;
+  l.env.CLAUDE_CONFIG_DIR = path.join(l.home, '.claude-guestnetworks');
+  assert.deepStrictEqual([run(l).usage.lane, run(l).usage.five_hour], ['ai5', 55]);
+});
+
+test('usage: CCC_LANE_USAGE_FILE unset reads <HOME>/.commander/lane-usage.json', function() {
+  var l = laneDir('ai4', '8.1.2');
+  var file = path.join(l.home, '.commander', 'lane-usage.json');
+  assert.strictEqual(l.env.CCC_LANE_USAGE_FILE, undefined);
+  assert.deepStrictEqual([run(l).usage, run(l).usage_reason, run(l).usage_file], [null, 'missing', file]);
+  writeJson(file, { ai4: { fetchedAt: NOW, windows: WINDOWS } });
+  var r = run(l);
+  assert.deepStrictEqual([r.usage_file, r.usage.five_hour, r.usage.seven_day, r.usage.stale], [file, 16, 21.5, false]);
+});
+
+test('usage: ccc checkin --json via the CLI carries the block', function() {
+  var l = usageFixture('ai4', { ai4: { fetchedAt: new Date().toISOString(), windows: WINDOWS } });
+  var env = Object.assign({}, process.env, l.env);
+  delete env.CCC_CONFIG_DIR;
+  var r = childProcess.spawnSync(process.execPath, [KC, 'checkin', '--json', '--no-cli'], { cwd: l.home, env: env, encoding: 'utf8' });
+  var out = JSON.parse(r.stdout);
+  assert.deepStrictEqual([out.usage.lane, out.usage.five_hour, out.usage.seven_day, out.usage.stale, out.usage_reason], ['ai4', 16, 21.5, false, null]);
+  var human = childProcess.spawnSync(process.execPath, [KC, 'checkin', '--no-cli'], { cwd: l.home, env: env, encoding: 'utf8' });
+  assert.match(human.stdout.trim().split('\n')[1], /^usage ai4: 5h 16%, 7d 21% \(fetched \d+s ago\)$/);
 });
