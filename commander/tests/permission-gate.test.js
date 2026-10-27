@@ -335,7 +335,16 @@ describe('permission-gate: dangerous operations → always reject', () => {
     });
   }
 
-  for (const command of ['git push origin main', 'git push -u origin feature-f', 'git push --follow-tags origin main', 'git push origin feat-x', 'git status && echo -f', 'git commit -m "Fix push -f detection"', 'git log --grep="push --force"']) {
+  // CC-654 follow-up (#255 verifier): a quoted +refspec, a -f after a line continuation, and remote deletes (:ref, --delete/-d, --mirror, --prune)
+  for (const command of ['git push origin "+main"', "git push origin '+main'", 'git push origin main \\\n  -f', 'git push \\\n  --force origin main', 'git push origin :main', 'git push origin ":main"', 'git push --delete origin feat', 'git push origin --delete feat', 'git push -d origin feat', 'git push --mirror backup', 'git push --prune origin', 'git push origin main \\\r\n  --delete', 'git push origin +\\\nmain', 'git push origin \\\n+main', 'git push origin +"main"', "git push origin +'main'", 'git push origin :"main"', 'git push --forc origin main', 'git push origin --dele main', 'git push --mirr backup', 'git push --prun origin', 'git push --fo origin main']) {
+    it(`denies remote-destructive push: ${JSON.stringify(command)}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    });
+  }
+
+  for (const command of ['git push origin main', 'git push -u origin feature-f', 'git push --follow-tags origin main', 'git push origin feat-x', 'git status && echo -f', 'git commit -m "Fix push -f detection"', 'git log --grep="push --force"', 'git push origin main:main', 'git push origin HEAD:refs/heads/feat', 'git push --dry-run origin main', 'git push -u origin feat-d', 'git push origin feature-delete', 'git push origin main\necho -f', 'git push origin ":"', "git push origin ':'", 'git push origin :', 'git push origin :; echo done', 'git push origin :&& echo ok', 'git push --progress origin main', 'git push --no-force-with-lease origin main']) {
     it(`approves non-force git: ${command}`, () => {
       const r = runGate({ tool_name: 'Bash', tool_input: { command } });
       assert.equal(r.exitCode, 0);
