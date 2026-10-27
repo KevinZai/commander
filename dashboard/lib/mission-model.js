@@ -48,6 +48,7 @@ import path from 'node:path';
 import { getMetrics } from '../../commander/cowork-plugin/lib/metrics.js';
 import { readTopSkills } from '../../commander/cowork-plugin/lib/top-skills.js';
 import { readableStateDir, stateDir } from '../../commander/cowork-plugin/lib/lane-state.js';
+import { withoutInternalRuns } from '../../commander/cowork-plugin/lib/agent-runs.js';
 
 const AGENT_CAP = 200;
 const TASK_CAP = 100;
@@ -117,8 +118,9 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
   let raw;
   try {
     raw = await fsp.readFile(filePath, 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    // A missing file is empty; any other failure means the rows are unknown.
+    return Object.assign([], { incomplete: error?.code !== 'ENOENT' });
   }
 
   const lines = raw.split('\n').filter((line) => line.trim());
@@ -135,6 +137,8 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
       continue;
     }
   }
+  // Older records were cut off; agent-runs.js needs this to judge absence.
+  entries.incomplete = lines.length > maxLines;
   return entries;
 }
 
@@ -809,7 +813,7 @@ function summarize(agents, tasks, nowMs, awaitingPermission, suggestions = []) {
 async function computeBaseModel({ baseDir, now }) {
   const root = baseDir || defaultBaseDir();
 
-  const [starts, stops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
+  const [starts, rawStops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
     readJsonl(path.join(root, 'subagent-runs.jsonl')),
     readJsonl(path.join(root, 'agent-runs.jsonl')),
     readJsonl(path.join(root, 'tasks.jsonl')),
@@ -817,6 +821,8 @@ async function computeBaseModel({ baseDir, now }) {
     readJsonl(path.join(root, 'mission-control', 'suggestions.jsonl')),
   ]);
   const eventEntries = dedupeById(rawEventEntries);
+  // Claude Code's internal agents would show up as orphan "unknown" agents (CC-2120).
+  const stops = withoutInternalRuns(rawStops, starts);
 
   const nowMs =
     now instanceof Date ? now.getTime() : Number.isFinite(now) ? now : Date.now();

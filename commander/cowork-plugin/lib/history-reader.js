@@ -43,6 +43,7 @@
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { readableStateDir } from './lane-state.js';
+import { withoutInternalRuns } from './agent-runs.js';
 
 import { redactedSample } from './safety-snapshot.js';
 
@@ -96,23 +97,24 @@ async function readTailText(filePath, maxBytes = MAX_JSONL_BYTES) {
   let handle;
   try {
     handle = await fsp.open(filePath, 'r');
-  } catch {
-    return '';
+  } catch (error) {
+    // A missing file is empty; any other failure means the rows are unknown.
+    return { text: '', truncated: error?.code !== 'ENOENT' };
   }
   try {
     const { size } = await handle.stat();
-    if (size <= maxBytes) return await handle.readFile('utf8');
+    if (size <= maxBytes) return { text: await handle.readFile('utf8'), truncated: false };
     const buf = Buffer.alloc(maxBytes);
     const { bytesRead } = await handle.read(buf, 0, maxBytes, size - maxBytes);
-    return buf.toString('utf8', 0, bytesRead);
+    return { text: buf.toString('utf8', 0, bytesRead), truncated: true };
   } finally {
     await handle.close();
   }
 }
 
 async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
-  const raw = await readTailText(filePath);
-  if (!raw) return [];
+  const { text: raw, truncated } = await readTailText(filePath);
+  if (!raw) return Object.assign([], { incomplete: truncated });
 
   const lines = raw.split('\n').filter((line) => line.trim());
   const tail = lines.length > maxLines ? lines.slice(lines.length - maxLines) : lines;
@@ -126,6 +128,8 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
       continue;
     }
   }
+  // Older records were cut off; agent-runs.js needs this to judge absence.
+  entries.incomplete = truncated || lines.length > maxLines;
   return entries;
 }
 
@@ -289,7 +293,8 @@ async function readHistoryModel({ baseDir, now, windowDays = DEFAULT_WINDOW_DAYS
   stampDetail(taskRows, (day) => {
     day.taskEvents += 1;
   });
-  stampDetail(agentRows, (day) => {
+  // Claude Code's internal agents are not dispatches (CC-2120).
+  stampDetail(withoutInternalRuns(agentRows, subagentRows), (day) => {
     day.agentRuns += 1;
   });
   stampDetail(subagentRows, (day) => {
