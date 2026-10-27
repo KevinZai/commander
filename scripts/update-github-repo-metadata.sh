@@ -4,7 +4,7 @@ REPO="KevinZai/commander"
 
 # Description
 # Keep in step with .parity-extra.txt (scanned by scripts/check-parity.js).
-gh repo edit "$REPO" --description "CC Commander · guided AI PM plugin for Claude Code · 84 skills (32 model-visible, 52 on demand) + 22 sub-agents + 30 hooks + 2 bundled MCP · the Commander Method: 12 enforceable gates · telemetry opt-in · MIT"
+gh repo edit "$REPO" --description "CC Commander · guided AI PM plugin for Claude Code · 93 skills (32 model-visible, 61 on demand) + 22 sub-agents + 30 hooks + 2 bundled MCP · the Commander Method: 12 enforceable gates · telemetry opt-in · MIT"
 
 # Homepage
 gh repo edit "$REPO" --homepage "https://commanderplugin.com"

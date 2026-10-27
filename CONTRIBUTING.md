@@ -17,7 +17,7 @@ node commander/engine.js     # launch the CLI
 ```
 .
 ├── commander/cowork-plugin/   ← the Desktop plugin (primary product)
-│   ├── skills/                ← 84 plugin skills
+│   ├── skills/                ← 93 plugin skills
 │   ├── agents/                ← 22 specialist agent personas
 │   └── hooks/                 ← 30 lifecycle hooks (51 handlers)
 ├── apps/mcp-server-cloud/     ← hosted MCP backend (v4.1)

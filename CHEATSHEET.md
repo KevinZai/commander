@@ -8,7 +8,7 @@
 
 ## Desktop Plugin Commands (v8.1.4)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 84 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 93 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -43,7 +43,7 @@ codex plugin marketplace add KevinZai/commander
 codex plugin add commander@commander-hub
 ```
 
-### /ccc-* Skills (84 total — core surface shown; full table in README.md)
+### /ccc-* Skills (93 total — core surface shown; full table in README.md)
 
 | Skill | Description |
 |-------|-------------|
@@ -70,6 +70,17 @@ codex plugin add commander@commander-hub
 | `/ccc-update` | Detect installed vs. latest, update, restart, verify |
 | `/ccc-usage` · `/ccc-safety` | Usage & Cost and Safety decks |
 | `/ccc-domains` | Browse the 11 CCC domains |
+
+**PR workflows** (adapted from t3dotgg/tstack, MIT; all on demand, CLI menu → PR workflows, Codex `$ccc-<name>`):
+
+| Skill | Description |
+|-------|-------------|
+| `/ccc-full-send` · `/ccc-full-stop` | Change → proved, reviewed PR; full-send merges only through the full local gate, full-stop never merges |
+| `/ccc-file-pr` | Short draft PR that leads with the problem, local check results in the body |
+| `/ccc-babysit-pr` | Read-only `pr-wait` watcher; fix real CI and bot findings locally, then push |
+| `/ccc-sol-loop` · `/ccc-council` | Bounded review loop with an OpenAI reviewer via Codex · three-provider read-only review |
+| `/ccc-modernize` · `/ccc-takeover` | Update an old PR by merging its base (no history rewrite) · finish someone else's PR with credit |
+| `/ccc-pr-comments` | Attributed format for comments an agent posts on your behalf |
 
 > 🧠 **The Commander Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
@@ -310,6 +321,8 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | Scenario | Skills to Use |
 |----------|--------------|
 | Code review | `/ccc-code-review` command or `review` skill |
+| Second-provider review loop | `/ccc-sol-loop` (Codex reviewer) or `/ccc-council` (three providers) |
+| PR through CI and review bots | `/ccc-babysit-pr` |
 | Important decision | `dialectic-review` (FOR/AGAINST/Referee agents) |
 | Security audit | `pentest-checklist` + `container-security` |
 | Design review | `design-review` + `audit` + `critique` |

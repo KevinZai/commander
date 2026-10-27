@@ -2,4 +2,4 @@
 # Keep each surface's current copy here and update it when the live text changes.
 
 # GitHub About blurb (set by scripts/update-github-repo-metadata.sh)
-CC Commander · guided AI PM plugin for Claude Code · 84 skills (32 model-visible, 52 on demand) + 22 sub-agents + 30 hooks + 2 bundled MCP · the Commander Method: 12 enforceable gates · telemetry opt-in · MIT
+CC Commander · guided AI PM plugin for Claude Code · 93 skills (32 model-visible, 61 on demand) + 22 sub-agents + 30 hooks + 2 bundled MCP · the Commander Method: 12 enforceable gates · telemetry opt-in · MIT

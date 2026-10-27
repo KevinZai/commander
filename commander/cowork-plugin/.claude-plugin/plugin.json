@@ -2,7 +2,7 @@
   "name": "commander",
   "displayName": "Commander",
   "version": "8.1.4",
-  "description": "Guided AI PM for Claude Code, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). 84 plugin skills (click-first /ccc-* workflows, incl. /ccc-codex for the Codex CLI; 32 model-visible, the rest load on demand), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 30 lifecycle hooks × 51 handlers, a Commander HUD mod, 6 distributable workflows, 8 plugin evals, 2 bundled MCP servers + 16 opt-in. Telemetry is off unless you opt in. Built for Claude Opus 5.5 / Fable 5.1 and Codex GPT-6. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. MIT-licensed.",
+  "description": "Guided AI PM for Claude Code, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). 93 plugin skills (click-first /ccc-* workflows, incl. /ccc-codex for the Codex CLI; 32 model-visible, the rest load on demand), 22 specialist sub-agents (architect, reviewer, debugger, designer, security-auditor…), 30 lifecycle hooks × 51 handlers, a Commander HUD mod, 6 distributable workflows, 8 plugin evals, 2 bundled MCP servers + 16 opt-in. Telemetry is off unless you opt in. Built for Claude Opus 5.5 / Fable 5.1 and Codex GPT-6. Works in Claude Code Desktop, CLI, Cursor, Windsurf, Cline, Codex. MIT-licensed.",
   "author": {
     "name": "Kevin Zicherman",
     "url": "https://kevinz.ai"
