@@ -214,6 +214,7 @@ async function logDecision(entry) {
 }
 
 async function main() {
+  track('hook_fired', { hook: 'PermissionRequest', handler: 'permission-gate' });
   // Read PermissionRequest payload from stdin
   let input = null;
   try {
@@ -223,8 +224,6 @@ async function main() {
     if (raw) input = JSON.parse(raw);
   } catch {
     // Malformed or missing payload — fail open
-      track('hook_fired', { hook: 'PermissionRequest', handler: 'permission-gate' });
-
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

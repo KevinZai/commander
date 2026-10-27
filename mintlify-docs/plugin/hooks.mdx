@@ -1,9 +1,9 @@
 ---
 title: "Lifecycle Hooks"
-description: "30 hook events with 52 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
+description: "30 hook events with 51 handlers that load context, route intent, capture knowledge, track cost, and save sessions. All free."
 ---
 
-CC Commander registers **30 lifecycle hook events** with **52 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
+CC Commander registers **30 lifecycle hook events** with **51 total handlers** that fire automatically around every Claude Code session. All hooks are free — no tier gating, no feature flags.
 
 <Note>
   **v8.0.0 wired seven new events** — `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged` — taking the registry from 23 to 30 events. Existing handlers are unchanged. See [Hooks 2026](/hooks-2026) for the full per-handler registry.
@@ -13,12 +13,12 @@ Every command uses a quoted `"${CLAUDE_PLUGIN_ROOT}"` for portable path resoluti
 
 ## Hook registry (core events)
 
-The most important events, for quick reference. **See [Hooks 2026](/hooks-2026) for all 30 events and 52 handlers.**
+The most important events, for quick reference. **See [Hooks 2026](/hooks-2026) for all 30 events and 51 handlers.**
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
 | `SessionStart` | 5 | `session-start-orchestrator.js` (one process for session-start, the stale-CLAUDE.md nudge, post-compact recovery and the Fable-armed nudge), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed state, watch `CLAUDE.md` for changes, restore post-compact context, update nudge |
-| `UserPromptSubmit` | 6 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick (CI status only with `CCC_CI_TICKER=1`), skill routing (an on-demand skill is offered as a menu choice, never invoked), context warnings, skill-run logging |
+| `UserPromptSubmit` | 5 | `suggest-ticker.js`, `intent-classifier.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick (CI status only with `CCC_CI_TICKER=1`), skill routing (an on-demand skill is offered as a menu choice, never invoked), context warnings, skill-run logging |
 | `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js`, `doc-file-warning.js`, `git-push-reminder.js` | Tool-call budget, ceiling (off unless `CCC_COST_CEILING` or `costCeiling` is set; denies with a reason when it trips), leaked-secret scan, config protection, pre-push reminder |
 | `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js`, `pr-link-notify.js` | Knowledge capture, Mission Control feed, `console.log` warning, PR links |
 | `PermissionDenied` | 1 | `permission-denied-logger.js` | Auto-mode denials reach `/ccc-safety` |
@@ -77,4 +77,4 @@ Hooks are JavaScript files executed natively by Claude Code's hook runtime. They
 
 Only the guards on `PreToolUse` and `PermissionRequest` can deny a tool call. Everything else is informational. This is by design: hooks should enhance, never gate.
 
-See [Architecture](/architecture) for how hooks fit into the full data flow. See [Hooks 2026](/hooks-2026) for the complete registry of all 30 events and 52 handlers.
+See [Architecture](/architecture) for how hooks fit into the full data flow. See [Hooks 2026](/hooks-2026) for the complete registry of all 30 events and 51 handlers.

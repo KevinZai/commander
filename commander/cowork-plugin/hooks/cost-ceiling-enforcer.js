@@ -39,6 +39,7 @@ function envCeiling(value) {
 }
 
 async function main() {
+  track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
   let input = {};
   try {
     const chunks = [];
@@ -47,8 +48,6 @@ async function main() {
     // Malformed payloads fail open; session_id keys the shared budget file.
     if (raw) input = JSON.parse(raw);
   } catch {
-      track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
-
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

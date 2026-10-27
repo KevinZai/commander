@@ -1,10 +1,10 @@
 ---
 title: "Hooks 2026 — 30 Events"
-description: "Commander registers 30 Claude Code lifecycle hook events with 52 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
+description: "Commander registers 30 Claude Code lifecycle hook events with 51 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
 ---
 
 <Note>
-  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 52 handlers**. Existing handlers are unchanged.
+  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 51 handlers**. Existing handlers are unchanged.
 </Note>
 
 ## Full hook registry (current)
@@ -15,7 +15,7 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 |-------|----------|---------|---------|
 | `SessionStart` | 5 | `session-start-orchestrator.js` (one process running session-start, the stale-CLAUDE.md nudge, post-compact recovery and the Fable-armed nudge), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed session state, return `watchPaths` for the project's `CLAUDE.md` files, post-compact recovery, git credential refresh (opt-in), update nudge, console auto-open |
 | `SessionEnd` | 2 | `session-save.js`, `session-end.js` | Persist the session and write a summary to the knowledge directory |
-| `UserPromptSubmit` | 6 | `suggest-ticker.js`, `intent-classifier.js`, `context-warning.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick, skill routing, context budget warnings, prompt logging, skill-run telemetry |
+| `UserPromptSubmit` | 5 | `suggest-ticker.js`, `intent-classifier.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick, skill routing, context budget warnings, prompt logging, skill-run telemetry |
 | `UserPromptExpansion` | 1 | `prompt-expansion-guard.js` | Pass-through guard for expanded prompt templates |
 | `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js` (Edit/Write), `doc-file-warning.js` (Write), `git-push-reminder.js` (Bash) | Accumulate cost, deny with a reason over the tool-call ceiling (off unless `CCC_COST_CEILING` or `costCeiling` in the lane config is set), scan arguments for leaked secrets, protect config files, warn on scratch markdown, pre-push reminder |
 | `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js` (Edit/Write), `pr-link-notify.js` (Bash) | Capture file-touch observations, feed Mission Control, warn on `console.log`, surface new PR links |
@@ -44,7 +44,7 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 | `DirectoryAdded` | 1 | `session-state-sync.js` | **New in v8.** Records directories added to the session |
 | `Setup` | 1 | `license-check.js` | One-time initialization slot (an explicit no-op — core is free forever) |
 
-**Total: 30 events · 52 handlers**
+**Total: 30 events · 51 handlers**
 
 ## Events Commander deliberately leaves alone
 

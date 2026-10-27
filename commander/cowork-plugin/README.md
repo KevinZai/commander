@@ -1,8 +1,8 @@
 # CC Commander
 
-> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **84 plugin skills** including `/ccc-codex`. **30 lifecycle hooks × 52 handlers**. The **Commander HUD mod**, **6 plugin workflows** (`/commander:<name>`) and **8 plugin evals**. **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. 467 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Codex, Cursor, Windsurf, Cline, Continue. MIT-licensed.
+> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **84 plugin skills** including `/ccc-codex`. **30 lifecycle hooks × 51 handlers**. The **Commander HUD mod**, **6 plugin workflows** (`/commander:<name>`) and **8 plugin evals**. **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. 467 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Codex, Cursor, Windsurf, Cline, Continue. MIT-licensed.
 
-> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 84 skills, 22 agents, 30 lifecycle hooks (52 handlers) and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 84 skills, 22 agents, 30 lifecycle hooks (51 handlers) and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
 
 CC Commander is a guided AI PM plugin that orchestrates your development workflow from planning to shipping. Its `/ccc-*` skills open native chip pickers, delegate to specialist agents, and route into the broader CC Commander ecosystem of 467 skills across 11 domains.
 
@@ -54,7 +54,7 @@ Codex runs the generated mirror in `commander/cowork-plugin-codex/`; review its 
 |---|---|
 | `skills/` | 84 `/ccc-*` skills: 32 model-visible, 52 on demand (`disable-model-invocation: true`); long tables in each skill's `references/` |
 | `agents/` | 22 specialist agents on model aliases |
-| `hooks/hooks.json` | 30 lifecycle hooks, 52 handlers |
+| `hooks/hooks.json` | 30 lifecycle hooks, 51 handlers |
 | `mods/commander-hud/` | The Commander HUD mod and its `/ccc-hud` command |
 | `workflows/` | 6 dynamic workflows, run as `/commander:<name>` |
 | `evals/` | 8 `claude plugin eval` cases |
@@ -104,13 +104,13 @@ Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `cc
 
 ## Lifecycle hooks
 
-30 lifecycle hooks with 52 handlers run automatically throughout every session:
+30 lifecycle hooks with 51 handlers run automatically throughout every session:
 
 | Event | Handlers | Count |
 |-------|----------|-------|
 | `SessionStart` | `session-start-orchestrator`, `license-check`, `git-truth`, `update-nudge`, `console-autopen` | 5 |
 | `SessionEnd` | `session-save`, `session-end` | 2 |
-| `UserPromptSubmit` | `suggest-ticker`, `intent-classifier`, `context-warning`, `context-guard`, `user-prompt-submit`, `skill-runs-logger` | 6 |
+| `UserPromptSubmit` | `suggest-ticker`, `intent-classifier`, `context-guard`, `user-prompt-submit`, `skill-runs-logger` | 5 |
 | `UserPromptExpansion` | `prompt-expansion-guard` | 1 |
 | `PreToolUse` | `cost-tracker`, `cost-ceiling-enforcer`, `secret-leak-guard`, `config-protection`, `doc-file-warning`, `git-push-reminder` | 6 |
 | `PostToolUse` | `knowledge-capture`, `mission-control-feed`, `console-log-warn`, `pr-link-notify` | 4 |
@@ -138,7 +138,7 @@ Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `cc
 | `ConfigChange` | `config-protection` | 1 |
 | `InstructionsLoaded` | `stale-claude-md-nudge` | 1 |
 | `Setup` | `license-check` | 1 |
-| **TOTAL** | **30 events** | **52 handlers** |
+| **TOTAL** | **30 events** | **51 handlers** |
 
 `WorktreeCreate` and `WorktreeRemove` are not registered: a hook on either replaces git's own worktree handling. The Codex mirror wires 11 of Codex's 12 events (Interrupt has no Claude source).
 

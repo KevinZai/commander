@@ -4,7 +4,7 @@
  * Hooks: CwdChanged + DirectoryAdded
  *
  * Keeps ~/.claude/commander/sessions/active-session.json (seeded by the
- * SessionStart orchestrator, read by context-warning.js, post-compact-recovery.js,
+ * SessionStart orchestrator, post-compact-recovery.js,
  * session-save.js and session-end.js) current:
  *   CwdChanged     -> cwd = new_cwd, previousCwd = old_cwd, cwdChangedAt
  *   DirectoryAdded -> directories[] gains { path, source, addedAt } (deduped, capped)

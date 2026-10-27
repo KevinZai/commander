@@ -12,7 +12,7 @@ A guided AI project manager for Claude Code. `/ccc` reads your project, recommen
 |---|---|
 | Plugin skills (`/ccc-*`) | 84: 32 model-visible, 52 on demand |
 | Specialist agents | 22 |
-| Lifecycle hooks | 30 hook events, 52 handlers |
+| Lifecycle hooks | 30 hook events, 51 handlers |
 | Bundled MCP servers | 2 bundled MCP (`context7`, `sequential-thinking`), +16 opt-in via `/ccc-connect` |
 | Plugin workflows / evals | 6 / 8 |
 | Ecosystem catalog | 467 skills across 11 CCC domains |
