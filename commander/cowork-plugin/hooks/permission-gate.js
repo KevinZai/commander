@@ -60,7 +60,11 @@ const DANGEROUS_PATTERNS = [
   /rm\s+-[rRf]+\s/,
   /rm\s+--recursive/i,
   /git\s+reset\s+--hard/,
-  /git\s+push\s+--force/,
+  /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
+  // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
+  // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options
+  // (-C/-c <v>, --x[=v]) may sit before `push`, so a commit message that mentions a force push is not denied.
+  /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|--(?:git-dir|work-tree|namespace)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s(?:--force\b|-[a-zA-Z]*f[a-zA-Z]*\b|\+\S)/,
   /git\s+clean\s+-[fdx]/,
   /chmod\s+-R\s+777/,
   /:\s*>\s*\/etc\//,       // truncate system files

@@ -326,6 +326,23 @@ describe('permission-gate: dangerous operations → always reject', () => {
     assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
   });
 
+  // CC-654: PermissionRequest only takes allow|deny ("defer" is PreToolUse + -p only), so every force-push form must deny
+  for (const command of ['git push -f origin main', 'git push origin main -f', 'git push -uf origin feat', 'git push origin +main', 'git push --force-with-lease', 'git -C repo push --force origin main', 'cd x && git push -f', 'git --no-pager push -f origin x', 'git -c core.sshCommand=ssh push --force', '/usr/bin/git push --force origin main', 'sh -c "git push -f origin main"', 'bash -lc \'git push origin +main\'']) {
+    it(`denies force push: ${command}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    });
+  }
+
+  for (const command of ['git push origin main', 'git push -u origin feature-f', 'git push --follow-tags origin main', 'git push origin feat-x', 'git status && echo -f', 'git commit -m "Fix push -f detection"', 'git log --grep="push --force"']) {
+    it(`approves non-force git: ${command}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true);
+    });
+  }
+
   it('approves safe Bash commands (ls, echo)', () => {
     const r = runGate({
       tool_name: 'Bash',
