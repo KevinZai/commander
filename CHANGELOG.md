@@ -1,8 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [8.1.5] - 2026-10-28
+
+Release for per-lane weekly usage (#260) and the tstack PR-workflow skills (#261). The Superfleet status line and `ccc checkin` now report each lane's 7-day usage window alongside the 5-hour one, and nine PR-workflow skills adapted from t3dotgg/tstack ship on demand with CCC's safety rules applied. Bumps the pinned plugin version so `claude plugin update` picks these up.
 
 ### Added
+- **Lane usage:** the Superfleet status-line segment shows the 7-day window next to the 5-hour one (`5h:16% 7d:21%`). `7d` is the highest weekly window (`weekly`, `weekly:<model>`), the binding weekly gate. A reading older than 30 minutes, a malformed file, no entry for the lane or a missing `$CCC_LANE_USAGE_FILE` shows `?`; with the variable unset and no file at the default path, the usage part is hidden (CC-2122).
+- **Check-in:** `ccc checkin --json` gains an additive `usage` block for the resolved lane (schema stays 1), plus `usage_reason` (`missing`, `unreadable`, `malformed` or `lane_absent` when `usage` is `null`) and `usage_file`. A reading older than 30 minutes keeps its numbers and sets `stale: true`. The block is informational: it never changes the exit code and never throws. Human `ccc checkin` prints one usage line after the check-in line. CCC only reads Fleet's file (`$CCC_LANE_USAGE_FILE`, else `~/.commander/lane-usage.json`); see `docs/FLEET-CHECKIN.md` (CC-2122).
 - **PR workflows from tstack:** nine on-demand plugin skills adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) at `92e38e2c` (MIT, Copyright (c) 2026 Theo Browne): `/ccc-full-send`, `/ccc-full-stop`, `/ccc-council`, `/ccc-sol-loop`, `/ccc-file-pr`, `/ccc-takeover`, `/ccc-babysit-pr` (with the read-only `scripts/pr-wait` watcher), `/ccc-modernize` and `/ccc-pr-comments`. Each carries the upstream `LICENSE.txt` and an attribution header, and NOTICE.md lists them. The router offers them on matching prompts and `ccc next` selects them; the CLI main menu has a **PR workflows** page; in Codex each skill ships `agents/openai.yaml` with implicit invocation off. Overlap decisions are in `docs/tstack/OVERLAP.md` (CC-2124).
 
 ### Changed

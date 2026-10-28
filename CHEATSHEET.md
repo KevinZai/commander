@@ -1,12 +1,12 @@
 # CC Commander Cheatsheet
-> CC Commander v8.1.4 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v8.1.5 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-10-13 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v8.1.4)
+## Desktop Plugin Commands (v8.1.5)
 
 CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 93 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
 
@@ -1070,7 +1070,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v8.1.4 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v8.1.5 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1109,6 +1109,7 @@ Persistent footer under every response — auto-configured on install:
 | Duration | Session time |
 | Lines | +added -removed |
 | Rate limits | 5h and 7d usage % (when available, turns red at 80%+) |
+| Superfleet segment | Inside a Superfleet run dir: `🚀 <lane> <batch> <done>/<total> <ticket> 5h:<pct>% 7d:<pct>%` from Fleet's lane usage file (`CCC_STATUSLINE_SF=off` hides it; see `docs/FLEET-CHECKIN.md`) |
 | Project | Current directory name |
 
 Configured via `statusLine` in `settings.json`. Script: `lib/statusline.sh`.
@@ -1157,7 +1158,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v8.1.4 Quick Reference (CLI)
+## CC Commander v8.1.5 Quick Reference (CLI)
 
 ```bash
 # Launch
