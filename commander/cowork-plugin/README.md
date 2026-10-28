@@ -1,8 +1,8 @@
 # CC Commander
 
-> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **84 plugin skills** including `/ccc-codex`. **30 lifecycle hooks × 51 handlers**. The **Commander HUD mod**, **6 plugin workflows** (`/commander:<name>`) and **8 plugin evals**. **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. 467 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Codex, Cursor, Windsurf, Cline, Continue. MIT-licensed.
+> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **93 plugin skills** including `/ccc-codex`. **30 lifecycle hooks × 51 handlers**. The **Commander HUD mod**, **6 plugin workflows** (`/commander:<name>`) and **8 plugin evals**. **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. 467 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Codex, Cursor, Windsurf, Cline, Continue. MIT-licensed.
 
-> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 84 skills, 22 agents, 30 lifecycle hooks (51 handlers) and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 93 skills, 22 agents, 30 lifecycle hooks (51 handlers) and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
 
 CC Commander is a guided AI PM plugin that orchestrates your development workflow from planning to shipping. Its `/ccc-*` skills open native chip pickers, delegate to specialist agents, and route into the broader CC Commander ecosystem of 467 skills across 11 domains.
 
@@ -52,7 +52,7 @@ Codex runs the generated mirror in `commander/cowork-plugin-codex/`; review its 
 
 | Directory | Contents |
 |---|---|
-| `skills/` | 84 `/ccc-*` skills: 32 model-visible, 52 on demand (`disable-model-invocation: true`); long tables in each skill's `references/` |
+| `skills/` | 93 `/ccc-*` skills: 32 model-visible, 61 on demand (`disable-model-invocation: true`); long tables in each skill's `references/` |
 | `agents/` | 22 specialist agents on model aliases |
 | `hooks/hooks.json` | 30 lifecycle hooks, 51 handlers |
 | `mods/commander-hud/` | The Commander HUD mod and its `/ccc-hud` command |
@@ -72,7 +72,7 @@ Codex runs the generated mirror in `commander/cowork-plugin-codex/`; review its 
 
 ## Core skills
 
-Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open. The other 52 load on demand: their descriptions stay out of context and you open them by typing `/ccc-<name>`; when a prompt matches one, the router offers it as a menu choice. The full, generated table of all 84 skills is in the repository [SKILLS-INDEX.md](https://github.com/KevinZai/commander/blob/main/SKILLS-INDEX.md#the-84-plugin-skills).
+Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open. The other 61 load on demand: their descriptions stay out of context and you open them by typing `/ccc-<name>`; when a prompt matches one, the router offers it as a menu choice. The full, generated table of all 93 skills is in the repository [SKILLS-INDEX.md](https://github.com/KevinZai/commander/blob/main/SKILLS-INDEX.md#the-93-plugin-skills).
 
 | Skill | What it does |
 |-------|-------------|

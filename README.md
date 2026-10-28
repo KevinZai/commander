@@ -10,7 +10,7 @@ A guided AI project manager for Claude Code. `/ccc` reads your project, recommen
 
 | What ships in v8.1.4 | Count |
 |---|---|
-| Plugin skills (`/ccc-*`) | 84: 32 model-visible, 52 on demand |
+| Plugin skills (`/ccc-*`) | 93: 32 model-visible, 61 on demand |
 | Specialist agents | 22 |
 | Lifecycle hooks | 30 hook events, 51 handlers |
 | Bundled MCP servers | 2 bundled MCP (`context7`, `sequential-thinking`), +16 opt-in via `/ccc-connect` |
@@ -60,7 +60,7 @@ Update with `claude plugin marketplace update commander-hub && claude plugin upd
 
 ## Load on demand
 
-Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open. The other 52 set `disable-model-invocation: true`: their descriptions stay out of Claude's context, and you open any of them by typing `/ccc-<name>`. When a prompt matches an on-demand skill, the router offers it as a menu choice instead of invoking it.
+Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open. The other 61 set `disable-model-invocation: true`: their descriptions stay out of Claude's context, and you open any of them by typing `/ccc-<name>`. When a prompt matches an on-demand skill, the router offers it as a menu choice instead of invoking it.
 
 Session-start context, measured in CC-2112 with js-tiktoken cl100k as a proxy:
 
@@ -75,11 +75,29 @@ Twelve enforceable gates that any model can be checked against: plan before buil
 
 ## What's inside
 
-- **Skills:** the full generated table of all 84, with which ones Claude sees, is in [SKILLS-INDEX.md](SKILLS-INDEX.md#the-84-plugin-skills).
+- **Skills:** the full generated table of all 93, with which ones Claude sees, is in [SKILLS-INDEX.md](SKILLS-INDEX.md#the-93-plugin-skills).
 - **Agents:** architect, reviewer, builder, security-auditor, debugger, designer, qa-engineer and more, on model aliases (`fable`, `opus`, `sonnet`). Your selected session model is kept; only delegated agents use their own alias.
 - **Hooks:** session state, intent routing, secret-leak guard, config protection, permission gate, knowledge capture. The cost ceiling is off unless you set `CCC_COST_CEILING`. The voice layer is off unless you set `CCC_VOICE=1`.
 - **Workflows and evals:** `/commander:ccc-deep-review`, `ccc-audit`, `ccc-release-audit` and three more; `claude plugin eval` cases for the core flows.
 - **Commander HUD mod:** an observe-only band above the prompt; `/ccc-hud` toggles it.
+
+## PR workflows (adapted from tstack)
+
+Nine pull-request skills are adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) (MIT, pinned at `92e38e2c`). All load on demand: type the command, or the router offers it when your prompt matches. They also appear in the CLI menu under **PR workflows** and in Codex as `$ccc-<name>`.
+
+| Skill | Say | What it does |
+|---|---|---|
+| `/ccc-full-send` | "full send" | Takes a change to a merged PR unattended, only through the full local gate and an independent reviewer. |
+| `/ccc-full-stop` | "full stop" | The same work, stopping with the PR ready for you to merge. |
+| `/ccc-council` | "council" | Read-only review by models from three providers, with a score table. |
+| `/ccc-sol-loop` | "sol loop" | A bounded review loop with an OpenAI reviewer through the Codex CLI. |
+| `/ccc-file-pr` | "file a PR" | Files a short draft PR that leads with the problem. |
+| `/ccc-takeover` | "take over this PR" | Finishes someone else's PR or branch and keeps their credit. |
+| `/ccc-babysit-pr` | "babysit this PR" | Watches a PR through CI and review bots and fixes real findings. |
+| `/ccc-modernize` | "modernize this PR" | Updates an old PR from its base and judges whether it should still exist. |
+| `/ccc-pr-comments` | "reply to the review comments" | Formats comments an agent posts on your behalf. |
+
+CC Commander changes to upstream are marked "CCC safety:" in each skill: no force-push of any kind, no rebase of pushed branches (the base is merged in), no hook or secret-scan bypass, the full local suite and lint on the exact head before every push, CI read as a signal rather than the gate, PRs open as drafts, and merges only through the full gate. The per-skill decisions are in [docs/tstack/OVERLAP.md](docs/tstack/OVERLAP.md) and [docs/tstack/SAFETY.md](docs/tstack/SAFETY.md).
 
 ## Data & network
 
@@ -111,6 +129,6 @@ Bugs and questions: [GitHub issues](https://github.com/KevinZai/commander/issues
 
 ## License
 
-MIT. The Intelligence Layer (4 files) adds a [Commons Clause](docs/LICENSE-INTELLIGENCE.md). The 20 vendor packages under `vendor/` keep their upstream licenses.
+MIT. The Intelligence Layer (4 files) adds a [Commons Clause](docs/LICENSE-INTELLIGENCE.md). The 20 vendor packages under `vendor/` keep their upstream licenses. The PR workflow skills adapted from tstack carry its MIT notice; see [NOTICE.md](NOTICE.md).
 
 Built by [Kevin Z](https://kevinz.ai) ([@kzic](https://x.com/kzic)).

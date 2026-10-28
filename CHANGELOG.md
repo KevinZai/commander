@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **PR workflows from tstack:** nine on-demand plugin skills adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) at `92e38e2c` (MIT, Copyright (c) 2026 Theo Browne): `/ccc-full-send`, `/ccc-full-stop`, `/ccc-council`, `/ccc-sol-loop`, `/ccc-file-pr`, `/ccc-takeover`, `/ccc-babysit-pr` (with the read-only `scripts/pr-wait` watcher), `/ccc-modernize` and `/ccc-pr-comments`. Each carries the upstream `LICENSE.txt` and an attribution header, and NOTICE.md lists them. The router offers them on matching prompts and `ccc next` selects them; the CLI main menu has a **PR workflows** page; in Codex each skill ships `agents/openai.yaml` with implicit invocation off. Overlap decisions are in `docs/tstack/OVERLAP.md` (CC-2124).
+
+### Changed
+- **Safety rewrites of the tstack skills:** no force-push (including `--force-with-lease`), no rebase of pushed branches (the base is merged in), no hook or secret-scan bypass, the full local suite and lint on the exact head before every push, CI read as a signal rather than the gate, PRs opened as drafts, and `/ccc-full-send` merges only through the full gate with an independent reviewer. A user grant never overrides project instruction files or permission prompts. Each change is marked "CCC safety:" in the skill and listed in `docs/tstack/SAFETY.md`; `commander/tests/tstack-skills.test.js` guards against regressions (CC-2124).
+- **Platform facts:** Codex skill `agents/openai.yaml` (interface metadata, `policy.allow_implicit_invocation`, tool dependencies) is recorded in `docs/reference/platform-facts-2026-10.md` (CC-2124).
+
 ## [8.1.4] - 2026-10-26
 
 Release for the CCC-HQ batch (#246), finished auto-routing (#247) and the Hermes CCC batch (#245). Bumps the pinned plugin version so `claude plugin update` picks these up.

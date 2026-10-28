@@ -19,6 +19,20 @@ Each skill directory contains the full Apache 2.0 LICENSE.txt file with complete
 
 For full license text and notices from upstream projects, see the LICENSE.txt file in each skill's directory.
 
+## MIT-Derived Skills (tstack)
+
+The following plugin skills are adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack), pinned at `92e38e2cf677a84a142e8df296861c588542135c`. MIT License, Copyright (c) 2026 Theo Browne. Each skill directory under `commander/cowork-plugin/skills/` contains the full upstream `LICENSE.txt`, and each SKILL.md names its upstream path. CC Commander changes are marked "CCC safety:" and listed in `docs/tstack/SAFETY.md`.
+
+- ccc-babysit-pr — from `skills/babysit-pr` (including `scripts/pr-wait`)
+- ccc-council — from `skills/council`
+- ccc-file-pr — from `skills/file-pr`
+- ccc-full-send — from `skills/full-send`
+- ccc-full-stop — from `skills/full-stop`
+- ccc-modernize — from `skills/modernize`
+- ccc-pr-comments — from `skills/leaving-pr-comments`
+- ccc-sol-loop — from `skills/sol-loop`
+- ccc-takeover — from `skills/takeover`
+
 ## Vendor Submodules
 
 Vendor packages under `vendor/` are git submodules, each under its own license; the full table is in `vendor/LICENSE`.

@@ -99,6 +99,32 @@
       ]
     },
     {
+      "id": "ccc-babysit-pr",
+      "kind": "skill",
+      "invoke": "/ccc-babysit-pr",
+      "label": "Monitor a pull request through review and CI…",
+      "manual": true,
+      "strong": [
+        "babysit this pr",
+        "babysit the pr",
+        "babysit my pr",
+        "babysit pr"
+      ],
+      "triggers": [],
+      "patterns": [
+        "\\b(babysit|watch|monitor|shepherd)\\s+(this|the|my|our|that)\\s+(pr|pull request)\\b",
+        "\\bbabysit\\b.{0,20}#\\d+"
+      ],
+      "negatives": [
+        "\\bbabysit(ting)?\\s+(my|the|our)\\s+(kid|kids|child|children|baby|dog|cat)\\b"
+      ],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [],
+      "descTriggers": []
+    },
+    {
       "id": "ccc-brainstorm",
       "kind": "skill",
       "invoke": "/ccc-brainstorm",
@@ -415,6 +441,37 @@
       "descTriggers": []
     },
     {
+      "id": "ccc-council",
+      "kind": "skill",
+      "invoke": "/ccc-council",
+      "label": "Get a read-only review or feedback from…",
+      "manual": true,
+      "strong": [
+        "council review",
+        "convene the council",
+        "council of models",
+        "ask the council"
+      ],
+      "triggers": [],
+      "patterns": [
+        "^\\s*council\\b",
+        "\\b(run|get|use|convene|call)\\s+(a|the)\\s+(model\\s+)?council\\b",
+        "\\bcross[- ]provider\\s+review\\b",
+        "\\breview\\b.{0,30}\\bthree (models|providers)\\b"
+      ],
+      "negatives": [
+        "\\b(city|town|student|security|parish|county|works) council\\b",
+        "\\bcouncil (meeting|tax|member|election)s?\\b"
+      ],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [
+        "ccc-file-pr"
+      ],
+      "descTriggers": []
+    },
+    {
       "id": "ccc-data",
       "kind": "skill",
       "invoke": "/ccc-data",
@@ -714,6 +771,37 @@
       ]
     },
     {
+      "id": "ccc-file-pr",
+      "kind": "skill",
+      "invoke": "/ccc-file-pr",
+      "label": "File a concise draft pull request with a…",
+      "manual": true,
+      "strong": [
+        "file a pr",
+        "file the pr",
+        "file a pull request",
+        "open a pr",
+        "open a pull request",
+        "create a pr",
+        "create a pull request"
+      ],
+      "triggers": [],
+      "patterns": [
+        "\\b(file|open|create|raise)\\s+(a|the|my)\\s+(draft\\s+)?(pr|pull request)\\b(?!\\s+(review|template|comment))"
+      ],
+      "negatives": [
+        "\\bbefore (i|we) (open|file|create|raise)\\b",
+        "\\breview (this|the|my|our) (pr|pull request)\\b"
+      ],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [
+        "ccc-babysit-pr"
+      ],
+      "descTriggers": []
+    },
+    {
       "id": "ccc-fleet",
       "kind": "skill",
       "invoke": "/ccc-fleet",
@@ -764,6 +852,60 @@
       "priority": 0,
       "next": [],
       "descTriggers": []
+    },
+    {
+      "id": "ccc-full-send",
+      "kind": "skill",
+      "invoke": "/ccc-full-send",
+      "label": "Take a change from its current state to a…",
+      "manual": true,
+      "strong": [
+        "full send",
+        "full-send"
+      ],
+      "triggers": [],
+      "patterns": [
+        "^\\s*full[- ]send\\b",
+        "\\bfull[- ]send\\s+(this|it|the|that|pr|#?\\d+)\\b"
+      ],
+      "negatives": [
+        "\\bwhat (does|is)\\b.{0,20}\\bfull[- ]send\\b",
+        "\\bfull[- ]send(er|ing)\\b"
+      ],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [],
+      "descTriggers": [
+        "full send"
+      ]
+    },
+    {
+      "id": "ccc-full-stop",
+      "kind": "skill",
+      "invoke": "/ccc-full-stop",
+      "label": "Do the full-send work",
+      "manual": true,
+      "strong": [
+        "full stop mode"
+      ],
+      "triggers": [],
+      "patterns": [
+        "^\\s*full[- ]stop\\s*[.!]?\\s*$",
+        "\\b(do|run|use|go)\\s+(a\\s+)?full[- ]stop\\b",
+        "\\bfull[- ]stop\\s+(on|this|the|it|pr|#?\\d+)\\b"
+      ],
+      "negatives": [
+        "\\S.*[.!?]\\s+full[- ]stop\\s*[.!]?\\s*$",
+        "\\b(period|punctuation|comma|semicolon)\\b"
+      ],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [],
+      "descTriggers": [
+        "full stop"
+      ]
     },
     {
       "id": "ccc-handoff",
@@ -1096,6 +1238,32 @@
       "descTriggers": []
     },
     {
+      "id": "ccc-modernize",
+      "kind": "skill",
+      "invoke": "/ccc-modernize",
+      "label": "Bring an old PR up to date by merging its…",
+      "manual": true,
+      "strong": [
+        "modernize this pr",
+        "modernize the pr",
+        "modernize pr"
+      ],
+      "triggers": [],
+      "patterns": [
+        "\\bmodernize\\s+(this|the|my|that|an?)\\s+(old\\s+|stale\\s+)?(pr|pull request|branch)\\b",
+        "\\b(rebase|refresh|update|revive)\\s+(this|the|my|an?|that)\\s+(old|stale|aging|outdated)\\s+(pr|pull request|branch)\\b",
+        "\\bis this (old |stale )?(pr|pull request) still (worth|needed|relevant)\\b"
+      ],
+      "negatives": [],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [
+        "ccc-babysit-pr"
+      ],
+      "descTriggers": []
+    },
+    {
       "id": "ccc-more",
       "kind": "skill",
       "invoke": "/ccc-more",
@@ -1265,6 +1433,30 @@
       "descTriggers": [
         "write a loop"
       ]
+    },
+    {
+      "id": "ccc-pr-comments",
+      "kind": "skill",
+      "invoke": "/ccc-pr-comments",
+      "label": "Format agent-authored GitHub comments with a…",
+      "manual": true,
+      "strong": [
+        "reply to the review comments",
+        "reply to review comments",
+        "respond to the pr comments",
+        "leave a pr comment"
+      ],
+      "triggers": [],
+      "patterns": [
+        "\\b(reply|respond)\\s+to\\s+(the\\s+|this\\s+|those\\s+|these\\s+)?(pr|review|bot)\\s+comments?\\b",
+        "\\b(leave|post|write)\\s+(a\\s+)?(comment|reply)\\s+on\\s+(the|this|my)\\s+(pr|pull request)\\b"
+      ],
+      "negatives": [],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [],
+      "descTriggers": []
     },
     {
       "id": "ccc-prompt-fix",
@@ -1719,6 +1911,33 @@
       "descTriggers": []
     },
     {
+      "id": "ccc-sol-loop",
+      "kind": "skill",
+      "invoke": "/ccc-sol-loop",
+      "label": "Review a change in a bounded loop with an…",
+      "manual": true,
+      "strong": [
+        "sol loop",
+        "sol-loop"
+      ],
+      "triggers": [],
+      "patterns": [
+        "\\b(codex|gpt)\\b.{0,30}\\breview\\b.{0,30}\\b(in a loop|until (it|they|both|we) (agree|approve)s?)\\b",
+        "\\breview loop\\b.{0,30}\\b(codex|gpt)\\b"
+      ],
+      "negatives": [],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [
+        "ccc-file-pr"
+      ],
+      "descTriggers": [
+        "after a pr",
+        "sol loop"
+      ]
+    },
+    {
       "id": "ccc-spawn",
       "kind": "skill",
       "invoke": "/ccc-spawn",
@@ -1845,6 +2064,35 @@
       "next": [
         "ccc-testing",
         "ccc-review"
+      ],
+      "descTriggers": []
+    },
+    {
+      "id": "ccc-takeover",
+      "kind": "skill",
+      "invoke": "/ccc-takeover",
+      "label": "Take over an existing PR, branch or agent…",
+      "manual": true,
+      "strong": [
+        "take over this pr",
+        "take over the pr",
+        "take over this branch",
+        "take over this thread"
+      ],
+      "triggers": [],
+      "patterns": [
+        "\\btake\\s*over\\s+(this|that|the|their|an?)\\s+(pr|pull request|branch|agent thread|thread)\\b",
+        "\\b(finish|continue|pick up)\\s+(someone else's|another agent's|their|the abandoned)\\s+(pr|pull request|branch)\\b"
+      ],
+      "negatives": [
+        "\\bhostile takeover\\b",
+        "\\btakeover (bid|offer|target)\\b"
+      ],
+      "paths": [],
+      "requirePath": false,
+      "priority": 0,
+      "next": [
+        "ccc-babysit-pr"
       ],
       "descTriggers": []
     },

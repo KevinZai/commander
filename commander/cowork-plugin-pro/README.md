@@ -12,4 +12,4 @@
 
 No license gating is enforced: `commander/cowork-plugin/hooks/license-check.js` is an explicit no-op. The scaffolds' text describes an `isPro()` check that is not wired to anything.
 
-The published plugin is `commander/cowork-plugin/`; all 84 plugin skills there are included with every install.
+The published plugin is `commander/cowork-plugin/`; all 93 plugin skills there are included with every install.

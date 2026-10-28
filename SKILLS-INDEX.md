@@ -2,13 +2,13 @@
 > Search: `grep -i "keyword" SKILLS-INDEX.md`
 > Last verified: 2026-10-13 (202 top-level directories, 195 top-level SKILL.md, 467 total SKILL.md, 3 starter templates)
 
-> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 84 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage`, `ccc-safety`, and `ccc-update` below), see [The 84 plugin skills](#the-84-plugin-skills) below or `/plugin/skills` in the Mintlify docs.
+> **Which document?** BIBLE.md = learning guide (read once). CHEATSHEET.md = daily reference (quick lookup). **SKILLS-INDEX.md = skill discovery (you are here).** This page indexes the ecosystem catalog (`skills/`) — for the 93 Desktop plugin skills (the `/ccc-*` front door, incl. `ccc-usage`, `ccc-safety`, and `ccc-update` below), see [The 93 plugin skills](#the-93-plugin-skills) below or `/plugin/skills` in the Mintlify docs.
 
 ---
 
-## The 84 plugin skills
+## The 93 plugin skills
 
-Claude sees 32 of them (model-visible: the 12 core skills plus the skills their menus open); the other 52 load on demand: their descriptions stay out of Claude's context and you open them by typing the command. Generated from each skill's frontmatter by `node scripts/render-skill-table.js --write SKILLS-INDEX.md`; `npm test` fails when it is stale.
+Claude sees 32 of them (model-visible: the 12 core skills plus the skills their menus open); the other 61 load on demand: their descriptions stay out of Claude's context and you open them by typing the command. Generated from each skill's frontmatter by `node scripts/render-skill-table.js --write SKILLS-INDEX.md`; `npm test` fails when it is stale.
 
 <!-- skill-table:start -->
 | Skill | What it does | Claude sees it |
@@ -17,6 +17,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `/ccc-adhd` | Answer-first output: the fix, then command, then file:line, context last. | on demand |
 | `/ccc-adopt` | Merge Commander conventions and a stack-tailored skill and agent list into an existing CLAUDE.md, with backup and diff approval first. | visible |
 | `/ccc-agent-writing` | Draft a spec, PRD, PR description, README section, runbook or technical doc that a reader can act on without a follow-up question: named reader, answer first,… | on demand |
+| `/ccc-babysit-pr` | Monitor a pull request through review and CI with a read-only watcher, handle bot and reviewer feedback, and report when it is ready. | on demand |
 | `/ccc-brainstorm` | Design-first ideation gate: three parallel agents propose a simple, a scalable and a user-delight approach, rendered as a tradeoff matrix, then you pick a… | on demand |
 | `/ccc-broadcast` | Relay build, deploy, CI, task and cost outcomes as short scrubbed summaries to a connected team chat or email, so non-developers see what shipped. | on demand |
 | `/ccc-browse` | Browse every Commander skill, agent and domain: a searchable catalog or pickers four at a time, then launch one. | visible |
@@ -30,6 +31,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `/ccc-connect` | Opt-in connector wizard with affiliate disclosure: pick a service (Supabase, Linear, Vercel, Sentry, Notion, Slack, Stripe, research tools and more) and wire… | on demand |
 | `/ccc-console` | Open the Commander Console inline (agents, usage, safety, memory, history, launch chips, prompt bar) or publish one tab as a private snapshot page after… | on demand |
 | `/ccc-content` | Draft blog posts, social threads, email campaigns, landing-page copy and docs in three questions, with an optional brief, review and scheduling pipeline. | on demand |
+| `/ccc-council` | Get a read-only review or feedback from delegates on three providers, with scores per round and honest reporting when one is missing. | on demand |
 | `/ccc-data` | Data router: ETL pipelines, SQL optimization, dashboards, ML, data quality, analytics, reports, vector search. | visible |
 | `/ccc-debate` | Adversarial multi-agent debate: lens agents (security, performance, architecture, product, contrarian) argue and cross-examine one design, plan or diff, then… | on demand |
 | `/ccc-deploy` | Deploy the current build to Vercel, Fly.io, Cloudflare, GitHub Pages, npm, or a package deploy script, verify the live URL, and draft post-deploy notes. | on demand |
@@ -42,8 +44,11 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `/ccc-e2e` | Pre-release assessment that fans out via /ccc-fleet into up to three isolated workers (QA audit, unit tests, Playwright E2E) running /ccc-testing lanes, then… | on demand |
 | `/ccc-ecc` | Selective ECC loader: pick one Everything Claude Code skill, agent or hook from the vendored checkout and symlink or copy only that component into ~/.claude,… | on demand |
 | `/ccc-fable` | Arm, check, audit or disarm the Commander Method: the PM loop, 12 checkable gates, workflow-first posture and verifier separation, persisted in Commander state. | on demand |
+| `/ccc-file-pr` | File a concise draft pull request with a clear title, a problem-first description, and the local test results. | on demand |
 | `/ccc-fleet` | Run parallel agents on one task: worktree fan-out, pipeline, review panel, background run or team, then verify. | visible |
 | `/ccc-fleet-viz` | Show a /ccc-fleet run as a live tree of workers with status, branches and a Mermaid diagram until all finish. | visible |
+| `/ccc-full-send` | Take a change from its current state to a merged PR unattended: prove it, get independent review, file a draft PR, babysit it, and merge through the full… | on demand |
+| `/ccc-full-stop` | Do the full-send work (prove, review, draft PR, babysit), then stop with the PR ready for the user to merge, never merging. | on demand |
 | `/ccc-handoff` | Write a dense handoff file and tell the user to resume in a new chat before a long context degrades output quality. | on demand |
 | `/ccc-harden` | Pre-launch production hardening audit across hosting, GitHub, error tracking, analytics, payments, secrets/PII headers and Cloudflare. | on demand |
 | `/ccc-hermes` | Optional bridge between Claude Code and a local Hermes agent gateway: chat channels can wake a Claude Code session, and Claude Code can post progress or… | on demand |
@@ -58,6 +63,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `/ccc-memory` | Keep durable project memory in two tiers: CLAUDE.md for always-loaded facts and a memory/ directory of dated notes, decisions, gotchas and preferences loaded… | on demand |
 | `/ccc-mission-control` | Agent mission control: who is working on what, as a local live dashboard, a plain-English status, suggestion triage, or a private snapshot page whose task… | on demand |
 | `/ccc-mobile` | Mobile router: React Native/Expo, Flutter, SwiftUI or Compose builds, mobile testing, ASO, push and deep links. | visible |
+| `/ccc-modernize` | Bring an old PR up to date by merging its base into it, and judge honestly whether the idea still belongs: MODERNIZE, REWORK or CLOSE. | on demand |
 | `/ccc-more` | Commander's second-page menu: plan, x-ray, Codex, fleet, Linear, connectors, tune-up, catalog and audit workflows. | visible |
 | `/ccc-night-mode` | Spec-first autonomous build that runs overnight or immediately in multi-cycle build and independent-review loops, checkpointing status each cycle and stopping… | on demand |
 | `/ccc-nightwatch` | Remote permission relay for unattended runs: risk-classify each tool call, auto-allow reads, send risky calls to your phone via Telegram or Discord for a tap,… | on demand |
@@ -65,6 +71,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `/ccc-orchestrate` | Write a goal file, run it on a separate executor (Codex GPT-6 or a Sonnet subagent) in an isolated worktree, then verify every acceptance criterion. | on demand |
 | `/ccc-plan` | Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals before coding. | visible |
 | `/ccc-plan-exec` | Plan cheap, execute capable: a fast model drafts the loop (steps, per-step body, verify condition), a capable model runs each step in an isolated worktree… | on demand |
+| `/ccc-pr-comments` | Format agent-authored GitHub comments with a model attribution note and a direct style. | on demand |
 | `/ccc-prompt-fix` | Diagnose a prompt against the six prompt-quality patterns and return a tighter rewrite with the reason for each change, a 0-6 score, or the best matching… | on demand |
 | `/ccc-qa` | Pre-ship QA pass: runs unit, integration and E2E suites, coverage delta and a flaky-test audit. | visible |
 | `/ccc-recall` | Search past saved sessions and curated memory notes for an earlier fix, decision or file, and answer with the source file and date cited. | on demand |
@@ -82,11 +89,13 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `/ccc-settings` | Settings hub: Commander preferences (name, level, cost ceiling, auto-routing, theme, animations, launch mode, Linear, reset) plus Claude Code permission mode,… | on demand |
 | `/ccc-ship` | Ship menu: run a parallel pre-flight matrix with a GO, CAUTION or NO-GO scorecard, cut a tagged release with changelog, deploy to a platform, or roll back the… | on demand |
 | `/ccc-smb-ops` | Small-business back office from a bank CSV or a typed list: 13-week cash-flow forecast, invoicing and AR chasing, payroll planning, CRM cleanup, expense… | on demand |
+| `/ccc-sol-loop` | Review a change in a bounded loop with an OpenAI reviewer through the Codex CLI, answer each finding with the smallest fix, and stop at agreement or budget. | on demand |
 | `/ccc-spawn` | Spin self-contained work off on demand: a background subagent, a separate session (Cowork spawn_task chip or CLI /spawn peer), or an independent expert pass;… | on demand |
 | `/ccc-standup` | Write a yesterday / today / blockers standup from your commits, PRs, tracker issues and Commander session notes, or from rough notes you type. | on demand |
 | `/ccc-start` | First-run Commander onboarding: detects the setup, offers new project, import, tour or skip, writes a start plan. | visible |
 | `/ccc-suggest` | Recommends the one next /ccc-* skill or workflow from project state, with reasons and alternatives. | visible |
 | `/ccc-systematic-debugging` | Root-cause debugging: reproduce, hypothesize, then fix once with a failing test first. | visible |
+| `/ccc-takeover` | Take over an existing PR, branch or agent thread and finish its original goal while preserving contributor credit. | on demand |
 | `/ccc-tasks` | Track work in one markdown file, tasks/todo.md, with checkboxes, P0-P3 priorities and status marks; no database, service or sync. | on demand |
 | `/ccc-testing` | Write or plan tests: TDD, E2E, visual, load, regression, evals and verification, in an isolated worktree. | visible |
 | `/ccc-triage` | Triage a GitHub repo's open issues and PRs with the gh CLI: flag stale, unlabeled and CI-failing items, propose labels and next actions, apply labels one… | on demand |
