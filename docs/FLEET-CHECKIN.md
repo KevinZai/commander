@@ -37,7 +37,7 @@ The lane comes from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`
   "cli_version": "2.1.309",
   "drift": [],
   "lane": { "name": "ai4", "account": "ai4", "config_dir": "/Users/me/.claude-ai4", "state_dir": "/Users/me/.claude-ai4/commander", "source": "CLAUDE_CONFIG_DIR", "known": true },
-  "hooks": { "status": "ok", "hooks_dir": "/Users/me/.claude-ai4/plugins/cache/commander-hub/commander/8.1.4/hooks", "loadable": true, "registered": 46, "unregistered": [], "missing": [], "legacy_require": [], "no_esm_import": [], "shared_state_writers": [] },
+  "hooks": { "status": "ok", "hooks_dir": "/Users/me/.claude-ai4/plugins/cache/commander-hub/commander/8.1.2/hooks", "loadable": true, "registered": 46, "unregistered": [], "missing": [], "legacy_require": [], "no_esm_import": [], "shared_state_writers": [] },
   "connectors": { "catalog": 16, "configured": { "user": 2, "local": 0, "project": 0, "total": 2 } },
   "usage": { "lane": "ai4", "fetched_at": "2026-10-24T13:57:00Z", "age_seconds": 180, "stale": false, "five_hour": 16, "seven_day": 21, "windows": [ { "id": "session", "kind": "session", "percent": 16, "resets_at": "2026-10-24T16:59:00Z" }, { "id": "weekly:fable", "kind": "weekly_scoped", "percent": 21, "resets_at": "2026-10-30T00:59:00Z" } ] },
   "usage_reason": null,

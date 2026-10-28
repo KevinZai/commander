@@ -65,6 +65,10 @@ from typing import Any, NoReturn
 
 GATING_BOTS = ("greptile", "macroscope")
 ADVISORY_BOTS = ("coderabbit",)
+# CCC safety: a review bot's comments and reviews count only from a Bot account
+# with its exact GitHub App login. Any account can pick a login like greptile-x.
+BOT_LOGINS = {"greptile-apps": "greptile", "macroscopeapp": "macroscope", "coderabbitai": "coderabbit"}
+GH_TIMEOUT = 60  # seconds per gh call; a hung call is retried like a network error
 # CI and deploy bots report through checks. Their PR comments are status reports.
 STATUS_BOTS = ("github-actions", "vercel", "netlify", "railway", "cloudflare")
 STATE_DIR = Path.home() / ".local" / "state" / "pr-wait"
@@ -129,7 +133,10 @@ def gh(args: list[str], allow: tuple[int, ...] = (0,)) -> subprocess.CompletedPr
     """Run gh. Retries transient failures (HTTP 5xx or 429, network) with backoff."""
     delay = 2
     for attempt in range(5):
-        proc = subprocess.run(["gh", *args], capture_output=True, text=True)
+        try:
+            proc = subprocess.run(["gh", *args], capture_output=True, text=True, timeout=GH_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            proc = subprocess.CompletedProcess(["gh", *args], 124, "", f"gh timed out after {GH_TIMEOUT}s")
         transient = proc.returncode != 0 and bool(TRANSIENT.search(proc.stderr))
         if not transient and proc.returncode in allow:
             return proc
@@ -148,7 +155,7 @@ def gh_lines(args: list[str]) -> list[str]:
 
 
 def bot_name(text: str | None) -> str | None:
-    """Which review bot a login or check name belongs to, if any."""
+    """Which review bot a check name belongs to, if any."""
     lowered = (text or "").lower()
     return next((bot for bot in GATING_BOTS + ADVISORY_BOTS if bot in lowered), None)
 
@@ -156,6 +163,14 @@ def bot_name(text: str | None) -> str | None:
 def who(node: Json) -> tuple[str, bool]:
     author = node.get("author") or {}
     return author.get("login") or "ghost", author.get("__typename") == "Bot"
+
+
+def review_bot(node: Json) -> str | None:
+    """Which review bot wrote a comment or review: a Bot account with an exact app login."""
+    login, is_bot = who(node)
+    if login.endswith("[bot]"):
+        login, is_bot = login[: -len("[bot]")], True
+    return BOT_LOGINS.get(login.lower()) if is_bot else None
 
 
 def plain(body: str) -> str:
@@ -399,7 +414,7 @@ class Watcher:
         # People and bots talking. Edits are never events.
         for comment in comments:
             login, is_bot = who(comment)
-            if login in mine or bot_name(login) or (is_bot and any(b in login for b in STATUS_BOTS)):
+            if login in mine or review_bot(comment) or (is_bot and any(b in login for b in STATUS_BOTS)):
                 continue
             self.emit(f"c:{comment['id']}", f"comment from {login}: {snippet(comment['body'])} {comment['url']}")
         for review in reviews:
@@ -429,8 +444,8 @@ class Watcher:
         reviewed: list[str] = []
         for bot in GATING_BOTS + ADVISORY_BOTS:
             own_checks = {name: c for name, c in checks.items() if bot_name(name) == bot}
-            summaries = [c for c in comments if bot_name(who(c)[0]) == bot]
-            own_reviews = [r for r in reviews if bot_name(who(r)[0]) == bot]
+            summaries = [c for c in comments if review_bot(c) == bot]
+            own_reviews = [r for r in reviews if review_bot(r) == bot]
             on_head = any((r.get("commit") or {}).get("oid") == head for r in own_reviews)
             if own_checks:
                 done = all(c["bucket"] != "pending" for c in own_checks.values())
