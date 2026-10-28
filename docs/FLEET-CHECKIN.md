@@ -2,12 +2,12 @@
 
 `ccc checkin` is CCC's side of the Fleet check-in gate. It answers one question in one call: is CC Commander healthy on this lane, and which versions is it running? Fleet's dispatch gate and every Superfleet brief run it before work starts.
 
-It is read-only and offline. It reads the lane's config dir and the `ccc` checkout, and the only subprocess it starts is `claude --version`.
+It is read-only and offline. It reads the lane's config dir, the `ccc` checkout and Fleet's per-lane usage file, and the only subprocess it starts is `claude --version`.
 
 ## Usage
 
 ```bash
-ccc checkin                # one human line
+ccc checkin                # the human check-in line, then one usage line
 ccc checkin --json         # the schema-1 object below
 ccc checkin --json --no-cli  # skip the `claude --version` probe
 ```
@@ -39,6 +39,9 @@ The lane comes from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`
   "lane": { "name": "ai4", "account": "ai4", "config_dir": "/Users/me/.claude-ai4", "state_dir": "/Users/me/.claude-ai4/commander", "source": "CLAUDE_CONFIG_DIR", "known": true },
   "hooks": { "status": "ok", "hooks_dir": "/Users/me/.claude-ai4/plugins/cache/commander-hub/commander/8.1.4/hooks", "loadable": true, "registered": 46, "unregistered": [], "missing": [], "legacy_require": [], "no_esm_import": [], "shared_state_writers": [] },
   "connectors": { "catalog": 16, "configured": { "user": 2, "local": 0, "project": 0, "total": 2 } },
+  "usage": { "lane": "ai4", "fetched_at": "2026-10-24T13:57:00Z", "age_seconds": 180, "stale": false, "five_hour": 16, "seven_day": 21, "windows": [ { "id": "session", "kind": "session", "percent": 16, "resets_at": "2026-10-24T16:59:00Z" }, { "id": "weekly:fable", "kind": "weekly_scoped", "percent": 21, "resets_at": "2026-10-30T00:59:00Z" } ] },
+  "usage_reason": null,
+  "usage_file": "/Users/me/.commander/lane-usage.json",
   "health": { "ok": true, "checks": [ { "id": "plugin_installed", "status": "ok", "blocking": false, "message": "commander@commander-hub 8.1.2" } ] },
   "next": []
 }
@@ -54,6 +57,7 @@ The lane comes from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`
 | `lane` | `name` is `pri` for `~/.claude`, `<name>` for `~/.claude-<name>`, `ai5` for `~/.claude-guestnetworks`, and `custom` for any other dir name (`known: false`). |
 | `hooks` | Hook health of the lane's installed plugin, computed with the same functions as `ccc doctor`'s hook-chain check. `null` when no usable plugin is installed. See below. |
 | `connectors` | `catalog`: rows in the installed plugin's `CONNECTORS.md` opt-in MCP table. `configured`: MCP servers set up for this lane by scope: `user` (top-level `mcpServers` in `<config dir>/.claude.json`, or `~/.claude.json` for the default dir), `local` (that file's `projects[<cwd>]`) and `project` (`<cwd>/.mcp.json`). Counts come from the same functions as `ccc doctor`'s mcp-availability check. A missing table or a malformed config is `null` (unknown), never `0`, and makes `total` `null`. Informational: it never blocks. |
+| `usage`, `usage_reason`, `usage_file` | The resolved lane's entry in Fleet's usage file. See below. Informational: it never blocks or changes the exit code. |
 | `health.checks[]` | `{id, status: ok/warn/fail/skip, blocking, message}`. The ids are `plugin_installed`, `plugin_enabled`, `ccc_checkout`, `claude_cli`, `hooks` and `lane`. Only `fail` can block. |
 | `plugin_enabled` | Fails unless `enabledPlugins["commander@commander-hub"]` is `true` after Claude Code's precedence: the lane's `settings.json`, then the project's `.claude/settings.json`, then `.claude/settings.local.json` (the project is the cwd). An unreadable settings file also fails. |
 | `next[]` | Suggested fix commands, in order. Fleet shows them; it never runs them. |
@@ -76,8 +80,31 @@ A handler is registered when `hooks/hooks.json` runs it or the SessionStart orch
 
 The `hooks` check (`health.checks[]`) is `warn` or `fail` to match. A `fail` adds `claude plugin install commander@commander-hub` to `next`. Fleet's dispatch gate proceeds on `warn` (exit 0) and fails closed on `fail` (exit 1).
 
-The human line has this shape:
-`CCC check-in OK: ccc 8.1.2, plugin 8.1.2, claude 2.1.309, lane ai4, 0 warnings`
+### `usage` block
+
+Fleet owns the writer (FLT-257): it writes the file atomically (a temp file, then a rename) every 5 minutes, and immediately after a lane hits a limit. Commander only reads it (`commander/lib/lane-usage.js`).
+
+- **File:** `$CCC_LANE_USAGE_FILE`, else `~/.commander/lane-usage.json`. `usage_file` is the path that was read.
+- **Shape:** `{<lane>: {fetchedAt, windows: [{id, kind, percent, resets_at}]}}`. `resetsAt` is accepted for `resets_at`.
+- **Lane:** the check-in's resolved lane (`lane.name`), so `~/.claude-guestnetworks` reads the `ai5` entry.
+
+| Field | Meaning |
+|---|---|
+| `usage.fetched_at`, `usage.age_seconds` | The entry's `fetchedAt` and its age at check-in time. `age_seconds` is `null` when `fetchedAt` is missing or unparseable. |
+| `usage.stale` | `true` when the reading is more than 30 minutes old or its age is unknown. The numbers are still reported. |
+| `usage.five_hour` | Percent of the `session` window (id or kind), or `null`. |
+| `usage.seven_day` | The highest percent among weekly windows (id or kind starting with `weekly`, such as `weekly` and `weekly:fable`): the binding weekly gate. `null` when there is none. |
+| `usage.windows[]` | Every window as `{id, kind, percent, resets_at}`. A non-number percent is `null`; non-object entries are dropped. |
+| `usage_reason` | `null` when `usage` is set. Otherwise `usage` is `null` and the reason is `missing` (no file), `unreadable` (the file exists but cannot be read), `malformed` (not JSON, not an object, or the lane's entry is not an object with a `windows` array) or `lane_absent` (no entry for the lane). |
+
+The human output is two lines:
+
+```
+CCC check-in OK: ccc 8.1.2, plugin 8.1.2, claude 2.1.309, lane ai4, 0 warnings
+usage ai4: 5h 16%, 7d 21% (fetched 3m ago)
+```
+
+A stale reading prints `(STALE, fetched 2h ago)`. With no usage it prints `usage ai4: none (<reason> <file>)`. The first line keeps its shape, so tools that look for `CCC check-in OK|BLOCKED:` are unaffected.
 
 ## Fleet consumption
 
@@ -113,13 +140,13 @@ To audit another machine, run the same command there with its own checkout: `ccc
 
 ## Status line segment (Superfleet runs)
 
-`lib/statusline-superfleet.sh` (sourced by `lib/statusline.sh`) adds `🚀 ai4 SF-CCC-20261024 3/7 CC-2093 5h:6%` when a session runs inside a Superfleet run dir:
+`lib/statusline-superfleet.sh` (sourced by `lib/statusline.sh`) adds `🚀 ai4 SF-CCC-20261024 3/7 CC-2093 5h:6% 7d:21%` when a session runs inside a Superfleet run dir:
 
 | Env | Meaning |
 |---|---|
 | `SF_RUN_DIR` | The run dir. It needs an `ITEMS.tsv` with columns `item, commit, state, …`. |
 | `SF_RUNS_ROOT` | Alternative to `SF_RUN_DIR`: the parent of the run dirs. The matching run dir is the one whose `SESSION_ID` file holds the session's id. |
-| `CCC_LANE_USAGE_FILE` | A `lane-usage-cli.json`-shaped file. The segment shows the lane's `session` window as `5h:N%`. A reading older than 30 minutes, or no reading at all, shows `5h:?`. |
+| `CCC_LANE_USAGE_FILE` | Fleet's per-lane usage file (default `~/.commander/lane-usage.json`, same rules as the check-in `usage` block). The segment shows the lane's `session` window as `5h:N%` and its highest weekly window as `7d:N%`. A reading older than 30 minutes, an unreadable file or no reading for the lane shows `5h:? 7d:?`; a missing window alone shows `?`. With the variable unset and no default file, the usage part is hidden. |
 | `CCC_STATUSLINE_SF=off` | Hides the segment. |
 
 - **Progress:** `done` and `skipped` rows count as finished. The current ticket is the first `wip` row; if there is none, the first row that is not done, skipped or blocked.

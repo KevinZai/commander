@@ -58,7 +58,7 @@ if (args.includes('--version')) {
 if (args[0] === 'checkin' || args.includes('--checkin')) {
   var ci = require(path.join(__dirname,'..','commander','lib','checkin'));
   var ciResult = ci.buildCheckin({ root: path.resolve(__dirname, '..'), cli: !args.includes('--no-cli') });
-  console.log(args.includes('--json') ? JSON.stringify(ciResult, null, 2) : ci.summaryLine(ciResult));
+  console.log(args.includes('--json') ? JSON.stringify(ciResult, null, 2) : ci.summaryLine(ciResult) + '\n' + ci.usageLine(ciResult));
   process.exit(ci.exitCode(ciResult));
 }
 // Agent API: statusline sync (dry run unless --apply; docs/FLEET-CHECKIN.md)

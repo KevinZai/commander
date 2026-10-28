@@ -1,6 +1,7 @@
 'use strict';
 
-// CC-2095: Superfleet segment in the status line ("🚀 ai4 SF-CCC 3/7 CC-2093 5h:6%").
+// CC-2095: Superfleet segment in the status line ("🚀 ai4 SF-CCC 3/7 CC-2093 5h:6% 7d:21%").
+// CC-2122: the 7-day window and the ~/.commander/lane-usage.json default.
 // Fixtures live in temp dirs (with spaces); the status line runs from a copy of
 // lib/ so no real run dir, usage file or config dir is read.
 
@@ -72,7 +73,7 @@ test('SF_RUNS_ROOT + session id finds the run: lane, key, progress, current tick
   const f = fixture(t);
   writeUsage(f, new Date().toISOString(), 41.6);
   const { seg } = segment(f, { SF_RUNS_ROOT: f.runs, CCC_LANE_USAGE_FILE: f.usage });
-  assert.strictEqual(seg, 'ai4 SF-CCC-20261024 3/5 CC-2093 5h:41%');
+  assert.strictEqual(seg, 'ai4 SF-CCC-20261024 3/5 CC-2093 5h:41% 7d:21%');
 });
 
 test('SF_RUN_DIR wins; without a wip row the first todo is current; no usage file means no usage', { skip: !HAS_JQ }, (t) => {
@@ -81,15 +82,40 @@ test('SF_RUN_DIR wins; without a wip row the first todo is current; no usage fil
   assert.strictEqual(segment(f, { SF_RUN_DIR: f.run }).seg, 'ai4 SF-CCC-20261024 1/3 A-3');
 });
 
-test('stale or missing usage shows 5h:?', { skip: !HAS_JQ }, (t) => {
+test('stale or missing usage shows 5h:? 7d:?', { skip: !HAS_JQ }, (t) => {
   const f = fixture(t);
   writeUsage(f, new Date(Date.now() - 31 * 60 * 1000).toISOString(), 10);
-  assert.match(segment(f, { SF_RUN_DIR: f.run, CCC_LANE_USAGE_FILE: f.usage }).seg, / 5h:\?$/);
+  assert.match(segment(f, { SF_RUN_DIR: f.run, CCC_LANE_USAGE_FILE: f.usage }).seg, / 5h:\? 7d:\?$/);
   const g = fixture(t);
   fs.writeFileSync(g.usage, JSON.stringify({ ai1: { fetchedAt: new Date().toISOString(), windows: [] } }));
-  assert.match(segment(g, { SF_RUN_DIR: g.run, CCC_LANE_USAGE_FILE: g.usage }).seg, / 5h:\?$/);
+  assert.match(segment(g, { SF_RUN_DIR: g.run, CCC_LANE_USAGE_FILE: g.usage }).seg, / 5h:\? 7d:\?$/);
   const h = fixture(t);
-  assert.match(segment(h, { SF_RUN_DIR: h.run, CCC_LANE_USAGE_FILE: path.join(h.root, 'nope.json') }).seg, / 5h:\?$/);
+  assert.match(segment(h, { SF_RUN_DIR: h.run, CCC_LANE_USAGE_FILE: path.join(h.root, 'nope.json') }).seg, / 5h:\? 7d:\?$/);
+  const m = fixture(t);
+  fs.writeFileSync(m.usage, '{not json');
+  assert.match(segment(m, { SF_RUN_DIR: m.run, CCC_LANE_USAGE_FILE: m.usage }).seg, / 5h:\? 7d:\?$/);
+});
+
+test('7d is the highest weekly window; a missing window alone shows ?', { skip: !HAS_JQ }, (t) => {
+  const f = fixture(t);
+  const fetchedAt = new Date().toISOString();
+  fs.writeFileSync(f.usage, JSON.stringify({ ai4: { fetchedAt, windows: [
+    { id: 'weekly', kind: 'weekly', percent: 12.9, resets_at: '2026-10-30T00:00:00Z' },
+    { id: 'weekly:fable', kind: 'weekly_scoped', percent: 47.2, resetsAt: '2026-10-30T00:59:00Z' },
+    { id: 'session', kind: 'session', percent: 3 },
+  ] } }));
+  assert.match(segment(f, { SF_RUN_DIR: f.run, CCC_LANE_USAGE_FILE: f.usage }).seg, / 5h:3% 7d:47%$/);
+  const g = fixture(t);
+  fs.writeFileSync(g.usage, JSON.stringify({ ai4: { fetchedAt, windows: [{ id: 'session', kind: 'session', percent: 8 }] } }));
+  assert.match(segment(g, { SF_RUN_DIR: g.run, CCC_LANE_USAGE_FILE: g.usage }).seg, / 5h:8% 7d:\?$/);
+});
+
+test('CCC_LANE_USAGE_FILE unset: ~/.commander/lane-usage.json is read when it exists', { skip: !HAS_JQ }, (t) => {
+  const f = fixture(t);
+  fs.mkdirSync(path.join(f.home, '.commander'));
+  f.usage = path.join(f.home, '.commander', 'lane-usage.json');
+  writeUsage(f, new Date().toISOString(), 16);
+  assert.strictEqual(segment(f, { SF_RUN_DIR: f.run }).seg, 'ai4 SF-CCC-20261024 3/5 CC-2093 5h:16% 7d:21%');
 });
 
 test('long batch keys are truncated to 16 characters; no BRIEF.md falls back to the dir name', { skip: !HAS_JQ }, (t) => {
