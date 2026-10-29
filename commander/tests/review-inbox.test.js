@@ -72,7 +72,7 @@ test('pendingCount ignores reviewed items', function() {
   assert.strictEqual(inbox.pendingCount(f.opts), 1);
 });
 
-test('reject marks the item, drops it from pending and edits no target file', function() {
+test('AC-3 reject marks the item, drops it from pending and edits no target file', function() {
   var f = fixture();
   var before = targets(f.dir);
   assert.ok(inbox.reject(URL1, 'overlap', f.opts).ok);
@@ -82,7 +82,7 @@ test('reject marks the item, drops it from pending and edits no target file', fu
   assert.strictEqual(inbox.reject('https://nope', '', f.opts).code, 'not_found');
 });
 
-test('accept updates plugins.js, SKILLS-INDEX.md and CHANGELOG.md', function() {
+test('AC-2 accept updates plugins.js, SKILLS-INDEX.md and CHANGELOG.md', function() {
   var f = fixture();
   var res = inbox.accept(URL1, f.opts);
   assert.ok(res.ok);
@@ -95,7 +95,7 @@ test('accept updates plugins.js, SKILLS-INDEX.md and CHANGELOG.md', function() {
   assert.strictEqual(inbox.pendingCount(f.opts), 0);
 });
 
-test('a. missing pending.json and an empty list: count 0, badge hidden, no crash', function() {
+test('a. AC-1 missing pending.json and an empty list: count 0, badge hidden, no crash', function() {
   var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cc-inbox-home-'));
   assert.strictEqual(inbox.pendingCount({ file: path.join(home, 'nope.json') }), 0);
   assert.deepStrictEqual(inbox.inboxStatus({ file: path.join(home, 'nope.json') }), { count: 0, warning: null });
@@ -121,7 +121,7 @@ test('b. corrupt or non-array pending.json: count 0 with a warning, file not ove
   });
 });
 
-test('c. accept twice: each target file gets exactly one entry (idempotent)', function() {
+test('c. AC-2 accept twice: each target file gets exactly one entry (idempotent)', function() {
   var f = fixture();
   inbox.accept(URL1, f.opts);
   var once = targets(f.dir);
@@ -146,7 +146,7 @@ test('c. accept twice: each target file gets exactly one entry (idempotent)', fu
   assert.strictEqual(count(t.changelog, '### Added\n- Ingested'), 1);
 });
 
-test('c. sequential accepts into the real plugins.js stay inside KNOWN_PACKAGES', function() {
+test('c. AC-2 sequential accepts into the real plugins.js stay inside KNOWN_PACKAGES', function() {
   var f = fixture([{ name: 'a/unique-one', url: 'u1' }, { name: 'a/unique-two', url: 'u2' }]);
   fs.copyFileSync(path.join(__dirname, '..', 'plugins.js'), path.join(f.dir, 'commander', 'plugins.js'));
   assert.strictEqual(inbox.accept('u1', f.opts).updated['plugins.js'], 'updated');
@@ -159,7 +159,7 @@ test('c. sequential accepts into the real plugins.js stay inside KNOWN_PACKAGES'
   assert.ok(!/\},\};/.test(fs.readFileSync(file, 'utf8')));
 });
 
-test('c. a slug owned by a different repository is a collision, not a duplicate', function() {
+test('c. AC-2 a slug owned by a different repository is a collision, not a duplicate', function() {
   var f = fixture([
     { name: 'someone/superpowers', url: 'https://github.com/someone/superpowers' },
     { name: 'obra/superpowers', url: 'https://github.com/obra/superpowers' },
@@ -181,7 +181,7 @@ test('c. a slug owned by a different repository is a collision, not a duplicate'
   assert.deepStrictEqual(targets(f.dir), mid);
 });
 
-test('d. reject then accept, and accept of an unknown id: clear error, no file edits', function() {
+test('d. AC-3 reject then accept, and accept of an unknown id: clear error, no file edits', function() {
   var f = fixture();
   var before = targets(f.dir);
   assert.ok(inbox.reject(URL1, 'nope', f.opts).ok);
@@ -195,7 +195,7 @@ test('d. reject then accept, and accept of an unknown id: clear error, no file e
   assert.strictEqual(inbox.readInbox(f.opts).items[0].status, 'rejected');
 });
 
-test('e. hostile name and description are stored and rendered escaped, nothing written outside the three files', function() {
+test('e. AC-5 hostile name and description are stored and rendered escaped, nothing written outside the three files', function() {
   var hostile = {
     id: 'evil',
     name: '../../etc/x`y` | z\nnew\\',
@@ -235,7 +235,7 @@ test('e. hostile name and description are stored and rendered escaped, nothing w
   assert.strictEqual(stored.name, hostile.name, 'stored as data, unchanged');
 });
 
-test('f. one target file read-only or missing: the other two still update, failure reported per file', function(t) {
+test('f. AC-4 one target file read-only or missing: the other two still update, failure reported per file', function(t) {
   var f = fixture();
   fs.unlinkSync(path.join(f.dir, 'SKILLS-INDEX.md'));
   var res = inbox.accept(URL1, f.opts);
@@ -287,7 +287,7 @@ test('f. one target file read-only or missing: the other two still update, failu
   } finally { fs.chmodSync(cl, 0o644); }
 });
 
-test('g. badge shows the right N with 1 and many pending, HOME containing a space', function() {
+test('g. AC-1 badge shows the right N with 1 and many pending, HOME containing a space', function() {
   var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cc inbox home '));
   assert.ok(/ /.test(home));
   withHome(home, function() {
