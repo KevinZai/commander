@@ -41,7 +41,7 @@ module.exports = {
       if (status.warning) process.stdout.write('\n  Warning: ' + inbox.displayText(status.warning, 200) + '\n');
       var pending = inbox.listPending();
       if (pending.length === 0) { process.stdout.write('\n  Nothing pending.\n'); return { next: 'main-menu' }; }
-      var idx = await tui.select(pending.map(function(i) { return { label: inbox.displayText(i.name, 60), description: (Number(i.stars) || 0) + '* ' + inbox.displayText(i.description, 60) }; }), 'Pick a package to review:');
+      var idx = await tui.select(pending.map(function(i) { return { label: inbox.displayText(i.name, 60) + (i.partial ? ' (retry)' : ''), description: (Number(i.stars) || 0) + '* ' + inbox.displayText(i.description, 60) }; }), 'Pick a package to review:');
       if (idx < 0) return { next: 'review-inbox' };
       var item = pending[idx];
       process.stdout.write('\n  Evaluating ' + inbox.displayText(item.name, 60) + '...\n');
@@ -53,7 +53,10 @@ module.exports = {
       if (answer === 'a') {
         var res = inbox.accept(item.url);
         if (!res.ok) process.stdout.write('\n  Not accepted: ' + inbox.displayText(res.error, 200) + '\n');
-        else process.stdout.write('\n  Accepted. ' + Object.keys(res.updated).map(function(k) { return k + ': ' + res.updated[k]; }).join(', ') + '\n');
+        else {
+          process.stdout.write('\n  ' + (res.partial ? 'Partly accepted' : 'Accepted') + '. ' + Object.keys(res.updated).map(function(k) { return k + ': ' + res.updated[k]; }).join(', ') + '\n');
+          if (res.partial) process.stdout.write('  It stays in the inbox: fix the failed file, then review it again to retry.\n');
+        }
         await engine.pause(1200);
       } else if (answer === 'r') {
         var rej = inbox.reject(item.url, ev.reason);

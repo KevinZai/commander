@@ -71,6 +71,7 @@ function reject(ref, reason, opts) {
   var item = findItem(data, ref);
   if (!item) return { ok: false, code: 'not_found', error: 'not found: ' + oneLine(ref, 200) };
   if (item.status === 'accepted') return { ok: false, code: 'already_accepted', error: 'already accepted: ' + oneLine(ref, 200) };
+  if (item.partial) return { ok: false, code: 'partially_accepted', error: 'partly accepted, retry accept instead: ' + oneLine(ref, 200) };
   item.status = 'rejected';
   item.reviewedAt = new Date().toISOString();
   if (reason) item.reason = String(reason);
@@ -104,11 +105,33 @@ function displayText(text, max) {
   return oneLine(text, max);
 }
 
+function repoId(text) {
+  return String(text || '').replace(/^https?:\/\//, '').replace(/\.git$/, '').replace(/\/+$/, '').toLowerCase();
+}
+
+function collisionError(file, key) {
+  var err = new Error(path.basename(file) + ' already has `' + key + '` for a different repository');
+  err.code = 'slug_collision';
+  return err;
+}
+
+// 'absent', 'same' (this repo is already registered) or 'collision' (the slug belongs to another repo).
+function pluginsState(src, item) {
+  var key = slugify(item.name);
+  var m = new RegExp("^\\s{2}['\"]?" + key.replace(/-/g, '\\-') + "['\"]?:\\s*\\{", 'm').exec(src);
+  if (!m) return 'absent';
+  var close = src.indexOf('\n  },', m.index);
+  var repo = /repo:\s*'((?:[^'\\]|\\.)*)'/.exec(src.slice(m.index, close < 0 ? undefined : close));
+  return repo && repoId(repo[1].replace(/\\(.)/g, '$1')) === repoId(item.url) ? 'same' : 'collision';
+}
+
 // Insert before the closing "};" of the KNOWN_PACKAGES literal.
 function updatePluginsJs(file, item) {
   var key = slugify(item.name);
   var src = fs.readFileSync(file, 'utf8');
-  if (new RegExp("^\\s{2}['\"]?" + key.replace(/-/g, '\\-') + "['\"]?:\\s*\\{", 'm').test(src)) return false;
+  var state = pluginsState(src, item);
+  if (state === 'same') return false;
+  if (state === 'collision') throw collisionError(file, key);
   var start = src.indexOf('var KNOWN_PACKAGES = {');
   if (start < 0) throw new Error('KNOWN_PACKAGES not found in plugins.js');
   var end = src.indexOf('\n};', start);
@@ -132,8 +155,24 @@ function updatePluginsJs(file, item) {
 
 var INGESTED_HEADER = '## Ingested Packages';
 
+function indexState(src, item) {
+  var idx = src.indexOf(INGESTED_HEADER);
+  if (idx < 0) return 'absent';
+  var cell = '| `' + slugify(item.name) + '` |';
+  var lines = src.slice(idx).split('\n');
+  var i = 1;
+  while (i < lines.length && lines[i].indexOf('|') !== 0) i++;
+  for (; i < lines.length && lines[i].indexOf('|') === 0; i++) {
+    if (lines[i].indexOf(cell) === 0) return lines[i].indexOf('(' + mdText(item.url, 200) + ') |') >= 0 ? 'same' : 'collision';
+  }
+  return 'absent';
+}
+
 function updateSkillsIndex(file, item) {
   var src = fs.readFileSync(file, 'utf8');
+  var state = indexState(src, item);
+  if (state === 'same') return false;
+  if (state === 'collision') throw collisionError(file, slugify(item.name));
   var cell = '| `' + slugify(item.name) + '` |';
   var row = cell + ' ' + mdText(item.description, 110) + ' (' + mdText(item.url, 200) + ') |';
   var idx = src.indexOf(INGESTED_HEADER);
@@ -145,10 +184,7 @@ function updateSkillsIndex(file, item) {
     var lines = src.slice(idx).split('\n');
     var i = 1;
     while (i < lines.length && lines[i].indexOf('|') !== 0) i++;
-    while (i < lines.length && lines[i].indexOf('|') === 0) {
-      if (lines[i].indexOf(cell) === 0) return false;
-      i++;
-    }
+    while (i < lines.length && lines[i].indexOf('|') === 0) i++;
     lines.splice(i, 0, row);
     src = src.slice(0, idx) + lines.join('\n');
   }
@@ -180,12 +216,24 @@ function updateChangelog(file, item) {
   return true;
 }
 
+// Slug already taken by a different repository in plugins.js or SKILLS-INDEX.md.
+// Unreadable files are skipped here; their error is reported by the update step.
+function findCollision(steps, item) {
+  for (var i = 0; i < steps.length; i++) {
+    if (!steps[i][3]) continue;
+    var src;
+    try { src = fs.readFileSync(steps[i][1], 'utf8'); } catch (_e) { continue; }
+    if (steps[i][3](src, item) === 'collision') return steps[i][0];
+  }
+  return null;
+}
+
 /**
- * Accept a pending package: mark it accepted, then update plugins.js,
- * SKILLS-INDEX.md and CHANGELOG.md under opts.root (default: repo root).
- * Re-accepting an accepted item retries the files; each update is idempotent.
- * Failures are reported per file, never thrown. Rejected or unknown items
- * return an error and touch nothing.
+ * Accept a pending package: update plugins.js, SKILLS-INDEX.md and
+ * CHANGELOG.md under opts.root (default: repo root), then mark it accepted.
+ * Each update is idempotent and failures are reported per file, never thrown.
+ * If any file failed the item stays pending (partial) so the review menu can
+ * retry it. Rejected, unknown or slug-colliding items touch nothing.
  */
 function accept(ref, opts) {
   opts = opts || {};
@@ -198,18 +246,29 @@ function accept(ref, opts) {
   if (!slugify(item.name)) return { ok: false, code: 'bad_name', error: 'item has no usable name: ' + oneLine(ref, 200) };
   var updated = {};
   var steps = [
-    ['plugins.js', path.join(root, 'commander', 'plugins.js'), updatePluginsJs],
-    ['SKILLS-INDEX.md', path.join(root, 'SKILLS-INDEX.md'), updateSkillsIndex],
-    ['CHANGELOG.md', path.join(root, 'CHANGELOG.md'), updateChangelog],
+    ['plugins.js', path.join(root, 'commander', 'plugins.js'), updatePluginsJs, pluginsState],
+    ['SKILLS-INDEX.md', path.join(root, 'SKILLS-INDEX.md'), updateSkillsIndex, indexState],
+    ['CHANGELOG.md', path.join(root, 'CHANGELOG.md'), updateChangelog, null],
   ];
+  var clash = findCollision(steps, item);
+  if (clash) return { ok: false, code: 'slug_collision', error: clash + ' already has `' + slugify(item.name) + '` for a different repository' };
   steps.forEach(function(s) {
     try { updated[s[0]] = s[2](s[1], item) ? 'updated' : 'unchanged'; }
     catch (e) { updated[s[0]] = 'error: ' + (e.code || e.message); }
   });
-  item.status = 'accepted';
+  var failed = Object.keys(updated).filter(function(k) { return updated[k].indexOf('error') === 0; });
   item.reviewedAt = new Date().toISOString();
+  if (failed.length) {
+    item.status = 'pending';
+    item.partial = true;
+    item.lastErrors = failed.map(function(k) { return k + ': ' + updated[k]; });
+  } else {
+    item.status = 'accepted';
+    delete item.partial;
+    delete item.lastErrors;
+  }
   writeInbox(data, opts);
-  return { ok: true, item: item, updated: updated };
+  return { ok: true, partial: failed.length > 0, item: item, updated: updated };
 }
 
 module.exports = {

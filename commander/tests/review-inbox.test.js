@@ -159,6 +159,28 @@ test('c. sequential accepts into the real plugins.js stay inside KNOWN_PACKAGES'
   assert.ok(!/\},\};/.test(fs.readFileSync(file, 'utf8')));
 });
 
+test('c. a slug owned by a different repository is a collision, not a duplicate', function() {
+  var f = fixture([
+    { name: 'someone/superpowers', url: 'https://github.com/someone/superpowers' },
+    { name: 'obra/superpowers', url: 'https://github.com/obra/superpowers' },
+    { name: 'octo/cool-skills', url: URL1 },
+    { name: 'fork/cool-skills', url: 'https://github.com/fork/cool-skills' },
+  ]);
+  fs.copyFileSync(path.join(__dirname, '..', 'plugins.js'), path.join(f.dir, 'commander', 'plugins.js'));
+  var before = targets(f.dir);
+  var res = inbox.accept('https://github.com/someone/superpowers', f.opts);
+  assert.strictEqual(res.code, 'slug_collision');
+  assert.deepStrictEqual(targets(f.dir), before, 'no file edits on a collision');
+  assert.strictEqual(inbox.listPending(f.opts).length, 4);
+  // the registered repo itself is recognised as already present
+  assert.strictEqual(inbox.accept('https://github.com/obra/superpowers', f.opts).updated['plugins.js'], 'unchanged');
+  // same check for a slug first added through the inbox
+  assert.ok(inbox.accept(URL1, f.opts).ok);
+  var mid = targets(f.dir);
+  assert.strictEqual(inbox.accept('https://github.com/fork/cool-skills', f.opts).code, 'slug_collision');
+  assert.deepStrictEqual(targets(f.dir), mid);
+});
+
 test('d. reject then accept, and accept of an unknown id: clear error, no file edits', function() {
   var f = fixture();
   var before = targets(f.dir);
@@ -222,6 +244,8 @@ test('f. one target file read-only or missing: the other two still update, failu
   assert.strictEqual(res.updated['plugins.js'], 'updated');
   assert.strictEqual(res.updated['CHANGELOG.md'], 'updated');
   assert.ok(!fs.existsSync(path.join(f.dir, 'SKILLS-INDEX.md')), 'missing file is not created');
+  assert.ok(res.partial);
+  assert.strictEqual(inbox.pendingCount(f.opts), 1, 'a partial accept stays reviewable');
 
   if (process.getuid && process.getuid() === 0) { t.diagnostic('root ignores file modes; read-only case skipped'); return; }
   var g = fixture();
@@ -234,10 +258,16 @@ test('f. one target file read-only or missing: the other two still update, failu
     assert.strictEqual(r2.updated['plugins.js'], 'updated');
     assert.strictEqual(r2.updated['SKILLS-INDEX.md'], 'updated');
     assert.strictEqual(fs.readFileSync(cl, 'utf8'), before);
+    assert.strictEqual(inbox.listPending(g.opts)[0].partial, true);
+    assert.strictEqual(inbox.reject(URL1, 'x', g.opts).code, 'partially_accepted');
     // once writable again, a retry fills only the missing file
     fs.chmodSync(cl, 0o644);
     var r3 = inbox.accept(URL1, g.opts);
     assert.deepStrictEqual(r3.updated, { 'plugins.js': 'unchanged', 'SKILLS-INDEX.md': 'unchanged', 'CHANGELOG.md': 'updated' });
+    assert.strictEqual(r3.partial, false);
+    assert.strictEqual(inbox.pendingCount(g.opts), 0);
+    assert.strictEqual(inbox.readInbox(g.opts).items[0].status, 'accepted');
+    assert.strictEqual(inbox.readInbox(g.opts).items[0].lastErrors, undefined);
   } finally { fs.chmodSync(cl, 0o644); }
 });
 
