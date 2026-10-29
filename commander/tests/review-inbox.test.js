@@ -318,7 +318,7 @@ test('review action: accept through the menu resumes paused input and returns to
   writeHomeInbox(home, [{ name: 'a/one', url: 'https://github.com/a/one' }, { name: 'a/two', url: 'https://github.com/a/two' }]);
   var actions = require('../actions/inbox');
   var evaluator = require('../ingestion/evaluator');
-  var realEval = evaluator.evaluatePackage, realAccept = inbox.accept, realWrite = process.stdout.write;
+  var realEval = evaluator.evaluatePackage, realAccept = inbox.accept;
   var pausedAtAsk = [];
   var tui = {
     divider: function(s) { return s; }, dimText: function(s) { return s; },
@@ -333,20 +333,61 @@ test('review action: accept through the menu resumes paused input and returns to
     process.env.HOME = home;
     evaluator.evaluatePackage = function() { return { license: 'MIT', licenseRisk: 'green', recommendation: 'ADOPT', reason: 'stub', overlap: [] }; };
     inbox.accept = function(ref) { return realAccept(ref, { root: f.dir }); };
-    process.stdout.write = function() { return true; };
     var first = await actions.inbox_review_package(engine, tui, {}, {});
     var second = await actions.inbox_review_package(engine, tui, {}, {});
-    process.stdout.write = realWrite;
     assert.deepStrictEqual([first.next, second.next], ['review-inbox', 'main-menu']);
     assert.deepStrictEqual(pausedAtAsk, [false, false], 'input resumed before each prompt');
     assert.strictEqual(inbox.pendingCount(), 0);
     var t = targets(f.dir);
     assert.ok(loadPlugins(t.plugins).one && loadPlugins(t.plugins).two);
   } finally {
-    process.stdout.write = realWrite;
     process.env.HOME = prevHome;
     evaluator.evaluatePackage = realEval;
     inbox.accept = realAccept;
+    process.stdin.pause();
+  }
+});
+
+test('review action: shortcut keys buffered by readline during menus do not leak into the answer', async function() {
+  var readline = require('readline');
+  var PassThrough = require('stream').PassThrough;
+  var f = fixture();
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cc-inbox-keys-'));
+  writeHomeInbox(home, [{ name: 'a/one', url: 'https://github.com/a/one' }]);
+  var actions = require('../actions/inbox');
+  var evaluator = require('../ingestion/evaluator');
+  var realEval = evaluator.evaluatePackage, realAccept = inbox.accept;
+  var input = new PassThrough(), output = new PassThrough();
+  output.resume();
+  var rl = readline.createInterface({ input: input, output: output, terminal: true });
+  var answers = [];
+  // the select menus read "r" (Review a package) and "a" (first package); readline saw them too
+  var tui = { divider: String, dimText: String, select: async function() { input.write('ra'); return 0; } };
+  var engine = {
+    rl: rl, pause: async function() {},
+    ask: function(p) {
+      return new Promise(function(resolve) {
+        rl.question(p, function(a) { answers.push(a); resolve(a); });
+        setImmediate(function() { input.write('r\r'); });
+      });
+    },
+  };
+  var prevHome = process.env.HOME;
+  try {
+    process.env.HOME = home;
+    evaluator.evaluatePackage = function() { return { licenseRisk: 'green', recommendation: 'SKIP', reason: 'stub', overlap: [] }; };
+    inbox.accept = function(ref) { return realAccept(ref, { root: f.dir }); };
+    var before = targets(f.dir);
+    var res = await actions.inbox_review_package(engine, tui, {}, {});
+    assert.deepStrictEqual(answers, ['r']);
+    assert.strictEqual(res.next, 'main-menu');
+    assert.strictEqual(inbox.readInbox().items[0].status, 'rejected');
+    assert.deepStrictEqual(targets(f.dir), before);
+  } finally {
+    process.env.HOME = prevHome;
+    evaluator.evaluatePackage = realEval;
+    inbox.accept = realAccept;
+    rl.close();
     process.stdin.pause();
   }
 });

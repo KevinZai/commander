@@ -6,6 +6,11 @@ function ask(engine, prompt) {
   if (!engine.rl) { var readline = require('readline'); engine.rl = readline.createInterface({ input: process.stdin, output: process.stdout }); }
   // tui.select() pauses stdin directly, and a reused readline only resumes what it paused itself.
   if (process.stdin.isPaused()) process.stdin.resume();
+  // A reused readline also buffered the shortcut keys typed into the select menus: clear its line first.
+  if (engine.rl.terminal && typeof engine.rl.write === 'function') {
+    engine.rl.write(null, { ctrl: true, name: 'e' });
+    engine.rl.write(null, { ctrl: true, name: 'u' });
+  }
   return engine.ask(prompt);
 }
 
