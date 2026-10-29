@@ -268,6 +268,14 @@ test('f. one target file read-only or missing: the other two still update, failu
     assert.strictEqual(fs.readFileSync(cl, 'utf8'), before);
     assert.strictEqual(inbox.listPending(g.opts)[0].partial, true);
     assert.strictEqual(inbox.reject(URL1, 'x', g.opts).code, 'partially_accepted');
+    // a read-only inbox is refused before any target file changes
+    var k = fixture();
+    var kBefore = targets(k.dir);
+    fs.chmodSync(k.file, 0o444);
+    try {
+      assert.strictEqual(inbox.accept(URL1, k.opts).code, 'inbox_not_writable');
+      assert.deepStrictEqual(targets(k.dir), kBefore);
+    } finally { fs.chmodSync(k.file, 0o644); }
     // once writable again, a retry fills only the missing file
     fs.chmodSync(cl, 0o644);
     var r3 = inbox.accept(URL1, g.opts);

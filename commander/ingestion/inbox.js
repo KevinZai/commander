@@ -250,6 +250,10 @@ function accept(ref, opts) {
     ['SKILLS-INDEX.md', path.join(root, 'SKILLS-INDEX.md'), updateSkillsIndex, indexState],
     ['CHANGELOG.md', path.join(root, 'CHANGELOG.md'), updateChangelog, null],
   ];
+  // The review state must be savable before any target file changes.
+  try { fs.accessSync(inboxFile(opts), fs.constants.W_OK); } catch (e) {
+    return { ok: false, code: 'inbox_not_writable', error: 'inbox not writable (' + e.code + '), nothing changed: ' + inboxFile(opts) };
+  }
   var clash = findCollision(steps, item);
   if (clash) return { ok: false, code: 'slug_collision', error: clash + ' already has `' + slugify(item.name) + '` for a different repository' };
   steps.forEach(function(s) {
@@ -268,7 +272,9 @@ function accept(ref, opts) {
     delete item.partial;
     delete item.lastErrors;
   }
-  writeInbox(data, opts);
+  try { writeInbox(data, opts); } catch (e) {
+    return { ok: false, code: 'inbox_save_failed', error: 'files updated but the inbox was not saved (' + (e.code || e.message) + '); accept again to record it', updated: updated };
+  }
   return { ok: true, partial: failed.length > 0, item: item, updated: updated };
 }
 
