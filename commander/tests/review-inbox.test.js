@@ -146,6 +146,19 @@ test('c. accept twice: each target file gets exactly one entry (idempotent)', fu
   assert.strictEqual(count(t.changelog, '### Added\n- Ingested'), 1);
 });
 
+test('c. sequential accepts into the real plugins.js stay inside KNOWN_PACKAGES', function() {
+  var f = fixture([{ name: 'a/unique-one', url: 'u1' }, { name: 'a/unique-two', url: 'u2' }]);
+  fs.copyFileSync(path.join(__dirname, '..', 'plugins.js'), path.join(f.dir, 'commander', 'plugins.js'));
+  assert.strictEqual(inbox.accept('u1', f.opts).updated['plugins.js'], 'updated');
+  assert.strictEqual(inbox.accept('u2', f.opts).updated['plugins.js'], 'updated');
+  assert.strictEqual(inbox.accept('u2', f.opts).updated['plugins.js'], 'unchanged');
+  var file = path.join(f.dir, 'commander', 'plugins.js');
+  var mod = require(file);
+  assert.ok(mod.KNOWN_PACKAGES['unique-one'] && mod.KNOWN_PACKAGES['unique-two']);
+  assert.strictEqual(count(fs.readFileSync(file, 'utf8'), "'unique-two': {"), 1);
+  assert.ok(!/\},\};/.test(fs.readFileSync(file, 'utf8')));
+});
+
 test('d. reject then accept, and accept of an unknown id: clear error, no file edits', function() {
   var f = fixture();
   var before = targets(f.dir);

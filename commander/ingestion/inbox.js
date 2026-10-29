@@ -124,6 +124,7 @@ function updatePluginsJs(file, item) {
     "    description: '" + jsString(item.description, 120) + "',",
     '    skills: {},',
     '  },',
+    '',
   ].join('\n');
   fs.writeFileSync(file, src.slice(0, end + 1) + entry + src.slice(end + 1));
   return true;

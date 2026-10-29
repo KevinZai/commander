@@ -36,8 +36,11 @@ module.exports = {
   async inbox_review_package(engine, tui, _state, _choice) {
     var inbox = require('../ingestion/inbox');
     try {
+      // The engine clears the screen after the adventure's top-level action, so the warning is shown here too.
+      var status = inbox.inboxStatus();
+      if (status.warning) process.stdout.write('\n  Warning: ' + inbox.displayText(status.warning, 200) + '\n');
       var pending = inbox.listPending();
-      if (pending.length === 0) { process.stdout.write('\n  Nothing pending.\n'); return { next: 'review-inbox' }; }
+      if (pending.length === 0) { process.stdout.write('\n  Nothing pending.\n'); return { next: 'main-menu' }; }
       var idx = await tui.select(pending.map(function(i) { return { label: inbox.displayText(i.name, 60), description: (Number(i.stars) || 0) + '* ' + inbox.displayText(i.description, 60) }; }), 'Pick a package to review:');
       if (idx < 0) return { next: 'review-inbox' };
       var item = pending[idx];
@@ -61,6 +64,6 @@ module.exports = {
       try { require('../error-logger').log(_e, 'inbox_review_package'); } catch (_) {}
       process.stdout.write('\n  Error: ' + (_e.message || _e) + '\n');
     }
-    return { next: 'review-inbox' };
+    return { next: inbox.pendingCount() > 0 ? 'review-inbox' : 'main-menu' };
   },
 };
