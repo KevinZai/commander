@@ -4,6 +4,8 @@
 
 function ask(engine, prompt) {
   if (!engine.rl) { var readline = require('readline'); engine.rl = readline.createInterface({ input: process.stdin, output: process.stdout }); }
+  // tui.select() pauses stdin directly, and a reused readline only resumes what it paused itself.
+  if (process.stdin.isPaused()) process.stdin.resume();
   return engine.ask(prompt);
 }
 

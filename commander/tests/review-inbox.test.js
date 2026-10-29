@@ -303,3 +303,42 @@ test('review-inbox adventure loads and its actions resolve', function() {
     if (c.next) assert.ok(adventure.loadAdventure(c.next));
   });
 });
+
+test('review action: accept through the menu resumes paused input and returns to the main menu when empty', async function() {
+  var f = fixture();
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'cc inbox action '));
+  writeHomeInbox(home, [{ name: 'a/one', url: 'https://github.com/a/one' }, { name: 'a/two', url: 'https://github.com/a/two' }]);
+  var actions = require('../actions/inbox');
+  var evaluator = require('../ingestion/evaluator');
+  var realEval = evaluator.evaluatePackage, realAccept = inbox.accept, realWrite = process.stdout.write;
+  var pausedAtAsk = [];
+  var tui = {
+    divider: function(s) { return s; }, dimText: function(s) { return s; },
+    select: async function() { process.stdin.pause(); return 0; },
+  };
+  var engine = {
+    rl: {}, pause: async function() {},
+    ask: async function() { pausedAtAsk.push(process.stdin.isPaused()); return 'a'; },
+  };
+  var prevHome = process.env.HOME;
+  try {
+    process.env.HOME = home;
+    evaluator.evaluatePackage = function() { return { license: 'MIT', licenseRisk: 'green', recommendation: 'ADOPT', reason: 'stub', overlap: [] }; };
+    inbox.accept = function(ref) { return realAccept(ref, { root: f.dir }); };
+    process.stdout.write = function() { return true; };
+    var first = await actions.inbox_review_package(engine, tui, {}, {});
+    var second = await actions.inbox_review_package(engine, tui, {}, {});
+    process.stdout.write = realWrite;
+    assert.deepStrictEqual([first.next, second.next], ['review-inbox', 'main-menu']);
+    assert.deepStrictEqual(pausedAtAsk, [false, false], 'input resumed before each prompt');
+    assert.strictEqual(inbox.pendingCount(), 0);
+    var t = targets(f.dir);
+    assert.ok(loadPlugins(t.plugins).one && loadPlugins(t.plugins).two);
+  } finally {
+    process.stdout.write = realWrite;
+    process.env.HOME = prevHome;
+    evaluator.evaluatePackage = realEval;
+    inbox.accept = realAccept;
+    process.stdin.pause();
+  }
+});
