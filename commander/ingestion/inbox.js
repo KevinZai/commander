@@ -260,7 +260,8 @@ function accept(ref, opts) {
   item.reviewedAt = new Date().toISOString();
   if (failed.length) {
     item.status = 'pending';
-    item.partial = true;
+    // Partial only once some file actually changed; a total failure can still be rejected.
+    if (item.partial || failed.length < steps.length) item.partial = true;
     item.lastErrors = failed.map(function(k) { return k + ': ' + updated[k]; });
   } else {
     item.status = 'accepted';

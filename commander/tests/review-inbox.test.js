@@ -247,6 +247,14 @@ test('f. one target file read-only or missing: the other two still update, failu
   assert.ok(res.partial);
   assert.strictEqual(inbox.pendingCount(f.opts), 1, 'a partial accept stays reviewable');
 
+  // every target missing: nothing applied, so the item stays rejectable
+  var h = fixture();
+  ['commander/plugins.js', 'SKILLS-INDEX.md', 'CHANGELOG.md'].forEach(function(n) { fs.unlinkSync(path.join(h.dir, n)); });
+  var none = inbox.accept(URL1, h.opts);
+  assert.ok(none.partial);
+  assert.strictEqual(inbox.listPending(h.opts)[0].partial, undefined);
+  assert.ok(inbox.reject(URL1, 'broken install', h.opts).ok);
+
   if (process.getuid && process.getuid() === 0) { t.diagnostic('root ignores file modes; read-only case skipped'); return; }
   var g = fixture();
   var cl = path.join(g.dir, 'CHANGELOG.md');

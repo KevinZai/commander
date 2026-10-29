@@ -54,7 +54,8 @@ module.exports = {
         var res = inbox.accept(item.url);
         if (!res.ok) process.stdout.write('\n  Not accepted: ' + inbox.displayText(res.error, 200) + '\n');
         else {
-          process.stdout.write('\n  ' + (res.partial ? 'Partly accepted' : 'Accepted') + '. ' + Object.keys(res.updated).map(function(k) { return k + ': ' + res.updated[k]; }).join(', ') + '\n');
+          var failedAll = Object.keys(res.updated).every(function(k) { return res.updated[k].indexOf('error') === 0; });
+          process.stdout.write('\n  ' + (failedAll ? 'Not accepted' : res.partial ? 'Partly accepted' : 'Accepted') + '. ' + Object.keys(res.updated).map(function(k) { return k + ': ' + res.updated[k]; }).join(', ') + '\n');
           if (res.partial) process.stdout.write('  It stays in the inbox: fix the failed file, then review it again to retry.\n');
         }
         await engine.pause(1200);
