@@ -359,7 +359,11 @@ test('review action: shortcut keys buffered by readline during menus do not leak
   var realEval = evaluator.evaluatePackage, realAccept = inbox.accept;
   var input = new PassThrough(), output = new PassThrough();
   output.resume();
+  // readline ignores line-editing keys when TERM=dumb; this fixture models a real terminal
+  var prevTerm = process.env.TERM;
+  process.env.TERM = 'xterm-256color';
   var rl = readline.createInterface({ input: input, output: output, terminal: true });
+  if (prevTerm === undefined) delete process.env.TERM; else process.env.TERM = prevTerm;
   var answers = [];
   // the select menus read "r" (Review a package) and "a" (first package); readline saw them too
   var tui = { divider: String, dimText: String, select: async function() { input.write('ra'); return 0; } };
