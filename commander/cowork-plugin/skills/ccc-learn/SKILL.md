@@ -1,14 +1,12 @@
 ---
 name: ccc-learn
-description: "Pick a CC Commander skill domain in one click (design, marketing, SaaS, DevOps, SEO, testing, security, data and more) and hand off to that domain's router skill. Use when the user asks what skills exist, wants the skill catalog, says learn or browse domains, or types /ccc-learn."
+description: "Pick a Commander skill domain (design, marketing, SaaS, DevOps, SEO, testing, security, data) and hand off to its router. Use to explore domains."
 allowed-tools:
   - Read
   - Bash
   - Skill
   - AskUserQuestion
 argument-hint: "[design | marketing | saas | devops | seo | testing | security | data | research | mobile | makeover | all]"
-model: sonnet
-effort: low
 ---
 
 # /ccc-learn — one click to a domain
@@ -97,7 +95,7 @@ Root picker (reorder so the 🟢 option from step 3 is first):
 
 ```
 question: "Which domain?"
-header: "CC Commander · Learn"
+header: "Learn"
 multiSelect: false
 options:
   - label: "🟢 🎨 Design"
@@ -114,7 +112,7 @@ Second picker:
 
 ```
 question: "Which domain?"
-header: "CC Commander · Learn · More"
+header: "Learn (2/3)"
 multiSelect: false
 options:
   - label: "🟢 DevOps"
@@ -131,7 +129,7 @@ Third picker:
 
 ```
 question: "Which one?"
-header: "CC Commander · Learn · Advanced"
+header: "Advanced"
 multiSelect: false
 options:
   - label: "🟢 🔐 Security"

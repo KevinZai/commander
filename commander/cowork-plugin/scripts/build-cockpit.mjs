@@ -27,6 +27,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readTopSkills } from '../lib/top-skills.js';
+import { readablePath, readableStateDir } from '../lib/lane-state.js';
+import { withoutInternalRuns } from '../lib/agent-runs.js';
 import { brandArtifactCss } from '../lib/brand-css.js';
 import { deckStripHtml, deckStripCss } from '../lib/deck-switcher.js';
 
@@ -560,13 +562,12 @@ function readPluginVersion() {
 }
 
 // Linear board is a PRIVATE, opt-in surface: the Cockpit bakes whatever the
-// user's own Linear connector cached to ~/.claude/commander/linear-board.json
+// user's own Linear connector cached to <lane state dir>/linear-board.json
 // at generate time (never a network call at view time). Absent file → the tab
 // renders a "connect Linear" empty state. Shape:
 //   { connected, board, tickets:[{id,title,state,stateKind,project,updated,stale}] }
 function readLinearBoard() {
-  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
-  const file = path.join(home, '.claude', 'commander', 'linear-board.json');
+  const file = readablePath('linear-board.json');
   const str = (v) => (typeof v === 'string' ? v : '');
   try {
     const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -733,8 +734,9 @@ function readJsonl(filePath) {
   let raw;
   try {
     raw = fs.readFileSync(filePath, 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    // A missing file is empty; any other failure means the rows are unknown (agent-runs.js).
+    return Object.assign([], { incomplete: error?.code !== 'ENOENT' });
   }
 
   const entries = [];
@@ -774,12 +776,12 @@ function hasTokenData(entry) {
   );
 }
 
-// Rough Sonnet-rate estimate ($/M): new input 3, cache-read 0.3 (≈0.1×), output 15.
+// Rough Sonnet 5.5-rate estimate ($/M): new input 2, cache-read 0.1, output 10.
 // cache_read is priced (a cache-heavy run costs real money) but is NOT folded
 // into the token headline, where cross-turn re-reads would inflate the count.
 function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
   return Number(
-    ((safeMetric(inputTokens) * 3 + safeMetric(cacheReadTokens) * 0.3 + safeMetric(outputTokens) * 15) / 1_000_000).toFixed(4)
+    ((safeMetric(inputTokens) * 2 + safeMetric(cacheReadTokens) * 0.1 + safeMetric(outputTokens) * 10) / 1_000_000).toFixed(4)
   );
 }
 
@@ -969,11 +971,12 @@ function computeTelemetryFreshness(baseDir, nowMs) {
 }
 
 async function buildAnalytics() {
-  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
-  const baseDir = path.join(home, '.claude', 'commander');
+  const baseDir = readableStateDir();
+  const subagentRuns = readJsonl(path.join(baseDir, 'subagent-runs.jsonl'));
   const sources = {
-    agentRuns: readJsonl(path.join(baseDir, 'agent-runs.jsonl')),
-    subagentRuns: readJsonl(path.join(baseDir, 'subagent-runs.jsonl')),
+    // Claude Code's internal agents are not dispatches (CC-2120).
+    agentRuns: withoutInternalRuns(readJsonl(path.join(baseDir, 'agent-runs.jsonl')), subagentRuns),
+    subagentRuns,
     tasks: readJsonl(path.join(baseDir, 'tasks.jsonl')),
     events: readJsonl(path.join(baseDir, 'mission-control', 'events.jsonl')),
   };
@@ -1053,8 +1056,7 @@ async function buildDocument() {
   const skills = mergeSkills(pluginSkills, ecosystemSkills);
   const agents = buildAgents();
 
-  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
-  const baseDir = path.join(home, '.claude', 'commander');
+  const baseDir = readableStateDir();
   const nowMs = Date.now();
   const freshness = computeTelemetryFreshness(baseDir, nowMs);
 

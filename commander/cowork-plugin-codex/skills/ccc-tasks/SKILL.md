@@ -8,8 +8,7 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[list | pick | add | done | prune]"
-model: sonnet
-effort: low
+disable-model-invocation: true
 ---
 
 # $ccc-tasks — Markdown task tracking

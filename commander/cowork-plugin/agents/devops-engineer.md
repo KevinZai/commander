@@ -5,7 +5,7 @@ model: opus
 effort: high
 persona: personas/devops-engineer
 memory: project
-color: gray
+color: orange
 tools:
   - Read
   - Write

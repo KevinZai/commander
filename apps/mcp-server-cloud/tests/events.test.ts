@@ -9,10 +9,25 @@
  *   - Rate limiting (100 batches/hr/device) returns 429 after cap
  *   - Malformed bodies return 400
  *   - No auth required (telemetry is anonymous)
+ *   - Accepted events are acknowledged and discarded without loading any
+ *     PostHog (or other analytics) module (CC-2119)
  */
 
 import { describe, it, before } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { registerHooks } from "node:module";
+
+// ─── Record every module resolution BEFORE the app graph loads ──────────
+// If anything in the server still imported posthog-node (or any posthog*
+// module), it would show up here. Resolution is passed through unchanged.
+const posthogResolutions: string[] = [];
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (/posthog/i.test(specifier)) posthogResolutions.push(specifier);
+    return nextResolve(specifier, context);
+  },
+});
 
 // ─── Fake env BEFORE importing the app ───────────────────────────────────
 process.env.SUPABASE_URL = "https://test.supabase.co";
@@ -22,8 +37,9 @@ process.env.UPSTASH_REDIS_REST_TOKEN = "test-redis-token";
 process.env.JWT_SECRET = "test-jwt-secret-min-32-characters-long";
 process.env.NODE_ENV = "test";
 process.env.PORT = "0";
-// Leave POSTHOG_API_KEY unset — captureEvent becomes a no-op, which is the
-// behavior we want for tests (no real network calls).
+// A stale POSTHOG_API_KEY in a deploy must not revive any analytics path.
+process.env.POSTHOG_API_KEY = "fake-stale-key-ignored";
+process.env.METRICS_AUTH_TOKEN = "";
 
 const { app } = await import("../src/index.js");
 const { validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST } = await import(
@@ -305,6 +321,55 @@ describe("POST /v1/events", () => {
     });
     assert.equal(res.status, 200);
     assert.ok(res.headers.get("X-RateLimit-Remaining"));
+  });
+});
+
+describe("POST /v1/events without PostHog (CC-2119)", () => {
+  it("acknowledges a batch, counts it as discarded, and never resolves a posthog module", async () => {
+    const before = await fetchApp("/metrics").then((r) => r.text());
+    const discardedBefore = Number(
+      /^commander_telemetry_events_discarded_total (\d+)$/m.exec(before)?.[1]
+    );
+    assert.ok(Number.isInteger(discardedBefore), "discard counter exported on /metrics");
+
+    const res = await postEvents({
+      events: [
+        {
+          name: "skill_invoked",
+          distinct_id: "c2119000-0000-4000-8000-000000000001",
+          properties: { skill_id: "ccc-build", latency_ms: 12 },
+        },
+        {
+          name: "hook_fired",
+          distinct_id: "c2119000-0000-4000-8000-000000000001",
+          properties: { hook: "SessionStart" },
+        },
+      ],
+    });
+    assert.equal(res.status, 200);
+    const json = (await res.json()) as { ok: boolean; accepted: number; rejected: number };
+    assert.equal(json.ok, true);
+    assert.equal(json.accepted, 2);
+    assert.equal(json.rejected, 0);
+
+    const after = await fetchApp("/metrics").then((r) => r.text());
+    const discardedAfter = Number(
+      /^commander_telemetry_events_discarded_total (\d+)$/m.exec(after)?.[1]
+    );
+    assert.equal(discardedAfter, discardedBefore + 2);
+
+    assert.deepEqual(posthogResolutions, [], "no posthog module was resolved by the server");
+  });
+
+  it("does not declare posthog-node as a dependency", () => {
+    const pkg = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8")
+    ) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+    const names = [
+      ...Object.keys(pkg.dependencies ?? {}),
+      ...Object.keys(pkg.devDependencies ?? {}),
+    ];
+    assert.equal(names.filter((n) => /posthog/i.test(n)).length, 0);
   });
 });
 

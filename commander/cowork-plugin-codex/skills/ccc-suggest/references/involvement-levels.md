@@ -7,7 +7,7 @@ The `hooks/suggest-ticker.js` UserPromptSubmit hook runs a lightweight pass on e
 | Level | Name | What surfaces | When the ticker picks it |
 |---|---|---|---|
 | 0 | Disabled | Nothing; ambient mode off | `CCC_SUGGEST_DISABLE=1` |
-| 1 | Passive | Nothing shown; the pass is logged to `~/.claude/commander/suggest-log.jsonl` | No blockers, branch level with main, no open todos |
+| 1 | Passive | Nothing shown; the pass is logged to `<config dir>/commander/suggest-log.jsonl` | No blockers, branch level with main, no open todos |
 | 2 | Gentle nudge (default) | One line at the bottom of the response, only at HIGH confidence | Signals present, no blockers |
 | 3 | Assertive | A recommendation card at the top: pick, confidence, reason, alternatives | A blocker exists (CI, tests or lint failing, security alerts), or the prompt asks for direction ("what next", "what should I do", "help me decide", "I'm stuck", "where do I start") |
 | 4 | Autopilot | The top recommendation runs without a picker | Only when `CCC_SUGGEST_LEVEL=4` is set; never chosen automatically |

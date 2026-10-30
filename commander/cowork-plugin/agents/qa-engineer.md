@@ -5,7 +5,7 @@ model: opus
 effort: high
 persona: personas/qa-engineer
 memory: project
-color: teal
+color: yellow
 isolation: worktree
 tools:
   - Read

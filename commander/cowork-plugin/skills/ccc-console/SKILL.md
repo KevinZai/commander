@@ -9,15 +9,14 @@ allowed-tools:
   - Artifact
   - mcp__visualize__show_widget
 argument-hint: "[open | overview | usage | safety | memory | history | launch | refresh | publish [tab] | on | off]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-console — one panel, two surfaces
 
 **CC Commander** · /ccc-console · agents, cost, guardrails and recent history in one place, with a prompt bar that reaches this session.
 
-The console reads only the user's own local telemetry under `~/.claude/commander/`, composed once by `lib/console-model.js`. The Memory tab also reads the user's own claude-mem store at `~/.claude-mem/` when one exists (opt-in, absent by default).
+The console reads only the user's own local telemetry under `<config dir>/commander/` (`~/.claude/commander/` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`), composed once by `lib/console-model.js`. The Memory tab also reads the user's own claude-mem store at `~/.claude-mem/` when one exists (opt-in, absent by default).
 
 It has two surfaces. Keep them separate:
 
@@ -64,7 +63,7 @@ Call the visualize MCP's `show_widget` with the stdout as `widget_code` and a sn
 If `show_widget` is not available in this session (including Codex), say so in one line and offer, with AskUserQuestion (Codex: a plain-text question):
 
 - 🟢 Publish a snapshot of this tab — a private page; asks before anything leaves the machine
-- Plain-English status here — runs `/ccc-mission-control status`
+- Plain-English status here — ask the user to type `/ccc-mission-control status`
 - Skip
 
 Never imitate the widget with a markdown table.
@@ -103,7 +102,7 @@ Zero-state is normal: stat tiles show `—`, cards say how to start (`/ccc-spawn
 
 `hooks/console-autopen.js` asks once, near the start of a fresh session that has telemetry, for this widget. It never publishes.
 
-- `/ccc-console off`: write `{"autoOpen": false}` into `~/.claude/commander/console.json`, preserving other keys (create the file and directory if missing). `/ccc-console on` writes `true`.
+- `/ccc-console off`: write `{"autoOpen": false}` into `<config dir>/commander/console.json`, preserving other keys (start from the `~/.claude/commander/console.json` copy until the lane has its own; create the file and directory if missing). `/ccc-console on` writes `true`.
 - Other switches: edit that file by hand, or set `CCC_NO_AUTOCONSOLE=1`.
 - A missing or malformed `console.json` means on.
 - If the opening message is a real request, answer it and skip the console.
@@ -112,7 +111,7 @@ Zero-state is normal: stat tiles show `—`, cards say how to start (`/ccc-spawn
 
 - Widget: `build-console.mjs` exited 0 and `show_widget` returned without error, or the user got the one-line "widget unavailable" note and the fallback picker.
 - Publish: the Artifact tool returned a URL and you reported it.
-- `on`/`off`: `node -e "console.log(JSON.parse(require('fs').readFileSync(require('os').homedir()+'/.claude/commander/console.json','utf8')).autoOpen)"` prints the value you wrote.
+- `on`/`off`: `node -e "const p=require('path');console.log(JSON.parse(require('fs').readFileSync(p.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||p.join(require('os').homedir(),'.claude'),'commander','console.json'),'utf8')).autoOpen)"` prints the value you wrote.
 
 ## Guardrails
 

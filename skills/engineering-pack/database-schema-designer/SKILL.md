@@ -386,7 +386,7 @@ CREATE POLICY tasks_delete_policy ON tasks
   );
 
 -- Set user context (call at start of each request)
-SELECT set_config('app.current_user_id', $1, true);
+SELECT set_config('app.current_user_id', \$1, true);
 ```
 
 ---

@@ -8,8 +8,6 @@ allowed-tools:
   - Write
   - AskUserQuestion
 argument-hint: "[status | wire | send]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

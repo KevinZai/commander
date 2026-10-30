@@ -1,6 +1,6 @@
 ---
 name: ccc-review
-description: "Audit the current branch, security posture, performance hot paths or the whole project; routes to /commander:ccc-deep-review, built-in /code-review or a specialist agent and writes a severity-rated report to tasks/reviews/. Use when the user asks for a code review, PR review, audit or $ccc-review."
+description: "Code review of the current branch or PR, or a security, performance or whole-project audit, with a severity-rated report. Use for PR review."
 allowed-tools:
   - Read
   - Write
@@ -16,8 +16,6 @@ allowed-tools:
   - mcp__ccd_session__spawn_task
   - mcp__ccd_session__mark_chapter
 argument-hint: "[diff | quick | ultra | security | perf | xray | free-form question]"
-model: opus
-effort: medium
 ---
 
 # $ccc-review — audit before you ship
@@ -151,7 +149,7 @@ Codex: replace the workflow with `codex review --base <base>` (or `codex review 
 
 ### 7. Write the report
 
-Write `tasks/reviews/ccc-review-<YYYYMMDD>-<lens>.md` using [references/output-format.md](references/output-format.md). Never overwrite an earlier report; append `-2`, `-3` for a second run the same day. `$ccc-ship` reads this directory.
+Write `tasks/reviews/ccc-review-<YYYYMMDD>-<lens>.md` using [references/output-format.md](references/output-format.md). For the branch lens, append a `## Changes (before / after)` section from `git diff --no-color --no-ext-diff "$(git merge-base <base> HEAD)" | node "${CLAUDE_PLUGIN_ROOT}/scripts/render-diff.mjs" --max-rows 40` (committed and uncommitted changes; one Before | After table per hunk). Never overwrite an earlier report; append `-2`, `-3` for a second run the same day. `$ccc-ship` reads this directory.
 
 ### 8. Turn blockers into actions
 

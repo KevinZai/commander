@@ -8,7 +8,7 @@ description: "Two ways to access 467+ CC Commander skills — native plugin slas
 CC Commander ships **two parallel discovery surfaces**. They serve the same skill catalog but are shaped by what each client supports.
 
 <Note>
-  **Current status:** the hosted MCP server at `mcp.commanderplugin.com` is live. Plugin install works in Claude Code today; MCP access for Cursor/Windsurf/Cline/Continue/Codex/Claude mobile is available now via the hosted endpoint below.
+  **Current status:** the hosted MCP server at `mcp.commanderplugin.com` is live. Plugin install works in Claude Code today; MCP access for Cursor/Windsurf/Cline/Continue/Codex/Claude mobile goes through the hosted endpoint below, which requires a CC Commander access token. Self-serve token issuance isn't live yet.
 </Note>
 
 ## The split in one sentence
@@ -29,7 +29,7 @@ Same 467+ skills. Different UX glue.
 ## Native plugin (Claude Code)
 
 When you `/plugin install commander --marketplace KevinZai/commander` in Claude Code, the plugin manifest registers:
-- **84 plugin skills** as plain `/ccc-*` slash commands (no namespace prefix) — all core free forever
+- **93 plugin skills** as plain `/ccc-*` slash commands (no namespace prefix) — all core free forever
 - **22 specialist agents** available via the Agent tool (architect, security-auditor, builder, reviewer, etc.)
 - **30 lifecycle hooks × 51 handlers** (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionDenied, model switches, Stop, compaction, subagents and more)
 - **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect` (Linear, Supabase, Vercel, Slack, Notion, Sentry and more)
@@ -54,33 +54,45 @@ Since v7.0.0, `/ccc-browse` is a scannable skill LIST built for finding a skill 
 
 ## Hosted MCP server (every other AI IDE)
 
-Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.commanderplugin.com`. The same 467+ skill catalog becomes available through **13 MCP tools**:
+Cursor, Windsurf, Cline, Continue, Codex, Claude mobile, Claude Desktop, and any future MCP-capable client point at `https://mcp.commanderplugin.com/mcp` (Streamable HTTP, Bearer token). The same 467+ skill catalog becomes available through the tools below.
 
-| Tool | What the agent does with it |
-|------|----------------------------|
-| `list_skills` | Paginated catalog, filter by domain |
-| `search_skills(query)` | Fuzzy match by description/keywords |
-| `get_skill(id)` | Fetch full SKILL.md content |
-| `suggest_skill(context)` | Auto-suggest based on current task |
-| `list_agents` | Browse 22 specialist personas |
-| `get_agent(id)` | Fetch persona + system prompt |
-| `list_modes` | 10 workflow modes (Race / Production / Learning / Silent / Deep / Vibe / etc.) |
-| `enter_mode(id)` | Activate a workflow mode |
-| `get_status` | Session status, usage, tier |
-| `send_feedback` | Submit mandatory beta feedback |
-| `get_session_time` | Anthropic session time remaining |
-| `list_hooks` | Inspect lifecycle hook configuration |
-| `get_connector` | Fetch MCP integration details |
+{/* BEGIN GENERATED: mcp-tools — run `node scripts/generate-mcp-tool-docs.js`; do not edit by hand */}
+The hosted server exposes **18 MCP tools** (from `apps/mcp-server-cloud/src/tools/index.ts`):
 
-**Pros:** works in any MCP-capable client, zero install on user's machine, lazy-loads skills (only the ones invoked hit the wire), no license key or account required — just point at the URL.
-**Cons:** requires network round-trip, no slash-command autocomplete (agent-mediated only), no lifecycle hooks (MCP is request/response).
+| Tool | Title | What the agent does with it |
+|------|-------|----------------------------|
+| `commander_list_skills` | List skills | List Commander skills with metadata. |
+| `commander_get_skill(name)` | Get skill | Fetch full SKILL.md content for a named Commander skill. |
+| `commander_search(query)` | Search skills | Search across all skills — returns ranked matches with relevance scores. |
+| `commander_suggest_for(task)` | Suggest skills | Recommend Commander skills for a task description. |
+| `commander_invoke_skill(name)` | Get skill invocation guide | Activate a Commander skill by name and return its full instructions. |
+| `commander_list_agents` | List agents | List available Commander specialist agents. |
+| `commander_get_agent(name)` | Get agent | Fetch full agent definition for a named Commander specialist. |
+| `commander_invoke_agent(name, task)` | Get agent invocation guide | Activate a Commander specialist agent for a given task. |
+| `commander_status` | Commander status | Return the authenticated user's Commander status. |
+| `commander_update` | Check for updates | Check whether a newer Commander version is available. |
+| `commander_init` | Generate project setup | Generate project initialization files for a Commander-powered workflow. |
+| `commander_notes_pin(note)` | Pin note | Save a note to the Commander cross-session knowledge store. |
+| `commander_tasks_push(title)` | Task setup instructions | Push a task to a connected Linear workspace. |
+| `commander_plan_integrate(plan)` | Parse plan tasks | Parse a markdown or plain-text plan and extract its task list for tracking. |
+| `commander_install_skill(skill_name, target_env)` | Generate skill install command | Generate a shell command that installs a Commander skill into a target AI environment. |
+| `commander_compatibility_check(skill_name, target_env)` | Check skill compatibility | Check whether a Commander skill is compatible with a target AI environment. |
+| `commander_session_diagnose` | Diagnose session | Run Commander's built-in diagnostics and return a structured health report. |
+| `commander_compose_plan(feature_description)` | Compose implementation plan | Generate a structured implementation plan from a feature description. |
+{/* END GENERATED: mcp-tools */}
+
+**Pros:** works in any MCP-capable client, zero install on user's machine, lazy-loads skills (only the ones invoked hit the wire), one URL plus a Bearer token header.
+**Cons:** requires a CC Commander access token (no OAuth sign-in yet; the server's RFC 9728 metadata lists no authorization server), requires network round-trip, no slash-command autocomplete (agent-mediated only), no lifecycle hooks (MCP is request/response).
 
 ```json
 // ~/.cursor/mcp.json (example — Cursor users)
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse"
+      "url": "https://mcp.commanderplugin.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:COMMANDER_TOKEN}"
+      }
     }
   }
 }
@@ -98,7 +110,9 @@ Claude Code users can install the plugin **and** point at the hosted MCP. Benefi
 To enable hybrid on Claude Code:
 ```bash
 /plugin install commander --marketplace KevinZai/commander   # already done? you're ready
-# then add the MCP endpoint (mcp.commanderplugin.com) to .claude/mcp.json
+# then add the hosted MCP (Streamable HTTP + Bearer token) to Claude Code:
+claude mcp add --transport http cc-commander https://mcp.commanderplugin.com/mcp \
+  --header "Authorization: Bearer $COMMANDER_TOKEN"
 ```
 
 ## What does NOT work in MCP that works in plugin

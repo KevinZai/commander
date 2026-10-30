@@ -5,7 +5,7 @@
 
 module.exports = {
 
-  async freeform_build(engine, tui, state, choice) {
+  async freeform_build(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\n  ' + tui.boldText('Tell me what you want to build:', tui.getTheme().text) + '\n');
       if (!engine.rl) { var readline = require('readline'); engine.rl = readline.createInterface({ input: process.stdin, output: process.stdout }); }
@@ -33,7 +33,7 @@ module.exports = {
     return { next: 'main-menu' };
   },
 
-  async freeform_prompt(engine, tui, state, choice) {
+  async freeform_prompt(engine, tui, _state, _choice) {
     try {
       process.stdout.write('\x0a  ' + tui.boldText('Type anything — a command, a question, or what you want to build:', tui.getTheme().text) + '\x0a');
       process.stdout.write('  ' + tui.dimText('Examples: /ccc-xray  |  build a landing page  |  /plan  |  fix the auth bug') + '\x0a');
@@ -49,15 +49,15 @@ module.exports = {
     return { next: 'main-menu' };
   },
 
-  async night_build(engine, tui, state, choice) {
+  async night_build(engine, _tui, _state, _choice) {
     return engine.nightBuild();
   },
 
-  async yolo_loop(engine, tui, state, choice) {
+  async yolo_loop(engine, _tui, _state, _choice) {
     return engine.yoloLoop();
   },
 
-  async night_explain(engine, tui, state, choice) {
+  async night_explain(engine, tui, _state, _choice) {
     try {
       var nightMsg = [
         '',

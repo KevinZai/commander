@@ -1,8 +1,8 @@
 # CC Commander
 
-> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **84 plugin skills** including `/ccc-codex`. **30 lifecycle hooks × 51 handlers**. The **Commander HUD mod**, **6 plugin workflows** (`/commander:<name>`) and **8 plugin evals**. **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. 467 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Codex, Cursor, Windsurf, Cline, Continue. **Core free forever.**
+> CC Commander — Guided AI PM for Claude Code. **Primary surface: Claude Code Desktop (aka Cowork Desktop).** Brain/hands architecture with **22 specialist sub-agent personas** (architect · reviewer · builder · security-auditor · debugger · designer · qa-engineer · devops-engineer · data-analyst · content-strategist · product-manager · performance-engineer · researcher · technical-writer · fleet-worker · typescript-reviewer · python-reviewer · go-reviewer · rust-reviewer · java-reviewer · kotlin-reviewer · csharp-reviewer). **93 plugin skills** including `/ccc-codex`. **30 lifecycle hooks × 51 handlers**. The **Commander HUD mod**, **6 plugin workflows** (`/commander:<name>`) and **8 plugin evals**. **2 credential-free bundled MCP servers** (`context7` + `sequential-thinking`) + 16 opt-in via `/ccc-connect`. 467 skills across 11 CCC domains. Works in Claude Code Desktop, Cowork Desktop, CLI, Codex, Cursor, Windsurf, Cline, Continue. MIT-licensed.
 
-> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 84 skills, 22 agents, 30 lifecycle hooks (51 handlers) and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
+> Cowork Desktop and Claude Code Desktop are the same app, two UI modes. Install once — 93 skills, 22 agents, 30 lifecycle hooks (51 handlers) and 2 credential-free bundled MCP servers (+16 opt-in via `/ccc-connect`) appear inside every session automatically.
 
 CC Commander is a guided AI PM plugin that orchestrates your development workflow from planning to shipping. Its `/ccc-*` skills open native chip pickers, delegate to specialist agents, and route into the broader CC Commander ecosystem of 467 skills across 11 domains.
 
@@ -37,31 +37,42 @@ Codex runs the generated mirror in `commander/cowork-plugin-codex/`; review its 
 
 **Update:** `claude plugin marketplace update commander-hub && claude plugin update commander`, then restart. `/ccc-update` walks through it; `/ccc-doctor` diagnoses stale installs.
 
+## Example prompts
+
+```
+/ccc what should I do first in this repo?
+/ccc-review review this branch against main before I open the PR
+/ccc-plan turn this Linear issue into a plan with acceptance criteria
+/ccc-doctor
+```
+
+`/ccc` reads the project and recommends one next step; `/ccc-review` runs the deep-review workflow on the current branch; `/ccc-plan` interviews you and writes a reviewed plan file; `/ccc-doctor` diagnoses the install.
+
 ## What's in the plugin
 
 | Directory | Contents |
 |---|---|
-| `skills/` | 84 `/ccc-*` skills (frontmatter `model` + `effort`; long tables in each skill's `references/`) |
+| `skills/` | 93 `/ccc-*` skills: 32 model-visible, 61 on demand (`disable-model-invocation: true`); long tables in each skill's `references/` |
 | `agents/` | 22 specialist agents on model aliases |
 | `hooks/hooks.json` | 30 lifecycle hooks, 51 handlers |
 | `mods/commander-hud/` | The Commander HUD mod and its `/ccc-hud` command |
 | `workflows/` | 6 dynamic workflows, run as `/commander:<name>` |
 | `evals/` | 8 `claude plugin eval` cases |
-| `rules/` | The Fable Method, workflow-first and persona voice layers |
+| `rules/` | The Commander Method (`fable-method.md`), workflow-first and persona voice layers |
 | `.mcp.json` | 2 bundled MCP servers |
 
 ## New in 8.0.0
 
 - **`/ccc-codex`** — manage the Codex CLI from Claude: doctor, models, plugins and marketplaces, MCP servers, Commander agents as Codex TOML subagents, Codex Cloud tasks, remote control, `codex review`, `codex update`, `config.toml`. Every config write asks first, backs up and verifies with `codex doctor --json`.
-- **Commander HUD mod** — a band above the prompt with the Fable Method state, running agents, the session's tool-call budget and an update pill; `/ccc-hud` toggles it without a model turn. Observe-only. Needs Claude Code 2.1.287+ (Desktop 2.1.286+). See `docs/MODS.md` in the repository.
-- **Plugin workflows** — `ccc-audit`, `ccc-deep-review`, `ccc-fleet`, `ccc-migrate`, `ccc-prompt-audit`, `ccc-release-audit`.
+- **Commander HUD mod** — a band above the prompt with the Commander Method state, running agents, the session's tool-call budget and an update pill; `/ccc-hud` toggles it without a model turn. Observe-only. Needs Claude Code 2.1.287+ (Desktop 2.1.286+). See `docs/MODS.md` in the repository.
+- **Plugin workflows** — `ccc-audit`, `ccc-deep-review`, `ccc-fleet-run`, `ccc-migrate`, `ccc-prompt-audit`, `ccc-release-audit`.
 - **Plugin evals** — `claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3`; cases: hub, plan, review, doctor, fable, update, suggest, codex.
 - **Seven new hook events** — PermissionDenied, PreModelSwitch, PostModelSwitch, TeammateIdle, CwdChanged, DirectoryAdded, FileChanged. WorktreeCreate and WorktreeRemove are deliberately not registered.
 - **Models by alias** — `fable` (Fable 5.1), `opus` (Opus 5.5), `sonnet` (Sonnet 5.5), `haiku` (Haiku 5.5); Codex on `gpt-6-astra`, `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`.
 
 ## Core skills
 
-The full, generated table of all 84 skills is in the repository [README](../../README.md#the-84-plugin-skills).
+Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open. The other 61 load on demand: their descriptions stay out of context and you open them by typing `/ccc-<name>`; when a prompt matches one, the router offers it as a menu choice. The full, generated table of all 93 skills is in the repository [SKILLS-INDEX.md](https://github.com/KevinZai/commander/blob/main/SKILLS-INDEX.md#the-93-plugin-skills).
 
 | Skill | What it does |
 |-------|-------------|
@@ -77,7 +88,7 @@ The full, generated table of all 84 skills is in the repository [README](../../R
 | `/ccc-ultracode` | Explains `/effort ultracode` and launches a bundled workflow |
 | `/ccc-fleet` | Parallel agents in git worktrees |
 | `/ccc-console` | Inline console — Overview · Usage · Safety · Memory · History · Launch |
-| `/ccc-fable` | Arm the 12-gate Fable Method |
+| `/ccc-fable` | Arm the 12-gate Commander Method |
 | `/ccc-connect` | Opt-in MCP connector setup |
 | `/ccc-doctor` · `/ccc-update` | Diagnose and update the install |
 
@@ -99,13 +110,13 @@ The full, generated table of all 84 skills is in the repository [README](../../R
 |-------|----------|-------|
 | `SessionStart` | `session-start-orchestrator`, `license-check`, `git-truth`, `update-nudge`, `console-autopen` | 5 |
 | `SessionEnd` | `session-save`, `session-end` | 2 |
-| `UserPromptSubmit` | `suggest-ticker`, `intent-classifier`, `context-warning`, `context-guard`, `user-prompt-submit`, `skill-runs-logger` | 6 |
+| `UserPromptSubmit` | `suggest-ticker`, `intent-classifier`, `context-guard`, `user-prompt-submit`, `skill-runs-logger` | 5 |
 | `UserPromptExpansion` | `prompt-expansion-guard` | 1 |
 | `PreToolUse` | `cost-tracker`, `cost-ceiling-enforcer`, `secret-leak-guard`, `config-protection`, `doc-file-warning`, `git-push-reminder` | 6 |
 | `PostToolUse` | `knowledge-capture`, `mission-control-feed`, `console-log-warn`, `pr-link-notify` | 4 |
 | `PostToolUseFailure` | `post-tool-failure-logger` | 1 |
 | `PostToolBatch` | `knowledge-capture` | 1 |
-| `Stop` | `suggest-lightweight`, `clickability-watch` | 2 |
+| `Stop` | `suggest-lightweight`, `clickability-watch`, `intent-classifier` | 3 |
 | `StopFailure` | `stop-failure-handler` | 1 |
 | `Notification` | `fleet-notify` | 1 |
 | `PreCompact` | `pre-compact` | 1 |
@@ -131,6 +142,20 @@ The full, generated table of all 84 skills is in the repository [README](../../R
 
 `WorktreeCreate` and `WorktreeRemove` are not registered: a hook on either replaces git's own worktree handling. The Codex mirror wires 11 of Codex's 12 events (Interrupt has no Claude source).
 
+## Data & network
+
+Commander runs locally: hooks, skills and state live on your machine, and no credentials are read. Outbound calls:
+
+| Call | Default | Control |
+|------|---------|---------|
+| Anonymous usage events (anon id, hook/skill names, timings) to `mcp.commanderplugin.com`, fallback `commander-mcp.fly.dev` | Off | Opt in with `CCC_TELEMETRY=1` or `"telemetry": true` in `~/.commander/config.json`; `CCC_TELEMETRY=0` forces off (all three variables accept `1`/`true`/`yes`/`on` and `0`/`false`/`no`/`off`, any case) |
+| Update check at session start (GET of the public `plugin.json` on GitHub) | On | `CCC_OFFLINE=1` (or `true`/`yes`/`on`) disables it |
+| CI status lookup via your own `gh` login (`gh run list`) | Off | Opt in with `CCC_CI_TICKER=1` (or `true`/`yes`/`on`) |
+| Bundled MCP servers (`context7`, `sequential-thinking`) start through `npx -y`, which fetches each package from the npm registry when Claude Code first launches it (servers start with the session, not on first use) | On | Remove the server from `.mcp.json` |
+| Bundled Context7 MCP queries `context7.com` | Only when used | Remove the server from `.mcp.json` |
+
+`CCC_OFFLINE=1` (or `"offline": true` in `~/.commander/config.json`) blocks every call above that Commander makes itself, and makes `ccusage` use cached pricing. `ccc doctor` prints the current mode. `"disableAllHooks": true` in `settings.json` turns every hook off.
+
 ## Connected tools
 
 `.mcp.json` bundles two credential-free servers — `context7` (library docs) and `sequential-thinking`. Everything else is opt-in via `/ccc-connect` with your own credentials: Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Google Drive, Supabase, Figma, Playwright, Notion and more. Skills use `~~category` placeholders (for example `~~project tracker`) for whatever tool you connect. See [CONNECTORS.md](CONNECTORS.md) and [MCP.md](MCP.md).
@@ -153,7 +178,15 @@ claude plugin validate ./commander/cowork-plugin --strict
 claude plugin eval ./commander/cowork-plugin --case ccc-hub --runs 3
 ```
 
-Plugin skills follow `docs/PROMPT-STANDARD.md` in the repository. After adding a skill, re-render the README table with `node scripts/render-skill-table.js --write README.md` from the repository root.
+Plugin skills follow `docs/PROMPT-STANDARD.md` in the repository. After adding a skill, re-render the skill table with `node scripts/render-skill-table.js --write SKILLS-INDEX.md` from the repository root.
+
+## Privacy
+
+Commander's privacy policy is at [commanderplugin.com/privacy](https://commanderplugin.com/privacy); it describes what the plugin stores locally and what, if anything, leaves your machine.
+
+## Support
+
+Report bugs and ask questions in [GitHub issues](https://github.com/KevinZai/commander/issues).
 
 ## Attribution
 

@@ -254,12 +254,12 @@ Product Hunt traffic is high-intent but short-lived. You have 48-72 hours to con
 
 | Item | Cost Range | Notes |
 |------|-----------|-------|
-| Top hunter outreach | $0 (relationship-based) | Some charge $500-2K, but best hunters work for free with great products |
-| Gallery design | $0-500 | DIY with Figma/Canva or hire on Fiverr |
-| Demo video | $0-1,000 | Screen recording with Loom (free) or polished with editor |
+| Top hunter outreach | \$0 (relationship-based) | Some charge \$500-2K, but best hunters work for free with great products |
+| Gallery design | \$0-500 | DIY with Figma/Canva or hire on Fiverr |
+| Demo video | \$0-1,000 | Screen recording with Loom (free) or polished with editor |
 | PH-exclusive offer | Variable | Discount/extended trial cost to you |
-| Social ads (boost) | $0-500 | Optional — organic is usually enough |
-| Total typical budget | $0-2,000 | Most successful launches spend under $500 |
+| Social ads (boost) | \$0-500 | Optional — organic is usually enough |
+| Total typical budget | \$0-2,000 | Most successful launches spend under \$500 |
 
 ## Anti-Patterns
 

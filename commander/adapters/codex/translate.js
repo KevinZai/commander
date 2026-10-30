@@ -233,7 +233,7 @@ function translateMatcherGroups(groups, event, log) {
 function codexDescription(claudeManifest) {
   const m = String(claudeManifest.description || '').match(/(\d+) plugin skills/);
   const skills = m ? `${m[1]} plugin skills` : 'click-first plugin skills';
-  return (`Guided AI PM for Codex, running on The Fable Method — 12 enforceable gates so any model produces Fable-shaped results. ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), 22 specialist subagents generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 16 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Core free forever — no signup, no card. MIT-licensed.`)
+  return (`Guided AI PM for Codex, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), 22 specialist subagents generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 16 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Telemetry is off unless you opt in. MIT-licensed.`)
     .replace(/\n/g, ' ').replace(/"/g, '\\"');
 }
 
@@ -356,9 +356,22 @@ function appendWorkflowNote(text) {
   return `${withTrailingNewline}${WORKFLOW_NOTE}`;
 }
 
+// (e) Claude Code substitutes `$N` / `$ARGUMENTS` in skill bodies with the
+// invocation's arguments, so the Claude source writes literal shell and awk
+// positionals as `\$1` (the documented escape; Claude Code strips the
+// backslash). Codex does not run that substitution on skills, so the
+// backslash would reach the shell: restore the plain `$N` for Codex.
+const ESCAPED_ARG_PLACEHOLDER = /(?<!\\)\\\$(?=\d|ARGUMENTS)/g;
+
+export function unescapeArgPlaceholders(text) {
+  if (typeof text !== 'string') return text;
+  return text.replace(ESCAPED_ARG_PLACEHOLDER, '$$');
+}
+
 export function translateSkill(skillMd) {
   if (typeof skillMd !== 'string') return skillMd;
   let out = skillMd;
+  out = unescapeArgPlaceholders(out);
   out = rewriteCcInvocations(out);
   out = rewriteOwnManifestPath(out);
   out = appendAskUserQuestionNote(out);

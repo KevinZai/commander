@@ -8,19 +8,19 @@
  * count tool calls and expose a budget-unit conversion of $0.01/call purely
  * for backwards compatibility ("$10" == 1000 tool calls).
  *
- * State is keyed by CLAUDE_SESSION_ID so parallel sessions never share or
+ * State is keyed by the stdin session_id so parallel sessions never share or
  * clobber each other's counters. session-save.js and cost-ceiling-enforcer.js
  * read/clean the same session-keyed file.
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser, emitSilent } from './lib/emit.mjs';
+import { readStdinJson, sessionKey } from './lib/session-key.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 
-const SESSIONS_DIR = join(process.env.HOME, '.claude', 'commander', 'sessions');
-const SESSION_KEY = (process.env.CLAUDE_SESSION_ID || 'default').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'default';
-const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
+const SESSIONS_DIR = join(stateDir(), 'sessions');
 
 // Budget-unit conversion: 1 tool call == $0.01 budget unit. NOT real dollars.
 const UNIT_PER_CALL = 0.01;
@@ -29,6 +29,8 @@ const WARN_CALLS = 700;    // "~$7"
 
 async function main() {
   try {
+    const SESSION_KEY = sessionKey(await readStdinJson());
+    const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
     let costData = { toolCalls: 0, estimatedCost: 0, sessionId: SESSION_KEY, startedAt: new Date().toISOString() };
     try {
       costData = JSON.parse(await readFile(COST_FILE, 'utf8'));

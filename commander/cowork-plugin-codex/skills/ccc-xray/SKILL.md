@@ -1,6 +1,6 @@
 ---
 name: ccc-xray
-description: "Project health scorecard: scans the current repo for quality, docs, tests, deps, security, performance, CI, session cost and plugin context cost, then returns 0-100 scores with one fix-first call. Use when asked for a health check, repo audit, x-ray or token-cost inventory."
+description: "Project health scorecard: quality, docs, tests, deps, security, performance, CI and context cost, scored 0-100. Use for a repo audit or health check."
 allowed-tools:
   - Read
   - Bash
@@ -10,8 +10,6 @@ allowed-tools:
   - AskUserQuestion
   - mcp__ccd_session__spawn_task
 argument-hint: "[quick | full | security | deps | perf | cost | context]"
-model: sonnet
-effort: medium
 ---
 
 # $ccc-xray — scan, score, fix first

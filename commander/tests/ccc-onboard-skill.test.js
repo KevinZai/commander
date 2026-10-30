@@ -35,8 +35,8 @@ test('ccc-onboard frontmatter is valid and description has no angle brackets', f
 
   assert.ok(fm.includes('name: ccc-onboard'), 'name must be ccc-onboard');
   assert.ok(fm.includes('description:'), 'Frontmatter must have "description:" key');
-  assert.ok(fm.includes('model: sonnet'), 'model must be sonnet');
-  assert.ok(fm.includes('effort: high'), 'effort must be high');
+  assert.ok(!/^model:/m.test(fm), 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.ok(!/^effort:/m.test(fm), 'no effort pin: a skill keeps the session effort (CC-2115)');
   assert.ok(!/[<>]/.test(fm), 'Frontmatter must not contain angle brackets');
 });
 
@@ -52,7 +52,9 @@ test('ccc-onboard body has the AskUserQuestion role picker block', function () {
 
   assert.ok(content.includes('Role picker — `AskUserQuestion`'), 'Body must label the role picker');
   assert.ok(content.includes('question: "What kind of contributor are you onboarding?"'), 'Picker must ask for role');
-  assert.ok(content.includes('autocomplete: true'), 'Picker must support autocomplete');
+  // AskUserQuestion schema: question, header, options (label, description, preview), multiSelect.
+  // Free text is built in, so `autocomplete` and option `value` are not fields.
+  assert.ok(!/^\s*autocomplete:/m.test(content), 'Picker must not use the non-schema autocomplete field');
   ['Frontend', 'Backend', 'Full-stack', 'Docs', 'First PR'].forEach(function (label) {
     assert.ok(content.includes(label), 'Picker must include ' + label);
   });

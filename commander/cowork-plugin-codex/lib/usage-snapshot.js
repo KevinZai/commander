@@ -77,8 +77,9 @@
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
-import os from 'node:os';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { readableStateDir, stateDir } from './lane-state.js';
 
 import { aggregateDaily } from './charts.js';
 import { buildDeckHtml } from './console-render.js';
@@ -91,8 +92,18 @@ const COST_DAYS_CAP = 30;
 const SAVINGS_STALE_MS = 7 * 24 * 60 * 60 * 1000; // savings-source honesty note threshold (W2+/codex 6)
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
+}
+
+// The CLI writes savings.json per lane (<config dir>/commander, commander/lib/lane.js:
+// CCC_CONFIG_DIR > CLAUDE_CONFIG_DIR). Prefer that copy; fall back to the shared one.
+function defaultSavingsFile(root) {
+  const configDir = process.env.CCC_CONFIG_DIR || process.env.CLAUDE_CONFIG_DIR;
+  if (configDir) {
+    const laneFile = path.join(path.resolve(configDir), 'commander', 'savings.json');
+    if (existsSync(laneFile)) return laneFile;
+  }
+  return path.join(root, 'savings.json');
 }
 
 function toMs(value) {
@@ -206,6 +217,8 @@ function latestByDateSource(rows) {
 
 async function readUsageModel({ baseDir, now, recompute = true, metricsRunner } = {}) {
   const root = baseDir || defaultBaseDir();
+  // Metrics are recomputed into the lane even while other inputs come from the legacy fallback.
+  const metricsDir = baseDir || stateDir();
   const nowMs = toMs(now) ?? Date.now();
 
   if (recompute) {
@@ -213,12 +226,12 @@ async function readUsageModel({ baseDir, now, recompute = true, metricsRunner } 
     // before reading metrics.jsonl ourselves — see this file's doc comment.
     // Side-effect only: the resolved rows are discarded here. Never let a
     // failed recompute (missing ccusage binary, offline, etc.) block the deck.
-    await getMetrics({ baseDir: root, now: nowMs, runner: metricsRunner }).catch(() => []);
+    await getMetrics({ baseDir: root, writeDir: metricsDir, now: nowMs, runner: metricsRunner }).catch(() => []);
   }
 
   const [savingsRaw, metricsRawRows] = await Promise.all([
-    readSavingsJson(path.join(root, 'savings.json')),
-    readJsonl(path.join(root, 'mission-control', 'metrics.jsonl')),
+    readSavingsJson(baseDir ? path.join(root, 'savings.json') : defaultSavingsFile(root)),
+    readJsonl(path.join(recompute ? metricsDir : root, 'mission-control', 'metrics.jsonl')),
   ]);
   const metricsRows = latestByDateSource(metricsRawRows);
 

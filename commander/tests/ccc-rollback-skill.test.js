@@ -35,8 +35,8 @@ test('ccc-rollback frontmatter is valid and description has no angle brackets', 
 
   assert.ok(fm.includes('name: ccc-rollback'), 'name must be ccc-rollback');
   assert.ok(fm.includes('description:'), 'Frontmatter must have "description:" key');
-  assert.ok(fm.includes('model: sonnet'), 'model must be sonnet');
-  assert.ok(fm.includes('effort: high'), 'effort must be high');
+  assert.ok(!/^model:/m.test(fm), 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.ok(!/^effort:/m.test(fm), 'no effort pin: a skill keeps the session effort (CC-2115)');
   assert.ok(!/[<>]/.test(fm), 'Frontmatter must not contain angle brackets');
 });
 
@@ -52,7 +52,9 @@ test('ccc-rollback body has the AskUserQuestion rollback target picker block', f
 
   assert.ok(content.includes('Rollback target picker — `AskUserQuestion`'), 'Body must label the rollback target picker');
   assert.ok(content.includes('question: "What should I roll back to?"'), 'Picker must ask for rollback target');
-  assert.ok(content.includes('autocomplete: true'), 'Picker must support autocomplete from tags or commits');
+  // AskUserQuestion schema: question, header, options (label, description, preview), multiSelect.
+  // Free text is built in, so `autocomplete` and option `value` are not fields.
+  assert.ok(!/^\s*autocomplete:/m.test(content), 'Picker must not use the non-schema autocomplete field');
   ['Last good commit', 'Specific tag', 'N versions back'].forEach(function (label) {
     assert.ok(content.includes(label), 'Picker must include ' + label);
   });

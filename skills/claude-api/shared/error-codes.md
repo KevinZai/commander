@@ -100,7 +100,7 @@ This file documents HTTP error codes returned by the Claude API, their common ca
 Some 400 errors are specifically related to parameter validation:
 
 - `max_tokens` exceeds model's limit
-- Invalid `temperature` value (must be 0.0-1.0)
+- `temperature`, `top_p` or `top_k` sent: removed in API version `2026-10-21` (400 on every model); earlier API versions reject non-default values on Claude 4.7 and later
 - `budget_tokens` >= `max_tokens` in extended thinking
 - Invalid tool definition schema
 
