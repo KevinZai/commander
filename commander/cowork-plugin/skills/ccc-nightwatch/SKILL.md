@@ -6,8 +6,6 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[setup | status | test]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 
@@ -109,7 +107,7 @@ Sending a test message posts to the user's channel; run it only after they picke
 
 ### 4. Launch the unattended run
 
-With the channel tested and step 1 showing the relay registered, start the run with `/ccc-night-mode` (or a `/loop` via `/ccc-loop`). Keep the session in auto permission mode; Nightwatch does not need and never sets `bypassPermissions`.
+With the channel tested and step 1 showing the relay registered, start the run: type `/ccc-night-mode` (or a `/loop` via `/ccc-loop`). Keep the session in auto permission mode; Nightwatch does not need and never sets `bypassPermissions`.
 
 ## Privacy
 
@@ -119,7 +117,7 @@ Relayed messages carry the tool name and an argument summary only: no file conte
 
 - Step 1's status lines are reported verbatim (bundled / registered / variable count).
 - The chosen channel's test returned `"ok":true` (Telegram) or `204` (Discord), or log-only was chosen.
-- The user knows whether tool calls will actually be relayed, and where the audit trail is: `~/.claude/commander/nightwatch.log` and `~/.claude/commander/analytics/permission-gate.jsonl`.
+- The user knows whether tool calls will actually be relayed, and where the audit trail is: `<config dir>/commander/nightwatch.log` and `<config dir>/commander/analytics/permission-gate.jsonl` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`).
 
 ## Guardrails
 

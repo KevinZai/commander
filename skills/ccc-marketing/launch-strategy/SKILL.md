@@ -100,7 +100,7 @@ Tap into someone else's audience to shortcut the hardest part—getting noticed.
 4. Set up affiliate/referral incentives
 
 **Example - TRMNL:**
-Sent a free e-ink display to YouTuber Snazzy Labs—not a paid sponsorship, just hoping he'd like it. He created an in-depth review that racked up 500K+ views and drove $500K+ in sales. They also set up an affiliate program for ongoing promotion.
+Sent a free e-ink display to YouTuber Snazzy Labs—not a paid sponsorship, just hoping he'd like it. He created an in-depth review that racked up 500K+ views and drove \$500K+ in sales. They also set up an affiliate program for ongoing promotion.
 
 Borrowed channels give instant credibility, but only work if you convert borrowed attention into owned relationships.
 

@@ -9,8 +9,7 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[path to design doc or plan | diff | \"question in quotes\"]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-debate — stress-test before reality does
@@ -44,7 +43,7 @@ Ask the two pickers under Decision points. The contrarian lens is always include
 
 ```js
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js",
   args: {
     mode: "debate",
     task: "Adversarially debate <target sentence from step 1>.",
@@ -88,7 +87,7 @@ Lens picker (step 2, `multiSelect: true`). Put the lenses that match the target 
 
 ```
 question: "Which lenses should argue this? The contrarian lens is always added."
-header: "Debate lenses"
+header: "Lenses"
 multiSelect: true
 options:
   - label: "🔐 Security"

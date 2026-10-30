@@ -535,7 +535,7 @@ Verify extraction quality before delivering results.
 | Encoding             | Check for HTML entities, garbled characters           |
 | Completeness         | All user-requested fields present in output          |
 | Truncation           | Verify data wasn't cut off (check last items)        |
-| Outliers             | Flag values that seem anomalous (e.g. $0.00 price)  |
+| Outliers             | Flag values that seem anomalous (e.g. \$0.00 price)  |
 
 ## Confidence Rating
 

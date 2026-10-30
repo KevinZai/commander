@@ -1,14 +1,19 @@
 name: Claude Code Review
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
   issue_comment:
     types: [created]
+
+# One review per PR head: a newer push cancels the older review (Actions budget audit 2026-10-22).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   claude:
     if: |
-      (github.event_name == 'pull_request') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
     runs-on: ubuntu-latest
     permissions:

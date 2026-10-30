@@ -12,10 +12,10 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
 
-import { buildSafetyHtml, readSafetyModel } from '../cowork-plugin/lib/safety-snapshot.js';
+import { buildSafetyHtml, loadSecretPatterns, readSafetyModel } from '../cowork-plugin/lib/safety-snapshot.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PERMISSION_GATE_HOOK = path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'permission-gate.js');
@@ -451,4 +451,40 @@ test('redactedSample: flattened Claude project-dir home paths fold too (CC-1397)
 
 test('redact: clean text passes through unmodified', () => {
   assert.equal(redact('ordinary error, no secrets'), 'ordinary error, no secrets');
+});
+
+// --- pattern-load regression (CC-2044): synthetic secrets only -------------
+const LIB_DIR = path.join(__dirname, '..', 'cowork-plugin', 'lib');
+const SYNTHETIC_GOOGLE_KEY = 'AIza' + 'A'.repeat(35);
+
+async function redactFromCopy(dirName, { dropPatterns = false } = {}) {
+  const dir = path.join(tmpRoot, dirName);
+  await fs.cp(LIB_DIR, dir, { recursive: true });
+  if (dropPatterns) await fs.rm(path.join(dir, 'secret-patterns.json'));
+  const url = pathToFileURL(path.join(dir, 'safety-snapshot.js')).href;
+  const script = `import(${JSON.stringify(url)}).then(m => process.stdout.write(m.redact(process.argv[1])))`;
+  const res = spawnSync(process.execPath, ['-e', script, `key=${SYNTHETIC_GOOGLE_KEY}`], { encoding: 'utf8' });
+  assert.equal(res.status, 0, res.stderr);
+  return res;
+}
+
+for (const dirName of ['dir with space', 'dïr-ünicode-日本']) {
+  test(`redact: loads secret patterns from "${dirName}"`, async () => {
+    const res = await redactFromCopy(dirName);
+    assert.ok(!res.stdout.includes(SYNTHETIC_GOOGLE_KEY));
+    assert.match(res.stdout, /\[redacted\]/);
+  });
+}
+
+test('redact: fails closed when secret-patterns.json is missing', async () => {
+  const res = await redactFromCopy('missing-patterns', { dropPatterns: true });
+  assert.ok(!res.stdout.includes(SYNTHETIC_GOOGLE_KEY));
+  assert.match(res.stdout, /pattern data unavailable/);
+  assert.match(res.stderr, /pattern load failed/);
+});
+
+test('loadSecretPatterns: rejects empty pattern data', async () => {
+  const file = path.join(tmpRoot, 'empty-patterns.json');
+  await fs.writeFile(file, JSON.stringify({ patterns: [] }));
+  assert.throws(() => loadSecretPatterns(file), /no usable patterns/);
 });

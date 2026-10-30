@@ -39,7 +39,7 @@ Full CI pipeline executed overnight. Runs lint, typecheck, test, build, and opti
 | Field | Value |
 |---|---|
 | Duration | 30 min -- 2 hours |
-| Cost | $1.00 -- $5.00 |
+| Cost | \$1.00 -- \$5.00 |
 | Max Turns | 80 |
 | Schedule | `0 1 * * *` (daily at 1:00 AM) |
 | CC Commander Skills | verification-loop, coding-standards |
@@ -134,7 +134,7 @@ Automated code review across multiple PRs or commits.
 | Field | Value |
 |---|---|
 | Duration | 20 min -- 1 hour |
-| Cost | $0.50 -- $3.00 |
+| Cost | \$0.50 -- \$3.00 |
 | Max Turns | 60 |
 | Schedule | `0 16 * * 5` (Friday 4:00 PM) |
 | CC Commander Skills | coding-standards, review, pentest-checklist |
@@ -228,7 +228,7 @@ Safe dependency updates with test verification and rollback.
 | Field | Value |
 |---|---|
 | Duration | 15 min -- 45 min |
-| Cost | $0.50 -- $2.00 |
+| Cost | \$0.50 -- \$2.00 |
 | Max Turns | 50 |
 | Schedule | `0 6 * * 1` (Monday 6:00 AM) |
 | CC Commander Skills | verification-loop |
@@ -338,7 +338,7 @@ Comprehensive security audit combining dependency audit, secret scanning, and co
 | Field | Value |
 |---|---|
 | Duration | 15 min -- 30 min |
-| Cost | $0.50 -- $2.00 |
+| Cost | \$0.50 -- \$2.00 |
 | Max Turns | 40 |
 | Schedule | `0 3 * * 0` (Sunday 3:00 AM) |
 | CC Commander Skills | pentest-checklist, harden |
@@ -441,7 +441,7 @@ Run performance benchmarks and track regressions over time.
 | Field | Value |
 |---|---|
 | Duration | 20 min -- 1 hour |
-| Cost | $0.50 -- $2.00 |
+| Cost | \$0.50 -- \$2.00 |
 | Max Turns | 50 |
 | Schedule | `0 2 * * 3` (Wednesday 2:00 AM) |
 | CC Commander Skills | benchmark |
@@ -537,7 +537,7 @@ Batch content creation from briefs with quality gates.
 | Field | Value |
 |---|---|
 | Duration | 30 min -- 1.5 hours |
-| Cost | $1.00 -- $5.00 |
+| Cost | \$1.00 -- \$5.00 |
 | Max Turns | 100 |
 | Schedule | `0 10 * * 2,4` (Tuesday/Thursday 10:00 AM) |
 | CC Commander Skills | brand-guidelines, seo-content-brief, content-strategy |
@@ -624,7 +624,7 @@ Migrate data between formats or systems with validation and rollback.
 | Field | Value |
 |---|---|
 | Duration | 1 -- 4 hours |
-| Cost | $2.00 -- $8.00 |
+| Cost | \$2.00 -- \$8.00 |
 | Max Turns | 200 |
 | Schedule | Manual (one-time or as-needed) |
 | CC Commander Skills | overnight-runner, verification-loop |
@@ -726,7 +726,7 @@ Configure monitoring dashboards, alerts, and health checks.
 | Field | Value |
 |---|---|
 | Duration | 15 min -- 30 min |
-| Cost | $0.50 -- $1.50 |
+| Cost | \$0.50 -- \$1.50 |
 | Max Turns | 40 |
 | Schedule | Manual (run after deploy or infra changes) |
 | CC Commander Skills | infra-runbook, metrics-dashboard |

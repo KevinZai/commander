@@ -2,14 +2,17 @@
 'use strict';
 
 // Render the plugin skill table from commander/cowork-plugin/skills/*/SKILL.md
-// frontmatter. Prints a markdown table (skill, one-line description, model
-// alias) sorted by name.
+// frontmatter. Prints a markdown table (skill, one-line description, whether
+// Claude sees it) sorted by name. A skill with `disable-model-invocation: true`
+// is "on demand": its description is not in Claude's context, and the user
+// opens it by typing the command.
 //
-//   node scripts/render-skill-table.js                 # print to stdout
-//   node scripts/render-skill-table.js --write README.md
+//   node scripts/render-skill-table.js                        # print to stdout
+//   node scripts/render-skill-table.js --write SKILLS-INDEX.md
+//   node scripts/render-skill-table.js --check SKILLS-INDEX.md
 //
 // --write replaces the region between the skill-table markers in place and
-// fails if either marker is missing.
+// fails if either marker is missing. --check exits 1 when the region is stale.
 
 var fs = require('fs');
 var path = require('path');
@@ -75,7 +78,7 @@ function collect() {
       return {
         name: fm.name || e.name,
         description: oneLine(fm.description),
-        model: fm.model || 'inherit',
+        onDemand: String(fm['disable-model-invocation'] || '').trim() === 'true',
       };
     })
     .filter(Boolean)
@@ -84,12 +87,12 @@ function collect() {
 
 function render(skills) {
   var rows = skills.map(function (s) {
-    return '| `/' + s.name + '` | ' + s.description + ' | `' + s.model + '` |';
+    return '| `/' + s.name + '` | ' + s.description + ' | ' + (s.onDemand ? 'on demand' : 'visible') + ' |';
   });
-  return ['| Skill | What it does | Model |', '|---|---|---|'].concat(rows).join('\n');
+  return ['| Skill | What it does | Claude sees it |', '|---|---|---|'].concat(rows).join('\n');
 }
 
-function writeRegion(target, table) {
+function regionUpdate(target, table) {
   var file = path.resolve(process.cwd(), target);
   var text = fs.readFileSync(file, 'utf8');
   var a = text.indexOf(START);
@@ -98,12 +101,27 @@ function writeRegion(target, table) {
     throw new Error(target + ': missing ' + START + ' / ' + END + ' markers');
   }
   var next = text.slice(0, a + START.length) + '\n' + table + '\n' + text.slice(b);
-  if (next !== text) fs.writeFileSync(file, next);
-  return next !== text;
+  return { file: file, text: text, next: next };
+}
+
+function writeRegion(target, table) {
+  var u = regionUpdate(target, table);
+  if (u.next !== u.text) fs.writeFileSync(u.file, u.next);
+  return u.next !== u.text;
 }
 
 function main(argv) {
   var table = render(collect());
+  var c = argv.indexOf('--check');
+  if (c !== -1) {
+    if (!argv[c + 1]) throw new Error('--check needs a file path');
+    var u = regionUpdate(argv[c + 1], table);
+    if (u.next !== u.text) {
+      throw new Error(argv[c + 1] + ' skill table is stale; run node scripts/render-skill-table.js --write ' + argv[c + 1]);
+    }
+    process.stdout.write('current ' + argv[c + 1] + '\n');
+    return;
+  }
   var i = argv.indexOf('--write');
   if (i === -1) {
     process.stdout.write(table + '\n');
@@ -124,4 +142,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { parseFrontmatter: parseFrontmatter, oneLine: oneLine, collect: collect, render: render };
+module.exports = { parseFrontmatter: parseFrontmatter, oneLine: oneLine, collect: collect, render: render, regionUpdate: regionUpdate };

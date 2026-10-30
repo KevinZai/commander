@@ -323,4 +323,4 @@ This is the lowest-friction path if you want Opus supervision on all Sonnet agen
 
 ### Cost estimate
 
-A typical Sonnet request that triggers the advisor once adds roughly one Opus input call at the length of the full transcript. On a 10K-token conversation, that's ~$0.05 extra per advisor invocation. Use `max_uses: 1` or `max_uses: 2` to keep it predictable.
+A typical Sonnet request that triggers the advisor once adds roughly one Opus input call at the length of the full transcript. On a 10K-token conversation, that's ~\$0.05 extra per advisor invocation. Use `max_uses: 1` or `max_uses: 2` to keep it predictable.

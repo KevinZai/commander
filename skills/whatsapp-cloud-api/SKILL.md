@@ -55,9 +55,9 @@ A WhatsApp Cloud API e a API oficial da Meta para envio e recebimento de mensage
 
 | Categoria      | Custo             | Quando cobrado                          |
 |----------------|-------------------|-----------------------------------------|
-| Marketing      | $0.025-$0.1365    | Campanhas, promocoes                    |
-| Utility        | $0.004-$0.0456    | Confirmacoes de pedido, atualizacoes    |
-| Authentication | $0.004-$0.0456    | OTP, reset de senha                     |
+| Marketing      | \$0.025-\$0.1365    | Campanhas, promocoes                    |
+| Utility        | \$0.004-\$0.0456    | Confirmacoes de pedido, atualizacoes    |
+| Authentication | \$0.004-\$0.0456    | OTP, reset de senha                     |
 | Service        | GRATIS            | Resposta dentro da janela de 24h        |
 
 **Pre-requisitos:**

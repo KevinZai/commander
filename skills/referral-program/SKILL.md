@@ -162,14 +162,14 @@ Max Referral Reward = (Customer LTV × Gross Margin) - Target CAC
 ```
 
 **Example:**
-- LTV: $1,200
+- LTV: \$1,200
 - Gross margin: 70%
-- Target CAC: $200
-- Max reward: ($1,200 × 0.70) - $200 = $640
+- Target CAC: \$200
+- Max reward: (\$1,200 × 0.70) - \$200 = \$640
 
 **Typical referral rewards:**
-- B2C: $10-50 or 10-25% of first purchase
-- B2B SaaS: $50-500 or 1-3 months free
+- B2C: \$10-50 or 10-25% of first purchase
+- B2B SaaS: \$50-500 or 1-3 months free
 - Enterprise: Higher, often custom
 
 ---
@@ -187,7 +187,7 @@ Max Referral Reward = (Customer LTV × Gross Margin) - Target CAC
 
 ### Uber/Lyft
 
-**Program:** Give $10 ride credit, get $10 when they ride
+**Program:** Give \$10 ride credit, get \$10 when they ride
 **Why it worked:**
 - Immediate, clear value
 - Double-sided incentive
@@ -210,7 +210,7 @@ Max Referral Reward = (Customer LTV × Gross Margin) - Target CAC
 
 ### Notion
 
-**Program:** $10 credit per referral (education)
+**Program:** \$10 credit per referral (education)
 **Why it worked:**
 - Targeted high-sharing audience (students)
 - Product naturally spreads in teams
@@ -228,9 +228,9 @@ Max Referral Reward = (Customer LTV × Gross Margin) - Target CAC
 - Example: "Earn 25% of every sale you refer"
 
 **Flat fee per action:**
-- Standard: $5-500 depending on value
+- Standard: \$5-500 depending on value
 - Works for: Lead gen, trials, freemium
-- Example: "$50 for every qualified demo"
+- Example: "\$50 for every qualified demo"
 
 **Recurring commission:**
 - Standard: 10-25% of recurring revenue
