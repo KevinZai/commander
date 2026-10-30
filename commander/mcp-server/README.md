@@ -54,7 +54,7 @@ index.js                → translator.js → MCP content blocks
 
 This is the **local beta** build. No network required. Skills served from `skills/` directory.
 
-**Hosted:** `https://mcp.commanderplugin.com/mcp` (MCP Streamable HTTP) with Bearer-token auth (CC Commander license JWT), server-side validation, and PostHog analytics. See `commander/cowork-plugin/MCP.md`.
+**Hosted:** `https://mcp.commanderplugin.com/mcp` (MCP Streamable HTTP) with Bearer-token auth (CC Commander license JWT) and server-side validation. See `commander/cowork-plugin/MCP.md`.
 
 ## Environment Variables
 

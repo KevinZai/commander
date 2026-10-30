@@ -1,6 +1,6 @@
 ---
 name: ccc-data
-description: "Route data work to the right method: ETL/ELT pipelines, SQL optimization, charts and dashboards, machine learning, data quality, product analytics, scheduled reports, or vector search. Use when the user is building, querying, validating or visualizing data, or types /ccc-data."
+description: "Data router: ETL pipelines, SQL optimization, dashboards, ML, data quality, analytics, reports, vector search. Use to build, query or visualize data."
 allowed-tools:
   - Read
   - Write
@@ -13,7 +13,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[pipeline | sql | viz | ml | quality | analytics | reporting | vector]"
 model: inherit
-effort: medium
 ---
 
 # /ccc-data — data work, routed

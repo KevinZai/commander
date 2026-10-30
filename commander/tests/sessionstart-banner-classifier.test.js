@@ -115,3 +115,33 @@ test('intent classifier still routes research prompts to /ccc-research', functio
     assert.ok(msg.includes('/ccc-research'), 'expected /ccc-research, got: ' + msg);
   }
 });
+
+// CC-1360 F24: the welcome keys on CCC's own first run (no state.json yet),
+// not on an empty ~/.claude/sessions.
+function freshHome(t, priorClaudeSessions) {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-f24-home-'));
+  t.after(function () { fs.rmSync(home, { recursive: true, force: true }); });
+  if (priorClaudeSessions) {
+    fs.mkdirSync(path.join(home, '.claude', 'sessions'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.claude', 'sessions', 'prior.json'), '{}');
+  }
+  return home;
+}
+
+test('first CCC run welcomes a user who already has Claude Code sessions, once', async function (t) {
+  const home = freshHome(t, true);
+  const mod = await import(pathToFileURL(path.join(HOOKS, '_archive', 'session-start.js')).href);
+  const first = await mod.run({ home: home, cwd: home });
+  assert.match(String(first.status), /Welcome to CC Commander/);
+  assert.strictEqual(first.suppressOutput, false);
+  const second = await mod.run({ home: home, cwd: home });
+  assert.doesNotMatch(JSON.stringify(second), /Welcome to CC Commander/);
+});
+
+test('an empty ~/.claude/sessions does not re-welcome after the first run', async function (t) {
+  const home = freshHome(t, false);
+  const mod = await import(pathToFileURL(path.join(HOOKS, '_archive', 'session-start.js')).href);
+  await mod.run({ home: home, cwd: home });
+  const again = await mod.run({ home: home, cwd: home });
+  assert.doesNotMatch(JSON.stringify(again), /Welcome to CC Commander/);
+});

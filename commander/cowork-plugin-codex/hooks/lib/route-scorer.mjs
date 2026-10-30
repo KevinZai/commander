@@ -14,6 +14,7 @@
  *   description phrase            +0.25
  *   path/file mention             +0.20
  *   negative pattern              route removed
+ * Ties sort by route priority (route-hints.json, default 0), then skill first.
  * Tiers: high  = intent pattern hit, top >= 0.8, 0.25 lead over runner-up
  *        medium = top >= 0.55 (one generic keyword alone never fires)
  *        low   = silent
@@ -124,15 +125,27 @@ export function scoreRoutes(prompt, routes = loadRoutes()) {
     for (const re of route._paths) if (re.test(text)) score += WEIGHTS.path;
     if (score > 0) candidates.push({ route, score: Math.min(1, Math.round(score * 100) / 100), patternHits });
   }
-  // Skills before agents on ties (a skill is the cheaper, in-thread path).
-  candidates.sort((a, b) => b.score - a.score || (a.route.kind === 'skill' ? -1 : 1) - (b.route.kind === 'skill' ? -1 : 1));
+  // Ties: higher route-hints priority first, then skills before agents (a
+  // skill is the cheaper, in-thread path).
+  const kindRank = (c) => (c.route.kind === 'skill' ? 0 : 1);
+  candidates.sort((a, b) => b.score - a.score || (b.route.priority || 0) - (a.route.priority || 0) || kindRank(a) - kindRank(b));
   return candidates;
 }
 
-/** Route mode from CCC_ROUTE_MODE: off | suggest | auto (default). */
-export function routeMode(env = process.env) {
-  const mode = String(env.CCC_ROUTE_MODE || 'auto').toLowerCase();
-  return ['off', 'suggest', 'auto'].includes(mode) ? mode : 'auto';
+const ROUTE_MODES = ['off', 'suggest', 'auto'];
+
+function validMode(value) {
+  const mode = String(value || '').trim().toLowerCase();
+  return ROUTE_MODES.includes(mode) ? mode : null;
+}
+
+/**
+ * Route mode: off | suggest | auto. A valid CCC_ROUTE_MODE wins, then the
+ * lane's saved `routeMode` preference (config.json, set by /ccc-settings),
+ * then auto. Unknown values are ignored.
+ */
+export function routeMode(env = process.env, saved = null) {
+  return validMode(env.CCC_ROUTE_MODE) || validMode(saved) || 'auto';
 }
 
 export function tierFor(candidates, mode = 'auto') {
@@ -196,6 +209,14 @@ export function renderRouteContext(candidates, tier, host) {
     const top = top3[0].route;
     const how = host === 'codex' ? `use the ${top.id} skill` : `invoke Skill commander:${top.id}`;
     body = `Clear match: ${how} now (${top.label}). Say so in one line first. Skip it if the user only wants a quick answer.`;
+  } else if (top3[0].route.manual) {
+    // Hidden (disable-model-invocation) skill: the host blocks Skill calls to
+    // it, so offer it with the alternatives instead of invoking it (CC-2112).
+    // Kept short: paid on every matching prompt (one option ~65 tokens).
+    const shown = top3.slice(0, host === 'codex' ? 2 : 3);
+    const opts = shown.map((c) => `${invokeText(c.route, host)}: ${c.route.label}${c.route.manual ? '*' : ''}`).join('; ');
+    const ask = host === 'claude-code' && !useList() ? 'Offer via AskUserQuestion once, 🟢 first, last "Just answer":' : `${menuInstruction(host, shown.length)} Options:`;
+    body = `Hidden skill. ${ask} ${opts}. *User types it; never invoke it.`;
   } else {
     const shown = top3.slice(0, host === 'codex' ? 2 : 3);
     const opts = shown.map((c) => optionText(c.route, host)).join('; ');

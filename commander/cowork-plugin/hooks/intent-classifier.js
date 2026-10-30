@@ -15,13 +15,23 @@
  *
  * Stop — after a skill actually ran this turn, offers its next[] steps as a
  * menu (top-level decision:block + reason, which both hosts accept). At most
- * once per skill run, never while stop_hook_active, never after the user
- * picked "Stop suggesting next steps" this session.
+ * once per skill run and once per cooldown (a run inside it is dropped, not
+ * deferred), never while stop_hook_active, never after the user picked
+ * "Stop suggesting next steps" this session.
  * decision:block costs an extra model turn for each offered menu, including
  * chained skill runs and headless sessions. CCC_ROUTE_NEXT=off opts out.
  *
- * Env: CCC_ROUTE_MODE=off|suggest|auto (default auto; suggest never auto-runs)
+ * Fleet control-plane prompts (launch a lane, batch status, lane sweep, what's
+ * running on the fleet) get a <ccc-fleet-route> block instead: the Fleet skill,
+ * its read-only commands and the `ccc checkin` line (hooks/lib/fleet-intent.mjs).
+ *
+ * Env: CCC_ROUTE_MODE=off|suggest|auto (default auto; suggest never auto-runs;
+ *        overrides the lane's saved `routeMode` in <config dir>/commander/config.json)
+ *      CCC_FLEET_ROUTE=on|off Fleet routing (default: on only when the
+ *        claude-fleet skill is installed)
  *      CCC_ROUTE_NEXT=off disables only the Stop menu
+ *      CCC_ROUTE_NEXT_COOLDOWN_MIN minutes between Stop menus in a session
+ *        (default 10; 0 offers after every skill run)
  *      CCC_ROUTE_MENU=list forces a numbered list instead of a native picker
  *
  * Telemetry is content-free: route id, score, tier, accepted. Prompts are
@@ -40,9 +50,10 @@ import {
   renderNextContext,
   MUTE_NEXT_LABEL,
 } from './lib/route-scorer.mjs';
+import { fleetRouteEnabled, matchFleetIntent, fleetTools, checkinLine, renderFleetContext } from './lib/fleet-intent.mjs';
 import { join } from 'node:path';
+import { stateDir, readablePath } from '../lib/lane-state.js';
 import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync, openSync, readSync, fstatSync, closeSync, renameSync, readdirSync, statSync, unlinkSync } from 'node:fs';
-import { homedir } from 'node:os';
 
 // Deep-reasoning signals for Fable escalation nudge
 const FABLE_SIGNALS = [
@@ -52,7 +63,17 @@ const FABLE_SIGNALS = [
 const FABLE_PLANNING_VERBS = ['design', 'architect', 'plan', 'migrate', 'refactor', 'model'];
 
 function commanderDir() {
-  return join(process.env.HOME || process.env.USERPROFILE || homedir(), '.claude', 'commander');
+  return stateDir();
+}
+
+// The user's saved routing preference (/ccc-settings → config.json routeMode).
+function savedRouteMode() {
+  try {
+    const config = JSON.parse(readFileSync(readablePath('config.json'), 'utf8'));
+    return config && typeof config.routeMode === 'string' ? config.routeMode : null;
+  } catch {
+    return null;
+  }
 }
 
 function checkFableNudge(prompt) {
@@ -154,13 +175,19 @@ function handlePrompt(data) {
 
   const fableNudge = checkFableNudge(rawPrompt);
   const host = detectHost();
-  const mode = routeMode();
+  const mode = routeMode(process.env, savedRouteMode());
   let context = null;
 
   if (mode !== 'off' && !skipReason(rawPrompt, data)) {
     if (MUTE_PROMPT.test(rawPrompt)) {
       const state = loadState(data.session_id);
       saveState(data.session_id, { ...state, muteNext: true });
+    } else if (matchFleetIntent(rawPrompt) && fleetRouteEnabled()) {
+      // Fleet control-plane requests go to the Fleet skill, never dispatched from here.
+      const intent = matchFleetIntent(rawPrompt);
+      const tools = fleetTools();
+      context = renderFleetContext(intent, tools, tools.cli || tools.skill ? checkinLine() : null, mode);
+      logRouteEvent({ event: 'offered', route: `fleet:${intent.id}`, score: 1, tier: 'fleet', host, session_id: data.session_id || null });
     } else {
       const candidates = scoreRoutes(rawPrompt, loadRoutes());
       const tier = tierFor(candidates, mode);
@@ -281,6 +308,19 @@ function recentSkillRuns(sessionId, sinceIso) {
   }
 }
 
+const NEXT_COOLDOWN_MIN = 10;
+
+function nextCooldownMs(env = process.env) {
+  const raw = String(env.CCC_ROUTE_NEXT_COOLDOWN_MIN ?? '').trim();
+  const minutes = raw === '' ? NaN : Number(raw);
+  return (Number.isFinite(minutes) && minutes >= 0 ? minutes : NEXT_COOLDOWN_MIN) * 60 * 1000;
+}
+
+function coolingDown(lastOfferAt) {
+  const elapsed = Date.now() - Date.parse(lastOfferAt);
+  return elapsed >= 0 && elapsed < nextCooldownMs();
+}
+
 function handleStop(data) {
   if ((data.hook_event_name || 'Stop') !== 'Stop') return emitSilent();
   const sessionId = data.session_id;
@@ -301,12 +341,13 @@ function handleStop(data) {
   if (turn.muted) next.muteNext = true;
 
   let output = emitSilent();
-  const enabled = routeMode() !== 'off' && String(process.env.CCC_ROUTE_NEXT || '').toLowerCase() !== 'off';
+  const enabled = routeMode(process.env, savedRouteMode()) !== 'off' && String(process.env.CCC_ROUTE_NEXT || '').toLowerCase() !== 'off';
   if (enabled && !data.stop_hook_active && !next.muteNext && ran.length) {
     const last = ran[ran.length - 1];
     const alreadyAsking = /\?\s*$/.test(turn.lastAssistantText);
-    if (last.key !== state.lastNextKey && alreadyAsking) {
-      // The skill ended on its own question: consume this run without offering.
+    if (last.key !== state.lastNextKey && (alreadyAsking || coolingDown(state.lastOfferAt))) {
+      // The skill ended on its own question, or a menu was offered recently:
+      // consume this run without offering. Only an offer starts the cooldown.
       next.lastNextKey = last.key;
       next.lastNextAt = new Date().toISOString();
     } else if (last.key !== state.lastNextKey) {
@@ -318,6 +359,7 @@ function handleStop(data) {
         output = { ...emitSilent(), decision: 'block', reason };
         next.lastNextKey = last.key;
         next.lastNextAt = new Date().toISOString();
+        next.lastOfferAt = next.lastNextAt;
         logRouteEvent({ event: 'next_offered', route: from.id, host, session_id: sessionId || null });
       }
     }

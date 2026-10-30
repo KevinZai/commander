@@ -22,7 +22,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const LOG_DIR = path.join(os.homedir(), '.claude', 'commander', 'logs');
+const LOG_DIR = path.join(require('./lane-state').stateDir(), 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'passthrough.jsonl');
 
 const DEFAULT_TIMEOUT_MS = 2000;
@@ -91,9 +91,10 @@ function readMcpConfig() {
 
 /**
  * Returns true if MCP is configured and not explicitly disabled.
- * Checks env var MCP_DISABLED=1 first, then .claude/mcp.json.
+ * Checks CCC_OFFLINE / MCP_DISABLED=1 first, then .claude/mcp.json.
  */
 function isEnabled() {
+  if (require('./network-mode').isOffline(process.env)) return false;
   if (process.env.MCP_DISABLED === '1') return false;
   if (process.env.MCP_ENABLED === '0') return false;
   const cfg = readMcpConfig();

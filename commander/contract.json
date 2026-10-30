@@ -1,9 +1,9 @@
 {
-  "version": "8.1.1",
-  "plugin_skills": 84,
+  "version": "8.1.5",
+  "plugin_skills": 93,
   "specialist_agents": 22,
   "lifecycle_hooks": 30,
-  "hook_handlers": 52,
+  "hook_handlers": 51,
   "bundled_mcp_servers": 2,
   "opt_in_mcp_servers": 16,
   "ecosystem_skills": 467,

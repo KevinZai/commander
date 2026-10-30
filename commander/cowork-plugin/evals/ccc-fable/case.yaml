@@ -1,9 +1,9 @@
 schema_version: "1.1"
 name: ccc-fable
-description: Fable Method status reports the gate state and uses current model names.
+description: Commander Method (/ccc-fable) status reports the gate state and uses current model names.
 tags: [skill:ccc-fable, fable]
 execution:
-  prompt: What is the current Fable Method status in CC Commander? Just the status, do not change anything.
+  prompt: What is the current Commander Method (/ccc-fable) status in CC Commander? Just the status, do not change anything.
   max_turns: 12
   timeout_seconds: 180
   allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion]

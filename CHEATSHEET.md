@@ -1,14 +1,14 @@
 # CC Commander Cheatsheet
-> CC Commander v8.1.1 — by Kevin Zicherman — commands, workflows, and power user tips
+> CC Commander v8.1.5 — by Kevin Zicherman — commands, workflows, and power user tips
 > Last updated: 2026-10-13 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 ---
 
-## Desktop Plugin Commands (v8.1.1)
+## Desktop Plugin Commands (v8.1.5)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 84 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 93 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -43,7 +43,7 @@ codex plugin marketplace add KevinZai/commander
 codex plugin add commander@commander-hub
 ```
 
-### /ccc-* Skills (84 total — core surface shown; full table in README.md)
+### /ccc-* Skills (93 total — core surface shown; full table in README.md)
 
 | Skill | Description |
 |-------|-------------|
@@ -59,7 +59,7 @@ codex plugin add commander@commander-hub
 | `/ccc-ultracode` | Explains `/effort ultracode` and launches a bundled workflow |
 | `/ccc-fleet` | Parallel agents in git worktrees — fan-out, pipeline, judge, debate |
 | `/ccc-console` | Inline console — Overview · Usage · Safety · Memory · History · Launch |
-| `/ccc-fable` | Arm the Fable Method — `on` / `status` / `audit` / `off` |
+| `/ccc-fable` | Arm the Commander Method — `on` / `status` / `audit` / `off` |
 | `/ccc-handoff` | Dense handoff file, then a fresh chat before quality decays |
 | `/ccc-adopt` | Merge the Orchestrator/Executor block into another repo's `CLAUDE.md` |
 | `/ccc-claudemd` | Audit `CLAUDE.md` against the codebase, picker-approved fixes only |
@@ -71,7 +71,18 @@ codex plugin add commander@commander-hub
 | `/ccc-usage` · `/ccc-safety` | Usage & Cost and Safety decks |
 | `/ccc-domains` | Browse the 11 CCC domains |
 
-> 🧠 **The Fable Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
+**PR workflows** (adapted from t3dotgg/tstack, MIT; all on demand, CLI menu → PR workflows, Codex `$ccc-<name>`):
+
+| Skill | Description |
+|-------|-------------|
+| `/ccc-full-send` · `/ccc-full-stop` | Change → proved, reviewed PR; full-send merges only through the full local gate, full-stop never merges |
+| `/ccc-file-pr` | Short draft PR that leads with the problem, local check results in the body |
+| `/ccc-babysit-pr` | Read-only `pr-wait` watcher; fix real CI and bot findings locally, then push |
+| `/ccc-sol-loop` · `/ccc-council` | Bounded review loop with an OpenAI reviewer via Codex · three-provider read-only review |
+| `/ccc-modernize` · `/ccc-takeover` | Update an old PR by merging its base (no history rewrite) · finish someone else's PR with credit |
+| `/ccc-pr-comments` | Attributed format for comments an agent posts on your behalf |
+
+> 🧠 **The Commander Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
 ### Sub-agent personas (22)
 
@@ -104,7 +115,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 
 ### Lifecycle hook events (30)
 
-30 events, 52 handlers — fire automatically every session (no configuration needed).
+30 events, 51 handlers — fire automatically every session (no configuration needed).
 
 | Event | Handlers |
 |-------|----------|
@@ -121,7 +132,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 | `CwdChanged` / `DirectoryAdded` | 1 each (session-state sync) — new in v8 |
 | `FileChanged` | 1 (stale `CLAUDE.md` nudge) — new in v8 |
 | 15 more | `Setup`, `UserPromptExpansion`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, `Notification`, `PreCompact`, `PostCompact`, `SubagentStart`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `InstructionsLoaded` — one handler each |
-| **TOTAL** | **30 events** · **52 handlers** |
+| **TOTAL** | **30 events** · **51 handlers** |
 
 ### Plugin Workflows + Ultracode
 
@@ -153,7 +164,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 
 ### vs aider
 
-Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 22 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](README.md#vs-aiderchat--positioning)
+Aider = pair programmer (diff edits, any LLM, Git-native). CCC = AI PM (sub-agent architecture, 22 personas, lifecycle hooks, click-first workflows). Use both — they're complementary. [Full comparison →](https://docs.commanderplugin.com/compare/vs-aider)
 
 ---
 
@@ -310,6 +321,8 @@ Override: `ccc --dispatch "task" --max-turns 50 --budget 10`
 | Scenario | Skills to Use |
 |----------|--------------|
 | Code review | `/ccc-code-review` command or `review` skill |
+| Second-provider review loop | `/ccc-sol-loop` (Codex reviewer) or `/ccc-council` (three providers) |
+| PR through CI and review bots | `/ccc-babysit-pr` |
 | Important decision | `dialectic-review` (FOR/AGAINST/Referee agents) |
 | Security audit | `pentest-checklist` + `container-security` |
 | Design review | `design-review` + `audit` + `critique` |
@@ -1057,7 +1070,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 ## 📖 /ccc Command Center (Desktop plugin)
 
-CC Commander v8.1.1 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
+CC Commander v8.1.5 — the Desktop plugin is the primary surface. Invoke the interactive hub with plain `/ccc` in Claude Desktop:
 
 | Command | What it does |
 |---------|-------------|
@@ -1096,6 +1109,7 @@ Persistent footer under every response — auto-configured on install:
 | Duration | Session time |
 | Lines | +added -removed |
 | Rate limits | 5h and 7d usage % (when available, turns red at 80%+) |
+| Superfleet segment | Inside a Superfleet run dir: `🚀 <lane> <batch> <done>/<total> <ticket> 5h:<pct>% 7d:<pct>%` from Fleet's lane usage file (`CCC_STATUSLINE_SF=off` hides it; see `docs/FLEET-CHECKIN.md`) |
 | Project | Current directory name |
 
 Configured via `statusLine` in `settings.json`. Script: `lib/statusline.sh`.
@@ -1144,7 +1158,7 @@ context-mode sandboxes tool output into SQLite + FTS5. 98% context reduction.
 
 ---
 
-## CC Commander v8.1.1 Quick Reference (CLI)
+## CC Commander v8.1.5 Quick Reference (CLI)
 
 ```bash
 # Launch

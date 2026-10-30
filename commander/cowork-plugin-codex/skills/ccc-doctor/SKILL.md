@@ -1,13 +1,11 @@
 ---
 name: ccc-doctor
-description: "Paste-ready Commander health report: install mode, installed vs latest version, clone and cache state, settings, MCP servers, plugin validate and details, mods, Codex doctor, optional source drift checks. Use when Commander misbehaves, after an update, or before filing a support issue."
+description: "Paste-ready Commander health report: install mode, versions, cache, settings, MCP servers, plugin validation. Use when Commander misbehaves."
 allowed-tools:
   - Bash
   - Read
   - AskUserQuestion
 argument-hint: "[quick | full]"
-model: sonnet
-effort: medium
 ---
 
 # $ccc-doctor — Diagnose the Commander install

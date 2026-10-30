@@ -6,7 +6,7 @@
 # Runtime secrets are intentionally not stored in this file:
 #   fly secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
 #     UPSTASH_REDIS_REST_URL=... UPSTASH_REDIS_REST_TOKEN=... \
-#     JWT_SECRET=... POSTHOG_API_KEY=... --app commander-mcp
+#     JWT_SECRET=... --app commander-mcp
 
 app = "commander-mcp"
 primary_region = "iad"

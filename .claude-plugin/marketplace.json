@@ -11,7 +11,7 @@
       "displayName": "Commander",
       "source": "./commander/cowork-plugin",
       "description": "Guided AI PM for Claude Code: click-first /ccc-* workflows to plan, build, review and ship, /ccc-save-session and /ccc-resume-session, specialist subagents, lifecycle hooks and bundled MCP servers.",
-      "version": "8.1.1",
+      "version": "8.1.5",
       "category": "development",
       "license": "MIT",
       "author": {
@@ -20,5 +20,5 @@
       }
     }
   ],
-  "version": "8.1.1"
+  "version": "8.1.5"
 }

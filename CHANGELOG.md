@@ -1,5 +1,92 @@
 # Changelog
 
+## [8.1.5] - 2026-10-28
+
+Release for the backfill batches (#249-#259), per-lane weekly usage (#260) and the tstack PR-workflow skills (#261). The permission gate now denies every force-push and remote-delete form, one context hook replaces two (51 handlers), and hook, telemetry and session fixes land. The Superfleet status line and `ccc checkin` now report each lane's 7-day usage window alongside the 5-hour one, and nine PR-workflow skills adapted from t3dotgg/tstack ship on demand with CCC's safety rules applied. Bumps the pinned plugin version so `claude plugin update` picks these up.
+
+### Security
+- **Permission gate:** the PermissionRequest gate denies every force-push and remote-delete form, not only `push --force`: `-f` (bundled as `-uf` or after a line continuation), a `+refspec` (quoted too), `:ref`, `--delete`/`-d`, `--mirror`, `--prune` and their abbreviations, and pushes behind `git -C <dir>` or any git global option that takes a separate value. It also matches the shell's view of the command (quotes, escapes, `$'...'`, substitutions, brace and parameter expansion, `$IFS`), and a push next to a nested expansion is denied outright. Output-dependent forms (`git $(echo push) -f`), a plain `$F`, `eval` and aliases stay a documented limit; a false deny is the accepted error (CC-654).
+
+### Added
+- **Lane usage:** the Superfleet status-line segment shows the 7-day window next to the 5-hour one (`5h:16% 7d:21%`). `7d` is the highest weekly window (`weekly`, `weekly:<model>`), the binding weekly gate. A reading older than 30 minutes, a malformed file, no entry for the lane or a missing `$CCC_LANE_USAGE_FILE` shows `?`; with the variable unset and no file at the default path, the usage part is hidden. `ccc checkin --json` gains an additive `usage` block for the resolved lane (schema stays 1), plus `usage_reason` (`missing`, `unreadable`, `malformed` or `lane_absent` when `usage` is `null`) and `usage_file`. A reading older than 30 minutes keeps its numbers and sets `stale: true`. The block is informational: it never changes the exit code and never throws. Human `ccc checkin` prints one usage line after the check-in line. CCC only reads Fleet's file (`$CCC_LANE_USAGE_FILE`, else `~/.commander/lane-usage.json`); see `docs/FLEET-CHECKIN.md` (CC-2122).
+- **PR workflows from tstack:** nine on-demand plugin skills adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) at `92e38e2c` (MIT, Copyright (c) 2026 Theo Browne): `/ccc-full-send`, `/ccc-full-stop`, `/ccc-council`, `/ccc-sol-loop`, `/ccc-file-pr`, `/ccc-takeover`, `/ccc-babysit-pr` (with the read-only `scripts/pr-wait` watcher), `/ccc-modernize` and `/ccc-pr-comments`. Each carries the upstream `LICENSE.txt` and an attribution header, and NOTICE.md lists them. The router offers them on matching prompts and `ccc next` selects them; the CLI main menu has a **PR workflows** page; in Codex each skill ships `agents/openai.yaml` with implicit invocation off. Overlap decisions are in `docs/tstack/OVERLAP.md`. CCC safety rewrites: no force-push (including `--force-with-lease`), no rebase of pushed branches (the base is merged in), no hook or secret-scan bypass, the full local suite and lint on the exact head before every push, CI read as a signal rather than the gate, PRs opened as drafts, and `/ccc-full-send` merges only through the full gate with an independent reviewer. A user grant never overrides project instruction files or permission prompts. `pr-wait` counts a Greptile, Macroscope or CodeRabbit comment or review only from that Bot account's exact app login (any other account's text is reported as an ordinary event) and bounds each `gh` call at 60 s, and every skill treats PR, issue and comment text as data, never instructions. Each change is marked "CCC safety:" in the skill and listed in `docs/tstack/SAFETY.md`; `commander/tests/tstack-skills.test.js` guards against regressions. Codex skill `agents/openai.yaml` (interface metadata, `policy.allow_implicit_invocation`, tool dependencies) is recorded in `docs/reference/platform-facts-2026-10.md` (CC-2124).
+- **Init:** `/ccc-init` reports detected local infrastructure, read-only: MCP server names in the scope in effect (never env, headers or URLs) and CLIs on `PATH`, with port probes only on request (`node commander/service-detector.js [--json] [--probe]`). It suggests matching commands and writes no config (CC-197).
+- **Review:** `/ccc-review` appends a markdown Before | After diff view, one table per hunk, to branch-lens reports (`commander/cowork-plugin/lib/diff-render.js`, `scripts/render-diff.mjs`) (CC-790).
+
+### Changed
+- **Context hook:** `context-guard` is the single context hook: tiers at 70, 85, 90 and 95% used, once per tier per session, re-armed below 70% after `/compact`, and naming `/ccc-handoff`, `/ccc-save-session` and `/ccc-resume-session`. `context-warning.js`, which repeated its warning on every prompt past 70%, moves to `hooks/_archive` and leaves `hooks.json` (52 to 51 handlers). `hooks/README.md` notes when RTK-filtered output is not enough evidence (CC-1357).
+- **Agent runs:** `agent-run-logger` marks Claude Code's own internal and background agents (`internal: true`), and Mission Control, cockpit analytics and the history reader skip them. An inconclusive check (`null`) hides nothing (CC-2120).
+
+### Fixed
+- **Hooks:** eight hooks record `hook_fired` on every run, not only on a stdin parse failure (telemetry stays opt-in). `git-push-reminder` reads the command with a quote-aware tokenizer, resolves the current branch, and shows its force-push-to-main warning as a `systemMessage`. SessionEnd's `session-save` and `session-end` find the session whichever runs first, and `session-end` no longer leaves a stale `active-session.json`. The `clickability-watch` Stop hook reads its own session from the payload instead of the newest transcript. The first-run welcome shows once, on CCC's own first run. SubagentStop warns when the main tree is not tracked-clean (`CCC_TRACKED_CLEAN_WARN=0` turns it off). New tests fail when the committed Codex mirror drifts from `build:codex` and when a skill that dispatches agents and writes files has no verification step of its own (CC-1360).
+- **Telemetry:** for opted-in users, queued telemetry is flushed when a hook process ends, with one 2.5 s deadline for the whole send (CC-2121).
+- **Version banner:** with no plugin manifest, the banner no longer reports "updated to unknown" or saves `last_seen_version: unknown` (CC-2041).
+- **Hosted MCP server:** the feedback-survey window starts at the UTC month, like the monthly cap, so a non-UTC host no longer opens it in the wrong month. The monthly free-tier cap and the rate-limit middleware's cap enforcement have offline tests (CC-350, CC-789).
+
+## [8.1.4] - 2026-10-26
+
+Release for the CCC-HQ batch (#246), finished auto-routing (#247) and the Hermes CCC batch (#245). Bumps the pinned plugin version so `claude plugin update` picks these up.
+
+### Security
+- **Status line:** the status line no longer `eval`s Claude Code's JSON. Fields are parsed positionally and numbers coerced, so a quote, `$()` or backtick in a directory, model or agent name can no longer run shell code (CC-2110, H1).
+- **Elicitation hooks:** the Elicitation and ElicitationResult hooks log only the documented identifiers (MCP server, mode, elicitation id, action) and never the message, URL, schema or submitted content, which can carry credentials (CC-2115, H2).
+
+### Changed
+- **Load on demand:** 32 skills stay model-visible and 52 load on demand (`disable-model-invocation`), cutting the skill listing from about 22.6k to 7.3k characters. The router offers hidden skills as a menu the user types, and `npm run measure:listing` / `check:listing` guard the budget (CC-2112).
+- **Network and telemetry:** telemetry is opt-in and off by default. `CCC_OFFLINE=1` blocks every outbound call, and the CI ticker's `gh` lookup runs only with `CCC_CI_TICKER=1`. All outbound calls go through `lib/network-mode.js` (CC-2111).
+- **Defaults:** the cost ceiling is off unless set, and when set it denies with a reason. 72 `model:` and 84 `effort:` frontmatter pins were removed so skills inherit the session's model (CC-2115).
+- **Hosted MCP server:** `posthog-node` is removed. `/v1/events` validates, rate-limits, acknowledges and discards events, with `/metrics` counters (CC-2119).
+- **Docs:** README, BIBLE, CHEATSHEET and mintlify use generated counts. `check:parity` keeps 105+ files consistent. There is a plugin icon, and the README has example prompts, privacy and support (CC-2113, CC-2117).
+
+### Added
+- **Directory mirror:** a publisher builds the `cc-commander` directory mirror, triggered by a tag. It stays dormant until the mirror repo and secret exist (CC-2114).
+- **Auto-routing:** `route-hints.json` takes an integer `priority` that breaks score ties (higher first, default 0; then skills before agents). `npm run build:routes` now fails, naming the route, when a routable skill or agent has no trigger, pattern, path or "Use when … says" phrase, so a route that can never fire is caught at build time (CC-2060).
+- **Auto-routing:** the routing mode can be saved per lane: `/ccc-settings` → Auto-routing writes `routeMode` (`auto`, `suggest` or `off`) to `<config dir>/commander/config.json`, and both the prompt router and the what-next menu read it. A valid `CCC_ROUTE_MODE` still wins; unknown values fall back to `auto` (CC-2061).
+- **Auto-routing:** `npm run eval:routes` (`scripts/route-eval.js`) runs the routing eval as one command and reports recall, false triggers, wrong-route fires, wrong auto-runs, explicit requests that no longer auto-run and routes that never fire, with `--json` and `--fixtures <file>`. A route with labelled prompts that fires on none of them now fails, even when aggregate recall is still 90% or higher. `npm run test:ci` runs the registry freshness check, the eval and the routing tests (CC-2063).
+- **Auto-routing:** the what-next menu after a skill run has a per-session cooldown: at most one menu every 10 minutes (`CCC_ROUTE_NEXT_COOLDOWN_MIN`, `0` offers after every run). A skill run inside the cooldown is dropped, not saved for later, and a run that ends on its own question does not start the cooldown (CC-2062).
+- **Codex:** `docs/reference/dual-host-hooks.md` documents the hook contract shared by Claude Code and Codex (command form, plugin root, events, output fields, host detection, menus) and the one-time `/hooks` trust step Codex users need before hooks fire; linked from the README and the Codex adapter README. `commander/tests/dual-host-hooks.test.js` checks that both hosts register the routing hook on UserPromptSubmit and Stop, that the mirrored hook files are byte-identical and that host detection holds (CC-2064).
+- **Broadcast:** `/ccc-broadcast` can send every signal to one ops channel (`opsChannel`). Incidents stay immediate, `lib/broadcast-route.js` adds dedup keys and message-id receipts, and the router refuses credential fields (CC-1598).
+- **Specialists:** a read-only specialist resolver maps a name to its canonical agent or persona profile with provenance. It is off unless `CCC_SPECIALIST_RESOLVER=1` (CC-1998).
+- **Docs:** `docs/reports/2026-10-25-ccc-best-practice-audit.md` is a cited best-practice audit of the CCC-HQ findings (FLT-187).
+
+### Fixed
+- **Command names:** the suggest-ticker nudge and the BIBLE workflow table no longer name nonexistent commands (`/ccc-debug`, `/ccc-verify`, `/ccc-spike*`). A test fails when hook text names a missing command (CC-296).
+- **MCP pins:** bundled MCP server versions are pinned (CC-2106).
+
+## [8.1.3] - 2026-10-24
+
+Lane release. Bumps the pinned plugin version so `claude plugin update` picks up the Fleet check-in contract, per-lane state and the doctor and status-line fixes below (#241, #242, #240).
+
+### Fixed
+- **CLI:** `~/bin/ccc` resolves the installed release and warns when the checkout drifts from the installed plugin (CC-2089). The lane hold file fails closed on access errors, and the Superfleet status-line segment honors `CCC_CONFIG_DIR` (#241).
+- **Hooks:** plugin hooks keep their state per lane in `<config dir>/commander` (`CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) through one resolver, `lib/lane-state.js`, so parallel lanes no longer write one shared `~/.claude/commander`. User settings (`config.json`, `console.json`, `state.json`) and the Console/Usage/Safety readers fall back to the legacy copy until the lane has its own. Nothing is migrated (CC-2098).
+- **Doctor:** the hook-chain check counts the handlers the SessionStart orchestrator imports (`fable-armed-nudge.js`, `voice-injector.js`, `_archive/session-start.js`) as registered, so `ccc doctor` no longer reports a false critical. Archived handlers are scanned too and must be registered or allowlisted (CC-2099).
+- **Doctor:** the mcp-availability check reported "connector count drift — found 0" after the CONNECTORS.md heading was renamed. Doctor and `ccc checkin --json` (new additive `connectors` block) now share one counter for the catalog and for the lane's configured MCP servers (user, local and project scope). A missing table or malformed config is reported as unknown, never 0 (CC-2100).
+- **CLI menu:** with a non-TTY stdin, `ccc` printed menu separators as `undefined` entries and lettered items by position. Separators are now blank lines, each entry uses its declared key (`o`, `b`, `c`, … `/`, `q`), and a typed key maps back to that entry (CC-2101).
+
+### Added
+- **Fleet check-in:** `ccc checkin --json` reports CCC, plugin and Claude Code versions, the lane and health checks for the Fleet dispatch gate (see `docs/FLEET-CHECKIN.md`), and `ccc next --json` returns the next routed step (#241).
+- **Lanes:** CCC resolves the lane from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`, keeps per-lane state in `<config dir>/commander` and reads the legacy shared copy until a lane has its own. `ccc doctor --instances` lists every lane install (#241).
+- **Status line:** a Superfleet segment shows the lane, batch key, done/total, current ticket and lane usage (`CCC_STATUSLINE_SF=off` hides it) (#241).
+- **Routing:** a Fleet intent hook routes Fleet requests to the fleet skill; it never dispatches on its own (#241).
+- **Check-in:** `ccc checkin --json` gains an additive `hooks` block (schema stays 1): registered count, unregistered files, missing handlers and hooks that write the shared `~/.claude/commander`. Registration gaps and shared-state writers are warnings (exit 0); a hook chain that cannot load blocks (exit 1). See `docs/FLEET-CHECKIN.md` (CC-2102).
+- **Status line:** `ccc statusline sync [--lane X] [--apply] [--json]` compares each lane's live `statusline.sh` and `statusline-superfleet.sh` with the checkout's `lib/` copies. It is a dry run by default; `--apply` archives the old file to `<config dir>/commander/archive/<timestamp>/` before it copies, and never deletes (CC-2103).
+
+### Changed
+- **Doctor:** plain `ccc doctor` now runs the diagnostics (#241).
+- **Status line:** with `CLAUDE_CONFIG_DIR` unset, the 🔑 hint shows `pri` (the primary lane) instead of the ClaudeSwap account or API-key tail. This is intended since 8.1.2; the ClaudeSwap and key-tail fallbacks now apply only to config dir names that are not `.claude` or `.claude-<lane>`.
+- **Status line:** the 🎯 skill count and 📋 Linear ticket read `${CLAUDE_CONFIG_DIR:-~/.claude}/skills` and `.../commander/state.json`, so a lane session shows its own skills and active ticket instead of the primary lane's.
+- **Status line:** the 🔑 lane hint keeps up to 16 characters (was 12), so `~/.claude-guestnetworks` shows `guestnetworks` in full.
+
+## [8.1.2] - 2026-10-24
+
+Status-line fix release. Bumps the pinned plugin version so `claude plugin update` picks up the fixes below.
+
+### Fixed
+- **Status line:** reads the CCC version from the installed plugin's `plugin.json` instead of a toolkit checkout, so it no longer shows a stale version.
+- **Status line:** the 🔑 hint shows the lane from the `CLAUDE_CONFIG_DIR` basename (`~/.claude-ai1` → `ai1`, any `.claude-<lane>`), and `pri` when it is unset or plain `.claude`. Other config dir names keep the ClaudeSwap / API-key-tail fallback.
+- **Status line:** a project-scoped install matches the session's `project_dir`, so subdirectories still show it, and an install that belongs only to another project is never shown.
+
 ## [8.1.1] - 2026-10-23
 
 Fix release. `plugin.json` pins `version`, and Claude Code refreshes a cached plugin only when that string changes. Every 8.1.0 install has therefore stayed on the 2026-10-18 build, and none of the fixes merged since then reached `claude plugin update`. This version carries them.

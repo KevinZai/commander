@@ -1,16 +1,28 @@
 #!/usr/bin/env node
 // Telemetry client for CC Commander plugin + CLI.
-// Handles event batching, opt-out checks, and fire-and-forget delivery to MCP /v1/events.
+//
+// OFF BY DEFAULT. Nothing is sent unless the user opts in with CCC_TELEMETRY=1
+// or "telemetry": true in ~/.commander/config.json. CCC_TELEMETRY=0 is an
+// explicit off that beats the config file, CCC_OFFLINE=1 (or "offline": true)
+// blocks every send, and a missing or malformed config file means off. The
+// decision lives in ./network-mode.js, shared with every other outbound call.
+//
+// When opted in, events are batched and POSTed fire-and-forget to
+// mcp.commanderplugin.com/v1/events (fallback commander-mcp.fly.dev). An event
+// holds an anonymous random id (~/.commander/anon-id), the event name, hook or
+// skill names, timings and outcome, plus plugin version, OS, Node version and
+// surface. Property keys that look like prompts, content, paths, files, cwd,
+// secrets, passwords, keys or tokens are dropped before sending.
 
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { randomUUID } from 'crypto';
+import { isOffline, isTelemetryEnabled as telemetryOptedIn } from './network-mode.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 const CONFIG_DIR = path.join(os.homedir(), '.commander');
 const ANON_ID_FILE = path.join(CONFIG_DIR, 'anon-id');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 const MCP_ENDPOINTS = [
   'https://mcp.commanderplugin.com/v1/events',
@@ -23,6 +35,9 @@ let batchQueue = [];
 let batchTimer = null;
 const BATCH_SIZE = 10;
 const BATCH_TIMEOUT_MS = 5000;
+// One deadline for the whole endpoint chain, so a flush on exit cannot hold a
+// hook past its timeout. fetch() has no `timeout` option; it needs a signal.
+const SEND_TIMEOUT_MS = 2500;
 
 const VERSION = getVersion();
 const OS = process.platform;
@@ -59,26 +74,11 @@ function getOrCreateAnonId() {
   }
 }
 
-// ─── Helper: Check opt-out ────────────────────────────────────────────────────
+// ─── Helper: Check opt-in ─────────────────────────────────────────────────────
+// Opt-in only: CCC_TELEMETRY=1 or config telemetry:true, never when offline.
+// A config file that can't be read or parsed counts as disabled.
 function isTelemetryEnabled() {
-  // Check env var first (highest priority)
-  if (process.env.CCC_TELEMETRY === '0') {
-    return false;
-  }
-
-  // Check config file
-  try {
-    if (fs.existsSync(CONFIG_FILE)) {
-      const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-      if (config.telemetry === false) {
-        return false;
-      }
-    }
-  } catch {
-    // Ignore parse errors — assume enabled
-  }
-
-  return true;
+  return telemetryOptedIn(process.env);
 }
 
 // ─── Helper: Get package version ──────────────────────────────────────────────
@@ -115,7 +115,7 @@ function scrubProperties(properties) {
 
 // ─── Helper: Send batch to MCP server ─────────────────────────────────────────
 async function sendBatch(events) {
-  if (events.length === 0) {
+  if (events.length === 0 || isOffline(process.env)) {
     return;
   }
 
@@ -128,6 +128,8 @@ async function sendBatch(events) {
     })),
   };
 
+  const signal = AbortSignal.timeout(SEND_TIMEOUT_MS);
+
   // Try each endpoint in sequence (fallback chain)
   for (const endpoint of MCP_ENDPOINTS) {
     try {
@@ -137,7 +139,7 @@ async function sendBatch(events) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-        timeout: 5000,
+        signal,
       });
 
       if (response.ok) {
@@ -222,13 +224,13 @@ export function track(eventName, properties = {}) {
 }
 
 // ─── Cleanup on process exit ──────────────────────────────────────────────────
-// Ensure pending events are flushed before exit
-process.on('exit', () => {
-  if (batchQueue.length > 0) {
-    // Synchronous flush not possible here — rely on async flush above
-    // Events may be lost if process exits immediately, but that's acceptable
-    // for telemetry (non-critical data)
-  }
+// Short-lived hook processes finish before the unref'd batch timer fires, so
+// flush what is queued when the event loop drains. The pending send keeps the
+// process alive until it settles or SEND_TIMEOUT_MS passes (CC-2121). Only an
+// opted-in process ever has a queue. process.exit() skips beforeExit, so an
+// explicit exit still drops the queue.
+process.on('beforeExit', () => {
+  if (batchQueue.length > 0) flushBatch();
 });
 
 process.on('SIGTERM', () => {
