@@ -6,8 +6,16 @@ Hosted MCP server for CC Commander v4.0 Beta. Serves MCP tools with auth, rate l
 
 - `GET /health` — Health check (no auth)
 - `GET /v1` — MCP server capabilities
-- `GET /v1/sse` — SSE transport (requires Bearer token)
+- `POST|GET /mcp` — MCP Streamable HTTP transport, the endpoint MCP clients should use (requires a Bearer token; a `401` carries an RFC 9728 `resource_metadata` challenge)
+- `GET /.well-known/oauth-protected-resource` (and `/mcp` suffix) — RFC 9728 protected-resource metadata (no auth). It lists `authorization_servers` only when `OAUTH_ISSUER_URL` is set
+- `GET /v1/sse` — legacy SSE transport (requires Bearer token)
 - `POST /v1/call` — Tool call (requires Bearer token)
+- `POST /v1/events` — opt-in plugin/CLI telemetry (no auth; see below)
+- `GET /metrics` — Prometheus counters (Bearer `METRICS_AUTH_TOKEN` when set)
+
+### Telemetry (`POST /v1/events`)
+
+The plugin and CLI post here only when the user opts in (`CCC_TELEMETRY=1` or `"telemetry": true`). The server validates each batch (event-name allowlist, max 50 events, 50 KB, 100 batches/hour per anon device ID), scrubs sensitive property keys, then acknowledges and **discards** the events. There is no telemetry table and nothing is forwarded to a third party; the server has no analytics SDK. Only two process-lifetime counters survive, `commander_telemetry_batches_total` and `commander_telemetry_events_discarded_total` on `/metrics`, plus one log line per batch with those counts (no device ID, no properties). The rate limiter holds the anon device ID in memory for up to one hour.
 
 ## Tools
 
@@ -145,7 +153,6 @@ fly secrets set \
   UPSTASH_REDIS_REST_URL="$(op read op://<vault>/cc-commander-upstash/url)" \
   UPSTASH_REDIS_REST_TOKEN="$(op read op://<vault>/cc-commander-upstash/token)" \
   JWT_SECRET="$(op read op://<vault>/cc-commander-jwt/secret)" \
-  POSTHOG_API_KEY="$(op read op://<vault>/cc-commander-posthog/api-key)" \
   --app commander-mcp
 ```
 
@@ -189,5 +196,4 @@ fly releases rollback <version> --app commander-mcp
 | `op://<vault>/cc-commander-upstash/url` | Upstash Redis REST URL |
 | `op://<vault>/cc-commander-upstash/token` | Upstash Redis REST token |
 | `op://<vault>/cc-commander-jwt/secret` | JWT signing secret (min 32 chars) |
-| `op://<vault>/cc-commander-posthog/api-key` | PostHog project API key |
 | `op://<vault>/cc-commander-fly/api-token` | Fly.io deploy token |

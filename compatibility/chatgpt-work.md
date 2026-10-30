@@ -59,9 +59,10 @@ args = ["/absolute/path/to/commander/commander/mcp-server/index.js"]
 
 ## 5. Hosted MCP as a ChatGPT Work connector — not yet
 
-The hosted server (`https://mcp.commanderplugin.com`) still speaks `/v1` + SSE with a
-static Bearer key. ChatGPT's connector flow requires a public streamable-HTTP `/mcp`
-endpoint with OAuth. Tracked as gap **G2** in `docs/compat/chatgpt-work.md` — do not
+The hosted server now serves streamable HTTP at `https://mcp.commanderplugin.com/mcp`
+(plus the legacy `/v1` + SSE routes), but only with a static Bearer token. Its RFC 9728
+metadata lists no `authorization_servers` (no `OAUTH_ISSUER_URL` in production), and
+ChatGPT's connector flow needs OAuth. Tracked as gap **G2** in `docs/compat/chatgpt-work.md` — do not
 attempt to add it via Developer mode yet.
 
 ## 6. Validate

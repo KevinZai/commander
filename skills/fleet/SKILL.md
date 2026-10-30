@@ -144,4 +144,4 @@ Cost Summary
   Total session: $[total]
 ```
 
-Warn if total exceeds $2.00 (session kill threshold per Kevin's cost rules).
+Warn if total exceeds \$2.00 (session kill threshold per Kevin's cost rules).

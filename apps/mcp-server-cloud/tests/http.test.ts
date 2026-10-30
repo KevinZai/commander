@@ -37,7 +37,6 @@ process.env.JWT_SECRET = "test-jwt-secret-min-32-characters-long";
 process.env.NODE_ENV = "test";
 process.env.PORT = "0";
 process.env.HOST = "127.0.0.1"; // startup regression test listens only on loopback
-process.env.POSTHOG_API_KEY = "";
 process.env.METRICS_AUTH_TOKEN = "";
 
 // Dynamic import so env validation runs after we set the vars

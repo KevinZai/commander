@@ -1,9 +1,13 @@
 ---
 title: "Plugin Skills"
-description: "84 skills shipped with the CC Commander plugin (v8.1.0): click-first /ccc-* workflows, 11 CCC domain routers, orchestrator/executor skills including /ccc-codex, diagnostics, session, memory, deploy, fleet and deck skills."
+description: "93 skills shipped with the CC Commander plugin (v8.1.5): click-first /ccc-* workflows, 11 CCC domain routers, orchestrator/executor skills including /ccc-codex, diagnostics, session, memory, deploy, fleet and deck skills."
 ---
 
-CC Commander v8.1.0 ships **84 plugin skills** across nine groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+CC Commander v8.1.5 ships **93 plugin skills** across ten groups. All skills are **core free forever** — no caps, no call limits, no tier gating. All skills appear as plain `/ccc-*` in autocomplete — no namespace prefix required. Run `/ccc-browse` in Desktop for the live filterable catalog.
+
+## Model-visible vs on demand
+
+Claude sees 32 skills; 61 load on demand. The model-visible set is the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus every skill their menus open, so click-first menus keep working. On-demand skills set `disable-model-invocation: true`: their descriptions stay out of Claude's context, Claude never invokes them on its own, and the plain-English triggers below only work for model-visible skills. Type `/ccc-<name>` to open any on-demand skill; when a prompt matches one, the router offers it as a menu choice. The generated table in [SKILLS-INDEX.md](https://github.com/KevinZai/commander/blob/main/SKILLS-INDEX.md#the-93-plugin-skills) marks which is which, and `npm run measure:listing` shows the listing size (7,266 of 8,000 chars).
 
 ## Group 1 — 13 /ccc-* Specialist Workflows
 
@@ -124,7 +128,23 @@ Self-contained artifacts that turn data CCC already logs into a page. Every deck
 | `/ccc-usage` | `/ccc-usage` or "what am I spending", "show my savings" | Usage & Cost deck — burn, estimated savings vs. an all-Opus baseline (honest, not a bill), saved/day + cost/day trends, cost-by-app split. See [`/ccc-usage`](/plugin/skills/ccc-usage). |
 | `/ccc-safety` | `/ccc-safety` or "what did commander block", "safety report" | Safety deck — blocked/auto-fixed/approved action outcomes, redacted tool-failure hotspots. See [`/ccc-safety`](/plugin/skills/ccc-safety). |
 
-## All 84 at a Glance
+## Group 10 — PR Workflows (adapted from tstack, MIT)
+
+Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) at `92e38e2c` (MIT, Copyright (c) 2026 Theo Browne). All load on demand; type the command or pick it from the router's menu. CC Commander changes are marked "CCC safety:" in each skill: no force-push, no rebase of pushed branches, no hook bypass, the full local suite before every push, CI as a signal rather than the gate, drafts until green.
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| `/ccc-full-send` | `/ccc-full-send` or "full send" | Unattended change → merged PR, only through the full local suite + lint on the exact head and an independent reviewer |
+| `/ccc-full-stop` | `/ccc-full-stop` or "full stop" | Same work as full-send; stops with the PR ready and never merges |
+| `/ccc-council` | `/ccc-council` or "council" | Read-only review by models from three providers, with a score table per round |
+| `/ccc-sol-loop` | `/ccc-sol-loop` or "sol loop" | Bounded review loop with an OpenAI reviewer through the Codex CLI (`gpt-6.1-sol`), with a findings ledger |
+| `/ccc-file-pr` | `/ccc-file-pr` or "file a PR" | Short draft PR that leads with the problem; local check results recorded in the body |
+| `/ccc-takeover` | `/ccc-takeover` or "take over this PR" | Finish someone else's PR, branch or agent thread on a new branch, preserving credit |
+| `/ccc-babysit-pr` | `/ccc-babysit-pr` or "babysit this PR" | Read-only `pr-wait` watcher; real CI and bot findings fixed locally before a push |
+| `/ccc-modernize` | `/ccc-modernize` or "modernize this PR" | Update an old PR by merging its base; MODERNIZE, REWORK or CLOSE verdict |
+| `/ccc-pr-comments` | `/ccc-pr-comments` or "reply to the review comments" | Attributed format for every comment an agent posts on your behalf |
+
+## All 93 at a Glance
 
 | # | Skill | Group |
 |---|-------|-------|
@@ -180,7 +200,7 @@ Self-contained artifacts that turn data CCC already logs into a page. Every deck
 | 73 | `/ccc-prompt-fix` | Prompt diagnosis + tighter rewrite (v6.7.3) |
 | 74 | `/ccc-mission-control` | Live agent dashboard — Claude + Codex rosters, Charts strip, claude-mem History panel |
 | 75 | `/ccc-claudemd` | CLAUDE.md drift audit with AUQ-gated fixes |
-| 76 | `/ccc-fable` | Arms the Fable Method — 12-gate session contract |
+| 76 | `/ccc-fable` | Arms the Commander Method — 12-gate session contract |
 | 77 | `/ccc-more` | Overflow menu for less-frequent workflows |
 | 78 | `/ccc-plan-exec` | Claude-only plan → execute → verify split |
 | 79 | `/ccc-usage` | Usage & Cost deck — burn, estimated savings, cost-by-app (v7.2.0) |
@@ -189,6 +209,15 @@ Self-contained artifacts that turn data CCC already logs into a page. Every deck
 | 82 | `/ccc-console` | Inline console widget — agents, usage, safety, memory, history and a prompt bar that reaches the live session (v7.4.0) |
 | 83 | `/ccc-adhd` | Answer-first output — fix, then command, then file:line, context last. Ported from `ayghri/i-have-adhd` (MIT) |
 | 84 | `/ccc-codex` | Codex CLI management — doctor, models, plugins, MCP, agents, cloud, review, update, config (introduced in v8.0.0) |
+| 85 | `/ccc-full-send` | PR workflow (tstack, MIT) |
+| 86 | `/ccc-full-stop` | PR workflow (tstack, MIT) |
+| 87 | `/ccc-council` | PR workflow (tstack, MIT) |
+| 88 | `/ccc-sol-loop` | PR workflow (tstack, MIT) |
+| 89 | `/ccc-file-pr` | PR workflow (tstack, MIT) |
+| 90 | `/ccc-takeover` | PR workflow (tstack, MIT) |
+| 91 | `/ccc-babysit-pr` | PR workflow (tstack, MIT) |
+| 92 | `/ccc-modernize` | PR workflow (tstack, MIT) |
+| 93 | `/ccc-pr-comments` | PR workflow (tstack, MIT) |
 | — | `ccc-design`, `ccc-fleet`, `ccc-linear` | Domain routers that also serve as specialist workflows (counted in both Group 1 and Group 2) |
 
 [Pricing — Core Free Forever →](/plugin/free-vs-pro)

@@ -253,11 +253,94 @@ test('checkHookChain: fail when unregistered .js file present', function () {
   assert.ok(r.message.includes('orphan.js'));
 });
 
+// CC-2099: SessionStart handlers the orchestrator imports are registered too.
+
+function addOrchestrator(root, handlerFiles) {
+  var manifestPath = path.join(root, 'commander/cowork-plugin/hooks/hooks.json');
+  var manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.hooks.SessionStart[0].hooks.push({
+    type: 'command',
+    command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js"',
+  });
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  var list = handlerFiles.map(function (f) { return "  { name: 'x', file: '../" + f + "' },"; }).join('\n');
+  writeFile(
+    root,
+    'commander/cowork-plugin/hooks/orchestrator/session-start-orchestrator.js',
+    "import { join } from 'node:path';\n// { file: '../commented-out.js' }\nconst handlers = [\n" + list + "\n];\n"
+  );
+}
+
+test('checkHookChain: a handler the orchestrator imports counts as registered', function () {
+  var root = buildGoodFixture();
+  addOrchestrator(root, ['nudge.js', '_archive/legacy-start.js']);
+  writeFile(root, 'commander/cowork-plugin/hooks/nudge.js', "import { a } from 'node:fs';\n");
+  writeFile(root, 'commander/cowork-plugin/hooks/_archive/legacy-start.js', "import { a } from 'node:fs';\n");
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'ok', r.message);
+  var report = diag.hookChainReport(path.join(root, 'commander/cowork-plugin/hooks'));
+  assert.ok(report.registered.includes('nudge.js'));
+  assert.ok(report.registered.includes('_archive/legacy-start.js'));
+});
+
+test('checkHookChain: fail when an orchestrator handler is missing on disk', function () {
+  var root = buildGoodFixture();
+  addOrchestrator(root, ['gone.js']);
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.ok(r.message.includes('missing: gone.js'), r.message);
+});
+
+test('checkHookChain: orchestrator handlers do not count when the orchestrator is not registered', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'commander/cowork-plugin/hooks/orchestrator/session-start-orchestrator.js', "import x from 'y';\nconst h = [{ file: '../nudge.js' }];\n");
+  writeFile(root, 'commander/cowork-plugin/hooks/nudge.js', "import { a } from 'node:fs';\n");
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.ok(r.message.includes('unregistered: nudge.js'), r.message);
+});
+
+test('checkHookChain: an unregistered _archive handler fails unless allowlisted', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'commander/cowork-plugin/hooks/_archive/stray.js', "import x from 'y';\n");
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.ok(r.message.includes('_archive/stray.js'), r.message);
+  writeFile(root, 'commander/cowork-plugin/hooks/_archive/stray.js', '');
+  fs.renameSync(
+    path.join(root, 'commander/cowork-plugin/hooks/_archive/stray.js'),
+    path.join(root, 'commander/cowork-plugin/hooks/_archive/permission-denied.js')
+  );
+  assert.strictEqual(diag.checkHookChain(root).status, 'ok');
+});
+
+test('every shipped hook file is registered or explicitly allowlisted', function () {
+  var hooksDir = path.join(__dirname, '..', 'cowork-plugin', 'hooks');
+  var report = diag.hookChainReport(hooksDir);
+  assert.strictEqual(report.loadable, true);
+  assert.deepStrictEqual(report.unregistered, []);
+  assert.deepStrictEqual(report.missing, []);
+  assert.ok(report.registered.includes('fable-armed-nudge.js'));
+  assert.ok(report.registered.includes('voice-injector.js'));
+  diag.DORMANT_HOOK_ALLOWLIST.forEach(function (rel) {
+    if (rel.endsWith('.js')) assert.ok(fs.existsSync(path.join(hooksDir, rel)), 'allowlisted ' + rel + ' exists');
+  });
+});
+
+test('ccc doctor on a fresh copy of the shipped hooks: hook chain ok (0 critical)', function () {
+  var root = buildGoodFixture();
+  var hooksDir = path.join(root, 'commander/cowork-plugin/hooks');
+  fs.rmSync(hooksDir, { recursive: true, force: true });
+  fs.cpSync(path.join(__dirname, '..', 'cowork-plugin', 'hooks'), hooksDir, { recursive: true });
+  var r = diag.checkHookChain(root);
+  assert.strictEqual(r.status, 'ok', r.message);
+});
+
 // --- 3. mcp-availability ----------------------------------------------------
 
 test('checkMcpAvailability: ok with 2 bundled + 16 connectors', function () {
   var root = buildGoodFixture();
-  var r = diag.checkMcpAvailability(root);
+  var r = diag.checkMcpAvailability(root, { env: { HOME: path.join(root, 'home') }, cwd: root });
   assert.strictEqual(r.status, 'ok', r.message);
 });
 
@@ -274,7 +357,7 @@ test('checkMcpAvailability: warn when extra MCP server bundled', function () {
       },
     })
   );
-  var r = diag.checkMcpAvailability(root);
+  var r = diag.checkMcpAvailability(root, { env: { HOME: path.join(root, 'home') }, cwd: root });
   assert.strictEqual(r.status, 'warn');
   assert.ok(r.message.includes('drift'));
 });
@@ -295,7 +378,7 @@ test('checkMcpAvailability: warn when connector count drifts', function () {
       rows.join('\n'),
     ].join('\n')
   );
-  var r = diag.checkMcpAvailability(root);
+  var r = diag.checkMcpAvailability(root, { env: { HOME: path.join(root, 'home') }, cwd: root });
   assert.strictEqual(r.status, 'warn');
   assert.ok(r.message.includes('connector count drift'));
 });
@@ -495,10 +578,10 @@ test('checkCriticalFiles: fail when LICENSE missing', function () {
 
 // --- runDiagnostics ---------------------------------------------------------
 
-test('runDiagnostics: returns 13 results with required shape', function () {
+test('runDiagnostics: returns 14 results with required shape', function () {
   var root = buildGoodFixture();
   var results = diag.runDiagnostics(root, diagnosticsOptions(root));
-  assert.strictEqual(results.length, 13);
+  assert.strictEqual(results.length, 14);
   for (var i = 0; i < results.length; i++) {
     var r = results[i];
     assert.ok(r.category, 'result needs category');
@@ -514,7 +597,7 @@ test('runDiagnostics: all categories ok on canonical fixture', function () {
   assert.strictEqual(nonOk.length, 0, 'expected all ok, got: ' + JSON.stringify(nonOk));
 });
 
-test('runDiagnostics: covers all 13 expected categories', function () {
+test('runDiagnostics: covers all 14 expected categories', function () {
   var root = buildGoodFixture();
   var results = diag.runDiagnostics(root, diagnosticsOptions(root));
   var categories = results.map(function (r) { return r.category; }).sort();
@@ -529,9 +612,47 @@ test('runDiagnostics: covers all 13 expected categories', function () {
     'hook-chain',
     'license-cleanup',
     'mcp-availability',
+    'network-mode',
     'test-suite',
     'vendor-submodules',
     'version-parity',
   ];
   assert.deepStrictEqual(categories, expected);
+});
+
+// --- network mode -----------------------------------------------------------
+
+test('checkNetworkMode: reports telemetry, offline and ci-ticker state', function () {
+  var root = buildGoodFixture();
+  var home = path.join(root, 'home');
+  var r = diag.checkNetworkMode(root, { homeDir: home, env: {} });
+  assert.strictEqual(r.status, 'ok');
+  assert.strictEqual(r.message, 'telemetry off · offline off · ci-ticker off');
+  r = diag.checkNetworkMode(root, { homeDir: home, env: { CCC_TELEMETRY: '1', CCC_CI_TICKER: '1' } });
+  assert.strictEqual(r.message, 'telemetry on · offline off · ci-ticker on');
+  writeFile(home, '.commander/config.json', JSON.stringify({ offline: true }));
+  r = diag.checkNetworkMode(root, { homeDir: home, env: { CCC_TELEMETRY: '1', CCC_CI_TICKER: '1' } });
+  assert.strictEqual(r.message, 'telemetry off · offline on · ci-ticker off');
+});
+
+// --- lane settings (CC-2115, AUDIT M2) ---------------------------------------
+
+test('settings checks read the running lane (CLAUDE_CONFIG_DIR), not ~/.claude', function () {
+  var root = mkTmp();
+  var home = path.join(root, 'home');
+  var lane = path.join(root, 'fake lane', '.claude-ai3');
+  writeFile(home, '.claude/settings.json', JSON.stringify({ effortLevel: 'xhigh', env: { CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1' } }));
+  writeFile(lane, 'settings.json', JSON.stringify({ effortLevel: 'low' }));
+  var opts = { homeDir: home, env: { CLAUDE_CONFIG_DIR: lane } };
+  var effort = diag.checkEffortDefault(root, opts);
+  assert.strictEqual(effort.status, 'ok');
+  assert.ok(effort.message.indexOf('effortLevel=low') === 0, effort.message);
+  assert.ok(effort.message.indexOf(path.join(lane, 'settings.json')) !== -1, effort.message);
+  var teams = diag.checkClaudeTeamsFlag(root, opts);
+  assert.strictEqual(teams.status, 'warn', 'lane has no teams flag even though ~/.claude does');
+  assert.ok(teams.message.indexOf(path.join(lane, 'settings.json')) !== -1, teams.message);
+  // CCC_CONFIG_DIR wins; no lane env falls back to ~/.claude
+  assert.match(diag.checkEffortDefault(root, { homeDir: home, env: { CLAUDE_CONFIG_DIR: path.join(root, 'x'), CCC_CONFIG_DIR: lane } }).message, /effortLevel=low/);
+  var dflt = diag.checkEffortDefault(root, { homeDir: home, env: {} });
+  assert.strictEqual(dflt.message, 'effortLevel=xhigh in ~/.claude/settings.json');
 });

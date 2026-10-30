@@ -1,0 +1,6 @@
+interface:
+  display_name: "Full Send"
+  short_description: "Prove, file, babysit, and merge a PR unattended"
+  default_prompt: "Use $ccc-full-send to take this to a merged PR through the full local gate. I am not watching this thread."
+policy:
+  allow_implicit_invocation: false

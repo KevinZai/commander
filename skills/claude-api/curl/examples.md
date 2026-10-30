@@ -130,7 +130,7 @@ curl https://api.anthropic.com/v1/messages \
 
 ## Extended Thinking
 
-> **Opus 5.5 and Sonnet 5.5:** Use adaptive thinking. `budget_tokens` is deprecated on both Opus 5.5 and Sonnet 5.5.
+> **Opus 5.5 and Sonnet 5.5:** Use adaptive thinking. `budget_tokens` (`"type": "enabled"`) is not accepted on Opus 5.5, Sonnet 5.5, or any model after the 4.6 generation.
 > **Older models:** Use `"type": "enabled"` with `"budget_tokens": N` (must be < `max_tokens`, min 1024).
 
 ```bash

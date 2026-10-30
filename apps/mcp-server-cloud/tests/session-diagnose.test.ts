@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import { sessionDiagnose } from "../src/tools/session-diagnose.js";
 
 describe("commander_session_diagnose", () => {
-  it("runs every /ccc-doctor diagnostic category by default (13 in v8)", () => {
+  it("runs every /ccc-doctor diagnostic category by default (14 since CC-2111 added network-mode)", () => {
     const result = sessionDiagnose({});
 
     assert.ok(Array.isArray(result.findings));
-    assert.equal(result.findings.length, 13);
-    assert.equal(result.summary.total, 13);
-    assert.equal(result.summary.ok + result.summary.warn + result.summary.fail, 13);
+    assert.equal(result.findings.length, 14);
+    assert.equal(result.summary.total, 14);
+    assert.equal(result.summary.ok + result.summary.warn + result.summary.fail, 14);
     assert.ok(result.findings.every((finding) => ["ok", "warn", "fail"].includes(finding.status)));
   });
 

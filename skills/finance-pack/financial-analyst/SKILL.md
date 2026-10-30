@@ -84,7 +84,7 @@ Analyze actual vs budget vs prior year performance with materiality filtering.
 
 **Features:**
 - Dollar and percentage variance calculation
-- Materiality threshold filtering (default: 10% or $50K)
+- Materiality threshold filtering (default: 10% or \$50K)
 - Favorable/unfavorable classification with revenue/expense logic
 - Department and category breakdown
 - Executive summary generation

@@ -326,6 +326,103 @@ describe('permission-gate: dangerous operations → always reject', () => {
     assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
   });
 
+  // CC-654: PermissionRequest only takes allow|deny ("defer" is PreToolUse + -p only), so every force-push form must deny
+  for (const command of ['git push -f origin main', 'git push origin main -f', 'git push -uf origin feat', 'git push origin +main', 'git push --force-with-lease', 'git -C repo push --force origin main', 'cd x && git push -f', 'git --no-pager push -f origin x', 'git -c core.sshCommand=ssh push --force', '/usr/bin/git push --force origin main', 'sh -c "git push -f origin main"', 'bash -lc \'git push origin +main\'']) {
+    it(`denies force push: ${command}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    });
+  }
+
+  // CC-654 follow-up (#255 verifier): a quoted +refspec, a -f after a line continuation, and remote deletes (:ref, --delete/-d, --mirror, --prune)
+  for (const command of ['git push origin "+main"', "git push origin '+main'", 'git push origin main \\\n  -f', 'git push \\\n  --force origin main', 'git push origin :main', 'git push origin ":main"', 'git push --delete origin feat', 'git push origin --delete feat', 'git push -d origin feat', 'git push --mirror backup', 'git push --prune origin', 'git push origin main \\\r\n  --delete', 'git push origin +\\\nmain', 'git push origin \\\n+main', 'git push origin +"main"', "git push origin +'main'", 'git push origin :"main"', 'git push --forc origin main', 'git push origin --dele main', 'git push --mirr backup', 'git push --prun origin', 'git push --fo origin main']) {
+    it(`denies remote-destructive push: ${JSON.stringify(command)}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    });
+  }
+
+  // CC-654 shell tokenize (#257 verifier r2): the shell strips escapes and quotes and runs substitutions before git sees its
+  // arguments, so `\+main`, `--\force`, $(echo -f), `echo -f`, $'-f' and ${IFS} as a separator are force pushes too
+  for (const command of ['git push origin \\+main', 'git push origin \\:main', 'git push --\\force origin main', 'git push -\\f origin main', 'g\\it push -f origin main', 'git pu\\sh --delete origin feat', 'git push $(echo -f) origin main', 'git push origin $(printf +main)', 'git push `echo --force` origin main', 'git push "$(echo --force)" origin main', 'git push $(echo $(echo -f)) origin main', 'git${IFS}push${IFS}-f origin main', 'git$IFS"push"$IFS-f', "git push $'-f' origin main", "git push $'\\x2df' origin main", "git push origin $'\\053main'", 'git push origin ""+main', "git push -''f origin main", 'git push --f""orce origin main', 'git push origin +ma\\\nin', ": $'\\x'; git push --force origin main", ": $'\\u'; git push -f origin main", ": $'\\U110000'; git push origin +main", "git push $'\\x' -f origin main", "git push origin $'\\x2b'main",
+    // verifier r1 on #258: brace expansion, parameter defaults, a quoted or escaped space in a global option value, ${IFS<op>}
+    'git push {--force,} origin main', 'git push -{f,} origin main', 'git push origin {+,}main', 'git push origin {:,}main', 'git push --{force,}', 'git push origin {a,{+,}main}',
+    'git push origin ${x:-+main}', 'git push origin "${x:-+main}"', 'git push ${x-"-f"} origin main', 'git push origin ${x:=:main}', 'git push origin ${x:+-f}',
+    'git -C "a b" push -f origin main', "git -c 'core.x=y z' push -f", 'git -C a\\ b push --delete origin feat', 'git${IFS%?}push${IFS%?}-f',
+    // Codex r3: bash runs a substitution whatever text follows it
+    "echo \"$(git pu''sh origin main --forc)tail\"", 'echo "$(git push origin --dele main)x"', 'echo `git push origin main -f`tail', 'x=$(git push -f origin main)y',
+    // Codex r4: a substitution may print nothing, so $(true):main is the delete :main (this also denies "$(git rev-parse HEAD)":ref: fail closed)
+    'git push origin $(true):main', 'git push origin `true`:main', 'git push origin "$(true)":main', 'git push origin "$(git rev-parse HEAD)":refs/heads/x',
+    // Codex r5: a substitution inside ${IFS<op>...} still runs
+    "unset IFS; echo ${IFS:-$(git pu''sh -f origin main)}", 'echo ${IFS:-`git push origin --dele main`}', 'git${IFS:-$(echo)}push${IFS#x}-f',
+    // Codex r6: ${x:+word} (and the others) can also expand to nothing
+    "unset x; git pu''sh origin --force${x:+suffix}", 'git push origin --forc${y:+e}', 'git push -${x:-f} origin main', 'git push ${x:?}-f origin main', 'git push origin ${x-}+main', 'git push origin ${x:-$(echo -f)}y',
+    // verifier r2 on #258: substitutions inside a word or as a global option value, nested/plain/pattern parameters, short globals, $"", NUL
+    'git -C "$(git rev-parse --show-toplevel)" push -f', 'git -C $(git rev-parse --show-toplevel) push --force origin main', 'git -C `pwd` push -f',
+    'git push ${x:-${y}}-f', 'git push -$(true)f', 'git push -`true`f', 'git push origin {-f,$(echo x)}',
+    'git -p push --force origin main', 'git -P push -f', 'git -h push -f',
+    'git push origin main $"-f"', "git push $'\\0'-f", "git push $'\\x00'-f origin main",
+    'git push ${x%%a}-f', 'git push ${x:0:1}-f', 'git push ${!x}-f', 'git push ${#x}${y}-f',
+    // Codex r9: replacement text reaches the command line
+    "x=a; git pu''sh origin ${x/a/ -f} main", 'git push origin ${x//a/+main}', 'git push origin ${x/#/:}main',
+    // Codex r10: bash ends a $'...' word at a NUL
+    "git push $'--delete\\x00suffix' origin main", "git push $'-f\\0x' origin main", "git push origin $'+main\\x00junk'",
+    // Codex r11: nested expansions have mixed outcomes, so git push next to one is denied outright
+    "unset x y; z=; git pu''sh origin ${x:-${y} ${z-a}-f} main", 'git push origin ${x:-$(echo main)}', 'git push origin ${x:-`echo main`}']) {
+    it(`denies obfuscated push: ${JSON.stringify(command)}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    });
+  }
+
+  // CC-654 global options (#258 verifier r3): git also takes --config-env, --attr-source, --shallow-file and --super-prefix
+  // with a separate value, so the value is not a subcommand and `push` after it is still the push
+  for (const command of ['git --config-env x=HOME push -f origin main', 'git --attr-source HEAD push -f origin main', 'git --shallow-file x push --force origin main', 'git --super-prefix x/ push origin +main', 'git --config-env x=HOME --attr-source HEAD push --delete origin feat', 'git -C repo --config-env x=HOME push -f', 'git --git-dir .git --attr-source HEAD push origin :main']) {
+    it(`denies force push after a separate-value global option: ${command}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    });
+  }
+
+  for (const command of ['git --config-env x=HOME push origin main', 'git --attr-source HEAD push -u origin feat', 'git --config-env=x=HOME push origin main']) {
+    it(`approves plain push after a separate-value global option: ${command}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true);
+    });
+  }
+
+  for (const command of ['git push origin $(git branch --show-current)', 'git push origin "$(git rev-parse --abbrev-ref HEAD)"', 'git push -u origin `git branch --show-current`', 'git push origin "\\+main"', 'git commit -m "Fix push \\-f detection"', "git commit -m 'push \\+main is a force push'", 'echo "$(git push --dry-run origin main)"', 'git push origin feat\\-x',
+    'git push origin {main,dev}', 'git push origin ${BRANCH:-main}', 'git push origin feat${SUFFIX:+-x}', 'git push -u ${REMOTE:-origin} ${BRANCH:=main}',
+    'git -C "$(git rev-parse --show-toplevel)" push origin main', 'git -p push origin main', 'git push origin ${BRANCH} ${x%%-*}', 'git -C "/Volumes/Extreme Pro/dev/x" push origin main',
+    // Codex r3: quoted or escaped braces are literal for bash (braces and commas are valid in branch names)
+    'git push origin "{+,}main"', "git push origin '{:,}main'", 'git push origin \\{+,\\}main', 'git push origin "-{f,}"x']) {
+    it(`approves non-force git after unquoting: ${JSON.stringify(command)}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true);
+    });
+  }
+
+  for (const command of ['git push origin main', 'git push -u origin feature-f', 'git push --follow-tags origin main', 'git push origin feat-x', 'git status && echo -f', 'git commit -m "Fix push -f detection"', 'git log --grep="push --force"', 'git push origin main:main', 'git push origin HEAD:refs/heads/feat', 'git push --dry-run origin main', 'git push -u origin feat-d', 'git push origin feature-delete', 'git push origin main\necho -f', 'git push origin ":"', "git push origin ':'", 'git push origin :', 'git push origin :; echo done', 'git push origin :&& echo ok', 'git push --progress origin main', 'git push --no-force-with-lease origin main']) {
+    it(`approves non-force git: ${command}`, () => {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true);
+    });
+  }
+
+  it('a very long argument is checked in linear time (Codex r7)', () => {
+    const t = Date.now();
+    const r = runGate({ tool_name: 'Bash', tool_input: { command: `echo ${'a'.repeat(40000)} {x,y} ${'b,'.repeat(2000)}` } });
+    assert.equal(r.parsed?.continue, true);
+    assert.ok(Date.now() - t < 3000, `took ${Date.now() - t} ms`);
+  });
+
   it('approves safe Bash commands (ls, echo)', () => {
     const r = runGate({
       tool_name: 'Bash',

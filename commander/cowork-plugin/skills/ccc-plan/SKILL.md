@@ -1,6 +1,6 @@
 ---
 name: ccc-plan
-description: "Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals, via a short spec interview and a background planner agent that writes to the session plan path. Use when the user wants to plan a feature, scope work before coding, or types /ccc-plan."
+description: "Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals before coding. Use to plan a feature or scope work."
 allowed-tools:
   - Read
   - Write
@@ -15,8 +15,6 @@ allowed-tools:
   - mcp__ccd_session__mark_chapter
   - mcp__linear__list_issues
 argument-hint: "[new | bug | refactor | linear | \"idea in quotes\"]"
-model: sonnet
-effort: medium
 ---
 
 # /ccc-plan — spec before any code
@@ -150,7 +148,7 @@ Next step (step 10), 🟢 first:
 
 - 🟢 Start building — `/ccc-build <type>` (or `/ccc-plan-exec` when the plan is one body repeated per item)
 - Show the plan here in chat
-- File it as a Linear issue — hands off to `/ccc-linear`, which asks before writing
+- File it as a Linear issue — ask the user to type `/ccc-linear` (it is not invocable from here); it asks before writing
 - Done for now
 
 ## Done when

@@ -5,7 +5,7 @@ model: opus
 effort: high
 persona: personas/designer
 memory: project
-color: magenta
+color: pink
 tools:
   - Read
   - Write

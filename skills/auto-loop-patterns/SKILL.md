@@ -38,7 +38,7 @@ See `/ccc-loop` for the full loop taxonomy (turn/goal/time/proactive). Three thi
 
 **Safety defaults** (override per recipe):
 - Max iterations: 50
-- Cost ceiling: $5.00 per loop session
+- Cost ceiling: \$5.00 per loop session
 - Auto-stop on 3 consecutive errors
 - Context compaction at 70% usage
 
@@ -68,7 +68,7 @@ Every 5 minutes:
 | Guard | Value |
 |---|---|
 | Max iterations | 50 |
-| Cost ceiling | $3.00 |
+| Cost ceiling | \$3.00 |
 | Stop condition | All PRs merged or no open PRs |
 | Human gate | Never force-pushes; never merges without approval |
 | Permissions | `Bash(gh pr *)`, `Bash(git rebase *)`, `Read(**)` |
@@ -80,7 +80,7 @@ Every 5 minutes:
   PR #42 — CI green, 2 approvals → merged
   PR #45 — rebased onto main (was 3 commits behind)
   PR #47 — CI failing: vitest snapshot mismatch → auto-fixed, pushed
-  Next check in 5m. Cost so far: $0.32
+  Next check in 5m. Cost so far: \$0.32
 ```
 
 ---
@@ -109,7 +109,7 @@ Every 30 minutes:
 | Guard | Value |
 |---|---|
 | Max iterations | 20 |
-| Cost ceiling | $5.00 |
+| Cost ceiling | \$5.00 |
 | Stop condition | No new feedback messages for 2 consecutive cycles |
 | Human gate | PRs created as draft; never auto-merges |
 | Permissions | `Bash(gh issue create *)`, `Bash(gh pr create *)`, Slack MCP |
@@ -121,7 +121,7 @@ Every 30 minutes:
   Found 3 new feedback messages in #feedback
   Theme: "Dashboard loading slow" (2 messages) → PR #51 (draft)
   Theme: "Typo in settings page" (1 message) → PR #52 (draft)
-  Processed 3 messages. Cost so far: $0.87
+  Processed 3 messages. Cost so far: \$0.87
 ```
 
 ---
@@ -150,7 +150,7 @@ After each merge to main (polls every 10 minutes):
 | Guard | Value |
 |---|---|
 | Max iterations | 30 |
-| Cost ceiling | $4.00 |
+| Cost ceiling | \$4.00 |
 | Stop condition | No unresolved comments on recent merges |
 | Human gate | Follow-up PRs are always draft; logs ambiguous comments |
 | Permissions | `Bash(gh pr *)`, `Bash(git *)`, `Read(**)`, `Write(**)` |
@@ -162,7 +162,7 @@ After each merge to main (polls every 10 minutes):
   PR #42 merged with 2 unresolved comments
     Comment by @alice: "Add error boundary here" → PR #53 (draft)
     Comment by @bob: "Consider perf implications" → Logged (needs human judgment)
-  Cost so far: $0.45
+  Cost so far: \$0.45
 ```
 
 ---
@@ -190,7 +190,7 @@ Every hour:
 | Guard | Value |
 |---|---|
 | Max iterations | 24 (one day of hourly checks) |
-| Cost ceiling | $1.00 |
+| Cost ceiling | \$1.00 |
 | Stop condition | No stale PRs remaining |
 | Human gate | Always posts warning before closing; never closes PRs with `do-not-close` label |
 | Permissions | `Bash(gh pr list *)`, `Bash(gh pr close *)`, `Bash(gh pr comment *)` |
@@ -202,7 +202,7 @@ Every hour:
   Warned: PR #38 (last activity 8 days ago)
   Closed: PR #31 (warned 26 hours ago, no response)
   Skipped: PR #35 (has do-not-close label)
-  Cost so far: $0.12
+  Cost so far: \$0.12
 ```
 
 ---
@@ -231,7 +231,7 @@ Every 15 minutes:
 | Guard | Value |
 |---|---|
 | Max iterations | 20 |
-| Cost ceiling | $3.00 |
+| Cost ceiling | \$3.00 |
 | Stop condition | All tests passing for 3 consecutive runs |
 | Human gate | Only fixes tests flagged as flaky (failed 1+ times but passed 1+ times in recent runs) |
 | Permissions | `Bash(npm test)`, `Bash(pnpm test)`, `Bash(npx vitest *)`, `Bash(git *)`, `Read(**)`, `Write(**)` |
@@ -244,7 +244,7 @@ Every 15 minutes:
   Fixed: auth.test.ts — added await on async assertion (was race condition)
   Re-run: 143 passed, 0 failed
   Committed: fix(test): stabilize flaky auth.test.ts
-  Cost so far: $0.78
+  Cost so far: \$0.78
 ```
 
 ---
@@ -272,7 +272,7 @@ Every 10 minutes:
 | Guard | Value |
 |---|---|
 | Max iterations | 30 |
-| Cost ceiling | $2.00 |
+| Cost ceiling | \$2.00 |
 | Stop condition | No new advisories for 6 consecutive cycles (1 hour) |
 | Human gate | PRs for critical advisories only; logs medium/low for manual review |
 | Permissions | `Bash(npm audit *)`, `Bash(pnpm audit *)`, `Bash(gh pr create *)`, `Bash(git *)` |
@@ -284,7 +284,7 @@ Every 10 minutes:
   Audit: 0 critical, 1 high (lodash prototype pollution), 2 moderate
   High: lodash 4.17.20 → 4.17.21 → PR #54 (tests passing)
   Moderate: logged to output/security/advisories.log
-  Cost so far: $0.22
+  Cost so far: \$0.22
 ```
 
 ---
@@ -313,7 +313,7 @@ Every hour:
 | Guard | Value |
 |---|---|
 | Max iterations | 12 (half a day) |
-| Cost ceiling | $3.00 |
+| Cost ceiling | \$3.00 |
 | Stop condition | No doc updates needed for 3 consecutive cycles |
 | Human gate | Never deletes doc files; only adds or updates sections |
 | Permissions | `Bash(git diff *)`, `Bash(git log *)`, `Read(**)`, `Write(docs/**)`, `Write(*.md)` |
@@ -327,7 +327,7 @@ Every hour:
   Updated: README.md — updated API reference table
   Generated: docs/api/utils.md (new module, stub created)
   Committed: docs: update for recent code changes
-  Cost so far: $0.55
+  Cost so far: \$0.55
 ```
 
 ---
@@ -347,7 +347,7 @@ Alerts if API costs exceed thresholds.
 Every 30 minutes:
 1. Read cost tracking data from `~/.claude/sessions/`
 2. Calculate current day/week/month spend
-3. Compare against thresholds: daily ($10), weekly ($50), monthly ($150)
+3. Compare against thresholds: daily (\$10), weekly (\$50), monthly (\$150)
 4. If threshold exceeded: write alert to `output/alerts/cost-alert.md`
 5. If approaching threshold (>80%): write warning
 
@@ -356,7 +356,7 @@ Every 30 minutes:
 | Guard | Value |
 |---|---|
 | Max iterations | 48 (one day of 30-min checks) |
-| Cost ceiling | $0.50 (this loop itself should be cheap) |
+| Cost ceiling | \$0.50 (this loop itself should be cheap) |
 | Stop condition | End of business day (6 PM local) |
 | Human gate | Read-only; never modifies cost data, only writes alerts |
 | Permissions | `Read(~/.claude/sessions/**)`, `Write(output/alerts/**)` |
@@ -365,11 +365,11 @@ Every 30 minutes:
 
 ```
 [cost-monitor] Iteration 6 @ 12:00
-  Today: $4.20 / $10.00 (42%)
-  This week: $28.50 / $50.00 (57%)
-  This month: $89.00 / $150.00 (59%)
+  Today: \$4.20 / \$10.00 (42%)
+  This week: \$28.50 / \$50.00 (57%)
+  This month: \$89.00 / \$150.00 (59%)
   Status: All within limits
-  Cost so far: $0.03
+  Cost so far: \$0.03
 ```
 
 ---
@@ -398,7 +398,7 @@ Every 5 minutes:
 | Guard | Value |
 |---|---|
 | Max iterations | 30 |
-| Cost ceiling | $3.00 |
+| Cost ceiling | \$3.00 |
 | Stop condition | Build passing for 2 consecutive checks |
 | Human gate | Max 2 fix attempts per failure; escalates after that |
 | Permissions | `Bash(gh run *)`, `Bash(git *)`, `Bash(npm run *)`, `Read(**)`, `Write(**)` |
@@ -412,7 +412,7 @@ Every 5 minutes:
   Fix: Added userId to Request interface extension
   Pushed: fix(types): add userId to Request interface
   Waiting for CI re-run...
-  Cost so far: $0.44
+  Cost so far: \$0.44
 ```
 
 ---
@@ -441,7 +441,7 @@ Every 2 hours:
 | Guard | Value |
 |---|---|
 | Max iterations | 6 (half a day) |
-| Cost ceiling | $2.00 |
+| Cost ceiling | \$2.00 |
 | Stop condition | No new patterns found for 2 consecutive cycles |
 | Human gate | Never overwrites existing lessons; only appends new ones |
 | Permissions | `Read(~/.claude/sessions/**)`, `Read(tasks/**)`, `Write(tasks/lessons.md)` |
@@ -455,7 +455,7 @@ Every 2 hours:
     1. "Always run tsc before commit" — added to tasks/lessons.md
     2. "Use zod.coerce for form inputs" — added to tasks/lessons.md
   Existing patterns reinforced: 3
-  Cost so far: $0.38
+  Cost so far: \$0.38
 ```
 
 ---

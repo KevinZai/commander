@@ -1,19 +1,21 @@
 #!/usr/bin/env node
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
+import { readStdinJson, sessionKey } from './lib/session-key.mjs';
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 
-const SESSIONS_DIR = join(process.env.HOME, '.claude', 'commander', 'sessions');
+const SESSIONS_DIR = join(stateDir(), 'sessions');
 const ACTIVE_FILE = join(SESSIONS_DIR, 'active-session.json');
-// Session-keyed tool-call budget file (see cost-tracker.js)
-const SESSION_KEY = (process.env.CLAUDE_SESSION_ID || 'default').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'default';
-const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
 
 async function main() {
   try {
+    // Session-keyed tool-call budget file (see cost-tracker.js)
+    const key = sessionKey(await readStdinJson());
+    const COST_FILE = join(SESSIONS_DIR, `active-cost-${key}.json`);
     if (!existsSync(SESSIONS_DIR)) await mkdir(SESSIONS_DIR, { recursive: true });
 
     let session = {};
@@ -31,8 +33,11 @@ async function main() {
     const shortId = randomBytes(4).toString('hex');
     const filename = `${dateStr}-${shortId}.json`;
 
+    // sessionId lets session-end (same SessionEnd event, run in parallel) find
+    // this archive after active-session.json is gone (CC-1360 F14).
     const summary = {
       ...session,
+      sessionId: key,
       status: 'complete',
       completedAt: now.toISOString(),
       toolCalls: costData.toolCalls,

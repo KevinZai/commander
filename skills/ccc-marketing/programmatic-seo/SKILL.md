@@ -77,7 +77,7 @@ Better to have 100 great pages than 10,000 thin ones.
 |----------|---------|---------|
 | Templates | "[Type] template" | "resume template" |
 | Curation | "best [category]" | "best website builders" |
-| Conversions | "[X] to [Y]" | "$10 USD to GBP" |
+| Conversions | "[X] to [Y]" | "\$10 USD to GBP" |
 | Comparisons | "[X] vs [Y]" | "webflow vs wordpress" |
 | Examples | "[type] examples" | "landing page examples" |
 | Locations | "[service] in [location]" | "dentists in austin" |

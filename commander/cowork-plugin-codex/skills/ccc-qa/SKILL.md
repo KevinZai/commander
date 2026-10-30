@@ -1,6 +1,6 @@
 ---
 name: ccc-qa
-description: "QA pass before shipping: detects the framework, runs unit, integration and E2E suites, computes the coverage delta, audits flaky tests and has qa-engineer severity-rate gaps. Use when the user asks for a QA pass, to run all tests, check coverage, find flaky tests or if it is ready to ship."
+description: "Pre-ship QA pass: runs unit, integration and E2E suites, coverage delta and a flaky-test audit. Use to run all tests or check ship readiness."
 allowed-tools:
   - Bash
   - Read
@@ -9,8 +9,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[unit | integration | e2e | all | coverage | flaky]"
-model: sonnet
-effort: medium
 ---
 
 # $ccc-qa — QA pass before you ship
@@ -141,7 +139,7 @@ Render the agent's report, then ask with AskUserQuestion. Put 🟢 on "Fix faili
 - question: "QA complete — what next?" · header: "Next"
 - 🔧 Fix failing tests — work through 🔴 and 🟠 findings before shipping
 - 📝 Write missing edge-case tests — scaffold the cases the qa-engineer surfaced
-- 🚀 Ship with findings logged — writes `.ccc/qa-report.md` and hands off to `$ccc-ship`; offered only when there are zero 🔴 findings
+- 🚀 Ship with findings logged — writes `.ccc/qa-report.md` and asks the user to type `$ccc-ship` (it is not invocable from here); offered only when there are zero 🔴 findings
 - 📌 File issues to Linear — opt-in Linear connector via `$ccc-linear`, one issue per 🟠-or-worse finding; asks before creating anything
 
 ## Done when

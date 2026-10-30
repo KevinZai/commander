@@ -31,6 +31,9 @@ function collectActions(adventuresDir) {
 test('tmux mode menu actions do not crash and fail gracefully', async function() {
   var tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-tmux-audit-'));
   process.env.HOME = tmpHome;
+  // State is per lane (<config dir>/commander): keep it inside the sandbox too.
+  delete process.env.CLAUDE_CONFIG_DIR;
+  delete process.env.CCC_CONFIG_DIR;
   process.env.CCC_TMUX_SESSION = 'ci-audit-session';
   process.env.CCC_SIMPLE = '1';
 
