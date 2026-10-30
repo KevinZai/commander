@@ -9,6 +9,9 @@
  * plugin.json, fetch timeout, cache-write failure — never surfaces as an
  * error and never blocks the session.
  *
+ * CCC_OFFLINE=1 (or "offline": true in ~/.commander/config.json) skips the
+ * check entirely: no fetch, no cache write, silent.
+ *
  * Self-contained by design: does NOT import commander/update-check.js.
  * That module lives outside cowork-plugin/ and is not guaranteed to ship
  * in every plugin bundle (e.g. a slimmed mirror for another surface), and
@@ -17,8 +20,9 @@
  */
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
+import { isOffline } from '../lib/network-mode.js';
 import { fileURLToPath } from 'node:url';
-import { homedir } from 'node:os';
 import { emitModel, emitSilent } from './lib/emit.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -69,8 +73,7 @@ function resolvePluginRoot(env) {
 }
 
 function cacheFilePath(env) {
-  const home = env.HOME || env.USERPROFILE || homedir();
-  return join(home, '.claude', 'commander', 'update-nudge.json');
+  return join(stateDir(env), 'update-nudge.json');
 }
 
 async function readLocalVersion(env) {
@@ -121,6 +124,7 @@ function nudgeMessage(installed, latest) {
  */
 export async function run({ env = process.env, fetchText = defaultFetchText, now = Date.now } = {}) {
   try {
+    if (isOffline(env)) return emitSilent();
     const localVersion = await readLocalVersion(env);
     const cache = await readCache(env);
     const nowMs = now();

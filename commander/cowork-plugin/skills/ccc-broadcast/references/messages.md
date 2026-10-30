@@ -2,7 +2,9 @@
 
 Reference for SKILL.md `setup` and `digest`.
 
-## Config: `~/.claude/commander/broadcast.json`
+## Config: `<config dir>/commander/broadcast.json`
+
+The config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`.
 
 ```json
 {
@@ -14,6 +16,7 @@ Reference for SKILL.md `setup` and `digest`.
   "digestWindowHours": 24,
   "dailyBudgetUsd": 10,
   "audiences": { "ci": "team", "cost": "owner" },
+  "opsChannel": null,
   "lastDigestAt": null,
   "recent": []
 }
@@ -23,8 +26,9 @@ Reference for SKILL.md `setup` and `digest`.
 - `noise`: `quiet` | `normal` | `verbose`.
 - `confirm`: `true` asks before each send; `false` means "Send automatically".
 - `audiences`: per-signal override of the default audience (`ship`, `ci`, `task`, `cost`, `incident`, `digest`).
-- `recent`: last 20 relays, `{at, signal, channel, summary, ok, messageId}`.
-- No credentials ever go in this file.
+- `opsChannel`: `null`, or `{ "channel": "chat" | "email", "target": "#ops" }` to send every signal to that one channel (the routing default `lib/broadcast-route.js` applies). It needs its `channel` listed in `channels`; otherwise relays stay log-only. The channel must already exist; setup never creates one.
+- `recent`: last 20 relays, `{at, signal, channel, summary, key, ok, messageId}`. `key` is the dedup key (signal + scope + summary, where scope is the repo plus the event id); `ok` is `true` only when the connector returned `messageId`.
+- No credentials ever go in this file; the router refuses a config with a token, secret, password, webhook or API-key field.
 
 ## Message formats
 

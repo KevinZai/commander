@@ -40,7 +40,7 @@ for (const skill of PORTED_SKILLS) {
     const body = fm[1];
     assert.match(body, /name:/, 'frontmatter must have name');
     assert.match(body, /description:/, 'frontmatter must have description');
-    assert.match(body, /model:/, 'frontmatter must have model');
+    assert.doesNotMatch(body, /^(model|effort):/m, 'no model pin: a skill keeps the session model (CC-2115)');
     // Description must not contain angle brackets (audit-frontmatter gate)
     const descMatch = body.match(/description:\s*"([^"]+)"/);
     if (descMatch) {

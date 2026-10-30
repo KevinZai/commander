@@ -10,9 +10,10 @@
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join, basename } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 
-const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
 const CAPTURES_FILE = join(KNOWLEDGE_DIR, 'auto-captures.jsonl');
 const TEST_CACHE_FILE = join(CCC_DIR, 'last-test-result.json');

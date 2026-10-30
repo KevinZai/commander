@@ -214,7 +214,7 @@ Build routing rules that prioritize speed. Alert reps immediately. Escalate if S
 
 ### When You Need a Deal Desk
 
-- ACV above **$25K** (or your threshold for non-standard deals)
+- ACV above **\$25K** (or your threshold for non-standard deals)
 - Non-standard payment terms (net-90, quarterly billing)
 - Multi-year contracts with custom pricing
 - Volume discounts beyond published tiers

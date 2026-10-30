@@ -1,6 +1,6 @@
 ---
 name: ccc-makeover
-description: "Score project health with /ccc-xray, apply the top recommendations one at a time with your OK, and show a before/after report card. Use when the user asks for a health check, wants the top issues fixed automatically, asks for a project score or report card, or types /ccc-makeover."
+description: "Score project health with /ccc-xray, apply the top fixes one at a time with your OK, and show a before/after report card. Use to fix top issues."
 allowed-tools:
   - Read
   - Write
@@ -12,7 +12,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[xray | makeover | report-card] [--dry-run] [--auto] [--max N] [--category CAT]"
 model: inherit
-effort: medium
 ---
 
 # /ccc-makeover — audit, fix, re-score
@@ -86,7 +85,7 @@ Maturity level from the overall score:
 - Never apply a fix without the step 3.4 picker unless `--auto` was passed in this request.
 - Never report a score improvement without the step 3.6 re-scan.
 - Never continue past a failing test run without the user's choice.
-- Never commit, push, or open a PR; hand off to `/ccc-ship` when the user wants that.
+- Never commit, push, or open a PR; when the user wants that, ask them to type `/ccc-ship` (it is not invocable from here).
 - Never discard edits without an explicit confirmation.
 
 ## See also

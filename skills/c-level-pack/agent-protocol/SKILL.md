@@ -57,8 +57,8 @@ Caveat: [one line — what could make this wrong]
 [RESPONSE:cfo]
 Key finding: Hiring 5 engineers in Q3 extends runway from 14 to 9 months at current burn.
 Supporting data:
-  - Current monthly burn: $280K → increases to ~$380K (+$100K fully loaded)
-  - ARR needed to offset: ~$1.2M additional within 12 months
+  - Current monthly burn: \$280K → increases to ~\$380K (+\$100K fully loaded)
+  - ARR needed to offset: ~\$1.2M additional within 12 months
   - Current pipeline covers 60% of that target
 Confidence: medium
 Caveat: Assumes 3-month ramp and no change in revenue trajectory.
@@ -183,8 +183,8 @@ Before presenting, every role runs this internal checklist:
 ```
 SELF-VERIFY CHECKLIST:
 □ Source Attribution — Where did each data point come from?
-  ✅ "ARR is $2.1M (from CRO pipeline report, Q4 actuals)"
-  ❌ "ARR is around $2M" (no source, vague)
+  ✅ "ARR is \$2.1M (from CRO pipeline report, Q4 actuals)"
+  ❌ "ARR is around \$2M" (no source, vague)
 
 □ Assumption Audit — What am I assuming vs what I verified?
   Tag every assumption: [VERIFIED: checked against data] or [ASSUMED: not verified]

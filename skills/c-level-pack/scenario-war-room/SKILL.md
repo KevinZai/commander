@@ -29,7 +29,7 @@ Or describe the scenario:
 ```
 /war-room "What if we lose our top customer AND miss the Q3 fundraise?"
 /war-room "What if 3 engineers quit AND we need to ship by Q3?"
-/war-room "What if our market shrinks 30% AND a competitor raises $50M?"
+/war-room "What if our market shrinks 30% AND a competitor raises \$50M?"
 ```
 
 ## What This Is Not
@@ -78,7 +78,7 @@ For each variable, each relevant role models impact:
 This is the core. Show how Variable A triggers consequences in domains that trigger Variable B's effects:
 
 ```
-TRIGGER: Customer churn ($560K ARR)
+TRIGGER: Customer churn (\$560K ARR)
   ↓
 CFO: Runway drops 14 → 8 months
   ↓
@@ -138,8 +138,8 @@ For each scenario: actions to take **now** (before the scenario materializes) th
 
 | Hedge | Cost | Impact | Owner | Deadline |
 |-------|------|--------|-------|---------|
-| Establish $500K credit line | $5K/year | Buys 3 months if churn hits | CFO | 60 days |
-| 12-month retention bonus for 3 key engineers | $90K | Locks team through fundraise | CHRO | 30 days |
+| Establish \$500K credit line | \$5K/year | Buys 3 months if churn hits | CFO | 60 days |
+| 12-month retention bonus for 3 key engineers | \$90K | Locks team through fundraise | CHRO | 30 days |
 | Diversify to <20% revenue concentration per customer | Sales effort | Reduces single-customer risk | CRO | 2 quarters |
 | Compress fundraise timeline, start parallel process | CEO time | Closes before runways merge | CEO | Immediate |
 
@@ -182,7 +182,7 @@ RECOMMENDED DECISION
 
 **Max 3 variables per scenario.** More than 3 is noise — you can't meaningfully prepare for 5-variable collapse. Model the 3 that actually worry you.
 
-**Quantify or estimate.** "Revenue drops" is not useful. "$420K ARR at risk over 60 days" is. Use ranges if uncertain.
+**Quantify or estimate.** "Revenue drops" is not useful. "\$420K ARR at risk over 60 days" is. Use ranges if uncertain.
 
 **Don't stop at first-order effects.** The damage is always in the cascade, not the initial hit.
 

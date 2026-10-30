@@ -73,7 +73,7 @@ async function section(name, read, errors) {
 
 /**
  * @param {object} [opts]
- * @param {string} [opts.baseDir]  telemetry root (default ~/.claude/commander)
+ * @param {string} [opts.baseDir]  telemetry root (default: the lane state dir, ~/.claude/commander)
  * @param {string|number|Date} [opts.now]  pinned clock; defaults to Date.now()
  * @param {boolean} [opts.recompute]  forwarded to readUsageModel — false skips
  *   its getMetrics() `ccusage` recompute side effect (tests, offline renders)

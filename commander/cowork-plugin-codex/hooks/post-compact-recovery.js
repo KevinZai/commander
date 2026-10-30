@@ -20,6 +20,7 @@
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { fileURLToPath } from 'node:url';
 import { emitUser } from './lib/emit.mjs';
 
@@ -38,8 +39,7 @@ export async function run({ input: _input, env = process.env, cwd: _cwd } = {}) 
   if (isSessionStart && input.source !== 'compact') {
     return { continue: true, suppressOutput: true };
   }
-  const HOME = env.HOME || env.USERPROFILE || '/tmp';
-  const cccDir = join(HOME, '.claude', 'commander');
+  const cccDir = stateDir(env);
   const sessionFile = join(cccDir, 'sessions', 'active-session.json');
   const stateFile = join(cccDir, 'session-state.json');
   try {

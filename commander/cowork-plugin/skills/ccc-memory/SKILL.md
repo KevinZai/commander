@@ -9,8 +9,7 @@ allowed-tools:
   - Grep
   - AskUserQuestion
 argument-hint: "[read | add | correct | consolidate]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-memory — Two-tier persistent memory

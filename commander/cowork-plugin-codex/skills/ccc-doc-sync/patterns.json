@@ -1,5 +1,5 @@
 {
-  "_comment": "Declarative replacement patterns for ccc-doc-sync. Each entry maps a file to its count/version patterns. replacement_template uses ${plugin_skills}, ${specialist_agents}, ${hook_handlers}, ${version}. regex must be a valid JS RegExp string (no /flags/ delimiters). Add a 'flags' field for regex flags (default: 'g').",
+  "_comment": "Declarative replacement patterns for ccc-doc-sync. Each entry maps a file to its count/version patterns. replacement_template uses ${plugin_skills}, ${specialist_agents}, ${lifecycle_hooks}, ${hook_handlers}, ${bundled_mcp_servers}, ${visible_skills}, ${on_demand_skills}, ${version}. regex must be a valid JS RegExp string (no /flags/ delimiters). Add a 'flags' field for regex flags (default: 'g').",
   "patterns": [
     {
       "file": "README.md",
@@ -123,6 +123,51 @@
           "regex": "(\\[Plugin Skills\\].*?badge/)\\d+(_Plugin_Skills-)",
           "flags": "g",
           "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(\\| Plugin skills \\(`/ccc-\\*`\\) \\| )\\d+(: )\\d+( model-visible, )\\d+( on demand \\|)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2${visible_skills}$3${on_demand_skills}$4"
+        },
+        {
+          "regex": "(\\| Specialist agents \\| )\\d+( \\|)",
+          "flags": "g",
+          "template": "$1${specialist_agents}$2"
+        },
+        {
+          "regex": "(\\| Lifecycle hooks \\| )\\d+( hook events, )\\d+( handlers \\|)",
+          "flags": "g",
+          "template": "$1${lifecycle_hooks}$2${hook_handlers}$3"
+        },
+        {
+          "regex": "(\\| Bundled MCP servers \\| )\\d+( bundled MCP)",
+          "flags": "g",
+          "template": "$1${bundled_mcp_servers}$2"
+        },
+        {
+          "regex": "(Claude sees )\\d+( skills: the 12 core skills)",
+          "flags": "g",
+          "template": "$1${visible_skills}$2"
+        },
+        {
+          "regex": "(The other )\\d+( set `disable-model-invocation: true`)",
+          "flags": "g",
+          "template": "$1${on_demand_skills}$2"
+        },
+        {
+          "regex": "(the full generated table of all )\\d+(, with which ones Claude sees)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(# CC Commander\\n[\\s\\S]*?badge/v)[\\d.]+(-4F46E5)",
+          "flags": "g",
+          "template": "$1${version}$2"
+        },
+        {
+          "regex": "(\\| What ships in v)[\\d.]+( \\|)",
+          "flags": "g",
+          "template": "$1${version}$2"
         }
       ]
     },
@@ -173,6 +218,16 @@
           "regex": "(17 personas, lifecycle hooks,.*?\\d+)( personas,)",
           "flags": "g",
           "template": "$1$2"
+        },
+        {
+          "regex": "(\\*\\*Claude sees )\\d+( of the )\\d+( plugin skills\\.\\*\\*)",
+          "flags": "g",
+          "template": "$1${visible_skills}$2${plugin_skills}$3"
+        },
+        {
+          "regex": "(are model-visible; the other )\\d+( load on demand)",
+          "flags": "g",
+          "template": "$1${on_demand_skills}$2"
         }
       ]
     },
@@ -233,6 +288,26 @@
           "regex": "(Pre-flight checks \\+.*?\\.)\\s*(\\d+)(-point gate)",
           "flags": "g",
           "template": "$1 ${plugin_skills}$3"
+        },
+        {
+          "regex": "## The \\d+( plugin skills)",
+          "flags": "g",
+          "template": "## The ${plugin_skills}$1"
+        },
+        {
+          "regex": "(Claude sees )\\d+( of them \\(model-visible)",
+          "flags": "g",
+          "template": "$1${visible_skills}$2"
+        },
+        {
+          "regex": "(the other )\\d+( load on demand: their descriptions)",
+          "flags": "g",
+          "template": "$1${on_demand_skills}$2"
+        },
+        {
+          "regex": "(for the )\\d+( Desktop plugin skills)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
         }
       ]
     },
@@ -283,6 +358,21 @@
           "regex": "(\\*\\*\\d+)( lifecycle hooks ×\\s*)\\d+( handlers\\*\\*)",
           "flags": "g",
           "template": "**9$2${hook_handlers}$3"
+        },
+        {
+          "regex": "(; )\\d+( model-visible, the rest load on demand\\))",
+          "flags": "g",
+          "template": "$1${visible_skills}$2"
+        },
+        {
+          "regex": "(\\. )\\d+( plugin skills \\(click-first)",
+          "flags": "g",
+          "template": "$1${plugin_skills}$2"
+        },
+        {
+          "regex": "(, )\\d+( lifecycle hooks × )\\d+( handlers)",
+          "flags": "g",
+          "template": "$1${lifecycle_hooks}$2${hook_handlers}$3"
         }
       ]
     },

@@ -9,8 +9,7 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[staging | production | --power]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-deploy-check — Pre-deploy readiness gate

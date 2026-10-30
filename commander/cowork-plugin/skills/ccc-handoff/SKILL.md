@@ -7,8 +7,7 @@ allowed-tools:
   - Bash
   - Glob
 argument-hint: "[optional topic or short-id]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-handoff — Hand off to a fresh session
@@ -28,6 +27,8 @@ Use it:
 - At the end of a work session. This overlaps `/ccc-save-session`; session end is one trigger among many here.
 
 If the question is "hand off now or wait", hand off now. Frequent handoffs are cheap; degraded output is not.
+
+Context cues: CCC's context guard nudges once per tier. At **70%** used, write the handoff now while what worked, what failed and the next step are fresh. At **85%**, hand off before starting anything long; at **90%**, finish the current step and leave. At 95% it auto-saves a snapshot, which is not a substitute for this file.
 
 Do not use it to summarize for a human reader (use `/ccc-standup`) or to compact in place. This skill ends the current chat's working life.
 

@@ -134,7 +134,7 @@ CODEX SAYS (code review):
 ════════════════════════════════════════════════════════════
 <full codex output, verbatim — do not truncate or summarize>
 ════════════════════════════════════════════════════════════
-GATE: PASS                    Tokens: 14,331 | Est. cost: ~$0.12
+GATE: PASS                    Tokens: 14,331 | Est. cost: ~\$0.12
 ```
 
 or

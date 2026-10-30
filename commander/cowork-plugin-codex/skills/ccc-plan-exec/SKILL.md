@@ -8,8 +8,7 @@ allowed-tools:
   - Workflow
   - AskUserQuestion
 argument-hint: "[\"loop description in quotes\"]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-plan-exec — plan cheap, execute capable

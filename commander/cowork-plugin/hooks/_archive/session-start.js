@@ -10,6 +10,7 @@
  */
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readablePath, stateDir } from '../../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -32,12 +33,13 @@ const PLUGIN_JSON = [
  * Caller may pass { home, cwd } overrides; defaults read from process.env / process.cwd().
  */
 export async function run({ home, cwd: _cwd } = {}) {
-  const HOME = home || process.env.HOME;
-  const CCC_DIR = join(HOME, '.claude', 'commander');
+  const laneEnv = home ? { ...process.env, HOME: home } : process.env;
+  const CCC_DIR = stateDir(laneEnv);
   const SESSIONS_DIR = join(CCC_DIR, 'sessions');
   const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
   const STATE_FILE = join(CCC_DIR, 'state.json');
-  const CLAUDE_SESSIONS_DIR = join(HOME, '.claude', 'sessions');
+  // Read the legacy ~/.claude/commander/state.json until this lane has its own copy.
+  const STATE_SRC = readablePath('state.json', laneEnv);
 
   try {
     for (const dir of [CCC_DIR, SESSIONS_DIR, KNOWLEDGE_DIR]) {
@@ -56,14 +58,14 @@ export async function run({ home, cwd: _cwd } = {}) {
       packageVersion = pkgJson.version || packageVersion;
     } catch {}
 
-    const isFirstRun = !existsSync(STATE_FILE);
+    const isFirstRun = !existsSync(STATE_SRC);
     if (isFirstRun) {
       try {
         await writeFile(STATE_FILE, JSON.stringify({
           onboardingCompleted: false,
           firstRunAt: new Date().toISOString(),
           installedVersion: pluginVersion,
-          last_seen_version: packageVersion,
+          last_seen_version: packageVersion === 'unknown' ? null : packageVersion,
         }, null, 2));
       } catch {}
     }
@@ -77,26 +79,19 @@ export async function run({ home, cwd: _cwd } = {}) {
     let onboardingCompleted = false;
     let versionTransition = false;
     try {
-      const state = JSON.parse(await readFile(STATE_FILE, 'utf8'));
+      const state = JSON.parse(await readFile(STATE_SRC, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
       const lastSeen = state.last_seen_version;
-      if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {
+      // 'unknown' (no manifest found) is no signal: no nudge, never stored as last_seen_version.
+      if (!isFirstRun && packageVersion !== 'unknown' && lastSeen && lastSeen !== packageVersion) {
         versionTransition = true;
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
-      } else if (!isFirstRun && !lastSeen) {
+      } else if (!isFirstRun && packageVersion !== 'unknown' && !lastSeen) {
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
       }
     } catch {}
-
-    let isFirstSession = false;
-    try {
-      const claudeSessions = await readdir(CLAUDE_SESSIONS_DIR).catch(() => []);
-      isFirstSession = claudeSessions.length === 0;
-    } catch {
-      isFirstSession = true;
-    }
 
     const activeFile = join(SESSIONS_DIR, 'active-session.json');
     try {
@@ -106,10 +101,13 @@ export async function run({ home, cwd: _cwd } = {}) {
       }, null, 2));
     } catch {}
 
-    if (!onboardingCompleted && isFirstSession) {
+    // First run = CCC's own state.json did not exist before this session, not
+    // an empty ~/.claude/sessions (anyone who used Claude Code before
+    // installing CCC never saw the welcome; CC-1360 F24).
+    if (!onboardingCompleted && isFirstRun) {
       return {
         continue: true,
-        suppressOutput: true,
+        suppressOutput: false,
         status: '👋 Welcome to CC Commander! Run /ccc-start for a 60-second tour.',
       };
     }
@@ -131,11 +129,11 @@ export async function run({ home, cwd: _cwd } = {}) {
   }
 }
 
-const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const SESSIONS_DIR = join(CCC_DIR, 'sessions');
 const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
 const STATE_FILE = join(CCC_DIR, 'state.json');
-const CLAUDE_SESSIONS_DIR = join(process.env.HOME, '.claude', 'sessions');
+const STATE_SRC = readablePath('state.json');
 
 async function main() {
   try {
@@ -158,14 +156,14 @@ async function main() {
     } catch {}
 
     // Seed state.json on first run (idempotent — never clobber existing state)
-    const isFirstRun = !existsSync(STATE_FILE);
+    const isFirstRun = !existsSync(STATE_SRC);
     if (isFirstRun) {
       try {
         await writeFile(STATE_FILE, JSON.stringify({
           onboardingCompleted: false,
           firstRunAt: new Date().toISOString(),
           installedVersion: pluginVersion,
-          last_seen_version: packageVersion,
+          last_seen_version: packageVersion === 'unknown' ? null : packageVersion,
         }, null, 2));
       } catch {}
     }
@@ -180,15 +178,16 @@ async function main() {
     let onboardingCompleted = false;
     let versionTransition = false;
     try {
-      const state = JSON.parse(await readFile(STATE_FILE, 'utf8'));
+      const state = JSON.parse(await readFile(STATE_SRC, 'utf8'));
       onboardingCompleted = !!state.onboardingCompleted;
       const lastSeen = state.last_seen_version;
-      if (!isFirstRun && lastSeen && lastSeen !== packageVersion) {
+      // 'unknown' (no manifest found) is no signal: no nudge, never stored as last_seen_version.
+      if (!isFirstRun && packageVersion !== 'unknown' && lastSeen && lastSeen !== packageVersion) {
         versionTransition = true;
         // Update last_seen_version so nudge only fires once per upgrade
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
-      } else if (!isFirstRun && !lastSeen) {
+      } else if (!isFirstRun && packageVersion !== 'unknown' && !lastSeen) {
         // Backfill field for existing installs — treat as no transition
         const updated = { ...state, last_seen_version: packageVersion };
         await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
@@ -196,14 +195,6 @@ async function main() {
     } catch {}
 
     // Detect if this is the user's first-ever Claude session (no prior session history)
-    let isFirstSession = false;
-    try {
-      const claudeSessions = await readdir(CLAUDE_SESSIONS_DIR).catch(() => []);
-      isFirstSession = claudeSessions.length === 0;
-    } catch {
-      isFirstSession = true;
-    }
-
     const activeFile = join(SESSIONS_DIR, 'active-session.json');
     try {
       await writeFile(activeFile, JSON.stringify({
@@ -212,11 +203,11 @@ async function main() {
       }, null, 2));
     } catch {}
 
-    // Auto-prompt /ccc-start on first session when onboarding not yet completed
-    if (!onboardingCompleted && isFirstSession) {
+    // Auto-prompt /ccc-start on CCC's first run when onboarding is not completed
+    if (!onboardingCompleted && isFirstRun) {
       console.log(JSON.stringify({
         continue: true,
-        suppressOutput: true,
+        suppressOutput: false,
         status: '👋 Welcome to CC Commander! Run /ccc-start for a 60-second tour.',
       }));
       return;

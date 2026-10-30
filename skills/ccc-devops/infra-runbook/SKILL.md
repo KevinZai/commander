@@ -19,7 +19,7 @@ allowed-tools:
 pm2 jlist | jq -r '.[] | "\(.name)\t\(.pm2_env.status)\t\(.pm2_env.restart_time)"'
 
 # What's listening?
-lsof -iTCP -sTCP:LISTEN -nP | grep -E ":(18789|3110|5678|3100|11434|1234)" | awk '{print $1, $9}'
+lsof -iTCP -sTCP:LISTEN -nP | grep -E ":(18789|3110|5678|3100|11434|1234)" | awk '{print \$1, \$9}'
 
 # Disk pressure?
 df -h /System/Volumes/Data | tail -1

@@ -18,7 +18,7 @@
  */
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { homedir } from 'node:os';
+import { stateDir } from '../lib/lane-state.js';
 import { emitModel, emitSilent } from './lib/emit.mjs';
 
 const clip = (v, n) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, n);
@@ -47,7 +47,7 @@ async function main() {
   const event = input.hook_event_name;
   if (event === 'PreModelSwitch' || event === 'PostModelSwitch') {
     try {
-      const dir = join(process.env.HOME || homedir(), '.claude', 'commander');
+      const dir = stateDir();
       await mkdir(dir, { recursive: true });
       const row = {
         timestamp: new Date().toISOString(),

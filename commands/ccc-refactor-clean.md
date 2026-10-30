@@ -36,7 +36,7 @@ description: "Find and remove dead code one item at a time, running the test sui
    If no tool is available, find exported names and count their references:
 
    ```bash
-   rg --no-filename -o -r '$1' '^export (?:const|function|class|type|interface) (\w+)' <path> | sort -u
+   rg --no-filename -o -r '\$1' '^export (?:const|function|class|type|interface) (\w+)' <path> | sort -u
    rg -n --fixed-strings '<name>' --glob '!<defining-file>' <path>
    ```
 

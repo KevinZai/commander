@@ -18,12 +18,13 @@ process.on('unhandledRejection', function(reason) { _fatalHandler(reason instanc
 
 
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('\n  CC Commander — 450+ skills. One command. Your AI work, managed by AI.\n');
+  console.log('\n  CC Commander — 467 skills. One command. Your AI work, managed by AI.\n');
   console.log('  Usage:  ccc\n');
   console.log('  --version    Show version');
   console.log('  --test       Validate all modules');
   console.log('  --stats      Quick stats');
   console.log('  --doctor     Full-stack diagnostics');
+  console.log('  doctor --instances  Audit CCC in every ~/.claude* config dir (--json, --home DIR)');
   console.log('  --tuneup     Read-only tuneup diagnostics');
   console.log('  --savings    Estimated savings vs all-Opus baseline (today / month / all-time)');
   console.log('  --repair     Fix corrupt state');
@@ -34,6 +35,9 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --skills       Manage installed skills (list, available, install, remove, tier)');
   console.log('  --list-sessions  Session history (add --json for JSON)');
   console.log('  --status     Health check (JSON: version, skills, vendors)');
+  console.log('  checkin      Fleet check-in: versions, drift, lane, health (--json, --no-cli)');
+  console.log('  statusline sync  Diff each lane\'s status line with this checkout (--lane X, --apply, --json, --home DIR)');
+  console.log('  next         Fleet what-next for a job (JSON on stdin or --kind/--tags/--title; --json)');
   console.log('  --template   Print the latest CLAUDE.md template (pipe to file)');
   console.log('  --daemon     Start persistent background daemon');
   console.log('  --queue "task"  Add task to daemon queue');
@@ -43,7 +47,47 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --help       This help\n');
   process.exit(0);
 }
-if (args.includes('--version')) { var B = require(path.join(__dirname,'..','commander','branding')); console.log(B.product + ' v' + B.version); process.exit(0); }
+if (args.includes('--version')) {
+  var rel = require(path.join(__dirname,'..','commander','lib','release-info'));
+  var vr = rel.versionReport('CC Commander', rel.resolveRelease({ root: path.resolve(__dirname, '..') }));
+  console.log(vr.line);
+  vr.warnings.forEach(function(w) { console.error(w); });
+  process.exit(0);
+}
+// Agent API: checkin (Fleet check-in gate; docs/FLEET-CHECKIN.md)
+if (args[0] === 'checkin' || args.includes('--checkin')) {
+  var ci = require(path.join(__dirname,'..','commander','lib','checkin'));
+  var ciResult = ci.buildCheckin({ root: path.resolve(__dirname, '..'), cli: !args.includes('--no-cli') });
+  console.log(args.includes('--json') ? JSON.stringify(ciResult, null, 2) : ci.summaryLine(ciResult) + '\n' + ci.usageLine(ciResult));
+  process.exit(ci.exitCode(ciResult));
+}
+// Agent API: statusline sync (dry run unless --apply; docs/FLEET-CHECKIN.md)
+if (args[0] === 'statusline') {
+  var ss = require(path.join(__dirname,'..','commander','lib','statusline-sync'));
+  var ssOpt = function(flag) {
+    var i = args.indexOf(flag);
+    if (i < 0) return undefined;
+    if (!args[i + 1] || args[i + 1].indexOf('--') === 0) { process.stderr.write('ccc statusline sync: ' + flag + ' needs a value\n'); process.exit(2); }
+    return args[i + 1];
+  };
+  var ssUsage = 'usage: ccc statusline sync [--lane X] [--apply] [--json] [--home DIR]\n';
+  if (args[1] !== 'sync') { process.stderr.write(ssUsage); process.exit(2); }
+  // Reject anything unrecognised (e.g. --lane=ai4) before any write, so a typo never widens --apply to every lane.
+  for (var ssI = 2; ssI < args.length; ssI++) {
+    if (args[ssI] === '--lane' || args[ssI] === '--home') { ssI++; continue; }
+    if (args[ssI] !== '--apply' && args[ssI] !== '--json') { process.stderr.write('ccc statusline sync: unknown argument ' + args[ssI] + '\n' + ssUsage); process.exit(2); }
+  }
+  var ssHome = ssOpt('--home') || process.env.HOME;
+  try {
+    var ssResult = ss.plan({ home: ssHome, lane: ssOpt('--lane') });
+    if (args.includes('--apply')) ss.apply(ssResult);
+    console.log(args.includes('--json') ? JSON.stringify(ssResult, null, 2) : ss.render(ssResult, ssHome));
+    process.exit(ss.exitCode(ssResult));
+  } catch (e) {
+    process.stderr.write('ccc statusline sync: ' + e.message + '\n');
+    process.exit(e.exitCode || 1);
+  }
+}
 if (args.includes('--simple')) { /* handled below — skip split, go to engine */ }
 if (args.includes('--update')) {
   var { execSync } = require('child_process');
@@ -86,6 +130,35 @@ if (args.includes('--stats')) {
   console.log('  Cost:         $' + (s.totalCost||0).toFixed(2));
   console.log('  Level:        ' + st2.getUserLevel(cs) + '\n');
   process.exit(0);
+}
+// Agent API: next (Fleet "what next"; job JSON on stdin or --kind/--tags/--title; docs/FLEET-CHECKIN.md)
+if (args[0] === 'next' || args.includes('--next')) {
+  dispatching = true;
+  var nx = require(path.join(__dirname,'..','commander','lib','next'));
+  var nxEmit = function(r) {
+    console.log(args.includes('--json') ? JSON.stringify(r) : r.action + ' ' + r.when + ' ' + r.skill + ' (' + r.reason + ')');
+    process.exit(0);
+  };
+  var nxFail = function(e) { process.stderr.write('ccc next: ' + e.message + '\n'); process.exit(e.exitCode || 1); };
+  var nxJob = nx.jobFromArgs(args);
+  if (nxJob || process.stdin.isTTY) {
+    nx.next({ job: nxJob || {} }).then(nxEmit, nxFail);
+  } else {
+    var nxInput = '';
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', function(c) { nxInput += c; if (nxInput.length > 65536) nxFail({ message: 'input too large', exitCode: 2 }); });
+    process.stdin.on('end', function() { nx.next({ input: nxInput }).then(nxEmit, nxFail); });
+  }
+}
+// `ccc doctor` is the same as `ccc --doctor` (it used to open the menu).
+if (args[0] === 'doctor') args.push('--doctor');
+// Agent API: doctor --instances (read-only audit of every Claude config dir in HOME or --home)
+if (args.includes('--doctor') && args.includes('--instances')) {
+  var inst = require(path.join(__dirname,'..','commander','lib','instances'));
+  var homeIdx = args.indexOf('--home');
+  var instResult = inst.auditInstances({ root: path.resolve(__dirname, '..'), home: homeIdx >= 0 ? args[homeIdx + 1] : undefined });
+  console.log(args.includes('--json') ? JSON.stringify(instResult, null, 2) : inst.renderTable(instResult));
+  process.exit(instResult.ok ? 0 : 1);
 }
 if (args.includes('--doctor') || args.includes('--tuneup')) {
   var doc = require(path.join(__dirname, '..', 'commander', 'doctor'));

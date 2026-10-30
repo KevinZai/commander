@@ -270,6 +270,76 @@ function box(content, width) {
 
 // ─── Arrow-Key Select Menu ────────────────────────────────────────
 
+function isSeparatorItem(item) {
+  return typeof item !== 'string' && !!item && item.separator === true;
+}
+
+/**
+ * Keys for the non-TTY menu: an item's own one-character `key` when it is
+ * still free, else the next free letter, then numbers ("1", "2", …) once the
+ * letters run out, so long lists stay selectable. Separators get null.
+ */
+function fallbackKeys(items) {
+  var used = {};
+  items.forEach(function(item) {
+    var k = !isSeparatorItem(item) && typeof item !== 'string' && item ? item.key : null;
+    if (typeof k === 'string' && k.length === 1 && !used[k]) used[k] = 'declared';
+  });
+  var claimed = {};
+  var next = 0;
+  var num = 1;
+  return items.map(function(item) {
+    if (isSeparatorItem(item)) return null;
+    var k = typeof item !== 'string' && item ? item.key : null;
+    if (typeof k === 'string' && k.length === 1 && used[k] === 'declared' && !claimed[k]) {
+      claimed[k] = true;
+      return k;
+    }
+    while (next < 26 && used[String.fromCharCode(97 + next)]) next++;
+    var auto;
+    if (next < 26) {
+      auto = String.fromCharCode(97 + next);
+    } else {
+      while (used[String(num)]) num++;
+      auto = String(num);
+    }
+    used[auto] = 'auto';
+    claimed[auto] = true;
+    return auto;
+  });
+}
+
+/**
+ * Plain-text menu for a non-TTY stdin. Separators render as blank lines.
+ * Returns {text, keys, indexOf(answer)}; indexOf maps a typed key back to the
+ * item index, or -1.
+ */
+function renderFallbackMenu(items, prompt) {
+  var t = getTheme();
+  var keys = fallbackKeys(items);
+  var out = '\n  ' + (prompt || 'Choose:') + '\n\n';
+  items.forEach(function(item, i) {
+    if (isSeparatorItem(item)) { out += '\n'; return; }
+    if (!keys[i]) return;
+    var label = typeof item === 'string' ? item : item.label;
+    var desc = typeof item === 'string' ? '' : (item.description || '');
+    out += '    ' + colorText(keys[i] + ')', t.primary) + ' ' + label;
+    if (desc) out += '  ' + dimText(desc);
+    out += '\n';
+  });
+  out += '\n';
+  return {
+    text: out,
+    keys: keys,
+    indexOf: function(answer) {
+      var a = String(answer || '').trim();
+      var idx = keys.indexOf(a);
+      if (idx < 0) idx = keys.indexOf(a.toLowerCase());
+      return idx;
+    },
+  };
+}
+
 function select(items, prompt, options) {
   return new Promise(function(resolve) {
     // Start selection on first non-separator item
@@ -281,23 +351,13 @@ function select(items, prompt, options) {
     var t = getTheme();
 
     if (!stdin.setRawMode) {
-      // Fallback for non-TTY: use letter-based selection
-      stdout.write('\n  ' + (prompt || 'Choose:') + '\n\n');
-      items.forEach(function(item, i) {
-        var label = typeof item === 'string' ? item : item.label;
-        var desc = typeof item === 'string' ? '' : (item.description || '');
-        var key = String.fromCharCode(97 + i);
-        stdout.write('    ' + colorText(key + ')', t.primary) + ' ' + label);
-        if (desc) stdout.write('  ' + dimText(desc));
-        stdout.write('\n');
-      });
-      stdout.write('\n');
+      // Fallback for non-TTY: key-based selection
+      var menu = renderFallbackMenu(items, prompt);
+      stdout.write(menu.text);
       var rl = readline.createInterface({ input: stdin, output: stdout });
       rl.question('  > ', function(answer) {
         rl.close();
-        var idx = answer.trim().charCodeAt(0) - 97;
-        if (idx >= 0 && idx < items.length) resolve(idx);
-        else resolve(-1);
+        resolve(menu.indexOf(answer));
       });
       return;
     }
@@ -671,6 +731,8 @@ module.exports = {
   sparkline: sparkline,
   // Interactive
   select: select,
+  renderFallbackMenu: renderFallbackMenu,
+  fallbackKeys: fallbackKeys,
   spinner: spinner,
   typewriter: typewriter,
   // Screen

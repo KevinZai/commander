@@ -235,3 +235,36 @@ test('orchestrator handler outputs all aggregate (session-start contribution pre
   const activeFile = path.join(home, '.claude', 'commander', 'sessions', 'active-session.json');
   assert.ok(fs.existsSync(activeFile), 'session-start handler should have created active-session.json');
 });
+
+// CC-2041 — with no plugin manifest the banner says "unknown", and "unknown" is no
+// version signal: no "updated to" nudge and the stored last_seen_version is kept.
+// The handler copy runs from a temp plugin root so the manifests can be controlled.
+test('session-start handler treats a missing manifest as unknown, not a version change', async () => {
+  const home = mkHome();
+  const cccDir = path.join(home, '.claude', 'commander');
+  fs.mkdirSync(cccDir, { recursive: true });
+  const stateFile = path.join(cccDir, 'state.json');
+  fs.writeFileSync(stateFile, JSON.stringify({ onboardingCompleted: true, last_seen_version: '8.1.0' }));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-plugin-root-'));
+  fs.mkdirSync(path.join(root, 'hooks', '_archive'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'lib'));
+  const plugin = path.join(__dirname, '..', 'cowork-plugin');
+  const dst = path.join(root, 'hooks', '_archive', 'session-start.js');
+  fs.copyFileSync(path.join(plugin, 'hooks', '_archive', 'session-start.js'), dst);
+  fs.copyFileSync(path.join(plugin, 'lib', 'lane-state.js'), path.join(root, 'lib', 'lane-state.js'));
+  const load = () => import(require('node:url').pathToFileURL(dst).href + '?t=' + Math.random());
+  try {
+    let out = await (await load()).run({ home });
+    assert.match(out.status, /^CCC unknown \|/);
+    assert.doesNotMatch(out.status, /updated to/);
+    assert.equal(JSON.parse(fs.readFileSync(stateFile, 'utf8')).last_seen_version, '8.1.0');
+
+    // The generated Codex mirror ships .codex-plugin/plugin.json only.
+    fs.mkdirSync(path.join(root, '.codex-plugin'));
+    fs.writeFileSync(path.join(root, '.codex-plugin', 'plugin.json'), JSON.stringify({ version: '8.1.0' }));
+    out = await (await load()).run({ home });
+    assert.match(out.status, /^CCC 8\.1\.0 \|/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
