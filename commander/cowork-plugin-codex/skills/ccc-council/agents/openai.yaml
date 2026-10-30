@@ -1,0 +1,6 @@
+interface:
+  display_name: "Council"
+  short_description: "Three-provider read-only review with a score table"
+  default_prompt: "Use $ccc-council to get a read-only review from three providers, collect their scores, and summarize findings and next steps."
+policy:
+  allow_implicit_invocation: false

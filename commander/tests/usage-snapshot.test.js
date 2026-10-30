@@ -521,3 +521,23 @@ describe('readUsageModel — metrics recompute trigger (recompute:true default)'
     assert.equal(model.totalSavedUsd, 2.25);
   });
 });
+
+describe('usage-snapshot: lane savings (CC-2094)', () => {
+  it('prefers the lane savings.json from CLAUDE_CONFIG_DIR when no baseDir is given', async () => {
+    const { readUsageModel } = await loadLib();
+    const home = await fs.mkdtemp(path.join(os.tmpdir(), 'ccc usage lane '));
+    const laneDir = path.join(home, '.claude-ai3', 'commander');
+    await fs.mkdir(laneDir, { recursive: true });
+    await fs.writeFile(path.join(laneDir, 'savings.json'), JSON.stringify({ days: { '2026-10-20': { actualUsd: 1, baselineUsd: 3, savedUsd: 2, dispatches: 7 } } }));
+    const saved = { HOME: process.env.HOME, CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR, CCC_CONFIG_DIR: process.env.CCC_CONFIG_DIR };
+    process.env.HOME = home;
+    process.env.CLAUDE_CONFIG_DIR = path.join(home, '.claude-ai3');
+    delete process.env.CCC_CONFIG_DIR;
+    try {
+      const model = await readUsageModel({ recompute: false });
+      assert.equal(model.totalDispatches, 7);
+    } finally {
+      for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+    }
+  });
+});

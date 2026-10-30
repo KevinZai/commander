@@ -54,8 +54,9 @@
  */
 import { spawn } from 'node:child_process';
 import { access, appendFile, mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { readableStateDir, stateDir } from './lane-state.js';
+import { isOffline } from './network-mode.js';
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB — same rotation threshold as suggestions.js
 const MAX_JSONL_LINES = 5000; // Item 6 bounded-scan cap, per source file
@@ -101,8 +102,7 @@ function isTaskDone(status) {
 }
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
 }
 
 function metricsDir(baseDir) {
@@ -253,8 +253,12 @@ function cachedRunCcusage(args) {
   return promise;
 }
 
+// ccusage fetches model pricing from the network unless --offline is passed;
+// CCC_OFFLINE=1 makes it use its cached pricing instead.
 async function fetchCcusageDaily(subcommand, sinceYYYYMMDD, runner) {
-  const raw = await runner([subcommand, 'daily', '--json', '--since', sinceYYYYMMDD]);
+  const args = [subcommand, 'daily', '--json', '--since', sinceYYYYMMDD];
+  if (isOffline(process.env)) args.push('--offline');
+  const raw = await runner(args);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -483,7 +487,8 @@ async function rotateLog(dir, file) {
 async function appendMetrics(rows, { baseDir } = {}) {
   try {
     if (!Array.isArray(rows) || rows.length === 0) return true;
-    const root = baseDir || defaultBaseDir();
+    // Writes go to the lane's own dir; defaultBaseDir() may be the legacy read fallback.
+    const root = baseDir || stateDir();
     const dir = metricsDir(root);
     const file = metricsFile(root);
 
@@ -559,7 +564,7 @@ async function readMetrics({ baseDir } = {}) {
 // set once — tmp file + rename. Keeps metrics.jsonl bounded instead of growing
 // on every poll. Returns the merged, sorted rows. Never throws.
 async function persistMerged(rows, baseDir) {
-  const root = baseDir || defaultBaseDir();
+  const root = baseDir || stateDir();
   const dir = metricsDir(root);
   const file = metricsFile(root);
   try {
@@ -600,14 +605,15 @@ async function persistMerged(rows, baseDir) {
  * mission-control-snapshot.js call (each behind their own 30s TTL
  * cache — see Item 6). Never throws.
  */
-async function getMetrics({ baseDir, now, days, runner } = {}) {
+async function getMetrics({ baseDir, writeDir, now, days, runner } = {}) {
   try {
     const rows = await buildMetrics({ baseDir, now, days, runner });
     // Atomic-replace, not append: getMetrics runs on every (cache-missed) poll,
     // and appending the whole rollup each time grows the file without bound
     // (~15KB/poll). Merge fresh rows over the existing bounded set, keep older
     // dates outside the window, and write the file once.
-    const merged = await persistMerged(rows, baseDir);
+    // writeDir: where to persist when baseDir is only a read root (the legacy fallback).
+    const merged = await persistMerged(rows, writeDir || baseDir);
     const nowMs = now instanceof Date ? now.getTime() : Number.isFinite(now) ? now : Date.now();
     const windowDays = Number.isInteger(days) && days > 0 ? days : DEFAULT_DAYS;
     const wantedDates = new Set(dateRange(windowDays, nowMs));

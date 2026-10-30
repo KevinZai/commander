@@ -21,6 +21,7 @@ const EXCLUDED_PATTERNS = [
 ];
 
 async function main() {
+  track('hook_fired', { hook: 'PostToolUse', handler: 'console-log-warn' });
   let input = {};
   try {
     const chunks = [];
@@ -28,8 +29,6 @@ async function main() {
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {
-      track('hook_fired', { hook: 'PostToolUse', handler: 'console-log-warn' });
-
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

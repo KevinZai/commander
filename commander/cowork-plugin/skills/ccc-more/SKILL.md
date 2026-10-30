@@ -1,6 +1,6 @@
 ---
 name: ccc-more
-description: "Commander's second-page menu: plan, x-ray, Codex CLI management, fleet, Linear, connectors, tune-up, catalog browse and the plugin audit workflows, one click each. Use when the user picks More tools in /ccc, types /ccc-more, or asks what else Commander can do."
+description: "Commander's second-page menu: plan, x-ray, Codex, fleet, Linear, connectors, tune-up, catalog and audit workflows. Use when the user picks More tools."
 allowed-tools:
   - Read
   - Bash
@@ -9,8 +9,6 @@ allowed-tools:
   - Workflow
   - AskUserQuestion
 argument-hint: "[plan | xray | codex | fleet | linear | connect | tuneup | browse | workflows | audit | deep-review | migrate | prompt-audit | release-audit | back]"
-model: sonnet
-effort: low
 ---
 
 # /ccc-more — the rest of Commander
@@ -115,7 +113,7 @@ Plugin workflows page — header "Workflows" (details: [plugin-workflows.md](ref
 - 📊 Repo audit — `/commander:ccc-audit`: scorecard per dimension, findings verified
 - 🔬 Deep branch review — `/commander:ccc-deep-review`: diff against the base ref, findings refuted or confirmed
 - ✅ Release audit — `/commander:ccc-release-audit`: every release gate, go or no-go (Commander repository only)
-- ⏭️ More workflows — `/commander:ccc-fleet`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`
+- ⏭️ More workflows — `/commander:ccc-fleet-run`, `/commander:ccc-migrate`, `/commander:ccc-prompt-audit`
 
 Plugin workflows page 🟢: `dirty` printed or a non-zero commits-ahead count → Deep branch review; otherwise → Repo audit.
 
@@ -129,10 +127,10 @@ Dispatch immediately on a pick; do not ask again.
 |---|---|
 | Plan · `plan` | Skill `ccc-plan` |
 | X-ray · `xray` | Skill `ccc-xray` |
-| Codex CLI · `codex` | Skill `ccc-codex` |
+| Codex CLI · `codex` | `/ccc-codex` is user-invoked only: tell the user to type `/ccc-codex` |
 | Fleet · `fleet` | Skill `ccc-fleet` |
-| Linear · `linear` | Linear connected: Skill `ccc-linear`. Not connected: picker "🟢 Connect Linear now (`/ccc-connect linear`)" / "Back to More"; never call Linear tools that are absent |
-| Connect · `connect` | Skill `ccc-connect` |
+| Linear · `linear` | `/ccc-linear` is user-invoked only. Linear connected: tell the user to type `/ccc-linear`. Not connected: tell the user to type `/ccc-connect linear` first; never call Linear tools that are absent |
+| Connect · `connect` | `/ccc-connect` is user-invoked only: tell the user to type `/ccc-connect` |
 | Tune-up · `tuneup` | Skill `ccc-tuneup` |
 | Browse · `browse` | Skill `ccc-browse` |
 | Plugin workflows · `workflows` | Plugin workflows page |
@@ -141,7 +139,7 @@ Dispatch immediately on a pick; do not ask again.
 | Deep review · `deep-review` | Workflow `ccc-deep-review` with `args: { base: "<origin/HEAD short name, else main>" }` |
 | Release audit · `release-audit` | Only when `commander/contract.json` and `scripts/build-codex.js` exist in the working directory: Workflow `ccc-release-audit` with `args: {}`. Elsewhere, say it audits the Commander repository and does not apply here |
 | Prompt audit · `prompt-audit` | Same repository check, then Workflow `ccc-prompt-audit` with `args: {}` |
-| Fleet run · Migrate · `migrate` | Skill `ccc-fleet`; it collects `mode`/`tasks` or `pattern`/`transform` and starts `ccc-fleet` or `ccc-migrate` |
+| Fleet run · Migrate · `migrate` | Skill `ccc-fleet`; it collects `mode`/`tasks` or `pattern`/`transform` and starts workflow `ccc-fleet-run` or `ccc-migrate` |
 
 Run a workflow as:
 

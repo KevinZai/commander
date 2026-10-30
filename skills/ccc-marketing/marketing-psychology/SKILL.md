@@ -56,9 +56,9 @@ The full catalog lives in [references/mental-models-catalog.md](references/menta
 - **Paradox of Choice** — Too many options = no decision. Limit to 3 tiers.
 
 **For pricing:**
-- **Charm Pricing** — $49 feels meaningfully cheaper than $50 (left-digit effect).
+- **Charm Pricing** — \$49 feels meaningfully cheaper than \$50 (left-digit effect).
 - **Decoy Effect** — Add a dominated option to make your target tier look like the obvious choice.
-- **Rule of 100** — Under $100: show % discount. Over $100: show $ discount.
+- **Rule of 100** — Under \$100: show % discount. Over \$100: show $ discount.
 
 **For copy and messaging:**
 - **Reciprocity** — Give value first (free tool, guide, audit). People feel compelled to reciprocate.

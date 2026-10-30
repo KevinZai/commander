@@ -2,7 +2,7 @@
  * mission-model.js
  * Unified read model for Commander Mission Control.
  *
- * Merges the plugin hook logs under ~/.claude/commander/ into one
+ * Merges the plugin hook logs under the lane state dir (~/.claude/commander/ by default) into one
  * dashboard-ready snapshot: agents (start/stop joined, PLUS derived
  * roster rows synthesized from delegation events for sources that never
  * get a real start record — see deriveRosterFromDelegations below),
@@ -43,11 +43,12 @@
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 
 import { getMetrics } from '../../commander/cowork-plugin/lib/metrics.js';
 import { readTopSkills } from '../../commander/cowork-plugin/lib/top-skills.js';
+import { readableStateDir, stateDir } from '../../commander/cowork-plugin/lib/lane-state.js';
+import { withoutInternalRuns } from '../../commander/cowork-plugin/lib/agent-runs.js';
 
 const AGENT_CAP = 200;
 const TASK_CAP = 100;
@@ -100,7 +101,7 @@ function personaFor(sourceApp, name) {
 }
 
 function defaultBaseDir() {
-  return path.join(os.homedir(), '.claude', 'commander');
+  return readableStateDir();
 }
 
 function parseTs(value) {
@@ -117,8 +118,9 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
   let raw;
   try {
     raw = await fsp.readFile(filePath, 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    // A missing file is empty; any other failure means the rows are unknown.
+    return Object.assign([], { incomplete: error?.code !== 'ENOENT' });
   }
 
   const lines = raw.split('\n').filter((line) => line.trim());
@@ -135,6 +137,8 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
       continue;
     }
   }
+  // Older records were cut off; agent-runs.js needs this to judge absence.
+  entries.incomplete = lines.length > maxLines;
   return entries;
 }
 
@@ -169,7 +173,7 @@ function estimatedCostUsd(inputTokens, outputTokens, cacheReadTokens = 0) {
   const output = safeTokens(outputTokens);
   const cacheRead = safeTokens(cacheReadTokens);
   if (input === 0 && output === 0 && cacheRead === 0) return null;
-  // Sonnet-rate est ($/M): new input 3, cache-read 0.3 (≈0.1×), output 15.
+  // Sonnet 5.5-rate est ($/M): new input 2, cache-read 0.1, output 10.
   return Number(((input * 2 + cacheRead * 0.1 + output * 10) / 1_000_000).toFixed(4));
 }
 
@@ -809,7 +813,7 @@ function summarize(agents, tasks, nowMs, awaitingPermission, suggestions = []) {
 async function computeBaseModel({ baseDir, now }) {
   const root = baseDir || defaultBaseDir();
 
-  const [starts, stops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
+  const [starts, rawStops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
     readJsonl(path.join(root, 'subagent-runs.jsonl')),
     readJsonl(path.join(root, 'agent-runs.jsonl')),
     readJsonl(path.join(root, 'tasks.jsonl')),
@@ -817,6 +821,8 @@ async function computeBaseModel({ baseDir, now }) {
     readJsonl(path.join(root, 'mission-control', 'suggestions.jsonl')),
   ]);
   const eventEntries = dedupeById(rawEventEntries);
+  // Claude Code's internal agents would show up as orphan "unknown" agents (CC-2120).
+  const stops = withoutInternalRuns(rawStops, starts);
 
   const nowMs =
     now instanceof Date ? now.getTime() : Number.isFinite(now) ? now : Date.now();
@@ -864,9 +870,9 @@ async function computeBaseModel({ baseDir, now }) {
 // metrics/topSkills are computed independently of the base model above —
 // see the module doc comment (Item 6) for why they get their own,
 // longer-lived cache entry instead of riding the 2s base-model TTL.
-async function computeSlowFields({ baseDir, now, metricsDays }) {
+async function computeSlowFields({ baseDir, writeDir, now, metricsDays }) {
   const [metrics, topSkills] = await Promise.all([
-    getMetrics({ baseDir, now, days: metricsDays }).catch(() => []),
+    getMetrics({ baseDir, writeDir, now, days: metricsDays }).catch(() => []),
     readTopSkills({ baseDir, now }).catch(() => []),
   ]);
   return { metrics, topSkills };
@@ -914,8 +920,11 @@ async function buildMissionModel({
   cacheTtlMs = MODEL_CACHE_TTL_MS,
   slowFieldTtlMs = SLOW_FIELD_CACHE_TTL_MS,
   metricsDays,
+  writeDir,
 } = {}) {
   const root = baseDir || defaultBaseDir();
+  // Metrics persist to the lane even when reads fall back to the legacy dir.
+  const persistDir = writeDir || baseDir || stateDir();
 
   const [base, slow] = await Promise.all([
     cache
@@ -923,9 +932,9 @@ async function buildMissionModel({
       : computeBaseModel({ baseDir: root, now }),
     cache
       ? cached(slowFieldCache, root, slowFieldTtlMs, () =>
-          computeSlowFields({ baseDir: root, now, metricsDays })
+          computeSlowFields({ baseDir: root, writeDir: persistDir, now, metricsDays })
         )
-      : computeSlowFields({ baseDir: root, now, metricsDays }),
+      : computeSlowFields({ baseDir: root, writeDir: persistDir, now, metricsDays }),
   ]);
 
   return { ...base, ...slow };

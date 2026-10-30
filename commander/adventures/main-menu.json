@@ -53,6 +53,12 @@
       "next": "review-work"
     },
     {
+      "key": "p",
+      "label": "PR workflows",
+      "description": "Babysit, file, review, modernize or take over a PR",
+      "next": "pr-workflows"
+    },
+    {
       "key": "f",
       "label": "Learn a new skill",
       "description": "Browse 467+ skills across 11 CCC domains",

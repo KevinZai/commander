@@ -27,10 +27,10 @@ Claude Code as an external management layer for OpenClaw. The "external neurosur
 pattern: the platform can't reliably manage itself, so CC operates from outside.
 
 **Skills included:**
-1. Health monitoring (pure bash, $0)
+1. Health monitoring (pure bash, \$0)
 2. Auto-repair (safe fixes only)
 3. Doctor dispatch (scheduled diagnosis)
-4. Free fleet routing ($0 continuous operation)
+4. Free fleet routing (\$0 continuous operation)
 5. Upgrade management (backup → update → verify → rollback)
 
 ## Quick Start
@@ -73,10 +73,10 @@ for d in data:
 " 2>/dev/null
 
 # Disk
-df -h /System/Volumes/Data | tail -1 | awk '{print "Disk: " $3 " used / " $4 " free (" $5 ")"}'
+df -h /System/Volumes/Data | tail -1 | awk '{print "Disk: " \$3 " used / " \$4 " free (" \$5 ")"}'
 
 # OpenClaw data size
-du -sh ~/.openclaw/ 2>/dev/null | awk '{print "OpenClaw data: " $1}'
+du -sh ~/.openclaw/ 2>/dev/null | awk '{print "OpenClaw data: " \$1}'
 
 # Channel status
 openclaw channels status --probe 2>&1 | grep -E "works|DOWN|warning"
@@ -138,7 +138,7 @@ for svc in $ERRORED; do
 done
 
 # Disk
-DISK=$(df -h /System/Volumes/Data | tail -1 | awk '{print $5}' | tr -d '%')
+DISK=$(df -h /System/Volumes/Data | tail -1 | awk '{print \$5}' | tr -d '%')
 [ "${DISK:-0}" -gt 90 ] && { STATUS="ALERT"; ISSUES="$ISSUES disk:${DISK}%"; }
 
 # Log
@@ -182,15 +182,15 @@ tail -5 /tmp/openclaw-health.log 2>/dev/null || echo "No health log yet"
 
 ## Free LLM Routing
 
-For autonomous tasks, use free models to achieve $0 operation:
+For autonomous tasks, use free models to achieve \$0 operation:
 
 | Task Type | Recommended Model | Cost |
 |-----------|------------------|------|
-| Health monitoring | Bash (no LLM) | $0 |
-| Log analysis | Groq llama-4-scout | $0 |
-| Status reports | Groq/Ollama | $0 |
-| Deep diagnosis | Haiku | $0.001 |
-| Complex repairs | Sonnet | $0.01 |
+| Health monitoring | Bash (no LLM) | \$0 |
+| Log analysis | Groq llama-4-scout | \$0 |
+| Status reports | Groq/Ollama | \$0 |
+| Deep diagnosis | Haiku | \$0.001 |
+| Complex repairs | Sonnet | \$0.01 |
 
 Configure in OpenClaw:
 ```json

@@ -139,6 +139,13 @@ test('contract.json has all required fields', function() {
   });
 });
 
+test('runtime engine ranges stay separate from product versions and match lockfiles', function() {
+  const pkg = readJson(path.join(ROOT, 'package.json'));
+  const lock = readJson(path.join(ROOT, 'package-lock.json'));
+  assert.strictEqual(pkg.engines.node, '^20.19.0 || >=22.12.0');
+  assert.deepStrictEqual(lock.packages[''].engines, pkg.engines);
+});
+
 test('check-product-contract.js exits 0 on a clean fixture', function() {
   var root = makeFixture();
   var result = spawnCheck(['--root', root, '--check']);
@@ -210,6 +217,28 @@ test('--patch leaves non-trivial mismatches alone', function() {
   var readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   assert.match(readme, /free forever/);
   assert.match(result.stdout, /field: pricing_model/);
+});
+
+test('--patch preserves engines and dependencies while fixing product fields', function() {
+  var pkg = readJson(path.join(ROOT, 'package.json'));
+  pkg.version = '1.2.3';
+  pkg.description = 'CC Commander v1.2.3 ships 50 plugin skills.';
+  pkg.engines = { node: '>=18.0.0', npm: '10.0.0', note: '50 plugin skills' };
+  pkg.dependencies = { commander: '^14.0.0', exact: '18.0.0', range: '18.0.0 - 22.0.0' };
+  pkg.devDependencies = { example: '~9.0.0' };
+  pkg.peerDependencies = { example: '18.0.0 || >=20.0.0' };
+  for (const indent of [undefined, 2]) {
+    var root = makeFixture({ 'package.json': JSON.stringify(pkg, null, indent) + '\n' });
+    var result = spawnCheck(['--root', root, '--patch']);
+    assert.strictEqual(result.status, 0, result.stdout + result.stderr);
+    var patched = readJson(path.join(root, 'package.json'));
+    for (const key of ['engines', 'dependencies', 'devDependencies', 'peerDependencies', 'scripts']) {
+      assert.deepStrictEqual(patched[key], pkg[key], key + ' must not be patched');
+    }
+    var contract = readJson(CONTRACT_PATH);
+    assert.strictEqual(patched.version, contract.version);
+    assert.strictEqual(patched.description, 'CC Commander v' + contract.version + ' ships ' + contract.plugin_skills + ' plugin skills.');
+  }
 });
 
 test('contract.json values match the actual filesystem', function() {

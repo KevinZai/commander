@@ -7,7 +7,7 @@
  * HONESTY RULE: all figures are ESTIMATES vs an all-Opus baseline, ±30%.
  * They are NOT actual Anthropic billing data. See getSavings() disclaimer.
  *
- * Storage: ~/.claude/commander/savings.json
+ * Storage: <lane state dir>/savings.json (lib/lane.js; default ~/.claude/commander)
  * Schema:
  * {
  *   days: {
@@ -20,7 +20,6 @@
  */
 
 var fs = require('fs');
-var os = require('os');
 var path = require('path');
 
 // Pricing mirrors dispatcher.js MODEL_PRICING (keep in sync manually — both ±30% estimates)
@@ -34,7 +33,7 @@ var PRICING = {
 // Baseline is opus (the pre-v6 default model for all dispatches)
 var BASELINE_MODEL = 'opus';
 
-var SAVINGS_PATH = path.join(os.homedir(), '.claude', 'commander', 'savings.json');
+var SAVINGS_PATH = require('./lane').statePath('savings.json');
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -42,7 +41,7 @@ function todayKey() {
 
 function loadSavings() {
   try {
-    var raw = fs.readFileSync(SAVINGS_PATH, 'utf8');
+    var raw = fs.readFileSync(require('./lane').readable('savings.json'), 'utf8');
     var parsed = JSON.parse(raw);
     if (!parsed.days || typeof parsed.days !== 'object') parsed.days = {};
     if (!parsed.total || typeof parsed.total !== 'object') {

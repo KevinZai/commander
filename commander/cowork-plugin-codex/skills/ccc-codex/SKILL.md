@@ -8,8 +8,6 @@ allowed-tools:
   - Write
   - AskUserQuestion
 argument-hint: "[doctor | models | plugins | mcp | agents | cloud | remote | review | update | import | config]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: ccc-seo
-description: "Route SEO work to the right method: technical audit and fixes, AI search optimization (AEO, GEO, LLMO), content clusters and briefs, analytics, programmatic pages, backlinks and social previews. Use when the user asks to audit or improve SEO, rank in AI answers, plan SEO content, or types /ccc-seo."
+description: "SEO router: technical audit and fixes, AI search optimization, content clusters, analytics, programmatic pages, backlinks. Use to improve SEO."
 allowed-tools:
   - Read
   - Write
@@ -12,8 +12,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[audit | ai-search | content | more, or plain words]"
-model: sonnet
-effort: medium
 ---
 
 # /ccc-seo — route the SEO job

@@ -1,0 +1,118 @@
+{
+  "id": "pr-workflows",
+  "version": 1,
+  "screen": {
+    "title": "PR Workflows",
+    "subtitle": "File, review, babysit and finish pull requests.",
+    "detail": "Adapted from t3dotgg/tstack. No force-push, local suite before every push, drafts until green."
+  },
+  "prompt": "What should happen with the PR?",
+  "choices": [
+    {
+      "key": "a",
+      "label": "Babysit a PR",
+      "description": "Watch CI and review bots, fix real findings, report ready",
+      "next": "ccc-babysit-pr"
+    },
+    {
+      "key": "b",
+      "label": "File a PR",
+      "description": "Concise draft PR that leads with the problem",
+      "next": "ccc-file-pr"
+    },
+    {
+      "key": "c",
+      "label": "Sol loop review",
+      "description": "Bounded review loop with an OpenAI reviewer via Codex",
+      "next": "ccc-sol-loop"
+    },
+    {
+      "key": "d",
+      "label": "Council review",
+      "description": "Read-only review by models from three providers",
+      "next": "ccc-council"
+    },
+    {
+      "key": "e",
+      "label": "Modernize an old PR",
+      "description": "Merge in the base, judge MODERNIZE / REWORK / CLOSE",
+      "next": "ccc-modernize"
+    },
+    {
+      "key": "f",
+      "label": "Take over a PR",
+      "description": "Finish someone else's PR or branch, keep their credit",
+      "next": "ccc-takeover"
+    },
+    {
+      "key": "g",
+      "label": "Reply to PR comments",
+      "description": "Attributed, direct replies to reviewers and bots",
+      "next": "ccc-pr-comments"
+    },
+    {
+      "key": "h",
+      "label": "Full stop",
+      "description": "Prove, review and prepare a PR; never merges",
+      "next": "ccc-full-stop"
+    },
+    {
+      "key": "i",
+      "label": "Full send",
+      "description": "Unattended to a merged PR, only through the full local gate",
+      "next": "ccc-full-send"
+    },
+    {
+      "key": "q",
+      "label": "Back to main menu",
+      "next": "main-menu"
+    }
+  ],
+  "subAdventures": {
+    "ccc-babysit-pr": {
+      "prompt": "PR number or URL:",
+      "action": "freeform_build",
+      "context": "/ccc-babysit-pr "
+    },
+    "ccc-file-pr": {
+      "prompt": "Branch or goal (empty = current branch):",
+      "action": "freeform_build",
+      "context": "/ccc-file-pr "
+    },
+    "ccc-sol-loop": {
+      "prompt": "What changed (empty = working tree vs base):",
+      "action": "freeform_build",
+      "context": "/ccc-sol-loop "
+    },
+    "ccc-council": {
+      "prompt": "What should the council review?",
+      "action": "freeform_build",
+      "context": "/ccc-council "
+    },
+    "ccc-modernize": {
+      "prompt": "PR number or URL:",
+      "action": "freeform_build",
+      "context": "/ccc-modernize "
+    },
+    "ccc-takeover": {
+      "prompt": "PR, branch or thread to take over:",
+      "action": "freeform_build",
+      "context": "/ccc-takeover "
+    },
+    "ccc-pr-comments": {
+      "prompt": "PR number and what to reply to:",
+      "action": "freeform_build",
+      "context": "/ccc-pr-comments "
+    },
+    "ccc-full-stop": {
+      "prompt": "Goal or PR number:",
+      "action": "freeform_build",
+      "context": "/ccc-full-stop "
+    },
+    "ccc-full-send": {
+      "prompt": "Goal or PR number (this grants merge after the gate):",
+      "action": "freeform_build",
+      "context": "/ccc-full-send "
+    }
+  }
+}
