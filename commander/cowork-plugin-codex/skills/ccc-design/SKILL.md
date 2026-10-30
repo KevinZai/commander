@@ -1,6 +1,6 @@
 ---
 name: ccc-design
-description: "Route design work to the right method: landing page, component system, Impeccable polish pass, Figma to code, chat UI, Design.md capture or screenshot to interactive UI. Use when the user wants to design, restyle, polish or animate a UI, or types $ccc-design."
+description: "UI design: landing pages, component systems, polish passes, Figma to code, screenshot to UI. Use to design, restyle, polish or animate a UI."
 allowed-tools:
   - Read
   - Write
@@ -17,7 +17,6 @@ allowed-tools:
   - mcp__figma
 argument-hint: "[landing | components | polish | figma | chat | design-md | screenshot]"
 model: inherit
-effort: medium
 ---
 
 # $ccc-design — pick the design job

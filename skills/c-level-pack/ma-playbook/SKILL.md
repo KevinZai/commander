@@ -44,7 +44,7 @@ M&A, mergers and acquisitions, due diligence, acquisition, acqui-hire, integrati
 - **Revenue multiple:** Industry-dependent (2-15x ARR for SaaS)
 - **Comparable transactions:** What similar companies sold for
 - **DCF:** For profitable companies only (most startups: use multiples)
-- **Acqui-hire:** $1-3M per engineer in hot markets
+- **Acqui-hire:** \$1-3M per engineer in hot markets
 
 ### Integration Frameworks
 See `references/integration-playbook.md` for the 100-day integration plan.

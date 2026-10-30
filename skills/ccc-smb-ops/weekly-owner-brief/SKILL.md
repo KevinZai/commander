@@ -30,7 +30,7 @@ The brief works even if you only have raw numbers — it's a structure, not a so
 
 1. **Pull the five inputs.** Grab the current numbers from each source skill (or the raw equivalents). Use the *latest actuals*, not last week's estimates.
 2. **Compute the headline.** One line at the top that answers "are we OK this week?": current cash, the 13-week trough, and whether payroll clears.
-3. **Fill each section with a number and a "so what."** Every line is a figure plus one clause of meaning — never a raw number alone. "AR: $18,400, of which $9,100 is 30+ days late" beats "AR: $18,400."
+3. **Fill each section with a number and a "so what."** Every line is a figure plus one clause of meaning — never a raw number alone. "AR: \$18,400, of which \$9,100 is 30+ days late" beats "AR: \$18,400."
 4. **Compare to last week.** Note the direction on the three that matter: cash, AR, pipeline. Trend beats snapshot.
 5. **Choose exactly three actions.** Not ten. The three highest-leverage moves for *this* week, each with an owner and a route to the skill that does it. If everything's green, the actions can be growth moves instead of firefighting.
 6. **Keep it to one page.** If it doesn't fit on a screen, it won't get read. Cut detail, keep decisions.

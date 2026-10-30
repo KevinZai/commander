@@ -21,7 +21,7 @@ const PATTERNS_FILE = existsSync(PATTERNS_FILE_NEW) ? PATTERNS_FILE_NEW : PATTER
 
 // Tools whose inputs are worth scanning
 const SCANNED_TOOLS = new Set([
-  'Write', 'Edit', 'MultiEdit', 'Bash', 'WebSearch',
+  'Write', 'Edit', 'MultiEdit', 'Bash', 'PowerShell', 'WebSearch',
   'mcp__', // prefix match handled below
 ]);
 
@@ -40,8 +40,16 @@ function extractTextFromInput(toolInput) {
     .join('\n');
 }
 
-function isAllowlisted(text, allowlist) {
-  return allowlist.some(term => text.includes(term));
+// allowlist: placeholder/test-key terms. Only the token containing the term is blanked out, so one
+// placeholder (e.g. REPLACE_ME) elsewhere in a file or command cannot exempt a real key next to it.
+function stripAllowlistedTerms(text, allowlist) {
+  let out = text;
+  for (const term of allowlist || []) {
+    if (typeof term !== 'string' || !term) continue;
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    out = out.replace(new RegExp(`[A-Za-z0-9_\\-]*${escaped}[A-Za-z0-9_\\-]*`, 'g'), ' ');
+  }
+  return out;
 }
 
 // allowlistRegex: case-sensitive token patterns (full git SHAs, sha256 digests) blanked out before scanning.
@@ -60,6 +68,7 @@ function stripAllowlistedTokens(text, allowlistRegex) {
 }
 
 async function main() {
+  track('hook_fired', { hook: 'PreToolUse', handler: 'secret-leak-guard' });
   let input = {};
   try {
     const chunks = [];
@@ -67,8 +76,6 @@ async function main() {
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {
-      track('hook_fired', { hook: 'PreToolUse', handler: 'secret-leak-guard' });
-
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }
@@ -93,15 +100,12 @@ async function main() {
     }
 
     const toolInput = input.tool_input || input.input || {};
-    const textToScan = stripAllowlistedTokens(extractTextFromInput(toolInput), patternsConfig.allowlistRegex);
+    const textToScan = stripAllowlistedTerms(
+      stripAllowlistedTokens(extractTextFromInput(toolInput), patternsConfig.allowlistRegex),
+      patternsConfig.allowlist
+    );
 
-    if (!textToScan) {
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
-    }
-
-    // Check allowlist first
-    if (isAllowlisted(textToScan, patternsConfig.allowlist || [])) {
+    if (!textToScan.trim()) {
       process.stdout.write(JSON.stringify({ continue: true }) + '\n');
       return;
     }

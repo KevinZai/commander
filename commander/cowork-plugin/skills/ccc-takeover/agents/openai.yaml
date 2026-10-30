@@ -1,0 +1,6 @@
+interface:
+  display_name: "Takeover"
+  short_description: "Take over a PR, branch, or thread and finish it"
+  default_prompt: "Use $ccc-takeover to take over this PR and finish the original goal, preserving credit."
+policy:
+  allow_implicit_invocation: false

@@ -17,7 +17,9 @@
 //
 // Signals (real, cached — no stubs):
 //   ciStatus     — `gh run list` conclusion, refreshed in a detached
-//                  background process, cache ≤10 min (never blocks the hook)
+//                  background process, cache ≤10 min (never blocks the hook).
+//                  Opt-in: only with CCC_CI_TICKER=1 and not CCC_OFFLINE=1;
+//                  otherwise 'unknown' and no `gh` process is spawned.
 //   testsStatus  — last test-command outcome cached by knowledge-capture.js
 //                  (PostToolUse) in ~/.claude/commander/last-test-result.json
 //   lintStatus / securityAlerts — same PostToolUse cache (lint/audit kinds)
@@ -26,6 +28,8 @@
 //   CCC_SUGGEST_DISABLE=1   — fully disable ambient mode
 //   CCC_SUGGEST_LEVEL=1..4  — hard-lock involvement level
 //   CCC_SUGGEST_VERBOSE=1   — log to stderr (debug)
+//   CCC_CI_TICKER=1         — opt in to the `gh run list` CI lookup
+//   CCC_OFFLINE=1           — no outbound calls (wins over CCC_CI_TICKER)
 
 import { track } from '../lib/telemetry.mjs';
 import { emitModel, emitSilent } from './lib/emit.mjs';
@@ -33,12 +37,14 @@ import { computeConfidence } from './lib/confidence.mjs';
 import { appendSuggestion, readSuggestions } from '../lib/suggestions.js';
 import fs from 'node:fs';
 import path from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
+import { isCiTickerEnabled } from '../lib/network-mode.js';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const STATE_DIR = path.join(os.homedir(), '.claude', 'commander');
+const STATE_DIR = stateDir();
 const LOG_FILE = path.join(STATE_DIR, 'suggest-log.jsonl');
 const TEST_CACHE_FILE = path.join(STATE_DIR, 'last-test-result.json');
 const VIOLATIONS_FILE = path.join(STATE_DIR, 'clickability-violations.jsonl');
@@ -164,8 +170,11 @@ export function defaultBranchRef() {
  * background process so the 2s hook budget is never at risk.
  * cacheFile is per-project (see projectCiCacheFile) — self-contained,
  * written and read only by this function, so it's safe to key per-project.
+ * Off unless CCC_CI_TICKER=1 (and never under CCC_OFFLINE=1): then it returns
+ * 'unknown' without reading the cache or spawning `gh`. `spawnFn` is for tests.
  */
-function ciStatusCached(cacheFile) {
+export function ciStatusCached(cacheFile, { env = process.env, spawnFn = spawn } = {}) {
+  if (!isCiTickerEnabled(env)) return 'unknown';
   let status = 'unknown';
   let fresh = false;
   try {
@@ -181,7 +190,7 @@ function ciStatusCached(cacheFile) {
     try {
       fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
       const tmp = cacheFile + '.tmp';
-      const child = spawn('/bin/sh', ['-c',
+      const child = spawnFn('/bin/sh', ['-c',
         `gh run list --limit 1 --json conclusion > ${JSON.stringify(tmp)} 2>/dev/null && mv ${JSON.stringify(tmp)} ${JSON.stringify(cacheFile)}`,
       ], { detached: true, stdio: 'ignore' });
       child.unref();
@@ -829,7 +838,7 @@ export function maybeProactivityWave(promptText, payload = {}) {
     const cooled = !seen || !Number.isFinite(seen.ts) || Date.now() - seen.ts >= TOOL_FAILURE_COOLDOWN_MS;
     if (cooled && countRecentToolFailures() >= 3) {
       return {
-        note: '🐛 Several tool calls failing — /ccc-debug or a systematic-debugging pass beats retrying.',
+        note: '🐛 Several tool calls failing — a /ccc-systematic-debugging pass beats retrying.',
         record: () => recordNudge(TOOL_FAILURES_SEEN_FILE),
       };
     }

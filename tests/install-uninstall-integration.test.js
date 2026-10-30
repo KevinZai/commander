@@ -29,13 +29,18 @@ const UNINSTALL_SH = join(REPO_ROOT, 'uninstall.sh');
 
 let tempHome;
 
-function makeEnv(extra = {}) {
-  // Sanitize PATH-related vars; keep PATH so bash + node remain reachable.
-  // Strip XDG_CONFIG_HOME so install.sh / uninstall.sh fall back to $HOME/.claude
-  // (= tempHome/.claude), not whatever XDG path the CI runner has set.
+// Strip CLAUDE_CONFIG_DIR (and XDG_CONFIG_HOME, which older scripts honored)
+// so install.sh / uninstall.sh fall back to $HOME/.claude inside the temp HOME,
+// never the developer's or CI runner's real config dir.
+function hermeticEnv(home, extra = {}) {
   const baseEnv = { ...process.env };
+  delete baseEnv.CLAUDE_CONFIG_DIR;
   delete baseEnv.XDG_CONFIG_HOME;
-  return { ...baseEnv, HOME: tempHome, ...extra };
+  return { ...baseEnv, HOME: home, ...extra };
+}
+
+function makeEnv(extra = {}) {
+  return hermeticEnv(tempHome, extra);
 }
 
 function runShell(scriptPath, args = [], opts = {}) {
@@ -197,13 +202,58 @@ test('uninstall.sh on empty HOME exits 0 cleanly', () => {
   const altHome = mkdtempSync(join(tmpdir(), 'ccc-install-empty-'));
   try {
     const res = spawnSync('bash', [UNINSTALL_SH, '--force'], {
-      env: { ...process.env, HOME: altHome, CC_NO_COLOR: '1', CC_NO_ANIMATION: '1', CI: '1' },
+      env: hermeticEnv(altHome, { CC_NO_COLOR: '1', CC_NO_ANIMATION: '1', CI: '1' }),
       encoding: 'utf8',
       timeout: 30_000,
       cwd: REPO_ROOT,
     });
     assert.strictEqual(res.status, 0, `uninstall on empty HOME should exit 0, got ${res.status}\nstderr: ${res.stderr}`);
     assert.match(res.stdout, /Nothing to uninstall|No kit components|Uninstall complete/i);
+  } finally {
+    try { rmSync(altHome, { recursive: true, force: true }); } catch {}
+  }
+});
+
+test('uninstall.sh ignores XDG_CONFIG_HOME: ~/.config/{skills,commands,hooks} survive', () => {
+  // XDG_CONFIG_HOME is the shared ~/.config root, not Claude Code's config dir
+  // (https://code.claude.com/docs/en/env-vars: CLAUDE_CONFIG_DIR, default ~/.claude).
+  const altHome = mkdtempSync(join(tmpdir(), 'ccc-install-xdg-'));
+  try {
+    const xdg = join(altHome, '.config');
+    for (const dir of ['skills', 'commands', 'hooks']) {
+      mkdirSync(join(xdg, dir), { recursive: true });
+      writeFileSync(join(xdg, dir, 'other-tool.txt'), 'not ours');
+    }
+    const res = spawnSync('bash', [UNINSTALL_SH, '--force'], {
+      env: hermeticEnv(altHome, { XDG_CONFIG_HOME: xdg, CC_NO_COLOR: '1', CC_NO_ANIMATION: '1', CI: '1' }),
+      encoding: 'utf8',
+      timeout: 30_000,
+      cwd: REPO_ROOT,
+    });
+    assert.strictEqual(res.status, 0, `uninstall should exit 0, got ${res.status}\nstderr: ${res.stderr}`);
+    for (const dir of ['skills', 'commands', 'hooks']) {
+      assert.ok(existsSync(join(xdg, dir, 'other-tool.txt')), `~/.config/${dir} must not be touched`);
+    }
+  } finally {
+    try { rmSync(altHome, { recursive: true, force: true }); } catch {}
+  }
+});
+
+test('uninstall.sh honors CLAUDE_CONFIG_DIR', () => {
+  const altHome = mkdtempSync(join(tmpdir(), 'ccc-install-cfgdir-'));
+  try {
+    const configDir = join(altHome, 'claude-work');
+    mkdirSync(join(configDir, 'skills', 'demo-skill'), { recursive: true });
+    writeFileSync(join(configDir, 'CLAUDE.md'), '# user CLAUDE.md\n');
+    const res = spawnSync('bash', [UNINSTALL_SH, '--force'], {
+      env: hermeticEnv(altHome, { CLAUDE_CONFIG_DIR: configDir, CC_NO_COLOR: '1', CC_NO_ANIMATION: '1', CI: '1' }),
+      encoding: 'utf8',
+      timeout: 30_000,
+      cwd: REPO_ROOT,
+    });
+    assert.strictEqual(res.status, 0, `uninstall should exit 0, got ${res.status}\nstderr: ${res.stderr}`);
+    assert.ok(!existsSync(join(configDir, 'skills')), 'skills/ under CLAUDE_CONFIG_DIR must be removed');
+    assert.ok(existsSync(join(configDir, 'CLAUDE.md')), 'CLAUDE.md must be preserved');
   } finally {
     try { rmSync(altHome, { recursive: true, force: true }); } catch {}
   }

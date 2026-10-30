@@ -8,8 +8,7 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[isolated | fleet | relay | expert | status]"
-model: sonnet
-effort: low
+disable-model-invocation: true
 ---
 
 # $ccc-spawn — spawn hub
@@ -40,7 +39,7 @@ options:
   - label: "🚀 Parallel fleet"
     description: "Fan out across independent files or units at once (hands off to $ccc-fleet)."
   - label: "🔄 Cross-session relay"
-    description: "Chain spec → build → review as hand-off sessions (hands off to $ccc-relay)."
+    description: "Chain spec → build → review as hand-off sessions (ask the user to type $ccc-relay)."
   - label: "🔬 Expert pass"
     description: "One independent reviewer (security, performance, design, …) prompted to refute."
 ```
@@ -52,7 +51,7 @@ options:
 | Isolated task, result needed in this conversation | Agent tool: `subagent_type: "fleet-worker"` (or `general-purpose`), `run_in_background: true`, `effort` sized to the brief (`low` mechanical, `medium` typical, `high` hard). Add `isolation: "worktree"` only when the task writes files while this session keeps editing; a read-only task runs without it. |
 | Isolated task as its own session | Claude Desktop (Cowork): emit a `spawn_task` chip, `[🟢 Spawn as separate session]`. CLI with the opt-in claude-peers broker: `/spawn quick <task>`. Codex: `codex exec --json` or `codex cloud exec`. |
 | Parallel fleet | Invoke `$ccc-fleet` with the Skill tool, passing the task. |
-| Cross-session relay | Invoke `$ccc-relay` with the Skill tool, passing the chain. |
+| Cross-session relay | Tell the user to type `$ccc-relay` with the chain (user-invoked only). |
 | Expert pass | Agent tool, read-only, no isolation: `subagent_type` `security-auditor`, `performance-engineer`, `designer`, `reviewer` or another matching plugin agent; `effort: "high"`; prompt it to refute, not confirm. As a separate session: Cowork `spawn_task` chip scoped to that reviewer, or CLI `/spawn expert <domain>`. |
 
 Use the mechanism the current surface actually exposes. If none of the session mechanisms is available, fall back to the background Agent tool and say so.

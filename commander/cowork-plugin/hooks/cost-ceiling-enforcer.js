@@ -7,28 +7,39 @@
  * is an activity metric, not real dollars; "$10" == 1000 tool calls at the
  * $0.01/call budget-unit conversion).
  *
- * Behavior: warn-then-block.
- *   1st crossing → visible warning ("next tool call will be blocked").
- *   After that   → blocks with continue:false, UNLESS CCC_COST_OVERRIDE=1.
+ * OFF BY DEFAULT. It runs only when a ceiling is set explicitly:
+ *   CCC_COST_CEILING=<units>  (wins; 0 or "off" disables a configured ceiling)
+ *   "costCeiling": <units>    in <lane config dir>/commander/config.json
+ * Budget units: 5.00 == 500 tool calls.
  *
- * Config: ~/.claude/commander/config.json { "costCeiling": 5.00 } (budget
- * units — 5.00 == 500 tool calls). Default ceiling: 10.00 (1000 calls).
+ * Behavior once set: warn-then-block.
+ *   1st crossing → visible warning ("next tool call will be blocked").
+ *   After that   → denies each tool call (PreToolUse permissionDecision deny,
+ *                  with the reason shown to Claude and the user), UNLESS
+ *                  CCC_COST_OVERRIDE=1. The turn continues; Claude can stop.
  * State is keyed by the stdin session_id (shared with cost-tracker.js).
  */
 import { track } from '../lib/telemetry.mjs';
-import { emitUser } from './lib/emit.mjs';
+import { emitDeny, emitUser } from './lib/emit.mjs';
 import { sessionKey } from './lib/session-key.mjs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readablePath, stateDir } from '../lib/lane-state.js';
 
-const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
-const CONFIG_FILE = join(CCC_DIR, 'config.json');
+const CCC_DIR = stateDir();
+const CONFIG_FILE = readablePath('config.json');
 
-const DEFAULT_CEILING = 10.00; // budget units == 1000 tool calls
-// /loop note: rapid /loop iterations burn tool calls fast — raise costCeiling
-// in ~/.claude/commander/config.json or set CCC_COST_OVERRIDE=1 for the run.
+/** Ceiling from CCC_COST_CEILING: a positive number, 0 for off, or undefined when unset/invalid. */
+function envCeiling(value) {
+  if (value === undefined || value.trim() === '') return undefined;
+  const v = value.trim().toLowerCase();
+  if (v === 'off') return 0;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
 
 async function main() {
+  track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
   let input = {};
   try {
     const chunks = [];
@@ -37,8 +48,6 @@ async function main() {
     // Malformed payloads fail open; session_id keys the shared budget file.
     if (raw) input = JSON.parse(raw);
   } catch {
-      track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
-
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }
@@ -52,15 +61,22 @@ async function main() {
       return;
     }
 
-    // Read configured ceiling
-    let ceiling = DEFAULT_CEILING;
-    try {
-      const config = JSON.parse(await readFile(CONFIG_FILE, 'utf8'));
-      if (typeof config.costCeiling === 'number' && config.costCeiling > 0) {
-        ceiling = config.costCeiling;
+    // Explicit ceiling only: env first, then the lane config. Unset == off.
+    let ceiling = envCeiling(process.env.CCC_COST_CEILING);
+    const source = ceiling === undefined ? `"costCeiling" in ${CONFIG_FILE}` : 'CCC_COST_CEILING';
+    if (ceiling === undefined) {
+      try {
+        const config = JSON.parse(await readFile(CONFIG_FILE, 'utf8'));
+        if (typeof config.costCeiling === 'number' && config.costCeiling > 0) {
+          ceiling = config.costCeiling;
+        }
+      } catch {
+        // No config file — no ceiling
       }
-    } catch {
-      // No config file — use default
+    }
+    if (!ceiling) {
+      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+      return;
     }
 
     // Read current session budget (session-keyed file from cost-tracker.js)
@@ -83,20 +99,17 @@ async function main() {
         process.stdout.write(JSON.stringify(emitUser(
           `⚠️ CCC tool-call budget ceiling reached: ${costData.toolCalls} calls >= ${ceilingCalls}-call limit ` +
           `(budget unit $${ceiling.toFixed(2)}, not real spend). The NEXT tool call will be blocked — ` +
-          `set CCC_COST_OVERRIDE=1 or raise "costCeiling" in ~/.claude/commander/config.json to continue.`
+          `set CCC_COST_OVERRIDE=1, or raise or remove ${source}, to continue.`
         )) + '\n');
         return;
       }
 
-      const stopReason = `CCC tool-call budget ceiling: ${Math.round(currentCost / 0.01)} calls >= ${ceilingCalls}-call limit ` +
+      const reason = `CCC tool-call budget ceiling: ${Math.round(currentCost / 0.01)} calls >= ${ceilingCalls}-call limit ` +
         `(budget units $${currentCost.toFixed(2)} >= $${ceiling.toFixed(2)} — an activity metric, not real spend). ` +
-        `To continue: set CCC_COST_OVERRIDE=1, raise/remove "costCeiling" in ~/.claude/commander/config.json, ` +
+        `This tool call was blocked. To continue: set CCC_COST_OVERRIDE=1, raise or remove ${source}, ` +
         `or start a new session.`;
 
-      process.stdout.write(JSON.stringify({
-        continue: false,
-        stopReason,
-      }) + '\n');
+      process.stdout.write(JSON.stringify(emitDeny(reason)) + '\n');
       return;
     }
 

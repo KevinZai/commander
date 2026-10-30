@@ -8,8 +8,6 @@ allowed-tools:
   - Workflow
   - AskUserQuestion
 argument-hint: "[issues | prs | label | summary]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

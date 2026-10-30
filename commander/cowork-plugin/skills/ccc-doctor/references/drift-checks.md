@@ -21,6 +21,7 @@ checkout), not against the user's `~/.claude/` state, except where noted.
 | `display-name` | `plugin.json.displayName` and the marketplace entry's `displayName` are both `Commander`. |
 | `version-parity` | `package.json` and `plugin.json` versions match. The full check is `node scripts/check-version-parity.js`. |
 | `critical-files` | `CHANGELOG.md`, `README.md`, `LICENSE`, `package.json` and `commander/core/registry.yaml` exist. |
+| `network-mode` | Informational, always `ok`: shows telemetry, offline and ci-ticker on/off from `CCC_TELEMETRY`, `CCC_OFFLINE`, `CCC_CI_TICKER` and `~/.commander/config.json` (`lib/network-mode.js`). Reads user env and config. |
 
 The expected values (bundled server names, connector row count, agent tiers)
 are constants exported by `diagnostics.js`; read them there instead of copying

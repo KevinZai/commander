@@ -123,7 +123,7 @@ describe('context-guard.js — threshold firing', () => {
     assert.equal(r.parsed.continue, true);
     assert.ok(r.parsed.systemMessage, 'should emit status at 70%');
     assert.ok(r.parsed.systemMessage.includes('70%'), 'status should mention 70%');
-    assert.ok(r.parsed.systemMessage.includes('/save-session'), 'should mention /save-session');
+    assert.ok(r.parsed.systemMessage.includes('/ccc-handoff'), '70% tier points at the handoff doc');
   });
 
   it('fires at 85% with strong warning', () => {
@@ -133,7 +133,14 @@ describe('context-guard.js — threshold firing', () => {
     assert.equal(r.parsed.continue, true);
     assert.ok(r.parsed.systemMessage, 'should emit status at 85%');
     assert.ok(r.parsed.systemMessage.includes('85%'), 'status should mention 85%');
-    assert.ok(r.parsed.systemMessage.includes('/save-session'), 'should mention /save-session');
+    assert.ok(r.parsed.systemMessage.includes('/ccc-handoff'), 'should mention /ccc-handoff');
+  });
+
+  it('fires at 90% (tier folded in from context-warning.js)', () => {
+    const r = runHook({ CLAUDE_CONTEXT_USED_PCT: '91' });
+    assert.equal(r.exitCode, 0);
+    assert.ok(r.parsed.systemMessage.includes('90%'), r.stdout);
+    assert.ok(r.parsed.systemMessage.includes('/ccc-handoff'));
   });
 
   it('fires at 95% and writes auto-save file', () => {
@@ -185,6 +192,31 @@ describe('context-guard.js — idempotency', () => {
     // Session B at same level — should also fire
     const r2 = runHook({ CLAUDE_CONTEXT_USED_PCT: '70', CLAUDE_SESSION_ID: 'session-b' });
     assert.ok(r2.parsed.systemMessage, 'session B should fire independently');
+  });
+});
+
+describe('context-guard.js — one context hook, re-armed after compact (CC-1357)', () => {
+  it('speaks once per tier: repeated prompts at the same usage stay silent', () => {
+    const env = { CLAUDE_SESSION_ID: 'quiet-session' };
+    assert.ok(runHook({ ...env, CLAUDE_CONTEXT_USED_PCT: '72' }).parsed.systemMessage);
+    for (const pct of ['73', '75', '80']) {
+      const r = runHook({ ...env, CLAUDE_CONTEXT_USED_PCT: pct });
+      assert.equal(r.parsed.systemMessage, undefined, `no repeat at ${pct}%`);
+    }
+  });
+
+  it('re-arms the tiers once usage drops below 70% (e.g. after /compact)', () => {
+    const env = { CLAUDE_SESSION_ID: 'compact-session' };
+    assert.ok(runHook({ ...env, CLAUDE_CONTEXT_USED_PCT: '86' }).parsed.systemMessage);
+    assert.equal(runHook({ ...env, CLAUDE_CONTEXT_USED_PCT: '40' }).parsed.systemMessage, undefined);
+    assert.equal(readState()['compact-session']?.context_85, undefined, 'tiers cleared');
+    assert.match(runHook({ ...env, CLAUDE_CONTEXT_USED_PCT: '71' }).parsed.systemMessage, /70%/);
+  });
+
+  it('context-warning.js is no longer registered', () => {
+    const hooks = fs.readFileSync(path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'hooks.json'), 'utf8');
+    assert.ok(!hooks.includes('context-warning.js'));
+    assert.ok(hooks.includes('context-guard.js'));
   });
 });
 
