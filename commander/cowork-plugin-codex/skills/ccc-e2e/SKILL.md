@@ -1,8 +1,6 @@
 ---
 name: ccc-e2e
 description: "Pre-release assessment that fans out via $ccc-fleet into up to three isolated workers (QA audit, unit tests, Playwright E2E) running $ccc-testing lanes, then writes a severity-ranked PASS or FAIL verdict. Use when about to tag a release, after a large merge, or asking is this ready."
-model: sonnet
-effort: high
 allowed-tools:
   - Read
   - Write
@@ -16,6 +14,7 @@ allowed-tools:
   - mcp__ccd_session__spawn_task
   - mcp__ccd_session__mark_chapter
 argument-hint: "[full | qa-unit | e2e-only | quick | status]"
+disable-model-invocation: true
 ---
 
 # $ccc-e2e — Full-surface confidence before shipping

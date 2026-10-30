@@ -596,6 +596,10 @@ function scanVersionRule(content, surface, contract) {
 }
 
 function isVersionRelevant(content, index, matchLen) {
+  // Dependency/runtime ranges are constraints, never product release labels.
+  var rangeBefore = content.slice(0, index).split('\n').pop();
+  var rangeAfter = content.slice(index + matchLen).split('\n')[0];
+  if (/[<>=~^]\s*$|\|\|\s*$|\d[\w.+-]*\s+-\s*$/.test(rangeBefore) || /^\s*(\|\||-\s*v?\d|\+)/.test(rangeAfter)) return false;
   // Skip entire documents that announce a specific dated past release (e.g.
   // "**Released 2026-05-28** — v6.0.0 ships four major additions."). Every version
   // mention in a "what's new in vX" style doc describes that historical release, not
@@ -872,6 +876,24 @@ function patchText(content, contract) {
   return patched;
 }
 
+function patchJsonSurface(content, contract) {
+  var json = JSON.parse(content);
+  // Whitelist product fields instead of running prose regexes across the
+  // manifest. In particular, engines and dependency maps must stay intact.
+  function patchProduct(product) {
+    if (typeof product.version === 'string' && /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(product.version)) {
+      product.version = contract.version;
+    }
+    if (typeof product.description === 'string') {
+      product.description = patchText(product.description, contract);
+    }
+  }
+  var before = JSON.stringify(json);
+  patchProduct(json);
+  if (Array.isArray(json.plugins)) json.plugins.forEach(patchProduct);
+  return JSON.stringify(json) === before ? content : JSON.stringify(json, null, 2) + '\n';
+}
+
 function scanSurfaces(root, contract) {
   var surfacePaths = getSurfacePaths(root);
   var findings = [];
@@ -899,7 +921,9 @@ function applyPatches(root, contract) {
   surfacePaths.forEach(function(rel) {
     var full = path.join(root, rel);
     var before = readFile(full);
-    var after = patchText(before, contract);
+    var after = JSON_SURFACES.indexOf(rel) !== -1
+      ? patchJsonSurface(before, contract)
+      : patchText(before, contract);
     if (after !== before) {
       fs.writeFileSync(full, after);
       changed.push(rel);
@@ -974,7 +998,7 @@ function main() {
     // upgrade.mdx (it's in HISTORICAL_SURFACES), so this finding is
     // unpatchable either way, but it must still surface in --patch's report
     // rather than silently vanish because --patch only calls scanSurfaces.
-    patchedScan.findings = contractFindings.concat(fsFindings).concat(scanUpgradeGuideCurrency(args.root, contract)).concat(patchedScan.findings);
+    patchedScan.findings = contractFindings.concat(scanFilesystemFacts(args.root, contract)).concat(scanUpgradeGuideCurrency(args.root, contract)).concat(patchedScan.findings);
     printReport(contract, patchedScan, changed);
     process.exit(patchedScan.findings.length === 0 ? 0 : 1);
   }

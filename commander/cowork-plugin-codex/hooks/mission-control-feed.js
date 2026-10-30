@@ -20,6 +20,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 
 const OK = JSON.stringify({ continue: true, suppressOutput: true }) + '\n';
 
@@ -249,8 +250,7 @@ async function main() {
               : null,
         };
 
-    const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
-    const dir = path.join(HOME, '.claude', 'commander', 'mission-control');
+    const dir = path.join(stateDir(), 'mission-control');
     const file = path.join(dir, 'events.jsonl');
     fs.mkdirSync(dir, { recursive: true });
     rotateLog(dir, file);

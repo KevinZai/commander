@@ -264,7 +264,7 @@ python scripts/cost_optimizer.py --resources inventory.json --monthly-spend 5000
 
 ## Quick Start
 
-### MVP Architecture (< $100/month)
+### MVP Architecture (< \$100/month)
 
 ```
 Ask: "Design a serverless MVP backend for a mobile app with 1000 users"
@@ -274,10 +274,10 @@ Result:
 - DynamoDB pay-per-request for data
 - Cognito for authentication
 - S3 + CloudFront for static assets
-- Estimated: $20-50/month
+- Estimated: \$20-50/month
 ```
 
-### Scaling Architecture ($500-2000/month)
+### Scaling Architecture (\$500-2000/month)
 
 ```
 Ask: "Design a scalable architecture for a SaaS platform with 50k users"
@@ -294,7 +294,7 @@ Result:
 ### Cost Optimization
 
 ```
-Ask: "Optimize my AWS setup to reduce costs by 30%. Current spend: $3000/month"
+Ask: "Optimize my AWS setup to reduce costs by 30%. Current spend: \$3000/month"
 
 Provide: Current resource inventory (EC2, RDS, S3, etc.)
 
@@ -303,7 +303,7 @@ Result:
 - Right-sizing recommendations
 - Savings Plans analysis
 - Storage lifecycle policies
-- Target savings: $900/month
+- Target savings: \$900/month
 ```
 
 ### IaC Generation
@@ -329,7 +329,7 @@ Provide these details for architecture design:
 |-------------|-------------|---------|
 | Application type | What you're building | SaaS platform, mobile backend |
 | Expected scale | Users, requests/sec | 10k users, 100 RPS |
-| Budget | Monthly AWS limit | $500/month max |
+| Budget | Monthly AWS limit | \$500/month max |
 | Team context | Size, AWS experience | 3 devs, intermediate |
 | Compliance | Regulatory needs | HIPAA, GDPR, SOC 2 |
 | Availability | Uptime requirements | 99.9% SLA, 1hr RPO |

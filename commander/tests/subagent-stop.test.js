@@ -207,3 +207,56 @@ describe('subagent-stop.js — stdin-primary cost capture', () => {
     assert.equal(r.rows[0].outputTokens, 7);
   });
 });
+
+// CC-1360 F9 (fable-method tracked-clean check): warn-only, never blocks.
+describe('subagent-stop.js — tracked-clean warning', () => {
+  const REPO = path.join(TMP_HOME, 'repo');
+  const git = (...args) =>
+    spawnSync('git', ['-C', REPO, ...args], { encoding: 'utf-8' });
+
+  before(() => {
+    fs.mkdirSync(REPO, { recursive: true });
+    git('init', '-q');
+    git('config', 'user.email', 't@example.com');
+    git('config', 'user.name', 't');
+    git('config', 'commit.gpgsign', 'false');
+    fs.writeFileSync(path.join(REPO, 'a.txt'), 'one\n');
+    git('add', 'a.txt');
+    git('commit', '-q', '--no-verify', '-m', 'init');
+  });
+
+  beforeEach(() => {
+    git('checkout', '-q', '--', 'a.txt');
+    fs.rmSync(path.join(REPO, 'new.txt'), { force: true });
+  });
+
+  it('stays quiet on a tracked-clean tree, even with untracked files', () => {
+    fs.writeFileSync(path.join(REPO, 'new.txt'), 'untracked\n');
+    const r = runHook({ session_id: 's', agent_type: 'x', cwd: REPO });
+    assert.equal(r.parsed.continue, true);
+    assert.equal(r.parsed.systemMessage, undefined);
+    assert.equal(r.rows.length, 1, 'the cost row is still written');
+  });
+
+  it('warns (continue:true) when the main tree has a tracked change', () => {
+    fs.writeFileSync(path.join(REPO, 'a.txt'), 'two\n');
+    const r = runHook({ session_id: 's', agent_type: 'x', cwd: REPO });
+    assert.equal(r.parsed.continue, true);
+    assert.match(r.parsed.systemMessage, /1 tracked change after this subagent/);
+    assert.equal(r.rows.length, 1);
+  });
+
+  it('CCC_TRACKED_CLEAN_WARN=0 turns the warning off', () => {
+    fs.writeFileSync(path.join(REPO, 'a.txt'), 'two\n');
+    const r = runHook({ session_id: 's', agent_type: 'x', cwd: REPO }, { CCC_TRACKED_CLEAN_WARN: '0' });
+    assert.equal(r.parsed.systemMessage, undefined);
+  });
+
+  it('stays quiet outside a git repo', () => {
+    const plain = path.join(TMP_HOME, 'plain');
+    fs.mkdirSync(plain, { recursive: true });
+    const r = runHook({ session_id: 's', agent_type: 'x', cwd: plain }, { GIT_CEILING_DIRECTORIES: TMP_HOME });
+    assert.equal(r.parsed.continue, true);
+    assert.equal(r.parsed.systemMessage, undefined);
+  });
+});

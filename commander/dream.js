@@ -3,10 +3,9 @@
 var knowledge = require("./knowledge");
 var fs = require("fs");
 var path = require("path");
-var os = require("os");
 
-var KNOWLEDGE_DIR = path.join(os.homedir(), ".claude", "commander", "knowledge");
-var ARCHIVE_DIR = path.join(os.homedir(), ".claude", "commander", "knowledge-archive");
+var KNOWLEDGE_DIR = path.join(require("./lib/lane").resolveLane().stateDir, "knowledge");
+var ARCHIVE_DIR = path.join(require("./lib/lane").resolveLane().stateDir, "knowledge-archive");
 
 function consolidate() {
   var lessons = knowledge.loadAllLessons();

@@ -52,8 +52,8 @@
  */
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { readableStateDir } from './lane-state.js';
 import { fileURLToPath } from 'node:url';
 
 import { buildDeckHtml } from './console-render.js';
@@ -66,8 +66,7 @@ const SAMPLE_MAX = 240;
 const SIGNATURE_MAX = 160;
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
 }
 
 function toMs(value) {

@@ -12,8 +12,8 @@
 
 set -euo pipefail
 
-CLAUDE_DIR="${XDG_CONFIG_HOME:-$HOME/.claude}"
-# Normalize: when XDG_CONFIG_HOME is unset this evaluates to $HOME/.claude (default).
+# Claude Code's config dir: CLAUDE_CONFIG_DIR when set, else ~/.claude.
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
 FORCE=false
 
@@ -93,7 +93,7 @@ fi
 safe_rm_rf() {
   local target="$1"
   local label="$2"
-  if [[ "$target" != *"/.claude"* && "$target" != "${XDG_CONFIG_HOME:-}/"* ]]; then
+  if [[ "$target" != *"/.claude"* && ( -z "${CLAUDE_CONFIG_DIR:-}" || "$target" != "${CLAUDE_CONFIG_DIR}/"* ) ]]; then
     echo "❌ Refusing to rm -rf outside a .claude config dir — got: $target"
     exit 1
   fi

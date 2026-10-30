@@ -1,0 +1,6 @@
+interface:
+  display_name: "File PR"
+  short_description: "File a concise draft pull request"
+  default_prompt: "Use $ccc-file-pr to file a concise pull request for this branch."
+policy:
+  allow_implicit_invocation: false

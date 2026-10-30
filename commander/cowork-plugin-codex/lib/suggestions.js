@@ -22,8 +22,8 @@
  * Core free forever — no license check, no tier gating.
  */
 import { access, appendFile, mkdir, readFile, rename, stat } from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { readableStateDir, stateDir } from './lane-state.js';
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 const IDEA_MAX = 200;
@@ -50,8 +50,7 @@ function detectSourceApp() {
 const SOURCE_APP = detectSourceApp();
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
 }
 
 function suggestionsDir(baseDir) {
@@ -164,7 +163,8 @@ async function appendSuggestion(entry, { baseDir } = {}) {
     const id = entry.id;
     if (id === null || id === undefined || String(id).trim() === '') return false;
 
-    const root = baseDir || defaultBaseDir();
+    // Writes go to the lane's own dir; defaultBaseDir() may be the legacy read fallback.
+    const root = baseDir || stateDir();
     const dir = suggestionsDir(root);
     const file = suggestionsFile(root);
 
@@ -205,7 +205,8 @@ async function appendStatus(entry, { baseDir } = {}) {
     const status = entry.status;
     if (status !== 'promoted' && status !== 'dismissed') return false;
 
-    const root = baseDir || defaultBaseDir();
+    // Writes go to the lane's own dir; defaultBaseDir() may be the legacy read fallback.
+    const root = baseDir || stateDir();
     const dir = suggestionsDir(root);
     const file = suggestionsFile(root);
 

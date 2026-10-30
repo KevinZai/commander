@@ -175,7 +175,9 @@ test('CC-1397: falls back to normalized-name + session/time join when neither si
 test('CC-1397: does not cross-join mismatched agent_ids in the same session', async () => {
   const baseDir = await makeBase({
     subagent: [start({ agent_name: null, agent_id: 'agent-aaa' })],
-    agent: [stop({ agent: 'unknown', agentId: 'agent-bbb' })],
+    // internal:false = a dispatched agent (logged by the logger); without it this
+    // nameless, start-less stop is a Claude Code internal agent and is skipped (CC-2120).
+    agent: [stop({ agent: 'unknown', agentId: 'agent-bbb', internal: false })],
   });
   const model = await buildMissionModel({ baseDir, now: NOW });
 

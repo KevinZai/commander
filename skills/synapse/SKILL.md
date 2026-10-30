@@ -29,15 +29,15 @@ For session overview, render as markdown table:
 ```
 | Agent | Status | Tokens | Cost | Duration | Tools |
 |-------|--------|--------|------|----------|-------|
-| Alfred | active | 45K in / 12K out | $0.23 | 14m | 28 |
-| Morpheus | idle | 120K in / 35K out | $0.89 | 42m | 67 |
+| Alfred | active | 45K in / 12K out | \$0.23 | 14m | 28 |
+| Morpheus | idle | 120K in / 35K out | \$0.89 | 42m | 67 |
 ```
 
 For token usage, render ASCII bars:
 ```
-Alfred    [████████░░░░░░░░]  45K tokens  $0.23
-Morpheus  [████████████████]  120K tokens  $0.89
-Viper     [██░░░░░░░░░░░░░░]  8K tokens   $0.04
+Alfred    [████████░░░░░░░░]  45K tokens  \$0.23
+Morpheus  [████████████████]  120K tokens  \$0.89
+Viper     [██░░░░░░░░░░░░░░]  8K tokens   \$0.04
 ```
 
 ### After every action, suggest next steps via AskUserQuestion:

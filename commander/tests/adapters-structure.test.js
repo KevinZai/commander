@@ -53,7 +53,7 @@ test('MCP adapter directories have README, install guide, and config templates',
   }
 });
 
-test('MCP adapter config templates point at hosted Commander MCP and are keyless', function() {
+test('MCP adapter config templates point at hosted Commander /mcp with a Bearer token from the environment', function() {
   for (var adapter of MCP_ADAPTERS) {
     var files = listAdapterFiles(adapter).filter(function(fileName) {
       return fileName.endsWith('-mcp-config.template.json');
@@ -67,11 +67,15 @@ test('MCP adapter config templates point at hosted Commander MCP and are keyless
 
     var server = parsed.mcpServers['cc-commander'];
     var endpoint = server.url || server.serverUrl;
-    assert.strictEqual(endpoint, 'https://mcp.commanderplugin.com/v1/sse');
-    // Keyless model (v7.4.2): the hosted endpoint is free with an anti-abuse
-    // cap — no Authorization header, no license key, in any shipped config.
-    assert.strictEqual(server.headers, undefined, adapter + ' template must not send auth headers');
-    assert.ok(!/LICENSE_KEY|Authorization/i.test(raw), adapter + ' template must be keyless');
+    // Live endpoint (verified 2026-10-23): /mcp is MCP Streamable HTTP and
+    // returns 401 without a Bearer token; /sse is 404. The protected-resource
+    // metadata advertises no authorization server, so clients cannot OAuth in
+    // and must send the token as a header.
+    assert.strictEqual(endpoint, 'https://mcp.commanderplugin.com/mcp');
+    assert.ok(server.headers, adapter + ' template must send an Authorization header');
+    assert.strictEqual(server.headers.Authorization, 'Bearer ${env:COMMANDER_TOKEN}',
+      adapter + ' template must read the token from the environment, never inline it');
+    assert.ok(!/\/sse\b/.test(raw), adapter + ' template must not point at an SSE path');
   }
 });
 

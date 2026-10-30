@@ -129,7 +129,7 @@ Three tiers is the standard. Not because of tradition — because it anchors per
 - For high-value customers with enterprise needs
 - May be "Contact us" or custom pricing
 - Unlocks: SSO, audit logs, SLA, dedicated support, custom contracts
-- If you have enterprise deals >$1k MRR, this tier exists to capture them
+- If you have enterprise deals >\$1k MRR, this tier exists to capture them
 
 ### What Goes in Each Tier
 

@@ -14,7 +14,7 @@ import { Hono } from "hono";
 import { StreamableHTTPTransport } from "@hono/mcp";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { TOOL_NAMES, TOOL_SCHEMAS, type ToolName } from "../tools/index.js";
+import { TOOL_NAMES, TOOL_SCHEMAS, type ToolAnnotations, type ToolName } from "../tools/index.js";
 import type { AuthContext } from "../middleware/auth.js";
 import { SERVER_VERSION } from "../lib/version.js";
 import { logger } from "../lib/logger.js";
@@ -26,16 +26,29 @@ export type McpTransportDeps = {
     auth: AuthContext
   ) => Promise<unknown>;
   recordCall?: (tool: string, latencyMs: number, isError: boolean) => void;
-  captureEvent?: (userId: string, event: string, props: Record<string, unknown>) => void;
 };
 
-function toolList(): { name: string; description?: string; inputSchema: object }[] {
+// Annotations ride along on tools/list: clients use readOnlyHint/idempotentHint
+// to decide, e.g., whether a failed HTTP tool call is safe to retry.
+function toolList(): {
+  name: string;
+  title?: string;
+  description?: string;
+  inputSchema: object;
+  annotations?: ToolAnnotations;
+}[] {
   return TOOL_NAMES.map((name) => {
-    const schema = TOOL_SCHEMAS[name] as { description?: string; inputSchema?: object };
+    const schema = TOOL_SCHEMAS[name] as {
+      description?: string;
+      inputSchema?: object;
+      annotations?: ToolAnnotations;
+    };
     return {
       name,
+      title: schema.annotations?.title,
       description: schema.description,
       inputSchema: schema.inputSchema ?? { type: "object" },
+      annotations: schema.annotations,
     };
   });
 }
@@ -60,33 +73,18 @@ export function buildMcpServer(auth: AuthContext, deps: McpTransportDeps): Serve
     }
 
     // PRIVACY: mirror the /v1 handler — `args` are never logged or sent to
-    // PostHog. Tool inputs are processed transiently and not retained.
+    // any third party. Tool inputs are processed transiently and not retained.
     const t0 = Date.now();
     try {
       const result = await deps.dispatchTool(tool, args, auth);
       const latency = Date.now() - t0;
       deps.recordCall?.(tool, latency, false);
-      deps.captureEvent?.(auth.userId, "mcp_tool_called", {
-        tool,
-        tier: auth.tier,
-        latency_ms: latency,
-        success: true,
-        transport: "streamable-http",
-      });
       return {
         content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
       };
     } catch (err) {
       const latency = Date.now() - t0;
       deps.recordCall?.(tool, latency, true);
-      deps.captureEvent?.(auth.userId, "mcp_tool_called", {
-        tool,
-        tier: auth.tier,
-        latency_ms: latency,
-        success: false,
-        error_class: (err as Error).constructor?.name ?? "Error",
-        transport: "streamable-http",
-      });
       logger.error(
         { err: (err as Error).message, tool, userId: auth.userId },
         "MCP tool call error"

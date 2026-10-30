@@ -131,7 +131,7 @@ Creates effective data visualizations — from simple charts to interactive dash
    - **Remove chart junk:** no 3D effects, no unnecessary gridlines, no decorative elements
    - **Responsive:** use `ResponsiveContainer` or CSS-based sizing
    - **Accessible:** include alt text, ensure sufficient color contrast, don't rely on color alone
-   - **Format numbers:** use abbreviations for large numbers ($1.2M not $1,234,567)
+   - **Format numbers:** use abbreviations for large numbers (\$1.2M not \$1,234,567)
 
 ## Output Format
 

@@ -55,8 +55,9 @@
  * Core free forever — no license check, no tier gating.
  */
 import fsp from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { readableStateDir, stateDir } from './lane-state.js';
+import { withoutInternalRuns } from './agent-runs.js';
 
 // formatDuration/taskBucket live in ./console-render.js (they format and
 // classify for display) — imported rather than re-declared here, and re-exported
@@ -114,8 +115,7 @@ function personaFor(sourceApp, name) {
 }
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
 }
 
 function toMs(value) {
@@ -136,8 +136,9 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
   let raw;
   try {
     raw = await fsp.readFile(filePath, 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    // A missing file is empty; any other failure means the rows are unknown.
+    return Object.assign([], { incomplete: error?.code !== 'ENOENT' });
   }
 
   const lines = raw.split('\n').filter((line) => line.trim());
@@ -154,6 +155,8 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
       continue;
     }
   }
+  // Older records were cut off; agent-runs.js needs this to judge absence.
+  entries.incomplete = lines.length > maxLines;
   return entries;
 }
 
@@ -794,7 +797,7 @@ function summarize(agents, tasks, nowMs, awaitingPermission, suggestions = []) {
 async function readModel({ baseDir, now } = {}) {
   const root = baseDir || defaultBaseDir();
 
-  const [starts, stops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
+  const [starts, rawStops, taskEntries, rawEventEntries, suggestionEntries] = await Promise.all([
     readJsonl(path.join(root, 'subagent-runs.jsonl')),
     readJsonl(path.join(root, 'agent-runs.jsonl')),
     readJsonl(path.join(root, 'tasks.jsonl')),
@@ -802,6 +805,8 @@ async function readModel({ baseDir, now } = {}) {
     readJsonl(path.join(root, 'mission-control', 'suggestions.jsonl')),
   ]);
   const eventEntries = dedupeById(rawEventEntries);
+  // Claude Code's internal agents would show up as orphan "unknown" agents (CC-2120).
+  const stops = withoutInternalRuns(rawStops, starts);
 
   const nowMs = toMs(now) ?? Date.now();
 
@@ -830,7 +835,7 @@ async function readModel({ baseDir, now } = {}) {
   const suggestions = latestSuggestions(suggestionEntries);
   const summary = summarize(agents, tasks, nowMs, awaitingPermission, suggestions);
   const [metrics, topSkills] = await Promise.all([
-    getMetrics({ baseDir: root, now: nowMs }).catch(() => []),
+    getMetrics({ baseDir: root, writeDir: baseDir || stateDir(), now: nowMs }).catch(() => []),
     readTopSkills({ baseDir: root, now: nowMs }).catch(() => []),
   ]);
 

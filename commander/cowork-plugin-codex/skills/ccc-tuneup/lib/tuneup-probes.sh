@@ -22,6 +22,9 @@
 
 set -euo pipefail
 
+# Lane state dir: CCC_CONFIG_DIR, then CLAUDE_CONFIG_DIR, then ~/.claude.
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+
 # ---------------------------------------------------------------------------
 # SECTION:CLONE
 # ---------------------------------------------------------------------------
@@ -92,7 +95,7 @@ echo "JUNK_TEMP=${JUNK_TEMP:-0}"
 JUNK_BAK=$(find "$HOME/.claude" -maxdepth 5 \
   \( -name "*.bak" -o -name "*.old" -o -name "*.backup-*" \) \
   -mtime +14 \
-  -not -path "$HOME/.claude/commander/tuneup-archive/*" \
+  -not -path "$CCC_STATE/tuneup-archive/*" -not -path "$HOME/.claude/commander/tuneup-archive/*" \
   2>/dev/null | wc -l | tr -d ' ')
 echo "JUNK_BAK=$JUNK_BAK"
 
@@ -176,7 +179,9 @@ fi
 echo "INSTALLED_VERSION=$INSTALLED_VERSION"
 
 # Cached remote version (< 4h old)
-CACHE="$HOME/.claude/commander/update-cache.json"
+CACHE="$CCC_STATE/update-cache.json"
+# commander/update-check.js writes the shared ~/.claude/commander cache; read it when this lane has no copy
+[ -f "$CACHE" ] || CACHE="$HOME/.claude/commander/update-cache.json"
 CACHED_REMOTE_VERSION=$(node -e "
   try {
     const fs=require('fs');
